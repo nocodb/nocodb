@@ -140,7 +140,7 @@ show_menu() {
     clear
     check_if_docker_is_running
     echo ""
-    echo $MSG
+    echo "$MSG"
     echo -e "\t\t${BOLD}Service Management Menu${NC}"
     echo -e " ${GREEN}1. Start Service"
     echo -e " ${ORANGE}2. Stop Service"
@@ -173,13 +173,13 @@ show_logs_sub_menu() {
     echo "A. All"
     echo "0. Back to Logs Menu"
     echo "Enter replica number: "
-    read replica_choice
+    read -r replica_choice
 
     if [[ "$replica_choice" =~ ^[0-9]+$ ]] && [ "$replica_choice" -gt 0 ] && [ "$replica_choice" -le "$2" ]; then
         container_id=$($DOCKER_COMMAND compose ps | grep "$1-$replica_choice" | cut -d " " -f 1)
         $DOCKER_COMMAND logs -f "$container_id"
     elif [ "$replica_choice" == "A" ] || [ "$replica_choice" == "a" ]; then
-        $DOCKER_COMMAND compose logs -f $1
+        $DOCKER_COMMAND compose logs -f "$1"
     elif [ "$replica_choice" == "0" ]; then
         show_logs
     else
@@ -205,7 +205,7 @@ show_logs() {
     # For each service, count the number of running instances
     for service in "${services[@]}"; do
         # Count the number of lines that have the service name, which corresponds to the number of replicas
-        replicas=$($DOCKER_COMMAND compose ps $service | grep "$service" | wc -l)
+        replicas=$($DOCKER_COMMAND compose ps "$service" | grep -c "$service")
         service_replicas["$count"]=$replicas
         count=$((count + 1))
     done
@@ -220,7 +220,7 @@ show_logs() {
     echo "A. All"
     echo "0. Back to main menu"
     echo "Enter your choice: "
-    read log_choice
+    read -r log_choice
     echo
 
     if [[ "$log_choice" =~ ^[0-9]+$ ]] && [ "$log_choice" -gt 0 ] && [ "$log_choice" -lt "$count" ]; then
@@ -268,14 +268,14 @@ scale_service() {
     current_scale=$($DOCKER_COMMAND compose ps -q nocodb | wc -l)
     echo -e "\nCurrent number of instances: $current_scale"
     echo "How many instances of NocoDB do you want to run (Maximum: ${num_cores}) ? (default: 1): "
-    scale_num=$(read_number_range 1 $num_cores)
+    scale_num=$(read_number_range 1 "$num_cores")
 
-    if [ $scale_num -eq $current_scale ]; then
+    if [ "$scale_num" -eq "$current_scale" ]; then
         echo "Number of instances is already set to $scale_num. Returning to main menu."
         return
     fi
 
-    $DOCKER_COMMAND compose up -d --scale nocodb=$scale_num
+    $DOCKER_COMMAND compose up -d --scale nocodb="$scale_num"
 }
 
 # Function for basic monitoring
@@ -292,7 +292,7 @@ management_menu() {
       show_menu
       echo "Enter your choice: "
 
-      read choice
+      read -r choice
       case $choice in
           1) start_service && MSG="NocoDB Started" ;;
           2) stop_service && MSG="NocoDB Stopped" ;;
@@ -344,7 +344,8 @@ if [ "$NOCO_FOUND" = true ]; then
     read -r REINSTALL
 
     if [ -f "$NOCO_HOME/.COMPOSE_PROJECT_NAME" ]; then
-        export COMPOSE_PROJECT_NAME=$(cat "$NOCO_HOME/.COMPOSE_PROJECT_NAME")
+        COMPOSE_PROJECT_NAME=$(cat "$NOCO_HOME/.COMPOSE_PROJECT_NAME")
+        export COMPOSE_PROJECT_NAME
     fi
 
     if [ "$REINSTALL" != "Y" ] && [ "$REINSTALL" != "y" ]; then
@@ -355,7 +356,7 @@ if [ "$NOCO_FOUND" = true ]; then
         $DOCKER_COMMAND compose down
 
         unset COMPOSE_PROJECT_NAME
-        cd /tmp
+        cd /tmp || exit 1
         rm -rf "$NOCO_HOME"
 
         mkdir -p "$NOCO_HOME"

@@ -114,7 +114,7 @@ class ModelXcMetaPg extends BaseModelXcMeta {
         str = 'date';
         break;
       case 'double precision':
-        str = 'double';
+        str = 'float';
         break;
       case 'event_trigger':
         str = 'event_trigger';
@@ -430,13 +430,12 @@ class ModelXcMetaPg extends BaseModelXcMeta {
         return 'date';
       case 'daterange':
         return 'string';
-      case 'double precision':
-        return 'string';
 
       case 'event_trigger':
       case 'fdw_handler':
         return dt;
 
+      case 'double precision':
       case 'float4':
       case 'float8':
         return 'float';

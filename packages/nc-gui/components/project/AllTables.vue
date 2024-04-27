@@ -127,6 +127,26 @@ const onCreateBaseClick = () => {
           <div class="label">{{ $t('labels.connectDataSource') }}</div>
         </div>
       </component>
+      <component :is="isDataSourceLimitReached ? NcTooltip : 'div'" v-if="isUIAllowed('sourceCreate')">
+        <template #title>
+          <div>
+            {{ $t('tooltip.reachedSourceLimit') }}
+          </div>
+        </template>
+        <div
+          v-e="['c:table:create-source']"
+          role="button"
+          class="nc-base-view-all-table-btn"
+          data-testid="proj-view-btn__create-source"
+          :class="{
+            disabled: isDataSourceLimitReached,
+          }"
+          @click="onCreateBaseClick"
+        >
+          
+          <div class="label">{{ $t('labels.modifyBaseLimit') }}</div>
+        </div>
+      </component>
     </div>
     <div
       v-if="base?.isLoading"

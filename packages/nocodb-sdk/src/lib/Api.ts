@@ -296,7 +296,8 @@ export interface SourceType {
     | 'oracledb'
     | 'pg'
     | 'snowflake'
-    | 'sqlite3';
+    | 'sqlite3'
+    | 'databricks';
 }
 
 /**
@@ -342,7 +343,8 @@ export interface BaseReqType {
     | 'oracledb'
     | 'pg'
     | 'snowflake'
-    | 'sqlite3';
+    | 'sqlite3'
+    | 'databricks';
 }
 
 /**
@@ -2913,6 +2915,87 @@ export type NestedListCopyPasteOrDeleteAllReqType = {
   columnId: string;
   fk_related_model_id: string;
 }[];
+
+/**
+ * Model for Kanban Column Request
+ */
+export interface KanbanColumnReqType {
+  /** Title */
+  title?: string;
+  /** Is this column shown? */
+  show?: BoolType;
+  /**
+   * Column Order
+   * @example 1
+   */
+  order?: number;
+}
+
+/**
+ * Model for Gallery Column Request
+ */
+export interface GalleryColumnReqType {
+  /** Show */
+  show?: BoolType;
+  /**
+   * Order
+   * @example 1
+   */
+  order?: number;
+}
+
+/**
+ * Model for Calendar Column Request
+ */
+export interface CalendarColumnReqType {
+  /** Is this column shown? */
+  show?: BoolType;
+  /** Is this column shown as bold? */
+  bold?: BoolType;
+  /** Is this column shown as italic? */
+  italic?: BoolType;
+  /** Is this column shown underlines? */
+  underline?: BoolType;
+  /**
+   * Column Order
+   * @example 1
+   */
+  order?: number;
+}
+
+export interface ExtensionType {
+  /** Unique ID */
+  id?: IdType;
+  /** Unique Base ID */
+  base_id?: IdType;
+  /** Unique User ID */
+  fk_user_id?: IdType;
+  /** Extension ID */
+  extension_id?: string;
+  /** Extension Title */
+  title?: string;
+  /** Key Value Store for the extension */
+  kv_store?: MetaType;
+  /** Meta data for the extension */
+  meta?: MetaType;
+  /** Order of the extension */
+  order?: number;
+}
+
+export interface ExtensionReqType {
+  /** Unique Base ID */
+  base_id?: IdType;
+  /** Extension Title */
+  title?: string;
+  /** Extension ID */
+  extension_id?: string;
+  /** Key Value Store for the extension */
+  kv_store?: MetaType;
+  /** Meta data for the extension */
+  meta?: MetaType;
+  /** Order of the extension */
+  order?: number;
+}
 
 import type {
   AxiosInstance,
@@ -9819,7 +9902,8 @@ export class Api<
           | 'oracledb'
           | 'pg'
           | 'snowflake'
-          | 'sqlite3';
+          | 'sqlite3'
+          | 'databricks';
         connection?: {
           host?: string;
           port?: string;
@@ -9880,7 +9964,7 @@ export class Api<
    * DB Type
    * @example mysql2
    *\
-  client?: "mssql" | "mysql" | "mysql2" | "oracledb" | "pg" | "snowflake" | "sqlite3",
+  client?: "mssql" | "mysql" | "mysql2" | "oracledb" | "pg" | "snowflake" | "sqlite3" | "databricks",
   \** Connection Config *\
   connection?: {
   \** DB User *\
@@ -9926,7 +10010,8 @@ export class Api<
             | 'oracledb'
             | 'pg'
             | 'snowflake'
-            | 'sqlite3';
+            | 'sqlite3'
+            | 'databricks';
           /** Connection Config */
           connection?: {
             /** DB User */
@@ -11450,6 +11535,104 @@ export class Api<
         query: query,
         body: data,
         type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+  };
+  extensions = {
+    /**
+ * @description Get all extensions for a given base
+ * 
+ * @tags Extensions
+ * @name List
+ * @summary Get Extensions
+ * @request GET:/api/v2/extensions/{baseId}
+ * @response `200` `{
+  list?: (object)[],
+
+}` OK
+ */
+    list: (baseId: IdType, params: RequestParams = {}) =>
+      this.request<
+        {
+          list?: object[];
+        },
+        any
+      >({
+        path: `/api/v2/extensions/${baseId}`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Create a new extension for a given base
+     *
+     * @tags Extensions
+     * @name Create
+     * @summary Create Extension
+     * @request POST:/api/v2/extensions/{baseId}
+     * @response `200` `any` OK
+     */
+    create: (baseId: IdType, data: object, params: RequestParams = {}) =>
+      this.request<any, any>({
+        path: `/api/v2/extensions/${baseId}`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Get extension details
+     *
+     * @tags Extensions
+     * @name Read
+     * @summary Get Extension
+     * @request GET:/api/v2/extensions/{extensionId}
+     * @response `200` `object` OK
+     */
+    read: (extensionId: IdType, params: RequestParams = {}) =>
+      this.request<object, any>({
+        path: `/api/v2/extensions/${extensionId}`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Update extension details
+     *
+     * @tags Extensions
+     * @name Update
+     * @summary Update Extension
+     * @request PATCH:/api/v2/extensions/{extensionId}
+     * @response `200` `any` OK
+     */
+    update: (extensionId: IdType, data: object, params: RequestParams = {}) =>
+      this.request<any, any>({
+        path: `/api/v2/extensions/${extensionId}`,
+        method: 'PATCH',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Delete extension
+     *
+     * @tags Extensions
+     * @name Delete
+     * @summary Delete Extension
+     * @request DELETE:/api/v2/extensions/{extensionId}
+     * @response `200` `any` OK
+     */
+    delete: (extensionId: IdType, params: RequestParams = {}) =>
+      this.request<any, any>({
+        path: `/api/v2/extensions/${extensionId}`,
+        method: 'DELETE',
         format: 'json',
         ...params,
       }),

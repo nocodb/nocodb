@@ -437,6 +437,7 @@
     "noResultsMatchedYourSearch": "Your search did not yield any matching results"
   },
   "labels": {
+    "modifyBaseLimit": "Modify Base Limit",
     "selectYear": "Select Year",
     "save": "Save",
     "cancel": "Cancel",

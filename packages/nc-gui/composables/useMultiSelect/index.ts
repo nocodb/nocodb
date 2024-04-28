@@ -300,7 +300,10 @@ export function useMultiSelect(
     const blobHTML = new Blob([copyHTML], { type: 'text/html' })
     const blobPlainText = new Blob([copyPlainText], { type: 'text/plain' })
 
-    return navigator.clipboard.write([new ClipboardItem({ [blobHTML.type]: blobHTML, [blobPlainText.type]: blobPlainText })])
+    return (
+      navigator.clipboard?.write([new ClipboardItem({ [blobHTML.type]: blobHTML, [blobPlainText.type]: blobPlainText })]) ??
+      copy(copyPlainText)
+    )
   }
 
   async function copyValue(ctx?: Cell) {

@@ -1310,13 +1310,13 @@ async function reloadViewDataHandler(params: void | { shouldShowLoading?: boolea
   isViewDataLoading.value = false
 }
 
-const frame = ref()
+let frame: number | null = null
 
-useEventListener(scrollWrapper, 'scroll', (e) => {
-  if (frame.value) {
-    cancelAnimationFrame(frame.value)
+useEventListener(scrollWrapper, 'scroll', () => {
+  if (frame) {
+    cancelAnimationFrame(frame)
   }
-  frame.value = requestAnimationFrame(() => {
+  frame = requestAnimationFrame(() => {
     calculateSlices()
     refreshFillHandle()
   })
@@ -1612,7 +1612,6 @@ onKeyStroke('ArrowDown', onDown)
                   :style="{
                     left: `-${leftOffset}px`,
                   }"
-                  @dblclick="() => {}"
                 >
                   <div class="w-full h-full flex pl-2 pr-1 items-center" data-testid="nc-check-all">
                     <template v-if="!readOnly">

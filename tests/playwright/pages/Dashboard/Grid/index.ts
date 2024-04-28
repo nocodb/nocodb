@@ -132,7 +132,7 @@ export class GridPage extends BasePage {
     // fallback
     await this.rootPage.waitForTimeout(400);
 
-    await expect(this.get().locator('.nc-grid-row')).toHaveCount(rowCount);
+    await expect(this.get().locator(`[data-testid="grid-row-${rowCount - 1}"]`)).toHaveCount(1);
 
     await this._fillRow({ index, columnHeader, value: rowValue });
 

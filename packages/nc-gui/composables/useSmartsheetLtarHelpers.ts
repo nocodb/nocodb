@@ -33,6 +33,9 @@ const [useProvideSmartsheetLtarHelpers, useSmartsheetLtarHelpers] = useInjection
     const { metas } = useMetas()
 
     const getRowLtarHelpers = (row: Row) => {
+      if (!row.rowMeta) {
+        row.rowMeta = {}
+      }
       if (!row.rowMeta.ltarState) {
         row.rowMeta.ltarState = {}
       }

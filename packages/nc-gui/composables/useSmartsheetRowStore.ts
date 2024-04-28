@@ -1,47 +1,42 @@
 import type { MaybeRef } from '@vueuse/core'
-import {
-  computed,
-  ref,
-  unref,
-  useInjectionState,
-} from '#imports'
+import { computed, ref, unref, useInjectionState } from '#imports'
 import type { Row } from '#imports'
 
-const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
-  (row: MaybeRef<Row>) => {
-    const currentRow = ref(row)
+const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState((row: MaybeRef<Row>) => {
+  const currentRow = ref(row)
 
-    // state
-    const state = computed({
-      get: () => currentRow.value?.rowMeta?.ltarState ?? {},
-      set: (value) => {
-        if (currentRow.value) {
-          currentRow.value.rowMeta.ltarState = value
+  // state
+  const state = computed({
+    get: () => currentRow.value?.rowMeta?.ltarState ?? {},
+    set: (value) => {
+      if (currentRow.value) {
+        if (!currentRow.value.rowMeta) {
+          currentRow.value.rowMeta = {}
         }
-      },
-    })
+        currentRow.value.rowMeta.ltarState = value
+      }
+    },
+  })
 
-    // getters
-    const isNew = computed(() => unref(row).rowMeta.new ?? false)
+  // getters
+  const isNew = computed(() => unref(row).rowMeta?.new ?? false)
 
-    const { addLTARRef, removeLTARRef, syncLTARRefs, loadRow, clearLTARCell, cleaMMCell } = useSmartsheetLtarHelpersOrThrow()
+  const { addLTARRef, removeLTARRef, syncLTARRefs, loadRow, clearLTARCell, cleaMMCell } = useSmartsheetLtarHelpersOrThrow()
 
-    return {
-      row,
-      state,
-      isNew,
-      // todo: use better name
-      addLTARRef: (...args: any) => addLTARRef(currentRow.value, ...args),
-      removeLTARRef: (...args: any) => removeLTARRef(currentRow.value, ...args),
-      syncLTARRefs: (...args: any) => syncLTARRefs(currentRow.value, ...args),
-      loadRow: (...args: any) => loadRow(currentRow.value, ...args),
-      currentRow,
-      clearLTARCell: (...args: any) => clearLTARCell(currentRow.value, ...args),
-      cleaMMCell: (...args: any) => cleaMMCell(currentRow.value, ...args),
-    }
-  },
-  'smartsheet-row-store',
-)
+  return {
+    row,
+    state,
+    isNew,
+    // todo: use better name
+    addLTARRef: (...args: any) => addLTARRef(currentRow.value, ...args),
+    removeLTARRef: (...args: any) => removeLTARRef(currentRow.value, ...args),
+    syncLTARRefs: (...args: any) => syncLTARRefs(currentRow.value, ...args),
+    loadRow: (...args: any) => loadRow(currentRow.value, ...args),
+    currentRow,
+    clearLTARCell: (...args: any) => clearLTARCell(currentRow.value, ...args),
+    cleaMMCell: (...args: any) => cleaMMCell(currentRow.value, ...args),
+  }
+}, 'smartsheet-row-store')
 
 export { useProvideSmartsheetRowStore }
 

@@ -445,6 +445,22 @@ const showSkeleton = computed(
     !meta.value,
 )
 
+const cellMeta = computed(() => {
+  return dataRef.value.map((row) => {
+    return fields.value.map((col) => {
+      return {
+        isColumnRequiredAndNull: isColumnRequiredAndNull(col, row.row),
+        isLookup: isLinksOrLTAR(col),
+        isRollup: isBt(col),
+        isFormula: isFormula(col),
+        isCreatedOrLastModifiedTimeCol: isCreatedOrLastModifiedTimeCol(col),
+        isCreatedOrLastModifiedByCol: isCreatedOrLastModifiedByCol(col),
+      }
+    })
+  })
+})
+
+
 // #Grid
 
 function openColumnCreate(data: any) {
@@ -553,7 +569,8 @@ const getContainerScrollForElement = (
 }
 
 const {
-  isCellSelected,
+  selectRangeMap,
+  fillRangeMap,
   activeCell,
   handleMouseDown,
   handleMouseOver,
@@ -564,7 +581,6 @@ const {
   resetSelectedRange,
   makeActive,
   selectedRange,
-  isCellInFillRange,
   isFillMode,
 } = useMultiSelect(
   meta,
@@ -1932,22 +1948,22 @@ onKeyStroke('ArrowDown', onDown)
                         :key="fields[0].id"
                         class="cell relative nc-grid-cell cursor-pointer"
                         :class="{
-                          'active': isCellSelected(rowIndex, 0),
+                          'active': selectRangeMap[`${rowIndex}-0`],
                           'active-cell':
                             (activeCell.row === rowIndex && activeCell.col === 0) ||
                             (selectedRange._start?.row === rowIndex && selectedRange._start?.col === 0),
-                          'nc-required-cell': isColumnRequiredAndNull(fields[0], row.row) && !isPublicView,
+                          'nc-required-cell': cellMeta[rowIndex][0].isColumnRequiredAndNull && !isPublicView,
                           'align-middle': !rowHeight || rowHeight === 1,
                           'align-top': rowHeight && rowHeight !== 1,
-                          'filling': isCellInFillRange(rowIndex, 0),
+                          'filling': fillRangeMap[`${rowIndex}-0`],
                           'readonly':
-                            (isLookup(fields[0]) ||
-                              isRollup(fields[0]) ||
-                              isFormula(fields[0]) ||
-                              isCreatedOrLastModifiedTimeCol(fields[0]) ||
-                              isCreatedOrLastModifiedByCol(fields[0])) &&
+                            (cellMeta[rowIndex][0].isLookup ||
+                            cellMeta[rowIndex][0].isRollup ||
+                            cellMeta[rowIndex][0].isFormula ||
+                            cellMeta[rowIndex][0].isCreatedOrLastModifiedTimeCol ||
+                            cellMeta[rowIndex][0].isCreatedOrLastModifiedByCol) &&
                             hasEditPermission &&
-                            isCellSelected(rowIndex, 0),
+                            selectRangeMap[`${rowIndex}-0`],
                           '!border-r-blue-400 !border-r-3': toBeDroppedColId === fields[0].id,
                         }"
                         :style="{
@@ -2003,25 +2019,25 @@ onKeyStroke('ArrowDown', onDown)
                       </SmartsheetTableDataCell>
                       <SmartsheetTableDataCell
                         v-for="{ field: columnObj, index: colIndex } of visibleFields"
-                        :key="columnObj.id"
+                        :key="`cell-${colIndex}-${rowIndex}`"
                         class="cell relative nc-grid-cell cursor-pointer"
                         :class="{
-                          'active': isCellSelected(rowIndex, colIndex),
+                          'active': selectRangeMap[`${rowIndex}-${colIndex}`],
                           'active-cell':
                             (activeCell.row === rowIndex && activeCell.col === colIndex) ||
                             (selectedRange._start?.row === rowIndex && selectedRange._start?.col === colIndex),
-                          'nc-required-cell': isColumnRequiredAndNull(columnObj, row.row) && !isPublicView,
+                          'nc-required-cell': cellMeta[rowIndex][colIndex].isColumnRequiredAndNull && !isPublicView,
                           'align-middle': !rowHeight || rowHeight === 1,
                           'align-top': rowHeight && rowHeight !== 1,
-                          'filling': isCellInFillRange(rowIndex, colIndex),
+                          'filling': fillRangeMap[`${rowIndex}-${colIndex}`],
                           'readonly':
-                            (isLookup(columnObj) ||
-                              isRollup(columnObj) ||
-                              isFormula(columnObj) ||
-                              isCreatedOrLastModifiedTimeCol(columnObj) ||
-                              isCreatedOrLastModifiedByCol(columnObj)) &&
+                            (cellMeta[rowIndex][colIndex].isLookup ||
+                            cellMeta[rowIndex][colIndex].isRollup ||
+                            cellMeta[rowIndex][colIndex].isFormula ||
+                            cellMeta[rowIndex][colIndex].isCreatedOrLastModifiedTimeCol ||
+                            cellMeta[rowIndex][colIndex].isCreatedOrLastModifiedByCol) &&
                             hasEditPermission &&
-                            isCellSelected(rowIndex, colIndex),
+                            selectRangeMap[`${rowIndex}-${colIndex}`],
                           '!border-r-blue-400 !border-r-3': toBeDroppedColId === columnObj.id,
                         }"
                         :style="{

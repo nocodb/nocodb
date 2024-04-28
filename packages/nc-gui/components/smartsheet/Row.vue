@@ -18,9 +18,7 @@ const props = defineProps<{
 
 const currentRow = toRef(props, 'row')
 
-const { isNew, state } = useProvideSmartsheetRowStore(
-  currentRow,
-)
+const { isNew, state } = useProvideSmartsheetRowStore(currentRow)
 
 const reloadViewDataTrigger = inject(ReloadViewDataHookInj)!
 

@@ -350,7 +350,7 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
       },
       scope: defineViewScope({ view: view.value }),
     })
-    if ((isBt(columnObj) || isOo(columnObj))) await clearLTARCell(rowObj, columnObj)
+    if (isBt(columnObj) || isOo(columnObj)) await clearLTARCell(rowObj, columnObj)
 
     return
   }
@@ -459,7 +459,6 @@ const cellMeta = computed(() => {
     })
   })
 })
-
 
 // #Grid
 
@@ -961,10 +960,13 @@ const colPositions = computed(() => {
     .map((col) => {
       return +gridViewCols.value[col.id!]!.width!.replace('px', '') || 200
     })
-    .reduce((acc, width, i) => {
-      acc.push(acc[i] + width)
-      return acc
-    }, [0])
+    .reduce(
+      (acc, width, i) => {
+        acc.push(acc[i] + width)
+        return acc
+      },
+      [0],
+    )
 })
 
 const scrollWrapper = computed(() => scrollParent.value || gridWrapper.value)
@@ -979,13 +981,15 @@ function scrollToCell(row?: number | null, col?: number | null) {
       top: row * rowHeightInPx[`${props.rowHeight}`],
       left: colPositions.value[col],
       right:
-        col === fields.value.length - 1
-          ? colPositions.value[colPositions.value.length - 1] + 200
-          : colPositions.value[col + 1],
+        col === fields.value.length - 1 ? colPositions.value[colPositions.value.length - 1] + 200 : colPositions.value[col + 1],
       bottom: (row + 1) * rowHeightInPx[`${props.rowHeight}`],
     }
 
-    const tdScroll = getContainerScrollForElement(td, scrollWrapper.value, { top: 9, bottom: (tableHeadHeight.value || 40) + 9, right: 9 })
+    const tdScroll = getContainerScrollForElement(td, scrollWrapper.value, {
+      top: 9,
+      bottom: (tableHeadHeight.value || 40) + 9,
+      right: 9,
+    })
 
     // if first column set left to 0 since it's sticky it will be visible and calculated value will be wrong
     // setting left to 0 will make it scroll to the left
@@ -1227,10 +1231,7 @@ const refreshFillHandle = () => {
       // 32 for the header
       fillHandleTop.value = 32 + (rowIndex + 1) * rowHeightInPx[`${props.rowHeight}`]
       // 64 for the row number column
-      fillHandleLeft.value =
-        64 +
-        colPositions.value[colIndex + 1] +
-        (colIndex === 0 ? gridWrapper.value.scrollLeft : 0)
+      fillHandleLeft.value = 64 + colPositions.value[colIndex + 1] + (colIndex === 0 ? gridWrapper.value.scrollLeft : 0)
     }
   })
 }
@@ -1313,12 +1314,12 @@ const frame = ref()
 
 useEventListener(scrollWrapper, 'scroll', (e) => {
   if (frame.value) {
-    cancelAnimationFrame(frame.value);
+    cancelAnimationFrame(frame.value)
   }
   frame.value = requestAnimationFrame(() => {
     calculateSlices()
     refreshFillHandle()
-  });
+  })
 })
 
 useEventListener(document, 'mousedown', (e) => {
@@ -1577,8 +1578,8 @@ onKeyStroke('ArrowDown', onDown)
           <table
             class="xc-row-table nc-grid backgroundColorDefault !h-auto bg-white sticky top-0 z-5 bg-white"
             :class="{
-              'mobile': isMobileMode,
-              'desktop': !isMobileMode,
+              mobile: isMobileMode,
+              desktop: !isMobileMode,
             }"
             :style="{
               transform: `translateX(${leftOffset}px)`,
@@ -1604,10 +1605,7 @@ onKeyStroke('ArrowDown', onDown)
                   />
                 </td>
               </tr>
-              <tr
-                v-show="!isViewColumnsLoading"
-                class="nc-grid-header"
-              >
+              <tr v-show="!isViewColumnsLoading" class="nc-grid-header">
                 <th
                   class="w-[64px] min-w-[64px]"
                   data-testid="grid-id-column"
@@ -1958,10 +1956,10 @@ onKeyStroke('ArrowDown', onDown)
                           'filling': fillRangeMap[`${rowIndex}-0`],
                           'readonly':
                             (cellMeta[rowIndex][0].isLookup ||
-                            cellMeta[rowIndex][0].isRollup ||
-                            cellMeta[rowIndex][0].isFormula ||
-                            cellMeta[rowIndex][0].isCreatedOrLastModifiedTimeCol ||
-                            cellMeta[rowIndex][0].isCreatedOrLastModifiedByCol) &&
+                              cellMeta[rowIndex][0].isRollup ||
+                              cellMeta[rowIndex][0].isFormula ||
+                              cellMeta[rowIndex][0].isCreatedOrLastModifiedTimeCol ||
+                              cellMeta[rowIndex][0].isCreatedOrLastModifiedByCol) &&
                             hasEditPermission &&
                             selectRangeMap[`${rowIndex}-0`],
                           '!border-r-blue-400 !border-r-3': toBeDroppedColId === fields[0].id,
@@ -2032,10 +2030,10 @@ onKeyStroke('ArrowDown', onDown)
                           'filling': fillRangeMap[`${rowIndex}-${colIndex}`],
                           'readonly':
                             (cellMeta[rowIndex][colIndex].isLookup ||
-                            cellMeta[rowIndex][colIndex].isRollup ||
-                            cellMeta[rowIndex][colIndex].isFormula ||
-                            cellMeta[rowIndex][colIndex].isCreatedOrLastModifiedTimeCol ||
-                            cellMeta[rowIndex][colIndex].isCreatedOrLastModifiedByCol) &&
+                              cellMeta[rowIndex][colIndex].isRollup ||
+                              cellMeta[rowIndex][colIndex].isFormula ||
+                              cellMeta[rowIndex][colIndex].isCreatedOrLastModifiedTimeCol ||
+                              cellMeta[rowIndex][colIndex].isCreatedOrLastModifiedByCol) &&
                             hasEditPermission &&
                             selectRangeMap[`${rowIndex}-${colIndex}`],
                           '!border-r-blue-400 !border-r-3': toBeDroppedColId === columnObj.id,

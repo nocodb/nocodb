@@ -94,7 +94,11 @@ const [useProvideSmartsheetLtarHelpers, useSmartsheetLtarHelpers] = useInjection
     }
 
     /** sync LTAR relations kept in local state */
-    const syncLTARRefs = async (row: Row, rowData: Record<string, any>, { metaValue = meta.value }: { metaValue?: TableType } = {}) => {
+    const syncLTARRefs = async (
+      row: Row,
+      rowData: Record<string, any>,
+      { metaValue = meta.value }: { metaValue?: TableType } = {},
+    ) => {
       const id = extractPkFromRow(rowData, metaValue?.columns as ColumnType[])
       for (const column of metaValue?.columns ?? []) {
         if (!isLinksOrLTAR(column)) continue
@@ -118,7 +122,10 @@ const [useProvideSmartsheetLtarHelpers, useSmartsheetLtarHelpers] = useInjection
         } else if ((isBt(column) || isOo(column)) && getRowLtarHelpers(row)?.[column.title!]) {
           await linkRecord(
             id,
-            extractPkFromRow(getRowLtarHelpers(row)?.[column.title!] as Record<string, any>, relatedTableMeta.columns as ColumnType[]),
+            extractPkFromRow(
+              getRowLtarHelpers(row)?.[column.title!] as Record<string, any>,
+              relatedTableMeta.columns as ColumnType[],
+            ),
             column,
             colOptions.type as RelationTypes,
             { metaValue },

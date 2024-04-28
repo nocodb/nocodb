@@ -1102,15 +1102,16 @@ const rowSlice = ref({
 const VIRTUAL_MARGIN = 10
 
 const calculateSlices = () => {
+  // if the grid is not rendered yet
   if (!scrollWrapper.value || !gridWrapper.value) {
     colSlice.value = {
       start: 0,
-      end: Infinity,
+      end: 0,
     }
 
     rowSlice.value = {
       start: 0,
-      end: Infinity,
+      end: 0,
     }
     return
   }
@@ -1466,7 +1467,7 @@ watch(
   { immediate: true },
 )
 
-watch(() => fields.value.length, () => {
+watch([() => fields.value.length, () => dataRef.value.length], () => {
   calculateSlices()
 })
 

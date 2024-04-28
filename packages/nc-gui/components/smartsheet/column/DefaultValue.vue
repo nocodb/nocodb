@@ -7,8 +7,6 @@ const props = defineProps<{
 }>()
 const emits = defineEmits(['update:value'])
 
-const meta = inject(MetaInj, ref())
-
 provide(EditColumnInj, ref(true))
 
 const vModel = useVModel(props, 'value', emits)

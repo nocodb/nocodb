@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import type { Ref } from 'vue'
-import type { TableType } from 'nocodb-sdk'
 import type { Row } from '#imports'
 import {
   ReloadRowDataHookInj,

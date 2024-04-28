@@ -200,7 +200,7 @@ const tableBodyEl = ref<HTMLElement>()
 
 const fillHandle = ref<HTMLElement>()
 
-const { height: tableHeadHeight, width: tableHeadWidth } = useElementBounding(tableHeadEl)
+const { height: tableHeadHeight, width: _tableHeadWidth } = useElementBounding(tableHeadEl)
 
 const isViewColumnsLoading = computed(() => _isViewColumnsLoading.value || !meta.value)
 

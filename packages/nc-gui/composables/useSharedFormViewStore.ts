@@ -1,7 +1,6 @@
 import useVuelidate from '@vuelidate/core'
 import { helpers, minLength, required, sameAs } from '@vuelidate/validators'
 import dayjs from 'dayjs'
-import type { Ref } from 'vue'
 import type {
   BoolType,
   ColumnType,

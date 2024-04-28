@@ -59,8 +59,6 @@ const { isGallery, isGrid, isForm, isKanban, isLocked, isMap, isCalendar, xWhere
 
 useSqlEditor()
 
-const { isPanelExpanded } = useExtensions()
-
 const reloadViewDataEventHook = createEventHook()
 
 const reloadViewMetaEventHook = createEventHook<void | boolean>()

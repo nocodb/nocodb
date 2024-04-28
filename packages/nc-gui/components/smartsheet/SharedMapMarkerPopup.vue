@@ -1,7 +1,4 @@
 <script lang="ts" setup>
-import type { ColumnType, TableType } from 'nocodb-sdk'
-import type { Ref } from 'vue'
-
 import { isVirtualCol } from 'nocodb-sdk'
 import {
   ActiveViewInj,

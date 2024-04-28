@@ -28,7 +28,6 @@ const { gridViewPageSize, setGridViewPageSize } = useGlobal()
 const localPageSize = computed({
   get: () => {
     if (!showSizeChanger.value) return pageSize.value
-
     const storedPageSize = gridViewPageSize.value || 25
 
     if (pageSize.value !== storedPageSize) {
@@ -42,7 +41,6 @@ const localPageSize = computed({
     if (!val) {
       val = 25
     }
-    console.log(val)
     setGridViewPageSize(val)
     pageSize.value = val
   },
@@ -135,7 +133,6 @@ const pageListDropdownVisibleChange = (value: boolean) => {
   }
 }
 const pageSizeDropdownVisibleChange = (value: boolean) => {
-  console.log(localPageSize.value)
   if (!value && pageSizeRef.value) {
     pageSizeRef.value?.blur()
   }

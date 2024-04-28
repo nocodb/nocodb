@@ -171,17 +171,9 @@ const {
   predictedNextColumn,
   predictingNextFormulas,
   predictedNextFormulas,
-  predictNextColumn: _predictNextColumn,
-  predictNextFormulas: _predictNextFormulas,
+  predictNextColumn,
+  predictNextFormulas,
 } = useNocoEe().table
-
-const predictNextColumn = async () => {
-  await _predictNextColumn(meta)
-}
-
-const predictNextFormulas = async () => {
-  await _predictNextFormulas(meta)
-}
 
 const { paste } = usePaste()
 
@@ -198,8 +190,6 @@ const tableHeadEl = ref<HTMLElement>()
 const tableBodyEl = ref<HTMLElement>()
 
 const fillHandle = ref<HTMLElement>()
-
-const gridRect = useElementBounding(gridWrapper)
 
 const isViewColumnsLoading = computed(() => _isViewColumnsLoading.value || !meta.value)
 
@@ -533,10 +523,6 @@ const getContainerScrollForElement = (
     bottom: childPos.bottom - parentPos.height - container.scrollTop,
     top: childPos.top - container.scrollTop,
   }
-
-  console.log(relativePos, childPos)
-
-  console.log(container.scrollTop, parentPos.height)
 
   const scroll = {
     top: 0,
@@ -955,12 +941,16 @@ async function clearSelectedRangeOfCells() {
   await bulkUpdateRows?.(rows, props)
 }
 
-const colSizes = computed(() => {
+const colPositions = computed(() => {
   return fields.value
     .filter((col) => col.id && gridViewCols.value[col.id] && gridViewCols.value[col.id].width && gridViewCols.value[col.id].show)
     .map((col) => {
       return +gridViewCols.value[col.id!]!.width!.replace('px', '') || 200
     })
+    .reduce((acc, width, i) => {
+      acc.push(acc[i] + width)
+      return acc
+    }, [0])
 })
 
 const scrollWrapper = computed(() => scrollParent.value || gridWrapper.value)
@@ -973,11 +963,11 @@ function scrollToCell(row?: number | null, col?: number | null) {
     // calculate cell position
     const td = {
       top: row * rowHeightInPx[`${props.rowHeight}`],
-      left: colSizes.value.slice(0, col).reduce((acc, curr) => acc + curr, 0),
+      left: colPositions.value[col],
       right:
         col === fields.value.length - 1
-          ? colSizes.value.reduce((acc, curr) => acc + curr, 0) + 200
-          : colSizes.value.slice(0, col + 1).reduce((acc, curr) => acc + curr, 0),
+          ? colPositions.value[colPositions.value.length - 1] + 200
+          : colPositions.value[col + 1],
       bottom: (row + 1) * rowHeightInPx[`${props.rowHeight}`],
     }
 
@@ -1095,7 +1085,7 @@ const maxGridWidth = computed(() => {
   // 64 for the row number column
   // count first column twice because it's sticky
   // 100 for add new column
-  return colSizes.value.reduce((acc, curr) => acc + curr, 0) + colSizes.value[0] + 64 + 100
+  return colPositions.value[colPositions.value.length - 1] + colPositions.value[1] + 64 + 100
 })
 
 const maxGridHeight = computed(() => {
@@ -1113,7 +1103,7 @@ const rowSlice = ref({
   end: 0,
 })
 
-const VIRTUAL_MARGIN = 5
+const VIRTUAL_MARGIN = 10
 
 const calculateSlices = () => {
   if (!scrollWrapper.value || !gridWrapper.value) {
@@ -1129,33 +1119,50 @@ const calculateSlices = () => {
     return
   }
 
-  let renderEnd = 0
   let renderStart = 0
-  let renderStartFound = false
-  let renderEndFound = false
 
-  for (let i = 0; i < colSizes.value.length; i++) {
+  // use binary search to find the start and end columns
+
+  let startRange = 0
+  let endRange = colPositions.value.length - 1
+
+  while (endRange !== startRange) {
+    const middle = Math.floor((endRange - startRange) / 2 + startRange)
+
     if (
-      !renderStartFound &&
-      colSizes.value[i] + colSizes.value.slice(0, i).reduce((acc, curr) => acc + curr, 0) >= scrollWrapper.value.scrollLeft
+      colPositions.value[middle] <= scrollWrapper.value.scrollLeft &&
+      colPositions.value[middle + 1] > scrollWrapper.value.scrollLeft
     ) {
-      renderStart = Math.max(0, i - VIRTUAL_MARGIN)
-      renderStartFound = true
+      renderStart = middle
+      break
     }
 
-    if (
-      !renderEndFound &&
-      colSizes.value[i] + colSizes.value.slice(0, i).reduce((acc, curr) => acc + curr, 0) >=
-        scrollWrapper.value.scrollLeft + scrollWrapper.value.clientWidth
-    ) {
-      renderEnd = Math.max(0, i + VIRTUAL_MARGIN)
+    if (middle === startRange) {
+      renderStart = endRange
+      break
+    } else {
+      if (colPositions.value[middle] <= scrollWrapper.value.scrollLeft) {
+        startRange = middle
+      } else {
+        endRange = middle
+      }
+    }
+  }
+
+  let renderEnd = 0
+  let renderEndFound = false
+
+  for (let i = renderStart; i < colPositions.value.length; i++) {
+    if (colPositions.value[i] > gridWrapper.value.clientWidth + scrollWrapper.value.scrollLeft) {
+      renderEnd = i
       renderEndFound = true
+      break
     }
   }
 
   colSlice.value = {
-    start: renderStart,
-    end: renderEndFound ? renderEnd : colSizes.value.length,
+    start: Math.max(0, renderStart - VIRTUAL_MARGIN),
+    end: renderEndFound ? Math.min(fields.value.length, renderEnd + VIRTUAL_MARGIN) : fields.value.length,
   }
 
   const rowHeight = rowHeightInPx[`${props.rowHeight}`]
@@ -1174,8 +1181,7 @@ const calculateSlices = () => {
 const visibleFields = computed(() => {
   // return data as { field, index } to keep track of the index
   const vFields = fields.value.slice(colSlice.value.start, colSlice.value.end)
-  if (colSlice.value.start !== 0) vFields.unshift(fields.value[0])
-  return vFields.map((field, index) => ({ field, index: index === 0 ? 0 : index + colSlice.value.start }))
+  return vFields.map((field, index) => ({ field, index: index + colSlice.value.start })).filter((f) => f.index !== 0)
 })
 
 const visibleData = computed(() => {
@@ -1187,7 +1193,7 @@ const visibleData = computed(() => {
 })
 
 const leftOffset = computed(() => {
-  return colSizes.value.slice(0, colSlice.value.start).reduce((acc, curr) => acc + curr, 0)
+  return colSlice.value.start > 0 ? colPositions.value[colSlice.value.start] - colPositions.value[1] : 0
 })
 
 const topOffset = computed(() => {
@@ -1205,10 +1211,12 @@ const refreshFillHandle = () => {
     const colIndex = isNaN(selectedRange.end.col) ? activeCell.col : selectedRange.end.col
     if (rowIndex !== null && colIndex !== null) {
       if (!gridWrapper.value) return
+      // 32 for the header
       fillHandleTop.value = 32 + (rowIndex + 1) * rowHeightInPx[`${props.rowHeight}`]
+      // 64 for the row number column
       fillHandleLeft.value =
         64 +
-        colSizes.value.slice(0, colIndex + 1).reduce((acc, curr) => acc + curr, 0) +
+        colPositions.value[colIndex + 1] +
         (colIndex === 0 ? gridWrapper.value.scrollLeft : 0)
     }
   })
@@ -1234,8 +1242,8 @@ watch(
   [() => selectedRange.end.row, () => selectedRange.end.col, () => activeCell.row, () => activeCell.col],
   ([sr, sc, ar, ac], [osr, osc, oar, oac]) => {
     if (sr !== osr || sc !== osc || ar !== oar || ac !== oac) {
-      refreshFillHandle()
       calculateSlices()
+      refreshFillHandle()
     }
   },
 )
@@ -1286,9 +1294,16 @@ async function reloadViewDataHandler(params: void | { shouldShowLoading?: boolea
   isViewDataLoading.value = false
 }
 
-useEventListener(scrollWrapper, 'scroll', () => {
-  refreshFillHandle()
-  calculateSlices()
+const frame = ref()
+
+useEventListener(scrollWrapper, 'scroll', (e) => {
+  if (frame.value) {
+    cancelAnimationFrame(frame.value);
+  }
+  frame.value = requestAnimationFrame(() => {
+    calculateSlices()
+    refreshFillHandle()
+  });
 })
 
 useEventListener(document, 'mousedown', (e) => {
@@ -1434,6 +1449,7 @@ watch(
         isViewDataLoading.value = true
         try {
           await loadData?.()
+          calculateSlices()
         } catch (e) {
           if (!axios.isCancel(e)) {
             console.log(e)
@@ -1538,26 +1554,16 @@ onKeyStroke('ArrowDown', onDown)
         :trigger="isSqlView ? [] : ['contextmenu']"
         overlay-class-name="nc-dropdown-grid-context-menu"
       >
-        <div
-          class="table-overlay"
-          :class="{ 'nc-grid-skeleton-loader': showSkeleton }"
-          :style="{
-            height: `${maxGridHeight}px`,
-            width: `${maxGridWidth}px`,
-          }"
-        >
+        <div>
           <table
-            ref="smartTable"
-            class="xc-row-table nc-grid backgroundColorDefault !h-auto bg-white relative"
+            class="xc-row-table nc-grid backgroundColorDefault !h-auto bg-white sticky top-0 z-5 bg-white"
             :class="{
               'mobile': isMobileMode,
               'desktop': !isMobileMode,
-              'pr-60 pb-12': !headerOnly,
             }"
             :style="{
-              transform: `translateY(${topOffset}px) translateX(${leftOffset}px)`,
+              transform: `translateX(${leftOffset}px)`,
             }"
-            @contextmenu="showContextMenu"
           >
             <thead v-show="hideHeader !== true" ref="tableHeadEl">
               <tr v-if="isViewColumnsLoading">
@@ -1582,9 +1588,6 @@ onKeyStroke('ArrowDown', onDown)
               <tr
                 v-show="!isViewColumnsLoading"
                 class="nc-grid-header"
-                :style="{
-                  top: `-${topOffset}px`,
-                }"
               >
                 <th
                   class="w-[64px] min-w-[64px]"
@@ -1615,6 +1618,45 @@ onKeyStroke('ArrowDown', onDown)
                   </div>
                 </th>
                 <th
+                  v-if="fields[0]"
+                  v-xc-ver-resize
+                  :data-col="fields[0].id"
+                  :data-title="fields[0].title"
+                  :style="{
+                    'min-width': gridViewCols[fields[0].id]?.width || '180px',
+                    'max-width': gridViewCols[fields[0].id]?.width || '180px',
+                    'width': gridViewCols[fields[0].id]?.width || '180px',
+                    ...(leftOffset > 0
+                      ? {
+                          left: `-${leftOffset - 64}px`,
+                        }
+                      : {}),
+                  }"
+                  class="nc-grid-column-header"
+                  :class="{
+                    '!border-r-blue-400 !border-r-3': toBeDroppedColId === fields[0].id,
+                  }"
+                  @xcstartresizing="onXcStartResizing(fields[0].id, $event)"
+                  @xcresize="onresize(fields[0].id, $event)"
+                  @xcresizing="onXcResizing(fields[0].id, $event)"
+                  @click="selectColumn(fields[0].id!)"
+                >
+                  <div
+                    class="w-full h-full flex items-center text-gray-500 pl-2 pr-1"
+                    draggable="false"
+                    @dragstart.stop="onDragStart(fields[0].id!, $event)"
+                    @drag.stop="onDrag($event)"
+                    @dragend.stop="onDragEnd($event)"
+                  >
+                    <LazySmartsheetHeaderVirtualCell
+                      v-if="isVirtualCol(fields[0])"
+                      :column="fields[0]"
+                      :hide-menu="readOnly || isMobileMode"
+                    />
+                    <LazySmartsheetHeaderCell v-else :column="fields[0]" :hide-menu="readOnly || isMobileMode" />
+                  </div>
+                </th>
+                <th
                   v-for="{ field: col, index } in visibleFields"
                   :key="col.id"
                   v-xc-ver-resize
@@ -1624,11 +1666,6 @@ onKeyStroke('ArrowDown', onDown)
                     'min-width': gridViewCols[col.id]?.width || '180px',
                     'max-width': gridViewCols[col.id]?.width || '180px',
                     'width': gridViewCols[col.id]?.width || '180px',
-                    ...(index === 0 && leftOffset > 0
-                      ? {
-                          left: `-${leftOffset - 64}px`,
-                        }
-                      : {}),
                   }"
                   class="nc-grid-column-header"
                   :class="{
@@ -1775,216 +1812,308 @@ onKeyStroke('ArrowDown', onDown)
                 </th>
               </tr>
             </thead>
-            <tbody v-if="headerOnly !== true" ref="tableBodyEl">
-              <template v-if="showSkeleton">
-                <tr v-for="(row, rowIndex) of dummyRowDataForLoading" :key="rowIndex">
-                  <td
-                    v-for="(col, colIndex) of dummyColumnDataForLoading"
-                    :key="colIndex"
-                    class="border-b-1 border-r-1"
-                    :class="{ 'min-w-45': colIndex !== 0, 'min-w-16': colIndex === 0 }"
-                  ></td>
-                </tr>
-              </template>
-              <LazySmartsheetRow v-for="{ row, index: rowIndex } in visibleData" ref="rowRefs" :key="rowIndex" :row="row">
-                <template #default="{ state }">
-                  <tr
-                    v-show="!showSkeleton"
-                    class="nc-grid-row !xs:h-14"
-                    :class="{
-                      'active-row': activeCell.row === rowIndex || selectedRange._start?.row === rowIndex,
-                      'mouse-down': isGridCellMouseDown || isFillMode,
-                    }"
-                    :style="{ height: rowHeight ? `${rowHeightInPx[`${rowHeight}`]}px` : `${rowHeightInPx['1']}px` }"
-                    :data-testid="`grid-row-${rowIndex}`"
-                  >
+          </table>
+          <div
+            class="table-overlay"
+            :class="{ 'nc-grid-skeleton-loader': showSkeleton }"
+            :style="{
+              height: `${maxGridHeight}px`,
+              width: `${maxGridWidth}px`,
+            }"
+          >
+            <table
+              ref="smartTable"
+              class="xc-row-table nc-grid backgroundColorDefault !h-auto bg-white relative"
+              :class="{
+                'mobile': isMobileMode,
+                'desktop': !isMobileMode,
+                'pr-60 pb-12': !headerOnly,
+              }"
+              :style="{
+                transform: `translateY(${topOffset}px) translateX(${leftOffset}px)`,
+              }"
+              @contextmenu="showContextMenu"
+            >
+              <tbody v-if="headerOnly !== true" ref="tableBodyEl">
+                <template v-if="showSkeleton">
+                  <tr v-for="(row, rowIndex) of dummyRowDataForLoading" :key="rowIndex">
                     <td
-                      key="row-index"
-                      class="caption nc-grid-cell w-[64px] min-w-[64px]"
-                      :style="{
-                        left: `-${leftOffset}px`,
-                      }"
-                      :data-testid="`cell-Id-${rowIndex}`"
-                      @contextmenu="contextMenuTarget = null"
-                    >
-                      <div class="w-[60px] pl-2 pr-1 items-center flex gap-1">
-                        <div
-                          class="nc-row-no sm:min-w-4 text-xs text-gray-500"
-                          :class="{ toggle: !readOnly, hidden: row.rowMeta.selected }"
-                        >
-                          {{ ((paginationDataRef?.page ?? 1) - 1) * (paginationDataRef?.pageSize ?? 25) + rowIndex + 1 }}
-                        </div>
-                        <div
-                          v-if="!readOnly"
-                          :class="{
-                            hidden: !row.rowMeta.selected,
-                            flex: row.rowMeta.selected,
-                          }"
-                          class="nc-row-expand-and-checkbox"
-                        >
-                          <a-checkbox v-model:checked="row.rowMeta.selected" />
-                        </div>
-                        <span class="flex-1" />
-
-                        <div
-                          v-if="isUIAllowed('expandedForm')"
-                          class="nc-expand"
-                          :data-testid="`nc-expand-${rowIndex}`"
-                          :class="{ 'nc-comment': row.rowMeta?.commentCount }"
-                        >
-                          <a-spin
-                            v-if="row.rowMeta.saving"
-                            class="!flex items-center"
-                            :data-testid="`row-save-spinner-${rowIndex}`"
-                          />
-
-                          <span
-                            v-if="row.rowMeta?.commentCount && expandForm"
-                            v-e="['c:expanded-form:open']"
-                            class="py-1 px-1 rounded-full text-xs cursor-pointer select-none transform hover:(scale-110)"
-                            :style="{
-                              backgroundColor: getEnumColorByIndex(row.rowMeta.commentCount || 0),
-                            }"
-                            @click="expandAndLooseFocus(row, state)"
-                          >
-                            {{ row.rowMeta.commentCount }}
-                          </span>
-                          <div
-                            v-else-if="!row.rowMeta.saving"
-                            class="cursor-pointer flex items-center border-1 border-gray-100 active:ring rounded p-1 hover:(bg-gray-50)"
-                          >
-                            <component
-                              :is="iconMap.expand"
-                              v-if="expandForm"
-                              v-e="['c:row-expand:open']"
-                              class="select-none transform hover:(text-black scale-120) nc-row-expand"
-                              @click="expandAndLooseFocus(row, state)"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <SmartsheetTableDataCell
-                      v-for="{ field: columnObj, index: colIndex } of visibleFields"
-                      :key="columnObj.id"
-                      class="cell relative nc-grid-cell cursor-pointer"
-                      :class="{
-                        'active': isCellSelected(rowIndex, colIndex),
-                        'active-cell':
-                          (activeCell.row === rowIndex && activeCell.col === colIndex) ||
-                          (selectedRange._start?.row === rowIndex && selectedRange._start?.col === colIndex),
-                        'nc-required-cell': isColumnRequiredAndNull(columnObj, row.row) && !isPublicView,
-                        'align-middle': !rowHeight || rowHeight === 1,
-                        'align-top': rowHeight && rowHeight !== 1,
-                        'filling': isCellInFillRange(rowIndex, colIndex),
-                        'readonly':
-                          (isLookup(columnObj) ||
-                            isRollup(columnObj) ||
-                            isFormula(columnObj) ||
-                            isCreatedOrLastModifiedTimeCol(columnObj) ||
-                            isCreatedOrLastModifiedByCol(columnObj)) &&
-                          hasEditPermission &&
-                          isCellSelected(rowIndex, colIndex),
-                        '!border-r-blue-400 !border-r-3': toBeDroppedColId === columnObj.id,
-                      }"
-                      :style="{
-                        'min-width': gridViewCols[columnObj.id]?.width || '180px',
-                        'max-width': gridViewCols[columnObj.id]?.width || '180px',
-                        'width': gridViewCols[columnObj.id]?.width || '180px',
-                        ...(colIndex === 0 && leftOffset > 0
-                          ? {
-                              left: `-${leftOffset - 64}px`,
-                            }
-                          : {}),
-                      }"
-                      :data-testid="`cell-${columnObj.title}-${rowIndex}`"
-                      :data-key="`data-key-${rowIndex}-${columnObj.id}`"
-                      :data-col="columnObj.id"
-                      :data-title="columnObj.title"
-                      :data-row-index="rowIndex"
-                      :data-col-index="colIndex"
-                      @mousedown="handleMouseDown($event, rowIndex, colIndex)"
-                      @mouseover="handleMouseOver($event, rowIndex, colIndex)"
-                      @click="handleCellClick($event, rowIndex, colIndex)"
-                      @dblclick="makeEditable(row, columnObj)"
-                      @contextmenu="showContextMenu($event, { row: rowIndex, col: colIndex })"
-                    >
-                      <div v-if="!switchingTab" class="w-full">
-                        <LazySmartsheetVirtualCell
-                          v-if="isVirtualCol(columnObj) && columnObj.title"
-                          v-model="row.row[columnObj.title]"
-                          :column="columnObj"
-                          :active="activeCell.col === colIndex && activeCell.row === rowIndex"
-                          :row="row"
-                          :read-only="!hasEditPermission"
-                          @navigate="onNavigate"
-                          @save="updateOrSaveRow?.(row, '', state)"
-                        />
-
-                        <LazySmartsheetCell
-                          v-else-if="columnObj.title"
-                          v-model="row.row[columnObj.title]"
-                          :column="columnObj"
-                          :edit-enabled="
-                            !!hasEditPermission && !!editEnabled && activeCell.col === colIndex && activeCell.row === rowIndex
-                          "
-                          :row-index="rowIndex"
-                          :active="activeCell.col === colIndex && activeCell.row === rowIndex"
-                          :read-only="!hasEditPermission"
-                          @update:edit-enabled="editEnabled = $event"
-                          @save="updateOrSaveRow?.(row, columnObj.title, state)"
-                          @navigate="onNavigate"
-                          @cancel="editEnabled = false"
-                        />
-                      </div>
-                    </SmartsheetTableDataCell>
+                      v-for="(col, colIndex) of dummyColumnDataForLoading"
+                      :key="colIndex"
+                      class="border-b-1 border-r-1"
+                      :class="{ 'min-w-45': colIndex !== 0, 'min-w-16': colIndex === 0 }"
+                    ></td>
                   </tr>
                 </template>
-              </LazySmartsheetRow>
+                <LazySmartsheetRow v-for="{ row, index: rowIndex } in visibleData" ref="rowRefs" :key="rowIndex" :row="row">
+                  <template #default="{ state }">
+                    <tr
+                      v-show="!showSkeleton"
+                      class="nc-grid-row !xs:h-14"
+                      :class="{
+                        'active-row': activeCell.row === rowIndex || selectedRange._start?.row === rowIndex,
+                        'mouse-down': isGridCellMouseDown || isFillMode,
+                      }"
+                      :style="{ height: rowHeight ? `${rowHeightInPx[`${rowHeight}`]}px` : `${rowHeightInPx['1']}px` }"
+                      :data-testid="`grid-row-${rowIndex}`"
+                    >
+                      <td
+                        key="row-index"
+                        class="caption nc-grid-cell w-[64px] min-w-[64px]"
+                        :style="{
+                          left: `-${leftOffset}px`,
+                        }"
+                        :data-testid="`cell-Id-${rowIndex}`"
+                        @contextmenu="contextMenuTarget = null"
+                      >
+                        <div class="w-[60px] pl-2 pr-1 items-center flex gap-1">
+                          <div
+                            class="nc-row-no sm:min-w-4 text-xs text-gray-500"
+                            :class="{ toggle: !readOnly, hidden: row.rowMeta.selected }"
+                          >
+                            {{ ((paginationDataRef?.page ?? 1) - 1) * (paginationDataRef?.pageSize ?? 25) + rowIndex + 1 }}
+                          </div>
+                          <div
+                            v-if="!readOnly"
+                            :class="{
+                              hidden: !row.rowMeta.selected,
+                              flex: row.rowMeta.selected,
+                            }"
+                            class="nc-row-expand-and-checkbox"
+                          >
+                            <a-checkbox v-model:checked="row.rowMeta.selected" />
+                          </div>
+                          <span class="flex-1" />
 
-              <tr
-                v-if="isAddingEmptyRowAllowed && !isGroupBy"
-                v-e="['c:row:add:grid-bottom']"
-                class="text-left nc-grid-add-new-cell cursor-pointer group relative z-3 xs:hidden"
-                :class="{
-                  '!border-r-2 !border-r-gray-100': visibleColLength === 1,
-                }"
-                @mouseup.stop
-                @click="addEmptyRow()"
-              >
-                <div
-                  class="h-8 border-b-1 border-gray-100 bg-white group-hover:bg-gray-50 absolute left-0 bottom-0 px-2 sticky z-40 w-full flex items-center text-gray-500"
-                  :style="{
-                    left: `-${leftOffset}px`,
+                          <div
+                            v-if="isUIAllowed('expandedForm')"
+                            class="nc-expand"
+                            :data-testid="`nc-expand-${rowIndex}`"
+                            :class="{ 'nc-comment': row.rowMeta?.commentCount }"
+                          >
+                            <a-spin
+                              v-if="row.rowMeta.saving"
+                              class="!flex items-center"
+                              :data-testid="`row-save-spinner-${rowIndex}`"
+                            />
+
+                            <span
+                              v-if="row.rowMeta?.commentCount && expandForm"
+                              v-e="['c:expanded-form:open']"
+                              class="py-1 px-1 rounded-full text-xs cursor-pointer select-none transform hover:(scale-110)"
+                              :style="{
+                                backgroundColor: getEnumColorByIndex(row.rowMeta.commentCount || 0),
+                              }"
+                              @click="expandAndLooseFocus(row, state)"
+                            >
+                              {{ row.rowMeta.commentCount }}
+                            </span>
+                            <div
+                              v-else-if="!row.rowMeta.saving"
+                              class="cursor-pointer flex items-center border-1 border-gray-100 active:ring rounded p-1 hover:(bg-gray-50)"
+                            >
+                              <component
+                                :is="iconMap.expand"
+                                v-if="expandForm"
+                                v-e="['c:row-expand:open']"
+                                class="select-none transform hover:(text-black scale-120) nc-row-expand"
+                                @click="expandAndLooseFocus(row, state)"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <SmartsheetTableDataCell
+                        v-if="fields[0]"
+                        :key="fields[0].id"
+                        class="cell relative nc-grid-cell cursor-pointer"
+                        :class="{
+                          'active': isCellSelected(rowIndex, 0),
+                          'active-cell':
+                            (activeCell.row === rowIndex && activeCell.col === 0) ||
+                            (selectedRange._start?.row === rowIndex && selectedRange._start?.col === 0),
+                          'nc-required-cell': isColumnRequiredAndNull(fields[0], row.row) && !isPublicView,
+                          'align-middle': !rowHeight || rowHeight === 1,
+                          'align-top': rowHeight && rowHeight !== 1,
+                          'filling': isCellInFillRange(rowIndex, 0),
+                          'readonly':
+                            (isLookup(fields[0]) ||
+                              isRollup(fields[0]) ||
+                              isFormula(fields[0]) ||
+                              isCreatedOrLastModifiedTimeCol(fields[0]) ||
+                              isCreatedOrLastModifiedByCol(fields[0])) &&
+                            hasEditPermission &&
+                            isCellSelected(rowIndex, 0),
+                          '!border-r-blue-400 !border-r-3': toBeDroppedColId === fields[0].id,
+                        }"
+                        :style="{
+                          'min-width': gridViewCols[fields[0].id]?.width || '180px',
+                          'max-width': gridViewCols[fields[0].id]?.width || '180px',
+                          'width': gridViewCols[fields[0].id]?.width || '180px',
+                          ...(leftOffset > 0
+                            ? {
+                                left: `-${leftOffset - 64}px`,
+                              }
+                            : {}),
+                        }"
+                        :data-testid="`cell-${fields[0].title}-${rowIndex}`"
+                        :data-key="`data-key-${rowIndex}-${fields[0].id}`"
+                        :data-col="fields[0].id"
+                        :data-title="fields[0].title"
+                        :data-row-index="rowIndex"
+                        :data-col-index="0"
+                        @mousedown="handleMouseDown($event, rowIndex, 0)"
+                        @mouseover="handleMouseOver($event, rowIndex, 0)"
+                        @click="handleCellClick($event, rowIndex, 0)"
+                        @dblclick="makeEditable(row, fields[0])"
+                        @contextmenu="showContextMenu($event, { row: rowIndex, col: 0 })"
+                      >
+                        <div v-if="!switchingTab" class="w-full">
+                          <LazySmartsheetVirtualCell
+                            v-if="isVirtualCol(fields[0]) && fields[0].title"
+                            v-model="row.row[fields[0].title]"
+                            :column="fields[0]"
+                            :active="activeCell.col === 0 && activeCell.row === rowIndex"
+                            :row="row"
+                            :read-only="!hasEditPermission"
+                            @navigate="onNavigate"
+                            @save="updateOrSaveRow?.(row, '', state)"
+                          />
+
+                          <LazySmartsheetCell
+                            v-else-if="fields[0].title"
+                            v-model="row.row[fields[0].title]"
+                            :column="fields[0]"
+                            :edit-enabled="
+                              !!hasEditPermission && !!editEnabled && activeCell.col === 0 && activeCell.row === rowIndex
+                            "
+                            :row-index="rowIndex"
+                            :active="activeCell.col === 0 && activeCell.row === rowIndex"
+                            :read-only="!hasEditPermission"
+                            @update:edit-enabled="editEnabled = $event"
+                            @save="updateOrSaveRow?.(row, fields[0].title, state)"
+                            @navigate="onNavigate"
+                            @cancel="editEnabled = false"
+                          />
+                        </div>
+                      </SmartsheetTableDataCell>
+                      <SmartsheetTableDataCell
+                        v-for="{ field: columnObj, index: colIndex } of visibleFields"
+                        :key="columnObj.id"
+                        class="cell relative nc-grid-cell cursor-pointer"
+                        :class="{
+                          'active': isCellSelected(rowIndex, colIndex),
+                          'active-cell':
+                            (activeCell.row === rowIndex && activeCell.col === colIndex) ||
+                            (selectedRange._start?.row === rowIndex && selectedRange._start?.col === colIndex),
+                          'nc-required-cell': isColumnRequiredAndNull(columnObj, row.row) && !isPublicView,
+                          'align-middle': !rowHeight || rowHeight === 1,
+                          'align-top': rowHeight && rowHeight !== 1,
+                          'filling': isCellInFillRange(rowIndex, colIndex),
+                          'readonly':
+                            (isLookup(columnObj) ||
+                              isRollup(columnObj) ||
+                              isFormula(columnObj) ||
+                              isCreatedOrLastModifiedTimeCol(columnObj) ||
+                              isCreatedOrLastModifiedByCol(columnObj)) &&
+                            hasEditPermission &&
+                            isCellSelected(rowIndex, colIndex),
+                          '!border-r-blue-400 !border-r-3': toBeDroppedColId === columnObj.id,
+                        }"
+                        :style="{
+                          'min-width': gridViewCols[columnObj.id]?.width || '180px',
+                          'max-width': gridViewCols[columnObj.id]?.width || '180px',
+                          'width': gridViewCols[columnObj.id]?.width || '180px',
+                        }"
+                        :data-testid="`cell-${columnObj.title}-${rowIndex}`"
+                        :data-key="`data-key-${rowIndex}-${columnObj.id}`"
+                        :data-col="columnObj.id"
+                        :data-title="columnObj.title"
+                        :data-row-index="rowIndex"
+                        :data-col-index="colIndex"
+                        @mousedown="handleMouseDown($event, rowIndex, colIndex)"
+                        @mouseover="handleMouseOver($event, rowIndex, colIndex)"
+                        @click="handleCellClick($event, rowIndex, colIndex)"
+                        @dblclick="makeEditable(row, columnObj)"
+                        @contextmenu="showContextMenu($event, { row: rowIndex, col: colIndex })"
+                      >
+                        <div v-if="!switchingTab" class="w-full">
+                          <LazySmartsheetVirtualCell
+                            v-if="isVirtualCol(columnObj) && columnObj.title"
+                            v-model="row.row[columnObj.title]"
+                            :column="columnObj"
+                            :active="activeCell.col === colIndex && activeCell.row === rowIndex"
+                            :row="row"
+                            :read-only="!hasEditPermission"
+                            @navigate="onNavigate"
+                            @save="updateOrSaveRow?.(row, '', state)"
+                          />
+
+                          <LazySmartsheetCell
+                            v-else-if="columnObj.title"
+                            v-model="row.row[columnObj.title]"
+                            :column="columnObj"
+                            :edit-enabled="
+                              !!hasEditPermission && !!editEnabled && activeCell.col === colIndex && activeCell.row === rowIndex
+                            "
+                            :row-index="rowIndex"
+                            :active="activeCell.col === colIndex && activeCell.row === rowIndex"
+                            :read-only="!hasEditPermission"
+                            @update:edit-enabled="editEnabled = $event"
+                            @save="updateOrSaveRow?.(row, columnObj.title, state)"
+                            @navigate="onNavigate"
+                            @cancel="editEnabled = false"
+                          />
+                        </div>
+                      </SmartsheetTableDataCell>
+                    </tr>
+                  </template>
+                </LazySmartsheetRow>
+
+                <tr
+                  v-if="isAddingEmptyRowAllowed && !isGroupBy"
+                  v-e="['c:row:add:grid-bottom']"
+                  class="text-left nc-grid-add-new-cell cursor-pointer group relative z-3 xs:hidden"
+                  :class="{
+                    '!border-r-2 !border-r-gray-100': visibleColLength === 1,
                   }"
+                  @mouseup.stop
+                  @click="addEmptyRow()"
                 >
-                  <component
-                    :is="iconMap.plus"
-                    v-if="!isViewColumnsLoading"
-                    class="text-pint-500 text-base ml-2 mt-0 text-gray-600 group-hover:text-black"
-                  />
-                </div>
-                <td class="!border-gray-100" :colspan="visibleColLength"></td>
-              </tr>
-            </tbody>
-          </table>
+                  <div
+                    class="h-8 border-b-1 border-gray-100 bg-white group-hover:bg-gray-50 absolute left-0 bottom-0 px-2 sticky z-40 w-full flex items-center text-gray-500"
+                    :style="{
+                      left: `-${leftOffset}px`,
+                    }"
+                  >
+                    <component
+                      :is="iconMap.plus"
+                      v-if="!isViewColumnsLoading"
+                      class="text-pint-500 text-base ml-2 mt-0 text-gray-600 group-hover:text-black"
+                    />
+                  </div>
+                  <td class="!border-gray-100" :colspan="visibleColLength"></td>
+                </tr>
+              </tbody>
+            </table>
 
-          <!-- Fill Handle -->
-          <div
-            v-show="showFillHandle"
-            ref="fillHandle"
-            class="nc-fill-handle"
-            :class="
-              (!selectedRange.isEmpty() && selectedRange.end.col !== 0) || (selectedRange.isEmpty() && activeCell.col !== 0)
-                ? 'z-3'
-                : 'z-4'
-            "
-            :style="{
-              top: `${fillHandleTop}px`,
-              left: `${fillHandleLeft}px`,
-              cursor: 'crosshair',
-            }"
-          />
+            <!-- Fill Handle -->
+            <div
+              v-show="showFillHandle"
+              ref="fillHandle"
+              class="nc-fill-handle"
+              :class="
+                (!selectedRange.isEmpty() && selectedRange.end.col !== 0) || (selectedRange.isEmpty() && activeCell.col !== 0)
+                  ? 'z-3'
+                  : 'z-4'
+              "
+              :style="{
+                top: `${fillHandleTop}px`,
+                left: `${fillHandleLeft}px`,
+                cursor: 'crosshair',
+              }"
+            />
+          </div>
         </div>
 
         <template #overlay>
@@ -2525,10 +2654,6 @@ onKeyStroke('ArrowDown', onDown)
 }
 
 .nc-grid-header {
-  position: sticky;
-
-  @apply z-5 bg-white;
-
   &:hover {
     .nc-no-label {
       @apply hidden;

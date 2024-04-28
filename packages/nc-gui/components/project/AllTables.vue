@@ -71,6 +71,42 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
   }
 }
 
+function openPaginationLimitDialog(baseIndex?: number | undefined) {
+  $e('c:table:create:navdraw')
+
+  const isOpen = ref(true)
+  let sourceId = openedProject.value!.sources?.[0].id
+  if (typeof baseIndex === 'number') {
+    sourceId = openedProject.value!.sources?.[baseIndex].id
+  }
+
+  if (!sourceId || !openedProject.value?.id) return
+
+  const { close } = useDialog(resolveComponent('DlgPaginationLimit'), {
+    'modelValue': isOpen,
+    sourceId, // || sources.value[0].id,
+    'baseId': openedProject.value.id,
+    'onCreate': closeDialog,
+    'onUpdate:modelValue': () => closeDialog(),
+  })
+
+  function closeDialog(table?: TableType) {
+    isOpen.value = false
+
+    if (!table) return
+
+    // TODO: Better way to know when the table node dom is available
+    setTimeout(() => {
+      const newTableDom = document.querySelector(`[data-table-id="${table.id}"]`)
+      if (!newTableDom) return
+
+      newTableDom?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    }, 1000)
+
+    close(1000)
+  }
+}
+
 const onCreateBaseClick = () => {
   if (isDataSourceLimitReached.value) return
 
@@ -127,26 +163,15 @@ const onCreateBaseClick = () => {
           <div class="label">{{ $t('labels.connectDataSource') }}</div>
         </div>
       </component>
-      <component :is="isDataSourceLimitReached ? NcTooltip : 'div'" v-if="isUIAllowed('sourceCreate')">
-        <template #title>
-          <div>
-            {{ $t('tooltip.reachedSourceLimit') }}
-          </div>
-        </template>
-        <div
-          v-e="['c:table:create-source']"
-          role="button"
-          class="nc-base-view-all-table-btn"
-          data-testid="proj-view-btn__create-source"
-          :class="{
-            disabled: isDataSourceLimitReached,
-          }"
-          @click="onCreateBaseClick"
-        >
-          
-          <div class="label">{{ $t('labels.modifyBaseLimit') }}</div>
-        </div>
-      </component>
+
+      <div
+        role="button"
+        class="nc-base-view-all-table-btn"
+        @click="openPaginationLimitDialog()"
+      >
+        <div class="label">{{ $t('labels.modifyPaginationLimit') }}</div>
+      </div>
+
     </div>
     <div
       v-if="base?.isLoading"

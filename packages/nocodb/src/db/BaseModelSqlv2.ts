@@ -6881,7 +6881,7 @@ class BaseModelSqlv2 {
                   colId: k,
                 })
                   .then((col) => {
-                    return col.title;
+                    return col?.title;
                   })
                   .catch((e) => {
                     return Promise.resolve(e);
@@ -6896,7 +6896,7 @@ class BaseModelSqlv2 {
                 colId: col.id,
               })
                 .then((col) => {
-                  return col.title;
+                  return col?.title;
                 })
                 .catch((e) => {
                   return Promise.resolve(e);
@@ -6936,7 +6936,7 @@ class BaseModelSqlv2 {
           delete item[key];
         }
       });
-    });
+    });k
 
     return data;
   }

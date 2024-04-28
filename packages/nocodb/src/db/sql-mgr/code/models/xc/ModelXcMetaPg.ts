@@ -114,7 +114,7 @@ class ModelXcMetaPg extends BaseModelXcMeta {
         str = 'date';
         break;
       case 'double precision':
-        str = 'float';
+        str = 'double';
         break;
       case 'event_trigger':
         str = 'event_trigger';

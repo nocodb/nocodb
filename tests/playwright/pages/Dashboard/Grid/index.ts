@@ -79,6 +79,43 @@ export class GridPage extends BasePage {
     return this.get().locator(`tr[data-testid="grid-row-${index}"]`);
   }
 
+  async renderColumn(columnHeader: string) {
+    // we have virtual grid, so we need to make sure the column is rendered
+    const headerRow = this.get().locator('.nc-grid-header').first();
+    let column = headerRow.locator(`[data-title="${columnHeader}"]`);
+    let lastScrolledColumn: Locator = null;
+    let direction = 'right';
+
+    while (headerRow) {
+      try {
+        await column.elementHandle({ timeout: 1000 });
+        break;
+      } catch {}
+
+      const lastColumn =
+        direction === 'right'
+          ? headerRow.locator('th.nc-grid-column-header').last()
+          : headerRow.locator('th.nc-grid-column-header').nth(1);
+
+      if (lastScrolledColumn) {
+        if ((await lastScrolledColumn.innerText()) === (await lastColumn.innerText())) {
+          if (direction === 'right') {
+            direction = 'left';
+            lastScrolledColumn = null;
+          } else {
+            throw new Error(`Column with header "${columnHeader}" not found`);
+          }
+        }
+      }
+
+      await lastColumn.scrollIntoViewIfNeeded();
+
+      lastScrolledColumn = lastColumn;
+
+      column = headerRow.locator(`[data-title="${columnHeader}"]`);
+    }
+  }
+
   async rowCount() {
     return await this.get().locator('.nc-grid-row').count();
   }

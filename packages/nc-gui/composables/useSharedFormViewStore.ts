@@ -217,7 +217,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         ((column.rqd && !column.cdf) || (column.pk && !(column.ai || column.cdf)) || column.required)
       ) {
         obj.localState[column.title!] = {
-          required: fieldRequired(undefined, column.uidt === UITypes.Checkbox && column.required ? true : false),
+          required: fieldRequired(undefined, !!(column.uidt === UITypes.Checkbox && column.required)),
         }
       } else if (
         isLinksOrLTAR(column) &&

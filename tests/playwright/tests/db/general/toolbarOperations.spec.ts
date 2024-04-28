@@ -230,7 +230,7 @@ test.describe('Toolbar operations (GRID)', () => {
     });
     await toolbar.clickFilter();
 
-    await dashboard.grid.groupPage.openGroup({ indexMap: [1, 0] });
+    await dashboard.grid.groupPage.openGroup({ indexMap: [2, 0] });
 
     await dashboard.grid.groupPage.verifyGroupHeader({
       indexMap: [1, 0],
@@ -377,16 +377,14 @@ test.describe('Toolbar operations (GRID)', () => {
     });
     await toolbar.clickFilter();
 
-    await dashboard.grid.groupPage.openGroup({ indexMap: [5, 0, 0] });
-
     await dashboard.grid.groupPage.verifyGroupHeader({
-      indexMap: [5, 0, 0],
+      indexMap: [4, 0, 0],
       count: 2,
       title: 'ReleaseYear',
     });
 
     await dashboard.grid.groupPage.verifyGroup({
-      indexMap: [5, 0, 0],
+      indexMap: [4, 0, 0],
       value: '2006',
     });
 

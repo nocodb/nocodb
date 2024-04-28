@@ -191,6 +191,8 @@ const tableBodyEl = ref<HTMLElement>()
 
 const fillHandle = ref<HTMLElement>()
 
+const { height: tableHeadHeight, width: tableHeadWidth } = useElementBounding(tableHeadEl)
+
 const isViewColumnsLoading = computed(() => _isViewColumnsLoading.value || !meta.value)
 
 // #Permissions
@@ -967,8 +969,7 @@ function scrollToCell(row?: number | null, col?: number | null) {
       bottom: (row + 1) * rowHeightInPx[`${props.rowHeight}`],
     }
 
-    const { height: headerHeight } = tableHeadEl.value!.getBoundingClientRect()
-    const tdScroll = getContainerScrollForElement(td, scrollWrapper.value, { top: 9, bottom: (headerHeight || 40) + 9, right: 9 })
+    const tdScroll = getContainerScrollForElement(td, scrollWrapper.value, { top: 9, bottom: (tableHeadHeight.value || 40) + 9, right: 9 })
 
     // if first column set left to 0 since it's sticky it will be visible and calculated value will be wrong
     // setting left to 0 will make it scroll to the left
@@ -1286,6 +1287,8 @@ async function reloadViewDataHandler(params: void | { shouldShowLoading?: boolea
 
   await loadData?.({ ...(params?.offset !== undefined ? { offset: params.offset } : {}) })
 
+  calculateSlices()
+
   isViewDataLoading.value = false
 }
 
@@ -1462,6 +1465,10 @@ watch(
   },
   { immediate: true },
 )
+
+watch(() => fields.value.length, () => {
+  calculateSlices()
+})
 
 // #Providers
 
@@ -1823,6 +1830,7 @@ onKeyStroke('ArrowDown', onDown)
                 'mobile': isMobileMode,
                 'desktop': !isMobileMode,
                 'pr-60 pb-12': !headerOnly,
+                'w-full': dataRef.length === 0,
               }"
               :style="{
                 transform: `translateY(${topOffset}px) translateX(${leftOffset}px)`,

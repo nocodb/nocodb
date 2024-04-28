@@ -10,7 +10,6 @@ import {
   provide,
   toRef,
   useProvideSmartsheetRowStore,
-  useSmartsheetStoreOrThrow,
 } from '#imports'
 
 const props = defineProps<{

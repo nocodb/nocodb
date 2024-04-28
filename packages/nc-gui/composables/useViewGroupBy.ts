@@ -27,19 +27,19 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
     const groupByLimit: number = 3
 
     const { api } = useApi()
-  
+
     const { appInfo } = useGlobal()
-  
+
     const { base } = storeToRefs(useBase())
-  
+
     const { sharedView, fetchSharedViewData } = useSharedView()
-  
+
     const { gridViewCols } = useViewColumnsOrThrow()
-  
+
     const { getMeta } = useMetas()
-  
+
     const sharedViewPassword = inject(SharedViewPasswordInj, ref(null))
-  
+
     const groupBy = computed<{ column: ColumnType; sort: string; order?: number }[]>(() => {
       const tempGroupBy: { column: ColumnType; sort: string; order?: number }[] = []
       Object.values(gridViewCols.value).forEach((col) => {
@@ -57,37 +57,37 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       tempGroupBy.sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity))
       return tempGroupBy
     })
-  
+
     const isGroupBy = computed(() => !!groupBy.value.length)
-  
+
     const { isUIAllowed } = useRoles()
-  
+
     const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
-  
+
     const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
-  
+
     const groupByGroupLimit = computed(() => {
       return appInfo.value.defaultGroupByLimit?.limitGroup || 10
     })
-  
+
     const groupByRecordLimit = computed(() => {
       return appInfo.value.defaultGroupByLimit?.limitRecord || 10
     })
-  
+
     const supportedLookups = ref<string[]>([])
-  
+
     const fieldsToGroupBy = computed(() =>
       (meta?.value?.columns || []).filter((field) => {
         if (excludedGroupingUidt.includes(field.uidt as UITypes)) return false
-  
+
         if (field.uidt === UITypes.Lookup) {
           return field.id && supportedLookups.value.includes(field.id)
         }
-  
+
         return true
       }),
     )
-  
+
     const rootGroup = ref<Group>({
       key: 'root',
       color: 'root',
@@ -99,12 +99,12 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       children: [],
       root: true,
     })
-  
+
     async function groupWrapperChangePage(page: number, groupWrapper?: Group) {
       groupWrapper = groupWrapper || rootGroup.value
-  
+
       if (!groupWrapper) return
-  
+
       groupWrapper.paginationData.page = page
       await loadGroups(
         {
@@ -113,37 +113,37 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
         groupWrapper,
       )
     }
-  
+
     const formatData = (list: Record<string, any>[]) =>
       list.map((row) => ({
         row: { ...row },
         oldRow: { ...row },
         rowMeta: {},
       }))
-  
+
     const valueToTitle = (value: string, col: ColumnType) => {
       if (col.uidt === UITypes.Checkbox) {
         return value ? GROUP_BY_VARS.TRUE : GROUP_BY_VARS.FALSE
       }
-  
+
       if ([UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(col.uidt as UITypes)) {
         if (!value) {
           return GROUP_BY_VARS.NULL
         }
       }
-  
+
       // convert to JSON string if non-string value
       if (value && typeof value === 'object') {
         value = JSON.stringify(value)
       }
-  
+
       return value ?? GROUP_BY_VARS.NULL
     }
-  
+
     const colors = ref(enumColor.light)
-  
+
     const nextGroupColor = ref(colors.value[0])
-  
+
     const getNextColor = () => {
       const tempColor = nextGroupColor.value
       const index = colors.value.indexOf(nextGroupColor.value)
@@ -154,7 +154,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       }
       return tempColor
     }
-  
+
     const findKeyColor = (key?: string, col?: ColumnType): string => {
       if (col) {
         switch (col.uidt) {
@@ -188,7 +188,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       }
       return key ? getNextColor() : 'gray'
     }
-  
+
     const calculateNestedWhere = (nestedIn: GroupNestedIn[], existing = '') => {
       return nestedIn.reduce((acc, curr) => {
         if (curr.key === GROUP_BY_VARS.NULL) {
@@ -214,30 +214,30 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
         return acc
       }, existing)
     }
-  
+
     async function loadGroups(params: any = {}, group?: Group) {
       try {
         group = group || rootGroup.value
-  
+
         if (!base?.value?.id || !view.value?.id || !view.value?.fk_model_id || !group) return
-  
+
         if (groupBy.value.length === 0) {
           group.children = []
           return
         }
-  
+
         if (group.nestedIn.length > groupBy.value.length) return
-  
+
         if (group.nestedIn.length === 0) nextGroupColor.value = colors.value[0]
         const groupby = groupBy.value[group.nestedIn.length]
-  
+
         const nestedWhere = calculateNestedWhere(group.nestedIn, where?.value)
         if (!groupby || !groupby.column.title) return
-  
+
         if (isPublic && !sharedView.value?.uuid) {
           return
         }
-  
+
         const response = !isPublic
           ? await api.dbViewRow.groupBy('noco', base.value.id, view.value.fk_model_id, view.value.id, {
               offset: ((group.paginationData.page ?? 0) - 1) * (group.paginationData.pageSize ?? groupByGroupLimit.value),
@@ -267,7 +267,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
                 },
               },
             )
-  
+
         const tempList: Group[] = response.list.reduce((acc: Group[], curr: Record<string, any>) => {
           const keyExists = acc.find(
             (a) => a.key === valueToTitle(curr[groupby.column.column_name!] ?? curr[groupby.column.title!], groupby.column),
@@ -302,9 +302,9 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
           }
           return acc
         }, [])
-  
+
         if (!group.children) group.children = []
-  
+
         for (const temp of tempList) {
           const keyExists = group.children?.find((a) => a.key === temp.key)
           if (keyExists) {
@@ -320,10 +320,10 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
           }
           group.children.push(temp)
         }
-  
+
         // clear rest of the children
         group.children = group.children.filter((c) => tempList.find((t) => t.key === c.key))
-  
+
         if (group.count <= (group.paginationData.pageSize ?? groupByGroupLimit.value)) {
           group.children.sort((a, b) => {
             const orderA = tempList.findIndex((t) => t.key === a.key)
@@ -331,9 +331,9 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
             return orderA - orderB
           })
         }
-  
+
         group.paginationData = response.pageInfo
-  
+
         // to cater the case like when querying with a non-zero offset
         // the result page may point to the target page where the actual returned data don't display on
         const expectedPage = Math.max(1, Math.ceil(group.paginationData.totalRows! / group.paginationData.pageSize!))
@@ -344,25 +344,25 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
         message.error(await extractSdkResponseErrorMsg(e))
       }
     }
-  
+
     async function loadGroupData(group: Group, force = false, params: any = {}) {
       try {
         if (!base?.value?.id || !view.value?.id || !view.value?.fk_model_id) return
-  
+
         if (group.children && !force) return
-  
+
         if (!group.paginationData) {
           group.paginationData = { page: 1, pageSize: groupByRecordLimit.value }
         }
-  
+
         const nestedWhere = calculateNestedWhere(group.nestedIn, where?.value)
-  
+
         const query = {
           offset: ((group.paginationData.page ?? 0) - 1) * (group.paginationData.pageSize ?? groupByRecordLimit.value),
           limit: group.paginationData.pageSize ?? groupByRecordLimit.value,
           where: `${nestedWhere}`,
         }
-  
+
         const response = !isPublic
           ? await api.dbViewRow.list('noco', base.value.id, view.value.fk_model_id, view.value.id, {
               ...query,
@@ -371,7 +371,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
               ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
             } as any)
           : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value, ...query })
-  
+
         group.count = response.pageInfo.totalRows ?? 0
         group.rows = formatData(response.list)
         group.paginationData = response.pageInfo
@@ -379,7 +379,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
         message.error(await extractSdkResponseErrorMsg(e))
       }
     }
-  
+
     const loadGroupPage = async (group: Group, p: number) => {
       if (!group.paginationData) {
         group.paginationData = { page: 1, pageSize: groupByRecordLimit.value }
@@ -387,17 +387,17 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       group.paginationData.page = p
       await loadGroupData(group, true)
     }
-  
+
     const refreshNested = (group?: Group, nestLevel = 0) => {
       group = group || rootGroup.value
       if (!group) return
-  
+
       if (nestLevel < groupBy.value.length) {
         group.nested = true
       } else {
         group.nested = false
       }
-  
+
       if (group.nested) {
         if (group?.rows) {
           group.rows = []
@@ -407,28 +407,26 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
           group.children = []
         }
       }
-  
+
       if (nestLevel > groupBy.value.length) return
-  
+
       for (const child of group.children || []) {
         refreshNested(child, nestLevel + 1)
       }
     }
-  
+
     watch(
       () => groupBy.value.length,
       async () => {
         if (groupBy.value.length > 0) {
           rootGroup.value.paginationData = { page: 1, pageSize: groupByGroupLimit.value }
           rootGroup.value.column = {} as any
-          await loadGroups()
           refreshNested()
           nextTick(() => reloadViewDataHook?.trigger())
         }
       },
-      { immediate: true },
     )
-  
+
     const findGroupByNestedIn = (nestedIn: GroupNestedIn[], group?: Group, nestLevel = 0): Group => {
       group = group || rootGroup.value
       if (nestLevel >= nestedIn.length) return group
@@ -441,12 +439,12 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       }
       return group
     }
-  
+
     const parentGroup = (group: Group) => {
       const parent = findGroupByNestedIn(group.nestedIn.slice(0, -1))
       return parent
     }
-  
+
     const modifyCount = (group: Group, countEffect: number) => {
       if (!group) return
       group.count += countEffect
@@ -460,7 +458,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       if (group.root) return
       modifyCount(parentGroup(group), countEffect)
     }
-  
+
     const findGroupForRow = (row: Row, group?: Group, nestLevel = 0): { found: boolean; group: Group } => {
       group = group || rootGroup.value
       if (group.nested) {
@@ -475,7 +473,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       }
       return { found: true, group }
     }
-  
+
     const redistributeRows = (group?: Group) => {
       group = group || rootGroup.value
       if (!group) return
@@ -505,52 +503,51 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
         group.children?.forEach((g) => redistributeRows(g))
       }
     }
-  
+
     const loadAllowedLookups = async () => {
       const filteredLookupCols = []
       try {
         for (const col of meta?.value?.columns || []) {
           if (col.uidt !== UITypes.Lookup) continue
-  
+
           let nextCol: ColumnType = col
           // check the lookup column is supported type or not
           while (nextCol && nextCol.uidt === UITypes.Lookup) {
             const lookupRelation = (await getMeta(nextCol.fk_model_id as string))?.columns?.find(
               (c) => c.id === (nextCol?.colOptions as LookupType).fk_relation_column_id,
             )
-  
+
             const relatedTableMeta = await getMeta(
               (lookupRelation?.colOptions as LinkToAnotherRecordType).fk_related_model_id as string,
             )
-  
+
             nextCol = relatedTableMeta?.columns?.find(
               (c) => c.id === ((nextCol?.colOptions as LookupType).fk_lookup_column_id as string),
             ) as ColumnType
-  
+
             // if next column is same as root lookup column then break the loop
             // since it's going to be a circular loop, and ignore the column
             if (nextCol?.id === col.id) {
               break
             }
           }
-  
+
           if (nextCol?.uidt !== UITypes.Attachment && col.id) filteredLookupCols.push(col.id)
         }
-  
+
         supportedLookups.value = filteredLookupCols
       } catch (e) {
         console.error(e)
       }
     }
-  
-    onMounted(async () => {
-      await loadAllowedLookups()
+
+    watch([() => view?.value?.id, () => meta.value?.columns], async ([newViewId]) => {
+      // reload only if view belongs to current table
+      if (newViewId && view.value?.fk_model_id === meta.value?.id) {
+        await loadAllowedLookups()
+      }
     })
-  
-    watch(meta, async () => {
-      await loadAllowedLookups()
-    })
-  
+
     return {
       rootGroup,
       groupBy,

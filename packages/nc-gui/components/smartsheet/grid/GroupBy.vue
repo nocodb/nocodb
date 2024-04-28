@@ -108,16 +108,21 @@ onBeforeUnmount(async () => {
   reloadViewDataHook?.off(reloadViewDataHandler)
 })
 
-watch(
-  [() => vGroup.value.key],
-  async (n, o) => {
-    if (n !== o) {
-      if (!vGroup.value.nested) {
-        await _loadGroupData(vGroup.value, true)
-      }
+watch([() => vGroup.value.key], async (n, o) => {
+  if (n !== o) {
+    if (!vGroup.value.nested) {
+      await _loadGroupData(vGroup.value, true)
+    } else if (vGroup.value.nested) {
+      await props.loadGroups({}, vGroup.value)
     }
-  },
-)
+  }
+})
+
+onMounted(async () => {
+  if (vGroup.value.root === true) {
+    await props.loadGroups({}, vGroup.value)
+  }
+})
 
 if (vGroup.value.root === true) provide(ScrollParentInj, wrapper)
 

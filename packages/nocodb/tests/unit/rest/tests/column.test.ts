@@ -1,10 +1,11 @@
 import 'mocha';
 import request from 'supertest';
 import { UITypes } from 'nocodb-sdk';
+import { expect } from 'chai';
 import init from '../../init';
 import { createProject } from '../../factory/base';
 import { createTable } from '../../factory/table';
-import type Model from '../../../../src/models/Model';
+import { createBulkRows, createChildRow, listRow } from '../../factory/row';
 import type Base from '~/models/Base';
 
 // Test case list
@@ -13,39 +14,12 @@ function columnTests() {
   let context;
   let base: Base;
 
-  const qrValueReferenceColumnTitle = 'Qr Value Column';
-  const qrCodeReferenceColumnTitle = 'Qr Code Column';
-
   const defaultTableColumns = [
     {
       title: 'Id',
+      column_name: 'Id',
       uidt: UITypes.ID,
       system: false,
-    },
-    {
-      title: 'DateField',
-      uidt: UITypes.Date,
-      system: false,
-    },
-    {
-      title: 'CreatedAt',
-      uidt: UITypes.CreatedTime,
-      system: true,
-    },
-    {
-      title: 'UpdatedAt',
-      uidt: UITypes.LastModifiedTime,
-      system: true,
-    },
-    {
-      title: 'nc_created_by',
-      uidt: UITypes.CreatedBy,
-      system: true,
-    },
-    {
-      title: 'nc_updated_by',
-      uidt: UITypes.LastModifiedBy,
-      system: true,
     },
   ];
 
@@ -54,23 +28,25 @@ function columnTests() {
       console.time('#### columnTypeSpecificTests');
       context = await init(true);
 
-      // sakilaProject = await createSakilaProject(context);
       base = await createProject(context);
 
       console.timeEnd('#### columnTypeSpecificTests');
     });
 
     it('Create HM relation', async () => {
-      const country = await createTable(context, base.id, {
+      let country = await createTable(context, base, {
         title: 'Country',
+        table_name: 'Country',
         columns: defaultTableColumns,
       });
-      const city = await createTable(context, base.id, {
+      const city = await createTable(context, base, {
         title: 'City',
+        table_name: 'City',
         columns: [
           ...defaultTableColumns,
           {
             title: 'CountryId',
+            column_name: 'CountryId',
             uidt: UITypes.Number,
           },
         ],
@@ -82,11 +58,16 @@ function columnTests() {
       );
 
       const response = await request(context.app)
-        .post(`/api/v1/db/meta/projects/${base.id}/columns`)
+        .post(`/api/v1/db/meta/tables/${country.id}/columns`)
         .set('xc-auth', context.token)
         .send({
-          title: 'Country',
+          title: 'Cities',
           uidt: UITypes.Links,
+          column_name: 'Cities',
+          type: 'hm',
+          childId: city.id,
+          parentId: country.id,
+          is_custom_link: true,
           custom: {
             base_id: base.id,
             column_id: pkColumn?.id,
@@ -95,33 +76,100 @@ function columnTests() {
           },
         });
 
-      console.log(response.body);
-    });
-    it('Create MM relation', async () => {
-      const film = await createTable(context, base.id, {
-        title: 'Film',
-        columns: defaultTableColumns,
-      });
-      const actor = await createTable(context, base.id, {
-        title: 'Actor',
-        columns: [
-          ...defaultTableColumns,
+      country = response.body;
+      const hmColumn = country.columns.find(
+        (column) => column.title === 'Cities',
+      );
+
+      // add rows to tables
+      await createBulkRows(context, {
+        base,
+        table: country,
+        values: [
           {
-            title: 'Table1Id',
-            uidt: UITypes.Number,
+            Title: 'Country1',
+          },
+          {
+            Title: 'Country2',
+          },
+          {
+            Title: 'Country3',
           },
         ],
       });
 
-      const filmActor = await createTable(context, base.id, {
+      // add rows to tables
+      await createBulkRows(context, {
+        base,
+        table: city,
+        values: [
+          {
+            Title: 'City1',
+            CountryId: 1,
+          },
+          {
+            Title: 'City2',
+            CountryId: 1,
+          },
+          {
+            Title: 'City3',
+            CountryId: 2,
+          },
+          {
+            Title: 'City3',
+          },
+        ],
+      });
+
+      // link rows
+      await createChildRow(context, {
+        base,
+        table: country,
+        childTable: city,
+        column: hmColumn,
+        rowId: '3',
+        childRowId: '4',
+        type: 'hm',
+      });
+
+      const rows = await listRow({
+        base,
+        table: country,
+      });
+
+      const rows1 = await listRow({
+        base,
+        table: city,
+      });
+
+      expect(rows[0].Cities).to.be.eq(2);
+      expect(rows[1].Cities).to.be.eq(1);
+      expect(rows[2].Cities).to.be.eq(1);
+    });
+    it('Create MM relation', async () => {
+      const film = await createTable(context, base, {
+        title: 'Film',
+        table_name: 'Film',
+        columns: defaultTableColumns,
+      });
+      let actor = await createTable(context, base, {
+        title: 'Actor',
+        table_name: 'Actor',
+        columns: defaultTableColumns,
+      });
+
+      const filmActor = await createTable(context, base, {
         title: 'FilmActor',
+        table_name: 'FilmActor',
         columns: [
           {
             title: 'ActorId',
+            column_name: 'ActorId',
             uidt: UITypes.Number,
           },
           {
             title: 'FilmId',
+            column_name: 'FilmId',
             uidt: UITypes.Number,
           },
         ],
@@ -137,11 +185,16 @@ function columnTests() {
       );
 
       const response = await request(context.app)
-        .post(`/api/v1/db/meta/projects/${base.id}/columns`)
+        .post(`/api/v1/db/meta/tables/${actor.id}/columns`)
         .set('xc-auth', context.token)
         .send({
-          title: 'Actor',
+          title: 'Films',
           uidt: UITypes.Links,
+          childId: film.id,
+          parentId: actor.id,
+          column_name: 'Films',
+          type: 'mm',
+          is_custom_link: true,
           custom: {
             base_id: base.id,
             junc_base_id: base.id,
@@ -154,7 +207,69 @@ function columnTests() {
           },
         });
 
-      console.log(response.body);
+      actor = response.body;
+      const mmColumn = actor.columns.find((column) => column.title === 'Films');
+
+      // add rows to tables
+      await createBulkRows(context, {
+        base,
+        table: actor,
+        values: [
+          {
+            Title: 'Actor1',
+          },
+          {
+            Title: 'Actor2',
+          },
+          {
+            Title: 'Actor3',
+          },
+        ],
+      });
+
+      // add rows to tables
+      await createBulkRows(context, {
+        base,
+        table: film,
+        values: [
+          {
+            Title: 'Film1',
+          },
+          {
+            Title: 'Film2',
+          },
+          {
+            Title: 'Film3',
+          },
+        ],
+      });
+
+      // link rows
+      await createChildRow(context, {
+        base,
+        table: actor,
+        childTable: film,
+        column: mmColumn,
+        rowId: '1',
+        childRowId: '1',
+        type: 'mm',
+      });
+      await createChildRow(context, {
+        base,
+        table: actor,
+        childTable: film,
+        column: mmColumn,
+        rowId: '1',
+        childRowId: '2',
+        type: 'mm',
+      });
+
+      const rows = await listRow({
+        base,
+        table: actor,
+      });
+
+      expect(rows[0].Films).to.be.eq(2);
     });
   });
 }

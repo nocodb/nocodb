@@ -118,7 +118,6 @@ const pageSizeDropdownVisibleChange = (value: boolean) => {
   <NcModal v-model:visible="dialogShow" :header="$t('labels.modifyPaginationLimit')" size="small" @keydown.esc="dialogShow = false">
     <template #header>
       <div class="flex flex-row items-center gap-x-2">
-        <GeneralIcon icon="table" class="!text-gray-600/75" />
         {{ $t('labels.modifyPaginationLimit') }}
       </div>
     </template>

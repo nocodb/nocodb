@@ -66,7 +66,6 @@ function onNavigate(dir: NavigateDir, e: KeyboardEvent) {
 
 <template>
   <div
-    ref="elementToObserve"
     class="nc-virtual-cell w-full flex items-center"
     :class="{
       'text-right justify-end': isGrid && !isForm && isRollup(column) && !isExpandedForm,

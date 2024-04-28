@@ -56,7 +56,7 @@ const showDeleteColumnModal = ref(false)
 
 const { gridViewCols } = useViewColumnsOrThrow()
 
-const { fieldsToGroupBy, groupByLimit } = useViewGroupBy(view)
+const { fieldsToGroupBy, groupByLimit } = useViewGroupByOrThrow(view)
 
 const setAsDisplayValue = async () => {
   try {

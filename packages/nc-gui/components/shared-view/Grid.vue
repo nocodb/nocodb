@@ -23,7 +23,7 @@ const { signedIn } = useGlobal()
 
 const { loadProject } = useBase()
 
-const { isLocked } = useProvideSmartsheetStore(sharedView, meta, true, ref([]), nestedFilters)
+const { isLocked, xWhere } = useProvideSmartsheetStore(sharedView, meta, true, ref([]), nestedFilters)
 
 useProvideKanbanViewStore(meta, sharedView)
 useProvideCalendarViewStore(meta, sharedView)
@@ -41,6 +41,7 @@ provide(IsPublicInj, ref(true))
 provide(IsLockedInj, isLocked)
 
 useProvideViewColumns(sharedView, meta, () => reloadEventHook?.trigger(), true)
+useProvideViewGroupBy(sharedView, meta, xWhere, true)
 
 if (signedIn.value) {
   try {

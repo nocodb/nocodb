@@ -22,7 +22,7 @@ const isLocked = inject(IsLockedInj, ref(false))
 
 const { gridViewCols, updateGridViewColumn, metaColumnById, showSystemFields } = useViewColumnsOrThrow()
 
-const { fieldsToGroupBy, groupByLimit } = useViewGroupBy(view)
+const { fieldsToGroupBy, groupByLimit } = useViewGroupByOrThrow()
 
 const { $e } = useNuxtApp()
 

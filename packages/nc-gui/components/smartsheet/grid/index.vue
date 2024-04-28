@@ -20,7 +20,7 @@ import {
   ref,
   useSmartsheetStoreOrThrow,
   useViewData,
-  useViewGroupBy,
+  useViewGroupByOrThrow,
 } from '#imports'
 import type { Row } from '#imports'
 
@@ -166,7 +166,7 @@ const toggleOptimisedQuery = () => {
 }
 
 const { rootGroup, groupBy, isGroupBy, loadGroups, loadGroupData, loadGroupPage, groupWrapperChangePage, redistributeRows } =
-  useViewGroupBy(view, xWhere)
+  useViewGroupByOrThrow()
 
 const coreWrapperRef = ref<HTMLElement>()
 

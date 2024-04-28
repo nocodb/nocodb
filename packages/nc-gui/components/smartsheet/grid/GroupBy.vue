@@ -37,6 +37,16 @@ const { isViewDataLoading, isPaginationLoading } = storeToRefs(useViewsStore())
 
 const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 
+const _loadGroupData = async (group: Group, force?: boolean, params?: any) => {
+  isViewDataLoading.value = true
+  isPaginationLoading.value = true
+
+  await props.loadGroupData(group, force, params)
+
+  isViewDataLoading.value = false
+  isPaginationLoading.value = false
+}
+
 const _depth = props.depth ?? 0
 
 const wrapper = ref<HTMLElement | undefined>()
@@ -72,7 +82,7 @@ const findAndLoadSubGroup = (key: any) => {
         if (grp.nested) {
           if (!grp.children?.length) props.loadGroups({}, grp)
         } else {
-          if (!grp.rows?.length || grp.count !== grp.rows?.length) props.loadGroupData(grp)
+          if (!grp.rows?.length || grp.count !== grp.rows?.length) _loadGroupData(grp)
         }
       }
     }
@@ -84,36 +94,29 @@ const reloadViewDataHandler = (params: void | { shouldShowLoading?: boolean | un
   if (vGroup.value.nested) {
     props.loadGroups({ ...(params?.offset !== undefined ? { offset: params.offset } : {}) }, vGroup.value)
   } else {
-    props.loadGroupData(vGroup.value, true, {
+    _loadGroupData(vGroup.value, true, {
       ...(params?.offset !== undefined ? { offset: params.offset } : {}),
     })
   }
 }
 
+onMounted(async () => {
+  reloadViewDataHook?.on(reloadViewDataHandler)
+})
+
 onBeforeUnmount(async () => {
   reloadViewDataHook?.off(reloadViewDataHandler)
 })
-
-reloadViewDataHook?.on(reloadViewDataHandler)
 
 watch(
   [() => vGroup.value.key],
   async (n, o) => {
     if (n !== o) {
-      isViewDataLoading.value = true
-      isPaginationLoading.value = true
-
-      if (vGroup.value.nested) {
-        await props.loadGroups({}, vGroup.value)
-      } else {
-        await props.loadGroupData(vGroup.value, true)
+      if (!vGroup.value.nested) {
+        await _loadGroupData(vGroup.value, true)
       }
-
-      isViewDataLoading.value = false
-      isPaginationLoading.value = false
     }
   },
-  { immediate: true },
 )
 
 if (vGroup.value.root === true) provide(ScrollParentInj, wrapper)
@@ -328,7 +331,7 @@ const shouldRenderCell = (column) =>
                 v-if="!grp.nested && grp.rows"
                 :group="grp"
                 :load-groups="loadGroups"
-                :load-group-data="loadGroupData"
+                :load-group-data="_loadGroupData"
                 :load-group-page="loadGroupPage"
                 :group-wrapper-change-page="groupWrapperChangePage"
                 :row-height="rowHeight"
@@ -345,7 +348,7 @@ const shouldRenderCell = (column) =>
                 v-else
                 :group="grp"
                 :load-groups="loadGroups"
-                :load-group-data="loadGroupData"
+                :load-group-data="_loadGroupData"
                 :load-group-page="loadGroupPage"
                 :group-wrapper-change-page="groupWrapperChangePage"
                 :row-height="rowHeight"

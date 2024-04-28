@@ -1435,13 +1435,12 @@ export class PgUi {
         return 'date';
       case 'daterange':
         return 'string';
-      case 'double precision':
-        return 'string';
 
       case 'event_trigger':
       case 'fdw_handler':
         return 'string';
 
+      case 'double precision':
       case 'float4':
       case 'float8':
         return 'float';

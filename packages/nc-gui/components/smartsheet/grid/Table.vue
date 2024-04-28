@@ -177,9 +177,9 @@ const {
 
 const { paste } = usePaste()
 
-// #Refs
+const { addLTARRef, syncLTARRefs, clearLTARCell, cleaMMCell } = useSmartsheetLtarHelpersOrThrow()
 
-const rowRefs = ref<any[]>()
+// #Refs
 
 const smartTable = ref(null)
 
@@ -269,8 +269,8 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
   if (isVirtualCol(columnObj)) {
     let mmClearResult
 
-    if (isMm(columnObj) && rowRefs.value) {
-      mmClearResult = await rowRefs.value[ctx.row]!.cleaMMCell(columnObj)
+    if (isMm(columnObj) && rowObj) {
+      mmClearResult = await cleaMMCell(rowObj, columnObj)
     }
 
     addUndo({
@@ -288,21 +288,19 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
               rowId === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) &&
               columnObj.id === col.id
             ) {
-              if (rowRefs.value) {
-                if (isBt(columnObj) || isOo(columnObj)) {
-                  rowObj.row[columnObj.title] = row.row[columnObj.title]
+              if (isBt(columnObj) || isOo(columnObj)) {
+                rowObj.row[columnObj.title] = row.row[columnObj.title]
 
-                  await rowRefs.value[ctx.row]!.addLTARRef(rowObj.row[columnObj.title], columnObj)
-                  await rowRefs.value[ctx.row]!.syncLTARRefs(rowObj.row)
-                } else if (isMm(columnObj)) {
-                  await api.dbDataTableRow.nestedLink(
-                    meta.value?.id as string,
-                    columnObj.id as string,
-                    encodeURIComponent(rowId as string),
-                    mmClearResult,
-                  )
-                  rowObj.row[columnObj.title] = mmClearResult?.length ? mmClearResult?.length : null
-                }
+                await addLTARRef(rowObj, rowObj.row[columnObj.title], columnObj)
+                await syncLTARRefs(rowObj, rowObj.row)
+              } else if (isMm(columnObj)) {
+                await api.dbDataTableRow.nestedLink(
+                  meta.value?.id as string,
+                  columnObj.id as string,
+                  encodeURIComponent(rowId as string),
+                  mmClearResult,
+                )
+                rowObj.row[columnObj.title] = mmClearResult?.length ? mmClearResult?.length : null
               }
 
               // eslint-disable-next-line @typescript-eslint/no-use-before-define
@@ -329,12 +327,10 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
             const rowObj = dataRef.value[ctx.row]
             const columnObj = fields.value[ctx.col]
             if (rowId === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) && columnObj.id === col.id) {
-              if (rowRefs.value) {
-                if (isBt(columnObj) || isOo(columnObj)) {
-                  await rowRefs.value[ctx.row]!.clearLTARCell(columnObj)
-                } else if (isMm(columnObj)) {
-                  await rowRefs.value[ctx.row]!.cleaMMCell(columnObj)
-                }
+              if (isBt(columnObj) || isOo(columnObj)) {
+                await clearLTARCell(rowObj, columnObj)
+              } else if (isMm(columnObj)) {
+                await cleaMMCell(rowObj, columnObj)
               }
               // eslint-disable-next-line @typescript-eslint/no-use-before-define
               activeCell.col = ctx.col
@@ -352,7 +348,7 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
       },
       scope: defineViewScope({ view: view.value }),
     })
-    if ((isBt(columnObj) || isOo(columnObj)) && rowRefs.value) await rowRefs.value[ctx.row]!.clearLTARCell(columnObj)
+    if ((isBt(columnObj) || isOo(columnObj))) await clearLTARCell(rowObj, columnObj)
 
     return
   }
@@ -1032,9 +1028,8 @@ const saveOrUpdateRecords = async (args: { metaValue?: TableType; viewMetaValue?
     index++
     /** if new record save row and save the LTAR cells */
     if (currentRow.rowMeta.new) {
-      const syncLTARRefs = rowRefs.value?.[index]?.syncLTARRefs
       const savedRow = await updateOrSaveRow?.(currentRow, '', {}, args)
-      await syncLTARRefs?.(savedRow, args)
+      await syncLTARRefs?.(currentRow, savedRow, args)
       currentRow.rowMeta.changed = false
       continue
     }
@@ -1845,7 +1840,7 @@ onKeyStroke('ArrowDown', onDown)
                     ></td>
                   </tr>
                 </template>
-                <LazySmartsheetRow v-for="{ row, index: rowIndex } in visibleData" ref="rowRefs" :key="rowIndex" :row="row">
+                <LazySmartsheetRow v-for="{ row, index: rowIndex } in visibleData" :key="rowIndex" :row="row">
                   <template #default="{ state }">
                     <tr
                       v-show="!showSkeleton"

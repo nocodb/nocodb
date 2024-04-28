@@ -19,10 +19,7 @@ const props = defineProps<{
 
 const currentRow = toRef(props, 'row')
 
-const { meta } = useSmartsheetStoreOrThrow()
-
-const { isNew, state, syncLTARRefs, clearLTARCell, addLTARRef, cleaMMCell } = useProvideSmartsheetRowStore(
-  meta as Ref<TableType>,
+const { isNew, state } = useProvideSmartsheetRowStore(
   currentRow,
 )
 
@@ -39,13 +36,6 @@ reloadHook.on((params) => {
 })
 
 provide(ReloadRowDataHookInj, reloadHook)
-
-defineExpose({
-  syncLTARRefs,
-  clearLTARCell,
-  addLTARRef,
-  cleaMMCell,
-})
 </script>
 
 <template>

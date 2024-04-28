@@ -25,6 +25,7 @@ import {
   useProvideCalendarViewStore,
   useProvideKanbanViewStore,
   useProvideSmartsheetStore,
+  useProvideSmartsheetLtarHelpers,
   useRoles,
   useSqlEditor,
 } from '#imports'
@@ -87,6 +88,8 @@ provide(
 
 useProvideViewColumns(activeView, meta, () => reloadViewDataEventHook?.trigger())
 useProvideViewGroupBy(activeView, meta, xWhere)
+
+useProvideSmartsheetLtarHelpers(meta)
 
 const grid = ref()
 

@@ -90,6 +90,8 @@ const props = defineProps<{
     extraStyle?: string
   }
   disableSkeleton?: boolean
+  disableVirtualX?: boolean
+  disableVirtualY?: boolean
 }>()
 
 const emits = defineEmits(['update:selectedAllRecords', 'bulkUpdateDlg', 'toggleOptimisedQuery'])
@@ -101,6 +103,16 @@ const paginationDataRef = toRef(props, 'paginationData')
 const dataRef = toRef(props, 'data')
 
 const paginationStyleRef = toRef(props, 'pagination')
+
+const headerOnly = toRef(props, 'headerOnly')
+
+const hideHeader = toRef(props, 'hideHeader')
+
+const disableSkeleton = toRef(props, 'disableSkeleton')
+
+const disableVirtualX = toRef(props, 'disableVirtualX')
+
+const disableVirtualY = toRef(props, 'disableVirtualY')
 
 const { api } = useApi()
 
@@ -115,9 +127,6 @@ const {
   deleteRangeOfRows,
   removeRowIfNew,
   bulkUpdateRows,
-  headerOnly,
-  hideHeader,
-  disableSkeleton,
 } = props
 
 // #Injections
@@ -414,7 +423,7 @@ const visibleColLength = computed(() => fields.value?.length)
 
 const gridWrapperClass = computed<string>(() => {
   const classes = []
-  if (headerOnly !== true) {
+  if (headerOnly.value !== true) {
     if (!scrollParent.value) {
       classes.push('nc-scrollbar-x-lg !overflow-auto')
     }
@@ -441,7 +450,7 @@ const dummyRowDataForLoading = computed(() => {
 
 const showSkeleton = computed(
   () =>
-    (disableSkeleton !== true && (isViewDataLoading.value || isPaginationLoading.value || isViewColumnsLoading.value)) ||
+    (disableSkeleton.value !== true && (isViewDataLoading.value || isPaginationLoading.value || isViewColumnsLoading.value)) ||
     !meta.value,
 )
 
@@ -991,6 +1000,10 @@ function scrollToCell(row?: number | null, col?: number | null) {
       right: 9,
     })
 
+    if (isGroupBy.value) {
+      tdScroll.top = scrollWrapper.value.scrollTop
+    }
+
     // if first column set left to 0 since it's sticky it will be visible and calculated value will be wrong
     // setting left to 0 will make it scroll to the left
     if (col === 0) {
@@ -999,7 +1012,7 @@ function scrollToCell(row?: number | null, col?: number | null) {
 
     if (row === dataRef.value.length - 1) {
       scrollWrapper.value.scrollTo({
-        top: scrollWrapper.value.scrollHeight,
+        top: isGroupBy.value ? scrollWrapper.value.scrollTop : scrollWrapper.value.scrollHeight,
         left:
           col === fields.value.length - 1 // if corner cell
             ? scrollWrapper.value.scrollWidth
@@ -1138,70 +1151,75 @@ const calculateSlices = () => {
 
   let renderStart = 0
 
-  // use binary search to find the start and end columns
+  if (disableVirtualX.value !== true) {
+    // use binary search to find the start and end columns
+    let startRange = 0
+    let endRange = colPositions.value.length - 1
 
-  let startRange = 0
-  let endRange = colPositions.value.length - 1
+    while (endRange !== startRange) {
+      const middle = Math.floor((endRange - startRange) / 2 + startRange)
 
-  while (endRange !== startRange) {
-    const middle = Math.floor((endRange - startRange) / 2 + startRange)
+      if (
+        colPositions.value[middle] <= scrollWrapper.value.scrollLeft &&
+        colPositions.value[middle + 1] > scrollWrapper.value.scrollLeft
+      ) {
+        renderStart = middle
+        break
+      }
 
-    if (
-      colPositions.value[middle] <= scrollWrapper.value.scrollLeft &&
-      colPositions.value[middle + 1] > scrollWrapper.value.scrollLeft
-    ) {
-      renderStart = middle
-      break
-    }
-
-    if (middle === startRange) {
-      renderStart = endRange
-      break
-    } else {
-      if (colPositions.value[middle] <= scrollWrapper.value.scrollLeft) {
-        startRange = middle
+      if (middle === startRange) {
+        renderStart = endRange
+        break
       } else {
-        endRange = middle
+        if (colPositions.value[middle] <= scrollWrapper.value.scrollLeft) {
+          startRange = middle
+        } else {
+          endRange = middle
+        }
       }
     }
-  }
 
-  let renderEnd = 0
-  let renderEndFound = false
+    let renderEnd = 0
+    let renderEndFound = false
 
-  for (let i = renderStart; i < colPositions.value.length; i++) {
-    if (colPositions.value[i] > gridWrapper.value.clientWidth + scrollWrapper.value.scrollLeft) {
-      renderEnd = i
-      renderEndFound = true
-      break
+    for (let i = renderStart; i < colPositions.value.length; i++) {
+      if (colPositions.value[i] > gridWrapper.value.clientWidth + scrollWrapper.value.scrollLeft) {
+        renderEnd = i
+        renderEndFound = true
+        break
+      }
+    }
+
+    colSlice.value = {
+      start: Math.max(0, renderStart - VIRTUAL_MARGIN),
+      end: renderEndFound ? Math.min(fields.value.length, renderEnd + VIRTUAL_MARGIN) : fields.value.length,
     }
   }
 
-  colSlice.value = {
-    start: Math.max(0, renderStart - VIRTUAL_MARGIN),
-    end: renderEndFound ? Math.min(fields.value.length, renderEnd + VIRTUAL_MARGIN) : fields.value.length,
-  }
+  if (disableVirtualY.value !== true) {
+    const rowHeight = rowHeightInPx[`${props.rowHeight}`]
+    const rowRenderStart = Math.max(0, Math.floor(scrollWrapper.value.scrollTop / rowHeight) - VIRTUAL_MARGIN)
+    const rowRenderEnd = Math.min(
+      dataRef.value.length,
+      rowRenderStart + Math.ceil(gridWrapper.value.clientHeight / rowHeight) + VIRTUAL_MARGIN,
+    )
 
-  const rowHeight = rowHeightInPx[`${props.rowHeight}`]
-  const rowRenderStart = Math.max(0, Math.floor(scrollWrapper.value.scrollTop / rowHeight) - VIRTUAL_MARGIN)
-  const rowRenderEnd = Math.min(
-    dataRef.value.length,
-    rowRenderStart + Math.ceil(gridWrapper.value.clientHeight / rowHeight) + VIRTUAL_MARGIN,
-  )
-
-  rowSlice.value = {
-    start: rowRenderStart,
-    end: rowRenderEnd,
+    rowSlice.value = {
+      start: rowRenderStart,
+      end: rowRenderEnd,
+    }
   }
 }
 
 const visibleFields = computed(() => {
+  if (disableVirtualX.value) return fields.value.map((field, index) => ({ field, index })).filter((f) => f.index !== 0)
   // return data as { field, index } to keep track of the index
   const vFields = fields.value.slice(colSlice.value.start, colSlice.value.end)
   return vFields.map((field, index) => ({ field, index: index + colSlice.value.start })).filter((f) => f.index !== 0)
 })
 
 const visibleData = computed(() => {
+  if (disableVirtualY.value) return dataRef.value.map((row, index) => ({ row, index }))
   // return data as { row, index } to keep track of the index
   return dataRef.value.slice(rowSlice.value.start, rowSlice.value.end).map((row, index) => ({
     row,
@@ -1227,11 +1245,15 @@ const refreshFillHandle = () => {
     const rowIndex = isNaN(selectedRange.end.row) ? activeCell.row : selectedRange.end.row
     const colIndex = isNaN(selectedRange.end.col) ? activeCell.col : selectedRange.end.col
     if (rowIndex !== null && colIndex !== null) {
-      if (!gridWrapper.value) return
+      if (!scrollWrapper.value || !gridWrapper.value) return
+
       // 32 for the header
-      fillHandleTop.value = 32 + (rowIndex + 1) * rowHeightInPx[`${props.rowHeight}`]
+      fillHandleTop.value = (rowIndex + 1) * rowHeightInPx[`${props.rowHeight}`] + (hideHeader.value ? 0 : 32)
       // 64 for the row number column
-      fillHandleLeft.value = 64 + colPositions.value[colIndex + 1] + (colIndex === 0 ? gridWrapper.value.scrollLeft : 0)
+      fillHandleLeft.value =
+        64 +
+        colPositions.value[colIndex + 1] +
+        (colIndex === 0 ? Math.max(0, scrollWrapper.value.scrollLeft - gridWrapper.value.offsetLeft) : 0)
     }
   })
 }

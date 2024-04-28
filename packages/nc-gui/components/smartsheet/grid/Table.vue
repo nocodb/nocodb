@@ -503,7 +503,12 @@ const onNewRecordToFormClick = () => {
 }
 
 const getContainerScrollForElement = (
-  el: HTMLElement,
+  childPos: {
+    top: number
+    right: number
+    bottom: number
+    left: number
+  },
   container: HTMLElement,
   offset?: {
     top?: number
@@ -512,7 +517,6 @@ const getContainerScrollForElement = (
     right?: number
   },
 ) => {
-  const childPos = el.getBoundingClientRect()
   const parentPos = container.getBoundingClientRect()
 
   // provide an extra offset to show the prev/next/up/bottom cell
@@ -524,11 +528,15 @@ const getContainerScrollForElement = (
   const stickyColsWidth = numColWidth + primaryColWidth
 
   const relativePos = {
-    top: childPos.top - parentPos.top,
-    right: childPos.right - parentPos.right,
-    bottom: childPos.bottom - parentPos.bottom,
-    left: childPos.left - parentPos.left - stickyColsWidth,
+    right: childPos.right + numColWidth - parentPos.width - container.scrollLeft,
+    left: childPos.left + numColWidth - container.scrollLeft - stickyColsWidth,
+    bottom: childPos.bottom - parentPos.height - container.scrollTop,
+    top: childPos.top - container.scrollTop,
   }
+
+  console.log(relativePos, childPos)
+
+  console.log(container.scrollTop, parentPos.height)
 
   const scroll = {
     top: 0,
@@ -947,22 +955,34 @@ async function clearSelectedRangeOfCells() {
   await bulkUpdateRows?.(rows, props)
 }
 
+const colSizes = computed(() => {
+  return fields.value
+    .filter((col) => col.id && gridViewCols.value[col.id] && gridViewCols.value[col.id].width && gridViewCols.value[col.id].show)
+    .map((col) => {
+      return +gridViewCols.value[col.id!]!.width!.replace('px', '') || 200
+    })
+})
+
 const scrollWrapper = computed(() => scrollParent.value || gridWrapper.value)
 
 function scrollToCell(row?: number | null, col?: number | null) {
   row = row ?? activeCell.row
   col = col ?? activeCell.col
 
-  if (row !== null && col !== null) {
-    // get active cell
-    const rows = tableBodyEl.value?.querySelectorAll('tr')
-    const cols = rows?.[row]?.querySelectorAll('td')
-    const td = cols?.[col === 0 ? 0 : col + 1]
-
-    if (!td || !scrollWrapper.value) return
+  if (row !== null && col !== null && scrollWrapper.value) {
+    // calculate cell position
+    const td = {
+      top: row * rowHeightInPx[`${props.rowHeight}`],
+      left: colSizes.value.slice(0, col).reduce((acc, curr) => acc + curr, 0),
+      right:
+        col === fields.value.length - 1
+          ? colSizes.value.reduce((acc, curr) => acc + curr, 0) + 200
+          : colSizes.value.slice(0, col + 1).reduce((acc, curr) => acc + curr, 0),
+      bottom: (row + 1) * rowHeightInPx[`${props.rowHeight}`],
+    }
 
     const { height: headerHeight } = tableHeadEl.value!.getBoundingClientRect()
-    const tdScroll = getContainerScrollForElement(td, scrollWrapper.value, { top: headerHeight || 40, bottom: 9, right: 9 })
+    const tdScroll = getContainerScrollForElement(td, scrollWrapper.value, { top: 9, bottom: (headerHeight || 40) + 9, right: 9 })
 
     // if first column set left to 0 since it's sticky it will be visible and calculated value will be wrong
     // setting left to 0 will make it scroll to the left
@@ -970,20 +990,11 @@ function scrollToCell(row?: number | null, col?: number | null) {
       tdScroll.left = 0
     }
 
-    if (rows && row === rows.length - 2) {
-      // if last row make 'Add New Row' visible
-      const lastRow = rows[rows.length - 1] || rows[rows.length - 2]
-
-      const lastRowScroll = getContainerScrollForElement(lastRow, scrollWrapper.value, {
-        top: headerHeight || 40,
-        bottom: 9,
-        right: 9,
-      })
-
+    if (row === dataRef.value.length - 1) {
       scrollWrapper.value.scrollTo({
-        top: lastRowScroll.top,
+        top: scrollWrapper.value.scrollHeight,
         left:
-          cols && col === cols.length - 2 // if corner cell
+          col === fields.value.length - 1 // if corner cell
             ? scrollWrapper.value.scrollWidth
             : tdScroll.left,
         behavior: 'smooth',
@@ -991,7 +1002,7 @@ function scrollToCell(row?: number | null, col?: number | null) {
       return
     }
 
-    if (cols && col === cols.length - 2) {
+    if (col === fields.value.length - 1) {
       // if last column make 'Add New Column' visible
       scrollWrapper.value.scrollTo({
         top: tdScroll.top,
@@ -1078,6 +1089,111 @@ const loadColumn = (title: string, tp: string, colOptions?: any) => {
   persistMenu.value = false
 }
 
+// Virtual scroll
+
+const maxGridWidth = computed(() => {
+  // 64 for the row number column
+  // count first column twice because it's sticky
+  // 100 for add new column
+  return colSizes.value.reduce((acc, curr) => acc + curr, 0) + colSizes.value[0] + 64 + 100
+})
+
+const maxGridHeight = computed(() => {
+  // 2 extra rows for the add new row and the sticky header
+  return dataRef.value.length * rowHeightInPx[`${props.rowHeight}`] + 2 * rowHeightInPx[`${props.rowHeight}`]
+})
+
+const colSlice = ref({
+  start: 0,
+  end: 0,
+})
+
+const rowSlice = ref({
+  start: 0,
+  end: 0,
+})
+
+const VIRTUAL_MARGIN = 5
+
+const calculateSlices = () => {
+  if (!scrollWrapper.value || !gridWrapper.value) {
+    colSlice.value = {
+      start: 0,
+      end: Infinity,
+    }
+
+    rowSlice.value = {
+      start: 0,
+      end: Infinity,
+    }
+    return
+  }
+
+  let renderEnd = 0
+  let renderStart = 0
+  let renderStartFound = false
+  let renderEndFound = false
+
+  for (let i = 0; i < colSizes.value.length; i++) {
+    if (
+      !renderStartFound &&
+      colSizes.value[i] + colSizes.value.slice(0, i).reduce((acc, curr) => acc + curr, 0) >= scrollWrapper.value.scrollLeft
+    ) {
+      renderStart = Math.max(0, i - VIRTUAL_MARGIN)
+      renderStartFound = true
+    }
+
+    if (
+      !renderEndFound &&
+      colSizes.value[i] + colSizes.value.slice(0, i).reduce((acc, curr) => acc + curr, 0) >=
+        scrollWrapper.value.scrollLeft + scrollWrapper.value.clientWidth
+    ) {
+      renderEnd = Math.max(0, i + VIRTUAL_MARGIN)
+      renderEndFound = true
+    }
+  }
+
+  colSlice.value = {
+    start: renderStart,
+    end: renderEndFound ? renderEnd : colSizes.value.length,
+  }
+
+  const rowHeight = rowHeightInPx[`${props.rowHeight}`]
+  const rowRenderStart = Math.max(0, Math.floor(scrollWrapper.value.scrollTop / rowHeight) - VIRTUAL_MARGIN)
+  const rowRenderEnd = Math.min(
+    dataRef.value.length,
+    rowRenderStart + Math.ceil(gridWrapper.value.clientHeight / rowHeight) + VIRTUAL_MARGIN,
+  )
+
+  rowSlice.value = {
+    start: rowRenderStart,
+    end: rowRenderEnd,
+  }
+}
+
+const visibleFields = computed(() => {
+  // return data as { field, index } to keep track of the index
+  const vFields = fields.value.slice(colSlice.value.start, colSlice.value.end)
+  if (colSlice.value.start !== 0) vFields.unshift(fields.value[0])
+  return vFields.map((field, index) => ({ field, index: index === 0 ? 0 : index + colSlice.value.start }))
+})
+
+const visibleData = computed(() => {
+  // return data as { row, index } to keep track of the index
+  return dataRef.value.slice(rowSlice.value.start, rowSlice.value.end).map((row, index) => ({
+    row,
+    index: index + rowSlice.value.start,
+  }))
+})
+
+const leftOffset = computed(() => {
+  return colSizes.value.slice(0, colSlice.value.start).reduce((acc, curr) => acc + curr, 0)
+})
+
+const topOffset = computed(() => {
+  return rowHeightInPx[`${props.rowHeight}`] * rowSlice.value.start
+})
+
 // #Fill Handle
 
 const fillHandleTop = ref()
@@ -1085,12 +1201,15 @@ const fillHandleLeft = ref()
 
 const refreshFillHandle = () => {
   nextTick(() => {
-    const cellRef = document.querySelector('.last-cell')
-    if (cellRef) {
-      const cellRect = cellRef.getBoundingClientRect()
-      if (!cellRect || !gridWrapper.value) return
-      fillHandleTop.value = cellRect.top + cellRect.height - gridRect.top.value + gridWrapper.value.scrollTop
-      fillHandleLeft.value = cellRect.left + cellRect.width - gridRect.left.value + gridWrapper.value.scrollLeft
+    const rowIndex = isNaN(selectedRange.end.row) ? activeCell.row : selectedRange.end.row
+    const colIndex = isNaN(selectedRange.end.col) ? activeCell.col : selectedRange.end.col
+    if (rowIndex !== null && colIndex !== null) {
+      if (!gridWrapper.value) return
+      fillHandleTop.value = 32 + (rowIndex + 1) * rowHeightInPx[`${props.rowHeight}`]
+      fillHandleLeft.value =
+        64 +
+        colSizes.value.slice(0, colIndex + 1).reduce((acc, curr) => acc + curr, 0) +
+        (colIndex === 0 ? gridWrapper.value.scrollLeft : 0)
     }
   })
 }
@@ -1116,6 +1235,7 @@ watch(
   ([sr, sc, ar, ac], [osr, osc, oar, oac]) => {
     if (sr !== osr || sc !== osc || ar !== oar || ac !== oac) {
       refreshFillHandle()
+      calculateSlices()
     }
   },
 )
@@ -1130,6 +1250,9 @@ onMounted(() => {
     }
   })
   if (smartTable.value) resizeObserver.observe(smartTable.value)
+  until(scrollWrapper)
+    .toBeTruthy()
+    .then(() => calculateSlices())
 })
 
 // #Listeners
@@ -1165,6 +1288,7 @@ async function reloadViewDataHandler(params: void | { shouldShowLoading?: boolea
 
 useEventListener(scrollWrapper, 'scroll', () => {
   refreshFillHandle()
+  calculateSlices()
 })
 
 useEventListener(document, 'mousedown', (e) => {
@@ -1414,7 +1538,14 @@ onKeyStroke('ArrowDown', onDown)
         :trigger="isSqlView ? [] : ['contextmenu']"
         overlay-class-name="nc-dropdown-grid-context-menu"
       >
-        <div class="table-overlay" :class="{ 'nc-grid-skeleton-loader': showSkeleton }">
+        <div
+          class="table-overlay"
+          :class="{ 'nc-grid-skeleton-loader': showSkeleton }"
+          :style="{
+            height: `${maxGridHeight}px`,
+            width: `${maxGridWidth}px`,
+          }"
+        >
           <table
             ref="smartTable"
             class="xc-row-table nc-grid backgroundColorDefault !h-auto bg-white relative"
@@ -1422,6 +1553,9 @@ onKeyStroke('ArrowDown', onDown)
               'mobile': isMobileMode,
               'desktop': !isMobileMode,
               'pr-60 pb-12': !headerOnly,
+            }"
+            :style="{
+              transform: `translateY(${topOffset}px) translateX(${leftOffset}px)`,
             }"
             @contextmenu="showContextMenu"
           >
@@ -1445,8 +1579,21 @@ onKeyStroke('ArrowDown', onDown)
                   />
                 </td>
               </tr>
-              <tr v-show="!isViewColumnsLoading" class="nc-grid-header">
-                <th class="w-[64px] min-w-[64px]" data-testid="grid-id-column" @dblclick="() => {}">
+              <tr
+                v-show="!isViewColumnsLoading"
+                class="nc-grid-header"
+                :style="{
+                  top: `-${topOffset}px`,
+                }"
+              >
+                <th
+                  class="w-[64px] min-w-[64px]"
+                  data-testid="grid-id-column"
+                  :style="{
+                    left: `-${leftOffset}px`,
+                  }"
+                  @dblclick="() => {}"
+                >
                   <div class="w-full h-full flex pl-2 pr-1 items-center" data-testid="nc-check-all">
                     <template v-if="!readOnly">
                       <div class="nc-no-label text-gray-500" :class="{ hidden: vSelectedAllRecords }">#</div>
@@ -1468,8 +1615,8 @@ onKeyStroke('ArrowDown', onDown)
                   </div>
                 </th>
                 <th
-                  v-for="(col, index) in fields"
-                  :key="col.title"
+                  v-for="{ field: col, index } in visibleFields"
+                  :key="col.id"
                   v-xc-ver-resize
                   :data-col="col.id"
                   :data-title="col.title"
@@ -1477,6 +1624,11 @@ onKeyStroke('ArrowDown', onDown)
                     'min-width': gridViewCols[col.id]?.width || '180px',
                     'max-width': gridViewCols[col.id]?.width || '180px',
                     'width': gridViewCols[col.id]?.width || '180px',
+                    ...(index === 0 && leftOffset > 0
+                      ? {
+                          left: `-${leftOffset - 64}px`,
+                        }
+                      : {}),
                   }"
                   class="nc-grid-column-header"
                   :class="{
@@ -1634,7 +1786,7 @@ onKeyStroke('ArrowDown', onDown)
                   ></td>
                 </tr>
               </template>
-              <LazySmartsheetRow v-for="(row, rowIndex) of dataRef" ref="rowRefs" :key="rowIndex" :row="row">
+              <LazySmartsheetRow v-for="{ row, index: rowIndex } in visibleData" ref="rowRefs" :key="rowIndex" :row="row">
                 <template #default="{ state }">
                   <tr
                     v-show="!showSkeleton"
@@ -1649,6 +1801,9 @@ onKeyStroke('ArrowDown', onDown)
                     <td
                       key="row-index"
                       class="caption nc-grid-cell w-[64px] min-w-[64px]"
+                      :style="{
+                        left: `-${leftOffset}px`,
+                      }"
                       :data-testid="`cell-Id-${rowIndex}`"
                       @contextmenu="contextMenuTarget = null"
                     >
@@ -1710,7 +1865,7 @@ onKeyStroke('ArrowDown', onDown)
                       </div>
                     </td>
                     <SmartsheetTableDataCell
-                      v-for="(columnObj, colIndex) of fields"
+                      v-for="{ field: columnObj, index: colIndex } of visibleFields"
                       :key="columnObj.id"
                       class="cell relative nc-grid-cell cursor-pointer"
                       :class="{
@@ -1718,9 +1873,6 @@ onKeyStroke('ArrowDown', onDown)
                         'active-cell':
                           (activeCell.row === rowIndex && activeCell.col === colIndex) ||
                           (selectedRange._start?.row === rowIndex && selectedRange._start?.col === colIndex),
-                        'last-cell':
-                          rowIndex === (isNaN(selectedRange.end.row) ? activeCell.row : selectedRange.end.row) &&
-                          colIndex === (isNaN(selectedRange.end.col) ? activeCell.col : selectedRange.end.col),
                         'nc-required-cell': isColumnRequiredAndNull(columnObj, row.row) && !isPublicView,
                         'align-middle': !rowHeight || rowHeight === 1,
                         'align-top': rowHeight && rowHeight !== 1,
@@ -1739,6 +1891,11 @@ onKeyStroke('ArrowDown', onDown)
                         'min-width': gridViewCols[columnObj.id]?.width || '180px',
                         'max-width': gridViewCols[columnObj.id]?.width || '180px',
                         'width': gridViewCols[columnObj.id]?.width || '180px',
+                        ...(colIndex === 0 && leftOffset > 0
+                          ? {
+                              left: `-${leftOffset - 64}px`,
+                            }
+                          : {}),
                       }"
                       :data-testid="`cell-${columnObj.title}-${rowIndex}`"
                       :data-key="`data-key-${rowIndex}-${columnObj.id}`"
@@ -1797,6 +1954,9 @@ onKeyStroke('ArrowDown', onDown)
               >
                 <div
                   class="h-8 border-b-1 border-gray-100 bg-white group-hover:bg-gray-50 absolute left-0 bottom-0 px-2 sticky z-40 w-full flex items-center text-gray-500"
+                  :style="{
+                    left: `-${leftOffset}px`,
+                  }"
                 >
                   <component
                     :is="iconMap.plus"
@@ -2366,7 +2526,6 @@ onKeyStroke('ArrowDown', onDown)
 
 .nc-grid-header {
   position: sticky;
-  top: -1px;
 
   @apply z-5 bg-white;
 

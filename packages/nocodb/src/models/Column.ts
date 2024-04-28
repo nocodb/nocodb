@@ -692,6 +692,22 @@ export default class Column<T = any> implements ColumnType {
           },
         },
       );
+
+      // if custom relation then delete
+      if (
+        links.every((lk) => {
+          try {
+            return parseMetaProp(lk)?.custom;
+          } catch {
+            // ignore
+          }
+        })
+      ) {
+        for (const link of links) {
+          await Column.delete(link.id, ncMeta);
+        }
+      }
+
       if (links.length) {
         NcError.columnAssociatedWithLink(id);
       }

@@ -459,14 +459,21 @@ const cellMeta = computed(() => {
     return fields.value.map((col) => {
       return {
         isColumnRequiredAndNull: isColumnRequiredAndNull(col, row.row),
-        isLookup: isLinksOrLTAR(col),
-        isRollup: isBt(col),
-        isFormula: isFormula(col),
-        isCreatedOrLastModifiedTimeCol: isCreatedOrLastModifiedTimeCol(col),
-        isCreatedOrLastModifiedByCol: isCreatedOrLastModifiedByCol(col),
-        isVirtualCol: isVirtualCol(col),
       }
     })
+  })
+})
+
+const colMeta = computed(() => {
+  return fields.value.map((col) => {
+    return {
+      isLookup: isLinksOrLTAR(col),
+      isRollup: isBt(col),
+      isFormula: isFormula(col),
+      isCreatedOrLastModifiedTimeCol: isCreatedOrLastModifiedTimeCol(col),
+      isCreatedOrLastModifiedByCol: isCreatedOrLastModifiedByCol(col),
+      isVirtualCol: isVirtualCol(col),
+    }
   })
 })
 
@@ -1686,7 +1693,7 @@ onKeyStroke('ArrowDown', onDown)
                     @dragend.stop="onDragEnd($event)"
                   >
                     <LazySmartsheetHeaderVirtualCell
-                      v-if="fields[0] && cellMeta[0]?.[0].isVirtualCol"
+                      v-if="fields[0] && colMeta[0].isVirtualCol"
                       :column="fields[0]"
                       :hide-menu="readOnly || isMobileMode"
                     />
@@ -1721,7 +1728,7 @@ onKeyStroke('ArrowDown', onDown)
                     @dragend.stop="onDragEnd($event)"
                   >
                     <LazySmartsheetHeaderVirtualCell
-                      v-if="cellMeta[0]?.[index].isVirtualCol"
+                      v-if="colMeta[index].isVirtualCol"
                       :column="col"
                       :hide-menu="readOnly || isMobileMode"
                     />
@@ -1975,11 +1982,11 @@ onKeyStroke('ArrowDown', onDown)
                           'align-top': rowHeight && rowHeight !== 1,
                           'filling': fillRangeMap[`${rowIndex}-0`],
                           'readonly':
-                            (cellMeta[rowIndex][0].isLookup ||
-                              cellMeta[rowIndex][0].isRollup ||
-                              cellMeta[rowIndex][0].isFormula ||
-                              cellMeta[rowIndex][0].isCreatedOrLastModifiedTimeCol ||
-                              cellMeta[rowIndex][0].isCreatedOrLastModifiedByCol) &&
+                            (colMeta[0].isLookup ||
+                              colMeta[0].isRollup ||
+                              colMeta[0].isFormula ||
+                              colMeta[0].isCreatedOrLastModifiedTimeCol ||
+                              colMeta[0].isCreatedOrLastModifiedByCol) &&
                             hasEditPermission &&
                             selectRangeMap[`${rowIndex}-0`],
                           '!border-r-blue-400 !border-r-3': toBeDroppedColId === fields[0].id,
@@ -2008,7 +2015,7 @@ onKeyStroke('ArrowDown', onDown)
                       >
                         <div v-if="!switchingTab" class="w-full">
                           <LazySmartsheetVirtualCell
-                            v-if="fields[0] && cellMeta[0]?.[0].isVirtualCol && fields[0].title"
+                            v-if="fields[0] && colMeta[0].isVirtualCol && fields[0].title"
                             v-model="row.row[fields[0].title]"
                             :column="fields[0]"
                             :active="activeCell.col === 0 && activeCell.row === rowIndex"
@@ -2049,11 +2056,11 @@ onKeyStroke('ArrowDown', onDown)
                           'align-top': rowHeight && rowHeight !== 1,
                           'filling': fillRangeMap[`${rowIndex}-${colIndex}`],
                           'readonly':
-                            (cellMeta[rowIndex][colIndex].isLookup ||
-                              cellMeta[rowIndex][colIndex].isRollup ||
-                              cellMeta[rowIndex][colIndex].isFormula ||
-                              cellMeta[rowIndex][colIndex].isCreatedOrLastModifiedTimeCol ||
-                              cellMeta[rowIndex][colIndex].isCreatedOrLastModifiedByCol) &&
+                            (colMeta[colIndex].isLookup ||
+                              colMeta[colIndex].isRollup ||
+                              colMeta[colIndex].isFormula ||
+                              colMeta[colIndex].isCreatedOrLastModifiedTimeCol ||
+                              colMeta[colIndex].isCreatedOrLastModifiedByCol) &&
                             hasEditPermission &&
                             selectRangeMap[`${rowIndex}-${colIndex}`],
                           '!border-r-blue-400 !border-r-3': toBeDroppedColId === columnObj.id,
@@ -2077,7 +2084,7 @@ onKeyStroke('ArrowDown', onDown)
                       >
                         <div v-if="!switchingTab" class="w-full">
                           <LazySmartsheetVirtualCell
-                            v-if="cellMeta[0]?.[colIndex].isVirtualCol && columnObj.title"
+                            v-if="colMeta[colIndex].isVirtualCol && columnObj.title"
                             v-model="row.row[columnObj.title]"
                             :column="columnObj"
                             :active="activeCell.col === colIndex && activeCell.row === rowIndex"

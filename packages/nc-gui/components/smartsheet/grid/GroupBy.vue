@@ -77,7 +77,7 @@ const findAndLoadSubGroup = (key: any) => {
   if (key.length > 0 && vGroup.value.children) {
     if (!oldActiveGroups.value.includes(key[key.length - 1])) {
       const k = key[key.length - 1].replace('group-panel-', '')
-      const grp = vGroup.value.children[k]
+      const grp = vGroup.value.children.find((g) => `${g.key}` === k)
       if (grp) {
         if (grp.nested) {
           if (!grp.children?.length) props.loadGroups({}, grp)
@@ -239,7 +239,7 @@ const shouldRenderCell = (column) =>
           >
             <a-collapse-panel
               v-for="[i, grp] of Object.entries(vGroup?.children ?? [])"
-              :key="`group-panel-${i}`"
+              :key="`group-panel-${grp.key}`"
               class="!border-1 nc-group rounded-[12px]"
               :class="{ 'mb-4': vGroup.children && +i !== vGroup.children.length - 1 }"
               :style="`background: rgb(${245 - _depth * 10}, ${245 - _depth * 10}, ${245 - _depth * 10})`"
@@ -251,7 +251,7 @@ const shouldRenderCell = (column) =>
                     <span role="img" aria-label="right" class="anticon anticon-right ant-collapse-arrow">
                       <GeneralIcon
                         icon="chevronDown"
-                        :style="`${activeGroups.includes(i) ? 'transform: rotate(360deg)' : 'transform: rotate(270deg)'}`"
+                        :style="`${activeGroups.includes(grp.key) ? 'transform: rotate(360deg)' : 'transform: rotate(270deg)'}`"
                       ></GeneralIcon>
                     </span>
                   </div>

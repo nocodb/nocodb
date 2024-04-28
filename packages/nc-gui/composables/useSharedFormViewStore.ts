@@ -91,8 +91,9 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   const preFilledDefaultValueformState = ref<Record<string, any>>({})
 
+  useProvideSmartsheetLtarHelpers(meta)
+
   const { state: additionalState } = useProvideSmartsheetRowStore(
-    meta as Ref<TableType>,
     ref({
       row: formState,
       rowMeta: { new: true },

@@ -23,7 +23,7 @@ import {
 import type { Row } from '#imports'
 
 const [useProvideSmartsheetLtarHelpers, useSmartsheetLtarHelpers] = useInjectionState(
-  (meta: ComputedRef<TableType | undefined>) => {
+  (meta: Ref<TableType | undefined> | ComputedRef<TableType | undefined>) => {
     const { $api } = useNuxtApp()
 
     const { t } = useI18n()

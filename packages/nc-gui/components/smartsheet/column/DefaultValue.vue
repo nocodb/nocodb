@@ -20,7 +20,7 @@ const rowRef = ref({
   },
 })
 
-useProvideSmartsheetRowStore(meta, rowRef)
+useProvideSmartsheetRowStore(rowRef)
 
 const cdfValue = ref<string | null>(null)
 

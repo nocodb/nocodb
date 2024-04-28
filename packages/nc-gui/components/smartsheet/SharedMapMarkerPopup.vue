@@ -52,7 +52,7 @@ provide(ReloadRowDataHookInj, reloadViewDataHook!)
 
 const currentRow = toRef(props, 'row')
 
-useProvideSmartsheetRowStore(meta as Ref<TableType>, currentRow)
+useProvideSmartsheetRowStore(currentRow)
 </script>
 
 <template>

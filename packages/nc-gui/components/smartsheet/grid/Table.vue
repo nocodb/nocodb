@@ -1666,7 +1666,7 @@ onKeyStroke('ArrowDown', onDown)
                     @dragend.stop="onDragEnd($event)"
                   >
                     <LazySmartsheetHeaderVirtualCell
-                      v-if="isVirtualCol(fields[0])"
+                      v-if="fields[0] && isVirtualCol(fields[0])"
                       :column="fields[0]"
                       :hide-menu="readOnly || isMobileMode"
                     />
@@ -1988,7 +1988,7 @@ onKeyStroke('ArrowDown', onDown)
                       >
                         <div v-if="!switchingTab" class="w-full">
                           <LazySmartsheetVirtualCell
-                            v-if="isVirtualCol(fields[0]) && fields[0].title"
+                            v-if="fields[0] && isVirtualCol(fields[0]) && fields[0].title"
                             v-model="row.row[fields[0].title]"
                             :column="fields[0]"
                             :active="activeCell.col === 0 && activeCell.row === rowIndex"
@@ -1999,7 +1999,7 @@ onKeyStroke('ArrowDown', onDown)
                           />
 
                           <LazySmartsheetCell
-                            v-else-if="fields[0].title"
+                            v-else-if="fields[0] && fields[0].title"
                             v-model="row.row[fields[0].title]"
                             :column="fields[0]"
                             :edit-enabled="

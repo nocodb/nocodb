@@ -126,7 +126,8 @@ export class GridPage extends BasePage {
 
   private async _fillRow({ index, columnHeader, value }: { index: number; columnHeader: string; value: string }) {
     const cell = this.cell.get({ index, columnHeader });
-    await cell.waitFor({ state: 'visible' });
+    await expect(cell).toBeVisible();
+    await this.rootPage.waitForTimeout(500);
     await this.cell.dblclick({
       index,
       columnHeader,
@@ -170,6 +171,8 @@ export class GridPage extends BasePage {
     await this.rootPage.waitForTimeout(400);
 
     await expect(this.get().locator(`[data-testid="grid-row-${rowCount - 1}"]`)).toHaveCount(1);
+
+    await this.rootPage.waitForLoadState('networkidle');
 
     await this._fillRow({ index, columnHeader, value: rowValue });
 

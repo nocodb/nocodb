@@ -214,9 +214,11 @@ test.describe('User single select', () => {
     await grid.cell.click({ index: 3, columnHeader: 'User' });
     await dashboard.rootPage.keyboard.press('Shift+ArrowDown');
 
-    await dashboard.rootPage.keyboard.press((await grid.isMacOs()) ? 'Meta+c' : 'Control+c');
+    await dashboard.rootPage.keyboard.press((await grid.isMacOs()) ? 'Meta+C' : 'Control+C');
     await grid.cell.click({ index: 0, columnHeader: 'User' });
-    await dashboard.rootPage.keyboard.press((await grid.isMacOs()) ? 'Meta+v' : 'Control+v');
+    await dashboard.rootPage.keyboard.press((await grid.isMacOs()) ? 'Meta+V' : 'Control+V');
+
+    await dashboard.rootPage.waitForTimeout(500);
 
     // refresh
     await topbar.clickRefresh();

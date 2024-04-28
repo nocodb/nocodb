@@ -464,6 +464,7 @@ const cellMeta = computed(() => {
         isFormula: isFormula(col),
         isCreatedOrLastModifiedTimeCol: isCreatedOrLastModifiedTimeCol(col),
         isCreatedOrLastModifiedByCol: isCreatedOrLastModifiedByCol(col),
+        isVirtualCol: isVirtualCol(col),
       }
     })
   })
@@ -1057,9 +1058,7 @@ async function resetAndChangePage(row: number, col: number, pageChange?: number)
 }
 
 const saveOrUpdateRecords = async (args: { metaValue?: TableType; viewMetaValue?: ViewType; data?: any } = {}) => {
-  let index = -1
   for (const currentRow of args.data || dataRef.value) {
-    index++
     /** if new record save row and save the LTAR cells */
     if (currentRow.rowMeta.new) {
       const savedRow = await updateOrSaveRow?.(currentRow, '', {}, args)
@@ -1687,7 +1686,7 @@ onKeyStroke('ArrowDown', onDown)
                     @dragend.stop="onDragEnd($event)"
                   >
                     <LazySmartsheetHeaderVirtualCell
-                      v-if="fields[0] && isVirtualCol(fields[0])"
+                      v-if="fields[0] && cellMeta[0]?.[0].isVirtualCol"
                       :column="fields[0]"
                       :hide-menu="readOnly || isMobileMode"
                     />
@@ -1722,7 +1721,7 @@ onKeyStroke('ArrowDown', onDown)
                     @dragend.stop="onDragEnd($event)"
                   >
                     <LazySmartsheetHeaderVirtualCell
-                      v-if="isVirtualCol(col)"
+                      v-if="cellMeta[0]?.[index].isVirtualCol"
                       :column="col"
                       :hide-menu="readOnly || isMobileMode"
                     />
@@ -2009,7 +2008,7 @@ onKeyStroke('ArrowDown', onDown)
                       >
                         <div v-if="!switchingTab" class="w-full">
                           <LazySmartsheetVirtualCell
-                            v-if="fields[0] && isVirtualCol(fields[0]) && fields[0].title"
+                            v-if="fields[0] && cellMeta[0]?.[0].isVirtualCol && fields[0].title"
                             v-model="row.row[fields[0].title]"
                             :column="fields[0]"
                             :active="activeCell.col === 0 && activeCell.row === rowIndex"
@@ -2078,7 +2077,7 @@ onKeyStroke('ArrowDown', onDown)
                       >
                         <div v-if="!switchingTab" class="w-full">
                           <LazySmartsheetVirtualCell
-                            v-if="isVirtualCol(columnObj) && columnObj.title"
+                            v-if="cellMeta[0]?.[colIndex].isVirtualCol && columnObj.title"
                             v-model="row.row[columnObj.title]"
                             :column="columnObj"
                             :active="activeCell.col === colIndex && activeCell.row === rowIndex"
@@ -2234,7 +2233,7 @@ onKeyStroke('ArrowDown', onDown)
                 contextMenuTarget &&
                 hasEditPermission &&
                 selectedRange.isSingleCell() &&
-                (isLinksOrLTAR(fields[contextMenuTarget.col]) || !isVirtualCol(fields[contextMenuTarget.col]))
+                (isLinksOrLTAR(fields[contextMenuTarget.col]) || !cellMeta[0]?.[contextMenuTarget.col].isVirtualCol)
               "
               class="nc-base-menu-item"
               :disabled="isSystemColumn(fields[contextMenuTarget.col])"

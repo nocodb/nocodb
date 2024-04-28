@@ -137,15 +137,20 @@ const pageSizeDropdownVisibleChange = (value: boolean) => {
   </NcModal>
 </template>
 
-<style scoped lang="scss">
-.nc-table-advanced-options {
-  max-height: 0;
-  transition: 0.3s max-height;
-  overflow: hidden;
+<style lang="scss" scoped>
+:deep(.ant-select-selector) {
+  @apply !border-gray-200 !rounded-lg !h-[25px];
+}
 
-  &.active {
-    max-height: 100px;
+:deep(.nc-button:not(:disabled)) {
+  .nc-pagination-icon {
+    @apply !text-gray-500;
   }
 }
 </style>
 
+<style lang="scss">
+.nc-pagination-dropdown {
+  @apply !rounded-lg;
+}
+</style>

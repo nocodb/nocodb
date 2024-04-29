@@ -2102,11 +2102,23 @@ export class ColumnsService {
 
     // check column association with any custom links or LTAR
     if (!isVirtualCol(column)) {
-      const links = await ncMeta.metaList2(
-        null,
-        null,
-        MetaTable.COL_RELATIONS,
-        {
+      const columns = await table.getColumns(ncMeta);
+
+      let link = columns.find((c) => {
+        return (
+          isLinksOrLTAR(c.uidt) &&
+          ((c.colOptions as LinkToAnotherRecordColumn)?.fk_child_column_id ===
+            param.columnId ||
+            (c.colOptions as LinkToAnotherRecordColumn)?.fk_parent_column_id ===
+              param.columnId ||
+            (c.colOptions as LinkToAnotherRecordColumn)
+              ?.fk_mm_child_column_id === param.columnId ||
+            (c.colOptions as LinkToAnotherRecordColumn)
+              ?.fk_mm_parent_column_id === param.columnId)
+        );
+      });
+      if (!link) {
+        link = await ncMeta.metaGet2(null, null, MetaTable.COL_RELATIONS, {
           xcCondition: {
             _or: [
               { fk_child_column_id: { eq: param.columnId } },
@@ -2115,18 +2127,15 @@ export class ColumnsService {
               { fk_mm_parent_column_id: { eq: param.columnId } },
             ],
           },
-        },
-      );
+        });
+      }
 
-      // if custom relation then delete
-      if (links?.length) {
-        const linkCol = await Column.get(
-          { colId: links[0].fk_column_id },
-          ncMeta,
-        );
+      // if relation found then throw error
+      if (link) {
+        const linkCol = await Column.get({ colId: link.fk_column_id }, ncMeta);
         const table = await linkCol.getModel(ncMeta);
         NcError.columnAssociatedWithLink(column.id, {
-          customMessage: `Column is associated with custom link '${
+          customMessage: `Column is associated with Link column '${
             linkCol.title || linkCol.column_name
           }' (${
             table.title || table.table_name

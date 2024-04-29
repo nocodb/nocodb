@@ -2119,25 +2119,19 @@ export class ColumnsService {
       );
 
       // if custom relation then delete
-      if (
-        links?.length &&
-        links.every((lk) => {
-          try {
-            return parseMetaProp(lk)?.custom;
-          } catch {
-            // ignore
-          }
-        })
-      ) {
-        const linkCol = await Column.get(links[0].fk_column_id, ncMeta);
+      if (links?.length) {
+        const linkCol = await Column.get(
+          { colId: links[0].fk_column_id },
+          ncMeta,
+        );
         const table = await linkCol.getModel(ncMeta);
-        NcError.columnAssociatedWithLink(
-          `Column is associated with custom link ${
+        NcError.columnAssociatedWithLink(column.id, {
+          customMessage: `Column is associated with custom link '${
             linkCol.title || linkCol.column_name
-          } (${
+          }' (${
             table.title || table.table_name
           }). Please delete the link column first.`,
-        );
+        });
       }
     }
 

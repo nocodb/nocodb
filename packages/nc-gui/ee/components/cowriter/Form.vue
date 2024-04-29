@@ -65,7 +65,6 @@ const isLoadingForm = ref(true)
 const { isUIAllowed } = useRoles()
 
 const { row } = useProvideSmartsheetRowStore(
-  cowriterTable as Ref<TableType>,
   ref({
     row: cowriterFormState,
     oldRow: {},

@@ -148,6 +148,7 @@ const pagination = computed(() => {
     :hide-header="true"
     :pagination="pagination"
     :disable-skeleton="true"
+    :disable-virtual-y="true"
   />
 </template>
 

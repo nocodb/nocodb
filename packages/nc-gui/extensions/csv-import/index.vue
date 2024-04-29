@@ -243,7 +243,7 @@ const previewData = computed(() => {
 })
 
 // dummy row store for preview
-useProvideSmartsheetRowStore({} as any, {} as any)
+useProvideSmartsheetRowStore({} as any)
 
 const previewColumns = computed(() => {
   return importPayload.value.importColumns.reduce((acc, importMeta) => {

@@ -1,7 +1,6 @@
 import useVuelidate from '@vuelidate/core'
 import { helpers, minLength, required, sameAs } from '@vuelidate/validators'
 import dayjs from 'dayjs'
-import type { Ref } from 'vue'
 import type {
   BoolType,
   ColumnType,
@@ -91,8 +90,9 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   const preFilledDefaultValueformState = ref<Record<string, any>>({})
 
+  useProvideSmartsheetLtarHelpers(meta)
+
   const { state: additionalState } = useProvideSmartsheetRowStore(
-    meta as Ref<TableType>,
     ref({
       row: formState,
       rowMeta: { new: true },

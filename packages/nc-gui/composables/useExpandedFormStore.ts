@@ -56,7 +56,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
       : ({ row: {}, oldRow: {}, rowMeta: {} } as Row),
   )
 
-  const rowStore = useProvideSmartsheetRowStore(meta, row)
+  const rowStore = useProvideSmartsheetRowStore(row)
 
   const activeView = inject(ActiveViewInj, ref())
 

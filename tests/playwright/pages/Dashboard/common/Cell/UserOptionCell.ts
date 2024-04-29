@@ -100,7 +100,7 @@ export class UserOptionCellPageObject extends BasePage {
     }
 
     const locator = this.cell.get({ index, columnHeader }).locator('.ant-tag');
-    await locator.waitFor({ state: 'visible' });
+    await expect(locator).toBeVisible();
     return expect(locator).toContainText(option);
   }
 

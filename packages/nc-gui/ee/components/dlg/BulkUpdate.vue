@@ -56,7 +56,7 @@ const tempRow = ref<Row>({
   rowMeta: {},
 })
 
-useProvideSmartsheetRowStore(meta, tempRow)
+useProvideSmartsheetRowStore(tempRow)
 
 const fields = computed(() => {
   return (meta.value.columns ?? []).filter(

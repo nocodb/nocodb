@@ -7,8 +7,6 @@ const props = defineProps<{
 }>()
 const emits = defineEmits(['update:value'])
 
-const meta = inject(MetaInj, ref())
-
 provide(EditColumnInj, ref(true))
 
 const vModel = useVModel(props, 'value', emits)
@@ -20,7 +18,7 @@ const rowRef = ref({
   },
 })
 
-useProvideSmartsheetRowStore(meta, rowRef)
+useProvideSmartsheetRowStore(rowRef)
 
 const cdfValue = ref<string | null>(null)
 

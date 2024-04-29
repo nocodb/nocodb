@@ -1897,7 +1897,7 @@ class BaseModelSqlv2 {
           // .where(childTable.primaryKey.cn, cid)
           .where(_wherePk(childTable.primaryKeys, cid))
           .whereNotNull(cn),
-      ).orWhereNull(rcn);
+      );
     });
 
     if (+rest?.shuffle) {

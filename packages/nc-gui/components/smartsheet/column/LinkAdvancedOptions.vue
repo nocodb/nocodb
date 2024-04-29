@@ -7,7 +7,6 @@ import {
   isCreatedOrLastModifiedTimeCol,
   isVirtualCol,
 } from 'nocodb-sdk'
-import { useTable } from '../../../composables/useTable'
 import { useTablesStore } from '../../../store/tables'
 import {
   MetaInj,
@@ -36,9 +35,6 @@ const meta = inject(MetaInj, ref({} as TableType))
 const vModel = useVModel(props, 'value', emit)
 
 const { validateInfos, onDataTypeChange } = useColumnCreateStoreOrThrow()
-
-// const baseStore = useBase()
-// const { base } = storeToRefs(baseStore)
 
 const { metas, getMeta } = useMetas()
 

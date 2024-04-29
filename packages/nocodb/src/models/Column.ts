@@ -1,7 +1,6 @@
 import {
   AllowedColumnTypesForQrAndBarcodes,
   isLinksOrLTAR,
-  isVirtualCol,
   UITypes,
 } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';

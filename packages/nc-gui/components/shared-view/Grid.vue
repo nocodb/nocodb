@@ -43,6 +43,8 @@ provide(IsLockedInj, isLocked)
 useProvideViewColumns(sharedView, meta, () => reloadEventHook?.trigger(), true)
 useProvideViewGroupBy(sharedView, meta, xWhere, true)
 
+useProvideSmartsheetLtarHelpers(meta)
+
 if (signedIn.value) {
   try {
     await loadProject()

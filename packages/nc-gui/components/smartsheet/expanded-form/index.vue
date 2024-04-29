@@ -157,6 +157,8 @@ const duplicatingRowInProgress = ref(false)
 
 useProvideSmartsheetStore(ref({}) as Ref<ViewType>, meta)
 
+useProvideSmartsheetLtarHelpers(meta)
+
 watch(
   state,
   () => {

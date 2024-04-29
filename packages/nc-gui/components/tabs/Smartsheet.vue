@@ -24,6 +24,7 @@ import {
   useMetas,
   useProvideCalendarViewStore,
   useProvideKanbanViewStore,
+  useProvideSmartsheetLtarHelpers,
   useProvideSmartsheetStore,
   useRoles,
   useSqlEditor,
@@ -58,8 +59,6 @@ const { isGallery, isGrid, isForm, isKanban, isLocked, isMap, isCalendar, xWhere
 
 useSqlEditor()
 
-const { isPanelExpanded } = useExtensions()
-
 const reloadViewDataEventHook = createEventHook()
 
 const reloadViewMetaEventHook = createEventHook<void | boolean>()
@@ -87,6 +86,8 @@ provide(
 
 useProvideViewColumns(activeView, meta, () => reloadViewDataEventHook?.trigger())
 useProvideViewGroupBy(activeView, meta, xWhere)
+
+useProvideSmartsheetLtarHelpers(meta)
 
 const grid = ref()
 

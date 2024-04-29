@@ -410,6 +410,7 @@ export class CellPageObject extends BasePage {
   }
 
   async copyCellToClipboard({ index, columnHeader }: CellProps, ...clickOptions: Parameters<Locator['click']>) {
+    if (this.parent instanceof GridPage) await this.parent.renderColumn(columnHeader);
     await this.get({ index, columnHeader }).scrollIntoViewIfNeeded();
     await this.get({ index, columnHeader }).click(...clickOptions);
     await (await this.get({ index, columnHeader }).elementHandle()).waitForElementState('stable');

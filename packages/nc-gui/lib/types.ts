@@ -64,6 +64,7 @@ interface Row {
     commentCount?: number
     changed?: boolean
     saving?: boolean
+    ltarState?: Record<string, Record<string, any> | Record<string, any>[] | null>
     // use in datetime picker component
     isUpdatedFromCopyNPaste?: Record<string, boolean>
     // Used in Calendar view

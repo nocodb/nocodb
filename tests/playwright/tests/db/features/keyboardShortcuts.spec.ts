@@ -272,6 +272,8 @@ test.describe('Clipboard support', () => {
 
     // ########################################
 
+    await dashboard.grid.renderColumn('Attachment');
+
     await dashboard.grid.cell.attachment.addFile({
       index: 0,
       columnHeader: 'Attachment',
@@ -304,6 +306,7 @@ test.describe('Clipboard support', () => {
     ];
 
     for (const { type, value } of responseTable) {
+      await dashboard.grid.renderColumn(type);
       if (type === 'Rating') {
         await dashboard.grid.cell.rating.verify({
           index: rowIndex,

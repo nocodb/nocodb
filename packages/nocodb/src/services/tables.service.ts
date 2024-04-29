@@ -242,7 +242,7 @@ export class TablesService {
         const relCol = await Column.get(relations[0].fk_column_id);
         const relTable = await Model.get(relCol.fk_model_id);
         NcError.badRequest(
-          `This is a many to many table for ${relTable?.title} (${relTable?.title}), please delete the column before deleting the table.`,
+          `This is a many to many table for '${relTable?.title}' (${relTable?.title}), please delete the column before deleting the table.`,
         );
       }
     }

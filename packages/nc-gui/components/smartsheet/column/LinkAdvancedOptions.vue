@@ -90,7 +90,7 @@ const columns = computed(() => {
   }
 
   return meta.value.columns?.filter(
-    (c) => !isCreatedOrLastModifiedByCol(c) && !isCreatedOrLastModifiedTimeCol(c) && !isVirtualCol(c),
+    (c) => !isCreatedOrLastModifiedByCol(c) && !isCreatedOrLastModifiedTimeCol(c) && !isVirtualCol(c) && !c.system,
   )
 })
 
@@ -100,7 +100,7 @@ const refTableColumns = computed(() => {
   }
 
   return metas.value[vModel.value.custom?.ref_model_id]?.columns?.filter(
-    (c) => !isCreatedOrLastModifiedByCol(c) && !isCreatedOrLastModifiedTimeCol(c) && !isVirtualCol(c),
+    (c) => !isCreatedOrLastModifiedByCol(c) && !isCreatedOrLastModifiedTimeCol(c) && !isVirtualCol(c) && !c.system,
   )
 })
 
@@ -110,7 +110,7 @@ const juncTableColumns = computed(() => {
   }
 
   return metas.value[vModel.value.custom?.junc_model_id]?.columns?.filter(
-    (c) => !isCreatedOrLastModifiedByCol(c) && !isCreatedOrLastModifiedTimeCol(c) && !isVirtualCol(c),
+    (c) => !isCreatedOrLastModifiedByCol(c) && !isCreatedOrLastModifiedTimeCol(c) && !isVirtualCol(c) && !c.system,
   )
 })
 

@@ -64,6 +64,7 @@ import Noco from '~/Noco';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { MetaTable } from '~/utils/globals';
 import { MetaService } from '~/meta/meta.service';
+import { parseMetaProp } from '~/utils/modelUtils';
 
 // todo: move
 export enum Altered {
@@ -2098,6 +2099,47 @@ export class ColumnsService {
     const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
       ProjectMgrv2.getSqlMgr(context, { id: source.base_id }, ncMeta),
     );
+
+    // check column association with any custom links or LTAR
+    if (!isVirtualCol(col)) {
+      const links = await ncMeta.metaList2(
+        null,
+        null,
+        MetaTable.COL_RELATIONS,
+        {
+          xcCondition: {
+            _or: [
+              { fk_child_column_id: { eq: id } },
+              { fk_parent_column_id: { eq: id } },
+              { fk_mm_child_column_id: { eq: id } },
+              { fk_mm_parent_column_id: { eq: id } },
+            ],
+          },
+        },
+      );
+
+      // if custom relation then delete
+      if (
+        links?.length &&
+        links.every((lk) => {
+          try {
+            return parseMetaProp(lk)?.custom;
+          } catch {
+            // ignore
+          }
+        })
+      ) {
+        const linkCol = await Column.get(links[0].fk_column_id, ncMeta);
+        const table = await linkCol.getModel(ncMeta);
+        NcError.columnAssociatedWithLink(
+          `Column is associated with custom link ${
+            linkCol.title || linkCol.column_name
+          } (${
+            table.title || table.table_name
+          }). Please delete the link column first.`,
+        );
+      }
+    }
 
     /**
      * @Note: When using 'falls through to default' cases in a switch statement,

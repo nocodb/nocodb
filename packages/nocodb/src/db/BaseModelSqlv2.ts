@@ -6936,7 +6936,7 @@ class BaseModelSqlv2 {
           delete item[key];
         }
       });
-    });k
+    });
 
     return data;
   }

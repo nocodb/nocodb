@@ -217,6 +217,17 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     return data;
   }
 
+  async runOps(ops: Promise<string>[], trx = this.dbDriver) {
+    const queries = await Promise.all(ops);
+    if ((this.dbDriver as any).isExternal) {
+      await runExternal(queries, (this.dbDriver as any).extDb);
+    } else {
+      for (const query of queries) {
+        await trx.raw(query);
+      }
+    }
+  }
+
   async insert(data, trx?, cookie?, disableOptimization = false) {
     try {
       const columns = await this.model.getColumns();
@@ -844,8 +855,8 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     try {
       // TODO: ag column handling for raw bulk insert
       const insertDatas = raw ? datas : [];
-      let postInsertOps: ((rowId: any, trx?: any) => Promise<void>)[] = [];
-      let preInsertOps: ((trx?: any) => Promise<void>)[] = [];
+      let postInsertOps: ((rowId: any) => Promise<string>)[] = [];
+      let preInsertOps: (() => Promise<string>)[] = [];
       let aiPkCol: Column;
       let agPkCol: Column;
 
@@ -1019,7 +1030,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         await this.beforeBulkInsert(insertDatas, null, cookie);
       }
 
-      await Promise.all(preInsertOps.map((f) => f(null)));
+      await this.runOps(preInsertOps.map((f) => f()));
 
       // await this.beforeInsertb(insertDatas, null);
 
@@ -1131,7 +1142,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             });
           }
 
-          await Promise.all(postInsertOps.map((f) => f(rowId, trx)));
+          await this.runOps(
+            postInsertOps.map((f) => f(rowId)),
+            trx,
+          );
         }
       };
 

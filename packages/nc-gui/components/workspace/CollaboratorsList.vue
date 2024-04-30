@@ -60,16 +60,20 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="nc-collaborator-table-container mt-4 mx-6 h-[calc(100vh-12rem)]">
-    <div class="w-full flex justify-between items-baseline mt-6.5 mb-2 pr-0.25 ml-2">
-      <div class="text-xl">Invite Members By Email</div>
+  <div class="nc-collaborator-table-container mt-4 h-[calc(100vh-12rem)]">
+    <div class="w-full flex justify-between mt-6.5 mb-2">
       <a-input v-model:value="userSearchText" class="!max-w-90 !rounded-md mr-4" placeholder="Search members">
         <template #prefix>
           <PhMagnifyingGlassBold class="!h-3.5 text-gray-500" />
         </template>
       </a-input>
+      <NcButton>
+        <div class="flex items-center gap-2">
+          <component :is="iconMap.plus" class="!h-4 !w-4" />
+          {{ $t('labels.addMember') }}
+        </div>
+      </NcButton>
     </div>
-    <WorkspaceInviteSection v-if="workspaceRole !== WorkspaceUserRoles.VIEWER" />
     <div v-if="!filterCollaborators?.length" class="w-full h-full flex flex-col items-center justify-center mt-36">
       <a-empty description="No members found" />
     </div>
@@ -170,6 +174,18 @@ onMounted(async () => {
 </template>
 
 <style scoped lang="scss">
+.ant-input::placeholder {
+  @apply text-gray-500;
+}
+
+.ant-input:placeholder-shown {
+  @apply text-gray-500 !text-md;
+}
+
+.ant-input-affix-wrapper {
+  @apply px-4 rounded-lg py-2 w-84 border-1 focus:border-brand-500 border-gray-200 !ring-0;
+}
+
 .badge-text {
   @apply text-[14px] pt-1 text-center;
 }

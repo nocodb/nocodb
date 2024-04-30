@@ -204,6 +204,7 @@
     "appearance": "Appearance"
   },
   "objects": {
+    "owner": "Owner",
     "member": "Member",
     "day": "Day",
     "week": "Week",
@@ -439,6 +440,12 @@
     "noResultsMatchedYourSearch": "Your search did not yield any matching results"
   },
   "labels": {
+    "addMember": "Add Member",
+    "numberOfMembers": "No. Members",
+    "numberOfBases": "No. Bases",
+    "numberOfRecords": "No. Records",
+    "workspaceName": "Workspace Name",
+    "workspaceWithoutOwner": "Workspace without Owners",
     "inviteUsersToWorkspace": "Invite Users to Workspace",
     "selectWorkspace":"-select workspaces to invite to-",
     "addMembersToOrganization": "Add Members to Organization",
@@ -742,10 +749,12 @@
     "clearSelection": "Clear selection"
   },
   "activity": {
+    "newWorkspace": "New Workspace",
     "addDomain": "Add Domain",
     "addMembers": "Add Members",
     "enterEmail": "Enter email addresses",
     "inviteToBase": "Invite to Base",
+    "inviteToWorkspace": "Invite to Workspace",
     "addMember": "Add Member to Base",
     "noRange": "Calendar view requires a date range",
     "goToToday": "Go to Today",

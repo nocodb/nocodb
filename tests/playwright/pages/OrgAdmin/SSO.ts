@@ -36,6 +36,16 @@ export class SSO extends BasePage {
   async verifyOIDCProviderCount({ count }: { count: number }) {
     await expect.poll(async () => await this.get().locator('.nc-oidc-provider').count()).toBe(count);
   }
+  async deleteExistingClientIfAny(provider: 'saml' | 'oidc' | 'google', title: string) {
+    if (
+      !(await this.rootPage
+        .locator(provider === 'google' ? '.nc-google-more-option' : `.nc-${provider}-${title}-more-option`)
+        .count())
+    )
+      return;
+
+    await this.deleteProvider(provider, title);
+  }
 
   async getProvider(provider: 'saml' | 'oidc', title: string) {
     return this.rootPage.locator(`[data-test-id="nc-${provider}-provider-${title}"]`);

@@ -3255,6 +3255,17 @@ class BaseModelSqlv2 {
       }
       rowId = pkObj;
     }
+
+    // handle if primary key is not ai or ag
+    if (!ai && !ag) {
+      const pkObj = {};
+      for (const pk of this.model.primaryKeys) {
+        const key = pk.title;
+        pkObj[key] = insertObj[pk.column_name] ?? null;
+      }
+      rowId = pkObj;
+    }
+
     return rowId;
   }
 

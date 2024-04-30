@@ -24,6 +24,8 @@ const userSearchText = ref('')
 
 const isAdminPanel = inject(IsAdminPanelInj, ref(false))
 
+const { isUIAllowed } = useRoles()
+
 const inviteDlg = ref(false)
 
 const filterCollaborators = computed(() => {
@@ -130,7 +132,7 @@ onMounted(async () => {
             <LazyAccountUserMenu :direction="sortDirection.roles" field="roles" :handle-user-sort="saveOrUpdate" />
           </div>
           <div class="text-gray-700 w-full flex-1 px-6 py-3">{{ $t('title.dateJoined') }}</div>
-          <div class="text-gray-700 w-full flex-1 px-6 py-3">{{ $t('labels.actions') }}</div>
+          <div class="text-gray-700 w-full text-right flex-1 px-6 py-3">{{ $t('labels.actions') }}</div>
         </div>
         <div class="flex flex-col nc-scrollbar-md">
           <div
@@ -167,7 +169,7 @@ onMounted(async () => {
                   />
                 </template>
                 <template v-else>
-                  <RolesBadge :role="collab.roles" class="cursor-default" />
+                  <RolesBadge :border="false" :role="collab.roles" class="cursor-default" />
                 </template>
               </div>
             </div>
@@ -181,7 +183,7 @@ onMounted(async () => {
                 </span>
               </NcTooltip>
             </div>
-            <div class="w-full flex-1 flex px-6 py-3">
+            <div class="w-full justify-end flex-1 flex px-6 py-3">
               <NcDropdown v-if="collab.roles !== WorkspaceUserRoles.OWNER">
                 <NcButton size="small" type="secondary">
                   <component :is="iconMap.threeDotVertical" />
@@ -189,12 +191,6 @@ onMounted(async () => {
                 <template #overlay>
                   <NcMenu>
                     <template v-if="isAdminPanel">
-                      <NcMenuItem data-testid="nc-admin-org-user-assign-admin">
-                        <GeneralIcon class="text-gray-800" icon="user" />
-                        <span>{{ $t('labels.assignAs') }}</span>
-                        <RolesBadge :border="false" :show-icon="false" role="owner" />
-                      </NcMenuItem>
-
                       <NcMenuItem data-testid="nc-admin-org-user-delete">
                         <GeneralIcon class="text-gray-800" icon="signout" />
                         <span>{{ $t('labels.signOutUser') }}</span>
@@ -202,6 +198,15 @@ onMounted(async () => {
 
                       <a-menu-divider class="my-1.5" />
                     </template>
+                    <NcMenuItem
+                      v-if="isUIAllowed('transferWorkspaceOwnership')"
+                      data-testid="nc-admin-org-user-assign-admin"
+                      @click="updateCollaborator(collab, WorkspaceUserRoles.OWNER)"
+                    >
+                      <GeneralIcon class="text-gray-800" icon="user" />
+                      <span>{{ $t('labels.assignAs') }}</span>
+                      <RolesBadge :border="false" :show-icon="false" role="owner" />
+                    </NcMenuItem>
 
                     <NcMenuItem
                       class="!text-red-500 !hover:bg-red-50"

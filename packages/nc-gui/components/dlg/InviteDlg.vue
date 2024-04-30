@@ -310,7 +310,7 @@ const onRoleChange = (role: keyof typeof RoleLabels) => (inviteData.roles = role
             <span
               v-for="(email, index) in emailBadges"
               :key="email"
-              class="border-1 text-gray-800 bg-gray-100 rounded-md flex items-center px-2 py-1"
+              class="border-1 text-gray-800 first:ml-1 bg-gray-100 rounded-md flex items-center px-2 py-1"
             >
               {{ email }}
               <component

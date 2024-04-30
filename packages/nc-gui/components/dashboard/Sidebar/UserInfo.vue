@@ -24,6 +24,8 @@ const { leftSidebarState } = storeToRefs(useSidebarStore())
 
 const name = computed(() => user.value?.display_name?.trim())
 
+const { isUIAllowed } = useRoles()
+
 const workspaceStore = useWorkspace()
 const { activeWorkspace } = storeToRefs(workspaceStore)
 
@@ -200,18 +202,19 @@ const migrateWorkspace = async () => {
 
             <NcDivider />
 
+            <!-- Admin Panel  TODO: v-if="isUIAllowed('adminPanel')" -->
             <nuxt-link
               v-if="activeWorkspace?.fk_org_id"
               v-e="['c:user:admin-panel']"
-              class="!no-underline"
               :to="`/admin/${activeWorkspace?.fk_org_id}`"
+              class="!no-underline"
             >
-              <NcMenuItem> <GeneralIcon icon="controlPanel" class="menu-icon" /> {{ $t('labels.adminPanel') }} </NcMenuItem>
+              <NcMenuItem> <GeneralIcon class="menu-icon" icon="controlPanel" /> {{ $t('labels.adminPanel') }} </NcMenuItem>
             </nuxt-link>
 
             <div v-else v-e="['c:user:upgrade-workspace-to-org']" @click="migrateWorkspace">
               <NcMenuItem>
-                <GeneralIcon icon="controlPanel" class="menu-icon" /> {{ $t('labels.moveWorkspaceToOrg') }}
+                <GeneralIcon class="menu-icon" icon="controlPanel" /> {{ $t('labels.moveWorkspaceToOrg') }}
               </NcMenuItem>
             </div>
 

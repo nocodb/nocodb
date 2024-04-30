@@ -318,6 +318,8 @@
     "isNotNull": "is not null"
   },
   "title": {
+    "renameWorkspace": "Rename Workspace",
+    "renamingWorkspace": "Renaming Workspace",
     "sso": "Authentication (SSO)",
     "docs": "Docs",
     "forum": "Forum",
@@ -442,6 +444,7 @@
     "noResultsMatchedYourSearch": "Your search did not yield any matching results"
   },
   "labels": {
+    "transferOwnership": "Transfer Ownership",
     "recentActivity": "Recent Activity",
     "goToMembers": "Go to Members",
     "addMember": "Add Member",
@@ -753,6 +756,7 @@
     "clearSelection": "Clear selection"
   },
   "activity": {
+    "renameWorkspace": "Rename workspace",
     "deactivate": "De-activate",
     "manageUsers": "Manage Users",
     "newWorkspace": "New Workspace",
@@ -1216,7 +1220,7 @@
       }
     },
     "info": {
-
+      "enterWorkspaceName": "Enter workspace name",
       "idpPaste": "Paste these URL in your Identity Providers console",
       "noSaml": "There are no configured SAML authentications.",
       "disabledAsViewLocked": "Disabled as View is locked",

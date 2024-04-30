@@ -193,7 +193,7 @@ watch(currentBase, () => {
         </a-input>
 
         <NcButton size="small" @click="isInviteModalVisible = true">
-          <div class="flex gap-1">
+          <div class="flex items-center gap-1">
             <component :is="iconMap.plus" class="w-4 h-4" />
             {{ $t('activity.addMembers') }}
           </div>

@@ -217,7 +217,7 @@ const migrateWorkspace = async () => {
               </nuxt-link>
             </template>
             <div
-              v-else
+              v-else-if="isUIAllowed('moveWorkspaceToOrg')"
               v-e="['c:user:upgrade-workspace-to-org']"
               data-testid="nc-sidebar-upgrade-workspace-to-org"
               @click="migrateWorkspace"

@@ -3254,10 +3254,12 @@ class BaseModelSqlv2 {
         }
       }
       rowId = pkObj;
-    }
-
-    // handle if primary key is not ai or ag
-    if (!ai && !ag) {
+    } else if (
+      !ai &&
+      !ag &&
+      (force || this.model.primaryKeys?.length > 1 || this.isSnowflake)
+    ) {
+      // handle if primary key is not ai or ag
       const pkObj = {};
       for (const pk of this.model.primaryKeys) {
         const key = pk.title;

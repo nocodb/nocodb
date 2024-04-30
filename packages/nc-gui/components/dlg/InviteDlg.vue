@@ -19,24 +19,18 @@ const basesStore = useBases()
 
 const workspaceStore = useWorkspace()
 
-const organization = useOrganization()
-
-const { workspaces } = storeToRefs(organization)
-
 const { createProjectUser } = basesStore
 
 const { inviteCollaborator: inviteWsCollaborator } = workspaceStore
 
-const { workspacesList } = toRefs(workspaceStore)
-
 const dialogShow = useVModel(props, 'modelValue', emit)
 
 const orderedRoles = computed(() => {
-  return props.type !== 'base' ? WorkspaceUserRoles : ProjectRoles
+  return props.type === 'base' ? ProjectRoles : WorkspaceUserRoles
 })
 
 const userRoles = computed(() => {
-  return props.type !== 'base' ? workspaceRoles.value : baseRoles.value
+  return props.type === 'base' ? baseRoles.value : workspaceRoles.value
 })
 
 const inviteData = reactive({
@@ -230,6 +224,8 @@ const onPaste = (e: ClipboardEvent) => {
   inviteData.email = ''
 }
 
+const workSpaces = ref<NcWorkspace[]>([])
+
 const inviteCollaborator = async () => {
   try {
     const payloadData = singleEmailValue.value || emailBadges.value.join(',')
@@ -247,6 +243,11 @@ const inviteCollaborator = async () => {
       } as unknown as User)
     } else if (props.type === 'workspace' && props.workspaceId) {
       await inviteWsCollaborator(payloadData, inviteData.roles, props.workspaceId)
+    } else if (props.type === 'organization') {
+      // TODO: Add support for Bulk Workspace Invite
+      for (const workspace of workSpaces.value) {
+        await inviteWsCollaborator(payloadData, inviteData.roles, workspace.id)
+      }
     }
 
     message.success('Invitation sent successfully')
@@ -260,11 +261,14 @@ const inviteCollaborator = async () => {
   }
 }
 
-const workSpaces = ref<NcWorkspace[]>([])
+const organizationStore = useOrganization()
+
+const { listWorkspaces } = organizationStore
+
+const { workspaces } = storeToRefs(organizationStore)
 
 const workSpaceSelectList = computed(() => {
-  console.log('list', workspaces.value)
-  return workspaces.value.filter((w) => !workSpaces.value.find((ws) => ws.id !== w.id))
+  return workspaces.value.filter((w) => !workSpaces.value.find((ws) => ws.id === w.id))
 })
 
 const addToList = (workspaceId: string) => {
@@ -273,6 +277,12 @@ const addToList = (workspaceId: string) => {
 const removeWorkspace = (workspaceId: string) => {
   workSpaces.value = workSpaces.value.filter((w) => w.id !== workspaceId)
 }
+
+onMounted(async () => {
+  if (props.type === 'organization') {
+    await listWorkspaces()
+  }
+})
 
 const onRoleChange = (role: keyof typeof RoleLabels) => (inviteData.roles = role as ProjectRoles | WorkspaceUserRoles)
 </script>

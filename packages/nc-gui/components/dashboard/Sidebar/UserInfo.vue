@@ -10,6 +10,7 @@ import {
   storeToRefs,
   useApi,
   useGlobal,
+  useRoles,
   useSidebarStore,
   useUsers,
   useWorkspace,
@@ -32,6 +33,8 @@ const isMenuOpen = ref(false)
 const isAuthTokenCopied = ref(false)
 
 const isLoggingOut = ref(false)
+
+const { isUIAllowed } = useRoles()
 
 const { isMobileMode } = useGlobal()
 
@@ -208,11 +211,17 @@ const migrateWorkspace = async () => {
                 v-e="['c:user:admin-panel']"
                 :to="`/admin/${activeWorkspace?.fk_org_id}`"
                 class="!no-underline"
+                data-testid="nc-sidebar-org-admin-panel"
               >
                 <NcMenuItem> <GeneralIcon class="menu-icon" icon="controlPanel" /> {{ $t('labels.adminPanel') }} </NcMenuItem>
               </nuxt-link>
             </template>
-            <div v-else v-e="['c:user:upgrade-workspace-to-org']" @click="migrateWorkspace">
+            <div
+              v-else
+              v-e="['c:user:upgrade-workspace-to-org']"
+              data-testid="nc-sidebar-upgrade-workspace-to-org"
+              @click="migrateWorkspace"
+            >
               <NcMenuItem>
                 <GeneralIcon class="menu-icon" icon="controlPanel" /> {{ $t('labels.moveWorkspaceToOrg') }}
               </NcMenuItem>

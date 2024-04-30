@@ -1,9 +1,8 @@
 import { Page } from '@playwright/test';
 import BasePage from '../Base';
 import { ProjectsPage } from '../ProjectsPage';
-import { expect } from '@playwright/test';
 
-export class SSOLoginPage extends BasePage {
+export class CloudSSOLoginPage extends BasePage {
   readonly projectsPage: ProjectsPage;
 
   constructor(rootPage: Page) {
@@ -11,7 +10,7 @@ export class SSOLoginPage extends BasePage {
     this.projectsPage = new ProjectsPage(rootPage);
   }
 
-  async goto(title = 'test') {
+  async goto(_email: string) {
     // reload page to get latest app info
     await this.rootPage.goto('/#/sso');
     // click sign in with SAML

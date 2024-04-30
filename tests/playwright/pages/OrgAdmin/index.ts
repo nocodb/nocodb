@@ -1,14 +1,13 @@
 import { Page } from '@playwright/test';
 import BasePage from '../Base';
-import { SSO } from './SSO';
-import { DashboardPage } from '../Dashboard';
+import { CloudSSO } from './SSO';
 
 export class OrgAdminPage extends BasePage {
-  readonly ssoPage: SSO;
+  readonly ssoPage: CloudSSO;
 
   constructor(page: Page) {
     super(page);
-    this.ssoPage = new SSO(page);
+    this.ssoPage = new CloudSSO(this);
   }
 
   get() {

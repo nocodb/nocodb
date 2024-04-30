@@ -6,7 +6,7 @@ export class Domain extends BasePage {
 
   constructor(orgAdminPage: OrgAdminPage) {
     super(orgAdminPage.rootPage);
-    this.orgAdminPage = OrgAdminPage;
+    this.orgAdminPage = orgAdminPage;
   }
 
   get() {

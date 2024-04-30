@@ -1,19 +1,19 @@
 import { Page } from '@playwright/test';
 import BasePage from '../Base';
 import { ProjectsPage } from '../ProjectsPage';
-import { SSOLoginPage } from './SSOLoginPage';
+import { CloudSSOLoginPage } from './SSOLoginPage';
 
-export class OpenIDLoginPage extends BasePage {
+export class CloudOpenIDLoginPage extends BasePage {
   readonly projectsPage: ProjectsPage;
-  readonly ssoLoginPage: SSOLoginPage;
+  readonly ssoLoginPage: CloudSSOLoginPage;
 
   constructor(rootPage: Page) {
     super(rootPage);
     this.projectsPage = new ProjectsPage(rootPage);
-    this.ssoLoginPage = new SSOLoginPage(rootPage);
+    this.ssoLoginPage = new CloudSSOLoginPage(rootPage);
   }
 
-  async goto(title = 'test', email: string) {
+  async goto(_title = 'test', email: string) {
     await this.ssoLoginPage.goto(email);
     await this.ssoLoginPage.signIn({ email });
     // // reload page to get latest app info

@@ -1,17 +1,16 @@
-import { Page } from '@playwright/test';
 import BasePage from '../Base';
 import { ProjectsPage } from '../ProjectsPage';
 import { expect } from '@playwright/test';
-import { AccountAuthenticationPage } from '../Account/Authentication';
 import { Domain } from './Domain';
+import { OrgAdminPage } from './index';
 
-export class SSO extends BasePage {
+export class CloudSSO extends BasePage {
   readonly projectsPage: ProjectsPage;
   readonly domain: Domain;
 
-  constructor(rootPage: Page) {
-    super(rootPage);
-    this.domain = new Domain(this);
+  constructor(orgAdminPage: OrgAdminPage) {
+    super(orgAdminPage.rootPage);
+    this.domain = new Domain(orgAdminPage);
   }
 
   async goto() {
@@ -70,7 +69,7 @@ export class SSO extends BasePage {
     });
   }
 
-  async selectScope({ type }: { typesto: string[] }) {
+  async selectScope({ type }: { type: string[] }) {
     await this.rootPage.locator('.ant-select-selector').click();
 
     await this.rootPage.locator('.ant-select-selection-search-input[aria-expanded="true"]').waitFor();
@@ -81,7 +80,7 @@ export class SSO extends BasePage {
 
   async createSAMLProvider(
     p: { title: string; url?: string; xml?: string },
-    setupRedirectUrlCbk?: ({ redirectUrl: string, audience: string }) => Promise<void>
+    setupRedirectUrlCbk?: (params: { redirectUrl: string; audience: string }) => Promise<void>
   ) {
     const newSamlBtn = this.get().locator('[data-test-id="nc-new-saml-provider"]');
 
@@ -130,7 +129,7 @@ export class SSO extends BasePage {
       scopes: Array<string>;
       userAttributes: string;
     },
-    setupRedirectUrlCbk?: ({ redirectUrl: string }) => Promise<void>
+    setupRedirectUrlCbk?: (params: { redirectUrl: string }) => Promise<void>
   ) {
     const newOIDCBtn = this.get().locator('[data-test-id="nc-new-oidc-provider"]');
 
@@ -167,7 +166,7 @@ export class SSO extends BasePage {
     await this.selectScope({
       type: p.scopes,
       locator: oidcModal.locator('[data-test-id="nc-oidc-scope"]'),
-    });
+    } as any);
 
     await oidcModal.locator('[data-test-id="nc-oidc-user-attribute"]').fill(p.userAttributes);
 
@@ -196,6 +195,4 @@ export class SSO extends BasePage {
       requestUrlPathToMatch: /\/api\/v2\/orgs\/\w+\/sso-clients/,
     });
   }
-
-  async verifyGoogleProviderCount(param: { count: number }) {}
 }

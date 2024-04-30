@@ -138,7 +138,7 @@ export function useUserSorts(roleType: 'Workspace' | 'Org' | 'Project' | 'Organi
             return b[sortsConfig.field]?.localeCompare(a[sortsConfig.field])
           }
         }
-        case 'workspace': {
+        case 'title': {
           if (sortsConfig.direction === 'asc') {
             return a[sortsConfig.field] - b[sortsConfig.field]
           } else {

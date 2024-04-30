@@ -1403,6 +1403,7 @@
       "fetchingCalendarData": "Error fetching calendar data",
       "fetchingActiveDates": "Error fetching active dates",
       "scopesRequired": "Scopes required",
+      "domainRequired": "Domain name is required",
       "authUrlRequired": "Auth URL is required",
       "userNameAttributeRequired": "Username attribute is required",
       "clientIdRequired": "Client ID is required",

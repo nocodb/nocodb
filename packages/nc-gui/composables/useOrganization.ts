@@ -1,6 +1,4 @@
 export const useOrganization = () => {
-  const { api } = useApi()
-
   const workspaces = ref([])
   const members = ref([])
   const bases = ref([])

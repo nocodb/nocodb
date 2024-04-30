@@ -238,11 +238,6 @@ export class AclMiddleware implements NestInterceptor {
     if (!req.user?.isAuthorized) {
       NcError.unauthorized('Invalid token');
     }
-
-    if (req.user?.org_id && req.user?.org_id !== req.ncOrgId) {
-      NcError.forbidden('Your access limit is restricted to your organization');
-    }
-
     const userScopeRole =
       req.user.roles?.[OrgUserRoles.SUPER_ADMIN] === true
         ? OrgUserRoles.SUPER_ADMIN

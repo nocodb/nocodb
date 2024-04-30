@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { OrderedWorkspaceRoles, WorkspaceUserRoles } from 'nocodb-sdk'
-import { storeToRefs, useUserSorts, useWorkspace } from '#imports'
+import { IsAdminPanelInj, storeToRefs, useUserSorts, useWorkspace } from '#imports'
 
 const props = defineProps<{
   workspaceId?: string
@@ -21,6 +21,8 @@ const currentWorkspace = computed(() => {
 const { sorts, sortDirection, loadSorts, saveOrUpdate, handleGetSortedData } = useUserSorts('Workspace')
 
 const userSearchText = ref('')
+
+const isAdminPanel = inject(IsAdminPanelInj, ref(false))
 
 const inviteDlg = ref(false)
 
@@ -95,7 +97,7 @@ onMounted(async () => {
 <template>
   <DlgInviteDlg
     v-model:model-value="inviteDlg"
-    :type="props.workspaceId ? 'organization' : 'workspace'"
+    :type="isAdminPanel ? 'organization' : 'workspace'"
     :workspace-id="currentWorkspace.id"
   />
   <div class="nc-collaborator-table-container mt-4 h-[calc(100vh-10rem)]">
@@ -190,7 +192,7 @@ onMounted(async () => {
                 </NcButton>
                 <template #overlay>
                   <NcMenu>
-                    <template v-if="props.workspaceId">
+                    <template v-if="isAdminPanel">
                       <NcMenuItem data-testid="nc-admin-org-user-assign-admin">
                         <GeneralIcon class="text-gray-800" icon="user" />
                         <span>{{ $t('labels.assignAs') }}</span>

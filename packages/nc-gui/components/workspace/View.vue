@@ -84,7 +84,7 @@ onMounted(() => {
               Members
             </div>
           </template>
-          <WorkspaceCollaboratorsList :workspace-id="workspaceId" />
+          <WorkspaceCollaboratorsList :workspace-id="currentWorkspace.id" />
         </a-tab-pane>
       </template>
 
@@ -96,7 +96,7 @@ onMounted(() => {
               Settings
             </div>
           </template>
-          <WorkspaceSettings :workspace-id="workspaceId" />
+          <WorkspaceSettings :workspace-id="currentWorkspace.id" />
         </a-tab-pane>
       </template>
     </NcTabs>

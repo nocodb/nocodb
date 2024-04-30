@@ -39,6 +39,7 @@
     }
   },
   "general": {
+    "general": "General",
     "quit": "Quit",
     "home": "Home",
     "load": "Load",
@@ -440,6 +441,8 @@
     "noResultsMatchedYourSearch": "Your search did not yield any matching results"
   },
   "labels": {
+    "recentActivity": "Recent Activity",
+    "goToMembers": "Go to Members",
     "addMember": "Add Member",
     "numberOfMembers": "No. Members",
     "numberOfBases": "No. Bases",

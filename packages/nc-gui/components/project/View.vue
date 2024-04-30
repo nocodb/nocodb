@@ -20,10 +20,18 @@ const isAdminPanel = inject(IsAdminPanelInj, ref(false))
 const router = useRouter()
 const route = router.currentRoute
 
-const { $e } = useNuxtApp()
+const { $e, $api } = useNuxtApp()
 
-const currentBase = computed(() => {
-  return bases.value.get(props.baseId) ?? openedProject.value
+const currentBase = computed(async () => {
+  let base
+  if (props.baseId) {
+    base = bases.value.get(props.baseId)
+    if (!base) base = await $api.base.read(props.baseId!)
+  } else {
+    base = openedProject.value
+  }
+
+  return base
 })
 
 const { isUIAllowed, baseRoles } = useRoles()

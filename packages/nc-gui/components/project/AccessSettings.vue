@@ -1,14 +1,6 @@
 <script lang="ts" setup>
 import type { Roles, WorkspaceUserRoles } from 'nocodb-sdk'
-import {
-  OrderedProjectRoles,
-  OrgUserRoles,
-  ProjectRoles,
-  WorkspaceRolesToProjectRoles,
-  extractRolesObj,
-  parseStringDateTime,
-  timeAgo,
-} from 'nocodb-sdk'
+import { OrderedProjectRoles, OrgUserRoles, ProjectRoles, WorkspaceRolesToProjectRoles, extractRolesObj } from 'nocodb-sdk'
 import type { User } from '#imports'
 import { isEeUI, storeToRefs, useUserSorts } from '#imports'
 
@@ -28,9 +20,22 @@ const isSuper = computed(() => orgRoles.value?.[OrgUserRoles.SUPER_ADMIN])
 
 const isAdminPanel = inject(IsAdminPanelInj, ref(false))
 
+const { $api } = useNuxtApp()
+
 const currentBase = computed(() => {
-  const id = props.baseId ?? activeProjectId.value
-  return id ? bases.value.get(id) : null
+  let base
+  if (props.baseId) {
+    base = bases.value.get(props.baseId)
+    if (!base) {
+      $api.base.read(props.baseId!).then((res) => {
+        base = res
+      })
+    }
+  } else {
+    base = bases.value.get(activeProjectId.value)
+  }
+
+  return base
 })
 
 const isInviteModalVisible = ref(false)
@@ -67,6 +72,8 @@ const sortedCollaborators = computed(() => {
 
 const loadCollaborators = async () => {
   try {
+    if (!currentBase.value) return
+    console.log(currentBase.value, 'currentBase.value.id')
     const { users, totalRows } = await getBaseUsers({
       baseId: currentBase.value.id!,
       ...(!userSearchText.value ? {} : ({ searchText: userSearchText.value } as any)),

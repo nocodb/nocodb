@@ -95,11 +95,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <DlgInviteDlg
-    v-model:model-value="inviteDlg"
-    :type="isAdminPanel ? 'organization' : 'workspace'"
-    :workspace-id="currentWorkspace.id"
-  />
+  <DlgInviteDlg v-model:model-value="inviteDlg" :workspace-id="currentWorkspace.id" type="workspace" />
   <div class="nc-collaborator-table-container mt-4 h-[calc(100vh-10rem)]">
     <div class="w-full flex justify-between mt-6.5 mb-2">
       <a-input v-model:value="userSearchText" class="!max-w-90 !rounded-md mr-4" placeholder="Search members">

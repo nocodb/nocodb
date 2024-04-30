@@ -76,7 +76,7 @@ const migrateWorkspace = async () => {
   try {
     await (api as Api<any>).orgWorkspace.upgrade(activeWorkspace.value?.id)
     await workspaceStore.loadWorkspace(activeWorkspace.value?.id)
-    if(activeWorkspace.value?.fk_org_id) {
+    if (activeWorkspace.value?.fk_org_id) {
       navigateTo(`/admin/${activeWorkspace.value.fk_org_id}`)
     }
     isMenuOpen.value = false

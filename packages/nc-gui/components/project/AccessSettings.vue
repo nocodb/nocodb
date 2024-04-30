@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { Roles, WorkspaceUserRoles } from 'nocodb-sdk'
-import { OrderedProjectRoles, OrgUserRoles, ProjectRoles, WorkspaceRolesToProjectRoles, extractRolesObj } from 'nocodb-sdk'
+import { OrderedProjectRoles, OrgUserRoles, ProjectRoles, WorkspaceRolesToProjectRoles } from 'nocodb-sdk'
 import type { User } from '#imports'
 import { isEeUI, storeToRefs, useUserSorts } from '#imports'
 
@@ -84,12 +84,11 @@ const loadCollaborators = async () => {
         .map((user: any) => ({
           ...user,
           base_roles: user.roles,
-          roles: extractRolesObj(user.main_roles)?.[OrgUserRoles.SUPER_ADMIN]
-            ? OrgUserRoles.SUPER_ADMIN
-            : user.roles ??
-              (user.workspace_roles
-                ? WorkspaceRolesToProjectRoles[user.workspace_roles as WorkspaceUserRoles] ?? ProjectRoles.NO_ACCESS
-                : ProjectRoles.NO_ACCESS),
+          roles:
+            user.roles ??
+            (user.workspace_roles
+              ? WorkspaceRolesToProjectRoles[user.workspace_roles as WorkspaceUserRoles] ?? ProjectRoles.NO_ACCESS
+              : ProjectRoles.NO_ACCESS),
         })),
     ]
   } catch (e: any) {
@@ -172,7 +171,10 @@ watch(currentBase, () => {
   >
     <div v-if="isAdminPanel" class="font-bold w-full !mb-5 text-2xl" data-rec="true">
       <div class="flex items-center gap-3">
-        {{ $t('objects.projects') }}
+        <!-- TODO: @DarkPhoenix2704 -->
+        <NuxtLink class="!hover:(text-black underline-gray-600) !underline-transparent ml-0.75 max-w-1/4">
+          {{ $t('objects.projects') }}
+        </NuxtLink>
 
         <span class="text-2xl"> / </span>
         <GeneralBaseIconColorPicker readonly />

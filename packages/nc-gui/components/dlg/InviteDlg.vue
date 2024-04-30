@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import { ProjectRoles, type RoleLabels, WorkspaceUserRoles } from 'nocodb-sdk'
 import type { User } from '#imports'
-import type NcWorkspace from '~icons/*'
 
 import { extractEmail } from '~/helpers/parsers/parserHelpers'
 
@@ -19,6 +18,10 @@ const { baseRoles, workspaceRoles } = useRoles()
 const basesStore = useBases()
 
 const workspaceStore = useWorkspace()
+
+const organization = useOrganization()
+
+const { workspaces } = storeToRefs(organization)
 
 const { createProjectUser } = basesStore
 
@@ -260,11 +263,12 @@ const inviteCollaborator = async () => {
 const workSpaces = ref<NcWorkspace[]>([])
 
 const workSpaceSelectList = computed(() => {
-  return workspacesList.value.filter((w) => !workSpaces.value.find((ws) => ws.id === w.id))
+  console.log('list', workspaces.value)
+  return workspaces.value.filter((w) => !workSpaces.value.find((ws) => ws.id !== w.id))
 })
 
 const addToList = (workspaceId: string) => {
-  workSpaces.value.push(workspacesList.value.find((w) => w.id === workspaceId)!)
+  workSpaces.value.push(workspaces.value.find((w) => w.id === workspaceId)!)
 }
 const removeWorkspace = (workspaceId: string) => {
   workSpaces.value = workSpaces.value.filter((w) => w.id !== workspaceId)

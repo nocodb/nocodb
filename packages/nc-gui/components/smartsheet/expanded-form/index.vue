@@ -213,19 +213,26 @@ const save = async () => {
       addOrEditStackRow(row, isNewRow)
     }
   }
+
   if (isNew.value) {
     await _save(rowState.value, undefined, {
       kanbanClbk,
     })
-    reloadTrigger?.trigger()
-    reloadViewDataTrigger?.trigger()
+    // reload only if record is created on active view
+    if (activeView.value?.fk_model_id === meta.value.id) {
+      reloadTrigger?.trigger()
+      reloadViewDataTrigger?.trigger()
+    }
   } else {
     await _save(undefined, undefined, {
       kanbanClbk,
     })
     _loadRow()
-    reloadTrigger?.trigger()
-    reloadViewDataTrigger?.trigger()
+    // reload only if record is created on active view
+    if (activeView.value?.fk_model_id === meta.value.id) {
+      reloadTrigger?.trigger()
+      reloadViewDataTrigger?.trigger()
+    }
   }
   isUnsavedFormExist.value = false
 

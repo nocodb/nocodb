@@ -196,6 +196,8 @@ const addNewRecord = () => {
 }
 
 const onCreatedRecord = (record: any) => {
+  addLTARRef(record, injectedColumn?.value as ColumnType)
+
   const msgVNode = h(
     'div',
     {
@@ -223,6 +225,8 @@ const onCreatedRecord = (record: any) => {
   )
 
   message.success(msgVNode)
+
+  vModel.value = false
 }
 
 const linkedShortcuts = (e: KeyboardEvent) => {

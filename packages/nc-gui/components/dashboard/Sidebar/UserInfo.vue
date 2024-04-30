@@ -24,7 +24,8 @@ const { leftSidebarState } = storeToRefs(useSidebarStore())
 
 const name = computed(() => user.value?.display_name?.trim())
 
-const { activeWorkspace } = storeToRefs(useWorkspace())
+const workspaceStore = useWorkspace()
+const { activeWorkspace } = storeToRefs(workspaceStore)
 
 const isMenuOpen = ref(false)
 
@@ -74,6 +75,11 @@ const { api } = useApi()
 const migrateWorkspace = async () => {
   try {
     await (api as Api<any>).orgWorkspace.upgrade(activeWorkspace.value?.id)
+    await workspaceStore.loadWorkspace(activeWorkspace.value?.id)
+    if(activeWorkspace.value?.fk_org_id) {
+      navigateTo(`/admin/${activeWorkspace.value.fk_org_id}`)
+    }
+    isMenuOpen.value = false
   } catch (e) {
     message.error(await extractSdkResponseErrorMsg(e))
   }

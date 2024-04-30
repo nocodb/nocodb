@@ -62,12 +62,13 @@ const focusOnDiv = () => {
 watch(dialogShow, async (newVal) => {
   if (newVal) {
     try {
-      const currentRoleIndex = Object.values(orderedRoles.value).findIndex(
-        (role) => userRoles.value && Object.keys(userRoles.value).includes(role),
-      )
-      if (currentRoleIndex !== -1) {
-        allowedRoles.value = Object.values(orderedRoles.value).slice(currentRoleIndex + 1)
-      }
+      // todo: enable after discussing with anbu
+      // const currentRoleIndex = Object.values(orderedRoles.value).findIndex(
+      //   (role) => userRoles.value && Object.keys(userRoles.value).includes(role),
+      // )
+      // if (currentRoleIndex !== -1) {
+      allowedRoles.value = Object.values(orderedRoles.value) // .slice(currentRoleIndex + 1)
+      // }
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }
@@ -128,7 +129,7 @@ const isInviteButtonDisabled = computed(() => {
 
 watch(inviteData, (newVal) => {
   // when user only want to enter a single email
-  // we dont convert that as badge
+  // we don't convert that as badge
 
   const isSingleEmailValid = validateEmail(newVal.email)
   if (isSingleEmailValid && !emailBadges.value.length) {
@@ -138,7 +139,7 @@ watch(inviteData, (newVal) => {
   }
   singleEmailValue.value = ''
 
-  // when user enters multiple emails comma sepearted or space sepearted
+  // when user enters multiple emails comma separated or space separated
   const isNewEmail = newVal.email.charAt(newVal.email.length - 1) === ',' || newVal.email.charAt(newVal.email.length - 1) === ' '
   if (isNewEmail && newVal.email.trim().length) {
     const emailToAdd = newVal.email.split(',')[0].trim() || newVal.email.split(' ')[0].trim()

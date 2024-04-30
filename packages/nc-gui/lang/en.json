@@ -252,6 +252,7 @@
       "viewer": "Viewer",
       "noaccess": "No Access",
       "superAdmin": "Super Admin",
+      "orgLevelOwner": "Organization Level Owner",
       "orgLevelCreator": "Organization Level Creator",
       "orgLevelViewer": "Organization Level Viewer"
     },

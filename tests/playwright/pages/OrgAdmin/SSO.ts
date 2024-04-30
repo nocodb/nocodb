@@ -7,10 +7,12 @@ import { OrgAdminPage } from './index';
 export class CloudSSO extends BasePage {
   readonly projectsPage: ProjectsPage;
   readonly domain: Domain;
+  readonly orgAdminPage: OrgAdminPage;
 
   constructor(orgAdminPage: OrgAdminPage) {
     super(orgAdminPage.rootPage);
     this.domain = new Domain(orgAdminPage);
+    this.orgAdminPage = orgAdminPage;
   }
 
   async goto() {

@@ -70,7 +70,6 @@ watch(dialogShow, async (newVal) => {
       )
       if (currentRoleIndex !== -1) {
         allowedRoles.value = Object.values(orderedRoles.value).slice(currentRoleIndex + 1)
-        // .filter((r) => r)
       }
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))

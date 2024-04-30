@@ -12,7 +12,7 @@ const basesStore = useBases()
 const { getBaseUsers, createProjectUser, updateProjectUser, removeProjectUser } = basesStore
 const { activeProjectId, bases } = storeToRefs(basesStore)
 
-const { orgRoles, baseRoles } = useRoles()
+const { orgRoles, baseRoles, loadRoles } = useRoles()
 
 const { sorts, sortDirection, loadSorts, saveOrUpdate, handleGetSortedData } = useUserSorts('Project')
 
@@ -25,6 +25,7 @@ const { $api } = useNuxtApp()
 const currentBase = computedAsync(async () => {
   let base
   if (props.baseId) {
+    await loadRoles(props.baseId)
     base = bases.value.get(props.baseId)
     if (!base) {
       base = await $api.base.read(props.baseId!)

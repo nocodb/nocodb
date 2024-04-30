@@ -125,6 +125,7 @@ import NcArrowLeft from '~icons/nc-icons/arrow-left'
 import NcArrowRight from '~icons/nc-icons/arrow-right'
 import NcUpload from '~icons/nc-icons/upload'
 import NcDownload from '~icons/nc-icons/download'
+import NcOffice from '~icons/nc-icons/office'
 // import NcProjectGray from '~icons/nc-icons/project-gray'
 import NcPhoneCall from '~icons/nc-icons/phone-call'
 import NcItalic from '~icons/nc-icons/italic'
@@ -364,6 +365,7 @@ export const iconMap = {
   cellSystemText: NcCellSystemText,
   cellAttachment: NcCellAttachment,
 
+  office: NcOffice,
   sort: Sort,
   group: Group,
   filter: Filter,

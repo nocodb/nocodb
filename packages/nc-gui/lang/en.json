@@ -438,6 +438,18 @@
     "noResultsMatchedYourSearch": "Your search did not yield any matching results"
   },
   "labels": {
+    "uploadImage": "Upload Image",
+    "organizationProfile": "Organisation Profile",
+    "organizationImage": "Organisation Image",
+    "organizationName": "Organisation Name",
+    "activeDomains": "Active Domains",
+    "domains": "Domains",
+    "disablePublicSharing": "Disable Public Sharing",
+    "shareSettings": "Share Settings",
+    "deleteUserAndData": "Delete User and their data",
+    "userOptions": "User Options",
+    "deleteThisOrganization": "Delete this Organisation",
+    "dangerZone": "Dangerzone",
     "selectYear": "Select Year",
     "save": "Save",
     "cancel": "Cancel",
@@ -718,6 +730,7 @@
     "clearSelection": "Clear selection"
   },
   "activity": {
+    "addDomain": "Add Domain",
     "addMembers": "Add Members",
     "enterEmail": "Enter email addresses",
     "inviteToBase": "Invite to Base",
@@ -1045,6 +1058,11 @@
     "searchOptions": "Search options"
   },
   "msg": {
+    "controlOrgAppearance": "Control your organisations name and appearance.",
+    "addCompanyDomains": "Add company domains to restrict access to unwanted users.",
+    "restrictUsersFromSharing": "Restrict users from being able to share bases publicly.",
+    "selectUsersToBeRemoved": "Select users to be removed and deleted from all organisation workspaces.",
+    "deleteOrganization": "Delete all users, bases and data related to this organization",
     "clickToCopyFieldId": "Click to copy Field Id",
     "enterPassword": "Enter password",
     "bySigningUp": "By signing up, you agree to the",
@@ -1171,6 +1189,7 @@
       }
     },
     "info": {
+
       "idpPaste": "Paste these URL in your Identity Providers console",
       "noSaml": "There are no configured SAML authentications.",
       "disabledAsViewLocked": "Disabled as View is locked",

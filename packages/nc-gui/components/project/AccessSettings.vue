@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import type { Roles, WorkspaceUserRoles } from 'nocodb-sdk'
 import {
   OrderedProjectRoles,
   OrgUserRoles,
@@ -8,7 +9,6 @@ import {
   parseStringDateTime,
   timeAgo,
 } from 'nocodb-sdk'
-import type { Roles, WorkspaceUserRoles } from 'nocodb-sdk'
 import type { User } from '#imports'
 import { isEeUI, storeToRefs, useUserSorts } from '#imports'
 
@@ -146,7 +146,7 @@ watch(isInviteModalVisible, () => {
 
 <template>
   <div class="nc-collaborator-table-container mt-4 nc-access-settings-view h-[calc(100vh-8rem)]">
-    <LazyProjectShareBaseDlg v-model:model-value="isInviteModalVisible" />
+    <LazyDlgInviteDlg v-model:model-value="isInviteModalVisible" :base-id="activeProjectId" type="base" />
     <div v-if="isLoading" class="nc-collaborators-list items-center justify-center">
       <GeneralLoader size="xlarge" />
     </div>

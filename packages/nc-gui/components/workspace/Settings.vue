@@ -1,13 +1,17 @@
 <script lang="ts" setup>
 import { ref, storeToRefs, useGlobal, useI18n, useWorkspace, watch } from '#imports'
 
+const props = defineProps<{
+  workspaceId?: string
+}>()
+
 const { signOut } = useGlobal()
 
 const { t } = useI18n()
 
 const { deleteWorkspace, navigateToWorkspace, updateWorkspace } = useWorkspace()
 
-const { workspacesList, activeWorkspaceId, activeWorkspace, workspaces } = storeToRefs(useWorkspace())
+const { workspacesList, activeWorkspace, workspaces } = storeToRefs(useWorkspace())
 
 const formValidator = ref()
 
@@ -33,19 +37,29 @@ const formRules = {
   ],
 }
 
+const currentWorkspace = computed(() => {
+  return props.workspaceId ? workspaces.value.get(props.workspaceId) : activeWorkspace.value
+})
+
 const onDelete = async () => {
   isDeleting.value = true
   try {
-    await deleteWorkspace(activeWorkspaceId.value, { skipStateUpdate: true })
+    await deleteWorkspace(currentWorkspace.value.id, { skipStateUpdate: true })
 
     isConfirmed.value = false
     isDeleting.value = false
 
     // We only remove the delete workspace from the list after the api call is successful
-    workspaces.value.delete(activeWorkspaceId.value)
+    workspaces.value.delete(currentWorkspace.value.id)
 
     if (workspacesList.value.length > 1) {
-      await navigateToWorkspace(workspacesList.value[0].id)
+      // WorkspaceId is provided from the admin Panel. If deleted navigate to the workspace list page
+      if (!props.workspaceId) {
+        await navigateToWorkspace(workspacesList.value[0].id)
+      } else {
+        // #TODO: @DarkPhoenix2704
+        // Navigate BackPage
+      }
     } else {
       // As signin page will clear the workspaces, we need to check if there are more than one workspace
       await signOut(false)
@@ -69,7 +83,7 @@ const titleChange = async () => {
   isErrored.value = false
 
   try {
-    await updateWorkspace(activeWorkspaceId.value, {
+    await updateWorkspace(currentWorkspace.value.id, {
       title: form.value.title,
     })
   } catch (e: any) {
@@ -81,9 +95,9 @@ const titleChange = async () => {
 }
 
 watch(
-  () => activeWorkspace.value.title,
+  () => currentWorkspace.value.id,
   () => {
-    form.value.title = activeWorkspace.value.title
+    form.value.title = currentWorkspace.value.title
   },
   {
     immediate: true,
@@ -94,11 +108,7 @@ watch(
   () => form.value.title,
   async () => {
     try {
-      if (form.value.title !== activeWorkspace.value?.title) {
-        isCancelButtonVisible.value = true
-      } else {
-        isCancelButtonVisible.value = false
-      }
+      isCancelButtonVisible.value = form.value.title !== currentWorkspace.value?.title
       isErrored.value = !(await formValidator.value.validate())
     } catch (e: any) {
       isErrored.value = true
@@ -107,7 +117,7 @@ watch(
 )
 
 const onCancel = () => {
-  form.value.title = activeWorkspace.value?.title
+  form.value.title = currentWorkspace.value?.title
 }
 </script>
 
@@ -140,7 +150,7 @@ const onCancel = () => {
             v-e="['c:workspace:settings:rename']"
             type="primary"
             html-type="submit"
-            :disabled="isErrored || (form.title && form.title === activeWorkspace.title)"
+            :disabled="isErrored || (form.title && form.title === currentWorkspace.title)"
             :loading="isDeleting"
             data-testid="nc-workspace-settings-settings-rename-submit"
           >

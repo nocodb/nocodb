@@ -11,25 +11,25 @@ const route = router.currentRoute
 const { isUIAllowed } = useRoles()
 
 const workspaceStore = useWorkspace()
-const { activeWorkspace, workspaces } = storeToRefs(workspaceStore)
+const { activeWorkspace: _activeWorkspace, workspaces } = storeToRefs(workspaceStore)
 const { loadCollaborators } = workspaceStore
 
-// TODO: @pranavxc
-// The Workspace setting is common for both the workspace and the organization.
-// Hence we can reuse the same component for both the workspace and the organization.
-//
+const currentWorkspace = computed(() => {
+  return props.workspaceId ? workspaces.value.get(props.workspaceId) : _activeWorkspace.value
+})
+
 const tab = computed({
   get() {
     return route.value.query?.tab ?? 'collaborators'
   },
   set(tab: string) {
-    if (tab === 'collaborators') loadCollaborators()
+    if (tab === 'collaborators') loadCollaborators({} as any, props.workspaceId)
     router.push({ query: { ...route.value.query, tab } })
   },
 })
 
 watch(
-  () => activeWorkspace.value?.title,
+  () => currentWorkspace.value?.title,
   (title: string) => {
     if (!title) return
 
@@ -43,24 +43,22 @@ watch(
 )
 
 onMounted(() => {
-  until(() => activeWorkspace.value?.id)
+  console.log('currentWorkspace', currentWorkspace.value?.id)
+  until(() => currentWorkspace.value?.id)
     .toMatch((v) => !!v)
-    .then(() => {
-      until(() => workspaces.value)
-        .toMatch((v) => v.has(activeWorkspace.value.id))
-        .then(() => {
-          loadCollaborators()
-        })
+    .then(async () => {
+      console.log('currentWorkspace', currentWorkspace.value.id)
+      await loadCollaborators({} as any, currentWorkspace.value.id)
     })
 })
 </script>
 
 <template>
-  <div v-if="activeWorkspace" class="flex w-full px-6 max-w-[97.5rem] flex-col nc-workspace-settings">
+  <div v-if="currentWorkspace" class="flex w-full px-6 max-w-[97.5rem] flex-col nc-workspace-settings">
     <div v-if="!props.workspaceId" class="flex gap-2 items-center min-w-0 p-6">
-      <GeneralWorkspaceIcon :workspace="activeWorkspace" />
+      <GeneralWorkspaceIcon :workspace="currentWorkspace" />
       <h1 class="text-3xl font-weight-bold tracking-[0.5px] mb-0 nc-workspace-title truncate min-w-10 capitalize">
-        {{ activeWorkspace?.title }}
+        {{ currentWorkspace?.title }}
       </h1>
     </div>
     <div v-else>
@@ -69,9 +67,9 @@ onMounted(() => {
           {{ $t('labels.workspaces') }}
 
           <span class="text-2xl"> / </span>
-          <GeneralWorkspaceIcon :workspace="activeWorkspace" hide-label />
+          <GeneralWorkspaceIcon :workspace="currentWorkspace" hide-label />
           <span class="text-base">
-            {{ activeWorkspace?.title }}
+            {{ currentWorkspace?.title }}
           </span>
         </div>
       </div>
@@ -86,7 +84,7 @@ onMounted(() => {
               Members
             </div>
           </template>
-          <WorkspaceCollaboratorsList />
+          <WorkspaceCollaboratorsList :workspace-id="workspaceId" />
         </a-tab-pane>
       </template>
 
@@ -98,7 +96,7 @@ onMounted(() => {
               Settings
             </div>
           </template>
-          <WorkspaceSettings />
+          <WorkspaceSettings :workspace-id="workspaceId" />
         </a-tab-pane>
       </template>
     </NcTabs>

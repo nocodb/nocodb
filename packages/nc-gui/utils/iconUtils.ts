@@ -133,6 +133,8 @@ import NcUnderline from '~icons/nc-icons/underline'
 import NcCrop from '~icons/nc-icons/crop'
 import NcLink from '~icons/nc-icons/link'
 import NcControlPanel from '~icons/nc-icons/control-panel'
+import NcHome from '~icons/nc-icons/home'
+import NcWorkspace from '~icons/nc-icons/workspace'
 
 import NcCellBarcode from '~icons/nc-icons/cell-barcode'
 import NcCellCheckbox from '~icons/nc-icons/cell-checkbox'
@@ -326,7 +328,9 @@ import NcHelp from '~icons/nc-icons/help'
 } as const */
 
 export const iconMap = {
+  ncWorkspace: NcWorkspace,
   controlPanel: NcControlPanel,
+  home: NcHome,
   cellBarcode: NcCellBarcode,
   cellCheckbox: NcCellCheckbox,
   cellDate: NcCellDate,

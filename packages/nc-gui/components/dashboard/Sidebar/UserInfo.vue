@@ -1,5 +1,21 @@
 <script lang="ts" setup>
-import { computed, navigateTo, onMounted, ref, storeToRefs, useGlobal, useSidebarStore, useUsers, watch } from '#imports'
+import {
+  computed,
+  message,
+  navigateTo,
+  onMounted,
+  ref,
+  storeToRefs,
+  useCopy,
+  useGlobal,
+  useSidebarStore,
+  useUsers,
+  watch,
+  useApi,
+  useWorkspace,
+  extractSdkResponseErrorMsg
+} from '#imports'
+import { Api } from "nocodb-sdk";
 
 const { user, signOut, appInfo } = useGlobal()
 // So watcher in users store is triggered
@@ -8,6 +24,8 @@ useUsers()
 const { leftSidebarState } = storeToRefs(useSidebarStore())
 
 const name = computed(() => user.value?.display_name?.trim())
+
+const { activeWorkspace } = storeToRefs(useWorkspace())
 
 const isMenuOpen = ref(false)
 
@@ -51,6 +69,16 @@ const isMounted = ref(false)
 onMounted(() => {
   isMounted.value = true
 })
+
+const { api } = useApi()
+
+const migrateWorkspace = async () => {
+  try {
+    await (api as Api<any>).orgWorkspace.upgrade(activeWorkspace.value?.id)
+  } catch (e) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
 </script>
 
 <template>
@@ -168,8 +196,12 @@ onMounted(() => {
             <NcDivider />
 
             <nuxt-link v-e="['c:user:admin-panel']" class="!no-underline" to="/admin">
-              <NcMenuItem> <GeneralIcon icon="controlPanel" class="menu-icon" /> {{ $t('title.adminPanel') }} </NcMenuItem>
+              <NcMenuItem> <GeneralIcon icon="controlPanel" class="menu-icon" /> {{ $t('labels.adminPanel') }} </NcMenuItem>
             </nuxt-link>
+
+            <div v-e="['c:user:upgrade-workspace-to-org']" @click="migrateWorkspace">
+              <NcMenuItem> <GeneralIcon icon="arrowUp" class="menu-icon" /> {{ $t('labels.moveWorkspaceToOrg') }} </NcMenuItem>
+            </div>
 
             <nuxt-link v-e="['c:user:settings']" class="!no-underline" to="/account/profile">
               <NcMenuItem> <GeneralIcon icon="ncSettings" class="menu-icon" /> {{ $t('title.accountSettings') }} </NcMenuItem>

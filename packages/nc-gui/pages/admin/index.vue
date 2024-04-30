@@ -12,14 +12,14 @@ const $route = useRoute()
 const { appInfo, signedIn, signOut } = useGlobal()
 
 const selectedKeys = computed(() => [
-  /^\/account\/users\/?$/.test($route.fullPath)
+  /^\/admin\/users\/?$/.test($route.fullPath)
     ? isUIAllowed('superAdminUserManagement')
       ? 'list'
       : 'settings'
     : $route.params.nestedPage ?? $route.params.page,
 ])
 
-const openKeys = ref([/^\/account\/users/.test($route.fullPath) && 'users'])
+const openKeys = ref([/^\/admin\/users/.test($route.fullPath) && 'users'])
 
 const logout = async () => {
   await signOut(false)
@@ -43,7 +43,6 @@ const logout = async () => {
               mode="inline"
             >
               <div
-                v-if="!$route.params.baseType"
                 v-e="['c:navbar:home']"
                 data-testid="nc-noco-brand-icon"
                 class="transition-all duration-200 px-2 mx-2 mt-1.5 cursor-pointer transform hover:bg-gray-100 my-1 nc-noco-brand-icon h-8 rounded-md min-w-60"
@@ -51,95 +50,89 @@ const logout = async () => {
               >
                 <div class="flex flex-row gap-x-2 items-center h-8.5">
                   <GeneralIcon icon="arrowLeft" class="-mt-0.1" />
-                  <div class="flex text-sm font-medium text-gray-800">{{ $t('labels.backToWorkspace') }}</div>
+                  <div class="flex text-sm font-medium text-gray-800">{{ $t('labels.back') }}</div>
                 </div>
               </div>
 
-              <div class="text-sm text-gray-600 ml-4 p-2 mt-3 gray-600 font-medium">{{ $t('labels.account') }}</div>
+              <div class="text-sm ml-4 p-2 mt-3  flex justify-between">
+
+               <span class="font-weight-bold">Organization</span> <span class="text-gray-600 gray-600">{{$t('labels.adminPanel')}}</span>
+
+              </div>
 
               <NcMenuItem
                 key="profile"
                 class="item"
                 :class="{
-                  active: $route.params.page === 'profile',
+                  active: $route.params.page === 'dashboard' || !$route.params.page,
                 }"
-                @click="navigateTo('/account/profile')"
+                @click="navigateTo('/admin')"
               >
                 <div class="flex items-center space-x-2">
-                  <GeneralIcon icon="user" class="!h-3.5 !w-3.5" />
+                  <GeneralIcon icon="home" class="!h-3.5 !w-3.5" />
 
-                  <div class="select-none">{{ $t('labels.profile') }}</div>
-                </div>
-              </NcMenuItem>
-
-              <NcMenuItem
-                key="tokens"
-                class="item"
-                :class="{
-                  active: $route.params.page === 'tokens',
-                }"
-                @click="navigateTo('/account/tokens')"
-              >
-                <div class="flex items-center space-x-2">
-                  <component :is="iconMap.code" />
-
-                  <div class="select-none">API {{ $t('title.tokens') }}</div>
+                  <div class="select-none">{{ $t('labels.dashboard') }}</div>
                 </div>
               </NcMenuItem>
               <NcMenuItem
-                v-if="isUIAllowed('superAdminAppStore') && !isEeUI"
-                key="apps"
+                key="profile"
                 class="item"
                 :class="{
-                  active: $route.params.page === 'apps',
+                  active: $route.params.page === 'workspaces',
                 }"
-                @click="navigateTo('/account/apps')"
+                @click="navigateTo('/admin/workspaces')"
               >
                 <div class="flex items-center space-x-2">
-                  <component :is="iconMap.appStore" />
+                  <GeneralIcon icon="ncWorkspace" class="!h-3.5 !w-3.5" />
 
-                  <div class="select-none text-sm">{{ $t('title.appStore') }}</div>
+                  <div class="select-none">{{ $t('labels.workspaces') }}</div>
                 </div>
               </NcMenuItem>
-              <a-sub-menu key="users" class="!bg-white !my-0">
-                <template #icon>
+              <NcMenuItem
+                key="profile"
+                class="item"
+                :class="{
+                  active: $route.params.page === 'members',
+                }"
+                @click="navigateTo('/admin/members')"
+              >
+                <div class="flex items-center space-x-2">
                   <GeneralIcon icon="users" class="!h-3.5 !w-3.5" />
-                </template>
-                <template #title>{{ $t('objects.users') }}</template>
 
-                <NcMenuItem
-                  v-if="isUIAllowed('superAdminUserManagement') && !isEeUI"
-                  key="list"
-                  class="text-xs item"
-                  :class="{
-                    active: $route.params.nestedPage === 'list',
-                  }"
-                  @click="navigateTo('/account/users/list')"
-                >
-                  <span class="ml-4">{{ $t('title.userManagement') }}</span>
-                </NcMenuItem>
-                <NcMenuItem
-                  key="password-reset"
-                  class="text-xs item"
-                  :class="{
-                    active: $route.params.nestedPage === 'password-reset',
-                  }"
-                  @click="navigateTo('/account/users/password-reset')"
-                >
-                  <span class="ml-4">{{ $t('title.resetPasswordMenu') }}</span>
-                </NcMenuItem>
-                <NcMenuItem
-                  v-if="isUIAllowed('superAdminAppSettings') && !isEeUI"
-                  key="settings"
-                  class="text-xs item"
-                  :class="{
-                    active: $route.params.nestedPage === 'settings',
-                  }"
-                  @click="navigateTo('/account/users/settings')"
-                >
-                  <span class="ml-4">{{ $t('activity.settings') }}</span>
-                </NcMenuItem>
-              </a-sub-menu>
+                  <div class="select-none">{{ $t('labels.members') }}</div>
+                </div>
+              </NcMenuItem>
+
+              <NcMenuItem
+                key="profile"
+                class="item"
+                :class="{
+                  active: $route.params.page === 'sso',
+                }"
+                @click="navigateTo('/admin/sso')"
+              >
+                <div class="flex items-center space-x-2">
+                  <GeneralIcon icon="lock" class="!h-3.5 !w-3.5" />
+
+                  <div class="select-none">{{ $t('labels.ssoSettings') }}</div>
+                </div>
+              </NcMenuItem>
+
+              <NcMenuItem
+                key="profile"
+                class="item"
+                :class="{
+                  active: $route.params.page === 'settings',
+                }"
+                @click="navigateTo('/admin/settings')"
+              >
+                <div class="flex items-center space-x-2">
+                  <GeneralIcon icon="settings" class="!h-3.5 !w-3.5" />
+
+                  <div class="select-none">{{ $t('labels.settings') }}</div>
+                </div>
+              </NcMenuItem>
+
             </NcMenu>
           </div>
 

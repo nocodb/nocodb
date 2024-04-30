@@ -2,7 +2,7 @@ import { ModelTypes, UITypes, ViewTypes } from 'nocodb-sdk';
 import { isVirtualCol, RelationTypes } from 'nocodb-sdk';
 import { pluralize, singularize } from 'inflection';
 import { isLinksOrLTAR } from 'nocodb-sdk';
-import { getUniqueColumnAliasName } from './getUniqueName';
+import { getUniqueColumnAliasName, getUniqueColumnName } from './getUniqueName';
 import type { RollupColumn } from '~/models';
 import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
 import type Source from '~/models/Source';
@@ -383,8 +383,11 @@ export async function populateMeta(
               base_id: base.id,
               db_alias: source.id,
               fk_model_id: models2[table.tn].id,
-              cn: column.cn,
-              title: column.title,
+              cn: getUniqueColumnName(models2[table.tn].columns, column.cn),
+              title: getUniqueColumnAliasName(
+                models2[table.tn].columns,
+                column.title,
+              ),
               uidt: column.uidt,
               type: column.hm ? 'hm' : column.mm ? 'mm' : 'bt',
               // column_id,

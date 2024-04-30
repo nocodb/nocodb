@@ -201,7 +201,6 @@ const addNewRecord = () => {
 
 const onCreatedRecord = (record: any) => {
   addLTARRef(record, injectedColumn?.value as ColumnType)
-  saveRow!()
 
   reloadTrigger?.trigger({
     shouldShowLoading: false,

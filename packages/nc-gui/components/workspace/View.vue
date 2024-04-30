@@ -12,10 +12,20 @@ const { isUIAllowed } = useRoles()
 
 const workspaceStore = useWorkspace()
 const { activeWorkspace: _activeWorkspace, workspaces } = storeToRefs(workspaceStore)
-const { loadCollaborators } = workspaceStore
+const { loadCollaborators, loadWorkspace } = workspaceStore
 
-const currentWorkspace = computed(() => {
-  return props.workspaceId ? workspaces.value.get(props.workspaceId) : _activeWorkspace.value
+const currentWorkspace = computedAsync(async () => {
+  let ws
+  if (props.workspaceId) {
+    ws = workspaces.value.get(props.workspaceId)
+    if (!ws) {
+      await loadWorkspace(props.workspaceId)
+      ws = workspaces.value.get(props.workspaceId)
+    }
+  } else {
+    ws = _activeWorkspace.value
+  }
+  return ws
 })
 
 const tab = computed({
@@ -55,7 +65,7 @@ onMounted(() => {
   <div v-if="currentWorkspace" class="flex w-full px-6 max-w-[97.5rem] flex-col nc-workspace-settings">
     <div v-if="!props.workspaceId" class="flex gap-2 items-center min-w-0 py-6">
       <GeneralWorkspaceIcon :workspace="currentWorkspace" />
-      <h1 class="text-3xl font-weight-bold tracking-[0.5px] mb-0 nc-workspace-title truncate min-w-10 capitalize">
+      <h1 class="text-3xl capitalize font-weight-bold tracking-[0.5px] mb-0 nc-workspace-title truncate min-w-10 capitalize">
         {{ currentWorkspace?.title }}
       </h1>
     </div>
@@ -66,7 +76,7 @@ onMounted(() => {
 
           <span class="text-2xl"> / </span>
           <GeneralWorkspaceIcon :workspace="currentWorkspace" hide-label />
-          <span class="text-base">
+          <span class="text-base capitalize">
             {{ currentWorkspace?.title }}
           </span>
         </div>

@@ -201,17 +201,9 @@ onMounted(async () => {
                       </NcMenuItem>
 
                       <a-menu-divider class="my-1.5" />
-
-                      <NcMenuItem class="!hover:bg-red-50" data-testid="nc-admin-org-user-delete">
-                        <div class="text-red-500">
-                          <GeneralIcon class="group-hover:text-accent -ml-0.25 -mt-0.75 mr-0.5" icon="delete" />
-                          {{ $t('labels.deactivateUser') }}
-                        </div>
-                      </NcMenuItem>
                     </template>
 
                     <NcMenuItem
-                      v-else
                       class="!text-red-500 !hover:bg-red-50"
                       @click="removeCollaborator(collab.id, currentWorkspace.id)"
                     >

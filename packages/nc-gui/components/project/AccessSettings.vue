@@ -22,19 +22,16 @@ const isAdminPanel = inject(IsAdminPanelInj, ref(false))
 
 const { $api } = useNuxtApp()
 
-const currentBase = computed(() => {
+const currentBase = computedAsync(async () => {
   let base
   if (props.baseId) {
     base = bases.value.get(props.baseId)
     if (!base) {
-      $api.base.read(props.baseId!).then((res) => {
-        base = res
-      })
+      base = await $api.base.read(props.baseId!)
     }
   } else {
     base = bases.value.get(activeProjectId.value)
   }
-
   return base
 })
 
@@ -73,7 +70,6 @@ const sortedCollaborators = computed(() => {
 const loadCollaborators = async () => {
   try {
     if (!currentBase.value) return
-    console.log(currentBase.value, 'currentBase.value.id')
     const { users, totalRows } = await getBaseUsers({
       baseId: currentBase.value.id!,
       ...(!userSearchText.value ? {} : ({ searchText: userSearchText.value } as any)),
@@ -160,6 +156,10 @@ watch(isInviteModalVisible, () => {
     loadCollaborators()
   }
 })
+
+watch(currentBase, () => {
+  loadCollaborators()
+})
 </script>
 
 <template>
@@ -180,7 +180,7 @@ watch(isInviteModalVisible, () => {
         </span>
       </div>
     </div>
-    <LazyDlgInviteDlg v-model:model-value="isInviteModalVisible" :base-id="currentBase.id" type="base" />
+    <LazyDlgInviteDlg v-model:model-value="isInviteModalVisible" :base-id="currentBase?.id" type="base" />
     <div v-if="isLoading" class="nc-collaborators-list items-center justify-center">
       <GeneralLoader size="xlarge" />
     </div>

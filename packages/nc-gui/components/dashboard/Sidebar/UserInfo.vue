@@ -202,16 +202,16 @@ const migrateWorkspace = async () => {
 
             <NcDivider />
 
-            <nuxt-link
-              v-if="activeWorkspace?.fk_org_id"
-              v-if="isUIAllowed('orgAdminPanel')"
-              v-e="['c:user:admin-panel']"
-              :to="`/admin/${activeWorkspace?.fk_org_id}`"
-              class="!no-underline"
-            >
-              <NcMenuItem> <GeneralIcon class="menu-icon" icon="controlPanel" /> {{ $t('labels.adminPanel') }} </NcMenuItem>
-            </nuxt-link>
-
+            <template v-if="activeWorkspace?.fk_org_id">
+              <nuxt-link
+                v-if="isUIAllowed('orgAdminPanel')"
+                v-e="['c:user:admin-panel']"
+                :to="`/admin/${activeWorkspace?.fk_org_id}`"
+                class="!no-underline"
+              >
+                <NcMenuItem> <GeneralIcon class="menu-icon" icon="controlPanel" /> {{ $t('labels.adminPanel') }} </NcMenuItem>
+              </nuxt-link>
+            </template>
             <div v-else v-e="['c:user:upgrade-workspace-to-org']" @click="migrateWorkspace">
               <NcMenuItem>
                 <GeneralIcon class="menu-icon" icon="controlPanel" /> {{ $t('labels.moveWorkspaceToOrg') }}

@@ -15,7 +15,7 @@ export class SSOLoginPage extends BasePage {
     // reload page to get latest app info
     await this.rootPage.goto('/#/sso');
     // click sign in with SAML
-    await this.rootPage.locator(`button:has-text("Sign in with ${title}")`).click();
+    // await this.rootPage.locator(`button:has-text("Sign in with ${title}")`).click();
   }
 
   get() {
@@ -24,13 +24,13 @@ export class SSOLoginPage extends BasePage {
 
   async signIn({ email }: { email: string }) {
     const signIn = this.get();
-    await signIn.locator('#userName').waitFor();
+    await signIn.locator('[data-testid="nc-form-org-sso-signin__email"]').waitFor();
 
-    await signIn.locator(`#userName`).fill(email);
-    await signIn.locator(`#email`).fill(email);
+    await signIn.locator('[data-testid="nc-form-org-sso-signin__email"]').fill(email);
+
     await Promise.all([
       this.rootPage.waitForNavigation({ url: /localhost:3000/ }),
-      signIn.locator(`#btn-sign-in`).click(),
+      signIn.getByTestId('nc-form-signin__submit').click(),
     ]);
 
     await this.rootPage.locator(`[data-testid="nc-sidebar-userinfo"]:has-text("${email.split('@')[0]}")`);

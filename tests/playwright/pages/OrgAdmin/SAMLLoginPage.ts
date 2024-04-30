@@ -1,21 +1,25 @@
 import { Page } from '@playwright/test';
 import BasePage from '../Base';
 import { ProjectsPage } from '../ProjectsPage';
-import { expect } from '@playwright/test';
+import { SSOLoginPage } from './SSOLoginPage';
 
 export class SAMLLoginPage extends BasePage {
   readonly projectsPage: ProjectsPage;
+  readonly ssoLoginPage: SSOLoginPage;
 
   constructor(rootPage: Page) {
     super(rootPage);
     this.projectsPage = new ProjectsPage(rootPage);
+    this.ssoLoginPage = new SSOLoginPage(rootPage);
   }
 
-  async goto(title = 'test') {
-    // reload page to get latest app info
-    await this.rootPage.reload({ waitUntil: 'networkidle' });
-    // click sign in with SAML
-    await this.rootPage.locator(`button:has-text("Sign in with ${title}")`).click();
+  async goto(title = 'test', email: string) {
+    await this.ssoLoginPage.goto(email);
+    await this.ssoLoginPage.signIn({ email });
+    // // reload page to get latest app info
+    // await this.rootPage.reload({ waitUntil: 'networkidle' });
+    // // click sign in with SAML
+    // await this.rootPage.locator(`button:has-text("Sign in with ${title}")`).click();
   }
 
   get() {

@@ -4,7 +4,10 @@ import type User from '~/models/User';
 import type { NcConfig } from '~/interface/config';
 import type { Response } from 'express';
 
-export function genJwt(user: User & { extra?: Record<string, any>}, config: NcConfig) {
+export function genJwt(
+  user: User & { extra?: Record<string, any> },
+  config: NcConfig,
+) {
   return jwt.sign(
     {
       ...(user.extra || {}),

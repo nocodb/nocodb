@@ -1,18 +1,13 @@
 <script lang="ts" setup>
-import type { Api } from 'nocodb-sdk'
 import {
   computed,
-  extractSdkResponseErrorMsg,
-  message,
   navigateTo,
   onMounted,
   ref,
   storeToRefs,
-  useApi,
   useGlobal,
   useSidebarStore,
   useUsers,
-  useWorkspace,
   watch,
 } from '#imports'
 
@@ -68,8 +63,6 @@ const isMounted = ref(false)
 onMounted(() => {
   isMounted.value = true
 })
-
-
 </script>
 
 <template>

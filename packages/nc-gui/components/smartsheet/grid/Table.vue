@@ -1277,7 +1277,10 @@ const showFillHandle = computed(
       isFormula(fields.value[activeCell.col]) ||
       isCreatedOrLastModifiedTimeCol(fields.value[activeCell.col]) ||
       isCreatedOrLastModifiedByCol(fields.value[activeCell.col])
-    ),
+    ) &&
+    !isViewDataLoading.value &&
+    !isPaginationLoading.value &&
+    dataRef.value.length,
 )
 
 watch(

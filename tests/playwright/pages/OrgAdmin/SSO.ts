@@ -5,7 +5,7 @@ import { expect } from '@playwright/test';
 import { AccountAuthenticationPage } from '../Account/Authentication';
 import { Domain } from './Domain';
 
-export class SSOPage extends BasePage {
+export class SSO extends BasePage {
   readonly projectsPage: ProjectsPage;
   readonly domain: Domain;
 
@@ -48,7 +48,7 @@ export class SSOPage extends BasePage {
     await this.waitForResponse({
       uiAction: () => this.rootPage.locator(`[data-test-id="nc-${provider}-delete"]`).click(),
       httpMethodsToMatch: ['DELETE'],
-      requestUrlPathToMatch: `/api/v2/sso-client/`,
+      requestUrlPathToMatch: /\/api\/v2\/orgs\/\w+\/sso-client/,
     });
   }
 
@@ -56,11 +56,11 @@ export class SSOPage extends BasePage {
     await this.waitForResponse({
       uiAction: () => this.get().locator(`.nc-${provider}-${title}-enable .nc-switch`).click(),
       httpMethodsToMatch: ['PATCH'],
-      requestUrlPathToMatch: `/api/v2/sso-client/`,
+      requestUrlPathToMatch: /\/api\/v2\/orgs\/\w+\/sso-client/,
     });
   }
 
-  async selectScope({ type }: { type: string[] }) {
+  async selectScope({ type }: { typesto: string[] }) {
     await this.rootPage.locator('.ant-select-selector').click();
 
     await this.rootPage.locator('.ant-select-selection-search-input[aria-expanded="true"]').waitFor();
@@ -103,7 +103,7 @@ export class SSOPage extends BasePage {
     await this.waitForResponse({
       uiAction: () => samlModal.locator('[data-test-id="nc-saml-submit"]').click(),
       httpMethodsToMatch: ['GET'],
-      requestUrlPathToMatch: '/api/v2/sso-client',
+      requestUrlPathToMatch: /\/api\/v2\/orgs\/\w+\/sso-clients/,
     });
   }
 
@@ -164,7 +164,7 @@ export class SSOPage extends BasePage {
     await this.waitForResponse({
       uiAction: () => oidcModal.locator('[data-test-id="nc-oidc-save-btn"]').click(),
       httpMethodsToMatch: ['GET'],
-      requestUrlPathToMatch: '/api/v2/sso-client',
+      requestUrlPathToMatch: /\/api\/v2\/orgs\/\w+\/sso-clients/,
     });
   }
 
@@ -183,7 +183,7 @@ export class SSOPage extends BasePage {
     await this.waitForResponse({
       uiAction: () => googleModal.locator('[data-test-id="nc-google-save-btn"]').click(),
       httpMethodsToMatch: ['GET'],
-      requestUrlPathToMatch: '/api/v2/sso-client',
+      requestUrlPathToMatch: /\/api\/v2\/orgs\/\w+\/sso-clients/,
     });
   }
 

@@ -93,7 +93,11 @@ export async function extractAndGenerateManyToManyRelations(
     if (
       belongsToCols?.length === 2 &&
       normalColumns.length < 5 &&
-      assocModel.primaryKeys.length === 2
+      assocModel.primaryKeys.length === 2 &&
+      // check if both belongsToCol target primary keys
+      assocModel.primaryKeys.every((pk) =>
+        belongsToCols.some((c) => c.colOptions?.fk_child_column_id === pk.id),
+      )
     ) {
       const modelA = await belongsToCols[0].colOptions.getRelatedTable();
       const modelB = await belongsToCols[1].colOptions.getRelatedTable();

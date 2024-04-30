@@ -8,7 +8,7 @@ export const extractPkFromRow = (row: Record<string, any>, columns: ColumnType[]
 
   const pkColumns = columns.filter((c) => c.pk)
 
-  if (!pkColumns.some((c) => row?.[c.title as string])) return null
+  if (!pkColumns.some((c) => row?.[c.title as string] !== null && row?.[c.title as string] !== undefined)) return null
 
   return pkColumns.map((c) => row?.[c.title as string]).join('___')
 }

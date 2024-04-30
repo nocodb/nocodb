@@ -103,7 +103,7 @@ onMounted(async () => {
           <PhMagnifyingGlassBold class="!h-3.5 text-gray-500" />
         </template>
       </a-input>
-      <NcButton @click="inviteDlg = true" data-testid="nc-add-member-btn">
+      <NcButton data-testid="nc-add-member-btn" @click="inviteDlg = true">
         <div class="flex items-center gap-2">
           <component :is="iconMap.plus" class="!h-4 !w-4" />
           {{ $t('labels.addMember') }}

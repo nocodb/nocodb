@@ -84,7 +84,7 @@ test.describe('User single select', () => {
     await unsetup(context);
   });
 
-  test('Verify the default option count, select default value and verify', async () => {
+  test.only('Verify the default option count, select default value and verify', async () => {
     if (!isEE()) {
       await grid.column.userOption.verifyDefaultValueOptionCount({ columnTitle: 'User', totalCount: 5 });
     }

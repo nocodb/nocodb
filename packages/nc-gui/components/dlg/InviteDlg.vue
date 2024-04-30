@@ -294,6 +294,7 @@ const onRoleChange = (role: keyof typeof RoleLabels) => (inviteData.roles = role
     :show-separator="false"
     size="medium"
     @keydown.esc="dialogShow = false"
+    class="nc-invite-dlg"
   >
     <template #header>
       <div class="flex flex-row items-center gap-x-2">
@@ -387,6 +388,7 @@ const onRoleChange = (role: keyof typeof RoleLabels) => (inviteData.roles = role
           size="medium"
           type="primary"
           @click="inviteCollaborator"
+          class="nc-invite-btn"
         >
           {{ type === 'base' ? $t('activity.inviteToBase') : $t('activity.inviteToWorkspace') }}
         </NcButton>

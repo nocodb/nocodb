@@ -82,7 +82,7 @@ const migrateWorkspace = async () => {
     await (api as Api<any>).orgWorkspace.upgrade(activeWorkspace.value?.id)
     await workspaceStore.loadWorkspace(activeWorkspace.value?.id)
     if (activeWorkspace.value?.fk_org_id) {
-      navigateTo(`/admin/${activeWorkspace.value.fk_org_id}`)
+      navigateTo(`/admin/${activeWorkspace.value.fk_org_id}/settings`)
     }
     isMenuOpen.value = false
   } catch (e) {

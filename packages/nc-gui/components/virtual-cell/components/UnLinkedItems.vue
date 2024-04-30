@@ -197,6 +197,7 @@ const addNewRecord = () => {
 
 const onCreatedRecord = (record: any) => {
   addLTARRef(record, injectedColumn?.value as ColumnType)
+  saveRow!()
 
   const msgVNode = h(
     'div',

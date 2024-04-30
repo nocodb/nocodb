@@ -450,6 +450,7 @@
     "adminPanel": "Admin Panel",
     "moveWorkspaceToOrg": "Move Workspace To Organisation",
     "ssoSettings": "SSO Settings",
+    "domain": "Domain",
     "settings": "Settings",
     "workspaces": "Workspaces",
     "back": "Back",

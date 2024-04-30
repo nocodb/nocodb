@@ -204,6 +204,7 @@
     "appearance": "Appearance"
   },
   "objects": {
+    "member": "Member",
     "day": "Day",
     "week": "Week",
     "month": "Month",
@@ -438,6 +439,17 @@
     "noResultsMatchedYourSearch": "Your search did not yield any matching results"
   },
   "labels": {
+    "inviteUsersToWorkspace": "Invite Users to Workspace",
+    "selectWorkspace":"-select workspaces to invite to-",
+    "addMembersToOrganization": "Add Members to Organization",
+    "memberIn": "Member in:",
+    "assignAs": "Assign as",
+    "signOutUser": "Sign out user",
+    "signOutUsers": "Sign out users",
+    "deactivateUser": "Deactivate User",
+    "deactivateUsers": "Deactivate Users",
+    "lastActive": "Last Active",
+    "dateAdded": "Date Added",
     "uploadImage": "Upload Image",
     "organizationProfile": "Organisation Profile",
     "organizationImage": "Organisation Image",

@@ -10,7 +10,6 @@ import {
   storeToRefs,
   useApi,
   useGlobal,
-  useRoles,
   useSidebarStore,
   useUsers,
   useWorkspace,
@@ -25,16 +24,11 @@ const { leftSidebarState } = storeToRefs(useSidebarStore())
 
 const name = computed(() => user.value?.display_name?.trim())
 
-const workspaceStore = useWorkspace()
-const { activeWorkspace } = storeToRefs(workspaceStore)
-
 const isMenuOpen = ref(false)
 
 const isAuthTokenCopied = ref(false)
 
 const isLoggingOut = ref(false)
-
-const { isUIAllowed } = useRoles()
 
 const { isMobileMode } = useGlobal()
 
@@ -75,20 +69,7 @@ onMounted(() => {
   isMounted.value = true
 })
 
-const { api } = useApi()
 
-const migrateWorkspace = async () => {
-  try {
-    await (api as Api<any>).orgWorkspace.upgrade(activeWorkspace.value?.id)
-    await workspaceStore.loadWorkspace(activeWorkspace.value?.id)
-    if (activeWorkspace.value?.fk_org_id) {
-      navigateTo(`/admin/${activeWorkspace.value.fk_org_id}/settings`)
-    }
-    isMenuOpen.value = false
-  } catch (e) {
-    message.error(await extractSdkResponseErrorMsg(e))
-  }
-}
 </script>
 
 <template>
@@ -205,27 +186,7 @@ const migrateWorkspace = async () => {
 
             <NcDivider />
 
-            <template v-if="activeWorkspace?.fk_org_id">
-              <nuxt-link
-                v-if="isUIAllowed('orgAdminPanel')"
-                v-e="['c:user:admin-panel']"
-                :to="`/admin/${activeWorkspace?.fk_org_id}`"
-                class="!no-underline"
-                data-testid="nc-sidebar-org-admin-panel"
-              >
-                <NcMenuItem> <GeneralIcon class="menu-icon" icon="controlPanel" /> {{ $t('labels.adminPanel') }} </NcMenuItem>
-              </nuxt-link>
-            </template>
-            <div
-              v-else-if="isUIAllowed('moveWorkspaceToOrg')"
-              v-e="['c:user:upgrade-workspace-to-org']"
-              data-testid="nc-sidebar-upgrade-workspace-to-org"
-              @click="migrateWorkspace"
-            >
-              <NcMenuItem>
-                <GeneralIcon class="menu-icon" icon="controlPanel" /> {{ $t('labels.moveWorkspaceToOrg') }}
-              </NcMenuItem>
-            </div>
+            <DashboardSidebarEEMenuOption v-if="isEeUI" />
 
             <nuxt-link v-e="['c:user:settings']" class="!no-underline" to="/account/profile">
               <NcMenuItem> <GeneralIcon icon="ncSettings" class="menu-icon" /> {{ $t('title.accountSettings') }} </NcMenuItem>

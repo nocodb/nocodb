@@ -167,6 +167,10 @@ onMounted(() => {
 
             <NcDivider />
 
+            <nuxt-link v-e="['c:user:admin-panel']" class="!no-underline" to="/admin">
+              <NcMenuItem> <GeneralIcon icon="controlPanel" class="menu-icon" /> {{ $t('title.adminPanel') }} </NcMenuItem>
+            </nuxt-link>
+
             <nuxt-link v-e="['c:user:settings']" class="!no-underline" to="/account/profile">
               <NcMenuItem> <GeneralIcon icon="ncSettings" class="menu-icon" /> {{ $t('title.accountSettings') }} </NcMenuItem>
             </nuxt-link>

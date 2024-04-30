@@ -132,6 +132,7 @@ import NcBold from '~icons/nc-icons/bold'
 import NcUnderline from '~icons/nc-icons/underline'
 import NcCrop from '~icons/nc-icons/crop'
 import NcLink from '~icons/nc-icons/link'
+import NcControlPanel from '~icons/nc-icons/control-panel'
 
 import NcCellBarcode from '~icons/nc-icons/cell-barcode'
 import NcCellCheckbox from '~icons/nc-icons/cell-checkbox'
@@ -325,6 +326,7 @@ import NcHelp from '~icons/nc-icons/help'
 } as const */
 
 export const iconMap = {
+  controlPanel: NcControlPanel,
   cellBarcode: NcCellBarcode,
   cellCheckbox: NcCellCheckbox,
   cellDate: NcCellDate,

@@ -15,6 +15,7 @@ import {
   extractFilterFromXwhere,
   extractSortsObject,
   getColumnName,
+  getCompositePkValue,
   getListArgs,
   haveFormulaColumn,
   populatePk,
@@ -215,6 +216,17 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     }
 
     return data;
+  }
+
+  async runOps(ops: Promise<string>[], trx = this.dbDriver) {
+    const queries = await Promise.all(ops);
+    if ((this.dbDriver as any).isExternal) {
+      await runExternal(queries, (this.dbDriver as any).extDb);
+    } else {
+      for (const query of queries) {
+        await trx.raw(query);
+      }
+    }
   }
 
   async insert(data, trx?, cookie?, disableOptimization = false) {
@@ -795,6 +807,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
       if ((this.dbDriver as any).isExternal) {
         responses = await runExternal(queries, (this.dbDriver as any).extDb);
+        responses = Array.isArray(responses) ? responses : [responses];
       } else {
         const trx = await this.dbDriver.transaction();
 
@@ -844,8 +857,8 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     try {
       // TODO: ag column handling for raw bulk insert
       const insertDatas = raw ? datas : [];
-      let postInsertOps: ((rowId: any, trx?: any) => Promise<void>)[] = [];
-      let preInsertOps: ((trx?: any) => Promise<void>)[] = [];
+      let postInsertOps: ((rowId: any) => Promise<string>)[] = [];
+      let preInsertOps: (() => Promise<string>)[] = [];
       let aiPkCol: Column;
       let agPkCol: Column;
 
@@ -1019,7 +1032,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         await this.beforeBulkInsert(insertDatas, null, cookie);
       }
 
-      await Promise.all(preInsertOps.map((f) => f(null)));
+      await this.runOps(preInsertOps.map((f) => f()));
 
       // await this.beforeInsertb(insertDatas, null);
 
@@ -1131,7 +1144,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             });
           }
 
-          await Promise.all(postInsertOps.map((f) => f(rowId, trx)));
+          await this.runOps(
+            postInsertOps.map((f) => f(rowId)),
+            trx,
+          );
         }
       };
 
@@ -1231,7 +1247,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       const pkAndData: { pk: any; data: any }[] = [];
       const readChunkSize = 100;
       for (const [i, d] of updateDatas.entries()) {
-        const pkValues = this._extractPksValues(d);
+        const pkValues = getCompositePkValue(
+          this.model.primaryKeys,
+          this._extractPksValues(d),
+        );
         if (!pkValues) {
           // throw or skip if no pk provided
           if (throwExceptionIfNotExist) {
@@ -1412,7 +1431,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       const pkAndData: { pk: any; data: any }[] = [];
       const readChunkSize = 100;
       for (const [i, d] of deleteIds.entries()) {
-        const pkValues = this._extractPksValues(d);
+        const pkValues = getCompositePkValue(
+          this.model.primaryKeys,
+          this._extractPksValues(d),
+        );
         if (!pkValues) {
           // throw or skip if no pk provided
           if (throwExceptionIfNotExist) {
@@ -1674,6 +1696,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         responses = await runExternal(queries, (this.dbDriver as any).extDb, {
           raw: true,
         });
+        responses = Array.isArray(responses) ? responses : [responses];
       } else {
         const trx = await this.dbDriver.transaction();
         try {

@@ -66,6 +66,10 @@ const isForm = inject(IsFormInj, ref(false))
 
 const saveRow = inject(SaveRowInj, () => {})
 
+const reloadTrigger = inject(ReloadRowDataHookInj, createEventHook())
+
+const reloadViewDataTrigger = inject(ReloadViewDataHookInj, createEventHook())
+
 const linkRow = async (row: Record<string, any>, id: number) => {
   if (isNew.value) {
     addLTARRef(row, injectedColumn?.value as ColumnType)
@@ -196,6 +200,16 @@ const addNewRecord = () => {
 }
 
 const onCreatedRecord = (record: any) => {
+  addLTARRef(record, injectedColumn?.value as ColumnType)
+  saveRow!()
+
+  reloadTrigger?.trigger({
+    shouldShowLoading: false,
+  })
+  reloadViewDataTrigger?.trigger({
+    shouldShowLoading: false,
+  })
+
   const msgVNode = h(
     'div',
     {
@@ -223,6 +237,8 @@ const onCreatedRecord = (record: any) => {
   )
 
   message.success(msgVNode)
+
+  vModel.value = false
 }
 
 const linkedShortcuts = (e: KeyboardEvent) => {
@@ -443,6 +459,7 @@ const onFilterChange = () => {
         :row-id="extractPkFromRow(expandedFormRow, relatedTableMeta.columns as ColumnType[])"
         :state="newRowState"
         use-meta-fields
+        :skip-reload="true"
         @created-record="onCreatedRecord"
       />
     </Suspense>

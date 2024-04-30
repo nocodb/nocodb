@@ -806,6 +806,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
       if ((this.dbDriver as any).isExternal) {
         responses = await runExternal(queries, (this.dbDriver as any).extDb);
+        responses = Array.isArray(responses) ? responses : [responses];
       } else {
         const trx = await this.dbDriver.transaction();
 
@@ -1688,6 +1689,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         responses = await runExternal(queries, (this.dbDriver as any).extDb, {
           raw: true,
         });
+        responses = Array.isArray(responses) ? responses : [responses];
       } else {
         const trx = await this.dbDriver.transaction();
         try {

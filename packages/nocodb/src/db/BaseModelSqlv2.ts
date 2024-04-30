@@ -2107,7 +2107,7 @@ class BaseModelSqlv2 {
                 ] = async function (args): Promise<any> {
                   (listLoader as any).args = args;
                   return listLoader.load(
-                    getCompositePk(self.model.primaryKeys, this),
+                    getCompositePkValue(self.model.primaryKeys, this),
                   );
                 };
               } else if (colOptions.type === 'mm') {
@@ -2148,7 +2148,7 @@ class BaseModelSqlv2 {
                 ] = async function (args): Promise<any> {
                   (listLoader as any).args = args;
                   return await listLoader.load(
-                    getCompositePk(self.model.primaryKeys, this),
+                    getCompositePkValue(self.model.primaryKeys, this),
                   );
                 };
               } else if (colOptions.type === 'bt') {
@@ -2370,7 +2370,7 @@ class BaseModelSqlv2 {
                   ] = async function (args): Promise<any> {
                     (listLoader as any).args = args;
                     return listLoader.load(
-                      getCompositePk(self.model.primaryKeys, this),
+                      getCompositePkValue(self.model.primaryKeys, this),
                     );
                   };
                 }
@@ -3738,7 +3738,10 @@ class BaseModelSqlv2 {
       const pkAndData: { pk: any; data: any }[] = [];
       const readChunkSize = 100;
       for (const [i, d] of updateDatas.entries()) {
-        const pkValues = this._extractPksValues(d);
+        const pkValues = getCompositePkValue(
+          this.model.primaryKeys,
+          this._extractPksValues(d),
+        );
         if (!pkValues) {
           // throw or skip if no pk provided
           if (throwExceptionIfNotExist) {
@@ -3964,7 +3967,10 @@ class BaseModelSqlv2 {
       const pkAndData: { pk: any; data: any }[] = [];
       const readChunkSize = 100;
       for (const [i, d] of deleteIds.entries()) {
-        const pkValues = this._extractPksValues(d);
+        const pkValues = getCompositePkValue(
+          this.model.primaryKeys,
+          this._extractPksValues(d),
+        );
         if (!pkValues) {
           // throw or skip if no pk provided
           if (throwExceptionIfNotExist) {
@@ -6880,8 +6886,9 @@ export function _wherePk(primaryKeys: Column[], id: unknown | unknown[]) {
   return where;
 }
 
-function getCompositePk(primaryKeys: Column[], row) {
-  return primaryKeys.map((c) => row[c.title]).join('___');
+export function getCompositePkValue(primaryKeys: Column[], row) {
+  if (typeof row !== 'object') return row;
+  return primaryKeys.map((c) => row[c.title] ?? row[c.column_name]).join('___');
 }
 
 export function haveFormulaColumn(columns: Column[]) {

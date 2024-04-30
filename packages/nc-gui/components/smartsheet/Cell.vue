@@ -112,6 +112,17 @@ const syncValue = useDebounceFn(
   { maxWait: 2000 },
 )
 
+const saveTimer = ref<NodeJS.Timeout>()
+
+const updateWhenEditCompleted = () => {
+  if (editEnabled.value) {
+    if (saveTimer.value) clearTimeout(saveTimer.value)
+    saveTimer.value = setTimeout(updateWhenEditCompleted, 500)
+  } else {
+    emit('save')
+  }
+}
+
 const vModel = computed({
   get: () => {
     return props.modelValue
@@ -122,7 +133,9 @@ const vModel = computed({
     } else if (val !== props.modelValue) {
       currentRow.value.rowMeta.changed = true
       emit('update:modelValue', val)
-      if (isAutoSaved(column.value)) {
+      if (column.value.pk) {
+        updateWhenEditCompleted()
+      } else if (isAutoSaved(column.value)) {
         syncValue()
       } else if (!isManualSaved(column.value)) {
         emit('save')

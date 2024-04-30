@@ -64,8 +64,6 @@ const selectAll = computed({
   },
 })
 
-const isSomeSelected = computed(() => Object.values(selected).some((v) => v))
-
 const updateCollaborator = async (collab: any, roles: WorkspaceUserRoles) => {
   try {
     console.log()

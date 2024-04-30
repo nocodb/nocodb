@@ -1228,6 +1228,7 @@
       "enterBaseName": "Enter base name",
       "idpPaste": "Paste these URL in your Identity Providers console",
       "noSaml": "There are no configured SAML authentications.",
+      "noOIDC": "There are no configured OpenID authentications.",
       "disabledAsViewLocked": "Disabled as View is locked",
       "basesMigrated": "Bases are migrated. Please try again.",
       "pasteNotSupported": "Paste operation is not supported on the active cell",

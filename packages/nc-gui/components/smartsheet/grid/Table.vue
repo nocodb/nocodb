@@ -1064,13 +1064,26 @@ async function resetAndChangePage(row: number, col: number, pageChange?: number)
   scrollToCell?.()
 }
 
-const saveOrUpdateRecords = async (args: { metaValue?: TableType; viewMetaValue?: ViewType; data?: any } = {}) => {
+const temporaryNewRowStore = ref<Row[]>([])
+
+const saveOrUpdateRecords = async (
+  args: { metaValue?: TableType; viewMetaValue?: ViewType; data?: any; keepNewRecords?: boolean } = {},
+) => {
   for (const currentRow of args.data || dataRef.value) {
     /** if new record save row and save the LTAR cells */
     if (currentRow.rowMeta.new) {
+      const beforeSave = clone(currentRow)
       const savedRow = await updateOrSaveRow?.(currentRow, '', {}, args)
-      await syncLTARRefs?.(currentRow, savedRow, args)
-      currentRow.rowMeta.changed = false
+      if (savedRow) {
+        await syncLTARRefs?.(currentRow, savedRow, args)
+        currentRow.rowMeta.changed = false
+      } else {
+        if (args.keepNewRecords) {
+          if (beforeSave.rowMeta.new && Object.keys(beforeSave.row).length) {
+            temporaryNewRowStore.value.push(beforeSave)
+          }
+        }
+      }
       continue
     }
 
@@ -1332,9 +1345,16 @@ async function reloadViewDataHandler(params: void | { shouldShowLoading?: boolea
     predictedNextColumn.value = predictedNextColumn.value.filter((c) => !fieldsAvailable?.includes(c.title))
   }
   // save any unsaved data before reload
-  await saveOrUpdateRecords()
+  await saveOrUpdateRecords({
+    keepNewRecords: true,
+  })
 
   await loadData?.({ ...(params?.offset !== undefined ? { offset: params.offset } : {}) })
+
+  if (temporaryNewRowStore.value.length) {
+    dataRef.value.push(...temporaryNewRowStore.value)
+    temporaryNewRowStore.value = []
+  }
 
   calculateSlices()
 

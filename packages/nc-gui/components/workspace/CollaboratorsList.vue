@@ -214,7 +214,11 @@ onMounted(async () => {
                       </NcMenuItem>
                     </template>
 
-                    <NcMenuItem v-else class="!text-red-500 !hover:bg-red-50" @click="removeCollaborator(collab.id, active)">
+                    <NcMenuItem
+                      v-else
+                      class="!text-red-500 !hover:bg-red-50"
+                      @click="removeCollaborator(collab.id, currentWorkspace.id)"
+                    >
                       <MaterialSymbolsDeleteOutlineRounded />
                       Remove user
                     </NcMenuItem>

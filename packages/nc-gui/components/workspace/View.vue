@@ -43,11 +43,9 @@ watch(
 )
 
 onMounted(() => {
-  console.log('currentWorkspace', currentWorkspace.value?.id)
   until(() => currentWorkspace.value?.id)
     .toMatch((v) => !!v)
     .then(async () => {
-      console.log('currentWorkspace', currentWorkspace.value.id)
       await loadCollaborators({} as any, currentWorkspace.value.id)
     })
 })
@@ -55,7 +53,7 @@ onMounted(() => {
 
 <template>
   <div v-if="currentWorkspace" class="flex w-full px-6 max-w-[97.5rem] flex-col nc-workspace-settings">
-    <div v-if="!props.workspaceId" class="flex gap-2 items-center min-w-0 p-6">
+    <div v-if="!props.workspaceId" class="flex gap-2 items-center min-w-0 py-6">
       <GeneralWorkspaceIcon :workspace="currentWorkspace" />
       <h1 class="text-3xl font-weight-bold tracking-[0.5px] mb-0 nc-workspace-title truncate min-w-10 capitalize">
         {{ currentWorkspace?.title }}

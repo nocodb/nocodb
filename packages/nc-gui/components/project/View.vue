@@ -3,22 +3,28 @@ import { useTitle } from '@vueuse/core'
 import NcLayout from '~icons/nc-icons/layout'
 import { isEeUI } from '#imports'
 
+const props = defineProps<{
+  baseId: string
+}>()
+
 const basesStore = useBases()
 
-const { openedProject, activeProjectId, basesUser } = storeToRefs(basesStore)
+const { openedProject, activeProjectId, basesUser, bases } = storeToRefs(basesStore)
 const { activeTables, activeTable } = storeToRefs(useTablesStore())
 const { activeWorkspace, workspaceUserCount } = storeToRefs(useWorkspace())
 
 const { navigateToProjectPage } = useBase()
+
+const isAdminPanel = inject(IsAdminPanelInj, ref(false))
 
 const router = useRouter()
 const route = router.currentRoute
 
 const { $e } = useNuxtApp()
 
-/* const defaultBase = computed(() => {
-  return openedProject.value?.sources?.[0]
-}) */
+const currentBase = computed(() => {
+  return bases.value.get(props.baseId) ?? openedProject.value
+})
 
 const { isUIAllowed, baseRoles } = useRoles()
 
@@ -37,7 +43,7 @@ const userCount = computed(() =>
 watch(
   () => route.value.query?.page,
   (newVal, oldVal) => {
-    if (route.value.name !== 'index-typeOrId-baseId-index-index') return
+    // if (route.value.name !== 'index-typeOrId-baseId-index-index') return
     if (newVal && newVal !== oldVal) {
       if (newVal === 'collaborator') {
         projectPageTab.value = 'collaborator'
@@ -46,11 +52,14 @@ watch(
       } else {
         projectPageTab.value = 'allTable'
       }
-
       return
     }
 
-    projectPageTab.value = 'allTable'
+    if (isAdminPanel.value) {
+      projectPageTab.value = 'collaborator'
+    } else {
+      projectPageTab.value = 'allTable'
+    }
   },
   { immediate: true },
 )
@@ -66,11 +75,11 @@ watch(projectPageTab, () => {
 })
 
 watch(
-  () => [openedProject.value?.id, openedProject.value?.title],
+  () => [currentBase.value?.id, currentBase.value?.title],
   () => {
     if (activeTable.value?.title) return
 
-    useTitle(`${openedProject.value?.title ?? activeWorkspace.value?.title ?? 'NocoDB'}`)
+    useTitle(`${currentBase.value?.title ?? activeWorkspace.value?.title ?? 'NocoDB'}`)
   },
   {
     immediate: true,
@@ -81,17 +90,18 @@ watch(
 <template>
   <div class="h-full nc-base-view">
     <div
+      v-if="!isAdminPanel"
       class="flex flex-row pl-2 pr-2 gap-1 border-b-1 border-gray-200 justify-between w-full"
       :class="{ 'nc-table-toolbar-mobile': isMobileMode, 'h-[var(--topbar-height)]': !isMobileMode }"
     >
       <div class="flex flex-row items-center gap-x-3">
         <GeneralOpenLeftSidebarBtn />
         <div class="flex flex-row items-center h-full gap-x-2.5">
-          <GeneralProjectIcon :type="openedProject?.type" :color="parseProp(openedProject?.meta).iconColor" />
+          <GeneralProjectIcon :color="parseProp(currentBase?.meta).iconColor" :type="currentBase?.type" />
           <NcTooltip class="flex font-medium text-sm capitalize truncate max-w-150" show-on-truncate-only>
-            <template #title> {{ openedProject?.title }}</template>
+            <template #title> {{ currentBase?.title }}</template>
             <span class="truncate">
-              {{ openedProject?.title }}
+              {{ currentBase?.title }}
             </span>
           </NcTooltip>
         </div>
@@ -105,7 +115,7 @@ watch(
       }"
     >
       <a-tabs v-model:activeKey="projectPageTab" class="w-full">
-        <a-tab-pane key="allTable">
+        <a-tab-pane v-if="!isAdminPanel" key="allTable">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__all-tables">
               <NcLayout />
@@ -143,7 +153,7 @@ watch(
               </div>
             </div>
           </template>
-          <ProjectAccessSettings />
+          <ProjectAccessSettings :base-id="currentBase.id" />
         </a-tab-pane>
         <a-tab-pane v-if="isUIAllowed('sourceCreate')" key="data-source">
           <template #tab>

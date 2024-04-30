@@ -185,7 +185,7 @@ const onCancel = () => {
 </template>
 
 <style lang="scss" scoped>
-.item {
+.item-card {
   @apply p-6 rounded-2xl border-1 max-w-180 mt-10 min-w-100 w-full;
 }
 </style>

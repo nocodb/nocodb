@@ -39,6 +39,7 @@
     }
   },
   "general": {
+    "role": "Role",
     "general": "General",
     "quit": "Quit",
     "home": "Home",
@@ -752,6 +753,8 @@
     "clearSelection": "Clear selection"
   },
   "activity": {
+    "deactivate": "De-activate",
+    "manageUsers": "Manage Users",
     "newWorkspace": "New Workspace",
     "addDomain": "Add Domain",
     "addMembers": "Add Members",

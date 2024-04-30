@@ -127,6 +127,7 @@ import NcUpload from '~icons/nc-icons/upload'
 import NcDownload from '~icons/nc-icons/download'
 import NcOffice from '~icons/nc-icons/office'
 import NcArrowUpRight from '~icons/nc-icons/arrow-up-right'
+import NcSlash from '~icons/nc-icons/slash'
 // import NcProjectGray from '~icons/nc-icons/project-gray'
 import NcPhoneCall from '~icons/nc-icons/phone-call'
 import NcItalic from '~icons/nc-icons/italic'
@@ -330,6 +331,7 @@ import NcHelp from '~icons/nc-icons/help'
 } as const */
 
 export const iconMap = {
+  slash: NcSlash,
   arrowUpRight: NcArrowUpRight,
   ncWorkspace: NcWorkspace,
   controlPanel: NcControlPanel,

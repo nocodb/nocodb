@@ -12,15 +12,26 @@ import {
 import type { User } from '#imports'
 import { isEeUI, storeToRefs, useUserSorts } from '#imports'
 
+const props = defineProps<{
+  baseId?: string
+}>()
+
 const basesStore = useBases()
 const { getBaseUsers, createProjectUser, updateProjectUser, removeProjectUser } = basesStore
-const { activeProjectId } = storeToRefs(basesStore)
+const { activeProjectId, bases } = storeToRefs(basesStore)
 
 const { orgRoles, baseRoles } = useRoles()
 
 const { sorts, sortDirection, loadSorts, saveOrUpdate, handleGetSortedData } = useUserSorts('Project')
 
 const isSuper = computed(() => orgRoles.value?.[OrgUserRoles.SUPER_ADMIN])
+
+const isAdminPanel = inject(IsAdminPanelInj, ref(false))
+
+const currentBase = computed(() => {
+  const id = props.baseId ?? activeProjectId.value
+  return id ? bases.value.get(id) : null
+})
 
 const isInviteModalVisible = ref(false)
 
@@ -57,7 +68,7 @@ const sortedCollaborators = computed(() => {
 const loadCollaborators = async () => {
   try {
     const { users, totalRows } = await getBaseUsers({
-      baseId: activeProjectId.value!,
+      baseId: currentBase.value.id!,
       ...(!userSearchText.value ? {} : ({ searchText: userSearchText.value } as any)),
       force: true,
     })
@@ -93,7 +104,7 @@ const updateCollaborator = async (collab: any, roles: ProjectRoles) => {
         WorkspaceRolesToProjectRoles[currentCollaborator.workspace_roles as WorkspaceUserRoles] === roles &&
         isEeUI)
     ) {
-      await removeProjectUser(activeProjectId.value!, currentCollaborator as unknown as User)
+      await removeProjectUser(currentBase.value.id!, currentCollaborator as unknown as User)
       if (
         currentCollaborator.workspace_roles &&
         WorkspaceRolesToProjectRoles[currentCollaborator.workspace_roles as WorkspaceUserRoles] === roles &&
@@ -105,11 +116,11 @@ const updateCollaborator = async (collab: any, roles: ProjectRoles) => {
       }
     } else if (currentCollaborator.base_roles) {
       currentCollaborator.roles = roles
-      await updateProjectUser(activeProjectId.value!, currentCollaborator as unknown as User)
+      await updateProjectUser(currentBase.value.id!, currentCollaborator as unknown as User)
     } else {
       currentCollaborator.roles = roles
       currentCollaborator.base_roles = roles
-      await createProjectUser(activeProjectId.value!, currentCollaborator as unknown as User)
+      await createProjectUser(currentBase.value.id!, currentCollaborator as unknown as User)
     }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
@@ -145,14 +156,30 @@ watch(isInviteModalVisible, () => {
 </script>
 
 <template>
-  <div class="nc-collaborator-table-container mt-4 nc-access-settings-view h-[calc(100vh-8rem)]">
-    <LazyDlgInviteDlg v-model:model-value="isInviteModalVisible" :base-id="activeProjectId" type="base" />
+  <div
+    :class="{
+      'px-6 ': isAdminPanel,
+    }"
+    class="nc-collaborator-table-container mt-4 nc-access-settings-view h-[calc(100vh-8rem)]"
+  >
+    <div v-if="isAdminPanel" class="font-bold w-full !mb-5 text-2xl" data-rec="true">
+      <div class="flex items-center gap-3">
+        {{ $t('objects.projects') }}
+
+        <span class="text-2xl"> / </span>
+        <GeneralBaseIconColorPicker readonly />
+        <span class="text-base">
+          {{ currentBase?.title }}
+        </span>
+      </div>
+    </div>
+    <LazyDlgInviteDlg v-model:model-value="isInviteModalVisible" :base-id="currentBase.id" type="base" />
     <div v-if="isLoading" class="nc-collaborators-list items-center justify-center">
       <GeneralLoader size="xlarge" />
     </div>
     <template v-else>
-      <div class="w-full flex flex-row justify-between items-baseline max-w-350 mt-6.5 mb-2 pr-0.25">
-        <a-input v-model:value="userSearchText" class="!max-w-90 !rounded-md" :placeholder="$t('title.searchMembers')">
+      <div class="w-full flex flex-row justify-between items-center max-w-350 mt-6.5 mb-2 pr-0.25">
+        <a-input v-model:value="userSearchText" :placeholder="$t('title.searchMembers')" class="!max-w-90 !rounded-md mr-4">
           <template #prefix>
             <PhMagnifyingGlassBold class="!h-3.5 text-gray-500" />
           </template>
@@ -188,7 +215,7 @@ watch(isInviteModalVisible, () => {
 
             <div class="text-gray-700 user-access-grid flex items-center space-x-2">
               <span>
-                {{ $t('general.access') }}
+                {{ $t('general.role') }}
               </span>
               <LazyAccountUserMenu :direction="sortDirection.roles" field="roles" :handle-user-sort="saveOrUpdate" />
             </div>
@@ -203,17 +230,16 @@ watch(isInviteModalVisible, () => {
             >
               <div class="flex gap-3 items-center users-email-grid">
                 <GeneralUserIcon size="base" :email="collab.email" />
-                <NcTooltip v-if="collab.display_name">
-                  <template #title>
+                <div class="flex flex-col">
+                  <div class="flex gap-3">
+                    <span class="text-gray-800 capitalize font-semibold">
+                      {{ collab.display_name || collab.email.slice(0, collab.email.indexOf('@')) }}
+                    </span>
+                  </div>
+                  <span class="text-xs text-gray-600">
                     {{ collab.email }}
-                  </template>
-                  <span class="truncate">
-                    {{ collab.display_name }}
                   </span>
-                </NcTooltip>
-                <span v-else class="truncate">
-                  {{ collab.email }}
-                </span>
+                </div>
               </div>
               <div class="user-access-grid">
                 <template v-if="accessibleRoles.includes(collab.roles)">
@@ -230,7 +256,7 @@ watch(isInviteModalVisible, () => {
                   />
                 </template>
                 <template v-else>
-                  <RolesBadge :role="collab.roles" />
+                  <RolesBadge :border="false" :role="collab.roles" />
                 </template>
               </div>
               <div class="date-joined-grid">
@@ -252,6 +278,18 @@ watch(isInviteModalVisible, () => {
 </template>
 
 <style scoped lang="scss">
+.ant-input::placeholder {
+  @apply text-gray-500;
+}
+
+.ant-input:placeholder-shown {
+  @apply text-gray-500 !text-md;
+}
+
+.ant-input-affix-wrapper {
+  @apply px-4 rounded-lg py-2 w-84 border-1 focus:border-brand-500 border-gray-200 !ring-0;
+}
+
 .color-band {
   @apply w-6 h-6 left-0 top-2.5 rounded-full flex justify-center uppercase text-white font-weight-bold text-xs items-center;
 }

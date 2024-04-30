@@ -15,6 +15,7 @@ import {
   extractFilterFromXwhere,
   extractSortsObject,
   getColumnName,
+  getCompositePkValue,
   getListArgs,
   haveFormulaColumn,
   populatePk,
@@ -1246,7 +1247,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       const pkAndData: { pk: any; data: any }[] = [];
       const readChunkSize = 100;
       for (const [i, d] of updateDatas.entries()) {
-        const pkValues = this._extractPksValues(d);
+        const pkValues = getCompositePkValue(
+          this.model.primaryKeys,
+          this._extractPksValues(d),
+        );
         if (!pkValues) {
           // throw or skip if no pk provided
           if (throwExceptionIfNotExist) {
@@ -1427,7 +1431,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       const pkAndData: { pk: any; data: any }[] = [];
       const readChunkSize = 100;
       for (const [i, d] of deleteIds.entries()) {
-        const pkValues = this._extractPksValues(d);
+        const pkValues = getCompositePkValue(
+          this.model.primaryKeys,
+          this._extractPksValues(d),
+        );
         if (!pkValues) {
           // throw or skip if no pk provided
           if (throwExceptionIfNotExist) {

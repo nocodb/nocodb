@@ -230,12 +230,17 @@ export class AclMiddleware implements NestInterceptor {
       'blockApiTokenAccess',
       context.getHandler(),
     );
+
     const scope = this.reflector.get<string>('scope', context.getHandler());
 
     const req = context.switchToHttp().getRequest();
 
     if (!req.user?.isAuthorized) {
       NcError.unauthorized('Invalid token');
+    }
+
+    if (req.user?.org_id && req.user?.org_id !== req.ncOrgId) {
+      NcError.forbidden('Your access limit is restricted to your organization');
     }
 
     const userScopeRole =

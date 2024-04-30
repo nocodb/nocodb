@@ -2,6 +2,7 @@ import { Catch, Logger, NotFoundException, Optional } from '@nestjs/common';
 import { InjectSentry, SentryService } from '@ntegral/nestjs-sentry';
 import { ThrottlerException } from '@nestjs/throttler';
 import { NcErrorType } from 'nocodb-sdk';
+import { logger } from 'handlebars';
 import type { ArgumentsHost, ExceptionFilter } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import {
@@ -72,7 +73,14 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     }
 
     // if sso error then redirect to ui with error in query parameter
-    if (exception instanceof SsoError) {
+    if (
+      exception instanceof SsoError ||
+      request.route?.path === '/sso/:clientId/redirect'
+    ) {
+      if (!(exception instanceof SsoError)) {
+        this.logger.warn(exception.message, exception.stack);
+      }
+
       // encode the query parameter
       const redirectUrl = `${
         request.dashboardUrl

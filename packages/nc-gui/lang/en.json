@@ -318,8 +318,10 @@
     "isNotNull": "is not null"
   },
   "title": {
+    "renameBase": "Rename Base",
     "renameWorkspace": "Rename Workspace",
     "renamingWorkspace": "Renaming Workspace",
+    "renamingBase": "Renaming Base",
     "sso": "Authentication (SSO)",
     "docs": "Docs",
     "forum": "Forum",
@@ -756,6 +758,7 @@
     "clearSelection": "Clear selection"
   },
   "activity": {
+    "renameBase": "Rename Base",
     "renameWorkspace": "Rename workspace",
     "deactivate": "De-activate",
     "manageUsers": "Manage Users",
@@ -1221,6 +1224,7 @@
     },
     "info": {
       "enterWorkspaceName": "Enter workspace name",
+      "enterBaseName": "Enter base name",
       "idpPaste": "Paste these URL in your Identity Providers console",
       "noSaml": "There are no configured SAML authentications.",
       "disabledAsViewLocked": "Disabled as View is locked",

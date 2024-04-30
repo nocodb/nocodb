@@ -200,12 +200,12 @@ const migrateWorkspace = async () => {
 
             <NcDivider />
 
-            <!-- Admin Panel  TODO: v-if="isUIAllowed('adminPanel')" -->
             <nuxt-link
               v-if="activeWorkspace?.fk_org_id"
               v-e="['c:user:admin-panel']"
               :to="`/admin/${activeWorkspace?.fk_org_id}`"
               class="!no-underline"
+              v-if="isUIAllowed('orgAdminPanel')"
             >
               <NcMenuItem> <GeneralIcon class="menu-icon" icon="controlPanel" /> {{ $t('labels.adminPanel') }} </NcMenuItem>
             </nuxt-link>

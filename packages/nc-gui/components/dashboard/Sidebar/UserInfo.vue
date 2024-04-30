@@ -6,12 +6,11 @@ import {
   onMounted,
   ref,
   storeToRefs,
-  useCopy,
+  useApi,
   useGlobal,
   useSidebarStore,
   useUsers,
   watch,
-  useApi,
   useWorkspace,
   extractSdkResponseErrorMsg
 } from '#imports'
@@ -195,12 +194,19 @@ const migrateWorkspace = async () => {
 
             <NcDivider />
 
-            <nuxt-link v-e="['c:user:admin-panel']" class="!no-underline" to="/admin">
+            <nuxt-link
+              v-if="activeWorkspace?.fk_org_id"
+              v-e="['c:user:admin-panel']"
+              class="!no-underline"
+              :to="`/admin/${activeWorkspace?.fk_org_id}`"
+            >
               <NcMenuItem> <GeneralIcon icon="controlPanel" class="menu-icon" /> {{ $t('labels.adminPanel') }} </NcMenuItem>
             </nuxt-link>
 
-            <div v-e="['c:user:upgrade-workspace-to-org']" @click="migrateWorkspace">
-              <NcMenuItem> <GeneralIcon icon="arrowUp" class="menu-icon" /> {{ $t('labels.moveWorkspaceToOrg') }} </NcMenuItem>
+            <div v-else v-e="['c:user:upgrade-workspace-to-org']" @click="migrateWorkspace">
+              <NcMenuItem>
+                <GeneralIcon icon="controlPanel" class="menu-icon" /> {{ $t('labels.moveWorkspaceToOrg') }}
+              </NcMenuItem>
             </div>
 
             <nuxt-link v-e="['c:user:settings']" class="!no-underline" to="/account/profile">

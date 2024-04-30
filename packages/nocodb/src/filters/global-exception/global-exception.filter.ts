@@ -12,6 +12,7 @@ import {
   Forbidden,
   NcBaseErrorv2,
   NotFound,
+  SsoError,
   Unauthorized,
   UnprocessableEntity,
 } from '~/helpers/catchError';
@@ -48,6 +49,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         exception instanceof Forbidden ||
         exception instanceof NotFound ||
         exception instanceof UnprocessableEntity ||
+        exception instanceof SsoError ||
         exception instanceof NotFoundException ||
         exception instanceof ThrottlerException ||
         exception instanceof ExternalError ||
@@ -67,6 +69,18 @@ export class GlobalExceptionFilter implements ExceptionFilter {
           (request as any).ncWorkspaceId
         }, Project ID : ${(request as any).ncBaseId}`,
       );
+    }
+
+    // if sso error then redirect to ui with error in query parameter
+    if (exception instanceof SsoError) {
+      // encode the query parameter
+      const redirectUrl = `${
+        request.dashboardUrl
+      }?ui-redirect=${encodeURIComponent(
+        `/sso?error=${encodeURIComponent(exception.message)}`,
+      )}`;
+
+      return response.redirect(redirectUrl);
     }
 
     // API not found

@@ -304,6 +304,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
   }
 
   const loadRow = async (rowId?: string, onlyVirtual = false) => {
+    if (!rowId) return
+
     if (isPublic.value || !meta.value?.id) return
     let record = await $api.dbTableRow.read(
       NOCO,

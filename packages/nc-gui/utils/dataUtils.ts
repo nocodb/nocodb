@@ -8,6 +8,7 @@ export const extractPkFromRow = (row: Record<string, any>, columns: ColumnType[]
   return columns
     .filter((c) => c.pk)
     .map((c) => row?.[c.title as string])
+    .filter((v) => v)
     .join('___')
 }
 

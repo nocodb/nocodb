@@ -18,6 +18,9 @@ const { sorts, sortDirection, loadSorts, saveOrUpdate, handleGetSortedData } = u
 
 const isSuper = computed(() => orgRoles.value?.[OrgUserRoles.SUPER_ADMIN])
 
+const orgStore = useOrg()
+const { orgId } = storeToRefs(orgStore)
+
 const isAdminPanel = inject(IsAdminPanelInj, ref(false))
 
 const { $api } = useNuxtApp()
@@ -172,7 +175,10 @@ watch(currentBase, () => {
     <div v-if="isAdminPanel" class="font-bold w-full !mb-5 text-2xl" data-rec="true">
       <div class="flex items-center gap-3">
         <!-- TODO: @DarkPhoenix2704 -->
-        <NuxtLink class="!hover:(text-black underline-gray-600) !underline-transparent ml-0.75 max-w-1/4">
+        <NuxtLink
+          :href="`/admin/${orgId}/bases`"
+          class="!hover:(text-black underline-gray-600) !text-black !underline-transparent ml-0.75 max-w-1/4"
+        >
           {{ $t('objects.projects') }}
         </NuxtLink>
 

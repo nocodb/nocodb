@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { useTitle } from '@vueuse/core'
+import { storeToRefs } from '#imports'
 
 const props = defineProps<{
   workspaceId?: string
@@ -13,6 +14,9 @@ const { isUIAllowed } = useRoles()
 const workspaceStore = useWorkspace()
 const { activeWorkspace: _activeWorkspace, workspaces } = storeToRefs(workspaceStore)
 const { loadCollaborators, loadWorkspace } = workspaceStore
+
+const orgStore = useOrg()
+const { orgId } = storeToRefs(orgStore)
 
 const currentWorkspace = computedAsync(async () => {
   let ws
@@ -72,7 +76,12 @@ onMounted(() => {
     <div v-else>
       <div class="font-bold w-full !mb-5 text-2xl" data-rec="true">
         <div class="flex items-center gap-3">
-          {{ $t('labels.workspaces') }}
+          <NuxtLink
+            :href="`/admin/${orgId}/workspaces`"
+            class="!hover:(text-black underline-gray-600) !text-black !underline-transparent ml-0.75 max-w-1/4"
+          >
+            {{ $t('labels.workspaces') }}
+          </NuxtLink>
 
           <span class="text-2xl"> / </span>
           <GeneralWorkspaceIcon :workspace="currentWorkspace" hide-label />

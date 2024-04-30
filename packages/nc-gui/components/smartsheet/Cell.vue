@@ -112,12 +112,12 @@ const syncValue = useDebounceFn(
   { maxWait: 2000 },
 )
 
-const saveTimer = ref<NodeJS.Timeout>()
+let saveTimer: NodeJS.Timeout | null = null
 
 const updateWhenEditCompleted = () => {
   if (editEnabled.value) {
-    if (saveTimer.value) clearTimeout(saveTimer.value)
-    saveTimer.value = setTimeout(updateWhenEditCompleted, 500)
+    if (saveTimer) clearTimeout(saveTimer)
+    saveTimer = setTimeout(updateWhenEditCompleted, 500)
   } else {
     emit('save')
   }

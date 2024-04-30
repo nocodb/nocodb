@@ -51,6 +51,7 @@ interface Props {
   lastRow?: boolean
   closeAfterSave?: boolean
   newRecordHeader?: string
+  skipReload?: boolean
 }
 
 const props = defineProps<Props>()
@@ -102,7 +103,7 @@ const expandedFormScrollWrapper = ref()
 
 const reloadTrigger = inject(ReloadRowDataHookInj, createEventHook())
 
-const reloadViewDataTrigger = inject(ReloadViewDataHookInj)
+const reloadViewDataTrigger = inject(ReloadViewDataHookInj, createEventHook())
 
 const { addOrEditStackRow } = useKanbanViewStoreOrThrow()
 
@@ -218,16 +219,18 @@ const save = async () => {
     await _save(rowState.value, undefined, {
       kanbanClbk,
     })
-    reloadTrigger?.trigger()
-    reloadViewDataTrigger?.trigger()
   } else {
     await _save(undefined, undefined, {
       kanbanClbk,
     })
     _loadRow()
+  }
+
+  if (!props.skipReload) {
     reloadTrigger?.trigger()
     reloadViewDataTrigger?.trigger()
   }
+
   isUnsavedFormExist.value = false
 
   if (props.closeAfterSave) {

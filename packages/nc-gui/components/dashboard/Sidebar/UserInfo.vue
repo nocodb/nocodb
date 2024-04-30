@@ -1,6 +1,8 @@
 <script lang="ts" setup>
+import type { Api } from 'nocodb-sdk'
 import {
   computed,
+  extractSdkResponseErrorMsg,
   message,
   navigateTo,
   onMounted,
@@ -10,11 +12,9 @@ import {
   useGlobal,
   useSidebarStore,
   useUsers,
-  watch,
   useWorkspace,
-  extractSdkResponseErrorMsg
+  watch,
 } from '#imports'
-import { Api } from "nocodb-sdk";
 
 const { user, signOut, appInfo } = useGlobal()
 // So watcher in users store is triggered

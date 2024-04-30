@@ -38,12 +38,14 @@ const { isMobileMode } = useGlobal()
 const logout = async () => {
   isLoggingOut.value = true
   try {
+    const isSsoUser = !!(user?.value as any)?.sso_client_id
+
     await signOut(false)
 
     // No need as all stores are cleared on signout
     // await clearWorkspaces()
 
-    await navigateTo('/signin')
+    await navigateTo(isSsoUser ? '/sso' : '/signin')
   } catch (e) {
     console.error(e)
   } finally {
@@ -202,10 +204,10 @@ const migrateWorkspace = async () => {
 
             <nuxt-link
               v-if="activeWorkspace?.fk_org_id"
+              v-if="isUIAllowed('orgAdminPanel')"
               v-e="['c:user:admin-panel']"
               :to="`/admin/${activeWorkspace?.fk_org_id}`"
               class="!no-underline"
-              v-if="isUIAllowed('orgAdminPanel')"
             >
               <NcMenuItem> <GeneralIcon class="menu-icon" icon="controlPanel" /> {{ $t('labels.adminPanel') }} </NcMenuItem>
             </nuxt-link>

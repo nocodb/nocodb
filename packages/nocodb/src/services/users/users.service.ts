@@ -581,7 +581,7 @@ export class UsersService {
     await UserRefreshToken.insert({
       token: refreshToken,
       fk_user_id: user.id,
-      meta: req.user?.org_id ? { org_id: req.user?.org_id } : undefined,
+      meta: req.user?.extra,
     });
 
     setTokenCookie(res, refreshToken);

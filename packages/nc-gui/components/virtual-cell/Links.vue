@@ -121,25 +121,8 @@ const openListDlg = () => {
   hideBackBtn.value = true
 }
 
-const plusBtnRef = ref<HTMLElement | null>(null)
-const childListDlgRef = ref<HTMLElement | null>(null)
-
-watch([childListDlg], () => {
-  if (!childListDlg.value) {
-    childListDlgRef.value?.focus()
-  }
-})
-
-watch([listItemsDlg], () => {
-  if (!listItemsDlg.value) {
-    plusBtnRef.value?.focus()
-  }
-})
-
 watch([childListDlg, listItemsDlg], () => {
-  if (!childListDlg.value && !listItemsDlg.value) {
-    isOpen.value = false
-  }
+  isOpen.value = childListDlg.value || listItemsDlg.value
 })
 
 watch(
@@ -161,7 +144,6 @@ watch(
         <div class="block flex-shrink truncate">
           <component
             :is="isUnderLookup ? 'span' : 'a'"
-            ref="childListDlgRef"
             v-e="['c:cell:links:modal:open']"
             :title="textVal"
             class="text-center nc-datatype-link underline-transparent"
@@ -177,7 +159,6 @@ watch(
 
         <div
           v-if="!isUnderLookup"
-          ref="plusBtnRef"
           :tabindex="readOnly ? -1 : 0"
           class="!xs:hidden flex group justify-end group-hover:flex items-center"
           @keydown.enter.stop="openListDlg"

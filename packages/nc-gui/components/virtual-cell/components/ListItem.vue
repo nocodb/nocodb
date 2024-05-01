@@ -168,7 +168,7 @@ const displayValue = computed(() => {
                     />
                     <LazySmartsheetHeaderCell v-else class="!scale-70 text-gray-100 !text-sm" :column="field" :hide-menu="true" />
                   </template>
-                  <div class="nc-link-record-cell flex max-w-full">
+                  <div class="nc-link-record-cell flex w-full max-w-full">
                     <LazySmartsheetVirtualCell
                       v-if="isVirtualCol(field)"
                       v-model="row[field.title]"

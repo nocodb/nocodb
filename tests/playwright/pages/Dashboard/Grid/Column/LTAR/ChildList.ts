@@ -54,7 +54,8 @@ export class ChildList extends BasePage {
   }
 
   async close() {
-    await this.get().locator(`.nc-close-btn`).click();
+    // await this.get().locator(`.nc-close-btn`).click();
+    await this.rootPage.keyboard.press('Escape');
     await this.get().waitFor({ state: 'hidden' });
   }
 

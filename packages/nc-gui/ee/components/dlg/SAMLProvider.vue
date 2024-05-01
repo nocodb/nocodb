@@ -9,6 +9,7 @@ const props = withDefaults(
     modelValue: boolean
     isEdit: boolean
     saml: SSOClientType
+    isOrg?: boolean
   }>(),
   {
     saml: () => ({}),
@@ -19,7 +20,7 @@ const emit = defineEmits(['update:modelValue'])
 
 const { t } = useI18n()
 
-const { addProvider, updateProvider, getRedirectUrl, getEntityId } = useAuthentication()
+const { addProvider, updateProvider, getRedirectUrl, getEntityId } = useAuthentication(props.isOrg)
 
 const form = reactive<{ title: string; metaDataUrl?: string; xml?: string; ssoOnly: boolean }>({
   title: props.saml?.title ?? '',
@@ -102,13 +103,18 @@ watch(isCopied.value, (v) => {
 })
 
 const saveSamlProvider = async () => {
-  const isValid = await formValidator.value.validate()
+  try {
+    await formValidator.value.validate()
+  } catch (e) {
+    console.log(e)
+    return
+  }
 
   const isXMLorMetaDataUrlValid = () => {
     if (form.metaDataUrl) return isURL(form.metaDataUrl, { require_tld: false })
     return !!form.xml
   }
-  if (!isValid || !isXMLorMetaDataUrlValid()) return
+  if (!isXMLorMetaDataUrlValid()) return
   if (props.isEdit) {
     const res = await updateProvider(props.saml.id, {
       title: form.title,
@@ -156,7 +162,9 @@ const saveSamlProvider = async () => {
                   This is the URL where authentication responses will be sent after successful login. Also referred to as
                   'Callback URL' or 'Reply URL'.
                 </template>
-                <component :is="iconMap.info" class="ml-1 text-gray-800" />
+                <div class="h-full flex align-center">
+                  <component :is="iconMap.info" class="ml-1 text-gray-500 text-xs" />
+                </div>
               </NcTooltip>
             </div>
             <div class="flex border-gray-200 border-1 bg-gray-50 items-center justify-between py-2 px-4 rounded-lg">
@@ -181,7 +189,9 @@ const saveSamlProvider = async () => {
                   This is the unique identifier for your application that is expected by the Identity Provider (IDP). It helps the
                   IDP recognise and validate tokens issued specifically for your application.
                 </template>
-                <component :is="iconMap.info" class="ml-1 text-gray-800" />
+                <div class="h-full flex align-center">
+                  <component :is="iconMap.info" class="ml-1 text-gray-500 text-xs" />
+                </div>
               </NcTooltip>
             </div>
             <div class="flex border-gray-200 border-1 bg-gray-50 items-center justify-between py-2 px-4 rounded-lg">
@@ -210,7 +220,7 @@ const saveSamlProvider = async () => {
                   data-test-id="nc-saml-metadata-url"
                   placeholder="Paste the Metadata URL here from the Identity Provider"
                 />
-                <div class="text-sm text-gray-500 mt-2">Metadata will be fetched from url and saved under XML</div>
+                <div class="text-sm text-gray-500 mt-2">Metadata will be fetched from URL and saved as XML</div>
               </a-form-item>
             </a-tab-pane>
             <a-tab-pane key="xml">
@@ -230,18 +240,19 @@ const saveSamlProvider = async () => {
               </a-form-item>
             </a-tab-pane>
           </a-tabs>
+          <!-- Disable since SSO only option is implemented at the moment -->
+          <!-- <div class="flex rounded-lg mt-4 border-1 border-gray-200 bg-orange-50 p-4 justify-between">
+                <div class="flex gap-4">
+                  <component :is="iconMap.info" class="text-yellow-500 h-6 w-6" />
+                  <div>
+                    <div class="text-gray-800 mb-1 font-bold">Allow SSO Login only</div>
+                    <div class="text-gray-500">Enable SSO Logins only after testing metadata, by signing in using SSO.</div>
+                  </div>
+                </div>
 
-          <div class="flex rounded-lg mt-4 border-1 border-gray-200 bg-orange-50 p-4 justify-between">
-            <div class="flex gap-4">
-              <component :is="iconMap.info" class="text-yellow-500 h-6 w-6" />
-              <div>
-                <div class="text-gray-800 mb-1 font-bold">Allow SSO Login only</div>
-                <div class="text-gray-500">Enable SSO Logins only after testing metadata, by signing in using SSO.</div>
+                <NcSwitch v-model:checked="form.ssoOnly" />
               </div>
-            </div>
-
-            <NcSwitch v-model:checked="form.ssoOnly" />
-          </div>
+          -->
           <div class="flex justify-end gap-2 mt-8">
             <NcButton size="medium" type="secondary" @click="dialogShow = false">
               {{ $t('labels.cancel') }}

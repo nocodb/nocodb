@@ -71,7 +71,7 @@ function ssoTests() {
 
   it('Get client list', async () => {
     const response = await request(context.app)
-      .get('/api/v2/sso-client')
+      .get('/api/v2/sso-clients')
       .set('xc-auth', context.token)
       .expect(200);
 
@@ -82,14 +82,14 @@ function ssoTests() {
   it('Create a new client - SAML - with invalid and valid payloads', async () => {
     //  with invalid payload
     await request(context.app)
-      .post('/api/v2/sso-client')
+      .post('/api/v2/sso-clients')
       .set('xc-auth', context.token)
       .send({ type: 'saml', title: 'sample', config: {} })
       .expect(400);
 
     // with valid payload
     const res = await request(context.app)
-      .post('/api/v2/sso-client')
+      .post('/api/v2/sso-clients')
       .set('xc-auth', context.token)
       .send(validSAMLPayload)
       .expect(200);
@@ -99,14 +99,14 @@ function ssoTests() {
   it('Create a new client - OpenID - with invalid and valid payloads', async () => {
     //  with invalid payload
     await request(context.app)
-      .post('/api/v2/sso-client')
+      .post('/api/v2/sso-clients')
       .set('xc-auth', context.token)
       .send({ type: 'oidc', config: {} })
       .expect(400);
 
     // with valid payload
     const res = await request(context.app)
-      .post('/api/v2/sso-client')
+      .post('/api/v2/sso-clients')
       .set('xc-auth', context.token)
       .send(validOpenIDPayload)
       .expect(200);
@@ -117,14 +117,14 @@ function ssoTests() {
   it('Create a new client - Google - with invalid and valid payloads', async () => {
     //  with invalid payload
     await request(context.app)
-      .post('/api/v2/sso-client')
+      .post('/api/v2/sso-clients')
       .set('xc-auth', context.token)
       .send({ type: 'google', config: {} })
       .expect(400);
 
     // with valid payload
     const res = await request(context.app)
-      .post('/api/v2/sso-client')
+      .post('/api/v2/sso-clients')
       .set('xc-auth', context.token)
       .send(validGooglePayload)
       .expect(200);
@@ -135,7 +135,7 @@ function ssoTests() {
   it('Update client - SAML - with invalid and valid payloads', async () => {
     // create saml client
     const res = await request(context.app)
-      .post('/api/v2/sso-client')
+      .post('/api/v2/sso-clients')
       .set('xc-auth', context.token)
       .send(validSAMLPayload)
       .expect(200);
@@ -146,7 +146,7 @@ function ssoTests() {
 
     // update with invalid payload
     await request(context.app)
-      .patch(`/api/v2/sso-client/${id}`)
+      .patch(`/api/v2/sso-clients/${id}`)
       .set('xc-auth', context.token)
       .send({
         config: {
@@ -157,7 +157,7 @@ function ssoTests() {
 
     // update with valid payload ( disable )
     await request(context.app)
-      .patch(`/api/v2/sso-client/${id}`)
+      .patch(`/api/v2/sso-clients/${id}`)
       .set('xc-auth', context.token)
       .send({
         enabled: false,
@@ -166,7 +166,7 @@ function ssoTests() {
 
     // get the client list and verify
     const response = await request(context.app)
-      .get('/api/v2/sso-client')
+      .get('/api/v2/sso-clients')
       .set('xc-auth', context.token)
       .expect(200);
 
@@ -182,7 +182,7 @@ function ssoTests() {
   it('Update client - OpenID - with invalid and valid payloads', async () => {
     // create saml client
     const res = await request(context.app)
-      .post('/api/v2/sso-client')
+      .post('/api/v2/sso-clients')
       .set('xc-auth', context.token)
       .send(validOpenIDPayload)
       .expect(200);
@@ -193,7 +193,7 @@ function ssoTests() {
 
     // update with invalid payload
     await request(context.app)
-      .patch(`/api/v2/sso-client/${id}`)
+      .patch(`/api/v2/sso-clients/${id}`)
       .set('xc-auth', context.token)
       .send({
         config: {
@@ -204,7 +204,7 @@ function ssoTests() {
 
     // update with valid payload ( disable )
     await request(context.app)
-      .patch(`/api/v2/sso-client/${id}`)
+      .patch(`/api/v2/sso-clients/${id}`)
       .set('xc-auth', context.token)
       .send({
         enabled: false,
@@ -213,7 +213,7 @@ function ssoTests() {
 
     // get the client list and verify
     const response = await request(context.app)
-      .get('/api/v2/sso-client')
+      .get('/api/v2/sso-clients')
       .set('xc-auth', context.token)
       .expect(200);
 
@@ -229,7 +229,7 @@ function ssoTests() {
   it('Update client - Google - with invalid and valid payloads', async () => {
     // create saml client
     const res = await request(context.app)
-      .post('/api/v2/sso-client')
+      .post('/api/v2/sso-clients')
       .set('xc-auth', context.token)
       .send(validGooglePayload)
       .expect(200);
@@ -240,7 +240,7 @@ function ssoTests() {
 
     // update with invalid payload
     await request(context.app)
-      .patch(`/api/v2/sso-client/${id}`)
+      .patch(`/api/v2/sso-clients/${id}`)
       .set('xc-auth', context.token)
       .send({
         config: {
@@ -251,7 +251,7 @@ function ssoTests() {
 
     // update with valid payload ( disable )
     await request(context.app)
-      .patch(`/api/v2/sso-client/${id}`)
+      .patch(`/api/v2/sso-clients/${id}`)
       .set('xc-auth', context.token)
       .send({
         enabled: false,
@@ -260,7 +260,7 @@ function ssoTests() {
 
     // get the client list and verify
     const response = await request(context.app)
-      .get('/api/v2/sso-client')
+      .get('/api/v2/sso-clients')
       .set('xc-auth', context.token)
       .expect(200);
 
@@ -282,7 +282,7 @@ function ssoTests() {
     ]) {
       // create client
       const res = await request(context.app)
-        .post('/api/v2/sso-client')
+        .post('/api/v2/sso-clients')
         .set('xc-auth', context.token)
         .send(payload)
         .expect(200);
@@ -293,7 +293,7 @@ function ssoTests() {
 
       // get the client list and verify
       const listResponse = await request(context.app)
-        .get('/api/v2/sso-client')
+        .get('/api/v2/sso-clients')
         .set('xc-auth', context.token)
         .expect(200);
 
@@ -307,13 +307,13 @@ function ssoTests() {
 
       // delete client
       await request(context.app)
-        .delete(`/api/v2/sso-client/${id}`)
+        .delete(`/api/v2/sso-clients/${id}`)
         .set('xc-auth', context.token)
         .expect(200);
 
       // get the client list and verify
       const listResponseAfterDelete = await request(context.app)
-        .get('/api/v2/sso-client')
+        .get('/api/v2/sso-clients')
         .set('xc-auth', context.token)
         .expect(200);
 
@@ -325,7 +325,7 @@ function ssoTests() {
   it('Get login urls(utils api) and verify - SAML', async () => {
     // create saml client
     const res = await request(context.app)
-      .post('/api/v2/sso-client')
+      .post('/api/v2/sso-clients')
       .set('xc-auth', context.token)
       .send(validSAMLPayload)
       .expect(200);
@@ -358,7 +358,7 @@ function ssoTests() {
   it('Get login urls(utils api) and verify - OpenId', async () => {
     // create saml client
     const res = await request(context.app)
-      .post('/api/v2/sso-client')
+      .post('/api/v2/sso-clients')
       .set('xc-auth', context.token)
       .send(validOpenIDPayload)
       .expect(200);
@@ -391,7 +391,7 @@ function ssoTests() {
   it('Get login urls(utils api) and verify - Google', async () => {
     // create saml client
     const res = await request(context.app)
-      .post('/api/v2/sso-client')
+      .post('/api/v2/sso-clients')
       .set('xc-auth', context.token)
       .send(validGooglePayload)
       .expect(200);

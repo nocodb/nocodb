@@ -5,7 +5,7 @@ import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import NocoCache from '~/cache/NocoCache';
 import { CacheDelDirection, CacheScope, MetaTable } from '~/utils/globals';
-import { BaseUser, WorkspaceUser } from '~/models';
+import { BaseUser, OrgUser, WorkspaceUser } from '~/models';
 import { sanitiseUserObj } from '~/utils';
 import { mapWorkspaceRolesObjToProjectRolesObj } from '~/utils/roleHelper';
 
@@ -364,6 +364,7 @@ export default class User extends UserCE implements UserType {
       user?: User;
       baseId?: string;
       workspaceId?: string;
+      orgId?: string;
     },
     ncMeta = Noco.ncMeta,
   ) {
@@ -371,7 +372,7 @@ export default class User extends UserCE implements UserType {
 
     if (!user) NcError.userNotFound(userId);
 
-    const [workspaceRoles, baseRoles] = await Promise.all([
+    const [workspaceRoles, baseRoles, orgRoles] = await Promise.all([
       // extract workspace evel roles
       new Promise((resolve) => {
         if (args.workspaceId) {
@@ -409,6 +410,26 @@ export default class User extends UserCE implements UserType {
           resolve(null);
         }
       }) as Promise<ReturnType<typeof extractRolesObj> | null>,
+      // extract org level roles
+      new Promise((resolve) => {
+        if (args.orgId) {
+          OrgUser.get(args.orgId, user.id)
+            .then(async (orgUser) => {
+              const roles = orgUser?.roles;
+              if (roles) {
+                resolve(extractRolesObj(roles));
+              } else {
+                resolve(null);
+              }
+              // todo: cache
+            })
+            .catch((_e) => {
+              resolve(null);
+            });
+        } else {
+          resolve(null);
+        }
+      }) as Promise<ReturnType<typeof extractRolesObj> | null>,
     ]);
 
     return {
@@ -418,6 +439,7 @@ export default class User extends UserCE implements UserType {
       base_roles: baseRoles
         ? baseRoles
         : mapWorkspaceRolesObjToProjectRolesObj(workspaceRoles),
+      org_roles: orgRoles ? orgRoles : null,
     } as any;
   }
 

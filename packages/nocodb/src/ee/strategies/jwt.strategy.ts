@@ -37,9 +37,16 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         user,
         baseId: req.ncBaseId,
         workspaceId: req.ncWorkspaceId,
+        orgId: req.ncOrgId,
       })),
       provider: jwtPayload.provider ?? undefined,
       isAuthorized: true,
+
+      extra: {
+        org_id: jwtPayload.org_id,
+        sso_client_id: jwtPayload.sso_client_id,
+        sso_client_type: jwtPayload.sso_client_type,
+      },
     };
   }
 }

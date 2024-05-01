@@ -1,10 +1,10 @@
-import type { BaseType, PlanLimitTypes, WorkspaceType, WorkspaceUserRoles, WorkspaceUserType } from 'nocodb-sdk'
+import type { Api, BaseType, PlanLimitTypes, WorkspaceType, WorkspaceUserRoles, WorkspaceUserType } from 'nocodb-sdk'
 import { WorkspaceStatus } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { message } from 'ant-design-vue'
 import { isString } from '@vue/shared'
-import { computed, navigateToBlankTargetOpenOption, ref, useCommandPalette, useNuxtApp, useRouter, useTheme } from '#imports'
 import type { ThemeConfig } from '#imports'
+import { computed, navigateToBlankTargetOpenOption, ref, useCommandPalette, useNuxtApp, useRouter, useTheme } from '#imports'
 
 interface NcWorkspace extends WorkspaceType {
   edit?: boolean
@@ -168,8 +168,11 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     refreshCommandPalette()
   }
 
-  const loadCollaborators = async (params?: { offset?: number; limit?: number; ignoreLoading: boolean }) => {
-    if (!activeWorkspace.value?.id) {
+  const loadCollaborators = async (
+    params?: { offset?: number; limit?: number; ignoreLoading: boolean },
+    workspaceId?: string,
+  ) => {
+    if (!workspaceId && !activeWorkspace.value?.id) {
       throw new Error('Workspace not selected')
     }
 
@@ -177,9 +180,11 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
     try {
       // todo: pagination
-      const { list, pageInfo } = await $api.workspaceUser.list(activeWorkspace.value.id!, {
+      const { list, pageInfo } = await $api.workspaceUser.list(workspaceId ?? activeWorkspace.value.id!, {
         query: params,
-        baseURL: appInfo.value.baseHostName ? `https://${activeWorkspace.value.id!}.${appInfo.value.baseHostName}` : undefined,
+        baseURL: appInfo.value.baseHostName
+          ? `https://${workspaceId ?? activeWorkspace.value.id!}.${appInfo.value.baseHostName}`
+          : undefined,
       })
 
       collaborators.value = list
@@ -192,25 +197,27 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   }
 
   // invite new user to the workspace
-  const inviteCollaborator = async (email: string, roles: WorkspaceUserRoles) => {
-    if (!activeWorkspace.value?.id) {
+  const inviteCollaborator = async (email: string, roles: WorkspaceUserRoles, workspaceId?: string) => {
+    if (!workspaceId && !activeWorkspace.value?.id) {
       throw new Error('Workspace not selected')
     }
 
     isInvitingCollaborators.value = true
     try {
       await $api.workspaceUser.invite(
-        activeWorkspace.value.id!,
+        workspaceId ?? activeWorkspace.value.id!,
         {
           email,
           roles,
         },
         {
-          baseURL: appInfo.value.baseHostName ? `https://${activeWorkspace.value.id!}.${appInfo.value.baseHostName}` : undefined,
+          baseURL: appInfo.value.baseHostName
+            ? `https://${workspaceId ?? activeWorkspace.value.id!}.${appInfo.value.baseHostName}`
+            : undefined,
         },
       )
       $e('a:workspace:settings:invite-user')
-      await loadCollaborators()
+      await loadCollaborators({} as any, workspaceId)
       basesStore.clearBasesUser()
     } finally {
       isInvitingCollaborators.value = false
@@ -218,29 +225,31 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   }
 
   // remove user from workspace
-  const removeCollaborator = async (userId: string) => {
-    if (!activeWorkspace.value?.id) {
+  const removeCollaborator = async (userId: string, workspaceId?: string) => {
+    if (!workspaceId && !activeWorkspace.value?.id) {
       throw new Error('Workspace not selected')
     }
 
-    await $api.workspaceUser.delete(activeWorkspace.value.id!, userId, {
-      baseURL: appInfo.value.baseHostName ? `https://${activeWorkspace.value.id!}.${appInfo.value.baseHostName}` : undefined,
+    await $api.workspaceUser.delete(workspaceId ?? activeWorkspace.value.id!, userId, {
+      baseURL: appInfo.value.baseHostName
+        ? `https://${workspaceId ?? activeWorkspace.value.id!}.${appInfo.value.baseHostName}`
+        : undefined,
     })
 
     $e('a:workspace:settings:remove-user')
 
-    await loadCollaborators()
+    await loadCollaborators({} as any, workspaceId)
     basesStore.clearBasesUser()
   }
 
   // update existing collaborator role
-  const updateCollaborator = async (userId: string, roles: WorkspaceUserRoles) => {
-    if (!activeWorkspace.value?.id) {
+  const updateCollaborator = async (userId: string, roles: WorkspaceUserRoles, workspaceId?: string) => {
+    if (!workspaceId && !activeWorkspace.value?.id) {
       throw new Error('Workspace not selected')
     }
 
     await $api.workspaceUser.update(
-      activeWorkspace.value.id!,
+      workspaceId,
       userId,
       {
         roles,
@@ -249,7 +258,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
         baseURL: appInfo.value.baseHostName ? `https://${activeWorkspace.value.id!}.${appInfo.value.baseHostName}` : undefined,
       },
     )
-    await loadCollaborators()
+    await loadCollaborators({} as any, workspaceId)
     basesStore.clearBasesUser()
   }
 
@@ -331,14 +340,14 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     }
   }
 
-  const updateProjectTitle = async (base: BaseType & { edit: boolean; temp_title: string }) => {
+  const updateProjectTitle = async (base: BaseType & { edit: boolean; temp_title: string }, workspaceId?: string) => {
     try {
       await $api.base.update(
         base.id!,
         { title: base.temp_title },
         {
           baseURL: appInfo.value.baseHostName
-            ? `https://${activeWorkspace.value?.id || base.fk_workspace_id}.${appInfo.value.baseHostName}`
+            ? `https://${workspaceId || activeWorkspace.value?.id || base.fk_workspace_id}.${appInfo.value.baseHostName}`
             : undefined,
         },
       )
@@ -361,16 +370,24 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     }
   }
 
-  async function saveTheme(_theme: Partial<ThemeConfig>) {
+  const moveToOrg = async (workspaceId: string, orgId: string) => {
+    try {
+      await ($api as Api<any>).orgWorkspace.add(orgId, workspaceId)
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
+  }
+
+  async function saveTheme(_theme: Partial<ThemeConfig>, workspaceId?: string) {
     const fullTheme = {
       primaryColor: theme.value.primaryColor,
       accentColor: theme.value.accentColor,
       ..._theme,
     }
 
-    await updateWorkspace(activeWorkspace.value!.id!, {
+    await updateWorkspace(workspaceId || activeWorkspace.value!.id!, {
       meta: {
-        ...activeWorkspace.value,
+        ...(workspaceId ? workspaces.value.get(workspaceId) : activeWorkspace.value),
         theme: fullTheme,
       },
     })
@@ -475,6 +492,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     isWorkspaceSettingsPageOpened,
     workspaceUserCount,
     getPlanLimit,
+    moveToOrg,
   }
 })
 

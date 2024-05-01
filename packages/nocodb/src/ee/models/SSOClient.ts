@@ -28,8 +28,7 @@ export default class SSOClient implements SSOClientType {
   enabled: boolean;
   deleted?: boolean;
   fk_user_id: string;
-  fk_workspace_id: string;
-
+  fk_org_id?: string;
   constructor(client: Partial<SSOClientType>) {
     Object.assign(this, client);
   }
@@ -38,9 +37,12 @@ export default class SSOClient implements SSOClientType {
     const key = `${CacheScope.SSO_CLIENT}:${clientId}`;
     let client = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
     if (!client) {
-      client = await ncMeta.metaGet2(null, null, MetaTable.SSO_CLIENT, {
-        id: clientId,
-      });
+      client = await ncMeta.metaGet2(
+        null,
+        null,
+        MetaTable.SSO_CLIENT,
+        clientId,
+      );
 
       if (!client) return null;
 
@@ -59,6 +61,7 @@ export default class SSOClient implements SSOClientType {
       'enabled',
       'fk_user_id',
       'fk_workspace_id',
+      'fk_org_id',
       'deleted',
     ]);
 
@@ -117,12 +120,27 @@ export default class SSOClient implements SSOClientType {
     return true;
   }
 
-  static async list(param: any) {
+  static async list(param: {
+    type?: 'saml' | 'oidc' | 'google';
+    orgId?: string;
+  }) {
+    const condition = {};
+
+    if (param.type) {
+      condition['type'] = param.type;
+    }
+
+    if (param.orgId) {
+      condition['fk_org_id'] = param.orgId;
+    }
+
     const clients = await Noco.ncMeta.metaList2(
       null,
       null,
       MetaTable.SSO_CLIENT,
-      param.type ? { condition: { type: param.type } } : null,
+      {
+        condition,
+      },
     );
 
     return clients.map((client) => {
@@ -141,11 +159,47 @@ export default class SSOClient implements SSOClientType {
     const list = await this.list({});
 
     const filteredList = list
-      .filter((client) => client.enabled && !client.deleted)
+      .filter(
+        (client) => client.enabled && !client.deleted && !client.fk_org_id,
+      )
       .map((client) => {
         return {
           id: client.id,
           url: new URL(`/sso/${client.id}`, param.ncSiteUrl).toString(),
+          title: client.title,
+          type: client.type,
+        };
+      });
+
+    await NocoCache.set(PUBLIC_LIST_KEY, { list: filteredList });
+
+    return filteredList;
+  }
+
+  static async listByOrgId(fk_org_id: string, siteUrl: string) {
+    const clients = await Noco.ncMeta.metaList2(
+      null,
+      null,
+      MetaTable.SSO_CLIENT,
+      {
+        condition: {
+          fk_org_id,
+          deleted: false,
+        },
+      },
+    );
+
+    const list = clients.map((client) => {
+      client.config = parseMetaProp(client, 'config');
+      return new SSOClient(client);
+    });
+
+    const filteredList = list
+      .filter((client) => client.enabled && !client.deleted)
+      .map((client) => {
+        return {
+          id: client.id,
+          url: new URL(`/sso/${client.id}`, siteUrl).toString(),
           title: client.title,
           type: client.type,
         };

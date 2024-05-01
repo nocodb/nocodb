@@ -1,8 +1,12 @@
 <script lang="ts" setup>
+const props = defineProps<{
+  workspaceId?: string
+}>()
+
 const { signOut } = useGlobal()
 
 const { deleteWorkspace, navigateToWorkspace, updateWorkspace } = useWorkspace()
-const { workspacesList, activeWorkspaceId, activeWorkspace, workspaces } = storeToRefs(useWorkspace())
+const { workspacesList, activeWorkspace, workspaces } = storeToRefs(useWorkspace())
 
 const { refreshCommandPalette } = useCommandPalette()
 
@@ -28,15 +32,24 @@ const formRules = {
   ],
 }
 
+const currentWorkspace = computed(() => {
+  return props.workspaceId ? workspaces.value.get(props.workspaceId) : activeWorkspace.value
+})
+
 const onDelete = async () => {
   isDeleting.value = true
   try {
     const shouldSignOut = workspacesList.value.length < 2
-    await deleteWorkspace(activeWorkspaceId.value, { skipStateUpdate: true })
+    await deleteWorkspace(currentWorkspace.value.id, { skipStateUpdate: true })
     // We only remove the delete workspace from the list after the api call is successful
-    workspaces.value.delete(activeWorkspaceId.value)
+    workspaces.value.delete(currentWorkspace.value.id)
     if (!shouldSignOut) {
-      await navigateToWorkspace(workspacesList.value[0].id)
+      if (props.workspaceId) {
+        // Navigate BackPage
+        // #TODO: @Darkphoenix2704
+      } else {
+        await navigateToWorkspace(workspacesList.value[0].id)
+      }
     } else {
       // As signin page will clear the workspaces, we need to check if there are more than one workspace
       await signOut(false)
@@ -66,7 +79,7 @@ const titleChange = async () => {
   isErrored.value = false
 
   try {
-    await updateWorkspace(activeWorkspaceId.value, {
+    await updateWorkspace(currentWorkspace.value.id, {
       title: form.title,
     })
   } catch (e: any) {
@@ -78,14 +91,14 @@ const titleChange = async () => {
 }
 
 const handleDelete = () => {
-  toBeDeletedWorkspaceTitle.value = activeWorkspace.value?.title
+  toBeDeletedWorkspaceTitle.value = currentWorkspace.value.title
   isDeleteModalVisible.value = true
 }
 
 watch(
-  () => activeWorkspace.value.title,
+  () => currentWorkspace.value.title,
   () => {
-    form.title = activeWorkspace.value.title
+    form.title = currentWorkspace.value.title
   },
   {
     immediate: true,
@@ -96,11 +109,7 @@ watch(
   () => form.title,
   async () => {
     try {
-      if (form.title !== activeWorkspace.value?.title) {
-        isCancelButtonVisible.value = true
-      } else {
-        isCancelButtonVisible.value = false
-      }
+      isCancelButtonVisible.value = form.title !== currentWorkspace.value.title
       isErrored.value = !(await formValidator.value.validate())
     } catch (e: any) {
       isErrored.value = true
@@ -109,7 +118,7 @@ watch(
 )
 
 const onCancel = () => {
-  form.title = activeWorkspace.value?.title
+  form.title = currentWorkspace.value?.title
 }
 </script>
 
@@ -117,7 +126,7 @@ const onCancel = () => {
   <div
     class="flex flex-col items-center nc-workspace-settings-settings h-[calc(100vh-134px)] pb-10 overflow-y-auto nc-scrollbar-x-lg"
   >
-    <div class="item flex flex-col w-full">
+    <div class="item-card flex flex-col w-full">
       <div class="font-medium text-base">Change Workspace Name</div>
       <a-form ref="formValidator" layout="vertical" no-style :model="form" class="w-full" @finish="titleChange">
         <div class="text-gray-500 mt-6 mb-1.5">Workspace name</div>
@@ -142,7 +151,7 @@ const onCancel = () => {
             v-e="['c:workspace:settings:rename']"
             type="primary"
             html-type="submit"
-            :disabled="isErrored || (form.title && form.title === activeWorkspace.title)"
+            :disabled="isErrored || (form.title && form.title === currentWorkspace.title)"
             :loading="isDeleting"
             data-testid="nc-workspace-settings-settings-rename-submit"
           >
@@ -152,7 +161,7 @@ const onCancel = () => {
         </div>
       </a-form>
     </div>
-    <div class="item flex flex-col border-1 border-red-500">
+    <div class="item-card flex flex-col border-1 border-red-500">
       <div class="font-medium text-base">Delete Workspace</div>
       <div class="text-gray-500 mt-2">Delete this workspace and all it’s contents.</div>
       <div class="flex p-4 border-1 rounded-lg mt-6 items-center">
@@ -187,7 +196,7 @@ const onCancel = () => {
             v-e="['a:workspace:settings:delete']"
             html-type="submit"
             type="danger"
-            :disabled="form.modalInput !== activeWorkspace.title"
+            :disabled="form.modalInput !== currentWorkspace?.title"
             :loading="isDeleting"
             >Delete Workspace</NcButton
           >
@@ -198,7 +207,7 @@ const onCancel = () => {
 </template>
 
 <style lang="scss" scoped>
-.item {
+.item-card {
   @apply p-6 rounded-2xl border-1 max-w-180 mt-10 min-w-100 w-full;
 }
 </style>

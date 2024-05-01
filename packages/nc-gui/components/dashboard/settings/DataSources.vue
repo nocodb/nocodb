@@ -290,11 +290,11 @@ const isEditBaseModalOpen = computed({
 <template>
   <div class="flex flex-row w-full h-full nc-data-sources-view">
     <div class="flex flex-col w-full overflow-auto">
-      <div class="flex flex-row w-full justify-end mt-6 mb-5">
+      <div class="flex flex-row w-full justify-end mt-6.5 mb-2">
         <NcButton
           v-if="dataSourcesAwakened"
           size="large"
-          class="z-10 !rounded-lg !px-2 mr-2.5"
+          class="z-10 !px-2"
           type="primary"
           @click="vState = DataSourcesSubTab.New"
         >

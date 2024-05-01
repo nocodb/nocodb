@@ -230,6 +230,7 @@ export class AclMiddleware implements NestInterceptor {
       'blockApiTokenAccess',
       context.getHandler(),
     );
+
     const scope = this.reflector.get<string>('scope', context.getHandler());
 
     const req = context.switchToHttp().getRequest();
@@ -237,7 +238,6 @@ export class AclMiddleware implements NestInterceptor {
     if (!req.user?.isAuthorized) {
       NcError.unauthorized('Invalid token');
     }
-
     const userScopeRole =
       req.user.roles?.[OrgUserRoles.SUPER_ADMIN] === true
         ? OrgUserRoles.SUPER_ADMIN

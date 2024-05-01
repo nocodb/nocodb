@@ -27,6 +27,11 @@ export class ShortLivedTokenStrategy extends PassportStrategy(
     const user = await User.getByEmail(jwtPayload?.email);
 
     const result = {
+      extra: {
+        org_id: jwtPayload.org_id,
+        sso_client_id: jwtPayload.sso_client_id,
+        sso_client_type: jwtPayload.sso_client_type,
+      },
       saml: jwtPayload.saml,
       ...(await User.getWithRoles(user.id, {
         user,

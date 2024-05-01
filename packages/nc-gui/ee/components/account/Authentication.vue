@@ -298,7 +298,7 @@ onMounted(async () => {
           <div
             v-for="(oid, id) in oidcProviders"
             :key="id"
-            :data-test-id="`nc-oidc-provider-${oid.name}`"
+            :data-test-id="`nc-oidc-provider-${oid.title}`"
             class="flex flex-row nc-oidc-provider justify-between w-full items-center p-3 hover:bg-gray-50 first:rounded-t-lg border-b-1 first:border-t-1 border-x-1 last:rounded-b-lg cursor-pointer group text-gray-600"
             @click="enableEdit(oid)"
           >

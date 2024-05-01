@@ -1,7 +1,8 @@
-import { OrgUserRoles, ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk'
+import { CloudOrgUserRoles, OrgUserRoles, ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk'
 
 const roleScopes = {
   org: [OrgUserRoles.VIEWER, OrgUserRoles.CREATOR],
+  cloudOrg: [CloudOrgUserRoles.VIEWER, CloudOrgUserRoles.CREATOR, CloudOrgUserRoles.OWNER],
   workspace: [
     WorkspaceUserRoles.NO_ACCESS,
     WorkspaceUserRoles.VIEWER,
@@ -33,8 +34,28 @@ interface Perm {
 const rolePermissions = {
   // org level role permissions
   [OrgUserRoles.SUPER_ADMIN]: '*',
+  [CloudOrgUserRoles.OWNER]: {
+    include: {
+      adminPanel: true,
+      orgAdminPanel: true,
+    },
+  },
   [OrgUserRoles.CREATOR]: {
     include: {},
+  },
+  [CloudOrgUserRoles.CREATOR]: {
+    include: {
+      orgDomainList: true,
+      orgDomainAdd: true,
+      orgDomainVerify: true,
+      orgDomainUpdate: true,
+      orgDomainDelete: true,
+    },
+  },
+  [CloudOrgUserRoles.VIEWER]: {
+    include: {
+      importRequest: true,
+    },
   },
   [OrgUserRoles.VIEWER]: {
     include: {
@@ -47,6 +68,20 @@ const rolePermissions = {
       workspaceBilling: true,
       workspaceManage: true,
       baseDelete: true,
+      orgDomainList: true,
+      orgDomainAdd: true,
+      orgDomainVerify: true,
+      orgDomainUpdate: true,
+      orgDomainDelete: true,
+      transferWorkspaceOwnership: true,
+
+      orgSsoClientList: true,
+      orgSsoClientCreate: true,
+      orgSsoClientUpdate: true,
+      orgSsoClientDelete: true,
+
+      // todo: temporary permission
+      moveWorkspaceToOrg: true,
     },
   },
   [WorkspaceUserRoles.CREATOR]: {

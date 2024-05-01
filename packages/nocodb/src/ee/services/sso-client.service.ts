@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import axios from 'axios';
 
+import { useAgent } from 'request-filtering-agent';
 import type {
   GoogleClientConfigType,
   OpenIDClientConfigType,
@@ -12,18 +13,20 @@ import { NcError } from '~/helpers/catchError';
 import { validatePayload } from '~/helpers';
 import { extractProps } from '~/helpers/extractProps';
 import { parseSamlMetadata } from '~/utils/saml';
+import { Domain } from '~/models';
 
 @Injectable()
 export class SSOClientService {
-  private logger = new Logger(SSOClientService.name);
+  protected logger = new Logger(SSOClientService.name);
   constructor() {}
 
-  async clientAdd(param: { client: SSOClientType; req: any }) {
+  async clientAdd(param: { client: SSOClientType; req: any; orgId?: string }) {
     // limit to 1 client for now
     if (
       (
         await SSOClient.list({
           type: param.client.type,
+          orgId: param.orgId,
         })
       ).length > 0
     ) {
@@ -51,6 +54,7 @@ export class SSOClientService {
     const client = await SSOClient.insert({
       ...param.client,
       fk_user_id: param.req.user.id,
+      fk_org_id: param.orgId,
     });
 
     return client;
@@ -60,6 +64,7 @@ export class SSOClientService {
     clientId: string;
     client: SSOClientType;
     req: any;
+    orgId?: string;
   }) {
     // get existing client
     const oldClient = await SSOClient.get(param.clientId);
@@ -70,6 +75,10 @@ export class SSOClientService {
       req: param.req,
     });
 
+    if (param.client.config === undefined || param.client.config === null) {
+      delete param.client.config;
+    }
+
     // update client
     const client = await SSOClient.update(param.clientId, {
       ...param.client,
@@ -79,31 +88,36 @@ export class SSOClientService {
     return client;
   }
 
-  async clientDelete(param: { clientId: string; req: any }) {
+  async clientDelete(param: { clientId: string; req: any; orgId?: string }) {
     // delete client
     const client = await SSOClient.delete(param.clientId);
 
     return client;
   }
 
-  async clientList(_param: { req: any }) {
+  async clientList(param: { req: any; orgId?: string }) {
     // list clients
-    const clients = await SSOClient.list({});
+    const clients = await SSOClient.list({ orgId: param.orgId });
 
     return clients;
   }
 
   async readSamlMetadata(param: { metadataUrl: string }) {
     try {
-      const response = await axios(param.metadataUrl, {
-        // todo: enable later when we are going to support it in cloud
-        // httpAgent: useAgent(param.metadataUrl, {
-        //   stopPortScanningByUrlRedirection: true,
-        // }),
-        // httpsAgent: useAgent(param.metadataUrl, {
-        //   stopPortScanningByUrlRedirection: true,
-        // }),
-      });
+      const response = await axios(
+        param.metadataUrl,
+        process.env.NODE_ENV !== 'test'
+          ? {
+              httpAgent: useAgent(param.metadataUrl, {
+                stopPortScanningByUrlRedirection: true,
+              }),
+              httpsAgent: useAgent(param.metadataUrl, {
+                stopPortScanningByUrlRedirection: true,
+              }),
+            }
+          : {},
+      );
+
       if (!response.data) NcError.badRequest('Invalid metadata url');
 
       return response.data;
@@ -120,12 +134,13 @@ export class SSOClientService {
     oldClient?: SSOClient;
   }) {
     // validate client
-    validatePayload(
-      `swagger.json#/components/schemas/${
-        param.oldClient ? 'SSOClient' : 'SSOClientReq'
-      }`,
-      param.client,
-    );
+    if (!param.oldClient)
+      validatePayload(
+        `swagger.json#/components/schemas/${
+          param.oldClient ? 'SSOClient' : 'SSOClientReq'
+        }`,
+        param.client,
+      );
 
     if (!param.client.config) return param.client.config;
 
@@ -191,5 +206,27 @@ export class SSOClientService {
     }
 
     return extractedConfig;
+  }
+
+  async getSsoClientsByDomain(param: { email: string; req: any }) {
+    // get clients by domain
+    const domain = param.email.split('@');
+
+    const orgDomain = await Domain.getByDomain(domain[1]);
+
+    if (!orgDomain) {
+      NcError.badRequest('SSO is not configured for this domain');
+    }
+
+    const clients = await SSOClient.listByOrgId(
+      orgDomain.fk_org_id,
+      param.req.ncSiteUrl,
+    );
+
+    if (!clients?.length) {
+      NcError.badRequest('SSO is not configured for this organization');
+    }
+
+    return clients;
   }
 }

@@ -38,6 +38,7 @@ const rolePermissions = {
       tableDelete: true,
       viewCreateOrEdit: true,
       baseReorder: true,
+      orgAdminPanel: true,
     },
   },
   [OrgUserRoles.VIEWER]: {

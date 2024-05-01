@@ -5,7 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "node index.js"
+    "start": "node oidc.js"
   },
   "dependencies": {
     "dotenv": "^16.4.1",

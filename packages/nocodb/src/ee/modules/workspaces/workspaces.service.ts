@@ -25,8 +25,9 @@ import { extractProps } from '~/helpers/extractProps';
 import { BasesService } from '~/services/bases.service';
 import { TablesService } from '~/services/tables.service';
 import Noco from '~/Noco';
-import { MetaTable } from '~/utils/globals';
+import { CacheScope, MetaTable } from '~/utils/globals';
 import { JobTypes } from '~/interface/Jobs';
+import NocoCache from '~/cache/NocoCache';
 
 const mockUser = {
   id: '1',
@@ -115,10 +116,12 @@ export class WorkspacesService implements OnApplicationBootstrap {
     user: {
       id: string;
       roles?: string;
+      extra?: Record<string, any>;
     };
   }) {
     const workspaces = await WorkspaceUser.workspaceList({
       fk_user_id: param.user.id,
+      fk_org_id: param.user.extra?.org_id,
     });
 
     return new PagedResponseImpl<WorkspaceType>(workspaces, {
@@ -128,7 +131,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
 
   // TODO: Break the bulk creation logic into a separate api
   async create(param: {
-    user: UserType;
+    user: UserType & { extra?: Record<string, any> };
     workspaces: WorkspaceType | WorkspaceType[];
     req: NcRequest;
   }) {
@@ -184,6 +187,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
         fk_user_id: param.user.id,
         status: WorkspaceStatus.CREATED,
         plan: WorkspacePlan.FREE,
+        fk_org_id: param.user.extra?.org_id,
       });
 
       // todo: error handling
@@ -237,7 +241,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
   }
 
   async transferOwnership(param: {
-    user: UserType;
+    user: UserType & { extra?: any };
     workspace: WorkspaceType;
     req: NcRequest;
   }) {
@@ -254,15 +258,26 @@ export class WorkspacesService implements OnApplicationBootstrap {
     const ncMeta = await Noco.ncMeta.startTransaction();
 
     try {
+      const updateObj = {
+        fk_user_id: user.id,
+      };
+
+      if (param.user.extra?.org_id) {
+        updateObj['fk_org_id'] = param.user.extra.org_id;
+      }
+
       // update workspace owner
       await ncMeta.metaUpdate(
         null,
         null,
         MetaTable.WORKSPACE,
-        {
-          fk_user_id: user.id,
-        },
+        updateObj,
         workspace.id,
+      );
+
+      await NocoCache.update(
+        `${CacheScope.WORKSPACE}:${workspace.id}`,
+        updateObj,
       );
 
       // check workspace user exists or not and if exists then update workspace user

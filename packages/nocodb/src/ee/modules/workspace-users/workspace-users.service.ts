@@ -4,7 +4,12 @@ import bcrypt from 'bcryptjs';
 
 import validator from 'validator';
 import { v4 as uuidv4 } from 'uuid';
-import { AppEvents, extractRolesObj, WorkspaceUserRoles } from 'nocodb-sdk';
+import {
+  AppEvents,
+  CloudOrgUserRoles,
+  extractRolesObj,
+  WorkspaceUserRoles,
+} from 'nocodb-sdk';
 import * as ejs from 'ejs';
 import { ConfigService } from '@nestjs/config';
 import type { UserType, WorkspaceType } from 'nocodb-sdk';
@@ -85,6 +90,7 @@ export class WorkspaceUsersService {
 
     if (
       ![
+        WorkspaceUserRoles.OWNER,
         WorkspaceUserRoles.CREATOR,
         WorkspaceUserRoles.VIEWER,
         WorkspaceUserRoles.EDITOR,
@@ -104,10 +110,37 @@ export class WorkspaceUsersService {
       NcError.userNotFound(param.userId);
     }
 
-    if (
-      getWorkspaceRolePower(targetUser) >= getWorkspaceRolePower(param.req.user)
-    ) {
-      NcError.badRequest(`Insufficient privilege to update user`);
+    const isOrgOwner = extractRolesObj(
+      (param.req.user as any).org_roles as any,
+    )?.[CloudOrgUserRoles.OWNER];
+
+    if (!isOrgOwner) {
+      if (
+        getWorkspaceRolePower(targetUser) >=
+        getWorkspaceRolePower(param.req.user)
+      ) {
+        NcError.badRequest(`Insufficient privilege to update user`);
+      }
+    }
+
+    if (param.roles === WorkspaceUserRoles.OWNER) {
+      const wsOwner = await WorkspaceUser.userList({
+        fk_workspace_id: workspace.id,
+        roles: WorkspaceUserRoles.OWNER,
+      });
+
+      if (
+        isOrgOwner ||
+        (wsOwner.length === 1 &&
+          wsOwner[0].id === user.id &&
+          extractRolesObj(user.roles)?.[WorkspaceUserRoles.OWNER])
+      ) {
+        await WorkspaceUser.update(workspace.id, wsOwner[0].id, {
+          roles: WorkspaceUserRoles.CREATOR,
+        });
+      } else {
+        NcError.badRequest('Only owner or orgAdmin can transfer workspace ');
+      }
     }
 
     await WorkspaceUser.update(param.workspaceId, param.userId, {

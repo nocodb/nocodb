@@ -413,6 +413,8 @@ export class Forbidden extends NcBaseError {}
 
 export class NotFound extends NcBaseError {}
 
+export class SsoError extends NcBaseError {}
+
 export class ExternalError extends NcBaseError {
   constructor(error: Error) {
     super(error.message);
@@ -578,6 +580,7 @@ export class NcBaseErrorv2 extends NcBaseError {
   error: NcErrorType;
   code: number;
   details?: any;
+
   constructor(error: NcErrorType, args?: NcErrorArgs) {
     const errorHelper = generateError(error, args);
     super(errorHelper.message);
@@ -725,5 +728,11 @@ export class NcError {
 
   static notAllowed(message = 'Not allowed') {
     throw new NotAllowed(message);
+  }
+
+  static emailDomainNotAllowed(domain: string) {
+    throw new SsoError(
+      `Email domain ${domain} is not allowed for this organization`,
+    );
   }
 }

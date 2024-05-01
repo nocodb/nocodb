@@ -118,6 +118,7 @@ declare module 'vue' {
     MaterialSymbolsWarning: typeof import('~icons/material-symbols/warning')['default']
     MdiAccount: typeof import('~icons/mdi/account')['default']
     MdiAccountCircleOutline: typeof import('~icons/mdi/account-circle-outline')['default']
+    MdiAccountOutline: typeof import('~icons/mdi/account-outline')['default']
     MdiAccountSupervisorOutline: typeof import('~icons/mdi/account-supervisor-outline')['default']
     MdiAppleKeyboardShift: typeof import('~icons/mdi/apple-keyboard-shift')['default']
     MdiArrowDown: typeof import('~icons/mdi/arrow-down')['default']

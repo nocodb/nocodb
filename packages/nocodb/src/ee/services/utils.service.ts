@@ -485,7 +485,7 @@ export class UtilsService extends UtilsServiceCE {
     */
   }
 
-  async appInfo(param: { req: { ncSiteUrl: string } }) {
+  async appInfo(param: { req: { ncSiteUrl: string; user?: any } }) {
     const result: any = await super.appInfo(param);
 
     // get sso clients and extract id, url and display name

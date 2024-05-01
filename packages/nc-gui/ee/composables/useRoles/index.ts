@@ -47,11 +47,15 @@ export const useRoles = createSharedComposable(() => {
     let baseRoles = user.value?.base_roles ?? {}
 
     baseRoles = extractRolesObj(baseRoles)
+    let cloudOrgRoles = (user.value as any)?.org_roles ?? {}
+
+    cloudOrgRoles = extractRolesObj(cloudOrgRoles)
 
     return {
-      ...orgRoles,
       ...workspaceRoles,
       ...baseRoles,
+      ...orgRoles,
+      ...cloudOrgRoles,
     }
   })
 
@@ -82,9 +86,10 @@ export const useRoles = createSharedComposable(() => {
   async function loadRoles(
     baseId?: string,
     options: { isSharedBase?: boolean; sharedBaseId?: string; isSharedErd?: boolean; sharedErdId?: string } = {},
+    workspaceId?: string,
   ) {
     const wsId = {
-      workspace_id: route.value.params.typeOrId,
+      workspace_id: workspaceId || route.value.params.typeOrId,
     }
 
     if (options?.isSharedBase) {
@@ -104,6 +109,7 @@ export const useRoles = createSharedComposable(() => {
         roles: res.roles,
         base_roles: res.base_roles,
         workspace_roles: res.workspace_roles,
+        org_roles: res.org_roles,
       } as typeof User
     } else if (options?.isSharedErd) {
       const res = await api.auth.me(
@@ -122,6 +128,7 @@ export const useRoles = createSharedComposable(() => {
         roles: res.roles,
         base_roles: res.base_roles,
         workspace_roles: res.workspace_roles,
+        org_roles: res.org_roles,
       } as typeof User
     } else if (baseId) {
       const res = await api.auth.me({ base_id: baseId, ...wsId })
@@ -132,6 +139,7 @@ export const useRoles = createSharedComposable(() => {
         base_roles: res.base_roles,
         workspace_roles: res.workspace_roles,
         display_name: res.display_name,
+        org_roles: res.org_roles,
       } as typeof User
     } else {
       const res = await api.auth.me({ ...wsId } as any)
@@ -142,6 +150,7 @@ export const useRoles = createSharedComposable(() => {
         base_roles: res.base_roles,
         workspace_roles: res.workspace_roles,
         display_name: res.display_name,
+        org_roles: res.org_roles,
       } as typeof User
     }
   }

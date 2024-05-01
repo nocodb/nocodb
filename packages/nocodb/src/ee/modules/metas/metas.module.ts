@@ -1,5 +1,9 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { metaModuleMetadata } from 'src/modules/metas/metas.module';
+import { OrgWorkspacesService } from '~/services/org-workspaces.service';
+import { OrgWorkspacesController } from '~/controllers/org-workspaces.controller';
+import { OrgsService } from '~/services/orgs.service';
+import { OrgsController } from '~/controllers/orgs.controller';
 import { PageDao } from '~/daos/page.dao';
 import { PageSnapshotDao } from '~/daos/page-snapshot.dao';
 import { DocsPagesHistoryController } from '~/controllers/docs/docs-pages-history.controller';
@@ -24,6 +28,8 @@ import { SSOClientService } from '~/services/sso-client.service';
 import { SsoClientController } from '~/controllers/sso-client.controller';
 import { WorkspaceUsersService } from '~/modules/workspace-users/workspace-users.service';
 import { UsersModule } from '~/modules/users/users.module';
+import { OrgSSOClientService } from '~/services/org-sso-client.service';
+
 // import { ThrottlerExpiryListenerService } from '~/services/throttler/throttler-expiry-listener.service';
 
 // import { ClickhouseService } from '~/services/clickhouse/clickhouse.service';
@@ -51,6 +57,9 @@ import { UsersModule } from '~/modules/users/users.module';
     LayoutFilterService,
     SSOClientService,
     WorkspaceUsersService,
+    OrgWorkspacesService,
+    OrgSSOClientService,
+    OrgsService,
     // ClickhouseService,
     // ...(enableThrottler ? [ThrottlerExpiryListenerService] : []),
   ],
@@ -69,6 +78,9 @@ import { UsersModule } from '~/modules/users/users.module';
 
           TelemetryController,
           SsoClientController,
+
+          OrgWorkspacesController,
+          OrgsController,
         ]
       : []),
   ],

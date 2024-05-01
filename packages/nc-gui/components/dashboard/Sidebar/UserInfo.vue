@@ -20,12 +20,14 @@ const { isMobileMode } = useGlobal()
 const logout = async () => {
   isLoggingOut.value = true
   try {
+    const isSsoUser = !!(user?.value as any)?.sso_client_id
+
     await signOut(false)
 
     // No need as all stores are cleared on signout
     // await clearWorkspaces()
 
-    await navigateTo('/signin')
+    await navigateTo(isSsoUser ? '/sso' : '/signin')
   } catch (e) {
     console.error(e)
   } finally {
@@ -166,6 +168,8 @@ onMounted(() => {
             </a>
 
             <NcDivider />
+
+            <DashboardSidebarEEMenuOption v-if="isEeUI" />
 
             <nuxt-link v-e="['c:user:settings']" class="!no-underline" to="/account/profile">
               <NcMenuItem> <GeneralIcon icon="ncSettings" class="menu-icon" /> {{ $t('title.accountSettings') }} </NcMenuItem>

@@ -54,6 +54,11 @@ const up = async (knex: Knex) => {
     table.renameColumn('fk_workspace_id', 'fk_org_id');
   });
 
+  await knex.schema.alterTable(MetaTable.SSO_CLIENT, (table) => {
+    table.string('domain_name', 255).index();
+    table.boolean('domain_name_verified');
+  });
+
   await knex.schema.alterTable(MetaTable.WORKSPACE, (table) => {
     table.string('fk_org_id', 20).index();
   });

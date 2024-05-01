@@ -1195,6 +1195,9 @@ importers:
 
   tests/playwright:
     dependencies:
+      '@heyikang/ps-list':
+        specifier: ^8.1.2
+        version: 8.1.2
       body-parser:
         specifier: ^1.20.1
         version: 1.20.1
@@ -8332,6 +8335,11 @@ packages:
     resolution: {integrity: sha512-foQZKJig7Ob0BMAYBfcJk8d77QtOe7Wo4ox7ff1lQYoNNAb6jwcY1ncdoy2e9wQZzvNy7ODZCYJkK8kzmcAnAg==}
     dependencies:
       '@hapi/hoek': 9.3.0
+    dev: false
+
+  /@heyikang/ps-list@8.1.2:
+    resolution: {integrity: sha512-cidzpmnfZQ6mGW9cF1QR5I9mMsaW64obcdlo+36Z+CycQPbgOWNU8uTADuPL3NSU969rKSWjwbXZ2MdlIijCLg==}
+    engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
     dev: false
 
   /@humanwhocodes/config-array@0.11.10:
@@ -30662,9 +30670,6 @@ packages:
   /sqlite3@5.1.6:
     resolution: {integrity: sha512-olYkWoKFVNSSSQNvxVUfjiVbz3YtBwTJj+mfV5zpHmqW3sELx2Cf4QCdirMelhM5Zh+KDVaKgQHqCxrqiWHybw==}
     requiresBuild: true
-    peerDependenciesMeta:
-      node-gyp:
-        optional: true
     dependencies:
       '@mapbox/node-pre-gyp': 1.0.11
       node-addon-api: 4.3.0
@@ -30679,9 +30684,6 @@ packages:
   /sqlite3@5.1.7:
     resolution: {integrity: sha512-GGIyOiFaG+TUra3JIfkI/zGP8yZYLPQ0pl1bH+ODjiX57sPhrLU5sQJn1y9bDKZUFYkX1crlrPfSYt0BKKdkog==}
     requiresBuild: true
-    peerDependenciesMeta:
-      node-gyp:
-        optional: true
     dependencies:
       bindings: 1.5.0
       node-addon-api: 7.0.0

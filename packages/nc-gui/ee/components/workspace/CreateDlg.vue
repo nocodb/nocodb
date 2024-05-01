@@ -5,13 +5,14 @@ import { Form, extractSdkResponseErrorMsg, ref, useVModel, useWorkspace } from '
 
 const props = defineProps<{
   modelValue: boolean
+  orgId?: string
 }>()
 
 const emit = defineEmits(['update:modelValue', 'success'])
 
 const dialogShow = useVModel(props, 'modelValue', emit)
 
-const { createWorkspace } = useWorkspace()
+const { createWorkspace, moveToOrg } = useWorkspace()
 
 const workspace = ref({})
 const isCreating = ref(false)
@@ -58,8 +59,13 @@ const _createWorkspace = async () => {
     if (workspaceRes) {
       emit('success', workspaceRes)
     }
+    if (props.orgId) {
+      await moveToOrg(workspaceRes.id, props.orgId)
+    }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    dialogShow.value = false
   }
 
   setTimeout(() => {

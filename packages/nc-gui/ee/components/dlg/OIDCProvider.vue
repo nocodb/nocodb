@@ -8,6 +8,7 @@ const props = defineProps<{
   modelValue: boolean
   isEdit: boolean
   oidc?: SSOClientType
+  isOrg?: boolean
 }>()
 
 const emit = defineEmits(['update:modelValue'])
@@ -39,7 +40,7 @@ const formValidator = ref()
 
 const { t } = useI18n()
 
-const { addProvider, updateProvider, getRedirectUrl } = useAuthentication()
+const { addProvider, updateProvider, getRedirectUrl } = useAuthentication(props.isOrg)
 
 const form = reactive<{
   title: string
@@ -140,8 +141,12 @@ const dialogShow = computed({
 })
 
 const saveOIDCProvider = async () => {
-  const isValid = await formValidator.value.validate()
-  if (!isValid) return
+  try {
+    await formValidator.value.validate()
+  } catch (e) {
+    console.log(e)
+    return
+  }
   if (props.isEdit) {
     const res = await updateProvider(props.oidc?.id ?? '', {
       title: form.title,
@@ -304,7 +309,8 @@ const saveOIDCProvider = async () => {
             />
           </a-form-item>
 
-          <div
+          <!-- Disable since SSO only option is implemented at the moment -->
+          <!-- <div
             class="flex rounded-lg mt-4 border-1 border-gray-200 bg-orange-50 p-4 justify-between"
             data-test-id="nc-oidc-sso-only"
           >
@@ -317,7 +323,7 @@ const saveOIDCProvider = async () => {
             </div>
 
             <NcSwitch v-model:checked="form.ssoOnly" />
-          </div>
+          </div> -->
         </a-form>
       </div>
     </div>

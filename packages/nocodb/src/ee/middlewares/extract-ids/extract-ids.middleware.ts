@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import {
+  CloudOrgUserRoles,
   OrgUserRoles,
   ProjectRoles,
   WorkspacePlan,
@@ -25,6 +26,7 @@ import {
   Audit,
   Base,
   Column,
+  Domain,
   Extension,
   Filter,
   FormViewColumn,
@@ -270,6 +272,19 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         );
       }
     }
+
+    if (req.ncWorkspaceId) {
+      const workspace = await Workspace.get(req.ncWorkspaceId);
+      req.ncOrgId = workspace.fk_org_id;
+    } else if (req.params.domainId) {
+      const domain = await Domain.get(req.params.domainId);
+      req.ncOrgId = domain?.fk_org_id;
+    }
+
+    if (!req.ncOrgId && req.params.orgId) {
+      req.ncOrgId = req.params.orgId;
+    }
+
     next();
   }
 
@@ -283,11 +298,14 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
   }
 }
 
+// todo: refactor and move scope name to enum
 function getUserRoleForScope(user: any, scope: string) {
   if (scope === 'workspace') {
     return user?.workspace_roles;
   } else if (scope === 'base') {
     return user?.base_roles;
+  } else if (scope === 'cloud-org') {
+    return user?.org_roles;
   } else if (scope === 'org') {
     return user?.roles;
   }
@@ -316,6 +334,15 @@ export class AclMiddleware implements NestInterceptor {
     const scope = this.reflector.get<string>('scope', context.getHandler());
 
     const req = context.switchToHttp().getRequest();
+
+    // limit user access to organization
+    if (
+      req.ncWorkspaceId &&
+      req.user.extra?.org_id &&
+      req.user.extra.org_id !== req.ncOrgId
+    ) {
+      NcError.forbidden('User access limited to Organization');
+    }
 
     // if user is not defined then run GlobalGuard
     // it's to take care if we are missing @UseGuards(GlobalGuard) in controller
@@ -369,7 +396,10 @@ export class AclMiddleware implements NestInterceptor {
         roles?.[WorkspaceUserRoles.NO_ACCESS] ||
         roles?.[OrgUserRoles.SUPER_ADMIN] ||
         roles?.[OrgUserRoles.CREATOR] ||
-        roles?.[OrgUserRoles.VIEWER]
+        roles?.[OrgUserRoles.VIEWER] ||
+        roles?.[CloudOrgUserRoles.CREATOR] ||
+        roles?.[CloudOrgUserRoles.VIEWER] ||
+        roles?.[CloudOrgUserRoles.OWNER]
       )
     ) {
       NcError.unauthorized('Unauthorized access');

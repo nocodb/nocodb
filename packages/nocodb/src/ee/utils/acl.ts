@@ -1,7 +1,17 @@
-import { OrgUserRoles, ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
+import {
+  CloudOrgUserRoles,
+  OrgUserRoles,
+  ProjectRoles,
+  WorkspaceUserRoles,
+} from 'nocodb-sdk';
 
 const roleScopes = {
   org: [OrgUserRoles.VIEWER, OrgUserRoles.CREATOR],
+  cloudOrg: [
+    CloudOrgUserRoles.VIEWER,
+    CloudOrgUserRoles.CREATOR,
+    CloudOrgUserRoles.OWNER,
+  ],
   workspace: [
     WorkspaceUserRoles.NO_ACCESS,
     WorkspaceUserRoles.VIEWER,
@@ -20,7 +30,39 @@ const roleScopes = {
 };
 
 const permissionScopes = {
+  cloudOrg: [
+    // Organisation
+    'orgUserAdd',
+    'orgUserRemove',
+    'orgUserRoleUpdate',
+
+    'orgUpdate',
+    'orgDomainList',
+    'orgDomainAdd',
+    'orgDomainVerify',
+    'orgDomainUpdate',
+    'orgDomainDelete',
+    'orgSsoClientCreate',
+    'orgSsoClientUpdate',
+    'orgSsoClientDelete',
+
+    'orgWorkspaceUpdate',
+    'orgWorkspaceAdd',
+    'orgGet',
+    'orgWorkspaceList',
+    'orgUserList',
+    'orgBaseList',
+    'orgSsoClientList',
+  ],
   org: [
+    // SSO Client
+    'ssoClientList',
+    'ssoClientCreate',
+    'ssoClientUpdate',
+    'ssoClientDelete',
+    'ssoClientGet',
+    'ssoClientTest',
+
     // API Tokens
     'apiTokenList',
     'apiTokenCreate',
@@ -67,6 +109,8 @@ const permissionScopes = {
     'workspaceInvitationTokenRead',
     'duplicateSharedBase',
     'workspaceUpgrade',
+
+    'orgWorkspaceUpgrade',
   ],
   base: [
     'formViewGet',
@@ -176,6 +220,7 @@ const rolePermissions:
       | Exclude<OrgUserRoles, OrgUserRoles.SUPER_ADMIN>
       | ProjectRoles
       | WorkspaceUserRoles
+      | CloudOrgUserRoles
       | 'guest',
       { include?: Record<string, boolean>; exclude?: Record<string, boolean> }
     >
@@ -199,6 +244,9 @@ const rolePermissions:
       testConnection: true,
     },
   },
+  [CloudOrgUserRoles.VIEWER]: {
+    include: {},
+  },
   [OrgUserRoles.CREATOR]: {
     include: {
       upload: true,
@@ -211,6 +259,35 @@ const rolePermissions:
     include: {
       workspaceGet: true,
       workspaceBaseList: true,
+    },
+  },
+
+  [CloudOrgUserRoles.OWNER]: {
+    include: {
+      orgUserAdd: true,
+      orgUserRemove: true,
+      orgUserRoleUpdate: true,
+      orgDomainAdd: true,
+      orgDomainVerify: true,
+      orgDomainUpdate: true,
+      orgDomainDelete: true,
+      orgUpdate: true,
+
+      orgSsoClientCreate: true,
+      orgSsoClientUpdate: true,
+      orgSsoClientDelete: true,
+    },
+  },
+  [CloudOrgUserRoles.CREATOR]: {
+    include: {
+      orgWorkspaceUpdate: true,
+      orgWorkspaceAdd: true,
+      orgDomainList: true,
+      orgGet: true,
+      orgWorkspaceList: true,
+      orgUserList: true,
+      orgBaseList: true,
+      orgSsoClientList: true,
     },
   },
 

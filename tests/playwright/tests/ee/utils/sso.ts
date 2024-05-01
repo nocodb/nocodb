@@ -1,9 +1,19 @@
 import { ChildProcess, spawn } from 'child_process';
 import path from 'path';
+import { psList } from '@heyikang/ps-list';
 
 let openIDChildProcess: ChildProcess;
 let samlChildProcess: ChildProcess;
 export const startOpenIDIdp = async (env = {}) => {
+  // kill any existing process which is running
+  try {
+    const processes = await psList();
+    const p = processes.find(p => p.name === 'node' && p.cmd.startsWith('node oidc.js'));
+    if (p) process.kill(p.pid);
+  } catch (e) {
+    console.log('Error killing openIDChildProcess', e);
+  }
+
   return new Promise((resolve, reject) => {
     try {
       openIDChildProcess = spawn('npm', ['start'], {
@@ -45,6 +55,15 @@ export const stopOpenIDIdp = async () => {
 };
 
 export const startSAMLIdp = async (env = {}) => {
+  // kill any existing process which is running
+  try {
+    const processes = await psList();
+    const p = processes.find(p => p.name === 'node' && p.cmd.startsWith('node saml.js'));
+    if (p) process.kill(p.pid);
+  } catch (e) {
+    console.log('Error killing openIDChildProcess', e);
+  }
+
   return new Promise((resolve, reject) => {
     try {
       samlChildProcess = spawn('npm', ['start'], {

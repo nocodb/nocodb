@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node saml.js"
   },
   "dependencies": {
     "dotenv": "^16.4.1",

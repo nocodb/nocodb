@@ -1,5 +1,4 @@
-import type { WorkspaceType } from 'nocodb-sdk';
-import type { WorkspacePlan, WorkspaceStatus } from 'nocodb-sdk';
+import type { WorkspacePlan, WorkspaceStatus, WorkspaceType } from 'nocodb-sdk';
 import { extractProps } from '~/helpers/extractProps';
 import Noco from '~/Noco';
 import {
@@ -35,6 +34,7 @@ export default class Workspace implements WorkspaceType {
   status?: WorkspaceStatus;
   message?: string;
   infra_meta?: string | Record<string, any>;
+  fk_org_id?: string;
 
   constructor(workspace: Workspace | WorkspaceType) {
     Object.assign(this, workspace);
@@ -102,6 +102,7 @@ export default class Workspace implements WorkspaceType {
       'order',
       'status',
       'plan',
+      'fk_org_id',
     ]);
 
     // stringify meta if it is an object
@@ -144,6 +145,7 @@ export default class Workspace implements WorkspaceType {
       'deleted',
       'deleted_at',
       'order',
+      'fk_org_id',
     ]);
 
     // stringify meta if it is an object
@@ -277,5 +279,85 @@ export default class Workspace implements WorkspaceType {
     return await ncMeta.metaCount(null, null, MetaTable.WORKSPACE, {
       condition: { ...condition, deleted: false },
     });
+  }
+
+  static async listByOrgId(param: { orgId: string }, ncMeta = Noco.ncMeta) {
+    const queryBuilder = await ncMeta
+      .knex(MetaTable.WORKSPACE)
+      .select(
+        `${MetaTable.WORKSPACE}.id`,
+        `${MetaTable.WORKSPACE}.title`,
+        `${MetaTable.WORKSPACE}.meta`,
+        ncMeta.knex.raw(`JSON_AGG(
+        DISTINCT JSON_BUILD_OBJECT(
+          'id', ${MetaTable.WORKSPACE_USER}.fk_user_id,
+          'display_name', ${MetaTable.USERS}.display_name,
+          'email', ${MetaTable.USERS}.email,
+          'main_roles', ${MetaTable.USERS}.roles,
+          'roles', ${MetaTable.WORKSPACE_USER}.roles,
+          'created_at', ${MetaTable.WORKSPACE_USER}.created_at
+        )::TEXT
+      ) as members`),
+        ncMeta.knex.raw(`JSON_AGG(
+        DISTINCT JSON_BUILD_OBJECT(
+          'id', ${MetaTable.PROJECT}.id, 
+          'title', ${MetaTable.PROJECT}.title,
+          'created_at', ${MetaTable.PROJECT}.created_at,
+          'updated_at', ${MetaTable.PROJECT}.updated_at,
+          'meta', ${MetaTable.PROJECT}.meta
+        )::TEXT
+      ) as bases`),
+      )
+      .innerJoin(
+        MetaTable.WORKSPACE_USER,
+        `${MetaTable.WORKSPACE_USER}.fk_workspace_id`,
+        `${MetaTable.WORKSPACE}.id`,
+      )
+      .innerJoin(
+        MetaTable.USERS,
+        `${MetaTable.USERS}.id`,
+        `${MetaTable.WORKSPACE_USER}.fk_user_id`,
+      )
+      .leftJoin(
+        MetaTable.PROJECT,
+        `${MetaTable.PROJECT}.fk_workspace_id`,
+        `${MetaTable.WORKSPACE}.id`,
+      )
+      .where({
+        [`${MetaTable.WORKSPACE}.deleted`]: false,
+        [`${MetaTable.WORKSPACE_USER}.deleted`]: false,
+      })
+      .andWhere(`${MetaTable.WORKSPACE}.fk_org_id`, param.orgId)
+      .groupBy(
+        `${MetaTable.WORKSPACE}.id`,
+        `${MetaTable.WORKSPACE}.title`,
+        `${MetaTable.WORKSPACE}.meta`,
+      );
+
+    const workspaces = await queryBuilder;
+
+    return workspaces;
+  }
+
+  static async updateOrgId(
+    param: { id: string; orgId: any },
+    ncMeta = Noco.ncMeta,
+  ) {
+    const res = await ncMeta.metaUpdate(
+      null,
+      null,
+      MetaTable.WORKSPACE,
+      {
+        fk_org_id: param.orgId,
+        // stringify infra_meta if it is an object
+      },
+      param.id,
+    );
+
+    await NocoCache.update(`${CacheScope.WORKSPACE}:${param.id}`, {
+      fk_org_id: param.orgId,
+    });
+
+    return res;
   }
 }

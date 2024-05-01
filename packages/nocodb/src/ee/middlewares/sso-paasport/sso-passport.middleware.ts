@@ -10,21 +10,23 @@ import { Strategy as OpenIDConnectStrategy } from '@techpass/passport-openidconn
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import passport from 'passport';
 import isEmail from 'validator/lib/isEmail';
-import type { NestMiddleware } from '@nestjs/common';
-import type { NextFunction, Request, Response } from 'express';
+import { CloudOrgUserRoles } from 'nocodb-sdk';
 import type {
   GoogleClientConfigType,
   OpenIDClientConfigType,
 } from 'nocodb-sdk';
+import type { NestMiddleware } from '@nestjs/common';
+import type { NextFunction, Request, Response } from 'express';
 import type { AppConfig } from '~/interface/config';
 import SSOClient from '~/models/SSOClient';
 
-import { BaseUser, User } from '~/models';
-import { sanitiseUserObj } from '~/utils';
+import { BaseUser, Domain, OrgUser, User } from '~/models';
+import { sanitiseUserObj, verifyTXTRecord } from '~/utils';
 import NocoCache from '~/cache/NocoCache';
 import { CacheGetType } from '~/utils/globals';
 import { UsersService } from '~/services/users/users.service';
 import { MetaService } from '~/meta/meta.service';
+import { NcError } from '~/helpers/catchError';
 
 // this middleware is used to authenticate user using passport
 // in which we decide which strategy to use based on client type
@@ -42,6 +44,8 @@ export class SSOPassportMiddleware implements NestMiddleware {
 
     // get client by id
     const client = await SSOClient.get(req.params.clientId);
+
+    req['ncOrgId'] = client.fk_org_id;
 
     if (!client || !client.enabled || client.deleted) {
       return res.status(400).json({
@@ -98,6 +102,8 @@ export class SSOPassportMiddleware implements NestMiddleware {
         try {
           const email = profile.nameID;
 
+          await this.validateEmailDomain({ email, req, client });
+
           if (!isEmail(email)) {
             return callback(
               new Error(
@@ -143,14 +149,16 @@ export class SSOPassportMiddleware implements NestMiddleware {
             secretOrKey: config.auth.jwt.secret,
             ...config.auth.jwt.options,
           };
+
+          await this.addUserToOrg({ user, client });
+
           // Here, you can generate a JWT token using profile information
-          const token = jwt.sign(
-            { id: user.id, email: email, saml: true },
-            options.secretOrKey,
-            {
-              expiresIn: '1m',
-            },
-          );
+          const token = this.generateShortLivedToken({
+            user,
+            email,
+            options,
+            client,
+          });
 
           callback(null, { ...user, token });
         } catch (e) {
@@ -159,6 +167,32 @@ export class SSOPassportMiddleware implements NestMiddleware {
       },
       (req, profile, done) => {
         done(null, profile);
+      },
+    );
+  }
+
+  private generateShortLivedToken({
+    user,
+    email,
+    options,
+    client,
+  }: {
+    user: any;
+    email: string;
+    options: any;
+    client: SSOClient;
+  }) {
+    return jwt.sign(
+      {
+        id: user.id,
+        email: email,
+        sso_client_type: client.type,
+        sso_client_id: client.id,
+        org_id: client.fk_org_id ?? undefined,
+      },
+      options.secretOrKey,
+      {
+        expiresIn: '1m',
       },
     );
   }
@@ -236,6 +270,7 @@ export class SSOPassportMiddleware implements NestMiddleware {
 
     return new OpenIDConnectStrategy(
       clientConfig,
+      // todo: replace with async-await syntax
       (_issuer, _subject, profile, done) => {
         const email = profile.email || profile?._json?.email;
 
@@ -243,60 +278,135 @@ export class SSOPassportMiddleware implements NestMiddleware {
           return done({ msg: `User account is missing email id` });
         }
 
-        // get user by email
-        User.getByEmail(email)
-          .then(async (user) => {
-            const config = this.metaService.config;
+        this.validateEmailDomain({ email, req, client })
+          .then(() => {
+            // get user by email
+            User.getByEmail(email)
+              .then(async (user) => {
+                const config = this.metaService.config;
 
-            const options = {
-              secretOrKey: config.auth.jwt.secret,
-              ...config.auth.jwt.options,
-            };
-            // Here, you can generate a JWT token using profile information
-            const getToken = (user) =>
-              jwt.sign(
-                { id: user.id, email: email, saml: true },
-                options.secretOrKey,
-                {
-                  expiresIn: '1m',
-                },
-              );
-            if (user) {
-              return done(null, {
-                ...sanitiseUserObj(user),
-                provider: 'openid',
-                display_name: profile._json?.name,
-                token: getToken(user),
-              });
-            } else {
-              // if user not found create new user
-              const salt = await promisify(bcrypt.genSalt)(10);
-              await this.usersService
-                .registerNewUserIfAllowed({
-                  email,
-                  password: '',
-                  email_verification_token: null,
-                  avatar: null,
-                  user_name: null,
-                  display_name: profile._json?.name,
-                  salt,
-                  req: null,
-                })
-                .then((user) => {
-                  done(null, {
-                    ...sanitiseUserObj(user),
-                    provider: 'openid',
-                    token: getToken(user),
+                const options = {
+                  secretOrKey: config.auth.jwt.secret,
+                  ...config.auth.jwt.options,
+                };
+                // Here, you can generate a JWT token using profile information
+                const getToken = (user) =>
+                  this.generateShortLivedToken({
+                    user,
+                    email,
+                    options,
+                    client,
                   });
-                })
-                .catch((e) => done(e));
-            }
+                // jwt.sign(
+                //   { id: user.id, email: email, saml: true, org_id: orgId },
+                //   options.secretOrKey,
+                //   {
+                //     expiresIn: '1m',
+                //   },
+                // );
+                if (user) {
+                  return this.addUserToOrg({ user, client })
+                    .then(() => {
+                      return done(null, {
+                        ...sanitiseUserObj(user),
+                        provider: 'openid',
+                        display_name: profile._json?.name,
+                        token: getToken(user),
+                      });
+                    })
+                    .catch((e) => done(e));
+                } else {
+                  // if user not found create new user
+                  const salt = await promisify(bcrypt.genSalt)(10);
+                  await this.usersService
+                    .registerNewUserIfAllowed({
+                      email,
+                      password: '',
+                      email_verification_token: null,
+                      avatar: null,
+                      user_name: null,
+                      display_name: profile._json?.name,
+                      salt,
+                      req: null,
+                    })
+                    .then((user) => {
+                      this.addUserToOrg({ user, client })
+                        .then(() => {
+                          done(null, {
+                            ...sanitiseUserObj(user),
+                            provider: 'openid',
+                            token: getToken(user),
+                          });
+                        })
+                        .catch((e) => done(e));
+                    })
+                    .catch((e) => done(e));
+                }
+              })
+              .catch((err) => {
+                return done(err);
+              });
           })
-          .catch((err) => {
-            return done(err);
-          });
+          .catch((e) => done(e));
       },
     );
+  }
+
+  private async validateEmailDomain({
+    email,
+    client,
+  }: {
+    email: string;
+    req: Request;
+    client: SSOClient;
+  }) {
+    const orgId = client.fk_org_id;
+    if (!orgId) return;
+
+    const domain = email.split('@')[1];
+
+    const orgDomains = await Domain.list({ orgId });
+
+    let domainExists = false;
+
+    // iterate over org domains and check if domain matches and verified
+    // if last verified is more than 7 days then re-verify
+    for (const d of orgDomains) {
+      if (d.domain === domain) {
+        if (!d.verified) {
+          continue;
+        }
+
+        // todo: improve and do periodic verification of domain using cron
+        if (d.last_verified) {
+          const lastVerified = new Date(d.last_verified).getTime();
+          const now = new Date().getTime();
+          const diff = now - lastVerified;
+          const diffInDays = diff / (1000 * 60 * 60 * 24);
+          if (diffInDays > 7) {
+            const verified = await verifyTXTRecord(domain, d.txt_value);
+
+            if (verified) {
+              await Domain.update(d.id, {
+                verified: true,
+                last_verified: new Date(),
+              });
+            } else {
+              await Domain.update(d.id, {
+                verified: false,
+                last_verified: new Date(),
+              });
+            }
+          }
+        }
+
+        domainExists = true;
+      }
+    }
+
+    if (!domainExists) {
+      NcError.emailDomainNotAllowed(domain);
+    }
   }
 
   private async getGoogleStrategy(client: SSOClient, req: Request) {
@@ -313,6 +423,9 @@ export class SSOPassportMiddleware implements NestMiddleware {
       (req, accessToken, refreshToken, profile, done) => {
         (async () => {
           const email = profile.emails[0].value;
+
+          await this.validateEmailDomain({ email, req, client });
+
           const user = await User.getByEmail(email);
           if (user) {
             // if base id defined extract base level roles
@@ -343,6 +456,10 @@ export class SSOPassportMiddleware implements NestMiddleware {
             return sanitiseUserObj(user);
           }
         })()
+          .then(async (user) => {
+            await this.addUserToOrg({ user, client });
+            return user;
+          })
           .then((user) => {
             const config = this.metaService.config;
 
@@ -352,18 +469,36 @@ export class SSOPassportMiddleware implements NestMiddleware {
             };
 
             // Here, you can generate a JWT token using profile information
-            const token = jwt.sign(
-              { id: user.id, email: user.email, provider: 'google' },
-              options.secretOrKey,
-              {
-                expiresIn: '1m',
-              },
-            );
+            const token = this.generateShortLivedToken({
+              user,
+              email: profile.emails[0].value,
+              options,
+              client,
+            });
 
             done(null, { ...user, token });
           })
           .catch((err) => done(err));
       },
     );
+  }
+
+  private async addUserToOrg({
+    client,
+    user,
+  }: {
+    client: SSOClient;
+    user: Partial<User>;
+  }) {
+    if (!client.fk_org_id) return;
+
+    const orgUser = await OrgUser.get(client.fk_org_id, user.id);
+    if (!orgUser) {
+      await OrgUser.insert({
+        fk_org_id: client.fk_org_id,
+        fk_user_id: user.id,
+        roles: CloudOrgUserRoles.VIEWER,
+      });
+    }
   }
 }

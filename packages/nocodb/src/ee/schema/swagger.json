@@ -2088,7 +2088,7 @@
         ]
       }
     },
-    "/api/v2/sso-client": {
+    "/api/v2/sso-clients": {
       "get": {
         "summary": "Get SSO Client",
         "tags": [
@@ -2137,7 +2137,7 @@
         }
       }
     },
-    "/api/v2/sso-client/{clientId}": {
+    "/api/v2/sso-clients/{clientId}": {
       "parameters": [
         {
           "schema": {
@@ -2180,6 +2180,485 @@
         "tags": [
           "SSO Client"
         ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/orgs/{orgId}/bases": {
+      "get": {
+        "summary": "Get Org Bases",
+        "tags": [
+          "Org Bases"
+        ],
+        "operationId": "org-base-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgBaseList"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/orgs/{orgId}/users": {
+      "get": {
+        "summary": "Get Org Users",
+        "tags": [
+          "Org User"
+        ],
+        "operationId": "org-user-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgUserList"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/orgs/{orgId}/workspaces": {
+      "get": {
+        "summary": "Get Org Workspaces",
+        "tags": [
+          "Org Workspace"
+        ],
+        "operationId": "org-workspace-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceList"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/orgs/{orgId}/workspaces/{workspaceId}": {
+      "post": {
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "orgId",
+            "in": "path",
+            "required": true,
+            "description": "Unique Organisation ID"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "workspaceId",
+            "in": "path",
+            "required": true,
+            "description": "Unique Workspace ID"
+          }
+        ],
+        "summary": "Add Workspace to Organisation",
+        "tags": [
+          "Org Workspace"
+        ],
+        "operationId": "org-workspace-add",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v2/orgs/{orgId}/sso-clients": {
+      "get": {
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "orgId",
+            "in": "path",
+            "required": true,
+            "description": "Unique Organisation ID"
+          }
+        ],
+        "summary": "Get SSO Client",
+        "tags": [
+          "Org SSO Client"
+        ],
+        "operationId": "org-sso-client-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SSOClientList"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create SSO Client",
+        "operationId": "org-sso-client-create",
+        "tags": [
+          "Org SSO Client"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SSOClient"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SSOClient"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/orgs/{orgId}/sso-clients/{clientId}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "orgId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Organisation ID"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "clientId",
+          "in": "path",
+          "required": true,
+          "description": "Unique SSO Client ID"
+        }
+      ],
+      "patch": {
+        "summary": "Update SSO Client",
+        "tags": [
+          "Org SSO Client"
+        ],
+        "operationId": "org-sso-client-update",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SSOClient"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete SSO Client",
+        "operationId": "org-sso-client-delete",
+        "tags": [
+          "Org SSO Client"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/orgs/workspaces/{workspaceId}/upgrade": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "workspaceId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Workspace ID"
+        }
+      ],
+      "post": {
+        "summary": "Migrate Workspace to Organisation",
+        "tags": [
+          "Org Workspace"
+        ],
+        "operationId": "org-workspace-upgrade",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/orgs/{orgId}/domains": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "orgId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Organisation ID"
+        }
+      ],
+      "get": {
+        "summary": "Get Org Domains",
+        "tags": [
+          "Org Domain"
+        ],
+        "operationId": "org-domain-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgDomainList"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create Org Domain",
+        "tags": [
+          "Org Domain"
+        ],
+        "operationId": "org-domain-create",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DomainReq"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/orgs/{orgId}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "orgId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Organisation ID"
+        }
+      ],
+      "get": {
+        "summary": "Get Org",
+        "tags": [
+          "Org"
+        ],
+        "operationId": "org-read",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Org"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update Org",
+        "tags": [
+          "Org"
+        ],
+        "operationId": "org-update",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Org"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/domains/{domainId}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "domainId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Domain ID"
+        }
+      ],
+      "patch": {
+        "summary": "Update Domain",
+        "tags": [
+          "Org Domain"
+        ],
+        "operationId": "org-domain-update",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DomainReq"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete Domain",
+        "tags": [
+          "Org Domain"
+        ],
+        "operationId": "org-domain-delete",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/domains/{domainId}/verify": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "domainId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Domain ID"
+        }
+      ],
+      "post": {
+        "summary": "Update Domain",
+        "tags": [
+          "Org Domain"
+        ],
+        "operationId": "org-domain-verify",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/api/v2/sso": {
+      "post": {
+      "summary": "Get SSO Client",
+        "tags": [
+          "Org SSO Client"
+        ],
+        "operationId": "org-sso-client-get-by-email",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "OK",
@@ -3011,6 +3490,9 @@
           "fk_user_id": {
             "type": "string"
           },
+          "fk_org_id": {
+            "type": "string"
+          },
           "id": {
             "type": "string"
           },
@@ -3759,6 +4241,37 @@
           "id": "24eab7d1ead43"
         }
       },
+      "Org": {
+        "description": "Model for Organisation",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique ID"
+          },
+          "title": {
+            "type": "string",
+            "description": "Name of the Organization"
+          },
+          "image": {
+            "type": "string",
+            "description": "Image URL of the Organization"
+          },
+          "meta": {
+            "oneOf": [
+              {
+                "type": ""
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          }
+        }
+      },
 
 
       "FormColumn": {
@@ -4390,6 +4903,132 @@
         },
         "x-stoplight": {
           "id": "psbv6c6y9qvbu"
+        }
+      },
+
+      "Org": {
+        "description": "Model for Organisation",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique ID"
+          },
+          "title": {
+            "type": "string",
+            "description": "Name of the SSO Client"
+          },
+          "meta": {
+            "oneOf": [
+              {
+                "type": ""
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          }
+        }
+      },
+      "OrgUserReq": {
+        "description": "Model for Organisation User Request",
+        "type": "object",
+        "properties": {
+          "roles": {
+            "type": "string",
+            "description": "Role associated to the user"
+          }
+        }
+      },
+      "OrgUser": {
+        "description": "Model for Organisation User Request",
+        "type": "object",
+        "properties": {
+          "roles": {
+            "type": "string",
+            "description": "Role associated to the user"
+          },
+          "fk_org_id": {
+            "type": "string",
+            "description": "Organisation ID"
+          },
+          "fk_user_id": {
+            "type": "string",
+            "description": "User ID"
+          }
+        }
+      },
+      "Domain": {
+        "description": "Model for Organisation Domain name",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique ID"
+          },
+          "fk_org_id": {
+            "type": "string",
+            "description": "Organisation ID"
+          },
+          "fk_user_id": {
+            "type": "string",
+            "description": "User ID who added the domain"
+          },
+          "domain": {
+            "type": "string",
+            "description": "Domain name"
+          },
+          "txt_value": {
+            "type": "string",
+            "description": "TXT value for domain verification"
+          },
+          "verified": {
+            "type": "boolean",
+            "description": "Whether the domain is verified or not"
+          },
+          "last_verified": {
+            "description": "Last verified date"
+          }
+        }
+      },
+      "DomainReq": {
+        "description": "Model for Organisation Domain name",
+        "type": "object",
+        "properties": {
+          "domain": {
+            "type": "string",
+            "description": "Domain name"
+          },
+          "deleted": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "domain"
+        ]
+      },
+      "OrgBaseList": {
+        "description": "Model for Organization Base List",
+        "type": "object",
+        "properties": {
+          "list": {
+            "type": "array"
+          }
+        }
+      },
+      "OrgUserList": {
+        "description": "Model for Organisation User List",
+        "type": "object",
+        "properties": {
+          "list": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrgUser"
+            }
+          }
         }
       }
     },

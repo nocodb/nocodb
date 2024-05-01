@@ -16,3 +16,6 @@ export { default as Model } from './Model';
 export { default as ModelStat } from './ModelStat';
 export { default as View } from './View';
 export { default as DbMux } from './DbMux';
+export { default as Domain } from './Domain';
+export { default as Org } from './Org';
+export { default as OrgUser } from './OrgUser';

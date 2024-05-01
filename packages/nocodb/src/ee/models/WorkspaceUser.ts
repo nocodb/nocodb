@@ -1,5 +1,6 @@
 import { ProjectRoles } from 'nocodb-sdk';
 import { User } from 'src/models';
+import type { WorkspaceUserRoles } from 'nocodb-sdk';
 import Noco from '~/Noco';
 import {
   CacheDelDirection,
@@ -155,7 +156,7 @@ export default class WorkspaceUser {
   }
 
   static async workspaceList(
-    { fk_user_id }: { fk_user_id: any },
+    { fk_user_id, fk_org_id }: { fk_user_id: any; fk_org_id?: string },
     ncMeta = Noco.ncMeta,
   ) {
     // todo: caching
@@ -179,6 +180,10 @@ export default class WorkspaceUser {
         `${MetaTable.WORKSPACE_USER}.roles as roles`,
       )
       .where(`${MetaTable.WORKSPACE}.deleted`, false);
+
+    if (fk_org_id) {
+      queryBuilder.where(`${MetaTable.WORKSPACE}.fk_org_id`, fk_org_id);
+    }
 
     // todo : pagination
     // .offset(offset)
@@ -256,7 +261,12 @@ export default class WorkspaceUser {
     {
       fk_workspace_id,
       include_deleted = false,
-    }: { fk_workspace_id: any; include_deleted?: boolean },
+      roles,
+    }: {
+      fk_workspace_id: any;
+      include_deleted?: boolean;
+      roles?: WorkspaceUserRoles;
+    },
     ncMeta = Noco.ncMeta,
   ) {
     const cachedList = await NocoCache.getList(CacheScope.WORKSPACE_USER, [
@@ -304,6 +314,12 @@ export default class WorkspaceUser {
     if (!include_deleted) {
       workspaceUsers = workspaceUsers.filter(
         (workspaceUser) => !workspaceUser.deleted,
+      );
+    }
+
+    if (roles) {
+      workspaceUsers = workspaceUsers.filter(
+        (workspaceUser) => workspaceUser.roles === roles,
       );
     }
 

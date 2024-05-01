@@ -373,11 +373,16 @@ export class CellPageObject extends BasePage {
 
       await this.waitForResponse({
         uiAction: () =>
-          this.rootPage.locator(`[data-testid="nc-child-list-item"]`).last().click({ force: true, timeout: 3000 }),
+          this.rootPage
+            .locator(`[data-testid="nc-child-list-item"]`)
+            .last()
+            .locator('button.nc-list-item-link-unlink-btn')
+            .click({ force: true, timeout: 3000 }),
         requestUrlPathToMatch: '/api/v1/db/data/noco',
         httpMethodsToMatch: ['GET'],
       });
 
+      await this.rootPage.keyboard.press('Escape');
       await this.rootPage.keyboard.press('Escape');
     }
   }

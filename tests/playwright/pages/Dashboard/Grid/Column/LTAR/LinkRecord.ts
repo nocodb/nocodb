@@ -35,12 +35,16 @@ export class LinkRecord extends BasePage {
 
   async select(cardTitle: string) {
     await this.rootPage.waitForTimeout(100);
-    await this.get().locator(`.ant-card:has-text("${cardTitle}"):visible`).click();
+    await this.get()
+      .locator(`.ant-card:has-text("${cardTitle}"):visible`)
+      .locator('button.nc-list-item-link-unlink-btn')
+      .click();
     await this.close();
   }
 
   async close() {
-    await this.get().locator('.nc-close-btn').last().click();
+    // await this.get().locator('.nc-close-btn').last().click();
+    await this.rootPage.keyboard.press('Escape');
     await this.get().last().waitFor({ state: 'hidden' });
   }
 

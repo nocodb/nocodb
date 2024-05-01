@@ -344,7 +344,7 @@ const onFilterChange = () => {
           :table-title="meta?.title"
         />
       </div>
-      <div ref="childrenListRef" class="flex-1 overflow-auto nc-scrollbar-thin" :key="childrenListCount">
+      <div ref="childrenListRef" class="flex-1 overflow-auto nc-scrollbar-thin">
         <div v-if="isDataExist || isChildrenLoading">
           <div class="cursor-pointer">
             <template v-if="isChildrenLoading">

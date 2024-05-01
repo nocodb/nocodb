@@ -125,7 +125,7 @@ watch(
           </div>
 
           <div
-            v-if="!readOnly && (isUIAllowed('dataEdit') || isForm) && !isUnderLookup"
+            v-if="!readOnly && (isUIAllowed('dataEdit') || isForm) && !isUnderLookup && addIcon !== 'expand'"
             ref="plusBtnRef"
             class="flex-none flex group items-center min-w-4"
             tabindex="0"

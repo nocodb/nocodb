@@ -72,9 +72,9 @@ watch([ncLinksDropdownRef, isOpen], () => {
 
 <style lang="scss" scoped>
 .nc-links-dropdown {
-  z-index: 999 !important;
+  z-index: 1000 !important;
 }
 .nc-link-dropdown-root {
-  z-index: 800;
+  z-index: 1000;
 }
 </style>

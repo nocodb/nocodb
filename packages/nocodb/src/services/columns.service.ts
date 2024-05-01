@@ -6,7 +6,7 @@ import {
   isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
   isVirtualCol,
-  partialUpdateAllowedTypes,
+ partialUpdateAllowedTypes,
   readonlyMetaAllowedTypes,
   RelationTypes,
   substituteColumnAliasWithIdInFormula,
@@ -2817,130 +2817,6 @@ export class ColumnsService {
       reuse?: ReusableParams;
       colExtra?: any;
   }) {
-    if ((param.column as any).is_custom_link) {
-      validateParams(['custom'], param.column as any);
-      validateParams(
-        ['column_id', 'ref_model_id', 'ref_column_id'],
-        (param.column as any).custom,
-      );
-
-      const ltarCustomPRops: {
-        column_id: string;
-        ref_model_id: string;
-        ref_column_id: string;
-        junc_model_id: string;
-        junc_column_id: string;
-        junc_ref_column_id: string;
-      } = (param.column as any).custom;
-
-      const child = await Model.get(ltarCustomPRops.ref_model_id);
-      const parent = await Model.get(param.tableId);
-
-      const childColumn = await Column.get({
-        colId: ltarCustomPRops.ref_column_id,
-      });
-      const parentColumn = await Column.get({
-        colId: ltarCustomPRops.column_id,
-      });
-
-      if (
-        (param.column as LinkToAnotherColumnReqType).type === 'hm' ||
-        (param.column as LinkToAnotherColumnReqType).type === 'bt'
-      ) {
-        await createHmAndBtColumn(
-          child,
-          parent,
-          childColumn,
-          (param.column as LinkToAnotherColumnReqType).type as RelationTypes,
-          (param.column as LinkToAnotherColumnReqType).title,
-          null,
-          (param.column as LinkToAnotherColumnReqType).virtual,
-          null,
-          param.column['meta'],
-          true,
-          param.colExtra,
-          parentColumn,
-          true,
-        );
-      } else if ((param.column as LinkToAnotherColumnReqType).type === 'oo') {
-        await createOOColumn(
-          child,
-          parent,
-          childColumn,
-          (param.column as LinkToAnotherColumnReqType).type as RelationTypes,
-          (param.column as LinkToAnotherColumnReqType).title,
-          null,
-          (param.column as LinkToAnotherColumnReqType).virtual,
-          null,
-          param.column['meta'],
-          param.colExtra,
-          parentColumn,
-          true,
-        );
-      } else if ((param.column as LinkToAnotherColumnReqType).type === 'mm') {
-        await Column.insert({
-          title: getUniqueColumnAliasName(
-            await child.getColumns(),
-            pluralize(parent.title),
-          ),
-          uidt: param.column.uidt,
-          type: 'mm',
-
-          // ref_db_alias
-          fk_model_id: child.id,
-          // db_type:
-
-          fk_child_column_id: childColumn.id,
-          fk_parent_column_id: parentColumn.id,
-
-          fk_mm_model_id: ltarCustomPRops.junc_model_id,
-          fk_mm_child_column_id: ltarCustomPRops.junc_ref_column_id,
-          fk_mm_parent_column_id: ltarCustomPRops.junc_column_id,
-          fk_related_model_id: parent.id,
-          virtual: (param.column as LinkToAnotherColumnReqType).virtual,
-          meta: {
-            plural: pluralize(parent.title),
-            singular: singularize(parent.title),
-            custom: true,
-          },
-          // if self referencing treat it as system field to hide from ui
-          system: parent.id === child.id,
-        });
-        await Column.insert({
-          title: getUniqueColumnAliasName(
-            await parent.getColumns(),
-            param.column.title ?? pluralize(child.title),
-          ),
-
-          uidt: param.column.uidt,
-          type: 'mm',
-
-          fk_model_id: parent.id,
-
-          fk_mm_model_id: ltarCustomPRops.junc_model_id,
-          fk_mm_child_column_id: ltarCustomPRops.junc_column_id,
-          fk_mm_parent_column_id: ltarCustomPRops.junc_ref_column_id,
-
-          fk_child_column_id: parentColumn.id,
-          fk_parent_column_id: childColumn.id,
-
-          fk_related_model_id: child.id,
-          virtual: (param.column as LinkToAnotherColumnReqType).virtual,
-          meta: {
-            plural: param.column['meta']?.plural || pluralize(child.title),
-            singular:
-              param.column['meta']?.singular || singularize(child.title),
-            custom: true,
-          },
-
-          // column_order and view_id if provided
-          ...param.colExtra,
-        });
-      }
-
-      return;
-    }
-
     validateParams(['parentId', 'childId', 'type'], param.column);
 
     const reuse = param.reuse ?? {};

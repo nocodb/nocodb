@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { iconMap } from '#imports'
+import type { iconMap } from '#imports'
 
 const props = withDefaults(
   defineProps<{

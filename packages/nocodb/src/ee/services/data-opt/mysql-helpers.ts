@@ -334,7 +334,8 @@ export async function extractColumn({
                     rootAlias,
                     sanitize(childColumn.column_name),
                   ]),
-                ).first();
+                )
+                .first();
 
               // apply filters on nested query
               await conditionV2(baseModel, queryFilterObj, btQb);
@@ -411,7 +412,8 @@ export async function extractColumn({
                       rootAlias,
                       sanitize(childColumn.column_name),
                     ]),
-                  ).first();
+                  )
+                  .first();
 
                 // apply filters on nested query
                 await conditionV2(baseModel, queryFilterObj, btQb);

@@ -40,6 +40,8 @@ const childListDlg = ref(false)
 
 const isOpen = ref(false)
 
+const hideBackBtn = ref(false)
+
 const { isUIAllowed } = useRoles()
 
 const { state, isNew, removeLTARRef } = useSmartsheetRowStoreOrThrow()
@@ -83,11 +85,31 @@ const unlinkRef = async (rec: Record<string, any>) => {
 const onAttachRecord = () => {
   childListDlg.value = false
   listItemsDlg.value = true
+  hideBackBtn.value = false
 }
 
 const onAttachLinkedRecord = () => {
   listItemsDlg.value = false
   childListDlg.value = true
+}
+
+const openChildList = () => {
+  if (isUnderLookup.value) return
+
+  childListDlg.value = true
+  listItemsDlg.value = false
+
+  isOpen.value = true
+  hideBackBtn.value = false
+}
+
+const openListDlg = () => {
+  if (isUnderLookup.value) return
+
+  listItemsDlg.value = true
+  childListDlg.value = false
+  isOpen.value = true
+  hideBackBtn.value = true
 }
 
 useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEvent) => {
@@ -139,7 +161,7 @@ watch(
             @unlink="unlinkRef(cell.item)"
           />
 
-          <span v-if="cells?.length === 10" class="caption pointer ml-1 grey--text" @click.stop="childListDlg = true">
+          <span v-if="cells?.length === 10" class="caption pointer ml-1 grey--text" @click.stop="openChildList">
             more...
           </span>
         </template>
@@ -149,14 +171,14 @@ watch(
         <GeneralIcon
           icon="expand"
           class="text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 nc-arrow-expand"
-          @click.stop="childListDlg = true"
+          @click.stop="openChildList"
         />
 
         <GeneralIcon
           v-if="!readOnly && isUIAllowed('dataEdit')"
           icon="plus"
           class="text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 nc-plus"
-          @click.stop="listItemsDlg = true"
+          @click.stop="openListDlg"
         />
       </div>
     </div>
@@ -173,6 +195,7 @@ watch(
         v-if="listItemsDlg"
         v-model="listItemsDlg"
         :column="m2mColumn"
+        :hide-back-btn="hideBackBtn"
         @attach-linked-record="onAttachLinkedRecord"
       />
     </template>

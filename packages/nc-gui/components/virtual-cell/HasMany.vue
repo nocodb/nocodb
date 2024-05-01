@@ -39,6 +39,8 @@ const childListDlg = ref(false)
 
 const isOpen = ref(false)
 
+const hideBackBtn = ref(false)
+
 const { isUIAllowed } = useRoles()
 
 const { state, isNew, removeLTARRef } = useSmartsheetRowStoreOrThrow()
@@ -87,11 +89,31 @@ const hasManyColumn = computed(
 const onAttachRecord = () => {
   childListDlg.value = false
   listItemsDlg.value = true
+  hideBackBtn.value = false
 }
 
 const onAttachLinkedRecord = () => {
   listItemsDlg.value = false
   childListDlg.value = true
+}
+
+const openChildList = () => {
+  if (isUnderLookup.value) return
+
+  childListDlg.value = true
+  listItemsDlg.value = false
+
+  isOpen.value = true
+  hideBackBtn.value = false
+}
+
+const openListDlg = () => {
+  if (isUnderLookup.value) return
+
+  listItemsDlg.value = true
+  childListDlg.value = false
+  isOpen.value = true
+  hideBackBtn.value = true
 }
 
 useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEvent) => {
@@ -138,9 +160,7 @@ watch(
             @unlink="unlinkRef(cell.item)"
           />
 
-          <span v-if="cellValue?.length === 10" class="caption pointer ml-1 grey--text" @click="childListDlg = true">
-            more...
-          </span>
+          <span v-if="cellValue?.length === 10" class="caption pointer ml-1 grey--text" @click="openChildList"> more... </span>
         </template>
       </div>
 
@@ -148,14 +168,14 @@ watch(
         <GeneralIcon
           icon="expand"
           class="select-none transform text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 nc-arrow-expand"
-          @click.stop="childListDlg = true"
+          @click.stop="openChildList"
         />
 
         <GeneralIcon
           v-if="(!readOnly && isUIAllowed('dataEdit')) || isForm"
           icon="plus"
           class="select-none text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 nc-plus"
-          @click.stop="listItemsDlg = true"
+          @click.stop="openListDlg"
         />
       </div>
     </div>
@@ -164,6 +184,7 @@ watch(
         v-if="listItemsDlg"
         v-model="listItemsDlg"
         :column="hasManyColumn"
+        :hide-back-btn="hideBackBtn"
         @attach-linked-record="onAttachLinkedRecord"
       />
 

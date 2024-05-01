@@ -27,6 +27,8 @@ const childListDlg = ref(false)
 
 const isOpen = ref(false)
 
+const hideBackBtn = ref(false)
+
 const { isUIAllowed } = useRoles()
 
 const { t } = useI18n()
@@ -74,6 +76,7 @@ const toatlRecordsLinked = computed(() => {
 const onAttachRecord = () => {
   childListDlg.value = false
   listItemsDlg.value = true
+  hideBackBtn.value = false
 }
 
 const onAttachLinkedRecord = () => {
@@ -88,6 +91,7 @@ const openChildList = () => {
   listItemsDlg.value = false
 
   isOpen.value = true
+  hideBackBtn.value = false
 }
 
 useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEvent) => {
@@ -114,6 +118,7 @@ const openListDlg = () => {
   listItemsDlg.value = true
   childListDlg.value = false
   isOpen.value = true
+  hideBackBtn.value = true
 }
 
 const plusBtnRef = ref<HTMLElement | null>(null)
@@ -198,6 +203,7 @@ watch(
           v-if="listItemsDlg"
           v-model="listItemsDlg"
           :column="relatedTableDisplayColumn"
+          :hide-back-btn="hideBackBtn"
           @attach-linked-record="onAttachLinkedRecord"
         />
       </template>

@@ -131,20 +131,63 @@ watch([listItemsDlg], () => {
     plusBtnRef.value?.focus()
   }
 })
+const ncLinksDropdownRef = ref<HTMLDivElement>()
 
-watch(isOpen, (value) => {
-  if (!value) {
-    setTimeout(() => {
+const randomClass = `link-records_${Math.floor(Math.random() * 99999)}`
+
+const addOrRemoveClass = (add: boolean = false) => {
+  const dropdownRoot = ncLinksDropdownRef.value?.parentElement?.parentElement?.parentElement?.parentElement as HTMLElement
+  if (dropdownRoot) {
+    if (add) {
+      dropdownRoot.classList.add('inset-0', 'nc-link-dropdown-root')
+    } else {
+      dropdownRoot.classList.remove('inset-0', 'nc-link-dropdown-root')
+    }
+  }
+}
+
+watch(
+  isOpen,
+  (next) => {
+    if (next) {
+      onClickOutside(document.querySelector(`.${randomClass}`)! as HTMLDivElement, (e) => {
+        const targetEl = e?.target as HTMLElement
+        if (!targetEl?.classList.contains('nc-link-dropdown-root') || targetEl?.closest(`.nc-${randomClass}`)) {
+          return
+        }
+        isOpen.value = false
+        listItemsDlg.value = false
+        childListDlg.value = false
+        addOrRemoveClass(false)
+      })
+    } else {
       listItemsDlg.value = false
       childListDlg.value = false
-    }, 0)
+      addOrRemoveClass(false)
+    }
+  },
+  { flush: 'post' },
+)
+
+watch([ncLinksDropdownRef, isOpen], () => {
+  // let dropdown = document.querySelector(`.${randomClass}`)
+  if (!ncLinksDropdownRef.value) return
+
+  if (isOpen) {
+    addOrRemoveClass(true)
+  } else {
+    addOrRemoveClass(false)
   }
 })
 </script>
 
 <template>
-  <div class="nc-cell-field flex w-full group items-center nc-links-wrapper py-1" @dblclick.stop="openChildList">
-    <NcDropdown v-model:visible="isOpen">
+  <div
+    class="nc-cell-field flex w-full group items-center nc-links-wrapper py-1"
+    :class="`.nc-${randomClass}`"
+    @dblclick.stop="openChildList"
+  >
+    <NcDropdown :visible="isOpen" placement="bottom" overlay-class-name="nc-links-dropdown !z-[999]">
       <div class="flex w-full group items-center">
         <div class="block flex-shrink truncate">
           <component
@@ -178,7 +221,7 @@ watch(isOpen, (value) => {
         </div>
       </div>
       <template #overlay>
-        <div class="h-[412px] w-[600px]">
+        <div ref="ncLinksDropdownRef" class="h-[412px] w-[600px]" :class="`${randomClass}`">
           <LazyVirtualCellComponentsLinkedItems
             v-if="childListDlg"
             v-model="childListDlg"
@@ -198,3 +241,9 @@ watch(isOpen, (value) => {
     </NcDropdown>
   </div>
 </template>
+
+<style lang="scss">
+.nc-links-dropdown {
+  z-index: 999 !important;
+}
+</style>

@@ -34,6 +34,8 @@ const isForm = inject(IsFormInj, ref(false))
 
 const isPublic = inject(IsPublicInj, ref(false))
 
+const isExpandedFormCloseAfterSave = ref(false)
+
 const injectedColumn = inject(ColumnInj, ref())
 
 const readOnly = inject(ReadonlyInj, ref(false))
@@ -70,7 +72,6 @@ watch(
     if ((nextVal[0] || nextVal[1]) && !isNew.value) {
       loadChildrenList()
     }
-    console.log('nextVal', nextVal)
 
     // reset offset count when closing modal
     if (!nextVal[0]) {
@@ -117,6 +118,41 @@ const onClick = (row: Row) => {
   expandedFormRow.value = row
   expandedFormDlg.value = true
 }
+const addNewRecord = () => {
+  expandedFormRow.value = {}
+  expandedFormDlg.value = true
+  isExpandedFormCloseAfterSave.value = true
+}
+
+const onCreatedRecord = (record: any) => {
+  const msgVNode = h(
+    'div',
+    {
+      class: 'ml-1 inline-flex flex-col gap-1 items-start',
+    },
+    [
+      h(
+        'span',
+        {
+          class: 'font-semibold',
+        },
+        t('activity.recordCreatedLinked'),
+      ),
+      h(
+        'span',
+        {
+          class: 'text-gray-500',
+        },
+        t('activity.gotSavedLinkedSuccessfully', {
+          tableName: relatedTableMeta.value?.title,
+          recordTitle: record[relatedTableDisplayValueProp.value],
+        }),
+      ),
+    ],
+  )
+
+  message.success(msgVNode)
+}
 
 const relation = computed(() => {
   return injectedColumn!.value?.colOptions?.type
@@ -130,6 +166,9 @@ watch(
 )
 
 watch(expandedFormDlg, () => {
+  if (!expandedFormDlg.value) {
+    isExpandedFormCloseAfterSave.value = false
+  }
   childrenExcludedOffsetCount.value = 0
   childrenListOffsetCount.value = 0
 })
@@ -197,6 +236,7 @@ const linkedShortcuts = (e: KeyboardEvent) => {
       e.target?.previousElementSibling?.focus()
     } catch (e) {}
   } else if (!expandedFormDlg.value && e.key !== 'Tab' && e.key !== 'Shift' && e.key !== 'Enter' && e.key !== ' ') {
+    console.log('last')
     try {
       filterQueryRef.value?.focus()
     } catch (e) {}
@@ -205,6 +245,10 @@ const linkedShortcuts = (e: KeyboardEvent) => {
 
 onMounted(() => {
   window.addEventListener('keydown', linkedShortcuts)
+
+  setTimeout(() => {
+    filterQueryRef.value?.focus()
+  }, 100)
 })
 
 const childrenListRef = ref<HTMLDivElement>()
@@ -251,9 +295,9 @@ const onFilterChange = () => {
           </a-input>
         </div>
       </div>
-      <div ref="childrenListRef" class="flex flex-col flex-grow nc-scrollbar-md cursor-pointer pr-1">
-        <div v-if="isDataExist || isChildrenLoading" class="mt-2 mb-2">
-          <div class="cursor-pointer pr-1">
+      <div ref="childrenListRef" class="flex-1 overflow-auto nc-scrollbar-thin py-1.5">
+        <div v-if="isDataExist || isChildrenLoading">
+          <div class="cursor-pointer">
             <template v-if="isChildrenLoading">
               <div
                 v-for="(_x, i) in Array.from({ length: skeletonCount })"
@@ -303,6 +347,23 @@ const onFilterChange = () => {
               />
             </template>
           </div>
+          <template v-if="!isNew && childrenList?.pageInfo && +childrenList.pageInfo.totalRows! > childrenListPagination.size">
+            <div v-if="isMobileMode" class="flex justify-center items-center w-full my-2">
+              <NcPagination
+                v-model:current="childrenListPagination.page"
+                v-model:page-size="childrenListPagination.size"
+                :total="+childrenList.pageInfo.totalRows!"
+              />
+            </div>
+            <div v-else class="flex justify-center items-center my-2">
+              <NcPagination
+                v-model:current="childrenListPagination.page"
+                v-model:page-size="childrenListPagination.size"
+                :total="+childrenList.pageInfo.totalRows!"
+                mode="simple"
+              />
+            </div>
+          </template>
         </div>
         <div v-else class="pt-1 flex flex-col gap-2 my-auto items-center justify-center text-gray-500 text-center">
           <img
@@ -327,27 +388,20 @@ const onFilterChange = () => {
         </div>
       </div>
 
-      <div v-if="isMobileMode" class="flex flex-row justify-center items-center w-full my-2">
-        <NcPagination
-          v-if="!isNew && childrenList?.pageInfo"
-          v-model:current="childrenListPagination.page"
-          v-model:page-size="childrenListPagination.size"
-          :total="+childrenList.pageInfo.totalRows!"
-        />
-      </div>
-
-      <div class="bg-gray-100 p-3 rounded-b-md flex items-center justify-end gap-3">
-        <div class="!xs:hidden flex-1 flex items-center justify-end">
-          <NcPagination
-            v-if="!isNew && childrenList?.pageInfo"
-            v-model:current="childrenListPagination.page"
-            v-model:page-size="childrenListPagination.size"
-            :total="+childrenList.pageInfo.totalRows!"
-            mode="simple"
-          />
+      <div class="bg-gray-100 p-3 rounded-b-md flex items-center justify-between gap-3">
+        <div v-if="!isForm" class="flex items-center justify-center px-2 rounded-md text-brand-500 bg-brand-100">
+          {{ totalItemsToShow || 0 }} {{ !isMobileMode ? $t('general.linked') : '' }}
+          {{ !isMobileMode ? (totalItemsToShow === 1 ? $t('objects.record') : $t('objects.records')) : '' }}
         </div>
+        <div v-else class="flex items-center justify-center px-2 rounded-md text-brand-500 bg-brand-100">
+          <span>
+            {{ state?.[colTitle]?.length || 0 }} {{ $t('general.linked') }}
+            {{ state?.[colTitle]?.length === 1 ? $t('objects.record') : $t('objects.records') }}
+          </span>
+        </div>
+
         <div class="flex items-center gap-2">
-          <NcButton v-if="!isPublic" v-e="['c:row-expand:open']" size="small" class="" type="secondary">
+          <NcButton v-if="!isPublic" v-e="['c:row-expand:open']" size="small" class="" type="secondary" @click="addNewRecord">
             <div class="flex items-center gap-1">
               <MdiPlus v-if="!isMobileMode" class="h-4 w-4" /> {{ $t('activity.newRecord') }}
             </div>
@@ -373,7 +427,15 @@ const onFilterChange = () => {
       <LazySmartsheetExpandedForm
         v-if="expandedFormRow && expandedFormDlg"
         v-model="expandedFormDlg"
+        :close-after-save="isExpandedFormCloseAfterSave"
         :meta="relatedTableMeta"
+        :new-record-header="
+          isExpandedFormCloseAfterSave
+            ? $t('activity.tableNameCreateNewRecord', {
+                tableName: relatedTableMeta?.title,
+              })
+            : undefined
+        "
         :row="{
           row: expandedFormRow,
           oldRow: expandedFormRow,
@@ -384,8 +446,10 @@ const onFilterChange = () => {
                   new: true,
                 },
         }"
+        :state="newRowState"
         :row-id="extractPkFromRow(expandedFormRow, relatedTableMeta.columns as ColumnType[])"
         use-meta-fields
+        @created-record="onCreatedRecord"
       />
     </Suspense>
   </div>

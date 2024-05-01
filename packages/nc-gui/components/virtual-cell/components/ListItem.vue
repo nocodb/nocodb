@@ -88,116 +88,113 @@ const displayValue = computed(() => {
 </script>
 
 <template>
-  <a-card
-    tabindex="0"
-    class="nc-list-item !outline-brand-500 !border-1 group transition-all !rounded-xl relative !mb-2 !border-gray-200 hover:bg-gray-50"
-    :class="{
-      '!bg-white': isLoading,
-      '!border-1': isLinked && !isLoading,
-      '!cursor-auto !hover:bg-white': readOnly,
-    }"
-    :body-style="{ padding: 0 }"
-    :hoverable="false"
-  >
-    <div class="flex flex-row items-center justify-start w-full">
-      <a-carousel v-if="attachment && attachments && attachments.length" autoplay class="!w-24 !h-24 !max-h-24 !max-w-24">
-        <template #customPaging> </template>
-        <template v-for="(attachmentObj, index) in attachments">
-          <LazyCellAttachmentImage
-            v-if="isImage(attachmentObj.title, attachmentObj.mimetype ?? attachmentObj.type)"
-            :key="`carousel-${attachmentObj.title}-${index}`"
-            class="!h-24 !w-24 !max-h-24 !max-w-24 object-cover !rounded-l-xl"
-            :srcs="getPossibleAttachmentSrc(attachmentObj)"
-          />
-        </template>
-      </a-carousel>
-      <div
-        v-else-if="attachment"
-        class="h-24 w-24 !min-h-24 !min-w-24 !max-h-24 !max-w-24 !flex flex-row items-center !rounded-l-xl justify-center"
-      >
-        <GeneralIcon class="w-full h-full !text-6xl !leading-10 !text-transparent rounded-lg" icon="fileImage" />
-      </div>
-
-      <div class="flex flex-col m-[.75rem] gap-1 flex-grow justify-center overflow-hidden">
-        <div class="flex justify-between xs:gap-x-2">
-          <span class="font-semibold text-brand-500 nc-display-value xs:(truncate)">
-            {{ displayValue }}
-          </span>
-          <div
-            v-if="isLinked && !isLoading"
-            class="text-brand-500 text-0.875"
-            :class="{
-              '!group-hover:mr-12': fields.length === 0 && !readOnly,
-            }"
-          >
-            <LinkIcon class="w-4 h-4" />
-            Linked
-          </div>
-          <MdiLoading
-            v-else-if="isLoading"
-            :class="{
-              '!group-hover:mr-8': fields.length === 0 && !readOnly,
-            }"
-            class="w-6 h-6 !text-brand-500 animate-spin"
-          />
+  <div class="nc-list-item-wrapper group p-[2px] hover:bg-gray-50">
+    <a-card
+      tabindex="0"
+      class="nc-list-item !outline-none transition-all relative group-hover:bg-gray-50"
+      :class="{
+        '!bg-white': isLoading,
+        '!cursor-auto !hover:bg-white': readOnly,
+      }"
+      :body-style="{ padding: '6px 10px !important', borderRadius: 0 }"
+      :hoverable="false"
+    >
+      <div class="flex items-center gap-3">
+        <div v-if="isLoading" class="flex">
+          <MdiLoading class="flex-none w-7 h-7 !text-brand-500 animate-spin" />
         </div>
 
-        <div
-          v-if="fields.length > 0 && !isPublic && !isForm"
-          class="flex ml-[-0.25rem] sm:flex-row xs:(flex-col mt-2) gap-4 w-10/12"
+        <button
+          v-else
+          tabindex="-1"
+          class="nc-list-item-link-unlink-btn p-1.5 flex rounded-lg transition-all"
+          :class="{
+            'bg-red-100 text-red-500 hover:bg-red-200': isLinked,
+            'bg-green-100 text-green-500 hover:bg-green-200': !isLinked,
+          }"
         >
-          <div v-for="field in fields" :key="field.id" :class="attachment ? 'sm:w-1/3' : 'sm:w-1/4'">
-            <div class="flex flex-col gap-[-1] max-w-72">
-              <LazySmartsheetHeaderVirtualCell
-                v-if="isVirtualCol(field)"
-                class="!scale-60"
-                :column="field"
-                :hide-menu="true"
-                :hide-icon="true"
-              />
-              <LazySmartsheetHeaderCell v-else class="!scale-70" :column="field" :hide-menu="true" :hide-icon="true" />
-
-              <div v-if="!isRowEmpty(row, field)">
-                <LazySmartsheetVirtualCell v-if="isVirtualCol(field)" v-model="row[field.title]" :row="row" :column="field" />
-                <LazySmartsheetCell
-                  v-else
-                  v-model="row[field.title]"
-                  class="!text-gray-600 ml-1"
-                  :column="field"
-                  :edit-enabled="false"
-                  :read-only="true"
+          <GeneralIcon :icon="isLinked ? 'minus' : 'plus'" class="flex-none w-4 h-4" />
+        </button>
+        <template v-if="attachment">
+          <div v-if="attachments && attachments.length">
+            <a-carousel autoplay class="!w-11 !h-11 !max-h-11 !max-w-11">
+              <template #customPaging> </template>
+              <template v-for="(attachmentObj, index) in attachments">
+                <LazyCellAttachmentImage
+                  v-if="isImage(attachmentObj.title, attachmentObj.mimetype ?? attachmentObj.type)"
+                  :key="`carousel-${attachmentObj.title}-${index}`"
+                  class="!w-11 !h-11 !max-h-11 !max-w-11object-cover !rounded-l-xl"
+                  :srcs="getPossibleAttachmentSrc(attachmentObj)"
                 />
+              </template>
+            </a-carousel>
+          </div>
+          <div
+            v-else
+            class="h-11 w-11 !min-h-11 !min-w-11 !max-h-11 !max-w-11 !flex flex-row items-center !rounded-l-xl justify-center"
+          >
+            <GeneralIcon class="w-full h-full !text-6xl !leading-10 !text-transparent rounded-lg" icon="fileImage" />
+          </div>
+        </template>
+
+        <div class="flex-1 flex flex-col gap-1 justify-center overflow-hidden">
+          <div class="flex justify-start">
+            <span class="font-semibold text-brand-500 nc-display-value xs:(truncate) leading-[20px]">
+              {{ displayValue }}
+            </span>
+          </div>
+
+          <div v-if="fields.length > 0 && !isPublic && !isForm" class="flex ml-[-0.25rem] sm:flex-row xs:(flex-col mt-2) gap-4">
+            <div v-for="field in fields" :key="field.id" :class="attachment ? 'sm:w-1/3' : 'sm:w-1/4'">
+              <div v-if="!isRowEmpty(row, field)" class="flex flex-col gap-[-1] max-w-72">
+                <div>
+                  <LazySmartsheetVirtualCell v-if="isVirtualCol(field)" v-model="row[field.title]" :row="row" :column="field" />
+                  <LazySmartsheetCell
+                    v-else
+                    v-model="row[field.title]"
+                    class="!text-gray-600 ml-1"
+                    :column="field"
+                    :edit-enabled="false"
+                    :read-only="true"
+                  />
+                </div>
               </div>
-              <div v-else class="flex flex-row w-full h-[1.375rem] pl-1 items-center justify-start">-</div>
+              <div v-else class="flex flex-row w-full max-w-72 h-5 pl-1 items-center justify-start">-</div>
             </div>
           </div>
         </div>
+        <div v-if="!isForm && !isPublic && !readOnly" class="flex-none flex items-center w-7">
+          <button
+            :tabindex="-1"
+            v-e="['c:row-expand:open']"
+            class="!p-1 nc-expand-item !group-hover:visible !invisible !h-7 !w-7"
+            @click.stop="$emit('expand', row)"
+          >
+            <MaximizeIcon class="flex-none w-4 h-4" />
+          </button>
+        </div>
       </div>
-    </div>
-    <NcButton
-      v-if="!isForm && !isPublic && !readOnly"
-      v-e="['c:row-expand:open']"
-      type="text"
-      size="medium"
-      class="!px-2 nc-expand-item !group-hover:block !hidden !border-1 !shadow-sm !border-gray-200 !bg-white !absolute right-3 bottom-3"
-      :class="{
-        '!group-hover:right-1.8 !group-hover:bottom-1.7': fields.length === 0,
-      }"
-      @click.stop="$emit('expand', row)"
-    >
-      <MaximizeIcon class="w-4 h-4" />
-    </NcButton>
-  </a-card>
+    </a-card>
+  </div>
 </template>
 
 <style lang="scss" scoped>
 :deep(.slick-list) {
   @apply rounded-lg;
 }
+.nc-list-item-link-unlink-btn {
+  box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.06), 0px 5px 3px -2px rgba(0, 0, 0, 0.02);
+}
 </style>
 
 <style lang="scss">
 .nc-list-item {
+  @apply border-1 border-transparent rounded-md;
+
+  &:focus-visible {
+    @apply border-brand-500;
+    box-shadow: 0 0 0 1px #3366ff;
+  }
   &:hover {
     .nc-text-area-expand-btn {
       @apply !hidden;

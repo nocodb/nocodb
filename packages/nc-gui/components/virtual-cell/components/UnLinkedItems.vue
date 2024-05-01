@@ -253,6 +253,10 @@ watch(childrenExcludedListPagination, () => {
 
 onMounted(() => {
   window.addEventListener('keydown', linkedShortcuts)
+
+  setTimeout(() => {
+    filterQueryRef.value?.focus()
+  }, 100)
 })
 
 onUnmounted(() => {
@@ -292,9 +296,9 @@ const onFilterChange = () => {
           </a-input>
         </div>
       </div>
-      <div class="flex-1 overflow-auto nc-scrollbar-thin">
+      <div class="flex-1 overflow-auto nc-scrollbar-thin py-1.5">
         <template v-if="childrenExcludedList?.pageInfo?.totalRows">
-          <div ref="childrenExcludedListRef" class="overflow-scroll nc-scrollbar-md pr-1 cursor-pointer flex flex-col flex-grow">
+          <div ref="childrenExcludedListRef">
             <template v-if="isChildrenExcludedLoading">
               <div
                 v-for="(_x, i) in Array.from({ length: 10 })"
@@ -349,6 +353,29 @@ const onFilterChange = () => {
               />
             </template>
           </div>
+          <template
+            v-if="
+              childrenExcludedList?.pageInfo && +childrenExcludedList?.pageInfo?.totalRows > childrenExcludedListPagination.size
+            "
+          >
+            <div v-if="isMobileMode" class="flex justify-center items-center w-full my-2">
+              <NcPagination
+                v-model:current="childrenExcludedListPagination.page"
+                v-model:page-size="childrenExcludedListPagination.size"
+                :total="+childrenExcludedList?.pageInfo?.totalRows"
+                entity-name="links-excluded-list"
+              />
+            </div>
+            <div v-else class="flex justify-center items-center my-2">
+              <NcPagination
+                v-model:current="childrenExcludedListPagination.page"
+                v-model:page-size="childrenExcludedListPagination.size"
+                :total="+childrenExcludedList?.pageInfo?.totalRows"
+                entity-name="links-excluded-list"
+                mode="simple"
+              />
+            </div>
+          </template>
         </template>
         <div v-else class="my-auto py-2 flex flex-col gap-3 items-center justify-center text-gray-500">
           <InboxIcon class="w-16 h-16 mx-auto" />
@@ -357,31 +384,11 @@ const onFilterChange = () => {
             {{ relatedTableMeta?.title }}
           </p>
         </div>
-
-        <div v-if="isMobileMode" class="flex flex-row justify-center items-center w-full my-2">
-          <NcPagination
-            v-if="childrenExcludedList?.pageInfo"
-            v-model:current="childrenExcludedListPagination.page"
-            v-model:page-size="childrenExcludedListPagination.size"
-            :total="+childrenExcludedList?.pageInfo?.totalRows"
-            entity-name="links-excluded-list"
-          />
-        </div>
       </div>
       <div class="bg-gray-100 p-3 rounded-b-md flex items-center justify-between">
         <NcButton size="small" class="!text-gray-800 hover:!text-gray-600" type="link" @click="emit('attachLinkedRecord')">
           <div class="flex items-center gap-1"><GeneralIcon icon="ncArrowLeft" class="h-4 w-4" /> Linked Records</div>
         </NcButton>
-        <div class="!xs:hidden flex items-center justify-center flex-1 relative">
-          <NcPagination
-            v-if="childrenExcludedList?.pageInfo"
-            v-model:current="childrenExcludedListPagination.page"
-            v-model:page-size="childrenExcludedListPagination.size"
-            :total="+childrenExcludedList?.pageInfo?.totalRows"
-            entity-name="links-excluded-list"
-            mode="simple"
-          />
-        </div>
 
         <div class="flex">
           <NcButton v-if="!isPublic" v-e="['c:row-expand:open']" size="small" class="" type="secondary" @click="addNewRecord">

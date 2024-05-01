@@ -391,9 +391,30 @@ export default class Model implements TableType {
     }
     if (modelData) {
       const m = new Model(modelData);
-      const columns = await m.getColumns(ncMeta);
+      await m.getColumns(ncMeta);
       await m.getViews(false, ncMeta);
-      m.columnsById = columns.reduce((agg, c) => ({ ...agg, [c.id]: c }), {});
+
+      const defaultViewColumns = await View.getColumns(
+        m.views.find((view) => view.is_default).id,
+      );
+
+      const defaultViewColumnMap = defaultViewColumns.reduce((acc, col) => {
+        acc[col.fk_column_id] = col.order;
+        return acc;
+      }, {} as Record<string, number>);
+
+      m.columns = m.columns.map(
+        (col) =>
+          ({
+            ...col,
+            meta: {
+              ...(col.meta || {}),
+              defaultViewColOrder: defaultViewColumnMap[col.id],
+            },
+          } as Column<any>),
+      );
+
+      m.columnsById = m.columns.reduce((agg, c) => ({ ...agg, [c.id]: c }), {});
       return m;
     }
     return null;

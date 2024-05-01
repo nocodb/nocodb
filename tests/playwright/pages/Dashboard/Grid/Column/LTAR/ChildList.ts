@@ -22,7 +22,7 @@ export class ChildList extends BasePage {
 
     // child list body validation (card count, card title)
     const cardCount = cardTitle.length;
-    await this.get().locator('.ant-modal-content').waitFor();
+    await this.get().locator('.nc-dropdown-link-record-header').waitFor();
     {
       let isOk = false;
       let count = 0;

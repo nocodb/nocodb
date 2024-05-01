@@ -49,6 +49,9 @@ export class LinkRecord extends BasePage {
   async close() {
     // await this.get().locator('.nc-close-btn').last().click();
     await this.rootPage.keyboard.press('Escape');
+    // let there be some time gap before second key press
+    await this.rootPage.waitForTimeout(200);
+    await this.rootPage.keyboard.press('Escape');
     await this.get().last().waitFor({ state: 'hidden' });
   }
 

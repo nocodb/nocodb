@@ -138,6 +138,8 @@ provide(MetaInj, meta)
 
 const isLoading = ref(true)
 
+const isSaving = ref(false)
+
 const {
   commentsDrawer,
   changedColumns,
@@ -208,6 +210,8 @@ const onDuplicateRow = () => {
 }
 
 const save = async () => {
+  isSaving.value = true
+
   let kanbanClbk
   if (activeView.value?.type === ViewTypes.KANBAN) {
     kanbanClbk = (row: any, isNewRow: boolean) => {
@@ -238,6 +242,8 @@ const save = async () => {
   }
 
   emits('createdRecord', _row.value.row)
+
+  isSaving.value = false
 }
 
 const isPreventChangeModalOpen = ref(false)
@@ -875,6 +881,7 @@ export default {
               <NcButton
                 v-e="['c:row-expand:save']"
                 :disabled="changedColumns.size === 0 && !isUnsavedFormExist"
+                :loading="isSaving"
                 class="nc-expand-form-save-btn !xs:(text-base)"
                 data-testid="nc-expanded-form-save"
                 type="primary"
@@ -921,7 +928,7 @@ export default {
       <div class="flex flex-row justify-end gap-x-2 mt-5">
         <NcButton type="secondary" @click="discardPreventModal">{{ $t('labels.discard') }}</NcButton>
 
-        <NcButton key="submit" type="primary" label="Rename Table" loading-label="Renaming Table" @click="saveChanges">
+        <NcButton key="submit" type="primary" :loading="isSaving" @click="saveChanges">
           {{ $t('tooltip.saveChanges') }}
         </NcButton>
       </div>

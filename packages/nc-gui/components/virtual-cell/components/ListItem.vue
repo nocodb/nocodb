@@ -92,7 +92,7 @@ const displayValue = computed(() => {
 </script>
 
 <template>
-  <div class="nc-list-item-wrapper group p-[2px] hover:bg-gray-50 border-b-1 border-b border-gray-200">
+  <div class="nc-list-item-wrapper group px-[1px] hover:bg-gray-50 border-y-1 border-gray-200 border-t-transparent">
     <a-card
       tabindex="0"
       class="nc-list-item !outline-none transition-all relative group-hover:bg-gray-50 cursor-auto"

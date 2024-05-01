@@ -61,7 +61,7 @@ watch([ncLinksDropdownRef, isOpen], () => {
 
 <template>
   <NcDropdown :visible="isOpen" placement="bottom" overlay-class-name="nc-links-dropdown" :class="`.nc-${randomClass}`">
-    <slot name="default" />
+    <slot />
     <template #overlay>
       <div ref="ncLinksDropdownRef" class="h-[412px] w-[540px]" :class="`${randomClass}`">
         <slot name="overlay" />

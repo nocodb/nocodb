@@ -14,7 +14,7 @@ import {
   useVModel,
 } from '#imports'
 
-const props = defineProps<{ modelValue: boolean; column: any }>()
+const props = defineProps<{ modelValue: boolean; column: any; hideBackBtn?: boolean }>()
 
 const emit = defineEmits(['update:modelValue', 'addNewRecord', 'attachLinkedRecord'])
 
@@ -288,7 +288,11 @@ const onFilterChange = () => {
     <div class="flex flex-col h-full">
       <div class="nc-dropdown-link-record-header bg-gray-100 py-2 rounded-t-md flex justify-between pl-3 pr-2 gap-2">
         <div class="flex-1 gap-2 flex items-center">
-          <button class="!text-brand-500 hover:!text-brand-700 p-1.5 flex" @click="emit('attachLinkedRecord')">
+          <button
+            v-if="!hideBackBtn"
+            class="!text-brand-500 hover:!text-brand-700 p-1.5 flex"
+            @click="emit('attachLinkedRecord')"
+          >
             <GeneralIcon icon="ncArrowLeft" class="flex-none h-4 w-4" />
           </button>
 

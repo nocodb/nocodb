@@ -152,40 +152,39 @@ watch(
 <template>
   <div class="nc-cell-field flex w-full group items-center nc-links-wrapper py-1" @dblclick.stop="openChildList">
     <LazyVirtualCellComponentsLinkRecordDropdown v-model:is-open="isOpen">
-      <template #default>
-        <div class="flex w-full group items-center">
-          <div class="block flex-shrink truncate">
-            <component
-              :is="isUnderLookup ? 'span' : 'a'"
-              ref="childListDlgRef"
-              v-e="['c:cell:links:modal:open']"
-              :title="textVal"
-              class="text-center nc-datatype-link underline-transparent"
-              :class="{ '!text-gray-300': !textVal }"
-              :tabindex="readOnly ? -1 : 0"
-              @click.stop.prevent="openChildList"
-              @keydown.enter.stop.prevent="openChildList"
-            >
-              {{ textVal }}
-            </component>
-          </div>
-          <div class="flex-grow" />
-
-          <div
-            v-if="!isUnderLookup"
-            ref="plusBtnRef"
+      <div class="flex w-full group items-center">
+        <div class="block flex-shrink truncate">
+          <component
+            :is="isUnderLookup ? 'span' : 'a'"
+            ref="childListDlgRef"
+            v-e="['c:cell:links:modal:open']"
+            :title="textVal"
+            class="text-center nc-datatype-link underline-transparent"
+            :class="{ '!text-gray-300': !textVal }"
             :tabindex="readOnly ? -1 : 0"
-            class="!xs:hidden flex group justify-end group-hover:flex items-center"
-            @keydown.enter.stop="openListDlg"
+            @click.stop.prevent="openChildList"
+            @keydown.enter.stop.prevent="openChildList"
           >
-            <MdiPlus
-              v-if="(!readOnly && isUIAllowed('dataEdit')) || isForm"
-              class="select-none !text-md text-gray-700 nc-action-icon nc-plus invisible group-hover:visible group-focus:visible"
-              @click.stop="openListDlg"
-            />
-          </div>
+            {{ textVal }}
+          </component>
         </div>
-      </template>
+        <div class="flex-grow" />
+
+        <div
+          v-if="!isUnderLookup"
+          ref="plusBtnRef"
+          :tabindex="readOnly ? -1 : 0"
+          class="!xs:hidden flex group justify-end group-hover:flex items-center"
+          @keydown.enter.stop="openListDlg"
+        >
+          <MdiPlus
+            v-if="(!readOnly && isUIAllowed('dataEdit')) || isForm"
+            class="select-none !text-md text-gray-700 nc-action-icon nc-plus invisible group-hover:visible group-focus:visible"
+            @click.stop="openListDlg"
+          />
+        </div>
+      </div>
+
       <template #overlay>
         <LazyVirtualCellComponentsLinkedItems
           v-if="childListDlg"

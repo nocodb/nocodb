@@ -1070,6 +1070,8 @@ const saveOrUpdateRecords = async (
   args: { metaValue?: TableType; viewMetaValue?: ViewType; data?: any; keepNewRecords?: boolean } = {},
 ) => {
   for (const currentRow of args.data || dataRef.value) {
+    if (currentRow.rowMeta.fromExpandedForm) continue
+
     /** if new record save row and save the LTAR cells */
     if (currentRow.rowMeta.new) {
       const beforeSave = clone(currentRow)

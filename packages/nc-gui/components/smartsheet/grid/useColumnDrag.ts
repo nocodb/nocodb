@@ -23,6 +23,8 @@ export const useColumnDrag = ({
   const toBeDroppedColId = ref<string | null>(null)
 
   const updateDefaultViewColumnOrder = (columnId: string, order: number) => {
+    if (!meta.value?.columns) return
+
     const colIndex = meta.value.columns.findIndex((c) => c.id === columnId)
     if (colIndex !== -1) {
       meta.value.columns[colIndex].meta = { ...(meta.value.columns[colIndex].meta || {}), defaultViewColOrder: order }
@@ -62,7 +64,7 @@ export const useColumnDrag = ({
 
     toBeReorderedViewCol.order = newOrder
 
-    if (isDefaultView.value) {
+    if (isDefaultView.value && toBeReorderedViewCol.fk_column_id) {
       updateDefaultViewColumnOrder(toBeReorderedViewCol.fk_column_id, newOrder)
     }
 

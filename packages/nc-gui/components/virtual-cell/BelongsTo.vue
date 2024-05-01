@@ -92,6 +92,7 @@ watch([listItemsDlg], () => {
     isOpen.value = true
   }
 })
+
 // When isOpen is false, ensure the listItemsDlg is also closed.
 watch(
   isOpen,
@@ -151,7 +152,6 @@ watch(value, (next) => {
           v-model="listItemsDlg"
           :column="belongsToColumn"
           hide-back-btn
-          @attach-record="listItemsDlg = true"
         /> </template
     ></LazyVirtualCellComponentsLinkRecordDropdown>
   </div>

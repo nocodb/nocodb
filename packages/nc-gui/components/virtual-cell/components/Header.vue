@@ -17,8 +17,6 @@ const {
   linkedRecords?: number
 }>()
 
-const { isMobileMode } = useGlobal()
-
 const { t } = useI18n()
 
 const relationMeta = computed(() => {
@@ -63,6 +61,7 @@ const relationMeta = computed(() => {
       'bg-orange-100 text-orange-700': relation === 'hm' && linkedRecords,
       'bg-pink-100 text-pink-700': relation === 'mm' && linkedRecords,
       'bg-blue-100 text-blue-700': relation === 'bt' && linkedRecords,
+      'bg-purple-100 text-purple-700': relation === 'oo' && linkedRecords,
     }"
   >
     <NcTooltip class="z-10 flex" placement="bottom">

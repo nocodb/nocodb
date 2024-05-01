@@ -40,6 +40,8 @@ const { isUIAllowed } = useRoles()
 
 const listItemsDlg = ref(false)
 
+const isOpen = ref(false)
+
 const { state, isNew, removeLTARRef } = useSmartsheetRowStoreOrThrow()
 
 const { relatedTableMeta, loadRelatedTableMeta, relatedTableDisplayValueProp, relatedTableDisplayValuePropId, unlink } =
@@ -85,49 +87,66 @@ const plusBtnRef = ref<HTMLElement | null>(null)
 watch([listItemsDlg], () => {
   if (!listItemsDlg.value) {
     plusBtnRef.value?.focus()
+    isOpen.value = false
+  } else {
+    isOpen.value = true
   }
 })
+
+// When isOpen is false, ensure the listItemsDlg is also closed.
+watch(
+  isOpen,
+  (next) => {
+    if (!next) {
+      listItemsDlg.value = false
+    }
+  },
+  { flush: 'post' },
+)
 </script>
 
 <template>
-  <div class="flex w-full chips-wrapper items-center" :class="{ active }">
-    <div class="nc-cell-field chips flex items-center flex-1">
-      <template v-if="value && (relatedTableDisplayValueProp || relatedTableDisplayValuePropId)">
-        <VirtualCellComponentsItemChip
-          :item="value"
-          :value="
-            !Array.isArray(value) && typeof value === 'object'
-              ? value[relatedTableDisplayValueProp] ?? value[relatedTableDisplayValuePropId]
-              : value
-          "
-          :column="belongsToColumn"
-          :show-unlink-button="true"
-          @unlink="unlinkRef(value)"
+  <LazyVirtualCellComponentsLinkRecordDropdown v-model:is-open="isOpen">
+    <div class="flex w-full chips-wrapper items-center" :class="{ active }">
+      <div class="nc-cell-field chips flex items-center flex-1">
+        <template v-if="value && (relatedTableDisplayValueProp || relatedTableDisplayValuePropId)">
+          <VirtualCellComponentsItemChip
+            :item="value"
+            :value="
+              !Array.isArray(value) && typeof value === 'object'
+                ? value[relatedTableDisplayValueProp] ?? value[relatedTableDisplayValuePropId]
+                : value
+            "
+            :column="belongsToColumn"
+            :show-unlink-button="true"
+            @unlink="unlinkRef(value)"
+          />
+        </template>
+      </div>
+
+      <div
+        v-if="!readOnly && (isUIAllowed('dataEdit') || isForm) && !isUnderLookup"
+        ref="plusBtnRef"
+        class="flex justify-end group gap-1 min-h-[30px] items-center"
+        tabindex="0"
+        @keydown.enter.stop="listItemsDlg = true"
+      >
+        <GeneralIcon
+          :icon="addIcon"
+          class="select-none !text-md text-gray-700 nc-action-icon nc-plus invisible group-hover:visible group-focus:visible"
+          @click.stop="listItemsDlg = true"
         />
-      </template>
+      </div>
     </div>
-
-    <div
-      v-if="!readOnly && (isUIAllowed('dataEdit') || isForm) && !isUnderLookup"
-      ref="plusBtnRef"
-      class="flex justify-end group gap-1 min-h-[30px] items-center"
-      tabindex="0"
-      @keydown.enter.stop="listItemsDlg = true"
-    >
-      <GeneralIcon
-        :icon="addIcon"
-        class="select-none !text-md text-gray-700 nc-action-icon nc-plus invisible group-hover:visible group-focus:visible"
-        @click.stop="listItemsDlg = true"
+    <template #overlay>
+      <LazyVirtualCellComponentsUnLinkedItems
+        v-if="listItemsDlg"
+        v-model="listItemsDlg"
+        :column="belongsToColumn"
+        hide-back-btn
       />
-    </div>
-
-    <LazyVirtualCellComponentsUnLinkedItems
-      v-if="listItemsDlg"
-      v-model="listItemsDlg"
-      :column="belongsToColumn"
-      @attach-record="listItemsDlg = true"
-    />
-  </div>
+    </template>
+  </LazyVirtualCellComponentsLinkRecordDropdown>
 </template>
 
 <style scoped lang="scss">

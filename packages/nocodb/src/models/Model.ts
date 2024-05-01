@@ -65,10 +65,14 @@ export default class Model implements TableType {
     Object.assign(this, data);
   }
 
-  public async getColumns(ncMeta = Noco.ncMeta): Promise<Column[]> {
+  public async getColumns(
+    ncMeta = Noco.ncMeta,
+    defaultViewId = undefined,
+  ): Promise<Column[]> {
     this.columns = await Column.list(
       {
         fk_model_id: this.id,
+        fk_default_view_id: defaultViewId,
       },
       ncMeta,
     );
@@ -391,30 +395,14 @@ export default class Model implements TableType {
     }
     if (modelData) {
       const m = new Model(modelData);
-      await m.getColumns(ncMeta);
+
       await m.getViews(false, ncMeta);
 
-      const defaultViewColumns = await View.getColumns(
-        m.views.find((view) => view.is_default).id,
-      );
+      const defaultViewId = m.views.find((view) => view.is_default).id;
 
-      const defaultViewColumnMap = defaultViewColumns.reduce((acc, col) => {
-        acc[col.fk_column_id] = col.order;
-        return acc;
-      }, {} as Record<string, number>);
+      const columns = await m.getColumns(ncMeta, defaultViewId);
 
-      m.columns = m.columns.map(
-        (col) =>
-          ({
-            ...col,
-            meta: {
-              ...(col.meta || {}),
-              defaultViewColOrder: defaultViewColumnMap[col.id],
-            },
-          } as Column<any>),
-      );
-
-      m.columnsById = m.columns.reduce((agg, c) => ({ ...agg, [c.id]: c }), {});
+      m.columnsById = columns.reduce((agg, c) => ({ ...agg, [c.id]: c }), {});
       return m;
     }
     return null;

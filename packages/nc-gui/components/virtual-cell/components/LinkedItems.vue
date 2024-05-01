@@ -278,7 +278,6 @@ const linkedShortcuts = (e: KeyboardEvent) => {
       e.target?.previousElementSibling?.focus()
     } catch (e) {}
   } else if (!expandedFormDlg.value && e.key !== 'Tab' && e.key !== 'Shift' && e.key !== 'Enter' && e.key !== ' ') {
-    console.log('last')
     try {
       filterQueryRef.value?.focus()
     } catch (e) {}
@@ -313,7 +312,7 @@ const onFilterChange = () => {
 </script>
 
 <template>
-  <div class="nc-modal-child-list h-full w-full" :class="{ active: vModel }">
+  <div @keydown.stop class="nc-modal-child-list h-full w-full" :class="{ active: vModel }">
     <div class="flex flex-col h-full">
       <div class="nc-dropdown-link-record-header bg-gray-100 py-2 rounded-t-md flex justify-between pl-3 pr-2 gap-2">
         <div v-if="!isForm" class="flex-1 nc-dropdown-link-record-search-wrapper flex items-center py-0.5 rounded-md">
@@ -336,6 +335,7 @@ const onFilterChange = () => {
           >
           </a-input>
         </div>
+        <div v-else>&nbsp;</div>
         <LazyVirtualCellComponentsHeader
           data-testid="nc-link-count-info"
           :linked-records="totalItemsToShow"
@@ -389,8 +389,8 @@ const onFilterChange = () => {
                 data-testid="nc-child-list-item"
                 @link-or-unlink="linkOrUnLink(refRow, id)"
                 @expand="onClick(refRow)"
-                @keydown.space.prevent="linkOrUnLink(refRow, id)"
-                @keydown.enter.prevent="() => onClick(refRow, id)"
+                @keydown.space.prevent.stop="linkOrUnLink(refRow, id)"
+                @keydown.enter.prevent.stop="() => !isForm && onClick(refRow, id)"
               />
             </template>
           </div>
@@ -418,7 +418,7 @@ const onFilterChange = () => {
         </div>
       </div>
 
-      <div class="bg-gray-100 px-3 py-2 rounded-b-md flex items-center justify-between gap-3">
+      <div class="bg-gray-100 px-3 py-2 rounded-b-md flex items-center justify-between gap-3 min-h-12">
         <div class="flex items-center gap-2">
           <NcButton
             v-if="!isPublic"
@@ -433,7 +433,7 @@ const onFilterChange = () => {
             </div>
           </NcButton>
           <NcButton
-            v-if="!readOnly && childrenListCount > 0"
+            v-if="!readOnly && (childrenListCount > 0 || (childrenList?.list ?? state?.[colTitle] ?? []).length > 0)"
             v-e="['c:links:link']"
             data-testid="nc-child-list-button-link-to"
             class="!hover:(bg-white text-brand-500)"
@@ -499,6 +499,10 @@ const onFilterChange = () => {
 
 :deep(.ant-modal-content) {
   @apply !p-0;
+}
+
+:deep(.ant-skeleton-element .ant-skeleton-image) {
+  @apply !h-full;
 }
 </style>
 

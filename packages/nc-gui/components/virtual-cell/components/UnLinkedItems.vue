@@ -284,7 +284,7 @@ const onFilterChange = () => {
 </script>
 
 <template>
-  <div class="nc-modal-link-record h-full w-full overflow-hidden" :class="{ active: vModel }">
+  <div @keydown.stop class="nc-modal-link-record h-full w-full overflow-hidden" :class="{ active: vModel }">
     <div class="flex flex-col h-full">
       <div class="nc-dropdown-link-record-header bg-gray-100 py-2 rounded-t-md flex justify-between pl-3 pr-2 gap-2">
         <div class="flex-1 gap-2 flex items-center">
@@ -375,8 +375,8 @@ const onFilterChange = () => {
                     expandedFormDlg = true
                   }
                 "
-                @keydown.space.prevent="() => onClick(refRow, id)"
-                @keydown.enter.prevent="() => onClick(refRow, id)"
+                @keydown.space.prevent.stop="() => onClick(refRow, id)"
+                @keydown.enter.prevent.stop="() => onClick(refRow, id)"
               />
             </template>
           </div>
@@ -389,7 +389,7 @@ const onFilterChange = () => {
           </p>
         </div>
       </div>
-      <div class="bg-gray-100 px-3 py-2 rounded-b-md flex items-center justify-between">
+      <div class="bg-gray-100 px-3 py-2 rounded-b-md flex items-center justify-between min-h-12">
         <div class="flex">
           <NcButton
             v-if="!isPublic"
@@ -458,6 +458,12 @@ const onFilterChange = () => {
     </Suspense>
   </div>
 </template>
+
+<style lang="scss" scoped>
+:deep(.ant-skeleton-element .ant-skeleton-image) {
+  @apply !h-full;
+}
+</style>
 
 <style lang="scss">
 .nc-dropdown-link-record-search-wrapper {

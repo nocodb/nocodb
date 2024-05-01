@@ -19,6 +19,8 @@ const [setup, use] = useInjectionState(() => {
   return ref<UseExpandedFormDetachedProps[]>([])
 })
 
+export { setup as useExpandedFormDetachedProvider }
+
 export function useExpandedFormDetached() {
   let states = use()!
 

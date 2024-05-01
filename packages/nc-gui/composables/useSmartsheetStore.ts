@@ -38,6 +38,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     const isKanban = computed(() => view.value?.type === ViewTypes.KANBAN)
     const isMap = computed(() => view.value?.type === ViewTypes.MAP)
     const isSharedForm = computed(() => isForm.value && shared)
+    const isDefaultView = computed(() => view.value?.is_default)
     const xWhere = computed(() => {
       let where
       const col =
@@ -100,6 +101,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       eventBus,
       sqlUi,
       allFilters,
+      isDefaultView,
     }
   },
   'smartsheet-store',

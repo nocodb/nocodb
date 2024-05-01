@@ -318,6 +318,7 @@ const onFilterChange = () => {
           </div>
         </div>
         <LazyVirtualCellComponentsHeader
+          data-testid="nc-link-count-info"
           :linked-records="totalItemsToShow"
           :related-table-title="relatedTableMeta?.title"
           :relation="relation"

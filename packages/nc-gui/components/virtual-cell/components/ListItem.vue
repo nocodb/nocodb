@@ -163,21 +163,23 @@ const displayValue = computed(() => {
                     />
                     <LazySmartsheetHeaderCell v-else class="!scale-70 text-gray-100 !text-sm" :column="field" :hide-menu="true" />
                   </template>
-                  <LazySmartsheetVirtualCell
-                    v-if="isVirtualCol(field)"
-                    v-model="row[field.title]"
-                    :row="row"
-                    :column="field"
-                    class="text-gray-500"
-                  />
-                  <LazySmartsheetCell
-                    v-else
-                    v-model="row[field.title]"
-                    class="!text-gray-500 ml-1"
-                    :column="field"
-                    :edit-enabled="false"
-                    :read-only="true"
-                  />
+                  <div class="nc-link-record-cell flex max-w-full">
+                    <LazySmartsheetVirtualCell
+                      v-if="isVirtualCol(field)"
+                      v-model="row[field.title]"
+                      :row="row"
+                      :column="field"
+                      class="text-gray-500"
+                    />
+                    <LazySmartsheetCell
+                      v-else
+                      v-model="row[field.title]"
+                      class="!text-gray-500 ml-1"
+                      :column="field"
+                      :edit-enabled="false"
+                      :read-only="true"
+                    />
+                  </div>
                 </NcTooltip>
               </div>
               <div v-else class="flex flex-row w-full max-w-72 h-5 pl-1 items-center justify-start">-</div>
@@ -205,6 +207,74 @@ const displayValue = computed(() => {
 }
 .nc-list-item-link-unlink-btn {
   box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.06), 0px 5px 3px -2px rgba(0, 0, 0, 0.02);
+}
+
+.nc-link-record-cell {
+  :deep(.nc-cell),
+  :deep(.nc-virtual-cell) {
+    @apply !text-small;
+
+    .nc-cell-field,
+    .nc-cell-field-link,
+    input,
+    textarea {
+      @apply !text-small !p-0 m-0;
+    }
+
+    &:not(.nc-display-value-cell) {
+      @apply text-gray-600;
+      font-weight: 500;
+
+      .nc-cell-field,
+      input,
+      textarea {
+        @apply text-gray-600;
+        font-weight: 500;
+      }
+    }
+
+    .nc-cell-field,
+    a.nc-cell-field-link,
+    input,
+    textarea {
+      @apply !p-0 m-0;
+    }
+
+    &.nc-cell-longtext {
+      @apply leading-[18px];
+
+      textarea {
+        @apply pr-2;
+      }
+
+      .long-text-wrapper {
+        @apply !min-h-4;
+
+        .nc-rich-text-grid {
+          @apply pl-0 -ml-1;
+        }
+      }
+    }
+
+    .ant-picker-input {
+      @apply text-small leading-4;
+      font-weight: 500;
+
+      input {
+        @apply text-small leading-4;
+        font-weight: 500;
+      }
+    }
+
+    .ant-select:not(.ant-select-customize-input) {
+      .ant-select-selector {
+        @apply !border-none flex-nowrap pr-4.5;
+      }
+      .ant-select-arrow {
+        @apply right-[3px];
+      }
+    }
+  }
 }
 </style>
 

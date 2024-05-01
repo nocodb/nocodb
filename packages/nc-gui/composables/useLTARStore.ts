@@ -9,6 +9,7 @@ import { RelationTypes, UITypes, dateFormats, parseStringDateTime, timeFormats }
 import type { ComputedRef, Ref } from 'vue'
 import type { Row } from '#imports'
 import {
+  NcErrorType,
   IsPublicInj,
   Modal,
   NOCO,
@@ -29,6 +30,7 @@ import {
   useRouter,
   useSharedView,
   watch,
+  extractSdkResponseErrorMsgv2,
 } from '#imports'
 
 interface DataApiResponse {
@@ -284,12 +286,14 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         }
       } catch (e: any) {
         // temporary fix to handle when offset is beyond limit
-        if ((await extractSdkResponseErrorMsg(e)) === 'Offset is beyond the total number of records') {
+        const error = await extractSdkResponseErrorMsgv2(e)
+
+        if (error.error === NcErrorType.INVALID_OFFSET_VALUE) {
           childrenExcludedListPagination.page = 0
           return loadChildrenExcludedList(activeState)
         }
 
-        message.error(`${t('msg.error.failedToLoadList')}: ${await extractSdkResponseErrorMsg(e)}`)
+        message.error(`${t('msg.error.failedToLoadList')}: ${error.message}`)
       } finally {
         isChildrenExcludedLoading.value = false
       }

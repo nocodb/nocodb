@@ -368,7 +368,7 @@ const onFilterChange = () => {
             </template>
           </div>
         </template>
-        <div v-else class="my-auto py-2 flex flex-col gap-3 items-center justify-center text-gray-500">
+        <div v-else class="h-full my-auto py-2 flex flex-col gap-3 items-center justify-center text-gray-500">
           <InboxIcon class="w-16 h-16 mx-auto" />
           <p>
             {{ $t('msg.thereAreNoRecordsInTable') }}

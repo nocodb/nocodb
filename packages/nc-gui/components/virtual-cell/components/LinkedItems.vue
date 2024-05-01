@@ -73,7 +73,6 @@ watch(
   [vModel, isForm],
   (nextVal) => {
     if ((nextVal[0] || nextVal[1]) && !isNew.value) {
-      console.log('load list')
       loadChildrenList()
     }
 
@@ -359,10 +358,6 @@ const onFilterChange = () => {
                 <div class="flex flex-col gap-2 flex-grow justify-center">
                   <a-skeleton-input active class="!w-48 !rounded-xl" size="small" />
                   <div class="flex flex-row gap-6 w-10/12">
-                    <div class="flex flex-col gap-0.5">
-                      <a-skeleton-input active class="!h-3 !w-12" size="small" />
-                      <a-skeleton-input active class="!h-3 !w-24" size="small" />
-                    </div>
                     <div class="flex flex-col gap-0.5">
                       <a-skeleton-input active class="!h-3 !w-12" size="small" />
                       <a-skeleton-input active class="!h-3 !w-24" size="small" />

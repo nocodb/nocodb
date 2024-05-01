@@ -77,7 +77,6 @@ const onAttachRecord = () => {
 }
 
 const onAttachLinkedRecord = () => {
-  console.log('attached')
   listItemsDlg.value = false
   childListDlg.value = true
 }
@@ -129,6 +128,12 @@ watch([childListDlg], () => {
 watch([listItemsDlg], () => {
   if (!listItemsDlg.value) {
     plusBtnRef.value?.focus()
+  }
+})
+
+watch([childListDlg, listItemsDlg], () => {
+  if (!childListDlg.value && !listItemsDlg.value) {
+    isOpen.value = false
   }
 })
 const ncLinksDropdownRef = ref<HTMLDivElement>()

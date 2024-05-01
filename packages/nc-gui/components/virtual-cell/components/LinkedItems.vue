@@ -452,7 +452,7 @@ const onFilterChange = () => {
           </NcButton>
         </div>
         <template v-if="!isNew && childrenList?.pageInfo && +childrenList.pageInfo.totalRows! > childrenListPagination.size">
-          <div class="flex justify-center items-center my-2">
+          <div class="flex justify-center items-center">
             <NcPagination
               v-model:current="childrenListPagination.page"
               v-model:page-size="childrenListPagination.size"

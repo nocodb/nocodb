@@ -205,12 +205,3 @@ watch(
     </LazyVirtualCellComponentsLinkRecordDropdown>
   </div>
 </template>
-
-<style lang="scss">
-.nc-links-dropdown {
-  z-index: 999 !important;
-}
-.nc-link-dropdown-root {
-  z-index: 800;
-}
-</style>

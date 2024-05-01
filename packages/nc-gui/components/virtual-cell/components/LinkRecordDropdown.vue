@@ -21,9 +21,9 @@ const addOrRemoveClass = (add: boolean = false) => {
   const dropdownRoot = ncLinksDropdownRef.value?.parentElement?.parentElement?.parentElement?.parentElement as HTMLElement
   if (dropdownRoot) {
     if (add) {
-      dropdownRoot.classList.add('inset-0', 'nc-link-dropdown-root')
+      dropdownRoot.classList.add('inset-0', 'nc-link-dropdown-root', `nc-root-${randomClass}`)
     } else {
-      dropdownRoot.classList.remove('inset-0', 'nc-link-dropdown-root')
+      dropdownRoot.classList.remove('inset-0', 'nc-link-dropdown-root', `nc-root-${randomClass}`)
     }
   }
 }
@@ -34,7 +34,7 @@ watch(
     if (next) {
       onClickOutside(document.querySelector(`.${randomClass}`)! as HTMLDivElement, (e) => {
         const targetEl = e?.target as HTMLElement
-        if (!targetEl?.classList.contains('nc-link-dropdown-root') || targetEl?.closest(`.nc-${randomClass}`)) {
+        if (!targetEl?.classList.contains(`nc-root-${randomClass}`) || targetEl?.closest(`.nc-${randomClass}`)) {
           return
         }
         isOpen.value = false
@@ -70,7 +70,7 @@ watch([ncLinksDropdownRef, isOpen], () => {
   </NcDropdown>
 </template>
 
-<style lang="scss" scoped>
+<style lang="scss">
 .nc-links-dropdown {
   z-index: 1000 !important;
 }

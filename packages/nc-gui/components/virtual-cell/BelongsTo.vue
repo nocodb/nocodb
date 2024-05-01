@@ -101,6 +101,12 @@ watch(
   },
   { flush: 'post' },
 )
+
+watch(cellValue, (next) => {
+  if (next) {
+    isOpen.value = false
+  }
+})
 </script>
 
 <template>

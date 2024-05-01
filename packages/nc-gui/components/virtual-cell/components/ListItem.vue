@@ -157,17 +157,23 @@ const displayValue = computed(() => {
                   <template #title>
                     <LazySmartsheetHeaderVirtualCell
                       v-if="isVirtualCol(field)"
-                      class="!scale-60 text-gray-100"
+                      class="!scale-60 text-gray-100 !text-sm"
                       :column="field"
                       :hide-menu="true"
                     />
-                    <LazySmartsheetHeaderCell v-else class="!scale-70 text-gray-100" :column="field" :hide-menu="true" />
+                    <LazySmartsheetHeaderCell v-else class="!scale-70 text-gray-100 !text-sm" :column="field" :hide-menu="true" />
                   </template>
-                  <LazySmartsheetVirtualCell v-if="isVirtualCol(field)" v-model="row[field.title]" :row="row" :column="field" />
+                  <LazySmartsheetVirtualCell
+                    v-if="isVirtualCol(field)"
+                    v-model="row[field.title]"
+                    :row="row"
+                    :column="field"
+                    class="text-gray-500"
+                  />
                   <LazySmartsheetCell
                     v-else
                     v-model="row[field.title]"
-                    class="!text-gray-600 ml-1"
+                    class="!text-gray-500 ml-1"
                     :column="field"
                     :edit-enabled="false"
                     :read-only="true"

@@ -49,8 +49,6 @@ const { relatedTableMeta, loadRelatedTableMeta, relatedTableDisplayValueProp, re
 
 await loadRelatedTableMeta()
 
-const addIcon = computed(() => (cellValue?.value ? 'expand' : 'plus'))
-
 const value = computed(() => {
   if (cellValue?.value) {
     return cellValue?.value
@@ -131,14 +129,14 @@ watch(value, (next) => {
         </div>
 
         <div
-          v-if="!readOnly && (isUIAllowed('dataEdit') || isForm) && !isUnderLookup && addIcon !== 'expand'"
+          v-if="!readOnly && (isUIAllowed('dataEdit') || isForm) && !isUnderLookup"
           ref="plusBtnRef"
           class="flex-none flex group items-center min-w-4"
           tabindex="0"
           @keydown.enter.stop="listItemsDlg = true"
         >
           <GeneralIcon
-            :icon="addIcon"
+            icon="plus"
             class="flex-none select-none !text-md text-gray-700 nc-action-icon nc-plus invisible group-hover:visible group-focus:visible"
             @click.stop="listItemsDlg = true"
           />

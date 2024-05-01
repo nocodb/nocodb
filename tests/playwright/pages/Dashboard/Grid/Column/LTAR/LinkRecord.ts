@@ -33,13 +33,17 @@ export class LinkRecord extends BasePage {
     }
   }
 
-  async select(cardTitle: string) {
+  async select(cardTitle: string, close = true) {
     await this.rootPage.waitForTimeout(100);
     await this.get()
       .locator(`.ant-card:has-text("${cardTitle}"):visible`)
       .locator('button.nc-list-item-link-unlink-btn')
       .click();
-    await this.close();
+
+    // explicitly close dropdown (auto closes for belongs to)
+    if (close) {
+      await this.close();
+    }
   }
 
   async close() {

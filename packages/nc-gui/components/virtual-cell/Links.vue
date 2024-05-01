@@ -221,7 +221,7 @@ watch([ncLinksDropdownRef, isOpen], () => {
         </div>
       </div>
       <template #overlay>
-        <div ref="ncLinksDropdownRef" class="h-[412px] w-[600px]" :class="`${randomClass}`">
+        <div ref="ncLinksDropdownRef" class="h-[412px] w-[540px]" :class="`${randomClass}`">
           <LazyVirtualCellComponentsLinkedItems
             v-if="childListDlg"
             v-model="childListDlg"

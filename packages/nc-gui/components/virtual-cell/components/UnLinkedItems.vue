@@ -378,7 +378,14 @@ const onFilterChange = () => {
       </div>
       <div class="bg-gray-100 p-3 rounded-b-md flex items-center justify-between">
         <div class="flex">
-          <NcButton v-if="!isPublic" v-e="['c:row-expand:open']" size="small" class="" type="secondary" @click="addNewRecord">
+          <NcButton
+            v-if="!isPublic"
+            v-e="['c:row-expand:open']"
+            size="small"
+            class="!hover:(bg-white text-brand-500)"
+            type="secondary"
+            @click="addNewRecord"
+          >
             <div class="flex items-center gap-1"><MdiPlus v-if="!isMobileMode" /> {{ $t('activity.newRecord') }}</div>
           </NcButton>
         </div>

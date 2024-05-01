@@ -108,7 +108,7 @@ const attachmentCol = computedInject(FieldsInj, (_fields) => {
 const fields = computedInject(FieldsInj, (_fields) => {
   return (relatedTableMeta.value.columns ?? [])
     .filter((col) => !isSystemColumn(col) && !isPrimary(col) && !isLinksOrLTAR(col) && !isAttachment(col))
-    .slice(0, isMobileMode.value ? 1 : 4)
+    .slice(0, isMobileMode.value ? 1 : 3)
 })
 
 const expandedFormDlg = ref(false)
@@ -411,7 +411,7 @@ const onFilterChange = () => {
           </div>
 
           <NcButton
-            v-if="!readOnly && childrenListCount < 1 || (childrenList?.list ?? state?.[colTitle] ?? []).length > 0"
+            v-if="!readOnly && (childrenListCount < 1 || (childrenList?.list ?? state?.[colTitle] ?? []).length > 0)"
             v-e="['c:links:link']"
             data-testid="nc-child-list-button-link-to"
             size="small"
@@ -424,7 +424,14 @@ const onFilterChange = () => {
 
       <div class="bg-gray-100 p-3 rounded-b-md flex items-center justify-between gap-3">
         <div class="flex items-center gap-2">
-          <NcButton v-if="!isPublic" v-e="['c:row-expand:open']" size="small" class="" type="secondary" @click="addNewRecord">
+          <NcButton
+            v-if="!isPublic"
+            v-e="['c:row-expand:open']"
+            size="small"
+            class="!hover:(bg-white text-brand-500)"
+            type="secondary"
+            @click="addNewRecord"
+          >
             <div class="flex items-center gap-1">
               <MdiPlus v-if="!isMobileMode" class="h-4 w-4" /> {{ $t('activity.newRecord') }}
             </div>
@@ -433,6 +440,7 @@ const onFilterChange = () => {
             v-if="!readOnly && childrenListCount > 0"
             v-e="['c:links:link']"
             data-testid="nc-child-list-button-link-to"
+            class="!hover:(bg-white text-brand-500)"
             size="small"
             type="secondary"
             @click="emit('attachRecord')"

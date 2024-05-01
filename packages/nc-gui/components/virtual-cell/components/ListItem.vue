@@ -103,18 +103,21 @@ const displayValue = computed(() => {
           <MdiLoading class="flex-none w-7 h-7 !text-brand-500 animate-spin" />
         </div>
 
-        <button
-          v-else
-          tabindex="-1"
-          class="nc-list-item-link-unlink-btn p-1.5 flex rounded-lg transition-all"
-          :class="{
-            'bg-red-100 text-red-500 hover:bg-red-200': isLinked,
-            'bg-green-100 text-green-500 hover:bg-green-200': !isLinked,
-          }"
-          @click="$emit('linkOrUnlink')"
-        >
-          <GeneralIcon :icon="isLinked ? 'minus' : 'plus'" class="flex-none w-4 h-4" />
-        </button>
+        <NcTooltip v-else class="z-10 flex">
+          <template #title> {{ isLinked ? 'Unlink' : 'Link' }}</template>
+
+          <button
+            tabindex="-1"
+            class="nc-list-item-link-unlink-btn p-1.5 flex rounded-lg transition-all"
+            :class="{
+              'bg-red-100 text-red-500 hover:bg-red-200': isLinked,
+              'bg-green-100 text-green-500 hover:bg-green-200': !isLinked,
+            }"
+            @click="$emit('linkOrUnlink')"
+          >
+            <GeneralIcon :icon="isLinked ? 'minus' : 'plus'" class="flex-none w-4 h-4 !font-extrabold" />
+          </button>
+        </NcTooltip>
         <template v-if="attachment">
           <div v-if="attachments && attachments.length">
             <a-carousel autoplay class="!w-11 !h-11 !max-h-11 !max-w-11">
@@ -144,10 +147,22 @@ const displayValue = computed(() => {
             </span>
           </div>
 
-          <div v-if="fields.length > 0 && !isPublic && !isForm" class="flex ml-[-0.25rem] sm:flex-row xs:(flex-col mt-2) gap-4">
-            <div v-for="field in fields" :key="field.id" :class="attachment ? 'sm:w-1/3' : 'sm:w-1/4'">
-              <div v-if="!isRowEmpty(row, field)" class="flex flex-col gap-[-1] max-w-72">
-                <div>
+          <div
+            v-if="fields.length > 0 && !isPublic && !isForm"
+            class="flex ml-[-0.25rem] sm:flex-row xs:(flex-col mt-2) gap-4 min-h-5"
+          >
+            <div v-for="field in fields" :key="field.id" :class="attachment ? 'sm:w-1/3' : 'sm:w-1/3'">
+              <div v-if="!isRowEmpty(row, field)" class="flex flex-col gap-[-1] w-full max-w-72">
+                <NcTooltip class="z-10 flex" placement="bottom">
+                  <template #title>
+                    <LazySmartsheetHeaderVirtualCell
+                      v-if="isVirtualCol(field)"
+                      class="!scale-60 text-gray-100"
+                      :column="field"
+                      :hide-menu="true"
+                    />
+                    <LazySmartsheetHeaderCell v-else class="!scale-70 text-gray-100" :column="field" :hide-menu="true" />
+                  </template>
                   <LazySmartsheetVirtualCell v-if="isVirtualCol(field)" v-model="row[field.title]" :row="row" :column="field" />
                   <LazySmartsheetCell
                     v-else
@@ -157,7 +172,7 @@ const displayValue = computed(() => {
                     :edit-enabled="false"
                     :read-only="true"
                   />
-                </div>
+                </NcTooltip>
               </div>
               <div v-else class="flex flex-row w-full max-w-72 h-5 pl-1 items-center justify-start">-</div>
             </div>
@@ -167,10 +182,10 @@ const displayValue = computed(() => {
           <button
             v-e="['c:row-expand:open']"
             :tabindex="-1"
-            class="!p-1 nc-expand-item !group-hover:visible !invisible !h-7 !w-7"
+            class="z-10 flex items-center justify-center nc-expand-item !group-hover:visible !invisible !h-7 !w-7 transition-all !hover:children:(w-4.5 h-4.5)"
             @click.stop="$emit('expand', row)"
           >
-            <MaximizeIcon class="flex-none w-4 h-4" />
+            <MaximizeIcon class="flex-none w-4 h-4 scale-125" />
           </button>
         </div>
       </div>

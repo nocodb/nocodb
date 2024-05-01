@@ -87,10 +87,9 @@ const plusBtnRef = ref<HTMLElement | null>(null)
 watch([listItemsDlg], () => {
   if (!listItemsDlg.value) {
     plusBtnRef.value?.focus()
-    isOpen.value = false
-  } else {
-    isOpen.value = true
   }
+
+  isOpen.value = listItemsDlg.value
 })
 
 // When isOpen is false, ensure the listItemsDlg is also closed.

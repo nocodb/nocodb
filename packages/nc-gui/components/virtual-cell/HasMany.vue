@@ -126,11 +126,7 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEven
 })
 
 watch([childListDlg, listItemsDlg], () => {
-  if (!childListDlg.value && !listItemsDlg.value) {
-    isOpen.value = false
-  } else {
-    isOpen.value = true
-  }
+  isOpen.value = childListDlg.value || listItemsDlg.value
 })
 
 watch(

@@ -127,11 +127,7 @@ const m2mColumn = computed(
 )
 
 watch([childListDlg, listItemsDlg], () => {
-  if (!childListDlg.value && !listItemsDlg.value) {
-    isOpen.value = false
-  } else {
-    isOpen.value = true
-  }
+  isOpen.value = childListDlg.value || listItemsDlg.value
 })
 
 watch(

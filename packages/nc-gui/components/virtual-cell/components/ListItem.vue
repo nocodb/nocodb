@@ -174,12 +174,12 @@ const displayValue = computed(() => {
                       v-model="row[field.title]"
                       :row="row"
                       :column="field"
-                      class="text-gray-500"
+                      class="!text-gray-600"
                     />
                     <LazySmartsheetCell
                       v-else
                       v-model="row[field.title]"
-                      class="!text-gray-500 ml-1"
+                      class="!text-gray-600 ml-1"
                       :column="field"
                       :edit-enabled="false"
                       :read-only="true"

@@ -486,8 +486,10 @@ export default class Column<T = any> implements ColumnType {
   public static async list(
     {
       fk_model_id,
+      fk_default_view_id,
     }: {
       fk_model_id: string;
+      fk_default_view_id?: string;
     },
     ncMeta = Noco.ncMeta,
   ): Promise<Column[]> {
@@ -505,9 +507,27 @@ export default class Column<T = any> implements ColumnType {
           order: 'asc',
         },
       });
+      const defaultViewColumns = fk_default_view_id
+        ? await View.getColumns(fk_default_view_id)
+        : [];
+
+      const defaultViewColumnOrderMap = defaultViewColumns.reduce(
+        (acc, col) => {
+          acc[col.fk_column_id] = col.order;
+          return acc;
+        },
+        {} as Record<string, number>,
+      );
 
       columnsList.forEach((column) => {
         column.meta = parseMetaProp(column);
+
+        if (defaultViewColumns.length) {
+          column.meta = {
+            ...column.meta,
+            defaultViewColOrder: defaultViewColumnOrderMap[column.id],
+          };
+        }
       });
 
       await NocoCache.setList(CacheScope.COLUMN, [fk_model_id], columnsList);

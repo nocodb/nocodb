@@ -21,6 +21,7 @@ import {
   provide,
   ref,
   toRef,
+  useExpandedFormDetachedProvider,
   useMetas,
   useProvideCalendarViewStore,
   useProvideKanbanViewStore,
@@ -83,6 +84,7 @@ provide(
   ReadonlyInj,
   computed(() => !isUIAllowed('dataEdit')),
 )
+useExpandedFormDetachedProvider()
 
 useProvideViewColumns(activeView, meta, () => reloadViewDataEventHook?.trigger())
 useProvideViewGroupBy(activeView, meta, xWhere)

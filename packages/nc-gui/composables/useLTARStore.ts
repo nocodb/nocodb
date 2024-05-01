@@ -199,6 +199,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         if (offset < 0 || resetOffset) {
           offset = 0
           childrenExcludedOffsetCount.value = 0
+          childrenExcludedListPagination.page = 1
         }
         isChildrenExcludedLoading.value = true
         if (isPublic.value) {
@@ -264,10 +265,6 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           isChildrenExcludedListLoading.value[index] = false
         })
 
-        if (childrenExcludedList.value?.list) {
-          childrenExcludedOffsetCount.value = childrenExcludedList.value?.list.length
-        }
-
         if (childrenExcludedList.value?.list && activeState && activeState[column.value.title]) {
           // Mark out exact same objects in activeState[column.value.title] as Linked
           // compare all keys and values
@@ -312,6 +309,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         if (offset < 0 || resetOffset) {
           offset = 0
           childrenListOffsetCount.value = 0
+          childrenListPagination.page = 1
         } else if (offset >= childrenListCount.value) {
           offset = 0
         }
@@ -354,10 +352,6 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           isChildrenListLinked.value[index] = true
           isChildrenListLoading.value[index] = false
         })
-
-        if (childrenList.value?.list) {
-          childrenListOffsetCount.value = childrenList.value?.list.length
-        }
 
         if (!childrenListPagination.query) {
           childrenListCount.value = childrenList.value?.pageInfo.totalRows ?? 0

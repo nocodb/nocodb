@@ -50,7 +50,6 @@ const {
   meta,
   unlink,
   row,
-  headerDisplayValue,
   resetChildrenExcludedOffsetCount,
 } = useLTARStoreOrThrow()
 

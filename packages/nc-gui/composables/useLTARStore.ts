@@ -294,7 +294,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
         if (error.error === NcErrorType.INVALID_OFFSET_VALUE) {
           childrenExcludedListPagination.page = 0
-          return loadChildrenExcludedList(activeState)
+          return loadChildrenExcludedList(activeState, true)
         }
 
         message.error(`${t('msg.error.failedToLoadList')}: ${error.message}`)

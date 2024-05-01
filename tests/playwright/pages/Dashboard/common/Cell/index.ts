@@ -347,7 +347,8 @@ export class CellPageObject extends BasePage {
         await expect.poll(() => this.rootPage.locator('.ant-card:visible').count()).toBe(count);
 
         // close child list
-        await this.rootPage.locator('.nc-modal-child-list').locator('.nc-close-btn').last().click();
+        // await this.rootPage.locator('.nc-modal-child-list').locator('.nc-close-btn').last().click();
+        await this.rootPage.keyboard.press('Escape');
       }
     }
   }

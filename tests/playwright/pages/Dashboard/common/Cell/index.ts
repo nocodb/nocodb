@@ -348,6 +348,7 @@ export class CellPageObject extends BasePage {
 
         // close child list
         // await this.rootPage.locator('.nc-modal-child-list').locator('.nc-close-btn').last().click();
+        await this.rootPage.locator('.nc-modal-child-list').getByTestId('nc-link-count-info').click();
         await this.rootPage.keyboard.press('Escape');
       }
     }

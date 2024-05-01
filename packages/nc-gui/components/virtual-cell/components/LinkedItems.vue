@@ -316,7 +316,7 @@ const onFilterChange = () => {
   <div class="nc-modal-child-list h-full w-full" :class="{ active: vModel }">
     <div class="flex flex-col h-full">
       <div class="nc-dropdown-link-record-header bg-gray-100 py-2 rounded-t-md flex justify-between pl-3 pr-2 gap-2">
-        <div v-if="!isForm" class="flex-1 nc-dropdown-link-record-search-wrapper flex items-center py-1 rounded-md">
+        <div v-if="!isForm" class="flex-1 nc-dropdown-link-record-search-wrapper flex items-center py-0.5 rounded-md">
           <MdiMagnify class="nc-search-icon w-5 h-5" />
           <a-input
             ref="filterQueryRef"
@@ -417,7 +417,7 @@ const onFilterChange = () => {
         </div>
       </div>
 
-      <div class="bg-gray-100 p-3 rounded-b-md flex items-center justify-between gap-3">
+      <div class="bg-gray-100 px-3 py-2 rounded-b-md flex items-center justify-between gap-3">
         <div class="flex items-center gap-2">
           <NcButton
             v-if="!isPublic"
@@ -504,7 +504,7 @@ const onFilterChange = () => {
 <style lang="scss">
 .nc-dropdown-link-record-search-wrapper {
   .nc-search-icon {
-    @apply text-gray-500;
+    @apply flex-none text-gray-500;
   }
 
   &:focus-within {

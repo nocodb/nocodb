@@ -136,114 +136,73 @@ watch([childListDlg, listItemsDlg], () => {
     isOpen.value = false
   }
 })
-const ncLinksDropdownRef = ref<HTMLDivElement>()
-
-const randomClass = `link-records_${Math.floor(Math.random() * 99999)}`
-
-const addOrRemoveClass = (add: boolean = false) => {
-  const dropdownRoot = ncLinksDropdownRef.value?.parentElement?.parentElement?.parentElement?.parentElement as HTMLElement
-  if (dropdownRoot) {
-    if (add) {
-      dropdownRoot.classList.add('inset-0', 'nc-link-dropdown-root')
-    } else {
-      dropdownRoot.classList.remove('inset-0', 'nc-link-dropdown-root')
-    }
-  }
-}
 
 watch(
   isOpen,
   (next) => {
-    if (next) {
-      onClickOutside(document.querySelector(`.${randomClass}`)! as HTMLDivElement, (e) => {
-        const targetEl = e?.target as HTMLElement
-        if (!targetEl?.classList.contains('nc-link-dropdown-root') || targetEl?.closest(`.nc-${randomClass}`)) {
-          return
-        }
-        isOpen.value = false
-        listItemsDlg.value = false
-        childListDlg.value = false
-        addOrRemoveClass(false)
-      })
-    } else {
+    if (!next) {
       listItemsDlg.value = false
       childListDlg.value = false
-      addOrRemoveClass(false)
     }
   },
   { flush: 'post' },
 )
-
-watch([ncLinksDropdownRef, isOpen], () => {
-  // let dropdown = document.querySelector(`.${randomClass}`)
-  if (!ncLinksDropdownRef.value) return
-
-  if (isOpen.value) {
-    addOrRemoveClass(true)
-  } else {
-    addOrRemoveClass(false)
-  }
-})
 </script>
 
 <template>
-  <div
-    class="nc-cell-field flex w-full group items-center nc-links-wrapper py-1"
-    :class="`.nc-${randomClass}`"
-    @dblclick.stop="openChildList"
-  >
-    <NcDropdown :visible="isOpen" placement="bottom" overlay-class-name="nc-links-dropdown">
-      <div class="flex w-full group items-center">
-        <div class="block flex-shrink truncate">
-          <component
-            :is="isUnderLookup ? 'span' : 'a'"
-            ref="childListDlgRef"
-            v-e="['c:cell:links:modal:open']"
-            :title="textVal"
-            class="text-center nc-datatype-link underline-transparent"
-            :class="{ '!text-gray-300': !textVal }"
-            :tabindex="readOnly ? -1 : 0"
-            @click.stop.prevent="openChildList"
-            @keydown.enter.stop.prevent="openChildList"
-          >
-            {{ textVal }}
-          </component>
-        </div>
-        <div class="flex-grow" />
+  <div class="nc-cell-field flex w-full group items-center nc-links-wrapper py-1" @dblclick.stop="openChildList">
+    <LazyVirtualCellComponentsLinkRecordDropdown v-model:is-open="isOpen">
+      <template #default>
+        <div class="flex w-full group items-center">
+          <div class="block flex-shrink truncate">
+            <component
+              :is="isUnderLookup ? 'span' : 'a'"
+              ref="childListDlgRef"
+              v-e="['c:cell:links:modal:open']"
+              :title="textVal"
+              class="text-center nc-datatype-link underline-transparent"
+              :class="{ '!text-gray-300': !textVal }"
+              :tabindex="readOnly ? -1 : 0"
+              @click.stop.prevent="openChildList"
+              @keydown.enter.stop.prevent="openChildList"
+            >
+              {{ textVal }}
+            </component>
+          </div>
+          <div class="flex-grow" />
 
-        <div
-          v-if="!isUnderLookup"
-          ref="plusBtnRef"
-          :tabindex="readOnly ? -1 : 0"
-          class="!xs:hidden flex group justify-end group-hover:flex items-center"
-          @keydown.enter.stop="openListDlg"
-        >
-          <MdiPlus
-            v-if="(!readOnly && isUIAllowed('dataEdit')) || isForm"
-            class="select-none !text-md text-gray-700 nc-action-icon nc-plus invisible group-hover:visible group-focus:visible"
-            @click.stop="openListDlg"
-          />
-        </div>
-      </div>
-      <template #overlay>
-        <div ref="ncLinksDropdownRef" class="h-[412px] w-[540px]" :class="`${randomClass}`">
-          <LazyVirtualCellComponentsLinkedItems
-            v-if="childListDlg"
-            v-model="childListDlg"
-            :items="toatlRecordsLinked"
-            :column="relatedTableDisplayColumn"
-            :cell-value="localCellValue"
-            @attach-record="onAttachRecord"
-          />
-          <LazyVirtualCellComponentsUnLinkedItems
-            v-if="listItemsDlg"
-            v-model="listItemsDlg"
-            :column="relatedTableDisplayColumn"
-            @attach-linked-record="onAttachLinkedRecord"
-          />
+          <div
+            v-if="!isUnderLookup"
+            ref="plusBtnRef"
+            :tabindex="readOnly ? -1 : 0"
+            class="!xs:hidden flex group justify-end group-hover:flex items-center"
+            @keydown.enter.stop="openListDlg"
+          >
+            <MdiPlus
+              v-if="(!readOnly && isUIAllowed('dataEdit')) || isForm"
+              class="select-none !text-md text-gray-700 nc-action-icon nc-plus invisible group-hover:visible group-focus:visible"
+              @click.stop="openListDlg"
+            />
+          </div>
         </div>
       </template>
-    </NcDropdown>
+      <template #overlay>
+        <LazyVirtualCellComponentsLinkedItems
+          v-if="childListDlg"
+          v-model="childListDlg"
+          :items="toatlRecordsLinked"
+          :column="relatedTableDisplayColumn"
+          :cell-value="localCellValue"
+          @attach-record="onAttachRecord"
+        />
+        <LazyVirtualCellComponentsUnLinkedItems
+          v-if="listItemsDlg"
+          v-model="listItemsDlg"
+          :column="relatedTableDisplayColumn"
+          @attach-linked-record="onAttachLinkedRecord"
+        />
+      </template>
+    </LazyVirtualCellComponentsLinkRecordDropdown>
   </div>
 </template>
 

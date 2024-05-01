@@ -57,7 +57,7 @@ const relationMeta = computed(() => {
 
 <template>
   <div
-    class="flex rounded-md flex-shrink-0 gap-1 items-center p-1"
+    class="flex-none flex rounded-md gap-1 items-center p-1 max-h-7"
     :class="{
       'bg-gray-200 text-gray-600': !linkedRecords,
       'bg-orange-100 text-orange-700': relation === 'hm' && linkedRecords,

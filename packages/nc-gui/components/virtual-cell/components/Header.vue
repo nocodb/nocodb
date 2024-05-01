@@ -56,50 +56,45 @@ const relationMeta = computed(() => {
 </script>
 
 <template>
-  <div class="flex sm:justify-between relative pb-2 items-center">
-    <div class="flex flex-row sm:w-[calc(100%-16rem)] xs:w-full items-center justify-center gap-2 xs:(h-full)">
-      <div class="flex justify-start xs:w-[calc(50%-1.5rem)] w-[calc(50%-1.5rem)] xs:justify-start">
-        <div
-          class="flex rounded-md max-w-full flex-shrink-0 gap-1 items-center px-2 py-1 xs:w-full overflow-hidden"
-          :class="{
-            '!bg-orange-50 !text-orange-500': relation === 'hm',
-            '!bg-pink-50 !text-pink-500': relation === 'mm',
-            '!bg-blue-50 !text-blue-500': relation === 'bt',
-          }"
-        >
-          <NcTooltip class="z-10" placement="bottom">
-            <template #title>
-              <div class="p-1">
-                <h1 class="text-white font-bold">{{ relationMeta.title }}</h1>
-                <div class="text-white">
-                  {{ relationMeta.tooltip_desc }}
-                  <span class="bg-gray-700 px-2 rounded-md">
-                    {{ tableTitle }}
-                  </span>
-                  {{ relationMeta.tooltip_desc2 }}
-                  <span class="bg-gray-700 px-2 rounded-md">
-                    {{ relatedTableTitle }}
-                  </span>
-                </div>
-              </div>
-            </template>
-            <component
-              :is="relationMeta.icon"
-              class="w-7 h-7 p-1 rounded-md"
-              :class="{
-                '!bg-orange-500': relation === 'hm',
-                '!bg-pink-500': relation === 'mm',
-                '!bg-blue-500': relation === 'bt',
-              }"
-            />
-          </NcTooltip>
-
-          <div class="">
-            {{ linkedRecords || 0 }} {{ $t('general.linked') }}
-            {{ linkedRecords === 1 ? $t('objects.record') : $t('objects.records') }}
+  <div
+    class="flex rounded-md flex-shrink-0 gap-1 items-center p-1"
+    :class="{
+      'bg-gray-200 text-gray-600': !linkedRecords,
+      'bg-orange-100 text-orange-700': relation === 'hm' && linkedRecords,
+      'bg-pink-100 text-pink-700': relation === 'mm' && linkedRecords,
+      'bg-blue-100 text-blue-700': relation === 'bt' && linkedRecords,
+    }"
+  >
+    <NcTooltip class="z-10 flex" placement="bottom">
+      <template #title>
+        <div class="p-1">
+          <h1 class="text-white font-bold">{{ relationMeta.title }}</h1>
+          <div class="text-white">
+            {{ relationMeta.tooltip_desc }}
+            <span class="bg-gray-700 px-2 rounded-md">
+              {{ tableTitle }}
+            </span>
+            {{ relationMeta.tooltip_desc2 }}
+            <span class="bg-gray-700 px-2 rounded-md">
+              {{ relatedTableTitle }}
+            </span>
           </div>
         </div>
-      </div>
+      </template>
+      <component
+        :is="relationMeta.icon"
+        class="flex-none w-5 h-5 p-1 rounded-md"
+        :class="{
+          '!bg-orange-500': relation === 'hm',
+          '!bg-pink-500': relation === 'mm',
+          '!bg-blue-500': relation === 'bt',
+        }"
+      />
+    </NcTooltip>
+
+    <div class="leading-[20px]">
+      {{ linkedRecords || 0 }} {{ $t('general.linked') }}
+      {{ linkedRecords === 1 ? $t('objects.record') : $t('objects.records') }}
     </div>
   </div>
 </template>

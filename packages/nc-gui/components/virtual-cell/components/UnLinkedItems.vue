@@ -274,27 +274,39 @@ const onFilterChange = () => {
 <template>
   <div class="nc-modal-link-record h-full w-full overflow-hidden" :class="{ active: vModel }">
     <div class="flex flex-col h-full">
-      <div class="nc-dropdown-link-record-header bg-gray-100 py-2 rounded-t-md">
-        <div class="nc-dropdown-link-record-search-wrapper flex items-center px-3 py-1 rounded-md w-full">
-          <MdiMagnify class="nc-search-icon w-5 h-5" />
-          <a-input
-            ref="filterQueryRef"
-            v-model:value="childrenExcludedListPagination.query"
-            :bordered="false"
-            placeholder="Search records to link..."
-            class="w-full nc-excluded-search min-h-4"
-            size="small"
-            @change="onFilterChange"
-            @keydown.capture.stop="
-              (e) => {
-                if (e.key === 'Escape') {
-                  filterQueryRef?.blur()
+      <div class="nc-dropdown-link-record-header bg-gray-100 py-2 rounded-t-md flex justify-between pl-3 pr-2 gap-2">
+        <div class="flex-1 flex items-center">
+          <button class="!text-brand-500 hover:!text-band-400 p-1.5 flex" @click="emit('attachLinkedRecord')">
+            <GeneralIcon icon="ncArrowLeft" class="flex-none h-4 w-4" />
+          </button>
+
+          <div class="flex-1 nc-dropdown-link-record-search-wrapper flex items-center py-1 rounded-md">
+            <MdiMagnify class="nc-search-icon w-5 h-5" />
+            <a-input
+              ref="filterQueryRef"
+              v-model:value="childrenExcludedListPagination.query"
+              :bordered="false"
+              placeholder="Search records to link..."
+              class="w-full nc-excluded-search min-h-4"
+              size="small"
+              @change="onFilterChange"
+              @keydown.capture.stop="
+                (e) => {
+                  if (e.key === 'Escape') {
+                    filterQueryRef?.blur()
+                  }
                 }
-              }
-            "
-          >
-          </a-input>
+              "
+            >
+            </a-input>
+          </div>
         </div>
+        <LazyVirtualCellComponentsHeader
+          :linked-records="relation === 'bt' ? (row.row[relatedTableMeta?.title] ? 1 : 0) : childrenListCount ?? 0"
+          :related-table-title="relatedTableMeta?.title"
+          :relation="relation"
+          :table-title="meta?.title"
+        />
       </div>
       <div class="flex-1 overflow-auto nc-scrollbar-thin">
         <template v-if="childrenExcludedList?.pageInfo?.totalRows">
@@ -343,7 +355,7 @@ const onFilterChange = () => {
                 :related-table-display-value-prop="relatedTableDisplayValueProp"
                 :row="refRow"
                 data-testid="nc-excluded-list-item"
-                @click="() => onClick(refRow, id)"
+                @link-or-unlink="onClick(refRow, id)"
                 @expand="
                   () => {
                     expandedFormRow = refRow
@@ -355,29 +367,6 @@ const onFilterChange = () => {
               />
             </template>
           </div>
-          <template
-            v-if="
-              childrenExcludedList?.pageInfo && +childrenExcludedList?.pageInfo?.totalRows > childrenExcludedListPagination.size
-            "
-          >
-            <div v-if="isMobileMode" class="flex justify-center items-center w-full my-2">
-              <NcPagination
-                v-model:current="childrenExcludedListPagination.page"
-                v-model:page-size="childrenExcludedListPagination.size"
-                :total="+childrenExcludedList?.pageInfo?.totalRows"
-                entity-name="links-excluded-list"
-              />
-            </div>
-            <div v-else class="flex justify-center items-center my-2">
-              <NcPagination
-                v-model:current="childrenExcludedListPagination.page"
-                v-model:page-size="childrenExcludedListPagination.size"
-                :total="+childrenExcludedList?.pageInfo?.totalRows"
-                entity-name="links-excluded-list"
-                mode="simple"
-              />
-            </div>
-          </template>
         </template>
         <div v-else class="my-auto py-2 flex flex-col gap-3 items-center justify-center text-gray-500">
           <InboxIcon class="w-16 h-16 mx-auto" />
@@ -388,15 +377,34 @@ const onFilterChange = () => {
         </div>
       </div>
       <div class="bg-gray-100 p-3 rounded-b-md flex items-center justify-between">
-        <NcButton size="small" class="!text-gray-800 hover:!text-gray-600" type="link" @click="emit('attachLinkedRecord')">
-          <div class="flex items-center gap-1"><GeneralIcon icon="ncArrowLeft" class="h-4 w-4" /> Linked Records</div>
-        </NcButton>
-
         <div class="flex">
           <NcButton v-if="!isPublic" v-e="['c:row-expand:open']" size="small" class="" type="secondary" @click="addNewRecord">
             <div class="flex items-center gap-1"><MdiPlus v-if="!isMobileMode" /> {{ $t('activity.newRecord') }}</div>
           </NcButton>
         </div>
+        <template
+          v-if="
+            childrenExcludedList?.pageInfo && +childrenExcludedList?.pageInfo?.totalRows > childrenExcludedListPagination.size
+          "
+        >
+          <div v-if="isMobileMode" class="flex items-center">
+            <NcPagination
+              v-model:current="childrenExcludedListPagination.page"
+              v-model:page-size="childrenExcludedListPagination.size"
+              :total="+childrenExcludedList?.pageInfo?.totalRows"
+              entity-name="links-excluded-list"
+            />
+          </div>
+          <div v-else class="flex items-center">
+            <NcPagination
+              v-model:current="childrenExcludedListPagination.page"
+              v-model:page-size="childrenExcludedListPagination.size"
+              :total="+childrenExcludedList?.pageInfo?.totalRows"
+              entity-name="links-excluded-list"
+              mode="simple"
+            />
+          </div>
+        </template>
       </div>
     </div>
     <Suspense>
@@ -439,7 +447,7 @@ const onFilterChange = () => {
 
   &:focus-within {
     .nc-search-icon {
-      @apply text-gray-800;
+      @apply text-gray-600;
     }
   }
 }

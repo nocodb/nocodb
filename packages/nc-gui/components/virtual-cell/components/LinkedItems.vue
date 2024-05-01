@@ -73,6 +73,7 @@ watch(
   [vModel, isForm],
   (nextVal) => {
     if ((nextVal[0] || nextVal[1]) && !isNew.value) {
+      console.log('load list')
       loadChildrenList()
     }
 
@@ -232,6 +233,10 @@ const skeletonCount = computed(() => {
 })
 
 const totalItemsToShow = computed(() => {
+  if (isForm.value) {
+    return state.value?.[colTitle.value]?.length
+  }
+
   if (isChildrenLoading.value) {
     return props.items
   }
@@ -311,8 +316,8 @@ const onFilterChange = () => {
 <template>
   <div class="nc-modal-child-list h-full w-full" :class="{ active: vModel }">
     <div class="flex flex-col h-full">
-      <div class="nc-dropdown-link-record-header bg-gray-100 py-2 rounded-t-md">
-        <div v-if="!isForm" class="nc-dropdown-link-record-search-wrapper flex items-center px-3 py-1 rounded-md w-full">
+      <div class="nc-dropdown-link-record-header bg-gray-100 py-2 rounded-t-md flex justify-between pl-3 pr-2 gap-2">
+        <div v-if="!isForm" class="flex-1 nc-dropdown-link-record-search-wrapper flex items-center py-1 rounded-md">
           <MdiMagnify class="nc-search-icon w-5 h-5" />
           <a-input
             ref="filterQueryRef"
@@ -332,8 +337,14 @@ const onFilterChange = () => {
           >
           </a-input>
         </div>
+        <LazyVirtualCellComponentsHeader
+          :linked-records="totalItemsToShow"
+          :related-table-title="relatedTableMeta?.title"
+          :relation="relation"
+          :table-title="meta?.title"
+        />
       </div>
-      <div ref="childrenListRef" class="flex-1 overflow-auto nc-scrollbar-thin">
+      <div ref="childrenListRef" class="flex-1 overflow-auto nc-scrollbar-thin" :key="childrenListCount">
         <div v-if="isDataExist || isChildrenLoading">
           <div class="cursor-pointer">
             <template v-if="isChildrenLoading">
@@ -380,32 +391,15 @@ const onFilterChange = () => {
                 :related-table-display-value-prop="relatedTableDisplayValueProp"
                 :row="refRow"
                 data-testid="nc-child-list-item"
-                @click="linkOrUnLink(refRow, id)"
+                @link-or-unlink="linkOrUnLink(refRow, id)"
                 @expand="onClick(refRow)"
                 @keydown.space.prevent="linkOrUnLink(refRow, id)"
                 @keydown.enter.prevent="() => onClick(refRow, id)"
               />
             </template>
           </div>
-          <template v-if="!isNew && childrenList?.pageInfo && +childrenList.pageInfo.totalRows! > childrenListPagination.size">
-            <div v-if="isMobileMode" class="flex justify-center items-center w-full my-2">
-              <NcPagination
-                v-model:current="childrenListPagination.page"
-                v-model:page-size="childrenListPagination.size"
-                :total="+childrenList.pageInfo.totalRows!"
-              />
-            </div>
-            <div v-else class="flex justify-center items-center my-2">
-              <NcPagination
-                v-model:current="childrenListPagination.page"
-                v-model:page-size="childrenListPagination.size"
-                :total="+childrenList.pageInfo.totalRows!"
-                mode="simple"
-              />
-            </div>
-          </template>
         </div>
-        <div v-else class="pt-1 flex flex-col gap-2 my-auto items-center justify-center text-gray-500 text-center">
+        <div v-else class="h-full flex flex-col gap-2 my-auto items-center justify-center text-gray-500 text-center">
           <img
             :alt="$t('msg.clickLinkRecordsToAddLinkFromTable')"
             class="!w-[158px] flex-none"
@@ -417,7 +411,7 @@ const onFilterChange = () => {
           </div>
 
           <NcButton
-            v-if="!readOnly && childrenListCount < 1"
+            v-if="!readOnly && childrenListCount < 1 || (childrenList?.list ?? state?.[colTitle] ?? []).length > 0"
             v-e="['c:links:link']"
             data-testid="nc-child-list-button-link-to"
             size="small"
@@ -429,17 +423,6 @@ const onFilterChange = () => {
       </div>
 
       <div class="bg-gray-100 p-3 rounded-b-md flex items-center justify-between gap-3">
-        <div v-if="!isForm" class="flex items-center justify-center px-2 rounded-md text-brand-500 bg-brand-100">
-          {{ totalItemsToShow || 0 }} {{ !isMobileMode ? $t('general.linked') : '' }}
-          {{ !isMobileMode ? (totalItemsToShow === 1 ? $t('objects.record') : $t('objects.records')) : '' }}
-        </div>
-        <div v-else class="flex items-center justify-center px-2 rounded-md text-brand-500 bg-brand-100">
-          <span>
-            {{ state?.[colTitle]?.length || 0 }} {{ $t('general.linked') }}
-            {{ state?.[colTitle]?.length === 1 ? $t('objects.record') : $t('objects.records') }}
-          </span>
-        </div>
-
         <div class="flex items-center gap-2">
           <NcButton v-if="!isPublic" v-e="['c:row-expand:open']" size="small" class="" type="secondary" @click="addNewRecord">
             <div class="flex items-center gap-1">
@@ -460,6 +443,16 @@ const onFilterChange = () => {
             </div>
           </NcButton>
         </div>
+        <template v-if="!isNew && childrenList?.pageInfo && +childrenList.pageInfo.totalRows! > childrenListPagination.size">
+          <div class="flex justify-center items-center my-2">
+            <NcPagination
+              v-model:current="childrenListPagination.page"
+              v-model:page-size="childrenListPagination.size"
+              :total="+childrenList.pageInfo.totalRows!"
+              mode="simple"
+            />
+          </div>
+        </template>
       </div>
     </div>
 
@@ -513,7 +506,7 @@ const onFilterChange = () => {
 
   &:focus-within {
     .nc-search-icon {
-      @apply text-gray-800;
+      @apply text-gray-600;
     }
   }
 }

@@ -16,7 +16,6 @@ import {
   useVModel,
 } from '#imports'
 import MaximizeIcon from '~icons/nc-icons/maximize'
-import LinkIcon from '~icons/nc-icons/link'
 
 const props = defineProps<{
   row: any
@@ -28,7 +27,7 @@ const props = defineProps<{
   isLinked: boolean
 }>()
 
-defineEmits(['expand'])
+defineEmits(['expand', 'linkOrUnlink'])
 
 provide(IsExpandedFormOpenInj, ref(true))
 
@@ -91,10 +90,10 @@ const displayValue = computed(() => {
   <div class="nc-list-item-wrapper group p-[2px] hover:bg-gray-50 border-b-1 border-b border-gray-200">
     <a-card
       tabindex="0"
-      class="nc-list-item !outline-none transition-all relative group-hover:bg-gray-50"
+      class="nc-list-item !outline-none transition-all relative group-hover:bg-gray-50 cursor-auto"
       :class="{
         '!bg-white': isLoading,
-        '!cursor-auto !hover:bg-white': readOnly,
+        '!hover:bg-white': readOnly,
       }"
       :body-style="{ padding: '6px 10px !important', borderRadius: 0 }"
       :hoverable="false"
@@ -112,6 +111,7 @@ const displayValue = computed(() => {
             'bg-red-100 text-red-500 hover:bg-red-200': isLinked,
             'bg-green-100 text-green-500 hover:bg-green-200': !isLinked,
           }"
+          @click="$emit('linkOrUnlink')"
         >
           <GeneralIcon :icon="isLinked ? 'minus' : 'plus'" class="flex-none w-4 h-4" />
         </button>

@@ -354,22 +354,22 @@ const onFilterChange = () => {
                 class="flex flex-row gap-2 mb-2 transition-all relative !border-gray-200 hover:bg-gray-50"
               >
                 <div class="flex items-center">
-                  <a-skeleton-image class="h-15 w-15 !rounded-xl children:!h-full" />
+                  <a-skeleton-image class="h-14 w-14 !rounded-xl children:!h-full" />
                 </div>
                 <div class="flex flex-col gap-2 flex-grow justify-center">
-                  <a-skeleton-input active class="!w-48 !rounded-xl" size="small" />
+                  <a-skeleton-input active class="h-3 !w-48 !rounded-xl" size="small" />
                   <div class="flex flex-row gap-6 w-10/12">
                     <div class="flex flex-col gap-0.5">
-                      <a-skeleton-input active class="!h-3 !w-12" size="small" />
-                      <a-skeleton-input active class="!h-3 !w-24" size="small" />
+                      <a-skeleton-input active class="!h-2 !w-12" size="small" />
+                      <a-skeleton-input active class="!h-2 !w-24" size="small" />
                     </div>
                     <div class="flex flex-col gap-0.5">
-                      <a-skeleton-input active class="!h-3 !w-12" size="small" />
-                      <a-skeleton-input active class="!h-3 !w-24" size="small" />
+                      <a-skeleton-input active class="!h-2 !w-12" size="small" />
+                      <a-skeleton-input active class="!h-2 !w-24" size="small" />
                     </div>
                     <div class="flex flex-col gap-0.5">
-                      <a-skeleton-input active class="!h-3 !w-12" size="small" />
-                      <a-skeleton-input active class="!h-3 !w-24" size="small" />
+                      <a-skeleton-input active class="!h-2 !w-12" size="small" />
+                      <a-skeleton-input active class="!h-2 !w-24" size="small" />
                     </div>
                   </div>
                 </div>

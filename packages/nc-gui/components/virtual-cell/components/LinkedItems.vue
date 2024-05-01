@@ -367,13 +367,13 @@ const onFilterChange = () => {
         </div>
         <div v-else class="pt-1 flex flex-col gap-2 my-auto items-center justify-center text-gray-500 text-center">
           <img
-            :alt="$t('msg.clickLinkRecordsToAddLinkFromTable', { tableName: relatedTableMeta?.title })"
+            :alt="$t('msg.clickLinkRecordsToAddLinkFromTable')"
             class="!w-[158px] flex-none"
             src="~assets/img/placeholder/link-records.png"
           />
           <div class="text-base text-gray-700 font-bold">{{ $t('msg.noLinkedRecords') }}</div>
           <div class="text-gray-700">
-            {{ $t('msg.clickLinkRecordsToAddLinkFromTable', { tableName: relatedTableMeta?.title }) }}
+            {{ $t('msg.clickLinkRecordsToAddLinkFromTable') }}
           </div>
 
           <NcButton

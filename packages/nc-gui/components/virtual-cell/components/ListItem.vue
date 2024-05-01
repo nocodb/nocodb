@@ -169,17 +169,10 @@ const displayValue = computed(() => {
                     <LazySmartsheetHeaderCell v-else class="!scale-70 text-gray-100 !text-sm" :column="field" :hide-menu="true" />
                   </template>
                   <div class="nc-link-record-cell flex w-full max-w-full">
-                    <LazySmartsheetVirtualCell
-                      v-if="isVirtualCol(field)"
-                      v-model="row[field.title]"
-                      :row="row"
-                      :column="field"
-                      class="!text-gray-600"
-                    />
+                    <LazySmartsheetVirtualCell v-if="isVirtualCol(field)" v-model="row[field.title]" :row="row" :column="field" />
                     <LazySmartsheetCell
                       v-else
                       v-model="row[field.title]"
-                      class="!text-gray-600 ml-1"
                       :column="field"
                       :edit-enabled="false"
                       :read-only="true"
@@ -217,7 +210,7 @@ const displayValue = computed(() => {
 .nc-link-record-cell {
   :deep(.nc-cell),
   :deep(.nc-virtual-cell) {
-    @apply !text-small;
+    @apply !text-small !text-gray-600 ml-1;
 
     .nc-cell-field,
     .nc-cell-field-link,

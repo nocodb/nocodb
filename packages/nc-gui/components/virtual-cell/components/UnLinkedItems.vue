@@ -296,7 +296,7 @@ const onFilterChange = () => {
           </a-input>
         </div>
       </div>
-      <div class="flex-1 overflow-auto nc-scrollbar-thin py-1.5">
+      <div class="flex-1 overflow-auto nc-scrollbar-thin">
         <template v-if="childrenExcludedList?.pageInfo?.totalRows">
           <div ref="childrenExcludedListRef">
             <template v-if="isChildrenExcludedLoading">

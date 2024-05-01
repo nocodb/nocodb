@@ -1,5 +1,6 @@
 <script lang="ts" setup>
-import { type ColumnType, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
+import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
+import { RelationTypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 import {
   ColumnInj,
   IsFormInj,
@@ -29,6 +30,8 @@ const emit = defineEmits(['update:modelValue', 'attachRecord'])
 const vModel = useVModel(props, 'modelValue', emit)
 
 const { isMobileMode } = useGlobal()
+
+const { t } = useI18n()
 
 const isForm = inject(IsFormInj, ref(false))
 
@@ -60,7 +63,7 @@ const {
   relatedTableMeta,
   link,
   meta,
-  headerDisplayValue,
+  row,
   resetChildrenListOffsetCount,
 } = useLTARStoreOrThrow()
 
@@ -330,7 +333,7 @@ const onFilterChange = () => {
           </a-input>
         </div>
       </div>
-      <div ref="childrenListRef" class="flex-1 overflow-auto nc-scrollbar-thin py-1.5">
+      <div ref="childrenListRef" class="flex-1 overflow-auto nc-scrollbar-thin">
         <div v-if="isDataExist || isChildrenLoading">
           <div class="cursor-pointer">
             <template v-if="isChildrenLoading">
@@ -417,8 +420,8 @@ const onFilterChange = () => {
             v-if="!readOnly && childrenListCount < 1"
             v-e="['c:links:link']"
             data-testid="nc-child-list-button-link-to"
-            @click="emit('attachRecord')"
             size="small"
+            @click="emit('attachRecord')"
           >
             <div class="flex items-center gap-1"><MdiPlus /> {{ $t('title.linkRecords') }}</div>
           </NcButton>
@@ -447,9 +450,9 @@ const onFilterChange = () => {
             v-if="!readOnly && childrenListCount > 0"
             v-e="['c:links:link']"
             data-testid="nc-child-list-button-link-to"
-            @click="emit('attachRecord')"
             size="small"
             type="secondary"
+            @click="emit('attachRecord')"
           >
             <div class="flex items-center gap-1">
               <GeneralIcon icon="link2" class="!xs:hidden h-4 w-4" />

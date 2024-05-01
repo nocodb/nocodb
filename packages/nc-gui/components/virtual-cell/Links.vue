@@ -173,7 +173,7 @@ watch([ncLinksDropdownRef, isOpen], () => {
   // let dropdown = document.querySelector(`.${randomClass}`)
   if (!ncLinksDropdownRef.value) return
 
-  if (isOpen) {
+  if (isOpen.value) {
     addOrRemoveClass(true)
   } else {
     addOrRemoveClass(false)

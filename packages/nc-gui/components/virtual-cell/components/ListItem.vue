@@ -88,7 +88,7 @@ const displayValue = computed(() => {
 </script>
 
 <template>
-  <div class="nc-list-item-wrapper group p-[2px] hover:bg-gray-50">
+  <div class="nc-list-item-wrapper group p-[2px] hover:bg-gray-50 border-b-1 border-b border-gray-200">
     <a-card
       tabindex="0"
       class="nc-list-item !outline-none transition-all relative group-hover:bg-gray-50"
@@ -139,7 +139,7 @@ const displayValue = computed(() => {
 
         <div class="flex-1 flex flex-col gap-1 justify-center overflow-hidden">
           <div class="flex justify-start">
-            <span class="font-semibold text-brand-500 nc-display-value xs:(truncate) leading-[20px]">
+            <span class="font-semibold text-brand-500 nc-display-value truncate leading-[20px]">
               {{ displayValue }}
             </span>
           </div>
@@ -165,8 +165,8 @@ const displayValue = computed(() => {
         </div>
         <div v-if="!isForm && !isPublic && !readOnly" class="flex-none flex items-center w-7">
           <button
-            :tabindex="-1"
             v-e="['c:row-expand:open']"
+            :tabindex="-1"
             class="!p-1 nc-expand-item !group-hover:visible !invisible !h-7 !w-7"
             @click.stop="$emit('expand', row)"
           >

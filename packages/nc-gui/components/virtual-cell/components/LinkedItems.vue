@@ -73,7 +73,7 @@ watch(
   [vModel, isForm],
   (nextVal) => {
     if ((nextVal[0] || nextVal[1]) && !isNew.value) {
-      loadChildrenList()
+      loadChildrenList(true)
     }
 
     // reset offset count when closing modal

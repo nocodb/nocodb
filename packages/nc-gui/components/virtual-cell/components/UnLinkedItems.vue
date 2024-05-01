@@ -100,7 +100,7 @@ watch(
       if (!isForm.value) {
         loadChildrenList()
       }
-      loadChildrenExcludedList(rowState.value)
+      loadChildrenExcludedList(rowState.value, true)
     }
     if (!nextVal) {
       resetChildrenExcludedOffsetCount()

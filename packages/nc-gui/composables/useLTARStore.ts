@@ -190,13 +190,13 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       return row.value.row[displayValueProp.value]
     })
 
-    const loadChildrenExcludedList = async (activeState?: any) => {
+    const loadChildrenExcludedList = async (activeState?: any, resetOffset: boolean = false) => {
       if (activeState) newRowState.state = activeState
       try {
         let offset =
           childrenExcludedListPagination.size * (childrenExcludedListPagination.page - 1) - childrenExcludedOffsetCount.value
 
-        if (offset < 0) {
+        if (offset < 0 || resetOffset) {
           offset = 0
           childrenExcludedOffsetCount.value = 0
         }
@@ -264,6 +264,10 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           isChildrenExcludedListLoading.value[index] = false
         })
 
+        if (childrenExcludedList.value?.list) {
+          childrenExcludedOffsetCount.value = childrenExcludedList.value?.list.length
+        }
+
         if (childrenExcludedList.value?.list && activeState && activeState[column.value.title]) {
           // Mark out exact same objects in activeState[column.value.title] as Linked
           // compare all keys and values
@@ -299,14 +303,13 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       }
     }
 
-    const loadChildrenList = async () => {
+    const loadChildrenList = async (resetOffset: boolean = false) => {
       try {
         isChildrenLoading.value = true
         if ([RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(colOptions.value.type)) return
         if (!rowId.value || !column.value) return
         let offset = childrenListPagination.size * (childrenListPagination.page - 1) + childrenListOffsetCount.value
-
-        if (offset < 0) {
+        if (offset < 0 || resetOffset) {
           offset = 0
           childrenListOffsetCount.value = 0
         } else if (offset >= childrenListCount.value) {
@@ -351,6 +354,10 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           isChildrenListLinked.value[index] = true
           isChildrenListLoading.value[index] = false
         })
+
+        if (childrenList.value?.list) {
+          childrenListOffsetCount.value = childrenList.value?.list.length
+        }
 
         if (!childrenListPagination.query) {
           childrenListCount.value = childrenList.value?.pageInfo.totalRows ?? 0

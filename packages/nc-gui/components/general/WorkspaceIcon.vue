@@ -6,6 +6,7 @@ const props = defineProps<{
   workspace: WorkspaceType | undefined
   hideLabel?: boolean
   size?: 'small' | 'medium' | 'large'
+  isRounded?: boolean
 }>()
 
 const workspaceColor = computed(() => {
@@ -24,6 +25,7 @@ const size = computed(() => props.size || 'medium')
       'min-w-4 w-4 h-4 rounded': size === 'small',
       'min-w-6 w-6 h-6 rounded-md': size === 'medium',
       'min-w-10 w-10 h-10 rounded-lg !text-base': size === 'large',
+      '!rounded-[50%]': props.isRounded,
     }"
     :style="{ backgroundColor: workspaceColor }"
   >

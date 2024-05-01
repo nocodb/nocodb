@@ -1,26 +1,33 @@
 import BasePage from '../Base';
-import { AccountPage } from './index';
-import * as assert from 'assert';
+import { ProjectsPage } from '../ProjectsPage';
 import { expect } from '@playwright/test';
+import { Domain } from './Domain';
+import { OrgAdminPage } from './index';
 
-export class AccountAuthenticationPage extends BasePage {
-  private accountPage: AccountPage;
+export class CloudSSO extends BasePage {
+  readonly projectsPage: ProjectsPage;
+  readonly domain: Domain;
+  readonly orgAdminPage: OrgAdminPage;
 
-  constructor(accountPage: AccountPage) {
-    super(accountPage.rootPage);
-    this.accountPage = accountPage;
+  constructor(orgAdminPage: OrgAdminPage) {
+    super(orgAdminPage.rootPage);
+    this.domain = new Domain(orgAdminPage);
+    this.orgAdminPage = orgAdminPage;
   }
 
   async goto() {
+    // wait for 2 seconds to make sure the page is loaded
+    // await this.rootPage.waitForTimeout(2000);
+    // console.log(await this.rootPage.locator('[data-test-id="nc-org-sso-settings"]').count());
     await this.waitForResponse({
-      uiAction: () => this.rootPage.goto('/#/account/authentication', { waitUntil: 'networkidle' }),
+      uiAction: () => this.rootPage.locator('[data-test-id="nc-org-sso-settings"]').click(),
       httpMethodsToMatch: ['GET'],
-      requestUrlPathToMatch: /\/sso-client/,
+      requestUrlPathToMatch: '/api/v2/orgs/',
     });
   }
 
   get() {
-    return this.accountPage.get().locator(`[data-test-id="nc-authentication"]`);
+    return this.rootPage.locator('html');
   }
 
   async verifySAMLProviderCount({ count }: { count: number }) {
@@ -29,6 +36,16 @@ export class AccountAuthenticationPage extends BasePage {
 
   async verifyOIDCProviderCount({ count }: { count: number }) {
     await expect.poll(async () => await this.get().locator('.nc-oidc-provider').count()).toBe(count);
+  }
+  async deleteExistingClientIfAny(provider: 'saml' | 'oidc' | 'google', title: string) {
+    if (
+      !(await this.rootPage
+        .locator(provider === 'google' ? '.nc-google-more-option' : `.nc-${provider}-${title}-more-option`)
+        .count())
+    )
+      return;
+
+    await this.deleteProvider(provider, title);
   }
 
   async getProvider(provider: 'saml' | 'oidc', title: string) {
@@ -42,7 +59,7 @@ export class AccountAuthenticationPage extends BasePage {
     await this.waitForResponse({
       uiAction: () => this.rootPage.locator(`[data-test-id="nc-${provider}-delete"]`).click(),
       httpMethodsToMatch: ['DELETE'],
-      requestUrlPathToMatch: /\/sso-client/,
+      requestUrlPathToMatch: /\/api\/v2\/orgs\/\w+\/sso-client/,
     });
   }
 
@@ -50,11 +67,11 @@ export class AccountAuthenticationPage extends BasePage {
     await this.waitForResponse({
       uiAction: () => this.get().locator(`.nc-${provider}-${title}-enable .nc-switch`).click(),
       httpMethodsToMatch: ['PATCH'],
-      requestUrlPathToMatch: /\/\w+\/sso-client/,
+      requestUrlPathToMatch: /\/api\/v2\/orgs\/\w+\/sso-client/,
     });
   }
 
-  async selectScope({ type, locator }: { type: string[] }) {
+  async selectScope({ type }: { type: string[] }) {
     await this.rootPage.locator('.ant-select-selector').click();
 
     await this.rootPage.locator('.ant-select-selection-search-input[aria-expanded="true"]').waitFor();
@@ -65,13 +82,13 @@ export class AccountAuthenticationPage extends BasePage {
 
   async createSAMLProvider(
     p: { title: string; url?: string; xml?: string },
-    setupRedirectUrlCbk?: ({ redirectUrl: string, audience: string }) => Promise<void>
+    setupRedirectUrlCbk?: (params: { redirectUrl: string; audience: string }) => Promise<void>
   ) {
     const newSamlBtn = this.get().locator('[data-test-id="nc-new-saml-provider"]');
 
     await newSamlBtn.click();
 
-    const samlModal = this.accountPage.rootPage.locator('.nc-saml-modal');
+    const samlModal = this.rootPage.locator('.nc-saml-modal');
 
     // wait until redirect url is generated
     await samlModal.locator('[data-test-id="nc-saml-redirect-url"]:has-text("http://")').waitFor();
@@ -97,7 +114,7 @@ export class AccountAuthenticationPage extends BasePage {
     await this.waitForResponse({
       uiAction: () => samlModal.locator('[data-test-id="nc-saml-submit"]').click(),
       httpMethodsToMatch: ['GET'],
-      requestUrlPathToMatch: /\/sso-client/,
+      requestUrlPathToMatch: /\/api\/v2\/orgs\/\w+\/sso-clients/,
     });
   }
 
@@ -114,13 +131,13 @@ export class AccountAuthenticationPage extends BasePage {
       scopes: Array<string>;
       userAttributes: string;
     },
-    setupRedirectUrlCbk?: ({ redirectUrl: string }) => Promise<void>
+    setupRedirectUrlCbk?: (params: { redirectUrl: string }) => Promise<void>
   ) {
     const newOIDCBtn = this.get().locator('[data-test-id="nc-new-oidc-provider"]');
 
     await newOIDCBtn.click();
 
-    const oidcModal = this.accountPage.rootPage.locator('.nc-oidc-modal');
+    const oidcModal = this.rootPage.locator('.nc-oidc-modal');
 
     // wait until redirect url is generated
     await oidcModal.locator('[data-test-id="nc-openid-redirect-url"]:has-text("http://")').waitFor();
@@ -151,14 +168,14 @@ export class AccountAuthenticationPage extends BasePage {
     await this.selectScope({
       type: p.scopes,
       locator: oidcModal.locator('[data-test-id="nc-oidc-scope"]'),
-    });
+    } as any);
 
     await oidcModal.locator('[data-test-id="nc-oidc-user-attribute"]').fill(p.userAttributes);
 
     await this.waitForResponse({
       uiAction: () => oidcModal.locator('[data-test-id="nc-oidc-save-btn"]').click(),
       httpMethodsToMatch: ['GET'],
-      requestUrlPathToMatch: /\/sso-client/,
+      requestUrlPathToMatch: /\/api\/v2\/orgs\/\w+\/sso-clients/,
     });
   }
 
@@ -166,7 +183,7 @@ export class AccountAuthenticationPage extends BasePage {
     await this.rootPage.locator(`.nc-google-more-option`).click();
     await this.rootPage.locator(`[data-test-id="nc-google-edit"]`).click();
 
-    const googleModal = this.accountPage.rootPage.locator('.nc-google-modal');
+    const googleModal = this.rootPage.locator('.nc-google-modal');
     // wait until redirect url is generated
     await googleModal.locator('[data-test-id="nc-google-redirect-url"]:has-text("http://")').waitFor();
 
@@ -177,9 +194,7 @@ export class AccountAuthenticationPage extends BasePage {
     await this.waitForResponse({
       uiAction: () => googleModal.locator('[data-test-id="nc-google-save-btn"]').click(),
       httpMethodsToMatch: ['GET'],
-      requestUrlPathToMatch: /\/sso-client/,
+      requestUrlPathToMatch: /\/api\/v2\/orgs\/\w+\/sso-clients/,
     });
   }
-
-  async verifyGoogleProviderCount(param: { count: number }) {}
 }

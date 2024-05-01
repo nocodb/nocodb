@@ -4,17 +4,18 @@ const props = withDefaults(
     color?: string
     border?: boolean
     size?: 'sm' | 'md' | 'lg'
+    rounded?: 'sm' | 'md' | 'lg'
   }>(),
   {
     border: true,
     size: 'sm',
+    rounded: 'md',
   },
 )
 </script>
 
 <template>
   <div
-    class="rounded-md px-1 flex items-center"
     :class="{
       'border-purple-500 bg-purple-100': props.color === 'purple',
       'border-blue-500 bg-blue-100': props.color === 'blue',
@@ -28,7 +29,11 @@ const props = withDefaults(
       'h-6': props.size === 'sm',
       'h-8': props.size === 'md',
       'h-10': props.size === 'lg',
+      'rounded-sm': props.rounded === 'sm',
+      'rounded-md': props.rounded === 'md',
+      'rounded-lg': props.rounded === 'lg',
     }"
+    class="px-1 flex items-center"
   >
     <slot />
   </div>

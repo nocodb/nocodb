@@ -232,7 +232,7 @@ const skeletonCount = computed(() => {
 })
 
 const totalItemsToShow = computed(() => {
-  if (isForm.value) {
+  if (isForm.value || isNew.value) {
     return state.value?.[colTitle.value]?.length
   }
 

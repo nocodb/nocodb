@@ -164,6 +164,18 @@ const relation = computed(() => {
   return injectedColumn!.value?.colOptions?.type
 })
 
+const totalItemsToShow = computed(() => {
+  if (relation.value === 'bt') {
+    return row.value.row[relatedTableMeta.value?.title] ? 1 : 0
+  }
+
+  if (isForm.value || isNew.value) {
+    return rowState.value?.[injectedColumn!.value?.title]?.length ?? 0
+  }
+
+  return childrenListCount.value ?? 0
+})
+
 watch(expandedFormDlg, () => {
   if (!expandedFormDlg.value) {
     isExpandedFormCloseAfterSave.value = false
@@ -302,7 +314,7 @@ const onFilterChange = () => {
           </div>
         </div>
         <LazyVirtualCellComponentsHeader
-          :linked-records="relation === 'bt' ? (row.row[relatedTableMeta?.title] ? 1 : 0) : childrenListCount ?? 0"
+          :linked-records="totalItemsToShow"
           :related-table-title="relatedTableMeta?.title"
           :relation="relation"
           :table-title="meta?.title"

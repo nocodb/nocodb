@@ -17,15 +17,20 @@ import {
 } from '#imports'
 import MaximizeIcon from '~icons/nc-icons/maximize'
 
-const props = defineProps<{
-  row: any
-  fields: any[]
-  attachment: any
-  relatedTableDisplayValueProp: string
-  displayValueTypeAndFormatProp: { type: string; format: string }
-  isLoading: boolean
-  isLinked: boolean
-}>()
+const props = withDefaults(
+  defineProps<{
+    row: any
+    fields: any[]
+    attachment: any
+    relatedTableDisplayValueProp: string
+    displayValueTypeAndFormatProp: { type: string; format: string }
+    isLoading: boolean
+    isLinked: boolean
+  }>(),
+  {
+    isLoading: false,
+  },
+)
 
 defineEmits(['expand', 'linkOrUnlink'])
 

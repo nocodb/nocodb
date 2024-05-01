@@ -87,6 +87,7 @@ const plusBtnRef = ref<HTMLElement | null>(null)
 watch([listItemsDlg], () => {
   if (!listItemsDlg.value) {
     plusBtnRef.value?.focus()
+    isOpen.value = false
   } else {
     isOpen.value = true
   }
@@ -102,7 +103,7 @@ watch(
   { flush: 'post' },
 )
 
-watch(cellValue, (next) => {
+watch(value, (next) => {
   if (next) {
     isOpen.value = false
   }

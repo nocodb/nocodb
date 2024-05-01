@@ -80,13 +80,7 @@ const belongsToColumn = computed(
     relatedTableMeta.value?.columns?.find((c: any) => c.title === relatedTableDisplayValueProp.value) as ColumnType | undefined,
 )
 
-const plusBtnRef = ref<HTMLElement | null>(null)
-
-watch([listItemsDlg], () => {
-  if (!listItemsDlg.value) {
-    plusBtnRef.value?.focus()
-  }
-
+watch(listItemsDlg, () => {
   isOpen.value = listItemsDlg.value
 })
 
@@ -130,7 +124,6 @@ watch(value, (next) => {
 
         <div
           v-if="!readOnly && (isUIAllowed('dataEdit') || isForm) && !isUnderLookup"
-          ref="plusBtnRef"
           class="flex-none flex group items-center min-w-4"
           tabindex="0"
           @keydown.enter.stop="listItemsDlg = true"

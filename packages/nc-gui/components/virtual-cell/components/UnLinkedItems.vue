@@ -372,7 +372,7 @@ const onFilterChange = () => {
         <NcButton size="small" class="!text-gray-800 hover:!text-gray-600" type="link" @click="emit('attachLinkedRecord')">
           <div class="flex items-center gap-1"><GeneralIcon icon="ncArrowLeft" class="h-4 w-4" /> Linked Records</div>
         </NcButton>
-        <div class="!xs:hidden flex items-center justify-center flex-1">
+        <div class="!xs:hidden flex items-center justify-center flex-1 relative">
           <NcPagination
             v-if="childrenExcludedList?.pageInfo"
             v-model:current="childrenExcludedListPagination.page"

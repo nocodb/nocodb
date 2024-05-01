@@ -336,8 +336,8 @@ const onFilterChange = () => {
         />
       </div>
 
-      <div class="flex flex-row justify-between bg-white relative pt-1">
-        <div class="!xs:hidden flex absolute -mt-0.75 items-center py-2 justify-center w-full">
+      <div class="bg-gray-100 p-3 rounded-b-md flex items-center justify-end gap-3">
+        <div class="!xs:hidden flex-1 flex items-center justify-end">
           <NcPagination
             v-if="!isNew && childrenList?.pageInfo"
             v-model:current="childrenListPagination.page"
@@ -346,8 +346,6 @@ const onFilterChange = () => {
             mode="simple"
           />
         </div>
-      </div>
-      <div class="bg-gray-100 p-3 rounded-b-md flex items-center justify-end">
         <div class="flex items-center gap-2">
           <NcButton v-if="!isPublic" v-e="['c:row-expand:open']" size="small" class="" type="secondary">
             <div class="flex items-center gap-1">

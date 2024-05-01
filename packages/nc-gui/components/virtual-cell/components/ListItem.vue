@@ -294,13 +294,14 @@ const displayValue = computed(() => {
   .long-text-wrapper {
     @apply select-none pointer-events-none;
     .nc-readonly-rich-text-wrapper {
-      @apply !min-h-6 !max-h-6;
+      @apply !min-h-5 !max-h-5;
     }
     .nc-rich-text-embed {
+      @apply -mt-0.5;
       .nc-textarea-rich-editor {
         @apply !overflow-hidden;
         .ProseMirror {
-          @apply !overflow-hidden line-clamp-1;
+          @apply !overflow-hidden line-clamp-1 h-[18px] pt-0.4;
         }
       }
     }

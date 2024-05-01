@@ -161,9 +161,7 @@ watch(
             @unlink="unlinkRef(cell.item)"
           />
 
-          <span v-if="cells?.length === 10" class="caption pointer ml-1 grey--text" @click.stop="openChildList">
-            more...
-          </span>
+          <span v-if="cells?.length === 10" class="caption pointer ml-1 grey--text" @click.stop="openChildList"> more... </span>
         </template>
       </div>
 

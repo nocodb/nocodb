@@ -284,7 +284,7 @@ const onFilterChange = () => {
 </script>
 
 <template>
-  <div @keydown.stop class="nc-modal-link-record h-full w-full overflow-hidden" :class="{ active: vModel }">
+  <div class="nc-modal-link-record h-full w-full overflow-hidden" :class="{ active: vModel }" @keydown.stop>
     <div class="flex flex-col h-full">
       <div class="nc-dropdown-link-record-header bg-gray-100 py-2 rounded-t-md flex justify-between pl-3 pr-2 gap-2">
         <div class="flex-1 gap-2 flex items-center">

@@ -187,7 +187,7 @@ watch([ncLinksDropdownRef, isOpen], () => {
     :class="`.nc-${randomClass}`"
     @dblclick.stop="openChildList"
   >
-    <NcDropdown :visible="isOpen" placement="bottom" overlay-class-name="nc-links-dropdown !z-[999]">
+    <NcDropdown :visible="isOpen" placement="bottom" overlay-class-name="nc-links-dropdown">
       <div class="flex w-full group items-center">
         <div class="block flex-shrink truncate">
           <component
@@ -245,5 +245,8 @@ watch([ncLinksDropdownRef, isOpen], () => {
 <style lang="scss">
 .nc-links-dropdown {
   z-index: 999 !important;
+}
+.nc-link-dropdown-root {
+  z-index: 800;
 }
 </style>

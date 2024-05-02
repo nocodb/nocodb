@@ -26,6 +26,6 @@ teardown() {
     cd "${NOCO_HOME}"
 
     # Get scale from docker compose ps
-    scale=$(docker compose ps | grep nocodb | awk '{print $1}')
+    scale=$(docker compose ps | grep -c "nocodb/nocodb")
     [ "$scale" -eq 2 ]
 }

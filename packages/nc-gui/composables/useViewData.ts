@@ -177,7 +177,7 @@ export function useViewData(
 
   const controller = ref()
 
-  async function loadData(params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) {
+  async function loadData(params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}, shouldShowLoading = true) {
     if ((!base?.value?.id || !metaId.value || !viewMeta.value?.id) && !isPublic.value) return
 
     if (controller.value) {
@@ -188,7 +188,7 @@ export function useViewData(
 
     controller.value = CancelToken.source()
 
-    isPaginationLoading.value = true
+    if (shouldShowLoading) isPaginationLoading.value = true
     let response
 
     try {

@@ -175,31 +175,19 @@ const getMaxOverlaps = ({
 }: {
   row: Row
   columnArray: Array<Array<Array<Row>>>
-  graph: Map<number, Map<string, Set<string>>>
+  graph: Map<string, Set<string>>
 }) => {
   const id = row.rowMeta.id as string
 
   const visited: Set<string> = new Set()
 
-  const startCol = row.rowMeta.range?.fk_from_col
-  const toCol = row.rowMeta.range?.fk_to_col
-
-  const { startDate } = calculateNewDates({
-    startDate: dayjs(row.row[startCol!.title!]),
-    endDate: toCol ? dayjs(row.row[toCol.title!]) : dayjs(row.row[startCol!.title!]).add(1, 'hour').subtract(1, 'minute'),
-    scheduleStart: dayjs(selectedDateRange.value.start).startOf('day'),
-    scheduleEnd: dayjs(selectedDateRange.value.end).endOf('day'),
-  })
-
-  const dayIndex = getDayIndex(startDate)
+  const dayIndex = row.rowMeta.dayIndex
   const overlapIndex = columnArray[dayIndex].findIndex((column) => column.findIndex((r) => r.rowMeta.id === id) !== -1) + 1
-
-  const dayGraph = graph.get(dayIndex)
 
   const dfs = (id: string): number => {
     visited.add(id)
     let maxOverlaps = 1
-    const neighbors = dayGraph.get(id)
+    const neighbors = graph.get(id)
     if (neighbors) {
       for (const neighbor of neighbors) {
         if (maxOverlaps >= columnArray[dayIndex].length) return maxOverlaps
@@ -462,18 +450,20 @@ const recordsAcrossAllRange = computed<{
 
     const graph: Map<number, Map<string, Set<string>>> = new Map()
 
-    for (const dayIndex in gridTimeMap.keys()) {
-      for (const [_gridTime, { id: ids }] of gridTimeMap.get(dayIndex) ?? new Map()) {
+    for (const dayIndex of gridTimeMap.keys()) {
+      if (!graph.has(dayIndex)) {
+        graph.set(dayIndex, new Map())
+      }
+      for (const [_gridTime, { id: ids }] of gridTimeMap.get(dayIndex)) {
         for (const id1 of ids) {
-          if (!graph.has(id1)) {
-            graph.set(id1, new Map())
+          if (!graph.get(dayIndex).has(id1)) {
+            graph.get(dayIndex).set(id1, new Set())
           }
           for (const id2 of ids) {
             if (id1 !== id2) {
-              if (!graph.get(id1)!.has(id2)) {
-                graph.get(id1)!.set(id2, new Set())
+              if (!graph.get(dayIndex).get(id1).has(id2)) {
+                graph.get(dayIndex).get(id1).add(id2)
               }
-              graph.get(id1)!.get(id2)!.add(dayIndex)
             }
           }
         }
@@ -491,7 +481,7 @@ const recordsAcrossAllRange = computed<{
       const { maxOverlaps, overlapIndex } = getMaxOverlaps({
         row: record,
         columnArray,
-        graph,
+        graph: graph.get(record.rowMeta.dayIndex!) ?? new Map(),
       })
 
       const dayIndex = record.rowMeta.dayIndex ?? tDayIndex

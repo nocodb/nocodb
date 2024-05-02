@@ -11,8 +11,12 @@ setup() {
 }
 
 teardown() {
-  cd "${WORKING_DIR}/configure" || exit 1
-  ./setup.sh
+    if [ -n "$SKIP_TEARDOWN" ]; then
+        return
+    fi
+
+    cd "${WORKING_DIR}/install" || exit 1
+    ./setup.sh
 }
 
 @test "Check all containers are down" {

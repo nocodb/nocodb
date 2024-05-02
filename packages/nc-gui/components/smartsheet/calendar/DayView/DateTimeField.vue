@@ -142,35 +142,14 @@ const hasSlotForRecord = (
 }
 const getMaxOverlaps = ({
   row,
-  gridTimeMap,
   columnArray,
+  graph,
 }: {
   row: Row
-  gridTimeMap: Map<
-    number,
-    {
-      count: number
-      id: string[]
-    }
-  >
   columnArray: Array<Array<Row>>
+  graph: Map<string, Set<string>>
 }) => {
   const visited: Set<string> = new Set()
-  const graph: Map<string, Set<string>> = new Map()
-
-  // Build the graph
-  for (const [_gridTime, { id: ids }] of gridTimeMap) {
-    for (const id1 of ids) {
-      if (!graph.has(id1)) {
-        graph.set(id1, new Set())
-      }
-      for (const id2 of ids) {
-        if (id1 !== id2) {
-          graph.get(id1)!.add(id2)
-        }
-      }
-    }
-  }
 
   const dfs = (id: string): number => {
     visited.add(id)
@@ -178,7 +157,7 @@ const getMaxOverlaps = ({
     const neighbors = graph.get(id)
     if (neighbors) {
       for (const neighbor of neighbors) {
-        if (maxOverlaps >= columnArray.length) return maxOverlaps
+        // if (maxOverlaps >= columnArray.length) return maxOverlaps
         if (!visited.has(neighbor)) {
           maxOverlaps = Math.min(Math.max(maxOverlaps, dfs(neighbor) + 1), columnArray.length)
         }
@@ -397,11 +376,28 @@ const recordsAcrossAllRange = computed<{
       record.rowMeta.overLapIteration = parseInt(columnIndex) + 1
     }
   }
+
+  const graph = new Map<string, Set<string>>()
+
+  // Build the graph
+  for (const [_gridTime, { id: ids }] of gridTimeMap) {
+    for (const id1 of ids) {
+      if (!graph.has(id1)) {
+        graph.set(id1, new Set())
+      }
+      for (const id2 of ids) {
+        if (id1 !== id2) {
+          graph.get(id1)!.add(id2)
+        }
+      }
+    }
+  }
+
   for (const record of recordsByRange) {
     const numberOfOverlaps = getMaxOverlaps({
       row: record,
-      gridTimeMap,
       columnArray,
+      graph,
     })
 
     record.rowMeta.numberOfOverlaps = numberOfOverlaps

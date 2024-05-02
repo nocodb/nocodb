@@ -76,7 +76,7 @@ test.describe('User single select', () => {
     grid = dashboard.grid;
     topbar = dashboard.grid.topbar;
 
-    await dashboard.treeView.createTable({ title: 'Sheet1', baseTitle: context.base.title });
+    await dashboard.treeView.createTable({ title: 'sheet1', baseTitle: context.base.title });
 
     await grid.column.create({ title: 'User', type: 'User' });
 

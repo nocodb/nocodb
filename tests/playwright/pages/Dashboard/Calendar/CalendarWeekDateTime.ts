@@ -41,7 +41,14 @@ export class CalendarWeekDateTimePage extends BasePage {
     await this.rootPage.waitForTimeout(500);
 
     await this.rootPage.mouse.move(cord.x + cord.width / 2, cord.y + cord.height / 2);
-    await this.rootPage.mouse.up();
+
+    await this.waitForResponse({
+      uiAction: async () => {
+        await this.rootPage.mouse.up();
+      },
+      requestUrlPathToMatch: '/api/v1/db/data',
+      httpMethodsToMatch: ['PATCH'],
+    });
   }
 
   async selectHour({ hourIndex, dayIndex }: { dayIndex: number; hourIndex: number }) {
@@ -54,8 +61,8 @@ export class CalendarWeekDateTimePage extends BasePage {
         hour.click({
           force: true,
           position: {
-            x: -1,
-            y: -1,
+            x: 1,
+            y: 1,
           },
         }),
       requestUrlPathToMatch: '/api/v1/db/data/noco',

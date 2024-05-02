@@ -15,15 +15,10 @@ teardown() {
   setup.sh
 }
 
-@test "Check Redis, WatchTower and NocoDB are up with custom ip" {
-    ../expects/install/ip.sh
+@test "Check Redis, WatchTower and NocoDB are up" {
+    ../expects/configure/start.sh
 
-    cd "${NOCO_HOME}"
-
-    # Check Docker Compose file to verify configuration
-    grep -q 'redis' docker-compose.yml
-    grep -q 'watchtower' docker-compose.yml
-    grep -q 'nocodb' docker-compose.yml
+    cd "${NOCO_HOME}" || exit 1
 
     # Verify container is running
     docker compose ps | grep -q 'redis'

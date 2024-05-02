@@ -13,8 +13,5 @@ cd "$WORKING_DIR" || exit
 rm -rf "$NOCO_HOME"
 
 if [ "$1" = "setup" ]; then
-../noco.sh <<< $'\n\nN\n'
-
-  cd "$NOCO_HOME" || exit
-  docker compose down
+  ../noco.sh <<< $'\n\nN\n'
 fi

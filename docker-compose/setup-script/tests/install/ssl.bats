@@ -15,6 +15,11 @@ teardown() {
 }
 
 @test "Should create SSL certificates" {
+    if [ -z "$TEST_SSL" ]
+    then
+        skip "Skipping SSL tests"
+    fi
+
     ../expects/install/ssl.sh "$RANDOM_NUMBER"
 
     curl -ksS --head "https://${RANDOM_NUMBER}.ssl.nocodb.dev" > /dev/null

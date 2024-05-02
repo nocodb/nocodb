@@ -7,7 +7,7 @@ export NOCO_HOME
 
 setup() {
   cd "${WORKING_DIR}/configure" || exit 1
-  ./setup.sh
+  ./setup.sh setup
 }
 
 teardown() {
@@ -21,7 +21,6 @@ teardown() {
     cd "${NOCO_HOME}" || exit 1
 
     # Verify container is not running
-    docker compose ps | grep -q 'redis' && exit 1
-    docker compose ps | grep -q 'watchtower' && exit 1
-    docker compose ps | grep -q 'nocodb' && exit 1
+    count=$(docker compose ps -q | wc -l)
+    [ "$count" -eq 0 ]
 }

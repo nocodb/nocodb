@@ -39,9 +39,11 @@ export class CollaborationPage extends BasePage {
     const selector_role = inviteModal.locator('.ant-select-selector');
     const button_addUser = inviteModal.locator('.nc-invite-btn');
 
+    // flaky test: wait for the input to be ready
+    await this.rootPage.waitForTimeout(500);
+
     // email
-    await input_email.fill(email);
-    await this.rootPage.keyboard.press('Enter');
+    await input_email.fill(email + ' ');
 
     // role
     await selector_role.first().click();
@@ -52,7 +54,7 @@ export class CollaborationPage extends BasePage {
 
     // allow button to be enabled
     await this.rootPage.waitForTimeout(500);
-    await this.rootPage.keyboard.press('Enter');
+
     await button_addUser.click();
     await this.verifyToast({ message: 'Invitation sent successfully' });
     await this.rootPage.waitForTimeout(500);

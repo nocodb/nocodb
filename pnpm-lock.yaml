@@ -125,7 +125,7 @@ importers:
         version: 6.6.2
       httpsnippet:
         specifier: ^2.0.0
-        version: 2.0.0(mkdirp@3.0.1)
+        version: 2.0.0(mkdirp@2.1.6)
       jsbarcode:
         specifier: ^3.11.6
         version: 3.11.6
@@ -16243,11 +16243,11 @@ packages:
       graceful-fs: 4.2.11
     dev: false
 
-  /fs-writefile-promise@1.0.3(mkdirp@3.0.1):
+  /fs-writefile-promise@1.0.3(mkdirp@2.1.6):
     resolution: {integrity: sha512-yI+wDwj0FsgX7tyIQJR+EP60R64evMSixtGb9AzGWjJVKlF5tCet95KomfqGBg/aIAG1Dhd6wjCOQe5HbX/qLA==}
     engines: {node: '>=0.10'}
     dependencies:
-      mkdirp-promise: 1.1.0(mkdirp@3.0.1)
+      mkdirp-promise: 1.1.0(mkdirp@2.1.6)
       pinkie-promise: 1.0.0
     transitivePeerDependencies:
       - mkdirp
@@ -17257,7 +17257,7 @@ packages:
     transitivePeerDependencies:
       - supports-color
 
-  /httpsnippet@2.0.0(mkdirp@3.0.1):
+  /httpsnippet@2.0.0(mkdirp@2.1.6):
     resolution: {integrity: sha512-Hb2ttfB5OhasYxwChZ8QKpYX3v4plNvwMaMulUIC7M3RHRDf1Op6EMp47LfaU2sgQgfvo5spWK4xRAirMEisrg==}
     engines: {node: '>=10'}
     hasBin: true
@@ -17268,7 +17268,7 @@ packages:
       event-stream: 3.3.4
       form-data: 3.0.0
       fs-readfile-promise: 2.0.1
-      fs-writefile-promise: 1.0.3(mkdirp@3.0.1)
+      fs-writefile-promise: 1.0.3(mkdirp@2.1.6)
       har-validator: 5.1.5
       stringify-object: 3.3.0
     transitivePeerDependencies:
@@ -20208,14 +20208,14 @@ packages:
     requiresBuild: true
     dev: false
 
-  /mkdirp-promise@1.1.0(mkdirp@3.0.1):
+  /mkdirp-promise@1.1.0(mkdirp@2.1.6):
     resolution: {integrity: sha512-xzB0UZFcW1UGS2xkXeDh39jzTP282lb3Vwp4QzCQYmkTn4ysaV5dBdbkOXmhkcE1TQlZebQlgTceaWvDr3oFgw==}
     engines: {node: '>=4'}
     deprecated: This package is broken and no longer maintained. 'mkdirp' itself supports promises now, please switch to that.
     peerDependencies:
       mkdirp: '>=0.5.0'
     dependencies:
-      mkdirp: 3.0.1
+      mkdirp: 2.1.6
     dev: false
 
   /mkdirp@0.5.6:
@@ -20231,12 +20231,6 @@ packages:
 
   /mkdirp@2.1.6:
     resolution: {integrity: sha512-+hEnITedc8LAtIP9u3HJDFIdcLV2vXP33sqLLIzkv1Db1zO/1OxbvYf0Y1OC/S/Qo5dxHXepofhmxL02PsKe+A==}
-    engines: {node: '>=10'}
-    hasBin: true
-    dev: false
-
-  /mkdirp@3.0.1:
-    resolution: {integrity: sha512-+NsyUUAZDmo6YVHzL/stxSu3t9YS1iljliy3BSDrXJ/dkn1KYdmtZODGGjLcc9XLgVVpH4KshHB8XmZgMhaBXg==}
     engines: {node: '>=10'}
     hasBin: true
     dev: false

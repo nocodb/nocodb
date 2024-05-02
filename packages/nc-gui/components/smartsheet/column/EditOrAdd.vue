@@ -69,7 +69,7 @@ const isKanban = inject(IsKanbanInj, ref(false))
 
 const readOnly = computed(() => props.readonly)
 
-const { isMysql, isMssql, isXcdbBase } = useBase()
+const { isMysql, isMssql, isDatabricks, isXcdbBase } = useBase()
 
 const reloadDataTrigger = inject(ReloadViewDataHookInj)
 
@@ -391,6 +391,12 @@ if (props.fromTableExplorer) {
           "
             v-model:value="formState"
           />
+
+          <div v-if="isDatabricks(meta!.source_id)" class="mt-3">
+            <a-checkbox v-model:checked="formState.unique">
+              Set as Unique
+            </a-checkbox>
+          </div>
         </div>
 
         <div

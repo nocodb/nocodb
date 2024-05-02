@@ -133,7 +133,7 @@ const vModel = computed({
     } else if (val !== props.modelValue) {
       currentRow.value.rowMeta.changed = true
       emit('update:modelValue', val)
-      if (column.value.pk) {
+      if (column.value.pk || column.value.unique) {
         updateWhenEditCompleted()
       } else if (isAutoSaved(column.value)) {
         syncValue()

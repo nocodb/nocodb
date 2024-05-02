@@ -2,6 +2,24 @@
 # set -x
 
 # ******************************************************************************
+# *****************    GLOBAL VARIABLES START  *********************************
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+MAGENTA='\033[0;35m'
+CYAN='\033[0;36m'
+ORANGE='\033[0;33m'
+BOLD='\033[1m'
+NC='\033[0m'
+
+NOCO_HOME="${HOME}/.nocodb"
+
+# *****************    GLOBAL VARIABLES END  ***********************************
+# ******************************************************************************
+
+# ******************************************************************************
 # *****************    HELPER FUNCTIONS START  *********************************
 
 # Function to URL encode special characters in a string
@@ -100,9 +118,251 @@ read_number_range() {
     echo "$number"
 }
 
+check_if_docker_is_running() {
+    if ! $DOCKER_COMMAND ps >/dev/null 2>&1; then
+        echo    "+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-+"
+        echo -e "| ${BOLD}${YELLOW}Warning !          ${NC}                                                       |"
+        echo    "| Docker is not running. Most of the commands will not work without Docker. |"
+        echo    "| Use the following command to start Docker:                                |"
+        echo -e "| ${BLUE}     sudo systemctl start docker        ${NC}                                  |"
+        echo    "+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-+"
+    fi
+}
+
 # *****************    HELPER FUNCTIONS END  ***********************************
 # ******************************************************************************
 
+# *****************************************************************************
+# *************************** Management  *************************************
+
+# Function to display the menu
+show_menu() {
+    clear
+    check_if_docker_is_running
+    echo ""
+    echo "$MSG"
+    echo -e "\t\t${BOLD}Service Management Menu${NC}"
+    echo -e " ${GREEN}1. Start Service"
+    echo -e " ${ORANGE}2. Stop Service"
+    echo -e " ${CYAN}3. Logs"
+    echo -e " ${MAGENTA}4. Restart"
+    echo -e " ${BLUE}5. Upgrade"
+    echo -e " 6. Scale"
+    echo -e " 7. Monitoring"
+    echo -e " ${RED}0. Exit${NC}"
+}
+
+# Function to start the service
+start_service() {
+    echo -e "\nStarting nocodb..."
+    $DOCKER_COMMAND compose up -d
+}
+
+# Function to stop the service
+stop_service() {
+    echo -e "\nStopping nocodb..."
+    $DOCKER_COMMAND compose stop
+}
+
+show_logs_sub_menu() {
+    clear
+    echo "Select a replica for $1:"
+    for i in $(seq 1 $2); do
+        echo "$i. \"$1\" replica $i"
+    done
+    echo "A. All"
+    echo "0. Back to Logs Menu"
+    echo "Enter replica number: "
+    read -r replica_choice
+
+    if [[ "$replica_choice" =~ ^[0-9]+$ ]] && [ "$replica_choice" -gt 0 ] && [ "$replica_choice" -le "$2" ]; then
+        container_id=$($DOCKER_COMMAND compose ps | grep "$1-$replica_choice" | cut -d " " -f 1)
+        $DOCKER_COMMAND logs -f "$container_id"
+    elif [ "$replica_choice" == "A" ] || [ "$replica_choice" == "a" ]; then
+        $DOCKER_COMMAND compose logs -f "$1"
+    elif [ "$replica_choice" == "0" ]; then
+        show_logs
+    else
+        show_logs_sub_menu "$1" "$2"
+    fi
+}
+
+
+# Function to show logs
+show_logs() {
+    clear
+    echo "Select a container for logs:"
+
+    # Fetch the list of services
+    services=()
+    while IFS= read -r service; do
+        services+=("$service")
+    done < <($DOCKER_COMMAND compose ps --services)
+
+    service_replicas=()
+    count=0
+
+    # For each service, count the number of running instances
+    for service in "${services[@]}"; do
+        # Count the number of lines that have the service name, which corresponds to the number of replicas
+        replicas=$($DOCKER_COMMAND compose ps "$service" | grep -c "$service")
+        service_replicas["$count"]=$replicas
+        count=$((count + 1))
+    done
+
+    count=1
+
+    for service in "${services[@]}"; do
+        echo "$count. $service (${service_replicas[(($count - 1))]} replicas)"
+        count=$((count + 1))
+    done
+
+    echo "A. All"
+    echo "0. Back to main menu"
+    echo "Enter your choice: "
+    read -r log_choice
+    echo
+
+    if [[ "$log_choice" =~ ^[0-9]+$ ]] && [ "$log_choice" -gt 0 ] && [ "$log_choice" -lt "$count" ]; then
+        service_index=$((log_choice-1))
+        service="${services[$service_index]}"
+        num_replicas="${service_replicas[$service_index]}"
+
+        if [ "$num_replicas" -gt 1 ]; then
+            trap 'show_logs_sub_menu "$service" "$num_replicas"' INT
+            show_logs_sub_menu "$service" "$num_replicas"
+            trap - INT
+        else
+            trap 'show_logs' INT
+            $DOCKER_COMMAND compose logs -f "$service"
+        fi
+    elif [ "$log_choice" == "A" ] || [ "$log_choice" == "a" ]; then
+        trap 'show_logs' INT
+        $DOCKER_COMMAND compose logs -f
+    elif [ "$log_choice" == "0" ]; then
+        return
+    else
+        show_logs
+    fi
+
+    trap - INT
+}
+
+# Function to restart the service
+restart_service() {
+    echo -e "\nRestarting nocodb..."
+    $DOCKER_COMMAND compose restart
+}
+
+# Function to upgrade the service
+upgrade_service() {
+    echo -e "\nUpgrading nocodb..."
+    $DOCKER_COMMAND compose pull
+    $DOCKER_COMMAND compose up -d --force-recreate
+    $DOCKER_COMMAND image prune -a -f
+}
+
+# Function to scale the service
+scale_service() {
+    num_cores=$(nproc || sysctl -n hw.ncpu || echo 1)
+    current_scale=$($DOCKER_COMMAND compose ps -q nocodb | wc -l)
+    echo -e "\nCurrent number of instances: $current_scale"
+    echo "How many instances of NocoDB do you want to run (Maximum: ${num_cores}) ? (default: 1): "
+    scale_num=$(read_number_range 1 "$num_cores")
+
+    if [ "$scale_num" -eq "$current_scale" ]; then
+        echo "Number of instances is already set to $scale_num. Returning to main menu."
+        return
+    fi
+
+    $DOCKER_COMMAND compose up -d --scale nocodb="$scale_num"
+}
+
+# Function for basic monitoring
+monitoring_service() {
+    echo -e '\nLoading stats...'
+    trap ' ' INT
+    $DOCKER_COMMAND stats
+}
+
+management_menu() {
+  # Main program loop
+  while true; do
+      trap - INT
+      show_menu
+      echo "Enter your choice: "
+
+      read -r choice
+      case $choice in
+          1) start_service && MSG="NocoDB Started" ;;
+          2) stop_service && MSG="NocoDB Stopped" ;;
+          3) show_logs ;;
+          4) restart_service && MSG="NocoDB Restarted" ;;
+          5) upgrade_service && MSG="NocoDB has been upgraded to latest version" ;;
+          6) scale_service && MSG="NocoDB has been scaled" ;;
+          7) monitoring_service ;;
+          0) exit 0 ;;
+          *) MSG="\nInvalid choice. Please select a correct option." ;;
+      esac
+  done
+}
+
+# ******************************************************************************
+# *************************** Management END  **********************************
+
+
+# ******************************************************************************
+# *****************  Existing Install Test  ************************************
+
+IS_DOCKER_REQUIRE_SUDO=$(check_for_docker_sudo)
+DOCKER_COMMAND=$([ "$IS_DOCKER_REQUIRE_SUDO" = "y" ] && echo "sudo docker" || echo "docker")
+
+NOCO_FOUND=false
+
+# Check if $NOCO_HOME exists as directory
+if [ -d "$NOCO_HOME" ]; then
+  NOCO_FOUND=true
+elif $DOCKER_COMMAND ps --format '{{.Names}}' | grep -q "nocodb"; then
+    NOCO_ID=$(docker ps | grep "nocodb/nocodb" | cut -d ' ' -f 1)
+    CUSTOM_HOME=$(docker inspect --format='{{index .Mounts 0}}' "$NOCO_ID" | cut -d ' ' -f 3)
+    PARENT_DIR=$(dirname "$CUSTOM_HOME")
+
+    ln -s "$PARENT_DIR" "$NOCO_HOME"
+    basename "$PARENT_DIR" > "$NOCO_HOME/.COMPOSE_PROJECT_NAME"
+
+    NOCO_FOUND=true
+else
+    mkdir -p "$NOCO_HOME"
+fi
+
+cd "$NOCO_HOME" || exit 1
+
+# Check if nocodb is already installed
+if [ "$NOCO_FOUND" = true ]; then
+    echo "NocoDB is already installed. And running."
+    echo "Do you want to reinstall NocoDB? [Y/N] (default: N): "
+    read -r REINSTALL
+
+    if [ -f "$NOCO_HOME/.COMPOSE_PROJECT_NAME" ]; then
+        COMPOSE_PROJECT_NAME=$(cat "$NOCO_HOME/.COMPOSE_PROJECT_NAME")
+        export COMPOSE_PROJECT_NAME
+    fi
+
+    if [ "$REINSTALL" != "Y" ] && [ "$REINSTALL" != "y" ]; then
+        management_menu
+        exit 0
+    else
+        echo "Reinstalling NocoDB..."
+        $DOCKER_COMMAND compose down
+
+        unset COMPOSE_PROJECT_NAME
+        cd /tmp || exit 1
+        rm -rf "$NOCO_HOME"
+
+        mkdir -p "$NOCO_HOME"
+        cd "$NOCO_HOME" || exit 1
+    fi
+fi
 
 
 # ******************************************************************************
@@ -135,11 +395,6 @@ for tool in docker lsof openssl; do
   fi
 done
 
-# e. Check if NocoDB is already installed and its expected version
-# echo "Checking if NocoDB is already installed and its expected version..."
-# Replace the following command with the actual command to check NocoDB installation and version
-# Example: nocodb_version=$(command_to_get_nocodb_version)
-# echo "NocoDB version: $nocodb_install_version"
 
 # f. Port mapping check
 echo " | Checking port accessibility..."
@@ -165,26 +420,7 @@ if [ -z "$PUBLIC_IP" ]; then
     PUBLIC_IP="localhost"
 fi
 
-# generate a folder for the docker-compose file which is not existing and do the setup within the folder
-# Define the folder name
-FOLDER_NAME="nocodb_$(date +"%Y%m%d_%H%M%S")"
-
-# prompt for custom folder name and if left empty skip
-#echo "Enter a custom folder name or press Enter to use the default folder name ($FOLDER_NAME): "
-#read CUSTOM_FOLDER_NAME
-
-message_arr+=("Setup folder: $FOLDER_NAME")
-
-if [ -n "$CUSTOM_FOLDER_NAME" ]; then
-    FOLDER_NAME="$CUSTOM_FOLDER_NAME"
-fi
-
-
-# Create the folder
-mkdir -p "$FOLDER_NAME"
-
-# Navigate into the folder
-cd "$FOLDER_NAME" || exit
+message_arr+=("Setup folder: $NOCO_HOME")
 
 # ******************** SYSTEM REQUIREMENTS CHECK END  **************************
 # ******************************************************************************
@@ -535,211 +771,6 @@ server {
 EOF
 fi
 
-IS_DOCKER_REQUIRE_SUDO=$(check_for_docker_sudo)
-DOCKER_COMMAND=$([ "$IS_DOCKER_REQUIRE_SUDO" = "y" ] && echo "sudo docker" || echo "docker")
-
-# Generate help script
-cat > help.sh <<EOF
-#!/bin/bash
-
-$(declare -f read_number)
-
-$(declare -f read_number_range)
-
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-MAGENTA='\033[0;35m'
-CYAN='\033[0;36m'
-ORANGE='\033[0;33m'
-BOLD='\033[1m'
-NC='\033[0m'
-
-check_if_docker_is_running() {
-    if ! $DOCKER_COMMAND ps >/dev/null 2>&1; then
-        echo    "+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-+"
-        echo -e "| \${BOLD}\${YELLOW}Warning !          \${NC}                                                       |"
-        echo    "| Docker is not running. Most of the commands will not work without Docker. |"
-        echo    "| Use the following command to start Docker:                                |"
-        echo -e "| \${BLUE}     sudo systemctl start docker        \${NC}                                  |"
-        echo    "+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-+"
-    fi
-}
-
-# Function to display the menu
-show_menu() {
-    clear
-    check_if_docker_is_running
-    echo ""
-    echo \$MSG
-    echo -e "\t\t\${BOLD}Service Management Menu\${NC}"
-    echo -e " \${GREEN}1. Start Service"
-    echo -e " \${ORANGE}2. Stop Service"
-    echo -e " \${CYAN}3. Logs"
-    echo -e " \${MAGENTA}4. Restart"
-    echo -e " \${BLUE}5. Upgrade"
-    echo -e " 6. Scale"
-    echo -e " 7. Monitoring"
-    echo -e " \${RED}0. Exit\${NC}"
-}
-
-# Function to start the service
-start_service() {
-    echo -e "\nStarting nocodb..."
-    $DOCKER_COMMAND compose up -d
-}
-
-# Function to stop the service
-stop_service() {
-    echo -e "\nStopping nocodb..."
-    $DOCKER_COMMAND compose stop
-}
-
-show_logs_sub_menu() {
-    clear
-    echo "Select a replica for \$1:"
-    for i in \$(seq 1 \$2); do
-        echo "\$i. \$1 replica \$i"
-    done
-    echo "A. All"
-    echo "0. Back to Logs Menu"
-    echo "Enter replica number: "
-    read replica_choice
-
-    if [[ "\$replica_choice" =~ ^[0-9]+\$ ]] && [ "\$replica_choice" -gt 0 ] && [ "\$replica_choice" -le "\$2" ]; then
-        container_id=\$($DOCKER_COMMAND compose ps | grep "\$1-\$replica_choice" | cut -d " " -f 1)
-        $DOCKER_COMMAND logs -f "\$container_id"
-    elif [ "\$replica_choice" == "A" ] || [ "\$replica_choice" == "a" ]; then
-        $DOCKER_COMMAND compose logs -f \$1
-    elif [ "\$replica_choice" == "0" ]; then
-        show_logs
-    else
-        show_logs_sub_menu "\$1" "\$2"
-    fi
-}
-
-
-# Function to show logs
-show_logs() {
-    clear
-    echo "Select a container for logs:"
-
-    # Fetch the list of services
-    services=()
-    while IFS= read -r service; do
-        services+=("\$service")
-    done < <($DOCKER_COMMAND compose ps --services)
-
-    service_replicas=()
-    count=0
-
-    # For each service, count the number of running instances
-    for service in "\${services[@]}"; do
-        # Count the number of lines that have the service name, which corresponds to the number of replicas
-        replicas=\$($DOCKER_COMMAND compose ps \$service | grep "\$service" | wc -l)
-        service_replicas["\$count"]=\$replicas
-        count=\$((count + 1))
-    done
-
-    count=1
-
-    for service in "\${services[@]}"; do
-        echo "\$count. \$service (\${service_replicas[((\$count - 1))]} replicas)"
-        count=\$((count + 1))
-    done
-
-    echo "A. All"
-    echo "0. Back to main menu"
-    echo "Enter your choice: "
-    read log_choice
-    echo
-
-    if [[ "\$log_choice" =~ ^[0-9]+\$ ]] && [ "\$log_choice" -gt 0 ] && [ "\$log_choice" -lt "\$count" ]; then
-        service_index=\$((log_choice-1))
-        service="\${services[\$service_index]}"
-        num_replicas="\${service_replicas[\$service_index]}"
-
-        if [ "\$num_replicas" -gt 1 ]; then
-            trap 'show_logs_sub_menu "\$service" "\$num_replicas"' INT
-            show_logs_sub_menu "\$service" "\$num_replicas"
-            trap - INT
-        else
-            trap 'show_logs' INT
-            $DOCKER_COMMAND compose logs -f "\$service"
-        fi
-    elif [ "\$log_choice" == "A" ] || [ "\$log_choice" == "a" ]; then
-        trap 'show_logs' INT
-        $DOCKER_COMMAND compose logs -f
-    elif [ "\$log_choice" == "0" ]; then
-        return
-    else
-        show_logs
-    fi
-
-    trap - INT
-}
-
-# Function to restart the service
-restart_service() {
-    echo -e "\nRestarting nocodb..."
-    $DOCKER_COMMAND compose restart
-}
-
-# Function to upgrade the service
-upgrade_service() {
-    echo -e "\nUpgrading nocodb..."
-    $DOCKER_COMMAND compose pull
-    $DOCKER_COMMAND compose up -d --force-recreate
-    $DOCKER_COMMAND image prune -a -f
-}
-
-# Function to scale the service
-scale_service() {
-    num_cores=\$(nproc || sysctl -n hw.ncpu || echo 1)
-    current_scale=\$($DOCKER_COMMAND compose ps -q nocodb | wc -l)
-    echo -e "\nCurrent number of instances: \$current_scale"
-    echo "How many instances of NocoDB do you want to run (Maximum: \${num_cores}) ? (default: 1): "
-    scale_num=\$(read_number_range 1 \$num_cores)
-
-    if [ \$scale_num -eq \$current_scale ]; then
-        echo "Number of instances is already set to \$scale_num. Returning to main menu."
-        return
-    fi
-
-    $DOCKER_COMMAND compose up -d --scale nocodb=\$scale_num
-}
-
-# Function for basic monitoring
-monitoring_service() {
-    echo -e '\nLoading stats...'
-    trap ' ' INT
-    $DOCKER_COMMAND stats
-}
-
-# Main program loop
-while true; do
-    trap - INT
-    show_menu
-    echo "Enter your choice: "
-
-    read choice
-    case \$choice in
-        1) start_service && MSG="NocoDB Started" ;;
-        2) stop_service && MSG="NocoDB Stopped" ;;
-        3) show_logs ;;
-        4) restart_service && MSG="NocoDB Restarted" ;;
-        5) upgrade_service && MSG="NocoDB has been upgraded to latest version" ;;
-        6) scale_service && MSG="NocoDB has been scaled" ;;
-        7) monitoring_service ;;
-        0) exit 0 ;;
-        *) MSG="\nInvalid choice. Please select a correct option." ;;
-    esac
-done
-EOF
-
-message_arr+=("Help script: help.sh")
-
 cat > ./update.sh <<EOF
 $DOCKER_COMMAND compose pull
 $DOCKER_COMMAND compose up -d --force-recreate
@@ -781,4 +812,11 @@ fi
 print_box_message "${message_arr[@]}"
 
 # *************************** SETUP END  *************************************
-# ******************************************************************************
+# ****************************************************************************
+
+echo "Do you want to start the management menu [Y/N] (default: Y): "
+read -r MANAGEMENT_MENU
+
+if [ -z "$MANAGEMENT_MENU" ] || { [ "$MANAGEMENT_MENU" != "N" ] && [ "$MANAGEMENT_MENU" != "n" ]; }; then
+    management_menu
+fi

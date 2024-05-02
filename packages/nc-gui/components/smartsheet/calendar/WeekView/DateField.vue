@@ -79,6 +79,18 @@ const findFirstSuitableRow = (recordsInDay: any, startDayIndex: number, spanDays
   }
 }
 
+const isInRange = (date: dayjs.Dayjs) => {
+  return (
+    date &&
+    date.isBetween(
+      dayjs(selectedDateRange.value.start).startOf('day'),
+      dayjs(selectedDateRange.value.end).endOf('day'),
+      'day',
+      '[]',
+    )
+  )
+}
+
 const calendarData = computed(() => {
   if (!formattedData.value || !calendarRange.value) return []
 
@@ -164,9 +176,8 @@ const calendarData = computed(() => {
 
         let position = 'none'
 
-        const isStartInRange =
-          ogStartDate && ogStartDate.isBetween(selectedDateRange.value.start, selectedDateRange.value.end, 'day', '[]')
-        const isEndInRange = endDate && endDate.isBetween(selectedDateRange.value.start, selectedDateRange.value.end, 'day', '[]')
+        const isStartInRange = isInRange(ogStartDate)
+        const isEndInRange = isInRange(endDate)
 
         // Calculate the position of the record in the calendar based on the start and end date
         // The position can be 'none', 'leftRounded', 'rightRounded', 'rounded'

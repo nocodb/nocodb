@@ -826,7 +826,7 @@ const viewMore = (hour: dayjs.Dayjs) => {
 }
 
 const isOverflowAcrossHourRange = (hour: dayjs.Dayjs) => {
-  if (!recordsAcrossAllRange.value) return { isOverflow: false, overflowCount: 0 }
+  if (!recordsAcrossAllRange.value || !recordsAcrossAllRange.value.gridTimeMap) return { isOverflow: false, overflowCount: 0 }
   const { gridTimeMap } = recordsAcrossAllRange.value
   const dayIndex = getDayIndex(hour)
   const startMinute = hour.hour() * 60 + hour.minute()

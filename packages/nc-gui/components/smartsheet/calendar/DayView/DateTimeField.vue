@@ -812,7 +812,7 @@ const dropEvent = (event: DragEvent) => {
 }
 
 const isOverflowAcrossHourRange = (hour: dayjs.Dayjs) => {
-  if (!recordsAcrossAllRange.value) return { isOverflow: false, overflowCount: 0 }
+  if (!recordsAcrossAllRange.value || !recordsAcrossAllRange.value.gridTimeMap) return { isOverflow: false, overflowCount: 0 }
   const { gridTimeMap } = recordsAcrossAllRange.value
   const startMinute = hour.hour() * 60 + hour.minute()
   const endMinute = hour.hour() * 60 + hour.minute() + 59

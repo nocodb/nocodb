@@ -59,17 +59,20 @@ async function beforeEachInit({ page }: { page: any }) {
     }
   }
 
-  return { dashboard, context };
+  return { dashboard, context, api };
 }
 
 test.describe('User single select', () => {
   let dashboard: DashboardPage, grid: GridPage, topbar: TopbarPage;
   let context: any;
+  let api: Api<any>;
+  let tableId: string;
 
   test.beforeEach(async ({ page }) => {
     const initRsp = await beforeEachInit({ page: page });
     context = initRsp.context;
     dashboard = initRsp.dashboard;
+    api = initRsp.api;
     grid = dashboard.grid;
     topbar = dashboard.grid.topbar;
 
@@ -77,7 +80,16 @@ test.describe('User single select', () => {
 
     await grid.column.create({ title: 'User', type: 'User' });
 
-    await grid.addNewRow({ index: 0, value: 'Row 0' });
+    // await grid.addNewRow({ index: 0, value: 'Row 0' });
+    const tables = await api.dbTable.list(context.base.id);
+    tableId = tables.list.find((table: any) => table.title === 'sheet1').id;
+    await api.dbTableRow.bulkCreate('noco', context.base.id, tableId, [
+      {
+        Id: 1,
+        Title: `Row 0`,
+      },
+    ]);
+    await page.reload();
   });
 
   test.afterEach(async () => {
@@ -102,7 +114,15 @@ test.describe('User single select', () => {
     });
 
     // Add new row and verify default value is added in new cell
-    await grid.addNewRow({ index: 1, value: 'Row 1' });
+    // await grid.addNewRow({ index: 1, value: 'Row 1' });
+    await api.dbTableRow.bulkCreate('noco', context.base.id, tableId, [
+      {
+        Id: 2,
+        Title: `Row 1`,
+      },
+    ]);
+    await grid.rootPage.reload();
+
     await grid.cell.userOption.verify({
       index: 1,
       columnHeader: 'User',
@@ -130,9 +150,18 @@ test.describe('User single select', () => {
   });
 
   test('Field operations - duplicate column, convert to SingleLineText', async () => {
+    await api.dbTableRow.bulkCreate('noco', context.base.id, tableId, [
+      { Id: 2, Title: `Row 1` },
+      { Id: 3, Title: `Row 2` },
+      { Id: 4, Title: `Row 3` },
+      { Id: 5, Title: `Row 4` },
+      { Id: 6, Title: `Row 5` },
+    ]);
+    await grid.rootPage.reload();
+
     for (let i = 0; i <= 4; i++) {
       await grid.cell.userOption.select({ index: i, columnHeader: 'User', option: users[i], multiSelect: false });
-      await grid.addNewRow({ index: i + 1, value: `Row ${i + 1}` });
+      // await grid.addNewRow({ index: i + 1, value: `Row ${i + 1}` });
     }
 
     await grid.column.duplicateColumn({
@@ -164,10 +193,20 @@ test.describe('User single select', () => {
       multiSelect: false,
     });
 
+    // add 5 rows
+    await api.dbTableRow.bulkCreate('noco', context.base.id, tableId, [
+      { Id: 2, Title: `Row 1` },
+      { Id: 3, Title: `Row 2` },
+      { Id: 4, Title: `Row 3` },
+      { Id: 5, Title: `Row 4` },
+      { Id: 6, Title: `Row 5` },
+    ]);
+    await grid.rootPage.reload();
+
     // Edit, refresh and verify
     for (let i = 0; i <= 4; i++) {
       await grid.cell.userOption.select({ index: i, columnHeader: 'User', option: users[i], multiSelect: false });
-      await grid.addNewRow({ index: i + 1, value: `Row ${i + 1}` });
+      // await grid.addNewRow({ index: i + 1, value: `Row ${i + 1}` });
     }
 
     // refresh page

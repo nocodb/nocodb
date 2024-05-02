@@ -10,7 +10,7 @@ expect "Do you want to reinstall NocoDB*"
 send "N\r"
 
 expect "Enter your choice: "
-send "1\r"
+send "2\r"
 
 expect "Enter your choice: "
 send "0\r"

@@ -226,39 +226,27 @@ const getMaxOverlaps = ({
 
 const recordsAcrossAllRange = computed<{
   records: Array<Row>
-  count: {
-    [key: string]: {
-      [key: string]: {
-        id: Array<string>
-        overflow: boolean
-        overflowCount: number
+  gridTimeMap: Map<
+    number,
+    Map<
+      number,
+      {
+        count: number
+        id: string[]
       }
-    }
-  }
+    >
+  >
 }>(() => {
   if (!formattedData.value || !calendarRange.value || !container.value || !scrollContainer.value)
     return {
       records: [],
-      count: {},
+      gridTimeMap: new Map(),
     }
   const perWidth = containerWidth.value / 7
   const perHeight = 52
 
   const scheduleStart = dayjs(selectedDateRange.value.start).startOf('day')
   const scheduleEnd = dayjs(selectedDateRange.value.end).endOf('day')
-
-  // We need to keep track of the overlaps for each day and hour, minute in the week to calculate the width and left position of each record
-  // The first key is the dayIndex (0-6), the second key is the minute, and the value is an object containing the ids of the records that overlap
-  // The key is in the format D and the hour is in the format mm
-  const overlaps: {
-    [key: string]: {
-      [key: string]: {
-        id: Array<string>
-        overflow: boolean
-        overflowCount: number
-      }
-    }
-  } = {}
 
   const columnArray: Array<Array<Array<Row>>> = [[[]]]
   const gridTimeMap = new Map<
@@ -486,11 +474,7 @@ const recordsAcrossAllRange = computed<{
       }
     }
     for (const record of recordsToDisplay) {
-      const {
-        maxOverlaps,
-        dayIndex: tDayIndex,
-        overlapIndex,
-      } = getMaxOverlaps({
+      const { maxOverlaps, overlapIndex } = getMaxOverlaps({
         row: record,
         gridTimeMap,
         columnArray,
@@ -506,24 +490,6 @@ const recordsAcrossAllRange = computed<{
 
       if (record.rowMeta.overLapIteration! - 1 > 2) {
         display = 'none'
-        gridTimeMap.get(dayIndex)?.forEach((value, key) => {
-          if (value.id.includes(record.rowMeta.id!)) {
-            if (!overlaps[dayIndex]) {
-              overlaps[dayIndex] = {}
-            }
-            if (!overlaps[dayIndex][key]) {
-              overlaps[dayIndex][key] = {
-                id: [],
-                overflow: true,
-                overflowCount: 1,
-              }
-            } else {
-              overlaps[dayIndex][key].id.push(record.rowMeta.id!)
-              overlaps[dayIndex][key].overflow = true
-              overlaps[dayIndex][key].overflowCount = maxOverlaps - 3
-            }
-          }
-        })
       } else {
         width = 100 / Math.min(maxOverlaps, 3) / 7
         left = width * (overlapIndex - 1)
@@ -539,7 +505,7 @@ const recordsAcrossAllRange = computed<{
 
   return {
     records: recordsToDisplay,
-    count: overlaps,
+    gridTimeMap,
   }
 })
 
@@ -854,33 +820,19 @@ const viewMore = (hour: dayjs.Dayjs) => {
 }
 
 const isOverflowAcrossHourRange = (hour: dayjs.Dayjs) => {
-  let startOfHour = hour.startOf('hour')
-  const endOfHour = hour.endOf('hour')
-
-  const ids: Array<string> = []
-
-  let isOverflow = false
+  if (!recordsAcrossAllRange.value) return { isOverflow: false, overflowCount: 0 }
+  const { gridTimeMap } = recordsAcrossAllRange.value
+  const dayIndex = getDayIndex(hour)
+  const startMinute = hour.hour() * 60 + hour.minute()
+  const endMinute = hour.hour() * 60 + hour.minute() + 59
   let overflowCount = 0
 
-  while (startOfHour.isBefore(endOfHour, 'minute')) {
-    const dateKey = startOfHour.format('YYYY-MM-DD')
-    const hourKey = startOfHour.format('HH:mm')
-    if (recordsAcrossAllRange.value?.count?.[dateKey]?.[hourKey]?.overflow) {
-      isOverflow = true
-
-      recordsAcrossAllRange.value?.count?.[dateKey]?.[hourKey]?.id.forEach((id) => {
-        if (!ids.includes(id)) {
-          ids.push(id)
-          overflowCount += 1
-        }
-      })
-    }
-    startOfHour = startOfHour.add(1, 'minute')
+  for (let minute = startMinute; minute <= endMinute; minute++) {
+    const recordCount = gridTimeMap.get(dayIndex)?.get(minute)?.count ?? 0
+    overflowCount = Math.max(overflowCount, recordCount)
   }
 
-  overflowCount = overflowCount > 4 ? overflowCount - 4 : 0
-
-  return { isOverflow, overflowCount }
+  return { isOverflow: overflowCount - 3 > 0, overflowCount: overflowCount - 3 }
 }
 
 // TODO: Add Support for multiple ranges when multiple ranges are supported

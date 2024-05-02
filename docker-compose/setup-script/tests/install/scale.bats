@@ -16,11 +16,6 @@ teardown() {
 }
 
 @test "Check if two instances of NoCoDB can be run" {
-    # Mock nproc to return 4
-    nproc() {
-        echo 4
-    }
-
     ../expects/install/scale.sh
 
     cd "${NOCO_HOME}"

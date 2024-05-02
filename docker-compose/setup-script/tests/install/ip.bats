@@ -15,7 +15,7 @@ teardown() {
   ./setup.sh
 }
 
-@test "Check Redis, WatchTower and NocoDB are up with custom ip" {
+@test "Check installation with custom ip" {
     ../expects/install/ip.sh
 
     cd "${NOCO_HOME}"

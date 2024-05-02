@@ -15,7 +15,7 @@ teardown() {
   ./setup.sh
 }
 
-@test "Check Redis, WatchTower and NocoDB are upgraded" {
+@test "Check all containers are upgraded" {
     ../expects/configure/upgrade.sh
 
     cd "${NOCO_HOME}" || exit 1

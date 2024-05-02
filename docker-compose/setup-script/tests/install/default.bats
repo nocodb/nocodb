@@ -15,7 +15,7 @@ teardown() {
   ./setup.sh
 }
 
-@test "Check Redis, WatchTower and NocoDB are up" {
+@test "Check installation with all default options" {
     ../expects/install/default.sh
 
     cd "${NOCO_HOME}"

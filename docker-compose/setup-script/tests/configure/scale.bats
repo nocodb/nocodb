@@ -24,6 +24,6 @@ teardown() {
 
     cd "${NOCO_HOME}" || exit 1
 
-    result=$(docker-compose ps | grep -c "nocodb/nocodb")
+    result=$(docker compose ps | grep -c "nocodb/nocodb")
     [ "${result}" -eq 3 ]
 }

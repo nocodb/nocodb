@@ -15,7 +15,7 @@ teardown() {
   ./setup.sh
 }
 
-@test "Check Redis, WatchTower and NocoDB are down" {
+@test "Check all containers are down" {
     ../expects/configure/stop.sh
 
     cd "${NOCO_HOME}" || exit 1

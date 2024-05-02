@@ -157,7 +157,7 @@ const getMaxOverlaps = ({
     const neighbors = graph.get(id)
     if (neighbors) {
       for (const neighbor of neighbors) {
-        // if (maxOverlaps >= columnArray.length) return maxOverlaps
+        if (maxOverlaps >= columnArray.length) return maxOverlaps
         if (!visited.has(neighbor)) {
           maxOverlaps = Math.min(Math.max(maxOverlaps, dfs(neighbor) + 1), columnArray.length)
         }

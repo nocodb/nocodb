@@ -202,7 +202,7 @@ const getMaxOverlaps = ({
     const neighbors = dayGraph.get(id)
     if (neighbors) {
       for (const neighbor of neighbors) {
-        // if (maxOverlaps > columnArray[dayIndex].length) return maxOverlaps
+        if (maxOverlaps >= columnArray[dayIndex].length) return maxOverlaps
         if (!visited.has(neighbor)) {
           maxOverlaps = Math.min(Math.max(maxOverlaps, dfs(neighbor) + 1), columnArray[dayIndex].length)
         }

@@ -7,16 +7,16 @@ WORKING_DIR="$(pwd)"
 
 setup() {
   cd "${WORKING_DIR}" || exit 1
-  ./setup.sh
+  ../setup.sh
 }
 
 teardown() {
   cd "${WORKING_DIR}" || exit 1
-  ./setup.sh
+  ../setup.sh
 }
 
 @test "Check Redis is enabled when specified" {
-    ./expects/redis.sh
+    ../expects/install/redis.sh
 
     cd "${NOCO_HOME}"
 

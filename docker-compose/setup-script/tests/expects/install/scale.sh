@@ -4,7 +4,7 @@
 set timeout 10
 
 # Start your main script
-spawn bash ../noco.sh
+spawn bash ../../noco.sh
 
 # Respond to script prompts
 expect "Enter the IP address or domain name for the NocoDB instance (default: localhost):"
@@ -23,7 +23,7 @@ expect "Do you want to enabled Watchtower for automatic updates*"
 send "\r"
 
 expect "How many instances of NocoDB do you want to run*"
-send "\r"
+send "2\r"
 
 expect "Do you want to start the management menu*"
 send "N\r"

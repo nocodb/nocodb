@@ -56,6 +56,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
       : ({ row: {}, oldRow: {}, rowMeta: {} } as Row),
   )
 
+  row.value.rowMeta.fromExpandedForm = true
+
   const rowStore = useProvideSmartsheetRowStore(row)
 
   const activeView = inject(ActiveViewInj, ref())
@@ -304,6 +306,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
   }
 
   const loadRow = async (rowId?: string, onlyVirtual = false) => {
+    if (row.value.rowMeta.new) return
+
     if (isPublic.value || !meta.value?.id) return
     let record = await $api.dbTableRow.read(
       NOCO,

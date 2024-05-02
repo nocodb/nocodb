@@ -1064,13 +1064,27 @@ async function resetAndChangePage(row: number, col: number, pageChange?: number)
   scrollToCell?.()
 }
 
-const saveOrUpdateRecords = async (args: { metaValue?: TableType; viewMetaValue?: ViewType; data?: any } = {}) => {
+const temporaryNewRowStore = ref<Row[]>([])
+
+const saveOrUpdateRecords = async (
+  args: { metaValue?: TableType; viewMetaValue?: ViewType; data?: any; keepNewRecords?: boolean } = {},
+) => {
   for (const currentRow of args.data || dataRef.value) {
+    if (currentRow.rowMeta.fromExpandedForm) continue
+
     /** if new record save row and save the LTAR cells */
     if (currentRow.rowMeta.new) {
-      const savedRow = await updateOrSaveRow?.(currentRow, '', {}, args)
-      await syncLTARRefs?.(currentRow, savedRow, args)
-      currentRow.rowMeta.changed = false
+      const beforeSave = clone(currentRow)
+      const savedRow = await updateOrSaveRow?.(currentRow, '', currentRow.rowMeta.ltarState || {}, args)
+      if (savedRow) {
+        currentRow.rowMeta.changed = false
+      } else {
+        if (args.keepNewRecords) {
+          if (beforeSave.rowMeta.new && Object.keys(beforeSave.row).length) {
+            temporaryNewRowStore.value.push(beforeSave)
+          }
+        }
+      }
       continue
     }
 
@@ -1277,7 +1291,10 @@ const showFillHandle = computed(
       isFormula(fields.value[activeCell.col]) ||
       isCreatedOrLastModifiedTimeCol(fields.value[activeCell.col]) ||
       isCreatedOrLastModifiedByCol(fields.value[activeCell.col])
-    ),
+    ) &&
+    !isViewDataLoading.value &&
+    !isPaginationLoading.value &&
+    dataRef.value.length,
 )
 
 watch(
@@ -1329,9 +1346,16 @@ async function reloadViewDataHandler(params: void | { shouldShowLoading?: boolea
     predictedNextColumn.value = predictedNextColumn.value.filter((c) => !fieldsAvailable?.includes(c.title))
   }
   // save any unsaved data before reload
-  await saveOrUpdateRecords()
+  await saveOrUpdateRecords({
+    keepNewRecords: true,
+  })
 
   await loadData?.({ ...(params?.offset !== undefined ? { offset: params.offset } : {}) })
+
+  if (temporaryNewRowStore.value.length) {
+    dataRef.value.push(...temporaryNewRowStore.value)
+    temporaryNewRowStore.value = []
+  }
 
   calculateSlices()
 

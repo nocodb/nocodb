@@ -269,7 +269,11 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           // Mark out exact same objects in activeState[column.value.title] as Linked
           // compare all keys and values
           childrenExcludedList.value.list.forEach((row: any, index: number) => {
-            const found = activeState[column.value.title].find((a: any) => {
+            const found = (
+              [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(colOptions.value.type)
+                ? [activeState[column.value.title]]
+                : activeState[column.value.title]
+            ).find((a: any) => {
               let isSame = true
 
               for (const key in a) {

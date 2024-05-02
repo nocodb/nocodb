@@ -18,14 +18,27 @@ const fields = inject(FieldsInj, ref())
 
 const { fields: _fields } = useViewColumnsOrThrow()
 
-const getFieldStyle = (field: ColumnType) => {
-  const fi = _fields.value?.find((f) => f.title === field.title)
+const fieldStyles = computed(() => {
+  if (!_fields.value) return { underline: false, bold: false, italic: false }
+  const formatMap = new Map<string, { underline: boolean; bold: boolean; italic: boolean }>()
+  _fields.value.forEach((f) => {
+    const fi = _fields.value.find((field) => field.title === f.title)
+    f.underline = fi?.underline
+    f.bold = fi?.bold
+    f.italic = fi?.italic
 
-  return {
-    underline: fi?.underline,
-    bold: fi?.bold,
-    italic: fi?.italic,
-  }
+    formatMap.set(f.fk_column_id, {
+      underline: fi?.underline,
+      bold: fi?.bold,
+      italic: fi?.italic,
+    })
+  })
+
+  return formatMap
+})
+
+const getFieldStyle = (field: ColumnType) => {
+  return fieldStyles.value.get(field.id)
 }
 
 // We loop through all the records and calculate the position of each record based on the range

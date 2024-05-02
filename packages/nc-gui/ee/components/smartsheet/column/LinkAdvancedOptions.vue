@@ -7,7 +7,6 @@ import {
   isCreatedOrLastModifiedTimeCol,
   isVirtualCol,
 } from 'nocodb-sdk'
-import { useTablesStore } from '../../../store/tables'
 import {
   MetaInj,
   computed,
@@ -19,6 +18,7 @@ import {
   useColumnCreateStoreOrThrow,
   useI18n,
   useMetas,
+  useTablesStore,
   useVModel,
 } from '#imports'
 

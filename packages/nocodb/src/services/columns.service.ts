@@ -72,7 +72,7 @@ export enum Altered {
   UPDATE_COLUMN = 8,
 }
 
-interface ReusableParams {
+export interface ReusableParams {
   table?: Model;
   source?: Source;
   base?: Base;

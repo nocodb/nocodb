@@ -29,22 +29,17 @@ const fields = inject(FieldsInj, ref())
 const { fields: _fields } = useViewColumnsOrThrow()
 
 const fieldStyles = computed(() => {
-  if (!_fields.value) return { underline: false, bold: false, italic: false }
-  const formatMap = new Map<string, { underline: boolean; bold: boolean; italic: boolean }>()
-  _fields.value.forEach((f) => {
-    const fi = _fields.value.find((field) => field.title === f.title)
-    f.underline = fi?.underline
-    f.bold = fi?.bold
-    f.italic = fi?.italic
-
-    formatMap.set(f.fk_column_id, {
-      underline: fi?.underline,
-      bold: fi?.bold,
-      italic: fi?.italic,
-    })
-  })
-
-  return formatMap
+  if (!_fields.value) return new Map()
+  return new Map(
+    _fields.value.map((field) => [
+      field.fk_column_id,
+      {
+        underline: field.underline,
+        bold: field.bold,
+        italic: field.italic,
+      },
+    ]),
+  )
 })
 
 const getFieldStyle = (field: ColumnType) => {
@@ -183,7 +178,7 @@ const getMaxOverlaps = ({
     const neighbors = graph.get(id)
     if (neighbors) {
       for (const neighbor of neighbors) {
-        if (maxOverlaps >= columnArray.length) break
+        if (maxOverlaps >= columnArray.length) return maxOverlaps
         if (!visited.has(neighbor)) {
           maxOverlaps = Math.min(Math.max(maxOverlaps, dfs(neighbor) + 1), columnArray.length)
         }

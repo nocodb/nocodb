@@ -6,6 +6,8 @@ set timeout 10
 set random_number [lindex $argv 0]
 
 # Start your main script
+set env(PATH) "$env(WORKING_DIR)/mocks:$env(PATH)"
+
 spawn bash ../../noco.sh
 
 # Respond to script prompts

@@ -4,6 +4,8 @@
 set timeout 10
 
 # Start your main script
+set env(PATH) "$env(WORKING_DIR)/mocks:$env(PATH)"
+
 spawn bash ../../noco.sh
 
 # Respond to script prompts

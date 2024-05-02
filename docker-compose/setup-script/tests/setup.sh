@@ -5,8 +5,8 @@ if [ -z "$NOCO_HOME" ]; then
 fi
 
 if [ -d "$NOCO_HOME" ]; then
-    cd $NOCO_HOME
+    cd "$NOCO_HOME" || exit
     docker compose down
 fi
 
-rm -rf $NOCO_HOME
+rm -rf "$NOCO_HOME"

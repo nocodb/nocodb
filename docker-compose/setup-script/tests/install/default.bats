@@ -7,12 +7,12 @@ WORKING_DIR="$(pwd)"
 
 setup() {
   cd "${WORKING_DIR}" || exit 1
-  setup.sh
+  ./setup.sh
 }
 
 teardown() {
   cd "${WORKING_DIR}" || exit 1
-  setup.sh
+  ./setup.sh
 }
 
 @test "Check Redis, WatchTower and NocoDB are up" {

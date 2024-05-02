@@ -1,5 +1,7 @@
 #!/bin/bash
 
+WORKING_DIR=$(dirname "$0")
+
 if [ -z "$NOCO_HOME" ]; then
     NOCO_HOME="${HOME}/.nocodb"
 fi
@@ -9,10 +11,12 @@ if [ -d "$NOCO_HOME" ]; then
     docker compose down
 fi
 
-cd /tmp || exit
+cd "$WORKING_DIR" || exit
 rm -rf "$NOCO_HOME"
 
-../noco.sh <<< $'\n\nN\n'
+if [ "$1" = "setup" ]; then
+  ../../noco.sh <<< $'\n\nN\n'
 
-cd "$NOCO_HOME" || exit
-docker compose down
+  cd "$NOCO_HOME" || exit
+  docker compose down
+fi

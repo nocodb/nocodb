@@ -16,6 +16,10 @@ teardown() {
 }
 
 @test "Check NocoDB is scaled to 3 instances" {
+    nproc() {
+        echo 4
+    }
+
     ../expects/configure/scale.sh
 
     cd "${NOCO_HOME}" || exit 1

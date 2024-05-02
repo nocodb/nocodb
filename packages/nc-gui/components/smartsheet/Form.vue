@@ -120,7 +120,6 @@ reloadEventHook.on(async () => {
 const { fields, showAll, hideAll } = useViewColumnsOrThrow()
 
 const { state, row } = useProvideSmartsheetRowStore(
-  meta,
   ref({
     row: formState.value,
     oldRow: {},

@@ -90,7 +90,7 @@ test.describe('LTAR create & update', () => {
     // In cell insert
     await dashboard.grid.addNewRow({ index: 1, value: '2b' });
     await dashboard.grid.cell.inCellAdd({ index: 1, columnHeader: 'Sheet1' });
-    await dashboard.linkRecord.select('1b');
+    await dashboard.linkRecord.select('1b', false);
     await dashboard.grid.cell.inCellAdd({
       index: 1,
       columnHeader: 'Sheet1s',

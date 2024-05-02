@@ -9,7 +9,7 @@ import { useGlobal } from '#imports'
  * @param {string} roleType - The type of role for which user sorts are managed ('Workspace', 'Org', or 'Project').
  * @returns {object} An object containing reactive values and functions related to user sorts.
  */
-export function useUserSorts(roleType: 'Workspace' | 'Org' | 'Project') {
+export function useUserSorts(roleType: 'Workspace' | 'Org' | 'Project' | 'Organization') {
   const clone = rfdc()
 
   const { user } = useGlobal()
@@ -110,6 +110,8 @@ export function useUserSorts(roleType: 'Workspace' | 'Org' | 'Project') {
       userRoleOrder = Object.values(OrderedOrgRoles)
     } else if (roleType === 'Project') {
       userRoleOrder = Object.values(OrderedProjectRoles)
+    } else if (roleType === 'Organization') {
+      userRoleOrder = Object.values(OrderedOrgRoles)
     }
 
     data = clone(data)
@@ -134,6 +136,13 @@ export function useUserSorts(roleType: 'Workspace' | 'Org' | 'Project') {
             return a[sortsConfig.field]?.localeCompare(b[sortsConfig.field])
           } else {
             return b[sortsConfig.field]?.localeCompare(a[sortsConfig.field])
+          }
+        }
+        case 'title': {
+          if (sortsConfig.direction === 'asc') {
+            return a[sortsConfig.field] - b[sortsConfig.field]
+          } else {
+            return b[sortsConfig.field] - a[sortsConfig.field]
           }
         }
       }

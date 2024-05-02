@@ -159,7 +159,12 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       $e('a:fields:show-all')
     }
 
-    const saveOrUpdate = async (field: any, index: number, disableDataReload: boolean = false) => {
+    const saveOrUpdate = async (
+      field: any,
+      index: number,
+      disableDataReload: boolean = false,
+      updateDefaultViewColumnOrder: boolean = false,
+    ) => {
       if (isLocalMode.value && fields.value) {
         fields.value[index] = field
         meta.value!.columns = meta.value!.columns?.map((column: ColumnType) => {
@@ -168,6 +173,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
               ...column,
               ...field,
               id: field.fk_column_id,
+              ...(updateDefaultViewColumnOrder ? { meta: { ...parseProp(column.meta), defaultViewColOrder: field.order } } : {}),
             }
           }
           return column

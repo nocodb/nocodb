@@ -300,7 +300,10 @@ export function useMultiSelect(
     const blobHTML = new Blob([copyHTML], { type: 'text/html' })
     const blobPlainText = new Blob([copyPlainText], { type: 'text/plain' })
 
-    return navigator.clipboard.write([new ClipboardItem({ [blobHTML.type]: blobHTML, [blobPlainText.type]: blobPlainText })])
+    return (
+      navigator.clipboard?.write([new ClipboardItem({ [blobHTML.type]: blobHTML, [blobPlainText.type]: blobPlainText })]) ??
+      copy(copyPlainText)
+    )
   }
 
   async function copyValue(ctx?: Cell) {
@@ -332,25 +335,43 @@ export function useMultiSelect(
     }
   }
 
-  function isCellSelected(row: number, col: number) {
-    if (activeCell.col === col && activeCell.row === row) {
-      return true
-    }
+  const fillRangeMap = computed(() => {
+    /*
+      `${rowIndex}-${colIndex}`: true | false
+    */
+    const map: Record<string, boolean> = {}
 
-    return selectedRange.isCellInRange({ row, col })
-  }
-
-  function isCellInFillRange(row: number, col: number) {
     if (fillRange._start === null || fillRange._end === null) {
-      return false
+      return map
     }
 
-    if (selectedRange.isCellInRange({ row, col })) {
-      return false
+    for (let row = fillRange.start.row; row <= fillRange.end.row; row++) {
+      for (let col = fillRange.start.col; col <= fillRange.end.col; col++) {
+        map[`${row}-${col}`] = true
+      }
     }
 
-    return fillRange.isCellInRange({ row, col })
-  }
+    return map
+  })
+
+  const selectRangeMap = computed(() => {
+    /*
+      `${rowIndex}-${colIndex}`: true | false
+    */
+    const map: Record<string, boolean> = {}
+
+    if (selectedRange._start === null || selectedRange._end === null) {
+      return map
+    }
+
+    for (let row = selectedRange.start.row; row <= selectedRange.end.row; row++) {
+      for (let col = selectedRange.start.col; col <= selectedRange.end.col; col++) {
+        map[`${row}-${col}`] = true
+      }
+    }
+
+    return map
+  })
 
   const isPasteable = (row?: Row, col?: ColumnType, showInfo = false) => {
     if (!row || !col) {
@@ -417,7 +438,7 @@ export function useMultiSelect(
     // if there was a right click on selected range, don't restart the selection
     if (
       (event?.button !== MAIN_MOUSE_PRESSED || (event?.button === MAIN_MOUSE_PRESSED && event.ctrlKey)) &&
-      isCellSelected(row, col)
+      selectRangeMap.value[`${row}-${col}`]
     ) {
       return
     }
@@ -486,7 +507,7 @@ export function useMultiSelect(
           fillDirection === 1 ? row <= fillRange._end.row : row >= fillRange._end.row;
           row += fillDirection
         ) {
-          if (isCellSelected(row, selectedRange.start.col)) {
+          if (selectRangeMap.value[`${row}-${selectedRange.start.col}`]) {
             continue
           }
 
@@ -1295,14 +1316,14 @@ export function useMultiSelect(
     handleMouseOver,
     clearSelectedRange,
     copyValue,
-    isCellSelected,
     activeCell,
     handleCellClick,
     resetSelectedRange,
     selectedRange,
     makeActive,
-    isCellInFillRange,
     isMouseDown,
     isFillMode,
+    selectRangeMap,
+    fillRangeMap,
   }
 }

@@ -167,8 +167,8 @@ stop_service() {
 show_logs_sub_menu() {
     clear
     echo "Select a replica for $1:"
-    for i in $(seq 1 "$2"); do
-        echo "$i. $1 replica $i"
+    for i in $(seq 1 $2); do
+        echo "$i. \"$1\" replica $i"
     done
     echo "A. All"
     echo "0. Back to Logs Menu"

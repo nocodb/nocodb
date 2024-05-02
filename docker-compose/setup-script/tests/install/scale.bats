@@ -3,15 +3,15 @@
 NOCO_HOME="${HOME}/.nocodb"
 export NOCO_HOME
 
-WORKING_DIR="$(pwd)"
+
 
 setup() {
-  cd "${WORKING_DIR}" || exit 1
+  cd "${WORKING_DIR}/install" || exit 1
   ./setup.sh
 }
 
 teardown() {
-  cd "${WORKING_DIR}" || exit 1
+  cd "${WORKING_DIR}/install" || exit 1
   ./setup.sh
 }
 

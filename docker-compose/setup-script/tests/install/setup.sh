@@ -10,3 +10,8 @@ if [ -d "$NOCO_HOME" ]; then
 fi
 
 rm -rf "$NOCO_HOME"
+
+clear()
+{
+  echo "clear mocked"
+}

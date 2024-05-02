@@ -1,16 +1,16 @@
 #!/usr/bin/env bats
 
-WORKING_DIR="$(pwd)"
+
 
 RANDOM_NUMBER=$RANDOM
 
 setup() {
-  cd "${WORKING_DIR}" || exit 1
+  cd "${WORKING_DIR}/install" || exit 1
   ./setup.sh
 }
 
 teardown() {
-  cd "${WORKING_DIR}" || exit 1
+  cd "${WORKING_DIR}/install" || exit 1
   ./setup.sh
 }
 

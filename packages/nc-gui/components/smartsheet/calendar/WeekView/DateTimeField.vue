@@ -71,10 +71,10 @@ const calculateNewDates = useMemoize(
     // If the end date is after the end of the schedule, we set it to the end of the schedule
     // This is to ensure that the records are within the bounds of the schedule and do not overflow
     if (startDate.isBefore(scheduleStart, 'minutes')) {
-      startDate = scheduleStart
+      startDate = scheduleStart.clone()
     }
     if (endDate.isAfter(scheduleEnd, 'minutes')) {
-      endDate = scheduleEnd
+      endDate = scheduleEnd.clone()
     }
 
     return { startDate, endDate }

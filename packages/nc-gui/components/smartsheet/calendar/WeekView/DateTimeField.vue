@@ -2,7 +2,7 @@
 import dayjs from 'dayjs'
 import { type ColumnType } from 'nocodb-sdk'
 import type { Row } from '~/lib'
-import { computed, ref, useViewColumnsOrThrow } from '#imports'
+import { computed, ref, useMemoize, useViewColumnsOrThrow } from '#imports'
 import { generateRandomNumber, isRowEmpty } from '~/utils'
 
 const emits = defineEmits(['expandRecord', 'newRecord'])
@@ -14,7 +14,6 @@ const {
   calendarRange,
   displayField,
   selectedTime,
-  selectedDate,
   updateRowProperty,
   sideBarFilterOption,
   showSideMenu,
@@ -45,34 +44,36 @@ const getFieldStyle = (field: ColumnType | undefined) => {
   }
 }
 
-const calculateNewDates = ({
-  startDate,
-  endDate,
-  scheduleStart,
-  scheduleEnd,
-}: {
-  startDate: dayjs.Dayjs
-  endDate: dayjs.Dayjs
-  scheduleStart: dayjs.Dayjs
-  scheduleEnd: dayjs.Dayjs
-}) => {
-  // If the end date is not valid, we set it to 15 minutes after the start date
-  if (!endDate?.isValid()) {
-    endDate = startDate.clone().add(15, 'minutes')
-  }
+const calculateNewDates = useMemoize(
+  ({
+    startDate,
+    endDate,
+    scheduleStart,
+    scheduleEnd,
+  }: {
+    startDate: dayjs.Dayjs
+    endDate: dayjs.Dayjs
+    scheduleStart: dayjs.Dayjs
+    scheduleEnd: dayjs.Dayjs
+  }) => {
+    // If the end date is not valid, we set it to 15 minutes after the start date
+    if (!endDate?.isValid()) {
+      endDate = startDate.clone().add(15, 'minutes')
+    }
 
-  // If the start date is before the start of the schedule, we set it to the start of the schedule
-  // If the end date is after the end of the schedule, we set it to the end of the schedule
-  // This is to ensure that the records are within the bounds of the schedule and do not overflow
-  if (startDate.isBefore(scheduleStart, 'minutes')) {
-    startDate = scheduleStart
-  }
-  if (endDate.isAfter(scheduleEnd, 'minutes')) {
-    endDate = scheduleEnd
-  }
+    // If the start date is before the start of the schedule, we set it to the start of the schedule
+    // If the end date is after the end of the schedule, we set it to the end of the schedule
+    // This is to ensure that the records are within the bounds of the schedule and do not overflow
+    if (startDate.isBefore(scheduleStart, 'minutes')) {
+      startDate = scheduleStart
+    }
+    if (endDate.isAfter(scheduleEnd, 'minutes')) {
+      endDate = scheduleEnd
+    }
 
-  return { startDate, endDate }
-}
+    return { startDate, endDate }
+  },
+)
 
 // Since it is a datetime Week view, we need to create a 2D array of dayjs objects to represent the hours in a day for each day in the week
 const datesHours = computed(() => {
@@ -147,8 +148,8 @@ const hasSlotForRecord = (
       endDate: columnToCol
         ? dayjs(column.row[columnToCol.title!])
         : dayjs(column.row[columnFromCol.title!]).add(1, 'hour').subtract(1, 'minute'),
-      scheduleStart: dayjs(selectedDate.value).startOf('day'),
-      scheduleEnd: dayjs(selectedDate.value).endOf('day'),
+      scheduleStart: dayjs(selectedDateRange.value.start).startOf('day'),
+      scheduleEnd: dayjs(selectedDateRange.value.end).endOf('day'),
     })
 
     if (
@@ -181,8 +182,8 @@ const getMaxOverlaps = ({
   const { startDate } = calculateNewDates({
     startDate: dayjs(row.row[startCol!.title!]),
     endDate: toCol ? dayjs(row.row[toCol.title!]) : dayjs(row.row[startCol!.title!]).add(1, 'hour').subtract(1, 'minute'),
-    scheduleStart: dayjs(selectedDateRange.value.start),
-    scheduleEnd: dayjs(selectedDateRange.value.end),
+    scheduleStart: dayjs(selectedDateRange.value.start).startOf('day'),
+    scheduleEnd: dayjs(selectedDateRange.value.end).endOf('day'),
   })
 
   const dayIndex = getDayIndex(startDate)
@@ -207,6 +208,7 @@ const getMaxOverlaps = ({
     const neighbors = graph.get(id)
     if (neighbors) {
       for (const neighbor of neighbors) {
+        // if (maxOverlaps > columnArray[dayIndex].length) break
         if (!visited.has(neighbor)) {
           maxOverlaps = Math.min(Math.max(maxOverlaps, dfs(neighbor) + 1), columnArray[dayIndex].length)
         }
@@ -387,7 +389,7 @@ const recordsAcrossAllRange = computed<{
 
         const dayIndex = getDayIndex(startDate)
 
-        const minutes = startDate.minute() + startDate.hour() * 60
+        const minutes = (startDate.minute() / 60 + startDate.hour()) * perHeight
 
         style = {
           ...style,
@@ -476,8 +478,6 @@ const recordsAcrossAllRange = computed<{
       }
     }
 
-    console.log(columnArray)
-
     for (const dayIndex in columnArray) {
       for (const columnIndex in columnArray[dayIndex]) {
         for (const record of columnArray[dayIndex][columnIndex]) {
@@ -526,19 +526,8 @@ const recordsAcrossAllRange = computed<{
         })
       } else {
         width = 100 / Math.min(maxOverlaps, 3) / 7
-        left = (width * (overlapIndex - 1)) / 100
+        left = width * (overlapIndex - 1)
       }
-
-      console.log({
-        field: record.row[displayField.value.title],
-        dayIndex,
-        maxOverlaps,
-        overlap: record.rowMeta.overLapIteration,
-        overlapIndex,
-        width,
-        left,
-      })
-
       record.rowMeta.style = {
         ...record.rowMeta.style,
         left: `calc(${majorLeft}px + ${left}%)`,
@@ -675,9 +664,11 @@ const onResizeStart = (direction: 'right' | 'left', event: MouseEvent, record: R
 const calculateNewRow = (
   event: MouseEvent,
   updateSideBar?: boolean,
+  skipChangeCheck?: boolean,
 ): {
   newRow: Row | null
   updatedProperty: string[]
+  skipChangeCheck?: boolean
 } => {
   const { width, left, top } = container.value.getBoundingClientRect()
 
@@ -706,7 +697,7 @@ const calculateNewRow = (
     ...dragRecord.value,
     row: {
       ...dragRecord.value.row,
-      [fromCol.title!]: dayjs(newStartDate).format('YYYY-MM-DD HH:mm:ssZ'),
+      [fromCol.title!]: dayjs(newStartDate).utc().format('YYYY-MM-DD HH:mm:ssZ'),
     },
   }
 
@@ -724,8 +715,13 @@ const calculateNewRow = (
       endDate = newStartDate.clone()
     }
 
-    newRow.row[toCol.title!] = dayjs(endDate).format('YYYY-MM-DD HH:mm:ssZ')
+    newRow.row[toCol.title!] = dayjs(endDate).utc().format('YYYY-MM-DD HH:mm:ssZ')
     updatedProperty.push(toCol.title!)
+  }
+
+  // If from and to columns of the dragRecord and the newRow are the same, we don't manipulate the formattedRecords and formattedSideBarData. This removes unwanted computation
+  if (dragRecord.value.row[fromCol.title!] === newRow.row[fromCol.title!] && !skipChangeCheck) {
+    return { newRow: null, updatedProperty }
   }
 
   if (!newRow) return { newRow: null, updatedProperty }
@@ -743,6 +739,10 @@ const calculateNewRow = (
       const pk = extractPkFromRow(r.row, meta.value!.columns!)
       return pk === newPk ? newRow : r
     })
+    dragRecord.value = {
+      ...dragRecord.value,
+      row: newRow.row,
+    }
   }
 
   return { newRow, updatedProperty }
@@ -769,7 +769,7 @@ const stopDrag = (event: MouseEvent) => {
   event.preventDefault()
   clearTimeout(dragTimeout.value!)
 
-  const { newRow, updatedProperty } = calculateNewRow(event, false)
+  const { newRow, updatedProperty } = calculateNewRow(event, false, true)
 
   // We set the visibility and opacity of the records back to normal
   const allRecords = document.querySelectorAll('.draggable-record')

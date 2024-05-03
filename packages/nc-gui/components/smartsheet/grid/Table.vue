@@ -60,7 +60,7 @@ import type { CellRange, Row } from '#imports'
 const props = defineProps<{
   data: Row[]
   paginationData?: PaginatedType
-  loadData?: (params?: any) => Promise<void>
+  loadData?: (params?: any, shouldShowLoading?: boolean) => Promise<void>
   changePage?: (page: number) => void
   callAddEmptyRow?: (addAfter?: number) => Row | undefined
   deleteRow?: (rowIndex: number, undo?: boolean) => Promise<void>
@@ -1339,7 +1339,7 @@ eventBus.on(async (event, payload) => {
 })
 
 async function reloadViewDataHandler(params: void | { shouldShowLoading?: boolean | undefined; offset?: number | undefined }) {
-  isViewDataLoading.value = true
+  if (params?.shouldShowLoading) isViewDataLoading.value = true
 
   if (predictedNextColumn.value?.length) {
     const fieldsAvailable = meta.value?.columns?.map((c) => c.title)
@@ -1350,7 +1350,7 @@ async function reloadViewDataHandler(params: void | { shouldShowLoading?: boolea
     keepNewRecords: true,
   })
 
-  await loadData?.({ ...(params?.offset !== undefined ? { offset: params.offset } : {}) })
+  await loadData?.({ ...(params?.offset !== undefined ? { offset: params.offset } : {}) }, params?.shouldShowLoading)
 
   if (temporaryNewRowStore.value.length) {
     dataRef.value.push(...temporaryNewRowStore.value)

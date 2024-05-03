@@ -545,6 +545,13 @@ export default class View implements ViewType {
     };
     const views = await this.list(param.fk_model_id, ncMeta);
 
+    const tableColumns = await Column.list(
+      { fk_model_id: param.fk_model_id },
+      ncMeta,
+    );
+    // keep a map of column id to column object for easy access
+    const colIdMap = new Map(tableColumns.map((c) => [c.id, c]));
+
     for (const view of views) {
       const modifiedInsertObj = {
         ...insertObj,
@@ -552,6 +559,26 @@ export default class View implements ViewType {
       };
 
       if (param.column_show?.view_id === view.id) {
+        modifiedInsertObj.show = true;
+      } else if (view.uuid) {
+        // if view is shared, then keep the show state as it is
+      }
+      // if gallery/kanban view, show only 3 columns(excluding system columns)
+      else if (view.type === ViewTypes.GALLERY) {
+        const visibleColumnsCount = (
+          await GalleryViewColumn.list(view.id, ncMeta)
+        )?.filter(
+          (c) => c.show && !isSystemColumn(colIdMap.get(c.fk_column_id)),
+        ).length;
+        modifiedInsertObj.show = visibleColumnsCount < 3;
+      } else if (view.type === ViewTypes.KANBAN) {
+        const visibleColumnsCount = (
+          await KanbanViewColumn.list(view.id, ncMeta)
+        )?.filter(
+          (c) => c.show && !isSystemColumn(colIdMap.get(c.fk_column_id)),
+        ).length;
+        modifiedInsertObj.show = visibleColumnsCount < 3;
+      } else if (view.type !== ViewTypes.FORM) {
         modifiedInsertObj.show = true;
       }
 

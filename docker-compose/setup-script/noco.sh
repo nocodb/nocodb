@@ -376,7 +376,7 @@ REQUIRED_PORTS=(80 443)
 
 echo "** Performing nocodb system check and setup. This step may require sudo permissions"
 
-# pre install wget if not found
+# pre-install wget if not found
 if ! command_exists wget; then
   echo "wget is not installed. Setting up for installation..."
   install_package wget
@@ -399,7 +399,7 @@ done
 # f. Port mapping check
 echo " | Checking port accessibility..."
 for port in "${REQUIRED_PORTS[@]}"; do
-  if lsof -Pi :$port -sTCP:LISTEN -t >/dev/null; then
+  if lsof -Pi :"$port" -sTCP:LISTEN -t >/dev/null; then
     echo " | WARNING: Port $port is in use. Please make sure it is free." >&2
   else
     echo " | Port $port is free."
@@ -459,7 +459,7 @@ fi
 
 if [ -n "$EDITION" ] && { [ "$EDITION" = "EE" ] || [ "$EDITION" = "ee" ]; }; then
     echo "Enter the NocoDB license key: "
-    read LICENSE_KEY
+    read -r LICENSE_KEY
     if [ -z "$LICENSE_KEY" ]; then
         echo "License key is required for Enterprise Edition installation"
         exit 1

@@ -314,11 +314,14 @@ test.describe('User single select - filter, sort & GroupBy', () => {
 
   let dashboard: DashboardPage, grid: GridPage, toolbar: ToolbarPage;
   let context: any;
+  let api: Api<any>;
+  let tableId: string;
 
   test.beforeEach(async ({ page }) => {
     const initRsp = await beforeEachInit({ page: page });
     context = initRsp.context;
     dashboard = initRsp.dashboard;
+    api = initRsp.api;
     grid = dashboard.grid;
     toolbar = dashboard.grid.toolbar;
 
@@ -326,8 +329,19 @@ test.describe('User single select - filter, sort & GroupBy', () => {
 
     await grid.column.create({ title: 'User', type: 'User' });
 
+    const tables = await api.dbTable.list(context.base.id);
+    tableId = tables.list.find((table: any) => table.title === 'sheet1').id;
+    await api.dbTableRow.bulkCreate('noco', context.base.id, tableId, [
+      { Id: 1, Title: `0` },
+      { Id: 2, Title: `1` },
+      { Id: 3, Title: `2` },
+      { Id: 4, Title: `3` },
+      { Id: 5, Title: `4` },
+    ]);
+    await page.reload();
+
     for (let i = 0; i <= 4; i++) {
-      await grid.addNewRow({ index: i, value: `${i}` });
+      // await grid.addNewRow({ index: i, value: `${i}` });
       await grid.cell.userOption.select({ index: i, columnHeader: 'User', option: users[i], multiSelect: false });
     }
   });
@@ -437,11 +451,14 @@ test.describe('User single select - filter, sort & GroupBy', () => {
 test.describe('User multiple select', () => {
   let dashboard: DashboardPage, grid: GridPage, topbar: TopbarPage;
   let context: any;
+  let api: Api<any>;
+  let tableId: string;
 
   test.beforeEach(async ({ page }) => {
     const initRsp = await beforeEachInit({ page: page });
     context = initRsp.context;
     dashboard = initRsp.dashboard;
+    api = initRsp.api;
     grid = dashboard.grid;
     topbar = dashboard.grid.topbar;
 
@@ -449,6 +466,9 @@ test.describe('User multiple select', () => {
 
     await grid.column.create({ title: 'User', type: 'User' });
     await grid.column.userOption.allowMultipleUser({ columnTitle: 'User', allowMultiple: true });
+
+    const tables = await api.dbTable.list(context.base.id);
+    tableId = tables.list.find((table: any) => table.title === 'Sheet1').id;
   });
 
   test.afterEach(async () => {
@@ -456,7 +476,9 @@ test.describe('User multiple select', () => {
   });
 
   test('Verify the default option count, select default value and verify', async () => {
-    await grid.addNewRow({ index: 0, value: 'Row 0' });
+    // await grid.addNewRow({ index: 0, value: 'Row 0' });
+    await api.dbTableRow.bulkCreate('noco', context.base.id, tableId, [{ Id: 1, Title: `Row 0` }]);
+    await grid.rootPage.reload();
 
     if (!isEE()) {
       await grid.column.userOption.verifyDefaultValueOptionCount({ columnTitle: 'User', totalCount: 5 });
@@ -475,7 +497,10 @@ test.describe('User multiple select', () => {
     });
 
     // Add new row and verify default value is added in new cell
-    await grid.addNewRow({ index: 1, value: 'Row 1' });
+    // await grid.addNewRow({ index: 1, value: 'Row 1' });
+    await api.dbTableRow.bulkCreate('noco', context.base.id, tableId, [{ Id: 2, Title: `Row 1` }]);
+    await grid.rootPage.reload();
+
     await grid.cell.userOption.verify({
       index: 1,
       columnHeader: 'User',
@@ -491,9 +516,18 @@ test.describe('User multiple select', () => {
   });
 
   test('Field operations - duplicate column, convert to SingleLineText', async () => {
+    await api.dbTableRow.bulkCreate('noco', context.base.id, tableId, [
+      { Id: 1, Title: `Row 0` },
+      { Id: 2, Title: `Row 1` },
+      { Id: 3, Title: `Row 2` },
+      { Id: 4, Title: `Row 3` },
+      { Id: 5, Title: `Row 4` },
+    ]);
+    await grid.rootPage.reload();
+
     let counter = 1;
     for (let i = 0; i <= 4; i++) {
-      await grid.addNewRow({ index: i, value: `Row ${i}` });
+      // await grid.addNewRow({ index: i, value: `Row ${i}` });
 
       await grid.cell.userOption.select({ index: i, columnHeader: 'User', option: users[i], multiSelect: true });
       await grid.cell.userOption.select({ index: i, columnHeader: 'User', option: users[counter], multiSelect: true });
@@ -536,10 +570,19 @@ test.describe('User multiple select', () => {
   });
 
   test('Cell Operation - edit, copy-paste and delete', async () => {
+    await api.dbTableRow.bulkCreate('noco', context.base.id, tableId, [
+      { Id: 1, Title: `Row 0` },
+      { Id: 2, Title: `Row 1` },
+      { Id: 3, Title: `Row 2` },
+      { Id: 4, Title: `Row 3` },
+      { Id: 5, Title: `Row 4` },
+    ]);
+    await grid.rootPage.reload();
+
     // Edit, refresh and verify
     let counter = 1;
     for (let i = 0; i <= 4; i++) {
-      await grid.addNewRow({ index: i, value: `Row ${i}` });
+      // await grid.addNewRow({ index: i, value: `Row ${i}` });
 
       await grid.cell.userOption.select({
         index: i,
@@ -656,11 +699,14 @@ test.describe('User multiple select - filter, sort & GroupBy', () => {
 
   let dashboard: DashboardPage, grid: GridPage, toolbar: ToolbarPage;
   let context: any;
+  let api: Api<any>;
+  let tableId: string;
 
   test.beforeEach(async ({ page }) => {
     const initRsp = await beforeEachInit({ page: page });
     context = initRsp.context;
     dashboard = initRsp.dashboard;
+    api = initRsp.api;
     grid = dashboard.grid;
     toolbar = dashboard.grid.toolbar;
 
@@ -669,9 +715,21 @@ test.describe('User multiple select - filter, sort & GroupBy', () => {
     await grid.column.create({ title: 'User', type: 'User' });
     await grid.column.userOption.allowMultipleUser({ columnTitle: 'User', allowMultiple: true });
 
+    const tables = await api.dbTable.list(context.base.id);
+    tableId = tables.list.find((table: any) => table.title === 'sheet1').id;
+
+    await api.dbTableRow.bulkCreate('noco', context.base.id, tableId, [
+      { Id: 1, Title: `0` },
+      { Id: 2, Title: `1` },
+      { Id: 3, Title: `2` },
+      { Id: 4, Title: `3` },
+      { Id: 5, Title: `4` },
+    ]);
+    await grid.rootPage.reload();
+
     let counter = 2;
     for (let i = 0; i <= 4; i++) {
-      await grid.addNewRow({ index: i, value: `${i}` });
+      // await grid.addNewRow({ index: i, value: `${i}` });
       await grid.cell.userOption.select({ index: i, columnHeader: 'User', option: users[i], multiSelect: true });
       if (i !== 0) {
         await grid.cell.userOption.select({

@@ -204,6 +204,8 @@ const { height: tableHeadHeight, width: _tableHeadWidth } = useElementBounding(t
 
 const isViewColumnsLoading = computed(() => _isViewColumnsLoading.value || !meta.value)
 
+const resizingColumn = ref(false)
+
 // #Permissions
 const { isUIAllowed } = useRoles()
 const hasEditPermission = computed(() => isUIAllowed('dataEdit'))
@@ -855,6 +857,11 @@ const deleteSelectedRangeOfRows = () => {
 }
 
 const selectColumn = (columnId: string) => {
+  // this is triggered with click event, so do nothing & clear resizingColumn flag if it's true
+  if (resizingColumn.value) {
+    resizingColumn.value = false
+    return
+  }
   const colIndex = fields.value.findIndex((col) => col.id === columnId)
   if (colIndex !== -1) {
     makeActive(0, colIndex)
@@ -867,6 +874,10 @@ const selectColumn = (columnId: string) => {
 onClickOutside(tableBodyEl, (e) => {
   // do nothing if mousedown on the scrollbar (scrolling)
   if (scrolling.value) {
+    return
+  }
+
+  if (resizingColumn.value) {
     return
   }
 
@@ -1117,6 +1128,7 @@ const onXcResizing = (cn: string | undefined, event: any) => {
 const onXcStartResizing = (cn: string | undefined, event: any) => {
   if (!cn) return
   resizingColOldWith.value = event.detail
+  resizingColumn.value = true
 }
 
 const loadColumn = (title: string, tp: string, colOptions?: any) => {

@@ -156,11 +156,6 @@ test.describe('Single select - filter & sort', () => {
     ]);
     await page.reload();
 
-    // await grid.addNewRow({ index: 0, value: '1' });
-    // await grid.addNewRow({ index: 1, value: '2' });
-    // await grid.addNewRow({ index: 2, value: '3' });
-    // await grid.addNewRow({ index: 3, value: '4' });
-
     await grid.cell.selectOption.select({ index: 1, columnHeader: 'SingleSelect', option: 'foo', multiSelect: false });
     await grid.cell.selectOption.select({ index: 2, columnHeader: 'SingleSelect', option: 'bar', multiSelect: false });
     await grid.cell.selectOption.select({ index: 3, columnHeader: 'SingleSelect', option: 'baz', multiSelect: false });

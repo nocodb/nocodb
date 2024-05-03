@@ -321,6 +321,10 @@ export class ColumnPageObject extends BasePage {
         // Date Format
         await this.get().locator('.nc-date-select').click();
         await this.rootPage.locator('.ant-select-item').locator(`text="${dateFormat}"`).click();
+
+        // allow UI to update
+        await this.rootPage.waitForTimeout(500);
+
         // Time Format
         await this.get().locator('.nc-time-select').click();
         await this.rootPage.locator('.ant-select-item').locator(`text="${timeFormat}"`).click();

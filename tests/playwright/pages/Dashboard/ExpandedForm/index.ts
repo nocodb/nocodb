@@ -127,8 +127,11 @@ export class ExpandedFormPage extends BasePage {
 
     await this.verifyToast({ message: `updated successfully.` });
     await this.rootPage.locator('[data-testid="grid-load-spinner"]').waitFor({ state: 'hidden' });
+
     // removing focus from toast
+    await this.rootPage.waitForTimeout(1000);
     await this.rootPage.locator('.nc-modal').click();
+    await this.rootPage.waitForTimeout(1000);
     await this.get().locator('.nc-expanded-form-header').locator('.nc-expand-form-close-btn').click();
     await this.get().waitFor({ state: 'hidden' });
   }

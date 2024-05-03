@@ -327,6 +327,7 @@ export class DataAliasNestedService {
     });
 
     const column = await getColumnByIdOrName(param.columnName, model);
+
     await baseModel.addChild({
       colId: column.id,
       childId: param.refRowId,

@@ -42,7 +42,9 @@ const refTables = computed(() => {
     .map((column) => ({
       col: column.colOptions,
       column,
-      ...tables.value.find((table) => table.id === (column.colOptions as LinkToAnotherRecordType).fk_related_model_id),
+      ...(tables.value.find((table) => table.id === (column.colOptions as LinkToAnotherRecordType).fk_related_model_id) ||
+        metas.value[(column.colOptions as LinkToAnotherRecordType).fk_related_model_id!] ||
+        {}),
     }))
     .filter((table) => (table.col as LinkToAnotherRecordType)?.fk_related_model_id === table.id && !table.mm)
   return _refTables as Required<TableType & { column: ColumnType; col: Required<LinkToAnotherRecordType> }>[]

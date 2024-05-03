@@ -531,7 +531,7 @@ export class DatabricksUi {
     }
   }
 
-  static getDataTypeForUiType(col: { uidt: UITypes; }, idType?: IDType) {
+  static getDataTypeForUiType(col: { uidt: UITypes }, idType?: IDType) {
     const colProp: any = {};
     switch (col.uidt) {
       case 'ID':
@@ -671,7 +671,7 @@ export class DatabricksUi {
     return colProp;
   }
 
-  static getDataTypeListForUiType(col: { uidt: UITypes; }, idType?: IDType) {
+  static getDataTypeListForUiType(col: { uidt: UITypes }, idType?: IDType) {
     switch (col.uidt) {
       case 'ID':
         if (idType === 'AG') {
@@ -700,9 +700,7 @@ export class DatabricksUi {
         return ['string'];
 
       case 'Checkbox':
-        return [
-          'boolean',
-        ];
+        return ['boolean'];
 
       case 'MultiSelect':
         return ['string'];
@@ -711,14 +709,10 @@ export class DatabricksUi {
         return ['string'];
 
       case 'Year':
-        return [
-          'int',
-        ];
+        return ['int'];
 
       case 'Time':
-        return [
-          'string',
-        ];
+        return ['string'];
 
       case 'PhoneNumber':
       case 'Email':
@@ -728,32 +722,22 @@ export class DatabricksUi {
         return ['string'];
 
       case 'Number':
-        return [
-          'int',
-        ];
+        return ['int'];
 
       case 'Decimal':
         return ['decimal', 'float', 'double'];
 
       case 'Currency':
-        return [
-          'decimal',
-        ];
+        return ['decimal'];
 
       case 'Percent':
-        return [
-          'decimal',
-        ];
+        return ['decimal'];
 
       case 'Duration':
-        return [
-          'decimal',
-        ];
+        return ['decimal'];
 
       case 'Rating':
-        return [
-          'int',
-        ];
+        return ['int'];
 
       case 'Formula':
         return ['string'];
@@ -762,9 +746,7 @@ export class DatabricksUi {
         return ['string'];
 
       case 'Count':
-        return [
-          'int',
-        ];
+        return ['int'];
 
       case 'Lookup':
         return ['string'];
@@ -778,9 +760,7 @@ export class DatabricksUi {
         return ['datetime'];
 
       case 'AutoNumber':
-        return [
-          'int',
-        ];
+        return ['int'];
 
       case 'Barcode':
         return ['string'];
@@ -816,5 +796,21 @@ export class DatabricksUi {
       'MONTH',
       'HOUR',
     ];
+  }
+
+  static isEqual(dataType1: string, dataType2: string) {
+    if (dataType1 === dataType2) return true;
+
+    const abstractType1 = this.getAbstractType({ dt: dataType1 });
+    const abstractType2 = this.getAbstractType({ dt: dataType2 });
+
+    if (
+      abstractType1 &&
+      abstractType1 === abstractType2 &&
+      ['integer', 'float'].includes(abstractType1)
+    )
+      return true;
+
+    return false;
   }
 }

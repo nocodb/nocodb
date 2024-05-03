@@ -75,6 +75,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     const formState = ref<Record<string, any>>({
       title: 'title',
       uidt: UITypes.SingleLineText,
+      custom: {},
       ...clone(column.value || {}),
     })
 
@@ -97,6 +98,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       setAdditionalValidations({})
       formState.value = {
         meta: {},
+        custom: {},
         ...sqlUi.value.getNewColumn(generateUniqueColumnSuffix()),
       }
       formState.value.title = formState.value.column_name
@@ -159,6 +161,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     const onUidtOrIdTypeChange = () => {
       const colProp = sqlUi.value.getDataTypeForUiType(formState.value as { uidt: UITypes }, idType ?? undefined)
       formState.value = {
+        custom: {},
         ...(!isEdit.value && {
           // only take title, column_name and uidt when creating a column
           // to avoid the extra props from being taken (e.g. SingleLineText -> LTAR -> SingleLineText)
@@ -299,7 +302,11 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
           /** if LTAR column then force reload related table meta */
           if (isLinksOrLTAR(formState.value) && meta.value?.id !== formState.value.childId) {
-            getMeta(formState.value.childId, true).then(() => {})
+            if (formState.value.is_custom_link) {
+              getMeta(formState.value.custom?.ref_model_id, true).then(() => {})
+            } else {
+              getMeta(formState.value.childId, true).then(() => {})
+            }
           }
 
           // Column created

@@ -49,6 +49,9 @@ export class ColumnPageObject extends BasePage {
     insertAfterColumnTitle,
     insertBeforeColumnTitle,
     isDisplayValue = false,
+
+    custom = false,
+    refColumn,
   }: {
     title: string;
     type?: string;
@@ -66,6 +69,8 @@ export class ColumnPageObject extends BasePage {
     insertBeforeColumnTitle?: string;
     insertAfterColumnTitle?: string;
     isDisplayValue?: boolean;
+    custom?: boolean;
+    refColumn?: string;
   }) {
     if (insertBeforeColumnTitle) {
       await this.grid.get().locator(`th[data-title="${insertBeforeColumnTitle}"] .nc-ui-dt-dropdown`).click();
@@ -173,7 +178,7 @@ export class ColumnPageObject extends BasePage {
       case 'Links':
         await this.get()
           .locator('.nc-ltar-relation-type >> .ant-radio')
-          .nth(relationType === 'Has Many' ? 0 : 1)
+          .nth(relationType === 'Has Many' ? 1 : 0)
           .click();
         await this.get().locator('.ant-select-single').nth(1).click();
         await this.rootPage.locator(`.nc-ltar-child-table >> input[type="search"]`).fill(childTable);
@@ -183,6 +188,31 @@ export class ColumnPageObject extends BasePage {
           })
           .nth(0)
           .click();
+
+        if (custom) {
+          // enable advance options
+          await this.get().locator('.nc-ltar-relation-type >> .ant-radio').nth(1).dblclick();
+          await this.get().locator('.nc-ltar-relation-type >> .ant-radio').nth(2).dblclick();
+
+          await this.get().locator(':has(:has-text("Advanced Link")) > button.ant-switch').click();
+
+          //  data-testid="custom-link-source-base-id"
+          // data-testid="custom-link-source-table-id"
+          // data-testid="custom-link-source-column-id"
+          // data-testid="custom-link-junction-base-id"
+          // data-testid="custom-link-junction-table-id"
+          // data-testid="custom-link-junction-source-column-id"
+          // data-testid="custom-link-junction-target-column-id"
+          // data-testid="custom-link-target-base-id"
+          // data-testid="custom-link-target-table-id"
+          // data-testid="custom-link-target-column-id"
+
+          // select target table and column
+          // await this.get().get('').nth(2).click();
+
+          // select referenced base, column and column
+        }
+
         break;
       case 'User':
         break;

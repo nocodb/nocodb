@@ -60,7 +60,13 @@ onKeyStroke('Enter', () => {
       </div>
 
       <slot name="entity-preview"></slot>
-
+      <template v-if="$slots.warning">
+        <a-alert type="warning" show-icon>
+          <template #message>
+            <slot name="warning"></slot>
+          </template>
+        </a-alert>
+      </template>
       <div class="flex flex-row gap-x-2 mt-2.5 pt-2.5 justify-end">
         <NcButton type="secondary" @click="visible = false">
           {{ $t('general.cancel') }}

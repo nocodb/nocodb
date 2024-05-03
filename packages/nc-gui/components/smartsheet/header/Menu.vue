@@ -299,7 +299,7 @@ const isDeleteAllowed = computed(() => {
   return column?.value && !column.value.system
 })
 const isDuplicateAllowed = computed(() => {
-  return column?.value && !column.value.system
+  return column?.value && !column.value.system && !column.value.meta?.custom
 })
 const isFilterSupported = computed(
   () =>

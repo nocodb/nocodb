@@ -81,14 +81,15 @@ export const useMetas = createSharedComposable(() => {
         return metas.value[tableIdOrTitle]
       }
 
-      const modelId = (tables.find((t) => t.id === tableIdOrTitle) || tables.find((t) => t.title === tableIdOrTitle))?.id
+      // todo: enable later
+      // const modelId = (tables.find((t) => t.id === tableIdOrTitle) || tables.find((t) => t.title === tableIdOrTitle))?.id
+      //
+      // if (!modelId) {
+      //   console.warn(`Table '${tableIdOrTitle}' is not found in the table list`)
+      //   return null
+      // }
 
-      if (!modelId) {
-        console.warn(`Table '${tableIdOrTitle}' is not found in the table list`)
-        return null
-      }
-
-      const model = await $api.dbTable.read(modelId)
+      const model = await $api.dbTable.read(tableIdOrTitle)
       metas.value = {
         ...metas.value,
         [model.id!]: model,

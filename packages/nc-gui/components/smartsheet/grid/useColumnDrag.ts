@@ -106,6 +106,8 @@ export const useColumnDrag = ({
   }
 
   const handleReorderColumn = async () => {
+    if (!dragColPlaceholderDomRef.value) return
+
     dragColPlaceholderDomRef.value!.style.left = '0px'
     dragColPlaceholderDomRef.value!.style.height = '0px'
     await reorderColumn(draggedCol.value!.id!, toBeDroppedColId.value!)
@@ -117,6 +119,8 @@ export const useColumnDrag = ({
     if (!e.dataTransfer) return
 
     const dom = document.querySelector('[data-testid="drag-icon-placeholder"]')
+
+    if (!dom || !dragColPlaceholderDomRef.value) return
 
     e.dataTransfer.dropEffect = 'none'
     e.dataTransfer.effectAllowed = 'none'

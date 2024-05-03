@@ -258,6 +258,7 @@ if (props.fromTableExplorer) {
       '!w-146': isTextArea(formState) && formState.meta?.richMode,
       '!w-116 overflow-visible': formState.uidt === UITypes.Formula && !props.embedMode,
       '!w-[500px]': formState.uidt === UITypes.Attachment && !props.embedMode && !appInfo.ee,
+      'min-w-[422px] !w-full': isLinksOrLTAR(formState.uidt),
       'shadow-lg border-1 border-gray-200 shadow-gray-300 rounded-xl p-6': !embedMode,
     }"
     @keydown="handleEscape"

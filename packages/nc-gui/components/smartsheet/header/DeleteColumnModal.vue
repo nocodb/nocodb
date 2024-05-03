@@ -25,6 +25,31 @@ const { loadTables } = useBase()
 
 const isLoading = ref(false)
 
+// disable for time being - internal discussion required
+/*
+const warningMsg = computed(() => {
+  if (!column?.value) return []
+
+  const columns = meta?.value?.columns.filter((c) => {
+    if (isLinksOrLTAR(c) && c.colOptions) {
+      return (
+        (c.colOptions as LinkToAnotherRecordType).fk_parent_column_id === column.value?.id ||
+        (c.colOptions as LinkToAnotherRecordType).fk_child_column_id === column.value?.id ||
+        (c.colOptions as LinkToAnotherRecordType).fk_mm_child_column_id === column.value?.id ||
+        (c.colOptions as LinkToAnotherRecordType).fk_mm_parent_column_id === column.value?.id
+      )
+    }
+
+    return false
+  })
+
+  if (!columns.length) return null
+
+  return `This column is used in following Link column${columns.length > 1 ? 's' : ''}: '${columns
+    .map((c) => c.title)
+    .join("', '")}'. Deleting this column will also delete the related Link column${columns.length > 1 ? 's' : ''}.`
+}) */
+
 const onDelete = async () => {
   if (!column?.value) return
 
@@ -71,5 +96,8 @@ const onDelete = async () => {
         </div>
       </div>
     </template>
+
+    <!-- disable for time being - internal discussion required -->
+    <!-- <template v-if="warningMsg" #warning>{{ warningMsg }}</template> -->
   </GeneralDeleteModal>
 </template>

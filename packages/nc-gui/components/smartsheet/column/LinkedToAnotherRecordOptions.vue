@@ -55,45 +55,114 @@ const filterOption = (value: string, option: { key: string }) => option.key.toLo
 const isLinks = computed(() => vModel.value.uidt === UITypes.Links && vModel.value.type !== RelationTypes.ONE_TO_ONE)
 
 const oneToOneEnabled = ref(false)
+
+const isAdvancedOptionsShownEasterEgg = ref(false)
+
+const cusValidators = {
+  'custom.column_id': [{ required: true, message: t('general.required') }],
+  'custom.ref_model_id': [{ required: true, message: t('general.required') }],
+  'custom.ref_column_id': [{ required: true, message: t('general.required') }],
+}
+
+const cusJuncTableValidations = {
+  'custom.junc_model_id': [{ required: true, message: t('general.required') }],
+  'custom.junc_column_id': [{ required: true, message: t('general.required') }],
+  'custom.junc_ref_column_id': [{ required: true, message: t('general.required') }],
+}
+
+const onCustomSwitchToggle = () => {
+  if (vModel.value?.is_custom_link)
+    setAdditionalValidations({
+      childId: [],
+      ...cusValidators,
+      ...(vModel.value.type === RelationTypes.MANY_TO_MANY ? cusJuncTableValidations : {}),
+    })
+  else
+    setAdditionalValidations({
+      childId: [{ required: true, message: t('general.required') }],
+    })
+}
+
+const handleShowAdvanceOptions = () => {
+  isAdvancedOptionsShownEasterEgg.value = !isAdvancedOptionsShownEasterEgg.value
+
+  if (!isAdvancedOptionsShownEasterEgg.value) {
+    vModel.value.is_custom_link = false
+  }
+}
 </script>
 
 <template>
-  <div class="w-full flex flex-col mb-2 mt-4">
-    <div class="border-2 p-6">
+  <div class="w-full flex flex-col mb-2 mt-1">
+    <div class="mb-2">Relation Type <span class="text-red-500">*</span></div>
+    <div class="border-1 border-gray-200 rounded-lg">
       <a-form-item v-bind="validateInfos.type" class="nc-ltar-relation-type">
-        <a-radio-group v-model:value="vModel.type" name="type" v-bind="validateInfos.type" class="!flex flex-col gap-2">
-          <a-radio value="hm" @dblclick="oneToOneEnabled = !oneToOneEnabled">{{ $t('title.hasMany') }}</a-radio>
-          <a-radio value="mm">{{ $t('title.manyToMany') }}</a-radio>
-          <a-radio v-if="oneToOneEnabled" value="oo">{{ $t('title.oneToOne') }}</a-radio>
+        <a-radio-group
+          v-model:value="vModel.type"
+          name="type"
+          v-bind="validateInfos.type"
+          class="nc-ltar-relation-type-radio-group !flex flex-col"
+        >
+          <a-radio value="mm">
+            <span class="nc-ltar-icon nc-mm-icon">
+              <GeneralIcon icon="mm" class="text-white" />
+            </span>
+            {{ $t('title.manyToMany') }}</a-radio
+          >
+          <a-radio value="hm" @dblclick="oneToOneEnabled = !oneToOneEnabled">
+            <span class="nc-ltar-icon nc-hm-icon"><GeneralIcon icon="hm" class="text-white" /></span>
+            {{ $t('title.hasMany') }}</a-radio
+          >
+
+          <a-radio v-if="oneToOneEnabled" value="oo" @dblclick="handleShowAdvanceOptions">
+            <span class="nc-ltar-icon nc-oo-icon">
+              <GeneralIcon icon="oneToOneSolid" class="text-white" />
+            </span>
+            {{ $t('title.oneToOne') }}</a-radio
+          >
         </a-radio-group>
       </a-form-item>
-
-      <a-form-item
-        class="flex w-full pb-2 mt-4 nc-ltar-child-table"
-        :label="$t('labels.childTable')"
-        v-bind="validateInfos.childId"
-      >
-        <a-select
-          v-model:value="vModel.childId"
-          show-search
-          :filter-option="filterOption"
-          dropdown-class-name="nc-dropdown-ltar-child-table"
-          @change="onDataTypeChange"
-        >
-          <a-select-option v-for="table of refTables" :key="table.title" :value="table.id">
-            <div class="flex w-full items-center gap-2">
-              <div class="min-w-5 flex items-center justify-center">
-                <GeneralTableIcon :meta="table" class="text-gray-500" />
-              </div>
-              <NcTooltip class="flex-1 truncate" show-on-truncate-only>
-                <template #title>{{ table.title }}</template>
-                <span>{{ table.title }}</span>
-              </NcTooltip>
-            </div>
-          </a-select-option>
-        </a-select>
-      </a-form-item>
     </div>
+    <div v-if="isAdvancedOptionsShownEasterEgg && isEeUI" class="mt-4">
+      <a-switch v-model:checked="vModel.is_custom_link" size="small" name="Custom" @change="onCustomSwitchToggle" />
+      <span class="ml-3">Advanced Link</span>
+    </div>
+    <div
+      :class="{
+        'mt-3': isAdvancedOptionsShownEasterEgg,
+        'mt-4': !isAdvancedOptionsShownEasterEgg,
+      }"
+    >
+      <LazySmartsheetColumnLinkAdvancedOptions v-if="isEeUI && vModel.is_custom_link" v-model:value="vModel" />
+      <template v-else>
+        <a-form-item class="flex w-full pb-2 nc-ltar-child-table" v-bind="validateInfos.childId">
+          <a-select
+            v-model:value="vModel.childId"
+            show-search
+            :filter-option="filterOption"
+            placeholder="-select child table-"
+            dropdown-class-name="nc-dropdown-ltar-child-table"
+            @change="onDataTypeChange"
+          >
+            <a-select-option v-for="table of refTables" :key="table.title" :value="table.id">
+              <div class="flex w-full items-center gap-2">
+                <div class="min-w-5 flex items-center justify-center">
+                  <GeneralTableIcon :meta="table" class="text-gray-500" />
+                </div>
+                <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                  <template #title>{{ table.title }}</template>
+                  <span>{{ table.title }}</span>
+                </NcTooltip>
+              </div>
+            </a-select-option>
+            <template #suffixIcon>
+              <GeneralIcon class="" icon="chevronDown" />
+            </template>
+          </a-select>
+        </a-form-item>
+      </template>
+    </div>
+
     <template v-if="!isXcdbBase || isLinks">
       <div
         class="text-xs cursor-pointer text-grey nc-more-options my-2 flex items-center gap-1 justify-end"
@@ -105,7 +174,7 @@ const oneToOneEnabled = ref(false)
       </div>
 
       <div v-if="advancedOptions" class="flex flex-col p-6 gap-4 border-2 mt-2">
-        <LazySmartsheetColumnLinkOptions v-if="isLinks" v-model:value="vModel" class="-my-2" />
+        <LazySmartsheetColumnLinkOptions v-if="isLinks" v-model:value="vModel" class="mt-3" />
         <template v-if="!isXcdbBase">
           <div class="flex flex-row space-x-2">
             <a-form-item class="flex w-1/2" :label="$t('labels.onUpdate')">
@@ -163,3 +232,39 @@ const oneToOneEnabled = ref(false)
     </template>
   </div>
 </template>
+
+<style lang="scss" scoped>
+.nc-ltar-relation-type-radio-group {
+  .nc-ltar-icon {
+    @apply flex items-center p-1 rounded;
+
+    &.nc-mm-icon {
+      @apply bg-pink-500;
+    }
+    &.nc-hm-icon {
+      @apply bg-orange-500;
+    }
+    &.nc-oo-icon {
+      @apply bg-purple-500;
+      :deep(svg path) {
+        @apply stroke-purple-50;
+      }
+    }
+  }
+
+  :deep(.ant-radio-wrapper) {
+    @apply px-3 py-2 flex items-center mr-0;
+
+    &:not(:last-child) {
+      @apply border-b border-gray-200;
+    }
+  }
+
+  :deep(.ant-radio) {
+    @apply top-0;
+    & + span {
+      @apply flex items-center gap-2;
+    }
+  }
+}
+</style>

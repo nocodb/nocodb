@@ -33,13 +33,7 @@ async function beforeEachInit({ page }: { page: any }) {
   if (isEE()) {
     workspacePage = new WorkspacePage(page);
     collaborationPage = workspacePage.collaboration;
-
-    api = new Api({
-      baseURL: `http://localhost:8080/`,
-      headers: {
-        'xc-auth': context.token,
-      },
-    });
+    api = context.api;
 
     for (let i = 0; i < roleDb.length; i++) {
       try {

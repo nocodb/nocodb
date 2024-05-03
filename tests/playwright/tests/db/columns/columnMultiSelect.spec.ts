@@ -31,23 +31,11 @@ test.describe('Multi select', () => {
       options: ['Option 1', 'Option 2'],
     });
 
-    api = new Api({
-      baseURL: `http://localhost:8080/`,
-      headers: {
-        'xc-auth': context.token,
-      },
-    });
+    api = context.api;
 
     const tables = await api.dbTable.list(context.base.id);
     tableId = tables.list.find((table: any) => table.title === 'sheet1').id;
-    await addRecordUsingAPI(context, tableId, [
-      {
-        Id: 1,
-        Title: `Row 0`,
-      },
-    ]);
-
-    // page reload
+    await addRecordUsingAPI(context, tableId, [{ Id: 1, Title: `Row 0` }]);
     await page.reload();
   });
 

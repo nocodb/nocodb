@@ -549,6 +549,7 @@ export default class View implements ViewType {
       { fk_model_id: param.fk_model_id },
       ncMeta,
     );
+    // keep a map of column id to column object for easy access
     const colIdMap = new Map(tableColumns.map((c) => [c.id, c]));
 
     for (const view of views) {
@@ -562,7 +563,7 @@ export default class View implements ViewType {
       } else if (view.uuid) {
         // if view is shared, then keep the show state as it is
       }
-      // if gallery/kanban view, show only 3 columns
+      // if gallery/kanban view, show only 3 columns(excluding system columns)
       else if (view.type === ViewTypes.GALLERY) {
         const visibleColumnsCount = (
           await GalleryViewColumn.list(view.id, ncMeta)

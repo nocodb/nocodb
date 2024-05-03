@@ -3,7 +3,7 @@ import { Logger } from '@nestjs/common';
 import type { ErrorObject } from 'ajv';
 import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
 
-const dbErrorLogger = new Logger('DBError');
+const dbErrorLogger = new Logger('MissingDBError');
 
 export enum DBError {
   TABLE_EXIST = 'TABLE_EXIST',

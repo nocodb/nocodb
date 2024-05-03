@@ -39,10 +39,13 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       exception = new NcBaseErrorv2(NcErrorType.BAD_JSON);
     }
 
+    const dbError = extractDBError(exception);
+
     // skip unnecessary error logging
     if (
       process.env.NC_ENABLE_ALL_API_ERROR_LOGGING === 'true' ||
       !(
+        dbError ||
         exception instanceof BadRequest ||
         exception instanceof AjvError ||
         exception instanceof Unauthorized ||
@@ -96,8 +99,6 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
       return response.status(404).json({ msg: exception.message });
     }
-
-    const dbError = extractDBError(exception);
 
     if (dbError) {
       return response.status(400).json(dbError);

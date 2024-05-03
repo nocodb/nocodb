@@ -24,5 +24,6 @@ export * from './parseUtils'
 export * from './cell'
 export * from './workerUtils'
 export * from './parsersUtils'
+export * from './datetimeUtils'
 
 export const isEeUI = false

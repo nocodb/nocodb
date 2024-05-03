@@ -64,15 +64,22 @@ const fields = inject(FieldsInj, ref())
 
 const { fields: _fields } = useViewColumnsOrThrow()
 
-const getFieldStyle = (field: ColumnType | undefined) => {
-  if (!field) return { underline: false, bold: false, italic: false }
-  const fi = _fields.value?.find((f) => f.title === field.title)
+const fieldStyles = computed(() => {
+  if (!_fields.value) return new Map()
+  return new Map(
+    _fields.value.map((field) => [
+      field.fk_column_id,
+      {
+        underline: field.underline,
+        bold: field.bold,
+        italic: field.italic,
+      },
+    ]),
+  )
+})
 
-  return {
-    underline: fi?.underline,
-    bold: fi?.bold,
-    italic: fi?.italic,
-  }
+const getFieldStyle = (field: ColumnType) => {
+  return fieldStyles.value.get(field.id)
 }
 
 const dates = computed(() => {
@@ -343,7 +350,7 @@ const recordsToDisplay = computed<{
   }
 })
 
-const calculateNewRow = (event: MouseEvent, updateSideBar?: boolean) => {
+const calculateNewRow = (event: MouseEvent, updateSideBar?: boolean, skipChangeCheck?: boolean) => {
   const { top, height, width, left } = calendarGridContainer.value.getBoundingClientRect()
 
   const percentY = (event.clientY - top - window.scrollY) / height
@@ -364,7 +371,7 @@ const calculateNewRow = (event: MouseEvent, updateSideBar?: boolean) => {
     ...dragRecord.value,
     row: {
       ...dragRecord.value?.row,
-      [fromCol!.title!]: dayjs(newStartDate).format('YYYY-MM-DD HH:mm:ssZ'),
+      [fromCol!.title!]: dayjs(newStartDate).utc().format('YYYY-MM-DD HH:mm:ssZ'),
     },
   }
 
@@ -384,8 +391,13 @@ const calculateNewRow = (event: MouseEvent, updateSideBar?: boolean) => {
       endDate = newStartDate.clone()
     }
 
-    newRow.row[toCol!.title!] = dayjs(endDate).format('YYYY-MM-DD HH:mm:ssZ')
+    newRow.row[toCol!.title!] = dayjs(endDate).utc().format('YYYY-MM-DD HH:mm:ssZ')
     updateProperty.push(toCol!.title!)
+  }
+
+  // If from and to columns of the dragRecord and the newRow are the same, we don't manipulate the formattedRecords and formattedSideBarData. This removes unwanted computation
+  if (dragRecord.value.row[fromCol.title!] === newRow.row[fromCol.title!] && !skipChangeCheck) {
+    return { newRow: null, updatedProperty: [] }
   }
 
   if (!newRow) return { newRow: null, updateProperty: [] }
@@ -515,7 +527,7 @@ const stopDrag = (event: MouseEvent) => {
   event.preventDefault()
   dragElement.value!.style.boxShadow = 'none'
 
-  const { newRow, updateProperty } = calculateNewRow(event, false)
+  const { newRow, updateProperty } = calculateNewRow(event, false, true)
 
   const allRecords = document.querySelectorAll('.draggable-record')
   allRecords.forEach((el) => {

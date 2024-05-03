@@ -20,7 +20,7 @@ export default {
 
     onErrorCaptured((err) => {
       if (import.meta.client && (!nuxtApp.isHydrating || !nuxtApp.payload.serverRendered)) {
-        console.log('UI Error :', err)
+        console.error('UI Error :', err)
         emit('error', err)
         error.value = err
         return false

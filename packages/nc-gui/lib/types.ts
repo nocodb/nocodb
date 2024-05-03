@@ -65,6 +65,7 @@ interface Row {
     changed?: boolean
     saving?: boolean
     ltarState?: Record<string, Record<string, any> | Record<string, any>[] | null>
+    fromExpandedForm?: boolean
     // use in datetime picker component
     isUpdatedFromCopyNPaste?: Record<string, boolean>
     // Used in Calendar view
@@ -202,7 +203,7 @@ interface SidebarTableNode extends TableType {
 }
 
 interface UsersSortType {
-  field?: 'email' | 'roles'
+  field?: 'email' | 'roles' | 'title' | 'id'
   direction?: 'asc' | 'desc'
 }
 

@@ -60,7 +60,7 @@ import type { CellRange, Row } from '#imports'
 const props = defineProps<{
   data: Row[]
   paginationData?: PaginatedType
-  loadData?: (params?: any) => Promise<void>
+  loadData?: (params?: any, shouldShowLoading?: boolean) => Promise<void>
   changePage?: (page: number) => void
   callAddEmptyRow?: (addAfter?: number) => Row | undefined
   deleteRow?: (rowIndex: number, undo?: boolean) => Promise<void>
@@ -1064,13 +1064,27 @@ async function resetAndChangePage(row: number, col: number, pageChange?: number)
   scrollToCell?.()
 }
 
-const saveOrUpdateRecords = async (args: { metaValue?: TableType; viewMetaValue?: ViewType; data?: any } = {}) => {
+const temporaryNewRowStore = ref<Row[]>([])
+
+const saveOrUpdateRecords = async (
+  args: { metaValue?: TableType; viewMetaValue?: ViewType; data?: any; keepNewRecords?: boolean } = {},
+) => {
   for (const currentRow of args.data || dataRef.value) {
+    if (currentRow.rowMeta.fromExpandedForm) continue
+
     /** if new record save row and save the LTAR cells */
     if (currentRow.rowMeta.new) {
-      const savedRow = await updateOrSaveRow?.(currentRow, '', {}, args)
-      await syncLTARRefs?.(currentRow, savedRow, args)
-      currentRow.rowMeta.changed = false
+      const beforeSave = clone(currentRow)
+      const savedRow = await updateOrSaveRow?.(currentRow, '', currentRow.rowMeta.ltarState || {}, args)
+      if (savedRow) {
+        currentRow.rowMeta.changed = false
+      } else {
+        if (args.keepNewRecords) {
+          if (beforeSave.rowMeta.new && Object.keys(beforeSave.row).length) {
+            temporaryNewRowStore.value.push(beforeSave)
+          }
+        }
+      }
       continue
     }
 
@@ -1277,7 +1291,10 @@ const showFillHandle = computed(
       isFormula(fields.value[activeCell.col]) ||
       isCreatedOrLastModifiedTimeCol(fields.value[activeCell.col]) ||
       isCreatedOrLastModifiedByCol(fields.value[activeCell.col])
-    ),
+    ) &&
+    !isViewDataLoading.value &&
+    !isPaginationLoading.value &&
+    dataRef.value.length,
 )
 
 watch(
@@ -1322,16 +1339,23 @@ eventBus.on(async (event, payload) => {
 })
 
 async function reloadViewDataHandler(params: void | { shouldShowLoading?: boolean | undefined; offset?: number | undefined }) {
-  isViewDataLoading.value = true
+  if (params?.shouldShowLoading) isViewDataLoading.value = true
 
   if (predictedNextColumn.value?.length) {
     const fieldsAvailable = meta.value?.columns?.map((c) => c.title)
     predictedNextColumn.value = predictedNextColumn.value.filter((c) => !fieldsAvailable?.includes(c.title))
   }
   // save any unsaved data before reload
-  await saveOrUpdateRecords()
+  await saveOrUpdateRecords({
+    keepNewRecords: true,
+  })
 
-  await loadData?.({ ...(params?.offset !== undefined ? { offset: params.offset } : {}) })
+  await loadData?.({ ...(params?.offset !== undefined ? { offset: params.offset } : {}) }, params?.shouldShowLoading)
+
+  if (temporaryNewRowStore.value.length) {
+    dataRef.value.push(...temporaryNewRowStore.value)
+    temporaryNewRowStore.value = []
+  }
 
   calculateSlices()
 

@@ -109,7 +109,7 @@
     "html-to-json-parser": "^2.0.1",
     "import-fresh": "^3.3.0",
     "inflection": "^1.13.4",
-    "ioredis": "^5.3.2",
+    "ioredis": "^5.4.1",
     "ioredis-mock": "^8.9.0",
     "is-docker": "^2.2.1",
     "isomorphic-dompurify": "^1.13.0",

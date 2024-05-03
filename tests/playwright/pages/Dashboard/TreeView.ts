@@ -111,26 +111,24 @@ export class TreeViewPage extends BasePage {
     }
 
     await this.get().getByTestId(`nc-tbl-title-${title}`).waitFor({ state: 'visible' });
-
     if (networkResponse === true) {
       await this.waitForResponse({
-        uiAction: () =>
-          this.get()
-            .getByTestId(`nc-tbl-title-${title}`)
-            .click({
-              position: {
-                x: 10,
-                y: 10,
-              },
-            }),
+        uiAction: () => this.get().getByTestId(`nc-tbl-title-${title}`).closest('.nc-base-tree-tbl').click(),
         httpMethodsToMatch: ['GET'],
         requestUrlPathToMatch: `/api/v1/db/data/noco`,
         responseJsonMatcher: json => json.pageInfo,
       });
       await this.dashboard.waitForTabRender({ title, mode });
     } else {
-      await this.get().getByTestId(`nc-tbl-title-${title}`).click();
+      await this.get().locator(`[data-testid="nc-tbl-title-${title}"]`).click({
+        // x:10, y:10
+      });
+
+      // todo: remove this after fixing the issue
       await this.rootPage.waitForTimeout(1000);
+      await this.get().locator(`[data-testid="nc-tbl-title-${title}"]`).click({
+        // x:10, y:10
+      });
     }
   }
 

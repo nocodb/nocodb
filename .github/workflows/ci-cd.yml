@@ -20,6 +20,8 @@ on:
       - ".github/workflows/ci-cd.yml"
       - ".github/workflows/playwright-test-workflow.yml"
       - "tests/playwright/**"
+  pull_request_review:
+    types: [submitted]
   # Triggered manually
   workflow_dispatch:
 
@@ -31,7 +33,7 @@ jobs:
   unit-tests-pg:
     runs-on: [self-hosted, aws]
     timeout-minutes: 80
-    if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
+    if: ${{ (github.event_name == 'pull_request_review' && github.event.review.body == 'triggerCI') || (github.event_name != 'pull_request_review' && (github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft)) }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -78,25 +80,25 @@ jobs:
         working-directory: ./packages/nocodb
         run: pnpm run test:unit:pg:ee
   playwright-pg-shard-1:
-    if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
+    if: ${{ (github.event_name == 'pull_request_review' && github.event.review.body == 'triggerCI') || (github.event_name != 'pull_request_review' && (github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft)) }}
     uses: ./.github/workflows/playwright-test-workflow.yml
     with:
       db: pg
       shard: 1
   playwright-pg-shard-2:
-    if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
+    if: ${{ (github.event_name == 'pull_request_review' && github.event.review.body == 'triggerCI') || (github.event_name != 'pull_request_review' && (github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft)) }}
     uses: ./.github/workflows/playwright-test-workflow.yml
     with:
       db: pg
       shard: 2
   playwright-pg-shard-3:
-    if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
+    if: ${{ (github.event_name == 'pull_request_review' && github.event.review.body == 'triggerCI') || (github.event_name != 'pull_request_review' && (github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft)) }}
     uses: ./.github/workflows/playwright-test-workflow.yml
     with:
       db: pg
       shard: 3
 #    playwright-pg-shard-4:
-#      if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
+#      if: ${{ (github.event_name == 'pull_request_review' && github.event.review.body == 'triggerCI') || (github.event_name != 'pull_request_review' && (github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft)) }}
 #      uses: ./.github/workflows/playwright-test-workflow.yml
 #      with:
 #        db: pg

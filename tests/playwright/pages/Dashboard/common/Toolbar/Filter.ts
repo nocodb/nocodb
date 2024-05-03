@@ -332,7 +332,7 @@ export class ToolbarFilterPage extends BasePage {
                 .locator(`.nc-dropdown-user-select-cell`)
                 .getByTestId('select-option-User-filter')
                 .getByText(v[i])
-                .click();
+                .click({ force: true });
             }
           }
           break;

@@ -25,15 +25,14 @@ const roleDb = [
 async function beforeEachInit({ page }: { page: any }) {
   let workspacePage: WorkspacePage;
   let collaborationPage: CollaborationPage;
-  let api: Api<any>;
 
   const context: any = await setup({ page, isEmptyProject: true });
   const dashboard: DashboardPage = new DashboardPage(page, context.base);
+  const api = context.api;
 
   if (isEE()) {
     workspacePage = new WorkspacePage(page);
     collaborationPage = workspacePage.collaboration;
-    api = context.api;
 
     for (let i = 0; i < roleDb.length; i++) {
       try {

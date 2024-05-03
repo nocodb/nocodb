@@ -131,7 +131,7 @@ export class ToolbarFilterPage extends BasePage {
     skipWaitingResponse = true;
 
     const selectedField = await getTextExcludeIconText(
-      this.rootPage.locator('.nc-filter-field-select .ant-select-selection-item')
+      this.rootPage.locator('.nc-filter-field-select .ant-select-selection-item').first()
     );
     if (selectedField !== title) {
       await this.rootPage.locator('.nc-filter-field-select').last().click();

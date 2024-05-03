@@ -162,6 +162,10 @@ export class TreeViewPage extends BasePage {
 
     // Tab render is slow for playwright
     await this.dashboard.waitForTabRender({ title, mode });
+
+    // Some of the tests are flaky due to immediate operations on the table
+    // Tab render above is no more valid
+    await this.rootPage.waitForTimeout(1000);
   }
 
   async verifyTable({ title, index, exists = true }: { title: string; index?: number; exists?: boolean }) {

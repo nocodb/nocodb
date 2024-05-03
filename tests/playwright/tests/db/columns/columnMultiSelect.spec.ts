@@ -5,10 +5,18 @@ import setup, { unsetup } from '../../../setup';
 import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
 import { Api } from 'nocodb-sdk';
 let api: Api<any>;
+const addRecordUsingAPI = async (context: any, tableId: string, rowAttributes: any) => {
+  try {
+    await api.dbTableRow.bulkCreate('noco', context.base.id, tableId, rowAttributes);
+  } catch (e) {
+    console.error(e);
+  }
+};
 
 test.describe('Multi select', () => {
   let dashboard: DashboardPage, grid: GridPage;
   let context: any;
+  let tableId: string;
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
@@ -22,7 +30,25 @@ test.describe('Multi select', () => {
       columnTitle: 'MultiSelect',
       options: ['Option 1', 'Option 2'],
     });
-    await grid.addNewRow({ index: 0, value: 'Row 0' });
+
+    api = new Api({
+      baseURL: `http://localhost:8080/`,
+      headers: {
+        'xc-auth': context.token,
+      },
+    });
+
+    const tables = await api.dbTable.list(context.base.id);
+    tableId = tables.list.find((table: any) => table.title === 'sheet1').id;
+    await addRecordUsingAPI(context, tableId, [
+      {
+        Id: 1,
+        Title: `Row 0`,
+      },
+    ]);
+
+    // page reload
+    await page.reload();
   });
 
   test.afterEach(async () => {
@@ -56,7 +82,14 @@ test.describe('Multi select', () => {
       multiSelect: true,
     });
 
-    await grid.addNewRow({ index: 1, value: 'Row 1' });
+    await addRecordUsingAPI(context, tableId, [
+      {
+        Id: 2,
+        Title: `Row 1`,
+      },
+    ]);
+    await grid.rootPage.reload();
+
     await grid.cell.selectOption.select({
       index: 1,
       columnHeader: 'MultiSelect',

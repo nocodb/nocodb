@@ -553,6 +553,8 @@ export default class View implements ViewType {
 
       if (param.column_show?.view_id === view.id) {
         modifiedInsertObj.show = true;
+      } else if (view.type !== ViewTypes.FORM && !view.uuid) {
+        modifiedInsertObj.show = true;
       }
 
       if (param.column_order?.view_id === view.id) {

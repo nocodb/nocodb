@@ -360,6 +360,10 @@ export function useMultiSelect(
     */
     const map: Record<string, boolean> = {}
 
+    if (activeCell.row !== null && activeCell.col !== null) {
+      map[`${activeCell.row}-${activeCell.col}`] = true
+    }
+
     if (selectedRange._start === null || selectedRange._end === null) {
       return map
     }

@@ -155,6 +155,7 @@ export interface NcContext {
   workspace: WorkspaceType;
   defaultProjectTitle: string;
   defaultTableTitle: string;
+  api: Api<any>;
 }
 
 selectors.setTestIdAttribute('data-testid');
@@ -344,7 +345,7 @@ async function localInit({
 
     // get current user information
     const user = await api.auth.me();
-    return { data: { base, user, workspace, token }, status: 200 };
+    return { data: { base, user, workspace, token, api }, status: 200 };
   } catch (e) {
     console.error(`Error resetting base: ${process.env.TEST_PARALLEL_INDEX}`, e);
     return { data: {}, status: 500 };
@@ -477,6 +478,7 @@ const setup = async ({
     workspace,
     defaultProjectTitle: 'Getting Started',
     defaultTableTitle: 'Features',
+    api: response?.data?.api,
   } as NcContext;
 };
 

@@ -174,12 +174,12 @@ const relation = computed(() => {
 })
 
 const totalItemsToShow = computed(() => {
-  if (relation.value === 'bt') {
-    return row.value.row[relatedTableMeta.value?.title] ? 1 : 0
-  }
-
   if (isForm.value || isNew.value) {
     return rowState.value?.[injectedColumn!.value?.title]?.length ?? 0
+  }
+
+  if (relation.value === 'bt') {
+    return row.value?.row[relatedTableMeta.value?.title] ? 1 : 0
   }
 
   return childrenListCount.value ?? 0

@@ -28,7 +28,7 @@ const { user: loggedInUser } = useGlobal()
 
 const { copy } = useCopy()
 
-const { sorts, sortDirection, loadSorts, saveOrUpdate, handleGetSortedData, toggleSort } = useUserSorts('Org')
+const { sorts, loadSorts, handleGetSortedData, toggleSort } = useUserSorts('Org')
 
 const users = ref<UserType[]>([])
 

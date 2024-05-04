@@ -18,7 +18,7 @@ const currentWorkspace = computed(() => {
   return props.workspaceId ? workspaces.value.get(props.workspaceId) : _activeWorkspace.value
 })
 
-const { sorts, sortDirection, loadSorts, saveOrUpdate, handleGetSortedData, toggleSort } = useUserSorts('Workspace')
+const { sorts, loadSorts, handleGetSortedData, toggleSort } = useUserSorts('Workspace')
 
 const userSearchText = ref('')
 

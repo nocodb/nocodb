@@ -14,7 +14,7 @@ const { activeProjectId, bases } = storeToRefs(basesStore)
 
 const { orgRoles, baseRoles, loadRoles } = useRoles()
 
-const { sorts, sortDirection, loadSorts, handleGetSortedData, toggleSort } = useUserSorts('Project')
+const { sorts, loadSorts, handleGetSortedData, toggleSort } = useUserSorts('Project')
 
 const isSuper = computed(() => orgRoles.value?.[OrgUserRoles.SUPER_ADMIN])
 

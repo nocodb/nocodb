@@ -195,7 +195,6 @@ export function useUserSorts(roleType: 'Workspace' | 'Org' | 'Project' | 'Organi
       })
     }
   }
-  
 
   return { sorts, sortDirection, loadSorts, saveOrUpdate, handleGetSortedData, toggleSort }
 }

@@ -75,11 +75,13 @@ export class ToolbarFieldsPage extends BasePage {
   }
 
   async click({ title, isLocallySaved }: { title: string; isLocallySaved?: boolean }) {
-    await this.waitForResponse({
-      uiAction: () => this.get().locator(`[data-testid="nc-fields-menu-${title}"]`).locator('.nc-switch').click(),
-      requestUrlPathToMatch: isLocallySaved ? '/api/v1/db/public/' : '/api/v1/db/data/noco/',
-      httpMethodsToMatch: ['GET'],
-    });
+    // hide field doesn't trigger an un-solicited update from backend
+    // await this.waitForResponse({
+    //   uiAction: () => this.get().locator(`[data-testid="nc-fields-menu-${title}"]`).locator('.nc-switch').click(),
+    //   requestUrlPathToMatch: isLocallySaved ? '/api/v1/db/public/' : '/api/v1/db/data/noco/',
+    //   httpMethodsToMatch: ['GET'],
+    // });
+    await this.get().locator(`[data-testid="nc-fields-menu-${title}"]`).locator('.nc-switch').click();
     await this.toolbar.parent.waitLoading();
   }
 

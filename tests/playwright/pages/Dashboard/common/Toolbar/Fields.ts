@@ -26,6 +26,9 @@ export class ToolbarFieldsPage extends BasePage {
     validateResponse?: boolean;
     checked?: boolean;
   }) {
+    // disable response validation for hide field
+    validateResponse = false;
+
     await this.toolbar.clickFields();
 
     // hack

@@ -286,7 +286,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
         },
         scope: defineViewScope({ view: view.value }),
       })
-      saveOrUpdate(field, fieldIndex)
+      saveOrUpdate(field, fieldIndex, !checked)
     }
 
     const toggleFieldStyles = (field: any, style: 'underline' | 'bold' | 'italic', status: boolean) => {

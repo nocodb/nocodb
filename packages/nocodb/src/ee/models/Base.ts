@@ -334,45 +334,31 @@ export default class Base extends BaseCE {
       .leftJoin(MetaTable.WORKSPACE_USER, function () {
         this.on(
           `${MetaTable.WORKSPACE_USER}.fk_workspace_id`,
-          '=',
           `${MetaTable.PROJECT}.fk_workspace_id`,
-        ).andOn(
+        );
+        this.andOn(
           `${MetaTable.WORKSPACE_USER}.fk_user_id`,
-          '=',
           ncMeta.knex.raw('?', [userId]),
         );
       })
       .leftJoin(MetaTable.PROJECT_USERS, function () {
         this.on(
           `${MetaTable.PROJECT_USERS}.base_id`,
-          '=',
           `${MetaTable.PROJECT}.id`,
-        ).andOn(
+        );
+        this.andOn(
           `${MetaTable.PROJECT_USERS}.fk_user_id`,
-          '=',
           ncMeta.knex.raw('?', [userId]),
         );
       })
-
       .where(`${MetaTable.PROJECT}.fk_workspace_id`, fk_workspace_id)
-
-      .where(function () {
-        this.where(
-          `${MetaTable.PROJECT_USERS}.fk_user_id`,
-          '=',
-          ncMeta.knex.raw('?', [userId]),
-        ).orWhere(
-          `${MetaTable.WORKSPACE_USER}.fk_user_id`,
-          '=',
-          ncMeta.knex.raw('?', [userId]),
-        );
-      })
-      .where(`${MetaTable.PROJECT}.deleted`, false)
-      .where(function () {
-        this.whereNotNull(`${MetaTable.PROJECT_USERS}.roles`).orWhereNot(
+      .whereNotNull(`${MetaTable.WORKSPACE_USER}.roles`)
+      .andWhere(function () {
+        this.andWhere(
           `${MetaTable.PROJECT_USERS}.roles`,
+          '!=',
           ProjectRoles.NO_ACCESS,
-        );
+        ).orWhereNull(`${MetaTable.PROJECT_USERS}.roles`);
       });
 
     const bases = await baseListQb;

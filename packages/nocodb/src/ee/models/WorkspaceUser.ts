@@ -179,7 +179,8 @@ export default class WorkspaceUser {
         `${MetaTable.WORKSPACE_USER}.invite_accepted`,
         `${MetaTable.WORKSPACE_USER}.roles as roles`,
       )
-      .where(`${MetaTable.WORKSPACE}.deleted`, false);
+      .where(`${MetaTable.WORKSPACE}.deleted`, false)
+      .whereNotNull(`${MetaTable.WORKSPACE_USER}.roles`);
 
     if (fk_org_id) {
       queryBuilder.where(`${MetaTable.WORKSPACE}.fk_org_id`, fk_org_id);

@@ -14,7 +14,7 @@ const { activeProjectId, bases } = storeToRefs(basesStore)
 
 const { orgRoles, baseRoles, loadRoles } = useRoles()
 
-const { sorts, sortDirection, loadSorts, saveOrUpdate, handleGetSortedData } = useUserSorts('Project')
+const { sorts, loadSorts, handleGetSortedData, toggleSort } = useUserSorts('Project')
 
 const isSuper = computed(() => orgRoles.value?.[OrgUserRoles.SUPER_ADMIN])
 
@@ -222,19 +222,22 @@ watch(currentBase, () => {
       <div v-else class="nc-collaborators-list mt-6 h-full">
         <div class="flex flex-col rounded-lg overflow-hidden border-1 max-w-350 max-h-[calc(100%-8rem)]">
           <div class="flex flex-row bg-gray-50 min-h-12 items-center border-b-1">
-            <div class="text-gray-700 users-email-grid flex items-center space-x-2">
-              <span>
-                {{ $t('objects.users') }}
-              </span>
-              <LazyAccountUserMenu :direction="sortDirection.email" field="email" :handle-user-sort="saveOrUpdate" />
-            </div>
+            <LazyAccountHeaderWithSorter
+              class="users-email-grid"
+              :header="$t('objects.users')"
+              :active-sort="sorts"
+              field="email"
+              :toggle-sort="toggleSort"
+            />
 
-            <div class="text-gray-700 user-access-grid flex items-center space-x-2">
-              <span>
-                {{ $t('general.role') }}
-              </span>
-              <LazyAccountUserMenu :direction="sortDirection.roles" field="roles" :handle-user-sort="saveOrUpdate" />
-            </div>
+            <LazyAccountHeaderWithSorter
+              class="user-access-grid"
+              :header="$t('general.role')"
+              :active-sort="sorts"
+              field="roles"
+              :toggle-sort="toggleSort"
+            />
+
             <div class="text-gray-700 date-joined-grid">{{ $t('title.dateJoined') }}</div>
           </div>
 

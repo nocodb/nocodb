@@ -28,7 +28,7 @@ const { user: loggedInUser } = useGlobal()
 
 const { copy } = useCopy()
 
-const { sorts, sortDirection, loadSorts, saveOrUpdate, handleGetSortedData } = useUserSorts('Org')
+const { sorts, sortDirection, loadSorts, saveOrUpdate, handleGetSortedData, toggleSort } = useUserSorts('Org')
 
 const users = ref<UserType[]>([])
 
@@ -198,21 +198,22 @@ const openDeleteModal = (user: UserType) => {
       </div>
       <div class="w-full rounded-md max-w-250 h-[calc(100%-12rem)] rounded-md overflow-hidden mt-5">
         <div class="flex w-full bg-gray-50 border-1 rounded-t-md">
-          <div
-            class="py-3.5 text-gray-500 font-medium text-3.5 w-2/3 text-start pl-6 flex items-center space-x-2"
-            data-rec="true"
-          >
-            <span>
-              {{ $t('objects.users') }}
-            </span>
-            <LazyAccountUserMenu :direction="sortDirection.email" field="email" :handle-user-sort="saveOrUpdate" />
-          </div>
-          <div class="py-3.5 text-gray-500 font-medium text-3.5 w-1/3 text-start flex items-center space-x-2" data-rec="true">
-            <span>
-              {{ $t('general.access') }}
-            </span>
-            <LazyAccountUserMenu :direction="sortDirection.roles" field="roles" :handle-user-sort="saveOrUpdate" />
-          </div>
+          <LazyAccountHeaderWithSorter
+            class="py-3.5 text-gray-500 font-medium text-3.5 w-2/3 text-start pl-6"
+            :header="$t('objects.users')"
+            :active-sort="sorts"
+            field="email"
+            :toggle-sort="toggleSort"
+          />
+
+          <LazyAccountHeaderWithSorter
+            class="py-3.5 text-gray-500 font-medium text-3.5 w-1/3 text-start"
+            :header="$t('general.access')"
+            :active-sort="sorts"
+            field="roles"
+            :toggle-sort="toggleSort"
+          />
+
           <div class="flex py-3.5 text-gray-500 font-medium text-3.5 w-28 justify-end mr-4" data-rec="true">
             {{ $t('labels.action') }}
           </div>

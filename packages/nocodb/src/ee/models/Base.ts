@@ -2,19 +2,18 @@ import BaseCE from 'src/models/Base';
 import { ProjectRoles, ProjectTypes } from 'nocodb-sdk';
 import type { BaseType } from 'nocodb-sdk';
 import type { DB_TYPES } from '~/utils/globals';
-import DashboardProjectDBProject from '~/models/DashboardProjectDBProject';
-import Noco from '~/Noco';
-
-import Source from '~/models/Source';
-import { BaseUser, ModelStat } from '~/models';
-import NocoCache from '~/cache/NocoCache';
-
 import {
   CacheDelDirection,
   CacheGetType,
   CacheScope,
   MetaTable,
 } from '~/utils/globals';
+import DashboardProjectDBProject from '~/models/DashboardProjectDBProject';
+import Noco from '~/Noco';
+
+import Source from '~/models/Source';
+import { BaseUser, ModelStat } from '~/models';
+import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
 import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
 
@@ -370,7 +369,7 @@ export default class Base extends BaseCE {
       })
       .where(`${MetaTable.PROJECT}.deleted`, false)
       .where(function () {
-        this.whereNull(`${MetaTable.PROJECT_USERS}.roles`).orWhereNot(
+        this.whereNotNull(`${MetaTable.PROJECT_USERS}.roles`).orWhereNot(
           `${MetaTable.PROJECT_USERS}.roles`,
           ProjectRoles.NO_ACCESS,
         );

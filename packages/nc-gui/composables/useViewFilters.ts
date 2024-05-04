@@ -307,7 +307,7 @@ export function useViewFilters(
     }
   }
 
-  const saveOrUpdate = async (filter: Filter, i: number, force = false, undo = false) => {
+  const saveOrUpdate = async (filter: Filter, i: number, force = false, undo = false, skipDataReload = false) => {
     if (!view.value) return
 
     if (!undo) {
@@ -372,7 +372,7 @@ export function useViewFilters(
 
     lastFilters.value = clone(filters.value)
 
-    if (!isWebhook) reloadData?.()
+    if (!isWebhook && !skipDataReload) reloadData?.()
   }
 
   function deleteFilterGroupFromAllFilters(filter: Filter) {

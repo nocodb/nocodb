@@ -3314,16 +3314,17 @@ class BaseModelSqlv2 {
               await childModel.getColumns();
 
               if (isBt) {
+                // if array then extract value from first element
+                const colVal = Array.isArray(nestedData)
+                  ? nestedData[0]?.[childModel.primaryKey.title]
+                  : nestedData[childModel.primaryKey.title];
                 // todo: unlink the ref record
                 preInsertOps.push(async () => {
                   return this.dbDriver(this.getTnPath(childModel.table_name))
                     .update({
                       [childCol.column_name]: null,
                     })
-                    .where(
-                      childCol.column_name,
-                      nestedData[childModel.primaryKey.title],
-                    )
+                    .where(childCol.column_name, colVal)
                     .toQuery();
                 });
 

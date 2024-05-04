@@ -1007,8 +1007,8 @@ importers:
         version: 0.18.5
     devDependencies:
       '@playwright/test':
-        specifier: 1.38.0
-        version: 1.38.0
+        specifier: 1.43.1
+        version: 1.43.1
       '@typescript-eslint/eslint-plugin':
         specifier: ^6.1.0
         version: 6.1.0(@typescript-eslint/parser@6.1.0)(eslint@8.33.0)
@@ -7248,12 +7248,12 @@ packages:
     dev: true
     optional: true
 
-  /@playwright/test@1.38.0:
-    resolution: {integrity: sha512-xis/RXXsLxwThKnlIXouxmIvvT3zvQj1JE39GsNieMUrMpb3/GySHDh2j8itCG22qKVD4MYLBp7xB73cUW/UUw==}
+  /@playwright/test@1.43.1:
+    resolution: {integrity: sha512-HgtQzFgNEEo4TE22K/X7sYTYNqEMMTZmFS8kTq6m8hXj+m1D8TgwgIbumHddJa9h4yl4GkKb8/bgAl2+g7eDgA==}
     engines: {node: '>=16'}
     hasBin: true
     dependencies:
-      playwright: 1.38.0
+      playwright: 1.43.1
     dev: true
 
   /@polka/url@1.0.0-next.21:
@@ -22229,18 +22229,18 @@ packages:
       mlly: 1.6.1
       pathe: 1.1.2
 
-  /playwright-core@1.38.0:
-    resolution: {integrity: sha512-f8z1y8J9zvmHoEhKgspmCvOExF2XdcxMW8jNRuX4vkQFrzV4MlZ55iwb5QeyiFQgOFCUolXiRHgpjSEnqvO48g==}
+  /playwright-core@1.43.1:
+    resolution: {integrity: sha512-EI36Mto2Vrx6VF7rm708qSnesVQKbxEWvPrfA1IPY6HgczBplDx7ENtx+K2n4kJ41sLLkuGfmb0ZLSSXlDhqPg==}
     engines: {node: '>=16'}
     hasBin: true
     dev: true
 
-  /playwright@1.38.0:
-    resolution: {integrity: sha512-fJGw+HO0YY+fU/F1N57DMO+TmXHTrmr905J05zwAQE9xkuwP/QLDk63rVhmyxh03dYnEhnRbsdbH9B0UVVRB3A==}
+  /playwright@1.43.1:
+    resolution: {integrity: sha512-V7SoH0ai2kNt1Md9E3Gwas5B9m8KR2GVvwZnAI6Pg0m3sh7UvgiYhRrhsziCmqMJNouPckiOhk8T+9bSAK0VIA==}
     engines: {node: '>=16'}
     hasBin: true
     dependencies:
-      playwright-core: 1.38.0
+      playwright-core: 1.43.1
     optionalDependencies:
       fsevents: 2.3.2
     dev: true

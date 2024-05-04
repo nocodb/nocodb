@@ -658,6 +658,8 @@ export function useData(args: {
 
     if (!removedRowsData.length) return
 
+    isPaginationLoading.value = true
+
     const { list } = await $api.dbTableRow.list(NOCO, base?.value.id as string, meta.value?.id as string, {
       pks: removedRowsData.map((row) => row[compositePrimaryKey]).join(','),
     })
@@ -677,11 +679,16 @@ export function useData(args: {
       return message.error(`${t('msg.error.deleteRowFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
     }
 
-    if (!removedRowsData.length) return
+    if (!removedRowsData.length) {
+      isPaginationLoading.value = false
+      return
+    }
 
     addUndo({
       redo: {
         fn: async function redo(this: UndoRedoAction, removedRowsData: Record<string, any>[]) {
+          isPaginationLoading.value = true
+
           const removedRowIds = await bulkDeleteRows(removedRowsData.map((row) => row.pkData))
 
           if (Array.isArray(removedRowIds)) {
@@ -693,7 +700,9 @@ export function useData(args: {
             }
           }
 
+          await callbacks?.syncCount?.()
           await callbacks?.syncPagination?.()
+          await callbacks?.globalCallback?.()
         },
         args: [removedRowsData],
       },
@@ -783,6 +792,8 @@ export function useData(args: {
 
     if (!removedRowsData.length) return
 
+    isPaginationLoading.value = true
+
     const { list } = await $api.dbTableRow.list(NOCO, base?.value.id as string, meta.value?.id as string, {
       pks: removedRowsData.map((row) => row[compositePrimaryKey]).join(','),
     })
@@ -802,11 +813,16 @@ export function useData(args: {
       return message.error(`${t('msg.error.deleteRowFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
     }
 
-    if (!removedRowsData.length) return
+    if (!removedRowsData.length) {
+      isPaginationLoading.value = false
+      return
+    }
 
     addUndo({
       redo: {
         fn: async function redo(this: UndoRedoAction, removedRowsData: Record<string, any>[]) {
+          isPaginationLoading.value = true
+
           const removedRowIds = await bulkDeleteRows(removedRowsData.map((row) => row.pkData))
 
           if (Array.isArray(removedRowIds)) {
@@ -818,7 +834,9 @@ export function useData(args: {
             }
           }
 
+          await callbacks?.syncCount?.()
           await callbacks?.syncPagination?.()
+          await callbacks?.globalCallback?.()
         },
         args: [removedRowsData],
       },
@@ -872,19 +890,14 @@ export function useData(args: {
     rows: Record<string, string>[],
     { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
   ) {
-    isPaginationLoading.value = true
     try {
       const bulkDeletedRowsData = await $api.dbDataTableRow.delete(metaValue?.id as string, rows.length === 1 ? rows[0] : rows, {
         viewId: viewMetaValue?.id as string,
       })
 
-      await callbacks?.syncCount?.()
       return rows.length === 1 && bulkDeletedRowsData ? [bulkDeletedRowsData] : bulkDeletedRowsData
     } catch (error: any) {
       message.error(await extractSdkResponseErrorMsg(error))
-    } finally {
-      await callbacks?.globalCallback?.()
-      isPaginationLoading.value = false
     }
   }
 

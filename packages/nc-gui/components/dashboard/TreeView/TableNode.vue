@@ -395,9 +395,9 @@ const deleteTable = () => {
         @click.stop="onExpand"
       >
         <GeneralIcon
-          icon="chevronDown"
-          class="nc-sidebar-source-node-btns cursor-pointer transform transition-transform duration-500 !text-gray-600 rotate-270"
-          :class="{ '!rotate-180': isExpanded }"
+          icon="chevronRight"
+          class="nc-sidebar-source-node-btns cursor-pointer transform transition-transform duration-200 !text-gray-600"
+          :class="{ '!rotate-90': isExpanded }"
         />
       </NcButton>
     </div>

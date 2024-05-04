@@ -114,6 +114,10 @@ export const useBase = defineStore('baseStore', () => {
     return getBaseType(sourceId) === 'snowflake'
   }
 
+  function isDatabricks(sourceId?: string) {
+    return getBaseType(sourceId) === 'databricks'
+  }
+
   function isXcdbBase(sourceId?: string) {
     const source = sources.value.find((source) => source.id === sourceId)
     return (source?.is_meta as boolean) || (source?.is_local as boolean) || false
@@ -312,6 +316,7 @@ export const useBase = defineStore('baseStore', () => {
     isPg,
     isSqlite,
     isSnowflake,
+    isDatabricks,
     sqlUis,
     isSharedBase,
     isSharedErd,

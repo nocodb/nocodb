@@ -310,7 +310,8 @@ export function useData(args: {
 
       return updatedRowData
     } catch (e: any) {
-      message.error(`${t('msg.error.rowUpdateFailed')} ${await extractSdkResponseErrorMsg(e)}`)
+      toUpdate.row[property] = toUpdate.oldRow[property]
+      message.error(`${t('msg.error.rowUpdateFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
     } finally {
       if (toUpdate.rowMeta) toUpdate.rowMeta.saving = false
     }

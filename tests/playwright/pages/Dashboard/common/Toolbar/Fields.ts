@@ -37,9 +37,11 @@ export class ToolbarFieldsPage extends BasePage {
       .locator(`[data-testid="nc-fields-menu-${title}"]`)
       .locator('.nc-switch')
       .isChecked();
-    if ((checked && isChecked) || (!checked && !isChecked)) {
-      await this.toolbar.clickFields();
-      return;
+    if (checked !== undefined) {
+      if ((checked && isChecked) || (!checked && !isChecked)) {
+        await this.toolbar.clickFields();
+        return;
+      }
     }
 
     if (isChecked === true) {

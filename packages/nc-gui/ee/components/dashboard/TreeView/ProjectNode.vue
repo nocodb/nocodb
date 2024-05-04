@@ -656,9 +656,9 @@ const onTableIdCopy = async () => {
               @click.stop="onProjectClick(base, true, true)"
             >
               <GeneralIcon
-                icon="chevronDown"
-                class="flex-none nc-sidebar-source-node-btns cursor-pointer transform transition-transform duration-500 rotate-270"
-                :class="{ '!rotate-180': base.isExpanded }"
+                icon="chevronRight"
+                class="flex-none nc-sidebar-source-node-btns cursor-pointer transform transition-transform duration-200 text-[20px]"
+                :class="{ '!rotate-90': base.isExpanded }"
               />
             </NcButton>
           </template>

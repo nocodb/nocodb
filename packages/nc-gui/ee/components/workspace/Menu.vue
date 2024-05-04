@@ -127,11 +127,11 @@ const onWorkspaceCreateClick = () => {
         class="group cursor-pointer flex flex-grow w-full gap-x-2 items-center nc-workspace-menu overflow-hidden py-1.25 xs:py-1.75 pr-0.25"
       >
         <GeneralWorkspaceIcon :workspace="activeWorkspace" />
-        <div v-if="activeWorkspace" class="flex min-w-10 w-full">
+        <div v-if="activeWorkspace" class="flex min-w-10 w-full items-center">
           <div class="nc-workspace-title font-semibold text-base text-md truncate capitalize">
             {{ activeWorkspace.title }}
           </div>
-          <GeneralIcon icon="arrowDown" class="ml-1 min-w-6 text-lg !text-gray-500/75" />
+          <GeneralIcon icon="chevronDown" class="mt-0.5 ml-1 min-w-6 text-lg !text-gray-500/75" />
         </div>
       </div>
 

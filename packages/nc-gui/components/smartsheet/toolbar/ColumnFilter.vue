@@ -419,9 +419,9 @@ const onLogicalOpUpdate = async (filter: Filter, index: number) => {
                     class="min-w-20 capitalize"
                     placeholder="Group op"
                     dropdown-class-name="nc-dropdown-filter-logical-op-group"
+                    :disabled="i > 1 && !isLogicalOpChangeAllowed"
                     @click.stop
                     @change="saveOrUpdate(filter, i)"
-                    :disabled="(i > 1 && !isLogicalOpChangeAllowed)"
                   >
                     <a-select-option v-for="op in logicalOps" :key="op.value" :value="op.value">
                       <div class="flex items-center w-full justify-between w-full gap-2">
@@ -618,7 +618,7 @@ const onLogicalOpUpdate = async (filter: Filter, index: number) => {
           </div>
         </NcButton>
 
-        <NcButton v-if="!webHook && nestedLevel < 5" type="text" size="small" @click.stop="addFilterGroup()">
+        <NcButton v-if="nestedLevel < 5" type="text" size="small" @click.stop="addFilterGroup()">
           <div class="flex items-center gap-1">
             <!-- Add Filter Group -->
             <component :is="iconMap.plus" />

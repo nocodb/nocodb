@@ -396,7 +396,7 @@ const deleteTable = () => {
       >
         <GeneralIcon
           icon="chevronRight"
-          class="nc-sidebar-source-node-btns cursor-pointer transform transition-transform duration-200 !text-gray-600"
+          class="nc-sidebar-source-node-btns cursor-pointer transform transition-transform duration-200 !text-gray-600 text-[20px]"
           :class="{ '!rotate-90': isExpanded }"
         />
       </NcButton>

@@ -421,6 +421,7 @@ const onLogicalOpUpdate = async (filter: Filter, index: number) => {
                     dropdown-class-name="nc-dropdown-filter-logical-op-group"
                     @click.stop
                     @change="saveOrUpdate(filter, i)"
+                    :disabled="(i > 1 && !isLogicalOpChangeAllowed)"
                   >
                     <a-select-option v-for="op in logicalOps" :key="op.value" :value="op.value">
                       <div class="flex items-center w-full justify-between w-full gap-2">

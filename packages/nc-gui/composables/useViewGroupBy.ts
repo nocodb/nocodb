@@ -121,7 +121,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
         rowMeta: {},
       }))
 
-    const valueToTitle = (value: string, col: ColumnType) => {
+    const valueToTitle = (value: string, col: ColumnType, displayValueProp?: string) => {
       if (col.uidt === UITypes.Checkbox) {
         return value ? GROUP_BY_VARS.TRUE : GROUP_BY_VARS.FALSE
       }
@@ -130,6 +130,10 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
         if (!value) {
           return GROUP_BY_VARS.NULL
         }
+      }
+
+      if (col.uidt === UITypes.LinkToAnotherRecord && displayValueProp && value && typeof value === 'object') {
+        return value[displayValueProp] ?? GROUP_BY_VARS.NULL
       }
 
       // convert to JSON string if non-string value
@@ -236,6 +240,14 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
 
         if (isPublic && !sharedView.value?.uuid) {
           return
+        }
+
+        if (groupby.column.uidt === UITypes.LinkToAnotherRecord) {
+          const relatedTableMeta = await getMeta(
+            (groupby.column.colOptions as LinkToAnotherRecordType).fk_related_model_id as string,
+          )
+          if (!relatedTableMeta) return
+          group.displayValueProp = (relatedTableMeta.columns?.find((c) => c.pv) || relatedTableMeta.columns?.[0])?.title || ''
         }
 
         const response = !isPublic
@@ -464,7 +476,10 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       if (group.nested) {
         const child = group.children?.find((g) => {
           if (!groupBy.value[nestLevel].column.title) return undefined
-          return g.key === valueToTitle(row.row[groupBy.value[nestLevel].column.title!], groupBy.value[nestLevel].column)
+          return (
+            g.key ===
+            valueToTitle(row.row[groupBy.value[nestLevel].column.title!], groupBy.value[nestLevel].column, group.displayValueProp)
+          )
         })
         if (child) {
           return findGroupForRow(row, child, nestLevel + 1)

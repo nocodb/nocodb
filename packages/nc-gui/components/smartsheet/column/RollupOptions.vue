@@ -127,7 +127,7 @@ watch(
       getAvailableRollupForUiType(childFieldColumn?.uidt as UITypes).includes(func.value),
     )
 
-    if (!aggFunctionsList.value.includes(vModel.value.rollup_function)) {
+    if (!aggFunctionsList.value.find((func) => func.value === vModel.value.rollup_function)) {
       // when the previous roll up function was numeric type and the current child field is non-numeric
       // reset rollup function with a non-numeric type
       vModel.value.rollup_function = aggFunctionsList.value[0].value

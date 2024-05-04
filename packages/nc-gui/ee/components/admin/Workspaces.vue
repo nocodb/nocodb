@@ -2,7 +2,7 @@
 import { WorkspaceUserRoles } from 'nocodb-sdk'
 import { useUserSorts } from '#imports'
 
-const { sorts, sortDirection, loadSorts, saveOrUpdate, handleGetSortedData } = useUserSorts('Organization')
+const { sorts, loadSorts, handleGetSortedData, toggleSort } = useUserSorts('Organization')
 
 const { listWorkspaces, workspaces } = useOrganization()
 
@@ -93,12 +93,13 @@ onMounted(() => {
       <div class="mt-5 h-full" data-testid="nc-org-members-list">
         <div class="flex flex-col overflow-hidden border-b-1 min-h-[calc(100%-8rem)]">
           <div class="flex flex-row bg-gray-50 min-h-11 items-center border-b-1">
-            <div class="text-gray-500 w-[18rem] px-6 py-3 users-email-grid flex items-center space-x-2">
-              <span>
-                {{ $t('labels.workspaceName') }}
-              </span>
-              <LazyAccountUserMenu :direction="sortDirection.title" :handle-user-sort="saveOrUpdate" field="title" />
-            </div>
+            <LazyAccountHeaderWithSorter
+              class="text-gray-500 w-[18rem] px-6 py-3 users-email-grid"
+              :header="$t('labels.workspaceName')"
+              :active-sort="sorts"
+              field="title"
+              :toggle-sort="toggleSort"
+            />
             <div class="text-gray-500 w-[16rem] px-6 py-3 users-email-grid flex items-center space-x-2">
               <span>
                 {{ $t('objects.owner') }}
@@ -115,12 +116,13 @@ onMounted(() => {
               </span>
             </div>
             <!--
-            <div class="text-gray-500 w-52 flex-1 px-6 py-3 flex items-center space-x-2">
-              <span>
-                {{ $t('labels.numberOfRecords') }}
-              </span>
-              <LazyAccountUserMenu :direction="sortDirection.workspace" :handle-user-sort="saveOrUpdate" field="workspace" />
-            </div>
+            <LazyAccountHeaderWithSorter
+              class="text-gray-500 w-52 flex-1 px-6 py-3 flex items-center space-x-2 cursor-pointer"
+              :header="$t('labels.numberOfRecords')"
+              :active-sort="sorts"
+              field="workspace"
+              :toggle-sort="toggleSort"
+            />
             -->
             <div class="text-gray-500 text-right w-52 flex-1 px-6 py-3">{{ $t('labels.actions') }}</div>
           </div>

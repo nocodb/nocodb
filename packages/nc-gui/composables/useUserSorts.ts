@@ -131,18 +131,12 @@ export function useUserSorts(roleType: 'Workspace' | 'Org' | 'Project' | 'Organi
             return userRoleOrder.indexOf(roleB) - userRoleOrder.indexOf(roleA)
           }
         }
-        case 'email': {
+        case 'email':
+        case 'title': {
           if (sortsConfig.direction === 'asc') {
             return a[sortsConfig.field]?.localeCompare(b[sortsConfig.field])
           } else {
             return b[sortsConfig.field]?.localeCompare(a[sortsConfig.field])
-          }
-        }
-        case 'title': {
-          if (sortsConfig.direction === 'asc') {
-            return a[sortsConfig.field] - b[sortsConfig.field]
-          } else {
-            return b[sortsConfig.field] - a[sortsConfig.field]
           }
         }
       }
@@ -182,5 +176,19 @@ export function useUserSorts(roleType: 'Workspace' | 'Org' | 'Project' | 'Organi
     return true
   }
 
-  return { sorts, sortDirection, loadSorts, saveOrUpdate, handleGetSortedData }
+  const toggleSort = (field: 'email' | 'roles' | 'title' | 'id') => {
+    if (sorts.value.field === field) {
+      saveOrUpdate({
+        field,
+        ...(sortDirection.value[field] === 'asc' ? { direction: 'desc' } : {}),
+      })
+    } else {
+      saveOrUpdate({
+        field,
+        direction: 'asc',
+      })
+    }
+  }
+
+  return { sorts, sortDirection, loadSorts, saveOrUpdate, handleGetSortedData, toggleSort }
 }

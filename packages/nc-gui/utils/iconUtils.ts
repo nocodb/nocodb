@@ -61,6 +61,8 @@ import Down from '~icons/material-symbols/keyboard-arrow-down-rounded'
 import PhTriangleFill from '~icons/ph/triangle-fill'
 import LcSend from '~icons/lucide/send'
 import MdiPuzzle from '~icons/mdi/puzzle'
+import MaterialSymbolsArrowDropUp from '~icons/material-symbols/arrow-drop-up'
+import MaterialSymbolsArrowDropDown from '~icons/material-symbols/arrow-drop-down'
 
 import HasManyIcon from '~icons/nc-icons/hasmany'
 import ManytoManyIcon from '~icons/nc-icons/manytomany'
@@ -597,6 +599,8 @@ export const iconMap = {
   ncSettings: NcSettings,
   ncHelp: NcHelp,
   puzzle: MdiPuzzle,
+  arrowDropUp: MaterialSymbolsArrowDropUp,
+  arrowDropDown: MaterialSymbolsArrowDropDown,
 }
 
 export const getMdiIcon = (type: string): any => {

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { useUserSorts } from '#imports'
 
-const { sorts, sortDirection, loadSorts, saveOrUpdate, handleGetSortedData } = useUserSorts('Organization')
+const { sorts, loadSorts, handleGetSortedData, toggleSort } = useUserSorts('Organization')
 
 const { bases, fetchOrganizationBases } = useOrganization()
 
@@ -59,18 +59,21 @@ onMounted(() => {
       <div class="mt-5 h-full" data-testid="nc-org-members-list">
         <div class="flex flex-col border-b-1 min-h-[calc(100%-8rem)]">
           <div class="flex flex-row bg-gray-50 min-h-11 items-center border-b-1">
-            <div class="text-gray-500 w-[17rem] px-6 py-3 users-email-grid flex items-center space-x-2">
-              <span>
-                {{ $t('general.name') }}
-              </span>
-              <LazyAccountUserMenu :direction="sortDirection.title" :handle-user-sort="saveOrUpdate" field="title" />
-            </div>
-            <div class="text-gray-500 w-[15rem] px-6 py-3 users-email-grid flex items-center space-x-2">
-              <span>
-                {{ $t('objects.owner') }}
-              </span>
-              <LazyAccountUserMenu :direction="sortDirection.email" :handle-user-sort="saveOrUpdate" field="email" />
-            </div>
+            <LazyAccountHeaderWithSorter
+              class="text-gray-500 w-[17rem] px-6 py-3 users-email-grid flex items-center space-x-2 cursor-pointer"
+              :header="$t('general.name')"
+              :active-sort="sorts"
+              field="title"
+              :toggle-sort="toggleSort"
+            />
+
+            <LazyAccountHeaderWithSorter
+              class="text-gray-500 w-[15rem] px-6 py-3 users-email-grid flex items-center space-x-2 cursor-pointer"
+              :header="$t('objects.owner')"
+              :active-sort="sorts"
+              field="email"
+              :toggle-sort="toggleSort"
+            />
             <div class="text-gray-500 w-[15rem] px-6 py-3 users-email-grid flex items-center space-x-2">
               <span>
                 {{ $t('labels.workspaceName') }}

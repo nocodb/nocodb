@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { useUserSorts } from '#imports'
 
-const { sorts, sortDirection, loadSorts, saveOrUpdate, handleGetSortedData } = useUserSorts('Organization')
+const { sorts, loadSorts, handleGetSortedData, toggleSort } = useUserSorts('Organization')
 
 const organizationStore = useOrganization()
 
@@ -117,12 +117,13 @@ watch(selected, () => {
         <div class="flex flex-col overflow-hidden border-b-1 min-h-[calc(100%-8rem)]">
           <div class="flex flex-row bg-gray-50 min-h-11 items-center border-b-1">
             <div class="py-3 px-6"><NcCheckbox v-model:checked="selectAll" /></div>
-            <div class="text-gray-700 w-[25rem] users-email-grid flex items-center space-x-2">
-              <span>
-                {{ $t('objects.member') }}
-              </span>
-              <LazyAccountUserMenu :direction="sortDirection.email" :handle-user-sort="saveOrUpdate" field="email" />
-            </div>
+            <LazyAccountHeaderWithSorter
+              class="text-gray-700 w-[25rem] users-email-grid flex items-center space-x-2 cursor-pointer"
+              :header="$t('objects.member')"
+              :active-sort="sorts"
+              field="email"
+              :toggle-sort="toggleSort"
+            />
             <div class="text-gray-700 w-full flex-1 px-6 py-3 flex items-center space-x-2">
               <span>
                 {{ $t('objects.workspaces') }}

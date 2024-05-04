@@ -18,7 +18,7 @@ const currentWorkspace = computed(() => {
   return props.workspaceId ? workspaces.value.get(props.workspaceId) : _activeWorkspace.value
 })
 
-const { sorts, sortDirection, loadSorts, saveOrUpdate, handleGetSortedData } = useUserSorts('Workspace')
+const { sorts, loadSorts, handleGetSortedData, toggleSort } = useUserSorts('Workspace')
 
 const userSearchText = ref('')
 
@@ -117,18 +117,22 @@ onMounted(async () => {
       <div class="flex flex-col rounded-lg overflow-hidden border-1 max-w-350 max-h-[calc(100%-4rem)]">
         <div class="flex flex-row bg-gray-50 min-h-11 items-center border-b-1">
           <div class="py-3 px-6"><NcCheckbox v-model:checked="selectAll" /></div>
-          <div class="text-gray-700 w-[30rem] users-email-grid flex items-center space-x-2">
-            <span>
-              {{ $t('objects.users') }}
-            </span>
-            <LazyAccountUserMenu :direction="sortDirection.email" :handle-user-sort="saveOrUpdate" field="email" />
-          </div>
-          <div class="text-gray-700 w-full flex-1 px-6 py-3 flex items-center space-x-2">
-            <span>
-              {{ $t('general.access') }}
-            </span>
-            <LazyAccountUserMenu :direction="sortDirection.roles" field="roles" :handle-user-sort="saveOrUpdate" />
-          </div>
+          <LazyAccountHeaderWithSorter
+            class="text-gray-700 w-[30rem] users-email-grid"
+            :header="$t('objects.users')"
+            :active-sort="sorts"
+            field="email"
+            :toggle-sort="toggleSort"
+          />
+
+          <LazyAccountHeaderWithSorter
+            class="text-gray-700 w-full flex-1 px-6 py-3"
+            :header="$t('general.access')"
+            :active-sort="sorts"
+            field="roles"
+            :toggle-sort="toggleSort"
+          />
+
           <div class="text-gray-700 w-full flex-1 px-6 py-3">{{ $t('title.dateJoined') }}</div>
           <div class="text-gray-700 w-full text-right flex-1 px-6 py-3">{{ $t('labels.actions') }}</div>
         </div>

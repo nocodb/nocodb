@@ -178,6 +178,7 @@ interface Group {
   children?: Group[]
   rows?: Row[]
   root?: boolean
+  displayValueProp?: string
 }
 
 interface GroupNestedIn {

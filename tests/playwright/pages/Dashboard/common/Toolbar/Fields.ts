@@ -26,28 +26,25 @@ export class ToolbarFieldsPage extends BasePage {
     validateResponse?: boolean;
     checked?: boolean;
   }) {
-    // disable response validation for hide field
-    validateResponse = false;
-
     await this.toolbar.clickFields();
 
     // hack
     await this.rootPage.waitForTimeout(100);
 
-    if (checked !== undefined) {
-      // toggle only if input checked value is not equal to given checked value
-      await this.get()
-        .locator(`[data-testid="nc-fields-menu-${title}"]`)
-        .locator('.nc-switch')
-        .scrollIntoViewIfNeeded();
-      const isChecked = await this.get()
-        .locator(`[data-testid="nc-fields-menu-${title}"]`)
-        .locator('.nc-switch')
-        .isChecked();
-      if ((checked && isChecked) || (!checked && !isChecked)) {
-        await this.toolbar.clickFields();
-        return;
-      }
+    // toggle only if input checked value is not equal to given checked value
+    await this.get().locator(`[data-testid="nc-fields-menu-${title}"]`).locator('.nc-switch').scrollIntoViewIfNeeded();
+    const isChecked = await this.get()
+      .locator(`[data-testid="nc-fields-menu-${title}"]`)
+      .locator('.nc-switch')
+      .isChecked();
+    if ((checked && isChecked) || (!checked && !isChecked)) {
+      await this.toolbar.clickFields();
+      return;
+    }
+
+    if (isChecked === true) {
+      // disable response validation for hide field
+      validateResponse = false;
     }
 
     const toggleColumn = () =>

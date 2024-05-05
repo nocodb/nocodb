@@ -376,12 +376,13 @@ const isLogicalOpChangeAllowed = computed(() => {
   return new Set(filters.value.slice(1).map((filter) => filter.logical_op)).size > 1
 })
 
+// when logical operation is updated, update all the siblings with the same logical operation only if it's in locked state
 const onLogicalOpUpdate = async (filter: Filter, index: number) => {
   if (index === 1 && filters.value.slice(2).every((siblingFilter) => siblingFilter.logical_op !== filter.logical_op)) {
     await Promise.all(
       filters.value.slice(2).map(async (siblingFilter, i) => {
         siblingFilter.logical_op = filter.logical_op
-        saveOrUpdate(siblingFilter, i + 2, false, false, true)
+        await saveOrUpdate(siblingFilter, i + 2, false, false, true)
       }),
     )
   }

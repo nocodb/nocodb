@@ -212,36 +212,44 @@ const onDuplicateRow = () => {
 const save = async () => {
   isSaving.value = true
 
-  let kanbanClbk
-  if (activeView.value?.type === ViewTypes.KANBAN) {
-    kanbanClbk = (row: any, isNewRow: boolean) => {
-      addOrEditStackRow(row, isNewRow)
+  try {
+    let kanbanClbk
+    if (activeView.value?.type === ViewTypes.KANBAN) {
+      kanbanClbk = (row: any, isNewRow: boolean) => {
+        addOrEditStackRow(row, isNewRow)
+      }
+    }
+
+    if (isNew.value) {
+      await _save(rowState.value, undefined, {
+        kanbanClbk,
+      })
+    } else {
+      await _save(undefined, undefined, {
+        kanbanClbk,
+      })
+      _loadRow()
+    }
+
+    if (!props.skipReload) {
+      reloadTrigger?.trigger()
+      reloadViewDataTrigger?.trigger()
+    }
+
+    isUnsavedFormExist.value = false
+
+    if (props.closeAfterSave) {
+      isExpanded.value = false
+    }
+
+    emits('createdRecord', _row.value.row)
+  } catch (e: any) {
+    if (isNew.value) {
+      message.error(`Add row failed: ${await extractSdkResponseErrorMsg(e)}`)
+    } else {
+      message.error(`${t('msg.error.rowUpdateFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
     }
   }
-
-  if (isNew.value) {
-    await _save(rowState.value, undefined, {
-      kanbanClbk,
-    })
-  } else {
-    await _save(undefined, undefined, {
-      kanbanClbk,
-    })
-    _loadRow()
-  }
-
-  if (!props.skipReload) {
-    reloadTrigger?.trigger()
-    reloadViewDataTrigger?.trigger()
-  }
-
-  isUnsavedFormExist.value = false
-
-  if (props.closeAfterSave) {
-    isExpanded.value = false
-  }
-
-  emits('createdRecord', _row.value.row)
 
   isSaving.value = false
 }
@@ -387,15 +395,23 @@ useActiveKeyupListener(
 
       e.stopPropagation()
 
-      if (isNew.value) {
-        await _save(rowState.value)
-        reloadHook?.trigger(null)
-      } else {
-        await save()
-        reloadHook?.trigger(null)
-      }
-      if (!saveRowAndStay.value) {
-        onClose()
+      try {
+        if (isNew.value) {
+          await _save(rowState.value)
+          reloadHook?.trigger(null)
+        } else {
+          await save()
+          reloadHook?.trigger(null)
+        }
+        if (!saveRowAndStay.value) {
+          onClose()
+        }
+      } catch (e: any) {
+        if (isNew.value) {
+          message.error(`Add row failed: ${await extractSdkResponseErrorMsg(e)}`)
+        } else {
+          message.error(`${t('msg.error.rowUpdateFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
+        }
       }
       // on alt + n create new record
     } else if (e.code === 'KeyN') {
@@ -422,9 +438,13 @@ useActiveKeyupListener(
           okText: t('general.save'),
           cancelText: t('labels.discard'),
           onOk: async () => {
-            await _save(rowState.value)
-            reloadHook?.trigger(null)
-            addNewRow()
+            try {
+              await _save(rowState.value)
+              reloadHook?.trigger(null)
+              addNewRow()
+            } catch (e: any) {
+              message.error(`${t('msg.error.rowUpdateFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
+            }
           },
           onCancel: () => {
             addNewRow()

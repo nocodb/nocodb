@@ -130,7 +130,6 @@ declare module 'vue' {
     MdiDotsHorizontal: typeof import('~icons/mdi/dots-horizontal')['default']
     MdiDotsVertical: typeof import('~icons/mdi/dots-vertical')['default']
     MdiEye: typeof import('~icons/mdi/eye')['default']
-    MdiFileDocumentMultipleOutline: typeof import('~icons/mdi/file-document-multiple-outline')['default']
     MdiFileDocumentOutline: typeof import('~icons/mdi/file-document-outline')['default']
     MdiFileOutline: typeof import('~icons/mdi/file-outline')['default']
     MdiFlag: typeof import('~icons/mdi/flag')['default']

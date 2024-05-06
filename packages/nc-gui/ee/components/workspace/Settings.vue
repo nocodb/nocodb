@@ -18,6 +18,7 @@ const isCancelButtonVisible = ref(false)
 const isDeleteModalVisible = ref(false)
 // if activeworkspace.title is used it will show new workspace name in loading state
 const toBeDeletedWorkspaceTitle = ref('')
+const isAdminPanel = inject(IsAdminPanelInj, ref(false))
 
 const form = reactive({
   title: '',
@@ -47,7 +48,7 @@ const onDelete = async () => {
     // We only remove the delete workspace from the list after the api call is successful
     workspaces.value.delete(currentWorkspace.value.id)
     if (!shouldSignOut) {
-      if (props.workspaceId) {
+      if (isAdminPanel.value) {
         // Navigate BackPage
         // #TODO: @Darkphoenix2704
       } else {

@@ -54,8 +54,15 @@ export async function validateCondition(
     const column = await filter.getColumn();
     const field = column.title;
     let val = data[field];
-
-    if (
+    if (filter.is_group) {
+      res = await validateCondition(
+        filter.children || (await filter.getChildren()),
+        data,
+        {
+          client,
+        },
+      );
+    } else if (
       [
         UITypes.Date,
         UITypes.DateTime,

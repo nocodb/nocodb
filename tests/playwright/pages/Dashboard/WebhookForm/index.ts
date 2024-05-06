@@ -70,7 +70,7 @@ export class WebhookFormPage extends BasePage {
     await this.get().locator(`.nc-check-box-hook-condition`).click();
     const modal = this.get().locator(`.menu-filter-dropdown`).last();
 
-    await modal.locator(`button:has-text("Add Filter")`).click();
+    await modal.locator(`button:has-text("Add Filter")`).first().click();
 
     await modal.locator('.nc-filter-field-select').waitFor({ state: 'visible', timeout: 4000 });
     await modal.locator('.nc-filter-field-select').click();

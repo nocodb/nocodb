@@ -261,8 +261,8 @@ const onClickAudit = () => {
                   {{ log.description.substring(log.description.indexOf(':') + 1) }}
                 </div>
                 <div v-if="log.id === editLog?.id" class="flex justify-end gap-1">
-                  <NcButton type="secondary" size="sm" @click="onCancel"> Cancel </NcButton>
-                  <NcButton v-e="['a:row-expand:comment:save']" size="sm" @click="onEditComment"> Save </NcButton>
+                  <NcButton size="small" type="secondary" @click="onCancel"> Cancel </NcButton>
+                  <NcButton v-e="['a:row-expand:comment:save']" size="small" @click="onEditComment"> Save </NcButton>
                 </div>
               </div>
             </div>

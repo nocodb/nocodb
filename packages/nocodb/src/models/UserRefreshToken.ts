@@ -1,4 +1,3 @@
-import process from 'process';
 import dayjs from 'dayjs';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
@@ -69,6 +68,7 @@ export default class UserRefreshToken {
     return insertObj;
   }
 
+  // todo: caching
   static async updateOldToken(
     oldToken: string,
     newToken: string,

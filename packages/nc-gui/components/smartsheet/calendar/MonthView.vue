@@ -64,15 +64,22 @@ const fields = inject(FieldsInj, ref())
 
 const { fields: _fields } = useViewColumnsOrThrow()
 
-const getFieldStyle = (field: ColumnType | undefined) => {
-  if (!field) return { underline: false, bold: false, italic: false }
-  const fi = _fields.value?.find((f) => f.title === field.title)
+const fieldStyles = computed(() => {
+  if (!_fields.value) return new Map()
+  return new Map(
+    _fields.value.map((field) => [
+      field.fk_column_id,
+      {
+        underline: field.underline,
+        bold: field.bold,
+        italic: field.italic,
+      },
+    ]),
+  )
+})
 
-  return {
-    underline: fi?.underline,
-    bold: fi?.bold,
-    italic: fi?.italic,
-  }
+const getFieldStyle = (field: ColumnType) => {
+  return fieldStyles.value.get(field.id)
 }
 
 const dates = computed(() => {
@@ -343,7 +350,7 @@ const recordsToDisplay = computed<{
   }
 })
 
-const calculateNewRow = (event: MouseEvent, updateSideBar?: boolean) => {
+const calculateNewRow = (event: MouseEvent, updateSideBar?: boolean, skipChangeCheck?: boolean) => {
   const { top, height, width, left } = calendarGridContainer.value.getBoundingClientRect()
 
   const percentY = (event.clientY - top - window.scrollY) / height
@@ -356,7 +363,7 @@ const calculateNewRow = (event: MouseEvent, updateSideBar?: boolean) => {
   const day = Math.floor(percentX * 7)
 
   const newStartDate = dates.value[week] ? dayjs(dates.value[week][day]) : null
-  if (!newStartDate) return
+  if (!newStartDate) return { newRow: null, updateProperty: [] }
 
   let endDate
 
@@ -364,7 +371,7 @@ const calculateNewRow = (event: MouseEvent, updateSideBar?: boolean) => {
     ...dragRecord.value,
     row: {
       ...dragRecord.value?.row,
-      [fromCol!.title!]: dayjs(newStartDate).format('YYYY-MM-DD HH:mm:ssZ'),
+      [fromCol!.title!]: dayjs(newStartDate).utc().format('YYYY-MM-DD HH:mm:ssZ'),
     },
   }
 
@@ -384,8 +391,13 @@ const calculateNewRow = (event: MouseEvent, updateSideBar?: boolean) => {
       endDate = newStartDate.clone()
     }
 
-    newRow.row[toCol!.title!] = dayjs(endDate).format('YYYY-MM-DD HH:mm:ssZ')
+    newRow.row[toCol!.title!] = dayjs(endDate).utc().format('YYYY-MM-DD HH:mm:ssZ')
     updateProperty.push(toCol!.title!)
+  }
+
+  // If from and to columns of the dragRecord and the newRow are the same, we don't manipulate the formattedRecords and formattedSideBarData. This removes unwanted computation
+  if (dragRecord.value.row[fromCol.title!] === newRow.row[fromCol.title!] && !skipChangeCheck) {
+    return { newRow: null, updatedProperty: [] }
   }
 
   if (!newRow) return { newRow: null, updateProperty: [] }
@@ -515,7 +527,7 @@ const stopDrag = (event: MouseEvent) => {
   event.preventDefault()
   dragElement.value!.style.boxShadow = 'none'
 
-  const { newRow, updateProperty } = calculateNewRow(event, false)
+  const { newRow, updateProperty } = calculateNewRow(event, false, true)
 
   const allRecords = document.querySelectorAll('.draggable-record')
   allRecords.forEach((el) => {
@@ -586,13 +598,15 @@ const dropEvent = (event: DragEvent) => {
   if (data) {
     const {
       record,
+      isWithoutDates,
     }: {
       record: Row
+      isWithoutDates: boolean
     } = JSON.parse(data)
 
     dragRecord.value = record
 
-    const { newRow, updateProperty } = calculateNewRow(event, true)
+    const { newRow, updateProperty } = calculateNewRow(event, isWithoutDates)
 
     if (dragElement.value) {
       dragElement.value.style.boxShadow = 'none'
@@ -643,7 +657,7 @@ const addRecord = (date: dayjs.Dayjs) => {
       <div
         v-for="(day, index) in days"
         :key="index"
-        class="text-center bg-gray-50 py-1 text-sm border-b-1 border-r-1 last:border-r-0 border-gray-100 font-semibold text-gray-500"
+        class="text-center bg-gray-50 py-1 text-sm border-b-1 border-r-1 last:border-r-0 border-gray-200 font-semibold text-gray-500"
       >
         {{ day }}
       </div>
@@ -668,7 +682,7 @@ const addRecord = (date: dayjs.Dayjs) => {
             '!text-gray-400': !isDayInPagedMonth(day),
             '!bg-gray-50': day.get('day') === 0 || day.get('day') === 6,
           }"
-          class="text-right relative group last:border-r-0 text-sm h-full border-r-1 border-b-1 border-gray-100 font-medium hover:bg-gray-50 text-gray-800 bg-white"
+          class="text-right relative group last:border-r-0 text-sm h-full border-r-1 border-b-1 border-gray-200 font-medium hover:bg-gray-50 text-gray-800 bg-white"
           data-testid="nc-calendar-month-day"
           @click="selectDate(day)"
           @dblclick="addRecord(day)"
@@ -744,9 +758,9 @@ const addRecord = (date: dayjs.Dayjs) => {
             </NcButton>
             <span
               :class="{
-                'bg-brand-50 text-brand-500': day.isSame(dayjs(), 'date'),
+                'bg-brand-50 text-brand-500 !font-bold': day.isSame(dayjs(), 'date'),
               }"
-              class="px-1.3 py-1 text-xs rounded-lg"
+              class="px-1.3 py-1 text-sm font-medium rounded-lg"
             >
               {{ day.format('DD') }}
             </span>
@@ -795,10 +809,16 @@ const addRecord = (date: dayjs.Dayjs) => {
               @resize-start="onResizeStart"
               @dblclick.stop="emit('expandRecord', record)"
             >
+              <template #time>
+                <span class="text-xs font-medium text-gray-400">
+                  {{ dayjs(record.row[record.rowMeta.range?.fk_from_col!.title!]).format('h:mma').slice(0, -1) }}
+                </span>
+              </template>
               <template v-for="(field, id) in fields" :key="id">
-                <LazySmartsheetCalendarCell
+                <LazySmartsheetPlainCell
                   v-if="!isRowEmpty(record, field!)"
                   v-model="record.row[field!.title!]"
+                  class="text-xs"
                   :bold="getFieldStyle(field).bold"
                   :column="field"
                   :italic="getFieldStyle(field).italic"

@@ -55,6 +55,10 @@ const formState = ref({
 const creating = ref(false)
 
 const createProject = async () => {
+  if (formState.value.title) {
+    formState.value.title = formState.value.title.trim()
+  }
+
   creating.value = true
   try {
     const base = await _createProject({

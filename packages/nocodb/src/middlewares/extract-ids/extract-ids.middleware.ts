@@ -14,6 +14,7 @@ import {
   Audit,
   Base,
   Column,
+  Extension,
   Filter,
   FormViewColumn,
   GalleryViewColumn,
@@ -126,6 +127,9 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     } else if (params.syncId) {
       const syncSource = await SyncSource.get(req.params.syncId);
       req.ncBaseId = syncSource.base_id;
+    } else if (params.extensionId) {
+      const extension = await Extension.get(req.params.extensionId);
+      req.ncBaseId = extension.base_id;
     }
     // extract fk_model_id from query params only if it's audit post endpoint
     else if (
@@ -226,6 +230,7 @@ export class AclMiddleware implements NestInterceptor {
       'blockApiTokenAccess',
       context.getHandler(),
     );
+
     const scope = this.reflector.get<string>('scope', context.getHandler());
 
     const req = context.switchToHttp().getRequest();
@@ -233,7 +238,6 @@ export class AclMiddleware implements NestInterceptor {
     if (!req.user?.isAuthorized) {
       NcError.unauthorized('Invalid token');
     }
-
     const userScopeRole =
       req.user.roles?.[OrgUserRoles.SUPER_ADMIN] === true
         ? OrgUserRoles.SUPER_ADMIN

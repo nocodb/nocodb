@@ -20,7 +20,7 @@ import {
   ref,
   useSmartsheetStoreOrThrow,
   useViewData,
-  useViewGroupBy,
+  useViewGroupByOrThrow,
 } from '#imports'
 import type { Row } from '#imports'
 
@@ -166,14 +166,14 @@ const toggleOptimisedQuery = () => {
 }
 
 const { rootGroup, groupBy, isGroupBy, loadGroups, loadGroupData, loadGroupPage, groupWrapperChangePage, redistributeRows } =
-  useViewGroupBy(view, xWhere)
+  useViewGroupByOrThrow()
 
 const coreWrapperRef = ref<HTMLElement>()
 
 const viewWidth = ref(0)
 
 eventBus.on((event) => {
-  if (event === SmartsheetStoreEvents.GROUP_BY_RELOAD) {
+  if (event === SmartsheetStoreEvents.GROUP_BY_RELOAD || event === SmartsheetStoreEvents.DATA_RELOAD) {
     reloadViewDataHook?.trigger()
   }
 })

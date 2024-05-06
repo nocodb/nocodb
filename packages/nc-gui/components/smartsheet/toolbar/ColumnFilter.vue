@@ -27,8 +27,8 @@ interface Props {
   showLoading?: boolean
   modelValue?: undefined | Filter[]
   webHook?: boolean
+  draftFilter?: Partial<FilterType>
 }
-
 const props = withDefaults(defineProps<Props>(), {
   nestedLevel: 0,
   autoSave: true,
@@ -38,7 +38,11 @@ const props = withDefaults(defineProps<Props>(), {
   webHook: false,
 })
 
-const emit = defineEmits(['update:filtersLength'])
+const emit = defineEmits(['update:filtersLength', 'update:draftFilter'])
+
+const excludedFilterColUidt = [UITypes.QrCode, UITypes.Barcode]
+
+const draftFilter = useVModel(props, 'draftFilter', emit)
 
 const { nestedLevel, parentId, autoSave, hookId, modelValue, showLoading, webHook } = toRefs(props)
 
@@ -94,7 +98,11 @@ const localNestedFilters = ref()
 const wrapperDomRef = ref<HTMLElement>()
 const addFiltersRowDomRef = ref<HTMLElement>()
 
+const isMounted = ref(false)
+
 const columns = computed(() => meta.value?.columns)
+
+const fieldsToFilter = computed(() => (columns.value || []).filter((c) => !excludedFilterColUidt.includes(c.uidt as UITypes)))
 
 const getColumn = (filter: Filter) => {
   // extract looked up column if available
@@ -279,8 +287,12 @@ const scrollDownIfNeeded = () => {
   }
 }
 
-const addFilter = async () => {
-  await _addFilter()
+const addFilter = async (filter?: Partial<FilterType>) => {
+  await _addFilter(false, filter)
+
+  if (filter) {
+    selectFilterField(filters.value[filters.value.length - 1], filters.value.length - 1)
+  }
 
   if (!nested.value) {
     // if nested, scroll to bottom
@@ -316,12 +328,9 @@ const showFilterInput = (filter: Filter) => {
   }
 }
 
-onMounted(() => {
-  loadFilters(hookId?.value, webHook.value)
-})
-
 onMounted(async () => {
-  await loadBtLookupTypes()
+  await Promise.all([loadFilters(hookId?.value, webHook.value), loadBtLookupTypes()])
+  isMounted.value = true
 })
 
 onBeforeUnmount(() => {
@@ -331,21 +340,70 @@ onBeforeUnmount(() => {
 function isDateType(uidt: UITypes) {
   return [UITypes.Date, UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(uidt)
 }
+
+watch(
+  [draftFilter, isMounted],
+  async () => {
+    if (!isMounted.value || !draftFilter.value?.fk_column_id) return
+
+    await addFilter(draftFilter.value)
+
+    await nextTick()
+
+    scrollToBottom()
+
+    const filterWrapper = document.querySelectorAll(`.nc-filter-wrapper-${draftFilter.value.fk_column_id}`)
+
+    draftFilter.value = {}
+    if (!filterWrapper.length) return
+
+    const filterInputElement =
+      filterWrapper[filterWrapper.length - 1]?.querySelector<HTMLInputElement>('.nc-filter-value-select input')
+    if (filterInputElement) {
+      setTimeout(() => {
+        filterInputElement?.focus?.()
+        filterInputElement?.click?.()
+      }, 100)
+    }
+  },
+  {
+    deep: true,
+    immediate: true,
+  },
+)
+
+const isLogicalOpChangeAllowed = computed(() => {
+  return new Set(filters.value.slice(1).map((filter) => filter.logical_op)).size > 1
+})
+
+// when logical operation is updated, update all the siblings with the same logical operation only if it's in locked state
+const onLogicalOpUpdate = async (filter: Filter, index: number) => {
+  if (index === 1 && filters.value.slice(2).every((siblingFilter) => siblingFilter.logical_op !== filter.logical_op)) {
+    await Promise.all(
+      filters.value.slice(2).map(async (siblingFilter, i) => {
+        siblingFilter.logical_op = filter.logical_op
+        await saveOrUpdate(siblingFilter, i + 2, false, false, true)
+      }),
+    )
+  }
+  await filterUpdateCondition(filter, index)
+}
 </script>
 
 <template>
   <div
     class="menu-filter-dropdown"
     :class="{
-      'max-h-[max(80vh,500px)] min-w-112 py-6 pl-6': !nested,
+      'max-h-[max(80vh,500px)] min-w-112 py-2 pl-4': !nested,
       'w-full ': nested,
+      'py-4': !filters.length,
     }"
   >
     <div
       v-if="filters && filters.length"
       ref="wrapperDomRef"
-      class="flex flex-col gap-y-3 nc-filter-grid pb-2 w-full"
-      :class="{ 'max-h-420px nc-scrollbar-md  pr-3.5 nc-filter-top-wrapper': !nested }"
+      class="flex flex-col gap-y-3 nc-filter-grid w-full"
+      :class="{ 'max-h-420px nc-scrollbar-thin nc-filter-top-wrapper pr-4 my-2 py-1': !nested }"
       @click.stop
     >
       <template v-for="(filter, i) in filters" :key="i">
@@ -362,6 +420,7 @@ function isDateType(uidt: UITypes) {
                     class="min-w-20 capitalize"
                     placeholder="Group op"
                     dropdown-class-name="nc-dropdown-filter-logical-op-group"
+                    :disabled="i > 1 && !isLogicalOpChangeAllowed"
                     @click.stop
                     @change="saveOrUpdate(filter, i)"
                   >
@@ -404,7 +463,7 @@ function isDateType(uidt: UITypes) {
               </div>
             </div>
           </template>
-          <div v-else class="flex flex-row gap-x-2 w-full">
+          <div v-else class="flex flex-row gap-x-2 w-full" :class="`nc-filter-wrapper-${filter.fk_column_id}`">
             <span v-if="!i" class="flex items-center ml-2 mr-7.35">{{ $t('labels.where') }}</span>
 
             <NcSelect
@@ -414,9 +473,9 @@ function isDateType(uidt: UITypes) {
               :dropdown-match-select-width="false"
               class="h-full !min-w-20 !max-w-20 capitalize"
               hide-details
-              :disabled="filter.readOnly"
+              :disabled="filter.readOnly || (i > 1 && !isLogicalOpChangeAllowed)"
               dropdown-class-name="nc-dropdown-filter-logical-op"
-              @change="filterUpdateCondition(filter, i)"
+              @change="onLogicalOpUpdate(filter, i)"
               @click.stop
             >
               <a-select-option v-for="op of logicalOps" :key="op.value" :value="op.value">
@@ -435,7 +494,7 @@ function isDateType(uidt: UITypes) {
               :key="`${i}_6`"
               v-model="filter.fk_column_id"
               class="nc-filter-field-select min-w-32 max-w-32 max-h-8"
-              :columns="columns"
+              :columns="fieldsToFilter"
               :disabled="filter.readOnly"
               @click.stop
               @change="selectFilterField(filter, i)"
@@ -544,7 +603,14 @@ function isDateType(uidt: UITypes) {
     </div>
 
     <template v-if="isEeUI && !isPublic">
-      <div v-if="filtersCount < getPlanLimit(PlanLimitTypes.FILTER_LIMIT)" ref="addFiltersRowDomRef" class="flex gap-2">
+      <div
+        v-if="filtersCount < getPlanLimit(PlanLimitTypes.FILTER_LIMIT)"
+        ref="addFiltersRowDomRef"
+        class="flex gap-2"
+        :class="{
+          'mt-1 mb-2': filters.length,
+        }"
+      >
         <NcButton size="small" type="text" class="!text-brand-500" @click.stop="addFilter()">
           <div class="flex items-center gap-1">
             <component :is="iconMap.plus" />
@@ -553,7 +619,7 @@ function isDateType(uidt: UITypes) {
           </div>
         </NcButton>
 
-        <NcButton v-if="!webHook && nestedLevel < 5" type="text" size="small" @click.stop="addFilterGroup()">
+        <NcButton v-if="nestedLevel < 5" type="text" size="small" @click.stop="addFilterGroup()">
           <div class="flex items-center gap-1">
             <!-- Add Filter Group -->
             <component :is="iconMap.plus" />
@@ -563,7 +629,13 @@ function isDateType(uidt: UITypes) {
       </div>
     </template>
     <template v-else>
-      <div ref="addFiltersRowDomRef" class="flex gap-2">
+      <div
+        ref="addFiltersRowDomRef"
+        class="flex gap-2"
+        :class="{
+          'mt-1 mb-2': filters.length,
+        }"
+      >
         <NcButton size="small" type="text" class="!text-brand-500" @click.stop="addFilter()">
           <div class="flex items-center gap-1">
             <component :is="iconMap.plus" />

@@ -1,7 +1,6 @@
 import useVuelidate from '@vuelidate/core'
-import { helpers, minLength, required } from '@vuelidate/validators'
+import { helpers, minLength, required, sameAs } from '@vuelidate/validators'
 import dayjs from 'dayjs'
-import type { Ref } from 'vue'
 import type {
   BoolType,
   ColumnType,
@@ -14,6 +13,7 @@ import type {
 } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import { isString } from '@vue/shared'
+import { useTitle } from '@vueuse/core'
 import { filterNullOrUndefinedObjectProperties } from '~/helpers/parsers/parserHelpers'
 import {
   NcErrorType,
@@ -88,8 +88,11 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   const preFilledformState = ref<Record<string, any>>({})
 
+  const preFilledDefaultValueformState = ref<Record<string, any>>({})
+
+  useProvideSmartsheetLtarHelpers(meta)
+
   const { state: additionalState } = useProvideSmartsheetRowStore(
-    meta as Ref<TableType>,
     ref({
       row: formState,
       rowMeta: { new: true },
@@ -97,8 +100,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     }),
   )
 
-  const fieldRequired = (fieldName = 'This field') =>
-    helpers.withMessage(t('msg.error.fieldRequired', { value: fieldName }), required)
+  const fieldRequired = (fieldName = 'This field', isBoolean = false) =>
+    helpers.withMessage(t('msg.error.fieldRequired', { value: fieldName }), isBoolean ? sameAs(true) : required)
 
   const formColumns = computed(() =>
     columns.value
@@ -144,7 +147,10 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
             c?.cdf &&
             !/^\w+\(\)|CURRENT_TIMESTAMP$/.test(c.cdf)
           ) {
-            formState.value[c.title] = typeof c.cdf === 'string' ? c.cdf.replace(/^'|'$/g, '') : c.cdf
+            const defaultValue = typeof c.cdf === 'string' ? c.cdf.replace(/^'|'$/g, '') : c.cdf
+
+            formState.value[c.title] = defaultValue
+            preFilledDefaultValueformState.value[c.title] = defaultValue
           }
 
           return {
@@ -211,7 +217,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         ((column.rqd && !column.cdf) || (column.pk && !(column.ai || column.cdf)) || column.required)
       ) {
         obj.localState[column.title!] = {
-          required: fieldRequired(),
+          required: fieldRequired(undefined, !!(column.uidt === UITypes.Checkbox && column.required)),
         }
       } else if (
         isLinksOrLTAR(column) &&
@@ -317,9 +323,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
     additionalState.value = {}
     formState.value = {
-      ...([PreFilledMode.Locked, PreFilledMode.Hidden].includes(sharedViewMeta.value.preFilledMode)
-        ? preFilledformState.value
-        : {}),
+      ...preFilledDefaultValueformState.value,
+      ...(sharedViewMeta.value.preFillEnabled ? preFilledformState.value : {}),
     }
     v$.value?.$reset()
   }
@@ -343,7 +348,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         if (preFillValue !== undefined) {
           // Prefill form state
           formState.value[c.title] = preFillValue
-          // preFilledformState will be used in clear for to fill the filled data
+          // preFilledformState will be used in clear form to fill the prefilled data
           preFilledformState.value[c.title] = preFillValue
 
           // Update column
@@ -536,15 +541,23 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       if (sharedFormView.value?.show_blank_form) {
         clearInterval(intvl)
       }
-      additionalState.value = {}
-      formState.value = {}
-      v$.value?.$reset()
+      clearForm()
     }
   })
 
   watch(password, (next, prev) => {
     if (next !== prev && passwordError.value) passwordError.value = null
   })
+
+  watch(
+    () => sharedFormView.value?.heading,
+    () => {
+      useTitle(`${sharedFormView.value?.heading ?? 'NocoDB'}`)
+    },
+    {
+      flush: 'post',
+    },
+  )
 
   return {
     sharedView,

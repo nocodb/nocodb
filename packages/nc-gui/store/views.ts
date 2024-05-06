@@ -1,7 +1,9 @@
 import type { FilterType, SortType, ViewType, ViewTypes } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
+import { useTitle } from '@vueuse/core'
 import type { ViewPageType } from '~/lib'
 import { navigateToBlankTargetOpenOption, useMagicKeys } from '#imports'
+import { getFormattedViewTabTitle } from '~/helpers/parsers/parserHelpers'
 
 export const useViewsStore = defineStore('viewsStore', () => {
   const { $api } = useNuxtApp()
@@ -23,6 +25,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
   const route = router.currentRoute
 
   const bases = useBases()
+  const { openedProject } = storeToRefs(bases)
 
   const tablesStore = useTablesStore()
 
@@ -121,6 +124,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
 
   const preFillFormSearchParams = ref('')
 
+  const refreshViewTabTitle = createEventHook<void>()
+
   const loadViews = async ({
     tableId,
     ignoreLoading,
@@ -129,8 +134,14 @@ export const useViewsStore = defineStore('viewsStore', () => {
     tableId = tableId ?? tablesStore.activeTableId
 
     if (tableId) {
-      if (!force && viewsByTable.value.get(tableId)) return
+      if (!force && viewsByTable.value.get(tableId)) {
+        viewsByTable.value.set(
+          tableId,
+          viewsByTable.value.get(tableId).sort((a, b) => a.order! - b.order!),
+        )
 
+        return
+      }
       if (!ignoreLoading) isViewsLoading.value = true
 
       const response = (await $api.dbView.list(tableId)).list as ViewType[]
@@ -343,6 +354,42 @@ export const useViewsStore = defineStore('viewsStore', () => {
     ]
   })
 
+  const updateTabTitle = () => {
+    if (!activeView.value || !activeView.value.base_id) {
+      if (openedProject.value?.title) {
+        useTitle(openedProject.value?.title)
+      }
+      return
+    }
+
+    const tableName = tablesStore.baseTables
+      .get(activeView.value.base_id)
+      ?.find((t) => t.id === activeView.value.fk_model_id)?.title
+
+    const baseName = bases.basesList.find((p) => p.id === activeView.value.base_id)?.title
+
+    useTitle(
+      getFormattedViewTabTitle({
+        viewName: activeView.value.title,
+        tableName: tableName || '',
+        baseName: baseName || '',
+        isDefaultView: !!activeView.value.is_default,
+        isSharedView: !!sharedView.value?.id,
+      }),
+    )
+  }
+
+  refreshViewTabTitle.on(() => {
+    updateTabTitle()
+  })
+
+  watch(
+    () => [activeView.value?.title, activeView.value?.id],
+    () => {
+      refreshViewTabTitle.trigger()
+    },
+  )
+
   return {
     isLockedView,
     isViewsLoading,
@@ -365,6 +412,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     activeNestedFilters,
     isActiveViewLocked,
     preFillFormSearchParams,
+    refreshViewTabTitle: refreshViewTabTitle.trigger,
   }
 })
 

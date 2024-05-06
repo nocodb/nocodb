@@ -19,6 +19,7 @@ import {
   IsPublicInj,
   MetaInj,
   ReloadRowDataHookInj,
+  computed,
   computedInject,
   createEventHook,
   iconMap,
@@ -50,6 +51,7 @@ interface Props {
   lastRow?: boolean
   closeAfterSave?: boolean
   newRecordHeader?: string
+  skipReload?: boolean
 }
 
 const props = defineProps<Props>()
@@ -101,7 +103,7 @@ const expandedFormScrollWrapper = ref()
 
 const reloadTrigger = inject(ReloadRowDataHookInj, createEventHook())
 
-const reloadViewDataTrigger = inject(ReloadViewDataHookInj)
+const reloadViewDataTrigger = inject(ReloadViewDataHookInj, createEventHook())
 
 const { addOrEditStackRow } = useKanbanViewStoreOrThrow()
 
@@ -116,6 +118,8 @@ const fields = computedInject(FieldsInj, (_fields) => {
   }
   return _fields?.value ?? []
 })
+
+const displayField = computed(() => meta.value?.columns?.find((c) => c.pv && fields.value.includes(c)) ?? null)
 
 const hiddenFields = computed(() => {
   // todo: figure out when meta.value is undefined
@@ -133,6 +137,8 @@ const isKanban = inject(IsKanbanInj, ref(false))
 provide(MetaInj, meta)
 
 const isLoading = ref(true)
+
+const isSaving = ref(false)
 
 const {
   commentsDrawer,
@@ -153,6 +159,8 @@ const {
 const duplicatingRowInProgress = ref(false)
 
 useProvideSmartsheetStore(ref({}) as Ref<ViewType>, meta)
+
+useProvideSmartsheetLtarHelpers(meta)
 
 watch(
   state,
@@ -202,26 +210,31 @@ const onDuplicateRow = () => {
 }
 
 const save = async () => {
+  isSaving.value = true
+
   let kanbanClbk
   if (activeView.value?.type === ViewTypes.KANBAN) {
     kanbanClbk = (row: any, isNewRow: boolean) => {
       addOrEditStackRow(row, isNewRow)
     }
   }
+
   if (isNew.value) {
     await _save(rowState.value, undefined, {
       kanbanClbk,
     })
-    reloadTrigger?.trigger()
-    reloadViewDataTrigger?.trigger()
   } else {
     await _save(undefined, undefined, {
       kanbanClbk,
     })
     _loadRow()
+  }
+
+  if (!props.skipReload) {
     reloadTrigger?.trigger()
     reloadViewDataTrigger?.trigger()
   }
+
   isUnsavedFormExist.value = false
 
   if (props.closeAfterSave) {
@@ -229,6 +242,8 @@ const save = async () => {
   }
 
   emits('createdRecord', _row.value.row)
+
+  isSaving.value = false
 }
 
 const isPreventChangeModalOpen = ref(false)
@@ -433,7 +448,9 @@ const onConfirmDeleteRowClick = async () => {
   showDeleteRowModal.value = false
   await deleteRowById(primaryKey.value)
   message.success(t('msg.rowDeleted'))
-  reloadTrigger.trigger()
+  await reloadViewDataTrigger.trigger({
+    shouldShowLoading: false,
+  })
   onClose()
   showDeleteRowModal.value = false
 }
@@ -493,8 +510,7 @@ watch([expandedFormScrollWrapper, isLoading], () => {
   const expandedFormScrollWrapperEl = expandedFormScrollWrapper.value
 
   if (expandedFormScrollWrapperEl && !isLoading.value) {
-    const height = expandedFormScrollWrapperEl.scrollHeight
-    expandedFormScrollWrapperEl.scrollTop = height
+    expandedFormScrollWrapperEl.scrollTop = expandedFormScrollWrapperEl.scrollHeight
 
     setTimeout(() => {
       expandedFormScrollWrapperEl.scrollTop = 0
@@ -555,8 +571,8 @@ export default {
               {{ props.newRecordHeader ?? $t('activity.newRecord') }}
             </div>
             <div v-else-if="displayValue && !row.rowMeta?.new" class="flex items-center font-bold text-gray-800 text-xl w-64">
-              <span class="truncate">
-                {{ displayValue }}
+              <span class="truncate !text-xl">
+                <LazySmartsheetPlainCell v-model="displayValue" :column="displayField" />
               </span>
             </div>
           </div>
@@ -865,6 +881,7 @@ export default {
               <NcButton
                 v-e="['c:row-expand:save']"
                 :disabled="changedColumns.size === 0 && !isUnsavedFormExist"
+                :loading="isSaving"
                 class="nc-expand-form-save-btn !xs:(text-base)"
                 data-testid="nc-expanded-form-save"
                 type="primary"
@@ -891,8 +908,8 @@ export default {
     <template #entity-preview>
       <span>
         <div class="flex flex-row items-center py-2.25 px-2.5 bg-gray-50 rounded-lg text-gray-700 mb-4">
-          <div class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1.75 break-keep whitespace-nowrap">
-            {{ displayValue }}
+          <div class="text-ellipsis overflow-hidden select-none w-full pl-1.75 break-keep whitespace-nowrap">
+            <LazySmartsheetPlainCell v-model="displayValue" :column="displayField" />
           </div>
         </div>
       </span>
@@ -911,7 +928,7 @@ export default {
       <div class="flex flex-row justify-end gap-x-2 mt-5">
         <NcButton type="secondary" @click="discardPreventModal">{{ $t('labels.discard') }}</NcButton>
 
-        <NcButton key="submit" type="primary" label="Rename Table" loading-label="Renaming Table" @click="saveChanges">
+        <NcButton key="submit" type="primary" :loading="isSaving" @click="saveChanges">
           {{ $t('tooltip.saveChanges') }}
         </NcButton>
       </div>

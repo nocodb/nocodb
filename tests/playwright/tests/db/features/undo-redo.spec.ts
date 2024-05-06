@@ -144,7 +144,9 @@ test.describe('Undo Redo', () => {
     await verifyRecords([555, 666]);
 
     // Row.Delete
+    await grid.clickRow(10, 'Number');
     await grid.deleteRow(10, 'Number');
+    await grid.clickRow(10, 'Number');
     await grid.deleteRow(10, 'Number');
     await verifyRecords([]);
 
@@ -306,26 +308,26 @@ test.describe('Undo Redo', () => {
 
     const timeOut = 200;
 
-    await verifyRowHeight({ height: '1.8rem' });
+    await verifyRowHeight({ height: '32px' });
 
     // set row height & verify
     await toolbar.clickRowHeight();
     await toolbar.rowHeight.click({ title: 'Tall' });
     await new Promise(resolve => setTimeout(resolve, timeOut));
-    await verifyRowHeight({ height: '7.2rem' });
+    await verifyRowHeight({ height: '90px' });
 
     await toolbar.clickRowHeight();
     await toolbar.rowHeight.click({ title: 'Medium' });
     await new Promise(resolve => setTimeout(resolve, timeOut));
-    await verifyRowHeight({ height: '3.6rem' });
+    await verifyRowHeight({ height: '60px' });
 
     await undo({ page, dashboard });
     await new Promise(resolve => setTimeout(resolve, timeOut));
-    await verifyRowHeight({ height: '7.2rem' });
+    await verifyRowHeight({ height: '90px' });
 
     await undo({ page, dashboard });
     await new Promise(resolve => setTimeout(resolve, timeOut));
-    await verifyRowHeight({ height: '1.8rem' });
+    await verifyRowHeight({ height: '32px' });
   });
 
   test('Column width', async ({ page }) => {

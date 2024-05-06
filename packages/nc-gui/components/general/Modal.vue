@@ -20,8 +20,8 @@ const props = withDefaults(
 
 const emits = defineEmits(['update:visible'])
 
-const { width: propWidth, destroyOnClose } = props
-const { maskClosable, closable, keyboard } = toRefs(props)
+const { width: propWidth } = props
+const { maskClosable, closable, keyboard, destroyOnClose } = toRefs(props)
 
 const width = computed(() => {
   if (propWidth) {

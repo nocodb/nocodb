@@ -70,7 +70,7 @@ export class WebhookFormPage extends BasePage {
     await this.get().locator(`.nc-check-box-hook-condition`).click();
     const modal = this.get().locator(`.menu-filter-dropdown`).last();
 
-    await modal.locator(`button:has-text("Add Filter")`).click();
+    await modal.locator(`button:has-text("Add Filter")`).first().click();
 
     await modal.locator('.nc-filter-field-select').waitFor({ state: 'visible', timeout: 4000 });
     await modal.locator('.nc-filter-field-select').click();
@@ -150,11 +150,11 @@ export class WebhookFormPage extends BasePage {
     await this.get().locator(`.ant-tabs-tab-btn:has-text("Headers")`).click();
     await this.rootPage.waitForTimeout(500);
 
-    await this.get().locator('.nc-input-hook-header-key').click();
+    await this.get().locator('.nc-input-hook-header-key input').click();
     await this.rootPage.waitForTimeout(500);
 
     // kludge, as the dropdown is not visible even after scroll into view
-    await this.rootPage.locator('.nc-input-hook-header-key').pressSequentially(key);
+    await this.rootPage.locator('.nc-input-hook-header-key input').pressSequentially(key);
     await this.rootPage
       .locator('.ant-select-dropdown:visible')
       .locator(`.ant-select-item:has-text("${key}")`)

@@ -9,7 +9,7 @@ import { useGlobal } from '#imports'
  * @param {string} roleType - The type of role for which user sorts are managed ('Workspace', 'Org', or 'Project').
  * @returns {object} An object containing reactive values and functions related to user sorts.
  */
-export function useUserSorts(roleType: 'Workspace' | 'Org' | 'Project') {
+export function useUserSorts(roleType: 'Workspace' | 'Org' | 'Project' | 'Organization') {
   const clone = rfdc()
 
   const { user } = useGlobal()
@@ -110,6 +110,8 @@ export function useUserSorts(roleType: 'Workspace' | 'Org' | 'Project') {
       userRoleOrder = Object.values(OrderedOrgRoles)
     } else if (roleType === 'Project') {
       userRoleOrder = Object.values(OrderedProjectRoles)
+    } else if (roleType === 'Organization') {
+      userRoleOrder = Object.values(OrderedOrgRoles)
     }
 
     data = clone(data)
@@ -129,7 +131,8 @@ export function useUserSorts(roleType: 'Workspace' | 'Org' | 'Project') {
             return userRoleOrder.indexOf(roleB) - userRoleOrder.indexOf(roleA)
           }
         }
-        case 'email': {
+        case 'email':
+        case 'title': {
           if (sortsConfig.direction === 'asc') {
             return a[sortsConfig.field]?.localeCompare(b[sortsConfig.field])
           } else {
@@ -173,5 +176,19 @@ export function useUserSorts(roleType: 'Workspace' | 'Org' | 'Project') {
     return true
   }
 
-  return { sorts, sortDirection, loadSorts, saveOrUpdate, handleGetSortedData }
+  const toggleSort = (field: 'email' | 'roles' | 'title' | 'id') => {
+    if (sorts.value.field === field) {
+      saveOrUpdate({
+        field,
+        ...(sortDirection.value[field] === 'asc' ? { direction: 'desc' } : {}),
+      })
+    } else {
+      saveOrUpdate({
+        field,
+        direction: 'asc',
+      })
+    }
+  }
+
+  return { sorts, sortDirection, loadSorts, saveOrUpdate, handleGetSortedData, toggleSort }
 }

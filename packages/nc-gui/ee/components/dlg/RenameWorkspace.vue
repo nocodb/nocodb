@@ -44,6 +44,8 @@ const titleChange = async () => {
 
   if (!valid) return
 
+  if (!currentWorkspace.value?.id) return
+
   if (isTitleUpdating.value) return
 
   isTitleUpdating.value = true

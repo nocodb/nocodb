@@ -714,6 +714,7 @@
     "hasMany": "heeft vele",
     "belongsTo": "behoort tot",
     "manyToMany": "hebben veel tot veel relaties",
+    "oneToOne": "have one to one relation",
     "extraConnectionParameters": "Extra verbindingsparameters",
     "commentsOnly": "Alleen opmerkingen",
     "documentation": "Documentatie",

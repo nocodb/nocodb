@@ -1,5 +1,13 @@
 <script setup lang="ts">
-import type { ColumnReqType, ColumnType, FormulaType, LinkToAnotherRecordType, LookupType, RollupType } from 'nocodb-sdk'
+import {
+  type ColumnReqType,
+  type ColumnType,
+  type FormulaType,
+  isLinksOrLTAR,
+  type LinkToAnotherRecordType,
+  type LookupType,
+  type RollupType
+} from 'nocodb-sdk'
 import { RelationTypes, UITypes, UITypesName, substituteColumnIdWithAliasInFormula } from 'nocodb-sdk'
 import {
   ColumnInj,
@@ -116,6 +124,10 @@ const tooltipMsg = computed(() => {
   return column?.value?.title || ''
 })
 
+const showTooltipAlways = computed(() => {
+  return isLinksOrLTAR(column.value) || isFormula(column.value) || isRollup(column.value) || isLookup(column.value)
+})
+
 const columnOrder = ref<Pick<ColumnReqType, 'column_order'> | null>(null)
 
 const columnTypeName = computed(() => {
@@ -172,7 +184,7 @@ const openDropDown = (e: Event) => {
       </NcTooltip>
       <LazySmartsheetHeaderVirtualCellIcon v-else />
     </template>
-    <NcTooltip placement="bottom" class="truncate name pl-1" show-on-truncate-only>
+    <NcTooltip placement="bottom" class="truncate name pl-1" :show-on-truncate-only="!showTooltipAlways">
       <template #title>
         {{ tooltipMsg }}
       </template>

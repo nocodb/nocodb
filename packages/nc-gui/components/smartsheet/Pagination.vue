@@ -15,6 +15,7 @@ interface Props {
   extraStyle?: string
   showApiTiming?: boolean
   alignLeft?: boolean
+  showSizeChanger?: boolean
 }
 
 const props = defineProps<Props>()
@@ -43,8 +44,6 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 const count = computed(() => vPaginationData.value?.totalRows ?? Infinity)
 
-const size = computed(() => vPaginationData.value?.pageSize ?? 25)
-
 const page = computed({
   get: () => vPaginationData?.value?.page ?? 1,
   set: async (p) => {
@@ -61,11 +60,28 @@ const page = computed({
   },
 })
 
+const size = computed({
+  get: () => vPaginationData.value?.pageSize ?? 25,
+  set: (size: number) => {
+    if (vPaginationData.value) {
+      vPaginationData.value.pageSize = size
+
+      if (vPaginationData.value.totalRows && page.value * size < vPaginationData.value.totalRows) {
+        changePage?.(page.value)
+      } else {
+        changePage?.(1)
+      }
+    }
+  },
+})
+
 const isRTLLanguage = computed(() => isRtlLang(locale.value as keyof typeof Language))
 
 const renderAltOrOptlKey = () => {
   return isMac() ? '⌥' : 'ALT'
 }
+
+const tempPageVal = ref(page.value)
 </script>
 
 <template>
@@ -115,10 +131,18 @@ const renderAltOrOptlKey = () => {
         :next-page-tooltip="`${renderAltOrOptlKey()}+→`"
         :first-page-tooltip="`${renderAltOrOptlKey()}+↓`"
         :last-page-tooltip="`${renderAltOrOptlKey()}+↑`"
+        :show-size-changer="showSizeChanger"
       />
       <div v-else class="mx-auto flex items-center mt-n1" style="max-width: 250px">
         <span class="text-xs" style="white-space: nowrap"> Change page:</span>
-        <a-input :value="page" size="small" class="ml-1 !text-xs" type="number" @keydown.enter="changePage(page)">
+        <a-input
+          v-model:value="tempPageVal"
+          size="small"
+          class="ml-1 !text-xs"
+          type="number"
+          @keydown.enter="changePage(tempPageVal)"
+          @blur="tempPageVal = page"
+        >
           <template #suffix>
             <component :is="iconMap.returnKey" class="mt-1" @click="changePage(page)" />
           </template>

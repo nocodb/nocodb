@@ -157,5 +157,20 @@ export function useGlobalActions(state: State): Actions {
     return undefined
   }
 
-  return { signIn, signOut, refreshToken, loadAppInfo, setIsMobileMode, navigateToProject, getBaseUrl, ncNavigateTo, getMainUrl }
+  const setGridViewPageSize = (pageSize: number) => {
+    state.gridViewPageSize.value = pageSize
+  }
+
+  return {
+    signIn,
+    signOut,
+    refreshToken,
+    loadAppInfo,
+    setIsMobileMode,
+    navigateToProject,
+    getBaseUrl,
+    ncNavigateTo,
+    getMainUrl,
+    setGridViewPageSize,
+  }
 }

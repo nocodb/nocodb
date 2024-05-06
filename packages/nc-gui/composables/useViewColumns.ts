@@ -159,7 +159,12 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       $e('a:fields:show-all')
     }
 
-    const saveOrUpdate = async (field: any, index: number, disableDataReload: boolean = false) => {
+    const saveOrUpdate = async (
+      field: any,
+      index: number,
+      disableDataReload: boolean = false,
+      updateDefaultViewColumnOrder: boolean = false,
+    ) => {
       if (isLocalMode.value && fields.value) {
         fields.value[index] = field
         meta.value!.columns = meta.value!.columns?.map((column: ColumnType) => {
@@ -168,6 +173,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
               ...column,
               ...field,
               id: field.fk_column_id,
+              ...(updateDefaultViewColumnOrder ? { meta: { ...parseProp(column.meta), defaultViewColOrder: field.order } } : {}),
             }
           }
           return column
@@ -220,7 +226,12 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
     const filteredFieldList = computed(() => {
       return (
         fields.value?.filter((field: Field) => {
-          if (metaColumnById?.value?.[field.fk_column_id!]?.pv) return true
+          if (
+            metaColumnById?.value?.[field.fk_column_id!]?.pv &&
+            (!filterQuery.value || field.title.toLowerCase().includes(filterQuery.value.toLowerCase()))
+          ) {
+            return true
+          }
 
           // hide system columns if not enabled
           if (!showSystemFields.value && isSystemColumn(metaColumnById?.value?.[field.fk_column_id!])) {
@@ -304,7 +315,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       { immediate: true },
     )
 
-    const resizingColOldWith = ref('200px')
+    const resizingColOldWith = ref('180px')
 
     const updateGridViewColumn = async (id: string, props: Partial<GridColumnReqType>, undo = false) => {
       if (!undo) {

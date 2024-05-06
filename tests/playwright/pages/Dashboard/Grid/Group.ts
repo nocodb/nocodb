@@ -75,6 +75,11 @@ export class GroupPageObject extends BasePage {
   }) {
     const gridWrapper = this.get({ indexMap });
     await gridWrapper.scrollIntoViewIfNeeded();
+
+    await gridWrapper.locator('.nc-group-table').waitFor({ state: 'visible' });
+
+    await gridWrapper.locator(`.nc-group-table .nc-grid-row:nth-child(${rowIndex + 1})`).waitFor({ state: 'visible' });
+
     await gridWrapper
       .locator(`.nc-group-table .nc-grid-row:nth-child(${rowIndex + 1}) [data-title="${columnHeader}"]`)
       .scrollIntoViewIfNeeded();

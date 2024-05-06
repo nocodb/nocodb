@@ -18,16 +18,23 @@ const fields = inject(FieldsInj, ref())
 
 const { fields: _fields } = useViewColumnsOrThrow()
 
+const fieldStyles = computed(() => {
+  if (!_fields.value) return new Map()
+  return new Map(
+    _fields.value.map((field) => [
+      field.fk_column_id,
+      {
+        underline: field.underline,
+        bold: field.bold,
+        italic: field.italic,
+      },
+    ]),
+  )
+})
+
 const getFieldStyle = (field: ColumnType) => {
-  const fi = _fields.value?.find((f) => f.title === field.title)
-
-  return {
-    underline: fi?.underline,
-    bold: fi?.bold,
-    italic: fi?.italic,
-  }
+  return fieldStyles.value.get(field.id)
 }
-
 // We loop through all the records and calculate the position of each record based on the range
 // We only need to calculate the top, of the record since there is no overlap in the day view of date Field
 const recordsAcrossAllRange = computed<Row[]>(() => {
@@ -221,9 +228,10 @@ const newRecord = () => {
           @click="emit('expandRecord', record)"
         >
           <template v-for="(field, id) in fields" :key="id">
-            <LazySmartsheetCalendarCell
+            <LazySmartsheetPlainCell
               v-if="!isRowEmpty(record, field!)"
               v-model="record.row[field!.title!]"
+              class="text-xs"
               :bold="getFieldStyle(field).bold"
               :column="field"
               :italic="getFieldStyle(field).italic"

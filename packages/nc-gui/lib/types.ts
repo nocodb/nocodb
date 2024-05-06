@@ -64,6 +64,8 @@ interface Row {
     commentCount?: number
     changed?: boolean
     saving?: boolean
+    ltarState?: Record<string, Record<string, any> | Record<string, any>[] | null>
+    fromExpandedForm?: boolean
     // use in datetime picker component
     isUpdatedFromCopyNPaste?: Record<string, boolean>
     // Used in Calendar view
@@ -176,6 +178,7 @@ interface Group {
   children?: Group[]
   rows?: Row[]
   root?: boolean
+  displayValueProp?: string
 }
 
 interface GroupNestedIn {
@@ -201,7 +204,7 @@ interface SidebarTableNode extends TableType {
 }
 
 interface UsersSortType {
-  field?: 'email' | 'roles'
+  field?: 'email' | 'roles' | 'title' | 'id'
   direction?: 'asc' | 'desc'
 }
 

@@ -121,4 +121,34 @@ export default class GalleryViewColumn {
     );
     return views?.map((v) => new GalleryViewColumn(v));
   }
+
+  static async update(
+    columnId: string,
+    body: Partial<GalleryViewColumn>,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const updateObj = extractProps(body, ['order', 'show']);
+
+    // set meta
+    const res = await ncMeta.metaUpdate(
+      null,
+      null,
+      MetaTable.GALLERY_VIEW_COLUMNS,
+      updateObj,
+      columnId,
+    );
+
+    // get existing cache
+    const key = `${CacheScope.GALLERY_VIEW_COLUMN}:${columnId}`;
+    await NocoCache.update(key, updateObj);
+
+    // on view column update, delete any optimised single query cache
+    {
+      const viewCol = await this.get(columnId, ncMeta);
+      const view = await View.get(viewCol.fk_view_id, ncMeta);
+      await View.clearSingleQueryCache(view.fk_model_id, [view]);
+    }
+
+    return res;
+  }
 }

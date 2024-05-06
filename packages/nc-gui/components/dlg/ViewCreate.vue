@@ -162,6 +162,10 @@ async function onSubmit() {
     console.error(e)
   }
 
+  if (form.title) {
+    form.title = form.title.trim()
+  }
+
   if (isValid && form.type) {
     if (!tableId.value) return
 

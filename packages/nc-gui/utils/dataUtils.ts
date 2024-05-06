@@ -5,10 +5,12 @@ import type { Row } from '~/lib'
 
 export const extractPkFromRow = (row: Record<string, any>, columns: ColumnType[]) => {
   if (!row || !columns) return null
-  return columns
-    .filter((c) => c.pk)
-    .map((c) => row?.[c.title as string])
-    .join('___')
+
+  const pkColumns = columns.filter((c) => c.pk)
+
+  if (pkColumns.every((c) => row?.[c.title as string] === null || row?.[c.title as string] === undefined)) return null
+
+  return pkColumns.map((c) => row?.[c.title as string]).join('___')
 }
 
 export const rowPkData = (row: Record<string, any>, columns: ColumnType[]) => {

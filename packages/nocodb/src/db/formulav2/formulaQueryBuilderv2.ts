@@ -833,6 +833,19 @@ async function _formulaQueryBuilder(
             } else {
               return fn(pt.arguments[0], a, prevBinaryOp);
             }
+          } else if (knex.clientType() === 'databricks') {
+            const res = await mapFunctionName({
+              pt,
+              knex,
+              alias,
+              a,
+              aliasToCol: aliasToColumn,
+              fn,
+              colAlias,
+              prevBinaryOp,
+              model,
+            });
+            if (res) return res;
           }
           break;
         case 'URL':
@@ -921,6 +934,19 @@ async function _formulaQueryBuilder(
       if (typeof builder === 'function') {
         return { builder: knex.raw(`??${colAlias}`, builder(pt.fnName)) };
       }
+
+      if (
+        knex.clientType() === 'databricks' &&
+        builder.toQuery().endsWith(')')
+      ) {
+        // limit 1 for subquery
+        return {
+          builder: knex.raw(
+            `${builder.toQuery().replace(/\)$/, '')} LIMIT 1)${colAlias}`,
+          ),
+        };
+      }
+
       return { builder: knex.raw(`??${colAlias}`, [builder || pt.name]) };
     } else if (pt.type === 'BinaryExpression') {
       // treat `&` as shortcut for concat

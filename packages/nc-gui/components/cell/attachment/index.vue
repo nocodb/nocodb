@@ -8,6 +8,7 @@ import {
   DropZoneRef,
   IsExpandedFormOpenInj,
   IsGalleryInj,
+  IsGridInj,
   IsKanbanInj,
   IsSurveyFormInj,
   RowHeightInj,
@@ -51,6 +52,8 @@ const isKanban = inject(IsKanbanInj, ref(false))
 const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 
 const isSurveyForm = inject(IsSurveyFormInj, ref(false))
+
+const isGrid = inject(IsGridInj, ref(false))
 
 const { isSharedForm } = useSmartsheetStoreOrThrow()!
 
@@ -197,7 +200,12 @@ const keydownSpace = (e: KeyboardEvent) => {
   <div
     ref="attachmentCellRef"
     :style="{
-      height: isForm || isExpandedForm ? undefined : `max(${(rowHeight || 1) * 1.8}rem, 41px)`,
+      height:
+        isForm || isExpandedForm
+          ? undefined
+          : `max(${!rowHeight || rowHeight === 1 ? rowHeightInPx['1'] - 10 : rowHeightInPx[`${rowHeight}`] - 18}px, ${
+              isGrid ? '22px' : '32px'
+            })`,
     }"
     class="nc-attachment-cell relative flex color-transition flex items-center w-full xs:(min-h-12 max-h-32)"
     :class="{ 'justify-center': !active, 'justify-between': active, 'px-2': isExpandedForm }"
@@ -236,15 +244,15 @@ const keydownSpace = (e: KeyboardEvent) => {
 
         <div
           v-if="active || !visibleItems.length || (isForm && visibleItems.length)"
-          class="flex items-center gap-1 xs:(w-full min-w-12 h-8 justify-center)"
+          class="flex items-center gap-1 xs:(w-full min-w-12 h-7 justify-center)"
         >
           <MaterialSymbolsAttachFile
-            class="transform dark:(!text-white) group-hover:(!text-accent scale-120) text-gray-500 text-[0.75rem]"
+            class="transform dark:(!text-white) group-hover:(!text-accent scale-120) text-gray-500 text-tiny"
           />
           <div
             v-if="!visibleItems.length"
             data-rec="true"
-            class="group-hover:text-primary text-gray-500 dark:text-gray-200 dark:group-hover:!text-white text-xs xs:(justify-center rounded-lg text-sm)"
+            class="group-hover:text-primary text-gray-500 dark:text-gray-200 dark:group-hover:!text-white text-tiny xs:(justify-center rounded-lg text-sm)"
           >
             {{ $t('activity.addFiles') }}
           </div>
@@ -257,10 +265,14 @@ const keydownSpace = (e: KeyboardEvent) => {
     <template v-if="visibleItems.length">
       <div
         ref="sortableRef"
-        :class="{ 'justify-center': !isExpandedForm && !isGallery && !isKanban }"
-        class="flex cursor-pointer w-full items-center flex-wrap gap-2 py-1.5 scrollbar-thin-dull overflow-hidden mt-0 items-start"
+        :class="{
+          'justify-center': !isExpandedForm && !isGallery && !isKanban,
+          'py-1': rowHeight === 1 && !isForm && !isExpandedForm,
+          'py-1.5': rowHeight !== 1 || isForm || isExpandedForm,
+        }"
+        class="nc-attachment-wrapper flex cursor-pointer w-full items-center flex-wrap gap-2 scrollbar-thin-dull overflow-hidden mt-0 items-start"
         :style="{
-          maxHeight: isForm || isExpandedForm ? undefined : `max(${(rowHeight || 1) * 1.8}rem, 41px)`,
+          maxHeight: isForm || isExpandedForm ? undefined : `max(100%, ${isGrid ? '22px' : '32px'})`,
         }"
       >
         <template v-for="(item, i) of visibleItems" :key="item.url || item.title">
@@ -278,8 +290,10 @@ const keydownSpace = (e: KeyboardEvent) => {
                   :alt="item.title || `#${i}`"
                   class="rounded"
                   :class="{
-                    'h-7.5 w-8.8': rowHeight === 1,
-                    'h-11.5 w-12.8': rowHeight === 2,
+                    'h-5.5': !isGrid && (!rowHeight || rowHeight === 1),
+                    'h-4.5': isGrid && (!rowHeight || rowHeight === 1),
+                    'w-8.8': rowHeight === 1,
+                    'h-8 w-12.8': rowHeight === 2,
                     'h-16.8 w-20.8': rowHeight === 4,
                     'h-20.8 !w-30': isForm || isExpandedForm || rowHeight === 6,
                   }"
@@ -307,12 +321,12 @@ const keydownSpace = (e: KeyboardEvent) => {
       >
         <component :is="iconMap.reload" v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />
 
-        <NcTooltip v-else placement="bottom">
+        <NcTooltip v-else placement="bottom" class="flex">
           <template #title> {{ $t('activity.viewAttachment') }}</template>
 
           <component
             :is="iconMap.expand"
-            class="transform dark:(!text-white) group-hover:(!text-grey-800 scale-120) text-gray-500 text-[0.75rem]"
+            class="flex-none transform dark:(!text-white) group-hover:(!text-grey-800 scale-120) text-gray-500 text-[0.75rem]"
             @click.stop="onExpand"
           />
         </NcTooltip>
@@ -327,7 +341,7 @@ const keydownSpace = (e: KeyboardEvent) => {
 .nc-cell {
   .nc-attachment-cell {
     .nc-attachment {
-      @apply min-h-[1.8rem] min-w-[1.8rem] !ring-1 !ring-gray-300 !rounded;
+      @apply min-h-5.5 min-w-[1.8rem] !ring-1 !ring-gray-300 !rounded;
     }
 
     .ghost,

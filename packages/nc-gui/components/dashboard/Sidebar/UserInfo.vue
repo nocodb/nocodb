@@ -1,25 +1,11 @@
 <script lang="ts" setup>
-import {
-  computed,
-  message,
-  navigateTo,
-  onMounted,
-  ref,
-  storeToRefs,
-  useCopy,
-  useGlobal,
-  useSidebarStore,
-  useUsers,
-  watch,
-} from '#imports'
+import { computed, navigateTo, onMounted, ref, storeToRefs, useGlobal, useSidebarStore, useUsers, watch } from '#imports'
 
-const { user, signOut, token, appInfo } = useGlobal()
+const { user, signOut, appInfo } = useGlobal()
 // So watcher in users store is triggered
 useUsers()
 
 const { leftSidebarState } = storeToRefs(useSidebarStore())
-
-const { copy } = useCopy(true)
 
 const name = computed(() => user.value?.display_name?.trim())
 
@@ -34,26 +20,18 @@ const { isMobileMode } = useGlobal()
 const logout = async () => {
   isLoggingOut.value = true
   try {
+    const isSsoUser = !!(user?.value as any)?.sso_client_id
+
     await signOut(false)
 
     // No need as all stores are cleared on signout
     // await clearWorkspaces()
 
-    await navigateTo('/signin')
+    await navigateTo(isSsoUser ? '/sso' : '/signin')
   } catch (e) {
     console.error(e)
   } finally {
     isLoggingOut.value = false
-  }
-}
-
-const onCopy = async () => {
-  try {
-    await copy(token.value!)
-    isAuthTokenCopied.value = true
-  } catch (e: any) {
-    console.error(e)
-    message.error(e.message)
   }
 }
 
@@ -78,17 +56,17 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex w-full flex-col p-1 border-gray-200 gap-y-1">
+  <div class="flex w-full flex-col py-0.9 px-1 border-gray-200 gap-y-1">
     <NcDropdown v-model:visible="isMenuOpen" placement="topLeft" overlay-class-name="!min-w-64">
       <div
-        class="flex flex-row py-2 px-3 gap-x-2 items-center hover:bg-gray-200 rounded-lg cursor-pointer h-10"
+        class="flex flex-row py-1 px-3 gap-x-2 items-center hover:bg-gray-200 rounded-lg cursor-pointer h-8"
         data-testid="nc-sidebar-userinfo"
       >
-        <GeneralUserIcon :email="user?.email" size="base" :name="user?.display_name" />
+        <GeneralUserIcon :email="user?.email" size="auto" :name="user?.display_name" />
         <div class="flex truncate">
           {{ name ? name : user?.email }}
         </div>
-        <GeneralIcon icon="arrowUp" class="!min-w-5" />
+        <GeneralIcon icon="chevronDown" class="flex-none !min-w-5 transform rotate-180 !text-gray-500" />
       </div>
       <template #overlay>
         <NcMenu data-testid="nc-sidebar-userinfo">
@@ -99,16 +77,6 @@ onMounted(() => {
               <span class="menu-btn"> {{ $t('general.logout') }}</span>
             </div>
           </NcMenuItem>
-          <template v-if="!isMobileMode">
-            <NcMenuItem @click="onCopy">
-              <div v-e="['c:auth-token:copy']" class="flex gap-2 items-center">
-                <GeneralIcon v-if="isAuthTokenCopied" icon="check" class="group-hover:text-black menu-icon" />
-                <GeneralIcon v-else icon="copy" class="menu-icon" />
-                <template v-if="isAuthTokenCopied"> {{ $t('title.copiedAuthToken') }} </template>
-                <template v-else> {{ $t('title.copyAuthToken') }} </template>
-              </div>
-            </NcMenuItem>
-          </template>
           <NcDivider />
           <a
             v-e="['c:nocodb:discord']"
@@ -118,7 +86,7 @@ onMounted(() => {
             rel="noopener noreferrer"
           >
             <NcMenuItem class="social-icon-wrapper">
-              <GeneralIcon class="social-icon" icon="discord" />
+              <GeneralIcon class="social-icon" icon="ncDiscord" />
               <span class="menu-btn"> {{ $t('labels.community.joinDiscord') }} </span>
             </NcMenuItem>
           </a>
@@ -130,7 +98,7 @@ onMounted(() => {
             rel="noopener noreferrer"
           >
             <NcMenuItem class="social-icon-wrapper">
-              <GeneralIcon class="social-icon" icon="reddit" />
+              <GeneralIcon class="social-icon" icon="ncReddit" />
               <span class="menu-btn"> {{ $t('labels.community.joinReddit') }} </span>
             </NcMenuItem>
           </a>
@@ -142,7 +110,7 @@ onMounted(() => {
             rel="noopener noreferrer"
           >
             <NcMenuItem class="social-icon-wrapper group">
-              <GeneralIcon class="text-gray-500 group-hover:text-gray-800 my-0.5" icon="twitter" />
+              <GeneralIcon class="social-icon text-gray-500 group-hover:text-gray-800" icon="ncTwitter" />
               <span class="menu-btn"> {{ $t('labels.twitter') }} </span>
             </NcMenuItem>
           </a>
@@ -181,7 +149,7 @@ onMounted(() => {
               rel="noopener"
             >
               <NcMenuItem>
-                <GeneralIcon icon="help" class="menu-icon mt-0.5" />
+                <GeneralIcon icon="ncHelp" class="menu-icon mt-0.5" />
                 <span class="menu-btn"> {{ $t('title.forum') }} </span>
               </NcMenuItem>
             </a>
@@ -194,23 +162,24 @@ onMounted(() => {
               rel="noopener"
             >
               <NcMenuItem>
-                <GeneralIcon icon="doc" class="menu-icon mt-0.5" />
+                <GeneralIcon icon="file" class="menu-icon mt-0.5" />
                 <span class="menu-btn"> {{ $t('title.docs') }} </span>
               </NcMenuItem>
             </a>
 
             <NcDivider />
 
+            <DashboardSidebarEEMenuOption v-if="isEeUI" />
+
             <nuxt-link v-e="['c:user:settings']" class="!no-underline" to="/account/profile">
-              <NcMenuItem> <GeneralIcon icon="settings" class="menu-icon" /> {{ $t('title.accountSettings') }} </NcMenuItem>
+              <NcMenuItem> <GeneralIcon icon="ncSettings" class="menu-icon" /> {{ $t('title.accountSettings') }} </NcMenuItem>
             </nuxt-link>
           </template>
         </NcMenu>
       </template>
     </NcDropdown>
 
-    <template v-if="isMobileMode"></template>
-    <div v-else-if="appInfo.ee" class="text-gray-500 text-xs pl-3 mt-1">© 2023 NocoDB. Inc</div>
+    <template v-if="isMobileMode || appInfo.ee"></template>
     <div v-else class="flex flex-row w-full justify-between pt-0.5 truncate">
       <GeneralJoinCloud />
     </div>
@@ -222,9 +191,8 @@ onMounted(() => {
   line-height: 1.5;
 }
 .menu-icon {
-  @apply !min-h-4.5;
-  line-height: 1rem;
-  font-size: 1.125rem;
+  @apply w-4 h-4;
+  font-size: 1rem;
 }
 
 :deep(.ant-popover-inner-content) {
@@ -232,7 +200,7 @@ onMounted(() => {
 }
 
 .social-icon {
-  @apply my-0.5;
+  @apply my-0.5 w-4 h-4 stroke-transparent;
   // Make icon black and white
   filter: grayscale(100%);
 

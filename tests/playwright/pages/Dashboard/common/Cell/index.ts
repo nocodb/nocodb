@@ -347,7 +347,9 @@ export class CellPageObject extends BasePage {
         await expect.poll(() => this.rootPage.locator('.ant-card:visible').count()).toBe(count);
 
         // close child list
-        await this.rootPage.locator('.nc-modal-child-list').locator('.nc-close-btn').last().click();
+        // await this.rootPage.locator('.nc-modal-child-list').locator('.nc-close-btn').last().click();
+        await this.rootPage.locator('.nc-modal-child-list').getByTestId('nc-link-count-info').click();
+        await this.rootPage.keyboard.press('Escape');
       }
     }
   }
@@ -373,11 +375,16 @@ export class CellPageObject extends BasePage {
 
       await this.waitForResponse({
         uiAction: () =>
-          this.rootPage.locator(`[data-testid="nc-child-list-item"]`).last().click({ force: true, timeout: 3000 }),
+          this.rootPage
+            .locator(`[data-testid="nc-child-list-item"]`)
+            .last()
+            .locator('button.nc-list-item-link-unlink-btn')
+            .click({ force: true, timeout: 3000 }),
         requestUrlPathToMatch: '/api/v1/db/data/noco',
         httpMethodsToMatch: ['GET'],
       });
 
+      await this.rootPage.keyboard.press('Escape');
       await this.rootPage.keyboard.press('Escape');
     }
   }
@@ -410,6 +417,7 @@ export class CellPageObject extends BasePage {
   }
 
   async copyCellToClipboard({ index, columnHeader }: CellProps, ...clickOptions: Parameters<Locator['click']>) {
+    if (this.parent instanceof GridPage) await this.parent.renderColumn(columnHeader);
     await this.get({ index, columnHeader }).scrollIntoViewIfNeeded();
     await this.get({ index, columnHeader }).click(...clickOptions);
     await (await this.get({ index, columnHeader }).elementHandle()).waitForElementState('stable');

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ColumnType, LinkToAnotherRecordType, LookupType } from 'nocodb-sdk'
+import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 import {
   ActiveViewInj,
@@ -8,17 +8,13 @@ import {
   computed,
   getSortDirectionOptions,
   inject,
-  onMounted,
   ref,
   useMenuCloseOnEsc,
-  useMetas,
   useNuxtApp,
   useSmartsheetStoreOrThrow,
   useViewColumnsOrThrow,
   watch,
 } from '#imports'
-
-const excludedGroupingUidt = [UITypes.Attachment]
 
 const meta = inject(MetaInj, ref())
 const view = inject(ActiveViewInj, ref())
@@ -26,11 +22,11 @@ const isLocked = inject(IsLockedInj, ref(false))
 
 const { gridViewCols, updateGridViewColumn, metaColumnById, showSystemFields } = useViewColumnsOrThrow()
 
+const { fieldsToGroupBy, groupByLimit } = useViewGroupByOrThrow()
+
 const { $e } = useNuxtApp()
 
 const _groupBy = ref<{ fk_column_id?: string; sort: string; order: number }[]>([])
-
-const { getMeta } = useMetas()
 
 const groupBy = computed<{ fk_column_id?: string; sort: string; order: number }[]>(() => {
   const tempGroupBy: { fk_column_id?: string; sort: string; order: number }[] = []
@@ -53,23 +49,7 @@ const { eventBus } = useSmartsheetStoreOrThrow()
 
 const { isMobileMode } = useGlobal()
 
-const supportedLookups = ref<string[]>([])
-
 const showCreateGroupBy = ref(false)
-
-const fieldsToGroupBy = computed(() => {
-  const fields = meta.value?.columns || []
-
-  return fields.filter((field) => {
-    if (excludedGroupingUidt.includes(field.uidt as UITypes)) return false
-
-    if (field.uidt === UITypes.Lookup) {
-      return field.id && supportedLookups.value.includes(field.id)
-    }
-
-    return true
-  })
-})
 
 const columns = computed(() => meta.value?.columns || [])
 
@@ -174,49 +154,18 @@ watch(open, () => {
   }
 })
 
-const loadAllowedLookups = async () => {
-  const filteredLookupCols = []
-  try {
-    for (const col of meta.value?.columns || []) {
-      if (col.uidt !== UITypes.Lookup) continue
+eventBus.on(async (event, column) => {
+  if (!column?.id) return
 
-      let nextCol: ColumnType = col
-      // check the lookup column is supported type or not
-      while (nextCol && nextCol.uidt === UITypes.Lookup) {
-        const lookupRelation = (await getMeta(nextCol.fk_model_id as string))?.columns?.find(
-          (c) => c.id === (nextCol?.colOptions as LookupType).fk_relation_column_id,
-        )
+  if (event === SmartsheetStoreEvents.GROUP_BY_ADD) {
+    addFieldToGroupBy(column)
+  } else if (event === SmartsheetStoreEvents.GROUP_BY_REMOVE) {
+    if (groupedByColumnIds.value.length === 0) return
 
-        const relatedTableMeta = await getMeta(
-          (lookupRelation?.colOptions as LinkToAnotherRecordType).fk_related_model_id as string,
-        )
+    _groupBy.value = _groupBy.value.filter((g) => g.fk_column_id !== column.id)
 
-        nextCol = relatedTableMeta?.columns?.find(
-          (c) => c.id === ((nextCol?.colOptions as LookupType).fk_lookup_column_id as string),
-        ) as ColumnType
-
-        // if next column is same as root lookup column then break the loop
-        // since it's going to be a circular loop, and ignore the column
-        if (nextCol?.id === col.id) {
-          break
-        }
-      }
-
-      if (nextCol?.uidt !== UITypes.Attachment && col.id) filteredLookupCols.push(col.id)
-    }
-
-    supportedLookups.value = filteredLookupCols
-  } catch (e) {
-    console.error(e)
+    await saveGroupBy()
   }
-}
-
-onMounted(async () => {
-  await loadAllowedLookups()
-})
-
-watch(meta, async () => {
-  await loadAllowedLookups()
 })
 </script>
 
@@ -234,7 +183,7 @@ watch(meta, async () => {
           <component :is="iconMap.group" class="h-4 w-4" />
 
           <!-- Group By -->
-          <span v-if="!isMobileMode" class="text-capitalize !text-sm font-medium">{{ $t('activity.groupBy') }}</span>
+          <span v-if="!isMobileMode" class="text-capitalize !text-sm font-medium">{{ $t('activity.group') }}</span>
 
           <span v-if="groupedByColumnIds?.length" class="bg-brand-50 text-brand-500 py-1 px-2 text-md rounded-md">{{
             groupedByColumnIds.length
@@ -251,19 +200,14 @@ watch(meta, async () => {
       />
       <div
         v-else
-        :class="{ ' min-w-[400px]': _groupBy.length }"
-        class="flex flex-col bg-white overflow-auto nc-group-by-list menu-filter-dropdown max-h-[max(80vh,500px)] py-6 pl-6"
+        class="flex flex-col bg-white overflow-auto nc-group-by-list menu-filter-dropdown max-h-[max(80vh,500px)] min-w-102 pt-2 pb-2 pl-4"
         data-testid="nc-group-by-menu"
       >
-        <div
-          class="group-by-grid pb-1 max-h-100 nc-scrollbar-md pr-5"
-          :class="{ 'mb-2': availableColumns.length && fieldsToGroupBy.length > _groupBy.length && _groupBy.length < 3 }"
-          @click.stop
-        >
+        <div class="group-by-grid max-h-100 nc-scrollbar-thing pr-4 py-2" @click.stop>
           <template v-for="[i, group] of Object.entries(_groupBy)" :key="`grouped-by-${group.fk_column_id}`">
             <LazySmartsheetToolbarFieldListAutoCompleteDropdown
               v-model="group.fk_column_id"
-              class="caption nc-sort-field-select"
+              class="caption nc-sort-field-select w-44 flex flex-grow"
               :columns="fieldsToGroupBy"
               :allow-empty="true"
               @change="saveGroupBy"
@@ -284,7 +228,7 @@ watch(meta, async () => {
                 :key="j"
                 :value="option.value"
               >
-                <div class="flex items-center justify-between gap-2">
+                <div class="w-full flex items-center justify-between gap-2">
                   <div class="truncate flex-1">{{ option.text }}</div>
                   <component
                     :is="iconMap.check"
@@ -296,10 +240,10 @@ watch(meta, async () => {
               </a-select-option>
             </NcSelect>
 
-            <a-tooltip placement="right" title="Remove">
+            <a-tooltip placement="right" title="Remove" class="flex-none min-w-40">
               <NcButton
                 v-e="['c:group-by:remove']"
-                class="nc-group-by-item-remove-btn"
+                class="nc-group-by-item-remove-btn min-w-40"
                 size="small"
                 type="text"
                 @click.stop="removeFieldFromGroupBy(i)"
@@ -310,14 +254,14 @@ watch(meta, async () => {
           </template>
         </div>
         <NcDropdown
-          v-if="availableColumns.length && fieldsToGroupBy.length > _groupBy.length && _groupBy.length < 3"
+          v-if="availableColumns.length && fieldsToGroupBy.length > _groupBy.length && _groupBy.length < groupByLimit"
           v-model:visible="showCreateGroupBy"
           :trigger="['click']"
           overlay-class-name="nc-toolbar-dropdown"
         >
           <NcButton
             v-e="['c:group-by:add']"
-            class="nc-add-group-by-btn !text-brand-500"
+            class="nc-add-group-by-btn !text-brand-500 mt-1 mb-2"
             style="width: fit-content"
             size="small"
             type="text"
@@ -346,7 +290,7 @@ watch(meta, async () => {
 <style scoped>
 .group-by-grid {
   display: grid;
-  grid-template-columns: auto 150px 22px;
-  @apply gap-[12px];
+  grid-template-columns: auto 150px auto;
+  @apply gap-x-2 gap-y-3;
 }
 </style>

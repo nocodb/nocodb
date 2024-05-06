@@ -51,6 +51,11 @@ function addEmptyRow(group: Group, addAfter?: number, metaValue = meta.value) {
       ![UITypes.Rollup, UITypes.Lookup, UITypes.Formula, UITypes.Barcode, UITypes.QrCode].includes(curr.column_uidt)
     ) {
       acc[curr.title] = curr.key
+
+      if (curr.column_uidt === UITypes.Checkbox) {
+        acc[curr.title] =
+          acc[curr.title] === GROUP_BY_VARS.TRUE ? true : acc[curr.title] === GROUP_BY_VARS.FALSE ? false : !!acc[curr.title]
+      }
     }
     return acc
   }, {} as Record<string, any>)
@@ -143,6 +148,7 @@ const pagination = computed(() => {
     :hide-header="true"
     :pagination="pagination"
     :disable-skeleton="true"
+    :disable-virtual-y="true"
   />
 </template>
 

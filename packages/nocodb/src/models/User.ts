@@ -243,9 +243,7 @@ export default class User implements UserType {
             .andWhereNot('display_name', '')
             .andWhere('display_name', 'like', `%${query.toLowerCase()}%`);
         }).orWhere(function () {
-          this.where(function () {
-            this.whereNull('display_name').orWhere('display_name', '');
-          }).andWhere('email', 'like', `%${query.toLowerCase()}%`);
+          this.where('email', 'like', `%${query.toLowerCase()}%`);
         });
       });
     }

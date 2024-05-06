@@ -1,11 +1,9 @@
 import { UITypes } from 'nocodb-sdk';
 import CryptoJS from 'crypto-js';
 import { v4 as uuidv4 } from 'uuid';
+import type { DriverClient } from '~/utils/nc-config';
 import type { BoolType, SourceType } from 'nocodb-sdk';
-import type { DB_TYPES } from '~/utils/globals';
-import Model from '~/models/Model';
-import Base from '~/models/Base';
-import SyncSource from '~/models/SyncSource';
+import { Base, Model, SyncSource } from '~/models';
 import NocoCache from '~/cache/NocoCache';
 import {
   CacheDelDirection,
@@ -29,7 +27,7 @@ export default class Source implements SourceType {
   id?: string;
   base_id?: string;
   alias?: string;
-  type?: (typeof DB_TYPES)[number];
+  type?: DriverClient;
   is_meta?: BoolType;
   config?: string;
   inflection_column?: string;
@@ -39,7 +37,7 @@ export default class Source implements SourceType {
   enabled?: BoolType;
   meta?: any;
 
-  constructor(source: Partial<Source>) {
+  constructor(source: Partial<SourceType>) {
     Object.assign(this, source);
   }
 

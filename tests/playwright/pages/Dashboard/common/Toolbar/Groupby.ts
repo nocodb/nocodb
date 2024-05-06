@@ -49,7 +49,12 @@ export class ToolbarGroupByPage extends BasePage {
       .locator(`div[label="${title}"]`)
       .last()
       .click();
-    await this.rootPage.locator('.nc-sort-dir-select').nth(index).click();
+
+    //kludge: wait for rendering to stabilize
+    await this.rootPage.waitForTimeout(1000);
+
+    await this.rootPage.locator('.nc-sort-dir-select').nth(index).waitFor({ state: 'visible' });
+    await this.rootPage.locator('.nc-sort-dir-select').nth(index).click({ force: true });
     await this.rootPage
       .locator('.nc-dropdown-sort-dir')
       .last()
@@ -93,14 +98,14 @@ export class ToolbarGroupByPage extends BasePage {
 
     await this.rootPage
       .locator('.nc-group-by-create-modal')
-      .locator('.nc-group-by-column-search-item >> div', { hasText: regexTitle })
+      .locator('.nc-group-by-column-search-item', { hasText: regexTitle })
       .scrollIntoViewIfNeeded();
 
     // select column
     const selectColumn = async () =>
       await this.rootPage
         .locator('.nc-group-by-create-modal')
-        .locator('.nc-group-by-column-search-item  >> div', { hasText: regexTitle })
+        .locator('.nc-group-by-column-search-item', { hasText: regexTitle })
         .click({ force: true });
 
     await this.waitForResponse({
@@ -138,7 +143,12 @@ export class ToolbarGroupByPage extends BasePage {
   async remove({ index }: { index: number }) {
     // open group-by menu
     await this.toolbar.clickGroupBy();
-    await this.rootPage.locator('.nc-group-by-item-remove-btn').nth(index).click();
+
+    await this.waitForResponse({
+      uiAction: () => this.rootPage.locator('.nc-group-by-item-remove-btn').nth(index).click(),
+      requestUrlPathToMatch: '/api/v1/db/data/noco',
+      httpMethodsToMatch: ['GET'],
+    });
 
     // close group-by menu
     await this.toolbar.clickGroupBy();

@@ -14832,7 +14832,8 @@
                       "oracledb",
                       "pg",
                       "snowflake",
-                      "sqlite3"
+                      "sqlite3",
+                      "databricks"
                     ],
                     "example": "mysql2",
                     "type": "string"
@@ -14977,7 +14978,8 @@
                         "oracledb",
                         "pg",
                         "snowflake",
-                        "sqlite3"
+                        "sqlite3",
+                        "databricks"
                       ],
                       "example": "mysql2",
                       "type": "string"
@@ -15848,9 +15850,9 @@
           "content": {
             "multipart/form-data": {
               "schema": {
-                "type":"object",
-                "properties":{
-                  "files":{
+                "type": "object",
+                "properties": {
+                  "files": {
                     "type": "array",
                     "required": true,
                     "items": {
@@ -15865,9 +15867,9 @@
                     "files": [
                       {
                         "mimetype": "image/jpeg",
-                        "fieldname":"files",
+                        "fieldname": "files",
                         "originalname": "22bc-kavypmq4869759 (1).jpg",
-                        "encoding":"7bit",
+                        "encoding": "7bit",
                         "size": 13052,
                         "buffer": "<Buffer 89 50 4e 47 0d 0a 1a 0a 00 00 00 0d 49 48 44 52 00 00 03 20 00 00 02 58 08 02 00 00 00 15 14 15 27 00 00 00 09 70 48 59 73 00 00 0b 13 00 00 0b 13 01 >"
                       }
@@ -17187,19 +17189,31 @@
                 "schema": {}
               },
               "examples": {
-                "Example 1" : {
+                "Example 1": {
                   "value": {
                     "link": [
-                      {"Id": 1},
-                      {"Id": 2},
-                      {"Id": 3},
-                      {"Id": 5},
-                      {"Id": 6}
+                      {
+                        "Id": 1
+                      },
+                      {
+                        "Id": 2
+                      },
+                      {
+                        "Id": 3
+                      },
+                      {
+                        "Id": 5
+                      },
+                      {
+                        "Id": 6
+                      }
                     ],
                     "unlink": [
-                      {"Id": 4}
+                      {
+                        "Id": 4
+                      }
                     ]
-                }
+                  }
                 }
               }
             }
@@ -17208,7 +17222,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB Data Table Row"],
+        "tags": [
+          "DB Data Table Row"
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -17279,6 +17295,181 @@
           }
         },
         "description": "Get dynamic command palette suggestions based on scope"
+      }
+    },
+    "/api/v2/extensions/{baseId}": {
+      "parameters": [
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "p124hhlkbeasewh",
+            "type": "string"
+          },
+          "name": "baseId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Base ID"
+        }
+      ],
+      "get": {
+        "summary": "Get Extensions",
+        "operationId": "extensions-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "list": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Extensions"
+        ],
+        "description": "Get all extensions for a given base",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      },
+      "post": {
+        "summary": "Create Extension",
+        "operationId": "extensions-create",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "tags": [
+          "Extensions"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "description": "Create a new extension for a given base",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      }
+    },
+    "/api/v2/extensions/{extensionId}": {
+      "parameters": [
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "ext124dflkcvasewh",
+            "type": "string"
+          },
+          "name": "extensionId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Extension ID"
+        }
+      ],
+      "get": {
+        "summary": "Get Extension",
+        "operationId": "extensions-read",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Extensions"
+        ],
+        "description": "Get extension details",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      },
+      "patch": {
+        "summary": "Update Extension",
+        "operationId": "extensions-update",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "tags": [
+          "Extensions"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "description": "Update extension details",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      },
+      "delete": {
+        "summary": "Delete Extension",
+        "operationId": "extensions-delete",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "tags": [
+          "Extensions"
+        ],
+        "description": "Delete extension",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
       }
     },
     "/jobs/listen": {
@@ -17536,7 +17727,7 @@
             "type": "string",
             "description": "Attachment URL to be uploaded via upload-by-url"
           },
-          "fileName":{
+          "fileName": {
             "type": "string",
             "description": "The name of the attachment file name"
           }
@@ -17609,9 +17800,9 @@
         "x-examples": {
           "Example 1": {
             "mimetype": "image/jpeg",
-            "fieldname":"files",
+            "fieldname": "files",
             "originalname": "22bc-kavypmq4869759 (1).jpg",
-            "encoding":"7bit",
+            "encoding": "7bit",
             "size": 13052,
             "buffer": "<Buffer 89 50 4e 47 0d 0a 1a 0a 00 00 00 0d 49 48 44 52 00 00 03 20 00 00 02 58 08 02 00 00 00 15 14 15 27 00 00 00 09 70 48 59 73 00 00 0b 13 00 00 0b 13 01 >"
           }
@@ -17886,7 +18077,8 @@
               "oracledb",
               "pg",
               "snowflake",
-              "sqlite3"
+              "sqlite3",
+              "databricks"
             ],
             "example": "mysql2",
             "type": "string"
@@ -18050,7 +18242,8 @@
               "oracledb",
               "pg",
               "snowflake",
-              "sqlite3"
+              "sqlite3",
+              "databricks"
             ],
             "type": "string"
           }
@@ -23308,13 +23501,15 @@
       },
       "CalendarRangeOrNull": {
         "description": "Model for CalendarRangeOrNull",
-        "example": [{
-          "id": "kvc_2skkg5mi1eb37f",
-          "fk_from_column_id": "cl_hzos4ghyncqi4k",
-          "fk_to_column_id": "cl_hzos4ghyncqi4k",
-          "fk_view_id": "vw_wqs4zheuo5lgdy",
-          "label": "string"
-        }],
+        "example": [
+          {
+            "id": "kvc_2skkg5mi1eb37f",
+            "fk_from_column_id": "cl_hzos4ghyncqi4k",
+            "fk_to_column_id": "cl_hzos4ghyncqi4k",
+            "fk_view_id": "vw_wqs4zheuo5lgdy",
+            "label": "string"
+          }
+        ],
         "oneOf": [
           {
             "type": "null"
@@ -25282,19 +25477,197 @@
           "properties": {
             "operation": {
               "type": "string",
-              "enum": ["copy", "paste", "deleteAll"]
+              "enum": [
+                "copy",
+                "paste",
+                "deleteAll"
+              ]
             },
             "rowId": {
               "type": "string"
             },
-            "columnId":{
+            "columnId": {
               "type": "string"
             },
-            "fk_related_model_id":{
+            "fk_related_model_id": {
               "type": "string"
             }
           },
-          "required": ["operation", "rowId", "columnId", "fk_related_model_id"]
+          "required": [
+            "operation",
+            "rowId",
+            "columnId",
+            "fk_related_model_id"
+          ]
+        }
+      },
+      "KanbanColumnReq": {
+        "description": "Model for Kanban Column Request",
+        "examples": [
+          {
+            "title": "string",
+            "show": 0,
+            "order": "1"
+          }
+        ],
+        "title": "Kanban Column Model Request",
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Title"
+          },
+          "show": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is this column shown?"
+          },
+          "order": {
+            "type": "number",
+            "example": 1,
+            "description": "Column Order"
+          }
+        }
+      },
+      "GalleryColumnReq": {
+        "description": "Model for Gallery Column Request",
+        "examples": [
+          {
+            "label": "My Column",
+            "width": "200px"
+          }
+        ],
+        "properties": {
+          "show": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Show"
+          },
+          "order": {
+            "type": "number",
+            "description": "Order",
+            "example": 1
+          }
+        }
+      },
+      "CalendarColumnReq": {
+        "description": "Model for Calendar Column Request",
+        "examples": [
+          {
+            "title": "string",
+            "show": 0,
+            "bold": 0,
+            "italic": 0,
+            "underline": 0,
+            "order": "1"
+          }
+        ],
+        "title": "Calendar Column Model",
+        "type": "object",
+        "properties": {
+          "show": {
+            "$ref": "#/components/schemas/Bool",
+            "x-stoplight": {
+              "id": "uqq8xmyz97t1u"
+            },
+            "description": "Is this column shown?"
+          },
+          "bold": {
+            "$ref": "#/components/schemas/Bool",
+            "x-stoplight": {
+              "id": "uqq8xmyz97t1u"
+            },
+            "description": "Is this column shown as bold?"
+          },
+          "italic": {
+            "$ref": "#/components/schemas/Bool",
+            "x-stoplight": {
+              "id": "uqq8xmyz97t1u"
+            },
+            "description": "Is this column shown as italic?"
+          },
+          "underline": {
+            "$ref": "#/components/schemas/Bool",
+            "x-stoplight": {
+              "id": "uqq8xmyz97t1u"
+            },
+            "description": "Is this column shown underlines?"
+          },
+          "order": {
+            "type": "number",
+            "x-stoplight": {
+              "id": "pbnchzgci5dwa"
+            },
+            "example": 1,
+            "description": "Column Order"
+          }
+        },
+        "x-stoplight": {
+          "id": "psbv6c6y9qvbu"
+        }
+      },
+      "Extension": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique ID"
+          },
+          "base_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique Base ID"
+          },
+          "fk_user_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique User ID"
+          },
+          "extension_id": {
+            "type": "string",
+            "description": "Extension ID"
+          },
+          "title": {
+            "type": "string",
+            "description": "Extension Title"
+          },
+          "kv_store": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Key Value Store for the extension"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Meta data for the extension"
+          },
+          "order": {
+            "type": "number",
+            "description": "Order of the extension"
+          }
+        }
+      },
+      "ExtensionReq": {
+        "type": "object",
+        "properties": {
+          "base_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique Base ID"
+          },
+          "title": {
+            "type": "string",
+            "description": "Extension Title"
+          },
+          "extension_id": {
+            "type": "string",
+            "description": "Extension ID"
+          },
+          "kv_store": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Key Value Store for the extension"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Meta data for the extension"
+          },
+          "order": {
+            "type": "number",
+            "description": "Order of the extension"
+          }
         }
       }
     },

@@ -120,7 +120,6 @@ reloadEventHook.on(async () => {
 const { fields, showAll, hideAll } = useViewColumnsOrThrow()
 
 const { state, row } = useProvideSmartsheetRowStore(
-  meta,
   ref({
     row: formState.value,
     oldRow: {},
@@ -622,6 +621,7 @@ const formElementValidationRules = (element) => {
     {
       required: isRequired(element, element.required),
       message: t('msg.error.fieldRequired', { value: 'This field' }),
+      ...(element.uidt === UITypes.Checkbox && isRequired(element, element.required) ? { type: 'enum', enum: [1, true] } : {}),
     },
   ]
 
@@ -2026,13 +2026,6 @@ useEventListener(
         box-shadow: 0 0 0 2px #fff, 0 0 0 4px #3366ff;
       }
     }
-  }
-}
-
-.nc-form-wrapper {
-  .ant-switch:focus-visible,
-  .ant-switch-checked:focus-visible {
-    box-shadow: 0 0 0 2px #fff, 0 0 0 4px #3366ff;
   }
 }
 </style>

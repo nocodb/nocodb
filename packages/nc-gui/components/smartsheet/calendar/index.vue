@@ -48,6 +48,7 @@ const {
   loadCalendarData,
   loadSidebarData,
   isCalendarDataLoading,
+  isCalendarMetaLoading,
   selectedDate,
   selectedMonth,
   activeDates,
@@ -282,7 +283,7 @@ const headerText = computed(() => {
           </NcButton>
         </NcTooltip>
       </div>
-      <template v-if="calendarRange?.length">
+      <template v-if="calendarRange?.length && !isCalendarMetaLoading">
         <LazySmartsheetCalendarYearView v-if="activeCalendarView === 'year'" />
         <template v-if="!isCalendarDataLoading">
           <LazySmartsheetCalendarMonthView
@@ -313,6 +314,11 @@ const headerText = computed(() => {
         </template>
 
         <div v-if="isCalendarDataLoading && activeCalendarView !== 'year'" class="flex w-full items-center h-full justify-center">
+          <GeneralLoader size="xlarge" />
+        </div>
+      </template>
+      <template v-else-if="isCalendarMetaLoading">
+        <div class="flex w-full items-center h-full justify-center">
           <GeneralLoader size="xlarge" />
         </div>
       </template>

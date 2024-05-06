@@ -3,6 +3,7 @@ const props = defineProps<{
   value?: string | string[]
   placeholder?: string
   mode?: 'multiple' | 'tags'
+  size?: 'small' | 'middle' | 'large'
   dropdownClassName?: string
   showSearch?: boolean
   // filterOptions is a function
@@ -44,6 +45,7 @@ const onChange = (value: string) => {
 <template>
   <a-select
     v-model:value="vModel"
+    :size="size"
     :allow-clear="allowClear"
     :disabled="loading"
     :dropdown-class-name="dropdownClassName"
@@ -106,7 +108,7 @@ const onChange = (value: string) => {
 }
 
 .nc-select-dropdown {
-  @apply !rounded-xl py-1.5;
+  @apply !rounded-lg py-1.5;
 
   .rc-virtual-list-holder {
     overflow-y: auto;
@@ -129,7 +131,7 @@ const onChange = (value: string) => {
     }
     &::-webkit-scrollbar-thumb {
       width: 4px;
-      @apply bg-gray-300;
+      @apply bg-gray-300 rounded-md;
     }
     &::-webkit-scrollbar-thumb:hover {
       @apply bg-gray-400;

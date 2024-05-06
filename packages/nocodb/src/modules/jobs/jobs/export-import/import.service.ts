@@ -187,7 +187,8 @@ export class ImportService {
           const colRef = modelData.columns.find(
             (a) =>
               a.column_name &&
-              sanitizeColumnName(a.column_name) === col.column_name,
+              sanitizeColumnName(a.column_name, source.type) ===
+                col.column_name,
           );
           idMap.set(colRef.id, col.id);
 

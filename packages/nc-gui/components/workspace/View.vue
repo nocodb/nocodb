@@ -44,7 +44,7 @@ const tab = computed({
 
 watch(
   () => currentWorkspace.value?.title,
-  (title: string) => {
+  (title) => {
     if (!title) return
 
     const capitalizedTitle = title.charAt(0).toUpperCase() + title.slice(1)
@@ -60,7 +60,7 @@ onMounted(() => {
   until(() => currentWorkspace.value?.id)
     .toMatch((v) => !!v)
     .then(async () => {
-      await loadCollaborators({} as any, currentWorkspace.value.id)
+      await loadCollaborators({} as any, currentWorkspace.value!.id)
     })
 })
 </script>

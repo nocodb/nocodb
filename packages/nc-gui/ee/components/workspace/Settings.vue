@@ -18,6 +18,7 @@ const isCancelButtonVisible = ref(false)
 const isDeleteModalVisible = ref(false)
 // if activeworkspace.title is used it will show new workspace name in loading state
 const toBeDeletedWorkspaceTitle = ref('')
+const isAdminPanel = inject(IsAdminPanelInj, ref(false))
 
 const form = reactive({
   title: '',
@@ -37,6 +38,9 @@ const currentWorkspace = computed(() => {
 })
 
 const onDelete = async () => {
+  if (isDeleting.value) return
+  if (!currentWorkspace.value?.id) return
+
   isDeleting.value = true
   try {
     const shouldSignOut = workspacesList.value.length < 2
@@ -44,7 +48,7 @@ const onDelete = async () => {
     // We only remove the delete workspace from the list after the api call is successful
     workspaces.value.delete(currentWorkspace.value.id)
     if (!shouldSignOut) {
-      if (props.workspaceId) {
+      if (isAdminPanel.value) {
         // Navigate BackPage
         // #TODO: @Darkphoenix2704
       } else {
@@ -73,6 +77,8 @@ const titleChange = async () => {
 
   if (!valid) return
 
+  if (!currentWorkspace.value?.id) return
+
   if (isTitleUpdating.value) return
 
   isTitleUpdating.value = true
@@ -91,14 +97,18 @@ const titleChange = async () => {
 }
 
 const handleDelete = () => {
+  if (!currentWorkspace.value?.title) return
+
   toBeDeletedWorkspaceTitle.value = currentWorkspace.value.title
   isDeleteModalVisible.value = true
 }
 
 watch(
-  () => currentWorkspace.value.title,
+  () => currentWorkspace.value?.title,
   () => {
-    form.title = currentWorkspace.value.title
+    if (currentWorkspace.value?.title) {
+      form.title = currentWorkspace.value.title
+    }
   },
   {
     immediate: true,
@@ -109,7 +119,7 @@ watch(
   () => form.title,
   async () => {
     try {
-      isCancelButtonVisible.value = form.title !== currentWorkspace.value.title
+      isCancelButtonVisible.value = form.title !== currentWorkspace.value?.title
       isErrored.value = !(await formValidator.value.validate())
     } catch (e: any) {
       isErrored.value = true
@@ -118,7 +128,7 @@ watch(
 )
 
 const onCancel = () => {
-  form.title = currentWorkspace.value?.title
+  if (currentWorkspace.value?.title) form.title = currentWorkspace.value.title
 }
 </script>
 
@@ -151,7 +161,7 @@ const onCancel = () => {
             v-e="['c:workspace:settings:rename']"
             type="primary"
             html-type="submit"
-            :disabled="isErrored || (form.title && form.title === currentWorkspace.title)"
+            :disabled="isErrored || !!(form.title && form.title === currentWorkspace?.title)"
             :loading="isDeleting"
             data-testid="nc-workspace-settings-settings-rename-submit"
           >

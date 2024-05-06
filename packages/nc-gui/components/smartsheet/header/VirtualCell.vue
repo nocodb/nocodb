@@ -1,5 +1,13 @@
 <script setup lang="ts">
-import type { ColumnReqType, ColumnType, FormulaType, LinkToAnotherRecordType, LookupType, RollupType } from 'nocodb-sdk'
+import {
+  type ColumnReqType,
+  type ColumnType,
+  type FormulaType,
+  type LinkToAnotherRecordType,
+  type LookupType,
+  type RollupType,
+  isLinksOrLTAR,
+} from 'nocodb-sdk'
 import { RelationTypes, UITypes, UITypesName, substituteColumnIdWithAliasInFormula } from 'nocodb-sdk'
 import {
   ColumnInj,
@@ -12,6 +20,7 @@ import {
   isHm,
   isLookup,
   isMm,
+  isOo,
   isRollup,
   isVirtualColRequired,
   provide,
@@ -57,7 +66,7 @@ const colOptions = computed(() => column.value?.colOptions)
 const tableTile = computed(() => meta?.value?.title)
 
 const relationColumnOptions = computed<LinkToAnotherRecordType | null>(() => {
-  if (isMm(column.value) || isHm(column.value) || isBt(column.value)) {
+  if (isLinksOrLTAR(column.value)) {
     return column.value?.colOptions as LinkToAnotherRecordType
   } else if ((column?.value?.colOptions as LookupType | RollupType)?.fk_relation_column_id) {
     return meta?.value?.columns?.find(
@@ -101,6 +110,8 @@ const tooltipMsg = computed(() => {
     return `'${tableTile.value}' & '${relatedTableTitle.value}' ${t('labels.manyToMany')}`
   } else if (isBt(column.value)) {
     return `'${column?.value?.title}' ${t('labels.belongsTo')} '${relatedTableTitle.value}'`
+  } else if (isOo(column.value)) {
+    return `'${tableTile.value}' & '${relatedTableTitle.value}' ${t('labels.oneToOne')}`
   } else if (isLookup(column.value)) {
     return `'${childColumn.value.title}' from '${relatedTableTitle.value}' (${childColumn.value.uidt})`
   } else if (isFormula(column.value)) {
@@ -114,6 +125,10 @@ const tooltipMsg = computed(() => {
     return `'${childColumn.value.title}' of '${relatedTableTitle.value}' (${childColumn.value.uidt})`
   }
   return column?.value?.title || ''
+})
+
+const showTooltipAlways = computed(() => {
+  return isLinksOrLTAR(column.value) || isFormula(column.value) || isRollup(column.value) || isLookup(column.value)
 })
 
 const columnOrder = ref<Pick<ColumnReqType, 'column_order'> | null>(null)
@@ -172,7 +187,7 @@ const openDropDown = (e: Event) => {
       </NcTooltip>
       <LazySmartsheetHeaderVirtualCellIcon v-else />
     </template>
-    <NcTooltip placement="bottom" class="truncate name pl-1" show-on-truncate-only>
+    <NcTooltip placement="bottom" class="truncate name pl-1" :show-on-truncate-only="!showTooltipAlways">
       <template #title>
         {{ tooltipMsg }}
       </template>

@@ -55,7 +55,9 @@ const value = computed(() => {
   if (cellValue?.value) {
     return cellValue?.value
   } else if (isNew.value) {
-    return state?.value?.[column?.value.title as string]
+    const columnTitle = column?.value.title as string
+    const columnValue = state?.value?.[columnTitle]
+    return Array.isArray(columnValue) ? columnValue[0] : columnValue
   }
   return null
 })

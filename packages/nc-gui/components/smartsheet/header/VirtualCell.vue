@@ -3,10 +3,10 @@ import {
   type ColumnReqType,
   type ColumnType,
   type FormulaType,
-  isLinksOrLTAR,
   type LinkToAnotherRecordType,
   type LookupType,
-  type RollupType
+  type RollupType,
+  isLinksOrLTAR,
 } from 'nocodb-sdk'
 import { RelationTypes, UITypes, UITypesName, substituteColumnIdWithAliasInFormula } from 'nocodb-sdk'
 import {
@@ -20,6 +20,7 @@ import {
   isHm,
   isLookup,
   isMm,
+  isOo,
   isRollup,
   isVirtualColRequired,
   provide,
@@ -65,7 +66,7 @@ const colOptions = computed(() => column.value?.colOptions)
 const tableTile = computed(() => meta?.value?.title)
 
 const relationColumnOptions = computed<LinkToAnotherRecordType | null>(() => {
-  if (isMm(column.value) || isHm(column.value) || isBt(column.value)) {
+  if (isLinksOrLTAR(column.value)) {
     return column.value?.colOptions as LinkToAnotherRecordType
   } else if ((column?.value?.colOptions as LookupType | RollupType)?.fk_relation_column_id) {
     return meta?.value?.columns?.find(
@@ -109,6 +110,8 @@ const tooltipMsg = computed(() => {
     return `'${tableTile.value}' & '${relatedTableTitle.value}' ${t('labels.manyToMany')}`
   } else if (isBt(column.value)) {
     return `'${column?.value?.title}' ${t('labels.belongsTo')} '${relatedTableTitle.value}'`
+  } else if (isOo(column.value)) {
+    return `'${tableTile.value}' & '${relatedTableTitle.value}' ${t('labels.oneToOne')}`
   } else if (isLookup(column.value)) {
     return `'${childColumn.value.title}' from '${relatedTableTitle.value}' (${childColumn.value.uidt})`
   } else if (isFormula(column.value)) {

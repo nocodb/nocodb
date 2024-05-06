@@ -221,7 +221,9 @@ watch(isOpen, (n, _o) => {
   if (!n) searchVal.value = ''
 
   if (editAllowed.value) {
-    if (n) {
+    if (!n) {
+      aselect.value?.$el?.querySelector('input')?.blur()
+    } else {
       aselect.value?.$el?.querySelector('input')?.focus()
     }
   }

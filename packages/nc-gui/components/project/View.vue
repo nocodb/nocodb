@@ -22,7 +22,7 @@ const route = router.currentRoute
 
 const { $e, $api } = useNuxtApp()
 
-const currentBase = computed(async () => {
+const currentBase = computedAsync(async () => {
   let base
   if (props.baseId) {
     base = bases.value.get(props.baseId)
@@ -161,7 +161,7 @@ watch(
               </div>
             </div>
           </template>
-          <ProjectAccessSettings :base-id="currentBase.id" />
+          <ProjectAccessSettings :base-id="currentBase?.id" />
         </a-tab-pane>
         <a-tab-pane v-if="isUIAllowed('sourceCreate')" key="data-source">
           <template #tab>

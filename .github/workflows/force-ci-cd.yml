@@ -1,0 +1,12 @@
+name: "Force trigger CI/CD"
+on:
+  pull_request:
+    types: [labeled]
+    branches: [develop]
+
+jobs:
+  trigger-ci-cd:
+    if: ${{ contains(github.event.pull_request.labels.*.name, 'force-trigger-CI') }}
+    uses: ./.github/workflows/ci-cd.yml
+    with:
+      force: true

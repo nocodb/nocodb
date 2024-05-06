@@ -276,6 +276,7 @@ const rolePermissions:
       baseList: true,
       testConnection: true,
       isPluginActive: true,
+      commandPalette: true,
     },
   },
   [OrgUserRoles.CREATOR]: {

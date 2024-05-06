@@ -7,7 +7,7 @@ import type { XcPluginConfig } from 'nc-plugin';
 const config: XcPluginConfig = {
   builder: SMTPPlugin,
   title: 'SMTP',
-  version: '0.0.2',
+  version: '0.0.3',
   // icon: 'mdi-email-outline',
   description: 'SMTP email client',
   price: 'Free',
@@ -27,6 +27,13 @@ const config: XcPluginConfig = {
         key: 'host',
         label: 'Host',
         placeholder: 'eg: smtp.run.com',
+        type: XcType.SingleLineText,
+        required: true,
+      },
+      {
+        key: 'name',
+        label: 'Name',
+        placeholder: 'eg: your-domain.com',
         type: XcType.SingleLineText,
         required: true,
       },

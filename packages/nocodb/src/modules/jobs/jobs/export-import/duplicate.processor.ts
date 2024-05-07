@@ -352,7 +352,7 @@ export class DuplicateProcessor {
           .map((c) => c.id);
 
         if (bts.length > 0) {
-          fields[md.id] = [md.primaryKey.id];
+          fields[md.id] = fields[md.id] ? fields[md.id] : [md.primaryKey.id];
           fields[md.id].push(...bts);
         }
       }

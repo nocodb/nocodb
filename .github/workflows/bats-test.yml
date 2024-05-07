@@ -15,16 +15,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install jq
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y jq
-
       - name: Prepare matrix for test files
         id: set-matrix
         run: |
           BATS_FILES=$(find docker-compose/setup-script/tests -name '*.bats')
-          MATRIX_JSON=$(echo $BATS_FILES | jq -Rsc 'split("\n") | map(select(. != ""))')
+          MATRIX_JSON=$(echo $BATS_FILES | tr -d '\n' | jq -Rsc 'split(" ")')
           echo "matrix=$MATRIX_JSON" >> $GITHUB_ENV
 
   test:

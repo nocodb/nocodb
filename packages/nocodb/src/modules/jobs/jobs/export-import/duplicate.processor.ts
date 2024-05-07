@@ -365,7 +365,10 @@ export class DuplicateProcessor {
         destBase: source,
         hrTime,
         modelFieldIds: fields,
-        externalModels: [sourceModel, ...relatedModels],
+        externalModels: [
+          sourceModel,
+          ...relatedModels.filter((m) => m.id !== sourceModel.id),
+        ],
       });
 
       elapsedTime(hrTime, 'import model data', 'duplicateColumn');

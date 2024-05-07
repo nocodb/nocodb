@@ -61,6 +61,8 @@ import Down from '~icons/material-symbols/keyboard-arrow-down-rounded'
 import PhTriangleFill from '~icons/ph/triangle-fill'
 import LcSend from '~icons/lucide/send'
 import MdiPuzzle from '~icons/mdi/puzzle'
+import MaterialSymbolsArrowDropUp from '~icons/material-symbols/arrow-drop-up'
+import MaterialSymbolsArrowDropDown from '~icons/material-symbols/arrow-drop-down'
 
 import HasManyIcon from '~icons/nc-icons/hasmany'
 import ManytoManyIcon from '~icons/nc-icons/manytomany'
@@ -125,6 +127,9 @@ import NcArrowLeft from '~icons/nc-icons/arrow-left'
 import NcArrowRight from '~icons/nc-icons/arrow-right'
 import NcUpload from '~icons/nc-icons/upload'
 import NcDownload from '~icons/nc-icons/download'
+import NcOffice from '~icons/nc-icons/office'
+import NcArrowUpRight from '~icons/nc-icons/arrow-up-right'
+import NcSlash from '~icons/nc-icons/slash'
 // import NcProjectGray from '~icons/nc-icons/project-gray'
 import NcPhoneCall from '~icons/nc-icons/phone-call'
 import NcItalic from '~icons/nc-icons/italic'
@@ -132,6 +137,9 @@ import NcBold from '~icons/nc-icons/bold'
 import NcUnderline from '~icons/nc-icons/underline'
 import NcCrop from '~icons/nc-icons/crop'
 import NcLink from '~icons/nc-icons/link'
+import NcControlPanel from '~icons/nc-icons/control-panel'
+import NcHome from '~icons/nc-icons/home'
+import NcWorkspace from '~icons/nc-icons/workspace'
 
 import NcCellBarcode from '~icons/nc-icons/cell-barcode'
 import NcCellCheckbox from '~icons/nc-icons/cell-checkbox'
@@ -325,6 +333,11 @@ import NcHelp from '~icons/nc-icons/help'
 } as const */
 
 export const iconMap = {
+  slash: NcSlash,
+  arrowUpRight: NcArrowUpRight,
+  ncWorkspace: NcWorkspace,
+  controlPanel: NcControlPanel,
+  home: NcHome,
   cellBarcode: NcCellBarcode,
   cellCheckbox: NcCellCheckbox,
   cellDate: NcCellDate,
@@ -358,6 +371,7 @@ export const iconMap = {
   cellSystemText: NcCellSystemText,
   cellAttachment: NcCellAttachment,
 
+  office: NcOffice,
   sort: Sort,
   group: Group,
   filter: Filter,
@@ -585,6 +599,8 @@ export const iconMap = {
   ncSettings: NcSettings,
   ncHelp: NcHelp,
   puzzle: MdiPuzzle,
+  arrowDropUp: MaterialSymbolsArrowDropUp,
+  arrowDropDown: MaterialSymbolsArrowDropDown,
 }
 
 export const getMdiIcon = (type: string): any => {

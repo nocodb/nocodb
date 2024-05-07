@@ -2,6 +2,7 @@ import type { BaseType } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { message } from 'ant-design-vue'
 import { isString } from '@vue/shared'
+import type { ThemeConfig } from '#imports'
 import {
   computed,
   navigateTo,
@@ -13,7 +14,6 @@ import {
   useRouter,
   useTheme,
 } from '#imports'
-import type { ThemeConfig } from '#imports'
 
 export const useWorkspace = defineStore('workspaceStore', () => {
   const basesStore = useBases()
@@ -91,6 +91,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const updateCollaborator = async (..._args: any) => {}
 
   const loadWorkspace = async (..._args: any) => {}
+
+  const moveToOrg = async (..._args: any) => {}
 
   async function populateWorkspace(..._args: any) {
     isWorkspaceLoading.value = true
@@ -265,6 +267,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     workspaceUserCount,
     getPlanLimit,
     workspaceRole,
+    moveToOrg,
   }
 })
 

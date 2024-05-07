@@ -5,6 +5,7 @@ import {
   isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
   isVirtualCol,
+  RelationTypes,
   substituteColumnAliasWithIdInFormula,
   substituteColumnIdWithAliasInFormula,
   UITypes,
@@ -18,7 +19,6 @@ import type {
   ColumnReqType,
   LinkToAnotherColumnReqType,
   LinkToAnotherRecordType,
-  RelationTypes,
   UserType,
 } from 'nocodb-sdk';
 import type CustomKnex from '~/db/CustomKnex';
@@ -2417,9 +2417,9 @@ export class ColumnsService {
       };
 
       await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
+      // delete foreign key column
+      await Column.delete(childColumn.id, ncMeta);
     }
-    // delete foreign key column
-    await Column.delete(childColumn.id, ncMeta);
   };
 
   deleteOoRelation = async (
@@ -2492,7 +2492,7 @@ export class ColumnsService {
     const columnsInRelatedTable: Column[] = await relationColOpt
       .getRelatedTable(ncMeta)
       .then((m) => m.getColumns(ncMeta));
-    const relType = relationColOpt.type === 'bt' ? 'hm' : 'bt';
+    const relType = RelationTypes.ONE_TO_ONE;
     for (const c of columnsInRelatedTable) {
       if (c.uidt !== UITypes.LinkToAnotherRecord) continue;
       const colOpt = await c.getColOptions<LinkToAnotherRecordColumn>(ncMeta);
@@ -2562,9 +2562,10 @@ export class ColumnsService {
       };
 
       await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
+
+      // delete foreign key column
+      await Column.delete(childColumn.id, ncMeta);
     }
-    // delete foreign key column
-    await Column.delete(childColumn.id, ncMeta);
   };
 
   async createLTARColumn(param: {

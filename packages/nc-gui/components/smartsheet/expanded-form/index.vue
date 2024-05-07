@@ -51,6 +51,7 @@ interface Props {
   lastRow?: boolean
   closeAfterSave?: boolean
   newRecordHeader?: string
+  skipReload?: boolean
 }
 
 const props = defineProps<Props>()
@@ -102,7 +103,7 @@ const expandedFormScrollWrapper = ref()
 
 const reloadTrigger = inject(ReloadRowDataHookInj, createEventHook())
 
-const reloadViewDataTrigger = inject(ReloadViewDataHookInj)
+const reloadViewDataTrigger = inject(ReloadViewDataHookInj, createEventHook())
 
 const { addOrEditStackRow } = useKanbanViewStoreOrThrow()
 
@@ -137,6 +138,8 @@ provide(MetaInj, meta)
 
 const isLoading = ref(true)
 
+const isSaving = ref(false)
+
 const {
   commentsDrawer,
   changedColumns,
@@ -156,6 +159,8 @@ const {
 const duplicatingRowInProgress = ref(false)
 
 useProvideSmartsheetStore(ref({}) as Ref<ViewType>, meta)
+
+useProvideSmartsheetLtarHelpers(meta)
 
 watch(
   state,
@@ -205,33 +210,48 @@ const onDuplicateRow = () => {
 }
 
 const save = async () => {
-  let kanbanClbk
-  if (activeView.value?.type === ViewTypes.KANBAN) {
-    kanbanClbk = (row: any, isNewRow: boolean) => {
-      addOrEditStackRow(row, isNewRow)
+  isSaving.value = true
+
+  try {
+    let kanbanClbk
+    if (activeView.value?.type === ViewTypes.KANBAN) {
+      kanbanClbk = (row: any, isNewRow: boolean) => {
+        addOrEditStackRow(row, isNewRow)
+      }
+    }
+
+    if (isNew.value) {
+      await _save(rowState.value, undefined, {
+        kanbanClbk,
+      })
+    } else {
+      await _save(undefined, undefined, {
+        kanbanClbk,
+      })
+      _loadRow()
+    }
+
+    if (!props.skipReload) {
+      reloadTrigger?.trigger()
+      reloadViewDataTrigger?.trigger()
+    }
+
+    isUnsavedFormExist.value = false
+
+    if (props.closeAfterSave) {
+      isExpanded.value = false
+    }
+
+    emits('createdRecord', _row.value.row)
+  } catch (e: any) {
+    if (isNew.value) {
+      message.error(`Add row failed: ${await extractSdkResponseErrorMsg(e)}`)
+    } else {
+      message.error(`${t('msg.error.rowUpdateFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
     }
   }
-  if (isNew.value) {
-    await _save(rowState.value, undefined, {
-      kanbanClbk,
-    })
-    reloadTrigger?.trigger()
-    reloadViewDataTrigger?.trigger()
-  } else {
-    await _save(undefined, undefined, {
-      kanbanClbk,
-    })
-    _loadRow()
-    reloadTrigger?.trigger()
-    reloadViewDataTrigger?.trigger()
-  }
-  isUnsavedFormExist.value = false
 
-  if (props.closeAfterSave) {
-    isExpanded.value = false
-  }
-
-  emits('createdRecord', _row.value.row)
+  isSaving.value = false
 }
 
 const isPreventChangeModalOpen = ref(false)
@@ -375,15 +395,23 @@ useActiveKeyupListener(
 
       e.stopPropagation()
 
-      if (isNew.value) {
-        await _save(rowState.value)
-        reloadHook?.trigger(null)
-      } else {
-        await save()
-        reloadHook?.trigger(null)
-      }
-      if (!saveRowAndStay.value) {
-        onClose()
+      try {
+        if (isNew.value) {
+          await _save(rowState.value)
+          reloadHook?.trigger(null)
+        } else {
+          await save()
+          reloadHook?.trigger(null)
+        }
+        if (!saveRowAndStay.value) {
+          onClose()
+        }
+      } catch (e: any) {
+        if (isNew.value) {
+          message.error(`Add row failed: ${await extractSdkResponseErrorMsg(e)}`)
+        } else {
+          message.error(`${t('msg.error.rowUpdateFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
+        }
       }
       // on alt + n create new record
     } else if (e.code === 'KeyN') {
@@ -410,9 +438,13 @@ useActiveKeyupListener(
           okText: t('general.save'),
           cancelText: t('labels.discard'),
           onOk: async () => {
-            await _save(rowState.value)
-            reloadHook?.trigger(null)
-            addNewRow()
+            try {
+              await _save(rowState.value)
+              reloadHook?.trigger(null)
+              addNewRow()
+            } catch (e: any) {
+              message.error(`${t('msg.error.rowUpdateFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
+            }
           },
           onCancel: () => {
             addNewRow()
@@ -869,6 +901,7 @@ export default {
               <NcButton
                 v-e="['c:row-expand:save']"
                 :disabled="changedColumns.size === 0 && !isUnsavedFormExist"
+                :loading="isSaving"
                 class="nc-expand-form-save-btn !xs:(text-base)"
                 data-testid="nc-expanded-form-save"
                 type="primary"
@@ -915,7 +948,7 @@ export default {
       <div class="flex flex-row justify-end gap-x-2 mt-5">
         <NcButton type="secondary" @click="discardPreventModal">{{ $t('labels.discard') }}</NcButton>
 
-        <NcButton key="submit" type="primary" label="Rename Table" loading-label="Renaming Table" @click="saveChanges">
+        <NcButton key="submit" type="primary" :loading="isSaving" @click="saveChanges">
           {{ $t('tooltip.saveChanges') }}
         </NcButton>
       </div>

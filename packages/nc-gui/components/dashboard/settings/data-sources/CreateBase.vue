@@ -86,8 +86,7 @@ const customFormState = ref<ProjectCreateForm>({
 
 const clientTypes = computed(() => {
   return _clientTypes.filter((type) => {
-    // return appInfo.value?.ee || type.value !== ClientType.SNOWFLAKE
-    return type.value !== ClientType.SNOWFLAKE
+    return ![ClientType.SNOWFLAKE, ClientType.DATABRICKS].includes(type.value)
   })
 })
 

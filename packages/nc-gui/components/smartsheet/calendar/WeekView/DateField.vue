@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import dayjs from 'dayjs'
-import { type ColumnType } from 'nocodb-sdk'
+import type { ColumnType } from 'nocodb-sdk'
 import type { Row } from '~/lib'
 import { computed, ref, useViewColumnsOrThrow } from '#imports'
 import { generateRandomNumber, isRowEmpty } from '~/utils'
@@ -22,14 +22,22 @@ const fields = inject(FieldsInj, ref())
 
 const { fields: _fields } = useViewColumnsOrThrow()
 
-const getFieldStyle = (field: ColumnType | undefined) => {
-  const fi = _fields.value?.find((f) => f.title === field?.title)
+const fieldStyles = computed(() => {
+  if (!_fields.value) return new Map()
+  return new Map(
+    _fields.value.map((field) => [
+      field.fk_column_id,
+      {
+        underline: field.underline,
+        bold: field.bold,
+        italic: field.italic,
+      },
+    ]),
+  )
+})
 
-  return {
-    underline: fi?.underline,
-    bold: fi?.bold,
-    italic: fi?.italic,
-  }
+const getFieldStyle = (field: ColumnType) => {
+  return fieldStyles.value.get(field.id)
 }
 
 // Calculate the dates of the week
@@ -69,6 +77,18 @@ const findFirstSuitableRow = (recordsInDay: any, startDayIndex: number, spanDays
     }
     row++
   }
+}
+
+const isInRange = (date: dayjs.Dayjs) => {
+  return (
+    date &&
+    date.isBetween(
+      dayjs(selectedDateRange.value.start).startOf('day'),
+      dayjs(selectedDateRange.value.end).endOf('day'),
+      'day',
+      '[]',
+    )
+  )
 }
 
 const calendarData = computed(() => {
@@ -156,9 +176,8 @@ const calendarData = computed(() => {
 
         let position = 'none'
 
-        const isStartInRange =
-          ogStartDate && ogStartDate.isBetween(selectedDateRange.value.start, selectedDateRange.value.end, 'day', '[]')
-        const isEndInRange = endDate && endDate.isBetween(selectedDateRange.value.start, selectedDateRange.value.end, 'day', '[]')
+        const isStartInRange = isInRange(ogStartDate)
+        const isEndInRange = isInRange(endDate)
 
         // Calculate the position of the record in the calendar based on the start and end date
         // The position can be 'none', 'leftRounded', 'rightRounded', 'rounded'

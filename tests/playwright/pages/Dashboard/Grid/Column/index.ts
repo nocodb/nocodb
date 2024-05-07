@@ -173,7 +173,7 @@ export class ColumnPageObject extends BasePage {
       case 'Links':
         await this.get()
           .locator('.nc-ltar-relation-type >> .ant-radio')
-          .nth(relationType === 'Has Many' ? 0 : 1)
+          .nth(relationType === 'Has Many' ? 1 : 2)
           .click();
         await this.get().locator('.ant-select-single').nth(1).click();
         await this.rootPage.locator(`.nc-ltar-child-table >> input[type="search"]`).fill(childTable);
@@ -296,7 +296,8 @@ export class ColumnPageObject extends BasePage {
     // when clicked on the dropdown cell header
     await this.getColumnHeader(title).locator('.nc-ui-dt-dropdown').scrollIntoViewIfNeeded();
     await this.getColumnHeader(title).locator('.nc-ui-dt-dropdown').click();
-    await this.rootPage.locator('li[role="menuitem"]:has-text("Edit")').last().click();
+    await expect(await this.rootPage.locator('li[role="menuitem"]:has-text("Edit"):visible').last()).toBeVisible();
+    await this.rootPage.locator('li[role="menuitem"]:has-text("Edit"):visible').last().click();
 
     await this.get().waitFor({ state: 'visible' });
 
@@ -320,14 +321,26 @@ export class ColumnPageObject extends BasePage {
         // Date Format
         await this.get().locator('.nc-date-select').click();
         await this.rootPage.locator('.ant-select-item').locator(`text="${dateFormat}"`).click();
+
+        // allow UI to update
+        await this.rootPage.waitForTimeout(500);
+
         // Time Format
         await this.get().locator('.nc-time-select').click();
         await this.rootPage.locator('.ant-select-item').locator(`text="${timeFormat}"`).click();
+
+        // allow UI to update
+        await this.rootPage.waitForTimeout(500);
+
         break;
       case 'Date':
         await this.get().locator('.nc-date-select').click();
-        await this.rootPage.locator('.nc-date-select').pressSequentially(dateFormat);
+        await this.rootPage.locator('.nc-date-select').pressSequentially(dateFormat, { delay: 100 });
         await this.rootPage.locator('.ant-select-item').locator(`text="${dateFormat}"`).click();
+
+        // allow UI to update
+        await this.rootPage.waitForTimeout(500);
+
         break;
       default:
         break;

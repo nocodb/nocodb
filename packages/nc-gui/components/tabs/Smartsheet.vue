@@ -21,9 +21,11 @@ import {
   provide,
   ref,
   toRef,
+  useExpandedFormDetachedProvider,
   useMetas,
   useProvideCalendarViewStore,
   useProvideKanbanViewStore,
+  useProvideSmartsheetLtarHelpers,
   useProvideSmartsheetStore,
   useRoles,
   useSqlEditor,
@@ -54,11 +56,9 @@ const { handleSidebarOpenOnMobileForNonViews } = useConfigStore()
 const { activeTableId } = storeToRefs(useTablesStore())
 
 const { activeView, openedViewsTab, activeViewTitleOrId } = storeToRefs(useViewsStore())
-const { isGallery, isGrid, isForm, isKanban, isLocked, isMap, isCalendar } = useProvideSmartsheetStore(activeView, meta)
+const { isGallery, isGrid, isForm, isKanban, isLocked, isMap, isCalendar, xWhere } = useProvideSmartsheetStore(activeView, meta)
 
 useSqlEditor()
-
-const { isPanelExpanded } = useExtensions()
 
 const reloadViewDataEventHook = createEventHook()
 
@@ -84,8 +84,12 @@ provide(
   ReadonlyInj,
   computed(() => !isUIAllowed('dataEdit')),
 )
+useExpandedFormDetachedProvider()
 
 useProvideViewColumns(activeView, meta, () => reloadViewDataEventHook?.trigger())
+useProvideViewGroupBy(activeView, meta, xWhere)
+
+useProvideSmartsheetLtarHelpers(meta)
 
 const grid = ref()
 

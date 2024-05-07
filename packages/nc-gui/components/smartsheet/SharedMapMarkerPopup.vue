@@ -1,7 +1,4 @@
 <script lang="ts" setup>
-import type { ColumnType, TableType } from 'nocodb-sdk'
-import type { Ref } from 'vue'
-
 import { isVirtualCol } from 'nocodb-sdk'
 import {
   ActiveViewInj,
@@ -52,7 +49,7 @@ provide(ReloadRowDataHookInj, reloadViewDataHook!)
 
 const currentRow = toRef(props, 'row')
 
-useProvideSmartsheetRowStore(meta as Ref<TableType>, currentRow)
+useProvideSmartsheetRowStore(currentRow)
 </script>
 
 <template>

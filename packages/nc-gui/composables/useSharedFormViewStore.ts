@@ -1,7 +1,6 @@
 import useVuelidate from '@vuelidate/core'
 import { helpers, minLength, required, sameAs } from '@vuelidate/validators'
 import dayjs from 'dayjs'
-import type { Ref } from 'vue'
 import type {
   BoolType,
   ColumnType,
@@ -91,8 +90,9 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   const preFilledDefaultValueformState = ref<Record<string, any>>({})
 
+  useProvideSmartsheetLtarHelpers(meta)
+
   const { state: additionalState } = useProvideSmartsheetRowStore(
-    meta as Ref<TableType>,
     ref({
       row: formState,
       rowMeta: { new: true },
@@ -217,7 +217,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         ((column.rqd && !column.cdf) || (column.pk && !(column.ai || column.cdf)) || column.required)
       ) {
         obj.localState[column.title!] = {
-          required: fieldRequired(undefined, column.uidt === UITypes.Checkbox && column.required ? true : false),
+          required: fieldRequired(undefined, !!(column.uidt === UITypes.Checkbox && column.required)),
         }
       } else if (
         isLinksOrLTAR(column) &&

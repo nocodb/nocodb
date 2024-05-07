@@ -12,6 +12,7 @@ import {
   Forbidden,
   NcBaseErrorv2,
   NotFound,
+  SsoError,
   Unauthorized,
   UnprocessableEntity,
 } from '~/helpers/catchError';
@@ -38,16 +39,20 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       exception = new NcBaseErrorv2(NcErrorType.BAD_JSON);
     }
 
+    const dbError = extractDBError(exception);
+
     // skip unnecessary error logging
     if (
       process.env.NC_ENABLE_ALL_API_ERROR_LOGGING === 'true' ||
       !(
+        dbError ||
         exception instanceof BadRequest ||
         exception instanceof AjvError ||
         exception instanceof Unauthorized ||
         exception instanceof Forbidden ||
         exception instanceof NotFound ||
         exception instanceof UnprocessableEntity ||
+        exception instanceof SsoError ||
         exception instanceof NotFoundException ||
         exception instanceof ThrottlerException ||
         exception instanceof ExternalError ||
@@ -69,14 +74,31 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       );
     }
 
+    // if sso error then redirect to ui with error in query parameter
+    if (
+      exception instanceof SsoError ||
+      request.route?.path === '/sso/:clientId/redirect'
+    ) {
+      if (!(exception instanceof SsoError)) {
+        this.logger.warn(exception.message, exception.stack);
+      }
+
+      // encode the query parameter
+      const redirectUrl = `${
+        request.dashboardUrl
+      }?ui-redirect=${encodeURIComponent(
+        `/sso?error=${encodeURIComponent(exception.message)}`,
+      )}`;
+
+      return response.redirect(redirectUrl);
+    }
+
     // API not found
     if (exception instanceof NotFoundException) {
       this.logger.debug(exception.message, exception.stack);
 
       return response.status(404).json({ msg: exception.message });
     }
-
-    const dbError = extractDBError(exception);
 
     if (dbError) {
       return response.status(400).json(dbError);

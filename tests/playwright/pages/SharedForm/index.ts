@@ -25,7 +25,7 @@ export class SharedFormPage extends BasePage {
   }
 
   async verifySuccessMessage() {
-    await this.rootPage.locator('.nc-shared-form-success-msg').waitFor({ state: 'visible' });
+    await this.rootPage.locator('.nc-shared-form-success-msg').waitFor({ state: 'visible', timeout: 10000 });
     await expect(
       this.get().locator('.ant-alert-success', {
         hasText: 'Successfully submitted form data',
@@ -40,7 +40,8 @@ export class SharedFormPage extends BasePage {
   }
 
   async closeLinkToChildList() {
-    await this.get().locator('.nc-close-btn').click();
+    // await this.get().locator('.nc-close-btn').click();
+    await this.rootPage.keyboard.press('Escape');
   }
 
   async verifyChildList(cardTitle?: string[]) {
@@ -69,6 +70,9 @@ export class SharedFormPage extends BasePage {
   }
 
   async selectChildList(cardTitle: string) {
-    await this.get().locator(`.ant-card:has-text("${cardTitle}"):visible`).click();
+    await this.get()
+      .locator(`.ant-card:has-text("${cardTitle}"):visible`)
+      .locator('.nc-list-item-link-unlink-btn')
+      .click();
   }
 }

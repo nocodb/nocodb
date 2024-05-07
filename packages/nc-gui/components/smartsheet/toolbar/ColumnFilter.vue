@@ -371,6 +371,23 @@ watch(
     immediate: true,
   },
 )
+
+const isLogicalOpChangeAllowed = computed(() => {
+  return new Set(filters.value.slice(1).map((filter) => filter.logical_op)).size > 1
+})
+
+// when logical operation is updated, update all the siblings with the same logical operation only if it's in locked state
+const onLogicalOpUpdate = async (filter: Filter, index: number) => {
+  if (index === 1 && filters.value.slice(2).every((siblingFilter) => siblingFilter.logical_op !== filter.logical_op)) {
+    await Promise.all(
+      filters.value.slice(2).map(async (siblingFilter, i) => {
+        siblingFilter.logical_op = filter.logical_op
+        await saveOrUpdate(siblingFilter, i + 2, false, false, true)
+      }),
+    )
+  }
+  await filterUpdateCondition(filter, index)
+}
 </script>
 
 <template>
@@ -403,6 +420,7 @@ watch(
                     class="min-w-20 capitalize"
                     placeholder="Group op"
                     dropdown-class-name="nc-dropdown-filter-logical-op-group"
+                    :disabled="i > 1 && !isLogicalOpChangeAllowed"
                     @click.stop
                     @change="saveOrUpdate(filter, i)"
                   >
@@ -455,9 +473,9 @@ watch(
               :dropdown-match-select-width="false"
               class="h-full !min-w-20 !max-w-20 capitalize"
               hide-details
-              :disabled="filter.readOnly"
+              :disabled="filter.readOnly || (i > 1 && !isLogicalOpChangeAllowed)"
               dropdown-class-name="nc-dropdown-filter-logical-op"
-              @change="filterUpdateCondition(filter, i)"
+              @change="onLogicalOpUpdate(filter, i)"
               @click.stop
             >
               <a-select-option v-for="op of logicalOps" :key="op.value" :value="op.value">
@@ -601,7 +619,7 @@ watch(
           </div>
         </NcButton>
 
-        <NcButton v-if="!webHook && nestedLevel < 5" type="text" size="small" @click.stop="addFilterGroup()">
+        <NcButton v-if="nestedLevel < 5" type="text" size="small" @click.stop="addFilterGroup()">
           <div class="flex items-center gap-1">
             <!-- Add Filter Group -->
             <component :is="iconMap.plus" />

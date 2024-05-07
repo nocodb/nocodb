@@ -33,7 +33,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        test: ${{fromJson(env.matrix)}}
+        test: ${{fromJson(needs.prepare.outputs.matrix)}}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

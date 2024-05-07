@@ -19,7 +19,7 @@ jobs:
         id: set-matrix
         run: |
           BATS_FILES=$(find docker-compose/setup-script/tests -name '*.bats')
-          MATRIX_JSON=$(echo $BATS_FILES | tr -d '\n' | jq -Rsc 'split(" ")')
+          MATRIX_JSON=$(echo $BATS_FILES | tr -d '\n' | jq -Rsc 'split(" ")' | tr '"' "'")
           echo "matrix=$MATRIX_JSON" >> $GITHUB_ENV
 
   test:

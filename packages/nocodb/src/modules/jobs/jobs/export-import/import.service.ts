@@ -299,9 +299,8 @@ export class ImportService {
                         colOptions.fk_mm_model_id && a.id !== col.id,
                   );
 
-                // missing child column means it's referencing the same model
-                // in such case we skip creating the link column
-                if (!childColumn) {
+                // referencing the same model
+                if (colOptions.fk_related_model_id === modelData.id) {
                   continue;
                 }
 
@@ -392,9 +391,30 @@ export class ImportService {
                     a.id !== col.id,
                 );
 
-              // missing child column means it's referencing the same model
-              // in such case we skip creating the link column
-              if (!childColumn) {
+              // referencing the same model
+              if (colOptions.fk_related_model_id === modelData.id) {
+                const counterRelationType =
+                  colOptions.type === 'hm' ? 'bt' : 'oo';
+                const oldCol = childModel.columns.find(
+                  (oColumn) =>
+                    oColumn.colOptions?.fk_parent_column_id ===
+                      getEntityIdentifier(colOptions.fk_parent_column_id) &&
+                    oColumn.colOptions?.fk_child_column_id ===
+                      getEntityIdentifier(colOptions.fk_child_column_id) &&
+                    oColumn.colOptions?.type === counterRelationType,
+                );
+                const col = childModel.columns.find(
+                  (nColumn) =>
+                    nColumn.colOptions?.fk_parent_column_id ===
+                      getIdOrExternalId(colOptions.fk_parent_column_id) &&
+                    nColumn.colOptions?.fk_child_column_id ===
+                      getIdOrExternalId(colOptions.fk_child_column_id) &&
+                    nColumn.colOptions?.type === counterRelationType,
+                );
+                idMap.set(
+                  `${oldCol.base_id}::${oldCol.source_id}::${oldCol.fk_model_id}::${oldCol.id}`,
+                  col.id,
+                );
                 continue;
               }
 

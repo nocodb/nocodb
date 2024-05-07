@@ -352,7 +352,7 @@ export class DuplicateProcessor {
           .map((c) => c.id);
 
         if (bts.length > 0) {
-          fields[md.id] = [md.primaryKey.id];
+          fields[md.id] = fields[md.id] ? fields[md.id] : [md.primaryKey.id];
           fields[md.id].push(...bts);
         }
       }
@@ -365,7 +365,10 @@ export class DuplicateProcessor {
         destBase: source,
         hrTime,
         modelFieldIds: fields,
-        externalModels: [sourceModel, ...relatedModels],
+        externalModels: [
+          sourceModel,
+          ...relatedModels.filter((m) => m.id !== sourceModel.id),
+        ],
       });
 
       elapsedTime(hrTime, 'import model data', 'duplicateColumn');

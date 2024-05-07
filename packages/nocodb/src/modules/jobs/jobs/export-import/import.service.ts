@@ -299,6 +299,12 @@ export class ImportService {
                         colOptions.fk_mm_model_id && a.id !== col.id,
                   );
 
+                // missing child column means it's referencing the same model
+                // in such case we skip creating the link column
+                if (!childColumn) {
+                  continue;
+                }
+
                 for (const nColumn of childModel.columns) {
                   if (
                     nColumn?.colOptions?.fk_mm_model_id ===
@@ -385,6 +391,12 @@ export class ImportService {
                       colOptions.fk_child_column_id &&
                     a.id !== col.id,
                 );
+
+              // missing child column means it's referencing the same model
+              // in such case we skip creating the link column
+              if (!childColumn) {
+                continue;
+              }
 
               for (const nColumn of childModel.columns) {
                 if (

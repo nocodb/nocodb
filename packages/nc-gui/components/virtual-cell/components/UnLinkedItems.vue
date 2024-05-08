@@ -463,6 +463,7 @@ const onFilterChange = () => {
         :state="newRowState"
         use-meta-fields
         :skip-reload="true"
+        new-record-submit-btn-text="Create & Link"
         @created-record="onCreatedRecord"
       />
     </Suspense>

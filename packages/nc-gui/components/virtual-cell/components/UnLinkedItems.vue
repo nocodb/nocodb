@@ -389,7 +389,9 @@ const onFilterChange = () => {
         </template>
         <div v-else class="h-full my-auto py-2 flex flex-col gap-3 items-center justify-center text-gray-500">
           <InboxIcon class="w-16 h-16 mx-auto" />
-          <p>
+
+          <p v-if="childrenExcludedListPagination.query">{{ $t('msg.noRecordsMatchYourSearchQuery') }}</p>
+          <p v-else>
             {{ $t('msg.thereAreNoRecordsInTable') }}
             {{ relatedTableMeta?.title }}
           </p>

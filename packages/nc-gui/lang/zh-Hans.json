@@ -714,6 +714,7 @@
     "hasMany": "有很多的",
     "belongsTo": "属于",
     "manyToMany": "多对多关系",
+    "oneToOne": "have one to one relation",
     "extraConnectionParameters": "额外连接参数",
     "commentsOnly": "仅评论",
     "documentation": "文档",

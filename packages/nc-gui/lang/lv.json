@@ -714,6 +714,7 @@
     "hasMany": "ir daudz",
     "belongsTo": "pieder",
     "manyToMany": "ir daudz ar daudzām attiecībām",
+    "oneToOne": "have one to one relation",
     "extraConnectionParameters": "Papildu savienojuma parametri",
     "commentsOnly": "Tikai komentāri",
     "documentation": "Dokumentācija",

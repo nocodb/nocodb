@@ -363,7 +363,7 @@ const handleFileDelete = (i: number) => {
 
           <component
             :is="iconMap.expand"
-            class="flex-none transform dark:(!text-white) group-hover:(!text-grey-800 scale-120) text-gray-500 text-[0.75rem]"
+            class="flex-none transform dark:(!text-white) group-hover:(!text-grey-800 scale-120) text-gray-500 text-[2rem] h-3"
             @click.stop="onExpand"
           />
         </NcTooltip>
@@ -417,7 +417,8 @@ const handleFileDelete = (i: number) => {
     @apply relative;
 
     .nc-attachment-remove {
-      @apply absolute -right-2 -top-2 rounded-full hidden;
+      @apply absolute right-0.8 top-0.8 rounded hidden p-0.5 bg-white text-lg leading-none;
+      box-shadow: 0px 0px 4px #bbb;
     }
 
     &:hover .nc-attachment-remove {

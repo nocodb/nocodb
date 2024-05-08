@@ -84,8 +84,8 @@ watch(
 
 <template>
   <LazyVirtualCellComponentsLinkRecordDropdown v-model:is-open="isOpen">
-    <div class="flex w-full chips-wrapper items-center" :class="{ active }">
-      <div class="nc-cell-field chips flex items-center flex-1">
+    <div class="flex w-full chips-wrapper items-center min-h-7.7" :class="{ active }">
+      <div class="nc-cell-field chips flex items-center flex-1 max-w-[calc(100%_-_16px)]">
         <template v-if="value && (relatedTableDisplayValueProp || relatedTableDisplayValuePropId)">
           <VirtualCellComponentsItemChip
             :item="value"
@@ -109,7 +109,11 @@ watch(
       >
         <GeneralIcon
           :icon="addIcon"
-          class="select-none !text-md text-gray-700 nc-action-icon nc-plus invisible group-hover:visible group-focus:visible"
+          class="select-none text-gray-700 nc-action-icon nc-plus invisible group-hover:visible group-focus:visible"
+          :class="{
+            '!text-[14px]': addIcon === 'expand',
+            '!text-md': addIcon !== 'expand',
+          }"
           @click.stop="listItemsDlg = true"
         />
       </div>

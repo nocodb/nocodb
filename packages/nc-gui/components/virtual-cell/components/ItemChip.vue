@@ -28,6 +28,8 @@ const isForm = inject(IsFormInj)!
 const { open } = useExpandedFormDetached()
 
 function openExpandedForm() {
+  if (!active.value) return
+
   const rowId = extractPkFromRow(item, relatedTableMeta.value.columns as ColumnType[])
   if (!readOnly.value && !readonlyProp && rowId) {
     open({
@@ -86,10 +88,14 @@ export default {
       </span>
     </div>
 
-    <div v-show="active || isForm" v-if="showUnlinkButton && !readOnly && isUIAllowed('dataEdit')" class="flex items-center">
+    <div
+      v-show="active || isForm"
+      v-if="showUnlinkButton && !readOnly && isUIAllowed('dataEdit')"
+      class="flex items-center cursor-pointer"
+    >
       <component
         :is="iconMap.closeThick"
-        class="nc-icon unlink-icon text-xs text-gray-500/50 group-hover:text-gray-500"
+        class="nc-icon unlink-icon text-gray-500/50 group-hover:text-gray-500 ml-0.5 cursor-pointer"
         @click.stop="emit('unlink')"
       />
     </div>

@@ -109,7 +109,11 @@ watch(
       >
         <GeneralIcon
           :icon="addIcon"
-          class="select-none !text-md text-gray-700 nc-action-icon nc-plus invisible group-hover:visible group-focus:visible"
+          class="select-none text-gray-700 nc-action-icon nc-plus invisible group-hover:visible group-focus:visible"
+          :class="{
+            '!text-[14px]': addIcon === 'expand',
+            '!text-md': addIcon !== 'expand',
+          }"
           @click.stop="listItemsDlg = true"
         />
       </div>

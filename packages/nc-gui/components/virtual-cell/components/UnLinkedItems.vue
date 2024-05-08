@@ -306,13 +306,12 @@ const onFilterChange = () => {
           </button>
 
           <div class="flex-1 nc-dropdown-link-record-search-wrapper flex items-center py-0.5 rounded-md">
-            <MdiMagnify class="nc-search-icon w-5 h-5" />
             <a-input
               ref="filterQueryRef"
               v-model:value="childrenExcludedListPagination.query"
               :bordered="false"
               placeholder="Search records to link..."
-              class="w-full nc-excluded-search min-h-4"
+              class="w-full nc-excluded-search min-h-4 !pl-0"
               size="small"
               @change="onFilterChange"
               @keydown.capture.stop="
@@ -323,6 +322,9 @@ const onFilterChange = () => {
                 }
               "
             >
+              <template #prefix>
+                <GeneralIcon icon="search" class="nc-search-icon mr-2 h-4 w-4 text-gray-500" />
+              </template>
             </a-input>
           </div>
         </div>

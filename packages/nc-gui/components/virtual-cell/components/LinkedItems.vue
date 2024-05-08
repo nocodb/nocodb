@@ -308,13 +308,12 @@ const onFilterChange = () => {
     <div class="flex flex-col h-full">
       <div class="nc-dropdown-link-record-header bg-gray-100 py-2 rounded-t-xl flex justify-between pl-3 pr-2 gap-2">
         <div v-if="!isForm" class="flex-1 nc-dropdown-link-record-search-wrapper flex items-center py-0.5 rounded-md">
-          <MdiMagnify class="nc-search-icon w-5 h-5" />
           <a-input
             ref="filterQueryRef"
             v-model:value="childrenListPagination.query"
             :bordered="false"
             placeholder="Search linked records..."
-            class="w-full min-h-4"
+            class="w-full min-h-4 !pl-0"
             size="small"
             @change="onFilterChange"
             @keydown.capture.stop="
@@ -325,6 +324,9 @@ const onFilterChange = () => {
               }
             "
           >
+            <template #prefix>
+              <GeneralIcon icon="search" class="nc-search-icon mr-2 h-4 w-4 text-gray-500" />
+            </template>
           </a-input>
         </div>
         <div v-else>&nbsp;</div>

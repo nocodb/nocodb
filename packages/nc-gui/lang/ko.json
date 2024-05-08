@@ -1200,6 +1200,7 @@
     "noNewNotifications": "새 알림 없음",
     "noRecordFound": "레코드를 찾을 수 없습니다.",
     "noRecordsFound": "No records found",
+    "noRecordsMatchYourSearchQuery": "No records match your search query",
     "rowDeleted": "행이 삭제되었습니다.",
     "saveChanges": "변경 사항을 저장하시겠습니까?",
     "tooLargeFieldEntity": "{entity}를 저장할 수 없습니다. 필드가 너무 큽니다.",

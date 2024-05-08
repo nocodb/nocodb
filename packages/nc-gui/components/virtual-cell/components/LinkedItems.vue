@@ -345,26 +345,21 @@ const onFilterChange = () => {
               <div
                 v-for="(_x, i) in Array.from({ length: skeletonCount })"
                 :key="i"
-                class="flex flex-row gap-2 mb-2 transition-all relative !border-gray-200 hover:bg-gray-50"
+                class="flex flex-row gap-3 px-3 py-2 transition-all relative border-b-1 border-gray-200 hover:bg-gray-50"
               >
                 <div class="flex items-center">
-                  <a-skeleton-image class="h-14 w-14 !rounded-xl children:!h-full" />
+                  <a-skeleton-image class="!h-11 !w-11 !rounded-md overflow-hidden children:(!h-full !w-full)" />
                 </div>
                 <div class="flex flex-col gap-2 flex-grow justify-center">
-                  <a-skeleton-input active class="h-3 !w-48 !rounded-xl" size="small" />
+                  <a-skeleton-input active class="h-4 !w-48 !rounded-md overflow-hidden" size="small" />
                   <div class="flex flex-row gap-6 w-10/12">
-                    <div class="flex flex-col gap-0.5">
-                      <a-skeleton-input active class="!h-2 !w-12" size="small" />
-                      <a-skeleton-input active class="!h-2 !w-24" size="small" />
-                    </div>
-                    <div class="flex flex-col gap-0.5">
-                      <a-skeleton-input active class="!h-2 !w-12" size="small" />
-                      <a-skeleton-input active class="!h-2 !w-24" size="small" />
-                    </div>
-                    <div class="flex flex-col gap-0.5">
-                      <a-skeleton-input active class="!h-2 !w-12" size="small" />
-                      <a-skeleton-input active class="!h-2 !w-24" size="small" />
-                    </div>
+                    <a-skeleton-input
+                      v-for="i of [1, 2, 3]"
+                      :key="i"
+                      active
+                      class="!h-3 !w-24 !rounded-md overflow-hidden"
+                      size="small"
+                    />
                   </div>
                 </div>
               </div>
@@ -496,8 +491,8 @@ const onFilterChange = () => {
   @apply !p-0;
 }
 
-:deep(.ant-skeleton-element .ant-skeleton-image) {
-  @apply !h-full;
+:deep(.ant-skeleton-element .ant-skeleton-image-svg) {
+  @apply !w-7;
 }
 </style>
 

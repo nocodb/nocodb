@@ -1,8 +1,6 @@
 import type { ColumnType, GridColumnReqType, GridColumnType, MapType, TableType, ViewType } from 'nocodb-sdk'
 import { ViewTypes, isHiddenCol, isSystemColumn } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
-import type { Field } from '#imports'
-import { computed, ref, storeToRefs, useBase, useNuxtApp, useRoles, useUndoRedo, watch } from '#imports'
 
 const [useProvideViewColumns, useViewColumns] = useInjectionState(
   (

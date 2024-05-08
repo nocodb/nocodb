@@ -1,5 +1,5 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
-import { MAX_WIDTH_FOR_MOBILE_MODE } from '~/lib'
+import { MAX_WIDTH_FOR_MOBILE_MODE } from '~/lib/constants'
 
 export const useConfigStore = defineStore('configStore', () => {
   const { isMobileMode: globalIsMobile } = useGlobal()

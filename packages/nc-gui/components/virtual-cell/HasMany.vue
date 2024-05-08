@@ -2,22 +2,6 @@
 import type { ColumnType } from 'nocodb-sdk'
 import { isSystemColumn } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import {
-  CellValueInj,
-  ColumnInj,
-  IsFormInj,
-  IsUnderLookupInj,
-  ReadonlyInj,
-  ReloadRowDataHookInj,
-  RowInj,
-  computed,
-  inject,
-  ref,
-  useProvideLTARStore,
-  useRoles,
-  useSelectedCellKeyupListener,
-  useSmartsheetRowStoreOrThrow,
-} from '#imports'
 
 const column = inject(ColumnInj)!
 

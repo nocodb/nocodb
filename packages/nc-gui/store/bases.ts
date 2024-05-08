@@ -2,8 +2,6 @@ import { acceptHMRUpdate, defineStore } from 'pinia'
 import type { BaseType, OracleUi, ProjectUserReqType, RequestParams, SourceType } from 'nocodb-sdk'
 import { SqlUiFactory } from 'nocodb-sdk'
 import { isString } from '@vue/shared'
-import { useWorkspace } from '#imports'
-import type { NcProject, User } from '#imports'
 
 // todo: merge with base store
 export const useBases = defineStore('basesStore', () => {

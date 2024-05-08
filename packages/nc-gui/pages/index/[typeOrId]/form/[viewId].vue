@@ -1,25 +1,4 @@
 <script setup lang="ts">
-import {
-  IsFormInj,
-  IsPublicInj,
-  MetaInj,
-  ReloadViewDataHookInj,
-  applyLanguageDirection,
-  createError,
-  createEventHook,
-  definePageMeta,
-  navigateTo,
-  provide,
-  reactive,
-  ref,
-  useI18n,
-  useProvideSharedFormStore,
-  useProvideSmartsheetStore,
-  useRoute,
-  useSidebar,
-  watch,
-} from '#imports'
-
 definePageMeta({
   public: true,
   pageType: 'shared-view',

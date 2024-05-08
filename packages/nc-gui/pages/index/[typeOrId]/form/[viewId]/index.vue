@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { navigateTo, useDark, useRoute, useRouter, useSharedFormStoreOrThrow } from '#imports'
-
 const { sharedViewMeta, sharedFormView } = useSharedFormStoreOrThrow()
 
 const isDark = useDark()

@@ -1,19 +1,6 @@
 <script setup lang="ts">
 import type { Card as AntCard } from 'ant-design-vue'
-import {
-  Form,
-  JobStatus,
-  computed,
-  extractSdkResponseErrorMsg,
-  fieldRequiredValidator,
-  iconMap,
-  message,
-  nextTick,
-  onMounted,
-  ref,
-  useNuxtApp,
-  watch,
-} from '#imports'
+import { JobStatus } from '#imports'
 
 const { modelValue, baseId, sourceId } = defineProps<{
   modelValue: boolean

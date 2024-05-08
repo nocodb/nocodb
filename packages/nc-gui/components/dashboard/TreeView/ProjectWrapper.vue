@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import type { BaseType } from 'nocodb-sdk'
-import { ProjectInj, ProjectRoleInj } from '#imports'
 
 const props = withDefaults(
   defineProps<{

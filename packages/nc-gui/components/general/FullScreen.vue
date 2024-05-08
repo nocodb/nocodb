@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { computed, isDrawerOrModalExist, isMac, useNuxtApp, useSidebar } from '#imports'
-
 const rightSidebar = useSidebar('nc-right-sidebar')
 
 const leftSidebar = useSidebar('nc-left-sidebar')

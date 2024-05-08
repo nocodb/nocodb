@@ -1,5 +1,4 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
-import { isDrawerOrModalExist, useEventListener } from '#imports'
 
 export const useProjectsShortcuts = defineStore('projectsShortcutsStore', () => {
   const { $e } = useNuxtApp()

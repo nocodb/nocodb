@@ -1,14 +1,4 @@
 <script setup lang="ts">
-import {
-  ActiveViewInj,
-  FieldsInj,
-  IsPublicInj,
-  MetaInj,
-  ReadonlyInj,
-  ReloadViewDataHookInj,
-  useProvideMapViewStore,
-} from '#imports'
-
 const { sharedView, meta, nestedFilters } = useSharedView()
 
 const reloadEventHook = createEventHook()

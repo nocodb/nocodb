@@ -1,17 +1,4 @@
 <script setup lang="ts">
-import {
-  extractSdkResponseErrorMsg,
-  iconMap,
-  message,
-  onMounted,
-  storeToRefs,
-  useBase,
-  useCopy,
-  useDashboard,
-  useI18n,
-  useNuxtApp,
-} from '#imports'
-
 interface ShareBase {
   uuid?: string
   url?: string

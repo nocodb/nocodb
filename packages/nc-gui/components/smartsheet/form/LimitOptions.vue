@@ -3,8 +3,7 @@ import Draggable from 'vuedraggable'
 import tinycolor from 'tinycolor2'
 import type { ColumnType, SelectOptionType, SelectOptionsType, UserFieldRecordType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
-import type { FormFieldsLimitOptionsType } from '~/lib'
-import { MetaInj, iconMap } from '#imports'
+import type { FormFieldsLimitOptionsType } from '~/lib/types'
 
 const props = defineProps<{
   modelValue: FormFieldsLimitOptionsType[]

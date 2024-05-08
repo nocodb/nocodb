@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { iconMap } from '#imports'
-
 const props = defineProps<{
   icon: keyof typeof iconMap
 }>()

@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { computed, navigateTo, onMounted, ref, storeToRefs, useGlobal, useSidebarStore, useUsers, watch } from '#imports'
-
 const { user, signOut, appInfo } = useGlobal()
 // So watcher in users store is triggered
 useUsers()

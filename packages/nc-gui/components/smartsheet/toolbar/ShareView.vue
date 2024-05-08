@@ -2,25 +2,6 @@
 import { ViewTypes } from 'nocodb-sdk'
 import { isString } from '@vue/shared'
 import tinycolor from 'tinycolor2'
-import {
-  baseThemeColors,
-  computed,
-  extractSdkResponseErrorMsg,
-  iconMap,
-  isRtlLang,
-  message,
-  ref,
-  storeToRefs,
-  useBase,
-  useCopy,
-  useDashboard,
-  useI18n,
-  useNuxtApp,
-  useRoles,
-  useSmartsheetStoreOrThrow,
-  watch,
-} from '#imports'
-import type { SharedView } from '#imports'
 
 const { t } = useI18n()
 

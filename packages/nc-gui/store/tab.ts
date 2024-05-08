@@ -1,8 +1,6 @@
 import type { BaseType, SourceType } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
 import { defineStore } from 'pinia'
-import { TabType, computed, ref } from '#imports'
-import type { TabItem } from '#imports'
 
 export const useTabs = defineStore('tabStore', () => {
   const tabs = ref<TabItem[]>([])

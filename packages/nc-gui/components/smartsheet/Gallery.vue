@@ -1,32 +1,6 @@
 <script lang="ts" setup>
 import { ViewTypes, isVirtualCol } from 'nocodb-sdk'
 import type { Row as RowType } from '#imports'
-import {
-  ActiveViewInj,
-  FieldsInj,
-  IsCalendarInj,
-  IsFormInj,
-  IsGalleryInj,
-  IsGridInj,
-  IsPublicInj,
-  MetaInj,
-  NavigateDir,
-  OpenNewRecordFormHookInj,
-  ReloadRowDataHookInj,
-  ReloadViewDataHookInj,
-  ReloadViewMetaHookInj,
-  computed,
-  createEventHook,
-  extractPkFromRow,
-  inject,
-  isImage,
-  isPrimary,
-  nextTick,
-  provide,
-  ref,
-  useAttachment,
-  useViewData,
-} from '#imports'
 
 interface Attachment {
   url: string

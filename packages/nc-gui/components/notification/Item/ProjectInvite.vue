@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { useGlobal } from '#imports'
 const props = defineProps<{
   item: any
 }>()

@@ -1,15 +1,4 @@
 <script lang="ts" setup>
-import {
-  IsPublicInj,
-  inject,
-  ref,
-  storeToRefs,
-  useGlobal,
-  useSharedView,
-  useSmartsheetStoreOrThrow,
-  useViewsStore,
-} from '#imports'
-
 const { isGrid, isGallery, isKanban, isMap, isCalendar } = useSmartsheetStoreOrThrow()
 
 const isPublic = inject(IsPublicInj, ref(false))

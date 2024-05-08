@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import tinycolor from 'tinycolor2'
 import type { BaseType } from 'nocodb-sdk'
-import { isEeUI, useVModel } from '#imports'
 
 const props = defineProps<{
   modelValue: boolean

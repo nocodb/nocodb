@@ -4,7 +4,6 @@ import tinycolor from 'tinycolor2'
 import { Pane, Splitpanes } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
 import type { FormItemProps } from 'ant-design-vue'
-
 import {
   type AttachmentResType,
   type ColumnType,
@@ -17,36 +16,7 @@ import {
   isSelectTypeCol,
   isVirtualCol,
 } from 'nocodb-sdk'
-import type { Permission } from '#imports'
-import {
-  ActiveViewInj,
-  IsFormInj,
-  IsGalleryInj,
-  MetaInj,
-  ReloadViewDataHookInj,
-  RichTextBubbleMenuOptions,
-  computed,
-  createEventHook,
-  extractSdkResponseErrorMsg,
-  iconMap,
-  inject,
-  isEeUI,
-  message,
-  parseProp,
-  provide,
-  ref,
-  useDebounceFn,
-  useEventListener,
-  useFileDialog,
-  useGlobal,
-  useI18n,
-  useNuxtApp,
-  useRoles,
-  useViewColumnsOrThrow,
-  useViewData,
-  useViewsStore,
-} from '#imports'
-import type { ImageCropperConfig } from '~/lib'
+import type { ImageCropperConfig } from '~/lib/types'
 
 provide(IsFormInj, ref(true))
 provide(IsGalleryInj, ref(false))

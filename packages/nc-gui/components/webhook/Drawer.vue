@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { ref, useVModel } from '#imports'
-
 interface Props {
   modelValue: boolean
 }

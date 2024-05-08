@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ProjectTypes } from 'nocodb-sdk'
-import { isEeUI, useApi, useVModel, useWorkspace } from '#imports'
 
 const props = defineProps<{
   modelValue: boolean

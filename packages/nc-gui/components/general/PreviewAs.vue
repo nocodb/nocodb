@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { ProjectRoles } from 'nocodb-sdk'
-import { iconMap, onUnmounted, ref, useEventListener, useGlobal, useI18n, useNuxtApp, watch } from '#imports'
 import MdiAccountStar from '~icons/mdi/account-star'
 import MdiAccountHardHat from '~icons/mdi/account-hard-hat'
 import PhPencilCircleThin from '~icons/ph/pencil-circle-thin'

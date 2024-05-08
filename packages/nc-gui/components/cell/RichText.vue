@@ -7,18 +7,9 @@ import { marked } from 'marked'
 import { generateJSON } from '@tiptap/html'
 import Underline from '@tiptap/extension-underline'
 import Placeholder from '@tiptap/extension-placeholder'
-import { TaskItem } from '@/helpers/dbTiptapExtensions/task-item'
-import { Link } from '@/helpers/dbTiptapExtensions/links'
+import { TaskItem } from '~/helpers/dbTiptapExtensions/task-item'
+import { Link } from '~/helpers/dbTiptapExtensions/links'
 import type { RichTextBubbleMenuOptions } from '#imports'
-import {
-  IsExpandedFormOpenInj,
-  IsFormInj,
-  IsGridInj,
-  IsSurveyFormInj,
-  ReadonlyInj,
-  RowHeightInj,
-  rowHeightTruncateLines,
-} from '#imports'
 
 const props = withDefaults(
   defineProps<{

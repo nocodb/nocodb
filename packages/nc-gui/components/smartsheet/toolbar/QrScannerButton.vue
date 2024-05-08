@@ -4,7 +4,6 @@ import { ref } from 'vue'
 import { StreamBarcodeReader } from 'vue-barcode-reader'
 import type { ColumnType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
-import { NOCO, iconMap, storeToRefs } from '#imports'
 
 const meta = inject(MetaInj, ref())
 

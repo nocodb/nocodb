@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { isDrawerOrModalExist, isMac, useNuxtApp, useRoles } from '#imports'
-
 interface Props {
   disabled?: boolean
   isViewToolbar?: boolean

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
 import type { SourceType } from 'nocodb-sdk'
-import { ClientType, DataSourcesSubTab, isEeUI, storeToRefs, useBase, useCommandPalette, useNuxtApp } from '#imports'
+import { ClientType } from '#imports'
 
 interface Props {
   state: string

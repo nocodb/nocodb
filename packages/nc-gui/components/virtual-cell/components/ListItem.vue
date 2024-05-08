@@ -90,25 +90,6 @@ const displayValue = computed(() => {
       :hoverable="false"
     >
       <div class="flex items-center gap-3">
-        <div v-if="isLoading" class="flex">
-          <MdiLoading class="flex-none w-7 h-7 !text-brand-500 animate-spin" />
-        </div>
-
-        <NcTooltip v-else class="z-10 flex">
-          <template #title> {{ isLinked ? 'Unlink' : 'Link' }}</template>
-
-          <button
-            tabindex="-1"
-            class="nc-list-item-link-unlink-btn p-1.5 flex rounded-lg transition-all"
-            :class="{
-              'bg-red-100 text-red-500 hover:bg-red-200': isLinked,
-              'bg-green-100 text-green-500 hover:bg-green-200': !isLinked,
-            }"
-            @click="$emit('linkOrUnlink')"
-          >
-            <GeneralIcon :icon="isLinked ? 'minus' : 'plus'" class="flex-none w-4 h-4 !font-extrabold" />
-          </button>
-        </NcTooltip>
         <template v-if="attachment">
           <div v-if="attachments && attachments.length">
             <a-carousel autoplay class="!w-11 !h-11 !max-h-11 !max-w-11">
@@ -179,6 +160,27 @@ const displayValue = computed(() => {
           >
             <MaximizeIcon class="flex-none w-4 h-4 scale-125" />
           </button>
+        </div>
+        <div v-if="isLoading" class="flex">
+          <MdiLoading class="flex-none w-7 h-7 !text-brand-500 animate-spin" />
+        </div>
+
+        <div v-else>
+          <NcTooltip class="z-10 flex">
+            <template #title> {{ isLinked ? 'Unlink' : 'Link' }}</template>
+
+            <button
+              tabindex="-1"
+              class="nc-list-item-link-unlink-btn p-1.5 flex rounded-lg transition-all"
+              :class="{
+                'bg-gray-200 text-gray-800 hover:(bg-red-100 text-red-500)': isLinked,
+                'bg-green-[#D4F7E0] text-[#17803D] hover:bg-green-200': !isLinked,
+              }"
+              @click="$emit('linkOrUnlink')"
+            >
+              <GeneralIcon :icon="isLinked ? 'minus' : 'plus'" class="flex-none w-4 h-4 !font-extrabold" />
+            </button>
+          </NcTooltip>
         </div>
       </div>
     </a-card>

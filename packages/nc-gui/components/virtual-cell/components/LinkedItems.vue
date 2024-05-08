@@ -410,13 +410,13 @@ const onFilterChange = () => {
         </div>
       </div>
 
-      <div class="bg-gray-100 p-2 rounded-b-xl flex items-center justify-between gap-3 min-h-12">
+      <div class="nc-dropdown-link-record-footer bg-gray-100 p-2 rounded-b-xl flex items-center justify-between gap-3 min-h-11">
         <div class="flex items-center gap-2">
           <NcButton
             v-if="!isPublic"
             v-e="['c:row-expand:open']"
             size="small"
-            class="!hover:(bg-white text-brand-500)"
+            class="!hover:(bg-white text-brand-500) !h-7 !text-small"
             type="secondary"
             @click="addNewRecord"
           >
@@ -428,7 +428,7 @@ const onFilterChange = () => {
             v-if="!readOnly && (childrenListCount > 0 || (childrenList?.list ?? state?.[colTitle] ?? []).length > 0)"
             v-e="['c:links:link']"
             data-testid="nc-child-list-button-link-to"
-            class="!hover:(bg-white text-brand-500)"
+            class="!hover:(bg-white text-brand-500) !h-7 !text-small"
             size="small"
             type="secondary"
             @click="emit('attachRecord')"

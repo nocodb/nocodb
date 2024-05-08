@@ -398,13 +398,13 @@ const onFilterChange = () => {
           </p>
         </div>
       </div>
-      <div class="bg-gray-100 p-2 rounded-b-xl flex items-center justify-between min-h-12">
+      <div class="nc-dropdown-link-record-footer bg-gray-100 p-2 rounded-b-xl flex items-center justify-between min-h-11">
         <div class="flex">
           <NcButton
             v-if="!isPublic"
             v-e="['c:row-expand:open']"
             size="small"
-            class="!hover:(bg-white text-brand-500)"
+            class="!hover:(bg-white text-brand-500) !h-7 !text-small"
             type="secondary"
             @click="addNewRecord"
           >

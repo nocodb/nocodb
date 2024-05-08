@@ -427,8 +427,8 @@ const cellMeta = computed(() => {
 const colMeta = computed(() => {
   return fields.value.map((col) => {
     return {
-      isLookup: isLinksOrLTAR(col),
-      isRollup: isBt(col),
+      isLookup: isLookup(col),
+      isRollup: isRollup(col),
       isFormula: isFormula(col),
       isCreatedOrLastModifiedTimeCol: isCreatedOrLastModifiedTimeCol(col),
       isCreatedOrLastModifiedByCol: isCreatedOrLastModifiedByCol(col),
@@ -2072,7 +2072,22 @@ onKeyStroke('ArrowDown', onDown)
                         :data-col-index="colIndex"
                         @mousedown="handleMouseDown($event, rowIndex, colIndex)"
                         @mouseover="handleMouseOver($event, rowIndex, colIndex)"
-                        @click="handleCellClick($event, rowIndex, colIndex)"
+                        @click="
+                          ($event) => {
+                            handleCellClick($event, rowIndex, colIndex)
+                            console.log(
+                              'fdsa',
+                              colMeta[colIndex],
+                              (colMeta[colIndex].isLookup ||
+                                colMeta[colIndex].isRollup ||
+                                colMeta[colIndex].isFormula ||
+                                colMeta[colIndex].isCreatedOrLastModifiedTimeCol ||
+                                colMeta[colIndex].isCreatedOrLastModifiedByCol) &&
+                                hasEditPermission &&
+                                selectRangeMap[`${rowIndex}-${colIndex}`],
+                            )
+                          }
+                        "
                         @dblclick="makeEditable(row, columnObj)"
                         @contextmenu="showContextMenu($event, { row: rowIndex, col: colIndex })"
                       >

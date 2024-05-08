@@ -1200,6 +1200,7 @@
     "noNewNotifications": "Non hai nuove notifiche",
     "noRecordFound": "Riga non trovata",
     "noRecordsFound": "No records found",
+    "noRecordsMatchYourSearchQuery": "No records match your search query",
     "rowDeleted": "Riga eliminata",
     "saveChanges": "Salvare le modifiche?",
     "tooLargeFieldEntity": "Il campo è troppo grande per essere convertito in {entity}",

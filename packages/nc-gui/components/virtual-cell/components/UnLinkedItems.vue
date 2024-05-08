@@ -398,7 +398,7 @@ const onFilterChange = () => {
           </p>
         </div>
       </div>
-      <div class="bg-gray-100 px-3 py-2 rounded-b-xl flex items-center justify-between min-h-12">
+      <div class="bg-gray-100 p-2 rounded-b-xl flex items-center justify-between min-h-12">
         <div class="flex">
           <NcButton
             v-if="!isPublic"
@@ -486,7 +486,7 @@ const onFilterChange = () => {
       @apply text-gray-600;
     }
   }
-  
+
   input {
     &::placeholder {
       @apply text-gray-500;

@@ -410,7 +410,7 @@ const onFilterChange = () => {
         </div>
       </div>
 
-      <div class="bg-gray-100 px-3 py-2 rounded-b-xl flex items-center justify-between gap-3 min-h-12">
+      <div class="bg-gray-100 p-2 rounded-b-xl flex items-center justify-between gap-3 min-h-12">
         <div class="flex items-center gap-2">
           <NcButton
             v-if="!isPublic"

@@ -16,7 +16,7 @@ const onError = () => index.value++
 <template>
   <LazyNuxtImg
     v-if="index < props.srcs.length"
-    class="m-auto object-cover"
+    class="m-auto h-full w-auto"
     :src="props.srcs[index]"
     :alt="props?.alt || ''"
     placeholder

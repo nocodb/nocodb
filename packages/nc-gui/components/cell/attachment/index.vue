@@ -282,8 +282,8 @@ const keydownSpace = (e: KeyboardEvent) => {
             </template>
             <div v-if="isImage(item.title, item.mimetype ?? item.type)">
               <div
-                class="nc-attachment flex items-center flex-col flex-wrap justify-center"
-                :class="{ 'ml-2': active }"
+                class="nc-attachment flex items-center flex-col flex-wrap justify-center flex-auto"
+                :class="{ 'ml-2': active, '!w-30': isForm || isExpandedForm }"
                 @click="() => onImageClick(item)"
               >
                 <LazyCellAttachmentImage
@@ -292,10 +292,9 @@ const keydownSpace = (e: KeyboardEvent) => {
                   :class="{
                     'h-5.5': !isGrid && (!rowHeight || rowHeight === 1),
                     'h-4.5': isGrid && (!rowHeight || rowHeight === 1),
-                    'w-8.8': rowHeight === 1,
-                    'h-8 w-12.8': rowHeight === 2,
-                    'h-16.8 w-20.8': rowHeight === 4,
-                    'h-20.8 !w-30': isForm || isExpandedForm || rowHeight === 6,
+                    'h-8': rowHeight === 2,
+                    'h-16.8': rowHeight === 4,
+                    'h-20.8': rowHeight === 6 || isForm || isExpandedForm,
                   }"
                   :srcs="getPossibleAttachmentSrc(item)"
                 />
@@ -341,7 +340,7 @@ const keydownSpace = (e: KeyboardEvent) => {
 .nc-cell {
   .nc-attachment-cell {
     .nc-attachment {
-      @apply min-h-5.5 min-w-[1.8rem] !ring-1 !ring-gray-300 !rounded;
+      @apply min-h-5.5 !ring-1 !ring-gray-300 !rounded;
     }
 
     .ghost,

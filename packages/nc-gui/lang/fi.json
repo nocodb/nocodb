@@ -714,6 +714,7 @@
     "hasMany": "on monia",
     "belongsTo": "kuuluu",
     "manyToMany": "on monien suhde moniin",
+    "oneToOne": "have one to one relation",
     "extraConnectionParameters": "Ylimääräiset yhteysparametrit",
     "commentsOnly": "Vain huomautukset",
     "documentation": "Dokumentaatio",

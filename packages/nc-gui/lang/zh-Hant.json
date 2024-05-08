@@ -714,6 +714,7 @@
     "hasMany": "有很多的",
     "belongsTo": "屬於",
     "manyToMany": "有多對多關聯",
+    "oneToOne": "have one to one relation",
     "extraConnectionParameters": "額外連線參數",
     "commentsOnly": "僅評論",
     "documentation": "說明文件",

@@ -5,7 +5,7 @@ import 'vue-advanced-cropper/dist/theme.classic.css'
 
 import type { AttachmentReqType } from 'nocodb-sdk'
 import { extractSdkResponseErrorMsg, useApi } from '#imports'
-import type { ImageCropperConfig } from '~/lib'
+import type { ImageCropperConfig } from '~/lib/types'
 
 interface Props {
   imageConfig: {

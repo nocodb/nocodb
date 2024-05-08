@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import type { TableType, ViewType } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
-import { LockType } from '~/lib'
 
 const props = withDefaults(
   defineProps<{

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { UITypes, isSystemColumn } from 'nocodb-sdk'
 import type { SelectProps } from 'ant-design-vue'
-import { type CalendarRangeType } from '~/lib'
+import { type CalendarRangeType } from '~/lib/types'
 
 import {
   ActiveViewInj,

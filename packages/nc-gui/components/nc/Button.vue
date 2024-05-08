@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { ButtonType } from 'ant-design-vue/lib/button'
 import { useSlots } from 'vue'
-import type { NcButtonSize } from '~/lib'
+import type { NcButtonSize } from '~/lib/types'
 
 /**
  * @description

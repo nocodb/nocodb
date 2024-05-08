@@ -1,6 +1,6 @@
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { UITypes, isSystemColumn } from 'nocodb-sdk'
-import type { SidebarTableNode } from '~/lib'
+import type { SidebarTableNode } from '~/lib/types'
 
 import {
   Modal,

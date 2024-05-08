@@ -2,7 +2,6 @@
 import dayjs from 'dayjs'
 import type { ColumnType } from 'nocodb-sdk'
 import { type Row, computed, ref, useViewColumnsOrThrow } from '#imports'
-import { generateRandomNumber, isRowEmpty } from '~/utils'
 
 const emit = defineEmits(['newRecord', 'expandRecord'])
 

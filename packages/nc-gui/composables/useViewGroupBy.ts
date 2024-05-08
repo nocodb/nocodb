@@ -2,10 +2,10 @@ import { UITypes } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType, LookupType, SelectOptionsType, TableType, ViewType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { message } from 'ant-design-vue'
-import { extractSdkResponseErrorMsg } from '../utils'
 import {
   GROUP_BY_VARS,
   SharedViewPasswordInj,
+  extractSdkResponseErrorMsg,
   ref,
   storeToRefs,
   useApi,

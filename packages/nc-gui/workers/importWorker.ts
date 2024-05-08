@@ -8,7 +8,7 @@ import {
   JSONTemplateAdapter,
   JSONUrlTemplateAdapter,
 } from '../helpers/parsers/index'
-import type { ImportWorkerPayload } from '../lib'
+import type { ImportWorkerPayload } from '../lib/types'
 import { ImportSource, ImportType, ImportWorkerOperations, ImportWorkerResponse } from '../lib/enums'
 import type TemplateGenerator from '../helpers/parsers/TemplateGenerator'
 import { extractSdkResponseErrorMsg } from '../utils/errorUtils'

@@ -46,7 +46,7 @@ import {
   useViewData,
   useViewsStore,
 } from '#imports'
-import type { ImageCropperConfig } from '~/lib'
+import type { ImageCropperConfig } from '~/lib/types'
 
 provide(IsFormInj, ref(true))
 provide(IsGalleryInj, ref(false))

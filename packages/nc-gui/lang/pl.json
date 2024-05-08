@@ -1200,6 +1200,7 @@
     "noNewNotifications": "Nie masz nowych powiadomień",
     "noRecordFound": "Nie znaleziono rekordu",
     "noRecordsFound": "Nie znaleziono rekordów",
+    "noRecordsMatchYourSearchQuery": "No records match your search query",
     "rowDeleted": "Rekord usunięty",
     "saveChanges": "Czy chcesz zapisać zmiany?",
     "tooLargeFieldEntity": "Pole jest zbyt duże, aby przekonwertować je na {entity}",

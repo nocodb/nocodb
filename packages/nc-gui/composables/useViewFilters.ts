@@ -206,7 +206,7 @@ export function useViewFilters(
       )?.[0].value as FilterType['comparison_op'],
       value: '',
       status: 'create',
-      logical_op: logicalOps.size === 1 ? logicalOps.values().next().value :'and' ,
+      logical_op: logicalOps.size === 1 ? logicalOps.values().next().value : 'and',
     }
   }
 

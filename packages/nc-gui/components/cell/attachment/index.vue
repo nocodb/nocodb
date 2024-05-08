@@ -75,6 +75,7 @@ const {
   selectedImage,
   isReadonly,
   storedFiles,
+  removeFile,
 } = useProvideAttachmentCell(updateModelValue)
 
 const { dragging } = useSortable(sortableRef, visibleItems, updateModelValue, isReadonly)
@@ -194,6 +195,26 @@ const keydownSpace = (e: KeyboardEvent) => {
     e.stopPropagation()
   }
 }
+
+const { isUIAllowed } = useRoles()
+const isConfirmModalOpen = ref(false)
+const filetoDelete = reactive({
+  title: '',
+  i: 0,
+})
+
+function onRemoveFileClick(title: any, i: number) {
+  isConfirmModalOpen.value = true
+  filetoDelete.i = i
+  filetoDelete.title = title
+}
+
+const handleFileDelete = (i: number) => {
+  removeFile(i)
+  isConfirmModalOpen.value = false
+  filetoDelete.i = 0
+  filetoDelete.title = ''
+}
 </script>
 
 <template>
@@ -276,7 +297,7 @@ const keydownSpace = (e: KeyboardEvent) => {
         }"
       >
         <template v-for="(item, i) of visibleItems" :key="item.url || item.title">
-          <NcTooltip placement="bottom">
+          <NcTooltip placement="bottom" class="nc-attachment-item">
             <template #title>
               <div class="text-center w-full">{{ item.title }}</div>
             </template>
@@ -302,14 +323,31 @@ const keydownSpace = (e: KeyboardEvent) => {
             </div>
             <div
               v-else
-              class="nc-attachment flex items-center justify-center"
-              :class="{ 'ml-2': active }"
+              class="nc-attachment flex items-center justify-center px-4"
+              :class="{
+                'h-5.5': !isGrid && (!rowHeight || rowHeight === 1),
+                'h-4.5': isGrid && (!rowHeight || rowHeight === 1),
+                'h-8': rowHeight === 2,
+                'h-16.8': rowHeight === 4,
+                'h-20.8 !w-30': rowHeight === 6 || isForm || isExpandedForm,
+                'ml-2': active,
+              }"
               @click="openAttachment(item)"
             >
-              <component :is="FileIcon(item.icon)" v-if="item.icon" />
+              <component :is="FileIcon(item.icon)" v-if="item.icon" :class="{ 'h-13 w-13': isForm || isExpandedForm }" />
 
-              <IcOutlineInsertDriveFile v-else />
+              <IcOutlineInsertDriveFile v-else :class="{ 'h-13 w-13': isForm || isExpandedForm }" />
             </div>
+
+            <a-tooltip v-if="isForm || isExpandedForm">
+              <template #title> {{ $t('title.removeFile') }} </template>
+              <component
+                :is="iconMap.closeCircle"
+                v-if="isSharedForm || (isUIAllowed('dataEdit') && !isPublic)"
+                class="nc-attachment-remove"
+                @click.stop="onRemoveFileClick(item.title, i)"
+              />
+            </a-tooltip>
           </NcTooltip>
         </template>
       </div>
@@ -333,6 +371,27 @@ const keydownSpace = (e: KeyboardEvent) => {
     </template>
 
     <LazyCellAttachmentModal />
+
+    <LazyGeneralDeleteModal
+      v-if="isForm || isExpandedForm"
+      v-model:visible="isConfirmModalOpen"
+      entity-name="File"
+      :on-delete="() => handleFileDelete(filetoDelete.i)"
+    >
+      <template #entity-preview>
+        <span>
+          <div class="flex flex-row items-center py-2.25 px-2.5 bg-gray-50 rounded-lg text-gray-700 mb-4">
+            <GeneralIcon icon="file" class="nc-view-icon"></GeneralIcon>
+            <div
+              class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1.75"
+              :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
+            >
+              {{ filetoDelete.title }}
+            </div>
+          </div>
+        </span>
+      </template>
+    </LazyGeneralDeleteModal>
   </div>
 </template>
 
@@ -352,6 +411,17 @@ const keydownSpace = (e: KeyboardEvent) => {
       .ant-tooltip {
         @apply !hidden;
       }
+    }
+  }
+  .nc-attachment-item {
+    @apply relative;
+
+    .nc-attachment-remove {
+      @apply absolute -right-2 -top-2 rounded-full hidden;
+    }
+
+    &:hover .nc-attachment-remove {
+      @apply block;
     }
   }
 }

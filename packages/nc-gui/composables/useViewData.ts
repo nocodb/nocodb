@@ -2,6 +2,7 @@ import { ViewTypes } from 'nocodb-sdk'
 import axios from 'axios'
 import type { Api, ColumnType, FormColumnType, FormType, GalleryType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
+import { NavigateDir } from '#imports'
 
 const formatData = (list: Record<string, any>[]) =>
   list.map((row) => ({

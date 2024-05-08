@@ -427,8 +427,8 @@ const cellMeta = computed(() => {
 const colMeta = computed(() => {
   return fields.value.map((col) => {
     return {
-      isLookup: isLinksOrLTAR(col),
-      isRollup: isBt(col),
+      isLookup: isLookup(col),
+      isRollup: isRollup(col),
       isFormula: isFormula(col),
       isCreatedOrLastModifiedTimeCol: isCreatedOrLastModifiedTimeCol(col),
       isCreatedOrLastModifiedByCol: isCreatedOrLastModifiedByCol(col),
@@ -857,7 +857,7 @@ onClickOutside(tableBodyEl, (e) => {
   // ignore unselecting if clicked inside or on the picker(Date, Time, DateTime, Year)
   // or single/multi select options
   const activePickerOrDropdownEl = document.querySelector(
-    '.nc-picker-datetime.active,.nc-dropdown-single-select-cell.active,.nc-dropdown-multi-select-cell.active,.nc-dropdown-user-select-cell.active,.nc-picker-date.active,.nc-picker-year.active,.nc-picker-time.active',
+    '.nc-picker-datetime.active,.nc-dropdown-single-select-cell.active,.nc-dropdown-multi-select-cell.active,.nc-dropdown-user-select-cell.active,.nc-picker-date.active,.nc-picker-year.active,.nc-picker-time.active,.nc-link-dropdown-root',
   )
   if (
     e.target &&
@@ -1892,6 +1892,7 @@ onKeyStroke('ArrowDown', onDown)
                       :class="{
                         'active-row': activeCell.row === rowIndex || selectedRange._start?.row === rowIndex,
                         'mouse-down': isGridCellMouseDown || isFillMode,
+                        'selected-row': row.rowMeta.selected,
                       }"
                       :style="{ height: rowHeight ? `${rowHeightInPx[`${rowHeight}`]}px` : `${rowHeightInPx['1']}px` }"
                       :data-testid="`grid-row-${rowIndex}`"
@@ -2430,7 +2431,7 @@ onKeyStroke('ArrowDown', onDown)
 
   td,
   th {
-    @apply border-gray-100 border-solid border-r bg-gray-50 p-0;
+    @apply border-gray-100 border-solid border-r bg-gray-100 p-0;
     min-height: 32px !important;
     height: 32px !important;
     position: relative;
@@ -2685,9 +2686,18 @@ onKeyStroke('ArrowDown', onDown)
       @apply !xs:hidden flex;
     }
 
+    &:not(.selected-row) {
+      td.nc-grid-cell:not(.active),
+      td:nth-child(2):not(.active) {
+        @apply !bg-gray-50 border-b-gray-200 border-r-gray-200;
+      }
+    }
+  }
+
+  &.selected-row {
     td.nc-grid-cell:not(.active),
     td:nth-child(2):not(.active) {
-      @apply !bg-gray-50 border-b-gray-200 border-r-gray-200;
+      @apply !bg-[#F0F3FF] border-b-gray-200 border-r-gray-200;
     }
   }
 }

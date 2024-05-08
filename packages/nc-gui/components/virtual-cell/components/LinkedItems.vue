@@ -354,8 +354,8 @@ const onFilterChange = () => {
                   <a-skeleton-input active class="h-4 !w-48 !rounded-md overflow-hidden" size="small" />
                   <div class="flex flex-row gap-6 w-10/12">
                     <a-skeleton-input
-                      v-for="i of [1, 2, 3]"
-                      :key="i"
+                      v-for="idx of [1, 2, 3]"
+                      :key="idx"
                       active
                       class="!h-3 !w-24 !rounded-md overflow-hidden"
                       size="small"

@@ -306,7 +306,7 @@ const onFilterChange = () => {
 <template>
   <div class="nc-modal-child-list h-full w-full" :class="{ active: vModel }" @keydown.enter.stop>
     <div class="flex flex-col h-full">
-      <div class="nc-dropdown-link-record-header bg-gray-100 py-2 rounded-t-md flex justify-between pl-3 pr-2 gap-2">
+      <div class="nc-dropdown-link-record-header bg-gray-100 py-2 rounded-t-xl flex justify-between pl-3 pr-2 gap-2">
         <div v-if="!isForm" class="flex-1 nc-dropdown-link-record-search-wrapper flex items-center py-0.5 rounded-md">
           <MdiMagnify class="nc-search-icon w-5 h-5" />
           <a-input
@@ -410,7 +410,7 @@ const onFilterChange = () => {
         </div>
       </div>
 
-      <div class="bg-gray-100 px-3 py-2 rounded-b-md flex items-center justify-between gap-3 min-h-12">
+      <div class="bg-gray-100 px-3 py-2 rounded-b-xl flex items-center justify-between gap-3 min-h-12">
         <div class="flex items-center gap-2">
           <NcButton
             v-if="!isPublic"

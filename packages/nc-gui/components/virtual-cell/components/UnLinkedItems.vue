@@ -295,7 +295,7 @@ const onFilterChange = () => {
 <template>
   <div class="nc-modal-link-record h-full w-full overflow-hidden" :class="{ active: vModel }" @keydown.enter.stop>
     <div class="flex flex-col h-full">
-      <div class="nc-dropdown-link-record-header bg-gray-100 py-2 rounded-t-md flex justify-between pl-3 pr-2 gap-2">
+      <div class="nc-dropdown-link-record-header bg-gray-100 py-2 rounded-t-xl flex justify-between pl-3 pr-2 gap-2">
         <div class="flex-1 gap-2 flex items-center">
           <button
             v-if="!hideBackBtn"
@@ -398,7 +398,7 @@ const onFilterChange = () => {
           </p>
         </div>
       </div>
-      <div class="bg-gray-100 px-3 py-2 rounded-b-md flex items-center justify-between min-h-12">
+      <div class="bg-gray-100 px-3 py-2 rounded-b-xl flex items-center justify-between min-h-12">
         <div class="flex">
           <NcButton
             v-if="!isPublic"

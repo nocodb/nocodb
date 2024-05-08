@@ -77,6 +77,7 @@ watch([ncLinksDropdownRef, isOpen], () => {
 
 <style lang="scss">
 .nc-links-dropdown {
+  @apply rounded-xl !border-gray-200;
   z-index: 1000 !important;
 }
 .nc-link-dropdown-root {

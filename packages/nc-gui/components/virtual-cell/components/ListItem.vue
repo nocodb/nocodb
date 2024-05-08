@@ -125,15 +125,20 @@ const displayValue = computed(() => {
           >
             <div v-for="field in fields" :key="field.id" class="sm:(w-1/3 max-w-1/3 overflow-hidden)">
               <div v-if="!isRowEmpty(row, field)" class="flex flex-col gap-[-1]">
-                <NcTooltip class="z-10 flex" placement="bottom">
+                <NcTooltip class="z-10 flex" placement="bottomLeft" :arrow-point-at-center="false">
                   <template #title>
                     <LazySmartsheetHeaderVirtualCell
                       v-if="isVirtualCol(field)"
-                      class="!scale-60 text-gray-100 !text-sm"
+                      class="text-gray-100 !text-sm nc-link-record-cell-tooltip"
                       :column="field"
                       :hide-menu="true"
                     />
-                    <LazySmartsheetHeaderCell v-else class="!scale-70 text-gray-100 !text-sm" :column="field" :hide-menu="true" />
+                    <LazySmartsheetHeaderCell
+                      v-else
+                      class="text-gray-100 !text-sm nc-link-record-cell-tooltip"
+                      :column="field"
+                      :hide-menu="true"
+                    />
                   </template>
                   <div class="nc-link-record-cell flex w-full max-w-full">
                     <LazySmartsheetVirtualCell v-if="isVirtualCol(field)" v-model="row[field.title]" :row="row" :column="field" />
@@ -262,6 +267,14 @@ const displayValue = computed(() => {
         @apply right-[3px];
       }
     }
+  }
+}
+.nc-link-record-cell-tooltip {
+  :deep(.nc-cell-icon) {
+    @apply !ml-0;
+  }
+  :deep(.name) {
+    @apply !text-small;
   }
 }
 </style>

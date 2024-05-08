@@ -1,6 +1,5 @@
 import type { BaseType, ColumnType, CowriterType, TableReqType, TableType, ViewType } from 'nocodb-sdk'
 import { UITypes, ViewTypes, isSystemColumn } from 'nocodb-sdk'
-import { extractSdkResponseErrorMsg, useCopy, useNuxtApp } from '#imports'
 
 const [useProvideCowriterStore, useCowriterStore] = useInjectionState((baseId: string) => {
   enum COWRITER_TABS {

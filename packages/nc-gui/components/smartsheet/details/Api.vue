@@ -2,22 +2,6 @@
 import HTTPSnippet from 'httpsnippet'
 import { LoadingOutlined } from '@ant-design/icons-vue'
 
-import {
-  ActiveViewInj,
-  MetaInj,
-  inject,
-  message,
-  ref,
-  storeToRefs,
-  useBase,
-  useCopy,
-  useGlobal,
-  useI18n,
-  useSmartsheetStoreOrThrow,
-  useViewData,
-  watch,
-} from '#imports'
-
 const { t } = useI18n()
 
 const baseStore = useBase()

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { HookLogType, HookType } from 'nocodb-sdk'
 import { timeAgo } from 'nocodb-sdk'
-import { AutomationLogLevel, extractSdkResponseErrorMsg, onBeforeMount, parseProp, useApi, useGlobal } from '#imports'
 
 interface Props {
   hook: HookType

@@ -1,6 +1,5 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import type { Api, OrgType } from 'nocodb-sdk'
-import { extractSdkResponseErrorMsg, useNuxtApp, useRouter } from '#imports'
 
 export const useOrg = defineStore('orgStore', () => {
   const org = ref()

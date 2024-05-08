@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { IsPublicInj, inject, ref, useSmartsheetStoreOrThrow, useViewsStore } from '#imports'
-
 const { isGrid, isForm, isGallery, isKanban, isMap, isCalendar } = useSmartsheetStoreOrThrow()
 
 const router = useRouter()

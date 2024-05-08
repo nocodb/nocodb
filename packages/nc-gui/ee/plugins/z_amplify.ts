@@ -2,7 +2,6 @@ import { Amplify } from '@aws-amplify/core'
 import { Auth } from '@aws-amplify/auth'
 import { useAuthenticator } from '@aws-amplify/ui-vue'
 import { defineNuxtPlugin, navigateTo, useRoute } from '#app'
-import { toRefs, useGlobal, useState, watch } from '#imports'
 
 export default defineNuxtPlugin(async (_nuxtApp) => {
   // use a Pinia store

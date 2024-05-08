@@ -1,9 +1,12 @@
 import { getActivePinia } from 'pinia'
 import { Auth } from 'aws-amplify'
 import type { Actions, AppInfo, State } from '../../../composables/useGlobal/types'
-import type { ActionsEE } from './types'
-import { NcProjectType, message, updateFirstTimeUser, useNuxtApp, useState } from '#imports'
-import { navigateTo } from '#app'
+import { NcProjectType } from '#imports'
+
+export interface ActionsEE {
+  getMainUrl: () => string | undefined
+  checkForCognitoToken: (params?: { skipRedirect?: boolean }) => Promise<void>
+}
 
 export function useGlobalActions(state: State): Actions & ActionsEE {
   const setIsMobileMode = (isMobileMode: boolean) => {

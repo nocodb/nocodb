@@ -4,7 +4,6 @@ import { capitalize } from '@vue/runtime-core'
 import type { Form as AntForm, SelectProps } from 'ant-design-vue'
 import type { CalendarType, FormType, GalleryType, GridType, KanbanType, MapType, TableType } from 'nocodb-sdk'
 import { UITypes, ViewTypes, isSystemColumn } from 'nocodb-sdk'
-import { computed, message, nextTick, onBeforeMount, reactive, ref, useApi, useI18n, useVModel, watch } from '#imports'
 
 interface Props {
   modelValue: boolean

@@ -1,17 +1,5 @@
 <script setup lang="ts">
 import type { FilterReqType, HookReqType, HookType } from 'nocodb-sdk'
-import {
-  MetaInj,
-  extractSdkResponseErrorMsg,
-  iconMap,
-  inject,
-  message,
-  onMounted,
-  parseProp,
-  ref,
-  useI18n,
-  useNuxtApp,
-} from '#imports'
 
 const emit = defineEmits(['edit', 'add'])
 

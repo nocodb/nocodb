@@ -1,19 +1,6 @@
 <script setup lang="ts">
 import type { BaseType, LayoutType } from 'nocodb-sdk'
 import type { ComponentPublicInstance } from '@vue/runtime-core'
-import {
-  Form,
-  computed,
-  extractSdkResponseErrorMsg,
-  message,
-  nextTick,
-  reactive,
-  storeToRefs,
-  useI18n,
-  useNuxtApp,
-  useVModel,
-  watchEffect,
-} from '#imports'
 
 interface Props {
   modelValue?: boolean

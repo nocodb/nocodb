@@ -1,7 +1,5 @@
 <script lang="ts" setup>
 import { toRef } from '@vue/runtime-core'
-import type { NcProject } from '#imports'
-import { useDashboardStore } from '#imports'
 
 const props = defineProps<{
   base: NcProject

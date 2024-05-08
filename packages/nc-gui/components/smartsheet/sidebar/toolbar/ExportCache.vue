@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { saveAs } from 'file-saver'
-import { iconMap, message, useApi, useI18n } from '#imports'
 
 const { t } = useI18n()
 

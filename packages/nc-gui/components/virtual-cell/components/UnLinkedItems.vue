@@ -2,17 +2,6 @@
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import { RelationTypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 import InboxIcon from '~icons/nc-icons/inbox'
-import {
-  ColumnInj,
-  IsPublicInj,
-  SaveRowInj,
-  computed,
-  inject,
-  ref,
-  useLTARStoreOrThrow,
-  useSmartsheetRowStoreOrThrow,
-  useVModel,
-} from '#imports'
 
 const props = defineProps<{ modelValue: boolean; column: any; hideBackBtn?: boolean }>()
 

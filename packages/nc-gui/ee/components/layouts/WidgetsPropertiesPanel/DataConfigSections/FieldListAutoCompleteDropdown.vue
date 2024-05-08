@@ -2,7 +2,6 @@
 import type { SelectProps } from 'ant-design-vue'
 import type { ColumnType } from 'nocodb-sdk'
 import { isVirtualCol } from 'nocodb-sdk'
-import { computed, resolveComponent } from '#imports'
 
 const { modelValue, columns } = defineProps<{
   modelValue?: string

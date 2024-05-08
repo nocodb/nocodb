@@ -1,22 +1,6 @@
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { UITypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
-import {
-  Modal,
-  SYSTEM_COLUMNS,
-  TabType,
-  extractSdkResponseErrorMsg,
-  generateUniqueTitle as generateTitle,
-  message,
-  reactive,
-  storeToRefs,
-  useBase,
-  useCommandPalette,
-  useI18n,
-  useMetas,
-  useNuxtApp,
-  useTabs,
-  watch,
-} from '#imports'
+import { generateUniqueTitle as generateTitle } from '#imports'
 
 export function useTable(onTableCreate?: (tableMeta: TableType) => void, sourceId?: string) {
   const table = reactive<{ title: string; table_name: string; columns: string[] }>({

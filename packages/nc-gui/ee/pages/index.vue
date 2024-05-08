@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { onUnmounted } from '@vue/runtime-core'
-import { navigateTo } from '#imports'
 
 definePageMeta({
   hideHeader: true,

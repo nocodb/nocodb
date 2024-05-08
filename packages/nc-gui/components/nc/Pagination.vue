@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import NcTooltip from '~/components/nc/Tooltip.vue'
-import { useGlobal } from '#imports'
 
 const props = defineProps<{
   current: number

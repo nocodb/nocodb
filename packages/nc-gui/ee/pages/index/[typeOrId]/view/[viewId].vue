@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { definePageMeta, extractSdkResponseErrorMsg, message, ref, useRoute, useSharedView } from '#imports'
-
 definePageMeta({
   public: true,
   requiresAuth: false,

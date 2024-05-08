@@ -1,6 +1,5 @@
 import type { RemovableRef } from '@vueuse/core'
 import { useStorage } from '@vueuse/core'
-import { createGlobalState } from '#imports'
 
 export const useSqlEditor = createGlobalState(() => {
   const storageSqlEditor: RemovableRef<{

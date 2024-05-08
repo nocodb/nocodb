@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { useCowriterStoreOrThrow } from '#imports'
 const { COWRITER_TABS, cowriterOutputList, cowriterOutputActiveKey, clearCowriterOutput } = useCowriterStoreOrThrow()
 </script>
 

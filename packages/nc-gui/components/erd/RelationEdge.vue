@@ -3,7 +3,6 @@ import type { EdgeProps, Position } from '@vue-flow/core'
 import { EdgeLabelRenderer, getBezierPath } from '@vue-flow/core'
 import type { CSSProperties } from '@vue/runtime-dom'
 import type { EdgeData } from './utils'
-import { computed, toRef } from '#imports'
 
 interface RelationEdgeProps extends EdgeProps<EdgeData> {
   id: string

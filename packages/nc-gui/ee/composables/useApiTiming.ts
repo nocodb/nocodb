@@ -1,5 +1,3 @@
-import { createGlobalState, ref } from '#imports'
-
 export const useApiTiming = createGlobalState(() => {
   const timing = ref<any>()
 

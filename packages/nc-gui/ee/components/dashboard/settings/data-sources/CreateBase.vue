@@ -3,31 +3,17 @@ import { Form, message } from 'ant-design-vue'
 import type { SelectHandler } from 'ant-design-vue/es/vc-select/Select'
 import type { Card as AntCard } from 'ant-design-vue'
 import { WorkspaceStatus } from 'nocodb-sdk'
-import type { DefaultConnection, ProjectCreateForm, SQLiteConnection, SnowflakeConnection } from '#imports'
 import {
-  CertTypes,
+  type CertTypes,
   ClientType,
+  type DatabricksConnection,
+  type DefaultConnection,
   JobStatus,
-  ProjectIdInj,
+  type ProjectCreateForm,
+  type SQLiteConnection,
   SSLUsage,
+  type SnowflakeConnection,
   clientTypes as _clientTypes,
-  baseTitleValidator,
-  computed,
-  extractSdkResponseErrorMsg,
-  fieldRequiredValidator,
-  generateUniqueName,
-  getDefaultConnectionConfig,
-  getTestDatabaseName,
-  iconMap,
-  nextTick,
-  onMounted,
-  readFile,
-  ref,
-  storeToRefs,
-  useApi,
-  useI18n,
-  useNuxtApp,
-  watch,
 } from '#imports'
 
 const props = defineProps<{ open: boolean; connectionType?: ClientType }>()

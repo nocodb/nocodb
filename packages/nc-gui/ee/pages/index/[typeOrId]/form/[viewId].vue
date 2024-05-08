@@ -1,24 +1,4 @@
 <script setup lang="ts">
-import {
-  IsFormInj,
-  IsPublicInj,
-  MetaInj,
-  ReloadViewDataHookInj,
-  applyLanguageDirection,
-  createError,
-  createEventHook,
-  definePageMeta,
-  navigateTo,
-  provide,
-  reactive,
-  ref,
-  useProvideSharedFormStore,
-  useProvideSmartsheetStore,
-  useRoute,
-  useSidebar,
-  watch,
-} from '#imports'
-
 definePageMeta({
   public: true,
   hasSidebar: false,

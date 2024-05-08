@@ -2,7 +2,6 @@
 import type { ColumnType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import type { ListItem as AntListItem } from 'ant-design-vue/lib/list'
-import { getWordUntilCaret, useCowriterStoreOrThrow, useDebounceFn } from '#imports'
 
 const { promptStatementTemplate, savePromptStatementTemplate, supportedColumns } = useCowriterStoreOrThrow()
 

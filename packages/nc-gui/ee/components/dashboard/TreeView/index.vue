@@ -2,24 +2,6 @@
 import Draggable from 'vuedraggable'
 import { type TableType, stringifyRolesObj } from 'nocodb-sdk'
 import ProjectWrapper from './ProjectWrapper.vue'
-import {
-  TreeViewInj,
-  computed,
-  isDrawerOrModalExist,
-  isMac,
-  reactive,
-  ref,
-  resolveComponent,
-  storeToRefs,
-  useBase,
-  useBases,
-  useDialog,
-  useGlobal,
-  useNuxtApp,
-  useRoles,
-  useTablesStore,
-} from '#imports'
-
 import { useRouter } from '#app'
 
 const { isUIAllowed } = useRoles()

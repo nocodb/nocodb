@@ -5,34 +5,6 @@ import type { ColumnType, TableType } from 'nocodb-sdk'
 import { UITypes, getDateFormat, getDateTimeFormat, isSystemColumn, isVirtualCol, parseStringDate } from 'nocodb-sdk'
 import type { CheckboxChangeEvent } from 'ant-design-vue/es/checkbox/interface'
 import { srcDestMappingColumns, tableColumns } from './utils'
-import {
-  Empty,
-  Form,
-  ImportWorkerOperations,
-  ImportWorkerResponse,
-  MetaInj,
-  ReloadViewDataHookInj,
-  TabType,
-  computed,
-  createEventHook,
-  extractSdkResponseErrorMsg,
-  fieldLengthValidator,
-  fieldRequiredValidator,
-  getUIDTIcon,
-  iconMap,
-  inject,
-  message,
-  nextTick,
-  onMounted,
-  reactive,
-  ref,
-  storeToRefs,
-  useBase,
-  useI18n,
-  useNuxtApp,
-  useTabs,
-  validateTableName,
-} from '#imports'
 
 const { quickImportType, baseTemplate, importData, importColumns, importDataOnly, maxRowsToParse, sourceId, importWorker } =
   defineProps<Props>()

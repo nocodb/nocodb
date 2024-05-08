@@ -1,8 +1,6 @@
 import type { BaseType, SourceType } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
 import { defineStore, storeToRefs } from 'pinia'
-import { TabType, computed, navigateTo, ref, useBase, useBases, useRouter, watch } from '#imports'
-import type { TabItem } from '#imports'
 
 function getPredicate(key: Partial<TabItem>) {
   // todo: temp

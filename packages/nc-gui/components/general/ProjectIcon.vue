@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import tinycolor from 'tinycolor2'
-import { baseIconColors } from '#imports'
 
 const props = withDefaults(
   defineProps<{

@@ -1,33 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
 import { isCreatedOrLastModifiedByCol, isCreatedOrLastModifiedTimeCol } from 'nocodb-sdk'
-import {
-  ActiveCellInj,
-  CellValueInj,
-  ColumnInj,
-  IsExpandedFormOpenInj,
-  IsFormInj,
-  IsGridInj,
-  NavigateDir,
-  RowInj,
-  SaveRowInj,
-  inject,
-  isBarcode,
-  isBt,
-  isCount,
-  isFormula,
-  isHm,
-  isLink,
-  isLookup,
-  isMm,
-  isOo,
-  isPrimary,
-  isQrCode,
-  isRollup,
-  provide,
-  toRef,
-} from '#imports'
-import type { Row } from '#imports'
 
 const props = defineProps<{
   column: ColumnType

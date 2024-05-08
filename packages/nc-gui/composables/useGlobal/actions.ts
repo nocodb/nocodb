@@ -1,7 +1,6 @@
 import { getActivePinia } from 'pinia'
 import type { Actions, AppInfo, State } from './types'
 import type { NcProjectType } from '#imports'
-import { message, navigateTo, useNuxtApp } from '#imports'
 
 export function useGlobalActions(state: State): Actions {
   const setIsMobileMode = (isMobileMode: boolean) => {

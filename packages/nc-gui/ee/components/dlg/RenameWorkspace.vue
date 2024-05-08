@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { computed, reactive, useVModel } from '#imports'
-
 interface Props {
   modelValue?: boolean
   workspaceId: string

@@ -1,9 +1,8 @@
 import { useDebounceFn } from '@vueuse/core'
 import type { PostHog } from 'posthog-js'
 import posthog from 'posthog-js'
+// @ts-expect-error - nc-analytics is not typed
 import { init } from 'nc-analytics'
-import { defineNuxtPlugin, until, useGlobal, useRouter } from '#imports'
-import type { NuxtApp } from '#app'
 
 // todo: generate client id and keep it in cookie(share across sub-domains)
 let clientId = null

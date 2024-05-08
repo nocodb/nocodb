@@ -1,20 +1,6 @@
 <script lang="ts" setup>
 import { UITypes, isVirtualCol, parseStringDateTime } from 'nocodb-sdk'
-import {
-  type ComputedRef,
-  IsExpandedFormOpenInj,
-  IsFormInj,
-  IsPublicInj,
-  ReadonlyInj,
-  RowHeightInj,
-  computed,
-  inject,
-  isImage,
-  provide,
-  ref,
-  useAttachment,
-  useVModel,
-} from '#imports'
+
 import MaximizeIcon from '~icons/nc-icons/maximize'
 
 const props = withDefaults(

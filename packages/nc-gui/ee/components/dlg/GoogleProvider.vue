@@ -2,7 +2,6 @@
 import type { RuleObject } from 'ant-design-vue/es/form'
 import { message } from 'ant-design-vue'
 import type { GoogleClientConfigType, SSOClientType } from 'nocodb-sdk'
-import { computed, reactive, ref, useAuthentication, useCopy } from '#imports'
 
 const props = defineProps<{
   modelValue: boolean

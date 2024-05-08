@@ -1,23 +1,6 @@
 <script lang="ts" setup>
 import type { Ref } from '@vue/reactivity'
-import {
-  ActiveViewInj,
-  IsLockedInj,
-  IsPublicInj,
-  LockType,
-  MetaInj,
-  extractSdkResponseErrorMsg,
-  iconMap,
-  inject,
-  message,
-  ref,
-  useBase,
-  useI18n,
-  useMenuCloseOnEsc,
-  useNuxtApp,
-  useRoles,
-  useSmartsheetStoreOrThrow,
-} from '#imports'
+import { LockType } from '#imports'
 
 const { t } = useI18n()
 

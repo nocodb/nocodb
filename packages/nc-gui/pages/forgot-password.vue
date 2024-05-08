@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { RuleObject } from 'ant-design-vue/es/form'
-import { definePageMeta, iconMap, reactive, ref, useApi, useI18n, validateEmail } from '#imports'
 
 definePageMeta({
   requiresAuth: false,

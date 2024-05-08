@@ -1,5 +1,3 @@
-import { computed, useRouter } from '#imports'
-
 export function useDashboard() {
   const router = useRouter()
 

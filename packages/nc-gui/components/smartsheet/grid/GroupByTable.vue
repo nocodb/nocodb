@@ -1,8 +1,6 @@
 <script lang="ts" setup>
 import { UITypes, isLinksOrLTAR } from 'nocodb-sdk'
 import Table from './Table.vue'
-import { IsGroupByInj, computed, ref, rowDefaultData } from '#imports'
-import type { Group, Row } from '#imports'
 
 const props = defineProps<{
   group: Group

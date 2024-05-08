@@ -1,6 +1,4 @@
-<script lang="ts" setup>
-import { openLink } from '#imports'
-</script>
+<script lang="ts" setup></script>
 
 <template>
   <div

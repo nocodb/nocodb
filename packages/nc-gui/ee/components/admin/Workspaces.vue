@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { WorkspaceUserRoles } from 'nocodb-sdk'
-import { useUserSorts } from '#imports'
 
 const { sorts, loadSorts, handleGetSortedData, toggleSort } = useUserSorts('Organization')
 

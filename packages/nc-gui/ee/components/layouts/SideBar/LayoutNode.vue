@@ -3,7 +3,6 @@ import type { BaseType, LayoutType } from 'nocodb-sdk'
 import { toRef } from '@vue/reactivity'
 
 import { useNuxtApp } from '#app'
-import { ProjectRoleInj, TreeViewInj, useRoles } from '#imports'
 
 const props = defineProps<{
   base: BaseType

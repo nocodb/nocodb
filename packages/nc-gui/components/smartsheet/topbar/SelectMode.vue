@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { storeToRefs, useViewsStore } from '#imports'
-
 const { openedViewsTab, activeView } = storeToRefs(useViewsStore())
 
 const { isUIAllowed } = useRoles()

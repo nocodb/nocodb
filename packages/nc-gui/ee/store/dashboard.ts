@@ -21,7 +21,6 @@ import type {
   WidgetType,
 } from 'nocodb-sdk'
 import { AggregateFnType, ButtonActionType, DataSourceType, FontType, WidgetTypeType, chartTypes } from 'nocodb-sdk'
-import { computed, extractSdkResponseErrorMsg, message, navigateTo, ref, useNuxtApp, useRouter, watch } from '#imports'
 import type { IdAndTitle, LayoutSidebarNode } from '#imports'
 
 interface LayoutEntry {

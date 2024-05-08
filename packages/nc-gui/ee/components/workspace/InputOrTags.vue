@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
 import type { Input } from 'ant-design-vue'
-import { nextTick } from '#imports'
 
 const props = withDefaults(
   defineProps<{

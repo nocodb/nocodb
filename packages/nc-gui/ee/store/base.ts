@@ -2,22 +2,6 @@ import type { BaseType, OracleUi, SourceType, TableType } from 'nocodb-sdk'
 import { SqlUiFactory } from 'nocodb-sdk'
 import { isString } from '@vue/shared'
 import { acceptHMRUpdate, defineStore } from 'pinia'
-import {
-  ClientType,
-  computed,
-  createEventHook,
-  ref,
-  useApi,
-  useBases,
-  useCommandPalette,
-  useGlobal,
-  useNuxtApp,
-  useRoles,
-  useRouter,
-  useTablesStore,
-  useTheme,
-} from '#imports'
-import type { NcProject, ProjectMetaInfo, ThemeConfig } from '#imports'
 
 export const useBase = defineStore('baseStore', () => {
   const { $e } = useNuxtApp()

@@ -3,16 +3,6 @@ import type { RuleObject } from 'ant-design-vue/es/form'
 import type { Form, Input } from 'ant-design-vue'
 import type { VNodeRef } from '@vue/runtime-core'
 import { computed } from '@vue/reactivity'
-import {
-  NcProjectType,
-  baseIconColors,
-  baseTitleValidator,
-  extractSdkResponseErrorMsg,
-  ref,
-  useGlobal,
-  useI18n,
-  useVModel,
-} from '#imports'
 
 const props = defineProps<{
   modelValue: boolean

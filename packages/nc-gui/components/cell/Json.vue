@@ -1,19 +1,5 @@
 <script setup lang="ts">
 import NcModal from '../nc/Modal.vue'
-import {
-  ActiveCellInj,
-  EditModeInj,
-  IsFormInj,
-  JsonExpandInj,
-  ReadonlyInj,
-  RowHeightInj,
-  computed,
-  inject,
-  ref,
-  useSelectedCellKeyupListener,
-  useVModel,
-  watch,
-} from '#imports'
 
 interface Props {
   modelValue: string | Record<string, any> | undefined

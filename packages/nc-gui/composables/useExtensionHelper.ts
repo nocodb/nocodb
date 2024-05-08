@@ -1,6 +1,5 @@
 import type { ColumnType, ViewType } from 'nocodb-sdk'
 import type { ExtensionType } from '#imports'
-import { useInjectionState } from '#imports'
 
 const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState((extension: Ref<ExtensionType>) => {
   const { $api } = useNuxtApp()

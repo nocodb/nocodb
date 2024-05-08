@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { onMounted } from '@vue/runtime-core'
-import { useDomains } from '#imports'
+
 // import {DomainType} from "nocodb-sdk";
 
 const { domains, fetchDomains, getPrePopulatedDomain, verifyDomain, deleteDomain } = useDomains()

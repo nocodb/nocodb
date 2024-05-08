@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { Row } from '~/lib'
+import type { Row } from '~/lib/types'
 
 interface Props {
   color?: string

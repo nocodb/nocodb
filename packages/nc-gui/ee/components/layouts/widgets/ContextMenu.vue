@@ -1,8 +1,7 @@
 <script lang="ts" setup>
-import { computed, toRefs } from 'vue'
 import { WidgetTypeType } from 'nocodb-sdk'
 import type { Widget } from 'nocodb-sdk'
-import { WidgetTypeText } from '#imports'
+
 const props = defineProps<{
   widget: Widget
 }>()

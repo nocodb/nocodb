@@ -2,9 +2,6 @@ import { useGlobalActions } from './actions'
 import { useGlobalGetters } from './getters'
 import { useGlobalState } from './state'
 import type { UseGlobalReturn } from './types'
-import { createGlobalState, useNuxtApp, watch } from '#imports'
-
-export * from './types'
 
 /**
  * Global state is injected by {@link import('~/plugins/state') state} plugin into our nuxt app (available as `$state`).
@@ -16,7 +13,7 @@ export * from './types'
  *
  * @example
  * ```js
- * import { useNuxtApp } from '#imports'
+ *
  *
  * const { $state } = useNuxtApp()
  *
@@ -26,7 +23,7 @@ export * from './types'
  *
  * @example
  * ```js
- * import { useGlobal } from '#imports'
+ *
  *
  * const globalState = useGlobal()
  *

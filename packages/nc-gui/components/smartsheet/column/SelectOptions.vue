@@ -3,8 +3,6 @@ import Draggable from 'vuedraggable'
 import { UITypes } from 'nocodb-sdk'
 import InfiniteLoading from 'v3-infinite-loading'
 
-import { IsKanbanInj, enumColor, iconMap, onMounted, useColumnCreateStoreOrThrow, useVModel } from '#imports'
-
 interface Option {
   color: string
   title: string

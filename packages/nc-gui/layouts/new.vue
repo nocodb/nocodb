@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { useTitle } from '@vueuse/core'
-import { useGlobal, useI18n, useRoute } from '#imports'
 
 const route = useRoute()
 

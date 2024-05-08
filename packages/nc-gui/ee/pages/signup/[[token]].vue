@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { definePageMeta, onMounted, useGlobal, useRoute } from '#imports'
-
 const { appInfo } = useGlobal()
 
 const route = useRoute()

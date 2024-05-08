@@ -2,7 +2,6 @@
 import type { SSOClientType } from 'nocodb-sdk'
 import type { RuleObject } from 'ant-design-vue/es/form'
 import isURL from 'validator/lib/isURL'
-import { computed, reactive, ref, useAuthentication, useCopy } from '#imports'
 
 const props = withDefaults(
   defineProps<{

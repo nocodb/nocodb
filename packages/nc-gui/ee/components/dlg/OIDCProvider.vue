@@ -1,8 +1,7 @@
 <script lang="ts" setup>
 import type { SSOClientType } from 'nocodb-sdk'
 import type { RuleObject } from 'ant-design-vue/es/form'
-import { isValidURL as _isValidURL, computed, reactive, ref, useAuthentication } from '#imports'
-import { urlValidator } from '~/utils'
+import { isValidURL as _isValidURL } from '#imports'
 
 const props = defineProps<{
   modelValue: boolean

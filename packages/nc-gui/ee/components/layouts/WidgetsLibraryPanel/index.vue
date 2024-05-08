@@ -10,8 +10,6 @@ import LineChartWidgetIcon from './custom-icons/widget-types/LineChart.vue'
 import PieChartWidgetIcon from './custom-icons/widget-types/PieChart.vue'
 import ScatterChartWidgetIcon from './custom-icons/widget-types/ScatterChart.vue'
 
-import type { WidgetTemplate } from '#imports'
-
 const widgetsLibrary: WidgetTemplate[] = [
   {
     title: 'Bar',

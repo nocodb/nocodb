@@ -1,18 +1,4 @@
 <script setup lang="ts">
-import {
-  Form,
-  TabType,
-  computed,
-  nextTick,
-  onMounted,
-  ref,
-  useBase,
-  useTable,
-  useTabs,
-  useVModel,
-  validateTableName,
-} from '#imports'
-
 const props = defineProps<{
   modelValue: boolean
   sourceId: string

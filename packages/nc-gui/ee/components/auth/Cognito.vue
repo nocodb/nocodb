@@ -2,7 +2,6 @@
 import '@aws-amplify/ui-vue/styles.css'
 import { Authenticator } from '@aws-amplify/ui-vue'
 import isEmail from 'validator/es/lib/isEmail'
-import { isFirstTimeUser } from '#imports'
 
 const initialState = isFirstTimeUser() ? 'signUp' : 'signIn'
 

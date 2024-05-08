@@ -1,7 +1,6 @@
 import type { Api, DomainReqType } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
 import { useNuxtApp } from 'nuxt/app'
-import { extractSdkResponseErrorMsg, ref, storeToRefs, useOrg } from '#imports'
 
 export const useDomains = () => {
   const { $api } = <{ $api: Api<any> }>useNuxtApp()

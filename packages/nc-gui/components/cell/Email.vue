@@ -1,16 +1,5 @@
 <script lang="ts" setup>
 import type { VNodeRef } from '@vue/runtime-core'
-import {
-  EditColumnInj,
-  EditModeInj,
-  IsExpandedFormOpenInj,
-  IsFormInj,
-  ReadonlyInj,
-  computed,
-  inject,
-  useI18n,
-  validateEmail,
-} from '#imports'
 import { extractEmail } from '~/helpers/parsers/parserHelpers'
 
 interface Props {

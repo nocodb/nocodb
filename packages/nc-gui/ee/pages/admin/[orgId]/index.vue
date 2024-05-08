@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { IsAdminPanelInj, navigateTo, storeToRefs, useOrg, useRoles } from '#imports'
-
 definePageMeta({
   hideHeader: true,
 })

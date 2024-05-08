@@ -2,27 +2,6 @@
 import type { ColumnType, GridType } from 'nocodb-sdk'
 import Table from './Table.vue'
 import GroupBy from './GroupBy.vue'
-import {
-  ActiveViewInj,
-  FieldsInj,
-  IsCalendarInj,
-  IsFormInj,
-  IsGalleryInj,
-  IsGridInj,
-  MetaInj,
-  NavigateDir,
-  RowHeightInj,
-  computed,
-  extractPkFromRow,
-  inject,
-  message,
-  provide,
-  ref,
-  useSmartsheetStoreOrThrow,
-  useViewData,
-  useViewGroupByOrThrow,
-} from '#imports'
-import type { Row } from '#imports'
 
 const meta = inject(MetaInj, ref())
 

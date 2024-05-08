@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import type { DomainType } from 'nocodb-sdk'
 import type { RuleObject } from 'ant-design-vue/es/form'
-import { computed, reactive, ref, useDomains } from '#imports'
 
 const props = defineProps<{
   domain: DomainType
@@ -141,7 +140,7 @@ const saveDomain = async () => {
   @apply px-4 rounded-lg py-2 w-full border-1 focus:border-brand-500 border-gray-200 !ring-0;
 }
 
-:deep(..ant-form-item) {
+:deep(.ant-form-item) {
   @apply !mb-0;
 }
 

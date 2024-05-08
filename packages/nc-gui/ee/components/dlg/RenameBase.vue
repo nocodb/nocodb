@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { reactive, useVModel } from '#imports'
-
 interface Props {
   modelValue?: boolean
   baseId: string

@@ -1,19 +1,6 @@
 <script setup lang="ts">
 import type { OrgUserReqType } from 'nocodb-sdk'
 import { WorkspaceUserRoles } from 'nocodb-sdk'
-import type { User, Users } from '#imports'
-import {
-  Form,
-  computed,
-  extractSdkResponseErrorMsg,
-  message,
-  ref,
-  useCopy,
-  useDashboard,
-  useI18n,
-  useNuxtApp,
-  validateEmail,
-} from '#imports'
 
 interface Props {
   show: boolean

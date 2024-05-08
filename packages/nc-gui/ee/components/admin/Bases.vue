@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { useUserSorts } from '#imports'
-
 const { sorts, loadSorts, handleGetSortedData, toggleSort } = useUserSorts('Organization')
 
 const { bases, fetchOrganizationBases } = useOrganization()

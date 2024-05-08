@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { RuleObject } from 'ant-design-vue/es/form'
 import type { Api } from 'nocodb-sdk'
-import { iconMap, reactive, ref, useApi, useI18n, useSidebar, validateEmail } from '#imports'
 
 const { api, isLoading, error } = useApi({ useGlobalInstance: true })
 

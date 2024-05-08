@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import type { TabItem } from '#imports'
-import { TabMetaInj, computed, inject, storeToRefs, until, useBase, useMetas, useRoute } from '#imports'
 const { getMeta } = useMetas()
 
 const baseStore = useBase()

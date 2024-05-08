@@ -3,20 +3,6 @@ import Draggable from 'vuedraggable'
 import type { TableType, ViewType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { getSystemColumns, isVirtualCol } from 'nocodb-sdk'
-import {
-  ActiveViewInj,
-  MetaInj,
-  Modal,
-  extractSdkResponseErrorMsg,
-  resolveComponent,
-  useCowriterStoreOrThrow,
-  useDialog,
-  useI18n,
-  useProvideSmartsheetRowStore,
-  useProvideSmartsheetStore,
-  useRoles,
-  useViewData,
-} from '#imports'
 
 const {
   unsupportedColumnTypes,

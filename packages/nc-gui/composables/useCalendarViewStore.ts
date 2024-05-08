@@ -1,17 +1,7 @@
 import type { ComputedRef, Ref } from 'vue'
-import type {
-  type Api,
-  CalendarRangeType,
-  type CalendarType,
-  type ColumnType,
-  type PaginatedType,
-  type TableType,
-  type ViewType,
-} from 'nocodb-sdk'
+import type { Api, CalendarRangeType, CalendarType, ColumnType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import dayjs from 'dayjs'
-import { extractPkFromRow, extractSdkResponseErrorMsg, rowPkData } from '~/utils'
-import { IsPublicInj, type Row, ref, storeToRefs, useBase, useInjectionState, useUndoRedo } from '#imports'
 
 const formatData = (list: Record<string, any>[]) =>
   list.map(

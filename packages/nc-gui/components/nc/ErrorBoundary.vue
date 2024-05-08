@@ -1,7 +1,6 @@
 <script lang="ts">
 // modified version of default NuxtErrorBoundary component - https://github.com/nuxt/nuxt/blob/main/packages/nuxt/src/app/components/nuxt-error-boundary.ts
 import { message } from 'ant-design-vue'
-import { computed, onErrorCaptured, ref, useCopy, useNuxtApp } from '#imports'
 
 export default {
   emits: {

@@ -1,6 +1,5 @@
 import type { TableReqType, TableType } from 'nocodb-sdk'
 import type { MaybeRef } from '@vueuse/core'
-import { useViewsStore } from '#imports'
 
 // DEPRECATED: Use useViewsStore instead
 function useViews(_: MaybeRef<TableType | TableReqType | undefined>) {

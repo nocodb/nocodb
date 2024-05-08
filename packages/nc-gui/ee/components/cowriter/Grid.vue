@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import { ActiveViewInj, MetaInj, useCowriterStoreOrThrow, useMetas, useProvideSmartsheetStore } from '#imports'
 
 const { getMeta } = useMetas()
 

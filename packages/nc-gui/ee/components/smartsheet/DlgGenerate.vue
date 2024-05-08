@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType, TableType } from 'nocodb-sdk'
 import { UITypes, isSystemColumn } from 'nocodb-sdk'
-import { ref, useNuxtApp, useVModel } from '#imports'
 
 const props = defineProps<{
   modelValue: boolean

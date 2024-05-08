@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import type { DataSourceInternal, NumberWidget, SourceType } from 'nocodb-sdk'
 import useWidgetFilters from './useWidgetFilters'
-import { ref } from '#imports'
-import type { Filter } from '#imports'
 
 interface Props {
   nested?: boolean

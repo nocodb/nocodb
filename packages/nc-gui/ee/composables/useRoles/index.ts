@@ -1,8 +1,6 @@
 import { isString } from '@vue/shared'
 import type { Roles, RolesObj } from 'nocodb-sdk'
 import { extractRolesObj } from 'nocodb-sdk'
-import type { Permission } from '#imports'
-import { computed, createSharedComposable, rolePermissions, useApi, useGlobal } from '#imports'
 
 const hasPermission = (role: Roles, hasRole: boolean, permission: Permission | string) => {
   const rolePermission = rolePermissions[role]
@@ -110,7 +108,7 @@ export const useRoles = createSharedComposable(() => {
         base_roles: res.base_roles,
         workspace_roles: res.workspace_roles,
         org_roles: res.org_roles,
-      } as typeof User
+      } as User
     } else if (options?.isSharedErd) {
       const res = await api.auth.me(
         {
@@ -129,7 +127,7 @@ export const useRoles = createSharedComposable(() => {
         base_roles: res.base_roles,
         workspace_roles: res.workspace_roles,
         org_roles: res.org_roles,
-      } as typeof User
+      } as User
     } else if (baseId) {
       const res = await api.auth.me({ base_id: baseId, ...wsId })
 
@@ -140,7 +138,7 @@ export const useRoles = createSharedComposable(() => {
         workspace_roles: res.workspace_roles,
         display_name: res.display_name,
         org_roles: res.org_roles,
-      } as typeof User
+      } as User
     } else {
       const res = await api.auth.me({ ...wsId } as any)
 
@@ -151,7 +149,7 @@ export const useRoles = createSharedComposable(() => {
         workspace_roles: res.workspace_roles,
         display_name: res.display_name,
         org_roles: res.org_roles,
-      } as typeof User
+      } as User
     }
   }
 

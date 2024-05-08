@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { CowriterType } from 'nocodb-sdk'
 import { timeAgo } from 'nocodb-sdk'
-import { useCowriterStoreOrThrow } from '#imports'
 
 const {
   COWRITER_TABS,

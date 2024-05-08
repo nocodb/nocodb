@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { computed, useApiTiming } from '#imports'
 import NcServer from '~icons/nc-icons/server'
 import NcCpu from '~icons/nc-icons/cpu'
 import NcDatabase from '~icons/nc-icons/database1'

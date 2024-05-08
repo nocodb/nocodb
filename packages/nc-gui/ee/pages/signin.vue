@@ -1,8 +1,4 @@
 <script setup lang="ts">
-import { onMounted } from '@vue/runtime-core'
-import { definePageMeta, useGlobal } from '#imports'
-import { useRoute } from '#app'
-
 const { appInfo } = useGlobal()
 
 const route = useRoute()

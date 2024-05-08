@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { enumColor as colors, iconMap, useDialog, useGlobal, useNuxtApp } from '#imports'
+import { enumColor as colors } from '#imports'
 
 const { $e } = useNuxtApp()
 

@@ -3,8 +3,6 @@ import { WorkspaceStatus } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { message } from 'ant-design-vue'
 import { isString } from '@vue/shared'
-import type { ThemeConfig } from '#imports'
-import { computed, navigateToBlankTargetOpenOption, ref, useCommandPalette, useNuxtApp, useRouter, useTheme } from '#imports'
 
 interface NcWorkspace extends WorkspaceType {
   edit?: boolean

@@ -2,7 +2,6 @@
 import { onKeyStroke } from '@vueuse/core'
 import type { CSSProperties } from '@vue/runtime-dom'
 import type { TooltipPlacement } from 'ant-design-vue/lib/tooltip'
-import { controlledRef, ref, useAttrs, useElementHover, watch } from '#imports'
 
 interface Props {
   // Key to be pressed on hover to trigger the tooltip

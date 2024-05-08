@@ -1,7 +1,4 @@
 <script lang="ts" setup>
-import { iconMap, parseProp } from '~/utils'
-import { computed, useFileDialog } from '#imports'
-
 const orgStore = useOrg()
 
 const { org } = storeToRefs(orgStore)
@@ -9,7 +6,7 @@ const { updateOrg } = orgStore
 
 const { getPossibleAttachmentSrc } = useAttachment()
 
-const { open, onChange: onChangeFile } = useFileDialog({
+const { onChange: onChangeFile } = useFileDialog({
   accept: 'image/*',
   multiple: false,
   reset: true,

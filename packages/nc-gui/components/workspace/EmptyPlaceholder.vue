@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { NcProjectType } from '#imports'
-
 const props = defineProps<{
   buttons?: boolean
 }>()

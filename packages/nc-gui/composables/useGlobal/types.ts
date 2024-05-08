@@ -2,7 +2,7 @@ import type { ComputedRef, Ref, ToRefs } from 'vue'
 import type { WritableComputedRef } from '@vue/reactivity'
 import type { JwtPayload } from 'jwt-decode'
 import type { ProjectRoles } from 'nocodb-sdk'
-import type { Language, NcProjectType, User, useCounter } from '#imports'
+import type { NcProjectType } from '#imports'
 
 export interface AppInfo {
   ncSiteUrl: string

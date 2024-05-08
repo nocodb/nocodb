@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { useGlobal } from '#imports'
-
 const { appInfo } = useGlobal()
 
 const numberOfDaysLeft = computed(() => {

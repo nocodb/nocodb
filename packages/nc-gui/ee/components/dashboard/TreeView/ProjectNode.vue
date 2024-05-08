@@ -3,21 +3,6 @@ import { nextTick } from '@vue/runtime-core'
 import { message } from 'ant-design-vue'
 import type { BaseType, SourceType, TableType } from 'nocodb-sdk'
 import { LoadingOutlined } from '@ant-design/icons-vue'
-import type { NcProject } from '#imports'
-import {
-  NcProjectType,
-  ProjectInj,
-  ProjectRoleInj,
-  ToggleDialogInj,
-  extractSdkResponseErrorMsg,
-  navigateToBlankTargetOpenOption,
-  openLink,
-  storeToRefs,
-  useBases,
-  useCopy,
-  useMagicKeys,
-} from '#imports'
-import { useNuxtApp } from '#app'
 
 const indicator = h(LoadingOutlined, {
   class: '!text-gray-400',

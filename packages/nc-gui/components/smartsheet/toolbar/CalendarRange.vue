@@ -1,20 +1,7 @@
 <script lang="ts" setup>
 import { UITypes, isSystemColumn } from 'nocodb-sdk'
 import type { SelectProps } from 'ant-design-vue'
-import { type CalendarRangeType } from '~/lib'
-
-import {
-  ActiveViewInj,
-  IsLockedInj,
-  IsPublicInj,
-  MetaInj,
-  computed,
-  iconMap,
-  inject,
-  ref,
-  useViewColumnsOrThrow,
-  watch,
-} from '#imports'
+import { type CalendarRangeType } from '~/lib/types'
 
 const meta = inject(MetaInj, ref())
 

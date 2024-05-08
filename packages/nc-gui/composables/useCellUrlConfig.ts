@@ -1,5 +1,4 @@
 import type { MaybeRef } from '@vueuse/core'
-import { computed, unref, useRouter } from '#imports'
 
 export interface CellUrlOptions {
   behavior?: string

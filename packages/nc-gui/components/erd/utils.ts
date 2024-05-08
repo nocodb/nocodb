@@ -6,7 +6,6 @@ import { MarkerType, Position, isEdge, isNode } from '@vue-flow/core'
 import type { MaybeRef } from '@vueuse/core'
 import { scaleLinear as d3ScaleLinear } from 'd3-scale'
 import tinycolor from 'tinycolor2'
-import { computed, ref, unref, useMetas, useTheme } from '#imports'
 
 export interface ERDConfig {
   showPkAndFk: boolean

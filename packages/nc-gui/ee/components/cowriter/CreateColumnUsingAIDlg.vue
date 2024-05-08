@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { message } from 'ant-design-vue'
 import type { VNodeRef } from '@vue/runtime-core'
-import { Form, extractSdkResponseErrorMsg, fieldRequiredValidator, ref, useVModel } from '#imports'
 
 const props = defineProps<{
   modelValue: boolean

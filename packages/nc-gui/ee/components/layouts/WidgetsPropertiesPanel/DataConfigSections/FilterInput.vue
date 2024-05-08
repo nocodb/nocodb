@@ -1,31 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType, SourceType } from 'nocodb-sdk'
 import { SqlUiFactory } from 'nocodb-sdk'
-import {
-  ColumnInj,
-  EditModeInj,
-  ReadonlyInj,
-  computed,
-  isBoolean,
-  isCurrency,
-  isDate,
-  isDateTime,
-  isDecimal,
-  isDuration,
-  isFloat,
-  isInt,
-  isMultiSelect,
-  isPercent,
-  isRating,
-  isSingleSelect,
-  isTextArea,
-  isTime,
-  isYear,
-  provide,
-  ref,
-  toRef,
-} from '#imports'
-import type { Filter } from '#imports'
 import SingleSelect from '~/components/cell/SingleSelect.vue'
 import MultiSelect from '~/components/cell/MultiSelect.vue'
 import DatePicker from '~/components/cell/DatePicker.vue'

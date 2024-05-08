@@ -41,7 +41,6 @@ import { ColumnNode } from './columns'
 import { HistoryDeletion } from './history/deletionMark'
 import { HistoryInsertion } from './history/insertionMark'
 import { LinkToPage } from './linkToPage'
-import { useDocStore } from '#imports'
 
 const tiptapExtensions = (isPublic: boolean): Extensions => {
   const { uploadFile } = useDocStore()

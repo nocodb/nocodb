@@ -3,7 +3,6 @@ import type { ColumnType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
 import { ref } from 'vue'
 import { StreamBarcodeReader } from 'vue-barcode-reader'
-import { iconMap, useAttachment, useSharedFormStoreOrThrow } from '#imports'
 
 const {
   sharedFormView,

@@ -5,7 +5,6 @@ import type { ColumnType } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
 import { storeToRefs } from 'pinia'
 import MdiHammer from '~icons/mdi/hammer'
-import { useBase, useNuxtApp, useRoles, useSqlEditor } from '#imports'
 
 const { base, sources, tables } = storeToRefs(useBase())
 

@@ -1,6 +1,5 @@
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import { RelationTypes, UITypes } from 'nocodb-sdk'
-import { iconMap } from '#imports'
 
 const uiTypes = [
   {

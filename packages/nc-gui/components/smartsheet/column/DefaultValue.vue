@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { UITypes } from 'nocodb-sdk'
-import { iconMap } from '#imports'
 
 const props = defineProps<{
   value: any

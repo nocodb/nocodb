@@ -1,6 +1,5 @@
 import { defineStore } from 'pinia'
 import type { DocsPageSnapshotType } from 'nocodb-sdk'
-import { useDocStore } from '#imports'
 
 export const useDocHistoryStore = defineStore('docHistoryStore', () => {
   const { $api } = useNuxtApp()

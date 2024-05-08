@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { ProjectRoles, type RoleLabels, WorkspaceUserRoles } from 'nocodb-sdk'
-import type { User } from '#imports'
 
 import { extractEmail } from '~/helpers/parsers/parserHelpers'
 
@@ -12,8 +11,6 @@ const props = defineProps<{
   workspaceId?: string
 }>()
 const emit = defineEmits(['update:modelValue'])
-
-const { baseRoles, workspaceRoles } = useRoles()
 
 const basesStore = useBases()
 
@@ -27,10 +24,6 @@ const dialogShow = useVModel(props, 'modelValue', emit)
 
 const orderedRoles = computed(() => {
   return props.type === 'base' ? ProjectRoles : WorkspaceUserRoles
-})
-
-const userRoles = computed(() => {
-  return props.type === 'base' ? baseRoles.value : workspaceRoles.value
 })
 
 const inviteData = reactive({

@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { useBase, useProvideCowriterStore, useRoute } from '#imports'
-
 useSidebar('nc-left-sidebar', { hasSidebar: false })
 const route = useRoute()
 

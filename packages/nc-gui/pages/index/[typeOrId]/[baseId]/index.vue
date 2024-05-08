@@ -1,25 +1,4 @@
 <script setup lang="ts">
-import {
-  definePageMeta,
-  extractSdkResponseErrorMsg,
-  isDrawerOrModalExist,
-  isMac,
-  message,
-  onBeforeMount,
-  onBeforeUnmount,
-  onKeyStroke,
-  onMounted,
-  ref,
-  resolveComponent,
-  useBase,
-  useDialog,
-  useI18n,
-  useRoute,
-  useRouter,
-  useSidebar,
-  useTheme,
-} from '#imports'
-
 definePageMeta({
   hideHeader: true,
   hasSidebar: true,

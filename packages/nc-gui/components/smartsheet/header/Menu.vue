@@ -1,24 +1,7 @@
 <script lang="ts" setup>
 import type { ColumnReqType } from 'nocodb-sdk'
 import { PlanLimitTypes, RelationTypes, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
-import { computed } from 'vue'
-import {
-  ActiveViewInj,
-  ColumnInj,
-  IsLockedInj,
-  MetaInj,
-  ReloadViewDataHookInj,
-  SmartsheetStoreEvents,
-  iconMap,
-  inject,
-  message,
-  toRef,
-  useI18n,
-  useMetas,
-  useNuxtApp,
-  useSmartsheetStoreOrThrow,
-  useUndoRedo,
-} from '#imports'
+import { SmartsheetStoreEvents } from '#imports'
 
 const props = defineProps<{ virtual?: boolean; isOpen: boolean }>()
 

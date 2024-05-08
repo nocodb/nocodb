@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { Empty, extractSdkResponseErrorMsg, h, iconMap, message, storeToRefs, useBase, useI18n, useNuxtApp } from '#imports'
-
 const props = defineProps<{
   sourceId: string
 }>()

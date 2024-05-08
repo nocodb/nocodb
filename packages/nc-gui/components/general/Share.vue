@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { computed } from '#imports'
-
 interface Props {
   url: string
   socialMedias: string[]

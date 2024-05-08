@@ -12,50 +12,8 @@ import {
   isVirtualCol,
 } from 'nocodb-sdk'
 import { useColumnDrag } from './useColumnDrag'
-
 import usePaginationShortcuts from './usePaginationShortcuts'
-import {
-  ActiveViewInj,
-  CellUrlDisableOverlayInj,
-  FieldsInj,
-  IsGroupByInj,
-  IsLockedInj,
-  JsonExpandInj,
-  MetaInj,
-  NavigateDir,
-  ReadonlyInj,
-  computed,
-  extractPkFromRow,
-  getEnumColorByIndex,
-  iconMap,
-  inject,
-  isBt,
-  isColumnRequiredAndNull,
-  isDrawerOrModalExist,
-  isEeUI,
-  isMac,
-  isMm,
-  isOo,
-  message,
-  onClickOutside,
-  onMounted,
-  provide,
-  ref,
-  useApi,
-  useEventListener,
-  useI18n,
-  useMultiSelect,
-  useNuxtApp,
-  usePaste,
-  useRoles,
-  useRoute,
-  useSmartsheetStoreOrThrow,
-  useUndoRedo,
-  useViewColumnsOrThrow,
-  useViewsStore,
-  watch,
-} from '#imports'
-import type { CellRange, Row } from '#imports'
+import { type CellRange, NavigateDir } from '#imports'
 
 const props = defineProps<{
   data: Row[]

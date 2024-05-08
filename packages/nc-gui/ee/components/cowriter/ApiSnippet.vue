@@ -2,7 +2,6 @@
 import HTTPSnippet from 'httpsnippet'
 import type { ColumnType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
-import { MetaInj, inject, message, ref, useCopy, useCowriterStoreOrThrow, useGlobal, useI18n, useVModel, watch } from '#imports'
 
 const props = defineProps<{
   modelValue: boolean

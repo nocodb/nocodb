@@ -1,19 +1,4 @@
 <script setup lang="ts">
-import {
-  ActiveCellInj,
-  ColumnInj,
-  EditColumnInj,
-  IsFormInj,
-  IsSurveyFormInj,
-  ReadonlyInj,
-  getMdiIcon,
-  inject,
-  parseProp,
-  rowHeightInPx,
-  useBase,
-  useSelectedCellKeyupListener,
-} from '#imports'
-
 interface Props {
   // If the previous cell value was a text, the initial checkbox value is a string type
   // otherwise it can be either a boolean, or a string representing a boolean, i.e '0' or '1'

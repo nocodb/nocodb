@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { ButtonType } from 'ant-design-vue/lib/button'
-import { NcProjectType } from '#imports'
-import type { NcButtonSize } from '~/lib'
+import type { NcButtonSize } from '~/lib/types'
 
 const props = defineProps<{
   activeWorkspaceId?: string

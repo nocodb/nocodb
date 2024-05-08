@@ -1,17 +1,4 @@
 <script setup lang="ts">
-import {
-  IsKanbanInj,
-  IsLockedInj,
-  IsPublicInj,
-  iconMap,
-  inject,
-  provide,
-  ref,
-  useKanbanViewStoreOrThrow,
-  useMenuCloseOnEsc,
-  useRoles,
-} from '#imports'
-
 const { isUIAllowed } = useRoles()
 
 const { groupingFieldColumn } = useKanbanViewStoreOrThrow()

@@ -2,7 +2,6 @@
 import { Modal, message } from 'ant-design-vue'
 import type { BaseType } from 'nocodb-sdk'
 import { useI18n } from 'vue-i18n'
-import { extractSdkResponseErrorMsg, iconMap, navigateTo, useNuxtApp, useRoute } from '#imports'
 import MaterialSymbolsFormatListBulletedRounded from '~icons/material-symbols/format-list-bulleted-rounded'
 import MaterialSymbolsGridView from '~icons/material-symbols/grid-view'
 import MdiFolderOutline from '~icons/mdi/folder-outline'

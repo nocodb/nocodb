@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { AppEvents } from 'nocodb-sdk'
-import { useGlobal } from '#imports'
 
 const props = defineProps<{
   item: any

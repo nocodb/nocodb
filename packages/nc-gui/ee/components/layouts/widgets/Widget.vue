@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import type { ButtonWidget, ChartWidget, NumberWidget, StaticTextWidget, Widget } from 'nocodb-sdk'
 import { WidgetTypeType, chartTypes } from 'nocodb-sdk'
-import { computed } from '#imports'
 
 const props = defineProps<{
   widget: Widget

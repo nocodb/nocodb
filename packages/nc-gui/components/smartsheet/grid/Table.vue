@@ -12,8 +12,8 @@ import {
   isVirtualCol,
 } from 'nocodb-sdk'
 import { useColumnDrag } from './useColumnDrag'
-
 import usePaginationShortcuts from './usePaginationShortcuts'
+import { type CellRange, NavigateDir } from '#imports'
 
 const props = defineProps<{
   data: Row[]

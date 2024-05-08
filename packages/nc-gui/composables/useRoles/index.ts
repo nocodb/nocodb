@@ -88,7 +88,7 @@ export const useRoles = createSharedComposable(() => {
         ...user.value,
         roles: res.roles,
         base_roles: res.base_roles,
-      } as typeof User
+      } as User
     } else if (options?.isSharedErd) {
       const res = await api.auth.me(
         {
@@ -105,7 +105,7 @@ export const useRoles = createSharedComposable(() => {
         ...user.value,
         roles: res.roles,
         base_roles: res.base_roles,
-      } as typeof User
+      } as User
     } else if (baseId) {
       const res = await api.auth.me({ base_id: baseId })
 
@@ -114,7 +114,7 @@ export const useRoles = createSharedComposable(() => {
         roles: res.roles,
         base_roles: res.base_roles,
         display_name: res.display_name,
-      } as typeof User
+      } as User
     } else {
       const res = await api.auth.me({})
 
@@ -123,7 +123,7 @@ export const useRoles = createSharedComposable(() => {
         roles: res.roles,
         base_roles: res.base_roles,
         display_name: res.display_name,
-      } as typeof User
+      } as User
     }
   }
 

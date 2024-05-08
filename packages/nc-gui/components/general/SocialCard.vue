@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { enumColor as colors } from '#imports'
+
 const { $e } = useNuxtApp()
 
 const { lang: currentLang } = useGlobal()

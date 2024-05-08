@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import UsersIcon from '~icons/nc-icons/users'
 import LockIcon from '~icons/nc-icons/lock'
+import { LockType } from '#imports'
 
 const { type, hideTick } = defineProps<{ hideTick?: boolean; type: LockType }>()
 

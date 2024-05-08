@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { Ref } from '@vue/reactivity'
+import { LockType } from '#imports'
 
 const { t } = useI18n()
 

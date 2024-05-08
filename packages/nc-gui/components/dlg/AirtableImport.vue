@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Card as AntCard } from 'ant-design-vue'
+import { JobStatus } from '#imports'
 
 const { modelValue, baseId, sourceId } = defineProps<{
   modelValue: boolean

@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import dayjs from 'dayjs'
 import { UITypes } from 'nocodb-sdk'
+import type { Row as RowType } from '#imports'
 
 const meta = inject(MetaInj, ref())
 

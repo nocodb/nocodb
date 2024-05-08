@@ -1,6 +1,15 @@
 <script lang="ts" setup>
 import { Form, message } from 'ant-design-vue'
 import type { SelectHandler } from 'ant-design-vue/es/vc-select/Select'
+import {
+  type CertTypes,
+  ClientType,
+  type DefaultConnection,
+  type ProjectCreateForm,
+  type SQLiteConnection,
+  SSLUsage,
+  clientTypes as _clientTypes,
+} from '#imports'
 
 const props = defineProps<{ open: boolean; connectionType?: ClientType }>()
 

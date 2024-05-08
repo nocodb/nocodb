@@ -4,33 +4,6 @@ import 'splitpanes/dist/splitpanes.css'
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { UITypes, isLinksOrLTAR } from 'nocodb-sdk'
 
-import type { TabItem } from '#imports'
-import {
-  ActiveViewInj,
-  FieldsInj,
-  IsFormInj,
-  IsLockedInj,
-  MetaInj,
-  OpenNewRecordFormHookInj,
-  ReadonlyInj,
-  ReloadViewDataHookInj,
-  ReloadViewMetaHookInj,
-  TabMetaInj,
-  computed,
-  createEventHook,
-  provide,
-  ref,
-  toRef,
-  useExpandedFormDetachedProvider,
-  useMetas,
-  useProvideCalendarViewStore,
-  useProvideKanbanViewStore,
-  useProvideSmartsheetLtarHelpers,
-  useProvideSmartsheetStore,
-  useRoles,
-  useSqlEditor,
-} from '#imports'
-
 const props = defineProps<{
   activeTab: TabItem
 }>()

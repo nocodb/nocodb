@@ -1,31 +1,6 @@
 <script lang="ts" setup>
 import { Form, message } from 'ant-design-vue'
 import type { SelectHandler } from 'ant-design-vue/es/vc-select/Select'
-import type { DefaultConnection, ProjectCreateForm, SQLiteConnection } from '#imports'
-import {
-  CertTypes,
-  ClientType,
-  ProjectIdInj,
-  SSLUsage,
-  clientTypes as _clientTypes,
-  baseTitleValidator,
-  computed,
-  extractSdkResponseErrorMsg,
-  fieldRequiredValidator,
-  generateUniqueName,
-  getDefaultConnectionConfig,
-  getTestDatabaseName,
-  iconMap,
-  nextTick,
-  onMounted,
-  readFile,
-  ref,
-  storeToRefs,
-  useApi,
-  useI18n,
-  useNuxtApp,
-  watch,
-} from '#imports'
 
 const props = defineProps<{ open: boolean; connectionType?: ClientType }>()
 

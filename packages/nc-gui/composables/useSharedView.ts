@@ -11,7 +11,6 @@ import type {
   ViewType,
 } from 'nocodb-sdk'
 import { UITypes, ViewTypes } from 'nocodb-sdk'
-import { computed, parseProp, storeToRefs, useGlobal, useMetas, useNuxtApp, useState } from '#imports'
 
 export function useSharedView() {
   const nestedFilters = ref<(FilterType & { status?: 'update' | 'delete' | 'create'; parentId?: string })[]>([])

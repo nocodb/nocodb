@@ -1,5 +1,3 @@
-import { computed, ref } from '#imports'
-
 interface UseLoadingIndicatorProps {
   duration?: number
   throttle?: number

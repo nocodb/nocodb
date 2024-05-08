@@ -2,7 +2,6 @@ import dayjs from 'dayjs'
 import type { AttachmentType, ColumnType, LinkToAnotherRecordType, SelectOptionsType } from 'nocodb-sdk'
 import { UITypes, getDateFormat, getDateTimeFormat, populateUniqueFileName } from 'nocodb-sdk'
 import type { AppInfo } from '~/composables/useGlobal/types'
-import { isBt, isMm, isOo, parseProp } from '#imports'
 import { extractEmail } from '~/helpers/parsers/parserHelpers'
 
 export default function convertCellData(

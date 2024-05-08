@@ -1,5 +1,3 @@
-import { defineNuxtPlugin } from '#imports'
-
 export default defineNuxtPlugin(() => {
   // Listen when 'Material Symbols' font is loaded
   // and remove 'nc-fonts-not-loaded' class from <html> element

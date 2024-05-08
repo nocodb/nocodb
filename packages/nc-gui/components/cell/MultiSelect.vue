@@ -4,33 +4,6 @@ import tinycolor from 'tinycolor2'
 import type { Select as AntSelect } from 'ant-design-vue'
 import type { SelectOptionType, SelectOptionsType } from 'nocodb-sdk'
 import type { FormFieldsLimitOptionsType } from '~/lib/types'
-import {
-  ActiveCellInj,
-  ColumnInj,
-  EditColumnInj,
-  EditModeInj,
-  IsKanbanInj,
-  IsSurveyFormInj,
-  ReadonlyInj,
-  RowHeightInj,
-  computed,
-  enumColor,
-  extractSdkResponseErrorMsg,
-  h,
-  iconMap,
-  inject,
-  isDrawerOrModalExist,
-  onMounted,
-  reactive,
-  ref,
-  rowHeightTruncateLines,
-  useBase,
-  useEventListener,
-  useMetas,
-  useRoles,
-  useSelectedCellKeyupListener,
-  watch,
-} from '#imports'
 import MdiCloseCircle from '~icons/mdi/close-circle'
 
 interface Props {

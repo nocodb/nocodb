@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { HookTestReqType, HookType } from 'nocodb-sdk'
-import { MetaInj, extractSdkResponseErrorMsg, inject, message, onMounted, ref, useI18n, useNuxtApp, watch } from '#imports'
 
 interface Props {
   hook: HookType

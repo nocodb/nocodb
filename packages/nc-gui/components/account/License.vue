@@ -1,7 +1,5 @@
 <script lang="ts" setup>
-import { useNuxtApp } from '#imports'
 import { message } from 'ant-design-vue'
-import { extractSdkResponseErrorMsg, useApi, useGlobal } from '#imports'
 
 const { api, isLoading } = useApi()
 

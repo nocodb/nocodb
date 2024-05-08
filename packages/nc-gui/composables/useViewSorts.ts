@@ -2,19 +2,6 @@ import type { ColumnType, SortType, ViewType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import type { EventHook } from '@vueuse/core'
 import type { UndoRedoAction } from '~/lib/types'
-import {
-  IsPublicInj,
-  ReloadViewDataHookInj,
-  extractSdkResponseErrorMsg,
-  inject,
-  message,
-  ref,
-  storeToRefs,
-  useBase,
-  useNuxtApp,
-  useRoles,
-  useSmartsheetStoreOrThrow,
-} from '#imports'
 
 export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () => void) {
   const { sorts, eventBus } = useSmartsheetStoreOrThrow()

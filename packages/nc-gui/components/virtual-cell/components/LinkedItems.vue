@@ -1,20 +1,6 @@
 <script lang="ts" setup>
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import { RelationTypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
-import {
-  ColumnInj,
-  IsFormInj,
-  IsPublicInj,
-  ReadonlyInj,
-  type Row,
-  computed,
-  inject,
-  isPrimary,
-  ref,
-  useLTARStoreOrThrow,
-  useSmartsheetRowStoreOrThrow,
-  useVModel,
-} from '#imports'
 
 interface Prop {
   modelValue?: boolean

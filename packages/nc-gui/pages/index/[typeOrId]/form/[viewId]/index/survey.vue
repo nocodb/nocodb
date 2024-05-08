@@ -3,19 +3,6 @@ import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
 import { breakpointsTailwind } from '@vueuse/core'
 import tinycolor from 'tinycolor2'
-import {
-  DropZoneRef,
-  IsSurveyFormInj,
-  computed,
-  onKeyStroke,
-  onMounted,
-  provide,
-  ref,
-  useBreakpoints,
-  usePointerSwipe,
-  useSharedFormStoreOrThrow,
-  useStepper,
-} from '#imports'
 
 enum TransitionDirection {
   Left = 'left',

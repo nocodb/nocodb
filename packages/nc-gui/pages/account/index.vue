@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { iconMap, navigateTo, useRoles } from '#imports'
-
 definePageMeta({
   hideHeader: true,
 })

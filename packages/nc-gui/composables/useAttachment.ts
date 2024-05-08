@@ -1,5 +1,3 @@
-import { openLink, useGlobal } from '#imports'
-
 const useAttachment = () => {
   const { appInfo } = useGlobal()
 

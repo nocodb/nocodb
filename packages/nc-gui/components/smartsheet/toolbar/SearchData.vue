@@ -1,16 +1,6 @@
 <script lang="ts" setup>
 import { UITypes, isSystemColumn } from 'nocodb-sdk'
 import type { ColumnType, TableType } from 'nocodb-sdk'
-import {
-  ActiveViewInj,
-  ReloadViewDataHookInj,
-  computed,
-  iconMap,
-  inject,
-  ref,
-  useFieldQuery,
-  useSmartsheetStoreOrThrow,
-} from '#imports'
 
 const reloadData = inject(ReloadViewDataHookInj)!
 

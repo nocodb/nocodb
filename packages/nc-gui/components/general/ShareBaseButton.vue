@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { isDrawerOrModalExist, isMac, useNuxtApp, useRoles, useRoute } from '#imports'
-
 const route = useRoute()
 
 const showUserModal = ref(false)

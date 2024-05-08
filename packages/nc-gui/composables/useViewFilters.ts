@@ -9,24 +9,6 @@ import {
 import type { ComputedRef, Ref } from 'vue'
 import type { SelectProps } from 'ant-design-vue'
 import { UITypes, isSystemColumn } from 'nocodb-sdk'
-import {
-  ActiveViewInj,
-  IsPublicInj,
-  MetaInj,
-  computed,
-  extractSdkResponseErrorMsg,
-  inject,
-  message,
-  ref,
-  storeToRefs,
-  useBase,
-  useDebounceFn,
-  useMetas,
-  useNuxtApp,
-  useRoles,
-  watch,
-} from '#imports'
-import type { Filter, UndoRedoAction } from '#imports'
 
 export function useViewFilters(
   view: Ref<ViewType | undefined>,
@@ -206,7 +188,7 @@ export function useViewFilters(
       )?.[0].value as FilterType['comparison_op'],
       value: '',
       status: 'create',
-      logical_op: logicalOps.size === 1 ? logicalOps.values().next().value :'and' ,
+      logical_op: logicalOps.size === 1 ? logicalOps.values().next().value : 'and',
     }
   }
 

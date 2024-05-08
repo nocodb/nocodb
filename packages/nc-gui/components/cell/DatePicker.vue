@@ -1,24 +1,6 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
 import { isDateMonthFormat, isSystemColumn } from 'nocodb-sdk'
-import {
-  ActiveCellInj,
-  CellClickHookInj,
-  ColumnInj,
-  EditColumnInj,
-  EditModeInj,
-  ReadonlyInj,
-  computed,
-  inject,
-  onClickOutside,
-  onMounted,
-  onUnmounted,
-  parseProp,
-  ref,
-  useGlobal,
-  useI18n,
-  watch,
-} from '#imports'
 
 interface Props {
   modelValue?: string | null

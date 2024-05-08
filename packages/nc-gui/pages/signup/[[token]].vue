@@ -1,18 +1,6 @@
 <script setup lang="ts">
 import { validatePassword } from 'nocodb-sdk'
 import type { RuleObject } from 'ant-design-vue/es/form'
-import {
-  definePageMeta,
-  navigateTo,
-  reactive,
-  ref,
-  useApi,
-  useGlobal,
-  useI18n,
-  useNuxtApp,
-  useRoute,
-  validateEmail,
-} from '#imports'
 
 definePageMeta({
   requiresAuth: false,

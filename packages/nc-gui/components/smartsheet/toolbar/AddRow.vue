@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { IsLockedInj, OpenNewRecordFormHookInj, iconMap, inject } from '#imports'
-
 const isLocked = inject(IsLockedInj)
 
 const openNewRecordFormHook = inject(OpenNewRecordFormHookInj)!

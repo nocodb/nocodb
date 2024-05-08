@@ -1,15 +1,4 @@
 <script lang="ts" setup>
-import {
-  ActiveViewInj,
-  FieldsInj,
-  IsPublicInj,
-  MetaInj,
-  ReadonlyInj,
-  ReloadViewDataHookInj,
-  useProvideCalendarViewStore,
-  useProvideKanbanViewStore,
-} from '#imports'
-
 const { sharedView, meta, nestedFilters } = useSharedView()
 
 const reloadEventHook = createEventHook()

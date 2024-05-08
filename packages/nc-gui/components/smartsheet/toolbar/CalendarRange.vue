@@ -3,19 +3,6 @@ import { UITypes, isSystemColumn } from 'nocodb-sdk'
 import type { SelectProps } from 'ant-design-vue'
 import { type CalendarRangeType } from '~/lib/types'
 
-import {
-  ActiveViewInj,
-  IsLockedInj,
-  IsPublicInj,
-  MetaInj,
-  computed,
-  iconMap,
-  inject,
-  ref,
-  useViewColumnsOrThrow,
-  watch,
-} from '#imports'
-
 const meta = inject(MetaInj, ref())
 
 const { $api } = useNuxtApp()

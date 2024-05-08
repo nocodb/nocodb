@@ -1,22 +1,4 @@
 <script lang="ts" setup>
-import {
-  ActiveViewInj,
-  FieldsInj,
-  IsPublicInj,
-  MetaInj,
-  ReadonlyInj,
-  ReloadViewDataHookInj,
-  createEventHook,
-  extractSdkResponseErrorMsg,
-  message,
-  provide,
-  ref,
-  useBase,
-  useGlobal,
-  useProvideSmartsheetStore,
-  useSharedView,
-} from '#imports'
-
 const { sharedView, meta, nestedFilters } = useSharedView()
 
 const { signedIn } = useGlobal()

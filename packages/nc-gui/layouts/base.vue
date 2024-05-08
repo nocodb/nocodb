@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { computed, iconMap, navigateTo, ref, useGlobal, useNuxtApp, useRoute, useSidebar } from '#imports'
-
 const { signOut, signedIn, isLoading, user, currentVersion, appInfo } = useGlobal()
 
 useSidebar('nc-left-sidebar', { hasSidebar: false })

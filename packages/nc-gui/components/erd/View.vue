@@ -2,7 +2,6 @@
 import type { LinkToAnotherRecordType, SourceType, TableType } from 'nocodb-sdk'
 import { isLinksOrLTAR } from 'nocodb-sdk'
 import type { ERDConfig } from './utils'
-import { reactive, ref, storeToRefs, useBase, useMetas, watch } from '#imports'
 
 const props = defineProps({
   sourceId: {

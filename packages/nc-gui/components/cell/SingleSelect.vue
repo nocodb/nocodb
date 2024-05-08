@@ -4,28 +4,6 @@ import { message } from 'ant-design-vue'
 import tinycolor from 'tinycolor2'
 import type { SelectOptionType } from 'nocodb-sdk'
 import type { FormFieldsLimitOptionsType } from '~/lib/types'
-import {
-  ActiveCellInj,
-  ColumnInj,
-  EditColumnInj,
-  EditModeInj,
-  IsFormInj,
-  IsKanbanInj,
-  IsSurveyFormInj,
-  ReadonlyInj,
-  computed,
-  enumColor,
-  extractSdkResponseErrorMsg,
-  iconMap,
-  inject,
-  isDrawerOrModalExist,
-  ref,
-  useBase,
-  useEventListener,
-  useRoles,
-  useSelectedCellKeyupListener,
-  watch,
-} from '#imports'
 
 interface Props {
   modelValue?: string | undefined

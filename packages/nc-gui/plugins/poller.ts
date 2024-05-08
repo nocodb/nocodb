@@ -1,5 +1,4 @@
 import type { Api as BaseAPI } from 'nocodb-sdk'
-import { defineNuxtPlugin } from '#imports'
 
 const pollPlugin = async (nuxtApp) => {
   const api: BaseAPI<any> = nuxtApp.$api as any

@@ -2,7 +2,6 @@ import { defineStore } from 'pinia'
 import type { NotificationType } from 'nocodb-sdk'
 import type { Socket } from 'socket.io-client'
 import io from 'socket.io-client'
-import { useApi } from '#imports'
 
 export const useNotification = defineStore('notificationStore', () => {
   const notifications = ref<NotificationType[]>([])

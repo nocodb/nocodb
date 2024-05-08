@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { dateFormats, dateMonthFormats } from 'nocodb-sdk'
-import { useVModel } from '#imports'
 
 const props = defineProps<{
   value: any

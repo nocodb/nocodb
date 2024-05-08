@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { BaseType } from 'nocodb-sdk'
 import { WorkspaceUserRoles } from 'nocodb-sdk'
-import { ref, storeToRefs, useVModel } from '#imports'
 
 const props = defineProps<{
   modelValue: boolean

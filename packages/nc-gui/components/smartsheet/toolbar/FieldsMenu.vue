@@ -5,24 +5,6 @@ import Draggable from 'vuedraggable'
 
 import type { SelectProps } from 'ant-design-vue'
 
-import {
-  ActiveViewInj,
-  FieldsInj,
-  IsLockedInj,
-  IsPublicInj,
-  computed,
-  iconMap,
-  inject,
-  ref,
-  resolveComponent,
-  useMenuCloseOnEsc,
-  useNuxtApp,
-  useSmartsheetStoreOrThrow,
-  useUndoRedo,
-  useViewColumnsOrThrow,
-  watch,
-} from '#imports'
-
 const activeView = inject(ActiveViewInj, ref())
 
 const reloadViewMetaHook = inject(ReloadViewMetaHookInj, undefined)!

@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { extractSdkResponseErrorMsg, iconMap, message, onMounted, useI18n, useNuxtApp } from '#imports'
-
 const { t } = useI18n()
 
 const { $api, $e } = useNuxtApp()

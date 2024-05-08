@@ -3,20 +3,6 @@ import type { ColumnReqType, ColumnType, TableType } from 'nocodb-sdk'
 import { UITypes, isLinksOrLTAR } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import type { RuleObject } from 'ant-design-vue/es/form'
-import {
-  Form,
-  computed,
-  createInjectionState,
-  extractSdkResponseErrorMsg,
-  message,
-  ref,
-  storeToRefs,
-  useBase,
-  useI18n,
-  useMetas,
-  useNuxtApp,
-  watch,
-} from '#imports'
 
 const clone = rfdc()
 

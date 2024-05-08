@@ -2,22 +2,6 @@
 import type { ColumnReqType, ColumnType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import { computed } from 'vue'
-import {
-  ActiveViewInj,
-  ColumnInj,
-  IsLockedInj,
-  MetaInj,
-  ReloadViewDataHookInj,
-  SmartsheetStoreEvents,
-  iconMap,
-  inject,
-  message,
-  toRefs,
-  useI18n,
-  useMetas,
-  useNuxtApp,
-  useSmartsheetStoreOrThrow,
-} from '#imports'
 
 const props = defineProps<{
   column: ColumnType

@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import { useMagicKeys, whenever } from '@vueuse/core'
 import { commandScore } from './command-score'
-import { type ComputedRef, type VNode, iconMap, onClickOutside, useCommandPalette } from '#imports'
 import type { CommandPaletteType } from '~/lib/types'
 
 interface CmdAction {

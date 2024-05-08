@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { ComputedRef } from 'vue'
 import JsBarcodeWrapper from './JsBarcodeWrapper.vue'
-import { RowHeightInj, computed, inject, ref, rowHeightInPx } from '#imports'
 
 const maxNumberOfAllowedCharsForBarcodeValue = 100
 

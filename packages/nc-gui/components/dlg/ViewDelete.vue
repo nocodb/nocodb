@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { extractSdkResponseErrorMsg, message, useApi, useNuxtApp, useVModel } from '#imports'
-
 interface Props {
   modelValue: boolean
   view?: Record<string, any>

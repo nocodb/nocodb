@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { useVModel } from '#imports'
-
 interface Prop {
   modelValue: boolean
   extensionId: string

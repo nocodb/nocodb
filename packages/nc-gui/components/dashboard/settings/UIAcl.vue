@@ -1,20 +1,5 @@
 <script setup lang="ts">
 import { inject } from '@vue/runtime-core'
-import {
-  Empty,
-  ProjectIdInj,
-  computed,
-  extractSdkResponseErrorMsg,
-  h,
-  iconMap,
-  message,
-  onMounted,
-  storeToRefs,
-  useBase,
-  useGlobal,
-  useI18n,
-  useNuxtApp,
-} from '#imports'
 
 type Role = 'editor' | 'commenter' | 'viewer'
 

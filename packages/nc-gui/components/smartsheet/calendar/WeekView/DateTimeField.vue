@@ -2,7 +2,6 @@
 import dayjs from 'dayjs'
 import type { ColumnType } from 'nocodb-sdk'
 import type { Row } from '~/lib/types'
-import { computed, ref, useMemoize, useViewColumnsOrThrow } from '#imports'
 
 const emits = defineEmits(['expandRecord', 'newRecord'])
 

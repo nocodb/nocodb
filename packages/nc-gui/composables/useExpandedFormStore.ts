@@ -2,28 +2,6 @@ import type { AuditType, ColumnType, TableType } from 'nocodb-sdk'
 import { UITypes, ViewTypes, isVirtualCol } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import dayjs from 'dayjs'
-import {
-  IsPublicInj,
-  NOCO,
-  type Row,
-  computed,
-  extractPkFromRow,
-  extractSdkResponseErrorMsg,
-  message,
-  populateInsertObject,
-  ref,
-  storeToRefs,
-  useApi,
-  useBase,
-  useI18n,
-  useInjectionState,
-  useKanbanViewStoreOrThrow,
-  useMetas,
-  useNuxtApp,
-  useProvideSmartsheetRowStore,
-  useSharedView,
-  useUndoRedo,
-} from '#imports'
 
 const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((meta: Ref<TableType>, _row: Ref<Row>) => {
   const { $e, $state, $api } = useNuxtApp()

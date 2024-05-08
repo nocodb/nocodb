@@ -2,7 +2,6 @@
 import { onKeyDown, useEventListener } from '@vueuse/core'
 import { useAttachmentCell } from './utils'
 import { useSortable } from './sort'
-import { iconMap, isImage, ref, useAttachment, useDropZone, useRoles, watch } from '#imports'
 
 const { isUIAllowed } = useRoles()
 

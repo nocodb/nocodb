@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { ReloadViewDataHookInj, iconMap, inject, ref, useNuxtApp, watch } from '#imports'
-
 const { $e, $state } = useNuxtApp()
 
 const { isPaginationLoading } = storeToRefs(useViewsStore())

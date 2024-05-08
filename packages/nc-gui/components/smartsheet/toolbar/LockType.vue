@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ActiveViewInj, LockType, iconMap, inject } from '#imports'
 import UsersIcon from '~icons/nc-icons/users'
 import LockIcon from '~icons/nc-icons/lock'
 

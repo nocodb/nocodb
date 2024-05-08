@@ -10,7 +10,6 @@ import MsFormatH3 from '~icons/material-symbols/format-h3'
 import TablerBlockQuote from '~icons/tabler/blockquote'
 import MsCode from '~icons/material-symbols/code'
 import MsFormatQuote from '~icons/material-symbols/format-quote'
-import { RichTextBubbleMenuOptions } from '#imports'
 
 interface Props {
   editor: Editor

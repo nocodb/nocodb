@@ -2,7 +2,6 @@
 import type { UITypes } from 'nocodb-sdk'
 import { AllowedColumnTypesForQrAndBarcodes } from 'nocodb-sdk'
 import type { SelectProps } from 'ant-design-vue'
-import { useVModel } from '#imports'
 
 const props = defineProps<{
   modelValue: any

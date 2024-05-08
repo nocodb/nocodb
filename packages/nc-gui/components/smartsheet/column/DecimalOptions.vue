@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { useVModel } from '#imports'
-
 const props = defineProps<{
   value: any
 }>()

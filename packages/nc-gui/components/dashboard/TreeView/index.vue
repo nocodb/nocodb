@@ -3,26 +3,6 @@ import Draggable from 'vuedraggable'
 import type { TableType } from 'nocodb-sdk'
 import ProjectWrapper from './ProjectWrapper.vue'
 
-import {
-  TreeViewInj,
-  computed,
-  isDrawerOrModalExist,
-  isElementInvisible,
-  isMac,
-  reactive,
-  ref,
-  resolveComponent,
-  storeToRefs,
-  useBase,
-  useBases,
-  useDialog,
-  useGlobal,
-  useNuxtApp,
-  useRoles,
-  useRouter,
-  useTablesStore,
-} from '#imports'
-
 const { isUIAllowed } = useRoles()
 
 const { $e } = useNuxtApp()

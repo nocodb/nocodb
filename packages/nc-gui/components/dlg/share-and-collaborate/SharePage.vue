@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import type { ColumnType, KanbanType, ViewType } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
-import { PreFilledMode, useMetas } from '#imports'
 
 const { view: _view, $api } = useSmartsheetStoreOrThrow()
 const { $e } = useNuxtApp()

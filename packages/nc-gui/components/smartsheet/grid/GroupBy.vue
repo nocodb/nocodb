@@ -5,8 +5,6 @@ import Table from './Table.vue'
 import GroupBy from './GroupBy.vue'
 import GroupByTable from './GroupByTable.vue'
 import GroupByLabel from './GroupByLabel.vue'
-import type { Group, Row } from '#imports'
-import { GROUP_BY_VARS, computed, ref } from '#imports'
 
 const props = defineProps<{
   group: Group

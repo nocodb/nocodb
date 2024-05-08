@@ -1,17 +1,6 @@
 <script lang="ts" setup>
 import type { ColumnType } from 'nocodb-sdk'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
-import {
-  ActiveCellInj,
-  IsFormInj,
-  ReadonlyInj,
-  iconMap,
-  inject,
-  isAttachment,
-  ref,
-  useExpandedFormDetached,
-  useLTARStoreOrThrow,
-} from '#imports'
 
 interface Props {
   value: string | number | boolean

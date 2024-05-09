@@ -333,7 +333,7 @@ const handleFileDelete = (i: number) => {
 
       <div
         v-if="active || (isForm && visibleItems.length)"
-        class="xs:hidden h-6 w-5 group cursor-pointer flex gap-1 items-center active:(ring ring-accent ring-opacity-100) rounded border-none p-1 hover:(bg-primary bg-opacity-10) dark:(!bg-slate-500)"
+        class="xs:hidden h-6 w-5.5 group cursor-pointer flex gap-1 items-center active:(ring ring-accent ring-opacity-100) rounded border-none p-1 hover:(bg-primary bg-opacity-10) dark:(!bg-slate-500)"
       >
         <component :is="iconMap.reload" v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />
 
@@ -342,7 +342,7 @@ const handleFileDelete = (i: number) => {
 
           <component
             :is="iconMap.expand"
-            class="flex-none transform dark:(!text-white) group-hover:(!text-grey-800 scale-120) text-gray-500 text-[2rem] h-3"
+            class="flex-none transform dark:(!text-white) group-hover:(!text-grey-800 scale-120) text-gray-500 text-sm"
             @click.stop="onExpand"
           />
         </NcTooltip>

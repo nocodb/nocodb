@@ -568,8 +568,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     async () => {
       try {
         await validate(Object.keys(additionalState.value))
-      } catch () {
-      }
+      } catch {}
     },
     {
       deep: true,

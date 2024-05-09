@@ -1,6 +1,7 @@
 import type { RuleObject } from 'ant-design-vue/es/form'
 import isMobilePhone from 'validator/lib/isMobilePhone'
-import type { Validation } from 'nocodb-sdk'
+import { UITypes, StringValidationType } from 'nocodb-sdk'
+import type { ColumnType, Validation } from 'nocodb-sdk'
 import { getI18n } from '../plugins/a.i18n'
 
 export const formEmailValidator = (val: Validation) => {
@@ -48,50 +49,50 @@ export const formUrlValidator = (val: Validation) => {
   }
 }
 
-// export const extractFieldValidator = (validators: Validation[], element: ColumnType) => {
-//   const { t } = getI18n().global
-//   const rules: RuleObject[] = []
+export const extractFieldValidator = (_validators: Validation[], element: ColumnType) => {
+  const { t } = getI18n().global
+  const rules: RuleObject[] = []
 
-//   // Add column default validators
-//   if ([UITypes.Number, UITypes.Currency, UITypes.Percent].includes(element.uidt)) {
-//     rules.push({
-//       type: 'number',
-//       message: t('msg.plsEnterANumber'),
-//     })
-//   }
+  // Add column default validators
+  if ([UITypes.Number, UITypes.Currency, UITypes.Percent].includes(element.uidt)) {
+    rules.push({
+      type: 'number',
+      message: t('msg.plsEnterANumber'),
+    })
+  }
 
-//   switch (element.uidt) {
-//     case UITypes.Email: {
-//       if (parseProp(element.meta).validate) {
-//         rules.push(
-//           formEmailValidator({
-//             type: StringValidationType.Email,
-//           }),
-//         )
-//       }
-//       break
-//     }
-//     case UITypes.PhoneNumber: {
-//       if (parseProp(element.meta).validate) {
-//         rules.push(
-//           formPhoneNumberValidator({
-//             type: StringValidationType.PhoneNumber,
-//           }),
-//         )
-//       }
-//       break
-//     }
-//     case UITypes.URL: {
-//       if (parseProp(element.meta).validate) {
-//         rules.push(
-//           formUrlValidator({
-//             type: StringValidationType.Url,
-//           }),
-//         )
-//       }
-//       break
-//     }
-//   }
+  switch (element.uidt) {
+    case UITypes.Email: {
+      if (parseProp(element.meta).validate) {
+        rules.push(
+          formEmailValidator({
+            type: StringValidationType.Email,
+          }),
+        )
+      }
+      break
+    }
+    case UITypes.PhoneNumber: {
+      if (parseProp(element.meta).validate) {
+        rules.push(
+          formPhoneNumberValidator({
+            type: StringValidationType.PhoneNumber,
+          }),
+        )
+      }
+      break
+    }
+    case UITypes.URL: {
+      if (parseProp(element.meta).validate) {
+        rules.push(
+          formUrlValidator({
+            type: StringValidationType.Url,
+          }),
+        )
+      }
+      break
+    }
+  }
 
-//   return rules
-// }
+  return rules
+}

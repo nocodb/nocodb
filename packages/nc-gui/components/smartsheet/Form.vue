@@ -584,8 +584,6 @@ watch(
 
     updatePreFillFormSearchParams()
 
-    console.log('formstate', formState.value)
-
     try {
       await formRef.value?.validateFields([...Object.keys(formState.value)])
     } catch (e: any) {

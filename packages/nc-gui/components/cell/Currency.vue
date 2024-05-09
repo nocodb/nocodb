@@ -4,6 +4,7 @@ import type { VNodeRef } from '@vue/runtime-core'
 interface Props {
   modelValue: number | null | undefined
   placeholder?: string
+  hidePrefix?: boolean
 }
 
 const props = defineProps<Props>()
@@ -93,7 +94,7 @@ onMounted(() => {
 
 <template>
   <div
-    v-if="isForm && !isEditColumn"
+    v-if="isForm && !isEditColumn && !hidePrefix"
     class="nc-currency-code h-full !bg-gray-100 border-r border-gray-200 px-3 mr-1 flex items-center"
   >
     <span>

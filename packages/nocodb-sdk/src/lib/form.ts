@@ -70,3 +70,12 @@ export enum AttachmentValidationType {
 export interface RequiredValidation extends Validation {
   type: GenericValidationType.Required;
 }
+
+export const getMinValidationTypeFromMax = {
+  [StringValidationType.MaxLength]: StringValidationType.MinLength,
+  [NumberValidationType.Max]: NumberValidationType.Min,
+  [YearValidationType.MaxYear]: YearValidationType.MinYear,
+  [DateValidationType.MaxDate]: DateValidationType.MinDate,
+  [TimeValidationType.MaxTime]: TimeValidationType.MinTime,
+  [SelectValidationType.MaxSelected]: SelectValidationType.MinSelected,
+};

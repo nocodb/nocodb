@@ -78,7 +78,7 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
     )
 
     watchEffect(() => {
-      console.log('fdas', v$, activeField.value)
+      console.log('fdas', activeField.value, rules.value)
     })
 
     const updateView = useDebounceFn(

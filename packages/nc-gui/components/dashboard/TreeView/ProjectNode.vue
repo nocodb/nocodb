@@ -688,7 +688,13 @@ const onTableIdCopy = async () => {
                             <NcTooltip class="xs:(hidden) flex items-center mr-1">
                               <template #title>{{ $t('objects.externalDb') }}</template>
 
-                              <GeneralIcon icon="info" class="flex-none text-gray-400 hover:text-gray-700 mr-1" />
+                              <GeneralIcon
+                                icon="info"
+                                class="flex-none text-gray-400 hover:text-gray-700 nc-sidebar-node-btn"
+                                :class="{
+                                  '!hidden': !isBasesOptionsOpen[source!.id!],
+                                }"
+                              />
                             </NcTooltip>
                           </div>
                           <div class="flex flex-row items-center gap-x-0.25">

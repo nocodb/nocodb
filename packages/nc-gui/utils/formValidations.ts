@@ -65,7 +65,6 @@ export const formNumberInputValidator = (cal: ColumnType) => {
 }
 
 export const extractFieldValidator = (_validators: Validation[], element: ColumnType) => {
-  const { t } = getI18n().global
   const rules: RuleObject[] = []
 
   // Add column default validators

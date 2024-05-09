@@ -1,4 +1,3 @@
-import { helpers, minLength, required, sameAs } from '@vuelidate/validators'
 import dayjs from 'dayjs'
 import type {
   BoolType,
@@ -75,9 +74,6 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       oldRow: {},
     }),
   )
-
-  const fieldRequired = (fieldName = 'This field', isBoolean = false) =>
-    helpers.withMessage(t('msg.error.fieldRequired', { value: fieldName }), isBoolean ? sameAs(true) : required)
 
   const formColumns = computed(() =>
     columns.value
@@ -183,76 +179,6 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       }
     }
   }
-
-  const validators1 = computed(() => {
-    const obj: Record<string, Record<string, any>> = {
-      localState: {},
-      virtual: {},
-    }
-
-    if (!formColumns.value) return obj
-
-    for (const column of formColumns.value) {
-      if (
-        !isVirtualCol(column) &&
-        ((column.rqd && !column.cdf) || (column.pk && !(column.ai || column.cdf)) || column.required)
-      ) {
-        obj.localState[column.title!] = {
-          required: fieldRequired(undefined, !!(column.uidt === UITypes.Checkbox && column.required)),
-        }
-      } else if (
-        isLinksOrLTAR(column) &&
-        column.colOptions &&
-        (column.colOptions as LinkToAnotherRecordType).type === RelationTypes.BELONGS_TO
-      ) {
-        const col = columns.value?.find((c) => c.id === (column?.colOptions as LinkToAnotherRecordType)?.fk_child_column_id)
-
-        if ((col && col.rqd && !col.cdf) || column.required) {
-          if (col) {
-            obj.virtual[column.title!] = { required: fieldRequired() }
-          }
-        }
-      } else if (isVirtualCol(column) && column.required) {
-        obj.virtual[column.title!] = {
-          minLength: minLength(1),
-          required: fieldRequired(),
-        }
-      }
-
-      if (
-        !isVirtualCol(column) &&
-        parseProp(column.meta)?.validate &&
-        [UITypes.URL, UITypes.Email].includes(column.uidt as UITypes)
-      ) {
-        if (column.uidt === UITypes.URL) {
-          obj.localState[column.title!] = {
-            ...(obj.localState[column.title!] || {}),
-            validateFormURL: helpers.withMessage(t('msg.error.invalidURL'), (value) => {
-              return value ? isValidURL(value) : true
-            }),
-          }
-        } else if (column.uidt === UITypes.Email) {
-          obj.localState[column.title!] = {
-            ...(obj.localState[column.title!] || {}),
-            validateFormEmail: helpers.withMessage(t('msg.error.invalidEmail'), (value) => {
-              return value ? validateEmail(value) : true
-            }),
-          }
-        }
-      }
-
-      if ([UITypes.Number, UITypes.Currency, UITypes.Percent].includes(column.uidt as UITypes)) {
-        obj.localState[column.title!] = {
-          ...(obj.localState[column.title!] || {}),
-          validateFormNumber: helpers.withMessage(t('msg.plsEnterANumber'), (value) => {
-            return value ? (column.uidt === UITypes.Number ? /^\d+$/.test(value) : /^\d*\.?\d+$/.test(value)) : true
-          }),
-        }
-      }
-    }
-
-    return obj
-  })
 
   const validators = computed(() => {
     const rulesObj: Record<string, RuleObject[]> = {}

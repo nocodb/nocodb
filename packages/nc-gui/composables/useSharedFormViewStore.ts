@@ -298,7 +298,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       rules = [...rules, ...additionalRules]
 
       if (rules.length) {
-        rulesObj[column.title] = rules
+        rulesObj[column.title!] = rules
       }
     }
 

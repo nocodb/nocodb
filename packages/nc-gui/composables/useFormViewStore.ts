@@ -3,6 +3,8 @@ import type { ColumnType, FormType, TableType, ViewType } from 'nocodb-sdk'
 import { RelationTypes, isLinksOrLTAR } from 'nocodb-sdk'
 
 import { computed, createEventHook, extractSdkResponseErrorMsg, message, ref, useInjectionState } from '#imports'
+import useVuelidate from '@vuelidate/core'
+import { maxValue, minValue } from '@vuelidate/validators'
 
 const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
   (
@@ -35,6 +37,48 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
         }
       }
       return null
+    })
+
+    // Initialize form data object with nested objects for each item
+    const visibleColumnsMap = computed(() =>
+      visibleColumns.value.reduce((acc, col) => {
+        acc[col.id] = col
+        return acc
+      }, {} as Record<string, ColumnType>),
+    )
+
+    // Define validation rules for each item's validators
+    const rules = computed(() =>
+      visibleColumns.value.reduce((acc, c) => {
+        const itemRules = c.meta.validators.reduce((valAcc, validator) => {
+          if (validator.type === 'min') {
+            valAcc[validator.type] = { minValue: c.required ? minValue(1) : true }
+          } else if (validator.type === 'max') {
+            acc[validator.type] = { maxValue: maxValue(validator.value) }
+            const minValidator = c.meta.validators.find((v) => v.type === 'min')
+            if (minValidator && minValidator.value < validator.value) {
+              acc[
+                validator.type
+              ].message = `Max value (${validator.value}) should be greater than min value (${minValidator.value}).`
+            }
+          } else if (validator.type === 'fileTypes' || validator.type === 'fileCount' || validator.type === 'fileSize') {
+            // Define validation rules for file-related validators if needed
+          }
+          return valAcc
+        }, {})
+        acc[c.id] = itemRules
+        return acc
+      }, {}),
+    )
+
+    // Use Vuelidate to create validation instance
+    const v$ = useVuelidate(
+      rules,
+      computed(() => ({ visibleColumnsMap: visibleColumnsMap.value })),
+    )
+
+    watchEffect(() => {
+      console.log('fdas', v$, activeField.value)
     })
 
     const updateView = useDebounceFn(
@@ -77,6 +121,7 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
       isRequired,
       updateView,
       updateColMeta,
+      v$,
     }
   },
   'form-view-store',

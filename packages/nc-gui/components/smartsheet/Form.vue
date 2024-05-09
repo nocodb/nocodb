@@ -558,7 +558,7 @@ const formElementValidationRules = (element) => {
   }
 
   if (parseProp(element.meta).validators?.length) {
-    const additionalRules = extractFieldValidator(parseProp(element.meta).validators)
+    const additionalRules = extractFieldValidator(parseProp(element.meta).validators, element)
     rules = [...rules, ...additionalRules]
   }
   return rules

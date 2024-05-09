@@ -31,6 +31,7 @@ export enum StringValidationType {
   NotIncludes = 'notIncludes',
   Regex = 'regex',
   Email = 'email',
+  BusinessEmail = 'businessEmail',
   PhoneNumber = 'phoneNumber',
   Url = 'url',
 }

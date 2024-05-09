@@ -757,6 +757,11 @@ function scrollToRow(row?: number) {
 
 async function saveEmptyRow(rowObj: Row) {
   await updateOrSaveRow?.(rowObj)
+  // When using the countBy sort in groupBy, if there is multiple pages we won't know whether the group after adding the new row will be on the current page or not
+  // To handle this, we reload the data after adding a new row
+  await reloadViewDataHook.trigger({
+    shouldShowLoading: false,
+  })
 }
 
 function addEmptyRow(row?: number, skipUpdate: boolean = false) {

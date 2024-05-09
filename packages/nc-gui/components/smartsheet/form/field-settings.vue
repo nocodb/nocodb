@@ -24,7 +24,15 @@ const columnSupportsScanning = (elementType: UITypes) =>
       <div class="text-base font-bold">{{ $t('objects.field') }} {{ $t('activity.settings') }}</div>
       <div class="flex flex-col gap-6">
         <div class="flex items-center justify-between gap-3">
-          <div class="nc-form-input-required text-gray-800 font-medium">
+          <div
+            class="nc-form-input-required text-gray-800 font-medium"
+            @click="
+              () => {
+                activeField.required = !activeField.required
+                updateColMeta(activeField)
+              }
+            "
+          >
             {{ $t('general.required') }} {{ $t('objects.field').toLowerCase() }}
           </div>
 

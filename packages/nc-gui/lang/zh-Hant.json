@@ -942,6 +942,7 @@
     "importZip": "匯入 ZIP",
     "metaSync": "立即同步",
     "settings": "設定",
+    "validations": "Validations",
     "previewAs": "預覽方式",
     "resetReview": "重設預覽",
     "testDbConn": "測試資料庫連線",

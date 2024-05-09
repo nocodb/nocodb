@@ -1459,7 +1459,12 @@ useEventListener(
 
                   <!-- Custom Validations -->
                   <div class="nc-form-field-settings p-4 border-b border-gray-200">
-                    <LazySmartsheetFormCustomValidation :model-value="`fdsa`"></LazySmartsheetFormCustomValidation>
+                    <LazySmartsheetFormCustomValidation
+                      v-model:model-value="activeField.meta.validators"
+                      :form-field-state="formState[activeField.title] || ''"
+                      :column="activeField"
+                      @update:model-value="updateColMeta(activeField)"
+                    ></LazySmartsheetFormCustomValidation>
                   </div>
 
                   <!-- Field Appearance Settings -->

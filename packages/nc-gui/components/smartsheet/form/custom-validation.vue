@@ -1,23 +1,41 @@
 <script setup lang="ts">
+import type { Validation } from 'nocodb-sdk'
+import type { ColumnType } from 'nocodb-sdk'
+import { StringValidationType } from 'nocodb-sdk'
+
 const props = defineProps<{
-  modelValue: string
+  modelValue: Validation[]
+  formFieldState?: string | null
+  column: ColumnType
 }>()
 
 const emits = defineEmits(['update:modelValue'])
 
-const modelValue = useVModel(props, 'modelValue', emits)
+const validators = useVModel(props, 'modelValue', emits)
 
 const isOpen = ref(false)
+
+// const { sqlUis } = storeToRefs(useBase())
+
+// const sqlUi = ref(column.value?.source_id ? sqlUis.value[column.value?.source_id] : Object.values(sqlUis.value)[0])
+
+// const abstractType = computed(() => column.value && sqlUi.value.getAbstractType(column.value))
+
+const addPlaceholderValidator = () => {
+  validators.value.push({
+    type: StringValidationType,
+  })
+}
 </script>
 
 <template>
   <div class="flex flex-col gap-3">
     <div class="flex items-center justify-between">
-      <div class="font-medium text-gray-800">Custom Validations</div>
+      <div class="text-base font-bold">Custom Validations</div>
 
       <div class="flex flex-col">
         <div
-          class="border-1 rounded-lg py-1 pl-1 pr-3 flex items-center justify-between gap-2 !min-w-[170px] transition-all"
+          class="border-1 rounded-lg py-1 px-3 flex items-center justify-between gap-2 !min-w-[170px] transition-all"
           :class="{
             '!border-brand-500': isOpen,
             'border-gray-200': !isOpen,
@@ -26,7 +44,7 @@ const isOpen = ref(false)
           <div class="flex-1">No Validations</div>
 
           <NcButton
-            class="border-1 flex items-center justify-between !text-gray-800 !hover:text-gray-500 outline-none"
+            class="flex items-center justify-between !text-gray-800 !hover:text-gray-500 !min-w-4"
             type="link"
             size="xsmall"
           >
@@ -34,7 +52,7 @@ const isOpen = ref(false)
           </NcButton>
 
           <NcButton
-            class="!border-none flex items-center justify-between !text-gray-600 !hover:text-gray-800"
+            class="!border-none flex items-center justify-between !text-gray-600 !hover:text-gray-800 !min-w-4"
             type="link"
             size="xsmall"
             @click="isOpen = !isOpen"
@@ -57,22 +75,27 @@ const isOpen = ref(false)
                     </div>
                   </div>
                   <div class="tbody">
-                    <div v-for="(number, i) of [1, 2, 3, 4]" class="tr">
-                      <div class="td">selector</div>
-                      <div class="td">selector</div>
-                      <div class="td">selector</div>
-                      <div class="td nc-custom-validation-delete-item">
-                        <NcButton class="border-1 flex items-center justify-between" type="link" size="small">
-                          <GeneralIcon icon="delete" class="flex-none h-4 w-4 text-gray-500 hover:text-gray-800" />
-                        </NcButton>
+                    <template v-if="validators.length">
+                      <div v-for="(validator, i) of validators" class="tr">
+                        <div class="td">selector</div>
+                        <div class="td">selector</div>
+                        <div class="td">selector</div>
+                        <div class="td nc-custom-validation-delete-item">
+                          <NcButton class="border-1 flex items-center justify-between" type="link" size="small">
+                            <GeneralIcon icon="delete" class="flex-none h-4 w-4 text-gray-500 hover:text-gray-800" />
+                          </NcButton>
+                        </div>
                       </div>
-                    </div>
+                    </template>
+                    <div v-else class="tr flex items-center justify-center text-gray-500">No validations</div>
                   </div>
                 </div>
                 <div>
-                  <NcButton class="border-1 flex items-center justify-between" type="link" size="small">
-                    <span class="text-sm"> Add Validation </span>
-                    <GeneralIcon icon="plus" class="flex-none" />
+                  <NcButton class="border-1 flex items-center" type="link" size="small">
+                    <div class="flex items-center gap-2">
+                      <span class="text-sm"> Add Validation </span>
+                      <GeneralIcon icon="plus" class="flex-none" />
+                    </div>
                   </NcButton>
                 </div>
               </div>

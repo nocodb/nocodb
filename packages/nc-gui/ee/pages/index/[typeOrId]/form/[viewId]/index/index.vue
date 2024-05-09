@@ -8,7 +8,6 @@ const {
   sharedFormView,
   submitForm,
   clearForm,
-  v$,
   formState,
   notFound,
   formColumns,
@@ -16,6 +15,8 @@ const {
   secondsRemain,
   isLoading,
   progress,
+  validateInfos,
+  validate,
 } = useSharedFormStoreOrThrow()
 
 const { isMobileMode } = storeToRefs(useConfigStore())
@@ -94,7 +95,6 @@ const onDecode = async (scannedCodeValue: string) => {
     >
       <template v-if="sharedFormView">
         <!-- Form logo  -->
-
         <div
           v-if="sharedFormView.logo_url"
           class="mb-4 nc-shared-form-logo-wrapper inline-block h-56px max-w-189px overflow-hidden flex items-center"
@@ -185,112 +185,107 @@ const onDecode = async (scannedCodeValue: string) => {
           </GeneralOverlay>
 
           <div class="nc-form-wrapper">
-            <div class="nc-form h-full">
-              <div class="flex flex-col gap-3 md:gap-6">
-                <div v-for="(field, index) in formColumns" :key="index" class="flex flex-col gap-2">
-                  <div class="nc-form-column-label text-sm font-semibold text-gray-800">
-                    <span>
-                      {{ field.label || field.title }}
-                    </span>
-                    <span v-if="isRequired(field, field.required)" class="text-red-500 text-base leading-[18px]">&nbsp;*</span>
-                  </div>
-                  <div v-if="field?.description" class="nc-form-column-description text-gray-500 text-sm">
-                    <LazyCellRichText
-                      :value="field?.description"
-                      class="!h-auto -ml-1"
-                      is-form-field
-                      read-only
-                      sync-value-change
-                    />
-                  </div>
+            <a-form :model="formState">
+              <div class="nc-form h-full">
+                <div class="flex flex-col gap-3 md:gap-6">
+                  <div v-for="(field, index) in formColumns" :key="index" class="flex flex-col gap-2">
+                    <div class="nc-form-column-label text-sm font-semibold text-gray-800">
+                      <span>
+                        {{ field.label || field.title }}
+                      </span>
+                      <span v-if="isRequired(field, field.required)" class="text-red-500 text-base leading-[18px]">&nbsp;*</span>
+                    </div>
+                    <div v-if="field?.description" class="nc-form-column-description text-gray-500 text-sm">
+                      <LazyCellRichText
+                        :value="field?.description"
+                        class="!h-auto -ml-1"
+                        is-form-field
+                        read-only
+                        sync-value-change
+                      />
+                    </div>
 
-                  <div>
-                    <NcTooltip :disabled="!field?.read_only">
-                      <template #title> {{ $t('activity.preFilledFields.lockedFieldTooltip') }} </template>
-                      <LazySmartsheetDivDataCell class="flex relative">
-                        <LazySmartsheetVirtualCell
-                          v-if="isVirtualCol(field)"
-                          :model-value="null"
-                          class="mt-0 nc-input nc-cell"
-                          :data-testid="`nc-form-input-cell-${field.label || field.title}`"
-                          :class="[`nc-form-input-${field.title?.replaceAll(' ', '')}`, { readonly: field?.read_only }]"
-                          :column="field"
-                          :read-only="field?.read_only"
-                        />
-
-                        <LazySmartsheetCell
-                          v-else
-                          v-model="formState[field.title]"
-                          class="nc-input truncate"
-                          :data-testid="`nc-form-input-cell-${field.label || field.title}`"
-                          :class="[
-                            `nc-form-input-${field.title?.replaceAll(' ', '')}`,
-                            { 'layout-list': parseProp(field?.meta)?.isList, 'readonly': field?.read_only },
-                          ]"
-                          :column="field"
-                          :edit-enabled="!field?.read_only"
-                          :read-only="field?.read_only"
-                          @update:model-value="
-                            () => {
-                              v$.localState[field.title]?.$validate()
-                            }
-                          "
-                        />
-                        <a-button
-                          v-if="field.enable_scanner"
-                          class="nc-btn-fill-form-column-by-scan nc-toolbar-btn"
-                          :alt="$t('activity.fillByCodeScan')"
-                          @click="showCodeScannerForFieldTitle(field.title)"
+                    <div>
+                      <NcTooltip :disabled="!field?.read_only">
+                        <template #title> {{ $t('activity.preFilledFields.lockedFieldTooltip') }} </template>
+                        <a-form-item
+                          :name="field.title"
+                          class="!my-0 nc-input-required-error"
+                          v-bind="validateInfos[field.title]"
                         >
-                          <div class="flex items-center gap-1">
-                            <component :is="iconMap.qrCodeScan" class="h-5 w-5" />
-                          </div>
-                        </a-button>
-                      </LazySmartsheetDivDataCell>
-                    </NcTooltip>
+                          <LazySmartsheetDivDataCell class="flex relative">
+                            <LazySmartsheetVirtualCell
+                              v-if="isVirtualCol(field)"
+                              :model-value="null"
+                              class="mt-0 nc-input nc-cell"
+                              :data-testid="`nc-form-input-cell-${field.label || field.title}`"
+                              :class="[`nc-form-input-${field.title?.replaceAll(' ', '')}`, { readonly: field?.read_only }]"
+                              :column="field"
+                              :read-only="field?.read_only"
+                            />
 
-                    <div class="flex flex-col gap-2 text-slate-500 dark:text-slate-300 text-xs mt-2">
-                      <template v-if="isVirtualCol(field)">
-                        <div v-for="error of v$.virtual[field.title]?.$errors" :key="`${error}virtual`" class="text-red-500">
-                          {{ error.$message }}
-                        </div>
-                      </template>
-                      <template v-else>
-                        <div v-for="error of v$.localState[field.title]?.$errors" :key="error" class="text-red-500">
-                          {{ error.$message }}
-                        </div>
-                      </template>
+                            <LazySmartsheetCell
+                              v-else
+                              v-model="formState[field.title]"
+                              class="nc-input truncate"
+                              :data-testid="`nc-form-input-cell-${field.label || field.title}`"
+                              :class="[
+                                `nc-form-input-${field.title?.replaceAll(' ', '')}`,
+                                { 'layout-list': parseProp(field?.meta)?.isList, 'readonly': field?.read_only },
+                              ]"
+                              :column="field"
+                              :edit-enabled="!field?.read_only"
+                              :read-only="field?.read_only"
+                              @update:model-value="
+                                () => {
+                                  validate(field.title)
+                                }
+                              "
+                            />
+                            <a-button
+                              v-if="field.enable_scanner"
+                              class="nc-btn-fill-form-column-by-scan nc-toolbar-btn"
+                              :alt="$t('activity.fillByCodeScan')"
+                              @click="showCodeScannerForFieldTitle(field.title)"
+                            >
+                              <div class="flex items-center gap-1">
+                                <component :is="iconMap.qrCodeScan" class="h-5 w-5" />
+                              </div>
+                            </a-button>
+                          </LazySmartsheetDivDataCell>
+                        </a-form-item>
+                      </NcTooltip>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              <div class="flex justify-between items-center mt-6">
-                <NcButton
-                  html-type="reset"
-                  type="secondary"
-                  :size="isMobileMode ? 'medium' : 'small'"
-                  :disabled="isLoading"
-                  class="nc-shared-form-button shared-form-clear-button"
-                  data-testid="shared-form-clear-button"
-                  @click="clearForm"
-                >
-                  {{ $t('activity.clearForm') }}
-                </NcButton>
+                <div class="flex justify-between items-center mt-6">
+                  <NcButton
+                    html-type="reset"
+                    type="secondary"
+                    :size="isMobileMode ? 'medium' : 'small'"
+                    :disabled="isLoading"
+                    class="nc-shared-form-button shared-form-clear-button"
+                    data-testid="shared-form-clear-button"
+                    @click="clearForm"
+                  >
+                    {{ $t('activity.clearForm') }}
+                  </NcButton>
 
-                <NcButton
-                  html-type="submit"
-                  :disabled="progress"
-                  type="primary"
-                  :size="isMobileMode ? 'medium' : 'small'"
-                  class="nc-shared-form-button shared-form-submit-button"
-                  data-testid="shared-form-submit-button"
-                  @click="submitForm"
-                >
-                  {{ $t('general.submit') }}
-                </NcButton>
+                  <NcButton
+                    html-type="submit"
+                    :disabled="progress"
+                    type="primary"
+                    :size="isMobileMode ? 'medium' : 'small'"
+                    class="nc-shared-form-button shared-form-submit-button"
+                    data-testid="shared-form-submit-button"
+                    @click="submitForm"
+                  >
+                    {{ $t('general.submit') }}
+                  </NcButton>
+                </div>
               </div>
-            </div>
+            </a-form>
           </div>
           <div v-if="!parseProp(sharedFormView?.meta).hide_branding">
             <a-divider class="!my-6 !md:my-8" />
@@ -318,5 +313,28 @@ const onDecode = async (scannedCodeValue: string) => {
   &.nc-button.ant-btn:focus {
     box-shadow: 0px 0px 0px 2px #fff, 0px 0px 0px 4px #3069fe;
   }
+}
+
+.nc-input-required-error {
+  max-width: 100%;
+  white-space: pre-line;
+  :deep(.ant-form-item-explain-error) {
+    &:first-child {
+      @apply mt-2;
+    }
+  }
+
+  &:focus-within {
+    :deep(.ant-form-item-explain-error) {
+      @apply text-gray-400;
+    }
+  }
+}
+
+:deep(.ant-form-item-has-error .ant-select:not(.ant-select-disabled) .ant-select-selector) {
+  border: none !important;
+}
+:deep(.ant-form-item-has-success .ant-select:not(.ant-select-disabled) .ant-select-selector) {
+  border: none !important;
 }
 </style>

@@ -1,0 +1,133 @@
+<script setup lang="ts">
+import type { Validation } from 'nocodb-sdk'
+import { InputType, StringValidationType } from 'nocodb-sdk'
+
+const props = defineProps<{
+  validator: Validation
+  index: number
+  options: { value: string; label: string }[]
+  validatorsMap: Record<Exclude<Validation['type'], null>, Validation>
+}>()
+
+const emits = defineEmits(['update:validator', 'remove'])
+
+const validator = useVModel(props, 'validator', emits)
+
+const { index, options, validatorsMap } = toRefs(props)
+
+const { activeField, updateColMeta, getActiveFieldValidationErrors } = useFormViewStoreOrThrow()
+
+const validatorValueType = computed(() => {
+  return InputType[validator.value.type] ?? 'text'
+})
+
+const validationErrors = computed(() => {
+  if (!activeField.value) return []
+
+  return getActiveFieldValidationErrors(validator.value.type, index.value)
+})
+
+const handleChangeValidator = () => {
+  if (!activeField.value) return
+
+  if (validator.value?.value !== null) {
+    if (validatorValueType.value === 'text' && typeof validator.value.value !== 'string') {
+      validator.value.value = `${validator.value.value ?? ''}`
+    }
+    if (validatorValueType.value === 'number' && typeof validator.value.value !== 'number') {
+      validator.value.value = parseInt(validator.value.value ?? '') || 0
+    }
+    updateColMeta(activeField.value)
+  }
+}
+</script>
+
+<template>
+  <div class="tr">
+    <div class="td">
+      <NcSelect
+        v-model:value="validator.type"
+        class="nc-custom-validation-type-selector w-full !text-gray-600"
+        :bordered="false"
+        placeholder="Select and option"
+        dropdown-class-name="nc-custom-validation-type-dropdown !min-w-[256px]"
+        @change="handleChangeValidator"
+      >
+        <a-select-option
+          v-for="option in options"
+          :key="option.value"
+          :value="option.value"
+          :disabled="
+            validator.type !== option.value &&
+            ![StringValidationType.Includes, StringValidationType.NotIncludes].includes(option.value) &&
+            !!validatorsMap[option.value]
+          "
+          class=":not-disabled:!text-gray-600"
+        >
+          <div class="w-full flex items-center justify-between gap-2">
+            <div class="truncate flex-1">
+              <NcTooltip :title="option.label" placement="top" show-on-truncate-only>
+                <template #title>{{ option.label }}</template>
+                {{ option.label }}
+              </NcTooltip>
+            </div>
+            <component
+              :is="iconMap.check"
+              v-if="validator.type === option.value"
+              id="nc-selected-item-icon"
+              class="text-primary w-4 h-4"
+            />
+          </div>
+        </a-select-option>
+      </NcSelect>
+    </div>
+    <div class="td flex items-center relative">
+      <LazySmartsheetFormValidationInput
+        :column="activeField"
+        :validator="validator"
+        is-custom-validation-input
+        @update-validation-value="updateColMeta(activeField)"
+      >
+      </LazySmartsheetFormValidationInput>
+      <NcTooltip v-if="validationErrors.length" placement="bottom" class="absolute right-1 flex text-[#FF4A3F]">
+        <template #title>
+          <div class="flex flex-col">
+            <span v-for="(error, i) in validationErrors" :key="i"> {{ error }} </span>
+          </div></template
+        >
+        <GeneralIcon icon="alertTriangle" class="flex-none" />
+      </NcTooltip>
+    </div>
+    <div class="td flex items-center">
+      <input
+        v-model="validator.message"
+        type="text"
+        placeholder="Type error message..."
+        class="!w-full h-full !border-none text-sm !px-3 !py-1 !outline-none !focus:(outline-none border-none shadow-none ring-transparent) disabled:(bg-gray-50 cursor-not-allowed)"
+        @update:model-value="updateColMeta(activeField)"
+      />
+    </div>
+    <div class="td nc-custom-validation-delete-item">
+      <NcButton class="border-1 flex items-center justify-between" type="link" size="small" @click="emits('remove')">
+        <GeneralIcon icon="delete" class="flex-none h-4 w-4 text-gray-500 hover:text-gray-800" />
+      </NcButton>
+    </div>
+  </div>
+</template>
+
+<style lang="scss">
+.nc-custom-validation-type-dropdown.nc-select-dropdown {
+  .rc-virtual-list-holder {
+    @apply !max-h-[300px];
+  }
+
+  .ant-select-item-option:not(.ant-select-item-option-disabled) {
+    @apply !hover:text-black !text-gray-700;
+  }
+}
+.nc-custom-validation-type-selector.nc-select.ant-select {
+  .ant-select-selection-placeholder {
+    @apply text-gray-500;
+  }
+}
+</style>

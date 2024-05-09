@@ -183,6 +183,9 @@ importers:
       chart.js:
         specifier: ^4.4.2
         version: 4.4.2
+      company-email-validator:
+        specifier: ^1.1.0
+        version: 1.1.0
       crossoriginworker:
         specifier: ^1.1.0
         version: 1.1.0
@@ -234,6 +237,9 @@ importers:
       marked:
         specifier: ^4.3.0
         version: 4.3.0
+      mime-lite:
+        specifier: ^1.0.3
+        version: 1.0.3
       monaco-editor:
         specifier: ^0.45.0
         version: 0.45.0
@@ -17909,6 +17915,13 @@ packages:
   /commondir@1.0.1:
     resolution: {integrity: sha512-W9pAhw0ja1Edb5GVdIF1mjZw/ASI0AlShXM83UUGe2DVr5TdAPEA1OA8m/g8zWp9x6On7gqufY+FatDbC3MDQg==}
 
+  /company-email-validator@1.1.0:
+    resolution: {integrity: sha512-l+1UHQtGzea7OhSEDbjNzA8ISFarmfi3l+t5W/pwz3JSdCREwQHLmjjFSlHDIBnpClCp8JCg5h6sXu+F6vm3ag==}
+    engines: {node: '>4.0'}
+    dependencies:
+      email-validator: 2.0.4
+    dev: false
+
   /compare-func@2.0.0:
     resolution: {integrity: sha512-zHig5N+tPWARooBnb0Zx1MFcdfpyJrfTJ3Y5L+IFvUm8rM74hHz66z0gw0x4tijh5CorKkKUCnW82R2vmpeCRA==}
     dependencies:
@@ -19320,6 +19333,11 @@ packages:
     resolution: {integrity: sha512-Fl5Ftk6WwXE0wqCgNoseKWndjzZlDCwuPTcoVZfCP9R3EHQF8qUtr3YUPNETegRBOKqQKPW3n4kiIWngGi8tKg==}
     dependencies:
       batch-processor: 1.0.0
+    dev: false
+
+  /email-validator@2.0.4:
+    resolution: {integrity: sha512-gYCwo7kh5S3IDyZPLZf6hSS0MnZT8QmJFqYvbqlDZSbwdZlY6QZWxJ4i/6UhITOJ4XzyI647Bm2MXKCLqnJ4nQ==}
+    engines: {node: '>4.0'}
     dev: false
 
   /emittery@0.13.1:
@@ -25667,6 +25685,10 @@ packages:
   /mime-db@1.52.0:
     resolution: {integrity: sha512-sPU4uV7dYlvtWJxwwxHD0PuihVNiE7TyAbQ5SWxDCB9mUYvOgroQOwYQQOKPJ8CIbE+1ETVlOoK1UC2nU3gYvg==}
     engines: {node: '>= 0.6'}
+
+  /mime-lite@1.0.3:
+    resolution: {integrity: sha512-V85l97zJSTG8FEvmdTlmNYb0UMrVBwvRjw7bWTf/aT6KjFwtz3iTz8D2tuFIp7lwiaO2C5ecnrEmSkkMRCrqVw==}
+    dev: false
 
   /mime-types@2.1.35:
     resolution: {integrity: sha512-ZDY+bPm5zTTF+YpCrAU9nK0UgICYPT0QtT1NZWFv4s++TNkcgVaT0g6+4R2uI4MjQjzysHB1zxuWL50hzaeXiw==}

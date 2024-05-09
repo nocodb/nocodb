@@ -21,7 +21,7 @@ const columnSupportsScanning = (elementType: UITypes) =>
   <!-- Field Settings -->
   <template v-if="activeField">
     <div class="nc-form-field-settings p-4 flex flex-col gap-4 border-b border-gray-200">
-      <div class="text-base font-bold">{{ $t('objects.field') }} {{ $t('activity.settings') }}</div>
+      <div class="text-base font-bold">{{ $t('objects.field') }} {{ $t('activity.validations').toLowerCase() }}</div>
       <div class="flex flex-col gap-6">
         <div class="flex items-center justify-between gap-3">
           <div

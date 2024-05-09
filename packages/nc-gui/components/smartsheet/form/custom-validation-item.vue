@@ -31,16 +31,23 @@ const validatorValueType = computed(() => {
 
 const validatorValue = computed({
   get: () => {
-    return validator.value.value !== null ? `${validator.value.value ?? ''}` : validator.value.value
+    if (validator.value.type === StringValidationType.Regex) {
+      return `${validator.value.regex ?? ''}`
+    } else {
+      return `${validator.value.value ?? ''}`
+    }
   },
   set: (value) => {
-    if (validatorValueType.value === 'text') {
-      validator.value.value = value ?? ''
+    if (validator.value.type === StringValidationType.Regex) {
+      validator.value.regex = value ?? ''
+    } else {
+      if (validatorValueType.value === 'text') {
+        validator.value.value = value ?? ''
+      }
+      if (validatorValueType.value === 'number') {
+        validator.value.value = parseInt(value ?? '') || 0
+      }
     }
-    if (validatorValueType.value === 'number') {
-      validator.value.value = parseInt(value ?? '') || 0
-    }
-
     emits('update:validator', validator.value)
   },
 })
@@ -73,7 +80,13 @@ const handleKeyDown = (e: KeyboardEvent) => {
         placeholder="Select and option"
         @change="handleChangeValidator"
       >
-        <a-select-option v-for="option in options" :key="option.value" :value="option.value" class="!text-gray-600">
+        <a-select-option
+          v-for="option in options"
+          :key="option.value"
+          :value="option.value"
+          :disabled="options.disabled"
+          class="!text-gray-600"
+        >
           <div class="flex items-center justify-between gap-2">
             <div class="truncate flex-1">
               <NcTooltip :title="option.label" placement="top" show-on-truncate-only>

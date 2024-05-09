@@ -52,6 +52,7 @@ const addPlaceholderValidator = () => {
     type: null,
     value: null,
     message: '',
+    regex: null,
   })
 }
 
@@ -62,7 +63,6 @@ const handleRemoveValidator = (index: number) => {
 watch(
   validators,
   (next) => {
-    console.log('validator', next)
     validators.value = [...next]
     emits('update:modelValue', validators.value)
   },

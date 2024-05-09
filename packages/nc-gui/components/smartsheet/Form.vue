@@ -15,6 +15,7 @@ import {
   isLinksOrLTAR,
   isSelectTypeCol,
   isVirtualCol,
+  StringValidationType,
 } from 'nocodb-sdk'
 import type { ImageCropperConfig } from '~/lib/types'
 
@@ -612,6 +613,120 @@ const formElementValidationRules = (element) => {
     })
   }
 
+  if (parseProp(element.meta).validators?.length) {
+    ;(parseProp(element.meta).validators || []).forEach((val) => {
+      switch (val.type) {
+        case StringValidationType.MaxLength: {
+          rules.push({
+            validator: async (_rule, value) => {
+              console.log('value', value, _rule)
+              if (value) {
+                if (value.length > val.value) {
+                  return Promise.reject(val.message || `Max length should be ${val.value}`)
+                } else {
+                  return Promise.resolve()
+                }
+              }
+              return Promise.resolve()
+            },
+          })
+          break
+        }
+        case StringValidationType.MinLength: {
+          rules.push({
+            validator: async (_rule, value) => {
+              if (value) {
+                if (value.length < val.value) {
+                  return Promise.reject(val.message || `Min length should be ${val.value}`)
+                } else {
+                  return Promise.resolve()
+                }
+              }
+              return Promise.resolve()
+            },
+          })
+          break
+        }
+        case StringValidationType.StartsWith: {
+          rules.push({
+            validator: async (_rule, value) => {
+              if (value) {
+                if (!value.startsWith(val.value)) {
+                  return Promise.reject(val.message || `Value should starts with ${val.value}`)
+                } else {
+                  return Promise.resolve()
+                }
+              }
+              return Promise.resolve()
+            },
+          })
+          break
+        }
+        case StringValidationType.EndsWith: {
+          rules.push({
+            validator: async (_rule, value) => {
+              if (value) {
+                if (!value.endsWith(val.value)) {
+                  return Promise.reject(val.message || `Value should ends with ${val.value}`)
+                } else {
+                  return Promise.resolve()
+                }
+              }
+              return Promise.resolve()
+            },
+          })
+          break
+        }
+        case StringValidationType.Includes: {
+          rules.push({
+            validator: async (_rule, value) => {
+              if (value) {
+                if (!value.includes(val.value)) {
+                  return Promise.reject(val.message || `Value should include ${val.value}`)
+                } else {
+                  return Promise.resolve()
+                }
+              }
+              return Promise.resolve()
+            },
+          })
+          break
+        }
+        case StringValidationType.NotIncludes: {
+          rules.push({
+            validator: async (_rule, value) => {
+              if (value) {
+                if (value.includes(val.value)) {
+                  return Promise.reject(val.message || `Value should not include ${val.value}`)
+                } else {
+                  return Promise.resolve()
+                }
+              }
+              return Promise.resolve()
+            },
+          })
+          break
+        }
+        case StringValidationType.Regex: {
+          rules.push({
+            validator: async (_rule, value) => {
+              if (value) {
+                const regex = new RegExp(val.regex) // Create a regular expression object
+                console.log('inside regex', val.regex, regex)
+                if (!regex.test(value)) {
+                  return Promise.reject(val.message || `Value does not match the required pattern: ${val.regex}`)
+                } else {
+                  return Promise.resolve()
+                }
+              }
+              return Promise.resolve()
+            },
+          })
+          break
+        }
+      }
+    })
+  }
   return rules
 }
 

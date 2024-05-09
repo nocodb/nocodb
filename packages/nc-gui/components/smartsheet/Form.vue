@@ -709,9 +709,9 @@ const formElementValidationRules = (element) => {
         case StringValidationType.Regex: {
           rules.push({
             validator: async (_rule, value) => {
-              if (value && val.value !== null) {
-                const regex = new RegExp(val.regex) // Create a regular expression object
-                console.log('inside regex', val.regex, regex)
+              if (value && val.regex !== null) {
+                const regex = new RegExp(val.regex)
+
                 if (!regex.test(value)) {
                   return Promise.reject(val.message || `The input does not match the required format.`)
                 } else {

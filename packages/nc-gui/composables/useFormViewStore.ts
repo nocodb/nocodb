@@ -2,7 +2,6 @@ import type { Ref } from 'vue'
 import type { RuleObject } from 'ant-design-vue/es/form'
 import type { ColumnType, FormType, TableType, ViewType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
-import { computed, createEventHook, extractSdkResponseErrorMsg, message, ref, useI18n, useInjectionState } from '#imports'
 
 const useForm = Form.useForm
 

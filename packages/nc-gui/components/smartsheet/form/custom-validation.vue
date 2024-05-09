@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import type { Validation } from 'nocodb-sdk'
-import type { ColumnType } from 'nocodb-sdk'
+import type { ColumnType, Validation } from 'nocodb-sdk'
 import { StringValidationType, ValidationTypeLabel } from 'nocodb-sdk'
 
 const props = withDefaults(
@@ -27,7 +26,7 @@ const validatorsMap = computed(() => {
   }, {} as Record<Exclude<Validation['type'], null>, Validation>)
 })
 
-const { column, formFieldState } = toRefs(props)
+const { column } = toRefs(props)
 
 const isOpen = ref(false)
 
@@ -53,8 +52,6 @@ const options = computed(() => {
     return acc
   }, [] as { value: StringValidationType; label: string }[])
 })
-
-const validatorValueType = computed(() => {})
 
 const addPlaceholderValidator = () => {
   validators.value.push({
@@ -114,14 +111,14 @@ watch(
               {{ modelValue.length ? `${modelValue.length} validations` : 'No validations' }}
             </div>
 
-            <NcButton
+            <!-- <NcButton
               v-if="false"
               class="flex items-center justify-between !text-gray-800 !hover:text-gray-500 !min-w-4"
               type="link"
               size="xsmall"
             >
               <GeneralIcon icon="warning" class="flex-none w-4 h-4 !text-red-500" />
-            </NcButton>
+            </NcButton> -->
 
             <NcButton
               class="!border-none flex items-center justify-between !text-gray-600 !hover:text-gray-800 !min-w-4"
@@ -150,8 +147,8 @@ watch(
                       <template v-if="validators.length">
                         <LazySmartsheetFormCustomValidationItem
                           v-for="(validator, i) of validators"
-                          class="tr"
                           :key="i"
+                          class="tr"
                           :validator="validator"
                           :options="options"
                           :validators-map="validatorsMap"

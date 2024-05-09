@@ -1,7 +1,14 @@
 <script setup lang="ts">
 import type { Validation } from 'nocodb-sdk'
-import type { ColumnType } from 'nocodb-sdk'
-import { StringValidationType, ValidationTypeLabel } from 'nocodb-sdk'
+import { StringValidationType } from 'nocodb-sdk'
+
+const props = defineProps<{
+  validator: Validation
+  options: { value: string; label: string }[]
+  validatorsMap: Record<Exclude<Validation['type'], null>, Validation>
+}>()
+
+const emits = defineEmits(['update:validator', 'remove'])
 
 const inputType = {
   [StringValidationType.MinLength]: 'number',
@@ -13,14 +20,6 @@ const inputType = {
   [StringValidationType.Regex]: 'text',
   [StringValidationType.Email]: 'email',
 }
-
-const props = defineProps<{
-  validator: Validation
-  options: { value: string; label: string }[]
-  validatorsMap: Record<Exclude<Validation['type'], null>, Validation>
-}>()
-
-const emits = defineEmits(['update:validator', 'remove'])
 
 const validator = useVModel(props, 'validator', emits)
 
@@ -53,7 +52,7 @@ const validatorValue = computed({
   },
 })
 
-const handleChangeValidator = (value) => {
+const handleChangeValidator = () => {
   if (validator.value?.value !== null) {
     if (validatorValueType.value === 'text' && typeof validator.value.value !== 'string') {
       validator.value.value = `${validator.value.value ?? ''}`
@@ -116,19 +115,19 @@ watchEffect(() => {
     </div>
     <div class="td flex items-center">
       <input
-        :type="validatorValueType"
         v-model="validatorValue"
+        :type="validatorValueType"
         placeholder="Type value..."
         :min="0"
         :disabled="!validator.type"
-        @keydown="handleKeyDown"
         class="!w-full h-full !border-none text-sm !px-3 !py-1 !outline-none !focus:(outline-none border-none shadow-none) disabled:(bg-gray-50 cursor-not-allowed)"
+        @keydown="handleKeyDown"
       />
     </div>
     <div class="td flex items-center">
       <input
-        type="text"
         v-model="validator.message"
+        type="text"
         placeholder="Type error message..."
         class="!w-full h-full !border-none text-sm !px-3 !py-1 !outline-none !focus:(outline-none border-none shadow-none) disabled:(bg-gray-50 cursor-not-allowed)"
       />

@@ -942,6 +942,7 @@
     "importZip": "导入 zip 格式",
     "metaSync": "立即同步",
     "settings": "设置",
+    "validations": "Validations",
     "previewAs": "预览",
     "resetReview": "重置预览",
     "testDbConn": "测试数据库链接",

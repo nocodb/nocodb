@@ -1450,17 +1450,24 @@ useEventListener(
                                     </div>
                                   </div>
 
-                                  <a-switch
-                                    :checked="!!field.show"
-                                    :disabled="field.required || isLocked || !isEditable"
-                                    class="flex-none nc-switch"
-                                    size="small"
-                                    @change="
-                                      (value) => {
-                                        showOrHideColumn(field, value, true)
-                                      }
-                                    "
-                                  />
+                                  <NcTooltip
+                                    :disabled="!field.required || isLocked || !isEditable"
+                                    class="flex"
+                                    placement="topRight"
+                                  >
+                                    <template #title> You cannot hide a required field.</template>
+                                    <a-switch
+                                      :checked="!!field.show"
+                                      :disabled="field.required || isLocked || !isEditable"
+                                      class="flex-none nc-switch"
+                                      size="small"
+                                      @change="
+                                        (value) => {
+                                          showOrHideColumn(field, value, true)
+                                        }
+                                      "
+                                    />
+                                  </NcTooltip>
                                 </div>
                               </div>
                             </template>

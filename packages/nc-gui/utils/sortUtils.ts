@@ -1,6 +1,6 @@
 import { UITypes } from 'nocodb-sdk'
 
-export const getSortDirectionOptions = (uidt: UITypes | string) => {
+export const getSortDirectionOptions = (uidt: UITypes | string, isGroupBy?: boolean) => {
   switch (uidt) {
     case UITypes.Year:
     case UITypes.Number:
@@ -20,16 +20,37 @@ export const getSortDirectionOptions = (uidt: UITypes | string) => {
       return [
         { text: '1 → 9', value: 'asc' },
         { text: '9 → 1', value: 'desc' },
-      ]
+      ].concat(
+        isGroupBy
+          ? [
+              { text: 'Count (9 → 1)', value: 'count-desc' },
+              { text: 'Count (1 → 9)', value: 'count-asc' },
+            ]
+          : [],
+      )
     case UITypes.Checkbox:
       return [
         { text: '▢ → ✓', value: 'asc' },
         { text: '✓ → ▢', value: 'desc' },
-      ]
+      ].concat(
+        isGroupBy
+          ? [
+              { text: 'Count (9 → 1)', value: 'count-desc' },
+              { text: 'Count (1 → 9)', value: 'count-asc' },
+            ]
+          : [],
+      )
     default:
       return [
         { text: 'A → Z', value: 'asc' },
         { text: 'Z → A', value: 'desc' },
-      ]
+      ].concat(
+        isGroupBy
+          ? [
+              { text: 'Count (9 → 1)', value: 'count-desc' },
+              { text: 'Count (1 → 9)', value: 'count-asc' },
+            ]
+          : [],
+      )
   }
 }

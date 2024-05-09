@@ -210,7 +210,7 @@ eventBus.on(async (event, column) => {
               @click.stop
             >
               <a-select-option
-                v-for="(option, j) of getSortDirectionOptions(getColumnUidtByID(group.fk_column_id))"
+                v-for="(option, j) of getSortDirectionOptions(getColumnUidtByID(group.fk_column_id), true)"
                 :key="j"
                 :value="option.value"
               >

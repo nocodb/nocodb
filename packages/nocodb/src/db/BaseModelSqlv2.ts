@@ -811,17 +811,33 @@ class BaseModelSqlv2 {
           return qb.toQuery();
         }, this.dbDriver.raw(`??`, [columnName]).toQuery());
 
-        qb.orderBy(
-          sanitize(this.dbDriver.raw(finalStatement)),
-          sort.direction,
-          sort.direction === 'desc' ? 'LAST' : 'FIRST',
-        );
+        if (!['asc', 'desc'].includes(sort.direction)) {
+          qb.orderBy(
+            'count',
+            sort.direction === 'count-desc' ? 'desc' : 'asc',
+            sort.direction === 'count-desc' ? 'LAST' : 'FIRST',
+          );
+        } else {
+          qb.orderBy(
+            sanitize(this.dbDriver.raw(finalStatement)),
+            sort.direction,
+            sort.direction === 'desc' ? 'LAST' : 'FIRST',
+          );
+        }
       } else {
-        qb.orderBy(
-          column.id,
-          sort.direction,
-          sort.direction === 'desc' ? 'LAST' : 'FIRST',
-        );
+        if (!['asc', 'desc'].includes(sort.direction)) {
+          qb.orderBy(
+            'count',
+            sort.direction === 'count-desc' ? 'desc' : 'asc',
+            sort.direction === 'count-desc' ? 'LAST' : 'FIRST',
+          );
+        } else {
+          qb.orderBy(
+            column.id,
+            sort.direction,
+            sort.direction === 'desc' ? 'LAST' : 'FIRST',
+          );
+        }
       }
     }
 
@@ -6612,7 +6628,6 @@ export function extractSortsObject(
   if (!_sorts?.length) return;
 
   let sorts = _sorts;
-
   if (!Array.isArray(sorts)) sorts = sorts.split(/\s*,\s*/);
 
   return sorts.map((s) => {
@@ -6620,6 +6635,12 @@ export function extractSortsObject(
     if (s.startsWith('-')) {
       sort.direction = 'desc';
       sort.fk_column_id = aliasColObjMap[s.slice(1)]?.id;
+    } else if (s.startsWith('count-')) {
+      sort.direction = 'count-desc';
+      sort.fk_column_id = aliasColObjMap[s.slice(6)]?.id;
+    } else if (s.startsWith('count+')) {
+      sort.direction = 'count-asc';
+      sort.fk_column_id = aliasColObjMap[s.slice(6)]?.id;
     }
     // replace + at the beginning if present
     else sort.fk_column_id = aliasColObjMap[s.replace(/^\+/, '')]?.id;

@@ -63,6 +63,8 @@ const active = inject(ActiveCellInj, ref(false))
 
 const { state: rowState } = useSmartsheetRowStoreOrThrow()
 
+const { isUIAllowed } = useRoles()
+
 const { isOverDropZone } = useDropZone(currentCellRef as any, onDrop)
 
 /** on new value, reparse our stored attachments */
@@ -282,7 +284,7 @@ const handleFileDelete = (i: number) => {
             </template>
             <div v-if="isImage(item.title, item.mimetype ?? item.type)">
               <div
-                class="nc-attachment flex items-center flex-col flex-wrap justify-center flex-auto"
+                class="nc-attachment flex items-center flex-col flex-wrap justify-center flex-auto relative"
                 :class="{ 'ml-2': active, '!w-30': isForm || isExpandedForm }"
                 @click="() => onImageClick(item)"
               >
@@ -297,6 +299,12 @@ const handleFileDelete = (i: number) => {
                     'h-20.8': rowHeight === 6 || isForm || isExpandedForm,
                   }"
                   :srcs="getPossibleAttachmentSrc(item)"
+                />
+                <component
+                  :is="iconMap.closeCircle"
+                  v-if="isSharedForm || (isUIAllowed('dataEdit') && !isPublic)"
+                  class="absolute right-[2px] top-[2px] bg-white rounded-full"
+                  @click.stop="removeFile(i)"
                 />
               </div>
             </div>

@@ -1456,7 +1456,7 @@ useEventListener(
                                     class="flex"
                                     placement="topRight"
                                   >
-                                    <template #title> You cannot hide a required field.</template>
+                                    <template #title> You can't hide a required field.</template>
                                     <a-switch
                                       :checked="!!field.show"
                                       :disabled="field.required || isLocked || !isEditable"

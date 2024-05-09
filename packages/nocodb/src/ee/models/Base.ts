@@ -1,5 +1,5 @@
 import BaseCE from 'src/models/Base';
-import { ProjectRoles, ProjectTypes } from 'nocodb-sdk';
+import { ProjectRoles, ProjectTypes, WorkspaceUserRoles } from 'nocodb-sdk';
 import type { BaseType } from 'nocodb-sdk';
 import type { DB_TYPES } from '~/utils/globals';
 import {
@@ -354,11 +354,31 @@ export default class Base extends BaseCE {
       .where(`${MetaTable.PROJECT}.fk_workspace_id`, fk_workspace_id)
       .whereNotNull(`${MetaTable.WORKSPACE_USER}.roles`)
       .andWhere(function () {
-        this.andWhere(
-          `${MetaTable.PROJECT_USERS}.roles`,
-          '!=',
-          ProjectRoles.NO_ACCESS,
-        ).orWhereNull(`${MetaTable.PROJECT_USERS}.roles`);
+        this.andWhere(function () {
+          this.andWhere(
+            `${MetaTable.WORKSPACE_USER}.roles`,
+            '!=',
+            WorkspaceUserRoles.NO_ACCESS,
+          ).andWhere(function () {
+            this.andWhere(
+              `${MetaTable.PROJECT_USERS}.roles`,
+              '!=',
+              ProjectRoles.NO_ACCESS,
+            ).orWhereNull(`${MetaTable.PROJECT_USERS}.roles`);
+          });
+        })
+          .orWhere(
+            `${MetaTable.WORKSPACE_USER}.roles`,
+            '=',
+            WorkspaceUserRoles.NO_ACCESS,
+          )
+          .andWhere(function () {
+            this.andWhere(
+              `${MetaTable.PROJECT_USERS}.roles`,
+              '!=',
+              ProjectRoles.NO_ACCESS,
+            ).orWhereNotNull(`${MetaTable.PROJECT_USERS}.roles`);
+          });
       });
 
     const bases = await baseListQb;

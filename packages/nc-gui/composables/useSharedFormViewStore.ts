@@ -13,8 +13,8 @@ import type {
 import { RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import { isString } from '@vue/shared'
 import { useTitle } from '@vueuse/core'
-import { filterNullOrUndefinedObjectProperties } from '~/helpers/parsers/parserHelpers'
 import type { RuleObject } from 'ant-design-vue/es/form'
+import { filterNullOrUndefinedObjectProperties } from '~/helpers/parsers/parserHelpers'
 
 const useForm = Form.useForm
 

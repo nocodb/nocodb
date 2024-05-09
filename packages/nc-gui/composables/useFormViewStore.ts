@@ -1,7 +1,10 @@
 import type { Ref } from 'vue'
+import type { RuleObject } from 'ant-design-vue/es/form'
 import type { ColumnType, FormType, TableType, ViewType } from 'nocodb-sdk'
-import { RelationTypes, isLinksOrLTAR } from 'nocodb-sdk'
-import { computed, createEventHook, extractSdkResponseErrorMsg, message, ref, useInjectionState } from '#imports'
+import { RelationTypes, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
+import { computed, createEventHook, extractSdkResponseErrorMsg, message, ref, useI18n, useInjectionState } from '#imports'
+
+const useForm = Form.useForm
 
 const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
   (
@@ -12,6 +15,8 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
     isEditable: boolean,
   ) => {
     const { $api } = useNuxtApp()
+
+    const { t } = useI18n()
 
     const formResetHook = createEventHook<void>()
 
@@ -36,6 +41,42 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
       return null
     })
 
+    const validators = computed(() => {
+      const rulesObj: Record<string, RuleObject[]> = {}
+
+      if (!visibleColumns.value) return rulesObj
+
+      for (const column of visibleColumns.value) {
+        let rules: RuleObject[] = [
+          {
+            required: isRequired(column, column.required),
+            message: t('msg.error.fieldRequired', { value: 'This field' }),
+            ...(column.uidt === UITypes.Checkbox && isRequired(column, column.required) ? { type: 'enum', enum: [1, true] } : {}),
+          },
+        ]
+
+        const additionalRules = extractFieldValidator(parseProp(column.meta).validators ?? [], column)
+        rules = [...rules, ...additionalRules]
+
+        if (rules.length) {
+          rulesObj[column.title!] = rules
+        }
+      }
+
+      return rulesObj
+    })
+
+    // Form field validation
+    const { validate, validateInfos, clearValidate } = useForm(formState, validators)
+
+    const validateActiveField = async (col: ColumnType) => {
+      try {
+        await validate(col.title)
+      } catch (e: any) {
+        e.errorFields.map((f: Record<string, any>) => console.error(f.errors.join(',')))
+      }
+    }
+
     const updateView = useDebounceFn(
       () => {
         updateFormView(formViewData.value)
@@ -46,6 +87,8 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
 
     const updateColMeta = useDebounceFn(async (col: Record<string, any>) => {
       if (col.id && isEditable) {
+        validateActiveField(col)
+
         try {
           await $api.dbView.formColumnUpdate(col.id, col)
         } catch (e: any) {
@@ -76,6 +119,9 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
       isRequired,
       updateView,
       updateColMeta,
+      validate,
+      validateInfos,
+      clearValidate,
     }
   },
   'form-view-store',

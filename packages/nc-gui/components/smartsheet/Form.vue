@@ -58,8 +58,6 @@ const { base } = storeToRefs(useBase())
 
 const { getPossibleAttachmentSrc } = useAttachment()
 
-const formRef = ref()
-
 const secondsRemain = ref(0)
 
 const isLocked = inject(IsLockedInj, ref(false))
@@ -74,8 +72,20 @@ const isPublic = inject(IsPublicInj, ref(false))
 
 const { loadFormView, insertRow, formColumnData, formViewData, updateFormView } = useViewData(meta, view)
 
-const { formState, localColumns, visibleColumns, activeRow, activeField, activeColumn, isRequired, updateView, updateColMeta } =
-  useProvideFormViewStore(meta, view, formViewData, updateFormView, isEditable)
+const {
+  formState,
+  localColumns,
+  visibleColumns,
+  activeRow,
+  activeField,
+  activeColumn,
+  isRequired,
+  updateView,
+  updateColMeta,
+  validateInfos,
+  validate,
+  clearValidate,
+} = useProvideFormViewStore(meta, view, formViewData, updateFormView, isEditable)
 
 const { preFillFormSearchParams } = storeToRefs(useViewsStore())
 
@@ -182,7 +192,7 @@ async function submitForm() {
   if (isLocked.value || !isUIAllowed('dataInsert')) return
 
   try {
-    await formRef.value?.validateFields()
+    await validate()
   } catch (e: any) {
     if (e.errorFields.length) {
       message.error(t('msg.error.someOfTheRequiredFieldsAreEmpty'))
@@ -204,7 +214,7 @@ async function clearForm() {
 
   formState.value = {}
   state.value = {}
-  await formRef.value?.clearValidate()
+  clearValidate()
   reloadEventHook.trigger()
 }
 
@@ -514,21 +524,6 @@ const handleOnUploadImage = (data: AttachmentResType = null) => {
   updateView()
 }
 
-const formElementValidationRules = (element) => {
-  let rules: FormItemProps['rules'] = [
-    {
-      required: isRequired(element, element.required),
-      message: t('msg.error.fieldRequired', { value: 'This field' }),
-      ...(element.uidt === UITypes.Checkbox && isRequired(element, element.required) ? { type: 'enum', enum: [1, true] } : {}),
-    },
-  ]
-
-  const additionalRules = extractFieldValidator(parseProp(element.meta).validators ?? [], element)
-  rules = [...rules, ...additionalRules]
-
-  return rules
-}
-
 const onFocusActiveFieldLabel = (e: FocusEvent) => {
   ;(e.target as HTMLTextAreaElement).select()
 }
@@ -585,7 +580,7 @@ watch(
     updatePreFillFormSearchParams()
 
     try {
-      await formRef.value?.validateFields([...Object.keys(formState.value)])
+      await validate([...Object.keys(formState.value)])
     } catch (e: any) {
       e.errorFields.map((f: Record<string, any>) => console.error(f.errors.join(',')))
     }
@@ -858,7 +853,7 @@ useEventListener(
                       padding: '0px !important',
                     }"
                   >
-                    <a-form ref="formRef" :model="formState" class="nc-form" no-style>
+                    <a-form :model="formState" class="nc-form" no-style>
                       <!-- form header -->
                       <div class="flex flex-col px-4 lg:px-6">
                         <!-- Form logo  -->
@@ -1106,7 +1101,7 @@ useEventListener(
                                 <a-form-item
                                   :name="element.title"
                                   class="!my-0 nc-input-required-error nc-form-input-item"
-                                  :rules="formElementValidationRules(element)"
+                                  v-bind="validateInfos[element.title]"
                                 >
                                   <LazySmartsheetDivDataCell class="relative" @click.stop>
                                     <LazySmartsheetVirtualCell

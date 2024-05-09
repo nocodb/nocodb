@@ -45,9 +45,9 @@ const { $e } = useNuxtApp()
 
 const { t } = useI18n()
 
-const dataSourcesReload = ref(false)
+const { isDataSourceLimitReached } = storeToRefs(useBases())
 
-const dataSourcesAwakened = ref(false)
+const dataSourcesReload = ref(false)
 
 const tabsInfo: TabGroup = {
   // teamAndAuth: {
@@ -139,10 +139,6 @@ const selectedTab = computed(() => tabsInfo[selectedTabKeys.value[0]])
 const selectedSubTabKeys = ref<string[]>([firstKeyOfObject(selectedTab.value.subTabs)])
 const selectedSubTab = computed(() => selectedTab.value.subTabs[selectedSubTabKeys.value[0]])
 
-const handleAwaken = (val: boolean) => {
-  dataSourcesAwakened.value = val
-}
-
 watch(
   () => selectedTabKeys.value[0],
   (newTabKey) => {
@@ -221,7 +217,7 @@ watch(
             </a-breadcrumb>
             <div v-if="vDataState === ''" class="flex flex-row justify-end items-center w-full gap-1">
               <a-button
-                v-if="dataSourcesAwakened"
+                v-if="!isDataSourceLimitReached"
                 type="primary"
                 class="self-start !rounded-md nc-btn-new-datasource"
                 @click="vDataState = DataSourcesSubTab.New"
@@ -257,7 +253,6 @@ watch(
             class="px-2 pb-2"
             :data-testid="`nc-settings-subtab-${selectedSubTab.key}`"
             :base-id="baseId"
-            @awaken="handleAwaken"
           />
           <component
             :is="selectedSubTab?.body"

@@ -10,7 +10,7 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const emits = defineEmits(['update:state', 'update:reload', 'awaken'])
+const emits = defineEmits(['update:state', 'update:reload'])
 
 const vState = useVModel(props, 'state', emits)
 
@@ -20,7 +20,9 @@ const { $api, $e } = useNuxtApp()
 
 const { t } = useI18n()
 
-const { loadProject } = useBases()
+const basesStore = useBases()
+const { loadProject } = basesStore
+const { isDataSourceLimitReached } = storeToRefs(basesStore)
 
 const baseStore = useBase()
 const { base } = storeToRefs(baseStore)
@@ -36,10 +38,6 @@ const activeBaseId = ref('')
 const clientType = ref<ClientType>(ClientType.MYSQL)
 
 const isReloading = ref(false)
-
-const forceAwakened = ref(false)
-
-const dataSourcesAwakened = ref(false)
 
 const isDeleteBaseModalOpen = ref(false)
 const toBeDeletedBase = ref<SourceType | undefined>()
@@ -142,12 +140,6 @@ const moveBase = async (e: any) => {
   }
 }
 
-const forceAwaken = () => {
-  forceAwakened.value = !forceAwakened.value
-  dataSourcesAwakened.value = forceAwakened.value
-  emits('awaken', forceAwakened.value)
-}
-
 watch(
   projectPageTab,
   () => {
@@ -167,20 +159,6 @@ watch(
       await loadBases()
     }
   },
-)
-
-watch(
-  () => sources.value.length,
-  (l) => {
-    if (l > 1 && !forceAwakened.value) {
-      dataSourcesAwakened.value = false
-      emits('awaken', false)
-    } else {
-      dataSourcesAwakened.value = true
-      emits('awaken', true)
-    }
-  },
-  { immediate: true },
 )
 
 watch(
@@ -211,7 +189,7 @@ watch(
         vState.value = DataSourcesSubTab.New
         break
       case DataSourcesSubTab.New:
-        if (sources.value.length > 1 && !forceAwakened.value) {
+        if (isDataSourceLimitReached.value) {
           vState.value = ''
         }
         break
@@ -292,7 +270,7 @@ const isEditBaseModalOpen = computed({
     <div class="flex flex-col w-full overflow-auto">
       <div class="flex flex-row w-full justify-end mt-6.5 mb-2">
         <NcButton
-          v-if="dataSourcesAwakened"
+          v-if="!isDataSourceLimitReached"
           size="large"
           class="z-10 !px-2"
           type="primary"
@@ -312,7 +290,7 @@ const isEditBaseModalOpen = computed({
       >
         <div class="ds-table-head">
           <div class="ds-table-row">
-            <div class="ds-table-col ds-table-enabled cursor-pointer" @dblclick="forceAwaken">{{ $t('general.visibility') }}</div>
+            <div class="ds-table-col ds-table-enabled cursor-pointer">{{ $t('general.visibility') }}</div>
             <div class="ds-table-col ds-table-name">{{ $t('general.name') }}</div>
             <div class="ds-table-col ds-table-type">{{ $t('general.type') }}</div>
             <div class="ds-table-col ds-table-actions -ml-13">{{ $t('labels.actions') }}</div>

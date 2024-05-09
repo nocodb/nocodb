@@ -532,7 +532,7 @@ const validateFormURL = async (_rule, value) => {
 }
 
 const formElementValidationRules = (element) => {
-  const rules: FormItemProps['rules'] = [
+  let rules: FormItemProps['rules'] = [
     {
       required: isRequired(element, element.required),
       message: t('msg.error.fieldRequired', { value: 'This field' }),
@@ -558,117 +558,8 @@ const formElementValidationRules = (element) => {
   }
 
   if (parseProp(element.meta).validators?.length) {
-    ;(parseProp(element.meta).validators || []).forEach((val) => {
-      switch (val.type) {
-        case StringValidationType.MaxLength: {
-          rules.push({
-            validator: async (_rule, value) => {
-              if (value && val.value !== null) {
-                if (value.length > val.value) {
-                  return Promise.reject(val.message || `The input must not exceed ${val.value} characters.`)
-                } else {
-                  return Promise.resolve()
-                }
-              }
-              return Promise.resolve()
-            },
-          })
-          break
-        }
-        case StringValidationType.MinLength: {
-          rules.push({
-            validator: async (_rule, value) => {
-              if (value && val.value !== null) {
-                if (value.length < val.value) {
-                  return Promise.reject(val.message || `The input must be at least ${val.value} characters long.`)
-                } else {
-                  return Promise.resolve()
-                }
-              }
-              return Promise.resolve()
-            },
-          })
-          break
-        }
-        case StringValidationType.StartsWith: {
-          rules.push({
-            validator: async (_rule, value) => {
-              if (value && val.value !== null) {
-                if (!value.startsWith(val.value)) {
-                  return Promise.reject(val.message || `The input must start with '${val.value}'.`)
-                } else {
-                  return Promise.resolve()
-                }
-              }
-              return Promise.resolve()
-            },
-          })
-          break
-        }
-        case StringValidationType.EndsWith: {
-          rules.push({
-            validator: async (_rule, value) => {
-              if (value && val.value !== null) {
-                if (!value.endsWith(val.value)) {
-                  return Promise.reject(val.message || `The input must end with '${val.value}'.`)
-                } else {
-                  return Promise.resolve()
-                }
-              }
-              return Promise.resolve()
-            },
-          })
-          break
-        }
-        case StringValidationType.Includes: {
-          rules.push({
-            validator: async (_rule, value) => {
-              if (value && val.value !== null) {
-                if (!value.includes(val.value)) {
-                  return Promise.reject(val.message || `The input must contain the string '${val.value}'.`)
-                } else {
-                  return Promise.resolve()
-                }
-              }
-              return Promise.resolve()
-            },
-          })
-          break
-        }
-        case StringValidationType.NotIncludes: {
-          rules.push({
-            validator: async (_rule, value) => {
-              if (value && val.value !== null) {
-                if (value.includes(val.value)) {
-                  return Promise.reject(val.message || `The input must not contain the string '${val.value}'.`)
-                } else {
-                  return Promise.resolve()
-                }
-              }
-              return Promise.resolve()
-            },
-          })
-          break
-        }
-        case StringValidationType.Regex: {
-          rules.push({
-            validator: async (_rule, value) => {
-              if (value && val.regex !== null) {
-                const regex = new RegExp(val.regex)
-
-                if (!regex.test(value)) {
-                  return Promise.reject(val.message || `The input does not match the required format.`)
-                } else {
-                  return Promise.resolve()
-                }
-              }
-              return Promise.resolve()
-            },
-          })
-          break
-        }
-      }
-    })
+    const additionalRules = extractFieldValidator(parseProp(element.meta).validators)
+    rules = [...rules, ...additionalRules]
   }
   return rules
 }
@@ -1433,7 +1324,7 @@ useEventListener(
                       @update:value="updateColMeta(activeField)"
                     />
                   </div>
-                  <SmartsheetFormFieldSettings></SmartsheetFormFieldSettings>
+                  <LazySmartsheetFormFieldSettings v-if="activeField"></LazySmartsheetFormFieldSettings>
                 </div>
 
                 <!-- Form Settings -->

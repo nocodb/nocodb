@@ -1573,9 +1573,8 @@ useEventListener(
 
                   <!-- Custom Validations -->
                   <LazySmartsheetFormCustomValidation
-                    v-if="activeField"
+                    v-if="isEeUI && activeField"
                     v-model:model-value="activeField.meta.validators"
-                    :form-field-state="formState[activeField.title] || ''"
                     :column="activeField"
                     @update:model-value="updateColMeta(activeField)"
                   ></LazySmartsheetFormCustomValidation>

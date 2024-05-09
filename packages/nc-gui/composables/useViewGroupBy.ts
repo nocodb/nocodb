@@ -209,7 +209,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
 
     const getSortParams = (sort: string) => {
       if (sort === 'asc') {
-        return ''
+        return '+'
       } else if (sort === 'desc') {
         return '-'
       } else if (sort === 'count-asc') {

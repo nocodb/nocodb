@@ -6643,7 +6643,9 @@ export function extractSortsObject(
       sort.fk_column_id = aliasColObjMap[s.slice(6)]?.id;
     }
     // replace + at the beginning if present
-    else sort.fk_column_id = aliasColObjMap[s.replace(/^\+/, '')]?.id;
+    else {
+      sort.fk_column_id = aliasColObjMap[s.replace(/^\+/, '')]?.id;
+    }
 
     if (throwErrorIfInvalid && !sort.fk_column_id)
       NcError.fieldNotFound(s.replace(/^[+-]/, ''));

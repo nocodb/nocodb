@@ -71,8 +71,9 @@ export interface RequiredValidation extends Validation {
   type: GenericValidationType.Required;
 }
 
-export const getMinValidationTypeFromMax = {
+export const oppositeValidationTypeMap = {
   [StringValidationType.MaxLength]: StringValidationType.MinLength,
+  [StringValidationType.NotIncludes]: StringValidationType.Includes,
   [NumberValidationType.Max]: NumberValidationType.Min,
   [YearValidationType.MaxYear]: YearValidationType.MinYear,
   [DateValidationType.MaxDate]: DateValidationType.MinDate,

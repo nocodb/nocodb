@@ -5,6 +5,7 @@ export interface Validation {
     | NumberValidationType
     | DateValidationType
     | TimeValidationType
+    | YearValidationType
     | SelectValidationType
     | AttachmentValidationType
     | null;
@@ -47,9 +48,9 @@ export enum TimeValidationType {
   MaxTime = 'maxTime',
 }
 
-export enum MonthValidationType {
-  MinMonth = 'minMonth',
-  MaxMonth = 'maxTime',
+export enum YearValidationType {
+  MinYear = 'minYear',
+  MaxYear = 'maxYear',
 }
 
 export enum SelectValidationType {

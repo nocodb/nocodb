@@ -63,8 +63,6 @@ const active = inject(ActiveCellInj, ref(false))
 
 const { state: rowState } = useSmartsheetRowStoreOrThrow()
 
-const { isUIAllowed } = useRoles()
-
 const { isOverDropZone } = useDropZone(currentCellRef as any, onDrop)
 
 /** on new value, reparse our stored attachments */

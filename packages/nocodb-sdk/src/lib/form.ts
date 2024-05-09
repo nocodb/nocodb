@@ -29,8 +29,10 @@ export enum StringValidationType {
   EndsWith = 'endsWith',
   Includes = 'includes',
   NotIncludes = 'notIncludes',
-  Email = 'email',
   Regex = 'regex',
+  Email = 'email',
+  PhoneNumber = 'phoneNumber',
+  Url = 'url',
 }
 
 export enum NumberValidationType {

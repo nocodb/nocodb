@@ -78,6 +78,16 @@ export interface EmailValidation extends Validation {
   type: StringValidationType.Email;
 }
 
+export interface IncludesValidation extends Validation {
+  type: StringValidationType.Includes;
+  value: string;
+}
+
+export interface NotIncludesValidation extends Validation {
+  type: StringValidationType.NotIncludes;
+  value: string;
+}
+
 export interface RequiredValidation extends Validation {
   type: GenericValidationType.Required;
 }

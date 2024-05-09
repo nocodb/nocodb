@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Validation } from 'nocodb-sdk'
-import { StringValidationType } from 'nocodb-sdk'
+import { StringValidationType, InputType } from 'nocodb-sdk'
 
 const props = defineProps<{
   validator: Validation
@@ -10,23 +10,12 @@ const props = defineProps<{
 
 const emits = defineEmits(['update:validator', 'remove'])
 
-const inputType = {
-  [StringValidationType.MinLength]: 'number',
-  [StringValidationType.MaxLength]: 'number',
-  [StringValidationType.StartsWith]: 'text',
-  [StringValidationType.EndsWith]: 'text',
-  [StringValidationType.Includes]: 'text',
-  [StringValidationType.NotIncludes]: 'text',
-  [StringValidationType.Regex]: 'text',
-  [StringValidationType.Email]: 'email',
-}
-
 const validator = useVModel(props, 'validator', emits)
 
 const { options, validatorsMap } = toRefs(props)
 
 const validatorValueType = computed(() => {
-  return inputType[validator.value.type] ?? 'text'
+  return InputType[validator.value.type] ?? 'text'
 })
 
 const validatorValue = computed({
@@ -68,10 +57,6 @@ const handleKeyDown = (e: KeyboardEvent) => {
     e.preventDefault()
   }
 }
-
-watchEffect(() => {
-  console.log(' validatorsMap[option.value]', validatorsMap.value)
-})
 </script>
 
 <template>

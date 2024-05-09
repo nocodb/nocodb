@@ -154,7 +154,7 @@ export const ValidationTypeLabel = {
   [StringValidationType.Email]: 'Email',
 };
 
-export const inputType = {
+export const InputType = {
   [StringValidationType.MinLength]: 'number',
   [StringValidationType.MaxLength]: 'number',
   [StringValidationType.StartsWith]: 'text',

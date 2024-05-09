@@ -76,15 +76,6 @@ watch(
     deep: true,
   },
 )
-watch(
-  column,
-  (next) => {
-    console.log('column', next)
-  },
-  {
-    deep: true,
-  },
-)
 </script>
 
 <template>

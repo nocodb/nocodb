@@ -15,6 +15,7 @@ const updateSelectFieldLayout = (value: boolean) => {
 const columnSupportsScanning = (elementType: UITypes) =>
   betaFeatureToggleState.show &&
   [UITypes.SingleLineText, UITypes.Number, UITypes.Email, UITypes.URL, UITypes.LongText].includes(elementType)
+
 </script>
 
 <template>

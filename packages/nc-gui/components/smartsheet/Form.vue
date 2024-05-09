@@ -523,13 +523,6 @@ const formElementValidationRules = (element) => {
     },
   ]
 
-  if ([UITypes.Number, UITypes.Currency, UITypes.Percent].includes(element.uidt)) {
-    rules.push({
-      type: 'number',
-      message: t('msg.plsEnterANumber'),
-    })
-  }
-
   const additionalRules = extractFieldValidator(parseProp(element.meta).validators ?? [], element)
   rules = [...rules, ...additionalRules]
 

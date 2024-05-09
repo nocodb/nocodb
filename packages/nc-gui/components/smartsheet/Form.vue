@@ -1458,14 +1458,13 @@ useEventListener(
                   </div>
 
                   <!-- Custom Validations -->
-                  <div class="nc-form-field-settings p-4 border-b border-gray-200">
-                    <LazySmartsheetFormCustomValidation
-                      v-model:model-value="activeField.meta.validators"
-                      :form-field-state="formState[activeField.title] || ''"
-                      :column="activeField"
-                      @update:model-value="updateColMeta(activeField)"
-                    ></LazySmartsheetFormCustomValidation>
-                  </div>
+                  <LazySmartsheetFormCustomValidation
+                    v-if="activeField"
+                    v-model:model-value="activeField.meta.validators"
+                    :form-field-state="formState[activeField.title] || ''"
+                    :column="activeField"
+                    @update:model-value="updateColMeta(activeField)"
+                  ></LazySmartsheetFormCustomValidation>
 
                   <!-- Field Appearance Settings -->
 

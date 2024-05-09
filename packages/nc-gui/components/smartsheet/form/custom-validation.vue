@@ -1,114 +1,176 @@
 <script setup lang="ts">
 import type { Validation } from 'nocodb-sdk'
 import type { ColumnType } from 'nocodb-sdk'
-import { StringValidationType } from 'nocodb-sdk'
+import { StringValidationType, ValidationTypeLabel } from 'nocodb-sdk'
 
-const props = defineProps<{
-  modelValue: Validation[]
-  formFieldState?: string | null
-  column: ColumnType
-}>()
+const props = withDefaults(
+  defineProps<{
+    modelValue: Validation[]
+    formFieldState?: string | null
+    column: ColumnType
+  }>(),
+  {
+    modelValue: () => [],
+  },
+)
 
 const emits = defineEmits(['update:modelValue'])
 
 const validators = useVModel(props, 'modelValue', emits)
 
+const { column, formFieldState } = toRefs(props)
+
 const isOpen = ref(false)
 
-// const { sqlUis } = storeToRefs(useBase())
+const { sqlUis } = storeToRefs(useBase())
 
-// const sqlUi = ref(column.value?.source_id ? sqlUis.value[column.value?.source_id] : Object.values(sqlUis.value)[0])
+const sqlUi = ref(column.value?.source_id ? sqlUis.value[column.value?.source_id] : Object.values(sqlUis.value)[0])
 
-// const abstractType = computed(() => column.value && sqlUi.value.getAbstractType(column.value))
+const abstractType = computed(() => column.value && sqlUi.value.getAbstractType(column.value))
+
+const columnType = computed(() => {
+  if (isString(column.value, abstractType.value)) {
+    return 'string'
+  }
+})
+
+const options = computed(() => {
+  return Object.values(StringValidationType).reduce((acc, curr) => {
+    if (curr === StringValidationType.Email) return acc
+    acc.push({
+      value: curr,
+      label: ValidationTypeLabel[curr],
+    })
+    return acc
+  }, [] as { value: StringValidationType; label: string }[])
+})
+
+const validatorValueType = computed(() => {})
 
 const addPlaceholderValidator = () => {
   validators.value.push({
-    type: StringValidationType,
+    type: null,
+    value: null,
+    message: '',
   })
 }
+
+const handleRemoveValidator = (index: number) => {
+  validators.value.splice(index, 1)
+}
+
+watch(
+  validators,
+  (next) => {
+    console.log('validator', next)
+    validators.value = [...next]
+    emits('update:modelValue', validators.value)
+  },
+  {
+    deep: true,
+  },
+)
+watch(
+  column,
+  (next) => {
+    console.log('column', next)
+  },
+  {
+    deep: true,
+  },
+)
 </script>
 
 <template>
-  <div class="flex flex-col gap-3">
-    <div class="flex items-center justify-between">
-      <div class="text-base font-bold">Custom Validations</div>
+  <div v-if="columnType === 'string'" class="nc-form-field-settings p-4 border-b border-gray-200">
+    <div class="flex flex-col gap-3">
+      <div class="flex items-center justify-between">
+        <div class="text-base font-bold">Custom Validations</div>
 
-      <div class="flex flex-col">
-        <div
-          class="border-1 rounded-lg py-1 px-3 flex items-center justify-between gap-2 !min-w-[170px] transition-all"
-          :class="{
-            '!border-brand-500': isOpen,
-            'border-gray-200': !isOpen,
-          }"
-        >
-          <div class="flex-1">No Validations</div>
-
-          <NcButton
-            class="flex items-center justify-between !text-gray-800 !hover:text-gray-500 !min-w-4"
-            type="link"
-            size="xsmall"
+        <div class="flex flex-col">
+          <div
+            class="border-1 rounded-lg py-1 px-3 flex items-center justify-between gap-2 !min-w-[170px] transition-all"
+            :class="{
+              '!border-brand-500': isOpen,
+              'border-gray-200': !isOpen,
+              'bg-[#F0F3FF]': modelValue.length,
+            }"
           >
-            <GeneralIcon icon="warning" class="flex-none w-4 h-4 !text-red-500" />
-          </NcButton>
+            <div
+              class="flex-1"
+              :class="{
+                'text-brand-500 ': modelValue.length,
+              }"
+            >
+              {{ modelValue.length ? `${modelValue.length} Validations` : 'No Validations' }}
+            </div>
 
-          <NcButton
-            class="!border-none flex items-center justify-between !text-gray-600 !hover:text-gray-800 !min-w-4"
-            type="link"
-            size="xsmall"
-            @click="isOpen = !isOpen"
-          >
-            <GeneralIcon icon="settings" class="flex-none w-4 h-4" />
-          </NcButton>
-        </div>
-        <NcDropdown v-model:visible="isOpen" placement="bottomLeft">
-          <div></div>
-          <template #overlay>
-            <div class="p-4">
-              <div class="flex flex-col gap-3">
-                <div class="nc-custom-validation-table table">
-                  <div class="thead">
-                    <div class="tr">
-                      <div class="th">Validator</div>
-                      <div class="th">Validation Value</div>
-                      <div class="th">Warning Message</div>
-                      <div class="th"></div>
-                    </div>
-                  </div>
-                  <div class="tbody">
-                    <template v-if="validators.length">
-                      <div v-for="(validator, i) of validators" class="tr">
-                        <div class="td">selector</div>
-                        <div class="td">selector</div>
-                        <div class="td">selector</div>
-                        <div class="td nc-custom-validation-delete-item">
-                          <NcButton class="border-1 flex items-center justify-between" type="link" size="small">
-                            <GeneralIcon icon="delete" class="flex-none h-4 w-4 text-gray-500 hover:text-gray-800" />
-                          </NcButton>
-                        </div>
+            <NcButton
+              v-if="false"
+              class="flex items-center justify-between !text-gray-800 !hover:text-gray-500 !min-w-4"
+              type="link"
+              size="xsmall"
+            >
+              <GeneralIcon icon="warning" class="flex-none w-4 h-4 !text-red-500" />
+            </NcButton>
+
+            <NcButton
+              class="!border-none flex items-center justify-between !text-gray-600 !hover:text-gray-800 !min-w-4"
+              type="link"
+              size="xsmall"
+              @click="isOpen = !isOpen"
+            >
+              <GeneralIcon icon="settings" class="flex-none w-4 h-4" />
+            </NcButton>
+          </div>
+          <NcDropdown v-model:visible="isOpen" placement="bottomLeft" overlay-class-name="nc-custom-validator-dropdown">
+            <div></div>
+            <template #overlay>
+              <div class="p-4 nc-custom-validator-dropdown-container">
+                <div class="flex flex-col gap-3">
+                  <div class="nc-custom-validation-table table">
+                    <div class="thead">
+                      <div class="tr">
+                        <div class="th">Validator</div>
+                        <div class="th">Validation Value</div>
+                        <div class="th">Warning Message</div>
+                        <div class="th"></div>
                       </div>
-                    </template>
-                    <div v-else class="tr flex items-center justify-center text-gray-500">No validations</div>
-                  </div>
-                </div>
-                <div>
-                  <NcButton class="border-1 flex items-center" type="link" size="small">
-                    <div class="flex items-center gap-2">
-                      <span class="text-sm"> Add Validation </span>
-                      <GeneralIcon icon="plus" class="flex-none" />
                     </div>
-                  </NcButton>
+                    <div class="tbody">
+                      <template v-if="validators.length">
+                        <LazySmartsheetFormCustomValidationItem
+                          v-for="(validator, i) of validators"
+                          class="tr"
+                          :key="i"
+                          :validator="validator"
+                          :options="options"
+                          @remove="handleRemoveValidator(i)"
+                        ></LazySmartsheetFormCustomValidationItem>
+                      </template>
+                      <div v-else class="tr flex items-center justify-center text-gray-500">No validations</div>
+                    </div>
+                  </div>
+                  <div>
+                    <NcButton class="border-1 flex items-center" type="link" size="small" @click="addPlaceholderValidator">
+                      <div class="flex items-center gap-2">
+                        <span class="text-sm"> Add Validation </span>
+                        <GeneralIcon icon="plus" class="flex-none" />
+                      </div>
+                    </NcButton>
+                  </div>
                 </div>
               </div>
-            </div>
-          </template>
-        </NcDropdown>
+            </template>
+          </NcDropdown>
+        </div>
       </div>
+      <div class="text-sm">Apply rules and regular expressions on inputs.</div>
     </div>
-    <div class="text-sm">Apply rules and regular expressions on inputs.</div>
   </div>
 </template>
 
-<style scoped lang="scss">
+<style lang="scss">
 .nc-custom-validation-table {
   @apply border-none text-sm rounded-md;
 
@@ -134,7 +196,11 @@ const addPlaceholderValidator = () => {
 
     .th:not(:last-child),
     .td:not(:last-child) {
-      @apply px-3 py-1 w-[174px];
+      @apply px-3 py-1 w-[174px] h-full;
+    }
+
+    .td:not(:last-child) {
+      @apply p-0;
     }
 
     .th {
@@ -143,6 +209,10 @@ const addPlaceholderValidator = () => {
 
     .th:not(:last-child):not(:nth-last-child(2)) {
       @apply border-r-1  border-gray-200;
+    }
+
+    .th:last-child {
+      @apply min-w-8;
     }
 
     .td:not(:last-child) {

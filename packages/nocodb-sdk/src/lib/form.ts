@@ -5,7 +5,8 @@ export interface Validation {
     | NumberValidationType
     | DateValidationType
     | SelectValidationType
-    | AttachmentValidationType;
+    | AttachmentValidationType
+    | null;
   // Additional properties depending on the type of validation
   [key: string]: any;
 }
@@ -20,6 +21,7 @@ export enum StringValidationType {
   StartsWith = 'startsWith',
   EndsWith = 'endsWith',
   Includes = 'includes',
+  NotIncludes = 'notIncludes',
   Email = 'email',
   Regex = 'regex',
 }
@@ -130,3 +132,25 @@ export interface FileCountValidation extends Validation {
   min?: number;
   max: number;
 }
+
+export const ValidationTypeLabel = {
+  [StringValidationType.MinLength]: 'Minimum characters',
+  [StringValidationType.MaxLength]: 'Maximum characters',
+  [StringValidationType.StartsWith]: 'Starts with',
+  [StringValidationType.EndsWith]: 'Ends with',
+  [StringValidationType.Includes]: 'Contains string',
+  [StringValidationType.NotIncludes]: "Doesn't Contains string",
+  [StringValidationType.Regex]: 'Regular expression',
+  [StringValidationType.Email]: 'Email',
+};
+
+export const inputType = {
+  [StringValidationType.MinLength]: 'number',
+  [StringValidationType.MaxLength]: 'number',
+  [StringValidationType.StartsWith]: 'text',
+  [StringValidationType.EndsWith]: 'text',
+  [StringValidationType.Includes]: 'text',
+  [StringValidationType.NotIncludes]: 'text',
+  [StringValidationType.Regex]: 'text',
+  [StringValidationType.Email]: 'email',
+};

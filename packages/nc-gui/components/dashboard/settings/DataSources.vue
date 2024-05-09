@@ -302,7 +302,8 @@ const isEditBaseModalOpen = computed({
             <template #header>
               <div v-if="sources[0]" class="ds-table-row border-gray-200">
                 <div class="ds-table-col ds-table-enabled">
-                  <div class="flex items-center gap-1 cursor-pointer">
+                  <div class="flex items-center gap-1">
+                    <div v-if="sources.length > 2" class="ds-table-handle" />
                     <a-tooltip>
                       <template #title>
                         <template v-if="sources[0].enabled">{{ $t('activity.hideInUI') }}</template>
@@ -310,7 +311,8 @@ const isEditBaseModalOpen = computed({
                       </template>
                       <a-switch
                         :checked="sources[0].enabled ? true : false"
-                        size="default"
+                        class="cursor-pointer"
+                        size="small"
                         @change="toggleBase(sources[0], $event)"
                       />
                     </a-tooltip>
@@ -411,18 +413,23 @@ const isEditBaseModalOpen = computed({
             <template #item="{ element: source, index }">
               <div v-if="index !== 0" class="ds-table-row border-gray-200">
                 <div class="ds-table-col ds-table-enabled">
-                  <div class="flex items-center gap-1 cursor-pointer">
+                  <div class="flex items-center gap-1">
+                    <GeneralIcon v-if="sources.length > 2" icon="dragVertical" small class="ds-table-handle" />
                     <a-tooltip>
                       <template #title>
                         <template v-if="source.enabled">{{ $t('activity.hideInUI') }}</template>
                         <template v-else>{{ $t('activity.showInUI') }}</template>
                       </template>
-                      <a-switch :checked="source.enabled ? true : false" @change="toggleBase(source, $event)" />
+                      <a-switch
+                        :checked="source.enabled ? true : false"
+                        class="cursor-pointer"
+                        size="small"
+                        @change="toggleBase(source, $event)"
+                      />
                     </a-tooltip>
                   </div>
                 </div>
                 <div class="ds-table-col ds-table-name font-medium w-full">
-                  <GeneralIcon v-if="sources.length > 2" icon="dragVertical" small class="ds-table-handle" />
                   <div v-if="source.is_meta || source.is_local">-</div>
                   <span v-else class="truncate">
                     {{ source.is_meta || source.is_local ? $t('general.base') : source.alias }}
@@ -430,7 +437,6 @@ const isEditBaseModalOpen = computed({
                 </div>
 
                 <div class="ds-table-col ds-table-type">
-                  <GeneralIcon v-if="sources.length > 2" icon="dragVertical" small class="ds-table-handle" />
                   <div class="flex items-center gap-2">
                     <GeneralBaseLogo :source-type="source.type" />
                     <span class="text-gray-700 capitalize">{{ source.type }}</span>
@@ -639,6 +645,6 @@ const isEditBaseModalOpen = computed({
 }
 
 .ds-table-handle {
-  @apply cursor-pointer justify-self-start mr-2;
+  @apply cursor-pointer justify-self-start mr-2 w-[16px];
 }
 </style>

@@ -317,4 +317,10 @@ const onDecode = async (scannedCodeValue: string) => {
     }
   }
 }
+:deep(.ant-form-item-has-error .ant-select:not(.ant-select-disabled) .ant-select-selector) {
+  border: none !important;
+}
+:deep(.ant-form-item-has-success .ant-select:not(.ant-select-disabled) .ant-select-selector) {
+  border: none !important;
+}
 </style>

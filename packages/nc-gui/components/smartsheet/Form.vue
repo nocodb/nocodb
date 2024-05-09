@@ -1571,7 +1571,7 @@ useEventListener(
 
                       <div class="p-4 flex flex-col space-y-4">
                         <!-- Post Form Submission Settings -->
-                        <div class="text-base font-bold text-gray-900">
+                        <div class="text-base font-bold text-gray-600">
                           {{ $t('msg.info.postFormSubmissionSettings') }}
                         </div>
 

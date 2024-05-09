@@ -540,16 +540,6 @@ const formElementValidationRules = (element) => {
     },
   ]
 
-  if (parseProp(element.meta).validate && element.uidt === UITypes.URL) {
-    rules.push({
-      validator: validateFormURL,
-    })
-  } else if (parseProp(element.meta).validate && element.uidt === UITypes.Email) {
-    rules.push({
-      validator: validateFormEmail,
-    })
-  }
-
   if ([UITypes.Number, UITypes.Currency, UITypes.Percent].includes(element.uidt)) {
     rules.push({
       type: 'number',

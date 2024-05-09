@@ -40,11 +40,11 @@ RUN echo "node-linker=hoisted" > .npmrc
 
 # install production dependencies,
 # reduce node_module size with modclean & removing sqlite deps,
-# package built code into app.tar.gz & add execute permission to start.sh
+# copy built code to /usr/src/appEntry/ & add execute permission to start.sh
 RUN pnpm install --prod --shamefully-hoist \
     && pnpm dlx modclean --patterns="default:*" --ignore="nc-lib-gui/**,dayjs/**,express-status-monitor/**,@azure/msal-node/dist/**" --run  \
     && rm -rf ./node_modules/sqlite3/deps \
-    && tar -czf ../appEntry/app.tar.gz ./* \
+    && cp -rf ./* ../appEntry/ \
     && chmod +x /usr/src/appEntry/start.sh
 
 ##########
@@ -65,7 +65,7 @@ RUN apk --update --no-cache add \
 
 # Copy litestream binary build
 COPY --from=lt-builder /usr/src/lt /usr/src/appEntry/litestream
-# Copy packaged production code & main entry file
+# Copy production code & main entry file
 COPY --from=builder /usr/src/appEntry/ /usr/src/appEntry/
 
 EXPOSE 8080

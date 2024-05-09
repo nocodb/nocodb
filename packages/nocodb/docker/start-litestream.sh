@@ -1,13 +1,12 @@
 #!/bin/sh
 
-FILE="/usr/src/app/package.json"
 #sleep 5
 
-if [ ! -z "${NC_TOOL_DIR}"  ]; then
+if [ -n "${NC_TOOL_DIR}" ]; then
   mkdir -p $NC_TOOL_DIR
 fi
 
-if [[ ! -z "${AWS_ACCESS_KEY_ID}" && ! -z "${AWS_SECRET_ACCESS_KEY}" && ! -z "${AWS_BUCKET}" && ! -z "${AWS_BUCKET_PATH}" ]]; then
+if [ -n "${AWS_ACCESS_KEY_ID}" ] && [ -n "${AWS_SECRET_ACCESS_KEY}" ] && [ -n "${AWS_BUCKET}" ] && [ -n "${AWS_BUCKET_PATH}" ]; then
 
   if [ -f "${NC_TOOL_DIR}noco.db" ]
   then
@@ -22,11 +21,6 @@ if [[ ! -z "${AWS_ACCESS_KEY_ID}" && ! -z "${AWS_SECRET_ACCESS_KEY}" && ! -z "${
     touch "${NC_TOOL_DIR}noco.db"
   fi
   /usr/src/appEntry/litestream replicate "${NC_TOOL_DIR}noco.db" s3://$AWS_BUCKET/$AWS_BUCKET_PATH &
-fi
-
-if [ ! -f "$FILE" ]
-then
-  tar -xzf /usr/src/appEntry/app.tar.gz -C /usr/src/app/
 fi
 
 node docker/main.js

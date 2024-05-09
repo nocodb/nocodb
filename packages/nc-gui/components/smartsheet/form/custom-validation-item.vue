@@ -148,3 +148,10 @@ watchEffect(() => {
   @apply text-gray-300;
 }
 </style>
+<style lang="scss">
+.nc-custom-validation-type-dropdown.nc-select-dropdown {
+  .rc-virtual-list-holder {
+    @apply !max-h-[300px];
+  }
+}
+</style>

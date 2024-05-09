@@ -352,6 +352,7 @@ export default class Base extends BaseCE {
         );
       })
       .where(`${MetaTable.PROJECT}.fk_workspace_id`, fk_workspace_id)
+      .whereNot(`${MetaTable.PROJECT}.deleted`, true)
       .whereNotNull(`${MetaTable.WORKSPACE_USER}.roles`)
       .andWhere(function () {
         this.andWhere(function () {

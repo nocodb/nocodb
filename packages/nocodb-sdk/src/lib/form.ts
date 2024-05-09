@@ -4,12 +4,18 @@ export interface Validation {
     | StringValidationType
     | NumberValidationType
     | DateValidationType
+    | TimeValidationType
     | SelectValidationType
     | AttachmentValidationType
     | null;
   // Additional properties depending on the type of validation
   [key: string]: any;
 }
+
+export type ValidationType = Exclude<
+  Validation['type'],
+  null | GenericValidationType
+>;
 
 export enum GenericValidationType {
   Required = 'required',
@@ -32,8 +38,18 @@ export enum NumberValidationType {
 }
 
 export enum DateValidationType {
-  Min = 'min',
-  Max = 'max',
+  MinDate = 'minDate',
+  MaxDate = 'maxDate',
+}
+
+export enum TimeValidationType {
+  MinTime = 'minTime',
+  MaxTime = 'maxTime',
+}
+
+export enum MonthValidationType {
+  MinMonth = 'minMonth',
+  MaxMonth = 'maxTime',
 }
 
 export enum SelectValidationType {

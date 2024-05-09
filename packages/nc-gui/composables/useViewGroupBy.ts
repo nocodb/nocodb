@@ -268,7 +268,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
                 limit: group.paginationData.pageSize ?? groupByGroupLimit.value,
                 ...params,
                 where: nestedWhere,
-                sort: `${groupby.sort === 'desc' ? '-' : ''}${groupby.column.title}`,
+                sort: `${getSortParams(groupby.sort)}${groupby.column.title}`,
                 column_name: groupby.column.title,
                 sortsArr: sorts.value,
                 filtersArr: nestedFilters.value,

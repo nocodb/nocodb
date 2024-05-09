@@ -49,16 +49,28 @@ export const formUrlValidator = (val: Validation) => {
   }
 }
 
+export const formNumberInputValidator = (cal: ColumnType) => {
+  return {
+    validator: (_rule: RuleObject, value: any) => {
+      return new Promise((resolve, reject) => {
+        const { t } = getI18n().global
+
+        if (value && !(cal.uidt === UITypes.Number ? /^\d+$/.test(value) : /^\d*\.?\d+$/.test(value))) {
+          return reject(t('msg.plsEnterANumber'))
+        }
+        return resolve(true)
+      })
+    },
+  }
+}
+
 export const extractFieldValidator = (_validators: Validation[], element: ColumnType) => {
   const { t } = getI18n().global
   const rules: RuleObject[] = []
 
   // Add column default validators
   if ([UITypes.Number, UITypes.Currency, UITypes.Percent].includes(element.uidt)) {
-    rules.push({
-      type: 'number',
-      message: t('msg.plsEnterANumber'),
-    })
+    rules.push(formNumberInputValidator(element))
   }
 
   switch (element.uidt) {

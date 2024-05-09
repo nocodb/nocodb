@@ -1,4 +1,3 @@
-import useVuelidate from '@vuelidate/core'
 import { helpers, minLength, required, sameAs } from '@vuelidate/validators'
 import dayjs from 'dayjs'
 import type {
@@ -305,11 +304,6 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
     return rulesObj
   })
-
-  const v$ = useVuelidate(
-    validators1,
-    computed(() => ({ localState: formState.value, virtual: additionalState.value })),
-  )
 
   const validationFieldState = computed(() => {
     return { ...formState.value, ...additionalState.value }
@@ -634,7 +628,6 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     progress,
     meta,
     validators,
-    v$,
     formColumns,
     formState,
     notFound,

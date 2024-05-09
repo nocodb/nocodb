@@ -942,6 +942,7 @@
     "importZip": "zip ファイルをインポート",
     "metaSync": "今すぐ同期",
     "settings": "設定",
+    "validations": "Validations",
     "previewAs": "次のロールとしてプレビュー",
     "resetReview": "リセットプレビュー",
     "testDbConn": "データベース接続をテスト",

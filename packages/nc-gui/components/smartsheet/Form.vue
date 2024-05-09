@@ -515,22 +515,6 @@ const handleOnUploadImage = (data: AttachmentResType = null) => {
   updateView()
 }
 
-const validateFormEmail = async (_rule, value) => {
-  if (!value) {
-    return Promise.resolve()
-  } else if (!validateEmail(value)) {
-    return Promise.reject(t('msg.error.invalidEmail'))
-  }
-}
-
-const validateFormURL = async (_rule, value) => {
-  if (!value) {
-    return Promise.resolve()
-  } else if (!isValidURL(value)) {
-    return Promise.reject(t('msg.error.invalidURL'))
-  }
-}
-
 const formElementValidationRules = (element) => {
   let rules: FormItemProps['rules'] = [
     {
@@ -607,6 +591,8 @@ watch(
     }
 
     updatePreFillFormSearchParams()
+
+    console.log('formstate', formState.value)
 
     try {
       await formRef.value?.validateFields([...Object.keys(formState.value)])

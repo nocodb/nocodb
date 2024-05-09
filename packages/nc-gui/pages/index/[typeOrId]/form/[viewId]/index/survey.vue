@@ -30,6 +30,8 @@ const {
   validateInfos,
   validate,
   clearValidate,
+  isRequired,
+  handleAddMissingRequiredFieldDefaultState,
 } = useSharedFormStoreOrThrow()
 
 const { isMobileMode } = storeToRefs(useConfigStore())
@@ -81,21 +83,6 @@ const fieldHasError = computed(() => {
 
   return false
 })
-
-function isRequired(column: ColumnType, required = false) {
-  let columnObj = column
-  if (
-    columnObj.uidt === UITypes.LinkToAnotherRecord &&
-    columnObj.colOptions &&
-    (columnObj.colOptions as { type: RelationTypes }).type === RelationTypes.BELONGS_TO
-  ) {
-    columnObj = formColumns.value?.find(
-      (c) => c.id === (columnObj.colOptions as LinkToAnotherRecordType).fk_child_column_id,
-    ) as ColumnType
-  }
-
-  return required || (columnObj && columnObj.rqd && !columnObj.cdf)
-}
 
 function transition(direction: TransitionDirection) {
   isTransitioning.value = true
@@ -193,6 +180,7 @@ onReset(resetForm)
 
 const onStart = () => {
   isStarted.value = true
+  handleAddMissingRequiredFieldDefaultState()
 
   setTimeout(() => {
     focusInput()
@@ -389,7 +377,7 @@ onMounted(() => {
                     <span>
                       {{ field.label || field.title }}
                     </span>
-                    <span v-if="isRequired(field, field.required)" class="text-red-500 text-base leading-[18px]">&nbsp;*</span>
+                    <span v-if="isRequired(field)" class="text-red-500 text-base leading-[18px]">&nbsp;*</span>
                   </div>
                   <div
                     v-if="field?.description"

@@ -230,7 +230,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   const { validate, validateInfos, clearValidate } = useForm(validationFieldState, validators)
 
-  const validateAllFields = async () => {
+  const handleAddMissingRequiredFieldDefaultState = () => {
     for (const col of formColumns.value) {
       if (
         col.title &&
@@ -245,6 +245,10 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         }
       }
     }
+  }
+
+  const validateAllFields = async () => {
+    handleAddMissingRequiredFieldDefaultState()
 
     try {
       await validate([...Object.keys(formState.value), ...Object.keys(additionalState.value)])
@@ -601,6 +605,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     validateInfos,
     clearValidate,
     additionalState,
+    isRequired,
+    handleAddMissingRequiredFieldDefaultState,
   }
 }, 'shared-form-view-store')
 

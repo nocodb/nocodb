@@ -191,8 +191,14 @@ const updatePreFillFormSearchParams = useDebounceFn(() => {
 async function submitForm() {
   if (isLocked.value || !isUIAllowed('dataInsert')) return
 
+  for (const col of visibleColumns.value) {
+    if (isRequired(col, col.required) && formState.value[col.title] === undefined) {
+      formState.value[col.title] = null
+    }
+  }
+
   try {
-    await validate()
+    await validate([...Object.keys(formState.value)])
   } catch (e: any) {
     if (e.errorFields.length) {
       message.error(t('msg.error.someOfTheRequiredFieldsAreEmpty'))

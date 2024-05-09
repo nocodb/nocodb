@@ -75,12 +75,13 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     }),
   )
 
-  const formColumns = computed(() =>
-    columns.value
-      ?.filter((c) => c.show)
-      .filter(
-        (col) => !isSystemColumn(col) && col.uidt !== UITypes.SpecificDBType && (!isVirtualCol(col) || isLinksOrLTAR(col.uidt)),
-      ),
+  const formColumns = computed(
+    () =>
+      columns.value
+        ?.filter((c) => c.show)
+        .filter(
+          (col) => !isSystemColumn(col) && col.uidt !== UITypes.SpecificDBType && (!isVirtualCol(col) || isLinksOrLTAR(col.uidt)),
+        ) || [],
   )
 
   const loadSharedView = async () => {
@@ -123,6 +124,14 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
             if ([UITypes.Number, UITypes.Duration, UITypes.Percent, UITypes.Currency, UITypes.Decimal].includes(c.uidt)) {
               formState.value[c.title] = Number(defaultValue) || null
               preFilledDefaultValueformState.value[c.title] = Number(defaultValue) || null
+            } else if (c.uidt === UITypes.Checkbox) {
+              if (['true', '1'].includes(String(defaultValue).toLowerCase())) {
+                formState.value[c.title] = true
+                preFilledDefaultValueformState.value[c.title] = true
+              } else if (['false', '0'].includes(String(defaultValue).toLowerCase())) {
+                formState.value[c.title] = false
+                preFilledDefaultValueformState.value[c.title] = false
+              }
             } else {
               formState.value[c.title] = defaultValue
               preFilledDefaultValueformState.value[c.title] = defaultValue
@@ -188,37 +197,21 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     for (const column of formColumns.value) {
       let rules: RuleObject[] = []
 
-      if (
-        !isVirtualCol(column) &&
-        ((column.rqd && !column.cdf) || (column.pk && !(column.ai || column.cdf)) || column.required)
-      ) {
-        rules.push({
-          required: true,
-          message: t('msg.error.fieldRequired', { value: 'This field' }),
-          ...(column.uidt === UITypes.Checkbox ? { type: 'enum', enum: [1, true] } : {}),
-        })
-      } else if (
-        isLinksOrLTAR(column) &&
-        column.colOptions &&
-        (column.colOptions as LinkToAnotherRecordType).type === RelationTypes.BELONGS_TO
-      ) {
-        const col = columns.value?.find((c) => c.id === (column?.colOptions as LinkToAnotherRecordType)?.fk_child_column_id)
-
-        if ((col && col.rqd && !col.cdf) || column.required) {
-          if (col) {
-            rules.push({
-              required: true,
-              message: t('msg.error.fieldRequired', { value: 'This field' }),
-            })
-          }
-        }
-      } else if (isVirtualCol(column) && column.required) {
-        rules.push({
-          required: true,
-          message: t('msg.error.fieldRequired', { value: 'This field' }),
-          min: 1,
-        })
-      }
+      rules.push({
+        validator: (_rule: RuleObject, value: any) => {
+          return new Promise((resolve, reject) => {
+            if (isRequired(column)) {
+              if (column.uidt === UITypes.Checkbox && !value) {
+                return reject(t('msg.error.fieldRequired', { value: 'This field' }))
+              } else if (column.uidt !== UITypes.Checkbox)
+                if (value === null || !value?.length) {
+                  return reject(t('msg.error.fieldRequired', { value: 'This field' }))
+                }
+            }
+            return resolve()
+          })
+        },
+      })
 
       const additionalRules = extractFieldValidator(parseProp(column.meta).validators ?? [], column)
       rules = [...rules, ...additionalRules]
@@ -235,11 +228,26 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     return { ...formState.value, ...additionalState.value }
   })
 
-  const { validate, validateInfos, validateField, clearValidate } = useForm(validationFieldState, validators)
+  const { validate, validateInfos, clearValidate } = useForm(validationFieldState, validators)
 
   const validateAllFields = async () => {
+    for (const col of formColumns.value) {
+      if (
+        col.title &&
+        isRequired(col) &&
+        formState.value[col.title] === undefined &&
+        additionalState.value[col.title] === undefined
+      ) {
+        if (isVirtualCol(col)) {
+          additionalState.value[col.title] = null
+        } else {
+          formState.value[col.title] = null
+        }
+      }
+    }
+
     try {
-      await validate(Object.keys({ ...formState.value, ...additionalState.value }))
+      await validate([...Object.keys(formState.value), ...Object.keys(additionalState.value)])
       return true
     } catch (e: any) {
       if (e.errorFields.length) {
@@ -254,6 +262,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       if (!(await validateAllFields())) {
         return
       }
+
+      console.log('after')
 
       progress.value = true
       const data: Record<string, any> = { ...formState.value, ...additionalState.value }
@@ -513,8 +523,30 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         clearInterval(intvl)
       }
       clearForm()
+      clearValidate()
     }
   })
+
+  function isRequired(column: Record<string, any>) {
+    if (!isVirtualCol(column) && ((column.rqd && !column.cdf) || (column.pk && !(column.ai || column.cdf)) || column.required)) {
+      return true
+    } else if (
+      isLinksOrLTAR(column) &&
+      column.colOptions &&
+      (column.colOptions as LinkToAnotherRecordType).type === RelationTypes.BELONGS_TO
+    ) {
+      const col = columns.value?.find((c) => c.id === (column?.colOptions as LinkToAnotherRecordType)?.fk_child_column_id)
+
+      if ((col && col.rqd && !col.cdf) || column.required) {
+        if (col) {
+          return true
+        }
+      }
+    } else if (isVirtualCol(column) && column.required) {
+      return true
+    }
+    return false
+  }
 
   watch(password, (next, prev) => {
     if (next !== prev && passwordError.value) passwordError.value = null
@@ -531,7 +563,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   )
 
   watch(
-    additionalState.value,
+    additionalState,
     async () => {
       try {
         await validate(Object.keys(additionalState.value))
@@ -567,7 +599,6 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     onReset: formResetHook.on,
     validate,
     validateInfos,
-    validateField,
     clearValidate,
     additionalState,
   }

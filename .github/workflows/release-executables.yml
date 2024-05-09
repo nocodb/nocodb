@@ -68,6 +68,10 @@ jobs:
       - name : Install nocodb, other dependencies and build executables
         run: |
           cd ./scripts/pkg-executable
+          
+          # downgrade sqlite3 to 5.1.6 until build related issues are resolved
+          # https://github.com/TryGhost/node-sqlite3/issues/1748        
+          node ../downgradeSqlite.js
 
           # Install nocodb version based on provided tag name
           npm i -E nocodb@${{ github.event.inputs.tag || inputs.tag }}

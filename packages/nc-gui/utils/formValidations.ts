@@ -55,7 +55,7 @@ export const formNumberInputValidator = (cal: ColumnType) => {
       return new Promise((resolve, reject) => {
         const { t } = getI18n().global
 
-        if (value && !(cal.uidt === UITypes.Number ? /^-?\d+$/.test(value) : /^-?\d*\.?\d+$/.test(value))) {
+        if (value && value !== '-' && !(cal.uidt === UITypes.Number ? /^-?\d+$/.test(value) : /^-?\d*\.?\d+$/.test(value))) {
           return reject(t('msg.plsEnterANumber'))
         }
         return resolve(true)

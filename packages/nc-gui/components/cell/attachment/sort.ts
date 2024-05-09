@@ -51,7 +51,9 @@ export function useSortable(
     const _element = unref(element)
 
     onCleanup(() => {
-      if (_element && sortable) sortable.destroy()
+      if (_element && sortable?.el) {
+        sortable.destroy()
+      }
     })
 
     if (_element && !unref(isReadonly)) initSortable(_element)

@@ -213,9 +213,9 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       } else if (sort === 'desc') {
         return '-'
       } else if (sort === 'count-asc') {
-        return 'count+'
+        return '~+'
       } else if (sort === 'count-desc') {
-        return 'count-'
+        return '~-'
       }
     }
 

@@ -6635,12 +6635,12 @@ export function extractSortsObject(
     if (s.startsWith('-')) {
       sort.direction = 'desc';
       sort.fk_column_id = aliasColObjMap[s.slice(1)]?.id;
-    } else if (s.startsWith('count-')) {
+    } else if (s.startsWith('~-')) {
       sort.direction = 'count-desc';
-      sort.fk_column_id = aliasColObjMap[s.slice(6)]?.id;
-    } else if (s.startsWith('count+')) {
+      sort.fk_column_id = aliasColObjMap[s.slice(2)]?.id;
+    } else if (s.startsWith('~+')) {
       sort.direction = 'count-asc';
-      sort.fk_column_id = aliasColObjMap[s.slice(6)]?.id;
+      sort.fk_column_id = aliasColObjMap[s.slice(2)]?.id;
     }
     // replace + at the beginning if present
     else {
@@ -6649,7 +6649,6 @@ export function extractSortsObject(
 
     if (throwErrorIfInvalid && !sort.fk_column_id)
       NcError.fieldNotFound(s.replace(/^[+-]/, ''));
-
     return new Sort(sort);
   });
 }

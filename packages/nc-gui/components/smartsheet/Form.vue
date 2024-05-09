@@ -6,7 +6,6 @@ import 'splitpanes/dist/splitpanes.css'
 import type { FormItemProps } from 'ant-design-vue'
 import {
   type AttachmentResType,
-  type ColumnType,
   ProjectRoles,
   RelationTypes,
   StringValidationType,
@@ -14,7 +13,6 @@ import {
   ViewTypes,
   getSystemColumns,
   isLinksOrLTAR,
-  isSelectTypeCol,
   isVirtualCol,
 } from 'nocodb-sdk'
 import type { ImageCropperConfig } from '~/lib/types'
@@ -63,8 +61,6 @@ const { getPossibleAttachmentSrc } = useAttachment()
 
 const formRef = ref()
 
-const formState = ref<Record<string, any>>({})
-
 const secondsRemain = ref(0)
 
 const isLocked = inject(IsLockedInj, ref(false))
@@ -78,6 +74,9 @@ const view = inject(ActiveViewInj, ref())
 const isPublic = inject(IsPublicInj, ref(false))
 
 const { loadFormView, insertRow, formColumnData, formViewData, updateFormView } = useViewData(meta, view)
+
+const { formState, localColumns, visibleColumns, activeRow, activeField, activeColumn, isRequired, updateView, updateColMeta } =
+  useProvideFormViewStore(meta, view, formViewData, updateFormView, isEditable)
 
 const { preFillFormSearchParams } = storeToRefs(useViewsStore())
 
@@ -100,8 +99,6 @@ const { state, row } = useProvideSmartsheetRowStore(
 
 const columns = computed(() => meta?.value?.columns || [])
 
-const localColumns = ref<Record<string, any>[]>([])
-
 const draggableRef = ref()
 
 const systemFieldsIds = ref<Record<string, any>[]>([])
@@ -116,8 +113,6 @@ const drag = ref(false)
 const emailMe = ref(false)
 
 const submitted = ref(false)
-
-const activeRow = ref('')
 
 const isLoadingFormView = ref(false)
 
@@ -160,38 +155,13 @@ const autoScrollFormField = ref(false)
 
 const { t } = useI18n()
 
-const { betaFeatureToggleState } = useBetaFeatureToggle()
-
 const { open, onChange: onChangeFile } = useFileDialog({
   accept: 'image/*',
   multiple: false,
   reset: true,
 })
 
-const visibleColumns = computed(() => localColumns.value.filter((f) => f.show).sort((a, b) => a.order - b.order))
-
 const getFormLogoSrc = computed(() => getPossibleAttachmentSrc(parseProp(formViewData.value?.logo_url)))
-
-const activeField = computed(() => visibleColumns.value.find((c) => c.id === activeRow.value) || null)
-
-const activeColumn = computed(() => {
-  if (meta.value && activeField.value) {
-    if (meta.value.columnsById && (meta.value.columnsById as Record<string, ColumnType>)[activeField.value?.fk_column_id]) {
-      return (meta.value.columnsById as Record<string, ColumnType>)[activeField.value.fk_column_id]
-    } else if (meta.value.columns) {
-      return meta.value.columns.find((c) => c.id === activeField.value?.fk_column_id) ?? null
-    }
-  }
-  return null
-})
-
-const updateView = useDebounceFn(
-  () => {
-    updateFormView(formViewData.value)
-  },
-  300,
-  { maxWait: 2000 },
-)
 
 const updatePreFillFormSearchParams = useDebounceFn(() => {
   if (isLocked.value || !isUIAllowed('dataInsert')) return
@@ -419,18 +389,6 @@ function setFormData() {
     .map((c) => ({ ...c, required: !!c.required }))
 }
 
-function isRequired(_columnObj: Record<string, any>, required = false) {
-  let columnObj = _columnObj
-  if (isLinksOrLTAR(columnObj.uidt) && columnObj.colOptions && columnObj.colOptions.type === RelationTypes.BELONGS_TO) {
-    columnObj = columns.value.find((c: Record<string, any>) => c.id === columnObj.colOptions.fk_child_column_id) as Record<
-      string,
-      any
-    >
-  }
-
-  return required || (columnObj && columnObj.rqd && !columnObj.cdf)
-}
-
 async function updateEmail() {
   try {
     if (!(await checkSMTPStatus())) return
@@ -476,20 +434,6 @@ async function deleteColumnCallback() {
   resetFormFieldState()
   reloadEventHook.trigger()
 }
-
-const updateColMeta = useDebounceFn(async (col: Record<string, any>) => {
-  if (col.id && isEditable) {
-    try {
-      await $api.dbView.formColumnUpdate(col.id, col)
-    } catch (e: any) {
-      message.error(await extractSdkResponseErrorMsg(e))
-    }
-  }
-}, 250)
-
-const columnSupportsScanning = (elementType: UITypes) =>
-  betaFeatureToggleState.show &&
-  [UITypes.SingleLineText, UITypes.Number, UITypes.Email, UITypes.URL, UITypes.LongText].includes(elementType)
 
 const onFormItemClick = (element: any, sidebarClick: boolean = false) => {
   if (isLocked.value || !isEditable) return
@@ -741,13 +685,6 @@ const updateFieldTitle = (value: string) => {
   } else {
     activeField.value.label = value
   }
-}
-
-const updateSelectFieldLayout = (value: boolean) => {
-  if (!activeField.value) return
-
-  activeField.value.meta.isList = value
-  updateColMeta(activeField.value)
 }
 
 onMounted(async () => {
@@ -1467,7 +1404,6 @@ useEventListener(
                       />
                     </div>
                   </div>
-
                   <!-- Field text -->
                   <div class="nc-form-field-text p-4 flex flex-col gap-4 border-b border-gray-200">
                     <div class="text-base font-bold">{{ $t('objects.field') }} {{ $t('general.text') }}</div>
@@ -1497,111 +1433,7 @@ useEventListener(
                       @update:value="updateColMeta(activeField)"
                     />
                   </div>
-
-                  <!-- Field Settings -->
-                  <div class="nc-form-field-settings p-4 flex flex-col gap-4 border-b border-gray-200">
-                    <div class="text-base font-bold">{{ $t('objects.field') }} {{ $t('activity.settings') }}</div>
-                    <div class="flex flex-col gap-6">
-                      <div class="flex items-center justify-between gap-3">
-                        <div class="nc-form-input-required text-gray-800 font-medium">
-                          {{ $t('general.required') }} {{ $t('objects.field').toLowerCase() }}
-                        </div>
-
-                        <a-switch
-                          v-model:checked="activeField.required"
-                          v-e="['a:form-view:field:mark-required']"
-                          size="small"
-                          data-testid="nc-form-input-required"
-                          @change="updateColMeta(activeField)"
-                        />
-                      </div>
-
-                      <div v-if="columnSupportsScanning(activeField.uidt)" class="!my-0 nc-form-input-enable-scanner-form-item">
-                        <div class="flex items-center justify-between gap-3">
-                          <div class="nc-form-input-enable-scanner text-gray-800 font-medium">
-                            {{ $t('general.enableScanner') }}
-                          </div>
-                          <a-switch
-                            v-model:checked="activeField.enable_scanner"
-                            v-e="['a:form-view:field:mark-enable-scanner']"
-                            data-testid="nc-form-input-enable-scanner"
-                            size="small"
-                            @change="updateColMeta(activeField)"
-                          />
-                        </div>
-                      </div>
-
-                      <!-- Todo: Show on conditions,... -->
-                      <!-- eslint-disable vue/no-constant-condition -->
-                      <div v-if="false" class="flex items-start justify-between gap-3">
-                        <div>
-                          <div class="font-medium text-gray-800">{{ $t('labels.showOnConditions') }}</div>
-                          <div class="text-gray-500 mt-2">{{ $t('labels.showFieldOnConditionsMet') }}</div>
-                        </div>
-                        <a-switch v-e="['a:form-view:field:show-on-condition']" size="small" class="nc-form-switch-focus" />
-                      </div>
-
-                      <!-- Limit options -->
-                      <div v-if="isSelectTypeCol(activeField.uidt)" class="w-full flex items-start justify-between gap-3">
-                        <div class="flex-1 max-w-[calc(100%_-_40px)]">
-                          <div class="font-medium text-gray-800">{{ $t('labels.limitOptions') }}</div>
-                          <div class="text-gray-500 mt-2">{{ $t('labels.limitOptionsSubtext') }}.</div>
-                          <div v-if="activeField.meta.isLimitOption" class="mt-3">
-                            <LazySmartsheetFormLimitOptions
-                              v-model:model-value="activeField.meta.limitOptions"
-                              :form-field-state="formState[activeField.title] || ''"
-                              :column="activeField"
-                              :is-required="isRequired(activeField, activeField.required)"
-                              @update:model-value="updateColMeta(activeField)"
-                              @update:form-field-state="(value)=>{
-                                  formState[activeField!.title] = value
-                                }"
-                            ></LazySmartsheetFormLimitOptions>
-                          </div>
-                        </div>
-
-                        <a-switch
-                          v-model:checked="activeField.meta.isLimitOption"
-                          v-e="['a:form-view:field:limit-options']"
-                          size="small"
-                          class="flex-none nc-form-switch-focus"
-                          @change="updateColMeta(activeField)"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Custom Validations -->
-                  <LazySmartsheetFormCustomValidation
-                    v-if="isEeUI && activeField"
-                    v-model:model-value="activeField.meta.validators"
-                    :column="activeField"
-                    @update:model-value="updateColMeta(activeField)"
-                  ></LazySmartsheetFormCustomValidation>
-
-                  <!-- Field Appearance Settings -->
-
-                  <div
-                    v-if="isSelectTypeCol(activeField.uidt)"
-                    class="nc-form-field-appearance-settings p-4 flex flex-col gap-4 border-b border-gray-200"
-                  >
-                    <div class="text-base font-bold">{{ $t('general.appearance') }}</div>
-                    <div class="flex flex-col gap-6">
-                      <!-- Select type field Options Layout  -->
-                      <div>
-                        <div class="text-gray-800 font-medium">Options layout</div>
-
-                        <a-radio-group
-                          :value="!!activeField.meta.isList"
-                          class="nc-form-field-layout !mt-3 max-w-[calc(100%_-_40px)]"
-                          @update:value="updateSelectFieldLayout"
-                        >
-                          <a-radio :value="false">{{ $t('general.dropdown') }}</a-radio>
-                          <a-radio :value="true">{{ $t('general.list') }}</a-radio>
-                        </a-radio-group>
-                      </div>
-                    </div>
-                  </div>
+                  <SmartsheetFormFieldSettings></SmartsheetFormFieldSettings>
                 </div>
 
                 <!-- Form Settings -->

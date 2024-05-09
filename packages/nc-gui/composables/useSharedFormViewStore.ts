@@ -556,7 +556,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     sharedViewMeta,
     onReset: formResetHook.on,
   }
-}, 'expanded-form-store')
+}, 'shared-form-view-store')
 
 export { useProvideSharedFormStore }
 

@@ -120,7 +120,7 @@ watchEffect(() => {
         placeholder="Type value..."
         :min="0"
         :disabled="!validator.type"
-        class="!w-full h-full !border-none text-sm !px-3 !py-1 !outline-none !focus:(outline-none border-none shadow-none) disabled:(bg-gray-50 cursor-not-allowed)"
+        class="!w-full h-full !border-none text-sm !px-3 !py-1 !outline-none !focus:(outline-none border-none shadow-none ring-transparent) disabled:(bg-gray-50 cursor-not-allowed)"
         @keydown="handleKeyDown"
       />
     </div>
@@ -129,7 +129,7 @@ watchEffect(() => {
         v-model="validator.message"
         type="text"
         placeholder="Type error message..."
-        class="!w-full h-full !border-none text-sm !px-3 !py-1 !outline-none !focus:(outline-none border-none shadow-none) disabled:(bg-gray-50 cursor-not-allowed)"
+        class="!w-full h-full !border-none text-sm !px-3 !py-1 !outline-none !focus:(outline-none border-none shadow-none ring-transparent) disabled:(bg-gray-50 cursor-not-allowed)"
       />
     </div>
     <div class="td nc-custom-validation-delete-item">

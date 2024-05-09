@@ -18,6 +18,15 @@ const emits = defineEmits(['update:modelValue'])
 
 const validators = useVModel(props, 'modelValue', emits)
 
+const validatorsMap = computed(() => {
+  return (validators.value || []).reduce((acc, curr) => {
+    if (curr.type) {
+      acc[curr.type] = curr
+    }
+    return acc
+  }, {} as Record<Exclude<Validation['type'], null>, Validation>)
+})
+
 const { column, formFieldState } = toRefs(props)
 
 const isOpen = ref(false)
@@ -102,7 +111,7 @@ watch(
                 'text-brand-500 ': modelValue.length,
               }"
             >
-              {{ modelValue.length ? `${modelValue.length} Validations` : 'No Validations' }}
+              {{ modelValue.length ? `${modelValue.length} validations` : 'No validations' }}
             </div>
 
             <NcButton
@@ -145,6 +154,7 @@ watch(
                           :key="i"
                           :validator="validator"
                           :options="options"
+                          :validators-map="validatorsMap"
                           @remove="handleRemoveValidator(i)"
                         ></LazySmartsheetFormCustomValidationItem>
                       </template>

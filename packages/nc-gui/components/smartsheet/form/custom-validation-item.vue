@@ -17,13 +17,14 @@ const inputType = {
 const props = defineProps<{
   validator: Validation
   options: { value: string; label: string }[]
+  validatorsMap: Record<Exclude<Validation['type'], null>, Validation>
 }>()
 
 const emits = defineEmits(['update:validator', 'remove'])
 
 const validator = useVModel(props, 'validator', emits)
 
-const { options } = toRefs(props)
+const { options, validatorsMap } = toRefs(props)
 
 const validatorValueType = computed(() => {
   return inputType[validator.value.type] ?? 'text'
@@ -68,6 +69,10 @@ const handleKeyDown = (e: KeyboardEvent) => {
     e.preventDefault()
   }
 }
+
+watchEffect(() => {
+  console.log(' validatorsMap[option.value]', validatorsMap.value)
+})
 </script>
 
 <template>
@@ -78,14 +83,19 @@ const handleKeyDown = (e: KeyboardEvent) => {
         class="w-full !text-gray-600"
         :bordered="false"
         placeholder="Select and option"
+        dropdown-class-name="nc-custom-validation-type-dropdown"
         @change="handleChangeValidator"
       >
         <a-select-option
           v-for="option in options"
           :key="option.value"
           :value="option.value"
-          :disabled="options.disabled"
-          class="!text-gray-600"
+          :disabled="
+            validator.type !== option.value &&
+            ![StringValidationType.Includes, StringValidationType.NotIncludes].includes(option.value) &&
+            !!validatorsMap[option.value]
+          "
+          class=":not-disabled:!text-gray-600"
         >
           <div class="flex items-center justify-between gap-2">
             <div class="truncate flex-1">
@@ -131,4 +141,11 @@ const handleKeyDown = (e: KeyboardEvent) => {
   </div>
 </template>
 
-<style lang="scss"></style>
+<style lang="scss" scoped>
+:deep(.nc-select-dropdown .rc-virtual-list-holder) {
+  @apply max-h-[300px];
+}
+:deep(.ant-select-selection-placeholder) {
+  @apply text-gray-300;
+}
+</style>

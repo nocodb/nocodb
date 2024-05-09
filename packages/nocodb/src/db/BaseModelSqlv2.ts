@@ -4477,6 +4477,7 @@ class BaseModelSqlv2 {
         );
       }
       await this.validateOptions(column, data);
+      this.validateConstraints(column, data);
 
       // skip validation if `validate` is undefined or false
       if (!column?.meta?.validate || !column?.validate) continue;
@@ -4510,6 +4511,20 @@ class BaseModelSqlv2 {
       }
     }
     return true;
+  }
+
+  /*
+   *  Utility method to validate database constraints
+   */
+  protected validateConstraints(
+    column: Column<any>,
+    data: Record<string, any>,
+  ) {
+    if (column.clen < data[column.title]?.length) {
+      NcError.badRequest(
+        `Column "${column.title}" value exceeds the maximum length of ${column.clen}`,
+      );
+    }
   }
 
   // method for validating otpions if column is single/multi select

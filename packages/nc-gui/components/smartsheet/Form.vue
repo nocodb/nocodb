@@ -1457,6 +1457,11 @@ useEventListener(
                     </div>
                   </div>
 
+                  <!-- Custom Validations -->
+                  <div class="nc-form-field-settings p-4 border-b border-gray-200">
+                    <LazySmartsheetFormCustomValidation :model-value="`fdsa`"></LazySmartsheetFormCustomValidation>
+                  </div>
+
                   <!-- Field Appearance Settings -->
 
                   <div

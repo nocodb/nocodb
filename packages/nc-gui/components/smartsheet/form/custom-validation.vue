@@ -17,7 +17,7 @@ const isOpen = ref(false)
 
       <div class="flex flex-col">
         <div
-          class="border-1 rounded-lg py-1 pl-1 pr-3 flex items-center justify-between gap-2 !min-w-[170px]"
+          class="border-1 rounded-lg py-1 pl-1 pr-3 flex items-center justify-between gap-2 !min-w-[170px] transition-all"
           :class="{
             '!border-brand-500': isOpen,
             'border-gray-200': !isOpen,
@@ -27,10 +27,6 @@ const isOpen = ref(false)
 
           <NcButton
             class="border-1 flex items-center justify-between !text-gray-800 !hover:text-gray-500 outline-none"
-            :class="{
-              '!border-brand-500': isOpen,
-              'border-gray-200': !isOpen,
-            }"
             type="link"
             size="xsmall"
           >
@@ -38,11 +34,7 @@ const isOpen = ref(false)
           </NcButton>
 
           <NcButton
-            class="!border-none flex items-center justify-between !text-gray-800 !hover:text-gray-500"
-            :class="{
-              '!border-brand-500': isOpen,
-              'border-gray-200': !isOpen,
-            }"
+            class="!border-none flex items-center justify-between !text-gray-600 !hover:text-gray-800"
             type="link"
             size="xsmall"
             @click="isOpen = !isOpen"
@@ -55,43 +47,27 @@ const isOpen = ref(false)
           <template #overlay>
             <div class="p-4">
               <div class="flex flex-col gap-3">
-                <div>
-                  <table class="nc-custom-validation-table" border="1">
-                    <thead>
-                      <tr>
-                        <th>Validator</th>
-                        <th>Validation Value</th>
-                        <th>Warning Message</th>
-                        <th></th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td>selector</td>
-                        <td>selector</td>
-                        <td>selector</td>
-                        <td class="nc-custom-validation-delete-item">
-                          <GeneralIcon icon="delete" class="h-4 w-4 text-gray-600 hover:text-gray-800" />
-                        </td>
-                      </tr>
-                      <tr>
-                        <td>selector</td>
-                        <td>selector</td>
-                        <td>selector</td>
-                        <td class="nc-custom-validation-delete-item">
-                          <GeneralIcon icon="delete" class="h-4 w-4 text-gray-600 hover:text-gray-800" />
-                        </td>
-                      </tr>
-                      <tr>
-                        <td>selector</td>
-                        <td>selector</td>
-                        <td>selector</td>
-                        <td class="nc-custom-validation-delete-item">
-                          <GeneralIcon icon="delete" class="h-4 w-4 text-gray-600 hover:text-gray-800" />
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
+                <div class="nc-custom-validation-table table">
+                  <div class="thead">
+                    <div class="tr">
+                      <div class="th">Validator</div>
+                      <div class="th">Validation Value</div>
+                      <div class="th">Warning Message</div>
+                      <div class="th"></div>
+                    </div>
+                  </div>
+                  <div class="tbody">
+                    <div v-for="(number, i) of [1, 2, 3, 4]" class="tr">
+                      <div class="td">selector</div>
+                      <div class="td">selector</div>
+                      <div class="td">selector</div>
+                      <div class="td nc-custom-validation-delete-item">
+                        <NcButton class="border-1 flex items-center justify-between" type="link" size="small">
+                          <GeneralIcon icon="delete" class="flex-none h-4 w-4 text-gray-500 hover:text-gray-800" />
+                        </NcButton>
+                      </div>
+                    </div>
+                  </div>
                 </div>
                 <div>
                   <NcButton class="border-1 flex items-center justify-between" type="link" size="small">
@@ -111,34 +87,46 @@ const isOpen = ref(false)
 
 <style scoped lang="scss">
 .nc-custom-validation-table {
-  @apply border-1 border-gray-200 !rounded-lg border-collapse;
-  thead tr {
+  @apply border-none text-sm rounded-md;
+
+  .thead .tr {
     @apply bg-gray-100 rounded-t-lg;
   }
-  tr {
-    th:not(:last-child),
-    td:not(:last-child) {
+
+  .tbody {
+    .tr {
+      @apply border-t-0;
+    }
+    .tr:last-child {
+      @apply rounded-b-lg;
+
+      .td:last-child {
+        @apply rounded-br-md;
+      }
+    }
+  }
+
+  .tr {
+    @apply h-[32px] flex overflow-hidden border-1  border-gray-200;
+
+    .th:not(:last-child),
+    .td:not(:last-child) {
       @apply px-3 py-1 w-[174px];
     }
-    th:last-child,
-    td:last-child {
-      @apply p-0;
-    }
-    th {
+
+    .th {
       @apply text-left uppercase text-gray-500 font-semibold;
     }
-    td:last-child {
-      @apply flex items-center justify-between p-2 border-b-1 border-gray-200;
+
+    .th:not(:last-child):not(:nth-last-child(2)) {
+      @apply border-r-1  border-gray-200;
     }
 
-    th:not(:last-child):not(:nth-last-child(2)) {
-      @apply border-b border-r border-1 border-gray-200;
+    .td:not(:last-child) {
+      @apply border-r-1  border-gray-200;
     }
-    th:last-child {
-      @apply border-b-1 border-gray-200;
-    }
-    td:not(:last-child) {
-      @apply border-b border-r border-1 border-gray-200;
+    .td:last-child {
+      @apply px-0;
     }
   }
 }

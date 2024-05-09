@@ -79,7 +79,7 @@ watchEffect(() => {
     <div class="td">
       <NcSelect
         v-model:value="validator.type"
-        class="w-full !text-gray-600"
+        class="nc-custom-validation-type-selector w-full !text-gray-600"
         :bordered="false"
         placeholder="Select and option"
         dropdown-class-name="nc-custom-validation-type-dropdown"
@@ -140,18 +140,19 @@ watchEffect(() => {
   </div>
 </template>
 
-<style lang="scss" scoped>
-:deep(.nc-select-dropdown .rc-virtual-list-holder) {
-  @apply max-h-[300px];
-}
-:deep(.ant-select-selection-placeholder) {
-  @apply text-gray-300;
-}
-</style>
 <style lang="scss">
 .nc-custom-validation-type-dropdown.nc-select-dropdown {
   .rc-virtual-list-holder {
     @apply !max-h-[300px];
+  }
+
+  .ant-select-item-option:not(.ant-select-item-option-disabled) {
+    @apply !hover:text-black !text-gray-700;
+  }
+}
+.nc-custom-validation-type-selector.nc-select.ant-select {
+  .ant-select-selection-placeholder {
+    @apply text-gray-500;
   }
 }
 </style>

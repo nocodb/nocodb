@@ -30,11 +30,10 @@ RUN echo "node-linker=hoisted" > .npmrc
 
 # install production dependencies,
 # reduce node_module size with modclean & removing sqlite deps,
-# copy built code to /usr/src/appEntry/ & add execute permission to start.sh
+# and add execute permission to start.sh
 RUN pnpm install --prod --shamefully-hoist --reporter=silent
 RUN pnpm dlx modclean --patterns="default:*" --ignore="nc-lib-gui/**,dayjs/**,express-status-monitor/**" --run
 RUN rm -rf ./node_modules/sqlite3/deps
-RUN cp -rf ./* ../appEntry/
 RUN chmod +x /usr/src/appEntry/start.sh
 
 FROM alpine:3.19
@@ -88,6 +87,7 @@ RUN apk --update --no-cache add \
 # Copy litestream binary build
 COPY  --from=lt /usr/src/lt /usr/src/appEntry/litestream
 # Copy production code & main entry file
+COPY --from=builder /usr/src/app/ /usr/src/app/
 COPY --from=builder /usr/src/appEntry/ /usr/src/appEntry/
 
 

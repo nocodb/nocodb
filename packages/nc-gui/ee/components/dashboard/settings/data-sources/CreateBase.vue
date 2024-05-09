@@ -61,7 +61,11 @@ const logRef = ref<typeof AntCard>()
 
 const _pushProgress = async () => {
   if (progressQueue.value.length) {
-    progress.value.push(progressQueue.value.shift()!)
+    if (!creatingSource.value) {
+      progress.value.push(...progressQueue.value.splice(0, progressQueue.value.length))
+    } else {
+      progress.value.push(progressQueue.value.shift()!)
+    }
   }
 
   await nextTick(() => {
@@ -76,7 +80,7 @@ const pushProgress = async (message: string, status: JobStatus | 'progress') => 
 
   setTimeout(() => {
     _pushProgress()
-  }, 200 * progressQueue.value.length)
+  }, 100 * progressQueue.value.length)
 }
 
 const formState = ref<ProjectCreateForm>({
@@ -428,7 +432,8 @@ const createSource = async () => {
                 await loadProject(baseId.value, true)
                 await loadProjectTables(baseId.value, true)
               }
-              vOpen.value = false
+              pushProgress('Done!', 'progress')
+              goToDashboard.value = true
               creatingSource.value = false
             }
           } else if (data.status === JobStatus.FAILED) {
@@ -563,10 +568,10 @@ const toggleModal = (val: boolean) => {
   vOpen.value = val
 }
 
-const refreshState = (keepForm = false) => {
+const refreshState = async (keepForm = false) => {
   if (!keepForm) {
     formState.value = {
-      title: formState.value.title,
+      title: await generateUniqueName(),
       dataSource: { ...getDefaultConnectionConfig(ClientType.MYSQL) },
       inflection: {
         inflectionColumn: 'none',

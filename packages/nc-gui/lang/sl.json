@@ -1009,7 +1009,7 @@
     "group": "Group"
   },
   "tooltip": {
-    "reachedSourceLimit": "Limited to only one data source for the moment",
+    "reachedSourceLimit": "Limited to 10 data sources per base for the moment",
     "saveChanges": "Shrani spremembe",
     "xcDB": "Ustvari nov projekt",
     "extDB": "Podpira MySQL, PostgreSQL, SQL Server & SqLite",

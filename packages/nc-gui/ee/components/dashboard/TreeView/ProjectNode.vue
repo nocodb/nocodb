@@ -22,6 +22,8 @@ const { setMenuContext, openRenameTableDialog, duplicateTable, contextMenuTarget
 
 const { isMobileMode } = useGlobal()
 
+const { api } = useApi()
+
 const base = inject(ProjectInj)!
 
 // For starred base we will have seperate isExpanded state
@@ -36,7 +38,7 @@ const isExpanded = computed<boolean>({
 
 const basesStore = useBases()
 
-const { createProject: _createProject, updateProject, toggleStarred } = basesStore
+const { createProject: _createProject, updateProject, toggleStarred, loadProject } = basesStore
 
 const { bases, activeProjectId } = storeToRefs(basesStore)
 
@@ -55,6 +57,16 @@ const { meta: metaKey, control } = useMagicKeys()
 const editMode = ref(false)
 
 const tempTitle = ref('')
+
+const sourceRenameHelpers = ref<
+  Record<
+    string,
+    {
+      editMode: boolean
+      tempTitle: string
+    }
+  >
+>({})
 
 // const { t } = useI18n()
 
@@ -109,6 +121,52 @@ const enableEditMode = () => {
     input.value?.select()
     input.value?.scrollIntoView()
   })
+}
+
+const enableEditModeForSource = (sourceId: string) => {
+  const source = base.value.sources?.find((s) => s.id === sourceId)
+  if (!source?.id) return
+  sourceRenameHelpers.value[source.id] = {
+    editMode: true,
+    tempTitle: source.alias || '',
+  }
+  nextTick(() => {
+    const input: HTMLInputElement | null = document.querySelector(`[data-source-rename-input-id="${sourceId}"]`)
+    if (!input) return
+    input?.focus()
+    input?.select()
+    input?.scrollIntoView()
+  })
+}
+
+const updateSourceTitle = async (sourceId: string) => {
+  const source = base.value.sources?.find((s) => s.id === sourceId)
+
+  if (!source?.id || !sourceRenameHelpers.value[source.id]) return
+
+  if (sourceRenameHelpers.value[source.id].tempTitle) {
+    sourceRenameHelpers.value[source.id].tempTitle = sourceRenameHelpers.value[source.id].tempTitle.trim()
+  }
+
+  if (!sourceRenameHelpers.value[source.id].tempTitle) return
+
+  try {
+    await api.source.update(source.base_id, source.id, {
+      alias: sourceRenameHelpers.value[source.id].tempTitle,
+    })
+
+    await loadProject(source.base_id, true)
+
+    delete sourceRenameHelpers.value[source.id]
+
+    $e('a:source:rename')
+
+    refreshViewTabTitle?.()
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    refreshCommandPalette()
+  }
 }
 
 const updateProjectTitle = async () => {
@@ -718,7 +776,20 @@ const onTableIdCopy = async () => {
                               class="flex-none min-w-4 !xs:(min-w-4.25 w-4.25 text-sm) !text-gray-600 !group-hover:text-gray-800"
                             />
 
+                            <input
+                              v-if="source.id && sourceRenameHelpers[source.id]?.editMode"
+                              ref="input"
+                              v-model="sourceRenameHelpers[source.id].tempTitle"
+                              class="flex-grow leading-1 outline-0 ring-none capitalize !text-inherit !bg-transparent flex-1 mr-4"
+                              :data-source-rename-input-id="source.id"
+                              @click.stop
+                              @keydown.enter.stop.prevent
+                              @keyup.enter="updateSourceTitle(source.id!)"
+                              @keyup.esc="updateSourceTitle(source.id!)"
+                              @blur="updateSourceTitle(source.id!)"
+                            />
                             <NcTooltip
+                              v-else
                               class="nc-sidebar-node-title capitalize text-ellipsis overflow-hidden select-none"
                               :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
                               :class="{
@@ -734,7 +805,13 @@ const onTableIdCopy = async () => {
                             <NcTooltip class="xs:(hidden) flex items-center mr-1">
                               <template #title>External DB - {{ source.type?.toLocaleUpperCase() }}</template>
 
-                              <GeneralIcon icon="info" class="flex-none text-gray-400 hover:text-gray-700" />
+                              <GeneralIcon
+                                icon="info"
+                                class="flex-none text-gray-400 hover:text-gray-700 nc-sidebar-node-btn"
+                                :class="{
+                                  '!hidden': !isBasesOptionsOpen[source!.id!],
+                                }"
+                              />
                             </NcTooltip>
                           </div>
                           <div class="flex flex-row items-center gap-x-0.25">
@@ -761,6 +838,17 @@ const onTableIdCopy = async () => {
                                   }"
                                   @click="isBasesOptionsOpen[source!.id!] = false"
                                 >
+                                  <NcMenuItem
+                                    v-if="isUIAllowed('baseRename')"
+                                    data-testid="nc-sidebar-source-rename"
+                                    @click="enableEditModeForSource(source.id!)"
+                                  >
+                                    <GeneralIcon icon="rename" class="group-hover:text-black" />
+                                    {{ $t('general.rename') }}
+                                  </NcMenuItem>
+
+                                  <NcDivider />
+
                                   <!-- ERD View -->
                                   <NcMenuItem key="erd" @click="openErdView(source)">
                                     <GeneralIcon icon="erd" />

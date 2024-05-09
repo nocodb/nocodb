@@ -49,7 +49,7 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
         let rules: RuleObject[] = [
           {
             required: isRequired(column, column.required),
-            message: t('msg.error.fieldRequired', { value: 'This field' }),
+            message: t('msg.error.fieldRequired'),
             ...(column.uidt === UITypes.Checkbox && isRequired(column, column.required) ? { type: 'enum', enum: [1, true] } : {}),
           },
         ]
@@ -71,9 +71,7 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
     const validateActiveField = async (col: ColumnType) => {
       try {
         await validate(col.title)
-      } catch (e: any) {
-        e.errorFields.map((f: Record<string, any>) => console.error(f.errors.join(',')))
-      }
+      } catch {}
     }
 
     const updateView = useDebounceFn(

@@ -587,9 +587,7 @@ watch(
 
     try {
       await validate([...Object.keys(formState.value)])
-    } catch (e: any) {
-      e.errorFields.map((f: Record<string, any>) => console.error(f.errors.join(',')))
-    }
+    } catch {}
   },
   {
     deep: true,

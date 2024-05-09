@@ -171,7 +171,6 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
       handlePreFillForm()
     } catch (e: any) {
-      console.log('err', e)
       const error = await extractSdkResponseErrorMsgv2(e)
 
       if (e.response && e.response.status === 404) {
@@ -202,10 +201,10 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
           return new Promise((resolve, reject) => {
             if (isRequired(column)) {
               if (column.uidt === UITypes.Checkbox && !value) {
-                return reject(t('msg.error.fieldRequired', { value: 'This field' }))
+                return reject(t('msg.error.fieldRequired'))
               } else if (column.uidt !== UITypes.Checkbox)
                 if (value === null || !value?.length) {
-                  return reject(t('msg.error.fieldRequired', { value: 'This field' }))
+                  return reject(t('msg.error.fieldRequired'))
                 }
             }
             return resolve()
@@ -569,8 +568,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     async () => {
       try {
         await validate(Object.keys(additionalState.value))
-      } catch (e: any) {
-        e.errorFields.map((f: Record<string, any>) => console.error(f.errors.join(',')))
+      } catch () {
       }
     },
     {

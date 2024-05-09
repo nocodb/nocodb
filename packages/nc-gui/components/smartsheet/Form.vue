@@ -1263,7 +1263,7 @@ useEventListener(
                   </div>
                   <!-- Field text -->
                   <div class="nc-form-field-text p-4 flex flex-col gap-4 border-b border-gray-200">
-                    <div class="text-base font-bold">{{ $t('objects.field') }} {{ $t('general.text') }}</div>
+                    <div class="text-base font-bold text-gray-600">{{ $t('objects.field') }} {{ $t('general.text').toLowerCase() }}</div>
 
                     <a-textarea
                       ref="focusLabel"
@@ -1487,7 +1487,7 @@ useEventListener(
                     <Pane min-size="20" size="50" class="nc-form-right-splitpane-item !overflow-y-auto nc-form-scrollbar">
                       <div class="p-4 flex flex-col space-y-4 border-b border-gray-200">
                         <!-- Appearance Settings -->
-                        <div class="text-base font-bold text-gray-900">{{ $t('labels.appearanceSettings') }}</div>
+                        <div class="text-base font-bold text-gray-600">{{ $t('labels.appearanceSettings') }}</div>
 
                         <div class="flex flex-col space-y-3">
                           <div :class="isLocked || !isEditable ? 'pointer-events-none' : ''">

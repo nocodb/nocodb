@@ -751,7 +751,7 @@
       "selectField": "Select a field",
       "selectFieldLabel": "Make changes to field properties by selecting a field from the list"
     },
-    "appearanceSettings": "Appearance Settings",
+    "appearanceSettings": "Appearance settings",
     "backgroundColor": "Background Color",
     "hideNocodbBranding": "Hide NocoDB Branding",
     "showOnConditions": "Show on condtions",

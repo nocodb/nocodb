@@ -220,14 +220,14 @@ if (isFormField.value) {
 }
 
 onMounted(() => {
-  if (fullMode.value) {
+  if (fullMode.value || isFormField.value || isForm.value) {
     setEditorContent(vModel.value, true)
 
-    if ((isForm.value && !isSurveyForm.value) || isFormField.value) return
-
-    nextTick(() => {
-      editor.value?.chain().focus().run()
-    })
+    if (fullMode.value || isSurveyForm.value) {
+      nextTick(() => {
+        editor.value?.chain().focus().run()
+      })
+    }
   }
 })
 

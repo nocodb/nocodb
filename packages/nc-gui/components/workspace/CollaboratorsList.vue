@@ -87,7 +87,7 @@ const accessibleRoles = computed<WorkspaceUserRoles[]>(() => {
 })
 
 onMounted(async () => {
-  await loadRoles(null, {}, currentWorkspace.value?.id)
+  await loadRoles(undefined, {}, currentWorkspace.value?.id)
   loadSorts()
 })
 </script>

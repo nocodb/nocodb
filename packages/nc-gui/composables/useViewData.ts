@@ -200,6 +200,12 @@ export function useViewData(
     }
     formattedData.value = formatData(response.list)
     paginationData.value = response.pageInfo || paginationData.value || {}
+
+    // if public then update sharedPaginationData
+    if (isPublic.value) {
+      sharedPaginationData.value = paginationData.value
+    }
+
     excludePageInfo.value = !response.pageInfo
     isPaginationLoading.value = false
 

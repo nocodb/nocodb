@@ -458,7 +458,7 @@
     "workspaceName": "Workspace Name",
     "workspaceWithoutOwner": "Workspace without Owners",
     "inviteUsersToWorkspace": "Invite Users to Workspace",
-    "selectWorkspace": "-select workspaces to invite to-",
+    "selectWorkspace":"-select workspaces to invite to-",
     "addMembersToOrganization": "Add Members to Organization",
     "memberIn": "Member in:",
     "assignAs": "Assign as",
@@ -756,7 +756,7 @@
     "hideNocodbBranding": "Hide NocoDB Branding",
     "showOnConditions": "Show on condtions",
     "showFieldOnConditionsMet": "Shows field only when conditions are met",
-    "limitOptions": "Limit ptions",
+    "limitOptions": "Limit options",
     "limitOptionsSubtext": "Limit options visible to users by selecting available options",
     "clearSelection": "Clear selection"
   },
@@ -1010,7 +1010,7 @@
     "group": "Group"
   },
   "tooltip": {
-    "reachedSourceLimit": "Limited to 10 data sources per base for the moment",
+    "reachedSourceLimit": "Limited to only one data source for the moment",
     "saveChanges": "Save changes",
     "xcDB": "Create a new base",
     "extDB": "Supports MySQL, PostgreSQL, SQL Server & SQLite",
@@ -1038,7 +1038,7 @@
     "clientKey": "Select .key file",
     "clientCert": "Select .cert file",
     "clientCA": "Select CA file",
-    "changeIconColour": "Change Icon Colour",
+    "changeIconColour": "Change icon colour",
     "preFillFormInfo": "To get a prefilled link, make sure you’ve filled the necessary fields in the form view builder.",
     "surveyFormInfo": "Form mode with one field per page"
   },
@@ -1193,7 +1193,7 @@
     "selectFieldToGroup": "Select Field to Group",
     "thereAreNoRecordsInTable": "There are no records in table",
     "createWebhookMsg1": "Get started with web-hooks!",
-    "createWebhookMsg2": "Power you automations. Get notified as soon as there are changes in your data",
+    "createWebhookMsg2": "Power your automations. Get notified as soon as there are changes in your data",
     "areYouSureUWantTo": "Are you sure you want to delete the following",
     "areYouSureUWantToDeleteLabel": "Are you sure you want to {deleteLabel} the following",
     "idColumnRequired": "ID field is required, you can rename this later if required.",

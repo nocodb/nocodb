@@ -1010,7 +1010,7 @@
     "group": "Group"
   },
   "tooltip": {
-    "reachedSourceLimit": "Limited to only one data source for the moment",
+    "reachedSourceLimit": "Limited to 10 data sources per base for the moment",
     "saveChanges": "Зберегти зміни",
     "xcDB": "Створити новий проєкт",
     "extDB": "Підтримує MySQL, PostgreSQL, SQL Server та SQLite",

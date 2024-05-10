@@ -1010,7 +1010,7 @@
     "group": "Group"
   },
   "tooltip": {
-    "reachedSourceLimit": "Limited to only one data source for the moment",
+    "reachedSourceLimit": "Limited to 10 data sources per base for the moment",
     "saveChanges": "Uložit změny",
     "xcDB": "Vytvoření nového projektu",
     "extDB": "Podpora MySQL, PostgreSQL, SQL Server a SQLite",

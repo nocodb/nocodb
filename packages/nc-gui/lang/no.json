@@ -942,6 +942,7 @@
     "importZip": "Importer zip",
     "metaSync": "Synkroniser nå",
     "settings": "Innstillinger",
+    "validations": "Validations",
     "previewAs": "Forhåndsvisning som",
     "resetReview": "Tilbakestill forhåndsvisning",
     "testDbConn": "Test databaseforbindelse",

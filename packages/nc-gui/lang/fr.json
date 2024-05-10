@@ -942,6 +942,7 @@
     "importZip": "Importer un zip",
     "metaSync": "Synchroniser maintenant",
     "settings": "Paramètres",
+    "validations": "Validations",
     "previewAs": "Aperçu",
     "resetReview": "Réinitialiser l'aperçu",
     "testDbConn": "Tester la connexion à la base de données",

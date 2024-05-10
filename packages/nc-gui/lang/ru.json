@@ -942,6 +942,7 @@
     "importZip": "Импорт из zip",
     "metaSync": "Синхронизировать",
     "settings": "Настройки",
+    "validations": "Validations",
     "previewAs": "Предварительный просмотр как",
     "resetReview": "Сбросить предпросмотр",
     "testDbConn": "Проверить подключение к базе данных",

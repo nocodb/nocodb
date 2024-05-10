@@ -942,6 +942,7 @@
     "importZip": "zip 파일 가져오기",
     "metaSync": "지금 동기화",
     "settings": "설정",
+    "validations": "Validations",
     "previewAs": "미리보기",
     "resetReview": "미리보기 재설정",
     "testDbConn": "데이터베이스 연결 테스트",

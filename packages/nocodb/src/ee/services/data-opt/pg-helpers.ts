@@ -1316,11 +1316,13 @@ export async function singleQueryList(ctx: {
 
       const countQuery = countQb.toQuery();
 
-      NocoCache.set(countCacheKey, countQuery).catch((e) => {
-        if (resolved) return;
-        resolved = true;
-        reject(e);
-      });
+      if (!skipCache) {
+        NocoCache.set(countCacheKey, countQuery).catch((e) => {
+          if (resolved) return;
+          resolved = true;
+          reject(e);
+        });
+      }
 
       // if count query takes more than 3 seconds then skip it
       setTimeout(() => {
@@ -1332,6 +1334,7 @@ export async function singleQueryList(ctx: {
           logger.error(e);
         });
       }, COUNT_QUERY_TIMEOUT);
+
       baseModel
         .execAndParse(countQb.toQuery(), null, {
           skipDateConversion: true,

@@ -4521,9 +4521,9 @@ class BaseModelSqlv2 {
     column: Column<any>,
     data: Record<string, any>,
   ) {
-    if (column.clen < data[column.title]?.length) {
+    if (column.dtxp && column.dtxp < data[column.title]?.length) {
       NcError.badRequest(
-        `Column "${column.title}" value exceeds the maximum length of ${column.clen}`,
+        `Column "${column.title}" value exceeds the maximum length of ${column.dtxp}`,
       );
     }
   }

@@ -1156,6 +1156,19 @@ export async function singleQueryList(ctx: {
           dbQueryTime = parseHrtimeToMilliSeconds(process.hrtime(startTime));
         })(),
       ]);
+
+      // if count is less than the actual result length then reset the count cache
+      if (
+        countRes !== undefined &&
+        countRes !== null &&
+        countRes < res.length
+      ) {
+        await NocoCache.del(countCacheKey);
+        logger.warn(
+          'Invalid count query cache deleted. Query: ' + cachedCountQuery,
+        );
+      }
+
       return new PagedResponseImpl(
         res.map(({ __nc_count, ...rest }) => rest),
         {
@@ -1316,11 +1329,13 @@ export async function singleQueryList(ctx: {
 
       const countQuery = countQb.toQuery();
 
-      NocoCache.set(countCacheKey, countQuery).catch((e) => {
-        if (resolved) return;
-        resolved = true;
-        reject(e);
-      });
+      if (!skipCache) {
+        NocoCache.set(countCacheKey, countQuery).catch((e) => {
+          if (resolved) return;
+          resolved = true;
+          reject(e);
+        });
+      }
 
       // if count query takes more than 3 seconds then skip it
       setTimeout(() => {
@@ -1332,6 +1347,7 @@ export async function singleQueryList(ctx: {
           logger.error(e);
         });
       }, COUNT_QUERY_TIMEOUT);
+
       baseModel
         .execAndParse(countQb.toQuery(), null, {
           skipDateConversion: true,

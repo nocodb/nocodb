@@ -942,6 +942,7 @@
     "importZip": "আমদানি জিপ",
     "metaSync": "এখন সিঙ্ক",
     "settings": "সেটিংস",
+    "validations": "Validations",
     "previewAs": "পূর্বরূপ হিসাবে",
     "resetReview": "পূর্বরূপ পুনরায় সেট করুন",
     "testDbConn": "টেস্ট ডাটাবেস সংযোগ",
@@ -1009,7 +1010,7 @@
     "group": "Group"
   },
   "tooltip": {
-    "reachedSourceLimit": "Limited to only one data source for the moment",
+    "reachedSourceLimit": "Limited to 10 data sources per base for the moment",
     "saveChanges": "परिवर्तनों को सुरक्षित करें",
     "xcDB": "একটি নতুন প্রকল্প তৈরি করুন",
     "extDB": "মাইএসকিউএল, পোস্টগ্রেসকিউএল, এসকিউএল সার্ভার এবং এসকিউএলাইট সমর্থন করে",
@@ -1200,6 +1201,7 @@
     "noNewNotifications": "You have no new notifications",
     "noRecordFound": "Record not found",
     "noRecordsFound": "No records found",
+    "noRecordsMatchYourSearchQuery": "No records match your search query",
     "rowDeleted": "Record deleted",
     "saveChanges": "Do you want to save the changes?",
     "tooLargeFieldEntity": "The field is too large to be converted to {entity}",

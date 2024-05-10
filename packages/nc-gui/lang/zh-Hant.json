@@ -942,6 +942,7 @@
     "importZip": "匯入 ZIP",
     "metaSync": "立即同步",
     "settings": "設定",
+    "validations": "Validations",
     "previewAs": "預覽方式",
     "resetReview": "重設預覽",
     "testDbConn": "測試資料庫連線",
@@ -1009,7 +1010,7 @@
     "group": "Group"
   },
   "tooltip": {
-    "reachedSourceLimit": "Limited to only one data source for the moment",
+    "reachedSourceLimit": "Limited to 10 data sources per base for the moment",
     "saveChanges": "儲存更動",
     "xcDB": "建立新專案",
     "extDB": "支援 MySQL、PostgreSQL、SQL Server 和 SQLite",
@@ -1200,6 +1201,7 @@
     "noNewNotifications": "You have no new notifications",
     "noRecordFound": "Record not found",
     "noRecordsFound": "No records found",
+    "noRecordsMatchYourSearchQuery": "No records match your search query",
     "rowDeleted": "Record deleted",
     "saveChanges": "Do you want to save the changes?",
     "tooLargeFieldEntity": "The field is too large to be converted to {entity}",

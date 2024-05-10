@@ -942,6 +942,7 @@
     "importZip": "आयात ज़िप",
     "metaSync": "अभी सिंक करें",
     "settings": "समायोजन",
+    "validations": "Validations",
     "previewAs": "के रूप में पूर्वावलोकन",
     "resetReview": "रीसेट पूर्वावलोकन",
     "testDbConn": "परीक्षण डेटाबेस कनेक्शन",
@@ -1009,7 +1010,7 @@
     "group": "Group"
   },
   "tooltip": {
-    "reachedSourceLimit": "Limited to only one data source for the moment",
+    "reachedSourceLimit": "Limited to 10 data sources per base for the moment",
     "saveChanges": "परिवर्तनों को सुरक्षित करें",
     "xcDB": "एक नया प्रोजेक्ट बनाएं",
     "extDB": "MySQL, PostgreSQL, SQL सर्वर और SQLite का समर्थन करता है",
@@ -1200,6 +1201,7 @@
     "noNewNotifications": "You have no new notifications",
     "noRecordFound": "Record not found",
     "noRecordsFound": "No records found",
+    "noRecordsMatchYourSearchQuery": "No records match your search query",
     "rowDeleted": "Record deleted",
     "saveChanges": "Do you want to save the changes?",
     "tooLargeFieldEntity": "The field is too large to be converted to {entity}",

@@ -10,7 +10,7 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const emits = defineEmits(['update:state', 'update:reload', 'awaken'])
+const emits = defineEmits(['update:state', 'update:reload'])
 
 const vState = useVModel(props, 'state', emits)
 
@@ -20,7 +20,9 @@ const { $api, $e } = useNuxtApp()
 
 const { t } = useI18n()
 
-const { loadProject } = useBases()
+const basesStore = useBases()
+const { loadProject } = basesStore
+const { isDataSourceLimitReached } = storeToRefs(basesStore)
 
 const baseStore = useBase()
 const { base } = storeToRefs(baseStore)
@@ -36,10 +38,6 @@ const activeBaseId = ref('')
 const clientType = ref<ClientType>(ClientType.MYSQL)
 
 const isReloading = ref(false)
-
-const forceAwakened = ref(false)
-
-const dataSourcesAwakened = ref(false)
 
 const isDeleteBaseModalOpen = ref(false)
 const toBeDeletedBase = ref<SourceType | undefined>()
@@ -142,12 +140,6 @@ const moveBase = async (e: any) => {
   }
 }
 
-const forceAwaken = () => {
-  forceAwakened.value = !forceAwakened.value
-  dataSourcesAwakened.value = forceAwakened.value
-  emits('awaken', forceAwakened.value)
-}
-
 watch(
   projectPageTab,
   () => {
@@ -167,20 +159,6 @@ watch(
       await loadBases()
     }
   },
-)
-
-watch(
-  () => sources.value.length,
-  (l) => {
-    if (l > 1 && !forceAwakened.value) {
-      dataSourcesAwakened.value = false
-      emits('awaken', false)
-    } else {
-      dataSourcesAwakened.value = true
-      emits('awaken', true)
-    }
-  },
-  { immediate: true },
 )
 
 watch(
@@ -211,7 +189,7 @@ watch(
         vState.value = DataSourcesSubTab.New
         break
       case DataSourcesSubTab.New:
-        if (sources.value.length > 1 && !forceAwakened.value) {
+        if (isDataSourceLimitReached.value) {
           vState.value = ''
         }
         break
@@ -292,7 +270,7 @@ const isEditBaseModalOpen = computed({
     <div class="flex flex-col w-full overflow-auto">
       <div class="flex flex-row w-full justify-end mt-6.5 mb-2">
         <NcButton
-          v-if="dataSourcesAwakened"
+          v-if="!isDataSourceLimitReached"
           size="large"
           class="z-10 !px-2"
           type="primary"
@@ -312,7 +290,7 @@ const isEditBaseModalOpen = computed({
       >
         <div class="ds-table-head">
           <div class="ds-table-row">
-            <div class="ds-table-col ds-table-enabled cursor-pointer" @dblclick="forceAwaken">{{ $t('general.visibility') }}</div>
+            <div class="ds-table-col ds-table-enabled cursor-pointer">{{ $t('general.visibility') }}</div>
             <div class="ds-table-col ds-table-name">{{ $t('general.name') }}</div>
             <div class="ds-table-col ds-table-type">{{ $t('general.type') }}</div>
             <div class="ds-table-col ds-table-actions -ml-13">{{ $t('labels.actions') }}</div>
@@ -324,7 +302,8 @@ const isEditBaseModalOpen = computed({
             <template #header>
               <div v-if="sources[0]" class="ds-table-row border-gray-200">
                 <div class="ds-table-col ds-table-enabled">
-                  <div class="flex items-center gap-1 cursor-pointer">
+                  <div class="flex items-center gap-1">
+                    <div v-if="sources.length > 2" class="ds-table-handle" />
                     <a-tooltip>
                       <template #title>
                         <template v-if="sources[0].enabled">{{ $t('activity.hideInUI') }}</template>
@@ -332,7 +311,8 @@ const isEditBaseModalOpen = computed({
                       </template>
                       <a-switch
                         :checked="sources[0].enabled ? true : false"
-                        size="default"
+                        class="cursor-pointer"
+                        size="small"
                         @change="toggleBase(sources[0], $event)"
                       />
                     </a-tooltip>
@@ -433,18 +413,23 @@ const isEditBaseModalOpen = computed({
             <template #item="{ element: source, index }">
               <div v-if="index !== 0" class="ds-table-row border-gray-200">
                 <div class="ds-table-col ds-table-enabled">
-                  <div class="flex items-center gap-1 cursor-pointer">
+                  <div class="flex items-center gap-1">
+                    <GeneralIcon v-if="sources.length > 2" icon="dragVertical" small class="ds-table-handle" />
                     <a-tooltip>
                       <template #title>
                         <template v-if="source.enabled">{{ $t('activity.hideInUI') }}</template>
                         <template v-else>{{ $t('activity.showInUI') }}</template>
                       </template>
-                      <a-switch :checked="source.enabled ? true : false" @change="toggleBase(source, $event)" />
+                      <a-switch
+                        :checked="source.enabled ? true : false"
+                        class="cursor-pointer"
+                        size="small"
+                        @change="toggleBase(source, $event)"
+                      />
                     </a-tooltip>
                   </div>
                 </div>
                 <div class="ds-table-col ds-table-name font-medium w-full">
-                  <GeneralIcon v-if="sources.length > 2" icon="dragVertical" small class="ds-table-handle" />
                   <div v-if="source.is_meta || source.is_local">-</div>
                   <span v-else class="truncate">
                     {{ source.is_meta || source.is_local ? $t('general.base') : source.alias }}
@@ -452,7 +437,6 @@ const isEditBaseModalOpen = computed({
                 </div>
 
                 <div class="ds-table-col ds-table-type">
-                  <GeneralIcon v-if="sources.length > 2" icon="dragVertical" small class="ds-table-handle" />
                   <div class="flex items-center gap-2">
                     <GeneralBaseLogo :source-type="source.type" />
                     <span class="text-gray-700 capitalize">{{ source.type }}</span>
@@ -661,6 +645,6 @@ const isEditBaseModalOpen = computed({
 }
 
 .ds-table-handle {
-  @apply cursor-pointer justify-self-start mr-2;
+  @apply cursor-pointer justify-self-start mr-2 w-[16px];
 }
 </style>

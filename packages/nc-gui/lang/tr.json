@@ -942,6 +942,7 @@
     "importZip": "Zip olarak içe aktar",
     "metaSync": "Senkronize et",
     "settings": "Ayarlar",
+    "validations": "Validations",
     "previewAs": "Önizleme modu",
     "resetReview": "Önizlemeyi sıfırla",
     "testDbConn": "Veritabanı Bağlantısını Test Et",
@@ -1009,7 +1010,7 @@
     "group": "Group"
   },
   "tooltip": {
-    "reachedSourceLimit": "Limited to only one data source for the moment",
+    "reachedSourceLimit": "Limited to 10 data sources per base for the moment",
     "saveChanges": "Değişiklikleri Kaydet",
     "xcDB": "Yeni bir proje oluştur",
     "extDB": "MySQL, PostgreSQL, SQL Server & SQLite destekler",
@@ -1200,6 +1201,7 @@
     "noNewNotifications": "You have no new notifications",
     "noRecordFound": "Record not found",
     "noRecordsFound": "No records found",
+    "noRecordsMatchYourSearchQuery": "No records match your search query",
     "rowDeleted": "Record deleted",
     "saveChanges": "Do you want to save the changes?",
     "tooLargeFieldEntity": "The field is too large to be converted to {entity}",

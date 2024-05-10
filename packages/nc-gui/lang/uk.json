@@ -942,6 +942,7 @@
     "importZip": "Імпорт zip-файлу",
     "metaSync": "Синхронізувати",
     "settings": "Налаштування",
+    "validations": "Validations",
     "previewAs": "Попередній перегляд як",
     "resetReview": "Відновити попередній перегляд",
     "testDbConn": "Тестове зʼєднання з базою даних",
@@ -1009,7 +1010,7 @@
     "group": "Group"
   },
   "tooltip": {
-    "reachedSourceLimit": "Limited to only one data source for the moment",
+    "reachedSourceLimit": "Limited to 10 data sources per base for the moment",
     "saveChanges": "Зберегти зміни",
     "xcDB": "Створити новий проєкт",
     "extDB": "Підтримує MySQL, PostgreSQL, SQL Server та SQLite",
@@ -1200,6 +1201,7 @@
     "noNewNotifications": "You have no new notifications",
     "noRecordFound": "Record not found",
     "noRecordsFound": "No records found",
+    "noRecordsMatchYourSearchQuery": "No records match your search query",
     "rowDeleted": "Record deleted",
     "saveChanges": "Do you want to save the changes?",
     "tooLargeFieldEntity": "The field is too large to be converted to {entity}",

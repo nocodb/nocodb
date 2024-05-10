@@ -942,6 +942,7 @@
     "importZip": "Import zip",
     "metaSync": "Sync Now",
     "settings": "Settings",
+    "validations": "Validations",
     "previewAs": "Preview as",
     "resetReview": "Reset Preview",
     "testDbConn": "Test Database Connection",
@@ -1009,7 +1010,7 @@
     "group": "Group"
   },
   "tooltip": {
-    "reachedSourceLimit": "Limited to only one data source for the moment",
+    "reachedSourceLimit": "Limited to 10 data sources per base for the moment",
     "saveChanges": "Save changes",
     "xcDB": "Create a new project",
     "extDB": "Supports MySQL, PostgreSQL, SQL Server & SQLite",
@@ -1200,6 +1201,7 @@
     "noNewNotifications": "You have no new notifications",
     "noRecordFound": "Record not found",
     "noRecordsFound": "No records found",
+    "noRecordsMatchYourSearchQuery": "No records match your search query",
     "rowDeleted": "Record deleted",
     "saveChanges": "Do you want to save the changes?",
     "tooLargeFieldEntity": "The field is too large to be converted to {entity}",

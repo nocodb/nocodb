@@ -942,6 +942,7 @@
     "importZip": "Import Zip.",
     "metaSync": "Synkroniser nu",
     "settings": "Indstillinger.",
+    "validations": "Validations",
     "previewAs": "Forhåndsvisning som",
     "resetReview": "Nulstil forhåndsvisning",
     "testDbConn": "Test Database Forbindelse",
@@ -1009,7 +1010,7 @@
     "group": "Group"
   },
   "tooltip": {
-    "reachedSourceLimit": "Limited to only one data source for the moment",
+    "reachedSourceLimit": "Limited to 10 data sources per base for the moment",
     "saveChanges": "Gem ændringer",
     "xcDB": "Opret et nyt projekt",
     "extDB": "Understøtter MySQL, PostgreSQL, SQL Server & SQLITE",
@@ -1200,6 +1201,7 @@
     "noNewNotifications": "You have no new notifications",
     "noRecordFound": "Record not found",
     "noRecordsFound": "No records found",
+    "noRecordsMatchYourSearchQuery": "No records match your search query",
     "rowDeleted": "Record deleted",
     "saveChanges": "Do you want to save the changes?",
     "tooLargeFieldEntity": "The field is too large to be converted to {entity}",

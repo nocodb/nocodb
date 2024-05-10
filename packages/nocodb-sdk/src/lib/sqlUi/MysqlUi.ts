@@ -1013,7 +1013,7 @@ export class MysqlUi {
         colProp.dt = 'varchar';
         colProp.validate = {
           func: ['isLength'],
-          args: [''],
+          args: [{ max: 45 }], // Assuming 45 is the max length for SingleLineText
           msg: ['Validation failed : isLength ({cn})'],
         };
         break;

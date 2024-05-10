@@ -4477,6 +4477,7 @@ class BaseModelSqlv2 {
         );
       }
       await this.validateOptions(column, data);
+      // Validates the constraints on the data based on the column definitions
       this.validateConstraints(column, data);
 
       // skip validation if `validate` is undefined or false

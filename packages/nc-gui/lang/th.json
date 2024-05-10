@@ -942,6 +942,7 @@
     "importZip": "zip นำเข้า",
     "metaSync": "ซิงค์ตอนนี้",
     "settings": "การตั้งค่า",
+    "validations": "Validations",
     "previewAs": "ดูตัวอย่างเป็น",
     "resetReview": "รีเซ็ตดูตัวอย่าง",
     "testDbConn": "ทดสอบการเชื่อมต่อฐานข้อมูล",

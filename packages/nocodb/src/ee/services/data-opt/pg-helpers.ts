@@ -1156,6 +1156,19 @@ export async function singleQueryList(ctx: {
           dbQueryTime = parseHrtimeToMilliSeconds(process.hrtime(startTime));
         })(),
       ]);
+
+      // if count is less than the actual result length then reset the count cache
+      if (
+        countRes !== undefined &&
+        countRes !== null &&
+        countRes < res.length
+      ) {
+        await NocoCache.del(countCacheKey);
+        logger.warn(
+          'Invalid count query cache deleted. Query: ' + cachedCountQuery,
+        );
+      }
+
       return new PagedResponseImpl(
         res.map(({ __nc_count, ...rest }) => rest),
         {

@@ -1263,7 +1263,9 @@ useEventListener(
                   </div>
                   <!-- Field text -->
                   <div class="nc-form-field-text p-4 flex flex-col gap-4 border-b border-gray-200">
-                    <div class="text-base font-bold text-gray-600">{{ $t('objects.field') }} {{ $t('general.text').toLowerCase() }}</div>
+                    <div class="text-base font-bold text-gray-600">
+                      {{ $t('objects.field') }} {{ $t('general.text').toLowerCase() }}
+                    </div>
 
                     <a-textarea
                       ref="focusLabel"

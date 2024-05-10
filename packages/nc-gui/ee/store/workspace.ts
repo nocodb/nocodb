@@ -415,7 +415,6 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     if (!workspaceId) {
       throw new Error('Workspace not selected')
     }
-
     await ncNavigateTo({ workspaceId })
   }
 
@@ -444,11 +443,14 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     return activeWorkspace.value?.limits?.[limitType] ?? 0
   }
 
+  watch(activeWorkspaceId, async () => {
+    await loadRoles(undefined, {}, activeWorkspaceId.value)
+  })
+
   watch(
     () => activeWorkspace.value?.id,
-    () => {
+    async () => {
       if (!activeWorkspaceId.value) return
-
       storage.value.lastOpenedWorkspaceId = activeWorkspaceId.value
     },
   )

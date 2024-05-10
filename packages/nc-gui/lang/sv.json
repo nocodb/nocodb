@@ -1010,7 +1010,7 @@
     "group": "Group"
   },
   "tooltip": {
-    "reachedSourceLimit": "Limited to 10 data sources per base for the moment",
+    "reachedSourceLimit": "Limited to only one data source for the moment",
     "saveChanges": "Spara ändringar",
     "xcDB": "Skapa ett nytt projekt",
     "extDB": "Stödjer MySQL, PostgreSQL, SQL Server & SQLite",

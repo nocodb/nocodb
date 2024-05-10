@@ -29,7 +29,10 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
   const { sharedView } = useSharedView()
 
   const row = ref<Row>(
-    sharedView.value?.type === ViewTypes.GALLERY || sharedView.value?.type === ViewTypes.KANBAN || _row.value.rowMeta.new
+    !sharedView.value ||
+      sharedView.value?.type === ViewTypes.GALLERY ||
+      sharedView.value?.type === ViewTypes.KANBAN ||
+      _row.value.rowMeta.new
       ? _row.value
       : ({ row: {}, oldRow: {}, rowMeta: {} } as Row),
   )

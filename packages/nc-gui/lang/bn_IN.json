@@ -1010,7 +1010,7 @@
     "group": "Group"
   },
   "tooltip": {
-    "reachedSourceLimit": "Limited to 10 data sources per base for the moment",
+    "reachedSourceLimit": "Limited to only one data source for the moment",
     "saveChanges": "परिवर्तनों को सुरक्षित करें",
     "xcDB": "একটি নতুন প্রকল্প তৈরি করুন",
     "extDB": "মাইএসকিউএল, পোস্টগ্রেসকিউএল, এসকিউএল সার্ভার এবং এসকিউএলাইট সমর্থন করে",

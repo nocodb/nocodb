@@ -62,6 +62,11 @@ const size = computed({
   get: () => vPaginationData.value?.pageSize ?? 25,
   set: (size: number) => {
     if (vPaginationData.value) {
+      // if there is no change in size then return
+      if (vPaginationData.value?.pageSize && vPaginationData.value?.pageSize === size) {
+        return
+      }
+
       vPaginationData.value.pageSize = size
 
       if (vPaginationData.value.totalRows && page.value * size < vPaginationData.value.totalRows) {

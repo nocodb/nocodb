@@ -129,12 +129,12 @@ export function useSharedView() {
       const page = paginationData.value.page || 1
       const pageSize = paginationData.value.pageSize || appInfoDefaultLimit
       param.offset = (page - 1) * pageSize
+      param.limit = sharedView.value?.type === ViewTypes.MAP ? 1000 : pageSize
     }
 
     return await $api.public.dataList(
       sharedView.value.uuid!,
       {
-        limit: sharedView.value?.type === ViewTypes.MAP ? 1000 : undefined,
         ...param,
         filterArrJson: JSON.stringify(param.filtersArr ?? nestedFilters.value),
         sortArrJson: JSON.stringify(param.sortsArr ?? sorts.value),

@@ -244,7 +244,7 @@ watch(commentsWrapperEl, () => {
                 </div>
               </div>
             </div>
-            <div v-if="hasEditPermission" class="p-3 border-t-1 border-gray-200 gap-2 flex">
+            <div v-if="hasEditPermission" class="p-3 gap-2 flex">
               <div class="flex flex-row w-full items-end gap-2">
                 <div class="expanded-form-comment-input-wrapper">
                   <a-textarea

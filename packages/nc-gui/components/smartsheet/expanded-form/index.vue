@@ -732,7 +732,7 @@ export default {
               class="nc-expanded-form-row w-full"
             >
               <div class="flex items-start flex-row sm:(gap-x-2) <lg:(flex-col w-full) nc-expanded-cell min-h-[37px]">
-                <div class="w-50 <lg:(w-full px-0 mb-1) h-[37px] xs:(h-auto) flex items-center rounded-lg overflow-hidden">
+                <div class="w-45 <lg:(w-full px-0 mb-1) h-[37px] xs:(h-auto) flex items-center rounded-lg overflow-hidden">
                   <LazySmartsheetHeaderVirtualCell
                     v-if="isVirtualCol(col)"
                     :column="col"
@@ -806,7 +806,7 @@ export default {
                 class="nc-expanded-form-row w-full"
               >
                 <div class="flex items-start flex-row sm:(gap-x-2) <lg:(flex-col w-full) nc-expanded-cell min-h-[37px]">
-                  <div class="w-50 <lg:(w-full px-0) h-[37px] xs:(h-auto) flex items-center rounded-lg overflow-hidden">
+                  <div class="w-45 <lg:(w-full px-0) h-[37px] xs:(h-auto) flex items-center rounded-lg overflow-hidden">
                     <LazySmartsheetHeaderVirtualCell
                       v-if="isVirtualCol(col)"
                       :column="col"

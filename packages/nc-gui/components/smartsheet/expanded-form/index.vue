@@ -10,6 +10,8 @@ import {
 } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import MdiChevronDown from '~icons/mdi/chevron-down'
+import { Drawer } from 'ant-design-vue'
+import NcModal from '../../nc/Modal.vue'
 
 interface Props {
   modelValue?: boolean
@@ -516,6 +518,15 @@ watch([expandedFormScrollWrapper, isLoading], () => {
     }, 125)
   }
 })
+
+const modalProps = computed(() => {
+  if (isMobileMode.value) {
+    return {
+      placement: 'bottom',
+    }
+  }
+  return {}
+})
 </script>
 
 <script lang="ts">
@@ -525,7 +536,8 @@ export default {
 </script>
 
 <template>
-  <NcModal
+  <component
+    :is="isMobileMode ? Drawer : NcModal"
     :body-style="{ padding: 0 }"
     :class="{ active: isExpanded }"
     :closable="false"
@@ -533,42 +545,59 @@ export default {
     :visible="isExpanded"
     :width="commentsDrawer && isUIAllowed('commentList') ? 'min(80vw,1280px)' : 'min(80vw,1280px)'"
     class="nc-drawer-expanded-form"
-    size="small"
+    :size="isMobileMode ? 'medium' : 'small'"
     @update:visible="onIsExpandedUpdate"
+    v-bind="modalProps"
   >
-    <div class="h-[85vh] xs:(max-h-full) max-h-215 flex flex-col">
-      <div class="flex min-h-7 flex-shrink-0 w-full items-center nc-expanded-form-header relative p-4 justify-between">
-        <template v-if="!isMobileMode">
-          <div class="flex gap-3 w-100 <lg:max-w-64">
-            <div class="flex gap-2">
-              <NcButton
-                v-if="props.showNextPrevIcons"
-                :disabled="isFirstRow"
-                class="nc-prev-arrow !w-7 !h-7"
-                type="text"
-                size="xsmall"
-                @click="$emit('prev')"
-              >
-                <GeneralIcon icon="chevronDown" class="transform rotate-180" />
-              </NcButton>
-              <NcButton
-                v-if="props.showNextPrevIcons"
-                :disabled="islastRow"
-                class="nc-next-arrow !w-7 !h-7"
-                type="text"
-                size="xsmall"
-                @click="onNext"
-              >
-                <GeneralIcon icon="chevronDown" />
-              </NcButton>
-            </div>
-            <div v-if="isLoading">
-              <a-skeleton-input active class="!h-8 !sm:mr-14 !w-52 mt-1 !rounded-md !overflow-hidden" size="small" />
-            </div>
+    <div class="h-[85vh] xs:(max-h-full h-auto) max-h-215 flex flex-col">
+      <div v-if="isMobileMode" class="flex-none h-4 flex items-center justify-center">
+        <div class="flex-none h-full flex items-center justify-center cursor-pointer" @click="onClose">
+          <div class="w-[72px] h-[2px] rounded-full bg-[#49494a]"></div>
+        </div>
+      </div>
+      <div
+        class="flex min-h-7 flex-shrink-0 w-full items-center nc-expanded-form-header relative p-4 xs:(px-2 py-0 min-h-[48px]) justify-between"
+        :class="{
+          'border-b-1 border-gray-200': isNew,
+        }"
+      >
+        <div class="flex-1 flex gap-3 lg:w-100 <lg:max-w-[calc(100%_-_128px)] xs:(max-w-[calc(100%_-_44px)])">
+          <div class="flex gap-2">
+            <NcButton
+              v-if="props.showNextPrevIcons"
+              :disabled="isFirstRow"
+              class="nc-prev-arrow !w-7 !h-7"
+              type="text"
+              size="xsmall"
+              @click="$emit('prev')"
+            >
+              <GeneralIcon icon="chevronDown" class="transform rotate-180" />
+            </NcButton>
+            <NcButton
+              v-if="props.showNextPrevIcons"
+              :disabled="islastRow"
+              class="nc-next-arrow !w-7 !h-7"
+              type="text"
+              size="xsmall"
+              @click="onNext"
+            >
+              <GeneralIcon icon="chevronDown" />
+            </NcButton>
+          </div>
+          <div v-if="isLoading">
+            <a-skeleton-input active class="!h-8 !sm:mr-14 !w-52 mt-1 !rounded-md !overflow-hidden" size="small" />
+          </div>
+          <div
+            class="flex-1 flex items-center gap-3 max-w-[calc(100%_-_108px)] xs:(flex-row-reverse justify-end)"
+            :class="{
+              'xs:max-w-[calc(100%_-_52px)]': isNew,
+              'xs:max-w-[calc(100%_-_82px)]': !isNew,
+            }"
+          >
             <div v-if="meta.title" class="flex items-center gap-2 px-2 py-1 rounded-lg bg-gray-200 text-gray-800">
               <GeneralTableIcon :meta="meta" class="!text-gray-800" />
 
-              <NcTooltip class="truncate max-w-[100px] h-5" show-on-truncate-only>
+              <NcTooltip class="truncate max-w-[100px] xs:(max-w-[82px]) h-5" show-on-truncate-only>
                 <template #title>
                   {{ meta.title }}
                 </template>
@@ -577,137 +606,111 @@ export default {
             </div>
             <div
               v-if="row.rowMeta?.new || props.newRecordHeader"
-              class="flex items-center truncate font-bold text-gray-800 text-base"
+              class="flex items-center truncate font-bold text-gray-800 text-base overflow-hidden"
             >
               {{ props.newRecordHeader ?? $t('activity.newRecord') }}
             </div>
-            <div v-else-if="displayValue && !row.rowMeta?.new" class="flex items-center font-bold text-gray-800 text-base w-64">
+            <div
+              v-else-if="displayValue && !row.rowMeta?.new"
+              class="flex items-center font-bold text-gray-800 text-base max-w-[300px] xs:(w-auto max-w-[calc(100%_-_82px)]) overflow-hidden"
+            >
               <span class="truncate">
                 <LazySmartsheetPlainCell v-model="displayValue" :column="displayField" />
               </span>
             </div>
           </div>
-          <div class="flex gap-2">
-            <NcButton
-              v-e="['c:row-expand:save']"
-              :disabled="changedColumns.size === 0 && !isUnsavedFormExist"
-              :loading="isSaving"
-              class="nc-expand-form-save-btn !xs:(text-base) !h-7 !px-2"
-              data-testid="nc-expanded-form-save"
-              type="primary"
-              size="xsmall"
-              @click="save"
+        </div>
+        <div class="flex gap-2">
+          <NcButton
+            v-if="!isMobileMode"
+            v-e="['c:row-expand:save']"
+            :disabled="changedColumns.size === 0 && !isUnsavedFormExist"
+            :loading="isSaving"
+            class="nc-expand-form-save-btn !xs:(text-base) !h-7 !px-2"
+            data-testid="nc-expanded-form-save"
+            type="primary"
+            size="xsmall"
+            @click="save"
+          >
+            <div class="xs:px-1">{{ newRecordSubmitBtnText ?? 'Save' }}</div>
+          </NcButton>
+          <NcButton
+            v-if="!isNew && rowId && !isMobileMode"
+            :disabled="isLoading"
+            class="!<lg:hidden text-gray-700 !h-7 !px-2"
+            type="text"
+            size="xsmall"
+            @click="copyRecordUrl()"
+          >
+            <div
+              v-e="['c:row-expand:copy-url']"
+              data-testid="nc-expanded-form-copy-url"
+              class="flex gap-2 items-center text-small"
             >
-              <div class="xs:px-1">{{ newRecordSubmitBtnText ?? 'Save' }}</div>
-            </NcButton>
-            <NcButton
-              v-if="!isNew && rowId"
-              :disabled="isLoading"
-              class="!<lg:hidden text-gray-700 !h-7 !px-2"
-              type="text"
-              size="xsmall"
-              @click="copyRecordUrl()"
-            >
-              <div
-                v-e="['c:row-expand:copy-url']"
-                data-testid="nc-expanded-form-copy-url"
-                class="flex gap-2 items-center text-small"
-              >
-                <component :is="iconMap.check" v-if="isRecordLinkCopied" class="cursor-pointer nc-duplicate-row" />
-                <component :is="iconMap.copy" v-else class="cursor-pointer nc-duplicate-row" />
-                {{ isRecordLinkCopied ? $t('labels.copiedRecordURL') : $t('labels.copyRecordURL') }}
-              </div>
-            </NcButton>
-            <NcDropdown v-if="!isNew && rowId" placement="bottomRight">
-              <NcButton type="text" size="xsmall" class="nc-expand-form-more-actions !w-7 !h-7" :disabled="isLoading">
-                <GeneralIcon icon="threeDotVertical" class="text-md" :class="isLoading ? 'text-gray-300' : 'text-gray-700'" />
-              </NcButton>
-              <template #overlay>
-                <NcMenu>
-                  <NcMenuItem class="text-gray-700" @click="_loadRow()">
-                    <div v-e="['c:row-expand:reload']" class="flex gap-2 items-center" data-testid="nc-expanded-form-reload">
-                      <component :is="iconMap.reload" class="cursor-pointer" />
-                      {{ $t('general.reload') }}
-                    </div>
-                  </NcMenuItem>
-                  <NcMenuItem
-                    v-if="!isNew && rowId"
-                    type="secondary"
-                    class="!lg:hidden text-gray-700"
-                    :disabled="isLoading"
-                    @click="copyRecordUrl()"
-                  >
-                    <div v-e="['c:row-expand:copy-url']" data-testid="nc-expanded-form-copy-url" class="flex gap-2 items-center">
-                      <component :is="iconMap.copy" class="cursor-pointer" />
-                      {{ $t('labels.copyRecordURL') }}
-                    </div>
-                  </NcMenuItem>
-                  <NcMenuItem v-if="isUIAllowed('dataEdit')" class="text-gray-700" @click="!isNew ? onDuplicateRow() : () => {}">
-                    <div
-                      v-e="['c:row-expand:duplicate']"
-                      class="flex gap-2 items-center"
-                      data-testid="nc-expanded-form-duplicate"
-                    >
-                      <component :is="iconMap.duplicate" class="cursor-pointer nc-duplicate-row" />
-                      <span class="-ml-0.25">
-                        {{ $t('labels.duplicateRecord') }}
-                      </span>
-                    </div>
-                  </NcMenuItem>
-                  <NcDivider v-if="isUIAllowed('dataEdit')" />
-                  <NcMenuItem
-                    v-if="isUIAllowed('dataEdit')"
-                    class="!text-red-500 !hover:bg-red-50"
-                    @click="!isNew && onDeleteRowClick()"
-                  >
-                    <div v-e="['c:row-expand:delete']" class="flex gap-2 items-center" data-testid="nc-expanded-form-delete">
-                      <component :is="iconMap.delete" class="cursor-pointer nc-delete-row" />
-                      <span class="-ml-0.25">
-                        {{ $t('activity.deleteRecord') }}
-                      </span>
-                    </div>
-                  </NcMenuItem>
-                </NcMenu>
-              </template>
-            </NcDropdown>
-            <NcButton
-              class="nc-expand-form-close-btn !w-7 !h-7"
-              data-testid="nc-expanded-form-close"
-              type="text"
-              size="xsmall"
-              @click="onClose"
-            >
-              <GeneralIcon class="text-md text-gray-700" icon="close" />
-            </NcButton>
-          </div>
-        </template>
-        <template v-else>
-          <div class="flex flex-row w-full">
-            <NcButton
-              v-if="props.showNextPrevIcons && !isFirstRow"
-              v-e="['c:row-expand:prev']"
-              class="nc-prev-arrow !w-10"
-              type="secondary"
-              @click="$emit('prev')"
-            >
-              <GeneralIcon class="text-lg text-gray-700" icon="arrowLeft" />
-            </NcButton>
-            <div v-else class="min-w-10.5"></div>
-            <div class="flex flex-grow justify-center items-center font-semibold text-lg">
-              <div>{{ meta.title }}</div>
+              <component :is="iconMap.check" v-if="isRecordLinkCopied" class="cursor-pointer nc-duplicate-row" />
+              <component :is="iconMap.copy" v-else class="cursor-pointer nc-duplicate-row" />
+              {{ isRecordLinkCopied ? $t('labels.copiedRecordURL') : $t('labels.copyRecordURL') }}
             </div>
-            <NcButton
-              v-if="props.showNextPrevIcons && !islastRow"
-              v-e="['c:row-expand:next']"
-              class="nc-next-arrow !w-10"
-              type="secondary"
-              @click="onNext"
-            >
-              <GeneralIcon class="text-lg text-gray-700" icon="arrowRight" />
+          </NcButton>
+          <NcDropdown v-if="!isNew && rowId && !isMobileMode" placement="bottomRight">
+            <NcButton type="text" size="xsmall" class="nc-expand-form-more-actions !w-7 !h-7" :disabled="isLoading">
+              <GeneralIcon icon="threeDotVertical" class="text-md" :class="isLoading ? 'text-gray-300' : 'text-gray-700'" />
             </NcButton>
-            <div v-else class="min-w-10.5"></div>
-          </div>
-        </template>
+            <template #overlay>
+              <NcMenu>
+                <NcMenuItem class="text-gray-700" @click="_loadRow()">
+                  <div v-e="['c:row-expand:reload']" class="flex gap-2 items-center" data-testid="nc-expanded-form-reload">
+                    <component :is="iconMap.reload" class="cursor-pointer" />
+                    {{ $t('general.reload') }}
+                  </div>
+                </NcMenuItem>
+                <NcMenuItem
+                  v-if="!isNew && rowId"
+                  type="secondary"
+                  class="!lg:hidden text-gray-700"
+                  :disabled="isLoading"
+                  @click="copyRecordUrl()"
+                >
+                  <div v-e="['c:row-expand:copy-url']" data-testid="nc-expanded-form-copy-url" class="flex gap-2 items-center">
+                    <component :is="iconMap.copy" class="cursor-pointer" />
+                    {{ $t('labels.copyRecordURL') }}
+                  </div>
+                </NcMenuItem>
+                <NcMenuItem v-if="isUIAllowed('dataEdit')" class="text-gray-700" @click="!isNew ? onDuplicateRow() : () => {}">
+                  <div v-e="['c:row-expand:duplicate']" class="flex gap-2 items-center" data-testid="nc-expanded-form-duplicate">
+                    <component :is="iconMap.duplicate" class="cursor-pointer nc-duplicate-row" />
+                    <span class="-ml-0.25">
+                      {{ $t('labels.duplicateRecord') }}
+                    </span>
+                  </div>
+                </NcMenuItem>
+                <NcDivider v-if="isUIAllowed('dataEdit')" />
+                <NcMenuItem
+                  v-if="isUIAllowed('dataEdit')"
+                  class="!text-red-500 !hover:bg-red-50"
+                  @click="!isNew && onDeleteRowClick()"
+                >
+                  <div v-e="['c:row-expand:delete']" class="flex gap-2 items-center" data-testid="nc-expanded-form-delete">
+                    <component :is="iconMap.delete" class="cursor-pointer nc-delete-row" />
+                    <span class="-ml-0.25">
+                      {{ $t('activity.deleteRecord') }}
+                    </span>
+                  </div>
+                </NcMenuItem>
+              </NcMenu>
+            </template>
+          </NcDropdown>
+
+          <NcButton
+            class="nc-expand-form-close-btn !w-7 !h-7"
+            data-testid="nc-expanded-form-close"
+            type="text"
+            size="xsmall"
+            @click="onClose"
+          >
+            <GeneralIcon class="text-md text-gray-700 h-4 w-4" icon="close" />
+          </NcButton>
+        </div>
       </div>
       <div
         ref="wrapper"
@@ -722,7 +725,7 @@ export default {
         >
           <div
             ref="expandedFormScrollWrapper"
-            class="flex flex-col flex-grow gap-3 h-full max-h-full nc-scrollbar-thin items-center w-full p-4 xs:p-0 children:max-w-[640px]"
+            class="flex flex-col flex-grow gap-3 h-full max-h-full nc-scrollbar-thin items-center w-full p-4 xs:(px-4 pt-4 pb-2) children:max-w-[640px]"
           >
             <div
               v-for="(col, i) of fields"
@@ -871,41 +874,69 @@ export default {
 
           <div
             v-if="isUIAllowed('dataEdit')"
-            class="w-full flex items-center justify-end px-2 py-[9px] xs:(p-0 mt-4 gap-x-4 justify-between)"
+            class="w-full flex items-center justify-end px-2 py-[9px] xs:(p-0 gap-x-4 justify-between)"
+            :class="{
+              'border-t-1 border-gray-200': !isNew,
+            }"
           >
-            <NcDropdown v-if="!isNew && isMobileMode" placement="bottomRight">
-              <NcButton :disabled="isLoading" class="nc-expand-form-more-actions w-10" type="secondary">
-                <GeneralIcon :class="isLoading ? 'text-gray-300' : 'text-gray-700'" class="text-md" icon="threeDotVertical" />
+            <div class="p-2">
+              <NcDropdown v-if="!isNew && isMobileMode" placement="bottomRight" class="p-2">
+                <NcButton :disabled="isLoading" class="nc-expand-form-more-actions" type="secondary" size="small">
+                  <GeneralIcon :class="isLoading ? 'text-gray-300' : 'text-gray-700'" class="text-md" icon="threeDotVertical" />
+                </NcButton>
+
+                <template #overlay>
+                  <NcMenu>
+                    <NcMenuItem class="text-gray-700" @click="_loadRow()">
+                      <div v-e="['c:row-expand:reload']" class="flex gap-2 items-center" data-testid="nc-expanded-form-reload">
+                        <component :is="iconMap.reload" class="cursor-pointer" />
+                        {{ $t('general.reload') }}
+                      </div>
+                    </NcMenuItem>
+                    <NcMenuItem v-if="rowId" class="text-gray-700" @click="!isNew ? copyRecordUrl() : () => {}">
+                      <div
+                        v-e="['c:row-expand:copy-url']"
+                        class="flex gap-2 items-center"
+                        data-testid="nc-expanded-form-copy-url"
+                      >
+                        <component :is="iconMap.link" class="cursor-pointer nc-duplicate-row" />
+                        {{ $t('labels.copyRecordURL') }}
+                      </div>
+                    </NcMenuItem>
+                    <NcDivider />
+                    <NcMenuItem
+                      v-if="isUIAllowed('dataEdit') && !isNew"
+                      v-e="['c:row-expand:delete']"
+                      class="!text-red-500 !hover:bg-red-50"
+                      @click="!isNew && onDeleteRowClick()"
+                    >
+                      <div data-testid="nc-expanded-form-delete">
+                        <component :is="iconMap.delete" class="cursor-pointer nc-delete-row" />
+                        Delete record
+                      </div>
+                    </NcMenuItem>
+                  </NcMenu>
+                </template>
+              </NcDropdown>
+            </div>
+
+            <div v-if="isMobileMode" class="p-2">
+              <NcButton
+                v-e="['c:row-expand:save']"
+                :disabled="changedColumns.size === 0 && !isUnsavedFormExist"
+                :loading="isSaving"
+                class="nc-expand-form-save-btn !xs:(text-sm) !px-2"
+                :class="{
+                  '!h-7': !isMobileMode,
+                }"
+                data-testid="nc-expanded-form-save"
+                type="primary"
+                :size="isMobileMode ? 'small' : 'xsmall'"
+                @click="save"
+              >
+                <div class="xs:px-1">{{ newRecordSubmitBtnText ?? isNew ? 'Create Record' : 'Save' }}</div>
               </NcButton>
-              <template #overlay>
-                <NcMenu>
-                  <NcMenuItem class="text-gray-700" @click="_loadRow()">
-                    <div v-e="['c:row-expand:reload']" class="flex gap-2 items-center" data-testid="nc-expanded-form-reload">
-                      <component :is="iconMap.reload" class="cursor-pointer" />
-                      {{ $t('general.reload') }}
-                    </div>
-                  </NcMenuItem>
-                  <NcMenuItem v-if="rowId" class="text-gray-700" @click="!isNew ? copyRecordUrl() : () => {}">
-                    <div v-e="['c:row-expand:copy-url']" class="flex gap-2 items-center" data-testid="nc-expanded-form-copy-url">
-                      <component :is="iconMap.link" class="cursor-pointer nc-duplicate-row" />
-                      {{ $t('labels.copyRecordURL') }}
-                    </div>
-                  </NcMenuItem>
-                  <NcDivider />
-                  <NcMenuItem
-                    v-if="isUIAllowed('dataEdit') && !isNew"
-                    v-e="['c:row-expand:delete']"
-                    class="!text-red-500 !hover:bg-red-50"
-                    @click="!isNew && onDeleteRowClick()"
-                  >
-                    <div data-testid="nc-expanded-form-delete">
-                      <component :is="iconMap.delete" class="cursor-pointer nc-delete-row" />
-                      Delete record
-                    </div>
-                  </NcMenuItem>
-                </NcMenu>
-              </template>
-            </NcDropdown>
+            </div>
           </div>
         </div>
         <div
@@ -917,7 +948,7 @@ export default {
         </div>
       </div>
     </div>
-  </NcModal>
+  </component>
 
   <GeneralDeleteModal v-model:visible="showDeleteRowModal" entity-name="Record" :on-delete="() => onConfirmDeleteRowClick()">
     <template #entity-preview>
@@ -957,6 +988,13 @@ export default {
 
   .ant-modal-content {
     @apply overflow-hidden;
+  }
+
+  .ant-drawer-content-wrapper {
+    @apply !h-[90vh];
+    .ant-drawer-content {
+      @apply rounded-t-2xl;
+    }
   }
 }
 

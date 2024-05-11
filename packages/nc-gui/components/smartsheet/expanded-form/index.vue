@@ -9,9 +9,9 @@ import {
   isVirtualCol,
 } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import MdiChevronDown from '~icons/mdi/chevron-down'
 import { Drawer } from 'ant-design-vue'
 import NcModal from '../../nc/Modal.vue'
+import MdiChevronDown from '~icons/mdi/chevron-down'
 
 interface Props {
   modelValue?: boolean
@@ -550,8 +550,8 @@ export default {
     :width="commentsDrawer && isUIAllowed('commentList') ? 'min(80vw,1280px)' : 'min(80vw,1280px)'"
     class="nc-drawer-expanded-form"
     :size="isMobileMode ? 'medium' : 'small'"
-    @update:visible="onIsExpandedUpdate"
     v-bind="modalProps"
+    @update:visible="onIsExpandedUpdate"
   >
     <div class="h-[85vh] xs:(max-h-full h-auto) max-h-215 flex flex-col">
       <div v-if="isMobileMode" class="flex-none h-4 flex items-center justify-center">

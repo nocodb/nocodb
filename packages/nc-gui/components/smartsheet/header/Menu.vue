@@ -270,7 +270,7 @@ const hideOrShowField = async () => {
     },
     undo: {
       fn: async function undo(id: string, show: boolean) {
-        const promises = [$api.dbViewColumn.update(view.value!.id!, id, { show: show })]
+        const promises = [$api.dbViewColumn.update(view.value!.id!, id, { show })]
 
         if (isExpandedForm.value) {
           promises.push(getMeta(meta?.value?.id as string, true))

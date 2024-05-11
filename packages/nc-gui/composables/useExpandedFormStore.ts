@@ -313,7 +313,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     // update only new/duplicated/renamed columns value if `onlyNewColumns` is true
     if (onlyNewColumns) {
       record = Object.keys(record).reduce((acc, curr) => {
-        if (!row.value.row?.hasOwnProperty(curr)) {
+        if (!Object.prototype.hasOwnProperty.call(row.value.row, curr)) {
           acc[curr] = record[curr]
         } else {
           acc[curr] = row.value.row[curr]

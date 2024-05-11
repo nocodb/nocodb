@@ -247,7 +247,7 @@ const onClick = (e: Event) => {
       :placement="isExpandedForm ? 'bottomLeft' : 'bottomRight'"
       overlay-class-name="nc-dropdown-edit-column"
     >
-      <div v-if="isExpandedForm" @dblclick.stop class="h-[1px]">&nbsp;</div>
+      <div v-if="isExpandedForm" class="h-[1px]" @dblclick.stop>&nbsp;</div>
       <div v-else />
       <template #overlay>
         <SmartsheetColumnEditOrAddProvider

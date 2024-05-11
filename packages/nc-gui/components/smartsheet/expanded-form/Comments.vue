@@ -2,7 +2,6 @@
 import type { VNodeRef } from '@vue/runtime-core'
 import type { AuditType } from 'nocodb-sdk'
 import { timeAgo } from 'nocodb-sdk'
-import { Icon } from '@iconify/vue'
 
 const props = defineProps<{
   loading: boolean
@@ -31,7 +30,6 @@ const isEditing = ref<boolean>(false)
 const isCommentMode = ref(false)
 
 const showCommentInputBoxShadow = ref(false)
-
 
 const focusCommentInput: VNodeRef = (el) => {
   if (el) {
@@ -206,8 +204,8 @@ watch(commentsWrapperEl, () => {
                       </div>
 
                       <NcDropdown
-                        placement="bottomRight"
                         v-if="log.user === user!.email && !editLog"
+                        placement="bottomRight"
                         overlay-class-name="!min-w-[160px]"
                       >
                         <NcButton
@@ -225,6 +223,7 @@ watch(commentsWrapperEl, () => {
                                 {{ $t('general.edit') }}
                               </div>
                             </NcMenuItem>
+                            <!-- eslint-disable vue/no-constant-condition -->
                             <template v-if="false">
                               <NcDivider />
                               <NcMenuItem v-e="['c:row-expand:comment:delete']" class="!text-red-500 !hover:bg-red-50">

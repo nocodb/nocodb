@@ -30,7 +30,16 @@ const isEditing = ref<boolean>(false)
 
 const isCommentMode = ref(false)
 
+const showCommentInputBoxShadow = ref(false)
+
 const focusCommentInput: VNodeRef = (el) => {
+  if (el) {
+    if (parseInt((el.$el as HTMLTextAreaElement)?.style?.height ?? '') > 82) {
+      showCommentInputBoxShadow.value = true
+    } else {
+      showCommentInputBoxShadow.value = false
+    }
+  }
   if (!isExpandedFormLoading.value && (isCommentMode.value || isExpandedFormCommentMode.value) && !isEditing.value) {
     if (isExpandedFormCommentMode.value) {
       setTimeout(() => {
@@ -236,7 +245,7 @@ watch(commentsWrapperEl, () => {
                       class="!p-1.5 !m-0 w-full !rounded-md !text-gray-800 !text-small !leading-18px !min-h-[70px] nc-scrollbar-thin"
                       @keydown.stop="onKeyDown($event)"
                     />
-                    <div v-else class="nc-comment-description text-sm text-gray-800">
+                    <div v-else class="nc-comment-description text-small leading-18px text-gray-800">
                       <pre>{{ log.description.substring(log.description.indexOf(':') + 1).trim() }}</pre>
                     </div>
                     <div v-if="log.id === editLog?.id" class="flex justify-end gap-1 mt-1">
@@ -262,7 +271,11 @@ watch(commentsWrapperEl, () => {
                     @keydown.stop
                     @keydown.enter.exact.prevent="saveComment"
                   />
-                  <div class="expanded-form-comment-input-shadow"></div>
+                  <div
+                    v-if="showCommentInputBoxShadow"
+                    class="expanded-form-comment-input-shadow"
+                    :class="`valju-${comment?.split('\n').length}`"
+                  ></div>
                 </div>
                 <NcButton
                   v-e="['a:row-expand:comment:save']"

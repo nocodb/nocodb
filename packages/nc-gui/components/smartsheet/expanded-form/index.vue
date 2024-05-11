@@ -996,6 +996,11 @@ export default {
 
 .nc-expanded-cell-header {
   @apply w-full text-gray-500 !font-weight-500 !text-sm xs:(text-gray-600 mb-2 !text-small) pr-3;
+
+  svg.nc-cell-icon,
+  svg.nc-virtual-cell-icon {
+    @apply !w-3.5 !h-3.5;
+  }
 }
 
 .nc-expanded-cell-header > :nth-child(2) {

@@ -280,7 +280,7 @@ watch(commentsWrapperEl, () => {
                   :loading="isSaving"
                   :disabled="!isSaving && !comment.length"
                   :icon-only="isSaving"
-                  class="!disabled:bg-gray-100"
+                  class="!disabled:bg-gray-100 !shadow-none"
                   @click="saveComment"
                 >
                   <GeneralIcon v-if="!isSaving" icon="send" />

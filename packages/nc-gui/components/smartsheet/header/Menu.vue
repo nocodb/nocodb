@@ -356,11 +356,8 @@ const filterOrGroupByThisField = (event: SmartsheetStoreEvents) => {
     @click.stop="isOpen = !isOpen"
   >
     <div @dblclick.stop>
-      <GeneralIcon
-        v-if="!isExpandedForm"
-        icon="arrowDown"
-        class="text-grey h-full text-grey nc-ui-dt-dropdown cursor-pointer outline-0 mr-2"
-      />
+      <div v-if="isExpandedForm" class="h-[1px]">&nbsp;</div>
+      <GeneralIcon v-else icon="arrowDown" class="text-grey h-full text-grey nc-ui-dt-dropdown cursor-pointer outline-0 mr-2" />
     </div>
     <template #overlay>
       <NcMenu

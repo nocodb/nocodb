@@ -536,8 +536,8 @@ export default {
     size="small"
     @update:visible="onIsExpandedUpdate"
   >
-    <div class="h-[85vh] xs:(max-h-full) max-h-215 flex flex-col p-6">
-      <div class="flex min-h-7 flex-shrink-0 w-full items-center nc-expanded-form-header relative mb-4 justify-between">
+    <div class="h-[85vh] xs:(max-h-full) max-h-215 flex flex-col">
+      <div class="flex min-h-7 flex-shrink-0 w-full items-center nc-expanded-form-header relative p-4 justify-between">
         <template v-if="!isMobileMode">
           <div class="flex gap-3 w-100 <lg:max-w-64">
             <div class="flex gap-2">
@@ -697,7 +697,10 @@ export default {
           </div>
         </template>
       </div>
-      <div ref="wrapper" class="flex flex-grow flex-row h-[calc(100%-4rem)] w-full rounded-lg overflow-hidden xs:(border-none)">
+      <div
+        ref="wrapper"
+        class="flex flex-grow flex-row h-[calc(100%-4rem)] w-full overflow-hidden border-t-1 border-gray-200 xs:(border-none)"
+      >
         <div
           :class="{
             'w-full': !showRightSections,
@@ -921,7 +924,7 @@ export default {
         <div
           v-if="showRightSections"
           :class="{ active: commentsDrawer && isUIAllowed('commentList') }"
-          class="nc-comments-drawer border-1 rounded-lg relative border-gray-200 bg-white w-1/3 max-w-125 min-w-0 overflow-hidden h-full xs:hidden"
+          class="nc-comments-drawer border-l-1 relative border-gray-200 bg-white w-1/3 max-w-125 min-w-0 overflow-hidden h-full xs:hidden"
         >
           <SmartsheetExpandedFormComments :loading="isLoading" />
         </div>
@@ -966,7 +969,7 @@ export default {
   @apply xs:my-0;
 
   .ant-modal-content {
-    @apply bg-gray-100;
+    @apply overflow-hidden;
   }
 }
 
@@ -1001,11 +1004,8 @@ export default {
   @apply !xs:(mt-1.75 ml-1);
 }
 
-.nc-data-cell {
-  @apply !border-none;
-}
 .nc-data-cell:focus-within {
-  @apply !border-1 !border-none !rounded-lg !shadow-none !ring-0;
+  @apply !border-1 !border-brand-500 !rounded-lg !shadow-none !ring-0;
 }
 
 :deep(.nc-system-field input) {

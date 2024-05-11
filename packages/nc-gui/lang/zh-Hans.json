@@ -162,6 +162,7 @@
     "insertAbove": "将上方内容插入",
     "insertBelow": "将下方内容插入",
     "hideField": "隐藏字段",
+    "showField": "Show Field",
     "sortAsc": "升序",
     "sortDesc": "降序",
     "move": "移动",

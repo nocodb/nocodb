@@ -384,6 +384,10 @@ function onOpenModal({
     close(1000)
   }
 }
+
+watchEffect(() => {
+  console.log('isDefaultSource', isDefaultSource.value)
+})
 </script>
 
 <template>

@@ -424,5 +424,8 @@ watch(commentsWrapperEl, () => {
   &:focus {
     @apply min-h-16;
   }
+  &::placeholder{
+    @apply !text-gray-400;
+  }
 }
 </style>

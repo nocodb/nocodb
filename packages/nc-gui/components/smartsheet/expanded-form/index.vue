@@ -589,6 +589,18 @@ export default {
           </div>
           <div class="flex gap-2">
             <NcButton
+              v-e="['c:row-expand:save']"
+              :disabled="changedColumns.size === 0 && !isUnsavedFormExist"
+              :loading="isSaving"
+              class="nc-expand-form-save-btn !xs:(text-base) !h-7 !px-2"
+              data-testid="nc-expanded-form-save"
+              type="primary"
+              size="xsmall"
+              @click="save"
+            >
+              <div class="xs:px-1">{{ newRecordSubmitBtnText ?? 'Save' }}</div>
+            </NcButton>
+            <NcButton
               v-if="!isNew && rowId"
               :disabled="isLoading"
               class="!<lg:hidden text-gray-700 !h-7 !px-2"
@@ -894,31 +906,6 @@ export default {
                 </NcMenu>
               </template>
             </NcDropdown>
-
-            <div class="flex flex-row gap-x-3">
-              <NcButton
-                v-if="isMobileMode"
-                class="nc-expand-form-save-btn !xs:(text-base)"
-                data-testid="nc-expanded-form-save"
-                :size="isMobileMode ? 'medium' : 'small'"
-                type="secondary"
-                @click="onClose"
-              >
-                <div class="px-1">Close</div>
-              </NcButton>
-              <NcButton
-                v-e="['c:row-expand:save']"
-                :disabled="changedColumns.size === 0 && !isUnsavedFormExist"
-                :loading="isSaving"
-                class="nc-expand-form-save-btn !xs:(text-base)"
-                data-testid="nc-expanded-form-save"
-                type="primary"
-                :size="isMobileMode ? 'medium' : 'small'"
-                @click="save"
-              >
-                <div class="xs:px-1">{{ newRecordSubmitBtnText ?? 'Save' }}</div>
-              </NcButton>
-            </div>
           </div>
         </div>
         <div

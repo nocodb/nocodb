@@ -85,7 +85,12 @@ onClickOutside(globalSearchWrapperRef, (e) => {
 
 <template>
   <div ref="globalSearchWrapperRef" class="nc-global-search-wrapper">
-    <a-button v-if="!search.query && !showSearchBox" class="nc-toolbar-btn" @click="handleShowSearchInput">
+    <a-button
+      v-if="!search.query && !showSearchBox"
+      class="nc-toolbar-btn"
+      data-testid="nc-global-search-show-input"
+      @click="handleShowSearchInput"
+    >
       <GeneralIcon icon="search" class="h-4 w-4 text-gray-700 group-hover:text-black" />
     </a-button>
     <div

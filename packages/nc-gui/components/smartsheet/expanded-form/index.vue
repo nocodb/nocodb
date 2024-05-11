@@ -527,6 +527,10 @@ const modalProps = computed(() => {
   }
   return {}
 })
+
+const renderAltOrOptlKey = () => {
+  return isMac() ? '⌥' : 'ALT'
+}
 </script>
 
 <script lang="ts">
@@ -560,26 +564,30 @@ export default {
       >
         <div class="flex-1 flex gap-3 lg:w-100 <lg:max-w-[calc(100%_-_128px)] xs:(max-w-[calc(100%_-_44px)])">
           <div class="flex gap-2">
-            <NcButton
-              v-if="props.showNextPrevIcons"
-              :disabled="isFirstRow || isLoading"
-              class="nc-prev-arrow !w-7 !h-7"
-              type="text"
-              size="xsmall"
-              @click="$emit('prev')"
-            >
-              <GeneralIcon icon="chevronDown" class="transform rotate-180" />
-            </NcButton>
-            <NcButton
-              v-if="props.showNextPrevIcons"
-              :disabled="islastRow || isLoading"
-              class="nc-next-arrow !w-7 !h-7"
-              type="text"
-              size="xsmall"
-              @click="onNext"
-            >
-              <GeneralIcon icon="chevronDown" />
-            </NcButton>
+            <NcTooltip v-if="props.showNextPrevIcons">
+              <template #title> {{ renderAltOrOptlKey() }} + ← </template>
+              <NcButton
+                :disabled="isFirstRow || isLoading"
+                class="nc-prev-arrow !w-7 !h-7"
+                type="text"
+                size="xsmall"
+                @click="$emit('prev')"
+              >
+                <GeneralIcon icon="chevronDown" class="transform rotate-180" />
+              </NcButton>
+            </NcTooltip>
+            <NcTooltip v-if="props.showNextPrevIcons">
+              <template #title> {{ renderAltOrOptlKey() }} + → </template>
+              <NcButton
+                :disabled="islastRow || isLoading"
+                class="nc-next-arrow !w-7 !h-7"
+                type="text"
+                size="xsmall"
+                @click="onNext"
+              >
+                <GeneralIcon icon="chevronDown" />
+              </NcButton>
+            </NcTooltip>
           </div>
           <div v-if="isLoading" class="flex items-center">
             <a-skeleton-input active class="!h-6 !sm:mr-14 !w-52 !rounded-md !overflow-hidden" size="small" />
@@ -637,19 +645,22 @@ export default {
               {{ isRecordLinkCopied ? $t('labels.copiedRecordURL') : $t('labels.copyRecordURL') }}
             </div>
           </NcButton>
-          <NcButton
-            v-if="!isMobileMode"
-            v-e="['c:row-expand:save']"
-            :disabled="changedColumns.size === 0 && !isUnsavedFormExist"
-            :loading="isSaving"
-            class="nc-expand-form-save-btn !xs:(text-base) !h-7 !px-2"
-            data-testid="nc-expanded-form-save"
-            type="primary"
-            size="xsmall"
-            @click="save"
-          >
-            <div class="xs:px-1">{{ newRecordSubmitBtnText ?? 'Save Record' }}</div>
-          </NcButton>
+          <NcTooltip v-if="props.showNextPrevIcons">
+            <template #title> {{ renderAltOrOptlKey() }} + S </template>
+            <NcButton
+              v-if="!isMobileMode"
+              v-e="['c:row-expand:save']"
+              :disabled="changedColumns.size === 0 && !isUnsavedFormExist"
+              :loading="isSaving"
+              class="nc-expand-form-save-btn !xs:(text-base) !h-7 !px-2"
+              data-testid="nc-expanded-form-save"
+              type="primary"
+              size="xsmall"
+              @click="save"
+            >
+              <div class="xs:px-1">{{ newRecordSubmitBtnText ?? 'Save Record' }}</div>
+            </NcButton>
+          </NcTooltip>
           <NcDropdown v-if="!isNew && rowId && !isMobileMode" placement="bottomRight">
             <NcButton type="text" size="xsmall" class="nc-expand-form-more-actions !w-7 !h-7" :disabled="isLoading">
               <GeneralIcon icon="threeDotVertical" class="text-md" :class="isLoading ? 'text-gray-300' : 'text-gray-700'" />

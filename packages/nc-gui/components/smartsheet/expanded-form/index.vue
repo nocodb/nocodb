@@ -561,6 +561,16 @@ export default {
             <div v-if="isLoading">
               <a-skeleton-input active class="!h-8 !sm:mr-14 !w-52 mt-1 !rounded-md !overflow-hidden" size="small" />
             </div>
+            <div v-if="meta.title" class="flex items-center gap-2 px-2 py-1 rounded-lg bg-gray-100 text-gray-800">
+              <GeneralTableIcon :meta="meta" class="!text-gray-800" />
+
+              <NcTooltip class="truncate max-w-[100px] h-5" show-on-truncate-only>
+                <template #title>
+                  {{ meta.title }}
+                </template>
+                <span class="font-weight-500 truncate text-sm"> {{ meta.title }} </span>
+              </NcTooltip>
+            </div>
             <div
               v-if="row.rowMeta?.new || props.newRecordHeader"
               class="flex items-center truncate font-bold text-gray-800 text-base"

@@ -246,24 +246,28 @@ watch(commentsWrapperEl, () => {
             </div>
             <div v-if="hasEditPermission" class="p-3 border-t-1 border-gray-200 gap-2 flex">
               <div class="flex flex-row w-full items-start gap-2">
-                <a-textarea
-                  :ref="focusCommentInput"
-                  v-model:value="comment"
-                  class="expanded-form-comment-input !py-1 !px-3 !m-0 w-full !border-1 !border-gray-200 !rounded-lg !bg-white !text-gray-800 !text-small !leading-18px !max-h-[70px] nc-scrollbar-thin"
-                  auto-size
-                  hide-details
-                  :disabled="isSaving"
-                  placeholder="Comment..."
-                  data-testid="expanded-form-comment-input"
-                  @keydown.stop
-                  @keydown.enter.exact.prevent="saveComment"
-                />
+                <div class="expanded-form-comment-input-wrapper">
+                  <a-textarea
+                    :ref="focusCommentInput"
+                    v-model:value="comment"
+                    class="expanded-form-comment-input !py-1 !px-3 !m-0 w-full !border-1 !border-gray-200 !rounded-lg !bg-transparent !text-gray-800 !text-small !leading-18px !max-h-[70px] nc-scrollbar-thin"
+                    auto-size
+                    hide-details
+                    :disabled="isSaving"
+                    placeholder="Comment..."
+                    data-testid="expanded-form-comment-input"
+                    @keydown.stop
+                    @keydown.enter.exact.prevent="saveComment"
+                  />
+                  <div class="expanded-form-comment-input-shadow"></div>
+                </div>
                 <NcButton
                   v-e="['a:row-expand:comment:save']"
                   size="small"
                   :loading="isSaving"
                   :disabled="!isSaving && !comment.length"
                   :icon-only="isSaving"
+                  class="!disabled:bg-gray-100"
                   @click="saveComment"
                 >
                   <GeneralIcon v-if="!isSaving" icon="send" />
@@ -401,11 +405,22 @@ watch(commentsWrapperEl, () => {
     font-family: unset;
   }
 }
+.expanded-form-comment-input-wrapper {
+  @apply flex-1 bg-white rounded-lg relative;
+
+  .expanded-form-comment-input-shadow {
+    @apply absolute top-1px left-1px h-3 w-[98%] z-0 rounded-t-lg  pointer-events-none;
+  }
+
+  &:focus-within {
+    .expanded-form-comment-input-shadow {
+      box-shadow: 0px 12px 12px 0px rgba(255, 255, 255, 0.65) inset;
+    }
+  }
+}
 :deep(.expanded-form-comment-input) {
   @apply transition-all duration-150;
-
-  box-shadow: 0px 12px 12px 0px rgba(255, 255, 255, 0.65) inset;
-
+  box-shadow: none;
   &:focus {
     @apply min-h-16;
   }

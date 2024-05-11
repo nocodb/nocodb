@@ -94,7 +94,7 @@ onMounted(async () => {
 
 <template>
   <DlgInviteDlg v-model:model-value="inviteDlg" :workspace-id="currentWorkspace?.id" type="workspace" />
-  <div class="nc-collaborator-table-container mt-4 h-[calc(100vh-10rem)]">
+  <div class="nc-collaborator-table-container mt-4 h-[calc(100vh-10rem)] max-w-350">
     <div class="w-full flex justify-between mt-6.5 mb-2">
       <a-input v-model:value="userSearchText" class="!max-w-90 !rounded-md mr-4" placeholder="Search members">
         <template #prefix>
@@ -112,7 +112,7 @@ onMounted(async () => {
       <a-empty description="No members found" />
     </div>
     <div v-else class="nc-collaborators-list mt-6 h-full">
-      <div class="flex flex-col rounded-lg overflow-hidden border-1 max-w-350 max-h-[calc(100%-4rem)]">
+      <div class="flex flex-col rounded-lg overflow-hidden border-1 max-h-[calc(100%-4rem)]">
         <div class="flex flex-row bg-gray-50 min-h-11 items-center border-b-1">
           <div class="py-3 px-6"><NcCheckbox v-model:checked="selectAll" /></div>
           <LazyAccountHeaderWithSorter

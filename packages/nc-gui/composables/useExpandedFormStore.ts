@@ -282,7 +282,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     changedColumns.value = new Set()
   }
 
-  const loadRow = async (rowId?: string, onlyVirtual = false) => {
+  const loadRow = async (rowId?: string, onlyVirtual = false, onlyNewColumns = false) => {
     if (row.value.rowMeta.new) return
 
     if (isPublic.value || !meta.value?.id) return
@@ -308,6 +308,18 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
           return partialRecord
         }, {} as Record<string, any>),
       }
+    }
+
+    // update only new/duplicated/renamed columns value if `onlyNewColumns` is true
+    if (onlyNewColumns) {
+      record = Object.keys(record).reduce((acc, curr) => {
+        if (!Object.prototype.hasOwnProperty.call(row.value.row, curr)) {
+          acc[curr] = record[curr]
+        } else {
+          acc[curr] = row.value.row[curr]
+        }
+        return acc
+      }, {} as Record<string, any>)
     }
 
     Object.assign(row.value, {

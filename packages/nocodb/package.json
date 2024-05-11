@@ -56,6 +56,7 @@
     "docker:build": "EE=\"true-xc-test\" webpack  --config docker/webpack.config.js"
   },
   "dependencies": {
+    "@ai-sdk/openai": "^0.0.46",
     "@aws-sdk/client-kafka": "^3.620.0",
     "@aws-sdk/client-kinesis": "^3.620.0",
     "@aws-sdk/client-s3": "^3.620.0",
@@ -82,6 +83,7 @@
     "@sentry/node": "^6.19.7",
     "@techpass/passport-openidconnect": "^0.3.3",
     "@types/chai": "^4.3.16",
+    "ai": "^3.3.7",
     "airtable": "^0.12.2",
     "ajv": "^8.12.0",
     "ajv-formats": "^2.1.1",
@@ -179,7 +181,8 @@
     "twilio": "^4.23.0",
     "uuid": "^9.0.1",
     "validator": "^13.11.0",
-    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.3.2",

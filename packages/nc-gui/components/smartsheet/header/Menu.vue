@@ -25,6 +25,8 @@ const isLocked = inject(IsLockedInj)
 
 const isPublic = inject(IsPublicInj, ref(false))
 
+const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
+
 const { insertSort } = useViewSorts(view, () => reloadDataHook?.trigger())
 
 const { $api, $e } = useNuxtApp()
@@ -318,12 +320,16 @@ const filterOrGroupByThisField = (event: SmartsheetStoreEvents) => {
     v-if="!isLocked"
     v-model:visible="isOpen"
     :trigger="['click']"
-    placement="bottomRight"
+    :placement="isExpandedForm ? 'bottomLeft' : 'bottomRight'"
     overlay-class-name="nc-dropdown-column-operations !border-1 rounded-lg !shadow-xl"
     @click.stop="isOpen = !isOpen"
   >
     <div @dblclick.stop>
-      <GeneralIcon icon="arrowDown" class="text-grey h-full text-grey nc-ui-dt-dropdown cursor-pointer outline-0 mr-2" />
+      <GeneralIcon
+        v-if="!isExpandedForm"
+        icon="arrowDown"
+        class="text-grey h-full text-grey nc-ui-dt-dropdown cursor-pointer outline-0 mr-2"
+      />
     </div>
     <template #overlay>
       <NcMenu class="flex flex-col gap-1 border-gray-200 nc-column-options">

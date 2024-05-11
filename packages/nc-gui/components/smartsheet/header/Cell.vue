@@ -56,8 +56,8 @@ const closeAddColumnDropdown = () => {
   editColumnDropdown.value = false
 }
 
-const openHeaderMenu = () => {
-  if (isLocked.value) return
+const openHeaderMenu = (e?: MouseEvent) => {
+  if (isLocked.value || (isExpandedForm.value && e?.type === 'dblclick')) return
 
   if (!isForm.value && isUIAllowed('fieldEdit') && !isMobileMode.value) {
     editColumnDropdown.value = true
@@ -79,6 +79,11 @@ const onClick = (e: Event) => {
   if (isDropDownOpen.value) {
     e.preventDefault()
     e.stopPropagation()
+  } else {
+    if (isExpandedForm.value) {
+      isDropDownOpen.value = true
+      return
+    }
   }
 
   isDropDownOpen.value = false
@@ -87,80 +92,119 @@ const onClick = (e: Event) => {
 
 <template>
   <div
-    class="flex items-center w-full text-xs text-gray-500 font-weight-medium"
-    :class="{ 'h-full': column, '!text-gray-400': isKanban }"
+    class="flex items-center w-full text-xs text-gray-500 font-weight-medium group"
+    :class="{
+      'h-full': column,
+      '!text-gray-400': isKanban,
+      'flex-col !items-start justify-center cursor-pointer': isExpandedForm,
+    }"
     @dblclick="openHeaderMenu"
     @click.right="openDropDown"
     @click="onClick"
   >
-    <template v-if="column && !props.hideIcon">
-      <NcTooltip v-if="isGrid" class="flex items-center" placement="bottom">
-        <template #title> {{ columnTypeName }} </template>
+    <div
+      class="nc-cell-name-wrapper flex-1 flex items-center"
+      :class="{
+        'max-w-[calc(100%_-_24px)]': !isExpandedForm,
+        'max-w-full': isExpandedForm,
+      }"
+    >
+      <template v-if="column && !props.hideIcon">
+        <NcTooltip
+          v-if="isGrid"
+          class="flex items-center"
+          placement="bottom"
+          :disabled="isExpandedForm ? editColumnDropdown || isDropDownOpen : false"
+        >
+          <template #title> {{ columnTypeName }} </template>
+          <SmartsheetHeaderCellIcon
+            :class="{
+              'self-start': isForm || isSurveyForm,
+            }"
+          />
+        </NcTooltip>
         <SmartsheetHeaderCellIcon
+          v-else
           :class="{
             'self-start': isForm || isSurveyForm,
           }"
         />
-      </NcTooltip>
-      <SmartsheetHeaderCellIcon
-        v-else
+      </template>
+      <NcTooltip
+        v-if="column"
         :class="{
-          'self-start': isForm || isSurveyForm,
+          'cursor-pointer pt-0.25': !isForm && isUIAllowed('fieldEdit') && !hideMenu,
+          'cursor-default': isForm || !isUIAllowed('fieldEdit') || hideMenu,
+          'truncate': !isForm,
         }"
+        class="name pl-1 max-w-full"
+        placement="bottom"
+        show-on-truncate-only
+        :disabled="isExpandedForm ? editColumnDropdown || isDropDownOpen : false"
+      >
+        <template #title> {{ column.title }} </template>
+
+        <span
+          :data-test-id="column.title"
+          :class="{
+            'select-none': isExpandedForm,
+          }"
+        >
+          {{ column.title }}
+        </span>
+      </NcTooltip>
+
+      <span v-if="(column.rqd && !column.cdf) || required" class="text-red-500">&nbsp;*</span>
+
+      <GeneralIcon
+        v-if="isExpandedForm"
+        icon="arrowDown"
+        class="flex-none text-grey h-full text-grey cursor-pointer ml-1 invisible group-hover:visible"
       />
-    </template>
-    <NcTooltip
-      v-if="column"
-      :class="{
-        'cursor-pointer pt-0.25': !isForm && isUIAllowed('fieldEdit') && !hideMenu,
-        'cursor-default': isForm || !isUIAllowed('fieldEdit') || hideMenu,
-        'truncate': !isForm,
-      }"
-      class="name pl-1"
-      placement="bottom"
-      show-on-truncate-only
-    >
-      <template #title> {{ column.title }} </template>
-
-      <span :data-test-id="column.title">
-        {{ column.title }}
-      </span>
-    </NcTooltip>
-
-    <span v-if="(column.rqd && !column.cdf) || required" class="text-red-500">&nbsp;*</span>
-
-    <template v-if="!hideMenu">
-      <div class="flex-1" />
-      <LazySmartsheetHeaderMenu
-        v-if="!isForm && isUIAllowed('fieldEdit')"
-        v-model:is-open="isDropDownOpen"
-        @add-column="addField"
-        @edit="openHeaderMenu"
-      />
-    </template>
-
-    <a-dropdown
-      v-model:visible="editColumnDropdown"
-      class="h-full"
-      :trigger="['click']"
-      placement="bottomRight"
-      overlay-class-name="nc-dropdown-edit-column"
-    >
-      <div />
-
-      <template #overlay>
-        <SmartsheetColumnEditOrAddProvider
-          v-if="editColumnDropdown"
-          :column="columnOrder ? null : column"
-          :column-position="columnOrder"
-          class="w-full"
-          @submit="closeAddColumnDropdown"
-          @cancel="closeAddColumnDropdown"
-          @click.stop
-          @keydown.stop
+    </div>
+    <div class="flex items-center">
+      <template v-if="!hideMenu">
+        <div class="flex-1" />
+        <LazySmartsheetHeaderMenu
+          v-if="!isForm && isUIAllowed('fieldEdit')"
+          v-model:is-open="isDropDownOpen"
+          @add-column="addField"
+          @edit="openHeaderMenu"
         />
       </template>
-    </a-dropdown>
+
+      <a-dropdown
+        v-model:visible="editColumnDropdown"
+        class="h-full"
+        :trigger="['click']"
+        :placement="isExpandedForm ? 'bottomLeft' : 'bottomRight'"
+        overlay-class-name="nc-dropdown-edit-column"
+      >
+        <div
+          v-if="isExpandedForm"
+          @dblclick.stop
+          :class="{
+            'max-h-[0px]': isExpandedForm,
+          }"
+        >
+          &nbsp;
+        </div>
+        <div v-else></div>
+
+        <template #overlay>
+          <SmartsheetColumnEditOrAddProvider
+            v-if="editColumnDropdown"
+            :column="columnOrder ? null : column"
+            :column-position="columnOrder"
+            class="w-full"
+            @submit="closeAddColumnDropdown"
+            @cancel="closeAddColumnDropdown"
+            @click.stop
+            @keydown.stop
+          />
+        </template>
+      </a-dropdown>
+    </div>
   </div>
 </template>
 

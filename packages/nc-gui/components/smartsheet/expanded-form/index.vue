@@ -131,6 +131,12 @@ const {
   clearColumns,
 } = useProvideExpandedFormStore(meta, row)
 
+reloadViewDataTrigger.on(async (params) => {
+  if (rowId.value && params?.columnDuplidated) {
+    await _loadRow(rowId.value, false, true)
+  }
+})
+
 const duplicatingRowInProgress = ref(false)
 
 useProvideSmartsheetStore(ref({}) as Ref<ViewType>, meta)

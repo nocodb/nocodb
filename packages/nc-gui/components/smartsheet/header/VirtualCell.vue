@@ -196,7 +196,12 @@ const onClick = (e: Event) => {
         <template #title>
           {{ tooltipMsg }}
         </template>
-        <span :data-test-id="column.title">
+        <span
+          :data-test-id="column.title"
+          :class="{
+            'select-none': isExpandedForm,
+          }"
+        >
           {{ column.title }}
         </span>
       </NcTooltip>

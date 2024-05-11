@@ -146,7 +146,7 @@ const duplicateVirtualColumn = async () => {
     await getMeta(meta!.value!.id!, true)
 
     eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
-    reloadDataHook?.trigger()
+    reloadDataHook?.trigger({ columnDuplidated: true })
 
     // message.success(t('msg.success.columnDuplicated'))
   } catch (e) {
@@ -232,28 +232,49 @@ const addColumn = async (before = false) => {
 }
 
 // hide the field in view
-const hideField = async () => {
+const hideOrShowField = async () => {
   const gridViewColumnList = (await $api.dbViewColumn.list(view.value?.id as string)).list
 
   const currentColumn = gridViewColumnList.find((f) => f.fk_column_id === column!.value.id)
 
-  await $api.dbViewColumn.update(view.value!.id!, currentColumn!.id!, { show: false })
+  const promises = [$api.dbViewColumn.update(view.value!.id!, currentColumn!.id!, { show: !currentColumn.show })]
+
+  if (isExpandedForm.value) {
+    promises.push(getMeta(meta?.value?.id as string, true))
+  }
+
+  await Promise.all(promises)
+
   eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
 
   addUndo({
     redo: {
-      fn: async function redo(id: string) {
-        await $api.dbViewColumn.update(view.value!.id!, id, { show: false })
+      fn: async function redo(id: string, show: boolean) {
+        const promises = [$api.dbViewColumn.update(view.value!.id!, id, { show: !show })]
+
+        if (isExpandedForm.value) {
+          promises.push(getMeta(meta?.value?.id as string, true))
+        }
+
+        await Promise.all(promises)
+
         eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
       },
-      args: [currentColumn!.id],
+      args: [currentColumn!.id, currentColumn.show],
     },
     undo: {
-      fn: async function undo(id: string) {
-        await $api.dbViewColumn.update(view.value!.id!, id, { show: true })
+      fn: async function undo(id: string, show: boolean) {
+        const promises = [$api.dbViewColumn.update(view.value!.id!, id, { show: show })]
+
+        if (isExpandedForm.value) {
+          promises.push(getMeta(meta?.value?.id as string, true))
+        }
+
+        await Promise.all(promises)
+
         eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
       },
-      args: [currentColumn!.id],
+      args: [currentColumn!.id, currentColumn.show],
     },
     scope: defineViewScope({ view: view.value }),
   })
@@ -353,7 +374,7 @@ const filterOrGroupByThisField = (event: SmartsheetStoreEvents) => {
           </div>
         </NcMenuItem>
         <a-divider v-if="!column?.pv" class="!my-0" />
-        <NcMenuItem v-if="!column?.pv" @click="hideField">
+        <NcMenuItem v-if="!column?.pv" @click="hideOrShowField">
           <div v-e="['a:field:hide']" class="nc-column-insert-before nc-header-menu-item">
             <component :is="iconMap.eye" class="text-gray-700 !w-3.75 !h-3.75" />
             <!-- Hide Field -->

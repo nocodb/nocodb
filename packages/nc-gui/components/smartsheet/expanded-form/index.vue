@@ -568,7 +568,7 @@ export default {
               <template #title> {{ renderAltOrOptlKey() }} + ← </template>
               <NcButton
                 :disabled="isFirstRow || isLoading"
-                class="nc-prev-arrow !w-7 !h-7 !text-gray-500 disabled:!text-gray-300"
+                class="nc-prev-arrow !w-7 !h-7 !text-gray-500 !disabled:text-gray-300"
                 type="text"
                 size="xsmall"
                 @click="$emit('prev')"
@@ -580,7 +580,7 @@ export default {
               <template #title> {{ renderAltOrOptlKey() }} + → </template>
               <NcButton
                 :disabled="islastRow || isLoading"
-                class="nc-next-arrow !w-7 !h-7 !text-gray-500 disabled:!text-gray-300"
+                class="nc-next-arrow !w-7 !h-7 !text-gray-500 !disabled:text-gray-300"
                 type="text"
                 size="xsmall"
                 @click="onNext"

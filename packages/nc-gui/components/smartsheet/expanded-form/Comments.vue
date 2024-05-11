@@ -46,7 +46,7 @@ const focusInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
 function onKeyDown(event: KeyboardEvent) {
   if (event.key === 'Escape') {
     onKeyEsc(event)
-  } else if (event.key === 'Enter') {
+  } else if (event.key === 'Enter' && !event.shiftKey) {
     onKeyEnter(event)
   }
 }
@@ -208,21 +208,20 @@ const onClickAudit = () => {
           </div>
           <div class="font-medium text-center my-6 text-gray-500">{{ $t('activity.startCommenting') }}</div>
         </div>
-        <div v-else ref="commentsWrapperEl" class="flex flex-col h-full py-2 pl-2 pr-1 space-y-2 nc-scrollbar-md">
+        <div v-else ref="commentsWrapperEl" class="flex flex-col h-full py-2 nc-scrollbar-thin">
           <div v-for="log of comments" :key="log.id">
-            <div class="bg-white rounded-xl group border-1 gap-2 border-gray-200 overflow-hidden">
-              <div class="flex flex-col p-4 gap-3">
-                <div class="flex justify-between">
-                  <div class="flex items-center gap-2">
-                    <GeneralUserIcon size="base" :name="log.display_name" :email="log.user" />
-
-                    <div class="flex flex-col <lg:max-w-22">
+            <div class="group gap-3 overflow-hidden hover:bg-gray-100 flex items-start px-3 pt-3 pb-4">
+              <GeneralUserIcon size="medium" :name="log.display_name" :email="log.user" />
+              <div class="flex-1 flex flex-col gap-1">
+                <div class="flex justify-between min-h-7">
+                  <div class="flex items-center">
+                    <div class="flex flex-wrap items-center gap-2 <lg:max-w-22">
                       <NcTooltip class="truncate max-w-42" show-on-truncate-only>
                         <template #title>
                           {{ log.display_name?.trim() || log.user || 'Shared source' }}
                         </template>
                         <span
-                          class="text-ellipsis overflow-hidden font-bold"
+                          class="text-ellipsis overflow-hidden font-bold text-gray-800"
                           :style="{
                             wordBreak: 'keep-all',
                             whiteSpace: 'nowrap',
@@ -237,29 +236,49 @@ const onClickAudit = () => {
                       </div>
                     </div>
                   </div>
-                  <NcButton
+
+                  <NcDropdown
+                    placement="bottomRight"
                     v-if="log.user === user!.email && !editLog"
-                    v-e="['c:row-expand:comment:edit']"
-                    type="secondary"
-                    class="!px-2 opacity-0 group-hover:opacity-100 transition-all"
-                    size="sm"
-                    @click="editComment(log)"
+                    overlay-class-name="!min-w-[160px]"
                   >
-                    <Icon class="iconify text-gray-800" icon="lucide:pen" />
-                  </NcButton>
+                    <NcButton type="text" size="xsmall" class="nc-expand-form-more-actions !w-7 !h-7">
+                      <GeneralIcon icon="threeDotVertical" class="text-md text-gray-700 invisible group-hover:visible" />
+                    </NcButton>
+                    <template #overlay>
+                      <NcMenu>
+                        <NcMenuItem v-e="['c:row-expand:comment:edit']" class="text-gray-700" @click="editComment(log)">
+                          <div class="flex gap-2 items-center">
+                            <component :is="iconMap.rename" class="cursor-pointer" />
+                            {{ $t('general.edit') }}
+                          </div>
+                        </NcMenuItem>
+                        <template v-if="false">
+                          <NcDivider />
+                          <NcMenuItem v-e="['c:row-expand:comment:delete']" class="!text-red-500 !hover:bg-red-50">
+                            <div class="flex gap-2 items-center">
+                              <GeneralIcon icon="delete" />
+                              {{ $t('general.delete') }}
+                            </div>
+                          </NcMenuItem>
+                        </template>
+                      </NcMenu>
+                    </template>
+                  </NcDropdown>
                 </div>
-                <textarea
+
+                <a-textarea
                   v-if="log.id === editLog?.id"
                   :ref="focusInput"
-                  v-model="value"
-                  rows="6"
-                  class="px-2 py-1 rounded-lg border-none nc-scrollbar-md bg-white outline-gray-200"
+                  v-model:value="value"
+                  class="!p-1.5 !m-0 w-full !rounded-md !text-gray-800 !text-small !min-h-[70px] nc-scrollbar-thin"
+                  data-testid="expanded-form-comment-input"
                   @keydown.stop="onKeyDown($event)"
                 />
                 <div v-else class="text-sm text-gray-700">
                   {{ log.description.substring(log.description.indexOf(':') + 1) }}
                 </div>
-                <div v-if="log.id === editLog?.id" class="flex justify-end gap-1">
+                <div v-if="log.id === editLog?.id" class="flex justify-end gap-1 mt-1">
                   <NcButton size="small" type="secondary" @click="onCancel"> Cancel </NcButton>
                   <NcButton v-e="['a:row-expand:comment:save']" size="small" @click="onEditComment"> Save </NcButton>
                 </div>
@@ -267,24 +286,23 @@ const onClickAudit = () => {
             </div>
           </div>
         </div>
-        <div v-if="hasEditPermission" class="p-2 bg-gray-50 gap-2 flex">
-          <div class="h-14 flex flex-row w-full bg-white py-2.75 px-1.5 items-center rounded-xl border-1 border-gray-200">
-            <GeneralUserIcon size="base" class="!w-10" :email="user?.email" :name="user?.display_name" />
-            <a-input
+        <div v-if="hasEditPermission" class="px-2 py-[9px] border-t-1 border-gray-200 gap-2 flex">
+          <div class="flex flex-row w-full bg-white items-start gap-2">
+            <a-textarea
               :ref="focusCommentInput"
               v-model:value="comment"
-              class="!rounded-lg border-1 bg-white !px-2.5 !py-2 !border-gray-200 nc-comment-box !outline-none"
-              placeholder="Start typing..."
-              data-testid="expanded-form-comment-input"
-              :bordered="false"
+              class="!p-1 !m-0 w-full !border-0 !rounded-none !text-gray-800 !text-small !max-h-[70px] nc-scrollbar-thin"
+              auto-size
+              hide-details
               :disabled="isSaving"
-              @keyup.enter.prevent="saveComment"
-            >
-            </a-input>
+              placeholder="Comment..."
+              :bordered="false"
+              data-testid="expanded-form-comment-input"
+              @keydown.enter.exact.prevent="saveComment"
+            />
             <NcButton
               v-e="['a:row-expand:comment:save']"
-              size="medium"
-              class="!w-8"
+              size="small"
               :loading="isSaving"
               :disabled="!isSaving && !comment.length"
               :icon-only="isSaving"

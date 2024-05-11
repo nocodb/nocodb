@@ -905,7 +905,7 @@ export default {
         <div
           v-if="showRightSections"
           :class="{ active: commentsDrawer && isUIAllowed('commentList') }"
-          class="nc-comments-drawer border-l-1 relative border-gray-200 w-1/3 max-w-125 bg-gray-50 min-w-0 overflow-hidden h-full xs:hidden"
+          class="nc-comments-drawer border-l-1 relative border-gray-200 w-1/3 max-w-125 min-w-0 overflow-hidden h-full xs:hidden"
         >
           <SmartsheetExpandedFormComments :loading="isLoading" />
         </div>

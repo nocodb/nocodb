@@ -645,7 +645,7 @@ export default {
               {{ isRecordLinkCopied ? $t('labels.copiedRecordURL') : $t('labels.copyRecordURL') }}
             </div>
           </NcButton>
-          <NcTooltip v-if="!isMobileMode">
+          <NcTooltip v-if="!isMobileMode && isUIAllowed('dataEdit')">
             <template #title> {{ renderAltOrOptlKey() }} + S </template>
             <NcButton
               v-e="['c:row-expand:save']"

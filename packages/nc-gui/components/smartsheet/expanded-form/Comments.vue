@@ -143,7 +143,10 @@ watch(commentsWrapperEl, () => {
     <NcTabs v-model:activeKey="tab" class="h-full">
       <a-tab-pane key="comments" class="w-full h-full">
         <template #tab>
-          <div v-e="['c:row-expand:comment']">Comments</div>
+          <div v-e="['c:row-expand:comment']" class="flex items-center gap-2">
+            <GeneralIcon icon="messageCircle" class="w-4 h-4" />
+            <span class="<lg:hidden"> Comments </span>
+          </div>
         </template>
         <div
           class="h-full"
@@ -164,7 +167,7 @@ watch(commentsWrapperEl, () => {
             <div v-else ref="commentsWrapperEl" class="flex flex-col h-full py-1 nc-scrollbar-thin">
               <div v-for="log of comments" :key="log.id">
                 <div class="group gap-3 overflow-hidden hover:bg-gray-200 flex items-start px-3 pt-3 pb-4">
-                  <GeneralUserIcon size="medium" :name="log.display_name" :email="log.user"  class="mt-0.5"/>
+                  <GeneralUserIcon size="medium" :name="log.display_name" :email="log.user" class="mt-0.5" />
                   <div class="flex-1 flex flex-col gap-1 max-w-[calc(100%_-_24px)]">
                     <div class="w-full flex justify-between gap-3 min-h-7">
                       <div class="flex items-start max-w-[calc(100%_-_40px)]">
@@ -284,9 +287,17 @@ watch(commentsWrapperEl, () => {
             <template #title>
               <span class="!text-base"> Coming soon </span>
             </template>
-            <div v-e="['c:row-expand:audit']" class="text-gray-400">Audits</div>
+
+            <div v-e="['c:row-expand:audit']" class="flex items-center gap-2 text-gray-400">
+              <GeneralIcon icon="audit" class="w-4 h-4" />
+              <span class="<lg:hidden"> Audits </span>
+            </div>
           </NcTooltip>
-          <div v-else v-e="['c:row-expand:audit']">Audits</div>
+
+          <div v-else v-e="['c:row-expand:audit']" class="flex items-center gap-2">
+            <GeneralIcon icon="audit" class="w-4 h-4" />
+            <span class="<lg:hidden"> Audits </span>
+          </div>
         </template>
         <div
           class="h-full"
@@ -424,7 +435,7 @@ watch(commentsWrapperEl, () => {
   &:focus {
     @apply min-h-16;
   }
-  &::placeholder{
+  &::placeholder {
     @apply !text-gray-400;
   }
 }

@@ -185,6 +185,8 @@ import NcFile from '~icons/nc-icons/file'
 import NcSettings from '~icons/nc-icons/settings'
 import NcHelp from '~icons/nc-icons/help'
 import NcAlertTriangle from '~icons/nc-icons/alert-triangle'
+import NcAudit from '~icons/nc-icons/audit'
+import NcMessageCircle from '~icons/nc-icons/message-circle'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -603,6 +605,8 @@ export const iconMap = {
   arrowDropUp: MaterialSymbolsArrowDropUp,
   arrowDropDown: MaterialSymbolsArrowDropDown,
   alertTriangle: NcAlertTriangle,
+  audit: NcAudit,
+  messageCircle: NcMessageCircle,
 }
 
 export const getMdiIcon = (type: string): any => {

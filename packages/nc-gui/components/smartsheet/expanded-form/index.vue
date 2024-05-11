@@ -557,9 +557,6 @@ export default {
       </div>
       <div
         class="flex min-h-7 flex-shrink-0 w-full items-center nc-expanded-form-header relative p-4 xs:(px-2 py-0 min-h-[48px]) justify-between"
-        :class="{
-          'border-b-1 border-gray-200': isNew,
-        }"
       >
         <div class="flex-1 flex gap-3 lg:w-100 <lg:max-w-[calc(100%_-_128px)] xs:(max-w-[calc(100%_-_44px)])">
           <div class="flex gap-2">
@@ -712,10 +709,7 @@ export default {
           </NcButton>
         </div>
       </div>
-      <div
-        ref="wrapper"
-        class="flex flex-grow flex-row h-[calc(100%-4rem)] w-full overflow-hidden border-t-1 border-gray-200 xs:(border-none)"
-      >
+      <div ref="wrapper" class="flex flex-grow flex-row h-[calc(100%-4rem)] w-full overflow-hidden border-t-1 border-gray-200">
         <div
           :class="{
             'w-full': !showRightSections,
@@ -725,7 +719,7 @@ export default {
         >
           <div
             ref="expandedFormScrollWrapper"
-            class="flex flex-col flex-grow gap-3 h-full max-h-full nc-scrollbar-thin items-center w-full p-4 xs:(px-4 pt-4 pb-2) children:max-w-[640px]"
+            class="flex flex-col flex-grow gap-3 h-full max-h-full nc-scrollbar-thin items-center w-full p-4 xs:(px-4 pt-4 pb-2 gap-6) children:max-w-[640px]"
           >
             <div
               v-for="(col, i) of fields"
@@ -737,7 +731,7 @@ export default {
               class="nc-expanded-form-row w-full"
             >
               <div class="flex items-start flex-row sm:(gap-x-2) <lg:(flex-col w-full) nc-expanded-cell min-h-[37px]">
-                <div class="w-50 <lg:(w-full px-0) h-[37px] flex items-center rounded-lg overflow-hidden">
+                <div class="w-50 <lg:(w-full px-0 mb-1) h-[37px] xs:(h-auto) flex items-center rounded-lg overflow-hidden">
                   <LazySmartsheetHeaderVirtualCell
                     v-if="isVirtualCol(col)"
                     :column="col"
@@ -763,7 +757,7 @@ export default {
                   <SmartsheetDivDataCell
                     v-if="col.title"
                     :ref="i ? null : (el: any) => (cellWrapperEl = el)"
-                    class="bg-white flex-1 <lg:w-full px-1 sm:min-h-[37px] xs:min-h-13 flex items-center relative"
+                    class="bg-white flex-1 <lg:w-full px-1 min-h-[37px] flex items-center relative"
                     :class="{
                       '!bg-gray-50 !select-text nc-system-field': isReadOnlyVirtualCell(col),
                     }"
@@ -816,7 +810,7 @@ export default {
                 class="nc-expanded-form-row w-full"
               >
                 <div class="flex items-start flex-row sm:(gap-x-2) <lg:(flex-col w-full) nc-expanded-cell min-h-[37px]">
-                  <div class="w-50 <lg:(w-full px-0) h-[37px] flex items-center rounded-lg overflow-hidden">
+                  <div class="w-50 <lg:(w-full px-0) h-[37px] xs:(h-auto) flex items-center rounded-lg overflow-hidden">
                     <LazySmartsheetHeaderVirtualCell
                       v-if="isVirtualCol(col)"
                       :column="col"
@@ -843,7 +837,7 @@ export default {
                     <LazySmartsheetDivDataCell
                       v-if="col.title"
                       :ref="i ? null : (el: any) => (cellWrapperEl = el)"
-                      class="bg-white flex-1 <lg:w-full px-1 sm:min-h-[37px] xs:min-h-13 flex items-center relative"
+                      class="bg-white flex-1 <lg:w-full px-1 min-h-[37px] flex items-center relative"
                       :class="{
                         '!bg-gray-50 !select-text nc-system-field': isReadOnlyVirtualCell(col),
                       }"
@@ -876,11 +870,11 @@ export default {
             v-if="isUIAllowed('dataEdit')"
             class="w-full flex items-center justify-end px-2 py-[9px] xs:(p-0 gap-x-4 justify-between)"
             :class="{
-              'border-t-1 border-gray-200': !isNew,
+              'xs(border-t-1 border-gray-200)': !isNew,
             }"
           >
-            <div class="p-2">
-              <NcDropdown v-if="!isNew && isMobileMode" placement="bottomRight" class="p-2">
+            <div v-if="!isNew && isMobileMode" class="p-2">
+              <NcDropdown placement="bottomRight" class="p-2">
                 <NcButton :disabled="isLoading" class="nc-expand-form-more-actions" type="secondary" size="small">
                   <GeneralIcon :class="isLoading ? 'text-gray-300' : 'text-gray-700'" class="text-md" icon="threeDotVertical" />
                 </NcButton>
@@ -998,21 +992,15 @@ export default {
   }
 }
 
-.nc-expanded-cell {
-  input {
-    @apply xs:(h-12 text-base);
-  }
-}
-
 .nc-expanded-cell-header {
-  @apply w-full text-gray-500 !font-weight-500 xs:(text-gray-600 mb-2) pr-3;
+  @apply w-full text-gray-500 !font-weight-500 xs:(text-gray-600 mb-2 !text-small) pr-3;
 }
 
 .nc-expanded-cell-header > :nth-child(2) {
-  @apply !text-sm !xs:text-base;
+  @apply !text-sm xs:!text-small;
 }
 .nc-expanded-cell-header > :first-child {
-  @apply !text-md pl-2;
+  @apply !text-md pl-2 xs:(pl-0 -ml-0.5);
 }
 
 .nc-drawer-expanded-form .nc-modal {

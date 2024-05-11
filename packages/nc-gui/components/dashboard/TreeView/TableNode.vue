@@ -260,20 +260,10 @@ const deleteTable = () => {
                       :is="iconMap.table"
                       v-if="table.type === 'table'"
                       class="w-4 text-sm"
-                      :class="{
-                        '!text-brand-600': openedTableId === table.id,
-                        '!text-gray-600/75': openedTableId !== table.id,
-                      }"
+                      :class="isTableOpened ? '!text-brand-600' : '!text-gray-600/75'"
                     />
 
-                    <MdiEye
-                      v-else
-                      class="flex w-5 text-sm"
-                      :class="{
-                        '!text-brand-600': openedTableId === table.id,
-                        '!text-gray-600': openedTableId !== table.id,
-                      }"
-                    />
+                    <MdiEye v-else class="flex w-5 text-sm" :class="isTableOpened ? '!text-brand-600' : '!text-gray-600'" />
                   </NcTooltip>
                 </template>
               </LazyGeneralEmojiPicker>

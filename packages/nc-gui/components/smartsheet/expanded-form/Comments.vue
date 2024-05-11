@@ -166,7 +166,7 @@ watch(commentsWrapperEl, () => {
             <GeneralLoader class="!mt-16" size="xlarge" />
           </div>
           <div v-else class="flex flex-col h-full">
-            <div v-if="comments.length === 0" class="flex flex-col my-1 text-center justify-center h-full">
+            <div v-if="comments.length === 0" class="flex flex-col my-1 text-center justify-center h-full nc-scrollbar-thin">
               <div class="text-center text-3xl text-gray-700">
                 <GeneralIcon icon="commentHere" />
               </div>

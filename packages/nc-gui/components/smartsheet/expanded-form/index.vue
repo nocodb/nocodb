@@ -620,19 +620,6 @@ export default {
         </div>
         <div class="flex gap-2">
           <NcButton
-            v-if="!isMobileMode"
-            v-e="['c:row-expand:save']"
-            :disabled="changedColumns.size === 0 && !isUnsavedFormExist"
-            :loading="isSaving"
-            class="nc-expand-form-save-btn !xs:(text-base) !h-7 !px-2"
-            data-testid="nc-expanded-form-save"
-            type="primary"
-            size="xsmall"
-            @click="save"
-          >
-            <div class="xs:px-1">{{ newRecordSubmitBtnText ?? 'Save Record' }}</div>
-          </NcButton>
-          <NcButton
             v-if="!isNew && rowId && !isMobileMode"
             :disabled="isLoading"
             class="!<lg:hidden text-gray-700 !h-7 !px-2"
@@ -649,6 +636,19 @@ export default {
               <component :is="iconMap.copy" v-else class="cursor-pointer nc-duplicate-row" />
               {{ isRecordLinkCopied ? $t('labels.copiedRecordURL') : $t('labels.copyRecordURL') }}
             </div>
+          </NcButton>
+          <NcButton
+            v-if="!isMobileMode"
+            v-e="['c:row-expand:save']"
+            :disabled="changedColumns.size === 0 && !isUnsavedFormExist"
+            :loading="isSaving"
+            class="nc-expand-form-save-btn !xs:(text-base) !h-7 !px-2"
+            data-testid="nc-expanded-form-save"
+            type="primary"
+            size="xsmall"
+            @click="save"
+          >
+            <div class="xs:px-1">{{ newRecordSubmitBtnText ?? 'Save Record' }}</div>
           </NcButton>
           <NcDropdown v-if="!isNew && rowId && !isMobileMode" placement="bottomRight">
             <NcButton type="text" size="xsmall" class="nc-expand-form-more-actions !w-7 !h-7" :disabled="isLoading">
@@ -786,7 +786,7 @@ export default {
               <div class="flex-grow h-px mr-1 bg-gray-100"></div>
               <NcButton
                 :size="isMobileMode ? 'medium' : 'small'"
-                class="flex-shrink !text-sm overflow-hidden"
+                class="flex-shrink !text-sm overflow-hidden !text-gray-500 !font-weight-500"
                 type="secondary"
                 @click="toggleHiddenFields"
               >

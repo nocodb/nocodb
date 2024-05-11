@@ -32,6 +32,7 @@ const isCommentMode = ref(false)
 
 const showCommentInputBoxShadow = ref(false)
 
+
 const focusCommentInput: VNodeRef = (el) => {
   if (el) {
     if (parseInt((el.$el as HTMLTextAreaElement)?.style?.height ?? '') > 82) {
@@ -186,7 +187,7 @@ watch(commentsWrapperEl, () => {
                               {{ log.display_name?.trim() || log.user || 'Shared source' }}
                             </template>
                             <span
-                              class="text-ellipsis overflow-hidden font-bold text-gray-800"
+                              class="text-ellipsis overflow-hidden text-gray-700"
                               :style="{
                                 wordBreak: 'keep-all',
                                 whiteSpace: 'nowrap',
@@ -271,11 +272,7 @@ watch(commentsWrapperEl, () => {
                     @keydown.stop
                     @keydown.enter.exact.prevent="saveComment"
                   />
-                  <div
-                    v-if="showCommentInputBoxShadow"
-                    class="expanded-form-comment-input-shadow"
-                    :class="`valju-${comment?.split('\n').length}`"
-                  ></div>
+                  <div v-if="showCommentInputBoxShadow" class="expanded-form-comment-input-shadow"></div>
                 </div>
                 <NcButton
                   v-e="['a:row-expand:comment:save']"
@@ -434,12 +431,8 @@ watch(commentsWrapperEl, () => {
 
   .expanded-form-comment-input-shadow {
     @apply absolute top-1px left-1px h-3 w-[98%] z-0 rounded-t-lg  pointer-events-none;
-  }
 
-  &:focus-within {
-    .expanded-form-comment-input-shadow {
-      box-shadow: 0px 12px 12px 0px rgba(255, 255, 255, 0.65) inset;
-    }
+    box-shadow: 0px 12px 12px 0px rgba(255, 255, 255, 0.65) inset;
   }
 }
 :deep(.expanded-form-comment-input) {

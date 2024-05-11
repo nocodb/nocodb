@@ -533,27 +533,29 @@ export default {
     @update:visible="onIsExpandedUpdate"
   >
     <div class="h-[85vh] xs:(max-h-full) max-h-215 flex flex-col p-6">
-      <div class="flex h-9.5 flex-shrink-0 w-full items-center nc-expanded-form-header relative mb-4 justify-between">
+      <div class="flex min-h-7 flex-shrink-0 w-full items-center nc-expanded-form-header relative mb-4 justify-between">
         <template v-if="!isMobileMode">
           <div class="flex gap-3 w-100 <lg:max-w-64">
             <div class="flex gap-2">
               <NcButton
                 v-if="props.showNextPrevIcons"
                 :disabled="isFirstRow"
-                class="nc-prev-arrow !w-10"
-                type="secondary"
+                class="nc-prev-arrow !w-7 !h-7"
+                type="text"
+                size="xsmall"
                 @click="$emit('prev')"
               >
-                <MdiChevronUp class="text-md" />
+                <GeneralIcon icon="chevronDown" class="transform rotate-180" />
               </NcButton>
               <NcButton
                 v-if="props.showNextPrevIcons"
                 :disabled="islastRow"
-                class="nc-next-arrow !w-10"
-                type="secondary"
+                class="nc-next-arrow !w-7 !h-7"
+                type="text"
+                size="xsmall"
                 @click="onNext"
               >
-                <MdiChevronDown class="text-md" />
+                <GeneralIcon icon="chevronDown" />
               </NcButton>
             </div>
             <div v-if="isLoading">
@@ -561,12 +563,12 @@ export default {
             </div>
             <div
               v-if="row.rowMeta?.new || props.newRecordHeader"
-              class="flex items-center truncate font-bold text-gray-800 text-xl"
+              class="flex items-center truncate font-bold text-gray-800 text-base"
             >
               {{ props.newRecordHeader ?? $t('activity.newRecord') }}
             </div>
-            <div v-else-if="displayValue && !row.rowMeta?.new" class="flex items-center font-bold text-gray-800 text-xl w-64">
-              <span class="truncate !text-xl">
+            <div v-else-if="displayValue && !row.rowMeta?.new" class="flex items-center font-bold text-gray-800 text-base w-64">
+              <span class="truncate">
                 <LazySmartsheetPlainCell v-model="displayValue" :column="displayField" />
               </span>
             </div>
@@ -575,18 +577,19 @@ export default {
             <NcButton
               v-if="!isNew && rowId"
               :disabled="isLoading"
-              class="!<lg:hidden text-gray-700"
-              type="secondary"
+              class="!<lg:hidden text-gray-700 !h-7 !px-2"
+              type="text"
+              size="xsmall"
               @click="copyRecordUrl()"
             >
-              <div v-e="['c:row-expand:copy-url']" data-testid="nc-expanded-form-copy-url" class="flex gap-2 items-center">
+              <div v-e="['c:row-expand:copy-url']" data-testid="nc-expanded-form-copy-url" class="flex gap-2 items-center text-small">
                 <component :is="iconMap.check" v-if="isRecordLinkCopied" class="cursor-pointer nc-duplicate-row" />
-                <component :is="iconMap.link" v-else class="cursor-pointer nc-duplicate-row" />
+                <component :is="iconMap.copy" v-else class="cursor-pointer nc-duplicate-row" />
                 {{ isRecordLinkCopied ? $t('labels.copiedRecordURL') : $t('labels.copyRecordURL') }}
               </div>
             </NcButton>
             <NcDropdown v-if="!isNew && rowId" placement="bottomRight">
-              <NcButton type="secondary" class="nc-expand-form-more-actions w-10" :disabled="isLoading">
+              <NcButton type="text" size="xsmall" class="nc-expand-form-more-actions !w-7 !h-7" :disabled="isLoading">
                 <GeneralIcon icon="threeDotVertical" class="text-md" :class="isLoading ? 'text-gray-300' : 'text-gray-700'" />
               </NcButton>
               <template #overlay>
@@ -638,9 +641,10 @@ export default {
               </template>
             </NcDropdown>
             <NcButton
-              class="nc-expand-form-close-btn w-10"
+              class="nc-expand-form-close-btn !w-7 !h-7"
               data-testid="nc-expanded-form-close"
-              type="secondary"
+              type="text"
+              size="xsmall"
               @click="onClose"
             >
               <GeneralIcon class="text-md text-gray-700" icon="close" />

@@ -74,7 +74,6 @@ const handleShowSearchInput = () => {
 }
 
 onClickOutside(globalSearchWrapperRef, (e) => {
-  console.log('e', e.target)
   const targetEl = e.target as HTMLElement
   if (search.value.query || targetEl.closest('.nc-dropdown-toolbar-search-field-option')) {
     return

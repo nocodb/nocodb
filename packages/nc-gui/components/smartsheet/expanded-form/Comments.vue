@@ -163,7 +163,7 @@ watch(commentsWrapperEl, () => {
             </div>
             <div v-else ref="commentsWrapperEl" class="flex flex-col h-full py-1 nc-scrollbar-thin">
               <div v-for="log of comments" :key="log.id">
-                <div class="group gap-3 overflow-hidden hover:bg-gray-100 flex items-start px-3 pt-3 pb-4">
+                <div class="group gap-3 overflow-hidden hover:bg-gray-200 flex items-start px-3 pt-3 pb-4">
                   <GeneralUserIcon size="medium" :name="log.display_name" :email="log.user" />
                   <div class="flex-1 flex flex-col gap-1 max-w-[calc(100%_-_24px)]">
                     <div class="w-full flex justify-between gap-3 min-h-7">
@@ -197,8 +197,12 @@ watch(commentsWrapperEl, () => {
                         v-if="log.user === user!.email && !editLog"
                         overlay-class-name="!min-w-[160px]"
                       >
-                        <NcButton type="text" size="xsmall" class="nc-expand-form-more-actions !w-7 !h-7 hover:!bg-gray-200">
-                          <GeneralIcon icon="threeDotVertical" class="text-md text-gray-700 invisible group-hover:visible" />
+                        <NcButton
+                          type="text"
+                          size="xsmall"
+                          class="nc-expand-form-more-actions !w-7 !h-7 !hover:(bg-transparent text-brand-500)"
+                        >
+                          <GeneralIcon icon="threeDotVertical" class="text-md invisible group-hover:visible" />
                         </NcButton>
                         <template #overlay>
                           <NcMenu>
@@ -240,17 +244,16 @@ watch(commentsWrapperEl, () => {
                 </div>
               </div>
             </div>
-            <div v-if="hasEditPermission" class="px-2 py-[9px] border-t-1 border-gray-200 gap-2 flex">
-              <div class="flex flex-row w-full bg-white items-start gap-2">
+            <div v-if="hasEditPermission" class="p-3 border-t-1 border-gray-200 gap-2 flex">
+              <div class="flex flex-row w-full items-start gap-2">
                 <a-textarea
                   :ref="focusCommentInput"
                   v-model:value="comment"
-                  class="expanded-form-comment-input !p-1 !m-0 w-full !border-0 !rounded-none !text-gray-800 !text-small !leading-18px !max-h-[70px] nc-scrollbar-thin"
+                  class="expanded-form-comment-input !py-1 !px-3 !m-0 w-full !border-1 !border-gray-200 !rounded-lg !bg-white !text-gray-800 !text-small !leading-18px !max-h-[70px] nc-scrollbar-thin"
                   auto-size
                   hide-details
                   :disabled="isSaving"
                   placeholder="Comment..."
-                  :bordered="false"
                   data-testid="expanded-form-comment-input"
                   @keydown.stop
                   @keydown.enter.exact.prevent="saveComment"
@@ -372,7 +375,7 @@ watch(commentsWrapperEl, () => {
   .ant-tabs-nav {
     @apply px-3;
     .ant-tabs-nav-list {
-      @apply w-full gap-6;
+      @apply w-[calc(100%_-_24px)] gap-6;
 
       .ant-tabs-tab {
         @apply flex-1 flex items-center justify-center pt-3 pb-2.5;
@@ -392,7 +395,7 @@ watch(commentsWrapperEl, () => {
 
 .nc-comment-description {
   pre {
-    @apply !mb-0 !text-small !text-gray-700 !leading-18px;
+    @apply !mb-0 py-[1px] !text-small !text-gray-700 !leading-18px;
     white-space: break-spaces;
     font-size: unset;
     font-family: unset;

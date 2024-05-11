@@ -185,7 +185,7 @@ watch(commentsWrapperEl, () => {
                               {{ log.display_name?.trim() || log.user || 'Shared source' }}
                             </template>
                             <span
-                              class="text-ellipsis overflow-hidden text-gray-700"
+                              class="text-ellipsis overflow-hidden text-gray-700 text-small"
                               :style="{
                                 wordBreak: 'keep-all',
                                 whiteSpace: 'nowrap',
@@ -262,7 +262,7 @@ watch(commentsWrapperEl, () => {
                   <a-textarea
                     :ref="focusCommentInput"
                     v-model:value="comment"
-                    class="expanded-form-comment-input !py-1 !px-3 !m-0 w-full !border-1 !border-gray-200 !rounded-lg !bg-transparent !text-gray-800 !text-small !leading-18px !max-h-[70px] nc-scrollbar-thin"
+                    class="expanded-form-comment-input !py-1 !px-3 !m-0 w-full !border-1 !border-gray-200 !rounded-lg !bg-transparent !text-gray-800 !text-small !leading-18px !max-h-[694px] nc-scrollbar-thin"
                     auto-size
                     hide-details
                     :disabled="isSaving"

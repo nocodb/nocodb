@@ -73,6 +73,7 @@ const nestedScope = computed(() => {
       id: parent,
       label: parentEl?.title,
       icon: parentEl?.icon,
+      iconColor: parent.startsWith('ws-') ? parentEl?.iconColor : null,
     })
     parent = parentEl?.parent || 'root'
   }
@@ -332,6 +333,9 @@ defineExpose({
                 v-if="el.icon && el.id.startsWith('ws')"
                 :workspace="{
                   id: el.id.split('-')[1],
+                  meta: {
+                    color: el.iconColor,
+                  },
                 }"
                 hide-label
                 size="small"
@@ -408,6 +412,9 @@ defineExpose({
                       v-if="act.icon && act.id.startsWith('ws')"
                       :workspace="{
                         id: act.id.split('-')[2],
+                        meta: {
+                          color: act?.iconColor,
+                        },
                       }"
                       class="mr-2"
                       size="small"

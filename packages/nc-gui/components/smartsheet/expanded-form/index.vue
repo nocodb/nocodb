@@ -718,7 +718,7 @@ export default {
               class="nc-expanded-form-row w-full"
             >
               <div class="flex items-start flex-row sm:(gap-x-2) <lg:(flex-col w-full) nc-expanded-cell min-h-[37px]">
-                <div class="w-50 pl-2 pr-3 <lg:(w-full px-0) min-h-[37px] flex items-center">
+                <div class="w-50 <lg:(w-full px-0) min-h-[37px] flex items-center rounded-lg hover:bg-gray-100">
                   <LazySmartsheetHeaderVirtualCell
                     v-if="isVirtualCol(col)"
                     :column="col"
@@ -797,7 +797,7 @@ export default {
                 class="nc-expanded-form-row w-full"
               >
                 <div class="flex items-start flex-row sm:(gap-x-2) <lg:(flex-col w-full) nc-expanded-cell min-h-[37px]">
-                  <div class="w-50 pl-2 pr-3 <lg:(w-full px-0) min-h-[37px] flex items-center">
+                  <div class="w-50 <lg:(w-full px-0) min-h-[37px] flex items-center rounded-lg hover:bg-gray-100">
                     <LazySmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" class="nc-expanded-cell-header" />
 
                     <LazySmartsheetHeaderCell v-else :column="col" class="nc-expanded-cell-header" />
@@ -967,7 +967,7 @@ export default {
 }
 
 .nc-expanded-cell-header {
-  @apply w-full text-gray-500 !font-weight-500 xs:(text-gray-600 mb-2);
+  @apply w-full text-gray-500 !font-weight-500 xs:(text-gray-600 mb-2) pl-2 pr-3;
 }
 
 .nc-expanded-cell-header > :nth-child(2) {

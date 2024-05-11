@@ -59,7 +59,7 @@ const closeAddColumnDropdown = () => {
 const openHeaderMenu = () => {
   if (isLocked.value) return
 
-  if (!isForm.value && !isExpandedForm.value && isUIAllowed('fieldEdit') && !isMobileMode.value) {
+  if (!isForm.value && isUIAllowed('fieldEdit') && !isMobileMode.value) {
     editColumnDropdown.value = true
   }
 }
@@ -67,7 +67,7 @@ const openHeaderMenu = () => {
 const openDropDown = (e: Event) => {
   if (isLocked.value) return
 
-  if (isForm.value || isExpandedForm.value || (!isUIAllowed('fieldEdit') && !isMobileMode.value)) return
+  if (isForm.value || (!isUIAllowed('fieldEdit') && !isMobileMode.value)) return
 
   e.preventDefault()
   e.stopPropagation()
@@ -94,7 +94,7 @@ const onClick = (e: Event) => {
     @click="onClick"
   >
     <template v-if="column && !props.hideIcon">
-      <NcTooltip v-if="isGrid && !isExpandedForm" class="flex items-center" placement="bottom">
+      <NcTooltip v-if="isGrid" class="flex items-center" placement="bottom">
         <template #title> {{ columnTypeName }} </template>
         <SmartsheetHeaderCellIcon
           :class="{
@@ -112,7 +112,7 @@ const onClick = (e: Event) => {
     <NcTooltip
       v-if="column"
       :class="{
-        'cursor-pointer pt-0.25': !isForm && isUIAllowed('fieldEdit') && !hideMenu && !isExpandedForm,
+        'cursor-pointer pt-0.25': !isForm && isUIAllowed('fieldEdit') && !hideMenu,
         'cursor-default': isForm || !isUIAllowed('fieldEdit') || hideMenu,
         'truncate': !isForm,
       }"
@@ -132,7 +132,7 @@ const onClick = (e: Event) => {
     <template v-if="!hideMenu">
       <div class="flex-1" />
       <LazySmartsheetHeaderMenu
-        v-if="!isForm && !isExpandedForm && isUIAllowed('fieldEdit')"
+        v-if="!isForm && isUIAllowed('fieldEdit')"
         v-model:is-open="isDropDownOpen"
         @add-column="addField"
         @edit="openHeaderMenu"

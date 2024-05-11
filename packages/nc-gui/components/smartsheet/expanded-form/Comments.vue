@@ -136,7 +136,6 @@ const saveComment = async () => {
 watch(commentsWrapperEl, () => {
   scrollComments()
 })
-
 </script>
 
 <template>
@@ -185,7 +184,7 @@ watch(commentsWrapperEl, () => {
                               {{ log.display_name?.trim() || log.user || 'Shared source' }}
                             </span>
                           </NcTooltip>
-                          <div v-if="log.id !== editLog?.id" class="text-xs font-medium text-gray-500">
+                          <div v-if="log.id !== editLog?.id" class="text-xs text-gray-400">
                             {{
                               log.created_at !== log.updated_at ? `Edited ${timeAgo(log.updated_at)}` : timeAgo(log.created_at)
                             }}
@@ -198,7 +197,7 @@ watch(commentsWrapperEl, () => {
                         v-if="log.user === user!.email && !editLog"
                         overlay-class-name="!min-w-[160px]"
                       >
-                        <NcButton type="text" size="xsmall" class="nc-expand-form-more-actions !w-7 !h-7">
+                        <NcButton type="text" size="xsmall" class="nc-expand-form-more-actions !w-7 !h-7 hover:!bg-gray-200">
                           <GeneralIcon icon="threeDotVertical" class="text-md text-gray-700 invisible group-hover:visible" />
                         </NcButton>
                         <template #overlay>
@@ -228,10 +227,9 @@ watch(commentsWrapperEl, () => {
                       :ref="focusInput"
                       v-model:value="value"
                       class="!p-1.5 !m-0 w-full !rounded-md !text-gray-800 !text-small !leading-18px !min-h-[70px] nc-scrollbar-thin"
-                      data-testid="expanded-form-comment-input"
                       @keydown.stop="onKeyDown($event)"
                     />
-                    <div v-else class="nc-comment-description text-sm text-gray-700">
+                    <div v-else class="nc-comment-description text-sm text-gray-800">
                       <pre>{{ log.description.substring(log.description.indexOf(':') + 1).trim() }}</pre>
                     </div>
                     <div v-if="log.id === editLog?.id" class="flex justify-end gap-1 mt-1">
@@ -247,13 +245,14 @@ watch(commentsWrapperEl, () => {
                 <a-textarea
                   :ref="focusCommentInput"
                   v-model:value="comment"
-                  class="!p-1 !m-0 w-full !border-0 !rounded-none !text-gray-800 !text-small !leading-18px !max-h-[70px] nc-scrollbar-thin"
+                  class="expanded-form-comment-input !p-1 !m-0 w-full !border-0 !rounded-none !text-gray-800 !text-small !leading-18px !max-h-[70px] nc-scrollbar-thin"
                   auto-size
                   hide-details
                   :disabled="isSaving"
                   placeholder="Comment..."
                   :bordered="false"
                   data-testid="expanded-form-comment-input"
+                  @keydown.stop
                   @keydown.enter.exact.prevent="saveComment"
                 />
                 <NcButton
@@ -322,7 +321,7 @@ watch(commentsWrapperEl, () => {
                         {{ log.display_name?.trim() || log.user || 'Shared source' }}
                       </span>
                     </NcTooltip>
-                    <div v-if="log.id !== editLog?.id" class="text-xs font-medium text-gray-500">
+                    <div v-if="log.id !== editLog?.id" class="text-xs text-gray-400">
                       {{ timeAgo(log.created_at) }}
                     </div>
                   </div>
@@ -397,6 +396,15 @@ watch(commentsWrapperEl, () => {
     white-space: break-spaces;
     font-size: unset;
     font-family: unset;
+  }
+}
+:deep(.expanded-form-comment-input) {
+  @apply transition-all duration-150;
+
+  box-shadow: 0px 12px 12px 0px rgba(255, 255, 255, 0.65) inset;
+
+  &:focus {
+    @apply min-h-16;
   }
 }
 </style>

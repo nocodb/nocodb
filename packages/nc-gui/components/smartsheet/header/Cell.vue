@@ -77,6 +77,8 @@ const openDropDown = (e: Event) => {
 }
 
 const onClick = (e: Event) => {
+  if (!isUIAllowed('fieldEdit')) return
+
   if (isDropDownOpen.value) {
     e.preventDefault()
     e.stopPropagation()
@@ -97,7 +99,8 @@ const onClick = (e: Event) => {
     :class="{
       'h-full': column,
       '!text-gray-400': isKanban,
-      'flex-col !items-start justify-center cursor-pointer hover:bg-gray-200': isExpandedForm,
+      'flex-col !items-start justify-center': isExpandedForm,
+      'cursor-pointer hover:bg-gray-200': isExpandedForm && isUIAllowed('fieldEdit'),
       'bg-gray-200': isExpandedForm ? editColumnDropdown || isDropDownOpen : false,
     }"
     @dblclick="openHeaderMenu"
@@ -159,7 +162,7 @@ const onClick = (e: Event) => {
       <span v-if="(column.rqd && !column.cdf) || required" class="text-red-500">&nbsp;*</span>
 
       <GeneralIcon
-        v-if="isExpandedForm"
+        v-if="isExpandedForm && isUIAllowed('fieldEdit')"
         icon="arrowDown"
         class="flex-none text-grey h-full text-grey cursor-pointer ml-1 group-hover:visible"
         :class="{

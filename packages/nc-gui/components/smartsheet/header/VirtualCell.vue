@@ -159,6 +159,8 @@ const openDropDown = (e: Event) => {
 }
 
 const onClick = (e: Event) => {
+  if (!isUIAllowed('fieldEdit')) return
+
   if (isDropDownOpen.value) {
     e.preventDefault()
     e.stopPropagation()
@@ -177,8 +179,9 @@ const onClick = (e: Event) => {
   <div
     class="flex items-center w-full h-full text-small text-gray-500 font-weight-medium group"
     :class="{
-      'flex-col !items-start justify-center cursor-pointer hover:bg-gray-200': isExpandedForm,
+      'flex-col !items-start justify-center': isExpandedForm,
       'bg-gray-200': isExpandedForm ? editColumnDropdown || isDropDownOpen : false,
+      'cursor-pointer hover:bg-gray-200': isExpandedForm && isUIAllowed('fieldEdit'),
     }"
     @dblclick="openHeaderMenu"
     @click.right="openDropDown"
@@ -215,7 +218,7 @@ const onClick = (e: Event) => {
       <span v-if="isVirtualColRequired(column, meta?.columns || []) || required" class="text-red-500">&nbsp;*</span>
 
       <GeneralIcon
-        v-if="isExpandedForm"
+        v-if="isExpandedForm && isUIAllowed('fieldEdit')"
         icon="arrowDown"
         class="flex-none text-grey h-full text-grey cursor-pointer ml-1 group-hover:visible"
         :class="{

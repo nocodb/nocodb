@@ -454,7 +454,7 @@ const onTableIdCopy = async () => {
       :data-testid="`nc-sidebar-base-${base.title}`"
       :data-base-id="base.id"
     >
-      <div class="flex items-center gap-0.75 py-0.25 cursor-pointer" @contextmenu="setMenuContext('base', base)">
+      <div class="flex items-center gap-0.75 py-0.5 cursor-pointer" @contextmenu="setMenuContext('base', base)">
         <div
           ref="baseNodeRefs"
           :class="{
@@ -462,7 +462,7 @@ const onTableIdCopy = async () => {
             'hover:bg-gray-200': !(activeProjectId === base.id && baseViewOpen),
           }"
           :data-testid="`nc-sidebar-base-title-${base.title}`"
-          class="nc-sidebar-node base-title-node h-7.25 flex-grow rounded-md group flex items-center w-full pr-1 pl-1.5"
+          class="nc-sidebar-node base-title-node h-7 flex-grow rounded-md group flex items-center w-full pr-1 pl-1.5"
         >
           <div class="flex items-center mr-1" @click="onProjectClick(base)">
             <div class="flex items-center select-none w-6 h-full">
@@ -497,7 +497,7 @@ const onTableIdCopy = async () => {
             v-else
             class="nc-sidebar-node-title capitalize text-ellipsis overflow-hidden select-none flex-1"
             :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
-            :class="{ 'text-black font-semibold': activeProjectId === base.id && baseViewOpen }"
+            :class="activeProjectId === base.id && baseViewOpen ? 'text-brand-600 font-semibold' : 'text-gray-700'"
             show-on-truncate-only
             @click="onProjectClick(base)"
           >
@@ -713,7 +713,7 @@ const onTableIdCopy = async () => {
                     </template>
                     <a-collapse-panel :key="`collapse-${source.id}`">
                       <template #header>
-                        <div class="nc-sidebar-node min-w-20 w-full h-full flex flex-row group py-0.25 pr-6.5 !mr-0">
+                        <div class="nc-sidebar-node min-w-20 w-full h-full flex flex-row group py-0.5 pr-6.5 !mr-0">
                           <div
                             v-if="sourceIndex === 0"
                             class="source-context flex items-center gap-2 text-gray-800 nc-sidebar-node-title"
@@ -746,9 +746,11 @@ const onTableIdCopy = async () => {
                               v-else
                               class="nc-sidebar-node-title capitalize text-ellipsis overflow-hidden select-none"
                               :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
-                              :class="{
-                                'text-black font-semibold': activeProjectId === base.id && baseViewOpen && !isMobileMode,
-                              }"
+                              :class="
+                                activeProjectId === base.id && baseViewOpen && !isMobileMode
+                                  ? 'text-brand-600 font-semibold'
+                                  : 'text-gray-700'
+                              "
                               show-on-truncate-only
                             >
                               <template #title> {{ source.alias || '' }}</template>
@@ -926,7 +928,7 @@ const onTableIdCopy = async () => {
 
 <style lang="scss" scoped>
 :deep(.ant-collapse-header) {
-  @apply !mx-0 !pl-8.75 h-7.1 !xs:(pl-7 h-[3rem]) !pr-0.5 !py-0 hover:bg-gray-200 xs:(hover:bg-gray-50) !rounded-md;
+  @apply !mx-0 !pl-8.75 h-7 !xs:(pl-7 h-[3rem]) !pr-0.5 !py-0 hover:bg-gray-200 xs:(hover:bg-gray-50) !rounded-md;
 
   .ant-collapse-arrow {
     @apply !right-1 !xs:(flex-none border-1 border-gray-200 w-6.5 h-6.5 mr-1);

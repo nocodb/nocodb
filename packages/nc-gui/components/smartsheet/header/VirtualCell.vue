@@ -180,8 +180,8 @@ const onClick = (e: Event) => {
     class="flex items-center w-full h-full text-small text-gray-500 font-weight-medium group"
     :class="{
       'flex-col !items-start justify-center': isExpandedForm,
-      'bg-gray-200': isExpandedForm ? editColumnDropdown || isDropDownOpen : false,
-      'cursor-pointer hover:bg-gray-200': isExpandedForm && !isMobileMode && isUIAllowed('fieldEdit'),
+      'bg-gray-100': isExpandedForm ? editColumnDropdown || isDropDownOpen : false,
+      'cursor-pointer hover:bg-gray-100': isExpandedForm && !isMobileMode && isUIAllowed('fieldEdit'),
     }"
     @dblclick="openHeaderMenu"
     @click.right="openDropDown"

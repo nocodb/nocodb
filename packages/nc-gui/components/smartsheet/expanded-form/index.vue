@@ -592,7 +592,7 @@ export default {
               'xs:max-w-[calc(100%_-_82px)]': !isNew,
             }"
           >
-            <div v-if="meta.title" class="flex items-center gap-2 px-2 py-1 rounded-lg bg-gray-200 text-gray-800">
+            <div v-if="meta.title" class="flex items-center gap-2 px-2 py-1 rounded-lg bg-gray-100 text-gray-800">
               <GeneralTableIcon :meta="meta" class="!text-gray-800" />
 
               <NcTooltip class="truncate max-w-[100px] xs:(max-w-[82px]) h-5" show-on-truncate-only>
@@ -630,7 +630,7 @@ export default {
             size="xsmall"
             @click="save"
           >
-            <div class="xs:px-1">{{ newRecordSubmitBtnText ?? 'Save' }}</div>
+            <div class="xs:px-1">{{ newRecordSubmitBtnText ?? 'Save Record' }}</div>
           </NcButton>
           <NcButton
             v-if="!isNew && rowId && !isMobileMode"
@@ -714,7 +714,7 @@ export default {
         <div
           :class="{
             'w-full': !showRightSections,
-            'w-2/3': showRightSections,
+            'flex-1': showRightSections,
           }"
           class="flex xs:w-full flex-col overflow-hidden"
         >
@@ -919,7 +919,7 @@ export default {
                 :size="isMobileMode ? 'small' : 'xsmall'"
                 @click="save"
               >
-                <div class="xs:px-1">{{ newRecordSubmitBtnText ?? isNew ? 'Create Record' : 'Save' }}</div>
+                <div class="xs:px-1">{{ newRecordSubmitBtnText ?? isNew ? 'Create Record' : 'Save Record' }}</div>
               </NcButton>
             </div>
           </div>
@@ -927,7 +927,7 @@ export default {
         <div
           v-if="showRightSections"
           :class="{ active: commentsDrawer && isUIAllowed('commentList') }"
-          class="nc-comments-drawer border-l-1 relative border-gray-200 bg-gray-50 w-1/3 max-w-125 min-w-0 overflow-hidden h-full xs:hidden"
+          class="nc-comments-drawer border-l-1 relative border-gray-200 bg-gray-50 w-1/3 max-w-[388px] min-w-0 overflow-hidden h-full xs:hidden"
         >
           <SmartsheetExpandedFormComments :loading="isLoading" />
         </div>

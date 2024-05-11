@@ -100,8 +100,8 @@ const onClick = (e: Event) => {
       'h-full': column,
       '!text-gray-400': isKanban,
       'flex-col !items-start justify-center': isExpandedForm && !isMobileMode,
-      'cursor-pointer hover:bg-gray-200': isExpandedForm && !isMobileMode && isUIAllowed('fieldEdit'),
-      'bg-gray-200': isExpandedForm ? editColumnDropdown || isDropDownOpen : false,
+      'cursor-pointer hover:bg-gray-100': isExpandedForm && !isMobileMode && isUIAllowed('fieldEdit'),
+      'bg-gray-100': isExpandedForm ? editColumnDropdown || isDropDownOpen : false,
     }"
     @dblclick="openHeaderMenu"
     @click.right="openDropDown"

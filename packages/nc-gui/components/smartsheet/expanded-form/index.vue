@@ -612,7 +612,7 @@ export default {
                     @click="copyRecordUrl()"
                   >
                     <div v-e="['c:row-expand:copy-url']" data-testid="nc-expanded-form-copy-url" class="flex gap-2 items-center">
-                      <component :is="iconMap.link" class="cursor-pointer" />
+                      <component :is="iconMap.copy" class="cursor-pointer" />
                       {{ $t('labels.copyRecordURL') }}
                     </div>
                   </NcMenuItem>
@@ -622,7 +622,7 @@ export default {
                       class="flex gap-2 items-center"
                       data-testid="nc-expanded-form-duplicate"
                     >
-                      <component :is="iconMap.copy" class="cursor-pointer nc-duplicate-row" />
+                      <component :is="iconMap.duplicate" class="cursor-pointer nc-duplicate-row" />
                       <span class="-ml-0.25">
                         {{ $t('labels.duplicateRecord') }}
                       </span>

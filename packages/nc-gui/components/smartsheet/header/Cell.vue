@@ -80,7 +80,7 @@ const onClick = (e: Event) => {
     e.preventDefault()
     e.stopPropagation()
   } else {
-    if (isExpandedForm.value) {
+    if (isExpandedForm.value && !editColumnDropdown.value) {
       isDropDownOpen.value = true
       return
     }
@@ -96,7 +96,8 @@ const onClick = (e: Event) => {
     :class="{
       'h-full': column,
       '!text-gray-400': isKanban,
-      'flex-col !items-start justify-center cursor-pointer': isExpandedForm,
+      'flex-col !items-start justify-center cursor-pointer hover:bg-gray-200': isExpandedForm,
+      'bg-gray-200': isExpandedForm ? editColumnDropdown || isDropDownOpen : false,
     }"
     @dblclick="openHeaderMenu"
     @click.right="openDropDown"
@@ -105,7 +106,7 @@ const onClick = (e: Event) => {
     <div
       class="nc-cell-name-wrapper flex-1 flex items-center"
       :class="{
-        'max-w-[calc(100%_-_24px)]': !isExpandedForm,
+        'max-w-[calc(100%_-_23px)]': !isExpandedForm,
         'max-w-full': isExpandedForm,
       }"
     >
@@ -159,52 +160,47 @@ const onClick = (e: Event) => {
       <GeneralIcon
         v-if="isExpandedForm"
         icon="arrowDown"
-        class="flex-none text-grey h-full text-grey cursor-pointer ml-1 invisible group-hover:visible"
+        class="flex-none text-grey h-full text-grey cursor-pointer ml-1 group-hover:visible"
+        :class="{
+          visible: editColumnDropdown || isDropDownOpen,
+          invisible: !(editColumnDropdown || isDropDownOpen),
+        }"
       />
     </div>
-    <div class="flex items-center">
-      <template v-if="!hideMenu">
-        <div class="flex-1" />
-        <LazySmartsheetHeaderMenu
-          v-if="!isForm && isUIAllowed('fieldEdit')"
-          v-model:is-open="isDropDownOpen"
-          @add-column="addField"
-          @edit="openHeaderMenu"
+
+    <template v-if="!hideMenu">
+      <div v-if="!isExpandedForm" class="flex-1" />
+      <LazySmartsheetHeaderMenu
+        v-if="!isForm && isUIAllowed('fieldEdit')"
+        v-model:is-open="isDropDownOpen"
+        @add-column="addField"
+        @edit="openHeaderMenu"
+      />
+    </template>
+
+    <a-dropdown
+      v-model:visible="editColumnDropdown"
+      class="h-full"
+      :trigger="['click']"
+      :placement="isExpandedForm ? 'bottomLeft' : 'bottomRight'"
+      overlay-class-name="nc-dropdown-edit-column"
+    >
+      <div v-if="isExpandedForm" @dblclick.stop class="max-h-[0px] max-w-[0px]">&nbsp;</div>
+      <div v-else />
+
+      <template #overlay>
+        <SmartsheetColumnEditOrAddProvider
+          v-if="editColumnDropdown"
+          :column="columnOrder ? null : column"
+          :column-position="columnOrder"
+          class="w-full"
+          @submit="closeAddColumnDropdown"
+          @cancel="closeAddColumnDropdown"
+          @click.stop
+          @keydown.stop
         />
       </template>
-
-      <a-dropdown
-        v-model:visible="editColumnDropdown"
-        class="h-full"
-        :trigger="['click']"
-        :placement="isExpandedForm ? 'bottomLeft' : 'bottomRight'"
-        overlay-class-name="nc-dropdown-edit-column"
-      >
-        <div
-          v-if="isExpandedForm"
-          @dblclick.stop
-          :class="{
-            'max-h-[0px]': isExpandedForm,
-          }"
-        >
-          &nbsp;
-        </div>
-        <div v-else></div>
-
-        <template #overlay>
-          <SmartsheetColumnEditOrAddProvider
-            v-if="editColumnDropdown"
-            :column="columnOrder ? null : column"
-            :column-position="columnOrder"
-            class="w-full"
-            @submit="closeAddColumnDropdown"
-            @cancel="closeAddColumnDropdown"
-            @click.stop
-            @keydown.stop
-          />
-        </template>
-      </a-dropdown>
-    </div>
+    </a-dropdown>
   </div>
 </template>
 

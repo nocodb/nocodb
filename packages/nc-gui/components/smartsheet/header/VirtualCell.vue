@@ -133,8 +133,8 @@ const closeAddColumnDropdown = () => {
   editColumnDropdown.value = false
 }
 
-const openHeaderMenu = () => {
-  if (isLocked.value) return
+const openHeaderMenu = (e?: MouseEvent) => {
+  if (isLocked.value || (isExpandedForm.value && e?.type === 'dblclick')) return
 
   if (!isForm.value && isUIAllowed('fieldEdit') && !isMobileMode.value) {
     editColumnDropdown.value = true
@@ -144,41 +144,77 @@ const openHeaderMenu = () => {
 const openDropDown = (e: Event) => {
   if (isLocked.value) return
 
-  if (isForm.value  || (!isUIAllowed('fieldEdit') && !isMobileMode.value)) return
+  if (isForm.value || (!isUIAllowed('fieldEdit') && !isMobileMode.value)) return
 
   e.preventDefault()
   e.stopPropagation()
 
   isDropDownOpen.value = !isDropDownOpen.value
 }
+
+const onClick = (e: Event) => {
+  if (isDropDownOpen.value) {
+    e.preventDefault()
+    e.stopPropagation()
+  } else {
+    if (isExpandedForm.value && !editColumnDropdown.value) {
+      isDropDownOpen.value = true
+      return
+    }
+  }
+
+  isDropDownOpen.value = false
+}
 </script>
 
 <template>
   <div
-    class="flex items-center w-full h-full text-small text-gray-500 font-weight-medium"
+    class="flex items-center w-full h-full text-small text-gray-500 font-weight-medium group"
+    :class="{
+      'flex-col !items-start justify-center cursor-pointer hover:bg-gray-200': isExpandedForm,
+      'bg-gray-200': isExpandedForm ? editColumnDropdown || isDropDownOpen : false,
+    }"
     @dblclick="openHeaderMenu"
     @click.right="openDropDown"
+    @click="onClick"
   >
-    <template v-if="column && !props.hideIcon">
-      <NcTooltip v-if="isGrid" class="flex items-center" placement="bottom">
-        <template #title> {{ columnTypeName }} </template>
-        <LazySmartsheetHeaderVirtualCellIcon />
-      </NcTooltip>
-      <LazySmartsheetHeaderVirtualCellIcon v-else />
-    </template>
-    <NcTooltip placement="bottom" class="truncate name pl-1" :show-on-truncate-only="!showTooltipAlways">
-      <template #title>
-        {{ tooltipMsg }}
+    <div
+      class="nc-virtual-cell-name-wrapper flex-1 flex items-center"
+      :class="{
+        'max-w-[calc(100%_-_23px)]': !isExpandedForm,
+        'max-w-full': isExpandedForm,
+      }"
+    >
+      <template v-if="column && !props.hideIcon">
+        <NcTooltip v-if="isGrid" class="flex items-center" placement="bottom">
+          <template #title> {{ columnTypeName }} </template>
+          <LazySmartsheetHeaderVirtualCellIcon />
+        </NcTooltip>
+        <LazySmartsheetHeaderVirtualCellIcon v-else />
       </template>
-      <span :data-test-id="column.title">
-        {{ column.title }}
-      </span>
-    </NcTooltip>
+      <NcTooltip placement="bottom" class="truncate name pl-1" :show-on-truncate-only="!showTooltipAlways">
+        <template #title>
+          {{ tooltipMsg }}
+        </template>
+        <span :data-test-id="column.title">
+          {{ column.title }}
+        </span>
+      </NcTooltip>
 
-    <span v-if="isVirtualColRequired(column, meta?.columns || []) || required" class="text-red-500">&nbsp;*</span>
+      <span v-if="isVirtualColRequired(column, meta?.columns || []) || required" class="text-red-500">&nbsp;*</span>
 
+      <GeneralIcon
+        v-if="isExpandedForm"
+        icon="arrowDown"
+        class="flex-none text-grey h-full text-grey cursor-pointer ml-1 group-hover:visible"
+        :class="{
+          visible: editColumnDropdown || isDropDownOpen,
+          invisible: !(editColumnDropdown || isDropDownOpen),
+        }"
+      />
+    </div>
     <template v-if="!hideMenu">
-      <div class="flex-1" />
+      <div v-if="!isExpandedForm" class="flex-1" />
 
       <LazySmartsheetHeaderMenu
         v-if="!isForm && isUIAllowed('fieldEdit')"
@@ -193,10 +229,11 @@ const openDropDown = (e: Event) => {
       v-model:visible="editColumnDropdown"
       class="h-full"
       :trigger="['click']"
-      placement="bottomRight"
+      :placement="isExpandedForm ? 'bottomLeft' : 'bottomRight'"
       overlay-class-name="nc-dropdown-edit-column"
     >
-      <div />
+      <div v-if="isExpandedForm" @dblclick.stop class="max-h-[0px] max-w-[0px]">&nbsp;</div>
+      <div v-else />
       <template #overlay>
         <SmartsheetColumnEditOrAddProvider
           v-if="editColumnDropdown"

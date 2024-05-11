@@ -561,7 +561,7 @@ export default {
             <div v-if="isLoading">
               <a-skeleton-input active class="!h-8 !sm:mr-14 !w-52 mt-1 !rounded-md !overflow-hidden" size="small" />
             </div>
-            <div v-if="meta.title" class="flex items-center gap-2 px-2 py-1 rounded-lg bg-gray-100 text-gray-800">
+            <div v-if="meta.title" class="flex items-center gap-2 px-2 py-1 rounded-lg bg-gray-200 text-gray-800">
               <GeneralTableIcon :meta="meta" class="!text-gray-800" />
 
               <NcTooltip class="truncate max-w-[100px] h-5" show-on-truncate-only>
@@ -693,10 +693,7 @@ export default {
           </div>
         </template>
       </div>
-      <div
-        ref="wrapper"
-        class="flex flex-grow flex-row h-[calc(100%-4rem)] w-full border-1 border-gray-200 rounded-lg overflow-hidden xs:(border-none)"
-      >
+      <div ref="wrapper" class="flex flex-grow flex-row h-[calc(100%-4rem)] w-full rounded-lg overflow-hidden xs:(border-none)">
         <div
           :class="{
             'w-full': !showRightSections,
@@ -706,7 +703,7 @@ export default {
         >
           <div
             ref="expandedFormScrollWrapper"
-            class="flex flex-col flex-grow gap-3 h-full max-h-full nc-scrollbar-thin items-center w-full bg-white p-4 xs:p-0 children:max-w-[640px]"
+            class="flex flex-col flex-grow gap-3 h-full max-h-full nc-scrollbar-thin items-center w-full p-4 xs:p-0 children:max-w-[640px]"
           >
             <div
               v-for="(col, i) of fields"
@@ -718,7 +715,7 @@ export default {
               class="nc-expanded-form-row w-full"
             >
               <div class="flex items-start flex-row sm:(gap-x-2) <lg:(flex-col w-full) nc-expanded-cell min-h-[37px]">
-                <div class="w-50 <lg:(w-full px-0) h-[37px] flex items-center rounded-lg hover:bg-gray-100">
+                <div class="w-50 <lg:(w-full px-0) h-[37px] flex items-center rounded-lg overflow-hidden">
                   <LazySmartsheetHeaderVirtualCell
                     v-if="isVirtualCol(col)"
                     :column="col"
@@ -797,7 +794,7 @@ export default {
                 class="nc-expanded-form-row w-full"
               >
                 <div class="flex items-start flex-row sm:(gap-x-2) <lg:(flex-col w-full) nc-expanded-cell min-h-[37px]">
-                  <div class="w-50 <lg:(w-full px-0) h-[37px] flex items-center rounded-lg hover:bg-gray-100">
+                  <div class="w-50 <lg:(w-full px-0) h-[37px] flex items-center rounded-lg overflow-hidden">
                     <LazySmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" class="nc-expanded-cell-header" />
 
                     <LazySmartsheetHeaderCell v-else :column="col" class="nc-expanded-cell-header" />
@@ -850,7 +847,7 @@ export default {
 
           <div
             v-if="isUIAllowed('dataEdit')"
-            class="w-full border-t-1 border-gray-200 bg-white flex items-center justify-end px-2 py-[9px] xs:(p-0 mt-4 border-t-0 gap-x-4 justify-between)"
+            class="w-full flex items-center justify-end px-2 py-[9px] xs:(p-0 mt-4 gap-x-4 justify-between)"
           >
             <NcDropdown v-if="!isNew && isMobileMode" placement="bottomRight">
               <NcButton :disabled="isLoading" class="nc-expand-form-more-actions w-10" type="secondary">
@@ -915,7 +912,7 @@ export default {
         <div
           v-if="showRightSections"
           :class="{ active: commentsDrawer && isUIAllowed('commentList') }"
-          class="nc-comments-drawer border-l-1 relative border-gray-200 w-1/3 max-w-125 min-w-0 overflow-hidden h-full xs:hidden"
+          class="nc-comments-drawer border-1 rounded-lg relative border-gray-200 bg-white w-1/3 max-w-125 min-w-0 overflow-hidden h-full xs:hidden"
         >
           <SmartsheetExpandedFormComments :loading="isLoading" />
         </div>
@@ -958,6 +955,10 @@ export default {
 <style lang="scss">
 .nc-drawer-expanded-form {
   @apply xs:my-0;
+
+  .ant-modal-content {
+    @apply bg-gray-100;
+  }
 }
 
 .nc-expanded-cell {
@@ -991,8 +992,11 @@ export default {
   @apply !xs:(mt-1.75 ml-1);
 }
 
+.nc-data-cell {
+  @apply !border-none;
+}
 .nc-data-cell:focus-within {
-  @apply !border-1 !border-brand-500 !rounded-lg !shadow-none !ring-0;
+  @apply !border-1 !border-none !rounded-lg !shadow-none !ring-0;
 }
 
 :deep(.nc-system-field input) {

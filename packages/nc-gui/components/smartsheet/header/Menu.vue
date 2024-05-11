@@ -321,7 +321,7 @@ const filterOrGroupByThisField = (event: SmartsheetStoreEvents) => {
     v-model:visible="isOpen"
     :trigger="['click']"
     :placement="isExpandedForm ? 'bottomLeft' : 'bottomRight'"
-    overlay-class-name="nc-dropdown-column-operations !border-1 rounded-lg !shadow-xl"
+    overlay-class-name="nc-dropdown-column-operations !border-1 rounded-lg !shadow-xl "
     @click.stop="isOpen = !isOpen"
   >
     <div @dblclick.stop>
@@ -332,12 +332,24 @@ const filterOrGroupByThisField = (event: SmartsheetStoreEvents) => {
       />
     </div>
     <template #overlay>
-      <NcMenu class="flex flex-col gap-1 border-gray-200 nc-column-options">
+      <NcMenu
+        class="flex flex-col gap-1 border-gray-200 nc-column-options"
+        :class="{
+          'min-w-[256px]': isExpandedForm,
+        }"
+      >
         <NcMenuItem @click="onEditPress">
           <div class="nc-column-edit nc-header-menu-item">
             <component :is="iconMap.ncEdit" class="text-gray-700" />
             <!-- Edit -->
             {{ $t('general.edit') }}
+          </div>
+        </NcMenuItem>
+        <NcMenuItem v-if="isExpandedForm && !column?.pk" :disabled="!isDuplicateAllowed" @click="openDuplicateDlg">
+          <div v-e="['a:field:duplicate']" class="nc-column-duplicate nc-header-menu-item">
+            <component :is="iconMap.duplicate" class="text-gray-700" />
+            <!-- Duplicate -->
+            {{ t('general.duplicate') }}
           </div>
         </NcMenuItem>
         <a-divider v-if="!column?.pv" class="!my-0" />
@@ -358,103 +370,107 @@ const filterOrGroupByThisField = (event: SmartsheetStoreEvents) => {
           </div>
         </NcMenuItem>
 
-        <a-divider v-if="!isLinksOrLTAR(column) || column.colOptions.type !== RelationTypes.BELONGS_TO" class="!my-0" />
+        <template v-if="!isExpandedForm">
+          <a-divider v-if="!isLinksOrLTAR(column) || column.colOptions.type !== RelationTypes.BELONGS_TO" class="!my-0" />
 
-        <template v-if="!isLinksOrLTAR(column) || column.colOptions.type !== RelationTypes.BELONGS_TO">
-          <NcMenuItem @click="sortByColumn('asc')">
-            <div v-e="['a:field:sort', { dir: 'asc' }]" class="nc-column-insert-after nc-header-menu-item">
-              <component
-                :is="iconMap.sortDesc"
-                class="text-gray-700 !rotate-180 !w-4.25 !h-4.25"
-                :style="{
-                  transform: 'rotate(180deg)',
-                }"
-              />
+          <template v-if="!isLinksOrLTAR(column) || column.colOptions.type !== RelationTypes.BELONGS_TO">
+            <NcMenuItem @click="sortByColumn('asc')">
+              <div v-e="['a:field:sort', { dir: 'asc' }]" class="nc-column-insert-after nc-header-menu-item">
+                <component
+                  :is="iconMap.sortDesc"
+                  class="text-gray-700 !rotate-180 !w-4.25 !h-4.25"
+                  :style="{
+                    transform: 'rotate(180deg)',
+                  }"
+                />
 
-              <!-- Sort Ascending -->
-              {{ $t('general.sortAsc') }}
+                <!-- Sort Ascending -->
+                {{ $t('general.sortAsc') }}
+              </div>
+            </NcMenuItem>
+            <NcMenuItem @click="sortByColumn('desc')">
+              <div v-e="['a:field:sort', { dir: 'desc' }]" class="nc-column-insert-before nc-header-menu-item">
+                <!-- Sort Descending -->
+                <component :is="iconMap.sortDesc" class="text-gray-700 !w-4.25 !h-4.25" />
+                {{ $t('general.sortDesc').trim() }}
+              </div>
+            </NcMenuItem>
+          </template>
+
+          <a-divider class="!my-0" />
+
+          <NcTooltip :disabled="isFilterSupported && !isFilterLimitExceeded">
+            <template #title>
+              {{
+                !isFilterSupported
+                  ? "This field type doesn't support filtering"
+                  : isFilterLimitExceeded
+                  ? 'Filter by limit exceeded'
+                  : ''
+              }}
+            </template>
+            <NcMenuItem
+              :disabled="!isFilterSupported || isFilterLimitExceeded"
+              @click="filterOrGroupByThisField(SmartsheetStoreEvents.FILTER_ADD)"
+            >
+              <div v-e="['a:field:add:filter']" class="nc-column-filter nc-header-menu-item">
+                <component :is="iconMap.filter" class="text-gray-700" />
+                <!-- Filter by this field -->
+                Filter by this field
+              </div>
+            </NcMenuItem>
+          </NcTooltip>
+
+          <NcTooltip
+            :disabled="(isGroupBySupported && !isGroupByLimitExceeded) || isGroupedByThisField || !(isEeUI && !isPublic)"
+          >
+            <template #title>{{
+              !isGroupBySupported
+                ? "This field type doesn't support grouping"
+                : isGroupByLimitExceeded
+                ? 'Group by limit exceeded'
+                : ''
+            }}</template>
+            <NcMenuItem
+              :disabled="isEeUI && !isPublic && (!isGroupBySupported || isGroupByLimitExceeded) && !isGroupedByThisField"
+              @click="
+                filterOrGroupByThisField(
+                  isGroupedByThisField ? SmartsheetStoreEvents.GROUP_BY_REMOVE : SmartsheetStoreEvents.GROUP_BY_ADD,
+                )
+              "
+            >
+              <div v-e="['a:field:add:groupby']" class="nc-column-groupby nc-header-menu-item">
+                <component :is="iconMap.group" class="text-gray-700" />
+                <!-- Group by this field -->
+                {{ isGroupedByThisField ? "Don't group by this field" : 'Group by this field' }}
+              </div>
+            </NcMenuItem>
+          </NcTooltip>
+
+          <a-divider class="!my-0" />
+
+          <NcMenuItem v-if="!column?.pk" :disabled="!isDuplicateAllowed" @click="openDuplicateDlg">
+            <div v-e="['a:field:duplicate']" class="nc-column-duplicate nc-header-menu-item">
+              <component :is="iconMap.duplicate" class="text-gray-700" />
+              <!-- Duplicate -->
+              {{ t('general.duplicate') }}
             </div>
           </NcMenuItem>
-          <NcMenuItem @click="sortByColumn('desc')">
-            <div v-e="['a:field:sort', { dir: 'desc' }]" class="nc-column-insert-before nc-header-menu-item">
-              <component :is="iconMap.sortDesc" class="text-gray-700 !w-4.25 !h-4.25 ml-0.5 mr-0.25" />
-              <!-- Sort Descending -->
-              {{ $t('general.sortDesc') }}
+          <NcMenuItem @click="onInsertAfter">
+            <div v-e="['a:field:insert:after']" class="nc-column-insert-after nc-header-menu-item">
+              <component :is="iconMap.colInsertAfter" class="text-gray-700 !w-4.5 !h-4.5" />
+              <!-- Insert After -->
+              {{ t('general.insertAfter') }}
+            </div>
+          </NcMenuItem>
+          <NcMenuItem v-if="!column?.pv" @click="onInsertBefore">
+            <div v-e="['a:field:insert:before']" class="nc-column-insert-before nc-header-menu-item">
+              <component :is="iconMap.colInsertBefore" class="text-gray-600 !w-4.5 !h-4.5" />
+              <!-- Insert Before -->
+              {{ t('general.insertBefore') }}
             </div>
           </NcMenuItem>
         </template>
-
-        <a-divider class="!my-0" />
-
-        <NcTooltip :disabled="isFilterSupported && !isFilterLimitExceeded">
-          <template #title>
-            {{
-              !isFilterSupported
-                ? "This field type doesn't support filtering"
-                : isFilterLimitExceeded
-                ? 'Filter by limit exceeded'
-                : ''
-            }}
-          </template>
-          <NcMenuItem
-            :disabled="!isFilterSupported || isFilterLimitExceeded"
-            @click="filterOrGroupByThisField(SmartsheetStoreEvents.FILTER_ADD)"
-          >
-            <div v-e="['a:field:add:filter']" class="nc-column-filter nc-header-menu-item">
-              <component :is="iconMap.filter" class="text-gray-700" />
-              <!-- Filter by this field -->
-              Filter by this field
-            </div>
-          </NcMenuItem>
-        </NcTooltip>
-
-        <NcTooltip :disabled="(isGroupBySupported && !isGroupByLimitExceeded) || isGroupedByThisField || !(isEeUI && !isPublic)">
-          <template #title>{{
-            !isGroupBySupported
-              ? "This field type doesn't support grouping"
-              : isGroupByLimitExceeded
-              ? 'Group by limit exceeded'
-              : ''
-          }}</template>
-          <NcMenuItem
-            :disabled="isEeUI && !isPublic && (!isGroupBySupported || isGroupByLimitExceeded) && !isGroupedByThisField"
-            @click="
-              filterOrGroupByThisField(
-                isGroupedByThisField ? SmartsheetStoreEvents.GROUP_BY_REMOVE : SmartsheetStoreEvents.GROUP_BY_ADD,
-              )
-            "
-          >
-            <div v-e="['a:field:add:groupby']" class="nc-column-groupby nc-header-menu-item">
-              <component :is="iconMap.group" class="text-gray-700" />
-              <!-- Group by this field -->
-              {{ isGroupedByThisField ? "Don't group by this field" : 'Group by this field' }}
-            </div>
-          </NcMenuItem>
-        </NcTooltip>
-
-        <a-divider class="!my-0" />
-
-        <NcMenuItem v-if="!column?.pk" :disabled="!isDuplicateAllowed" @click="openDuplicateDlg">
-          <div v-e="['a:field:duplicate']" class="nc-column-duplicate nc-header-menu-item">
-            <component :is="iconMap.duplicate" class="text-gray-700" />
-            <!-- Duplicate -->
-            {{ t('general.duplicate') }}
-          </div>
-        </NcMenuItem>
-        <NcMenuItem @click="onInsertAfter">
-          <div v-e="['a:field:insert:after']" class="nc-column-insert-after nc-header-menu-item">
-            <component :is="iconMap.colInsertAfter" class="text-gray-700 !w-4.5 !h-4.5" />
-            <!-- Insert After -->
-            {{ t('general.insertAfter') }}
-          </div>
-        </NcMenuItem>
-        <NcMenuItem v-if="!column?.pv" @click="onInsertBefore">
-          <div v-e="['a:field:insert:before']" class="nc-column-insert-before nc-header-menu-item">
-            <component :is="iconMap.colInsertBefore" class="text-gray-600 !w-4.5 !h-4.5" />
-            <!-- Insert Before -->
-            {{ t('general.insertBefore') }}
-          </div>
-        </NcMenuItem>
         <a-divider v-if="!column?.pv" class="!my-0" />
 
         <NcMenuItem v-if="!column?.pv" :disabled="!isDeleteAllowed" class="!hover:bg-red-50" @click="handleDelete">

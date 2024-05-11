@@ -1019,8 +1019,15 @@ export default {
   @apply !xs:(mt-1.75 ml-1);
 }
 
+.nc-data-cell {
+  box-shadow: 0 0 1px rgba(0, 0, 0, 0.1);
+  &:hover,
+  &:focus-within {
+    box-shadow: 0 0 3px rgba(0, 0, 0, 0.1) !important;
+  }
+}
 .nc-data-cell:focus-within {
-  @apply !border-1 !border-brand-500 !rounded-lg !shadow-none !ring-0;
+  @apply !border-1 !border-brand-500 !rounded-lg;
 }
 
 :deep(.nc-system-field input) {

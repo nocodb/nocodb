@@ -562,7 +562,7 @@ export default {
           <div class="flex gap-2">
             <NcButton
               v-if="props.showNextPrevIcons"
-              :disabled="isFirstRow"
+              :disabled="isFirstRow || isLoading"
               class="nc-prev-arrow !w-7 !h-7"
               type="text"
               size="xsmall"
@@ -572,7 +572,7 @@ export default {
             </NcButton>
             <NcButton
               v-if="props.showNextPrevIcons"
-              :disabled="islastRow"
+              :disabled="islastRow || isLoading"
               class="nc-next-arrow !w-7 !h-7"
               type="text"
               size="xsmall"
@@ -581,10 +581,11 @@ export default {
               <GeneralIcon icon="chevronDown" />
             </NcButton>
           </div>
-          <div v-if="isLoading">
-            <a-skeleton-input active class="!h-8 !sm:mr-14 !w-52 mt-1 !rounded-md !overflow-hidden" size="small" />
+          <div v-if="isLoading" class="flex items-center">
+            <a-skeleton-input active class="!h-6 !sm:mr-14 !w-52 !rounded-md !overflow-hidden" size="small" />
           </div>
           <div
+            v-else
             class="flex-1 flex items-center gap-3 max-w-[calc(100%_-_108px)] xs:(flex-row-reverse justify-end)"
             :class="{
               'xs:max-w-[calc(100%_-_52px)]': isNew,
@@ -735,21 +736,16 @@ export default {
                   <LazySmartsheetHeaderVirtualCell
                     v-if="isVirtualCol(col)"
                     :column="col"
-                    class="nc-expanded-cell-header h-full"
+                    class="nc-expanded-cell-header h-full flex-none"
                   />
 
-                  <LazySmartsheetHeaderCell v-else :column="col" class="nc-expanded-cell-header" />
+                  <LazySmartsheetHeaderCell v-else :column="col" class="nc-expanded-cell-header flex-none" />
                 </div>
 
                 <template v-if="isLoading">
-                  <div
-                    v-if="isMobileMode"
-                    class="!h-8.5 !xs:h-12 !xs:bg-white sm:mr-21 w-60 mt-0.75 !rounded-lg !overflow-hidden"
-                  ></div>
                   <a-skeleton-input
-                    v-else
                     active
-                    class="!h-8.5 !xs:h-9.5 !xs:bg-white sm:mr-21 !w-60 mt-0.75 !rounded-lg !overflow-hidden"
+                    class="h-[37px] flex-none <lg:!w-full lg:flex-1 !rounded-lg !overflow-hidden"
                     size="small"
                   />
                 </template>
@@ -815,21 +811,16 @@ export default {
                       v-if="isVirtualCol(col)"
                       :column="col"
                       is-hidden-col
-                      class="nc-expanded-cell-header"
+                      class="nc-expanded-cell-header flex-none"
                     />
 
-                    <LazySmartsheetHeaderCell v-else :column="col" is-hidden-col class="nc-expanded-cell-header" />
+                    <LazySmartsheetHeaderCell v-else :column="col" is-hidden-col class="nc-expanded-cell-header flex-none" />
                   </div>
 
                   <template v-if="isLoading">
-                    <div
-                      v-if="isMobileMode"
-                      class="!h-8.5 !xs:h-9.5 !xs:bg-white sm:mr-21 w-60 mt-0.75 !rounded-lg !overflow-hidden"
-                    ></div>
                     <a-skeleton-input
-                      v-else
                       active
-                      class="!h-8.5 !xs:h-12 !xs:bg-white sm:mr-21 w-60 mt-0.75 !rounded-lg !overflow-hidden"
+                      class="h-[37px] flex-none <lg:!w-full lg:flex-1 !rounded-lg !overflow-hidden"
                       size="small"
                     />
                   </template>

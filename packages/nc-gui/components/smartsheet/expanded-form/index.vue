@@ -562,7 +562,7 @@ export default {
       <div
         class="flex min-h-7 flex-shrink-0 w-full items-center nc-expanded-form-header relative p-4 xs:(px-2 py-0 min-h-[48px]) justify-between"
       >
-        <div class="flex-1 flex gap-3 lg:w-100 <lg:max-w-[calc(100%_-_128px)] xs:(max-w-[calc(100%_-_44px)])">
+        <div class="flex-1 flex gap-3 lg:w-100 <lg:max-w-[calc(100%_-_178px)] xs:(max-w-[calc(100%_-_44px)])">
           <div class="flex gap-2">
             <NcTooltip v-if="props.showNextPrevIcons">
               <template #title> {{ renderAltOrOptlKey() }} + ← </template>
@@ -730,7 +730,7 @@ export default {
         >
           <div
             ref="expandedFormScrollWrapper"
-            class="flex flex-col flex-grow gap-3 h-full max-h-full nc-scrollbar-thin items-center w-full p-4 xs:(px-4 pt-4 pb-2 gap-6) children:max-w-[640px]"
+            class="flex flex-col flex-grow gap-3 h-full max-h-full nc-scrollbar-thin items-center w-full p-4 xs:(px-4 pt-4 pb-2 gap-6) children:max-w-[588px] <lg:(children:max-w-[450px])"
           >
             <div
               v-for="(col, i) of fields"

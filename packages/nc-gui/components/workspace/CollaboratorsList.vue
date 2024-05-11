@@ -108,7 +108,7 @@ onMounted(async () => {
         </div>
       </NcButton>
     </div>
-    <div v-if="!filterCollaborators?.length" class="w-full h-full flex flex-col items-center justify-center mt-36">
+    <div v-if="!filterCollaborators?.length" class="w-full h-full flex flex-col items-center justify-center">
       <a-empty description="No members found" />
     </div>
     <div v-else class="nc-collaborators-list mt-6 h-full">

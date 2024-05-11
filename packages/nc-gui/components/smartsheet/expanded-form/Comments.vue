@@ -185,7 +185,7 @@ watch(commentsWrapperEl, () => {
                               {{ log.display_name?.trim() || log.user || 'Shared source' }}
                             </template>
                             <span
-                              class="text-ellipsis overflow-hidden text-gray-700 text-small"
+                              class="text-ellipsis overflow-hidden text-gray-500 font-weight-500 text-small"
                               :style="{
                                 wordBreak: 'keep-all',
                                 whiteSpace: 'nowrap',

@@ -645,10 +645,9 @@ export default {
               {{ isRecordLinkCopied ? $t('labels.copiedRecordURL') : $t('labels.copyRecordURL') }}
             </div>
           </NcButton>
-          <NcTooltip v-if="props.showNextPrevIcons">
+          <NcTooltip v-if="!isMobileMode">
             <template #title> {{ renderAltOrOptlKey() }} + S </template>
             <NcButton
-              v-if="!isMobileMode"
               v-e="['c:row-expand:save']"
               :disabled="changedColumns.size === 0 && !isUnsavedFormExist"
               :loading="isSaving"

@@ -131,10 +131,8 @@ const {
   clearColumns,
 } = useProvideExpandedFormStore(meta, row)
 
-reloadViewDataTrigger.on(async (params) => {
-  if (rowId.value && params?.columnDuplidated) {
-    await _loadRow(rowId.value, false, true)
-  }
+reloadViewDataTrigger.on(async () => {
+  await _loadRow(rowId.value, false, true)
 })
 
 const duplicatingRowInProgress = ref(false)
@@ -794,7 +792,7 @@ export default {
               <div
                 v-for="(col, i) of hiddenFields"
                 v-show="isFormula(col) || !isVirtualCol(col) || !isNew || isLinksOrLTAR(col)"
-                :key="col.title"
+                :key="`${col.id}-${col.title}`"
                 :class="`nc-expand-col-${col.title}`"
                 :data-testid="`nc-expand-col-${col.title}`"
                 class="nc-expanded-form-row w-full"

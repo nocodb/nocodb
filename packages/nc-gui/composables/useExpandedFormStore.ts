@@ -310,18 +310,16 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
       }
     }
 
-    // update only new/duplicated columns value if `onlyNewColumns` is true
+    // update only new/duplicated/renamed columns value if `onlyNewColumns` is true
     if (onlyNewColumns) {
-      const mergedRecord = {
-        ...row.value.row,
-      }
-
-      for (const key in record) {
-        if (!mergedRecord.hasOwnProperty(key)) {
-          mergedRecord[key] = record[key]
+      record = Object.keys(record).reduce((acc, curr) => {
+        if (!row.value.row?.hasOwnProperty(curr)) {
+          acc[curr] = record[curr]
+        } else {
+          acc[curr] = row.value.row[curr]
         }
-      }
-      record = mergedRecord
+        return acc
+      }, {} as Record<string, any>)
     }
 
     Object.assign(row.value, {

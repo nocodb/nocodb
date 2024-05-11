@@ -146,7 +146,7 @@ const duplicateVirtualColumn = async () => {
     await getMeta(meta!.value!.id!, true)
 
     eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
-    reloadDataHook?.trigger({ columnDuplidated: true })
+    reloadDataHook?.trigger()
 
     // message.success(t('msg.success.columnDuplicated'))
   } catch (e) {
@@ -246,6 +246,9 @@ const hideOrShowField = async () => {
   await Promise.all(promises)
 
   eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
+  if (!currentColumn.show) {
+    reloadDataHook?.trigger()
+  }
 
   addUndo({
     redo: {
@@ -259,6 +262,9 @@ const hideOrShowField = async () => {
         await Promise.all(promises)
 
         eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
+        if (!show) {
+          reloadDataHook?.trigger()
+        }
       },
       args: [currentColumn!.id, currentColumn.show],
     },
@@ -273,6 +279,10 @@ const hideOrShowField = async () => {
         await Promise.all(promises)
 
         eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
+        reloadDataHook?.trigger()
+        if (show) {
+          reloadDataHook?.trigger()
+        }
       },
       args: [currentColumn!.id, currentColumn.show],
     },
@@ -381,7 +391,10 @@ const filterOrGroupByThisField = (event: SmartsheetStoreEvents) => {
             {{ isHiddenCol ? $t('general.showField') : $t('general.hideField') }}
           </div>
         </NcMenuItem>
-        <NcMenuItem v-if="(!virtual || column?.uidt === UITypes.Formula) && !column?.pv" @click="setAsDisplayValue">
+        <NcMenuItem
+          v-if="(!virtual || column?.uidt === UITypes.Formula) && !column?.pv && !isHiddenCol"
+          @click="setAsDisplayValue"
+        >
           <div class="nc-column-set-primary nc-header-menu-item item">
             <GeneralIcon icon="star" class="text-gray-700 !w-4.25 !h-4.25" />
 

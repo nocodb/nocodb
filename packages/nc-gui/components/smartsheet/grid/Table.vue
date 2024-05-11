@@ -1255,6 +1255,7 @@ const showFillHandle = computed(
     (!selectedRange.isEmpty() || (activeCell.row !== null && activeCell.col !== null)) &&
     !dataRef.value[(isNaN(selectedRange.end.row) ? activeCell.row : selectedRange.end.row) ?? -1]?.rowMeta?.new &&
     activeCell.col !== null &&
+    fields.value[activeCell.col] &&
     !(
       isLookup(fields.value[activeCell.col]) ||
       isRollup(fields.value[activeCell.col]) ||

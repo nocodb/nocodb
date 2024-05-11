@@ -260,7 +260,7 @@ const deleteTable = () => {
                       :is="iconMap.table"
                       v-if="table.type === 'table'"
                       class="w-4 text-sm"
-                      :class="isTableOpened ? '!text-brand-600' : '!text-gray-600/75'"
+                      :class="isTableOpened ? '!text-brand-600/85' : '!text-gray-600/75'"
                     />
 
                     <MdiEye v-else class="flex w-5 text-sm" :class="isTableOpened ? '!text-brand-600' : '!text-gray-600'" />

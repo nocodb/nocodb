@@ -75,6 +75,8 @@ function markItem(id: string) {
 }
 
 const isDefaultSource = computed(() => {
+  if (base.value?.sources?.length === 1) return true
+
   const source = base.value?.sources?.find((b) => b.id === table.value.source_id)
   if (!source) return false
 

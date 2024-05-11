@@ -36,6 +36,7 @@ export class CommandPaletteService {
             id: `ws-nav-${workspace.id}`,
             title: workspace.title,
             icon: 'workspace',
+            iconColor: deserializeJSON(workspace.meta)?.color,
             section: 'Workspaces',
             scopePayload: {
               scope: `ws-${workspace.id}`,
@@ -81,6 +82,7 @@ export class CommandPaletteService {
             id: `ws-nav-${_workspace.id}`,
             title: _workspace.title,
             icon: 'workspace',
+            iconColor: deserializeJSON(_workspace.meta)?.color,
             section: 'Workspaces',
             scopePayload: {
               scope: `ws-${_workspace.id}`,

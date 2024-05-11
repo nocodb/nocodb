@@ -2700,6 +2700,23 @@ onKeyStroke('ArrowDown', onDown)
       @apply !bg-[#F0F3FF] border-b-gray-200 border-r-gray-200;
     }
   }
+
+  &:not(.selected-row):has(+ .selected-row) {
+    td.nc-grid-cell:not(.active),
+    td:nth-child(2):not(.active) {
+      @apply border-b-gray-200;
+    }
+  }
+
+  &:not(.active-row):has(+ .active-row),
+  &:not(.mouse-down):has(+ :hover) {
+    &:not(.selected-row) {
+      td.nc-grid-cell:not(.active),
+      td:nth-child(2):not(.active) {
+        @apply border-b-gray-200;
+      }
+    }
+  }
 }
 
 .nc-grid-header {

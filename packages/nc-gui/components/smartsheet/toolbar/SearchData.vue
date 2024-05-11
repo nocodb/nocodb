@@ -12,6 +12,12 @@ const { search, loadFieldQuery } = useFieldQuery()
 
 const isDropdownOpen = ref(false)
 
+const showSearchBox = ref(false)
+
+const globalSearchRef = ref<HTMLInputElement>()
+
+const globalSearchWrapperRef = ref<HTMLInputElement>()
+
 const { isMobileMode } = useGlobal()
 
 const columns = computed(
@@ -58,53 +64,86 @@ const onSelectOption = (column: ColumnType) => {
   search.value.field = column.id as string
   isDropdownOpen.value = false
 }
+
+const handleShowSearchInput = () => {
+  showSearchBox.value = true
+
+  nextTick(() => {
+    globalSearchRef.value?.focus()
+  })
+}
+
+onClickOutside(globalSearchWrapperRef, (e) => {
+  const targetEl = e.target as HTMLElement
+  if (search.value.query || targetEl.closest('.nc-dropdown-toolbar-search-field-option')) {
+    return
+  }
+
+  showSearchBox.value = false
+})
 </script>
 
 <template>
-  <div
-    class="flex flex-row border-1 rounded-lg h-8 xs:(h-10 ml-0) ml-1 border-gray-200 overflow-hidden focus-within:border-primary"
-    :class="{ 'border-primary': search.query.length !== 0 }"
-  >
-    <NcDropdown
-      v-model:visible="isDropdownOpen"
-      :trigger="['click']"
-      overlay-class-name="nc-dropdown-toolbar-search-field-option"
+  <div ref="globalSearchWrapperRef" class="nc-global-search-wrapper">
+    <a-button
+      v-if="!search.query && !showSearchBox"
+      class="nc-toolbar-btn"
+      data-testid="nc-global-search-show-input"
+      @click="handleShowSearchInput"
     >
-      <div
-        class="flex items-center group px-2 cursor-pointer border-r-1 border-gray-200 hover:bg-gray-100"
-        :class="{ 'bg-gray-50 ': isDropdownOpen }"
-        @click="isDropdownOpen = !isDropdownOpen"
+      <GeneralIcon icon="search" class="h-4 w-4 text-gray-700 group-hover:text-black" />
+    </a-button>
+    <div
+      v-else
+      class="flex flex-row border-1 rounded-lg h-8 xs:(h-10 ml-0) ml-1 border-gray-200 overflow-hidden focus-within:border-primary"
+      :class="{ 'border-primary': search.query.length !== 0 }"
+    >
+      <NcDropdown
+        v-model:visible="isDropdownOpen"
+        :trigger="['click']"
+        overlay-class-name="nc-dropdown-toolbar-search-field-option"
       >
-        <GeneralIcon icon="search" class="ml-1 mr-2 h-3.5 w-3.5 text-gray-500 group-hover:text-black" />
-        <div v-if="!isMobileMode" class="w-16 text-xs font-medium text-gray-400 truncate">
-          {{ displayColumnLabel }}
+        <div
+          class="flex items-center group px-2 cursor-pointer border-r-1 border-gray-200 hover:bg-gray-100"
+          :class="{ 'bg-gray-50 ': isDropdownOpen }"
+          @click="isDropdownOpen = !isDropdownOpen"
+        >
+          <GeneralIcon icon="search" class="ml-1 mr-2 h-3.5 w-3.5 text-gray-500 group-hover:text-black" />
+          <div v-if="!isMobileMode" class="w-16 text-xs font-medium text-gray-400 truncate">
+            {{ displayColumnLabel }}
+          </div>
+          <div class="xs:(text-gray-600) group-hover:text-gray-700 sm:(text-gray-400)">
+            <component :is="iconMap.arrowDown" class="text-sm text-inherit" />
+          </div>
         </div>
-        <div class="xs:(text-gray-600) group-hover:text-gray-700 sm:(text-gray-400)">
-          <component :is="iconMap.arrowDown" class="text-sm text-inherit" />
-        </div>
-      </div>
-      <template #overlay>
-        <SmartsheetToolbarFieldListWithSearch
-          :is-parent-open="isDropdownOpen"
-          :selected-option-id="search.field"
-          show-selected-option
-          :options="columns"
-          toolbar-menu="globalSearch"
-          @selected="onSelectOption"
-        />
-      </template>
-    </NcDropdown>
+        <template #overlay>
+          <SmartsheetToolbarFieldListWithSearch
+            :is-parent-open="isDropdownOpen"
+            :selected-option-id="search.field"
+            show-selected-option
+            :options="columns"
+            toolbar-menu="globalSearch"
+            @selected="onSelectOption"
+          />
+        </template>
+      </NcDropdown>
 
-    <a-input
-      v-model:value="search.query"
-      size="small"
-      class="text-xs w-40"
-      :placeholder="`${$t('general.searchIn')} ${displayColumnLabel}`"
-      :bordered="false"
-      data-testid="search-data-input"
-      @press-enter="onPressEnter"
-    >
-    </a-input>
+      <form class="p-0">
+        <a-input
+          v-if="search.query || showSearchBox"
+          ref="globalSearchRef"
+          v-model:value="search.query"
+          name="globalSearchQuery"
+          size="small"
+          class="text-xs w-40 h-full"
+          :placeholder="`${$t('general.searchIn')} ${displayColumnLabel}`"
+          :bordered="false"
+          data-testid="search-data-input"
+          @press-enter="onPressEnter"
+        >
+        </a-input>
+      </form>
+    </div>
   </div>
 </template>
 

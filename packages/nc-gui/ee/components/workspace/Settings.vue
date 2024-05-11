@@ -218,6 +218,6 @@ const onCancel = () => {
 
 <style lang="scss" scoped>
 .item-card {
-  @apply p-6 rounded-2xl border-1 max-w-180 mt-10 min-w-100 w-full;
+  @apply p-6 rounded-2xl border-1 max-w-[600px] mt-10 min-w-100 w-full;
 }
 </style>

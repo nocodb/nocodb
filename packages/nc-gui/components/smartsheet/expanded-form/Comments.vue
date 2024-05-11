@@ -137,11 +137,6 @@ watch(commentsWrapperEl, () => {
   scrollComments()
 })
 
-const onClickAudit = () => {
-  if (appInfo.value.ee) return
-
-  tab.value = 'audits'
-}
 </script>
 
 <template>
@@ -149,12 +144,7 @@ const onClickAudit = () => {
     <NcTabs v-model:activeKey="tab" class="h-full">
       <a-tab-pane key="comments" class="w-full h-full">
         <template #tab>
-          <div v-e="['c:row-expand:comment']">
-            <div class="flex items-center gap-2">
-              <MdiMessageOutline class="h-4 w-4 flex-none" />
-              <span class="<lg:hidden">Comments</span>
-            </div>
-          </div>
+          <div v-e="['c:row-expand:comment']">Comments</div>
         </template>
         <div
           class="h-full"
@@ -172,15 +162,15 @@ const onClickAudit = () => {
               </div>
               <div class="font-medium text-center my-6 text-gray-500">{{ $t('activity.startCommenting') }}</div>
             </div>
-            <div v-else ref="commentsWrapperEl" class="flex flex-col h-full py-2 nc-scrollbar-thin">
+            <div v-else ref="commentsWrapperEl" class="flex flex-col h-full py-1 nc-scrollbar-thin">
               <div v-for="log of comments" :key="log.id">
                 <div class="group gap-3 overflow-hidden hover:bg-gray-100 flex items-start px-3 pt-3 pb-4">
                   <GeneralUserIcon size="medium" :name="log.display_name" :email="log.user" />
-                  <div class="flex-1 flex flex-col gap-1">
-                    <div class="flex justify-between min-h-7">
-                      <div class="flex items-center">
-                        <div class="flex flex-wrap items-center gap-2 <lg:max-w-22">
-                          <NcTooltip class="truncate max-w-42" show-on-truncate-only>
+                  <div class="flex-1 flex flex-col gap-1 max-w-[calc(100%_-_24px)]">
+                    <div class="w-full flex justify-between gap-3 min-h-7">
+                      <div class="flex items-center max-w-[calc(100%_-_40px)]">
+                        <div class="w-full flex flex-wrap items-center">
+                          <NcTooltip class="truncate max-w-42 mr-2" show-on-truncate-only>
                             <template #title>
                               {{ log.display_name?.trim() || log.user || 'Shared source' }}
                             </template>
@@ -237,12 +227,12 @@ const onClickAudit = () => {
                       v-if="log.id === editLog?.id"
                       :ref="focusInput"
                       v-model:value="value"
-                      class="!p-1.5 !m-0 w-full !rounded-md !text-gray-800 !text-small !min-h-[70px] nc-scrollbar-thin"
+                      class="!p-1.5 !m-0 w-full !rounded-md !text-gray-800 !text-small !leading-18px !min-h-[70px] nc-scrollbar-thin"
                       data-testid="expanded-form-comment-input"
                       @keydown.stop="onKeyDown($event)"
                     />
-                    <div v-else class="text-sm text-gray-700">
-                      {{ log.description.substring(log.description.indexOf(':') + 1) }}
+                    <div v-else class="nc-comment-description text-sm text-gray-700">
+                      <pre>{{ log.description.substring(log.description.indexOf(':') + 1).trim() }}</pre>
                     </div>
                     <div v-if="log.id === editLog?.id" class="flex justify-end gap-1 mt-1">
                       <NcButton size="small" type="secondary" @click="onCancel"> Cancel </NcButton>
@@ -257,7 +247,7 @@ const onClickAudit = () => {
                 <a-textarea
                   :ref="focusCommentInput"
                   v-model:value="comment"
-                  class="!p-1 !m-0 w-full !border-0 !rounded-none !text-gray-800 !text-small !max-h-[70px] nc-scrollbar-thin"
+                  class="!p-1 !m-0 w-full !border-0 !rounded-none !text-gray-800 !text-small !leading-18px !max-h-[70px] nc-scrollbar-thin"
                   auto-size
                   hide-details
                   :disabled="isSaving"
@@ -288,20 +278,9 @@ const onClickAudit = () => {
             <template #title>
               <span class="!text-base"> Coming soon </span>
             </template>
-            <div v-e="['c:row-expand:audit']">
-              <div class="flex items-center gap-2 text-gray-400">
-                <MdiFileDocumentOutline class="h-4 w-4" />
-                <span class="<lg:hidden">Audits</span>
-              </div>
-            </div>
+            <div v-e="['c:row-expand:audit']" class="text-gray-400">Audits</div>
           </NcTooltip>
-          <div v-else v-e="['c:row-expand:audit']">
-            <div class="flex items-center gap-2">
-              >
-              <MdiFileDocumentOutline class="h-4 w-4" />
-              <span class="<lg:hidden">Audits</span>
-            </div>
-          </div>
+          <div v-else v-e="['c:row-expand:audit']">Audits</div>
         </template>
         <div
           class="h-full"
@@ -313,7 +292,7 @@ const onClickAudit = () => {
             <GeneralLoader class="!mt-16" size="xlarge" />
           </div>
 
-          <div v-else ref="commentsWrapperEl" class="flex flex-col h-full nc-scrollbar-md !overflow-y-auto">
+          <div v-else ref="commentsWrapperEl" class="flex flex-col h-full py-1 nc-scrollbar-thin !overflow-y-auto">
             <template v-if="audits.length === 0">
               <div class="flex flex-col text-center justify-center h-full">
                 <div class="text-center text-3xl text-gray-600">
@@ -324,34 +303,31 @@ const onClickAudit = () => {
             </template>
 
             <div v-for="log of audits" :key="log.id" class="nc-audit-item">
-              <div class="flex flex-col p-4 gap-3">
-                <div class="flex justify-between">
-                  <div class="flex items-center gap-2">
-                    <GeneralUserIcon size="base" :email="log.user" :name="log.display_name" />
-
-                    <div class="flex flex-col">
-                      <NcTooltip class="truncate max-w-50" show-on-truncate-only>
-                        <template #title>
-                          {{ log.display_name?.trim() || log.user || 'Shared source' }}
-                        </template>
-                        <span
-                          class="text-ellipsis overflow-hidden font-bold"
-                          :style="{
-                            wordBreak: 'keep-all',
-                            whiteSpace: 'nowrap',
-                            display: 'inline',
-                          }"
-                        >
-                          {{ log.display_name?.trim() || log.user || 'Shared source' }}
-                        </span>
-                      </NcTooltip>
-                      <div v-if="log.id !== editLog?.id" class="text-xs font-medium text-gray-500">
-                        {{ timeAgo(log.created_at) }}
-                      </div>
+              <div class="group gap-3 overflow-hidden flex items-start p-3">
+                <GeneralUserIcon size="medium" :email="log.user" :name="log.display_name" />
+                <div class="flex-1 flex flex-col gap-1 max-w-[calc(100%_-_24px)]">
+                  <div class="flex flex-wrap items-center min-h-7">
+                    <NcTooltip class="truncate max-w-42 mr-2" show-on-truncate-only>
+                      <template #title>
+                        {{ log.display_name?.trim() || log.user || 'Shared source' }}
+                      </template>
+                      <span
+                        class="text-ellipsis overflow-hidden font-bold text-gray-800"
+                        :style="{
+                          wordBreak: 'keep-all',
+                          whiteSpace: 'nowrap',
+                          display: 'inline',
+                        }"
+                      >
+                        {{ log.display_name?.trim() || log.user || 'Shared source' }}
+                      </span>
+                    </NcTooltip>
+                    <div v-if="log.id !== editLog?.id" class="text-xs font-medium text-gray-500">
+                      {{ timeAgo(log.created_at) }}
                     </div>
                   </div>
+                  <div v-dompurify-html="log.details" class="text-sm font-medium"></div>
                 </div>
-                <div v-dompurify-html="log.details" class="text-sm font-medium"></div>
               </div>
             </div>
           </div>
@@ -402,7 +378,7 @@ const onClickAudit = () => {
       .ant-tabs-tab {
         @apply flex-1 flex items-center justify-center pt-3 pb-2.5;
 
-        & + .ant-tabs-tab{
+        & + .ant-tabs-tab {
           @apply !ml-0;
         }
       }
@@ -412,6 +388,15 @@ const onClickAudit = () => {
     .ant-tabs-content {
       @apply h-full;
     }
+  }
+}
+
+.nc-comment-description {
+  pre {
+    @apply !mb-0 !text-small !text-gray-700 !leading-18px;
+    white-space: break-spaces;
+    font-size: unset;
+    font-family: unset;
   }
 }
 </style>

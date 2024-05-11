@@ -7,6 +7,7 @@ interface Props {
   required?: boolean | number
   hideMenu?: boolean
   hideIcon?: boolean
+  isHiddenCol?: boolean
 }
 
 const props = defineProps<Props>()
@@ -173,6 +174,7 @@ const onClick = (e: Event) => {
       <LazySmartsheetHeaderMenu
         v-if="!isForm && isUIAllowed('fieldEdit')"
         v-model:is-open="isDropDownOpen"
+        :is-hidden-col="isHiddenCol"
         @add-column="addField"
         @edit="openHeaderMenu"
       />

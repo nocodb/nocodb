@@ -10,7 +10,13 @@ import {
 } from 'nocodb-sdk'
 import { RelationTypes, UITypes, UITypesName, substituteColumnIdWithAliasInFormula } from 'nocodb-sdk'
 
-const props = defineProps<{ column: ColumnType; hideMenu?: boolean; required?: boolean | number; hideIcon?: boolean }>()
+const props = defineProps<{
+  column: ColumnType
+  hideMenu?: boolean
+  required?: boolean | number
+  hideIcon?: boolean
+  isHiddenCol?: boolean
+}>()
 
 const { t } = useI18n()
 
@@ -224,6 +230,7 @@ const onClick = (e: Event) => {
       <LazySmartsheetHeaderMenu
         v-if="!isForm && isUIAllowed('fieldEdit')"
         v-model:is-open="isDropDownOpen"
+        :is-hidden-col="isHiddenCol"
         :virtual="true"
         @add-column="addField"
         @edit="editColumnDropdown = true"

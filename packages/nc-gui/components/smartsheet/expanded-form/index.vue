@@ -801,9 +801,14 @@ export default {
               >
                 <div class="flex items-start flex-row sm:(gap-x-2) <lg:(flex-col w-full) nc-expanded-cell min-h-[37px]">
                   <div class="w-50 <lg:(w-full px-0) h-[37px] flex items-center rounded-lg overflow-hidden">
-                    <LazySmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" class="nc-expanded-cell-header" />
+                    <LazySmartsheetHeaderVirtualCell
+                      v-if="isVirtualCol(col)"
+                      :column="col"
+                      is-hidden-col
+                      class="nc-expanded-cell-header"
+                    />
 
-                    <LazySmartsheetHeaderCell v-else :column="col" class="nc-expanded-cell-header" />
+                    <LazySmartsheetHeaderCell v-else :column="col" is-hidden-col class="nc-expanded-cell-header" />
                   </div>
 
                   <template v-if="isLoading">

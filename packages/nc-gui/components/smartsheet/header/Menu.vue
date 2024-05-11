@@ -3,7 +3,7 @@ import type { ColumnReqType } from 'nocodb-sdk'
 import { PlanLimitTypes, RelationTypes, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
 import { SmartsheetStoreEvents } from '#imports'
 
-const props = defineProps<{ virtual?: boolean; isOpen: boolean }>()
+const props = defineProps<{ virtual?: boolean; isOpen: boolean; isHiddenCol?: boolean }>()
 
 const emit = defineEmits(['edit', 'addColumn', 'update:isOpen'])
 
@@ -376,9 +376,9 @@ const filterOrGroupByThisField = (event: SmartsheetStoreEvents) => {
         <a-divider v-if="!column?.pv" class="!my-0" />
         <NcMenuItem v-if="!column?.pv" @click="hideOrShowField">
           <div v-e="['a:field:hide']" class="nc-column-insert-before nc-header-menu-item">
-            <component :is="iconMap.eye" class="text-gray-700 !w-3.75 !h-3.75" />
+            <component :is="isHiddenCol ? iconMap.eyeSlash : iconMap.eye" class="text-gray-700 !w-3.75 !h-3.75" />
             <!-- Hide Field -->
-            {{ $t('general.hideField') }}
+            {{ isHiddenCol ? $t('general.showField') : $t('general.hideField') }}
           </div>
         </NcMenuItem>
         <NcMenuItem v-if="(!virtual || column?.uidt === UITypes.Formula) && !column?.pv" @click="setAsDisplayValue">

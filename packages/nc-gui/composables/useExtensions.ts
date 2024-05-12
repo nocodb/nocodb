@@ -345,7 +345,9 @@ export const useExtensions = createSharedComposable(() => {
     () => base.value?.id,
     (baseId) => {
       if (baseId && !baseExtensions.value[baseId]) {
-        loadExtensionsForBase(baseId)
+        loadExtensionsForBase(baseId).catch((e) => {
+          console.error(e)
+        })
       }
     },
     {

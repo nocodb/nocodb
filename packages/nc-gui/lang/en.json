@@ -752,7 +752,7 @@
       "selectField": "Select a field",
       "selectFieldLabel": "Make changes to field properties by selecting a field from the list"
     },
-    "appearanceSettings": "Appearance Settings",
+    "appearanceSettings": "Appearance settings",
     "backgroundColor": "Background Color",
     "hideNocodbBranding": "Hide NocoDB Branding",
     "showOnConditions": "Show on condtions",
@@ -1281,7 +1281,7 @@
       "afterEnablePwd": "Access is password restricted",
       "privateLink": "This view is shared via a private link",
       "privateLinkAdditionalInfo": "People with private link can only see cells visible in this view",
-      "postFormSubmissionSettings": "Post Form Submission Settings",
+      "postFormSubmissionSettings": "Post form submission settings",
       "apiOptions": "Access Base via",
       "submitAnotherForm": "Show 'Submit Another Form' button",
       "showBlankForm": "Show a blank form after 5 seconds",

@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import dayjs from 'dayjs'
 import { UITypes } from 'nocodb-sdk'
 import type { Row as RowType } from '#imports'
 
@@ -119,153 +118,30 @@ reloadViewDataHook?.on(async (params: void | { shouldShowLoading?: boolean }) =>
     fetchActiveDates(),
   ])
 })
-
-const goToToday = () => {
-  selectedDate.value = dayjs()
-  pageDate.value = dayjs()
-  selectedMonth.value = dayjs()
-  selectedDateRange.value = {
-    start: dayjs().startOf('week'),
-    end: dayjs().endOf('week'),
-  }
-
-  document?.querySelector('.nc-calendar-today')?.scrollIntoView({
-    behavior: 'smooth',
-    block: 'center',
-  })
-}
-
-const headerText = computed(() => {
-  switch (activeCalendarView.value) {
-    case 'day':
-      return dayjs(selectedDate.value).format('D MMMM YYYY')
-    case 'week':
-      if (selectedDateRange.value.start.isSame(selectedDateRange.value.end, 'month')) {
-        return `${selectedDateRange.value.start.format('D')} - ${selectedDateRange.value.end.format('D MMM YY')}`
-      } else if (selectedDateRange.value.start.isSame(selectedDateRange.value.end, 'year')) {
-        return `${selectedDateRange.value.start.format('D MMM')} - ${selectedDateRange.value.end.format('D MMM YY')}`
-      } else {
-        return `${selectedDateRange.value.start.format('D MMM YY')} - ${selectedDateRange.value.end.format('D MMM YY')}`
-      }
-    case 'month':
-      return dayjs(selectedMonth.value).format('MMMM YYYY')
-    case 'year':
-      return dayjs(selectedDate.value).format('YYYY')
-  }
-})
 </script>
 
 <template>
-  <div class="flex h-full flex-row" data-testid="nc-calendar-wrapper">
+  <div class="flex h-full relative flex-row" data-testid="nc-calendar-wrapper">
+    <NcTooltip
+      :class="{
+        'right-2': !showSideMenu,
+        'right-74': showSideMenu,
+      }"
+      class="absolute transition-all ease-in-out top-2 z-30"
+    >
+      <template #title> {{ $t('activity.toggleSidebar') }}</template>
+      <NcButton
+        v-if="!isMobileMode"
+        v-e="`['c:calendar:calendar-${activeCalendarView}-toggle-sidebar']`"
+        data-testid="nc-calendar-side-bar-btn"
+        size="small"
+        type="secondary"
+        @click="showSideMenu = !showSideMenu"
+      >
+        <component :is="iconMap.sidebar" class="h-4 w-4 text-gray-600 transition-all" />
+      </NcButton>
+    </NcTooltip>
     <div class="flex flex-col w-full">
-      <div class="flex justify-between p-2 items-center border-b-1 border-gray-200" data-testid="nc-calendar-topbar">
-        <div class="flex justify-start gap-3 items-center">
-          <NcTooltip>
-            <template #title> {{ $t('labels.previous') }}</template>
-            <NcButton
-              v-e="`['c:calendar:calendar-${activeCalendarView}-prev-btn']`"
-              data-testid="nc-calendar-prev-btn"
-              size="small"
-              type="secondary"
-              @click="paginateCalendarView('prev')"
-            >
-              <component :is="iconMap.doubleLeftArrow" class="h-4 w-4" />
-            </NcButton>
-          </NcTooltip>
-
-          <NcDropdown v-model:visible="calendarRangeDropdown" :auto-close="false" :trigger="['click']">
-            <NcButton :class="{ '!w-22': activeCalendarView === 'year' }" class="w-45" full-width size="small" type="secondary">
-              <div class="flex px-2 w-full items-center justify-between">
-                <div class="flex gap-1 text-brand-500" data-testid="nc-calendar-active-date">
-                  <span class="font-bold text-center">{{
-                    activeCalendarView === 'month' ? headerText.split(' ')[0] : headerText
-                  }}</span>
-                  <span v-if="activeCalendarView === 'month'">
-                    {{ ` ${headerText.split(' ')[1]}` }}
-                  </span>
-                </div>
-
-                <component :is="iconMap.arrowDown" class="h-4 w-4 text-gray-700" />
-              </div>
-            </NcButton>
-
-            <template #overlay>
-              <div
-                v-if="calendarRangeDropdown"
-                :class="{
-                  'px-4 pt-3 pb-4 ': activeCalendarView === 'week' || activeCalendarView === 'day',
-                }"
-                class="min-w-[22.1rem]"
-                @click.stop
-              >
-                <NcDateWeekSelector
-                  v-if="activeCalendarView === ('day' as const)"
-                  v-model:active-dates="activeDates"
-                  v-model:page-date="pageDate"
-                  v-model:selected-date="selectedDate"
-                />
-                <NcDateWeekSelector
-                  v-else-if="activeCalendarView === ('week' as const)"
-                  v-model:active-dates="activeDates"
-                  v-model:page-date="pageDate"
-                  v-model:selected-week="selectedDateRange"
-                  is-week-picker
-                />
-                <NcMonthYearSelector
-                  v-else-if="activeCalendarView === ('month' as const)"
-                  v-model:page-date="pageDate"
-                  v-model:selected-date="selectedMonth"
-                />
-                <NcMonthYearSelector
-                  v-else-if="activeCalendarView === ('year' as const)"
-                  v-model:page-date="pageDate"
-                  v-model:selected-date="selectedDate"
-                  is-year-picker
-                />
-              </div>
-            </template>
-          </NcDropdown>
-          <NcTooltip>
-            <template #title> {{ $t('labels.next') }}</template>
-            <NcButton
-              v-e="`['c:calendar:calendar-${activeCalendarView}-next-btn']`"
-              data-testid="nc-calendar-next-btn"
-              size="small"
-              type="secondary"
-              @click="paginateCalendarView('next')"
-            >
-              <component :is="iconMap.doubleRightArrow" class="h-4 w-4" />
-            </NcButton>
-          </NcTooltip>
-          <NcButton
-            v-e="`['c:calendar:calendar-${activeCalendarView}-today-btn']`"
-            data-testid="nc-calendar-today-btn"
-            size="small"
-            type="secondary"
-            @click="goToToday"
-          >
-            <span class="text-gray-600 !text-sm">
-              {{ $t('activity.goToToday') }}
-            </span>
-          </NcButton>
-          <span class="opacity-0" data-testid="nc-active-calendar-view">
-            {{ activeCalendarView }}
-          </span>
-        </div>
-        <NcTooltip>
-          <template #title> {{ $t('activity.toggleSidebar') }}</template>
-          <NcButton
-            v-if="!isMobileMode"
-            v-e="`['c:calendar:calendar-${activeCalendarView}-toggle-sidebar']`"
-            data-testid="nc-calendar-side-bar-btn"
-            size="small"
-            type="secondary"
-            @click="showSideMenu = !showSideMenu"
-          >
-            <component :is="iconMap.sidebar" class="h-4 w-4 text-gray-600 transition-all" />
-          </NcButton>
-        </NcTooltip>
-      </div>
       <template v-if="calendarRange?.length && !isCalendarMetaLoading">
         <LazySmartsheetCalendarYearView v-if="activeCalendarView === 'year'" />
         <template v-if="!isCalendarDataLoading">

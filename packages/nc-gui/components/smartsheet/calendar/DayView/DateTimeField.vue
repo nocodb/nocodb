@@ -155,7 +155,7 @@ const getMaxOverlaps = ({
     const neighbors = graph.get(id)
     if (neighbors) {
       for (const neighbor of neighbors) {
-        if (maxOverlaps >= columnArray.length) return maxOverlaps
+        // if (maxOverlaps >= columnArray.length) return maxOverlaps
         if (!visited.has(neighbor)) {
           maxOverlaps = Math.min(Math.max(maxOverlaps, dfs(neighbor) + 1), columnArray.length)
         }
@@ -859,7 +859,7 @@ watch(
 <template>
   <div
     ref="container"
-    class="w-full flex relative no-selection h-[calc(100vh-10rem)] overflow-y-auto nc-scrollbar-md"
+    class="w-full flex relative no-selection h-[calc(100vh-6.25rem)] overflow-y-auto nc-scrollbar-md"
     data-testid="nc-calendar-day-view"
     @drop="dropEvent"
   >

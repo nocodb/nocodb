@@ -370,6 +370,25 @@ onUnmounted(() => {
           </template>
         </a-input>
       </div>
+      <div class="flex px-4 justify-between items-center">
+        <div class="flex">
+          <LazySmartsheetToolbarColumnFilterMenu />
+
+          <LazySmartsheetToolbarSortListMenu />
+        </div>
+
+        <NcButton
+          v-if="isUIAllowed('dataEdit') && props.visible"
+          v-e="['c:calendar:calendar-sidemenu-new-record-btn']"
+          data-testid="nc-calendar-side-menu-new-btn"
+          size="small"
+          type="secondary"
+          @click="newRecord"
+        >
+          New
+          <component :is="iconMap.plus" class="flex mx-auto" />
+        </NcButton>
+      </div>
 
       <div
         v-if="calendarRange?.length && !isCalendarMetaLoading"
@@ -384,18 +403,6 @@ onUnmounted(() => {
         data-testid="nc-calendar-side-menu-list"
         @scroll="sideBarListScrollHandle"
       >
-        <NcButton
-          v-if="isUIAllowed('dataEdit') && props.visible"
-          v-e="['c:calendar:calendar-sidemenu-new-record-btn']"
-          class="!absolute right-5 !border-brand-500 bottom-5 !h-12 !w-12"
-          data-testid="nc-calendar-side-menu-new-btn"
-          type="secondary"
-          @click="newRecord"
-        >
-          <div class="px-4 flex items-center gap-2 justify-center">
-            <component :is="iconMap.plus" class="h-6 w-6 text-lg text-brand-500" />
-          </div>
-        </NcButton>
         <div v-if="renderData.length === 0 || isSidebarLoading" class="flex h-full items-center justify-center">
           <GeneralLoader v-if="isSidebarLoading" size="large" />
 

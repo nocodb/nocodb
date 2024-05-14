@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { PlanLimitTypes, RelationTypes, UITypes, getEquivalentUIType, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
+import { PlanLimitTypes, RelationTypes, UITypes, getEquivalentUIType, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 
 const meta = inject(MetaInj, ref())
 const view = inject(ActiveViewInj, ref())
@@ -19,6 +19,8 @@ const showCreateSort = ref(false)
 const { isMobileMode } = useGlobal()
 
 const { getPlanLimit } = useWorkspace()
+
+const isCalendar = inject(IsCalendarInj, ref(false))
 
 eventBus.on((event) => {
   if (event === SmartsheetStoreEvents.SORT_RELOAD) {
@@ -110,7 +112,14 @@ onMounted(() => {
     overlay-class-name="nc-dropdown-sort-menu nc-toolbar-dropdown"
   >
     <div :class="{ 'nc-active-btn': sorts?.length }">
-      <a-button v-e="['c:sort']" class="nc-sort-menu-btn nc-toolbar-btn" :disabled="isLocked">
+      <a-button
+        v-e="['c:sort']"
+        :class="{
+          '!border-y-1 !border-r-1 !rounded-lg !rounded-l-none': isCalendar,
+        }"
+        :disabled="isLocked"
+        class="nc-sort-menu-btn nc-toolbar-btn"
+      >
         <div class="flex items-center gap-2">
           <component :is="iconMap.sort" class="h-4 w-4 text-inherit" />
 

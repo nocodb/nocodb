@@ -110,7 +110,7 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
         <div class="flex items-center gap-2">
           <component :is="iconMap.calendar" class="h-4 w-4" />
           <span class="text-capitalize !text-sm font-medium">
-            {{ $t('activity.viewSettings') }}
+            {{ $t('activity.settings') }}
           </span>
         </div>
       </a-button>

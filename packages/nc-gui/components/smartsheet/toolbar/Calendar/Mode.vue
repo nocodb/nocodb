@@ -92,6 +92,6 @@ watch(activeCalendarView, () => {
 }
 
 .nc-calendar-mode-tab {
-  @apply mr-120 relative;
+  @apply relative;
 }
 </style>

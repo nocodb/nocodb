@@ -287,7 +287,7 @@ onUnmounted(() => {
 <template>
   <div
     :class="{
-      '!w-0': !props.visible,
+      '!w-0 hidden': !props.visible,
       'min-w-[324px]': width > 1440 && props.visible,
       'min-w-[288px]': width <= 1440 && props.visible,
       'nc-calendar-side-menu-open': props.visible,

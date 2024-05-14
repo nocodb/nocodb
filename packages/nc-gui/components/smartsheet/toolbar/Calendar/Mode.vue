@@ -49,7 +49,7 @@ watch(activeCalendarView, () => {
 
   <div v-else>
     <NcDropdown :trigger="['click']">
-      <NcButton data-testid="nc-calendar-view-mode" size="small" type="secondary">
+      <NcButton class="!h-7" data-testid="nc-calendar-view-mode" size="small" type="secondary">
         {{ $t(`objects.${activeCalendarView}`) }}
         <component :is="iconMap.arrowDown" />
       </NcButton>

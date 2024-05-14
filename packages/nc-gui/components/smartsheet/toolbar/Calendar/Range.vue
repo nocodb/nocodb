@@ -101,19 +101,21 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
 <template>
   <NcDropdown v-if="!IsPublic" v-model:visible="calendarRangeDropdown" :trigger="['click']" class="!xs:hidden">
     <div class="nc-calendar-btn">
-      <a-button
+      <NcButton
         v-e="['c:calendar:change-calendar-range']"
         :disabled="isLocked"
-        class="nc-toolbar-btn"
+        class="nc-toolbar-btn !border-0 !h-7"
+        size="small"
+        type="secondary"
         data-testid="nc-calendar-range-btn"
       >
         <div class="flex items-center gap-2">
           <component :is="iconMap.calendar" class="h-4 w-4" />
-          <span class="text-capitalize !text-sm font-medium">
+          <span class="text-capitalize !text-[13px] font-medium">
             {{ $t('activity.settings') }}
           </span>
         </div>
-      </a-button>
+      </NcButton>
     </div>
     <template #overlay>
       <div v-if="calendarRangeDropdown" class="w-full p-6" data-testid="nc-calendar-range-menu" @click.stop>

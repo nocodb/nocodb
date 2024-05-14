@@ -515,7 +515,7 @@ a {
 }
 
 .nc-toolbar-btn {
-  @apply !shadow-none rounded hover:(ring-1 ring-gray-200 ring-opacity-100 bg-gray-100 !text-gray-800) focus:(ring-1 ring-gray-300 ring-opacity-100 !text-gray-800 bg-gray-100) text-gray-600 text-xs font-medium px-2 border-0;
+  @apply !shadow-none rounded hover:(bg-gray-50 !text-gray-800) focus:(!text-gray-800 bg-gray-50) text-gray-600 text-xs font-medium px-2 border-0;
 }
 .nc-toolbar-btn[disabled] {
   @apply !text-gray-400 !cursor-not-allowed !hover:ring-0;

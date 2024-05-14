@@ -36,7 +36,7 @@ const dateRecords = [
   {
     Id: 1,
     Title: 'Team Catchup',
-    StartDate: '2024-01-01 09:00',
+    StartDate: '2024-01-01 08:00',
     EndDate: '2024-01-01 10:00',
   },
   {
@@ -337,13 +337,13 @@ test.describe('Calendar View', () => {
       record: 'Team Catchup',
       to: {
         dayIndex: 0,
-        hourIndex: 5,
+        hourIndex: 7,
       },
     });
 
     await calendar.sideMenu.updateFilter({ filter: 'In selected hours' });
 
-    await calendar.calendarWeekDateTime.selectHour({ dayIndex: 0, hourIndex: 5 });
+    await calendar.calendarWeekDateTime.selectHour({ dayIndex: 0, hourIndex: 7 });
 
     await calendar.sideMenu.verifySideBarRecords({ records: ['Team Catchup'] });
 

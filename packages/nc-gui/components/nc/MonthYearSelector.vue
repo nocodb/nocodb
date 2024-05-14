@@ -93,7 +93,7 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
     <div v-if="!hideHeader" class="flex px-2 border-b-1 py-0.5 justify-between items-center">
       <div class="flex">
         <NcTooltip>
-          <NcButton class="!border-0" data-testid="nc-calendar-prev-btn" size="small" type="secondary" @click="paginate('prev')">
+          <NcButton class="!border-0" size="small" type="secondary" @click="paginate('prev')">
             <component :is="iconMap.arrowLeft" class="h-4 w-4" />
           </NcButton>
           <template #title>
@@ -107,7 +107,7 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
       }}</span>
       <div class="flex">
         <NcTooltip>
-          <NcButton class="!border-0" data-testid="nc-calendar-next-btn" size="small" type="secondary" @click="paginate('next')">
+          <NcButton class="!border-0" size="small" type="secondary" @click="paginate('next')">
             <component :is="iconMap.arrowRight" class="h-4 w-4" />
           </NcButton>
           <template #title>

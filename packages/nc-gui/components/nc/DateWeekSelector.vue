@@ -160,7 +160,7 @@ const emitDblClick = (date: dayjs.Dayjs) => {
       class="flex justify-between border-b-1 px-3 py-0.5 nc-date-week-header items-center"
     >
       <NcTooltip v-if="!disablePagination">
-        <NcButton class="!border-0" data-testid="nc-calendar-prev-btn" size="small" type="secondary" @click="paginate('prev')">
+        <NcButton class="!border-0" size="small" type="secondary" @click="paginate('prev')">
           <component :is="iconMap.arrowLeft" class="h-4 w-4" />
         </NcButton>
         <template #title>

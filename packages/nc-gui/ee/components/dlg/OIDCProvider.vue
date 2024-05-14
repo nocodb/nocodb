@@ -195,7 +195,7 @@ const saveOIDCProvider = async () => {
     @keydown.esc="dialogShow = false"
   >
     <div class="font-bold mb-4 text-base">{{ $t('activity.registerOIDC') }}</div>
-    <div class="overflow-y-auto h-[calc(min(75vh, 56rem))] pr-1 nc-scrollbar-md">
+    <div class="overflow-y-auto pr-1 nc-scrollbar-md">
       <div class="gap-y-8 flex flex-col">
         <a-form ref="formValidator" :model="form">
           <a-form-item :rules="formRules.title" name="title">
@@ -210,7 +210,9 @@ const saveOIDCProvider = async () => {
                   This is the URL where authentication responses will be sent after successful login. Also referred to as
                   'Callback URL' or 'Reply URL'.
                 </template>
-                <component :is="iconMap.info" class="ml-1 text-gray-800" />
+                <div class="h-full flex align-center">
+                  <component :is="iconMap.info" class="ml-2 text-gray-800" />
+                </div>
               </NcTooltip>
             </div>
             <div class="flex border-gray-200 border-1 bg-gray-50 items-center justify-between py-2 px-4 rounded-lg">
@@ -343,14 +345,23 @@ const saveOIDCProvider = async () => {
   </NcModal>
 </template>
 
-<style lang="scss" scoped>
-.ant-input::placeholder {
-  @apply text-gray-500;
-}
-.nc-select.ant-select .ant-select-selector {
-  @apply !h-[45px];
-}
-.ant-input {
-  @apply px-4 rounded-lg py-2 w-full border-1 focus:border-brand-500 border-gray-200 !ring-0;
+<style lang="scss">
+.nc-oidc-modal {
+  @apply !max-h-[90vh];
+
+  .nc-modal {
+    @apply !max-h-[90vh];
+  }
+
+  .nc-select.ant-select .ant-select-selector {
+    @apply !h-[45px];
+  }
+  .ant-input {
+    @apply px-4 rounded-lg py-2 w-full border-1 focus:border-brand-500 border-gray-200 !ring-0;
+  }
+
+  .ant-input::placeholder {
+    @apply text-gray-500;
+  }
 }
 </style>

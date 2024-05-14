@@ -67,9 +67,10 @@ onMounted(() => {
     <LazyDlgInviteDlg v-model:model-value="addWorkspaceMemberDlg" :workspace-id="selectedWorkspaceId" type="workspace" />
     <LazyWorkspaceCreateDlg v-model:model-value="newWorkspaceDlg" :org-id="orgId" />
     <LazyDlgRenameWorkspace
+      v-if="renameWorkspaceDlg"
       v-model:model-value="renameWorkspaceDlg"
-      :title="renameWorkspaceName"
-      :workspace-id="selectedWorkspaceId"
+      v-model:title="renameWorkspaceName"
+      v-model:workspace-id="selectedWorkspaceId"
     />
     <div class="flex flex-col w-full px-6 max-w-[97.5rem]">
       <span class="font-bold w-full text-2xl" data-rec="true">
@@ -90,8 +91,8 @@ onMounted(() => {
       </div>
 
       <div class="mt-5 h-full" data-testid="nc-org-members-list">
-        <div class="flex flex-col overflow-hidden border-b-1 min-h-[calc(100%-8rem)]">
-          <div class="flex flex-row bg-gray-50 min-h-11 items-center border-b-1">
+        <div class="flex flex-col overflow-hidden min-h-[calc(100%-8rem)]">
+          <div class="flex flex-row bg-gray-50 max-h-11 items-center border-b-1">
             <LazyAccountHeaderWithSorter
               class="text-gray-500 w-[18rem] px-6 py-3 users-email-grid"
               :header="$t('labels.workspaceName')"
@@ -104,16 +105,22 @@ onMounted(() => {
                 {{ $t('objects.owner') }}
               </span>
             </div>
-            <div class="text-gray-500 w-full flex-1 px-6 py-3 flex items-center space-x-2">
-              <span>
-                {{ $t('labels.numberOfMembers') }}
-              </span>
-            </div>
-            <div class="text-gray-500 w-full flex-1 px-6 py-3 flex items-center space-x-2">
-              <span>
-                {{ $t('labels.numberOfBases') }}
-              </span>
-            </div>
+            <LazyAccountHeaderWithSorter
+              :active-sort="sorts"
+              :header="$t('labels.numberOfMembers')"
+              :toggle-sort="toggleSort"
+              class="text-gray-500 w-full flex-1 px-6 py-3 flex items-center space-x-2"
+              field="memberCount"
+            />
+
+            <LazyAccountHeaderWithSorter
+              :active-sort="sorts"
+              :header="$t('labels.numberOfBases')"
+              :toggle-sort="toggleSort"
+              class="text-gray-500 w-full flex-1 px-6 py-3 flex items-center space-x-2"
+              field="baseCount"
+            />
+
             <!--
             <LazyAccountHeaderWithSorter
               class="text-gray-500 w-52 flex-1 px-6 py-3 flex items-center space-x-2 cursor-pointer"
@@ -130,9 +137,9 @@ onMounted(() => {
               v-for="(ws, i) of sortedWorkspaces"
               :key="i"
               :href="`${$route.params.page}/${ws.id}`"
-              class="!underline-transparent !text-gray-800 !hover:text-gray-800"
+              class="!underline-transparent !max-h-13 border-b-1 border-gray-200 !text-gray-800 !hover:text-gray-800"
             >
-              <div class="workspace-row flex hover:bg-gray-50 flex-row last:border-b-0 border-b-1 py-1 h-15 items-center">
+              <div class="workspace-row flex hover:bg-[#F0F3FF] flex-row last:border-b-0 border-b-1 py-1 items-center">
                 <div class="!w-[18rem] gap-3 flex items-center px-6 py-3">
                   <GeneralWorkspaceIcon :workspace="ws" hide-label />
                   <NcTooltip class="max-w-full" show-on-truncate-only>
@@ -144,7 +151,7 @@ onMounted(() => {
                     </span>
                   </NcTooltip>
                 </div>
-                <div class="flex gap-3 px-6 py-3 !w-[16rem] items-center">
+                <div class="flex gap-3 px-6 py-1.5 !w-[16rem] items-center">
                   <GeneralUserIcon :email="extractOwner(ws)?.email" size="base" />
                   <div class="flex flex-col">
                     <div class="flex gap-3">
@@ -160,20 +167,20 @@ onMounted(() => {
                 <div class="w-full flex-1 px-6 py-3">
                   <NcTooltip class="max-w-full" show-on-truncate-only>
                     <template #title>
-                      {{ ws.members.length }}
+                      {{ ws.memberCount }}
                     </template>
                     <span>
-                      {{ ws.members.length }}
+                      {{ ws.memberCount }}
                     </span>
                   </NcTooltip>
                 </div>
                 <div class="w-full flex-1 px-6 py-3 flex">
                   <NcTooltip class="max-w-full" show-on-truncate-only>
                     <template #title>
-                      {{ ws.bases.length }}
+                      {{ ws.baseCount }}
                     </template>
                     <span>
-                      {{ ws.bases.length }}
+                      {{ ws.baseCount }}
                     </span>
                   </NcTooltip>
                 </div>
@@ -188,7 +195,7 @@ onMounted(() => {
                    </span>
                  </NcTooltip>
                </div> -->
-                <div class="w-52 flex-1 flex justify-end px-6 py-3">
+                <div class="w-52 flex-1 flex justify-end px-6 py-1.5">
                   <NcButton class="!rounded-r-none" size="small" type="secondary" @click.prevent="addMemberToWorkspace(ws.id)">
                     <div class="flex items-center gap-2">
                       <component :is="iconMap.accountPlus" />

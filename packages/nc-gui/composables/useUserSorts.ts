@@ -138,6 +138,15 @@ export function useUserSorts(roleType: 'Workspace' | 'Org' | 'Project' | 'Organi
             return b[sortsConfig.field]?.localeCompare(a[sortsConfig.field])
           }
         }
+        case 'baseCount':
+        case 'workspaceCount':
+        case 'memberCount': {
+          if (sortsConfig.direction === 'asc') {
+            return a[sortsConfig.field] - b[sortsConfig.field]
+          } else {
+            return b[sortsConfig.field] - a[sortsConfig.field]
+          }
+        }
       }
 
       return 0

@@ -1,4 +1,4 @@
-import type { Api, DomainReqType } from 'nocodb-sdk'
+import type { Api, DomainReqType, DomainType } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
 import { useNuxtApp } from 'nuxt/app'
 
@@ -6,14 +6,21 @@ export const useDomains = () => {
   const { $api } = <{ $api: Api<any> }>useNuxtApp()
   const { orgId } = storeToRefs(useOrg())
 
-  const domains = ref<any[]>([])
+  const domains = ref<
+    DomainType &
+      {
+        verifying?: boolean
+        deleted?: boolean
+        verified?: boolean
+      }[]
+  >([])
 
   const fetchDomains = async () => {
     try {
       const res = await $api.orgDomain.list(orgId.value)
       domains.value = res.list
     } catch (err) {
-      message.error(await extractSdkResponseErrorMsg(err))
+      message.error(await extractSdkResponseErrorMsg(err as any))
       console.log(err)
     }
   }
@@ -23,7 +30,7 @@ export const useDomains = () => {
       await $api.orgDomain.update(id, domain)
       return true
     } catch (err) {
-      message.error(await extractSdkResponseErrorMsg(err))
+      message.error(await extractSdkResponseErrorMsg(err as any))
       return false
     }
   }
@@ -33,7 +40,7 @@ export const useDomains = () => {
       await $api.orgDomain.delete(id)
       domains.value = domains.value.filter((p) => p.id !== id)
     } catch (err) {
-      message.error(await extractSdkResponseErrorMsg(err))
+      message.error(await extractSdkResponseErrorMsg(err as any))
     }
   }
 
@@ -41,7 +48,7 @@ export const useDomains = () => {
     try {
       return await $api.orgDomain.create(orgId.value, domain)
     } catch (err) {
-      message.error(await extractSdkResponseErrorMsg(err))
+      message.error(await extractSdkResponseErrorMsg(err as any))
     }
   }
 

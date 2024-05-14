@@ -1,8 +1,6 @@
 <script lang="ts" setup>
 import { onMounted } from '@vue/runtime-core'
 
-// import {DomainType} from "nocodb-sdk";
-
 const { domains, fetchDomains, getPrePopulatedDomain, verifyDomain, deleteDomain } = useDomains()
 
 const domainDialogShow = ref(false)
@@ -58,17 +56,19 @@ onMounted(async () => {
             >
               <template v-if="domain.verifying"><a-spin size="small" /> &nbsp;Verifying</template>
               <template v-else>
-                <a-tooltip placement="bottom">
+                <NcTooltip placement="top">
                   <template #title>
-                    <span v-if="domain.verified"> Domain verified last at {{ domain.last_verified }} </span>
-                    <span v-else>
+                    <template v-if="domain.verified"> Domain verified last at {{ domain.last_verified }} </template>
+                    <template v-else>
                       Confirm the TXT record in your DNS settings, then verify your domain by clicking on the 'Verify' option in
                       the three-dot menu
-                    </span>
+                    </template>
                   </template>
-                  <GeneralIcon :icon="domain.verified ? 'check' : 'error'" />
-                  {{ domain.verified ? 'Verified' : 'Not verified' }}
-                </a-tooltip>
+                  <div class="inline-flex gap-2 items-center">
+                    <GeneralIcon :icon="domain.verified ? 'check' : 'error'" />
+                    {{ domain.verified ? 'Verified' : 'Not verified' }}
+                  </div>
+                </NcTooltip>
               </template>
             </span>
           </div>
@@ -106,10 +106,8 @@ onMounted(async () => {
         <NcButton
           :disabled="populatingDomain"
           :loading="populatingDomain"
-          class="!text-gray-500 !hover:text-gray-800"
           data-test-id="nc-org-domain-add"
           size="small"
-          type="secondary"
           @click="addDomain"
         >
           <GeneralIcon class="text-inherit" icon="plus" />

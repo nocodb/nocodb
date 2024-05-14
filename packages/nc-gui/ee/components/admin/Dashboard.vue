@@ -1,11 +1,15 @@
 <script lang="ts" setup>
 const orgStore = useOrg()
 
+const { org } = storeToRefs(orgStore)
+
 const { loadOrg } = orgStore
 
 const { members, fetchOrganizationMembers, workspaces, listWorkspaces, bases, fetchOrganizationBases } = useOrganization()
 
-const { org } = storeToRefs(orgStore)
+const { getPossibleAttachmentSrc } = useAttachment()
+
+const getOrgLogoSrc = computed(() => getPossibleAttachmentSrc(parseProp(org.value.image)))
 
 onMounted(async () => {
   await Promise.all([loadOrg(), fetchOrganizationMembers(), listWorkspaces(), fetchOrganizationBases()])
@@ -20,7 +24,15 @@ onMounted(async () => {
       </span>
       <div class="mt-5 flex flex-col border-1 rounded-2xl border-gray-200 p-6 gap-y-5">
         <div class="flex items-center gap-5">
+          <img
+            v-if="org.image"
+            :src="getOrgLogoSrc"
+            :srcset="getOrgLogoSrc"
+            alt="Organization Logo"
+            class="w-16 h-16 rounded-xl"
+          />
           <GeneralWorkspaceIcon
+            v-else
             :workspace="{
               id: org.id,
               title: org?.title,
@@ -34,15 +46,17 @@ onMounted(async () => {
         <div class="flex border-1 rounded-lg border-gray-200">
           <div class="w-1/3 px-4 border-r-1 py-3">
             <div class="text-[40px] font-semibold">{{ workspaces.length }}</div>
-            <div class="text-gray-600 mt-2">Total workspaces</div>
+            <div class="text-gray-600 mt-2">
+              Total {{ workspaces.length > 1 ? $t('labels.workspaces') : $t('labels.workspace') }}
+            </div>
           </div>
           <div class="w-1/3 px-4 border-r-1 py-3">
             <div class="text-[40px] font-semibold">{{ members.length }}</div>
-            <div class="text-gray-600 mt-2">Total members</div>
+            <div class="text-gray-600 mt-2">Total {{ members.length > 1 ? $t('labels.members') : $t('objects.member') }}</div>
           </div>
           <div class="w-1/3 px-4 py-3">
             <div class="text-[40px] font-semibold">{{ bases.length }}</div>
-            <div class="text-gray-600 mt-2">Total bases</div>
+            <div class="text-gray-600 mt-2">Total {{ bases.length > 1 ? $t('objects.projects') : $t('labels.project') }}</div>
           </div>
         </div>
         <!--

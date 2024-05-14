@@ -9,14 +9,27 @@ const props = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
-const { updateWorkspace } = useWorkspace()
+const { updateWorkspace, loadWorkspace } = useWorkspace()
 
 const dialogShow = useVModel(props, 'modelValue', emit)
 
+const title = useVModel(props, 'title', emit)
+
+const workspaceId = computed(() => props.workspaceId)
+
+const inputEl = ref()
+
 const { workspaces } = storeToRefs(useWorkspace())
 
-const currentWorkspace = computed(() => {
-  return workspaces.value.get(props.workspaceId)
+const currentWorkspace = computedAsync(async () => {
+  let ws = workspaces.value.get(workspaceId.value)
+
+  if (!ws) {
+    await loadWorkspace(workspaceId.value)
+    ws = workspaces.value.get(workspaceId.value)
+  }
+
+  return ws
 })
 
 const form = reactive({
@@ -40,22 +53,18 @@ const isCancelButtonVisible = ref(false)
 const titleChange = async () => {
   const valid = await formValidator.value.validate()
 
-  if (!valid) return
-
-  if (!currentWorkspace.value?.id) return
-
-  if (isTitleUpdating.value) return
+  if (!valid || !currentWorkspace.value?.id || isTitleUpdating.value) return
 
   isTitleUpdating.value = true
   isErrored.value = false
 
   try {
-    await updateWorkspace(currentWorkspace.value.id, {
+    await updateWorkspace(currentWorkspace.value?.id, {
       title: form.title,
     })
     dialogShow.value = false
   } catch (e: any) {
-    console.error(e)
+    isErrored.value = true
   } finally {
     isTitleUpdating.value = false
     isCancelButtonVisible.value = false
@@ -63,7 +72,8 @@ const titleChange = async () => {
 }
 
 onMounted(() => {
-  form.title = props.title
+  form.title = title.value
+  inputEl.value.focus()
 })
 
 watch(form, async () => {

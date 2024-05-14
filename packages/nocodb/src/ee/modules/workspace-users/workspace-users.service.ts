@@ -218,7 +218,7 @@ export class WorkspaceUsersService {
     if (
       getWorkspaceRolePower({
         workspace_roles: extractRolesObj(roles),
-      }) >= getWorkspaceRolePower(param.req.user)
+      }) > getWorkspaceRolePower(param.req.user)
     ) {
       NcError.badRequest(`Insufficient privilege to invite with this role`);
     }
@@ -235,6 +235,7 @@ export class WorkspaceUsersService {
 
     if (
       ![
+        WorkspaceUserRoles.OWNER,
         WorkspaceUserRoles.CREATOR,
         WorkspaceUserRoles.VIEWER,
         WorkspaceUserRoles.EDITOR,

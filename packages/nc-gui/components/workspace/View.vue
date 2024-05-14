@@ -77,8 +77,10 @@ onMounted(() => {
         <div class="flex items-center gap-3">
           <NuxtLink
             :href="`/admin/${orgId}/workspaces`"
-            class="!hover:(text-black underline-gray-600) !text-black !underline-transparent ml-0.75 max-w-1/4"
+            class="!hover:(text-black underline-gray-600) flex items-center !text-black !underline-transparent ml-0.75 max-w-1/4"
           >
+            <component :is="iconMap.arrowLeft" class="text-3xl" />
+
             {{ $t('labels.workspaces') }}
           </NuxtLink>
 

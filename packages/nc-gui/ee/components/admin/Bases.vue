@@ -17,8 +17,12 @@ const renameBaseDlg = ref(false)
 
 const selectedBaseId = ref('')
 
+const selectedBase = computed(() => {
+  return bases.value.find((base) => base.id === selectedBaseId.value)
+})
+
 const extractBaseOwner = (base) => {
-  return base.members.find((member) => member.base_roles === 'owner')
+  return base.members.find((member) => member.roles === 'owner')
 }
 
 const renameBase = (baseId: string) => {
@@ -41,7 +45,12 @@ onMounted(() => {
 
 <template>
   <div class="flex flex-col items-center" data-test-id="nc-admin-bases">
-    <LazyDlgRenameBase v-model:model-value="renameBaseDlg" :base-id="selectedBaseId" />
+    <LazyDlgRenameBase
+      v-if="renameBaseDlg && selectedBase?.title"
+      v-model:model-value="renameBaseDlg"
+      :base-id="selectedBaseId"
+      :title="selectedBase?.title"
+    />
     <div class="flex flex-col w-full px-6 max-w-[97.5rem]">
       <span class="font-bold w-full text-2xl" data-rec="true">
         {{ $t('objects.projects') }}
@@ -55,8 +64,8 @@ onMounted(() => {
       </div>
 
       <div class="mt-5 h-full" data-testid="nc-org-members-list">
-        <div class="flex flex-col border-b-1 min-h-[calc(100%-8rem)]">
-          <div class="flex flex-row bg-gray-50 min-h-11 items-center border-b-1">
+        <div class="flex flex-col min-h-[calc(100%-8rem)]">
+          <div class="flex flex-row bg-gray-50 max-h-11 items-center border-b-1">
             <LazyAccountHeaderWithSorter
               class="text-gray-500 w-[17rem] px-6 py-3 users-email-grid flex items-center space-x-2 cursor-pointer"
               :header="$t('general.name')"
@@ -64,25 +73,24 @@ onMounted(() => {
               field="title"
               :toggle-sort="toggleSort"
             />
-
-            <LazyAccountHeaderWithSorter
-              class="text-gray-500 w-[15rem] px-6 py-3 users-email-grid flex items-center space-x-2 cursor-pointer"
-              :header="$t('objects.owner')"
-              :active-sort="sorts"
-              field="email"
-              :toggle-sort="toggleSort"
-            />
+            <div class="text-gray-500 w-[15rem] px-6 py-3 users-email-grid flex items-center space-x-2 cursor-pointer">
+              <span>
+                {{ $t('objects.owner') }}
+              </span>
+            </div>
             <div class="text-gray-500 w-[15rem] px-6 py-3 users-email-grid flex items-center space-x-2">
               <span>
                 {{ $t('labels.workspaceName') }}
               </span>
             </div>
 
-            <div class="text-gray-500 w-full flex-1 px-6 py-3 flex items-center space-x-2">
-              <span>
-                {{ $t('labels.numberOfMembers') }}
-              </span>
-            </div>
+            <LazyAccountHeaderWithSorter
+              :active-sort="sorts"
+              :header="$t('labels.numberOfMembers')"
+              :toggle-sort="toggleSort"
+              class="text-gray-500 w-full flex-1 px-6 py-3 flex items-center space-x-2"
+              field="memberCount"
+            />
             <div class="text-gray-500 text-right flex-1 px-6 py-3">{{ $t('labels.actions') }}</div>
           </div>
           <div class="flex flex-col nc-scrollbar-md">
@@ -90,9 +98,9 @@ onMounted(() => {
               v-for="(base, i) of sortedBases"
               :key="i"
               :href="`${$route.params.page}/${base.id}`"
-              class="!underline-transparent !text-gray-800 !hover:text-gray-800"
+              class="!underline-transparent border-gray-200 border-b-1 !max-h-13 !text-gray-800 !hover:text-gray-800"
             >
-              <div class="workspace-row flex hover:bg-gray-50 flex-row last:border-b-0 border-b-1 py-1 h-15 items-center">
+              <div class="workspace-row flex hover:bg-[#F0F3FF] flex-row !max-h-13 items-center">
                 <div class="flex gap-3 !w-[17rem] items-center px-6 py-3">
                   <GeneralBaseIconColorPicker :readonly="true" size="xsmall" />
 
@@ -103,7 +111,7 @@ onMounted(() => {
                         whiteSpace: 'nowrap',
                         display: 'inline',
                       }"
-                      class="text-ellipsis overflow-hidden"
+                      class="text-ellipsis font-semibold text-gray-800 overflow-hidden"
                     >
                       {{ base.title }}
                     </span>
@@ -112,16 +120,16 @@ onMounted(() => {
                     </template>
                   </NcTooltip>
                 </div>
-                <div class="flex gap-3 !w-[15rem] items-center px-6 py-3">
-                  <GeneralUserIcon :email="extractBaseOwner(base).email" size="base" />
+                <div class="flex gap-3 !w-[15rem] items-center px-6 py-1.5">
+                  <GeneralUserIcon :email="extractBaseOwner(base)?.email" size="base" />
                   <div class="flex flex-col">
                     <div class="flex gap-3">
                       <span class="text-gray-800 font-semibold">
-                        {{ extractBaseOwner(base).display_name || extractBaseOwner(base).email.split('@')[0] }}
+                        {{ extractBaseOwner(base)?.display_name || extractBaseOwner(base)?.email.split('@')[0] }}
                       </span>
                     </div>
                     <span class="text-xs text-gray-600">
-                      {{ extractBaseOwner(base).email }}
+                      {{ extractBaseOwner(base)?.email }}
                     </span>
                   </div>
                 </div>
@@ -146,14 +154,14 @@ onMounted(() => {
                 <div class="w-full flex-1 px-6 py-3">
                   <NcTooltip class="max-w-full">
                     <template #title>
-                      {{ base.members.length }}
+                      {{ base.memberCount }}
                     </template>
                     <span>
-                      {{ base.members.length }}
+                      {{ base.memberCount }}
                     </span>
                   </NcTooltip>
                 </div>
-                <div class="flex-1 flex justify-end px-6 py-3">
+                <div class="flex-1 flex justify-end px-6 py-2">
                   <NcDropdown>
                     <NcButton size="small" type="secondary">
                       <component :is="iconMap.threeDotVertical" />

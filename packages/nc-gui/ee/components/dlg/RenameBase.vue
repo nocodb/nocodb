@@ -30,6 +30,8 @@ const currentBase = computedAsync(async () => {
   return base
 })
 
+const inputEl = ref()
+
 const form = reactive({
   title: '',
   modalInput: '',
@@ -73,6 +75,7 @@ const titleChange = async () => {
 
 onMounted(() => {
   form.title = props.title
+  inputEl.value?.focus()
 })
 
 watch(form, async () => {

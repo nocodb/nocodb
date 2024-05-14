@@ -14,7 +14,7 @@ const migrateWorkspace = async () => {
     await (api as Api<any>).orgWorkspace.upgrade(activeWorkspace.value?.id)
     await workspaceStore.loadWorkspace(activeWorkspace.value?.id)
     if (activeWorkspace.value?.fk_org_id) {
-      navigateTo(`/admin/${activeWorkspace.value.fk_org_id}/settings`)
+      navigateTo(`/admin/${activeWorkspace.value.fk_org_id}/settings?isCreatedFromWorkspace=true`)
     }
   } catch (e) {
     message.error(await extractSdkResponseErrorMsg(e))
@@ -35,7 +35,7 @@ const migrateWorkspace = async () => {
     </nuxt-link>
   </template>
   <div
-    v-else-if="isUIAllowed('moveWorkspaceToOrg') && activeWorkspace.isUpgradeAllowed"
+    v-else-if="isUIAllowed('moveWorkspaceToOrg') && true"
     v-e="['c:user:upgrade-workspace-to-org']"
     data-testid="nc-sidebar-upgrade-workspace-to-org"
     @click="migrateWorkspace"

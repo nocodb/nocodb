@@ -11,8 +11,9 @@ const searchInput = ref('')
 
 // Used to store the selected Users for the bulk actions
 // To be cleared after the action is performed and when search is used, also when page is changed
-const selected = ref({})
-
+const selected = reactive<{
+  [key: number]: boolean
+}>({})
 const filteredMembers = computed(() =>
   members.value.filter((member) => (member.display_name || member.email).toLowerCase().includes(searchInput.value.toLowerCase())),
 )
@@ -22,19 +23,22 @@ const sortedMembers = computed(() => {
 })
 
 const toggleSelectAll = (value: boolean) => {
-  selected.value = sortedMembers.value.reduce((acc, member) => {
-    acc[member.id] = value
-    return acc
-  }, {})
+  sortedMembers.value.forEach((_, i) => {
+    selected[i] = value
+  })
 }
 
 const selectAll = computed({
-  get: () => members.value?.every((member) => selected.value[member.id]) && members.value.length,
+  get: () =>
+    Object.values(selected).every((v) => v) &&
+    Object.keys(selected).length > 0 &&
+    Object.values(selected).length === sortedMembers.value.length,
   set: (value) => {
     toggleSelectAll(value)
   },
 })
-const isSomeSelected = computed(() => Object.values(selected.value).some((v) => v))
+
+const isSomeSelected = computed(() => Object.values(selected).some((v) => v))
 const bulkAddMemberDlg = ref(false)
 
 const bulkOpsEmails = ref<string[]>([])
@@ -61,15 +65,8 @@ onMounted(() => {
   loadSorts()
 })
 
-watch(members, (val) => {
-  selected.value = val.reduce((acc, member) => {
-    acc[member.id] = selected.value[member.id] || false
-    return acc
-  }, {})
-})
-
 watch(selected, () => {
-  bulkOpsEmails.value = sortedMembers.value.filter((collab) => selected.value[collab.id]).map((collab) => collab.email)
+  bulkOpsEmails.value = sortedMembers.value.filter((_collab, i) => selected[i]).map((collab) => collab.email)
 })
 </script>
 
@@ -113,7 +110,7 @@ watch(selected, () => {
 
       <div class="mt-5 h-full" data-testid="nc-org-members-list">
         <div class="flex flex-col overflow-hidden border-b-1 min-h-[calc(100%-8rem)]">
-          <div class="flex flex-row bg-gray-50 min-h-11 items-center border-b-1">
+          <div class="flex flex-row bg-gray-50 max-h-11 items-center border-b-1">
             <div class="py-3 px-6"><NcCheckbox v-model:checked="selectAll" /></div>
             <LazyAccountHeaderWithSorter
               class="text-gray-700 w-[25rem] users-email-grid flex items-center space-x-2 cursor-pointer"
@@ -122,11 +119,14 @@ watch(selected, () => {
               field="email"
               :toggle-sort="toggleSort"
             />
-            <div class="text-gray-700 w-full flex-1 px-6 py-3 flex items-center space-x-2">
-              <span>
-                {{ $t('objects.workspaces') }}
-              </span>
-            </div>
+
+            <LazyAccountHeaderWithSorter
+              :active-sort="sorts"
+              :header="$t('objects.workspaces')"
+              :toggle-sort="toggleSort"
+              class="text-gray-700 w-full flex-1 px-6 py-3 flex items-center space-x-2"
+              field="workspaceCount"
+            />
             <div class="text-gray-700 w-full flex-1 px-6 py-3">{{ $t('labels.dateAdded') }}</div>
             <div class="text-gray-700 w-full flex-1 px-6 py-3">{{ $t('labels.lastActive') }}</div>
             <div class="text-gray-700 w-full flex-1 px-6 text-right py-3">{{ $t('labels.actions') }}</div>
@@ -135,10 +135,13 @@ watch(selected, () => {
             <div
               v-for="(member, i) of sortedMembers"
               :key="i"
-              class="user-row flex hover:bg-gray-50 flex-row last:border-b-0 border-b-1 py-1 min-h-14 items-center"
+              :class="{
+                'bg-[#F0F3FF]': selected[i],
+              }"
+              class="user-row flex hover:bg-[#F0F3FF] !max-h-13.5 flex-row last:border-b-0 border-b-1 py-1 items-center"
             >
               <div class="py-3 px-6">
-                <NcCheckbox v-model:checked="selected[member.id]" />
+                <NcCheckbox v-model:checked="selected[i]" />
               </div>
 
               <div class="flex gap-3 w-[25rem] items-center users-email-grid">
@@ -146,7 +149,7 @@ watch(selected, () => {
                 <div class="flex flex-col">
                   <div class="flex gap-3">
                     <span class="text-gray-800 font-semibold">
-                      {{ member?.display_name || member.email.split('@')[0] }}
+                      {{ member.display_name || member.email.split('@')[0] }}
                     </span>
                     <RolesBadge v-if="member.cloud_org_roles" :border="false" :role="member.cloud_org_roles" :show-icon="false" />
                   </div>
@@ -158,7 +161,10 @@ watch(selected, () => {
 
               <div class="w-full flex-1 px-6 py-3">
                 <NcDropdown :trigger="['hover']">
-                  {{ member?.workspaces?.length }}
+                  <span>
+                    {{ member.workspaceCount }}
+                  </span>
+
                   <template #overlay>
                     <div class="rounded-lg">
                       <div class="rounded-t-lg font-medium bg-gray-100 py-1.5 px-2">

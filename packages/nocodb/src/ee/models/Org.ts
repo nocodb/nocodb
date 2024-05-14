@@ -1,6 +1,6 @@
 import type { AttachmentResType, OrgType } from 'nocodb-sdk';
 import {
-  parseMetaProp,
+  prepareForDb,
   prepareForResponse,
   stringifyMetaProp,
 } from '~/utils/modelUtils';
@@ -9,6 +9,7 @@ import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { deserializeJSON, serializeJSON } from '~/utils/serialize';
+import { BaseUser } from '~/models';
 
 type OrganizationType = Omit<OrgType, 'image'> & {
   image?: AttachmentResType | string;
@@ -29,7 +30,7 @@ export default class Org implements OrganizationType {
   public static async baseList(orgId: string, ncMeta = Noco.ncMeta) {
     // TODO: Caching
 
-    let bases = await ncMeta
+    const bases = await ncMeta
       .knex(MetaTable.PROJECT)
       .select(
         `${MetaTable.PROJECT}.id`,
@@ -41,19 +42,6 @@ export default class Org implements OrganizationType {
         `${MetaTable.WORKSPACE}.title as workspace_title`,
         `${MetaTable.WORKSPACE}.meta as workspace_meta`,
         `${MetaTable.WORKSPACE}.fk_org_id as org_id`,
-        ncMeta.knex.raw(`
-  (SELECT ARRAY_AGG(DISTINCT JSON_BUILD_OBJECT(
-      'fk_user_id', ${MetaTable.WORKSPACE_USER}.fk_user_id, 
-      'display_name', ${MetaTable.USERS}.display_name, 
-      'email', ${MetaTable.USERS}.email, 
-      'roles', ${MetaTable.WORKSPACE_USER}.roles,
-      'base_roles', ${MetaTable.PROJECT_USERS}.roles
-  )::TEXT)
-  FROM ${MetaTable.WORKSPACE_USER}
-  INNER JOIN ${MetaTable.USERS} ON ${MetaTable.USERS}.id = ${MetaTable.WORKSPACE_USER}.fk_user_id
-  LEFT JOIN ${MetaTable.PROJECT_USERS} ON ${MetaTable.PROJECT_USERS}.fk_user_id = ${MetaTable.USERS}.id
-  WHERE ${MetaTable.WORKSPACE_USER}.fk_workspace_id = ${MetaTable.WORKSPACE}.id
-) AS members`),
       )
       .innerJoin(
         MetaTable.WORKSPACE,
@@ -70,11 +58,10 @@ export default class Org implements OrganizationType {
         `${MetaTable.ORG}.id`,
         `${MetaTable.WORKSPACE}.fk_org_id`,
       )
-      .where({
-        [`${MetaTable.ORG}.id`]: orgId,
-        [`${MetaTable.WORKSPACE}.deleted`]: false,
-        [`${MetaTable.WORKSPACE_USER}.deleted`]: false,
-      })
+      .andWhere(`${MetaTable.ORG}.id`, orgId)
+      .whereNot(`${MetaTable.PROJECT}.deleted`, true)
+      .whereNot(`${MetaTable.WORKSPACE}.deleted`, true)
+      .whereNot(`${MetaTable.WORKSPACE_USER}.deleted`, true)
       .groupBy(
         `${MetaTable.PROJECT}.id`,
         `${MetaTable.PROJECT}.title`,
@@ -87,12 +74,14 @@ export default class Org implements OrganizationType {
         `${MetaTable.WORKSPACE}.fk_org_id`,
       );
 
-    bases = bases.map((base) => {
-      base.members = base.members.map((member) => {
-        return JSON.parse(member);
-      });
-      return base;
-    });
+    await Promise.all(
+      bases.map(async (base) => {
+        base.members = await BaseUser.getUsersList({
+          base_id: base.id,
+          include_ws_deleted: false,
+        });
+      }),
+    );
 
     return bases;
   }
@@ -105,10 +94,12 @@ export default class Org implements OrganizationType {
         id: orgId,
       });
 
+      if (org) {
+        org.meta = deserializeJSON(org.meta);
+        org.config = deserializeJSON(org.config);
+        await NocoCache.set(key, org);
+      }
       if (!org) return null;
-
-      org.config = parseMetaProp(org, 'config');
-      await NocoCache.set(key, org);
     }
 
     return new Org(org);
@@ -156,21 +147,23 @@ export default class Org implements OrganizationType {
     ]);
 
     if (updateObj?.image) {
-      updateObj.image = this.serializeAttachmentJSON(updateObj.logo_url);
+      updateObj.image = this.serializeAttachmentJSON(updateObj.image);
     }
 
-    if ('meta' in updateObj) {
-      updateObj.meta = stringifyMetaProp(updateObj, 'meta');
-    }
-
-    await ncMeta.metaUpdate(null, null, MetaTable.ORG, updateObj, orgId);
+    const res = await ncMeta.metaUpdate(
+      null,
+      null,
+      MetaTable.ORG,
+      prepareForDb(updateObj),
+      orgId,
+    );
 
     await NocoCache.update(
       `${CacheScope.ORG}:${orgId}`,
-      prepareForResponse(updateObj, 'meta'),
+      prepareForResponse(updateObj),
     );
 
-    return true;
+    return res;
   }
 
   public static async delete(orgId: string, ncMeta = Noco.ncMeta) {

@@ -146,7 +146,7 @@ const saveSamlProvider = async () => {
 <template>
   <NcModal v-model:visible="dialogShow" class="nc-saml-modal" data-test-id="nc-saml-modal" @keydown.esc="dialogShow = false">
     <div class="font-bold mb-4 text-base">{{ $t('activity.registerSAML') }}</div>
-    <div class="overflow-y-auto h-[calc(min(40vh, 56rem))] pr-1 nc-scrollbar-md">
+    <div class="overflow-y-auto max-h-[90vh] pr-1 nc-scrollbar-md">
       <div class="gap-y-8 flex flex-col">
         <a-form ref="formValidator" :model="form">
           <a-form-item :rules="formRules.title" name="title">
@@ -162,7 +162,7 @@ const saveSamlProvider = async () => {
                   'Callback URL' or 'Reply URL'.
                 </template>
                 <div class="h-full flex align-center">
-                  <component :is="iconMap.info" class="ml-1 text-gray-500 text-xs" />
+                  <component :is="iconMap.info" class="ml-2 text-gray-500 text-xs" />
                 </div>
               </NcTooltip>
             </div>
@@ -189,7 +189,7 @@ const saveSamlProvider = async () => {
                   IDP recognise and validate tokens issued specifically for your application.
                 </template>
                 <div class="h-full flex align-center">
-                  <component :is="iconMap.info" class="ml-1 text-gray-500 text-xs" />
+                  <component :is="iconMap.info" class="ml-2 text-gray-500 text-xs" />
                 </div>
               </NcTooltip>
             </div>
@@ -252,32 +252,34 @@ const saveSamlProvider = async () => {
                 <NcSwitch v-model:checked="form.ssoOnly" />
               </div>
           -->
-          <div class="flex justify-end gap-2 mt-8">
-            <NcButton size="medium" type="secondary" @click="dialogShow = false">
-              {{ $t('labels.cancel') }}
-            </NcButton>
-            <NcButton
-              :disabled="isButtonDisabled"
-              data-test-id="nc-saml-submit"
-              size="medium"
-              type="primary"
-              @click="saveSamlProvider"
-            >
-              {{ $t('labels.save') }}
-            </NcButton>
-          </div>
         </a-form>
       </div>
+    </div>
+    <div class="flex justify-end gap-2 mt-8">
+      <NcButton size="medium" type="secondary" @click="dialogShow = false">
+        {{ $t('labels.cancel') }}
+      </NcButton>
+      <NcButton :disabled="isButtonDisabled" data-test-id="nc-saml-submit" size="medium" type="primary" @click="saveSamlProvider">
+        {{ $t('labels.save') }}
+      </NcButton>
     </div>
   </NcModal>
 </template>
 
-<style lang="scss" scoped>
-.ant-input::placeholder {
-  @apply text-gray-500;
-}
+<style lang="scss">
+.nc-saml-modal {
+  @apply !max-h-[90vh];
 
-.ant-input {
-  @apply px-4 rounded-lg py-2 w-full border-1 focus:border-brand-500 border-gray-200 !ring-0;
+  .nc-modal {
+    @apply !max-h-[90vh];
+  }
+
+  .ant-input::placeholder {
+    @apply text-gray-500;
+  }
+
+  .ant-input {
+    @apply px-4 rounded-lg py-2 w-full border-1 focus:border-brand-500 border-gray-200 !ring-0;
+  }
 }
 </style>

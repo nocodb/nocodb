@@ -5,10 +5,14 @@ const props = defineProps<{
 
 const { signOut } = useGlobal()
 
-const { deleteWorkspace, navigateToWorkspace, updateWorkspace } = useWorkspace()
+const { deleteWorkspace, navigateToWorkspace, updateWorkspace, loadWorkspace } = useWorkspace()
 const { workspacesList, activeWorkspace, workspaces } = storeToRefs(useWorkspace())
 
+const { orgId } = useOrganization()
+
 const { refreshCommandPalette } = useCommandPalette()
+
+const router = useRouter()
 
 const formValidator = ref()
 const isDeleting = ref(false)
@@ -33,28 +37,35 @@ const formRules = {
   ],
 }
 
-const currentWorkspace = computed(() => {
-  return props.workspaceId ? workspaces.value.get(props.workspaceId) : activeWorkspace.value
+const currentWorkspace = computedAsync(async () => {
+  if (props.workspaceId) {
+    const ws = workspacesList.value.find((workspace) => workspace.id === props.workspaceId)
+    if (!ws) {
+      await loadWorkspace(props.workspaceId)
+      return workspacesList.value.find((workspace) => workspace.id === props.workspaceId)
+    }
+    return ws
+  }
+  return activeWorkspace.value
 })
 
 const onDelete = async () => {
-  if (isDeleting.value) return
-  if (!currentWorkspace.value?.id) return
+  if (!currentWorkspace.value || !currentWorkspace.value.id) return
 
   isDeleting.value = true
   try {
     const shouldSignOut = workspacesList.value.length < 2
     await deleteWorkspace(currentWorkspace.value.id, { skipStateUpdate: true })
     // We only remove the delete workspace from the list after the api call is successful
+
+    if (isAdminPanel.value) {
+      router.replace({ hash: `#/admin/${orgId.value}/workspaces` })
+    }
+
     workspaces.value.delete(currentWorkspace.value.id)
-    if (!shouldSignOut) {
-      if (isAdminPanel.value) {
-        // Navigate BackPage
-        // #TODO: @Darkphoenix2704
-      } else {
-        await navigateToWorkspace(workspacesList.value[0].id)
-      }
-    } else {
+    if (!shouldSignOut && !isAdminPanel.value) {
+      await navigateToWorkspace(workspacesList.value[0].id)
+    } else if (!isAdminPanel.value) {
       // As signin page will clear the workspaces, we need to check if there are more than one workspace
       await signOut(false)
       setTimeout(() => {
@@ -73,19 +84,17 @@ const rules = {
 }
 
 const titleChange = async () => {
+  if (!currentWorkspace.value || !currentWorkspace.value.id || isTitleUpdating.value) return
+
   const valid = await formValidator.value.validate()
 
   if (!valid) return
-
-  if (!currentWorkspace.value?.id) return
-
-  if (isTitleUpdating.value) return
 
   isTitleUpdating.value = true
   isErrored.value = false
 
   try {
-    await updateWorkspace(currentWorkspace.value.id, {
+    await updateWorkspace(currentWorkspace.value?.id, {
       title: form.title,
     })
   } catch (e: any) {
@@ -97,18 +106,15 @@ const titleChange = async () => {
 }
 
 const handleDelete = () => {
-  if (!currentWorkspace.value?.title) return
-
+  if (!currentWorkspace.value || !currentWorkspace.value.title) return
   toBeDeletedWorkspaceTitle.value = currentWorkspace.value.title
   isDeleteModalVisible.value = true
 }
 
 watch(
-  () => currentWorkspace.value?.title,
+  currentWorkspace,
   () => {
-    if (currentWorkspace.value?.title) {
-      form.title = currentWorkspace.value.title
-    }
+    form.title = currentWorkspace.value?.title ?? ''
   },
   {
     immediate: true,
@@ -119,7 +125,8 @@ watch(
   () => form.title,
   async () => {
     try {
-      isCancelButtonVisible.value = form.title !== currentWorkspace.value?.title
+      if (!currentWorkspace.value) return
+      isCancelButtonVisible.value = form.title !== currentWorkspace.value.title
       isErrored.value = !(await formValidator.value.validate())
     } catch (e: any) {
       isErrored.value = true

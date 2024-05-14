@@ -31,8 +31,9 @@ export const useOrg = defineStore('orgStore', () => {
   const updateOrg = async (updateObj: Partial<OrgType>) => {
     try {
       await $api.org.update(orgId.value, updateObj)
+      const oldOrg = org.value
       org.value = {
-        ...org.value,
+        ...oldOrg,
         ...updateObj,
       }
       message.success('Organization details updated successfully')

@@ -2,11 +2,11 @@
 const orgStore = useOrg()
 
 const { org } = storeToRefs(orgStore)
-const { updateOrg } = orgStore
+const { updateOrg, loadOrg } = orgStore
 
 const { getPossibleAttachmentSrc } = useAttachment()
 
-const { onChange: onChangeFile } = useFileDialog({
+const { open, onChange: onChangeFile } = useFileDialog({
   accept: 'image/*',
   multiple: false,
   reset: true,
@@ -34,8 +34,7 @@ const save = async () => {
   })
 }
 
-// disable until API correction
-/* const imageCropperData = ref({
+const imageCropperData = ref({
   cropperConfig: {
     stencilProps: {
       aspectRatio: undefined,
@@ -54,11 +53,12 @@ const save = async () => {
 })
 
 const handleOnUploadImage = async (data: any) => {
-  console.log(data)
   await updateOrg({
     ...org.value,
     image: data,
   })
+
+  await loadOrg()
 }
 
 const openUploadImage = () => {
@@ -69,15 +69,13 @@ const openUploadImage = () => {
   imageCropperData.value.cropperConfig = {
     ...imageCropperData.value.cropperConfig,
     stencilProps: {
-      aspectRatio: undefined,
+      aspectRatio: 1,
     },
     minHeight: 150,
     minWidth: 150,
   }
-  imageCropperData.value.cropFor = 'logo'
-
   open()
-} */
+}
 
 const showImageCropper = ref(false)
 
@@ -109,19 +107,29 @@ const removeImage = async () => {
     image: '',
   })
 }
+
+const inputEl = ref()
+
+const router = useRoute()
+
+onMounted(() => {
+  if (router.query.isCreatedFromWorkspace) {
+    setTimeout(() => {
+      inputEl.value.focus()
+    }, 100)
+  }
+})
 </script>
 
 <template>
   <div class="flex flex-col items-center" data-test-id="nc-admin-settings">
-    <!--  Disable until API correction  -->
-    <!--
-   <GeneralImageCropper
+    <GeneralImageCropper
       v-model:show-cropper="showImageCropper"
       :cropper-config="imageCropperData.cropperConfig"
       :image-config="imageCropperData.imageConfig"
       :upload-config="imageCropperData.uploadConfig"
       @submit="handleOnUploadImage"
-    ></GeneralImageCropper> -->
+    ></GeneralImageCropper>
     <div v-if="org" class="flex flex-col w-150">
       <span class="font-bold text-xl" data-rec="true">
         {{ $t('labels.settings') }}
@@ -148,7 +156,7 @@ const removeImage = async () => {
             />
             <component :is="iconMap.office" v-else class="w-8 !fill-gray-600 h-8" />
           </div>
-          <NcButton disabled data-testid="nc-admin-settings-org-icon-btn" size="small" type="secondary" @click="openUploadImage">
+          <NcButton data-testid="nc-admin-settings-org-icon-btn" size="small" type="secondary" @click="openUploadImage">
             <div class="flex gap-2 items-center">
               <span>
                 <component :is="iconMap.upload" class="w-4 h-4" />
@@ -174,7 +182,7 @@ const removeImage = async () => {
         <span class="text-gray-800 mb-3 font-bold">
           {{ $t('labels.organizationName') }}
         </span>
-        <a-input v-model:value="form.title" class="w-96" placeholder="Decibal Vc" />
+        <a-input ref="inputEl" v-model:value="form.title" class="w-96" placeholder="Acme Inc" />
         <div class="flex justify-end mt-3">
           <NcButton type="primary" @click="save">
             {{ $t('general.save') }}

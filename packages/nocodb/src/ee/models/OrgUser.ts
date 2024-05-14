@@ -26,11 +26,12 @@ export default class OrgUser {
         `${MetaTable.USERS}.created_at as created_at`,
         `${MetaTable.ORG_USERS}.roles as cloud_org_roles`,
         ncMeta.knex.raw(
-          "ARRAY_AGG(DISTINCT JSON_BUILD_OBJECT('fk_workspace_id', ??, 'created_at', ??, 'roles', ??)::text) as workspaces",
+          "ARRAY_AGG(DISTINCT JSON_BUILD_OBJECT('id', ??, 'created_at', ??, 'roles', ??, 'title', ??)::text) as workspaces",
           [
-            `${MetaTable.WORKSPACE_USER}.fk_workspace_id`,
+            `${MetaTable.WORKSPACE}.id`,
             `${MetaTable.WORKSPACE_USER}.created_at`,
             `${MetaTable.WORKSPACE_USER}.roles`,
+            `${MetaTable.WORKSPACE}.title`,
           ],
         ),
       )
@@ -57,6 +58,7 @@ export default class OrgUser {
       .where({
         [`${MetaTable.WORKSPACE}.fk_org_id`]: orgId,
       })
+      .whereNot(`${MetaTable.WORKSPACE_USER}.deleted`, true)
       .groupBy(
         `${MetaTable.USERS}.id`,
         `${MetaTable.USERS}.email`,

@@ -5,6 +5,8 @@ const props = defineProps<{
 
 const { changeCalendarView, activeCalendarView } = useCalendarViewStoreOrThrow()
 
+const isTab = computed(() => props.tab)
+
 const highlightStyle = ref({ left: '0px' })
 
 const setActiveCalendarMode = (mode: 'day' | 'week' | 'month' | 'year', event: MouseEvent) => {
@@ -22,15 +24,20 @@ const updateHighlightPosition = () => {
   })
 }
 
+watch(isTab, () => {
+  console.log('isTab', isTab.value)
+  updateHighlightPosition()
+})
+
 watch(activeCalendarView, () => {
-  if (!props.tab) return
+  if (!isTab.value) return
   updateHighlightPosition()
 })
 </script>
 
 <template>
   <div
-    v-if="props.tab"
+    v-if="isTab"
     class="flex flex-row px-1 pointer-events-auto mx-3 mt-3 rounded-lg gap-x-0.5 nc-calendar-mode-tab"
     data-testid="nc-calendar-view-mode"
   >
@@ -47,12 +54,12 @@ watch(activeCalendarView, () => {
     </div>
   </div>
 
-  <NcSelect v-else v-model:value="activeCalendarView" class="!w-22" data-testid="nc-calendar-view-mode" size="small">
-    <a-select-option v-for="option in ['day', 'week', 'month', 'year']" :key="option" :value="option" class="!h-7 !w-20">
+  <NcSelect v-else v-model:value="activeCalendarView" class="!w-21" data-testid="nc-calendar-view-mode" size="small">
+    <a-select-option v-for="option in ['day', 'week', 'month', 'year']" :key="option" :value="option" class="!h-7 !w-21">
       <div class="flex gap-2 mt-0.5 items-center">
-        <NcTooltip class="truncate !capitalize flex-1 max-w-18" placement="top" show-on-truncate-only>
+        <NcTooltip class="!capitalize flex-1 max-w-21" placement="top" show-on-truncate-only>
           <template #title>
-            <span class="capitalize">
+            <span class="capitalize min-w-21">
               {{ option }}
             </span>
           </template>

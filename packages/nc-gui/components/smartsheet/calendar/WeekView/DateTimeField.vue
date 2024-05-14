@@ -877,14 +877,14 @@ watch(
     data-testid="nc-calendar-week-view"
     @drop="dropEvent"
   >
-    <div class="flex sticky h-7.1 z-1 top-0 pl-16 bg-gray-50 w-full">
+    <div class="flex sticky h-6 z-1 top-0 pl-16 bg-gray-50 w-full">
       <div
         v-for="date in datesHours"
         :key="date[0].toISOString()"
         :class="{
           'text-brand-500': date[0].isSame(dayjs(), 'date'),
         }"
-        class="w-1/7 text-center font-regular uppercase text-xs text-gray-500 w-full py-1 border-gray-200 last:border-r-0 border-b-1 border-l-1 border-r-0 bg-gray-50"
+        class="w-1/7 text-center text-[10px] font-semibold leading-4 flex items-center justify-center uppercase text-gray-500 w-full py-1 border-gray-200 last:border-r-0 border-b-1 border-l-1 border-r-0 bg-gray-50"
       >
         {{ dayjs(date[0]).format('DD ddd') }}
       </div>

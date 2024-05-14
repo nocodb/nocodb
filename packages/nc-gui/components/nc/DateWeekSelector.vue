@@ -50,6 +50,7 @@ const days = computed(() => {
 })
 
 const currentMonthYear = computed(() => {
+  if (props.disablePagination) return dayjs(pageDate.value).format('MMMM')
   return dayjs(pageDate.value).format('MMMM YYYY')
 })
 
@@ -159,7 +160,7 @@ const emitDblClick = (date: dayjs.Dayjs) => {
       }"
       class="flex justify-between border-b-1 px-3 py-0.5 nc-date-week-header items-center"
     >
-      <NcTooltip v-if="!disablePagination">
+      <NcTooltip v-if="!disablePagination" hide-on-click>
         <NcButton class="!border-0" size="small" type="secondary" @click="paginate('prev')">
           <component :is="iconMap.arrowLeft" class="h-4 w-4" />
         </NcButton>
@@ -177,7 +178,7 @@ const emitDblClick = (date: dayjs.Dayjs) => {
         >{{ currentMonthYear }}</span
       >
 
-      <NcTooltip v-if="!disablePagination">
+      <NcTooltip v-if="!disablePagination" hide-on-click>
         <NcButton class="!border-0" data-testid="nc-calendar-next-btn" size="small" type="secondary" @click="paginate('next')">
           <component :is="iconMap.arrowRight" class="h-4 w-4" />
         </NcButton>
@@ -201,7 +202,7 @@ const emitDblClick = (date: dayjs.Dayjs) => {
           'px-2 !rounded-t-lg': size === 'small',
           'rounded-t-xl': size !== 'small',
         }"
-        class="flex py-1 flex-row nc-date-week-header border-gray-200 justify-between"
+        class="flex py-1 flex-row border-gray-200 justify-between"
       >
         <span
           v-for="(day, index) in days"
@@ -242,7 +243,7 @@ const emitDblClick = (date: dayjs.Dayjs) => {
             'h-8 w-8': size === 'medium',
             'h-6 w-6 text-[10px]': size === 'small',
           }"
-          class="px-1 py-1 relative border-1 font-medium flex items-center cursor-pointer justify-center"
+          class="px-1 py-1 relative border-1 font-medium flex text-gray-700 items-center cursor-pointer justify-center"
           data-testid="nc-calendar-date"
           @dblclick="emitDblClick(date)"
           @click="handleSelectDate(date)"

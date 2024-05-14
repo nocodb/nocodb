@@ -35,6 +35,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const { isUIAllowed } = useRoles()
 
+    const { isMobileMode } = useGlobal()
+
     const displayField = computed(() => meta.value?.columns?.find((c) => c.pv))
 
     const activeCalendarView = ref<'month' | 'year' | 'day' | 'week'>()
@@ -54,7 +56,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const isCalendarMetaLoading = ref<boolean>(false)
 
-    const showSideMenu = ref(true)
+    const showSideMenu = ref(!isMobileMode.value)
 
     const selectedDateRange = ref<{
       start: dayjs.Dayjs

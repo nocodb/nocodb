@@ -22,9 +22,12 @@ const { allowCSVDownload } = useSharedView()
 
 <template>
   <div
-    v-if="!isMobileMode"
+    v-if="!isMobileMode || isCalendar"
     ref="containerRef"
-    class="nc-table-toolbar relative px-3 xs:(px-1) flex gap-2 items-center border-b border-gray-200 overflow-hidden xs:(min-h-14) min-h-9 max-h-9 z-7"
+    :class="{
+      'px-4': isMobileMode,
+    }"
+    class="nc-table-toolbar relative px-3 flex gap-2 items-center border-b border-gray-200 overflow-hidden xs:(min-h-14) min-h-9 max-h-9 z-7"
   >
     <template v-if="isViewsLoading">
       <a-skeleton-input :active="true" class="!w-44 !h-4 ml-2 !rounded overflow-hidden" />
@@ -76,10 +79,12 @@ const { allowCSVDownload } = useSharedView()
           'w-full': isMobileMode,
         }"
       />
+      <div v-if="isCalendar && isMobileMode" class="flex-1 pointer-events-none" />
+
       <LazySmartsheetToolbarCalendarMode v-if="isCalendar && !isTab" :tab="isTab" />
 
-      <LazySmartsheetToolbarFieldsMenu v-if="isCalendar" :show-system-fields="false" />
-      <LazySmartsheetToolbarColumnFilterMenu v-if="isCalendar" />
+      <LazySmartsheetToolbarFieldsMenu v-if="isCalendar && !isMobileMode" :show-system-fields="false" />
+      <LazySmartsheetToolbarColumnFilterMenu v-if="isCalendar && !isMobileMode" />
     </template>
   </div>
 </template>

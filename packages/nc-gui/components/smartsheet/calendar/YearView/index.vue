@@ -13,17 +13,27 @@ const months = computed(() => {
 
 const calendarContainer = ref<HTMLElement | null>(null)
 
-const { width } = useWindowSize()
+const { width } = useElementSize(calendarContainer)
 
-const size = ref('small')
+const size = ref<'small' | 'medium'>('small')
+const cols = ref(4)
 
 const handleResize = () => {
-  if (width.value < 1608) {
-    size.value = 'small'
-  } else if (width.value < 2000) {
+  if (width.value > 1250) {
     size.value = 'medium'
+    cols.value = 4
+  } else if (width.value > 850) {
+    size.value = 'medium'
+    cols.value = 3
+  } else if (width.value > 680) {
+    size.value = 'small'
+    cols.value = 3
+  } else if (width.value > 375) {
+    size.value = 'small'
+    cols.value = 2
   } else {
-    size.value = 'large'
+    size.value = 'medium'
+    cols.value = 1
   }
 }
 
@@ -40,15 +50,19 @@ watch(width, handleResize)
 </script>
 
 <template>
-  <div ref="calendarContainer" class="overflow-auto flex my-2 justify-center nc-scrollbar-md">
+  <div ref="calendarContainer" class="overflow-auto flex my-2 transition justify-center nc-scrollbar-md">
     <div
       :class="{
-        '!gap-12': size === 'large',
+        'grid-cols-1': cols === 1,
+        'grid-cols-2': cols === 2,
+        'grid-cols-3': cols === 3,
+        'grid-cols-4': cols === 4,
+        '!gap-5': cols < 3 && size === 'small',
       }"
-      class="grid grid-cols-4 justify-items-center gap-6 scale-1"
+      class="grid justify-items-center gap-8"
       data-testid="nc-calendar-year-view"
     >
-      <NcDateWeekSelector
+      <LazySmartsheetCalendarYearViewMonth
         v-for="(_, index) in months"
         :key="index"
         v-model:active-dates="activeDates"
@@ -57,7 +71,6 @@ watch(width, handleResize)
         :size="size"
         class="nc-year-view-calendar"
         data-testid="nc-calendar-year-view-month-selector"
-        disable-pagination
         @dbl-click="changeView"
       />
     </div>
@@ -67,7 +80,7 @@ watch(width, handleResize)
 <style lang="scss" scoped>
 .nc-year-view-calendar {
   :deep(.nc-date-week-header) {
-    @apply border-gray-200;
+    @apply border-gray-200 h-8 py-2;
   }
 }
 </style>

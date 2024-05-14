@@ -73,12 +73,12 @@ watch(activeCalendarView, () => {
 
 <style lang="scss" scoped>
 .highlight {
-  @apply absolute h-9 w-20 transition-all border-b-2 border-brand-500 duration-200;
+  @apply absolute h-9 w-14 transition-all border-b-2 border-brand-500 duration-200;
   z-index: 0;
 }
 
 .tab {
-  @apply flex items-center h-9 w-20 z-10 justify-center px-2 py-1 rounded-lg gap-x-1.5 text-gray-500 hover:text-black cursor-pointer transition-all duration-300 select-none;
+  @apply flex items-center h-9 w-14 z-10 justify-center px-2 py-1 rounded-lg gap-x-1.5 text-gray-500 hover:text-black cursor-pointer transition-all duration-300 select-none;
 }
 
 .tab .tab-title {
@@ -90,7 +90,7 @@ watch(activeCalendarView, () => {
 }
 
 .active {
-  @apply !text-brand-500 font-medium bg-transparent;
+  @apply !text-brand-500  bg-transparent;
 }
 
 .nc-calendar-mode-tab {

@@ -13,7 +13,9 @@ const INFINITY_SCROLL_THRESHOLD = 100
 
 const { isUIAllowed } = useRoles()
 
-const { appInfo } = useGlobal()
+const { $e } = useNuxtApp()
+
+const { appInfo, isMobileMode } = useGlobal()
 
 const meta = inject(MetaInj, ref())
 
@@ -36,6 +38,7 @@ const {
   loadMoreSidebarData,
   searchQuery,
   sideBarFilterOption,
+  showSideMenu,
 } = useCalendarViewStoreOrThrow()
 
 const sideBarListRef = ref<VNodeRef | null>(null)
@@ -275,6 +278,11 @@ const widthListener = () => {
   width.value = window.innerWidth
 }
 
+const toggleSideMenu = () => {
+  $e('c:calendar:toggle-sidebar', showSideMenu.value)
+  showSideMenu.value = !showSideMenu.value
+}
+
 onMounted(() => {
   window.addEventListener('resize', widthListener)
 })
@@ -285,6 +293,19 @@ onUnmounted(() => {
 </script>
 
 <template>
+  <NcTooltip
+    :class="{
+      'right-2': !showSideMenu,
+      'right-74': showSideMenu,
+      'right-84': width > 1440 && showSideMenu,
+    }"
+    class="absolute transition-all ease-in-out top-2 z-30"
+  >
+    <template #title> {{ $t('activity.toggleSidebar') }}</template>
+    <NcButton v-if="!isMobileMode" data-testid="nc-calendar-side-bar-btn" size="small" type="secondary" @click="toggleSideMenu">
+      <component :is="iconMap.sidebar" class="h-4 w-4 text-gray-600 transition-all" />
+    </NcButton>
+  </NcTooltip>
   <div
     :class="{
       '!w-0 hidden': !props.visible,
@@ -308,8 +329,8 @@ onUnmounted(() => {
         v-model:active-dates="activeDates"
         v-model:page-date="pageDate"
         v-model:selected-week="selectedDateRange"
-        is-week-picker
         :hide-calendar="width <= 1440"
+        is-week-picker
       />
       <NcMonthYearSelector
         v-else-if="activeCalendarView === ('month' as const)"
@@ -321,8 +342,8 @@ onUnmounted(() => {
         v-else-if="activeCalendarView === ('year' as const)"
         v-model:page-date="pageDate"
         v-model:selected-date="selectedDate"
-        is-year-picker
         :hide-calendar="width <= 1440"
+        is-year-picker
       />
     </div>
 
@@ -436,8 +457,8 @@ onUnmounted(() => {
               "
                 color="blue"
                 data-testid="nc-sidebar-record-card"
-                @dragstart="dragStart($event, record)"
                 @click="emit('expandRecord', record)"
+                @dragstart="dragStart($event, record)"
                 @dragover.prevent
               >
                 <template v-if="!isRowEmpty(record, displayField)">

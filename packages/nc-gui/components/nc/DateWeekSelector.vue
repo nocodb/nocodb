@@ -189,7 +189,7 @@ const changeDate = (action: 'prev' | 'next') => {
         ' justify-between border-b-1 ': !disablePagination,
         ' justify-center': disablePagination,
       }"
-      class="flex px-2 py-2 items-center"
+      class="flex px-2 py-2 nc-date-week-header items-center"
     >
       <div v-if="!disablePagination" class="flex">
         <NcTooltip v-if="!hideCalendar">
@@ -312,14 +312,13 @@ const changeDate = (action: 'prev' | 'next') => {
             v-if="isActiveDate(date)"
             :class="{
               'h-2 w-2': size === 'large',
-              'h-1 w-1': size === 'medium',
-              'h-0.75 w-0.75': size === 'small',
+              'h-1.5 w-1.5': size === 'medium',
+              'h-1.25 w-1.25 top-0.5 right-0.5': size === 'small',
               'top-1 right-1': size !== 'small',
-              'top-0.5 right-0.5': size === 'small',
               '!border-white': isSelectedDate(date),
-              'border-brand-50': isSameDate(date, dayjs()),
+              '!border-brand-50': isSameDate(date, dayjs()),
             }"
-            class="absolute z-2 rounded-full border-2 border-white bg-brand-500"
+            class="absolute z-2 border-1 rounded-full border-white bg-brand-500"
           ></span>
           <span class="z-2">
             {{ date.get('date') }}

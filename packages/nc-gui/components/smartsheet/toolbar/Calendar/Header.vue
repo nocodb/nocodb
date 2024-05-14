@@ -17,7 +17,7 @@ const headerText = computed(() => {
         return `${selectedDateRange.value.start.format('D MMM YY')} - ${selectedDateRange.value.end.format('D MMM YY')}`
       }
     case 'month':
-      return dayjs(selectedMonth.value).format('MMMM YYYY')
+      return dayjs(selectedMonth.value).format('MMM YYYY')
     case 'year':
       return dayjs(selectedDate.value).format('YYYY')
     default:

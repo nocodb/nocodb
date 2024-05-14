@@ -94,11 +94,6 @@ const newRecord = (row: RowType) => {
   })
 }
 
-const toggleSideMenu = () => {
-  $e('c:calendar:toggle-sidebar', showSideMenu.value)
-  showSideMenu.value = !showSideMenu.value
-}
-
 onMounted(async () => {
   await loadCalendarMeta()
   await loadCalendarData()
@@ -122,18 +117,6 @@ reloadViewDataHook?.on(async (params: void | { shouldShowLoading?: boolean }) =>
 
 <template>
   <div class="flex h-full relative flex-row" data-testid="nc-calendar-wrapper">
-    <NcTooltip
-      :class="{
-        'right-2': !showSideMenu,
-        'right-74': showSideMenu,
-      }"
-      class="absolute transition-all ease-in-out top-2 z-30"
-    >
-      <template #title> {{ $t('activity.toggleSidebar') }}</template>
-      <NcButton v-if="!isMobileMode" data-testid="nc-calendar-side-bar-btn" size="small" type="secondary" @click="toggleSideMenu">
-        <component :is="iconMap.sidebar" class="h-4 w-4 text-gray-600 transition-all" />
-      </NcButton>
-    </NcTooltip>
     <div class="flex flex-col w-full">
       <template v-if="calendarRange?.length && !isCalendarMetaLoading">
         <LazySmartsheetCalendarYearView v-if="activeCalendarView === 'year'" />

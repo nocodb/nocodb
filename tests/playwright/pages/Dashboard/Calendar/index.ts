@@ -59,7 +59,7 @@ export class CalendarPage extends BasePage {
   }
 
   async toggleSideBar() {
-    await this.get().getByTestId('nc-calendar-side-bar-btn').click();
+    await this.rootPage.getByTestId('nc-calendar-side-bar-btn').click();
     await this.rootPage.waitForTimeout(500);
   }
 }

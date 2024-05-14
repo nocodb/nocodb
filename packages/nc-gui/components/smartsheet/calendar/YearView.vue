@@ -53,11 +53,7 @@ watch(width, handleResize)
 <style lang="scss" scoped>
 .nc-year-view-calendar {
   :deep(.nc-date-week-header) {
-    @apply !bg-gray-100 border-x-1 border-t-1;
-  }
-
-  :deep(.nc-date-week-grid-wrapper) {
-    @apply !border-x-1 border-b-1 rounded-b-lg;
+    @apply !border-b-1 border-gray-200;
   }
 }
 </style>

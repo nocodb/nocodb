@@ -54,7 +54,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const isCalendarMetaLoading = ref<boolean>(false)
 
-    const showSideMenu = ref(false)
+    const showSideMenu = ref(true)
 
     const selectedDateRange = ref<{
       start: dayjs.Dayjs

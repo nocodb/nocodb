@@ -20,6 +20,8 @@ const { isMobileMode } = useGlobal()
 
 const { getPlanLimit } = useWorkspace()
 
+const isCalendar = inject(IsCalendarInj, ref(false))
+
 eventBus.on((event) => {
   if (event === SmartsheetStoreEvents.SORT_RELOAD) {
     loadSorts()
@@ -110,7 +112,14 @@ onMounted(() => {
     overlay-class-name="nc-dropdown-sort-menu nc-toolbar-dropdown"
   >
     <div :class="{ 'nc-active-btn': sorts?.length }">
-      <a-button v-e="['c:sort']" :disabled="isLocked" class="nc-sort-menu-btn nc-toolbar-btn">
+      <a-button
+        v-e="['c:sort']"
+        :class="{
+          '!border-1 !rounded-lg': isCalendar,
+        }"
+        :disabled="isLocked"
+        class="nc-sort-menu-btn nc-toolbar-btn"
+      >
         <div class="flex items-center gap-2">
           <component :is="iconMap.sort" class="h-4 w-4 text-inherit" />
 

@@ -162,6 +162,7 @@
     "insertAbove": "Insertar arriba",
     "insertBelow": "Insertar abajo",
     "hideField": "Ocultar campo",
+    "showField": "Show Field",
     "sortAsc": "Ordenación ascendente",
     "sortDesc": "Orden descendente",
     "move": "Mover",
@@ -1010,7 +1011,7 @@
     "group": "Group"
   },
   "tooltip": {
-    "reachedSourceLimit": "Limitado a una única fuente de datos por el momento",
+    "reachedSourceLimit": "Limited to 10 data sources per base",
     "saveChanges": "Guardar cambios",
     "xcDB": "Crear un nuevo proyecto",
     "extDB": "Soporta MySQL, PostgreSQL, SQL Server y SQLite",
@@ -1492,7 +1493,7 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "Los tipos de archivo aceptados son .xls, .xlsx, .xlsm, .ods, .ots",
       "parameterKeyCannotBeEmpty": "La clave del parámetro no puede estar vacía",
       "duplicateParameterKeysAreNotAllowed": "No se permiten claves de parámetros duplicadas",
-      "fieldRequired": "{value} no puede estar vacía.",
+      "fieldRequired": "{value} cannot be empty.",
       "projectNotAccessible": "Proyecto no accesible",
       "copyToClipboardError": "Fallo al copiar al portapapeles",
       "pasteFromClipboardError": "Failed to paste from clipboard",

@@ -162,6 +162,7 @@
     "insertAbove": "Insert above",
     "insertBelow": "Insert below",
     "hideField": "필드 숨기기",
+    "showField": "Show Field",
     "sortAsc": "오름차순 정렬",
     "sortDesc": "내림차순 정렬",
     "move": "이동",
@@ -1010,7 +1011,7 @@
     "group": "Group"
   },
   "tooltip": {
-    "reachedSourceLimit": "데이터 소스 제한에 도달했습니다.",
+    "reachedSourceLimit": "Limited to 10 data sources per base",
     "saveChanges": "변경 사항 저장",
     "xcDB": "새 프로젝트 생성",
     "extDB": "MySQL, PostgreSQL, SQL Server 및 SQLite 지원",
@@ -1492,7 +1493,7 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "허용되는 파일 형식은 .xls, .xlsx, .xlsm, .ods, .ots입니다",
       "parameterKeyCannotBeEmpty": "매개 변수 키는 비워 둘 수 없습니다.",
       "duplicateParameterKeysAreNotAllowed": "중복 매개 변수 키는 허용되지 않습니다.",
-      "fieldRequired": "{value}은(는) 비워 둘 수 없습니다.",
+      "fieldRequired": "{value} cannot be empty.",
       "projectNotAccessible": "프로젝트에 액세스할 수 없습니다.",
       "copyToClipboardError": "클립 보드에 복사할 수 없습니다.",
       "pasteFromClipboardError": "Failed to paste from clipboard",

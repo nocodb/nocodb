@@ -24,7 +24,7 @@ const onClickDetails = () => {
       }"
       @click="onViewsTabChange('view')"
     >
-      <GeneralViewIcon v-if="activeView?.type" class="tab-icon" :meta="{ type: activeView?.type }" ignore-color />
+      <GeneralViewIcon v-if="activeView?.type" :meta="{ type: activeView?.type }" class="tab-icon w-4" ignore-color />
       <GeneralLoader v-else class="tab-icon" />
       <div class="tab-title nc-tab">{{ $t('general.data') }}</div>
     </div>

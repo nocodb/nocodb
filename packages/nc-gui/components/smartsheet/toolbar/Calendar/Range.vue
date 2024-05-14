@@ -204,7 +204,7 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
             -->
         </div>
 
-        <div class="text-sm text-gray-600 py-2">Records in this view will be based on the specified date field.</div>
+        <div class="text-[13px] text-gray-500 py-2">Records in this view will be based on the specified date field.</div>
 
         <NcButton
           v-if="_calendar_ranges.length === 0"

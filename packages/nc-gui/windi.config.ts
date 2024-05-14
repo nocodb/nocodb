@@ -80,6 +80,7 @@ export default defineConfig({
         extraLight: 250,
         light: 350,
         normal: 450,
+        default: 500,
         medium: 550,
         bold: 650,
         black: 750,

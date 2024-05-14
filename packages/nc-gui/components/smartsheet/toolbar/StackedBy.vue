@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { UITypes } from 'nocodb-sdk'
 import type { KanbanType } from 'nocodb-sdk'
+import { UITypes } from 'nocodb-sdk'
 import type { SelectProps } from 'ant-design-vue'
 
 provide(IsKanbanInj, ref(true))
@@ -96,9 +96,11 @@ const handleChange = () => {
     class="!xs:hidden"
   >
     <div class="nc-kanban-btn">
-      <a-button
+      <NcButton
         v-e="['c:kanban:change-grouping-field']"
-        class="nc-kanban-stacked-by-menu-btn nc-toolbar-btn"
+        class="nc-kanban-stacked-by-menu-btn nc-toolbar-btn !border-0 !h-7"
+        size="small"
+        type="secondary"
         :disabled="isLocked"
       >
         <div class="flex items-center gap-1">
@@ -108,7 +110,7 @@ const handleChange = () => {
             <span class="font-bold ml-0.25">{{ groupingField }}</span>
           </span>
         </div>
-      </a-button>
+      </NcButton>
     </div>
     <template #overlay>
       <div v-if="open" class="p-6 w-90 bg-white shadow-lg nc-table-toolbar-menu !border-1 border-gray-50 rounded-2xl" @click.stop>

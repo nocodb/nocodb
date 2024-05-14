@@ -12,6 +12,7 @@ body {
 
 :root {
   --sidebar-bottom-height: 4.75rem;
+  --toolbar-height: 2.25rem;
   --topbar-height: 3.1rem;
   --new-header-height: 3.5rem;
   --tw-text-opacity: 1;
@@ -521,7 +522,7 @@ a {
 }
 
 .nc-toolbar-btn {
-  @apply !shadow-none rounded hover:(ring-1 ring-gray-100 ring-opacity-100 bg-gray-50 !text-gray-800) focus:(ring-1 ring-gray-100 ring-opacity-100 !text-gray-800 bg-gray-50) text-gray-600 text-xs font-medium px-2 border-0;
+  @apply !shadow-none rounded hover:(bg-gray-50 !text-gray-800) focus:(!text-gray-800 bg-gray-50) text-gray-600 text-xs font-medium px-2 border-0;
 }
 .nc-toolbar-btn[disabled] {
   @apply !text-gray-400 !cursor-not-allowed !hover:ring-0;

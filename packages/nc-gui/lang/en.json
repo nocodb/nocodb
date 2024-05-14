@@ -448,6 +448,7 @@
     "noResultsMatchedYourSearch": "Your search did not yield any matching results"
   },
   "labels": {
+    "today": "Today",
     "workspace": "Workspace",
     "txt": "TXT Record value",
     "transferOwnership": "Transfer Ownership",
@@ -586,7 +587,7 @@
     "untitledToken": "Untitled token",
     "tableName": "Table name",
     "dashboardName": "Dashboard name",
-    "createView": "Create a View",
+    "createView": "Create view",
     "creatingView": "Creating View",
     "duplicateView": "Duplicate View",
     "duplicateGridView": "Duplicate Grid View",

@@ -291,6 +291,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       const fieldIndex = fields.value?.findIndex((f) => f.fk_column_id === field.fk_column_id)
       if (!fieldIndex && fieldIndex !== 0) return
       field[style] = status
+      $e('a:fields:style', { style, status })
       saveOrUpdate(field, fieldIndex, true)
     }
 

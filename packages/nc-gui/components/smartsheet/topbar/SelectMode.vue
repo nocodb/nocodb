@@ -24,7 +24,7 @@ const onClickDetails = () => {
       }"
       @click="onViewsTabChange('view')"
     >
-      <GeneralViewIcon v-if="activeView?.type" :meta="{ type: activeView?.type }" class="tab-icon w-4" ignore-color />
+      <GeneralViewIcon v-if="activeView?.type" :meta="{ type: activeView?.type }" class="tab-icon" ignore-color />
       <GeneralLoader v-else class="tab-icon" />
       <div class="tab-title nc-tab">{{ $t('general.data') }}</div>
     </div>
@@ -56,7 +56,7 @@ const onClickDetails = () => {
 
 .tab-icon {
   font-size: 1.1rem !important;
-  @apply min-w-4.5;
+  @apply w-4.5;
 }
 .tab .tab-title {
   @apply min-w-0;

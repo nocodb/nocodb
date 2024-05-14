@@ -43,37 +43,32 @@ watch(activeCalendarView, () => {
       class="tab"
       @click="setActiveCalendarMode(mode, $event)"
     >
-      <div class="tab-title nc-tab">{{ $t(`objects.${mode}`) }}</div>
+      <div class="tab-title !text-xs nc-tab">{{ $t(`objects.${mode}`) }}</div>
     </div>
   </div>
 
-  <div v-else>
-    <NcDropdown :trigger="['click']">
-      <NcButton class="!h-7 !w-20 !text-[13px]" data-testid="nc-calendar-view-mode" size="small" type="secondary">
-        <div class="gap-2 flex items-center">
-          {{ $t(`objects.${activeCalendarView}`) }}
-          <component :is="iconMap.arrowDown" class="h-4 w-4" />
-        </div>
-      </NcButton>
-      <template #overlay>
-        <NcMenu class="nc-calendar-mode-menu">
-          <NcMenuItem
-            v-for="mode in ['day', 'week', 'month', 'year']"
-            :key="mode"
-            class="!text-[13px]"
-            @click="changeCalendarView(mode)"
-          >
-            {{ $t(`objects.${mode}`) }}
-          </NcMenuItem>
-        </NcMenu>
-      </template>
-    </NcDropdown>
-  </div>
+  <NcSelect v-else v-model:value="activeCalendarView" class="!w-22" size="small">
+    <a-select-option v-for="option in ['day', 'week', 'month', 'year']" :key="option" :value="option" class="!h-7 !w-20">
+      <div class="flex gap-2 mt-0.5 items-center">
+        <NcTooltip class="truncate capitalize flex-1 max-w-18" placement="top" show-on-truncate-only>
+          <template #title>{{ option }}</template>
+          {{ option }}
+        </NcTooltip>
+
+        <component
+          :is="iconMap.check"
+          v-if="option === activeCalendarView"
+          id="nc-selected-item-icon"
+          class="text-primary w-4 h-4"
+        />
+      </div>
+    </a-select-option>
+  </NcSelect>
 </template>
 
 <style lang="scss" scoped>
 .highlight {
-  @apply absolute h-9 w-14 transition-all border-b-2 border-brand-500 duration-200;
+  @apply absolute h-6.5 w-14 transition-all border-b-2 border-brand-500 duration-200;
   z-index: 0;
 }
 
@@ -84,11 +79,11 @@ watch(activeCalendarView, () => {
 }
 
 .tab {
-  @apply flex items-center h-9 w-14 z-10 justify-center px-2 py-1 rounded-lg gap-x-1.5 text-gray-500 hover:text-black cursor-pointer transition-all duration-300 select-none;
+  @apply flex items-center h-7 w-14 z-10 justify-center px-2 py-1 rounded-lg gap-x-1.5 text-gray-500 hover:text-black cursor-pointer transition-all duration-300 select-none;
 }
 
 .tab .tab-title {
-  @apply min-w-0 mb-3 pointer-events-none;
+  @apply min-w-0 mb-3  pointer-events-none;
   word-break: keep-all;
   white-space: 'nowrap';
   display: 'inline';
@@ -96,10 +91,14 @@ watch(activeCalendarView, () => {
 }
 
 .active {
-  @apply !text-brand-500  bg-transparent;
+  @apply !text-brand-500 !font-bold  bg-transparent;
 }
 
 .nc-calendar-mode-tab {
   @apply relative;
+}
+
+:deep(.ant-select-selector) {
+  @apply !h-7;
 }
 </style>

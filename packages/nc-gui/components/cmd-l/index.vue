@@ -206,7 +206,7 @@ onMounted(() => {
               <div class="cmdk-action-content">
                 <div class="flex w-1/2 items-center">
                   <div class="flex gap-2">
-                    <GeneralViewIcon :meta="{ type: cmdOption.viewType }" class="mt-0.5 w-4" />
+                    <GeneralViewIcon :meta="{ type: cmdOption.viewType }" class="mt-0.5 w-4 !min-h-4" />
                     <a-tooltip overlay-class-name="!px-2 !py-1 !rounded-lg">
                       <template #title>
                         {{ cmdOption.viewName }}

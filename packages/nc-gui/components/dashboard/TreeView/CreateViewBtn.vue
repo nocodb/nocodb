@@ -158,7 +158,7 @@ async function onOpenModal({
         <NcMenuItem data-testid="sidebar-view-create-calendar" @click="onOpenModal({ type: ViewTypes.CALENDAR })">
           <div class="item">
             <div class="item-inner">
-              <GeneralViewIcon :meta="{ type: ViewTypes.CALENDAR }" class="w-4 h-4" />
+              <GeneralViewIcon :meta="{ type: ViewTypes.CALENDAR }" class="!w-4 !h-4" />
               <div>{{ $t('objects.viewType.calendar') }}</div>
             </div>
 

@@ -299,7 +299,7 @@ const changeDate = (action: 'prev' | 'next') => {
             'text-gray-400': !isDateInCurrentMonth(date),
             'nc-selected-week-start': isSameDate(date, selectedWeek?.start),
             'nc-selected-week-end': isSameDate(date, selectedWeek?.end),
-            'rounded-md bg-brand-50  nc-calendar-today ': isSameDate(date, dayjs()) && isDateInCurrentMonth(date),
+            'rounded-md bg-brand-50 !font-bold nc-calendar-today ': isSameDate(date, dayjs()) && isDateInCurrentMonth(date),
             'h-9 w-9': size === 'large',
             'h-8 w-8': size === 'medium',
             'h-6 w-6 text-[10px]': size === 'small',

@@ -680,7 +680,7 @@ const addRecord = (date: dayjs.Dayjs) => {
         'grid-rows-6': dates.length === 6,
         'grid-rows-7': dates.length === 7,
       }"
-      class="grid h-full pb-7.5"
+      class="grid h-full"
       @drop="dropEvent"
     >
       <div v-for="(week, weekIndex) in dates" :key="weekIndex" class="grid grid-cols-7 grow" data-testid="nc-calendar-month-week">

@@ -35,7 +35,7 @@ const { allowCSVDownload } = useSharedView()
           'min-w-34/100 max-w-34/100': !isMobileMode && isLeftSidebarOpen && isCalendar,
           'min-w-39/100 max-w-39/100': !isMobileMode && !isLeftSidebarOpen && isCalendar,
         }"
-        class="flex items-center gap-2"
+        class="flex items-center gap-3"
       >
         <LazySmartsheetToolbarMappedBy v-if="isMap" />
         <LazySmartsheetToolbarCalendarHeader v-if="isCalendar" />

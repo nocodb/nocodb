@@ -149,6 +149,13 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
                   <template #title>{{ option.label }}</template>
                   {{ option.label }}
                 </NcTooltip>
+
+                <component
+                  :is="iconMap.check"
+                  v-if="option.value === range.fk_from_column_id"
+                  id="nc-selected-item-icon"
+                  class="text-primary w-4 h-4"
+                />
               </div>
             </a-select-option>
           </NcSelect>

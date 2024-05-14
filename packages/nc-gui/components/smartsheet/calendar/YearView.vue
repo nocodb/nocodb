@@ -33,7 +33,7 @@ watch(width, handleResize)
 </script>
 
 <template>
-  <div ref="calendarContainer" class="overflow-auto flex my-3 justify-center nc-scrollbar-md">
+  <div ref="calendarContainer" class="overflow-auto flex my-2 justify-center nc-scrollbar-md">
     <div
       :class="{
         '!gap-12': size === 'large',

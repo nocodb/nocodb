@@ -1,5 +1,7 @@
 <script lang="ts" setup>
-const { selectedDate, activeDates } = useCalendarViewStoreOrThrow()
+import type dayjs from 'dayjs'
+
+const { selectedDate, activeDates, activeCalendarView } = useCalendarViewStoreOrThrow()
 
 const months = computed(() => {
   const months = []
@@ -23,6 +25,11 @@ const handleResize = () => {
   } else {
     size.value = 'large'
   }
+}
+
+const changeView = (date: dayjs.Dayjs) => {
+  selectedDate.value = date
+  activeCalendarView.value = 'day'
 }
 
 onMounted(() => {
@@ -51,6 +58,7 @@ watch(width, handleResize)
         class="nc-year-view-calendar"
         data-testid="nc-calendar-year-view-month-selector"
         disable-pagination
+        @dbl-click="changeView"
       />
     </div>
   </div>

@@ -31,7 +31,7 @@ const props = withDefaults(defineProps<Props>(), {
   selectedWeek: null,
   hideCalendar: false,
 })
-const emit = defineEmits(['change', 'update:selectedDate', 'update:pageDate', 'update:selectedWeek'])
+const emit = defineEmits(['change', 'dblClick', 'update:selectedDate', 'update:pageDate', 'update:selectedWeek'])
 // Page date is the date we use to manage which month/date that is currently being displayed
 const pageDate = useVModel(props, 'pageDate', emit)
 
@@ -139,6 +139,10 @@ const paginate = (action: 'next' | 'prev') => {
   pageDate.value = newDate
   emit('update:pageDate', newDate)
 }
+
+const emitDblClick = (date: dayjs.Dayjs) => {
+  emit('dblClick', date)
+}
 </script>
 
 <template>
@@ -240,6 +244,7 @@ const paginate = (action: 'next' | 'prev') => {
           }"
           class="px-1 py-1 relative border-1 font-medium flex items-center cursor-pointer justify-center"
           data-testid="nc-calendar-date"
+          @dblclick="emitDblClick(date)"
           @click="handleSelectDate(date)"
         >
           <span

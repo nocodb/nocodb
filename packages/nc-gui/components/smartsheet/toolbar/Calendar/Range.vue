@@ -158,9 +158,10 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
                 return firstRange?.uidt === r.uidt
               })"
               :key="opId"
+              class="w-40"
               :value="option.value"
             >
-              <div class="flex w-26 justify-between items-center">
+              <div class="flex w-full gap-2 justify-between items-center">
                 <div class="flex items-center">
                   <SmartsheetHeaderIcon :column="option" />
                   <NcTooltip class="truncate flex-1 max-w-18" placement="top" show-on-truncate-only>
@@ -169,12 +170,11 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
                   </NcTooltip>
                 </div>
 
-                <div class="flex-1" />
                 <component
                   :is="iconMap.check"
                   v-if="option.value === range.fk_from_column_id"
                   id="nc-selected-item-icon"
-                  class="text-primary w-4 h-4"
+                  class="text-primary min-w-4 h-4"
                 />
               </div>
             </a-select-option>

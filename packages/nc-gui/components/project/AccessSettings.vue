@@ -172,11 +172,12 @@ watch(currentBase, () => {
   >
     <div v-if="isAdminPanel" class="font-bold w-full !mb-5 text-2xl" data-rec="true">
       <div class="flex items-center gap-3">
-        <!-- TODO: @DarkPhoenix2704 -->
         <NuxtLink
           :href="`/admin/${orgId}/bases`"
-          class="!hover:(text-black underline-gray-600) !text-black !underline-transparent ml-0.75 max-w-1/4"
+          class="!hover:(text-black underline-gray-600) flex items-center !text-black !underline-transparent ml-0.75 max-w-1/4"
         >
+          <component :is="iconMap.arrowLeft" class="text-3xl" />
+
           {{ $t('objects.projects') }}
         </NuxtLink>
 

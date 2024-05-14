@@ -204,7 +204,7 @@ interface SidebarTableNode extends TableType {
 }
 
 interface UsersSortType {
-  field?: 'email' | 'roles' | 'title' | 'id'
+  field?: 'email' | 'roles' | 'title' | 'id' | 'memberCount' | 'baseCount' | 'workspaceCount'
   direction?: 'asc' | 'desc'
 }
 

@@ -47,6 +47,8 @@ const emailBadges = ref<Array<string>>([])
 
 const allowedRoles = ref<[]>([])
 
+const isLoading = ref(false)
+
 const focusOnDiv = () => {
   focusRef.value?.focus()
   isDivFocused.value = true
@@ -222,6 +224,7 @@ const workSpaces = ref<NcWorkspace[]>([])
 
 const inviteCollaborator = async () => {
   try {
+    isLoading.value = true
     const payloadData = singleEmailValue.value || emailBadges.value.join(',')
     if (!payloadData.includes(',')) {
       const validationStatus = validateEmail(payloadData)
@@ -252,6 +255,7 @@ const inviteCollaborator = async () => {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
     singleEmailValue.value = ''
+    isLoading.value = false
   }
 }
 
@@ -331,6 +335,7 @@ const onRoleChange = (role: keyof typeof RoleLabels) => (inviteData.roles = role
               id="email"
               ref="focusRef"
               v-model="inviteData.email"
+              :disabled="isLoading"
               :placeholder="$t('activity.enterEmail')"
               class="w-full min-w-36 outline-none px-2"
               data-testid="email-input"
@@ -378,7 +383,8 @@ const onRoleChange = (role: keyof typeof RoleLabels) => (inviteData.roles = role
       <div class="flex gap-2">
         <NcButton type="secondary" @click="dialogShow = false"> {{ $t('labels.cancel') }} </NcButton>
         <NcButton
-          :disabled="isInviteButtonDisabled || emailValidation.isError"
+          :disabled="isInviteButtonDisabled || emailValidation.isError || isLoading"
+          :loading="isLoading"
           size="medium"
           type="primary"
           class="nc-invite-btn"

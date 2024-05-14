@@ -181,7 +181,6 @@ const getMaxOverlaps = ({
 
   const dayIndex = row.rowMeta.dayIndex
   const overlapIndex = columnArray[dayIndex].findIndex((column) => column.findIndex((r) => r.rowMeta.id === id) !== -1) + 1
-  console.log(row.row[displayField.value?.title], columnArray[dayIndex].length)
   const dfs = (id: string): number => {
     visited.add(id)
     let maxOverlaps = 1
@@ -194,7 +193,6 @@ const getMaxOverlaps = ({
         }
       }
     }
-    console.log(maxOverlaps)
 
     return maxOverlaps
   }

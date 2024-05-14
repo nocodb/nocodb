@@ -162,6 +162,7 @@
     "insertAbove": "Wstaw powyżej",
     "insertBelow": "Wstaw poniżej",
     "hideField": "Ukryj pole",
+    "showField": "Show Field",
     "sortAsc": "Sortuj rosnąco",
     "sortDesc": "Sortuj malejąco",
     "move": "Przenieś",
@@ -756,7 +757,7 @@
     "hideNocodbBranding": "Ukryj branding NocoDB",
     "showOnConditions": "Pokaż na warunkach",
     "showFieldOnConditionsMet": "Pokazuje pole tylko, gdy spełnione są warunki",
-    "limitOptions": "Ogranicz opcje",
+    "limitOptions": "Limit options",
     "limitOptionsSubtext": "Ogranicz opcje widoczne dla użytkowników, wybierając dostępne opcje",
     "clearSelection": "Wyczyść wybór"
   },
@@ -1010,7 +1011,7 @@
     "group": "Group"
   },
   "tooltip": {
-    "reachedSourceLimit": "Ograniczenie do jednego źródła danych w tej chwili",
+    "reachedSourceLimit": "Limited to 10 data sources per base",
     "saveChanges": "Zapisz zmiany",
     "xcDB": "Utwórz nowy projekt",
     "extDB": "Obsługuje MySQL, PostgreSQL, SQL Server i Sqlite",
@@ -1038,7 +1039,7 @@
     "clientKey": "Wybierz plik .key.",
     "clientCert": "Wybierz plik .Cert.",
     "clientCA": "Wybierz plik CA.",
-    "changeIconColour": "Zmiana koloru ikony",
+    "changeIconColour": "Change icon colour",
     "preFillFormInfo": "Generuj URL formularza udostępniania z wstępnie wypełnionymi danymi pola. Aby uzyskać link z wstępnie wypełnionymi danymi, upewnij się, że wypełniłeś wymagane pola w kreatorze widoku formularza.",
     "surveyFormInfo": "Tryb formularza z jednym polem na stronę"
   },
@@ -1193,7 +1194,7 @@
     "selectFieldToGroup": "Wybierz pole do grupowania",
     "thereAreNoRecordsInTable": "Nie ma rekordów w tabeli",
     "createWebhookMsg1": "Rozpocznij pracę z webhookami!",
-    "createWebhookMsg2": "Zasil automatyzację. Otrzymuj powiadomienia jak tylko pojawią się zmiany w Twoich danych",
+    "createWebhookMsg2": "Power your automations. Get notified as soon as there are changes in your data",
     "areYouSureUWantTo": "Czy na pewno chcesz usunąć następujące",
     "areYouSureUWantToDeleteLabel": "Czy na pewno chcesz {deleteLabel} następujące",
     "idColumnRequired": "Pole ID jest wymagane, możesz to później zmienić, jeśli będzie to konieczne.",
@@ -1492,7 +1493,7 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "Akceptowane typy plików to: .xls, .xlsx, .xlsm, .ods, .ots",
       "parameterKeyCannotBeEmpty": "Klucz parametru nie może być pusty",
       "duplicateParameterKeysAreNotAllowed": "Zduplikowane klucze parametrów są niedozwolone",
-      "fieldRequired": "{value} nie może być puste.",
+      "fieldRequired": "{value} cannot be empty.",
       "projectNotAccessible": "Projekt niedostępny",
       "copyToClipboardError": "Nie udało się skopiować do schowka",
       "pasteFromClipboardError": "Nie udało się wkleić ze schowka",

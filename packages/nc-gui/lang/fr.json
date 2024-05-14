@@ -162,6 +162,7 @@
     "insertAbove": "Insérer au-dessus",
     "insertBelow": "Insérer en-dessous",
     "hideField": "Masquer le champ",
+    "showField": "Show Field",
     "sortAsc": "Trier par ordre croissant",
     "sortDesc": "Trier par ordre décroissant",
     "move": "Déplacer",
@@ -1010,7 +1011,7 @@
     "group": "Group"
   },
   "tooltip": {
-    "reachedSourceLimit": "Limité à une seule source de données pour le moment",
+    "reachedSourceLimit": "Limited to 10 data sources per base",
     "saveChanges": "Sauvegarder les modifications",
     "xcDB": "Créer un nouveau projet",
     "extDB": "Base de données supportées MySQL, PostgreSQL, SQL Server & SQLite",
@@ -1492,7 +1493,7 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "Les types de fichiers acceptés sont .xls, .xlsx, .xlsm, .ods, .ots.",
       "parameterKeyCannotBeEmpty": "La clé de paramètre ne peut pas être vide",
       "duplicateParameterKeysAreNotAllowed": "Les doublons de clés de paramètres ne sont pas autorisés",
-      "fieldRequired": "{value} ne peut pas être vide.",
+      "fieldRequired": "{value} cannot be empty.",
       "projectNotAccessible": "Projet non accessible",
       "copyToClipboardError": "Échec de la copie dans le presse-papiers",
       "pasteFromClipboardError": "Failed to paste from clipboard",

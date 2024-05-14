@@ -162,6 +162,7 @@
     "insertAbove": "Insert above",
     "insertBelow": "Insert below",
     "hideField": "Hide Field",
+    "showField": "Show Field",
     "sortAsc": "Sort Ascending",
     "sortDesc": "Sort Descending",
     "move": "Move",

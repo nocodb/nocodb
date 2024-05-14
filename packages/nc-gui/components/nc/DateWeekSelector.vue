@@ -189,7 +189,7 @@ const changeDate = (action: 'prev' | 'next') => {
         ' justify-between border-b-1 ': !disablePagination,
         ' justify-center': disablePagination,
       }"
-      class="flex px-2 py-2 nc-date-week-header items-center"
+      class="flex px-3 pt-2 nc-date-week-header items-center"
     >
       <div v-if="!disablePagination" class="flex">
         <NcTooltip v-if="!hideCalendar">
@@ -256,16 +256,16 @@ const changeDate = (action: 'prev' | 'next') => {
         'rounded-lg': size === 'small',
         'rounded-y-xl': size !== 'small',
       }"
-      class="px-3 max-w-[320px]"
+      class="=max-w-[320px]"
     >
       <div
         :class="{
-          'gap-1 px-1': size === 'medium',
+          'gap-1': size === 'medium',
           'gap-2': size === 'large',
-          'px-2 py-1 !rounded-t-lg': size === 'small',
+          'px-2 !rounded-t-lg': size === 'small',
           'rounded-t-xl': size !== 'small',
         }"
-        class="flex py-1 flex-row border-b-1 nc-date-week-header border-gray-200 justify-between"
+        class="flex py-1 px-3 flex-row border-b-1 nc-date-week-header border-gray-200 justify-between"
       >
         <span
           v-for="(day, index) in days"
@@ -282,7 +282,7 @@ const changeDate = (action: 'prev' | 'next') => {
       <div
         :class="{
           'gap-2 pt-2': size === 'large',
-          'gap-1 p-1': size === 'medium',
+          'gap-1 py-1 px-3.5': size === 'medium',
         }"
         class="grid nc-date-week-grid-wrapper grid-cols-7"
       >
@@ -337,7 +337,7 @@ const changeDate = (action: 'prev' | 'next') => {
 .nc-selected-week:before {
   @apply absolute top-0 left-0 w-full h-full bg-gray-200;
   content: '';
-  width: 124%;
+  width: 134%;
   height: 100%;
 }
 

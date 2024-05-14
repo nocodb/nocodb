@@ -34,7 +34,13 @@ watch(width, handleResize)
 
 <template>
   <div ref="calendarContainer" class="overflow-auto flex my-3 justify-center nc-scrollbar-md">
-    <div class="grid grid-cols-4 justify-items-center gap-3" data-testid="nc-calendar-year-view">
+    <div
+      :class="{
+        '!gap-12': size === 'large',
+      }"
+      class="grid grid-cols-4 justify-items-center gap-3"
+      data-testid="nc-calendar-year-view"
+    >
       <NcDateWeekSelector
         v-for="(_, index) in months"
         :key="index"
@@ -53,7 +59,7 @@ watch(width, handleResize)
 <style lang="scss" scoped>
 .nc-year-view-calendar {
   :deep(.nc-date-week-header) {
-    @apply !border-b-1 border-gray-200;
+    @apply !border-b-1 pb-2 border-gray-200;
   }
 }
 </style>

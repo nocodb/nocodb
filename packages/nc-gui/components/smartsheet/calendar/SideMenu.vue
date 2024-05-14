@@ -354,6 +354,7 @@ onClickOutside(searchRef, toggleSearch)
         v-model:active-dates="activeDates"
         v-model:page-date="pageDate"
         v-model:selected-date="selectedDate"
+        size="medium"
         :hide-calendar="width <= 1440"
       />
       <NcDateWeekSelector
@@ -363,12 +364,14 @@ onClickOutside(searchRef, toggleSearch)
         v-model:selected-week="selectedDateRange"
         :hide-calendar="width <= 1440"
         is-week-picker
+        size="medium"
       />
       <NcMonthYearSelector
         v-else-if="activeCalendarView === ('month' as const)"
         v-model:page-date="pageDate"
         v-model:selected-date="selectedMonth"
         :hide-calendar="width <= 1440"
+        size="medium"
       />
       <NcMonthYearSelector
         v-else-if="activeCalendarView === ('year' as const)"
@@ -376,15 +379,16 @@ onClickOutside(searchRef, toggleSearch)
         v-model:selected-date="selectedDate"
         :hide-calendar="width <= 1440"
         is-year-picker
+        size="medium"
       />
     </div>
 
     <div
       :class="{
         '!border-t-0 ': width <= 1440,
-        '!pt-3': width > 1440,
+        'pt-6': width > 1440,
       }"
-      class="border-t-1 border-gray-200 relative flex flex-col gap-y-4"
+      class="border-t-1 !pt-3 border-gray-200 relative flex flex-col gap-y-4"
     >
       <div class="flex px-4 items-center gap-3">
         <span class="capitalize text-base font-bold">{{ $t('objects.records') }}</span>
@@ -436,6 +440,8 @@ onClickOutside(searchRef, toggleSearch)
         </NcButton>
 
         <LazySmartsheetToolbarSortListMenu />
+
+        <div class="flex-1" />
 
         <NcButton
           v-if="isUIAllowed('dataEdit') && props.visible"

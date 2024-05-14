@@ -59,8 +59,8 @@ export class CalendarWeekDateTimePage extends BasePage {
         hour.click({
           force: true,
           position: {
-            x: 1,
-            y: 1,
+            x: 0,
+            y: 0,
           },
         }),
       requestUrlPathToMatch: '/api/v1/db/data/noco',

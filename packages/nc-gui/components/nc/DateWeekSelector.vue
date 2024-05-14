@@ -8,9 +8,9 @@ interface Props {
   pageDate?: dayjs.Dayjs
   activeDates?: Array<dayjs.Dayjs>
   isMondayFirst?: boolean
+  disablePagination?: boolean
   isWeekPicker?: boolean
   disableHeader?: boolean
-  disablePagination?: boolean
   hideCalendar?: boolean
   selectedWeek?: {
     start: dayjs.Dayjs
@@ -23,10 +23,10 @@ const props = withDefaults(defineProps<Props>(), {
   selectedDate: null,
   isDisabled: false,
   isMondayFirst: true,
+  disablePagination: false,
   pageDate: dayjs(),
   isWeekPicker: false,
   disableHeader: false,
-  disablePagination: false,
   activeDates: [] as Array<dayjs.Dayjs>,
   selectedWeek: null,
   hideCalendar: false,
@@ -50,31 +50,19 @@ const days = computed(() => {
 })
 
 const currentMonthYear = computed(() => {
-  if (props.disablePagination) {
-    return dayjs(pageDate.value).format('MMMM YYYY')
-  }
-
-  if (props.isWeekPicker) {
-    if (selectedWeek.value?.start.isSame(selectedWeek.value?.end, 'month')) {
-      return `${selectedWeek.value.start.format('D')} - ${selectedWeek.value.end.format('D MMM YY')}`
-    } else if (selectedWeek.value?.start.isSame(selectedWeek.value.end, 'year')) {
-      return `${selectedWeek.value?.start.format('D MMM')} - ${selectedWeek.value.end.format('D MMM YY')}`
-    } else {
-      return `${selectedWeek.value?.start.format('D MMM YY')} - ${selectedWeek.value?.end.format('D MMM YY')}`
-    }
-  } else {
-    return dayjs(selectedDate.value).format('D MMM YYYY')
-  }
+  return dayjs(pageDate.value).format('MMMM YYYY')
 })
 
 const selectWeek = (date: dayjs.Dayjs) => {
   const dayOffset = +props.isMondayFirst
   const dayOfWeek = (date.day() - dayOffset + 7) % 7
   const startDate = date.subtract(dayOfWeek, 'day')
-  selectedWeek.value = {
+  const newWeek = {
     start: startDate,
     end: startDate.endOf('week'),
   }
+  selectedWeek.value = newWeek
+  emit('update:selectedWeek', newWeek)
 }
 
 // Generates all dates should be displayed in the calendar
@@ -151,36 +139,6 @@ const paginate = (action: 'next' | 'prev') => {
   pageDate.value = newDate
   emit('update:pageDate', newDate)
 }
-
-const changeDate = (action: 'prev' | 'next') => {
-  if (props.isWeekPicker) {
-    const temp = selectedWeek.value
-      ? {
-          start: selectedWeek.value.start.clone(),
-          end: selectedWeek.value.end.clone(),
-        }
-      : { start: dayjs(), end: dayjs().add(7, 'day') }
-    if (action === 'next') {
-      temp.start = dayjs(temp?.start).add(1, 'week')
-      temp.end = dayjs(temp?.end).add(1, 'week')
-    } else {
-      temp.start = dayjs(temp?.start).subtract(1, 'week')
-      temp.end = dayjs(temp?.end).subtract(1, 'week')
-    }
-    selectedWeek.value = temp
-    emit('update:selectedWeek', temp)
-  } else {
-    let date = dayjs(selectedDate.value).clone()
-
-    if (action === 'next') {
-      date = date.add(1, 'day')
-    } else {
-      date = date.subtract(1, 'day')
-    }
-    selectedDate.value = date
-    emit('update:selectedDate', date)
-  }
-}
 </script>
 
 <template>
@@ -193,35 +151,18 @@ const changeDate = (action: 'prev' | 'next') => {
     <div
       v-if="!disableHeader"
       :class="{
-        ' justify-between border-b-1 ': !disablePagination,
-        ' justify-center': disablePagination,
+        '!justify-center': disablePagination,
       }"
-      class="flex px-3 pt-2 nc-date-week-header items-center"
+      class="flex justify-between border-b-1 px-3 py-0.5 nc-date-week-header items-center"
     >
-      <div v-if="!disablePagination" class="flex">
-        <NcTooltip v-if="!hideCalendar">
-          <NcButton class="!border-0" size="small" type="secondary" @click="paginate('prev')">
-            <component :is="iconMap.doubleLeftArrow" class="h-4 w-4" />
-          </NcButton>
-          <template #title>
-            <span>{{ $t('labels.previousMonth') }}</span>
-          </template>
-        </NcTooltip>
-        <NcTooltip>
-          <NcButton
-            class="!border-0"
-            data-testid="nc-calendar-prev-btn"
-            size="small"
-            type="secondary"
-            @click="changeDate('prev')"
-          >
-            <component :is="iconMap.arrowLeft" class="h-4 w-4" />
-          </NcButton>
-          <template #title>
-            <span>{{ $t('labels.next') }}</span>
-          </template>
-        </NcTooltip>
-      </div>
+      <NcTooltip v-if="!disablePagination">
+        <NcButton class="!border-0" data-testid="nc-calendar-prev-btn" size="small" type="secondary" @click="paginate('prev')">
+          <component :is="iconMap.arrowLeft" class="h-4 w-4" />
+        </NcButton>
+        <template #title>
+          <span>{{ $t('labels.next') }}</span>
+        </template>
+      </NcTooltip>
 
       <span
         :class="{
@@ -232,30 +173,14 @@ const changeDate = (action: 'prev' | 'next') => {
         >{{ currentMonthYear }}</span
       >
 
-      <div v-if="!disablePagination" class="flex">
-        <NcTooltip>
-          <NcButton
-            class="!border-0"
-            data-testid="nc-calendar-next-btn"
-            size="small"
-            type="secondary"
-            @click="changeDate('next')"
-          >
-            <component :is="iconMap.arrowRight" class="h-4 w-4" />
-          </NcButton>
-          <template #title>
-            <span>{{ $t('labels.next') }}</span>
-          </template>
-        </NcTooltip>
-        <NcTooltip v-if="!hideCalendar">
-          <NcButton class="!border-0" size="small" type="secondary" @click="paginate('next')">
-            <component :is="iconMap.doubleRightArrow" class="h-4 w-4" />
-          </NcButton>
-          <template #title>
-            <span>{{ $t('labels.previousMonth') }}</span>
-          </template>
-        </NcTooltip>
-      </div>
+      <NcTooltip v-if="!disablePagination">
+        <NcButton class="!border-0" data-testid="nc-calendar-next-btn" size="small" type="secondary" @click="paginate('next')">
+          <component :is="iconMap.arrowRight" class="h-4 w-4" />
+        </NcButton>
+        <template #title>
+          <span>{{ $t('labels.next') }}</span>
+        </template>
+      </NcTooltip>
     </div>
     <div
       v-if="!hideCalendar"
@@ -263,16 +188,16 @@ const changeDate = (action: 'prev' | 'next') => {
         'rounded-lg': size === 'small',
         'rounded-y-xl': size !== 'small',
       }"
-      class="=max-w-[320px]"
+      class="max-w-[320px]"
     >
       <div
         :class="{
-          'gap-1': size === 'medium',
+          'gap-1 px-3.5': size === 'medium',
           'gap-2': size === 'large',
           'px-2 !rounded-t-lg': size === 'small',
           'rounded-t-xl': size !== 'small',
         }"
-        class="flex py-1 px-3 flex-row border-b-1 nc-date-week-header border-gray-200 justify-between"
+        class="flex py-1 flex-row nc-date-week-header border-gray-200 justify-between"
       >
         <span
           v-for="(day, index) in days"
@@ -300,14 +225,16 @@ const changeDate = (action: 'prev' | 'next') => {
             'rounded-lg': !isWeekPicker,
             'bg-gray-200 border-1 font-bold ': isSelectedDate(date) && !isWeekPicker && isDayInPagedMonth(date),
             'hover:(border-1 border-gray-200 bg-gray-100)': !isSelectedDate(date) && !isWeekPicker,
-            'nc-selected-week z-1': isDateInSelectedWeek(date) && isWeekPicker,
+            'nc-selected-week !font-semibold z-1': isDateInSelectedWeek(date) && isWeekPicker,
             'border-none': isWeekPicker,
             'border-transparent': !isWeekPicker,
             'text-gray-400': !isDateInCurrentMonth(date),
             'nc-selected-week-start': isSameDate(date, selectedWeek?.start),
             'nc-selected-week-end': isSameDate(date, selectedWeek?.end),
-            'rounded-md bg-brand-50 !font-bold nc-calendar-today ': isSameDate(date, dayjs()) && isDateInCurrentMonth(date),
+            'rounded-md text-brand-500 !font-semibold nc-calendar-today ':
+              isSameDate(date, dayjs()) && isDateInCurrentMonth(date),
             'h-9 w-9': size === 'large',
+            'text-gray-500': date.get('day') === 0 || date.get('day') === 6,
             'h-8 w-8': size === 'medium',
             'h-6 w-6 text-[10px]': size === 'small',
           }"

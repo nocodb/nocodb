@@ -558,7 +558,9 @@ const addRecord = (date: dayjs.Dayjs) => {
         :class="{
           '!border-brand-500 !border-b-gray-200': dayjs(date).isSame(selectedDate, 'day'),
         }"
-        class="w-1/7 text-center text-sm text-gray-500 w-full py-1 border-gray-200 border-l-gray-50 border-t-gray-50 last:border-r-0 border-1 bg-gray-50"
+        class="w-1/7 cursor-pointer text-center font-regular uppercase text-xs text-gray-500 w-full py-1 border-gray-200 border-l-gray-50 border-t-gray-50 last:border-r-0 border-1 bg-gray-50"
+        @click="selectDate(date)"
+        @dblclick="addRecord(date)"
       >
         {{ dayjs(date).format('DD ddd') }}
       </div>
@@ -571,7 +573,7 @@ const addRecord = (date: dayjs.Dayjs) => {
           '!border-1 !border-t-0 border-brand-500': dayjs(date).isSame(selectedDate, 'day'),
           '!bg-gray-50': date.get('day') === 0 || date.get('day') === 6,
         }"
-        class="flex flex-col border-r-1 min-h-[100vh] last:border-r-0 items-center w-1/7"
+        class="flex cursor-pointer flex-col border-r-1 min-h-[100vh] last:border-r-0 items-center w-1/7"
         data-testid="nc-calendar-week-day"
         @click="selectDate(date)"
         @dblclick="addRecord(date)"

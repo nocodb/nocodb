@@ -873,7 +873,7 @@ watch(
 <template>
   <div
     ref="scrollContainer"
-    class="h-[calc(100vh-6.25rem)] prevent-select relative flex w-full overflow-y-auto nc-scrollbar-md"
+    class="h-[calc(100vh-5.4rem)] prevent-select relative flex w-full overflow-y-auto nc-scrollbar-md"
     data-testid="nc-calendar-week-view"
     @drop="dropEvent"
   >
@@ -884,7 +884,7 @@ watch(
         :class="{
           'text-brand-500': date[0].isSame(dayjs(), 'date'),
         }"
-        class="w-1/7 text-center text-sm text-gray-500 w-full py-1 border-gray-200 last:border-r-0 border-b-1 border-l-1 border-r-0 bg-gray-50"
+        class="w-1/7 text-center font-regular uppercase text-xs text-gray-500 w-full py-1 border-gray-200 last:border-r-0 border-b-1 border-l-1 border-r-0 bg-gray-50"
       >
         {{ dayjs(date[0]).format('DD ddd') }}
       </div>
@@ -893,7 +893,7 @@ watch(
       <div
         v-for="(hour, index) in datesHours[0]"
         :key="index"
-        class="h-13 first:mt-0 pt-7.1 nc-calendar-day-hour text-center font-semibold text-xs text-gray-400 py-1"
+        class="h-13 first:mt-0 pt-7.1 nc-calendar-day-hour text-right pr-2 font-semibold text-xs text-gray-400 py-1"
       >
         {{ hour.format('hh a') }}
       </div>

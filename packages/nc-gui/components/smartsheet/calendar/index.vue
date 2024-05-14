@@ -79,8 +79,6 @@ const expandRecord = (row: RowType, state?: Record<string, any>) => {
 }
 
 const newRecord = (row: RowType) => {
-  // TODO: The default values has to be filled based on the active calendar view
-  // and selected sidebar filter option
   $e('c:calendar:new-record', activeCalendarView.value)
   expandRecord({
     row: {

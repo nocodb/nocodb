@@ -864,7 +864,7 @@ watch(
 <template>
   <div
     ref="container"
-    class="w-full flex relative no-selection h-[calc(100vh-6.25rem)] overflow-y-auto nc-scrollbar-md"
+    class="w-full flex relative no-selection h-[calc(100vh-5.3rem)] overflow-y-auto nc-scrollbar-md"
     data-testid="nc-calendar-day-view"
     @drop="dropEvent"
   >
@@ -877,7 +877,7 @@ watch(
         @click="selectHour(hour)"
         @dblclick="newRecord(hour)"
       >
-        <div class="w-16 border-b-0 pr-3 pl-2 text-right text-xs text-gray-400 font-semibold h-13">
+        <div class="w-16 border-b-0 pr-2 pl-2 text-right text-xs text-gray-400 font-semibold h-13">
           {{ dayjs(hour).format('hh a') }}
         </div>
       </div>

@@ -49,7 +49,7 @@ const headerText = computed(() => {
         :class="{
           'w-20': activeCalendarView === 'year',
           'w-26.5': activeCalendarView === 'month',
-          'w-31': activeCalendarView === 'day',
+          'w-29': activeCalendarView === 'day',
           'w-38': activeCalendarView === 'week',
         }"
         class="!h-6 !bg-gray-100 !border-0"
@@ -57,7 +57,7 @@ const headerText = computed(() => {
         size="small"
         type="secondary"
       >
-        <div class="flex w-full px-1 gap-2 items-center justify-between">
+        <div class="flex w-full px-1 items-center justify-between">
           <span
             :class="{
               'max-w-38 truncate': activeCalendarView === 'week',
@@ -66,6 +66,7 @@ const headerText = computed(() => {
             data-testid="nc-calendar-active-date"
             >{{ headerText }}</span
           >
+          <div class="flex-1" />
           <component :is="iconMap.arrowDown" class="h-4 min-w-4 text-gray-700" />
         </div>
       </NcButton>

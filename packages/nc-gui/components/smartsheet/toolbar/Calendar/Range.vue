@@ -1,12 +1,10 @@
 <script lang="ts" setup>
-import { type CalendarRangeType, UITypes, type ViewType, isSystemColumn } from 'nocodb-sdk'
+import { type CalendarRangeType, UITypes, isSystemColumn } from 'nocodb-sdk'
 import type { SelectProps } from 'ant-design-vue'
 
 const meta = inject(MetaInj, ref())
 
 const { $api } = useNuxtApp()
-
-const { t } = useI18n()
 
 const activeView = inject(ActiveViewInj, ref())
 
@@ -16,9 +14,7 @@ const IsPublic = inject(IsPublicInj, ref(false))
 
 const { loadViewColumns } = useViewColumnsOrThrow()
 
-const { refreshCommandPalette } = useCommandPalette()
-
-const { loadCalendarMeta, loadCalendarData, loadSidebarData, fetchActiveDates, calendarMetaData } = useCalendarViewStoreOrThrow()
+const { loadCalendarMeta, loadCalendarData, loadSidebarData, fetchActiveDates } = useCalendarViewStoreOrThrow()
 
 const calendarRangeDropdown = ref(false)
 
@@ -99,64 +95,6 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
   range.fk_to_column_id = value
   await saveCalendarRanges()
 } */
-
-const { viewsByTable, allRecentViews } = storeToRefs(useViewsStore())
-
-const views = computed(() => viewsByTable.value.get(meta.value?.id ?? '')?.filter((v) => !v.is_default) ?? [])
-
-function validate(view: Partial<ViewType>) {
-  if (!view.title || !view.id) return t('msg.error.viewNameRequired')
-  if (!view.title || view.title.trim().length < 0) {
-    return t('msg.error.viewNameRequired')
-  }
-
-  if (views.value.some((v) => v.title === view.title && v.id !== view.id)) {
-    return t('msg.error.viewNameDuplicate')
-  }
-
-  return true
-}
-
-const calendarTitle = ref('')
-
-const renameView = async (title: string) => {
-  if (!calendarMetaData.value || !meta.value) return
-
-  if (title === calendarMetaData.value.title) return
-
-  const res = validate({ title, id: calendarMetaData.value.fk_view_id })
-
-  if (res !== true) {
-    message.error(res)
-    return
-  }
-  try {
-    await $api.dbView.update(calendarMetaData.value.fk_view_id!, {
-      title,
-    })
-
-    await refreshCommandPalette()
-
-    allRecentViews.value = allRecentViews.value.map((rv) => {
-      if (rv.viewId === calendarMetaData.value.fk_view_id && rv.tableID === meta.value.id) {
-        rv.viewName = title
-      }
-      return rv
-    })
-  } catch (e) {
-    message.error(await extractSdkResponseErrorMsg(e as any))
-  }
-}
-
-const triggerRename = () => {
-  renameView(calendarTitle.value)
-}
-
-watch(calendarRangeDropdown, (newVal) => {
-  if (newVal) {
-    calendarTitle.value = calendarMetaData.value?.title ?? ''
-  }
-})
 </script>
 
 <template>
@@ -179,7 +117,7 @@ watch(calendarRangeDropdown, (newVal) => {
       </NcButton>
     </div>
     <template #overlay>
-      <div v-if="calendarRangeDropdown" class="w-140 space-y-6 p-6" data-testid="nc-calendar-range-menu" @click.stop>
+      <div v-if="calendarRangeDropdown" class="w-98 space-y-6 rounded-2xl p-6" data-testid="nc-calendar-range-menu" @click.stop>
         <div>
           <div class="flex justify-between">
             <div class="flex items-center gap-3">
@@ -197,14 +135,6 @@ watch(calendarRangeDropdown, (newVal) => {
           </div>
           <NcDivider divider-class="!border-gray-200" />
         </div>
-
-        <a-input
-          v-model:value="calendarTitle"
-          data-test-id="nc-view-name-input"
-          placeholder="Calendar View"
-          size="small"
-          @blur="triggerRename"
-        />
 
         <div
           v-for="(range, id) in _calendar_ranges"
@@ -230,13 +160,16 @@ watch(calendarRangeDropdown, (newVal) => {
               :key="opId"
               :value="option.value"
             >
-              <div class="flex items-center">
-                <SmartsheetHeaderIcon :column="option" />
-                <NcTooltip class="truncate flex-1 max-w-18" placement="top" show-on-truncate-only>
-                  <template #title>{{ option.label }}</template>
-                  {{ option.label }}
-                </NcTooltip>
+              <div class="flex w-26 justify-between items-center">
+                <div class="flex items-center">
+                  <SmartsheetHeaderIcon :column="option" />
+                  <NcTooltip class="truncate flex-1 max-w-18" placement="top" show-on-truncate-only>
+                    <template #title>{{ option.label }}</template>
+                    {{ option.label }}
+                  </NcTooltip>
+                </div>
 
+                <div class="flex-1" />
                 <component
                   :is="iconMap.check"
                   v-if="option.value === range.fk_from_column_id"
@@ -321,13 +254,5 @@ watch(calendarRangeDropdown, (newVal) => {
 <style lang="scss" scoped>
 .nc-to-select .ant-select-selector {
   @apply !rounded-r-none;
-}
-
-.ant-input::placeholder {
-  @apply text-gray-500;
-}
-
-.ant-input {
-  @apply px-3 h-8 rounded-lg py-1 w-full border-1 focus:border-brand-500 border-gray-200 !ring-0;
 }
 </style>

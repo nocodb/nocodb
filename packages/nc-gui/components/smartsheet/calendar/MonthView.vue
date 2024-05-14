@@ -119,7 +119,7 @@ const recordsToDisplay = computed<{
   const perHeight = gridContainerHeight.value / dates.value.length
   const perRecordHeight = 24
 
-  const spaceBetweenRecords = 26
+  const spaceBetweenRecords = 27
 
   // This object is used to keep track of the number of records in a day
   // The key is the date in the format YYYY-MM-DD
@@ -361,11 +361,17 @@ const calculateNewRow = (event: MouseEvent, updateSideBar?: boolean, skipChangeC
   const fromCol = dragRecord.value?.rowMeta.range?.fk_from_col
   const toCol = dragRecord.value?.rowMeta.range?.fk_to_col
 
+  if (!fromCol) return { newRow: null, updateProperty: [] }
+
   const week = Math.floor(percentY * dates.value.length)
   const day = Math.floor(percentX * 7)
 
-  const newStartDate = dates.value[week] ? dayjs(dates.value[week][day]) : null
+  let newStartDate = dates.value[week] ? dayjs(dates.value[week][day]) : null
   if (!newStartDate) return { newRow: null, updateProperty: [] }
+
+  const fromDate = dayjs(dragRecord.value.row[fromCol.title!])
+
+  newStartDate = newStartDate.add(fromDate.hour(), 'hour').add(fromDate.minute(), 'minute').add(fromDate.second(), 'second')
 
   let endDate
 
@@ -668,7 +674,7 @@ const addRecord = (date: dayjs.Dayjs) => {
       <div
         v-for="(day, index) in days"
         :key="index"
-        class="text-center bg-gray-50 py-1 text-sm border-b-1 border-r-1 last:border-r-0 border-gray-200 font-semibold text-gray-500"
+        class="text-center bg-gray-50 py-1 border-b-1 border-r-1 last:border-r-0 border-gray-200 font-regular uppercase text-xs text-gray-500"
       >
         {{ day }}
       </div>
@@ -680,7 +686,8 @@ const addRecord = (date: dayjs.Dayjs) => {
         'grid-rows-6': dates.length === 6,
         'grid-rows-7': dates.length === 7,
       }"
-      class="grid h-full"
+      class="grid"
+      style="height: calc(100% - 1.59rem)"
       @drop="dropEvent"
     >
       <div v-for="(week, weekIndex) in dates" :key="weekIndex" class="grid grid-cols-7 grow" data-testid="nc-calendar-month-week">

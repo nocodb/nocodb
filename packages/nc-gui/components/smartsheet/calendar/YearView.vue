@@ -38,7 +38,7 @@ watch(width, handleResize)
       :class="{
         '!gap-12': size === 'large',
       }"
-      class="grid grid-cols-4 justify-items-center gap-3"
+      class="grid grid-cols-4 justify-items-center gap-6 scale-1"
       data-testid="nc-calendar-year-view"
     >
       <NcDateWeekSelector
@@ -47,8 +47,8 @@ watch(width, handleResize)
         v-model:active-dates="activeDates"
         v-model:page-date="months[index]"
         v-model:selected-date="selectedDate"
-        class="nc-year-view-calendar"
         :size="size"
+        class="nc-year-view-calendar"
         data-testid="nc-calendar-year-view-month-selector"
         disable-pagination
       />
@@ -59,7 +59,7 @@ watch(width, handleResize)
 <style lang="scss" scoped>
 .nc-year-view-calendar {
   :deep(.nc-date-week-header) {
-    @apply !border-b-1 pb-2 border-gray-200;
+    @apply border-gray-200;
   }
 }
 </style>

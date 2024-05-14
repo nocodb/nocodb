@@ -379,13 +379,14 @@ onClickOutside(searchRef, toggleSearch)
         <span class="capitalize font-medium text-gray-700">{{ $t('objects.records') }}</span>
         <NcSelect v-model:value="sideBarFilterOption" class="w-full !text-gray-600" data-testid="nc-calendar-sidebar-filter">
           <a-select-option v-for="option in options" :key="option.value" :value="option.value" class="!text-gray-600">
-            <div class="flex items-center justify-between gap-2">
-              <div class="truncate flex-1">
+            <div class="flex items-center w-full justify-between gap-2">
+              <div class="truncate">
                 <NcTooltip :title="option.label" placement="top" show-on-truncate-only>
                   <template #title>{{ option.label }}</template>
                   {{ option.label }}
                 </NcTooltip>
               </div>
+
               <component
                 :is="iconMap.check"
                 v-if="sideBarFilterOption === option.value"
@@ -456,22 +457,21 @@ onClickOutside(searchRef, toggleSearch)
         v-if="calendarRange?.length && !isCalendarMetaLoading"
         :ref="sideBarListRef"
         :class="{
-          '!h-[calc(100svh-24rem)]':
+          '!h-[calc(100svh-22.15rem)]':
             height > 700 && (activeCalendarView === 'month' || activeCalendarView === 'year') && !showSearch,
-          '!h-[calc(100svh-27.3rem)]':
+          '!h-[calc(100svh-24.9rem)]':
             height > 700 && (activeCalendarView === 'month' || activeCalendarView === 'year') && showSearch,
-          '!h-[calc(100svh-16.1rem)]':
+          '!h-[calc(100svh-13.85rem)]':
             height <= 700 && (activeCalendarView === 'month' || activeCalendarView === 'year') && !showSearch,
-          '!h-[calc(100svh-18.9rem)]':
+          '!h-[calc(100svh-16.61rem)]':
             height <= 700 && (activeCalendarView === 'month' || activeCalendarView === 'year') && showSearch,
-
-          '!h-[calc(100svh-31.9rem)]':
+          '!h-[calc(100svh-30.15rem)]':
             height > 700 && (activeCalendarView === 'day' || activeCalendarView === 'week') && !showSearch,
-          ' !h-[calc(100svh-34.9rem)]':
+          ' !h-[calc(100svh-32.9rem)]':
             height > 700 && (activeCalendarView === 'day' || activeCalendarView === 'week') && showSearch,
-          '!h-[calc(100svh-15.5rem)]':
+          '!h-[calc(100svh-13.8rem)]':
             height <= 700 && (activeCalendarView === 'day' || activeCalendarView === 'week') && !showSearch,
-          '!h-[calc(100svh-18.4rem)]':
+          '!h-[calc(100svh-16.6rem)]':
             height <= 700 && (activeCalendarView === 'day' || activeCalendarView === 'week') && showSearch,
         }"
         class="nc-scrollbar-md pl-4 pr-4 overflow-y-auto"
@@ -528,22 +528,21 @@ onClickOutside(searchRef, toggleSearch)
       <template v-else-if="isCalendarMetaLoading">
         <div
           :class="{
-            '!h-[calc(100svh-24rem)]':
+            '!h-[calc(100svh-22.15rem)]':
               height > 700 && (activeCalendarView === 'month' || activeCalendarView === 'year') && !showSearch,
-            '!h-[calc(100svh-27.3rem)]':
+            '!h-[calc(100svh-24.9rem)]':
               height > 700 && (activeCalendarView === 'month' || activeCalendarView === 'year') && showSearch,
-            '!h-[calc(100svh-16.1rem)]':
+            '!h-[calc(100svh-13.85rem)]':
               height <= 700 && (activeCalendarView === 'month' || activeCalendarView === 'year') && !showSearch,
-            '!h-[calc(100svh-18.9rem)]':
+            '!h-[calc(100svh-16.61rem)]':
               height <= 700 && (activeCalendarView === 'month' || activeCalendarView === 'year') && showSearch,
-
-            '!h-[calc(100svh-31.9rem)]':
+            '!h-[calc(100svh-30.15rem)]':
               height > 700 && (activeCalendarView === 'day' || activeCalendarView === 'week') && !showSearch,
-            ' !h-[calc(100svh-34.9rem)]':
+            ' !h-[calc(100svh-32.9rem)]':
               height > 700 && (activeCalendarView === 'day' || activeCalendarView === 'week') && showSearch,
-            '!h-[calc(100svh-15.5rem)]':
+            '!h-[calc(100svh-13.8rem)]':
               height <= 700 && (activeCalendarView === 'day' || activeCalendarView === 'week') && !showSearch,
-            '!h-[calc(100svh-18.4rem)]':
+            '!h-[calc(100svh-16.6rem)]':
               height <= 700 && (activeCalendarView === 'day' || activeCalendarView === 'week') && showSearch,
           }"
           class="flex items-center justify-center h-full"
@@ -554,22 +553,21 @@ onClickOutside(searchRef, toggleSearch)
       <div
         v-else
         :class="{
-          '!h-[calc(100svh-24rem)]':
+          '!h-[calc(100svh-22.15rem)]':
             height > 700 && (activeCalendarView === 'month' || activeCalendarView === 'year') && !showSearch,
-          '!h-[calc(100svh-27.3rem)]':
+          '!h-[calc(100svh-24.9rem)]':
             height > 700 && (activeCalendarView === 'month' || activeCalendarView === 'year') && showSearch,
-          '!h-[calc(100svh-16.1rem)]':
+          '!h-[calc(100svh-13.85rem)]':
             height <= 700 && (activeCalendarView === 'month' || activeCalendarView === 'year') && !showSearch,
-          '!h-[calc(100svh-18.9rem)]':
+          '!h-[calc(100svh-16.61rem)]':
             height <= 700 && (activeCalendarView === 'month' || activeCalendarView === 'year') && showSearch,
-
-          '!h-[calc(100svh-31.9rem)]':
+          '!h-[calc(100svh-30.15rem)]':
             height > 700 && (activeCalendarView === 'day' || activeCalendarView === 'week') && !showSearch,
-          ' !h-[calc(100svh-34.9rem)]':
+          ' !h-[calc(100svh-32.9rem)]':
             height > 700 && (activeCalendarView === 'day' || activeCalendarView === 'week') && showSearch,
-          '!h-[calc(100svh-15.5rem)]':
+          '!h-[calc(100svh-13.8rem)]':
             height <= 700 && (activeCalendarView === 'day' || activeCalendarView === 'week') && !showSearch,
-          '!h-[calc(100svh-18.4rem)]':
+          '!h-[calc(100svh-16.6rem)]':
             height <= 700 && (activeCalendarView === 'day' || activeCalendarView === 'week') && showSearch,
         }"
         class="flex items-center justify-center h-full"

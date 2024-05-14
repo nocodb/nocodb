@@ -74,25 +74,6 @@ const paginateYear = (action: 'next' | 'prev') => {
   emit('update:pageDate', date)
 }
 
-const changeDate = (action: 'prev' | 'next') => {
-  let date = dayjs(selectedDate.value)
-  if (props.isYearPicker) {
-    if (action === 'next') {
-      date = date.add(1, 'year')
-    } else {
-      date = date.subtract(1, 'year')
-    }
-  } else {
-    if (action === 'next') {
-      date = date.add(1, 'month')
-    } else {
-      date = date.subtract(1, 'month')
-    }
-  }
-
-  emit('update:selectedDate', date)
-}
-
 const paginate = (action: 'next' | 'prev') => {
   if (props.isYearPicker) {
     paginateYear(action)
@@ -109,24 +90,10 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
 
 <template>
   <div class="flex flex-col">
-    <div v-if="!hideHeader" class="flex px-2 border-b-1 py-2 justify-between items-center">
+    <div v-if="!hideHeader" class="flex px-2 border-b-1 py-0.5 justify-between items-center">
       <div class="flex">
-        <NcTooltip v-if="!hideCalendar">
-          <NcButton class="!border-0" size="small" type="secondary" @click="paginate('prev')">
-            <component :is="iconMap.doubleLeftArrow" class="h-4 w-4" />
-          </NcButton>
-          <template #title>
-            <span>{{ $t('labels.previous') }}</span>
-          </template>
-        </NcTooltip>
         <NcTooltip>
-          <NcButton
-            class="!border-0"
-            data-testid="nc-calendar-prev-btn"
-            size="small"
-            type="secondary"
-            @click="changeDate('prev')"
-          >
+          <NcButton class="!border-0" data-testid="nc-calendar-prev-btn" size="small" type="secondary" @click="paginate('prev')">
             <component :is="iconMap.arrowLeft" class="h-4 w-4" />
           </NcButton>
           <template #title>
@@ -136,26 +103,12 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
       </div>
 
       <span class="text-gray-700 font-semibold">{{
-        isYearPicker ? dayjs(selectedDate).year() : dayjs(selectedDate).format('MMM YYYY')
+        isYearPicker ? dayjs(selectedDate).year() : dayjs(pageDate).format('YYYY')
       }}</span>
       <div class="flex">
         <NcTooltip>
-          <NcButton
-            class="!border-0"
-            data-testid="nc-calendar-next-btn"
-            size="small"
-            type="secondary"
-            @click="changeDate('next')"
-          >
+          <NcButton class="!border-0" data-testid="nc-calendar-next-btn" size="small" type="secondary" @click="paginate('next')">
             <component :is="iconMap.arrowRight" class="h-4 w-4" />
-          </NcButton>
-          <template #title>
-            <span>{{ $t('labels.next') }}</span>
-          </template>
-        </NcTooltip>
-        <NcTooltip v-if="!hideCalendar">
-          <NcButton class="!border-0" size="small" type="secondary" @click="paginate('next')">
-            <component :is="iconMap.doubleRightArrow" class="h-4 w-4" />
           </NcButton>
           <template #title>
             <span>{{ $t('labels.next') }}</span>
@@ -171,6 +124,7 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
             :key="id"
             :class="{
               '!bg-gray-200 !text-brand-500 !font-bold ': isMonthSelected(month),
+              '!text-brand-500': dayjs().isSame(month, 'month'),
             }"
             class="h-9 rounded-lg flex items-center font-medium justify-center hover:(border-1 border-gray-200 bg-gray-100) text-gray-900 cursor-pointer"
             @click="selectedDate = month"
@@ -184,6 +138,7 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
             :key="id"
             :class="{
               '!bg-gray-200 !text-brand-500 !font-bold ': compareYear(year, selectedDate),
+              '!text-brand-500': dayjs().isSame(year, 'year'),
             }"
             class="h-9 rounded-lg flex items-center font-medium justify-center hover:(border-1 border-gray-200 bg-gray-100) text-gray-900 cursor-pointer"
             @click="selectedDate = year"

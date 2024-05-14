@@ -31,22 +31,30 @@ watch(activeCalendarView, () => {
 <template>
   <div
     v-if="props.tab"
-    class="flex flex-row relative px-1 mx-3 mt-3 rounded-lg gap-x-0.5 nc-calendar-mode-tab"
-    data-testid="nc-calendar-view-mode"
+    :class="{
+      'absolute mx-auto pointer-events-none inset-x-0': props.tab,
+    }"
+    class="flex items-center justify-center"
   >
-    <div :style="highlightStyle" class="highlight"></div>
     <div
-      v-for="mode in ['day', 'week', 'month', 'year']"
-      :key="mode"
-      v-e="`['c:calendar:change-calendar-view-${mode}']`"
-      :class="{ active: activeCalendarView === mode }"
-      :data-testid="`nc-calendar-view-mode-${mode}`"
-      class="tab"
-      @click="setActiveCalendarMode(mode, $event)"
+      class="flex flex-row px-1 pointer-events-auto mx-3 mt-3 rounded-lg gap-x-0.5 nc-calendar-mode-tab"
+      data-testid="nc-calendar-view-mode"
     >
-      <div class="tab-title nc-tab">{{ $t(`objects.${mode}`) }}</div>
+      <div :style="highlightStyle" class="highlight"></div>
+      <div
+        v-for="mode in ['day', 'week', 'month', 'year']"
+        :key="mode"
+        v-e="`['c:calendar:change-calendar-view-${mode}']`"
+        :class="{ active: activeCalendarView === mode }"
+        :data-testid="`nc-calendar-view-mode-${mode}`"
+        class="tab"
+        @click="setActiveCalendarMode(mode, $event)"
+      >
+        <div class="tab-title nc-tab">{{ $t(`objects.${mode}`) }}</div>
+      </div>
     </div>
   </div>
+
   <div v-else>
     <NcDropdown :trigger="['click']">
       <NcButton size="small" type="secondary">
@@ -81,7 +89,7 @@ watch(activeCalendarView, () => {
 
 .tab .tab-title {
   @apply min-w-0 mb-3 pointer-events-none;
-  word-break: 'keep-all';
+  word-break: keep-all;
   white-space: 'nowrap';
   display: 'inline';
   line-height: 0.95;

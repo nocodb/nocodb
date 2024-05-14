@@ -108,10 +108,10 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
 </script>
 
 <template>
-  <div class="px-3 pb-3 pt-2 flex flex-col">
-    <div v-if="!hideHeader" class="flex justify-between items-center">
+  <div class="pb-3 flex flex-col">
+    <div v-if="!hideHeader" class="flex px-3 border-b-1 py-2 justify-between items-center">
       <div class="flex">
-        <NcTooltip>
+        <NcTooltip v-if="!hideCalendar">
           <NcButton class="!border-0" size="small" type="secondary" @click="paginate('prev')">
             <component :is="iconMap.doubleLeftArrow" class="h-4 w-4" />
           </NcButton>
@@ -129,7 +129,9 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
         </NcTooltip>
       </div>
 
-      <span class="text-gray-700">{{ isYearPicker ? dayjs(selectedDate).year() : dayjs(selectedDate).format('MMM YYYY') }}</span>
+      <span class="text-gray-700 font-semibold">{{
+        isYearPicker ? dayjs(selectedDate).year() : dayjs(selectedDate).format('MMM YYYY')
+      }}</span>
       <div class="flex">
         <NcTooltip>
           <NcButton class="!border-0" size="small" type="secondary" @click="changeDate('next')">
@@ -139,7 +141,7 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
             <span>{{ $t('labels.next') }}</span>
           </template>
         </NcTooltip>
-        <NcTooltip>
+        <NcTooltip v-if="!hideCalendar">
           <NcButton class="!border-0" size="small" type="secondary" @click="paginate('next')">
             <component :is="iconMap.doubleRightArrow" class="h-4 w-4" />
           </NcButton>
@@ -149,14 +151,14 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
         </NcTooltip>
       </div>
     </div>
-    <div v-if="!hideCalendar" class="rounded-y-xl max-w-[350px]">
+    <div v-if="!hideCalendar" class="rounded-y-xl px-3 max-w-[350px]">
       <div class="grid grid-cols-4 gap-2 py-3">
         <template v-if="!isYearPicker">
           <span
             v-for="(month, id) in months"
             :key="id"
             :class="{
-              '!bg-gray-200 !font-bold !text-brand-500': isMonthSelected(month),
+              '!bg-gray-200 !font-bold ': isMonthSelected(month),
             }"
             class="h-9 rounded-lg flex items-center font-medium justify-center hover:(border-1 border-gray-200 bg-gray-100) text-gray-900 cursor-pointer"
             @click="selectedDate = month"
@@ -169,7 +171,7 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
             v-for="(year, id) in years"
             :key="id"
             :class="{
-              '!bg-gray-200 !font-bold !text-brand-500': compareYear(year, selectedDate),
+              '!bg-gray-200 !font-bold ': compareYear(year, selectedDate),
             }"
             class="h-9 rounded-lg flex items-center font-medium justify-center hover:(border-1 border-gray-200 bg-gray-100) text-gray-900 cursor-pointer"
             @click="selectedDate = year"

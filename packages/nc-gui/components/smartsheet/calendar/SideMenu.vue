@@ -295,12 +295,7 @@ onUnmounted(() => {
     class="h-full border-l-1 border-gray-200 transition-all"
     data-testid="nc-calendar-side-menu"
   >
-    <div
-      :class="{
-        'px-3 py-3 ': activeCalendarView === ('day' as const) || activeCalendarView === ('week' as const),
-      }"
-      class="flex flex-col"
-    >
+    <div class="flex flex-col">
       <NcDateWeekSelector
         v-if="activeCalendarView === ('day' as const)"
         v-model:active-dates="activeDates"

@@ -49,8 +49,11 @@ const days = computed(() => {
   }
 })
 
-// Used to display the current month and year
 const currentMonthYear = computed(() => {
+  if (props.disablePagination) {
+    return dayjs(pageDate.value).format('MMMM YYYY')
+  }
+
   if (props.isWeekPicker) {
     if (selectedWeek.value?.start.isSame(selectedWeek.value?.end, 'month')) {
       return `${selectedWeek.value.start.format('D')} - ${selectedWeek.value.end.format('D MMM YY')}`
@@ -177,20 +180,19 @@ const changeDate = (action: 'prev' | 'next') => {
   <div
     :class="{
       'gap-1': size === 'small',
-      'gap-4': size === 'medium' || size === 'large',
     }"
     class="flex flex-col"
   >
     <div
       v-if="!disableHeader"
       :class="{
-        ' justify-between': !disablePagination,
+        ' justify-between border-b-1 ': !disablePagination,
         ' justify-center': disablePagination,
       }"
-      class="flex items-center"
+      class="flex px-2 py-2 items-center"
     >
       <div v-if="!disablePagination" class="flex">
-        <NcTooltip>
+        <NcTooltip v-if="!hideCalendar">
           <NcButton class="!border-0" size="small" type="secondary" @click="paginate('prev')">
             <component :is="iconMap.doubleLeftArrow" class="h-4 w-4" />
           </NcButton>
@@ -213,7 +215,7 @@ const changeDate = (action: 'prev' | 'next') => {
           'text-xs': size === 'small',
           'text-sm': size === 'medium',
         }"
-        class="text-gray-700"
+        class="text-gray-700 font-semibold"
         >{{ currentMonthYear }}</span
       >
 
@@ -226,7 +228,7 @@ const changeDate = (action: 'prev' | 'next') => {
             <span>{{ $t('labels.next') }}</span>
           </template>
         </NcTooltip>
-        <NcTooltip>
+        <NcTooltip v-if="!hideCalendar">
           <NcButton class="!border-0" size="small" type="secondary" @click="paginate('next')">
             <component :is="iconMap.doubleRightArrow" class="h-4 w-4" />
           </NcButton>
@@ -242,7 +244,7 @@ const changeDate = (action: 'prev' | 'next') => {
         'rounded-lg': size === 'small',
         'rounded-y-xl': size !== 'small',
       }"
-      class="max-w-[320px]"
+      class="px-3 max-w-[320px]"
     >
       <div
         :class="{
@@ -251,7 +253,7 @@ const changeDate = (action: 'prev' | 'next') => {
           'px-2 py-1 !rounded-t-lg': size === 'small',
           'rounded-t-xl': size !== 'small',
         }"
-        class="flex flex-row border-b-1 nc-date-week-header border-gray-200 justify-between"
+        class="flex py-1 flex-row border-b-1 nc-date-week-header border-gray-200 justify-between"
       >
         <span
           v-for="(day, index) in days"
@@ -277,7 +279,7 @@ const changeDate = (action: 'prev' | 'next') => {
           :key="index"
           :class="{
             'rounded-lg': !isWeekPicker,
-            'bg-gray-200 border-1 font-bold text-brand-500': isSelectedDate(date) && !isWeekPicker && isDayInPagedMonth(date),
+            'bg-gray-200 border-1 font-bold ': isSelectedDate(date) && !isWeekPicker && isDayInPagedMonth(date),
             'hover:(border-1 border-gray-200 bg-gray-100)': !isSelectedDate(date) && !isWeekPicker,
             'nc-selected-week z-1': isDateInSelectedWeek(date) && isWeekPicker,
             'border-none': isWeekPicker,
@@ -285,7 +287,7 @@ const changeDate = (action: 'prev' | 'next') => {
             'text-gray-400': !isDateInCurrentMonth(date),
             'nc-selected-week-start': isSameDate(date, selectedWeek?.start),
             'nc-selected-week-end': isSameDate(date, selectedWeek?.end),
-            'rounded-md bg-brand-50 text-brand-500 nc-calendar-today ': isSameDate(date, dayjs()) && isDateInCurrentMonth(date),
+            'rounded-md bg-brand-50  nc-calendar-today ': isSameDate(date, dayjs()) && isDateInCurrentMonth(date),
             'h-9 w-9': size === 'large',
             'h-8 w-8': size === 'medium',
             'h-6 w-6 text-[10px]': size === 'small',

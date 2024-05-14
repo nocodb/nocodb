@@ -53,17 +53,7 @@ const { allowCSVDownload } = useSharedView()
 
       <LazySmartsheetToolbarSortListMenu v-if="isGrid || isGallery || isKanban" />
 
-      <!--
-      <div v-if="isCalendar && isTab" class="flex-1" />
--->
-      <div
-        :class="{
-          'absolute inset-x-0': isTab,
-        }"
-        class="flex items-center justify-center"
-      >
-        <LazySmartsheetToolbarCalendarMode v-if="isCalendar" v-model:tab="isTab" />
-      </div>
+      <LazySmartsheetToolbarCalendarMode v-if="isCalendar" v-model:tab="isTab" />
 
       <template v-if="!isMobileMode">
         <LazySmartsheetToolbarRowHeight v-if="isGrid" />

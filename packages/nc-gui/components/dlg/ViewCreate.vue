@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { ComponentPublicInstance } from '@vue/runtime-core'
+import { capitalize } from '@vue/runtime-core'
 import type { Form as AntForm, SelectProps } from 'ant-design-vue'
 import type { CalendarType, FormType, GalleryType, GridType, KanbanType, MapType, TableType } from 'nocodb-sdk'
 import { UITypes, ViewTypes, isSystemColumn } from 'nocodb-sdk'
@@ -130,13 +131,12 @@ watch(
 )
 
 function init() {
-  /* form.title = `${capitalize(typeAlias.value)}`
+  form.title = `${capitalize(typeAlias.value)}`
 
   const repeatCount = views.value.filter((v) => v.title.startsWith(form.title)).length
   if (repeatCount) {
     form.title = `${form.title}-${repeatCount}`
   }
-*/
   if (selectedViewId.value) {
     form.copy_from_id = selectedViewId?.value
   }
@@ -556,7 +556,7 @@ onMounted(async () => {
   </NcModal>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .ant-form-item-required {
   @apply !text-gray-800 font-medium;
   &:before {

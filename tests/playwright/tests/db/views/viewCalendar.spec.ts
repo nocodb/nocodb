@@ -192,7 +192,7 @@ test.describe('Calendar View', () => {
 
     await toolbar.calendarViewMode.changeCalendarView({ title: 'month' });
 
-    await calendar.sideMenu.moveToDate({ date: 'Jan  2024', action: 'prev' });
+    await calendar.sideMenu.moveToDate({ date: 'Jan 2024', action: 'prev' });
 
     // Verify Sidebar Records & Filters
 
@@ -249,7 +249,7 @@ test.describe('Calendar View', () => {
     await calendar.toolbar.calendarViewMode.changeCalendarView({ title: 'day' });
 
     await calendar.sideMenu.moveToDate({
-      date: '1 Jan 2024 ',
+      date: '1 Jan 2024',
       action: 'prev',
     });
 
@@ -266,7 +266,7 @@ test.describe('Calendar View', () => {
     await calendar.sideMenu.verifySideBarRecords({ records: [] });
 
     await calendar.sideMenu.moveToDate({
-      date: '3 Jan 2024 ',
+      date: '3 Jan 2024',
       action: 'next',
     });
 
@@ -307,7 +307,7 @@ test.describe('Calendar View', () => {
 
     // await calendar.toggleSideBar();
 
-    await calendar.sideMenu.moveToDate({ date: 'Jan  2024', action: 'prev' });
+    await calendar.sideMenu.moveToDate({ date: 'Jan 2024', action: 'prev' });
 
     await calendar.calendarMonth.dragAndDrop({
       record: 'Team Catchup',
@@ -329,7 +329,7 @@ test.describe('Calendar View', () => {
     await calendar.toolbar.calendarViewMode.changeCalendarView({ title: 'week' });
 
     await calendar.sideMenu.moveToDate({
-      date: '1 - 7 Jan 24 ',
+      date: '1 - 7 Jan 24',
       action: 'prev',
     });
 
@@ -412,7 +412,7 @@ test.describe('Calendar View', () => {
 
     // await calendar.toggleSideBar();
 
-    await calendar.sideMenu.moveToDate({ date: 'Jan  2024', action: 'prev' });
+    await calendar.sideMenu.moveToDate({ date: 'Jan 2024', action: 'prev' });
 
     await calendar.sideMenu.verifySideBarRecords({ records: dateRecords.filter(f => f.Title).map(f => f.Title) });
 
@@ -460,11 +460,11 @@ test.describe('Calendar View', () => {
 
     // await calendar.toggleSideBar();
 
-    await calendar.sideMenu.moveToDate({ date: '1 Jan 2024 ', action: 'prev' });
+    await calendar.sideMenu.moveToDate({ date: '1 Jan 2024', action: 'prev' });
 
     await calendar.sideMenu.verifySideBarRecords({ records: dateRecords.filter(f => f.Title).map(f => f.Title) });
 
-    await calendar.sideMenu.moveToDate({ date: '2 Jan 2024 ', action: 'next' });
+    await calendar.sideMenu.moveToDate({ date: '2 Jan 2024', action: 'next' });
 
     await calendar.calendarDayDate.verifyRecord({ records: [] });
 

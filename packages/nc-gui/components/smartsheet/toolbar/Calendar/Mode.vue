@@ -47,11 +47,15 @@ watch(activeCalendarView, () => {
     </div>
   </div>
 
-  <NcSelect v-else v-model:value="activeCalendarView" class="!w-22" size="small">
+  <NcSelect v-else v-model:value="activeCalendarView" class="!w-22" data-testid="nc-calendar-view-mode" size="small">
     <a-select-option v-for="option in ['day', 'week', 'month', 'year']" :key="option" :value="option" class="!h-7 !w-20">
       <div class="flex gap-2 mt-0.5 items-center">
-        <NcTooltip class="truncate capitalize flex-1 max-w-18" placement="top" show-on-truncate-only>
-          <template #title>{{ option }}</template>
+        <NcTooltip class="truncate !capitalize flex-1 max-w-18" placement="top" show-on-truncate-only>
+          <template #title>
+            <span class="capitalize">
+              {{ option }}
+            </span>
+          </template>
           {{ option }}
         </NcTooltip>
 

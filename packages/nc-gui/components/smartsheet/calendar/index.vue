@@ -94,10 +94,6 @@ const newRecord = (row: RowType) => {
   })
 }
 
-const wrapperRef = ref()
-
-const { width } = useElementSize(wrapperRef)
-
 onMounted(async () => {
   await loadCalendarMeta()
   await loadCalendarData()
@@ -121,7 +117,7 @@ reloadViewDataHook?.on(async (params: void | { shouldShowLoading?: boolean }) =>
 
 <template>
   <div class="flex h-full relative flex-row" data-testid="nc-calendar-wrapper">
-    <div ref="wrapperRef" class="flex flex-col w-full">
+    <div class="flex flex-col w-full">
       <template v-if="calendarRange?.length && !isCalendarMetaLoading">
         <LazySmartsheetCalendarYearView v-if="activeCalendarView === 'year'" />
         <template v-if="!isCalendarDataLoading">
@@ -169,7 +165,6 @@ reloadViewDataHook?.on(async (params: void | { shouldShowLoading?: boolean }) =>
     </div>
     <LazySmartsheetCalendarSideMenu
       v-if="!isMobileMode"
-      v-model:width="width"
       :visible="showSideMenu"
       @expand-record="expandRecord"
       @new-record="newRecord"

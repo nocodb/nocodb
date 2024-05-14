@@ -154,7 +154,12 @@ const paginate = (action: 'next' | 'prev') => {
 
 const changeDate = (action: 'prev' | 'next') => {
   if (props.isWeekPicker) {
-    const temp = selectedWeek.value || { start: dayjs(), end: dayjs().add(7, 'day') }
+    const temp = selectedWeek.value
+      ? {
+          start: selectedWeek.value.start.clone(),
+          end: selectedWeek.value.end.clone(),
+        }
+      : { start: dayjs(), end: dayjs().add(7, 'day') }
     if (action === 'next') {
       temp.start = dayjs(temp?.start).add(1, 'week')
       temp.end = dayjs(temp?.end).add(1, 'week')
@@ -162,15 +167,17 @@ const changeDate = (action: 'prev' | 'next') => {
       temp.start = dayjs(temp?.start).subtract(1, 'week')
       temp.end = dayjs(temp?.end).subtract(1, 'week')
     }
+    selectedWeek.value = temp
     emit('update:selectedWeek', temp)
   } else {
-    let date = dayjs(selectedDate.value)
+    let date = dayjs(selectedDate.value).clone()
 
     if (action === 'next') {
       date = date.add(1, 'day')
     } else {
       date = date.subtract(1, 'day')
     }
+    selectedDate.value = date
     emit('update:selectedDate', date)
   }
 }

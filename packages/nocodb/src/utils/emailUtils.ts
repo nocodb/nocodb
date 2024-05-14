@@ -1,13 +1,9 @@
 // html encode string
-const encode = (str) => {
-  const buf = [];
-
-  for (let i = str.length - 1; i >= 0; i--) {
-    const encoded = ['&#', str[i].charCodeAt(), ';'].join('');
-    buf.unshift(encoded);
-  }
-
-  return buf.join('');
+const encode = (str: string) => {
+  return str
+    ?.split('')
+    .map((char) => `&#${char.charCodeAt(0)};`)
+    .join('');
 };
 
 // a method to sanitise content and avoid any link/url injection in email content and html encode special chars

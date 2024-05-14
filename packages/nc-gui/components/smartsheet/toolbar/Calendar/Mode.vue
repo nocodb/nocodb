@@ -49,13 +49,18 @@ watch(activeCalendarView, () => {
 
   <div v-else>
     <NcDropdown :trigger="['click']">
-      <NcButton class="!h-7" data-testid="nc-calendar-view-mode" size="small" type="secondary">
+      <NcButton class="!h-7 !text-[13px]" data-testid="nc-calendar-view-mode" size="small" type="secondary">
         {{ $t(`objects.${activeCalendarView}`) }}
         <component :is="iconMap.arrowDown" />
       </NcButton>
       <template #overlay>
-        <NcMenu>
-          <NcMenuItem v-for="mode in ['day', 'week', 'month', 'year']" :key="mode" @click="changeCalendarView(mode)">
+        <NcMenu class="nc-calendar-mode-menu">
+          <NcMenuItem
+            v-for="mode in ['day', 'week', 'month', 'year']"
+            :key="mode"
+            class="!text-[13px]"
+            @click="changeCalendarView(mode)"
+          >
             {{ $t(`objects.${mode}`) }}
           </NcMenuItem>
         </NcMenu>
@@ -68,6 +73,12 @@ watch(activeCalendarView, () => {
 .highlight {
   @apply absolute h-9 w-14 transition-all border-b-2 border-brand-500 duration-200;
   z-index: 0;
+}
+
+.nc-calendar-mode-menu {
+  :deep(.nc-menu-item-inner) {
+    @apply !text-[13px];
+  }
 }
 
 .tab {

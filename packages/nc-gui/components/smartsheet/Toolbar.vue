@@ -24,7 +24,7 @@ const { allowCSVDownload } = useSharedView()
   <div
     v-if="!isMobileMode"
     ref="containerRef"
-    class="nc-table-toolbar relative px-2.25 xs:(px-1) flex gap-2 items-center border-b border-gray-200 overflow-hidden xs:(min-h-14) min-h-9 max-h-9 z-7"
+    class="nc-table-toolbar relative px-3 xs:(px-1) flex gap-2 items-center border-b border-gray-200 overflow-hidden xs:(min-h-14) min-h-9 max-h-9 z-7"
   >
     <template v-if="isViewsLoading">
       <a-skeleton-input :active="true" class="!w-44 !h-4 ml-2 !rounded overflow-hidden" />

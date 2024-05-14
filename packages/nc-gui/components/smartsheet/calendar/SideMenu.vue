@@ -290,6 +290,38 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener('resize', widthListener)
 })
+
+const showSearch = ref(false)
+const searchRef = ref()
+
+const clickSearch = () => {
+  showSearch.value = true
+  nextTick(() => {
+    searchRef.value?.focus()
+  })
+}
+
+const toggleSearch = () => {
+  if (!searchQuery.value.length) {
+    showSearch.value = false
+  } else {
+    searchRef.value?.blur()
+  }
+}
+
+useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
+  const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
+  if (cmdOrCtrl) {
+    switch (e.key.toLowerCase()) {
+      case 'f':
+        e.preventDefault()
+        clickSearch()
+        break
+    }
+  }
+})
+
+onClickOutside(searchRef, toggleSearch)
 </script>
 
 <template>
@@ -349,9 +381,10 @@ onUnmounted(() => {
 
     <div
       :class="{
-        '!border-t-0': width <= 1440,
+        '!border-t-0 ': width <= 1440,
+        '!pt-3': width > 1440,
       }"
-      class="border-t-1 border-gray-200 relative flex flex-col gap-y-4 pt-3"
+      class="border-t-1 border-gray-200 relative flex flex-col gap-y-4"
     >
       <div class="flex px-4 items-center gap-3">
         <span class="capitalize text-base font-bold">{{ $t('objects.records') }}</span>
@@ -374,7 +407,34 @@ onUnmounted(() => {
           </a-select-option>
         </NcSelect>
       </div>
-      <div class="px-4 flex items-cemter justify-between">
+      <div
+        :class="{
+          hidden: !showSearch,
+        }"
+        class="mx-4"
+      >
+        <a-input
+          ref="searchRef"
+          v-model:value="searchQuery.value"
+          :class="{
+            '!border-brand-500': searchQuery.value.length > 0,
+            '!hidden': !showSearch,
+          }"
+          class="!rounded-lg !h-8 !placeholder:text-gray-500 !border-gray-200 !px-4"
+          data-testid="nc-calendar-sidebar-search"
+          placeholder="Search records"
+          @keydown.esc="toggleSearch"
+        >
+          <template #prefix>
+            <component :is="iconMap.search" class="h-4 w-4 mr-1 text-gray-500" />
+          </template>
+        </a-input>
+      </div>
+      <div class="mx-4 gap-2 flex items-center">
+        <NcButton v-if="!showSearch" size="small" type="secondary" @click="clickSearch">
+          <component :is="iconMap.search" />
+        </NcButton>
+
         <LazySmartsheetToolbarSortListMenu />
 
         <NcButton
@@ -386,25 +446,11 @@ onUnmounted(() => {
           @click="newRecord"
         >
           <div class="flex items-center gap-2">
-            New Record
             <component :is="iconMap.plus" />
+
+            Record
           </div>
         </NcButton>
-      </div>
-      <div class="flex px-4 items-center gap-2">
-        <a-input
-          v-model:value="searchQuery.value"
-          :class="{
-            '!border-brand-500': searchQuery.value.length > 0,
-          }"
-          class="!rounded-lg !h-8 !placeholder:text-gray-500 !border-gray-200 !px-4"
-          data-testid="nc-calendar-sidebar-search"
-          placeholder="Search records"
-        >
-          <template #prefix>
-            <component :is="iconMap.search" class="h-4 w-4 mr-1 text-gray-500" />
-          </template>
-        </a-input>
       </div>
 
       <div

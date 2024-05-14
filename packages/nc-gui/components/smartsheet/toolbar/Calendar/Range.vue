@@ -118,7 +118,7 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
       </NcButton>
     </div>
     <template #overlay>
-      <div v-if="calendarRangeDropdown" class="w-full p-6" data-testid="nc-calendar-range-menu" @click.stop>
+      <div v-if="calendarRangeDropdown" class="w-full p-4" data-testid="nc-calendar-range-menu" @click.stop>
         <div
           v-for="(range, id) in _calendar_ranges"
           :key="id"
@@ -203,6 +203,9 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
           </NcButton>
             -->
         </div>
+
+        <div class="text-sm text-gray-600 py-2">Records in this view will be based on the specified date field.</div>
+
         <NcButton
           v-if="_calendar_ranges.length === 0"
           class="mt-2"

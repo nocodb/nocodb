@@ -24,8 +24,8 @@ const goToToday = () => {
 
 <template>
   <NcButton class="!border-0 !h-7" data-testid="nc-calendar-today-btn" size="small" type="secondary" @click="goToToday">
-    <span class="text-gray-600 !text-sm">
-      {{ $t('activity.goToToday') }}
+    <span class="text-gray-600 !text-[13px]">
+      {{ $t('labels.today') }}
     </span>
   </NcButton>
 </template>

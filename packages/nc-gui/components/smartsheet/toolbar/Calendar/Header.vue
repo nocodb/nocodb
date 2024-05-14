@@ -27,12 +27,22 @@ const headerText = computed(() => {
 </script>
 
 <template>
-  <span class="font-semibold text-xl whitespace-nowrap" data-testid="nc-calendar-active-date"
-    >{{ activeCalendarView === 'month' ? headerText.split(' ')[0] : headerText }}
+  <div
+    :class="{
+      'w-23': activeCalendarView === 'month',
+      'min-w-42': activeCalendarView === 'week',
+      'w-28': activeCalendarView === 'day',
+    }"
+    class="font-bold text-xl whitespace-nowrap"
+    data-testid="nc-calendar-active-date"
+  >
+    {{ activeCalendarView === 'month' ? headerText.split(' ')[0] : headerText }}
     <template v-if="activeCalendarView === 'month'">
-      {{ ` ${headerText.split(' ')[1]}` }}
+      <span class="!font-semibold">
+        {{ ` ${headerText.split(' ')[1]}` }}
+      </span>
     </template>
-  </span>
+  </div>
 </template>
 
 <style lang="scss" scoped></style>

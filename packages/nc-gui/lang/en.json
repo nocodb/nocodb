@@ -448,6 +448,7 @@
     "noResultsMatchedYourSearch": "Your search did not yield any matching results"
   },
   "labels": {
+    "today": "Today",
     "txt": "TXT Record value",
     "transferOwnership": "Transfer Ownership",
     "recentActivity": "Recent Activity",

@@ -50,7 +50,7 @@ watch(width, handleResize)
 </script>
 
 <template>
-  <div ref="calendarContainer" class="overflow-auto flex my-2 transition justify-center nc-scrollbar-md">
+  <div ref="calendarContainer" class="overflow-auto flex my-2 transition-all justify-center nc-scrollbar-md">
     <div
       :class="{
         'grid-cols-1': cols === 1,

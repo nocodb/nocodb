@@ -907,7 +907,7 @@ watch(
             'border-1 !border-brand-500 bg-gray-50': hour.isSame(selectedTime, 'hour'),
             '!bg-gray-50': hour.get('day') === 0 || hour.get('day') === 6,
           }"
-          class="text-center relative h-13 text-sm text-gray-500 w-full hover:bg-gray-50 py-1 border-transparent border-1 border-x-gray-100 border-t-gray-100 border-l-gray-200"
+          class="text-center relative transition h-13 text-sm text-gray-500 w-full hover:bg-gray-50 py-1 border-transparent border-1 border-x-gray-100 border-t-gray-100 border-l-gray-200"
           data-testid="nc-calendar-week-hour"
           @dblclick="addRecord(hour)"
           @click="
@@ -944,7 +944,7 @@ watch(
             :data-testid="`nc-calendar-week-record-${record.row[displayField!.title!]}`"
             :data-unique-id="record.rowMeta!.id"
             :style="record.rowMeta!.style "
-            class="absolute draggable-record w-1/7 group cursor-pointer pointer-events-auto"
+            class="absolute transition draggable-record w-1/7 group cursor-pointer pointer-events-auto"
             @mousedown.stop="dragStart($event, record)"
             @mouseleave="hoverRecord = null"
             @mouseover="hoverRecord = record.rowMeta.id"

@@ -24,8 +24,7 @@ const updateHighlightPosition = () => {
   })
 }
 
-watch(isTab, () => {
-  console.log('isTab', isTab.value)
+onMounted(() => {
   updateHighlightPosition()
 })
 

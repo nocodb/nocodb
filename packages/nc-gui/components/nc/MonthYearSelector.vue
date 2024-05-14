@@ -7,6 +7,7 @@ interface Props {
   pageDate?: dayjs.Dayjs
   isYearPicker?: boolean
   hideHeader?: boolean
+  hideCalendar?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -15,6 +16,7 @@ const props = withDefaults(defineProps<Props>(), {
   pageDate: dayjs(),
   hideHeader: false,
   isYearPicker: false,
+  hideCalendar: false,
 })
 const emit = defineEmits(['update:selectedDate', 'update:pageDate'])
 
@@ -72,6 +74,25 @@ const paginateYear = (action: 'next' | 'prev') => {
   emit('update:pageDate', date)
 }
 
+const changeDate = (action: 'prev' | 'next') => {
+  let date = dayjs(selectedDate.value)
+  if (props.isYearPicker) {
+    if (action === 'next') {
+      date = date.add(1, 'year')
+    } else {
+      date = date.subtract(1, 'year')
+    }
+  } else {
+    if (action === 'next') {
+      date = date.add(1, 'month')
+    } else {
+      date = date.subtract(1, 'month')
+    }
+  }
+
+  emit('update:selectedDate', date)
+}
+
 const paginate = (action: 'next' | 'prev') => {
   if (props.isYearPicker) {
     paginateYear(action)
@@ -89,25 +110,46 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
 <template>
   <div class="px-3 pb-3 pt-2 flex flex-col">
     <div v-if="!hideHeader" class="flex justify-between items-center">
-      <NcTooltip>
-        <NcButton size="small" type="secondary" @click="paginate('prev')">
-          <component :is="iconMap.doubleLeftArrow" class="h-4 w-4" />
-        </NcButton>
-        <template #title>
-          <span>{{ $t('labels.previous') }}</span>
-        </template>
-      </NcTooltip>
-      <span class="text-gray-700">{{ isYearPicker ? $t('labels.selectYear') : pageDate.year() }}</span>
-      <NcTooltip>
-        <NcButton size="small" type="secondary" @click="paginate('next')">
-          <component :is="iconMap.doubleRightArrow" class="h-4 w-4" />
-        </NcButton>
-        <template #title>
-          <span>{{ $t('labels.next') }}</span>
-        </template>
-      </NcTooltip>
+      <div class="flex">
+        <NcTooltip>
+          <NcButton class="!border-0" size="small" type="secondary" @click="paginate('prev')">
+            <component :is="iconMap.doubleLeftArrow" class="h-4 w-4" />
+          </NcButton>
+          <template #title>
+            <span>{{ $t('labels.previous') }}</span>
+          </template>
+        </NcTooltip>
+        <NcTooltip>
+          <NcButton class="!border-0" size="small" type="secondary" @click="changeDate('prev')">
+            <component :is="iconMap.arrowLeft" class="h-4 w-4" />
+          </NcButton>
+          <template #title>
+            <span>{{ $t('labels.next') }}</span>
+          </template>
+        </NcTooltip>
+      </div>
+
+      <span class="text-gray-700">{{ isYearPicker ? dayjs(selectedDate).year() : dayjs(selectedDate).format('MMM YYYY') }}</span>
+      <div class="flex">
+        <NcTooltip>
+          <NcButton class="!border-0" size="small" type="secondary" @click="changeDate('next')">
+            <component :is="iconMap.arrowRight" class="h-4 w-4" />
+          </NcButton>
+          <template #title>
+            <span>{{ $t('labels.next') }}</span>
+          </template>
+        </NcTooltip>
+        <NcTooltip>
+          <NcButton class="!border-0" size="small" type="secondary" @click="paginate('next')">
+            <component :is="iconMap.doubleRightArrow" class="h-4 w-4" />
+          </NcButton>
+          <template #title>
+            <span>{{ $t('labels.next') }}</span>
+          </template>
+        </NcTooltip>
+      </div>
     </div>
-    <div class="rounded-y-xl max-w-[350px]">
+    <div v-if="!hideCalendar" class="rounded-y-xl max-w-[350px]">
       <div class="grid grid-cols-4 gap-2 py-3">
         <template v-if="!isYearPicker">
           <span

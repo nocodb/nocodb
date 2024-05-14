@@ -11,6 +11,7 @@ interface Props {
   isWeekPicker?: boolean
   disableHeader?: boolean
   disablePagination?: boolean
+  hideCalendar?: boolean
   selectedWeek?: {
     start: dayjs.Dayjs
     end: dayjs.Dayjs
@@ -28,6 +29,7 @@ const props = withDefaults(defineProps<Props>(), {
   disablePagination: false,
   activeDates: [] as Array<dayjs.Dayjs>,
   selectedWeek: null,
+  hideCalendar: false,
 })
 const emit = defineEmits(['change', 'update:selectedDate', 'update:pageDate', 'update:selectedWeek'])
 // Page date is the date we use to manage which month/date that is currently being displayed
@@ -49,7 +51,17 @@ const days = computed(() => {
 
 // Used to display the current month and year
 const currentMonthYear = computed(() => {
-  return dayjs(pageDate.value).format('MMMM YYYY')
+  if (props.isWeekPicker) {
+    if (selectedWeek.value?.start.isSame(selectedWeek.value?.end, 'month')) {
+      return `${selectedWeek.value.start.format('D')} - ${selectedWeek.value.end.format('D MMM YY')}`
+    } else if (selectedWeek.value?.start.isSame(selectedWeek.value.end, 'year')) {
+      return `${selectedWeek.value?.start.format('D MMM')} - ${selectedWeek.value.end.format('D MMM YY')}`
+    } else {
+      return `${selectedWeek.value?.start.format('D MMM YY')} - ${selectedWeek.value?.end.format('D MMM YY')}`
+    }
+  } else {
+    return dayjs(selectedDate.value).format('D MMM YYYY')
+  }
 })
 
 const selectWeek = (date: dayjs.Dayjs) => {
@@ -136,6 +148,29 @@ const paginate = (action: 'next' | 'prev') => {
   pageDate.value = newDate
   emit('update:pageDate', newDate)
 }
+
+const changeDate = (action: 'prev' | 'next') => {
+  if (props.isWeekPicker) {
+    const temp = selectedWeek.value || { start: dayjs(), end: dayjs().add(7, 'day') }
+    if (action === 'next') {
+      temp.start = dayjs(temp?.start).add(1, 'week')
+      temp.end = dayjs(temp?.end).add(1, 'week')
+    } else {
+      temp.start = dayjs(temp?.start).subtract(1, 'week')
+      temp.end = dayjs(temp?.end).subtract(1, 'week')
+    }
+    emit('update:selectedWeek', temp)
+  } else {
+    let date = dayjs(selectedDate.value)
+
+    if (action === 'next') {
+      date = date.add(1, 'day')
+    } else {
+      date = date.subtract(1, 'day')
+    }
+    emit('update:selectedDate', date)
+  }
+}
 </script>
 
 <template>
@@ -154,14 +189,24 @@ const paginate = (action: 'next' | 'prev') => {
       }"
       class="flex items-center"
     >
-      <NcTooltip v-if="!disablePagination">
-        <NcButton size="small" type="secondary" @click="paginate('prev')">
-          <component :is="iconMap.doubleLeftArrow" class="h-4 w-4" />
-        </NcButton>
-        <template #title>
-          <span>{{ $t('labels.previousMonth') }}</span>
-        </template>
-      </NcTooltip>
+      <div v-if="!disablePagination" class="flex">
+        <NcTooltip>
+          <NcButton class="!border-0" size="small" type="secondary" @click="paginate('prev')">
+            <component :is="iconMap.doubleLeftArrow" class="h-4 w-4" />
+          </NcButton>
+          <template #title>
+            <span>{{ $t('labels.previousMonth') }}</span>
+          </template>
+        </NcTooltip>
+        <NcTooltip>
+          <NcButton class="!border-0" size="small" type="secondary" @click="changeDate('prev')">
+            <component :is="iconMap.arrowLeft" class="h-4 w-4" />
+          </NcButton>
+          <template #title>
+            <span>{{ $t('labels.next') }}</span>
+          </template>
+        </NcTooltip>
+      </div>
 
       <span
         :class="{
@@ -171,16 +216,28 @@ const paginate = (action: 'next' | 'prev') => {
         class="text-gray-700"
         >{{ currentMonthYear }}</span
       >
-      <NcTooltip v-if="!disablePagination">
-        <NcButton size="small" type="secondary" @click="paginate('next')">
-          <component :is="iconMap.doubleRightArrow" class="h-4 w-4" />
-        </NcButton>
-        <template #title>
-          <span>{{ $t('labels.nextMonth') }}</span>
-        </template>
-      </NcTooltip>
+
+      <div v-if="!disablePagination" class="flex">
+        <NcTooltip>
+          <NcButton class="!border-0" size="small" type="secondary" @click="changeDate('next')">
+            <component :is="iconMap.arrowRight" class="h-4 w-4" />
+          </NcButton>
+          <template #title>
+            <span>{{ $t('labels.next') }}</span>
+          </template>
+        </NcTooltip>
+        <NcTooltip>
+          <NcButton class="!border-0" size="small" type="secondary" @click="paginate('next')">
+            <component :is="iconMap.doubleRightArrow" class="h-4 w-4" />
+          </NcButton>
+          <template #title>
+            <span>{{ $t('labels.previousMonth') }}</span>
+          </template>
+        </NcTooltip>
+      </div>
     </div>
     <div
+      v-if="!hideCalendar"
       :class="{
         'rounded-lg': size === 'small',
         'rounded-y-xl': size !== 'small',

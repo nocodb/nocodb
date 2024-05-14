@@ -27,7 +27,7 @@ const headerText = computed(() => {
 </script>
 
 <template>
-  <span class="font-semibold text-xl whitespace-nowrap"
+  <span class="font-semibold text-xl whitespace-nowrap" data-testid="nc-calendar-active-date"
     >{{ activeCalendarView === 'month' ? headerText.split(' ')[0] : headerText }}
     <template v-if="activeCalendarView === 'month'">
       {{ ` ${headerText.split(' ')[1]}` }}

@@ -29,6 +29,8 @@ export class CalendarWeekDateTimePage extends BasePage {
   }) {
     const recordContainer = this.getRecordContainer();
     const recordCard = recordContainer.getByTestId(`nc-calendar-week-record-${record}`);
+
+    await recordCard.scrollIntoViewIfNeeded();
     const toDay = this.get()
       .getByTestId('nc-calendar-week-day')
       .nth(to.dayIndex)

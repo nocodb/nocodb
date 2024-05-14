@@ -161,40 +161,40 @@ test.describe('Calendar View', () => {
     // Verify Sidebar
     const calendar = dashboard.calendar;
 
-    await calendar.calendarTopbar.toggleSideBar();
+    await calendar.toggleSideBar();
 
     await calendar.verifySideBarOpen();
 
-    await calendar.calendarTopbar.toggleSideBar();
+    await calendar.toggleSideBar();
 
     await calendar.verifySideBarClosed();
 
-    await calendar.calendarTopbar.toggleSideBar();
+    await calendar.toggleSideBar();
 
     await calendar.verifySideBarOpen();
 
     // Verify Calendar View Modes
-    await calendar.calendarTopbar.verifyActiveCalendarView({ view: 'month' });
+    await calendar.toolbar.verifyActiveCalendarView({ view: 'month' });
 
     await toolbar.calendarViewMode.changeCalendarView({ title: 'week' });
 
-    await calendar.calendarTopbar.verifyActiveCalendarView({ view: 'week' });
+    await calendar.toolbar.verifyActiveCalendarView({ view: 'week' });
 
     await toolbar.calendarViewMode.changeCalendarView({ title: 'day' });
 
-    await calendar.calendarTopbar.verifyActiveCalendarView({ view: 'day' });
+    await calendar.toolbar.verifyActiveCalendarView({ view: 'day' });
 
     await toolbar.calendarViewMode.changeCalendarView({ title: 'month' });
 
-    await calendar.calendarTopbar.verifyActiveCalendarView({ view: 'month' });
+    await calendar.toolbar.verifyActiveCalendarView({ view: 'month' });
 
     await toolbar.calendarViewMode.changeCalendarView({ title: 'year' });
 
-    await calendar.calendarTopbar.verifyActiveCalendarView({ view: 'year' });
+    await calendar.toolbar.verifyActiveCalendarView({ view: 'year' });
 
     await toolbar.calendarViewMode.changeCalendarView({ title: 'month' });
 
-    await calendar.calendarTopbar.moveToDate({ date: 'January 2024', action: 'prev' });
+    await calendar.sideMenu.moveToDate({ date: 'January  2024', action: 'prev' });
 
     // Verify Sidebar Records & Filters
 
@@ -250,8 +250,8 @@ test.describe('Calendar View', () => {
 
     await calendar.toolbar.calendarViewMode.changeCalendarView({ title: 'day' });
 
-    await calendar.calendarTopbar.moveToDate({
-      date: '1 January 2024',
+    await calendar.sideMenu.moveToDate({
+      date: '1 Jan 2024 ',
       action: 'prev',
     });
 
@@ -267,8 +267,8 @@ test.describe('Calendar View', () => {
 
     await calendar.sideMenu.verifySideBarRecords({ records: [] });
 
-    await calendar.calendarTopbar.moveToDate({
-      date: '3 January 2024',
+    await calendar.sideMenu.moveToDate({
+      date: '3 Jan 2024 ',
       action: 'next',
     });
 
@@ -307,9 +307,9 @@ test.describe('Calendar View', () => {
 
     const calendar = dashboard.calendar;
 
-    await calendar.calendarTopbar.toggleSideBar();
+    await calendar.toggleSideBar();
 
-    await calendar.calendarTopbar.moveToDate({ date: 'January 2024', action: 'prev' });
+    await calendar.sideMenu.moveToDate({ date: 'January  2024', action: 'prev' });
 
     await calendar.calendarMonth.dragAndDrop({
       record: 'Team Catchup',
@@ -330,8 +330,8 @@ test.describe('Calendar View', () => {
 
     await calendar.toolbar.calendarViewMode.changeCalendarView({ title: 'week' });
 
-    await calendar.calendarTopbar.moveToDate({
-      date: '1 - 7 Jan 24',
+    await calendar.sideMenu.moveToDate({
+      date: '1 - 7 Jan 24 ',
       action: 'prev',
     });
 
@@ -392,29 +392,29 @@ test.describe('Calendar View', () => {
 
     const calendar = dashboard.calendar;
 
-    await calendar.calendarTopbar.verifyActiveCalendarView({ view: 'month' });
+    await calendar.toolbar.verifyActiveCalendarView({ view: 'month' });
 
     await calendar.toolbar.calendarViewMode.changeCalendarView({ title: 'week' });
 
-    await calendar.calendarTopbar.verifyActiveCalendarView({ view: 'week' });
+    await calendar.toolbar.verifyActiveCalendarView({ view: 'week' });
 
     await calendar.toolbar.calendarViewMode.changeCalendarView({ title: 'day' });
 
-    await calendar.calendarTopbar.verifyActiveCalendarView({ view: 'day' });
+    await calendar.toolbar.verifyActiveCalendarView({ view: 'day' });
 
     await calendar.toolbar.calendarViewMode.changeCalendarView({ title: 'month' });
 
-    await calendar.calendarTopbar.verifyActiveCalendarView({ view: 'month' });
+    await calendar.toolbar.verifyActiveCalendarView({ view: 'month' });
 
     await toolbar.calendarViewMode.changeCalendarView({ title: 'year' });
 
-    await calendar.calendarTopbar.verifyActiveCalendarView({ view: 'year' });
+    await calendar.toolbar.verifyActiveCalendarView({ view: 'year' });
 
     await toolbar.calendarViewMode.changeCalendarView({ title: 'month' });
 
-    await calendar.calendarTopbar.moveToDate({ date: 'January 2024', action: 'prev' });
+    await calendar.sideMenu.moveToDate({ date: 'January  2024', action: 'prev' });
 
-    await calendar.calendarTopbar.toggleSideBar();
+    await calendar.toggleSideBar();
 
     await calendar.sideMenu.verifySideBarRecords({ records: dateRecords.filter(f => f.Title).map(f => f.Title) });
 
@@ -452,21 +452,21 @@ test.describe('Calendar View', () => {
 
     await toolbar.calendarViewMode.changeCalendarView({ title: 'week' });
 
-    await dashboard.calendar.calendarTopbar.verifyActiveCalendarView({ view: 'week' });
+    await dashboard.calendar.toolbar.verifyActiveCalendarView({ view: 'week' });
 
     await toolbar.calendarViewMode.changeCalendarView({ title: 'day' });
 
-    await dashboard.calendar.calendarTopbar.verifyActiveCalendarView({ view: 'day' });
+    await dashboard.calendar.toolbar.verifyActiveCalendarView({ view: 'day' });
 
     const calendar = dashboard.calendar;
 
-    await calendar.calendarTopbar.moveToDate({ date: '1 January 2024', action: 'prev' });
+    await calendar.sideMenu.moveToDate({ date: '1 Jan 2024 ', action: 'prev' });
 
-    await calendar.calendarTopbar.toggleSideBar();
+    await calendar.toggleSideBar();
 
     await calendar.sideMenu.verifySideBarRecords({ records: dateRecords.filter(f => f.Title).map(f => f.Title) });
 
-    await calendar.calendarTopbar.moveToDate({ date: '2 January 2024', action: 'next' });
+    await calendar.sideMenu.moveToDate({ date: '2 Jan 2024 ', action: 'next' });
 
     await calendar.calendarDayDate.verifyRecord({ records: [] });
 

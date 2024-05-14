@@ -120,7 +120,13 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
           </template>
         </NcTooltip>
         <NcTooltip>
-          <NcButton class="!border-0" size="small" type="secondary" @click="changeDate('prev')">
+          <NcButton
+            class="!border-0"
+            data-testid="nc-calendar-prev-btn"
+            size="small"
+            type="secondary"
+            @click="changeDate('prev')"
+          >
             <component :is="iconMap.arrowLeft" class="h-4 w-4" />
           </NcButton>
           <template #title>
@@ -134,7 +140,13 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
       }}</span>
       <div class="flex">
         <NcTooltip>
-          <NcButton class="!border-0" size="small" type="secondary" @click="changeDate('next')">
+          <NcButton
+            class="!border-0"
+            data-testid="nc-calendar-next-btn"
+            size="small"
+            type="secondary"
+            @click="changeDate('next')"
+          >
             <component :is="iconMap.arrowRight" class="h-4 w-4" />
           </NcButton>
           <template #title>

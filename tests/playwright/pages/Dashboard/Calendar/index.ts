@@ -3,7 +3,6 @@ import BasePage from '../../Base';
 import { ToolbarPage } from '../common/Toolbar';
 import { expect } from '@playwright/test';
 import { TopbarPage } from '../common/Topbar';
-import { CalendarTopbarPage } from './CalendarTopBar';
 import { CalendarSideMenuPage } from './CalendarSideMenu';
 import { CalendarMonthPage } from './CalendarMonth';
 import { CalendarYearPage } from './CalendarYear';
@@ -16,7 +15,6 @@ export class CalendarPage extends BasePage {
   readonly dashboard: DashboardPage;
   readonly toolbar: ToolbarPage;
   readonly topbar: TopbarPage;
-  readonly calendarTopbar: CalendarTopbarPage;
   readonly sideMenu: CalendarSideMenuPage;
   readonly calendarMonth: CalendarMonthPage;
   readonly calendarYear: CalendarYearPage;
@@ -30,7 +28,6 @@ export class CalendarPage extends BasePage {
     this.dashboard = dashboard;
     this.toolbar = new ToolbarPage(this);
     this.topbar = new TopbarPage(this);
-    this.calendarTopbar = new CalendarTopbarPage(this);
     this.sideMenu = new CalendarSideMenuPage(this);
     this.calendarMonth = new CalendarMonthPage(this);
     this.calendarYear = new CalendarYearPage(this);
@@ -59,5 +56,10 @@ export class CalendarPage extends BasePage {
 
   async waitLoading() {
     await this.rootPage.waitForTimeout(2000);
+  }
+
+  async toggleSideBar() {
+    await this.get().getByTestId('nc-calendar-side-bar-btn').click();
+    await this.rootPage.waitForTimeout(500);
   }
 }

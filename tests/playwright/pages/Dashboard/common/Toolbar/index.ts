@@ -42,6 +42,7 @@ export class ToolbarPage extends BasePage {
   readonly btn_rowHeight: Locator;
   readonly btn_groupBy: Locator;
   readonly btn_calendarSettings: Locator;
+  readonly today_btn: Locator;
 
   constructor(parent: GridPage | GalleryPage | FormPage | KanbanPage | MapPage | CalendarPage) {
     super(parent.rootPage);
@@ -65,6 +66,8 @@ export class ToolbarPage extends BasePage {
     this.btn_rowHeight = this.get().locator(`button.nc-height-menu-btn`);
     this.btn_groupBy = this.get().locator(`button.nc-group-by-menu-btn`);
     this.btn_calendarSettings = this.get().getByTestId('nc-calendar-range-btn');
+
+    this.today_btn = this.get().getByTestId('nc-calendar-today-btn');
   }
 
   get() {
@@ -86,6 +89,10 @@ export class ToolbarPage extends BasePage {
 
     // Wait for the menu to close
     if (menuOpen) await this.calendarRange.get().waitFor({ state: 'hidden' });
+  }
+
+  async getActiveDate() {
+    return this.get().getByTestId('nc-calendar-active-date').textContent();
   }
 
   async clickFields() {
@@ -143,6 +150,12 @@ export class ToolbarPage extends BasePage {
     if (menuOpen) {
       await this.groupBy.get().waitFor({ state: 'hidden' });
     }
+  }
+
+  async verifyActiveCalendarView({ view }: { view: string }) {
+    const activeView = this.get().getByTestId('nc-active-calendar-view');
+
+    await expect(activeView).toContainText(view);
   }
 
   async clickFilter({
@@ -204,6 +217,10 @@ export class ToolbarPage extends BasePage {
   async clickRowHeight() {
     // ant-btn nc-height-menu-btn nc-toolbar-btn
     await this.get().locator(`.nc-toolbar-btn.nc-height-menu-btn`).click();
+  }
+
+  async clickToday() {
+    await this.today_btn.click();
   }
 
   async verifyStackByButton({ title }: { title: string }) {

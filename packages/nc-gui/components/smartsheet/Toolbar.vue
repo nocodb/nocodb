@@ -65,6 +65,8 @@ const { allowCSVDownload } = useSharedView()
         <div class="flex-1" />
       </template>
 
+      <LazySmartsheetToolbarCalendarActiveView v-if="isCalendar" />
+
       <LazySmartsheetToolbarSearchData
         v-if="isGrid || isGallery || isKanban"
         :class="{

@@ -22,7 +22,7 @@ import { Base, BaseUser, User } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import Workspace from '~/models/Workspace';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
-import { getWorkspaceSiteUrl } from '~/utils';
+import { getWorkspaceSiteUrl, sanitiseEmailContent } from '~/utils';
 import { rolesLabel } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { UsersService } from '~/services/users/users.service';
 import { getWorkspaceRolePower } from '~/utils/roleHelper';
@@ -417,8 +417,8 @@ export class WorkspaceUsersService {
                   `${this.config.get('dashboardPath', {
                     infer: true,
                   })}#/${workspace.id}`,
-                workspaceName: workspace.title,
-                roles: rolesLabel[roles],
+                workspaceName: sanitiseEmailContent(workspace.title),
+                roles: sanitiseEmailContent(rolesLabel[roles]),
               }),
             })
             .catch((e) => {
@@ -466,8 +466,8 @@ export class WorkspaceUsersService {
                   `${this.config.get('dashboardPath', {
                     infer: true,
                   })}#/${workspace.id}`,
-                workspaceName: workspace.title,
-                roles: rolesLabel[roles],
+                workspaceName: sanitiseEmailContent(workspace.title),
+                roles: sanitiseEmailContent(rolesLabel[roles]),
               }),
             })
             .catch((e) => {

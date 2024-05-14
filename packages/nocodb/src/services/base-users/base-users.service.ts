@@ -22,6 +22,7 @@ import { Base, BaseUser, User } from '~/models';
 import { MetaTable } from '~/utils/globals';
 import { extractProps } from '~/helpers/extractProps';
 import { getProjectRolePower } from '~/utils/roleHelper';
+import { sanitiseEmailContent } from '~/utils';
 
 @Injectable()
 export class BaseUsersService {
@@ -361,11 +362,13 @@ export class BaseUsersService {
             signupLink: `${req.ncSiteUrl}${
               Noco.getConfig()?.dashboardPath
             }#/signup/${token}`,
-            baseName: req.body?.baseName,
-            roles: (req.body?.roles || '')
-              .split(',')
-              .map((r) => r.replace(/^./, (m) => m.toUpperCase()))
-              .join(', '),
+            baseName: sanitiseEmailContent(req.body?.baseName),
+            roles: sanitiseEmailContent(
+              (req.body?.roles || '')
+                .split(',')
+                .map((r) => r.replace(/^./, (m) => m.toUpperCase()))
+                .join(', '),
+            ),
             adminEmail: req.user?.email,
           }),
         });

@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import dayjs from 'dayjs'
 import type { ColumnType } from 'nocodb-sdk'
+import { UITypes } from 'nocodb-sdk'
 
 const emit = defineEmits(['newRecord', 'expandRecord'])
 
@@ -9,6 +10,7 @@ const {
   selectedMonth,
   formattedData,
   formattedSideBarData,
+  calDataType,
   sideBarFilterOption,
   displayField,
   calendarRange,
@@ -371,7 +373,10 @@ const calculateNewRow = (event: MouseEvent, updateSideBar?: boolean, skipChangeC
     ...dragRecord.value,
     row: {
       ...dragRecord.value?.row,
-      [fromCol!.title!]: dayjs(newStartDate).utc().format('YYYY-MM-DD HH:mm:ssZ'),
+      [fromCol!.title!]:
+        calDataType.value === UITypes.Date
+          ? dayjs(newStartDate).format('YYYY-MM-DD HH:mm:ssZ')
+          : dayjs(newStartDate).utc().format('YYYY-MM-DD HH:mm:ssZ'),
     },
   }
 
@@ -391,7 +396,10 @@ const calculateNewRow = (event: MouseEvent, updateSideBar?: boolean, skipChangeC
       endDate = newStartDate.clone()
     }
 
-    newRow.row[toCol!.title!] = dayjs(endDate).utc().format('YYYY-MM-DD HH:mm:ssZ')
+    newRow.row[toCol!.title!] =
+      calDataType.value === UITypes.Date
+        ? dayjs(endDate).format('YYYY-MM-DD HH:mm:ssZ')
+        : dayjs(endDate).utc().format('YYYY-MM-DD HH:mm:ssZ')
     updateProperty.push(toCol!.title!)
   }
 
@@ -812,7 +820,7 @@ const addRecord = (date: dayjs.Dayjs) => {
               @resize-start="onResizeStart"
               @dblclick.stop="emit('expandRecord', record)"
             >
-              <template #time>
+              <template v-if="calDataType === UITypes.DateTime" #time>
                 <span class="text-xs font-medium text-gray-400">
                   {{ dayjs(record.row[record.rowMeta.range?.fk_from_col!.title!]).format('h:mma').slice(0, -1) }}
                 </span>

@@ -158,7 +158,7 @@ const selected = reactive<{
 
 const toggleSelectAll = (value: boolean) => {
   filteredCollaborators.value.forEach((_, i) => {
-    selected[i] = value
+    selected[_.id] = value
   })
 }
 
@@ -267,10 +267,13 @@ watch(currentBase, () => {
             <div
               v-for="(collab, i) of sortedCollaborators"
               :key="i"
-              class="user-row flex flex-row border-b-1 py-1 min-h-14 items-center"
+              :class="{
+                'bg-[#F0F3FF]': selected[collab.id],
+              }"
+              class="user-row flex hover:bg-[#F0F3FF] flex-row border-b-1 py-1 min-h-14 items-center"
             >
               <div class="py-3 px-6">
-                <NcCheckbox v-model:checked="selected[i]" />
+                <NcCheckbox v-model:checked="selected[collab.id]" />
               </div>
               <div class="flex gap-3 items-center users-email-grid">
                 <GeneralUserIcon size="base" :email="collab.email" />

@@ -42,7 +42,7 @@ const filterCollaborators = computed(() => {
 
   return collaborators.value.filter(
     (collab) =>
-      collab.display_name.toLowerCase().includes(userSearchText.value.toLowerCase()) ||
+      collab.display_name?.toLowerCase().includes(userSearchText.value.toLowerCase()) ||
       collab.email?.toLowerCase().includes(userSearchText.value.toLowerCase()),
   )
 })
@@ -148,7 +148,10 @@ onMounted(async () => {
           <div
             v-for="(collab, i) of sortedCollaborators"
             :key="i"
-            class="user-row flex hover:bg-gray-50 flex-row last:border-b-0 border-b-1 py-1 min-h-14 items-center"
+            :class="{
+              'bg-[#F0F3FF]': selected[i],
+            }"
+            class="user-row flex hover:bg-[#F0F3FF] flex-row last:border-b-0 border-b-1 py-1 min-h-14 items-center"
           >
             <div class="py-3 px-6">
               <NcCheckbox v-model:checked="selected[i]" />

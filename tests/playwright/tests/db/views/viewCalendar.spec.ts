@@ -255,9 +255,9 @@ test.describe('Calendar View', () => {
 
     await calendar.sideMenu.verifySideBarRecords({ records: dateRecords.filter(f => f.Title).map(f => f.Title) });
 
-    await calendar.calendarDayDateTime.selectHour({ hourIndex: 10 });
-
     await calendar.sideMenu.updateFilter({ filter: 'In selected hours' });
+
+    await calendar.calendarDayDateTime.selectHour({ hourIndex: 10 });
 
     await calendar.sideMenu.verifySideBarRecords({ records: ['Team Catchup'] });
 
@@ -274,9 +274,9 @@ test.describe('Calendar View', () => {
 
     await toolbar.calendarViewMode.changeCalendarView({ title: 'week' });
 
-    await calendar.calendarWeekDateTime.selectHour({ dayIndex: 0, hourIndex: 10 });
-
     await calendar.sideMenu.updateFilter({ filter: 'In selected hours' });
+
+    await calendar.calendarWeekDateTime.selectHour({ dayIndex: 0, hourIndex: 10 });
 
     await calendar.sideMenu.verifySideBarRecords({ records: ['Team Catchup'] });
 

@@ -44,7 +44,6 @@ export class CalendarSideMenuPage extends BasePage {
 
   async moveToDate({ date, action }: { date: string; action: 'prev' | 'next' }) {
     while ((await this.parent.toolbar.getActiveDate()) !== date) {
-      console.log(await this.parent.toolbar.getActiveDate());
       if (action === 'prev') {
         await this.clickPrev();
       } else {

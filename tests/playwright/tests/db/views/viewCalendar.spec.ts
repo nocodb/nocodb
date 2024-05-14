@@ -412,9 +412,9 @@ test.describe('Calendar View', () => {
 
     await toolbar.calendarViewMode.changeCalendarView({ title: 'month' });
 
-    await calendar.sideMenu.moveToDate({ date: 'January  2024', action: 'prev' });
-
     await calendar.toggleSideBar();
+
+    await calendar.sideMenu.moveToDate({ date: 'January  2024', action: 'prev' });
 
     await calendar.sideMenu.verifySideBarRecords({ records: dateRecords.filter(f => f.Title).map(f => f.Title) });
 
@@ -460,9 +460,9 @@ test.describe('Calendar View', () => {
 
     const calendar = dashboard.calendar;
 
-    await calendar.sideMenu.moveToDate({ date: '1 Jan 2024 ', action: 'prev' });
-
     await calendar.toggleSideBar();
+
+    await calendar.sideMenu.moveToDate({ date: '1 Jan 2024 ', action: 'prev' });
 
     await calendar.sideMenu.verifySideBarRecords({ records: dateRecords.filter(f => f.Title).map(f => f.Title) });
 

@@ -32,8 +32,8 @@ const { allowCSVDownload } = useSharedView()
     <template v-else>
       <div
         :class="{
-          'min-w-34/100 max-w-34/100': !isMobileMode && isLeftSidebarOpen && isCalendar,
-          'min-w-39/100 max-w-39/100': !isMobileMode && !isLeftSidebarOpen && isCalendar,
+          'min-w-34/100': !isMobileMode && isLeftSidebarOpen && isCalendar,
+          'min-w-39/100': !isMobileMode && !isLeftSidebarOpen && isCalendar,
         }"
         class="flex items-center gap-3"
       >

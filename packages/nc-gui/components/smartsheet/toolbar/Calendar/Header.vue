@@ -33,7 +33,7 @@ const headerText = computed(() => {
       'min-w-42': activeCalendarView === 'week',
       'w-28': activeCalendarView === 'day',
     }"
-    class="font-bold text-xl whitespace-nowrap"
+    class="font-bold text-xl leading-8 text-gray-900 whitespace-nowrap"
     data-testid="nc-calendar-active-date"
   >
     {{ activeCalendarView === 'month' ? headerText.split(' ')[0] : headerText }}

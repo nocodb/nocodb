@@ -382,7 +382,12 @@ onClickOutside(searchRef, toggleSearch)
     >
       <div class="flex px-4 items-center gap-3">
         <span class="capitalize text-base font-bold">{{ $t('objects.records') }}</span>
-        <NcSelect v-model:value="sideBarFilterOption" class="w-full !text-gray-600" data-testid="nc-calendar-sidebar-filter">
+        <NcSelect
+          v-model:value="sideBarFilterOption"
+          class="w-full !text-gray-600"
+          data-testid="nc-calendar-sidebar-filter"
+          size="medium"
+        >
           <a-select-option v-for="option in options" :key="option.value" :value="option.value" class="!text-gray-600">
             <div class="flex items-center justify-between gap-2">
               <div class="truncate flex-1">

@@ -435,7 +435,13 @@ onClickOutside(searchRef, toggleSearch)
         </a-input>
       </div>
       <div class="mx-4 gap-2 flex items-center">
-        <NcButton v-if="!showSearch" size="small" type="secondary" @click="clickSearch">
+        <NcButton
+          v-if="!showSearch"
+          data-testid="nc-calendar-sidebar-search-btn"
+          size="small"
+          type="secondary"
+          @click="clickSearch"
+        >
           <component :is="iconMap.search" />
         </NcButton>
 
@@ -463,10 +469,13 @@ onClickOutside(searchRef, toggleSearch)
         v-if="calendarRange?.length && !isCalendarMetaLoading"
         :ref="sideBarListRef"
         :class="{
-         '!h-[calc(100vh-13.5rem)]': width <= 1440,
-        'h-[calc(100vh-36.2rem)]': activeCalendarView === ('day' as const) || activeCalendarView === ('week' as const) && width >= 1440,
-        'h-[calc(100vh-25.1rem)]': activeCalendarView === ('month' as const) || activeCalendarView === ('year' as const)  && width >= 1440,
-   
+         'h-[calc(100vh-16rem)]': width <= 1440 && !showSearch,
+         'h-[calc(100vh-19rem)]': width <= 1440 && showSearch,
+        '!h-[calc(100vh-30.4rem)]': activeCalendarView === ('day' as const) || activeCalendarView === ('week' as const) && width >= 1440,
+        '!h-[calc(100vh-33.4rem)]': (activeCalendarView === ('day' as const) || activeCalendarView === ('week' as const) && width >= 1440) && showSearch,
+        'h-[calc(100vh-23.3rem)]': activeCalendarView === ('month' as const) || activeCalendarView === ('year' as const)  && width >= 1440,
+        'h-[calc(100vh-26.3rem)]': (activeCalendarView === ('month' as const) || activeCalendarView === ('year' as const) && width >= 1440)  && showSearch ,
+
       }"
         class="nc-scrollbar-md pl-4 pr-4 overflow-y-auto"
         data-testid="nc-calendar-side-menu-list"

@@ -31,26 +31,19 @@ watch(activeCalendarView, () => {
 <template>
   <div
     v-if="props.tab"
-    :class="{
-      'absolute mx-auto pointer-events-none inset-x-0': props.tab,
-    }"
-    class="flex items-center justify-center"
+    class="flex flex-row px-1 pointer-events-auto mx-3 mt-3 rounded-lg gap-x-0.5 nc-calendar-mode-tab"
+    data-testid="nc-calendar-view-mode"
   >
+    <div :style="highlightStyle" class="highlight"></div>
     <div
-      class="flex flex-row px-1 pointer-events-auto mx-3 mt-3 rounded-lg gap-x-0.5 nc-calendar-mode-tab"
-      data-testid="nc-calendar-view-mode"
+      v-for="mode in ['day', 'week', 'month', 'year']"
+      :key="mode"
+      :class="{ active: activeCalendarView === mode }"
+      :data-testid="`nc-calendar-view-mode-${mode}`"
+      class="tab"
+      @click="setActiveCalendarMode(mode, $event)"
     >
-      <div :style="highlightStyle" class="highlight"></div>
-      <div
-        v-for="mode in ['day', 'week', 'month', 'year']"
-        :key="mode"
-        :class="{ active: activeCalendarView === mode }"
-        :data-testid="`nc-calendar-view-mode-${mode}`"
-        class="tab"
-        @click="setActiveCalendarMode(mode, $event)"
-      >
-        <div class="tab-title nc-tab">{{ $t(`objects.${mode}`) }}</div>
-      </div>
+      <div class="tab-title nc-tab">{{ $t(`objects.${mode}`) }}</div>
     </div>
   </div>
 

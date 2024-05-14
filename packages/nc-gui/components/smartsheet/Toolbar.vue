@@ -3,24 +3,18 @@ const { isGrid, isGallery, isKanban, isMap, isCalendar } = useSmartsheetStoreOrT
 
 const isPublic = inject(IsPublicInj, ref(false))
 
-const { isViewsLoading } = storeToRefs(useViewsStore())
-
 const { isMobileMode } = useGlobal()
+const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
+
+const { isViewsLoading } = storeToRefs(useViewsStore())
 
 const containerRef = ref<HTMLElement>()
 
-const isTab = ref(true)
+const { width } = useElementSize(containerRef)
 
-const handleResize = () => {
-  isTab.value = !!containerRef.value && containerRef.value.offsetWidth > 970
-}
-
-onMounted(() => {
-  window.addEventListener('resize', handleResize)
-})
-
-onUnmounted(() => {
-  window.removeEventListener('resize', handleResize)
+const isTab = computed(() => {
+  if (!isCalendar.value) return false
+  return width.value > 1200
 })
 
 const { allowCSVDownload } = useSharedView()
@@ -36,24 +30,33 @@ const { allowCSVDownload } = useSharedView()
       <a-skeleton-input :active="true" class="!w-44 !h-4 ml-2 !rounded overflow-hidden" />
     </template>
     <template v-else>
-      <LazySmartsheetToolbarMappedBy v-if="isMap" />
-      <LazySmartsheetToolbarCalendarHeader v-if="isCalendar" />
-      <LazySmartsheetToolbarCalendarRange v-if="isCalendar" />
+      <div
+        :class="{
+          'min-w-34/100 max-w-34/100': !isMobileMode && isLeftSidebarOpen && isCalendar,
+          'min-w-39/100 max-w-39/100': !isMobileMode && !isLeftSidebarOpen && isCalendar,
+        }"
+        class="flex gap-2"
+      >
+        <LazySmartsheetToolbarMappedBy v-if="isMap" />
+        <LazySmartsheetToolbarCalendarHeader v-if="isCalendar" />
+        <LazySmartsheetToolbarCalendarRange v-if="isCalendar" />
 
-      <LazySmartsheetToolbarFieldsMenu
-        v-if="isGrid || isGallery || isKanban || isMap || isCalendar"
-        :show-system-fields="false"
-      />
+        <LazySmartsheetToolbarFieldsMenu
+          v-if="isGrid || isGallery || isKanban || isMap || isCalendar"
+          :show-system-fields="false"
+        />
 
-      <LazySmartsheetToolbarStackedBy v-if="isKanban" />
+        <LazySmartsheetToolbarStackedBy v-if="isKanban" />
 
-      <LazySmartsheetToolbarColumnFilterMenu v-if="isGrid || isGallery || isKanban || isMap" />
+        <LazySmartsheetToolbarColumnFilterMenu v-if="isGrid || isGallery || isKanban || isMap || isCalendar" />
 
-      <LazySmartsheetToolbarGroupByMenu v-if="isGrid" />
+        <LazySmartsheetToolbarGroupByMenu v-if="isGrid" />
 
-      <LazySmartsheetToolbarSortListMenu v-if="isGrid || isGallery || isKanban" />
+        <LazySmartsheetToolbarSortListMenu v-if="isGrid || isGallery || isKanban || isCalendar" />
+        <LazySmartsheetToolbarCalendarMode v-if="isCalendar && !isTab" :tab="isTab" />
+      </div>
 
-      <LazySmartsheetToolbarCalendarMode v-if="isCalendar" v-model:tab="isTab" />
+      <LazySmartsheetToolbarCalendarMode v-if="isCalendar && isTab" :tab="isTab" />
 
       <template v-if="!isMobileMode">
         <LazySmartsheetToolbarRowHeight v-if="isGrid" />

@@ -36,8 +36,6 @@ watch(
 
 const open = ref(false)
 
-const isCalendar = inject(IsCalendarInj, ref(false))
-
 const allFilters = ref({})
 
 provide(AllFiltersInj, allFilters)
@@ -64,14 +62,7 @@ eventBus.on(async (event, column: ColumnType) => {
     class="!xs:hidden"
   >
     <div :class="{ 'nc-active-btn': filtersLength }">
-      <a-button
-        v-e="['c:filter']"
-        :class="{
-          '!border-y-1 !border-x-1 !rounded-lg !rounded-r-none': isCalendar,
-        }"
-        :disabled="isLocked"
-        class="nc-filter-menu-btn nc-toolbar-btn text-sm"
-      >
+      <a-button v-e="['c:filter']" :disabled="isLocked" class="nc-filter-menu-btn nc-toolbar-btn text-sm">
         <div class="flex items-center gap-2">
           <component :is="iconMap.filter" class="h-4 w-4" />
           <!-- Filter -->

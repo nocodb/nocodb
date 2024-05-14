@@ -2,6 +2,8 @@
 import { UITypes } from 'nocodb-sdk'
 import type { Row as RowType } from '#imports'
 
+const { $e } = useNuxtApp()
+
 const meta = inject(MetaInj, ref())
 
 const view = inject(ActiveViewInj, ref())
@@ -31,17 +33,9 @@ const {
   loadSidebarData,
   isCalendarDataLoading,
   isCalendarMetaLoading,
-  selectedDate,
-  selectedMonth,
-  activeDates,
-  pageDate,
   fetchActiveDates,
   showSideMenu,
-  selectedDateRange,
-  paginateCalendarView,
 } = useCalendarViewStoreOrThrow()
-
-const calendarRangeDropdown = ref(false)
 
 const router = useRouter()
 
@@ -87,6 +81,7 @@ const expandRecord = (row: RowType, state?: Record<string, any>) => {
 const newRecord = (row: RowType) => {
   // TODO: The default values has to be filled based on the active calendar view
   // and selected sidebar filter option
+  $e('c:calendar:new-record', activeCalendarView.value)
   expandRecord({
     row: {
       ...rowDefaultData(meta.value?.columns),
@@ -97,6 +92,11 @@ const newRecord = (row: RowType) => {
       new: true,
     },
   })
+}
+
+const toggleSideMenu = () => {
+  $e('c:calendar:toggle-sidebar', showSideMenu.value)
+  showSideMenu.value = !showSideMenu.value
 }
 
 onMounted(async () => {
@@ -130,14 +130,7 @@ reloadViewDataHook?.on(async (params: void | { shouldShowLoading?: boolean }) =>
       class="absolute transition-all ease-in-out top-2 z-30"
     >
       <template #title> {{ $t('activity.toggleSidebar') }}</template>
-      <NcButton
-        v-if="!isMobileMode"
-        v-e="`['c:calendar:calendar-${activeCalendarView}-toggle-sidebar']`"
-        data-testid="nc-calendar-side-bar-btn"
-        size="small"
-        type="secondary"
-        @click="showSideMenu = !showSideMenu"
-      >
+      <NcButton v-if="!isMobileMode" data-testid="nc-calendar-side-bar-btn" size="small" type="secondary" @click="toggleSideMenu">
         <component :is="iconMap.sidebar" class="h-4 w-4 text-gray-600 transition-all" />
       </NcButton>
     </NcTooltip>

@@ -3,7 +3,10 @@ import dayjs from 'dayjs'
 
 const { selectedDate, selectedMonth, selectedDateRange, pageDate, activeCalendarView } = useCalendarViewStoreOrThrow()
 
+const { $e } = useNuxtApp()
+
 const goToToday = () => {
+  $e('c:calendar:calendar-today-btn', activeCalendarView.value)
   selectedDate.value = dayjs()
   pageDate.value = dayjs()
   selectedMonth.value = dayjs()
@@ -20,14 +23,7 @@ const goToToday = () => {
 </script>
 
 <template>
-  <NcButton
-    v-e="`['c:calendar:calendar-${activeCalendarView}-today-btn']`"
-    class="!border-0"
-    data-testid="nc-calendar-today-btn"
-    size="small"
-    type="secondary"
-    @click="goToToday"
-  >
+  <NcButton class="!border-0" data-testid="nc-calendar-today-btn" size="small" type="secondary" @click="goToToday">
     <span class="text-gray-600 !text-sm">
       {{ $t('activity.goToToday') }}
     </span>

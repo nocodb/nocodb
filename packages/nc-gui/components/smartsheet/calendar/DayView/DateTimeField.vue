@@ -16,6 +16,8 @@ const {
   showSideMenu,
 } = useCalendarViewStoreOrThrow()
 
+const { $e } = useNuxtApp()
+
 const container = ref<null | HTMLElement>(null)
 
 const { isUIAllowed } = useRoles()
@@ -672,6 +674,8 @@ const stopDrag = (event: MouseEvent) => {
   if (!newRow) return
   updateRowProperty(newRow, updateProperty, false)
 
+  $e('c:calendar:day:drag-record')
+
   document.removeEventListener('mousemove', onDrag)
   document.removeEventListener('mouseup', stopDrag)
 }
@@ -802,6 +806,7 @@ const dropEvent = (event: DragEvent) => {
       dragElement.value = null
     }
     updateRowProperty(newRow, updateProperty, false)
+    $e('c:calendar:day:drag-record')
   }
 }
 

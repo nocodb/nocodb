@@ -15,7 +15,7 @@ const formatData = (list: Record<string, any>[]) =>
 
 const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
   (
-    meta: Ref<((CalendarType & { id: string }) | TableType) | undefined>,
+    meta: Ref<TableType | undefined>,
     viewMeta:
       | Ref<(ViewType | CalendarType | undefined) & { id: string }>
       | ComputedRef<
@@ -54,7 +54,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const isCalendarMetaLoading = ref<boolean>(false)
 
-    const showSideMenu = ref(false)
+    const showSideMenu = ref(true)
 
     const selectedDateRange = ref<{
       start: dayjs.Dayjs
@@ -80,7 +80,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const { base } = storeToRefs(useBase())
 
-    const { $api } = useNuxtApp()
+    const { $api, $e } = useNuxtApp()
 
     const { t } = useI18n()
 
@@ -371,7 +371,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
               sortsArr: sorts.value,
               filtersArr: activeDateFilter,
             })
-        activeDates.value = res.dates.map((dateObj: unknown) => dayjs(dateObj))
+        activeDates.value = res.dates.map((dateObj: unknown) => dayjs(dateObj as string))
 
         if (res.count > 3000 && activeCalendarView.value !== 'year') {
           message.warning(
@@ -380,12 +380,20 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         }
       } catch (e) {
         activeDates.value = []
-        message.error(`${t('msg.error.fetchingActiveDates')} ${await extractSdkResponseErrorMsg(e)}`)
+        message.error(
+          `${t('msg.error.fetchingActiveDates')} ${await extractSdkResponseErrorMsg(
+            e as Error & {
+              response: { data: { message: string } }
+            },
+          )}`,
+        )
         console.log(e)
       }
     }
 
     const changeCalendarView = async (view: 'month' | 'year' | 'day' | 'week') => {
+      $e('c:calendar:change-calendar-view', view)
+
       try {
         activeCalendarView.value = view
         await updateCalendarMeta({
@@ -414,15 +422,27 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         const calMeta = typeof res.meta === 'string' ? JSON.parse(res.meta) : res.meta
         activeCalendarView.value = calMeta?.active_view
         if (!activeCalendarView.value) activeCalendarView.value = 'month'
-        calendarRange.value = res?.calendar_range?.map((range: CalendarRangeType) => {
-          return {
-            id: range.id,
-            fk_from_col: meta.value?.columns?.find((col) => col.id === range.fk_from_column_id),
-            fk_to_col: range.fk_to_column_id ? meta.value?.columns?.find((col) => col.id === range.fk_to_column_id) : null,
-          }
-        }) as any
-      } catch (e) {
-        message.error(`Error loading calendar meta ${await extractSdkResponseErrorMsg(e)}`)
+        calendarRange.value = res?.calendar_range?.map(
+          (
+            range: CalendarRangeType & {
+              id?: string
+            },
+          ) => {
+            return {
+              id: range?.id,
+              fk_from_col: meta.value?.columns?.find((col) => col.id === range.fk_from_column_id),
+              fk_to_col: range.fk_to_column_id ? meta.value?.columns?.find((col) => col.id === range.fk_to_column_id) : null,
+            }
+          },
+        ) as any
+      } catch (e: unknown) {
+        message.error(
+          `Error loading calendar meta ${await extractSdkResponseErrorMsg(
+            e as Error & {
+              response: { data: { message: string } }
+            },
+          )}`,
+        )
       } finally {
         isCalendarMetaLoading.value = false
       }
@@ -459,12 +479,6 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
           nextDate = toDate.add(1, 'day').startOf('day')
           break
         }
-        case 'year':
-          fromDate = selectedDate.value.startOf('year')
-          toDate = selectedDate.value.endOf('year')
-          prevDate = fromDate.subtract(1, 'day').endOf('day')
-          nextDate = toDate.add(1, 'day').startOf('day')
-          break
         case 'day':
           fromDate = selectedDate.value.startOf('day')
           toDate = selectedDate.value.endOf('day')
@@ -504,7 +518,13 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
             })
         formattedData.value = formatData(res!.list)
       } catch (e) {
-        message.error(`${t('msg.error.fetchingCalendarData')} ${await extractSdkResponseErrorMsg(e)}`)
+        message.error(
+          `${t('msg.error.fetchingCalendarData')} ${await extractSdkResponseErrorMsg(
+            e as Error & {
+              response: { data: { message: string } }
+            },
+          )}`,
+        )
         console.log(e)
       } finally {
         isCalendarDataLoading.value = false
@@ -604,7 +624,13 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
         formattedSideBarData.value = formatData(res!.list)
       } catch (e) {
-        message.error(`${t('msg.error.fetchingCalendarData')} ${await extractSdkResponseErrorMsg(e)}`)
+        message.error(
+          `${t('msg.error.fetchingCalendarData')} ${await extractSdkResponseErrorMsg(
+            e as Error & {
+              response: { data: { message: string } }
+            },
+          )}`,
+        )
         console.log(e)
       } finally {
         isSidebarLoading.value = false
@@ -635,9 +661,6 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
           viewMeta?.value?.id as string,
           id,
           updateObj,
-          {
-            query: { ignoreWebhook: !undo },
-          },
           // todo:
           // {
           //   query: { ignoreWebhook: !saved }
@@ -769,6 +792,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     })
 
     watch(sideBarFilterOption, async () => {
+      $e('a:calendar:sidebar-filter', sideBarFilterOption.value)
       await loadSidebarData()
     })
 
@@ -801,7 +825,6 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       isSidebarLoading,
       showSideMenu,
       selectedTime,
-      updateCalendarMeta,
       calendarMetaData,
       updateRowProperty,
       activeCalendarView,

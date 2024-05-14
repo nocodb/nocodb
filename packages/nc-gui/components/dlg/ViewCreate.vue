@@ -137,7 +137,6 @@ function init() {
   if (repeatCount) {
     form.title = `${form.title}-${repeatCount}`
   }
-
   if (selectedViewId.value) {
     form.copy_from_id = selectedViewId?.value
   }
@@ -320,11 +319,11 @@ onMounted(async () => {
 <template>
   <NcModal
     v-model:visible="vModel"
-    :size="[ViewTypes.KANBAN, ViewTypes.MAP, ViewTypes.CALENDAR].includes(form.type) ? 'small' : 'small'"
+    :size="[ViewTypes.KANBAN, ViewTypes.MAP, ViewTypes.CALENDAR].includes(form.type) ? 'medium' : 'small'"
   >
     <template #header>
       <div class="flex w-full flex-row justify-between items-center">
-        <div class="flex gap-x-1.5 items-center">
+        <div class="flex font-bold text-base gap-x-3 items-center">
           <GeneralViewIcon :meta="{ type: form.type }" class="nc-view-icon !text-xl" />
           <template v-if="form.type === ViewTypes.GRID">
             <template v-if="form.copy_from_id">
@@ -377,7 +376,7 @@ onMounted(async () => {
         </div>
         <a
           v-if="!form.copy_from_id"
-          class="text-sm !text-gray-600 !hover:text-gray-600"
+          class="text-sm !text-gray-600 !font-default !hover:text-gray-600"
           :href="`https://docs.nocodb.com/views/view-types/${typeAlias}`"
           target="_blank"
         >
@@ -434,7 +433,12 @@ onMounted(async () => {
             <span>
               {{ $t('labels.organiseBy') }}
             </span>
-            <NcSelect v-model:value="range.fk_from_column_id" :disabled="isMetaLoading" :loading="isMetaLoading">
+            <NcSelect
+              v-model:value="range.fk_from_column_id"
+              :disabled="isMetaLoading"
+              :loading="isMetaLoading"
+              class="nc-from-select"
+            >
               <a-select-option
                 v-for="(option, id) in [...viewSelectFieldOptions!].filter((f) => {
                   // If the fk_from_column_id of first range is Date, then all the other ranges should be Date
@@ -444,14 +448,24 @@ onMounted(async () => {
                   return firstRange?.uidt === f.uidt
                 })"
                 :key="id"
+                class="w-40"
                 :value="option.value"
               >
-                <div class="flex items-center">
-                  <SmartsheetHeaderIcon :column="option" />
-                  <NcTooltip class="truncate flex-1 max-w-18" placement="top" show-on-truncate-only>
-                    <template #title>{{ option.label }}</template>
-                    {{ option.label }}
-                  </NcTooltip>
+                <div class="flex w-full gap-2 justify-between items-center">
+                  <div class="flex gap-2 items-center">
+                    <SmartsheetHeaderIcon :column="option" />
+                    <NcTooltip class="truncate flex-1 max-w-18" placement="top" show-on-truncate-only>
+                      <template #title>{{ option.label }}</template>
+                      {{ option.label }}
+                    </NcTooltip>
+                  </div>
+                  <div class="flex-1" />
+                  <component
+                    :is="iconMap.check"
+                    v-if="option.value === range.fk_from_column_id"
+                    id="nc-selected-item-icon"
+                    class="text-primary min-w-4 h-4"
+                  />
                 </div>
               </a-select-option>
             </NcSelect>
@@ -473,8 +487,8 @@ onMounted(async () => {
                   v-model:value="range.fk_to_column_id"
                   :disabled="isMetaLoading"
                   :loading="isMetaLoading"
-                  :placeholder="$t('placeholder.notSelected')"
-                  class="!rounded-r-none nc-to-select"
+                  :placeholder="$t('placenc-to-seleholder.notSelected')"
+                  class="!rounded-r-none ct"
                 >
                   <a-select-option
                     v-for="(option, id) in [...viewSelectFieldOptions].filter((f) => {
@@ -523,10 +537,12 @@ onMounted(async () => {
         </template>
       </a-form>
       <div v-else-if="!isNecessaryColumnsPresent" class="flex flex-row p-4 border-gray-200 border-1 gap-x-4 rounded-lg w-full">
-        <GeneralIcon class="!text-5xl text-orange-500" icon="warning" />
-        <div class="text-gray-500">
-          <h2 class="font-semibold text-sm text-gray-800">Suitable fields not present</h2>
-          {{ errorMessages[form.type] }}
+        <div class="text-gray-500 flex gap-4">
+          <GeneralIcon class="min-w-6 h-6 text-orange-500" icon="warning" />
+          <div class="flex flex-col gap-1">
+            <h2 class="font-semibold text-sm mb-0 text-gray-800">Suitable fields not present</h2>
+            <span class="text-gray-500 font-default"> {{ errorMessages[form.type] }}</span>
+          </div>
         </div>
       </div>
 
@@ -550,7 +566,7 @@ onMounted(async () => {
   </NcModal>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .ant-form-item-required {
   @apply !text-gray-800 font-medium;
   &:before {
@@ -558,7 +574,19 @@ onMounted(async () => {
   }
 }
 
+.nc-from-select .ant-select-selector {
+  @apply !mr-2;
+}
+
 .nc-to-select .ant-select-selector {
   @apply !rounded-r-none;
+}
+
+.ant-input {
+  @apply border-gray-200;
+}
+
+.ant-form-item {
+  @apply !mb-6;
 }
 </style>

@@ -1,7 +1,6 @@
 <script lang="ts" setup>
-import { UITypes, isSystemColumn } from 'nocodb-sdk'
+import { type CalendarRangeType, UITypes, isSystemColumn } from 'nocodb-sdk'
 import type { SelectProps } from 'ant-design-vue'
-import { type CalendarRangeType } from '~/lib/types'
 
 const meta = inject(MetaInj, ref())
 
@@ -101,22 +100,42 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
 <template>
   <NcDropdown v-if="!IsPublic" v-model:visible="calendarRangeDropdown" :trigger="['click']" class="!xs:hidden">
     <div class="nc-calendar-btn">
-      <a-button
+      <NcButton
         v-e="['c:calendar:change-calendar-range']"
         :disabled="isLocked"
-        class="nc-toolbar-btn"
+        class="nc-toolbar-btn !border-0 group !h-6"
+        size="small"
+        type="secondary"
         data-testid="nc-calendar-range-btn"
       >
         <div class="flex items-center gap-2">
-          <component :is="iconMap.calendar" class="h-4 w-4" />
-          <span class="text-capitalize !text-sm font-medium">
-            {{ $t('activity.viewSettings') }}
+          <component :is="iconMap.calendar" class="h-4 w-4 transition-all group-hover:text-brand-500" />
+          <span class="text-capitalize !group-hover:text-brand-500 !text-[13px] font-medium">
+            {{ $t('activity.settings') }}
           </span>
         </div>
-      </a-button>
+      </NcButton>
     </div>
     <template #overlay>
-      <div v-if="calendarRangeDropdown" class="w-full p-6" data-testid="nc-calendar-range-menu" @click.stop>
+      <div v-if="calendarRangeDropdown" class="w-98 space-y-6 rounded-2xl p-6" data-testid="nc-calendar-range-menu" @click.stop>
+        <div>
+          <div class="flex justify-between">
+            <div class="flex items-center gap-3">
+              <component :is="iconMap.calendar" class="text-maroon-500 w-5 h-5" />
+              <span class="font-bold"> {{ `${$t('activity.calendar')} ${$t('activity.viewSettings')}` }}</span>
+            </div>
+
+            <a
+              class="text-sm !text-gray-600 !font-default !hover:text-gray-600"
+              href="`https://docs.nocodb.com/views/view-types/calendar`"
+              target="_blank"
+            >
+              Go to Docs
+            </a>
+          </div>
+          <NcDivider divider-class="!border-gray-200" />
+        </div>
+
         <div
           v-for="(range, id) in _calendar_ranges"
           :key="id"
@@ -139,14 +158,24 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
                 return firstRange?.uidt === r.uidt
               })"
               :key="opId"
+              class="w-40"
               :value="option.value"
             >
-              <div class="flex items-center">
-                <SmartsheetHeaderIcon :column="option" />
-                <NcTooltip class="truncate flex-1 max-w-18" placement="top" show-on-truncate-only>
-                  <template #title>{{ option.label }}</template>
-                  {{ option.label }}
-                </NcTooltip>
+              <div class="flex w-full gap-2 justify-between items-center">
+                <div class="flex items-center">
+                  <SmartsheetHeaderIcon :column="option" />
+                  <NcTooltip class="truncate flex-1 max-w-18" placement="top" show-on-truncate-only>
+                    <template #title>{{ option.label }}</template>
+                    {{ option.label }}
+                  </NcTooltip>
+                </div>
+
+                <component
+                  :is="iconMap.check"
+                  v-if="option.value === range.fk_from_column_id"
+                  id="nc-selected-item-icon"
+                  class="text-primary min-w-4 h-4"
+                />
               </div>
             </a-select-option>
           </NcSelect>
@@ -201,6 +230,11 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
           </NcButton>
             -->
         </div>
+
+        <!--
+        <div class="text-[13px] text-gray-500 py-2">Records in this view will be based on the specified date field.</div>
+-->
+
         <NcButton
           v-if="_calendar_ranges.length === 0"
           class="mt-2"

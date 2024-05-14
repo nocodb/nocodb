@@ -13,6 +13,9 @@ export class ToolbarCalendarViewModePage extends BasePage {
   }
 
   async changeCalendarView({ title }: { title: string }) {
-    await this.get().getByTestId(`nc-calendar-view-mode-${title}`).click();
+    await this.get().click({ force: true });
+    await this.rootPage.waitForTimeout(500);
+
+    await this.rootPage.locator('.rc-virtual-list-holder-inner > div').locator(`text="${title}"`).click();
   }
 }

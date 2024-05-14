@@ -34,21 +34,21 @@ const { allowCSVDownload } = useSharedView()
         :class="{
           'min-w-34/100': !isMobileMode && isLeftSidebarOpen && isCalendar,
           'min-w-39/100': !isMobileMode && !isLeftSidebarOpen && isCalendar,
+          'gap-1': isCalendar,
         }"
         class="flex items-center gap-3"
       >
         <LazySmartsheetToolbarMappedBy v-if="isMap" />
         <LazySmartsheetToolbarCalendarHeader v-if="isCalendar" />
+        <LazySmartsheetToolbarCalendarToday v-if="isCalendar" />
+
         <LazySmartsheetToolbarCalendarRange v-if="isCalendar" />
 
-        <LazySmartsheetToolbarFieldsMenu
-          v-if="isGrid || isGallery || isKanban || isMap || isCalendar"
-          :show-system-fields="false"
-        />
+        <LazySmartsheetToolbarFieldsMenu v-if="isGrid || isGallery || isKanban || isMap" :show-system-fields="false" />
 
         <LazySmartsheetToolbarStackedBy v-if="isKanban" />
 
-        <LazySmartsheetToolbarColumnFilterMenu v-if="isGrid || isGallery || isKanban || isMap || isCalendar" />
+        <LazySmartsheetToolbarColumnFilterMenu v-if="isGrid || isGallery || isKanban || isMap" />
 
         <LazySmartsheetToolbarGroupByMenu v-if="isGrid" />
 
@@ -78,7 +78,8 @@ const { allowCSVDownload } = useSharedView()
       />
       <LazySmartsheetToolbarCalendarMode v-if="isCalendar && !isTab" :tab="isTab" />
 
-      <LazySmartsheetToolbarCalendarToday v-if="isCalendar" />
+      <LazySmartsheetToolbarFieldsMenu v-if="isCalendar" :show-system-fields="false" />
+      <LazySmartsheetToolbarColumnFilterMenu v-if="isCalendar" />
     </template>
   </div>
 </template>

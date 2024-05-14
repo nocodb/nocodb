@@ -310,10 +310,6 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   }
 })
 
-watch(width, () => {
-  console.log(width.value)
-})
-
 onClickOutside(searchRef, toggleSearch)
 </script>
 
@@ -378,16 +374,11 @@ onClickOutside(searchRef, toggleSearch)
         '!border-t-0 ': width < 850,
         'pt-6': width >= 850,
       }"
-      class="border-t-1 !pt-3 border-gray-200 relative flex flex-col gap-y-4"
+      class="border-t-1 !pt-3 border-gray-200 relative flex flex-col gap-y-3"
     >
       <div class="flex px-4 items-center gap-3">
-        <span class="capitalize text-base font-bold">{{ $t('objects.records') }}</span>
-        <NcSelect
-          v-model:value="sideBarFilterOption"
-          class="w-full !text-gray-600"
-          data-testid="nc-calendar-sidebar-filter"
-          size="medium"
-        >
+        <span class="capitalize font-medium text-gray-700">{{ $t('objects.records') }}</span>
+        <NcSelect v-model:value="sideBarFilterOption" class="w-full !text-gray-600" data-testid="nc-calendar-sidebar-filter">
           <a-select-option v-for="option in options" :key="option.value" :value="option.value" class="!text-gray-600">
             <div class="flex items-center justify-between gap-2">
               <div class="truncate flex-1">
@@ -434,6 +425,7 @@ onClickOutside(searchRef, toggleSearch)
           v-if="!showSearch"
           data-testid="nc-calendar-sidebar-search-btn"
           size="small"
+          class="!h-7"
           type="secondary"
           @click="clickSearch"
         >
@@ -448,6 +440,7 @@ onClickOutside(searchRef, toggleSearch)
           v-if="isUIAllowed('dataEdit') && props.visible"
           v-e="['c:calendar:calendar-sidemenu-new-record-btn']"
           data-testid="nc-calendar-side-menu-new-btn"
+          class="!h-7"
           size="small"
           type="secondary"
           @click="newRecord"

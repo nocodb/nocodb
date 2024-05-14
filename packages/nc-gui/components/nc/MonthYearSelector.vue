@@ -3,18 +3,14 @@ import dayjs from 'dayjs'
 
 interface Props {
   selectedDate?: dayjs.Dayjs | null
-  isDisabled?: boolean
   pageDate?: dayjs.Dayjs
   isYearPicker?: boolean
-  hideHeader?: boolean
   hideCalendar?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   selectedDate: null,
-  isDisabled: false,
   pageDate: dayjs(),
-  hideHeader: false,
   isYearPicker: false,
   hideCalendar: false,
 })
@@ -90,7 +86,7 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
 
 <template>
   <div class="flex flex-col">
-    <div v-if="!hideHeader" class="flex px-2 border-b-1 py-0.5 justify-between items-center">
+    <div class="flex px-2 border-b-1 py-0.5 justify-between items-center">
       <div class="flex">
         <NcTooltip hide-on-click>
           <NcButton class="!border-0" size="small" type="secondary" @click="paginate('prev')">

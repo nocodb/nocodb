@@ -1,4 +1,6 @@
-FROM golang:alpine3.18 as lt
+# syntax=docker/dockerfile:1
+
+FROM golang:alpine3.19 as lt
 
 WORKDIR /usr/src/
 
@@ -6,10 +8,8 @@ RUN apk add --no-cache git make musl-dev gcc
 
 # build litestream
 RUN git clone https://github.com/benbjohnson/litestream.git litestream
-RUN cd litestream ; go install ./cmd/litestream
-
+RUN cd litestream && go install ./cmd/litestream
 RUN cp $GOPATH/bin/litestream /usr/src/lt
-
 
 
 FROM node:18.19.1-alpine as builder
@@ -36,6 +36,7 @@ RUN pnpm dlx modclean --patterns="default:*" --ignore="nc-lib-gui/**,dayjs/**,ex
 RUN rm -rf ./node_modules/sqlite3/deps
 RUN chmod +x /usr/src/appEntry/start.sh
 
+
 FROM alpine:3.19
 
 #WORKDIR /usr/src/
@@ -54,7 +55,6 @@ FROM alpine:3.19
 #
 #RUN git clone https://github.com/benbjohnson/litestream.git litestream
 #RUN cd litestream ; go install ./cmd/litestream
-
 
 # Bug fix for segfault ( Convert PT_GNU_STACK program header into PT_PAX_FLAGS )
 #RUN apk --update --no-cache add paxctl \
@@ -79,7 +79,7 @@ ENV LITESTREAM_S3_SKIP_VERIFY=false \
 #COPY ./docker/main.js ./docker/main.js
 #COPY ./package.json ./
 
-RUN apk --update --no-cache add \
+RUN apk add --update --no-cache \
     nodejs \
     tar
 

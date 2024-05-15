@@ -1,7 +1,9 @@
+# syntax=docker/dockerfile:1
+
 ###########
 # Litestream Builder
 ###########
-FROM golang:alpine3.18 as lt-builder
+FROM golang:alpine3.19 as lt-builder
 
 WORKDIR /usr/src/
 
@@ -9,11 +11,8 @@ RUN apk add --no-cache git make musl-dev gcc
 
 # build litestream
 RUN git clone https://github.com/benbjohnson/litestream.git litestream
-RUN cd litestream ; go install ./cmd/litestream
-
+RUN cd litestream && go install ./cmd/litestream
 RUN cp $GOPATH/bin/litestream /usr/src/lt
-
-
 
 ###########
 # Builder
@@ -63,7 +62,7 @@ ENV LITESTREAM_S3_SKIP_VERIFY=false \
     NODE_ENV=production \
     PORT=8080
 
-RUN apk --update --no-cache add \
+RUN apk add --update --no-cache \
     nodejs \
     dumb-init
 

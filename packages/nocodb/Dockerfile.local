@@ -1,3 +1,5 @@
+# syntax=docker/dockerfile:1
+
 ###########
 # Builder
 ###########
@@ -36,12 +38,12 @@ RUN pnpm install --prod --shamefully-hoist --reporter=silent \
 FROM alpine:3.19
 WORKDIR /usr/src/app
 
-ENV NC_DOCKER 0.6
-ENV NODE_ENV production
-ENV PORT 8080
-ENV NC_TOOL_DIR=/usr/app/data/
+ENV NC_DOCKER=0.6 \
+    NC_TOOL_DIR=/usr/app/data/ \
+    NODE_ENV=production \
+    PORT=8080
 
-RUN apk --update --no-cache add \
+RUN apk add --update --no-cache \
     nodejs \
     dumb-init \
     curl \

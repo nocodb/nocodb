@@ -192,6 +192,16 @@ export function useViewFilters(
     }
   }
 
+  const placeholderGroupFilter = (): Filter => {
+    const logicalOps = new Set(filters.value.slice(1).map((filter) => filter.logical_op))
+
+    return {
+      is_group: true,
+      status: 'create',
+      logical_op: logicalOps.size === 1 ? logicalOps.values().next().value : 'and',
+    }
+  }
+
   const loadAllChildFilters = async (filters: Filter[]) => {
     // Array to store promises of child filter loading
     const promises = []
@@ -464,11 +474,7 @@ export function useViewFilters(
   const addFilterGroup = async () => {
     const child = placeholderFilter()
 
-    const placeHolderGroupFilter: Filter = {
-      is_group: true,
-      status: 'create',
-      logical_op: 'and',
-    }
+    const placeHolderGroupFilter: Filter = placeholderGroupFilter()
 
     if (nestedMode.value) placeHolderGroupFilter.children = [child]
 

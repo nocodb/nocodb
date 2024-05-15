@@ -1,8 +1,6 @@
 #!/bin/sh
 
-#sleep 5
-
-if [ -n "${NC_TOOL_DIR}" ]; then
+if [ ! -d "${NC_TOOL_DIR}" ] ; then
   mkdir -p "$NC_TOOL_DIR"
 fi
 
@@ -10,8 +8,8 @@ if [ -n "${LITESTREAM_S3_ENDPOINT}" ] && [ -n "${LITESTREAM_S3_BUCKET}" ] && [ -
 
   if [ -f "${NC_TOOL_DIR}noco.db" ] ; then
     rm "${NC_TOOL_DIR}noco.db"
-    rm "${NC_TOOL_DIR}noco.db-shm"
-    rm "${NC_TOOL_DIR}noco.db-wal"
+    rm -f "${NC_TOOL_DIR}noco.db-shm"
+    rm -f "${NC_TOOL_DIR}noco.db-wal"
   fi
 
   litestream restore "${NC_TOOL_DIR}noco.db"

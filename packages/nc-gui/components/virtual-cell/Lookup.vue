@@ -22,7 +22,10 @@ provide(RowHeightInj, providedHeightRef)
 
 const relationColumn = computed(
   () =>
-    meta.value?.columns?.find((c: ColumnType) => c.id === (column.value?.colOptions as LookupType)?.fk_relation_column_id) as
+    // extract columns from metas since hidden columns are not available under meta in shared view
+    metas.value[meta.value?.id]?.columns?.find(
+      (c: ColumnType) => c.id === (column.value?.colOptions as LookupType)?.fk_relation_column_id,
+    ) as
       | (ColumnType & {
           colOptions: LinkToAnotherRecordType | undefined
         })

@@ -19,10 +19,9 @@ WORKDIR /usr/src/app
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
 # Copy application dependency manifests to the container image.
-COPY ./package*.json ./
-COPY ./docker/main.js ./docker/main.js
-#COPY ./docker/start.sh /usr/src/appEntry/start.sh
-COPY ./docker/start-litestream.sh /usr/src/appEntry/start.sh
+COPY --link ./package*.json ./
+COPY --link ./docker/main.js ./docker/main.js
+COPY --link ./docker/start-litestream.sh /usr/src/appEntry/start.sh
 
 # for pnpm to generate a flat node_modules without symlinks
 # so that modclean could work as expected
@@ -75,20 +74,20 @@ ENV LITESTREAM_S3_SKIP_VERIFY=false \
 # Copy application dependency manifests to the container image.
 # A wildcard is used to ensure both package.json AND package-lock.json are copied.
 # Copying this separately prevents re-running npm install on every code change.
-#COPY ./build/ ./build/
-#COPY ./docker/main.js ./docker/main.js
-#COPY ./package.json ./
+#COPY --link ./build/ ./build/
+#COPY --link ./docker/main.js ./docker/main.js
+#COPY --link ./package.json ./
 
 RUN apk add --update --no-cache \
     nodejs \
     tar
 
 # Copy litestream binary and config file
-COPY  --from=lt /usr/src/lt /usr/local/bin/litestream
-COPY ./docker/litestream.yml /etc/litestream.yml
+COPY --link  --from=lt /usr/src/lt /usr/local/bin/litestream
+COPY --link ./docker/litestream.yml /etc/litestream.yml
 # Copy production code & main entry file
-COPY --from=builder /usr/src/app/ /usr/src/app/
-COPY --from=builder /usr/src/appEntry/ /usr/src/appEntry/
+COPY --link --from=builder /usr/src/app/ /usr/src/app/
+COPY --link --from=builder /usr/src/appEntry/ /usr/src/appEntry/
 
 
 # Run the web service on container startup.

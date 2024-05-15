@@ -27,11 +27,10 @@ RUN apk add --no-cache python3 make g++
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
 # Copy application dependency manifests to the container image.
-COPY ./package.json ./package.json
-COPY ./docker/main.js ./docker/main.js
-#COPY ./docker/start.sh /usr/src/appEntry/start.sh
-COPY ./docker/start-litestream.sh /usr/src/appEntry/start.sh
-COPY src/public/ ./docker/public/
+COPY --link ./package.json ./package.json
+COPY --link ./docker/main.js ./docker/main.js
+COPY --link ./docker/start-litestream.sh /usr/src/appEntry/start.sh
+COPY --link src/public/ ./docker/public/
 
 # for pnpm to generate a flat node_modules without symlinks
 # so that modclean could work as expected
@@ -67,11 +66,11 @@ RUN apk add --update --no-cache \
     dumb-init
 
 # Copy litestream binary and config file
-COPY --from=lt-builder /usr/src/lt /usr/local/bin/litestream
-COPY ./docker/litestream.yml /etc/litestream.yml
+COPY --link --from=lt-builder /usr/src/lt /usr/local/bin/litestream
+COPY --link ./docker/litestream.yml /etc/litestream.yml
 # Copy production code & main entry file
-COPY --from=builder /usr/src/app/ /usr/src/app/
-COPY --from=builder /usr/src/appEntry/ /usr/src/appEntry/
+COPY --link --from=builder /usr/src/app/ /usr/src/app/
+COPY --link --from=builder /usr/src/appEntry/ /usr/src/appEntry/
 
 EXPOSE 8080
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]

@@ -13,11 +13,11 @@ RUN apk add --no-cache python3 make g++
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
 # Copy application dependency manifests to the container image.
-COPY ./package.json ./package.json
-COPY ./docker/nc-gui/ ./docker/nc-gui/
-COPY ./docker/main.js ./docker/index.js
-COPY ./docker/start-local.sh /usr/src/appEntry/start.sh
-COPY src/public/ ./docker/public/
+COPY --link ./package.json ./package.json
+COPY --link ./docker/nc-gui/ ./docker/nc-gui/
+COPY --link ./docker/main.js ./docker/index.js
+COPY --link ./docker/start-local.sh /usr/src/appEntry/start.sh
+COPY --link src/public/ ./docker/public/
 
 # for pnpm to generate a flat node_modules without symlinks
 # so that modclean could work as expected
@@ -50,8 +50,8 @@ RUN apk add --update --no-cache \
     jq
 
 # Copy production code & main entry file
-COPY --from=builder /usr/src/app/ /usr/src/app/
-COPY --from=builder /usr/src/appEntry/ /usr/src/appEntry/
+COPY --link --from=builder /usr/src/app/ /usr/src/app/
+COPY --link --from=builder /usr/src/appEntry/ /usr/src/appEntry/
 
 EXPOSE 8080
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]

@@ -3271,18 +3271,6 @@ class BaseModelSqlv2 {
         }
       }
       rowId = pkObj;
-    } else if (
-      !ai &&
-      !ag &&
-      (force || this.model.primaryKeys?.length > 1 || this.isSnowflake)
-    ) {
-      // handle if primary key is not ai or ag
-      const pkObj = {};
-      for (const pk of this.model.primaryKeys) {
-        const key = pk.title;
-        pkObj[key] = insertObj[pk.column_name] ?? null;
-      }
-      rowId = pkObj;
     } else if (!ai && !ag && insertObj) {
       // handle if primary key is not ai or ag
       if (this.model.primaryKeys.length === 1) {

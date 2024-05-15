@@ -3282,6 +3282,16 @@ class BaseModelSqlv2 {
         pkObj[key] = insertObj[pk.column_name] ?? null;
       }
       rowId = pkObj;
+    } else if (!ai && !ag && insertObj) {
+      // handle if primary key is not ai or ag
+      if (this.model.primaryKeys.length === 1) {
+        return insertObj[this.model.primaryKey.column_name] ?? null;
+      } else {
+        return this.model.primaryKeys.reduce((acc, pk) => {
+          acc[pk.title] = insertObj[pk.column_name] ?? null;
+          return acc;
+        }, {});
+      }
     }
 
     return rowId;

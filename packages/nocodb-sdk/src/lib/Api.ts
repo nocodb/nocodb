@@ -2398,7 +2398,7 @@ export interface SortType {
    * Sort direction
    * @example desc
    */
-  direction?: 'asc' | 'desc';
+  direction?: 'asc' | 'desc' | 'count-desc' | 'count-asc';
   /** @example 1 */
   order?: number;
   /**

@@ -288,6 +288,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           rowId: insertObj[ag.column_name],
           insertObj,
           ag,
+          ai,
         });
 
         response = await ((await canUseOptimisedQuery({
@@ -346,7 +347,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             ).id;
           }
           response = await this.readByPk(
-            this.extractCompositePK({ rowId: id, insertObj, ai }),
+            this.extractCompositePK({ rowId: id, insertObj, ai, ag }),
             false,
             {},
             { ignoreView: true, getHiddenColumn: true },
@@ -359,7 +360,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           ? response?.[0]?.[ai.id]
           : response?.[ai.id];
 
-        const rowId = this.extractCompositePK({ rowId: id, insertObj, ai });
+        const rowId = this.extractCompositePK({ rowId: id, insertObj, ai, ag });
 
         response = (await canUseOptimisedQuery({
           source,

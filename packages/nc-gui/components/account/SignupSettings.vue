@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { message } from 'ant-design-vue'
-import { extractSdkResponseErrorMsg, useApi } from '#imports'
 
 const { api } = useApi()
 

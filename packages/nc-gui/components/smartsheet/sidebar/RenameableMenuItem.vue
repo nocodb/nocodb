@@ -2,7 +2,6 @@
 import type { VNodeRef } from '@vue/runtime-core'
 import type { KanbanType, ViewType, ViewTypes } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
-import { IsLockedInj, inject, message, onKeyStroke, useDebounceFn, useNuxtApp, useRoles, useVModel } from '#imports'
 
 interface Props {
   view: ViewType

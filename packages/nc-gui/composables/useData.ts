@@ -1,25 +1,7 @@
 import type { ColumnType, LinkToAnotherRecordType, PaginatedType, RelationTypes, TableType, ViewType } from 'nocodb-sdk'
 import { UITypes, isCreatedOrLastModifiedByCol, isCreatedOrLastModifiedTimeCol } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
-import {
-  NOCO,
-  computed,
-  extractPk,
-  extractPkFromRow,
-  extractSdkResponseErrorMsg,
-  findIndexByPk,
-  message,
-  populateInsertObject,
-  rowDefaultData,
-  rowPkData,
-  storeToRefs,
-  until,
-  useBase,
-  useI18n,
-  useMetas,
-  useNuxtApp,
-} from '#imports'
-import type { CellRange, Row, UndoRedoAction } from '#imports'
+import type { CellRange } from '#imports'
 
 export function useData(args: {
   meta: Ref<TableType | undefined> | ComputedRef<TableType | undefined>
@@ -310,7 +292,8 @@ export function useData(args: {
 
       return updatedRowData
     } catch (e: any) {
-      message.error(`${t('msg.error.rowUpdateFailed')} ${await extractSdkResponseErrorMsg(e)}`)
+      toUpdate.row[property] = toUpdate.oldRow[property]
+      message.error(`${t('msg.error.rowUpdateFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
     } finally {
       if (toUpdate.rowMeta) toUpdate.rowMeta.saving = false
     }

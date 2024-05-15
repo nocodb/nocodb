@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
 import { isSystemColumn } from 'nocodb-sdk'
-import { ActiveCellInj, EditColumnInj, IsFormInj, ReadonlyInj, inject, onClickOutside, useBase, watch } from '#imports'
 
 interface Props {
   modelValue?: string | null | undefined

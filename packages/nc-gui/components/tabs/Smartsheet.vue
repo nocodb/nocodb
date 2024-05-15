@@ -4,33 +4,6 @@ import 'splitpanes/dist/splitpanes.css'
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { UITypes, isLinksOrLTAR } from 'nocodb-sdk'
 
-import type { TabItem } from '#imports'
-import {
-  ActiveViewInj,
-  FieldsInj,
-  IsFormInj,
-  IsLockedInj,
-  MetaInj,
-  OpenNewRecordFormHookInj,
-  ReadonlyInj,
-  ReloadViewDataHookInj,
-  ReloadViewMetaHookInj,
-  TabMetaInj,
-  computed,
-  createEventHook,
-  provide,
-  ref,
-  toRef,
-  useExpandedFormDetachedProvider,
-  useMetas,
-  useProvideCalendarViewStore,
-  useProvideKanbanViewStore,
-  useProvideSmartsheetLtarHelpers,
-  useProvideSmartsheetStore,
-  useRoles,
-  useSqlEditor,
-} from '#imports'
-
 const props = defineProps<{
   activeTab: TabItem
 }>()
@@ -189,7 +162,7 @@ const onResize = (sizes: { min: number; max: number; size: number }[]) => {
       <Splitpanes v-if="openedViewsTab === 'view'" class="nc-extensions-content-resizable-wrapper" @resized="onResize">
         <Pane class="flex flex-col h-full flex-1 min-w-0" size="60">
           <LazySmartsheetToolbar v-if="!isForm" />
-          <div class="flex flex-row w-full" :style="{ height: isForm ? '100%' : 'calc(100% - var(--topbar-height))' }">
+          <div :style="{ height: isForm ? '100%' : 'calc(100% - var(--toolbar-height))' }" class="flex flex-row w-full">
             <Transition name="layout" mode="out-in">
               <div v-if="openedViewsTab === 'view'" class="flex flex-1 min-h-0 w-3/4">
                 <div class="h-full flex-1 min-w-0 min-h-0 bg-white">

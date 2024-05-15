@@ -3,30 +3,6 @@ import { populateUniqueFileName } from 'nocodb-sdk'
 import DOMPurify from 'isomorphic-dompurify'
 import { saveAs } from 'file-saver'
 import RenameFile from './RenameFile.vue'
-import {
-  ColumnInj,
-  EditModeInj,
-  IsFormInj,
-  IsPublicInj,
-  MetaInj,
-  NOCO,
-  ReadonlyInj,
-  computed,
-  extractImageSrcFromRawHtml,
-  inject,
-  isImage,
-  message,
-  parseProp,
-  ref,
-  storeToRefs,
-  useApi,
-  useAttachment,
-  useBase,
-  useFileDialog,
-  useI18n,
-  useInjectionState,
-  watch,
-} from '#imports'
 import MdiPdfBox from '~icons/mdi/pdf-box'
 import MdiFileWordOutline from '~icons/mdi/file-word-outline'
 import MdiFilePowerpointBox from '~icons/mdi/file-powerpoint-box'

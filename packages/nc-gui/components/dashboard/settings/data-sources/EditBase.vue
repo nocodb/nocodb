@@ -2,28 +2,16 @@
 import type { SourceType } from 'nocodb-sdk'
 import { Form, message } from 'ant-design-vue'
 import type { SelectHandler } from 'ant-design-vue/es/vc-select/Select'
-import type { DefaultConnection, ProjectCreateForm, SQLiteConnection, SnowflakeConnection } from '#imports'
 import {
-  CertTypes,
+  type CertTypes,
   ClientType,
-  ProjectIdInj,
+  type DatabricksConnection,
+  type DefaultConnection,
+  type ProjectCreateForm,
+  type SQLiteConnection,
   SSLUsage,
+  type SnowflakeConnection,
   clientTypes as _clientTypes,
-  baseTitleValidator,
-  computed,
-  extractSdkResponseErrorMsg,
-  fieldRequiredValidator,
-  getDefaultConnectionConfig,
-  getTestDatabaseName,
-  iconMap,
-  onMounted,
-  readFile,
-  ref,
-  storeToRefs,
-  useApi,
-  useI18n,
-  useNuxtApp,
-  watch,
 } from '#imports'
 
 const props = defineProps<{

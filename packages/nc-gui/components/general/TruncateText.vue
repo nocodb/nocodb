@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { computed, ref } from '#imports'
-
 interface Props {
   placement?:
     | 'top'

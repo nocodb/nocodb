@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import axios from 'axios'
 import type { PaginatedType } from 'nocodb-sdk'
-import { IsGroupByInj, computed, iconMap, inject, isRtlLang, useI18n } from '#imports'
-import type { Language } from '#imports'
 
 interface Props {
   paginationData: PaginatedType
@@ -64,6 +62,11 @@ const size = computed({
   get: () => vPaginationData.value?.pageSize ?? 25,
   set: (size: number) => {
     if (vPaginationData.value) {
+      // if there is no change in size then return
+      if (vPaginationData.value?.pageSize && vPaginationData.value?.pageSize === size) {
+        return
+      }
+
       vPaginationData.value.pageSize = size
 
       if (vPaginationData.value.totalRows && page.value * size < vPaginationData.value.totalRows) {

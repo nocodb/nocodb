@@ -1,8 +1,7 @@
 <script lang="ts" setup>
 import { useMagicKeys, whenever } from '@vueuse/core'
 import { commandScore } from './command-score'
-import { type ComputedRef, type VNode, iconMap, onClickOutside, useCommandPalette } from '#imports'
-import type { CommandPaletteType } from '~/lib'
+import type { CommandPaletteType } from '~/lib/types'
 
 interface CmdAction {
   id: string
@@ -74,6 +73,7 @@ const nestedScope = computed(() => {
       id: parent,
       label: parentEl?.title,
       icon: parentEl?.icon,
+      iconColor: parent.startsWith('ws-') ? parentEl?.iconColor : null,
     })
     parent = parentEl?.parent || 'root'
   }
@@ -333,6 +333,9 @@ defineExpose({
                 v-if="el.icon && el.id.startsWith('ws')"
                 :workspace="{
                   id: el.id.split('-')[1],
+                  meta: {
+                    color: el.iconColor,
+                  },
                 }"
                 hide-label
                 size="small"
@@ -409,6 +412,9 @@ defineExpose({
                       v-if="act.icon && act.id.startsWith('ws')"
                       :workspace="{
                         id: act.id.split('-')[2],
+                        meta: {
+                          color: act?.iconColor,
+                        },
                       }"
                       class="mr-2"
                       size="small"
@@ -421,14 +427,14 @@ defineExpose({
                       <component
                         :is="(iconMap as any)[act.icon]"
                         v-if="act.icon && typeof act.icon === 'string' && (iconMap as any)[act.icon]"
-                        class="cmdk-action-icon"
                         :class="{
                           '!text-blue-500': act.icon === 'grid',
                           '!text-purple-500': act.icon === 'form',
                           '!text-[#FF9052]': act.icon === 'kanban',
                           '!text-pink-500': act.icon === 'gallery',
-                          '!text-maroon-500': act.icon === 'calendar',
+                          '!text-maroon-500 w-4 h-4': act.icon === 'calendar',
                         }"
+                        class="cmdk-action-icon"
                       />
                       <div v-else-if="act.icon" class="cmdk-action-icon max-w-4 flex items-center justify-center">
                         <LazyGeneralEmojiPicker class="!text-sm !h-4 !w-4" size="small" :emoji="act.icon" readonly />

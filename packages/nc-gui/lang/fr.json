@@ -162,6 +162,7 @@
     "insertAbove": "Insérer au-dessus",
     "insertBelow": "Insérer en-dessous",
     "hideField": "Masquer le champ",
+    "showField": "Show Field",
     "sortAsc": "Trier par ordre croissant",
     "sortDesc": "Trier par ordre décroissant",
     "move": "Déplacer",
@@ -447,6 +448,8 @@
     "noResultsMatchedYourSearch": "Your search did not yield any matching results."
   },
   "labels": {
+    "today": "Today",
+    "workspace": "Workspace",
     "txt": "TXT Record value",
     "transferOwnership": "Transfer Ownership",
     "recentActivity": "Recent Activity",
@@ -714,6 +717,7 @@
     "hasMany": "a plusieurs",
     "belongsTo": "appartient à",
     "manyToMany": "ont des relations nombreuses et variées",
+    "oneToOne": "have one to one relation",
     "extraConnectionParameters": "Paramètres de connexion supplémentaires",
     "commentsOnly": "Commentaires uniquement",
     "documentation": "Documentation",
@@ -941,6 +945,7 @@
     "importZip": "Importer un zip",
     "metaSync": "Synchroniser maintenant",
     "settings": "Paramètres",
+    "validations": "Validations",
     "previewAs": "Aperçu",
     "resetReview": "Réinitialiser l'aperçu",
     "testDbConn": "Tester la connexion à la base de données",
@@ -1008,7 +1013,7 @@
     "group": "Group"
   },
   "tooltip": {
-    "reachedSourceLimit": "Limité à une seule source de données pour le moment",
+    "reachedSourceLimit": "Limited to 10 data sources per base",
     "saveChanges": "Sauvegarder les modifications",
     "xcDB": "Créer un nouveau projet",
     "extDB": "Base de données supportées MySQL, PostgreSQL, SQL Server & SQLite",
@@ -1199,6 +1204,7 @@
     "noNewNotifications": "You have no new notifications",
     "noRecordFound": "Record not found",
     "noRecordsFound": "No records found",
+    "noRecordsMatchYourSearchQuery": "No records match your search query",
     "rowDeleted": "Record deleted",
     "saveChanges": "Do you want to save the changes?",
     "tooLargeFieldEntity": "The field is too large to be converted to {entity}",
@@ -1489,7 +1495,7 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "Les types de fichiers acceptés sont .xls, .xlsx, .xlsm, .ods, .ots.",
       "parameterKeyCannotBeEmpty": "La clé de paramètre ne peut pas être vide",
       "duplicateParameterKeysAreNotAllowed": "Les doublons de clés de paramètres ne sont pas autorisés",
-      "fieldRequired": "{value} ne peut pas être vide.",
+      "fieldRequired": "{value} cannot be empty.",
       "projectNotAccessible": "Projet non accessible",
       "copyToClipboardError": "Échec de la copie dans le presse-papiers",
       "pasteFromClipboardError": "Failed to paste from clipboard",

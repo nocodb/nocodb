@@ -1,6 +1,5 @@
 import { ref } from 'vue'
 import type { Getters, State } from './types'
-import { computed } from '#imports'
 
 export function useGlobalGetters(state: State): Getters {
   /** Verify that a user is signed in by checking if token exists and is not expired */

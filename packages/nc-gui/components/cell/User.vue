@@ -4,28 +4,7 @@ import tinycolor from 'tinycolor2'
 import { Checkbox, CheckboxGroup, Radio, RadioGroup } from 'ant-design-vue'
 import type { Select as AntSelect } from 'ant-design-vue'
 import type { UserFieldRecordType } from 'nocodb-sdk'
-import type { FormFieldsLimitOptionsType } from '~/lib'
-import {
-  ActiveCellInj,
-  CellClickHookInj,
-  ColumnInj,
-  EditColumnInj,
-  EditModeInj,
-  IsKanbanInj,
-  ReadonlyInj,
-  RowHeightInj,
-  computed,
-  h,
-  inject,
-  isDrawerOrModalExist,
-  onMounted,
-  ref,
-  rowHeightTruncateLines,
-  useEventListener,
-  useRoles,
-  useSelectedCellKeyupListener,
-  watch,
-} from '#imports'
+import type { FormFieldsLimitOptionsType } from '~/lib/types'
 import MdiCloseCircle from '~icons/mdi/close-circle'
 
 interface Props {

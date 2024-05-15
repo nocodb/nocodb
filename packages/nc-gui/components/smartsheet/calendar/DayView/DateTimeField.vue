@@ -1,8 +1,6 @@
 <script lang="ts" setup>
 import dayjs from 'dayjs'
 import type { ColumnType } from 'nocodb-sdk'
-import { type Row, computed, ref, useViewColumnsOrThrow } from '#imports'
-import { generateRandomNumber, isRowEmpty } from '~/utils'
 
 const emit = defineEmits(['expandRecord', 'newRecord'])
 
@@ -17,6 +15,8 @@ const {
   sideBarFilterOption,
   showSideMenu,
 } = useCalendarViewStoreOrThrow()
+
+const { $e } = useNuxtApp()
 
 const container = ref<null | HTMLElement>(null)
 
@@ -674,6 +674,8 @@ const stopDrag = (event: MouseEvent) => {
   if (!newRow) return
   updateRowProperty(newRow, updateProperty, false)
 
+  $e('c:calendar:day:drag-record')
+
   document.removeEventListener('mousemove', onDrag)
   document.removeEventListener('mouseup', stopDrag)
 }
@@ -804,6 +806,7 @@ const dropEvent = (event: DragEvent) => {
       dragElement.value = null
     }
     updateRowProperty(newRow, updateProperty, false)
+    $e('c:calendar:day:drag-record')
   }
 }
 
@@ -861,7 +864,7 @@ watch(
 <template>
   <div
     ref="container"
-    class="w-full flex relative no-selection h-[calc(100vh-10rem)] overflow-y-auto nc-scrollbar-md"
+    class="w-full flex relative no-selection h-[calc(100vh-5.3rem)] overflow-y-auto nc-scrollbar-md"
     data-testid="nc-calendar-day-view"
     @drop="dropEvent"
   >
@@ -874,7 +877,7 @@ watch(
         @click="selectHour(hour)"
         @dblclick="newRecord(hour)"
       >
-        <div class="w-16 border-b-0 pr-3 pl-2 text-right text-xs text-gray-400 font-semibold h-13">
+        <div class="w-16 border-b-0 pr-2 pl-2 text-right text-xs text-gray-400 font-semibold h-13">
           {{ dayjs(hour).format('hh a') }}
         </div>
       </div>

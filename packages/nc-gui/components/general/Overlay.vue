@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import { onKeyDown } from '@vueuse/core'
 import type { TeleportProps } from '@vue/runtime-core'
-import { useVModel, watch } from '#imports'
 
 interface Props {
   modelValue?: any

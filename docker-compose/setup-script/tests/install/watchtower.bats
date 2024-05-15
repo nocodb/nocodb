@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 
-NOCO_HOME="${HOME}/.nocodb"
+NOCO_HOME="./nocodb"
 export NOCO_HOME
 
 setup() {

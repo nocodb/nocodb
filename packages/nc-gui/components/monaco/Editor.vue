@@ -3,7 +3,6 @@ import EditorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker&inlin
 import JsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker&inline'
 
 import type { editor as MonacoEditor } from 'monaco-editor'
-import { deepCompare, initWorker, isDrawerOrModalExist, onMounted, ref, watch } from '#imports'
 
 interface Props {
   modelValue: string | Record<string, any>

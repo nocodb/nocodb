@@ -811,17 +811,33 @@ class BaseModelSqlv2 {
           return qb.toQuery();
         }, this.dbDriver.raw(`??`, [columnName]).toQuery());
 
-        qb.orderBy(
-          sanitize(this.dbDriver.raw(finalStatement)),
-          sort.direction,
-          sort.direction === 'desc' ? 'LAST' : 'FIRST',
-        );
+        if (!['asc', 'desc'].includes(sort.direction)) {
+          qb.orderBy(
+            'count',
+            sort.direction === 'count-desc' ? 'desc' : 'asc',
+            sort.direction === 'count-desc' ? 'LAST' : 'FIRST',
+          );
+        } else {
+          qb.orderBy(
+            sanitize(this.dbDriver.raw(finalStatement)),
+            sort.direction,
+            sort.direction === 'desc' ? 'LAST' : 'FIRST',
+          );
+        }
       } else {
-        qb.orderBy(
-          column.id,
-          sort.direction,
-          sort.direction === 'desc' ? 'LAST' : 'FIRST',
-        );
+        if (!['asc', 'desc'].includes(sort.direction)) {
+          qb.orderBy(
+            'count',
+            sort.direction === 'count-desc' ? 'desc' : 'asc',
+            sort.direction === 'count-desc' ? 'LAST' : 'FIRST',
+          );
+        } else {
+          qb.orderBy(
+            column.id,
+            sort.direction,
+            sort.direction === 'desc' ? 'LAST' : 'FIRST',
+          );
+        }
       }
     }
 
@@ -2744,6 +2760,7 @@ class BaseModelSqlv2 {
             rowId: insertObj[ag.column_name],
             insertObj,
             ag,
+            ai,
           }),
           false,
           {},
@@ -2787,7 +2804,7 @@ class BaseModelSqlv2 {
             ).__nc_ai_id;
           }
           response = await this.readByPk(
-            this.extractCompositePK({ rowId: id, insertObj, ag }),
+            this.extractCompositePK({ rowId: id, insertObj, ag, ai }),
             false,
             {},
             { ignoreView: true, getHiddenColumn: true },
@@ -3254,18 +3271,16 @@ class BaseModelSqlv2 {
         }
       }
       rowId = pkObj;
-    } else if (
-      !ai &&
-      !ag &&
-      (force || this.model.primaryKeys?.length > 1 || this.isSnowflake)
-    ) {
+    } else if (!ai && !ag && insertObj) {
       // handle if primary key is not ai or ag
-      const pkObj = {};
-      for (const pk of this.model.primaryKeys) {
-        const key = pk.title;
-        pkObj[key] = insertObj[pk.column_name] ?? null;
+      if (this.model.primaryKeys.length === 1) {
+        return insertObj[this.model.primaryKey.column_name] ?? null;
+      } else {
+        return this.model.primaryKeys.reduce((acc, pk) => {
+          acc[pk.title] = insertObj[pk.column_name] ?? null;
+          return acc;
+        }, {});
       }
-      rowId = pkObj;
     }
 
     return rowId;
@@ -5475,7 +5490,13 @@ class BaseModelSqlv2 {
           }
 
           if (d[col.id]?.length) {
-            for (const attachment of d[col.id]) {
+            for (let i = 0; i < d[col.id].length; i++) {
+              if (typeof d[col.id][i] === 'string') {
+                d[col.id][i] = JSON.parse(d[col.id][i]);
+              }
+
+              const attachment = d[col.id][i];
+
               // we expect array of array of attachments in case of lookup
               if (Array.isArray(attachment)) {
                 for (const lookedUpAttachment of attachment) {
@@ -6461,17 +6482,34 @@ class BaseModelSqlv2 {
       }
       if (column.uidt === UITypes.Attachment) {
         if (data[column.column_name]) {
-          if (Array.isArray(data[column.column_name])) {
-            for (let attachment of data[column.column_name]) {
-              attachment = extractProps(attachment, [
-                'url',
-                'path',
-                'title',
-                'mimetype',
-                'size',
-                'icon',
-              ]);
+          try {
+            if (typeof data[column.column_name] === 'string') {
+              data[column.column_name] = JSON.parse(data[column.column_name]);
             }
+          } catch (e) {
+            NcError.invalidAttachmentJson(data[column.column_name]);
+          }
+
+          if (Array.isArray(data[column.column_name])) {
+            const sanitizedAttachments = [];
+            for (const attachment of data[column.column_name]) {
+              if (!('url' in attachment) && !('path' in attachment)) {
+                NcError.unprocessableEntity(
+                  'Attachment object must contain either url or path',
+                );
+              }
+              sanitizedAttachments.push(
+                extractProps(attachment, [
+                  'url',
+                  'path',
+                  'title',
+                  'mimetype',
+                  'size',
+                  'icon',
+                ]),
+              );
+            }
+            data[column.column_name] = JSON.stringify(sanitizedAttachments);
           }
         }
       } else if (
@@ -6612,7 +6650,6 @@ export function extractSortsObject(
   if (!_sorts?.length) return;
 
   let sorts = _sorts;
-
   if (!Array.isArray(sorts)) sorts = sorts.split(/\s*,\s*/);
 
   return sorts.map((s) => {
@@ -6620,13 +6657,20 @@ export function extractSortsObject(
     if (s.startsWith('-')) {
       sort.direction = 'desc';
       sort.fk_column_id = aliasColObjMap[s.slice(1)]?.id;
+    } else if (s.startsWith('~-')) {
+      sort.direction = 'count-desc';
+      sort.fk_column_id = aliasColObjMap[s.slice(2)]?.id;
+    } else if (s.startsWith('~+')) {
+      sort.direction = 'count-asc';
+      sort.fk_column_id = aliasColObjMap[s.slice(2)]?.id;
     }
     // replace + at the beginning if present
-    else sort.fk_column_id = aliasColObjMap[s.replace(/^\+/, '')]?.id;
+    else {
+      sort.fk_column_id = aliasColObjMap[s.replace(/^\+/, '')]?.id;
+    }
 
     if (throwErrorIfInvalid && !sort.fk_column_id)
       NcError.fieldNotFound(s.replace(/^[+-]/, ''));
-
     return new Sort(sort);
   });
 }

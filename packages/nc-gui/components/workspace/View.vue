@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { useTitle } from '@vueuse/core'
-import { storeToRefs } from '#imports'
 
 const props = defineProps<{
   workspaceId?: string
@@ -12,6 +11,8 @@ const route = router.currentRoute
 const { isUIAllowed } = useRoles()
 
 const workspaceStore = useWorkspace()
+
+const { loadRoles } = useRoles()
 const { activeWorkspace: _activeWorkspace, workspaces } = storeToRefs(workspaceStore)
 const { loadCollaborators, loadWorkspace } = workspaceStore
 
@@ -29,6 +30,7 @@ const currentWorkspace = computedAsync(async () => {
   } else {
     ws = _activeWorkspace.value
   }
+  await loadRoles(undefined, {}, ws?.id)
   return ws
 })
 
@@ -44,7 +46,7 @@ const tab = computed({
 
 watch(
   () => currentWorkspace.value?.title,
-  (title: string) => {
+  (title) => {
     if (!title) return
 
     const capitalizedTitle = title.charAt(0).toUpperCase() + title.slice(1)
@@ -60,7 +62,7 @@ onMounted(() => {
   until(() => currentWorkspace.value?.id)
     .toMatch((v) => !!v)
     .then(async () => {
-      await loadCollaborators({} as any, currentWorkspace.value.id)
+      await loadCollaborators({} as any, currentWorkspace.value!.id)
     })
 })
 </script>
@@ -78,8 +80,10 @@ onMounted(() => {
         <div class="flex items-center gap-3">
           <NuxtLink
             :href="`/admin/${orgId}/workspaces`"
-            class="!hover:(text-black underline-gray-600) !text-black !underline-transparent ml-0.75 max-w-1/4"
+            class="!hover:(text-black underline-gray-600) flex items-center !text-black !underline-transparent ml-0.75 max-w-1/4"
           >
+            <component :is="iconMap.arrowLeft" class="text-3xl" />
+
             {{ $t('labels.workspaces') }}
           </NuxtLink>
 

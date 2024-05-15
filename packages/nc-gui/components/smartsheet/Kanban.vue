@@ -1,28 +1,6 @@
 <script lang="ts" setup>
 import Draggable from 'vuedraggable'
 import { ViewTypes, isVirtualCol } from 'nocodb-sdk'
-import {
-  ActiveViewInj,
-  FieldsInj,
-  IsFormInj,
-  IsGalleryInj,
-  IsGridInj,
-  IsKanbanInj,
-  IsLockedInj,
-  IsPublicInj,
-  MetaInj,
-  OpenNewRecordFormHookInj,
-  extractPkFromRow,
-  iconMap,
-  inject,
-  isImage,
-  onBeforeUnmount,
-  provide,
-  useAttachment,
-  useDebounceFn,
-  useKanbanViewStoreOrThrow,
-  useUndoRedo,
-} from '#imports'
 import type { Row as RowType } from '#imports'
 
 interface Attachment {

@@ -1,37 +1,20 @@
 <script lang="ts" setup>
-import {
-  IsPublicInj,
-  inject,
-  ref,
-  storeToRefs,
-  useGlobal,
-  useSharedView,
-  useSmartsheetStoreOrThrow,
-  useViewsStore,
-} from '#imports'
-
 const { isGrid, isGallery, isKanban, isMap, isCalendar } = useSmartsheetStoreOrThrow()
 
 const isPublic = inject(IsPublicInj, ref(false))
 
-const { isViewsLoading } = storeToRefs(useViewsStore())
-
 const { isMobileMode } = useGlobal()
+const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
+
+const { isViewsLoading } = storeToRefs(useViewsStore())
 
 const containerRef = ref<HTMLElement>()
 
-const isTab = ref(true)
+const { width } = useElementSize(containerRef)
 
-const handleResize = () => {
-  isTab.value = containerRef.value.offsetWidth > 810
-}
-
-onMounted(() => {
-  window.addEventListener('resize', handleResize)
-})
-
-onUnmounted(() => {
-  window.removeEventListener('resize', handleResize)
+const isTab = computed(() => {
+  if (!isCalendar.value) return false
+  return width.value > 1200
 })
 
 const { allowCSVDownload } = useSharedView()
@@ -39,32 +22,40 @@ const { allowCSVDownload } = useSharedView()
 
 <template>
   <div
-    v-if="!isMobileMode || !isCalendar"
+    v-if="!isMobileMode"
     ref="containerRef"
-    class="nc-table-toolbar relative py-1 px-2.25 xs:(px-1) flex gap-2 items-center border-b border-gray-200 overflow-hidden xs:(min-h-14) max-h-[var(--topbar-height)] min-h-[var(--topbar-height)] z-7"
+    class="nc-table-toolbar relative px-3 xs:(px-1) flex gap-2 items-center border-b border-gray-200 overflow-hidden xs:(min-h-14) min-h-9 max-h-9 z-7"
   >
     <template v-if="isViewsLoading">
       <a-skeleton-input :active="true" class="!w-44 !h-4 ml-2 !rounded overflow-hidden" />
     </template>
     <template v-else>
-      <LazySmartsheetToolbarMappedBy v-if="isMap" />
-      <LazySmartsheetToolbarCalendarRange v-if="isCalendar" />
+      <div
+        :class="{
+          'min-w-34/100': !isMobileMode && isLeftSidebarOpen && isCalendar,
+          'min-w-39/100': !isMobileMode && !isLeftSidebarOpen && isCalendar,
+          'gap-1': isCalendar,
+        }"
+        class="flex items-center gap-3"
+      >
+        <LazySmartsheetToolbarMappedBy v-if="isMap" />
+        <LazySmartsheetToolbarCalendarHeader v-if="isCalendar" />
+        <LazySmartsheetToolbarCalendarToday v-if="isCalendar" />
 
-      <LazySmartsheetToolbarFieldsMenu
-        v-if="isGrid || isGallery || isKanban || isMap || isCalendar"
-        :show-system-fields="false"
-      />
+        <LazySmartsheetToolbarCalendarRange v-if="isCalendar" />
 
-      <LazySmartsheetToolbarStackedBy v-if="isKanban" />
+        <LazySmartsheetToolbarFieldsMenu v-if="isGrid || isGallery || isKanban || isMap" :show-system-fields="false" />
 
-      <LazySmartsheetToolbarColumnFilterMenu v-if="isGrid || isGallery || isKanban || isMap || isCalendar" />
+        <LazySmartsheetToolbarStackedBy v-if="isKanban" />
 
-      <LazySmartsheetToolbarGroupByMenu v-if="isGrid" />
+        <LazySmartsheetToolbarColumnFilterMenu v-if="isGrid || isGallery || isKanban || isMap" />
 
-      <LazySmartsheetToolbarSortListMenu v-if="isGrid || isGallery || isKanban || isCalendar" />
+        <LazySmartsheetToolbarGroupByMenu v-if="isGrid" />
 
-      <div v-if="isCalendar && isTab" class="flex-1" />
-      <LazySmartsheetToolbarCalendarMode v-if="isCalendar" v-model:tab="isTab" />
+        <LazySmartsheetToolbarSortListMenu v-if="isGrid || isGallery || isKanban" />
+      </div>
+
+      <LazySmartsheetToolbarCalendarMode v-if="isCalendar && isTab" :tab="isTab" />
 
       <template v-if="!isMobileMode">
         <LazySmartsheetToolbarRowHeight v-if="isGrid" />
@@ -76,6 +67,8 @@ const { allowCSVDownload } = useSharedView()
         <div class="flex-1" />
       </template>
 
+      <LazySmartsheetToolbarCalendarActiveView v-if="isCalendar" />
+
       <LazySmartsheetToolbarSearchData
         v-if="isGrid || isGallery || isKanban"
         :class="{
@@ -83,6 +76,10 @@ const { allowCSVDownload } = useSharedView()
           'w-full': isMobileMode,
         }"
       />
+      <LazySmartsheetToolbarCalendarMode v-if="isCalendar && !isTab" :tab="isTab" />
+
+      <LazySmartsheetToolbarFieldsMenu v-if="isCalendar" :show-system-fields="false" />
+      <LazySmartsheetToolbarColumnFilterMenu v-if="isCalendar" />
     </template>
   </div>
 </template>

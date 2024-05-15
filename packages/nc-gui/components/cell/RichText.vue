@@ -7,18 +7,9 @@ import { marked } from 'marked'
 import { generateJSON } from '@tiptap/html'
 import Underline from '@tiptap/extension-underline'
 import Placeholder from '@tiptap/extension-placeholder'
-import { TaskItem } from '@/helpers/dbTiptapExtensions/task-item'
-import { Link } from '@/helpers/dbTiptapExtensions/links'
+import { TaskItem } from '~/helpers/dbTiptapExtensions/task-item'
+import { Link } from '~/helpers/dbTiptapExtensions/links'
 import type { RichTextBubbleMenuOptions } from '#imports'
-import {
-  IsExpandedFormOpenInj,
-  IsFormInj,
-  IsGridInj,
-  IsSurveyFormInj,
-  ReadonlyInj,
-  RowHeightInj,
-  rowHeightTruncateLines,
-} from '#imports'
 
 const props = withDefaults(
   defineProps<{
@@ -41,7 +32,7 @@ const props = withDefaults(
 
 const emits = defineEmits(['update:value', 'focus', 'blur'])
 
-const { isFormField, hiddenBubbleMenuOptions } = toRefs(props)
+const { fullMode, isFormField, hiddenBubbleMenuOptions } = toRefs(props)
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
@@ -228,16 +219,16 @@ if (isFormField.value) {
   })
 }
 
-watch(editorDom, () => {
-  if (!editorDom.value) return
+onMounted(() => {
+  if (fullMode.value || isFormField.value || isForm.value) {
+    setEditorContent(vModel.value, true)
 
-  setEditorContent(vModel.value, true)
-
-  if ((isForm.value && !isSurveyForm.value) || isFormField.value) return
-  // Focus editor after editor is mounted
-  setTimeout(() => {
-    editor.value?.chain().focus().run()
-  }, 50)
+    if (fullMode.value || isSurveyForm.value) {
+      nextTick(() => {
+        editor.value?.chain().focus().run()
+      })
+    }
+  }
 })
 
 useEventListener(

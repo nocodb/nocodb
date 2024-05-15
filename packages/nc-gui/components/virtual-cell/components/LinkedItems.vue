@@ -1,20 +1,6 @@
 <script lang="ts" setup>
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import { RelationTypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
-import {
-  ColumnInj,
-  IsFormInj,
-  IsPublicInj,
-  ReadonlyInj,
-  type Row,
-  computed,
-  inject,
-  isPrimary,
-  ref,
-  useLTARStoreOrThrow,
-  useSmartsheetRowStoreOrThrow,
-  useVModel,
-} from '#imports'
 
 interface Prop {
   modelValue?: boolean
@@ -320,15 +306,14 @@ const onFilterChange = () => {
 <template>
   <div class="nc-modal-child-list h-full w-full" :class="{ active: vModel }" @keydown.enter.stop>
     <div class="flex flex-col h-full">
-      <div class="nc-dropdown-link-record-header bg-gray-100 py-2 rounded-t-md flex justify-between pl-3 pr-2 gap-2">
+      <div class="nc-dropdown-link-record-header bg-gray-100 py-2 rounded-t-xl flex justify-between pl-3 pr-2 gap-2">
         <div v-if="!isForm" class="flex-1 nc-dropdown-link-record-search-wrapper flex items-center py-0.5 rounded-md">
-          <MdiMagnify class="nc-search-icon w-5 h-5" />
           <a-input
             ref="filterQueryRef"
             v-model:value="childrenListPagination.query"
             :bordered="false"
             placeholder="Search linked records..."
-            class="w-full min-h-4"
+            class="w-full min-h-4 !pl-0"
             size="small"
             @change="onFilterChange"
             @keydown.capture.stop="
@@ -339,6 +324,9 @@ const onFilterChange = () => {
               }
             "
           >
+            <template #prefix>
+              <GeneralIcon icon="search" class="nc-search-icon mr-2 h-4 w-4 text-gray-500" />
+            </template>
           </a-input>
         </div>
         <div v-else>&nbsp;</div>
@@ -357,26 +345,21 @@ const onFilterChange = () => {
               <div
                 v-for="(_x, i) in Array.from({ length: skeletonCount })"
                 :key="i"
-                class="flex flex-row gap-2 mb-2 transition-all relative !border-gray-200 hover:bg-gray-50"
+                class="flex flex-row gap-3 px-3 py-2 transition-all relative border-b-1 border-gray-200 hover:bg-gray-50"
               >
                 <div class="flex items-center">
-                  <a-skeleton-image class="h-14 w-14 !rounded-xl children:!h-full" />
+                  <a-skeleton-image class="!h-11 !w-11 !rounded-md overflow-hidden children:(!h-full !w-full)" />
                 </div>
                 <div class="flex flex-col gap-2 flex-grow justify-center">
-                  <a-skeleton-input active class="h-3 !w-48 !rounded-xl" size="small" />
+                  <a-skeleton-input active class="h-4 !w-48 !rounded-md overflow-hidden" size="small" />
                   <div class="flex flex-row gap-6 w-10/12">
-                    <div class="flex flex-col gap-0.5">
-                      <a-skeleton-input active class="!h-2 !w-12" size="small" />
-                      <a-skeleton-input active class="!h-2 !w-24" size="small" />
-                    </div>
-                    <div class="flex flex-col gap-0.5">
-                      <a-skeleton-input active class="!h-2 !w-12" size="small" />
-                      <a-skeleton-input active class="!h-2 !w-24" size="small" />
-                    </div>
-                    <div class="flex flex-col gap-0.5">
-                      <a-skeleton-input active class="!h-2 !w-12" size="small" />
-                      <a-skeleton-input active class="!h-2 !w-24" size="small" />
-                    </div>
+                    <a-skeleton-input
+                      v-for="idx of [1, 2, 3]"
+                      :key="idx"
+                      active
+                      class="!h-3 !w-24 !rounded-md overflow-hidden"
+                      size="small"
+                    />
                   </div>
                 </div>
               </div>
@@ -424,13 +407,13 @@ const onFilterChange = () => {
         </div>
       </div>
 
-      <div class="bg-gray-100 px-3 py-2 rounded-b-md flex items-center justify-between gap-3 min-h-12">
+      <div class="nc-dropdown-link-record-footer bg-gray-100 p-2 rounded-b-xl flex items-center justify-between gap-3 min-h-11">
         <div class="flex items-center gap-2">
           <NcButton
             v-if="!isPublic"
             v-e="['c:row-expand:open']"
             size="small"
-            class="!hover:(bg-white text-brand-500)"
+            class="!hover:(bg-white text-brand-500) !h-7 !text-small"
             type="secondary"
             @click="addNewRecord"
           >
@@ -442,7 +425,7 @@ const onFilterChange = () => {
             v-if="!readOnly && (childrenListCount > 0 || (childrenList?.list ?? state?.[colTitle] ?? []).length > 0)"
             v-e="['c:links:link']"
             data-testid="nc-child-list-button-link-to"
-            class="!hover:(bg-white text-brand-500)"
+            class="!hover:(bg-white text-brand-500) !h-7 !text-small"
             size="small"
             type="secondary"
             @click="emit('attachRecord')"
@@ -492,6 +475,7 @@ const onFilterChange = () => {
         :state="newRowState"
         :row-id="extractPkFromRow(expandedFormRow, relatedTableMeta.columns as ColumnType[])"
         use-meta-fields
+        new-record-submit-btn-text="Create & Link"
         @created-record="onCreatedRecord"
       />
     </Suspense>
@@ -507,8 +491,8 @@ const onFilterChange = () => {
   @apply !p-0;
 }
 
-:deep(.ant-skeleton-element .ant-skeleton-image) {
-  @apply !h-full;
+:deep(.ant-skeleton-element .ant-skeleton-image-svg) {
+  @apply !w-7;
 }
 </style>
 
@@ -521,6 +505,11 @@ const onFilterChange = () => {
   &:focus-within {
     .nc-search-icon {
       @apply text-gray-600;
+    }
+  }
+  input {
+    &::placeholder {
+      @apply text-gray-500;
     }
   }
 }

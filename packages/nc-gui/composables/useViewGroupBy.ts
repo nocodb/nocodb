@@ -1,19 +1,7 @@
-import { UITypes } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType, LookupType, SelectOptionsType, TableType, ViewType } from 'nocodb-sdk'
+import { UITypes } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { message } from 'ant-design-vue'
-import { extractSdkResponseErrorMsg } from '../utils'
-import {
-  GROUP_BY_VARS,
-  SharedViewPasswordInj,
-  ref,
-  storeToRefs,
-  useApi,
-  useBase,
-  useMetas,
-  useViewColumnsOrThrow,
-} from '#imports'
-import type { Group, GroupNestedIn, Row } from '#imports'
 
 const excludedGroupingUidt = [UITypes.Attachment, UITypes.QrCode, UITypes.Barcode]
 
@@ -219,6 +207,18 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       }, existing)
     }
 
+    const getSortParams = (sort: string) => {
+      if (sort === 'asc') {
+        return '+'
+      } else if (sort === 'desc') {
+        return '-'
+      } else if (sort === 'count-asc') {
+        return '~+'
+      } else if (sort === 'count-desc') {
+        return '~-'
+      }
+    }
+
     async function loadGroups(params: any = {}, group?: Group) {
       try {
         group = group || rootGroup.value
@@ -258,7 +258,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
               ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
               ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
               where: `${nestedWhere}`,
-              sort: `${groupby.sort === 'desc' ? '-' : ''}${groupby.column.title}`,
+              sort: `${getSortParams(groupby.sort)}${groupby.column.title}`,
               column_name: groupby.column.title,
             } as any)
           : await api.public.dataGroupBy(
@@ -268,7 +268,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
                 limit: group.paginationData.pageSize ?? groupByGroupLimit.value,
                 ...params,
                 where: nestedWhere,
-                sort: `${groupby.sort === 'desc' ? '-' : ''}${groupby.column.title}`,
+                sort: `${getSortParams(groupby.sort)}${groupby.column.title}`,
                 column_name: groupby.column.title,
                 sortsArr: sorts.value,
                 filtersArr: nestedFilters.value,

@@ -4,7 +4,6 @@ import { storeToRefs } from 'pinia'
 import { toRef } from '@vue/reactivity'
 import { resolveComponent } from '@vue/runtime-core'
 import { ref } from 'vue'
-import { ProjectRoleInj, useDialog, useRoles } from '#imports'
 
 const props = withDefaults(
   defineProps<{

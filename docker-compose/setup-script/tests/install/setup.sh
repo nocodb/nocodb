@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ -z "$NOCO_HOME" ]; then
-    NOCO_HOME="${HOME}/.nocodb"
+    NOCO_HOME="./nocodb"
 fi
 
 if [ -d "$NOCO_HOME" ]; then

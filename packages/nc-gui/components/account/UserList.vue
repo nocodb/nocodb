@@ -1,17 +1,6 @@
 <script lang="ts" setup>
 import { OrgUserRoles } from 'nocodb-sdk'
 import type { OrgUserReqType, RequestParams, UserType } from 'nocodb-sdk'
-import type { User } from '#imports'
-import {
-  extractSdkResponseErrorMsg,
-  iconMap,
-  useApi,
-  useCopy,
-  useDashboard,
-  useDebounceFn,
-  useNuxtApp,
-  useUserSorts,
-} from '#imports'
 
 const { api, isLoading } = useApi()
 
@@ -181,7 +170,12 @@ const openDeleteModal = (user: UserType) => {
     <div class="max-w-195 mx-auto h-full">
       <div class="text-2xl text-left font-weight-bold mb-4" data-rec="true">{{ $t('title.userMgmt') }}</div>
       <div class="py-2 flex gap-4 items-center justify-between">
-        <a-input v-model:value="searchText" class="!max-w-90 !rounded-md" placeholder="Search members" @change="loadUsers()">
+        <a-input
+          v-model:value="searchText"
+          class="!max-w-90 !rounded-md"
+          :placeholder="$t('title.searchMembers')"
+          @change="loadUsers()"
+        >
           <template #prefix>
             <PhMagnifyingGlassBold class="!h-3.5 text-gray-500" />
           </template>

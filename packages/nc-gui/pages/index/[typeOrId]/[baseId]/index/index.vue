@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { TabMetaInj, provide, storeToRefs, useSidebar, useTabs } from '#imports'
-
 const tabStore = useTabs()
 const { activeTab } = storeToRefs(tabStore)
 

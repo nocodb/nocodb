@@ -1,5 +1,7 @@
 <script lang="ts" setup>
-const { selectedDate, activeDates } = useCalendarViewStoreOrThrow()
+import type dayjs from 'dayjs'
+
+const { selectedDate, activeDates, activeCalendarView } = useCalendarViewStoreOrThrow()
 
 const months = computed(() => {
   const months = []
@@ -25,6 +27,11 @@ const handleResize = () => {
   }
 }
 
+const changeView = (date: dayjs.Dayjs) => {
+  selectedDate.value = date
+  activeCalendarView.value = 'day'
+}
+
 onMounted(() => {
   handleResize()
 })
@@ -33,18 +40,25 @@ watch(width, handleResize)
 </script>
 
 <template>
-  <div ref="calendarContainer" class="overflow-auto flex my-3 justify-center nc-scrollbar-md">
-    <div class="grid grid-cols-4 justify-items-center gap-3" data-testid="nc-calendar-year-view">
+  <div ref="calendarContainer" class="overflow-auto flex my-2 justify-center nc-scrollbar-md">
+    <div
+      :class="{
+        '!gap-12': size === 'large',
+      }"
+      class="grid grid-cols-4 justify-items-center gap-6 scale-1"
+      data-testid="nc-calendar-year-view"
+    >
       <NcDateWeekSelector
         v-for="(_, index) in months"
         :key="index"
         v-model:active-dates="activeDates"
         v-model:page-date="months[index]"
         v-model:selected-date="selectedDate"
-        class="nc-year-view-calendar"
         :size="size"
+        class="nc-year-view-calendar"
         data-testid="nc-calendar-year-view-month-selector"
         disable-pagination
+        @dbl-click="changeView"
       />
     </div>
   </div>
@@ -53,11 +67,7 @@ watch(width, handleResize)
 <style lang="scss" scoped>
 .nc-year-view-calendar {
   :deep(.nc-date-week-header) {
-    @apply !bg-gray-100 border-x-1 border-t-1;
-  }
-
-  :deep(.nc-date-week-grid-wrapper) {
-    @apply !border-x-1 border-b-1 rounded-b-lg;
+    @apply border-gray-200;
   }
 }
 </style>

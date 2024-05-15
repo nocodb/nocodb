@@ -1,25 +1,6 @@
 <script setup lang="ts">
 import type { TableType } from 'nocodb-sdk'
 import type { ComponentPublicInstance } from '@vue/runtime-core'
-import {
-  Form,
-  computed,
-  extractSdkResponseErrorMsg,
-  message,
-  nextTick,
-  reactive,
-  storeToRefs,
-  useBase,
-  useCommandPalette,
-  useMetas,
-  useNuxtApp,
-  useTablesStore,
-  useTabs,
-  useUndoRedo,
-  useVModel,
-  validateTableName,
-  watchEffect,
-} from '#imports'
 
 interface Props {
   modelValue?: boolean

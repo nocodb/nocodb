@@ -2,28 +2,6 @@ import type { AuditType, ColumnType, TableType } from 'nocodb-sdk'
 import { UITypes, ViewTypes, isVirtualCol } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import dayjs from 'dayjs'
-import {
-  IsPublicInj,
-  NOCO,
-  type Row,
-  computed,
-  extractPkFromRow,
-  extractSdkResponseErrorMsg,
-  message,
-  populateInsertObject,
-  ref,
-  storeToRefs,
-  useApi,
-  useBase,
-  useI18n,
-  useInjectionState,
-  useKanbanViewStoreOrThrow,
-  useMetas,
-  useNuxtApp,
-  useProvideSmartsheetRowStore,
-  useSharedView,
-  useUndoRedo,
-} from '#imports'
 
 const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((meta: Ref<TableType>, _row: Ref<Row>) => {
   const { $e, $state, $api } = useNuxtApp()
@@ -51,7 +29,10 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
   const { sharedView } = useSharedView()
 
   const row = ref<Row>(
-    sharedView.value?.type === ViewTypes.GALLERY || sharedView.value?.type === ViewTypes.KANBAN || _row.value.rowMeta.new
+    !sharedView.value ||
+      sharedView.value?.type === ViewTypes.GALLERY ||
+      sharedView.value?.type === ViewTypes.KANBAN ||
+      _row.value.rowMeta.new
       ? _row.value
       : ({ row: {}, oldRow: {}, rowMeta: {} } as Row),
   )
@@ -174,129 +155,125 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     } = {},
   ) => {
     let data
-    try {
-      const isNewRow = row.value.rowMeta?.new ?? false
 
-      if (isNewRow) {
-        const { getMeta } = useMetas()
+    const isNewRow = row.value.rowMeta?.new ?? false
 
-        const { missingRequiredColumns, insertObj } = await populateInsertObject({
-          meta: meta.value,
-          ltarState,
-          getMeta,
-          row: row.value.row,
-          throwError: true,
+    if (isNewRow) {
+      const { getMeta } = useMetas()
+
+      const { missingRequiredColumns, insertObj } = await populateInsertObject({
+        meta: meta.value,
+        ltarState,
+        getMeta,
+        row: row.value.row,
+        throwError: true,
+      })
+
+      if (missingRequiredColumns.size) return
+
+      data = await $api.dbTableRow.create('noco', base.value.id as string, meta.value.id, {
+        ...insertObj,
+        ...(ltarState || {}),
+      })
+
+      Object.assign(row.value, {
+        row: data,
+        rowMeta: {},
+        oldRow: { ...data },
+      })
+
+      if (!undo) {
+        const id = extractPkFromRow(data, meta.value?.columns as ColumnType[])
+        const pkData = rowPkData(row.value.row, meta.value?.columns as ColumnType[])
+
+        // TODO remove linked record
+        addUndo({
+          redo: {
+            fn: async (rowData: any) => {
+              await $api.dbTableRow.create('noco', base.value.id as string, meta.value.id, { ...pkData, ...rowData })
+              await loadKanbanData()
+              reloadTrigger?.trigger()
+            },
+            args: [clone(insertObj)],
+          },
+          undo: {
+            fn: async (id: string) => {
+              const res: any = await $api.dbViewRow.delete(
+                'noco',
+                base.value.id as string,
+                meta.value?.id as string,
+                activeView.value?.id as string,
+                encodeURIComponent(id),
+              )
+              if (res.message) {
+                throw new Error(res.message)
+              }
+
+              await loadKanbanData()
+              reloadTrigger?.trigger()
+            },
+            args: [id],
+          },
+          scope: defineViewScope({ view: activeView.value }),
         })
+      }
+    } else {
+      const updateOrInsertObj = [...changedColumns.value].reduce((obj, col) => {
+        obj[col] = row.value.row[col]
+        return obj
+      }, {} as Record<string, any>)
+      if (Object.keys(updateOrInsertObj).length) {
+        const id = extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
 
-        if (missingRequiredColumns.size) return
+        if (!id) {
+          return message.info("Update not allowed for table which doesn't have primary Key")
+        }
 
-        data = await $api.dbTableRow.create('noco', base.value.id as string, meta.value.id, {
-          ...insertObj,
-          ...(ltarState || {}),
-        })
-
-        Object.assign(row.value, {
-          row: data,
-          rowMeta: {},
-          oldRow: { ...data },
-        })
+        await $api.dbTableRow.update(NOCO, base.value.id as string, meta.value.id, encodeURIComponent(id), updateOrInsertObj)
 
         if (!undo) {
-          const id = extractPkFromRow(data, meta.value?.columns as ColumnType[])
-          const pkData = rowPkData(row.value.row, meta.value?.columns as ColumnType[])
+          const undoObject = [...changedColumns.value].reduce((obj, col) => {
+            obj[col] = row.value.oldRow[col]
+            return obj
+          }, {} as Record<string, any>)
 
-          // TODO remove linked record
           addUndo({
             redo: {
-              fn: async (rowData: any) => {
-                await $api.dbTableRow.create('noco', base.value.id as string, meta.value.id, { ...pkData, ...rowData })
+              fn: async (id: string, data: Record<string, any>) => {
+                await $api.dbTableRow.update(NOCO, base.value.id as string, meta.value.id, encodeURIComponent(id), data)
                 await loadKanbanData()
+
                 reloadTrigger?.trigger()
               },
-              args: [clone(insertObj)],
+              args: [id, clone(updateOrInsertObj)],
             },
             undo: {
-              fn: async (id: string) => {
-                const res: any = await $api.dbViewRow.delete(
-                  'noco',
-                  base.value.id as string,
-                  meta.value?.id as string,
-                  activeView.value?.id as string,
-                  encodeURIComponent(id),
-                )
-                if (res.message) {
-                  throw new Error(res.message)
-                }
-
+              fn: async (id: string, data: Record<string, any>) => {
+                await $api.dbTableRow.update(NOCO, base.value.id as string, meta.value.id, encodeURIComponent(id), data)
                 await loadKanbanData()
                 reloadTrigger?.trigger()
               },
-              args: [id],
+              args: [id, clone(undoObject)],
             },
             scope: defineViewScope({ view: activeView.value }),
           })
         }
-      } else {
-        const updateOrInsertObj = [...changedColumns.value].reduce((obj, col) => {
-          obj[col] = row.value.row[col]
-          return obj
-        }, {} as Record<string, any>)
-        if (Object.keys(updateOrInsertObj).length) {
-          const id = extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
 
-          if (!id) {
-            return message.info("Update not allowed for table which doesn't have primary Key")
-          }
-
-          await $api.dbTableRow.update(NOCO, base.value.id as string, meta.value.id, encodeURIComponent(id), updateOrInsertObj)
-
-          if (!undo) {
-            const undoObject = [...changedColumns.value].reduce((obj, col) => {
-              obj[col] = row.value.oldRow[col]
-              return obj
-            }, {} as Record<string, any>)
-
-            addUndo({
-              redo: {
-                fn: async (id: string, data: Record<string, any>) => {
-                  await $api.dbTableRow.update(NOCO, base.value.id as string, meta.value.id, encodeURIComponent(id), data)
-                  await loadKanbanData()
-
-                  reloadTrigger?.trigger()
-                },
-                args: [id, clone(updateOrInsertObj)],
-              },
-              undo: {
-                fn: async (id: string, data: Record<string, any>) => {
-                  await $api.dbTableRow.update(NOCO, base.value.id as string, meta.value.id, encodeURIComponent(id), data)
-                  await loadKanbanData()
-                  reloadTrigger?.trigger()
-                },
-                args: [id, clone(undoObject)],
-              },
-              scope: defineViewScope({ view: activeView.value }),
-            })
-          }
-
-          if (commentsDrawer.value) {
-            await loadCommentsAndLogs()
-          }
-        } else {
-          // No columns to update
-          message.info(t('msg.info.noColumnsToUpdate'))
-          return
+        if (commentsDrawer.value) {
+          await loadCommentsAndLogs()
         }
+      } else {
+        // No columns to update
+        message.info(t('msg.info.noColumnsToUpdate'))
+        return
       }
-
-      if (activeView.value?.type === ViewTypes.KANBAN && kanbanClbk) {
-        kanbanClbk(row.value, isNewRow)
-      }
-
-      changedColumns.value = new Set()
-    } catch (e: any) {
-      console.error(e)
-      message.error(`${t('msg.error.rowUpdateFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
     }
+
+    if (activeView.value?.type === ViewTypes.KANBAN && kanbanClbk) {
+      kanbanClbk(row.value, isNewRow)
+    }
+
+    changedColumns.value = new Set()
     $e('a:row-expand:add')
     return data
   }
@@ -305,7 +282,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     changedColumns.value = new Set()
   }
 
-  const loadRow = async (rowId?: string, onlyVirtual = false) => {
+  const loadRow = async (rowId?: string, onlyVirtual = false, onlyNewColumns = false) => {
     if (row.value.rowMeta.new) return
 
     if (isPublic.value || !meta.value?.id) return
@@ -331,6 +308,18 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
           return partialRecord
         }, {} as Record<string, any>),
       }
+    }
+
+    // update only new/duplicated/renamed columns value if `onlyNewColumns` is true
+    if (onlyNewColumns) {
+      record = Object.keys(record).reduce((acc, curr) => {
+        if (!Object.prototype.hasOwnProperty.call(row.value.row, curr)) {
+          acc[curr] = record[curr]
+        } else {
+          acc[curr] = row.value.row[curr]
+        }
+        return acc
+      }, {} as Record<string, any>)
     }
 
     Object.assign(row.value, {

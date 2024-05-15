@@ -1,8 +1,6 @@
 <!-- File not in use for now -->
 
 <script setup lang="ts">
-import { precisions, useVModel } from '#imports'
-
 const props = defineProps<{
   value: any
 }>()

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ModelTypes, MssqlUi, RelationTypes, SqliteUi, UITypes } from 'nocodb-sdk'
-import { MetaInj, inject, ref, storeToRefs, useBase, useVModel } from '#imports'
 import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
 import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
 

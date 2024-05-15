@@ -531,19 +531,15 @@ export class DatabricksUi {
     }
   }
 
-  static getDataTypeForUiType(col: { uidt: UITypes; }, idType?: IDType) {
+  static getDataTypeForUiType(col: { uidt: UITypes; }) {
     const colProp: any = {};
     switch (col.uidt) {
       case 'ID':
         {
-          const isAutoIncId = idType === 'AI';
-          const isAutoGenId = idType === 'AG';
-          colProp.dt = isAutoGenId ? 'varchar' : 'integer';
+          colProp.dt = 'string';
           colProp.pk = true;
-          colProp.un = isAutoIncId;
-          colProp.ai = isAutoIncId;
           colProp.rqd = true;
-          colProp.meta = isAutoGenId ? { ag: 'nc' } : undefined;
+          colProp.meta = { ag: 'nc' };
         }
         break;
       case 'ForeignKey':

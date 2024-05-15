@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import type { BaseType } from 'nocodb-sdk'
-import { iconMap, navigateTo, useColors, useNuxtApp } from '#imports'
 
 interface Props {
   bases?: BaseType[]

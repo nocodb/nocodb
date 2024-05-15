@@ -2,7 +2,6 @@
 import { onKeyDown, useEventListener } from '@vueuse/core'
 import { useAttachmentCell } from './utils'
 import { useSortable } from './sort'
-import { iconMap, isImage, ref, useAttachment, useDropZone, useRoles, watch } from '#imports'
 
 const { isUIAllowed } = useRoles()
 
@@ -170,7 +169,7 @@ const handleFileDelete = (i: number) => {
               <LazyCellAttachmentImage
                 v-if="isImage(item.title, item.mimetype)"
                 :srcs="getPossibleAttachmentSrc(item)"
-                class="object-cover h-64 m-auto justify-center"
+                class="max-h-full h-64 m-auto justify-center"
                 @click.stop="onClick(item)"
               />
 

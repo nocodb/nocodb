@@ -1,55 +1,7 @@
 <script lang="ts" setup>
 import type { ColumnType } from 'nocodb-sdk'
 import { isSystemColumn } from 'nocodb-sdk'
-import {
-  ActiveCellInj,
-  ColumnInj,
-  EditColumnInj,
-  EditModeInj,
-  IsExpandedFormOpenInj,
-  IsFormInj,
-  IsPublicInj,
-  IsSurveyFormInj,
-  NavigateDir,
-  ReadonlyInj,
-  computed,
-  inject,
-  isAttachment,
-  isAutoSaved,
-  isBoolean,
-  isCurrency,
-  isDate,
-  isDateTime,
-  isDecimal,
-  isDuration,
-  isEmail,
-  isFloat,
-  isGeoData,
-  isInt,
-  isJSON,
-  isManualSaved,
-  isMultiSelect,
-  isNumericFieldType,
-  isPercent,
-  isPhoneNumber,
-  isPrimary,
-  isPrimaryKey,
-  isRating,
-  isSingleSelect,
-  isString,
-  isTextArea,
-  isTime,
-  isURL,
-  isUser,
-  isYear,
-  provide,
-  ref,
-  storeToRefs,
-  toRef,
-  useBase,
-  useDebounceFn,
-  useSmartsheetRowStoreOrThrow,
-} from '#imports'
+import { NavigateDir } from '#imports'
 
 interface Props {
   column: ColumnType
@@ -133,7 +85,7 @@ const vModel = computed({
     } else if (val !== props.modelValue) {
       currentRow.value.rowMeta.changed = true
       emit('update:modelValue', val)
-      if (column.value.pk) {
+      if (column.value.pk || column.value.unique) {
         updateWhenEditCompleted()
       } else if (isAutoSaved(column.value)) {
         syncValue()

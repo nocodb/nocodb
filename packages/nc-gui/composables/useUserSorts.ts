@@ -1,7 +1,6 @@
 import rfdc from 'rfdc'
 import { OrderedOrgRoles, OrderedProjectRoles, OrderedWorkspaceRoles } from 'nocodb-sdk'
-import type { UsersSortType } from '~/lib'
-import { useGlobal } from '#imports'
+import type { UsersSortType } from '~/lib/types'
 
 /**
  * Hook for managing user sorts and sort configurations.
@@ -137,6 +136,15 @@ export function useUserSorts(roleType: 'Workspace' | 'Org' | 'Project' | 'Organi
             return a[sortsConfig.field]?.localeCompare(b[sortsConfig.field])
           } else {
             return b[sortsConfig.field]?.localeCompare(a[sortsConfig.field])
+          }
+        }
+        case 'baseCount':
+        case 'workspaceCount':
+        case 'memberCount': {
+          if (sortsConfig.direction === 'asc') {
+            return a[sortsConfig.field] - b[sortsConfig.field]
+          } else {
+            return b[sortsConfig.field] - a[sortsConfig.field]
           }
         }
       }

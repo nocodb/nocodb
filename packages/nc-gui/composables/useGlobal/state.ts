@@ -1,18 +1,6 @@
 import { useStorage } from '@vueuse/core'
 import type { JwtPayload } from 'jwt-decode'
 import type { AppInfo, State, StoredState } from './types'
-import {
-  BASE_FALLBACK_URL,
-  computed,
-  ref,
-  toRefs,
-  useCounter,
-  useJwt,
-  useNuxtApp,
-  usePreferredLanguages,
-  useTimestamp,
-} from '#imports'
-import type { Language, User } from '#imports'
 
 export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
   /** get the preferred languages of a user, according to browser settings */

@@ -23351,7 +23351,9 @@
             "description": "Sort direction",
             "enum": [
               "asc",
-              "desc"
+              "desc",
+              "count-desc",
+              "count-asc"
             ],
             "example": "desc"
           },

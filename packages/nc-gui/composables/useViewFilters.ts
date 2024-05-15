@@ -9,34 +9,18 @@ import {
 import type { ComputedRef, Ref } from 'vue'
 import type { SelectProps } from 'ant-design-vue'
 import { UITypes, isSystemColumn } from 'nocodb-sdk'
-import {
-  ActiveViewInj,
-  IsPublicInj,
-  MetaInj,
-  computed,
-  extractSdkResponseErrorMsg,
-  inject,
-  message,
-  ref,
-  storeToRefs,
-  useBase,
-  useDebounceFn,
-  useMetas,
-  useNuxtApp,
-  useRoles,
-  watch,
-} from '#imports'
-import type { Filter, UndoRedoAction } from '#imports'
 
 export function useViewFilters(
   view: Ref<ViewType | undefined>,
-  parentId?: string,
+  _parentId: Ref<string | null> | null | string,
   autoApply?: ComputedRef<boolean>,
   reloadData?: () => void,
   _currentFilters?: Filter[],
   isNestedRoot?: boolean,
   isWebhook?: boolean,
 ) {
+  const parentId = ref(_parentId)
+
   const currentFilters = ref(_currentFilters)
 
   const btLookupTypesMap = ref({})
@@ -206,7 +190,17 @@ export function useViewFilters(
       )?.[0].value as FilterType['comparison_op'],
       value: '',
       status: 'create',
-      logical_op: logicalOps.size === 1 ? logicalOps.values().next().value :'and' ,
+      logical_op: logicalOps.size === 1 ? logicalOps.values().next().value : 'and',
+    }
+  }
+
+  const placeholderGroupFilter = (): Filter => {
+    const logicalOps = new Set(filters.value.slice(1).map((filter) => filter.logical_op))
+
+    return {
+      is_group: true,
+      status: 'create',
+      logical_op: logicalOps.size === 1 ? logicalOps.values().next().value : 'and',
     }
   }
 
@@ -248,14 +242,14 @@ export function useViewFilters(
 
     try {
       if (isWebhook || hookId) {
-        if (parentId) {
-          filters.value = (await $api.dbTableFilter.childrenRead(parentId)).list as Filter[]
+        if (parentId.value) {
+          filters.value = (await $api.dbTableFilter.childrenRead(parentId.value)).list as Filter[]
         } else if (hookId) {
           filters.value = (await $api.dbTableWebhookFilter.read(hookId)).list as Filter[]
         }
       } else {
-        if (parentId) {
-          filters.value = (await $api.dbTableFilter.childrenRead(parentId)).list as Filter[]
+        if (parentId.value) {
+          filters.value = (await $api.dbTableFilter.childrenRead(parentId.value)).list as Filter[]
         } else {
           filters.value = (await $api.dbTableFilter.read(view.value!.id!)).list as Filter[]
           if (loadAllFilters) {
@@ -283,20 +277,24 @@ export function useViewFilters(
         } else if (filter.status === 'update') {
           await $api.dbTableFilter.update(filter.id as string, {
             ...filter,
-            fk_parent_id: parentId,
+            fk_parent_id: parentId.value,
           })
         } else if (filter.status === 'create') {
+          // extract children value if found to restore
+          const children = filters.value[+i]?.children
           if (hookId) {
             filters.value[+i] = (await $api.dbTableWebhookFilter.create(hookId, {
               ...filter,
-              fk_parent_id: parentId,
+              fk_parent_id: parentId.value,
             })) as unknown as FilterType
           } else {
             filters.value[+i] = await $api.dbTableFilter.create(view?.value?.id as string, {
               ...filter,
-              fk_parent_id: parentId,
+              fk_parent_id: parentId.value,
             })
           }
+
+          if (children) filters.value[+i].children = children
 
           allFilters.value.push(filters.value[+i])
         }
@@ -353,7 +351,7 @@ export function useViewFilters(
       } else if (filter.id && filter.status !== 'create') {
         await $api.dbTableFilter.update(filter.id, {
           ...filter,
-          fk_parent_id: parentId,
+          fk_parent_id: parentId.value,
         })
         $e('a:filter:update', {
           logical: filter.logical_op,
@@ -362,7 +360,7 @@ export function useViewFilters(
       } else {
         filters.value[i] = await $api.dbTableFilter.create(view.value.id!, {
           ...filter,
-          fk_parent_id: parentId,
+          fk_parent_id: parentId.value,
         })
 
         allFilters.value.push(filters.value[+i])
@@ -482,11 +480,7 @@ export function useViewFilters(
   const addFilterGroup = async () => {
     const child = placeholderFilter()
 
-    const placeHolderGroupFilter: Filter = {
-      is_group: true,
-      status: 'create',
-      logical_op: 'and',
-    }
+    const placeHolderGroupFilter: Filter = placeholderGroupFilter()
 
     if (nestedMode.value) placeHolderGroupFilter.children = [child]
 
@@ -494,7 +488,7 @@ export function useViewFilters(
 
     const index = filters.value.length - 1
 
-    await saveOrUpdate(filters.value[index], index, true)
+    await saveOrUpdate(filters.value[index], index)
 
     lastFilters.value = clone(filters.value)
 

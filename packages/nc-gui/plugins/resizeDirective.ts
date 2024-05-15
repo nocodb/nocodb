@@ -1,5 +1,3 @@
-import { defineNuxtPlugin, getCurrentInstance } from '#imports'
-
 export default defineNuxtPlugin((nuxtApp) => {
   nuxtApp.vueApp.directive('xc-ver-resize', {
     created: (el: Element) => {

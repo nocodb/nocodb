@@ -1,16 +1,5 @@
 <script setup lang="ts">
 import type { ApiTokenType } from 'nocodb-sdk'
-import {
-  extractSdkResponseErrorMsg,
-  iconMap,
-  message,
-  onMounted,
-  storeToRefs,
-  useBase,
-  useCopy,
-  useI18n,
-  useNuxtApp,
-} from '#imports'
 
 interface ApiToken extends ApiTokenType {
   show?: boolean

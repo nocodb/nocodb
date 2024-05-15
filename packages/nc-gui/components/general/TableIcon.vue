@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import type { TableType } from 'nocodb-sdk'
-import { iconMap } from '#imports'
 
 const { meta: tableMeta } = defineProps<{
   meta: TableType

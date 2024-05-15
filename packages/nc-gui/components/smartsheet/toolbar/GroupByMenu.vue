@@ -1,20 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
-import {
-  ActiveViewInj,
-  IsLockedInj,
-  MetaInj,
-  computed,
-  getSortDirectionOptions,
-  inject,
-  ref,
-  useMenuCloseOnEsc,
-  useNuxtApp,
-  useSmartsheetStoreOrThrow,
-  useViewColumnsOrThrow,
-  watch,
-} from '#imports'
 
 const meta = inject(MetaInj, ref())
 const view = inject(ActiveViewInj, ref())
@@ -178,18 +164,25 @@ eventBus.on(async (event, column) => {
     overlay-class-name="nc-dropdown-group-by-menu nc-toolbar-dropdown overflow-hidden"
   >
     <div :class="{ 'nc-active-btn': groupedByColumnIds?.length }">
-      <a-button v-e="['c:group-by']" class="nc-group-by-menu-btn nc-toolbar-btn" :disabled="isLocked">
-        <div class="flex items-center gap-2">
-          <component :is="iconMap.group" class="h-4 w-4" />
+      <NcButton
+        v-e="['c:group-by']"
+        :disabled="isLocked"
+        class="nc-group-by-menu-btn nc-toolbar-btn !border-0 !h-7"
+        size="small"
+        type="secondary"
+      >
+        <div class="flex items-center gap-1">
+          <div class="flex items-center gap-2">
+            <component :is="iconMap.group" class="h-4 w-4" />
 
-          <!-- Group By -->
-          <span v-if="!isMobileMode" class="text-capitalize !text-sm font-medium">{{ $t('activity.group') }}</span>
-
+            <!-- Group By -->
+            <span v-if="!isMobileMode" class="text-capitalize !text-[13px] font-medium">{{ $t('activity.group') }}</span>
+          </div>
           <span v-if="groupedByColumnIds?.length" class="bg-brand-50 text-brand-500 py-1 px-2 text-md rounded-md">{{
             groupedByColumnIds.length
           }}</span>
         </div>
-      </a-button>
+      </NcButton>
     </div>
     <template #overlay>
       <SmartsheetToolbarCreateGroupBy
@@ -224,7 +217,7 @@ eventBus.on(async (event, column) => {
               @click.stop
             >
               <a-select-option
-                v-for="(option, j) of getSortDirectionOptions(getColumnUidtByID(group.fk_column_id))"
+                v-for="(option, j) of getSortDirectionOptions(getColumnUidtByID(group.fk_column_id), true)"
                 :key="j"
                 :value="option.value"
               >

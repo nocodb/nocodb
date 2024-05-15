@@ -74,6 +74,7 @@ import Record from '~icons/nc-icons/record'
 import Project from '~icons/nc-icons/project'
 import LookupIcon from '~icons/nc-icons/lookup'
 import FileImageIcon from '~icons/nc-icons/file-image'
+import Calendar from '~icons/lucide/calendar'
 
 import PhUsers from '~icons/ph/users'
 import PhUser from '~icons/ph/user'
@@ -184,6 +185,9 @@ import NcTwitter from '~icons/nc-icons/twitter'
 import NcFile from '~icons/nc-icons/file'
 import NcSettings from '~icons/nc-icons/settings'
 import NcHelp from '~icons/nc-icons/help'
+import NcAlertTriangle from '~icons/nc-icons/alert-triangle'
+import NcAudit from '~icons/nc-icons/audit'
+import NcMessageCircle from '~icons/nc-icons/message-circle'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -386,6 +390,7 @@ export const iconMap = {
   workspaceDefault: MsGroup,
   project: Project,
   search: NcSearch,
+  calendar: Calendar,
   error: h('span', { class: 'material-symbols' }, 'error'),
   info: h(MsInfo, {}, () => 'info'),
   inbox: h('span', { class: 'material-symbols' }, 'inbox'),
@@ -490,7 +495,6 @@ export const iconMap = {
   web: h('span', { class: 'material-symbols' }, 'web'),
   webhook: h('span', { class: 'material-symbols' }, 'webhook'),
   boolean: h('span', { class: 'material-symbols' }, 'check_box'),
-  calendar: h('span', { class: 'material-symbols' }, 'event_note'),
   singleSelect: h('span', { class: 'material-symbols' }, 'radio_button_checked'),
   multiSelect: h('span', { class: 'material-symbols' }, 'check_box_outline_blank'),
   datetime: h('span', { class: 'material-symbols' }, 'date_range'),
@@ -601,6 +605,9 @@ export const iconMap = {
   puzzle: MdiPuzzle,
   arrowDropUp: MaterialSymbolsArrowDropUp,
   arrowDropDown: MaterialSymbolsArrowDropDown,
+  alertTriangle: NcAlertTriangle,
+  audit: NcAudit,
+  messageCircle: NcMessageCircle,
 }
 
 export const getMdiIcon = (type: string): any => {

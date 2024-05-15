@@ -2,18 +2,6 @@
 import { FormulaDataTypes, handleTZ } from 'nocodb-sdk'
 import type { ColumnType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import {
-  CellValueInj,
-  ColumnInj,
-  IsExpandedFormOpenInj,
-  computed,
-  inject,
-  ref,
-  renderValue,
-  replaceUrlsWithLink,
-  useBase,
-  useShowNotEditableWarning,
-} from '#imports'
 
 // todo: column type doesn't have required property `error` - throws in typecheck
 const column = inject(ColumnInj) as Ref<ColumnType & { colOptions: { error: any } }>

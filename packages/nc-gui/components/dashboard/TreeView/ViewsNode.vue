@@ -2,18 +2,7 @@
 import type { VNodeRef } from '@vue/runtime-core'
 import type { TableType, ViewType, ViewTypes } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
-import {
-  IsLockedInj,
-  isDefaultBase as _isDefaultBase,
-  inject,
-  message,
-  onKeyStroke,
-  useDebounceFn,
-  useMagicKeys,
-  useNuxtApp,
-  useRoles,
-  useVModel,
-} from '#imports'
+import { isDefaultBase as _isDefaultBase } from '#imports'
 
 interface Props {
   view: ViewType
@@ -64,6 +53,8 @@ provide(MetaInj, injectedTable)
 const isLocked = inject(IsLockedInj, ref(false))
 
 const isDefaultBase = computed(() => {
+  if (base.value?.sources?.length === 1) return true
+
   const source = base.value?.sources?.find((b) => b.id === vModel.value.source_id)
   if (!source) return false
 
@@ -219,7 +210,7 @@ watch(isDropdownOpen, async () => {
 
 <template>
   <a-menu-item
-    class="nc-sidebar-node !min-h-7 !max-h-7 !mb-0.25 select-none group text-gray-700 !flex !items-center !mt-0 hover:(!bg-gray-200 !text-gray-900) cursor-pointer"
+    class="nc-sidebar-node !min-h-7 !max-h-7 !my-0.5 select-none group text-gray-700 !flex !items-center hover:(!bg-gray-200 !text-gray-700) cursor-pointer"
     :class="{
       '!pl-13.5 !xs:(pl-12)': isDefaultBase,
       '!pl-19 ': !isDefaultBase,
@@ -243,7 +234,7 @@ watch(isDropdownOpen, async () => {
           @emoji-selected="emits('selectIcon', $event)"
         >
           <template #default>
-            <GeneralViewIcon :meta="props.view" class="nc-view-icon"></GeneralViewIcon>
+            <GeneralViewIcon :meta="props.view" class="nc-view-icon w-4 !text-[16px]"></GeneralViewIcon>
           </template>
         </LazyGeneralEmojiPicker>
       </div>
@@ -254,7 +245,7 @@ watch(isDropdownOpen, async () => {
         v-model:value="_title"
         class="!bg-transparent !border-0 !ring-0 !outline-transparent !border-transparent !pl-0 !flex-1 mr-4"
         :class="{
-          'font-medium': activeView?.id === vModel.id,
+          'font-medium !text-brand-600': activeView?.id === vModel.id,
         }"
         @blur="onRename"
         @keydown.stop="onKeyDown($event)"
@@ -264,7 +255,7 @@ watch(isDropdownOpen, async () => {
         <div
           data-testid="sidebar-view-title"
           :class="{
-            'font-medium': activeView?.id === vModel.id,
+            'font-medium text-brand-600': activeView?.id === vModel.id,
           }"
           :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
         >

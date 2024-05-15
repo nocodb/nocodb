@@ -11,27 +11,6 @@ import {
   validateFormulaAndExtractTreeWithType,
 } from 'nocodb-sdk'
 import type { ColumnType, FormulaType } from 'nocodb-sdk'
-import {
-  MetaInj,
-  NcAutocompleteTree,
-  computed,
-  formulaList,
-  formulas,
-  getUIDTIcon,
-  getWordUntilCaret,
-  iconMap,
-  inject,
-  insertAtCursor,
-  nextTick,
-  onMounted,
-  ref,
-  useColumnCreateStoreOrThrow,
-  useDebounceFn,
-  useI18n,
-  useMetas,
-  useNocoEe,
-  useVModel,
-} from '#imports'
 
 const props = defineProps<{
   value: any

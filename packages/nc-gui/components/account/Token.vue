@@ -2,7 +2,6 @@
 import type { VNodeRef } from '@vue/runtime-core'
 import { message } from 'ant-design-vue'
 import type { ApiTokenType, RequestParams } from 'nocodb-sdk'
-import { extractSdkResponseErrorMsg, isEeUI, ref, useApi, useCopy, useNuxtApp } from '#imports'
 import { extractNextDefaultName } from '~/helpers/parsers/parserHelpers'
 
 const { api, isLoading } = useApi()

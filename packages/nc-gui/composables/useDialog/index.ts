@@ -3,7 +3,6 @@ import { Suspense, isVNode, render } from '@vue/runtime-dom'
 import type { ComponentPublicInstance } from '@vue/runtime-core'
 import type { MaybeRef } from '@vueuse/core'
 import { isClient } from '@vueuse/core'
-import { createEventHook, h, ref, toReactive, tryOnScopeDispose, unref, useNuxtApp, watch } from '#imports'
 
 interface UseDialogOptions {
   target: MaybeRef<HTMLElement | ComponentPublicInstance>
@@ -19,7 +18,7 @@ interface UseDialogOptions {
  * @param options Additional options to use {@see UseDialogOptions}
  *
  * @example
- * import { useDialog } from '#imports'
+ *
  * import DlgQuickImport from '~/components/dlg/QuickImport.vue'
  *
  * function openQuickImportDialog(type: string) {

@@ -5,24 +5,6 @@ import Draggable from 'vuedraggable'
 
 import type { SelectProps } from 'ant-design-vue'
 
-import {
-  ActiveViewInj,
-  FieldsInj,
-  IsLockedInj,
-  IsPublicInj,
-  computed,
-  iconMap,
-  inject,
-  ref,
-  resolveComponent,
-  useMenuCloseOnEsc,
-  useNuxtApp,
-  useSmartsheetStoreOrThrow,
-  useUndoRedo,
-  useViewColumnsOrThrow,
-  watch,
-} from '#imports'
-
 const activeView = inject(ActiveViewInj, ref())
 
 const reloadViewMetaHook = inject(ReloadViewMetaHookInj, undefined)!
@@ -133,9 +115,6 @@ const onMove = async (_event: { moved: { newIndex: number; oldIndex: number } },
     )
 
     await loadViewColumns()
-    await reloadViewDataHook?.trigger({
-      shouldShowLoading: false,
-    })
 
     $e('a:fields:reorder')
   } catch (e) {
@@ -332,29 +311,37 @@ useMenuCloseOnEsc(open)
     overlay-class-name="nc-dropdown-fields-menu nc-toolbar-dropdown"
   >
     <div :class="{ 'nc-active-btn': numberOfHiddenFields }">
-      <a-button v-e="['c:fields']" :disabled="isLocked" class="nc-fields-menu-btn nc-toolbar-btn">
-        <div class="flex items-center gap-2">
-          <GeneralIcon
-            v-if="activeView?.type === ViewTypes.KANBAN || activeView?.type === ViewTypes.GALLERY"
-            class="h-4 w-4"
-            icon="creditCard"
-          />
-          <component :is="iconMap.fields" v-else class="h-4 w-4" />
+      <NcButton
+        v-e="['c:fields']"
+        :disabled="isLocked"
+        class="nc-fields-menu-btn nc-toolbar-btn !h-7 !border-0"
+        size="small"
+        type="secondary"
+      >
+        <div class="flex items-center gap-1">
+          <div class="flex items-center gap-2">
+            <GeneralIcon
+              v-if="activeView?.type === ViewTypes.KANBAN || activeView?.type === ViewTypes.GALLERY"
+              class="h-4 w-4"
+              icon="creditCard"
+            />
+            <component :is="iconMap.fields" v-else class="h-4 w-4" />
 
-          <!-- Fields -->
-          <span v-if="!isMobileMode" class="text-capitalize text-sm font-medium">
-            <template v-if="activeView?.type === ViewTypes.KANBAN || activeView?.type === ViewTypes.GALLERY">
-              {{ $t('title.editCards') }}
-            </template>
-            <template v-else>
-              {{ $t('objects.fields') }}
-            </template>
-          </span>
+            <!-- Fields -->
+            <span v-if="!isMobileMode" class="text-capitalize !text-[13px] font-medium">
+              <template v-if="activeView?.type === ViewTypes.KANBAN || activeView?.type === ViewTypes.GALLERY">
+                {{ $t('title.editCards') }}
+              </template>
+              <template v-else>
+                {{ $t('objects.fields') }}
+              </template>
+            </span>
+          </div>
           <span v-if="numberOfHiddenFields" class="bg-brand-50 text-brand-500 py-1 px-2 text-md rounded-md">
             {{ numberOfHiddenFields }}
           </span>
         </div>
-      </a-button>
+      </NcButton>
     </div>
 
     <template #overlay>

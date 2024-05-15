@@ -1,8 +1,6 @@
 <script lang="ts" setup>
 import OnetoOneIcon from '~icons/nc-icons/onetoone'
 
-import { iconMap } from '#imports'
-
 const {
   relation,
   relatedTableTitle,

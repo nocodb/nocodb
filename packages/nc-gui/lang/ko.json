@@ -162,6 +162,7 @@
     "insertAbove": "Insert above",
     "insertBelow": "Insert below",
     "hideField": "필드 숨기기",
+    "showField": "Show Field",
     "sortAsc": "오름차순 정렬",
     "sortDesc": "내림차순 정렬",
     "move": "이동",
@@ -447,6 +448,8 @@
     "noResultsMatchedYourSearch": "Your search did not yield any matching results."
   },
   "labels": {
+    "today": "Today",
+    "workspace": "Workspace",
     "txt": "TXT Record value",
     "transferOwnership": "Transfer Ownership",
     "recentActivity": "Recent Activity",
@@ -714,6 +717,7 @@
     "hasMany": "많이",
     "belongsTo": "속해있다",
     "manyToMany": "다대다 관계",
+    "oneToOne": "have one to one relation",
     "extraConnectionParameters": "추가 연결 매개 변수",
     "commentsOnly": "댓글 만",
     "documentation": "문서",
@@ -941,6 +945,7 @@
     "importZip": "zip 파일 가져오기",
     "metaSync": "지금 동기화",
     "settings": "설정",
+    "validations": "Validations",
     "previewAs": "미리보기",
     "resetReview": "미리보기 재설정",
     "testDbConn": "데이터베이스 연결 테스트",
@@ -1008,7 +1013,7 @@
     "group": "Group"
   },
   "tooltip": {
-    "reachedSourceLimit": "데이터 소스 제한에 도달했습니다.",
+    "reachedSourceLimit": "Limited to 10 data sources per base",
     "saveChanges": "변경 사항 저장",
     "xcDB": "새 프로젝트 생성",
     "extDB": "MySQL, PostgreSQL, SQL Server 및 SQLite 지원",
@@ -1199,6 +1204,7 @@
     "noNewNotifications": "새 알림 없음",
     "noRecordFound": "레코드를 찾을 수 없습니다.",
     "noRecordsFound": "No records found",
+    "noRecordsMatchYourSearchQuery": "No records match your search query",
     "rowDeleted": "행이 삭제되었습니다.",
     "saveChanges": "변경 사항을 저장하시겠습니까?",
     "tooLargeFieldEntity": "{entity}를 저장할 수 없습니다. 필드가 너무 큽니다.",
@@ -1489,7 +1495,7 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "허용되는 파일 형식은 .xls, .xlsx, .xlsm, .ods, .ots입니다",
       "parameterKeyCannotBeEmpty": "매개 변수 키는 비워 둘 수 없습니다.",
       "duplicateParameterKeysAreNotAllowed": "중복 매개 변수 키는 허용되지 않습니다.",
-      "fieldRequired": "{value}은(는) 비워 둘 수 없습니다.",
+      "fieldRequired": "{value} cannot be empty.",
       "projectNotAccessible": "프로젝트에 액세스할 수 없습니다.",
       "copyToClipboardError": "클립 보드에 복사할 수 없습니다.",
       "pasteFromClipboardError": "Failed to paste from clipboard",

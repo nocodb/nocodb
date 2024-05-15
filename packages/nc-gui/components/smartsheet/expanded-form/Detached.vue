@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { useExpandedFormDetached } from '#imports'
-
 const { states, close } = useExpandedFormDetached()
 
 const shouldClose = (isVisible: boolean, i: number) => {

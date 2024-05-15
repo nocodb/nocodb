@@ -4,37 +4,6 @@ import { message } from 'ant-design-vue'
 import { stringifyRolesObj } from 'nocodb-sdk'
 import type { BaseType, SourceType, TableType } from 'nocodb-sdk'
 import { LoadingOutlined } from '@ant-design/icons-vue'
-import {
-  NcProjectType,
-  ProjectInj,
-  ProjectRoleInj,
-  ToggleDialogInj,
-  TreeViewInj,
-  computed,
-  extractSdkResponseErrorMsg,
-  h,
-  inject,
-  navigateTo,
-  navigateToBlankTargetOpenOption,
-  openLink,
-  ref,
-  resolveComponent,
-  storeToRefs,
-  useBase,
-  useBases,
-  useCopy,
-  useDialog,
-  useGlobal,
-  useI18n,
-  useMagicKeys,
-  useNuxtApp,
-  useRoles,
-  useRouter,
-  useTablesStore,
-  useTabs,
-  useToggle,
-} from '#imports'
-import type { NcProject } from '#imports'
 
 const indicator = h(LoadingOutlined, {
   class: '!text-gray-400',
@@ -58,7 +27,9 @@ const basesStore = useBases()
 
 const { isMobileMode } = useGlobal()
 
-const { createProject: _createProject, updateProject, getProjectMetaInfo } = basesStore
+const { api } = useApi()
+
+const { createProject: _createProject, updateProject, getProjectMetaInfo, loadProject } = basesStore
 
 const { bases } = storeToRefs(basesStore)
 
@@ -79,6 +50,16 @@ const { refreshCommandPalette } = useCommandPalette()
 const editMode = ref(false)
 
 const tempTitle = ref('')
+
+const sourceRenameHelpers = ref<
+  Record<
+    string,
+    {
+      editMode: boolean
+      tempTitle: string
+    }
+  >
+>({})
 
 const activeBaseId = ref('')
 
@@ -131,6 +112,52 @@ const enableEditMode = () => {
     input.value?.select()
     input.value?.scrollIntoView()
   })
+}
+
+const enableEditModeForSource = (sourceId: string) => {
+  const source = base.value.sources?.find((s) => s.id === sourceId)
+  if (!source?.id) return
+  sourceRenameHelpers.value[source.id] = {
+    editMode: true,
+    tempTitle: source.alias || '',
+  }
+  nextTick(() => {
+    const input: HTMLInputElement | null = document.querySelector(`[data-source-rename-input-id="${sourceId}"]`)
+    if (!input) return
+    input?.focus()
+    input?.select()
+    input?.scrollIntoView()
+  })
+}
+
+const updateSourceTitle = async (sourceId: string) => {
+  const source = base.value.sources?.find((s) => s.id === sourceId)
+
+  if (!source?.id || !sourceRenameHelpers.value[source.id]) return
+
+  if (sourceRenameHelpers.value[source.id].tempTitle) {
+    sourceRenameHelpers.value[source.id].tempTitle = sourceRenameHelpers.value[source.id].tempTitle.trim()
+  }
+
+  if (!sourceRenameHelpers.value[source.id].tempTitle) return
+
+  try {
+    await api.source.update(source.base_id, source.id, {
+      alias: sourceRenameHelpers.value[source.id].tempTitle,
+    })
+
+    await loadProject(source.base_id, true)
+
+    delete sourceRenameHelpers.value[source.id]
+
+    $e('a:source:rename')
+
+    refreshViewTabTitle?.()
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    refreshCommandPalette()
+  }
 }
 
 const updateProjectTitle = async () => {
@@ -427,7 +454,7 @@ const onTableIdCopy = async () => {
       :data-testid="`nc-sidebar-base-${base.title}`"
       :data-base-id="base.id"
     >
-      <div class="flex items-center gap-0.75 py-0.25 cursor-pointer" @contextmenu="setMenuContext('base', base)">
+      <div class="flex items-center gap-0.75 py-0.5 cursor-pointer" @contextmenu="setMenuContext('base', base)">
         <div
           ref="baseNodeRefs"
           :class="{
@@ -435,7 +462,7 @@ const onTableIdCopy = async () => {
             'hover:bg-gray-200': !(activeProjectId === base.id && baseViewOpen),
           }"
           :data-testid="`nc-sidebar-base-title-${base.title}`"
-          class="nc-sidebar-node base-title-node h-7.25 flex-grow rounded-md group flex items-center w-full pr-1 pl-1.5"
+          class="nc-sidebar-node base-title-node h-7 flex-grow rounded-md group flex items-center w-full pr-1 pl-1.5"
         >
           <div class="flex items-center mr-1" @click="onProjectClick(base)">
             <div class="flex items-center select-none w-6 h-full">
@@ -460,7 +487,7 @@ const onTableIdCopy = async () => {
             ref="input"
             v-model="tempTitle"
             class="flex-grow leading-1 outline-0 ring-none capitalize !text-inherit !bg-transparent flex-1 mr-4"
-            :class="{ 'text-black font-semibold': activeProjectId === base.id && baseViewOpen && !isMobileMode }"
+            :class="activeProjectId === base.id && baseViewOpen ? '!text-brand-600 !font-semibold' : '!text-gray-700'"
             @click.stop
             @keyup.enter="updateProjectTitle"
             @keyup.esc="updateProjectTitle"
@@ -470,7 +497,7 @@ const onTableIdCopy = async () => {
             v-else
             class="nc-sidebar-node-title capitalize text-ellipsis overflow-hidden select-none flex-1"
             :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
-            :class="{ 'text-black font-semibold': activeProjectId === base.id && baseViewOpen }"
+            :class="activeProjectId === base.id && baseViewOpen ? 'text-brand-600 font-semibold' : 'text-gray-700'"
             show-on-truncate-only
             @click="onProjectClick(base)"
           >
@@ -632,9 +659,9 @@ const onTableIdCopy = async () => {
               @click="onProjectClick(base, true, true)"
             >
               <GeneralIcon
-                icon="chevronDown"
-                class="group-hover:visible cursor-pointer transform transition-transform duration-500 rotate-270"
-                :class="{ '!rotate-180': base.isExpanded }"
+                icon="chevronRight"
+                class="group-hover:visible cursor-pointer transform transition-transform duration-200 text-[20px]"
+                :class="{ '!rotate-90': base.isExpanded }"
               />
             </NcButton>
           </template>
@@ -686,7 +713,7 @@ const onTableIdCopy = async () => {
                     </template>
                     <a-collapse-panel :key="`collapse-${source.id}`">
                       <template #header>
-                        <div class="nc-sidebar-node min-w-20 w-full h-full flex flex-row group py-0.25 pr-6.5 !mr-0">
+                        <div class="nc-sidebar-node min-w-20 w-full h-full flex flex-row group py-0.5 pr-6.5 !mr-0">
                           <div
                             v-if="sourceIndex === 0"
                             class="source-context flex items-center gap-2 text-gray-800 nc-sidebar-node-title"
@@ -703,12 +730,30 @@ const onTableIdCopy = async () => {
                             <GeneralBaseLogo
                               class="flex-none min-w-4 !xs:(min-w-4.25 w-4.25 text-sm) !text-gray-600 !group-hover:text-gray-800"
                             />
+                            <input
+                              v-if="source.id && sourceRenameHelpers[source.id]?.editMode"
+                              ref="input"
+                              v-model="sourceRenameHelpers[source.id].tempTitle"
+                              class="flex-grow leading-1 outline-0 ring-none capitalize !text-inherit !bg-transparent flex-1 mr-4"
+                              :class="
+                                activeProjectId === base.id && baseViewOpen ? '!text-brand-600 !font-semibold' : '!text-gray-700'
+                              "
+                              :data-source-rename-input-id="source.id"
+                              @click.stop
+                              @keydown.enter.stop.prevent
+                              @keyup.enter="updateSourceTitle(source.id!)"
+                              @keyup.esc="updateSourceTitle(source.id!)"
+                              @blur="updateSourceTitle(source.id!)"
+                            />
                             <NcTooltip
+                              v-else
                               class="nc-sidebar-node-title capitalize text-ellipsis overflow-hidden select-none"
                               :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
-                              :class="{
-                                'text-black font-semibold': activeProjectId === base.id && baseViewOpen && !isMobileMode,
-                              }"
+                              :class="
+                                activeProjectId === base.id && baseViewOpen && !isMobileMode
+                                  ? 'text-brand-600 font-semibold'
+                                  : 'text-gray-700'
+                              "
                               show-on-truncate-only
                             >
                               <template #title> {{ source.alias || '' }}</template>
@@ -719,7 +764,13 @@ const onTableIdCopy = async () => {
                             <NcTooltip class="xs:(hidden) flex items-center mr-1">
                               <template #title>{{ $t('objects.externalDb') }}</template>
 
-                              <GeneralIcon icon="info" class="flex-none text-gray-400 hover:text-gray-700 mr-1" />
+                              <GeneralIcon
+                                icon="info"
+                                class="flex-none text-gray-400 hover:text-gray-700 nc-sidebar-node-btn"
+                                :class="{
+                                  '!hidden': !isBasesOptionsOpen[source!.id!],
+                                }"
+                              />
                             </NcTooltip>
                           </div>
                           <div class="flex flex-row items-center gap-x-0.25">
@@ -747,6 +798,17 @@ const onTableIdCopy = async () => {
                                   }"
                                   @click="isBasesOptionsOpen[source!.id!] = false"
                                 >
+                                  <NcMenuItem
+                                    v-if="isUIAllowed('baseRename')"
+                                    data-testid="nc-sidebar-source-rename"
+                                    @click="enableEditModeForSource(source.id!)"
+                                  >
+                                    <GeneralIcon icon="rename" class="group-hover:text-black" />
+                                    {{ $t('general.rename') }}
+                                  </NcMenuItem>
+
+                                  <NcDivider />
+
                                   <!-- ERD View -->
                                   <NcMenuItem key="erd" @click="openErdView(source)">
                                     <div v-e="['c:source:erd']" class="flex gap-2 items-center">
@@ -869,7 +931,7 @@ const onTableIdCopy = async () => {
 
 <style lang="scss" scoped>
 :deep(.ant-collapse-header) {
-  @apply !mx-0 !pl-8.75 h-7.1 !xs:(pl-7 h-[3rem]) !pr-0.5 !py-0 hover:bg-gray-200 xs:(hover:bg-gray-50) !rounded-md;
+  @apply !mx-0 !pl-8.75 h-7 !xs:(pl-7 h-[3rem]) !pr-0.5 !py-0 hover:bg-gray-200 xs:(hover:bg-gray-50) !rounded-md;
 
   .ant-collapse-arrow {
     @apply !right-1 !xs:(flex-none border-1 border-gray-200 w-6.5 h-6.5 mr-1);

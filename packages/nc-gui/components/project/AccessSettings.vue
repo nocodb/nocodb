@@ -1,8 +1,6 @@
 <script lang="ts" setup>
 import type { Roles, WorkspaceUserRoles } from 'nocodb-sdk'
 import { OrderedProjectRoles, OrgUserRoles, ProjectRoles, WorkspaceRolesToProjectRoles } from 'nocodb-sdk'
-import type { User } from '#imports'
-import { isEeUI, storeToRefs, useUserSorts } from '#imports'
 
 const props = defineProps<{
   baseId?: string
@@ -154,6 +152,27 @@ onMounted(async () => {
   }
 })
 
+const selected = reactive<{
+  [key: number]: boolean
+}>({})
+
+const toggleSelectAll = (value: boolean) => {
+  filteredCollaborators.value.forEach((_, i) => {
+    selected[_.id] = value
+  })
+}
+
+// const isSomeSelected = computed(() => Object.values(selected).some((v) => v))
+
+const selectAll = computed({
+  get: () =>
+    Object.values(selected).every((v) => v) &&
+    Object.keys(selected).length > 0 &&
+    Object.values(selected).length === filteredCollaborators.value.length,
+  set: (value) => {
+    toggleSelectAll(value)
+  },
+})
 watch(isInviteModalVisible, () => {
   if (!isInviteModalVisible.value) {
     loadCollaborators()
@@ -174,11 +193,12 @@ watch(currentBase, () => {
   >
     <div v-if="isAdminPanel" class="font-bold w-full !mb-5 text-2xl" data-rec="true">
       <div class="flex items-center gap-3">
-        <!-- TODO: @DarkPhoenix2704 -->
         <NuxtLink
           :href="`/admin/${orgId}/bases`"
-          class="!hover:(text-black underline-gray-600) !text-black !underline-transparent ml-0.75 max-w-1/4"
+          class="!hover:(text-black underline-gray-600) flex items-center !text-black !underline-transparent ml-0.75 max-w-1/4"
         >
+          <component :is="iconMap.arrowLeft" class="text-3xl" />
+
           {{ $t('objects.projects') }}
         </NuxtLink>
 
@@ -220,8 +240,10 @@ watch(currentBase, () => {
         <a-empty :description="$t('title.noMembersFound')" />
       </div>
       <div v-else class="nc-collaborators-list mt-6 h-full">
-        <div class="flex flex-col rounded-lg overflow-hidden border-1 max-w-350 max-h-[calc(100%-8rem)]">
+        <div class="flex flex-col overflow-hidden max-w-350 max-h-[calc(100%-8rem)]">
           <div class="flex flex-row bg-gray-50 min-h-12 items-center border-b-1">
+            <div class="py-3 px-6"><NcCheckbox v-model:checked="selectAll" /></div>
+
             <LazyAccountHeaderWithSorter
               class="users-email-grid"
               :header="$t('objects.users')"
@@ -245,8 +267,14 @@ watch(currentBase, () => {
             <div
               v-for="(collab, i) of sortedCollaborators"
               :key="i"
-              class="user-row flex flex-row border-b-1 py-1 min-h-14 items-center"
+              :class="{
+                'bg-[#F0F3FF]': selected[collab.id],
+              }"
+              class="user-row flex hover:bg-[#F0F3FF] flex-row border-b-1 py-1 min-h-14 items-center"
             >
+              <div class="py-3 px-6">
+                <NcCheckbox v-model:checked="selected[collab.id]" />
+              </div>
               <div class="flex gap-3 items-center users-email-grid">
                 <GeneralUserIcon size="base" :email="collab.email" />
                 <div class="flex flex-col">

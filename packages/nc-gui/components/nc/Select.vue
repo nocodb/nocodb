@@ -84,7 +84,7 @@ const onChange = (value: string) => {
   height: fit-content;
   .ant-select-selector {
     box-shadow: 0px 5px 3px -2px rgba(0, 0, 0, 0.02), 0px 3px 1px -2px rgba(0, 0, 0, 0.06);
-    @apply border-1 border-gray-200 rounded-lg;
+    @apply border-1 border-gray-200 rounded-lg !px-3;
   }
 
   .ant-select-selection-item {

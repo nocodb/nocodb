@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { ProjectEventType } from 'nocodb-sdk'
 import { AppEvents } from 'nocodb-sdk'
-import { computed, toRef, useGlobal } from '#imports'
 
 const props = defineProps<{
   item: ProjectEventType

@@ -162,6 +162,7 @@
     "insertAbove": "Insertar arriba",
     "insertBelow": "Insertar abajo",
     "hideField": "Ocultar campo",
+    "showField": "Show Field",
     "sortAsc": "Ordenación ascendente",
     "sortDesc": "Orden descendente",
     "move": "Mover",
@@ -447,6 +448,8 @@
     "noResultsMatchedYourSearch": "Your search did not yield any matching results."
   },
   "labels": {
+    "today": "Today",
+    "workspace": "Workspace",
     "txt": "TXT Record value",
     "transferOwnership": "Transfer Ownership",
     "recentActivity": "Recent Activity",
@@ -714,6 +717,7 @@
     "hasMany": "tiene muchos",
     "belongsTo": "pertenece a",
     "manyToMany": "tienen una relación de muchos a muchos",
+    "oneToOne": "have one to one relation",
     "extraConnectionParameters": "Parámetros de conexión adicionales",
     "commentsOnly": "Sólo comentarios",
     "documentation": "Documentación",
@@ -941,6 +945,7 @@
     "importZip": "Importar zip",
     "metaSync": "Sincronizar ahora",
     "settings": "Configuración",
+    "validations": "Validations",
     "previewAs": "Previsualizar como",
     "resetReview": "Restaurar previsualización",
     "testDbConn": "Probar conexión a base de datos",
@@ -1008,7 +1013,7 @@
     "group": "Group"
   },
   "tooltip": {
-    "reachedSourceLimit": "Limitado a una única fuente de datos por el momento",
+    "reachedSourceLimit": "Limited to 10 data sources per base",
     "saveChanges": "Guardar cambios",
     "xcDB": "Crear un nuevo proyecto",
     "extDB": "Soporta MySQL, PostgreSQL, SQL Server y SQLite",
@@ -1199,6 +1204,7 @@
     "noNewNotifications": "No tiene nuevas notificaciones",
     "noRecordFound": "Registro no encontrado",
     "noRecordsFound": "No records found",
+    "noRecordsMatchYourSearchQuery": "No records match your search query",
     "rowDeleted": "Registro eliminado",
     "saveChanges": "¿Desea guardar los cambios?",
     "tooLargeFieldEntity": "El campo es demasiado grande para convertirlo a {entity}",
@@ -1489,7 +1495,7 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "Los tipos de archivo aceptados son .xls, .xlsx, .xlsm, .ods, .ots",
       "parameterKeyCannotBeEmpty": "La clave del parámetro no puede estar vacía",
       "duplicateParameterKeysAreNotAllowed": "No se permiten claves de parámetros duplicadas",
-      "fieldRequired": "{value} no puede estar vacía.",
+      "fieldRequired": "{value} cannot be empty.",
       "projectNotAccessible": "Proyecto no accesible",
       "copyToClipboardError": "Fallo al copiar al portapapeles",
       "pasteFromClipboardError": "Failed to paste from clipboard",

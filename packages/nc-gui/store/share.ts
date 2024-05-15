@@ -1,6 +1,5 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { ProjectRoles } from 'nocodb-sdk'
-import type { Users } from '#imports'
 
 export const useShare = defineStore('share', () => {
   const visibility = ref<'public' | 'private' | 'none' | 'hidden'>('none')

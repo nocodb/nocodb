@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 // todo: Remove this "Provider" component and use the "EditOrAdd" component directly
 import type { ColumnReqType, ColumnType } from 'nocodb-sdk'
-import { MetaInj, inject, ref, toRef, useProvideColumnCreateStore } from '#imports'
 
 interface Props {
   column?: ColumnType

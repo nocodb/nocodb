@@ -2760,6 +2760,7 @@ class BaseModelSqlv2 {
             rowId: insertObj[ag.column_name],
             insertObj,
             ag,
+            ai,
           }),
           false,
           {},
@@ -2803,7 +2804,7 @@ class BaseModelSqlv2 {
             ).__nc_ai_id;
           }
           response = await this.readByPk(
-            this.extractCompositePK({ rowId: id, insertObj, ag }),
+            this.extractCompositePK({ rowId: id, insertObj, ag, ai }),
             false,
             {},
             { ignoreView: true, getHiddenColumn: true },
@@ -3270,18 +3271,16 @@ class BaseModelSqlv2 {
         }
       }
       rowId = pkObj;
-    } else if (
-      !ai &&
-      !ag &&
-      (force || this.model.primaryKeys?.length > 1 || this.isSnowflake)
-    ) {
+    } else if (!ai && !ag && insertObj) {
       // handle if primary key is not ai or ag
-      const pkObj = {};
-      for (const pk of this.model.primaryKeys) {
-        const key = pk.title;
-        pkObj[key] = insertObj[pk.column_name] ?? null;
+      if (this.model.primaryKeys.length === 1) {
+        return insertObj[this.model.primaryKey.column_name] ?? null;
+      } else {
+        return this.model.primaryKeys.reduce((acc, pk) => {
+          acc[pk.title] = insertObj[pk.column_name] ?? null;
+          return acc;
+        }, {});
       }
-      rowId = pkObj;
     }
 
     return rowId;

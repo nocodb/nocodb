@@ -1186,7 +1186,7 @@
       "tooltip_desc": "A single record from table ",
       "tooltip_desc2": " can be linked with a single record from table "
     },
-    "clickLinkRecordsToAddLinkFromTable": "Looks like no records have been linked yet.",
+    "clickLinkRecordsToAddLinkFromTable": "Click 'Link Records' to begin associating data with '{tableName}'.",
     "noRecordsLinked": "No records linked",
     "noLinkedRecords": "No linked records",
     "recordsLinked": "records linked",

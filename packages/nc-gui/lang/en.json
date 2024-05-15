@@ -587,7 +587,7 @@
     "untitledToken": "Untitled token",
     "tableName": "Table name",
     "dashboardName": "Dashboard name",
-    "createView": "Create view",
+    "createView": "Create a View",
     "creatingView": "Creating View",
     "duplicateView": "Duplicate View",
     "duplicateGridView": "Duplicate Grid View",
@@ -754,7 +754,7 @@
       "selectField": "Select a field",
       "selectFieldLabel": "Make changes to field properties by selecting a field from the list"
     },
-    "appearanceSettings": "Appearance settings",
+    "appearanceSettings": "Appearance Settings",
     "backgroundColor": "Background Color",
     "hideNocodbBranding": "Hide NocoDB Branding",
     "showOnConditions": "Show on condtions",
@@ -1013,7 +1013,7 @@
     "group": "Group"
   },
   "tooltip": {
-    "reachedSourceLimit": "Limited to 10 data sources per base",
+    "reachedSourceLimit": "Limited to only one data source for the moment",
     "saveChanges": "Save changes",
     "xcDB": "Create a new base",
     "extDB": "Supports MySQL, PostgreSQL, SQL Server & SQLite",
@@ -1283,7 +1283,7 @@
       "afterEnablePwd": "Access is password restricted",
       "privateLink": "This view is shared via a private link",
       "privateLinkAdditionalInfo": "People with private link can only see cells visible in this view",
-      "postFormSubmissionSettings": "Post form submission settings",
+      "postFormSubmissionSettings": "Post Form Submission Settings",
       "apiOptions": "Access Base via",
       "submitAnotherForm": "Show 'Submit Another Form' button",
       "showBlankForm": "Show a blank form after 5 seconds",

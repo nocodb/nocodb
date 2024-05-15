@@ -5,7 +5,7 @@ const props = defineProps<{
   workspaceId?: string
 }>()
 
-const { workspaceRoles, loadRoles } = useRoles()
+const { workspaceRoles } = useRoles()
 
 const workspaceStore = useWorkspace()
 
@@ -97,7 +97,6 @@ const accessibleRoles = computed<WorkspaceUserRoles[]>(() => {
 })
 
 onMounted(async () => {
-  await loadRoles(undefined, {}, currentWorkspace.value?.id)
   loadSorts()
 })
 </script>

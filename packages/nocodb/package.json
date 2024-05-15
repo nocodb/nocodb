@@ -1,6 +1,6 @@
 {
   "name": "nocodb",
-  "version": "0.205.0",
+  "version": "0.207.0",
   "description": "NocoDB Backend",
   "main": "dist/bundle.js",
   "author": {
@@ -109,7 +109,7 @@
     "html-to-json-parser": "^2.0.1",
     "import-fresh": "^3.3.0",
     "inflection": "^1.13.4",
-    "ioredis": "^5.4.1",
+    "ioredis": "^5.3.2",
     "ioredis-mock": "^8.9.0",
     "is-docker": "^2.2.1",
     "isomorphic-dompurify": "^1.13.0",
@@ -132,7 +132,7 @@
     "mysql2": "^3.9.3",
     "nanoid": "^3.3.7",
     "nc-help": "0.3.1",
-    "nc-lib-gui": "0.205.1",
+    "nc-lib-gui": "0.207.0",
     "nc-plugin": "^0.1.3",
     "ncp": "^2.0.0",
     "nestjs-kafka": "^1.0.6",

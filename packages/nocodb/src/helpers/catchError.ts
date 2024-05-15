@@ -525,6 +525,11 @@ const errorHelpers: {
     message: 'Invalid shared view password',
     code: 403,
   },
+  [NcErrorType.INVALID_ATTACHMENT_JSON]: {
+    message: (payload: string) =>
+      `Invalid JSON for attachment field: ${payload}`,
+    code: 400,
+  },
   [NcErrorType.NOT_IMPLEMENTED]: {
     message: (feature: string) => `${feature} is not implemented`,
     code: 501,
@@ -684,6 +689,13 @@ export class NcError {
 
   static invalidSharedViewPassword(args?: NcErrorArgs) {
     throw new NcBaseErrorv2(NcErrorType.INVALID_SHARED_VIEW_PASSWORD, {
+      ...args,
+    });
+  }
+
+  static invalidAttachmentJson(payload: string, args?: NcErrorArgs) {
+    throw new NcBaseErrorv2(NcErrorType.INVALID_ATTACHMENT_JSON, {
+      params: payload,
       ...args,
     });
   }

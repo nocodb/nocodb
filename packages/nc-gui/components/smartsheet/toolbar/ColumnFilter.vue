@@ -12,6 +12,7 @@ interface Props {
   webHook?: boolean
   draftFilter?: Partial<FilterType>
 }
+
 const props = withDefaults(defineProps<Props>(), {
   nestedLevel: 0,
   autoSave: true,
@@ -21,13 +22,14 @@ const props = withDefaults(defineProps<Props>(), {
   webHook: false,
 })
 
-const emit = defineEmits(['update:filtersLength', 'update:draftFilter'])
+const emit = defineEmits(['update:filtersLength', 'update:draftFilter', 'update:modelValue'])
 
 const excludedFilterColUidt = [UITypes.QrCode, UITypes.Barcode]
 
 const draftFilter = useVModel(props, 'draftFilter', emit)
+const modelValue = useVModel(props, 'modelValue', emit)
 
-const { nestedLevel, parentId, autoSave, hookId, modelValue, showLoading, webHook } = toRefs(props)
+const { nestedLevel, parentId, autoSave, hookId, showLoading, webHook } = toRefs(props)
 
 const nested = computed(() => nestedLevel.value > 0)
 
@@ -66,7 +68,7 @@ const {
   types,
 } = useViewFilters(
   activeView,
-  parentId?.value,
+  parentId,
   computed(() => autoSave.value),
   () => reloadDataHook.trigger({ shouldShowLoading: showLoading.value, offset: 0 }),
   modelValue.value || nestedFilters.value,
@@ -250,7 +252,7 @@ const updateFilterValue = (value: string, filter: Filter, index: number) => {
 
 defineExpose({
   applyChanges,
-  parentId: parentId?.value,
+  parentId,
 })
 
 const scrollToBottom = () => {
@@ -355,22 +357,35 @@ watch(
   },
 )
 
+const visibleFilters = computed(() => filters.value.filter((filter) => filter.status !== 'delete'))
+
 const isLogicalOpChangeAllowed = computed(() => {
-  return new Set(filters.value.slice(1).map((filter) => filter.logical_op)).size > 1
+  return new Set(visibleFilters.value.slice(1).map((filter) => filter.logical_op)).size > 1
 })
 
 // when logical operation is updated, update all the siblings with the same logical operation only if it's in locked state
 const onLogicalOpUpdate = async (filter: Filter, index: number) => {
-  if (index === 1 && filters.value.slice(2).every((siblingFilter) => siblingFilter.logical_op !== filter.logical_op)) {
+  if (index === 1 && visibleFilters.value.slice(2).every((siblingFilter) => siblingFilter.logical_op !== filter.logical_op)) {
     await Promise.all(
-      filters.value.slice(2).map(async (siblingFilter, i) => {
+      visibleFilters.value.slice(2).map(async (siblingFilter, i) => {
         siblingFilter.logical_op = filter.logical_op
         await saveOrUpdate(siblingFilter, i + 2, false, false, true)
       }),
     )
   }
-  await filterUpdateCondition(filter, index)
+  await saveOrUpdate(filter, index)
 }
+
+// watch for changes in filters and update the modelValue
+watch(
+  filters,
+  () => {
+    if (modelValue.value !== filters.value) modelValue.value = filters.value
+  },
+  {
+    immediate: true,
+  },
+)
 </script>
 
 <template>
@@ -403,9 +418,9 @@ const onLogicalOpUpdate = async (filter: Filter, index: number) => {
                     class="min-w-20 capitalize"
                     placeholder="Group op"
                     dropdown-class-name="nc-dropdown-filter-logical-op-group"
-                    :disabled="i > 1 && !isLogicalOpChangeAllowed"
+                    :disabled="visibleFilters.indexOf(filter) > 1 && !isLogicalOpChangeAllowed"
                     @click.stop
-                    @change="saveOrUpdate(filter, i)"
+                    @change="onLogicalOpUpdate(filter, i)"
                   >
                     <a-select-option v-for="op in logicalOps" :key="op.value" :value="op.value">
                       <div class="flex items-center w-full justify-between w-full gap-2">
@@ -434,7 +449,7 @@ const onLogicalOpUpdate = async (filter: Filter, index: number) => {
               </div>
               <div class="flex border-1 rounded-lg p-2 w-full" :class="nestedLevel % 2 !== 0 ? 'bg-white' : 'bg-gray-100'">
                 <LazySmartsheetToolbarColumnFilter
-                  v-if="filter.id || filter.children"
+                  v-if="filter.id || filter.children || !autoSave"
                   :key="filter.id ?? i"
                   ref="localNestedFilters"
                   v-model="filter.children"
@@ -456,7 +471,7 @@ const onLogicalOpUpdate = async (filter: Filter, index: number) => {
               :dropdown-match-select-width="false"
               class="h-full !min-w-20 !max-w-20 capitalize"
               hide-details
-              :disabled="filter.readOnly || (i > 1 && !isLogicalOpChangeAllowed)"
+              :disabled="filter.readOnly || (visibleFilters.indexOf(filter) > 1 && !isLogicalOpChangeAllowed)"
               dropdown-class-name="nc-dropdown-filter-logical-op"
               @change="onLogicalOpUpdate(filter, i)"
               @click.stop

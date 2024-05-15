@@ -84,8 +84,8 @@ RUN apk --update --no-cache add \
     nodejs \
     tar
 
-# Copy litestream binary build
-COPY  --from=lt /usr/src/lt /usr/src/appEntry/litestream
+# Copy litestream binary
+COPY  --from=lt /usr/src/lt /usr/local/bin/litestream
 # Copy production code & main entry file
 COPY --from=builder /usr/src/app/ /usr/src/app/
 COPY --from=builder /usr/src/appEntry/ /usr/src/appEntry/

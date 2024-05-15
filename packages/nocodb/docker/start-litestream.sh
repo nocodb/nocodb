@@ -15,12 +15,12 @@ if [ -n "${AWS_ACCESS_KEY_ID}" ] && [ -n "${AWS_SECRET_ACCESS_KEY}" ] && [ -n "$
     rm "${NC_TOOL_DIR}noco.db-wal"
   fi
 
-  /usr/src/appEntry/litestream restore -o "${NC_TOOL_DIR}noco.db" "s3://$AWS_BUCKET/$AWS_BUCKET_PATH"
+  litestream restore -o "${NC_TOOL_DIR}noco.db" "s3://$AWS_BUCKET/$AWS_BUCKET_PATH"
   if [ ! -f "${NC_TOOL_DIR}noco.db" ]
   then
     touch "${NC_TOOL_DIR}noco.db"
   fi
-  /usr/src/appEntry/litestream replicate "${NC_TOOL_DIR}noco.db" "s3://$AWS_BUCKET/$AWS_BUCKET_PATH" &
+  litestream replicate "${NC_TOOL_DIR}noco.db" "s3://$AWS_BUCKET/$AWS_BUCKET_PATH" &
 fi
 
 node docker/main.js

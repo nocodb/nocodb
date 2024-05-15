@@ -5491,7 +5491,13 @@ class BaseModelSqlv2 {
           }
 
           if (d[col.id]?.length) {
-            for (const attachment of d[col.id]) {
+            for (let i = 0; i < d[col.id].length; i++) {
+              if (typeof d[col.id][i] === 'string') {
+                d[col.id][i] = JSON.parse(d[col.id][i]);
+              }
+
+              const attachment = d[col.id][i];
+
               // we expect array of array of attachments in case of lookup
               if (Array.isArray(attachment)) {
                 for (const lookedUpAttachment of attachment) {
@@ -6477,17 +6483,34 @@ class BaseModelSqlv2 {
       }
       if (column.uidt === UITypes.Attachment) {
         if (data[column.column_name]) {
-          if (Array.isArray(data[column.column_name])) {
-            for (let attachment of data[column.column_name]) {
-              attachment = extractProps(attachment, [
-                'url',
-                'path',
-                'title',
-                'mimetype',
-                'size',
-                'icon',
-              ]);
+          try {
+            if (typeof data[column.column_name] === 'string') {
+              data[column.column_name] = JSON.parse(data[column.column_name]);
             }
+          } catch (e) {
+            NcError.invalidAttachmentJson(data[column.column_name]);
+          }
+
+          if (Array.isArray(data[column.column_name])) {
+            const sanitizedAttachments = [];
+            for (const attachment of data[column.column_name]) {
+              if (!('url' in attachment) && !('path' in attachment)) {
+                NcError.unprocessableEntity(
+                  'Attachment object must contain either url or path',
+                );
+              }
+              sanitizedAttachments.push(
+                extractProps(attachment, [
+                  'url',
+                  'path',
+                  'title',
+                  'mimetype',
+                  'size',
+                  'icon',
+                ]),
+              );
+            }
+            data[column.column_name] = JSON.stringify(sanitizedAttachments);
           }
         }
       } else if (

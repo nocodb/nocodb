@@ -52,17 +52,24 @@ RUN pnpm install --prod --shamefully-hoist \
 FROM alpine:3.19
 WORKDIR /usr/src/app
 
-ENV NC_DOCKER 0.6
-ENV NODE_ENV production
-ENV PORT 8080
-ENV NC_TOOL_DIR=/usr/app/data/
+ENV LITESTREAM_S3_SKIP_VERIFY=false \
+    LITESTREAM_S3_PATH=nocodb \
+    LITESTREAM_RETENTION=1440h \
+    LITESTREAM_RETENTION_CHECK_INTERVAL=72h \
+    LITESTREAM_SNAPSHOT_INTERVAL=24h \
+    LITESTREAM_SYNC_INTERVAL=60s \
+    NC_DOCKER=0.6 \
+    NC_TOOL_DIR=/usr/app/data/ \
+    NODE_ENV=production \
+    PORT=8080
 
 RUN apk --update --no-cache add \
     nodejs \
     dumb-init
 
-# Copy litestream binary
+# Copy litestream binary and config file
 COPY --from=lt-builder /usr/src/lt /usr/local/bin/litestream
+COPY ./docker/litestream.yml /etc/litestream.yml
 # Copy production code & main entry file
 COPY --from=builder /usr/src/app/ /usr/src/app/
 COPY --from=builder /usr/src/appEntry/ /usr/src/appEntry/

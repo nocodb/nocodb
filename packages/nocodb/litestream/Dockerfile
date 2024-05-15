@@ -38,12 +38,6 @@ RUN chmod +x /usr/src/appEntry/start.sh
 
 FROM alpine:3.19
 
-#ENV AWS_ACCESS_KEY_ID=
-#ENV AWS_SECRET_ACCESS_KEY=
-#ENV AWS_BUCKET=
-
-
-
 #WORKDIR /usr/src/
 #
 ## Install go lang
@@ -68,10 +62,15 @@ FROM alpine:3.19
 
 WORKDIR /usr/src/app
 
-ENV NC_DOCKER 0.6
-ENV PORT 8080
-ENV NC_TOOL_DIR=/usr/app/data/
-
+ENV LITESTREAM_S3_SKIP_VERIFY=false \
+    LITESTREAM_S3_PATH=nocodb \
+    LITESTREAM_RETENTION=1440h \
+    LITESTREAM_RETENTION_CHECK_INTERVAL=72h \
+    LITESTREAM_SNAPSHOT_INTERVAL=24h \
+    LITESTREAM_SYNC_INTERVAL=60s \
+    NC_DOCKER=0.6 \
+    NC_TOOL_DIR=/usr/app/data/ \
+    PORT=8080
 
 # Copy application dependency manifests to the container image.
 # A wildcard is used to ensure both package.json AND package-lock.json are copied.
@@ -84,8 +83,9 @@ RUN apk --update --no-cache add \
     nodejs \
     tar
 
-# Copy litestream binary
+# Copy litestream binary and config file
 COPY  --from=lt /usr/src/lt /usr/local/bin/litestream
+COPY ./docker/litestream.yml /etc/litestream.yml
 # Copy production code & main entry file
 COPY --from=builder /usr/src/app/ /usr/src/app/
 COPY --from=builder /usr/src/appEntry/ /usr/src/appEntry/

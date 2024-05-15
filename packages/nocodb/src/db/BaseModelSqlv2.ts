@@ -2760,6 +2760,7 @@ class BaseModelSqlv2 {
             rowId: insertObj[ag.column_name],
             insertObj,
             ag,
+            ai,
           }),
           false,
           {},
@@ -2803,7 +2804,7 @@ class BaseModelSqlv2 {
             ).__nc_ai_id;
           }
           response = await this.readByPk(
-            this.extractCompositePK({ rowId: id, insertObj, ag }),
+            this.extractCompositePK({ rowId: id, insertObj, ag, ai }),
             false,
             {},
             { ignoreView: true, getHiddenColumn: true },

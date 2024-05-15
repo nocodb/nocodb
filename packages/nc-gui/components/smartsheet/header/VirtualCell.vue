@@ -9,27 +9,6 @@ import {
   isLinksOrLTAR,
 } from 'nocodb-sdk'
 import { RelationTypes, UITypes, UITypesName, substituteColumnIdWithAliasInFormula } from 'nocodb-sdk'
-import {
-  ColumnInj,
-  IsFormInj,
-  MetaInj,
-  computed,
-  inject,
-  isBt,
-  isFormula,
-  isHm,
-  isLookup,
-  isMm,
-  isOo,
-  isRollup,
-  isVirtualColRequired,
-  provide,
-  ref,
-  toRef,
-  useI18n,
-  useMetas,
-  useRoles,
-} from '#imports'
 
 const props = defineProps<{ column: ColumnType; hideMenu?: boolean; required?: boolean | number; hideIcon?: boolean }>()
 

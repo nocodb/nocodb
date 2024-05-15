@@ -2,7 +2,6 @@
 import type { RoleLabels } from 'nocodb-sdk'
 import { RoleDescriptions } from 'nocodb-sdk'
 import type { SelectValue } from 'ant-design-vue/es/select'
-import { toRef } from '#imports'
 
 const props = withDefaults(
   defineProps<{

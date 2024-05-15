@@ -1,24 +1,7 @@
 <script lang="ts" setup>
 import dayjs from 'dayjs'
 import { UITypes } from 'nocodb-sdk'
-import {
-  ActiveViewInj,
-  IsCalendarInj,
-  IsFormInj,
-  IsGalleryInj,
-  IsGridInj,
-  IsKanbanInj,
-  MetaInj,
-  ReloadViewDataHookInj,
-  ReloadViewMetaHookInj,
-  type Row as RowType,
-  computed,
-  extractPkFromRow,
-  inject,
-  provide,
-  ref,
-  rowDefaultData,
-} from '#imports'
+import type { Row as RowType } from '#imports'
 
 const meta = inject(MetaInj, ref())
 

@@ -714,6 +714,7 @@
     "hasMany": "birçok",
     "belongsTo": "aittir",
     "manyToMany": "çoktan çoka ilişkisi var",
+    "oneToOne": "have one to one relation",
     "extraConnectionParameters": "Ekstra bağlantı parametreleri",
     "commentsOnly": "Sadece yorumlar",
     "documentation": "Dokümantasyon",

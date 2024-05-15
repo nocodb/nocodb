@@ -714,6 +714,7 @@
     "hasMany": "多い",
     "belongsTo": "属す",
     "manyToMany": "多岐に渡る",
+    "oneToOne": "have one to one relation",
     "extraConnectionParameters": "追加接続パラメータ",
     "commentsOnly": "コメントのみ",
     "documentation": "ドキュメント",

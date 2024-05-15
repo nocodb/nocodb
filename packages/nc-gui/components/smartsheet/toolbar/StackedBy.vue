@@ -2,22 +2,6 @@
 import { UITypes } from 'nocodb-sdk'
 import type { KanbanType } from 'nocodb-sdk'
 import type { SelectProps } from 'ant-design-vue'
-import {
-  ActiveViewInj,
-  IsKanbanInj,
-  IsLockedInj,
-  IsPublicInj,
-  MetaInj,
-  computed,
-  inject,
-  provide,
-  ref,
-  useKanbanViewStoreOrThrow,
-  useMenuCloseOnEsc,
-  useUndoRedo,
-  useViewColumnsOrThrow,
-  watch,
-} from '#imports'
 
 provide(IsKanbanInj, ref(true))
 

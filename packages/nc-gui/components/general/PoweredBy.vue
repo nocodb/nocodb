@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { openLink, useGlobal } from '#imports'
-
 const { isLoading } = useGlobal()
 </script>
 

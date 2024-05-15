@@ -2,18 +2,7 @@
 import type { VNodeRef } from '@vue/runtime-core'
 import type { TableType, ViewType, ViewTypes } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
-import {
-  IsLockedInj,
-  isDefaultBase as _isDefaultBase,
-  inject,
-  message,
-  onKeyStroke,
-  useDebounceFn,
-  useMagicKeys,
-  useNuxtApp,
-  useRoles,
-  useVModel,
-} from '#imports'
+import { isDefaultBase as _isDefaultBase } from '#imports'
 
 interface Props {
   view: ViewType

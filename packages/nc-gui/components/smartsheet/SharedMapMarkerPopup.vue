@@ -1,20 +1,5 @@
 <script lang="ts" setup>
 import { isVirtualCol } from 'nocodb-sdk'
-import {
-  ActiveViewInj,
-  IsFormInj,
-  IsGridInj,
-  MetaInj,
-  ReloadRowDataHookInj,
-  ReloadViewDataHookInj,
-  inject,
-  isLTAR,
-  onMounted,
-  provide,
-  ref,
-  useViewData,
-} from '#imports'
-import type { Row } from '#imports'
 
 const props = defineProps<{
   fields: ColumnType[]

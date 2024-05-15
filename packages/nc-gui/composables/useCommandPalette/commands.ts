@@ -1,5 +1,3 @@
-import { navigateTo } from '#imports'
-
 export const homeCommands = [
   {
     id: 'user',

@@ -1,27 +1,7 @@
 <script lang="ts" setup>
 import type { ColumnReqType, ColumnType } from 'nocodb-sdk'
 import { UITypes, isLinksOrLTAR, isSelfReferencingTableColumn, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
-import {
-  IsFormInj,
-  IsKanbanInj,
-  MetaInj,
-  ReloadViewDataHookInj,
-  computed,
-  inject,
-  isJSON,
-  isTextArea,
-  message,
-  onMounted,
-  ref,
-  uiTypes,
-  useBase,
-  useColumnCreateStoreOrThrow,
-  useGlobal,
-  useI18n,
-  useMetas,
-  useNuxtApp,
-  watchEffect,
-} from '#imports'
+
 import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
 import MdiIdentifierIcon from '~icons/mdi/identifier'
 

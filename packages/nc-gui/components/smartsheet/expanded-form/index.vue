@@ -11,32 +11,6 @@ import {
 import type { Ref } from 'vue'
 import MdiChevronDown from '~icons/mdi/chevron-down'
 
-import {
-  CellClickHookInj,
-  FieldsInj,
-  IsExpandedFormOpenInj,
-  IsKanbanInj,
-  IsPublicInj,
-  MetaInj,
-  ReloadRowDataHookInj,
-  computed,
-  computedInject,
-  createEventHook,
-  iconMap,
-  inject,
-  message,
-  provide,
-  ref,
-  toRef,
-  useActiveKeyupListener,
-  useProvideExpandedFormStore,
-  useProvideSmartsheetStore,
-  useRoles,
-  useRouter,
-  useVModel,
-  watch,
-} from '#imports'
-
 interface Props {
   modelValue?: boolean
   state?: Record<string, any> | null
@@ -52,6 +26,7 @@ interface Props {
   closeAfterSave?: boolean
   newRecordHeader?: string
   skipReload?: boolean
+  newRecordSubmitBtnText?: string
 }
 
 const props = defineProps<Props>()
@@ -908,7 +883,7 @@ export default {
                 size="medium"
                 @click="save"
               >
-                <div class="xs:px-1">Save</div>
+                <div class="xs:px-1">{{ newRecordSubmitBtnText ?? 'Save' }}</div>
               </NcButton>
             </div>
           </div>

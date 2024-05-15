@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { RoleColors, RoleIcons, RoleLabels } from 'nocodb-sdk'
-import { toRef } from '#imports'
 
 const props = withDefaults(
   defineProps<{

@@ -1,8 +1,6 @@
 <script lang="ts" setup>
 import type { Roles, WorkspaceUserRoles } from 'nocodb-sdk'
 import { OrderedProjectRoles, OrgUserRoles, ProjectRoles, WorkspaceRolesToProjectRoles } from 'nocodb-sdk'
-import type { User } from '#imports'
-import { isEeUI, storeToRefs, useUserSorts } from '#imports'
 
 const props = defineProps<{
   baseId?: string

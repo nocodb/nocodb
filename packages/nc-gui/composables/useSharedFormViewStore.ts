@@ -15,32 +15,6 @@ import { RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } f
 import { isString } from '@vue/shared'
 import { useTitle } from '@vueuse/core'
 import { filterNullOrUndefinedObjectProperties } from '~/helpers/parsers/parserHelpers'
-import {
-  NcErrorType,
-  PreFilledMode,
-  SharedViewPasswordInj,
-  computed,
-  createEventHook,
-  extractSdkResponseErrorMsg,
-  extractSdkResponseErrorMsgv2,
-  isNumericFieldType,
-  isValidURL,
-  message,
-  parseProp,
-  provide,
-  ref,
-  storeToRefs,
-  useApi,
-  useBase,
-  useI18n,
-  useInjectionState,
-  useMetas,
-  useProvideSmartsheetRowStore,
-  useViewsStore,
-  validateEmail,
-  watch,
-} from '#imports'
-import type { SharedViewMeta } from '#imports'
 
 const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((sharedViewId: string) => {
   const progress = ref(false)

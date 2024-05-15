@@ -3,7 +3,6 @@ import type { VNodeRef } from '@vue/runtime-core'
 import type { AuditType } from 'nocodb-sdk'
 import { timeAgo } from 'nocodb-sdk'
 import { Icon } from '@iconify/vue'
-import { ref, useExpandedFormStoreOrThrow, useGlobal, useRoles, watch } from '#imports'
 
 const props = defineProps<{
   loading: boolean

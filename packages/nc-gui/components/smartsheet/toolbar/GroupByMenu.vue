@@ -1,20 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
-import {
-  ActiveViewInj,
-  IsLockedInj,
-  MetaInj,
-  computed,
-  getSortDirectionOptions,
-  inject,
-  ref,
-  useMenuCloseOnEsc,
-  useNuxtApp,
-  useSmartsheetStoreOrThrow,
-  useViewColumnsOrThrow,
-  watch,
-} from '#imports'
 
 const meta = inject(MetaInj, ref())
 const view = inject(ActiveViewInj, ref())

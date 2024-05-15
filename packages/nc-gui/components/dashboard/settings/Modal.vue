@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { FunctionalComponent, SVGAttributes } from 'vue'
 import Misc from './Misc.vue'
-import { DataSourcesSubTab, iconMap, useNuxtApp, useVModel, watch } from '#imports'
 
 interface Props {
   modelValue?: boolean

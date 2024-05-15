@@ -714,6 +714,7 @@
     "hasMany": "má mnoho",
     "belongsTo": "patrí",
     "manyToMany": "majú veľa k mnohým vzťah",
+    "oneToOne": "have one to one relation",
     "extraConnectionParameters": "Ďalšie parametre pripojenia",
     "commentsOnly": "Len pripomienky",
     "documentation": "Dokumentácia",

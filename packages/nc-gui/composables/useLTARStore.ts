@@ -7,31 +7,6 @@ import type {
 } from 'nocodb-sdk'
 import { RelationTypes, UITypes, dateFormats, parseStringDateTime, timeFormats } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
-import type { Row } from '#imports'
-import {
-  IsPublicInj,
-  Modal,
-  NOCO,
-  NcErrorType,
-  SharedViewPasswordInj,
-  computed,
-  extractSdkResponseErrorMsg,
-  extractSdkResponseErrorMsgv2,
-  inject,
-  message,
-  parseProp,
-  reactive,
-  ref,
-  storeToRefs,
-  useBase,
-  useI18n,
-  useInjectionState,
-  useMetas,
-  useNuxtApp,
-  useRouter,
-  useSharedView,
-  watch,
-} from '#imports'
 
 interface DataApiResponse {
   list: Record<string, any>

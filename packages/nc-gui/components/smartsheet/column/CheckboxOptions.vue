@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { computed, getMdiIcon, useVModel, watch } from '#imports'
-
 const props = defineProps<{
   value: any
 }>()

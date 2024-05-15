@@ -2,18 +2,6 @@ import { UITypes } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType, LookupType, SelectOptionsType, TableType, ViewType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { message } from 'ant-design-vue'
-import { extractSdkResponseErrorMsg } from '../utils'
-import {
-  GROUP_BY_VARS,
-  SharedViewPasswordInj,
-  ref,
-  storeToRefs,
-  useApi,
-  useBase,
-  useMetas,
-  useViewColumnsOrThrow,
-} from '#imports'
-import type { Group, GroupNestedIn, Row } from '#imports'
 
 const excludedGroupingUidt = [UITypes.Attachment, UITypes.QrCode, UITypes.Barcode]
 

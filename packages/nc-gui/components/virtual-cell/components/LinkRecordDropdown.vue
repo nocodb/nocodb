@@ -68,7 +68,7 @@ watch([ncLinksDropdownRef, isOpen], () => {
   >
     <slot />
     <template #overlay>
-      <div ref="ncLinksDropdownRef" class="h-[412px] w-[540px]" :class="`${randomClass}`">
+      <div ref="ncLinksDropdownRef" class="h-[412px] w-[540px] nc-links-dropdown-wrapper" :class="`${randomClass}`">
         <slot name="overlay" />
       </div>
     </template>
@@ -77,9 +77,20 @@ watch([ncLinksDropdownRef, isOpen], () => {
 
 <style lang="scss">
 .nc-links-dropdown {
+  @apply rounded-xl !border-gray-200;
   z-index: 1000 !important;
 }
 .nc-link-dropdown-root {
   z-index: 1000;
+}
+
+.nc-links-dropdown-wrapper {
+  @apply h-[412px] w-[540px];
+  overflow-y: auto;
+  overflow-x: hidden;
+  resize: vertical;
+  min-height: 412px;
+  max-height: 700px;
+  max-width: 540px;
 }
 </style>

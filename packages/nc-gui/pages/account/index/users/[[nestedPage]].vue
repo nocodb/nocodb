@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { useRoles } from '#imports'
-
 const { isUIAllowed } = useRoles()
 </script>
 

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import ErrorBoundary from './components/nc/ErrorBoundary.vue'
-import { applyNonSelectable, computed, isEeUI, isMac, useCommandPalette, useRouter, useTheme } from '#imports'
-import type { CommandPaletteType } from '~/lib'
+import type { CommandPaletteType } from '~/lib/types'
 
 const router = useRouter()
 

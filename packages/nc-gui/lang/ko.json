@@ -714,6 +714,7 @@
     "hasMany": "많이",
     "belongsTo": "속해있다",
     "manyToMany": "다대다 관계",
+    "oneToOne": "have one to one relation",
     "extraConnectionParameters": "추가 연결 매개 변수",
     "commentsOnly": "댓글 만",
     "documentation": "문서",

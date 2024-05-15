@@ -3,20 +3,6 @@ import type { RequestParams } from 'nocodb-sdk'
 import { ExportTypes } from 'nocodb-sdk'
 import { saveAs } from 'file-saver'
 import * as XLSX from 'xlsx'
-import {
-  ActiveViewInj,
-  FieldsInj,
-  IsPublicInj,
-  MetaInj,
-  extractSdkResponseErrorMsg,
-  iconMap,
-  inject,
-  message,
-  ref,
-  storeToRefs,
-  useBase,
-  useNuxtApp,
-} from '#imports'
 
 const isPublicView = inject(IsPublicInj, ref(false))
 

@@ -1,17 +1,6 @@
 <script lang="ts" setup>
 import { OrgUserRoles } from 'nocodb-sdk'
 import type { OrgUserReqType, RequestParams, UserType } from 'nocodb-sdk'
-import type { User } from '#imports'
-import {
-  extractSdkResponseErrorMsg,
-  iconMap,
-  useApi,
-  useCopy,
-  useDashboard,
-  useDebounceFn,
-  useNuxtApp,
-  useUserSorts,
-} from '#imports'
 
 const { api, isLoading } = useApi()
 

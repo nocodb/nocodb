@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { OrderedWorkspaceRoles, WorkspaceUserRoles } from 'nocodb-sdk'
-import { IsAdminPanelInj, storeToRefs, useUserSorts, useWorkspace } from '#imports'
 
 const props = defineProps<{
   workspaceId?: string

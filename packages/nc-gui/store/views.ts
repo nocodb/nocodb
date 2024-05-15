@@ -1,8 +1,7 @@
 import type { FilterType, SortType, ViewType, ViewTypes } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { useTitle } from '@vueuse/core'
-import type { ViewPageType } from '~/lib'
-import { navigateToBlankTargetOpenOption, useMagicKeys } from '#imports'
+import type { ViewPageType } from '~/lib/types'
 import { getFormattedViewTabTitle } from '~/helpers/parsers/parserHelpers'
 
 export const useViewsStore = defineStore('viewsStore', () => {

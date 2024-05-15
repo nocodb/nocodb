@@ -714,6 +714,7 @@
     "hasMany": "بسیار دارد",
     "belongsTo": "متعلق است به",
     "manyToMany": "رابطه بسیار به بسیار دارد",
+    "oneToOne": "have one to one relation",
     "extraConnectionParameters": "پارامتر های اتصال اضافی",
     "commentsOnly": "فقط کامنت ها",
     "documentation": "مستندات",

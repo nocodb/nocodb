@@ -2,22 +2,6 @@
 import { onMounted } from '@vue/runtime-core'
 import { type ColumnType, type LinkToAnotherRecordType, RelationTypes, type TableType, type UITypes } from 'nocodb-sdk'
 import { getAvailableRollupForUiType, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
-import type { Ref } from '#imports'
-import {
-  MetaInj,
-  computed,
-  h,
-  inject,
-  ref,
-  resolveComponent,
-  storeToRefs,
-  useBase,
-  useColumnCreateStoreOrThrow,
-  useI18n,
-  useMetas,
-  useVModel,
-  watch,
-} from '#imports'
 
 const props = defineProps<{
   value: any

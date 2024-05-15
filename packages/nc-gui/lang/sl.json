@@ -714,6 +714,7 @@
     "hasMany": "ima veliko",
     "belongsTo": "pripada",
     "manyToMany": "imajo veliko do veliko razmerje",
+    "oneToOne": "have one to one relation",
     "extraConnectionParameters": "Dodatni parametri povezave",
     "commentsOnly": "Samo pripombe",
     "documentation": "Dokumentacija",

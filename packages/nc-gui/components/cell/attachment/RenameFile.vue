@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { onKeyStroke, onMounted, reactive, ref, useI18n } from '#imports'
-
 const props = defineProps<{
   title: string
 }>()

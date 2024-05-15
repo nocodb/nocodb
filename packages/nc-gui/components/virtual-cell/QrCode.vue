@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { useQRCode } from '@vueuse/integrations/useQRCode'
 import type QRCode from 'qrcode'
-import { IsGalleryInj, RowHeightInj, computed, inject, ref, rowHeightInPx } from '#imports'
 
 const maxNumberOfAllowedCharsForQrValue = 2000
 

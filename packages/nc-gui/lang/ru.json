@@ -714,6 +714,7 @@
     "hasMany": "имеет много",
     "belongsTo": "принадлежит",
     "manyToMany": "имеет отношение \"многие-ко-многим\"",
+    "oneToOne": "have one to one relation",
     "extraConnectionParameters": "Дополнительные параметры соединения",
     "commentsOnly": "Только комментарии",
     "documentation": "Документация",

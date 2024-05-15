@@ -4,37 +4,6 @@ import { message } from 'ant-design-vue'
 import { stringifyRolesObj } from 'nocodb-sdk'
 import type { BaseType, SourceType, TableType } from 'nocodb-sdk'
 import { LoadingOutlined } from '@ant-design/icons-vue'
-import {
-  NcProjectType,
-  ProjectInj,
-  ProjectRoleInj,
-  ToggleDialogInj,
-  TreeViewInj,
-  computed,
-  extractSdkResponseErrorMsg,
-  h,
-  inject,
-  navigateTo,
-  navigateToBlankTargetOpenOption,
-  openLink,
-  ref,
-  resolveComponent,
-  storeToRefs,
-  useBase,
-  useBases,
-  useCopy,
-  useDialog,
-  useGlobal,
-  useI18n,
-  useMagicKeys,
-  useNuxtApp,
-  useRoles,
-  useRouter,
-  useTablesStore,
-  useTabs,
-  useToggle,
-} from '#imports'
-import type { NcProject } from '#imports'
 
 const indicator = h(LoadingOutlined, {
   class: '!text-gray-400',

@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { onKeyStroke } from '#imports'
-
 const props = defineProps<{
   visible: boolean
   entityName: string

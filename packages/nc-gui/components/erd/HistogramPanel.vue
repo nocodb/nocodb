@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { Panel, PanelPosition } from '@vue-flow/additional-components'
-import { iconMap } from '#imports'
 </script>
 
 <template>

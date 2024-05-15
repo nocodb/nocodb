@@ -2,18 +2,6 @@ import type { BaseType } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { message } from 'ant-design-vue'
 import { isString } from '@vue/shared'
-import type { ThemeConfig } from '#imports'
-import {
-  computed,
-  navigateTo,
-  navigateToBlankTargetOpenOption,
-  ref,
-  useBases,
-  useCommandPalette,
-  useNuxtApp,
-  useRouter,
-  useTheme,
-} from '#imports'
 
 export const useWorkspace = defineStore('workspaceStore', () => {
   const basesStore = useBases()

@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { useTitle } from '@vueuse/core'
-import { storeToRefs } from '#imports'
 
 const props = defineProps<{
   workspaceId?: string

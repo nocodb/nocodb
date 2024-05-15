@@ -2,27 +2,6 @@
 import { onKeyDown } from '@vueuse/core'
 import { useProvideAttachmentCell } from './utils'
 import { useSortable } from './sort'
-import {
-  ActiveCellInj,
-  CurrentCellInj,
-  DropZoneRef,
-  IsExpandedFormOpenInj,
-  IsGalleryInj,
-  IsGridInj,
-  IsKanbanInj,
-  IsSurveyFormInj,
-  RowHeightInj,
-  iconMap,
-  inject,
-  isImage,
-  ref,
-  useAttachment,
-  useDropZone,
-  useSelectedCellKeyupListener,
-  useSmartsheetRowStoreOrThrow,
-  useSmartsheetStoreOrThrow,
-  watch,
-} from '#imports'
 
 interface Props {
   modelValue?: string | Record<string, any>[] | null
@@ -75,6 +54,7 @@ const {
   selectedImage,
   isReadonly,
   storedFiles,
+  removeFile,
 } = useProvideAttachmentCell(updateModelValue)
 
 const { dragging } = useSortable(sortableRef, visibleItems, updateModelValue, isReadonly)
@@ -194,6 +174,26 @@ const keydownSpace = (e: KeyboardEvent) => {
     e.stopPropagation()
   }
 }
+
+const { isUIAllowed } = useRoles()
+const isConfirmModalOpen = ref(false)
+const filetoDelete = reactive({
+  title: '',
+  i: 0,
+})
+
+function onRemoveFileClick(title: any, i: number) {
+  isConfirmModalOpen.value = true
+  filetoDelete.i = i
+  filetoDelete.title = title
+}
+
+const handleFileDelete = (i: number) => {
+  removeFile(i)
+  isConfirmModalOpen.value = false
+  filetoDelete.i = 0
+  filetoDelete.title = ''
+}
 </script>
 
 <template>
@@ -276,14 +276,14 @@ const keydownSpace = (e: KeyboardEvent) => {
         }"
       >
         <template v-for="(item, i) of visibleItems" :key="item.url || item.title">
-          <NcTooltip placement="bottom">
+          <NcTooltip placement="bottom" class="nc-attachment-item">
             <template #title>
               <div class="text-center w-full">{{ item.title }}</div>
             </template>
             <div v-if="isImage(item.title, item.mimetype ?? item.type)">
               <div
-                class="nc-attachment flex items-center flex-col flex-wrap justify-center"
-                :class="{ 'ml-2': active }"
+                class="nc-attachment flex items-center flex-col flex-wrap justify-center flex-auto"
+                :class="{ 'ml-2': active, '!w-30': isForm || isExpandedForm }"
                 @click="() => onImageClick(item)"
               >
                 <LazyCellAttachmentImage
@@ -292,10 +292,9 @@ const keydownSpace = (e: KeyboardEvent) => {
                   :class="{
                     'h-5.5': !isGrid && (!rowHeight || rowHeight === 1),
                     'h-4.5': isGrid && (!rowHeight || rowHeight === 1),
-                    'w-8.8': rowHeight === 1,
-                    'h-8 w-12.8': rowHeight === 2,
-                    'h-16.8 w-20.8': rowHeight === 4,
-                    'h-20.8 !w-30': isForm || isExpandedForm || rowHeight === 6,
+                    'h-8': rowHeight === 2,
+                    'h-16.8': rowHeight === 4,
+                    'h-20.8': rowHeight === 6 || isForm || isExpandedForm,
                   }"
                   :srcs="getPossibleAttachmentSrc(item)"
                 />
@@ -303,14 +302,31 @@ const keydownSpace = (e: KeyboardEvent) => {
             </div>
             <div
               v-else
-              class="nc-attachment flex items-center justify-center"
-              :class="{ 'ml-2': active }"
+              class="nc-attachment flex items-center justify-center px-4"
+              :class="{
+                'h-5.5': !isGrid && (!rowHeight || rowHeight === 1),
+                'h-4.5': isGrid && (!rowHeight || rowHeight === 1),
+                'h-8': rowHeight === 2,
+                'h-16.8': rowHeight === 4,
+                'h-20.8 !w-30': rowHeight === 6 || isForm || isExpandedForm,
+                'ml-2': active,
+              }"
               @click="openAttachment(item)"
             >
-              <component :is="FileIcon(item.icon)" v-if="item.icon" />
+              <component :is="FileIcon(item.icon)" v-if="item.icon" :class="{ 'h-13 w-13': isForm || isExpandedForm }" />
 
-              <IcOutlineInsertDriveFile v-else />
+              <IcOutlineInsertDriveFile v-else :class="{ 'h-13 w-13': isForm || isExpandedForm }" />
             </div>
+
+            <a-tooltip v-if="isForm || isExpandedForm">
+              <template #title> {{ $t('title.removeFile') }} </template>
+              <component
+                :is="iconMap.closeCircle"
+                v-if="isSharedForm || (isUIAllowed('dataEdit') && !isPublic)"
+                class="nc-attachment-remove"
+                @click.stop="onRemoveFileClick(item.title, i)"
+              />
+            </a-tooltip>
           </NcTooltip>
         </template>
       </div>
@@ -326,7 +342,7 @@ const keydownSpace = (e: KeyboardEvent) => {
 
           <component
             :is="iconMap.expand"
-            class="flex-none transform dark:(!text-white) group-hover:(!text-grey-800 scale-120) text-gray-500 text-[0.75rem]"
+            class="flex-none transform dark:(!text-white) group-hover:(!text-grey-800 scale-120) text-gray-500 text-[2rem] h-3"
             @click.stop="onExpand"
           />
         </NcTooltip>
@@ -334,6 +350,27 @@ const keydownSpace = (e: KeyboardEvent) => {
     </template>
 
     <LazyCellAttachmentModal />
+
+    <LazyGeneralDeleteModal
+      v-if="isForm || isExpandedForm"
+      v-model:visible="isConfirmModalOpen"
+      entity-name="File"
+      :on-delete="() => handleFileDelete(filetoDelete.i)"
+    >
+      <template #entity-preview>
+        <span>
+          <div class="flex flex-row items-center py-2.25 px-2.5 bg-gray-50 rounded-lg text-gray-700 mb-4">
+            <GeneralIcon icon="file" class="nc-view-icon"></GeneralIcon>
+            <div
+              class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1.75"
+              :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
+            >
+              {{ filetoDelete.title }}
+            </div>
+          </div>
+        </span>
+      </template>
+    </LazyGeneralDeleteModal>
   </div>
 </template>
 
@@ -341,7 +378,7 @@ const keydownSpace = (e: KeyboardEvent) => {
 .nc-cell {
   .nc-attachment-cell {
     .nc-attachment {
-      @apply min-h-5.5 min-w-[1.8rem] !ring-1 !ring-gray-300 !rounded;
+      @apply min-h-5.5 !ring-1 !ring-gray-300 !rounded;
     }
 
     .ghost,
@@ -353,6 +390,18 @@ const keydownSpace = (e: KeyboardEvent) => {
       .ant-tooltip {
         @apply !hidden;
       }
+    }
+  }
+  .nc-attachment-item {
+    @apply relative;
+
+    .nc-attachment-remove {
+      @apply absolute right-0.8 top-0.8 rounded hidden p-0.5 bg-white text-lg leading-none;
+      box-shadow: 0px 0px 4px #bbb;
+    }
+
+    &:hover .nc-attachment-remove {
+      @apply block;
     }
   }
 }

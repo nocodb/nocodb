@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import axios from 'axios'
 import type { PaginatedType } from 'nocodb-sdk'
-import { IsGroupByInj, computed, iconMap, inject, isRtlLang, useI18n } from '#imports'
-import type { Language } from '#imports'
 
 interface Props {
   paginationData: PaginatedType

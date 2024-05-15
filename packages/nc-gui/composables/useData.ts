@@ -1,25 +1,7 @@
 import type { ColumnType, LinkToAnotherRecordType, PaginatedType, RelationTypes, TableType, ViewType } from 'nocodb-sdk'
 import { UITypes, isCreatedOrLastModifiedByCol, isCreatedOrLastModifiedTimeCol } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
-import {
-  NOCO,
-  computed,
-  extractPk,
-  extractPkFromRow,
-  extractSdkResponseErrorMsg,
-  findIndexByPk,
-  message,
-  populateInsertObject,
-  rowDefaultData,
-  rowPkData,
-  storeToRefs,
-  until,
-  useBase,
-  useI18n,
-  useMetas,
-  useNuxtApp,
-} from '#imports'
-import type { CellRange, Row, UndoRedoAction } from '#imports'
+import type { CellRange } from '#imports'
 
 export function useData(args: {
   meta: Ref<TableType | undefined> | ComputedRef<TableType | undefined>

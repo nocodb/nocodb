@@ -1,23 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType, FilterType } from 'nocodb-sdk'
 import { PlanLimitTypes, UITypes } from 'nocodb-sdk'
-import type { Filter } from '#imports'
-import {
-  ActiveViewInj,
-  AllFiltersInj,
-  MetaInj,
-  ReloadViewDataHookInj,
-  comparisonOpList,
-  comparisonSubOpList,
-  computed,
-  iconMap,
-  inject,
-  onMounted,
-  ref,
-  useNuxtApp,
-  useViewFilters,
-  watch,
-} from '#imports'
 
 interface Props {
   nestedLevel?: number

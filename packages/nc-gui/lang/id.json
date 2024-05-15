@@ -714,6 +714,7 @@
     "hasMany": "memiliki banyak",
     "belongsTo": "milik",
     "manyToMany": "memiliki hubungan banyak ke banyak",
+    "oneToOne": "have one to one relation",
     "extraConnectionParameters": "Parameter koneksi tambahan",
     "commentsOnly": "Hanya komentar",
     "documentation": "Dokumentasi",

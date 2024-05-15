@@ -1,20 +1,5 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
-import {
-  ActiveViewInj,
-  AllFiltersInj,
-  IsLockedInj,
-  SmartsheetStoreEvents,
-  computed,
-  iconMap,
-  inject,
-  ref,
-  useGlobal,
-  useMenuCloseOnEsc,
-  useSmartsheetStoreOrThrow,
-  useViewFilters,
-  watch,
-} from '#imports'
 
 const isLocked = inject(IsLockedInj, ref(false))
 

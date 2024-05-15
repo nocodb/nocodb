@@ -714,6 +714,7 @@
     "hasMany": "لديه العديد",
     "belongsTo": "ينتمي إلى",
     "manyToMany": "متعدد لمتعدد",
+    "oneToOne": "have one to one relation",
     "extraConnectionParameters": "معلمات اتصال إضافية",
     "commentsOnly": "التعليقات فقط",
     "documentation": "الوثائق",

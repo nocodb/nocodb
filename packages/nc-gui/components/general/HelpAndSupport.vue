@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { iconMap, ref, storeToRefs, useBase, useGlobal, useRoute } from '#imports'
-
 const showDrawer = ref(false)
 
 const { appInfo } = useGlobal()

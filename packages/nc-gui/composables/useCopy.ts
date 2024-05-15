@@ -1,5 +1,4 @@
 import { Modal } from 'ant-design-vue'
-import { useClipboard, useI18n } from '#imports'
 
 export const useCopy = (showDialogIfFailed = false) => {
   const { t } = useI18n()

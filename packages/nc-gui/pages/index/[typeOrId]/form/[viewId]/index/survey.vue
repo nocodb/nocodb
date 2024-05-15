@@ -3,19 +3,6 @@ import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
 import { breakpointsTailwind } from '@vueuse/core'
 import tinycolor from 'tinycolor2'
-import {
-  DropZoneRef,
-  IsSurveyFormInj,
-  computed,
-  onKeyStroke,
-  onMounted,
-  provide,
-  ref,
-  useBreakpoints,
-  usePointerSwipe,
-  useSharedFormStoreOrThrow,
-  useStepper,
-} from '#imports'
 
 enum TransitionDirection {
   Left = 'left',
@@ -569,7 +556,8 @@ onMounted(() => {
 </template>
 
 <style lang="scss">
-:global(html, body) {
+:global(html),
+:global(body) {
   @apply overscroll-x-none;
 }
 

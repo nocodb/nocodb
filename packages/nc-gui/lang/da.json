@@ -714,6 +714,7 @@
     "hasMany": "har mange",
     "belongsTo": "hører til",
     "manyToMany": "har mange til mange relationer",
+    "oneToOne": "have one to one relation",
     "extraConnectionParameters": "Ekstra forbindelsesparametre",
     "commentsOnly": "Kun kommentarer",
     "documentation": "Dokumentation",

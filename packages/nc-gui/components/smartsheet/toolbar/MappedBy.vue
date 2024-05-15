@@ -2,19 +2,6 @@
 import type { MapType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import type { SelectProps } from 'ant-design-vue'
-import {
-  ActiveViewInj,
-  IsLockedInj,
-  IsPublicInj,
-  MetaInj,
-  computed,
-  iconMap,
-  inject,
-  ref,
-  useSmartsheetStoreOrThrow,
-  useViewColumnsOrThrow,
-  watch,
-} from '#imports'
 
 const { eventBus } = useSmartsheetStoreOrThrow()
 

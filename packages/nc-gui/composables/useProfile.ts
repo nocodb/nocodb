@@ -1,5 +1,3 @@
-import { extractSdkResponseErrorMsg, useGlobal, useNuxtApp, useRouter } from '#imports'
-
 export function useProfile() {
   const { user } = useGlobal()
 

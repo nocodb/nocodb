@@ -4,22 +4,6 @@ import { ViewTypes } from 'nocodb-sdk'
 import type { SortableEvent } from 'sortablejs'
 import Sortable from 'sortablejs'
 import type { Menu as AntMenu } from 'ant-design-vue'
-import {
-  extractSdkResponseErrorMsg,
-  isDefaultBase,
-  message,
-  onMounted,
-  parseProp,
-  ref,
-  resolveComponent,
-  useApi,
-  useCommandPalette,
-  useDialog,
-  useNuxtApp,
-  useUndoRedo,
-  viewTypeAlias,
-  watch,
-} from '#imports'
 
 interface Emits {
   (

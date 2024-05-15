@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { CommandPaletteType } from '~/lib'
+import type { CommandPaletteType } from '~/lib/types'
 
 defineProps<{
   activeCmd: CommandPaletteType

@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { iconMap, useGlobal } from '#imports'
-
 const { isLoading } = useGlobal()
 </script>
 

@@ -2,17 +2,6 @@
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import { RelationTypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 import InboxIcon from '~icons/nc-icons/inbox'
-import {
-  ColumnInj,
-  IsPublicInj,
-  SaveRowInj,
-  computed,
-  inject,
-  ref,
-  useLTARStoreOrThrow,
-  useSmartsheetRowStoreOrThrow,
-  useVModel,
-} from '#imports'
 
 const props = defineProps<{ modelValue: boolean; column: any; hideBackBtn?: boolean }>()
 
@@ -306,7 +295,7 @@ const onFilterChange = () => {
 <template>
   <div class="nc-modal-link-record h-full w-full overflow-hidden" :class="{ active: vModel }" @keydown.enter.stop>
     <div class="flex flex-col h-full">
-      <div class="nc-dropdown-link-record-header bg-gray-100 py-2 rounded-t-md flex justify-between pl-3 pr-2 gap-2">
+      <div class="nc-dropdown-link-record-header bg-gray-100 py-2 rounded-t-xl flex justify-between pl-3 pr-2 gap-2">
         <div class="flex-1 gap-2 flex items-center">
           <button
             v-if="!hideBackBtn"
@@ -317,13 +306,12 @@ const onFilterChange = () => {
           </button>
 
           <div class="flex-1 nc-dropdown-link-record-search-wrapper flex items-center py-0.5 rounded-md">
-            <MdiMagnify class="nc-search-icon w-5 h-5" />
             <a-input
               ref="filterQueryRef"
               v-model:value="childrenExcludedListPagination.query"
               :bordered="false"
               placeholder="Search records to link..."
-              class="w-full nc-excluded-search min-h-4"
+              class="w-full nc-excluded-search min-h-4 !pl-0"
               size="small"
               @change="onFilterChange"
               @keydown.capture.stop="
@@ -334,6 +322,9 @@ const onFilterChange = () => {
                 }
               "
             >
+              <template #prefix>
+                <GeneralIcon icon="search" class="nc-search-icon mr-2 h-4 w-4 text-gray-500" />
+              </template>
             </a-input>
           </div>
         </div>
@@ -352,26 +343,21 @@ const onFilterChange = () => {
               <div
                 v-for="(_x, i) in Array.from({ length: 10 })"
                 :key="i"
-                class="flex flex-row gap-2 mb-2 transition-all relative !border-gray-200 hover:bg-gray-50"
+                class="flex flex-row gap-3 px-3 py-2 transition-all relative border-b-1 border-gray-200 hover:bg-gray-50"
               >
                 <div class="flex items-center">
-                  <a-skeleton-image class="h-14 w-14 !rounded-xl children:!h-full" />
+                  <a-skeleton-image class="!h-11 !w-11 !rounded-md overflow-hidden children:(!h-full !w-full)" />
                 </div>
                 <div class="flex flex-col gap-2 flex-grow justify-center">
-                  <a-skeleton-input active class="h-3 !w-48 !rounded-xl" size="small" />
+                  <a-skeleton-input active class="h-4 !w-48 !rounded-md overflow-hidden" size="small" />
                   <div class="flex flex-row gap-6 w-10/12">
-                    <div class="flex flex-col gap-0.5">
-                      <a-skeleton-input active class="!h-2 !w-12" size="small" />
-                      <a-skeleton-input active class="!h-2 !w-24" size="small" />
-                    </div>
-                    <div class="flex flex-col gap-0.5">
-                      <a-skeleton-input active class="!h-2 !w-12" size="small" />
-                      <a-skeleton-input active class="!h-2 !w-24" size="small" />
-                    </div>
-                    <div class="flex flex-col gap-0.5">
-                      <a-skeleton-input active class="!h-2 !w-12" size="small" />
-                      <a-skeleton-input active class="!h-2 !w-24" size="small" />
-                    </div>
+                    <a-skeleton-input
+                      v-for="idx of [1, 2, 3]"
+                      :key="idx"
+                      active
+                      class="!h-3 !w-24 !rounded-md overflow-hidden"
+                      size="small"
+                    />
                   </div>
                 </div>
               </div>
@@ -403,19 +389,21 @@ const onFilterChange = () => {
         </template>
         <div v-else class="h-full my-auto py-2 flex flex-col gap-3 items-center justify-center text-gray-500">
           <InboxIcon class="w-16 h-16 mx-auto" />
-          <p>
+
+          <p v-if="childrenExcludedListPagination.query">{{ $t('msg.noRecordsMatchYourSearchQuery') }}</p>
+          <p v-else>
             {{ $t('msg.thereAreNoRecordsInTable') }}
             {{ relatedTableMeta?.title }}
           </p>
         </div>
       </div>
-      <div class="bg-gray-100 px-3 py-2 rounded-b-md flex items-center justify-between min-h-12">
+      <div class="nc-dropdown-link-record-footer bg-gray-100 p-2 rounded-b-xl flex items-center justify-between min-h-11">
         <div class="flex">
           <NcButton
             v-if="!isPublic"
             v-e="['c:row-expand:open']"
             size="small"
-            class="!hover:(bg-white text-brand-500)"
+            class="!hover:(bg-white text-brand-500) !h-7 !text-small"
             type="secondary"
             @click="addNewRecord"
           >
@@ -474,6 +462,7 @@ const onFilterChange = () => {
         :state="newRowState"
         use-meta-fields
         :skip-reload="true"
+        new-record-submit-btn-text="Create & Link"
         @created-record="onCreatedRecord"
       />
     </Suspense>
@@ -481,8 +470,8 @@ const onFilterChange = () => {
 </template>
 
 <style lang="scss" scoped>
-:deep(.ant-skeleton-element .ant-skeleton-image) {
-  @apply !h-full;
+:deep(.ant-skeleton-element .ant-skeleton-image-svg) {
+  @apply !w-7;
 }
 </style>
 
@@ -495,6 +484,12 @@ const onFilterChange = () => {
   &:focus-within {
     .nc-search-icon {
       @apply text-gray-600;
+    }
+  }
+
+  input {
+    &::placeholder {
+      @apply text-gray-500;
     }
   }
 }

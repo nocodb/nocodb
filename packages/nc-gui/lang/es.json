@@ -714,6 +714,7 @@
     "hasMany": "tiene muchos",
     "belongsTo": "pertenece a",
     "manyToMany": "tienen una relación de muchos a muchos",
+    "oneToOne": "have one to one relation",
     "extraConnectionParameters": "Parámetros de conexión adicionales",
     "commentsOnly": "Sólo comentarios",
     "documentation": "Documentación",

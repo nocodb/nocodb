@@ -1,5 +1,3 @@
-import { message, useI18n } from '#imports'
-
 export const usePaste = () => {
   const { t } = useI18n()
 

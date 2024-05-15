@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import type { VNodeRef } from '@vue/runtime-core'
 import isMobilePhone from 'validator/lib/isMobilePhone'
-import { EditColumnInj, EditModeInj, IsExpandedFormOpenInj, IsFormInj, IsSurveyFormInj, computed, inject } from '#imports'
 
 interface Props {
   modelValue: string | null | number | undefined

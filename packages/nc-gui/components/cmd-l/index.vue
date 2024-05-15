@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { onKeyUp, useDebounceFn, useVModel } from '@vueuse/core'
-import { iconMap, onClickOutside } from '#imports'
-import type { CommandPaletteType } from '~/lib'
+import type { CommandPaletteType } from '~/lib/types'
 
 const props = defineProps<{
   open: boolean

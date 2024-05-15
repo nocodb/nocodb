@@ -1,5 +1,3 @@
-import { createGlobalState } from '#imports'
-
 export const useSqlEditor = createGlobalState(() => {
   const sqlEditors = ref<any>()
 

@@ -1,7 +1,6 @@
 import rfdc from 'rfdc'
 import { OrderedOrgRoles, OrderedProjectRoles, OrderedWorkspaceRoles } from 'nocodb-sdk'
-import type { UsersSortType } from '~/lib'
-import { useGlobal } from '#imports'
+import type { UsersSortType } from '~/lib/types'
 
 /**
  * Hook for managing user sorts and sort configurations.

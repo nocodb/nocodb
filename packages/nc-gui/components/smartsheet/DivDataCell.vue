@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { CurrentCellInj, ref } from '#imports'
-
 const el = ref()
 
 provide(CurrentCellInj, el)

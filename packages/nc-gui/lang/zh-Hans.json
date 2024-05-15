@@ -448,6 +448,8 @@
     "noResultsMatchedYourSearch": "您的搜索没有任何匹配结果"
   },
   "labels": {
+    "today": "Today",
+    "workspace": "Workspace",
     "txt": "TXT 记录值",
     "transferOwnership": "转让所有权",
     "recentActivity": "最近动态",

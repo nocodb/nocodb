@@ -369,7 +369,7 @@ const onLogicalOpUpdate = async (filter: Filter, index: number) => {
       }),
     )
   }
-  await filterUpdateCondition(filter, index)
+  await saveOrUpdate(filter, index)
 }
 </script>
 

@@ -61,7 +61,13 @@ eventBus.on(async (event, column: ColumnType) => {
     overlay-class-name="nc-dropdown-filter-menu nc-toolbar-dropdown"
     class="!xs:hidden"
   >
-    <NcButton v-e="['c:filter']" :disabled="isLocked" class="nc-filter-menu-btn nc-toolbar-btn !border-0 !h-7" size="small" type="secondary">
+    <NcButton
+      v-e="['c:filter']"
+      :disabled="isLocked"
+      class="nc-filter-menu-btn nc-toolbar-btn !border-0 !h-7"
+      size="small"
+      type="secondary"
+    >
       <div class="flex items-center gap-1">
         <div class="flex items-center gap-2">
           <component :is="iconMap.filter" class="h-4 w-4" />

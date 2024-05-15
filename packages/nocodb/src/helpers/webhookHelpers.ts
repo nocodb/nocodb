@@ -70,7 +70,9 @@ export async function validateCondition(
           UITypes.CreatedTime,
           UITypes.LastModifiedTime,
         ].includes(column.uidt) &&
-        !['empty', 'blank', 'notempty', 'notblank'].includes(filter.comparison_op)
+        !['empty', 'blank', 'notempty', 'notblank'].includes(
+          filter.comparison_op,
+        )
       ) {
         const dateFormat =
           client === 'mysql2' ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ';

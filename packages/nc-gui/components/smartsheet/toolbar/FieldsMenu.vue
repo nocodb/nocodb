@@ -311,7 +311,13 @@ useMenuCloseOnEsc(open)
     overlay-class-name="nc-dropdown-fields-menu nc-toolbar-dropdown"
   >
     <div :class="{ 'nc-active-btn': numberOfHiddenFields }">
-      <NcButton v-e="['c:fields']" :disabled="isLocked" class="nc-fields-menu-btn nc-toolbar-btn !h-7 !border-0" size="small" type="secondary">
+      <NcButton
+        v-e="['c:fields']"
+        :disabled="isLocked"
+        class="nc-fields-menu-btn nc-toolbar-btn !h-7 !border-0"
+        size="small"
+        type="secondary"
+      >
         <div class="flex items-center gap-1">
           <div class="flex items-center gap-2">
             <GeneralIcon

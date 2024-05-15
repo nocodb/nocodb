@@ -2817,7 +2817,7 @@ class BaseModelSqlv2 {
           ? response?.[0]?.[ai.id]
           : response?.[ai.id];
         response = await this.readByPk(
-          this.extractCompositePK({ rowId: id, insertObj, ag }),
+          this.extractCompositePK({ rowId: id, insertObj, ag, ai }),
           false,
           {},
           { ignoreView: true, getHiddenColumn: true },
@@ -3250,8 +3250,8 @@ class BaseModelSqlv2 {
     insertObj,
     force = false,
   }: {
-    ai?: Column<any>;
-    ag?: Column<any>;
+    ai: Column<any>;
+    ag: Column<any>;
     rowId;
     insertObj: Record<string, any>;
     force?: boolean;

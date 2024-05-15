@@ -11,6 +11,8 @@ const route = router.currentRoute
 const { isUIAllowed } = useRoles()
 
 const workspaceStore = useWorkspace()
+
+const { loadRoles } = useRoles()
 const { activeWorkspace: _activeWorkspace, workspaces } = storeToRefs(workspaceStore)
 const { loadCollaborators, loadWorkspace } = workspaceStore
 
@@ -28,6 +30,7 @@ const currentWorkspace = computedAsync(async () => {
   } else {
     ws = _activeWorkspace.value
   }
+  await loadRoles(undefined, {}, ws?.id)
   return ws
 })
 

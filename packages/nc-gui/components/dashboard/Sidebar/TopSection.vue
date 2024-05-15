@@ -33,6 +33,8 @@ const navigateToIntegrations = () => {
 
   _navigateToIntegrations('', cmdOrCtrl)
 }
+
+const generateModal = ref(false)
 </script>
 
 <template>
@@ -117,6 +119,19 @@ const navigateToIntegrations = () => {
           <div class="flex">{{ $t('title.createBase') }}</div>
         </div>
       </WorkspaceCreateProjectBtn>
+
+      <div
+        class="nc-sidebar-top-button flex items-center !hover:(bg-gray-200 text-gray-700) !xs:hidden !h-7 my-0.5 group cursor-pointer"
+        @click="generateModal = true"
+      >
+        <div class="gap-x-2 flex flex-row w-full items-center !font-normal">
+          <GeneralIcon icon="magic" class="group-hover:text-orange-500" />
+
+          <div class="flex">Generate with AI</div>
+        </div>
+      </div>
+
+      <DlgGenerateTemplate v-model="generateModal" />
     </div>
   </template>
 </template>

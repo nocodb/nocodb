@@ -18868,6 +18868,75 @@
         ]
       }
     },
+    "/api/v2/ai/template/{workspaceId}": {
+      "parameters": [
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "w124hhlkbeasewh",
+            "type": "string"
+          },
+          "name": "workspaceId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Workspace ID"
+        }
+      ],
+      "post": {
+        "summary": "Create Template",
+        "operationId": "template-create",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "tags": [
+          "Ai"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "input": {
+                    "type": "string"
+                  },
+                  "instruction": {
+                    "type": "string"
+                  },
+                  "options": {
+                    "type": "object",
+                    "properties": {
+                      "generateViews": {
+                        "type": "boolean"
+                      },
+                      "generateData": {
+                        "type": "boolean"
+                      }
+                    }
+                  }
+                },
+                "required": [
+                  "input"
+                ]
+              }
+            }
+          }
+        },
+        "description": "Create a new template for given workspace",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      }
+    },
     "/api/v2/meta/integrations": {
       "get": {
         "summary": "List integrations",

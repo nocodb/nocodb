@@ -5491,7 +5491,13 @@ class BaseModelSqlv2 {
           }
 
           if (d[col.id]?.length) {
-            for (const attachment of d[col.id]) {
+            for (let i = 0; i < d[col.id].length; i++) {
+              if (typeof d[col.id][i] === 'string') {
+                d[col.id][i] = JSON.parse(d[col.id][i]);
+              }
+
+              const attachment = d[col.id][i];
+
               // we expect array of array of attachments in case of lookup
               if (Array.isArray(attachment)) {
                 for (const lookedUpAttachment of attachment) {

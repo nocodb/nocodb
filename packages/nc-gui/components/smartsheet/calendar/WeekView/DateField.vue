@@ -551,14 +551,14 @@ const addRecord = (date: dayjs.Dayjs) => {
 
 <template>
   <div class="flex relative flex-col prevent-select" data-testid="nc-calendar-week-view" @drop="dropEvent">
-    <div class="flex">
+    <div class="flex h-6">
       <div
         v-for="(date, weekIndex) in weekDates"
         :key="weekIndex"
         :class="{
           '!border-brand-500 !border-b-gray-200': dayjs(date).isSame(selectedDate, 'day'),
         }"
-        class="w-1/7 cursor-pointer text-center font-regular uppercase text-xs text-gray-500 w-full py-1 border-gray-200 border-l-gray-50 border-t-gray-50 last:border-r-0 border-1 bg-gray-50"
+        class="w-1/7 cursor-pointer text-center text-[10px] font-semibold leading-4 flex items-center justify-center uppercase text-gray-500 w-full py-1 border-gray-200 border-l-gray-50 border-t-gray-50 last:border-r-0 border-1 bg-gray-50"
         @click="selectDate(date)"
         @dblclick="addRecord(date)"
       >

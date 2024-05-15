@@ -889,7 +889,7 @@ watch(
         :class="{
           '!border-brand-500': hour.isSame(selectedTime),
         }"
-        class="flex w-full border-l-gray-100 h-13 nc-calendar-day-hour relative border-1 group hover:bg-gray-50 border-white border-b-gray-100"
+        class="flex w-full border-l-gray-100 h-13 transition nc-calendar-day-hour relative border-1 group hover:bg-gray-50 border-white border-b-gray-100"
         data-testid="nc-calendar-day-hour"
         @click="selectHour(hour)"
         @dblclick="newRecord(hour)"
@@ -999,7 +999,7 @@ watch(
             :data-testid="`nc-calendar-day-record-${record.row[displayField!.title!]}`"
             :data-unique-id="record.rowMeta.id"
             :style="record.rowMeta.style"
-            class="absolute draggable-record group cursor-pointer pointer-events-auto"
+            class="absolute draggable-record transition group cursor-pointer pointer-events-auto"
             @mousedown="dragStart($event, record)"
             @mouseleave="hoverRecord = null"
             @mouseover="hoverRecord = record.rowMeta.id as string"

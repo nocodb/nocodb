@@ -2,15 +2,12 @@
 import dayjs from 'dayjs'
 
 interface Props {
-  size?: 'medium' | 'large' | 'small'
+  size?: 'medium'
   selectedDate?: dayjs.Dayjs | null
-  isDisabled?: boolean
   pageDate?: dayjs.Dayjs
   activeDates?: Array<dayjs.Dayjs>
   isMondayFirst?: boolean
-  disablePagination?: boolean
   isWeekPicker?: boolean
-  disableHeader?: boolean
   hideCalendar?: boolean
   selectedWeek?: {
     start: dayjs.Dayjs
@@ -19,19 +16,16 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  size: 'large',
+  size: 'medium',
   selectedDate: null,
-  isDisabled: false,
   isMondayFirst: true,
-  disablePagination: false,
   pageDate: dayjs(),
   isWeekPicker: false,
-  disableHeader: false,
   activeDates: [] as Array<dayjs.Dayjs>,
   selectedWeek: null,
   hideCalendar: false,
 })
-const emit = defineEmits(['change', 'dblClick', 'update:selectedDate', 'update:pageDate', 'update:selectedWeek'])
+const emit = defineEmits(['update:selectedDate', 'update:pageDate', 'update:selectedWeek'])
 // Page date is the date we use to manage which month/date that is currently being displayed
 const pageDate = useVModel(props, 'pageDate', emit)
 
@@ -139,27 +133,12 @@ const paginate = (action: 'next' | 'prev') => {
   pageDate.value = newDate
   emit('update:pageDate', newDate)
 }
-
-const emitDblClick = (date: dayjs.Dayjs) => {
-  emit('dblClick', date)
-}
 </script>
 
 <template>
-  <div
-    :class="{
-      'gap-1': size === 'small',
-    }"
-    class="flex flex-col"
-  >
-    <div
-      v-if="!disableHeader"
-      :class="{
-        '!justify-center': disablePagination,
-      }"
-      class="flex justify-between border-b-1 px-3 py-0.5 nc-date-week-header items-center"
-    >
-      <NcTooltip v-if="!disablePagination">
+  <div class="flex flex-col">
+    <div class="flex justify-between border-b-1 px-3 py-0.5 nc-date-week-header items-center">
+      <NcTooltip hide-on-click>
         <NcButton class="!border-0" size="small" type="secondary" @click="paginate('prev')">
           <component :is="iconMap.arrowLeft" class="h-4 w-4" />
         </NcButton>
@@ -168,16 +147,9 @@ const emitDblClick = (date: dayjs.Dayjs) => {
         </template>
       </NcTooltip>
 
-      <span
-        :class="{
-          'text-xs': size === 'small',
-          'text-sm': size === 'medium',
-        }"
-        class="text-gray-700 font-semibold"
-        >{{ currentMonthYear }}</span
-      >
+      <span class="text-gray-700 text-sm font-semibold">{{ currentMonthYear }}</span>
 
-      <NcTooltip v-if="!disablePagination">
+      <NcTooltip hide-on-click>
         <NcButton class="!border-0" data-testid="nc-calendar-next-btn" size="small" type="secondary" @click="paginate('next')">
           <component :is="iconMap.arrowRight" class="h-4 w-4" />
         </NcButton>
@@ -186,42 +158,16 @@ const emitDblClick = (date: dayjs.Dayjs) => {
         </template>
       </NcTooltip>
     </div>
-    <div
-      v-if="!hideCalendar"
-      :class="{
-        'rounded-lg': size === 'small',
-        'rounded-y-xl': size !== 'small',
-      }"
-      class="max-w-[320px]"
-    >
-      <div
-        :class="{
-          'gap-1 px-3.5': size === 'medium',
-          'gap-2': size === 'large',
-          'px-2 !rounded-t-lg': size === 'small',
-          'rounded-t-xl': size !== 'small',
-        }"
-        class="flex py-1 flex-row nc-date-week-header border-gray-200 justify-between"
-      >
+    <div v-if="!hideCalendar" class="max-w-[320px] rounded-y-xl">
+      <div class="flex py-1 gap-1 px-2.5 rounded-t-xl flex-row border-gray-200 justify-between">
         <span
           v-for="(day, index) in days"
           :key="index"
-          :class="{
-            'w-9 h-9': size === 'large',
-            'w-8 h-8': size === 'medium',
-            'text-[10px]': size === 'small',
-          }"
-          class="flex items-center uppercase font-medium justify-center text-gray-500"
+          class="flex w-8 h-8 items-center uppercase font-medium justify-center text-gray-500"
           >{{ day[0] }}</span
         >
       </div>
-      <div
-        :class="{
-          'gap-2 pt-2': size === 'large',
-          'gap-1 py-1 px-3.5': size === 'medium',
-        }"
-        class="grid nc-date-week-grid-wrapper grid-cols-7"
-      >
+      <div class="grid gap-1 py-1 px-2.5 nc-date-week-grid-wrapper grid-cols-7">
         <span
           v-for="(date, index) in dates"
           :key="index"
@@ -235,29 +181,20 @@ const emitDblClick = (date: dayjs.Dayjs) => {
             'text-gray-400': !isDateInCurrentMonth(date),
             'nc-selected-week-start': isSameDate(date, selectedWeek?.start),
             'nc-selected-week-end': isSameDate(date, selectedWeek?.end),
-            'rounded-md text-brand-500 !font-semibold nc-calendar-today ':
-              isSameDate(date, dayjs()) && isDateInCurrentMonth(date),
-            'h-9 w-9': size === 'large',
+            'rounded-md text-brand-500 !font-semibold nc-calendar-today': isSameDate(date, dayjs()) && isDateInCurrentMonth(date),
             'text-gray-500': date.get('day') === 0 || date.get('day') === 6,
-            'h-8 w-8': size === 'medium',
-            'h-6 w-6 text-[10px]': size === 'small',
           }"
-          class="px-1 py-1 relative border-1 font-medium flex items-center cursor-pointer justify-center"
+          class="px-1 h-8 w-8 py-1 relative transition border-1 font-medium flex text-gray-700 items-center cursor-pointer justify-center"
           data-testid="nc-calendar-date"
-          @dblclick="emitDblClick(date)"
           @click="handleSelectDate(date)"
         >
           <span
             v-if="isActiveDate(date)"
             :class="{
-              'h-2 w-2': size === 'large',
-              'h-1.5 w-1.5': size === 'medium',
-              'h-1.25 w-1.25 top-0.5 right-0.5': size === 'small',
-              'top-1 right-1': size !== 'small',
               '!border-white': isSelectedDate(date),
               '!border-brand-50': isSameDate(date, dayjs()),
             }"
-            class="absolute z-2 border-1 rounded-full border-white bg-brand-500"
+            class="absolute top-1 transition right-1 h-1.5 w-1.5 z-2 border-1 rounded-full border-white bg-brand-500"
           ></span>
           <span class="z-2">
             {{ date.get('date') }}
@@ -270,7 +207,7 @@ const emitDblClick = (date: dayjs.Dayjs) => {
 
 <style lang="scss" scoped>
 .nc-selected-week {
-  @apply relative;
+  @apply relative transition-all;
 }
 
 .nc-selected-week:before {

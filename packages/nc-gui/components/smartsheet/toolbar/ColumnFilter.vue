@@ -12,6 +12,7 @@ interface Props {
   webHook?: boolean
   draftFilter?: Partial<FilterType>
 }
+
 const props = withDefaults(defineProps<Props>(), {
   nestedLevel: 0,
   autoSave: true,
@@ -21,13 +22,14 @@ const props = withDefaults(defineProps<Props>(), {
   webHook: false,
 })
 
-const emit = defineEmits(['update:filtersLength', 'update:draftFilter'])
+const emit = defineEmits(['update:filtersLength', 'update:draftFilter', 'update:modelValue'])
 
 const excludedFilterColUidt = [UITypes.QrCode, UITypes.Barcode]
 
 const draftFilter = useVModel(props, 'draftFilter', emit)
+const modelValue = useVModel(props, 'modelValue', emit)
 
-const { nestedLevel, parentId, autoSave, hookId, modelValue, showLoading, webHook } = toRefs(props)
+const { nestedLevel, parentId, autoSave, hookId, showLoading, webHook } = toRefs(props)
 
 const nested = computed(() => nestedLevel.value > 0)
 
@@ -66,7 +68,7 @@ const {
   types,
 } = useViewFilters(
   activeView,
-  parentId?.value,
+  parentId,
   computed(() => autoSave.value),
   () => reloadDataHook.trigger({ shouldShowLoading: showLoading.value, offset: 0 }),
   modelValue.value || nestedFilters.value,
@@ -204,8 +206,10 @@ const applyChanges = async (hookId?: string, nested = false, isConditionSupporte
 
   if (!localNestedFilters.value?.length) return
 
+  await nextTick()
+
   for (const nestedFilter of localNestedFilters.value) {
-    if (nestedFilter.parentId) {
+    if (nestedFilter.parentId?.value) {
       await nestedFilter.applyChanges(hookId, true)
     }
   }
@@ -250,7 +254,7 @@ const updateFilterValue = (value: string, filter: Filter, index: number) => {
 
 defineExpose({
   applyChanges,
-  parentId: parentId?.value,
+  parentId,
 })
 
 const scrollToBottom = () => {
@@ -373,6 +377,17 @@ const onLogicalOpUpdate = async (filter: Filter, index: number) => {
   }
   await saveOrUpdate(filter, index)
 }
+
+// watch for changes in filters and update the modelValue
+watch(
+  filters,
+  () => {
+    if (modelValue.value !== filters.value) modelValue.value = filters.value
+  },
+  {
+    immediate: true,
+  },
+)
 </script>
 
 <template>
@@ -436,7 +451,7 @@ const onLogicalOpUpdate = async (filter: Filter, index: number) => {
               </div>
               <div class="flex border-1 rounded-lg p-2 w-full" :class="nestedLevel % 2 !== 0 ? 'bg-white' : 'bg-gray-100'">
                 <LazySmartsheetToolbarColumnFilter
-                  v-if="filter.id || filter.children"
+                  v-if="filter.id || filter.children || !autoSave"
                   :key="filter.id ?? i"
                   ref="localNestedFilters"
                   v-model="filter.children"

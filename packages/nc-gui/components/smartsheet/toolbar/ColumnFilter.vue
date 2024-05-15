@@ -206,10 +206,8 @@ const applyChanges = async (hookId?: string, nested = false, isConditionSupporte
 
   if (!localNestedFilters.value?.length) return
 
-  await nextTick()
-
   for (const nestedFilter of localNestedFilters.value) {
-    if (nestedFilter.parentId?.value) {
+    if (nestedFilter.parentId) {
       await nestedFilter.applyChanges(hookId, true)
     }
   }

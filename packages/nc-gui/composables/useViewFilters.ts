@@ -12,13 +12,15 @@ import { UITypes, isSystemColumn } from 'nocodb-sdk'
 
 export function useViewFilters(
   view: Ref<ViewType | undefined>,
-  parentId: Ref<string | null>,
+  _parentId: Ref<string | null> | null | string,
   autoApply?: ComputedRef<boolean>,
   reloadData?: () => void,
   _currentFilters?: Filter[],
   isNestedRoot?: boolean,
   isWebhook?: boolean,
 ) {
+  const parentId = ref(_parentId)
+
   const currentFilters = ref(_currentFilters)
 
   const btLookupTypesMap = ref({})

@@ -21,25 +21,24 @@ export class JobsService implements OnModuleInit {
 
   // pause primary instance queue
   async onModuleInit() {
-    if (process.env.NC_WORKER_CONTAINER !== 'true') {
-      await this.jobsQueue.pause(true);
-    } else {
-      this.jobsRedisService.workerCallbacks[InstanceCommands.RESUME_LOCAL] =
-        async () => {
-          this.logger.log('Resuming local queue');
-          await this.jobsQueue.resume(true);
-        };
-      this.jobsRedisService.workerCallbacks[InstanceCommands.PAUSE_LOCAL] =
-        async () => {
-          this.logger.log('Pausing local queue');
-          await this.jobsQueue.pause(true);
-        };
-    }
+    await this.toggleQueue();
+
+    this.jobsRedisService.workerCallbacks[InstanceCommands.RESUME_LOCAL] =
+      async () => {
+        this.logger.log('Resuming local queue');
+        await this.jobsQueue.resume(true);
+      };
+    this.jobsRedisService.workerCallbacks[InstanceCommands.PAUSE_LOCAL] =
+      async () => {
+        this.logger.log('Pausing local queue');
+        await this.jobsQueue.pause(true);
+      };
   }
 
-  async add(name: string, data: any) {
-    // if NC_WORKER_CONTAINER is false, then skip dynamic queue pause/resume
-    if (process.env.NC_WORKER_CONTAINER !== 'false') {
+  async toggleQueue() {
+    if (process.env.NC_WORKER_CONTAINER === 'false') {
+      await this.jobsQueue.pause(true);
+    } else if (process.env.NC_WORKER_CONTAINER !== 'true') {
       // resume primary instance queue if there is no worker
       const workerCount = await this.jobsRedisService.workerCount();
       const localWorkerPaused = await this.jobsQueue.isPaused(true);
@@ -52,6 +51,10 @@ export class JobsService implements OnModuleInit {
         await this.jobsQueue.pause(true);
       }
     }
+  }
+
+  async add(name: string, data: any) {
+    await this.toggleQueue();
 
     const job = await this.jobsQueue.add(name, data);
 

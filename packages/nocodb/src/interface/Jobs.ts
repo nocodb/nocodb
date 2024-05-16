@@ -11,6 +11,7 @@ export enum JobTypes {
   UpdateModelStat = 'update-model-stat',
   UpdateWsStat = 'update-ws-stats',
   UpdateSrcStat = 'update-source-stat',
+  HealthCheck = 'health-check',
 }
 
 export enum JobStatus {

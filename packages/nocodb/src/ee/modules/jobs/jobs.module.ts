@@ -6,11 +6,16 @@ import {
 import { UpdateStatsProcessor } from '~/modules/jobs/jobs/update-stats/update-stats.processor';
 import { WorkspacesModule } from '~/modules/workspaces/workspaces.module';
 import { WorkerController } from '~/modules/jobs/worker/worker.controller';
+import { HealthCheckProcessor } from '~/modules/jobs/jobs/health-check.processor';
 
 @Module({
   ...JobsModuleMetadata,
   imports: [...JobsModuleMetadata.imports, forwardRef(() => WorkspacesModule)],
   controllers: [...JobsModuleMetadata.controllers, WorkerController],
-  providers: [...JobsModuleMetadata.providers, UpdateStatsProcessor],
+  providers: [
+    ...JobsModuleMetadata.providers,
+    UpdateStatsProcessor,
+    HealthCheckProcessor,
+  ],
 })
 export class JobsModule extends JobsModuleCE {}

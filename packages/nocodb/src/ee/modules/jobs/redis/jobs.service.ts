@@ -3,7 +3,7 @@ import { InjectQueue } from '@nestjs/bull';
 import { Injectable, Logger } from '@nestjs/common';
 import { Queue } from 'bull';
 import type { OnModuleInit } from '@nestjs/common';
-import { InstanceCommands, JOBS_QUEUE } from '~/interface/Jobs';
+import { InstanceCommands, JOBS_QUEUE, JobTypes } from '~/interface/Jobs';
 import { JobsRedisService } from '~/modules/jobs/redis/jobs-redis.service';
 import { Source } from '~/models';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
@@ -23,34 +23,13 @@ export class JobsService extends JobsServiceCE implements OnModuleInit {
 
   // pause primary instance queue
   async onModuleInit() {
-    // run initially and then every 8 hours
-    // this.jobsQueue.add(JobTypes.UpdateSrcStat, {});
-    // this.jobsQueue.add(
-    //   JobTypes.UpdateSrcStat,
-    //   {},
-    //   { repeat: { cron: '0 */8 * * *' } },
-    // );
+    await this.jobsQueue.add(
+      JobTypes.HealthCheck,
+      {},
+      { repeat: { cron: '*/10 * * * *' } },
+    );
+
     if (process.env.NC_WORKER_CONTAINER === 'true') {
-      const workerCount = await this.jobsRedisService.workerCount();
-      this.logger.log(`Initializing worker: ${workerCount}`);
-      // setup periodic logs only on first worker
-      if (workerCount === 1) {
-        this.logger.log('Setting up worker alerts');
-        setInterval(() => {
-          const queue = this.jobsQueue as Queue;
-
-          queue
-            .getJobCounts()
-            .then((stats) => {
-              // log stats periodically
-              this.logger.log({ stats });
-            })
-            .catch((err) => {
-              this.logger.error(err);
-            });
-        }, 10 * 60 * 1000); // 10 minutes
-      }
-
       this.jobsRedisService.workerCallbacks[InstanceCommands.RESET] =
         async () => {
           this.logger.log('Pausing local queue and stopping worker');

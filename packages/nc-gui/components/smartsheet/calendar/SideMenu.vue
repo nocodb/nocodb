@@ -315,25 +315,29 @@ onClickOutside(searchRef, toggleSearch)
 <template>
   <NcTooltip
     :class="{
+      '!right-26 top-[-36px]': showSideMenu && isMobileMode,
+
       'right-2': !showSideMenu,
       'right-74': showSideMenu,
     }"
-    class="absolute transition-all ease-in-out top-2 z-30"
+    class="absolute transition-all ease-in-out z-9 top-2"
+    hide-on-click
   >
     <template #title> {{ $t('activity.toggleSidebar') }}</template>
-    <NcButton v-if="!isMobileMode" data-testid="nc-calendar-side-bar-btn" size="small" type="secondary" @click="toggleSideMenu">
+    <NcButton data-testid="nc-calendar-side-bar-btn" size="small" type="secondary" @click="toggleSideMenu">
       <component :is="iconMap.sidebar" class="h-4 w-4 text-gray-600 transition-all" />
     </NcButton>
   </NcTooltip>
   <div
     :class="{
+      '!min-w-[100svw]': props.visible && isMobileMode,
       '!w-0 hidden': !props.visible,
       'nc-calendar-side-menu-open block !min-w-[288px]': props.visible,
     }"
     class="h-full relative border-l-1 border-gray-200 transition-all"
     data-testid="nc-calendar-side-menu"
   >
-    <div class="flex flex-col">
+    <div class="flex min-w-[288px] flex-col">
       <NcDateWeekSelector
         v-if="activeCalendarView === ('day' as const)"
         v-model:active-dates="activeDates"

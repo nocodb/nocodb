@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type CalendarRangeType, UITypes, isSystemColumn } from 'nocodb-sdk'
+import { type CalendarRangeType, UITypes, ViewTypes, isSystemColumn } from 'nocodb-sdk'
 import type { SelectProps } from 'ant-design-vue'
 
 const meta = inject(MetaInj, ref())
@@ -119,10 +119,15 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
     <template #overlay>
       <div v-if="calendarRangeDropdown" class="w-98 space-y-6 rounded-2xl p-6" data-testid="nc-calendar-range-menu" @click.stop>
         <div>
-          <div class="flex justify-between">
+          <div class="flex mb-3 justify-between">
             <div class="flex items-center gap-3">
-              <component :is="iconMap.calendar" class="text-maroon-500 w-5 h-5" />
-              <span class="font-bold"> {{ `${$t('activity.calendar')} ${$t('activity.viewSettings')}` }}</span>
+              <GeneralViewIcon
+                :meta="{
+                  type: ViewTypes.CALENDAR,
+                }"
+                class="w-6 h-6"
+              />
+              <span class="font-bold text-base"> {{ `${$t('activity.calendar')} ${$t('activity.viewSettings')}` }}</span>
             </div>
 
             <a

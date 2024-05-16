@@ -3,18 +3,14 @@ import dayjs from 'dayjs'
 
 interface Props {
   selectedDate?: dayjs.Dayjs | null
-  isDisabled?: boolean
   pageDate?: dayjs.Dayjs
   isYearPicker?: boolean
-  hideHeader?: boolean
   hideCalendar?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   selectedDate: null,
-  isDisabled: false,
   pageDate: dayjs(),
-  hideHeader: false,
   isYearPicker: false,
   hideCalendar: false,
 })
@@ -90,9 +86,9 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
 
 <template>
   <div class="flex flex-col">
-    <div v-if="!hideHeader" class="flex px-2 border-b-1 py-0.5 justify-between items-center">
+    <div class="flex px-2 border-b-1 py-0.5 justify-between items-center">
       <div class="flex">
-        <NcTooltip>
+        <NcTooltip hide-on-click>
           <NcButton class="!border-0" size="small" type="secondary" @click="paginate('prev')">
             <component :is="iconMap.arrowLeft" class="h-4 w-4" />
           </NcButton>
@@ -106,7 +102,7 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
         isYearPicker ? dayjs(selectedDate).year() : dayjs(pageDate).format('YYYY')
       }}</span>
       <div class="flex">
-        <NcTooltip>
+        <NcTooltip hide-on-click>
           <NcButton class="!border-0" size="small" type="secondary" @click="paginate('next')">
             <component :is="iconMap.arrowRight" class="h-4 w-4" />
           </NcButton>
@@ -123,10 +119,10 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
             v-for="(month, id) in months"
             :key="id"
             :class="{
-              '!bg-gray-200 !text-brand-500 !font-bold ': isMonthSelected(month),
+              '!bg-gray-200 !text-brand-900 !font-bold ': isMonthSelected(month),
               '!text-brand-500': dayjs().isSame(month, 'month'),
             }"
-            class="h-9 rounded-lg flex items-center font-medium justify-center hover:(border-1 border-gray-200 bg-gray-100) text-gray-900 cursor-pointer"
+            class="h-8 rounded-lg flex items-center transition-all font-medium justify-center hover:(border-1 border-gray-200 bg-gray-100) text-gray-700 cursor-pointer"
             @click="selectedDate = month"
           >
             {{ month.format('MMM') }}
@@ -140,7 +136,7 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
               '!bg-gray-200 !text-brand-500 !font-bold ': compareYear(year, selectedDate),
               '!text-brand-500': dayjs().isSame(year, 'year'),
             }"
-            class="h-9 rounded-lg flex items-center font-medium justify-center hover:(border-1 border-gray-200 bg-gray-100) text-gray-900 cursor-pointer"
+            class="h-8 rounded-lg flex items-center transition-all font-medium justify-center hover:(border-1 border-gray-200 bg-gray-100) text-gray-900 cursor-pointer"
             @click="selectedDate = year"
           >
             {{ year.format('YYYY') }}

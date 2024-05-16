@@ -18,8 +18,6 @@ const vReload = useVModel(props, 'reload', emits)
 
 const { $api, $e } = useNuxtApp()
 
-const { t } = useI18n()
-
 const basesStore = useBases()
 const { loadProject } = basesStore
 const { isDataSourceLimitReached } = storeToRefs(basesStore)
@@ -42,6 +40,44 @@ const isReloading = ref(false)
 const isDeleteBaseModalOpen = ref(false)
 const toBeDeletedBase = ref<SourceType | undefined>()
 
+async function updateIfSourceOrderIsNullOrDuplicate() {
+  const sourceOrderSet = new Set()
+  let hasNullOrDuplicates = false
+
+  // Check if sources.value contains null or duplicate order
+  for (const source of sources.value) {
+    if (source.order === null || sourceOrderSet.has(source.order)) {
+      hasNullOrDuplicates = true
+      break
+    }
+    sourceOrderSet.add(source.order)
+  }
+
+  if (!hasNullOrDuplicates) return
+
+  // update the local state
+  sources.value = sources.value.map((source, i) => {
+    return {
+      ...source,
+      order: i + 1,
+    }
+  })
+
+  try {
+    await Promise.all(
+      sources.value.map(async (source) => {
+        await $api.source.update(source.base_id as string, source.id as string, {
+          id: source.id,
+          base_id: source.base_id,
+          order: source.order,
+        })
+      }),
+    )
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
+
 async function loadBases(changed?: boolean) {
   try {
     if (changed) refreshCommandPalette()
@@ -53,6 +89,7 @@ async function loadBases(changed?: boolean) {
     if (baseList.list && baseList.list.length) {
       sources.value = baseList.list
     }
+    await updateIfSourceOrderIsNullOrDuplicate()
   } catch (e) {
     console.error(e)
   } finally {
@@ -90,7 +127,7 @@ const deleteBase = async () => {
     refreshCommandPalette()
   }
 }
-const toggleBase = async (source: BaseType, state: boolean) => {
+const toggleBase = async (source: SourceType, state: boolean) => {
   try {
     if (!state && sources.value.filter((src) => src.enabled).length < 2) {
       message.info('There should be at least one enabled source!')
@@ -116,20 +153,26 @@ const moveBase = async (e: any) => {
     // sources list is mutated so we have to get the new index and mirror it to backend
     const source = sources.value[e.newIndex]
     if (source) {
-      if (!source.order) {
-        // empty update call to reorder sources (migration)
-        await $api.source.update(source.base_id as string, source.id as string, {
-          id: source.id,
-          base_id: source.base_id,
-        })
-        message.info(t('info.basesMigrated'))
+      let nextOrder: number
+
+      // set new order value based on the new order of the items
+      if (sources.value.length - 1 === e.newIndex) {
+        // If moving to the end, set nextOrder greater than the maximum order in the list
+        nextOrder = Math.max(...sources.value.map((item) => item?.order ?? 0)) + 1
       } else {
-        await $api.source.update(source.base_id as string, source.id as string, {
-          id: source.id,
-          base_id: source.base_id,
-          order: e.newIndex + 1,
-        })
+        nextOrder =
+          (parseFloat(String(sources.value[e.newIndex - 1]?.order ?? 0)) +
+            parseFloat(String(sources.value[e.newIndex + 1]?.order ?? 0))) /
+          2
       }
+
+      const _nextOrder = !isNaN(Number(nextOrder)) ? nextOrder : e.oldIndex
+
+      await $api.source.update(source.base_id as string, source.id as string, {
+        id: source.id,
+        base_id: source.base_id,
+        order: _nextOrder,
+      })
     }
     await loadProject(base.value.id as string, true)
     await loadBases()

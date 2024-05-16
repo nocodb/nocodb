@@ -76,6 +76,10 @@ export default class Source implements SourceType {
       insertObj.meta = stringifyMetaProp(insertObj);
     }
 
+    insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.BASES, {
+      base_id: source.baseId,
+    });
+
     const { id } = await ncMeta.metaInsert2(
       source.baseId,
       null,
@@ -92,8 +96,6 @@ export default class Source implements SourceType {
       `${CacheScope.BASE}:${id}`,
     );
 
-    await this.reorderBases(source.baseId);
-
     return returnBase;
   }
 
@@ -101,7 +103,6 @@ export default class Source implements SourceType {
     sourceId: string,
     source: SourceType & {
       baseId: string;
-      skipReorder?: boolean;
       meta?: any;
       deleted?: boolean;
       fk_sql_executor_id?: string;
@@ -138,6 +139,36 @@ export default class Source implements SourceType {
       updateObj.type = oldBase.type;
     }
 
+    // if order is missing (possible in old versions), get next order
+    if (!oldBase.order && !updateObj.order) {
+      updateObj.order = await ncMeta.metaGetNextOrder(MetaTable.BASES, {
+        base_id: source.baseId,
+      });
+
+      if (updateObj.order <= 1 && !oldBase.isMeta()) {
+        updateObj.order = 2;
+      }
+    }
+
+    // keep order 1 for default source
+    if (oldBase.isMeta()) {
+      updateObj.order = 1;
+    }
+
+    // keep order 1 for default source
+    if (!oldBase.isMeta()) {
+      if (updateObj.order <= 1) {
+        NcError.badRequest('Cannot change order to 1 or less');
+      }
+
+      // if order is 1 for non-default source, move it to last
+      if (oldBase.order <= 1 && !updateObj.order) {
+        updateObj.order = await ncMeta.metaGetNextOrder(MetaTable.BASES, {
+          base_id: source.baseId,
+        });
+      }
+    }
+
     await ncMeta.metaUpdate(
       source.baseId,
       null,
@@ -153,10 +184,6 @@ export default class Source implements SourceType {
 
     // call before reorder to update cache
     const returnBase = await this.get(oldBase.id, false, ncMeta);
-
-    if (!source.skipReorder && source.order && source.order !== oldBase.order) {
-      await this.reorderBases(source.baseId, returnBase.id, ncMeta);
-    }
 
     return returnBase;
   }
@@ -286,41 +313,6 @@ export default class Source implements SourceType {
     delete source.config;
 
     return this.castType(source);
-  }
-
-  static async reorderBases(
-    baseId: string,
-    keepBase?: string,
-    ncMeta = Noco.ncMeta,
-  ) {
-    const sources = await this.list({ baseId: baseId }, ncMeta);
-
-    if (keepBase) {
-      const kpBase = sources.splice(
-        sources.indexOf(sources.find((source) => source.id === keepBase)),
-        1,
-      );
-      if (kpBase.length) {
-        sources.splice(kpBase[0].order - 1, 0, kpBase[0]);
-      }
-    }
-
-    // update order for sources
-    for (const [i, b] of Object.entries(sources)) {
-      b.order = parseInt(i) + 1;
-
-      await ncMeta.metaUpdate(
-        b.base_id,
-        null,
-        MetaTable.BASES,
-        {
-          order: b.order,
-        },
-        b.id,
-      );
-
-      await NocoCache.set(`${CacheScope.BASE}:${b.id}`, b);
-    }
   }
 
   public async getConnectionConfig(): Promise<any> {

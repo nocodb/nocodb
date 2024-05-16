@@ -45,6 +45,10 @@ export default class Source extends SourceCE implements SourceType {
       insertObj.meta = stringifyMetaProp(insertObj);
     }
 
+    insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.BASES, {
+      base_id: source.baseId,
+    });
+
     const { id } = await ncMeta.metaInsert2(
       source.baseId,
       null,
@@ -60,8 +64,6 @@ export default class Source extends SourceCE implements SourceType {
       [source.baseId],
       `${CacheScope.BASE}:${id}`,
     );
-
-    await this.reorderBases(source.baseId);
 
     return returnBase;
   }

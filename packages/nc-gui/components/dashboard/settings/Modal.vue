@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { FunctionalComponent, SVGAttributes } from 'vue'
-import DataSources from '~/components/dashboard/settings/DataSources.vue'
 import Misc from './Misc.vue'
+import DataSources from '~/components/dashboard/settings/DataSources.vue'
 
 interface Props {
   modelValue?: boolean
@@ -156,12 +156,11 @@ watch(
     :footer="null"
     width="max(90vw, 600px)"
     :closable="false"
+    class="!top-50px !bottom-50px"
     wrap-class-name="nc-modal-settings"
     @cancel="emits('update:modelValue', false)"
   >
-         <div class="min-h-[75vh]">
-
-  <!--    Settings -->
+    <!--    Settings -->
     <div class="flex flex-row justify-between w-full items-center mb-1">
       <a-typography-title class="ml-4 select-none" type="secondary" :level="5">
         {{ $t('activity.settings') }}
@@ -194,7 +193,7 @@ watch(
       </a-layout-sider>
 
       <!-- Sub Tabs -->
-      <a-layout-content class="h-auto px-4 scrollbar-thumb-gray-500">
+      <a-layout-content class="h-auto h-80vh px-4 scrollbar-thumb-gray-500">
         <a-menu
           v-if="selectedTabKeys[0] !== 'dataSources'"
           v-model:selectedKeys="selectedSubTabKeys"
@@ -211,13 +210,18 @@ watch(
           </a-menu-item>
         </a-menu>
 
-        <div class="h-[600px]">
+        <div
+          class="overflow-auto"
+          :class="{
+            'h-full': selectedSubTabKeys[0] === 'dataSources',
+          }"
+        >
           <component
             :is="selectedSubTab?.body"
             v-if="selectedSubTabKeys[0] === 'dataSources'"
             v-model:state="vDataState"
             v-model:reload="dataSourcesReload"
-            class="px-2 pb-2"
+            class="px-2 pb-2 h-full"
             :data-testid="`nc-settings-subtab-${selectedSubTab.key}`"
             :base-id="baseId"
           />
@@ -231,7 +235,6 @@ watch(
         </div>
       </a-layout-content>
     </a-layout>
-  </div>
   </a-modal>
 </template>
 

@@ -282,7 +282,7 @@ const openedTab = ref('erd')
         </div>
       </NcButton>
     </div>
-    <div data-testid="nc-settings-datasources" class="flex flex-row w-full h-full nc-data-sources-view flex-grow">
+    <div data-testid="nc-settings-datasources" class="flex flex-row w-full nc-data-sources-view flex-grow min-h-0">
       <template v-if="activeSource">
         <NcTabs v-model:activeKey="openedTab" class="nc-source-tab w-full">
           <a-tab-pane key="erd">
@@ -291,8 +291,8 @@ const openedTab = ref('erd')
                 <div>{{ $t('title.erdView') }}</div>
               </div>
             </template>
-            <div class="h-[300vh]">
-              <LazyDashboardSettingsErd class="mt-4 overflow-scroll" :source-id="activeSource.id" :show-all-columns="false" />
+            <div class="h-full pt-4">
+              <LazyDashboardSettingsErd class="h-full overflow-auto" :source-id="activeSource.id" :show-all-columns="false" />
             </div>
           </a-tab-pane>
           <a-tab-pane v-if="activeSource.is_meta || activeSource.is_local" key="audit">
@@ -301,8 +301,9 @@ const openedTab = ref('erd')
                 <div>{{ $t('title.auditLogs') }}</div>
               </div>
             </template>
-
-            <LazyDashboardSettingsBaseAudit class="mt-4" :source-id="activeSource.id" />
+            <div class="p-4 h-full overflow-auto">
+              <LazyDashboardSettingsBaseAudit :source-id="activeSource.id" />
+            </div>
           </a-tab-pane>
           <a-tab-pane v-if="!activeSource.is_meta && !activeSource.is_local" key="audit">
             <template #tab>
@@ -310,7 +311,7 @@ const openedTab = ref('erd')
                 <div>{{ $t('labels.connectionDetails') }}</div>
               </div>
             </template>
-            <div class="p-6 mt-4 flex">
+            <div class="p-6 mt-4 flex h-full">
               <LazyDashboardSettingsDataSourcesEditBase
                 class="w-600px"
                 :source-id="activeSource.id"
@@ -336,7 +337,6 @@ const openedTab = ref('erd')
             </template>
             <LazyDashboardSettingsMetadata class="mt-4 w-full" :source-id="activeSource.id" @source-synced="loadBases(true)" />
           </a-tab-pane>
-
         </NcTabs>
       </template>
       <div v-else class="flex flex-col w-full overflow-auto mt-1">
@@ -480,7 +480,7 @@ const openedTab = ref('erd')
   </div>
 </template>
 
-<style>
+<style scoped lang="scss">
 .ds-table-head {
   @apply flex items-center border-0 text-gray-500;
 }
@@ -524,7 +524,11 @@ const openedTab = ref('erd')
   @apply bg-gray-50/60;
 }
 
-:deep(.ant-tabs-content){
-  @apply !h-full !overflow-auto;
+:deep(.ant-tabs-content),
+:deep(.ant-tabs) {
+  @apply !h-full;
+}
+:deep(.ant-tabs-content-holder) {
+  @apply !min-h-0 !flex-shrink;
 }
 </style>

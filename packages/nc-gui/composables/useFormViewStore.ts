@@ -48,9 +48,24 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
       for (const column of visibleColumns.value) {
         let rules: RuleObject[] = [
           {
-            required: isRequired(column, column.required),
-            message: t('msg.error.fieldRequired'),
-            ...(column.uidt === UITypes.Checkbox && isRequired(column, column.required) ? { type: 'enum', enum: [1, true] } : {}),
+            validator: (_rule: RuleObject, value: any) => {
+              return new Promise((resolve, reject) => {
+                if (isRequired(column, column.required)) {
+                  if (typeof value === 'string') {
+                    value = value.trim()
+                  }
+
+                  if (
+                    (column.uidt === UITypes.Checkbox && !value) ||
+                    (column.uidt !== UITypes.Checkbox && !requiredFieldValidatorFn(value))
+                  ) {
+                    return reject(t('msg.error.fieldRequired'))
+                  }
+                }
+
+                return resolve()
+              })
+            },
           },
         ]
 

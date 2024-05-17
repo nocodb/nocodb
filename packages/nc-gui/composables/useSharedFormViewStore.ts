@@ -194,23 +194,28 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     if (!formColumns.value) return rulesObj
 
     for (const column of formColumns.value) {
-      let rules: RuleObject[] = []
+      let rules: RuleObject[] = [
+        {
+          validator: (_rule: RuleObject, value: any) => {
+            return new Promise((resolve, reject) => {
+              if (isRequired(column)) {
+                if (typeof value === 'string') {
+                  value = value.trim()
+                }
 
-      rules.push({
-        validator: (_rule: RuleObject, value: any) => {
-          return new Promise((resolve, reject) => {
-            if (isRequired(column)) {
-              if (column.uidt === UITypes.Checkbox && !value) {
-                return reject(t('msg.error.fieldRequired'))
-              } else if (column.uidt !== UITypes.Checkbox)
-                if (value === null || !value?.length) {
+                if (
+                  (column.uidt === UITypes.Checkbox && !value) ||
+                  (column.uidt !== UITypes.Checkbox && !requiredFieldValidatorFn(value))
+                ) {
                   return reject(t('msg.error.fieldRequired'))
                 }
-            }
-            return resolve()
-          })
+              }
+
+              return resolve()
+            })
+          },
         },
-      })
+      ]
 
       const additionalRules = extractFieldValidator(parseProp(column.meta).validators ?? [], column)
       rules = [...rules, ...additionalRules]

@@ -64,6 +64,27 @@ export const formNumberInputValidator = (cal: ColumnType) => {
   }
 }
 
+export const requiredFieldValidatorFn = (value: unknown) => {
+  value = unref(value)
+  if (Array.isArray(value)) return !!value.length
+
+  if (value === undefined || value === null) {
+    return false
+  }
+
+  if (value === false) {
+    return true
+  }
+
+  if (typeof value === 'object') {
+    for (let _ in value) return true
+
+    return false
+  }
+
+  return !!String(value).length
+}
+
 export const extractFieldValidator = (_validators: Validation[], element: ColumnType) => {
   const rules: RuleObject[] = []
 

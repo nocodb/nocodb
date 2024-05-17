@@ -20,11 +20,15 @@ export class DataSourcesPage extends BasePage {
   }
 
   get() {
-    return this.settings.get().locator(`[data-testid="nc-settings-subtab-Data Sources"]`);
+    return this.settings.get().locator('[data-testid="nc-settings-datasources"]');
   }
 
-  async openErd({ dataSourceName }: { dataSourceName: string }) {
-    await this.get().locator('.ds-table-row', { hasText: dataSourceName }).locator('button:has-text("ERD")').click();
+  async openErd({ rowIndex }: { rowIndex: number }) {
+    const row = this.get()
+      .locator('.ds-table-row')
+      .nth(rowIndex + 1);
+    await row.click();
+    await this.get().getByTestId('nc-erd-tab').click();
   }
 
   async openAcl({ dataSourceName = defaultBaseName }: { dataSourceName?: string } = {}) {

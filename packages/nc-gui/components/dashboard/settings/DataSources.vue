@@ -323,7 +323,7 @@ const openedTab = ref('erd')
         </a-breadcrumb-item>
       </a-breadcrumb>
     </div>
-    <div class="flex flex-row w-full h-full nc-data-sources-view flex-grow">
+    <div data-testid="nc-settings-datasources" class="flex flex-row w-full h-full nc-data-sources-view flex-grow">
       <template v-if="activeSource">
         <NcTabs v-model:activeKey="openedTab" class="nc-source-tab w-full">
           <a-tab-pane key="erd">

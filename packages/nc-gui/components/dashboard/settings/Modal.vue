@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { FunctionalComponent, SVGAttributes } from 'vue'
+import DataSources from '~/components/dashboard/settings/DataSources.vue'
 import Misc from './Misc.vue'
 
 interface Props {
@@ -77,21 +78,6 @@ const tabsInfo: TabGroup = {
   //     $e('c:settings:team-auth')
   //   },
   // },
-  // dataSources: {
-  //   // Data Sources
-  //   title: 'Data Sources',
-  //   icon: iconMap.datasource,
-  //   subTabs: {
-  //     dataSources: {
-  //       title: 'Data Sources',
-  //       body: DataSources,
-  //     },
-  //   },
-  //   onClick: () => {
-  //     vDataState.value = ''
-  //     $e('c:settings:data-sources')
-  //   },
-  // },
   // audit: {
   //   // Audit
   //   title: t('title.audit'),
@@ -121,6 +107,22 @@ const tabsInfo: TabGroup = {
     },
     onClick: () => {
       $e('c:settings:base-settings')
+    },
+  },
+
+  dataSources: {
+    // Data Sources
+    title: 'Data Sources',
+    icon: iconMap.database,
+    subTabs: {
+      dataSources: {
+        title: 'Data Sources',
+        body: DataSources,
+      },
+    },
+    onClick: () => {
+      vDataState.value = ''
+      $e('c:settings:data-sources')
     },
   },
 }

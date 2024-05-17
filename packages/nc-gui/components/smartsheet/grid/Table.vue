@@ -2447,7 +2447,7 @@ onKeyStroke('ArrowDown', onDown)
 
     :deep(.nc-cell-icon),
     :deep(.nc-virtual-cell-icon) {
-      @apply !w-3.5 !h-3.5 !text-gray-500 !text-small;
+      @apply !w-3.5 !h-3.5 !text-small;
     }
   }
 

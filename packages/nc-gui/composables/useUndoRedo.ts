@@ -167,7 +167,7 @@ export const useUndoRedo = createSharedComposable(() => {
   useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
 
-    if (e && (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)) return
+    if ((e && (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)) || isExpandedFormOpen()) return
 
     if (cmdOrCtrl && !e.altKey) {
       switch (e.keyCode) {

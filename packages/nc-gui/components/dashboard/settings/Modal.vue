@@ -208,7 +208,7 @@ watch(
             {{ tab.title }}
           </a-menu-item>
         </a-menu>
-        <div v-else>
+        <div v-else-if="false">
           <div class="flex items-center">
             <a-breadcrumb class="w-full cursor-pointer">
               <a-breadcrumb-item v-if="vDataState !== ''" @click="vDataState = ''">

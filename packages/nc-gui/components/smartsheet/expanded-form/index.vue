@@ -1027,11 +1027,11 @@ export default {
   @apply !rounded-lg;
   transition: all 0.3s;
   &:hover {
-    @apply !border-1 !border-brand-500;
+    @apply !border-1 !border-brand-400;
   }
 
   &:focus-within {
-    box-shadow: 0px 0px 0px 2px rgba(67, 81, 232, 0.2) !important;
+    box-shadow: 0px 0px 0px 2px rgba(51, 102, 255, 0.24) !important;
   }
 }
 .nc-data-cell:focus-within {

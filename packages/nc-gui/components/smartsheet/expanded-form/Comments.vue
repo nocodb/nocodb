@@ -166,10 +166,10 @@ watch(commentsWrapperEl, () => {
             <div v-else ref="commentsWrapperEl" class="flex flex-col h-full py-1 nc-scrollbar-thin">
               <div v-for="log of comments" :key="log.id">
                 <div class="group gap-3 overflow-hidden hover:bg-gray-200 flex items-start px-3 pt-3 pb-4">
-                  <GeneralUserIcon size="medium" :name="log.display_name" :email="log.user" class="mt-0.5" />
-                  <div class="flex-1 flex flex-col gap-1 max-w-[calc(100%_-_24px)]">
+                  <GeneralUserIcon size="medium" :name="log.display_name" :email="log.user" class="mt-0.7" />
+                  <div class="flex-1 flex flex-col gap-0.5 max-w-[calc(100%_-_24px)]">
                     <div class="w-full flex justify-between gap-3 min-h-7">
-                      <div class="flex items-start max-w-[calc(100%_-_40px)]">
+                      <div class="flex items-center max-w-[calc(100%_-_40px)]">
                         <div class="w-full flex flex-wrap items-center">
                           <NcTooltip class="truncate max-w-42 mr-2" show-on-truncate-only>
                             <template #title>

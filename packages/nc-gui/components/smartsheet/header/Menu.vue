@@ -502,32 +502,7 @@ const filterOrGroupByThisField = (event: SmartsheetStoreEvents) => {
             </div>
           </NcMenuItem>
         </template>
-
-        <a-divider v-if="!column?.pk" class="!my-0" />
-
-        <NcMenuItem v-if="!column?.pk" :disabled="!isDuplicateAllowed" @click="openDuplicateDlg">
-          <div v-e="['a:field:duplicate']" class="nc-column-duplicate nc-header-menu-item">
-            <component :is="iconMap.duplicate" class="text-gray-700" />
-            <!-- Duplicate -->
-            {{ t('general.duplicate') }}
-          </div>
-        </NcMenuItem>
-        <NcMenuItem @click="onInsertAfter">
-          <div v-e="['a:field:insert:after']" class="nc-column-insert-after nc-header-menu-item">
-            <component :is="iconMap.colInsertAfter" class="text-gray-700 !w-4.5 !h-4.5" />
-            <!-- Insert After -->
-            {{ t('general.insertAfter') }}
-          </div>
-        </NcMenuItem>
-        <NcMenuItem v-if="!column?.pv" @click="onInsertBefore">
-          <div v-e="['a:field:insert:before']" class="nc-column-insert-before nc-header-menu-item">
-            <component :is="iconMap.colInsertBefore" class="text-gray-600 !w-4.5 !h-4.5" />
-            <!-- Insert Before -->
-            {{ t('general.insertBefore') }}
-          </div>
-        </NcMenuItem>
         <a-divider class="!my-0" />
-
         <NcTooltip :disabled="isDeleteAllowed && !column?.pk">
           <template #title>{{ $t('labels.deleteSystemFieldNotAllowed') }}</template>
           <NcMenuItem class="!hover:bg-red-50" :disabled="column?.pk || !isDeleteAllowed" @click="handleDelete">

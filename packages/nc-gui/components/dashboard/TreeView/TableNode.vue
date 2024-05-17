@@ -358,7 +358,7 @@ const deleteTable = () => {
                 <NcMenuItem
                   v-if="isUIAllowed('tableDelete', { roles: baseRole })"
                   :data-testid="`sidebar-table-delete-${table.title}`"
-                  class="!text-red-500 !hover:bg-red-50"
+                  class="!text-red-500 !hover:bg-red-50 nc-table-delete"
                   @click="deleteTable"
                 >
                   <div v-e="['c:table:delete']" class="flex gap-2 items-center">

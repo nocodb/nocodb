@@ -8,7 +8,7 @@ export class MetaDataPage extends BasePage {
     super(dataSource.rootPage);
   }
 
-  get() {
+  get(options?: any) {
     return this.rootPage.locator('div.ant-modal-content');
   }
 
@@ -25,7 +25,10 @@ export class MetaDataPage extends BasePage {
     await this.get().click();
     await this.rootPage.keyboard.press('Escape');
     await this.rootPage.keyboard.press('Escape');
-    await this.get().waitFor({ state: 'detached' });
+    // await this.get().toHaveLength(0) // .waitFor({ state: 'detached' });
+    await this.rootPage.waitForSelector('div.ant-modal-content', {
+      state: 'hidden',
+    });
   }
 
   async sync() {

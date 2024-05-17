@@ -283,6 +283,25 @@ function openErdView(source: SourceType) {
   }
 }
 
+function openAudit(source: SourceType) {
+  $e('c:project:audit')
+
+  const isOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('DlgProjectAudit'), {
+    'modelValue': isOpen,
+    'sourceId': source!.id,
+    'onUpdate:modelValue': () => closeDialog(),
+    'baseId': base.value!.id,
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+
+    close(1000)
+  }
+}
+
 const isAddNewProjectChildEntityLoading = ref(false)
 const addNewProjectChildEntity = async () => {
   if (isAddNewProjectChildEntityLoading.value) return
@@ -593,7 +612,6 @@ const onTableIdCopy = async () => {
                     <GeneralIcon icon="rename" class="group-hover:text-black" />
                     {{ $t('general.rename') }}
                   </NcMenuItem>
-
                   <NcMenuItem data-testid="nc-sidebar-base-starred" @click="() => toggleStarred(base.id)">
                     <GeneralIcon v-if="base.starred" icon="unStar" class="group-hover:text-black" />
                     <GeneralIcon v-else icon="star" class="group-hover:text-black" />
@@ -626,6 +644,17 @@ const onTableIdCopy = async () => {
                     <GeneralIcon icon="erd" />
                     Relations
                   </NcMenuItem>
+
+                  <!-- Audit -->
+                  <NcMenuItem
+                      v-if="base?.sources?.[0]?.enabled"
+                      key="erd"
+                      data-testid="nc-sidebar-base-audit"
+                      @click="openAudit(base?.sources?.[0])">
+                    <GeneralIcon icon="audit" class="group-hover:text-black" />
+                    {{ $t('title.audit') }}
+                  </NcMenuItem>
+
 
                   <!-- Swagger: Rest APIs -->
                   <NcMenuItem

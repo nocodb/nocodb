@@ -30,6 +30,15 @@ export class DataSourcesPage extends BasePage {
     await row.click();
     await this.get().getByTestId('nc-erd-tab').click();
   }
+
+  async openAudit({ rowIndex }: { rowIndex: number }) {
+    const row = this.get()
+      .locator('.ds-table-row')
+      .nth(rowIndex + 1);
+    await row.click();
+    await this.get().getByTestId('nc-audit-tab').click();
+  }
+
   async openAcl({ dataSourceName = defaultBaseName }: { dataSourceName?: string } = {}) {
     await this.get().locator('.ds-table-row', { hasText: dataSourceName }).locator('button:has-text("UI ACL")').click();
   }

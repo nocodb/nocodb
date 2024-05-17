@@ -1301,7 +1301,7 @@ useEventListener(
                     <Pane min-size="30" size="50" class="nc-form-right-splitpane-item p-4 flex flex-col space-y-4 !min-h-200px">
                       <div class="flex flex-wrap justify-between items-center gap-2">
                         <div class="flex gap-3">
-                          <div class="text-base font-bold text-gray-900">
+                          <div class="text-base font-bold text-gray-600">
                             {{ $t('objects.viewType.form') }} {{ $t('objects.fields') }}
                           </div>
                           <NcBadge color="border-gray-200">

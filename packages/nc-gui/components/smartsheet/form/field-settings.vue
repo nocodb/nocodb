@@ -95,7 +95,7 @@ const columnSupportsScanning = (elementType: UITypes) =>
       v-if="isSelectTypeCol(activeField.uidt)"
       class="nc-form-field-appearance-settings p-4 flex flex-col gap-4 border-b border-gray-200"
     >
-      <div class="text-base font-bold">{{ $t('general.appearance') }}</div>
+      <div class="text-base font-bold text-gray-600">{{ $t('general.appearance') }}</div>
       <div class="flex flex-col gap-6">
         <!-- Select type field Options Layout  -->
         <div>

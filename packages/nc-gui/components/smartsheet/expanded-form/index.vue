@@ -601,13 +601,13 @@ export default {
             }"
           >
             <div v-if="meta.title" class="flex items-center gap-2 px-2 py-1 rounded-lg bg-gray-100 text-gray-800">
-              <GeneralTableIcon :meta="meta" class="!text-gray-800" />
+              <GeneralTableIcon :meta="meta" class="!text-gray-800 !mx-0" />
 
               <NcTooltip class="truncate text-sm max-w-[100px] xs:(max-w-[82px])" show-on-truncate-only>
                 <template #title>
                   {{ meta.title }}
                 </template>
-                <div class="font-weight-500 truncate text-sm"> {{ meta.title }} </div>
+                <div class="font-weight-500 truncate text-sm">{{ meta.title }}</div>
               </NcTooltip>
             </div>
             <div
@@ -1024,10 +1024,13 @@ export default {
 }
 
 .nc-data-cell {
-  box-shadow: 0 0 1px rgba(0, 0, 0, 0.1);
-  &:hover,
+  transition: all 0.3s;
+  &:hover {
+    box-shadow: 0 0 2px rgba(0, 0, 0, 0.1);
+  }
+
   &:focus-within {
-    box-shadow: 0 0 3px rgba(0, 0, 0, 0.1) !important;
+    box-shadow: 0px 0px 0px 2px rgba(67, 81, 232, 0.2) !important;
   }
 }
 .nc-data-cell:focus-within {

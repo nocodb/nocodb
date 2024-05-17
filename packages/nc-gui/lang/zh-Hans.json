@@ -448,6 +448,8 @@
     "noResultsMatchedYourSearch": "您的搜索没有任何匹配结果"
   },
   "labels": {
+    "connectionDetails": "Connection Details",
+    "metaSync": "Meta Sync",
     "today": "Today",
     "workspace": "Workspace",
     "txt": "TXT 记录值",

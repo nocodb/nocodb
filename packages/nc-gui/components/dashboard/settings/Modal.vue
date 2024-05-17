@@ -155,12 +155,13 @@ watch(
     :class="{ active: vModel }"
     :footer="null"
     width="max(90vw, 600px)"
-    height="80vh"
     :closable="false"
     wrap-class-name="nc-modal-settings"
     @cancel="emits('update:modelValue', false)"
   >
-    <!--    Settings -->
+         <div class="min-h-[75vh]">
+
+  <!--    Settings -->
     <div class="flex flex-row justify-between w-full items-center mb-1">
       <a-typography-title class="ml-4 select-none" type="secondary" :level="5">
         {{ $t('activity.settings') }}
@@ -176,7 +177,7 @@ watch(
       </a-button>
     </div>
 
-    <a-layout class="mt-3 h-[75vh] overflow-y-auto flex">
+    <a-layout class="mt-3 overflow-y-auto flex">
       <!-- Side tabs -->
       <a-layout-sider>
         <a-menu v-model:selected-keys="selectedTabKeys" class="tabs-menu h-full" :open-keys="[]">
@@ -209,43 +210,6 @@ watch(
             {{ tab.title }}
           </a-menu-item>
         </a-menu>
-        <div v-else-if="false">
-          <div class="flex items-center">
-            <a-breadcrumb class="w-full cursor-pointer">
-              <a-breadcrumb-item v-if="vDataState !== ''" @click="vDataState = ''">
-                <a class="!no-underline">Data Sources</a>
-              </a-breadcrumb-item>
-              <a-breadcrumb-item v-else @click="vDataState = ''">Data Sources</a-breadcrumb-item>
-              <a-breadcrumb-item v-if="vDataState !== ''">{{ vDataState }}</a-breadcrumb-item>
-            </a-breadcrumb>
-            <div v-if="vDataState === ''" class="flex flex-row justify-end items-center w-full gap-1">
-              <a-button
-                v-if="!isDataSourceLimitReached"
-                type="primary"
-                class="self-start !rounded-md nc-btn-new-datasource"
-                @click="vDataState = DataSourcesSubTab.New"
-              >
-                <div v-if="vDataState === ''" class="flex items-center gap-2 font-light">
-                  <component :is="iconMap.plusCircle" class="group-hover:text-accent" />
-                  New
-                </div>
-              </a-button>
-              <!--        Reload -->
-              <a-button
-                v-e="['a:proj-meta:data-sources:reload']"
-                type="text"
-                class="self-start !rounded-md nc-btn-metasync-reload"
-                @click="dataSourcesReload = true"
-              >
-                <div class="flex items-center gap-2 text-gray-600 font-light">
-                  <component :is="iconMap.reload" :class="{ 'animate-infinite animate-spin !text-success': dataSourcesReload }" />
-                  {{ $t('general.reload') }}
-                </div>
-              </a-button>
-            </div>
-          </div>
-          <a-divider style="margin: 10px 0" />
-        </div>
 
         <div class="h-[600px]">
           <component
@@ -267,6 +231,7 @@ watch(
         </div>
       </a-layout-content>
     </a-layout>
+  </div>
   </a-modal>
 </template>
 

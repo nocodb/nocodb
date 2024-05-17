@@ -253,67 +253,13 @@ const isNewBaseModalOpen = computed({
   },
 })
 
-const isErdModalOpen = computed({
-  get: () => {
-    return [DataSourcesSubTab.ERD].includes(vState.value as any)
-  },
-  set: (val) => {
-    if (!val) {
-      vState.value = ''
-    }
-  },
-})
-
-const isMetaDataModal = computed({
-  get: () => {
-    return [DataSourcesSubTab.Metadata].includes(vState.value as any)
-  },
-  set: (val) => {
-    if (!val) {
-      vState.value = ''
-    }
-  },
-})
-
-const isUIAclModalOpen = computed({
-  get: () => {
-    return [DataSourcesSubTab.UIAcl].includes(vState.value as any)
-  },
-  set: (val) => {
-    if (!val) {
-      vState.value = ''
-    }
-  },
-})
-const isBaseAuditModalOpen = computed({
-  get: () => {
-    return [DataSourcesSubTab.Audit].includes(vState.value as any)
-  },
-  set: (val) => {
-    if (!val) {
-      vState.value = ''
-    }
-  },
-})
-
-const isEditBaseModalOpen = computed({
-  get: () => {
-    return [DataSourcesSubTab.Edit].includes(vState.value as any)
-  },
-  set: (val) => {
-    if (!val) {
-      vState.value = ''
-    }
-  },
-})
-
 const activeSource = ref<SourceType>(null)
 const openedTab = ref('erd')
 </script>
 
 <template>
   <div class="flex flex-col h-full">
-    <div class="px-4 py-2">
+    <div class="px-4 py-2 flex justify-between">
       <a-breadcrumb separator=">" class="w-full cursor-pointer font-weight-bold">
         <a-breadcrumb-item @click="activeSource = null">
           <a class="!no-underline">Data Sources</a>
@@ -322,6 +268,19 @@ const openedTab = ref('erd')
           <span class="capitalize">{{ activeSource.alias || 'Default Source' }}</span>
         </a-breadcrumb-item>
       </a-breadcrumb>
+
+      <NcButton
+        v-if="!isDataSourceLimitReached && !activeSource"
+        size="large"
+        class="z-10 !px-2"
+        type="primary"
+        @click="vState = DataSourcesSubTab.New"
+      >
+        <div class="flex flex-row items-center w-full gap-x-1">
+          <component :is="iconMap.plus" />
+          <div class="flex">{{ $t('activity.newSource') }}</div>
+        </div>
+      </NcButton>
     </div>
     <div data-testid="nc-settings-datasources" class="flex flex-row w-full h-full nc-data-sources-view flex-grow">
       <template v-if="activeSource">
@@ -332,10 +291,35 @@ const openedTab = ref('erd')
                 <div>{{ $t('title.erdView') }}</div>
               </div>
             </template>
-            <div class="h-[80vh]">
+            <div class="h-[300vh]">
               <LazyDashboardSettingsErd class="mt-4 overflow-scroll" :source-id="activeSource.id" :show-all-columns="false" />
             </div>
           </a-tab-pane>
+          <a-tab-pane v-if="activeSource.is_meta || activeSource.is_local" key="audit">
+            <template #tab>
+              <div class="tab" data-testid="nc-audit-tab">
+                <div>{{ $t('title.auditLogs') }}</div>
+              </div>
+            </template>
+
+            <LazyDashboardSettingsBaseAudit class="mt-4" :source-id="activeSource.id" />
+          </a-tab-pane>
+          <a-tab-pane v-if="!activeSource.is_meta && !activeSource.is_local" key="audit">
+            <template #tab>
+              <div class="tab" data-testid="nc-audit-tab">
+                <div>{{ $t('labels.connectionDetails') }}</div>
+              </div>
+            </template>
+            <div class="p-6 mt-4 flex">
+              <LazyDashboardSettingsDataSourcesEditBase
+                class="w-600px"
+                :source-id="activeSource.id"
+                @source-updated="loadBases(true)"
+                @close="activeSource = null"
+              />
+            </div>
+          </a-tab-pane>
+
           <a-tab-pane key="acl">
             <template #tab>
               <div class="tab" data-testid="nc-acl-tab">
@@ -344,40 +328,18 @@ const openedTab = ref('erd')
             </template>
             <LazyDashboardSettingsUIAcl class="mt-4" :source-id="activeSource.id" />
           </a-tab-pane>
-          <a-tab-pane v-if="activeSource.is_meta || activeSource.is_local" key="audit">
-            <template #tab>
-              <div class="tab" data-testid="nc-audit-tab">
-                <div>{{ $t('title.audit') }}</div>
-              </div>
-            </template>
-
-            <LazyDashboardSettingsBaseAudit class="mt-4" :source-id="activeSource.id" />
-          </a-tab-pane>
           <a-tab-pane key="meta-sync">
             <template #tab>
               <div class="tab" data-testid="nc-meta-sync-tab">
                 <div>{{ $t('labels.metaSync') }}</div>
               </div>
             </template>
-            <LazyDashboardSettingsMetadata class="mt-4" :source-id="activeSource.id" @source-synced="loadBases(true)" />
+            <LazyDashboardSettingsMetadata class="mt-4 w-full" :source-id="activeSource.id" @source-synced="loadBases(true)" />
           </a-tab-pane>
+
         </NcTabs>
       </template>
-      <div v-else class="flex flex-col w-full overflow-auto">
-        <div class="flex flex-row w-full justify-end mt-6.5 mb-2">
-          <NcButton
-            v-if="!isDataSourceLimitReached"
-            size="large"
-            class="z-10 !px-2"
-            type="primary"
-            @click="vState = DataSourcesSubTab.New"
-          >
-            <div class="flex flex-row items-center w-full gap-x-1">
-              <component :is="iconMap.plus" />
-              <div class="flex">{{ $t('activity.newSource') }}</div>
-            </div>
-          </NcButton>
-        </div>
+      <div v-else class="flex flex-col w-full overflow-auto mt-1">
         <div
           class="overflow-y-auto nc-scrollbar-md"
           :style="{
@@ -440,8 +402,7 @@ const openedTab = ref('erd')
               <template #item="{ element: source, index }">
                 <div v-if="index !== 0" class="ds-table-row border-gray-200 cursor-pointer" @click="activeSource = source">
                   <div class="ds-table-col ds-table-enabled">
-                    <div class="flex items-center gap-1"
-                         @click.stop>
+                    <div class="flex items-center gap-1" @click.stop>
                       <GeneralIcon v-if="sources.length > 2" icon="dragVertical" small class="ds-table-handle" />
                       <a-tooltip>
                         <template #title>
@@ -470,21 +431,7 @@ const openedTab = ref('erd')
                       <span class="text-gray-700 capitalize">{{ source.type }}</span>
                     </div>
                   </div>
-                  <div class="ds-table-col  justify-end gap-x-1  ds-table-actions">
-                    <NcTooltip>
-                      <template #title>
-                        {{ $t('general.edit') }}
-                      </template>
-                      <NcButton
-                        v-if="!source.is_meta && !source.is_local"
-                        size="small"
-                        class="nc-action-btn cursor-pointer outline-0 !w-8 !px-1 !rounded-lg"
-                        type="text"
-                        @click.stop="baseAction(source.id, DataSourcesSubTab.Edit)"
-                      >
-                        <GeneralIcon icon="edit" class="text-gray-600" />
-                      </NcButton>
-                    </NcTooltip>
+                  <div class="ds-table-col justify-end gap-x-1 ds-table-actions">
                     <NcTooltip>
                       <template #title>
                         {{ $t('general.remove') }}
@@ -510,16 +457,6 @@ const openedTab = ref('erd')
           :connection-type="clientType"
           @source-created="loadBases(true)"
         />
-
-        <GeneralModal v-model:visible="isEditBaseModalOpen" closable :mask-closable="false" size="medium">
-          <div class="p-6">
-            <LazyDashboardSettingsDataSourcesEditBase
-              :source-id="activeBaseId"
-              @source-updated="loadBases(true)"
-              @close="isEditBaseModalOpen = false"
-            />
-          </div>
-        </GeneralModal>
         <GeneralDeleteModal
           v-model:visible="isDeleteBaseModalOpen"
           :entity-name="$t('general.datasource')"
@@ -585,5 +522,9 @@ const openedTab = ref('erd')
 }
 .ds-table-body .ds-table-row:hover {
   @apply bg-gray-50/60;
+}
+
+:deep(.ant-tabs-content){
+  @apply !h-full !overflow-auto;
 }
 </style>

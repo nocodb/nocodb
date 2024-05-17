@@ -99,7 +99,7 @@ const onClick = (e: Event) => {
     :class="{
       'h-full': column,
       '!text-gray-400': isKanban,
-      'flex-col !items-start justify-center': isExpandedForm && !isMobileMode,
+      'flex-col !items-start justify-center pt-0.5': isExpandedForm && !isMobileMode,
       'cursor-pointer hover:bg-gray-100': isExpandedForm && !isMobileMode && isUIAllowed('fieldEdit'),
       'bg-gray-100': isExpandedForm ? editColumnDropdown || isDropDownOpen : false,
     }"
@@ -138,7 +138,7 @@ const onClick = (e: Event) => {
       <NcTooltip
         v-if="column"
         :class="{
-          'cursor-pointer pt-0.25': !isForm && isUIAllowed('fieldEdit') && !hideMenu,
+          'cursor-pointer': !isForm && isUIAllowed('fieldEdit') && !hideMenu,
           'cursor-default': isForm || !isUIAllowed('fieldEdit') || hideMenu,
           'truncate': !isForm,
         }"
@@ -164,7 +164,7 @@ const onClick = (e: Event) => {
       <GeneralIcon
         v-if="isExpandedForm && !isMobileMode && isUIAllowed('fieldEdit')"
         icon="arrowDown"
-        class="flex-none text-grey h-full text-grey cursor-pointer ml-1 group-hover:visible"
+        class="flex-none cursor-pointer ml-1 group-hover:visible"
         :class="{
           visible: editColumnDropdown || isDropDownOpen,
           invisible: !(editColumnDropdown || isDropDownOpen),

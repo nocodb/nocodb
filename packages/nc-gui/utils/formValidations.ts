@@ -85,6 +85,16 @@ export const requiredFieldValidatorFn = (value: unknown) => {
   return !!String(value).length
 }
 
+export const isEmptyValidatorValue = (v: Validation) => {
+  if (v.type === StringValidationType.Regex) {
+    return v.type && typeof v.regex === 'string' ? !v.regex.trim() : v.regex === null
+  } else if (v.type && v.value !== undefined) {
+    return v.type && typeof v.value === 'string' ? !v.value.trim() : v.value === null
+  }
+
+  return false
+}
+
 export const extractFieldValidator = (_validators: Validation[], element: ColumnType) => {
   const rules: RuleObject[] = []
 

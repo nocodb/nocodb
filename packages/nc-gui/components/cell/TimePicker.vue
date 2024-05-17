@@ -185,7 +185,18 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
   // To prevent event listener on non active cell
   if (!active.value) return
 
-  if (e.altKey || e.ctrlKey || e.shiftKey || e.metaKey || !isGrid.value || isExpandedForm.value || isEditColumn.value) return
+  if (
+    e.altKey ||
+    e.ctrlKey ||
+    e.shiftKey ||
+    e.metaKey ||
+    !isGrid.value ||
+    isExpandedForm.value ||
+    isEditColumn.value ||
+    isExpandedFormOpen()
+  )
+    return
+  console.log('isExpanded Form 2', isExpandedForm.value)
 
   switch (e.key) {
     case ';':

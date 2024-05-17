@@ -1633,7 +1633,7 @@ useEventListener(
                             <LazyCellRichText
                               v-if="!isLocked && isEditable"
                               v-model:value="formViewData.success_msg"
-                              class="nc-form-after-submit-msg"
+                              class="nc-form-after-submit-msg editable"
                               is-form-field
                               :hidden-bubble-menu-options="hiddenBubbleMenuOptions"
                               data-testid="nc-form-after-submit-msg"
@@ -1833,6 +1833,13 @@ useEventListener(
 .form-meta-input {
   .nc-textarea-rich-editor {
     @apply pl-3 pr-4 !rounded-lg !text-sm border-1 border-gray-200 focus-within:border-brand-500;
+
+    &:hover {
+      @apply border-brand-400;
+    }
+    &:focus-within {
+      @apply shadow-selected;
+    }
   }
 
   &.nc-form-input-label .nc-textarea-rich-editor {
@@ -1848,6 +1855,14 @@ useEventListener(
 .nc-form-after-submit-msg {
   .nc-textarea-rich-editor {
     @apply pl-1 pr-2 pt-2 pb-1 !rounded-lg !text-sm border-1 border-gray-200 focus-within:border-brand-500;
+
+    &:hover {
+      @apply border-brand-400;
+    }
+    &:focus-within {
+      @apply shadow-selected;
+    }
+
     .ProseMirror {
       min-height: 5rem;
       max-height: 7.5rem !important;

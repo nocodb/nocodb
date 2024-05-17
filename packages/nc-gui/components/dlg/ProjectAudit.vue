@@ -36,6 +36,7 @@ onMounted(async () => {
       }),
     )
   } catch (e) {
+    message.error('Failed to load tables/bases. Please try again later.')
     console.error(e)
   } finally {
     isLoading.value = false

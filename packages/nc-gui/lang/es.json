@@ -448,6 +448,8 @@
     "noResultsMatchedYourSearch": "Your search did not yield any matching results."
   },
   "labels": {
+    "connectionDetails": "Connection Details",
+    "metaSync": "Meta Sync",
     "today": "Today",
     "workspace": "Workspace",
     "txt": "TXT Record value",
@@ -1013,7 +1015,7 @@
     "group": "Group"
   },
   "tooltip": {
-    "reachedSourceLimit": "Limited to 10 data sources per base",
+    "reachedSourceLimit": "Limitado a una única fuente de datos por el momento",
     "saveChanges": "Guardar cambios",
     "xcDB": "Crear un nuevo proyecto",
     "extDB": "Soporta MySQL, PostgreSQL, SQL Server y SQLite",

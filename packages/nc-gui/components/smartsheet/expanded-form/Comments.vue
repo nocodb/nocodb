@@ -389,7 +389,7 @@ watch(commentsWrapperEl, () => {
   .ant-tabs-nav {
     @apply px-3;
     .ant-tabs-nav-list {
-      @apply w-[calc(100%_-_24px)] gap-6;
+      @apply w-full gap-6;
 
       .ant-tabs-tab {
         @apply flex-1 flex items-center justify-center pt-3 pb-2.5;

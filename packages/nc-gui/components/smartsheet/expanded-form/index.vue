@@ -1024,9 +1024,10 @@ export default {
 }
 
 .nc-data-cell {
+  @apply !rounded-lg;
   transition: all 0.3s;
   &:hover {
-    box-shadow: 0 0 2px rgba(0, 0, 0, 0.1);
+    @apply !border-1 !border-brand-500;
   }
 
   &:focus-within {
@@ -1034,7 +1035,7 @@ export default {
   }
 }
 .nc-data-cell:focus-within {
-  @apply !border-1 !border-brand-500 !rounded-lg;
+  @apply !border-1 !border-brand-500;
 }
 
 :deep(.nc-system-field input) {

@@ -52,7 +52,6 @@ export class OrgUsersService {
 
     return await User.update(param.userId, {
       ...updateBody,
-      token_version: randomTokenString(),
     });
   }
 

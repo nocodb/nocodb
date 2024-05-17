@@ -155,6 +155,7 @@ watch(
     :class="{ active: vModel }"
     :footer="null"
     width="max(90vw, 600px)"
+    height="80vh"
     :closable="false"
     wrap-class-name="nc-modal-settings"
     @cancel="emits('update:modelValue', false)"

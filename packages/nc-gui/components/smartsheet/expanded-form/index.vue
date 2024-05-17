@@ -562,7 +562,7 @@ export default {
       <div
         class="flex min-h-7 flex-shrink-0 w-full items-center nc-expanded-form-header relative p-4 xs:(px-2 py-0 min-h-[48px]) justify-between"
       >
-        <div class="flex-1 flex gap-3 lg:w-100 <lg:max-w-[calc(100%_-_178px)] xs:(max-w-[calc(100%_-_44px)])">
+        <div class="flex-1 flex gap-4 lg:w-100 <lg:max-w-[calc(100%_-_178px)] xs:(max-w-[calc(100%_-_44px)])">
           <div class="flex gap-2">
             <NcTooltip v-if="props.showNextPrevIcons">
               <template #title> {{ renderAltOrOptlKey() }} + ← </template>
@@ -601,13 +601,13 @@ export default {
             }"
           >
             <div v-if="meta.title" class="flex items-center gap-2 px-2 py-1 rounded-lg bg-gray-100 text-gray-800">
-              <GeneralTableIcon :meta="meta" class="!text-gray-800" />
+              <GeneralTableIcon :meta="meta" class="!text-gray-800 !mx-0" />
 
-              <NcTooltip class="truncate max-w-[100px] xs:(max-w-[82px]) h-5" show-on-truncate-only>
+              <NcTooltip class="truncate text-sm max-w-[100px] xs:(max-w-[82px]) align-middle" show-on-truncate-only>
                 <template #title>
                   {{ meta.title }}
                 </template>
-                <span class="font-weight-500 truncate text-sm"> {{ meta.title }} </span>
+                <span class="font-weight-500 truncate text-sm">{{ meta.title }}</span>
               </NcTooltip>
             </div>
             <div
@@ -627,6 +627,21 @@ export default {
           </div>
         </div>
         <div class="flex gap-2">
+          <NcTooltip v-if="!isMobileMode && isUIAllowed('dataEdit')">
+            <template #title> {{ renderAltOrOptlKey() }} + S </template>
+            <NcButton
+              v-e="['c:row-expand:save']"
+              :disabled="changedColumns.size === 0 && !isUnsavedFormExist"
+              :loading="isSaving"
+              class="nc-expand-form-save-btn !xs:(text-base) !h-7 !px-2"
+              data-testid="nc-expanded-form-save"
+              type="primary"
+              size="xsmall"
+              @click="save"
+            >
+              <div class="xs:px-1">{{ newRecordSubmitBtnText ?? 'Save Record' }}</div>
+            </NcButton>
+          </NcTooltip>
           <NcButton
             v-if="!isNew && rowId && !isMobileMode"
             :disabled="isLoading"
@@ -645,21 +660,6 @@ export default {
               {{ isRecordLinkCopied ? $t('labels.copiedRecordURL') : $t('labels.copyRecordURL') }}
             </div>
           </NcButton>
-          <NcTooltip v-if="!isMobileMode && isUIAllowed('dataEdit')">
-            <template #title> {{ renderAltOrOptlKey() }} + S </template>
-            <NcButton
-              v-e="['c:row-expand:save']"
-              :disabled="changedColumns.size === 0 && !isUnsavedFormExist"
-              :loading="isSaving"
-              class="nc-expand-form-save-btn !xs:(text-base) !h-7 !px-2"
-              data-testid="nc-expanded-form-save"
-              type="primary"
-              size="xsmall"
-              @click="save"
-            >
-              <div class="xs:px-1">{{ newRecordSubmitBtnText ?? 'Save Record' }}</div>
-            </NcButton>
-          </NcTooltip>
           <NcDropdown v-if="!isNew && rowId && !isMobileMode" placement="bottomRight">
             <NcButton type="text" size="xsmall" class="nc-expand-form-more-actions !w-7 !h-7" :disabled="isLoading">
               <GeneralIcon icon="threeDotVertical" class="text-md" :class="isLoading ? 'text-gray-300' : 'text-gray-700'" />
@@ -730,7 +730,7 @@ export default {
         >
           <div
             ref="expandedFormScrollWrapper"
-            class="flex flex-col flex-grow gap-3 h-full max-h-full nc-scrollbar-thin items-center w-full p-4 xs:(px-4 pt-4 pb-2 gap-6) children:max-w-[588px] <lg:(children:max-w-[450px])"
+            class="flex flex-col flex-grow gap-4 h-full max-h-full nc-scrollbar-thin items-center w-full p-4 xs:(px-4 pt-4 pb-2 gap-6) children:max-w-[588px] <lg:(children:max-w-[450px])"
           >
             <div
               v-for="(col, i) of fields"
@@ -1024,14 +1024,18 @@ export default {
 }
 
 .nc-data-cell {
-  box-shadow: 0 0 1px rgba(0, 0, 0, 0.1);
-  &:hover,
+  @apply !rounded-lg;
+  transition: all 0.3s;
+  &:hover {
+    @apply !border-1 !border-brand-400;
+  }
+
   &:focus-within {
-    box-shadow: 0 0 3px rgba(0, 0, 0, 0.1) !important;
+    box-shadow: 0px 0px 0px 2px rgba(51, 102, 255, 0.24) !important;
   }
 }
 .nc-data-cell:focus-within {
-  @apply !border-1 !border-brand-500 !rounded-lg;
+  @apply !border-1 !border-brand-500;
 }
 
 :deep(.nc-system-field input) {

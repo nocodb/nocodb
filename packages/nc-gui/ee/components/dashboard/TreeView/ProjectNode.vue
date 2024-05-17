@@ -647,14 +647,14 @@ const onTableIdCopy = async () => {
 
                   <!-- Audit -->
                   <NcMenuItem
-                      v-if="base?.sources?.[0]?.enabled"
-                      key="erd"
-                      data-testid="nc-sidebar-base-audit"
-                      @click="openAudit(base?.sources?.[0])">
+                    v-if="base?.sources?.[0]?.enabled"
+                    key="erd"
+                    data-testid="nc-sidebar-base-audit"
+                    @click="openAudit(base?.sources?.[0])"
+                  >
                     <GeneralIcon icon="audit" class="group-hover:text-black" />
                     {{ $t('title.audit') }}
                   </NcMenuItem>
-
 
                   <!-- Swagger: Rest APIs -->
                   <NcMenuItem

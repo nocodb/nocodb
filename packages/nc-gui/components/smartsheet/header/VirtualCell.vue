@@ -179,7 +179,7 @@ const onClick = (e: Event) => {
   <div
     class="flex items-center w-full h-full text-small text-gray-500 font-weight-medium group"
     :class="{
-      'flex-col !items-start justify-center': isExpandedForm,
+      'flex-col !items-start justify-center pt-0.5': isExpandedForm && !isMobileMode,
       'bg-gray-100': isExpandedForm ? editColumnDropdown || isDropDownOpen : false,
       'cursor-pointer hover:bg-gray-100': isExpandedForm && !isMobileMode && isUIAllowed('fieldEdit'),
     }"
@@ -220,7 +220,7 @@ const onClick = (e: Event) => {
       <GeneralIcon
         v-if="isExpandedForm && !isMobileMode && isUIAllowed('fieldEdit')"
         icon="arrowDown"
-        class="flex-none h-full cursor-pointer ml-1 group-hover:visible"
+        class="flex-none cursor-pointer ml-1 group-hover:visible w-4 h-4"
         :class="{
           visible: editColumnDropdown || isDropDownOpen,
           invisible: !(editColumnDropdown || isDropDownOpen),

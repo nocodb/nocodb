@@ -449,7 +449,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   watch(
     () => activeWorkspace.value?.id,
-  () => {
+    () => {
       if (!activeWorkspaceId.value) return
       storage.value.lastOpenedWorkspaceId = activeWorkspaceId.value
     },

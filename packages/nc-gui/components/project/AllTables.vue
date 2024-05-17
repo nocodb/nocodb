@@ -105,7 +105,7 @@ const onCreateBaseClick = () => {
         <GeneralIcon icon="download" />
         <div class="label">{{ $t('activity.import') }} {{ $t('general.data') }}</div>
       </div>
-      <component :is="isDataSourceLimitReached ? NcTooltip : 'div'" v-if="isUIAllowed('sourceCreate')">
+      <!--      <component :is="isDataSourceLimitReached ? NcTooltip : 'div'" v-if="isUIAllowed('sourceCreate')">
         <template #title>
           <div>
             {{ $t('tooltip.reachedSourceLimit') }}
@@ -124,7 +124,7 @@ const onCreateBaseClick = () => {
           <GeneralIcon icon="dataSource" />
           <div class="label">{{ $t('labels.connectDataSource') }}</div>
         </div>
-      </component>
+      </component> -->
     </div>
     <div
       v-if="base?.isLoading"
@@ -191,7 +191,7 @@ const onCreateBaseClick = () => {
     </div>
 
     <ProjectImportModal v-if="defaultBase" v-model:visible="isImportModalOpen" :source="defaultBase" />
-    <LazyDashboardSettingsDataSourcesCreateBase v-model:open="isNewBaseModalOpen" />
+    <!--    <LazyDashboardSettingsDataSourcesCreateBase v-model:open="isNewBaseModalOpen" /> -->
   </div>
 </template>
 

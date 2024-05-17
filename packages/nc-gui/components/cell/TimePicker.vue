@@ -194,9 +194,9 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
     isExpandedForm.value ||
     isEditColumn.value ||
     isExpandedFormOpen()
-  )
+  ) {
     return
-  console.log('isExpanded Form 2', isExpandedForm.value)
+  }
 
   switch (e.key) {
     case ';':

@@ -40,6 +40,8 @@ const vDataState = useVModel(props, 'dataSourcesState', emits)
 
 const baseId = toRef(props, 'baseId')
 
+const { isUIAllowed } = useRoles()
+
 provide(ProjectIdInj, baseId)
 
 const { $e } = useNuxtApp()
@@ -180,15 +182,20 @@ watch(
       <!-- Side tabs -->
       <a-layout-sider>
         <a-menu v-model:selected-keys="selectedTabKeys" class="tabs-menu h-full" :open-keys="[]">
-          <a-menu-item v-for="(tab, key) of tabsInfo" :key="key" class="active:(!ring-0) hover:(!bg-primary !bg-opacity-25)">
-            <div class="flex items-center space-x-2" @click="tab.onClick">
-              <component :is="tab.icon" />
+          <template v-for="(tab, key) of tabsInfo" :key="key">
+            <a-menu-item
+              v-if="key !== 'dataSources' || isUIAllowed('sourceCreate')"
+              class="active:(!ring-0) hover:(!bg-primary !bg-opacity-25)"
+            >
+              <div class="flex items-center space-x-2" @click="tab.onClick">
+                <component :is="tab.icon" />
 
-              <div class="select-none">
-                {{ tab.title }}
+                <div class="select-none">
+                  {{ tab.title }}
+                </div>
               </div>
-            </div>
-          </a-menu-item>
+            </a-menu-item>
+          </template>
         </a-menu>
       </a-layout-sider>
 

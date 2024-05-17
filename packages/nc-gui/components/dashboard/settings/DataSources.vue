@@ -25,6 +25,8 @@ const { isDataSourceLimitReached } = storeToRefs(basesStore)
 const baseStore = useBase()
 const { base } = storeToRefs(baseStore)
 
+const { isUIAllowed } = useRoles()
+
 const { projectPageTab } = storeToRefs(useConfigStore())
 
 const { refreshCommandPalette } = useCommandPalette()
@@ -270,7 +272,7 @@ const openedTab = ref('erd')
       </a-breadcrumb>
 
       <NcButton
-        v-if="!isDataSourceLimitReached && !activeSource"
+        v-if="!isDataSourceLimitReached && !activeSource && isUIAllowed('sourceCreate')"
         size="large"
         class="z-10 !px-2"
         type="primary"

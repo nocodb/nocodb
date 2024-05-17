@@ -30,15 +30,16 @@ export class DataSourcesPage extends BasePage {
     await row.click();
     await this.get().getByTestId('nc-erd-tab').click();
   }
-
   async openAcl({ dataSourceName = defaultBaseName }: { dataSourceName?: string } = {}) {
     await this.get().locator('.ds-table-row', { hasText: dataSourceName }).locator('button:has-text("UI ACL")').click();
   }
 
-  async openMetaSync({ dataSourceName = defaultBaseName }: { dataSourceName?: string } = {}) {
-    await this.get()
-      .locator('.ds-table-row', { hasText: dataSourceName })
-      .locator('button:has-text("Sync Metadata")')
-      .click();
+  async openMetaSync({ rowIndex }: { rowIndex: number }) {
+    // 0th offset for header
+    const row = this.get()
+      .locator('.ds-table-row')
+      .nth(rowIndex + 1);
+    await row.click();
+    await this.get().getByTestId('nc-meta-sync-tab').click();
   }
 }

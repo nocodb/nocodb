@@ -87,6 +87,11 @@ watch(activeCalendarView, () => {
     @apply !text-[13px];
   }
 }
+.nc-select.ant-select {
+  .ant-select-selector {
+    @apply !px-3;
+  }
+}
 
 .tab {
   @apply flex items-center h-7 w-14 z-10 justify-center px-2 py-1 rounded-lg gap-x-1.5 text-gray-500 hover:text-black cursor-pointer transition-all duration-300 select-none;

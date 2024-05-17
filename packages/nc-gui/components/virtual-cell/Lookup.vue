@@ -22,7 +22,16 @@ provide(RowHeightInj, providedHeightRef)
 
 const relationColumn = computed(
   () =>
-    meta.value?.columns?.find((c: ColumnType) => c.id === (column.value?.colOptions as LookupType)?.fk_relation_column_id) as
+const relationColumn = computed(
+  () =>
+    meta.value?.id ? metas.value[meta.value?.id]?.columns?.find(
+      (c: ColumnType) => c.id === (column.value?.colOptions as LookupType)?.fk_relation_column_id,
+    ) : undefined as
+      | (ColumnType & {
+          colOptions: LinkToAnotherRecordType | undefined
+        })
+      | undefined,
+)
       | (ColumnType & {
           colOptions: LinkToAnotherRecordType | undefined
         })

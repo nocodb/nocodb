@@ -603,11 +603,11 @@ export default {
             <div v-if="meta.title" class="flex items-center gap-2 px-2 py-1 rounded-lg bg-gray-100 text-gray-800">
               <GeneralTableIcon :meta="meta" class="!text-gray-800" />
 
-              <NcTooltip class="truncate max-w-[100px] xs:(max-w-[82px]) h-5" show-on-truncate-only>
+              <NcTooltip class="truncate text-sm max-w-[100px] xs:(max-w-[82px])" show-on-truncate-only>
                 <template #title>
                   {{ meta.title }}
                 </template>
-                <span class="font-weight-500 truncate text-sm"> {{ meta.title }} </span>
+                <div class="font-weight-500 truncate text-sm"> {{ meta.title }} </div>
               </NcTooltip>
             </div>
             <div
@@ -627,6 +627,21 @@ export default {
           </div>
         </div>
         <div class="flex gap-2">
+          <NcTooltip v-if="!isMobileMode && isUIAllowed('dataEdit')">
+            <template #title> {{ renderAltOrOptlKey() }} + S </template>
+            <NcButton
+              v-e="['c:row-expand:save']"
+              :disabled="changedColumns.size === 0 && !isUnsavedFormExist"
+              :loading="isSaving"
+              class="nc-expand-form-save-btn !xs:(text-base) !h-7 !px-2"
+              data-testid="nc-expanded-form-save"
+              type="primary"
+              size="xsmall"
+              @click="save"
+            >
+              <div class="xs:px-1">{{ newRecordSubmitBtnText ?? 'Save Record' }}</div>
+            </NcButton>
+          </NcTooltip>
           <NcButton
             v-if="!isNew && rowId && !isMobileMode"
             :disabled="isLoading"
@@ -645,21 +660,6 @@ export default {
               {{ isRecordLinkCopied ? $t('labels.copiedRecordURL') : $t('labels.copyRecordURL') }}
             </div>
           </NcButton>
-          <NcTooltip v-if="!isMobileMode && isUIAllowed('dataEdit')">
-            <template #title> {{ renderAltOrOptlKey() }} + S </template>
-            <NcButton
-              v-e="['c:row-expand:save']"
-              :disabled="changedColumns.size === 0 && !isUnsavedFormExist"
-              :loading="isSaving"
-              class="nc-expand-form-save-btn !xs:(text-base) !h-7 !px-2"
-              data-testid="nc-expanded-form-save"
-              type="primary"
-              size="xsmall"
-              @click="save"
-            >
-              <div class="xs:px-1">{{ newRecordSubmitBtnText ?? 'Save Record' }}</div>
-            </NcButton>
-          </NcTooltip>
           <NcDropdown v-if="!isNew && rowId && !isMobileMode" placement="bottomRight">
             <NcButton type="text" size="xsmall" class="nc-expand-form-more-actions !w-7 !h-7" :disabled="isLoading">
               <GeneralIcon icon="threeDotVertical" class="text-md" :class="isLoading ? 'text-gray-300' : 'text-gray-700'" />

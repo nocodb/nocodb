@@ -8,8 +8,8 @@ const encode = (str: string) => {
 
 // a method to sanitise content and avoid any link/url injection in email content and html encode special chars
 // for example: example.com to be converted as example<span>.<span>com
-export const sanitiseEmailContent = (content: string) => {
+export const sanitiseEmailContent = (content?: string) => {
   return content
-    .replace(/[<>&;?#,'"$]+/g, encode)
-    .replace(/\.|\/\/:/g, '<span>$&</span>');
+    ?.replace(/[<>&;?#,'"$]+/g, encode)
+    ?.replace(/\.|\/\/:/g, '<span>$&</span>');
 };

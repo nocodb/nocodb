@@ -1013,7 +1013,7 @@
     "group": "分组"
   },
   "tooltip": {
-    "reachedSourceLimit": "每个项目仅限 10 个数据源",
+    "reachedSourceLimit": "暂时只限于一个数据源",
     "saveChanges": "保存更改",
     "xcDB": "新建项目",
     "extDB": "支持 MySQL、PostgreSQL、SQL Server 和 SQLite",
@@ -1196,7 +1196,7 @@
     "selectFieldToGroup": "选择要分组的字段",
     "thereAreNoRecordsInTable": "表中没有记录",
     "createWebhookMsg1": "开始使用Web Hooks！",
-    "createWebhookMsg2": "为您的自动化提供动力。在数据发生变化时立即获得通知",
+    "createWebhookMsg2": "数据变更自动发送通知",
     "areYouSureUWantTo": "您确定要删除以下内容",
     "areYouSureUWantToDeleteLabel": "您确定要 {deleteLabel} 以下内容吗？",
     "idColumnRequired": "ID 字段是必填字段，如果需要，您可以稍后重新命名。",

@@ -309,11 +309,11 @@ const openedTab = ref('erd')
           </a-tab-pane>
           <a-tab-pane v-if="!activeSource.is_meta && !activeSource.is_local" key="audit">
             <template #tab>
-              <div class="tab" data-testid="nc-audit-tab">
+              <div class="tab" data-testid="nc-connection-tab">
                 <div>{{ $t('labels.connectionDetails') }}</div>
               </div>
             </template>
-            <div class="p-6 mt-4 flex h-full">
+            <div class="p-6 mt-4 h-full overflow-auto">
               <LazyDashboardSettingsDataSourcesEditBase
                 class="w-600px"
                 :source-id="activeSource.id"
@@ -329,7 +329,10 @@ const openedTab = ref('erd')
                 <div>{{ $t('labels.uiAcl') }}</div>
               </div>
             </template>
-            <LazyDashboardSettingsUIAcl class="mt-4" :source-id="activeSource.id" />
+
+            <div class="pt-4 h-full overflow-auto">
+              <LazyDashboardSettingsUIAcl :source-id="activeSource.id" />
+            </div>
           </a-tab-pane>
           <a-tab-pane key="meta-sync">
             <template #tab>
@@ -337,7 +340,9 @@ const openedTab = ref('erd')
                 <div>{{ $t('labels.metaSync') }}</div>
               </div>
             </template>
-            <LazyDashboardSettingsMetadata class="mt-4 w-full" :source-id="activeSource.id" @source-synced="loadBases(true)" />
+            <div class="pt-4 h-full overflow-auto">
+              <LazyDashboardSettingsMetadata :source-id="activeSource.id" @source-synced="loadBases(true)" />
+            </div>
           </a-tab-pane>
         </NcTabs>
       </template>

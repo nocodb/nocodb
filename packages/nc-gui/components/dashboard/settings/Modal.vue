@@ -185,6 +185,7 @@ watch(
           <template v-for="(tab, key) of tabsInfo" :key="key">
             <a-menu-item
               v-if="key !== 'dataSources' || isUIAllowed('sourceCreate')"
+              :key="key"
               class="active:(!ring-0) hover:(!bg-primary !bg-opacity-25)"
             >
               <div class="flex items-center space-x-2" @click="tab.onClick">

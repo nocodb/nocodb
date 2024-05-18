@@ -448,6 +448,8 @@
     "noResultsMatchedYourSearch": "Your search did not yield any matching results."
   },
   "labels": {
+    "connectionDetails": "Connection Details",
+    "metaSync": "Meta Sync",
     "today": "Today",
     "workspace": "Workspace",
     "txt": "TXT Record value",
@@ -1495,7 +1497,7 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "Die akzeptierten Dateitypen sind .xls, .xlsx, .xlsm, .ods, .ots",
       "parameterKeyCannotBeEmpty": "Parameterschlüssel darf nicht leer sein",
       "duplicateParameterKeysAreNotAllowed": "Doppelte Parameterschlüssel sind nicht erlaubt",
-      "fieldRequired": "{value} kann nicht leer sein.",
+      "fieldRequired": "This field cannot be empty.",
       "projectNotAccessible": "Projekt nicht zugänglich",
       "copyToClipboardError": "Kopieren in die Zwischenablage fehlgeschlagen",
       "pasteFromClipboardError": "Failed to paste from clipboard",

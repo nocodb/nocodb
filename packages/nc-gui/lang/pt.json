@@ -448,6 +448,8 @@
     "noResultsMatchedYourSearch": "Your search did not yield any matching results."
   },
   "labels": {
+    "connectionDetails": "Connection Details",
+    "metaSync": "Meta Sync",
     "today": "Today",
     "workspace": "Workspace",
     "txt": "TXT Record value",
@@ -1495,7 +1497,7 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "Os tipos de ficheiro aceites são .xls, .xlsx, .xlsm, .ods, .ots",
       "parameterKeyCannotBeEmpty": "A chave do parâmetro não pode estar vazia",
       "duplicateParameterKeysAreNotAllowed": "Não são permitidas chaves de parâmetros duplicadas",
-      "fieldRequired": "{value} não pode estar vazio.",
+      "fieldRequired": "This field cannot be empty.",
       "projectNotAccessible": "Projecto não acessível",
       "copyToClipboardError": "Falha na cópia para a prancheta",
       "pasteFromClipboardError": "Failed to paste from clipboard",

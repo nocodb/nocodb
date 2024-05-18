@@ -1631,14 +1631,17 @@ export async function validateFormulaAndExtractTreeWithType({
     if (parsedTree.type === JSEPNode.CALL_EXP) {
       const calleeName = parsedTree.callee.name.toUpperCase();
       // validate function name
-      if (
-        !formulas[calleeName] ||
-        sqlUI?.getUnsupportedFnList().includes(calleeName)
-      ) {
+      if (!formulas[calleeName]) {
         throw new FormulaError(
           FormulaErrorType.INVALID_FUNCTION_NAME,
           {},
           `Function ${calleeName} is not available`
+        );
+      } else if (sqlUI?.getUnsupportedFnList().includes(calleeName)) {
+        throw new FormulaError(
+          FormulaErrorType.INVALID_FUNCTION_NAME,
+          {},
+          `Function ${calleeName} is unavailable for your database`
         );
       }
 

@@ -64,7 +64,7 @@ const columnSupportsScanning = (elementType: UITypes) =>
         <div v-if="isSelectTypeCol(activeField.uidt)" class="w-full flex items-start justify-between gap-3">
           <div class="flex-1 max-w-[calc(100%_-_40px)]">
             <div class="font-medium text-gray-800">{{ $t('labels.limitOptions') }}</div>
-            <div class="text-gray-500 mt-2">{{ $t('labels.limitOptionsSubtext') }}.</div>
+            <div class="text-gray-500 mt-1">{{ $t('labels.limitOptionsSubtext') }}.</div>
             <div v-if="activeField.meta.isLimitOption" class="mt-3">
               <LazySmartsheetFormLimitOptions
                 v-model:model-value="activeField.meta.limitOptions"
@@ -95,7 +95,7 @@ const columnSupportsScanning = (elementType: UITypes) =>
       v-if="isSelectTypeCol(activeField.uidt)"
       class="nc-form-field-appearance-settings p-4 flex flex-col gap-4 border-b border-gray-200"
     >
-      <div class="text-base font-bold">{{ $t('general.appearance') }}</div>
+      <div class="text-base font-bold text-gray-600">{{ $t('general.appearance') }}</div>
       <div class="flex flex-col gap-6">
         <!-- Select type field Options Layout  -->
         <div>

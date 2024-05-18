@@ -37,7 +37,6 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
             id: source.id,
             baseId: source.base_id,
             config,
-            skipReorder: true,
           },
           ncMeta,
         ),

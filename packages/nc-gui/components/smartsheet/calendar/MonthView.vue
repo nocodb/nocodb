@@ -700,7 +700,7 @@ const addRecord = (date: dayjs.Dayjs) => {
             '!text-gray-400': !isDayInPagedMonth(day),
             '!bg-gray-50': day.get('day') === 0 || day.get('day') === 6,
           }"
-          class="text-right relative group last:border-r-0 text-sm h-full border-r-1 border-b-1 border-gray-200 font-medium hover:bg-gray-50 text-gray-800 bg-white"
+          class="text-right relative group last:border-r-0 transition text-sm h-full border-r-1 border-b-1 border-gray-200 font-medium hover:bg-gray-50 text-gray-800 bg-white"
           data-testid="nc-calendar-month-day"
           @click="selectDate(day)"
           @dblclick="addRecord(day)"
@@ -812,7 +812,7 @@ const addRecord = (date: dayjs.Dayjs) => {
             ...record.rowMeta.style,
             zIndex: record.rowMeta.id === draggingId ? 100 : 0,
           }"
-          class="absolute group draggable-record cursor-pointer pointer-events-auto"
+          class="absolute group draggable-record transition cursor-pointer pointer-events-auto"
           @mouseleave="hoverRecord = null"
           @mouseover="hoverRecord = record.rowMeta.id"
           @mousedown.stop="dragStart($event, record)"

@@ -169,19 +169,11 @@ export const useCommandPalette = createSharedComposable(() => {
           }
         }
       } else {
-        if (route.value.path.startsWith('/account')) {
-          if (activeScope.value.scope === 'account_settings') return
+        if (activeScope.value.scope === 'root') return
 
-          activeScope.value = { scope: 'account_settings', data: {} }
+        activeScope.value = { scope: 'root', data: {} }
 
-          loadScope()
-        } else {
-          if (activeScope.value.scope === 'root') return
-
-          activeScope.value = { scope: 'root', data: {} }
-
-          loadScope()
-        }
+        loadScope()
       }
     },
     { immediate: true, deep: true },

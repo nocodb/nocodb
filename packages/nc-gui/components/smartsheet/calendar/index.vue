@@ -161,12 +161,7 @@ reloadViewDataHook?.on(async (params: void | { shouldShowLoading?: boolean }) =>
         </div>
       </template>
     </div>
-    <LazySmartsheetCalendarSideMenu
-      v-if="!isMobileMode"
-      :visible="showSideMenu"
-      @expand-record="expandRecord"
-      @new-record="newRecord"
-    />
+    <LazySmartsheetCalendarSideMenu :visible="showSideMenu" @expand-record="expandRecord" @new-record="newRecord" />
   </div>
 
   <Suspense>

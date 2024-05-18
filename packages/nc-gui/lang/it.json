@@ -1013,7 +1013,7 @@
     "group": "Group"
   },
   "tooltip": {
-    "reachedSourceLimit": "Limited to 10 data sources per base",
+    "reachedSourceLimit": "Limitato a una sola sorgente dati per il momento",
     "saveChanges": "Salva le modifiche",
     "xcDB": "Crea un nuovo progetto",
     "extDB": "Supporta MySQL, PostgreSQL, SQL Server & SQLite",
@@ -1495,7 +1495,7 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "I tipi di file accettati sono .xls, .xlsx, .xlsm, .ods, .ots",
       "parameterKeyCannotBeEmpty": "La chiave del parametro non può essere vuota",
       "duplicateParameterKeysAreNotAllowed": "Le chiavi dei parametri duplicate non sono consentite",
-      "fieldRequired": "{value} cannot be empty.",
+      "fieldRequired": "{value} non può essere vuoto.",
       "projectNotAccessible": "Progetto non accessibile",
       "copyToClipboardError": "Non è riuscito a copiare negli appunti",
       "pasteFromClipboardError": "Impossibile incollare dagli appunti",

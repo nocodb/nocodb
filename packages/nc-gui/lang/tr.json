@@ -1497,7 +1497,7 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "Kabul edilen dosya türleri .xls, .xlsx, .xlsm, .ods, .ots",
       "parameterKeyCannotBeEmpty": "Parametre anahtarı boş olamaz",
       "duplicateParameterKeysAreNotAllowed": "Yinelenen parametre anahtarlarına izin verilmez",
-      "fieldRequired": "{value} boş olamaz.",
+      "fieldRequired": "This field cannot be empty.",
       "projectNotAccessible": "Proje erişilebilir değil",
       "copyToClipboardError": "Panoya kopyalanamadı",
       "pasteFromClipboardError": "Failed to paste from clipboard",

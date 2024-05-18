@@ -1497,7 +1497,7 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "Pieņemtie failu tipi ir .xls, .xlsx, .xlsm, .ods, .ots.",
       "parameterKeyCannotBeEmpty": "Parametra atslēga nedrīkst būt tukša",
       "duplicateParameterKeysAreNotAllowed": "Parametru taustiņu dublēšanās nav atļauta",
-      "fieldRequired": "{value} nevar būt tukšs.",
+      "fieldRequired": "This field cannot be empty.",
       "projectNotAccessible": "Projekts nav pieejams",
       "copyToClipboardError": "Neizdevās kopēt uz starpliktuvi",
       "pasteFromClipboardError": "Failed to paste from clipboard",

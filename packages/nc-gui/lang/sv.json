@@ -1497,7 +1497,7 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "De accepterade filtyperna är .xls, .xlsx, .xlsm, .ods, .ots",
       "parameterKeyCannotBeEmpty": "Parameternyckeln kan inte vara tom",
       "duplicateParameterKeysAreNotAllowed": "Dubbla parameternycklar är inte tillåtna",
-      "fieldRequired": "{value} får inte vara tom.",
+      "fieldRequired": "This field cannot be empty.",
       "projectNotAccessible": "Projektet är inte tillgängligt",
       "copyToClipboardError": "Kopiering till urklipp misslyckades",
       "pasteFromClipboardError": "Failed to paste from clipboard",

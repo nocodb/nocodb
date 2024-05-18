@@ -333,11 +333,17 @@ export class ToolbarFilterPage extends BasePage {
 
             const v = value.split(',');
             for (let i = 0; i < v.length; i++) {
-              await this.rootPage
-                .locator(`.nc-dropdown-user-select-cell`)
-                .getByTestId('select-option-User-filter')
-                .getByText(v[i])
-                .click({ force: true });
+              const selectUser = () =>
+                this.rootPage
+                  .locator(`.nc-dropdown-user-select-cell`)
+                  .getByTestId('select-option-User-filter')
+                  .getByText(v[i])
+                  .click({ force: true });
+              await this.waitForResponse({
+                uiAction: selectUser,
+                httpMethodsToMatch: ['GET'],
+                requestUrlPathToMatch: `/api/v1/db/data/noco/`,
+              });
             }
           }
           break;

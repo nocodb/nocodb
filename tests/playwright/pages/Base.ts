@@ -14,6 +14,9 @@ export default abstract class BasePage {
 
   async verifyToast({ message }: { message: string }) {
     await this.rootPage.locator('.ant-message .ant-message-notice-content', { hasText: message }).last().isVisible();
+
+    // ensure that the toast is removed from the DOM
+    // await this.rootPage.waitForSelector('.ant-message .ant-message-notice-content', { state: 'hidden' });
   }
 
   async verifyErrorMessage({ message }: { message: RegExp }) {

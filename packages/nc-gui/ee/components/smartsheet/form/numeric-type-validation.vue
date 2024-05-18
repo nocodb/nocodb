@@ -82,7 +82,7 @@ const addPlaceholderValidators = (value, type: 'minMax') => {
       >
         {{ title }}
       </div>
-      <div v-if="subtitle" class="text-gray-500 mt-2">{{ subtitle }}</div>
+      <div v-if="subtitle" class="text-gray-500 mt-1">{{ subtitle }}</div>
 
       <div v-if="isLimitRangeEnabled" class="mt-3 flex flex-col gap-3">
         <div>
@@ -93,7 +93,7 @@ const addPlaceholderValidators = (value, type: 'minMax') => {
             @update-validation-value="updateColMeta(activeField)"
           >
             <template #prefix> Minimum</template>
-            <template v-if="UITypes.Currency && activeField?.meta?.currency_code" #suffix>
+            <template v-if="activeField.uidt === UITypes.Currency && activeField?.meta?.currency_code" #suffix>
               {{ activeField?.meta?.currency_code }}</template
             >
           </LazySmartsheetFormValidationInput>
@@ -108,7 +108,7 @@ const addPlaceholderValidators = (value, type: 'minMax') => {
             @update-validation-value="updateColMeta(activeField)"
           >
             <template #prefix> Maximum</template>
-            <template v-if="UITypes.Currency && activeField?.meta?.currency_code" #suffix>
+            <template v-if="activeField.uidt === UITypes.Currency && activeField?.meta?.currency_code" #suffix>
               {{ activeField?.meta?.currency_code }}</template
             >
           </LazySmartsheetFormValidationInput>

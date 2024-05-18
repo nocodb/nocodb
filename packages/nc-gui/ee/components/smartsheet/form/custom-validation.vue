@@ -30,7 +30,7 @@ const customValidatorTypes = computed(() => {
 })
 
 const filteredValidators = computed(() => {
-  return validators.value.filter((v) => customValidatorTypes.value.includes(v.type))
+  return validators.value.filter((v) => v.type && !isEmptyValidatorValue(v) && customValidatorTypes.value.includes(v.type))
 })
 
 const isOpen = ref(false)
@@ -71,6 +71,25 @@ const handleRemoveValidator = (index: number) => {
   validators.value.splice(index, 1)
   updateColMeta(activeField.value!)
 }
+
+const removeEmptyValidators = () => {
+  if (activeField.value && activeField.value?.meta?.validators) {
+    activeField.value.meta.validators = activeField.value.meta.validators.filter((v) => {
+      return v.type
+    })
+    updateColMeta(activeField.value)
+  }
+}
+
+watch(isOpen, (next) => {
+  if (!next) {
+    removeEmptyValidators()
+  }
+})
+
+onMounted(() => {
+  removeEmptyValidators()
+})
 </script>
 
 <template>
@@ -81,12 +100,13 @@ const handleRemoveValidator = (index: number) => {
 
         <div class="flex flex-col">
           <div
-            class="border-1 rounded-lg py-1 px-3 flex items-center justify-between gap-2 !min-w-[170px] transition-all"
+            class="border-1 rounded-lg py-1 px-3 flex items-center justify-between gap-2 !min-w-[170px] transition-all cursor-pointer select-none"
             :class="{
               '!border-brand-500': isOpen,
               'border-gray-200': !isOpen,
               'bg-[#F0F3FF]': filteredValidators.length,
             }"
+            @click="isOpen = !isOpen"
           >
             <div
               class="flex-1"
@@ -114,9 +134,14 @@ const handleRemoveValidator = (index: number) => {
               class="!border-none flex items-center justify-between !text-gray-600 !hover:text-gray-800 !min-w-4"
               type="link"
               size="xsmall"
-              @click="isOpen = !isOpen"
             >
-              <GeneralIcon icon="settings" class="flex-none w-4 h-4" />
+              <GeneralIcon
+                icon="settings"
+                class="flex-none w-4 h-4"
+                :class="{
+                  'text-brand-500 ': filteredValidators.length,
+                }"
+              />
             </NcButton>
           </div>
           <NcDropdown v-model:visible="isOpen" placement="bottomLeft" overlay-class-name="nc-custom-validator-dropdown">

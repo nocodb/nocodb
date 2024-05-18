@@ -19,6 +19,10 @@ body {
   --navbar-bg: #fafafa;
   --navbar-border: #e0e0e0;
   --nc-grid-bg: #fdfdfd;
+
+  --ant-primary-color-hover: #5c85ff !important;
+  --ant-primary-color-active: #3366ff !important;
+  --ant-primary-color-outline: rgba(51, 102, 255, 0.24) !important;
 }
 
 ::-moz-selection {
@@ -817,6 +821,6 @@ svg.nc-virtual-cell-icon {
   box-shadow: 0 0 0 2px #fff, 0 0 0 4px #3366ff;
 }
 
-.text-nowrap{
+.text-nowrap {
   text-wrap: nowrap;
 }

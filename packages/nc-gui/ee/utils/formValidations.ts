@@ -17,6 +17,7 @@ import {
   formNumberInputValidator,
   formPhoneNumberValidator,
   formUrlValidator,
+  isEmptyValidatorValue
 } from '../../utils/formValidations'
 
 export const formBusinessEmailValidator = (val: Validation) => {
@@ -510,9 +511,7 @@ export const extractFieldValidator = (validators: Validation[], element: ColumnT
 
   validators
     .filter((v) => {
-      if (v.type === StringValidationType.Regex && v.regex !== null) {
-        return true
-      } else if (v.type && v.value !== null) {
+      if (v.type && !isEmptyValidatorValue(v)) {
         return true
       }
 

@@ -181,7 +181,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
     :class="[
       `${validationInput ? 'text-gray-800' : 'text-gray-500'}`,
       {
-        'focus-within:(text-gray-800)': isCustomValidationInput,
+        'custom-validation-input focus-within:(text-gray-800)': isCustomValidationInput,
         'border-1 !rounded-lg focus-within:(border-brand-500 text-gray-800)': !isCustomValidationInput,
       },
     ]"
@@ -226,11 +226,22 @@ const handleKeyDown = (e: KeyboardEvent) => {
   @apply !py-1 !px-2 !text-sm;
 
   &::placeholder {
-    @apply text-gray-400;
+    @apply text-gray-500;
   }
 }
 
 :deep(.ant-picker) {
   @apply !py-0 !pl-0;
+}
+.nc-validation-input-wrapper {
+  &:not(.custom-validation-input) {
+    transition: all 0.3s;
+    &:hover {
+      @apply border-brand-400;
+    }
+    &:focus-within {
+      @apply shadow-selected;
+    }
+  }
 }
 </style>

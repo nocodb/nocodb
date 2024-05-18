@@ -79,7 +79,7 @@ const addPlaceholderValidators = (value, type: AttachmentValidationType) => {
           Limit file type
         </div>
       </div>
-      <div class="text-gray-500 mt-2">
+      <div class="text-gray-500 mt-1">
         Manage user file uploads by specifying permitted MIME types.
         <template v-if="isEnabled.fileTypes">
           <br /><br />
@@ -125,7 +125,7 @@ const addPlaceholderValidators = (value, type: AttachmentValidationType) => {
       >
         Limit number of files
       </div>
-      <div class="text-gray-500 mt-2">Limit the number of files that can be uploaded.</div>
+      <div class="text-gray-500 mt-1">Limit the number of files that can be uploaded.</div>
 
       <div v-if="isEnabled.fileCount" class="mt-3 flex flex-col gap-1">
         <LazySmartsheetFormValidationInput
@@ -155,7 +155,7 @@ const addPlaceholderValidators = (value, type: AttachmentValidationType) => {
       >
         Limit files size
       </div>
-      <div class="text-gray-500 mt-2">Limit the size of files that can be uploaded. (Limit per file)</div>
+      <div class="text-gray-500 mt-1">Limit the size of files that can be uploaded. (Limit per file)</div>
 
       <div>
         <div v-if="isEnabled.fileSize" class="mt-3 flex gap-2">

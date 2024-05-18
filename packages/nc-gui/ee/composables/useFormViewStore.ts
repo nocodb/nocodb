@@ -1,5 +1,5 @@
 import type { Ref } from 'vue'
-import { helpers } from '@vuelidate/validators'
+import { helpers, required } from '@vuelidate/validators'
 import useVuelidate from '@vuelidate/core'
 import dayjs from 'dayjs'
 import mime from 'mime-lite'
@@ -68,13 +68,18 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
             validator: (_rule: RuleObject, value: any) => {
               return new Promise((resolve, reject) => {
                 if (isRequired(column, column.required)) {
-                  if (column.uidt === UITypes.Checkbox && !value) {
+                  if (typeof value === 'string') {
+                    value = value.trim()
+                  }
+
+                  if (
+                    (column.uidt === UITypes.Checkbox && !value) ||
+                    (column.uidt !== UITypes.Checkbox && !requiredFieldValidatorFn(value))
+                  ) {
                     return reject(t('msg.error.fieldRequired'))
-                  } else if (column.uidt !== UITypes.Checkbox)
-                    if (value === null || !value?.length) {
-                      return reject(t('msg.error.fieldRequired'))
-                    }
+                  }
                 }
+
                 return resolve()
               })
             },
@@ -191,6 +196,14 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
             validators: (col.meta.validators || []).reduce((vAcc, validator, i) => {
               const validatorKey = `${validator.type}-${i}`
 
+              if (Object.values(StringValidationType).includes(validator.type)) {
+                vAcc[`${validatorKey}_requiredValue`] = helpers.withMessage('Value is required', (value) => {
+                  const currVal = getValidator(value, validator.type, i)
+
+                  return currVal && currVal.type ? !isEmptyValidatorValue(currVal) : true
+                })
+              }
+
               switch (validator.type) {
                 case StringValidationType.Regex: {
                   vAcc[validatorKey] = helpers.withMessage('Invalid regular expression', (value) => {
@@ -200,7 +213,7 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
                   break
                 }
                 case StringValidationType.NotIncludes: {
-                  vAcc[validatorKey] = helpers.withMessage("The doesn't contains value  can't be same as contains", (value) => {
+                  vAcc[validatorKey] = helpers.withMessage("The doesn't contains value can't be same as contains", (value) => {
                     const currVal = getValidator(value, validator.type, i)
                     const includesVal =
                       value?.find((v) => v.type === oppositeValidationTypeMap[validator.type] && v.value === currVal.value) ||
@@ -316,6 +329,35 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
 
                   return isValidNumber(currVal?.type, currVal?.value)
                 })
+              }
+
+              if (
+                [
+                  StringValidationType.StartsWith,
+                  StringValidationType.EndsWith,
+                  StringValidationType.Includes,
+                  StringValidationType.NotIncludes,
+                ].includes(validator.type)
+              ) {
+                vAcc[`${validatorKey}_invalidLen`] = helpers.withMessage(
+                  'value length should not be greater than maximum characters',
+                  (value) => {
+                    const currVal = getValidator(value, validator.type, i)
+
+                    const maxLengthVal = getValidator(value, StringValidationType.MaxLength)
+
+                    if (
+                      maxLengthVal &&
+                      maxLengthVal?.value !== null &&
+                      currVal?.value &&
+                      currVal?.value?.length > maxLengthVal?.value
+                    ) {
+                      return false
+                    }
+
+                    return true
+                  },
+                )
               }
 
               return vAcc

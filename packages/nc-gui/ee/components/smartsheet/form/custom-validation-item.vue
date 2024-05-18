@@ -22,7 +22,7 @@ const validatorValueType = computed(() => {
 })
 
 const validationErrors = computed(() => {
-  if (!activeField.value) return []
+  if (!activeField.value || (activeField.value && !validator.value.type)) return []
 
   return getActiveFieldValidationErrors(validator.value.type, index.value)
 })
@@ -103,7 +103,7 @@ const handleChangeValidator = () => {
         v-model="validator.message"
         type="text"
         placeholder="Type error message..."
-        class="!w-full h-full !border-none text-sm !px-3 !py-1 !outline-none !focus:(outline-none border-none shadow-none ring-transparent) disabled:(bg-gray-50 cursor-not-allowed)"
+        class="!w-full h-full !border-none text-sm !px-3 !py-1 !outline-none !focus:(outline-none border-none shadow-none ring-transparent) disabled:(bg-gray-50 cursor-not-allowed) !placeholder-gray-500"
         @update:model-value="updateColMeta(activeField)"
       />
     </div>
@@ -126,6 +126,16 @@ const handleChangeValidator = () => {
   }
 }
 .nc-custom-validation-type-selector.nc-select.ant-select {
+  &:hover {
+    @apply bg-gray-50;
+
+    .ant-select-selection-placeholder {
+      @apply text-gray-600;
+    }
+  }
+  &.ant-select-single.ant-select-open .ant-select-selection-item {
+    color: inherit !important;
+  }
   .ant-select-selection-placeholder {
     @apply text-gray-500;
   }

@@ -63,7 +63,7 @@ const addPlaceholderValidators = (value, type: 'minMax') => {
       >
         Limit selection
       </div>
-      <div class="text-gray-500 mt-2">
+      <div class="text-gray-500 mt-1">
         {{
           isMultiSelect(activeField)
             ? 'Limit the number of options that users can select.'

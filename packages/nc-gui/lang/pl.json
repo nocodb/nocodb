@@ -1497,7 +1497,7 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "Akceptowane typy plików to: .xls, .xlsx, .xlsm, .ods, .ots",
       "parameterKeyCannotBeEmpty": "Klucz parametru nie może być pusty",
       "duplicateParameterKeysAreNotAllowed": "Zduplikowane klucze parametrów są niedozwolone",
-      "fieldRequired": "{value} nie może być puste.",
+      "fieldRequired": "This field cannot be empty.",
       "projectNotAccessible": "Projekt niedostępny",
       "copyToClipboardError": "Nie udało się skopiować do schowka",
       "pasteFromClipboardError": "Nie udało się wkleić ze schowka",

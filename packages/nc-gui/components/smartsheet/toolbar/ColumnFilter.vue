@@ -421,6 +421,7 @@ watch(
                     :disabled="visibleFilters.indexOf(filter) > 1 && !isLogicalOpChangeAllowed"
                     @click.stop
                     @change="onLogicalOpUpdate(filter, i)"
+                    :class="{ 'nc-disabled-logical-op': filter.readOnly || (visibleFilters.indexOf(filter) > 1 && !isLogicalOpChangeAllowed) }"
                   >
                     <a-select-option v-for="op in logicalOps" :key="op.value" :value="op.value">
                       <div class="flex items-center w-full justify-between w-full gap-2">
@@ -473,6 +474,7 @@ watch(
               hide-details
               :disabled="filter.readOnly || (visibleFilters.indexOf(filter) > 1 && !isLogicalOpChangeAllowed)"
               dropdown-class-name="nc-dropdown-filter-logical-op"
+              :class="{ 'nc-disabled-logical-op': filter.readOnly || (visibleFilters.indexOf(filter) > 1 && !isLogicalOpChangeAllowed) }"
               @change="onLogicalOpUpdate(filter, i)"
               @click.stop
             >
@@ -681,5 +683,9 @@ watch(
 
 :deep(.ant-select-selector) {
   @apply !min-h-8.25;
+}
+
+.nc-disabled-logical-op :deep(.ant-select-arrow) {
+  @apply hidden;
 }
 </style>

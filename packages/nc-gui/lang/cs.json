@@ -1497,7 +1497,7 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "Akceptované typy souborů jsou .xls, .xlsx, .xlsm, .ods, .ots.",
       "parameterKeyCannotBeEmpty": "Klíč parametru nesmí být prázdný",
       "duplicateParameterKeysAreNotAllowed": "Duplicitní klíče parametrů nejsou povoleny",
-      "fieldRequired": "{value} nemůže být prázdný.",
+      "fieldRequired": "This field cannot be empty.",
       "projectNotAccessible": "Projekt není přístupný",
       "copyToClipboardError": "Nepodařilo se zkopírovat do schránky",
       "pasteFromClipboardError": "Failed to paste from clipboard",

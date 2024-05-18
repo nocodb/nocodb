@@ -420,8 +420,8 @@ watch(
                     dropdown-class-name="nc-dropdown-filter-logical-op-group"
                     :disabled="visibleFilters.indexOf(filter) > 1 && !isLogicalOpChangeAllowed"
                     @click.stop
-                    @change="onLogicalOpUpdate(filter, i)"
                     :class="{ 'nc-disabled-logical-op': filter.readOnly || (visibleFilters.indexOf(filter) > 1 && !isLogicalOpChangeAllowed) }"
+                    @change="onLogicalOpUpdate(filter, i)"
                   >
                     <a-select-option v-for="op in logicalOps" :key="op.value" :value="op.value">
                       <div class="flex items-center w-full justify-between w-full gap-2">

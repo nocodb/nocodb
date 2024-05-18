@@ -1497,7 +1497,7 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "受支持的檔案類型包括 .xls、.xlsx、.xlsm、.ods 和 .ots",
       "parameterKeyCannotBeEmpty": "參數鍵不可為空",
       "duplicateParameterKeysAreNotAllowed": "不允許重複的參數鍵",
-      "fieldRequired": "{value} 不能為空",
+      "fieldRequired": "This field cannot be empty.",
       "projectNotAccessible": "Project not accessible",
       "copyToClipboardError": "複製到剪貼簿失敗",
       "pasteFromClipboardError": "Failed to paste from clipboard",

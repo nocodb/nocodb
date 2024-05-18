@@ -1497,7 +1497,7 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "De geaccepteerde bestandstypen zijn .xls, .xlsx, .xlsm, .ods, .ots",
       "parameterKeyCannotBeEmpty": "Parametersleutel kan niet leeg zijn",
       "duplicateParameterKeysAreNotAllowed": "Dubbele parametersleutels zijn niet toegestaan",
-      "fieldRequired": "{value} kan niet leeg zijn.",
+      "fieldRequired": "This field cannot be empty.",
       "projectNotAccessible": "Project niet toegankelijk",
       "copyToClipboardError": "Kopiëren naar klembord mislukt",
       "pasteFromClipboardError": "Failed to paste from clipboard",

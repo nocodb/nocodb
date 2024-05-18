@@ -11,8 +11,6 @@ const reloadViewMetaHook = inject(ReloadViewMetaHookInj, undefined)!
 
 const reloadViewDataHook = inject(ReloadViewDataHookInj, undefined)!
 
-const rootFields = inject(FieldsInj)
-
 const { isMobileMode } = useGlobal()
 
 const isLocked = inject(IsLockedInj, ref(false))
@@ -23,7 +21,6 @@ const { $api, $e } = useNuxtApp()
 
 const {
   showSystemFields,
-  sortedAndFilteredFields,
   fields,
   filteredFieldList,
   filterQuery,
@@ -47,14 +44,6 @@ eventBus.on((event) => {
     loadViewColumns()
   }
 })
-
-watch(
-  sortedAndFilteredFields,
-  (v) => {
-    if (rootFields) rootFields.value = v || []
-  },
-  { immediate: true },
-)
 
 const numberOfHiddenFields = computed(() => filteredFieldList.value?.filter((field) => !field.show)?.length)
 

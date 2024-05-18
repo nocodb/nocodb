@@ -18,7 +18,6 @@ provide(ReloadViewDataHookInj, reloadEventHook)
 provide(ReadonlyInj, ref(true))
 provide(MetaInj, meta)
 provide(ActiveViewInj, sharedView)
-provide(FieldsInj, columns)
 provide(IsPublicInj, ref(true))
 provide(IsLockedInj, isLocked)
 

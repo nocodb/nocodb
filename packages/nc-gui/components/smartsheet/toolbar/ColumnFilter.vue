@@ -396,8 +396,8 @@ watch(
       'w-full ': nested,
     }"
   >
-    <div v-if="nested" class="flex w-full items-center -mt-0.5 mb-1 mx-1">
-      <div class="-ml-2"><slot name="start"></slot></div>
+    <div v-if="nested" class="flex w-full items-center mb-2">
+      <div><slot name="start"></slot></div>
       <div class="flex-grow"></div>
       <NcDropdown :trigger="['hover']" overlay-class-name="nc-dropdown-user-accounts-menu">
         <GeneralIcon icon="plus" class="cursor-pointer" />
@@ -443,7 +443,7 @@ watch(
           </NcMenu>
         </template>
       </NcDropdown>
-      <div class="-mr-0.5">
+      <div>
         <slot name="end"></slot>
       </div>
     </div>
@@ -498,7 +498,7 @@ watch(
                                 <component :is="iconMap.deleteListItem" />
                               </NcButton>
                             </div> -->
-              <div class="flex rounded-lg p-2 w-full" :class="[`nc-filter-nested-level-${nestedLevel}`]">
+              <div class="flex rounded-lg p-2 w-full border-1" :class="[`nc-filter-nested-level-${nestedLevel}`]">
                 <LazySmartsheetToolbarColumnFilter
                   v-if="filter.id || filter.children || !autoSave"
                   :key="filter.id ?? i"
@@ -510,13 +510,13 @@ watch(
                   :web-hook="webHook"
                 >
                   <template #start>
-                    <span v-if="!i" class="flex items-center ml-2 nc-filter-where-label">{{ $t('labels.where') }}</span>
+                    <span v-if="!i" class="flex items-center nc-filter-where-label ml-2">{{ $t('labels.where') }}</span>
                     <div v-else :key="`${i}nested`" class="flex nc-filter-logical-op">
                       <NcSelect
                         v-model:value="filter.logical_op"
                         v-e="['c:filter:logical-op:select']"
                         :dropdown-match-select-width="false"
-                        class="min-w-20 capitalize"
+                        class="min-w-18 max-w-18 capitalize"
                         placeholder="Group op"
                         dropdown-class-name="nc-dropdown-filter-logical-op-group"
                         :disabled="i > 1 && !isLogicalOpChangeAllowed"
@@ -557,7 +557,7 @@ watch(
           </template>
 
           <div v-else class="flex flex-row gap-x-0 w-full nc-filter-wrapper" :class="`nc-filter-wrapper-${filter.fk_column_id}`">
-            <div v-if="!i" class="flex items-center !min-w-20 !max-w-20 pl-2 nc-filter-where-label">
+            <div v-if="!i" class="flex items-center !min-w-18 !max-w-18 pl-2 nc-filter-where-label">
               {{ $t('labels.where') }}
             </div>
 
@@ -566,7 +566,7 @@ watch(
               v-model:value="filter.logical_op"
               v-e="['c:filter:logical-op:select']"
               :dropdown-match-select-width="false"
-              class="h-full !min-w-20 !max-w-20 capitalize"
+              class="h-full !min-w-18 !max-w-18 capitalize"
               hide-details
               :disabled="filter.readOnly || (visibleFilters.indexOf(filter) > 1 && !isLogicalOpChangeAllowed)"
               dropdown-class-name="nc-dropdown-filter-logical-op"
@@ -825,11 +825,11 @@ watch(
   }
 
   :deep(::placeholder) {
-    @apply text-sm;
+    @apply text-sm tracking-normal;
   }
 
   :deep(::-ms-input-placeholder) {
-    @apply text-sm;
+    @apply text-sm tracking-normal;
   }
 
   :deep(input) {
@@ -863,5 +863,23 @@ watch(
 }
 :deep(.ant-select-disabled.ant-select:not(.ant-select-customize-input) .ant-select-selector) {
   @apply bg-transparent text-gray-400;
+}
+
+:deep(.nc-filter-logical-op .nc-select.ant-select .ant-select-selector){
+  @apply shadow-none;
+}
+
+:deep(.nc-select-expand-btn){
+  @apply text-gray-500;
+}
+
+.menu-filter-dropdown {
+  input, select, div{
+    @apply !text-[#374151]
+  }
+}
+
+.nc-filter-input-wrapper :deep(input){
+  @apply !px-2;
 }
 </style>

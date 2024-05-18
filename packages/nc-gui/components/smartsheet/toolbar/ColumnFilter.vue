@@ -472,7 +472,7 @@ watch(
             </div>
           </template>
           <div v-else class="flex flex-row gap-x-0 w-full nc-filter-wrapper" :class="`nc-filter-wrapper-${filter.fk_column_id}`">
-            <div v-if="!i" class="flex items-center !min-w-20 !max-w-20 pl-2">{{ $t('labels.where') }}</div>
+            <div v-if="!i" class="flex items-center !min-w-20 !max-w-20 pl-2 nc-filter-where-label">{{ $t('labels.where') }}</div>
 
             <NcSelect
               v-else
@@ -697,14 +697,15 @@ watch(
 .nc-disabled-logical-op :deep(.ant-select-arrow) {
   @apply hidden;
 }
-.nc-filter-wrapper > * {
-  border: none !important;
-}
 
 .nc-filter-wrapper {
-  border-radius: 8px !important;
-  border: solid 1px #eee !important;
-  @apply bg-white;
+  //border: solid 1px #eee;
+  border-radius: 8px;
+  @apply bg-white rounded border-1px border-gray-150;
+
+  & > * {
+    @apply !border-none;
+  }
 
   & > * > :deep(.ant-select-selector) {
     border: none !important;
@@ -746,6 +747,20 @@ watch(
     &,
     .ant-select-selector {
       @apply bg-gray-50;
+    }
+  }
+
+  /* for removing border for where label*/
+  .nc-filter-where-label {
+    @apply relative;
+    &::after {
+      content: '';
+      width: calc(100% + 1px);
+      height: calc(100% + 2px);
+      @apply absolute pointer-events-none -left-1px -top-1px;
+      border-radius: 0.25rem 0 0 0.25rem;
+      border: 1px solid white;
+      border-right: none;
     }
   }
 }

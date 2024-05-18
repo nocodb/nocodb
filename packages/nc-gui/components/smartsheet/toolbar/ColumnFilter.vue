@@ -462,7 +462,7 @@ watch(
               </div>
             </div>
           </template>
-          <div v-else class="flex flex-row gap-x-2 w-full" :class="`nc-filter-wrapper-${filter.fk_column_id}`">
+          <div v-else class="flex flex-row gap-x-0 w-full nc-filter-wrapper" :class="`nc-filter-wrapper-${filter.fk_column_id}`">
             <span v-if="!i" class="flex items-center ml-2 mr-7.35">{{ $t('labels.where') }}</span>
 
             <NcSelect
@@ -687,5 +687,26 @@ watch(
 
 .nc-disabled-logical-op :deep(.ant-select-arrow) {
   @apply hidden;
+}
+.nc-filter-wrapper > * {
+  border: none !important;
+}
+
+.nc-filter-wrapper {
+  border-radius: 4px !important;
+  border: solid 1px #eee !important;
+  border-bottom-right-radius: 0 !important;
+  border-top-right-radius: 0;
+}
+
+.nc-filter-wrapper > * > :deep(.ant-select-selector) {
+  border: none !important;
+  box-shadow: none !important;
+  /*border-radius: 0 !important;*/
+}
+.nc-filter-wrapper > :not(:last-child):not(:empty){
+  border-right: 1px solid #eee !important;
+  border-bottom-right-radius: 0 !important;
+  border-top-right-radius: 0 !important;
 }
 </style>

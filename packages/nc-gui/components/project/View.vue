@@ -162,7 +162,7 @@ watch(
           </template>
           <ProjectAccessSettings :base-id="currentBase?.id" />
         </a-tab-pane>
-        <!--        <a-tab-pane v-if="isUIAllowed('sourceCreate')" key="data-source">
+<!--        <a-tab-pane v-if="isUIAllowed('sourceCreate')" key="data-source">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__data-sources">
               <GeneralIcon icon="database" />
@@ -180,7 +180,7 @@ watch(
             </div>
           </template>
           <DashboardSettingsDataSources v-model:state="baseSettingsState" />
-        </a-tab-pane> -->
+        </a-tab-pane>-->
       </a-tabs>
     </div>
   </div>

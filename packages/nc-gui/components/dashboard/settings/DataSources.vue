@@ -297,7 +297,7 @@ const openedTab = ref('erd')
               <LazyDashboardSettingsErd class="h-full overflow-auto" :source-id="activeSource.id" :show-all-columns="false" />
             </div>
           </a-tab-pane>
-          <a-tab-pane v-if="activeSource.is_meta || activeSource.is_local" key="audit">
+          <a-tab-pane v-if="sources && activeSource === sources[0]" key="audit">
             <template #tab>
               <div class="tab" data-testid="nc-audit-tab">
                 <div>{{ $t('title.auditLogs') }}</div>
@@ -334,7 +334,7 @@ const openedTab = ref('erd')
               <LazyDashboardSettingsUIAcl :source-id="activeSource.id" />
             </div>
           </a-tab-pane>
-          <a-tab-pane key="meta-sync">
+          <a-tab-pane v-if="!activeSource.is_meta && !activeSource.is_local" key="meta-sync">
             <template #tab>
               <div class="tab" data-testid="nc-meta-sync-tab">
                 <div>{{ $t('labels.metaSync') }}</div>

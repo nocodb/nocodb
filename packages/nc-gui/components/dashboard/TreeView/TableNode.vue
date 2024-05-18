@@ -331,6 +331,7 @@ const deleteTable = () => {
                 <NcMenuItem
                   v-if="isUIAllowed('tableRename', { roles: baseRole })"
                   :data-testid="`sidebar-table-rename-${table.title}`"
+                  class="nc-table-rename"
                   @click="openRenameTableDialog(table, base.sources[sourceIndex].id)"
                 >
                   <div v-e="['c:table:rename']" class="flex gap-2 items-center">

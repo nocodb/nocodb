@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { FunctionalComponent, SVGAttributes } from 'vue'
 import Misc from './Misc.vue'
+import DataSources from '~/components/dashboard/settings/DataSources.vue'
 
 interface Props {
   modelValue?: boolean
@@ -38,6 +39,8 @@ const vOpenKey = useVModel(props, 'openKey', emits)
 const vDataState = useVModel(props, 'dataSourcesState', emits)
 
 const baseId = toRef(props, 'baseId')
+
+const { isUIAllowed } = useRoles()
 
 provide(ProjectIdInj, baseId)
 
@@ -77,21 +80,6 @@ const tabsInfo: TabGroup = {
   //     $e('c:settings:team-auth')
   //   },
   // },
-  // dataSources: {
-  //   // Data Sources
-  //   title: 'Data Sources',
-  //   icon: iconMap.datasource,
-  //   subTabs: {
-  //     dataSources: {
-  //       title: 'Data Sources',
-  //       body: DataSources,
-  //     },
-  //   },
-  //   onClick: () => {
-  //     vDataState.value = ''
-  //     $e('c:settings:data-sources')
-  //   },
-  // },
   // audit: {
   //   // Audit
   //   title: t('title.audit'),
@@ -121,6 +109,22 @@ const tabsInfo: TabGroup = {
     },
     onClick: () => {
       $e('c:settings:base-settings')
+    },
+  },
+
+  dataSources: {
+    // Data Sources
+    title: 'Data Sources',
+    icon: iconMap.database,
+    subTabs: {
+      dataSources: {
+        title: 'Data Sources',
+        body: DataSources,
+      },
+    },
+    onClick: () => {
+      vDataState.value = ''
+      $e('c:settings:data-sources')
     },
   },
 }
@@ -154,6 +158,7 @@ watch(
     :footer="null"
     width="max(90vw, 600px)"
     :closable="false"
+    class="!top-50px !bottom-50px"
     wrap-class-name="nc-modal-settings"
     @cancel="emits('update:modelValue', false)"
   >
@@ -173,24 +178,30 @@ watch(
       </a-button>
     </div>
 
-    <a-layout class="mt-3 h-[75vh] overflow-y-auto flex">
+    <a-layout class="mt-3 overflow-y-auto flex">
       <!-- Side tabs -->
       <a-layout-sider>
         <a-menu v-model:selected-keys="selectedTabKeys" class="tabs-menu h-full" :open-keys="[]">
-          <a-menu-item v-for="(tab, key) of tabsInfo" :key="key" class="active:(!ring-0) hover:(!bg-primary !bg-opacity-25)">
-            <div class="flex items-center space-x-2" @click="tab.onClick">
-              <component :is="tab.icon" />
+          <template v-for="(tab, key) of tabsInfo" :key="key">
+            <a-menu-item
+              v-if="key !== 'dataSources' || isUIAllowed('sourceCreate')"
+              :key="key"
+              class="active:(!ring-0) hover:(!bg-primary !bg-opacity-25)"
+            >
+              <div class="flex items-center space-x-2" @click="tab.onClick">
+                <component :is="tab.icon" />
 
-              <div class="select-none">
-                {{ tab.title }}
+                <div class="select-none">
+                  {{ tab.title }}
+                </div>
               </div>
-            </div>
-          </a-menu-item>
+            </a-menu-item>
+          </template>
         </a-menu>
       </a-layout-sider>
 
       <!-- Sub Tabs -->
-      <a-layout-content class="h-auto px-4 scrollbar-thumb-gray-500">
+      <a-layout-content class="h-auto h-80vh px-4 scrollbar-thumb-gray-500">
         <a-menu
           v-if="selectedTabKeys[0] !== 'dataSources'"
           v-model:selectedKeys="selectedSubTabKeys"
@@ -206,51 +217,19 @@ watch(
             {{ tab.title }}
           </a-menu-item>
         </a-menu>
-        <div v-else>
-          <div class="flex items-center">
-            <a-breadcrumb class="w-full cursor-pointer">
-              <a-breadcrumb-item v-if="vDataState !== ''" @click="vDataState = ''">
-                <a class="!no-underline">Data Sources</a>
-              </a-breadcrumb-item>
-              <a-breadcrumb-item v-else @click="vDataState = ''">Data Sources</a-breadcrumb-item>
-              <a-breadcrumb-item v-if="vDataState !== ''">{{ vDataState }}</a-breadcrumb-item>
-            </a-breadcrumb>
-            <div v-if="vDataState === ''" class="flex flex-row justify-end items-center w-full gap-1">
-              <a-button
-                v-if="!isDataSourceLimitReached"
-                type="primary"
-                class="self-start !rounded-md nc-btn-new-datasource"
-                @click="vDataState = DataSourcesSubTab.New"
-              >
-                <div v-if="vDataState === ''" class="flex items-center gap-2 font-light">
-                  <component :is="iconMap.plusCircle" class="group-hover:text-accent" />
-                  New
-                </div>
-              </a-button>
-              <!--        Reload -->
-              <a-button
-                v-e="['a:proj-meta:data-sources:reload']"
-                type="text"
-                class="self-start !rounded-md nc-btn-metasync-reload"
-                @click="dataSourcesReload = true"
-              >
-                <div class="flex items-center gap-2 text-gray-600 font-light">
-                  <component :is="iconMap.reload" :class="{ 'animate-infinite animate-spin !text-success': dataSourcesReload }" />
-                  {{ $t('general.reload') }}
-                </div>
-              </a-button>
-            </div>
-          </div>
-          <a-divider style="margin: 10px 0" />
-        </div>
 
-        <div class="h-[600px]">
+        <div
+          class="overflow-auto"
+          :class="{
+            'h-full': selectedSubTabKeys[0] === 'dataSources',
+          }"
+        >
           <component
             :is="selectedSubTab?.body"
             v-if="selectedSubTabKeys[0] === 'dataSources'"
             v-model:state="vDataState"
             v-model:reload="dataSourcesReload"
-            class="px-2 pb-2"
+            class="px-2 pb-2 h-full"
             :data-testid="`nc-settings-subtab-${selectedSubTab.key}`"
             :base-id="baseId"
           />

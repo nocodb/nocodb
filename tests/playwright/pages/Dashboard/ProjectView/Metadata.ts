@@ -25,7 +25,9 @@ export class MetaDataPage extends BasePage {
     await this.get().click();
     await this.rootPage.keyboard.press('Escape');
     await this.rootPage.keyboard.press('Escape');
-    await this.get().waitFor({ state: 'detached' });
+    await this.rootPage.waitForSelector('div.ant-modal-content', {
+      state: 'hidden',
+    });
   }
 
   async sync() {

@@ -21,6 +21,7 @@ import { GlobalGuard } from '~/guards/global/global.guard';
 import NocoCache from '~/cache/NocoCache';
 import { CacheGetType, CacheScope } from '~/utils/globals';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
+import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 const POLLING_INTERVAL = 30000;
@@ -31,7 +32,7 @@ export class JobsController implements OnModuleInit {
   jobsRedisService: JobsRedisService;
 
   constructor(
-    @Inject('JobsService') private readonly jobsService,
+    @Inject('JobsService') private readonly jobsService: IJobsService,
     private moduleRef: ModuleRef,
   ) {}
 
@@ -168,7 +169,7 @@ export class JobsController implements OnModuleInit {
       const job = await this.jobsService.getJobWithData(data);
       if (job) {
         res = {};
-        res.id = job.id;
+        res.id = `${job.id}`;
         res.status = await this.jobsService.jobStatus(data.id);
       }
     }

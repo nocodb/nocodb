@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { UITypes, ViewTypes } from 'nocodb-sdk';
 import ejs from 'ejs';
 import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
@@ -11,18 +11,22 @@ import {
 import { IEventEmitter } from '~/modules/event-emitter/event-emitter.interface';
 import formSubmissionEmailTemplate from '~/utils/common/formSubmissionEmailTemplate';
 import { FormView, Hook, Model, View } from '~/models';
+import { JobTypes } from '~/interface/Jobs';
+import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 
 export const HANDLE_WEBHOOK = '__nc_handleHooks';
 
 @Injectable()
 export class HookHandlerService implements OnModuleInit, OnModuleDestroy {
+  private logger = new Logger(HookHandlerService.name);
   private unsubscribe: () => void;
 
   constructor(
     @Inject('IEventEmitter') private readonly eventEmitter: IEventEmitter,
+    @Inject('JobsService') private readonly jobsService: IJobsService,
   ) {}
 
-  private async handleHooks({
+  public async handleHooks({
     hookName,
     prevData,
     newData,
@@ -111,7 +115,11 @@ export class HookHandlerService implements OnModuleInit, OnModuleDestroy {
           });
         }
       } catch (e) {
-        console.log(e);
+        this.logger.error({
+          error: e,
+          details: 'Error while sending form submission email',
+          hookName,
+        });
       }
     }
 
@@ -124,18 +132,50 @@ export class HookHandlerService implements OnModuleInit, OnModuleDestroy {
       });
       for (const hook of hooks) {
         if (hook.active) {
-          invokeWebhook(hook, model, view, prevData, newData, user);
+          await invokeWebhook(hook, model, view, prevData, newData, user);
         }
       }
     } catch (e) {
-      console.log('hooks :: error', hookName, e);
+      this.logger.error({
+        error: e,
+        details: 'Error while handling webhook',
+        hookName,
+      });
     }
+  }
+
+  private async triggerHook({
+    hookName,
+    prevData,
+    newData,
+    user,
+    viewId,
+    modelId,
+    tnPath,
+  }: {
+    hookName;
+    prevData;
+    newData;
+    user: UserType;
+    viewId: string;
+    modelId: string;
+    tnPath: string;
+  }) {
+    await this.jobsService.add(JobTypes.HandleWebhook, {
+      hookName,
+      prevData,
+      newData,
+      user,
+      viewId,
+      modelId,
+      tnPath,
+    });
   }
 
   onModuleInit(): any {
     this.unsubscribe = this.eventEmitter.on(
       HANDLE_WEBHOOK,
-      this.handleHooks.bind(this),
+      this.triggerHook.bind(this),
     );
   }
 

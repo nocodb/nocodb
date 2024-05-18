@@ -750,18 +750,5 @@ watch(
     }
   }
 
-  /* for removing border for where label*/
-  .nc-filter-where-label {
-    @apply relative;
-    &::after {
-      content: '';
-      width: calc(100% + 1px);
-      height: calc(100% + 2px);
-      @apply absolute pointer-events-none -left-1px -top-1px;
-      border-radius: 0.25rem 0 0 0.25rem;
-      border: 1px solid white;
-      border-right: none;
-    }
-  }
 }
 </style>

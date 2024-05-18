@@ -1497,7 +1497,7 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "使用可能なファイル形式は、.xls、.xlsx、.xlsm、.ods、.ots です。",
       "parameterKeyCannotBeEmpty": "パラメータキーは空にできません",
       "duplicateParameterKeysAreNotAllowed": "パラメータキーの重複は許可されていません",
-      "fieldRequired": "{value} を空にすることはできません。",
+      "fieldRequired": "This field cannot be empty.",
       "projectNotAccessible": "このプロジェクトにはアクセスできません",
       "copyToClipboardError": "クリップボードへのコピーに失敗しました",
       "pasteFromClipboardError": "Failed to paste from clipboard",

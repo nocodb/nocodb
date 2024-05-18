@@ -11,6 +11,7 @@ interface Props {
   modelValue?: undefined | Filter[]
   webHook?: boolean
   draftFilter?: Partial<FilterType>
+  isOpen?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -386,6 +387,31 @@ watch(
     immediate: true,
   },
 )
+
+let focused = false
+let elRef = null
+
+// focus add button on reopen
+if (!nested.value) {
+  watch(
+    () => props.isOpen,
+    (isOpen) => {
+      if (isOpen) setTimeout(() => elRef?.focus(), 10)
+    },
+  )
+}
+
+const addFilterBtnRef = (btn) => {
+  if (!nested.value && !focused && btn?.$el) {
+    btn?.$el?.focus()
+    // set focused after 10ms to avoid skipping element if it's rendered immediately
+    // todo: check why the reference is keep changing ?
+    setTimeout(() => {
+      focused = true
+    }, 10)
+  }
+  elRef = btn?.$el
+}
 </script>
 
 <template>
@@ -707,13 +733,12 @@ watch(
       <template v-if="isEeUI && !isPublic">
         <div
           v-if="filtersCount < getPlanLimit(PlanLimitTypes.FILTER_LIMIT)"
-          ref="addFiltersRowDomRef"
           class="flex gap-2"
           :class="{
             'mt-1 mb-2': filters.length,
           }"
         >
-          <NcButton size="small" type="text" class="!text-brand-500" @click.stop="addFilter()">
+          <NcButton :ref="addFilterBtnRef" size="small" type="text" class="nc-btn-focus" @click.stop="addFilter()">
             <div class="flex items-center gap-1">
               <component :is="iconMap.plus" />
               <!-- Add Filter -->
@@ -721,7 +746,7 @@ watch(
             </div>
           </NcButton>
 
-          <NcButton v-if="nestedLevel < 5" type="text" size="small" @click.stop="addFilterGroup()">
+          <NcButton v-if="nestedLevel < 5" class="nc-btn-focus" type="text" size="small" @click.stop="addFilterGroup()">
             <div class="flex items-center gap-1">
               <!-- Add Filter Group -->
               <component :is="iconMap.plus" />
@@ -739,7 +764,7 @@ watch(
             'mt-1 mb-2': filters.length,
           }"
         >
-          <NcButton size="small" type="text" class="!text-brand-500" @click.stop="addFilter()">
+          <NcButton :ref="addFilterBtnRef" class="nc-btn-focus" size="small" type="text" @click.stop="addFilter()">
             <div class="flex items-center gap-1">
               <component :is="iconMap.plus" />
               <!-- Add Filter -->
@@ -747,7 +772,13 @@ watch(
             </div>
           </NcButton>
 
-          <NcButton v-if="!webHook && nestedLevel < 5" type="text" size="small" @click.stop="addFilterGroup()">
+          <NcButton
+            v-if="!webHook && nestedLevel < 5"
+            class="nc-btn-focus"
+            type="text"
+            size="small"
+            @click.stop="addFilterGroup()"
+          >
             <div class="flex items-center gap-1">
               <!-- Add Filter Group -->
               <component :is="iconMap.plus" />
@@ -883,5 +914,8 @@ watch(
 
 .nc-filter-input-wrapper :deep(input) {
   @apply !px-2;
+}
+.nc-btn-focus:focus {
+  @apply !text-brand-500 !shadow-none;
 }
 </style>

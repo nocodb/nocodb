@@ -448,6 +448,8 @@
     "noResultsMatchedYourSearch": "Your search did not yield any matching results."
   },
   "labels": {
+    "connectionDetails": "Connection Details",
+    "metaSync": "Meta Sync",
     "today": "Today",
     "workspace": "Workspace",
     "txt": "TXT Record value",
@@ -1495,7 +1497,7 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "I tipi di file accettati sono .xls, .xlsx, .xlsm, .ods, .ots",
       "parameterKeyCannotBeEmpty": "La chiave del parametro non può essere vuota",
       "duplicateParameterKeysAreNotAllowed": "Le chiavi dei parametri duplicate non sono consentite",
-      "fieldRequired": "{value} non può essere vuoto.",
+      "fieldRequired": "This field cannot be empty.",
       "projectNotAccessible": "Progetto non accessibile",
       "copyToClipboardError": "Non è riuscito a copiare negli appunti",
       "pasteFromClipboardError": "Impossibile incollare dagli appunti",

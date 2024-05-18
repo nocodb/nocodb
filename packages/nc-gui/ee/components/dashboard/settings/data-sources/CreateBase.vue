@@ -600,12 +600,19 @@ const onDashboard = () => {
   refreshState()
   vOpen.value = false
 }
+
+const useCaseFormState = ref({})
+
+const onUseCaseFormSubmit = async () => {
+  $e('a:extdb:usecase', useCaseFormState.value)
+  return onDashboard()
+}
 </script>
 
 <template>
   <GeneralModal
     :visible="vOpen"
-    :closable="!creatingSource"
+    :closable="!creatingSource && !goToDashboard"
     :keyboard="!creatingSource"
     :mask-closable="false"
     size="medium"
@@ -915,7 +922,7 @@ const onDashboard = () => {
                         v-model:value="formState.inflection.inflectionTable"
                         dropdown-class-name="nc-dropdown-inflection-table-name"
                       >
-                        <a-select-option v-for="tp in inflectionTypes" :key="tp" :value="tp">{{ tp }} </a-select-option>
+                        <a-select-option v-for="tp in inflectionTypes" :key="tp" :value="tp">{{ tp }}</a-select-option>
                       </a-select>
                     </a-form-item>
 
@@ -924,7 +931,7 @@ const onDashboard = () => {
                         v-model:value="formState.inflection.inflectionColumn"
                         dropdown-class-name="nc-dropdown-inflection-column-name"
                       >
-                        <a-select-option v-for="tp in inflectionTypes" :key="tp" :value="tp">{{ tp }} </a-select-option>
+                        <a-select-option v-for="tp in inflectionTypes" :key="tp" :value="tp">{{ tp }}</a-select-option>
                       </a-select>
                     </a-form-item>
 
@@ -997,7 +1004,10 @@ const onDashboard = () => {
           <!--         Inferring schema from your data source -->
           <div class="mb-4 prose-xl font-bold">Inferring schema from your data source</div>
 
-          <a-card ref="logRef" :body-style="{ backgroundColor: '#000000', height: '400px', overflow: 'auto' }">
+          <a-card
+            ref="logRef"
+            :body-style="{ backgroundColor: '#000000', height: goToDashboard ? '200px' : '400px', overflow: 'auto' }"
+          >
             <div v-for="({ msg, status }, i) in progress" :key="i">
               <div v-if="status === JobStatus.FAILED" class="flex items-center">
                 <component :is="iconMap.closeCircle" class="text-red-500" />
@@ -1019,9 +1029,27 @@ const onDashboard = () => {
             </div>
           </a-card>
 
-          <!--        Go to Dashboard -->
-          <div v-if="goToDashboard" class="flex justify-center items-center">
-            <a-button class="mt-4" size="large" @click="onDashboard">🚀 Time to build & scale now 🚀</a-button>
+          <div v-if="goToDashboard">
+            <a-form :model="useCaseFormState" name="useCase" autocomplete="off" @finish="onUseCaseFormSubmit">
+              <div class="text-center text-lg mb-2 mt-4 font-weight-bold">Your usecase with NocoDB</div>
+              <a-form-item
+                name="useCase"
+                :rules="[
+                  { required: true, message: 'Please input the use case' },
+                  { min: 50, message: 'Please input minimum 50 characters' },
+                ]"
+              >
+                <a-textarea
+                  v-model:value="useCaseFormState.useCase"
+                  :rows="4"
+                  placeholder="Eg : We are a food delivery company and would like to comment/collaborate on tracking orders"
+                  :minlength="50"
+                />
+              </a-form-item>
+              <div class="flex justify-center">
+                <nc-button html-type="submit" class="mt-2" size="middle"> 🚀 Submit Usecase & Go to Dashboard 🚀 </nc-button>
+              </div>
+            </a-form>
           </div>
           <div v-else-if="goBack" class="flex justify-center items-center">
             <a-button class="mt-4" size="large" @click="onBack">Go Back</a-button>

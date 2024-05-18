@@ -179,11 +179,7 @@ export class WorkspaceUsersService {
         NcError.badRequest('Owner cannot be deleted');
 
       // get all bases user is part of and delete them
-      const workspaceBases = await Base.listByWorkspaceAndUser(
-        workspaceId,
-        userId,
-        ncMeta,
-      );
+      const workspaceBases = await Base.listByWorkspace(workspaceId, ncMeta);
 
       for (const base of workspaceBases) {
         await BaseUser.delete(base.id, userId, ncMeta);

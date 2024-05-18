@@ -376,6 +376,17 @@ export default class WorkspaceUser {
       updateObj,
     );
 
+    if (updateObj.roles) {
+      // get all bases user is part of and update cache
+      const workspaceBases = await Base.listByWorkspace(workspaceId, ncMeta);
+
+      for (const base of workspaceBases) {
+        await NocoCache.update(`${CacheScope.BASE_USER}:${base.id}:${userId}`, {
+          workspace_roles: updateObj.roles,
+        });
+      }
+    }
+
     return this.get(workspaceId, userId, ncMeta);
   }
 

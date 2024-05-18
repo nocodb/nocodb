@@ -865,21 +865,23 @@ watch(
   @apply bg-transparent text-gray-400;
 }
 
-:deep(.nc-filter-logical-op .nc-select.ant-select .ant-select-selector){
+:deep(.nc-filter-logical-op .nc-select.ant-select .ant-select-selector) {
   @apply shadow-none;
 }
 
-:deep(.nc-select-expand-btn){
+:deep(.nc-select-expand-btn) {
   @apply text-gray-500;
 }
 
 .menu-filter-dropdown {
-  input, select, div{
-    @apply !text-[#374151]
+  input:not(:disabled),
+  select:not(:disabled),
+  .ant-select:not(.ant-select-disabled) {
+    @apply text-[#374151];
   }
 }
 
-.nc-filter-input-wrapper :deep(input){
+.nc-filter-input-wrapper :deep(input) {
   @apply !px-2;
 }
 </style>

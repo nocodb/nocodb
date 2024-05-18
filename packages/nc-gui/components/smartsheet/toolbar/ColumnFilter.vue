@@ -425,7 +425,7 @@ const addFilterBtnRef = (btn) => {
     <div v-if="nested" class="flex w-full items-center mb-2">
       <div><slot name="start"></slot></div>
       <div class="flex-grow"></div>
-      <NcDropdown :trigger="['hover']" overlay-class-name="nc-dropdown-user-accounts-menu">
+      <NcDropdown :trigger="['hover']" overlay-class-name="nc-dropdown-filter-group-sub-menu">
         <GeneralIcon icon="plus" class="cursor-pointer" />
 
         <template #overlay>

@@ -28,6 +28,7 @@ const emit = defineEmits(['update:filtersLength', 'update:draftFilter', 'update:
 const excludedFilterColUidt = [UITypes.QrCode, UITypes.Barcode]
 
 const draftFilter = useVModel(props, 'draftFilter', emit)
+
 const modelValue = useVModel(props, 'modelValue', emit)
 
 const { nestedLevel, parentId, autoSave, hookId, showLoading, webHook } = toRefs(props)
@@ -484,46 +485,6 @@ const addFilterBtnRef = (btn) => {
         <template v-if="filter.status !== 'delete'">
           <template v-if="filter.is_group">
             <div class="flex flex-col w-full gap-y-2">
-              <!--              <div class="flex flex-row w-full justify-between items-center">
-                              <span v-if="!i" class="flex items-center ml-2">{{ $t('labels.where') }}</span>
-                              <div v-else :key="`${i}nested`" class="flex nc-filter-logical-op">
-                                <NcSelect
-                                  v-model:value="filter.logical_op"
-                                  v-e="['c:filter:logical-op:select']"
-                                  :dropdown-match-select-width="false"
-                                  class="min-w-20 capitalize"
-                                  placeholder="Group op"
-                                  dropdown-class-name="nc-dropdown-filter-logical-op-group"
-                    :disabled="visibleFilters.indexOf(filter) > 1 && !isLogicalOpChangeAllowed"
-                                  @click.stop
-                    :class="{ 'nc-disabled-logical-op': filter.readOnly || (visibleFilters.indexOf(filter) > 1 && !isLogicalOpChangeAllowed) }"
-                                  @change="onLogicalOpUpdate(filter, i)"
-                                >
-                                  <a-select-option v-for="op in logicalOps" :key="op.value" :value="op.value">
-                                    <div class="flex items-center w-full justify-between w-full gap-2">
-                                      <div class="truncate flex-1 capitalize">{{ op.value }}</div>
-                                      <component
-                                        :is="iconMap.check"
-                                        v-if="filter.logical_op === op.value"
-                                        id="nc-selected-item-icon"
-                                        class="text-primary w-4 h-4"
-                                      />
-                                    </div>
-                                  </a-select-option>
-                                </NcSelect>
-                              </div>
-                              <NcButton
-                                v-if="!filter.readOnly"
-                                :key="i"
-                                v-e="['c:filter:delete']"
-                                type="text"
-                                size="small"
-                                class="nc-filter-item-remove-btn cursor-pointer"
-                                @click.stop="deleteFilter(filter, i)"
-                              >
-                                <component :is="iconMap.deleteListItem" />
-                              </NcButton>
-                            </div> -->
               <div class="flex rounded-lg p-2 w-full border-1" :class="[`nc-filter-nested-level-${nestedLevel}`]">
                 <LazySmartsheetToolbarColumnFilter
                   v-if="filter.id || filter.children || !autoSave"

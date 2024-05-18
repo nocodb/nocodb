@@ -463,7 +463,7 @@ watch(
             </div>
           </template>
           <div v-else class="flex flex-row gap-x-0 w-full nc-filter-wrapper" :class="`nc-filter-wrapper-${filter.fk_column_id}`">
-            <span v-if="!i" class="flex items-center ml-2 mr-7.35">{{ $t('labels.where') }}</span>
+            <div v-if="!i" class="flex items-center !min-w-20 !max-w-20 pl-2">{{ $t('labels.where') }}</div>
 
             <NcSelect
               v-else
@@ -693,10 +693,9 @@ watch(
 }
 
 .nc-filter-wrapper {
-  border-radius: 4px !important;
+  border-radius: 8px !important;
   border: solid 1px #eee !important;
-  border-bottom-right-radius: 0 !important;
-  border-top-right-radius: 0;
+  background: white;
 }
 
 .nc-filter-wrapper > * > :deep(.ant-select-selector) {
@@ -704,9 +703,23 @@ watch(
   box-shadow: none !important;
   /*border-radius: 0 !important;*/
 }
-.nc-filter-wrapper > :not(:last-child):not(:empty){
+.nc-filter-wrapper > :not(:last-child):not(:empty) {
   border-right: 1px solid #eee !important;
   border-bottom-right-radius: 0 !important;
   border-top-right-radius: 0 !important;
+}
+.nc-filter-wrapper > :not(:first-child) {
+  border-bottom-left-radius: 0 !important;
+  border-top-left-radius: 0 !important;
+}
+
+:deep(::placeholder) {
+  @apply text-sm;
+}
+:deep(::-ms-input-placeholder) {
+  @apply text-sm;
+}
+:deep(input) {
+  @apply text-sm;
 }
 </style>

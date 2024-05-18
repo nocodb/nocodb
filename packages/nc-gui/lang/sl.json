@@ -1497,7 +1497,7 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "Sprejete vrste datotek so .xls, .xlsx, .xlsm, .ods, .ots",
       "parameterKeyCannotBeEmpty": "Ključ parametra ne more biti prazen",
       "duplicateParameterKeysAreNotAllowed": "Podvojeni ključi parametrov niso dovoljeni",
-      "fieldRequired": "{value} ne more biti prazen.",
+      "fieldRequired": "This field cannot be empty.",
       "projectNotAccessible": "Projekt ni dostopen",
       "copyToClipboardError": "Neuspešno kopiranje v odložišče",
       "pasteFromClipboardError": "Failed to paste from clipboard",

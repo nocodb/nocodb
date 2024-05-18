@@ -11,6 +11,7 @@ interface Props {
   modelValue?: undefined | Filter[]
   webHook?: boolean
   draftFilter?: Partial<FilterType>
+  isOpen?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -27,6 +28,7 @@ const emit = defineEmits(['update:filtersLength', 'update:draftFilter', 'update:
 const excludedFilterColUidt = [UITypes.QrCode, UITypes.Barcode]
 
 const draftFilter = useVModel(props, 'draftFilter', emit)
+
 const modelValue = useVModel(props, 'modelValue', emit)
 
 const { nestedLevel, parentId, autoSave, hookId, showLoading, webHook } = toRefs(props)
@@ -386,6 +388,31 @@ watch(
     immediate: true,
   },
 )
+
+let focused = false
+let elRef = null
+
+// focus add button on reopen
+if (!nested.value) {
+  watch(
+    () => props.isOpen,
+    (isOpen) => {
+      if (isOpen) setTimeout(() => elRef?.focus(), 10)
+    },
+  )
+}
+
+const addFilterBtnRef = (btn) => {
+  if (!nested.value && !focused && btn?.$el) {
+    btn?.$el?.focus()
+    // set focused after 10ms to avoid skipping element if it's rendered immediately
+    // todo: check why the reference is keep changing ?
+    setTimeout(() => {
+      focused = true
+    }, 10)
+  }
+  elRef = btn?.$el
+}
 </script>
 
 <template>
@@ -394,13 +421,63 @@ watch(
     :class="{
       'max-h-[max(80vh,500px)] min-w-112 py-2 pl-4': !nested,
       'w-full ': nested,
-      'py-4': !filters.length,
     }"
   >
+    <div v-if="nested" class="flex w-full items-center mb-2">
+      <div :class="[`nc-filter-logical-op-level-${nestedLevel}`]"><slot name="start"></slot></div>
+      <div class="flex-grow"></div>
+      <NcDropdown :trigger="['hover']" overlay-class-name="nc-dropdown-filter-group-sub-menu">
+        <GeneralIcon icon="plus" class="cursor-pointer" />
+
+        <template #overlay>
+          <NcMenu>
+            <template v-if="isEeUI && !isPublic">
+              <template v-if="filtersCount < getPlanLimit(PlanLimitTypes.FILTER_LIMIT)">
+                <NcMenuItem @click.stop="addFilter()">
+                  <div class="flex items-center gap-1">
+                    <component :is="iconMap.plus" />
+                    <!-- Add Filter -->
+                    {{ $t('activity.addFilter') }}
+                  </div>
+                </NcMenuItem>
+
+                <NcMenuItem v-if="nestedLevel < 5" @click.stop="addFilterGroup()">
+                  <div class="flex items-center gap-1">
+                    <!-- Add Filter Group -->
+                    <component :is="iconMap.plusSquare" />
+                    {{ $t('activity.addFilterGroup') }}
+                  </div>
+                </NcMenuItem>
+              </template>
+            </template>
+            <template v-else>
+              <NcMenuItem @click.stop="addFilter()">
+                <div class="flex items-center gap-1">
+                  <component :is="iconMap.plus" />
+                  <!-- Add Filter -->
+                  {{ $t('activity.addFilter') }}
+                </div>
+              </NcMenuItem>
+
+              <NcButton v-if="!webHook && nestedLevel < 5" @click.stop="addFilterGroup()">
+                <div class="flex items-center gap-1">
+                  <!-- Add Filter Group -->
+                  <component :is="iconMap.plusSquare" />
+                  {{ $t('activity.addFilterGroup') }}
+                </div>
+              </NcButton>
+            </template>
+          </NcMenu>
+        </template>
+      </NcDropdown>
+      <div>
+        <slot name="end"></slot>
+      </div>
+    </div>
     <div
       v-if="filters && filters.length"
       ref="wrapperDomRef"
-      class="flex flex-col gap-y-3 nc-filter-grid w-full"
+      class="flex flex-col gap-y-1.5 nc-filter-grid w-full"
       :class="{ 'max-h-420px nc-scrollbar-thin nc-filter-top-wrapper pr-4 my-2 py-1': !nested }"
       @click.stop
     >
@@ -408,46 +485,7 @@ watch(
         <template v-if="filter.status !== 'delete'">
           <template v-if="filter.is_group">
             <div class="flex flex-col w-full gap-y-2">
-              <div class="flex flex-row w-full justify-between items-center">
-                <span v-if="!i" class="flex items-center ml-2">{{ $t('labels.where') }}</span>
-                <div v-else :key="`${i}nested`" class="flex nc-filter-logical-op">
-                  <NcSelect
-                    v-model:value="filter.logical_op"
-                    v-e="['c:filter:logical-op:select']"
-                    :dropdown-match-select-width="false"
-                    class="min-w-20 capitalize"
-                    placeholder="Group op"
-                    dropdown-class-name="nc-dropdown-filter-logical-op-group"
-                    :disabled="visibleFilters.indexOf(filter) > 1 && !isLogicalOpChangeAllowed"
-                    @click.stop
-                    @change="onLogicalOpUpdate(filter, i)"
-                  >
-                    <a-select-option v-for="op in logicalOps" :key="op.value" :value="op.value">
-                      <div class="flex items-center w-full justify-between w-full gap-2">
-                        <div class="truncate flex-1 capitalize">{{ op.value }}</div>
-                        <component
-                          :is="iconMap.check"
-                          v-if="filter.logical_op === op.value"
-                          id="nc-selected-item-icon"
-                          class="text-primary w-4 h-4"
-                        />
-                      </div>
-                    </a-select-option>
-                  </NcSelect>
-                </div>
-                <NcButton
-                  v-if="!filter.readOnly"
-                  :key="i"
-                  v-e="['c:filter:delete']"
-                  type="text"
-                  size="small"
-                  class="nc-filter-item-remove-btn cursor-pointer"
-                  @click.stop="deleteFilter(filter, i)"
-                >
-                  <component :is="iconMap.deleteListItem" />
-                </NcButton>
-              </div>
-              <div class="flex border-1 rounded-lg p-2 w-full" :class="nestedLevel % 2 !== 0 ? 'bg-white' : 'bg-gray-100'">
+              <div class="flex rounded-lg p-2 w-full border-1" :class="[`nc-filter-nested-level-${nestedLevel}`]">
                 <LazySmartsheetToolbarColumnFilter
                   v-if="filter.id || filter.children || !autoSave"
                   :key="filter.id ?? i"
@@ -457,22 +495,71 @@ watch(
                   :parent-id="filter.id"
                   :auto-save="autoSave"
                   :web-hook="webHook"
-                />
+                >
+                  <template #start>
+                    <span v-if="!i" class="flex items-center nc-filter-where-label ml-1">{{ $t('labels.where') }}</span>
+                    <div v-else :key="`${i}nested`" class="flex nc-filter-logical-op">
+                      <NcSelect
+                        v-model:value="filter.logical_op"
+                        v-e="['c:filter:logical-op:select']"
+                        :dropdown-match-select-width="false"
+                        class="min-w-18 max-w-18 capitalize"
+                        placeholder="Group op"
+                        dropdown-class-name="nc-dropdown-filter-logical-op-group"
+                        :disabled="i > 1 && !isLogicalOpChangeAllowed"
+                        :class="{ 'nc-disabled-logical-op': filter.readOnly || (i > 1 && !isLogicalOpChangeAllowed) }"
+                        @click.stop
+                        @change="onLogicalOpUpdate(filter, i)"
+                      >
+                        <a-select-option v-for="op in logicalOps" :key="op.value" :value="op.value">
+                          <div class="flex items-center w-full justify-between w-full gap-2">
+                            <div class="truncate flex-1 capitalize">{{ op.value }}</div>
+                            <component
+                              :is="iconMap.check"
+                              v-if="filter.logical_op === op.value"
+                              id="nc-selected-item-icon"
+                              class="text-primary w-4 h-4"
+                            />
+                          </div>
+                        </a-select-option>
+                      </NcSelect>
+                    </div>
+                  </template>
+                  <template #end>
+                    <NcButton
+                      v-if="!filter.readOnly"
+                      :key="i"
+                      v-e="['c:filter:delete']"
+                      type="text"
+                      size="small"
+                      class="nc-filter-item-remove-btn cursor-pointer"
+                      @click.stop="deleteFilter(filter, i)"
+                    >
+                      <component :is="iconMap.deleteListItem" />
+                    </NcButton>
+                  </template>
+                </LazySmartsheetToolbarColumnFilter>
               </div>
             </div>
           </template>
-          <div v-else class="flex flex-row gap-x-2 w-full" :class="`nc-filter-wrapper-${filter.fk_column_id}`">
-            <span v-if="!i" class="flex items-center ml-2 mr-7.35">{{ $t('labels.where') }}</span>
+
+          <div v-else class="flex flex-row gap-x-0 w-full nc-filter-wrapper" :class="`nc-filter-wrapper-${filter.fk_column_id}`">
+            <div v-if="!i" class="flex items-center !min-w-18 !max-w-18 pl-3 nc-filter-where-label">
+              {{ $t('labels.where') }}
+            </div>
 
             <NcSelect
               v-else
               v-model:value="filter.logical_op"
               v-e="['c:filter:logical-op:select']"
               :dropdown-match-select-width="false"
-              class="h-full !min-w-20 !max-w-20 capitalize"
+              class="h-full !min-w-18 !max-w-18 capitalize"
               hide-details
               :disabled="filter.readOnly || (visibleFilters.indexOf(filter) > 1 && !isLogicalOpChangeAllowed)"
               dropdown-class-name="nc-dropdown-filter-logical-op"
+              :class="{
+                'nc-disabled-logical-op': filter.readOnly || (visibleFilters.indexOf(filter) > 1 && !isLogicalOpChangeAllowed),
+              }"
               @change="onLogicalOpUpdate(filter, i)"
               @click.stop
             >
@@ -488,6 +575,7 @@ watch(
                 </div>
               </a-select-option>
             </NcSelect>
+
             <SmartsheetToolbarFieldListAutoCompleteDropdown
               :key="`${i}_6`"
               v-model="filter.fk_column_id"
@@ -497,6 +585,7 @@ watch(
               @click.stop
               @change="selectFilterField(filter, i)"
             />
+
             <NcSelect
               v-model:value="filter.comparison_op"
               v-e="['c:filter:comparison-op:select']"
@@ -529,6 +618,7 @@ watch(
             </NcSelect>
 
             <div v-if="['blank', 'notblank'].includes(filter.comparison_op)" class="flex flex-grow"></div>
+
             <NcSelect
               v-else-if="isDateType(types[filter.fk_column_id])"
               v-model:value="filter.comparison_sub_op"
@@ -567,6 +657,7 @@ watch(
                 </a-select-option>
               </template>
             </NcSelect>
+
             <a-checkbox
               v-if="filter.field && types[filter.field] === 'boolean'"
               v-model:checked="filter.value"
@@ -583,6 +674,7 @@ watch(
               @update-filter-value="(value) => updateFilterValue(value, filter, i)"
               @click.stop
             />
+
             <div v-else-if="!isDateType(types[filter.fk_column_id])" class="flex-grow"></div>
 
             <NcButton
@@ -600,56 +692,64 @@ watch(
       </template>
     </div>
 
-    <template v-if="isEeUI && !isPublic">
-      <div
-        v-if="filtersCount < getPlanLimit(PlanLimitTypes.FILTER_LIMIT)"
-        ref="addFiltersRowDomRef"
-        class="flex gap-2"
-        :class="{
-          'mt-1 mb-2': filters.length,
-        }"
-      >
-        <NcButton size="small" type="text" class="!text-brand-500" @click.stop="addFilter()">
-          <div class="flex items-center gap-1">
-            <component :is="iconMap.plus" />
-            <!-- Add Filter -->
-            {{ $t('activity.addFilter') }}
-          </div>
-        </NcButton>
+    <template v-if="!nested">
+      <template v-if="isEeUI && !isPublic">
+        <div
+          v-if="filtersCount < getPlanLimit(PlanLimitTypes.FILTER_LIMIT)"
+          class="flex gap-2"
+          :class="{
+            'mt-1 mb-2': filters.length,
+          }"
+        >
+          <NcButton :ref="addFilterBtnRef" size="small" type="text" class="nc-btn-focus" @click.stop="addFilter()">
+            <div class="flex items-center gap-1">
+              <component :is="iconMap.plus" />
+              <!-- Add Filter -->
+              {{ $t('activity.addFilter') }}
+            </div>
+          </NcButton>
 
-        <NcButton v-if="nestedLevel < 5" type="text" size="small" @click.stop="addFilterGroup()">
-          <div class="flex items-center gap-1">
-            <!-- Add Filter Group -->
-            <component :is="iconMap.plus" />
-            {{ $t('activity.addFilterGroup') }}
-          </div>
-        </NcButton>
-      </div>
-    </template>
-    <template v-else>
-      <div
-        ref="addFiltersRowDomRef"
-        class="flex gap-2"
-        :class="{
-          'mt-1 mb-2': filters.length,
-        }"
-      >
-        <NcButton size="small" type="text" class="!text-brand-500" @click.stop="addFilter()">
-          <div class="flex items-center gap-1">
-            <component :is="iconMap.plus" />
-            <!-- Add Filter -->
-            {{ $t('activity.addFilter') }}
-          </div>
-        </NcButton>
+          <NcButton v-if="nestedLevel < 5" class="nc-btn-focus" type="text" size="small" @click.stop="addFilterGroup()">
+            <div class="flex items-center gap-1">
+              <!-- Add Filter Group -->
+              <component :is="iconMap.plus" />
+              {{ $t('activity.addFilterGroup') }}
+            </div>
+          </NcButton>
+        </div>
+      </template>
 
-        <NcButton v-if="!webHook && nestedLevel < 5" type="text" size="small" @click.stop="addFilterGroup()">
-          <div class="flex items-center gap-1">
-            <!-- Add Filter Group -->
-            <component :is="iconMap.plus" />
-            {{ $t('activity.addFilterGroup') }}
-          </div>
-        </NcButton>
-      </div>
+      <template v-else>
+        <div
+          ref="addFiltersRowDomRef"
+          class="flex gap-2"
+          :class="{
+            'mt-1 mb-2': filters.length,
+          }"
+        >
+          <NcButton :ref="addFilterBtnRef" class="nc-btn-focus" size="small" type="text" @click.stop="addFilter()">
+            <div class="flex items-center gap-1">
+              <component :is="iconMap.plus" />
+              <!-- Add Filter -->
+              {{ $t('activity.addFilter') }}
+            </div>
+          </NcButton>
+
+          <NcButton
+            v-if="!webHook && nestedLevel < 5"
+            class="nc-btn-focus"
+            type="text"
+            size="small"
+            @click.stop="addFilterGroup()"
+          >
+            <div class="flex items-center gap-1">
+              <!-- Add Filter Group -->
+              <component :is="iconMap.plus" />
+              {{ $t('activity.addFilterGroup') }}
+            </div>
+          </NcButton>
+        </div>
+      </template>
     </template>
     <div
       v-if="!filters.length"
@@ -666,7 +766,7 @@ watch(
   </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .nc-filter-item-remove-btn {
   @apply text-gray-600 hover:text-gray-800;
 }
@@ -680,6 +780,112 @@ watch(
 }
 
 :deep(.ant-select-selector) {
-  @apply !min-h-8.25;
+  @apply !min-h-8;
+}
+
+.nc-disabled-logical-op :deep(.ant-select-arrow) {
+  @apply hidden;
+}
+
+.nc-filter-wrapper {
+  @apply bg-white !rounded-lg border-1px border-[#E7E7E9];
+
+  & > * {
+    @apply !border-none;
+  }
+
+  & > * > :deep(.ant-select-selector) {
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  & > :not(:last-child):not(:empty) {
+    border-right: 1px solid #eee !important;
+    border-bottom-right-radius: 0 !important;
+    border-top-right-radius: 0 !important;
+  }
+
+  & > :not(:first-child) {
+    border-bottom-left-radius: 0 !important;
+    border-top-left-radius: 0 !important;
+  }
+
+  & > :last-child {
+    @apply relative;
+    &::after {
+      content: '';
+      @apply absolute h-full w-1px bg-[#eee] -left-1px top-0;
+    }
+  }
+
+  :deep(::placeholder) {
+    @apply text-sm tracking-normal;
+  }
+
+  :deep(::-ms-input-placeholder) {
+    @apply text-sm tracking-normal;
+  }
+
+  :deep(input) {
+    @apply text-sm;
+  }
+
+  :deep(.nc-select:not(.nc-disabled-logical-op):hover) {
+    &,
+    .ant-select-selector {
+      @apply bg-gray-50;
+    }
+  }
+}
+
+.nc-filter-nested-level-0 {
+  @apply bg-[#f9f9fa];
+}
+
+.nc-filter-nested-level-1,
+.nc-filter-nested-level-3 {
+  @apply bg-gray-[#f4f4f5];
+}
+
+.nc-filter-nested-level-2,
+.nc-filter-nested-level-4 {
+  @apply bg-gray-[#e7e7e9];
+}
+
+.nc-filter-logical-op-level-3,
+.nc-filter-logical-op-level-5 {
+  :deep(.nc-select.ant-select .ant-select-selector) {
+    @apply border-[#d9d9d9];
+  }
+}
+
+.nc-filter-where-label {
+  @apply text-gray-400;
+}
+:deep(.ant-select-disabled.ant-select:not(.ant-select-customize-input) .ant-select-selector) {
+  @apply bg-transparent text-gray-400;
+}
+
+:deep(.nc-filter-logical-op .nc-select.ant-select .ant-select-selector) {
+  @apply shadow-none;
+}
+
+:deep(.nc-select-expand-btn) {
+  @apply text-gray-500;
+}
+
+.menu-filter-dropdown {
+  input:not(:disabled),
+  select:not(:disabled),
+  .ant-select:not(.ant-select-disabled) {
+    @apply text-[#4A5268];
+  }
+}
+
+.nc-filter-input-wrapper :deep(input) {
+  @apply !px-2;
+}
+.nc-btn-focus:focus {
+  @apply !text-brand-500 !shadow-none;
 }
 </style>

@@ -1497,7 +1497,7 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "De accepterede filtyper er .xls, .xlsx, .xlsm, .ods, .ots",
       "parameterKeyCannotBeEmpty": "Parameternøglen kan ikke være tom",
       "duplicateParameterKeysAreNotAllowed": "Det er ikke tilladt at duplikere parameternøgler",
-      "fieldRequired": "{value} kan ikke være tom.",
+      "fieldRequired": "This field cannot be empty.",
       "projectNotAccessible": "Projektet er ikke tilgængeligt",
       "copyToClipboardError": "Kopiering til udklipsholderen mislykkedes",
       "pasteFromClipboardError": "Failed to paste from clipboard",

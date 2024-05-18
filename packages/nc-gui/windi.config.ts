@@ -111,6 +111,9 @@ export default defineConfig({
         primary: 'rgba(var(--color-primary), var(--tw-ring-opacity))',
         accent: 'rgba(var(--color-accent), var(--tw-ring-opacity))',
       },
+      boxShadow: {
+        selected: '0px 0px 0px 2px var(--ant-primary-color-outline)',
+      },
       colors: {
         ...windiColors,
         ...themeColors,

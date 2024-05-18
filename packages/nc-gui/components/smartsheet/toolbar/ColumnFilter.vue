@@ -424,7 +424,7 @@ const addFilterBtnRef = (btn) => {
     }"
   >
     <div v-if="nested" class="flex w-full items-center mb-2">
-      <div><slot name="start"></slot></div>
+      <div :class="[`nc-filter-logical-op-level-${nestedLevel}`]"><slot name="start"></slot></div>
       <div class="flex-grow"></div>
       <NcDropdown :trigger="['hover']" overlay-class-name="nc-dropdown-filter-group-sub-menu">
         <GeneralIcon icon="plus" class="cursor-pointer" />
@@ -544,7 +544,7 @@ const addFilterBtnRef = (btn) => {
           </template>
 
           <div v-else class="flex flex-row gap-x-0 w-full nc-filter-wrapper" :class="`nc-filter-wrapper-${filter.fk_column_id}`">
-            <div v-if="!i" class="flex items-center !min-w-18 !max-w-18 pl-1 nc-filter-where-label">
+            <div v-if="!i" class="flex items-center !min-w-18 !max-w-18 pl-3 nc-filter-where-label">
               {{ $t('labels.where') }}
             </div>
 
@@ -850,6 +850,13 @@ const addFilterBtnRef = (btn) => {
 .nc-filter-nested-level-2,
 .nc-filter-nested-level-4 {
   @apply bg-gray-[#e7e7e9];
+}
+
+.nc-filter-logical-op-level-3,
+.nc-filter-logical-op-level-5 {
+  :deep(.nc-select.ant-select .ant-select-selector) {
+    @apply border-[#d9d9d9];
+  }
 }
 
 .nc-filter-where-label {

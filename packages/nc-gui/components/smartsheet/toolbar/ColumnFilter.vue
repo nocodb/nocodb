@@ -400,7 +400,7 @@ watch(
     <div
       v-if="filters && filters.length"
       ref="wrapperDomRef"
-      class="flex flex-col gap-y-3 nc-filter-grid w-full"
+      class="flex flex-col gap-y-1.5 nc-filter-grid w-full"
       :class="{ 'max-h-420px nc-scrollbar-thin nc-filter-top-wrapper pr-4 my-2 py-1': !nested }"
       @click.stop
     >
@@ -708,9 +708,23 @@ watch(
   border-bottom-right-radius: 0 !important;
   border-top-right-radius: 0 !important;
 }
+
 .nc-filter-wrapper > :not(:first-child) {
   border-bottom-left-radius: 0 !important;
   border-top-left-radius: 0 !important;
+}
+
+.nc-filter-wrapper > :last-child {
+  position: relative;
+}
+.nc-filter-wrapper > :last-child::after {
+  content: '';
+  position: absolute;
+  height: 100%;
+  width: 1px;
+  background: #eee;
+  left: -1px;
+  top: 0;
 }
 
 :deep(::placeholder) {

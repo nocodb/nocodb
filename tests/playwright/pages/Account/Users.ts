@@ -46,7 +46,12 @@ export class AccountUsersPage extends BasePage {
     await this.inviteUserModal.locator(`.nc-user-roles`).click();
     const userRoleModal = this.rootPage.locator(`.nc-dropdown-user-role`);
     await userRoleModal.locator(`.nc-role-option:has-text("${role}")`).click();
-    await this.inviteUserModal.locator(`button:has-text("Invite")`).click();
+    const inviteAction = () => this.inviteUserModal.locator(`button:has-text("Invite")`).click();
+    await this.waitForResponse({
+      uiAction: inviteAction,
+      httpMethodsToMatch: ['GET'],
+      requestUrlPathToMatch: `api/v1/users`,
+    });
     await this.verifyToast({ message: 'Successfully added user' });
 
     // TODO: Wait on the invite api and get the invite url a better way as we are not waiting if the url is reflected in the UI

@@ -497,7 +497,7 @@ const addFilterBtnRef = (btn) => {
                   :web-hook="webHook"
                 >
                   <template #start>
-                    <span v-if="!i" class="flex items-center nc-filter-where-label ml-2">{{ $t('labels.where') }}</span>
+                    <span v-if="!i" class="flex items-center nc-filter-where-label ml-1">{{ $t('labels.where') }}</span>
                     <div v-else :key="`${i}nested`" class="flex nc-filter-logical-op">
                       <NcSelect
                         v-model:value="filter.logical_op"
@@ -544,7 +544,7 @@ const addFilterBtnRef = (btn) => {
           </template>
 
           <div v-else class="flex flex-row gap-x-0 w-full nc-filter-wrapper" :class="`nc-filter-wrapper-${filter.fk_column_id}`">
-            <div v-if="!i" class="flex items-center !min-w-18 !max-w-18 pl-2 nc-filter-where-label">
+            <div v-if="!i" class="flex items-center !min-w-18 !max-w-18 pl-1 nc-filter-where-label">
               {{ $t('labels.where') }}
             </div>
 
@@ -557,7 +557,9 @@ const addFilterBtnRef = (btn) => {
               hide-details
               :disabled="filter.readOnly || (visibleFilters.indexOf(filter) > 1 && !isLogicalOpChangeAllowed)"
               dropdown-class-name="nc-dropdown-filter-logical-op"
-              :class="{ 'nc-disabled-logical-op': filter.readOnly || (visibleFilters.indexOf(filter) > 1 && !isLogicalOpChangeAllowed) }"
+              :class="{
+                'nc-disabled-logical-op': filter.readOnly || (visibleFilters.indexOf(filter) > 1 && !isLogicalOpChangeAllowed),
+              }"
               @change="onLogicalOpUpdate(filter, i)"
               @click.stop
             >
@@ -778,7 +780,7 @@ const addFilterBtnRef = (btn) => {
 }
 
 :deep(.ant-select-selector) {
-  @apply !min-h-8.25;
+  @apply !min-h-8;
 }
 
 .nc-disabled-logical-op :deep(.ant-select-arrow) {

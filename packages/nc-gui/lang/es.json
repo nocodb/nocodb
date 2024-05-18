@@ -1497,7 +1497,7 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "Los tipos de archivo aceptados son .xls, .xlsx, .xlsm, .ods, .ots",
       "parameterKeyCannotBeEmpty": "La clave del parámetro no puede estar vacía",
       "duplicateParameterKeysAreNotAllowed": "No se permiten claves de parámetros duplicadas",
-      "fieldRequired": "{value} no puede estar vacía.",
+      "fieldRequired": "This field cannot be empty.",
       "projectNotAccessible": "Proyecto no accesible",
       "copyToClipboardError": "Fallo al copiar al portapapeles",
       "pasteFromClipboardError": "Failed to paste from clipboard",

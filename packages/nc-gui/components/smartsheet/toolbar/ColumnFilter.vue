@@ -448,7 +448,16 @@ watch(
                   <component :is="iconMap.deleteListItem" />
                 </NcButton>
               </div>
-              <div class="flex border-1 rounded-lg p-2 w-full" :class="nestedLevel % 2 !== 0 ? 'bg-white' : 'bg-gray-100'">
+              <div
+                class="flex border-1 rounded-lg p-2 w-full"
+                :class="{
+                  'bg-gray-200/20': nestedLevel === 1,
+                  'bg-gray-200/40': nestedLevel === 2,
+                  'bg-gray-200/60': nestedLevel === 3,
+                  'bg-gray-200/70': nestedLevel === 4,
+                  'bg-gray-200/90': nestedLevel === 5,
+                }"
+              >
                 <LazySmartsheetToolbarColumnFilter
                   v-if="filter.id || filter.children || !autoSave"
                   :key="filter.id ?? i"
@@ -668,7 +677,7 @@ watch(
   </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .nc-filter-item-remove-btn {
   @apply text-gray-600 hover:text-gray-800;
 }
@@ -695,45 +704,49 @@ watch(
 .nc-filter-wrapper {
   border-radius: 8px !important;
   border: solid 1px #eee !important;
-  background: white;
-}
+  @apply bg-white;
 
-.nc-filter-wrapper > * > :deep(.ant-select-selector) {
-  border: none !important;
-  box-shadow: none !important;
-  /*border-radius: 0 !important;*/
-}
-.nc-filter-wrapper > :not(:last-child):not(:empty) {
-  border-right: 1px solid #eee !important;
-  border-bottom-right-radius: 0 !important;
-  border-top-right-radius: 0 !important;
-}
+  & > * > :deep(.ant-select-selector) {
+    border: none !important;
+    box-shadow: none !important;
+  }
 
-.nc-filter-wrapper > :not(:first-child) {
-  border-bottom-left-radius: 0 !important;
-  border-top-left-radius: 0 !important;
-}
+  & > :not(:last-child):not(:empty) {
+    border-right: 1px solid #eee !important;
+    border-bottom-right-radius: 0 !important;
+    border-top-right-radius: 0 !important;
+  }
 
-.nc-filter-wrapper > :last-child {
-  position: relative;
-}
-.nc-filter-wrapper > :last-child::after {
-  content: '';
-  position: absolute;
-  height: 100%;
-  width: 1px;
-  background: #eee;
-  left: -1px;
-  top: 0;
-}
+  & > :not(:first-child) {
+    border-bottom-left-radius: 0 !important;
+    border-top-left-radius: 0 !important;
+  }
 
-:deep(::placeholder) {
-  @apply text-sm;
-}
-:deep(::-ms-input-placeholder) {
-  @apply text-sm;
-}
-:deep(input) {
-  @apply text-sm;
+  & > :last-child {
+    @apply relative;
+    &::after {
+      content: '';
+      @apply absolute h-full w-1px bg-[#eee] -left-1px top-0;
+    }
+  }
+
+  :deep(::placeholder) {
+    @apply text-sm;
+  }
+
+  :deep(::-ms-input-placeholder) {
+    @apply text-sm;
+  }
+
+  :deep(input) {
+    @apply text-sm;
+  }
+
+  :deep(.nc-select:not(.nc-disabled-logical-op):hover) {
+    &,
+    .ant-select-selector {
+      @apply bg-gray-50;
+    }
+  }
 }
 </style>

@@ -265,6 +265,8 @@ test.describe('Multi Field Editor', () => {
 
     // Hide field and verify grid column header
     await (await fields.getFieldVisibilityCheckbox({ title: defaultFieldName })).click();
+    // wait for the toggle to update before clicking save
+    await fields.rootPage.waitForTimeout(500);
     await fields.saveChanges();
 
     await verifyGridColumnHeaders({ fields: fieldsText.filter(field => field !== defaultFieldName) });

@@ -1497,7 +1497,7 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "Jenis file yang diterima adalah .xls, .xlsx, .xlsm, .ods, .ots",
       "parameterKeyCannotBeEmpty": "Kunci parameter tidak boleh kosong",
       "duplicateParameterKeysAreNotAllowed": "Kunci parameter duplikat tidak diperbolehkan",
-      "fieldRequired": "{value} tidak boleh kosong.",
+      "fieldRequired": "This field cannot be empty.",
       "projectNotAccessible": "Proyek tidak dapat diakses",
       "copyToClipboardError": "Gagal menyalin ke papan klip",
       "pasteFromClipboardError": "Failed to paste from clipboard",

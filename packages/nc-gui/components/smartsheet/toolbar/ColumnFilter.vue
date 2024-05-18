@@ -878,7 +878,7 @@ const addFilterBtnRef = (btn) => {
   input:not(:disabled),
   select:not(:disabled),
   .ant-select:not(.ant-select-disabled) {
-    @apply text-[#374151];
+    @apply text-[#4A5268];
   }
 }
 

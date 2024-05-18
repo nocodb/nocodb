@@ -1497,7 +1497,7 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "Допустимые типы файлов: .xls, .xlsx, .xlsm, .ods, .ots",
       "parameterKeyCannotBeEmpty": "Ключ параметра не может быть пустым",
       "duplicateParameterKeysAreNotAllowed": "Дублирование ключей параметров не допускается",
-      "fieldRequired": "{value} не может быть пустым.",
+      "fieldRequired": "This field cannot be empty.",
       "projectNotAccessible": "Проект недоступен",
       "copyToClipboardError": "Не удалось скопировать в буфер обмена",
       "pasteFromClipboardError": "Failed to paste from clipboard",

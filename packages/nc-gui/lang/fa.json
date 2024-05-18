@@ -1497,7 +1497,7 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "نوع فایل های مورد قبول .xls, .xlsx, .xlm, .ods, .ots هستند",
       "parameterKeyCannotBeEmpty": "کلید پارامتر نمیتواند خالی باشد",
       "duplicateParameterKeysAreNotAllowed": "کلید های پارامتر تکراری مجاز نیستند",
-      "fieldRequired": "{value} نمیتواند خالی باشد.",
+      "fieldRequired": "This field cannot be empty.",
       "projectNotAccessible": "Project not accessible",
       "copyToClipboardError": "کپی به کلیپ برد ناموفق",
       "pasteFromClipboardError": "Failed to paste from clipboard",

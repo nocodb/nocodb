@@ -355,8 +355,8 @@ export default class Base extends BaseCE {
       .whereNot(`${MetaTable.PROJECT}.deleted`, true)
       .whereNotNull(`${MetaTable.WORKSPACE_USER}.roles`)
       .andWhere(function () {
-        this.andWhere(function () {
-          this.andWhere(
+        this.where(function () {
+          this.where(
             `${MetaTable.WORKSPACE_USER}.roles`,
             '!=',
             WorkspaceUserRoles.NO_ACCESS,
@@ -367,19 +367,19 @@ export default class Base extends BaseCE {
               ProjectRoles.NO_ACCESS,
             ).orWhereNull(`${MetaTable.PROJECT_USERS}.roles`);
           });
-        })
-          .orWhere(
+        }).orWhere(function () {
+          this.where(
             `${MetaTable.WORKSPACE_USER}.roles`,
             '=',
             WorkspaceUserRoles.NO_ACCESS,
           )
-          .andWhere(function () {
-            this.andWhere(
+            .andWhere(
               `${MetaTable.PROJECT_USERS}.roles`,
               '!=',
               ProjectRoles.NO_ACCESS,
-            ).orWhereNotNull(`${MetaTable.PROJECT_USERS}.roles`);
-          });
+            )
+            .whereNotNull(`${MetaTable.PROJECT_USERS}.roles`);
+        });
       });
 
     const bases = await baseListQb;

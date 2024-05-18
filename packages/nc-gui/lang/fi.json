@@ -1497,7 +1497,7 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "Hyväksytyt tiedostotyypit ovat .xls, .xlsx, .xlsm, .ods, .ots ja .xlsx.",
       "parameterKeyCannotBeEmpty": "Parametriavain ei voi olla tyhjä",
       "duplicateParameterKeysAreNotAllowed": "Parametrin kaksoisavaimet eivät ole sallittuja",
-      "fieldRequired": "{value} ei voi olla tyhjä.",
+      "fieldRequired": "This field cannot be empty.",
       "projectNotAccessible": "Hankkeeseen ei pääse käsiksi",
       "copyToClipboardError": "Kopiointi leikepöydälle epäonnistui",
       "pasteFromClipboardError": "Failed to paste from clipboard",

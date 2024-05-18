@@ -1497,7 +1497,7 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "Les types de fichiers acceptés sont .xls, .xlsx, .xlsm, .ods, .ots.",
       "parameterKeyCannotBeEmpty": "La clé de paramètre ne peut pas être vide",
       "duplicateParameterKeysAreNotAllowed": "Les doublons de clés de paramètres ne sont pas autorisés",
-      "fieldRequired": "{value} ne peut pas être vide.",
+      "fieldRequired": "This field cannot be empty.",
       "projectNotAccessible": "Projet non accessible",
       "copyToClipboardError": "Échec de la copie dans le presse-papiers",
       "pasteFromClipboardError": "Échec du collage à partir du presse-papiers",

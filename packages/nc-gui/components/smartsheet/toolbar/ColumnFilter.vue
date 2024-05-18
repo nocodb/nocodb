@@ -396,7 +396,7 @@ watch(
       'w-full ': nested,
     }"
   >
-    <div v-if="nested" class="flex w-full items-center mb-4 mx-1">
+    <div v-if="nested" class="flex w-full items-center -mt-0.5 mb-1 mx-1">
       <div class="-ml-2"><slot name="start"></slot></div>
       <div class="flex-grow"></div>
       <NcDropdown :trigger="['hover']" overlay-class-name="nc-dropdown-user-accounts-menu">
@@ -498,7 +498,7 @@ watch(
                                 <component :is="iconMap.deleteListItem" />
                               </NcButton>
                             </div> -->
-              <div class="flex border-1 rounded-lg p-2 w-full" :class="[`nc-filter-nested-level-${nestedLevel}`]">
+              <div class="flex rounded-lg p-2 w-full" :class="[`nc-filter-nested-level-${nestedLevel}`]">
                 <LazySmartsheetToolbarColumnFilter
                   v-if="filter.id || filter.children || !autoSave"
                   :key="filter.id ?? i"

@@ -62,8 +62,9 @@ ENV LITESTREAM_S3_SKIP_VERIFY=false \
     PORT=8080
 
 RUN apk add --update --no-cache \
-    nodejs \
-    dumb-init
+    dasel \
+    dumb-init \
+    nodejs
 
 # Copy litestream binary and config file
 COPY --link --from=lt-builder /usr/src/lt /usr/local/bin/litestream

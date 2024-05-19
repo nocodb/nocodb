@@ -1101,6 +1101,7 @@
     "searchOptions": "Options de recherche"
   },
   "msg": {
+    "formulaNotSupported": "This function is unavailable for your database",
     "controlOrgAppearance": "Contrôlez le nom et l'apparence de vos organisations.",
     "addCompanyDomains": "Ajoutez des domaines pour restreindre l'accès aux utilisateurs non souhaités.",
     "restrictUsersFromSharing": "Empêcher les utilisateurs de partager leurs bases publiquement.",

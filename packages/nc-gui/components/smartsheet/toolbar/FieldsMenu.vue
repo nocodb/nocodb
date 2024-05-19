@@ -57,6 +57,7 @@ const {
   toggleFieldVisibility,
 } = useViewColumnsOrThrow()
 
+
 const hiddenFields = ref<string[]>([])
 
 const isLocalMode = computed(
@@ -69,6 +70,7 @@ const shouldShowField = (id: string) => {
 }
 
 const { eventBus } = useSmartsheetStoreOrThrow()
+
 
 const { addUndo, defineViewScope } = useUndoRedo()
 
@@ -150,15 +152,12 @@ const onMove = async (_event: { moved: { newIndex: number; oldIndex: number } },
       fields.value.map(async (field, index) => {
         if (field.order !== index + 1) {
           field.order = index + 1
-          await saveOrUpdate(field, index, true)
+          await saveOrUpdate(field, index, true, !!isDefaultView.value)
         }
       }),
     )
 
     await loadViewColumns()
-    await reloadViewDataHook?.trigger({
-      shouldShowLoading: false,
-    })
 
     $e('a:fields:reorder')
   } catch (e) {
@@ -203,7 +202,15 @@ const updateCoverImage = async (val?: string | null) => {
       })
       ;(activeView.value.view as CalendarType).fk_cover_image_col_id = val
     }
-    reloadViewMetaHook?.trigger()
+
+    await reloadViewMetaHook?.trigger()
+
+    // Load data only if the view column is hidden to fetch cover image column data in records.
+    if (val && !fields.value?.find((f) => f.fk_column_id === val)?.show) {
+      await reloadViewDataHook?.trigger({
+        shouldShowLoading: false,
+      })
+    }
   }
 }
 
@@ -363,29 +370,37 @@ useMenuCloseOnEsc(open)
     overlay-class-name="nc-dropdown-fields-menu nc-toolbar-dropdown"
   >
     <div :class="{ 'nc-active-btn': numberOfHiddenFields }">
-      <a-button v-e="['c:fields']" :disabled="isLocked" class="nc-fields-menu-btn nc-toolbar-btn">
-        <div class="flex items-center gap-2">
-          <GeneralIcon
-            v-if="activeView?.type === ViewTypes.KANBAN || activeView?.type === ViewTypes.GALLERY"
-            class="h-4 w-4"
-            icon="creditCard"
-          />
-          <component :is="iconMap.fields" v-else class="h-4 w-4" />
+      <NcButton
+        v-e="['c:fields']"
+        :disabled="isLocked"
+        class="nc-fields-menu-btn nc-toolbar-btn !h-7 !border-0"
+        size="small"
+        type="secondary"
+      >
+        <div class="flex items-center gap-1">
+          <div class="flex items-center gap-2">
+            <GeneralIcon
+              v-if="activeView?.type === ViewTypes.KANBAN || activeView?.type === ViewTypes.GALLERY"
+              class="h-4 w-4"
+              icon="creditCard"
+            />
+            <component :is="iconMap.fields" v-else class="h-4 w-4" />
 
-          <!-- Fields -->
-          <span v-if="!isMobileMode" class="text-capitalize text-sm font-medium">
-            <template v-if="activeView?.type === ViewTypes.KANBAN || activeView?.type === ViewTypes.GALLERY">
-              {{ $t('title.editCards') }}
-            </template>
-            <template v-else>
-              {{ $t('objects.fields') }}
-            </template>
-          </span>
+            <!-- Fields -->
+            <span v-if="!isMobileMode" class="text-capitalize !text-[13px] font-medium">
+              <template v-if="activeView?.type === ViewTypes.KANBAN || activeView?.type === ViewTypes.GALLERY">
+                {{ $t('title.editCards') }}
+              </template>
+              <template v-else>
+                {{ $t('objects.fields') }}
+              </template>
+            </span>
+          </div>
           <span v-if="numberOfHiddenFields" class="bg-brand-50 text-brand-500 py-1 px-2 text-md rounded-md">
             {{ numberOfHiddenFields }}
           </span>
         </div>
-      </a-button>
+      </NcButton>
     </div>
 
     <template #overlay>
@@ -395,7 +410,7 @@ useMenuCloseOnEsc(open)
         @click.stop
       >
         <div
-          v-if="!filterQuery && !isPublic && (activeView?.type === ViewTypes.GALLERY || activeView?.type === ViewTypes.KANBAN)"
+          v-if="!isPublic && (activeView?.type === ViewTypes.GALLERY || activeView?.type === ViewTypes.KANBAN)"
           class="flex flex-col gap-y-2 px-2 mb-6"
         >
           <div class="flex text-sm select-none">Select cover image field</div>

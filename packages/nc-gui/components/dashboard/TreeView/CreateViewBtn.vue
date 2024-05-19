@@ -158,12 +158,12 @@ async function onOpenModal({
         <NcMenuItem data-testid="sidebar-view-create-calendar" @click="onOpenModal({ type: ViewTypes.CALENDAR })">
           <div class="item">
             <div class="item-inner">
-              <GeneralViewIcon :meta="{ type: ViewTypes.CALENDAR }" />
+              <GeneralViewIcon :meta="{ type: ViewTypes.CALENDAR }" class="!w-4 !h-4" />
               <div>{{ $t('objects.viewType.calendar') }}</div>
             </div>
 
             <GeneralLoader v-if="toBeCreateType === ViewTypes.CALENDAR && isViewListLoading" />
-            <GeneralIcon v-else class="text-brand-400" icon="plus" />
+            <GeneralIcon v-else class="plus" icon="plus" />
           </div>
         </NcMenuItem>
       </NcMenu>
@@ -181,7 +181,7 @@ async function onOpenModal({
 }
 
 .plus {
-  @apply text-brand-400;
+  @apply text-gray-500;
 }
 </style>
 

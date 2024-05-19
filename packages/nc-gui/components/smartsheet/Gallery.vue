@@ -1,31 +1,6 @@
 <script lang="ts" setup>
 import { ViewTypes, isVirtualCol } from 'nocodb-sdk'
 import type { Row as RowType } from '#imports'
-import {
-  ActiveViewInj,
-  FieldsInj,
-  IsCalendarInj,
-  IsFormInj,
-  IsGalleryInj,
-  IsGridInj,
-  MetaInj,
-  NavigateDir,
-  OpenNewRecordFormHookInj,
-  ReloadRowDataHookInj,
-  ReloadViewDataHookInj,
-  ReloadViewMetaHookInj,
-  computed,
-  createEventHook,
-  extractPkFromRow,
-  inject,
-  isImage,
-  isPrimary,
-  nextTick,
-  provide,
-  ref,
-  useAttachment,
-  useViewData,
-} from '#imports'
 
 interface Attachment {
   url: string
@@ -36,6 +11,7 @@ const view = inject(ActiveViewInj, ref())
 const reloadViewMetaHook = inject(ReloadViewMetaHookInj)
 const reloadViewDataHook = inject(ReloadViewDataHookInj)
 const openNewRecordFormHook = inject(OpenNewRecordFormHookInj, createEventHook())
+const isPublic = inject(IsPublicInj, ref(false))
 
 const { isViewDataLoading } = storeToRefs(useViewsStore())
 const { isSqlView, xWhere } = useSmartsheetStoreOrThrow()
@@ -125,7 +101,7 @@ const attachments = (record: any): Attachment[] => {
 const expandForm = (row: RowType, state?: Record<string, any>) => {
   const rowId = extractPkFromRow(row.row, meta.value!.columns!)
 
-  if (rowId) {
+  if (rowId && !isPublic.value) {
     router.push({
       query: {
         ...route.query,

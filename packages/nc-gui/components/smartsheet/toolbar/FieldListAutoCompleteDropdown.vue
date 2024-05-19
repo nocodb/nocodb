@@ -2,7 +2,6 @@
 import type { SelectProps } from 'ant-design-vue'
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isHiddenCol, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
-import { MetaInj, computed, inject, ref, resolveComponent, useViewColumnsOrThrow } from '#imports'
 
 const { modelValue, isSort, allowEmpty, ...restProps } = defineProps<{
   modelValue?: string
@@ -16,6 +15,8 @@ const emit = defineEmits(['update:modelValue'])
 const customColumns = toRef(restProps, 'columns')
 
 const meta = inject(MetaInj, ref())
+
+const { metas } = useMetas()
 
 const localValue = computed({
   get: () => modelValue,
@@ -81,6 +82,31 @@ const filterOption = (input: string, option: any) => option.label.toLowerCase()?
 if (!localValue.value && allowEmpty !== true) {
   localValue.value = (options.value?.[0].value as string) || ''
 }
+
+const relationColor = {
+  [RelationTypes.BELONGS_TO]: 'text-blue-500',
+  [RelationTypes.ONE_TO_ONE]: 'text-purple-500',
+  [RelationTypes.HAS_MANY]: 'text-orange-500',
+  [RelationTypes.MANY_TO_MANY]: 'text-pink-500',
+}
+
+// extract colors for Lookup and Rollup columns
+const colors = computed(() => {
+  return (
+    meta.value?.columns?.reduce((obj, col) => {
+      if ((col && isLookup(col)) || isRollup(col)) {
+        const relationColumn = metas.value?.[meta.value.id]?.columns?.find(
+          (c) => c.id === col.colOptions?.fk_relation_column_id,
+        ) as ColumnType
+
+        if (relationColumn) {
+          obj[col.id] = relationColor[relationColumn.colOptions?.type as RelationTypes]
+        }
+      }
+      return obj
+    }, {}) || {}
+  )
+})
 </script>
 
 <template>
@@ -95,7 +121,7 @@ if (!localValue.value && allowEmpty !== true) {
     <a-select-option v-for="option in options" :key="option.value" :label="option.label" :value="option.value">
       <div class="flex items-center w-full justify-between w-full gap-2 max-w-50">
         <div class="flex gap-1.5 flex-1 items-center truncate items-center h-full">
-          <component :is="option.icon" class="!w-3.5 !h-3.5 !mx-0 !text-gray-500" />
+          <component :is="option.icon" class="!w-3.5 !h-3.5 !mx-0" :class="colors[option.value] || '!text-gray-500'" />
           <NcTooltip
             :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
             class="max-w-[15rem] truncate select-none"

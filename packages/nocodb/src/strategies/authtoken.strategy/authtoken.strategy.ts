@@ -48,6 +48,9 @@ export class AuthTokenStrategy extends PassportStrategy(Strategy, 'authtoken') {
           ...(dbUser.workspace_roles
             ? { workspace_roles: extractRolesObj(dbUser.workspace_roles) }
             : {}),
+          ...(dbUser.org_roles
+            ? { org_roles: extractRolesObj(dbUser.org_roles) }
+            : {}),
         });
       }
       return callback(null, sanitiseUserObj(user));

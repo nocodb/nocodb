@@ -36,6 +36,7 @@ const rolePermissions = {
       newUser: true,
       viewCreateOrEdit: true,
       baseReorder: true,
+      orgAdminPanel: true,
     },
   },
   [OrgUserRoles.VIEWER]: {

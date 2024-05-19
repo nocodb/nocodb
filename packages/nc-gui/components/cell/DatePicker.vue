@@ -1,24 +1,6 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
 import { isDateMonthFormat, isSystemColumn } from 'nocodb-sdk'
-import {
-  ActiveCellInj,
-  CellClickHookInj,
-  ColumnInj,
-  EditColumnInj,
-  EditModeInj,
-  ReadonlyInj,
-  computed,
-  inject,
-  onClickOutside,
-  onMounted,
-  onUnmounted,
-  parseProp,
-  ref,
-  useGlobal,
-  useI18n,
-  watch,
-} from '#imports'
 
 interface Props {
   modelValue?: string | null
@@ -223,7 +205,18 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
   // To prevent event listener on non active cell
   if (!active.value) return
 
-  if (e.altKey || e.ctrlKey || e.shiftKey || e.metaKey || !isGrid.value || isExpandedForm.value || isEditColumn.value) return
+  if (
+    e.altKey ||
+    e.ctrlKey ||
+    e.shiftKey ||
+    e.metaKey ||
+    !isGrid.value ||
+    isExpandedForm.value ||
+    isEditColumn.value ||
+    isExpandedFormOpen()
+  ) {
+    return
+  }
 
   switch (e.key) {
     case ';':

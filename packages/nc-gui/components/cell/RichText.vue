@@ -7,10 +7,9 @@ import { marked } from 'marked'
 import { generateJSON } from '@tiptap/html'
 import Underline from '@tiptap/extension-underline'
 import Placeholder from '@tiptap/extension-placeholder'
-import { TaskItem } from '@/helpers/dbTiptapExtensions/task-item'
-import { Link } from '@/helpers/dbTiptapExtensions/links'
+import { TaskItem } from '~/helpers/dbTiptapExtensions/task-item'
+import { Link } from '~/helpers/dbTiptapExtensions/links'
 import type { RichTextBubbleMenuOptions } from '#imports'
-import { IsExpandedFormOpenInj, IsFormInj, IsGridInj, IsSurveyFormInj, ReadonlyInj, RowHeightInj } from '#imports'
 
 const props = withDefaults(
   defineProps<{
@@ -33,7 +32,7 @@ const props = withDefaults(
 
 const emits = defineEmits(['update:value', 'focus', 'blur'])
 
-const { isFormField, hiddenBubbleMenuOptions } = toRefs(props)
+const { fullMode, isFormField, hiddenBubbleMenuOptions } = toRefs(props)
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
@@ -50,6 +49,10 @@ const isSurveyForm = inject(IsSurveyFormInj, ref(false))
 const isFocused = ref(false)
 
 const keys = useMagicKeys()
+
+const shouldShowLinkOption = computed(() => {
+  return isFormField.value ? isFocused.value : true
+})
 
 const turndownService = new TurndownService({})
 
@@ -125,6 +128,8 @@ marked.use({ extensions: [checkListItem] })
 
 const editorDom = ref<HTMLElement | null>(null)
 
+const richTextLinkOptionRef = ref<HTMLElement | null>(null)
+
 const vModel = useVModel(props, 'value', emits, { defaultValue: '' })
 
 const tiptapExtensions = [
@@ -159,7 +164,7 @@ const editor = useEditor({
     emits('focus')
   },
   onBlur: (e) => {
-    if (!(e?.event?.relatedTarget as HTMLElement)?.closest('.bubble-menu, .nc-textarea-rich-editor')) {
+    if (!(e?.event?.relatedTarget as HTMLElement)?.closest('.bubble-menu, .nc-textarea-rich-editor, .nc-rich-text')) {
       isFocused.value = false
       emits('blur')
     }
@@ -214,16 +219,16 @@ if (isFormField.value) {
   })
 }
 
-watch(editorDom, () => {
-  if (!editorDom.value) return
+onMounted(() => {
+  if (fullMode.value || isFormField.value || isForm.value) {
+    setEditorContent(vModel.value, true)
 
-  setEditorContent(vModel.value, true)
-
-  if ((isForm.value && !isSurveyForm.value) || isFormField.value) return
-  // Focus editor after editor is mounted
-  setTimeout(() => {
-    editor.value?.chain().focus().run()
-  }, 50)
+    if (fullMode.value || isSurveyForm.value) {
+      nextTick(() => {
+        editor.value?.chain().focus().run()
+      })
+    }
+  }
 })
 
 useEventListener(
@@ -231,13 +236,37 @@ useEventListener(
   'focusout',
   (e: FocusEvent) => {
     const targetEl = e?.relatedTarget as HTMLElement
-    if (targetEl?.classList?.contains('tiptap') || !targetEl?.closest('.bubble-menu, .nc-textarea-rich-editor')) {
+    if (targetEl?.classList?.contains('tiptap') || !targetEl?.closest('.bubble-menu, .tippy-content, .nc-textarea-rich-editor')) {
       isFocused.value = false
       emits('blur')
     }
   },
   true,
 )
+useEventListener(
+  richTextLinkOptionRef,
+  'focusout',
+  (e: FocusEvent) => {
+    const targetEl = e?.relatedTarget as HTMLElement
+    if (!targetEl && (e.target as HTMLElement)?.closest('.bubble-menu, .tippy-content, .nc-textarea-rich-editor')) return
+
+    if (!targetEl?.closest('.bubble-menu, .tippy-content, .nc-textarea-rich-editor')) {
+      isFocused.value = false
+      emits('blur')
+    }
+  },
+  true,
+)
+onClickOutside(editorDom, (e) => {
+  if (!isFocused.value) return
+
+  const targetEl = e?.target as HTMLElement
+
+  if (!targetEl?.closest('.bubble-menu,.tippy-content, .nc-textarea-rich-editor')) {
+    isFocused.value = false
+    emits('blur')
+  }
+})
 </script>
 
 <template>
@@ -273,7 +302,15 @@ useEventListener(
       </div>
       <CellRichTextSelectedBubbleMenuPopup v-if="editor && !isFormField && !isForm" :editor="editor" />
 
-      <CellRichTextLinkOptions v-if="editor" :editor="editor" />
+      <template v-if="shouldShowLinkOption">
+        <CellRichTextLinkOptions
+          v-if="editor"
+          ref="richTextLinkOptionRef"
+          :editor="editor"
+          :is-form-field="isFormField"
+          @blur="isFocused = false"
+        />
+      </template>
 
       <EditorContent
         ref="editorDom"
@@ -283,7 +320,7 @@ useEventListener(
           'mt-2.5 flex-grow': fullMode,
           'scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent': !fullMode || (!fullMode && isExpandedFormOpen),
           'flex-grow': isExpandedFormOpen,
-          [`!overflow-hidden children:line-clamp-${rowHeight}`]:
+          [`!overflow-hidden nc-truncate nc-line-clamp-${rowHeightTruncateLines(rowHeight)}`]:
             !fullMode && readOnly && rowHeight && !isExpandedFormOpen && !isForm,
         }"
         @keydown.alt.enter.stop
@@ -379,6 +416,26 @@ useEventListener(
 }
 
 .nc-textarea-rich-editor {
+  &.nc-truncate {
+    .tiptap.ProseMirror {
+      display: -webkit-box;
+      max-width: 100%;
+      -webkit-box-orient: vertical;
+      word-break: break-word;
+    }
+    &.nc-line-clamp-1 .tiptap.ProseMirror {
+      -webkit-line-clamp: 1;
+    }
+    &.nc-line-clamp-2 .tiptap.ProseMirror {
+      -webkit-line-clamp: 2;
+    }
+    &.nc-line-clamp-3 .tiptap.ProseMirror {
+      -webkit-line-clamp: 3;
+    }
+    &.nc-line-clamp-4 .tiptap.ProseMirror {
+      -webkit-line-clamp: 4;
+    }
+  }
   .tiptap p.is-editor-empty:first-child::before {
     color: #9aa2af;
     content: attr(data-placeholder);

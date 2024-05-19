@@ -11,27 +11,6 @@ import {
   validateFormulaAndExtractTreeWithType,
 } from 'nocodb-sdk'
 import type { ColumnType, FormulaType } from 'nocodb-sdk'
-import {
-  MetaInj,
-  NcAutocompleteTree,
-  computed,
-  formulaList,
-  formulas,
-  getUIDTIcon,
-  getWordUntilCaret,
-  iconMap,
-  inject,
-  insertAtCursor,
-  nextTick,
-  onMounted,
-  ref,
-  useColumnCreateStoreOrThrow,
-  useDebounceFn,
-  useI18n,
-  useMetas,
-  useNocoEe,
-  useVModel,
-} from '#imports'
 
 const props = defineProps<{
   value: any
@@ -123,36 +102,47 @@ const sortOrder: Record<string, number> = {
 
 const suggestionsList = computed(() => {
   const unsupportedFnList = sqlUi.value.getUnsupportedFnList()
-  return [
-    ...availableFunctions
-      .filter((fn: string) => !unsupportedFnList.includes(fn))
-      .map((fn: string) => ({
+  return (
+    [
+      ...availableFunctions.map((fn: string) => ({
         text: `${fn}()`,
         type: 'function',
         description: formulas[fn].description,
         syntax: formulas[fn].syntax,
         examples: formulas[fn].examples,
         docsUrl: formulas[fn].docsUrl,
+        unsupported: unsupportedFnList.includes(fn),
       })),
-    ...supportedColumns.value
-      .filter((c) => {
-        // skip system LTAR columns
-        if (c.uidt === UITypes.LinkToAnotherRecord && c.system) return false
-        // v1 logic? skip the current column
-        if (!column) return true
-        return column.value?.id !== c.id
+      ...supportedColumns.value
+        .filter((c) => {
+          // skip system LTAR columns
+          if (c.uidt === UITypes.LinkToAnotherRecord && c.system) return false
+          // v1 logic? skip the current column
+          if (!column) return true
+          return column.value?.id !== c.id
+        })
+        .map((c: any) => ({
+          text: c.title,
+          type: 'column',
+          icon: getUIDTIcon(c.uidt),
+          uidt: c.uidt,
+        })),
+      ...availableBinOps.map((op: string) => ({
+        text: op,
+        type: 'op',
+      })),
+    ]
+      // move unsupported functions to the end
+      .sort((a: Record<string, any>, b: Record<string, any>) => {
+        if (a.unsupported && !b.unsupported) {
+          return 1
+        }
+        if (!a.unsupported && b.unsupported) {
+          return -1
+        }
+        return 0
       })
-      .map((c: any) => ({
-        text: c.title,
-        type: 'column',
-        icon: getUIDTIcon(c.uidt),
-        uidt: c.uidt,
-      })),
-    ...availableBinOps.map((op: string) => ({
-      text: op,
-      type: 'op',
-    })),
-  ]
+  )
 })
 
 // set default suggestion list
@@ -235,6 +225,7 @@ function handleInput() {
 function selectText() {
   if (suggestion.value && selected.value > -1 && selected.value < suggestionsList.value.length) {
     if (selected.value < suggestedFormulas.value.length) {
+      if (suggestedFormulas.value[selected.value].unsupported) return
       appendText(suggestedFormulas.value[selected.value])
     } else {
       appendText(variableList.value[selected.value + suggestedFormulas.value.length])
@@ -297,7 +288,7 @@ onMounted(() => {
 <template>
   <div class="formula-wrapper relative">
     <div
-      v-if="suggestionPreviewed && suggestionPreviewed.type === 'function'"
+      v-if="suggestionPreviewed && !suggestionPreviewed.unsupported && suggestionPreviewed.type === 'function'"
       class="absolute -left-91 w-84 top-0 bg-white z-10 pl-3 pt-3 border-1 shadow-md rounded-xl"
     >
       <div class="pr-3">
@@ -378,20 +369,22 @@ onMounted(() => {
               class="cursor-pointer !overflow-hidden hover:bg-gray-50"
               :class="{
                 '!bg-gray-100': selected === index,
+                'cursor-not-allowed': item.unsupported,
               }"
-              @click.prevent.stop="appendText(item)"
+              @click.prevent.stop="!item.unsupported && appendText(item)"
               @mouseenter="suggestionPreviewed = item"
             >
               <a-list-item-meta>
                 <template #title>
-                  <div class="flex items-center gap-x-1">
+                  <div class="flex items-center gap-x-1" :class="{ 'text-gray-400': item.unsupported }">
                     <component :is="iconMap.function" v-if="item.type === 'function'" class="text-lg" />
 
                     <component :is="iconMap.calculator" v-if="item.type === 'op'" class="text-lg" />
 
                     <component :is="item.icon" v-if="item.type === 'column'" class="text-lg" />
-                    <span class="prose-sm text-gray-600">{{ item.text }}</span>
+                    <span class="prose-sm" :class="{ 'text-gray-600': !item.unsupported }">{{ item.text }}</span>
                   </div>
+                  <div v-if="item.unsupported" class="ml-5 text-gray-400 text-xs">{{ $t('msg.formulaNotSupported') }}</div>
                 </template>
               </a-list-item-meta>
             </a-list-item>

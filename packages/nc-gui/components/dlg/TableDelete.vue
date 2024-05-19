@@ -79,8 +79,9 @@ const onDelete = async () => {
     $e('a:table:delete')
 
     if (oldActiveTableId === toBeDeletedTable.id) {
+      const sourceTables = tables.value.filter((t) => t.source_id === toBeDeletedTable.source_id)
       // Navigate to base if no tables left or open first table
-      if (tables.value.length === 0) {
+      if (sourceTables.length === 0) {
         await navigateTo(
           baseUrl({
             id: props.baseId,
@@ -88,7 +89,7 @@ const onDelete = async () => {
           }),
         )
       } else {
-        await openTable(tables.value[0])
+        await openTable(sourceTables[0])
       }
     }
 

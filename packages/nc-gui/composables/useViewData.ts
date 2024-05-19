@@ -2,28 +2,7 @@ import { ViewTypes } from 'nocodb-sdk'
 import axios from 'axios'
 import type { Api, ColumnType, FormColumnType, FormType, GalleryType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
-import {
-  IsPublicInj,
-  NOCO,
-  NavigateDir,
-  computed,
-  extractPkFromRow,
-  extractSdkResponseErrorMsg,
-  message,
-  ref,
-  storeToRefs,
-  useApi,
-  useBase,
-  useGlobal,
-  useI18n,
-  useNuxtApp,
-  useRoles,
-  useRouter,
-  useSharedView,
-  useSmartsheetStoreOrThrow,
-  useState,
-} from '#imports'
-import type { Row } from '#imports'
+import { NavigateDir } from '#imports'
 
 const formatData = (list: Record<string, any>[]) =>
   list.map((row) => ({
@@ -67,6 +46,8 @@ export function useViewData(
   const formViewData = ref<FormType>()
 
   const formattedData = ref<Row[]>([])
+
+  const excludePageInfo = ref(false)
 
   const isPublic = inject(IsPublicInj, ref(false))
 
@@ -175,7 +156,7 @@ export function useViewData(
 
   const controller = ref()
 
-  async function loadData(params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) {
+  async function loadData(params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}, shouldShowLoading = true) {
     if ((!base?.value?.id || !metaId.value || !viewMeta.value?.id) && !isPublic.value) return
 
     if (controller.value) {
@@ -186,7 +167,7 @@ export function useViewData(
 
     controller.value = CancelToken.source()
 
-    isPaginationLoading.value = true
+    if (shouldShowLoading) isPaginationLoading.value = true
     let response
 
     try {
@@ -202,8 +183,11 @@ export function useViewData(
               ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
               ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
               where: where?.value,
+              ...(excludePageInfo.value ? { excludeCount: 'true' } : {}),
             } as any,
-            { cancelToken: controller.value.token },
+            {
+              cancelToken: controller.value.token,
+            },
           )
         : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value, where: where?.value })
     } catch (error) {
@@ -215,16 +199,24 @@ export function useViewData(
       return message.error(await extractSdkResponseErrorMsg(error))
     }
     formattedData.value = formatData(response.list)
-    paginationData.value = response.pageInfo
+    paginationData.value = response.pageInfo || paginationData.value || {}
+
+    // if public then update sharedPaginationData
+    if (isPublic.value) {
+      sharedPaginationData.value = paginationData.value
+    }
+
+    excludePageInfo.value = !response.pageInfo
     isPaginationLoading.value = false
 
     // to cater the case like when querying with a non-zero offset
     // the result page may point to the target page where the actual returned data don't display on
-    const expectedPage = Math.max(1, Math.ceil(paginationData.value.totalRows! / paginationData.value.pageSize!))
-    if (expectedPage < paginationData.value.page!) {
-      await changePage(expectedPage)
+    if (paginationData.value.totalRows !== undefined && paginationData.value.totalRows !== null) {
+      const expectedPage = Math.max(1, Math.ceil(paginationData.value.totalRows! / paginationData.value.pageSize!))
+      if (expectedPage < paginationData.value.page!) {
+        await changePage(expectedPage)
+      }
     }
-
     if (viewMeta.value?.type === ViewTypes.GRID) {
       loadAggCommentsCount()
     }
@@ -297,7 +289,7 @@ export function useViewData(
           fk_column_id: c.id,
           fk_view_id: viewMeta.value?.id,
           ...(fieldById[c.id!] ? fieldById[c.id!] : {}),
-          meta: { ...parseProp(fieldById[c.id!]?.meta), ...parseProp(c.meta) },
+          meta: { validators: [], ...parseProp(fieldById[c.id!]?.meta), ...parseProp(c.meta) },
           order: (fieldById[c.id!] && fieldById[c.id!].order) || order++,
           id: fieldById[c.id!] && fieldById[c.id!].id,
         }))

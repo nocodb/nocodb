@@ -5,7 +5,6 @@ import { UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 import { onKeyDown, useMagicKeys } from '@vueuse/core'
 import type { ColumnType, SelectOptionsType } from 'nocodb-sdk'
-import { type Field, getUniqueColumnName, ref, useSmartsheetStoreOrThrow } from '#imports'
 
 interface TableExplorerColumn extends ColumnType {
   id?: string

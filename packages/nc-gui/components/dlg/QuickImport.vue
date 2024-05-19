@@ -3,38 +3,6 @@ import type { TableType } from 'nocodb-sdk'
 import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
 import { Upload } from 'ant-design-vue'
 import { toRaw, unref } from '@vue/runtime-core'
-import type { ImportWorkerPayload, importFileList, streamImportFileList } from '#imports'
-import {
-  BASE_FALLBACK_URL,
-  CSVTemplateAdapter,
-  ExcelTemplateAdapter,
-  ExcelUrlTemplateAdapter,
-  Form,
-  ImportSource,
-  ImportType,
-  ImportWorkerOperations,
-  ImportWorkerResponse,
-  JSONTemplateAdapter,
-  JSONUrlTemplateAdapter,
-  computed,
-  extractSdkResponseErrorMsg,
-  fieldRequiredValidator,
-  iconMap,
-  importCsvUrlValidator,
-  importExcelUrlValidator,
-  importUrlValidator,
-  initWorker,
-  message,
-  reactive,
-  ref,
-  storeToRefs,
-  useBase,
-  useGlobal,
-  useI18n,
-  useNuxtApp,
-  useVModel,
-} from '#imports'
-
 // import worker script according to the doc of Vite
 import importWorkerUrl from '~/workers/importWorker?worker&url'
 
@@ -146,7 +114,7 @@ const importMeta = computed(() => {
 const dialogShow = useVModel(rest, 'modelValue', emit)
 
 // watch dialogShow to init or terminate worker
-if (isWorkerSupport) {
+if (isWorkerSupport && process.env.NODE_ENV === 'production') {
   watch(
     dialogShow,
     async (val) => {

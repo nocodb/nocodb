@@ -1,9 +1,8 @@
 import { message } from 'ant-design-vue'
 import type { WatchStopHandle } from 'vue'
 import type { TableType } from 'nocodb-sdk'
-import { extractSdkResponseErrorMsg, storeToRefs, useBase, useNuxtApp, useState, watch } from '#imports'
 
-export function useMetas() {
+export const useMetas = createSharedComposable(() => {
   const { $api } = useNuxtApp()
 
   const { tables: _tables } = storeToRefs(useBase())
@@ -118,4 +117,4 @@ export function useMetas() {
   }
 
   return { getMeta, clearAllMeta, metas, metasWithIdAsKey, removeMeta, setMeta }
-}
+})

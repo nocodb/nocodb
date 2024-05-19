@@ -1,18 +1,4 @@
 <script setup lang="ts">
-import {
-  ActiveCellInj,
-  ColumnInj,
-  EditColumnInj,
-  IsFormInj,
-  IsSurveyFormInj,
-  ReadonlyInj,
-  getMdiIcon,
-  inject,
-  parseProp,
-  useBase,
-  useSelectedCellKeyupListener,
-} from '#imports'
-
 interface Props {
   // If the previous cell value was a text, the initial checkbox value is a string type
   // otherwise it can be either a boolean, or a string representing a boolean, i.e '0' or '1'
@@ -46,6 +32,8 @@ const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
 const rowHeight = inject(RowHeightInj, ref())
 
 const isSurveyForm = inject(IsSurveyFormInj, ref(false))
+
+const isGrid = inject(IsGridInj, ref(false))
 
 const checkboxMeta = computed(() => {
   return {
@@ -110,7 +98,9 @@ useSelectedCellKeyupListener(active, (e) => {
     }"
     :style="{
       height:
-        isForm || isExpandedFormOpen || isGallery || isEditColumnMenu ? undefined : `max(${(rowHeight || 1) * 1.8}rem, 41px)`,
+        isGrid && !isForm && !isExpandedFormOpen && !isEditColumnMenu
+          ? `${!rowHeight || rowHeight === 1 ? rowHeightInPx['1'] - 4 : rowHeightInPx[`${rowHeight}`] - 20}px`
+          : undefined,
     }"
     :tabindex="readOnly ? -1 : 0"
     @click="onClick(false, $event)"

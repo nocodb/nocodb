@@ -5,8 +5,6 @@ import Table from './Table.vue'
 import GroupBy from './GroupBy.vue'
 import GroupByTable from './GroupByTable.vue'
 import GroupByLabel from './GroupByLabel.vue'
-import type { Group, Row } from '#imports'
-import { GROUP_BY_VARS, computed, ref } from '#imports'
 
 const props = defineProps<{
   group: Group
@@ -36,6 +34,16 @@ const vGroup = useVModel(props, 'group', emits)
 const { isViewDataLoading, isPaginationLoading } = storeToRefs(useViewsStore())
 
 const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
+
+const _loadGroupData = async (group: Group, force?: boolean, params?: any) => {
+  isViewDataLoading.value = true
+  isPaginationLoading.value = true
+
+  await props.loadGroupData(group, force, params)
+
+  isViewDataLoading.value = false
+  isPaginationLoading.value = false
+}
 
 const _depth = props.depth ?? 0
 
@@ -67,12 +75,12 @@ const findAndLoadSubGroup = (key: any) => {
   if (key.length > 0 && vGroup.value.children) {
     if (!oldActiveGroups.value.includes(key[key.length - 1])) {
       const k = key[key.length - 1].replace('group-panel-', '')
-      const grp = vGroup.value.children[k]
+      const grp = vGroup.value.children.find((g) => `${g.key}` === k)
       if (grp) {
         if (grp.nested) {
           if (!grp.children?.length) props.loadGroups({}, grp)
         } else {
-          if (!grp.rows?.length || grp.count !== grp.rows?.length) props.loadGroupData(grp)
+          if (!grp.rows?.length || grp.count !== grp.rows?.length) _loadGroupData(grp)
         }
       }
     }
@@ -84,37 +92,35 @@ const reloadViewDataHandler = (params: void | { shouldShowLoading?: boolean | un
   if (vGroup.value.nested) {
     props.loadGroups({ ...(params?.offset !== undefined ? { offset: params.offset } : {}) }, vGroup.value)
   } else {
-    props.loadGroupData(vGroup.value, true, {
+    _loadGroupData(vGroup.value, true, {
       ...(params?.offset !== undefined ? { offset: params.offset } : {}),
     })
   }
 }
 
+onMounted(async () => {
+  reloadViewDataHook?.on(reloadViewDataHandler)
+})
+
 onBeforeUnmount(async () => {
   reloadViewDataHook?.off(reloadViewDataHandler)
 })
 
-reloadViewDataHook?.on(reloadViewDataHandler)
-
-watch(
-  [() => vGroup.value.key],
-  async (n, o) => {
-    if (n !== o) {
-      isViewDataLoading.value = true
-      isPaginationLoading.value = true
-
-      if (vGroup.value.nested) {
-        await props.loadGroups({}, vGroup.value)
-      } else {
-        await props.loadGroupData(vGroup.value, true)
-      }
-
-      isViewDataLoading.value = false
-      isPaginationLoading.value = false
+watch([() => vGroup.value.key], async (n, o) => {
+  if (n !== o) {
+    if (!vGroup.value.nested) {
+      await _loadGroupData(vGroup.value, true)
+    } else if (vGroup.value.nested) {
+      await props.loadGroups({}, vGroup.value)
     }
-  },
-  { immediate: true },
-)
+  }
+})
+
+onMounted(async () => {
+  if (vGroup.value.root === true) {
+    await props.loadGroups({}, vGroup.value)
+  }
+})
 
 if (vGroup.value.root === true) provide(ScrollParentInj, wrapper)
 
@@ -209,7 +215,7 @@ const shouldRenderCell = (column) =>
     >
       <div
         ref="scrollable"
-        class="flex flex-col h-full"
+        class="flex flex-col"
         :class="{ 'my-2': vGroup.root !== true }"
         :style="`${vGroup.root === true ? 'width: fit-content' : 'width: 100%'}`"
       >
@@ -231,7 +237,7 @@ const shouldRenderCell = (column) =>
           >
             <a-collapse-panel
               v-for="[i, grp] of Object.entries(vGroup?.children ?? [])"
-              :key="`group-panel-${i}`"
+              :key="`group-panel-${grp.key}`"
               class="!border-1 nc-group rounded-[12px]"
               :class="{ 'mb-4': vGroup.children && +i !== vGroup.children.length - 1 }"
               :style="`background: rgb(${245 - _depth * 10}, ${245 - _depth * 10}, ${245 - _depth * 10})`"
@@ -243,7 +249,7 @@ const shouldRenderCell = (column) =>
                     <span role="img" aria-label="right" class="anticon anticon-right ant-collapse-arrow">
                       <GeneralIcon
                         icon="chevronDown"
-                        :style="`${activeGroups.includes(i) ? 'transform: rotate(360deg)' : 'transform: rotate(270deg)'}`"
+                        :style="`${activeGroups.includes(grp.key) ? 'transform: rotate(360deg)' : 'transform: rotate(270deg)'}`"
                       ></GeneralIcon>
                     </span>
                   </div>
@@ -328,7 +334,7 @@ const shouldRenderCell = (column) =>
                 v-if="!grp.nested && grp.rows"
                 :group="grp"
                 :load-groups="loadGroups"
-                :load-group-data="loadGroupData"
+                :load-group-data="_loadGroupData"
                 :load-group-page="loadGroupPage"
                 :group-wrapper-change-page="groupWrapperChangePage"
                 :row-height="rowHeight"
@@ -345,7 +351,7 @@ const shouldRenderCell = (column) =>
                 v-else
                 :group="grp"
                 :load-groups="loadGroups"
-                :load-group-data="loadGroupData"
+                :load-group-data="_loadGroupData"
                 :load-group-page="loadGroupPage"
                 :group-wrapper-change-page="groupWrapperChangePage"
                 :row-height="rowHeight"

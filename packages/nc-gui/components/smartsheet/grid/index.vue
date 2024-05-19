@@ -2,27 +2,6 @@
 import type { ColumnType, GridType } from 'nocodb-sdk'
 import Table from './Table.vue'
 import GroupBy from './GroupBy.vue'
-import {
-  ActiveViewInj,
-  FieldsInj,
-  IsCalendarInj,
-  IsFormInj,
-  IsGalleryInj,
-  IsGridInj,
-  MetaInj,
-  NavigateDir,
-  RowHeightInj,
-  computed,
-  extractPkFromRow,
-  inject,
-  message,
-  provide,
-  ref,
-  useSmartsheetStoreOrThrow,
-  useViewData,
-  useViewGroupBy,
-} from '#imports'
-import type { Row } from '#imports'
 
 const meta = inject(MetaInj, ref())
 
@@ -166,14 +145,14 @@ const toggleOptimisedQuery = () => {
 }
 
 const { rootGroup, groupBy, isGroupBy, loadGroups, loadGroupData, loadGroupPage, groupWrapperChangePage, redistributeRows } =
-  useViewGroupBy(view, xWhere)
+  useViewGroupByOrThrow()
 
 const coreWrapperRef = ref<HTMLElement>()
 
 const viewWidth = ref(0)
 
 eventBus.on((event) => {
-  if (event === SmartsheetStoreEvents.GROUP_BY_RELOAD) {
+  if (event === SmartsheetStoreEvents.GROUP_BY_RELOAD || event === SmartsheetStoreEvents.DATA_RELOAD) {
     reloadViewDataHook?.trigger()
   }
 })

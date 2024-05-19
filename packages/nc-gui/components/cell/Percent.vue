@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
-import { EditColumnInj, EditModeInj, IsExpandedFormOpenInj, IsFormInj, ReadonlyInj, inject, useVModel } from '#imports'
 
 interface Props {
   modelValue?: number | string | null
+  placeholder?: string
 }
 
 const props = defineProps<Props>()
@@ -140,12 +140,12 @@ const onTabPress = (e: KeyboardEvent) => {
     @focus="onWrapperFocus"
   >
     <input
-      v-if="!readOnly && editEnabled && (isExpandedFormOpen ? expandedEditEnabled : true)"
+      v-if="!readOnly && editEnabled && (isExpandedFormOpen ? expandedEditEnabled || !percentMeta.is_progress : true)"
       :ref="focus"
       v-model="vModel"
-      class="nc-cell-field w-full !text-sm !border-none !outline-none focus:ring-0 text-base py-1"
+      class="nc-cell-field w-full !border-none !outline-none focus:ring-0 py-1"
       :type="inputType"
-      :placeholder="isEditColumn ? $t('labels.optional') : ''"
+      :placeholder="placeholder !== undefined ? placeholder : isEditColumn ? $t('labels.optional') : ''"
       @blur="onBlur"
       @focus="onFocus"
       @keydown.down.stop
@@ -169,7 +169,7 @@ const onTabPress = (e: KeyboardEvent) => {
       />
     </div>
     <!-- nbsp to keep height even if vModel is zero length -->
-    <span v-else class="nc-cell-field">{{ vModel }}&nbsp;</span>
+    <span v-else class="nc-cell-field">{{ vModel }} {{ !vModel ? '&nbsp;' : '' }}</span>
   </div>
 </template>
 

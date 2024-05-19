@@ -25,19 +25,28 @@ export class SourceCreateProcessor {
       this.debugLog(log);
     };
 
-    const createdBase = await this.sourcesService.baseCreate({
-      baseId,
-      source,
-      logger: logBasic,
-      req,
-    });
+    const { source: createdSource, error } =
+      await this.sourcesService.baseCreate({
+        baseId,
+        source,
+        logger: logBasic,
+        req,
+      });
 
-    if (createdBase.isMeta()) {
-      delete createdBase.config;
+    if (error) {
+      await this.sourcesService.baseDelete({
+        sourceId: createdSource.id,
+        req: {},
+      });
+      throw error;
+    }
+
+    if (createdSource.isMeta()) {
+      delete createdSource.config;
     }
 
     this.debugLog(`job completed for ${job.id}`);
 
-    return createdBase;
+    return createdSource;
   }
 }

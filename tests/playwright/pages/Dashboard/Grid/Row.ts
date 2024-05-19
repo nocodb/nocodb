@@ -17,7 +17,7 @@ export class RowPageObject extends BasePage {
     return this.get().nth(index);
   }
 
-  // style="height: 3rem;"
+  // style="height: 32px;"
   async getRecordHeight(index: number) {
     const record = this.getRecord(index);
     const style = await record.getAttribute('style');

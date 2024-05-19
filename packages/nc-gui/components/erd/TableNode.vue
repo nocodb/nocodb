@@ -4,7 +4,6 @@ import { Handle, Position, useVueFlow } from '@vue-flow/core'
 import type { LinkToAnotherRecordType } from 'nocodb-sdk'
 import { isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk'
 import type { NodeData } from './utils'
-import { MetaInj, computed, provide, refAutoReset, useNuxtApp, watch } from '#imports'
 
 interface Props extends Pick<NodeProps<NodeData>, 'data' | 'dragging'> {
   data: NodeData

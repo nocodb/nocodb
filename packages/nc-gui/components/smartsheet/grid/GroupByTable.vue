@@ -1,8 +1,6 @@
 <script lang="ts" setup>
 import { UITypes, isLinksOrLTAR } from 'nocodb-sdk'
 import Table from './Table.vue'
-import { IsGroupByInj, computed, ref, rowDefaultData } from '#imports'
-import type { Group, Row } from '#imports'
 
 const props = defineProps<{
   group: Group
@@ -51,9 +49,15 @@ function addEmptyRow(group: Group, addAfter?: number, metaValue = meta.value) {
       ![UITypes.Rollup, UITypes.Lookup, UITypes.Formula, UITypes.Barcode, UITypes.QrCode].includes(curr.column_uidt)
     ) {
       acc[curr.title] = curr.key
+
+      if (curr.column_uidt === UITypes.Checkbox) {
+        acc[curr.title] =
+          acc[curr.title] === GROUP_BY_VARS.TRUE ? true : acc[curr.title] === GROUP_BY_VARS.FALSE ? false : !!acc[curr.title]
+      }
     }
     return acc
   }, {} as Record<string, any>)
+  group.count = group.count + 1
 
   group.rows.splice(addAfter, 0, {
     row: {
@@ -74,18 +78,30 @@ const formattedData = computed(() => {
   return [] as Row[]
 })
 
-const { deleteRow, deleteSelectedRows, deleteRangeOfRows, updateOrSaveRow, bulkUpdateRows, selectedAllRecords, removeRowIfNew } =
-  useData({
-    meta,
-    viewMeta: view,
-    formattedData,
-    paginationData: ref(vGroup.value.paginationData),
-    callbacks: {
-      changePage: (p: number) => props.loadGroupPage(vGroup.value, p),
-      loadData: () => props.loadGroupData(vGroup.value, true),
-      globalCallback: () => props.redistributeRows?.(),
-    },
-  })
+const {
+  deleteRow: _deleteRow,
+  deleteSelectedRows,
+  deleteRangeOfRows,
+  updateOrSaveRow,
+  bulkUpdateRows,
+  selectedAllRecords,
+  removeRowIfNew,
+} = useData({
+  meta,
+  viewMeta: view,
+  formattedData,
+  paginationData: ref(vGroup.value.paginationData),
+  callbacks: {
+    changePage: (p: number) => props.loadGroupPage(vGroup.value, p),
+    loadData: () => props.loadGroupData(vGroup.value, true),
+    globalCallback: () => props.redistributeRows?.(),
+  },
+})
+
+const deleteRow = async (rowIndex: number) => {
+  vGroup.value.count = vGroup.value.count - 1
+  await _deleteRow(rowIndex)
+}
 
 const reloadTableData = async (params: void | { shouldShowLoading?: boolean | undefined; offset?: number | undefined }) => {
   await props.loadGroupData(vGroup.value, true, {
@@ -143,6 +159,7 @@ const pagination = computed(() => {
     :hide-header="true"
     :pagination="pagination"
     :disable-skeleton="true"
+    :disable-virtual-y="true"
   />
 </template>
 

@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import { Icon as IcIcon } from '@iconify/vue'
 import type { TableType } from 'nocodb-sdk'
-import { toRef, viewIcons } from '#imports'
 
 const props = defineProps<{
   meta: TableType

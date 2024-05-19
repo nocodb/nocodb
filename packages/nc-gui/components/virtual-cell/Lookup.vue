@@ -1,21 +1,6 @@
 <script lang="ts" setup>
 import type { ColumnType, LinkToAnotherRecordType, LookupType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
-import {
-  CellUrlDisableOverlayInj,
-  CellValueInj,
-  ColumnInj,
-  IsUnderLookupInj,
-  MetaInj,
-  computed,
-  inject,
-  isAttachment,
-  provide,
-  ref,
-  useMetas,
-  useShowNotEditableWarning,
-  watch,
-} from '#imports'
 
 const { metas, getMeta } = useMetas()
 
@@ -35,13 +20,12 @@ const rowHeight = inject(RowHeightInj, ref(1) as any)
 
 provide(RowHeightInj, providedHeightRef)
 
-const relationColumn = computed(
-  () =>
-    meta.value?.columns?.find((c: ColumnType) => c.id === (column.value?.colOptions as LookupType)?.fk_relation_column_id) as
-      | (ColumnType & {
-          colOptions: LinkToAnotherRecordType | undefined
-        })
-      | undefined,
+const relationColumn = computed(() =>
+  meta.value?.id
+    ? metas.value[meta.value?.id]?.columns?.find(
+        (c: ColumnType) => c.id === (column.value?.colOptions as LookupType)?.fk_relation_column_id,
+      )
+    : undefined,
 )
 
 watch(
@@ -105,7 +89,13 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
   <div
     class="nc-cell-field h-full w-full nc-lookup-cell"
     tabindex="-1"
-    :style="{ height: isGroupByLabel ? undefined : rowHeight && rowHeight !== 1 ? `${rowHeight * 2}rem` : `2.85rem` }"
+    :style="{
+      height: isGroupByLabel
+        ? undefined
+        : rowHeight
+        ? `${rowHeight === 1 ? rowHeightInPx['1'] - 4 : rowHeightInPx[`${rowHeight}`] - 18}px`
+        : `2.85rem`,
+    }"
     @dblclick="activateShowEditNonEditableFieldWarning"
   >
     <div
@@ -170,6 +160,7 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
                 <div
                   v-for="(v, i) of arrValue"
                   :key="i"
+                  class="flex-none"
                   :class="{
                     'bg-gray-100 rounded-full': !isAttachment(lookupColumn),
                     'border-gray-200 rounded border-1': ![

@@ -112,4 +112,35 @@ export default class KanbanViewColumn implements KanbanColumnType {
     );
     return views?.map((v) => new KanbanViewColumn(v));
   }
+
+  // todo: update prop names
+  static async update(
+    columnId: string,
+    body: Partial<KanbanViewColumn>,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const updateObj = extractProps(body, ['order', 'show']);
+
+    // set meta
+    const res = await ncMeta.metaUpdate(
+      null,
+      null,
+      MetaTable.KANBAN_VIEW_COLUMNS,
+      updateObj,
+      columnId,
+    );
+
+    // get existing cache
+    const key = `${CacheScope.KANBAN_VIEW_COLUMN}:${columnId}`;
+    await NocoCache.update(key, updateObj);
+
+    // on view column update, delete any optimised single query cache
+    {
+      const viewCol = await this.get(columnId, ncMeta);
+      const view = await View.get(viewCol.fk_view_id, ncMeta);
+      await View.clearSingleQueryCache(view.fk_model_id, [view]);
+    }
+
+    return res;
+  }
 }

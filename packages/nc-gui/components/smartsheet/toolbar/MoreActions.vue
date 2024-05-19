@@ -3,24 +3,6 @@ import type { RequestParams } from 'nocodb-sdk'
 import { ExportTypes } from 'nocodb-sdk'
 import { saveAs } from 'file-saver'
 import * as XLSX from 'xlsx'
-import {
-  ActiveViewInj,
-  FieldsInj,
-  IsLockedInj,
-  IsPublicInj,
-  MetaInj,
-  extractSdkResponseErrorMsg,
-  inject,
-  message,
-  ref,
-  storeToRefs,
-  useBase,
-  useI18n,
-  useNuxtApp,
-  useRoles,
-  useSharedView,
-  useSmartsheetStoreOrThrow,
-} from '#imports'
 
 const { t } = useI18n()
 

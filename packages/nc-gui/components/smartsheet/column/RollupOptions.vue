@@ -2,22 +2,6 @@
 import { onMounted } from '@vue/runtime-core'
 import { type ColumnType, type LinkToAnotherRecordType, RelationTypes, type TableType, type UITypes } from 'nocodb-sdk'
 import { getAvailableRollupForUiType, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
-import type { Ref } from '#imports'
-import {
-  MetaInj,
-  computed,
-  h,
-  inject,
-  ref,
-  resolveComponent,
-  storeToRefs,
-  useBase,
-  useColumnCreateStoreOrThrow,
-  useI18n,
-  useMetas,
-  useVModel,
-  watch,
-} from '#imports'
 
 const props = defineProps<{
   value: any
@@ -56,13 +40,16 @@ const refTables = computed(() => {
 
   const _refTables = meta.value.columns
     .filter(
-      (c) =>
+      (c: ColumnType) =>
         isLinksOrLTAR(c) &&
-        ![RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes((c.colOptions as LinkToAnotherRecordType).type) &&
+        (c.colOptions as LinkToAnotherRecordType).type &&
+        ![RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(
+          (c.colOptions as LinkToAnotherRecordType).type as RelationTypes,
+        ) &&
         !c.system &&
         c.source_id === meta.value?.source_id,
     )
-    .map((c) => ({
+    .map((c: ColumnType) => ({
       col: c.colOptions,
       column: c,
       ...tables.value.find((t) => t.id === (c.colOptions as any)?.fk_related_model_id),
@@ -118,16 +105,29 @@ const allFunctions = [
   { text: t('general.avgDistinct'), value: 'avgDistinct' },
 ]
 
+const availableRollupPerColumn = computed(() => {
+  const fnMap: Record<string, { text: string; value: string }[]> = {}
+  columns.value?.forEach((column) => {
+    if (!column?.id) return
+    fnMap[column.id] = allFunctions.filter((func) => getAvailableRollupForUiType(column.uidt as UITypes).includes(func.value))
+  })
+  return fnMap
+})
+
+const filteredColumns = computed(() => {
+  return columns.value?.filter((column) => {
+    return column.id && availableRollupPerColumn.value[column.id as string]?.length
+  })
+})
+
 watch(
   () => vModel.value.fk_rollup_column_id,
   () => {
     const childFieldColumn = columns.value?.find((column: ColumnType) => column.id === vModel.value.fk_rollup_column_id)
 
-    aggFunctionsList.value = allFunctions.filter((func) =>
-      getAvailableRollupForUiType(childFieldColumn?.uidt as UITypes).includes(func.value),
-    )
+    aggFunctionsList.value = availableRollupPerColumn.value[childFieldColumn?.id as string] || []
 
-    if (!aggFunctionsList.value.includes(vModel.value.rollup_function)) {
+    if (aggFunctionsList.value.length && !aggFunctionsList.value.find((func) => func.value === vModel.value.rollup_function)) {
       // when the previous roll up function was numeric type and the current child field is non-numeric
       // reset rollup function with a non-numeric type
       vModel.value.rollup_function = aggFunctionsList.value[0].value
@@ -176,7 +176,7 @@ watch(
           dropdown-class-name="nc-dropdown-relation-column !rounded-xl"
           @change="onDataTypeChange"
         >
-          <a-select-option v-for="(column, index) of columns" :key="index" :value="column.id">
+          <a-select-option v-for="(column, index) of filteredColumns" :key="index" :value="column.id">
             <div class="flex gap-2 truncate items-center">
               <div class="flex items-center flex-1 truncate font-semibold">
                 <component :is="cellIcon(column)" :column-meta="column" />

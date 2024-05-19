@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
-import { EditColumnInj, EditModeInj, IsExpandedFormOpenInj, IsFormInj, ReadonlyInj, inject, useVModel } from '#imports'
 
 interface Props {
   // when we set a number, then it is number type
@@ -94,7 +93,7 @@ function onKeyDown(e: any) {
     v-if="!readOnly && editEnabled"
     :ref="focus"
     v-model="vModel"
-    class="nc-cell-field outline-none py-1 border-none w-full h-full text-sm"
+    class="nc-cell-field outline-none py-1 border-none w-full h-full"
     :type="inputType"
     style="letter-spacing: 0.06rem"
     :placeholder="isEditColumn ? $t('labels.optional') : ''"
@@ -109,7 +108,7 @@ function onKeyDown(e: any) {
     @mousedown.stop
   />
   <span v-else-if="vModel === null && showNull" class="nc-cell-field nc-null uppercase">{{ $t('general.null') }}</span>
-  <span v-else class="nc-cell-field text-sm">{{ displayValue }}</span>
+  <span v-else class="nc-cell-field">{{ displayValue }}</span>
 </template>
 
 <style scoped lang="scss">

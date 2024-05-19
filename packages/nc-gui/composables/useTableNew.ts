@@ -1,26 +1,7 @@
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { UITypes, isSystemColumn } from 'nocodb-sdk'
-import type { SidebarTableNode } from '~/lib'
-
-import {
-  Modal,
-  SYSTEM_COLUMNS,
-  TabType,
-  computed,
-  extractSdkResponseErrorMsg,
-  generateUniqueTitle as generateTitle,
-  message,
-  navigateToBlankTargetOpenOption,
-  reactive,
-  storeToRefs,
-  useBase,
-  useCommandPalette,
-  useI18n,
-  useMetas,
-  useNuxtApp,
-  useTabs,
-  watch,
-} from '#imports'
+import type { SidebarTableNode } from '~/lib/types'
+import { generateUniqueTitle as generateTitle } from '#imports'
 
 export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => void; baseId: string; sourceId?: string }) {
   const table = reactive<{ title: string; table_name: string; columns: string[]; is_hybrid: boolean }>({
@@ -146,6 +127,11 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
 
   const createTable = async () => {
     const { onTableCreate, baseId } = param
+
+    if (table.title) {
+      table.title = table.title.trim()
+    }
+
     let { sourceId } = param
 
     if (!(baseId in bases.value)) {

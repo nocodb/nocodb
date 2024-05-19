@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { iconMap, message, navigateTo, reactive, ref, useApi, useGlobal, useI18n } from '#imports'
-
 const { api, error } = useApi({ useGlobalInstance: true })
 
 const { t } = useI18n()

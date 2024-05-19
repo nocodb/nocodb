@@ -1,7 +1,5 @@
 import type { Api } from 'nocodb-sdk'
 import type { Actions } from '~/composables/useGlobal/types'
-import { defineNuxtRouteMiddleware, message, navigateTo, useApi, useGlobal, useRoles } from '#imports'
-import { extractSdkResponseErrorMsg } from '~/utils'
 
 /**
  * Global auth middleware
@@ -36,6 +34,8 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
   const { api } = useApi({ useGlobalInstance: true })
 
   const { allRoles, loadRoles } = useRoles()
+
+  await checkForRedirect()
 
   /** If baseHostname defined block home page access under subdomains, and redirect to workspace page */
   if (
@@ -193,6 +193,22 @@ async function tryShortTokenAuth(api: Api<any>, signIn: Actions['signIn']) {
       document.title,
       `${extraProps?.continueAfterSignIn ? `${newURL}#/?continueAfterSignIn=${extraProps.continueAfterSignIn}` : newURL}`,
     )
+    window.location.reload()
+  }
+}
+
+/** Check if url contains redirect param and redirect to the url if found */
+async function checkForRedirect() {
+  if (window.location.search && /\bui-redirect=/.test(window.location.search)) {
+    let url
+    try {
+      url = decodeURIComponent(window.location.search.split('=')[1])
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
+
+    const newURL = window.location.href.split('?')[0]
+    window.history.pushState('object', document.title, `${newURL}#${url}`)
     window.location.reload()
   }
 }

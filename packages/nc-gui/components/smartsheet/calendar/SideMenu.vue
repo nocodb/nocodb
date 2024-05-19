@@ -2,19 +2,22 @@
 import type { VNodeRef } from '@vue/runtime-core'
 import { UITypes } from 'nocodb-sdk'
 import dayjs from 'dayjs'
-import { type Row, computed, iconMap, isRowEmpty, ref } from '#imports'
 
 const props = defineProps<{
   visible: boolean
 }>()
 
-const emit = defineEmits(['expand-record', 'newRecord'])
+const emit = defineEmits(['expandRecord', 'newRecord'])
 
 const INFINITY_SCROLL_THRESHOLD = 100
 
 const { isUIAllowed } = useRoles()
 
-const { appInfo } = useGlobal()
+const { $e } = useNuxtApp()
+
+const { appInfo, isMobileMode } = useGlobal()
+
+const { height } = useWindowSize()
 
 const meta = inject(MetaInj, ref())
 
@@ -31,11 +34,13 @@ const {
   activeDates,
   activeCalendarView,
   isSidebarLoading,
+  isCalendarMetaLoading,
   formattedSideBarData,
   calDataType,
   loadMoreSidebarData,
   searchQuery,
   sideBarFilterOption,
+  showSideMenu,
 } = useCalendarViewStoreOrThrow()
 
 const sideBarListRef = ref<VNodeRef | null>(null)
@@ -55,7 +60,6 @@ const dragElement = ref<HTMLElement | null>(null)
 const dragStart = (event: DragEvent, record: Row) => {
   dragElement.value = event.target as HTMLElement
 
-  dragElement.value.style.boxShadow = '0px 8px 8px -4px rgba(0, 0, 0, 0.04), 0px 20px 24px -4px rgba(0, 0, 0, 0.10)'
   const eventRect = dragElement.value.getBoundingClientRect()
 
   const initialClickOffsetX = event.clientX - eventRect.left
@@ -65,6 +69,7 @@ const dragStart = (event: DragEvent, record: Row) => {
     'text/plain',
     JSON.stringify({
       record,
+      isWithoutDates: sideBarFilterOption.value === 'withoutDates',
       initialClickOffsetY,
       initialClickOffsetX,
     }),
@@ -269,94 +274,123 @@ const newRecord = () => {
   emit('newRecord', { row, oldRow: {}, rowMeta: { new: true } })
 }
 
-const width = ref(0)
-
-const widthListener = () => {
-  width.value = window.innerWidth
+const toggleSideMenu = () => {
+  $e('c:calendar:toggle-sidebar', showSideMenu.value)
+  showSideMenu.value = !showSideMenu.value
 }
 
-onMounted(() => {
-  window.addEventListener('resize', widthListener)
+const showSearch = ref(false)
+const searchRef = ref()
+
+const clickSearch = () => {
+  showSearch.value = true
+  nextTick(() => {
+    searchRef.value?.focus()
+  })
+}
+
+const toggleSearch = () => {
+  if (!searchQuery.value.length) {
+    showSearch.value = false
+  } else {
+    searchRef.value?.blur()
+  }
+}
+
+useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
+  const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
+  if (cmdOrCtrl) {
+    switch (e.key.toLowerCase()) {
+      case 'f':
+        e.preventDefault()
+        clickSearch()
+        break
+    }
+  }
 })
 
-onUnmounted(() => {
-  window.removeEventListener('resize', widthListener)
-})
+onClickOutside(searchRef, toggleSearch)
 </script>
 
 <template>
+  <NcTooltip
+    :class="{
+      '!right-26 top-[-36px]': showSideMenu && isMobileMode,
+
+      'right-2': !showSideMenu,
+      'right-74': showSideMenu,
+    }"
+    class="absolute transition-all ease-in-out z-9 top-2"
+    hide-on-click
+  >
+    <template #title> {{ $t('activity.toggleSidebar') }}</template>
+    <NcButton data-testid="nc-calendar-side-bar-btn" size="small" type="secondary" @click="toggleSideMenu">
+      <component :is="iconMap.sidebar" class="h-4 w-4 text-gray-600 transition-all" />
+    </NcButton>
+  </NcTooltip>
   <div
     :class="{
-      '!w-0': !props.visible,
-      'min-w-[356px]': width > 1440 && props.visible,
-      'min-w-[264px]': width <= 1440 && props.visible,
-      'nc-calendar-side-menu-open': props.visible,
+      '!min-w-[100svw]': props.visible && isMobileMode,
+      '!w-0 hidden': !props.visible,
+      'nc-calendar-side-menu-open block !min-w-[288px]': props.visible,
     }"
-    class="h-full border-l-1 border-gray-200 transition-all"
+    class="h-full relative border-l-1 border-gray-200 transition-all"
     data-testid="nc-calendar-side-menu"
   >
-    <div
-      :class="{
-        '!hidden': width <= 1440,
-        'px-4 pt-3 pb-4 ': activeCalendarView === ('day' as const) || activeCalendarView === ('week' as const),
-      }"
-      class="flex flex-col"
-    >
+    <div class="flex min-w-[288px] flex-col">
       <NcDateWeekSelector
         v-if="activeCalendarView === ('day' as const)"
         v-model:active-dates="activeDates"
         v-model:page-date="pageDate"
         v-model:selected-date="selectedDate"
+        size="medium"
+        :hide-calendar="height < 700"
       />
       <NcDateWeekSelector
         v-else-if="activeCalendarView === ('week' as const)"
         v-model:active-dates="activeDates"
         v-model:page-date="pageDate"
         v-model:selected-week="selectedDateRange"
+        :hide-calendar="height < 700"
         is-week-picker
+        size="medium"
       />
       <NcMonthYearSelector
         v-else-if="activeCalendarView === ('month' as const)"
         v-model:page-date="pageDate"
         v-model:selected-date="selectedMonth"
+        :hide-calendar="height < 700"
+        size="medium"
       />
       <NcMonthYearSelector
         v-else-if="activeCalendarView === ('year' as const)"
         v-model:page-date="pageDate"
         v-model:selected-date="selectedDate"
+        :hide-calendar="height < 700"
         is-year-picker
+        size="medium"
       />
     </div>
 
     <div
       :class="{
-        '!border-t-0': width <= 1440,
+        '!border-t-0 ': height < 700,
+        'pt-6': height >= 700,
       }"
-      class="border-t-1 border-gray-200 relative flex flex-col gap-y-4 pt-3"
+      class="border-t-1 !pt-3 border-gray-200 relative flex flex-col gap-y-3"
     >
-      <div class="flex px-4 items-center gap-2">
-        <a-input
-          v-model:value="searchQuery.value"
-          :class="{
-            '!border-brand-500': searchQuery.value.length > 0,
-          }"
-          class="!rounded-lg !h-8 !border-gray-200 !px-4"
-          data-testid="nc-calendar-sidebar-search"
-          placeholder="Search records"
-        >
-          <template #prefix>
-            <component :is="iconMap.search" class="h-4 w-4 mr-1 text-gray-500" />
-          </template>
-        </a-input>
-        <NcSelect v-model:value="sideBarFilterOption" class="min-w-38 !text-gray-600" data-testid="nc-calendar-sidebar-filter">
+      <div class="flex px-4 items-center gap-3">
+        <span class="capitalize font-medium text-gray-700">{{ $t('objects.records') }}</span>
+        <NcSelect v-model:value="sideBarFilterOption" class="w-full !text-gray-600" data-testid="nc-calendar-sidebar-filter">
           <a-select-option v-for="option in options" :key="option.value" :value="option.value" class="!text-gray-600">
-            <div class="flex items-center justify-between gap-2">
-              <div class="truncate flex-1">
+            <div class="flex items-center w-full justify-between gap-2">
+              <div class="truncate">
                 <NcTooltip :title="option.label" placement="top" show-on-truncate-only>
                   <template #title>{{ option.label }}</template>
                   {{ option.label }}
                 </NcTooltip>
               </div>
+
               <component
                 :is="iconMap.check"
                 v-if="sideBarFilterOption === option.value"
@@ -367,32 +401,87 @@ onUnmounted(() => {
           </a-select-option>
         </NcSelect>
       </div>
+      <div
+        :class="{
+          hidden: !showSearch,
+        }"
+        class="mx-4"
+      >
+        <a-input
+          ref="searchRef"
+          v-model:value="searchQuery.value"
+          :class="{
+            '!border-brand-500': searchQuery.value.length > 0,
+            '!hidden': !showSearch,
+          }"
+          class="!rounded-lg !h-8 !placeholder:text-gray-500 !border-gray-200 !px-4"
+          data-testid="nc-calendar-sidebar-search"
+          placeholder="Search records"
+          @keydown.esc="toggleSearch"
+        >
+          <template #prefix>
+            <component :is="iconMap.search" class="h-4 w-4 mr-1 text-gray-500" />
+          </template>
+        </a-input>
+      </div>
+      <div class="mx-4 gap-2 flex items-center">
+        <NcButton
+          v-if="!showSearch"
+          data-testid="nc-calendar-sidebar-search-btn"
+          size="small"
+          class="!h-7"
+          type="secondary"
+          @click="clickSearch"
+        >
+          <component :is="iconMap.search" />
+        </NcButton>
+
+        <LazySmartsheetToolbarSortListMenu />
+
+        <div class="flex-1" />
+
+        <NcButton
+          v-if="isUIAllowed('dataEdit') && props.visible"
+          v-e="['c:calendar:calendar-sidemenu-new-record-btn']"
+          data-testid="nc-calendar-side-menu-new-btn"
+          class="!h-7"
+          size="small"
+          type="secondary"
+          @click="newRecord"
+        >
+          <div class="flex items-center gap-2">
+            <component :is="iconMap.plus" />
+
+            Record
+          </div>
+        </NcButton>
+      </div>
 
       <div
-        v-if="calendarRange?.length"
+        v-if="calendarRange?.length && !isCalendarMetaLoading"
         :ref="sideBarListRef"
         :class="{
-         '!h-[calc(100vh-10.5rem)]': width <= 1440,
-        'h-[calc(100vh-36.2rem)]': activeCalendarView === ('day' as const) || activeCalendarView === ('week' as const) && width >= 1440,
-        'h-[calc(100vh-25.1rem)]': activeCalendarView === ('month' as const) || activeCalendarView === ('year' as const)  && width >= 1440,
-   
-      }"
+          '!h-[calc(100svh-22.15rem)]':
+            height > 700 && (activeCalendarView === 'month' || activeCalendarView === 'year') && !showSearch,
+          '!h-[calc(100svh-24.9rem)]':
+            height > 700 && (activeCalendarView === 'month' || activeCalendarView === 'year') && showSearch,
+          '!h-[calc(100svh-13.85rem)]':
+            height <= 700 && (activeCalendarView === 'month' || activeCalendarView === 'year') && !showSearch,
+          '!h-[calc(100svh-16.61rem)]':
+            height <= 700 && (activeCalendarView === 'month' || activeCalendarView === 'year') && showSearch,
+          '!h-[calc(100svh-30.15rem)]':
+            height > 700 && (activeCalendarView === 'day' || activeCalendarView === 'week') && !showSearch,
+          ' !h-[calc(100svh-32.9rem)]':
+            height > 700 && (activeCalendarView === 'day' || activeCalendarView === 'week') && showSearch,
+          '!h-[calc(100svh-13.8rem)]':
+            height <= 700 && (activeCalendarView === 'day' || activeCalendarView === 'week') && !showSearch,
+          '!h-[calc(100svh-16.6rem)]':
+            height <= 700 && (activeCalendarView === 'day' || activeCalendarView === 'week') && showSearch,
+        }"
         class="nc-scrollbar-md pl-4 pr-4 overflow-y-auto"
         data-testid="nc-calendar-side-menu-list"
         @scroll="sideBarListScrollHandle"
       >
-        <NcButton
-          v-if="isUIAllowed('dataEdit') && props.visible"
-          v-e="['c:calendar:calendar-sidemenu-new-record-btn']"
-          class="!absolute right-5 !border-brand-500 bottom-5 !h-12 !w-12"
-          data-testid="nc-calendar-side-menu-new-btn"
-          type="secondary"
-          @click="newRecord"
-        >
-          <div class="px-4 flex items-center gap-2 justify-center">
-            <component :is="iconMap.plus" class="h-6 w-6 text-lg text-brand-500" />
-          </div>
-        </NcButton>
         <div v-if="renderData.length === 0 || isSidebarLoading" class="flex h-full items-center justify-center">
           <GeneralLoader v-if="isSidebarLoading" size="large" />
 
@@ -409,7 +498,7 @@ onUnmounted(() => {
                 record.rowMeta.range?.fk_from_col
                   ? calDataType === UITypes.Date
                     ? dayjs(record.row[record.rowMeta.range.fk_from_col.title!]).format('DD MMM')
-                    : dayjs(record.row[record.rowMeta.range.fk_from_col.title!]).format('DD MMM•HH:mm A')
+                    : dayjs(record.row[record.rowMeta.range.fk_from_col.title!]).format('DD MMM • HH:mm A')
                   : null
               "
                 :invalid="
@@ -423,12 +512,12 @@ onUnmounted(() => {
                 record.rowMeta.range!.fk_to_col
                   ? calDataType === UITypes.Date
                     ? dayjs(record.row[record.rowMeta.range!.fk_to_col.title!]).format('DD MMM')
-                    : dayjs(record.row[record.rowMeta.range!.fk_to_col.title!]).format('DD MMM•HH:mm A')
+                    : dayjs(record.row[record.rowMeta.range!.fk_to_col.title!]).format('DD MMM • HH:mm A')
                   : null
               "
                 color="blue"
                 data-testid="nc-sidebar-record-card"
-                @click="emit('expand-record', record)"
+                @click="emit('expandRecord', record)"
                 @dragstart="dragStart($event, record)"
                 @dragover.prevent
               >
@@ -440,13 +529,51 @@ onUnmounted(() => {
           </div>
         </template>
       </div>
+      <template v-else-if="isCalendarMetaLoading">
+        <div
+          :class="{
+            '!h-[calc(100svh-22.15rem)]':
+              height > 700 && (activeCalendarView === 'month' || activeCalendarView === 'year') && !showSearch,
+            '!h-[calc(100svh-24.9rem)]':
+              height > 700 && (activeCalendarView === 'month' || activeCalendarView === 'year') && showSearch,
+            '!h-[calc(100svh-13.85rem)]':
+              height <= 700 && (activeCalendarView === 'month' || activeCalendarView === 'year') && !showSearch,
+            '!h-[calc(100svh-16.61rem)]':
+              height <= 700 && (activeCalendarView === 'month' || activeCalendarView === 'year') && showSearch,
+            '!h-[calc(100svh-30.15rem)]':
+              height > 700 && (activeCalendarView === 'day' || activeCalendarView === 'week') && !showSearch,
+            ' !h-[calc(100svh-32.9rem)]':
+              height > 700 && (activeCalendarView === 'day' || activeCalendarView === 'week') && showSearch,
+            '!h-[calc(100svh-13.8rem)]':
+              height <= 700 && (activeCalendarView === 'day' || activeCalendarView === 'week') && !showSearch,
+            '!h-[calc(100svh-16.6rem)]':
+              height <= 700 && (activeCalendarView === 'day' || activeCalendarView === 'week') && showSearch,
+          }"
+          class="flex items-center justify-center h-full"
+        >
+          <GeneralLoader size="xlarge" />
+        </div>
+      </template>
       <div
         v-else
         :class="{
-         '!h-[calc(100vh-10.5rem)]': width <= 1440,
-        'h-[calc(100vh-36.2rem)]': activeCalendarView === ('day' as const) || activeCalendarView === ('week' as const) && width >= 1440,
-        'h-[calc(100vh-25.1rem)]': activeCalendarView === ('month' as const) || activeCalendarView === ('year' as const)  && width >= 1440,
-      }"
+          '!h-[calc(100svh-22.15rem)]':
+            height > 700 && (activeCalendarView === 'month' || activeCalendarView === 'year') && !showSearch,
+          '!h-[calc(100svh-24.9rem)]':
+            height > 700 && (activeCalendarView === 'month' || activeCalendarView === 'year') && showSearch,
+          '!h-[calc(100svh-13.85rem)]':
+            height <= 700 && (activeCalendarView === 'month' || activeCalendarView === 'year') && !showSearch,
+          '!h-[calc(100svh-16.61rem)]':
+            height <= 700 && (activeCalendarView === 'month' || activeCalendarView === 'year') && showSearch,
+          '!h-[calc(100svh-30.15rem)]':
+            height > 700 && (activeCalendarView === 'day' || activeCalendarView === 'week') && !showSearch,
+          ' !h-[calc(100svh-32.9rem)]':
+            height > 700 && (activeCalendarView === 'day' || activeCalendarView === 'week') && showSearch,
+          '!h-[calc(100svh-13.8rem)]':
+            height <= 700 && (activeCalendarView === 'day' || activeCalendarView === 'week') && !showSearch,
+          '!h-[calc(100svh-16.6rem)]':
+            height <= 700 && (activeCalendarView === 'day' || activeCalendarView === 'week') && showSearch,
+        }"
         class="flex items-center justify-center h-full"
       >
         {{ $t('activity.noRange') }}

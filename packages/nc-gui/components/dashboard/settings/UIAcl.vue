@@ -1,20 +1,5 @@
 <script setup lang="ts">
 import { inject } from '@vue/runtime-core'
-import {
-  Empty,
-  ProjectIdInj,
-  computed,
-  extractSdkResponseErrorMsg,
-  h,
-  iconMap,
-  message,
-  onMounted,
-  storeToRefs,
-  useBase,
-  useGlobal,
-  useI18n,
-  useNuxtApp,
-} from '#imports'
 
 type Role = 'editor' | 'commenter' | 'viewer'
 
@@ -146,7 +131,7 @@ const toggleSelectAll = (role: Role) => {
 
 <template>
   <div class="flex flex-row w-full items-center justify-center">
-    <div class="flex flex-col w-[900px]">
+    <div class="flex flex-col">
       <NcTooltip class="mb-4 first-letter:capital font-bold max-w-100 truncate" show-on-truncate-only>
         <template #title>{{ base.title }}</template>
         <span> UI ACL : {{ base.title }} </span>

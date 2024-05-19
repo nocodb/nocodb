@@ -84,7 +84,7 @@ export class ExpandedFormPage extends BasePage {
       case 'belongsTo':
         await field.locator('.nc-virtual-cell').hover();
         await field.locator('.nc-action-icon').click();
-        await this.dashboard.linkRecord.select(value);
+        await this.dashboard.linkRecord.select(value, false);
         break;
       case 'hasMany':
       case 'manyToMany':
@@ -127,9 +127,12 @@ export class ExpandedFormPage extends BasePage {
 
     await this.verifyToast({ message: `updated successfully.` });
     await this.rootPage.locator('[data-testid="grid-load-spinner"]').waitFor({ state: 'hidden' });
+
     // removing focus from toast
+    await this.rootPage.waitForTimeout(1000);
     await this.rootPage.locator('.nc-modal').click();
-    await this.get().press('Escape');
+    await this.rootPage.waitForTimeout(1000);
+    await this.get().locator('.nc-expanded-form-header').locator('.nc-expand-form-close-btn').click();
     await this.get().waitFor({ state: 'hidden' });
   }
 

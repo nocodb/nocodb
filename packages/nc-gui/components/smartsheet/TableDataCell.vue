@@ -1,15 +1,11 @@
 <script lang="ts" setup>
-import { CellClickHookInj, CurrentCellInj, createEventHook, ref } from '#imports'
-
-const el = ref<HTMLTableDataCellElement>()
+const el = ref<HTMLElement>()
 
 const cellClickHook = createEventHook()
 
 provide(CellClickHookInj, cellClickHook)
 
 provide(CurrentCellInj, el)
-
-defineExpose({ el })
 </script>
 
 <template>

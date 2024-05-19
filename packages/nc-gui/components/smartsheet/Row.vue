@@ -1,30 +1,11 @@
 <script lang="ts" setup>
-import type { Ref } from 'vue'
-import type { TableType } from 'nocodb-sdk'
-import type { Row } from '#imports'
-import {
-  ReloadRowDataHookInj,
-  ReloadViewDataHookInj,
-  createEventHook,
-  inject,
-  provide,
-  toRef,
-  useProvideSmartsheetRowStore,
-  useSmartsheetStoreOrThrow,
-} from '#imports'
-
 const props = defineProps<{
   row: Row
 }>()
 
 const currentRow = toRef(props, 'row')
 
-const { meta } = useSmartsheetStoreOrThrow()
-
-const { isNew, state, syncLTARRefs, clearLTARCell, addLTARRef, cleaMMCell } = useProvideSmartsheetRowStore(
-  meta as Ref<TableType>,
-  currentRow,
-)
+const { isNew, state } = useProvideSmartsheetRowStore(currentRow)
 
 const reloadViewDataTrigger = inject(ReloadViewDataHookInj)!
 
@@ -39,13 +20,6 @@ reloadHook.on((params) => {
 })
 
 provide(ReloadRowDataHookInj, reloadHook)
-
-defineExpose({
-  syncLTARRefs,
-  clearLTARCell,
-  addLTARRef,
-  cleaMMCell,
-})
 </script>
 
 <template>

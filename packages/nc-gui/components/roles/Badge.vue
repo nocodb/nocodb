@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { RoleColors, RoleIcons, RoleLabels } from 'nocodb-sdk'
-import { toRef } from '#imports'
 
 const props = withDefaults(
   defineProps<{
@@ -8,6 +7,8 @@ const props = withDefaults(
     clickable?: boolean
     inherit?: boolean
     border?: boolean
+    showIcon?: boolean
+    iconOnly?: boolean
     size?: 'sm' | 'md' | 'lg'
   }>(),
   {
@@ -15,6 +16,8 @@ const props = withDefaults(
     inherit: false,
     border: true,
     size: 'sm',
+    iconOnly: false,
+    showIcon: true,
   },
 )
 
@@ -60,8 +63,8 @@ const roleProperties = computed(() => {
         }"
       >
         <div class="flex items-center gap-2">
-          <GeneralIcon :icon="roleProperties.icon" />
-          <span class="flex whitespace-nowrap">
+          <GeneralIcon v-if="showIcon" :icon="roleProperties.icon" />
+          <span v-if="!iconOnly" class="flex whitespace-nowrap">
             {{ $t(`objects.roleType.${roleProperties.label}`) }}
           </span>
         </div>

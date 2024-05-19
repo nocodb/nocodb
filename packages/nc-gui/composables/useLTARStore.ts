@@ -7,29 +7,6 @@ import type {
 } from 'nocodb-sdk'
 import { RelationTypes, UITypes, dateFormats, parseStringDateTime, timeFormats } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
-import type { Row } from '#imports'
-import {
-  IsPublicInj,
-  Modal,
-  NOCO,
-  SharedViewPasswordInj,
-  computed,
-  extractSdkResponseErrorMsg,
-  inject,
-  message,
-  parseProp,
-  reactive,
-  ref,
-  storeToRefs,
-  useBase,
-  useI18n,
-  useInjectionState,
-  useMetas,
-  useNuxtApp,
-  useRouter,
-  useSharedView,
-  watch,
-} from '#imports'
 
 interface DataApiResponse {
   list: Record<string, any>
@@ -188,15 +165,16 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       return row.value.row[displayValueProp.value]
     })
 
-    const loadChildrenExcludedList = async (activeState?: any) => {
+    const loadChildrenExcludedList = async (activeState?: any, resetOffset: boolean = false) => {
       if (activeState) newRowState.state = activeState
       try {
         let offset =
           childrenExcludedListPagination.size * (childrenExcludedListPagination.page - 1) - childrenExcludedOffsetCount.value
 
-        if (offset < 0) {
+        if (offset < 0 || resetOffset) {
           offset = 0
           childrenExcludedOffsetCount.value = 0
+          childrenExcludedListPagination.page = 1
         }
         isChildrenExcludedLoading.value = true
         if (isPublic.value) {
@@ -266,7 +244,11 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           // Mark out exact same objects in activeState[column.value.title] as Linked
           // compare all keys and values
           childrenExcludedList.value.list.forEach((row: any, index: number) => {
-            const found = activeState[column.value.title].find((a: any) => {
+            const found = (
+              [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(colOptions.value.type)
+                ? [activeState[column.value.title]]
+                : activeState[column.value.title]
+            ).find((a: any) => {
               let isSame = true
 
               for (const key in a) {
@@ -284,27 +266,29 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         }
       } catch (e: any) {
         // temporary fix to handle when offset is beyond limit
-        if ((await extractSdkResponseErrorMsg(e)) === 'Offset is beyond the total number of records') {
+        const error = await extractSdkResponseErrorMsgv2(e)
+
+        if (error.error === NcErrorType.INVALID_OFFSET_VALUE) {
           childrenExcludedListPagination.page = 0
-          return loadChildrenExcludedList(activeState)
+          return loadChildrenExcludedList(activeState, true)
         }
 
-        message.error(`${t('msg.error.failedToLoadList')}: ${await extractSdkResponseErrorMsg(e)}`)
+        message.error(`${t('msg.error.failedToLoadList')}: ${error.message}`)
       } finally {
         isChildrenExcludedLoading.value = false
       }
     }
 
-    const loadChildrenList = async () => {
+    const loadChildrenList = async (resetOffset: boolean = false) => {
       try {
         isChildrenLoading.value = true
         if ([RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(colOptions.value.type)) return
         if (!rowId.value || !column.value) return
         let offset = childrenListPagination.size * (childrenListPagination.page - 1) + childrenListOffsetCount.value
-
-        if (offset < 0) {
+        if (offset < 0 || resetOffset) {
           offset = 0
           childrenListOffsetCount.value = 0
+          childrenListPagination.page = 1
         } else if (offset >= childrenListCount.value) {
           offset = 0
         }
@@ -347,6 +331,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           isChildrenListLinked.value[index] = true
           isChildrenListLoading.value[index] = false
         })
+
         if (!childrenListPagination.query) {
           childrenListCount.value = childrenList.value?.pageInfo.totalRows ?? 0
         }

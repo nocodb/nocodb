@@ -1,28 +1,6 @@
 <script lang="ts" setup>
 import Draggable from 'vuedraggable'
 import { ViewTypes, isVirtualCol } from 'nocodb-sdk'
-import {
-  ActiveViewInj,
-  FieldsInj,
-  IsFormInj,
-  IsGalleryInj,
-  IsGridInj,
-  IsKanbanInj,
-  IsLockedInj,
-  IsPublicInj,
-  MetaInj,
-  OpenNewRecordFormHookInj,
-  extractPkFromRow,
-  iconMap,
-  inject,
-  isImage,
-  onBeforeUnmount,
-  provide,
-  useAttachment,
-  useDebounceFn,
-  useKanbanViewStoreOrThrow,
-  useUndoRedo,
-} from '#imports'
 import type { Row as RowType } from '#imports'
 
 interface Attachment {
@@ -162,7 +140,7 @@ reloadViewMetaHook?.on(async () => {
 const expandForm = (row: RowType, state?: Record<string, any>) => {
   const rowId = extractPkFromRow(row.row, meta.value!.columns!)
 
-  if (rowId) {
+  if (rowId && !isPublic.value) {
     router.push({
       query: {
         ...route.value.query,

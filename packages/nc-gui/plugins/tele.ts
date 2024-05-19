@@ -1,6 +1,5 @@
 import type { Socket } from 'socket.io-client'
 import { io } from 'socket.io-client'
-import { defineNuxtPlugin, isEeUI, useRouter } from '#imports'
 
 // todo: ignore init if tele disabled
 export default defineNuxtPlugin(async (nuxtApp) => {

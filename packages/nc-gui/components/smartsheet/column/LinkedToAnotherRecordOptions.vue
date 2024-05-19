@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ModelTypes, MssqlUi, RelationTypes, SqliteUi, UITypes } from 'nocodb-sdk'
-import { MetaInj, inject, ref, storeToRefs, useBase, useVModel } from '#imports'
 import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
 import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
 
@@ -53,8 +52,6 @@ const refTables = computed(() => {
 const filterOption = (value: string, option: { key: string }) => option.key.toLowerCase().includes(value.toLowerCase())
 
 const isLinks = computed(() => vModel.value.uidt === UITypes.Links && vModel.value.type !== RelationTypes.ONE_TO_ONE)
-
-const oneToOneEnabled = ref(false)
 </script>
 
 <template>
@@ -62,9 +59,9 @@ const oneToOneEnabled = ref(false)
     <div class="border-2 p-6">
       <a-form-item v-bind="validateInfos.type" class="nc-ltar-relation-type">
         <a-radio-group v-model:value="vModel.type" name="type" v-bind="validateInfos.type" class="!flex flex-col gap-2">
-          <a-radio value="hm" @dblclick="oneToOneEnabled = !oneToOneEnabled">{{ $t('title.hasMany') }}</a-radio>
+          <a-radio value="oo">{{ $t('title.oneToOne') }}</a-radio>
+          <a-radio value="hm">{{ $t('title.hasMany') }}</a-radio>
           <a-radio value="mm">{{ $t('title.manyToMany') }}</a-radio>
-          <a-radio v-if="oneToOneEnabled" value="oo">{{ $t('title.oneToOne') }}</a-radio>
         </a-radio-group>
       </a-form-item>
 

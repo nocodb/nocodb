@@ -1,28 +1,52 @@
 <script lang="ts" setup>
 import { useTitle } from '@vueuse/core'
 
+const props = defineProps<{
+  workspaceId?: string
+}>()
+
 const router = useRouter()
 const route = router.currentRoute
 
 const { isUIAllowed } = useRoles()
 
 const workspaceStore = useWorkspace()
-const { activeWorkspace, workspaces } = storeToRefs(workspaceStore)
-const { loadCollaborators } = workspaceStore
+
+const { loadRoles } = useRoles()
+const { activeWorkspace: _activeWorkspace, workspaces } = storeToRefs(workspaceStore)
+const { loadCollaborators, loadWorkspace } = workspaceStore
+
+const orgStore = useOrg()
+const { orgId } = storeToRefs(orgStore)
+
+const currentWorkspace = computedAsync(async () => {
+  let ws
+  if (props.workspaceId) {
+    ws = workspaces.value.get(props.workspaceId)
+    if (!ws) {
+      await loadWorkspace(props.workspaceId)
+      ws = workspaces.value.get(props.workspaceId)
+    }
+  } else {
+    ws = _activeWorkspace.value
+  }
+  await loadRoles(undefined, {}, ws?.id)
+  return ws
+})
 
 const tab = computed({
   get() {
     return route.value.query?.tab ?? 'collaborators'
   },
   set(tab: string) {
-    if (tab === 'collaborators') loadCollaborators()
+    if (tab === 'collaborators') loadCollaborators({} as any, props.workspaceId)
     router.push({ query: { ...route.value.query, tab } })
   },
 })
 
 watch(
-  () => activeWorkspace.value?.title,
-  (title: string) => {
+  () => currentWorkspace.value?.title,
+  (title) => {
     if (!title) return
 
     const capitalizedTitle = title.charAt(0).toUpperCase() + title.slice(1)
@@ -35,25 +59,41 @@ watch(
 )
 
 onMounted(() => {
-  until(() => activeWorkspace.value?.id)
+  until(() => currentWorkspace.value?.id)
     .toMatch((v) => !!v)
-    .then(() => {
-      until(() => workspaces.value)
-        .toMatch((v) => v.has(activeWorkspace.value.id))
-        .then(() => {
-          loadCollaborators()
-        })
+    .then(async () => {
+      await loadCollaborators({} as any, currentWorkspace.value!.id)
     })
 })
 </script>
 
 <template>
-  <div v-if="activeWorkspace" class="flex flex-col nc-workspace-settings">
-    <div class="flex gap-2 items-center min-w-0 p-6">
-      <GeneralWorkspaceIcon :workspace="activeWorkspace" />
-      <h1 class="text-3xl font-weight-bold tracking-[0.5px] mb-0 nc-workspace-title truncate min-w-10 capitalize">
-        {{ activeWorkspace?.title }}
+  <div v-if="currentWorkspace" class="flex w-full px-6 max-w-[97.5rem] flex-col nc-workspace-settings">
+    <div v-if="!props.workspaceId" class="flex gap-2 items-center min-w-0 py-6">
+      <GeneralWorkspaceIcon :workspace="currentWorkspace" />
+      <h1 class="text-3xl capitalize font-weight-bold tracking-[0.5px] mb-0 nc-workspace-title truncate min-w-10 capitalize">
+        {{ currentWorkspace?.title }}
       </h1>
+    </div>
+    <div v-else>
+      <div class="font-bold w-full !mb-5 text-2xl" data-rec="true">
+        <div class="flex items-center gap-3">
+          <NuxtLink
+            :href="`/admin/${orgId}/workspaces`"
+            class="!hover:(text-black underline-gray-600) flex items-center !text-black !underline-transparent ml-0.75 max-w-1/4"
+          >
+            <component :is="iconMap.arrowLeft" class="text-3xl" />
+
+            {{ $t('labels.workspaces') }}
+          </NuxtLink>
+
+          <span class="text-2xl"> / </span>
+          <GeneralWorkspaceIcon :workspace="currentWorkspace" hide-label />
+          <span class="text-base capitalize">
+            {{ currentWorkspace?.title }}
+          </span>
+        </div>
+      </div>
     </div>
 
     <NcTabs v-model:activeKey="tab">
@@ -65,7 +105,7 @@ onMounted(() => {
               Members
             </div>
           </template>
-          <WorkspaceCollaboratorsList />
+          <WorkspaceCollaboratorsList :workspace-id="currentWorkspace.id" />
         </a-tab-pane>
       </template>
 
@@ -77,7 +117,7 @@ onMounted(() => {
               Settings
             </div>
           </template>
-          <WorkspaceSettings />
+          <WorkspaceSettings :workspace-id="currentWorkspace.id" />
         </a-tab-pane>
       </template>
     </NcTabs>
@@ -90,7 +130,24 @@ onMounted(() => {
   font-size: 0.7rem;
 }
 
+.tab {
+  @apply flex flex-row items-center gap-x-2;
+}
+
+:deep(.ant-tabs-nav) {
+  @apply !pl-0;
+}
+
 :deep(.ant-tabs-nav-list) {
-  @apply !ml-3;
+  @apply !gap-5;
+}
+:deep(.ant-tabs-tab) {
+  @apply !pt-0 !pb-2.5 !ml-0;
+}
+.ant-tabs-content {
+  @apply !h-full;
+}
+.ant-tabs-content-top {
+  @apply !h-full;
 }
 </style>

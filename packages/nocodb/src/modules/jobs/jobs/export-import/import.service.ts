@@ -187,7 +187,8 @@ export class ImportService {
           const colRef = modelData.columns.find(
             (a) =>
               a.column_name &&
-              sanitizeColumnName(a.column_name) === col.column_name,
+              sanitizeColumnName(a.column_name, source.type) ===
+                col.column_name,
           );
           idMap.set(colRef.id, col.id);
 
@@ -298,6 +299,11 @@ export class ImportService {
                         colOptions.fk_mm_model_id && a.id !== col.id,
                   );
 
+                // referencing the same model
+                if (colOptions.fk_related_model_id === modelData.id) {
+                  continue;
+                }
+
                 for (const nColumn of childModel.columns) {
                   if (
                     nColumn?.colOptions?.fk_mm_model_id ===
@@ -384,6 +390,33 @@ export class ImportService {
                       colOptions.fk_child_column_id &&
                     a.id !== col.id,
                 );
+
+              // referencing the same model
+              if (colOptions.fk_related_model_id === modelData.id) {
+                const counterRelationType =
+                  colOptions.type === 'hm' ? 'bt' : 'oo';
+                const oldCol = childModel.columns.find(
+                  (oColumn) =>
+                    oColumn.colOptions?.fk_parent_column_id ===
+                      getEntityIdentifier(colOptions.fk_parent_column_id) &&
+                    oColumn.colOptions?.fk_child_column_id ===
+                      getEntityIdentifier(colOptions.fk_child_column_id) &&
+                    oColumn.colOptions?.type === counterRelationType,
+                );
+                const col = childModel.columns.find(
+                  (nColumn) =>
+                    nColumn.colOptions?.fk_parent_column_id ===
+                      getIdOrExternalId(colOptions.fk_parent_column_id) &&
+                    nColumn.colOptions?.fk_child_column_id ===
+                      getIdOrExternalId(colOptions.fk_child_column_id) &&
+                    nColumn.colOptions?.type === counterRelationType,
+                );
+                idMap.set(
+                  `${oldCol.base_id}::${oldCol.source_id}::${oldCol.fk_model_id}::${oldCol.id}`,
+                  col.id,
+                );
+                continue;
+              }
 
               for (const nColumn of childModel.columns) {
                 if (

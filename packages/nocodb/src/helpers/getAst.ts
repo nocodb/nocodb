@@ -13,7 +13,13 @@ import type {
   Model,
 } from '~/models';
 import { NcError } from '~/helpers/catchError';
-import { CalendarRange, GalleryView, KanbanView, View } from '~/models';
+import {
+  CalendarRange,
+  GalleryView,
+  GridViewColumn,
+  KanbanView,
+  View,
+} from '~/models';
 
 const getAst = async ({
   query,
@@ -127,7 +133,7 @@ const getAst = async ({
     allowedCols = (await View.getColumns(view.id)).reduce(
       (o, c) => ({
         ...o,
-        [c.fk_column_id]: c.show,
+        [c.fk_column_id]: c.show || (c instanceof GridViewColumn && c.group_by),
       }),
       {},
     );

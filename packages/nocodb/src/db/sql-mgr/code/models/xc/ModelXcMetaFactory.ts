@@ -4,6 +4,7 @@ import ModelXcMetaOracle from './ModelXcMetaOracle';
 import ModelXcMetaPg from './ModelXcMetaPg';
 import ModelXcMetaSqlite from './ModelXcMetaSqlite';
 import ModelXcMetaSnowflake from './ModelXcMetaSnowflake';
+import ModelXcMetaDatabricks from './ModelXcMetaDatabricks';
 import type BaseModelXcMeta from './BaseModelXcMeta';
 
 class ModelXcMetaFactory {
@@ -23,6 +24,8 @@ class ModelXcMetaFactory {
       return new ModelXcMetaOracle(args);
     } else if (connectionConfig.client === 'snowflake') {
       return new ModelXcMetaSnowflake(args);
+    } else if (connectionConfig.client === 'databricks') {
+      return new ModelXcMetaDatabricks(args);
     }
 
     throw new Error('Database not supported');

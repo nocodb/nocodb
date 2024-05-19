@@ -82,5 +82,6 @@ export class TopbarPage extends BasePage {
   async clickRefresh() {
     await this.get().locator(`.nc-icon-reload`).waitFor({ state: 'visible' });
     await this.get().locator(`.nc-icon-reload`).click();
+    await this.rootPage.waitForLoadState('networkidle');
   }
 }

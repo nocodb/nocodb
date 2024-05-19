@@ -1,19 +1,4 @@
 <script setup lang="ts">
-import {
-  Form,
-  TabType,
-  computed,
-  nextTick,
-  onMounted,
-  ref,
-  useBase,
-  useTableNew,
-  useTablesStore,
-  useTabs,
-  useVModel,
-  validateTableName,
-} from '#imports'
-
 const props = defineProps<{
   modelValue: boolean
   sourceId: string
@@ -139,7 +124,7 @@ onMounted(() => {
   <NcModal v-model:visible="dialogShow" :header="$t('activity.createTable')" size="small" @keydown.esc="dialogShow = false">
     <template #header>
       <div class="flex flex-row items-center gap-x-2">
-        <GeneralIcon icon="table" />
+        <GeneralIcon icon="table" class="!text-gray-600/75" />
         {{ $t('activity.createTable') }}
       </div>
     </template>

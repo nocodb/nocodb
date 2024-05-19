@@ -6,7 +6,12 @@ const props = defineProps<{
 </script>
 
 <template>
+  <div v-if="!props.lines || props.lines === 1" class="text-ellipsis overflow-hidden">
+    <span :style="{ 'word-break': 'keep-all', 'white-space': 'nowrap' }">{{ props.value || '' }}</span>
+  </div>
+
   <div
+    v-else
     :style="{
       'display': '-webkit-box',
       'max-width': '100%',

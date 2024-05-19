@@ -87,9 +87,13 @@ const getAvailableRollupForUiType = (type: string) => {
       UITypes.Email,
       UITypes.PhoneNumber,
       UITypes.URL,
+      UITypes.Checkbox,
+      UITypes.JSON,
     ].includes(type as UITypes)
   ) {
     return ['count'];
+  } else if ([UITypes.Attachment].includes(type as UITypes)) {
+    return [];
   } else {
     return [
       'sum',

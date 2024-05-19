@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { iconMap } from '#imports'
-
 interface Props {
   srcs: string[]
   alt?: string
@@ -16,7 +14,7 @@ const onError = () => index.value++
 <template>
   <LazyNuxtImg
     v-if="index < props.srcs.length"
-    class="m-auto object-cover"
+    class="m-auto h-full max-h-full w-auto object-cover"
     :src="props.srcs[index]"
     :alt="props?.alt || ''"
     placeholder

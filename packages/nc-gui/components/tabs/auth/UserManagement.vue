@@ -1,23 +1,6 @@
 <script setup lang="ts">
 import { OrgUserRoles, RoleColors } from 'nocodb-sdk'
 import type { ProjectUserReqType, RequestParams } from 'nocodb-sdk'
-import {
-  extractSdkResponseErrorMsg,
-  iconMap,
-  message,
-  onBeforeMount,
-  ref,
-  storeToRefs,
-  useApi,
-  useBase,
-  useCopy,
-  useDashboard,
-  useI18n,
-  useNuxtApp,
-  useRoles,
-  watchDebounced,
-} from '#imports'
-import type { User } from '#imports'
 
 const { t } = useI18n()
 

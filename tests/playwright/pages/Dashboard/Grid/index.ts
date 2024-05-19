@@ -79,6 +79,43 @@ export class GridPage extends BasePage {
     return this.get().locator(`tr[data-testid="grid-row-${index}"]`);
   }
 
+  async renderColumn(columnHeader: string) {
+    // we have virtual grid, so we need to make sure the column is rendered
+    const headerRow = this.get().locator('.nc-grid-header').first();
+    let column = headerRow.locator(`[data-title="${columnHeader}"]`);
+    let lastScrolledColumn: Locator = null;
+    let direction = 'right';
+
+    while (headerRow) {
+      try {
+        await column.elementHandle({ timeout: 1000 });
+        break;
+      } catch {}
+
+      const lastColumn =
+        direction === 'right'
+          ? headerRow.locator('th.nc-grid-column-header').last()
+          : headerRow.locator('th.nc-grid-column-header').nth(1);
+
+      if (lastScrolledColumn) {
+        if ((await lastScrolledColumn.innerText()) === (await lastColumn.innerText())) {
+          if (direction === 'right') {
+            direction = 'left';
+            lastScrolledColumn = null;
+          } else {
+            throw new Error(`Column with header "${columnHeader}" not found`);
+          }
+        }
+      }
+
+      await lastColumn.scrollIntoViewIfNeeded();
+
+      lastScrolledColumn = lastColumn;
+
+      column = headerRow.locator(`[data-title="${columnHeader}"]`);
+    }
+  }
+
   async rowCount() {
     return await this.get().locator('.nc-grid-row').count();
   }
@@ -89,7 +126,8 @@ export class GridPage extends BasePage {
 
   private async _fillRow({ index, columnHeader, value }: { index: number; columnHeader: string; value: string }) {
     const cell = this.cell.get({ index, columnHeader });
-    await cell.waitFor({ state: 'visible' });
+    await expect(cell).toBeVisible();
+    await this.rootPage.waitForTimeout(500);
     await this.cell.dblclick({
       index,
       columnHeader,
@@ -132,7 +170,9 @@ export class GridPage extends BasePage {
     // fallback
     await this.rootPage.waitForTimeout(400);
 
-    await expect(this.get().locator('.nc-grid-row')).toHaveCount(rowCount);
+    await expect(this.get().locator(`[data-testid="grid-row-${rowCount - 1}"]`)).toHaveCount(1);
+
+    await this.rootPage.waitForLoadState('networkidle');
 
     await this._fillRow({ index, columnHeader, value: rowValue });
 
@@ -362,7 +402,7 @@ export class GridPage extends BasePage {
       return;
     }
 
-    await expect(this.get().locator(`.nc-pagination .ant-select-selection-item`)).toHaveText(pageNumber);
+    await expect(this.get().locator(`.nc-pagination .ant-select-selection-item`).first()).toHaveText(pageNumber);
   }
 
   async waitLoading() {
@@ -439,6 +479,14 @@ export class GridPage extends BasePage {
 
   async selectedCount() {
     return this.get().locator('.cell.active').count();
+  }
+
+  async getActiveCell() {
+    return this.get().locator('.cell.active');
+  }
+
+  async verifySelectedCellCount({ count }: { count: number }) {
+    await expect(this.get().locator('.cell.active')).toHaveCount(count);
   }
 
   async copyWithKeyboard() {

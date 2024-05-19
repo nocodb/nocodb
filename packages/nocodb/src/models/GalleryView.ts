@@ -117,6 +117,15 @@ export default class GalleryView implements GalleryType {
       prepareForResponse(updateObj),
     );
 
+    const view = await View.get(galleryId);
+
+    // on update, delete any optimised single query cache
+    await View.clearSingleQueryCache(
+      view.fk_model_id,
+      [{ id: galleryId }],
+      ncMeta,
+    );
+
     return res;
   }
 }

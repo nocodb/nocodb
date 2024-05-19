@@ -643,6 +643,7 @@ export class SnowflakeUi {
       case 'STRING':
         return 'string';
       case 'TEXT':
+        if (col.dtxp < 1024) return 'string';
         return 'text';
       case 'BINARY':
       case 'VARBINARY':

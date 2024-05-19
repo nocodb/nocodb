@@ -3,33 +3,7 @@ import { message } from 'ant-design-vue'
 import tinycolor from 'tinycolor2'
 import type { Select as AntSelect } from 'ant-design-vue'
 import type { SelectOptionType, SelectOptionsType } from 'nocodb-sdk'
-import type { FormFieldsLimitOptionsType } from '~/lib'
-import {
-  ActiveCellInj,
-  ColumnInj,
-  EditColumnInj,
-  EditModeInj,
-  IsKanbanInj,
-  IsSurveyFormInj,
-  ReadonlyInj,
-  RowHeightInj,
-  computed,
-  enumColor,
-  extractSdkResponseErrorMsg,
-  h,
-  iconMap,
-  inject,
-  isDrawerOrModalExist,
-  onMounted,
-  reactive,
-  ref,
-  useBase,
-  useEventListener,
-  useMetas,
-  useRoles,
-  useSelectedCellKeyupListener,
-  watch,
-} from '#imports'
+import type { FormFieldsLimitOptionsType } from '~/lib/types'
 import MdiCloseCircle from '~icons/mdi/close-circle'
 
 interface Props {
@@ -220,7 +194,9 @@ watch(isOpen, (n, _o) => {
   if (!n) searchVal.value = ''
 
   if (editAllowed.value) {
-    if (n) {
+    if (!n) {
+      aselect.value?.$el?.querySelector('input')?.blur()
+    } else {
       aselect.value?.$el?.querySelector('input')?.focus()
     }
   }
@@ -413,11 +389,11 @@ const onFocus = () => {
           <a-tag class="rounded-tag max-w-full" :color="op.color">
             <span
               :style="{
-                'color': tinycolor.isReadable(op.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
+                color: tinycolor.isReadable(op.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
                   ? '#fff'
                   : tinycolor.mostReadable(op.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
-                'font-size': '13px',
               }"
+              class="text-small"
             >
               <NcTooltip class="truncate max-w-full" show-on-truncate-only>
                 <template #title>
@@ -446,21 +422,26 @@ const onFocus = () => {
         :style="{
           'display': '-webkit-box',
           'max-width': '100%',
-          '-webkit-line-clamp': rowHeight || 1,
+          '-webkit-line-clamp': rowHeightTruncateLines(rowHeight),
           '-webkit-box-orient': 'vertical',
           'overflow': 'hidden',
         }"
       >
         <template v-for="selectedOpt of selectedOpts" :key="selectedOpt.value">
-          <a-tag class="rounded-tag max-w-full" :color="selectedOpt.color">
+          <a-tag
+            class="rounded-tag max-w-full"
+            :class="{
+              '!my-0': !rowHeight || rowHeight === 1,
+            }"
+            :color="selectedOpt.color"
+          >
             <span
               :style="{
-                'color': tinycolor.isReadable(selectedOpt.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
+                color: tinycolor.isReadable(selectedOpt.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
                   ? '#fff'
                   : tinycolor.mostReadable(selectedOpt.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
-                'font-size': '13px',
               }"
-              :class="{ 'text-sm': isKanban }"
+              :class="{ 'text-sm': isKanban, 'text-small': !isKanban }"
             >
               <NcTooltip class="truncate max-w-full" show-on-truncate-only>
                 <template #title>
@@ -496,7 +477,7 @@ const onFocus = () => {
         :open="isOpen && editAllowed"
         :disabled="readOnly || !editAllowed"
         :class="{ 'caret-transparent': !hasEditRoles }"
-        :dropdown-class-name="`nc-dropdown-multi-select-cell !min-w-200px ${isOpen ? 'active' : ''}`"
+        :dropdown-class-name="`nc-dropdown-multi-select-cell !min-w-156px ${isOpen ? 'active' : ''}`"
         @search="search"
         @keydown="onKeyDown"
         @focus="onFocus"
@@ -516,12 +497,11 @@ const onFocus = () => {
           <a-tag class="rounded-tag max-w-full" :color="op.color">
             <span
               :style="{
-                'color': tinycolor.isReadable(op.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
+                color: tinycolor.isReadable(op.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
                   ? '#fff'
                   : tinycolor.mostReadable(op.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
-                'font-size': '13px',
               }"
-              :class="{ 'text-sm': isKanban }"
+              :class="{ 'text-sm': isKanban, 'text-small': !isKanban }"
             >
               <NcTooltip class="truncate max-w-full" show-on-truncate-only>
                 <template #title>
@@ -559,6 +539,9 @@ const onFocus = () => {
           <a-tag
             v-if="options.find((el) => el.title === val)"
             class="rounded-tag nc-selected-option"
+            :class="{
+              '!my-0': !rowHeight || rowHeight === 1,
+            }"
             :style="{ display: 'flex', alignItems: 'center' }"
             :color="options.find((el) => el.title === val)?.color"
             :closable="editAllowed && (vModel.length > 1 || !column?.rqd)"
@@ -568,7 +551,7 @@ const onFocus = () => {
           >
             <span
               :style="{
-                'color': tinycolor.isReadable(options.find((el) => el.title === val)?.color || '#ccc', '#fff', {
+                color: tinycolor.isReadable(options.find((el) => el.title === val)?.color || '#ccc', '#fff', {
                   level: 'AA',
                   size: 'large',
                 })
@@ -576,9 +559,8 @@ const onFocus = () => {
                   : tinycolor
                       .mostReadable(options.find((el) => el.title === val)?.color || '#ccc', ['#0b1d05', '#fff'])
                       .toHex8String(),
-                'font-size': '13px',
               }"
-              :class="{ 'text-sm': isKanban }"
+              :class="{ 'text-sm': isKanban, 'text-small': !isKanban }"
             >
               {{ val }}
             </span>
@@ -622,11 +604,11 @@ const onFocus = () => {
 }
 
 .rounded-tag {
-  @apply py-0 px-[12px] rounded-[12px];
+  @apply py-[0.5px] px-2 rounded-[12px];
 }
 
 :deep(.ant-tag) {
-  @apply "rounded-tag" my-[2px];
+  @apply "rounded-tag" my-[1px];
 }
 
 :deep(.ant-tag-close-icon) {
@@ -638,7 +620,7 @@ const onFocus = () => {
 }
 
 :deep(.ant-select-selection-overflow) {
-  @apply flex-nowrap overflow-hidden;
+  @apply flex-nowrap overflow-hidden max-w-[fit-content];
 }
 
 .nc-multi-select:not(.read-only) {
@@ -649,7 +631,7 @@ const onFocus = () => {
 }
 
 :deep(.ant-select-selector) {
-  @apply !pl-0;
+  @apply !pl-0 flex-nowrap;
 }
 
 :deep(.ant-select-selection-search-input) {

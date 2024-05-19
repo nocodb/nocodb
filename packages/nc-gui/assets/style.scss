@@ -11,6 +11,7 @@ body {
 }
 
 :root {
+  --toolbar-height: 2.25rem;
   --topbar-height: 3.1rem;
   --sidebar-bottom-height: 8.5rem;
   --new-header-height: 3.5rem;
@@ -18,6 +19,10 @@ body {
   --navbar-bg: #fafafa;
   --navbar-border: #e0e0e0;
   --nc-grid-bg: #fdfdfd;
+
+  --ant-primary-color-hover: #5c85ff !important;
+  --ant-primary-color-active: #3366ff !important;
+  --ant-primary-color-outline: rgba(51, 102, 255, 0.24) !important;
 }
 
 ::-moz-selection {
@@ -515,7 +520,7 @@ a {
 }
 
 .nc-toolbar-btn {
-  @apply !shadow-none rounded hover:(ring-1 ring-gray-200 ring-opacity-100 bg-gray-100 !text-gray-800) focus:(ring-1 ring-gray-300 ring-opacity-100 !text-gray-800 bg-gray-100) text-gray-600 text-xs font-medium px-2 border-0;
+  @apply !shadow-none rounded hover:(bg-gray-50 !text-gray-800) focus:(!text-gray-800 bg-gray-50) text-gray-600 text-xs font-medium px-2 border-0;
 }
 .nc-toolbar-btn[disabled] {
   @apply !text-gray-400 !cursor-not-allowed !hover:ring-0;
@@ -720,10 +725,18 @@ input[type='number'] {
   .nc-sidebar-node-btn:not(.nc-sidebar-expand) {
     @apply !xs:(hidden);
   }
+
+  .nc-sidebar-node-btn.nc-sidebar-expand {
+    @apply !xs:(flex-none border-1 border-gray-200 w-6.5 h-6.5 mr-1);
+  }
 }
 
 .nc-button.ant-btn.nc-sidebar-node-btn {
   @apply opacity-0 group-hover:(opacity-100) text-gray-600 hover:(bg-gray-400 bg-opacity-20 text-gray-900) duration-100;
+}
+
+.nc-button.ant-btn.nc-sidebar-node-btn:not(.nc-sidebar-expand):not(.nc-sidebar-view-node-context-btn) {
+  @apply hidden group-hover:(inline-block);
 }
 
 .nc-button.ant-btn.nc-sidebar-node-btn.nc-sidebar-expand {
@@ -799,4 +812,8 @@ svg.nc-virtual-cell-icon {
 .ant-switch:focus-visible,
 .ant-switch-checked:focus-visible {
   box-shadow: 0 0 0 2px #fff, 0 0 0 4px #3366ff;
+}
+
+.text-nowrap {
+  text-wrap: nowrap;
 }

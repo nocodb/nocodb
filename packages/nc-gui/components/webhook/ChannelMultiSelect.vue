@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { onBeforeMount, useVModel, watch } from '#imports'
-
 interface Props {
   modelValue: Record<string, any>[]
   availableChannelList: Record<string, any>[]

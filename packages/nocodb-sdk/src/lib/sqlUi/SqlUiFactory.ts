@@ -7,6 +7,7 @@ import { OracleUi } from './OracleUi';
 import { PgUi } from './PgUi';
 import { SqliteUi } from './SqliteUi';
 import { SnowflakeUi } from './SnowflakeUi';
+import { DatabricksUi } from './DatabricksUi';
 
 // import {YugabyteUi} from "./YugabyteUi";
 // import {TidbUi} from "./TidbUi";
@@ -46,6 +47,10 @@ export class SqlUiFactory {
 
     if (connectionConfig.client === 'snowflake') {
       return SnowflakeUi;
+    }
+
+    if (connectionConfig.client === 'databricks') {
+      return DatabricksUi;
     }
 
     throw new Error('Database not supported');

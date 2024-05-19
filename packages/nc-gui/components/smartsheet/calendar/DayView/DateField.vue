@@ -1,8 +1,6 @@
 <script lang="ts" setup>
 import dayjs from 'dayjs'
 import type { ColumnType } from 'nocodb-sdk'
-import { type Row, computed, ref, useViewColumnsOrThrow } from '#imports'
-import { isRowEmpty } from '~/utils'
 
 const emit = defineEmits(['expandRecord', 'newRecord'])
 
@@ -18,16 +16,23 @@ const fields = inject(FieldsInj, ref())
 
 const { fields: _fields } = useViewColumnsOrThrow()
 
+const fieldStyles = computed(() => {
+  if (!_fields.value) return new Map()
+  return new Map(
+    _fields.value.map((field) => [
+      field.fk_column_id,
+      {
+        underline: field.underline,
+        bold: field.bold,
+        italic: field.italic,
+      },
+    ]),
+  )
+})
+
 const getFieldStyle = (field: ColumnType) => {
-  const fi = _fields.value?.find((f) => f.title === field.title)
-
-  return {
-    underline: fi?.underline,
-    bold: fi?.bold,
-    italic: fi?.italic,
-  }
+  return fieldStyles.value.get(field.id)
 }
-
 // We loop through all the records and calculate the position of each record based on the range
 // We only need to calculate the top, of the record since there is no overlap in the day view of date Field
 const recordsAcrossAllRange = computed<Row[]>(() => {
@@ -178,6 +183,7 @@ const dropEvent = (event: DragEvent) => {
       dragElement.value = null
     }
     updateRowProperty(newRow, updateProperty, false)
+    $e('c:calendar:day:drag-record')
   }
 }
 
@@ -197,7 +203,7 @@ const newRecord = () => {
   <div
     v-if="recordsAcrossAllRange.length"
     ref="container"
-    class="w-full relative h-[calc(100vh-10.8rem)] overflow-y-auto nc-scrollbar-md"
+    class="w-full cursor-pointer relative h-[calc(100vh-10.8rem)] overflow-y-auto nc-scrollbar-md"
     data-testid="nc-calendar-day-view"
     @dblclick="newRecord"
     @drop="dropEvent"
@@ -218,7 +224,7 @@ const newRecord = () => {
           :resize="false"
           color="blue"
           size="small"
-          @click="emit('expandRecord', record)"
+          @click.prevent="emit('expandRecord', record)"
         >
           <template v-for="(field, id) in fields" :key="id">
             <LazySmartsheetPlainCell
@@ -239,7 +245,7 @@ const newRecord = () => {
   <div
     v-else
     ref="container"
-    class="w-full h-full flex text-md font-bold text-gray-500 items-center justify-center"
+    class="w-full h-full cursor-pointer flex text-md font-bold text-gray-500 items-center justify-center"
     @drop="dropEvent"
     @dblclick="newRecord"
   >

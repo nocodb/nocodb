@@ -9737,7 +9737,8 @@
                       "oracledb",
                       "pg",
                       "snowflake",
-                      "sqlite3"
+                      "sqlite3",
+                      "databricks"
                     ],
                     "example": "mysql2",
                     "type": "string"
@@ -11989,7 +11990,8 @@
               "oracledb",
               "pg",
               "snowflake",
-              "sqlite3"
+              "sqlite3",
+              "databricks"
             ],
             "example": "mysql2",
             "type": "string"
@@ -12153,7 +12155,8 @@
               "oracledb",
               "pg",
               "snowflake",
-              "sqlite3"
+              "sqlite3",
+              "databricks"
             ],
             "type": "string"
           }

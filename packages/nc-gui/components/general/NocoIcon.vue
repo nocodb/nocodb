@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { autoResetRef, toRefs, useThrottleFn } from '#imports'
-
 interface Props {
   size?: number
   animate?: boolean

@@ -69,7 +69,7 @@ const openedBaseUrl = computed(() => {
           </div>
         </NcTooltip>
       </NuxtLink>
-      <div class="px-1.75 text-gray-500">/</div>
+      <div class="px-1.75 text-gray-500">></div>
     </template>
     <template v-if="!(isMobileMode && !activeView?.is_default)">
       <LazyGeneralEmojiPicker v-if="isMobileMode" :emoji="activeTable?.meta?.icon" readonly size="xsmall">
@@ -122,7 +122,7 @@ const openedBaseUrl = computed(() => {
       </div>
     </template>
 
-    <div v-if="!isMobileMode" class="pl-1.25 text-gray-500">/</div>
+    <div v-if="!isMobileMode" class="pl-1.25 text-gray-500">></div>
 
     <template v-if="!(isMobileMode && activeView?.is_default)">
       <LazyGeneralEmojiPicker v-if="isMobileMode" :emoji="activeView?.meta?.icon" readonly size="xsmall">

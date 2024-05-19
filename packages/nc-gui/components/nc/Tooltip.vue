@@ -2,7 +2,6 @@
 import { onKeyStroke } from '@vueuse/core'
 import type { CSSProperties } from '@vue/runtime-dom'
 import type { TooltipPlacement } from 'ant-design-vue/lib/tooltip'
-import { controlledRef, ref, useAttrs, useElementHover, watch } from '#imports'
 
 interface Props {
   // Key to be pressed on hover to trigger the tooltip
@@ -14,6 +13,7 @@ interface Props {
   showOnTruncateOnly?: boolean
   hideOnClick?: boolean
   overlayClassName?: string
+  wrapChild?: keyof HTMLElementTagNameMap
 }
 
 const props = defineProps<Props>()
@@ -24,6 +24,7 @@ const disabled = computed(() => props.disabled)
 const showOnTruncateOnly = computed(() => props.showOnTruncateOnly)
 const hideOnClick = computed(() => props.hideOnClick)
 const placement = computed(() => props.placement ?? 'top')
+const wrapChild = computed(() => props.wrapChild ?? 'div')
 
 const el = ref()
 
@@ -124,9 +125,9 @@ const onClick = () => {
       <slot name="title" />
     </template>
 
-    <div ref="el" v-bind="divStyles" @mousedown="onClick">
+    <component :is="wrapChild" ref="el" v-bind="divStyles" @mousedown="onClick">
       <slot />
-    </div>
+    </component>
   </a-tooltip>
 </template>
 

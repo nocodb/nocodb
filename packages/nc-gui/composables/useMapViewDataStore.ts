@@ -1,7 +1,5 @@
 import type { ComputedRef, Ref } from 'vue'
 import type { ColumnType, MapType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
-import { IsPublicInj, ref, storeToRefs, useBase, useInjectionState, useMetas } from '#imports'
-import type { Row } from '#imports'
 
 const formatData = (list: Record<string, any>[]) =>
   list.map(

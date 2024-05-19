@@ -1,18 +1,6 @@
 import { useStorage } from '@vueuse/core'
 import type { JwtPayload } from 'jwt-decode'
 import type { AppInfo, State, StoredState } from './types'
-import {
-  BASE_FALLBACK_URL,
-  computed,
-  ref,
-  toRefs,
-  useCounter,
-  useJwt,
-  useNuxtApp,
-  usePreferredLanguages,
-  useTimestamp,
-} from '#imports'
-import type { Language, User } from '#imports'
 
 export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
   /** get the preferred languages of a user, according to browser settings */
@@ -68,6 +56,7 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     hiddenRelease: null,
     isMobileMode: null,
     lastOpenedWorkspaceId: null,
+    gridViewPageSize: 25,
   }
 
   /** saves a reactive state, any change to these values will write/delete to localStorage */

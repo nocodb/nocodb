@@ -1,10 +1,7 @@
 <script lang="ts" setup>
 import { useMagicKeys, whenever } from '@vueuse/core'
-// import { useNuxtApp } from '#app'
 import { commandScore } from './command-score'
-import type { ComputedRef, VNode } from '#imports'
-import { iconMap, onClickOutside } from '#imports'
-import type { CommandPaletteType } from '~/lib'
+import type { CommandPaletteType } from '~/lib/types'
 
 interface CmdAction {
   id: string
@@ -24,7 +21,6 @@ const props = defineProps<{
   open: boolean
   data: CmdAction[]
   scope?: string
-  placeholder?: string
   hotkey?: string
   loadTemporaryScope?: (scope: { scope: string; data: any }) => void
   setActiveCmdView: (cmd: CommandPaletteType) => void
@@ -48,6 +44,8 @@ const { user } = useGlobal()
 
 const selected = ref<string>()
 
+const { cmdPlaceholder } = useCommandPalette()
+
 const formattedData: ComputedRef<(CmdAction & { weight: number })[]> = computed(() => {
   const rt: (CmdAction & { weight: number })[] = []
   for (const el of props.data) {
@@ -69,11 +67,13 @@ const nestedScope = computed(() => {
   const rt = []
   let parent = activeScope.value
   while (parent !== 'root') {
-    const parentEl = formattedData.value.find((el) => el.id === parent)
+    const parentId = parent.startsWith('ws-') ? `ws-nav-${parent.split('-')[1]}` : parent
+    const parentEl = formattedData.value.find((el) => el.id === parentId)
     rt.push({
       id: parent,
       label: parentEl?.title,
       icon: parentEl?.icon,
+      iconColor: parent.startsWith('ws-') ? parentEl?.iconColor : null,
     })
     parent = parentEl?.parent || 'root'
   }
@@ -318,45 +318,67 @@ defineExpose({
     <div ref="modalEl" class="cmdk-modal-content h-[25.25rem]">
       <div class="cmdk-header">
         <div class="cmdk-input-wrapper">
-          <GeneralIcon icon="search" class="h-4 w-4 text-gray-500" />
+          <GeneralIcon class="h-4 w-4 text-gray-500" icon="search" />
           <div
             v-for="el of nestedScope"
             :key="`cmdk-breadcrumb-${el.id}`"
             v-e="['a:cmdk:setScope']"
-            class="text-gray-600 text-sm cursor-pointer flex gap-1 items-center font-medium capitalize"
+            class="flex items-center"
             @click="setScope(el.id)"
           >
-            <component
-              :is="(iconMap as any)[el.icon]"
-              v-if="el.icon && typeof el.icon === 'string' && (iconMap as any)[el.icon]"
-              class="cmdk-action-icon"
-              :class="{
-                '!text-blue-500': el.icon === 'grid',
-                '!text-purple-500': el.icon === 'form',
-                '!text-[#FF9052]': el.icon === 'kanban',
-                '!text-pink-500': el.icon === 'gallery',
-              }"
-            />
-            <div v-else-if="el.icon" class="cmdk-action-icon max-w-4 flex items-center justify-center">
-              <LazyGeneralEmojiPicker class="!text-sm !h-4 !w-4" size="small" :emoji="el.icon" readonly />
-            </div>
-            <a-tooltip overlay-class-name="!px-2 !py-1 !rounded-lg">
-              <template #title>
-                {{ el.label }}
-              </template>
-              <span class="truncate capitalize mr-4">
-                {{ el.label }}
-              </span>
-            </a-tooltip>
+            <div
+              class="text-gray-600 text-sm cursor-pointer flex gap-2 px-2 py-1 items-center justify-center font-medium capitalize"
+            >
+              <GeneralWorkspaceIcon
+                v-if="el.icon && el.id.startsWith('ws')"
+                :workspace="{
+                  id: el.id.split('-')[1],
+                  meta: {
+                    color: el.iconColor,
+                  },
+                }"
+                hide-label
+                size="small"
+              />
 
-            <span class="text-gray-400 text-sm font-medium pl-1">/</span>
+              <component
+                :is="(iconMap as any)[el.icon]"
+                v-else-if="el.icon && typeof el.icon === 'string' && (iconMap as any)[el.icon]"
+                :class="{
+                  '!text-blue-500': el.icon === 'grid',
+                  '!text-purple-500': el.icon === 'form',
+                  '!text-[#FF9052]': el.icon === 'kanban',
+                  '!text-pink-500': el.icon === 'gallery',
+                  '!text-maroon-500': el.icon === 'calendar',
+                }"
+                class="cmdk-action-icon"
+              />
+              <div v-else-if="el.icon" class="cmdk-action-icon max-w-4 flex items-center justify-center">
+                <LazyGeneralEmojiPicker :emoji="el.icon" class="!text-sm !h-4 !w-4" readonly size="small" />
+              </div>
+              <span
+                class="text-ellipsis truncate capitalize max-w-16"
+                style="word-break: keep-all; white-space: nowrap; display: inline"
+              >
+                <NcTooltip show-on-truncate-only>
+                  <template #title>
+                    {{ el.label }}
+                  </template>
+                  <span class="text-ellipsis max-w-16">
+                    {{ el.label }}
+                  </span>
+                </NcTooltip>
+              </span>
+            </div>
+
+            <span class="text-gray-700 text-sm pl-1 font-medium">/</span>
           </div>
           <input
             ref="cmdInputEl"
             v-model="cmdInput"
             class="cmdk-input"
             type="text"
-            :placeholder="props.placeholder"
+            :placeholder="cmdPlaceholder"
             @input="selectFirstAction"
           />
         </div>
@@ -386,7 +408,18 @@ defineExpose({
                   @click="fireAction(act)"
                 >
                   <div class="cmdk-action-content w-full">
-                    <template v-if="title === 'Bases' || act.icon === 'project'">
+                    <GeneralWorkspaceIcon
+                      v-if="act.icon && act.id.startsWith('ws')"
+                      :workspace="{
+                        id: act.id.split('-')[2],
+                        meta: {
+                          color: act?.iconColor,
+                        },
+                      }"
+                      class="mr-2"
+                      size="small"
+                    />
+                    <template v-else-if="title === 'Bases' || act.icon === 'project'">
                       <GeneralBaseIconColorPicker :key="act.iconColor" :model-value="act.iconColor" type="database" readonly>
                       </GeneralBaseIconColorPicker>
                     </template>
@@ -394,13 +427,14 @@ defineExpose({
                       <component
                         :is="(iconMap as any)[act.icon]"
                         v-if="act.icon && typeof act.icon === 'string' && (iconMap as any)[act.icon]"
-                        class="cmdk-action-icon"
                         :class="{
                           '!text-blue-500': act.icon === 'grid',
                           '!text-purple-500': act.icon === 'form',
                           '!text-[#FF9052]': act.icon === 'kanban',
                           '!text-pink-500': act.icon === 'gallery',
+                          '!text-maroon-500 w-4 h-4': act.icon === 'calendar',
                         }"
+                        class="cmdk-action-icon"
                       />
                       <div v-else-if="act.icon" class="cmdk-action-icon max-w-4 flex items-center justify-center">
                         <LazyGeneralEmojiPicker class="!text-sm !h-4 !w-4" size="small" :emoji="act.icon" readonly />
@@ -492,21 +526,21 @@ defineExpose({
   }
 
   .cmdk-input-wrapper {
-    @apply py-2 px-4 flex items-center gap-2;
+    @apply py-2 px-4 gap-1 flex items-center;
   }
 
   .cmdk-input {
-    @apply text-sm;
+    @apply text-sm pl-2;
     flex-grow: 1;
     flex-shrink: 0;
-    margin: 0px;
+    margin: 0;
     border: none;
     appearance: none;
     background: transparent;
     outline: none;
     box-shadow: var(--tw-ring-inset) 0 0 0 calc(0px + var(--tw-ring-offset-width)) var(--tw-ring-color) !important;
 
-    caret-color: pink;
+    caret-color: #3366ff;
     color: rgb(60, 65, 73);
   }
 
@@ -525,8 +559,8 @@ defineExpose({
 
   .cmdk-actions {
     max-height: 310px;
-    margin: 0px;
-    padding: 0.5em 0px;
+    margin: 0;
+    padding: 0;
     list-style: none;
     scroll-behavior: smooth;
     overflow: auto;
@@ -553,7 +587,7 @@ defineExpose({
       border-left: 4px solid transparent;
 
       .cmdk-keyboard {
-        display: hidden;
+        display: none;
       }
 
       &.selected {

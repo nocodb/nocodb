@@ -1,7 +1,6 @@
 import { getActivePinia } from 'pinia'
 import type { Actions, AppInfo, State } from './types'
 import type { NcProjectType } from '#imports'
-import { message, navigateTo, useNuxtApp } from '#imports'
 
 export function useGlobalActions(state: State): Actions {
   const setIsMobileMode = (isMobileMode: boolean) => {
@@ -157,5 +156,20 @@ export function useGlobalActions(state: State): Actions {
     return undefined
   }
 
-  return { signIn, signOut, refreshToken, loadAppInfo, setIsMobileMode, navigateToProject, getBaseUrl, ncNavigateTo, getMainUrl }
+  const setGridViewPageSize = (pageSize: number) => {
+    state.gridViewPageSize.value = pageSize
+  }
+
+  return {
+    signIn,
+    signOut,
+    refreshToken,
+    loadAppInfo,
+    setIsMobileMode,
+    navigateToProject,
+    getBaseUrl,
+    ncNavigateTo,
+    getMainUrl,
+    setGridViewPageSize,
+  }
 }

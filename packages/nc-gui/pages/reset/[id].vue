@@ -1,17 +1,5 @@
 <script setup lang="ts">
 import { validatePassword } from 'nocodb-sdk'
-import {
-  definePageMeta,
-  extractSdkResponseErrorMsg,
-  iconMap,
-  message,
-  reactive,
-  ref,
-  useApi,
-  useI18n,
-  useRoute,
-  useRouter,
-} from '#imports'
 
 definePageMeta({
   requiresAuth: false,

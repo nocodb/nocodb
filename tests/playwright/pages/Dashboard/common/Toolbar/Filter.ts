@@ -131,7 +131,7 @@ export class ToolbarFilterPage extends BasePage {
     skipWaitingResponse = true;
 
     const selectedField = await getTextExcludeIconText(
-      this.rootPage.locator('.nc-filter-field-select .ant-select-selection-item')
+      this.rootPage.locator('.nc-filter-field-select .ant-select-selection-item').first()
     );
     if (selectedField !== title) {
       await this.rootPage.locator('.nc-filter-field-select').last().click();
@@ -328,11 +328,17 @@ export class ToolbarFilterPage extends BasePage {
 
             const v = value.split(',');
             for (let i = 0; i < v.length; i++) {
-              await this.rootPage
-                .locator(`.nc-dropdown-user-select-cell`)
-                .getByTestId('select-option-User-filter')
-                .getByText(v[i])
-                .click();
+              const selectUser = () =>
+                this.rootPage
+                  .locator(`.nc-dropdown-user-select-cell`)
+                  .getByTestId('select-option-User-filter')
+                  .getByText(v[i])
+                  .click({ force: true });
+              await this.waitForResponse({
+                uiAction: selectUser,
+                httpMethodsToMatch: ['GET'],
+                requestUrlPathToMatch: `/api/v1/db/data/noco/`,
+              });
             }
           }
           break;

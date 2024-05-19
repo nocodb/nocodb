@@ -4,22 +4,6 @@ import { ViewTypes } from 'nocodb-sdk'
 import type { SortableEvent } from 'sortablejs'
 import Sortable from 'sortablejs'
 import type { Menu as AntMenu } from 'ant-design-vue'
-import {
-  extractSdkResponseErrorMsg,
-  isDefaultBase,
-  message,
-  onMounted,
-  parseProp,
-  ref,
-  resolveComponent,
-  useApi,
-  useCommandPalette,
-  useDialog,
-  useNuxtApp,
-  useUndoRedo,
-  viewTypeAlias,
-  watch,
-} from '#imports'
 
 interface Emits {
   (
@@ -91,6 +75,8 @@ function markItem(id: string) {
 }
 
 const isDefaultSource = computed(() => {
+  if (base.value?.sources?.length === 1) return true
+
   const source = base.value?.sources?.find((b) => b.id === table.value.source_id)
   if (!source) return false
 
@@ -413,8 +399,8 @@ function onOpenModal({
       v-if="isUIAllowed('viewCreateOrEdit')"
       :align-left-level="isDefaultSource ? 1 : 2"
       :class="{
-        '!pl-18 !xs:(pl-19.75)': isDefaultSource,
-        '!pl-23.5 !xs:(pl-27)': !isDefaultSource,
+        '!pl-13.3 !xs:(pl-13.5)': isDefaultSource,
+        '!pl-18.6 !xs:(pl-20)': !isDefaultSource,
       }"
     >
       <div

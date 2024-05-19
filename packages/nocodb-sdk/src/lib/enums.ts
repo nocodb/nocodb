@@ -4,6 +4,12 @@ export enum OrgUserRoles {
   VIEWER = 'org-level-viewer',
 }
 
+export enum CloudOrgUserRoles {
+  CREATOR = 'cloud-org-level-creator',
+  VIEWER = 'cloud-org-level-viewer',
+  OWNER = 'cloud-org-level-owner',
+}
+
 export enum ProjectRoles {
   OWNER = 'owner',
   CREATOR = 'creator',
@@ -137,6 +143,10 @@ export enum AppEvents {
   ATTACHMENT_UPLOAD = 'attachment.upload',
 
   APIS_CREATED = 'apis.created',
+
+  EXTENSION_CREATE = 'extension.create',
+  EXTENSION_UPDATE = 'extension.update',
+  EXTENSION_DELETE = 'extension.delete',
 }
 
 export enum ClickhouseTables {
@@ -178,6 +188,9 @@ export const RoleLabels = {
   [OrgUserRoles.SUPER_ADMIN]: 'superAdmin',
   [OrgUserRoles.CREATOR]: 'creator',
   [OrgUserRoles.VIEWER]: 'viewer',
+  [CloudOrgUserRoles.OWNER]: 'owner',
+  [CloudOrgUserRoles.CREATOR]: 'creator',
+  [CloudOrgUserRoles.VIEWER]: 'viewer',
 };
 
 export const RoleColors = {
@@ -196,6 +209,9 @@ export const RoleColors = {
   [ProjectRoles.NO_ACCESS]: 'red',
   [OrgUserRoles.CREATOR]: 'blue',
   [OrgUserRoles.VIEWER]: 'yellow',
+  [CloudOrgUserRoles.OWNER]: 'purple',
+  [CloudOrgUserRoles.CREATOR]: 'blue',
+  [CloudOrgUserRoles.VIEWER]: 'yellow',
 };
 
 export const RoleDescriptions = {
@@ -236,6 +252,10 @@ export const RoleIcons = {
   [OrgUserRoles.SUPER_ADMIN]: 'role_super',
   [OrgUserRoles.CREATOR]: 'role_creator',
   [OrgUserRoles.VIEWER]: 'role_viewer',
+
+  [CloudOrgUserRoles.OWNER]: 'role_owner',
+  [CloudOrgUserRoles.CREATOR]: 'role_creator',
+  [CloudOrgUserRoles.VIEWER]: 'role_viewer',
 };
 
 export const WorkspaceRolesToProjectRoles = {
@@ -295,4 +315,10 @@ export enum PlanLimitTypes {
   // PER VIEW
   FILTER_LIMIT = 'FILTER_LIMIT',
   SORT_LIMIT = 'SORT_LIMIT',
+}
+
+export enum APIContext {
+  VIEW_COLUMNS = 'fields',
+  FILTERS = 'filters',
+  SORTS = 'sorts',
 }

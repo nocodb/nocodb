@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { useQRCode } from '@vueuse/integrations/useQRCode'
 import type QRCode from 'qrcode'
-import { IsGalleryInj, RowHeightInj, computed, inject, ref } from '#imports'
 
 const maxNumberOfAllowedCharsForQrValue = 2000
 
@@ -9,7 +8,7 @@ const cellValue = inject(CellValueInj)
 
 const isGallery = inject(IsGalleryInj, ref(false))
 
-const qrValue = computed(() => String(cellValue?.value))
+const qrValue = computed(() => String(cellValue?.value || ''))
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
 
@@ -87,7 +86,9 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning } = us
   >
     <img
       v-if="rowHeight"
-      :style="{ height: rowHeight ? `${rowHeight * 1.8}rem` : `1.8rem` }"
+      :style="{
+        height: rowHeight ? `${rowHeight === 1 ? rowHeightInPx['1'] - 4 : rowHeightInPx[`${rowHeight}`] - 20}px` : `1.8rem`,
+      }"
       :src="qrCode"
       :alt="$t('title.qrCode')"
       class="min-w-[1.4em]"

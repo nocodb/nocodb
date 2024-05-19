@@ -15,7 +15,7 @@ export class AccountAuthenticationPage extends BasePage {
     await this.waitForResponse({
       uiAction: () => this.rootPage.goto('/#/account/authentication', { waitUntil: 'networkidle' }),
       httpMethodsToMatch: ['GET'],
-      requestUrlPathToMatch: '/api/v2/sso-client',
+      requestUrlPathToMatch: /\/sso-client/,
     });
   }
 
@@ -42,7 +42,7 @@ export class AccountAuthenticationPage extends BasePage {
     await this.waitForResponse({
       uiAction: () => this.rootPage.locator(`[data-test-id="nc-${provider}-delete"]`).click(),
       httpMethodsToMatch: ['DELETE'],
-      requestUrlPathToMatch: `/api/v2/sso-client/`,
+      requestUrlPathToMatch: /\/sso-client/,
     });
   }
 
@@ -50,7 +50,7 @@ export class AccountAuthenticationPage extends BasePage {
     await this.waitForResponse({
       uiAction: () => this.get().locator(`.nc-${provider}-${title}-enable .nc-switch`).click(),
       httpMethodsToMatch: ['PATCH'],
-      requestUrlPathToMatch: `/api/v2/sso-client/`,
+      requestUrlPathToMatch: /\/\w+\/sso-client/,
     });
   }
 
@@ -97,7 +97,7 @@ export class AccountAuthenticationPage extends BasePage {
     await this.waitForResponse({
       uiAction: () => samlModal.locator('[data-test-id="nc-saml-submit"]').click(),
       httpMethodsToMatch: ['GET'],
-      requestUrlPathToMatch: '/api/v2/sso-client',
+      requestUrlPathToMatch: /\/sso-client/,
     });
   }
 
@@ -158,7 +158,7 @@ export class AccountAuthenticationPage extends BasePage {
     await this.waitForResponse({
       uiAction: () => oidcModal.locator('[data-test-id="nc-oidc-save-btn"]').click(),
       httpMethodsToMatch: ['GET'],
-      requestUrlPathToMatch: '/api/v2/sso-client',
+      requestUrlPathToMatch: /\/sso-client/,
     });
   }
 
@@ -177,7 +177,7 @@ export class AccountAuthenticationPage extends BasePage {
     await this.waitForResponse({
       uiAction: () => googleModal.locator('[data-test-id="nc-google-save-btn"]').click(),
       httpMethodsToMatch: ['GET'],
-      requestUrlPathToMatch: '/api/v2/sso-client',
+      requestUrlPathToMatch: /\/sso-client/,
     });
   }
 

@@ -183,7 +183,7 @@ export class BulkUpdatePage extends BasePage {
         uiAction: saveRowAction,
         requestUrlPathToMatch: 'api/v1/db/data/noco/',
         httpMethodsToMatch: ['GET'],
-        responseJsonMatcher: json => json['pageInfo'],
+        // responseJsonMatcher: json => json['pageInfo'],
       });
     }
 

@@ -171,6 +171,13 @@ export default class CalendarViewColumn {
       updateObj,
     );
 
+    // on view column update, delete any optimised single query cache
+    {
+      const viewCol = await this.get(columnId, ncMeta);
+      const view = await View.get(viewCol.fk_view_id, ncMeta);
+      await View.clearSingleQueryCache(view.fk_model_id, [view]);
+    }
+
     return res;
   }
 }

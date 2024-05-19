@@ -3,16 +3,16 @@ import dayjs from 'dayjs'
 
 interface Props {
   selectedDate?: dayjs.Dayjs | null
-  isDisabled?: boolean
   pageDate?: dayjs.Dayjs
   isYearPicker?: boolean
+  hideCalendar?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   selectedDate: null,
-  isDisabled: false,
   pageDate: dayjs(),
   isYearPicker: false,
+  hideCalendar: false,
 })
 const emit = defineEmits(['update:selectedDate', 'update:pageDate'])
 
@@ -85,36 +85,44 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
 </script>
 
 <template>
-  <div class="px-4 pt-3 pb-4 flex flex-col gap-4">
-    <div class="flex justify-between items-center">
-      <NcTooltip>
-        <NcButton size="small" type="secondary" @click="paginate('prev')">
-          <component :is="iconMap.doubleLeftArrow" class="h-4 w-4" />
-        </NcButton>
-        <template #title>
-          <span>{{ $t('labels.previous') }}</span>
-        </template>
-      </NcTooltip>
-      <span class="text-gray-700">{{ isYearPicker ? $t('labels.selectYear') : pageDate.year() }}</span>
-      <NcTooltip>
-        <NcButton size="small" type="secondary" @click="paginate('next')">
-          <component :is="iconMap.doubleRightArrow" class="h-4 w-4" />
-        </NcButton>
-        <template #title>
-          <span>{{ $t('labels.next') }}</span>
-        </template>
-      </NcTooltip>
+  <div class="flex flex-col">
+    <div class="flex px-2 border-b-1 py-0.5 justify-between items-center">
+      <div class="flex">
+        <NcTooltip hide-on-click>
+          <NcButton class="!border-0" size="small" type="secondary" @click="paginate('prev')">
+            <component :is="iconMap.arrowLeft" class="h-4 w-4" />
+          </NcButton>
+          <template #title>
+            <span>{{ $t('labels.next') }}</span>
+          </template>
+        </NcTooltip>
+      </div>
+
+      <span class="text-gray-700 font-semibold">{{
+        isYearPicker ? dayjs(selectedDate).year() : dayjs(pageDate).format('YYYY')
+      }}</span>
+      <div class="flex">
+        <NcTooltip hide-on-click>
+          <NcButton class="!border-0" size="small" type="secondary" @click="paginate('next')">
+            <component :is="iconMap.arrowRight" class="h-4 w-4" />
+          </NcButton>
+          <template #title>
+            <span>{{ $t('labels.next') }}</span>
+          </template>
+        </NcTooltip>
+      </div>
     </div>
-    <div class="rounded-y-xl max-w-[350px]">
-      <div class="grid grid-cols-4 gap-2 p-2">
+    <div v-if="!hideCalendar" class="rounded-y-xl px-2.5 py-1 max-w-[350px]">
+      <div class="grid grid-cols-4 gap-2">
         <template v-if="!isYearPicker">
           <span
             v-for="(month, id) in months"
             :key="id"
             :class="{
-              '!bg-brand-50 border-1 !border-brand-500': isMonthSelected(month),
+              '!bg-gray-200 !text-brand-900 !font-bold ': isMonthSelected(month),
+              '!text-brand-500': dayjs().isSame(month, 'month'),
             }"
-            class="h-9 rounded-lg flex items-center justify-center hover:(border-1 border-gray-200 bg-gray-100) text-gray-900 cursor-pointer"
+            class="h-8 rounded-lg flex items-center transition-all font-medium justify-center hover:(border-1 border-gray-200 bg-gray-100) text-gray-700 cursor-pointer"
             @click="selectedDate = month"
           >
             {{ month.format('MMM') }}
@@ -125,9 +133,10 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
             v-for="(year, id) in years"
             :key="id"
             :class="{
-              '!bg-brand-50 !border-1 !border-brand-500': compareYear(year, selectedDate),
+              '!bg-gray-200 !text-brand-500 !font-bold ': compareYear(year, selectedDate),
+              '!text-brand-500': dayjs().isSame(year, 'year'),
             }"
-            class="h-9 rounded-lg flex items-center justify-center hover:(border-1 border-gray-200 bg-gray-100) text-gray-900 cursor-pointer"
+            class="h-8 rounded-lg flex items-center transition-all font-medium justify-center hover:(border-1 border-gray-200 bg-gray-100) text-gray-900 cursor-pointer"
             @click="selectedDate = year"
           >
             {{ year.format('YYYY') }}

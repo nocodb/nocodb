@@ -1,16 +1,5 @@
 <script lang="ts" setup>
 import type { VNodeRef } from '@vue/runtime-core'
-import {
-  EditColumnInj,
-  EditModeInj,
-  IsExpandedFormOpenInj,
-  IsFormInj,
-  ReadonlyInj,
-  computed,
-  inject,
-  useI18n,
-  validateEmail,
-} from '#imports'
 import { extractEmail } from '~/helpers/parsers/parserHelpers'
 
 interface Props {
@@ -91,7 +80,7 @@ watch(
     v-if="!readOnly && editEnabled"
     :ref="focus"
     v-model="vModel"
-    class="nc-cell-field w-full outline-none text-sm py-1"
+    class="nc-cell-field w-full outline-none py-1"
     :placeholder="isEditColumn ? $t('labels.optional') : ''"
     @blur="editEnabled = false"
     @keydown.down.stop
@@ -109,7 +98,7 @@ watch(
   <nuxt-link
     v-else-if="validEmail"
     no-ref
-    class="py-1 text-sm underline hover:opacity-75 inline-block"
+    class="py-1 underline hover:opacity-75 inline-block nc-cell-field-link max-w-full"
     :href="`mailto:${vModel}`"
     target="_blank"
     :tabindex="readOnly ? -1 : 0"

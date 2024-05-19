@@ -1,8 +1,6 @@
 import type { ColumnType, GridColumnReqType, GridColumnType, MapType, TableType, ViewType } from 'nocodb-sdk'
 import { ViewTypes, isHiddenCol, isSystemColumn } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
-import type { Field } from '#imports'
-import { computed, ref, storeToRefs, useBase, useNuxtApp, useRoles, useUndoRedo, watch } from '#imports'
 
 const [useProvideViewColumns, useViewColumns] = useInjectionState(
   (
@@ -166,7 +164,12 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       $e('a:fields:show-all')
     }
 
-    const saveOrUpdate = async (field: Field, index: number, disableDataReload: boolean = false) => {
+    const saveOrUpdate = async (
+      field: Field,
+      index: number,
+      disableDataReload: boolean = false,
+      updateDefaultViewColumnOrder: boolean = false,
+    ) => {
       if (isLocalMode.value && fields.value) {
         fields.value[index] = field
         meta.value!.columns = meta.value!.columns?.map((column: ColumnType) => {
@@ -175,6 +178,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
               ...column,
               ...field,
               id: field.fk_column_id,
+              ...(updateDefaultViewColumnOrder ? { meta: { ...parseProp(column.meta), defaultViewColOrder: field.order } } : {}),
             }
           }
           return column
@@ -287,13 +291,14 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
         },
         scope: defineViewScope({ view: view.value }),
       })
-      saveOrUpdate(field, fieldIndex)
+      saveOrUpdate(field, fieldIndex, !checked)
     }
 
     const toggleFieldStyles = (field: any, style: 'underline' | 'bold' | 'italic', status: boolean) => {
       const fieldIndex = fields.value?.findIndex((f) => f.fk_column_id === field.fk_column_id)
       if (!fieldIndex && fieldIndex !== 0) return
       field[style] = status
+      $e('a:fields:style', { style, status })
       saveOrUpdate(field, fieldIndex, true)
     }
 
@@ -316,7 +321,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       { immediate: true },
     )
 
-    const resizingColOldWith = ref('200px')
+    const resizingColOldWith = ref('180px')
 
     const updateGridViewColumn = async (id: string, props: Partial<GridColumnReqType>, undo = false) => {
       if (!undo) {

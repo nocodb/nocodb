@@ -9,7 +9,7 @@ export const useColumnDrag = ({
   tableBodyEl: Ref<HTMLElement | undefined>
   gridWrapper: Ref<HTMLElement | undefined>
 }) => {
-  const { eventBus } = useSmartsheetStoreOrThrow()
+  const { eventBus, isDefaultView, meta } = useSmartsheetStoreOrThrow()
   const { addUndo, defineViewScope } = useUndoRedo()
 
   const { activeView } = storeToRefs(useViewsStore())
@@ -21,6 +21,24 @@ export const useColumnDrag = ({
   const draggedCol = ref<ColumnType | null>(null)
   const dragColPlaceholderDomRef = ref<HTMLElement | null>(null)
   const toBeDroppedColId = ref<string | null>(null)
+
+  const updateDefaultViewColumnOrder = (columnId: string, order: number) => {
+    if (!meta.value?.columns) return
+
+    const colIndex = meta.value.columns.findIndex((c) => c.id === columnId)
+    if (colIndex !== -1) {
+      meta.value.columns[colIndex].meta = { ...(meta.value.columns[colIndex].meta || {}), defaultViewColOrder: order }
+      meta.value.columns = (meta.value.columns || []).map((c) => {
+        if (c.id !== columnId) return c
+
+        c.meta = { ...(c.meta || {}), defaultViewColOrder: order }
+        return c
+      })
+    }
+    if (meta.value.columnsById[columnId]) {
+      meta.value.columnsById[columnId].meta = { ...(meta.value.columnsById[columnId] || {}), defaultViewColOrder: order }
+    }
+  }
 
   const reorderColumn = async (colId: string, toColId: string) => {
     const toBeReorderedViewCol = gridViewCols.value[colId]
@@ -46,12 +64,19 @@ export const useColumnDrag = ({
 
     toBeReorderedViewCol.order = newOrder
 
+    if (isDefaultView.value && toBeReorderedViewCol.fk_column_id) {
+      updateDefaultViewColumnOrder(toBeReorderedViewCol.fk_column_id, newOrder)
+    }
+
     addUndo({
       undo: {
         fn: async () => {
           if (!fields.value) return
 
           toBeReorderedViewCol.order = oldOrder
+          if (isDefaultView.value) {
+            updateDefaultViewColumnOrder(toBeReorderedViewCol.fk_column_id, oldOrder)
+          }
           await updateGridViewColumn(colId, { order: oldOrder } as any)
 
           eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
@@ -63,6 +88,9 @@ export const useColumnDrag = ({
           if (!fields.value) return
 
           toBeReorderedViewCol.order = newOrder
+          if (isDefaultView.value) {
+            updateDefaultViewColumnOrder(toBeReorderedViewCol.fk_column_id, newOrder)
+          }
           await updateGridViewColumn(colId, { order: newOrder } as any)
 
           eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)

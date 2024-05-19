@@ -1,25 +1,6 @@
 <script setup lang="ts">
 import type { TableType } from 'nocodb-sdk'
 import type { ComponentPublicInstance } from '@vue/runtime-core'
-import {
-  Form,
-  computed,
-  extractSdkResponseErrorMsg,
-  message,
-  nextTick,
-  reactive,
-  storeToRefs,
-  useBase,
-  useCommandPalette,
-  useMetas,
-  useNuxtApp,
-  useTablesStore,
-  useTabs,
-  useUndoRedo,
-  useVModel,
-  validateTableName,
-  watchEffect,
-} from '#imports'
 
 interface Props {
   modelValue?: boolean
@@ -87,11 +68,10 @@ const validators = computed(() => {
       {
         validator: (rule: any, value: any) => {
           return new Promise<void>((resolve, reject) => {
-            if (/^\s+|\s+$/.test(value)) {
-              return reject(new Error('Leading or trailing whitespace not allowed in table name'))
-            }
             if (
-              !(tables?.value || []).every((t) => t.id === tableMeta.id || t.title.toLowerCase() !== (value || '').toLowerCase())
+              !(tables?.value || []).every(
+                (t) => t.id === tableMeta.id || t.title.toLowerCase() !== (value?.trim() || '').toLowerCase(),
+              )
             ) {
               return reject(new Error('Duplicate table alias'))
             }
@@ -123,6 +103,11 @@ watchEffect(
 
 const renameTable = async (undo = false, disableTitleDiffCheck?: boolean | undefined) => {
   if (!tableMeta) return
+
+  if (formState.title) {
+    formState.title = formState.title.trim()
+  }
+
   if (formState.title === tableMeta.title && !disableTitleDiffCheck) return
 
   loading.value = true
@@ -216,7 +201,7 @@ const renameTable = async (undo = false, disableTitleDiffCheck?: boolean | undef
         <NcButton
           key="submit"
           type="primary"
-          :disabled="validateInfos.title.validateStatus === 'error' || formState.title === tableMeta.title"
+          :disabled="validateInfos.title.validateStatus === 'error' || formState.title?.trim() === tableMeta.title"
           label="Rename Table"
           loading-label="Renaming Table"
           :loading="loading"

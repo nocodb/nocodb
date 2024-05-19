@@ -12,13 +12,11 @@ const emits = defineEmits(['created'])
 
 const { isParentOpen, columns } = toRefs(props)
 
-const activeView = inject(ActiveViewInj, ref())
-
 const meta = inject(MetaInj, ref())
 
 const { showSystemFields, metaColumnById } = useViewColumnsOrThrow()
 
-const { groupBy } = useViewGroupBy(activeView)
+const { groupBy } = useViewGroupByOrThrow()
 
 const options = computed<ColumnType[]>(
   () =>

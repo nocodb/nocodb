@@ -1,11 +1,11 @@
 <script lang="ts" setup>
-import { RoleDescriptions } from 'nocodb-sdk'
 import type { RoleLabels } from 'nocodb-sdk'
+import { RoleDescriptions } from 'nocodb-sdk'
 import type { SelectValue } from 'ant-design-vue/es/select'
-import { toRef } from '#imports'
 
 const props = withDefaults(
   defineProps<{
+    border?: boolean
     role: keyof typeof RoleLabels
     roles: (keyof typeof RoleLabels)[]
     description?: boolean
@@ -14,6 +14,7 @@ const props = withDefaults(
     size?: 'sm' | 'md' | 'lg'
   }>(),
   {
+    border: true,
     description: true,
     size: 'sm',
   },
@@ -36,7 +37,7 @@ function onChangeRole(val: SelectValue) {
 
 <template>
   <div ref="dropdownRef" size="lg" class="nc-roles-selector relative" @click="isDropdownOpen = !isDropdownOpen">
-    <RolesBadge data-testid="roles" :role="roleRef" :inherit="inheritRef === role" :size="sizeRef" clickable />
+    <RolesBadge :border="false" :inherit="inheritRef === role" :role="roleRef" :size="sizeRef" clickable data-testid="roles" />
     <a-select
       :value="roleRef"
       :open="isDropdownOpen"
@@ -54,7 +55,7 @@ function onChangeRole(val: SelectValue) {
           class="flex flex-col nc-role-select-dropdown gap-1"
         >
           <div class="flex items-center justify-between">
-            <RolesBadge :class="`nc-role-select-${rl}`" :role="rl" :inherit="inheritRef === rl" :border="false" />
+            <RolesBadge :border="false" :class="`nc-role-select-${rl}`" :inherit="inheritRef === rl" :role="rl" />
             <GeneralIcon v-if="rl === roleRef" icon="check" class="text-primary" />
           </div>
           <div v-if="descriptionRef" class="text-gray-500 text-xs">{{ RoleDescriptions[rl] }}</div>

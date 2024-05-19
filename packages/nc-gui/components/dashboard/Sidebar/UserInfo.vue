@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { computed, navigateTo, onMounted, ref, storeToRefs, useGlobal, useSidebarStore, useUsers, watch } from '#imports'
-
 const { user, signOut, appInfo } = useGlobal()
 // So watcher in users store is triggered
 useUsers()
@@ -20,12 +18,14 @@ const { isMobileMode } = useGlobal()
 const logout = async () => {
   isLoggingOut.value = true
   try {
+    const isSsoUser = !!(user?.value as any)?.sso_client_id
+
     await signOut(false)
 
     // No need as all stores are cleared on signout
     // await clearWorkspaces()
 
-    await navigateTo('/signin')
+    await navigateTo(isSsoUser ? '/sso' : '/signin')
   } catch (e) {
     console.error(e)
   } finally {
@@ -54,17 +54,17 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex w-full flex-col p-1 border-gray-200 gap-y-1">
+  <div class="flex w-full flex-col py-0.9 px-1 border-gray-200 gap-y-1">
     <NcDropdown v-model:visible="isMenuOpen" placement="topLeft" overlay-class-name="!min-w-64">
       <div
-        class="flex flex-row py-2 px-3 gap-x-2 items-center hover:bg-gray-200 rounded-lg cursor-pointer h-10"
+        class="flex flex-row py-1 px-3 gap-x-2 items-center hover:bg-gray-200 rounded-lg cursor-pointer h-8"
         data-testid="nc-sidebar-userinfo"
       >
-        <GeneralUserIcon :email="user?.email" size="base" :name="user?.display_name" />
+        <GeneralUserIcon :email="user?.email" size="auto" :name="user?.display_name" />
         <div class="flex truncate">
           {{ name ? name : user?.email }}
         </div>
-        <GeneralIcon icon="arrowUp" class="!min-w-5" />
+        <GeneralIcon icon="chevronDown" class="flex-none !min-w-5 transform rotate-180 !text-gray-500" />
       </div>
       <template #overlay>
         <NcMenu data-testid="nc-sidebar-userinfo">
@@ -167,6 +167,8 @@ onMounted(() => {
 
             <NcDivider />
 
+            <DashboardSidebarEEMenuOption v-if="isEeUI" />
+
             <nuxt-link v-e="['c:user:settings']" class="!no-underline" to="/account/profile">
               <NcMenuItem> <GeneralIcon icon="ncSettings" class="menu-icon" /> {{ $t('title.accountSettings') }} </NcMenuItem>
             </nuxt-link>
@@ -175,8 +177,7 @@ onMounted(() => {
       </template>
     </NcDropdown>
 
-    <template v-if="isMobileMode"></template>
-    <div v-else-if="appInfo.ee" class="text-gray-500 text-xs pl-3 mt-1">© 2023 NocoDB. Inc</div>
+    <template v-if="isMobileMode || appInfo.ee"></template>
     <div v-else class="flex flex-row w-full justify-between pt-0.5 truncate">
       <GeneralJoinCloud />
     </div>
@@ -189,7 +190,6 @@ onMounted(() => {
 }
 .menu-icon {
   @apply w-4 h-4;
-  line-height: 1rem;
   font-size: 1rem;
 }
 

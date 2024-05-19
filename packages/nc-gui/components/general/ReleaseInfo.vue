@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { computed, extractSdkResponseErrorMsg, message, onMounted, useGlobal, useNuxtApp } from '#imports'
-
 const { $api } = useNuxtApp()
 
 const { currentVersion, latestRelease, hiddenRelease, appInfo } = useGlobal()

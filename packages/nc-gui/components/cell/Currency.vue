@@ -1,20 +1,10 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
-import {
-  ColumnInj,
-  EditColumnInj,
-  EditModeInj,
-  IsExpandedFormOpenInj,
-  IsFormInj,
-  ReadonlyInj,
-  computed,
-  inject,
-  parseProp,
-  useVModel,
-} from '#imports'
 
 interface Props {
   modelValue: number | null | undefined
+  placeholder?: string
+  hidePrefix?: boolean
 }
 
 const props = defineProps<Props>()
@@ -104,7 +94,7 @@ onMounted(() => {
 
 <template>
   <div
-    v-if="isForm && !isEditColumn"
+    v-if="isForm && !isEditColumn && !hidePrefix"
     class="nc-currency-code h-full !bg-gray-100 border-r border-gray-200 px-3 mr-1 flex items-center"
   >
     <span>
@@ -116,9 +106,9 @@ onMounted(() => {
     :ref="focus"
     v-model="vModel"
     type="number"
-    class="nc-cell-field h-full text-sm border-none rounded-md py-1 outline-none focus:outline-none focus:ring-0"
+    class="nc-cell-field h-full border-none rounded-md py-1 outline-none focus:outline-none focus:ring-0"
     :class="isForm && !isEditColumn ? 'flex flex-1' : 'w-full'"
-    :placeholder="isEditColumn ? $t('labels.optional') : ''"
+    :placeholder="placeholder !== undefined ? placeholder : isEditColumn ? $t('labels.optional') : ''"
     :disabled="readOnly"
     @blur="onBlur"
     @keydown.enter="onKeydownEnter"

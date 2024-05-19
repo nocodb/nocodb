@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { iconMap, useI18n } from '#imports'
-
 const { locale } = useI18n()
 
 const open = (url: string) => {

@@ -230,7 +230,7 @@ test.describe('Toolbar operations (GRID)', () => {
     });
     await toolbar.clickFilter();
 
-    await dashboard.grid.groupPage.openGroup({ indexMap: [1, 0] });
+    await dashboard.grid.groupPage.openGroup({ indexMap: [2, 0] });
 
     await dashboard.grid.groupPage.verifyGroupHeader({
       indexMap: [1, 0],
@@ -377,16 +377,14 @@ test.describe('Toolbar operations (GRID)', () => {
     });
     await toolbar.clickFilter();
 
-    await dashboard.grid.groupPage.openGroup({ indexMap: [5, 0, 0] });
-
     await dashboard.grid.groupPage.verifyGroupHeader({
-      indexMap: [5, 0, 0],
+      indexMap: [4, 0, 0],
       count: 2,
       title: 'ReleaseYear',
     });
 
     await dashboard.grid.groupPage.verifyGroup({
-      indexMap: [5, 0, 0],
+      indexMap: [4, 0, 0],
       value: '2006',
     });
 
@@ -508,7 +506,7 @@ test.describe('Toolbar operations (GRID)', () => {
   });
 
   test('Duplicate View and Verify GroupBy', async () => {
-    if (enableQuickRun()) test.skip();
+    // if (enableQuickRun()) test.skip();
     await dashboard.treeView.openTable({ title: 'Film' });
     await dashboard.viewSidebar.createGridView({ title: 'Film Grid' });
 
@@ -618,10 +616,10 @@ test.describe('Toolbar operations (GRID)', () => {
   test('row height', async () => {
     // define an array of row heights
     const rowHeight = [
-      { title: 'Short', height: '1.8rem' },
-      { title: 'Medium', height: '3.6rem' },
-      { title: 'Tall', height: '7.2rem' },
-      { title: 'Extra', height: '10.8rem' },
+      { title: 'Short', height: '32px' },
+      { title: 'Medium', height: '60px' },
+      { title: 'Tall', height: '90px' },
+      { title: 'Extra', height: '120px' },
     ];
 
     // close 'Team & Auth' tab

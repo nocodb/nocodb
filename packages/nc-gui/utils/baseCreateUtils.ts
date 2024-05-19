@@ -1,4 +1,4 @@
-import { ClientType } from '../lib'
+import { ClientType } from '~/lib/enums'
 
 // todo: move to noco-sdk
 export enum NcProjectType {
@@ -9,7 +9,7 @@ interface ProjectCreateForm {
   title: string
   dataSource: {
     client: ClientType
-    connection: DefaultConnection | SQLiteConnection | SnowflakeConnection
+    connection: DefaultConnection | SQLiteConnection | SnowflakeConnection | DatabricksConnection
     searchPath?: string[]
   }
   inflection: {
@@ -43,6 +43,14 @@ interface SnowflakeConnection {
   username: string
   password: string
   warehouse: string
+  database: string
+  schema: string
+}
+
+interface DatabricksConnection {
+  token: string
+  host: string
+  path: string
   database: string
   schema: string
 }
@@ -84,12 +92,16 @@ export const clientTypes = [
     text: 'Snowflake',
     value: ClientType.SNOWFLAKE,
   },
+  {
+    text: 'Databricks',
+    value: ClientType.DATABRICKS,
+  },
 ]
 
 const homeDir = ''
 
 type ConnectionClientType =
-  | Exclude<ClientType, ClientType.SQLITE | ClientType.SNOWFLAKE>
+  | Exclude<ClientType, ClientType.SQLITE | ClientType.SNOWFLAKE | ClientType.DATABRICKS>
   | 'tidb'
   | 'yugabyte'
   | 'citusdb'
@@ -99,7 +111,7 @@ type ConnectionClientType =
 
 const sampleConnectionData: { [key in ConnectionClientType]: DefaultConnection } & { [ClientType.SQLITE]: SQLiteConnection } & {
   [ClientType.SNOWFLAKE]: SnowflakeConnection
-} = {
+} & { [ClientType.DATABRICKS]: DatabricksConnection } = {
   [ClientType.PG]: {
     host: defaultHost,
     port: '5432',
@@ -143,6 +155,13 @@ const sampleConnectionData: { [key in ConnectionClientType]: DefaultConnection }
     warehouse: 'COMPUTE_WH',
     database: 'DATABASE',
     schema: 'PUBLIC',
+  },
+  [ClientType.DATABRICKS]: {
+    token: 'dapiPLACEHOLDER',
+    host: 'PLACEHOLDER.cloud.databricks.com',
+    path: '/sql/1.0/warehouses/PLACEHOLDER',
+    database: 'database',
+    schema: 'default',
   },
   tidb: {
     host: defaultHost,
@@ -215,4 +234,4 @@ enum CertTypes {
   key = 'key',
 }
 
-export { SSLUsage, CertTypes, ProjectCreateForm, DefaultConnection, SQLiteConnection, SnowflakeConnection }
+export { SSLUsage, CertTypes, ProjectCreateForm, DefaultConnection, SQLiteConnection, SnowflakeConnection, DatabricksConnection }

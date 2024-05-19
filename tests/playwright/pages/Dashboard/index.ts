@@ -33,7 +33,6 @@ import { CalendarPage } from './Calendar';
 export class DashboardPage extends BasePage {
   readonly base: any;
   readonly tablesSideBar: Locator;
-  readonly baseMenuLink: Locator;
   readonly workspaceMenuLink: Locator;
   readonly tabBar: Locator;
   readonly treeView: TreeViewPage;
@@ -69,10 +68,6 @@ export class DashboardPage extends BasePage {
     this.base = base;
     this.tablesSideBar = rootPage.locator('.nc-treeview-container');
     this.workspaceMenuLink = rootPage.getByTestId('nc-base-menu');
-    this.baseMenuLink = rootPage
-      .locator(`.base-title-node:has-text("${base.title}")`)
-      .locator('[data-testid="nc-sidebar-context-menu"]')
-      .first();
     this.tabBar = rootPage.locator('.nc-tab-bar');
     this.treeView = new TreeViewPage(this, base);
     this.grid = new GridPage(this);
@@ -114,27 +109,37 @@ export class DashboardPage extends BasePage {
     return this.rootPage.locator(`div.nc-base-menu-item:has-text("${title}")`);
   }
 
+  async clickOnBaseMenuLink() {
+    const baseMenuLocator = this.rootPage.locator(`.base-title-node:has-text("${this.base.title}")`).first();
+
+    await baseMenuLocator.waitFor({ state: 'visible' });
+    await baseMenuLocator.scrollIntoViewIfNeeded();
+    await baseMenuLocator.hover();
+
+    await baseMenuLocator.locator('[data-testid="nc-sidebar-context-menu"]').first().click();
+  }
+
   async verifyTeamAndSettingsLinkIsVisible() {
-    await this.baseMenuLink.click();
+    await this.clickOnBaseMenuLink();
     const teamAndSettingsLink = this.getProjectMenuLink({ title: ' Team & Settings' });
     await expect(teamAndSettingsLink).toBeVisible();
-    await this.baseMenuLink.click();
+    await this.clickOnBaseMenuLink();
   }
 
   async verifyTeamAndSettingsLinkIsNotVisible() {
-    await this.baseMenuLink.click();
+    await this.clickOnBaseMenuLink();
     const teamAndSettingsLink = this.getProjectMenuLink({ title: ' Team & Settings' });
     await expect(teamAndSettingsLink).not.toBeVisible();
-    await this.baseMenuLink.click();
+    await this.clickOnBaseMenuLink();
   }
 
   async gotoSettings() {
-    await this.baseMenuLink.click();
+    await this.clickOnBaseMenuLink();
     await this.rootPage.locator('.ant-dropdown').locator(`.nc-menu-item:has-text("Settings")`).click();
   }
 
   async gotoProjectSubMenu({ title }: { title: string }) {
-    await this.baseMenuLink.click();
+    await this.clickOnBaseMenuLink();
     await this.rootPage.locator(`div.nc-base-menu-item:has-text("${title}")`).click();
   }
 
@@ -179,10 +184,10 @@ export class DashboardPage extends BasePage {
   // When a tab is opened, it is not always immediately visible.
 
   async toggleMobileMode() {
-    await this.baseMenuLink.click();
+    await this.clickOnBaseMenuLink();
     const projMenu = this.rootPage.locator('.nc-dropdown-base-menu');
     await projMenu.locator('[data-menu-id="mobile-mode"]:visible').click();
-    await this.baseMenuLink.click();
+    await this.clickOnBaseMenuLink();
   }
 
   async signOut() {

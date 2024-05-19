@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { onBeforeUnmount, onMounted, watch } from '#imports'
-
 type FlipTrigger = 'hover' | 'click' | { duration: number }
 
 interface Props {

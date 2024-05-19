@@ -1,23 +1,5 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
-import {
-  CellUrlDisableOverlayInj,
-  ColumnInj,
-  EditColumnInj,
-  EditModeInj,
-  IsExpandedFormOpenInj,
-  IsFormInj,
-  ReadonlyInj,
-  computed,
-  inject,
-  isValidURL,
-  message,
-  parseProp,
-  ref,
-  useCellUrlConfig,
-  useI18n,
-  watch,
-} from '#imports'
 
 interface Props {
   modelValue?: string | null
@@ -104,7 +86,7 @@ watch(
       :ref="focus"
       v-model="vModel"
       :placeholder="isEditColumn ? $t('labels.enterDefaultUrlOptional') : ''"
-      class="nc-cell-field outline-none text-sm w-full py-1 bg-transparent h-full"
+      class="nc-cell-field outline-none w-full py-1 bg-transparent h-full"
       @blur="editEnabled = false"
       @keydown.down.stop
       @keydown.left.stop
@@ -121,7 +103,7 @@ watch(
       v-else-if="isValid && !cellUrlOptions?.overlay"
       no-prefetch
       no-rel
-      class="py-1 z-3 text-sm underline hover:opacity-75"
+      class="py-1 z-3 underline hover:opacity-75 nc-cell-field-link max-w-full"
       :to="url"
       :target="cellUrlOptions?.behavior === 'replace' ? undefined : '_blank'"
       :tabindex="readOnly ? -1 : 0"
@@ -133,7 +115,7 @@ watch(
       v-else-if="isValid && !disableOverlay && cellUrlOptions?.overlay"
       no-prefetch
       no-rel
-      class="py-1 z-3 w-full h-full text-center !no-underline hover:opacity-75"
+      class="py-1 z-3 w-full h-full text-center !no-underline hover:opacity-75 nc-cell-field-link max-w-full"
       :to="url"
       :target="cellUrlOptions?.behavior === 'replace' ? undefined : '_blank'"
       :tabindex="readOnly ? -1 : 0"

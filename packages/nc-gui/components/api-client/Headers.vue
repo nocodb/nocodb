@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { iconMap, useVModel } from '#imports'
-
 const props = defineProps<{
   modelValue: any[]
 }>()

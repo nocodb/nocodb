@@ -77,8 +77,10 @@ export const knownQueryParams = [
 
 export enum DriverClient {
   MYSQL = 'mysql2',
+  MYSQL_LEGACY = 'mysql',
   MSSQL = 'mssql',
   PG = 'pg',
   SQLITE = 'sqlite3',
   SNOWFLAKE = 'snowflake',
+  DATABRICKS = 'databricks',
 }

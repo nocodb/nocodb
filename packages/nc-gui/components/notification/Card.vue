@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import { storeToRefs } from 'pinia'
 import InfiniteLoading from 'v3-infinite-loading'
-import { useNotification } from '#imports'
 
 const notificationStore = useNotification()
 

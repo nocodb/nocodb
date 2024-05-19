@@ -1,13 +1,10 @@
 <script lang="ts" setup>
 import { UITypes } from 'nocodb-sdk'
-import { iconMap } from '#imports'
 
 const props = defineProps<{
   value: any
 }>()
 const emits = defineEmits(['update:value'])
-
-const meta = inject(MetaInj, ref())
 
 provide(EditColumnInj, ref(true))
 
@@ -20,7 +17,7 @@ const rowRef = ref({
   },
 })
 
-useProvideSmartsheetRowStore(meta, rowRef)
+useProvideSmartsheetRowStore(rowRef)
 
 const cdfValue = ref<string | null>(null)
 
@@ -56,7 +53,7 @@ watch(
         :edit-enabled="true"
         :model-value="cdfValue"
         :column="vModel"
-        class="!border-none"
+        class="!border-none h-auto my-auto"
         @update:cdf="updateCdfValue"
         @update:edit-enabled="editEnabled = $event"
         @click="editEnabled = true"

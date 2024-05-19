@@ -1,8 +1,6 @@
 <script lang="ts" setup>
 import dayjs from 'dayjs'
 import type { ColumnType } from 'nocodb-sdk'
-import { type Row, computed, ref, useViewColumnsOrThrow } from '#imports'
-import { generateRandomNumber, isRowEmpty } from '~/utils'
 
 const emit = defineEmits(['expandRecord', 'newRecord'])
 
@@ -18,6 +16,8 @@ const {
   showSideMenu,
 } = useCalendarViewStoreOrThrow()
 
+const { $e } = useNuxtApp()
+
 const container = ref<null | HTMLElement>(null)
 
 const { isUIAllowed } = useRoles()
@@ -28,15 +28,22 @@ const fields = inject(FieldsInj, ref())
 
 const { fields: _fields } = useViewColumnsOrThrow()
 
-const getFieldStyle = (field: ColumnType) => {
-  if (!_fields.value) return { underline: false, bold: false, italic: false }
-  const fi = _fields.value.find((f) => f.title === field.title)
+const fieldStyles = computed(() => {
+  if (!_fields.value) return new Map()
+  return new Map(
+    _fields.value.map((field) => [
+      field.fk_column_id,
+      {
+        underline: field.underline,
+        bold: field.bold,
+        italic: field.italic,
+      },
+    ]),
+  )
+})
 
-  return {
-    underline: fi?.underline,
-    bold: fi?.bold,
-    italic: fi?.italic,
-  }
+const getFieldStyle = (field: ColumnType) => {
+  return fieldStyles.value.get(field.id)
 }
 
 const hours = computed(() => {
@@ -49,36 +56,38 @@ const hours = computed(() => {
   return hours
 })
 
-const calculateNewDates = ({
-  endDate,
-  startDate,
-  scheduleStart,
-  scheduleEnd,
-}: {
-  endDate: dayjs.Dayjs
-  startDate: dayjs.Dayjs
-  scheduleStart: dayjs.Dayjs
-  scheduleEnd: dayjs.Dayjs
-}) => {
-  // If there is no end date, we add 15 minutes to the start date and use that as the end date
-  if (!endDate.isValid()) {
-    endDate = startDate.clone().add(15, 'minutes')
-  }
+const calculateNewDates = useMemoize(
+  ({
+    endDate,
+    startDate,
+    scheduleStart,
+    scheduleEnd,
+  }: {
+    endDate: dayjs.Dayjs
+    startDate: dayjs.Dayjs
+    scheduleStart: dayjs.Dayjs
+    scheduleEnd: dayjs.Dayjs
+  }) => {
+    // If there is no end date, we add 15 minutes to the start date and use that as the end date
+    if (!endDate.isValid()) {
+      endDate = startDate.clone().add(15, 'minutes')
+    }
 
-  // If the start date is before the opened date, we use the schedule start as the start date
-  // This is to ensure the generated style of the record is not outside the bounds of the calendar
-  if (startDate.isSameOrBefore(scheduleStart)) {
-    startDate = scheduleStart
-  }
+    // If the start date is before the opened date, we use the schedule start as the start date
+    // This is to ensure the generated style of the record is not outside the bounds of the calendar
+    if (startDate.isSameOrBefore(scheduleStart)) {
+      startDate = scheduleStart
+    }
 
-  // If the end date is after the schedule end, we use the schedule end as the end date
-  // This is to ensure the generated style of the record is not outside the bounds of the calendar
-  if (endDate.isAfter(scheduleEnd)) {
-    endDate = scheduleEnd
-  }
+    // If the end date is after the schedule end, we use the schedule end as the end date
+    // This is to ensure the generated style of the record is not outside the bounds of the calendar
+    if (endDate.isAfter(scheduleEnd)) {
+      endDate = scheduleEnd
+    }
 
-  return { endDate, startDate }
-}
+    return { endDate, startDate }
+  },
+)
 
 const getGridTime = (date: dayjs.Dayjs, round = false) => {
   const gridCalc = date.hour() * 60 + date.minute()
@@ -133,35 +142,14 @@ const hasSlotForRecord = (
 }
 const getMaxOverlaps = ({
   row,
-  gridTimeMap,
   columnArray,
+  graph,
 }: {
   row: Row
-  gridTimeMap: Map<
-    number,
-    {
-      count: number
-      id: string[]
-    }
-  >
   columnArray: Array<Array<Row>>
+  graph: Map<string, Set<string>>
 }) => {
   const visited: Set<string> = new Set()
-  const graph: Map<string, Set<string>> = new Map()
-
-  // Build the graph
-  for (const [_gridTime, { id: ids }] of gridTimeMap) {
-    for (const id1 of ids) {
-      if (!graph.has(id1)) {
-        graph.set(id1, new Set())
-      }
-      for (const id2 of ids) {
-        if (id1 !== id2) {
-          graph.get(id1)!.add(id2)
-        }
-      }
-    }
-  }
 
   const dfs = (id: string): number => {
     visited.add(id)
@@ -169,6 +157,7 @@ const getMaxOverlaps = ({
     const neighbors = graph.get(id)
     if (neighbors) {
       for (const neighbor of neighbors) {
+        if (maxOverlaps >= columnArray.length) return maxOverlaps
         if (!visited.has(neighbor)) {
           maxOverlaps = Math.min(Math.max(maxOverlaps, dfs(neighbor) + 1), columnArray.length)
         }
@@ -187,33 +176,20 @@ const getMaxOverlaps = ({
 
 const recordsAcrossAllRange = computed<{
   record: Row[]
-  count: {
-    [key: string]: {
+  gridTimeMap: Map<
+    number,
+    {
+      count: number
       id: string[]
-      overflow: boolean
-      overflowCount: number
     }
-  }
+  >
 }>(() => {
   if (!calendarRange.value || !formattedData.value) return { record: [], count: {} }
 
   const scheduleStart = dayjs(selectedDate.value).startOf('day')
   const scheduleEnd = dayjs(selectedDate.value).endOf('day')
 
-  // We use this object to keep track of the number of records that overlap at a given time, and if the number of records exceeds 4, we hide the record
-  // and show a button to view more records
-  // The key is the time in HH:mm format
-  // id is the id of the record generated below
-
-  const overlaps: {
-    [key: string]: {
-      id: string[]
-      overflow: boolean
-      overflowCount: number
-    }
-  } = {}
-
-  const perRecordHeight = 60
+  const perRecordHeight = 52
 
   const columnArray: Array<Array<Row>> = [[]]
   const gridTimeMap = new Map<
@@ -263,15 +239,15 @@ const recordsAcrossAllRange = computed<{
           scheduleEnd,
         })
         // The top of the record is calculated based on the start hour and minute
-        const topInPixels = startDate.hour() + startDate.minute()
+        const topInPixels = (startDate.minute() / 60 + startDate.hour()) * perRecordHeight
 
-        // A minimum height of 80px is set for each record
+        // A minimum height of 52px is set for each record
         // The height of the record is calculated based on the difference between the start and end date
         const heightInPixels = Math.max(endDate.diff(startDate, 'minute'), perRecordHeight)
 
         const style: Partial<CSSStyleDeclaration> = {
-          height: `${heightInPixels}px`,
-          top: `${topInPixels}px`,
+          height: `${heightInPixels - 8}px`,
+          top: `${topInPixels + 4}px`,
         }
 
         // This property is used to determine which side the record should be rounded. It can be top, bottom, both or none
@@ -316,14 +292,14 @@ const recordsAcrossAllRange = computed<{
         // The top of the record is calculated based on the start hour
         // Update such that it is also based on Minutes
 
-        const topInPixels = startDate.minute() + startDate.hour() * 60
+        const topInPixels = (startDate.minute() / 60 + startDate.hour()) * perRecordHeight
 
         // A minimum height of 80px is set for each record
-        const heightInPixels = Math.max((endDate.diff(startDate, 'minute') / 60) * 60, perRecordHeight)
+        const heightInPixels = Math.max((endDate.diff(startDate, 'minute') / 60) * 52, perRecordHeight)
         style = {
           ...style,
-          top: `${topInPixels + 1}px`,
-          height: `${heightInPixels - 2}px`,
+          top: `${topInPixels + 4}px`,
+          height: `${heightInPixels - 8}px`,
         }
 
         recordsByRange.push({
@@ -400,11 +376,28 @@ const recordsAcrossAllRange = computed<{
       record.rowMeta.overLapIteration = parseInt(columnIndex) + 1
     }
   }
+
+  const graph = new Map<string, Set<string>>()
+
+  // Build the graph
+  for (const [_gridTime, { id: ids }] of gridTimeMap) {
+    for (const id1 of ids) {
+      if (!graph.has(id1)) {
+        graph.set(id1, new Set())
+      }
+      for (const id2 of ids) {
+        if (id1 !== id2) {
+          graph.get(id1)!.add(id2)
+        }
+      }
+    }
+  }
+
   for (const record of recordsByRange) {
     const numberOfOverlaps = getMaxOverlaps({
       row: record,
-      gridTimeMap,
       columnArray,
+      graph,
     })
 
     record.rowMeta.numberOfOverlaps = numberOfOverlaps
@@ -418,24 +411,6 @@ const recordsAcrossAllRange = computed<{
 
       if (record.rowMeta.overLapIteration! - 1 > 7) {
         display = 'none'
-        gridTimeMap.forEach((value, key) => {
-          if (value.id.includes(record.rowMeta.id!)) {
-            if (!overlaps[key]) {
-              overlaps[key] = {
-                id: value.id,
-                overflow: true,
-                overflowCount: value.id.length,
-              }
-            } else {
-              overlaps[key].overflow = true
-              value.id.forEach((id) => {
-                if (!overlaps[key].id.includes(id)) {
-                  overlaps[key].id.push(id)
-                }
-              })
-            }
-          }
-        })
       } else {
         left = width * (record.rowMeta.overLapIteration! - 1)
       }
@@ -453,7 +428,7 @@ const recordsAcrossAllRange = computed<{
   }
 
   return {
-    count: overlaps,
+    gridTimeMap,
     record: recordsByRange,
   }
 })
@@ -477,7 +452,7 @@ const useDebouncedRowUpdate = useDebounceFn((row: Row, updateProperty: string[],
 }, 500)
 
 // When the user is dragging a record, we calculate the new start and end date based on the mouse position
-const calculateNewRow = (event: MouseEvent) => {
+const calculateNewRow = (event: MouseEvent, skipChangeCheck?: boolean) => {
   if (!container.value || !dragRecord.value) return { newRow: null, updateProperty: [] }
 
   const { top } = container.value.getBoundingClientRect()
@@ -505,7 +480,7 @@ const calculateNewRow = (event: MouseEvent) => {
     ...dragRecord.value,
     row: {
       ...dragRecord.value.row,
-      [fromCol.title!]: dayjs(newStartDate).format('YYYY-MM-DD HH:mm:ssZ'),
+      [fromCol.title!]: dayjs(newStartDate).utc().format('YYYY-MM-DD HH:mm:ssZ'),
     },
   }
 
@@ -528,9 +503,14 @@ const calculateNewRow = (event: MouseEvent) => {
       endDate = newStartDate.clone()
     }
 
-    newRow.row[toCol.title!] = dayjs(endDate).format('YYYY-MM-DD HH:mm:ssZ')
+    newRow.row[toCol.title!] = dayjs(endDate).utc().format('YYYY-MM-DD HH:mm:ssZ')
 
     updateProperty.push(toCol.title!)
+  }
+
+  // If from and to columns of the dragRecord and the newRow are the same, we don't manipulate the formattedRecords and formattedSideBarData. This removes unwanted computation
+  if (dragRecord.value.row[fromCol.title!] === newRow.row[fromCol.title!] && !skipChangeCheck) {
+    return { newRow: null, updateProperty: [] }
   }
 
   if (!newRow) {
@@ -552,6 +532,11 @@ const calculateNewRow = (event: MouseEvent) => {
       const pk = extractPkFromRow(r.row, meta.value!.columns!)
       return pk !== newPk
     })
+
+    dragRecord.value = {
+      ...dragRecord.value,
+      row: newRow.row,
+    }
   }
   return { newRow, updateProperty }
 }
@@ -668,7 +653,7 @@ const stopDrag = (event: MouseEvent) => {
   clearTimeout(dragTimeout.value!)
   if (!isUIAllowed('dataEdit') || !isDragging.value || !container.value || !dragRecord.value) return
 
-  const { newRow, updateProperty } = calculateNewRow(event)
+  const { newRow, updateProperty } = calculateNewRow(event, true)
   if (!newRow && !updateProperty) return
 
   const allRecords = document.querySelectorAll('.draggable-record')
@@ -688,6 +673,8 @@ const stopDrag = (event: MouseEvent) => {
 
   if (!newRow) return
   updateRowProperty(newRow, updateProperty, false)
+
+  $e('c:calendar:day:drag-record')
 
   document.removeEventListener('mousemove', onDrag)
   document.removeEventListener('mouseup', stopDrag)
@@ -734,33 +721,108 @@ const dragStart = (event: MouseEvent, record: Row) => {
   document.addEventListener('mouseup', onMouseUp)
 }
 
+// We support drag and drop from the sidebar to the day view of the date field
+const dropEvent = (event: DragEvent) => {
+  if (!isUIAllowed('dataEdit') || !container.value) return
+  event.preventDefault()
+  const data = event.dataTransfer?.getData('text/plain')
+  if (data) {
+    const {
+      record,
+      isWithoutDates,
+    }: {
+      record: Row
+      initialClickOffsetY: number
+      initialClickOffsetX: number
+      isWithoutDates: boolean
+    } = JSON.parse(data)
+
+    const fromCol = record.rowMeta.range?.fk_from_col
+    const toCol = record.rowMeta.range?.fk_to_col
+
+    if (!fromCol) return
+
+    const { top } = container.value.getBoundingClientRect()
+
+    const { scrollHeight } = container.value
+
+    // We calculate the percentage of the mouse position in the scroll container
+    const percentY = (event.clientY - top + container.value.scrollTop) / scrollHeight
+
+    const hour = Math.max(Math.floor(percentY * 23), 0)
+    const minutes = Math.min(Math.max(Math.round(Math.floor((percentY * 23 - hour) * 60) / 15) * 15, 0), 60)
+
+    const newStartDate = dayjs(selectedDate.value).startOf('day').add(hour, 'hour').add(minutes, 'minute')
+
+    let endDate
+
+    const newRow = {
+      ...record,
+      row: {
+        ...record.row,
+        [fromCol.title!]: dayjs(newStartDate).format('YYYY-MM-DD HH:mm:ssZ'),
+      },
+    }
+
+    const updateProperty = [fromCol.title!]
+
+    if (toCol) {
+      const fromDate = record.row[fromCol.title!] ? dayjs(record.row[fromCol.title!]) : null
+      const toDate = record.row[toCol.title!] ? dayjs(record.row[toCol.title!]) : null
+
+      if (fromDate && toDate) {
+        endDate = dayjs(newStartDate).add(toDate.diff(fromDate, 'day'), 'day')
+      } else if (fromDate && !toDate) {
+        endDate = dayjs(newStartDate).endOf('day')
+      } else if (!fromDate && toDate) {
+        endDate = dayjs(newStartDate).endOf('day')
+      } else {
+        endDate = newStartDate.clone()
+      }
+      newRow.row[toCol.title!] = dayjs(endDate).format('YYYY-MM-DD HH:mm:ssZ')
+      updateProperty.push(toCol.title!)
+    }
+
+    if (!newRow) return
+
+    const newPk = extractPkFromRow(newRow.row, meta.value!.columns!)
+
+    if (dragElement.value && !isWithoutDates) {
+      formattedData.value = formattedData.value.map((r) => {
+        const pk = extractPkFromRow(r.row, meta.value!.columns!)
+        return pk === newPk ? newRow : r
+      })
+    } else {
+      formattedData.value = [...formattedData.value, newRow]
+      if (sideBarFilterOption.value !== 'allRecords') {
+        formattedSideBarData.value = formattedSideBarData.value.filter((r) => {
+          return extractPkFromRow(r.row, meta.value!.columns!) !== newPk
+        })
+      }
+    }
+
+    if (dragElement.value) {
+      dragElement.value.style.boxShadow = 'none'
+      dragElement.value = null
+    }
+    updateRowProperty(newRow, updateProperty, false)
+    $e('c:calendar:day:drag-record')
+  }
+}
+
 const isOverflowAcrossHourRange = (hour: dayjs.Dayjs) => {
-  let startOfHour = hour.startOf('hour')
-  const endOfHour = hour.endOf('hour')
-
-  const ids: Array<string> = []
-
-  let isOverflow = false
+  if (!recordsAcrossAllRange.value || !recordsAcrossAllRange.value.gridTimeMap) return { isOverflow: false, overflowCount: 0 }
+  const { gridTimeMap } = recordsAcrossAllRange.value
+  const startMinute = hour.hour() * 60 + hour.minute()
+  const endMinute = hour.hour() * 60 + hour.minute() + 59
   let overflowCount = 0
 
-  while (startOfHour.isBefore(endOfHour, 'minute')) {
-    const hourKey = startOfHour.hour() * 60 + startOfHour.minute()
-    if (recordsAcrossAllRange.value?.count?.[hourKey]?.overflow) {
-      isOverflow = true
-
-      recordsAcrossAllRange.value?.count?.[hourKey]?.id.forEach((id) => {
-        if (!ids.includes(id)) {
-          ids.push(id)
-          overflowCount += 1
-        }
-      })
-    }
-    startOfHour = startOfHour.add(1, 'minute')
+  for (let minute = startMinute; minute <= endMinute; minute++) {
+    const recordCount = gridTimeMap.get(minute)?.count ?? 0
+    overflowCount = Math.max(overflowCount, recordCount)
   }
 
-  overflowCount = overflowCount > 8 ? overflowCount - 8 : 0
-
-  return { isOverflow, overflowCount }
+  return { isOverflow: overflowCount - 8 > 0, overflowCount: overflowCount - 8 }
 }
 
 const viewMore = (hour: dayjs.Dayjs) => {
@@ -802,47 +864,59 @@ watch(
 <template>
   <div
     ref="container"
-    class="w-full relative no-selection h-[calc(100vh-10rem)] overflow-y-auto nc-scrollbar-md"
+    class="w-full flex relative no-selection h-[calc(100vh-5.3rem)] overflow-y-auto nc-scrollbar-md"
     data-testid="nc-calendar-day-view"
+    @drop="dropEvent"
   >
-    <div
-      v-for="(hour, index) in hours"
-      :key="index"
-      :class="{
-        '!border-brand-500': hour.isSame(selectedTime),
-      }"
-      class="flex w-full h-15 nc-calendar-day-hour relative border-1 group hover:bg-gray-50 border-white border-b-gray-100"
-      data-testid="nc-calendar-day-hour"
-      @click="selectHour(hour)"
-      @dblclick="newRecord(hour)"
-    >
-      <div class="pt-2 px-4 text-xs text-gray-500 font-semibold h-15">
-        {{ dayjs(hour).format('H A') }}
-      </div>
-      <div></div>
-      <NcDropdown
-        v-if="calendarRange.length > 1"
-        :class="{
-          '!block': hour.isSame(selectedTime),
-          '!hidden': !hour.isSame(selectedTime),
-        }"
-        auto-close
+    <div>
+      <div
+        v-for="(hour, index) in hours"
+        :key="index"
+        class="flex h-13 relative border-1 group hover:bg-gray-50 border-white"
+        data-testid="nc-calendar-day-hour"
+        @click="selectHour(hour)"
+        @dblclick="newRecord(hour)"
       >
-        <NcButton
-          class="!group-hover:block mr-4 my-auto ml-auto z-10 top-0 bottom-0 !group-hover:block absolute"
-          size="xsmall"
-          type="secondary"
+        <div class="w-16 border-b-0 pr-2 pl-2 text-right text-xs text-gray-400 font-semibold h-13">
+          {{ dayjs(hour).format('hh a') }}
+        </div>
+      </div>
+    </div>
+    <div class="w-full">
+      <div
+        v-for="(hour, index) in hours"
+        :key="index"
+        :class="{
+          '!border-brand-500': hour.isSame(selectedTime),
+        }"
+        class="flex w-full border-l-gray-100 h-13 transition nc-calendar-day-hour relative border-1 group hover:bg-gray-50 border-white border-b-gray-100"
+        data-testid="nc-calendar-day-hour"
+        @click="selectHour(hour)"
+        @dblclick="newRecord(hour)"
+      >
+        <NcDropdown
+          v-if="calendarRange.length > 1"
+          :class="{
+            '!block': hour.isSame(selectedTime),
+            '!hidden': !hour.isSame(selectedTime),
+          }"
+          auto-close
         >
-          <component :is="iconMap.plus" class="h-4 w-4" />
-        </NcButton>
-        <template #overlay>
-          <NcMenu class="w-64">
-            <NcMenuItem> Select date field to add </NcMenuItem>
-            <NcMenuItem
-              v-for="(range, calIndex) in calendarRange"
-              :key="calIndex"
-              class="text-gray-800 font-semibold text-sm"
-              @click="
+          <NcButton
+            class="!group-hover:block mr-4 my-auto ml-auto z-10 top-0 bottom-0 !group-hover:block absolute"
+            size="xsmall"
+            type="secondary"
+          >
+            <component :is="iconMap.plus" class="h-4 w-4" />
+          </NcButton>
+          <template #overlay>
+            <NcMenu class="w-64">
+              <NcMenuItem> Select date field to add </NcMenuItem>
+              <NcMenuItem
+                v-for="(range, calIndex) in calendarRange"
+                :key="calIndex"
+                class="text-gray-800 font-semibold text-sm"
+                @click="
                 () => {
                   let record = {
                     row: {
@@ -860,25 +934,25 @@ watch(
                   emit('newRecord', record)
                 }
               "
-            >
-              <div class="flex items-center gap-1">
-                <LazySmartsheetHeaderCellIcon :column-meta="range.fk_from_col" />
-                <span class="ml-1">{{ range.fk_from_col!.title! }}</span>
-              </div>
-            </NcMenuItem>
-          </NcMenu>
-        </template>
-      </NcDropdown>
-      <NcButton
-        v-else
-        :class="{
-          '!block': hour.isSame(selectedTime),
-          '!hidden': !hour.isSame(selectedTime),
-        }"
-        class="!group-hover:block mr-4 my-auto ml-auto z-10 top-0 bottom-0 !group-hover:block absolute"
-        size="xsmall"
-        type="secondary"
-        @click="
+              >
+                <div class="flex items-center gap-1">
+                  <LazySmartsheetHeaderCellIcon :column-meta="range.fk_from_col" />
+                  <span class="ml-1">{{ range.fk_from_col!.title! }}</span>
+                </div>
+              </NcMenuItem>
+            </NcMenu>
+          </template>
+        </NcDropdown>
+        <NcButton
+          v-else
+          :class="{
+            '!block': hour.isSame(selectedTime),
+            '!hidden': !hour.isSame(selectedTime),
+          }"
+          class="!group-hover:block mr-4 my-auto ml-auto z-10 top-0 bottom-0 !group-hover:block absolute"
+          size="xsmall"
+          type="secondary"
+          @click="
           () => {
             let record = {
               row: {
@@ -897,34 +971,35 @@ watch(
             emit('newRecord', record)
           }
         "
-      >
-        <component :is="iconMap.plus" class="h-4 w-4" />
-      </NcButton>
+        >
+          <component :is="iconMap.plus" class="h-4 w-4" />
+        </NcButton>
 
-      <NcButton
-        v-if="isOverflowAcrossHourRange(hour).isOverflow"
-        v-e="`['c:calendar:week-view-more']`"
-        class="!absolute bottom-2 text-center w-15 mx-auto inset-x-0 z-3 text-gray-500"
-        size="xxsmall"
-        type="secondary"
-        @click="viewMore(hour)"
-      >
-        <span class="text-xs">
-          +
-          {{ isOverflowAcrossHourRange(hour).overflowCount }}
-          more
-        </span>
-      </NcButton>
+        <NcButton
+          v-if="isOverflowAcrossHourRange(hour).isOverflow"
+          v-e="`['c:calendar:week-view-more']`"
+          class="!absolute bottom-2 text-center w-15 mx-auto inset-x-0 z-3 text-gray-500"
+          size="xxsmall"
+          type="secondary"
+          @click="viewMore(hour)"
+        >
+          <span class="text-xs">
+            +
+            {{ isOverflowAcrossHourRange(hour).overflowCount }}
+            more
+          </span>
+        </NcButton>
+      </div>
     </div>
     <div class="absolute inset-0 pointer-events-none">
-      <div class="relative !ml-[60px]" data-testid="nc-calendar-day-record-container">
+      <div class="relative !ml-[68px] !mr-1 nc-calendar-day-record-container" data-testid="nc-calendar-day-record-container">
         <template v-for="(record, rowIndex) in recordsAcrossAllRange.record" :key="rowIndex">
           <div
             v-if="record.rowMeta.style?.display !== 'none'"
             :data-testid="`nc-calendar-day-record-${record.row[displayField!.title!]}`"
             :data-unique-id="record.rowMeta.id"
             :style="record.rowMeta.style"
-            class="absolute draggable-record group cursor-pointer pointer-events-auto"
+            class="absolute draggable-record transition group cursor-pointer pointer-events-auto"
             @mousedown="dragStart($event, record)"
             @mouseleave="hoverRecord = null"
             @mouseover="hoverRecord = record.rowMeta.id as string"
@@ -944,12 +1019,17 @@ watch(
                   <LazySmartsheetPlainCell
                     v-if="!isRowEmpty(record, field!)"
                     v-model="record.row[field!.title!]"
-                    class="text-xs"
+                    class="text-xs font-medium"
                     :bold="getFieldStyle(field).bold"
                     :column="field"
                     :italic="getFieldStyle(field).italic"
                     :underline="getFieldStyle(field).underline"
                   />
+                </template>
+                <template #time>
+                  <div class="text-xs font-medium text-gray-400">
+                    {{ dayjs(record.row[record.rowMeta.range?.fk_from_col!.title!]).format('h:mm a') }}
+                  </div>
                 </template>
               </LazySmartsheetCalendarVRecordCard>
             </LazySmartsheetRow>

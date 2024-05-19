@@ -1,22 +1,5 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
-import {
-  ColumnInj,
-  EditColumnInj,
-  EditModeInj,
-  IsExpandedFormOpenInj,
-  IsFormInj,
-  ReadonlyInj,
-  RowHeightInj,
-  computed,
-  iconMap,
-  inject,
-  onClickOutside,
-  ref,
-  useGlobal,
-  useVModel,
-  watch,
-} from '#imports'
 
 const props = defineProps<{
   modelValue?: string | number
@@ -35,6 +18,8 @@ const isEditColumn = inject(EditColumnInj, ref(false))
 const rowHeight = inject(RowHeightInj, ref(1 as const))
 
 const isForm = inject(IsFormInj, ref(false))
+
+const isGrid = inject(IsGridInj, ref(false))
 
 const readOnly = inject(ReadonlyInj, ref(false))
 
@@ -208,7 +193,7 @@ watch(inputWrapperRef, () => {
       class="flex flex-row w-full long-text-wrapper"
       :class="{
         'min-h-10': rowHeight !== 1 || isExpandedFormOpen,
-        'min-h-9': rowHeight === 1 && !isExpandedFormOpen,
+        'min-h-5.5': rowHeight === 1 && !isExpandedFormOpen,
         'h-full w-full': isForm,
       }"
     >
@@ -240,8 +225,8 @@ watch(inputWrapperRef, () => {
           'nc-readonly-rich-text-sort-height': rowHeight === 1 && !isExpandedFormOpen && !isForm,
         }"
         :style="{
-          maxHeight: isForm ? undefined : isExpandedFormOpen ? `${height}px` : `${25 * (rowHeight || 1)}px`,
-          minHeight: isForm ? undefined : isExpandedFormOpen ? `${height}px` : `${25 * (rowHeight || 1)}px`,
+          maxHeight: isForm ? undefined : isExpandedFormOpen ? `${height}px` : `${21 * rowHeightTruncateLines(rowHeight)}px`,
+          minHeight: isForm ? undefined : isExpandedFormOpen ? `${height}px` : `${21 * rowHeightTruncateLines(rowHeight)}px`,
         }"
         @dblclick="onExpand"
         @keydown.enter="onExpand"
@@ -281,11 +266,12 @@ watch(inputWrapperRef, () => {
       <LazyCellClampedText
         v-else-if="rowHeight"
         :value="vModel"
-        :lines="rowHeight"
-        class="nc-text-area-clamped-text my-auto"
+        :lines="rowHeightTruncateLines(rowHeight)"
+        class="nc-text-area-clamped-text"
         :style="{
           'word-break': 'break-word',
-          'max-height': `${25 * (rowHeight || 1)}px`,
+          'max-height': `${25 * rowHeightTruncateLines(rowHeight)}px`,
+          'my-auto': rowHeightTruncateLines(rowHeight) === 1,
         }"
         @click="onTextClick"
       />
@@ -295,12 +281,28 @@ watch(inputWrapperRef, () => {
       <NcTooltip
         v-if="!isVisible && !isForm"
         placement="bottom"
-        class="!absolute top-1 hidden nc-text-area-expand-btn group-hover:block z-3"
-        :class="isForm ? 'right-1' : 'right-0'"
+        class="!absolute !hidden nc-text-area-expand-btn group-hover:block z-3"
+        :class="{
+          'right-1': isForm,
+          'right-0': !isForm,
+          'top-0': isGrid && !isExpandedFormOpen && !isForm && !(!rowHeight || rowHeight === 1),
+          'top-1': !(isGrid && !isExpandedFormOpen && !isForm),
+        }"
+        :style="
+          isGrid && !isExpandedFormOpen && !isForm && (!rowHeight || rowHeight === 1)
+            ? { top: '50%', transform: 'translateY(-50%)' }
+            : undefined
+        "
       >
         <template #title>{{ $t('title.expand') }}</template>
-        <NcButton type="secondary" size="xsmall" data-testid="attachment-cell-file-picker-button" @click.stop="onExpand">
-          <component :is="iconMap.expand" class="transform group-hover:(!text-grey-800 ) scale-120 text-gray-700 text-xs" />
+        <NcButton
+          type="secondary"
+          size="xsmall"
+          data-testid="attachment-cell-file-picker-button"
+          class="!p-0 !w-5 !h-5 !min-w-[fit-content]"
+          @click.stop="onExpand"
+        >
+          <component :is="iconMap.expand" class="transform group-hover:(!text-grey-800) text-gray-700 text-xs" />
         </NcButton>
       </NcTooltip>
     </div>
@@ -381,9 +383,9 @@ textarea:focus {
     :deep(.ProseMirror) {
       @apply !pt-0;
     }
-    &.nc-readonly-rich-text-sort-height {
-      @apply mt-2;
-    }
+    // &.nc-readonly-rich-text-sort-height {
+    //   @apply mt-1;
+    // }
   }
 }
 </style>

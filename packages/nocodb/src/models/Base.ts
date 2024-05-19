@@ -1,7 +1,6 @@
 import type { BaseType, BoolType, MetaType } from 'nocodb-sdk';
 import type { DB_TYPES } from '~/utils/globals';
-import Source from '~/models/Source';
-import { BaseUser } from '~/models';
+import { BaseUser, Source } from '~/models';
 import Noco from '~/Noco';
 import {
   CacheDelDirection,

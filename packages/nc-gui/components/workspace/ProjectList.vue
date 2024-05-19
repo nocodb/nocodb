@@ -3,22 +3,6 @@ import { Empty } from 'ant-design-vue'
 import type { BaseType } from 'nocodb-sdk'
 import { ProjectRoles, ProjectStatus, WorkspaceUserRoles, timeAgo } from 'nocodb-sdk'
 import { nextTick } from '@vue/runtime-core'
-import {
-  NcProjectType,
-  computed,
-  extractSdkResponseErrorMsg,
-  isEeUI,
-  message,
-  navigateTo,
-  parseProp,
-  ref,
-  storeToRefs,
-  useBases,
-  useGlobal,
-  useNuxtApp,
-  useRoles,
-  useWorkspace,
-} from '#imports'
 
 const workspaceStore = useWorkspace()
 

@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { useNotification } from '#imports'
-
 const notificationStore = useNotification()
 
 const { loadNotifications, markAsOpened } = notificationStore

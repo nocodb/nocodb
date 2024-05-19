@@ -1,42 +1,5 @@
 import { type ColumnType } from 'nocodb-sdk'
 import type { PropType } from '@vue/runtime-core'
-import {
-  ColumnInj,
-  computed,
-  defineComponent,
-  h,
-  iconMap,
-  inject,
-  isAttachment,
-  isBoolean,
-  isCurrency,
-  isDate,
-  isDateTime,
-  isDecimal,
-  isDuration,
-  isEmail,
-  isFloat,
-  isGeoData,
-  isGeometry,
-  isInt,
-  isJSON,
-  isPercent,
-  isPhoneNumber,
-  isPrimaryKey,
-  isRating,
-  isSet,
-  isSingleSelect,
-  isSpecificDBType,
-  isString,
-  isTextArea,
-  isTime,
-  isURL,
-  isUser,
-  isYear,
-  storeToRefs,
-  toRef,
-  useBase,
-} from '#imports'
 
 const renderIcon = (column: ColumnType, abstractType: any) => {
   if (isPrimaryKey(column)) {

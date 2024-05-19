@@ -1,6 +1,4 @@
-<script lang="ts" setup>
-import { iconMap } from '#imports'
-</script>
+<script lang="ts" setup></script>
 
 <template>
   <a-dropdown :trigger="['click']" overlay-class-name="nc-dropdown-actions-menu">

@@ -25,3 +25,4 @@ export { default as TemplateGenerator } from '~/lib/TemplateGenerator';
 export * from '~/lib/passwordHelpers';
 export * from '~/lib/mergeSwaggerSchema';
 export * from '~/lib/dateTimeHelper';
+export * from '~/lib/form';

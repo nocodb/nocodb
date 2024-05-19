@@ -21,6 +21,7 @@ import { GridViewColumn } from '~/models';
 import validateParams from '~/helpers/validateParams';
 import { getUniqueColumnAliasName } from '~/helpers/getUniqueName';
 import Column from '~/models/Column';
+import { DriverClient } from '~/utils/nc-config';
 
 export const randomID = customAlphabet(
   '1234567890abcdefghijklmnopqrstuvwxyz_',
@@ -370,12 +371,19 @@ export async function populateRollupForLTAR({
   await GridViewColumn.update(viewCol.id, { show: false });
 }
 
-export const sanitizeColumnName = (name: string) => {
+export const sanitizeColumnName = (name: string, sourceType?: DriverClient) => {
   if (process.env.NC_SANITIZE_COLUMN_NAME === 'false') return name;
-  const columnName = name.replace(/\W/g, '_');
+  let columnName = name.replace(/\W/g, '_');
 
   // if column name only contains _ then return as 'field'
-  if (/^_+$/.test(columnName)) return 'field';
+  if (/^_+$/.test(columnName)) columnName = 'field';
+
+  if (sourceType) {
+    if (sourceType === DriverClient.DATABRICKS) {
+      // databricks column name should be lowercase
+      columnName = columnName.toLowerCase();
+    }
+  }
 
   return columnName;
 };

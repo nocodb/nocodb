@@ -2,7 +2,7 @@ import { ModelTypes, UITypes, ViewTypes } from 'nocodb-sdk';
 import { isVirtualCol, RelationTypes } from 'nocodb-sdk';
 import { pluralize, singularize } from 'inflection';
 import { isLinksOrLTAR } from 'nocodb-sdk';
-import { getUniqueColumnAliasName } from './getUniqueName';
+import { getUniqueColumnAliasName, getUniqueColumnName } from './getUniqueName';
 import type { RollupColumn } from '~/models';
 import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
 import type Source from '~/models/Source';
@@ -93,7 +93,11 @@ export async function extractAndGenerateManyToManyRelations(
     if (
       belongsToCols?.length === 2 &&
       normalColumns.length < 5 &&
-      assocModel.primaryKeys.length === 2
+      assocModel.primaryKeys.length === 2 &&
+      // check if both belongsToCol target primary keys
+      assocModel.primaryKeys.every((pk) =>
+        belongsToCols.some((c) => c.colOptions?.fk_child_column_id === pk.id),
+      )
     ) {
       const modelA = await belongsToCols[0].colOptions.getRelatedTable();
       const modelB = await belongsToCols[1].colOptions.getRelatedTable();
@@ -334,6 +338,14 @@ export async function populateMeta(
       let colOrder = 1;
 
       for (const column of columns) {
+        if (source.type === 'databricks') {
+          if (column.pk && !column.cdf) {
+            column.meta = {
+              ag: 'nc',
+            };
+          }
+        }
+
         await Column.insert({
           uidt: column.uidt || getColumnUiType(source, column),
           fk_model_id: models2[table.tn].id,
@@ -375,8 +387,11 @@ export async function populateMeta(
               base_id: base.id,
               db_alias: source.id,
               fk_model_id: models2[table.tn].id,
-              cn: column.cn,
-              title: column.title,
+              cn: getUniqueColumnName(models2[table.tn].columns, column.cn),
+              title: getUniqueColumnAliasName(
+                models2[table.tn].columns,
+                column.title,
+              ),
               uidt: column.uidt,
               type: column.hm ? 'hm' : column.mm ? 'mm' : 'bt',
               // column_id,

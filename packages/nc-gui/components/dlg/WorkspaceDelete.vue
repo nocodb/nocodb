@@ -9,13 +9,23 @@ const visible = useVModel(props, 'visible', emits)
 
 const workspaceStore = useWorkspace()
 
-const { deleteWorkspace: _deleteWorkspace, loadWorkspaces, navigateToWorkspace } = workspaceStore
+const { deleteWorkspace: _deleteWorkspace, loadWorkspaces, navigateToWorkspace, loadWorkspace } = workspaceStore
 
-const { workspaces, workspacesList } = storeToRefs(workspaceStore)
+const { workspacesList, activeWorkspace } = storeToRefs(workspaceStore)
 
 const { refreshCommandPalette } = useCommandPalette()
 
-const workspace = computed(() => workspaces.value.get(props.workspaceId))
+const workspace = computedAsync(async () => {
+  if (props.workspaceId) {
+    const ws = workspacesList.value.find((workspace) => workspace.id === props.workspaceId)
+    if (!ws) {
+      await loadWorkspace(props.workspaceId)
+
+      return workspacesList.value.find((workspace) => workspace.id === props.workspaceId)
+    }
+  }
+  return activeWorkspace.value ?? workspacesList.value[0]
+})
 
 const onDelete = async () => {
   if (!workspace.value) return

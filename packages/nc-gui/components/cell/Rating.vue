@@ -1,15 +1,4 @@
 <script setup lang="ts">
-import {
-  ActiveCellInj,
-  ColumnInj,
-  IsExpandedFormOpenInj,
-  ReadonlyInj,
-  computed,
-  inject,
-  parseProp,
-  useSelectedCellKeyupListener,
-} from '#imports'
-
 interface Props {
   modelValue?: number | null | undefined
 }
@@ -21,6 +10,8 @@ const emits = defineEmits(['update:modelValue'])
 const column = inject(ColumnInj)!
 
 const readOnly = inject(ReadonlyInj, ref(false))
+
+const rowHeight = inject(RowHeightInj, ref(undefined))
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
@@ -78,7 +69,15 @@ watch(rateDomRef, () => {
     :disabled="readOnly"
     :count="ratingMeta.max"
     :class="readOnly ? 'pointer-events-none' : ''"
-    :style="`color: ${ratingMeta.color}; padding: ${isExpandedFormOpen ? '0px 8px' : '0px 2px'};`"
+    :style="{
+      'color': ratingMeta.color,
+      'padding': isExpandedFormOpen ? '0px 8px' : '0px 2px',
+      'display': '-webkit-box',
+      'max-width': '100%',
+      '-webkit-line-clamp': rowHeightTruncateLines(rowHeight),
+      '-webkit-box-orient': 'vertical',
+      'overflow': 'hidden',
+    }"
     @keydown="onKeyPress"
   >
     <template #character>

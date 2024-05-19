@@ -143,8 +143,8 @@ function onResize(widthPercent: any) {
     sideBarSize.value.old = ((16 * fontSize) / viewportWidth.value) * 100
     if (isLeftSidebarOpen.value) sideBarSize.value.current = sideBarSize.value.old
     return
-  } else if (widthRem > 23.5) {
-    sideBarSize.value.old = ((23.5 * fontSize) / viewportWidth.value) * 100
+  } else if (widthRem > 35) {
+    sideBarSize.value.old = ((35 * fontSize) / viewportWidth.value) * 100
     if (isLeftSidebarOpen.value) sideBarSize.value.current = sideBarSize.value.old
 
     return
@@ -155,7 +155,7 @@ function onResize(widthPercent: any) {
 }
 
 const normalizedWidth = computed(() => {
-  const maxSize = remToPx(23.5)
+  const maxSize = remToPx(35)
   const minSize = remToPx(16)
   if (sidebarWidth.value > maxSize) {
     return maxSize
@@ -178,15 +178,15 @@ const normalizedWidth = computed(() => {
     <Pane
       min-size="15%"
       :size="mobileNormalizedSidebarSize"
-      max-size="40%"
-      class="nc-sidebar-splitpane !sm:max-w-94 relative !overflow-visible flex"
+      max-size="60%"
+      class="nc-sidebar-splitpane !sm:max-w-140 relative !overflow-visible flex"
       :style="{
         width: `${mobileNormalizedSidebarSize}%`,
       }"
     >
       <div
         ref="wrapperRef"
-        class="nc-sidebar-wrapper relative flex flex-col h-full justify-center !sm:(max-w-94) absolute overflow-visible"
+        class="nc-sidebar-wrapper relative flex flex-col h-full justify-center !sm:(max-w-140) absolute overflow-visible"
         :class="{
           'mobile': isMobileMode,
           'minimized-height': !isLeftSidebarOpen,

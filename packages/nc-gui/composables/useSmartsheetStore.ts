@@ -1,7 +1,6 @@
 import { ViewTypes } from 'nocodb-sdk'
 import type { FilterType, KanbanType, SortType, TableType, ViewType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import { computed, ref, storeToRefs, unref, useBase, useEventBus, useFieldQuery, useInjectionState, useNuxtApp } from '#imports'
 import type { SmartsheetStoreEvents } from '#imports'
 
 const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
@@ -38,6 +37,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     const isKanban = computed(() => view.value?.type === ViewTypes.KANBAN)
     const isMap = computed(() => view.value?.type === ViewTypes.MAP)
     const isSharedForm = computed(() => isForm.value && shared)
+    const isDefaultView = computed(() => view.value?.is_default)
     const xWhere = computed(() => {
       let where
       const col =
@@ -57,6 +57,8 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     const isSqlView = computed(() => (meta.value as TableType)?.type === 'view')
     const sorts = ref<SortType[]>(unref(initialSorts) ?? [])
     const nestedFilters = ref<FilterType[]>(unref(initialFilters) ?? [])
+
+    const allFilters = ref<Filter[]>([])
 
     watch(
       sorts,
@@ -97,6 +99,8 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       isSqlView,
       eventBus,
       sqlUi,
+      allFilters,
+      isDefaultView,
     }
   },
   'smartsheet-store',

@@ -5,13 +5,11 @@ import NcTooltip from '~/components/nc/Tooltip.vue'
 
 const { activeTables } = storeToRefs(useTablesStore())
 const { openTable } = useTablesStore()
-const { openedProject } = storeToRefs(useBases())
+const { openedProject, isDataSourceLimitReached } = storeToRefs(useBases())
 
 const { base } = useBase()
 
 const isNewBaseModalOpen = ref(false)
-
-const isDataSourceLimitReached = computed(() => Number(openedProject.value?.sources?.length) > 1)
 
 const { isUIAllowed } = useRoles()
 
@@ -107,7 +105,7 @@ const onCreateBaseClick = () => {
         <GeneralIcon icon="download" />
         <div class="label">{{ $t('activity.import') }} {{ $t('general.data') }}</div>
       </div>
-      <component :is="isDataSourceLimitReached ? NcTooltip : 'div'" v-if="isUIAllowed('sourceCreate')">
+      <!--      <component :is="isDataSourceLimitReached ? NcTooltip : 'div'" v-if="isUIAllowed('sourceCreate')">
         <template #title>
           <div>
             {{ $t('tooltip.reachedSourceLimit') }}
@@ -126,7 +124,7 @@ const onCreateBaseClick = () => {
           <GeneralIcon icon="dataSource" />
           <div class="label">{{ $t('labels.connectDataSource') }}</div>
         </div>
-      </component>
+      </component> -->
     </div>
     <div
       v-if="base?.isLoading"
@@ -193,7 +191,7 @@ const onCreateBaseClick = () => {
     </div>
 
     <ProjectImportModal v-if="defaultBase" v-model:visible="isImportModalOpen" :source="defaultBase" />
-    <LazyDashboardSettingsDataSourcesCreateBase v-model:open="isNewBaseModalOpen" />
+    <!--    <LazyDashboardSettingsDataSourcesCreateBase v-model:open="isNewBaseModalOpen" /> -->
   </div>
 </template>
 

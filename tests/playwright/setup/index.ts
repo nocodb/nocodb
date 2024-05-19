@@ -155,6 +155,7 @@ export interface NcContext {
   workspace: WorkspaceType;
   defaultProjectTitle: string;
   defaultTableTitle: string;
+  api: Api<any>;
 }
 
 selectors.setTestIdAttribute('data-testid');
@@ -169,12 +170,14 @@ async function localInit({
   baseType = ProjectTypes.DATABASE,
   isSuperUser = false,
   dbType,
+  resetSsoClients = false,
 }: {
   workerId: string;
   isEmptyProject?: boolean;
   baseType?: ProjectTypes;
   isSuperUser?: boolean;
   dbType?: string;
+  resetSsoClients?: boolean;
 }) {
   const parallelId = process.env.TEST_PARALLEL_INDEX;
 
@@ -210,7 +213,7 @@ async function localInit({
     // console.log(process.env.TEST_WORKER_INDEX, process.env.TEST_PARALLEL_INDEX);
 
     // delete sso-clients
-    if (isEE() && api['ssoClient'] && isSuperUser) {
+    if (resetSsoClients && isEE() && api['ssoClient'] && isSuperUser) {
       const clients = await api.ssoClient.list();
       for (const client of clients.list) {
         try {
@@ -342,7 +345,7 @@ async function localInit({
 
     // get current user information
     const user = await api.auth.me();
-    return { data: { base, user, workspace, token }, status: 200 };
+    return { data: { base, user, workspace, token, api }, status: 200 };
   } catch (e) {
     console.error(`Error resetting base: ${process.env.TEST_PARALLEL_INDEX}`, e);
     return { data: {}, status: 500 };
@@ -355,12 +358,14 @@ const setup = async ({
   isEmptyProject = false,
   isSuperUser = false,
   url,
+  resetSsoClients = false,
 }: {
   baseType?: ProjectTypes;
   page: Page;
   isEmptyProject?: boolean;
   isSuperUser?: boolean;
   url?: string;
+  resetSsoClients?: boolean;
 }): Promise<NcContext> => {
   console.time('Setup');
 
@@ -384,6 +389,7 @@ const setup = async ({
       baseType,
       isSuperUser,
       dbType,
+      resetSsoClients,
     });
   } catch (e) {
     console.error(`Error resetting base: ${process.env.TEST_PARALLEL_INDEX}`, e);
@@ -472,6 +478,7 @@ const setup = async ({
     workspace,
     defaultProjectTitle: 'Getting Started',
     defaultTableTitle: 'Features',
+    api: response?.data?.api,
   } as NcContext;
 };
 

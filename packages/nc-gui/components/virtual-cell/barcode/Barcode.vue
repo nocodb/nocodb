@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { ComputedRef } from 'vue'
 import JsBarcodeWrapper from './JsBarcodeWrapper.vue'
-import { RowHeightInj, computed, inject, ref } from '#imports'
 
 const maxNumberOfAllowedCharsForBarcodeValue = 100
 
@@ -66,7 +65,9 @@ const rowHeight = inject(RowHeightInj, ref(undefined))
       :barcode-value="barcodeValue"
       tabindex="-1"
       :barcode-format="barcodeMeta.barcodeFormat"
-      :custom-style="{ height: rowHeight ? `${rowHeight * 1.8}rem` : `1.8rem` }"
+      :custom-style="{
+        height: rowHeight ? `${rowHeight === 1 ? rowHeightInPx['1'] - 4 : rowHeightInPx[`${rowHeight}`] - 20}px` : `1.8rem`,
+      }"
       @on-click-barcode="showBarcodeModal"
     >
       <template #barcodeRenderError>

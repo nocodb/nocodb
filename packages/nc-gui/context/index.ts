@@ -1,7 +1,7 @@
 import type { ColumnType, FilterType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, InjectionKey, Ref } from 'vue'
 import type { EventHook } from '@vueuse/core'
-import type { NcProject, PageSidebarNode, Row, TabItem } from '#imports'
+import type { PageSidebarNode } from '#imports'
 
 export const ActiveCellInj: InjectionKey<Ref<boolean>> = Symbol('active-cell')
 export const IsPublicInj: InjectionKey<Ref<boolean>> = Symbol('is-public')
@@ -57,3 +57,5 @@ export const TreeViewInj: InjectionKey<{
 export const CalendarViewTypeInj: InjectionKey<Ref<'week' | 'month' | 'day' | 'year'>> = Symbol('calendar-view-type-injection')
 export const JsonExpandInj: InjectionKey<Ref<boolean>> = Symbol('json-expand-injection')
 export const AllFiltersInj: InjectionKey<Ref<Record<string, FilterType[]>>> = Symbol('all-filters-injection')
+
+export const IsAdminPanelInj: InjectionKey<Ref<boolean>> = Symbol('is-admin-panel-injection')

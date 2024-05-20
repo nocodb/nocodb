@@ -1,7 +1,11 @@
 import { Process, Processor } from '@nestjs/bull';
 import { forwardRef, Inject, Logger } from '@nestjs/common';
 import { Job } from 'bull';
-import { JOBS_QUEUE, JobTypes } from '~/interface/Jobs';
+import {
+  type HandleWebhookJobData,
+  JOBS_QUEUE,
+  JobTypes,
+} from '~/interface/Jobs';
 import { HookHandlerService } from '~/services/hook-handler.service';
 
 @Processor(JOBS_QUEUE)
@@ -14,18 +18,7 @@ export class WebhookHandlerProcessor {
   ) {}
 
   @Process(JobTypes.HandleWebhook)
-  async job(job: Job) {
-    /*
-      job.data: {
-        hookName: string;
-        prevData;
-        newData;
-        user: UserType;
-        viewId: string;
-        modelId: string;
-        tnPath: string;
-      }
-    */
+  async job(job: Job<HandleWebhookJobData>) {
     await this.hookHandlerService.handleHooks(job.data);
   }
 }

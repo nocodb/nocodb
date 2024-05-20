@@ -443,13 +443,13 @@ watchEffect(() => {
                 </div>
               </NcMenuItem>
 
-              <NcButton v-if="!webHook && nestedLevel < 5" @click.stop="addFilterGroup()">
+              <NcMenuItem v-if="!webHook && nestedLevel < 5" @click.stop="addFilterGroup()">
                 <div class="flex items-center gap-1">
                   <!-- Add Filter Group -->
                   <component :is="iconMap.plusSquare" />
                   {{ $t('activity.addFilterGroup') }}
                 </div>
-              </NcButton>
+              </NcMenuItem>
             </template>
           </NcMenu>
         </template>

@@ -389,30 +389,14 @@ watch(
   },
 )
 
-let focused = false
-let elRef = null
-
-// focus add button on reopen
-if (!nested.value) {
-  watch(
-    () => props.isOpen,
-    (isOpen) => {
-      if (isOpen) setTimeout(() => elRef?.focus(), 10)
-    },
-  )
-}
-
-const addFilterBtnRef = (btn) => {
-  if (!nested.value && !focused && btn?.$el) {
-    btn?.$el?.focus()
-    // set focused after 10ms to avoid skipping element if it's rendered immediately
-    // todo: check why the reference is keep changing ?
+const addFilterBtnRef = ref()
+watchEffect(() => {
+  if (props.isOpen && !nested.value && addFilterBtnRef.value) {
     setTimeout(() => {
-      focused = true
+      addFilterBtnRef.value?.$el?.focus()
     }, 10)
   }
-  elRef = btn?.$el
-}
+})
 </script>
 
 <template>
@@ -727,7 +711,7 @@ const addFilterBtnRef = (btn) => {
             'mt-1 mb-2': filters.length,
           }"
         >
-          <NcButton :ref="addFilterBtnRef" class="nc-btn-focus" size="small" type="text" @click.stop="addFilter()">
+          <NcButton ref="addFilterBtnRef" class="nc-btn-focus" size="small" type="text" @click.stop="addFilter()">
             <div class="flex items-center gap-1">
               <component :is="iconMap.plus" />
               <!-- Add Filter -->

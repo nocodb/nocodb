@@ -4,6 +4,14 @@ if [ ! -d "${NC_TOOL_DIR}" ] ; then
   mkdir -p "$NC_TOOL_DIR"
 fi
 
+# ensure backwards compatibility of renamed env vars
+if [ -z "${LITESTREAM_S3_ACCESS_KEY_ID}" ] && [ -n "${AWS_ACCESS_KEY_ID}" ] ; then
+  export LITESTREAM_S3_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}"
+fi
+if [ -z "${LITESTREAM_S3_SECRET_ACCESS_KEY}" ] && [ -n "${AWS_SECRET_ACCESS_KEY}" ] ; then
+  export LITESTREAM_S3_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}"
+fi
+
 use_litestream() {
      [ -z "${NC_DB}" ] \
   && [ -z "${NC_DB_JSON}" ] \

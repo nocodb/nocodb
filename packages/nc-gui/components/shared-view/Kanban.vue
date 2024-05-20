@@ -11,8 +11,6 @@ provide(MetaInj, meta)
 
 provide(ActiveViewInj, sharedView)
 
-provide(FieldsInj, ref(meta.value?.columns || []))
-
 provide(IsPublicInj, ref(true))
 
 useProvideViewColumns(sharedView, meta, () => reloadEventHook?.trigger(), true)

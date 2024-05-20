@@ -21,7 +21,6 @@ import { JobsModule } from '~/modules/jobs/jobs.module';
 import appConfig from '~/app.config';
 import { ExtractIdsMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
 
-import { HookHandlerService } from '~/services/hook-handler.service';
 import { BasicStrategy } from '~/strategies/basic.strategy/basic.strategy';
 import { UsersModule } from '~/modules/users/users.module';
 import { AuthModule } from '~/modules/auth/auth.module';
@@ -66,7 +65,6 @@ export const ceModuleConfig = {
     LocalStrategy,
     AuthTokenStrategy,
     BaseViewStrategy,
-    HookHandlerService,
     BasicStrategy,
   ],
 };

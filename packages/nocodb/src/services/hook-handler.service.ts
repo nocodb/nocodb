@@ -1,8 +1,7 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { UITypes, ViewTypes } from 'nocodb-sdk';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import { type HookType, UITypes, ViewTypes } from 'nocodb-sdk';
 import ejs from 'ejs';
 import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import type { UserType } from 'nocodb-sdk';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import {
   _transformSubmittedFormDataForEmail,
@@ -11,18 +10,22 @@ import {
 import { IEventEmitter } from '~/modules/event-emitter/event-emitter.interface';
 import formSubmissionEmailTemplate from '~/utils/common/formSubmissionEmailTemplate';
 import { FormView, Hook, Model, View } from '~/models';
+import { type HandleWebhookJobData, JobTypes } from '~/interface/Jobs';
+import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 
 export const HANDLE_WEBHOOK = '__nc_handleHooks';
 
 @Injectable()
 export class HookHandlerService implements OnModuleInit, OnModuleDestroy {
+  private logger = new Logger(HookHandlerService.name);
   private unsubscribe: () => void;
 
   constructor(
     @Inject('IEventEmitter') private readonly eventEmitter: IEventEmitter,
+    @Inject('JobsService') private readonly jobsService: IJobsService,
   ) {}
 
-  private async handleHooks({
+  public async handleHooks({
     hookName,
     prevData,
     newData,
@@ -30,15 +33,7 @@ export class HookHandlerService implements OnModuleInit, OnModuleDestroy {
     viewId,
     modelId,
     tnPath,
-  }: {
-    hookName;
-    prevData;
-    newData;
-    user: UserType;
-    viewId: string;
-    modelId: string;
-    tnPath: string;
-  }): Promise<void> {
+  }: HandleWebhookJobData): Promise<void> {
     const view = await View.get(viewId);
     const model = await Model.get(modelId);
 
@@ -111,7 +106,11 @@ export class HookHandlerService implements OnModuleInit, OnModuleDestroy {
           });
         }
       } catch (e) {
-        console.log(e);
+        this.logger.error({
+          error: e,
+          details: 'Error while sending form submission email',
+          hookName,
+        });
       }
     }
 
@@ -119,23 +118,47 @@ export class HookHandlerService implements OnModuleInit, OnModuleDestroy {
       const [event, operation] = hookName.split('.');
       const hooks = await Hook.list({
         fk_model_id: modelId,
-        event,
-        operation,
+        event: event as HookType['event'],
+        operation: operation as HookType['operation'],
       });
       for (const hook of hooks) {
         if (hook.active) {
-          invokeWebhook(hook, model, view, prevData, newData, user);
+          await invokeWebhook(hook, model, view, prevData, newData, user);
         }
       }
     } catch (e) {
-      console.log('hooks :: error', hookName, e);
+      this.logger.error({
+        error: e,
+        details: 'Error while handling webhook',
+        hookName,
+      });
     }
+  }
+
+  private async triggerHook({
+    hookName,
+    prevData,
+    newData,
+    user,
+    viewId,
+    modelId,
+    tnPath,
+  }: HandleWebhookJobData) {
+    await this.jobsService.add(JobTypes.HandleWebhook, {
+      hookName,
+      prevData,
+      newData,
+      user,
+      viewId,
+      modelId,
+      tnPath,
+    });
   }
 
   onModuleInit(): any {
     this.unsubscribe = this.eventEmitter.on(
       HANDLE_WEBHOOK,
-      this.handleHooks.bind(this),
+      this.triggerHook.bind(this),
     );
   }
 

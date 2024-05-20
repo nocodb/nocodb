@@ -6,6 +6,7 @@ import { MetaSyncProcessor } from '~/modules/jobs/jobs/meta-sync/meta-sync.proce
 import { SourceCreateProcessor } from '~/modules/jobs/jobs/source-create/source-create.processor';
 import { SourceDeleteProcessor } from '~/modules/jobs/jobs/source-delete/source-delete.processor';
 import { UpdateStatsProcessor } from '~/modules/jobs/jobs/update-stats/update-stats.processor';
+import { WebhookHandlerProcessor } from '~/modules/jobs/jobs/webhook-handler/webhook-handler.processor';
 import { JobsEventService } from '~/modules/jobs/fallback/jobs-event.service';
 import { JobTypes } from '~/interface/Jobs';
 
@@ -26,6 +27,7 @@ export class QueueService extends QueueServiceCE {
     protected readonly sourceCreateProcessor: SourceCreateProcessor,
     protected readonly sourceDeleteProcessor: SourceDeleteProcessor,
     protected readonly updateStatsProcessor: UpdateStatsProcessor,
+    protected readonly webhookHandlerProcessor: WebhookHandlerProcessor,
   ) {
     super(
       jobsEventService,
@@ -34,6 +36,7 @@ export class QueueService extends QueueServiceCE {
       metaSyncProcessor,
       sourceCreateProcessor,
       sourceDeleteProcessor,
+      webhookHandlerProcessor,
     );
   }
 

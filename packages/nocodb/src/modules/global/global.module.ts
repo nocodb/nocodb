@@ -12,7 +12,9 @@ import { JwtStrategy } from '~/strategies/jwt.strategy';
 import { UsersService } from '~/services/users/users.service';
 import { TelemetryService } from '~/services/telemetry.service';
 import { AppHooksListenerService } from '~/services/app-hooks-listener.service';
+import { HookHandlerService } from '~/services/hook-handler.service';
 import { UsersModule } from '~/modules/users/users.module';
+import { JobsModule } from '~/modules/jobs/jobs.module';
 
 export const JwtStrategyProvider: Provider = {
   provide: JwtStrategy,
@@ -36,7 +38,7 @@ export const JwtStrategyProvider: Provider = {
 };
 
 export const globalModuleMetadata = {
-  imports: [EventEmitterModule, forwardRef(() => UsersModule)],
+  imports: [EventEmitterModule, forwardRef(() => UsersModule), JobsModule],
   providers: [
     InitMetaServiceProvider,
     AppHooksService,
@@ -46,6 +48,7 @@ export const globalModuleMetadata = {
     AppHooksService,
     AppHooksListenerService,
     TelemetryService,
+    HookHandlerService,
   ],
   exports: [
     MetaService,
@@ -54,6 +57,7 @@ export const globalModuleMetadata = {
     AppHooksService,
     AppHooksListenerService,
     TelemetryService,
+    HookHandlerService,
     ...(process.env.NC_WORKER_CONTAINER !== 'true' ? [SocketGateway] : []),
   ],
 };

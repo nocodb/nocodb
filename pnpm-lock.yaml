@@ -568,7 +568,7 @@ importers:
         version: 4.24.3
       knex:
         specifier: ^3.0.1
-        version: 3.0.1(mysql2@3.6.3)(pg@8.11.3)
+        version: 3.0.1(mysql2@3.9.7)(pg@8.11.3)
       knex-databricks:
         specifier: link:../nc-knex-dialects/knex-databricks
         version: link:../nc-knex-dialects/knex-databricks
@@ -576,8 +576,8 @@ importers:
         specifier: link:../nc-knex-dialects/knex-snowflake
         version: link:../nc-knex-dialects/knex-snowflake
       mysql2:
-        specifier: ^3.6.2
-        version: 3.6.3
+        specifier: ^3.9.4
+        version: 3.9.7
       object-hash:
         specifier: ^3.0.0
         version: 3.0.0
@@ -1116,7 +1116,7 @@ importers:
         version: 6.3.4
       ts-jest:
         specifier: 29.1.2
-        version: 29.1.2(@babel/core@7.23.7)(jest@29.7.0)(typescript@5.2.2)
+        version: 29.1.2(@babel/core@7.24.0)(jest@29.7.0)(typescript@5.2.2)
       ts-loader:
         specifier: ^9.5.1
         version: 9.5.1(typescript@5.2.2)(webpack@5.91.0)
@@ -1192,7 +1192,7 @@ importers:
         version: 5.0.5
       ts-jest:
         specifier: ^29.1.2
-        version: 29.1.2(@babel/core@7.24.0)(jest@29.7.0)(typescript@5.2.2)
+        version: 29.1.2(@babel/core@7.23.7)(jest@29.7.0)(typescript@5.2.2)
       tsc-alias:
         specifier: ^1.8.8
         version: 1.8.8
@@ -25183,7 +25183,7 @@ packages:
       - supports-color
     dev: false
 
-  /knex@3.0.1(mysql2@3.6.3)(pg@8.11.3):
+  /knex@3.0.1(mysql2@3.9.7)(pg@8.11.3):
     resolution: {integrity: sha512-ruASxC6xPyDklRdrcDy6a9iqK+R9cGK214aiQa+D9gX2ZnHZKv6o6JC9ZfgxILxVAul4bZ13c3tgOAHSuQ7/9g==}
     engines: {node: '>=16'}
     hasBin: true
@@ -25220,7 +25220,7 @@ packages:
       getopts: 2.3.0
       interpret: 2.2.0
       lodash: 4.17.21
-      mysql2: 3.6.3
+      mysql2: 3.9.7
       pg: 8.11.3
       pg-connection-string: 2.6.1
       rechoir: 0.8.0
@@ -26988,8 +26988,8 @@ packages:
       seq-queue: 0.0.5
       sqlstring: 2.3.3
 
-  /mysql2@3.6.3:
-    resolution: {integrity: sha512-qYd/1CDuW1KYZjD4tzg2O8YS3X/UWuGH8ZMHyMeggMTXL3yOdMisbwZ5SNkHzDGlZXKYLAvV8tMrEH+NUMz3fw==}
+  /mysql2@3.9.2:
+    resolution: {integrity: sha512-3Cwg/UuRkAv/wm6RhtPE5L7JlPB877vwSF6gfLAS68H+zhH+u5oa3AieqEd0D0/kC3W7qIhYbH419f7O9i/5nw==}
     engines: {node: '>= 8.0'}
     dependencies:
       denque: 2.1.0
@@ -27002,8 +27002,8 @@ packages:
       sqlstring: 2.3.3
     dev: false
 
-  /mysql2@3.9.2:
-    resolution: {integrity: sha512-3Cwg/UuRkAv/wm6RhtPE5L7JlPB877vwSF6gfLAS68H+zhH+u5oa3AieqEd0D0/kC3W7qIhYbH419f7O9i/5nw==}
+  /mysql2@3.9.7:
+    resolution: {integrity: sha512-KnJT8vYRcNAZv73uf9zpXqNbvBG7DJrs+1nACsjZP1HMJ1TgXEy8wnNilXAn/5i57JizXKtrUtwDB7HxT9DDpw==}
     engines: {node: '>= 8.0'}
     dependencies:
       denque: 2.1.0

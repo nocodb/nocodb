@@ -1031,23 +1031,23 @@ const onUseCaseFormSubmit = async () => {
 
           <div v-if="goToDashboard">
             <a-form :model="useCaseFormState" name="useCase" autocomplete="off" @finish="onUseCaseFormSubmit">
-              <div class="text-center text-lg mb-2 mt-4 font-weight-bold">Your usecase with NocoDB</div>
+              <div class="text-center text-lg mb-2 mt-4 font-weight-bold">Your usecase? And role of NocoDB?</div>
               <a-form-item
                 name="useCase"
                 :rules="[
-                  { required: true, message: 'Please input the use case' },
+                  { required: true, message: 'Please input the use case and role of NocoDB' },
                   { min: 50, message: 'Please input minimum 50 characters' },
                 ]"
               >
                 <a-textarea
                   v-model:value="useCaseFormState.useCase"
                   :rows="4"
-                  placeholder="Eg : We are a food delivery company and would like to comment/collaborate on tracking orders"
+                  placeholder="Eg : We are a car driving school company and will use NocoDB as admin for DB management"
                   :minlength="50"
                 />
               </a-form-item>
               <div class="flex justify-center">
-                <nc-button html-type="submit" class="mt-2" size="middle"> 🚀 Submit Usecase & Go to Dashboard 🚀 </nc-button>
+                <nc-button html-type="submit" class="mt-2" size="middle"> 🚀 Submit & Go to Dashboard 🚀 </nc-button>
               </div>
             </a-form>
           </div>

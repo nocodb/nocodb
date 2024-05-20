@@ -1136,6 +1136,9 @@ const calculateSlices = () => {
       start: 0,
       end: 0,
     }
+
+    // try again until the grid is rendered
+    setTimeout(calculateSlices, 100)
     return
   }
 

@@ -175,7 +175,6 @@ export class CommandPaletteService {
         return [];
       }
     } catch (e) {
-      console.log(e);
       return [];
     }
     return cmdData;

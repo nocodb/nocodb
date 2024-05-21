@@ -12,7 +12,7 @@ import { nocoExecute } from 'nc-help';
 import papaparse from 'papaparse';
 import { NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
-import { serializeCellValue } from '~/modules/datas/helpers';
+import { serializeCellValue } from '~/helpers/dataHelpers';
 import { PublicDatasExportService } from '~/services/public-datas-export.service';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { Column, Model, Source, View } from '~/models';

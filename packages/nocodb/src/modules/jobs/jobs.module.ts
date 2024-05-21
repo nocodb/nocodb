@@ -1,5 +1,6 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bull';
+import { NocoModule } from '~/modules/noco.module';
 
 // Jobs
 import { ExportService } from '~/modules/jobs/jobs/export-import/export.service';
@@ -29,13 +30,10 @@ import { JobsService as FallbackJobsService } from '~/modules/jobs/fallback/jobs
 import { QueueService as FallbackQueueService } from '~/modules/jobs/fallback/fallback-queue.service';
 import { JobsEventService as FallbackJobsEventService } from '~/modules/jobs/fallback/jobs-event.service';
 import { JOBS_QUEUE } from '~/interface/Jobs';
-import { MetasModule } from '~/modules/metas/metas.module';
-import { DatasModule } from '~/modules/datas/datas.module';
 
 export const JobsModuleMetadata = {
   imports: [
-    DatasModule,
-    MetasModule,
+    forwardRef(() => NocoModule),
     ...(process.env.NC_REDIS_JOB_URL
       ? [
           BullModule.forRoot({

@@ -8,7 +8,7 @@ import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { View } from '~/models';
 import { Base, Hook, Model, Source } from '~/models';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
-import { getViewAndModelByAliasOrId } from '~/modules/datas/helpers';
+import { getViewAndModelByAliasOrId } from '~/helpers/dataHelpers';
 import { clearPrefix, generateBaseIdMap } from '~/helpers/exportImportHelpers';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { NcError } from '~/helpers/catchError';

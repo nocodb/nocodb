@@ -5,7 +5,7 @@ interface Props {
   // when we set a number, then it is number type
   // for sqlite, when we clear a cell or empty the cell, it returns ""
   // otherwise, it is null type
-  modelValue?: number | null | string
+  modelValue?: number | string | bigint | null
 }
 
 interface Emits {
@@ -15,6 +15,8 @@ interface Emits {
 const props = defineProps<Props>()
 
 const emits = defineEmits<Emits>()
+
+const castNumber = (value: string | number | bigint) => (typeof BigInt !== 'undefined' ? BigInt(value) : Number(value))
 
 const { showNull } = useGlobal()
 
@@ -31,11 +33,11 @@ const isForm = inject(IsFormInj)!
 const _vModel = useVModel(props, 'modelValue', emits)
 
 const displayValue = computed(() => {
-  if (_vModel.value === null) return null
+  if (_vModel.value === null || _vModel.value === undefined) return null
 
   if (isNaN(Number(_vModel.value))) return null
 
-  return Number(_vModel.value)
+  return castNumber(_vModel.value)
 })
 
 const vModel = computed({
@@ -46,7 +48,12 @@ const vModel = computed({
       // the value is considered as ''
       _vModel.value = null
     } else if (isForm.value && !isEditColumn.value) {
-      _vModel.value = isNaN(Number(value)) ? value : Number(value)
+      if (value === null || value === undefined) {
+        _vModel.value = null
+        return
+      }
+
+      _vModel.value = isNaN(Number(value)) ? value : castNumber(value)
     } else {
       _vModel.value = value
     }

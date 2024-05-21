@@ -10,6 +10,7 @@ import {
   ExternalError,
   extractDBError,
   Forbidden,
+  NcBaseError,
   NcBaseErrorv2,
   NotFound,
   SsoError,
@@ -39,7 +40,8 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       exception = new NcBaseErrorv2(NcErrorType.BAD_JSON);
     }
 
-    const dbError = extractDBError(exception);
+    // try to extract db error for unknown errors
+    const dbError = !(exception instanceof NcBaseError) ? extractDBError(exception) : null;
 
     // skip unnecessary error logging
     if (

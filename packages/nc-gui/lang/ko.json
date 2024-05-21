@@ -448,6 +448,8 @@
     "noResultsMatchedYourSearch": "Your search did not yield any matching results."
   },
   "labels": {
+    "connectionDetails": "Connection Details",
+    "metaSync": "Meta Sync",
     "today": "Today",
     "workspace": "Workspace",
     "txt": "TXT Record value",
@@ -1099,6 +1101,7 @@
     "searchOptions": "Search options"
   },
   "msg": {
+    "formulaNotSupported": "This function is unavailable for your database",
     "controlOrgAppearance": "Control your organisations name and appearance.",
     "addCompanyDomains": "Add company domains to restrict access to unwanted users.",
     "restrictUsersFromSharing": "Restrict users from being able to share bases publicly.",
@@ -1495,7 +1498,7 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "허용되는 파일 형식은 .xls, .xlsx, .xlsm, .ods, .ots입니다",
       "parameterKeyCannotBeEmpty": "매개 변수 키는 비워 둘 수 없습니다.",
       "duplicateParameterKeysAreNotAllowed": "중복 매개 변수 키는 허용되지 않습니다.",
-      "fieldRequired": "{value}은(는) 비워 둘 수 없습니다.",
+      "fieldRequired": "This field cannot be empty.",
       "projectNotAccessible": "프로젝트에 액세스할 수 없습니다.",
       "copyToClipboardError": "클립 보드에 복사할 수 없습니다.",
       "pasteFromClipboardError": "Failed to paste from clipboard",

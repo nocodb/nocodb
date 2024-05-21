@@ -13,11 +13,14 @@ import { SyncSource } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { JobTypes } from '~/interface/Jobs';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
+import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class AtImportController {
-  constructor(@Inject('JobsService') private readonly jobsService) {}
+  constructor(
+    @Inject('JobsService') private readonly jobsService: IJobsService,
+  ) {}
 
   @Post([
     '/api/v1/db/meta/syncs/:syncId/trigger',

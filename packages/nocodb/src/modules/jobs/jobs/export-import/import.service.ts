@@ -81,6 +81,7 @@ export class ImportService {
     req: NcRequest;
     externalModels?: Model[];
     existingModel?: Model;
+    importColumnIds?: string[];
   }) {
     const hrTime = initTime();
 
@@ -143,7 +144,12 @@ export class ImportService {
       const modelData = data.model;
 
       const reducedColumnSet = modelData.columns.filter(
-        (a) => !isVirtualCol(a) && a.uidt !== UITypes.ForeignKey,
+        (a) =>
+          !isVirtualCol(a) &&
+          a.uidt !== UITypes.ForeignKey &&
+          (param.importColumnIds
+            ? param.importColumnIds.includes(getEntityIdentifier(a.id))
+            : true),
       );
 
       // create table with static columns
@@ -228,7 +234,14 @@ export class ImportService {
       const modelData = data.model;
       const table = tableReferences.get(modelData.id);
 
-      const linkedColumnSet = modelData.columns.filter((a) => isLinksOrLTAR(a));
+      const linkedColumnSet = modelData.columns.filter(
+        (a) =>
+          isLinksOrLTAR(a) &&
+          !a.system &&
+          (param.importColumnIds
+            ? param.importColumnIds.includes(getEntityIdentifier(a.id))
+            : true),
+      );
 
       for (const col of linkedColumnSet) {
         if (col.colOptions) {
@@ -299,9 +312,8 @@ export class ImportService {
                         colOptions.fk_mm_model_id && a.id !== col.id,
                   );
 
-                // referencing the same model
                 if (colOptions.fk_related_model_id === modelData.id) {
-                  continue;
+                  childColumn.title = `${childColumn.title} copy`;
                 }
 
                 for (const nColumn of childModel.columns) {
@@ -391,31 +403,8 @@ export class ImportService {
                     a.id !== col.id,
                 );
 
-              // referencing the same model
               if (colOptions.fk_related_model_id === modelData.id) {
-                const counterRelationType =
-                  colOptions.type === 'hm' ? 'bt' : 'oo';
-                const oldCol = childModel.columns.find(
-                  (oColumn) =>
-                    oColumn.colOptions?.fk_parent_column_id ===
-                      getEntityIdentifier(colOptions.fk_parent_column_id) &&
-                    oColumn.colOptions?.fk_child_column_id ===
-                      getEntityIdentifier(colOptions.fk_child_column_id) &&
-                    oColumn.colOptions?.type === counterRelationType,
-                );
-                const col = childModel.columns.find(
-                  (nColumn) =>
-                    nColumn.colOptions?.fk_parent_column_id ===
-                      getIdOrExternalId(colOptions.fk_parent_column_id) &&
-                    nColumn.colOptions?.fk_child_column_id ===
-                      getIdOrExternalId(colOptions.fk_child_column_id) &&
-                    nColumn.colOptions?.type === counterRelationType,
-                );
-                idMap.set(
-                  `${oldCol.base_id}::${oldCol.source_id}::${oldCol.fk_model_id}::${oldCol.id}`,
-                  col.id,
-                );
-                continue;
+                childColumn.title = `${childColumn.title} copy`;
               }
 
               for (const nColumn of childModel.columns) {
@@ -519,6 +508,10 @@ export class ImportService {
                       getEntityIdentifier(colOptions.fk_mm_model_id) &&
                       a.id !== getEntityIdentifier(col.id)),
                 );
+
+                if (colOptions.fk_related_model_id === modelData.id) {
+                  childColumn.title = `${childColumn.title} copy`;
+                }
 
                 for (const nColumn of childModel.columns) {
                   if (
@@ -642,6 +635,10 @@ export class ImportService {
                         getEntityIdentifier(colOptions.fk_child_column_id) &&
                       a.id !== getEntityIdentifier(col.id)),
                 );
+
+                if (colOptions.fk_related_model_id === modelData.id) {
+                  childColumn.title = `${childColumn.title} copy`;
+                }
 
                 for (const nColumn of childModel.columns) {
                   if (
@@ -768,6 +765,10 @@ export class ImportService {
                       a.id !== getEntityIdentifier(col.id)),
                 );
 
+                if (colOptions.fk_related_model_id === modelData.id) {
+                  childColumn.title = `${childColumn.title} copy`;
+                }
+
                 for (const nColumn of childModel.columns) {
                   if (
                     nColumn.id !== getIdOrExternalId(col.id) &&
@@ -815,15 +816,18 @@ export class ImportService {
       referencedColumnSet.push(
         ...modelData.columns.filter(
           (a) =>
-            a.uidt === UITypes.Lookup ||
-            a.uidt === UITypes.Rollup ||
-            a.uidt === UITypes.Formula ||
-            a.uidt === UITypes.QrCode ||
-            a.uidt === UITypes.CreatedTime ||
-            a.uidt === UITypes.LastModifiedTime ||
-            a.uidt === UITypes.CreatedBy ||
-            a.uidt === UITypes.LastModifiedBy ||
-            a.uidt === UITypes.Barcode,
+            (a.uidt === UITypes.Lookup ||
+              a.uidt === UITypes.Rollup ||
+              a.uidt === UITypes.Formula ||
+              a.uidt === UITypes.QrCode ||
+              a.uidt === UITypes.CreatedTime ||
+              a.uidt === UITypes.LastModifiedTime ||
+              a.uidt === UITypes.CreatedBy ||
+              a.uidt === UITypes.LastModifiedBy ||
+              a.uidt === UITypes.Barcode) &&
+            (param.importColumnIds
+              ? param.importColumnIds.includes(getEntityIdentifier(a.id))
+              : true),
         ),
       );
     }

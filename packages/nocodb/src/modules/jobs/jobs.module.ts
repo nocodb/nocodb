@@ -14,6 +14,7 @@ import { SourceCreateController } from '~/modules/jobs/jobs/source-create/source
 import { SourceCreateProcessor } from '~/modules/jobs/jobs/source-create/source-create.processor';
 import { SourceDeleteController } from '~/modules/jobs/jobs/source-delete/source-delete.controller';
 import { SourceDeleteProcessor } from '~/modules/jobs/jobs/source-delete/source-delete.processor';
+import { WebhookHandlerProcessor } from '~/modules/jobs/jobs/webhook-handler/webhook-handler.processor';
 
 // Jobs Module Related
 import { JobsLogService } from '~/modules/jobs/jobs/jobs-log.service';
@@ -77,6 +78,7 @@ export const JobsModuleMetadata = {
     MetaSyncProcessor,
     SourceCreateProcessor,
     SourceDeleteProcessor,
+    WebhookHandlerProcessor,
   ],
   exports: ['JobsService'],
 };

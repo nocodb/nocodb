@@ -448,6 +448,8 @@
     "noResultsMatchedYourSearch": "Your search did not yield any matching results."
   },
   "labels": {
+    "connectionDetails": "Connection Details",
+    "metaSync": "Meta Sync",
     "today": "Today",
     "workspace": "Workspace",
     "txt": "TXT Record value",
@@ -587,7 +589,7 @@
     "untitledToken": "Untitled token",
     "tableName": "Tabulas nosaukums",
     "dashboardName": "Dashboard name",
-    "createView": "Create a View",
+    "createView": "Create View",
     "creatingView": "Creating View",
     "duplicateView": "Duplicate View",
     "duplicateGridView": "Duplicate Grid View",
@@ -1099,6 +1101,7 @@
     "searchOptions": "Search options"
   },
   "msg": {
+    "formulaNotSupported": "This function is unavailable for your database",
     "controlOrgAppearance": "Control your organisations name and appearance.",
     "addCompanyDomains": "Add company domains to restrict access to unwanted users.",
     "restrictUsersFromSharing": "Restrict users from being able to share bases publicly.",
@@ -1495,7 +1498,7 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "Pieņemtie failu tipi ir .xls, .xlsx, .xlsm, .ods, .ots.",
       "parameterKeyCannotBeEmpty": "Parametra atslēga nedrīkst būt tukša",
       "duplicateParameterKeysAreNotAllowed": "Parametru taustiņu dublēšanās nav atļauta",
-      "fieldRequired": "{value} nevar būt tukšs.",
+      "fieldRequired": "This field cannot be empty.",
       "projectNotAccessible": "Projekts nav pieejams",
       "copyToClipboardError": "Neizdevās kopēt uz starpliktuvi",
       "pasteFromClipboardError": "Failed to paste from clipboard",

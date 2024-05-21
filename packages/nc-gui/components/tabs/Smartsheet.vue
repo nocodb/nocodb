@@ -16,8 +16,6 @@ useSidebar('nc-right-sidebar')
 
 const activeTab = toRef(props, 'activeTab')
 
-const fields = ref<ColumnType[]>([])
-
 const route = useRoute()
 
 const meta = computed<TableType | undefined>(() => {
@@ -50,7 +48,6 @@ provide(IsLockedInj, isLocked)
 provide(ReloadViewDataHookInj, reloadViewDataEventHook)
 provide(ReloadViewMetaHookInj, reloadViewMetaEventHook)
 provide(OpenNewRecordFormHookInj, openNewRecordFormHook)
-provide(FieldsInj, fields)
 provide(IsFormInj, isForm)
 provide(TabMetaInj, activeTab)
 provide(
@@ -60,6 +57,7 @@ provide(
 useExpandedFormDetachedProvider()
 
 useProvideViewColumns(activeView, meta, () => reloadViewDataEventHook?.trigger())
+
 useProvideViewGroupBy(activeView, meta, xWhere)
 
 useProvideSmartsheetLtarHelpers(meta)

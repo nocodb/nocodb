@@ -448,6 +448,8 @@
     "noResultsMatchedYourSearch": "Your search did not yield any matching results."
   },
   "labels": {
+    "connectionDetails": "Connection Details",
+    "metaSync": "Meta Sync",
     "today": "Today",
     "workspace": "Workspace",
     "txt": "TXT Record value",
@@ -587,7 +589,7 @@
     "untitledToken": "Untitled token",
     "tableName": "テーブルの名前",
     "dashboardName": "Dashboard name",
-    "createView": "Create a View",
+    "createView": "Create View",
     "creatingView": "Creating View",
     "duplicateView": "Duplicate View",
     "duplicateGridView": "Duplicate Grid View",
@@ -1099,6 +1101,7 @@
     "searchOptions": "Search options"
   },
   "msg": {
+    "formulaNotSupported": "This function is unavailable for your database",
     "controlOrgAppearance": "Control your organisations name and appearance.",
     "addCompanyDomains": "Add company domains to restrict access to unwanted users.",
     "restrictUsersFromSharing": "Restrict users from being able to share bases publicly.",
@@ -1495,7 +1498,7 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "使用可能なファイル形式は、.xls、.xlsx、.xlsm、.ods、.ots です。",
       "parameterKeyCannotBeEmpty": "パラメータキーは空にできません",
       "duplicateParameterKeysAreNotAllowed": "パラメータキーの重複は許可されていません",
-      "fieldRequired": "{value} を空にすることはできません。",
+      "fieldRequired": "This field cannot be empty.",
       "projectNotAccessible": "このプロジェクトにはアクセスできません",
       "copyToClipboardError": "クリップボードへのコピーに失敗しました",
       "pasteFromClipboardError": "Failed to paste from clipboard",

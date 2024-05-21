@@ -132,7 +132,7 @@ export default `<!doctype html>
                                         <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;">
                                             Hi,</p>
                                         <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;">
-                                            Please verify your email address by clicking the following button.</p>
+                                            Please verify your e-mail address by clicking the following button.</p>
                                         <table role="presentation" border="0" cellpadding="0" cellspacing="0"
                                                class="btn btn-primary"
                                                style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; box-sizing: border-box; width: 100%;"
@@ -160,7 +160,7 @@ export default `<!doctype html>
                                             </tbody>
                                         </table>
                                         <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;">
-                                            Thanks regards NocoDB.</p>
+                                            Thank you and have a nice day,<br><%- adminEmail %>
                                     </td>
                                 </tr>
                             </table>

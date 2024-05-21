@@ -57,16 +57,16 @@ function getLimitsForPlan(plan: WorkspacePlan) {
 async function getLimit(type: PlanLimitTypes, workspaceId?: string) {
   if (!workspaceId) {
     if (!PlanLimits.generic[type]) {
-      return NcError.forbidden('You are not allowed to perform this action');
+      NcError.forbidden('You are not allowed to perform this action');
     }
 
-    return PlanLimits.generic[type];
+    return PlanLimits.generic[type] || Infinity;
   }
 
   const workspace = await Workspace.get(workspaceId);
 
   if (!workspace) {
-    return NcError.forbidden('You are not allowed to perform this action');
+    NcError.forbidden('You are not allowed to perform this action');
   }
 
   const plan = workspace.plan;

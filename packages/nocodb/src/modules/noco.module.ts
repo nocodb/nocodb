@@ -1,6 +1,5 @@
 import multer from 'multer';
 import { Module } from '@nestjs/common';
-import { PassportModule } from '@nestjs/passport';
 import { MulterModule } from '@nestjs/platform-express';
 
 /* Modules */
@@ -24,6 +23,7 @@ import { UsersService } from '~/services/users/users.service';
 
 /* Metas */
 import { NC_ATTACHMENT_FIELD_SIZE } from '~/constants';
+import { MetaService } from '~/meta/meta.service';
 import { ApiDocsController } from '~/controllers/api-docs/api-docs.controller';
 import { ApiTokensController } from '~/controllers/api-tokens.controller';
 import { AttachmentsController } from '~/controllers/attachments.controller';
@@ -120,15 +120,10 @@ import { PublicDatasService } from '~/services/public-datas.service';
 import { CalendarDatasController } from '~/controllers/calendars-datas.controller';
 import { CalendarDatasService } from '~/services/calendar-datas.service';
 
-/* Auth */
-import { GoogleStrategyProvider } from '~/strategies/google.strategy/google.strategy';
-import { AuthController } from '~/controllers/auth/auth.controller';
-
 export const nocoModuleMetadata = {
   imports: [
     EventEmitterModule,
     JobsModule,
-    PassportModule,
     MulterModule.register({
       storage: multer.diskStorage({}),
       limits: {
@@ -193,16 +188,12 @@ export const nocoModuleMetadata = {
           OldDatasController,
           PublicDatasController,
           PublicDatasExportController,
-
-          /* Auth */
-          AuthController,
         ]
       : []),
   ],
   providers: [
     /* Generic */
     InitMetaServiceProvider,
-    AppHooksService,
     JwtStrategyProvider,
     GlobalGuard,
     SocketGateway,
@@ -263,12 +254,10 @@ export const nocoModuleMetadata = {
     OldDatasService,
     PublicDatasService,
     PublicDatasExportService,
-
-    /* Auth */
-    GoogleStrategyProvider,
   ],
   exports: [
     /* Generic */
+    AppHooksService,
     TelemetryService,
     HookHandlerService,
     JwtStrategy,
@@ -277,6 +266,7 @@ export const nocoModuleMetadata = {
     UsersService,
 
     /* Metas */
+    MetaService,
     TablesService,
     ColumnsService,
     FiltersService,

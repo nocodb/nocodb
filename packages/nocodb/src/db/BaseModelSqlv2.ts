@@ -4523,7 +4523,7 @@ class BaseModelSqlv2 {
   ) {
     if (
       typeof data[column.title] === 'string' &&
-      column.dtxp &&
+      typeof column.dtxp === 'number' &&
       column.dtxp < data[column.title]?.length
     ) {
       NcError.badRequest(

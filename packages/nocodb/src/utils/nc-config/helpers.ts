@@ -324,3 +324,13 @@ export async function metaUrlToDbConfig(urlString): Promise<DbConfig> {
 
   return dbConfig;
 }
+
+export function getDefaultDriverOptions(type: DriverClient) {
+  switch (type) {
+    case DriverClient.MYSQL:
+    case DriverClient.MYSQL_LEGACY:
+      return { bigNumberStrings: true, supportBigNumbers: true };
+    default:
+      return {};
+  }
+}

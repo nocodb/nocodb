@@ -3,6 +3,7 @@ import type Source from '~/models/Source';
 import {
   defaultConnectionConfig,
   defaultConnectionOptions,
+  getDefaultDriverOptions,
 } from '~/utils/nc-config';
 import SqlClientFactory from '~/db/sql-client/lib/SqlClientFactory';
 import { XKnex } from '~/db/CustomKnex';
@@ -99,6 +100,7 @@ export default class NcConnectionMgrv2 {
 
           return res;
         },
+        ...getDefaultDriverOptions(source.type),
       },
     } as any);
     return this.connectionRefs[source.base_id][source.id];

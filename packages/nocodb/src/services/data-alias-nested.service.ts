@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { UITypes } from 'nocodb-sdk';
-import type { PathParams } from '~/modules/datas/helpers';
+import type { PathParams } from '~/helpers/dataHelpers';
 import { NcError } from '~/helpers/catchError';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import {
   getColumnByIdOrName,
   getViewAndModelByAliasOrId,
-} from '~/modules/datas/helpers';
+} from '~/helpers/dataHelpers';
 import { Model, Source } from '~/models';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 

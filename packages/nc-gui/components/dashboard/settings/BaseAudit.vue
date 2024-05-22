@@ -103,7 +103,7 @@ const columns = [
 </script>
 
 <template>
-  <div class="flex flex-col gap-4 w-full">
+  <div class="h-full flex flex-col gap-4 w-full">
     <div v-if="!appInfo.auditEnabled" class="text-red-500">Audit logs are currently disabled by administrators.</div>
     <div class="flex flex-row justify-between items-center">
       <h6 class="mb-4 first-letter:capital font-bold">Audit : {{ base.title }}</h6>
@@ -129,7 +129,7 @@ const columns = [
         <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
       </template>
     </a-table>
-    <div class="flex flex-row justify-center items-center">
+    <div v-if="+totalRows > currentLimit" class="flex flex-row justify-center items-center">
       <a-pagination
         v-model:current="currentPage"
         v-model:page-size="currentLimit"
@@ -150,6 +150,31 @@ const columns = [
   white-space: break-spaces;
   font-size: unset;
   font-family: unset;
+}
+
+:deep(.nc-audit-table) {
+  @apply h-[calc(100%_-_102px)];
+
+  .ant-spin-nested-loading,
+  .ant-spin-container,
+  .ant-table,
+  .ant-table-container,
+  table {
+    @apply !h-full;
+  }
+  .ant-table-thead {
+    @apply sticky top-0 w-full z-10;
+  }
+  .ant-table-content {
+    @apply !h-auto max-h-full overflow-auto nc-scrollbar-thin;
+
+    tr {
+      height: auto !important;
+    }
+  }
+  pre {
+    @apply mb-0;
+  }
 }
 .pagination {
   .ant-select-dropdown {

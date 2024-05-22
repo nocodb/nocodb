@@ -46,7 +46,7 @@ onMounted(async () => {
 
 <template>
   <GeneralModal v-model:visible="isOpen" size="large" class="!w-[70rem]">
-    <div class="p-6">
+    <div class="p-6 h-full">
       <DashboardSettingsBaseAudit v-if="!isLoading" :source-id="activeSourceId" :base-id="baseId" :show-all-columns="false" />
     </div>
   </GeneralModal>

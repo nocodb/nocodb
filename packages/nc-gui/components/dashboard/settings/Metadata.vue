@@ -140,9 +140,9 @@ const columns = [
           </div>
         </a-button>
       </div>
-      <div class="max-h-600px overflow-y-auto">
+      <div class="h-auto max-h-600px">
         <a-table
-          class="w-full"
+          class="nc-metasync-table w-full"
           size="small"
           :custom-row="
             (record) => ({
@@ -178,3 +178,27 @@ const columns = [
     </div>
   </div>
 </template>
+
+<style lang="scss" scoped>
+:deep(.nc-metasync-table) {
+  @apply !h-[calc(100%_-_102px)];
+
+  .ant-spin-nested-loading,
+  .ant-spin-container,
+  .ant-table,
+  .ant-table-container,
+  table {
+    @apply !h-full;
+  }
+  .ant-table-thead {
+    @apply sticky top-0 w-full z-10;
+  }
+  .ant-table-content {
+    @apply !h-auto max-h-full overflow-auto nc-scrollbar-thin;
+
+    tr {
+      height: auto !important;
+    }
+  }
+}
+</style>

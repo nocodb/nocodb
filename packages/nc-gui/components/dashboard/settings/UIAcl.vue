@@ -159,7 +159,7 @@ const toggleSelectAll = (role: Role) => {
         </div>
       </div>
 
-      <div class="max-h-600px overflow-y-auto">
+      <div class="max-h-600px overflow-y-auto nc-scrollbar-thin">
         <a-table
           class="w-full"
           size="small"

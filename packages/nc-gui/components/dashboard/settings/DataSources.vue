@@ -303,7 +303,7 @@ const openedTab = ref('erd')
                 <div>{{ $t('title.auditLogs') }}</div>
               </div>
             </template>
-            <div class="p-4 h-full overflow-auto">
+            <div class="p-4 h-full">
               <LazyDashboardSettingsBaseAudit :source-id="activeSource.id" />
             </div>
           </a-tab-pane>

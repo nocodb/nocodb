@@ -75,7 +75,7 @@ const visible = useVModel(props, 'visible', emits)
     :mask-closable="maskClosable"
     @keydown.esc="visible = false"
   >
-    <div :class="`nc-modal max-h-[${height}]`">
+    <div :class="`nc-modal h-[${height}] max-h-[${height}]`">
       <slot />
     </div>
   </a-modal>

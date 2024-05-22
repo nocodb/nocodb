@@ -1,5 +1,11 @@
-import { forwardRef, Module } from '@nestjs/common';
-import { metaModuleMetadata } from 'src/modules/metas/metas.module';
+import { nocoModuleMetadata } from 'src/modules/noco.module';
+import { Module } from '@nestjs/common';
+
+/* Generic */
+import { Producer } from '~/services/producer/producer';
+import { ProducerProvider } from '~/services/producer';
+
+/* Metas */
 import { OrgWorkspacesService } from '~/services/org-workspaces.service';
 import { OrgWorkspacesController } from '~/controllers/org-workspaces.controller';
 import { OrgsService } from '~/services/orgs.service';
@@ -19,30 +25,39 @@ import { LayoutsController } from '~/controllers/dashboards/layouts.controller';
 import { LayoutFilterController } from '~/controllers/dashboards/layoutFilter.controller';
 import { TelemetryController } from '~/controllers/telemetry.controller';
 
-// import { PageDao } from '../../daos/page.dao';
 import { DocsPagesService } from '~/services/docs/docs-pages.service';
 import { DocsPagesUpdateService } from '~/services/docs/docs-page-update.service';
 import { DocsPublicController } from '~/controllers/docs/public/docs-public.controller';
 import { PublicDocsService } from '~/services/docs/public/public-docs.service';
 import { SSOClientService } from '~/services/sso-client.service';
 import { SsoClientController } from '~/controllers/sso-client.controller';
-import { WorkspaceUsersService } from '~/modules/workspace-users/workspace-users.service';
-import { UsersModule } from '~/modules/users/users.module';
 import { OrgSSOClientService } from '~/services/org-sso-client.service';
 
-// import { ThrottlerExpiryListenerService } from '~/services/throttler/throttler-expiry-listener.service';
+/* Datas */
+import { DataOptService } from '~/services/data-opt/data-opt.service';
 
-// import { ClickhouseService } from '~/services/clickhouse/clickhouse.service';
+/* Workspaces */
+import { WorkspacesService } from '~/services/workspaces.service';
+import { WorkspacesController } from '~/controllers/workspaces.controller';
+import { WorkspaceUsersService } from '~/services/workspace-users.service';
+import { WorkspaceUsersController } from '~/controllers/workspace-users.controller';
 
-// todo: refactor to use config service
-// const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
-
-@Module({
-  ...metaModuleMetadata,
+export const nocoModuleEeMetadata = {
+  imports: [...nocoModuleMetadata.imports],
   providers: [
-    /** Services */
-    ...metaModuleMetadata.providers,
+    ...nocoModuleMetadata.providers,
 
+    /* Generic */
+    ProducerProvider,
+
+    /* Datas */
+    DataOptService,
+
+    /* Metas */
+    SSOClientService,
+    OrgWorkspacesService,
+    OrgSSOClientService,
+    OrgsService,
     /** DAOs */
     PageDao,
     PageSnapshotDao,
@@ -51,38 +66,40 @@ import { OrgSSOClientService } from '~/services/org-sso-client.service';
     DocsPagesService,
     DocsPagesUpdateService,
     PublicDocsService,
+    /** Layouts Services */
     WidgetDataService,
     WidgetsService,
     LayoutsService,
     LayoutFilterService,
-    SSOClientService,
+
+    /* Workspaces */
+    WorkspacesService,
     WorkspaceUsersService,
-    OrgWorkspacesService,
-    OrgSSOClientService,
-    OrgsService,
-    // ClickhouseService,
-    // ...(enableThrottler ? [ThrottlerExpiryListenerService] : []),
   ],
-  imports: [...metaModuleMetadata.imports, forwardRef(() => UsersModule)],
   controllers: [
-    ...metaModuleMetadata.controllers,
-    ...(process.env.NC_WORKER_CONTAINER !== 'true'
-      ? [
-          DocsPagesHistoryController,
-          DocsPagesController,
-          DocsPublicController,
+    ...nocoModuleMetadata.controllers,
 
-          WidgetsController,
-          LayoutsController,
-          LayoutFilterController,
+    /* Metas */
+    DocsPagesHistoryController,
+    DocsPagesController,
+    DocsPublicController,
 
-          TelemetryController,
-          SsoClientController,
+    WidgetsController,
+    LayoutsController,
+    LayoutFilterController,
 
-          OrgWorkspacesController,
-          OrgsController,
-        ]
-      : []),
+    TelemetryController,
+    SsoClientController,
+
+    OrgWorkspacesController,
+    OrgsController,
+
+    /* Workspaces */
+    WorkspacesController,
+    WorkspaceUsersController,
   ],
-})
-export class MetasModule {}
+  exports: [...nocoModuleMetadata.exports, Producer, WorkspacesService],
+};
+
+@Module(nocoModuleEeMetadata)
+export class NocoModule {}

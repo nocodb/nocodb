@@ -2,7 +2,7 @@ import { UsersService as UsersServiceEE } from 'src/ee/services/users/users.serv
 import { Injectable } from '@nestjs/common';
 import { LicenseService } from '../license/license.service';
 import type { NcRequest } from '~/interface/config';
-import { WorkspacesService } from '~/modules/workspaces/workspaces.service';
+import { WorkspacesService } from '~/services/workspaces.service';
 import { MetaService } from '~/meta/meta.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { BasesService } from '~/services/bases.service';

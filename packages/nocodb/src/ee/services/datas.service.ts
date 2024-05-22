@@ -1,9 +1,9 @@
 import { Injectable, Optional } from '@nestjs/common';
 import { DatasService as DatasServiceCE } from 'src/services/datas.service';
 import { InjectSentry, SentryService } from '@ntegral/nestjs-sentry';
-import type { PathParams } from '~/modules/datas/helpers';
+import type { PathParams } from '~/helpers/dataHelpers';
 import type { View } from '~/models';
-import { getViewAndModelByAliasOrId } from '~/modules/datas/helpers';
+import { getViewAndModelByAliasOrId } from '~/helpers/dataHelpers';
 import { Model, Source } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';

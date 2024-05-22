@@ -26,7 +26,7 @@ import {
 import { randomTokenString } from '~/helpers/stringHelpers';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { NcError } from '~/helpers/catchError';
-import { WorkspacesService } from '~/modules/workspaces/workspaces.service';
+import { WorkspacesService } from '~/services/workspaces.service';
 
 @Injectable()
 export class UsersService extends UsersServiceCE {
@@ -208,9 +208,8 @@ export class UsersService extends UsersServiceCE {
     user = await User.getByEmail(email);
 
     try {
-      const template = (
-        await import('~/controllers/auth/ui/emailTemplates/verify')
-      ).default;
+      const template = (await import('~/modules/auth/ui/emailTemplates/verify'))
+        .default;
       await (
         await NcPluginMgrv2.emailAdapter()
       ).mailSend({

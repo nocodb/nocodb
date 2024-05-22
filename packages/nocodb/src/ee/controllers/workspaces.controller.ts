@@ -14,14 +14,14 @@ import { Request } from 'express';
 import { WorkspacePlan } from 'nocodb-sdk';
 import { AuthGuard } from '@nestjs/passport';
 import type { WorkspaceType } from 'nocodb-sdk';
-import { WorkspacesService } from '~/modules/workspaces/workspaces.service';
+import { WorkspacesService } from '~/services/workspaces.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { NcError } from '~/helpers/catchError';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import { MetaService } from '~/meta/meta.service';
 import NocoCache from '~/cache/NocoCache';
 import { GlobalGuard } from '~/guards/global/global.guard';
-import { WorkspaceUsersService } from '~/modules/workspace-users/workspace-users.service';
+import { WorkspaceUsersService } from '~/services/workspace-users.service';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 
 const IS_UPGRADE_ALLOWED_CACHE_KEY = 'nc_upgrade_allowed';

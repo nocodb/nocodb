@@ -391,7 +391,8 @@ export class WorkspaceUsersService {
     siteUrl: string;
   }) {
     try {
-      const template = (await import('./emailTemplates/invite')).default;
+      const template = (await import('~/helpers/email-templates/invite'))
+        .default;
       await NcPluginMgrv2.emailAdapter()
         .then((adapter) => {
           if (!adapter)
@@ -445,7 +446,8 @@ export class WorkspaceUsersService {
     siteUrl: string;
   }) {
     try {
-      const template = (await import('./emailTemplates/roleUpdate')).default;
+      const template = (await import('~/helpers/email-templates/roleUpdate'))
+        .default;
       await NcPluginMgrv2.emailAdapter()
         .then((adapter) => {
           if (!adapter)

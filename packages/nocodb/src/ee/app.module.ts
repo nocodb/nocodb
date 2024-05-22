@@ -6,8 +6,6 @@ import { AppModule as AppCEModule, ceModuleConfig } from 'src/app.module';
 import { LoggerModule } from 'nestjs-pino';
 import { v4 as uuidv4 } from 'uuid';
 import { DbMuxController } from 'src/ee/controllers/db-mux.controller';
-import { WorkspacesModule } from './modules/workspaces/workspaces.module';
-import { WorkspaceUsersModule } from '~/modules/workspace-users/workspace-users.module';
 import { ThrottlerConfigService } from '~/services/throttler/throttler-config.service';
 import appConfig from '~/app.config';
 import { ExtractIdsMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
@@ -22,8 +20,6 @@ const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
   ...ceModuleConfig,
   imports: [
     ...ceModuleConfig.imports,
-    WorkspacesModule,
-    WorkspaceUsersModule,
     ...(enableThrottler
       ? [
           ThrottlerModule.forRootAsync({

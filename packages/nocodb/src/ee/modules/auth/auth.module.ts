@@ -1,35 +1,34 @@
-import { forwardRef, Module } from '@nestjs/common';
-import { PassportModule } from '@nestjs/passport';
+import { authModuleMetadata } from 'src/modules/auth/auth.module';
+import { Module } from '@nestjs/common';
 import type { MiddlewareConsumer } from '@nestjs/common';
-import { GoogleStrategyProvider } from '~/strategies/google.strategy/google.strategy';
-import { UsersService } from '~/services/users/users.service';
-import { AuthController } from '~/controllers/auth/auth.controller';
+
+/* Auth */
+import { AuthController } from '~/modules/auth/auth.controller';
 import { OpenidStrategyProvider } from '~/strategies/openid.strategy/openid.strategy';
-import { MetasModule } from '~/modules/metas/metas.module';
-import { WorkspacesModule } from '~/modules/workspaces/workspaces.module';
 import { CognitoStrategyProvider } from '~/strategies/cognito.strategy/cognito.strategy';
 import { SamlStrategyProvider } from '~/strategies/saml.strategy/saml.strategy';
 import { ShortLivedTokenStrategyProvider } from '~/strategies/short-lived-token.strategy/short-lived-token.strategy';
-import { SSOAuthController } from '~/controllers/auth/sso-auth.controller';
+import { SSOAuthController } from '~/modules/auth/sso-auth.controller';
 import { SSOPassportMiddleware } from '~/middlewares/sso-paasport/sso-passport.middleware';
 
-@Module({
-  imports: [PassportModule, forwardRef(() => MetasModule), WorkspacesModule],
+export const authModuleEeMetadata = {
+  imports: [...authModuleMetadata.imports],
   controllers: [
     ...(process.env.NC_WORKER_CONTAINER !== 'true'
-      ? [AuthController, SSOAuthController]
+      ? [...authModuleMetadata.controllers, AuthController, SSOAuthController]
       : []),
   ],
   providers: [
-    UsersService,
-    GoogleStrategyProvider,
+    ...authModuleMetadata.providers,
     OpenidStrategyProvider,
     CognitoStrategyProvider,
     SamlStrategyProvider,
     ShortLivedTokenStrategyProvider,
   ],
-  exports: [UsersService],
-})
+  exports: [...authModuleMetadata.exports],
+};
+
+@Module(authModuleEeMetadata)
 export class AuthModule {
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(SSOPassportMiddleware).forRoutes(SSOAuthController);

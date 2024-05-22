@@ -1,16 +1,15 @@
-import { forwardRef, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import {
   JobsModule as JobsModuleCE,
   JobsModuleMetadata,
 } from 'src/modules/jobs/jobs.module';
 import { UpdateStatsProcessor } from '~/modules/jobs/jobs/update-stats/update-stats.processor';
-import { WorkspacesModule } from '~/modules/workspaces/workspaces.module';
 import { WorkerController } from '~/modules/jobs/worker/worker.controller';
 import { HealthCheckProcessor } from '~/modules/jobs/jobs/health-check.processor';
 
 @Module({
   ...JobsModuleMetadata,
-  imports: [...JobsModuleMetadata.imports, forwardRef(() => WorkspacesModule)],
+  imports: [...JobsModuleMetadata.imports],
   controllers: [...JobsModuleMetadata.controllers, WorkerController],
   providers: [
     ...JobsModuleMetadata.providers,

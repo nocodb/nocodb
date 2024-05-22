@@ -10,7 +10,7 @@ import {
 import { Request, Response } from 'express';
 import { AuthGuard } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
-import { AuthController as AuthControllerCE } from 'src/controllers/auth/auth.controller';
+import { AuthController as AuthControllerCE } from 'src/modules/auth/auth.controller';
 import type { AppConfig } from '~/interface/config';
 import NocoCache from '~/cache/NocoCache';
 import { CacheGetType } from '~/utils/globals';

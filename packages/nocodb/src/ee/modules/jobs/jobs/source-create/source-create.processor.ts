@@ -7,7 +7,7 @@ import { SourcesService } from '~/services/sources.service';
 import { JobsLogService } from '~/modules/jobs/jobs/jobs-log.service';
 import getWorkspaceForBase from '~/utils/getWorkspaceForBase';
 import { Base, Model, Workspace } from '~/models';
-import { WorkspacesService } from '~/modules/workspaces/workspaces.service';
+import { WorkspacesService } from '~/services/workspaces.service';
 import { TelemetryService } from '~/services/telemetry.service';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 

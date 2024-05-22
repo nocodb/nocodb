@@ -232,11 +232,14 @@ export class AuthController {
   ): Promise<any> {
     try {
       res.send(
-        ejs.render((await import('./ui/auth/resetPassword')).default, {
-          ncPublicUrl: process.env.NC_PUBLIC_URL || '',
-          token: JSON.stringify(tokenId),
-          baseUrl: `/`,
-        }),
+        ejs.render(
+          (await import('~/modules/auth/ui/auth/resetPassword')).default,
+          {
+            ncPublicUrl: process.env.NC_PUBLIC_URL || '',
+            token: JSON.stringify(tokenId),
+            baseUrl: `/`,
+          },
+        ),
       );
     } catch (e) {
       return res.status(400).json({ msg: e.message });

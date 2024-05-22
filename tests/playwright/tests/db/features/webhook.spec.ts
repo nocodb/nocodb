@@ -304,8 +304,8 @@ test.describe.serial('Webhook', () => {
     //  - verify no trigger after delete
 
     await webhook.delete({ index: 0 });
-    await webhook.delete({ index: 0 });
-    await webhook.delete({ index: 0 });
+    await webhook.delete({ index: 0, wfr: false });
+    await webhook.delete({ index: 0, wfr: false });
     await dashboard.grid.topbar.openDataTab();
 
     await clearServerData({ request });

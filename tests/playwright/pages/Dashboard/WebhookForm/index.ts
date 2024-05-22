@@ -116,8 +116,8 @@ export class WebhookFormPage extends BasePage {
     await this.verifyToast({ message: 'Webhook tested successfully' });
   }
 
-  async delete({ index }: { index: number }) {
-    await this.dashboard.grid.topbar.openDetailedTab();
+  async delete({ index, wfr = true }: { index: number; wfr?: boolean }) {
+    await this.dashboard.grid.topbar.openDetailedTab({ waitForResponse: wfr });
     await this.dashboard.details.clickWebhooksTab();
     await this.dashboard.details.webhook.deleteHook({ index });
     await this.rootPage.locator('div.ant-modal.active').locator('button:has-text("Delete")').click();

@@ -758,10 +758,12 @@ const parseConditionV2 = async (
                   //   qb = qb.where(knex.raw('??::timestamp = ?', [field, val]));
                   // else
                   qb = qb.where(knex.raw('??::date = ?', [field, val]));
-                } else {
+                } else if (qb.client.config.client === 'sqlite3') {
                   qb = qb.where(
                     knex.raw("DATE(??, 'localtime') = DATE(?)", [field, val]),
                   );
+                } else {
+                  qb = qb.where(knex.raw('DATE(??) = DATE(?)', [field, val]));
                 }
               } else {
                 qb = qb.where(field, val);

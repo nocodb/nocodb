@@ -18,6 +18,13 @@ const emits = defineEmits<Emits>()
 
 const castNumber = (value: string | number | bigint) => (typeof BigInt !== 'undefined' ? BigInt(value) : Number(value))
 
+if (typeof BigInt !== 'undefined') {
+  // since BigInt is not supported in JSON.stringify, we need to convert it to string
+  ;(BigInt.prototype as any).toJSON = function () {
+    return this.toString()
+  }
+}
+
 const { showNull } = useGlobal()
 
 const editEnabled = inject(EditModeInj)

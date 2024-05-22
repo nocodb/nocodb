@@ -116,19 +116,23 @@ const columns = [
       </a-button>
     </div>
 
-    <a-table
-      class="nc-audit-table w-full"
-      size="small"
-      :data-source="audits ?? []"
-      :columns="columns"
-      :pagination="false"
-      :loading="isLoading"
-      data-testid="audit-tab-table"
-    >
-      <template #emptyText>
-        <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
-      </template>
-    </a-table>
+    <div class="h-[calc(100%_-_102px)] overflow-y-auto nc-scrollbar-thin">
+      <a-table
+        class="nc-audit-table w-full"
+        size="small"
+        :data-source="audits ?? []"
+        :columns="columns"
+        :pagination="false"
+        :loading="isLoading"
+        data-testid="audit-tab-table"
+        sticky
+        bordered
+      >
+        <template #emptyText>
+          <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
+        </template>
+      </a-table>
+    </div>
     <div v-if="+totalRows > currentLimit" class="flex flex-row justify-center items-center">
       <a-pagination
         v-model:current="currentPage"
@@ -152,30 +156,6 @@ const columns = [
   font-family: unset;
 }
 
-:deep(.nc-audit-table) {
-  @apply h-[calc(100%_-_102px)];
-
-  .ant-spin-nested-loading,
-  .ant-spin-container,
-  .ant-table,
-  .ant-table-container,
-  table {
-    @apply !h-full;
-  }
-  .ant-table-thead {
-    @apply sticky top-0 w-full z-10;
-  }
-  .ant-table-content {
-    @apply !h-auto max-h-full overflow-auto nc-scrollbar-thin;
-
-    tr {
-      height: auto !important;
-    }
-  }
-  pre {
-    @apply mb-0;
-  }
-}
 .pagination {
   .ant-select-dropdown {
     @apply !border-1 !border-gray-200;

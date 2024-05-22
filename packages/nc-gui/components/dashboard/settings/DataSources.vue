@@ -330,7 +330,7 @@ const openedTab = ref('erd')
               </div>
             </template>
 
-            <div class="pt-4 h-full overflow-auto">
+            <div class="pt-4 h-full">
               <LazyDashboardSettingsUIAcl :source-id="activeSource.id" />
             </div>
           </a-tab-pane>
@@ -340,7 +340,7 @@ const openedTab = ref('erd')
                 <div>{{ $t('labels.metaSync') }}</div>
               </div>
             </template>
-            <div class="pt-4 h-full overflow-auto">
+            <div class="pt-4 h-full">
               <LazyDashboardSettingsMetadata :source-id="activeSource.id" @source-synced="loadBases(true)" />
             </div>
           </a-tab-pane>

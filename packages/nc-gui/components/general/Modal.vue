@@ -3,7 +3,7 @@ const props = withDefaults(
   defineProps<{
     visible: boolean
     width?: string | number
-    size?: 'small' | 'medium' | 'large'
+    size?: 'small' | 'medium' | 'large' | 'xl'
     destroyOnClose?: boolean
     maskClosable?: boolean
     closable?: boolean
@@ -40,6 +40,10 @@ const width = computed(() => {
     return '80rem'
   }
 
+  if (props.size === 'xl') {
+    return '80rem'
+  }
+
   return 'max(30vw, 600px)'
 })
 
@@ -54,6 +58,9 @@ const height = computed(() => {
 
   if (props.size === 'large') {
     return '80vh'
+  }
+  if (props.size === 'xl') {
+    return '90vh'
   }
 
   return 'auto'

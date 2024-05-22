@@ -108,8 +108,8 @@ const columns = [
 </script>
 
 <template>
-  <div class="flex flex-col w-full">
-    <div class="flex flex-col">
+  <div class="h-full flex flex-col w-full">
+    <div class="h-full flex flex-col">
       <div class="flex flex-row justify-between items-center w-full mb-4">
         <div class="flex">
           <div v-if="isDifferent">
@@ -140,9 +140,9 @@ const columns = [
           </div>
         </a-button>
       </div>
-      <div class="max-h-600px overflow-y-auto">
+      <div class="h-auto max-h-[calc(100%_-_72px)] overflow-y-auto nc-scrollbar-thin">
         <a-table
-          class="w-full"
+          class="nc-metasync-table w-full"
           size="small"
           :custom-row="
             (record) => ({
@@ -153,6 +153,7 @@ const columns = [
           :columns="columns"
           :pagination="false"
           :loading="isLoading"
+          sticky
           bordered
         >
           <template #emptyText>
@@ -178,3 +179,5 @@ const columns = [
     </div>
   </div>
 </template>
+
+<style lang="scss" scoped></style>

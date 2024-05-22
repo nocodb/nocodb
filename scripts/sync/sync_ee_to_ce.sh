@@ -22,6 +22,9 @@ git fetch ee "$ACTIVE_BRANCH"
 # create sync branch
 git checkout -b "nc-$ACTIVE_BRANCH"
 
+# reset the branch to develop
+git reset --hard origin/develop
+
 old_user=$(git config user.name)
 old_email=$(git config user.email)
 

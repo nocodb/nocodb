@@ -313,7 +313,15 @@ export class ImportService {
                   );
 
                 if (colOptions.fk_related_model_id === modelData.id) {
-                  childColumn.title = `${childColumn.title} copy`;
+                  const titleExists = childModel.columns.find(
+                    (a) => a.title === childColumn.title,
+                  );
+                  if (titleExists) {
+                    childColumn.title = generateUniqueName(
+                      `${childColumn.title} copy`,
+                      childModel.columns.map((a) => a.title),
+                    );
+                  }
                 }
 
                 for (const nColumn of childModel.columns) {
@@ -404,7 +412,15 @@ export class ImportService {
                 );
 
               if (colOptions.fk_related_model_id === modelData.id) {
-                childColumn.title = `${childColumn.title} copy`;
+                const titleExists = childModel.columns.find(
+                  (a) => a.title === childColumn.title,
+                );
+                if (titleExists) {
+                  childColumn.title = generateUniqueName(
+                    `${childColumn.title} copy`,
+                    childModel.columns.map((a) => a.title),
+                  );
+                }
               }
 
               for (const nColumn of childModel.columns) {
@@ -510,7 +526,15 @@ export class ImportService {
                 );
 
                 if (colOptions.fk_related_model_id === modelData.id) {
-                  childColumn.title = `${childColumn.title} copy`;
+                  const titleExists = childModel.columns.find(
+                    (a) => a.title === childColumn.title,
+                  );
+                  if (titleExists) {
+                    childColumn.title = generateUniqueName(
+                      `${childColumn.title} copy`,
+                      childModel.columns.map((a) => a.title),
+                    );
+                  }
                 }
 
                 for (const nColumn of childModel.columns) {
@@ -527,8 +551,6 @@ export class ImportService {
                         nColumn.id,
                       );
                     }
-
-                    childColumn.title = `${childColumn.title} copy`;
 
                     childColumn.title = generateUniqueName(
                       childColumn.title,
@@ -637,7 +659,15 @@ export class ImportService {
                 );
 
                 if (colOptions.fk_related_model_id === modelData.id) {
-                  childColumn.title = `${childColumn.title} copy`;
+                  const titleExists = childModel.columns.find(
+                    (a) => a.title === childColumn.title,
+                  );
+                  if (titleExists) {
+                    childColumn.title = generateUniqueName(
+                      `${childColumn.title} copy`,
+                      childModel.columns.map((a) => a.title),
+                    );
+                  }
                 }
 
                 for (const nColumn of childModel.columns) {
@@ -656,8 +686,6 @@ export class ImportService {
                         nColumn.id,
                       );
                     }
-
-                    childColumn.title = `${childColumn.title} copy`;
 
                     childColumn.title = generateUniqueName(
                       childColumn.title,
@@ -766,7 +794,15 @@ export class ImportService {
                 );
 
                 if (colOptions.fk_related_model_id === modelData.id) {
-                  childColumn.title = `${childColumn.title} copy`;
+                  const titleExists = childModel.columns.find(
+                    (a) => a.title === childColumn.title,
+                  );
+                  if (titleExists) {
+                    childColumn.title = generateUniqueName(
+                      `${childColumn.title} copy`,
+                      childModel.columns.map((a) => a.title),
+                    );
+                  }
                 }
 
                 for (const nColumn of childModel.columns) {
@@ -785,8 +821,6 @@ export class ImportService {
                         nColumn.id,
                       );
                     }
-
-                    childColumn.title = `${childColumn.title} copy`;
 
                     childColumn.title = generateUniqueName(
                       childColumn.title,

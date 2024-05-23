@@ -181,6 +181,7 @@ const handleKeydown = (e: KeyboardEvent, _open?: boolean) => {
 
   switch (e.key) {
     case 'Enter':
+      e.preventDefault()
       localState.value = tempDate.value ?? localState.value
       open.value = !_open
 
@@ -299,7 +300,7 @@ function handleSelectDate(value?: dayjs.Dayjs) {
     </div>
 
     <template #overlay>
-      <div v-if="isOpen" class="w-[260px]">
+      <div class="w-[260px]">
         <NcDateWeekSelector
           v-model:page-date="tempDate"
           v-model:selected-date="localState"

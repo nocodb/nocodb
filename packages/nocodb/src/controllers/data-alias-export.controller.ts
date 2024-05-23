@@ -3,7 +3,7 @@ import { Request, Response } from 'express';
 import * as XLSX from 'xlsx';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { DatasService } from '~/services/datas.service';
-import { extractCsvData, extractXlsxData } from '~/modules/datas/helpers';
+import { extractCsvData, extractXlsxData } from '~/helpers/dataHelpers';
 import { View } from '~/models';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { DataApiLimiterGuard } from '~/guards/data-api-limiter.guard';

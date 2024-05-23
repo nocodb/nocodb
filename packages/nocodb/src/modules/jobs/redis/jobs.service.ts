@@ -51,7 +51,11 @@ export class JobsService implements OnModuleInit {
   async add(name: string, data: any) {
     await this.toggleQueue();
 
-    const job = await this.jobsQueue.add(name, data);
+    const job = await this.jobsQueue.add(name, data, {
+      removeOnComplete: {
+        age: 60, // 1 minute
+      },
+    });
 
     return job;
   }

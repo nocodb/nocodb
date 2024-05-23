@@ -32,6 +32,8 @@ const localSelectedDate = ref()
 
 const pickerType = ref<Props['type'] | undefined>()
 
+const pickerStack = ref<Props['type'][]>([])
+
 const tempPickerType = computed(() => pickerType.value || type.value)
 
 const localStatePageDate = computed({
@@ -64,26 +66,42 @@ const localStateSelectedDate = computed({
       return
     }
 
-    if (type.value === 'date') {
+    if (['date', 'month'].includes(type.value)) {
       if (pickerType.value === 'year') {
         localSelectedDate.value = dayjs(localSelectedDate.value ?? selectedDate.value).year(+value.format('YYYY'))
       }
-      if (pickerType.value === 'month') {
+      if (type.value !== 'month' && pickerType.value === 'month') {
         localSelectedDate.value = dayjs(localSelectedDate.value ?? selectedDate.value).month(+value.format('MM') - 1)
       }
 
       localPageDate.value = localSelectedDate.value
 
-      pickerType.value = 'date'
+      handleUpdatePickerType()
     }
   },
 })
+
+const handleUpdatePickerType = (value?: Props['type']) => {
+  if (value) {
+    pickerType.value = value
+    pickerStack.value.push(value)
+  } else {
+    if (pickerStack.value.length > 1) {
+      pickerStack.value.pop()
+      const lastPicker = pickerStack.value.pop()
+      pickerType.value = lastPicker
+    } else if (pickerType.value && pickerType.value !== type.value) {
+      pickerType.value = type.value
+    }
+  }
+}
 
 watch(isOpen, (next) => {
   if (!next) {
     pickerType.value = type.value
     localPageDate.value = undefined
     localSelectedDate.value = undefined
+    pickerStack.value = []
   }
 })
 
@@ -91,6 +109,7 @@ onUnmounted(() => {
   pickerType.value = type.value
   localPageDate.value = undefined
   localSelectedDate.value = undefined
+  pickerStack.value = []
 })
 </script>
 
@@ -99,19 +118,21 @@ onUnmounted(() => {
     v-if="tempPickerType === 'date'"
     v-model:page-date="localStatePageDate"
     v-model:selected-date="localStateSelectedDate"
-    v-model:picker-type="pickerType"
+    :picker-type="pickerType"
     :is-monday-first="false"
     is-cell-input-field
     size="medium"
+    @update:picker-type="handleUpdatePickerType"
   />
   <NcMonthYearSelector
     v-if="['month', 'year'].includes(tempPickerType)"
     v-model:page-date="localStatePageDate"
     v-model:selected-date="localStateSelectedDate"
-    v-model:picker-type="pickerType"
+    :picker-type="pickerType"
     :is-year-picker="tempPickerType === 'year'"
     is-cell-input-field
     size="medium"
+    @update:picker-type="handleUpdatePickerType"
   />
 </template>
 

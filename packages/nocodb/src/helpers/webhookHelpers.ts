@@ -457,17 +457,30 @@ export function axiosRequestMake(_apiMeta, _user, data) {
   return req;
 }
 
-export async function invokeWebhook(
-  hook: Hook,
-  model: Model,
-  view: View,
-  prevData,
-  newData,
-  user,
-  testFilters = null,
-  throwErrorOnFailure = false,
-  testHook = false,
-) {
+export async function invokeWebhook(param: {
+  hook: Hook;
+  model: Model;
+  view: View;
+  prevData;
+  newData;
+  user;
+  testFilters?;
+  throwErrorOnFailure?: boolean;
+  testHook?: boolean;
+}) {
+  const {
+    hook,
+    model,
+    view,
+    prevData,
+    user,
+    testFilters = null,
+    throwErrorOnFailure = false,
+    testHook = false,
+  } = param;
+
+  let { newData } = param;
+
   let hookLog: HookLogType;
   const startTime = process.hrtime();
   const source = await Source.get(model.source_id);

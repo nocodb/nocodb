@@ -254,6 +254,7 @@ function handleSelectDate(value?: dayjs.Dayjs) {
     :visible="isOpen"
     :auto-close="false"
     :trigger="['click']"
+    :disabled="readOnly"
     class="nc-cell-field"
     :class="[`nc-${randomClass}`, { 'nc-null': modelValue === null && showNull }]"
     :overlay-class-name="`${randomClass} nc-picker-year ${open ? 'active' : ''} !min-w-[260px]`"
@@ -268,7 +269,7 @@ function handleSelectDate(value?: dayjs.Dayjs) {
         :value="localState?.format('YYYY') ?? ''"
         :placeholder="placeholder"
         class="nc-year-input border-none outline-none !text-current bg-transparent !focus:(border-none outline-none ring-transparent)"
-        :readonly="!!isMobileMode"
+        :readonly="readOnly || !!isMobileMode"
         @blur="onBlur"
         @keydown="handleKeydown($event, open)"
         @mouseup.stop

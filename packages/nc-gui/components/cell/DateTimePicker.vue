@@ -132,8 +132,12 @@ watchEffect(() => {
   }
 })
 
+const isColDisabled = computed(() => {
+  return isSystemColumn(column.value) || readOnly.value || (localState.value && isPk)
+})
+
 const isOpen = computed(() => {
-  if (readOnly.value) return false
+  if (readOnly.value || isColDisabled.value) return false
 
   return readOnly.value || (localState.value && isPk) ? false : open.value && (active.value || editable.value)
 })
@@ -219,10 +223,6 @@ const clickHandler = (e: MouseEvent, _isDatePicker?: boolean = false) => {
   }
   cellClickHandler()
 }
-
-const isColDisabled = computed(() => {
-  return isSystemColumn(column.value) || readOnly.value || (localState.value && isPk)
-})
 
 const handleKeydown = (e: KeyboardEvent, _open?: boolean, _isDatePicker?: boolean = false) => {
   if (e.key !== 'Enter') {
@@ -445,7 +445,6 @@ const timeCellMaxWidth = computed(() => {
       class="nc-cell-picker-datetime"
       :class="[`nc-${randomClass}`, { 'nc-null': modelValue === null && showNull }]"
       :overlay-class-name="`${randomClass} nc-picker-datetime ${open ? 'active' : ''} !min-w-[0] overflow-hidden`"
-      :disabled="isColDisabled"
     >
       <div
         :title="localState?.format(dateTimeFormat)"

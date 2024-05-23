@@ -114,24 +114,24 @@ export class HookHandlerService implements OnModuleInit, OnModuleDestroy {
       }
     }
 
-    try {
-      const [event, operation] = hookName.split('.');
-      const hooks = await Hook.list({
-        fk_model_id: modelId,
-        event: event as HookType['event'],
-        operation: operation as HookType['operation'],
-      });
-      for (const hook of hooks) {
-        if (hook.active) {
+    const [event, operation] = hookName.split('.');
+    const hooks = await Hook.list({
+      fk_model_id: modelId,
+      event: event as HookType['event'],
+      operation: operation as HookType['operation'],
+    });
+    for (const hook of hooks) {
+      if (hook.active) {
+        try {
           await invokeWebhook(hook, model, view, prevData, newData, user);
+        } catch (e) {
+          this.logger.error({
+            error: e,
+            details: 'Error while invoking webhook',
+            hook: hook.id,
+          });
         }
       }
-    } catch (e) {
-      this.logger.error({
-        error: e,
-        details: 'Error while handling webhook',
-        hookName,
-      });
     }
   }
 

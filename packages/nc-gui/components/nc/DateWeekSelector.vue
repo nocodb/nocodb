@@ -14,6 +14,7 @@ interface Props {
     end: dayjs.Dayjs
   } | null
   isCellInputField?: boolean
+  pickerType?: 'date' | 'time' | 'year' | 'month'
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -26,8 +27,9 @@ const props = withDefaults(defineProps<Props>(), {
   selectedWeek: null,
   hideCalendar: false,
   isCellInputField: false,
+  pickerType: 'date',
 })
-const emit = defineEmits(['update:selectedDate', 'update:pageDate', 'update:selectedWeek'])
+const emit = defineEmits(['update:selectedDate', 'update:pageDate', 'update:selectedWeek', 'update:pickerType'])
 // Page date is the date we use to manage which month/date that is currently being displayed
 const pageDate = useVModel(props, 'pageDate', emit)
 
@@ -36,6 +38,8 @@ const selectedDate = useVModel(props, 'selectedDate', emit)
 const activeDates = useVModel(props, 'activeDates', emit)
 
 const selectedWeek = useVModel(props, 'selectedWeek', emit)
+
+const pickerType = useVModel(props, 'pickerType', emit)
 
 const days = computed(() => {
   if (props.isMondayFirst) {
@@ -47,6 +51,14 @@ const days = computed(() => {
 
 const currentMonthYear = computed(() => {
   return dayjs(pageDate.value).format('MMMM YYYY')
+})
+
+const currentMonth = computed(() => {
+  return dayjs(pageDate.value).format('MMMM')
+})
+
+const currentYear = computed(() => {
+  return dayjs(pageDate.value).format('YYYY')
 })
 
 const selectWeek = (date: dayjs.Dayjs) => {
@@ -142,7 +154,13 @@ const paginate = (action: 'next' | 'prev') => {
 
 <template>
   <div class="flex flex-col">
-    <div class="flex justify-between border-b-1 px-3 py-0.5 nc-date-week-header items-center">
+    <div
+      class="flex justify-between border-b-1 py-0.5 nc-date-week-header items-center"
+      :class="{
+        'px-2': isCellInputField,
+        'px-3': !isCellInputField,
+      }"
+    >
       <NcTooltip hide-on-click>
         <NcButton class="!border-0" size="small" type="secondary" @click="paginate('prev')">
           <component :is="iconMap.arrowLeft" class="h-4 w-4" />
@@ -152,7 +170,11 @@ const paginate = (action: 'next' | 'prev') => {
         </template>
       </NcTooltip>
 
-      <span class="text-gray-700 text-sm font-semibold">{{ currentMonthYear }}</span>
+      <div v-if="isCellInputField" class="text-gray-700 text-sm font-semibold">
+        <span class="cursor-pointer hover:text-brand-500" @click="pickerType = 'month'">{{ currentMonth }}</span> {{ ' ' }}
+        <span class="cursor-pointer hover:text-brand-500" @click="pickerType = 'year'">{{ currentYear }}</span>
+      </div>
+      <span v-else class="text-gray-700 text-sm font-semibold">{{ currentMonthYear }}</span>
 
       <NcTooltip hide-on-click>
         <NcButton class="!border-0" data-testid="nc-calendar-next-btn" size="small" type="secondary" @click="paginate('next')">
@@ -197,6 +219,7 @@ const paginate = (action: 'next' | 'prev') => {
           }"
           class="px-1 h-8 w-8 py-1 relative transition border-1 font-medium flex text-gray-700 items-center cursor-pointer justify-center"
           data-testid="nc-calendar-date"
+          :title="isCellInputField ? date.format('YYYY-MM-DD') : undefined"
           @click="handleSelectDate(date)"
         >
           <span

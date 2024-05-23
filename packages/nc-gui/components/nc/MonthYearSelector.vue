@@ -6,19 +6,25 @@ interface Props {
   pageDate?: dayjs.Dayjs
   isYearPicker?: boolean
   hideCalendar?: boolean
+  isCellInputField?: boolean
+  pickerType?: 'date' | 'time' | 'year' | 'month'
 }
 
 const props = withDefaults(defineProps<Props>(), {
   selectedDate: null,
-  pageDate: dayjs(),
+  pageDate: () => dayjs(),
   isYearPicker: false,
   hideCalendar: false,
+  isCellInputField: false,
+  pickerType: 'date',
 })
-const emit = defineEmits(['update:selectedDate', 'update:pageDate'])
+const emit = defineEmits(['update:selectedDate', 'update:pageDate', 'update:pickerType'])
 
 const pageDate = useVModel(props, 'pageDate', emit)
 
 const selectedDate = useVModel(props, 'selectedDate', emit)
+
+const pickerType = useVModel(props, 'pickerType', emit)
 
 const years = computed(() => {
   const date = pageDate.value
@@ -93,14 +99,25 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
             <component :is="iconMap.arrowLeft" class="h-4 w-4" />
           </NcButton>
           <template #title>
-            <span>{{ $t('labels.next') }}</span>
+            <span>{{ $t('labels.previous') }}</span>
           </template>
         </NcTooltip>
       </div>
 
-      <span class="text-gray-700 font-semibold">{{
-        isYearPicker ? dayjs(selectedDate).year() : dayjs(pageDate).format('YYYY')
-      }}</span>
+      <span
+        class="text-gray-700 font-semibold"
+        :class="{
+          'cursor-pointer hover:text-brand-500': isCellInputField && !isYearPicker,
+        }"
+        @click="!isYearPicker ? (pickerType = 'year') : () => undefined"
+        >{{
+          isYearPicker
+            ? isCellInputField
+              ? dayjs(selectedDate).year() || dayjs().year()
+              : dayjs(selectedDate).year()
+            : dayjs(pageDate).format('YYYY')
+        }}</span
+      >
       <div class="flex">
         <NcTooltip hide-on-click>
           <NcButton class="!border-0" size="small" type="secondary" @click="paginate('next')">

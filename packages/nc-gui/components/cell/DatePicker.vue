@@ -281,7 +281,7 @@ function handleSelectDate(value?: dayjs.Dayjs) {
         type="text"
         :value="unref(localState)?.format(dateFormat) ?? ''"
         :placeholder="placeholder"
-        class="border-none outline-none !text-current bg-transparent !focus:(border-none outline-none ring-transparent)"
+        class="nc-date-input border-none outline-none !text-current bg-transparent !focus:(border-none outline-none ring-transparent)"
         :readonly="!!isMobileMode"
         @blur="onBlur"
         @keydown="handleKeydown($event, open)"
@@ -301,19 +301,21 @@ function handleSelectDate(value?: dayjs.Dayjs) {
 
     <template #overlay>
       <div class="w-[260px]">
-        <NcMonthYearSelector
+        <NcDatePicker
           v-if="picker === 'month'"
+          :is-open="isOpen"
           v-model:page-date="tempDate"
           v-model:selected-date="localState"
-          is-month-picker
+          type="month"
           size="medium"
         />
-        <NcDateWeekSelector
+        <NcDatePicker
           v-else
+          :is-open="isOpen"
           v-model:page-date="tempDate"
           :selected-date="localState"
           :is-monday-first="false"
-          is-cell-input-field
+          type="date"
           @update:selected-date="handleSelectDate"
           size="medium"
         />

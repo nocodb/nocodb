@@ -464,7 +464,7 @@ watch([isDatePicker, isOpen], () => {
     :class="[`nc-${randomClass}`, { 'nc-null': modelValue === null && showNull }]"
     :overlay-class-name="`${randomClass} nc-picker-datetime ${open ? 'active' : ''} !min-w-[0] overflow-hidden`"
   >
-    <div class="flex items-center gap-4 ant-picker-input relative group">
+    <div class="flex items-center gap-2 ant-picker-input relative group">
       <div
         class="flex-none hover:bg-gray-200 !py-0.5 !px-1 rounded-md !w-[90px] !min-w-[90px] border-1"
         :class="[isDatePicker && isOpen ? 'border-brand-500 bg-gray-200' : 'border-transparent']"
@@ -473,7 +473,7 @@ watch([isDatePicker, isOpen], () => {
           ref="datePickerRef"
           :value="localState?.format(dateFormat) ?? ''"
           :placeholder="typeof placeholder === 'string' ? placeholder : placeholder?.date"
-          class="w-full border-transparent outline-none !text-current bg-transparent !focus:(border-none outline-none ring-transparent)"
+          class="nc-date-input w-full border-transparent outline-none !text-current bg-transparent !focus:(border-none outline-none ring-transparent)"
           :readonly="!!isMobileMode"
           @focus="onFocus(true)"
           @keydown="handleKeydown($event, open, true)"
@@ -491,7 +491,7 @@ watch([isDatePicker, isOpen], () => {
           ref="timePickerRef"
           :value="selectedTime.value ? `${selectedTime.label}` : ''"
           :placeholder="typeof placeholder === 'string' ? placeholder : placeholder?.time"
-          class="w-full border-transparent outline-none !text-current bg-transparent !focus:(border-none outline-none ring-transparent)"
+          class="nc-time-input w-full border-transparent outline-none !text-current bg-transparent !focus:(border-none outline-none ring-transparent)"
           :readonly="!!isMobileMode"
           @focus="onFocus(false)"
           @keydown="handleKeydown($event, open)"
@@ -511,15 +511,16 @@ watch([isDatePicker, isOpen], () => {
           'h-[252px]': !isDatePicker,
         }"
       >
-        <NcDateWeekSelector
+        <NcDatePicker
           v-if="isDatePicker"
+          :is-open="isOpen"
           v-model:page-date="tempDate"
           v-model:selected-date="localState"
-          :is-monday-first="false"
-          is-cell-input-field
+          type="date"
           @update:selected-date="handleSelectDate"
           size="medium"
         />
+
         <template v-else>
           <div class="h-[calc(100%_-_40px)] overflow-y-auto nc-scrollbar-thin">
             <div

@@ -268,7 +268,14 @@ function handleSelectDate(value?: dayjs.Dayjs) {
 
     <template #overlay>
       <div class="w-[260px]">
-        <NcMonthYearSelector v-model:page-date="tempDate" v-model:selected-date="localState" is-year-picker size="medium" />
+        <NcMonthYearSelector
+          :is-open="isOpen"
+          v-model:page-date="tempDate"
+          v-model:selected-date="localState"
+          is-year-picker
+          is-cell-input-field
+          size="medium"
+        />
       </div>
     </template>
   </NcDropdown>

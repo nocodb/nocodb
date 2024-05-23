@@ -2,86 +2,101 @@
 import dayjs from 'dayjs'
 
 interface Props {
-  selectedDate?: dayjs.Dayjs | null
-  pageDate?: dayjs.Dayjs
+  selectedDate: dayjs.Dayjs | null
   is12hrFormat?: boolean
-  isCellInputField?: boolean
   isMinGranularityPicker?: boolean
   minGranularity?: number
+  isOpen?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   selectedDate: null,
-  pageDate: () => dayjs(),
   is12hrFormat: false,
-  isCellInputField: false,
   isMinGranularityPicker: false,
   minGranularity: 30,
+  isOpen: false,
 })
-const emit = defineEmits(['update:selectedDate', 'update:pageDate'])
+const emit = defineEmits(['update:selectedDate'])
 
-const pageDate = useVModel(props, 'pageDate', emit)
+const pageDate = ref<dayjs.Dayjs>(dayjs())
 
 const selectedDate = useVModel(props, 'selectedDate', emit)
 
-const { is12hrFormat, isCellInputField, isMinGranularityPicker, minGranularity } = toRefs(props)
+const { is12hrFormat, isMinGranularityPicker, minGranularity, isOpen } = toRefs(props)
+
+const timeOptionsWrapperRef = ref<HTMLDivElement>()
 
 const compareTime = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
   if (!date1 || !date2) return false
-  return date1.isSame(date2, 'minute') && date1.isSame(date2, 'hour')
+
+  return date1.format('HH:mm') === date2.format('HH:mm')
 }
 
 const handleSelectTime = (time: dayjs.Dayjs) => {
-  pageDate.value.set('hour', time.get('hour'))
-  pageDate.value.set('minute', time.get('minute'))
-  if (!selectedDate.value) {
-    selectedDate.value = dayjs()
-  }
-  selectedDate.value.set('hour', time.get('hour'))
-  selectedDate.value.set('minute', time.get('minute'))
+  pageDate.value = dayjs().set('hour', time.get('hour')).set('minute', time.get('minute'))
 
-  emit('update:pageDate', pageDate.value)
-  emit('update:selectedDate', selectedDate.value)
+  selectedDate.value = pageDate.value
+
+  emit('update:selectedDate', pageDate.value)
 }
 
+//TODO: 12hr time format & regular time picker
 const timeOptions = computed(() => {
   return Array.from({ length: is12hrFormat.value ? 12 : 24 }).flatMap((_, h) => {
     return (isMinGranularityPicker.value ? [0, minGranularity.value] : Array.from({ length: 60 })).map((_m, m) => {
-      const hour = h.toString().padStart(2, '0')
-      const minute = (isMinGranularityPicker.value ? (_m as number) : m).toString().padStart(2, '0')
       const time = dayjs()
-      time.set('hour', h)
-      time.set('minute', isMinGranularityPicker ? (_m as number) : m)
+        .set('hour', h)
+        .set('minute', isMinGranularityPicker.value ? (_m as number) : m)
 
       return time
     })
   })
 })
+
+const handleAutoScroll = (behavior: ScrollBehavior = 'instant') => {
+  if (!timeOptionsWrapperRef.value || !selectedDate.value) return
+
+  setTimeout(() => {
+    const timeEl = timeOptionsWrapperRef.value?.querySelector(
+      `[data-testid="time-option-${selectedDate.value?.format('HH:mm')}"]`,
+    )
+
+    timeEl?.scrollIntoView({ behavior: behavior, block: 'center' })
+  }, 50)
+}
+
+watch([selectedDate, isOpen], () => {
+  if (timeOptionsWrapperRef.value && isOpen.value && selectedDate.value) {
+    handleAutoScroll()
+  }
+})
+
+onMounted(() => {
+  handleAutoScroll()
+})
 </script>
 
 <template>
-  <div class="flex flex-col">
-    <div class="py-1 max-w-[350px]">
-      <div v-if="isMinGranularityPicker" class="h-[180px] overflow-y-auto nc-scrollbar-thin">
-        <div
-          v-for="time of timeOptions"
-          :key="time.format('HH:mm')"
-          class="hover:bg-gray-200 py-0.5 px-3 text-sm text-gray-600 font-weight-500 text-center cursor-pointer"
-          :class="{
-            'bg-gray-200': selectedDate && compareTime(time, selectedDate),
-          }"
-          :data-testid="`time-option-${time.format('HH:mm')}`"
-          @click="handleSelectTime(time)"
-        >
-          {{ time.format('HH:mm') }}
-        </div>
+  <div class="flex flex-col max-w-[350px]">
+    <div ref="timeOptionsWrapperRef" v-if="isMinGranularityPicker" class="h-[180px] overflow-y-auto nc-scrollbar-thin">
+      <div
+        v-for="time of timeOptions"
+        :key="time.format('HH:mm')"
+        class="hover:bg-gray-200 py-1 px-3 text-sm text-gray-600 font-weight-500 text-center cursor-pointer"
+        :class="{
+          'nc-selected bg-gray-200': selectedDate && compareTime(time, selectedDate),
+        }"
+        :data-testid="`time-option-${time.format('HH:mm')}`"
+        @click="handleSelectTime(time)"
+      >
+        {{ time.format('HH:mm') }}
       </div>
-      <div v-else></div>
-      <div class="p-2 box-border border-t-1 border-gray-200 flex items-center justify-center">
-        <NcButton :tabindex="-1" class="!h-7" size="small" type="secondary" @click="handleSelectTime(dayjs())">
-          <span class="text-small"> {{ $t('general.now') }} </span>
-        </NcButton>
-      </div>
+    </div>
+    <div v-else></div>
+    <div class="p-2 box-border border-t-1 border-gray-200 flex items-center justify-center">
+      <NcButton :tabindex="-1" class="!h-7" size="small" type="secondary" @click="handleSelectTime(dayjs())">
+        <span class="text-small"> {{ $t('general.now') }} </span>
+      </NcButton>
     </div>
   </div>
 </template>

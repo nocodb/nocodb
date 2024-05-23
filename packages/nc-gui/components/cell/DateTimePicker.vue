@@ -208,15 +208,8 @@ onUnmounted(() => {
   cellClickHook?.on(cellClickHandler)
 })
 
-const clickHandler = (e: MouseEvent, _isDatePicker?: boolean = false) => {
+const clickHandler = (e: MouseEvent, _isDatePicker: boolean = false) => {
   isDatePicker.value = _isDatePicker
-
-  if ((e.target as HTMLElement).closest(`.nc-${randomClass} .ant-picker-clear`)) {
-    e.stopPropagation()
-    emit('update:modelValue', null)
-    open.value = false
-    return
-  }
 
   if (cellClickHook) {
     return
@@ -224,7 +217,7 @@ const clickHandler = (e: MouseEvent, _isDatePicker?: boolean = false) => {
   cellClickHandler()
 }
 
-const handleKeydown = (e: KeyboardEvent, _open?: boolean, _isDatePicker?: boolean = false) => {
+const handleKeydown = (e: KeyboardEvent, _open?: boolean, _isDatePicker: boolean = false) => {
   if (e.key !== 'Enter') {
     e.stopPropagation()
   }
@@ -267,7 +260,7 @@ const handleKeydown = (e: KeyboardEvent, _open?: boolean, _isDatePicker?: boolea
 
         if (e.shiftKey && _isDatePicker) {
           editable.value = false
-        } else if (e.shiftKey && !_isDatePicker) {
+        } else if (!e.shiftKey && !_isDatePicker) {
           editable.value = false
         } else {
           e.stopPropagation()
@@ -368,13 +361,15 @@ function handleSelectDate(value?: dayjs.Dayjs) {
   open.value = false
 }
 
-function handleSelectTime(value: string) {
-  if (value && localState.value) {
-    const dateTime = dayjs(`${localState.value.format('YYYY-MM-DD')} ${value}:00`)
+function handleSelectTime(value: dayjs.Dayjs) {
+  if (!value.isValid()) return
+
+  if (localState.value) {
+    const dateTime = dayjs(`${localState.value.format('YYYY-MM-DD')} ${value.format('HH:mm')}:00`)
     tempDate.value = dateTime
     localState.value = dateTime
-  } else if (!localState.value) {
-    const dateTime = dayjs(`${dayjs().format('YYYY-MM-DD')} ${value}:00`)
+  } else {
+    const dateTime = dayjs(`${dayjs().format('YYYY-MM-DD')} ${value.format('HH:mm')}:00`)
     tempDate.value = dateTime
     localState.value = dateTime
   }
@@ -416,16 +411,6 @@ const selectedTime = computed(() => {
   return result
 })
 
-watch([isDatePicker, isOpen], () => {
-  if (!isDatePicker.value && isOpen.value && selectedTime.value.value) {
-    setTimeout(() => {
-      const timeEl = document.querySelector(`.nc-picker-datetime [data-testid="time-option-${selectedTime.value.value}"]`)
-
-      timeEl?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    }, 50)
-  }
-})
-
 const timeCellMaxWidth = computed(() => {
   return {
     [timeFormats[0]]: 'max-w-[65px]',
@@ -465,7 +450,7 @@ const timeCellMaxWidth = computed(() => {
             class="nc-date-input w-full !truncate border-transparent outline-none !text-current !bg-transparent !focus:(border-none outline-none ring-transparent)"
             :readonly="!!isMobileMode || isColDisabled"
             @focus="onFocus(true)"
-            @keydown="handleKeydown($event, open, true)"
+            @keydown="handleKeydown($event, isOpen, true)"
             @mouseup.stop
             @mousedown.stop
             @click.stop="clickHandler($event, true)"
@@ -504,7 +489,6 @@ const timeCellMaxWidth = computed(() => {
           class="min-w-[72px]"
           :class="{
             'w-[256px]': isDatePicker,
-            'h-[252px]': !isDatePicker,
           }"
         >
           <NcDatePicker
@@ -518,31 +502,13 @@ const timeCellMaxWidth = computed(() => {
           />
 
           <template v-else>
-            <div class="h-[calc(100%_-_40px)] overflow-y-auto nc-scrollbar-thin">
-              <div
-                v-for="time of timeOptions"
-                :key="time.value"
-                class="hover:bg-gray-200 py-0.5 px-3 text-sm text-gray-600 font-weight-500 text-center cursor-pointer"
-                :class="{
-                  'bg-gray-200': selectedTime.value === time.value,
-                }"
-                :data-testid="`time-option-${time.value}`"
-                @click="handleSelectTime(time.value)"
-              >
-                {{ time.label }}
-              </div>
-            </div>
-            <div class="flex items-center justify-center px-2 pb-2 pt-1">
-              <NcButton
-                :tabindex="-1"
-                class="!h-7"
-                size="small"
-                type="secondary"
-                @click="handleSelectTime(dayjs().format('HH:mm'))"
-              >
-                <span class="text-small"> {{ $t('general.now') }} </span>
-              </NcButton>
-            </div>
+            <NcTimeSelector
+              :selected-date="localState"
+              :min-granularity="30"
+              is-min-granularity-picker
+              :is-open="isOpen"
+              @update:selected-date="handleSelectTime"
+            />
           </template>
         </div>
       </template>

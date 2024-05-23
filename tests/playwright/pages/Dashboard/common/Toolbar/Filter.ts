@@ -249,15 +249,15 @@ export class ToolbarFilterPage extends BasePage {
         case UITypes.Date:
           if (subOperation === 'exact date') {
             await this.get().locator('.nc-filter-value-select').click();
-            await this.rootPage.locator(`.ant-picker-dropdown:visible`).waitFor();
-
+            await this.rootPage.locator(`.nc-picker-date:visible`).waitFor();
             if (skipWaitingResponse) {
-              await this.rootPage.locator(`.ant-picker-cell-inner:has-text("${value}")`).click();
+              await this.rootPage.locator(`.nc-date-item-inner:has-text("${value}")`).click({ force: true });
+
               await this.rootPage.waitForTimeout(350);
             } else {
               await this.waitForResponse({
                 uiAction: async () =>
-                  await this.rootPage.locator(`.ant-picker-cell-inner:has-text("${value}")`).click(),
+                  await this.rootPage.locator(`.nc-date-item-inner:has-text("${value}")`).click({ force: true }),
                 httpMethodsToMatch: ['GET'],
                 requestUrlPathToMatch: locallySaved ? `/api/v1/db/public/` : `/api/v1/db/data/noco/`,
               });

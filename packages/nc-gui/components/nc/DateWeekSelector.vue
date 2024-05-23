@@ -219,6 +219,7 @@ const paginate = (action: 'next' | 'prev') => {
             'nc-selected-week-end': isSameDate(date, selectedWeek?.end),
             'rounded-md text-brand-500 !font-semibold nc-calendar-today': isSameDate(date, dayjs()) && isDateInCurrentMonth(date),
             'text-gray-500': date.get('day') === 0 || date.get('day') === 6,
+            'nc-date-item': isCellInputField
           }"
           class="px-1 h-8 w-8 py-1 relative transition border-1 font-medium flex text-gray-700 items-center cursor-pointer justify-center"
           data-testid="nc-calendar-date"
@@ -233,7 +234,7 @@ const paginate = (action: 'next' | 'prev') => {
             }"
             class="absolute top-1 transition right-1 h-1.5 w-1.5 z-2 border-1 rounded-full border-white bg-brand-500"
           ></span>
-          <span class="z-2">
+          <span class="nc-date-item-inner z-2">
             {{ date.get('date') }}
           </span>
         </span>

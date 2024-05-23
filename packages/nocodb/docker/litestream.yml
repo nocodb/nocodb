@@ -6,6 +6,7 @@ dbs:
       - type: s3
         endpoint: ${LITESTREAM_S3_ENDPOINT}
         force-path-style: true
+        region: ${LITESTREAM_S3_REGION}
         skip-verify: ${LITESTREAM_S3_SKIP_VERIFY}
         bucket: ${LITESTREAM_S3_BUCKET}
         path: ${LITESTREAM_S3_PATH}

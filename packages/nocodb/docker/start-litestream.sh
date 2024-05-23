@@ -11,6 +11,13 @@ fi
 if [ -z "${LITESTREAM_S3_SECRET_ACCESS_KEY}" ] && [ -n "${AWS_SECRET_ACCESS_KEY}" ] ; then
   export LITESTREAM_S3_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}"
 fi
+if [ -z "${LITESTREAM_S3_PATH}" ] && -n [ "${AWS_BUCKET_PATH}" ] ; then
+  export LITESTREAM_S3_PATH="${AWS_BUCKET_PATH}"
+fi
+if [ -z "${LITESTREAM_S3_BUCKET}" ] && [ -n "${AWS_BUCKET}" ] ; then
+  export LITESTREAM_S3_BUCKET="${AWS_BUCKET}"
+fi
+
 
 use_litestream() {
      [ -z "${NC_DB}" ] \
@@ -19,13 +26,15 @@ use_litestream() {
   && [ -z "${DATABASE_URL}" ] \
   && [ -z "${DATABASE_URL_FILE}" ] \
   && [ -z "${NC_MINIMAL_DBS}" ] \
-  && [ -n "${LITESTREAM_S3_ENDPOINT}" ] \
   && [ -n "${LITESTREAM_S3_BUCKET}" ] \
   && [ -n "${LITESTREAM_S3_ACCESS_KEY_ID}" ] \
   && [ -n "${LITESTREAM_S3_SECRET_ACCESS_KEY}" ]
 }
 
 if use_litestream ; then
+
+  # set default bucket path if not provided
+  : "${LITESTREAM_S3_PATH:=nocodb}"
 
   # enable age encryption in Litestream config if indicated
   LITESTREAM_CONFIG_PATH='/etc/litestream.yml'

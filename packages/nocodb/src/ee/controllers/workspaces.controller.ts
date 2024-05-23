@@ -17,14 +17,12 @@ import type { WorkspaceType } from 'nocodb-sdk';
 import { WorkspacesService } from '~/services/workspaces.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { NcError } from '~/helpers/catchError';
-import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
+import { CacheScope, MetaTable } from '~/utils/globals';
 import { MetaService } from '~/meta/meta.service';
 import NocoCache from '~/cache/NocoCache';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { WorkspaceUsersService } from '~/services/workspace-users.service';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
-
-const IS_UPGRADE_ALLOWED_CACHE_KEY = 'nc_upgrade_allowed';
 
 @Controller()
 export class WorkspacesController {
@@ -63,27 +61,6 @@ export class WorkspacesController {
     const workspaceUserCount = await this.workspaceUserService.count({
       workspaceId,
     });
-
-    // temporary workaround to allow only specific users to upgrade
-    if (!(workspace as any).fk_org_id) {
-      try {
-        if (process.env.NODE_ENV === 'test') {
-          (workspace as any).isUpgradeAllowed = true;
-        } else {
-          const cacheVal = await NocoCache.get(
-            IS_UPGRADE_ALLOWED_CACHE_KEY,
-            CacheGetType.TYPE_STRING,
-          );
-
-          (workspace as any).isUpgradeAllowed = cacheVal
-            ?.trim?.()
-            .split(/\s*,\s*/)
-            .includes((req as any).user?.email);
-        }
-      } catch {
-        // ignore
-      }
-    }
 
     return { workspace, workspaceUserCount };
   }

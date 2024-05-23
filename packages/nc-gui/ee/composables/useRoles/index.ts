@@ -108,6 +108,7 @@ export const useRoles = createSharedComposable(() => {
         base_roles: res.base_roles,
         workspace_roles: res.workspace_roles,
         org_roles: res.org_roles,
+        featureFlags: res.featureFlags,
       } as User
     } else if (options?.isSharedErd) {
       const res = await api.auth.me(
@@ -127,6 +128,7 @@ export const useRoles = createSharedComposable(() => {
         base_roles: res.base_roles,
         workspace_roles: res.workspace_roles,
         org_roles: res.org_roles,
+        featureFlags: res.featureFlags,
       } as User
     } else if (baseId) {
       const res = await api.auth.me({ base_id: baseId, ...wsId })
@@ -138,6 +140,7 @@ export const useRoles = createSharedComposable(() => {
         workspace_roles: res.workspace_roles,
         display_name: res.display_name,
         org_roles: res.org_roles,
+        featureFlags: res.featureFlags,
       } as User
     } else {
       const res = await api.auth.me({ ...wsId } as any)
@@ -149,6 +152,7 @@ export const useRoles = createSharedComposable(() => {
         workspace_roles: res.workspace_roles,
         display_name: res.display_name,
         org_roles: res.org_roles,
+        featureFlags: res.featureFlags,
       } as User
     }
   }

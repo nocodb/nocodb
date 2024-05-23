@@ -3,6 +3,8 @@ import type { Api } from 'nocodb-sdk'
 
 const { isUIAllowed } = useRoles()
 
+const { user } = useGlobal()
+
 const workspaceStore = useWorkspace()
 
 const { activeWorkspace } = storeToRefs(workspaceStore)
@@ -35,7 +37,7 @@ const migrateWorkspace = async () => {
     </nuxt-link>
   </template>
   <div
-    v-else-if="isUIAllowed('moveWorkspaceToOrg') && true"
+    v-else-if="isUIAllowed('moveWorkspaceToOrg') && user?.featureFlags?.upgradeOrg"
     v-e="['c:user:upgrade-workspace-to-org']"
     data-testid="nc-sidebar-upgrade-workspace-to-org"
     @click="migrateWorkspace"

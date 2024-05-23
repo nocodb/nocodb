@@ -2,7 +2,10 @@ import axios from 'axios';
 import cors from 'cors';
 import express from 'express';
 import Noco from '~/Noco';
+import NocoCache from '~/cache/NocoCache';
 import { User } from '~/models';
+
+const IS_UPGRADE_ALLOWED_CACHE_KEY = 'nc_upgrade_allowed';
 
 process.env.NC_VERSION = '0009044';
 
@@ -35,6 +38,8 @@ process.env[`TEST`] = 'true';
   } else {
     const httpServer = server.listen(process.env.PORT || 8080, async () => {
       server.use(await Noco.init({}, httpServer, server));
+
+      await NocoCache.set(IS_UPGRADE_ALLOWED_CACHE_KEY, 'user@nocodb.com');
 
       if (!(await User.getByEmail('user@nocodb.com'))) {
         const response = await axios.post(

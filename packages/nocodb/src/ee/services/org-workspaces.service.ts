@@ -205,7 +205,9 @@ export class OrgWorkspacesService {
       .includes((param as any).user?.email);
 
     if (!isAllowed) {
-      NcError.forbidden('Upgrade not allowed, contact NoCodeB support team');
+      NcError.forbidden(
+        'Upgrade not allowed, please contact NocoDB support team',
+      );
     }
   }
 }

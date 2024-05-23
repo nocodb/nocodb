@@ -19,6 +19,9 @@ import { UsersService } from '~/services/users/users.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
+import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
+
+const IS_UPGRADE_ALLOWED_CACHE_KEY = 'nc_upgrade_allowed';
 
 @Controller()
 export class AuthController extends AuthControllerCE {
@@ -28,6 +31,36 @@ export class AuthController extends AuthControllerCE {
     protected readonly config: ConfigService<AppConfig>,
   ) {
     super(usersService, appHooksService, config);
+  }
+
+  @Get(['/auth/user/me', '/api/v1/db/auth/user/me', '/api/v1/auth/user/me'])
+  @UseGuards(MetaApiLimiterGuard, GlobalGuard)
+  async me(@Req() req: Request) {
+    const featureFlags: Record<string, boolean> = (
+      await Promise.all([
+        (async () => {
+          const allowedUsers = await NocoCache.get(
+            IS_UPGRADE_ALLOWED_CACHE_KEY,
+            CacheGetType.TYPE_STRING,
+          );
+          const isAllowed = allowedUsers
+            ?.trim?.()
+            .split(/\s*,\s*/)
+            .includes(req.user?.email);
+
+          if (isAllowed) {
+            return 'upgradeOrg';
+          }
+        })(),
+      ])
+    )
+      .filter((f) => f)
+      .reduce((acc, f) => ({ ...acc, [f]: true }), {});
+
+    return {
+      ...(await super.me(req)),
+      featureFlags,
+    };
   }
 
   /* OpenID Connect auth apis */

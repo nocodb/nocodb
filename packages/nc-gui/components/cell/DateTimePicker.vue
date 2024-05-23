@@ -196,25 +196,6 @@ const cellClickHandler = () => {
   open.value = active.value || editable.value
 }
 
-function okHandler(val: dayjs.Dayjs | string) {
-  isClearedInputMode.value = false
-
-  if (!val) {
-    emit('update:modelValue', null)
-  } else if (dayjs(val).isValid()) {
-    // setting localModelValue to cater NOW function in date picker
-    localModelValue = dayjs(val)
-    // send the payload in UTC format
-    emit('update:modelValue', dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ'))
-  }
-
-  open.value = !open.value
-  if (!open.value && isGrid.value && !isExpandedForm.value && !isEditColumn.value) {
-    datePickerRef.value?.blur?.()
-    editable.value = false
-  }
-}
-
 onMounted(() => {
   cellClickHook?.on(cellClickHandler)
 })
@@ -364,7 +345,6 @@ const handleUpdateValue = (e: Event, _isDatePicker: boolean) => {
     if (isValidTimeFormat(targetValue, timeFormat.value)) {
       tempDate.value = dayjs(`${(tempDate.value ?? dayjs()).format('YYYY-MM-DD')} ${targetValue}`)
     }
-    return
   }
 }
 
@@ -448,6 +428,7 @@ watch([isDatePicker, isOpen], () => {
     class="nc-cell-field nc-cell-picker-datetime -ml-1"
     :class="[`nc-${randomClass}`, { 'nc-null': modelValue === null && showNull }]"
     :overlay-class-name="`${randomClass} nc-picker-datetime ${open ? 'active' : ''} !min-w-[0] overflow-hidden`"
+    :disabled="isColDisabled"
   >
     <div
       :title="localState?.format(dateTimeFormat)"
@@ -462,7 +443,7 @@ watch([isDatePicker, isOpen], () => {
           :value="localState?.format(dateFormat) ?? ''"
           :placeholder="typeof placeholder === 'string' ? placeholder : placeholder?.date"
           class="nc-date-input w-full !truncate border-transparent outline-none !text-current bg-transparent !focus:(border-none outline-none ring-transparent)"
-          :readonly="!!isMobileMode"
+          :readonly="!!isMobileMode || isColDisabled"
           @focus="onFocus(true)"
           @keydown="handleKeydown($event, open, true)"
           @mouseup.stop
@@ -480,7 +461,7 @@ watch([isDatePicker, isOpen], () => {
           :value="selectedTime.value ? `${selectedTime.label}` : ''"
           :placeholder="typeof placeholder === 'string' ? placeholder : placeholder?.time"
           class="nc-time-input w-full !truncate border-transparent outline-none !text-current bg-transparent !focus:(border-none outline-none ring-transparent)"
-          :readonly="!!isMobileMode"
+          :readonly="!!isMobileMode || isColDisabled"
           @focus="onFocus(false)"
           @keydown="handleKeydown($event, open)"
           @mouseup.stop
@@ -501,12 +482,12 @@ watch([isDatePicker, isOpen], () => {
       >
         <NcDatePicker
           v-if="isDatePicker"
-          :is-open="isOpen"
           v-model:page-date="tempDate"
           v-model:selected-date="localState"
+          :is-open="isOpen"
           type="date"
-          @update:selected-date="handleSelectDate"
           size="medium"
+          @update:selected-date="handleSelectDate"
         />
 
         <template v-else>

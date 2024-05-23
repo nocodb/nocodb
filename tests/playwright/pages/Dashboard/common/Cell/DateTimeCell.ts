@@ -142,7 +142,6 @@ export class DateTimeCellPageObject extends BasePage {
     await this.open({ index, columnHeader });
     await this.selectDate({ date, index, columnHeader });
     await this.selectTime({ hour: +hour, minute: +minute, index, columnHeader, fillValue: time });
-    // await this.save();
   }
 
   clickDateInput = async (locator: Locator) => {

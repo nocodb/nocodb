@@ -275,7 +275,10 @@ function handleSelectDate(value?: dayjs.Dayjs) {
     :class="[`nc-${randomClass}`, { 'nc-null': modelValue === null && showNull }]"
     :overlay-class-name="`${randomClass} nc-picker-date ${open ? 'active' : ''} !min-w-[260px]`"
   >
-    <div :title="localState?.format(dateFormat)" class="nc-date-picker flex items-center justify-between ant-picker-input relative group">
+    <div
+      :title="localState?.format(dateFormat)"
+      class="nc-date-picker flex items-center justify-between ant-picker-input relative group"
+    >
       <input
         ref="datePickerRef"
         type="text"
@@ -303,21 +306,21 @@ function handleSelectDate(value?: dayjs.Dayjs) {
       <div class="w-[260px]">
         <NcDatePicker
           v-if="picker === 'month'"
-          :is-open="isOpen"
           v-model:page-date="tempDate"
           v-model:selected-date="localState"
+          :is-open="isOpen"
           type="month"
           size="medium"
         />
         <NcDatePicker
           v-else
-          :is-open="isOpen"
           v-model:page-date="tempDate"
+          :is-open="isOpen"
           :selected-date="localState"
           :is-monday-first="false"
           type="date"
-          @update:selected-date="handleSelectDate"
           size="medium"
+          @update:selected-date="handleSelectDate"
         />
       </div>
     </template>

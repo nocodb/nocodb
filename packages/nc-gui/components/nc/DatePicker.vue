@@ -36,6 +36,22 @@ const pickerStack = ref<Props['type'][]>([])
 
 const tempPickerType = computed(() => pickerType.value || type.value)
 
+const handleUpdatePickerType = (value?: Props['type']) => {
+  if (value) {
+    pickerType.value = value
+    pickerStack.value.push(value)
+  } else {
+    if (pickerStack.value.length > 1) {
+      pickerStack.value.pop()
+      const lastPicker = pickerStack.value.pop()
+      pickerType.value = lastPicker
+    } else {
+      pickerStack.value = []
+      pickerType.value = type.value
+    }
+  }
+}
+
 const localStatePageDate = computed({
   get: () => {
     if (localPageDate.value) {
@@ -84,22 +100,6 @@ const localStateSelectedDate = computed({
     }
   },
 })
-
-const handleUpdatePickerType = (value?: Props['type']) => {
-  if (value) {
-    pickerType.value = value
-    pickerStack.value.push(value)
-  } else {
-    if (pickerStack.value.length > 1) {
-      pickerStack.value.pop()
-      const lastPicker = pickerStack.value.pop()
-      pickerType.value = lastPicker
-    } else {
-      pickerStack.value = []
-      pickerType.value = type.value
-    }
-  }
-}
 
 watch(isOpen, (next) => {
   if (!next) {

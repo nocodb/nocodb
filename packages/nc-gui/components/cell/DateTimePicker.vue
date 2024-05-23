@@ -37,17 +37,26 @@ const isDateInvalid = ref(false)
 
 const datePickerRef = ref<HTMLInputElement>()
 
+const timePickerRef = ref<HTMLInputElement>()
+
 const dateTimeFormat = computed(() => {
   const dateFormat = parseProp(column?.value?.meta)?.date_format ?? dateFormats[0]
   const timeFormat = parseProp(column?.value?.meta)?.time_format ?? timeFormats[0]
   return `${dateFormat} ${timeFormat}`
 })
 
+const dateFormat = computed(() => parseProp(column?.value?.meta)?.date_format ?? dateFormats[0])
+const timeFormat = computed(() => parseProp(column?.value?.meta)?.time_format ?? timeFormats[0])
+
 let localModelValue = modelValue ? dayjs(modelValue).utc().local() : undefined
 
 const isClearedInputMode = ref<boolean>(false)
 
 const open = ref(false)
+
+const tempDate = ref<dayjs.Dayjs | undefined>()
+
+const isDatePicker = ref<boolean>(true)
 
 const localState = computed({
   get() {
@@ -126,23 +135,26 @@ const isOpen = computed(() => {
 const randomClass = `picker_${Math.floor(Math.random() * 99999)}`
 
 onClickOutside(datePickerRef, (e) => {
-  if ((e.target as HTMLElement)?.closest(`.${randomClass}`)) return
+  if ((e.target as HTMLElement)?.closest(`.${randomClass}, .nc-${randomClass}`)) return
+
   datePickerRef.value?.blur?.()
   open.value = false
 })
 
 const onBlur = (e) => {
   if ((e?.relatedTarget as HTMLElement)?.closest(`.${randomClass}`)) return
-
-  open.value = false
+  console.log('blur')
+  // open.value = false
 }
 
 watch(
   open,
   (next) => {
+    console.log('clicked')
     if (next) {
       editable.value = true
-      datePickerRef.value?.focus?.()
+
+      isDatePicker.value ? datePickerRef.value?.focus?.() : timePickerRef.value?.focus?.()
 
       onClickOutside(document.querySelector(`.${randomClass}`)! as HTMLDivElement, (e) => {
         if ((e?.target as HTMLElement)?.closest(`.nc-${randomClass}`)) {
@@ -162,7 +174,7 @@ const placeholder = computed(() => {
     ((isForm.value || isExpandedForm.value) && !isDateInvalid.value) ||
     (isGrid.value && !showNull.value && !isDateInvalid.value && !isSystemColumn(column.value) && active.value)
   ) {
-    return dateTimeFormat.value
+    return { dateTime: dateTimeFormat.value, date: dateFormat.value, time: timeFormat.value }
   } else if (isEditColumn.value && (modelValue === '' || modelValue === null)) {
     return t('labels.optional')
   } else if (modelValue === null && showNull.value) {
@@ -206,7 +218,9 @@ onUnmounted(() => {
   cellClickHook?.on(cellClickHandler)
 })
 
-const clickHandler = (e) => {
+const clickHandler = (e: MouseEvent, _isDatePicker?: boolean = false) => {
+  isDatePicker.value = _isDatePicker
+
   if ((e.target as HTMLElement).closest(`.nc-${randomClass} .ant-picker-clear`)) {
     e.stopPropagation()
     emit('update:modelValue', null)
@@ -224,7 +238,7 @@ const isColDisabled = computed(() => {
   return isSystemColumn(column.value) || readOnly.value || (localState.value && isPk)
 })
 
-const handleKeydown = (e: KeyboardEvent) => {
+const handleKeydown = (e: KeyboardEvent, _open?: boolean, _isDatePicker?: boolean = false) => {
   if (e.key !== 'Enter') {
     e.stopPropagation()
   }
@@ -238,28 +252,33 @@ const handleKeydown = (e: KeyboardEvent) => {
       }
       return
     case 'Escape':
-      if (open.value) {
+      if (_open) {
         open.value = false
         editable.value = false
         if (isGrid.value && !isExpandedForm.value && !isEditColumn.value) {
-          datePickerRef.value?.blur?.()
+          _isDatePicker ? datePickerRef.value?.blur?.() : timePickerRef.value?.blur?.()
         }
       } else {
         editable.value = false
 
-        datePickerRef.value?.blur?.()
+        _isDatePicker ? datePickerRef.value?.blur?.() : timePickerRef.value?.blur?.()
       }
 
       return
     case 'Tab':
+      if (!_isDatePicker && !e.shiftKey) {
+        e.preventDefault()
+        return
+      }
+      
       open.value = false
       if (isGrid.value) {
         editable.value = false
-        datePickerRef.value?.blur()
+        _isDatePicker ? datePickerRef.value?.blur?.() : timePickerRef.value?.blur?.()
       }
       return
     default:
-      if (!open.value && /^[0-9a-z]$/i.test(e.key)) {
+      if (!_open && /^[0-9a-z]$/i.test(e.key)) {
         open.value = true
       }
   }
@@ -288,9 +307,9 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
       e.preventDefault()
       break
     default:
-      if (!isOpen.value && datePickerRef.value && /^[0-9a-z]$/i.test(e.key)) {
+      if (!isOpen.value && (datePickerRef.value || timePickerRef.value) && /^[0-9a-z]$/i.test(e.key)) {
         isClearedInputMode.value = true
-        datePickerRef.value.focus()
+        isDatePicker.value ? datePickerRef.value?.focus() : timePickerRef.value?.focus()
         editable.value = true
         open.value = true
       }
@@ -302,10 +321,30 @@ watch(editable, (nextValue) => {
     open.value = true
   }
 })
+
+const handleUpdateValue = (e: Event) => {
+  const targetValue = (e.target as HTMLInputElement).value
+  if (!targetValue) {
+    tempDate.value = undefined
+    return
+  }
+  const value = dayjs(targetValue, dateFormat.value)
+
+  if (value.isValid()) {
+    tempDate.value = value
+  }
+}
+
+function handleSelectDate(value?: dayjs.Dayjs) {
+  tempDate.value = value
+  localState.value = value
+  open.value = false
+}
 </script>
 
 <template>
   <a-date-picker
+    v-if="false"
     ref="datePickerRef"
     :value="localState"
     :disabled="isColDisabled"
@@ -314,7 +353,7 @@ watch(editable, (nextValue) => {
     class="nc-cell-field nc-cell-picker-datetime !w-full !py-1 !border-none !text-current"
     :class="[`nc-${randomClass}`, { 'nc-null': modelValue === null && showNull }]"
     :format="dateTimeFormat"
-    :placeholder="placeholder"
+    :placeholder="typeof placeholder === 'string' ? placeholder : placeholder?.dateTime"
     :allow-clear="!isColDisabled && !isEditColumn"
     :input-read-only="!!isMobileMode"
     :dropdown-class-name="`${randomClass} nc-picker-datetime children:border-1 children:border-gray-200 ${open ? 'active' : ''}`"
@@ -328,6 +367,63 @@ watch(editable, (nextValue) => {
   >
     <template #suffixIcon></template>
   </a-date-picker>
+
+  <NcDropdown
+    v-else
+    :visible="isOpen"
+    :placement="isDatePicker ? 'bottomLeft' : 'bottomRight'"
+    :auto-close="false"
+    :trigger="['click']"
+    class="nc-cell-field nc-cell-picker-datetime -ml-1"
+    :class="[`nc-${randomClass}`, { 'nc-null': modelValue === null && showNull }]"
+    :overlay-class-name="`${randomClass} nc-picker-datetime ${open ? 'active' : ''} !min-w-[0]`"
+  >
+    <div class="flex items-center gap-4 ant-picker-input relative group">
+      <div class="flex-none hover:bg-gray-200 !py-0.5 !px-1 rounded-md !w-[90px] !min-w-[90px]">
+        <input
+          ref="datePickerRef"
+          :value="localState?.format(dateFormat) ?? ''"
+          :placeholder="typeof placeholder === 'string' ? placeholder : placeholder?.date"
+          class="w-full border-transparent outline-none !text-current bg-transparent !focus:(border-none outline-none ring-transparent)"
+          :readonly="!!isMobileMode"
+          @blur="onBlur"
+          @keydown="handleKeydown($event, open, true)"
+          @mouseup.stop
+          @mousedown.stop
+          @click="clickHandler($event, true)"
+          @input="handleUpdateValue"
+        />
+      </div>
+      <div class="flex-none hover:bg-gray-200 !py-0.5 !px-1 rounded-md !w-[60px] !min-w-[60px]">
+        <input
+          ref="timePickerRef"
+          :value="localState?.format(timeFormat) ?? ''"
+          :placeholder="typeof placeholder === 'string' ? placeholder : placeholder?.time"
+          class="w-full border-transparent outline-none !text-current bg-transparent !focus:(border-none outline-none ring-transparent)"
+          :readonly="!!isMobileMode"
+          @blur="onBlur"
+          @keydown="handleKeydown($event, open)"
+          @mouseup.stop
+          @mousedown.stop
+          @click="clickHandler($event, false)"
+          @input="handleUpdateValue"
+        />
+      </div>
+    </div>
+
+    <template #overlay>
+      <div class="w-[260px]">
+        <NcDateWeekSelector
+          v-model:page-date="tempDate"
+          v-model:selected-date="localState"
+          :is-monday-first="false"
+          is-cell-input-field
+          @update:selected-date="handleSelectDate"
+          size="medium"
+        />
+      </div>
+    </template>
+  </NcDropdown>
   <div v-if="!editable && isGrid" class="absolute inset-0 z-90 cursor-pointer"></div>
 </template>
 

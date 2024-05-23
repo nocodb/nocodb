@@ -311,7 +311,7 @@ function handleSelectDate(value?: dayjs.Dayjs) {
         <NcDateWeekSelector
           v-else
           v-model:page-date="tempDate"
-          v-model:selected-date="localState"
+          :selected-date="localState"
           :is-monday-first="false"
           is-cell-input-field
           @update:selected-date="handleSelectDate"

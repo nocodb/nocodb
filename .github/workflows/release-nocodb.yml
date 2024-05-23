@@ -59,6 +59,11 @@ jobs:
     with:
       tag: ${{ needs.process-input.outputs.target_tag }}
       targetEnv: ${{ github.event.inputs.targetEnv || 'PROD' }}
+  
+  # Create a PR to sync changes back to develop branch from master
+  sync-to-develop:
+    needs: [pr-to-master, process-input]
+    uses: ./.github/workflows/sync-to-develop.yml
 
   # Build, install, publish frontend and backend to npm
   release-npm:
@@ -116,8 +121,3 @@ jobs:
     uses: ./.github/workflows/publish-docs.yml
     secrets:
       GH_TOKEN: "${{ secrets.GH_TOKEN }}"
-
-  # Sync changes to develop
-  sync-to-develop:
-    needs: publish-docs
-    uses: ./.github/workflows/sync-to-develop.yml

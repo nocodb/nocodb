@@ -27,8 +27,14 @@ export default class SMTP implements IEmailAdapter {
       tls: {
         rejectUnauthorized: this.input?.rejectUnauthorized,
       },
-      ...(this.input?.username ? { auth: { user: this.input?.username } } : {}),
-      ...(this.input?.password ? { auth: { pass: this.input?.password } } : {}),
+      ...(this.input?.username || this.input?.password
+        ? {
+            auth: {
+              ...(this.input?.username ? { user: this.input?.username } : {}),
+              ...(this.input?.password ? { pass: this.input?.password } : {}),
+            },
+          }
+        : {}),
     };
 
     this.transporter = nodemailer.createTransport(config);

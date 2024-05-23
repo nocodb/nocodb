@@ -17,7 +17,7 @@ export class TimeCellPageObject extends BasePage {
   async verify({ index, columnHeader, value }: { index: number; columnHeader: string; value: string }) {
     const cell = this.get({ index, columnHeader });
     await cell.scrollIntoViewIfNeeded();
-    await cell.locator(`.nc-time-picker`).getByTitle(value).waitFor({ state: 'visible' });
+    await cell.locator(`.nc-time-picker[title="${value}"]`).waitFor({ state: 'visible' });
     await expect(cell.locator(`[title="${value}"]`)).toBeVisible();
   }
 

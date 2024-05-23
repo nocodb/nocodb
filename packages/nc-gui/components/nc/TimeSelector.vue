@@ -37,7 +37,7 @@ const handleSelectTime = (time: dayjs.Dayjs) => {
 
   selectedDate.value = pageDate.value
 
-  emit('update:selectedDate', pageDate.value)
+  //   emit('update:selectedDate', pageDate.value)
 }
 
 // TODO: 12hr time format & regular time picker

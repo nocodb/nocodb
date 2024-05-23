@@ -283,6 +283,7 @@ function handleSelectDate(value?: dayjs.Dayjs) {
         :value="unref(localState)?.format(dateFormat) ?? ''"
         :placeholder="placeholder"
         class="border-none outline-none bg-transparent !focus:(border-none outline-none ring-transparent)"
+        :readonly="!!isMobileMode"
         @blur="onBlur"
         @keydown="handleKeydown($event, open)"
         @mouseup.stop

@@ -15,6 +15,7 @@ export enum JobTypes {
   UpdateSrcStat = 'update-source-stat',
   HealthCheck = 'health-check',
   HandleWebhook = 'handle-webhook',
+  CleanUp = 'clean-up',
 }
 
 export enum JobStatus {

@@ -2,9 +2,7 @@ import { Process, Processor } from '@nestjs/bull';
 import { Logger } from '@nestjs/common';
 import { Job } from 'bull';
 import { invokeWebhook } from '~/helpers/webhookHelpers';
-import Hook from '~/models/Hook';
-import Model from '~/models/Model';
-import View from '~/models/View';
+import { Hook, Model, View } from '~/models';
 import {
   type HandleWebhookJobData,
   JOBS_QUEUE,

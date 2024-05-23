@@ -22,20 +22,6 @@ export default class NcConnectionMgrv2 {
     }
   }
 
-  // Todo: Should await on connection destroy
-  public static delete(source: Source) {
-    // todo: ignore meta bases
-    if (this.connectionRefs?.[source.base_id]?.[source.id]) {
-      try {
-        const conn = this.connectionRefs?.[source.base_id]?.[source.id];
-        conn.destroy();
-        delete this.connectionRefs?.[source.base_id][source.id];
-      } catch (e) {
-        console.log(e);
-      }
-    }
-  }
-
   public static async deleteAwait(source: Source) {
     // todo: ignore meta bases
     if (this.connectionRefs?.[source.base_id]?.[source.id]) {

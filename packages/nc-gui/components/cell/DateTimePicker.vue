@@ -263,9 +263,17 @@ const handleKeydown = (e: KeyboardEvent, _open?: boolean, _isDatePicker?: boolea
     case 'Tab':
       open.value = false
       if (isGrid.value) {
-        editable.value = false
         _isDatePicker ? datePickerRef.value?.blur?.() : timePickerRef.value?.blur?.()
+
+        if (e.shiftKey && _isDatePicker) {
+          editable.value = false
+        } else if (e.shiftKey && !_isDatePicker) {
+          editable.value = false
+        } else {
+          e.stopPropagation()
+        }
       }
+
       return
     default:
       if (!_open && /^[0-9a-z]$/i.test(e.key)) {
@@ -518,7 +526,13 @@ watch([isDatePicker, isOpen], () => {
             </div>
           </div>
           <div class="flex items-center justify-center px-2 pb-2 pt-1">
-            <NcButton class="!h-7" size="small" type="secondary" @click="handleSelectTime(dayjs().format('HH:mm'))">
+            <NcButton
+              :tabindex="-1"
+              class="!h-7"
+              size="small"
+              type="secondary"
+              @click="handleSelectTime(dayjs().format('HH:mm'))"
+            >
               <span class="text-small"> {{ $t('general.now') }} </span>
             </NcButton>
           </div>

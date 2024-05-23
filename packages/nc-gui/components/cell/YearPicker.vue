@@ -150,7 +150,7 @@ const clickHandler = () => {
 }
 
 const handleKeydown = (e: KeyboardEvent, _open?: boolean) => {
-  if (e.key !== 'Enter') {
+  if (e.key !== 'Enter' && e.key !== 'Tab') {
     e.stopPropagation()
   }
 
@@ -164,6 +164,16 @@ const handleKeydown = (e: KeyboardEvent, _open?: boolean) => {
         if (isGrid.value && !isExpandedForm.value && !isEditColumn.value) {
           datePickerRef.value?.blur?.()
         }
+      }
+
+      return
+
+    case 'Tab':
+      open.value = false
+
+      if (isGrid.value) {
+        editable.value = false
+        datePickerRef.value?.blur?.()
       }
 
       return

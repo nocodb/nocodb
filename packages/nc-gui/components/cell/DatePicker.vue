@@ -186,7 +186,7 @@ const clickHandler = () => {
 }
 
 const handleKeydown = (e: KeyboardEvent, _open?: boolean) => {
-  if (e.key !== 'Enter') {
+  if (e.key !== 'Enter' && e.key !== 'Tab') {
     e.stopPropagation()
   }
 
@@ -224,6 +224,7 @@ const handleKeydown = (e: KeyboardEvent, _open?: boolean) => {
         editable.value = false
         datePickerRef.value?.blur?.()
       }
+
       return
     default:
       if (!_open && /^[0-9a-z]$/i.test(e.key)) {

@@ -147,7 +147,7 @@ test.describe('DateTime Column', () => {
 });
 
 test.describe('Date Column', () => {
-  if (enableQuickRun()) test.skip();
+  // if (enableQuickRun()) test.skip();
   let dashboard: DashboardPage;
   let context: NcContext;
 

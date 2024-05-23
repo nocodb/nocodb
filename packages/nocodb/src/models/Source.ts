@@ -351,6 +351,10 @@ export default class Source implements SourceType {
     return Base.get(this.base_id, ncMeta);
   }
 
+  async sourceCleanup(_ncMeta = Noco.ncMeta) {
+    await NcConnectionMgrv2.deleteAwait(this);
+  }
+
   async delete(ncMeta = Noco.ncMeta, { force }: { force?: boolean } = {}) {
     const sources = await Source.list({ baseId: this.base_id }, ncMeta);
 
@@ -422,7 +426,7 @@ export default class Source implements SourceType {
       await SyncSource.delete(syncSource.id, ncMeta);
     }
 
-    await NcConnectionMgrv2.deleteAwait(this);
+    await this.sourceCleanup(ncMeta);
 
     const res = await ncMeta.metaDelete(null, null, MetaTable.BASES, this.id);
 

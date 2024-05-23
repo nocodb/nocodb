@@ -99,8 +99,6 @@ const numberOfHiddenFields = computed(() => {
   }
 })
 
-const numberOfHiddenFields = computed(() => filteredFieldList.value?.filter((field) => !field.show)?.length)
-
 
 const gridDisplayValueField = computed(() => {
   if (activeView.value?.type !== ViewTypes.GRID && activeView.value?.type !== ViewTypes.CALENDAR) return null

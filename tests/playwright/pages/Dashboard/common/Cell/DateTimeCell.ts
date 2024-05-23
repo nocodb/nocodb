@@ -43,10 +43,9 @@ export class DateTimeCellPageObject extends BasePage {
   }) {
     // title date format needs to be YYYY-MM-DD
     const [year, month, day] = date.split('-');
-
-    await (locator ? locator : this.get({ index, columnHeader })).click();
-    const dateInput = (locator ? locator : this.get({ index, columnHeader })).locator('.nc-date-input');
-    await dateInput.click();
+    const dateLocator = locator ? locator : this.get({ index, columnHeader });
+    await dateLocator.click();
+    await dateLocator.locator('.nc-date-input').click();
 
     // configure year
     await this.rootPage.locator('.nc-year-picker-btn:visible').waitFor();
@@ -108,8 +107,9 @@ export class DateTimeCellPageObject extends BasePage {
     selectFromPicker?: boolean;
     locator?: Locator;
   }) {
-    await (locator ? locator : this.get({ index, columnHeader })).click();
-    const timeInput = (locator ? locator : this.get({ index, columnHeader })).locator('.nc-time-input');
+    const timeLocator = locator ? locator : this.get({ index, columnHeader });
+    await timeLocator.click();
+    const timeInput = timeLocator.locator('.nc-time-input');
     await timeInput.click();
 
     const dropdown = this.rootPage.locator('.nc-picker-datetime.active');

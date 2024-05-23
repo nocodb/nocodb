@@ -97,12 +97,12 @@ export class ExpandedFormPage extends BasePage {
         // eslint-disable-next-line no-case-declarations
         const dateTimeObj = new DateTimeCellPageObject(this.dashboard.grid.cell);
 
-        await dateTimeObj.selectDate({ date: value.slice(0, 10), locator: field });
+        await dateTimeObj.selectDate({ date: value.slice(0, 10), locator: field.locator('.nc-cell') });
 
         await dateTimeObj.selectTime({
           hour: +value.slice(11, 13),
           minute: +value.slice(14, 16),
-          locator: field,
+          locator: field.locator('.nc-cell'),
           fillValue: `${value.slice(11, 13).padStart(2, '0')}:${value.slice(14, 16).padStart(2, '0')}`,
         });
         break;

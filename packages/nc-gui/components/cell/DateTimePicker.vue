@@ -428,114 +428,120 @@ watch([isDatePicker, isOpen], () => {
 </script>
 
 <template>
-  <NcDropdown
-    :visible="isOpen"
-    :placement="isDatePicker ? 'bottomLeft' : 'bottomRight'"
-    :auto-close="false"
-    :trigger="['click']"
-    class="nc-cell-field nc-cell-picker-datetime -ml-1"
-    :class="[`nc-${randomClass}`, { 'nc-null': modelValue === null && showNull }]"
-    :overlay-class-name="`${randomClass} nc-picker-datetime ${open ? 'active' : ''} !min-w-[0] overflow-hidden`"
-    :disabled="isColDisabled"
-  >
-    <div
-      :title="localState?.format(dateTimeFormat)"
-      class="nc-date-picker flex items-center ant-picker-input relative group !w-auto"
+  <div class="nc-cell-field">
+    <NcDropdown
+      :visible="isOpen"
+      :placement="isDatePicker ? 'bottomLeft' : 'bottomRight'"
+      :auto-close="false"
+      :trigger="['click']"
+      class="nc-cell-picker-datetime"
+      :class="[`nc-${randomClass}`, { 'nc-null': modelValue === null && showNull }]"
+      :overlay-class-name="`${randomClass} nc-picker-datetime ${open ? 'active' : ''} !min-w-[0] overflow-hidden`"
+      :disabled="isColDisabled"
     >
       <div
-        class="flex-none hover:bg-gray-200 px-1 rounded-md w-[60%] max-w-[100px]"
-        :class="{
-          'py-0': isForm,
-          'py-0.5': !isForm,
-          'bg-gray-200': isDatePicker && isOpen,
-        }"
+        :title="localState?.format(dateTimeFormat)"
+        class="nc-date-picker ant-picker-input flex relative group !w-auto"
       >
-        <input
-          ref="datePickerRef"
-          :value="localState?.format(dateFormat) ?? ''"
-          :placeholder="typeof placeholder === 'string' ? placeholder : placeholder?.date"
-          class="nc-date-input w-full !truncate border-transparent outline-none !text-current !bg-transparent !focus:(border-none outline-none ring-transparent)"
-          :readonly="!!isMobileMode || isColDisabled"
-          @focus="onFocus(true)"
-          @keydown="handleKeydown($event, open, true)"
-          @mouseup.stop
-          @mousedown.stop
-          @click.stop="clickHandler($event, true)"
-          @input="handleUpdateValue($event, true)"
-        />
+        <div
+          class="flex-none hover:bg-gray-200 px-1 rounded-md"
+          :class="{
+            'py-0': isForm,
+            'py-0.5': !isForm,
+            'bg-gray-200': isDatePicker && isOpen,
+            'w-[50%] max-w-[100px]': isGrid && !isForm && !isExpandedForm,
+            'w-[50%] max-w-[120px]': !(isGrid && !isForm && !isExpandedForm),
+          }"
+        >
+          <input
+            ref="datePickerRef"
+            :value="localState?.format(dateFormat) ?? ''"
+            :placeholder="typeof placeholder === 'string' ? placeholder : placeholder?.date"
+            class="nc-date-input w-full !truncate border-transparent outline-none !text-current !bg-transparent !focus:(border-none outline-none ring-transparent)"
+            :readonly="!!isMobileMode || isColDisabled"
+            @focus="onFocus(true)"
+            @keydown="handleKeydown($event, open, true)"
+            @mouseup.stop
+            @mousedown.stop
+            @click.stop="clickHandler($event, true)"
+            @input="handleUpdateValue($event, true)"
+          />
+        </div>
+        <div
+          class="flex-none hover:bg-gray-200 ml-2 px-1 rounded-md w-[calc(40%_-_8px)] max-w-[100px]"
+          :class="{
+            'py-0': isForm,
+            'py-0.5': !isForm,
+            'bg-gray-200': !isDatePicker && isOpen,
+            'w-[calc(40%_-_8px)] max-w-[100px]': isGrid && !isForm && !isExpandedForm,
+            'w-[calc(50%_-_8px)]': !(isGrid && !isForm && !isExpandedForm),
+          }"
+        >
+          <input
+            ref="timePickerRef"
+            :value="selectedTime.value ? `${selectedTime.label}` : ''"
+            :placeholder="typeof placeholder === 'string' ? placeholder : placeholder?.time"
+            class="nc-time-input w-full !truncate border-transparent outline-none !text-current !bg-transparent !focus:(border-none outline-none ring-transparent)"
+            :readonly="!!isMobileMode || isColDisabled"
+            @focus="onFocus(false)"
+            @keydown="handleKeydown($event, open)"
+            @mouseup.stop
+            @mousedown.stop
+            @click.stop="clickHandler($event, false)"
+            @input="handleUpdateValue($event, false)"
+          />
+        </div>
       </div>
-      <div
-        class="flex-none hover:bg-gray-200 ml-2 px-1 rounded-md w-[calc(40%_-_8px)] max-w-[100px]"
-        :class="{
-          'py-0': isForm,
-          'py-0.5': !isForm,
-          'bg-gray-200': !isDatePicker && isOpen,
-        }"
-      >
-        <input
-          ref="timePickerRef"
-          :value="selectedTime.value ? `${selectedTime.label}` : ''"
-          :placeholder="typeof placeholder === 'string' ? placeholder : placeholder?.time"
-          class="nc-time-input w-full !truncate border-transparent outline-none !text-current !bg-transparent !focus:(border-none outline-none ring-transparent)"
-          :readonly="!!isMobileMode || isColDisabled"
-          @focus="onFocus(false)"
-          @keydown="handleKeydown($event, open)"
-          @mouseup.stop
-          @mousedown.stop
-          @click.stop="clickHandler($event, false)"
-          @input="handleUpdateValue($event, false)"
-        />
-      </div>
-    </div>
 
-    <template #overlay>
-      <div
-        class="min-w-[154px]"
-        :class="{
-          'w-[256px]': isDatePicker,
-          'h-[252px]': !isDatePicker,
-        }"
-      >
-        <NcDatePicker
-          v-if="isDatePicker"
-          v-model:page-date="tempDate"
-          :selected-date="localState"
-          :is-open="isOpen"
-          type="date"
-          size="medium"
-          @update:selected-date="handleSelectDate"
-        />
+      <template #overlay>
+        <div
+          class="min-w-[72px]"
+          :class="{
+            'w-[256px]': isDatePicker,
+            'h-[252px]': !isDatePicker,
+          }"
+        >
+          <NcDatePicker
+            v-if="isDatePicker"
+            v-model:page-date="tempDate"
+            :selected-date="localState"
+            :is-open="isOpen"
+            type="date"
+            size="medium"
+            @update:selected-date="handleSelectDate"
+          />
 
-        <template v-else>
-          <div class="h-[calc(100%_-_40px)] overflow-y-auto nc-scrollbar-thin">
-            <div
-              v-for="time of timeOptions"
-              :key="time.value"
-              class="hover:bg-gray-200 py-0.5 px-3 text-sm text-gray-600 font-weight-500 text-center cursor-pointer"
-              :class="{
-                'bg-gray-200': selectedTime.value === time.value,
-              }"
-              :data-testid="`time-option-${time.value}`"
-              @click="handleSelectTime(time.value)"
-            >
-              {{ time.label }}
+          <template v-else>
+            <div class="h-[calc(100%_-_40px)] overflow-y-auto nc-scrollbar-thin">
+              <div
+                v-for="time of timeOptions"
+                :key="time.value"
+                class="hover:bg-gray-200 py-0.5 px-3 text-sm text-gray-600 font-weight-500 text-center cursor-pointer"
+                :class="{
+                  'bg-gray-200': selectedTime.value === time.value,
+                }"
+                :data-testid="`time-option-${time.value}`"
+                @click="handleSelectTime(time.value)"
+              >
+                {{ time.label }}
+              </div>
             </div>
-          </div>
-          <div class="flex items-center justify-center px-2 pb-2 pt-1">
-            <NcButton
-              :tabindex="-1"
-              class="!h-7"
-              size="small"
-              type="secondary"
-              @click="handleSelectTime(dayjs().format('HH:mm'))"
-            >
-              <span class="text-small"> {{ $t('general.now') }} </span>
-            </NcButton>
-          </div>
-        </template>
-      </div>
-    </template>
-  </NcDropdown>
+            <div class="flex items-center justify-center px-2 pb-2 pt-1">
+              <NcButton
+                :tabindex="-1"
+                class="!h-7"
+                size="small"
+                type="secondary"
+                @click="handleSelectTime(dayjs().format('HH:mm'))"
+              >
+                <span class="text-small"> {{ $t('general.now') }} </span>
+              </NcButton>
+            </div>
+          </template>
+        </div>
+      </template>
+    </NcDropdown>
+  </div>
   <div v-if="!editable && isGrid" class="absolute inset-0 z-90 cursor-pointer"></div>
 </template>
 

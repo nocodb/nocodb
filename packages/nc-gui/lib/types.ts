@@ -16,6 +16,7 @@ interface User {
   invite_token?: string
   base_id?: string
   display_name?: string | null
+  featureFlags?: Record<string, boolean>
 }
 
 interface ProjectMetaInfo {

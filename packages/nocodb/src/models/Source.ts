@@ -21,6 +21,8 @@ import {
   prepareForResponse,
   stringifyMetaProp,
 } from '~/utils/modelUtils';
+import { JobsRedis } from '~/modules/jobs/redis/jobs-redis';
+import { InstanceCommands } from '~/interface/Jobs';
 
 // todo: hide credentials
 export default class Source implements SourceType {
@@ -181,6 +183,11 @@ export default class Source implements SourceType {
       `${CacheScope.BASE}:${sourceId}`,
       prepareForResponse(updateObj),
     );
+
+    if (JobsRedis.available) {
+      await JobsRedis.emitWorkerCommand(InstanceCommands.RELEASE, sourceId);
+      await JobsRedis.emitPrimaryCommand(InstanceCommands.RELEASE, sourceId);
+    }
 
     // call before reorder to update cache
     const returnBase = await this.get(oldBase.id, false, ncMeta);
@@ -351,6 +358,15 @@ export default class Source implements SourceType {
     return Base.get(this.base_id, ncMeta);
   }
 
+  async sourceCleanup(_ncMeta = Noco.ncMeta) {
+    await NcConnectionMgrv2.deleteAwait(this);
+
+    if (JobsRedis.available) {
+      await JobsRedis.emitWorkerCommand(InstanceCommands.RELEASE, this.id);
+      await JobsRedis.emitPrimaryCommand(InstanceCommands.RELEASE, this.id);
+    }
+  }
+
   async delete(ncMeta = Noco.ncMeta, { force }: { force?: boolean } = {}) {
     const sources = await Source.list({ baseId: this.base_id }, ncMeta);
 
@@ -422,7 +438,7 @@ export default class Source implements SourceType {
       await SyncSource.delete(syncSource.id, ncMeta);
     }
 
-    await NcConnectionMgrv2.deleteAwait(this);
+    await this.sourceCleanup(ncMeta);
 
     const res = await ncMeta.metaDelete(null, null, MetaTable.BASES, this.id);
 

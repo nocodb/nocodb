@@ -200,7 +200,7 @@ export class CellPageObject extends BasePage {
           const cell = await this.get({
             index,
             columnHeader,
-          }).locator('input');
+          }).locator('.nc-date-picker');
           return await cell.getAttribute('title');
         })
         .toEqual(expectedValue);

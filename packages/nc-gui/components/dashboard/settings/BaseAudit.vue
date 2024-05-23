@@ -103,7 +103,7 @@ const columns = [
 </script>
 
 <template>
-  <div class="flex flex-col gap-4 w-full">
+  <div class="h-full flex flex-col gap-4 w-full">
     <div v-if="!appInfo.auditEnabled" class="text-red-500">Audit logs are currently disabled by administrators.</div>
     <div class="flex flex-row justify-between items-center">
       <h6 class="mb-4 first-letter:capital font-bold">Audit : {{ base.title }}</h6>
@@ -116,20 +116,24 @@ const columns = [
       </a-button>
     </div>
 
-    <a-table
-      class="nc-audit-table w-full"
-      size="small"
-      :data-source="audits ?? []"
-      :columns="columns"
-      :pagination="false"
-      :loading="isLoading"
-      data-testid="audit-tab-table"
-    >
-      <template #emptyText>
-        <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
-      </template>
-    </a-table>
-    <div class="flex flex-row justify-center items-center">
+    <div class="h-[calc(100%_-_102px)] overflow-y-auto nc-scrollbar-thin">
+      <a-table
+        class="nc-audit-table w-full"
+        size="small"
+        :data-source="audits ?? []"
+        :columns="columns"
+        :pagination="false"
+        :loading="isLoading"
+        data-testid="audit-tab-table"
+        sticky
+        bordered
+      >
+        <template #emptyText>
+          <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
+        </template>
+      </a-table>
+    </div>
+    <div v-if="+totalRows > currentLimit" class="flex flex-row justify-center items-center">
       <a-pagination
         v-model:current="currentPage"
         v-model:page-size="currentLimit"
@@ -151,6 +155,7 @@ const columns = [
   font-size: unset;
   font-family: unset;
 }
+
 .pagination {
   .ant-select-dropdown {
     @apply !border-1 !border-gray-200;

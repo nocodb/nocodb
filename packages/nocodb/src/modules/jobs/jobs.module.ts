@@ -1,5 +1,6 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bull';
+import { NocoModule } from '~/modules/noco.module';
 
 // Jobs
 import { ExportService } from '~/modules/jobs/jobs/export-import/export.service';
@@ -14,13 +15,13 @@ import { SourceCreateController } from '~/modules/jobs/jobs/source-create/source
 import { SourceCreateProcessor } from '~/modules/jobs/jobs/source-create/source-create.processor';
 import { SourceDeleteController } from '~/modules/jobs/jobs/source-delete/source-delete.controller';
 import { SourceDeleteProcessor } from '~/modules/jobs/jobs/source-delete/source-delete.processor';
+import { WebhookHandlerProcessor } from '~/modules/jobs/jobs/webhook-handler/webhook-handler.processor';
 
 // Jobs Module Related
 import { JobsLogService } from '~/modules/jobs/jobs/jobs-log.service';
 // import { JobsGateway } from '~/modules/jobs/jobs.gateway';
 import { JobsController } from '~/modules/jobs/jobs.controller';
 import { JobsService } from '~/modules/jobs/redis/jobs.service';
-import { JobsRedisService } from '~/modules/jobs/redis/jobs-redis.service';
 import { JobsEventService } from '~/modules/jobs/redis/jobs-event.service';
 
 // Fallback
@@ -28,13 +29,10 @@ import { JobsService as FallbackJobsService } from '~/modules/jobs/fallback/jobs
 import { QueueService as FallbackQueueService } from '~/modules/jobs/fallback/fallback-queue.service';
 import { JobsEventService as FallbackJobsEventService } from '~/modules/jobs/fallback/jobs-event.service';
 import { JOBS_QUEUE } from '~/interface/Jobs';
-import { MetasModule } from '~/modules/metas/metas.module';
-import { DatasModule } from '~/modules/datas/datas.module';
 
 export const JobsModuleMetadata = {
   imports: [
-    DatasModule,
-    MetasModule,
+    forwardRef(() => NocoModule),
     ...(process.env.NC_REDIS_JOB_URL
       ? [
           BullModule.forRoot({
@@ -61,7 +59,7 @@ export const JobsModuleMetadata = {
   providers: [
     ...(process.env.NC_WORKER_CONTAINER !== 'true' ? [] : []),
     ...(process.env.NC_REDIS_JOB_URL
-      ? [JobsRedisService, JobsEventService]
+      ? [JobsEventService]
       : [FallbackQueueService, FallbackJobsEventService]),
     {
       provide: 'JobsService',
@@ -77,6 +75,7 @@ export const JobsModuleMetadata = {
     MetaSyncProcessor,
     SourceCreateProcessor,
     SourceDeleteProcessor,
+    WebhookHandlerProcessor,
   ],
   exports: ['JobsService'],
 };

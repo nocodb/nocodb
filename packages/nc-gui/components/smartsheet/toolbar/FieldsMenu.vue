@@ -32,8 +32,6 @@ const reloadViewMetaHook = inject(ReloadViewMetaHookInj, undefined)!
 
 const reloadViewDataHook = inject(ReloadViewDataHookInj, undefined)!
 
-const rootFields = inject(FieldsInj)
-
 const { isMobileMode } = useGlobal()
 
 const isLocked = inject(IsLockedInj, ref(false))
@@ -44,7 +42,6 @@ const { $api, $e } = useNuxtApp()
 
 const {
   showSystemFields,
-  sortedAndFilteredFields,
   fields,
   filteredFieldList,
   filterQuery,
@@ -82,6 +79,7 @@ eventBus.on((event) => {
   }
 })
 
+
 watch(
   sortedAndFilteredFields,
   (v) => {
@@ -100,6 +98,9 @@ const numberOfHiddenFields = computed(() => {
     return filteredFieldList.value?.filter((field) => !field.show)?.length
   }
 })
+
+const numberOfHiddenFields = computed(() => filteredFieldList.value?.filter((field) => !field.show)?.length)
+
 
 const gridDisplayValueField = computed(() => {
   if (activeView.value?.type !== ViewTypes.GRID && activeView.value?.type !== ViewTypes.CALENDAR) return null

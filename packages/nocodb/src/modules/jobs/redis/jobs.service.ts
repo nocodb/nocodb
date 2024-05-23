@@ -52,9 +52,7 @@ export class JobsService implements OnModuleInit {
     await this.toggleQueue();
 
     const job = await this.jobsQueue.add(name, data, {
-      removeOnComplete: {
-        age: 60, // 1 minute
-      },
+      removeOnComplete: true,
     });
 
     return job;

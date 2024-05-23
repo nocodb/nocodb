@@ -76,11 +76,11 @@ export class SurveyFormPage extends BasePage {
       // press enter key
       await this.get().locator(`[data-testid="nc-survey-form__input-${param.fieldLabel}"] >> input`).press('Enter');
     } else if (param.type === 'DateTime') {
-      await this.get().locator(`[data-testid="nc-survey-form__input-${param.fieldLabel}"] >> input`).click();
+      await this.get().locator(`[data-testid="nc-survey-form__input-${param.fieldLabel}"] >> input`).first().click();
       const modal = this.rootPage.locator('.nc-picker-datetime');
       await expect(modal).toBeVisible();
-      await modal.locator('.ant-picker-now-btn').click();
-      await modal.locator('.ant-picker-ok').click();
+      await modal.locator('.nc-date-picker-now-btn').click();
+      await modal.waitFor({ state: 'hidden' });
       await this.nextButton.click();
     }
 

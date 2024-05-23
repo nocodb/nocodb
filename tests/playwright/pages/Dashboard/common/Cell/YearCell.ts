@@ -17,7 +17,7 @@ export class YearCellPageObject extends BasePage {
   async verify({ index, columnHeader, value }: { index: number; columnHeader: string; value: number }) {
     const cell = this.get({ index, columnHeader });
     await cell.scrollIntoViewIfNeeded();
-    await cell.locator(`input[title="${value}"]`).waitFor({ state: 'visible' });
+    await cell.locator(`.nc-year-picker[title="${value}"]`).waitFor({ state: 'visible' });
     await expect(cell.locator(`[title="${value}"]`)).toBeVisible();
   }
 }

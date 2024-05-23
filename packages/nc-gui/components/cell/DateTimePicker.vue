@@ -429,12 +429,15 @@ const selectedTime = computed(() => {
   }
   if (localState.value) {
     const time = localState.value.format('HH:mm')
-    result.value = time
-    const hr = parseInt(time.split(':')[0] ?? '') ?? 0
+    const [hours, minutes] = time.split(':').map(Number)
 
-    result.label = `${
-      hr === 0 ? '12' : hr < 12 ? hr.toString().padStart(2, '0') : hr === 24 ? '00' : (hr - 12).toString().padStart(2, '0')
-    }:${time.split(':')[1]} ${hr < 12 ? 'AM' : 'PM'}`
+    result.value = time
+
+    const isAM = hours < 12
+    const hr12 = hours % 12 === 0 ? 12 : hours % 12
+    const hrString = hr12.toString().padStart(2, '0')
+
+    result.label = `${hrString}:${minutes.toString().padStart(2, '0')} ${isAM ? 'AM' : 'PM'}`
   }
 
   return result
@@ -505,7 +508,7 @@ watch([isDatePicker, isOpen], () => {
         class="min-w-[184px]"
         :class="{
           'w-[260px]': isDatePicker,
-          'max-h-[252px] overflow-y-auto nc-scrollbar-thin': !isDatePicker,
+          'h-[252px]': !isDatePicker,
         }"
       >
         <NcDateWeekSelector
@@ -518,17 +521,24 @@ watch([isDatePicker, isOpen], () => {
           size="medium"
         />
         <template v-else>
-          <div
-            v-for="time of timeOptions"
-            :key="time.value"
-            class="hover:bg-gray-200 py-0.5 px-3 text-sm text-gray-600 font-weight-500 text-center cursor-pointer"
-            :class="{
-              'bg-gray-200': selectedTime.value === time.value,
-            }"
-            :data-testid="`time-option-${time.value}`"
-            @click="handleSelectTime(time.value)"
-          >
-            {{ time.label }}
+          <div class="h-[calc(100%_-_40px)] overflow-y-auto nc-scrollbar-thin">
+            <div
+              v-for="time of timeOptions"
+              :key="time.value"
+              class="hover:bg-gray-200 py-0.5 px-3 text-sm text-gray-600 font-weight-500 text-center cursor-pointer"
+              :class="{
+                'bg-gray-200': selectedTime.value === time.value,
+              }"
+              :data-testid="`time-option-${time.value}`"
+              @click="handleSelectTime(time.value)"
+            >
+              {{ time.label }}
+            </div>
+          </div>
+          <div class="flex items-center justify-center px-2 pb-2 pt-1">
+            <NcButton class="!h-7" size="small" type="secondary" @click="handleSelectTime(dayjs().format('HH:mm'))">
+              <span class="text-small"> {{ $t('general.now') }} </span>
+            </NcButton>
           </div>
         </template>
       </div>

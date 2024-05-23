@@ -13,6 +13,10 @@ export class JobsService implements OnModuleInit {
 
   // pause primary instance queue
   async onModuleInit() {
+    if (process.env.NC_WORKER_CONTAINER === 'false') {
+      await this.jobsQueue.pause(true);
+    }
+
     await this.toggleQueue();
 
     JobsRedis.workerCallbacks[InstanceCommands.RESUME_LOCAL] = async () => {
@@ -26,9 +30,10 @@ export class JobsService implements OnModuleInit {
   }
 
   async toggleQueue() {
-    if (process.env.NC_WORKER_CONTAINER === 'false') {
-      await this.jobsQueue.pause(true);
-    } else if (process.env.NC_WORKER_CONTAINER !== 'true') {
+    if (
+      process.env.NC_WORKER_CONTAINER !== 'true' &&
+      process.env.NC_WORKER_CONTAINER !== 'false'
+    ) {
       // resume primary instance queue if there is no worker
       const workerCount = await JobsRedis.workerCount();
       const localWorkerPaused = await this.jobsQueue.isPaused(true);

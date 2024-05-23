@@ -50,10 +50,8 @@ export class HookHandlerService implements OnModuleInit, OnModuleDestroy {
           const { columns } = await FormView.getWithInfo(formView.fk_view_id);
           const allColumns = await model.getColumns();
           const fieldById = columns.reduce(
-            (o: Record<string, any>, f: Record<string, any>) => ({
-              ...o,
-              [f.fk_column_id]: f,
-            }),
+            (o: Record<string, any>, f: Record<string, any>) =>
+              Object.assign(o, { [f.fk_column_id]: f }),
             {},
           );
           let order = 1;

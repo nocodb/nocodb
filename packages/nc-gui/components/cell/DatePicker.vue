@@ -295,7 +295,7 @@ function handleSelectDate(value?: dayjs.Dayjs) {
   >
     <div
       :title="localState?.format(dateFormat)"
-      class="nc-date-picker flex items-center justify-between ant-picker-input relative group"
+      class="nc-date-picker h-full flex items-center justify-between ant-picker-input relative group"
     >
       <input
         ref="datePickerRef"

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { dateFormats, isSystemColumn, timeFormats } from 'nocodb-sdk'
+import { dateFormats, isSystemColumn, isValidTimeFormat, timeFormats } from 'nocodb-sdk'
 
 interface Props {
   modelValue?: string | null
@@ -348,7 +348,7 @@ const handleUpdateValue = (e: Event, _isDatePicker: boolean) => {
 
     if (date.isValid()) {
       if (localState.value) {
-        tempDate.value = dayjs(`${date.format('YYYY-MM-DD')} ${localState.value.format('HH:mm')}:00`)
+        tempDate.value = dayjs(`${date.format('YYYY-MM-DD')} ${localState.value.format(timeFormat.value)}`)
       } else {
         tempDate.value = date
       }
@@ -361,15 +361,8 @@ const handleUpdateValue = (e: Event, _isDatePicker: boolean) => {
       return
     }
 
-    const timeFormat = /^(0[1-9]|1[0-2]):([0-5][0-9])\s(AM|PM)$/
-    if (timeFormat.test(targetValue.toUpperCase())) {
-      const time = targetValue.toUpperCase().split(' ')
-      if (time[1] === 'PM') {
-        const hr = parseInt(time[0].split(':')[0] ?? '') ?? 0
-        time[0] = `${hr === 12 ? hr : 12 + hr}:${time[0].split(':')[1]}`
-      }
-
-      tempDate.value = dayjs(`${(tempDate.value ?? dayjs()).format('YYYY-MM-DD')} ${time[0]}:00`)
+    if (isValidTimeFormat(targetValue, timeFormat.value)) {
+      tempDate.value = dayjs(`${(tempDate.value ?? dayjs()).format('YYYY-MM-DD')} ${targetValue}`)
     }
     return
   }
@@ -377,7 +370,7 @@ const handleUpdateValue = (e: Event, _isDatePicker: boolean) => {
 
 function handleSelectDate(value?: dayjs.Dayjs) {
   if (value && localState.value) {
-    const dateTime = dayjs(`${value.format('YYYY-MM-DD')} ${localState.value.format('HH:mm:ss')}`)
+    const dateTime = dayjs(`${value.format('YYYY-MM-DD')} ${localState.value.format(timeFormat.value)}`)
     tempDate.value = dateTime
     localState.value = dateTime
   } else {
@@ -405,13 +398,8 @@ function generateTimeArray() {
     return [0, 30].map((m) => {
       const hour24 = h.toString().padStart(2, '0')
       const minute = m.toString().padStart(2, '0')
-      const value = `${hour24}:${minute}`
 
-      const period = h < 12 ? 'AM' : 'PM'
-      const hour12 = (h % 12 === 0 ? 12 : h % 12).toString().padStart(2, '0')
-      const label = `${hour12}:${minute} ${period}`
-
-      return { label, value }
+      return { label: `${hour24}:${minute}`, value: `${hour24}:${minute}` }
     })
   })
 }
@@ -428,16 +416,13 @@ const selectedTime = computed(() => {
     label: '',
   }
   if (localState.value) {
-    const time = localState.value.format('HH:mm')
-    const [hours, minutes] = time.split(':').map(Number)
+    const time = localState.value.format(timeFormat.value)
 
-    result.value = time
+    const [hours, minutes] = time.split(':')
 
-    const isAM = hours < 12
-    const hr12 = hours % 12 === 0 ? 12 : hours % 12
-    const hrString = hr12.toString().padStart(2, '0')
+    result.value = `${hours}:${minutes}`
 
-    result.label = `${hrString}:${minutes.toString().padStart(2, '0')} ${isAM ? 'AM' : 'PM'}`
+    result.label = time
   }
 
   return result
@@ -464,16 +449,16 @@ watch([isDatePicker, isOpen], () => {
     :class="[`nc-${randomClass}`, { 'nc-null': modelValue === null && showNull }]"
     :overlay-class-name="`${randomClass} nc-picker-datetime ${open ? 'active' : ''} !min-w-[0] overflow-hidden`"
   >
-    <div class="flex items-center gap-2 ant-picker-input relative group">
+    <div :title="localState?.format(dateTimeFormat)" class="nc-date-picker flex items-center ant-picker-input relative group">
       <div
-        class="flex-none hover:bg-gray-200 !py-0.5 !px-1 rounded-md !w-[90px] !min-w-[90px] border-1"
+        class="flex-none hover:bg-gray-200 py-0.5 px-1 rounded-md w-1/2 max-w-[100px] border-1"
         :class="[isDatePicker && isOpen ? 'border-brand-500 bg-gray-200' : 'border-transparent']"
       >
         <input
           ref="datePickerRef"
           :value="localState?.format(dateFormat) ?? ''"
           :placeholder="typeof placeholder === 'string' ? placeholder : placeholder?.date"
-          class="nc-date-input w-full border-transparent outline-none !text-current bg-transparent !focus:(border-none outline-none ring-transparent)"
+          class="nc-date-input w-full !truncate border-transparent outline-none !text-current bg-transparent !focus:(border-none outline-none ring-transparent)"
           :readonly="!!isMobileMode"
           @focus="onFocus(true)"
           @keydown="handleKeydown($event, open, true)"
@@ -484,14 +469,14 @@ watch([isDatePicker, isOpen], () => {
         />
       </div>
       <div
-        class="flex-none hover:bg-gray-200 !py-0.5 !px-1 rounded-md !w-[68px] !min-w-[68px] border-1"
+        class="flex-none hover:bg-gray-200 py-0.5 ml-2 px-1 rounded-md w-[45%] max-w-[100px] border-1"
         :class="[!isDatePicker && isOpen ? 'border-brand-500 bg-gray-200' : 'border-transparent']"
       >
         <input
           ref="timePickerRef"
           :value="selectedTime.value ? `${selectedTime.label}` : ''"
           :placeholder="typeof placeholder === 'string' ? placeholder : placeholder?.time"
-          class="nc-time-input w-full border-transparent outline-none !text-current bg-transparent !focus:(border-none outline-none ring-transparent)"
+          class="nc-time-input w-full !truncate border-transparent outline-none !text-current bg-transparent !focus:(border-none outline-none ring-transparent)"
           :readonly="!!isMobileMode"
           @focus="onFocus(false)"
           @keydown="handleKeydown($event, open)"

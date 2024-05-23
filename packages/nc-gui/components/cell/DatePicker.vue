@@ -275,11 +275,11 @@ function handleSelectDate(value?: dayjs.Dayjs) {
     :class="[`nc-${randomClass}`, { 'nc-null': modelValue === null && showNull }]"
     :overlay-class-name="`${randomClass} nc-picker-date ${open ? 'active' : ''} !min-w-[260px]`"
   >
-    <div class="flex items-center justify-between ant-picker-input relative group">
+    <div :title="localState?.format(dateFormat)" class="nc-date-picker flex items-center justify-between ant-picker-input relative group">
       <input
         ref="datePickerRef"
         type="text"
-        :value="unref(localState)?.format(dateFormat) ?? ''"
+        :value="localState?.format(dateFormat) ?? ''"
         :placeholder="placeholder"
         class="nc-date-input border-none outline-none !text-current bg-transparent !focus:(border-none outline-none ring-transparent)"
         :readonly="!!isMobileMode"

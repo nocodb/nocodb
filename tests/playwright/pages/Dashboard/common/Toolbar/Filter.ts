@@ -233,18 +233,17 @@ export class ToolbarFilterPage extends BasePage {
           break;
         case UITypes.Time:
           // eslint-disable-next-line no-case-declarations
-          const time = value.split(':');
-          await this.get().locator('.nc-filter-value-select').click();
-          await this.rootPage.locator(`.ant-picker-dropdown:visible`).waitFor();
-          await this.rootPage
-            .locator(`.ant-picker-time-panel-column:nth-child(1)`)
-            .locator(`.ant-picker-time-panel-cell:has-text("${time[0]}")`)
-            .click();
-          await this.rootPage
-            .locator(`.ant-picker-time-panel-column:nth-child(2)`)
-            .locator(`.ant-picker-time-panel-cell:has-text("${time[1]}")`)
-            .click();
-          await this.rootPage.locator(`.ant-btn-primary:has-text("Ok")`).click();
+          const timeInput = this.get().locator('.nc-filter-value-select').locator('.nc-time-input');
+          await timeInput.click();
+          // eslint-disable-next-line no-case-declarations
+          const dropdown = this.rootPage.locator('.nc-picker-time.active');
+          await dropdown.waitFor({ state: 'visible' });
+
+          await timeInput.fill(value);
+          await this.rootPage.keyboard.press('Enter');
+
+          await dropdown.waitFor({ state: 'hidden' });
+
           break;
         case UITypes.Date:
           if (subOperation === 'exact date') {

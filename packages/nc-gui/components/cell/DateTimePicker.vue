@@ -376,22 +376,6 @@ function handleSelectTime(value: dayjs.Dayjs) {
 
   open.value = false
 }
-function generateTimeArray() {
-  return Array.from({ length: 24 }).flatMap((_, h) => {
-    return [0, 30].map((m) => {
-      const hour24 = h.toString().padStart(2, '0')
-      const minute = m.toString().padStart(2, '0')
-
-      return { label: `${hour24}:${minute}`, value: `${hour24}:${minute}` }
-    })
-  })
-}
-const timeOptions = ref<
-  {
-    label: string
-    value: string
-  }[]
->(generateTimeArray())
 
 const selectedTime = computed(() => {
   const result = {

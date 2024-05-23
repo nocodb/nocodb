@@ -113,15 +113,18 @@ export class BulkUpdatePage extends BasePage {
         await this.configureYear(value);
         break;
       case 'time':
-        picker = this.rootPage.locator('.ant-picker-dropdown.active');
-        await picker.waitFor();
         // eslint-disable-next-line no-case-declarations
-        const time = value.split(':');
+        const timeInput = field.locator('.nc-time-input');
+        await timeInput.click();
         // eslint-disable-next-line no-case-declarations
-        const timePanel = picker.locator('.ant-picker-time-panel-column');
-        await timePanel.nth(0).locator('li').nth(+time[0]).click();
-        await timePanel.nth(1).locator('li').nth(+time[1]).click();
-        await picker.locator('.ant-picker-ok').click();
+        const dropdown = this.rootPage.locator('.nc-picker-time.active');
+        await dropdown.waitFor({ state: 'visible' });
+
+        await timeInput.fill(value);
+        await this.rootPage.keyboard.press('Enter');
+
+        await dropdown.waitFor({ state: 'hidden' });
+
         break;
       case 'singleSelect':
         picker = this.rootPage.locator('.ant-select-dropdown.active');

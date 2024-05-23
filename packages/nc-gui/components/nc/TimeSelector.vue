@@ -82,9 +82,9 @@ onMounted(() => {
       <div
         v-for="time of timeOptions"
         :key="time.format('HH:mm')"
-        class="hover:bg-gray-200 py-1 px-3 text-sm text-gray-600 font-weight-500 text-center cursor-pointer"
+        class="hover:bg-gray-100 py-1 px-3 text-sm text-gray-600 font-weight-500 text-center cursor-pointer"
         :class="{
-          'nc-selected bg-gray-200': selectedDate && compareTime(time, selectedDate),
+          'nc-selected bg-gray-100': selectedDate && compareTime(time, selectedDate),
         }"
         :data-testid="`time-option-${time.format('HH:mm')}`"
         @click="handleSelectTime(time)"
@@ -93,7 +93,7 @@ onMounted(() => {
       </div>
     </div>
     <div v-else></div>
-    <div class="p-2 box-border border-t-1 border-gray-200 flex items-center justify-center">
+    <div class="px-2 py-1 box-border flex items-center justify-center">
       <NcButton :tabindex="-1" class="!h-7" size="small" type="secondary" @click="handleSelectTime(dayjs())">
         <span class="text-small"> {{ $t('general.now') }} </span>
       </NcButton>

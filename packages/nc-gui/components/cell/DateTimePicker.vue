@@ -255,7 +255,7 @@ const handleKeydown = (e: KeyboardEvent, _open?: boolean, _isDatePicker: boolean
       return
     case 'Tab':
       open.value = false
-      if (isGrid.value) {
+      if (isGrid.value && !isExpandedForm.value && !isEditColumn.value) {
         _isDatePicker ? datePickerRef.value?.blur?.() : timePickerRef.value?.blur?.()
 
         if (e.shiftKey && _isDatePicker) {
@@ -309,6 +309,7 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
 
 watch(editable, (nextValue) => {
   if (isGrid.value && nextValue && !open.value) {
+    isDatePicker.value = true
     open.value = true
   }
 })
@@ -420,11 +421,11 @@ const timeCellMaxWidth = computed(() => {
         class="nc-date-picker ant-picker-input flex justify-between gap-2 relative group !w-auto"
       >
         <div
-          class="flex-none hover:bg-gray-200 px-1 rounded-md box-border w-[60%] max-w-[110px]"
+          class="flex-none hover:bg-gray-100 px-1 rounded-md box-border w-[60%] max-w-[110px]"
           :class="{
             'py-0': isForm,
             'py-0.5': !isForm,
-            'bg-gray-200': isDatePicker && isOpen,
+            'bg-gray-100': isDatePicker && isOpen,
           }"
         >
           <input
@@ -442,13 +443,13 @@ const timeCellMaxWidth = computed(() => {
           />
         </div>
         <div
-          class="flex-none hover:bg-gray-200 px-1 rounded-md box-border flex-1"
+          class="flex-none hover:bg-gray-100 px-1 rounded-md box-border flex-1"
           :class="[
             `${timeCellMaxWidth}`,
             {
               'py-0': isForm,
               'py-0.5': !isForm,
-              'bg-gray-200': !isDatePicker && isOpen,
+              'bg-gray-100': !isDatePicker && isOpen,
             },
           ]"
         >

@@ -183,7 +183,7 @@ const handleKeydown = (e: KeyboardEvent, _open?: boolean) => {
 
     case 'Tab':
       open.value = false
-      if (isGrid.value) {
+      if (isGrid.value && !isExpandedForm.value && !isEditColumn.value) {
         editable.value = false
         datePickerRef.value?.blur?.()
       }

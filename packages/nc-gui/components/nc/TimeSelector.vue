@@ -40,7 +40,7 @@ const handleSelectTime = (time: dayjs.Dayjs) => {
   emit('update:selectedDate', pageDate.value)
 }
 
-//TODO: 12hr time format & regular time picker
+// TODO: 12hr time format & regular time picker
 const timeOptions = computed(() => {
   return Array.from({ length: is12hrFormat.value ? 12 : 24 }).flatMap((_, h) => {
     return (isMinGranularityPicker.value ? [0, minGranularity.value] : Array.from({ length: 60 })).map((_m, m) => {
@@ -61,7 +61,7 @@ const handleAutoScroll = (behavior: ScrollBehavior = 'instant') => {
       `[data-testid="time-option-${selectedDate.value?.format('HH:mm')}"]`,
     )
 
-    timeEl?.scrollIntoView({ behavior: behavior, block: 'center' })
+    timeEl?.scrollIntoView({ behavior, block: 'center' })
   }, 50)
 }
 
@@ -78,7 +78,7 @@ onMounted(() => {
 
 <template>
   <div class="flex flex-col max-w-[350px]">
-    <div ref="timeOptionsWrapperRef" v-if="isMinGranularityPicker" class="h-[180px] overflow-y-auto nc-scrollbar-thin">
+    <div v-if="isMinGranularityPicker" ref="timeOptionsWrapperRef" class="h-[180px] overflow-y-auto nc-scrollbar-thin">
       <div
         v-for="time of timeOptions"
         :key="time.format('HH:mm')"

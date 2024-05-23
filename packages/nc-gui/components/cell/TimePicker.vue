@@ -281,34 +281,7 @@ function handleSelectTime(value?: dayjs.Dayjs) {
 </script>
 
 <template>
-  <a-time-picker
-    v-if="false"
-    ref="datePickerRef"
-    v-model:value="localState"
-    :tabindex="0"
-    :disabled="readOnly"
-    :show-time="true"
-    :bordered="false"
-    use12-hours
-    format="HH:mm"
-    class="nc-cell-field !w-full !py-1 !border-none !text-current"
-    :class="[`nc-${randomClass}`, { 'nc-null': modelValue === null && showNull }]"
-    :placeholder="placeholder"
-    :allow-clear="!readOnly && !isPk && !isEditColumn"
-    :input-read-only="!!isMobileMode"
-    :open="isOpen"
-    :popup-class-name="`${randomClass} nc-picker-time children:border-1 children:border-gray-200 ${open ? 'active' : ''}`"
-    @blur="onBlur"
-    @keydown="handleKeydown"
-    @click="clickHandler"
-    @ok="open = !open"
-    @mouseup.stop
-    @mousedown.stop
-  >
-    <template #suffixIcon></template>
-  </a-time-picker>
   <NcDropdown
-    v-else
     :visible="isOpen"
     :auto-close="false"
     :trigger="['click']"
@@ -358,9 +331,3 @@ function handleSelectTime(value?: dayjs.Dayjs) {
   </NcDropdown>
   <div v-if="!editable && isGrid" class="absolute inset-0 z-90 cursor-pointer"></div>
 </template>
-
-<style scoped>
-:deep(.ant-picker-input > input) {
-  @apply !text-current;
-}
-</style>

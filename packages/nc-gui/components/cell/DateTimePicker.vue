@@ -444,13 +444,13 @@ watch([isDatePicker, isOpen], () => {
           ref="datePickerRef"
           :value="localState?.format(dateFormat) ?? ''"
           :placeholder="typeof placeholder === 'string' ? placeholder : placeholder?.date"
-          class="nc-date-input w-full !truncate border-transparent outline-none !text-current bg-transparent !focus:(border-none outline-none ring-transparent)"
+          class="nc-date-input w-full !truncate border-transparent outline-none !text-current !bg-transparent !focus:(border-none outline-none ring-transparent)"
           :readonly="!!isMobileMode || isColDisabled"
           @focus="onFocus(true)"
           @keydown="handleKeydown($event, open, true)"
           @mouseup.stop
           @mousedown.stop
-          @click="clickHandler($event, true)"
+          @click.stop="clickHandler($event, true)"
           @input="handleUpdateValue($event, true)"
         />
       </div>
@@ -468,13 +468,13 @@ watch([isDatePicker, isOpen], () => {
           ref="timePickerRef"
           :value="selectedTime.value ? `${selectedTime.label}` : ''"
           :placeholder="typeof placeholder === 'string' ? placeholder : placeholder?.time"
-          class="nc-time-input w-full !truncate border-transparent outline-none !text-current bg-transparent !focus:(border-none outline-none ring-transparent)"
+          class="nc-time-input w-full !truncate border-transparent outline-none !text-current !bg-transparent !focus:(border-none outline-none ring-transparent)"
           :readonly="!!isMobileMode || isColDisabled"
           @focus="onFocus(false)"
           @keydown="handleKeydown($event, open)"
           @mouseup.stop
           @mousedown.stop
-          @click="clickHandler($event, false)"
+          @click.stop="clickHandler($event, false)"
           @input="handleUpdateValue($event, false)"
         />
       </div>

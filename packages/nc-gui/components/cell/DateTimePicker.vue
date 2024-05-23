@@ -366,7 +366,7 @@ const handleUpdateValue = (e: Event, _isDatePicker: boolean) => {
       const time = targetValue.toUpperCase().split(' ')
       if (time[1] === 'PM') {
         const hr = parseInt(time[0].split(':')[0] ?? '') ?? 0
-        time[0] = `${hr === 12 ? '00' : 12 + hr}:${time[0].split(':')[1]}`
+        time[0] = `${hr === 12 ? hr : 12 + hr}:${time[0].split(':')[1]}`
       }
 
       tempDate.value = dayjs(`${(tempDate.value ?? dayjs()).format('YYYY-MM-DD')} ${time[0]}:00`)

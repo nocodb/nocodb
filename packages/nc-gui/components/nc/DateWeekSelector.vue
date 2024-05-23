@@ -118,6 +118,7 @@ const handleSelectDate = (date: dayjs.Dayjs) => {
     selectWeek(date)
   } else if (props.isCellInputField) {
     selectedDate.value = date
+    emit('update:selectedDate', date)
   } else {
     if (!isDayInPagedMonth(date)) {
       pageDate.value = date

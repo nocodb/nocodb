@@ -248,16 +248,24 @@ export class ToolbarFilterPage extends BasePage {
           break;
         case UITypes.Date:
           if (subOperation === 'exact date') {
-            await this.get().locator('.nc-filter-value-select').click();
-            await this.rootPage.locator(`.nc-picker-date:visible`).waitFor();
-            if (skipWaitingResponse) {
-              await this.rootPage.locator(`.nc-date-item-inner:has-text("${value}")`).click({ force: true });
+            await this.get().locator('.nc-filter-value-select .nc-date-input').click();
+            const dropdown = this.rootPage.locator(`.nc-picker-date.active`);
+            await dropdown.waitFor({ state: 'visible' });
+            const dateItem = dropdown.locator('.nc-date-item').getByText(value);
+            await dateItem.waitFor();
+            await dateItem.scrollIntoViewIfNeeded();
+            await dateItem.hover();
 
+            if (skipWaitingResponse) {
+              await dateItem.click();
+              await dropdown.waitFor({ state: 'hidden' });
               await this.rootPage.waitForTimeout(350);
             } else {
               await this.waitForResponse({
-                uiAction: async () =>
-                  await this.rootPage.locator(`.nc-date-item-inner:has-text("${value}")`).click({ force: true }),
+                uiAction: async () => {
+                  await dateItem.click();
+                  await dropdown.waitFor({ state: 'hidden' });
+                },
                 httpMethodsToMatch: ['GET'],
                 requestUrlPathToMatch: locallySaved ? `/api/v1/db/public/` : `/api/v1/db/data/noco/`,
               });

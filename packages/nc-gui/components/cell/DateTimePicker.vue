@@ -443,14 +443,12 @@ watch([isDatePicker, isOpen], () => {
       class="nc-date-picker flex items-center ant-picker-input relative group !w-auto"
     >
       <div
-        class="flex-none hover:bg-gray-200 px-1 rounded-md w-1/2 max-w-[100px] border-1"
-        :class="[
-          isDatePicker && isOpen ? 'border-brand-500 bg-gray-200' : 'border-transparent',
-          {
-            'py-0': isForm,
-            'py-0.5': !isForm,
-          },
-        ]"
+        class="flex-none hover:bg-gray-200 px-1 rounded-md w-[60%] max-w-[100px]"
+        :class="{
+          'py-0': isForm,
+          'py-0.5': !isForm,
+          'bg-gray-200': isDatePicker && isOpen,
+        }"
       >
         <input
           ref="datePickerRef"
@@ -467,14 +465,12 @@ watch([isDatePicker, isOpen], () => {
         />
       </div>
       <div
-        class="flex-none hover:bg-gray-200 ml-2 px-1 rounded-md w-[45%] max-w-[100px] border-1"
-        :class="[
-          !isDatePicker && isOpen ? 'border-brand-500 bg-gray-200' : 'border-transparent',
-          {
-            'py-0': isForm,
-            'py-0.5': !isForm,
-          },
-        ]"
+        class="flex-none hover:bg-gray-200 ml-2 px-1 rounded-md w-[calc(40%_-_8px)] max-w-[100px]"
+        :class="{
+          'py-0': isForm,
+          'py-0.5': !isForm,
+          'bg-gray-200': !isDatePicker && isOpen,
+        }"
       >
         <input
           ref="timePickerRef"

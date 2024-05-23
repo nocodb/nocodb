@@ -26,6 +26,10 @@ export class JobsRedis {
       return;
     }
 
+    if (!JobsRedis.available) {
+      return;
+    }
+
     this.initialized = true;
 
     this.redisClient = new Redis(process.env.NC_REDIS_JOB_URL);
@@ -54,6 +58,10 @@ export class JobsRedis {
 
   static async publish(channel: string, message: string | any) {
     if (!this.initialized) {
+      if (!JobsRedis.available) {
+        return;
+      }
+
       await this.init();
     }
 
@@ -73,6 +81,10 @@ export class JobsRedis {
     callback: (message: any) => Promise<void>,
   ) {
     if (!this.initialized) {
+      if (!JobsRedis.available) {
+        return;
+      }
+
       await this.init();
     }
 
@@ -94,6 +106,10 @@ export class JobsRedis {
 
   static async unsubscribe(channel: string) {
     if (!this.initialized) {
+      if (!JobsRedis.available) {
+        return;
+      }
+
       await this.init();
     }
 
@@ -105,6 +121,10 @@ export class JobsRedis {
 
   static async workerCount(): Promise<number> {
     if (!this.initialized) {
+      if (!JobsRedis.available) {
+        return;
+      }
+
       await this.init();
     }
 

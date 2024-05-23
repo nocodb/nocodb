@@ -96,8 +96,9 @@ const onBlur = (e) => {
   if (
     (e?.relatedTarget as HTMLElement)?.closest(`.${randomClass}, .nc-${randomClass}`) ||
     (e?.target as HTMLElement)?.closest(`.${randomClass}, .nc-${randomClass}`)
-  )
+  ) {
     return
+  }
 
   open.value = false
 }
@@ -189,8 +190,6 @@ const handleKeydown = (e: KeyboardEvent, _open?: boolean) => {
         editable.value = false
         if (isGrid.value && !isExpandedForm.value && !isEditColumn.value) {
           datePickerRef.value?.blur?.()
-        } else {
-          e.stopPropagation()
         }
       }
       return
@@ -282,7 +281,7 @@ function handleSelectDate(value?: dayjs.Dayjs) {
         type="text"
         :value="unref(localState)?.format(dateFormat) ?? ''"
         :placeholder="placeholder"
-        class="border-none outline-none bg-transparent !focus:(border-none outline-none ring-transparent)"
+        class="border-none outline-none !text-current bg-transparent !focus:(border-none outline-none ring-transparent)"
         :readonly="!!isMobileMode"
         @blur="onBlur"
         @keydown="handleKeydown($event, open)"
@@ -302,7 +301,15 @@ function handleSelectDate(value?: dayjs.Dayjs) {
 
     <template #overlay>
       <div class="w-[260px]">
+        <NcMonthYearSelector
+          v-if="picker === 'month'"
+          v-model:page-date="tempDate"
+          v-model:selected-date="localState"
+          is-month-picker
+          size="medium"
+        />
         <NcDateWeekSelector
+          v-else
           v-model:page-date="tempDate"
           v-model:selected-date="localState"
           :is-monday-first="false"

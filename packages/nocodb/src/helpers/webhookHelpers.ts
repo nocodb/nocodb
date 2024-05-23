@@ -28,10 +28,15 @@ export function parseBody(template: string, data: any): string {
     return template;
   }
 
-  return Handlebars.compile(template, { noEscape: true })({
-    data,
-    event: data,
-  });
+  try {
+    return Handlebars.compile(template, { noEscape: true })({
+      data,
+      event: data,
+    });
+  } catch (e) {
+    // if parsing fails then return the original template
+    return template;
+  }
 }
 
 export async function validateCondition(

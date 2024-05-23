@@ -26,7 +26,7 @@ export class JobsService extends JobsServiceCE implements OnModuleInit {
     await this.jobsQueue.add(
       JobTypes.HealthCheck,
       {},
-      { repeat: { cron: '*/10 * * * *' } },
+      { repeat: { cron: '*/10 * * * *' }, removeOnComplete: true },
     );
 
     // common cmds

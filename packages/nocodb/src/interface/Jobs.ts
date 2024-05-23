@@ -49,7 +49,7 @@ export interface HandleWebhookJobData {
   hookName: string;
   prevData;
   newData;
-  user: UserType;
+  user: Partial<UserType>;
   viewId: string;
   modelId: string;
   tnPath: string;

@@ -43,6 +43,14 @@ const isClearedInputMode = ref<boolean>(false)
 
 const open = ref<boolean>(false)
 
+const isAntPicker = ref(false)
+
+const selectedDate = ref<dayjs.Dayjs>(dayjs())
+
+const pageDate = ref<dayjs.Dayjs>(dayjs())
+
+const activeDates = ref<dayjs.Dayjs[]>([])
+
 const localState = computed({
   get() {
     if (!modelValue || isClearedInputMode.value) {
@@ -56,7 +64,11 @@ const localState = computed({
 
     const format = picker.value === 'month' ? dateFormat : 'YYYY-MM-DD'
 
-    return dayjs(/^\d+$/.test(modelValue) ? +modelValue : modelValue, format)
+    const value = dayjs(/^\d+$/.test(modelValue) ? +modelValue : modelValue, format)
+
+    selectedDate.value = value
+
+    return value
   },
   set(val?: dayjs.Dayjs) {
     isClearedInputMode.value = false
@@ -236,6 +248,7 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
 
 <template>
   <a-date-picker
+    v-if="isAntPicker"
     ref="datePickerRef"
     v-model:value="localState"
     :disabled="readOnly"
@@ -258,6 +271,42 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
   >
     <template #suffixIcon></template>
   </a-date-picker>
+  <NcDropdown
+    ref="datePickerRef"
+    v-else
+    v-model:visible="isOpen"
+    :trigger="['click']"
+    :class="[`nc-${randomClass}`]"
+    :overlay-class-name="`${randomClass} ${open ? 'active' : ''}`"
+  >
+    <NcButton class="!h-6 !bg-gray-100 !border-0" size="small" type="secondary">
+      <div class="flex w-full px-1 items-center justify-between">
+        <span class="font-bold text-[13px] text-center text-gray-800">
+          <input type="text" name="date" id="date" :value="selectedDate.format(dateFormat)" />
+        </span>
+        <div class="flex-1" />
+      </div>
+    </NcButton>
+
+    <template #overlay>
+      <div v-if="isOpen" class="w-[287px]" @click.stop>
+        <NcDateWeekSelector
+          v-model:active-dates="activeDates"
+          v-model:page-date="pageDate"
+          v-model:selected-date="selectedDate"
+          @update:page-date="
+            (value) => {
+              console.log('isOpen 1', open)
+              selectedDate = value
+              open = false
+              console.log('isOpen', open)
+            }
+          "
+          size="medium"
+        />
+      </div>
+    </template>
+  </NcDropdown>
   <div v-if="!editable && isGrid" class="absolute inset-0 z-90 cursor-pointer"></div>
 </template>
 

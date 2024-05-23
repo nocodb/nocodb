@@ -246,7 +246,7 @@ function handleSelectDate(value?: dayjs.Dayjs) {
     :trigger="['click']"
     class="nc-cell-field"
     :class="[`nc-${randomClass}`, { 'nc-null': modelValue === null && showNull }]"
-    :overlay-class-name="`${randomClass} nc-picker-date ${open ? 'active' : ''} !min-w-[260px]`"
+    :overlay-class-name="`${randomClass} nc-picker-year ${open ? 'active' : ''} !min-w-[260px]`"
   >
     <div class="flex items-center justify-between ant-picker-input relative group">
       <input
@@ -254,7 +254,7 @@ function handleSelectDate(value?: dayjs.Dayjs) {
         type="text"
         :value="unref(localState)?.format('YYYY') ?? ''"
         :placeholder="placeholder"
-        class="border-none outline-none !text-current bg-transparent !focus:(border-none outline-none ring-transparent)"
+        class="nc-year-input border-none outline-none !text-current bg-transparent !focus:(border-none outline-none ring-transparent)"
         :readonly="!!isMobileMode"
         @blur="onBlur"
         @keydown="handleKeydown($event, open)"

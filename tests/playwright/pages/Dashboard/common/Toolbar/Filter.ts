@@ -225,8 +225,11 @@ export class ToolbarFilterPage extends BasePage {
       switch (dataType) {
         case UITypes.Year:
           await this.get().locator('.nc-filter-value-select').click();
-          await this.rootPage.locator(`.ant-picker-dropdown:visible`).waitFor();
-          await this.rootPage.locator(`.ant-picker-cell-inner:has-text("${value}")`).click();
+          await this.rootPage.locator(`.nc-picker-year:visible`).waitFor();
+          await this.rootPage.locator('.nc-year-picker-btn:visible').waitFor();
+
+          await this.get().locator('.nc-filter-value-select .nc-year-input').fill(value);
+          await this.rootPage.keyboard.press('Enter');
           break;
         case UITypes.Time:
           // eslint-disable-next-line no-case-declarations

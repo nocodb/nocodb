@@ -13,17 +13,19 @@ interface Props {
     start: dayjs.Dayjs
     end: dayjs.Dayjs
   } | null
+  isCellInputField?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   size: 'medium',
   selectedDate: null,
   isMondayFirst: true,
-  pageDate: dayjs(),
+  pageDate: () => dayjs(),
   isWeekPicker: false,
-  activeDates: [] as Array<dayjs.Dayjs>,
+  activeDates: () => [] as Array<dayjs.Dayjs>,
   selectedWeek: null,
   hideCalendar: false,
+  isCellInputField: false,
 })
 const emit = defineEmits(['update:selectedDate', 'update:pageDate', 'update:selectedWeek'])
 // Page date is the date we use to manage which month/date that is currently being displayed
@@ -102,6 +104,9 @@ const isDayInPagedMonth = (date: dayjs.Dayjs) => {
 const handleSelectDate = (date: dayjs.Dayjs) => {
   if (props.isWeekPicker) {
     selectWeek(date)
+  } else if (props.isCellInputField) {
+    selectedDate.value = date
+    emit('update:selectedDate', date)
   } else {
     if (!isDayInPagedMonth(date)) {
       pageDate.value = date
@@ -143,7 +148,7 @@ const paginate = (action: 'next' | 'prev') => {
           <component :is="iconMap.arrowLeft" class="h-4 w-4" />
         </NcButton>
         <template #title>
-          <span>{{ $t('labels.next') }}</span>
+          <span>{{ $t('labels.previous') }}</span>
         </template>
       </NcTooltip>
 
@@ -159,7 +164,13 @@ const paginate = (action: 'next' | 'prev') => {
       </NcTooltip>
     </div>
     <div v-if="!hideCalendar" class="max-w-[320px] rounded-y-xl">
-      <div class="flex py-1 gap-1 px-2.5 rounded-t-xl flex-row border-gray-200 justify-between">
+      <div
+        class="flex py-1 px-2.5 rounded-t-xl flex-row border-gray-200 justify-between"
+        :class="{
+          'gap-x-0.5 gap-y-2': isCellInputField,
+          'gap-1': !isCellInputField,
+        }"
+      >
         <span
           v-for="(day, index) in days"
           :key="index"
@@ -200,6 +211,9 @@ const paginate = (action: 'next' | 'prev') => {
             {{ date.get('date') }}
           </span>
         </span>
+      </div>
+      <div v-if="isCellInputField" class="flex items-center justify-center px-2 pb-2 pt-1">
+        <NcButton class="!h-7" size="small" type="secondary" @click="handleSelectDate(dayjs())"> Today </NcButton>
       </div>
     </div>
   </div>

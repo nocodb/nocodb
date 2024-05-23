@@ -43,13 +43,7 @@ const isClearedInputMode = ref<boolean>(false)
 
 const open = ref<boolean>(false)
 
-const isAntPicker = ref(false)
-
-const selectedDate = ref<dayjs.Dayjs>(dayjs())
-
-const pageDate = ref<dayjs.Dayjs>(dayjs())
-
-const activeDates = ref<dayjs.Dayjs[]>([])
+const tempDate = ref<dayjs.Dayjs | undefined>()
 
 const localState = computed({
   get() {
@@ -65,8 +59,6 @@ const localState = computed({
     const format = picker.value === 'month' ? dateFormat : 'YYYY-MM-DD'
 
     const value = dayjs(/^\d+$/.test(modelValue) ? +modelValue : modelValue, format)
-
-    selectedDate.value = value
 
     return value
   },
@@ -94,13 +86,18 @@ const localState = computed({
 const randomClass = `picker_${Math.floor(Math.random() * 99999)}`
 
 onClickOutside(datePickerRef, (e) => {
-  if ((e.target as HTMLElement)?.closest(`.${randomClass}`)) return
+  if ((e.target as HTMLElement)?.closest(`.${randomClass}, .nc-${randomClass}`)) return
+
   datePickerRef.value?.blur?.()
   open.value = false
 })
 
 const onBlur = (e) => {
-  if ((e?.relatedTarget as HTMLElement)?.closest(`.${randomClass}`)) return
+  if (
+    (e?.relatedTarget as HTMLElement)?.closest(`.${randomClass}, .nc-${randomClass}`) ||
+    (e?.target as HTMLElement)?.closest(`.${randomClass}, .nc-${randomClass}`)
+  )
+    return
 
   open.value = false
 }
@@ -177,23 +174,27 @@ const clickHandler = () => {
   cellClickHandler()
 }
 
-const handleKeydown = (e: KeyboardEvent) => {
+const handleKeydown = (e: KeyboardEvent, _open?: boolean) => {
   if (e.key !== 'Enter') {
     e.stopPropagation()
   }
 
   switch (e.key) {
     case 'Enter':
-      open.value = !open.value
+      localState.value = tempDate.value ?? localState.value
+      open.value = !_open
+
       if (!open.value) {
         editable.value = false
         if (isGrid.value && !isExpandedForm.value && !isEditColumn.value) {
           datePickerRef.value?.blur?.()
+        } else {
+          e.stopPropagation()
         }
       }
       return
     case 'Escape':
-      if (open.value) {
+      if (_open) {
         open.value = false
         editable.value = false
         if (isGrid.value && !isExpandedForm.value && !isEditColumn.value) {
@@ -207,7 +208,7 @@ const handleKeydown = (e: KeyboardEvent) => {
 
       return
     default:
-      if (!open.value && /^[0-9a-z]$/i.test(e.key)) {
+      if (!_open && /^[0-9a-z]$/i.test(e.key)) {
         open.value = true
       }
   }
@@ -244,64 +245,67 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
       }
   }
 })
+
+const handleUpdateValue = (e: Event) => {
+  const targetValue = (e.target as HTMLInputElement).value
+  if (!targetValue) {
+    tempDate.value = undefined
+    return
+  }
+  const value = dayjs(targetValue, dateFormat.value)
+
+  if (value.isValid()) {
+    tempDate.value = value
+  }
+}
+
+function handleSelectDate(value?: dayjs.Dayjs) {
+  tempDate.value = value
+  localState.value = value
+  open.value = false
+}
 </script>
 
 <template>
-  <a-date-picker
-    v-if="isAntPicker"
-    ref="datePickerRef"
-    v-model:value="localState"
-    :disabled="readOnly"
-    :picker="picker"
-    :tabindex="0"
-    :bordered="false"
-    class="nc-cell-field !w-full !py-1 !border-none !text-current"
-    :class="[`nc-${randomClass}`, { 'nc-null': modelValue === null && showNull }]"
-    :format="dateFormat"
-    :placeholder="placeholder"
-    :allow-clear="!readOnly && !isEditColumn"
-    :input-read-only="!!isMobileMode"
-    :dropdown-class-name="`${randomClass} nc-picker-date  children:border-1 children:border-gray-200  ${open ? 'active' : ''} `"
-    :open="isOpen"
-    @blur="onBlur"
-    @click="clickHandler"
-    @keydown="handleKeydown"
-    @mouseup.stop
-    @mousedown.stop
-  >
-    <template #suffixIcon></template>
-  </a-date-picker>
   <NcDropdown
-    ref="datePickerRef"
-    v-else
     v-model:visible="isOpen"
+    :auto-close="false"
     :trigger="['click']"
-    :class="[`nc-${randomClass}`]"
-    :overlay-class-name="`${randomClass} ${open ? 'active' : ''}`"
+    class="nc-cell-field"
+    :class="[`nc-${randomClass}`, { 'nc-null': modelValue === null && showNull }]"
+    :overlay-class-name="`${randomClass} nc-picker-date ${open ? 'active' : ''} !min-w-[260px]`"
   >
-    <NcButton class="!h-6 !bg-gray-100 !border-0" size="small" type="secondary">
-      <div class="flex w-full px-1 items-center justify-between">
-        <span class="font-bold text-[13px] text-center text-gray-800">
-          <input type="text" name="date" id="date" :value="selectedDate.format(dateFormat)" />
-        </span>
-        <div class="flex-1" />
-      </div>
-    </NcButton>
+    <div class="flex items-center justify-between ant-picker-input relative group">
+      <input
+        ref="datePickerRef"
+        type="text"
+        :value="unref(localState)?.format(dateFormat) ?? ''"
+        :placeholder="placeholder"
+        class="border-none outline-none bg-transparent !focus:(border-none outline-none ring-transparent)"
+        @blur="onBlur"
+        @keydown="handleKeydown($event, open)"
+        @mouseup.stop
+        @mousedown.stop
+        @click="clickHandler"
+        @input="handleUpdateValue"
+      />
+
+      <GeneralIcon
+        v-if="localState"
+        icon="closeCircle"
+        class="absolute right-0 top-[50%] transform -translate-y-1/2 invisible group-hover:visible cursor-pointer"
+        @click.stop="handleSelectDate()"
+      />
+    </div>
 
     <template #overlay>
-      <div v-if="isOpen" class="w-[287px]" @click.stop>
+      <div v-if="isOpen" class="w-[260px]">
         <NcDateWeekSelector
-          v-model:active-dates="activeDates"
-          v-model:page-date="pageDate"
-          v-model:selected-date="selectedDate"
-          @update:page-date="
-            (value) => {
-              console.log('isOpen 1', open)
-              selectedDate = value
-              open = false
-              console.log('isOpen', open)
-            }
-          "
+          v-model:page-date="tempDate"
+          v-model:selected-date="localState"
+          :is-monday-first="false"
+          is-cell-input-field
+          @update:selected-date="handleSelectDate"
           size="medium"
         />
       </div>

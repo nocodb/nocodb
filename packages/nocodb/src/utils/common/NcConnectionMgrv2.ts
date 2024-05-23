@@ -35,6 +35,18 @@ export default class NcConnectionMgrv2 {
     }
   }
 
+  public static async deleteConnectionRef(sourceId: string) {
+    let deleted = false;
+    for (const baseId in this.connectionRefs) {
+      if (this.connectionRefs[baseId][sourceId]) {
+        await this.connectionRefs[baseId][sourceId].destroy();
+        delete this.connectionRefs[baseId][sourceId];
+        deleted = true;
+      }
+    }
+    return deleted;
+  }
+
   public static async get(source: Source): Promise<XKnex> {
     if (source.isMeta()) return Noco.ncMeta.knex;
 

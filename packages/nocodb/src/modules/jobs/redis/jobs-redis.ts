@@ -1,5 +1,6 @@
 import { Logger } from '@nestjs/common';
 import Redis from 'ioredis';
+import type { InstanceCommands } from '~/interface/Jobs';
 import { InstanceTypes } from '~/interface/Jobs';
 
 export class JobsRedis {
@@ -120,5 +121,15 @@ export class JobsRedis {
         },
       );
     });
+  }
+
+  static async emitWorkerCommand(command: InstanceCommands, ...args: any[]) {
+    const data = `${command}${args.length ? `:${args.join(':')}` : ''}`;
+    await JobsRedis.publish(InstanceTypes.WORKER, data);
+  }
+
+  static async emitPrimaryCommand(command: InstanceCommands, ...args: any[]) {
+    const data = `${command}${args.length ? `:${args.join(':')}` : ''}`;
+    await JobsRedis.publish(InstanceTypes.PRIMARY, data);
   }
 }

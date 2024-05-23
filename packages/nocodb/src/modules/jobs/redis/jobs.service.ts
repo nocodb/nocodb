@@ -2,12 +2,7 @@ import { InjectQueue } from '@nestjs/bull';
 import { Injectable, Logger } from '@nestjs/common';
 import { Queue } from 'bull';
 import type { OnModuleInit } from '@nestjs/common';
-import {
-  InstanceCommands,
-  InstanceTypes,
-  JOBS_QUEUE,
-  JobStatus,
-} from '~/interface/Jobs';
+import { InstanceCommands, JOBS_QUEUE, JobStatus } from '~/interface/Jobs';
 import { JobsRedis } from '~/modules/jobs/redis/jobs-redis';
 
 @Injectable()
@@ -107,12 +102,10 @@ export class JobsService implements OnModuleInit {
   }
 
   async emitWorkerCommand(command: InstanceCommands, ...args: any[]) {
-    const data = `${command}${args.length ? `:${args.join(':')}` : ''}`;
-    await JobsRedis.publish(InstanceTypes.WORKER, data);
+    return JobsRedis.emitWorkerCommand(command, ...args);
   }
 
   async emitPrimaryCommand(command: InstanceCommands, ...args: any[]) {
-    const data = `${command}${args.length ? `:${args.join(':')}` : ''}`;
-    await JobsRedis.publish(InstanceTypes.PRIMARY, data);
+    return JobsRedis.emitPrimaryCommand(command, ...args);
   }
 }

@@ -1,3 +1,4 @@
+import { Locator } from '@playwright/test';
 import { CellPageObject } from '.';
 import BasePage from '../../../Base';
 
@@ -30,12 +31,22 @@ export class DateTimeCellPageObject extends BasePage {
     // date formats in `YYYY-MM-DD`
     date,
     skipDate = false,
+    index,
+    columnHeader,
+    locator,
   }: {
     date: string;
     skipDate?: boolean;
+    index?: number;
+    columnHeader?: string;
+    locator?: Locator;
   }) {
     // title date format needs to be YYYY-MM-DD
     const [year, month, day] = date.split('-');
+
+    await (locator ? locator : this.get({ index, columnHeader })).click();
+    const dateInput = this.get({ index, columnHeader }).locator('.nc-date-input');
+    await dateInput.click();
 
     // configure year
     await this.rootPage.locator('.nc-year-picker-btn:visible').waitFor();
@@ -58,7 +69,6 @@ export class DateTimeCellPageObject extends BasePage {
       }
     }
 
-    console.log('fds', await this.rootPage.locator(`span[title="${year}"]`).first().textContent());
     await this.rootPage.locator(`span[title="${year}"]`).waitFor();
     await this.rootPage.locator(`span[title="${year}"]`).click({ force: true });
 
@@ -79,31 +89,47 @@ export class DateTimeCellPageObject extends BasePage {
     // hour: 0 - 23
     // minute: 0 - 59
     // second: 0 - 59
+
     hour,
     minute,
     second,
+    index,
+    columnHeader,
+    fillValue,
+    selectFromPicker = false,
+    locator,
   }: {
     hour: number;
     minute: number;
     second?: number | null;
+    index?: number;
+    columnHeader?: string;
+    fillValue: string;
+    selectFromPicker?: boolean;
+    locator?: Locator;
   }) {
-    await this.rootPage
-      .locator(
-        `.ant-picker-time-panel-column:nth-child(1) > .ant-picker-time-panel-cell:nth-child(${hour + 1}):visible`
-      )
-      .click();
-    await this.rootPage
-      .locator(
-        `.ant-picker-time-panel-column:nth-child(2) > .ant-picker-time-panel-cell:nth-child(${minute + 1}):visible`
-      )
-      .click();
-    if (second != null) {
-      await this.rootPage
-        .locator(
-          `.ant-picker-time-panel-column:nth-child(3) > .ant-picker-time-panel-cell:nth-child(${second + 1}):visible`
-        )
+    await this.get({ index, columnHeader }).click();
+    const timeInput = (locator ? locator : this.get({ index, columnHeader })).locator('.nc-time-input');
+    console.log('time', timeInput);
+    await timeInput.click();
+    console.log('select time', selectFromPicker);
+
+    const dropdown = this.rootPage.locator('.nc-picker-datetime');
+    await dropdown.waitFor({ state: 'visible' });
+
+    if (!selectFromPicker) {
+      await timeInput.fill(fillValue);
+      await this.rootPage.keyboard.press('Enter');
+      await this.rootPage.keyboard.press('Escape');
+    } else {
+      await dropdown
+        .locator(`[data-testid="time-option-${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}"]`)
+        .scrollIntoViewIfNeeded();
+      await dropdown
+        .locator(`[data-testid="time-option-${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}"]`)
         .click();
     }
+    await dropdown.waitFor({ state: 'hidden' });
   }
 
   async close() {
@@ -114,8 +140,16 @@ export class DateTimeCellPageObject extends BasePage {
     const [date, time] = dateTime.split(' ');
     const [hour, minute, _second] = time.split(':');
     await this.open({ index, columnHeader });
-    await this.selectDate({ date });
-    await this.selectTime({ hour: +hour, minute: +minute });
-    await this.save();
+    await this.selectDate({ date, index, columnHeader });
+    await this.selectTime({ hour: +hour, minute: +minute, index, columnHeader, fillValue: time });
+    // await this.save();
   }
+
+  clickDateInput = async (locator: Locator) => {
+    await locator.locator('.nc-date-input').click();
+  };
+
+  clickTimeInput = async (locator: Locator) => {
+    await locator.locator('.nc-time-input').click();
+  };
 }

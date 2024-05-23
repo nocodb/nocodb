@@ -449,7 +449,10 @@ watch([isDatePicker, isOpen], () => {
     :class="[`nc-${randomClass}`, { 'nc-null': modelValue === null && showNull }]"
     :overlay-class-name="`${randomClass} nc-picker-datetime ${open ? 'active' : ''} !min-w-[0] overflow-hidden`"
   >
-    <div :title="localState?.format(dateTimeFormat)" class="nc-date-picker flex items-center ant-picker-input relative group">
+    <div
+      :title="localState?.format(dateTimeFormat)"
+      class="nc-date-picker flex items-center ant-picker-input relative group !w-auto"
+    >
       <div
         class="flex-none hover:bg-gray-200 py-0.5 px-1 rounded-md w-1/2 max-w-[100px] border-1"
         :class="[isDatePicker && isOpen ? 'border-brand-500 bg-gray-200' : 'border-transparent']"
@@ -490,7 +493,7 @@ watch([isDatePicker, isOpen], () => {
 
     <template #overlay>
       <div
-        class="min-w-[184px]"
+        class="min-w-[154px]"
         :class="{
           'w-[260px]': isDatePicker,
           'h-[252px]': !isDatePicker,

@@ -492,7 +492,7 @@ watch([isDatePicker, isOpen], () => {
       <div
         class="min-w-[154px]"
         :class="{
-          'w-[260px]': isDatePicker,
+          'w-[256px]': isDatePicker,
           'h-[252px]': !isDatePicker,
         }"
       >

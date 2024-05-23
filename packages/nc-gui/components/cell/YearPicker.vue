@@ -286,7 +286,7 @@ function handleSelectDate(value?: dayjs.Dayjs) {
     </div>
 
     <template #overlay>
-      <div class="w-[260px]">
+      <div class="w-[256px]">
         <NcMonthYearSelector
           v-model:page-date="tempDate"
           v-model:selected-date="localState"

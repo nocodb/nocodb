@@ -155,10 +155,10 @@ const paginate = (action: 'next' | 'prev') => {
 <template>
   <div class="flex flex-col">
     <div
-      class="flex justify-between border-b-1 py-0.5 nc-date-week-header items-center"
+      class="flex justify-between border-b-1 nc-date-week-header items-center box-border"
       :class="{
-        'px-2': isCellInputField,
-        'px-3': !isCellInputField,
+        'px-2 py-1 h-10': isCellInputField,
+        'px-3 py-0.5': !isCellInputField,
       }"
     >
       <NcTooltip hide-on-click>
@@ -189,18 +189,11 @@ const paginate = (action: 'next' | 'prev') => {
       </NcTooltip>
     </div>
     <div v-if="!hideCalendar" class="max-w-[320px] rounded-y-xl">
-      <div
-        class="py-1"
-        :class="{
-          'px-3': isCellInputField,
-          'px-2.5': !isCellInputField,
-        }"
-      >
+      <div class="py-1 px-2.5 h-10">
         <div
-          class="flex"
+          class="flex gap-1"
           :class="{
-            'gap-x-0.5 gap-y-2 border-b-1 border-gray-200': isCellInputField,
-            'gap-1': !isCellInputField,
+            'border-b-1 border-gray-200 ': isCellInputField,
           }"
         >
           <span
@@ -211,13 +204,21 @@ const paginate = (action: 'next' | 'prev') => {
           >
         </div>
       </div>
-      <div class="grid gap-1 py-1 px-2.5 nc-date-week-grid-wrapper grid-cols-7">
+      <div
+        class="grid gap-1 py-1 nc-date-week-grid-wrapper grid-cols-7"
+        :class="{
+          'px-2': isCellInputField,
+          'px-2.5': !isCellInputField,
+        }"
+      >
         <span
           v-for="(date, index) in dates"
           :key="index"
           :class="{
-            'rounded-lg': !isWeekPicker,
-            'bg-gray-200 border-1 !font-bold': isSelectedDate(date) && !isWeekPicker && isDayInPagedMonth(date),
+            'rounded-lg': !isWeekPicker && !isCellInputField,
+            'border-1 ': isSelectedDate(date) && !isWeekPicker && isDayInPagedMonth(date),
+            'bg-gray-200 !font-bold': isSelectedDate(date) && !isWeekPicker && isDayInPagedMonth(date) && !isCellInputField,
+            'bg-gray-300 !font-weight-600': isSelectedDate(date) && !isWeekPicker && isDayInPagedMonth(date) && isCellInputField,
             'hover:(border-1 border-gray-200 bg-gray-100)': !isSelectedDate(date) && !isWeekPicker,
             'nc-selected-week !font-semibold z-1': isDateInSelectedWeek(date) && isWeekPicker,
             'border-none': isWeekPicker,
@@ -227,8 +228,9 @@ const paginate = (action: 'next' | 'prev') => {
             'nc-selected-week-end': isSameDate(date, selectedWeek?.end),
             'rounded-md text-brand-500 !font-semibold nc-calendar-today': isSameDate(date, dayjs()) && isDateInCurrentMonth(date),
             'text-gray-500': date.get('day') === 0 || date.get('day') === 6,
-            'nc-date-item font-weight-500': isCellInputField,
+            'nc-date-item font-weight-400': isCellInputField,
             'font-medium': !isCellInputField,
+            'rounded': !isWeekPicker && isCellInputField,
           }"
           class="px-1 h-8 w-8 py-1 relative transition border-1 flex text-gray-700 items-center cursor-pointer justify-center"
           data-testid="nc-calendar-date"

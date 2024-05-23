@@ -323,7 +323,7 @@ function handleSelectDate(value?: dayjs.Dayjs) {
     </div>
 
     <template #overlay>
-      <div class="w-[260px]">
+      <div class="w-[256px]">
         <NcDatePicker
           v-if="picker === 'month'"
           v-model:page-date="tempDate"

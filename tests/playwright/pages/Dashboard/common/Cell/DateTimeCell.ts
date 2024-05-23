@@ -110,9 +110,7 @@ export class DateTimeCellPageObject extends BasePage {
   }) {
     await this.get({ index, columnHeader }).click();
     const timeInput = (locator ? locator : this.get({ index, columnHeader })).locator('.nc-time-input');
-    console.log('time', timeInput);
     await timeInput.click();
-    console.log('select time', selectFromPicker);
 
     const dropdown = this.rootPage.locator('.nc-picker-datetime');
     await dropdown.waitFor({ state: 'visible' });

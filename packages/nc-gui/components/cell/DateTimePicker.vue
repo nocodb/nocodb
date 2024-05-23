@@ -491,7 +491,7 @@ watch([isDatePicker, isOpen], () => {
         <NcDatePicker
           v-if="isDatePicker"
           v-model:page-date="tempDate"
-          v-model:selected-date="localState"
+          :selected-date="localState"
           :is-open="isOpen"
           type="date"
           size="medium"

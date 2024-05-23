@@ -118,7 +118,6 @@ const handleSelectDate = (date: dayjs.Dayjs) => {
     selectWeek(date)
   } else if (props.isCellInputField) {
     selectedDate.value = date
-    emit('update:selectedDate', date)
   } else {
     if (!isDayInPagedMonth(date)) {
       pageDate.value = date
@@ -219,7 +218,7 @@ const paginate = (action: 'next' | 'prev') => {
             'nc-selected-week-end': isSameDate(date, selectedWeek?.end),
             'rounded-md text-brand-500 !font-semibold nc-calendar-today': isSameDate(date, dayjs()) && isDateInCurrentMonth(date),
             'text-gray-500': date.get('day') === 0 || date.get('day') === 6,
-            'nc-date-item': isCellInputField
+            'nc-date-item': isCellInputField,
           }"
           class="px-1 h-8 w-8 py-1 relative transition border-1 font-medium flex text-gray-700 items-center cursor-pointer justify-center"
           data-testid="nc-calendar-date"

@@ -213,7 +213,9 @@ const paginate = (action: 'next' | 'prev') => {
         </span>
       </div>
       <div v-if="isCellInputField" class="flex items-center justify-center px-2 pb-2 pt-1">
-        <NcButton class="!h-7" size="small" type="secondary" @click="handleSelectDate(dayjs())"> Today </NcButton>
+        <NcButton class="!h-7" size="small" type="secondary" @click="handleSelectDate(dayjs())">
+          <span class="text-small"> {{ $t('labels.today') }} </span>
+        </NcButton>
       </div>
     </div>
   </div>

@@ -12,7 +12,6 @@ import type { DbMuxStatus } from '~/utils/globals';
 import { NcError } from '~/helpers/catchError';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { DbMux } from '~/models';
-import { InstanceCommands } from '~/interface/Jobs';
 
 @Controller()
 export class DbMuxController {
@@ -35,20 +34,7 @@ export class DbMuxController {
 
     if (!dbMux) NcError.notFound('DbMux not found');
 
-    const { se, sources } = await dbMux.update(body);
-
-    if (sources) {
-      await this.jobsService.emitWorkerCommand(
-        InstanceCommands.RELEASE,
-        sources.map((s) => s.id).join(','),
-      );
-      await this.jobsService.emitPrimaryCommand(
-        InstanceCommands.RELEASE,
-        sources.map((s) => s.id).join(','),
-      );
-    }
-
-    return se;
+    return await dbMux.update(body);
   }
 
   @Patch('/internal/db-mux')

@@ -60,7 +60,11 @@ export default class Workspace implements WorkspaceType {
     return workspace && new Workspace(workspace);
   }
 
-  public static async get(workspaceId: string, ncMeta = Noco.ncMeta) {
+  public static async get(
+    workspaceId: string,
+    force = false,
+    ncMeta = Noco.ncMeta,
+  ) {
     let workspaceData = await NocoCache.get(
       `${CacheScope.WORKSPACE}:${workspaceId}`,
       CacheGetType.TYPE_OBJECT,
@@ -69,19 +73,20 @@ export default class Workspace implements WorkspaceType {
     if (!workspaceData) {
       workspaceData = await ncMeta.metaGet2(null, null, MetaTable.WORKSPACE, {
         id: workspaceId,
-        deleted: false,
       });
       if (workspaceData) {
         workspaceData.meta = parseMetaProp(workspaceData);
         workspaceData.infra_meta = parseMetaProp(workspaceData, 'infra_meta');
-        await NocoCache.set(
-          `${CacheScope.WORKSPACE}:${workspaceData.id}`,
-          workspaceData,
-        );
+        if (!workspaceData.deleted) {
+          await NocoCache.set(
+            `${CacheScope.WORKSPACE}:${workspaceData.id}`,
+            workspaceData,
+          );
+        }
       }
     }
 
-    if (workspaceData?.deleted) return undefined;
+    if (workspaceData?.deleted && !force) return undefined;
 
     return workspaceData && new Workspace(workspaceData);
   }
@@ -123,7 +128,7 @@ export default class Workspace implements WorkspaceType {
       } as any);
     */
 
-    return this.get(id);
+    return this.get(id, false, ncMeta);
   }
 
   public static async update(
@@ -133,7 +138,7 @@ export default class Workspace implements WorkspaceType {
   ) {
     if (!id) NcError.badRequest('Workspace id is required');
 
-    const workspace = await this.get(id, ncMeta);
+    const workspace = await this.get(id, false, ncMeta);
 
     if (!workspace) NcError.workspaceNotFound(id);
 
@@ -202,7 +207,7 @@ export default class Workspace implements WorkspaceType {
   public static async delete(id: string, ncMeta = Noco.ncMeta) {
     if (!id) NcError.badRequest('Workspace id is required');
 
-    const workspace = await this.get(id, ncMeta);
+    const workspace = await this.get(id, true, ncMeta);
 
     if (!workspace) NcError.workspaceNotFound(id);
 
@@ -244,7 +249,7 @@ export default class Workspace implements WorkspaceType {
   public static async softDelete(id: string, ncMeta = Noco.ncMeta) {
     if (!id) NcError.badRequest('Workspace id is required');
 
-    const workspace = await this.get(id, ncMeta);
+    const workspace = await this.get(id, false, ncMeta);
 
     if (!workspace) NcError.workspaceNotFound(id);
 

@@ -1,28 +1,17 @@
 import { Body, Controller, Get, Inject, Post, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { ModuleRef } from '@nestjs/core';
-import type { OnModuleInit } from '@nestjs/common';
 import type { Queue } from 'bull';
-import { JobsRedisService } from '~/modules/jobs/redis/jobs-redis.service';
 import { UtilsService } from '~/services/utils.service';
 import { InstanceCommands, InstanceTypes } from '~/interface/Jobs';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
+import { JobsRedis } from '~/modules/jobs/redis/jobs-redis';
 
 @Controller()
-export class WorkerController implements OnModuleInit {
-  jobsRedisService: JobsRedisService;
-
+export class WorkerController {
   constructor(
     protected readonly utilsService: UtilsService,
     @Inject('JobsService') private readonly jobsService,
-    private moduleRef: ModuleRef,
   ) {}
-
-  onModuleInit() {
-    if (process.env.NC_REDIS_JOB_URL) {
-      this.jobsRedisService = this.moduleRef.get(JobsRedisService);
-    }
-  }
 
   @Get('/api/v1/health')
   async appHealth() {
@@ -36,7 +25,7 @@ export class WorkerController implements OnModuleInit {
     if (body.global === true) {
       await this.jobsService.resumeQueue();
     } else {
-      await this.jobsRedisService.publish(
+      await JobsRedis.publish(
         InstanceTypes.WORKER,
         InstanceCommands.RESUME_LOCAL,
       );
@@ -50,7 +39,7 @@ export class WorkerController implements OnModuleInit {
     if (body.global === true) {
       await this.jobsService.pauseQueue();
     } else {
-      await this.jobsRedisService.publish(
+      await JobsRedis.publish(
         InstanceTypes.WORKER,
         InstanceCommands.PAUSE_LOCAL,
       );
@@ -60,10 +49,7 @@ export class WorkerController implements OnModuleInit {
   @Post('/internal/workers/pause-and-exit')
   @UseGuards(MetaApiLimiterGuard, AuthGuard('basic'))
   async pauseAndExit() {
-    await this.jobsRedisService.publish(
-      InstanceTypes.WORKER,
-      InstanceCommands.RESET,
-    );
+    await JobsRedis.publish(InstanceTypes.WORKER, InstanceCommands.RESET);
   }
 
   @Get('/internal/workers/status')

@@ -144,7 +144,7 @@ export default class DbMux {
   public async update(
     dbMux: Partial<DbMux>,
     ncMeta = Noco.ncMeta,
-  ): Promise<{ se: DbMux; sources: Source[] }> {
+  ): Promise<DbMux> {
     const updateObj = extractProps(dbMux, [
       'domain',
       'status',
@@ -177,11 +177,7 @@ export default class DbMux {
       ]);
     }
 
-    // We return updated sources so that we can release them from other instances (both worker and primary)
-    return {
-      se: await DbMux.get(this.id, ncMeta),
-      sources: sources,
-    };
+    return await DbMux.get(this.id, ncMeta);
   }
 
   public async delete(ncMeta = Noco.ncMeta) {
@@ -261,12 +257,10 @@ export default class DbMux {
       if (process.env.TEST === 'true') {
         suitableDbMux = dbMuxs[0];
         if (suitableDbMux.domain !== 'http://localhost:9000') {
-          suitableDbMux = (
-            await suitableDbMux.update({
-              domain: 'http://localhost:9000',
-              status: DbMuxStatus.ACTIVE,
-            })
-          ).se;
+          suitableDbMux = await suitableDbMux.update({
+            domain: 'http://localhost:9000',
+            status: DbMuxStatus.ACTIVE,
+          });
         }
       } else {
         for (const dbMux of dbMuxs) {

@@ -4,10 +4,9 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Queue } from 'bull';
 import type { OnModuleInit } from '@nestjs/common';
 import { InstanceCommands, JOBS_QUEUE, JobTypes } from '~/interface/Jobs';
-import { JobsRedisService } from '~/modules/jobs/redis/jobs-redis.service';
-import { Source } from '~/models';
-import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { TelemetryService } from '~/services/telemetry.service';
+import { JobsRedis } from '~/modules/jobs/redis/jobs-redis';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 @Injectable()
 export class JobsService extends JobsServiceCE implements OnModuleInit {
@@ -15,92 +14,67 @@ export class JobsService extends JobsServiceCE implements OnModuleInit {
 
   constructor(
     @InjectQueue(JOBS_QUEUE) public readonly jobsQueue: Queue,
-    protected readonly jobsRedisService: JobsRedisService,
     protected readonly telemetryService: TelemetryService,
   ) {
-    super(jobsQueue, jobsRedisService);
+    super(jobsQueue);
   }
 
   // pause primary instance queue
   async onModuleInit() {
+    await JobsRedis.init();
+
     await this.jobsQueue.add(
       JobTypes.HealthCheck,
       {},
       { repeat: { cron: '*/10 * * * *' } },
     );
 
+    // common cmds
+    const sourceReleaseCmd = async (commaSeperatedSourceIds: string) => {
+      const sourceIds = commaSeperatedSourceIds.split(',');
+      for (const sourceId of sourceIds) {
+        const deleted = await NcConnectionMgrv2.deleteConnectionRef(sourceId);
+        if (deleted) {
+          this.logger.log(`Released connection for source ${sourceId}`);
+        } else {
+          this.logger.warn(`Connection not found for source ${sourceId}`);
+        }
+      }
+    };
+
     if (process.env.NC_WORKER_CONTAINER === 'true') {
-      this.jobsRedisService.workerCallbacks[InstanceCommands.RESET] =
-        async () => {
-          this.logger.log('Pausing local queue and stopping worker');
-          await this.jobsQueue.pause(true);
+      JobsRedis.workerCallbacks[InstanceCommands.RESET] = async () => {
+        this.logger.log('Pausing local queue and stopping worker');
+        await this.jobsQueue.pause(true);
 
-          let runningFor = 0;
+        let runningFor = 0;
 
-          setInterval(() => {
-            runningFor += 1;
-            this.telemetryService
-              .sendSystemEvent({
-                event_type: 'worker_alert',
-                alert_type: 'warning',
-                message: `Worker is running after pause and shutdown for ${runningFor} minutes`,
-              })
-              .catch((err) => {
-                this.logger.error(err);
-              });
-          }, 60 * 1000); // every minute
+        setInterval(() => {
+          runningFor += 1;
+          this.telemetryService
+            .sendSystemEvent({
+              event_type: 'worker_alert',
+              alert_type: 'warning',
+              message: `Worker is running after pause and shutdown for ${runningFor} minutes`,
+            })
+            .catch((err) => {
+              this.logger.error(err);
+            });
+        }, 60 * 1000); // every minute
 
-          // fallback to shutdown after an hour
-          setTimeout(() => {
-            process.exit(0);
-          }, 1 * 60 * 60 * 1000);
+        // fallback to shutdown after an hour
+        setTimeout(() => {
+          process.exit(0);
+        }, 1 * 60 * 60 * 1000);
 
-          this.jobsQueue.whenCurrentJobsFinished().then(() => {
-            process.exit(0);
-          });
-        };
-
-      this.jobsRedisService.workerCallbacks[InstanceCommands.RELEASE] = async (
-        sourceIds,
-      ) => {
-        const sources = await Promise.all(
-          sourceIds.split(',').map(async (id) => {
-            const source = await Source.get(id);
-            if (!source) {
-              this.logger.log(`Source ${source} not found`);
-            }
-            return source;
-          }),
-        );
-        for (const source of sources) {
-          if (!source) {
-            continue;
-          }
-          await NcConnectionMgrv2.deleteAwait(source);
-          this.logger.log(`Released source ${source.id}`);
-        }
+        this.jobsQueue.whenCurrentJobsFinished().then(() => {
+          process.exit(0);
+        });
       };
+
+      JobsRedis.workerCallbacks[InstanceCommands.RELEASE] = sourceReleaseCmd;
     } else {
-      this.jobsRedisService.primaryCallbacks[InstanceCommands.RELEASE] = async (
-        sourceIds,
-      ) => {
-        const sources = await Promise.all(
-          sourceIds.split(',').map(async (id) => {
-            const source = await Source.get(id);
-            if (!source) {
-              this.logger.log(`Source ${source} not found`);
-            }
-            return source;
-          }),
-        );
-        for (const source of sources) {
-          if (!source) {
-            continue;
-          }
-          await NcConnectionMgrv2.deleteAwait(source);
-          this.logger.log(`Released source ${source.id}`);
-        }
-      };
+      JobsRedis.primaryCallbacks[InstanceCommands.RELEASE] = sourceReleaseCmd;
     }
     super.onModuleInit();
   }

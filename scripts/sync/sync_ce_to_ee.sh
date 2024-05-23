@@ -44,7 +44,7 @@ for commit_info in "${commit_data[@]}"; do
 
   information="$information\n- $commit_message by $commit_author"
 
-  git cherry-pick -X theirs "$commit_sha" --no-commit > /dev/null 2> /dev/null
+  git -c merge.renames=false cherry-pick -X theirs "$commit_sha" --no-commit > /dev/null 2> /dev/null
 
   git add .
 

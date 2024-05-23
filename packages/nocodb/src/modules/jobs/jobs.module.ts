@@ -21,7 +21,6 @@ import { JobsLogService } from '~/modules/jobs/jobs/jobs-log.service';
 // import { JobsGateway } from '~/modules/jobs/jobs.gateway';
 import { JobsController } from '~/modules/jobs/jobs.controller';
 import { JobsService } from '~/modules/jobs/redis/jobs.service';
-import { JobsRedisService } from '~/modules/jobs/redis/jobs-redis.service';
 import { JobsEventService } from '~/modules/jobs/redis/jobs-event.service';
 
 // Fallback
@@ -62,7 +61,7 @@ export const JobsModuleMetadata = {
   providers: [
     ...(process.env.NC_WORKER_CONTAINER !== 'true' ? [] : []),
     ...(process.env.NC_REDIS_JOB_URL
-      ? [JobsRedisService, JobsEventService]
+      ? [JobsEventService]
       : [FallbackQueueService, FallbackJobsEventService]),
     {
       provide: 'JobsService',

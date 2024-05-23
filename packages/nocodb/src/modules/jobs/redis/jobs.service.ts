@@ -8,31 +8,26 @@ import {
   JOBS_QUEUE,
   JobStatus,
 } from '~/interface/Jobs';
-import { JobsRedisService } from '~/modules/jobs/redis/jobs-redis.service';
+import { JobsRedis } from '~/modules/jobs/redis/jobs-redis';
 
 @Injectable()
 export class JobsService implements OnModuleInit {
   protected logger = new Logger(JobsService.name);
 
-  constructor(
-    @InjectQueue(JOBS_QUEUE) public readonly jobsQueue: Queue,
-    protected readonly jobsRedisService: JobsRedisService,
-  ) {}
+  constructor(@InjectQueue(JOBS_QUEUE) public readonly jobsQueue: Queue) {}
 
   // pause primary instance queue
   async onModuleInit() {
     await this.toggleQueue();
 
-    this.jobsRedisService.workerCallbacks[InstanceCommands.RESUME_LOCAL] =
-      async () => {
-        this.logger.log('Resuming local queue');
-        await this.jobsQueue.resume(true);
-      };
-    this.jobsRedisService.workerCallbacks[InstanceCommands.PAUSE_LOCAL] =
-      async () => {
-        this.logger.log('Pausing local queue');
-        await this.jobsQueue.pause(true);
-      };
+    JobsRedis.workerCallbacks[InstanceCommands.RESUME_LOCAL] = async () => {
+      this.logger.log('Resuming local queue');
+      await this.jobsQueue.resume(true);
+    };
+    JobsRedis.workerCallbacks[InstanceCommands.PAUSE_LOCAL] = async () => {
+      this.logger.log('Pausing local queue');
+      await this.jobsQueue.pause(true);
+    };
   }
 
   async toggleQueue() {
@@ -40,7 +35,7 @@ export class JobsService implements OnModuleInit {
       await this.jobsQueue.pause(true);
     } else if (process.env.NC_WORKER_CONTAINER !== 'true') {
       // resume primary instance queue if there is no worker
-      const workerCount = await this.jobsRedisService.workerCount();
+      const workerCount = await JobsRedis.workerCount();
       const localWorkerPaused = await this.jobsQueue.isPaused(true);
 
       // if there is no worker and primary instance queue is paused, resume it
@@ -113,11 +108,11 @@ export class JobsService implements OnModuleInit {
 
   async emitWorkerCommand(command: InstanceCommands, ...args: any[]) {
     const data = `${command}${args.length ? `:${args.join(':')}` : ''}`;
-    await this.jobsRedisService.publish(InstanceTypes.WORKER, data);
+    await JobsRedis.publish(InstanceTypes.WORKER, data);
   }
 
   async emitPrimaryCommand(command: InstanceCommands, ...args: any[]) {
     const data = `${command}${args.length ? `:${args.join(':')}` : ''}`;
-    await this.jobsRedisService.publish(InstanceTypes.PRIMARY, data);
+    await JobsRedis.publish(InstanceTypes.PRIMARY, data);
   }
 }

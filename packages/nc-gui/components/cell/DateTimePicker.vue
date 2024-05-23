@@ -406,7 +406,7 @@ const timeCellMaxWidth = computed(() => {
 </script>
 
 <template>
-  <div class="nc-cell-field">
+  <div class="nc-cell-field group relative">
     <NcDropdown
       :visible="isOpen"
       :placement="isDatePicker ? 'bottomLeft' : 'bottomRight'"
@@ -498,6 +498,13 @@ const timeCellMaxWidth = computed(() => {
         </div>
       </template>
     </NcDropdown>
+
+    <GeneralIcon
+      v-if="localState && (isExpandedForm || isForm || !isGrid)"
+      icon="closeCircle"
+      class="h-4 w-4 absolute right-0 top-[50%] transform -translate-y-1/2 invisible group-hover:visible cursor-pointer"
+      @click.stop="handleSelectDate()"
+    />
   </div>
   <div v-if="!editable && isGrid" class="absolute inset-0 z-90 cursor-pointer"></div>
 </template>

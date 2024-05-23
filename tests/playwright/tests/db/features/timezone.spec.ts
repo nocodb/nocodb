@@ -577,13 +577,13 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone same a
     await dashboard.grid.cell.dateTime.setDateTime({
       index: 2,
       columnHeader: 'DatetimeWithoutTz',
-      dateTime: '2023-04-27 10:00',
+      dateTime: '2023-04-27 10:00:00',
     });
     await dashboard.rootPage.waitForTimeout(1000);
     await dashboard.grid.cell.dateTime.setDateTime({
       index: 2,
       columnHeader: 'DatetimeWithTz',
-      dateTime: '2023-04-27 10:00',
+      dateTime: '2023-04-27 10:00:00',
     });
 
     // verify display value
@@ -882,13 +882,13 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone set to
     await dashboard.grid.cell.dateTime.setDateTime({
       index: 2,
       columnHeader: 'DatetimeWithoutTz',
-      dateTime: '2023-04-27 12:30',
+      dateTime: '2023-04-27 12:30:00',
     });
     await dashboard.rootPage.waitForTimeout(1000);
     await dashboard.grid.cell.dateTime.setDateTime({
       index: 2,
       columnHeader: 'DatetimeWithTz',
-      dateTime: '2023-04-27 12:30',
+      dateTime: '2023-04-27 12:30:00',
     });
 
     // Create formula column (dummy)

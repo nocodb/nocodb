@@ -93,14 +93,16 @@ export class ExpandedFormPage extends BasePage {
         await this.dashboard.linkRecord.select(value);
         break;
       case 'dateTime':
-        await field.locator('.nc-cell').click();
+        await field.locator('.nc-cell .nc-date-input').click();
         // eslint-disable-next-line no-case-declarations
         const dateTimeObj = new DateTimeCellPageObject(this.dashboard.grid.cell);
-        await dateTimeObj.selectDate({ date: value.slice(0, 10), locator: field.locator('.nc-cell') });
+
+        await dateTimeObj.selectDate({ date: value.slice(0, 10), locator: field });
+
         await dateTimeObj.selectTime({
           hour: +value.slice(11, 13),
           minute: +value.slice(14, 16),
-          locator: field.locator('.nc-cell'),
+          locator: field,
           fillValue: `${value.slice(11, 13).padStart(2, '0')}:${value.slice(14, 16).padStart(2, '0')}`,
         });
         break;

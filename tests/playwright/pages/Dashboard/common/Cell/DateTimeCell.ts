@@ -45,7 +45,7 @@ export class DateTimeCellPageObject extends BasePage {
     const [year, month, day] = date.split('-');
 
     await (locator ? locator : this.get({ index, columnHeader })).click();
-    const dateInput = this.get({ index, columnHeader }).locator('.nc-date-input');
+    const dateInput = (locator ? locator : this.get({ index, columnHeader })).locator('.nc-date-input');
     await dateInput.click();
 
     // configure year
@@ -108,7 +108,7 @@ export class DateTimeCellPageObject extends BasePage {
     selectFromPicker?: boolean;
     locator?: Locator;
   }) {
-    await this.get({ index, columnHeader }).click();
+    await (locator ? locator : this.get({ index, columnHeader })).click();
     const timeInput = (locator ? locator : this.get({ index, columnHeader })).locator('.nc-time-input');
     await timeInput.click();
 

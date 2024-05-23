@@ -313,7 +313,7 @@ watch(editable, (nextValue) => {
 })
 
 const handleUpdateValue = (e: Event, _isDatePicker: boolean) => {
-  const targetValue = (e.target as HTMLInputElement).value
+  let targetValue = (e.target as HTMLInputElement).value
 
   if (_isDatePicker) {
     if (!targetValue) {
@@ -336,6 +336,10 @@ const handleUpdateValue = (e: Event, _isDatePicker: boolean) => {
     if (!targetValue) {
       tempDate.value = dayjs(dayjs().format('YYYY-MM-DD'))
       return
+    }
+
+    if (timeFormat.value === 'HH:mm' && targetValue.length > 5) {
+      targetValue = targetValue.slice(0, 5)
     }
 
     if (isValidTimeFormat(targetValue, timeFormat.value)) {

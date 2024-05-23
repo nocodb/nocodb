@@ -204,7 +204,8 @@
     "verify": "验证",
     "apply": "应用",
     "text": "文本",
-    "appearance": "外观"
+    "appearance": "外观",
+    "now": "Now"
   },
   "objects": {
     "owner": "所有者",

@@ -425,6 +425,14 @@ watch([isDatePicker, isOpen], () => {
     }, 50)
   }
 })
+
+const timeCellMaxWidth = computed(() => {
+  return {
+    [timeFormats[0]]: 'max-w-[65px]',
+    [timeFormats[1]]: 'max-w-[80px]',
+    [timeFormats[2]]: 'max-w-[110px]',
+  }[timeFormat.value]
+})
 </script>
 
 <template>
@@ -441,16 +449,14 @@ watch([isDatePicker, isOpen], () => {
     >
       <div
         :title="localState?.format(dateTimeFormat)"
-        class="nc-date-picker ant-picker-input flex relative group !w-auto"
+        class="nc-date-picker ant-picker-input flex justify-between gap-2 relative group !w-auto"
       >
         <div
-          class="flex-none hover:bg-gray-200 px-1 rounded-md"
+          class="flex-none hover:bg-gray-200 px-1 rounded-md box-border w-[60%] max-w-[110px]"
           :class="{
             'py-0': isForm,
             'py-0.5': !isForm,
             'bg-gray-200': isDatePicker && isOpen,
-            'w-[50%] max-w-[100px]': isGrid && !isForm && !isExpandedForm,
-            'w-[50%] max-w-[120px]': !(isGrid && !isForm && !isExpandedForm),
           }"
         >
           <input
@@ -468,14 +474,15 @@ watch([isDatePicker, isOpen], () => {
           />
         </div>
         <div
-          class="flex-none hover:bg-gray-200 ml-2 px-1 rounded-md w-[calc(40%_-_8px)] max-w-[100px]"
-          :class="{
-            'py-0': isForm,
-            'py-0.5': !isForm,
-            'bg-gray-200': !isDatePicker && isOpen,
-            'w-[calc(40%_-_8px)] max-w-[100px]': isGrid && !isForm && !isExpandedForm,
-            'w-[calc(50%_-_8px)]': !(isGrid && !isForm && !isExpandedForm),
-          }"
+          class="flex-none hover:bg-gray-200 px-1 rounded-md box-border flex-1"
+          :class="[
+            `${timeCellMaxWidth}`,
+            {
+              'py-0': isForm,
+              'py-0.5': !isForm,
+              'bg-gray-200': !isDatePicker && isOpen,
+            },
+          ]"
         >
           <input
             ref="timePickerRef"

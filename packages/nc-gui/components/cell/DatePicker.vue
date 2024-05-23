@@ -268,7 +268,7 @@ function handleSelectDate(value?: dayjs.Dayjs) {
 
 <template>
   <NcDropdown
-    v-model:visible="isOpen"
+    :visible="isOpen"
     :auto-close="false"
     :trigger="['click']"
     class="nc-cell-field"

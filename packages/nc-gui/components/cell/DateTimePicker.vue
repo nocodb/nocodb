@@ -126,6 +126,12 @@ const localState = computed({
   },
 })
 
+watchEffect(() => {
+  if (localState.value) {
+    tempDate.value = localState.value
+  }
+})
+
 const isOpen = computed(() => {
   if (readOnly.value) return false
 
@@ -141,16 +147,14 @@ onClickOutside(datePickerRef, (e) => {
   open.value = false
 })
 
-const onBlur = (e) => {
-  if ((e?.relatedTarget as HTMLElement)?.closest(`.${randomClass}`)) return
-  console.log('blur')
-  // open.value = false
+const onFocus = (_isDatePicker: boolean) => {
+  isDatePicker.value = _isDatePicker
+  open.value = true
 }
 
 watch(
   open,
   (next) => {
-    console.log('clicked')
     if (next) {
       editable.value = true
 
@@ -245,11 +249,20 @@ const handleKeydown = (e: KeyboardEvent, _open?: boolean, _isDatePicker?: boolea
 
   switch (e.key) {
     case 'Enter':
-      if (isOpen.value) {
-        return okHandler((e.target as HTMLInputElement).value)
+      e.preventDefault()
+      localState.value = tempDate.value
+      if (!_isDatePicker) {
+        e.stopPropagation()
+        timePickerRef.value?.blur?.()
+        isDatePicker.value = false
+        datePickerRef.value?.focus?.()
+        cellClickHandler()
       } else {
-        open.value = true
+        datePickerRef.value?.blur?.()
+        open.value = false
+        editable.value = false
       }
+
       return
     case 'Escape':
       if (_open) {
@@ -270,7 +283,7 @@ const handleKeydown = (e: KeyboardEvent, _open?: boolean, _isDatePicker?: boolea
         e.preventDefault()
         return
       }
-      
+
       open.value = false
       if (isGrid.value) {
         editable.value = false
@@ -322,98 +335,181 @@ watch(editable, (nextValue) => {
   }
 })
 
-const handleUpdateValue = (e: Event) => {
+const handleUpdateValue = (e: Event, _isDatePicker: boolean) => {
   const targetValue = (e.target as HTMLInputElement).value
-  if (!targetValue) {
-    tempDate.value = undefined
-    return
-  }
-  const value = dayjs(targetValue, dateFormat.value)
 
-  if (value.isValid()) {
-    tempDate.value = value
+  if (_isDatePicker) {
+    if (!targetValue) {
+      tempDate.value = undefined
+      return
+    }
+
+    const date = dayjs(targetValue, dateFormat.value)
+
+    if (date.isValid()) {
+      if (localState.value) {
+        tempDate.value = dayjs(`${date.format('YYYY-MM-DD')} ${localState.value.format('HH:mm')}:00`)
+      } else {
+        tempDate.value = date
+      }
+    }
+  }
+
+  if (!_isDatePicker) {
+    if (!targetValue) {
+      tempDate.value = dayjs(dayjs().format('YYYY-MM-DD'))
+      return
+    }
+
+    const timeFormat = /^(0[1-9]|1[0-2]):([0-5][0-9])\s(AM|PM)$/
+    if (timeFormat.test(targetValue.toUpperCase())) {
+      const time = targetValue.toUpperCase().split(' ')
+      if (time[1] === 'PM') {
+        const hr = parseInt(time[0].split(':')[0] ?? '') ?? 0
+        time[0] = `${hr === 12 ? '00' : 12 + hr}:${time[0].split(':')[1]}`
+      }
+
+      tempDate.value = dayjs(`${(tempDate.value ?? dayjs()).format('YYYY-MM-DD')} ${time[0]}:00`)
+    }
+    return
   }
 }
 
 function handleSelectDate(value?: dayjs.Dayjs) {
-  tempDate.value = value
-  localState.value = value
+  if (value && localState.value) {
+    const dateTime = dayjs(`${value.format('YYYY-MM-DD')} ${localState.value.format('HH:mm:ss')}`)
+    tempDate.value = dateTime
+    localState.value = dateTime
+  } else {
+    tempDate.value = value
+    localState.value = value
+  }
   open.value = false
 }
+
+function handleSelectTime(value: string) {
+  if (value && localState.value) {
+    const dateTime = dayjs(`${localState.value.format('YYYY-MM-DD')} ${value}:00`)
+    tempDate.value = dateTime
+    localState.value = dateTime
+  } else if (!localState.value) {
+    const dateTime = dayjs(`${dayjs().format('YYYY-MM-DD')} ${value}:00`)
+    tempDate.value = dateTime
+    localState.value = dateTime
+  }
+
+  open.value = false
+}
+function generateTimeArray() {
+  return Array.from({ length: 24 }).flatMap((_, h) => {
+    return [0, 30].map((m) => {
+      const hour24 = h.toString().padStart(2, '0')
+      const minute = m.toString().padStart(2, '0')
+      const value = `${hour24}:${minute}`
+
+      const period = h < 12 ? 'AM' : 'PM'
+      const hour12 = (h % 12 === 0 ? 12 : h % 12).toString().padStart(2, '0')
+      const label = `${hour12}:${minute} ${period}`
+
+      return { label, value }
+    })
+  })
+}
+const timeOptions = ref<
+  {
+    label: string
+    value: string
+  }[]
+>(generateTimeArray())
+
+const selectedTime = computed(() => {
+  const result = {
+    value: '',
+    label: '',
+  }
+  if (localState.value) {
+    const time = localState.value.format('HH:mm')
+    result.value = time
+    const hr = parseInt(time.split(':')[0] ?? '') ?? 0
+
+    result.label = `${
+      hr === 0 ? '12' : hr < 12 ? hr.toString().padStart(2, '0') : hr === 24 ? '00' : (hr - 12).toString().padStart(2, '0')
+    }:${time.split(':')[1]} ${hr < 12 ? 'AM' : 'PM'}`
+  }
+
+  return result
+})
+
+watch([isDatePicker, isOpen], () => {
+  if (!isDatePicker.value && isOpen.value && selectedTime.value.value) {
+    setTimeout(() => {
+      const timeEl = document.querySelector(`.nc-picker-datetime [data-testid="time-option-${selectedTime.value.value}"]`)
+
+      timeEl?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }, 50)
+  }
+})
 </script>
 
 <template>
-  <a-date-picker
-    v-if="false"
-    ref="datePickerRef"
-    :value="localState"
-    :disabled="isColDisabled"
-    :show-time="true"
-    :bordered="false"
-    class="nc-cell-field nc-cell-picker-datetime !w-full !py-1 !border-none !text-current"
-    :class="[`nc-${randomClass}`, { 'nc-null': modelValue === null && showNull }]"
-    :format="dateTimeFormat"
-    :placeholder="typeof placeholder === 'string' ? placeholder : placeholder?.dateTime"
-    :allow-clear="!isColDisabled && !isEditColumn"
-    :input-read-only="!!isMobileMode"
-    :dropdown-class-name="`${randomClass} nc-picker-datetime children:border-1 children:border-gray-200 ${open ? 'active' : ''}`"
-    :open="isOpen"
-    @blur="onBlur"
-    @click="clickHandler"
-    @ok="okHandler"
-    @keydown="handleKeydown"
-    @mouseup.stop
-    @mousedown.stop
-  >
-    <template #suffixIcon></template>
-  </a-date-picker>
-
   <NcDropdown
-    v-else
     :visible="isOpen"
     :placement="isDatePicker ? 'bottomLeft' : 'bottomRight'"
     :auto-close="false"
     :trigger="['click']"
     class="nc-cell-field nc-cell-picker-datetime -ml-1"
     :class="[`nc-${randomClass}`, { 'nc-null': modelValue === null && showNull }]"
-    :overlay-class-name="`${randomClass} nc-picker-datetime ${open ? 'active' : ''} !min-w-[0]`"
+    :overlay-class-name="`${randomClass} nc-picker-datetime ${open ? 'active' : ''} !min-w-[0] overflow-hidden`"
   >
     <div class="flex items-center gap-4 ant-picker-input relative group">
-      <div class="flex-none hover:bg-gray-200 !py-0.5 !px-1 rounded-md !w-[90px] !min-w-[90px]">
+      <div
+        class="flex-none hover:bg-gray-200 !py-0.5 !px-1 rounded-md !w-[90px] !min-w-[90px] border-1"
+        :class="[isDatePicker && isOpen ? 'border-brand-500 bg-gray-200' : 'border-transparent']"
+      >
         <input
           ref="datePickerRef"
           :value="localState?.format(dateFormat) ?? ''"
           :placeholder="typeof placeholder === 'string' ? placeholder : placeholder?.date"
           class="w-full border-transparent outline-none !text-current bg-transparent !focus:(border-none outline-none ring-transparent)"
           :readonly="!!isMobileMode"
-          @blur="onBlur"
+          @focus="onFocus(true)"
           @keydown="handleKeydown($event, open, true)"
           @mouseup.stop
           @mousedown.stop
           @click="clickHandler($event, true)"
-          @input="handleUpdateValue"
+          @input="handleUpdateValue($event, true)"
         />
       </div>
-      <div class="flex-none hover:bg-gray-200 !py-0.5 !px-1 rounded-md !w-[60px] !min-w-[60px]">
+      <div
+        class="flex-none hover:bg-gray-200 !py-0.5 !px-1 rounded-md !w-[68px] !min-w-[68px] border-1"
+        :class="[!isDatePicker && isOpen ? 'border-brand-500 bg-gray-200' : 'border-transparent']"
+      >
         <input
           ref="timePickerRef"
-          :value="localState?.format(timeFormat) ?? ''"
+          :value="selectedTime.value ? `${selectedTime.label}` : ''"
           :placeholder="typeof placeholder === 'string' ? placeholder : placeholder?.time"
           class="w-full border-transparent outline-none !text-current bg-transparent !focus:(border-none outline-none ring-transparent)"
           :readonly="!!isMobileMode"
-          @blur="onBlur"
+          @focus="onFocus(false)"
           @keydown="handleKeydown($event, open)"
           @mouseup.stop
           @mousedown.stop
           @click="clickHandler($event, false)"
-          @input="handleUpdateValue"
+          @input="handleUpdateValue($event, false)"
         />
       </div>
     </div>
 
     <template #overlay>
-      <div class="w-[260px]">
+      <div
+        class="min-w-[184px]"
+        :class="{
+          'w-[260px]': isDatePicker,
+          'max-h-[252px] overflow-y-auto nc-scrollbar-thin': !isDatePicker,
+        }"
+      >
         <NcDateWeekSelector
+          v-if="isDatePicker"
           v-model:page-date="tempDate"
           v-model:selected-date="localState"
           :is-monday-first="false"
@@ -421,6 +517,20 @@ function handleSelectDate(value?: dayjs.Dayjs) {
           @update:selected-date="handleSelectDate"
           size="medium"
         />
+        <template v-else>
+          <div
+            v-for="time of timeOptions"
+            :key="time.value"
+            class="hover:bg-gray-200 py-0.5 px-3 text-sm text-gray-600 font-weight-500 text-center cursor-pointer"
+            :class="{
+              'bg-gray-200': selectedTime.value === time.value,
+            }"
+            :data-testid="`time-option-${time.value}`"
+            @click="handleSelectTime(time.value)"
+          >
+            {{ time.label }}
+          </div>
+        </template>
       </div>
     </template>
   </NcDropdown>

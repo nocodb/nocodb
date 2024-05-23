@@ -223,36 +223,46 @@ export class ToolbarFilterPage extends BasePage {
       switch (dataType) {
         case UITypes.Year:
           await this.get().locator('.nc-filter-value-select').click();
-          await this.rootPage.locator(`.ant-picker-dropdown:visible`).waitFor();
-          await this.rootPage.locator(`.ant-picker-cell-inner:has-text("${value}")`).click();
+          await this.rootPage.locator(`.nc-picker-year:visible`).waitFor();
+          await this.rootPage.locator('.nc-year-picker-btn:visible').waitFor();
+
+          await this.get().locator('.nc-filter-value-select .nc-year-input').fill(value);
+          await this.rootPage.keyboard.press('Enter');
           break;
         case UITypes.Time:
           // eslint-disable-next-line no-case-declarations
-          const time = value.split(':');
-          await this.get().locator('.nc-filter-value-select').click();
-          await this.rootPage.locator(`.ant-picker-dropdown:visible`).waitFor();
-          await this.rootPage
-            .locator(`.ant-picker-time-panel-column:nth-child(1)`)
-            .locator(`.ant-picker-time-panel-cell:has-text("${time[0]}")`)
-            .click();
-          await this.rootPage
-            .locator(`.ant-picker-time-panel-column:nth-child(2)`)
-            .locator(`.ant-picker-time-panel-cell:has-text("${time[1]}")`)
-            .click();
-          await this.rootPage.locator(`.ant-btn-primary:has-text("Ok")`).click();
+          const timeInput = this.get().locator('.nc-filter-value-select').locator('.nc-time-input');
+          await timeInput.click();
+          // eslint-disable-next-line no-case-declarations
+          const dropdown = this.rootPage.locator('.nc-picker-time.active');
+          await dropdown.waitFor({ state: 'visible' });
+
+          await timeInput.fill(value);
+          await this.rootPage.keyboard.press('Enter');
+
+          await dropdown.waitFor({ state: 'hidden' });
+
           break;
         case UITypes.Date:
           if (subOperation === 'exact date') {
-            await this.get().locator('.nc-filter-value-select').click();
-            await this.rootPage.locator(`.ant-picker-dropdown:visible`).waitFor();
+            await this.get().locator('.nc-filter-value-select .nc-date-input').click();
+            const dropdown = this.rootPage.locator(`.nc-picker-date.active`);
+            await dropdown.waitFor({ state: 'visible' });
+            const dateItem = dropdown.locator('.nc-date-item').getByText(value);
+            await dateItem.waitFor();
+            await dateItem.scrollIntoViewIfNeeded();
+            await dateItem.hover();
 
             if (skipWaitingResponse) {
-              await this.rootPage.locator(`.ant-picker-cell-inner:has-text("${value}")`).click();
+              await dateItem.click();
+              await dropdown.waitFor({ state: 'hidden' });
               await this.rootPage.waitForTimeout(350);
             } else {
               await this.waitForResponse({
-                uiAction: async () =>
-                  await this.rootPage.locator(`.ant-picker-cell-inner:has-text("${value}")`).click(),
+                uiAction: async () => {
+                  await dateItem.click();
+                  await dropdown.waitFor({ state: 'hidden' });
+                },
                 httpMethodsToMatch: ['GET'],
                 requestUrlPathToMatch: locallySaved ? `/api/v1/db/public/` : `/api/v1/db/data/noco/`,
               });

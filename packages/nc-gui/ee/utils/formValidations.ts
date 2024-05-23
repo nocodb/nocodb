@@ -17,7 +17,7 @@ import {
   formNumberInputValidator,
   formPhoneNumberValidator,
   formUrlValidator,
-  isEmptyValidatorValue
+  isEmptyValidatorValue,
 } from '../../utils/formValidations'
 
 export const formBusinessEmailValidator = (val: Validation) => {

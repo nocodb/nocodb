@@ -1,5 +1,5 @@
 import type { Ref } from 'vue'
-import { helpers, required } from '@vuelidate/validators'
+import { helpers } from '@vuelidate/validators'
 import useVuelidate from '@vuelidate/core'
 import dayjs from 'dayjs'
 import mime from 'mime-lite'

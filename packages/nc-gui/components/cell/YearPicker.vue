@@ -71,6 +71,12 @@ const localState = computed({
   },
 })
 
+watchEffect(() => {
+  if (localState.value) {
+    tempDate.value = localState.value
+  }
+})
+
 const randomClass = `picker_${Math.floor(Math.random() * 99999)}`
 
 onClickOutside(datePickerRef, (e) => {
@@ -151,7 +157,7 @@ const handleKeydown = (e: KeyboardEvent, _open?: boolean) => {
   switch (e.key) {
     case 'Enter':
       e.preventDefault()
-      localState.value = tempDate.value ?? localState.value
+      localState.value = tempDate.value
       open.value = !_open
       if (!open.value) {
         editable.value = false

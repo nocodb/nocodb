@@ -74,22 +74,23 @@ const localStateSelectedDate = computed({
     return pageDate.value
   },
   set: (value: dayjs.Dayjs) => {
+    if (!value.isValid()) return
+
     if (pickerType.value === type.value) {
-      pageDate.value = value
+      localPageDate.value = value
       emit('update:selectedDate', value)
       localSelectedDate.value = undefined
-
       return
     }
 
     if (['date', 'month'].includes(type.value)) {
       if (pickerType.value === 'year') {
-        localSelectedDate.value = dayjs(localPageDate.value ?? localSelectedDate.value ?? selectedDate.value).year(
+        localSelectedDate.value = dayjs(localPageDate.value ?? localSelectedDate.value ?? selectedDate.value ?? dayjs()).year(
           +value.format('YYYY'),
         )
       }
       if (type.value !== 'month' && pickerType.value === 'month') {
-        localSelectedDate.value = dayjs(localPageDate.value ?? localSelectedDate.value ?? selectedDate.value).month(
+        localSelectedDate.value = dayjs(localPageDate.value ?? localSelectedDate.value ?? selectedDate.value ?? dayjs()).month(
           +value.format('MM') - 1,
         )
       }

@@ -95,7 +95,7 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
     <div class="flex px-2 border-b-1 py-0.5 justify-between items-center">
       <div class="flex">
         <NcTooltip hide-on-click>
-          <NcButton class="!border-0" size="small" type="secondary" @click="paginate('prev')">
+          <NcButton class="nc-prev-page-btn !border-0" size="small" type="secondary" @click="paginate('prev')">
             <component :is="iconMap.arrowLeft" class="h-4 w-4" />
           </NcButton>
           <template #title>
@@ -105,7 +105,7 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
       </div>
 
       <span
-        class="text-gray-700 font-semibold"
+        class="nc-year-picker-btn text-gray-700 font-semibold"
         :class="{
           'cursor-pointer hover:text-brand-500': isCellInputField && !isYearPicker,
         }"
@@ -120,7 +120,7 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
       >
       <div class="flex">
         <NcTooltip hide-on-click>
-          <NcButton class="!border-0" size="small" type="secondary" @click="paginate('next')">
+          <NcButton class="nc-next-page-btn !border-0" size="small" type="secondary" @click="paginate('next')">
             <component :is="iconMap.arrowRight" class="h-4 w-4" />
           </NcButton>
           <template #title>
@@ -139,7 +139,8 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
               '!bg-gray-200 !text-brand-900 !font-bold ': isMonthSelected(month),
               '!text-brand-500': dayjs().isSame(month, 'month'),
             }"
-            class="h-8 rounded-lg flex items-center transition-all font-medium justify-center hover:(border-1 border-gray-200 bg-gray-100) text-gray-700 cursor-pointer"
+            class="nc-month-item h-8 rounded-lg flex items-center transition-all font-medium justify-center hover:(border-1 border-gray-200 bg-gray-100) text-gray-700 cursor-pointer"
+            :title="isCellInputField ? month.format('YYYY-MM') : undefined"
             @click="selectedDate = month"
           >
             {{ month.format('MMM') }}
@@ -153,7 +154,8 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
               '!bg-gray-200 !text-brand-500 !font-bold ': compareYear(year, selectedDate),
               '!text-brand-500': dayjs().isSame(year, 'year'),
             }"
-            class="h-8 rounded-lg flex items-center transition-all font-medium justify-center hover:(border-1 border-gray-200 bg-gray-100) text-gray-900 cursor-pointer"
+            class="nc-year-item h-8 rounded-lg flex items-center transition-all font-medium justify-center hover:(border-1 border-gray-200 bg-gray-100) text-gray-900 cursor-pointer"
+            :title="isCellInputField ? year.format('YYYY') : undefined"
             @click="selectedDate = year"
           >
             {{ year.format('YYYY') }}

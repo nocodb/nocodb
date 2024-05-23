@@ -68,10 +68,14 @@ const localStateSelectedDate = computed({
 
     if (['date', 'month'].includes(type.value)) {
       if (pickerType.value === 'year') {
-        localSelectedDate.value = dayjs(localSelectedDate.value ?? selectedDate.value).year(+value.format('YYYY'))
+        localSelectedDate.value = dayjs(localPageDate.value ?? localSelectedDate.value ?? selectedDate.value).year(
+          +value.format('YYYY'),
+        )
       }
       if (type.value !== 'month' && pickerType.value === 'month') {
-        localSelectedDate.value = dayjs(localSelectedDate.value ?? selectedDate.value).month(+value.format('MM') - 1)
+        localSelectedDate.value = dayjs(localPageDate.value ?? localSelectedDate.value ?? selectedDate.value).month(
+          +value.format('MM') - 1,
+        )
       }
 
       localPageDate.value = localSelectedDate.value
@@ -90,7 +94,8 @@ const handleUpdatePickerType = (value?: Props['type']) => {
       pickerStack.value.pop()
       const lastPicker = pickerStack.value.pop()
       pickerType.value = lastPicker
-    } else if (pickerType.value && pickerType.value !== type.value) {
+    } else {
+      pickerStack.value = []
       pickerType.value = type.value
     }
   }
@@ -107,6 +112,11 @@ watch(isOpen, (next) => {
 
 onUnmounted(() => {
   pickerType.value = type.value
+  localPageDate.value = undefined
+  localSelectedDate.value = undefined
+  pickerStack.value = []
+})
+onMounted(() => {
   localPageDate.value = undefined
   localSelectedDate.value = undefined
   pickerStack.value = []

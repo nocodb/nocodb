@@ -171,8 +171,11 @@ const paginate = (action: 'next' | 'prev') => {
       </NcTooltip>
 
       <div v-if="isCellInputField" class="text-gray-700 text-sm font-semibold">
-        <span class="cursor-pointer hover:text-brand-500" @click="pickerType = 'month'">{{ currentMonth }}</span> {{ ' ' }}
-        <span class="cursor-pointer hover:text-brand-500" @click="pickerType = 'year'">{{ currentYear }}</span>
+        <span class="nc-month-picker-btn cursor-pointer hover:text-brand-500" @click="pickerType = 'month'">{{
+          currentMonth
+        }}</span>
+        {{ ' ' }}
+        <span class="nc-year-picker-btn cursor-pointer hover:text-brand-500" @click="pickerType = 'year'">{{ currentYear }}</span>
       </div>
       <span v-else class="text-gray-700 text-sm font-semibold">{{ currentMonthYear }}</span>
 

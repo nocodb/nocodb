@@ -38,21 +38,41 @@ export class DateTimeCellPageObject extends BasePage {
     const [year, month, day] = date.split('-');
 
     // configure year
-    await this.rootPage.locator('.ant-picker-year-btn:visible').waitFor();
-    await this.rootPage.locator('.ant-picker-year-btn:visible').click();
-    await this.rootPage.locator(`td[title="${year}"]`).click();
+    await this.rootPage.locator('.nc-year-picker-btn:visible').waitFor();
+    await this.rootPage.locator('.nc-year-picker-btn:visible').click();
+
+    await this.rootPage.locator('.nc-year-picker-btn:visible').waitFor();
+
+    let flag = true;
+
+    while (flag) {
+      const firstVisibleYear = await this.rootPage.locator('.nc-year-item').first().textContent();
+      const lastVisibleYear = await this.rootPage.locator('.nc-year-item').last().textContent();
+
+      if (+year >= +firstVisibleYear && +year <= +lastVisibleYear) {
+        flag = false;
+      } else if (+year < +firstVisibleYear) {
+        await this.rootPage.locator('.nc-prev-page-btn').click();
+      } else if (+year > +lastVisibleYear) {
+        await this.rootPage.locator('.nc-next-page-btn').click();
+      }
+    }
+
+    console.log('fds', await this.rootPage.locator(`span[title="${year}"]`).first().textContent());
+    await this.rootPage.locator(`span[title="${year}"]`).waitFor();
+    await this.rootPage.locator(`span[title="${year}"]`).click({ force: true });
 
     if (skipDate) {
-      await this.rootPage.locator(`td[title="${year}-${month}"]`).click();
+      await this.rootPage.locator(`span[title="${year}-${month}"]`).click();
       return;
     }
 
     // configure month
-    await this.rootPage.locator('.ant-picker-month-btn:visible').click();
-    await this.rootPage.locator(`td[title="${year}-${month}"]`).click();
+    await this.rootPage.locator('.nc-month-picker-btn:visible').click();
+    await this.rootPage.locator(`span[title="${year}-${month}"]`).click();
 
     // configure day
-    await this.rootPage.locator(`td[title="${year}-${month}-${day}"]:visible`).click();
+    await this.rootPage.locator(`span[title="${year}-${month}-${day}"]:visible`).click();
   }
 
   async selectTime({

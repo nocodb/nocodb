@@ -153,8 +153,10 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
             :class="{
               '!bg-gray-200 !text-brand-500 !font-bold ': compareYear(year, selectedDate),
               '!text-brand-500': dayjs().isSame(year, 'year'),
+              'font-weight-500 text-gray-700': isCellInputField,
+              'font-medium text-gray-900': !isCellInputField,
             }"
-            class="nc-year-item h-8 rounded-lg flex items-center transition-all font-medium justify-center hover:(border-1 border-gray-200 bg-gray-100) text-gray-900 cursor-pointer"
+            class="nc-year-item h-8 rounded-lg flex items-center transition-all justify-center hover:(border-1 border-gray-200 bg-gray-100) cursor-pointer"
             :title="isCellInputField ? year.format('YYYY') : undefined"
             @click="selectedDate = year"
           >

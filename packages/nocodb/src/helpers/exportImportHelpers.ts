@@ -72,6 +72,9 @@ export function findWithIdentifier(map: Map<string, any>, id: string) {
 }
 
 export function generateUniqueName(name: string, names: string[]) {
+  // if name is unique, return it
+  if (!names.includes(name)) return name;
+  // if name is not unique, add a number suffix
   let newName = name;
   let i = 1;
   while (names.includes(newName)) {

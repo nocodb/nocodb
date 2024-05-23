@@ -312,10 +312,6 @@ export class ImportService {
                         colOptions.fk_mm_model_id && a.id !== col.id,
                   );
 
-                if (colOptions.fk_related_model_id === modelData.id) {
-                  childColumn.title = `${childColumn.title} copy`;
-                }
-
                 for (const nColumn of childModel.columns) {
                   if (
                     nColumn?.colOptions?.fk_mm_model_id ===
@@ -325,6 +321,16 @@ export class ImportService {
                     idMap.set(childColumn.id, nColumn.id);
 
                     if (nColumn.title !== childColumn.title) {
+                      const titleExists = childModel.columns.find(
+                        (a) => a.title === childColumn.title,
+                      );
+                      if (titleExists) {
+                        childColumn.title = generateUniqueName(
+                          `${childColumn.title} copy`,
+                          childModel.columns.map((a) => a.title),
+                        );
+                      }
+
                       await this.columnsService.columnUpdate({
                         columnId: nColumn.id,
                         column: {
@@ -403,10 +409,6 @@ export class ImportService {
                     a.id !== col.id,
                 );
 
-              if (colOptions.fk_related_model_id === modelData.id) {
-                childColumn.title = `${childColumn.title} copy`;
-              }
-
               for (const nColumn of childModel.columns) {
                 if (
                   nColumn.id !== getIdOrExternalId(col.id) &&
@@ -417,7 +419,20 @@ export class ImportService {
                 ) {
                   idMap.set(childColumn.id, nColumn.id);
 
+                  // Rename child column (link column)
                   if (nColumn.title !== childColumn.title) {
+                    const titleExists = childModel.columns.find(
+                      (a) => a.title === childColumn.title,
+                    );
+                    if (titleExists) {
+                      childColumn.title = generateUniqueName(
+                        `${childColumn.title} copy`,
+                        childModel.columns
+                          .filter((a) => a.id !== nColumn.id)
+                          .map((a) => a.title),
+                      );
+                    }
+
                     await this.columnsService.columnUpdate({
                       columnId: nColumn.id,
                       column: {
@@ -428,7 +443,44 @@ export class ImportService {
                       user: param.user,
                     });
                   }
-                  break;
+                }
+
+                // Rename fk child column
+                if (
+                  nColumn.id ===
+                  getIdOrExternalId(colOptions.fk_child_column_id)
+                ) {
+                  const relatedCol = param.data
+                    .find((a) => a.model.id === colOptions.fk_related_model_id)
+                    ?.model.columns.find(
+                      (a) => a.id === colOptions.fk_child_column_id,
+                    );
+
+                  if (relatedCol) {
+                    if (nColumn.title !== relatedCol?.title) {
+                      const titleExists = childModel.columns.find(
+                        (a) => a.title === relatedCol.title,
+                      );
+                      if (titleExists) {
+                        relatedCol.title = generateUniqueName(
+                          `${relatedCol.title} copy`,
+                          childModel.columns
+                            .filter((a) => a.id !== nColumn.id)
+                            .map((a) => a.title),
+                        );
+                      }
+
+                      await this.columnsService.columnUpdate({
+                        columnId: nColumn.id,
+                        column: {
+                          ...nColumn,
+                          column_name: relatedCol.column_name,
+                          title: relatedCol.title,
+                        },
+                        user: param.user,
+                      });
+                    }
+                  }
                 }
               }
             }
@@ -509,10 +561,6 @@ export class ImportService {
                       a.id !== getEntityIdentifier(col.id)),
                 );
 
-                if (colOptions.fk_related_model_id === modelData.id) {
-                  childColumn.title = `${childColumn.title} copy`;
-                }
-
                 for (const nColumn of childModel.columns) {
                   if (
                     nColumn?.colOptions?.fk_mm_model_id ===
@@ -528,14 +576,17 @@ export class ImportService {
                       );
                     }
 
-                    childColumn.title = `${childColumn.title} copy`;
-
-                    childColumn.title = generateUniqueName(
-                      childColumn.title,
-                      childModel.columns.map((a) => a.title),
-                    );
-
                     if (nColumn.title !== childColumn.title) {
+                      const titleExists = childModel.columns.find(
+                        (a) => a.title === childColumn.title,
+                      );
+                      if (titleExists) {
+                        childColumn.title = generateUniqueName(
+                          `${childColumn.title} copy`,
+                          childModel.columns.map((a) => a.title),
+                        );
+                      }
+
                       await this.columnsService.columnUpdate({
                         columnId: nColumn.id,
                         column: {
@@ -636,10 +687,6 @@ export class ImportService {
                       a.id !== getEntityIdentifier(col.id)),
                 );
 
-                if (colOptions.fk_related_model_id === modelData.id) {
-                  childColumn.title = `${childColumn.title} copy`;
-                }
-
                 for (const nColumn of childModel.columns) {
                   if (
                     nColumn.id !== getIdOrExternalId(col.id) &&
@@ -657,14 +704,20 @@ export class ImportService {
                       );
                     }
 
-                    childColumn.title = `${childColumn.title} copy`;
-
-                    childColumn.title = generateUniqueName(
-                      childColumn.title,
-                      childModel.columns.map((a) => a.title),
-                    );
-
+                    // Rename child column (link column)
                     if (nColumn.title !== childColumn.title) {
+                      const titleExists = childModel.columns.find(
+                        (a) => a.title === childColumn.title,
+                      );
+                      if (titleExists) {
+                        childColumn.title = generateUniqueName(
+                          `${childColumn.title} copy`,
+                          childModel.columns
+                            .filter((a) => a.id !== nColumn.id)
+                            .map((a) => a.title),
+                        );
+                      }
+
                       await this.columnsService.columnUpdate({
                         columnId: nColumn.id,
                         column: {
@@ -675,7 +728,46 @@ export class ImportService {
                         user: param.user,
                       });
                     }
-                    break;
+
+                    // Rename fk child column
+                    if (
+                      nColumn.id ===
+                      getIdOrExternalId(colOptions.fk_child_column_id)
+                    ) {
+                      const relatedCol = param.data
+                        .find(
+                          (a) => a.model.id === colOptions.fk_related_model_id,
+                        )
+                        ?.model.columns.find(
+                          (a) => a.id === colOptions.fk_child_column_id,
+                        );
+
+                      if (relatedCol) {
+                        if (nColumn.title !== relatedCol?.title) {
+                          const titleExists = childModel.columns.find(
+                            (a) => a.title === relatedCol.title,
+                          );
+                          if (titleExists) {
+                            relatedCol.title = generateUniqueName(
+                              `${relatedCol.title} copy`,
+                              childModel.columns
+                                .filter((a) => a.id !== nColumn.id)
+                                .map((a) => a.title),
+                            );
+                          }
+
+                          await this.columnsService.columnUpdate({
+                            columnId: nColumn.id,
+                            column: {
+                              ...nColumn,
+                              column_name: relatedCol.column_name,
+                              title: relatedCol.title,
+                            },
+                            user: param.user,
+                          });
+                        }
+                      }
+                    }
                   }
                 }
               }
@@ -765,10 +857,6 @@ export class ImportService {
                       a.id !== getEntityIdentifier(col.id)),
                 );
 
-                if (colOptions.fk_related_model_id === modelData.id) {
-                  childColumn.title = `${childColumn.title} copy`;
-                }
-
                 for (const nColumn of childModel.columns) {
                   if (
                     nColumn.id !== getIdOrExternalId(col.id) &&
@@ -786,14 +874,20 @@ export class ImportService {
                       );
                     }
 
-                    childColumn.title = `${childColumn.title} copy`;
-
-                    childColumn.title = generateUniqueName(
-                      childColumn.title,
-                      childModel.columns.map((a) => a.title),
-                    );
-
+                    // Rename child column (link column)
                     if (nColumn.title !== childColumn.title) {
+                      const titleExists = childModel.columns.find(
+                        (a) => a.title === childColumn.title,
+                      );
+                      if (titleExists) {
+                        childColumn.title = generateUniqueName(
+                          `${childColumn.title} copy`,
+                          childModel.columns
+                            .filter((a) => a.id !== nColumn.id)
+                            .map((a) => a.title),
+                        );
+                      }
+
                       await this.columnsService.columnUpdate({
                         columnId: nColumn.id,
                         column: {
@@ -804,7 +898,46 @@ export class ImportService {
                         user: param.user,
                       });
                     }
-                    break;
+                  }
+
+                  // Rename fk child column
+                  if (
+                    nColumn.id ===
+                    getIdOrExternalId(colOptions.fk_child_column_id)
+                  ) {
+                    const relatedCol = param.data
+                      .find(
+                        (a) => a.model.id === colOptions.fk_related_model_id,
+                      )
+                      ?.model.columns.find(
+                        (a) => a.id === colOptions.fk_child_column_id,
+                      );
+
+                    if (relatedCol) {
+                      if (nColumn.title !== relatedCol?.title) {
+                        const titleExists = childModel.columns.find(
+                          (a) => a.title === relatedCol.title,
+                        );
+                        if (titleExists) {
+                          relatedCol.title = generateUniqueName(
+                            `${relatedCol.title} copy`,
+                            childModel.columns
+                              .filter((a) => a.id !== nColumn.id)
+                              .map((a) => a.title),
+                          );
+                        }
+
+                        await this.columnsService.columnUpdate({
+                          columnId: nColumn.id,
+                          column: {
+                            ...nColumn,
+                            column_name: relatedCol.column_name,
+                            title: relatedCol.title,
+                          },
+                          user: param.user,
+                        });
+                      }
+                    }
                   }
                 }
               }

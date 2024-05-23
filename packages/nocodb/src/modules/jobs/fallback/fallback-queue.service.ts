@@ -129,7 +129,7 @@ export class QueueService {
     QueueService.queueIdCounter = index;
   }
 
-  add(name: string, data: any) {
+  add(name: string, data: any, _opts = {}) {
     const id = `${this.queueIndex++}`;
     const job = { id: `${id}`, name, status: JobStatus.WAITING, data };
     this.queueMemory.push(job);

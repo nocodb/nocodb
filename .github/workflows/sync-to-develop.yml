@@ -37,6 +37,8 @@ jobs:
           cd nocodb
           git fetch --quiet --unshallow origin
           git checkout master
+          # reset to origin/master
+          git reset --hard origin/master
           : # Use the first 8 characters of the latest commit hash as the branch name
           BRANCH_NAME=nc/$(git rev-list -n 1 HEAD | cut -c1-8)
           git checkout -b $BRANCH_NAME

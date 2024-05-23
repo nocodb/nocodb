@@ -144,6 +144,7 @@ onClickOutside(datePickerRef, (e) => {
   if ((e.target as HTMLElement)?.closest(`.${randomClass}, .nc-${randomClass}`)) return
 
   datePickerRef.value?.blur?.()
+  timePickerRef.value?.blur?.()
   open.value = false
 })
 
@@ -260,11 +261,6 @@ const handleKeydown = (e: KeyboardEvent, _open?: boolean, _isDatePicker?: boolea
 
       return
     case 'Tab':
-      if (!_isDatePicker && !e.shiftKey) {
-        e.preventDefault()
-        return
-      }
-
       open.value = false
       if (isGrid.value) {
         editable.value = false
@@ -435,8 +431,14 @@ watch([isDatePicker, isOpen], () => {
       class="nc-date-picker flex items-center ant-picker-input relative group !w-auto"
     >
       <div
-        class="flex-none hover:bg-gray-200 py-0.5 px-1 rounded-md w-1/2 max-w-[100px] border-1"
-        :class="[isDatePicker && isOpen ? 'border-brand-500 bg-gray-200' : 'border-transparent']"
+        class="flex-none hover:bg-gray-200 px-1 rounded-md w-1/2 max-w-[100px] border-1"
+        :class="[
+          isDatePicker && isOpen ? 'border-brand-500 bg-gray-200' : 'border-transparent',
+          {
+            'py-0': isForm,
+            'py-0.5': !isForm,
+          },
+        ]"
       >
         <input
           ref="datePickerRef"
@@ -453,8 +455,14 @@ watch([isDatePicker, isOpen], () => {
         />
       </div>
       <div
-        class="flex-none hover:bg-gray-200 py-0.5 ml-2 px-1 rounded-md w-[45%] max-w-[100px] border-1"
-        :class="[!isDatePicker && isOpen ? 'border-brand-500 bg-gray-200' : 'border-transparent']"
+        class="flex-none hover:bg-gray-200 ml-2 px-1 rounded-md w-[45%] max-w-[100px] border-1"
+        :class="[
+          !isDatePicker && isOpen ? 'border-brand-500 bg-gray-200' : 'border-transparent',
+          {
+            'py-0': isForm,
+            'py-0.5': !isForm,
+          },
+        ]"
       >
         <input
           ref="timePickerRef"

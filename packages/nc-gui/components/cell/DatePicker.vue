@@ -109,6 +109,10 @@ const onBlur = (e) => {
   open.value = false
 }
 
+const onFocus = () => {
+  open.value = true
+}
+
 watch(
   open,
   (next) => {
@@ -213,6 +217,14 @@ const handleKeydown = (e: KeyboardEvent, _open?: boolean) => {
       }
 
       return
+
+    case 'Tab':
+      open.value = false
+      if (isGrid.value) {
+        editable.value = false
+        datePickerRef.value?.blur?.()
+      }
+      return
     default:
       if (!_open && /^[0-9a-z]$/i.test(e.key)) {
         open.value = true
@@ -293,6 +305,7 @@ function handleSelectDate(value?: dayjs.Dayjs) {
         class="nc-date-input border-none outline-none !text-current bg-transparent !focus:(border-none outline-none ring-transparent)"
         :readonly="!!isMobileMode"
         @blur="onBlur"
+        @focus="onFocus"
         @keydown="handleKeydown($event, open)"
         @mouseup.stop
         @mousedown.stop

@@ -190,18 +190,26 @@ const paginate = (action: 'next' | 'prev') => {
     </div>
     <div v-if="!hideCalendar" class="max-w-[320px] rounded-y-xl">
       <div
-        class="flex py-1 px-2.5 rounded-t-xl flex-row border-gray-200 justify-between"
+        class="py-1"
         :class="{
-          'gap-x-0.5 gap-y-2': isCellInputField,
-          'gap-1': !isCellInputField,
+          'px-3': isCellInputField,
+          'px-2.5': !isCellInputField,
         }"
       >
-        <span
-          v-for="(day, index) in days"
-          :key="index"
-          class="flex w-8 h-8 items-center uppercase font-medium justify-center text-gray-500"
-          >{{ day[0] }}</span
+        <div
+          class="flex"
+          :class="{
+            'gap-x-0.5 gap-y-2 border-b-1 border-gray-200': isCellInputField,
+            'gap-1': !isCellInputField,
+          }"
         >
+          <span
+            v-for="(day, index) in days"
+            :key="index"
+            class="flex w-8 h-8 items-center uppercase font-medium justify-center text-gray-500"
+            >{{ day[0] }}</span
+          >
+        </div>
       </div>
       <div class="grid gap-1 py-1 px-2.5 nc-date-week-grid-wrapper grid-cols-7">
         <span
@@ -209,7 +217,7 @@ const paginate = (action: 'next' | 'prev') => {
           :key="index"
           :class="{
             'rounded-lg': !isWeekPicker,
-            'bg-gray-200 border-1 font-bold ': isSelectedDate(date) && !isWeekPicker && isDayInPagedMonth(date),
+            'bg-gray-200 border-1 !font-bold': isSelectedDate(date) && !isWeekPicker && isDayInPagedMonth(date),
             'hover:(border-1 border-gray-200 bg-gray-100)': !isSelectedDate(date) && !isWeekPicker,
             'nc-selected-week !font-semibold z-1': isDateInSelectedWeek(date) && isWeekPicker,
             'border-none': isWeekPicker,
@@ -219,9 +227,10 @@ const paginate = (action: 'next' | 'prev') => {
             'nc-selected-week-end': isSameDate(date, selectedWeek?.end),
             'rounded-md text-brand-500 !font-semibold nc-calendar-today': isSameDate(date, dayjs()) && isDateInCurrentMonth(date),
             'text-gray-500': date.get('day') === 0 || date.get('day') === 6,
-            'nc-date-item': isCellInputField,
+            'nc-date-item font-weight-500': isCellInputField,
+            'font-medium': !isCellInputField,
           }"
-          class="px-1 h-8 w-8 py-1 relative transition border-1 font-medium flex text-gray-700 items-center cursor-pointer justify-center"
+          class="px-1 h-8 w-8 py-1 relative transition border-1 flex text-gray-700 items-center cursor-pointer justify-center"
           data-testid="nc-calendar-date"
           :title="isCellInputField ? date.format('YYYY-MM-DD') : undefined"
           @click="handleSelectDate(date)"

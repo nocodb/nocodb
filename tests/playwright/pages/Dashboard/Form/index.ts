@@ -1,4 +1,5 @@
 import { expect, Locator } from '@playwright/test';
+import { StringValidationType } from 'nocodb-sdk';
 import { DashboardPage } from '..';
 import BasePage from '../../Base';
 import { ToolbarPage } from '../common/Toolbar';
@@ -23,6 +24,11 @@ export class FormPage extends BasePage {
 
   readonly formFields: Locator;
 
+  // validation
+  readonly fieldPanel: Locator;
+  readonly customValidationBtn: Locator;
+  readonly customValidationDropdown: Locator;
+
   constructor(dashboard: DashboardPage) {
     super(dashboard.rootPage);
     this.dashboard = dashboard;
@@ -45,6 +51,11 @@ export class FormPage extends BasePage {
     this.afterSubmitMsg = dashboard.get().locator('[data-testid="nc-form-after-submit-msg"] .tiptap.ProseMirror');
 
     this.formFields = dashboard.get().locator('.nc-form-fields-list');
+
+    // validation
+    this.fieldPanel = dashboard.get().locator('.nc-form-field-right-panel');
+    this.customValidationBtn = this.fieldPanel.locator('.nc-custom-validation-btn');
+    this.customValidationDropdown = this.rootPage.locator('.nc-custom-validator-dropdown');
   }
 
   get() {
@@ -188,6 +199,22 @@ export class FormPage extends BasePage {
     }
   }
 
+  getVisibleField({ title }: { title: string }) {
+    return this.get()
+      .locator(`.nc-form-drag-${title.replace(' ', '')}`)
+      .locator('[data-testid="nc-form-input-label"]');
+  }
+
+  async selectVisibleField({ title }: { title: string }) {
+    const field = this.getVisibleField({ title });
+
+    await field.scrollIntoViewIfNeeded();
+    await field.click();
+
+    // Wait for field settings right pannel
+    await this.fieldPanel.waitFor({ state: 'visible' });
+  }
+
   async configureField({
     field,
     required,
@@ -206,10 +233,7 @@ export class FormPage extends BasePage {
         httpMethodsToMatch: ['PATCH'],
       });
 
-    await this.get()
-      .locator(`.nc-form-drag-${field.replace(' ', '')}`)
-      .locator('[data-testid="nc-form-input-label"]')
-      .click();
+    await this.selectVisibleField({ title: field });
 
     await waitForResponse(() => this.getFormFieldsInputLabel().fill(label));
     await waitForResponse(() => this.getFormFieldsInputHelpText().fill(helpText));
@@ -234,9 +258,8 @@ export class FormPage extends BasePage {
     if (required) expectText = label + ' *';
     else expectText = label;
 
-    const fieldLabel = this.get()
-      .locator(`.nc-form-drag-${field.replace(' ', '')}`)
-      .locator('div[data-testid="nc-form-input-label"]');
+    const fieldLabel = this.getVisibleField({ title: field });
+    await fieldLabel.scrollIntoViewIfNeeded();
     await expect(fieldLabel).toHaveText(expectText);
 
     const fieldHelpText = this.get()
@@ -299,5 +322,84 @@ export class FormPage extends BasePage {
         this.get().locator('[data-testid="nc-form-checkbox-send-email"][aria-checked="true"]')
       ).toBeVisible();
     }
+  }
+
+  async getCustomValidationTypeOption({
+    type,
+    currValItem,
+    index,
+  }: {
+    type: StringValidationType;
+    currValItem: Locator;
+    index: number;
+  }) {
+    await currValItem.locator('.nc-custom-validation-type-selector .ant-select-selector').click();
+
+    const typeSelectorDropdown = this.rootPage.locator(`.nc-custom-validation-type-dropdown-${index}`);
+    await typeSelectorDropdown.waitFor();
+
+    const option = typeSelectorDropdown.getByTestId(`nc-custom-validation-type-option-${type}`);
+    await option.scrollIntoViewIfNeeded();
+
+    return {
+      option: this.rootPage.getByTestId(`nc-custom-validation-type-option-${type}`),
+      select: async () => {
+        await option.click();
+        await typeSelectorDropdown.waitFor({ state: 'hidden' });
+      },
+      closeSelector: async () =>
+        await currValItem.locator('.nc-custom-validation-type-selector .ant-select-selector').click(),
+      verify: async (isDisabled = false) => {
+        if (isDisabled) {
+          await expect(option).toHaveClass('.ant-select-item-option-disabled');
+        } else {
+          await expect(option).not.toHaveClass('.ant-select-item-option-disabled');
+        }
+      },
+    };
+  }
+
+  async addCustomValidation({
+    type,
+    value,
+    errorMsg,
+    index,
+  }: {
+    type: StringValidationType;
+    value: string;
+    errorMsg?: string;
+    index: number;
+  }) {
+    await this.customValidationBtn.waitFor({ state: 'visible' });
+    await this.customValidationBtn.click();
+
+    const dropdown = this.customValidationDropdown;
+    await dropdown.waitFor({ state: 'visible' });
+
+    await dropdown.locator('.nc-custom-validation-add-btn').click();
+
+    const currValItem = this.customValidationDropdown.getByTestId(`nc-custom-validation-item-${index}`);
+
+    await currValItem.waitFor({ state: 'visible' });
+
+    // Select type
+    const { select } = await this.getCustomValidationTypeOption({ type, currValItem, index });
+    await select();
+
+    // add value
+    const valValueInput = currValItem.locator('.custom-validation-input >> input');
+    console.log('val input', await valValueInput.innerHTML());
+    await valValueInput.click();
+    await valValueInput.fill(value);
+
+    if (errorMsg) {
+      const valErrorMsgInput = currValItem.locator('.nc-custom-validation-error-message-input');
+      await valErrorMsgInput.click();
+      await valErrorMsgInput.fill(errorMsg);
+    }
+
+    //close dropdown
+    await this.customValidationBtn.click();
+    await dropdown.waitFor({ state: 'hidden' });
   }
 }

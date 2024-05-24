@@ -3,7 +3,7 @@ import { DashboardPage } from '../../../pages/Dashboard';
 import setup, { unsetup } from '../../../setup';
 import { FormPage } from '../../../pages/Dashboard/Form';
 import { SharedFormPage } from '../../../pages/SharedForm';
-import { Api, UITypes } from 'nocodb-sdk';
+import { Api, StringValidationType, UITypes } from 'nocodb-sdk';
 import { LoginPage } from '../../../pages/LoginPage';
 import { getDefaultPwd } from '../../../tests/utils/general';
 import { enableQuickRun, isEE } from '../../../setup/db';
@@ -499,5 +499,101 @@ test.describe('Form view', () => {
       columnHeader: 'MultiSelect',
       options: ['jan', 'feb', 'mar'],
     });
+  });
+});
+
+test.describe.only('Form view: field validation', () => {
+  // if (enableQuickRun()) test.skip();
+
+  let dashboard: DashboardPage;
+  let form: FormPage;
+  let context: any;
+  let api: Api<any>;
+
+  test.beforeEach(async ({ page }) => {
+    context = await setup({ page, isEmptyProject: true });
+    dashboard = new DashboardPage(page, context.base);
+    form = dashboard.form;
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
+  });
+
+  async function createTable({ tableName }: { tableName: string }) {
+    api = new Api({
+      baseURL: `http://localhost:8080/`,
+      headers: {
+        'xc-auth': context.token,
+      },
+    });
+
+    const columns = [
+      {
+        column_name: 'Id',
+        title: 'Id',
+        uidt: UITypes.ID,
+      },
+      {
+        column_name: 'SingleLineText',
+        title: 'SingleLineText',
+        uidt: UITypes.SingleLineText,
+      },
+      {
+        column_name: 'LongText',
+        title: 'LongText',
+        uidt: UITypes.LongText,
+      },
+      {
+        column_name: 'Email',
+        title: 'Email',
+        uidt: UITypes.Email,
+      },
+      {
+        column_name: 'PhoneNumber',
+        title: 'PhoneNumber',
+        uidt: UITypes.PhoneNumber,
+      },
+      {
+        column_name: 'Url',
+        title: 'Url',
+        uidt: UITypes.URL,
+      },
+    ];
+
+    const base = await api.base.read(context.base.id);
+    await api.source.tableCreate(context.base.id, base.sources?.[0].id, {
+      table_name: tableName,
+      title: tableName,
+      columns: columns,
+    });
+
+    await dashboard.rootPage.reload();
+    await dashboard.rootPage.waitForTimeout(100);
+
+    await dashboard.treeView.openTable({ title: tableName });
+
+    await dashboard.rootPage.waitForTimeout(500);
+
+    await dashboard.viewSidebar.createFormView({ title: 'NewForm' });
+  }
+
+  test('Form builder field validation', async () => {
+    await createTable({ tableName: 'FormFieldValidation' });
+    await form.configureHeader({
+      title: 'Form validation',
+      subtitle: 'Test form field validation',
+    });
+    await form.verifyHeader({
+      title: 'Form validation',
+      subtitle: 'Test form field validation',
+    });
+
+    await form.selectVisibleField({ title: 'SingleLineText' });
+
+    await form.addCustomValidation({ type: StringValidationType.MinLength, value: '2', index: 0 });
+    await form.addCustomValidation({ type: StringValidationType.MaxLength, value: '4', index: 1 });
+
+    await dashboard.rootPage.waitForTimeout(5000);
   });
 });

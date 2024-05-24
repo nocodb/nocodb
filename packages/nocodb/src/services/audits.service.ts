@@ -5,7 +5,7 @@ import type { AuditRowUpdateReqType } from 'nocodb-sdk';
 import { AppHooksListenerService } from '~/services/app-hooks-listener.service';
 import { validatePayload } from '~/helpers';
 import { Audit, Model } from '~/models';
-import { AppHooksService } from '~/ee/services/app-hooks/app-hooks.service';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 
 @Injectable()
 export class AuditsService {

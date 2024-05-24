@@ -11,7 +11,7 @@ fi
 if [ -z "${LITESTREAM_S3_SECRET_ACCESS_KEY}" ] && [ -n "${AWS_SECRET_ACCESS_KEY}" ] ; then
   export LITESTREAM_S3_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}"
 fi
-if [ -z "${LITESTREAM_S3_PATH}" ] && -n [ "${AWS_BUCKET_PATH}" ] ; then
+if [ -z "${LITESTREAM_S3_PATH}" ] && [ -n "${AWS_BUCKET_PATH}" ] ; then
   export LITESTREAM_S3_PATH="${AWS_BUCKET_PATH}"
 fi
 if [ -z "${LITESTREAM_S3_BUCKET}" ] && [ -n "${AWS_BUCKET}" ] ; then

@@ -520,7 +520,7 @@ test.describe('Form view: field validation', () => {
     await unsetup(context);
   });
 
-  async function createTable({ tableName }: { tableName: string }) {
+  async function createTable({ tableName, type }: { tableName: string; type?: 'limitToRange' | 'attachment' }) {
     api = new Api({
       baseURL: `http://localhost:8080/`,
       headers: {
@@ -534,34 +534,111 @@ test.describe('Form view: field validation', () => {
         title: 'Id',
         uidt: UITypes.ID,
       },
-      {
-        column_name: 'SingleLineText',
-        title: 'SingleLineText',
-        uidt: UITypes.SingleLineText,
-      },
-      {
-        column_name: 'LongText',
-        title: 'LongText',
-        uidt: UITypes.LongText,
-      },
-      {
-        column_name: 'Email',
-        title: 'Email',
-        uidt: UITypes.Email,
-      },
-      {
-        column_name: 'PhoneNumber',
-        title: 'PhoneNumber',
-        uidt: UITypes.PhoneNumber,
-        meta: {
-          validate: true,
-        },
-      },
-      {
-        column_name: 'Url',
-        title: 'Url',
-        uidt: UITypes.URL,
-      },
+      ...(type === 'limitToRange'
+        ? [
+            {
+              column_name: 'Date',
+              title: 'Date',
+              uidt: 'Date',
+              meta: {
+                date_format: 'YYYY-MM-DD',
+              },
+            },
+            {
+              column_name: 'Time',
+              title: 'Time',
+              uidt: 'Time',
+            },
+            {
+              column_name: 'Year',
+              title: 'Year',
+              uidt: 'Year',
+            },
+            {
+              column_name: 'SingleSelect',
+              title: 'SingleSelect',
+              uidt: 'SingleSelect',
+              dtxp: "'jan','feb', 'mar','apr', 'may','jun','jul','aug','sep','oct','nov','dec'",
+            },
+            {
+              column_name: 'MultiSelect',
+              title: 'MultiSelect',
+              uidt: 'MultiSelect',
+              dtxp: "'jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'",
+            },
+            {
+              column_name: 'Number',
+              title: 'Number',
+              uidt: 'Number',
+            },
+            {
+              column_name: 'Decimal',
+              title: 'Decimal',
+              uidt: 'Decimal',
+            },
+            {
+              column_name: 'Currency',
+              title: 'Currency',
+              uidt: 'Currency',
+
+              meta: {
+                currency_locale: 'en-GB',
+                currency_code: 'UGX',
+              },
+            },
+            {
+              column_name: 'Percent',
+              title: 'Percent',
+              uidt: 'Percent',
+            },
+            {
+              column_name: 'Duration',
+              title: 'Duration',
+              uidt: 'Duration',
+
+              meta: {
+                duration: 0,
+              },
+            },
+          ]
+        : type === 'attachment'
+        ? [
+            {
+              column_name: 'Attachment',
+              title: 'Attachment',
+              uidt: UITypes.Attachment,
+            },
+          ]
+        : [
+            {
+              column_name: 'SingleLineText',
+              title: 'SingleLineText',
+              uidt: UITypes.SingleLineText,
+            },
+            {
+              column_name: 'LongText',
+              title: 'LongText',
+              uidt: UITypes.LongText,
+            },
+            {
+              column_name: 'Email',
+              title: 'Email',
+              uidt: UITypes.Email,
+            },
+            {
+              column_name: 'PhoneNumber',
+              title: 'PhoneNumber',
+              uidt: UITypes.PhoneNumber,
+              meta: {
+                validate: true,
+              },
+            },
+            {
+              column_name: 'Url',
+              title: 'Url',
+              uidt: UITypes.URL,
+            },
+          ]),
     ];
 
     const base = await api.base.read(context.base.id);
@@ -642,51 +719,8 @@ test.describe('Form view: field validation', () => {
     await form.verifyCustomValidationValue({ hasError: true, index: 5 });
     await form.updateCustomValidation({ value: 'singleLineText', index: 5 });
 
-    const singleLineTextErrorConfig = await form.getFormFieldErrors({ title: 'SingleLineText' });
-
-    const validatorFillDetails = [
-      {
-        fillValue: 's',
-        errors: [
-          /The input must be at least 2 characters long/i,
-          /The input must start with 'lorem'/i,
-          /The input must end with 'ipsum'./i,
-          /The input must contain the string 'lorem'./i,
-        ],
-      },
-      {
-        fillValue: 'lorem',
-        errors: [/The input must end with 'ipsum'./i],
-      },
-      {
-        fillValue: 'lorem ipsum x',
-        errors: [/The input must end with 'ipsum'./i],
-      },
-      {
-        fillValue: 'lorem ipsum',
-        errors: [],
-      },
-      {
-        fillValue: 'lorem ipsum ipsum ipsum',
-        errors: [/The input must not exceed 15 characters/i],
-      },
-      {
-        fillValue: 'lorem ipsum',
-        errors: [],
-      },
-    ];
-
-    for (const formField of validatorFillDetails) {
-      await form.fillForm([{ field: 'SingleLineText', value: formField.fillValue }]);
-      await singleLineTextErrorConfig.verify({ hasError: !!formField.errors.length });
-      for (const error of formField.errors) {
-        await singleLineTextErrorConfig.verify({ hasErrorMsg: error });
-      }
-    }
-
     // 2. Long text
     await form.selectVisibleField({ title: 'LongText' });
-
     // Regex
     await form.addCustomValidation({ type: StringValidationType.Regex, value: '(ipsumf', index: 0 });
 
@@ -694,13 +728,6 @@ test.describe('Form view: field validation', () => {
     await form.verifyCustomValidationValue({ hasError: true, index: 0 });
     await form.updateCustomValidation({ value: 'ipsum', index: 0 });
     await form.verifyCustomValidationValue({ hasError: false, index: 0 });
-
-    const longTextErrorConfig = await form.getFormFieldErrors({ title: 'LongText' });
-
-    await form.fillForm([{ field: 'LongText', value: 'lorem', type: UITypes.LongText }]);
-    await longTextErrorConfig.verify({ hasErrorMsg: /The input does not match the required format/i });
-    await form.fillForm([{ field: 'LongText', value: 'ipsum', type: UITypes.LongText }]);
-    await longTextErrorConfig.verify({ hasError: false });
 
     // 3. Email
     await form.selectVisibleField({ title: 'Email' });
@@ -738,21 +765,454 @@ test.describe('Form view: field validation', () => {
 
     // 4. Phone Number
     await form.selectVisibleField({ title: 'PhoneNumber' });
-    const { click: _click, verify: verifyPhoneNumber } = await form.getFormFieldsEmailPhoneUrlValidatorConfig({
+    const { verify: verifyPhoneNumber } = await form.getFormFieldsEmailPhoneUrlValidatorConfig({
       type: UITypes.PhoneNumber,
     });
-
-    const phoneNumberErrorConfig = await form.getFormFieldErrors({ title: 'PhoneNumber' });
 
     // Validation infored by field schema settings
     await verifyPhoneNumber({ isEnabled: true, isDisabled: true });
     await form.addCustomValidation({ type: StringValidationType.MinLength, value: '10', index: 0 });
-    await form.fillForm([{ field: 'PhoneNumber', value: '12345' }]);
-    await phoneNumberErrorConfig.verify({ hasErrorMsg: /Invalid phone number/i });
-    await phoneNumberErrorConfig.verify({ hasErrorMsg: /The input must be at least 10 characters long/i });
-    await form.fillForm([{ field: 'PhoneNumber', value: '1234567890' }]);
-    await phoneNumberErrorConfig.verify({ hasError: false });
 
-    await dashboard.rootPage.waitForTimeout(5000);
+    // 4. URL
+    await form.selectVisibleField({ title: 'Url' });
+
+    // Validation infored by field schema settings
+    await form.addCustomValidation({ type: StringValidationType.StartsWith, value: 'https://', index: 0 });
+
+    const validatorFillDetails = {
+      SingleLineText: [
+        {
+          type: UITypes.SingleLineText,
+          fillValue: 's',
+          errors: [
+            /The input must be at least 2 characters long/i,
+            /The input must start with 'lorem'/i,
+            /The input must end with 'ipsum'./i,
+            /The input must contain the string 'lorem'./i,
+          ],
+        },
+        {
+          type: UITypes.SingleLineText,
+          fillValue: 'lorem',
+          errors: [/The input must end with 'ipsum'./i],
+        },
+        {
+          type: UITypes.SingleLineText,
+          fillValue: 'lorem ipsum x',
+          errors: [/The input must end with 'ipsum'./i],
+        },
+        {
+          type: UITypes.SingleLineText,
+          fillValue: 'lorem ipsum',
+          errors: [],
+        },
+        {
+          type: UITypes.SingleLineText,
+          fillValue: 'lorem ipsum ipsum ipsum',
+          errors: [/The input must not exceed 15 characters/i],
+        },
+        {
+          type: UITypes.SingleLineText,
+          fillValue: 'lorem ipsum',
+          errors: [],
+        },
+      ],
+      LongText: [
+        {
+          type: UITypes.LongText,
+          fillValue: 'lorem',
+          errors: [/The input does not match the required format/i],
+        },
+        {
+          type: UITypes.LongText,
+          fillValue: 'ipsum',
+          errors: [],
+        },
+      ],
+      Email: [
+        {
+          type: UITypes.Email,
+          fillValue: 'john@gmail.com',
+          errors: [/Invalid Work Email/i],
+        },
+        {
+          type: UITypes.Email,
+          fillValue: 'john@gmail.com.',
+          errors: [/Invalid Email/i, /Invalid Work Email/i],
+        },
+        {
+          type: UITypes.Email,
+          fillValue: 'john@nocodb.com',
+          errors: [],
+        },
+      ],
+      PhoneNumber: [
+        {
+          type: UITypes.PhoneNumber,
+          fillValue: '12345',
+          errors: [/Invalid phone number/i, /The input must be at least 10 characters long/i],
+        },
+        {
+          type: UITypes.PhoneNumber,
+          fillValue: '1234567890',
+          errors: [],
+        },
+      ],
+      Url: [
+        {
+          type: UITypes.URL,
+          fillValue: 'google.com',
+          errors: [/The input must start with 'https:\/\/'/i],
+        },
+        {
+          type: UITypes.URL,
+          fillValue: 'https://google.com',
+          errors: [],
+        },
+      ],
+    };
+
+    for (const formField in validatorFillDetails) {
+      const fielConfigError = await form.getFormFieldErrors({ title: formField });
+
+      for (const fieldValue of validatorFillDetails[formField]) {
+        await form.fillForm([{ field: formField, value: fieldValue.fillValue, type: fieldValue.type }]);
+        await fielConfigError.verify({ hasError: !!fieldValue.errors.length });
+        for (const error of fieldValue.errors) {
+          await fielConfigError.verify({ hasErrorMsg: error });
+        }
+      }
+    }
+
+    await form.submitForm();
+    await form.verifyStatePostSubmit({
+      message: 'Successfully submitted form data',
+    });
+
+    await dashboard.rootPage.reload();
+
+    const formLink = await dashboard.form.topbar.getSharedViewUrl();
+
+    await dashboard.rootPage.goto(formLink);
+    // fix me! kludge@hub; page wasn't getting loaded from previous step
+    await dashboard.rootPage.reload();
+
+    const sharedForm = new SharedFormPage(dashboard.rootPage);
+
+    for (const formField in validatorFillDetails) {
+      const fielConfigError = await sharedForm.getFormFieldErrors({ title: formField });
+
+      for (const fieldValue of validatorFillDetails[formField]) {
+        await sharedForm.cell.fillText({
+          columnHeader: formField,
+          text: fieldValue.fillValue,
+          type: fieldValue.type,
+        });
+        await fielConfigError.verify({ hasError: !!fieldValue.errors.length });
+        for (const error of fieldValue.errors) {
+          await fielConfigError.verify({ hasErrorMsg: error });
+        }
+      }
+    }
+
+    await sharedForm.submit();
+    await sharedForm.verifySuccessMessage();
+  });
+
+  test('Form builder field validation: limit to range', async () => {
+    await createTable({ tableName: 'FormFieldLimitToRange', type: 'limitToRange' });
+    await form.configureHeader({
+      title: 'Limit to range validation',
+      subtitle: 'Test form field validation',
+    });
+    await form.verifyHeader({
+      title: 'Limit to range validation',
+      subtitle: 'Test form field validation',
+    });
+
+    const limitToRageData = [
+      {
+        type: UITypes.Date,
+        title: 'Date',
+        min: '2023-07-17',
+        max: '2025-07-17',
+      },
+      {
+        type: UITypes.Time,
+        title: 'Time',
+        min: '01:20',
+        max: '12:30',
+      },
+      {
+        type: UITypes.Year,
+        title: 'Year',
+        min: '2000',
+        max: '2024',
+      },
+      {
+        type: UITypes.MultiSelect,
+        title: 'MultiSelect',
+        min: '1',
+        max: '3',
+      },
+      {
+        type: UITypes.Number,
+        title: 'Number',
+        min: '1',
+        max: '6',
+      },
+      {
+        type: UITypes.Decimal,
+        title: 'Decimal',
+        min: '1.5',
+        max: '10.58',
+      },
+      {
+        type: UITypes.Currency,
+        title: 'Currency',
+        min: '100',
+        max: '200',
+      },
+      {
+        type: UITypes.Percent,
+        title: 'Percent',
+        uidt: 'Percent',
+        min: '99',
+        max: '120',
+      },
+    ];
+
+    for (const limit of limitToRageData) {
+      await form.selectVisibleField({ title: limit.title });
+      const validateRange = await form.getFormFieldsValidateLimitToRange({ type: limit.type as UITypes });
+      await validateRange.click({ enable: true, min: limit.min, max: limit.max });
+    }
+
+    const limitToRageFillValue = {
+      Date: [
+        {
+          type: UITypes.Date,
+          fillValue: '2023-07-12',
+          errors: [/Select a date on or after 2023-07-17/i],
+        },
+        {
+          type: UITypes.Date,
+          fillValue: '2026-07-17',
+          errors: [/Select a date on or before 2025-07-17/i],
+        },
+        {
+          type: UITypes.Date,
+          fillValue: '2024-07-17',
+          errors: [],
+        },
+      ],
+      Time: [
+        {
+          type: UITypes.Time,
+          fillValue: '01:10',
+          errors: [/Input a time equal to or later than 01:20/i],
+        },
+        {
+          type: UITypes.Time,
+          fillValue: '14:30',
+          errors: [/Input a time equal to or earlier than 12:30/i],
+        },
+        {
+          type: UITypes.Time,
+          fillValue: '12:30',
+          errors: [],
+        },
+      ],
+      Year: [
+        {
+          type: UITypes.Year,
+          fillValue: '1999',
+          errors: [/Input a year equal to or later than 2000/i],
+        },
+        {
+          type: UITypes.Year,
+          fillValue: '2025',
+          errors: [/Input a year equal to or earlier than 2024/i],
+        },
+        {
+          type: UITypes.Year,
+          fillValue: '2000',
+          errors: [],
+        },
+      ],
+      Number: [
+        {
+          type: UITypes.Number,
+          fillValue: '0',
+          errors: [/Input a number equal to or greater than 1/i],
+        },
+        {
+          type: UITypes.Number,
+          fillValue: '7',
+          errors: [/Input a number equal to or less than 6/i],
+        },
+        {
+          type: UITypes.Number,
+          fillValue: '6',
+          errors: [],
+        },
+      ],
+      Decimal: [
+        {
+          type: UITypes.Decimal,
+          fillValue: '1.00',
+          errors: [/Input a number equal to or greater than 1.5/i],
+        },
+        {
+          type: UITypes.Decimal,
+          fillValue: '11.29',
+          errors: [/Input a number equal to or less than 10.58/i],
+        },
+        {
+          type: UITypes.Decimal,
+          fillValue: '10.2',
+          errors: [],
+        },
+      ],
+      Currency: [
+        {
+          type: UITypes.Currency,
+          fillValue: '88',
+          errors: [/Input a number equal to or greater than 100/i],
+        },
+        {
+          type: UITypes.Currency,
+          fillValue: '2012',
+          errors: [/Input a number equal to or less than 200/i],
+        },
+        {
+          type: UITypes.Currency,
+          fillValue: '150',
+          errors: [],
+        },
+      ],
+      Percent: [
+        {
+          type: UITypes.Percent,
+          fillValue: '88',
+          errors: [/Input a number equal to or greater than 99/i],
+        },
+        {
+          type: UITypes.Percent,
+          fillValue: '2012',
+          errors: [/Input a number equal to or less than 120/i],
+        },
+        {
+          type: UITypes.Percent,
+          fillValue: '110',
+          errors: [],
+        },
+      ],
+    };
+
+    for (const formField in limitToRageFillValue) {
+      const fielConfigError = await form.getFormFieldErrors({ title: formField });
+
+      for (const fieldValue of limitToRageFillValue[formField]) {
+        await form.fillForm([{ field: formField, value: fieldValue.fillValue, type: fieldValue.type }]);
+        await fielConfigError.verify({ hasError: !!fieldValue.errors.length });
+        for (const error of fieldValue.errors) {
+          await fielConfigError.verify({ hasErrorMsg: error });
+        }
+      }
+    }
+
+    await form.submitForm();
+    await form.verifyStatePostSubmit({
+      message: 'Successfully submitted form data',
+    });
+
+    await dashboard.rootPage.reload();
+
+    const formLink = await dashboard.form.topbar.getSharedViewUrl();
+
+    await dashboard.rootPage.goto(formLink);
+    // fix me! kludge@hub; page wasn't getting loaded from previous step
+    await dashboard.rootPage.reload();
+
+    const sharedForm = new SharedFormPage(dashboard.rootPage);
+
+    for (const formField in limitToRageFillValue) {
+      const fielConfigError = await sharedForm.getFormFieldErrors({ title: formField });
+
+      for (const fieldValue of limitToRageFillValue[formField]) {
+        await sharedForm.cell.fillText({
+          columnHeader: formField,
+          text: fieldValue.fillValue,
+          type: fieldValue.type,
+        });
+        await fielConfigError.verify({ hasError: !!fieldValue.errors.length });
+        for (const error of fieldValue.errors) {
+          await fielConfigError.verify({ hasErrorMsg: error });
+        }
+      }
+    }
+
+    await sharedForm.submit();
+    await sharedForm.verifySuccessMessage();
+  });
+
+  test('Form builder field validation: attachment', async () => {
+    await createTable({ tableName: 'FormFieldAttachment', type: 'attachment' });
+    await form.configureHeader({
+      title: 'Attachment validation',
+      subtitle: 'Test form field validation',
+    });
+    await form.verifyHeader({
+      title: 'Attachment validation',
+      subtitle: 'Test form field validation',
+    });
+
+    await form.selectVisibleField({ title: 'Attachment' });
+
+    const validateAttType = await form.getFormFieldsValidateAttFileType();
+    await validateAttType.click({ enable: true, fillValue: '.jpg' });
+    await validateAttType.verify({ hasError: true });
+    await validateAttType.click({ enable: true, fillValue: 'image/png' });
+    await validateAttType.verify({ hasError: false });
+
+    const validateAttCount = await form.getFormFieldsValidateAttFileCount();
+    await validateAttCount.click({ enable: true, fillValue: '1a' });
+    await validateAttCount.verify({ hasError: true });
+    await validateAttCount.click({ enable: true, fillValue: '1' });
+    await validateAttCount.verify({ hasError: false });
+
+    const validateAttSize = await form.getFormFieldsValidateAttFileSize();
+    await validateAttSize.click({ enable: true, fillValue: '2000', unit: 'KB' });
+
+    const formLink = await dashboard.form.topbar.getSharedViewUrl();
+
+    await dashboard.rootPage.goto(formLink);
+    // fix me! kludge@hub; page wasn't getting loaded from previous step
+    await dashboard.rootPage.reload();
+
+    const sharedForm = new SharedFormPage(dashboard.rootPage);
+    await sharedForm.cell.attachment.addFile({
+      columnHeader: 'Attachment',
+      filePath: [`${process.cwd()}/fixtures/sampleFiles/sampleImage.jpeg`],
+    });
+
+    const attError = await sharedForm.getFormFieldErrors({ title: 'Attachment' });
+    await attError.verify({ hasErrorMsg: /Only following file types allowed to upload 'image\/png'/ });
+    await attError.verify({ hasErrorMsg: /The file size must not exceed 2000 KB/ });
+
+    await sharedForm.cell.attachment.removeFile({
+      columnHeader: 'Attachment',
+      attIndex: 0,
+    });
+
+    await sharedForm.cell.attachment.addFile({
+      columnHeader: 'Attachment',
+      filePath: [`${process.cwd()}/fixtures/sampleFiles/Image/2.png`],
+    });
+    await attError.verify({ hasError: false });
+
+    await sharedForm.submit();
+    await sharedForm.verifySuccessMessage();
   });
 });

@@ -1,4 +1,5 @@
 import { expect, Locator } from '@playwright/test';
+import { UITypes } from 'nocodb-sdk';
 import { GridPage } from '../../Grid';
 import BasePage from '../../../Base';
 import { AttachmentCellPageObject } from './AttachmentCell';
@@ -68,7 +69,7 @@ export class CellPageObject extends BasePage {
     return await this.get({ index, columnHeader }).dblclick();
   }
 
-  async fillText({ index, columnHeader, text }: CellProps & { text: string }) {
+  async fillText({ index, columnHeader, text, type }: CellProps & { text: string; type?: UITypes }) {
     await this.dblclick({
       index,
       columnHeader,
@@ -84,6 +85,10 @@ export class CellPageObject extends BasePage {
 
     if (await isInputBox()) {
       await this.get({ index, columnHeader }).locator('input').fill(text);
+
+      if (type && [UITypes.Date, UITypes.Time, UITypes.Year, UITypes.DateTime].includes(type)) {
+        await this.rootPage.keyboard.press('Enter');
+      }
     } else {
       await this.get({ index, columnHeader }).locator('textarea').fill(text);
     }

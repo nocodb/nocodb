@@ -75,4 +75,28 @@ export class SharedFormPage extends BasePage {
       .locator('.nc-list-item-link-unlink-btn')
       .click();
   }
+
+  async getFormFieldErrors({ title }: { title: string }) {
+    const field = this.get().getByTestId(`nc-shared-form-item-${title.replace(' ', '')}`);
+    await field.scrollIntoViewIfNeeded();
+    const fieldErrorEl = field.locator('.ant-form-item-explain');
+    return {
+      locator: fieldErrorEl,
+      verify: async ({ hasError, hasErrorMsg }: { hasError?: boolean; hasErrorMsg?: string | RegExp }) => {
+        if (hasError !== undefined) {
+          if (hasError) {
+            await expect(fieldErrorEl).toBeVisible();
+          } else {
+            await expect(fieldErrorEl).not.toBeVisible();
+          }
+        }
+
+        if (hasErrorMsg !== undefined) {
+          await expect(fieldErrorEl).toBeVisible();
+
+          expect(await fieldErrorEl.locator('> div').filter({ hasText: hasErrorMsg }).count()).toBeGreaterThan(0);
+        }
+      },
+    };
+  }
 }

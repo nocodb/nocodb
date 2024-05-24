@@ -1,5 +1,5 @@
 import { expect, Locator } from '@playwright/test';
-import { StringValidationType, UITypes, validateDateFormat } from 'nocodb-sdk';
+import { StringValidationType, UITypes } from 'nocodb-sdk';
 import { DashboardPage } from '..';
 import BasePage from '../../Base';
 import { ToolbarPage } from '../common/Toolbar';
@@ -206,6 +206,12 @@ export class FormPage extends BasePage {
           await this.get()
             .locator(`[data-testid="nc-form-input-${param[i].field.replace(' ', '')}"] >> input`)
             .fill(param[i].value);
+
+          if ([UITypes.Date, UITypes.Time, UITypes.Year, UITypes.DateTime].includes(param[i].type)) {
+            await this.rootPage.keyboard.press('Enter');
+          }
+
+          await this.getVisibleField({ title: param[i].field }).click();
         }
       }
 
@@ -674,6 +680,292 @@ export class FormPage extends BasePage {
           await expect(fieldErrorEl).toBeVisible();
 
           expect(await fieldErrorEl.locator('> div').filter({ hasText: hasErrorMsg }).count()).toBeGreaterThan(0);
+        }
+      },
+    };
+  }
+
+  async addLimitToRangeMinOrMax({ type, isMinValue, value }: { type: UITypes; isMinValue: boolean; value: string }) {
+    const fieldLocator = this.get().getByTestId(`nc-limit-to-range-${isMinValue ? 'min' : 'max'}-${type}`);
+
+    switch (type) {
+      default: {
+        await fieldLocator.locator('input:visible').waitFor();
+
+        await this.waitForResponse({
+          uiAction: async () => {
+            await fieldLocator.locator(`input`).click();
+            await fieldLocator.locator(`input`).fill(value);
+            await this.rootPage.keyboard.press('Enter');
+          },
+          requestUrlPathToMatch: '/api/v1/db/meta/form-columns',
+          httpMethodsToMatch: ['PATCH'],
+        });
+      }
+    }
+  }
+
+  async getFormFieldsValidateLimitToRange({ type }: { type: UITypes }) {
+    const validateBtn = this.get().getByTestId(`nc-limit-to-range-${type}`);
+
+    return {
+      locator: validateBtn,
+      click: async ({ enable, min, max }: { enable: boolean; min?: string; max?: string }) => {
+        await validateBtn.waitFor({ state: 'visible' });
+
+        const isEnabled = await validateBtn.isChecked();
+
+        if (enable && !isEnabled) {
+          await validateBtn.click();
+          await this.get().locator('.nc-limit-to-range-wrapper').first().waitFor({ state: 'visible' });
+
+          if (min !== undefined) {
+            await this.addLimitToRangeMinOrMax({ type, isMinValue: true, value: min });
+          }
+
+          if (max !== undefined) {
+            await this.addLimitToRangeMinOrMax({ type, isMinValue: false, value: max });
+          }
+        } else if (!enable && isEnabled) {
+          await this.waitForResponse({
+            uiAction: async () => {
+              await validateBtn.click();
+            },
+            requestUrlPathToMatch: '/api/v1/db/meta/form-columns',
+            httpMethodsToMatch: ['PATCH'],
+          });
+        }
+      },
+      verify: async ({
+        isEnabled,
+        isDisabled,
+        isVisible,
+      }: {
+        isEnabled?: boolean;
+        isDisabled?: boolean;
+        isVisible?: boolean;
+      }) => {
+        if (isEnabled !== undefined) {
+          await validateBtn.waitFor({ state: 'visible' });
+
+          if (isEnabled) {
+            await expect(validateBtn).toBeChecked();
+          } else {
+            await expect(validateBtn).not.toBeChecked();
+          }
+        }
+
+        if (isDisabled !== undefined) {
+          await validateBtn.waitFor({ state: 'visible' });
+
+          if (isDisabled) {
+            await expect(validateBtn).toBeDisabled();
+          } else {
+            await expect(validateBtn).not.toBeDisabled();
+          }
+        }
+
+        if (isVisible !== undefined) {
+          if (isVisible) {
+            await expect(validateWorkEmailBtn).toBeVisible();
+          } else {
+            await expect(validateWorkEmailBtn).not.toBeVisible();
+          }
+        }
+      },
+    };
+  }
+
+  async getFormFieldsValidateAttFileType() {
+    const validateBtn = this.get().getByTestId('nc-att-limit-file-type');
+    const validationWrapper = this.get().locator('.nc-att-limit-file-type-wrapper');
+    await validateBtn.scrollIntoViewIfNeeded();
+
+    return {
+      locator: validateBtn,
+      click: async ({ enable, fillValue }: { enable: boolean; fillValue?: string }) => {
+        await validateBtn.waitFor({ state: 'visible' });
+
+        const isEnabled = await validateBtn.isChecked();
+
+        if (enable && !isEnabled) {
+          await validateBtn.click();
+        } else if (!enable && isEnabled) {
+          await this.waitForResponse({
+            uiAction: async () => {
+              await validateBtn.click();
+            },
+            requestUrlPathToMatch: '/api/v1/db/meta/form-columns',
+            httpMethodsToMatch: ['PATCH'],
+          });
+        }
+        if (enable && fillValue !== undefined) {
+          await validationWrapper.locator('input').first().waitFor({ state: 'visible' });
+
+          await this.waitForResponse({
+            uiAction: async () => {
+              await validationWrapper.locator('input').fill(fillValue);
+            },
+            requestUrlPathToMatch: '/api/v1/db/meta/form-columns',
+            httpMethodsToMatch: ['PATCH'],
+          });
+        }
+      },
+      verify: async ({ isEnabled, hasError }: { isEnabled?: boolean; hasError?: boolean }) => {
+        if (isEnabled !== undefined) {
+          await validateBtn.waitFor({ state: 'visible' });
+
+          if (isEnabled) {
+            await expect(validateBtn).toBeChecked();
+          } else {
+            await expect(validateBtn).not.toBeChecked();
+          }
+        }
+
+        if (hasError !== undefined) {
+          await validateBtn.waitFor({ state: 'visible' });
+          await validationWrapper.waitFor({ state: 'visible' });
+
+          if (hasError) {
+            await expect(validationWrapper.locator('.validation-input-error')).toBeVisible();
+          } else {
+            await expect(validationWrapper.locator('.validation-input-error')).not.toBeVisible();
+          }
+        }
+      },
+    };
+  }
+  async getFormFieldsValidateAttFileCount() {
+    const validateBtn = this.get().getByTestId('nc-att-limit-file-count');
+    const validationWrapper = this.get().locator('.nc-att-limit-file-count-wrapper');
+    await validateBtn.scrollIntoViewIfNeeded();
+
+    return {
+      locator: validateBtn,
+      click: async ({ enable, fillValue }: { enable: boolean; fillValue?: string }) => {
+        await validateBtn.waitFor({ state: 'visible' });
+
+        const isEnabled = await validateBtn.isChecked();
+
+        if (enable && !isEnabled) {
+          await validateBtn.click();
+        } else if (!enable && isEnabled) {
+          await this.waitForResponse({
+            uiAction: async () => {
+              await validateBtn.click();
+            },
+            requestUrlPathToMatch: '/api/v1/db/meta/form-columns',
+            httpMethodsToMatch: ['PATCH'],
+          });
+        }
+        if (enable && fillValue !== undefined) {
+          await validationWrapper.locator('input').first().waitFor({ state: 'visible' });
+
+          await this.waitForResponse({
+            uiAction: async () => {
+              await validationWrapper.locator('input').fill(fillValue);
+            },
+            requestUrlPathToMatch: '/api/v1/db/meta/form-columns',
+            httpMethodsToMatch: ['PATCH'],
+          });
+        }
+      },
+      verify: async ({ isEnabled, hasError }: { isEnabled?: boolean; hasError?: boolean }) => {
+        if (isEnabled !== undefined) {
+          await validateBtn.waitFor({ state: 'visible' });
+
+          if (isEnabled) {
+            await expect(validateBtn).toBeChecked();
+          } else {
+            await expect(validateBtn).not.toBeChecked();
+          }
+        }
+
+        if (hasError !== undefined) {
+          await validateBtn.waitFor({ state: 'visible' });
+          await validationWrapper.waitFor({ state: 'visible' });
+
+          if (hasError) {
+            await expect(validationWrapper.locator('.validation-input-error')).toBeVisible();
+          } else {
+            await expect(validationWrapper.locator('.validation-input-error')).not.toBeVisible();
+          }
+        }
+      },
+    };
+  }
+  async getFormFieldsValidateAttFileSize() {
+    const validateBtn = this.get().getByTestId('nc-att-limit-file-size');
+    const validationWrapper = this.get().locator('.nc-att-limit-file-size-wrapper');
+    await validateBtn.scrollIntoViewIfNeeded();
+
+    return {
+      locator: validateBtn,
+      click: async ({
+        enable,
+        fillValue,
+        unit = 'KB',
+      }: {
+        enable: boolean;
+        fillValue?: string;
+        unit?: 'KB' | 'MB';
+      }) => {
+        await validateBtn.waitFor({ state: 'visible' });
+
+        const isEnabled = await validateBtn.isChecked();
+
+        if (enable && !isEnabled) {
+          await validateBtn.click();
+        } else if (!enable && isEnabled) {
+          await this.waitForResponse({
+            uiAction: async () => {
+              await validateBtn.click();
+            },
+            requestUrlPathToMatch: '/api/v1/db/meta/form-columns',
+            httpMethodsToMatch: ['PATCH'],
+          });
+        }
+
+        if (enable && fillValue !== undefined) {
+          await validationWrapper.locator('.nc-validation-input-wrapper input').first().waitFor({ state: 'visible' });
+
+          await validationWrapper.locator('.ant-select-selector').click();
+          const dropdown = this.rootPage.locator('.nc-att-limit-file-size-unit-selector-dropdown');
+          await dropdown.waitFor({ state: 'visible' });
+          const option = dropdown.locator('.ant-select-item-option').getByText(unit);
+          await option.scrollIntoViewIfNeeded();
+          await option.waitFor({ state: 'visible' });
+          await option.click();
+
+          await this.waitForResponse({
+            uiAction: async () => {
+              await validationWrapper.locator('.nc-validation-input-wrapper input').fill(fillValue);
+            },
+            requestUrlPathToMatch: '/api/v1/db/meta/form-columns',
+            httpMethodsToMatch: ['PATCH'],
+          });
+        }
+      },
+      verify: async ({ isEnabled, hasError }: { isEnabled?: boolean; hasError?: boolean }) => {
+        if (isEnabled !== undefined) {
+          await validateBtn.waitFor({ state: 'visible' });
+
+          if (isEnabled) {
+            await expect(validateBtn).toBeChecked();
+          } else {
+            await expect(validateBtn).not.toBeChecked();
+          }
+        }
+
+        if (hasError !== undefined) {
+          await validateBtn.waitFor({ state: 'visible' });
+          await validationWrapper.waitFor({ state: 'visible' });
+
+          if (hasError) {
+            await expect(validationWrapper.locator('.validation-input-error')).toBeVisible();
+          } else {
+            await expect(validationWrapper.locator('.validation-input-error')).not.toBeVisible();
+          }
         }
       },
     };

@@ -502,8 +502,8 @@ test.describe('Form view', () => {
   });
 });
 
-test.describe.only('Form view: field validation', () => {
-  // if (enableQuickRun()) test.skip();
+test.describe('Form view: field validation', () => {
+  if (enableQuickRun()) test.skip();
 
   let dashboard: DashboardPage;
   let form: FormPage;
@@ -593,6 +593,24 @@ test.describe.only('Form view: field validation', () => {
 
     await form.addCustomValidation({ type: StringValidationType.MinLength, value: '2', index: 0 });
     await form.addCustomValidation({ type: StringValidationType.MaxLength, value: '4', index: 1 });
+
+    // Verify already used selector is disable
+    await form.verifyCustomValidationSelector({ type: StringValidationType.MinLength, index: 1 });
+
+    // verify count
+    await form.verifyCustomValidationCount({ count: 2 });
+    // remove validation item
+    await form.removeCustomValidationItem({ index: 1 });
+
+    await form.verifyCustomValidationCount({ count: 1 });
+
+    await form.addCustomValidation({ type: StringValidationType.MaxLength, value: '4', index: 1 });
+    await form.updateCustomValidation({ type: StringValidationType.MaxLength, value: '1', index: 1 });
+
+    // verify validation error
+    await form.verifyCustomValidationValue({ hasError: true, index: 1 });
+
+    await form.updateCustomValidation({ type: StringValidationType.MaxLength, value: '5', index: 1 });
 
     await dashboard.rootPage.waitForTimeout(5000);
   });

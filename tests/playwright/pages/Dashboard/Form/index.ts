@@ -1,5 +1,5 @@
 import { expect, Locator } from '@playwright/test';
-import { StringValidationType } from 'nocodb-sdk';
+import { StringValidationType, validateDateFormat } from 'nocodb-sdk';
 import { DashboardPage } from '..';
 import BasePage from '../../Base';
 import { ToolbarPage } from '../common/Toolbar';
@@ -349,11 +349,11 @@ export class FormPage extends BasePage {
       },
       closeSelector: async () =>
         await currValItem.locator('.nc-custom-validation-type-selector .ant-select-selector').click(),
-      verify: async (isDisabled = false) => {
+      verify: async ({ isDisabled = false }: { isDisabled: boolean }) => {
         if (isDisabled) {
-          await expect(option).toHaveClass('.ant-select-item-option-disabled');
+          await expect(option).toHaveClass(/ant-select-item-option-disabled/);
         } else {
-          await expect(option).not.toHaveClass('.ant-select-item-option-disabled');
+          await expect(option).not.toHaveClass(/ant-select-item-option-disabled/);
         }
       },
     };
@@ -388,11 +388,10 @@ export class FormPage extends BasePage {
 
     // add value
     const valValueInput = currValItem.locator('.custom-validation-input >> input');
-    console.log('val input', await valValueInput.innerHTML());
     await valValueInput.click();
     await valValueInput.fill(value);
 
-    if (errorMsg) {
+    if (errorMsg !== undefined) {
       const valErrorMsgInput = currValItem.locator('.nc-custom-validation-error-message-input');
       await valErrorMsgInput.click();
       await valErrorMsgInput.fill(errorMsg);
@@ -401,5 +400,136 @@ export class FormPage extends BasePage {
     //close dropdown
     await this.customValidationBtn.click();
     await dropdown.waitFor({ state: 'hidden' });
+  }
+
+  async updateCustomValidation({
+    type,
+    value,
+    errorMsg,
+    index,
+  }: {
+    type?: StringValidationType;
+    value?: string;
+    errorMsg?: string;
+    index: number;
+  }) {
+    await this.customValidationBtn.waitFor({ state: 'visible' });
+    await this.customValidationBtn.click();
+
+    const dropdown = this.customValidationDropdown;
+    await dropdown.waitFor({ state: 'visible' });
+
+    const currValItem = this.customValidationDropdown.getByTestId(`nc-custom-validation-item-${index}`);
+
+    await currValItem.waitFor({ state: 'visible' });
+
+    if (type) {
+      // Select type
+      const { select } = await this.getCustomValidationTypeOption({ type, currValItem, index });
+      await select();
+    }
+
+    // update value
+    if (value !== undefined) {
+      const valValueInput = currValItem.locator('.custom-validation-input >> input');
+      await valValueInput.click();
+      await valValueInput.fill(value);
+    }
+
+    if (errorMsg !== undefined) {
+      const valErrorMsgInput = currValItem.locator('.nc-custom-validation-error-message-input');
+      await valErrorMsgInput.click();
+      await valErrorMsgInput.fill(errorMsg);
+    }
+
+    //close dropdown
+    await this.customValidationBtn.click();
+    await dropdown.waitFor({ state: 'hidden' });
+  }
+
+  async verifyCustomValidationSelector({
+    type,
+    value: _value,
+    errorMsg: _errorMsg,
+    index,
+  }: {
+    type: StringValidationType;
+    value?: string;
+    errorMsg?: string;
+    index: number;
+  }) {
+    await this.customValidationBtn.waitFor({ state: 'visible' });
+    await this.customValidationBtn.click();
+
+    const dropdown = this.customValidationDropdown;
+    await dropdown.waitFor({ state: 'visible' });
+
+    const currValItem = this.customValidationDropdown.getByTestId(`nc-custom-validation-item-${index}`);
+    await currValItem.waitFor({ state: 'visible' });
+
+    const { verify } = await this.getCustomValidationTypeOption({
+      type,
+      currValItem,
+      index,
+    });
+    await verify({ isDisabled: true });
+
+    //close dropdown
+    await this.customValidationBtn.click();
+    await dropdown.waitFor({ state: 'hidden' });
+  }
+  async verifyCustomValidationValue({ value, hasError, index }: { value?: string; hasError?: boolean; index: number }) {
+    await this.customValidationBtn.waitFor({ state: 'visible' });
+    await this.customValidationBtn.click();
+
+    const dropdown = this.customValidationDropdown;
+    await dropdown.waitFor({ state: 'visible' });
+
+    const currValItem = this.customValidationDropdown.getByTestId(`nc-custom-validation-item-${index}`);
+    await currValItem.waitFor({ state: 'visible' });
+
+    //  value
+    if (value !== undefined) {
+      const valValueInput = currValItem.locator('.custom-validation-input >> input');
+      await expect(valValueInput).toHaveValue(value);
+    }
+
+    if (hasError) {
+      const valValueErr = currValItem.locator(
+        '.nc-custom-validation-input-wrapper .nc-custom-validation-item-error-icon'
+      );
+
+      await expect(valValueErr).toBeVisible();
+    }
+
+    //close dropdown
+    await this.customValidationBtn.click();
+    await dropdown.waitFor({ state: 'hidden' });
+  }
+
+  async removeCustomValidationItem({ index }: { index: number }) {
+    await this.customValidationBtn.waitFor({ state: 'visible' });
+    await this.customValidationBtn.click();
+
+    const dropdown = this.customValidationDropdown;
+    await dropdown.waitFor({ state: 'visible' });
+
+    const currValItem = this.customValidationDropdown.getByTestId(`nc-custom-validation-item-${index}`);
+    await currValItem.waitFor({ state: 'visible' });
+
+    await currValItem.locator('.nc-custom-validation-delete-item').click();
+
+    await currValItem.waitFor({ state: 'hidden' });
+
+    //close dropdown
+    await this.customValidationBtn.click();
+    await dropdown.waitFor({ state: 'hidden' });
+  }
+
+  async verifyCustomValidationCount({ count }: { count: number }) {
+    await this.customValidationBtn.waitFor({ state: 'visible' });
+    const countStr = await this.customValidationBtn.locator('.nc-custom-validation-count').textContent();
+
+    expect(parseInt(countStr) || 0).toEqual(count);
   }
 }

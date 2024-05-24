@@ -2,8 +2,11 @@ import { expect, Locator, Page } from '@playwright/test';
 import { UITypes } from 'nocodb-sdk';
 import BasePage from '../../Base';
 import { getTextExcludeIconText } from '../../../tests/utils/general';
+import { CellPageObject } from '../common/Cell';
 
 export class SurveyFormPage extends BasePage {
+  readonly cell: CellPageObject;
+
   readonly formHeading: Locator;
   readonly formSubHeading: Locator;
   readonly fillFormButton: Locator;
@@ -17,6 +20,7 @@ export class SurveyFormPage extends BasePage {
 
   constructor(rootPage: Page) {
     super(rootPage);
+    this.cell = new CellPageObject(this);
     this.formHeading = this.get().locator('[data-testid="nc-survey-form__heading"]');
     this.formSubHeading = this.get().locator('[data-testid="nc-survey-form__sub-heading"]');
     this.fillFormButton = this.get().locator('[data-testid="nc-survey-form__fill-form-btn"]');

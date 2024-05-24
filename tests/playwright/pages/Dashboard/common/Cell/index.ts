@@ -15,6 +15,7 @@ import { YearCellPageObject } from './YearCell';
 import { TimeCellPageObject } from './TimeCell';
 import { GroupPageObject } from '../../Grid/Group';
 import { UserOptionCellPageObject } from './UserOptionCell';
+import { SurveyFormPage } from '../../SurveyForm';
 
 export interface CellProps {
   indexMap?: Array<number>;
@@ -23,7 +24,7 @@ export interface CellProps {
 }
 
 export class CellPageObject extends BasePage {
-  readonly parent: GridPage | SharedFormPage | GroupPageObject;
+  readonly parent: GridPage | SharedFormPage | SurveyFormPage | GroupPageObject;
   readonly selectOption: SelectOptionCellPageObject;
   readonly attachment: AttachmentCellPageObject;
   readonly checkbox: CheckboxCellPageObject;
@@ -35,7 +36,7 @@ export class CellPageObject extends BasePage {
   readonly dateTime: DateTimeCellPageObject;
   readonly userOption: UserOptionCellPageObject;
 
-  constructor(parent: GridPage | SharedFormPage | GroupPageObject) {
+  constructor(parent: GridPage | SharedFormPage | SurveyFormPage | GroupPageObject) {
     super(parent.rootPage);
     this.parent = parent;
     this.selectOption = new SelectOptionCellPageObject(this);
@@ -53,6 +54,11 @@ export class CellPageObject extends BasePage {
   get({ indexMap, index, columnHeader }: CellProps): Locator {
     if (this.parent instanceof SharedFormPage) {
       return this.parent.get().locator(`[data-testid="nc-form-input-cell-${columnHeader}"]`).first();
+    } else if (this.parent instanceof SurveyFormPage) {
+      return this.parent
+        .get()
+        .locator(`[data-testid="nc-survey-form__input-${columnHeader.replace(' ', '')}"]`)
+        .first();
     } else if (this.parent instanceof GridPage) {
       return this.parent.get().locator(`td[data-testid="cell-${columnHeader}-${index}"]`).first();
     } else {

@@ -1370,8 +1370,6 @@ test.describe('Form view: field validation', () => {
     await sharedForm.submit();
     await sharedForm.verifySuccessMessage();
 
-    return;
-
     await dashboard.rootPage.goto(url);
     // kludge- reload
     await dashboard.rootPage.reload();
@@ -1395,7 +1393,7 @@ test.describe('Form view: field validation', () => {
 
     await surveyForm.clickFillForm();
 
-    await dashboard.grid.cell.attachment.addFile({
+    await surveyForm.cell.attachment.addFile({
       columnHeader: 'Attachment',
       filePath: [`${process.cwd()}/fixtures/sampleFiles/sampleImage.jpeg`],
     });
@@ -1404,12 +1402,12 @@ test.describe('Form view: field validation', () => {
     await surveryAttError.verify({ hasErrorMsg: /Only following file types allowed to upload 'image\/png'/ });
     await surveryAttError.verify({ hasErrorMsg: /The file size must not exceed 2000 KB/ });
 
-    await dashboard.grid.cell.attachment.removeFile({
+    await surveyForm.cell.attachment.removeFile({
       columnHeader: 'Attachment',
       attIndex: 0,
     });
 
-    await dashboard.grid.cell.attachment.addFile({
+    await surveyForm.cell.attachment.addFile({
       columnHeader: 'Attachment',
       filePath: [`${process.cwd()}/fixtures/sampleFiles/Image/2.png`],
     });
@@ -1421,7 +1419,5 @@ test.describe('Form view: field validation', () => {
     await surveyForm.validateSuccessMessage({
       message: 'Thank you for submitting the form',
     });
-
-    await dashboard.rootPage.waitForTimeout(10000);
   });
 });

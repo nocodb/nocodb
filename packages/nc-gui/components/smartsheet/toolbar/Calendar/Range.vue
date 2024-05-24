@@ -44,6 +44,26 @@ const calendarRange = computed<CalendarRangeType[]>(() => {
 // We keep the calendar range here and update it when the user selects a new range
 const _calendar_ranges = ref<CalendarRangeType[]>(calendarRange.value)
 
+const isSetup = computed(() => {
+  return _calendar_ranges.value.length > 0 && _calendar_ranges.value[0].fk_from_column_id
+})
+
+watch(
+  calendarRangeDropdown,
+  (newVal) => {
+    if (!newVal && !isSetup.value) {
+      calendarRangeDropdown.value = true
+      if (_calendar_ranges.value.length === 0) {
+        _calendar_ranges.value.push({
+          fk_from_column_id: undefined,
+          fk_to_column_id: null,
+        })
+      }
+    }
+  },
+  { immediate: true },
+)
+
 const saveCalendarRanges = async () => {
   if (activeView.value) {
     try {
@@ -56,8 +76,12 @@ const saveCalendarRanges = async () => {
       await $api.dbView.calendarUpdate(activeView.value?.id as string, {
         calendar_range: calRanges as CalendarRangeType[],
       })
+
+      if (activeView.value.view) activeView.value.view.calendar_range = calRanges
+
       await loadCalendarMeta()
       await Promise.all([loadCalendarData(), loadSidebarData(), fetchActiveDates()])
+      calendarRangeDropdown.value = false
     } catch (e) {
       console.log(e)
       message.error('There was an error while updating view!')
@@ -78,13 +102,6 @@ const dateFieldOptions = computed<SelectProps['options']>(() => {
       })) ?? []
   )
 })
-const addCalendarRange = async () => {
-  _calendar_ranges.value.push({
-    fk_from_column_id: dateFieldOptions.value![0].value as string,
-    fk_to_column_id: null,
-  })
-  await saveCalendarRanges()
-}
 /*
 const removeRange = async (id: number) => {
   _calendar_ranges.value = _calendar_ranges.value.filter((_, i) => i !== id)
@@ -235,22 +252,14 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
           </NcButton>
             -->
         </div>
+        <div v-if="!isSetup" class="flex items-center gap-2 !mt-2">
+          <GeneralIcon icon="warning" class="text-sm mt-0.5 text-orange-500" />
+          <span class="text-sm text-gray-500"> Date field is required! </span>
+        </div>
 
         <!--
         <div class="text-[13px] text-gray-500 py-2">Records in this view will be based on the specified date field.</div>
 -->
-
-        <NcButton
-          v-if="_calendar_ranges.length === 0"
-          class="mt-2"
-          data-testid="nc-calendar-range-add-btn"
-          size="small"
-          type="secondary"
-          @click="addCalendarRange"
-        >
-          <component :is="iconMap.plus" />
-          Add date field
-        </NcButton>
       </div>
     </template>
   </NcDropdown>

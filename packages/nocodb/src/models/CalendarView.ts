@@ -89,15 +89,9 @@ export default class CalendarView implements CalendarType {
     const updateObj = extractProps(body, ['fk_cover_image_col_id', 'meta']);
 
     if (body.calendar_range) {
-      await ncMeta.metaDelete(
-        null,
-        null,
-        MetaTable.CALENDAR_VIEW_RANGE,
-        {},
-        {
-          fk_view_id: calendarId,
-        },
-      );
+      await ncMeta.metaDelete(null, null, MetaTable.CALENDAR_VIEW_RANGE, {
+        fk_view_id: calendarId,
+      });
       // if calendar range is updated, delete cache
       await NocoCache.del(`${CacheScope.CALENDAR_VIEW}:${calendarId}`);
       await CalendarRange.bulkInsert(

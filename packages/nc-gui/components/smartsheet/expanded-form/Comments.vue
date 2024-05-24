@@ -141,7 +141,7 @@ watch(commentsWrapperEl, () => {
     nextTick(() => {
       scrollComments()
     })
-  }, 200)
+  }, 100)
 })
 </script>
 
@@ -161,7 +161,7 @@ watch(commentsWrapperEl, () => {
             'pb-1': tab !== 'comments' && !appInfo.ee,
           }"
         >
-          <div v-if="isExpandedFormLoading || isCommentsLoading" class="flex flex-col h-full">
+          <div v-if="isExpandedFormLoading" class="flex flex-col h-full">
             <GeneralLoader class="!mt-16" size="xlarge" />
           </div>
           <div v-else class="flex flex-col h-full">

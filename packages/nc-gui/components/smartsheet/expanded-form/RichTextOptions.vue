@@ -87,7 +87,7 @@ const newMentionNode = () => {
       <NcButton
         :class="{ 'is-active': editor?.isActive('bold') }"
         :tabindex="tabIndex"
-        class="!h-7 !w-7"
+        class="!h-7 !w-7 !hover:bg-gray-200"
         size="xsmall"
         type="text"
         @click="editor?.chain().focus().toggleBold().run()"
@@ -108,7 +108,7 @@ const newMentionNode = () => {
       <NcButton
         :class="{ 'is-active': editor?.isActive('italic') }"
         :tabindex="tabIndex"
-        class="!h-7 !w-7"
+        class="!h-7 !w-7 !hover:bg-gray-200"
         size="xsmall"
         type="text"
         @click=";(editor?.chain().focus() as any).toggleItalic().run()"
@@ -129,7 +129,7 @@ const newMentionNode = () => {
       <NcButton
         :class="{ 'is-active': editor?.isActive('underline') }"
         :tabindex="tabIndex"
-        class="!h-7 !w-7"
+        class="!h-7 !w-7 !hover:bg-gray-200"
         size="xsmall"
         type="text"
         @click="editor?.chain().focus().toggleUnderline().run()"
@@ -149,7 +149,7 @@ const newMentionNode = () => {
       <NcButton
         :class="{ 'is-active': editor?.isActive('strike') }"
         :tabindex="tabIndex"
-        class="!h-7 !w-7"
+        class="!h-7 !w-7 !hover:bg-gray-200"
         size="xsmall"
         type="text"
         @click="editor?.chain().focus().toggleStrike().run()"
@@ -163,7 +163,7 @@ const newMentionNode = () => {
       <NcButton
         :class="{ 'is-active': editor?.isActive('link') }"
         :tabindex="tabIndex"
-        class="!h-7 !w-7"
+        class="!h-7 !w-7 !hover:bg-gray-200"
         size="xsmall"
         type="text"
         @click="onToggleLink"
@@ -181,9 +181,9 @@ const newMentionNode = () => {
         </div>
       </template>
       <NcButton
-        :class="{ 'is-active': editor?.isActive('strike') }"
+        :class="{ 'is-active': editor?.isActive('suggestions') }"
         :tabindex="tabIndex"
-        class="!h-7 !w-7"
+        class="!h-7 !w-7 !hover:bg-gray-200"
         size="xsmall"
         type="text"
         @click="newMentionNode"

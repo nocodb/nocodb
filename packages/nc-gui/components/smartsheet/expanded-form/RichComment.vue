@@ -6,9 +6,6 @@ import { marked } from 'marked'
 import { generateJSON } from '@tiptap/html'
 import Underline from '@tiptap/extension-underline'
 import Placeholder from '@tiptap/extension-placeholder'
-import TaskList from '@tiptap/extension-task-list'
-import { TaskItem } from '~/helpers/dbTiptapExtensions/task-item'
-
 import { Link } from '~/helpers/dbTiptapExtensions/links'
 
 const props = withDefaults(
@@ -45,20 +42,6 @@ turndownService.addRule('lineBreak', {
   },
 })
 
-turndownService.addRule('taskList', {
-  filter: (node) => {
-    return node.nodeName === 'LI' && !!node.getAttribute('data-checked')
-  },
-  replacement: (content, node: any) => {
-    // Remove the first \n\n and last \n\n
-    const processContent = content.replace(/^\n\n/, '').replace(/\n\n$/, '')
-
-    const isChecked = node.getAttribute('data-checked') === 'true'
-
-    return `[${isChecked ? 'x' : ' '}] ${processContent}\n\n`
-  },
-})
-
 turndownService.addRule('strikethrough', {
   filter: ['s'],
   replacement: (content) => {
@@ -67,44 +50,6 @@ turndownService.addRule('strikethrough', {
 })
 
 turndownService.keep(['u', 'del'])
-
-const checkListItem = {
-  name: 'checkListItem',
-  level: 'block',
-  tokenizer(src: string) {
-    src = src.split('\n\n')[0]
-    const isMatched = src.startsWith('[ ]') || src.startsWith('[x]') || src.startsWith('[X]')
-
-    if (isMatched) {
-      const isNotChecked = src.startsWith('[ ]')
-      let text = src.slice(3)
-      if (text[0] === ' ') text = text.slice(1)
-
-      const token = {
-        // Token to generate
-        type: 'checkListItem',
-        raw: src,
-        text,
-        tokens: [],
-        checked: !isNotChecked,
-      }
-
-      ;(this as any).lexer.inline(token.text, token.tokens) // Queue this data to be processed for inline tokens
-      return token
-    }
-
-    return false
-  },
-  renderer(token: any) {
-    return `<ul data-type="taskList"><li data-checked="${
-      token.checked ? 'true' : 'false'
-    }" data-type="taskItem"><label><input type="checkbox" ${
-      token.checked ? 'checked="checked"' : ''
-    }><span></span></label><div>${(this as any).parser.parseInline(token.tokens)}</div></li></ul>` // parseInline to turn child tokens into HTML
-  },
-}
-
-marked.use({ extensions: [checkListItem] })
 
 const editorDom = ref<HTMLElement | null>(null)
 
@@ -115,10 +60,6 @@ const vModel = useVModel(props, 'value', emits, { defaultValue: '' })
 const tiptapExtensions = [
   StarterKit.configure({
     heading: false,
-  }),
-  TaskList,
-  TaskItem.configure({
-    nested: true,
   }),
   Underline,
   Link,
@@ -230,6 +171,48 @@ onClickOutside(editorDom, (e) => {
   }
 })
 
+const triggerSaveFromList = ref(false)
+
+const emitSave = (event: KeyboardEvent) => {
+  if (editor.value) {
+    if (triggerSaveFromList.value) {
+      // If Enter was pressed in the list, do not emit save
+      triggerSaveFromList.value = false
+    } else {
+      if (editor.value.isActive('bulletList') || editor.value.isActive('orderedList')) {
+        event.stopPropagation()
+      } else {
+        emits('save')
+      }
+    }
+  }
+}
+
+const handleEnterDown = (event: KeyboardEvent) => {
+  const isListsActive = editor.value?.isActive('bulletList') || editor.value?.isActive('orderedList')
+  if (isListsActive) {
+    triggerSaveFromList.value = true
+    setTimeout(() => {
+      triggerSaveFromList.value = false
+    }, 1000)
+  } else {
+    emitSave(event)
+  }
+}
+
+const handleKeyPress = (event: KeyboardEvent) => {
+  if (event.altKey && event.key === 'Enter') {
+    event.stopPropagation()
+  } else if (event.shiftKey && event.key === 'Enter') {
+    event.stopPropagation()
+  } else if (event.key === 'Enter') {
+    handleEnterDown(event)
+  } else if (event.key === 'Escape') {
+    isFocused.value = false
+    emits('blur')
+  }
+}
+
 defineExpose({
   setEditorContent,
 })
@@ -261,8 +244,7 @@ defineExpose({
         ref="editorDom"
         :editor="editor"
         class="flex flex-col nc-comment-rich-editor px-1.5 w-full scrollbar-thin scrollbar-thumb-gray-200 nc-truncate scrollbar-track-transparent"
-        @keydown.alt.enter.stop
-        @keydown.shift.enter.stop
+        @keydown.stop="handleKeyPress"
       />
 
       <div v-if="!hideOptions" class="flex justify-between px-2 py-2 items-center">
@@ -343,7 +325,7 @@ defineExpose({
     }
 
     ol {
-      @apply -ml-6 !pl-4;
+      @apply !pl-4;
       li {
         list-style-type: decimal;
       }
@@ -352,26 +334,6 @@ defineExpose({
     ul,
     ol {
       @apply !my-0;
-    }
-
-    ul[data-type='taskList'] {
-      @apply;
-      li {
-        @apply !ml-0 flex flex-row gap-x-2;
-        list-style-type: none;
-
-        input {
-          @apply mt-0.75 flex rounded-sm;
-          z-index: -10;
-        }
-
-        // Unchecked
-        input:not(:checked) {
-          // Add border to checkbox
-          border-width: 1.5px;
-          @apply border-gray-700;
-        }
-      }
     }
 
     // Pre tag is the parent wrapper for Code block

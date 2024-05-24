@@ -43,14 +43,15 @@ const handleChangeValidator = () => {
 </script>
 
 <template>
-  <div class="tr">
+  <div class="tr" :data-testid="`nc-custom-validation-item-${index}`">
     <div class="td">
       <NcSelect
         v-model:value="validator.type"
         class="nc-custom-validation-type-selector w-full !text-gray-600"
         :bordered="false"
         placeholder="Select and option"
-        dropdown-class-name="nc-custom-validation-type-dropdown !min-w-[256px]"
+        :data-testid="`nc-custom-validation-type-${validator.value}`"
+        :dropdown-class-name="`nc-custom-validation-type-dropdown !min-w-[256px] nc-custom-validation-type-dropdown-${index}`"
         @change="handleChangeValidator"
       >
         <a-select-option
@@ -63,6 +64,7 @@ const handleChangeValidator = () => {
             !!validatorsMap[option.value]
           "
           class=":not-disabled:!text-gray-600"
+          :data-testid="`nc-custom-validation-type-option-${option.value}`"
         >
           <div class="w-full flex items-center justify-between gap-2">
             <div class="truncate flex-1">
@@ -81,8 +83,11 @@ const handleChangeValidator = () => {
         </a-select-option>
       </NcSelect>
     </div>
-    <div class="td flex items-center relative">
+    <div class="nc-custom-validation-input-wrapper td flex items-center relative">
       <LazySmartsheetFormValidationInput
+        :class="{
+          'pr-4': validationErrors.length,
+        }"
         :column="activeField"
         :validator="validator"
         is-custom-validation-input
@@ -95,7 +100,7 @@ const handleChangeValidator = () => {
             <span v-for="(error, i) in validationErrors" :key="i"> {{ error }} </span>
           </div></template
         >
-        <GeneralIcon icon="alertTriangle" class="flex-none" />
+        <GeneralIcon icon="alertTriangle" class="nc-custom-validation-item-error-icon flex-none" />
       </NcTooltip>
     </div>
     <div class="td flex items-center">
@@ -103,12 +108,17 @@ const handleChangeValidator = () => {
         v-model="validator.message"
         type="text"
         placeholder="Type error message..."
-        class="!w-full h-full !border-none text-sm !px-3 !py-1 !outline-none !focus:(outline-none border-none shadow-none ring-transparent) disabled:(bg-gray-50 cursor-not-allowed) !placeholder-gray-500"
+        class="nc-custom-validation-error-message-input !w-full h-full !border-none text-sm !px-3 !py-1 !outline-none !focus:(outline-none border-none shadow-none ring-transparent) disabled:(bg-gray-50 cursor-not-allowed) !placeholder-gray-500"
         @update:model-value="updateColMeta(activeField)"
       />
     </div>
-    <div class="td nc-custom-validation-delete-item">
-      <NcButton class="border-1 flex items-center justify-between" type="link" size="small" @click="emits('remove')">
+    <div class="td">
+      <NcButton
+        class="nc-custom-validation-delete-item border-1 flex items-center justify-between"
+        type="link"
+        size="small"
+        @click="emits('remove')"
+      >
         <GeneralIcon icon="delete" class="flex-none h-4 w-4 text-gray-500 hover:text-gray-800" />
       </NcButton>
     </div>

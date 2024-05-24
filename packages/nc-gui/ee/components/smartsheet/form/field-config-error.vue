@@ -20,7 +20,7 @@ const fieldHasConfigError = computed(() => {
 <template>
   <div
     v-if="fieldHasConfigError"
-    class="mt-2 validation-error text-[#CB3F36] bg-[#FFF2F1] rounded-lg inline-flex items-center gap-2 px-2 py-1"
+    class="nc-field-config-error mt-2 validation-error text-[#CB3F36] bg-[#FFF2F1] rounded-lg inline-flex items-center gap-2 px-2 py-1"
   >
     <GeneralIcon icon="alertTriangle" />
     <div class="flex">Configuration error in field validations</div>

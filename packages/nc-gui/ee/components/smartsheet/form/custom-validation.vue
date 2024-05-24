@@ -93,14 +93,14 @@ onMounted(() => {
 </script>
 
 <template>
-  <div v-if="isCustomValidationSupported" class="nc-form-field-settings p-4 border-b border-gray-200">
+  <div v-if="isCustomValidationSupported" class="p-4 border-b border-gray-200">
     <div class="flex flex-col gap-3">
       <div class="flex items-center justify-between">
         <div class="text-base font-bold text-gray-600">Custom validations</div>
 
         <div class="flex flex-col">
           <div
-            class="border-1 rounded-lg py-1 px-3 flex items-center justify-between gap-2 !min-w-[170px] transition-all cursor-pointer select-none"
+            class="nc-custom-validation-btn border-1 rounded-lg py-1 px-3 flex items-center justify-between gap-2 !min-w-[170px] transition-all cursor-pointer select-none"
             :class="{
               '!border-brand-500': isOpen,
               'border-gray-200': !isOpen,
@@ -109,7 +109,7 @@ onMounted(() => {
             @click="isOpen = !isOpen"
           >
             <div
-              class="flex-1"
+              class="nc-custom-validation-count flex-1"
               :class="{
                 'text-brand-500 ': filteredValidators.length,
               }"
@@ -123,7 +123,7 @@ onMounted(() => {
 
             <NcButton
               v-if="hasValidationError"
-              class="flex items-center justify-between !text-gray-800 !hover:text-gray-500 !min-w-4"
+              class="nc-custom-validation-error-icon flex items-center justify-between !text-gray-800 !hover:text-gray-500 !min-w-4"
               type="link"
               size="xsmall"
             >
@@ -183,7 +183,12 @@ onMounted(() => {
                     </div>
                   </div>
                   <div>
-                    <NcButton class="border-1 flex items-center" type="link" size="small" @click="addPlaceholderValidator">
+                    <NcButton
+                      class="nc-custom-validation-add-btn border-1 flex items-center"
+                      type="link"
+                      size="small"
+                      @click="addPlaceholderValidator"
+                    >
                       <div class="flex items-center gap-2">
                         <span class="text-sm"> Add Validation </span>
                         <GeneralIcon icon="plus" class="flex-none" />

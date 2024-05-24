@@ -188,7 +188,12 @@ const onDecode = async (scannedCodeValue: string) => {
             <a-form :model="formState">
               <div class="nc-form h-full">
                 <div class="flex flex-col gap-3 md:gap-6">
-                  <div v-for="(field, index) in formColumns" :key="index" class="flex flex-col gap-2">
+                  <div
+                    v-for="(field, index) in formColumns"
+                    :key="index"
+                    class="flex flex-col gap-2"
+                    :data-testid="`nc-shared-form-item-${field.title?.replace(' ', '')}`"
+                  >
                     <div class="nc-form-column-label text-sm font-semibold text-gray-800">
                       <span>
                         {{ field.label || field.title }}

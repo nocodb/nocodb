@@ -97,7 +97,7 @@ const addPlaceholderValidators = (value, type: AttachmentValidationType) => {
         </template>
       </div>
 
-      <div v-if="isEnabled.fileTypes" class="mt-3 flex flex-col gap-1">
+      <div v-if="isEnabled.fileTypes" class="nc-att-limit-file-type-wrapper mt-3 flex flex-col gap-1">
         <LazySmartsheetFormValidationInput
           v-if="getFileTypesValidator"
           :column="activeField"
@@ -114,6 +114,7 @@ const addPlaceholderValidators = (value, type: AttachmentValidationType) => {
       :checked="isEnabled.fileTypes"
       size="small"
       class="flex-none nc-form-switch-focus"
+      data-testid="nc-att-limit-file-type"
       @change="addPlaceholderValidators($event, AttachmentValidationType.FileTypes)"
     />
   </div>
@@ -127,7 +128,7 @@ const addPlaceholderValidators = (value, type: AttachmentValidationType) => {
       </div>
       <div class="text-gray-500 mt-1">Limit the number of files that can be uploaded.</div>
 
-      <div v-if="isEnabled.fileCount" class="mt-3 flex flex-col gap-1">
+      <div v-if="isEnabled.fileCount" class="nc-att-limit-file-count-wrapper mt-3 flex flex-col gap-1">
         <LazySmartsheetFormValidationInput
           v-if="getFileCountValidator"
           :column="activeField"
@@ -144,6 +145,7 @@ const addPlaceholderValidators = (value, type: AttachmentValidationType) => {
       :checked="isEnabled.fileCount"
       size="small"
       class="flex-none nc-form-switch-focus"
+      data-testid="nc-att-limit-file-count"
       @change="addPlaceholderValidators($event, AttachmentValidationType.FileCount)"
     />
   </div>
@@ -158,7 +160,7 @@ const addPlaceholderValidators = (value, type: AttachmentValidationType) => {
       <div class="text-gray-500 mt-1">Limit the size of files that can be uploaded. (Limit per file)</div>
 
       <div>
-        <div v-if="isEnabled.fileSize" class="mt-3 flex gap-2">
+        <div v-if="isEnabled.fileSize" class="nc-att-limit-file-size-wrapper mt-3 flex gap-2">
           <LazySmartsheetFormValidationInput
             v-if="getFileSizeValidator"
             :column="activeField"
@@ -171,6 +173,7 @@ const addPlaceholderValidators = (value, type: AttachmentValidationType) => {
             v-model:value="getFileSizeValidator.unit"
             class="!w-[96px]"
             :options="['KB', 'MB'].map((o) => ({ label: o, value: o }))"
+            dropdown-class-name="nc-att-limit-file-size-unit-selector-dropdown"
           />
         </div>
         <LazySmartsheetFormValidationInputError :type="AttachmentValidationType.FileSize" />
@@ -181,6 +184,7 @@ const addPlaceholderValidators = (value, type: AttachmentValidationType) => {
       :checked="isEnabled.fileSize"
       size="small"
       class="flex-none nc-form-switch-focus"
+      data-testid="nc-att-limit-file-size"
       @change="addPlaceholderValidators($event, AttachmentValidationType.FileSize)"
     />
   </div>

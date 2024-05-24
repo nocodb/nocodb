@@ -102,7 +102,13 @@ const addPlaceholderValidators = (value, type: 'validate' | 'businessEmail') => 
 
     <NcTooltip v-if="isDefaultValidateEnabled" class="flex" placement="topRight">
       <template #title> Validations enforced by field schema settings</template>
-      <a-switch :checked="isDefaultValidateEnabled" :disabled="true" size="small" class="flex-none nc-form-switch-focus" />
+      <a-switch
+        :checked="isDefaultValidateEnabled"
+        :disabled="true"
+        size="small"
+        class="flex-none nc-form-switch-focus"
+        :data-testid="`nc-form-field-validate-${activeField?.uidt}`"
+      />
     </NcTooltip>
 
     <a-switch
@@ -110,6 +116,7 @@ const addPlaceholderValidators = (value, type: 'validate' | 'businessEmail') => 
       :checked="isValidateEnabled"
       size="small"
       class="flex-none nc-form-switch-focus"
+      :data-testid="`nc-form-field-validate-${activeField?.uidt}`"
       @change="addPlaceholderValidators($event, 'validate')"
     />
   </div>
@@ -130,6 +137,7 @@ const addPlaceholderValidators = (value, type: 'validate' | 'businessEmail') => 
       :checked="isBusinessEmailEnabled"
       size="small"
       class="flex-none nc-form-switch-focus"
+      data-testid="nc-form-field-allow-only-work-email"
       @change="addPlaceholderValidators($event, 'businessEmail')"
     />
   </div>

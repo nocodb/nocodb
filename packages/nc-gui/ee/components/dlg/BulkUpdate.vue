@@ -38,6 +38,8 @@ provide(IsFormInj, ref(true))
 
 provide(IsExpandedFormOpenInj, isExpanded)
 
+provide(IsExpandedBulkUpdateFormOpenInj, isExpanded)
+
 const formState: Record<string, any> = reactive({})
 
 const updateMode = ref(BulkUpdateMode.ALL)

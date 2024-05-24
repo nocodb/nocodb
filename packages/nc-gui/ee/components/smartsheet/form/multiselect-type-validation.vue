@@ -71,12 +71,13 @@ const addPlaceholderValidators = (value, type: 'minMax') => {
         }}
       </div>
 
-      <div v-if="isLimitRangeEnabled" class="mt-3 flex flex-col gap-3">
+      <div v-if="isLimitRangeEnabled" class="nc-limit-to-range-wrapper mt-3 flex flex-col gap-3">
         <div>
           <LazySmartsheetFormValidationInput
             v-if="getMinValidator"
             :column="activeField"
             :validator="getMinValidator"
+            :data-testid="`nc-limit-to-range-min-${activeField?.uidt}`"
             @update-validation-value="updateColMeta(activeField)"
           >
             <template #prefix> Minimum</template>
@@ -88,6 +89,7 @@ const addPlaceholderValidators = (value, type: 'minMax') => {
             v-if="getMaxValidator"
             :column="activeField"
             :validator="getMaxValidator"
+            :data-testid="`nc-limit-to-range-max-${activeField?.uidt}`"
             @update-validation-value="updateColMeta(activeField)"
           >
             <template #prefix> Maximum</template>
@@ -101,6 +103,7 @@ const addPlaceholderValidators = (value, type: 'minMax') => {
       :checked="isLimitRangeEnabled"
       size="small"
       class="flex-none nc-form-switch-focus"
+      :data-testid="`nc-limit-to-range-${activeField?.uidt}`"
       @change="addPlaceholderValidators($event, 'minMax')"
     />
   </div>

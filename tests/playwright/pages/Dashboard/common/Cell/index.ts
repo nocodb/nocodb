@@ -1,4 +1,5 @@
 import { expect, Locator } from '@playwright/test';
+import { UITypes } from 'nocodb-sdk';
 import { GridPage } from '../../Grid';
 import BasePage from '../../../Base';
 import { AttachmentCellPageObject } from './AttachmentCell';
@@ -14,6 +15,7 @@ import { YearCellPageObject } from './YearCell';
 import { TimeCellPageObject } from './TimeCell';
 import { GroupPageObject } from '../../Grid/Group';
 import { UserOptionCellPageObject } from './UserOptionCell';
+import { SurveyFormPage } from '../../SurveyForm';
 
 export interface CellProps {
   indexMap?: Array<number>;
@@ -22,7 +24,7 @@ export interface CellProps {
 }
 
 export class CellPageObject extends BasePage {
-  readonly parent: GridPage | SharedFormPage | GroupPageObject;
+  readonly parent: GridPage | SharedFormPage | SurveyFormPage | GroupPageObject;
   readonly selectOption: SelectOptionCellPageObject;
   readonly attachment: AttachmentCellPageObject;
   readonly checkbox: CheckboxCellPageObject;
@@ -34,7 +36,7 @@ export class CellPageObject extends BasePage {
   readonly dateTime: DateTimeCellPageObject;
   readonly userOption: UserOptionCellPageObject;
 
-  constructor(parent: GridPage | SharedFormPage | GroupPageObject) {
+  constructor(parent: GridPage | SharedFormPage | SurveyFormPage | GroupPageObject) {
     super(parent.rootPage);
     this.parent = parent;
     this.selectOption = new SelectOptionCellPageObject(this);
@@ -52,6 +54,11 @@ export class CellPageObject extends BasePage {
   get({ indexMap, index, columnHeader }: CellProps): Locator {
     if (this.parent instanceof SharedFormPage) {
       return this.parent.get().locator(`[data-testid="nc-form-input-cell-${columnHeader}"]`).first();
+    } else if (this.parent instanceof SurveyFormPage) {
+      return this.parent
+        .get()
+        .locator(`[data-testid="nc-survey-form__input-${columnHeader.replace(' ', '')}"]`)
+        .first();
     } else if (this.parent instanceof GridPage) {
       return this.parent.get().locator(`td[data-testid="cell-${columnHeader}-${index}"]`).first();
     } else {
@@ -68,7 +75,7 @@ export class CellPageObject extends BasePage {
     return await this.get({ index, columnHeader }).dblclick();
   }
 
-  async fillText({ index, columnHeader, text }: CellProps & { text: string }) {
+  async fillText({ index, columnHeader, text, type }: CellProps & { text: string; type?: UITypes }) {
     await this.dblclick({
       index,
       columnHeader,
@@ -84,6 +91,10 @@ export class CellPageObject extends BasePage {
 
     if (await isInputBox()) {
       await this.get({ index, columnHeader }).locator('input').fill(text);
+
+      if (type && [UITypes.Date, UITypes.Time, UITypes.Year, UITypes.DateTime].includes(type)) {
+        await this.rootPage.keyboard.press('Enter');
+      }
     } else {
       await this.get({ index, columnHeader }).locator('textarea').fill(text);
     }

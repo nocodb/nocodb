@@ -26,124 +26,53 @@ export class MetaService extends MetaServiceCE {
     return true;
   }
 
+  /***
+   * Generate nanoid for the given target
+   * @param target - Table name
+   * @returns {string} - Generated nanoid
+   * */
   public async genNanoid(target: string) {
-    let prefix;
-    switch (target) {
-      case MetaTable.PROJECT:
-        prefix = 'p';
-        break;
-      case MetaTable.BASES:
-        prefix = 'b';
-        break;
-      case MetaTable.MODELS:
-        prefix = 'm';
-        break;
-      case MetaTable.COLUMNS:
-        prefix = 'c';
-        break;
-      case MetaTable.COL_RELATIONS:
-        prefix = 'l';
-        break;
-      case MetaTable.COL_SELECT_OPTIONS:
-        prefix = 's';
-        break;
-      case MetaTable.COL_LOOKUP:
-        prefix = 'lk';
-        break;
-      case MetaTable.COL_ROLLUP:
-        prefix = 'rl';
-        break;
-      case MetaTable.COL_FORMULA:
-        prefix = 'f';
-        break;
-      case MetaTable.FILTER_EXP:
-        prefix = 'fi';
-        break;
-      case MetaTable.SORT:
-        prefix = 'so';
-        break;
-      case MetaTable.SHARED_VIEWS:
-        prefix = 'sv';
-        break;
-      case MetaTable.ACL:
-        prefix = 'ac';
-        break;
-      case MetaTable.FORM_VIEW:
-        prefix = 'fv';
-        break;
-      case MetaTable.FORM_VIEW_COLUMNS:
-        prefix = 'fvc';
-        break;
-      case MetaTable.GALLERY_VIEW:
-        prefix = 'gv';
-        break;
-      case MetaTable.GALLERY_VIEW_COLUMNS:
-        prefix = 'gvc';
-        break;
-      case MetaTable.KANBAN_VIEW:
-        prefix = 'kv';
-        break;
-      case MetaTable.KANBAN_VIEW_COLUMNS:
-        prefix = 'kvc';
-        break;
-      case MetaTable.CALENDAR_VIEW:
-        prefix = 'cv';
-        break;
-      case MetaTable.CALENDAR_VIEW_COLUMNS:
-        prefix = 'cvc';
-        break;
-      case MetaTable.CALENDAR_VIEW_RANGE:
-        prefix = 'cvr';
-        break;
-      case MetaTable.USERS:
-        prefix = 'us';
-        break;
-      case MetaTable.TEAMS:
-        prefix = 'tm';
-        break;
-      case MetaTable.VIEWS:
-        prefix = 'vw';
-        break;
-      case MetaTable.HOOKS:
-        prefix = 'hk';
-        break;
-      case MetaTable.HOOK_LOGS:
-        prefix = 'hkl';
-        break;
-      case MetaTable.AUDIT:
-        prefix = 'adt';
-        break;
-      case MetaTable.API_TOKENS:
-        prefix = 'tkn';
-        break;
-      case MetaTable.WORKSPACE:
-        prefix = 'w';
-        break;
-      case MetaTable.COWRITER:
-        prefix = 'cw';
-        break;
-      case MetaTable.SSO_CLIENT:
-        prefix = 'sso';
-        break;
-      case MetaTable.ORG:
-        prefix = 'o';
-        break;
-      case MetaTable.EXTENSIONS:
-        prefix = 'ext';
-        break;
-      case MetaTable.COMMENTS:
-        prefix = 'com';
-        break;
-      case MetaTable.COMMENTS_REACTIONS:
-        prefix = 'cre';
-        break;
-      case MetaTable.USER_COMMENTS_NOTIFICATIONS_PREFERENCE:
-        prefix = 'cnp';
-        break;
-      default:
-        prefix = 'nc';
-        break;
-    }
+    const prefixMap: { [key: string]: string } = {
+      [MetaTable.PROJECT]: 'p',
+      [MetaTable.BASES]: 'b',
+      [MetaTable.MODELS]: 'm',
+      [MetaTable.COLUMNS]: 'c',
+      [MetaTable.COL_RELATIONS]: 'l',
+      [MetaTable.COL_SELECT_OPTIONS]: 's',
+      [MetaTable.COL_LOOKUP]: 'lk',
+      [MetaTable.COL_ROLLUP]: 'rl',
+      [MetaTable.COL_FORMULA]: 'f',
+      [MetaTable.FILTER_EXP]: 'fi',
+      [MetaTable.SORT]: 'so',
+      [MetaTable.SHARED_VIEWS]: 'sv',
+      [MetaTable.ACL]: 'ac',
+      [MetaTable.FORM_VIEW]: 'fv',
+      [MetaTable.FORM_VIEW_COLUMNS]: 'fvc',
+      [MetaTable.GALLERY_VIEW]: 'gv',
+      [MetaTable.GALLERY_VIEW_COLUMNS]: 'gvc',
+      [MetaTable.KANBAN_VIEW]: 'kv',
+      [MetaTable.KANBAN_VIEW_COLUMNS]: 'kvc',
+      [MetaTable.CALENDAR_VIEW]: 'cv',
+      [MetaTable.CALENDAR_VIEW_COLUMNS]: 'cvc',
+      [MetaTable.CALENDAR_VIEW_RANGE]: 'cvr',
+      [MetaTable.USERS]: 'us',
+      [MetaTable.TEAMS]: 'tm',
+      [MetaTable.VIEWS]: 'vw',
+      [MetaTable.HOOKS]: 'hk',
+      [MetaTable.HOOK_LOGS]: 'hkl',
+      [MetaTable.AUDIT]: 'adt',
+      [MetaTable.API_TOKENS]: 'tkn',
+      [MetaTable.WORKSPACE]: 'w',
+      [MetaTable.COWRITER]: 'cw',
+      [MetaTable.SSO_CLIENT]: 'sso',
+      [MetaTable.ORG]: 'o',
+      [MetaTable.EXTENSIONS]: 'ext',
+      [MetaTable.COMMENTS]: 'com',
+      [MetaTable.COMMENTS_REACTIONS]: 'cre',
+      [MetaTable.USER_COMMENTS_NOTIFICATIONS_PREFERENCE]: 'cnp',
+    };
+
+    const prefix = prefixMap[target] || 'nc';
     let id: string;
 
     do {

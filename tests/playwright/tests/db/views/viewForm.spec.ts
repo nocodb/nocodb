@@ -605,12 +605,50 @@ test.describe('Form view: field validation', () => {
     await form.verifyCustomValidationCount({ count: 1 });
 
     await form.addCustomValidation({ type: StringValidationType.MaxLength, value: '4', index: 1 });
-    await form.updateCustomValidation({ type: StringValidationType.MaxLength, value: '1', index: 1 });
 
-    // verify validation error
+    await form.verifyCustomValidationCount({ count: 2 });
+    // verify incomplete validator
+    await form.updateCustomValidation({ value: '', index: 1 });
+    await form.verifyCustomValidationCount({ count: 1 });
     await form.verifyCustomValidationValue({ hasError: true, index: 1 });
 
-    await form.updateCustomValidation({ type: StringValidationType.MaxLength, value: '5', index: 1 });
+    await form.updateCustomValidation({ value: '1', index: 1 });
+
+    // Max value should be greater than min value
+    await form.verifyCustomValidationValue({ hasError: true, index: 1 });
+
+    await form.updateCustomValidation({ value: '15', index: 1 });
+
+    await form.addCustomValidation({
+      type: StringValidationType.StartsWith,
+      value: 'Lorem Ipsum is simply dummy text',
+      index: 2,
+    });
+
+    // max value is set to 12 charactors and startsWidth, endsWith, includes, notIncludes value must not be greater than maxLength
+    await form.verifyCustomValidationValue({ hasError: true, index: 2 });
+    await form.updateCustomValidation({ value: 'lorem', index: 2 });
+
+    await form.addCustomValidation({ type: StringValidationType.EndsWith, value: 'ipsum', index: 3 });
+
+    await form.addCustomValidation({ type: StringValidationType.Includes, value: 'lorem', index: 4 });
+    await form.addCustomValidation({ type: StringValidationType.NotIncludes, value: 'lorem', index: 5 });
+
+    // Includes and not includes value should be different
+    await form.verifyCustomValidationValue({ hasError: true, index: 5 });
+    await form.updateCustomValidation({ value: 'singleLineText', index: 5 });
+
+    await form.selectVisibleField({ title: 'LongText' });
+
+    // Regex
+    await form.addCustomValidation({ type: StringValidationType.Regex, value: '(ipsumf', index: 0 });
+
+    // verify invalid regex: `(` is invalid charactor
+    await form.verifyCustomValidationValue({ hasError: true, index: 0 });
+
+    await form.updateCustomValidation({ value: 'ipsum', index: 0 });
+
+    await form.verifyCustomValidationValue({ hasError: false, index: 0 });
 
     await dashboard.rootPage.waitForTimeout(5000);
   });

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { VNodeRef } from '@vue/runtime-core'
 import type { CommentType } from 'nocodb-sdk'
 
 const props = defineProps<{
@@ -8,7 +7,6 @@ const props = defineProps<{
 
 const {
   loadComments,
-  isCommentsLoading,
   deleteComment,
   comments,
   audits,
@@ -132,7 +130,6 @@ const saveComment = async () => {
     isSaving.value = false
   }
 }
-
 </script>
 
 <template>
@@ -375,7 +372,7 @@ const saveComment = async () => {
 
 .nc-comment-input {
   :deep(.nc-comment-rich-editor) {
-    @apply !ml-1
+    @apply !ml-1;
   }
 }
 

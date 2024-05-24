@@ -32,7 +32,6 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
   const changedColumns = ref(new Set<string>())
 
-
   const basesStore = useBases()
 
   const { basesUser } = storeToRefs(basesStore)
@@ -112,8 +111,6 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     try {
       isCommentsLoading.value = true
 
-
-
       const res = ((
         await $api.utils.commentList({
           row_id: rowId,
@@ -131,7 +128,6 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
           ...comment,
           created_display_name: user?.display_name ?? (user?.email ?? '').split('@')[0],
         }
-
       })
     } catch (e: any) {
       message.error(e.message)

@@ -1,7 +1,6 @@
 export const extractMentions = (richText: string) => {
   const mentions: string[] = [];
 
-
   // The Mentions are stored as follows @(userId|email|display_name) in the rich text
   // Extracts the userId from the content
 

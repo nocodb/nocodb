@@ -5,9 +5,9 @@ import MdiFormatStrikeThrough from '~icons/mdi/format-strikethrough'
 interface Props {
   editor: Editor
 }
-const { appInfo } = useGlobal()
-
 const props = withDefaults(defineProps<Props>(), {})
+
+const { appInfo } = useGlobal()
 
 const { editor } = toRefs(props)
 
@@ -69,7 +69,6 @@ const newMentionNode = () => {
   editor.value?.commands.insertContent('@')
   editor.value?.chain().focus().run()
 }
-
 </script>
 
 <template>

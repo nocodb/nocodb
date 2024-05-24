@@ -27,13 +27,7 @@ const emits = defineEmits(['update:value', 'focus', 'blur', 'save'])
 
 const isGrid = inject(IsGridInj, ref(false))
 
-const basesStore = useBases()
-
 const meta = inject(MetaInj)!
-
-const { basesUser } = storeToRefs(basesStore)
-
-const baseUsers = computed(() => (meta.value.base_id ? basesUser.value.get(meta.value.base_id) || [] : []))
 
 const isFocused = ref(false)
 
@@ -278,7 +272,7 @@ defineExpose({
 
     .ProseMirror {
       @apply flex-grow !border-0 rounded-lg;
-      caret-color: #3366FF;
+      caret-color: #3366ff;
     }
 
     p {

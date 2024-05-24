@@ -82,38 +82,50 @@ const up = async (knex: Knex) => {
   );
 
   logger.log('nc_046_comment_mentions: Tables Created');
+
   knex
-    .select('*')
+    .select(
+      `${MetaTable.AUDIT}.id`,
+      `${MetaTable.AUDIT}.row_id`,
+      `${MetaTable.AUDIT}.description`,
+      `${MetaTable.AUDIT}.user as user_email`,
+      `${MetaTable.AUDIT}.source_id`,
+      `${MetaTable.AUDIT}.base_id`,
+      `${MetaTable.AUDIT}.fk_model_id`,
+      `${MetaTable.AUDIT}.created_at`,
+      `${MetaTable.AUDIT}.updated_at`,
+      `${MetaTable.USERS}.id as user_id`,
+    )
     .from(MetaTable.AUDIT)
     .where(`${MetaTable.AUDIT}.op_type`, 'COMMENT')
+    .leftJoin(
+      MetaTable.USERS,
+      `${MetaTable.AUDIT}.user`,
+      `${MetaTable.USERS}.email`,
+    )
     .then(async (rows) => {
       logger.log('nc_046_comment_mentions: Data from Audit Table Selected');
 
-      const formattedRows = await Promise.all(
-        rows.map(async (row) => {
-          const user = await knex
-            .from(MetaTable.USERS)
-            .where('email', row.user)
-            .first();
-          return {
-            id: row.id,
-            row_id: row.row_id,
-            comment: row.description
-              .substring(row.description.indexOf(':') + 1)
-              .trim(),
-            created_by: user.id,
-            created_by_email: row.user,
-            source_id: row.source_id,
-            base_id: row.base_id,
-            fk_model_id: row.fk_model_id,
-            created_at: row.created_at,
-            updated_at: row.updated_at,
-          };
-        }),
-      );
+      const formattedRows = rows.map((row) => ({
+        id: row.id,
+        row_id: row.row_id,
+        comment: row.description
+          .substring(row.description.indexOf(':') + 1)
+          .trim(),
+        created_by: row.user_id,
+        created_by_email: row.user_email,
+        source_id: row.source_id,
+        base_id: row.base_id,
+        fk_model_id: row.fk_model_id,
+        created_at: row.created_at,
+        updated_at: row.updated_at,
+      }));
+
       logger.log('nc_046_comment_mentions: Data from Audit Table Formatted');
 
       await knex(MetaTable.COMMENTS).insert(formattedRows);
+
+      logger.log('nc_046_comment_mentions: Data from Audit Table Migrated');
     });
 };
 

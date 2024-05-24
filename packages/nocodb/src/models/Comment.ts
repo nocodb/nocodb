@@ -44,11 +44,9 @@ export default class Comment implements CommentType {
     },
     ncMeta = Noco.ncMeta,
   ) {
-    const commentList = await Noco.ncMeta
+    const commentList = await ncMeta
       .knex(MetaTable.COMMENTS)
-      .select(
-        `${MetaTable.COMMENTS}.*`,
-      )
+      .select(`${MetaTable.COMMENTS}.*`)
       .where('row_id', row_id)
       .where('fk_model_id', fk_model_id)
       .where(function () {
@@ -70,7 +68,7 @@ export default class Comment implements CommentType {
       'base_id',
       'fk_model_id',
       'created_by',
-      'created_by_email'
+      'created_by_email',
     ]);
 
     if ((!insertObj.base_id || !insertObj.source_id) && insertObj.fk_model_id) {
@@ -124,12 +122,16 @@ export default class Comment implements CommentType {
 
   static async deleteRowComments(fk_model_id: string, ncMeta = Noco.ncMeta) {
     return ncMeta.metaUpdate(
-      null, null, MetaTable.COMMENTS, {
+      null,
+      null,
+      MetaTable.COMMENTS,
+      {
         is_deleted: true,
-      }, {
+      },
+      {
         fk_model_id,
-      }
-    )
+      },
+    );
   }
 
   public static async commentsCount(args: {

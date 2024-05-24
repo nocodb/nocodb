@@ -114,7 +114,7 @@ function scrollComments() {
 const isSaving = ref(false)
 
 const saveComment = async () => {
-  if (isSaving.value || newComment.value === '<br /><br />') return
+  if (isSaving.value) return
 
   isCommentMode.value = true
   isSaving.value = true

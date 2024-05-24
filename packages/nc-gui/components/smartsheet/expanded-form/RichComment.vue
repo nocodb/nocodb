@@ -68,6 +68,13 @@ const vModel = useVModel(props, 'value', emits, { defaultValue: '' })
 const tiptapExtensions = [
   StarterKit.configure({
     heading: false,
+    orderedList:false,
+    listItem:false,
+    horizontalRule: false,
+    codeBlock:false,
+    code: false,
+    bulletList: false,
+    blockquote: false,
   }),
   Underline,
   Link,
@@ -92,7 +99,7 @@ const editor = useEditor({
     emits('focus')
   },
   onBlur: (e) => {
-    if (!(e?.event?.relatedTarget as HTMLElement)?.closest('.nc-comment-rich-editor, .nc-rich-text-comment')) {
+    if (!(e?.event?.relatedTarget as HTMLElement)?.closest('.comment-bubble-menu, .nc-comment-rich-editor, .nc-rich-text-comment')) {
       isFocused.value = false
       emits('blur')
     }
@@ -142,7 +149,7 @@ useEventListener(
   'focusout',
   (e: FocusEvent) => {
     const targetEl = e?.relatedTarget as HTMLElement
-    if (targetEl?.classList?.contains('tiptap') || !targetEl?.closest('.bubble-menu, .tippy-content, .nc-comment-rich-editor')) {
+    if (targetEl?.classList?.contains('tiptap') || !targetEl?.closest('.comment-bubble-menu, .tippy-content, .nc-comment-rich-editor')) {
       isFocused.value = false
       emits('blur')
     }
@@ -154,9 +161,9 @@ useEventListener(
   'focusout',
   (e: FocusEvent) => {
     const targetEl = e?.relatedTarget as HTMLElement
-    if (!targetEl && (e.target as HTMLElement)?.closest('.bubble-menu, .tippy-content, .nc-comment-rich-editor')) return
+    if (!targetEl && (e.target as HTMLElement)?.closest('.comment-bubble-menu, .tippy-content, .nc-comment-rich-editor')) return
 
-    if (!targetEl?.closest('.bubble-menu, .tippy-content, .nc-comment-rich-editor')) {
+    if (!targetEl?.closest('.comment-bubble-menu, .tippy-content, .nc-comment-rich-editor')) {
       isFocused.value = false
       emits('blur')
     }
@@ -168,7 +175,7 @@ onClickOutside(editorDom, (e) => {
 
   const targetEl = e?.target as HTMLElement
 
-  if (!targetEl?.closest('.tippy-content, .nc-comment-rich-editor')) {
+  if (!targetEl?.closest('.tippy-content, .comment-bubble-menu, .nc-comment-rich-editor')) {
     isFocused.value = false
     emits('blur')
   }

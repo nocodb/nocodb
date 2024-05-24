@@ -503,7 +503,7 @@ test.describe('Form view', () => {
 });
 
 test.describe('Form view: field validation', () => {
-  if (enableQuickRun()) test.skip();
+  if (enableQuickRun() || !isEE()) test.skip();
 
   let dashboard: DashboardPage;
   let form: FormPage;
@@ -553,6 +553,9 @@ test.describe('Form view: field validation', () => {
         column_name: 'PhoneNumber',
         title: 'PhoneNumber',
         uidt: UITypes.PhoneNumber,
+        meta: {
+          validate: true,
+        },
       },
       {
         column_name: 'Url',
@@ -589,6 +592,7 @@ test.describe('Form view: field validation', () => {
       subtitle: 'Test form field validation',
     });
 
+    // 1.
     await form.selectVisibleField({ title: 'SingleLineText' });
 
     await form.addCustomValidation({ type: StringValidationType.MinLength, value: '2', index: 0 });
@@ -638,6 +642,7 @@ test.describe('Form view: field validation', () => {
     await form.verifyCustomValidationValue({ hasError: true, index: 5 });
     await form.updateCustomValidation({ value: 'singleLineText', index: 5 });
 
+    // 2. Long text
     await form.selectVisibleField({ title: 'LongText' });
 
     // Regex
@@ -649,6 +654,57 @@ test.describe('Form view: field validation', () => {
     await form.updateCustomValidation({ value: 'ipsum', index: 0 });
 
     await form.verifyCustomValidationValue({ hasError: false, index: 0 });
+
+    // 3. Email
+    await form.selectVisibleField({ title: 'Email' });
+    const { click, verify } = await form.getFormFieldsEmailPhoneUrlValidatorConfig({
+      type: UITypes.Email,
+    });
+
+    const { click: _clickWorkEmail, verify: verifyWorkEmail } = await form.getFormFieldsValidateWorkEmailConfig();
+
+    // Work email validate switch is only visible if email valiator is enabled
+    await verifyWorkEmail({ isVisible: false });
+    await click({ enable: true });
+    await verifyWorkEmail({ isVisible: true });
+
+    await dashboard.rootPage.reload();
+    await form.selectVisibleField({ title: 'Email' });
+
+    await verify({ isEnabled: true });
+
+    // Verify regular email
+    await form.fillForm([{ field: 'Email', value: 'john@gmail.com' }]);
+    const emailErrorConfig = await form.getFormFieldErrors({ title: 'Email' });
+    await emailErrorConfig.verify({ hasError: false });
+
+    await form.fillForm([{ field: 'Email', value: 'john@gmail.com.' }]);
+    await emailErrorConfig.verify({ hasErrorMsg: /Invalid Email/i });
+
+    // Enable accept only work email & verify
+    await _clickWorkEmail({ enable: true });
+    await form.fillForm([{ field: 'Email', value: 'john@gmail.com' }]);
+
+    await emailErrorConfig.verify({ hasErrorMsg: /Invalid Work Email/i });
+    await form.fillForm([{ field: 'Email', value: 'john@nocodb.com' }]);
+    await emailErrorConfig.verify({ hasError: false });
+
+    // 4. Phone Number
+    await form.selectVisibleField({ title: 'PhoneNumber' });
+    const { click: _click, verify: verifyPhoneNumber } = await form.getFormFieldsEmailPhoneUrlValidatorConfig({
+      type: UITypes.PhoneNumber,
+    });
+
+    const phoneNumberErrorConfig = await form.getFormFieldErrors({ title: 'PhoneNumber' });
+
+    // Validation infored by field schema settings
+    await verifyPhoneNumber({ isEnabled: true, isDisabled: true });
+    await form.addCustomValidation({ type: StringValidationType.MinLength, value: '10', index: 0 });
+    await form.fillForm([{ field: 'PhoneNumber', value: '12345' }]);
+    await phoneNumberErrorConfig.verify({ hasErrorMsg: /Invalid phone number/i });
+    await phoneNumberErrorConfig.verify({ hasErrorMsg: /The input must be at least 10 characters long/i });
+    await form.fillForm([{ field: 'PhoneNumber', value: '1234567890' }]);
+    await phoneNumberErrorConfig.verify({ hasError: false });
 
     await dashboard.rootPage.waitForTimeout(5000);
   });

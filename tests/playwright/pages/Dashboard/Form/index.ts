@@ -1,5 +1,5 @@
 import { expect, Locator } from '@playwright/test';
-import { StringValidationType, validateDateFormat } from 'nocodb-sdk';
+import { StringValidationType, UITypes, validateDateFormat } from 'nocodb-sdk';
 import { DashboardPage } from '..';
 import BasePage from '../../Base';
 import { ToolbarPage } from '../common/Toolbar';
@@ -196,6 +196,8 @@ export class FormPage extends BasePage {
       await this.get()
         .locator(`[data-testid="nc-form-input-${param[i].field.replace(' ', '')}"] >> input`)
         .fill(param[i].value);
+
+      await this.rootPage.waitForTimeout(200);
     }
   }
 
@@ -531,5 +533,137 @@ export class FormPage extends BasePage {
     const countStr = await this.customValidationBtn.locator('.nc-custom-validation-count').textContent();
 
     expect(parseInt(countStr) || 0).toEqual(count);
+  }
+
+  async getFormFieldsEmailPhoneUrlValidatorConfig({
+    type,
+  }: {
+    type: UITypes.Email | UITypes.PhoneNumber | UITypes.URL;
+  }) {
+    const validateBtn = this.get().getByTestId(`nc-form-field-validate-${type}`);
+
+    return {
+      locator: validateBtn,
+      click: async ({ enable }: { enable: boolean }) => {
+        await validateBtn.waitFor({ state: 'visible' });
+
+        const isEnabled = await validateBtn.isChecked();
+
+        if ((enable && !isEnabled) || (!enable && isEnabled)) {
+          await this.waitForResponse({
+            uiAction: async () => {
+              await validateBtn.click();
+            },
+            requestUrlPathToMatch: '/api/v1/db/meta/form-columns',
+            httpMethodsToMatch: ['PATCH'],
+          });
+        }
+      },
+      verify: async ({ isEnabled, isDisabled }: { isEnabled?: boolean; isDisabled?: boolean }) => {
+        await validateBtn.waitFor({ state: 'visible' });
+
+        if (isEnabled !== undefined) {
+          if (isEnabled) {
+            await expect(validateBtn).toBeChecked();
+          } else {
+            await expect(validateBtn).not.toBeChecked();
+          }
+        }
+
+        if (isDisabled !== undefined) {
+          if (isDisabled) {
+            await expect(validateBtn).toBeDisabled();
+          } else {
+            await expect(validateBtn).not.toBeDisabled();
+          }
+        }
+      },
+    };
+  }
+
+  async getFormFieldsValidateWorkEmailConfig() {
+    const validateWorkEmailBtn = this.get().getByTestId('nc-form-field-allow-only-work-email');
+
+    return {
+      locator: validateWorkEmailBtn,
+      click: async ({ enable }: { enable: boolean }) => {
+        await validateWorkEmailBtn.waitFor({ state: 'visible' });
+
+        const isEnabled = await validateWorkEmailBtn.isChecked();
+
+        if ((enable && !isEnabled) || (!enable && isEnabled)) {
+          await this.waitForResponse({
+            uiAction: async () => {
+              await validateWorkEmailBtn.click();
+            },
+            requestUrlPathToMatch: '/api/v1/db/meta/form-columns',
+            httpMethodsToMatch: ['PATCH'],
+          });
+        }
+      },
+      verify: async ({
+        isEnabled,
+        isDisabled,
+        isVisible,
+      }: {
+        isEnabled?: boolean;
+        isDisabled?: boolean;
+        isVisible?: boolean;
+      }) => {
+        if (isEnabled !== undefined) {
+          await validateWorkEmailBtn.waitFor({ state: 'visible' });
+
+          if (isEnabled) {
+            await expect(validateWorkEmailBtn).toBeChecked();
+          } else {
+            await expect(validateWorkEmailBtn).not.toBeChecked();
+          }
+        }
+
+        if (isDisabled !== undefined) {
+          await validateWorkEmailBtn.waitFor({ state: 'visible' });
+
+          if (isDisabled) {
+            await expect(validateWorkEmailBtn).toBeDisabled();
+          } else {
+            await expect(validateWorkEmailBtn).not.toBeDisabled();
+          }
+        }
+
+        if (isVisible !== undefined) {
+          if (isVisible) {
+            await expect(validateWorkEmailBtn).toBeVisible();
+          } else {
+            await expect(validateWorkEmailBtn).not.toBeVisible();
+          }
+        }
+      },
+    };
+  }
+
+  async getFormFieldErrors({ title }: { title: string }) {
+    // ant-form-item-explain
+    const field = this.get().locator(`.nc-form-drag-${title.replace(' ', '')}`);
+    await field.scrollIntoViewIfNeeded();
+    const fieldErrorEl = field.locator('.ant-form-item-explain');
+
+    return {
+      locator: fieldErrorEl,
+      verify: async ({ hasError, hasErrorMsg }: { hasError?: boolean; hasErrorMsg?: string | RegExp }) => {
+        if (hasError !== undefined) {
+          if (hasError) {
+            await expect(fieldErrorEl).toBeVisible();
+          } else {
+            await expect(fieldErrorEl).not.toBeVisible();
+          }
+        }
+
+        if (hasErrorMsg !== undefined) {
+          await expect(fieldErrorEl).toBeVisible();
+
+          expect(await fieldErrorEl.locator('> div').filter({ hasText: hasErrorMsg }).count()).toBeGreaterThan(0);
+        }
+      },
+    };
   }
 }

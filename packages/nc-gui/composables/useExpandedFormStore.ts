@@ -1,4 +1,4 @@
-import type { AuditType, ColumnType, TableType } from 'nocodb-sdk'
+import type { AuditType, ColumnType, CommentType, TableType } from 'nocodb-sdk'
 import { UITypes, ViewTypes, isVirtualCol } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import dayjs from 'dayjs'
@@ -6,15 +6,23 @@ import dayjs from 'dayjs'
 const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((meta: Ref<TableType>, _row: Ref<Row>) => {
   const { $e, $state, $api } = useNuxtApp()
 
-  const { api, isLoading: isCommentsLoading, error: commentsError } = useApi()
-
   const { t } = useI18n()
 
   const isPublic = inject(IsPublicInj, ref(false))
 
-  const commentsOnly = ref(false)
+  const comments = ref<
+    Array<
+      CommentType & {
+        created_display_name: string
+      }
+    >
+  >([])
 
-  const commentsAndLogs = ref<any[]>([])
+  const audits = ref<Array<AuditType>>([])
+
+  const isCommentsLoading = ref(false)
+
+  const isAuditLoading = ref(false)
 
   const comment = ref('')
 
@@ -24,7 +32,14 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
   const changedColumns = ref(new Set<string>())
 
+
+  const basesStore = useBases()
+
+  const { basesUser } = storeToRefs(basesStore)
+
   const { base } = storeToRefs(useBase())
+
+  const baseUsers = computed(() => (meta.value.base_id ? basesUser.value.get(meta.value.base_id) || [] : []))
 
   const { sharedView } = useSharedView()
 
@@ -87,24 +102,76 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     return extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
   })
 
-  // actions
-  const loadCommentsAndLogs = async () => {
-    if (!isUIAllowed('commentList')) return
-
-    if (!row.value) return
+  const loadComments = async () => {
+    if (!isUIAllowed('commentList') || !row.value) return
 
     const rowId = extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
 
     if (!rowId) return
 
-    commentsAndLogs.value =
-      (
-        await api.utils.commentList({
+    try {
+      isCommentsLoading.value = true
+
+
+
+      const res = ((
+        await $api.utils.commentList({
           row_id: rowId,
           fk_model_id: meta.value.id as string,
-          comments_only: commentsOnly.value,
         })
-      ).list?.reverse?.() || []
+      ).list || []) as Array<
+        CommentType & {
+          created_display_name: string
+        }
+      >
+
+      comments.value = res.map((comment) => {
+        const user = baseUsers.value.find((u) => u.id === comment.created_by)
+        return {
+          ...comment,
+          created_display_name: user?.display_name ?? (user?.email ?? '').split('@')[0],
+        }
+
+      })
+    } catch (e: any) {
+      message.error(e.message)
+    } finally {
+      isCommentsLoading.value = false
+    }
+  }
+
+  const deleteComment = async (commentId: string) => {
+    if (!isUIAllowed('commentDelete')) return
+
+    try {
+      await $api.utils.commentDelete(commentId)
+      await loadComments()
+    } catch (e: any) {
+      message.error(e.message)
+    }
+  }
+
+  const loadAudits = async () => {
+    if (!isUIAllowed('auditList') || !row.value) return
+
+    const rowId = extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
+
+    if (!rowId) return
+
+    try {
+      isAuditLoading.value = true
+      audits.value =
+        (
+          await $api.utils.auditList({
+            row_id: rowId,
+            fk_model_id: meta.value.id as string,
+          })
+        ).list?.reverse?.() || []
+    } catch (e: any) {
+      message.error(e.message)
+    } finally {
+      isAuditLoading.value = false
+    }
   }
 
   const isYou = (email: string) => {
@@ -126,15 +193,15 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
       if (!rowId) return
 
-      await api.utils.commentRow({
+      await $api.utils.commentRow({
         fk_model_id: meta.value?.id as string,
         row_id: rowId,
-        description: `The following comment has been created: ${comment.value}`,
+        comment: `${comment.value}`,
       })
 
       reloadTrigger?.trigger()
 
-      await loadCommentsAndLogs()
+      await Promise.all([loadComments(), loadAudits()])
 
       comment.value = ''
     } catch (e: any) {
@@ -154,6 +221,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
       kanbanClbk?: (row: Row, isNewRow: boolean) => void
     } = {},
   ) => {
+    if (!meta.value.id) return
+
     let data
 
     const isNewRow = row.value.rowMeta?.new ?? false
@@ -222,6 +291,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
         obj[col] = row.value.row[col]
         return obj
       }, {} as Record<string, any>)
+
       if (Object.keys(updateOrInsertObj).length) {
         const id = extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
 
@@ -240,7 +310,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
           addUndo({
             redo: {
               fn: async (id: string, data: Record<string, any>) => {
-                await $api.dbTableRow.update(NOCO, base.value.id as string, meta.value.id, encodeURIComponent(id), data)
+                await $api.dbTableRow.update(NOCO, base.value.id as string, meta.value.id!, encodeURIComponent(id), data)
                 await loadKanbanData()
 
                 reloadTrigger?.trigger()
@@ -249,7 +319,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
             },
             undo: {
               fn: async (id: string, data: Record<string, any>) => {
-                await $api.dbTableRow.update(NOCO, base.value.id as string, meta.value.id, encodeURIComponent(id), data)
+                await $api.dbTableRow.update(NOCO, base.value.id as string, meta.value.id!, encodeURIComponent(id), data)
                 await loadKanbanData()
                 reloadTrigger?.trigger()
               },
@@ -260,7 +330,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
         }
 
         if (commentsDrawer.value) {
-          await loadCommentsAndLogs()
+          await Promise.all([loadComments(), loadAudits()])
         }
       } else {
         // No columns to update
@@ -283,15 +353,18 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
   }
 
   const loadRow = async (rowId?: string, onlyVirtual = false, onlyNewColumns = false) => {
-    if (row.value.rowMeta.new) return
+    if (row.value.rowMeta.new || isPublic.value || !meta.value?.id) return
 
-    if (isPublic.value || !meta.value?.id) return
+    const recordId = rowId ?? extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
+
+    if (!recordId) return
+
     let record = await $api.dbTableRow.read(
       NOCO,
       // todo: base_id missing on view type
-      (base?.value?.id || (sharedView.value?.view as any)?.base_id) as string,
+      ((base?.value?.id ?? meta.value?.base_id) || (sharedView.value?.view as any)?.base_id) as string,
       meta.value.id as string,
-      encodeURIComponent(rowId ?? extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])),
+      encodeURIComponent(recordId),
       {
         getHiddenColumn: true,
       },
@@ -301,9 +374,9 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     if (onlyVirtual) {
       record = {
         ...row.value.row,
-        ...meta.value.columns.reduce((partialRecord, col) => {
-          if (isVirtualCol(col) && col.title in record) {
-            partialRecord[col.title] = record[col.title]
+        ...(meta.value.columns ?? []).reduce((partialRecord, col) => {
+          if (isVirtualCol(col) && col.title && col.title in record) {
+            partialRecord[col.title] = (record as Record<string, any>)[col.title as string]
           }
           return partialRecord
         }, {} as Record<string, any>),
@@ -314,7 +387,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     if (onlyNewColumns) {
       record = Object.keys(record).reduce((acc, curr) => {
         if (!Object.prototype.hasOwnProperty.call(row.value.row, curr)) {
-          acc[curr] = record[curr]
+          acc[curr] = record(record as Record<string, any>)[curr]
         } else {
           acc[curr] = row.value.row[curr]
         }
@@ -331,11 +404,13 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
   const deleteRowById = async (rowId?: string) => {
     try {
+      const recordId = rowId ?? extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
+
       const res: { message?: string[] } | number = await $api.dbTableRow.delete(
         NOCO,
         base.value.id as string,
         meta.value.id as string,
-        encodeURIComponent(rowId ?? extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])),
+        encodeURIComponent(recordId),
       )
 
       if (res.message) {
@@ -351,17 +426,19 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     }
   }
 
-  const updateComment = async (auditId: string, audit: Partial<AuditType>) => {
-    return await $api.utils.commentUpdate(auditId, audit)
+  const updateComment = async (commentId: string, comment: Partial<CommentType>) => {
+    return await $api.utils.commentUpdate(commentId, comment)
   }
 
   return {
     ...rowStore,
-    commentsOnly,
-    loadCommentsAndLogs,
-    commentsAndLogs,
+    loadComments,
+    deleteComment,
+    loadAudits,
+    comments,
+    audits,
+    isAuditLoading,
     isCommentsLoading,
-    commentsError,
     saveComment,
     comment,
     isYou,

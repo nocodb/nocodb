@@ -129,7 +129,8 @@ const {
   saveRowAndStay,
   row: _row,
   save: _save,
-  loadCommentsAndLogs,
+  loadComments,
+  loadAudits,
   clearColumns,
 } = useProvideExpandedFormStore(meta, row)
 
@@ -320,13 +321,13 @@ onMounted(async () => {
 
   if (props.loadRow) {
     await _loadRow()
-    await loadCommentsAndLogs()
+    await Promise.all([loadComments(), loadAudits()])
   }
 
   if (props.rowId) {
     try {
       await _loadRow(props.rowId)
-      await loadCommentsAndLogs()
+      await Promise.all([loadComments(), loadAudits()])
     } catch (e: any) {
       if (e.response?.status === 404) {
         message.error(t('msg.noRecordFound'))
@@ -458,7 +459,7 @@ const onConfirmDeleteRowClick = async () => {
 
 watch(rowId, async (nRow) => {
   await _loadRow(nRow)
-  await loadCommentsAndLogs()
+  await Promise.all([loadComments, loadAudits])
 })
 
 const showRightSections = computed(() => {
@@ -617,7 +618,7 @@ export default {
               {{ props.newRecordHeader ?? $t('activity.newRecord') }}
             </div>
             <div
-              v-else-if="displayValue && !row.rowMeta?.new"
+              v-else-if="displayValue && !row?.rowMeta?.new"
               class="flex items-center font-bold text-gray-800 text-base max-w-[300px] xs:(w-auto max-w-[calc(100%_-_82px)]) overflow-hidden"
             >
               <span class="truncate">
@@ -720,7 +721,7 @@ export default {
           </NcButton>
         </div>
       </div>
-      <div ref="wrapper" class="flex flex-grow flex-row h-[calc(100%-4rem)] w-full overflow-hidden border-t-1 border-gray-200">
+      <div ref="wrapper" class="flex flex-grow flex-row h-[calc(100%-4rem)] w-full border-t-1 border-gray-200">
         <div
           :class="{
             'w-full': !showRightSections,
@@ -937,7 +938,7 @@ export default {
         <div
           v-if="showRightSections"
           :class="{ active: commentsDrawer && isUIAllowed('commentList') }"
-          class="nc-comments-drawer border-l-1 relative border-gray-200 bg-gray-50 w-1/3 max-w-[340px] min-w-0 overflow-hidden h-full xs:hidden"
+          class="nc-comments-drawer border-l-1 relative border-gray-200 bg-gray-50 w-1/3 max-w-[340px] min-w-0 h-full xs:hidden rounded-br-2xl"
         >
           <SmartsheetExpandedFormComments :loading="isLoading" />
         </div>
@@ -980,10 +981,6 @@ export default {
 <style lang="scss">
 .nc-drawer-expanded-form {
   @apply xs:my-0;
-
-  .ant-modal-content {
-    @apply overflow-hidden;
-  }
 
   .ant-drawer-content-wrapper {
     @apply !h-[90vh];

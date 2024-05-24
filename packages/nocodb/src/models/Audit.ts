@@ -122,22 +122,7 @@ export default class Audit implements AuditType {
     }
   }
 
-  public static async commentsCount(args: {
-    ids: string[];
-    fk_model_id: string;
-  }) {
-    const audits = await Noco.ncMeta
-      .knex(MetaTable.AUDIT)
-      .count('id', { as: 'count' })
-      .select('row_id')
-      .whereIn('row_id', args.ids)
-      .where('fk_model_id', args.fk_model_id)
-      .where('op_type', AuditOperationTypes.COMMENT)
-      .groupBy('row_id');
-
-    return audits?.map((a) => new Audit(a));
-  }
-  public static async commentsList(args) {
+  public static async auditList(args) {
     const query = Noco.ncMeta
       .knex(MetaTable.AUDIT)
       .join(
@@ -148,10 +133,8 @@ export default class Audit implements AuditType {
       .select(`${MetaTable.AUDIT}.*`, `${MetaTable.USERS}.display_name`)
       .where('row_id', args.row_id)
       .where('fk_model_id', args.fk_model_id)
+      .where('op_type', '!=', AuditOperationTypes.COMMENT)
       .orderBy('created_at', 'desc');
-
-    if ((args.comments_only as any) == 'true')
-      query.where('op_type', AuditOperationTypes.COMMENT);
 
     const audits = await query;
 
@@ -197,27 +180,6 @@ export default class Audit implements AuditType {
         .count('id', { as: 'count' })
         .first()
     )?.count;
-  }
-
-  static async deleteRowComments(fk_model_id: string, ncMeta = Noco.ncMeta) {
-    return ncMeta.metaDelete(null, null, MetaTable.AUDIT, {
-      fk_model_id,
-    });
-  }
-
-  static async commentUpdate(
-    auditId: string,
-    audit: Partial<AuditType>,
-    ncMeta = Noco.ncMeta,
-  ) {
-    const updateObj = extractProps(audit, ['description']);
-    return await ncMeta.metaUpdate(
-      null,
-      null,
-      MetaTable.AUDIT,
-      updateObj,
-      auditId,
-    );
   }
 
   static async sourceAuditList(sourceId: string, { limit = 25, offset = 0 }) {

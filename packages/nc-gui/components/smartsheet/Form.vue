@@ -1529,14 +1529,12 @@ useEventListener(
                               class="nc-form-hide-branding"
                               data-testid="nc-form-hide-branding"
                               :disabled="isLocked || !isEditable"
-                              @change="
-                      (value) => {
-                        if (isLocked || !isEditable) return
+                              @change="(value) => {
+                                  if (isLocked || !isEditable) return
 
-                        (formViewData!.meta as Record<string,any>).hide_branding = value
-                        updateView()
-                      }
-                    "
+                                  (formViewData!.meta as Record<string,any>).hide_branding = value
+                                  updateView()
+                                }"
                             />
 
                             <NcTooltip v-else placement="top">
@@ -1558,14 +1556,12 @@ useEventListener(
                               class="nc-form-hide-banner"
                               data-testid="nc-form-hide-banner"
                               :disabled="isLocked || !isEditable"
-                              @change="
-                      (value) => {
-                        if (isLocked || !isEditable) return
+                              @change="(value) => {
+                                  if (isLocked || !isEditable) return
 
-                        (formViewData!.meta as Record<string,any>).hide_banner = value
-                        updateView()
-                      }
-                    "
+                                  (formViewData!.meta as Record<string,any>).hide_banner = value
+                                  updateView()
+                                }"
                             />
                           </div>
                         </div>

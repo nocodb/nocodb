@@ -4,9 +4,7 @@ import {
   Get,
   HttpCode,
   Param,
-  Patch,
   Post,
-  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -22,14 +20,12 @@ import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 export class AuditsController {
   constructor(private readonly auditsService: AuditsService) {}
 
-  @Post(['/api/v1/db/meta/audits/comments', '/api/v2/meta/audits/comments'])
-  @HttpCode(200)
-  @Acl('commentRow')
-  async commentRow(@Req() req: Request) {
-    return await this.auditsService.commentRow({
-      user: (req as any).user,
-      body: req.body,
-    });
+  @Get(['/api/v1/db/meta/audits/', '/api/v2/meta/audits/'])
+  @Acl('auditList')
+  async auditListRow(@Req() req: Request) {
+    return new PagedResponseImpl(
+      await this.auditsService.auditOnlyList({ query: req.query }),
+    );
   }
 
   @Post([
@@ -42,31 +38,6 @@ export class AuditsController {
     return await this.auditsService.auditRowUpdate({
       rowId,
       body,
-    });
-  }
-
-  @Get(['/api/v1/db/meta/audits/comments', '/api/v2/meta/audits/comments'])
-  @Acl('commentList')
-  async commentList(@Req() req: Request) {
-    return new PagedResponseImpl(
-      await this.auditsService.commentList({ query: req.query }),
-    );
-  }
-
-  @Patch([
-    '/api/v1/db/meta/audits/:auditId/comment',
-    '/api/v2/meta/audits/:auditId/comment',
-  ])
-  @Acl('commentUpdate')
-  async commentUpdate(
-    @Param('auditId') auditId: string,
-    @Req() req: Request,
-    @Body() body: any,
-  ) {
-    return await this.auditsService.commentUpdate({
-      auditId,
-      userEmail: req.user?.email,
-      body: body,
     });
   }
 
@@ -86,20 +57,5 @@ export class AuditsController {
         ...req.query,
       },
     );
-  }
-
-  @Get([
-    '/api/v1/db/meta/audits/comments/count',
-    '/api/v2/meta/audits/comments/count',
-  ])
-  @Acl('commentsCount')
-  async commentsCount(
-    @Query('fk_model_id') fk_model_id: string,
-    @Query('ids') ids: string[],
-  ) {
-    return await this.auditsService.commentsCount({
-      fk_model_id,
-      ids,
-    });
   }
 }

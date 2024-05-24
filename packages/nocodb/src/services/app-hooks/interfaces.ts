@@ -1,17 +1,15 @@
 import type { SyncSource } from '~/models';
 import type {
   ApiTokenReqType,
-  PluginTestReqType,
-  PluginType,
-  SourceType,
-} from 'nocodb-sdk';
-import type {
   BaseType,
   ColumnType,
   FilterType,
   HookType,
+  PluginTestReqType,
+  PluginType,
   ProjectUserReqType,
   SortType,
+  SourceType,
   TableType,
   UserType,
   ViewType,
@@ -27,6 +25,15 @@ export interface ProjectInviteEvent extends NcBaseEvent {
   base: BaseType;
   user: UserType;
   invitedBy: UserType;
+  ip?: string;
+}
+
+export interface RowCommentEvent extends NcBaseEvent {
+  base: BaseType;
+  user: UserType;
+  model: TableType;
+  rowId: string;
+  comment: string;
   ip?: string;
 }
 
@@ -213,4 +220,5 @@ export type AppEventPayload =
   | ViewEvent
   | FilterEvent
   | SortEvent
+  | RowCommentEvent
   | ColumnEvent;

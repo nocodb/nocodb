@@ -70,6 +70,7 @@ export default class Comment implements CommentType {
       'base_id',
       'fk_model_id',
       'created_by',
+      'created_by_email'
     ]);
 
     if ((!insertObj.base_id || !insertObj.source_id) && insertObj.fk_model_id) {

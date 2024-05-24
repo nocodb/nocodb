@@ -8,6 +8,7 @@ const props = defineProps<{
 
 const {
   loadComments,
+  isCommentsLoading,
   deleteComment,
   comments,
   audits,
@@ -21,6 +22,8 @@ const { isExpandedFormCommentMode } = storeToRefs(useConfigStore())
 const commentsWrapperEl = ref<HTMLDivElement>()
 
 const commentInputRef = ref<any>()
+
+const editRef = ref<any>()
 
 const { user, appInfo } = useGlobal()
 
@@ -38,17 +41,6 @@ const isEditing = ref<boolean>(false)
 
 const isCommentMode = ref(false)
 
-const focusCommentInput: VNodeRef = (el) => {
-  if (!isExpandedFormLoading.value && (isCommentMode.value || isExpandedFormCommentMode.value) && !isEditing.value) {
-    if (isExpandedFormCommentMode.value) {
-      setTimeout(() => {
-        isExpandedFormCommentMode.value = false
-      }, 400)
-    }
-    return (el as HTMLInputElement)?.focus()
-  }
-  return el
-}
 function onKeyDown(event: KeyboardEvent) {
   if (event.key === 'Escape') {
     onKeyEsc(event)
@@ -115,7 +107,8 @@ const value = computed({
 })
 
 function scrollComments() {
-  if (commentsWrapperEl.value) commentsWrapperEl.value.scrollTop = commentsWrapperEl.value?.scrollHeight
+  const elems = document.querySelectorAll(tab.value === ('comments' as const) ? '.nc-comment-item': '.nc-audit-item')
+  elems[elems.length-1]?.scrollIntoView({ behavior: 'smooth', block: 'end' })
 }
 
 const isSaving = ref(false)
@@ -140,8 +133,10 @@ const saveComment = async () => {
   }
 }
 
-watch(commentsWrapperEl, () => {
-  scrollComments()
+watch(isCommentsLoading, () => {
+  nextTick(() => {
+    scrollComments()
+  })
 })
 </script>
 
@@ -172,10 +167,10 @@ watch(commentsWrapperEl, () => {
               <div class="font-medium text-center my-6 text-gray-500">{{ $t('activity.startCommenting') }}</div>
             </div>
             <div v-else ref="commentsWrapperEl" class="flex flex-col h-full py-1 nc-scrollbar-thin">
-              <div v-for="comment of comments" :key="comment.id">
+              <div v-for="comment of comments" class="nc-comment-item" :key="comment.id">
                 <div
                   :class="{
-                    'hover:bg-gray-200 bg-white': comment.id !== editLog?.id,
+                    'hover:bg-gray-50 bg-white': comment.id !== editLog?.id,
                   }"
                   class="group gap-3 overflow-hidden flex items-start px-3 pt-3 pb-4"
                 >
@@ -243,6 +238,8 @@ watch(commentsWrapperEl, () => {
                     </div>
 
                     <SmartsheetExpandedFormRichComment
+                      ref="editRef"
+                      autofocus
                       v-if="comment.id === editLog?.id"
                       v-model:value="value"
                       :hide-options="false"

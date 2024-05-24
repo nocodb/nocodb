@@ -6,8 +6,9 @@ export const extractMentions = (richText: string) => {
 
   const regex = /@\(([^)]+)\)/g;
 
-  let match;
-  while ((match = regex.exec(richText)) !== null) {
+  let match: RegExpExecArray | null;
+  match = regex.exec(richText);
+  while (match !== null) {
     const userId = match[1].split('|')[0]; // Extracts the userId part from the matched string
     mentions.push(userId);
   }

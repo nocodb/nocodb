@@ -105,7 +105,7 @@ export default class Comment implements CommentType {
       commentId,
     );
 
-    return this.get(commentId, ncMeta);
+    return Comment.get(commentId, ncMeta);
   }
 
   static async delete(commentId: string, ncMeta = Noco.ncMeta) {

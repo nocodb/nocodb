@@ -3,7 +3,7 @@ import type { Editor } from '@tiptap/vue-3'
 import MdiFormatStrikeThrough from '~icons/mdi/format-strikethrough'
 
 interface Props {
-  editor: Editor
+  editor: Editor | undefined
 }
 const props = withDefaults(defineProps<Props>(), {})
 
@@ -24,6 +24,8 @@ const tabIndex = computed(() => {
 })
 
 const onToggleLink = () => {
+  if (!editor.value) return
+
   const activeNode = editor.value?.state?.selection?.$from?.nodeBefore || editor.value?.state?.selection?.$from?.nodeAfter
 
   const isLinkMarkedStoredInEditor = editor.value?.state?.storedMarks?.some((mark: any) => mark.type.name === 'link')
@@ -31,18 +33,18 @@ const onToggleLink = () => {
   const isActiveNodeMarkActive = activeNode?.marks?.some((mark: any) => mark.type.name === 'link') || isLinkMarkedStoredInEditor
 
   if (isActiveNodeMarkActive) {
-    editor.value!.chain().focus().unsetLink().run()
+    editor.value.chain().focus().unsetLink().run()
   } else {
-    if (editor.value.state.selection.empty) {
+    if (editor.value?.state.selection.empty) {
       editor
         .value!.chain()
         .focus()
         .insertContent(' ')
-        .setTextSelection({ from: editor.value!.state.selection.$from.pos, to: editor.value!.state.selection.$from.pos + 1 })
+        .setTextSelection({ from: editor.value?.state.selection.$from.pos, to: editor.value.state.selection.$from.pos + 1 })
         .toggleLink({
           href: '',
         })
-        .setTextSelection({ from: editor.value!.state.selection.$from.pos, to: editor.value!.state.selection.$from.pos + 1 })
+        .setTextSelection({ from: editor.value?.state.selection.$from.pos, to: editor.value.state.selection.$from.pos + 1 })
         .deleteSelection()
         .run()
     } else {
@@ -88,7 +90,7 @@ const newMentionNode = () => {
         class="!h-7 !w-7"
         size="xsmall"
         type="text"
-        @click="editor!.chain().focus().toggleBold().run()"
+        @click="editor?.chain().focus().toggleBold().run()"
       >
         <MdiFormatBold />
       </NcButton>
@@ -109,7 +111,7 @@ const newMentionNode = () => {
         class="!h-7 !w-7"
         size="xsmall"
         type="text"
-        @click=";(editor!.chain().focus() as any).toggleItalic().run()"
+        @click=";(editor?.chain().focus() as any).toggleItalic().run()"
       >
         <MdiFormatItalic />
       </NcButton>
@@ -130,7 +132,7 @@ const newMentionNode = () => {
         class="!h-7 !w-7"
         size="xsmall"
         type="text"
-        @click="editor!.chain().focus().toggleUnderline().run()"
+        @click="editor?.chain().focus().toggleUnderline().run()"
       >
         <MdiFormatUnderline />
       </NcButton>
@@ -150,7 +152,7 @@ const newMentionNode = () => {
         class="!h-7 !w-7"
         size="xsmall"
         type="text"
-        @click="editor!.chain().focus().toggleStrike().run()"
+        @click="editor?.chain().focus().toggleStrike().run()"
       >
         <MdiFormatStrikeThrough />
       </NcButton>

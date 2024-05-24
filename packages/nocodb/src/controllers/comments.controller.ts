@@ -17,6 +17,7 @@ import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { CommentsService } from '~/services/comments.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
+import { NcRequest } from '~/interface/config';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -25,7 +26,7 @@ export class CommentsController {
 
   @Get(['/api/v1/db/meta/comments', '/api/v2/meta/comments'])
   @Acl('commentList')
-  async commentList(@Req() req: Request) {
+  async commentList(@Req() req: any) {
     return new PagedResponseImpl(
       await this.commentsService.commentList({ query: req.query }),
     );
@@ -34,10 +35,10 @@ export class CommentsController {
   @Post(['/api/v1/db/meta/comments', '/api/v2/meta/comments'])
   @HttpCode(200)
   @Acl('commentRow')
-  async commentRow(@Req() req: Request) {
+  async commentRow(@Req() req: NcRequest, @Body() body: any) {
     return await this.commentsService.commentRow({
-      user: (req as any).user,
-      body: req.body,
+      user: req.user,
+      body: body,
       req,
     });
   }
@@ -48,7 +49,7 @@ export class CommentsController {
   ])
   @Acl('commentDelete')
   async commentDelete(
-    @Req() req: Request,
+    @Req() req: NcRequest,
     @Param('commentId') commentId: string,
   ) {
     return await this.commentsService.commentDelete({
@@ -64,11 +65,11 @@ export class CommentsController {
   @Acl('commentUpdate')
   async commentUpdate(
     @Param('commentId') commentId: string,
-    @Req() req: Request,
+    @Req() req: any,
     @Body() body: any,
   ) {
     return await this.commentsService.commentUpdate({
-      commendId: commentId,
+      commentId: commentId,
       user: req.user,
       body: body,
       req,

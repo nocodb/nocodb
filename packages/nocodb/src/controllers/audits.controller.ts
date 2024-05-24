@@ -24,7 +24,7 @@ export class AuditsController {
   @Acl('auditList')
   async auditListRow(@Req() req: Request) {
     return new PagedResponseImpl(
-      await this.auditsService.auditOnlyList({ query: req.query }),
+      await this.auditsService.auditOnlyList({ query: req.query as any }),
     );
   }
 

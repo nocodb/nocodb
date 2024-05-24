@@ -16,7 +16,11 @@ import Comment from '~/models/Comment';
 export class CommentsService {
   constructor(protected readonly appHooksService: AppHooksService) {}
 
-  async commentRow(param: { body: CommentReqType; user: any; req: NcRequest }) {
+  async commentRow(param: {
+    body: CommentReqType;
+    user: UserType;
+    req: NcRequest;
+  }) {
     validatePayload('swagger.json#/components/schemas/CommentReq', param.body);
 
     const res = await Comment.insert({
@@ -42,14 +46,29 @@ export class CommentsService {
   async commentDelete(param: { commentId: string; user: UserType }) {
     const comment = await Comment.get(param.commentId);
 
-    if (comment.created_by !== param.user.id) {
+    if (comment.created_by !== param.user.id || comment.is_deleted) {
       NcError.unauthorized('Unauthorized access');
     }
 
+    const model = await Model.getByIdOrName({ id: param.commentId });
+
+    this.appHooksService.emit(AppEvents.COMMENT_DELETE, {
+      base: await Base.getByTitleOrId(model.base_id),
+      model: model,
+      user: param.user,
+      comment: comment.comment,
+      rowId: comment.row_id,
+      req: {},
+    });
     return await Comment.delete(param.commentId);
   }
 
-  async commentList(param: { query: any }) {
+  async commentList(param: {
+    query: {
+      row_id: string;
+      fk_model_id: string;
+    };
+  }) {
     return await Comment.list(param.query);
   }
 
@@ -61,7 +80,7 @@ export class CommentsService {
   }
 
   async commentUpdate(param: {
-    commendId: string;
+    commentId: string;
     user: UserType;
     body: CommentUpdateReqType;
     req: NcRequest;
@@ -71,19 +90,19 @@ export class CommentsService {
       param.body,
     );
 
-    const comment = await Comment.get(param.commendId);
+    const comment = await Comment.get(param.commentId);
 
     if (comment.created_by !== param.user.id || comment.is_deleted) {
       NcError.unauthorized('Unauthorized access');
     }
 
-    const res = await Comment.update(param.commendId, {
+    const res = await Comment.update(param.commentId, {
       comment: param.body.comment,
     });
 
     const model = await Model.getByIdOrName({ id: param.body.fk_model_id });
 
-    this.appHooksService.emit(AppEvents.COMMENT_CREATE, {
+    this.appHooksService.emit(AppEvents.COMMENT_UPDATE, {
       base: await Base.getByTitleOrId(model.base_id),
       model: model,
       user: param.user,

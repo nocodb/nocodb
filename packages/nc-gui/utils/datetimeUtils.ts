@@ -35,15 +35,18 @@ export const timeAgo = (date: any) => {
 
   if (seconds < 60) {
     return `${seconds}s ago`
-  } else if (minutes < 60) {
-    return `${minutes}m ago`
-  } else if (hours < 24) {
-    return `${hours}h ago`
-  } else if (days < 30) {
-    return `${days}d ago`
-  } else if (months < 12) {
-    return `${months}mo ago`
-  } else {
-    return `${years}y ago`
   }
+  if (minutes < 60) {
+    return `${minutes}m ago`
+  }
+  if (hours < 24) {
+    return `${hours}h ago`
+  }
+  if (days < 30) {
+    return `${days}d ago`
+  }
+  if (months < 12) {
+    return `${months}mo ago`
+  }
+  return `${years}y ago`
 }

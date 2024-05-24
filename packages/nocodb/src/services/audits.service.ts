@@ -54,8 +54,12 @@ export class AuditsService {
     //   })
   }
 
-  async auditOnlyList(param: { query: any }) {
-    // return await Audit.list(param.query);
+  async auditOnlyList(param: {
+    query: {
+      row_id: string;
+      fk_model_id: string;
+    };
+  }) {
     return await Audit.auditList(param.query);
   }
 

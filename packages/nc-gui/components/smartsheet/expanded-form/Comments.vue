@@ -33,7 +33,7 @@ const { isUIAllowed } = useRoles()
 
 const hasEditPermission = computed(() => isUIAllowed('commentEdit'))
 
-const editLog = ref<CommentType>()
+const editComment = ref<CommentType>()
 
 const isEditing = ref<boolean>(false)
 
@@ -60,26 +60,26 @@ function onKeyEsc(event: KeyboardEvent) {
 }
 
 async function onEditComment() {
-  if (!isEditing.value || !editLog.value) return
+  if (!isEditing.value || !editComment.value) return
 
   isCommentMode.value = true
 
-  await updateComment(editLog.value.id!, {
-    comment: editLog.value.comment,
+  await updateComment(editComment.value.id!, {
+    comment: editComment.value?.comment,
   })
   onStopEdit()
 }
 
 function onCancel() {
   if (!isEditing.value) return
-  editLog.value = undefined
+  editComment.value = undefined
   onStopEdit()
 }
 
 function onStopEdit() {
   loadComments()
   isEditing.value = false
-  editLog.value = undefined
+  editComment.value = undefined
 }
 
 onKeyStroke('Enter', (event) => {
@@ -88,19 +88,18 @@ onKeyStroke('Enter', (event) => {
   }
 })
 
-function editComment(log: CommentType) {
-  editLog.value = log
+function editComments(comment: CommentType) {
+  editComment.value = comment
   isEditing.value = true
 }
 
 const value = computed({
   get() {
-    if (!editLog.value) return ''
-    return editLog.value.comment
+    return editComment.value?.comment || ''
   },
   set(val) {
-    if (!editLog.value) return
-    editLog.value.comment = val
+    if (!editComment.value) return
+    editComment.value.comment = val
   },
 })
 
@@ -162,7 +161,7 @@ const saveComment = async () => {
               <div v-for="comment of comments" :key="comment.id" class="nc-comment-item">
                 <div
                   :class="{
-                    'hover:bg-gray-50 bg-white': comment.id !== editLog?.id,
+                    'hover:bg-gray-50 bg-white': comment.id !== editComment?.id,
                   }"
                   class="group gap-3 overflow-hidden flex items-start px-3 pt-3 pb-4"
                 >
@@ -198,7 +197,7 @@ const saveComment = async () => {
                               }}
                             </span>
                           </NcTooltip>
-                          <div v-if="comment.id !== editLog?.id" class="text-xs text-gray-500">
+                          <div v-if="comment.id !== editComment?.id" class="text-xs text-gray-500">
                             {{
                               comment.created_at !== comment.updated_at
                                 ? `Edited ${timeAgo(comment.updated_at)}`
@@ -210,7 +209,7 @@ const saveComment = async () => {
 
                       <div class="flex items-center opacity-0 transition-all group-hover:opacity-100 ease-out duration-400 gap-2">
                         <NcDropdown
-                          v-if="comment.created_by_email === user!.email && !editLog"
+                          v-if="comment.created_by_email === user!.email && !editComment"
                           overlay-class-name="!min-w-[160px]"
                           placement="bottomRight"
                         >
@@ -219,7 +218,11 @@ const saveComment = async () => {
                           </NcButton>
                           <template #overlay>
                             <NcMenu>
-                              <NcMenuItem v-e="['c:row-expand:comment:edit']" class="text-gray-700" @click="editComment(comment)">
+                              <NcMenuItem
+                                v-e="['c:row-expand:comment:edit']"
+                                class="text-gray-700"
+                                @click="editComments(comment)"
+                              >
                                 <div class="flex gap-2 items-center">
                                   <component :is="iconMap.rename" class="cursor-pointer" />
                                   {{ $t('general.edit') }}
@@ -242,7 +245,7 @@ const saveComment = async () => {
                     </div>
 
                     <SmartsheetExpandedFormRichComment
-                      v-if="comment.id === editLog?.id"
+                      v-if="comment.id === editComment?.id"
                       ref="editRef"
                       v-model:value="value"
                       autofocus
@@ -254,7 +257,7 @@ const saveComment = async () => {
                       @keydown.stop="onKeyDown"
                       @blur="
                         () => {
-                          editLog = undefined
+                          editComment = undefined
                           isEditing = false
                         }
                       "
@@ -350,7 +353,7 @@ const saveComment = async () => {
                         {{ audit.display_name?.trim() || audit.user || 'Shared source' }}
                       </span>
                     </NcTooltip>
-                    <div v-if="audit.id !== editLog?.id" class="text-xs text-gray-400">
+                    <div class="text-xs text-gray-400">
                       {{ timeAgo(audit.created_at) }}
                     </div>
                   </div>

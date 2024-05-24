@@ -7,6 +7,7 @@ import { Api, StringValidationType, UITypes } from 'nocodb-sdk';
 import { LoginPage } from '../../../pages/LoginPage';
 import { getDefaultPwd } from '../../../tests/utils/general';
 import { enableQuickRun, isEE } from '../../../setup/db';
+import { SurveyFormPage } from '../../../pages/Dashboard/SurveyForm';
 
 // todo: Move most of the ui actions to page object and await on the api response
 test.describe('Form view', () => {
@@ -660,6 +661,9 @@ test.describe('Form view: field validation', () => {
 
   test('Form builder field validation', async () => {
     await createTable({ tableName: 'FormFieldValidation' });
+
+    const url = dashboard.rootPage.url();
+
     await form.configureHeader({
       title: 'Form validation',
       subtitle: 'Test form field validation',
@@ -917,6 +921,56 @@ test.describe('Form view: field validation', () => {
 
     await sharedForm.submit();
     await sharedForm.verifySuccessMessage();
+
+    await dashboard.rootPage.goto(url);
+    // kludge- reload
+    await dashboard.rootPage.reload();
+
+    await dashboard.form.topbar.clickShare();
+    await dashboard.form.topbar.share.clickShareViewPublicAccess();
+    await dashboard.form.topbar.share.closeModal();
+
+    const surveyLink = await dashboard.form.topbar.getSharedViewUrl(true);
+    await dashboard.rootPage.reload();
+    await dashboard.form.configureSubmitMessage({
+      message: 'Thank you for submitting the form',
+    });
+
+    await dashboard.rootPage.goto(surveyLink);
+    // fix me! kludge@hub; page wasn't getting loaded from previous step
+    await dashboard.rootPage.reload();
+    await dashboard.rootPage.waitForTimeout(2000);
+
+    const surveyForm = new SurveyFormPage(dashboard.rootPage);
+
+    await surveyForm.clickFillForm();
+
+    for (const formField in validatorFillDetails) {
+      const fielConfigError = await surveyForm.getFormFieldErrors();
+
+      for (const fieldValue of validatorFillDetails[formField]) {
+        await surveyForm.fill({
+          fieldLabel: formField,
+          value: fieldValue.fillValue,
+          type: fieldValue.type,
+          skipNavigation: true,
+        });
+        await fielConfigError.verify({ hasError: !!fieldValue.errors.length });
+        for (const error of fieldValue.errors) {
+          await fielConfigError.verify({ hasErrorMsg: error });
+        }
+      }
+      if (formField !== 'Url') {
+        await surveyForm.nextButton.click();
+      }
+    }
+
+    await surveyForm.confirmAndSubmit();
+
+    // validate post submit data
+    await surveyForm.validateSuccessMessage({
+      message: 'Thank you for submitting the form',
+    });
   });
 
   test('Form builder field validation: limit to range', async () => {
@@ -952,7 +1006,7 @@ test.describe('Form view: field validation', () => {
       {
         type: UITypes.MultiSelect,
         title: 'MultiSelect',
-        min: '1',
+        min: '2',
         max: '3',
       },
       {
@@ -1153,12 +1207,33 @@ test.describe('Form view: field validation', () => {
       }
     }
 
+    const multiSelectFieldError = await sharedForm.getFormFieldErrors({ title: 'MultiSelect' });
+
+    // Click on multi select options
+    const multiSelectParams = {
+      index: -1,
+      columnHeader: 'MultiSelect',
+      option: 'jan',
+      multiSelect: true,
+      ignoreDblClick: true,
+    };
+    await sharedForm.cell.selectOption.select({ ...multiSelectParams, option: 'jan' });
+
+    await multiSelectFieldError.verify({ hasErrorMsg: /Please select at least 2 options/ });
+
+    await sharedForm.cell.selectOption.select({ ...multiSelectParams, option: 'feb' });
+    await sharedForm.cell.selectOption.select({ ...multiSelectParams, option: 'mar' });
+    await multiSelectFieldError.verify({ hasError: false });
+
     await sharedForm.submit();
     await sharedForm.verifySuccessMessage();
   });
 
   test('Form builder field validation: attachment', async () => {
     await createTable({ tableName: 'FormFieldAttachment', type: 'attachment' });
+
+    const url = dashboard.rootPage.url();
+
     await form.configureHeader({
       title: 'Attachment validation',
       subtitle: 'Test form field validation',
@@ -1214,5 +1289,59 @@ test.describe('Form view: field validation', () => {
 
     await sharedForm.submit();
     await sharedForm.verifySuccessMessage();
+
+    return;
+
+    await dashboard.rootPage.goto(url);
+    // kludge- reload
+    await dashboard.rootPage.reload();
+
+    await dashboard.form.topbar.clickShare();
+    await dashboard.form.topbar.share.clickShareViewPublicAccess();
+    await dashboard.form.topbar.share.closeModal();
+
+    const surveyLink = await dashboard.form.topbar.getSharedViewUrl(true);
+    await dashboard.rootPage.waitForTimeout(2000);
+    await dashboard.form.configureSubmitMessage({
+      message: 'Thank you for submitting the form',
+    });
+
+    await dashboard.rootPage.goto(surveyLink);
+    // fix me! kludge@hub; page wasn't getting loaded from previous step
+    await dashboard.rootPage.reload();
+    await dashboard.rootPage.waitForTimeout(2000);
+
+    const surveyForm = new SurveyFormPage(dashboard.rootPage);
+
+    await surveyForm.clickFillForm();
+
+    await dashboard.grid.cell.attachment.addFile({
+      columnHeader: 'Attachment',
+      filePath: [`${process.cwd()}/fixtures/sampleFiles/sampleImage.jpeg`],
+    });
+
+    const surveryAttError = await surveyForm.getFormFieldErrors();
+    await surveryAttError.verify({ hasErrorMsg: /Only following file types allowed to upload 'image\/png'/ });
+    await surveryAttError.verify({ hasErrorMsg: /The file size must not exceed 2000 KB/ });
+
+    await dashboard.grid.cell.attachment.removeFile({
+      columnHeader: 'Attachment',
+      attIndex: 0,
+    });
+
+    await dashboard.grid.cell.attachment.addFile({
+      columnHeader: 'Attachment',
+      filePath: [`${process.cwd()}/fixtures/sampleFiles/Image/2.png`],
+    });
+    await surveryAttError.verify({ hasError: false });
+
+    await surveyForm.confirmAndSubmit();
+
+    // validate post submit data
+    await surveyForm.validateSuccessMessage({
+      message: 'Thank you for submitting the form',
+    });
+
+    await dashboard.rootPage.waitForTimeout(10000);
   });
 });

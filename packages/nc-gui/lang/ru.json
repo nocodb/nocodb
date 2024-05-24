@@ -204,7 +204,8 @@
     "verify": "Verify",
     "apply": "Применить",
     "text": "Текст",
-    "appearance": "Внешний вид"
+    "appearance": "Внешний вид",
+    "now": "Now"
   },
   "objects": {
     "owner": "Owner",

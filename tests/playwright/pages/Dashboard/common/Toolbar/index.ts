@@ -85,7 +85,10 @@ export class ToolbarPage extends BasePage {
 
   async clickCalendarViewSettings() {
     const menuOpen = await this.calendarRange.get().isVisible();
-    await this.btn_calendarSettings.click();
+    await this.rootPage.waitForTimeout(500);
+    await this.btn_calendarSettings.click({
+      force: true,
+    });
 
     // Wait for the menu to close
     if (menuOpen) await this.calendarRange.get().waitFor({ state: 'hidden' });

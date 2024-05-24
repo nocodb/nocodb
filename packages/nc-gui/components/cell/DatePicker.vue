@@ -29,6 +29,8 @@ const isGrid = inject(IsGridInj, ref(false))
 
 const isForm = inject(IsFormInj, ref(false))
 
+const isSurveyForm = inject(IsSurveyFormInj, ref(false))
+
 const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 
 const isDateInvalid = ref(false)
@@ -193,6 +195,9 @@ const handleKeydown = (e: KeyboardEvent, _open?: boolean) => {
   switch (e.key) {
     case 'Enter':
       e.preventDefault()
+      if (isSurveyForm.value) {
+        e.stopPropagation()
+      }
       localState.value = tempDate.value
       open.value = !_open
 

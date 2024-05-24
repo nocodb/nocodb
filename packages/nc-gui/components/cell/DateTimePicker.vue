@@ -25,6 +25,8 @@ const isGrid = inject(IsGridInj, ref(false))
 
 const isForm = inject(IsFormInj, ref(false))
 
+const isSurveyForm = inject(IsSurveyFormInj, ref(false))
+
 const { t } = useI18n()
 
 const isEditColumn = inject(EditColumnInj, ref(false))
@@ -225,6 +227,10 @@ const handleKeydown = (e: KeyboardEvent, _open?: boolean, _isDatePicker: boolean
   switch (e.key) {
     case 'Enter':
       e.preventDefault()
+      if (isSurveyForm.value) {
+        e.stopPropagation()
+      }
+
       localState.value = tempDate.value
       if (!_isDatePicker) {
         e.stopPropagation()

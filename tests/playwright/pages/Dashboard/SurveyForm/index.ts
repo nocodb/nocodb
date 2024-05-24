@@ -91,6 +91,10 @@ export class SurveyFormPage extends BasePage {
         .locator(`[data-testid="nc-survey-form__input-${param.fieldLabel}"] >> textarea`)
         .fill(param.value);
     } else {
+      await this.get()
+        .locator(`[data-testid="nc-survey-form__input-${param.fieldLabel}"] >> input`)
+        .waitFor({ state: 'visible' });
+
       await this.get().locator(`[data-testid="nc-survey-form__input-${param.fieldLabel}"] >> input`).fill(param.value);
 
       if ([UITypes.Date, UITypes.Time, UITypes.Year, UITypes.DateTime].includes(param.type)) {
@@ -149,7 +153,7 @@ export class SurveyFormPage extends BasePage {
         if (hasErrorMsg !== undefined) {
           await expect(fieldErrorEl).toBeVisible();
 
-          expect(await fieldErrorEl.locator('> div').filter({ hasText: hasErrorMsg }).count()).toBeGreaterThan(0);
+          await expect(fieldErrorEl.locator('> div').filter({ hasText: hasErrorMsg })).toHaveText(hasErrorMsg);
         }
       },
     };

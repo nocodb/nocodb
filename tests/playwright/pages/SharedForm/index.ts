@@ -76,6 +76,12 @@ export class SharedFormPage extends BasePage {
       .click();
   }
 
+  fieldLabel({ title }: { title: string }) {
+    return this.get()
+      .getByTestId(`nc-shared-form-item-${title.replace(' ', '')}`)
+      .locator('.nc-form-column-label');
+  }
+
   async getFormFieldErrors({ title }: { title: string }) {
     const field = this.get().getByTestId(`nc-shared-form-item-${title.replace(' ', '')}`);
     await field.scrollIntoViewIfNeeded();
@@ -85,6 +91,8 @@ export class SharedFormPage extends BasePage {
       verify: async ({ hasError, hasErrorMsg }: { hasError?: boolean; hasErrorMsg?: string | RegExp }) => {
         if (hasError !== undefined) {
           if (hasError) {
+            await fieldErrorEl.waitFor({ state: 'visible' });
+
             await expect(fieldErrorEl).toBeVisible();
           } else {
             await expect(fieldErrorEl).not.toBeVisible();
@@ -92,9 +100,9 @@ export class SharedFormPage extends BasePage {
         }
 
         if (hasErrorMsg !== undefined) {
-          await expect(fieldErrorEl).toBeVisible();
+          await fieldErrorEl.waitFor({ state: 'visible' });
 
-          expect(await fieldErrorEl.locator('> div').filter({ hasText: hasErrorMsg }).count()).toBeGreaterThan(0);
+          await expect(fieldErrorEl.locator('> div').filter({ hasText: hasErrorMsg })).toHaveText(hasErrorMsg);
         }
       },
     };

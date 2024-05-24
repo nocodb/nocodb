@@ -253,7 +253,7 @@ test.describe('Form view with LTAR', () => {
     loginPage = new LoginPage(page);
 
     api = new Api({
-      baseURL: `http://localhost:8080/`,
+      baseURL: 'http://localhost:8080/',
       headers: {
         'xc-auth': context.token,
       },
@@ -409,7 +409,7 @@ test.describe('Form view', () => {
 
   test('Select fields in form view', async () => {
     api = new Api({
-      baseURL: `http://localhost:8080/`,
+      baseURL: 'http://localhost:8080/',
       headers: {
         'xc-auth': context.token,
       },
@@ -523,7 +523,7 @@ test.describe('Form view: field validation', () => {
 
   async function createTable({ tableName, type }: { tableName: string; type?: 'limitToRange' | 'attachment' }) {
     api = new Api({
-      baseURL: `http://localhost:8080/`,
+      baseURL: 'http://localhost:8080/',
       headers: {
         'xc-auth': context.token,
       },
@@ -581,7 +581,6 @@ test.describe('Form view: field validation', () => {
               column_name: 'Currency',
               title: 'Currency',
               uidt: 'Currency',
-
               meta: {
                 currency_locale: 'en-GB',
                 currency_code: 'UGX',
@@ -596,7 +595,6 @@ test.describe('Form view: field validation', () => {
               column_name: 'Duration',
               title: 'Duration',
               uidt: 'Duration',
-
               meta: {
                 duration: 0,
               },
@@ -975,6 +973,8 @@ test.describe('Form view: field validation', () => {
 
   test('Form builder field validation: limit to range', async () => {
     await createTable({ tableName: 'FormFieldLimitToRange', type: 'limitToRange' });
+    const url = dashboard.rootPage.url();
+
     await form.configureHeader({
       title: 'Limit to range validation',
       subtitle: 'Test form field validation',
@@ -1033,6 +1033,12 @@ test.describe('Form view: field validation', () => {
         uidt: 'Percent',
         min: '99',
         max: '120',
+      },
+      {
+        type: UITypes.Duration,
+        title: 'Duration',
+        min: '1:5',
+        max: '10:58',
       },
     ];
 
@@ -1162,6 +1168,23 @@ test.describe('Form view: field validation', () => {
           errors: [],
         },
       ],
+      Duration: [
+        {
+          type: UITypes.Duration,
+          fillValue: '1:00',
+          errors: [/Input a duration equal to or later than 01:05/i],
+        },
+        {
+          type: UITypes.Duration,
+          fillValue: '11:29',
+          errors: [/Input a duration equal to or earlier than 10:58/i],
+        },
+        {
+          type: UITypes.Duration,
+          fillValue: '10:2',
+          errors: [],
+        },
+      ],
     };
 
     for (const formField in limitToRageFillValue) {
@@ -1169,6 +1192,7 @@ test.describe('Form view: field validation', () => {
 
       for (const fieldValue of limitToRageFillValue[formField]) {
         await form.fillForm([{ field: formField, value: fieldValue.fillValue, type: fieldValue.type }]);
+
         await fielConfigError.verify({ hasError: !!fieldValue.errors.length });
         for (const error of fieldValue.errors) {
           await fielConfigError.verify({ hasErrorMsg: error });
@@ -1200,6 +1224,10 @@ test.describe('Form view: field validation', () => {
           text: fieldValue.fillValue,
           type: fieldValue.type,
         });
+        await sharedForm.fieldLabel({ title: formField }).click();
+
+        await dashboard.rootPage.waitForTimeout(100);
+
         await fielConfigError.verify({ hasError: !!fieldValue.errors.length });
         for (const error of fieldValue.errors) {
           await fielConfigError.verify({ hasErrorMsg: error });
@@ -1227,6 +1255,58 @@ test.describe('Form view: field validation', () => {
 
     await sharedForm.submit();
     await sharedForm.verifySuccessMessage();
+
+    await dashboard.rootPage.goto(url);
+    // kludge- reload
+    await dashboard.rootPage.reload();
+
+    await dashboard.form.topbar.clickShare();
+    await dashboard.form.topbar.share.clickShareViewPublicAccess();
+    await dashboard.form.topbar.share.closeModal();
+
+    const surveyLink = await dashboard.form.topbar.getSharedViewUrl(true);
+    await dashboard.rootPage.reload();
+    await dashboard.form.configureSubmitMessage({
+      message: 'Thank you for submitting the form',
+    });
+
+    await form.removeField({ field: 'SingleSelect', mode: 'hideField' });
+    await form.removeField({ field: 'MultiSelect', mode: 'hideField' });
+
+    await dashboard.rootPage.goto(surveyLink);
+    // fix me! kludge@hub; page wasn't getting loaded from previous step
+    await dashboard.rootPage.reload();
+    await dashboard.rootPage.waitForTimeout(2000);
+
+    const surveyForm = new SurveyFormPage(dashboard.rootPage);
+
+    await surveyForm.clickFillForm();
+
+    for (const formField in limitToRageFillValue) {
+      const fielConfigError = await surveyForm.getFormFieldErrors();
+      for (const fieldValue of limitToRageFillValue[formField]) {
+        await surveyForm.fill({
+          fieldLabel: formField,
+          value: fieldValue.fillValue,
+          type: fieldValue.type,
+          skipNavigation: true,
+        });
+        await fielConfigError.verify({ hasError: !!fieldValue.errors.length });
+        for (const error of fieldValue.errors) {
+          await fielConfigError.verify({ hasErrorMsg: error });
+        }
+      }
+      if (formField !== 'Duration') {
+        await surveyForm.nextButton.click();
+      }
+    }
+
+    await surveyForm.confirmAndSubmit();
+
+    // validate post submit data
+    await surveyForm.validateSuccessMessage({
+      message: 'Thank you for submitting the form',
+    });
   });
 
   test('Form builder field validation: attachment', async () => {

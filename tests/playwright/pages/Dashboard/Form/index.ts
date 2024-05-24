@@ -117,7 +117,7 @@ export class FormPage extends BasePage {
     await src.dragTo(dst);
   }
 
-  async removeField({ field, mode }: { mode: string; field: string }) {
+  async removeField({ field, mode }: { mode: 'dragDrop' | 'hideField'; field: string }) {
     // TODO: Otherwise form input boxes are not visible sometimes
     await this.rootPage.waitForTimeout(650);
 
@@ -679,7 +679,7 @@ export class FormPage extends BasePage {
         if (hasErrorMsg !== undefined) {
           await expect(fieldErrorEl).toBeVisible();
 
-          expect(await fieldErrorEl.locator('> div').filter({ hasText: hasErrorMsg }).count()).toBeGreaterThan(0);
+          await expect(fieldErrorEl.locator('> div').filter({ hasText: hasErrorMsg })).toHaveText(hasErrorMsg);
         }
       },
     };

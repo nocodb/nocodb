@@ -204,7 +204,8 @@
     "verify": "Weryfikuj",
     "apply": "Zastosuj",
     "text": "Tekst",
-    "appearance": "Wygląd"
+    "appearance": "Wygląd",
+    "now": "Now"
   },
   "objects": {
     "owner": "Właściciel",

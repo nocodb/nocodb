@@ -204,7 +204,8 @@
     "verify": "Verify",
     "apply": "Uygula",
     "text": "Metin",
-    "appearance": "Görünüm"
+    "appearance": "Görünüm",
+    "now": "Now"
   },
   "objects": {
     "owner": "Owner",

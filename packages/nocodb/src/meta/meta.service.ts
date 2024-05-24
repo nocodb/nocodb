@@ -447,7 +447,7 @@ export class MetaService {
 
     // Check if a condition is present in the query builder and throw an error if not.
     if (!force) {
-      this.checkConditionPresent(query);
+      this.checkConditionPresent(query, 'delete');
     }
 
     return query.del();
@@ -726,7 +726,7 @@ export class MetaService {
 
     // Check if a condition is present in the query builder and throw an error if not.
     if (!force) {
-      this.checkConditionPresent(query);
+      this.checkConditionPresent(query, 'update');
     }
 
     return await query;
@@ -1206,7 +1206,10 @@ export class MetaService {
    *
    * @param queryBuilder - The Knex QueryBuilder instance to check.
    */
-  private checkConditionPresent(queryBuilder: Knex.QueryBuilder) {
+  private checkConditionPresent(
+    queryBuilder: Knex.QueryBuilder,
+    operation: 'delete' | 'update',
+  ) {
     // Convert the query builder to a SQL string to inspect the presence of a WHERE clause.
     const sql = queryBuilder.toString();
 
@@ -1219,7 +1222,7 @@ export class MetaService {
 
     // Throw an error if no condition is found in the query builder.
     NcError.metaError({
-      message: 'Condition is required',
+      message: 'A condition is required to ' + operation + ' records.',
       sql,
     });
   }

@@ -10,6 +10,8 @@ const {
   deleteComment,
   comments,
   audits,
+  isCommentsLoading,
+  isAuditLoading,
   saveComment: _saveComment,
   comment: newComment,
   updateComment,
@@ -104,8 +106,12 @@ const value = computed({
 })
 
 function scrollComments() {
-  const elems = document.querySelectorAll(tab.value === ('comments' as const) ? '.nc-comment-item' : '.nc-audit-item')
-  elems[elems.length - 1]?.scrollIntoView({ behavior: 'smooth', block: 'end' })
+  if (commentsWrapperEl.value) {
+    commentsWrapperEl.value.scrollTo({
+      top: commentsWrapperEl.value.scrollHeight,
+      behavior: 'smooth',
+    })
+  }
 }
 
 const isSaving = ref(false)
@@ -129,6 +135,14 @@ const saveComment = async () => {
     isSaving.value = false
   }
 }
+
+watch(commentsWrapperEl, () => {
+  setTimeout(() => {
+    nextTick(() => {
+      scrollComments()
+    })
+  }, 200)
+})
 </script>
 
 <template>
@@ -147,7 +161,7 @@ const saveComment = async () => {
             'pb-1': tab !== 'comments' && !appInfo.ee,
           }"
         >
-          <div v-if="isExpandedFormLoading" class="flex flex-col h-full">
+          <div v-if="isExpandedFormLoading || isCommentsLoading" class="flex flex-col h-full">
             <GeneralLoader class="!mt-16" size="xlarge" />
           </div>
           <div v-else class="flex flex-col h-full">
@@ -163,7 +177,7 @@ const saveComment = async () => {
                   :class="{
                     'hover:bg-gray-50 bg-white': comment.id !== editComment?.id,
                   }"
-                  class="group gap-3 overflow-hidden flex items-start px-3 pt-3 pb-4"
+                  class="group gap-3 overflow-hidden flex items-start px-3 py-1"
                 >
                   <GeneralUserIcon
                     :email="comment.created_by_email"
@@ -174,9 +188,9 @@ const saveComment = async () => {
                   <div class="flex-1 flex flex-col gap-1 max-w-[calc(100%_-_24px)]">
                     <div class="w-full flex justify-between gap-3 min-h-7">
                       <div class="flex items-center max-w-[calc(100%_-_40px)]">
-                        <div class="w-full flex flex-wrap items-center">
+                        <div class="w-full flex flex-wrap gap-3 items-center">
                           <NcTooltip
-                            class="truncate capitalize text-gray-800 font-weight-700 !text-base max-w-42 mr-2"
+                            class="truncate capitalize text-gray-800 font-weight-700 !text-[13px] max-w-42"
                             show-on-truncate-only
                           >
                             <template #title>
@@ -185,6 +199,7 @@ const saveComment = async () => {
                             <span
                               class="text-ellipsis capitalize overflow-hidden"
                               :style="{
+                                lineHeight: '18px',
                                 wordBreak: 'keep-all',
                                 whiteSpace: 'nowrap',
                                 display: 'inline',
@@ -197,7 +212,7 @@ const saveComment = async () => {
                               }}
                             </span>
                           </NcTooltip>
-                          <div v-if="comment.id !== editComment?.id" class="text-xs text-gray-500">
+                          <div class="text-xs text-gray-500">
                             {{
                               comment.created_at !== comment.updated_at
                                 ? `Edited ${timeAgo(comment.updated_at)}`
@@ -282,7 +297,7 @@ const saveComment = async () => {
                 v-model:value="newComment"
                 :hide-options="false"
                 placeholder="Comment..."
-                class="expanded-form-comment-input !m-0 pt-2 w-full !border-t-1 !border-gray-200 !bg-transparent !text-gray-800 !text-small !leading-18px !max-h-[694px]"
+                class="expanded-form-comment-input !m-0 pt-2 w-full !border-t-1 !border-gray-200 !bg-transparent !text-gray-800 !text-small !leading-18px !max-h-[566px]"
                 :autofocus="isExpandedFormCommentMode"
                 data-testid="expanded-form-comment-input"
                 @focus="isExpandedFormCommentMode = false"
@@ -319,7 +334,7 @@ const saveComment = async () => {
             'pb-1': !appInfo.ee,
           }"
         >
-          <div v-if="isExpandedFormLoading" class="flex flex-col h-full">
+          <div v-if="isExpandedFormLoading || isAuditLoading" class="flex flex-col h-full">
             <GeneralLoader class="!mt-16" size="xlarge" />
           </div>
 

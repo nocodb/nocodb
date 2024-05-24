@@ -6,6 +6,9 @@ import { marked } from 'marked'
 import { generateJSON } from '@tiptap/html'
 import Underline from '@tiptap/extension-underline'
 import Placeholder from '@tiptap/extension-placeholder'
+import TaskList from '@tiptap/extension-task-list'
+import { TaskItem } from '~/helpers/dbTiptapExtensions/task-item'
+
 import { Link } from '~/helpers/dbTiptapExtensions/links'
 
 const props = withDefaults(
@@ -27,8 +30,6 @@ const emits = defineEmits(['update:value', 'focus', 'blur', 'save'])
 
 const isGrid = inject(IsGridInj, ref(false))
 
-const meta = inject(MetaInj)!
-
 const isFocused = ref(false)
 
 const keys = useMagicKeys()
@@ -44,6 +45,20 @@ turndownService.addRule('lineBreak', {
   },
 })
 
+turndownService.addRule('taskList', {
+  filter: (node) => {
+    return node.nodeName === 'LI' && !!node.getAttribute('data-checked')
+  },
+  replacement: (content, node: any) => {
+    // Remove the first \n\n and last \n\n
+    const processContent = content.replace(/^\n\n/, '').replace(/\n\n$/, '')
+
+    const isChecked = node.getAttribute('data-checked') === 'true'
+
+    return `[${isChecked ? 'x' : ' '}] ${processContent}\n\n`
+  },
+})
+
 turndownService.addRule('strikethrough', {
   filter: ['s'],
   replacement: (content) => {
@@ -52,6 +67,44 @@ turndownService.addRule('strikethrough', {
 })
 
 turndownService.keep(['u', 'del'])
+
+const checkListItem = {
+  name: 'checkListItem',
+  level: 'block',
+  tokenizer(src: string) {
+    src = src.split('\n\n')[0]
+    const isMatched = src.startsWith('[ ]') || src.startsWith('[x]') || src.startsWith('[X]')
+
+    if (isMatched) {
+      const isNotChecked = src.startsWith('[ ]')
+      let text = src.slice(3)
+      if (text[0] === ' ') text = text.slice(1)
+
+      const token = {
+        // Token to generate
+        type: 'checkListItem',
+        raw: src,
+        text,
+        tokens: [],
+        checked: !isNotChecked,
+      }
+
+      ;(this as any).lexer.inline(token.text, token.tokens) // Queue this data to be processed for inline tokens
+      return token
+    }
+
+    return false
+  },
+  renderer(token: any) {
+    return `<ul data-type="taskList"><li data-checked="${
+      token.checked ? 'true' : 'false'
+    }" data-type="taskItem"><label><input type="checkbox" ${
+      token.checked ? 'checked="checked"' : ''
+    }><span></span></label><div>${(this as any).parser.parseInline(token.tokens)}</div></li></ul>` // parseInline to turn child tokens into HTML
+  },
+}
+
+marked.use({ extensions: [checkListItem] })
 
 const editorDom = ref<HTMLElement | null>(null)
 
@@ -62,12 +115,10 @@ const vModel = useVModel(props, 'value', emits, { defaultValue: '' })
 const tiptapExtensions = [
   StarterKit.configure({
     heading: false,
-    orderedList: false,
-    listItem: false,
-    horizontalRule: false,
-    code: false,
-    bulletList: false,
-    blockquote: false,
+  }),
+  TaskList,
+  TaskItem.configure({
+    nested: true,
   }),
   Underline,
   Link,
@@ -82,7 +133,7 @@ const editor = useEditor({
   onUpdate: ({ editor }) => {
     const markdown = turndownService
       .turndown(editor.getHTML().replaceAll(/<p><\/p>/g, '<br />'))
-      .replaceAll(/\n\n<br \/>\n/g, '<br>\n')
+      .replaceAll(/\n\n<br \/>\n\n/g, '<br>\n\n')
     vModel.value = markdown === '<br />' ? '' : markdown
   },
   editable: !props.readOnly,
@@ -284,6 +335,45 @@ defineExpose({
       outline: none;
     }
 
+    ul {
+      li {
+        @apply ml-4;
+        list-style-type: disc;
+      }
+    }
+
+    ol {
+      @apply -ml-6 !pl-4;
+      li {
+        list-style-type: decimal;
+      }
+    }
+
+    ul,
+    ol {
+      @apply !my-0;
+    }
+
+    ul[data-type='taskList'] {
+      @apply;
+      li {
+        @apply !ml-0 flex flex-row gap-x-2;
+        list-style-type: none;
+
+        input {
+          @apply mt-0.75 flex rounded-sm;
+          z-index: -10;
+        }
+
+        // Unchecked
+        input:not(:checked) {
+          // Add border to checkbox
+          border-width: 1.5px;
+          @apply border-gray-700;
+        }
+      }
+    }
+
     // Pre tag is the parent wrapper for Code block
     pre {
       border-color: #d0d5dd;
@@ -297,6 +387,27 @@ defineExpose({
       code {
         @apply !px-0;
       }
+    }
+
+    code {
+      @apply rounded-md px-2 py-1 bg-gray-100;
+      color: inherit;
+      font-size: 0.8rem;
+    }
+
+    blockquote {
+      border-left: 3px solid #d0d5dd;
+      padding: 0 1em;
+      color: #666;
+      margin: 1em 0;
+      font-style: italic;
+    }
+
+    hr {
+      @apply !border-gray-300;
+      border: 0;
+      border-top: 1px solid #ccc;
+      margin: 1.5em 0;
     }
 
     pre {

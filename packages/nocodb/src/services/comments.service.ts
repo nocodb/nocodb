@@ -50,7 +50,9 @@ export class CommentsService {
       NcError.unauthorized('Unauthorized access');
     }
 
-    const model = await Model.getByIdOrName({ id: param.commentId });
+    const res = await Comment.delete(param.commentId);
+
+    const model = await Model.getByIdOrName({ id: comment.fk_model_id });
 
     this.appHooksService.emit(AppEvents.COMMENT_DELETE, {
       base: await Base.getByTitleOrId(model.base_id),
@@ -60,7 +62,7 @@ export class CommentsService {
       rowId: comment.row_id,
       req: {},
     });
-    return await Comment.delete(param.commentId);
+    return res;
   }
 
   async commentList(param: {

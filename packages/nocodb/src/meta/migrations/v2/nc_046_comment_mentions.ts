@@ -5,7 +5,7 @@ import { MetaTable } from '~/utils/globals';
 const logger = new Logger('nc_046_comment_mentions');
 
 const up = async (knex: Knex) => {
-  await knex.schema.createTableIfNotExists(MetaTable.COMMENTS, (table) => {
+  await knex.schema.createTable(MetaTable.COMMENTS, (table) => {
     table.string('id', 20).primary();
 
     table.string('row_id', 255);
@@ -35,7 +35,7 @@ const up = async (knex: Knex) => {
     table.timestamps(true, true);
   });
 
-  await knex.schema.createTableIfNotExists(
+  await knex.schema.createTable(
     MetaTable.USER_COMMENTS_NOTIFICATIONS_PREFERENCE,
     (table) => {
       table.string('id', 20).primary();
@@ -58,28 +58,25 @@ const up = async (knex: Knex) => {
     },
   );
 
-  await knex.schema.createTableIfNotExists(
-    MetaTable.COMMENTS_REACTIONS,
-    (table) => {
-      table.string('id', 20).primary();
+  await knex.schema.createTable(MetaTable.COMMENTS_REACTIONS, (table) => {
+    table.string('id', 20).primary();
 
-      table.string('row_id', 255).index();
+    table.string('row_id', 255).index();
 
-      table.string('comment_id', 20).index();
+    table.string('comment_id', 20).index();
 
-      table.string('source_id', 20);
+    table.string('source_id', 20);
 
-      table.string('fk_modal_id', 20);
+    table.string('fk_modal_id', 20);
 
-      table.string('base_id', 128);
+    table.string('base_id', 128);
 
-      table.string('reaction', 255);
+    table.string('reaction', 255);
 
-      table.string('created_by', 255);
+    table.string('created_by', 255);
 
-      table.timestamps(true, true);
-    },
-  );
+    table.timestamps(true, true);
+  });
 
   logger.log('nc_046_comment_mentions: Tables Created');
 
@@ -104,6 +101,8 @@ const up = async (knex: Knex) => {
       `${MetaTable.USERS}.email`,
     )
     .then(async (rows) => {
+      if (!rows.length) return;
+
       logger.log('nc_046_comment_mentions: Data from Audit Table Selected');
 
       const formattedRows = rows.map((row) => ({

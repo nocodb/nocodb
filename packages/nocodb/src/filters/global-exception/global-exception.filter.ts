@@ -41,9 +41,8 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     }
 
     // try to extract db error for unknown errors
-    const dbError = !(exception instanceof NcBaseError)
-      ? extractDBError(exception)
-      : null;
+    const dbError =
+      exception instanceof NcBaseError ? null : extractDBError(exception);
 
     // skip unnecessary error logging
     if (

@@ -642,6 +642,48 @@ test.describe('Form view: field validation', () => {
     await form.verifyCustomValidationValue({ hasError: true, index: 5 });
     await form.updateCustomValidation({ value: 'singleLineText', index: 5 });
 
+    const singleLineTextErrorConfig = await form.getFormFieldErrors({ title: 'SingleLineText' });
+
+    const validatorFillDetails = [
+      {
+        fillValue: 's',
+        errors: [
+          /The input must be at least 2 characters long/i,
+          /The input must start with 'lorem'/i,
+          /The input must end with 'ipsum'./i,
+          /The input must contain the string 'lorem'./i,
+        ],
+      },
+      {
+        fillValue: 'lorem',
+        errors: [/The input must end with 'ipsum'./i],
+      },
+      {
+        fillValue: 'lorem ipsum x',
+        errors: [/The input must end with 'ipsum'./i],
+      },
+      {
+        fillValue: 'lorem ipsum',
+        errors: [],
+      },
+      {
+        fillValue: 'lorem ipsum ipsum ipsum',
+        errors: [/The input must not exceed 15 characters/i],
+      },
+      {
+        fillValue: 'lorem ipsum',
+        errors: [],
+      },
+    ];
+
+    for (const formField of validatorFillDetails) {
+      await form.fillForm([{ field: 'SingleLineText', value: formField.fillValue }]);
+      await singleLineTextErrorConfig.verify({ hasError: !!formField.errors.length });
+      for (const error of formField.errors) {
+        await singleLineTextErrorConfig.verify({ hasErrorMsg: error });
+      }
+    }
+
     // 2. Long text
     await form.selectVisibleField({ title: 'LongText' });
 
@@ -650,10 +692,15 @@ test.describe('Form view: field validation', () => {
 
     // verify invalid regex: `(` is invalid charactor
     await form.verifyCustomValidationValue({ hasError: true, index: 0 });
-
     await form.updateCustomValidation({ value: 'ipsum', index: 0 });
-
     await form.verifyCustomValidationValue({ hasError: false, index: 0 });
+
+    const longTextErrorConfig = await form.getFormFieldErrors({ title: 'LongText' });
+
+    await form.fillForm([{ field: 'LongText', value: 'lorem', type: UITypes.LongText }]);
+    await longTextErrorConfig.verify({ hasErrorMsg: /The input does not match the required format/i });
+    await form.fillForm([{ field: 'LongText', value: 'ipsum', type: UITypes.LongText }]);
+    await longTextErrorConfig.verify({ hasError: false });
 
     // 3. Email
     await form.selectVisibleField({ title: 'Email' });

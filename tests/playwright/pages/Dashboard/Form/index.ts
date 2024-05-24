@@ -188,14 +188,26 @@ export class FormPage extends BasePage {
     await expect.poll(async () => await this.formSubHeading.textContent()).toBe(param.subtitle);
   }
 
-  async fillForm(param: { field: string; value: string }[]) {
+  async fillForm(param: { field: string; value: string; type?: UITypes }[]) {
     for (let i = 0; i < param.length; i++) {
       await this.get()
         .locator(`[data-testid="nc-form-input-${param[i].field.replace(' ', '')}"]`)
         .click();
-      await this.get()
-        .locator(`[data-testid="nc-form-input-${param[i].field.replace(' ', '')}"] >> input`)
-        .fill(param[i].value);
+
+      switch (param[i].type) {
+        case UITypes.LongText: {
+          await this.get()
+            .locator(`[data-testid="nc-form-input-${param[i].field.replace(' ', '')}"] >> textarea`)
+            .fill(param[i].value);
+
+          break;
+        }
+        default: {
+          await this.get()
+            .locator(`[data-testid="nc-form-input-${param[i].field.replace(' ', '')}"] >> input`)
+            .fill(param[i].value);
+        }
+      }
 
       await this.rootPage.waitForTimeout(200);
     }

@@ -492,23 +492,27 @@ const appendWhereCondition = function (
 
   return knexRef;
 };
-type XcConditionObjVal = {
-  [key in 'eq' | 'neq' | 'lt' | 'gt' | 'ge' | 'le' | 'like' | 'nlike']:
-    | string
-    | number
-    | any;
-};
 
-interface XcXonditionObj {
-  _or: XcXonditionObj[];
-  _and: XcXonditionObj[];
-  _not: XcXonditionObj;
+type AtLeastOne<T, U = { [K in keyof T]: Pick<T, K> }> = Partial<T> &
+  U[keyof U];
 
-  [key: string]:
-    | XcXonditionObj
-    | XcXonditionObj[]
-    | XcConditionObjVal
-    | XcConditionObjVal[];
+export type ConditionVal = AtLeastOne<{
+  eq: string | number | any;
+  neq: string | number | any;
+  lt: string | number | any;
+  gt: string | number | any;
+  ge: string | number | any;
+  le: string | number | any;
+  like: string | number | any;
+  nlike: string | number | any;
+}>;
+
+export interface Condition {
+  _or?: Condition[];
+  _and?: Condition[];
+  _not?: Condition;
+
+  [key: string]: ConditionVal | Condition | Condition[];
 }
 
 declare module 'knex' {
@@ -527,7 +531,7 @@ declare module 'knex' {
       ): Knex.QueryBuilder<TRecord, TResult>;
 
       condition<TRecord, TResult>(
-        conditionObj: XcXonditionObj,
+        conditionObj: Condition,
         columnAliases?: {
           [columnAlias: string]: string;
         },
@@ -542,7 +546,7 @@ declare module 'knex' {
       ): Knex.QueryBuilder<TRecord, TResult>;
 
       conditionGraph<TRecord, TResult>(condition: {
-        condition: XcXonditionObj;
+        condition: Condition;
         models: { [key: string]: BaseModelSql };
       }): Knex.QueryBuilder<TRecord, TResult>;
 

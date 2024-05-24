@@ -276,7 +276,7 @@ const saveComment = async () => {
                 </div>
               </div>
             </div>
-            <div v-if="hasEditPermission" class="bg-gray-50 nc-comment-input !rounded-br-lg gap-2 flex">
+            <div v-if="hasEditPermission" class="bg-gray-50 nc-comment-input !rounded-br-2xl gap-2 flex">
               <SmartsheetExpandedFormRichComment
                 ref="commentInputRef"
                 v-model:value="newComment"

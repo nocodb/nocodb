@@ -68,8 +68,8 @@ const vModel = useVModel(props, 'value', emits, { defaultValue: '' })
 const tiptapExtensions = [
   StarterKit.configure({
     heading: false,
-    orderedList:false,
-    listItem:false,
+    orderedList: false,
+    listItem: false,
     horizontalRule: false,
     code: false,
     bulletList: false,
@@ -98,7 +98,9 @@ const editor = useEditor({
     emits('focus')
   },
   onBlur: (e) => {
-    if (!(e?.event?.relatedTarget as HTMLElement)?.closest('.comment-bubble-menu, .nc-comment-rich-editor, .nc-rich-text-comment')) {
+    if (
+      !(e?.event?.relatedTarget as HTMLElement)?.closest('.comment-bubble-menu, .nc-comment-rich-editor, .nc-rich-text-comment')
+    ) {
       isFocused.value = false
       emits('blur')
     }
@@ -148,7 +150,10 @@ useEventListener(
   'focusout',
   (e: FocusEvent) => {
     const targetEl = e?.relatedTarget as HTMLElement
-    if (targetEl?.classList?.contains('tiptap') || !targetEl?.closest('.comment-bubble-menu, .tippy-content, .nc-comment-rich-editor')) {
+    if (
+      targetEl?.classList?.contains('tiptap') ||
+      !targetEl?.closest('.comment-bubble-menu, .tippy-content, .nc-comment-rich-editor')
+    ) {
       isFocused.value = false
       emits('blur')
     }
@@ -273,7 +278,7 @@ defineExpose({
 
     .ProseMirror {
       @apply flex-grow !border-0 rounded-lg;
-
+      caret-color: #3366FF;
     }
 
     p {

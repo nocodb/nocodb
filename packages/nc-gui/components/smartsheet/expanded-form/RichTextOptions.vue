@@ -92,7 +92,7 @@ const newMentionNode = () => {
         type="text"
         @click="editor?.chain().focus().toggleBold().run()"
       >
-        <MdiFormatBold />
+        <GeneralIcon icon="bold" />
       </NcButton>
     </NcTooltip>
 
@@ -113,7 +113,7 @@ const newMentionNode = () => {
         type="text"
         @click=";(editor?.chain().focus() as any).toggleItalic().run()"
       >
-        <MdiFormatItalic />
+        <GeneralIcon icon="italic" />
       </NcButton>
     </NcTooltip>
     <NcTooltip>
@@ -134,7 +134,7 @@ const newMentionNode = () => {
         type="text"
         @click="editor?.chain().focus().toggleUnderline().run()"
       >
-        <MdiFormatUnderline />
+        <GeneralIcon icon="underline" />
       </NcButton>
     </NcTooltip>
     <NcTooltip>
@@ -154,7 +154,7 @@ const newMentionNode = () => {
         type="text"
         @click="editor?.chain().focus().toggleStrike().run()"
       >
-        <MdiFormatStrikeThrough />
+        <GeneralIcon icon="strike" />
       </NcButton>
     </NcTooltip>
 
@@ -188,7 +188,7 @@ const newMentionNode = () => {
         type="text"
         @click="newMentionNode"
       >
-        <span class="mb-1 font-light text-xl"> @ </span>
+        <GeneralIcon icon="atSign" />
       </NcButton>
     </NcTooltip>
   </div>

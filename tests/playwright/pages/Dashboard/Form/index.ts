@@ -679,7 +679,7 @@ export class FormPage extends BasePage {
         if (hasErrorMsg !== undefined) {
           await expect(fieldErrorEl).toBeVisible();
 
-          await expect(fieldErrorEl.locator('> div').filter({ hasText: hasErrorMsg })).toHaveText(hasErrorMsg);
+          await expect(fieldErrorEl.locator('> div').filter({ hasText: hasErrorMsg }).first()).toHaveText(hasErrorMsg);
         }
       },
     };

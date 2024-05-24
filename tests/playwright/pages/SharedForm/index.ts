@@ -102,7 +102,7 @@ export class SharedFormPage extends BasePage {
         if (hasErrorMsg !== undefined) {
           await fieldErrorEl.waitFor({ state: 'visible' });
 
-          await expect(fieldErrorEl.locator('> div').filter({ hasText: hasErrorMsg })).toHaveText(hasErrorMsg);
+          await expect(fieldErrorEl.locator('> div').filter({ hasText: hasErrorMsg }).first()).toHaveText(hasErrorMsg);
         }
       },
     };

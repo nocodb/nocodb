@@ -13,7 +13,6 @@ import { XKnex } from '~/db/CustomKnex';
 import { NcConfig } from '~/utils/nc-config';
 import { MetaTable } from '~/utils/globals';
 import { NcError } from '~/helpers/catchError';
-
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -58,6 +57,14 @@ export class MetaService {
     return this.knexConnection;
   }
 
+  /***
+   * Get single record from meta data
+   * @param base_id - Base id
+   * @param dbAlias - Database alias
+   * @param target - Table name
+   * @param idOrCondition - If string, will get the record with the given id. If object, will get the record with the given condition.
+   * @param fields - Fields to be selected
+   */
   public async metaGet(
     base_id: string,
     dbAlias: string,
@@ -98,6 +105,14 @@ export class MetaService {
     return query.first();
   }
 
+  /***
+   * Insert record into meta data
+   * @param base_id - Base id
+   * @param dbAlias - Database alias
+   * @param target - Table name
+   * @param data - Data to be inserted
+   * @param ignoreIdGeneration - If true, will not generate id for the record
+   */
   public async metaInsert2(
     base_id: string,
     source_id: string,
@@ -122,6 +137,14 @@ export class MetaService {
     return insertObj;
   }
 
+  /***
+   * Insert multiple records into meta data
+   * @param base_id - Base id
+   * @param source_id - Source id
+   * @param target - Table name
+   * @param data - Data to be inserted
+   * @param ignoreIdGeneration - If true, will not generate id for the record
+   */
   public async bulkMetaInsert(
     base_id: string,
     source_id: string,
@@ -159,6 +182,11 @@ export class MetaService {
     return insertObj;
   }
 
+  /***
+   * Generate nanoid for the given target
+   * @param target - Table name
+   * @returns {string} - Generated nanoid
+   * */
   public async genNanoid(target: string) {
     let prefix;
     switch (target) {
@@ -273,6 +301,19 @@ export class MetaService {
     return `${prefix}${nanoidv2()}`;
   }
 
+  /***
+   * Get paginated list of meta data
+   * @param baseId - Base id
+   * @param dbAlias - Database alias
+   * @param target - Table name
+   * @param args.condition - Condition to be applied
+   * @param args.limit - Limit of records
+   * @param args.offset - Offset of records
+   * @param args.xcCondition - Additional nested or complex condition to be added to the query.
+   * @param args.fields - Fields to be selected
+   * @param args.sort - Sort field and direction
+   * @returns {Promise<{list: any[]; count: number}>} - List of records and count
+   * */
   public async metaPaginatedList(
     baseId: string,
     dbAlias: string,
@@ -368,12 +409,22 @@ export class MetaService {
   //   return true;
   // }
 
+  /***
+   * Delete meta data
+   * @param base_id - Base id
+   * @param dbAlias - Database alias
+   * @param target - Table name
+   * @param idOrCondition - If string, will delete the record with the given id. If object, will delete the record with the given condition.
+   * @param xcCondition - Additional nested or complex condition to be added to the query.
+   * @param force - If true, will not check if a condition is present in the query builder and will execute the query as is.
+   */
   public async metaDelete(
     base_id: string,
     dbAlias: string,
     target: string,
     idOrCondition: string | { [p: string]: any },
     xcCondition?: Condition,
+    force = false,
   ): Promise<void> {
     const query = this.knexConnection(target);
 
@@ -394,9 +445,23 @@ export class MetaService {
       query.condition(xcCondition, {});
     }
 
+    // Check if a condition is present in the query builder and throw an error if not.
+    if (!force) {
+      this.checkConditionPresent(query);
+    }
+
     return query.del();
   }
 
+  /***
+   * Get meta data
+   * @param base_id - Base id
+   * @param sourceId - Source id
+   * @param target - Table name
+   * @param idOrCondition - If string, will get the record with the given id. If object, will get the record with the given condition.
+   * @param fields - Fields to be selected
+   * @param xcCondition - Additional nested or complex condition to be added to the query.
+   */
   public async metaGet2(
     base_id: string,
     sourceId: string,
@@ -434,6 +499,12 @@ export class MetaService {
     return query.first();
   }
 
+  /***
+   * Get order value for the next record
+   * @param target - Table name
+   * @param condition - Condition to be applied
+   * @returns {Promise<number>} - Order value
+   * */
   public async metaGetNextOrder(
     target: string,
     condition: { [key: string]: any },
@@ -508,6 +579,19 @@ export class MetaService {
     return query;
   }
 
+  /***
+   * Get list of meta data
+   * @param base_id - Base id
+   * @param dbAlias - Database alias
+   * @param target - Table name
+   * @param args.condition - Condition to be applied
+   * @param args.limit - Limit of records
+   * @param args.offset - Offset of records
+   * @param args.xcCondition - Additional nested or complex condition to be added to the query.
+   * @param args.fields - Fields to be selected
+   * @param args.orderBy - Order by fields
+   * @returns {Promise<any[]>} - List of records
+   * */
   public async metaList2(
     base_id: string,
     dbAlias: string,
@@ -552,9 +636,23 @@ export class MetaService {
       query.select(...args.fields);
     }
 
+    query.andWhere((qb) => {
+      qb.where({});
+    });
+
     return query;
   }
 
+  /***
+   * Get count of meta data
+   * @param base_id - Base id
+   * @param dbAlias - Database alias
+   * @param target - Table name
+   * @param args.condition - Condition to be applied
+   * @param args.xcCondition - Additional nested or complex condition to be added to the query.
+   * @param args.aggField - Field to be aggregated
+   * @returns {Promise<number>} - Count of records
+   * */
   public async metaCount(
     base_id: string,
     dbAlias: string,
@@ -587,6 +685,16 @@ export class MetaService {
     return +(await query)?.['count'] || 0;
   }
 
+  /***
+   * Update meta data
+   * @param base_id - Base id
+   * @param dbAlias - Database alias
+   * @param target - Table name
+   * @param data - Data to be updated
+   * @param idOrCondition - If string, will update the record with the given id. If object, will update the record with the given condition.
+   * @param xcCondition - Additional nested or complex condition to be added to the query.
+   * @param force - If true, will not check if a condition is present in the query builder and will execute the query as is.
+   */
   public async metaUpdate(
     base_id: string,
     dbAlias: string,
@@ -594,6 +702,7 @@ export class MetaService {
     data: any,
     idOrCondition?: string | { [p: string]: any },
     xcCondition?: Condition,
+    force = false,
   ): Promise<any> {
     const query = this.knexConnection(target);
     if (base_id !== null && base_id !== undefined) {
@@ -615,6 +724,11 @@ export class MetaService {
       query.condition(xcCondition);
     }
 
+    // Check if a condition is present in the query builder and throw an error if not.
+    if (!force) {
+      this.checkConditionPresent(query);
+    }
+
     return await query;
   }
 
@@ -630,6 +744,12 @@ export class MetaService {
     // await this.knexConnection.schema.dropTableIfExists('nc_acl').;
   }
 
+  /***
+   * Check table meta data exists for a given base id and db alias
+   * @param base_id - Base id
+   * @param dbAlias - Database alias
+   * @returns {Promise<boolean>} - True if meta data exists, false otherwise
+   * */
   public async isMetaDataExists(
     base_id: string,
     dbAlias: string,
@@ -699,6 +819,14 @@ export class MetaService {
     }
   }
 
+  /***
+   * Create a new base
+   * @param baseName - Base name
+   * @param config - Base config
+   * @param description - Base description
+   * @param meta - If true, will create a meta base
+   * @returns {Promise<any>} - Created base
+   * */
   public async baseCreate(
     baseName: string,
     config: any,
@@ -744,7 +872,19 @@ export class MetaService {
     }
   }
 
+  /***
+   * Update base config
+   * @param baseId - Base id
+   * @param config - Base config
+   * */
   public async baseUpdate(baseId: string, config: any): Promise<any> {
+    if (!baseId) {
+      NcError.metaError({
+        message: 'Base Id is required to update base config',
+        sql: '',
+      });
+    }
+
     try {
       const base = {
         config: CryptoJS.AES.encrypt(
@@ -761,6 +901,10 @@ export class MetaService {
     }
   }
 
+  /***
+   * Get base list with decrypted config
+   * @returns {Promise<any[]>} - List of bases
+   * */
   public async baseList(): Promise<any[]> {
     return (await this.knexConnection('nc_projects').select()).map((p) => {
       p.config = CryptoJS.AES.decrypt(
@@ -771,6 +915,10 @@ export class MetaService {
     });
   }
 
+  /***
+   * Get base list with decrypted config for a user
+   * @returns {Promise<any[]>} - List of bases
+   * */
   public async userProjectList(userId: any): Promise<any[]> {
     return (
       await this.knexConnection('nc_projects')
@@ -828,6 +976,12 @@ export class MetaService {
     });
   }
 
+  /***
+   * Check if user have access to a project
+   * @param baseId - Base id
+   * @param userId - User id
+   * @returns {Promise<boolean>} - True if user have access, false otherwise
+   * */
   public async isUserHaveAccessToProject(
     baseId: string,
     userId: any,
@@ -840,6 +994,12 @@ export class MetaService {
       .first());
   }
 
+  /***
+   * Get base by name
+   * @param baseName - Base name
+   * @param encrypt - If true, will skip the decryption of config
+   * @returns {Promise<any>} - Base
+   * */
   public async baseGet(baseName: string, encrypt?): Promise<any> {
     const base = await this.knexConnection('nc_projects')
       .where({
@@ -856,6 +1016,12 @@ export class MetaService {
     return base;
   }
 
+  /***
+   * Get base by id
+   * @param baseId - Base id
+   * @param encrypt - If true, will skip the decryption of config
+   * @returns {Promise<any>} - Base
+   * */
   public async baseGetById(baseId: string, encrypt?): Promise<any> {
     const base = await this.knexConnection('nc_projects')
       .where({
@@ -871,7 +1037,18 @@ export class MetaService {
     return base;
   }
 
+  /***
+   * Delete base by name
+   * @param title - Base name
+   * */
   public baseDelete(title: string): Promise<any> {
+    if (!title) {
+      NcError.metaError({
+        message: 'Base title is required to delete base',
+        sql: '',
+      });
+    }
+
     return this.knexConnection('nc_projects')
       .where({
         title,
@@ -879,7 +1056,17 @@ export class MetaService {
       .delete();
   }
 
+  /***
+   * Delete base by id
+   * @param id - Base id
+   * */
   public baseDeleteById(id: string): Promise<any> {
+    if (!id) {
+      NcError.metaError({
+        message: 'Base id is required to delete base',
+        sql: '',
+      });
+    }
     return this.knexConnection('nc_projects')
       .where({
         id,
@@ -887,7 +1074,19 @@ export class MetaService {
       .delete();
   }
 
+  /***
+   * Update base status
+   * @param baseId - Base id
+   * @param status - Base status
+   * */
   public async baseStatusUpdate(baseId: string, status: string): Promise<any> {
+    if (!baseId) {
+      NcError.metaError({
+        message: 'Base id is required to update base status',
+        sql: '',
+      });
+    }
+
     return this.knexConnection('nc_projects')
       .update({
         status,
@@ -897,6 +1096,12 @@ export class MetaService {
       });
   }
 
+  /***
+   * Add user to base
+   * @param baseId - Base id
+   * @param userId - User id
+   * @param roles - User roles
+   * */
   public async baseAddUser(
     baseId: string,
     userId: any,
@@ -919,7 +1124,19 @@ export class MetaService {
     });
   }
 
+  /***
+   * Remove user from base
+   * @param baseId - Base id
+   * @param userId - User id
+   * */
   public baseRemoveUser(baseId: string, userId: any): Promise<any> {
+    if (!baseId || !userId) {
+      NcError.metaError({
+        message: 'Base id and user id is required to remove user from base',
+        sql: '',
+      });
+    }
+
     return this.knexConnection('nc_projects_users')
       .where({
         user_id: userId,
@@ -929,6 +1146,13 @@ export class MetaService {
   }
 
   public removeXcUser(userId: any): Promise<any> {
+    if (!userId) {
+      NcError.metaError({
+        message: 'User id is required to remove user',
+        sql: '',
+      });
+    }
+
     return this.knexConnection('xc_users')
       .where({
         id: userId,
@@ -975,5 +1199,28 @@ export class MetaService {
       tableName: 'xc_knex_migrationsv2',
     });
     return true;
+  }
+
+  /**
+   * Checks if a condition is present in the query builder and throws an error if not.
+   *
+   * @param queryBuilder - The Knex QueryBuilder instance to check.
+   */
+  private checkConditionPresent(queryBuilder: Knex.QueryBuilder) {
+    // Convert the query builder to a SQL string to inspect the presence of a WHERE clause.
+    const sql = queryBuilder.toString();
+
+    // Ensure that a WHERE condition is present in the query builder.
+    // Note: The `hasWhere` method alone is not sufficient since it can indicate an empty nested WHERE group.
+    // Therefore, also check the SQL string for the presence of the 'WHERE' keyword.
+    if (queryBuilder.hasWhere() && /\bWHERE\b/i.test(sql)) {
+      return;
+    }
+
+    // Throw an error if no condition is found in the query builder.
+    NcError.metaError({
+      message: 'Condition is required',
+      sql,
+    });
   }
 }

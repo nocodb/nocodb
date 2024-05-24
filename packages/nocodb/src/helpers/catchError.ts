@@ -415,6 +415,13 @@ export class NotFound extends NcBaseError {}
 
 export class SsoError extends NcBaseError {}
 
+export class MetaError extends NcBaseError {
+  constructor(param: { message: string; sql: string }) {
+    super(param.message);
+    Object.assign(this, param);
+  }
+}
+
 export class ExternalError extends NcBaseError {
   constructor(error: Error) {
     super(error.message);
@@ -746,5 +753,9 @@ export class NcError {
     throw new SsoError(
       `Email domain ${domain} is not allowed for this organization`,
     );
+  }
+
+  static metaError(param: { message: string; sql: string }) {
+    throw new MetaError(param);
   }
 }

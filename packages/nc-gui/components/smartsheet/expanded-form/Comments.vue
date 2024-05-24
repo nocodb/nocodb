@@ -107,8 +107,8 @@ const value = computed({
 })
 
 function scrollComments() {
-  const elems = document.querySelectorAll(tab.value === ('comments' as const) ? '.nc-comment-item': '.nc-audit-item')
-  elems[elems.length-1]?.scrollIntoView({ behavior: 'smooth', block: 'end' })
+  const elems = document.querySelectorAll(tab.value === ('comments' as const) ? '.nc-comment-item' : '.nc-audit-item')
+  elems[elems.length - 1]?.scrollIntoView({ behavior: 'smooth', block: 'end' })
 }
 
 const isSaving = ref(false)
@@ -133,11 +133,6 @@ const saveComment = async () => {
   }
 }
 
-watch(isCommentsLoading, () => {
-  nextTick(() => {
-    scrollComments()
-  })
-})
 </script>
 
 <template>
@@ -167,34 +162,46 @@ watch(isCommentsLoading, () => {
               <div class="font-medium text-center my-6 text-gray-500">{{ $t('activity.startCommenting') }}</div>
             </div>
             <div v-else ref="commentsWrapperEl" class="flex flex-col h-full py-1 nc-scrollbar-thin">
-              <div v-for="comment of comments" class="nc-comment-item" :key="comment.id">
+              <div v-for="comment of comments" :key="comment.id" class="nc-comment-item">
                 <div
                   :class="{
                     'hover:bg-gray-50 bg-white': comment.id !== editLog?.id,
                   }"
                   class="group gap-3 overflow-hidden flex items-start px-3 pt-3 pb-4"
                 >
-                  <GeneralUserIcon :email="comment.created_by_email" :name="comment.created_display_name" class="mt-0.5" size="medium" />
+                  <GeneralUserIcon
+                    :email="comment.created_by_email"
+                    :name="comment.created_display_name"
+                    class="mt-0.5"
+                    size="medium"
+                  />
                   <div class="flex-1 flex flex-col gap-1 max-w-[calc(100%_-_24px)]">
                     <div class="w-full flex justify-between gap-3 min-h-7">
                       <div class="flex items-center max-w-[calc(100%_-_40px)]">
                         <div class="w-full flex flex-wrap items-center">
-                          <NcTooltip class="truncate capitalize max-w-42 mr-2" show-on-truncate-only>
+                          <NcTooltip
+                            class="truncate capitalize text-gray-800 font-weight-700 !text-base max-w-42 mr-2"
+                            show-on-truncate-only
+                          >
                             <template #title>
                               {{ comment.created_display_name?.trim() || comment.created_by_email || 'Shared source' }}
                             </template>
                             <span
-                              class="text-ellipsis capitalize overflow-hidden text-gray-500 font-weight-500 text-small"
+                              class="text-ellipsis capitalize overflow-hidden"
                               :style="{
                                 wordBreak: 'keep-all',
                                 whiteSpace: 'nowrap',
                                 display: 'inline',
                               }"
                             >
-                              {{ comment.created_display_name?.trim() || comment.created_by_email || 'Shared source' }}
+                              {{
+                                comment.created_by === user?.id
+                                  ? 'You'
+                                  : comment.created_display_name?.trim() || comment.created_by_email || 'Shared source'
+                              }}
                             </span>
                           </NcTooltip>
-                          <div v-if="comment.id !== editLog?.id" class="text-xs text-gray-400">
+                          <div v-if="comment.id !== editLog?.id" class="text-xs text-gray-500">
                             {{
                               comment.created_at !== comment.updated_at
                                 ? `Edited ${timeAgo(comment.updated_at)}`
@@ -238,10 +245,10 @@ watch(isCommentsLoading, () => {
                     </div>
 
                     <SmartsheetExpandedFormRichComment
-                      ref="editRef"
-                      autofocus
                       v-if="comment.id === editLog?.id"
+                      ref="editRef"
                       v-model:value="value"
+                      autofocus
                       :hide-options="false"
                       class="expanded-form-comment-input !pt-1 !pb-0.5 !pl-2 !m-0 w-full !border-1 !border-gray-200 !rounded-lg !bg-transparent !text-gray-800 !text-small !leading-18px !max-h-[694px]"
                       data-testid="expanded-form-comment-input"
@@ -257,7 +264,7 @@ watch(isCommentsLoading, () => {
                       @keydown.enter.exact.prevent="onEditComment"
                     />
 
-                    <div v-else class="nc-comment-description text-small leading-18px text-gray-800">
+                    <div v-else class="text-small leading-18px text-gray-800">
                       <SmartsheetExpandedFormRichComment
                         :value="comment.comment"
                         class="!text-small !leading-18px !text-gray-800 -ml-1"
@@ -269,24 +276,20 @@ watch(isCommentsLoading, () => {
                 </div>
               </div>
             </div>
-            <div v-if="hasEditPermission" class="bg-gray-50 !rounded-br-lg gap-2 flex">
-              <div class="flex flex-row w-full items-end gap-2">
-                <div class="expanded-form-comment-input-wrapper">
-                  <SmartsheetExpandedFormRichComment
-                    ref="commentInputRef"
-                    v-model:value="newComment"
-                    :hide-options="false"
-                    placeholder="Comment..."
-                    class="expanded-form-comment-input !m-0 w-full !border-t-1 !border-gray-200 !bg-transparent !text-gray-800 !text-small !leading-18px !max-h-[694px]"
-                    :autofocus="isExpandedFormCommentMode"
-                    data-testid="expanded-form-comment-input"
-                    @focus="isExpandedFormCommentMode = false"
-                    @keydown.stop
-                    @save="saveComment"
-                    @keydown.enter.exact.prevent="saveComment"
-                  />
-                </div>
-              </div>
+            <div v-if="hasEditPermission" class="bg-gray-50 nc-comment-input !rounded-br-lg gap-2 flex">
+              <SmartsheetExpandedFormRichComment
+                ref="commentInputRef"
+                v-model:value="newComment"
+                :hide-options="false"
+                placeholder="Comment..."
+                class="expanded-form-comment-input !m-0 pt-2 w-full !border-t-1 !border-gray-200 !bg-transparent !text-gray-800 !text-small !leading-18px !max-h-[694px]"
+                :autofocus="isExpandedFormCommentMode"
+                data-testid="expanded-form-comment-input"
+                @focus="isExpandedFormCommentMode = false"
+                @keydown.stop
+                @save="saveComment"
+                @keydown.enter.exact.prevent="saveComment"
+              />
             </div>
           </div>
         </div>
@@ -370,6 +373,12 @@ watch(isCommentsLoading, () => {
   @apply max-w-1/2;
 }
 
+.nc-comment-input {
+  :deep(.nc-comment-rich-editor) {
+    @apply !ml-1
+  }
+}
+
 .nc-audit-item {
   @apply border-b-1 gap-3 border-gray-200;
 }
@@ -420,17 +429,6 @@ watch(isCommentsLoading, () => {
   }
 }
 
-.nc-comment-description {
-  pre {
-    @apply !mb-0 py-[1px] !text-small !text-gray-700 !leading-18px;
-    white-space: break-spaces;
-    font-size: unset;
-    font-family: unset;
-  }
-}
-.expanded-form-comment-input-wrapper {
-  @apply flex-1 !bg-white rounded-lg relative;
-}
 :deep(.expanded-form-comment-input) {
   @apply transition-all duration-150 min-h-8;
   box-shadow: none;
@@ -440,12 +438,6 @@ watch(isCommentsLoading, () => {
   }
   &::placeholder {
     @apply !text-gray-400;
-  }
-}
-.expanded-form-comment-input-wrapper {
-  &:focus,
-  &:focus-within {
-    @apply;
   }
 }
 </style>

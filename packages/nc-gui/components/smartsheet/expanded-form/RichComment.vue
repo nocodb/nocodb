@@ -71,7 +71,6 @@ const tiptapExtensions = [
     orderedList:false,
     listItem:false,
     horizontalRule: false,
-    codeBlock:false,
     code: false,
     bulletList: false,
     blockquote: false,
@@ -89,7 +88,7 @@ const editor = useEditor({
   onUpdate: ({ editor }) => {
     const markdown = turndownService
       .turndown(editor.getHTML().replaceAll(/<p><\/p>/g, '<br />'))
-      .replaceAll(/\n\n<br \/>\n\n/g, '<br>\n\n')
+      .replaceAll(/\n\n<br \/>\n/g, '<br>\n')
     vModel.value = markdown === '<br />' ? '' : markdown
   },
   editable: !props.readOnly,
@@ -211,7 +210,7 @@ defineExpose({
       <EditorContent
         ref="editorDom"
         :editor="editor"
-        class="flex flex-col nc-comment-rich-editor px-2 !pt-1 w-full scrollbar-thin scrollbar-thumb-gray-200 nc-truncate scrollbar-track-transparent"
+        class="flex flex-col nc-comment-rich-editor px-1.5 w-full scrollbar-thin scrollbar-thumb-gray-200 nc-truncate scrollbar-track-transparent"
         @keydown.alt.enter.stop
         @keydown.shift.enter.stop
       />
@@ -273,20 +272,17 @@ defineExpose({
     }
 
     .ProseMirror {
-      @apply flex-grow pt-1.5 !border-0 rounded-lg;
+      @apply flex-grow !border-0 rounded-lg;
 
-      > * {
-        @apply ml-1;
-      }
+    }
+
+    p {
+      @apply !m-0;
     }
 
     .ProseMirror-focused {
       // remove all border
       outline: none;
-    }
-
-    p {
-      @apply !mb-1;
     }
 
     // Pre tag is the parent wrapper for Code block

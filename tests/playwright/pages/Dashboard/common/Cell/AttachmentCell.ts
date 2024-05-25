@@ -33,6 +33,22 @@ export class AttachmentCellPageObject extends BasePage {
     await this.rootPage.waitForTimeout(750);
   }
 
+  async removeFile({ attIndex, index, columnHeader }: { attIndex: number; index?: number; columnHeader: string }) {
+    await this.get({ index, columnHeader }).scrollIntoViewIfNeeded();
+    await this.get({ index, columnHeader }).click({ position: { x: 1, y: 1 } });
+
+    await this.get({ index, columnHeader }).locator('.nc-attachment-item').nth(attIndex).hover();
+    await this.get({ index, columnHeader })
+      .locator('.nc-attachment-item')
+      .nth(attIndex)
+      .locator('.nc-attachment-remove')
+      .click();
+
+    await this.rootPage.locator('.ant-modal.active').waitFor({ state: 'visible' });
+    await this.rootPage.locator('.ant-modal.active').getByTestId('nc-delete-modal-delete-btn').click();
+    await this.rootPage.locator('.ant-modal.active').waitFor({ state: 'hidden' });
+  }
+
   async expandModalAddFile({ filePath }: { filePath: string[] }) {
     const attachFileAction = this.rootPage
       .locator('.ant-modal.nc-attachment-modal.active')

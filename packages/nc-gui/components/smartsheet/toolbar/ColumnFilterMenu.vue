@@ -85,8 +85,8 @@ eventBus.on(async (event, column: ColumnType) => {
         class="nc-table-toolbar-menu"
         :auto-save="true"
         data-testid="nc-filter-menu"
-        @update:filters-length="filtersLength = $event"
         :is-open="open"
+        @update:filters-length="filtersLength = $event"
       >
       </SmartsheetToolbarColumnFilter>
     </template>

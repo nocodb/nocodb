@@ -16,6 +16,8 @@ const {
   showSideMenu,
 } = useCalendarViewStoreOrThrow()
 
+const { $e } = useNuxtApp()
+
 const container = ref<null | HTMLElement>(null)
 
 const { isUIAllowed } = useRoles()
@@ -672,6 +674,8 @@ const stopDrag = (event: MouseEvent) => {
   if (!newRow) return
   updateRowProperty(newRow, updateProperty, false)
 
+  $e('c:calendar:day:drag-record')
+
   document.removeEventListener('mousemove', onDrag)
   document.removeEventListener('mouseup', stopDrag)
 }
@@ -802,6 +806,7 @@ const dropEvent = (event: DragEvent) => {
       dragElement.value = null
     }
     updateRowProperty(newRow, updateProperty, false)
+    $e('c:calendar:day:drag-record')
   }
 }
 
@@ -859,7 +864,7 @@ watch(
 <template>
   <div
     ref="container"
-    class="w-full flex relative no-selection h-[calc(100vh-10rem)] overflow-y-auto nc-scrollbar-md"
+    class="w-full flex relative no-selection h-[calc(100vh-5.3rem)] overflow-y-auto nc-scrollbar-md"
     data-testid="nc-calendar-day-view"
     @drop="dropEvent"
   >
@@ -872,7 +877,7 @@ watch(
         @click="selectHour(hour)"
         @dblclick="newRecord(hour)"
       >
-        <div class="w-16 border-b-0 pr-3 pl-2 text-right text-xs text-gray-400 font-semibold h-13">
+        <div class="w-16 border-b-0 pr-2 pl-2 text-right text-xs text-gray-400 font-semibold h-13">
           {{ dayjs(hour).format('hh a') }}
         </div>
       </div>
@@ -884,7 +889,7 @@ watch(
         :class="{
           '!border-brand-500': hour.isSame(selectedTime),
         }"
-        class="flex w-full border-l-gray-100 h-13 nc-calendar-day-hour relative border-1 group hover:bg-gray-50 border-white border-b-gray-100"
+        class="flex w-full border-l-gray-100 h-13 transition nc-calendar-day-hour relative border-1 group hover:bg-gray-50 border-white border-b-gray-100"
         data-testid="nc-calendar-day-hour"
         @click="selectHour(hour)"
         @dblclick="newRecord(hour)"
@@ -994,7 +999,7 @@ watch(
             :data-testid="`nc-calendar-day-record-${record.row[displayField!.title!]}`"
             :data-unique-id="record.rowMeta.id"
             :style="record.rowMeta.style"
-            class="absolute draggable-record group cursor-pointer pointer-events-auto"
+            class="absolute draggable-record transition group cursor-pointer pointer-events-auto"
             @mousedown="dragStart($event, record)"
             @mouseleave="hoverRecord = null"
             @mouseover="hoverRecord = record.rowMeta.id as string"

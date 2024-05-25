@@ -22,7 +22,17 @@ export default defineConfig({
   },
 
   darkMode: 'class',
-  safelist: ['text-yellow-500', 'text-sky-500', 'text-red-500', 'bg-primary-selected'],
+  safelist: [
+    'text-yellow-500',
+    'text-sky-500',
+    'text-red-500',
+    'bg-primary-selected',
+    'text-pink-500',
+    'text-orange-500',
+    'text-blue-500',
+    'text-purple-500',
+    'text-grey',
+  ],
   plugins: [
     scrollbar,
     animations,
@@ -80,6 +90,7 @@ export default defineConfig({
         extraLight: 250,
         light: 350,
         normal: 450,
+        default: 500,
         medium: 550,
         bold: 650,
         black: 750,
@@ -99,6 +110,9 @@ export default defineConfig({
       ringColor: {
         primary: 'rgba(var(--color-primary), var(--tw-ring-opacity))',
         accent: 'rgba(var(--color-accent), var(--tw-ring-opacity))',
+      },
+      boxShadow: {
+        selected: '0px 0px 0px 2px var(--ant-primary-color-outline)',
       },
       colors: {
         ...windiColors,

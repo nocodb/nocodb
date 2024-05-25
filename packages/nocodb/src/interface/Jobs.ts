@@ -1,3 +1,5 @@
+import type { UserType } from 'nocodb-sdk';
+
 export const JOBS_QUEUE = 'jobs';
 
 export enum JobTypes {
@@ -11,6 +13,9 @@ export enum JobTypes {
   UpdateModelStat = 'update-model-stat',
   UpdateWsStat = 'update-ws-stats',
   UpdateSrcStat = 'update-source-stat',
+  HealthCheck = 'health-check',
+  HandleWebhook = 'handle-webhook',
+  CleanUp = 'clean-up',
 }
 
 export enum JobStatus {
@@ -38,4 +43,14 @@ export enum InstanceCommands {
   PAUSE_LOCAL = 'pauseLocal',
   RESET = 'reset',
   RELEASE = 'release',
+}
+
+export interface HandleWebhookJobData {
+  hookName: string;
+  prevData;
+  newData;
+  user: UserType;
+  viewId: string;
+  modelId: string;
+  tnPath: string;
 }

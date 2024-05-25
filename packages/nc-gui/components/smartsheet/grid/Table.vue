@@ -1136,6 +1136,9 @@ const calculateSlices = () => {
       start: 0,
       end: 0,
     }
+
+    // try again until the grid is rendered
+    setTimeout(calculateSlices, 100)
     return
   }
 
@@ -1255,6 +1258,7 @@ const showFillHandle = computed(
     (!selectedRange.isEmpty() || (activeCell.row !== null && activeCell.col !== null)) &&
     !dataRef.value[(isNaN(selectedRange.end.row) ? activeCell.row : selectedRange.end.row) ?? -1]?.rowMeta?.new &&
     activeCell.col !== null &&
+    fields.value[activeCell.col] &&
     !(
       isLookup(fields.value[activeCell.col]) ||
       isRollup(fields.value[activeCell.col]) ||
@@ -2446,7 +2450,7 @@ onKeyStroke('ArrowDown', onDown)
 
     :deep(.nc-cell-icon),
     :deep(.nc-virtual-cell-icon) {
-      @apply !w-3.5 !h-3.5 !text-gray-500 !text-small;
+      @apply !w-3.5 !h-3.5 !text-small;
     }
   }
 
@@ -2698,6 +2702,23 @@ onKeyStroke('ArrowDown', onDown)
     td.nc-grid-cell:not(.active),
     td:nth-child(2):not(.active) {
       @apply !bg-[#F0F3FF] border-b-gray-200 border-r-gray-200;
+    }
+  }
+
+  &:not(.selected-row):has(+ .selected-row) {
+    td.nc-grid-cell:not(.active),
+    td:nth-child(2):not(.active) {
+      @apply border-b-gray-200;
+    }
+  }
+
+  &:not(.active-row):has(+ .active-row),
+  &:not(.mouse-down):has(+ :hover) {
+    &:not(.selected-row) {
+      td.nc-grid-cell:not(.active),
+      td:nth-child(2):not(.active) {
+        @apply border-b-gray-200;
+      }
     }
   }
 }

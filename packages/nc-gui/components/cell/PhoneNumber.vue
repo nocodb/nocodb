@@ -22,7 +22,7 @@ const isEditColumn = inject(EditColumnInj, ref(false))
 
 const column = inject(ColumnInj)!
 
-const isSurveyForm = inject(IsSurveyFormInj, ref(false))
+const isForm = inject(IsFormInj)!
 
 const readOnly = inject(ReadonlyInj, ref(false))
 
@@ -33,7 +33,7 @@ const vModel = computed({
   get: () => value,
   set: (val) => {
     localState.value = val
-    if (!parseProp(column.value.meta)?.validate || (val && isMobilePhone(val)) || !val || isSurveyForm.value) {
+    if (!parseProp(column.value.meta)?.validate || (val && isMobilePhone(val)) || !val || isForm.value) {
       emit('update:modelValue', val)
     }
   },
@@ -42,8 +42,6 @@ const vModel = computed({
 const validPhoneNumber = computed(() => vModel.value && isMobilePhone(vModel.value))
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
-
-const isForm = inject(IsFormInj)!
 
 const focus: VNodeRef = (el) =>
   !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value && (el as HTMLInputElement)?.focus()

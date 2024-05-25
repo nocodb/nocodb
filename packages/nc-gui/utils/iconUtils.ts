@@ -74,6 +74,7 @@ import Record from '~icons/nc-icons/record'
 import Project from '~icons/nc-icons/project'
 import LookupIcon from '~icons/nc-icons/lookup'
 import FileImageIcon from '~icons/nc-icons/file-image'
+import Calendar from '~icons/lucide/calendar'
 
 import PhUsers from '~icons/ph/users'
 import PhUser from '~icons/ph/user'
@@ -135,8 +136,10 @@ import NcPhoneCall from '~icons/nc-icons/phone-call'
 import NcItalic from '~icons/nc-icons/italic'
 import NcBold from '~icons/nc-icons/bold'
 import NcUnderline from '~icons/nc-icons/underline'
-import NcCrop from '~icons/nc-icons/crop'
 import NcLink from '~icons/nc-icons/link'
+import NcAtSign from '~icons/nc-icons/at-sign'
+import NcStrike from '~icons/nc-icons/strike-through'
+import NcCrop from '~icons/nc-icons/crop'
 import NcControlPanel from '~icons/nc-icons/control-panel'
 import NcHome from '~icons/nc-icons/home'
 import NcWorkspace from '~icons/nc-icons/workspace'
@@ -184,6 +187,9 @@ import NcTwitter from '~icons/nc-icons/twitter'
 import NcFile from '~icons/nc-icons/file'
 import NcSettings from '~icons/nc-icons/settings'
 import NcHelp from '~icons/nc-icons/help'
+import NcAlertTriangle from '~icons/nc-icons/alert-triangle'
+import NcAudit from '~icons/nc-icons/audit'
+import NcMessageCircle from '~icons/nc-icons/message-circle'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -333,6 +339,8 @@ import NcHelp from '~icons/nc-icons/help'
 } as const */
 
 export const iconMap = {
+  strike: NcStrike,
+  atSign: NcAtSign,
   slash: NcSlash,
   arrowUpRight: NcArrowUpRight,
   ncWorkspace: NcWorkspace,
@@ -386,6 +394,7 @@ export const iconMap = {
   workspaceDefault: MsGroup,
   project: Project,
   search: NcSearch,
+  calendar: Calendar,
   error: h('span', { class: 'material-symbols' }, 'error'),
   info: h(MsInfo, {}, () => 'info'),
   inbox: h('span', { class: 'material-symbols' }, 'inbox'),
@@ -490,7 +499,6 @@ export const iconMap = {
   web: h('span', { class: 'material-symbols' }, 'web'),
   webhook: h('span', { class: 'material-symbols' }, 'webhook'),
   boolean: h('span', { class: 'material-symbols' }, 'check_box'),
-  calendar: h('span', { class: 'material-symbols' }, 'event_note'),
   singleSelect: h('span', { class: 'material-symbols' }, 'radio_button_checked'),
   multiSelect: h('span', { class: 'material-symbols' }, 'check_box_outline_blank'),
   datetime: h('span', { class: 'material-symbols' }, 'date_range'),
@@ -601,6 +609,9 @@ export const iconMap = {
   puzzle: MdiPuzzle,
   arrowDropUp: MaterialSymbolsArrowDropUp,
   arrowDropDown: MaterialSymbolsArrowDropDown,
+  alertTriangle: NcAlertTriangle,
+  audit: NcAudit,
+  messageCircle: NcMessageCircle,
 }
 
 export const getMdiIcon = (type: string): any => {

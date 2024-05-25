@@ -38,6 +38,8 @@ test.describe('Share form', () => {
     await dashboard.form.showAnotherFormRadioButton.click();
     await dashboard.form.showAnotherFormAfter5SecRadioButton.click();
 
+    await dashboard.rootPage.waitForTimeout(200);
+
     const surveyLink = await dashboard.form.topbar.getSharedViewUrl(true);
     await dashboard.rootPage.waitForTimeout(2000);
     await dashboard.rootPage.goto(surveyLink);

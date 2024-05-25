@@ -43,6 +43,8 @@ export const useBases = defineStore('basesStore', () => {
     return basesMap
   })
 
+  const isDataSourceLimitReached = computed(() => Number(openedProject.value?.sources?.length) > 9)
+
   const workspaceStore = useWorkspace()
   const tableStore = useTablesStore()
 
@@ -389,6 +391,7 @@ export const useBases = defineStore('basesStore', () => {
     toggleStarred,
     basesUser,
     clearBasesUser,
+    isDataSourceLimitReached,
   }
 })
 

@@ -162,6 +162,7 @@
     "insertAbove": "Insertar arriba",
     "insertBelow": "Insertar abajo",
     "hideField": "Ocultar campo",
+    "showField": "Show Field",
     "sortAsc": "Ordenación ascendente",
     "sortDesc": "Orden descendente",
     "move": "Mover",
@@ -203,7 +204,8 @@
     "verify": "Verify",
     "apply": "Apply",
     "text": "Text",
-    "appearance": "Appearance"
+    "appearance": "Appearance",
+    "now": "Now"
   },
   "objects": {
     "owner": "Owner",
@@ -447,6 +449,10 @@
     "noResultsMatchedYourSearch": "Your search did not yield any matching results."
   },
   "labels": {
+    "connectionDetails": "Connection Details",
+    "metaSync": "Meta Sync",
+    "today": "Today",
+    "workspace": "Workspace",
     "txt": "TXT Record value",
     "transferOwnership": "Transfer Ownership",
     "recentActivity": "Recent Activity",
@@ -584,7 +590,7 @@
     "untitledToken": "Token sin título",
     "tableName": "Nombre de la tabla",
     "dashboardName": "Nombre del panel",
-    "createView": "Crear una vista",
+    "createView": "Crear Vista",
     "creatingView": "Creando Vista",
     "duplicateView": "Duplicar vista",
     "duplicateGridView": "Duplicar vista en cuadrcula",
@@ -914,7 +920,7 @@
     "clearMetadata": "Limpiar metadatos",
     "exportToFile": "Exportar a archivo",
     "changePwd": "Cambia la contraseña",
-    "createView": "Crear una Vista",
+    "createView": "Crear vista",
     "shareView": "Compartir vista",
     "findRowByCodeScan": "Find row by scan",
     "fillByCodeScan": "Rellenar por escaneo",
@@ -942,6 +948,7 @@
     "importZip": "Importar zip",
     "metaSync": "Sincronizar ahora",
     "settings": "Configuración",
+    "validations": "Validations",
     "previewAs": "Previsualizar como",
     "resetReview": "Restaurar previsualización",
     "testDbConn": "Probar conexión a base de datos",
@@ -1095,6 +1102,7 @@
     "searchOptions": "Search options"
   },
   "msg": {
+    "formulaNotSupported": "This function is unavailable for your database",
     "controlOrgAppearance": "Control your organisations name and appearance.",
     "addCompanyDomains": "Add company domains to restrict access to unwanted users.",
     "restrictUsersFromSharing": "Restrict users from being able to share bases publicly.",
@@ -1200,6 +1208,7 @@
     "noNewNotifications": "No tiene nuevas notificaciones",
     "noRecordFound": "Registro no encontrado",
     "noRecordsFound": "No records found",
+    "noRecordsMatchYourSearchQuery": "No records match your search query",
     "rowDeleted": "Registro eliminado",
     "saveChanges": "¿Desea guardar los cambios?",
     "tooLargeFieldEntity": "El campo es demasiado grande para convertirlo a {entity}",
@@ -1490,7 +1499,7 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "Los tipos de archivo aceptados son .xls, .xlsx, .xlsm, .ods, .ots",
       "parameterKeyCannotBeEmpty": "La clave del parámetro no puede estar vacía",
       "duplicateParameterKeysAreNotAllowed": "No se permiten claves de parámetros duplicadas",
-      "fieldRequired": "{value} no puede estar vacía.",
+      "fieldRequired": "This field cannot be empty.",
       "projectNotAccessible": "Proyecto no accesible",
       "copyToClipboardError": "Fallo al copiar al portapapeles",
       "pasteFromClipboardError": "Failed to paste from clipboard",

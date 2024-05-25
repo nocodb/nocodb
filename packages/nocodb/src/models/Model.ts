@@ -6,13 +6,12 @@ import {
   ViewTypes,
 } from 'nocodb-sdk';
 import dayjs from 'dayjs';
-
 import type { BoolType, TableReqType, TableType } from 'nocodb-sdk';
 import type { XKnex } from '~/db/CustomKnex';
 import type { LinksColumn, LinkToAnotherRecordColumn } from '~/models/index';
 import Hook from '~/models/Hook';
-import Audit from '~/models/Audit';
 import View from '~/models/View';
+import Comment from '~/models/Comment';
 import Column from '~/models/Column';
 import { extractProps } from '~/helpers/extractProps';
 import { sanitize } from '~/helpers/sqlSanitize';
@@ -433,7 +432,7 @@ export default class Model implements TableType {
   }
 
   async delete(ncMeta = Noco.ncMeta, force = false): Promise<boolean> {
-    await Audit.deleteRowComments(this.id, ncMeta);
+    await Comment.deleteRowComments(this.id, ncMeta);
 
     for (const view of await this.getViews(true, ncMeta)) {
       await view.delete(ncMeta);

@@ -97,7 +97,8 @@ const validators = computed(() => {
           'dataSource.connection.user': [fieldRequiredValidator()],
           'dataSource.connection.password': [fieldRequiredValidator()],
           'dataSource.connection.database': [fieldRequiredValidator()],
-          ...([ClientType.PG, ClientType.MSSQL].includes(formState.value.dataSource.client)
+          ...([ClientType.PG, ClientType.MSSQL].includes(formState.value.dataSource.client) &&
+          formState.value.dataSource.searchPath
             ? {
                 'dataSource.searchPath.0': [fieldRequiredValidator()],
               }
@@ -342,6 +343,19 @@ onMounted(async () => {
     updateSSLUse()
   }
 })
+
+// if searchPath is null/undefined reset it to empty array when necessary
+watch(
+  () => formState.value.dataSource.searchPath,
+  (val) => {
+    if ([ClientType.PG, ClientType.MSSQL].includes(formState.value.dataSource.client) && !val) {
+      formState.value.dataSource.searchPath = []
+    }
+  },
+  {
+    immediate: true,
+  },
+)
 </script>
 
 <template>

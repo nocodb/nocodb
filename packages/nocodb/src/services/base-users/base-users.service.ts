@@ -22,6 +22,7 @@ import { Base, BaseUser, User } from '~/models';
 import { MetaTable } from '~/utils/globals';
 import { extractProps } from '~/helpers/extractProps';
 import { getProjectRolePower } from '~/utils/roleHelper';
+import { sanitiseEmailContent } from '~/utils';
 
 @Injectable()
 export class BaseUsersService {
@@ -349,7 +350,9 @@ export class BaseUsersService {
   // todo: refactor the whole function
   async sendInviteEmail(email: string, token: string, req: any): Promise<any> {
     try {
-      const template = (await import('./ui/emailTemplates/invite')).default;
+      const template = (
+        await import('~/services/base-users/ui/emailTemplates/invite')
+      ).default;
 
       const emailAdapter = await NcPluginMgrv2.emailAdapter();
 
@@ -361,11 +364,13 @@ export class BaseUsersService {
             signupLink: `${req.ncSiteUrl}${
               Noco.getConfig()?.dashboardPath
             }#/signup/${token}`,
-            baseName: req.body?.baseName,
-            roles: (req.body?.roles || '')
-              .split(',')
-              .map((r) => r.replace(/^./, (m) => m.toUpperCase()))
-              .join(', '),
+            baseName: sanitiseEmailContent(req.body?.baseName),
+            roles: sanitiseEmailContent(
+              (req.body?.roles || '')
+                .split(',')
+                .map((r) => r.replace(/^./, (m) => m.toUpperCase()))
+                .join(', '),
+            ),
             adminEmail: req.user?.email,
           }),
         });

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { isSystemColumn } from 'nocodb-sdk'
+import { isSystemColumn, isValidTimeFormat } from 'nocodb-sdk'
 
 interface Props {
   modelValue?: string | null | undefined
@@ -27,6 +27,8 @@ const isGrid = inject(IsGridInj, ref(false))
 
 const isForm = inject(IsFormInj, ref(false))
 
+const isSurveyForm = inject(IsSurveyFormInj, ref(false))
+
 const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 
 const column = inject(ColumnInj)!
@@ -42,6 +44,8 @@ const isClearedInputMode = ref<boolean>(false)
 const { t } = useI18n()
 
 const open = ref(false)
+
+const tempDate = ref<dayjs.Dayjs | undefined>()
 
 const localState = computed({
   get() {
@@ -78,18 +82,33 @@ const localState = computed({
   },
 })
 
+watchEffect(() => {
+  if (localState.value) {
+    tempDate.value = localState.value
+  }
+})
+
 const randomClass = `picker_${Math.floor(Math.random() * 99999)}`
 
 onClickOutside(datePickerRef, (e) => {
-  if ((e.target as HTMLElement)?.closest(`.${randomClass}`)) return
+  if ((e.target as HTMLElement)?.closest(`.${randomClass}, .nc-${randomClass}`)) return
   datePickerRef.value?.blur?.()
   open.value = false
 })
 
 const onBlur = (e) => {
-  if ((e?.relatedTarget as HTMLElement)?.closest(`.${randomClass}`)) return
+  if (
+    (e?.relatedTarget as HTMLElement)?.closest(`.${randomClass}, .nc-${randomClass}`) ||
+    (e?.target as HTMLElement)?.closest(`.${randomClass}, .nc-${randomClass}`)
+  ) {
+    return
+  }
 
   open.value = false
+}
+
+const onFocus = () => {
+  open.value = true
 }
 
 watch(
@@ -146,26 +165,42 @@ const clickHandler = () => {
   open.value = active.value || editable.value
 }
 
-const handleKeydown = (e: KeyboardEvent) => {
+const handleKeydown = (e: KeyboardEvent, _open?: boolean) => {
   if (e.key !== 'Enter') {
     e.stopPropagation()
   }
 
   switch (e.key) {
     case 'Enter':
-      open.value = !open.value
+      e.preventDefault()
+      if (isSurveyForm.value) {
+        e.stopPropagation()
+      }
+
+      localState.value = tempDate.value
+      open.value = !_open
       if (!open.value) {
-        editable.value = false
         if (isGrid.value && !isExpandedForm.value && !isEditColumn.value) {
+          editable.value = false
           datePickerRef.value?.blur?.()
         }
       }
       return
-    case 'Escape':
-      if (open.value) {
-        open.value = false
+
+    case 'Tab':
+      open.value = false
+      if (isGrid.value && !isExpandedForm.value && !isEditColumn.value) {
         editable.value = false
+        datePickerRef.value?.blur?.()
+      }
+
+      return
+    case 'Escape':
+      if (_open) {
+        open.value = false
+
         if (isGrid.value && !isExpandedForm.value && !isEditColumn.value) {
+          editable.value = false
           datePickerRef.value?.blur?.()
         }
       } else {
@@ -175,7 +210,7 @@ const handleKeydown = (e: KeyboardEvent) => {
       }
       return
     default:
-      if (!open.value && /^[0-9a-z]$/i.test(e.key)) {
+      if (!_open && /^[0-9a-z]$/i.test(e.key)) {
         open.value = true
       }
   }
@@ -185,7 +220,18 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
   // To prevent event listener on non active cell
   if (!active.value) return
 
-  if (e.altKey || e.ctrlKey || e.shiftKey || e.metaKey || !isGrid.value || isExpandedForm.value || isEditColumn.value) return
+  if (
+    e.altKey ||
+    e.ctrlKey ||
+    e.shiftKey ||
+    e.metaKey ||
+    !isGrid.value ||
+    isExpandedForm.value ||
+    isEditColumn.value ||
+    isExpandedFormOpen()
+  ) {
+    return
+  }
 
   switch (e.key) {
     case ';':
@@ -201,39 +247,93 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
       }
   }
 })
+
+const handleUpdateValue = (e: Event) => {
+  let targetValue = (e.target as HTMLInputElement).value
+
+  if (!targetValue) {
+    tempDate.value = undefined
+    return
+  }
+
+  if (targetValue.length > 5) {
+    targetValue = targetValue.slice(0, 5)
+  }
+
+  if (isValidTimeFormat(targetValue, 'HH:mm')) {
+    tempDate.value = dayjs(`${dayjs().format('YYYY-MM-DD')} ${targetValue}`)
+  }
+}
+
+function handleSelectTime(value?: dayjs.Dayjs) {
+  if (!value) {
+    tempDate.value = undefined
+    localState.value = undefined
+  }
+  if (!value?.isValid()) return
+
+  if (localState.value) {
+    const dateTime = dayjs(`${localState.value.format('YYYY-MM-DD')} ${value.format('HH:mm')}:00`)
+    tempDate.value = dateTime
+    localState.value = dateTime
+  } else {
+    const dateTime = dayjs(`${dayjs().format('YYYY-MM-DD')} ${value.format('HH:mm')}:00`)
+    tempDate.value = dateTime
+    localState.value = dateTime
+  }
+
+  open.value = false
+}
 </script>
 
 <template>
-  <a-time-picker
-    ref="datePickerRef"
-    v-model:value="localState"
-    :tabindex="0"
-    :disabled="readOnly"
-    :show-time="true"
-    :bordered="false"
-    use12-hours
-    format="HH:mm"
-    class="nc-cell-field !w-full !py-1 !border-none !text-current"
+  <NcDropdown
+    :visible="isOpen"
+    :auto-close="false"
+    :trigger="['click']"
+    class="nc-cell-field"
     :class="[`nc-${randomClass}`, { 'nc-null': modelValue === null && showNull }]"
-    :placeholder="placeholder"
-    :allow-clear="!readOnly && !isPk && !isEditColumn"
-    :input-read-only="!!isMobileMode"
-    :open="isOpen"
-    :popup-class-name="`${randomClass} nc-picker-time children:border-1 children:border-gray-200 ${open ? 'active' : ''}`"
-    @blur="onBlur"
-    @keydown="handleKeydown"
-    @click="clickHandler"
-    @ok="open = !open"
-    @mouseup.stop
-    @mousedown.stop
+    :overlay-class-name="`${randomClass} nc-picker-time ${isOpen ? 'active' : ''} !min-w-[0]`"
   >
-    <template #suffixIcon></template>
-  </a-time-picker>
+    <div
+      :title="localState?.format('HH:mm')"
+      class="nc-time-picker h-full flex items-center justify-between ant-picker-input relative group"
+    >
+      <input
+        ref="datePickerRef"
+        type="text"
+        :value="localState?.format('HH:mm') ?? ''"
+        :placeholder="placeholder"
+        class="nc-time-input border-none outline-none !text-current bg-transparent !focus:(border-none outline-none ring-transparent)"
+        :readonly="readOnly || !!isMobileMode"
+        @blur="onBlur"
+        @focus="onFocus"
+        @keydown="handleKeydown($event, isOpen)"
+        @mouseup.stop
+        @mousedown.stop
+        @click="clickHandler"
+        @input="handleUpdateValue"
+      />
+
+      <GeneralIcon
+        v-if="localState"
+        icon="closeCircle"
+        class="absolute right-0 top-[50%] transform -translate-y-1/2 invisible group-hover:visible cursor-pointer"
+        @click.stop="handleSelectTime()"
+      />
+    </div>
+
+    <template #overlay>
+      <div class="w-[72px]">
+        <NcTimeSelector
+          :selected-date="localState"
+          :min-granularity="30"
+          is-min-granularity-picker
+          :is-open="isOpen"
+          @update:selected-date="handleSelectTime"
+        />
+      </div>
+    </template>
+  </NcDropdown>
   <div v-if="!editable && isGrid" class="absolute inset-0 z-90 cursor-pointer"></div>
 </template>
-
-<style scoped>
-:deep(.ant-picker-input > input) {
-  @apply !text-current;
-}
-</style>

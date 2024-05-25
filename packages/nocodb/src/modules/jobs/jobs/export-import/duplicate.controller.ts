@@ -17,12 +17,13 @@ import { Base, Column, Model, Source } from '~/models';
 import { generateUniqueName } from '~/helpers/exportImportHelpers';
 import { JobTypes } from '~/interface/Jobs';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
+import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class DuplicateController {
   constructor(
-    @Inject('JobsService') protected readonly jobsService,
+    @Inject('JobsService') protected readonly jobsService: IJobsService,
     protected readonly basesService: BasesService,
   ) {}
 

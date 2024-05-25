@@ -16,8 +16,6 @@ useSidebar('nc-right-sidebar')
 
 const activeTab = toRef(props, 'activeTab')
 
-const fields = ref<ColumnType[]>([])
-
 const route = useRoute()
 
 const meta = computed<TableType | undefined>(() => {
@@ -50,7 +48,6 @@ provide(IsLockedInj, isLocked)
 provide(ReloadViewDataHookInj, reloadViewDataEventHook)
 provide(ReloadViewMetaHookInj, reloadViewMetaEventHook)
 provide(OpenNewRecordFormHookInj, openNewRecordFormHook)
-provide(FieldsInj, fields)
 provide(IsFormInj, isForm)
 provide(TabMetaInj, activeTab)
 provide(
@@ -60,6 +57,7 @@ provide(
 useExpandedFormDetachedProvider()
 
 useProvideViewColumns(activeView, meta, () => reloadViewDataEventHook?.trigger())
+
 useProvideViewGroupBy(activeView, meta, xWhere)
 
 useProvideSmartsheetLtarHelpers(meta)
@@ -162,7 +160,7 @@ const onResize = (sizes: { min: number; max: number; size: number }[]) => {
       <Splitpanes v-if="openedViewsTab === 'view'" class="nc-extensions-content-resizable-wrapper" @resized="onResize">
         <Pane class="flex flex-col h-full flex-1 min-w-0" size="60">
           <LazySmartsheetToolbar v-if="!isForm" />
-          <div class="flex flex-row w-full" :style="{ height: isForm ? '100%' : 'calc(100% - var(--topbar-height))' }">
+          <div :style="{ height: isForm ? '100%' : 'calc(100% - var(--toolbar-height))' }" class="flex flex-row w-full">
             <Transition name="layout" mode="out-in">
               <div v-if="openedViewsTab === 'view'" class="flex flex-1 min-h-0 w-3/4">
                 <div class="h-full flex-1 min-w-0 min-h-0 bg-white">

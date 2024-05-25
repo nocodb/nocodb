@@ -130,8 +130,8 @@ const toggleSelectAll = (role: Role) => {
 </script>
 
 <template>
-  <div class="flex flex-row w-full items-center justify-center">
-    <div class="flex flex-col w-[900px]">
+  <div class="h-full flex flex-row w-full items-center justify-center">
+    <div class="h-full flex flex-col">
       <NcTooltip class="mb-4 first-letter:capital font-bold max-w-100 truncate" show-on-truncate-only>
         <template #title>{{ base.title }}</template>
         <span> UI ACL : {{ base.title }} </span>
@@ -159,7 +159,7 @@ const toggleSelectAll = (role: Role) => {
         </div>
       </div>
 
-      <div class="max-h-600px overflow-y-auto">
+      <div class="h-auto max-h-[calc(100%_-_102px)] overflow-y-auto nc-scrollbar-thin">
         <a-table
           class="w-full"
           size="small"

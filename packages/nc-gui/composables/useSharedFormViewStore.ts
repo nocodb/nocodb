@@ -1,5 +1,3 @@
-import useVuelidate from '@vuelidate/core'
-import { helpers, minLength, required, sameAs } from '@vuelidate/validators'
 import dayjs from 'dayjs'
 import type {
   BoolType,
@@ -14,7 +12,10 @@ import type {
 import { RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import { isString } from '@vue/shared'
 import { useTitle } from '@vueuse/core'
+import type { RuleObject } from 'ant-design-vue/es/form'
 import { filterNullOrUndefinedObjectProperties } from '~/helpers/parsers/parserHelpers'
+
+const useForm = Form.useForm
 
 const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((sharedViewId: string) => {
   const progress = ref(false)
@@ -74,15 +75,13 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     }),
   )
 
-  const fieldRequired = (fieldName = 'This field', isBoolean = false) =>
-    helpers.withMessage(t('msg.error.fieldRequired', { value: fieldName }), isBoolean ? sameAs(true) : required)
-
-  const formColumns = computed(() =>
-    columns.value
-      ?.filter((c) => c.show)
-      .filter(
-        (col) => !isSystemColumn(col) && col.uidt !== UITypes.SpecificDBType && (!isVirtualCol(col) || isLinksOrLTAR(col.uidt)),
-      ),
+  const formColumns = computed(
+    () =>
+      columns.value
+        ?.filter((c) => c.show)
+        .filter(
+          (col) => !isSystemColumn(col) && col.uidt !== UITypes.SpecificDBType && (!isVirtualCol(col) || isLinksOrLTAR(col.uidt)),
+        ) || [],
   )
 
   const loadSharedView = async () => {
@@ -122,9 +121,21 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
             !/^\w+\(\)|CURRENT_TIMESTAMP$/.test(c.cdf)
           ) {
             const defaultValue = typeof c.cdf === 'string' ? c.cdf.replace(/^'|'$/g, '') : c.cdf
-
-            formState.value[c.title] = defaultValue
-            preFilledDefaultValueformState.value[c.title] = defaultValue
+            if ([UITypes.Number, UITypes.Duration, UITypes.Percent, UITypes.Currency, UITypes.Decimal].includes(c.uidt)) {
+              formState.value[c.title] = Number(defaultValue) || null
+              preFilledDefaultValueformState.value[c.title] = Number(defaultValue) || null
+            } else if (c.uidt === UITypes.Checkbox) {
+              if (['true', '1'].includes(String(defaultValue).toLowerCase())) {
+                formState.value[c.title] = true
+                preFilledDefaultValueformState.value[c.title] = true
+              } else if (['false', '0'].includes(String(defaultValue).toLowerCase())) {
+                formState.value[c.title] = false
+                preFilledDefaultValueformState.value[c.title] = false
+              }
+            } else {
+              formState.value[c.title] = defaultValue
+              preFilledDefaultValueformState.value[c.title] = defaultValue
+            }
           }
 
           return {
@@ -178,84 +189,85 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   }
 
   const validators = computed(() => {
-    const obj: Record<string, Record<string, any>> = {
-      localState: {},
-      virtual: {},
-    }
+    const rulesObj: Record<string, RuleObject[]> = {}
 
-    if (!formColumns.value) return obj
+    if (!formColumns.value) return rulesObj
 
     for (const column of formColumns.value) {
-      if (
-        !isVirtualCol(column) &&
-        ((column.rqd && !column.cdf) || (column.pk && !(column.ai || column.cdf)) || column.required)
-      ) {
-        obj.localState[column.title!] = {
-          required: fieldRequired(undefined, !!(column.uidt === UITypes.Checkbox && column.required)),
-        }
-      } else if (
-        isLinksOrLTAR(column) &&
-        column.colOptions &&
-        (column.colOptions as LinkToAnotherRecordType).type === RelationTypes.BELONGS_TO
-      ) {
-        const col = columns.value?.find((c) => c.id === (column?.colOptions as LinkToAnotherRecordType)?.fk_child_column_id)
+      let rules: RuleObject[] = [
+        {
+          validator: (_rule: RuleObject, value: any) => {
+            return new Promise((resolve, reject) => {
+              if (isRequired(column)) {
+                if (typeof value === 'string') {
+                  value = value.trim()
+                }
 
-        if ((col && col.rqd && !col.cdf) || column.required) {
-          if (col) {
-            obj.virtual[column.title!] = { required: fieldRequired() }
-          }
-        }
-      } else if (isVirtualCol(column) && column.required) {
-        obj.virtual[column.title!] = {
-          minLength: minLength(1),
-          required: fieldRequired(),
-        }
-      }
+                if (
+                  (column.uidt === UITypes.Checkbox && !value) ||
+                  (column.uidt !== UITypes.Checkbox && !requiredFieldValidatorFn(value))
+                ) {
+                  return reject(t('msg.error.fieldRequired'))
+                }
+              }
 
-      if (
-        !isVirtualCol(column) &&
-        parseProp(column.meta)?.validate &&
-        [UITypes.URL, UITypes.Email].includes(column.uidt as UITypes)
-      ) {
-        if (column.uidt === UITypes.URL) {
-          obj.localState[column.title!] = {
-            ...(obj.localState[column.title!] || {}),
-            validateFormURL: helpers.withMessage(t('msg.error.invalidURL'), (value) => {
-              return value ? isValidURL(value) : true
-            }),
-          }
-        } else if (column.uidt === UITypes.Email) {
-          obj.localState[column.title!] = {
-            ...(obj.localState[column.title!] || {}),
-            validateFormEmail: helpers.withMessage(t('msg.error.invalidEmail'), (value) => {
-              return value ? validateEmail(value) : true
-            }),
-          }
-        }
-      }
+              return resolve()
+            })
+          },
+        },
+      ]
 
-      if ([UITypes.Number, UITypes.Currency, UITypes.Percent].includes(column.uidt as UITypes)) {
-        obj.localState[column.title!] = {
-          ...(obj.localState[column.title!] || {}),
-          validateFormNumber: helpers.withMessage(t('msg.plsEnterANumber'), (value) => {
-            return value ? (column.uidt === UITypes.Number ? /^\d+$/.test(value) : /^\d*\.?\d+$/.test(value)) : true
-          }),
-        }
+      const additionalRules = extractFieldValidator(parseProp(column.meta).validators ?? [], column)
+      rules = [...rules, ...additionalRules]
+
+      if (rules.length) {
+        rulesObj[column.title!] = rules
       }
     }
 
-    return obj
+    return rulesObj
   })
 
-  const v$ = useVuelidate(
-    validators,
-    computed(() => ({ localState: formState.value, virtual: additionalState.value })),
-  )
+  const validationFieldState = computed(() => {
+    return { ...formState.value, ...additionalState.value }
+  })
+
+  const { validate, validateInfos, clearValidate } = useForm(validationFieldState, validators)
+
+  const handleAddMissingRequiredFieldDefaultState = () => {
+    for (const col of formColumns.value) {
+      if (
+        col.title &&
+        isRequired(col) &&
+        formState.value[col.title] === undefined &&
+        additionalState.value[col.title] === undefined
+      ) {
+        if (isVirtualCol(col)) {
+          additionalState.value[col.title] = null
+        } else {
+          formState.value[col.title] = null
+        }
+      }
+    }
+  }
+
+  const validateAllFields = async () => {
+    handleAddMissingRequiredFieldDefaultState()
+
+    try {
+      await validate([...Object.keys(formState.value), ...Object.keys(additionalState.value)])
+      return true
+    } catch (e: any) {
+      if (e.errorFields.length) {
+        message.error(t('msg.error.someOfTheRequiredFieldsAreEmpty'))
+        return false
+      }
+    }
+  }
 
   const submitForm = async () => {
     try {
-      if (!(await v$.value?.$validate())) {
-        message.error(t('msg.error.someOfTheRequiredFieldsAreEmpty'))
+      if (!(await validateAllFields())) {
         return
       }
 
@@ -300,7 +312,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       ...preFilledDefaultValueformState.value,
       ...(sharedViewMeta.value.preFillEnabled ? preFilledformState.value : {}),
     }
-    v$.value?.$reset()
+
+    clearValidate()
   }
 
   function handlePreFillForm() {
@@ -344,7 +357,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   }
 
   function getColAbstractType(c: ColumnType) {
-    return (c?.source_id ? sqlUis.value[c?.source_id] : Object.values(sqlUis.value)[0]).getAbstractType(c)
+    return (c?.source_id ? sqlUis.value[c?.source_id] : Object.values(sqlUis.value)[0])?.getAbstractType(c)
   }
 
   function getPreFillValue(c: ColumnType, value: string) {
@@ -412,9 +425,9 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         break
       }
       case UITypes.Checkbox: {
-        if (['true', '1'].includes(value.toLowerCase())) {
+        if (['true', true, '1', 1].includes(value.toLowerCase())) {
           preFillValue = true
-        } else if (['false', '0'].includes(value.toLowerCase())) {
+        } else if (['false', false, '0', 0].includes(value.toLowerCase())) {
           preFillValue = false
         }
         break
@@ -516,8 +529,30 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         clearInterval(intvl)
       }
       clearForm()
+      clearValidate()
     }
   })
+
+  function isRequired(column: Record<string, any>) {
+    if (!isVirtualCol(column) && ((column.rqd && !column.cdf) || (column.pk && !(column.ai || column.cdf)) || column.required)) {
+      return true
+    } else if (
+      isLinksOrLTAR(column) &&
+      column.colOptions &&
+      (column.colOptions as LinkToAnotherRecordType).type === RelationTypes.BELONGS_TO
+    ) {
+      const col = columns.value?.find((c) => c.id === (column?.colOptions as LinkToAnotherRecordType)?.fk_child_column_id)
+
+      if ((col && col.rqd && !col.cdf) || column.required) {
+        if (col) {
+          return true
+        }
+      }
+    } else if (isVirtualCol(column) && column.required) {
+      return true
+    }
+    return false
+  }
 
   watch(password, (next, prev) => {
     if (next !== prev && passwordError.value) passwordError.value = null
@@ -533,6 +568,18 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     },
   )
 
+  watch(
+    additionalState,
+    async () => {
+      try {
+        await validate(Object.keys(additionalState.value))
+      } catch {}
+    },
+    {
+      deep: true,
+    },
+  )
+
   return {
     sharedView,
     sharedFormView,
@@ -543,7 +590,6 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     progress,
     meta,
     validators,
-    v$,
     formColumns,
     formState,
     notFound,
@@ -555,8 +601,14 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     isLoading,
     sharedViewMeta,
     onReset: formResetHook.on,
+    validate,
+    validateInfos,
+    clearValidate,
+    additionalState,
+    isRequired,
+    handleAddMissingRequiredFieldDefaultState,
   }
-}, 'expanded-form-store')
+}, 'shared-form-view-store')
 
 export { useProvideSharedFormStore }
 

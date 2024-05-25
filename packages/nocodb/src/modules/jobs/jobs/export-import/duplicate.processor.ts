@@ -205,12 +205,12 @@ export class DuplicateProcessor {
               (c.colOptions.type === RelationTypes.BELONGS_TO ||
                 (c.colOptions.type === RelationTypes.ONE_TO_ONE &&
                   c.meta?.bt)) &&
-              c.colOptions.fk_related_model_id === modelId,
+              c.colOptions.fk_related_model_id === sourceModel.id,
           )
           .map((c) => c.id);
 
         if (bts.length > 0) {
-          fields[md.id] = [md.primaryKey.id];
+          fields[md.id] = fields[md.id] ? fields[md.id] : [md.primaryKey.id];
           fields[md.id].push(...bts);
         }
       }
@@ -294,14 +294,6 @@ export class DuplicateProcessor {
       throw new Error(`Export failed for model '${sourceModel.id}'`);
     }
 
-    exportedModel.model.columns = exportedModel.model.columns.filter((c) =>
-      c.id.includes(columnId),
-    );
-
-    if (exportedModel.model.columns.length !== 1) {
-      throw new Error(`There was an error duplicating column!`);
-    }
-
     const replacedColumn = exportedModel.model.columns.find((c) =>
       c.id.includes(columnId),
     );
@@ -325,6 +317,7 @@ export class DuplicateProcessor {
       req,
       externalModels: relatedModels,
       existingModel: sourceModel,
+      importColumnIds: [columnId],
     });
 
     elapsedTime(hrTime, 'import model schema', 'duplicateColumn');
@@ -352,7 +345,7 @@ export class DuplicateProcessor {
           .map((c) => c.id);
 
         if (bts.length > 0) {
-          fields[md.id] = [md.primaryKey.id];
+          fields[md.id] = fields[md.id] ? fields[md.id] : [md.primaryKey.id];
           fields[md.id].push(...bts);
         }
       }
@@ -365,7 +358,10 @@ export class DuplicateProcessor {
         destBase: source,
         hrTime,
         modelFieldIds: fields,
-        externalModels: [sourceModel, ...relatedModels],
+        externalModels: [
+          sourceModel,
+          ...relatedModels.filter((m) => m.id !== sourceModel.id),
+        ],
       });
 
       elapsedTime(hrTime, 'import model data', 'duplicateColumn');

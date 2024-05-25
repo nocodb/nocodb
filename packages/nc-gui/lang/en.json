@@ -162,6 +162,7 @@
     "insertAbove": "Insert above",
     "insertBelow": "Insert below",
     "hideField": "Hide Field",
+    "showField": "Show Field",
     "sortAsc": "Sort Ascending",
     "sortDesc": "Sort Descending",
     "move": "Move",
@@ -203,7 +204,8 @@
     "verify": "Verify",
     "apply": "Apply",
     "text": "Text",
-    "appearance": "Appearance"
+    "appearance": "Appearance",
+    "now": "Now"
   },
   "objects": {
     "owner": "Owner",
@@ -447,6 +449,11 @@
     "noResultsMatchedYourSearch": "Your search did not yield any matching results"
   },
   "labels": {
+    "connectionDetails": "Connection Details",
+    "metaSync": "Meta Sync",
+    "mention": "Mention",
+    "today": "Today",
+    "workspace": "Workspace",
     "txt": "TXT Record value",
     "transferOwnership": "Transfer Ownership",
     "recentActivity": "Recent Activity",
@@ -458,7 +465,7 @@
     "workspaceName": "Workspace Name",
     "workspaceWithoutOwner": "Workspace without Owners",
     "inviteUsersToWorkspace": "Invite Users to Workspace",
-    "selectWorkspace":"-select workspaces to invite to-",
+    "selectWorkspace": "-select workspaces to invite to-",
     "addMembersToOrganization": "Add Members to Organization",
     "memberIn": "Member in:",
     "assignAs": "Assign as",
@@ -584,7 +591,7 @@
     "untitledToken": "Untitled token",
     "tableName": "Table name",
     "dashboardName": "Dashboard name",
-    "createView": "Create a View",
+    "createView": "Create View",
     "creatingView": "Creating View",
     "duplicateView": "Duplicate View",
     "duplicateGridView": "Duplicate Grid View",
@@ -914,7 +921,7 @@
     "clearMetadata": "Clear Metadata",
     "exportToFile": "Export to file",
     "changePwd": "Change Password",
-    "createView": "Create a View",
+    "createView": "Create View",
     "shareView": "Share View",
     "findRowByCodeScan": "Find record by scan",
     "fillByCodeScan": "Fill by scan",
@@ -942,6 +949,7 @@
     "importZip": "Import zip",
     "metaSync": "Sync Now",
     "settings": "Settings",
+    "validations": "Validations",
     "previewAs": "Preview as",
     "resetReview": "Reset Preview",
     "testDbConn": "Test Database Connection",
@@ -1095,6 +1103,7 @@
     "searchOptions": "Search options"
   },
   "msg": {
+    "formulaNotSupported": "This function is unavailable for your database",
     "controlOrgAppearance": "Control your organisations name and appearance.",
     "addCompanyDomains": "Add company domains to restrict access to unwanted users.",
     "restrictUsersFromSharing": "Restrict users from being able to share bases publicly.",

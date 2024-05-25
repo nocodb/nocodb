@@ -42,3 +42,4 @@ export { default as Notification } from './Notification';
 export { default as PresignedUrl } from './PresignedUrl';
 export { default as UserRefreshToken } from './UserRefreshToken';
 export { default as Extension } from './Extension';
+export { default as Comment } from './Comment';

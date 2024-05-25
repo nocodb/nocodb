@@ -16,6 +16,7 @@ interface User {
   invite_token?: string
   base_id?: string
   display_name?: string | null
+  featureFlags?: Record<string, boolean>
 }
 
 interface ProjectMetaInfo {
@@ -204,7 +205,7 @@ interface SidebarTableNode extends TableType {
 }
 
 interface UsersSortType {
-  field?: 'email' | 'roles' | 'title' | 'id'
+  field?: 'email' | 'roles' | 'title' | 'id' | 'memberCount' | 'baseCount' | 'workspaceCount'
   direction?: 'asc' | 'desc'
 }
 

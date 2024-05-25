@@ -17,6 +17,8 @@ const {
   showSideMenu,
 } = useCalendarViewStoreOrThrow()
 
+const { $e } = useNuxtApp()
+
 const container = ref<null | HTMLElement>(null)
 
 const scrollContainer = ref<null | HTMLElement>(null)
@@ -181,7 +183,6 @@ const getMaxOverlaps = ({
 
   const dayIndex = row.rowMeta.dayIndex
   const overlapIndex = columnArray[dayIndex].findIndex((column) => column.findIndex((r) => r.rowMeta.id === id) !== -1) + 1
-
   const dfs = (id: string): number => {
     visited.add(id)
     let maxOverlaps = 1
@@ -194,6 +195,7 @@ const getMaxOverlaps = ({
         }
       }
     }
+
     return maxOverlaps
   }
 
@@ -476,7 +478,11 @@ const recordsAcrossAllRange = computed<{
       }
     }
     for (const record of recordsToDisplay) {
-      const { maxOverlaps, overlapIndex } = getMaxOverlaps({
+      const {
+        maxOverlaps,
+        overlapIndex,
+        dayIndex: tDayIndex,
+      } = getMaxOverlaps({
         row: record,
         columnArray,
         graph: graph.get(record.rowMeta.dayIndex!) ?? new Map(),
@@ -749,6 +755,7 @@ const stopDrag = (event: MouseEvent) => {
   if (newRow) {
     updateRowProperty(newRow, updatedProperty, false)
   }
+  $e('c:calendar:week:drag-record')
 
   document.removeEventListener('mousemove', onDrag)
   document.removeEventListener('mouseup', stopDrag)
@@ -811,6 +818,7 @@ const dropEvent = (event: DragEvent) => {
 
     if (newRow) {
       updateRowProperty(newRow, updatedProperty, false)
+      $e('c:calendar:day:drag-record')
     }
   }
 }
@@ -865,18 +873,18 @@ watch(
 <template>
   <div
     ref="scrollContainer"
-    class="h-[calc(100vh-9.9rem)] prevent-select relative flex w-full overflow-y-auto nc-scrollbar-md"
+    class="h-[calc(100vh-5.4rem)] prevent-select relative flex w-full overflow-y-auto nc-scrollbar-md"
     data-testid="nc-calendar-week-view"
     @drop="dropEvent"
   >
-    <div class="flex sticky h-7.1 z-1 top-0 pl-16 bg-gray-50 w-full">
+    <div class="flex sticky h-6 z-1 top-0 pl-16 bg-gray-50 w-full">
       <div
         v-for="date in datesHours"
         :key="date[0].toISOString()"
         :class="{
           'text-brand-500': date[0].isSame(dayjs(), 'date'),
         }"
-        class="w-1/7 text-center text-sm text-gray-500 w-full py-1 border-gray-200 last:border-r-0 border-b-1 border-l-1 border-r-0 bg-gray-50"
+        class="w-1/7 text-center text-[10px] font-semibold leading-4 flex items-center justify-center uppercase text-gray-500 w-full py-1 border-gray-200 last:border-r-0 border-b-1 border-l-1 border-r-0 bg-gray-50"
       >
         {{ dayjs(date[0]).format('DD ddd') }}
       </div>
@@ -885,7 +893,7 @@ watch(
       <div
         v-for="(hour, index) in datesHours[0]"
         :key="index"
-        class="h-13 first:mt-0 pt-7.1 nc-calendar-day-hour text-center font-semibold text-xs text-gray-400 py-1"
+        class="h-13 first:mt-0 pt-7.1 nc-calendar-day-hour text-right pr-2 font-semibold text-xs text-gray-400 py-1"
       >
         {{ hour.format('hh a') }}
       </div>
@@ -899,7 +907,7 @@ watch(
             'border-1 !border-brand-500 bg-gray-50': hour.isSame(selectedTime, 'hour'),
             '!bg-gray-50': hour.get('day') === 0 || hour.get('day') === 6,
           }"
-          class="text-center relative h-13 text-sm text-gray-500 w-full hover:bg-gray-50 py-1 border-transparent border-1 border-x-gray-100 border-t-gray-100 border-l-gray-200"
+          class="text-center relative transition h-13 text-sm text-gray-500 w-full hover:bg-gray-50 py-1 border-transparent border-1 border-x-gray-100 border-t-gray-100 border-l-gray-200"
           data-testid="nc-calendar-week-hour"
           @dblclick="addRecord(hour)"
           @click="
@@ -936,7 +944,7 @@ watch(
             :data-testid="`nc-calendar-week-record-${record.row[displayField!.title!]}`"
             :data-unique-id="record.rowMeta!.id"
             :style="record.rowMeta!.style "
-            class="absolute draggable-record w-1/7 group cursor-pointer pointer-events-auto"
+            class="absolute transition draggable-record w-1/7 group cursor-pointer pointer-events-auto"
             @mousedown.stop="dragStart($event, record)"
             @mouseleave="hoverRecord = null"
             @mouseover="hoverRecord = record.rowMeta.id"

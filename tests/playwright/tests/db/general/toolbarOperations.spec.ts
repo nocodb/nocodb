@@ -506,7 +506,7 @@ test.describe('Toolbar operations (GRID)', () => {
   });
 
   test('Duplicate View and Verify GroupBy', async () => {
-    if (enableQuickRun()) test.skip();
+    // if (enableQuickRun()) test.skip();
     await dashboard.treeView.openTable({ title: 'Film' });
     await dashboard.viewSidebar.createGridView({ title: 'Film Grid' });
 

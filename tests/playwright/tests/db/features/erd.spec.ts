@@ -45,8 +45,10 @@ test.describe('Erd', () => {
   };
 
   const openProjectErd = async () => {
-    await dashboard.baseView.tab_dataSources.click();
-    await dashboard.baseView.dataSources.openERD({ rowIndex: 0 });
+    await dashboard.treeView.baseSettings({ title: context.base.title });
+    await dashboard.settings.selectTab({ tab: 'dataSources' });
+    await dashboard.settings.dataSources.openErd({ rowIndex: 0 });
+    // await dashboard.baseView.dataSources.openERD({ rowIndex: 0 });
   };
 
   const openErdOfATable = async (tableName: string) => {
@@ -223,7 +225,6 @@ test.describe('Erd', () => {
     await dashboard.grid.column.create({ title: 'test_column' });
 
     // Verify
-    await dashboard.grid.topbar.btn_details.click();
     await openErdOfATable('Country');
 
     await erd.verifyNode({
@@ -243,7 +244,6 @@ test.describe('Erd', () => {
     });
 
     // Verify
-    await dashboard.grid.topbar.btn_details.click();
     await openErdOfATable('Country');
 
     await erd.verifyNode({
@@ -256,7 +256,6 @@ test.describe('Erd', () => {
     await dashboard.grid.topbar.btn_data.click();
     // Delete column
     await dashboard.grid.column.delete({ title: 'new_test_column' });
-    await dashboard.grid.topbar.btn_details.click();
     await openErdOfATable('Country');
     await erd.clickShowColumnNames();
 

@@ -183,6 +183,7 @@ const dropEvent = (event: DragEvent) => {
       dragElement.value = null
     }
     updateRowProperty(newRow, updateProperty, false)
+    $e('c:calendar:day:drag-record')
   }
 }
 
@@ -202,7 +203,7 @@ const newRecord = () => {
   <div
     v-if="recordsAcrossAllRange.length"
     ref="container"
-    class="w-full relative h-[calc(100vh-10.8rem)] overflow-y-auto nc-scrollbar-md"
+    class="w-full cursor-pointer relative h-[calc(100vh-10.8rem)] overflow-y-auto nc-scrollbar-md"
     data-testid="nc-calendar-day-view"
     @dblclick="newRecord"
     @drop="dropEvent"
@@ -223,7 +224,7 @@ const newRecord = () => {
           :resize="false"
           color="blue"
           size="small"
-          @click="emit('expandRecord', record)"
+          @click.prevent="emit('expandRecord', record)"
         >
           <template v-for="(field, id) in fields" :key="id">
             <LazySmartsheetPlainCell
@@ -244,7 +245,7 @@ const newRecord = () => {
   <div
     v-else
     ref="container"
-    class="w-full h-full flex text-md font-bold text-gray-500 items-center justify-center"
+    class="w-full h-full cursor-pointer flex text-md font-bold text-gray-500 items-center justify-center"
     @drop="dropEvent"
     @dblclick="newRecord"
   >

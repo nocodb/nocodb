@@ -515,7 +515,9 @@ export default class Filter implements FilterType {
       });
       await NocoCache.setList(CacheScope.FILTER_EXP, [hookId], filterObjs);
     }
-    return filterObjs?.map((f) => this.castType(f));
+    return filterObjs
+      ?.filter((f) => !f.fk_parent_id)
+      ?.map((f) => this.castType(f));
   }
 
   static async parentFilterList(

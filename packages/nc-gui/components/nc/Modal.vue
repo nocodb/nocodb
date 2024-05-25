@@ -103,7 +103,7 @@ const slots = useSlots()
       <div
         v-if="slots.header"
         :class="{
-          'border-b-1 border-gray-100': showSeparator,
+          'border-b-1 border-gray-200': showSeparator,
         }"
         class="flex pb-2 mb-2 text-lg font-medium"
       >

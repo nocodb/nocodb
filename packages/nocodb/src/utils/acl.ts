@@ -92,6 +92,7 @@ const permissionScopes = {
     'swaggerJson',
     'commentList',
     'commentsCount',
+    'commentDelete',
     'commentUpdate',
     'hideAllColumns',
     'showAllColumns',
@@ -210,6 +211,7 @@ const rolePermissions:
       commentsCount: true,
       commentRow: true,
       commentUpdate: true,
+      commentDelete: true,
     },
   },
   [ProjectRoles.EDITOR]: {
@@ -276,6 +278,7 @@ const rolePermissions:
       baseList: true,
       testConnection: true,
       isPluginActive: true,
+      commandPalette: true,
     },
   },
   [OrgUserRoles.CREATOR]: {

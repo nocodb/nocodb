@@ -162,6 +162,7 @@
     "insertAbove": "Insert above",
     "insertBelow": "Insert below",
     "hideField": "Feld ausblenden",
+    "showField": "Show Field",
     "sortAsc": "Aufsteigend sortieren",
     "sortDesc": "Absteigend sortieren",
     "move": "Move",
@@ -203,7 +204,8 @@
     "verify": "Verify",
     "apply": "Apply",
     "text": "Text",
-    "appearance": "Appearance"
+    "appearance": "Appearance",
+    "now": "Now"
   },
   "objects": {
     "owner": "Owner",
@@ -447,6 +449,10 @@
     "noResultsMatchedYourSearch": "Your search did not yield any matching results."
   },
   "labels": {
+    "connectionDetails": "Connection Details",
+    "metaSync": "Meta Sync",
+    "today": "Today",
+    "workspace": "Workspace",
     "txt": "TXT Record value",
     "transferOwnership": "Transfer Ownership",
     "recentActivity": "Recent Activity",
@@ -584,7 +590,7 @@
     "untitledToken": "Untitled token",
     "tableName": "Tabellenname",
     "dashboardName": "Dashboard name",
-    "createView": "Neue Ansicht erstellen",
+    "createView": "Ansicht erstellen",
     "creatingView": "Creating View",
     "duplicateView": "Duplicate View",
     "duplicateGridView": "Duplicate Grid View",
@@ -942,6 +948,7 @@
     "importZip": "Zip-Datei importieren",
     "metaSync": "Jetzt synchronisieren",
     "settings": "Einstellungen",
+    "validations": "Validations",
     "previewAs": "Vorschau anzeigen als",
     "resetReview": "Vorschau zurücksetzen",
     "testDbConn": "Datenbankverbindung testen",
@@ -1095,6 +1102,7 @@
     "searchOptions": "Search options"
   },
   "msg": {
+    "formulaNotSupported": "This function is unavailable for your database",
     "controlOrgAppearance": "Control your organisations name and appearance.",
     "addCompanyDomains": "Add company domains to restrict access to unwanted users.",
     "restrictUsersFromSharing": "Restrict users from being able to share bases publicly.",
@@ -1200,6 +1208,7 @@
     "noNewNotifications": "You have no new notifications",
     "noRecordFound": "Record not found",
     "noRecordsFound": "No records found",
+    "noRecordsMatchYourSearchQuery": "No records match your search query",
     "rowDeleted": "Record deleted",
     "saveChanges": "Do you want to save the changes?",
     "tooLargeFieldEntity": "The field is too large to be converted to {entity}",
@@ -1490,7 +1499,7 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "Die akzeptierten Dateitypen sind .xls, .xlsx, .xlsm, .ods, .ots",
       "parameterKeyCannotBeEmpty": "Parameterschlüssel darf nicht leer sein",
       "duplicateParameterKeysAreNotAllowed": "Doppelte Parameterschlüssel sind nicht erlaubt",
-      "fieldRequired": "{value} kann nicht leer sein.",
+      "fieldRequired": "This field cannot be empty.",
       "projectNotAccessible": "Projekt nicht zugänglich",
       "copyToClipboardError": "Kopieren in die Zwischenablage fehlgeschlagen",
       "pasteFromClipboardError": "Failed to paste from clipboard",

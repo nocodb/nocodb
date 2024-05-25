@@ -162,6 +162,7 @@
     "insertAbove": "Insert above",
     "insertBelow": "Insert below",
     "hideField": "Skrýt pole",
+    "showField": "Show Field",
     "sortAsc": "Seřadit vzestupně",
     "sortDesc": "Seřadit sestupně",
     "move": "Move",
@@ -203,7 +204,8 @@
     "verify": "Verify",
     "apply": "Apply",
     "text": "Text",
-    "appearance": "Appearance"
+    "appearance": "Appearance",
+    "now": "Now"
   },
   "objects": {
     "owner": "Owner",
@@ -447,6 +449,10 @@
     "noResultsMatchedYourSearch": "Your search did not yield any matching results."
   },
   "labels": {
+    "connectionDetails": "Connection Details",
+    "metaSync": "Meta Sync",
+    "today": "Today",
+    "workspace": "Workspace",
     "txt": "TXT Record value",
     "transferOwnership": "Transfer Ownership",
     "recentActivity": "Recent Activity",
@@ -942,6 +948,7 @@
     "importZip": "Importovat zip archív",
     "metaSync": "Synchronizovat nyní",
     "settings": "Nastavení",
+    "validations": "Validations",
     "previewAs": "Náhled jako",
     "resetReview": "Obnovit náhled",
     "testDbConn": "Otestovat připojení k databázi",
@@ -1095,6 +1102,7 @@
     "searchOptions": "Search options"
   },
   "msg": {
+    "formulaNotSupported": "This function is unavailable for your database",
     "controlOrgAppearance": "Control your organisations name and appearance.",
     "addCompanyDomains": "Add company domains to restrict access to unwanted users.",
     "restrictUsersFromSharing": "Restrict users from being able to share bases publicly.",
@@ -1200,6 +1208,7 @@
     "noNewNotifications": "You have no new notifications",
     "noRecordFound": "Record not found",
     "noRecordsFound": "No records found",
+    "noRecordsMatchYourSearchQuery": "No records match your search query",
     "rowDeleted": "Record deleted",
     "saveChanges": "Do you want to save the changes?",
     "tooLargeFieldEntity": "The field is too large to be converted to {entity}",
@@ -1490,7 +1499,7 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "Akceptované typy souborů jsou .xls, .xlsx, .xlsm, .ods, .ots.",
       "parameterKeyCannotBeEmpty": "Klíč parametru nesmí být prázdný",
       "duplicateParameterKeysAreNotAllowed": "Duplicitní klíče parametrů nejsou povoleny",
-      "fieldRequired": "{value} nemůže být prázdný.",
+      "fieldRequired": "This field cannot be empty.",
       "projectNotAccessible": "Projekt není přístupný",
       "copyToClipboardError": "Nepodařilo se zkopírovat do schránky",
       "pasteFromClipboardError": "Failed to paste from clipboard",

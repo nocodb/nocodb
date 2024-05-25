@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { PlanLimitTypes, RelationTypes, UITypes, getEquivalentUIType, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
+import { PlanLimitTypes, RelationTypes, UITypes, getEquivalentUIType, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 
 const meta = inject(MetaInj, ref())
 const view = inject(ActiveViewInj, ref())
@@ -19,6 +19,8 @@ const showCreateSort = ref(false)
 const { isMobileMode } = useGlobal()
 
 const { getPlanLimit } = useWorkspace()
+
+const isCalendar = inject(IsCalendarInj, ref(false))
 
 eventBus.on((event) => {
   if (event === SmartsheetStoreEvents.SORT_RELOAD) {
@@ -110,16 +112,27 @@ onMounted(() => {
     overlay-class-name="nc-dropdown-sort-menu nc-toolbar-dropdown"
   >
     <div :class="{ 'nc-active-btn': sorts?.length }">
-      <a-button v-e="['c:sort']" class="nc-sort-menu-btn nc-toolbar-btn" :disabled="isLocked">
-        <div class="flex items-center gap-2">
-          <component :is="iconMap.sort" class="h-4 w-4 text-inherit" />
+      <NcButton
+        v-e="['c:sort']"
+        :class="{
+          '!border-1 !rounded-lg !h-7': isCalendar,
+          '!border-0 ': !isCalendar,
+        }"
+        :disabled="isLocked"
+        class="nc-sort-menu-btn nc-toolbar-btn"
+        size="small"
+        type="secondary"
+      >
+        <div class="flex items-center gap-1">
+          <div class="flex items-center gap-2">
+            <component :is="iconMap.sort" class="h-4 w-4 text-inherit" />
 
-          <!-- Sort -->
-          <span v-if="!isMobileMode" class="text-capitalize !text-sm font-medium">{{ $t('activity.sort') }}</span>
-
+            <!-- Sort -->
+            <span v-if="!isMobileMode" class="text-capitalize !text-[13px] font-medium">{{ $t('activity.sort') }}</span>
+          </div>
           <span v-if="sorts?.length" class="bg-brand-50 text-brand-500 py-1 px-2 text-md rounded-md">{{ sorts.length }}</span>
         </div>
-      </a-button>
+      </NcButton>
     </div>
     <template #overlay>
       <SmartsheetToolbarCreateSort v-if="!sorts.length" :is-parent-open="open" @created="addSort" />

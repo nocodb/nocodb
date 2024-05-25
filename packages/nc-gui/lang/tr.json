@@ -162,6 +162,7 @@
     "insertAbove": "Yukarıya ekle",
     "insertBelow": "Aşağı ekle",
     "hideField": "Alanı Gizle",
+    "showField": "Show Field",
     "sortAsc": "Artan Sırala",
     "sortDesc": "Azalan Sıralama",
     "move": "Taşı",
@@ -203,7 +204,8 @@
     "verify": "Verify",
     "apply": "Uygula",
     "text": "Metin",
-    "appearance": "Görünüm"
+    "appearance": "Görünüm",
+    "now": "Now"
   },
   "objects": {
     "owner": "Owner",
@@ -447,6 +449,10 @@
     "noResultsMatchedYourSearch": "Your search did not yield any matching results."
   },
   "labels": {
+    "connectionDetails": "Connection Details",
+    "metaSync": "Meta Sync",
+    "today": "Today",
+    "workspace": "Workspace",
     "txt": "TXT Record value",
     "transferOwnership": "Transfer Ownership",
     "recentActivity": "Recent Activity",
@@ -942,6 +948,7 @@
     "importZip": "Zip olarak içe aktar",
     "metaSync": "Senkronize et",
     "settings": "Ayarlar",
+    "validations": "Validations",
     "previewAs": "Önizleme modu",
     "resetReview": "Önizlemeyi sıfırla",
     "testDbConn": "Veritabanı Bağlantısını Test Et",
@@ -1095,6 +1102,7 @@
     "searchOptions": "Search options"
   },
   "msg": {
+    "formulaNotSupported": "This function is unavailable for your database",
     "controlOrgAppearance": "Control your organisations name and appearance.",
     "addCompanyDomains": "Add company domains to restrict access to unwanted users.",
     "restrictUsersFromSharing": "Restrict users from being able to share bases publicly.",
@@ -1200,6 +1208,7 @@
     "noNewNotifications": "You have no new notifications",
     "noRecordFound": "Record not found",
     "noRecordsFound": "No records found",
+    "noRecordsMatchYourSearchQuery": "No records match your search query",
     "rowDeleted": "Record deleted",
     "saveChanges": "Do you want to save the changes?",
     "tooLargeFieldEntity": "The field is too large to be converted to {entity}",
@@ -1490,7 +1499,7 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "Kabul edilen dosya türleri .xls, .xlsx, .xlsm, .ods, .ots",
       "parameterKeyCannotBeEmpty": "Parametre anahtarı boş olamaz",
       "duplicateParameterKeysAreNotAllowed": "Yinelenen parametre anahtarlarına izin verilmez",
-      "fieldRequired": "{value} boş olamaz.",
+      "fieldRequired": "This field cannot be empty.",
       "projectNotAccessible": "Proje erişilebilir değil",
       "copyToClipboardError": "Panoya kopyalanamadı",
       "pasteFromClipboardError": "Failed to paste from clipboard",

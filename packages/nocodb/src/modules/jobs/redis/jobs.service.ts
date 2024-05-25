@@ -2,46 +2,35 @@ import { InjectQueue } from '@nestjs/bull';
 import { Injectable, Logger } from '@nestjs/common';
 import { Queue } from 'bull';
 import type { OnModuleInit } from '@nestjs/common';
-import {
-  InstanceCommands,
-  InstanceTypes,
-  JOBS_QUEUE,
-  JobStatus,
-} from '~/interface/Jobs';
-import { JobsRedisService } from '~/modules/jobs/redis/jobs-redis.service';
+import { InstanceCommands, JOBS_QUEUE, JobStatus } from '~/interface/Jobs';
+import { JobsRedis } from '~/modules/jobs/redis/jobs-redis';
 
 @Injectable()
 export class JobsService implements OnModuleInit {
   protected logger = new Logger(JobsService.name);
 
-  constructor(
-    @InjectQueue(JOBS_QUEUE) public readonly jobsQueue: Queue,
-    protected readonly jobsRedisService: JobsRedisService,
-  ) {}
+  constructor(@InjectQueue(JOBS_QUEUE) public readonly jobsQueue: Queue) {}
 
   // pause primary instance queue
   async onModuleInit() {
-    if (process.env.NC_WORKER_CONTAINER !== 'true') {
+    await this.toggleQueue();
+
+    JobsRedis.workerCallbacks[InstanceCommands.RESUME_LOCAL] = async () => {
+      this.logger.log('Resuming local queue');
+      await this.jobsQueue.resume(true);
+    };
+    JobsRedis.workerCallbacks[InstanceCommands.PAUSE_LOCAL] = async () => {
+      this.logger.log('Pausing local queue');
       await this.jobsQueue.pause(true);
-    } else {
-      this.jobsRedisService.workerCallbacks[InstanceCommands.RESUME_LOCAL] =
-        async () => {
-          this.logger.log('Resuming local queue');
-          await this.jobsQueue.resume(true);
-        };
-      this.jobsRedisService.workerCallbacks[InstanceCommands.PAUSE_LOCAL] =
-        async () => {
-          this.logger.log('Pausing local queue');
-          await this.jobsQueue.pause(true);
-        };
-    }
+    };
   }
 
-  async add(name: string, data: any) {
-    // if NC_WORKER_CONTAINER is false, then skip dynamic queue pause/resume
-    if (process.env.NC_WORKER_CONTAINER !== 'false') {
+  async toggleQueue() {
+    if (process.env.NC_WORKER_CONTAINER === 'false') {
+      await this.jobsQueue.pause(true);
+    } else if (process.env.NC_WORKER_CONTAINER !== 'true') {
       // resume primary instance queue if there is no worker
-      const workerCount = await this.jobsRedisService.workerCount();
+      const workerCount = await JobsRedis.workerCount();
       const localWorkerPaused = await this.jobsQueue.isPaused(true);
 
       // if there is no worker and primary instance queue is paused, resume it
@@ -52,6 +41,10 @@ export class JobsService implements OnModuleInit {
         await this.jobsQueue.pause(true);
       }
     }
+  }
+
+  async add(name: string, data: any) {
+    await this.toggleQueue();
 
     const job = await this.jobsQueue.add(name, data);
 
@@ -109,12 +102,10 @@ export class JobsService implements OnModuleInit {
   }
 
   async emitWorkerCommand(command: InstanceCommands, ...args: any[]) {
-    const data = `${command}${args.length ? `:${args.join(':')}` : ''}`;
-    await this.jobsRedisService.publish(InstanceTypes.WORKER, data);
+    return JobsRedis.emitWorkerCommand(command, ...args);
   }
 
   async emitPrimaryCommand(command: InstanceCommands, ...args: any[]) {
-    const data = `${command}${args.length ? `:${args.join(':')}` : ''}`;
-    await this.jobsRedisService.publish(InstanceTypes.PRIMARY, data);
+    return JobsRedis.emitPrimaryCommand(command, ...args);
   }
 }

@@ -821,7 +821,11 @@ onMounted(async () => {
                 </div>
 
                 <div class="my-3">
-                  <a href="https://docs.nocodb.com/developer-resources/webhooks/" target="_blank" rel="noopener">
+                  <a
+                    href="https://docs.nocodb.com/automation/webhook/create-webhook/#webhook-with-custom-payload-"
+                    target="_blank"
+                    rel="noopener"
+                  >
                     <!-- Document Reference -->
                     {{ $t('labels.docReference') }}
                   </a>

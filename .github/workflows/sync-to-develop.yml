@@ -37,13 +37,15 @@ jobs:
           cd nocodb
           git fetch --quiet --unshallow origin
           git checkout master
+          # reset to origin/master
+          git reset --hard origin/master
           : # Use the first 8 characters of the latest commit hash as the branch name
           BRANCH_NAME=nc/$(git rev-list -n 1 HEAD | cut -c1-8)
           git checkout -b $BRANCH_NAME
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
           revertSDK=true node scripts/upgradeNocodbSdk.js
-          pnpm bootstrap
+          pnpm --filter=nocodb-sdk install --no-frozen-lockfile && pnpm --filter=nocodb-sdk run build && pnpm --filter=nocodb --filter=nc-gui --filter=playwright install --no-frozen-lockfile
           git add .
           git diff-index --quiet HEAD || git commit -m "chore: update sdk path"
           git push origin $BRANCH_NAME

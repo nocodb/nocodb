@@ -200,6 +200,12 @@ export function useViewData(
     }
     formattedData.value = formatData(response.list)
     paginationData.value = response.pageInfo || paginationData.value || {}
+
+    // if public then update sharedPaginationData
+    if (isPublic.value) {
+      sharedPaginationData.value = paginationData.value
+    }
+
     excludePageInfo.value = !response.pageInfo
     isPaginationLoading.value = false
 
@@ -283,7 +289,7 @@ export function useViewData(
           fk_column_id: c.id,
           fk_view_id: viewMeta.value?.id,
           ...(fieldById[c.id!] ? fieldById[c.id!] : {}),
-          meta: { ...parseProp(fieldById[c.id!]?.meta), ...parseProp(c.meta) },
+          meta: { validators: [], ...parseProp(fieldById[c.id!]?.meta), ...parseProp(c.meta) },
           order: (fieldById[c.id!] && fieldById[c.id!].order) || order++,
           id: fieldById[c.id!] && fieldById[c.id!].id,
         }))

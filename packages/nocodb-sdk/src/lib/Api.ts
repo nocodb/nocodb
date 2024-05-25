@@ -540,7 +540,7 @@ export interface CommentReqType {
    * Description for the target row
    * @example This is the comment for the row
    */
-  description?: string;
+  comment?: string;
   /**
    * Foreign Key to Model
    * @example md_ehn5izr99m7d45
@@ -561,7 +561,12 @@ export interface CommentUpdateReqType {
    * Description for the target row
    * @example This is the comment for the row
    */
-  description?: string;
+  comment?: string;
+  /**
+   * Foreign Key to Model
+   * @example md_ehn5izr99m7d45
+   */
+  fk_model_id?: string;
 }
 
 /**
@@ -2398,7 +2403,7 @@ export interface SortType {
    * Sort direction
    * @example desc
    */
-  direction?: 'asc' | 'desc';
+  direction?: 'asc' | 'desc' | 'count-desc' | 'count-asc';
   /** @example 1 */
   order?: number;
   /**
@@ -2961,6 +2966,144 @@ export interface CalendarColumnReqType {
    * @example 1
    */
   order?: number;
+}
+
+/**
+ * Model for Comment
+ */
+export interface CommentType {
+  /** Unique ID */
+  id?: IdType;
+  /**
+   * Row ID
+   * @example rec0Adp9PMG9o7uJy
+   */
+  row_id?: string;
+  /**
+   * Comment
+   * @example This is a comment
+   */
+  comment?: string;
+  /**
+   * Created By User ID
+   * @example usr0Adp9PMG9o7uJy
+   */
+  created_by?: IdType;
+  /**
+   * Created By User Email
+   * @example xxx@nocodb.com
+   */
+  created_by_email?: string;
+  /**
+   * Resolved By User ID
+   * @example usr0Adp9PMG9o7uJy
+   */
+  resolved_by?: IdType;
+  /**
+   * Resolved By User Email
+   * @example xxx@nocodb.com
+   */
+  resolved_by_email?: string;
+  /**
+   * Parent Comment ID
+   * @example cmt043cx4r30343ff
+   */
+  parent_comment_id?: IdType;
+  /**
+   * Source ID
+   * @example src0Adp9PMG9o7uJy
+   */
+  source_id?: IdType;
+  /**
+   * Base ID
+   * @example bas0Adp9PMG9o7uJy
+   */
+  base_id?: IdType;
+  /**
+   * Model ID
+   * @example mod0Adp9PMG9o7uJy
+   */
+  fk_model_id?: IdType;
+  /**
+   * Created At
+   * @example 2020-05-20T12:00:00.000000Z
+   */
+  created_at?: string;
+  /**
+   * Updated At
+   * @example 2020-05-20T12:00:00.000000Z
+   */
+  updated_at?: string;
+  /** Whether the comment has been deleted by the user or not */
+  is_deleted?: boolean;
+}
+
+/**
+ * Model for User Comment Notification Preference
+ */
+export interface UserCommentNotificationPreferenceType {
+  /** Unique ID */
+  id?: IdType;
+  /** User ID */
+  row_id?: string;
+  /** User ID */
+  user_id?: IdType;
+  /**
+   * Source ID
+   * @example src0Adp9PMG9o7uJy
+   */
+  source_id?: IdType;
+  /**
+   * Base ID
+   * @example bas0Adp9PMG9o7uJy
+   */
+  base_id?: IdType;
+  /**
+   * Model ID
+   * @example mod0Adp9PMG9o7uJy
+   */
+  fk_model_id?: IdType;
+  /** Is Read */
+  preference?: 'ALL_COMMENTS' | 'ONLY_MENTIONS';
+  /** Created At */
+  created_at?: string;
+  /** Updated At */
+  updated_at?: string;
+}
+
+/**
+ * Model for Comment Reactions
+ */
+export interface CommentReactionsType {
+  /** Unique ID */
+  id?: IdType;
+  /** Row ID */
+  row_id?: string;
+  /** Comment ID */
+  comment_id?: IdType;
+  /** Reaction */
+  reaction?: string;
+  /** User ID */
+  user_id?: IdType;
+  /**
+   * Source ID
+   * @example src0Adp9PMG9o7uJy
+   */
+  source_id?: IdType;
+  /**
+   * Base ID
+   * @example bas0Adp9PMG9o7uJy
+   */
+  base_id?: IdType;
+  /**
+   * Model ID
+   * @example mod0Adp9PMG9o7uJy
+   */
+  fk_model_id?: IdType;
+  /** Created At */
+  created_at?: string;
+  /** Updated At */
+  updated_at?: string;
 }
 
 export interface ExtensionType {
@@ -9671,14 +9814,62 @@ export class Api<
   };
   utils = {
     /**
+ * @description List all audits
+ * 
+ * @tags Utils
+ * @name AuditList
+ * @summary List Audits
+ * @request GET:/api/v1/db/meta/audits
+ * @response `200` `{
+  list: (AuditType)[],
+
+}` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    auditList: (
+      query: {
+        /**
+         * Row ID
+         * @example 10
+         */
+        row_id: string;
+        /**
+         * Foreign Key to Model
+         * @example md_c6csq89tl37jm5
+         */
+        fk_model_id: IdType;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        {
+          list: AuditType[];
+        },
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/db/meta/audits`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
  * @description List all comments
  * 
  * @tags Utils
  * @name CommentList
- * @summary List Comments in Audit
- * @request GET:/api/v1/db/meta/audits/comments
+ * @summary List Comments
+ * @request GET:/api/v1/db/meta/comments
  * @response `200` `{
-  list: (AuditType)[],
+  list: (CommentType)[],
 
 }` OK
  * @response `400` `{
@@ -9699,24 +9890,19 @@ export class Api<
          * @example md_c6csq89tl37jm5
          */
         fk_model_id: IdType;
-        /**
-         * Is showing comments only?
-         * @example true
-         */
-        comments_only?: boolean;
       },
       params: RequestParams = {}
     ) =>
       this.request<
         {
-          list: AuditType[];
+          list: CommentType[];
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
         }
       >({
-        path: `/api/v1/db/meta/audits/comments`,
+        path: `/api/v1/db/meta/comments`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -9724,13 +9910,13 @@ export class Api<
       }),
 
     /**
- * @description Create a new comment in a row. Logged in Audit.
+ * @description Create a new comment in a row.
  * 
  * @tags Utils
  * @name CommentRow
  * @summary Comment Rows
- * @request POST:/api/v1/db/meta/audits/comments
- * @response `200` `AuditType` OK
+ * @request POST:/api/v1/db/meta/comments
+ * @response `200` `CommentType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -9739,13 +9925,13 @@ export class Api<
  */
     commentRow: (data: CommentReqType, params: RequestParams = {}) =>
       this.request<
-        AuditType,
+        CommentType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
         }
       >({
-        path: `/api/v1/db/meta/audits/comments`,
+        path: `/api/v1/db/meta/comments`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -9754,24 +9940,42 @@ export class Api<
       }),
 
     /**
-     * @description Update comment in Audit
+     * @description Update comment
      *
      * @tags Utils
      * @name CommentUpdate
-     * @summary Update Comment in Audit
-     * @request PATCH:/api/v1/db/meta/audits/{auditId}/comment
+     * @summary Update Comment
+     * @request PATCH:/api/v1/db/meta/comment/{commentId}/
      * @response `200` `number` OK
      */
     commentUpdate: (
-      auditId: string,
+      commentId: string,
       data: CommentUpdateReqType,
       params: RequestParams = {}
     ) =>
       this.request<number, any>({
-        path: `/api/v1/db/meta/audits/${auditId}/comment`,
+        path: `/api/v1/db/meta/comment/${commentId}/`,
         method: 'PATCH',
         body: data,
         type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Delete comment
+     *
+     * @tags Utils
+     * @name CommentDelete
+     * @summary Delete Comment
+     * @request DELETE:/api/v1/db/meta/comment/{commentId}/
+     * @response `200` `number` OK
+     */
+    commentDelete: (commentId: string, data: any, params: RequestParams = {}) =>
+      this.request<number, any>({
+        path: `/api/v1/db/meta/comment/${commentId}/`,
+        method: 'DELETE',
+        body: data,
         format: 'json',
         ...params,
       }),
@@ -9782,7 +9986,7 @@ export class Api<
  * @tags Utils
  * @name CommentCount
  * @summary Count Comments
- * @request GET:/api/v1/db/meta/audits/comments/count
+ * @request GET:/api/v1/db/meta/comments/count
  * @response `200` `({
   \**
    * The number of comments
@@ -9829,7 +10033,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/meta/audits/comments/count`,
+        path: `/api/v1/db/meta/comments/count`,
         method: 'GET',
         query: query,
         format: 'json',

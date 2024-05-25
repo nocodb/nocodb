@@ -162,6 +162,7 @@
     "insertAbove": "Insert above",
     "insertBelow": "Insert below",
     "hideField": "Hide Field",
+    "showField": "Show Field",
     "sortAsc": "เรียงจากน้อยไปมาก",
     "sortDesc": "เรียงจากมากไปน้อย",
     "move": "Move",
@@ -203,7 +204,8 @@
     "verify": "Verify",
     "apply": "Apply",
     "text": "Text",
-    "appearance": "Appearance"
+    "appearance": "Appearance",
+    "now": "Now"
   },
   "objects": {
     "owner": "Owner",
@@ -447,6 +449,10 @@
     "noResultsMatchedYourSearch": "Your search did not yield any matching results."
   },
   "labels": {
+    "connectionDetails": "Connection Details",
+    "metaSync": "Meta Sync",
+    "today": "Today",
+    "workspace": "Workspace",
     "txt": "TXT Record value",
     "transferOwnership": "Transfer Ownership",
     "recentActivity": "Recent Activity",
@@ -584,7 +590,7 @@
     "untitledToken": "Untitled token",
     "tableName": "ชื่อตาราง",
     "dashboardName": "Dashboard name",
-    "createView": "Create a View",
+    "createView": "Create View",
     "creatingView": "Creating View",
     "duplicateView": "Duplicate View",
     "duplicateGridView": "Duplicate Grid View",
@@ -942,6 +948,7 @@
     "importZip": "zip นำเข้า",
     "metaSync": "ซิงค์ตอนนี้",
     "settings": "การตั้งค่า",
+    "validations": "Validations",
     "previewAs": "ดูตัวอย่างเป็น",
     "resetReview": "รีเซ็ตดูตัวอย่าง",
     "testDbConn": "ทดสอบการเชื่อมต่อฐานข้อมูล",
@@ -1095,6 +1102,7 @@
     "searchOptions": "Search options"
   },
   "msg": {
+    "formulaNotSupported": "This function is unavailable for your database",
     "controlOrgAppearance": "Control your organisations name and appearance.",
     "addCompanyDomains": "Add company domains to restrict access to unwanted users.",
     "restrictUsersFromSharing": "Restrict users from being able to share bases publicly.",
@@ -1200,6 +1208,7 @@
     "noNewNotifications": "You have no new notifications",
     "noRecordFound": "Record not found",
     "noRecordsFound": "No records found",
+    "noRecordsMatchYourSearchQuery": "No records match your search query",
     "rowDeleted": "Record deleted",
     "saveChanges": "Do you want to save the changes?",
     "tooLargeFieldEntity": "The field is too large to be converted to {entity}",
@@ -1490,7 +1499,7 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "The accepted file types are .xls, .xlsx, .xlsm, .ods, .ots",
       "parameterKeyCannotBeEmpty": "Parameter key cannot be empty",
       "duplicateParameterKeysAreNotAllowed": "Duplicate parameter keys are not allowed",
-      "fieldRequired": "{value} cannot be empty.",
+      "fieldRequired": "This field cannot be empty.",
       "projectNotAccessible": "Project not accessible",
       "copyToClipboardError": "Failed to copy to clipboard",
       "pasteFromClipboardError": "Failed to paste from clipboard",

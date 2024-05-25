@@ -61,17 +61,22 @@ eventBus.on(async (event, column: ColumnType) => {
     overlay-class-name="nc-dropdown-filter-menu nc-toolbar-dropdown"
     class="!xs:hidden"
   >
-    <div :class="{ 'nc-active-btn': filtersLength }">
-      <a-button v-e="['c:filter']" class="nc-filter-menu-btn nc-toolbar-btn txt-sm" :disabled="isLocked">
+    <NcButton
+      v-e="['c:filter']"
+      :disabled="isLocked"
+      class="nc-filter-menu-btn nc-toolbar-btn !border-0 !h-7"
+      size="small"
+      type="secondary"
+    >
+      <div class="flex items-center gap-1">
         <div class="flex items-center gap-2">
           <component :is="iconMap.filter" class="h-4 w-4" />
           <!-- Filter -->
-          <span v-if="!isMobileMode" class="text-capitalize !text-sm font-medium">{{ $t('activity.filter') }}</span>
-
-          <span v-if="filtersLength" class="bg-brand-50 text-brand-500 py-1 px-2 text-md rounded-md">{{ filtersLength }}</span>
+          <span v-if="!isMobileMode" class="text-capitalize !text-[13px] font-medium">{{ $t('activity.filter') }}</span>
         </div>
-      </a-button>
-    </div>
+        <span v-if="filtersLength" class="bg-brand-50 text-brand-500 py-1 px-2 text-md rounded-md">{{ filtersLength }}</span>
+      </div>
+    </NcButton>
 
     <template #overlay>
       <SmartsheetToolbarColumnFilter
@@ -80,6 +85,7 @@ eventBus.on(async (event, column: ColumnType) => {
         class="nc-table-toolbar-menu"
         :auto-save="true"
         data-testid="nc-filter-menu"
+        :is-open="open"
         @update:filters-length="filtersLength = $event"
       >
       </SmartsheetToolbarColumnFilter>

@@ -147,7 +147,7 @@ onMounted(async () => {
             class="mr-1 flex items-center justify-center"
             :class="[plugin.title === 'SES' ? 'p-2 bg-[#242f3e]' : '']"
           >
-            <img :alt="plugin.title || 'plugin'" :src="`/${plugin.logo}`" class="h-6" />
+            <img :alt="plugin.title || 'plugin'" :src="plugin.logo" class="h-6" />
           </div>
 
           <span class="font-semibold text-lg">{{ plugin.formDetails.title }}</span>

@@ -1,18 +1,29 @@
 <script setup lang="ts">
-import type { VNodeRef } from '@vue/runtime-core'
-import type { AuditType } from 'nocodb-sdk'
-import { timeAgo } from 'nocodb-sdk'
-import { Icon } from '@iconify/vue'
+import type { CommentType } from 'nocodb-sdk'
 
 const props = defineProps<{
   loading: boolean
 }>()
 
-const { loadCommentsAndLogs, commentsAndLogs, saveComment: _saveComment, comment, updateComment } = useExpandedFormStoreOrThrow()
+const {
+  loadComments,
+  deleteComment,
+  comments,
+  audits,
+  isCommentsLoading,
+  isAuditLoading,
+  saveComment: _saveComment,
+  comment: newComment,
+  updateComment,
+} = useExpandedFormStoreOrThrow()
 
 const { isExpandedFormCommentMode } = storeToRefs(useConfigStore())
 
 const commentsWrapperEl = ref<HTMLDivElement>()
+
+const commentInputRef = ref<any>()
+
+const editRef = ref<any>()
 
 const { user, appInfo } = useGlobal()
 
@@ -24,29 +35,16 @@ const { isUIAllowed } = useRoles()
 
 const hasEditPermission = computed(() => isUIAllowed('commentEdit'))
 
-const editLog = ref<AuditType>()
+const editComment = ref<CommentType>()
 
 const isEditing = ref<boolean>(false)
 
 const isCommentMode = ref(false)
 
-const focusCommentInput: VNodeRef = (el) => {
-  if (!isExpandedFormLoading.value && (isCommentMode.value || isExpandedFormCommentMode.value) && !isEditing.value) {
-    if (isExpandedFormCommentMode.value) {
-      setTimeout(() => {
-        isExpandedFormCommentMode.value = false
-      }, 400)
-    }
-    return (el as HTMLInputElement)?.focus()
-  }
-  return el
-}
-const focusInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
-
 function onKeyDown(event: KeyboardEvent) {
   if (event.key === 'Escape') {
     onKeyEsc(event)
-  } else if (event.key === 'Enter') {
+  } else if (event.key === 'Enter' && !event.shiftKey) {
     onKeyEnter(event)
   }
 }
@@ -64,26 +62,26 @@ function onKeyEsc(event: KeyboardEvent) {
 }
 
 async function onEditComment() {
-  if (!isEditing.value || !editLog.value) return
+  if (!isEditing.value || !editComment.value) return
 
   isCommentMode.value = true
 
-  await updateComment(editLog.value.id!, {
-    description: editLog.value.description,
+  await updateComment(editComment.value.id!, {
+    comment: editComment.value?.comment,
   })
   onStopEdit()
 }
 
 function onCancel() {
   if (!isEditing.value) return
-  editLog.value = undefined
+  editComment.value = undefined
   onStopEdit()
 }
 
 function onStopEdit() {
-  loadCommentsAndLogs()
+  loadComments()
   isEditing.value = false
-  editLog.value = undefined
+  editComment.value = undefined
 }
 
 onKeyStroke('Enter', (event) => {
@@ -92,26 +90,28 @@ onKeyStroke('Enter', (event) => {
   }
 })
 
-const comments = computed(() => commentsAndLogs.value.filter((log) => log.op_type === 'COMMENT'))
-const audits = computed(() => commentsAndLogs.value.filter((log) => log.op_type !== 'COMMENT' && log.details))
-
-function editComment(log: AuditType) {
-  editLog.value = log
+function editComments(comment: CommentType) {
+  editComment.value = comment
   isEditing.value = true
 }
 
 const value = computed({
   get() {
-    return editLog.value?.description?.substring(editLog.value?.description?.indexOf(':') + 1) ?? ''
+    return editComment.value?.comment || ''
   },
   set(val) {
-    if (!editLog.value) return
-    editLog.value.description = val
+    if (!editComment.value) return
+    editComment.value.comment = val
   },
 })
 
 function scrollComments() {
-  if (commentsWrapperEl.value) commentsWrapperEl.value.scrollTop = commentsWrapperEl.value?.scrollHeight
+  if (commentsWrapperEl.value) {
+    commentsWrapperEl.value.scrollTo({
+      top: commentsWrapperEl.value.scrollHeight,
+      behavior: 'smooth',
+    })
+  }
 }
 
 const isSaving = ref(false)
@@ -124,7 +124,10 @@ const saveComment = async () => {
 
   try {
     await _saveComment()
-
+    await nextTick(() => {
+      commentInputRef?.value?.setEditorContent('', true)
+      isExpandedFormCommentMode.value = true
+    })
     scrollComments()
   } catch (e) {
     console.error(e)
@@ -134,216 +137,261 @@ const saveComment = async () => {
 }
 
 watch(commentsWrapperEl, () => {
-  scrollComments()
+  setTimeout(() => {
+    nextTick(() => {
+      scrollComments()
+    })
+  }, 100)
 })
-
-const onClickAudit = () => {
-  if (appInfo.value.ee) return
-
-  tab.value = 'audits'
-}
 </script>
 
 <template>
-  <div class="flex flex-col h-full w-full">
-    <div class="h-16 bg-white rounded-t-lg border-gray-200 border-b-1">
-      <div class="flex flex-row gap-2 m-2 p-1 bg-gray-100 rounded-lg">
-        <div
-          v-e="['c:row-expand:comment']"
-          class="tab flex-1 px-4 py-2 transition-all text-gray-600 cursor-pointer rounded-lg"
-          :class="{
-            'bg-white shadow !text-brand-500 !hover:text-brand-500': tab === 'comments' || appInfo.ee,
-          }"
-          @click="tab = 'comments'"
-        >
-          <div class="tab-title nc-tab">
-            <MdiMessageOutline class="h-4 w-4 flex-none" />
-            <span class="<lg:hidden">Comments</span>
-          </div>
-        </div>
-        <NcTooltip v-if="appInfo.ee" class="tab flex-1">
-          <template #title>
-            <span class="!text-base"> Coming soon </span>
-          </template>
-          <div
-            v-e="['c:row-expand:audit']"
-            class="flex-1 px-4 py-2 transition-all text-gray-400 cursor-not-allowed bg-gray-50 rounded-lg"
-            @click="onClickAudit"
-          >
-            <div class="tab-title nc-tab select-none">
-              <MdiFileDocumentOutline class="h-4 w-4" />
-              <span class="<lg:hidden">Audits</span>
-            </div>
-          </div>
-        </NcTooltip>
-        <div
-          v-else
-          v-e="['c:row-expand:audit']"
-          class="tab flex-1 px-4 py-2 transition-all text-gray-600 cursor-pointer rounded-lg"
-          :class="{
-            'bg-white shadow !text-brand-500 !hover:text-brand-500': tab === 'audits',
-          }"
-          @click="onClickAudit"
-        >
-          <div class="tab-title nc-tab">
-            <MdiFileDocumentOutline class="h-4 w-4" />
-            <span class="<lg:hidden">Audits</span>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div
-      class="h-[calc(100%-4rem)]"
-      :class="{
-        'pb-1': tab !== 'comments' && !appInfo.ee,
-      }"
-    >
-      <div v-if="isExpandedFormLoading" class="flex flex-col h-full">
-        <GeneralLoader class="!mt-16" size="xlarge" />
-      </div>
-      <div v-else-if="tab === 'comments'" class="flex flex-col h-full">
-        <div v-if="comments.length === 0" class="flex flex-col my-1 text-center justify-center h-full">
-          <div class="text-center text-3xl text-gray-700">
-            <GeneralIcon icon="commentHere" />
-          </div>
-          <div class="font-medium text-center my-6 text-gray-500">{{ $t('activity.startCommenting') }}</div>
-        </div>
-        <div v-else ref="commentsWrapperEl" class="flex flex-col h-full py-2 pl-2 pr-1 space-y-2 nc-scrollbar-md">
-          <div v-for="log of comments" :key="log.id">
-            <div class="bg-white rounded-xl group border-1 gap-2 border-gray-200 overflow-hidden">
-              <div class="flex flex-col p-4 gap-3">
-                <div class="flex justify-between">
-                  <div class="flex items-center gap-2">
-                    <GeneralUserIcon size="base" :name="log.display_name" :email="log.user" />
-
-                    <div class="flex flex-col <lg:max-w-22">
-                      <NcTooltip class="truncate max-w-42" show-on-truncate-only>
-                        <template #title>
-                          {{ log.display_name?.trim() || log.user || 'Shared source' }}
-                        </template>
-                        <span
-                          class="text-ellipsis overflow-hidden font-bold"
-                          :style="{
-                            wordBreak: 'keep-all',
-                            whiteSpace: 'nowrap',
-                            display: 'inline',
-                          }"
-                        >
-                          {{ log.display_name?.trim() || log.user || 'Shared source' }}
-                        </span>
-                      </NcTooltip>
-                      <div v-if="log.id !== editLog?.id" class="text-xs font-medium text-gray-500">
-                        {{ log.created_at !== log.updated_at ? `Edited ${timeAgo(log.updated_at)}` : timeAgo(log.created_at) }}
-                      </div>
-                    </div>
-                  </div>
-                  <NcButton
-                    v-if="log.user === user!.email && !editLog"
-                    v-e="['c:row-expand:comment:edit']"
-                    type="secondary"
-                    class="!px-2 opacity-0 group-hover:opacity-100 transition-all"
-                    size="sm"
-                    @click="editComment(log)"
-                  >
-                    <Icon class="iconify text-gray-800" icon="lucide:pen" />
-                  </NcButton>
-                </div>
-                <textarea
-                  v-if="log.id === editLog?.id"
-                  :ref="focusInput"
-                  v-model="value"
-                  rows="6"
-                  class="px-2 py-1 rounded-lg border-none nc-scrollbar-md bg-white outline-gray-200"
-                  @keydown.stop="onKeyDown($event)"
-                />
-                <div v-else class="text-sm text-gray-700">
-                  {{ log.description.substring(log.description.indexOf(':') + 1) }}
-                </div>
-                <div v-if="log.id === editLog?.id" class="flex justify-end gap-1">
-                  <NcButton size="small" type="secondary" @click="onCancel"> Cancel </NcButton>
-                  <NcButton v-e="['a:row-expand:comment:save']" size="small" @click="onEditComment"> Save </NcButton>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div v-if="hasEditPermission" class="p-2 bg-gray-50 gap-2 flex">
-          <div class="h-14 flex flex-row w-full bg-white py-2.75 px-1.5 items-center rounded-xl border-1 border-gray-200">
-            <GeneralUserIcon size="base" class="!w-10" :email="user?.email" :name="user?.display_name" />
-            <a-input
-              :ref="focusCommentInput"
-              v-model:value="comment"
-              class="!rounded-lg border-1 bg-white !px-2.5 !py-2 !border-gray-200 nc-comment-box !outline-none"
-              placeholder="Start typing..."
-              data-testid="expanded-form-comment-input"
-              :bordered="false"
-              :disabled="isSaving"
-              @keyup.enter.prevent="saveComment"
-            >
-            </a-input>
-            <NcButton
-              v-e="['a:row-expand:comment:save']"
-              size="medium"
-              class="!w-8"
-              :loading="isSaving"
-              :disabled="!isSaving && !comment.length"
-              :icon-only="isSaving"
-              @click="saveComment"
-            >
-              <GeneralIcon v-if="!isSaving" icon="send" />
-            </NcButton>
-          </div>
-        </div>
-      </div>
-      <div v-if="tab === 'audits'" ref="commentsWrapperEl" class="flex flex-col h-full nc-scrollbar-md !overflow-y-auto">
-        <template v-if="audits.length === 0">
-          <div class="flex flex-col text-center justify-center h-full">
-            <div class="text-center text-3xl text-gray-600">
-              <MdiHistory />
-            </div>
-            <div class="font-bold text-center my-1 text-gray-600">See changes to this record</div>
+  <div class="flex flex-col !h-full w-full">
+    <NcTabs v-model:activeKey="tab" class="h-full">
+      <a-tab-pane key="comments" class="w-full h-full">
+        <template #tab>
+          <div v-e="['c:row-expand:comment']" class="flex items-center gap-2">
+            <GeneralIcon icon="messageCircle" class="w-4 h-4" />
+            <span class="<lg:hidden"> Comments </span>
           </div>
         </template>
+        <div
+          class="h-full"
+          :class="{
+            'pb-1': tab !== 'comments' && !appInfo.ee,
+          }"
+        >
+          <div v-if="isExpandedFormLoading" class="flex flex-col h-full">
+            <GeneralLoader class="!mt-16" size="xlarge" />
+          </div>
+          <div v-else class="flex flex-col h-full">
+            <div v-if="comments.length === 0" class="flex flex-col my-1 text-center justify-center h-full nc-scrollbar-thin">
+              <div class="text-center text-3xl text-gray-700">
+                <GeneralIcon icon="commentHere" />
+              </div>
+              <div class="font-medium text-center my-6 text-gray-500">{{ $t('activity.startCommenting') }}</div>
+            </div>
+            <div v-else ref="commentsWrapperEl" class="flex flex-col h-full py-1 nc-scrollbar-thin">
+              <div v-for="comment of comments" :key="comment.id" class="nc-comment-item">
+                <div
+                  :class="{
+                    'hover:bg-gray-50 bg-white': comment.id !== editComment?.id,
+                  }"
+                  class="group gap-3 overflow-hidden flex items-start px-3 py-1"
+                >
+                  <GeneralUserIcon
+                    :email="comment.created_by_email"
+                    :name="comment.created_display_name"
+                    class="mt-0.5"
+                    size="medium"
+                  />
+                  <div class="flex-1 flex flex-col gap-1 max-w-[calc(100%_-_24px)]">
+                    <div class="w-full flex justify-between gap-3 min-h-7">
+                      <div class="flex items-center max-w-[calc(100%_-_40px)]">
+                        <div class="w-full flex flex-wrap gap-3 items-center">
+                          <NcTooltip
+                            class="truncate capitalize text-gray-800 font-weight-700 !text-[13px] max-w-42"
+                            show-on-truncate-only
+                          >
+                            <template #title>
+                              {{ comment.created_display_name?.trim() || comment.created_by_email || 'Shared source' }}
+                            </template>
+                            <span
+                              class="text-ellipsis capitalize overflow-hidden"
+                              :style="{
+                                lineHeight: '18px',
+                                wordBreak: 'keep-all',
+                                whiteSpace: 'nowrap',
+                                display: 'inline',
+                              }"
+                            >
+                              {{
+                                comment.created_by === user?.id
+                                  ? 'You'
+                                  : comment.created_display_name?.trim() || comment.created_by_email || 'Shared source'
+                              }}
+                            </span>
+                          </NcTooltip>
+                          <div class="text-xs text-gray-500">
+                            {{
+                              comment.created_at !== comment.updated_at
+                                ? `Edited ${timeAgo(comment.updated_at)}`
+                                : timeAgo(comment.created_at)
+                            }}
+                          </div>
+                        </div>
+                      </div>
 
-        <div v-for="log of audits" :key="log.id" class="nc-audit-item">
-          <div class="flex flex-col p-4 gap-3">
-            <div class="flex justify-between">
-              <div class="flex items-center gap-2">
-                <GeneralUserIcon size="base" :email="log.user" :name="log.display_name" />
+                      <div class="flex items-center opacity-0 transition-all group-hover:opacity-100 ease-out duration-400 gap-2">
+                        <NcDropdown
+                          v-if="comment.created_by_email === user!.email && !editComment"
+                          overlay-class-name="!min-w-[160px]"
+                          placement="bottomRight"
+                        >
+                          <NcButton class="nc-expand-form-more-actions !w-7 !h-7 !bg-transparent" size="xsmall" type="text">
+                            <GeneralIcon class="text-md" icon="threeDotVertical" />
+                          </NcButton>
+                          <template #overlay>
+                            <NcMenu>
+                              <NcMenuItem
+                                v-e="['c:row-expand:comment:edit']"
+                                class="text-gray-700"
+                                @click="editComments(comment)"
+                              >
+                                <div class="flex gap-2 items-center">
+                                  <component :is="iconMap.rename" class="cursor-pointer" />
+                                  {{ $t('general.edit') }}
+                                </div>
+                              </NcMenuItem>
+                              <NcMenuItem
+                                v-e="['c:row-expand:comment:delete']"
+                                class="!text-red-500 !hover:bg-red-50"
+                                @click="deleteComment(comment.id!)"
+                              >
+                                <div class="flex gap-2 items-center">
+                                  <component :is="iconMap.delete" class="cursor-pointer" />
+                                  {{ $t('general.delete') }}
+                                </div>
+                              </NcMenuItem>
+                            </NcMenu>
+                          </template>
+                        </NcDropdown>
+                      </div>
+                    </div>
 
-                <div class="flex flex-col">
-                  <NcTooltip class="truncate max-w-50" show-on-truncate-only>
-                    <template #title>
-                      {{ log.display_name?.trim() || log.user || 'Shared source' }}
-                    </template>
-                    <span
-                      class="text-ellipsis overflow-hidden font-bold"
-                      :style="{
-                        wordBreak: 'keep-all',
-                        whiteSpace: 'nowrap',
-                        display: 'inline',
-                      }"
-                    >
-                      {{ log.display_name?.trim() || log.user || 'Shared source' }}
-                    </span>
-                  </NcTooltip>
-                  <div v-if="log.id !== editLog?.id" class="text-xs font-medium text-gray-500">
-                    {{ timeAgo(log.created_at) }}
+                    <SmartsheetExpandedFormRichComment
+                      v-if="comment.id === editComment?.id"
+                      ref="editRef"
+                      v-model:value="value"
+                      autofocus
+                      :hide-options="false"
+                      class="expanded-form-comment-input !pt-1 !pb-0.5 !pl-2 !m-0 w-full !border-1 !border-gray-200 !rounded-lg !bg-transparent !text-gray-800 !text-small !leading-18px !max-h-[694px]"
+                      data-testid="expanded-form-comment-input"
+                      sync-value-change
+                      @save="onEditComment"
+                      @keydown.stop="onKeyDown"
+                      @blur="
+                        () => {
+                          editComment = undefined
+                          isEditing = false
+                        }
+                      "
+                      @keydown.enter.exact.prevent="onEditComment"
+                    />
+
+                    <div v-else class="text-small leading-18px text-gray-800">
+                      <SmartsheetExpandedFormRichComment
+                        :value="comment.comment"
+                        class="!text-small !leading-18px !text-gray-800 -ml-1"
+                        read-only
+                        sync-value-change
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-            <div v-dompurify-html="log.details" class="text-sm font-medium"></div>
+            <div v-if="hasEditPermission" class="bg-gray-50 nc-comment-input !rounded-br-2xl gap-2 flex">
+              <SmartsheetExpandedFormRichComment
+                ref="commentInputRef"
+                v-model:value="newComment"
+                :hide-options="false"
+                placeholder="Comment..."
+                class="expanded-form-comment-input !m-0 pt-2 w-full !border-t-1 !border-gray-200 !bg-transparent !text-gray-800 !text-small !leading-18px !max-h-[566px]"
+                :autofocus="isExpandedFormCommentMode"
+                data-testid="expanded-form-comment-input"
+                @focus="isExpandedFormCommentMode = false"
+                @keydown.stop
+                @save="saveComment"
+                @keydown.enter.exact.prevent="saveComment"
+              />
+            </div>
           </div>
         </div>
-      </div>
-    </div>
+      </a-tab-pane>
+
+      <a-tab-pane key="audits" class="w-full" :disabled="appInfo.ee">
+        <template #tab>
+          <NcTooltip v-if="appInfo.ee" class="tab flex-1">
+            <template #title>
+              <span class="!text-base"> Coming soon </span>
+            </template>
+
+            <div v-e="['c:row-expand:audit']" class="flex items-center gap-2 text-gray-400">
+              <GeneralIcon icon="audit" class="w-4 h-4" />
+              <span class="<lg:hidden"> Audits </span>
+            </div>
+          </NcTooltip>
+
+          <div v-else v-e="['c:row-expand:audit']" class="flex items-center gap-2">
+            <GeneralIcon icon="audit" class="w-4 h-4" />
+            <span class="<lg:hidden"> Audits </span>
+          </div>
+        </template>
+        <div
+          class="h-full"
+          :class="{
+            'pb-1': !appInfo.ee,
+          }"
+        >
+          <div v-if="isExpandedFormLoading || isAuditLoading" class="flex flex-col h-full">
+            <GeneralLoader class="!mt-16" size="xlarge" />
+          </div>
+
+          <div v-else ref="commentsWrapperEl" class="flex flex-col h-full py-1 nc-scrollbar-thin !overflow-y-auto">
+            <template v-if="audits.length === 0">
+              <div class="flex flex-col text-center justify-center h-full">
+                <div class="text-center text-3xl text-gray-600">
+                  <MdiHistory />
+                </div>
+                <div class="font-bold text-center my-1 text-gray-600">See changes to this record</div>
+              </div>
+            </template>
+
+            <div v-for="audit of audits" :key="audit.id" class="nc-audit-item">
+              <div class="group gap-3 overflow-hidden flex items-start p-3">
+                <GeneralUserIcon size="medium" :email="audit.user" :name="audit.display_name" />
+                <div class="flex-1 flex flex-col gap-1 max-w-[calc(100%_-_24px)]">
+                  <div class="flex flex-wrap items-center min-h-7">
+                    <NcTooltip class="truncate max-w-42 mr-2" show-on-truncate-only>
+                      <template #title>
+                        {{ audit.display_name?.trim() || audit.user || 'Shared source' }}
+                      </template>
+                      <span
+                        class="text-ellipsis overflow-hidden font-bold text-gray-800"
+                        :style="{
+                          wordBreak: 'keep-all',
+                          whiteSpace: 'nowrap',
+                          display: 'inline',
+                        }"
+                      >
+                        {{ audit.display_name?.trim() || audit.user || 'Shared source' }}
+                      </span>
+                    </NcTooltip>
+                    <div class="text-xs text-gray-400">
+                      {{ timeAgo(audit.created_at) }}
+                    </div>
+                  </div>
+                  <div v-dompurify-html="audit.details" class="text-sm font-medium"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </a-tab-pane>
+    </NcTabs>
   </div>
 </template>
 
-<style scoped>
+<style lang="scss" scoped>
 .tab {
   @apply max-w-1/2;
+}
+
+.nc-comment-input {
+  :deep(.nc-comment-rich-editor) {
+    @apply !ml-1;
+  }
 }
 
 .nc-audit-item {
@@ -371,5 +419,40 @@ const onClickAudit = () => {
 
 :deep(.green.lighten-4) {
   @apply bg-green-100 rounded-md !mr-3 !leading-6;
+}
+
+:deep(.ant-tabs) {
+  @apply !overflow-visible;
+  .ant-tabs-nav {
+    @apply px-3;
+    .ant-tabs-nav-list {
+      @apply w-[99%] mx-auto gap-6;
+
+      .ant-tabs-tab {
+        @apply flex-1 flex items-center justify-center pt-3 pb-2.5;
+
+        & + .ant-tabs-tab {
+          @apply !ml-0;
+        }
+      }
+    }
+  }
+  .ant-tabs-content-holder {
+    .ant-tabs-content {
+      @apply h-full;
+    }
+  }
+}
+
+:deep(.expanded-form-comment-input) {
+  @apply transition-all duration-150 min-h-8;
+  box-shadow: none;
+  &:focus,
+  &:focus-within {
+    @apply min-h-16;
+  }
+  &::placeholder {
+    @apply !text-gray-400;
+  }
 }
 </style>

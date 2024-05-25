@@ -182,7 +182,7 @@ export class TreeViewPage extends BasePage {
     await this.waitForTableOptions({ title });
 
     await this.get().locator(`.nc-base-tree-tbl-${tableTitle}`).locator('.nc-tbl-context-menu').click();
-    await this.rootPage.locator('.ant-dropdown').locator('.nc-menu-item:has-text("Delete")').click();
+    await this.rootPage.locator('.ant-dropdown').locator('.nc-menu-item.nc-table-delete:has-text("Delete")').click();
 
     await this.waitForResponse({
       uiAction: async () => {
@@ -205,7 +205,7 @@ export class TreeViewPage extends BasePage {
     await this.waitForTableOptions({ title });
 
     await this.get().locator(`.nc-base-tree-tbl-${tableTitle}`).locator('.nc-tbl-context-menu').click();
-    await this.rootPage.locator('.ant-dropdown').locator('.nc-menu-item:has-text("Rename")').click();
+    await this.rootPage.locator('.ant-dropdown').locator('.nc-table-rename.nc-menu-item:has-text("Rename")').click();
 
     await this.dashboard.get().locator('[placeholder="Enter table name"]').fill(newTitle);
     await this.dashboard.get().locator('button:has-text("Rename Table")').click();

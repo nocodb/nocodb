@@ -240,11 +240,11 @@ export class FieldsPage extends BasePage {
   async saveChanges() {
     await this.waitForResponse({
       uiAction: async () => await this.saveChangesButton.click(),
-      requestUrlPathToMatch: 'api/v1/db/meta/views/',
+      requestUrlPathToMatch: 'api/v1/db/meta/tables/',
       httpMethodsToMatch: ['GET'],
-      responseJsonMatcher: json => json['list'],
+      responseJsonMatcher: json => json['hash'],
     });
-    await this.rootPage.waitForTimeout(200);
+    await this.rootPage.waitForTimeout(1000);
   }
 
   getField({ title }: { title: string }) {
@@ -279,7 +279,9 @@ export class FieldsPage extends BasePage {
     await fieldActionDropdown.getByTestId(`nc-field-item-action-${action}`).click();
 
     if (action === 'copy-id') {
-      await field.getByTestId('nc-field-item-action-button').click();
+      await field.getByTestId('nc-field-item-action-button').click({
+        force: true,
+      });
     }
 
     await fieldActionDropdown.waitFor({ state: 'hidden' });

@@ -162,6 +162,7 @@
     "insertAbove": "Insert above",
     "insertBelow": "Insert below",
     "hideField": "Ocultar Campo",
+    "showField": "Show Field",
     "sortAsc": "Ordenar Ascendente",
     "sortDesc": "Ordenar Descendente",
     "move": "Move",
@@ -203,7 +204,8 @@
     "verify": "Verify",
     "apply": "Apply",
     "text": "Text",
-    "appearance": "Appearance"
+    "appearance": "Appearance",
+    "now": "Now"
   },
   "objects": {
     "owner": "Owner",
@@ -447,6 +449,10 @@
     "noResultsMatchedYourSearch": "Your search did not yield any matching results."
   },
   "labels": {
+    "connectionDetails": "Connection Details",
+    "metaSync": "Meta Sync",
+    "today": "Today",
+    "workspace": "Workspace",
     "txt": "TXT Record value",
     "transferOwnership": "Transfer Ownership",
     "recentActivity": "Recent Activity",
@@ -584,7 +590,7 @@
     "untitledToken": "Untitled token",
     "tableName": "Nome da tabela",
     "dashboardName": "Dashboard name",
-    "createView": "Create a View",
+    "createView": "Create View",
     "creatingView": "Creating View",
     "duplicateView": "Duplicate View",
     "duplicateGridView": "Duplicate Grid View",
@@ -942,6 +948,7 @@
     "importZip": "Importar zip",
     "metaSync": "Sincronizar agora",
     "settings": "Configurações",
+    "validations": "Validations",
     "previewAs": "Pré-visualizar como",
     "resetReview": "Redefinir pré-visualização",
     "testDbConn": "Testar conexão do banco de dados",
@@ -1095,6 +1102,7 @@
     "searchOptions": "Search options"
   },
   "msg": {
+    "formulaNotSupported": "This function is unavailable for your database",
     "controlOrgAppearance": "Control your organisations name and appearance.",
     "addCompanyDomains": "Add company domains to restrict access to unwanted users.",
     "restrictUsersFromSharing": "Restrict users from being able to share bases publicly.",
@@ -1200,6 +1208,7 @@
     "noNewNotifications": "You have no new notifications",
     "noRecordFound": "Record not found",
     "noRecordsFound": "No records found",
+    "noRecordsMatchYourSearchQuery": "No records match your search query",
     "rowDeleted": "Record deleted",
     "saveChanges": "Do you want to save the changes?",
     "tooLargeFieldEntity": "The field is too large to be converted to {entity}",
@@ -1490,7 +1499,7 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "Os tipos de ficheiro aceites são .xls, .xlsx, .xlsm, .ods, .ots",
       "parameterKeyCannotBeEmpty": "A chave do parâmetro não pode estar vazia",
       "duplicateParameterKeysAreNotAllowed": "Não são permitidas chaves de parâmetros duplicadas",
-      "fieldRequired": "{value} não pode estar vazio.",
+      "fieldRequired": "This field cannot be empty.",
       "projectNotAccessible": "Projecto não acessível",
       "copyToClipboardError": "Falha na cópia para a prancheta",
       "pasteFromClipboardError": "Failed to paste from clipboard",

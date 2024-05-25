@@ -17,7 +17,7 @@ export default class Sort {
 
   fk_view_id: string;
   fk_column_id?: string;
-  direction?: 'asc' | 'desc';
+  direction?: 'asc' | 'desc' | 'count-desc' | 'count-asc';
   base_id?: string;
   source_id?: string;
 

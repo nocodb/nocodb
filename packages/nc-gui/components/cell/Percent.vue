@@ -3,6 +3,7 @@ import type { VNodeRef } from '@vue/runtime-core'
 
 interface Props {
   modelValue?: number | string | null
+  placeholder?: string
 }
 
 const props = defineProps<Props>()
@@ -144,7 +145,7 @@ const onTabPress = (e: KeyboardEvent) => {
       v-model="vModel"
       class="nc-cell-field w-full !border-none !outline-none focus:ring-0 py-1"
       :type="inputType"
-      :placeholder="isEditColumn ? $t('labels.optional') : ''"
+      :placeholder="placeholder !== undefined ? placeholder : isEditColumn ? $t('labels.optional') : ''"
       @blur="onBlur"
       @focus="onFocus"
       @keydown.down.stop

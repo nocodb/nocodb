@@ -11,6 +11,8 @@ const route = router.currentRoute
 const { isUIAllowed } = useRoles()
 
 const workspaceStore = useWorkspace()
+
+const { loadRoles } = useRoles()
 const { activeWorkspace: _activeWorkspace, workspaces } = storeToRefs(workspaceStore)
 const { loadCollaborators, loadWorkspace } = workspaceStore
 
@@ -28,6 +30,7 @@ const currentWorkspace = computedAsync(async () => {
   } else {
     ws = _activeWorkspace.value
   }
+  await loadRoles(undefined, {}, ws?.id)
   return ws
 })
 
@@ -77,8 +80,10 @@ onMounted(() => {
         <div class="flex items-center gap-3">
           <NuxtLink
             :href="`/admin/${orgId}/workspaces`"
-            class="!hover:(text-black underline-gray-600) !text-black !underline-transparent ml-0.75 max-w-1/4"
+            class="!hover:(text-black underline-gray-600) flex items-center !text-black !underline-transparent ml-0.75 max-w-1/4"
           >
+            <component :is="iconMap.arrowLeft" class="text-3xl" />
+
             {{ $t('labels.workspaces') }}
           </NuxtLink>
 

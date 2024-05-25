@@ -4,6 +4,8 @@ import { MetaTable } from '~/utils/globals';
 
 const logger = new Logger('nc_046_comment_mentions');
 
+const BATCH_SIZE = 5000;
+
 const up = async (knex: Knex) => {
   await knex.schema.createTable(MetaTable.COMMENTS, (table) => {
     table.string('id', 20).primary();
@@ -42,7 +44,7 @@ const up = async (knex: Knex) => {
 
       table.string('row_id', 255);
 
-      table.string('user_id', 255);
+      table.string('user_id', 20);
 
       table.string('fk_model_id', 20);
 
@@ -70,7 +72,7 @@ const up = async (knex: Knex) => {
 
     table.string('source_id', 20);
 
-    table.string('fk_modal_id', 20);
+    table.string('fk_model_id', 20);
 
     table.string('base_id', 128);
 
@@ -83,52 +85,69 @@ const up = async (knex: Knex) => {
 
   logger.log('nc_046_comment_mentions: Tables Created');
 
-  knex
-    .select(
-      `${MetaTable.AUDIT}.id`,
-      `${MetaTable.AUDIT}.row_id`,
-      `${MetaTable.AUDIT}.description`,
-      `${MetaTable.AUDIT}.user as user_email`,
-      `${MetaTable.AUDIT}.source_id`,
-      `${MetaTable.AUDIT}.base_id`,
-      `${MetaTable.AUDIT}.fk_model_id`,
-      `${MetaTable.AUDIT}.created_at`,
-      `${MetaTable.AUDIT}.updated_at`,
-      `${MetaTable.USERS}.id as user_id`,
-    )
-    .from(MetaTable.AUDIT)
-    .where(`${MetaTable.AUDIT}.op_type`, 'COMMENT')
-    .leftJoin(
-      MetaTable.USERS,
-      `${MetaTable.AUDIT}.user`,
-      `${MetaTable.USERS}.email`,
-    )
-    .then(async (rows) => {
-      if (!rows.length) return;
+  try {
+    logger.log('nc_046_comment_mentions: Fetching Data from Audit Table');
 
-      logger.log('nc_046_comment_mentions: Data from Audit Table Selected');
+    const rows = await knex
+      .select(
+        `${MetaTable.AUDIT}.id`,
+        `${MetaTable.AUDIT}.row_id`,
+        `${MetaTable.AUDIT}.description`,
+        `${MetaTable.AUDIT}.user as user_email`,
+        `${MetaTable.AUDIT}.source_id`,
+        `${MetaTable.AUDIT}.base_id`,
+        `${MetaTable.AUDIT}.fk_model_id`,
+        `${MetaTable.AUDIT}.created_at`,
+        `${MetaTable.AUDIT}.updated_at`,
+        `${MetaTable.USERS}.id as user_id`,
+      )
+      .from(MetaTable.AUDIT)
+      .where(`${MetaTable.AUDIT}.op_type`, 'COMMENT')
+      .leftJoin(
+        MetaTable.USERS,
+        `${MetaTable.AUDIT}.user`,
+        `${MetaTable.USERS}.email`,
+      );
 
-      const formattedRows = rows.map((row) => ({
-        id: row.id,
-        row_id: row.row_id,
-        comment: row.description
-          .substring(row.description.indexOf(':') + 1)
-          .trim(),
-        created_by: row.user_id,
-        created_by_email: row.user_email,
-        source_id: row.source_id,
-        base_id: row.base_id,
-        fk_model_id: row.fk_model_id,
-        created_at: row.created_at,
-        updated_at: row.updated_at,
-      }));
+    logger.log('nc_046_comment_mentions: Data from Audit Table fetched');
 
-      logger.log('nc_046_comment_mentions: Data from Audit Table Formatted');
+    if (!rows.length) {
+      logger.log(
+        'nc_046_comment_mentions: No Data Found to Migrate from Audit Table',
+      );
+      return;
+    }
+    const formattedRows = rows.map((row) => ({
+      id: row.id,
+      row_id: row.row_id,
+      comment: (row.description ?? '')
+        .substring((row.description ?? '').indexOf(':') + 1)
+        .trim(),
+      created_by: row.user_id,
+      created_by_email: row.user_email,
+      source_id: row.source_id,
+      base_id: row.base_id,
+      fk_model_id: row.fk_model_id,
+      created_at: row.created_at,
+      updated_at: row.updated_at,
+    }));
 
-      await knex(MetaTable.COMMENTS).insert(formattedRows);
+    logger.log('nc_046_comment_mentions: Data from Audit Table formatted');
 
-      logger.log('nc_046_comment_mentions: Data from Audit Table Migrated');
+    await knex.transaction(function (trx) {
+      return knex
+        .batchInsert(MetaTable.COMMENTS, formattedRows, BATCH_SIZE)
+        .transacting(trx);
     });
+
+    logger.log(
+      'nc_046_comment_mentions: Data migrated from Audit Table to Comments Table',
+    );
+  } catch (error) {
+    logger.error(
+      'nc_046_comment_mentions: Error while migrating data from Audit Table',
+    );
+  }
 };
 
 const down = async (knex: Knex) => {

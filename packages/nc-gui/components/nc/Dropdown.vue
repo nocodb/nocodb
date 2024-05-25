@@ -10,7 +10,7 @@ const props = withDefaults(
   {
     trigger: () => ['click'],
     visible: undefined,
-    placement: 'bottom',
+    placement: 'bottomLeft',
     overlayClassName: undefined,
     autoClose: true,
   },

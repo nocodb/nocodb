@@ -33,6 +33,7 @@ import { SourcesController } from '~/controllers/sources.controller';
 import { CachesController } from '~/controllers/caches.controller';
 import { CalendarsController } from '~/controllers/calendars.controller';
 import { ColumnsController } from '~/controllers/columns.controller';
+import { CommentsController } from '~/controllers/comments.controller';
 import { FiltersController } from '~/controllers/filters.controller';
 import { FormColumnsController } from '~/controllers/form-columns.controller';
 import { FormsController } from '~/controllers/forms.controller';
@@ -64,6 +65,7 @@ import { SourcesService } from '~/services/sources.service';
 import { CachesService } from '~/services/caches.service';
 import { CalendarsService } from '~/services/calendars.service';
 import { ColumnsService } from '~/services/columns.service';
+import { CommentsService } from '~/services/comments.service';
 import { FiltersService } from '~/services/filters.service';
 import { FormColumnsService } from '~/services/form-columns.service';
 import { FormsService } from '~/services/forms.service';
@@ -148,6 +150,7 @@ export const nocoModuleMetadata = {
           CachesController,
           CalendarsController,
           ColumnsController,
+          CommentsController,
           FiltersController,
           FormColumnsController,
           FormsController,
@@ -214,6 +217,7 @@ export const nocoModuleMetadata = {
     CachesService,
     CalendarsService,
     ColumnsService,
+    CommentsService,
     FiltersService,
     FormColumnsService,
     FormsService,

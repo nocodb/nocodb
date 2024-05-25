@@ -48,6 +48,9 @@ export enum MetaTable {
   NOTIFICATION = 'notification',
   USER_REFRESH_TOKENS = 'nc_user_refresh_tokens',
   EXTENSIONS = 'nc_extensions',
+  COMMENTS = 'nc_comments',
+  USER_COMMENTS_NOTIFICATIONS_PREFERENCE = 'nc_user_comment_notifications_preference',
+  COMMENTS_REACTIONS = 'nc_comment_reactions',
 }
 
 export enum MetaTableOldV2 {

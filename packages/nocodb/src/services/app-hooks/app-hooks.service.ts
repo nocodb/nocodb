@@ -1,42 +1,42 @@
 import { Inject, Injectable } from '@nestjs/common';
+
+import type { AppEvents } from 'nocodb-sdk';
 import type {
   ApiCreatedEvent,
   ApiTokenCreateEvent,
   ApiTokenDeleteEvent,
   AttachmentEvent,
   BaseEvent,
+  ColumnEvent,
+  FilterEvent,
   FormColumnEvent,
   GridColumnEvent,
   MetaDiffEvent,
   OrgUserInviteEvent,
   PluginEvent,
   PluginTestEvent,
+  ProjectCreateEvent,
+  ProjectDeleteEvent,
+  ProjectInviteEvent,
+  ProjectUpdateEvent,
   ProjectUserResendInviteEvent,
   ProjectUserUpdateEvent,
   RelationEvent,
+  RowCommentEvent,
   SharedBaseEvent,
+  SortEvent,
   SyncSourceEvent,
+  TableEvent,
   UIAclEvent,
   UserEmailVerificationEvent,
   UserPasswordChangeEvent,
   UserPasswordForgotEvent,
   UserPasswordResetEvent,
-  ViewColumnEvent,
-  WebhookEvent,
-} from './interfaces';
-import type { AppEvents } from 'nocodb-sdk';
-import type {
-  ColumnEvent,
-  FilterEvent,
-  ProjectCreateEvent,
-  ProjectDeleteEvent,
-  ProjectInviteEvent,
-  ProjectUpdateEvent,
-  SortEvent,
-  TableEvent,
   UserSigninEvent,
   UserSignupEvent,
+  ViewColumnEvent,
   ViewEvent,
+  WebhookEvent,
   WelcomeEvent,
 } from '~/services/app-hooks/interfaces';
 import { IEventEmitter } from '~/modules/event-emitter/event-emitter.interface';
@@ -51,6 +51,14 @@ export class AppHooksService {
   constructor(
     @Inject('IEventEmitter') protected readonly eventEmitter: IEventEmitter,
   ) {}
+
+  on(
+    event:
+      | AppEvents.COMMENT_CREATE
+      | AppEvents.COMMENT_UPDATE
+      | AppEvents.COMMENT_DELETE,
+    listener: (data: RowCommentEvent) => void,
+  );
 
   on(
     event: AppEvents.PROJECT_INVITE,
@@ -163,6 +171,13 @@ export class AppHooksService {
       | AppEvents.SHARED_VIEW_DELETE
       | AppEvents.SHARED_VIEW_CREATE,
     data: ViewEvent,
+  ): void;
+  emit(
+    event:
+      | AppEvents.COMMENT_CREATE
+      | AppEvents.COMMENT_UPDATE
+      | AppEvents.COMMENT_DELETE,
+    data: RowCommentEvent,
   ): void;
   emit(
     event:

@@ -7,13 +7,13 @@ import {
 import { Reflector } from '@nestjs/core';
 import {
   CloudOrgUserRoles,
+  extractRolesObj,
   OrgUserRoles,
   ProjectRoles,
   WorkspacePlan,
   WorkspaceUserRoles,
 } from 'nocodb-sdk';
 import { map } from 'rxjs';
-import { extractRolesObj } from 'nocodb-sdk';
 import type { Observable } from 'rxjs';
 import type {
   CallHandler,
@@ -23,9 +23,9 @@ import type {
   NestMiddleware,
 } from '@nestjs/common';
 import {
-  Audit,
   Base,
   Column,
+  Comment,
   Domain,
   Extension,
   Filter,
@@ -164,8 +164,8 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       [
         '/api/v1/db/meta/audits/rows/:rowId/update',
         '/api/v2/meta/audits/rows/:rowId/update',
-        '/api/v1/db/meta/audits/comments',
-        '/api/v2/meta/audits/comments',
+        '/api/v1/db/meta/comments',
+        '/api/v2/meta/comments',
       ].some(
         (auditInsertOrUpdatePath) => req.route.path === auditInsertOrUpdatePath,
       ) &&
@@ -180,10 +180,12 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     // extract fk_model_id from query params only if it's audit get endpoint
     else if (
       [
-        '/api/v2/meta/audits/comments/count',
-        '/api/v2/meta/audits/comments',
-        '/api/v1/db/meta/audits/comments/count',
-        '/api/v1/db/meta/audits/comments',
+        '/api/v2/meta/comments/count',
+        '/api/v1/db/meta/comments/count',
+        '/api/v2/meta/comments',
+        '/api/v1/db/meta/comments',
+        '/api/v1/db/meta/audits',
+        '/api/v2/meta/audits',
       ].some((auditReadPath) => req.route.path === auditReadPath) &&
       req.method === 'GET' &&
       req.query.fk_model_id
@@ -194,13 +196,13 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       req.ncBaseId = model?.base_id;
     } else if (
       [
-        '/api/v1/db/meta/audits/:auditId/comment',
-        '/api/v2/meta/audits/:auditId/comment',
+        '/api/v1/db/meta/comment/:commentId',
+        '/api/v2/meta/comment/:commentId',
       ].some((auditPatchPath) => req.route.path === auditPatchPath) &&
-      req.method === 'PATCH' &&
-      req.params.auditId
+      (req.method === 'PATCH' || req.method === 'DELETE') &&
+      req.params.commentId
     ) {
-      const audit = await Audit.get(params.auditId);
+      const audit = await Comment.get(params.commentId);
       req.ncBaseId = audit?.base_id;
     }
     // extract base id from query params only if it's userMe endpoint

@@ -279,7 +279,9 @@ export class FieldsPage extends BasePage {
     await fieldActionDropdown.getByTestId(`nc-field-item-action-${action}`).click();
 
     if (action === 'copy-id') {
-      await field.getByTestId('nc-field-item-action-button').click();
+      await field.getByTestId('nc-field-item-action-button').click({
+        force: true,
+      });
     }
 
     await fieldActionDropdown.waitFor({ state: 'hidden' });

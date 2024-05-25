@@ -15,6 +15,7 @@ import type {
   ProjectUserResendInviteEvent,
   ProjectUserUpdateEvent,
   RelationEvent,
+  RowCommentEvent,
   SharedBaseEvent,
   SyncSourceEvent,
   UIAclEvent,
@@ -125,6 +126,14 @@ export class AppHooksService extends ApppHookServiceCE {
       | AppEvents.WORKSPACE_CREATE,
     listener: (data: WorkspaceEvent) => void,
   ): () => void;
+
+  on(
+    event:
+      | AppEvents.COMMENT_CREATE
+      | AppEvents.COMMENT_UPDATE
+      | AppEvents.COMMENT_DELETE,
+    listener: (data: RowCommentEvent) => void,
+  );
   on(event, listener): () => void {
     return super.on(event, listener);
   }
@@ -262,6 +271,13 @@ export class AppHooksService extends ApppHookServiceCE {
   emit(event: AppEvents.EXTENSION_CREATE, data: any): void;
   emit(event: AppEvents.EXTENSION_UPDATE, data: any): void;
   emit(event: AppEvents.EXTENSION_DELETE, data: any): void;
+  emit(
+    event:
+      | AppEvents.COMMENT_CREATE
+      | AppEvents.COMMENT_UPDATE
+      | AppEvents.COMMENT_DELETE,
+    data: RowCommentEvent,
+  ): void;
   emit(event, data): void {
     return super.emit(event, data);
   }

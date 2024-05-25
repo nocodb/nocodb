@@ -136,8 +136,10 @@ import NcPhoneCall from '~icons/nc-icons/phone-call'
 import NcItalic from '~icons/nc-icons/italic'
 import NcBold from '~icons/nc-icons/bold'
 import NcUnderline from '~icons/nc-icons/underline'
-import NcCrop from '~icons/nc-icons/crop'
 import NcLink from '~icons/nc-icons/link'
+import NcAtSign from '~icons/nc-icons/at-sign'
+import NcStrike from '~icons/nc-icons/strike-through'
+import NcCrop from '~icons/nc-icons/crop'
 import NcControlPanel from '~icons/nc-icons/control-panel'
 import NcHome from '~icons/nc-icons/home'
 import NcWorkspace from '~icons/nc-icons/workspace'
@@ -337,6 +339,8 @@ import NcMessageCircle from '~icons/nc-icons/message-circle'
 } as const */
 
 export const iconMap = {
+  strike: NcStrike,
+  atSign: NcAtSign,
   slash: NcSlash,
   arrowUpRight: NcArrowUpRight,
   ncWorkspace: NcWorkspace,

@@ -131,6 +131,15 @@ export class MetaService extends MetaServiceCE {
       case MetaTable.EXTENSIONS:
         prefix = 'ext';
         break;
+      case MetaTable.COMMENTS:
+        prefix = 'com';
+        break;
+      case MetaTable.COMMENTS_REACTIONS:
+        prefix = 'cre';
+        break;
+      case MetaTable.USER_COMMENTS_NOTIFICATIONS_PREFERENCE:
+        prefix = 'cnp';
+        break;
       default:
         prefix = 'nc';
         break;

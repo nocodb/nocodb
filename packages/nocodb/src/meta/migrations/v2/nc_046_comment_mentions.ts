@@ -52,7 +52,10 @@ const up = async (knex: Knex) => {
 
       table.string('preferences', 255);
 
-      table.index(['user_id', 'row_id', 'fk_model_id']);
+      table.index(
+        ['user_id', 'row_id', 'fk_model_id'],
+        'user_comments_preference_index',
+      );
 
       table.timestamps(true, true);
     },

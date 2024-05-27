@@ -4,12 +4,15 @@ import { MetaTable } from '~/utils/globals';
 
 const logger = new Logger('nc_046_comment_mentions');
 
-const BATCH_SIZE = 5000;
+const READ_BATCH_SIZE = 1000;
+const INSERT_BATCH_SIZE = 200;
 
 const up = async (knex: Knex) => {
-  try {
-    logger.log('nc_047_comment_migration: Migration Started');
+  logger.log('Migration Started');
 
+  let fetchNextBatch = true;
+
+  for (let offset = 0; fetchNextBatch; offset += READ_BATCH_SIZE) {
     const rows = await knex
       .select(
         `${MetaTable.AUDIT}.id`,
@@ -29,43 +32,49 @@ const up = async (knex: Knex) => {
         MetaTable.USERS,
         `${MetaTable.AUDIT}.user`,
         `${MetaTable.USERS}.email`,
-      );
-
-    logger.log('nc_046_comment_mentions: Data from Audit Table fetched');
-
-    if (!rows.length) {
-      logger.log(
-        'nc_046_comment_mentions: No Data Found to Migrate from Audit Table',
-      );
-      return;
-    }
-    const formattedRows = rows.map((row) => ({
-      id: row.id,
-      row_id: row.row_id,
-      comment: (row.description ?? '')
-        .substring((row.description ?? '').indexOf(':') + 1)
-        .trim(),
-      created_by: row.user_id,
-      created_by_email: row.user_email,
-      source_id: row.source_id,
-      base_id: row.base_id,
-      fk_model_id: row.fk_model_id,
-      created_at: row.created_at,
-      updated_at: row.updated_at,
-    }));
-
-    logger.log('nc_046_comment_mentions: Data from Audit Table formatted');
-
-    return knex.batchInsert(MetaTable.COMMENTS, formattedRows, BATCH_SIZE);
+      )
+      .offset(offset)
+      // increase limit by 1 to check if there are more rows
+      .limit(READ_BATCH_SIZE + 1);
 
     logger.log(
-      'nc_047_comment_migration: Data migrated from Audit Table to Comments Table',
+       `Data from Audit Table fetched, batch: ${offset} - ${
+        offset + READ_BATCH_SIZE
+      }`,
     );
-  } catch (error) {
-    logger.error(
-      'nc_046_comment_mentions: Error while migrating data from Audit Table',
+
+    const formattedRows = rows
+      // exclude the last row since it was used to check if there are more rows
+      .slice(0, READ_BATCH_SIZE)
+      .map((row) => ({
+        id: row.id,
+        row_id: row.row_id,
+        comment: (row.description ?? '')
+          .substring((row.description ?? '').indexOf(':') + 1)
+          .trim(),
+        created_by: row.user_id,
+        created_by_email: row.user_email,
+        source_id: row.source_id,
+        base_id: row.base_id,
+        fk_model_id: row.fk_model_id,
+        created_at: row.created_at,
+        updated_at: row.updated_at,
+      }));
+
+    logger.log('Data from Audit Table formatted');
+
+    await knex.batchInsert(
+      MetaTable.COMMENTS,
+      formattedRows,
+      INSERT_BATCH_SIZE,
     );
+
+    // check if there are more rows to fetch
+    fetchNextBatch = rows.length > READ_BATCH_SIZE;
   }
+  logger.log(
+    'Data migrated from Audit Table to Comments Table',
+  );
 };
 
 const down = async (knex: Knex) => {

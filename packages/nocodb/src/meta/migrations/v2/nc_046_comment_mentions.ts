@@ -1,4 +1,3 @@
-import { Logger } from '@nestjs/common';
 import type { Knex } from 'knex';
 import { MetaTable } from '~/utils/globals';
 

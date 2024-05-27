@@ -451,6 +451,7 @@
   "labels": {
     "connectionDetails": "链接明细",
     "metaSync": "元同步",
+    "mention": "Mention",
     "today": "今天",
     "workspace": "工作区",
     "txt": "TXT 记录值",

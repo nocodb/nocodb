@@ -226,7 +226,7 @@ export async function extractColumn({
                 return qb.select(
                   knex.raw('? as ??', [
                     NcDataErrorCodes.NC_ERR_MM_MODEL_NOT_FOUND,
-                    sanitize(column.id),
+                    column.id,
                   ]),
                 );
               }
@@ -285,7 +285,7 @@ export async function extractColumn({
                            knex,
                            alias: alias3,
                            columns: fields,
-                           title: sanitize(column.id),
+                           title: column.id,
                          }),
                        )
                        .toQuery()}) as ?? ON true`,
@@ -554,7 +554,7 @@ export async function extractColumn({
                 return qb.select(
                   knex.raw('? as ??', [
                     NcDataErrorCodes.NC_ERR_MM_MODEL_NOT_FOUND,
-                    sanitize(column.id),
+                    column.id,
                   ]),
                 );
               }
@@ -751,7 +751,7 @@ export async function extractColumn({
             columnOptions: await column.getColOptions(),
             alias: rootAlias,
           })
-        ).builder.as(sanitize(column.id)),
+        ).builder.as(column.id),
       );
       break;
     case UITypes.Barcode:

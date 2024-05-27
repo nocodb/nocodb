@@ -53,7 +53,7 @@ export function generateNestedRowSelectQuery({
   }
   const paramsString = columns.map(() => `?,??.??`).join(',');
   const pramsValueArr = [
-    ...columns.flatMap((c) => [sanitize(c.id), sanitize(alias), c.id]),
+    ...columns.flatMap((c) => [c.id, sanitize(alias), c.id]),
     title,
   ];
 
@@ -226,7 +226,7 @@ export async function extractColumn({
                 qb.select(
                   knex.raw('? as ??', [
                     NcDataErrorCodes.NC_ERR_MM_MODEL_NOT_FOUND,
-                    sanitize(column.id),
+                    column.id,
                   ]),
                 );
               }
@@ -292,7 +292,7 @@ export async function extractColumn({
                 [alias1],
               );
 
-              qb.select(knex.raw('??.??', [alias1, sanitize(column.id)]));
+              qb.select(knex.raw('??.??', [alias1, column.id]));
             }
             break;
           case RelationTypes.BELONGS_TO:
@@ -347,10 +347,10 @@ export async function extractColumn({
                        .from(btQb.as(alias2))
                        .select(
                          knex.raw(`json_object(?,??.??, ?, ??.??) as ??`, [
-                           sanitize(pvColumn.id),
+                           pvColumn.id,
                            alias2,
                            sanitize(pvColumn.column_name),
-                           sanitize(pkColumn.id),
+                           pkColumn.id,
                            alias2,
                            sanitize(pkColumn.column_name),
                            column.id,
@@ -418,10 +418,10 @@ export async function extractColumn({
                        .from(btQb.as(alias2))
                        .select(
                          knex.raw(`json_object(?,??.??, ?, ??.??) as ??`, [
-                           sanitize(pvColumn.id),
+                           pvColumn.id,
                            alias2,
                            sanitize(pvColumn.column_name),
-                           sanitize(pkColumn.id),
+                           pkColumn.id,
                            alias2,
                            sanitize(pkColumn.column_name),
                            column.id,
@@ -571,7 +571,7 @@ export async function extractColumn({
                 return qb.select(
                   knex.raw('? as ??', [
                     NcDataErrorCodes.NC_ERR_MM_MODEL_NOT_FOUND,
-                    sanitize(column.id),
+                    column.id,
                   ]),
                 );
               }
@@ -743,9 +743,7 @@ export async function extractColumn({
           rootAlias,
           validateFormula,
         );
-        qb.select(
-          knex.raw(`?? as ??`, [selectQb.builder, sanitize(column.id)]),
-        );
+        qb.select(knex.raw(`?? as ??`, [selectQb.builder, column.id]));
       }
       break;
     case UITypes.Rollup:
@@ -758,7 +756,7 @@ export async function extractColumn({
             columnOptions: await column.getColOptions(),
             alias: rootAlias,
           })
-        ).builder.as(sanitize(column.id)),
+        ).builder.as(column.id),
       );
       break;
     case UITypes.Barcode:

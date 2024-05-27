@@ -41,32 +41,10 @@ import Noco from '~/Noco';
 import getWorkspaceForBase from '~/utils/getWorkspaceForBase';
 import { getLimit, PlanLimitTypes } from '~/plan-limits';
 import { NcError } from '~/helpers/catchError';
-import { sanitize, unsanitize } from '~/helpers/sqlSanitize';
+import { sanitize } from '~/helpers/sqlSanitize';
 import { runExternal } from '~/helpers/muxHelpers';
 
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
-
-async function execAndGetRows(
-  baseModel: BaseModelSqlv2,
-  query: string,
-  kn?: Knex | CustomKnex,
-) {
-  kn = kn || baseModel.dbDriver;
-
-  if (baseModel.isPg || baseModel.isSnowflake) {
-    return (await kn.raw(query))?.rows;
-  } else if (/^(\(|)select/i.test(query) && !baseModel.isMssql) {
-    return await kn.from(kn.raw(query).wrap('(', ') __nc_alias'));
-  } else if (/^(\(|)insert/i.test(query) && baseModel.isMySQL) {
-    const res = await kn.raw(query);
-    if (res && res[0] && res[0].insertId) {
-      return res[0].insertId;
-    }
-    return res;
-  } else {
-    return await kn.raw(query);
-  }
-}
 
 /**
  * Base class for models
@@ -146,21 +124,18 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     }
 
     let query = typeof qb === 'string' ? qb : qb.toQuery();
-    if (!this.isPg && !this.isMssql && !this.isSnowflake) {
-      query = unsanitize(query);
-    } else {
-      query = sanitize(query);
-    }
 
     let data;
 
     if ((this.dbDriver as any).isExternal) {
+      query = this.sanitizeQuery(query);
+
       data = await runExternal(
         this.dbDriver.raw(query).toQuery(),
         (this.dbDriver as any).extDb,
       );
     } else {
-      data = await execAndGetRows(this, query);
+      data = await this.execAndGetRows(query);
     }
 
     if (!this.model?.columns) {
@@ -1182,7 +1157,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         try {
           responses = [];
           for (const q of queries) {
-            responses.push(...(await execAndGetRows(this, q, trx)));
+            responses.push(...(await this.execAndGetRows(q, trx)));
           }
           if (!raw) await postSingleRecordInsertionCbk(responses, trx);
           await trx.commit();

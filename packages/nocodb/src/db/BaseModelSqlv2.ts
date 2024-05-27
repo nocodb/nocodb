@@ -40,6 +40,7 @@ import type {
   SelectOption,
   User,
 } from '~/models';
+import type CustomKnex from '~/db/CustomKnex';
 import {
   Audit,
   BaseUser,
@@ -542,12 +543,7 @@ class BaseModelSqlv2 {
       as: 'count',
     }).first();
 
-    let sql = sanitize(qb.toQuery());
-    if (!this.isPg && !this.isMssql && !this.isSnowflake) {
-      sql = unsanitize(qb.toQuery());
-    }
-
-    return (await this.execAndParse(sql, null, { raw: true, first: true }))
+    return (await this.execAndParse(qb, null, { raw: true, first: true }))
       ?.count;
   }
 
@@ -670,9 +666,9 @@ class BaseModelSqlv2 {
                   knex: this.dbDriver,
                   columnOptions: (await column.getColOptions()) as RollupColumn,
                 })
-              ).builder.as(sanitize(column.id)),
+              ).builder.as(column.id),
             );
-            groupBySelectors.push(sanitize(column.id));
+            groupBySelectors.push(column.id);
             break;
           case UITypes.Formula:
             {
@@ -684,14 +680,12 @@ class BaseModelSqlv2 {
 
                 selectQb = this.dbDriver.raw(`?? as ??`, [
                   _selectQb.builder,
-                  sanitize(column.id),
+                  column.id,
                 ]);
               } catch (e) {
                 logger.log(e);
                 // return dummy select
-                selectQb = this.dbDriver.raw(`'ERR' as ??`, [
-                  sanitize(column.id),
-                ]);
+                selectQb = this.dbDriver.raw(`'ERR' as ??`, [column.id]);
               }
 
               selectors.push(selectQb);
@@ -711,11 +705,11 @@ class BaseModelSqlv2 {
 
               const selectQb = this.dbDriver.raw(`?? as ??`, [
                 this.dbDriver.raw(_selectQb.builder).wrap('(', ')'),
-                sanitize(column.id),
+                column.id,
               ]);
 
               selectors.push(selectQb);
-              groupBySelectors.push(sanitize(column.id));
+              groupBySelectors.push(column.id);
             }
             break;
           default:
@@ -724,7 +718,7 @@ class BaseModelSqlv2 {
               selectors.push(
                 this.dbDriver.raw('?? as ??', [columnName, column.id]),
               );
-              groupBySelectors.push(sanitize(column.id));
+              groupBySelectors.push(column.id);
             }
             break;
         }
@@ -904,9 +898,9 @@ class BaseModelSqlv2 {
                   // alias,
                   columnOptions: (await column.getColOptions()) as RollupColumn,
                 })
-              ).builder.as(sanitize(column.id)),
+              ).builder.as(column.id),
             );
-            groupBySelectors.push(sanitize(column.id));
+            groupBySelectors.push(column.id);
             break;
           case UITypes.Formula: {
             let selectQb;
@@ -917,14 +911,12 @@ class BaseModelSqlv2 {
 
               selectQb = this.dbDriver.raw(`?? as ??`, [
                 _selectQb.builder,
-                sanitize(column.id),
+                column.id,
               ]);
             } catch (e) {
               logger.log(e);
               // return dummy select
-              selectQb = this.dbDriver.raw(`'ERR' as ??`, [
-                sanitize(column.id),
-              ]);
+              selectQb = this.dbDriver.raw(`'ERR' as ??`, [column.id]);
             }
 
             selectors.push(selectQb);
@@ -944,11 +936,11 @@ class BaseModelSqlv2 {
 
               const selectQb = this.dbDriver.raw(`?? as ??`, [
                 this.dbDriver.raw(_selectQb.builder).wrap('(', ')'),
-                sanitize(column.id),
+                column.id,
               ]);
 
               selectors.push(selectQb);
-              groupBySelectors.push(sanitize(column.id));
+              groupBySelectors.push(column.id);
             }
             break;
           default:
@@ -957,7 +949,7 @@ class BaseModelSqlv2 {
               selectors.push(
                 this.dbDriver.raw('?? as ??', [columnName, column.id]),
               );
-              groupBySelectors.push(sanitize(column.id));
+              groupBySelectors.push(column.id);
             }
             break;
         }
@@ -2638,17 +2630,12 @@ class BaseModelSqlv2 {
                 aliasToColumnBuilder,
               );
               qb.select(
-                this.dbDriver.raw(`?? as ??`, [
-                  selectQb.builder,
-                  sanitize(column.id),
-                ]),
+                this.dbDriver.raw(`?? as ??`, [selectQb.builder, column.id]),
               );
             } catch (e) {
               logger.log(e);
               // return dummy select
-              qb.select(
-                this.dbDriver.raw(`'ERR' as ??`, [sanitize(column.id)]),
-              );
+              qb.select(this.dbDriver.raw(`'ERR' as ??`, [column.id]));
             }
           }
           break;
@@ -2664,7 +2651,7 @@ class BaseModelSqlv2 {
                 alias,
                 columnOptions: (await column.getColOptions()) as RollupColumn,
               })
-            ).builder.as(sanitize(column.id)),
+            ).builder.as(column.id),
           );
           break;
         case UITypes.CreatedBy:
@@ -5203,6 +5190,26 @@ class BaseModelSqlv2 {
     return await this.execAndParse(qb);
   }
 
+  public async execAndGetRows(query: string, trx?: Knex | CustomKnex) {
+    trx = trx || this.dbDriver;
+
+    query = this.sanitizeQuery(query);
+
+    if (this.isPg || this.isSnowflake) {
+      return (await trx.raw(query))?.rows;
+    } else if (!this.isMssql && /^(\(|)select/i.test(query)) {
+      return await trx.from(trx.raw(query).wrap('(', ') __nc_alias'));
+    } else if (this.isMySQL && /^(\(|)insert/i.test(query)) {
+      const res = await trx.raw(query);
+      if (res && res[0] && res[0].insertId) {
+        return res[0].insertId;
+      }
+      return res;
+    } else {
+      return await trx.raw(query);
+    }
+  }
+
   public async execAndParse(
     qb: Knex.QueryBuilder | string,
     dependencyColumns?: Column[],
@@ -5233,21 +5240,9 @@ class BaseModelSqlv2 {
       qb = qb.limit(1);
     }
 
-    let query = typeof qb === 'string' ? qb : qb.toQuery();
-    if (!this.isPg && !this.isMssql && !this.isSnowflake) {
-      query = unsanitize(query);
-    } else {
-      query = sanitize(query);
-    }
+    const query = typeof qb === 'string' ? qb : qb.toQuery();
 
-    let data =
-      this.isPg || this.isSnowflake
-        ? (await this.dbDriver.raw(query))?.rows
-        : /^(\(|)select/.test(query) && !this.isMssql
-        ? await this.dbDriver.from(
-            this.dbDriver.raw(query).wrap('(', ') __nc_alias'),
-          )
-        : await this.dbDriver.raw(query);
+    let data = await this.execAndGetRows(query);
 
     if (!this.model?.columns) {
       await this.model.getColumns();
@@ -5280,6 +5275,14 @@ class BaseModelSqlv2 {
     }
 
     return data;
+  }
+
+  protected sanitizeQuery(query: string) {
+    if (!this.isPg && !this.isMssql && !this.isSnowflake) {
+      return unsanitize(query);
+    } else {
+      return sanitize(query);
+    }
   }
 
   async runOps(ops: Promise<string>[], trx = this.dbDriver) {

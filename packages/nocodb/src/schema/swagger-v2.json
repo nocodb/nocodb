@@ -12897,7 +12897,8 @@
           "comment": {
             "type": "string",
             "description": "Description for the target row",
-            "example": "This is the comment for the row"
+            "example": "This is the comment for the row",
+            "maxLength": 3000
           },
           "fk_model_id": {
             "type": "string",
@@ -12935,7 +12936,8 @@
           "comment": {
             "type": "string",
             "description": "Description for the target row",
-            "example": "This is the comment for the row"
+            "example": "This is the comment for the row",
+            "maxLength": 3000
           },
           "fk_model_id": {
             "type": "string",

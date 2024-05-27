@@ -40,6 +40,7 @@ import type {
   SelectOption,
   User,
 } from '~/models';
+import type CustomKnex from '~/db/CustomKnex';
 import {
   Audit,
   BaseUser,
@@ -542,12 +543,7 @@ class BaseModelSqlv2 {
       as: 'count',
     }).first();
 
-    let sql = sanitize(qb.toQuery());
-    if (!this.isPg && !this.isMssql && !this.isSnowflake) {
-      sql = unsanitize(qb.toQuery());
-    }
-
-    return (await this.execAndParse(sql, null, { raw: true, first: true }))
+    return (await this.execAndParse(qb, null, { raw: true, first: true }))
       ?.count;
   }
 
@@ -5194,6 +5190,26 @@ class BaseModelSqlv2 {
     return await this.execAndParse(qb);
   }
 
+  public async execAndGetRows(query: string, trx?: Knex | CustomKnex) {
+    trx = trx || this.dbDriver;
+
+    query = this.sanitizeQuery(query);
+
+    if (this.isPg || this.isSnowflake) {
+      return (await trx.raw(query))?.rows;
+    } else if (/^(\(|)select/i.test(query) && !this.isMssql) {
+      return await trx.from(trx.raw(query).wrap('(', ') __nc_alias'));
+    } else if (/^(\(|)insert/i.test(query) && this.isMySQL) {
+      const res = await trx.raw(query);
+      if (res && res[0] && res[0].insertId) {
+        return res[0].insertId;
+      }
+      return res;
+    } else {
+      return await trx.raw(query);
+    }
+  }
+
   public async execAndParse(
     qb: Knex.QueryBuilder | string,
     dependencyColumns?: Column[],
@@ -5224,17 +5240,9 @@ class BaseModelSqlv2 {
       qb = qb.limit(1);
     }
 
-    let query = typeof qb === 'string' ? qb : qb.toQuery();
-    query = this.sanitizeQuery(query);
+    const query = typeof qb === 'string' ? qb : qb.toQuery();
 
-    let data =
-      this.isPg || this.isSnowflake
-        ? (await this.dbDriver.raw(query))?.rows
-        : /^(\(|)select/.test(query) && !this.isMssql
-        ? await this.dbDriver.from(
-            this.dbDriver.raw(query).wrap('(', ') __nc_alias'),
-          )
-        : await this.dbDriver.raw(query);
+    let data = await this.execAndGetRows(query);
 
     if (!this.model?.columns) {
       await this.model.getColumns();

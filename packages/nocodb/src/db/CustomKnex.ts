@@ -497,14 +497,14 @@ type AtLeastOne<T, U = { [K in keyof T]: Pick<T, K> }> = Partial<T> &
   U[keyof U];
 
 export type ConditionVal = AtLeastOne<{
-  eq: string | number | any;
-  neq: string | number | any;
-  lt: string | number | any;
-  gt: string | number | any;
-  ge: string | number | any;
-  le: string | number | any;
-  like: string | number | any;
-  nlike: string | number | any;
+  eq: string | number | boolean | Date;
+  neq: string | number | boolean | Date;
+  lt: number | string | Date;
+  gt: number | string | Date;
+  ge: number | string | Date;
+  le: number | string | Date;
+  like: string;
+  nlike: string;
 }>;
 
 export interface Condition {
@@ -556,6 +556,8 @@ declare module 'knex' {
           [columnAlias: string]: string;
         },
       ): Knex.QueryBuilder<TRecord, TResult>;
+
+      hasWhere(): boolean;
     }
   }
 }
@@ -1278,8 +1280,15 @@ function parseNestedConditionv2(obj, qb, pKey?, table?, tableAlias?) {
   return qb;
 }
 
-// Conditionv2
+// extend the knex query builder with a method to check if a where clause exists
+knex.QueryBuilder.extend('hasWhere', function () {
+  // Inspect the _statements array for 'where' clauses
+  return (
+    this as unknown as { _statements: { grouping: string }[] }
+  )._statements.some((statement) => statement.grouping === 'where') as any;
+});
 
+// Conditionv2
 /**
  * Append custom where condition(nested object) to knex query builder
  */

@@ -6,11 +6,13 @@ import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import type * as knex from 'knex';
 import type { Knex } from 'knex';
+import type { Condition } from '~/db/CustomKnex';
 import XcMigrationSource from '~/meta/migrations/XcMigrationSource';
 import XcMigrationSourcev2 from '~/meta/migrations/XcMigrationSourcev2';
 import { XKnex } from '~/db/CustomKnex';
 import { NcConfig } from '~/utils/nc-config';
 import { MetaTable } from '~/utils/globals';
+import { NcError } from '~/helpers/catchError';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -119,6 +121,7 @@ export class MetaService {
     });
     return insertObj;
   }
+
   public async bulkMetaInsert(
     base_id: string,
     source_id: string,
@@ -278,7 +281,7 @@ export class MetaService {
       condition?: { [key: string]: any };
       limit?: number;
       offset?: number;
-      xcCondition?;
+      xcCondition?: Condition;
       fields?: string[];
       sort?: { field: string; desc?: boolean };
     },
@@ -370,7 +373,7 @@ export class MetaService {
     dbAlias: string,
     target: string,
     idOrCondition: string | { [p: string]: any },
-    xcCondition?,
+    xcCondition?: Condition,
   ): Promise<void> {
     const query = this.knexConnection(target);
 
@@ -400,7 +403,7 @@ export class MetaService {
     target: string,
     idOrCondition: string | { [p: string]: any },
     fields?: string[],
-    xcCondition?,
+    xcCondition?: Condition,
   ): Promise<any> {
     const query = this.knexConnection(target);
 
@@ -466,7 +469,7 @@ export class MetaService {
       condition?: { [p: string]: any };
       limit?: number;
       offset?: number;
-      xcCondition?;
+      xcCondition?: Condition;
       fields?: string[];
       orderBy?: { [key: string]: 'asc' | 'desc' };
     },
@@ -513,7 +516,7 @@ export class MetaService {
       condition?: { [p: string]: any };
       limit?: number;
       offset?: number;
-      xcCondition?;
+      xcCondition?: Condition;
       fields?: string[];
       orderBy?: { [key: string]: 'asc' | 'desc' };
     },
@@ -558,7 +561,7 @@ export class MetaService {
     target: string,
     args?: {
       condition?: { [p: string]: any };
-      xcCondition?;
+      xcCondition?: Condition;
       aggField?: string;
     },
   ): Promise<number> {
@@ -590,7 +593,7 @@ export class MetaService {
     target: string,
     data: any,
     idOrCondition?: string | { [p: string]: any },
-    xcCondition?,
+    xcCondition?: Condition,
   ): Promise<any> {
     const query = this.knexConnection(target);
     if (base_id !== null && base_id !== undefined) {
@@ -619,6 +622,7 @@ export class MetaService {
     _project_id: string,
     _dbAlias: string,
   ): Promise<void> {
+    NcError.notImplemented('metaDeleteAll');
     // await this.knexConnection..dropTableIfExists('nc_roles').;
     // await this.knexConnection.schema.dropTableIfExists('nc_store').;
     // await this.knexConnection.schema.dropTableIfExists('nc_hooks').;

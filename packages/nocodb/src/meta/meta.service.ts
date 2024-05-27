@@ -565,10 +565,6 @@ export class MetaService {
       query.select(...args.fields);
     }
 
-    query.andWhere((qb) => {
-      qb.where({});
-    });
-
     return query;
   }
 

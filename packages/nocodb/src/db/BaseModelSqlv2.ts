@@ -5234,11 +5234,7 @@ class BaseModelSqlv2 {
     }
 
     let query = typeof qb === 'string' ? qb : qb.toQuery();
-    if (!this.isPg && !this.isMssql && !this.isSnowflake) {
-      query = unsanitize(query);
-    } else {
-      query = sanitize(query);
-    }
+    query = this.sanitizeQuery(query);
 
     let data =
       this.isPg || this.isSnowflake
@@ -5280,6 +5276,14 @@ class BaseModelSqlv2 {
     }
 
     return data;
+  }
+
+  protected sanitizeQuery(query: string) {
+    if (!this.isPg && !this.isMssql && !this.isSnowflake) {
+      return unsanitize(query);
+    } else {
+      return sanitize(query);
+    }
   }
 
   async runOps(ops: Promise<string>[], trx = this.dbDriver) {

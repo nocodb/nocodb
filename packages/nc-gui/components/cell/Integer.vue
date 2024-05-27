@@ -67,7 +67,12 @@ const vModel = computed({
   },
 })
 
-const inputType = computed(() => (isForm.value && !isEditColumn.value ? 'text' : 'number'))
+const inputType = computed(() =>
+  (vModel.value && (typeof vModel.value === 'string' ? +vModel.value : vModel.value) > Number.MAX_SAFE_INTEGER) ||
+  (isForm.value && !isEditColumn.value)
+    ? 'text'
+    : 'number',
+)
 
 const focus: VNodeRef = (el) =>
   !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value && (el as HTMLInputElement)?.focus()

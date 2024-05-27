@@ -5197,9 +5197,9 @@ class BaseModelSqlv2 {
 
     if (this.isPg || this.isSnowflake) {
       return (await trx.raw(query))?.rows;
-    } else if (/^(\(|)select/i.test(query) && !this.isMssql) {
+    } else if (!this.isMssql && /^(\(|)select/i.test(query)) {
       return await trx.from(trx.raw(query).wrap('(', ') __nc_alias'));
-    } else if (/^(\(|)insert/i.test(query) && this.isMySQL) {
+    } else if (this.isMySQL && /^(\(|)insert/i.test(query)) {
       const res = await trx.raw(query);
       if (res && res[0] && res[0].insertId) {
         return res[0].insertId;

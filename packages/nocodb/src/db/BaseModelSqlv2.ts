@@ -670,9 +670,9 @@ class BaseModelSqlv2 {
                   knex: this.dbDriver,
                   columnOptions: (await column.getColOptions()) as RollupColumn,
                 })
-              ).builder.as(sanitize(column.id)),
+              ).builder.as(column.id),
             );
-            groupBySelectors.push(sanitize(column.id));
+            groupBySelectors.push(column.id);
             break;
           case UITypes.Formula:
             {
@@ -684,14 +684,12 @@ class BaseModelSqlv2 {
 
                 selectQb = this.dbDriver.raw(`?? as ??`, [
                   _selectQb.builder,
-                  sanitize(column.id),
+                  column.id,
                 ]);
               } catch (e) {
                 logger.log(e);
                 // return dummy select
-                selectQb = this.dbDriver.raw(`'ERR' as ??`, [
-                  sanitize(column.id),
-                ]);
+                selectQb = this.dbDriver.raw(`'ERR' as ??`, [column.id]);
               }
 
               selectors.push(selectQb);
@@ -711,11 +709,11 @@ class BaseModelSqlv2 {
 
               const selectQb = this.dbDriver.raw(`?? as ??`, [
                 this.dbDriver.raw(_selectQb.builder).wrap('(', ')'),
-                sanitize(column.id),
+                column.id,
               ]);
 
               selectors.push(selectQb);
-              groupBySelectors.push(sanitize(column.id));
+              groupBySelectors.push(column.id);
             }
             break;
           default:
@@ -724,7 +722,7 @@ class BaseModelSqlv2 {
               selectors.push(
                 this.dbDriver.raw('?? as ??', [columnName, column.id]),
               );
-              groupBySelectors.push(sanitize(column.id));
+              groupBySelectors.push(column.id);
             }
             break;
         }
@@ -904,9 +902,9 @@ class BaseModelSqlv2 {
                   // alias,
                   columnOptions: (await column.getColOptions()) as RollupColumn,
                 })
-              ).builder.as(sanitize(column.id)),
+              ).builder.as(column.id),
             );
-            groupBySelectors.push(sanitize(column.id));
+            groupBySelectors.push(column.id);
             break;
           case UITypes.Formula: {
             let selectQb;
@@ -917,14 +915,12 @@ class BaseModelSqlv2 {
 
               selectQb = this.dbDriver.raw(`?? as ??`, [
                 _selectQb.builder,
-                sanitize(column.id),
+                column.id,
               ]);
             } catch (e) {
               logger.log(e);
               // return dummy select
-              selectQb = this.dbDriver.raw(`'ERR' as ??`, [
-                sanitize(column.id),
-              ]);
+              selectQb = this.dbDriver.raw(`'ERR' as ??`, [column.id]);
             }
 
             selectors.push(selectQb);
@@ -944,11 +940,11 @@ class BaseModelSqlv2 {
 
               const selectQb = this.dbDriver.raw(`?? as ??`, [
                 this.dbDriver.raw(_selectQb.builder).wrap('(', ')'),
-                sanitize(column.id),
+                column.id,
               ]);
 
               selectors.push(selectQb);
-              groupBySelectors.push(sanitize(column.id));
+              groupBySelectors.push(column.id);
             }
             break;
           default:
@@ -957,7 +953,7 @@ class BaseModelSqlv2 {
               selectors.push(
                 this.dbDriver.raw('?? as ??', [columnName, column.id]),
               );
-              groupBySelectors.push(sanitize(column.id));
+              groupBySelectors.push(column.id);
             }
             break;
         }
@@ -2638,17 +2634,12 @@ class BaseModelSqlv2 {
                 aliasToColumnBuilder,
               );
               qb.select(
-                this.dbDriver.raw(`?? as ??`, [
-                  selectQb.builder,
-                  sanitize(column.id),
-                ]),
+                this.dbDriver.raw(`?? as ??`, [selectQb.builder, column.id]),
               );
             } catch (e) {
               logger.log(e);
               // return dummy select
-              qb.select(
-                this.dbDriver.raw(`'ERR' as ??`, [sanitize(column.id)]),
-              );
+              qb.select(this.dbDriver.raw(`'ERR' as ??`, [column.id]));
             }
           }
           break;
@@ -2664,7 +2655,7 @@ class BaseModelSqlv2 {
                 alias,
                 columnOptions: (await column.getColOptions()) as RollupColumn,
               })
-            ).builder.as(sanitize(column.id)),
+            ).builder.as(column.id),
           );
           break;
         case UITypes.CreatedBy:

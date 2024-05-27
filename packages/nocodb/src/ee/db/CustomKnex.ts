@@ -2,6 +2,7 @@ import { Knex } from 'knex';
 import { SnowflakeClient } from 'knex-snowflake';
 import { DatabricksClient } from 'knex-databricks';
 import CustomKnexCE from 'src/db/CustomKnex';
+export { Condition, ConditionVal } from 'src/db/CustomKnex';
 
 type CustomKnex = Knex & {
   extDb?: {

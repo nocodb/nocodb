@@ -38,7 +38,7 @@ const up = async (knex: Knex) => {
       .limit(READ_BATCH_SIZE + 1);
 
     logger.log(
-       `Data from Audit Table fetched, batch: ${offset} - ${
+      `Data from Audit Table fetched, batch: ${offset} - ${
         offset + READ_BATCH_SIZE
       }`,
     );
@@ -72,9 +72,7 @@ const up = async (knex: Knex) => {
     // check if there are more rows to fetch
     fetchNextBatch = rows.length > READ_BATCH_SIZE;
   }
-  logger.log(
-    'Data migrated from Audit Table to Comments Table',
-  );
+  logger.log('Data migrated from Audit Table to Comments Table');
 };
 
 const down = async (knex: Knex) => {

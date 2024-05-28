@@ -4,6 +4,7 @@ import dayjs from 'dayjs';
 import type { FilterType } from 'nocodb-sdk';
 import type { BaseModelSql } from '~/db/BaseModelSql';
 import Filter from '~/models/Filter';
+import { NcError } from '~/helpers/catchError';
 
 // refer : https://github.com/brianc/node-pg-types/blob/master/lib/builtins.js
 const pgTypes = {
@@ -692,9 +693,7 @@ const parseCondition = (obj, columnAliases, qb, pKey?) => {
               qb = qb.whereNotIn(fieldName, val);
               break;
             default:
-              throw new Error(
-                `Found invalid conditional operator "${key}" in expression`,
-              );
+              throw new NcError.invalidFilter(key);
           }
         }
         break;

@@ -22,7 +22,7 @@ import { customAlphabet } from 'nanoid';
 import DOMPurify from 'isomorphic-dompurify';
 import { v4 as uuidv4 } from 'uuid';
 import { Logger } from '@nestjs/common';
-import { convertDurationToSeconds } from './util/durationUtils';
+import { convertDurationToSeconds } from '~/db/util/durationUtils';
 import type { SortType } from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type LookupColumn from '~/models/LookupColumn';

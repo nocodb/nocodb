@@ -31,23 +31,13 @@ export const durationOptions = [
   },
 ];
 
-const getDurationType = (val: string) => {
-  for (let i = 0; i < durationOptions.length; i++) {
-    if (durationOptions[i].regex.test(val)) return durationOptions[i].id;
-  }
-
-  return -1;
-};
-
 export const convertDurationToSeconds = (val: string) => {
-  const durationType = getDurationType(val);
-
-  if (durationType === -1) return null;
-
-  const durationRegex = durationOptions[durationType].regex;
+  const { regex, id: durationType } = durationOptions.find((o) =>
+    o.regex.test(val),
+  );
   let h: number, mm: number, ss: number;
 
-  const groups = val.match(durationRegex);
+  const groups = val.match(regex);
 
   if (groups[0] && groups[1] && !groups[2] && !groups[3] && !groups[4]) {
     const val = Number.parseInt(groups[1], 10);

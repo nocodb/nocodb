@@ -1,13 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import {
   isCreatedOrLastModifiedByCol,
+  isLinksOrLTAR,
   RelationTypes,
   UITypes,
+  ViewTypes,
 } from 'nocodb-sdk';
-import { isLinksOrLTAR } from 'nocodb-sdk';
-import type { LinkToAnotherRecordColumn, LookupColumn } from '~/models';
-import { NcError } from '~/helpers/catchError';
+import type {
+  CalendarView,
+  LinkToAnotherRecordColumn,
+  LookupColumn,
+} from '~/models';
 import { Base, BaseUser, Column, Model, Source, View } from '~/models';
+import { NcError } from '~/helpers/catchError';
 
 @Injectable()
 export class PublicMetasService {
@@ -38,10 +43,27 @@ export class PublicMetasService {
     // todo: return only required props
     delete view['password'];
 
+
+    // Required for Calendar Views
+    const rangeColumns = [];
+
+    if (view.type === ViewTypes.CALENDAR) {
+      (view.view as CalendarView).calendar_range.forEach((c) => {
+        if (c.fk_from_column_id) {
+          rangeColumns.push(c.fk_from_column_id);
+        } else if ((c as any).fk_to_column_id) {
+          rangeColumns.push((c as any).fk_to_column_id);
+        }
+      });
+    }
+
     view.model.columns = view.columns
       .filter((c) => {
         const column = view.model.columnsById[c.fk_column_id];
 
+        if (rangeColumns.includes(c.fk_column_id)) {
+          return true;
+        }
         // Check if column exists to prevent processing non-existent columns
         if (!column) return false;
 

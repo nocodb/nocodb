@@ -82,8 +82,20 @@ export function useSharedView() {
 
     let order = 1
 
+    // Required for Calendar View
+    const rangeFields: Array<string> = []
+    if (sharedView.value?.view?.calendar_range?.length) {
+      ;(sharedView.value?.view as CalendarType)?.calendar_range?.forEach((range) => {
+        if (range.fk_from_column_id) {
+          rangeFields.push(range.fk_from_column_id)
+        }
+        if (range.fk_to_column_id) {
+          rangeFields.push(range.fk_to_column_id)
+        }
+      })
+    }
     meta.value!.columns = [...viewMeta.model.columns]
-      .filter((c) => c.show)
+      .filter((c) => c.show || rangeFields.includes(c.id))
       .map((c) => ({ ...c, order: order++ }))
       .sort((a, b) => a.order - b.order)
 

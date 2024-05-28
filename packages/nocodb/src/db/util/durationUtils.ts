@@ -50,10 +50,10 @@ export const convertDurationToSeconds = (val: string) => {
   const groups = val.match(durationRegex);
 
   if (groups[0] && groups[1] && !groups[2] && !groups[3] && !groups[4]) {
-    const val = parseInt(groups[1], 10);
+    const val = Number.parseInt(groups[1], 10);
     if (groups.input.slice(-1) === ':') {
       // e.g. 30:
-      h = parseFloat(groups[1]);
+      h = Number.parseFloat(groups[1]);
       mm = 0;
       ss = 0;
     } else if (durationType === 0) {
@@ -65,20 +65,20 @@ export const convertDurationToSeconds = (val: string) => {
     } else {
       // consider it as seconds
       // e.g. 3600 -> 01:00:00
-      h = Math.floor(parseFloat(groups[1]) / 3600);
-      mm = Math.floor(parseFloat(groups[1]) / 60) % 60;
+      h = Math.floor(Number.parseFloat(groups[1]) / 3600);
+      mm = Math.floor(Number.parseFloat(groups[1]) / 60) % 60;
       ss = val % 60;
     }
   } else if (durationType !== 0 && groups[1] && groups[2] && !groups[3]) {
     // 10:10 means mm:ss instead of h:mm
     // 10:10:10 means h:mm:ss
     h = 0;
-    mm = parseFloat(groups[1]);
-    ss = parseFloat(groups[2]);
+    mm = Number.parseFloat(groups[1]);
+    ss = Number.parseFloat(groups[2]);
   } else {
-    h = parseFloat(groups[1]) || 0;
-    mm = parseFloat(groups[2]) || 0;
-    ss = parseFloat(groups[3]) || 0;
+    h = Number.parseFloat(groups[1]) || 0;
+    mm = Number.parseFloat(groups[2]) || 0;
+    ss = Number.parseFloat(groups[3]) || 0;
   }
 
   if (durationType === 0)
@@ -90,9 +90,9 @@ export const convertDurationToSeconds = (val: string) => {
 
   if (durationType === 2) {
     // h:mm:ss.s (deciseconds)
-    const ds = parseFloat(groups[4]) || 0;
+    const ds = Number.parseFloat(groups[4]) || 0;
     const len = (Math.log(ds) * Math.LOG10E + 1) | 0;
-    const ms = 100 * Math.round(ds / Math.pow(10, len - 1));
+    const ms = 100 * Math.round(ds / 10 ** (len - 1));
     // e.g. len = 4: 1234 -> 1, 1456 -> 1
     // e.g. len = 3:  123 -> 1,  191 -> 2
     // e.g. len = 2:   12 -> 1 ,  16 -> 2
@@ -101,9 +101,9 @@ export const convertDurationToSeconds = (val: string) => {
   }
   if (durationType === 3) {
     // h:mm:ss.ss (centi seconds)
-    const cs = parseFloat(groups[4]) || 0;
+    const cs = Number.parseFloat(groups[4]) || 0;
     const len = (Math.log(cs) * Math.LOG10E + 1) | 0;
-    const ms = 10 * Math.round(cs / Math.pow(10, len - 2));
+    const ms = 10 * Math.round(cs / 10 ** (len - 2));
     // e.g. len = 4: 1234 -> 12, 1285 -> 13
     // e.g. len = 3:  123 -> 12,  128 -> 13
     // check the third digit
@@ -113,7 +113,7 @@ export const convertDurationToSeconds = (val: string) => {
 
   if (durationType === 4) {
     // h:mm:ss.sss (milliseconds)
-    let ms = parseFloat(groups[4]) || 0;
+    let ms = Number.parseFloat(groups[4]) || 0;
     const len = (Math.log(ms) * Math.LOG10E + 1) | 0;
     ms =
       // e.g. 1235 -> 124

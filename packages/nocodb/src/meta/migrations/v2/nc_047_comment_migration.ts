@@ -12,6 +12,8 @@ const up = async (knex: Knex) => {
 
   let fetchNextBatch = true;
 
+  const insertedIds = new Set<string>();
+
   for (let offset = 0; fetchNextBatch; offset += READ_BATCH_SIZE) {
     const rows = await knex
       .select(
@@ -47,6 +49,13 @@ const up = async (knex: Knex) => {
     const formattedRows = rows
       // exclude the last row since it was used to check if there are more rows
       .slice(0, READ_BATCH_SIZE)
+      .filter((row) => {
+        if (insertedIds.has(row.id)) {
+          return false;
+        }
+        insertedIds.add(row.id);
+        return true;
+      })
       .map((row) => ({
         id: row.id,
         row_id: row.row_id,

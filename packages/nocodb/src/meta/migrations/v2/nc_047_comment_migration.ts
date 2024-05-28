@@ -33,6 +33,7 @@ const up = async (knex: Knex) => {
         `${MetaTable.AUDIT}.user`,
         `${MetaTable.USERS}.email`,
       )
+      .orderBy(`${MetaTable.AUDIT}.id`)
       .offset(offset)
       // increase limit by 1 to check if there are more rows
       .limit(READ_BATCH_SIZE + 1);

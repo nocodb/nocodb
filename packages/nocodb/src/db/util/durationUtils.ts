@@ -31,45 +31,56 @@ const durationOptions = [
   },
 ];
 
-export const convertDurationToSeconds = (val: string) => {
-  const { regex, type } = durationOptions.find(({ regex }) => regex.test(val));
-  let h: number;
-  let mm: number;
-  let ss: number;
-
-  const groups = val.match(regex);
-
+const extractHMS = (groups: RegExpMatchArray, type: number) => {
   if (groups[0] && groups[1] && !groups[2] && !groups[3] && !groups[4]) {
     const val = Number.parseInt(groups[1], 10);
-    if (groups.input.slice(-1) === ':') {
+    if (groups.input.slice(-1) === ':')
       // e.g. 30:
-      h = Number.parseFloat(groups[1]);
-      mm = 0;
-      ss = 0;
-    } else if (type === 0) {
+      return {
+        h: Number.parseFloat(groups[1]),
+        mm: 0,
+        ss: 0,
+      };
+
+    if (type === 0) {
       // consider it as minutes
       // e.g. 360 -> 06:00
-      h = Math.floor(val / 60);
-      mm = Math.floor(val - (h * 3600) / 60);
-      ss = 0;
-    } else {
-      // consider it as seconds
-      // e.g. 3600 -> 01:00:00
-      h = Math.floor(Number.parseFloat(groups[1]) / 3600);
-      mm = Math.floor(Number.parseFloat(groups[1]) / 60) % 60;
-      ss = val % 60;
+      const h = Math.floor(val / 60);
+      return {
+        h,
+        mm: Math.floor(val - (h * 3600) / 60),
+        ss: 0,
+      };
     }
-  } else if (type !== 0 && groups[1] && groups[2] && !groups[3]) {
+    // consider it as seconds
+    // e.g. 3600 -> 01:00:00
+    return {
+      h: Math.floor(Number.parseFloat(groups[1]) / 3600),
+      mm: Math.floor(Number.parseFloat(groups[1]) / 60) % 60,
+      ss: val % 60,
+    };
+  }
+  if (type !== 0 && groups[1] && groups[2] && !groups[3])
     // 10:10 means mm:ss instead of h:mm
     // 10:10:10 means h:mm:ss
-    h = 0;
-    mm = Number.parseFloat(groups[1]);
-    ss = Number.parseFloat(groups[2]);
-  } else {
-    h = Number.parseFloat(groups[1]) || 0;
-    mm = Number.parseFloat(groups[2]) || 0;
-    ss = Number.parseFloat(groups[3]) || 0;
-  }
+    return {
+      h: 0,
+      mm: Number.parseFloat(groups[1]),
+      ss: Number.parseFloat(groups[2]),
+    };
+
+  return {
+    h: Number.parseFloat(groups[1]) || 0,
+    mm: Number.parseFloat(groups[2]) || 0,
+    ss: Number.parseFloat(groups[3]) || 0,
+  };
+};
+
+export const convertDurationToSeconds = (val: string) => {
+  const { regex, type } = durationOptions.find(({ regex }) => regex.test(val));
+  const groups = val.match(regex);
+
+  const { h, mm, ss } = extractHMS(groups, type);
 
   if (type === 0)
     // h:mm

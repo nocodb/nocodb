@@ -1,6 +1,8 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { type HookType, UITypes, ViewTypes } from 'nocodb-sdk';
+import { UITypes, ViewTypes } from 'nocodb-sdk';
 import ejs from 'ejs';
+import type { FormColumnType, HookType } from 'nocodb-sdk';
+import type { ColumnType } from 'nocodb-sdk';
 import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { _transformSubmittedFormDataForEmail } from '~/helpers/webhookHelpers';
@@ -50,26 +52,26 @@ export class HookHandlerService implements OnModuleInit, OnModuleDestroy {
           const { columns } = await FormView.getWithInfo(formView.fk_view_id);
           const allColumns = await model.getColumns();
           const fieldById = columns.reduce(
-            (o: Record<string, any>, f: Record<string, any>) =>
-              Object.assign(o, { [f.fk_column_id]: f }),
+            (o: Record<string, FormColumnType>, f: FormColumnType) => {
+              return Object.assign(o, { [f.fk_column_id]: f });
+            },
             {},
           );
           let order = 1;
           const filteredColumns = allColumns
-            ?.map((c: Record<string, any>) => ({
-              ...c,
-              fk_column_id: c.id,
-              fk_view_id: formView.fk_view_id,
-              ...(fieldById[c.id] ? fieldById[c.id] : {}),
-              order: (fieldById[c.id] && fieldById[c.id].order) || order++,
-              id: fieldById[c.id] && fieldById[c.id].id,
-            }))
-            .sort(
-              (a: Record<string, any>, b: Record<string, any>) =>
-                a.order - b.order,
-            )
+            ?.map((c: ColumnType) => {
+              return {
+                ...c,
+                fk_column_id: c.id,
+                fk_view_id: formView.fk_view_id,
+                ...(fieldById[c.id] ? fieldById[c.id] : {}),
+                order: (fieldById[c.id] && fieldById[c.id].order) || order++,
+                id: fieldById[c.id] && fieldById[c.id].id,
+              };
+            })
+            .sort((a: ColumnType, b: ColumnType) => a.order - b.order)
             .filter(
-              (f: Record<string, any>) =>
+              (f: ColumnType & FormColumnType) =>
                 f.show &&
                 f.uidt !== UITypes.Rollup &&
                 f.uidt !== UITypes.Lookup &&
@@ -78,14 +80,11 @@ export class HookHandlerService implements OnModuleInit, OnModuleDestroy {
                 f.uidt !== UITypes.Barcode &&
                 f.uidt !== UITypes.SpecificDBType,
             )
-            .sort(
-              (a: Record<string, any>, b: Record<string, any>) =>
-                a.order - b.order,
-            )
-            .map((c: Record<string, any>) => ({
-              ...c,
-              required: !!(c.required || 0),
-            }));
+            .sort((a: ColumnType, b: ColumnType) => a.order - b.order)
+            .map((c: ColumnType & FormColumnType) => {
+              c.required = !!(c.required || 0);
+              return c;
+            });
 
           const transformedData = _transformSubmittedFormDataForEmail(
             newData,

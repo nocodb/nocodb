@@ -122,17 +122,17 @@ export class HooksService {
       payload: { data, user },
     } = param.hookTest;
     try {
-      await invokeWebhook(
-        new Hook(hook),
-        model,
-        null,
-        null,
-        data,
-        user,
-        (hook as any)?.filters,
-        true,
-        true,
-      );
+      await invokeWebhook({
+        hook: new Hook(hook),
+        model: model,
+        view: null,
+        prevData: null,
+        newData: data,
+        user: user,
+        testFilters: (hook as any)?.filters,
+        throwErrorOnFailure: true,
+        testHook: true,
+      });
     } catch (e) {
       throw e;
     } finally {

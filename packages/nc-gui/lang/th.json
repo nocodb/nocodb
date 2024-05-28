@@ -451,6 +451,7 @@
   "labels": {
     "connectionDetails": "Connection Details",
     "metaSync": "Meta Sync",
+    "mention": "Mention",
     "today": "Today",
     "workspace": "Workspace",
     "txt": "TXT Record value",

@@ -84,20 +84,23 @@ export function useSharedView() {
 
     // Required for Calendar View
     const rangeFields: Array<string> = []
-    if (sharedView.value?.view?.calendar_range?.length) {
-      ;(sharedView.value?.view as CalendarType)?.calendar_range?.forEach((range) => {
+    if ((sharedView.value?.view as CalendarType)?.calendar_range?.length) {
+      for (const range of (sharedView.value?.view as CalendarType)?.calendar_range ?? []) {
         if (range.fk_from_column_id) {
           rangeFields.push(range.fk_from_column_id)
         }
-        if (range.fk_to_column_id) {
-          rangeFields.push(range.fk_to_column_id)
+        if ((range as any).fk_to_column_id) {
+          rangeFields.push((range as any).fk_to_column_id)
         }
-      })
+      }
     }
-    meta.value!.columns = [...viewMeta.model.columns]
-      .filter((c) => c.show || rangeFields.includes(c.id))
-      .map((c) => ({ ...c, order: order++ }))
-      .sort((a, b) => a.order - b.order)
+
+    if (meta.value) {
+      meta.value.columns = [...viewMeta.model.columns]
+        .filter((c) => c.show || rangeFields.includes(c.id))
+        .map((c) => ({ ...c, order: order++ }))
+        .sort((a, b) => a.order - b.order)
+    }
 
     await setMeta(viewMeta.model)
 

@@ -30,6 +30,7 @@ import {
   prepareForDb,
   prepareForResponse,
 } from '~/utils/modelUtils';
+import { convertDurationToSeconds } from '~/db/util/durationUtils';
 
 export default class Model implements TableType {
   copy_enabled: BoolType;
@@ -610,6 +611,9 @@ export default class Model implements TableType {
             val = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ');
           }
         }
+        if (col.uidt === UITypes.Duration && typeof val === 'string')
+          val = convertDurationToSeconds(val) ?? parseFloat(val);
+
         insertObj[sanitize(col.column_name)] = val;
 
         if (clientMeta.isPg && col.dt === 'bytea') {

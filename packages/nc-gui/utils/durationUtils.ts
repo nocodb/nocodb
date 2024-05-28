@@ -42,6 +42,12 @@ const padZero = (val: number, isSSS = false) => {
   return `${val}`.padStart(isSSS ? 3 : 2, '0')
 }
 
+export const getDurationType = (val: string) => {
+  for (let i = 0; i < durationOptions.length; i++) {
+    if (durationOptions[i].regex.test(val)) return durationOptions[i].id
+  }
+}
+
 export const convertMS2Duration = (val: any, durationType: number) => {
   if (val === '' || val === null || val === undefined) {
     return val

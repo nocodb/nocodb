@@ -22,6 +22,10 @@ import { customAlphabet } from 'nanoid';
 import DOMPurify from 'isomorphic-dompurify';
 import { v4 as uuidv4 } from 'uuid';
 import { Logger } from '@nestjs/common';
+import {
+  convertDurationToSeconds,
+  getDurationType,
+} from 'nc-gui/utils/durationUtils';
 import type { SortType } from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type LookupColumn from '~/models/LookupColumn';
@@ -3521,15 +3525,9 @@ class BaseModelSqlv2 {
                   }
                 }
                 if (col.uidt === UITypes.Duration && typeof val === 'string') {
-                  if (val.indexOf(':') !== -1)
-                    val = val
-                      .split(':')
-                      .reverse()
-                      .reduce(
-                        (acc, cur, i) => acc + parseInt(cur) * Math.pow(60, i),
-                        0,
-                      );
-                  else if (val.match(/\d+(\.\d+)?/)) val = parseFloat(val);
+                  val = convertDurationToSeconds(val, getDurationType(val));
+                  if (!val._isValid) val = parseFloat(val);
+                  else val = val._sec;
                 }
                 insertObj[sanitize(col.column_name)] = val;
               }

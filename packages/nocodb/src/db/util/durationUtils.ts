@@ -33,7 +33,9 @@ const durationOptions = [
 
 export const convertDurationToSeconds = (val: string) => {
   const { regex, type } = durationOptions.find(({ regex }) => regex.test(val));
-  let h: number, mm: number, ss: number;
+  let h: number;
+  let mm: number;
+  let ss: number;
 
   const groups = val.match(regex);
 

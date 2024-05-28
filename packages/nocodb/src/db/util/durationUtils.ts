@@ -1,4 +1,4 @@
-export const durationOptions = [
+const durationOptions = [
   {
     type: 0,
     title: 'h:mm',

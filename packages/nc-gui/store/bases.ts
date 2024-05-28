@@ -310,7 +310,7 @@ export const useBases = defineStore('basesStore', () => {
   }
 
   async function updateIfBaseOrderIsNullOrDuplicate() {
-    if (!isUIAllowed('baseReorder')) return
+    if (!isUIAllowed('baseUpdate')) return
 
     const basesArray = Array.from(bases.value.values())
 

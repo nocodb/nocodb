@@ -693,7 +693,7 @@ const parseCondition = (obj, columnAliases, qb, pKey?) => {
               qb = qb.whereNotIn(fieldName, val);
               break;
             default:
-              throw new NcError.invalidFilter(key);
+              NcError.invalidFilter(key);
           }
         }
         break;

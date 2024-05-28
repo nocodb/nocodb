@@ -22,10 +22,7 @@ import { customAlphabet } from 'nanoid';
 import DOMPurify from 'isomorphic-dompurify';
 import { v4 as uuidv4 } from 'uuid';
 import { Logger } from '@nestjs/common';
-import {
-  convertDurationToSeconds,
-  getDurationType,
-} from 'nc-gui/utils/durationUtils';
+import { convertDurationToSeconds } from './util/durationUtils';
 import type { SortType } from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type LookupColumn from '~/models/LookupColumn';
@@ -3524,11 +3521,9 @@ class BaseModelSqlv2 {
                     val = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ');
                   }
                 }
-                if (col.uidt === UITypes.Duration && typeof val === 'string') {
-                  val = convertDurationToSeconds(val, getDurationType(val));
-                  if (!val._isValid) val = parseFloat(val);
-                  else val = val._sec;
-                }
+                if (col.uidt === UITypes.Duration && typeof val === 'string')
+                  val = convertDurationToSeconds(val) ?? parseFloat(val);
+
                 insertObj[sanitize(col.column_name)] = val;
               }
             }

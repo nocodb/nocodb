@@ -732,7 +732,7 @@ export function useData(args: {
 
     await callbacks?.syncCount?.()
     await callbacks?.syncPagination?.()
-    await callbacks?.globalCallback?.()
+    callbacks?.globalCallback?.()
   }
 
   async function deleteRangeOfRows(cellRange: CellRange) {

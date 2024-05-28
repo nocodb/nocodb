@@ -136,6 +136,14 @@ const pagination = computed(() => {
     extraStyle: `margin-left: ${scrollBump.value}px;`,
   }
 })
+
+async function deleteSelectedRowsWrapper() {
+  if (!deleteSelectedRows) throw new Error('Feature not implemented')
+
+  await deleteSelectedRows()
+  // reload table data
+  await reloadTableData({ shouldShowLoading: true })
+}
 </script>
 
 <template>
@@ -151,7 +159,7 @@ const pagination = computed(() => {
     :expand-form="props.expandForm"
     :row-height="rowHeight"
     :delete-row="deleteRow"
-    :delete-selected-rows="deleteSelectedRows"
+    :delete-selected-rows="deleteSelectedRowsWrapper"
     :delete-range-of-rows="deleteRangeOfRows"
     :update-or-save-row="updateOrSaveRow"
     :remove-row-if-new="removeRowIfNew"

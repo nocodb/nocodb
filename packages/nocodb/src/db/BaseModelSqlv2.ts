@@ -3520,6 +3520,17 @@ class BaseModelSqlv2 {
                     val = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ');
                   }
                 }
+                if (col.uidt === UITypes.Duration && typeof val === 'string') {
+                  if (val.indexOf(':') !== -1)
+                    val = val
+                      .split(':')
+                      .reverse()
+                      .reduce(
+                        (acc, cur, i) => acc + parseInt(cur) * Math.pow(60, i),
+                        0,
+                      );
+                  else if (val.match(/\d+(\.\d+)?/)) val = parseFloat(val);
+                }
                 insertObj[sanitize(col.column_name)] = val;
               }
             }

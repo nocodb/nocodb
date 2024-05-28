@@ -1,30 +1,30 @@
 export const durationOptions = [
   {
-    id: 0,
+    type: 0,
     title: 'h:mm',
     example: '(e.g. 1:23)',
     regex: /(\d+)(?::(\d+))?/,
   },
   {
-    id: 1,
+    type: 1,
     title: 'h:mm:ss',
     example: '(e.g. 3:45, 1:23:40)',
     regex: /(\d+)?(?::(\d+))?(?::(\d+))?/,
   },
   {
-    id: 2,
+    type: 2,
     title: 'h:mm:ss.s',
     example: '(e.g. 3:34.6, 1:23:40.0)',
     regex: /(\d+)?(?::(\d+))?(?::(\d+))?(?:.(\d{0,4})?)?/,
   },
   {
-    id: 3,
+    type: 3,
     title: 'h:mm:ss.ss',
     example: '(e.g. 3.45.67, 1:23:40.00)',
     regex: /(\d+)?(?::(\d+))?(?::(\d+))?(?:.(\d{0,4})?)?/,
   },
   {
-    id: 4,
+    type: 4,
     title: 'h:mm:ss.sss',
     example: '(e.g. 3.45.678, 1:23:40.000)',
     regex: /(\d+)?(?::(\d+))?(?::(\d+))?(?:.(\d{0,4})?)?/,
@@ -32,9 +32,7 @@ export const durationOptions = [
 ];
 
 export const convertDurationToSeconds = (val: string) => {
-  const { regex, id: durationType } = durationOptions.find((o) =>
-    o.regex.test(val),
-  );
+  const { regex, type } = durationOptions.find(({ regex }) => regex.test(val));
   let h: number, mm: number, ss: number;
 
   const groups = val.match(regex);
@@ -46,7 +44,7 @@ export const convertDurationToSeconds = (val: string) => {
       h = Number.parseFloat(groups[1]);
       mm = 0;
       ss = 0;
-    } else if (durationType === 0) {
+    } else if (type === 0) {
       // consider it as minutes
       // e.g. 360 -> 06:00
       h = Math.floor(val / 60);
@@ -59,7 +57,7 @@ export const convertDurationToSeconds = (val: string) => {
       mm = Math.floor(Number.parseFloat(groups[1]) / 60) % 60;
       ss = val % 60;
     }
-  } else if (durationType !== 0 && groups[1] && groups[2] && !groups[3]) {
+  } else if (type !== 0 && groups[1] && groups[2] && !groups[3]) {
     // 10:10 means mm:ss instead of h:mm
     // 10:10:10 means h:mm:ss
     h = 0;
@@ -71,14 +69,14 @@ export const convertDurationToSeconds = (val: string) => {
     ss = Number.parseFloat(groups[3]) || 0;
   }
 
-  if (durationType === 0)
+  if (type === 0)
     // h:mm
     return h * 3600 + mm * 60;
-  if (durationType === 1)
+  if (type === 1)
     // h:mm:ss
     return h * 3600 + mm * 60 + ss;
 
-  if (durationType === 2) {
+  if (type === 2) {
     // h:mm:ss.s (deciseconds)
     const ds = Number.parseFloat(groups[4]) || 0;
     const len = (Math.log(ds) * Math.LOG10E + 1) | 0;
@@ -89,7 +87,7 @@ export const convertDurationToSeconds = (val: string) => {
 
     return h * 3600 + mm * 60 + ss + ms / 1000;
   }
-  if (durationType === 3) {
+  if (type === 3) {
     // h:mm:ss.ss (centi seconds)
     const cs = Number.parseFloat(groups[4]) || 0;
     const len = (Math.log(cs) * Math.LOG10E + 1) | 0;
@@ -101,7 +99,7 @@ export const convertDurationToSeconds = (val: string) => {
     return h * 3600 + mm * 60 + ss + ms / 1000;
   }
 
-  if (durationType === 4) {
+  if (type === 4) {
     // h:mm:ss.sss (milliseconds)
     let ms = Number.parseFloat(groups[4]) || 0;
     const len = (Math.log(ms) * Math.LOG10E + 1) | 0;

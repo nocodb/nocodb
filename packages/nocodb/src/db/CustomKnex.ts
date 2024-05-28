@@ -693,7 +693,10 @@ const parseCondition = (obj, columnAliases, qb, pKey?) => {
               qb = qb.whereNotIn(fieldName, val);
               break;
             default:
-              NcError.invalidFilter(key);
+              NcError.metaError({
+                message: `Found invalid conditional operator "${key}" in expression`,
+                sql: '',
+              });
           }
         }
         break;

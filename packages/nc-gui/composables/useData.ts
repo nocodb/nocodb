@@ -11,7 +11,7 @@ export function useData(args: {
   callbacks?: {
     changePage?: (page: number) => Promise<void>
     loadData?: () => Promise<void>
-    globalCallback?: (...args: any[]) => void
+    globalCallback?: (...args: any[]) => Promise<void>,
     syncCount?: () => Promise<void>
     syncPagination?: () => Promise<void>
   }
@@ -732,7 +732,7 @@ export function useData(args: {
 
     await callbacks?.syncCount?.()
     await callbacks?.syncPagination?.()
-    callbacks?.globalCallback?.()
+    await callbacks?.globalCallback?.()
   }
 
   async function deleteRangeOfRows(cellRange: CellRange) {

@@ -138,7 +138,7 @@ const pagination = computed(() => {
 })
 
 async function deleteSelectedRowsWrapper() {
-  if (!deleteSelectedRows) throw new Error('Feature not implemented')
+  if (!deleteSelectedRows) return
 
   await deleteSelectedRows()
   // reload table data

@@ -681,13 +681,13 @@ const stopDrag = (event: MouseEvent) => {
 }
 
 const dragStart = (event: MouseEvent, record: Row) => {
-  if (!isUIAllowed('dataEdit')) return
   let target = event.target as HTMLElement
 
   isDragging.value = false
 
   // We use a timeout to determine if the user is dragging or clicking on the record
   dragTimeout.value = setTimeout(() => {
+    if (!isUIAllowed('dataEdit')) return
     isDragging.value = true
     while (!target.classList.contains('draggable-record')) {
       target = target.parentElement as HTMLElement

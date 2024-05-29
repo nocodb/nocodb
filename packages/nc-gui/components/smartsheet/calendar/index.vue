@@ -45,14 +45,15 @@ const expandedFormOnRowIdDlg = computed({
   get() {
     return !!route.query.rowId
   },
-  set(val) {
-    if (!val)
+  set(value) {
+    if (!value) {
       router.push({
         query: {
           ...route.query,
           rowId: undefined,
         },
       })
+    }
   },
 })
 
@@ -166,6 +167,18 @@ reloadViewDataHook?.on(async (params: void | { shouldShowLoading?: boolean }) =>
     </div>
     <LazySmartsheetCalendarSideMenu :visible="showSideMenu" @expand-record="expandRecord" @new-record="newRecord" />
   </div>
+
+  <Suspense>
+    <LazySmartsheetExpandedForm
+      v-if="expandedFormRow && expandedFormDlg"
+      v-model="expandedFormDlg"
+      :row="expandedFormRow"
+      :load-row="!isPublic"
+      :state="expandedFormRowState"
+      :meta="meta"
+      :view="view"
+    />
+  </Suspense>
 
   <LazySmartsheetExpandedForm
     v-if="expandedFormOnRowIdDlg && meta?.id"

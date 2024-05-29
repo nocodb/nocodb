@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
+import { convertDurationToSeconds, convertMS2Duration, durationOptions } from 'nocodb-sdk'
 
 interface Props {
   modelValue: number | string | null | undefined
@@ -38,9 +39,9 @@ const localState = computed({
   get: () => convertMS2Duration(modelValue, durationType.value),
   set: (val) => {
     isEdited.value = true
-    const res = convertDurationToSeconds(val, durationType.value)
-    if (res._isValid) {
-      durationInMS.value = res._sec
+    const res = convertDurationToSeconds(val)
+    if (res) {
+      durationInMS.value = res
     }
   },
 })

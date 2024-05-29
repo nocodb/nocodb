@@ -9,6 +9,7 @@ import { nocoExecute } from 'nc-help';
 import {
   AuditOperationSubTypes,
   AuditOperationTypes,
+  convertDurationToSeconds,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
@@ -41,7 +42,6 @@ import type {
   User,
 } from '~/models';
 import type CustomKnex from '~/db/CustomKnex';
-import { convertDurationToSeconds } from '~/db/util/durationUtils';
 import {
   Audit,
   BaseUser,

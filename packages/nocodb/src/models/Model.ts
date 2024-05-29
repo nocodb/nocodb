@@ -1,4 +1,5 @@
 import {
+  convertDurationToSeconds,
   isLinksOrLTAR,
   isVirtualCol,
   ModelTypes,
@@ -30,7 +31,6 @@ import {
   prepareForDb,
   prepareForResponse,
 } from '~/utils/modelUtils';
-import { convertDurationToSeconds } from '~/db/util/durationUtils';
 
 export default class Model implements TableType {
   copy_enabled: BoolType;

@@ -1,4 +1,4 @@
-const durationOptions = [
+export const durationOptions = [
   {
     type: 0,
     title: 'h:mm',
@@ -76,6 +76,55 @@ const extractHMS = (groups: RegExpMatchArray, type: number) => {
   };
 };
 
+// pad zero
+// mm && ss
+// e.g.  3 -> 03
+// e.g. 12 -> 12
+// sss
+// e.g.  1 -> 001
+// e.g. 10 -> 010
+const padZero = (val: number, isSSS = false) => {
+  return `${val}`.padStart(isSSS ? 3 : 2, '0');
+};
+
+export const convertMS2Duration = (val: any, durationType: number) => {
+  if (val === '' || val === null || val === undefined) {
+    return val;
+  }
+  // 600.000 s --> 10:00 (10 mins)
+  const milliseconds = Math.round((val % 1) * 1000);
+  const centiseconds = Math.round(milliseconds / 10);
+  const deciseconds = Math.round(centiseconds / 10);
+  const hours = Math.floor(parseInt(val, 10) / (60 * 60));
+  const minutes = Math.floor((parseInt(val, 10) - hours * 60 * 60) / 60);
+  const seconds = parseInt(val, 10) - hours * 60 * 60 - minutes * 60;
+
+  if (durationType === 0) {
+    // h:mm
+    return `${padZero(hours)}:${padZero(minutes + (seconds >= 30 ? 1 : 0))}`;
+  } else if (durationType === 1) {
+    // h:mm:ss
+    return `${padZero(hours)}:${padZero(minutes)}:${padZero(seconds)}`;
+  } else if (durationType === 2) {
+    // h:mm:ss.s
+    return `${padZero(hours)}:${padZero(minutes)}:${padZero(
+      seconds
+    )}.${deciseconds}`;
+  } else if (durationType === 3) {
+    // h:mm:ss.ss
+    return `${padZero(hours)}:${padZero(minutes)}:${padZero(seconds)}.${padZero(
+      centiseconds
+    )}`;
+  } else if (durationType === 4) {
+    // h:mm:ss.sss
+    return `${padZero(hours)}:${padZero(minutes)}:${padZero(seconds)}.${padZero(
+      milliseconds,
+      true
+    )}`;
+  }
+  return val;
+};
+
 export const convertDurationToSeconds = (val: string) => {
   const { regex, type } = durationOptions.find(({ regex }) => regex.test(val));
   const groups = val.match(regex);
@@ -125,4 +174,6 @@ export const convertDurationToSeconds = (val: string) => {
           ms;
     return h * 3600 + mm * 60 + ss + ms / 1000;
   }
+
+  return null;
 };

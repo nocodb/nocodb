@@ -687,8 +687,8 @@ importers:
         specifier: 0.3.1
         version: 0.3.1(asn1.js@5.4.1)(debug@4.3.4)(knex@2.4.2)
       nc-lib-gui:
-        specifier: 0.207.3
-        version: 0.207.3
+        specifier: 0.207.2
+        version: 0.207.2
       nc-plugin:
         specifier: ^0.1.3
         version: 0.1.3
@@ -702,8 +702,8 @@ importers:
         specifier: ^0.4.4
         version: 0.4.4(@nestjs/common@10.3.8)(@nestjs/core@10.3.8)(@nestjs/throttler@5.1.2)(ioredis@5.4.1)(reflect-metadata@0.2.1)
       nocodb-sdk:
-        specifier: workspace:^
-        version: link:../nocodb-sdk
+        specifier: 0.207.2
+        version: 0.207.2(debug@4.3.4)
       nodemailer:
         specifier: ^6.9.13
         version: 6.9.13
@@ -20886,8 +20886,8 @@ packages:
       - supports-color
     dev: false
 
-  /nc-lib-gui@0.207.3:
-    resolution: {integrity: sha512-2TTiNKjD+VQIRxCoHxO2VfdWlYvHdZcoH92ngZogxmFq+YnfM7wmsbKVyOoT7pOeoFmODhKcezTLd7S9aW46+Q==}
+  /nc-lib-gui@0.207.2:
+    resolution: {integrity: sha512-+/u+N7/vPvcUBs7BN6WM2H2hKxhOta0KKZ75mFyZhb4D/p8Y2SMlCQDAqpkR3lsH0DZaTlKqjGKeYPFtmRw0Ug==}
     dependencies:
       express: 4.19.2
     transitivePeerDependencies:
@@ -21049,6 +21049,18 @@ packages:
       - supports-color
       - uWebSockets.js
     dev: true
+
+  /nocodb-sdk@0.207.2(debug@4.3.4):
+    resolution: {integrity: sha512-OoE387pT5gUBP91nP9nKqMjaxDCmqvXwfNM5bisXI6+QhmL63lj5jKSxFwXpRVjJ1bWqznG3oseZl11ivr+uIQ==}
+    engines: {node: '>=18.19.1'}
+    requiresBuild: true
+    dependencies:
+      axios: 1.6.8(debug@4.3.4)
+      dayjs: 1.11.11
+      jsep: 1.3.8
+    transitivePeerDependencies:
+      - debug
+    dev: false
 
   /node-abi@3.47.0:
     resolution: {integrity: sha512-2s6B2CWZM//kPgwnuI0KrYwNjfdByE25zvAaEpq9IH4zcNsarH8Ihu/UuX6XMPEogDAxkuUFeZn60pXNHAqn3A==}

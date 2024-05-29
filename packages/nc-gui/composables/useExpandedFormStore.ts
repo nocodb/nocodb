@@ -355,8 +355,9 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     const recordId = rowId ?? extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
 
     if (!recordId) return
+    let record
     try {
-      let record = await $api.dbTableRow.read(
+      record = await $api.dbTableRow.read(
         NOCO,
         // todo: base_id missing on view type
         ((base?.value?.id ?? meta.value?.base_id) || (sharedView.value?.view as any)?.base_id) as string,
@@ -366,37 +367,6 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
           getHiddenColumn: true,
         },
       )
-
-      // update only virtual columns value if `onlyVirtual` is true
-      if (onlyVirtual) {
-        record = {
-          ...row.value.row,
-          ...(meta.value.columns ?? []).reduce((partialRecord, col) => {
-            if (isVirtualCol(col) && col.title && col.title in record) {
-              partialRecord[col.title] = (record as Record<string, any>)[col.title as string]
-            }
-            return partialRecord
-          }, {} as Record<string, any>),
-        }
-      }
-
-      // update only new/duplicated/renamed columns value if `onlyNewColumns` is true
-      if (onlyNewColumns) {
-        record = Object.keys(record).reduce((acc, curr) => {
-          if (!Object.prototype.hasOwnProperty.call(row.value.row, curr)) {
-            acc[curr] = record(record as Record<string, any>)[curr]
-          } else {
-            acc[curr] = row.value.row[curr]
-          }
-          return acc
-        }, {} as Record<string, any>)
-      }
-
-      Object.assign(row.value, {
-        row: record,
-        oldRow: { ...record },
-        rowMeta: {},
-      })
     } catch (err: any) {
       if (err.response?.status === 404) {
         const router = useRouter()
@@ -406,6 +376,36 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
         message.error(`${await extractSdkResponseErrorMsg(err)}`)
       }
     }
+    // update only virtual columns value if `onlyVirtual` is true
+    if (onlyVirtual && record) {
+      record = {
+        ...row.value.row,
+        ...(meta.value.columns ?? []).reduce((partialRecord, col) => {
+          if (isVirtualCol(col) && col.title && col.title in record) {
+            partialRecord[col.title] = (record as Record<string, any>)[col.title as string]
+          }
+          return partialRecord
+        }, {} as Record<string, any>),
+      }
+    }
+
+    // update only new/duplicated/renamed columns value if `onlyNewColumns` is true
+    if (onlyNewColumns && record) {
+      record = Object.keys(record).reduce((acc, curr) => {
+        if (!Object.prototype.hasOwnProperty.call(row.value.row, curr)) {
+          acc[curr] = record(record as Record<string, any>)[curr]
+        } else {
+          acc[curr] = row.value.row[curr]
+        }
+        return acc
+      }, {} as Record<string, any>)
+    }
+
+    Object.assign(row.value, {
+      row: record,
+      oldRow: { ...record },
+      rowMeta: {},
+    })
   }
 
   const deleteRowById = async (rowId?: string) => {

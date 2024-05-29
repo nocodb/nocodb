@@ -187,13 +187,11 @@ reloadViewDataHook?.on(async (params: void | { shouldShowLoading?: boolean }) =>
     :load-row="!isPublic"
     :meta="meta"
     :state="expandedFormRowState"
-    :row="
-      expandedFormRow ?? {
-        row: {},
-        oldRow: {},
-        rowMeta: {},
-      }
-    "
+    :row="{
+      row: {},
+      oldRow: {},
+      rowMeta: {},
+    }"
     :row-id="route.query.rowId"
     :view="view"
   />

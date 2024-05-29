@@ -301,9 +301,11 @@ provide(ReloadRowDataHookInj, reloadHook)
 
 if (isKanban.value) {
   // adding column titles to changedColumns if they are preset
-  for (const [k, v] of Object.entries(_row.value.row)) {
-    if (v) {
-      changedColumns.value.add(k)
+  if (_row.value.rowMeta.new) {
+    for (const [k, v] of Object.entries(_row.value.row)) {
+      if (v) {
+        changedColumns.value.add(k)
+      }
     }
   }
 }

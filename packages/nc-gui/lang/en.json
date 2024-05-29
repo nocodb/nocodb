@@ -1413,6 +1413,7 @@
       "preventHideAllOptions": "You cannot hide all options if field is required"
     },
     "error": {
+      "errorLoadingRecord": "Error loading record data",
       "fetchingCalendarData": "Error fetching calendar data",
       "fetchingActiveDates": "Error fetching active dates",
       "scopesRequired": "Scopes required",

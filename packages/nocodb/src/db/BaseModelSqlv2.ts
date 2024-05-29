@@ -3394,6 +3394,12 @@ class BaseModelSqlv2 {
         { ignoreView: true, getHiddenColumn: true },
       );
 
+      if (!prevData) {
+        NcError.recordNotFound(
+          typeof id === 'string' ? id : JSON.stringify(id),
+        );
+      }
+
       const query = this.dbDriver(this.tnPath)
         .update(updateObj)
         .where(await this._wherePk(id, true));
@@ -3856,14 +3862,21 @@ class BaseModelSqlv2 {
           for (let i = 0; i < this.model.columns.length; ++i) {
             const col = this.model.columns[i];
 
-            if (
-              col.title in d &&
-              (isCreatedOrLastModifiedTimeCol(col) ||
-                isCreatedOrLastModifiedByCol(col))
-            ) {
-              NcError.badRequest(
-                `Column "${col.title}" is auto generated and cannot be updated`,
-              );
+            if (col.title in d) {
+              if (
+                isCreatedOrLastModifiedTimeCol(col) ||
+                isCreatedOrLastModifiedByCol(col)
+              ) {
+                NcError.badRequest(
+                  `Column "${col.title}" is auto generated and cannot be updated`,
+                );
+              }
+
+              if (col.system) {
+                NcError.badRequest(
+                  `Column "${col.title}" is system column and cannot be updated`,
+                );
+              }
             }
 
             // populate pk columns
@@ -4926,14 +4939,21 @@ class BaseModelSqlv2 {
     for (let i = 0; i < cols.length; ++i) {
       const column = this.model.columns[i];
 
-      if (
-        column.title in data &&
-        (isCreatedOrLastModifiedTimeCol(column) ||
-          isCreatedOrLastModifiedByCol(column))
-      ) {
-        NcError.badRequest(
-          `Column "${column.title}" is auto generated and cannot be updated`,
-        );
+      if (column.title in data) {
+        if (
+          isCreatedOrLastModifiedTimeCol(column) ||
+          isCreatedOrLastModifiedByCol(column)
+        ) {
+          NcError.badRequest(
+            `Column "${column.title}" is auto generated and cannot be updated`,
+          );
+        }
+
+        if (column.system) {
+          NcError.badRequest(
+            `Column "${column.title}" is system column and cannot be updated`,
+          );
+        }
       }
       await this.validateOptions(column, data);
       // Validates the constraints on the data based on the column definitions

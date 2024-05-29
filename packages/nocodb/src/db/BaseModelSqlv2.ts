@@ -7500,6 +7500,10 @@ export function _wherePk(
 
 export function getCompositePkValue(primaryKeys: Column[], row) {
   if (typeof row !== 'object') return row;
+
+  if (row === null)
+    NcError.requiredFieldMissing(primaryKeys.map((c) => c.title).join(','));
+
   return primaryKeys.map((c) => row[c.title] ?? row[c.column_name]).join('___');
 }
 

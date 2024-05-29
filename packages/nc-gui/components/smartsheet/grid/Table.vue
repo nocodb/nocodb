@@ -427,18 +427,23 @@ const cellMeta = computed(() => {
   })
 })
 
+const isReadonly = (col: ColumnType) => {
+  return (
+    isSystemColumn(col) ||
+    isLookup(col) ||
+    isRollup(col) ||
+    isFormula(col) ||
+    isVirtualCol(col) ||
+    isCreatedOrLastModifiedTimeCol(col) ||
+    isCreatedOrLastModifiedByCol(col)
+  )
+}
+
 const colMeta = computed(() => {
   return fields.value.map((col) => {
     return {
       isVirtualCol: isVirtualCol(col),
-      isReadonly:
-        isSystemColumn(col) ||
-        isLookup(col) ||
-        isRollup(col) ||
-        isFormula(col) ||
-        isVirtualCol(col) ||
-        isCreatedOrLastModifiedTimeCol(col) ||
-        isCreatedOrLastModifiedByCol(col),
+      isReadonly: isReadonly(col),
     }
   })
 })
@@ -938,6 +943,9 @@ async function clearSelectedRangeOfCells() {
         continue
       }
 
+      // skip readonly columns
+      if (isReadonly(col)) continue
+
       row.row[col.title] = null
       props.push(col.title)
     }
@@ -1257,6 +1265,16 @@ const refreshFillHandle = () => {
   })
 }
 
+const selectedReadonly = computed(
+  () =>
+    // if all the selected columns are not readonly
+    (selectedRange.isEmpty() && activeCell.col && colMeta.value[activeCell.col].isReadonly) ||
+    (!selectedRange.isEmpty() &&
+      Array.from({ length: selectedRange.end.col - selectedRange.start.col + 1 }).every(
+        (_, i) => colMeta.value[selectedRange.start.col + i].isReadonly,
+      )),
+)
+
 const showFillHandle = computed(
   () =>
     !readOnly.value &&
@@ -1268,13 +1286,7 @@ const showFillHandle = computed(
     !isViewDataLoading.value &&
     !isPaginationLoading.value &&
     dataRef.value.length &&
-    // if all the selected columns are not readonly
-    (selectedRange.start.col === null ||
-      selectedRange.end.col === null ||
-      !colMeta.value[activeCell.col].isReadonly ||
-      !Array.from({ length: selectedRange.end.col - selectedRange.start.col + 1 }).every(
-        (_, i) => colMeta.value[selectedRange.start.col + i].isReadonly,
-      )),
+    !selectedReadonly.value,
 )
 
 watch(
@@ -2215,7 +2227,7 @@ onKeyStroke('ArrowDown', onDown)
               v-if="contextMenuTarget && hasEditPermission"
               class="nc-base-menu-item"
               data-testid="context-menu-item-paste"
-              :disabled="colMeta[contextMenuTarget.col].isReadonly"
+              :disabled="selectedReadonly"
               @click="paste"
             >
               <div v-e="['a:row:paste']" class="flex gap-2 items-center">
@@ -2234,7 +2246,7 @@ onKeyStroke('ArrowDown', onDown)
                 (isLinksOrLTAR(fields[contextMenuTarget.col]) || !cellMeta[0]?.[contextMenuTarget.col].isVirtualCol)
               "
               class="nc-base-menu-item"
-              :disabled="colMeta[contextMenuTarget.col].isReadonly"
+              :disabled="selectedReadonly"
               data-testid="context-menu-item-clear"
               @click="clearCell(contextMenuTarget)"
             >
@@ -2248,7 +2260,7 @@ onKeyStroke('ArrowDown', onDown)
             <NcMenuItem
               v-else-if="contextMenuTarget && hasEditPermission"
               class="nc-base-menu-item"
-              :disabled="colMeta[contextMenuTarget.col].isReadonly"
+              :disabled="selectedReadonly"
               data-testid="context-menu-item-clear"
               @click="clearSelectedRangeOfCells()"
             >

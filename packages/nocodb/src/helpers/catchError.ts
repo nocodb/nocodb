@@ -502,6 +502,10 @@ const errorHelpers: {
     message: (resource: string, id: string) => `${resource} '${id}' not found`,
     code: 404,
   },
+  [NcErrorType.REQUIRED_FIELD_MISSING]: {
+    message: (field: string) => `Field '${field}' is required`,
+    code: 422,
+  },
   [NcErrorType.ERROR_DUPLICATE_RECORD]: {
     message: (...ids: string[]) => {
       const isMultiple = Array.isArray(ids) && ids.length > 1;
@@ -672,6 +676,13 @@ export class NcError {
   static genericNotFound(resource: string, id: string, args?: NcErrorArgs) {
     throw new NcBaseErrorv2(NcErrorType.GENERIC_NOT_FOUND, {
       params: [resource, id],
+      ...args,
+    });
+  }
+
+  static requiredFieldMissing(field: string, args?: NcErrorArgs) {
+    throw new NcBaseErrorv2(NcErrorType.REQUIRED_FIELD_MISSING, {
+      params: field,
       ...args,
     });
   }

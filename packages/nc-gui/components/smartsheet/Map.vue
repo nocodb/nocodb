@@ -51,6 +51,8 @@ const getMapCenterLocalStorageKey = (viewId: string) => `mapView.${viewId}.cente
 
 const expandForm = (row: Row, state?: Record<string, any>) => {
   const rowId = extractPkFromRow(row.row, meta.value!.columns!)
+  expandedFormRow.value = row
+
   if (rowId) {
     router.push({
       query: {
@@ -59,7 +61,6 @@ const expandForm = (row: Row, state?: Record<string, any>) => {
       },
     })
   } else {
-    expandedFormRow.value = row
     expandedFormRowState.value = state
     expandedFormDlg.value = true
   }
@@ -236,6 +237,7 @@ const count = computed(() => paginationData.value.totalRows)
       v-if="expandedFormRow && expandedFormDlg"
       v-model="expandedFormDlg"
       :row="expandedFormRow"
+      :load-row="!isPublic"
       :state="expandedFormRowState"
       :meta="meta"
       :view="view"
@@ -245,8 +247,9 @@ const count = computed(() => paginationData.value.totalRows)
     <LazySmartsheetExpandedForm
       v-if="expandedFormOnRowIdDlg && meta?.id"
       v-model="expandedFormOnRowIdDlg"
-      :row="{ row: {}, oldRow: {}, rowMeta: {} }"
+      :row="expandedFormRow ?? { row: {}, oldRow: {}, rowMeta: {} }"
       :meta="meta"
+      :load-row="!isPublic"
       :row-id="route.query.rowId"
       :view="view"
     />

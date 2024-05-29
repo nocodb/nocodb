@@ -12,7 +12,7 @@ const reloadViewMetaHook = inject(ReloadViewMetaHookInj)
 
 const reloadViewDataHook = inject(ReloadViewDataHookInj)
 
-const { isMobileMode } = useGlobal()
+const isPublic = inject(IsPublicInj, ref(false))
 
 provide(IsFormInj, ref(false))
 
@@ -64,7 +64,11 @@ const expandedFormRowState = ref<Record<string, any>>()
 
 const expandRecord = (row: RowType, state?: Record<string, any>) => {
   const rowId = extractPkFromRow(row.row, meta.value!.columns!)
-  if (rowId) {
+
+  expandedFormRow.value = row
+  expandedFormRowState.value = state
+
+  if (rowId && !isPublic.value) {
     router.push({
       query: {
         ...route.query,
@@ -72,13 +76,12 @@ const expandRecord = (row: RowType, state?: Record<string, any>) => {
       },
     })
   } else {
-    expandedFormRow.value = row
-    expandedFormRowState.value = state
     expandedFormDlg.value = true
   }
 }
 
 const newRecord = (row: RowType) => {
+  if (isPublic.value) return
   $e('c:calendar:new-record', activeCalendarView.value)
   expandRecord({
     row: {
@@ -164,27 +167,21 @@ reloadViewDataHook?.on(async (params: void | { shouldShowLoading?: boolean }) =>
     <LazySmartsheetCalendarSideMenu :visible="showSideMenu" @expand-record="expandRecord" @new-record="newRecord" />
   </div>
 
-  <Suspense>
-    <LazySmartsheetExpandedForm
-      v-if="expandedFormRow && expandedFormDlg"
-      v-model="expandedFormDlg"
-      close-after-save
-      :meta="meta"
-      :row="expandedFormRow"
-      :state="expandedFormRowState"
-      :view="view"
-    />
-  </Suspense>
-
-  <Suspense>
-    <LazySmartsheetExpandedForm
-      v-if="expandedFormOnRowIdDlg && meta?.id"
-      v-model="expandedFormOnRowIdDlg"
-      close-after-save
-      :meta="meta"
-      :row="{ row: {}, oldRow: {}, rowMeta: {} }"
-      :row-id="route.query.rowId"
-      :view="view"
-    />
-  </Suspense>
+  <LazySmartsheetExpandedForm
+    v-if="expandedFormOnRowIdDlg && meta?.id"
+    v-model="expandedFormOnRowIdDlg"
+    close-after-save
+    :load-row="!isPublic"
+    :meta="meta"
+    :state="expandedFormRowState"
+    :row="
+      expandedFormRow ?? {
+        row: {},
+        oldRow: {},
+        rowMeta: {},
+      }
+    "
+    :row-id="route.query.rowId"
+    :view="view"
+  />
 </template>

@@ -46,13 +46,14 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     !sharedView.value ||
       sharedView.value?.type === ViewTypes.GALLERY ||
       sharedView.value?.type === ViewTypes.KANBAN ||
-      _row.value.rowMeta.new
+      _row.value?.rowMeta?.new
       ? _row.value
       : ({ row: {}, oldRow: {}, rowMeta: {} } as Row),
   )
 
-  row.value.rowMeta.fromExpandedForm = true
-
+  if (row.value?.rowMeta?.fromExpandedForm) {
+    row.value.rowMeta.fromExpandedForm = true
+  }
   const rowStore = useProvideSmartsheetRowStore(row)
 
   const activeView = inject(ActiveViewInj, ref())
@@ -349,7 +350,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
   }
 
   const loadRow = async (rowId?: string, onlyVirtual = false, onlyNewColumns = false) => {
-    if (row.value.rowMeta.new || isPublic.value || !meta.value?.id) return
+    if (row?.value?.rowMeta?.new || isPublic.value || !meta.value?.id) return
 
     const recordId = rowId ?? extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
 

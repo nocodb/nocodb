@@ -311,6 +311,17 @@ if (isKanban.value) {
 }
 provide(IsExpandedFormOpenInj, isExpanded)
 
+const triggerRowLoad = async (rowId?: string) => {
+  try {
+    await Promise.all([loadComments(), loadAudits(), _loadRow(rowId)])
+  } catch (e: any) {
+    if (e.response?.status === 404) {
+      message.error(t('msg.noRecordFound'))
+      router.replace({ query: {} })
+    } else throw e
+  }
+}
+
 const cellWrapperEl = ref()
 
 onMounted(async () => {
@@ -318,22 +329,15 @@ onMounted(async () => {
   isLoading.value = true
 
   const focusFirstCell = !isExpandedFormCommentMode.value
+  let isTriggered = false
 
-  if (props.loadRow) {
-    await _loadRow()
-    await Promise.all([loadComments(), loadAudits()])
-  }
-
-  if (props.rowId) {
-    try {
-      await _loadRow(props.rowId)
-      await Promise.all([loadComments(), loadAudits()])
-    } catch (e: any) {
-      if (e.response?.status === 404) {
-        message.error(t('msg.noRecordFound'))
-        router.replace({ query: {} })
-      } else throw e
-    }
+  if (props.loadRow && !props.rowId) {
+    await triggerRowLoad()
+    isTriggered = true
+  } else if (props.rowId && props.loadRow && !isTriggered) {
+    await triggerRowLoad(props.rowId)
+  } else {
+    _row.value = props.row
   }
 
   isLoading.value = false
@@ -458,8 +462,7 @@ const onConfirmDeleteRowClick = async () => {
 }
 
 watch(rowId, async (nRow) => {
-  await _loadRow(nRow)
-  await Promise.all([loadComments(), loadAudits()])
+  await Promise.all([loadComments(), loadAudits(), _loadRow(nRow)])
 })
 
 const showRightSections = computed(() => {

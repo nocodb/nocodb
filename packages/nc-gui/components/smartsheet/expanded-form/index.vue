@@ -63,8 +63,6 @@ const isFirstRow = toRef(props, 'firstRow')
 
 const route = useRoute()
 
-const router = useRouter()
-
 const isPublic = inject(IsPublicInj, ref(false))
 
 // to check if a expanded form which is not yet saved exist or not
@@ -312,14 +310,7 @@ if (isKanban.value) {
 provide(IsExpandedFormOpenInj, isExpanded)
 
 const triggerRowLoad = async (rowId?: string) => {
-  try {
-    await Promise.all([loadComments(), loadAudits(), _loadRow(rowId)])
-  } catch (e: any) {
-    if (e.response?.status === 404) {
-      message.error(t('msg.noRecordFound'))
-      router.replace({ query: {} })
-    } else throw e
-  }
+  await Promise.allSettled([loadComments(), loadAudits(), _loadRow(rowId)])
 }
 
 const cellWrapperEl = ref()
@@ -405,7 +396,7 @@ useActiveKeyupListener(
       ;(document.activeElement as HTMLInputElement)?.blur?.()
 
       if (changedColumns.value.size > 0) {
-        await Modal.confirm({
+        Modal.confirm({
           title: t('msg.saveChanges'),
           okText: t('general.save'),
           cancelText: t('labels.discard'),
@@ -419,7 +410,7 @@ useActiveKeyupListener(
           },
         })
       } else if (isNew.value) {
-        await Modal.confirm({
+        Modal.confirm({
           title: 'Do you want to save the record?',
           okText: t('general.save'),
           cancelText: t('labels.discard'),
@@ -462,7 +453,7 @@ const onConfirmDeleteRowClick = async () => {
 }
 
 watch(rowId, async (nRow) => {
-  await Promise.all([loadComments(), loadAudits(), _loadRow(nRow)])
+  await triggerRowLoad(nRow)
 })
 
 const showRightSections = computed(() => {

@@ -54,19 +54,19 @@ importers:
         version: 0.5.1(vue@3.4.27)
       '@tiptap/extension-link':
         specifier: ^2.4.0
-        version: 2.4.0(@tiptap/core@2.3.1)(@tiptap/pm@2.4.0)
+        version: 2.4.0(@tiptap/core@2.4.0)(@tiptap/pm@2.4.0)
       '@tiptap/extension-placeholder':
         specifier: ^2.4.0
-        version: 2.4.0(@tiptap/core@2.3.1)(@tiptap/pm@2.4.0)
+        version: 2.4.0(@tiptap/core@2.4.0)(@tiptap/pm@2.4.0)
       '@tiptap/extension-task-list':
         specifier: 2.4.0
-        version: 2.4.0(@tiptap/core@2.3.1)
+        version: 2.4.0(@tiptap/core@2.4.0)
       '@tiptap/extension-underline':
         specifier: ^2.4.0
-        version: 2.4.0(@tiptap/core@2.3.1)
+        version: 2.4.0(@tiptap/core@2.4.0)
       '@tiptap/html':
         specifier: 2.4.0
-        version: 2.4.0(@tiptap/core@2.3.1)(@tiptap/pm@2.4.0)
+        version: 2.4.0(@tiptap/core@2.4.0)(@tiptap/pm@2.4.0)
       '@tiptap/pm':
         specifier: ^2.4.0
         version: 2.4.0
@@ -75,7 +75,7 @@ importers:
         version: 2.4.0(@tiptap/pm@2.4.0)
       '@tiptap/vue-3':
         specifier: 2.4.0
-        version: 2.4.0(@tiptap/core@2.3.1)(@tiptap/pm@2.4.0)(vue@3.4.27)
+        version: 2.4.0(@tiptap/core@2.4.0)(@tiptap/pm@2.4.0)(vue@3.4.27)
       '@vue-flow/additional-components':
         specifier: ^1.3.3
         version: 1.3.3(@vue-flow/core@1.31.0)(vue@3.4.27)
@@ -155,7 +155,7 @@ importers:
         specifier: ^0.11.0
         version: 0.11.0
       nocodb-sdk:
-        specifier: 0.207.2
+        specifier: 0.207.3
         version: link:../nocodb-sdk
       papaparse:
         specifier: ^5.4.1
@@ -687,8 +687,8 @@ importers:
         specifier: 0.3.1
         version: 0.3.1(asn1.js@5.4.1)(debug@4.3.4)(knex@2.4.2)
       nc-lib-gui:
-        specifier: 0.207.2
-        version: 0.207.2
+        specifier: 0.207.3
+        version: 0.207.3
       nc-plugin:
         specifier: ^0.1.3
         version: 0.1.3
@@ -702,7 +702,7 @@ importers:
         specifier: ^0.4.4
         version: 0.4.4(@nestjs/common@10.3.8)(@nestjs/core@10.3.8)(@nestjs/throttler@5.1.2)(ioredis@5.4.1)(reflect-metadata@0.2.1)
       nocodb-sdk:
-        specifier: 0.207.2
+        specifier: 0.207.3
         version: link:../nocodb-sdk
       nodemailer:
         specifier: ^6.9.13
@@ -8861,14 +8861,6 @@ packages:
     resolution: {integrity: sha512-7qSgZbincDDDFyRweCIEvZULFAw5iz/DeunhvuxpL31nfntX3P4Yd4HkHBRg9H8CdqY1e5WFN1PZIz/REL9MVQ==}
     dev: false
 
-  /@tiptap/core@2.3.1(@tiptap/pm@2.4.0):
-    resolution: {integrity: sha512-ycpQlmczAOc05TgB5sc3RUTEEBXAVmS8MR9PqQzg96qidaRfVkgE+2w4k7t83PMHl2duC0MGqOCy96pLYwSpeg==}
-    peerDependencies:
-      '@tiptap/pm': ^2.0.0
-    dependencies:
-      '@tiptap/pm': 2.4.0
-    dev: false
-
   /@tiptap/core@2.4.0(@tiptap/pm@2.4.0):
     resolution: {integrity: sha512-YJSahk8pkxpCs8SflCZfTnJpE7IPyUWIylfgXM2DefjRQa5DZ+c6sNY0s/zbxKYFQ6AuHVX40r9pCfcqHChGxQ==}
     peerDependencies:
@@ -8893,13 +8885,13 @@ packages:
       '@tiptap/core': 2.4.0(@tiptap/pm@2.4.0)
     dev: false
 
-  /@tiptap/extension-bubble-menu@2.4.0(@tiptap/core@2.3.1)(@tiptap/pm@2.4.0):
+  /@tiptap/extension-bubble-menu@2.4.0(@tiptap/core@2.4.0)(@tiptap/pm@2.4.0):
     resolution: {integrity: sha512-s99HmttUtpW3rScWq8rqk4+CGCwergNZbHLTkF6Rp6TSboMwfp+rwL5Q/JkcAG9KGLso1vGyXKbt1xHOvm8zMw==}
     peerDependencies:
       '@tiptap/core': ^2.0.0
       '@tiptap/pm': ^2.0.0
     dependencies:
-      '@tiptap/core': 2.3.1(@tiptap/pm@2.4.0)
+      '@tiptap/core': 2.4.0(@tiptap/pm@2.4.0)
       '@tiptap/pm': 2.4.0
       tippy.js: 6.3.7
     dev: false
@@ -8948,13 +8940,13 @@ packages:
       '@tiptap/pm': 2.4.0
     dev: false
 
-  /@tiptap/extension-floating-menu@2.4.0(@tiptap/core@2.3.1)(@tiptap/pm@2.4.0):
+  /@tiptap/extension-floating-menu@2.4.0(@tiptap/core@2.4.0)(@tiptap/pm@2.4.0):
     resolution: {integrity: sha512-vLb9v+htbHhXyty0oaXjT3VC8St4xuGSHWUB9GuAJAQ+NajIO6rBPbLUmm9qM0Eh2zico5mpSD1Qtn5FM6xYzg==}
     peerDependencies:
       '@tiptap/core': ^2.0.0
       '@tiptap/pm': ^2.0.0
     dependencies:
-      '@tiptap/core': 2.3.1(@tiptap/pm@2.4.0)
+      '@tiptap/core': 2.4.0(@tiptap/pm@2.4.0)
       '@tiptap/pm': 2.4.0
       tippy.js: 6.3.7
     dev: false
@@ -9013,13 +9005,13 @@ packages:
       '@tiptap/core': 2.4.0(@tiptap/pm@2.4.0)
     dev: false
 
-  /@tiptap/extension-link@2.4.0(@tiptap/core@2.3.1)(@tiptap/pm@2.4.0):
+  /@tiptap/extension-link@2.4.0(@tiptap/core@2.4.0)(@tiptap/pm@2.4.0):
     resolution: {integrity: sha512-r3PjT0bjSKAorHAEBPA0icSMOlqALbxVlWU9vAc+Q3ndzt7ht0CTPNewzFF9kjzARABVt1cblXP/2+c0qGzcsg==}
     peerDependencies:
       '@tiptap/core': ^2.0.0
       '@tiptap/pm': ^2.0.0
     dependencies:
-      '@tiptap/core': 2.3.1(@tiptap/pm@2.4.0)
+      '@tiptap/core': 2.4.0(@tiptap/pm@2.4.0)
       '@tiptap/pm': 2.4.0
       linkifyjs: 4.1.3
     dev: false
@@ -9048,13 +9040,13 @@ packages:
       '@tiptap/core': 2.4.0(@tiptap/pm@2.4.0)
     dev: false
 
-  /@tiptap/extension-placeholder@2.4.0(@tiptap/core@2.3.1)(@tiptap/pm@2.4.0):
+  /@tiptap/extension-placeholder@2.4.0(@tiptap/core@2.4.0)(@tiptap/pm@2.4.0):
     resolution: {integrity: sha512-SmWOjgWpmhFt0BPOnL65abCUH0wS5yksUJgtANn5bQoHF4HFSsyl7ETRmgf0ykxdjc7tzOg31FfpWVH4wzKSYg==}
     peerDependencies:
       '@tiptap/core': ^2.0.0
       '@tiptap/pm': ^2.0.0
     dependencies:
-      '@tiptap/core': 2.3.1(@tiptap/pm@2.4.0)
+      '@tiptap/core': 2.4.0(@tiptap/pm@2.4.0)
       '@tiptap/pm': 2.4.0
     dev: false
 
@@ -9066,12 +9058,12 @@ packages:
       '@tiptap/core': 2.4.0(@tiptap/pm@2.4.0)
     dev: false
 
-  /@tiptap/extension-task-list@2.4.0(@tiptap/core@2.3.1):
+  /@tiptap/extension-task-list@2.4.0(@tiptap/core@2.4.0):
     resolution: {integrity: sha512-vmUB3wEJU81QbiHUygBlselQW8YIW8/85UTwANvWx8+KEWyM7EUF4utcm5R2UobIprIcWb4hyVkvW/5iou25gg==}
     peerDependencies:
       '@tiptap/core': ^2.0.0
     dependencies:
-      '@tiptap/core': 2.3.1(@tiptap/pm@2.4.0)
+      '@tiptap/core': 2.4.0(@tiptap/pm@2.4.0)
     dev: false
 
   /@tiptap/extension-text@2.4.0(@tiptap/core@2.4.0):
@@ -9082,21 +9074,21 @@ packages:
       '@tiptap/core': 2.4.0(@tiptap/pm@2.4.0)
     dev: false
 
-  /@tiptap/extension-underline@2.4.0(@tiptap/core@2.3.1):
+  /@tiptap/extension-underline@2.4.0(@tiptap/core@2.4.0):
     resolution: {integrity: sha512-guWojb7JxUwLz4OKzwNExJwOkhZjgw/ttkXCMBT0PVe55k998MMYe1nvN0m2SeTW9IxurEPtScH4kYJ0XuSm8Q==}
     peerDependencies:
       '@tiptap/core': ^2.0.0
     dependencies:
-      '@tiptap/core': 2.3.1(@tiptap/pm@2.4.0)
+      '@tiptap/core': 2.4.0(@tiptap/pm@2.4.0)
     dev: false
 
-  /@tiptap/html@2.4.0(@tiptap/core@2.3.1)(@tiptap/pm@2.4.0):
+  /@tiptap/html@2.4.0(@tiptap/core@2.4.0)(@tiptap/pm@2.4.0):
     resolution: {integrity: sha512-iM0sa6t0Hb5GTXnjdKvMDtD3KZgA4Mwx3QADeqfR10EjfPNlkh/BHU83oIhss/2JVRBXiUUDnNxW9cfpHX37/g==}
     peerDependencies:
       '@tiptap/core': ^2.0.0
       '@tiptap/pm': ^2.0.0
     dependencies:
-      '@tiptap/core': 2.3.1(@tiptap/pm@2.4.0)
+      '@tiptap/core': 2.4.0(@tiptap/pm@2.4.0)
       '@tiptap/pm': 2.4.0
       zeed-dom: 0.10.11
     dev: false
@@ -9150,16 +9142,16 @@ packages:
       - '@tiptap/pm'
     dev: false
 
-  /@tiptap/vue-3@2.4.0(@tiptap/core@2.3.1)(@tiptap/pm@2.4.0)(vue@3.4.27):
+  /@tiptap/vue-3@2.4.0(@tiptap/core@2.4.0)(@tiptap/pm@2.4.0)(vue@3.4.27):
     resolution: {integrity: sha512-NCw1Y4ScIrMCKC9YlepUHSAB8jq/PQ2f+AbZKh5bY2t/kMSJYLCJVHq9NFzG4TQtktgMGWCcEQVcDJ7YNpsfxw==}
     peerDependencies:
       '@tiptap/core': ^2.0.0
       '@tiptap/pm': ^2.0.0
       vue: latest
     dependencies:
-      '@tiptap/core': 2.3.1(@tiptap/pm@2.4.0)
-      '@tiptap/extension-bubble-menu': 2.4.0(@tiptap/core@2.3.1)(@tiptap/pm@2.4.0)
-      '@tiptap/extension-floating-menu': 2.4.0(@tiptap/core@2.3.1)(@tiptap/pm@2.4.0)
+      '@tiptap/core': 2.4.0(@tiptap/pm@2.4.0)
+      '@tiptap/extension-bubble-menu': 2.4.0(@tiptap/core@2.4.0)(@tiptap/pm@2.4.0)
+      '@tiptap/extension-floating-menu': 2.4.0(@tiptap/core@2.4.0)(@tiptap/pm@2.4.0)
       '@tiptap/pm': 2.4.0
       vue: 3.4.27
     dev: false
@@ -20894,8 +20886,8 @@ packages:
       - supports-color
     dev: false
 
-  /nc-lib-gui@0.207.2:
-    resolution: {integrity: sha512-+/u+N7/vPvcUBs7BN6WM2H2hKxhOta0KKZ75mFyZhb4D/p8Y2SMlCQDAqpkR3lsH0DZaTlKqjGKeYPFtmRw0Ug==}
+  /nc-lib-gui@0.207.3:
+    resolution: {integrity: sha512-2TTiNKjD+VQIRxCoHxO2VfdWlYvHdZcoH92ngZogxmFq+YnfM7wmsbKVyOoT7pOeoFmODhKcezTLd7S9aW46+Q==}
     dependencies:
       express: 4.19.2
     transitivePeerDependencies:

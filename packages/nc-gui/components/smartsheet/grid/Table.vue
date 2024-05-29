@@ -234,6 +234,9 @@ const isKeyDown = ref(false)
 async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = false) {
   if (!ctx || !hasEditPermission.value || (!isLinksOrLTAR(fields.value[ctx.col]) && isVirtualCol(fields.value[ctx.col]))) return
 
+  // eslint-disable-next-line @typescript-eslint/no-use-before-define
+  if (colMeta.value[ctx.col].isReadonly) return
+
   const rowObj = dataRef.value[ctx.row]
   const columnObj = fields.value[ctx.col]
 
@@ -429,8 +432,7 @@ const colMeta = computed(() => {
     return {
       isVirtualCol: isVirtualCol(col),
       isReadonly:
-        col.pk ||
-        col.system ||
+        isSystemColumn(col) ||
         isLookup(col) ||
         isRollup(col) ||
         isFormula(col) ||
@@ -2213,7 +2215,7 @@ onKeyStroke('ArrowDown', onDown)
               v-if="contextMenuTarget && hasEditPermission"
               class="nc-base-menu-item"
               data-testid="context-menu-item-paste"
-              :disabled="isSystemColumn(fields[contextMenuTarget.col])"
+              :disabled="colMeta[contextMenuTarget.col].isReadonly"
               @click="paste"
             >
               <div v-e="['a:row:paste']" class="flex gap-2 items-center">
@@ -2232,7 +2234,7 @@ onKeyStroke('ArrowDown', onDown)
                 (isLinksOrLTAR(fields[contextMenuTarget.col]) || !cellMeta[0]?.[contextMenuTarget.col].isVirtualCol)
               "
               class="nc-base-menu-item"
-              :disabled="isSystemColumn(fields[contextMenuTarget.col])"
+              :disabled="colMeta[contextMenuTarget.col].isReadonly"
               data-testid="context-menu-item-clear"
               @click="clearCell(contextMenuTarget)"
             >
@@ -2246,7 +2248,7 @@ onKeyStroke('ArrowDown', onDown)
             <NcMenuItem
               v-else-if="contextMenuTarget && hasEditPermission"
               class="nc-base-menu-item"
-              :disabled="isSystemColumn(fields[contextMenuTarget.col])"
+              :disabled="colMeta[contextMenuTarget.col].isReadonly"
               data-testid="context-menu-item-clear"
               @click="clearSelectedRangeOfCells()"
             >

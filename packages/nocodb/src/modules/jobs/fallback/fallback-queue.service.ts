@@ -6,6 +6,7 @@ import { AtImportProcessor } from '~/modules/jobs/jobs/at-import/at-import.proce
 import { MetaSyncProcessor } from '~/modules/jobs/jobs/meta-sync/meta-sync.processor';
 import { SourceCreateProcessor } from '~/modules/jobs/jobs/source-create/source-create.processor';
 import { SourceDeleteProcessor } from '~/modules/jobs/jobs/source-delete/source-delete.processor';
+import { WebhookHandlerProcessor } from '~/modules/jobs/jobs/webhook-handler/webhook-handler.processor';
 import { JobsEventService } from '~/modules/jobs/fallback/jobs-event.service';
 import { JobStatus, JobTypes } from '~/interface/Jobs';
 
@@ -31,6 +32,7 @@ export class QueueService {
     protected readonly metaSyncProcessor: MetaSyncProcessor,
     protected readonly sourceCreateProcessor: SourceCreateProcessor,
     protected readonly sourceDeleteProcessor: SourceDeleteProcessor,
+    protected readonly webhookHandlerProcessor: WebhookHandlerProcessor,
   ) {
     this.emitter.on(JobStatus.ACTIVE, (data: { job: Job }) => {
       const job = this.queueMemory.find((job) => job.id === data.job.id);
@@ -88,6 +90,10 @@ export class QueueService {
       this: this.sourceDeleteProcessor,
       fn: this.sourceDeleteProcessor.job,
     },
+    [JobTypes.HandleWebhook]: {
+      this: this.webhookHandlerProcessor,
+      fn: this.webhookHandlerProcessor.job,
+    },
   };
 
   async jobWrapper(job: Job) {
@@ -123,7 +129,7 @@ export class QueueService {
     QueueService.queueIdCounter = index;
   }
 
-  add(name: string, data: any) {
+  add(name: string, data: any, _opts = {}) {
     const id = `${this.queueIndex++}`;
     const job = { id: `${id}`, name, status: JobStatus.WAITING, data };
     this.queueMemory.push(job);

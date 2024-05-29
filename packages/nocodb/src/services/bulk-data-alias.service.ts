@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import type { PathParams } from '~/modules/datas/helpers';
+import type { PathParams } from '~/helpers/dataHelpers';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
-import { getViewAndModelByAliasOrId } from '~/modules/datas/helpers';
+import { getViewAndModelByAliasOrId } from '~/helpers/dataHelpers';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { Model, Source } from '~/models';
 

@@ -13,12 +13,13 @@ import { NcError } from '~/helpers/catchError';
 import { JobTypes } from '~/interface/Jobs';
 import { SourcesService } from '~/services/sources.service';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
+import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class SourceDeleteController {
   constructor(
-    @Inject('JobsService') private readonly jobsService,
+    @Inject('JobsService') private readonly jobsService: IJobsService,
     private readonly sourcesService: SourcesService,
   ) {}
 

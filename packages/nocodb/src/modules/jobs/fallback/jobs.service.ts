@@ -1,10 +1,13 @@
 import { Injectable } from '@nestjs/common';
+import type { OnModuleInit } from '@nestjs/common';
 import { QueueService } from '~/modules/jobs/fallback/fallback-queue.service';
 import { JobStatus } from '~/interface/Jobs';
 
 @Injectable()
-export class JobsService {
+export class JobsService implements OnModuleInit {
   constructor(private readonly fallbackQueueService: QueueService) {}
+
+  async onModuleInit() {}
 
   async add(name: string, data: any) {
     return this.fallbackQueueService.add(name, data);

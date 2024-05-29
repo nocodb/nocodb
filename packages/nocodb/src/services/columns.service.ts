@@ -452,10 +452,16 @@ export class ColumnsService {
             }),
           );
 
-          const data = await sqlClient.raw('SELECT DISTINCT ?? FROM ??', [
-            column.column_name,
-            baseModel.getTnPath(table.table_name),
-          ]);
+          const data = await baseModel.execAndParse(
+            baseModel.dbDriver.raw('SELECT DISTINCT ?? FROM ??', [
+              column.column_name,
+              baseModel.getTnPath(table.table_name),
+            ]),
+            null,
+            {
+              raw: true,
+            },
+          );
 
           if (data.length) {
             const existingOptions = colBody.colOptions.options.map(

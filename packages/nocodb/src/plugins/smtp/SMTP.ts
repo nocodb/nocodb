@@ -13,6 +13,7 @@ export default class SMTP implements IEmailAdapter {
 
   public async init(): Promise<any> {
     const config = {
+      name: this.input?.name,
       host: this.input?.host,
       port: parseInt(this.input?.port, 10),
       secure:
@@ -23,13 +24,17 @@ export default class SMTP implements IEmailAdapter {
         typeof this.input?.ignoreTLS === 'boolean'
           ? this.input?.ignoreTLS
           : this.input?.ignoreTLS === 'true',
-      auth: {
-        user: this.input?.username,
-        pass: this.input?.password,
-      },
       tls: {
         rejectUnauthorized: this.input?.rejectUnauthorized,
       },
+      ...(this.input?.username || this.input?.password
+        ? {
+            auth: {
+              ...(this.input?.username ? { user: this.input?.username } : {}),
+              ...(this.input?.password ? { pass: this.input?.password } : {}),
+            },
+          }
+        : {}),
     };
 
     this.transporter = nodemailer.createTransport(config);

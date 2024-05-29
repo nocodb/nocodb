@@ -173,6 +173,7 @@ const normalizedWidth = computed(() => {
     :class="{
       'hide-resize-bar': !isLeftSidebarOpen || sidebarState === 'openStart',
     }"
+    @ready="() => onWindowResize()"
     @resize="(event: any) => onResize(event[0].size)"
   >
     <Pane

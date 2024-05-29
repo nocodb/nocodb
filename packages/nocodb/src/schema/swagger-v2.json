@@ -8434,15 +8434,15 @@
         "parameters": []
       }
     },
-    "/api/v2/meta/audits/comments": {
+    "/api/v2/meta/audits": {
       "parameters": [
         {
           "$ref": "#/components/parameters/xc-auth"
         }
       ],
       "get": {
-        "summary": "List Comments in Audit",
-        "operationId": "utils-comment-list",
+        "summary": "List Audits",
+        "operationId": "utils-audit-list",
         "responses": {
           "200": {
             "description": "OK",
@@ -8517,6 +8517,114 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
+        "description": "List all audits",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "example": "10"
+            },
+            "in": "query",
+            "name": "row_id",
+            "required": true,
+            "description": "Row ID"
+          },
+          {
+            "schema": {
+              "$ref": "#/components/schemas/Id",
+              "example": "md_c6csq89tl37jm5"
+            },
+            "in": "query",
+            "name": "fk_model_id",
+            "required": true,
+            "description": "Foreign Key to Model"
+          },
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ],
+        "tags": [
+          "Utils"
+        ]
+      }
+    },
+    "/api/v2/meta/comments": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/xc-auth"
+        }
+      ],
+      "get": {
+        "summary": "List Comments",
+        "operationId": "utils-comment-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "list": {
+                      "x-stoplight": {
+                        "id": "5zto1xohsngbu"
+                      },
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Comment",
+                        "x-stoplight": {
+                          "id": "d22zkup0c0l80"
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "list"
+                  ]
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "list": [
+                        {
+                          "id": "adt_3sii7erfwrlegb",
+                          "source_id": null,
+                          "base_id": "p_63b4q0qengen1x",
+                          "fk_model_id": "md_5mipbdg6ketmv8",
+                          "row_id": "1",
+                          "created_by": "",
+                          "resolved_by": "",
+                          "parent_comment_id": null,
+                          "status": null,
+                          "comment": "bar",
+                          "created_at": "2023-03-13T09:39:14.225Z",
+                          "updated_at": "2023-03-13T09:39:14.225Z"
+                        },
+                        {
+                          "id": "adt_3sii7erfwrlegb",
+                          "source_id": null,
+                          "base_id": "p_63b4q0qengen1x",
+                          "fk_model_id": "md_5mipbdg6ketmv8",
+                          "row_id": "1",
+                          "created_by": "",
+                          "resolved_by": "",
+                          "parent_comment_id": null,
+                          "status": null,
+                          "comment": "bar",
+                          "created_at": "2023-03-13T09:39:14.225Z",
+                          "updated_at": "2023-03-13T09:39:14.225Z"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
         "description": "List all comments",
         "parameters": [
           {
@@ -8540,15 +8648,6 @@
             "description": "Foreign Key to Model"
           },
           {
-            "schema": {
-              "type": "boolean",
-              "example": true
-            },
-            "in": "query",
-            "name": "comments_only",
-            "description": "Is showing comments only?"
-          },
-          {
             "$ref": "#/components/parameters/xc-auth"
           }
         ],
@@ -8565,18 +8664,23 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Audit"
+                  "$ref": "#/components/schemas/Comment"
                 },
                 "examples": {
                   "Example 1": {
                     "value": {
-                      "user": "w@nocodb.com",
-                      "row_id": "1",
-                      "fk_model_id": "md_5mipbdg6ketmv8",
-                      "op_type": "COMMENT",
-                      "description": "qq",
+                      "id": "adt_3sii7erfwrlegb",
+                      "source_id": null,
                       "base_id": "p_63b4q0qengen1x",
-                      "id": "adt_vx58jpp0loo8qy"
+                      "fk_model_id": "md_5mipbdg6ketmv8",
+                      "row_id": "1",
+                      "created_by": "",
+                      "resolved_by": "",
+                      "parent_comment_id": null,
+                      "status": null,
+                      "comment": "bar",
+                      "created_at": "2023-03-13T09:39:14.225Z",
+                      "updated_at": "2023-03-13T09:39:14.225Z"
                     }
                   }
                 }
@@ -8596,7 +8700,7 @@
               "examples": {
                 "Example 1": {
                   "value": {
-                    "description": "This is the comment for the row",
+                    "comment": "This is the comment for the row",
                     "fk_model_id": "md_ehn5izr99m7d45",
                     "row_id": "3"
                   }
@@ -8616,17 +8720,17 @@
         ]
       }
     },
-    "/api/v2/meta/audits/{auditId}/comment": {
+    "/api/v2/meta/comment/{commentId}": {
       "parameters": [
         {
           "schema": {
             "type": "string",
             "example": "adt_zlskd6rlf3liay"
           },
-          "name": "auditId",
+          "name": "commentId",
           "in": "path",
           "required": true,
-          "description": "Audit ID"
+          "description": "Comment ID"
         },
         {
           "name": "xc-auth",
@@ -8639,7 +8743,7 @@
         }
       ],
       "patch": {
-        "summary": "Update Comment in Audit",
+        "summary": "Update Comment",
         "operationId": "utils-comment-update",
         "responses": {
           "200": {
@@ -8662,7 +8766,7 @@
         "tags": [
           "Utils"
         ],
-        "description": "Update comment in Audit",
+        "description": "Update comment",
         "requestBody": {
           "content": {
             "application/json": {
@@ -8672,16 +8776,46 @@
               "examples": {
                 "Example 1": {
                   "value": {
-                    "description": "This is the comment for the row"
+                    "comment": "This is the comment for the row"
                   }
                 }
               }
             }
           }
         }
+      },
+      "delete": {
+        "summary": "Delete Comment",
+        "operationId": "utils-comment-delete",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "number",
+                  "example": 1
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Utils"
+        ],
+        "description": "Delete comment",
+        "requestBody": {
+          "content": {
+          }
+        }
       }
     },
-    "/api/v2/meta/audits/comments/count": {
+    "/api/v2/meta/comments/count": {
       "parameters": [
         {
           "$ref": "#/components/parameters/xc-auth"
@@ -11750,6 +11884,66 @@
         ],
         "title": "Attachment Response Model"
       },
+      "Comment": {
+        "description": "Model for Comment",
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique ID"
+          },
+          "row_id": {
+            "type": "string",
+            "example": "rec0Adp9PMG9o7uJy",
+            "description": "Row ID"
+          },
+          "comment": {
+            "type": "string",
+            "example": "This is a comment",
+            "description": "Comment"
+          },
+          "created_by": {
+            "$ref": "#/components/schemas/Id",
+            "example": "usr0Adp9PMG9o7uJy",
+            "description": "Created By"
+          },
+          "resolved_by": {
+            "$ref": "#/components/schemas/Id",
+            "example": "usr0Adp9PMG9o7uJy",
+            "description": "Resolved By"
+          },
+          "parent_comment_id": {
+            "$ref": "#/components/schemas/Id",
+            "example": "cmt043cx4r30343ff",
+            "description": "Parent Comment ID"
+          },
+          "source_id": {
+            "$ref": "#/components/schemas/Id",
+            "example": "src0Adp9PMG9o7uJy",
+            "description": "Source ID"
+          },
+          "base_id": {
+            "$ref": "#/components/schemas/Id",
+            "example": "bas0Adp9PMG9o7uJy",
+            "description": "Base ID"
+          },
+          "fk_model_id": {
+            "$ref": "#/components/schemas/Id",
+            "example": "mod0Adp9PMG9o7uJy",
+            "description": "Model ID"
+          },
+          "created_at": {
+            "type": "string",
+            "example": "2020-05-20T12:00:00.000000Z",
+            "description": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "example": "2020-05-20T12:00:00.000000Z",
+            "description": "Updated At"
+          }
+        }
+      },
       "Audit": {
         "description": "Model for Audit",
         "examples": [
@@ -12692,7 +12886,7 @@
         "description": "Model for Comment Request",
         "examples": [
           {
-            "description": "This is the comment for the row",
+            "comment": "This is the comment for the row",
             "fk_model_id": "md_ehn5izr99m7d45",
             "row_id": "3"
           }
@@ -12700,10 +12894,11 @@
         "title": "Comment Request Model",
         "type": "object",
         "properties": {
-          "description": {
+          "comment": {
             "type": "string",
             "description": "Description for the target row",
-            "example": "This is the comment for the row"
+            "example": "This is the comment for the row",
+            "maxLength": 3000
           },
           "fk_model_id": {
             "type": "string",
@@ -12731,16 +12926,23 @@
         },
         "examples": [
           {
-            "description": "This is the comment for the row"
+            "comment": "This is the comment for the row",
+            "fk_model_id": "md_ehn5izr99m7d45"
           }
         ],
         "title": "Comment Update Request Model",
         "type": "object",
         "properties": {
-          "description": {
+          "comment": {
             "type": "string",
             "description": "Description for the target row",
-            "example": "This is the comment for the row"
+            "example": "This is the comment for the row",
+            "maxLength": 3000
+          },
+          "fk_model_id": {
+            "type": "string",
+            "description": "Foreign Key to Model",
+            "example": "md_ehn5izr99m7d45"
           }
         }
       },
@@ -14976,7 +15178,7 @@
             "x-stoplight": {
               "id": "uqq8xmyz97t1u"
             },
-            "description": "Baes ID\n"
+            "description": "Base ID\n"
           },
           "base_id": {
             "$ref": "#/components/schemas/Id",

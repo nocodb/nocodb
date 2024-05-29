@@ -204,7 +204,8 @@
     "verify": "Verify",
     "apply": "Применить",
     "text": "Текст",
-    "appearance": "Внешний вид"
+    "appearance": "Внешний вид",
+    "now": "Now"
   },
   "objects": {
     "owner": "Owner",
@@ -448,6 +449,9 @@
     "noResultsMatchedYourSearch": "Your search did not yield any matching results."
   },
   "labels": {
+    "connectionDetails": "Connection Details",
+    "metaSync": "Meta Sync",
+    "mention": "Mention",
     "today": "Today",
     "workspace": "Workspace",
     "txt": "TXT Record value",
@@ -587,7 +591,7 @@
     "untitledToken": "Untitled token",
     "tableName": "Название таблицы",
     "dashboardName": "Dashboard name",
-    "createView": "Create a View",
+    "createView": "Create View",
     "creatingView": "Creating View",
     "duplicateView": "Duplicate View",
     "duplicateGridView": "Duplicate Grid View",
@@ -1099,6 +1103,7 @@
     "searchOptions": "Search options"
   },
   "msg": {
+    "formulaNotSupported": "This function is unavailable for your database",
     "controlOrgAppearance": "Control your organisations name and appearance.",
     "addCompanyDomains": "Add company domains to restrict access to unwanted users.",
     "restrictUsersFromSharing": "Restrict users from being able to share bases publicly.",
@@ -1495,7 +1500,7 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "Допустимые типы файлов: .xls, .xlsx, .xlsm, .ods, .ots",
       "parameterKeyCannotBeEmpty": "Ключ параметра не может быть пустым",
       "duplicateParameterKeysAreNotAllowed": "Дублирование ключей параметров не допускается",
-      "fieldRequired": "{value} не может быть пустым.",
+      "fieldRequired": "This field cannot be empty.",
       "projectNotAccessible": "Проект недоступен",
       "copyToClipboardError": "Не удалось скопировать в буфер обмена",
       "pasteFromClipboardError": "Failed to paste from clipboard",

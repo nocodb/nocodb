@@ -188,7 +188,7 @@ export function useViewFilters(
       comparison_op: comparisonOpList(options.value?.[0].uidt as UITypes).filter((compOp) =>
         isComparisonOpAllowed({ fk_column_id: options.value?.[0].id }, compOp),
       )?.[0].value as FilterType['comparison_op'],
-      value: '',
+      value: null,
       status: 'create',
       logical_op: logicalOps.size === 1 ? logicalOps.values().next().value : 'and',
     }

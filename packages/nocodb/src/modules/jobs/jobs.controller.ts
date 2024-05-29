@@ -11,35 +11,25 @@ import {
 import { Request } from 'express';
 import { OnEvent } from '@nestjs/event-emitter';
 import { customAlphabet } from 'nanoid';
-import { ModuleRef } from '@nestjs/core';
-import { JobsRedisService } from './redis/jobs-redis.service';
 import type { Response } from 'express';
-import type { OnModuleInit } from '@nestjs/common';
 import { JobStatus } from '~/interface/Jobs';
 import { JobEvents } from '~/interface/Jobs';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import NocoCache from '~/cache/NocoCache';
 import { CacheGetType, CacheScope } from '~/utils/globals';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
+import { IJobsService } from '~/modules/jobs/jobs-service.interface';
+import { JobsRedis } from '~/modules/jobs/redis/jobs-redis';
 
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 const POLLING_INTERVAL = 30000;
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
-export class JobsController implements OnModuleInit {
-  jobsRedisService: JobsRedisService;
-
+export class JobsController {
   constructor(
-    @Inject('JobsService') private readonly jobsService,
-    private moduleRef: ModuleRef,
+    @Inject('JobsService') private readonly jobsService: IJobsService,
   ) {}
-
-  onModuleInit() {
-    if (process.env.NC_REDIS_JOB_URL) {
-      this.jobsRedisService = this.moduleRef.get(JobsRedisService);
-    }
-  }
 
   private jobRooms = {};
   private localJobs = {};
@@ -101,8 +91,8 @@ export class JobsController implements OnModuleInit {
         listeners: [res],
       };
       // subscribe to job events
-      if (this.jobsRedisService) {
-        this.jobsRedisService.subscribe(jobId, (data) => {
+      if (JobsRedis.available) {
+        await JobsRedis.subscribe(jobId, async (data) => {
           if (this.jobRooms[jobId]) {
             this.jobRooms[jobId].listeners.forEach((res) => {
               if (!res.headersSent) {
@@ -120,9 +110,13 @@ export class JobsController implements OnModuleInit {
               if (
                 [JobStatus.COMPLETED, JobStatus.FAILED].includes(data.status)
               ) {
-                this.jobsRedisService.unsubscribe(jobId);
+                await JobsRedis.unsubscribe(jobId);
                 delete this.jobRooms[jobId];
-                this.closedJobs.push(jobId);
+                // close the job after 1 second (to allow the update of messages)
+                setTimeout(() => {
+                  this.closedJobs.push(jobId);
+                }, 1000);
+                // remove the job after polling interval * 2
                 setTimeout(() => {
                   this.closedJobs = this.closedJobs.filter((j) => j !== jobId);
                 }, POLLING_INTERVAL * 2);
@@ -168,7 +162,7 @@ export class JobsController implements OnModuleInit {
       const job = await this.jobsService.getJobWithData(data);
       if (job) {
         res = {};
-        res.id = job.id;
+        res.id = `${job.id}`;
         res.status = await this.jobsService.jobStatus(data.id);
       }
     }
@@ -177,7 +171,11 @@ export class JobsController implements OnModuleInit {
   }
 
   @OnEvent(JobEvents.STATUS)
-  sendJobStatus(data: { id: string; status: JobStatus; data?: any }): void {
+  async sendJobStatus(data: {
+    id: string;
+    status: JobStatus;
+    data?: any;
+  }): Promise<void> {
     let response;
 
     const jobId = data.id;
@@ -195,7 +193,7 @@ export class JobsController implements OnModuleInit {
         this.localJobs[jobId].messages.shift();
       }
 
-      NocoCache.set(`${CacheScope.JOBS}:${jobId}:messages`, {
+      await NocoCache.set(`${CacheScope.JOBS}:${jobId}:messages`, {
         messages: this.localJobs[jobId].messages,
       });
     } else {
@@ -210,7 +208,7 @@ export class JobsController implements OnModuleInit {
         _mid: 1,
       };
 
-      NocoCache.set(`${CacheScope.JOBS}:${jobId}:messages`, {
+      await NocoCache.set(`${CacheScope.JOBS}:${jobId}:messages`, {
         messages: this.localJobs[jobId].messages,
       });
     }
@@ -223,8 +221,8 @@ export class JobsController implements OnModuleInit {
       });
     }
 
-    if (this.jobsRedisService) {
-      this.jobsRedisService.publish(jobId, {
+    if (JobsRedis.available) {
+      await JobsRedis.publish(jobId, {
         cmd: JobEvents.STATUS,
         ...data,
       });
@@ -236,16 +234,19 @@ export class JobsController implements OnModuleInit {
         this.closedJobs = this.closedJobs.filter((j) => j !== jobId);
       }, POLLING_INTERVAL * 2);
 
-      setTimeout(() => {
+      setTimeout(async () => {
         delete this.jobRooms[jobId];
         delete this.localJobs[jobId];
-        NocoCache.del(`${CacheScope.JOBS}:${jobId}:messages`);
+        await NocoCache.del(`${CacheScope.JOBS}:${jobId}:messages`);
       }, POLLING_INTERVAL * 2);
     }
   }
 
   @OnEvent(JobEvents.LOG)
-  sendJobLog(data: { id: string; data: { message: string } }): void {
+  async sendJobLog(data: {
+    id: string;
+    data: { message: string };
+  }): Promise<void> {
     let response;
 
     const jobId = data.id;
@@ -264,7 +265,7 @@ export class JobsController implements OnModuleInit {
         this.localJobs[jobId].messages.shift();
       }
 
-      NocoCache.set(`${CacheScope.JOBS}:${jobId}:messages`, {
+      await NocoCache.set(`${CacheScope.JOBS}:${jobId}:messages`, {
         messages: this.localJobs[jobId].messages,
       });
     } else {
@@ -279,7 +280,7 @@ export class JobsController implements OnModuleInit {
         _mid: 1,
       };
 
-      NocoCache.set(`${CacheScope.JOBS}:${jobId}:messages`, {
+      await NocoCache.set(`${CacheScope.JOBS}:${jobId}:messages`, {
         messages: this.localJobs[jobId].messages,
       });
     }
@@ -292,8 +293,8 @@ export class JobsController implements OnModuleInit {
       });
     }
 
-    if (this.jobsRedisService) {
-      this.jobsRedisService.publish(jobId, {
+    if (JobsRedis.available) {
+      await JobsRedis.publish(jobId, {
         cmd: JobEvents.LOG,
         ...data,
       });

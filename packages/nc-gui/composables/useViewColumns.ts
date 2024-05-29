@@ -6,9 +6,11 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
   (
     view: Ref<ViewType | undefined>,
     meta: Ref<TableType | undefined> | ComputedRef<TableType | undefined>,
-    reloadData?: () => void,
+    reloadData?: (params?: { shouldShowLoading?: boolean }) => void,
     isPublic = false,
   ) => {
+    const rootFields = ref<ColumnType[]>([])
+
     const fields = ref<Field[]>()
 
     const filterQuery = ref('')
@@ -355,6 +357,16 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
         await loadViewColumns()
       }
     }
+
+    watch(
+      sortedAndFilteredFields,
+      (v) => {
+        if (rootFields) rootFields.value = v || []
+      },
+      { immediate: true },
+    )
+
+    provide(FieldsInj, rootFields)
 
     return {
       fields,

@@ -132,8 +132,8 @@ export default `<!doctype html>
                                         <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;">
                                             Hi,</p>
                                         <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;">
-                                            I invited you to be "<%- roles -%>" of the NocoDB base "<%- baseName %>".
-                                            Click the button below to to accept my invitation.</p>
+                                            You have been invited to become "<%- roles -%>" of the NocoDB base "<%- baseName %>".
+                                            Click the button below to accept the invitation.</p>
                                         <table role="presentation" border="0" cellpadding="0" cellspacing="0"
                                                class="btn btn-primary"
                                                style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; box-sizing: border-box; width: 100%;"
@@ -161,7 +161,7 @@ export default `<!doctype html>
                                             </tbody>
                                         </table>
                                         <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;">
-                                            Thanks regards <%- adminEmail %>.</p>
+                                            Have a nice day,<br><%- adminEmail %></p>
                                     </td>
                                 </tr>
                             </table>

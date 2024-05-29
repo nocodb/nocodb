@@ -204,7 +204,8 @@
     "verify": "Verify",
     "apply": "Apply",
     "text": "Text",
-    "appearance": "Appearance"
+    "appearance": "Appearance",
+    "now": "Now"
   },
   "objects": {
     "owner": "Owner",
@@ -448,6 +449,9 @@
     "noResultsMatchedYourSearch": "Your search did not yield any matching results."
   },
   "labels": {
+    "connectionDetails": "Connection Details",
+    "metaSync": "Meta Sync",
+    "mention": "Mention",
     "today": "Today",
     "workspace": "Workspace",
     "txt": "TXT Record value",
@@ -587,7 +591,7 @@
     "untitledToken": "Token sin título",
     "tableName": "Nombre de la tabla",
     "dashboardName": "Nombre del panel",
-    "createView": "Crear una vista",
+    "createView": "Crear Vista",
     "creatingView": "Creando Vista",
     "duplicateView": "Duplicar vista",
     "duplicateGridView": "Duplicar vista en cuadrcula",
@@ -917,7 +921,7 @@
     "clearMetadata": "Limpiar metadatos",
     "exportToFile": "Exportar a archivo",
     "changePwd": "Cambia la contraseña",
-    "createView": "Crear una Vista",
+    "createView": "Crear vista",
     "shareView": "Compartir vista",
     "findRowByCodeScan": "Find row by scan",
     "fillByCodeScan": "Rellenar por escaneo",
@@ -1013,7 +1017,7 @@
     "group": "Group"
   },
   "tooltip": {
-    "reachedSourceLimit": "Limited to 10 data sources per base",
+    "reachedSourceLimit": "Limitado a una única fuente de datos por el momento",
     "saveChanges": "Guardar cambios",
     "xcDB": "Crear un nuevo proyecto",
     "extDB": "Soporta MySQL, PostgreSQL, SQL Server y SQLite",
@@ -1099,6 +1103,7 @@
     "searchOptions": "Search options"
   },
   "msg": {
+    "formulaNotSupported": "This function is unavailable for your database",
     "controlOrgAppearance": "Control your organisations name and appearance.",
     "addCompanyDomains": "Add company domains to restrict access to unwanted users.",
     "restrictUsersFromSharing": "Restrict users from being able to share bases publicly.",
@@ -1495,7 +1500,7 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "Los tipos de archivo aceptados son .xls, .xlsx, .xlsm, .ods, .ots",
       "parameterKeyCannotBeEmpty": "La clave del parámetro no puede estar vacía",
       "duplicateParameterKeysAreNotAllowed": "No se permiten claves de parámetros duplicadas",
-      "fieldRequired": "{value} no puede estar vacía.",
+      "fieldRequired": "This field cannot be empty.",
       "projectNotAccessible": "Proyecto no accesible",
       "copyToClipboardError": "Fallo al copiar al portapapeles",
       "pasteFromClipboardError": "Failed to paste from clipboard",

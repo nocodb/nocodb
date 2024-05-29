@@ -204,7 +204,8 @@
     "verify": "Verify",
     "apply": "Apply",
     "text": "Text",
-    "appearance": "Appearance"
+    "appearance": "Appearance",
+    "now": "Now"
   },
   "objects": {
     "owner": "Owner",
@@ -450,6 +451,7 @@
   "labels": {
     "connectionDetails": "Connection Details",
     "metaSync": "Meta Sync",
+    "mention": "Mention",
     "today": "Today",
     "workspace": "Workspace",
     "txt": "TXT Record value",
@@ -589,7 +591,7 @@
     "untitledToken": "Untitled token",
     "tableName": "Table name",
     "dashboardName": "Dashboard name",
-    "createView": "Create view",
+    "createView": "Create View",
     "creatingView": "Creating View",
     "duplicateView": "Duplicate View",
     "duplicateGridView": "Duplicate Grid View",
@@ -756,7 +758,7 @@
       "selectField": "Select a field",
       "selectFieldLabel": "Make changes to field properties by selecting a field from the list"
     },
-    "appearanceSettings": "Appearance settings",
+    "appearanceSettings": "Appearance Settings",
     "backgroundColor": "Background Color",
     "hideNocodbBranding": "Hide NocoDB Branding",
     "showOnConditions": "Show on condtions",
@@ -919,7 +921,7 @@
     "clearMetadata": "Clear Metadata",
     "exportToFile": "Export to file",
     "changePwd": "Change Password",
-    "createView": "Create a View",
+    "createView": "Create View",
     "shareView": "Share View",
     "findRowByCodeScan": "Find record by scan",
     "fillByCodeScan": "Fill by scan",
@@ -1015,7 +1017,7 @@
     "group": "Group"
   },
   "tooltip": {
-    "reachedSourceLimit": "Limited to 10 data sources per base",
+    "reachedSourceLimit": "Limited to only one data source for the moment",
     "saveChanges": "Save changes",
     "xcDB": "Create a new base",
     "extDB": "Supports MySQL, PostgreSQL, SQL Server & SQLite",
@@ -1286,7 +1288,7 @@
       "afterEnablePwd": "Access is password restricted",
       "privateLink": "This view is shared via a private link",
       "privateLinkAdditionalInfo": "People with private link can only see cells visible in this view",
-      "postFormSubmissionSettings": "Post form submission settings",
+      "postFormSubmissionSettings": "Post Form Submission Settings",
       "apiOptions": "Access Base via",
       "submitAnotherForm": "Show 'Submit Another Form' button",
       "showBlankForm": "Show a blank form after 5 seconds",
@@ -1498,7 +1500,7 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "The accepted file types are .xls, .xlsx, .xlsm, .ods, .ots",
       "parameterKeyCannotBeEmpty": "Parameter key cannot be empty",
       "duplicateParameterKeysAreNotAllowed": "Duplicate parameter keys are not allowed",
-      "fieldRequired": "This field cannot be empty.",
+      "fieldRequired": "{value} cannot be empty.",
       "projectNotAccessible": "Base not accessible",
       "copyToClipboardError": "Failed to copy to clipboard",
       "pasteFromClipboardError": "Failed to paste from clipboard",

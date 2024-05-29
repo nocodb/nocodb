@@ -11,7 +11,7 @@ import { NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
-import { getColumnByIdOrName } from '~/modules/datas/helpers';
+import { getColumnByIdOrName } from '~/helpers/dataHelpers';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { mimeIcons } from '~/utils/mimeTypes';
 import { utf8ify } from '~/helpers/stringHelpers';

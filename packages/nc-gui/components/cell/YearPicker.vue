@@ -27,6 +27,8 @@ const isGrid = inject(IsGridInj, ref(false))
 
 const isForm = inject(IsFormInj, ref(false))
 
+const isSurveyForm = inject(IsSurveyFormInj, ref(false))
+
 const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 
 const isYearInvalid = ref(false)
@@ -38,6 +40,8 @@ const isClearedInputMode = ref<boolean>(false)
 const { t } = useI18n()
 
 const open = ref<boolean>(false)
+
+const tempDate = ref<dayjs.Dayjs | undefined>()
 
 const localState = computed({
   get() {
@@ -69,16 +73,27 @@ const localState = computed({
   },
 })
 
+watchEffect(() => {
+  if (localState.value) {
+    tempDate.value = localState.value
+  }
+})
+
 const randomClass = `picker_${Math.floor(Math.random() * 99999)}`
 
 onClickOutside(datePickerRef, (e) => {
-  if ((e.target as HTMLElement)?.closest(`.${randomClass}`)) return
+  if ((e.target as HTMLElement)?.closest(`.${randomClass}, .nc-${randomClass}`)) return
   datePickerRef.value?.blur?.()
   open.value = false
 })
 
 const onBlur = (e) => {
-  if ((e?.relatedTarget as HTMLElement)?.closest(`.${randomClass}`)) return
+  if (
+    (e?.relatedTarget as HTMLElement)?.closest(`.${randomClass}, .nc-${randomClass}`) ||
+    (e?.target as HTMLElement)?.closest(`.${randomClass}, .nc-${randomClass}`)
+  ) {
+    return
+  }
 
   open.value = false
 }
@@ -136,14 +151,20 @@ const clickHandler = () => {
   open.value = active.value || editable.value
 }
 
-const handleKeydown = (e: KeyboardEvent) => {
-  if (e.key !== 'Enter') {
+const handleKeydown = (e: KeyboardEvent, _open?: boolean) => {
+  if (e.key !== 'Enter' && e.key !== 'Tab') {
     e.stopPropagation()
   }
 
   switch (e.key) {
     case 'Enter':
-      open.value = !open.value
+      e.preventDefault()
+      if (isSurveyForm.value) {
+        e.stopPropagation()
+      }
+
+      localState.value = tempDate.value
+      open.value = !_open
       if (!open.value) {
         editable.value = false
         if (isGrid.value && !isExpandedForm.value && !isEditColumn.value) {
@@ -152,8 +173,18 @@ const handleKeydown = (e: KeyboardEvent) => {
       }
 
       return
+
+    case 'Tab':
+      open.value = false
+
+      if (isGrid.value) {
+        editable.value = false
+        datePickerRef.value?.blur?.()
+      }
+
+      return
     case 'Escape':
-      if (open.value) {
+      if (_open) {
         open.value = false
         editable.value = false
         if (isGrid.value && !isExpandedForm.value && !isEditColumn.value) {
@@ -166,7 +197,7 @@ const handleKeydown = (e: KeyboardEvent) => {
       }
       return
     default:
-      if (!open.value && /^[0-9a-z]$/i.test(e.key)) {
+      if (!_open && /^[0-9a-z]$/i.test(e.key)) {
         open.value = true
       }
   }
@@ -203,31 +234,77 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
       }
   }
 })
+
+const handleUpdateValue = (e: Event) => {
+  const targetValue = (e.target as HTMLInputElement).value
+  if (!targetValue) {
+    tempDate.value = undefined
+    return
+  }
+  const value = dayjs(targetValue, 'YYYY')
+
+  if (value.isValid()) {
+    tempDate.value = value
+  }
+}
+
+function handleSelectDate(value?: dayjs.Dayjs) {
+  tempDate.value = value
+  localState.value = value
+  open.value = false
+}
 </script>
 
 <template>
-  <a-date-picker
-    ref="datePickerRef"
-    v-model:value="localState"
+  <NcDropdown
+    :visible="isOpen"
+    :auto-close="false"
+    :trigger="['click']"
     :disabled="readOnly"
-    :tabindex="0"
-    picker="year"
-    :bordered="false"
-    class="nc-cell-field !w-full !py-1 !border-none !text-current"
+    class="nc-cell-field"
     :class="[`nc-${randomClass}`, { 'nc-null': modelValue === null && showNull }]"
-    :placeholder="placeholder"
-    :allow-clear="!readOnly && !isPk"
-    :input-read-only="!!isMobileMode"
-    :open="isOpen"
-    :dropdown-class-name="`${randomClass} nc-picker-year children:border-1 children:border-gray-200 ${open ? 'active' : ''}`"
-    @blur="onBlur"
-    @keydown="handleKeydown"
-    @click="clickHandler"
-    @mouseup.stop
-    @mousedown.stop
+    :overlay-class-name="`${randomClass} nc-picker-year ${open ? 'active' : ''} !min-w-[260px]`"
   >
-    <template #suffixIcon></template>
-  </a-date-picker>
+    <div
+      :title="localState?.format('YYYY')"
+      class="nc-year-picker flex items-center justify-between ant-picker-input relative group"
+    >
+      <input
+        ref="datePickerRef"
+        type="text"
+        :value="localState?.format('YYYY') ?? ''"
+        :placeholder="placeholder"
+        class="nc-year-input border-none outline-none !text-current bg-transparent !focus:(border-none outline-none ring-transparent)"
+        :readonly="readOnly || !!isMobileMode"
+        @blur="onBlur"
+        @keydown="handleKeydown($event, open)"
+        @mouseup.stop
+        @mousedown.stop
+        @click="clickHandler"
+        @input="handleUpdateValue"
+      />
+
+      <GeneralIcon
+        v-if="localState"
+        icon="closeCircle"
+        class="absolute right-0 top-[50%] transform -translate-y-1/2 invisible group-hover:visible cursor-pointer"
+        @click.stop="handleSelectDate()"
+      />
+    </div>
+
+    <template #overlay>
+      <div class="w-[256px]">
+        <NcMonthYearSelector
+          v-model:page-date="tempDate"
+          v-model:selected-date="localState"
+          :is-open="isOpen"
+          is-year-picker
+          is-cell-input-field
+          size="medium"
+        />
+      </div>
+    </template>
+  </NcDropdown>
   <div v-if="!editable && isGrid" class="absolute inset-0 z-90 cursor-pointer"></div>
 </template>
 

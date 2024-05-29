@@ -1,7 +1,29 @@
+import multer from 'multer';
 import { Module } from '@nestjs/common';
 import { MulterModule } from '@nestjs/platform-express';
-import multer from 'multer';
+
+/* Modules */
+import { EventEmitterModule } from '~/modules/event-emitter/event-emitter.module';
+import { JobsModule } from '~/modules/jobs/jobs.module';
+
+/* Generic */
+import { InitMetaServiceProvider } from '~/providers/init-meta-service.provider';
+import { JwtStrategyProvider } from '~/providers/jwt-strategy.provider';
+import { JwtStrategy } from '~/strategies/jwt.strategy';
+import { SocketGateway } from '~/gateways/socket.gateway';
+import { GlobalGuard } from '~/guards/global/global.guard';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { TelemetryService } from '~/services/telemetry.service';
+import { AppHooksListenerService } from '~/services/app-hooks-listener.service';
+import { HookHandlerService } from '~/services/hook-handler.service';
+
+/* User */
+import { UsersController } from '~/controllers/users/users.controller';
+import { UsersService } from '~/services/users/users.service';
+
+/* Metas */
 import { NC_ATTACHMENT_FIELD_SIZE } from '~/constants';
+import { MetaService } from '~/meta/meta.service';
 import { ApiDocsController } from '~/controllers/api-docs/api-docs.controller';
 import { ApiTokensController } from '~/controllers/api-tokens.controller';
 import { AttachmentsController } from '~/controllers/attachments.controller';
@@ -11,6 +33,7 @@ import { SourcesController } from '~/controllers/sources.controller';
 import { CachesController } from '~/controllers/caches.controller';
 import { CalendarsController } from '~/controllers/calendars.controller';
 import { ColumnsController } from '~/controllers/columns.controller';
+import { CommentsController } from '~/controllers/comments.controller';
 import { FiltersController } from '~/controllers/filters.controller';
 import { FormColumnsController } from '~/controllers/form-columns.controller';
 import { FormsController } from '~/controllers/forms.controller';
@@ -39,10 +62,10 @@ import { ApiTokensService } from '~/services/api-tokens.service';
 import { AttachmentsService } from '~/services/attachments.service';
 import { AuditsService } from '~/services/audits.service';
 import { SourcesService } from '~/services/sources.service';
-import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
 import { CachesService } from '~/services/caches.service';
 import { CalendarsService } from '~/services/calendars.service';
 import { ColumnsService } from '~/services/columns.service';
+import { CommentsService } from '~/services/comments.service';
 import { FiltersService } from '~/services/filters.service';
 import { FormColumnsService } from '~/services/form-columns.service';
 import { FormsService } from '~/services/forms.service';
@@ -79,8 +102,30 @@ import { CommandPaletteController } from '~/controllers/command-palette.controll
 import { ExtensionsService } from '~/services/extensions.service';
 import { ExtensionsController } from '~/controllers/extensions.controller';
 
-export const metaModuleMetadata = {
+/* Datas */
+import { DataTableController } from '~/controllers/data-table.controller';
+import { DataTableService } from '~/services/data-table.service';
+import { DataAliasController } from '~/controllers/data-alias.controller';
+import { PublicDatasExportController } from '~/controllers/public-datas-export.controller';
+import { PublicDatasController } from '~/controllers/public-datas.controller';
+import { DatasService } from '~/services/datas.service';
+import { DatasController } from '~/controllers/datas.controller';
+import { BulkDataAliasController } from '~/controllers/bulk-data-alias.controller';
+import { DataAliasExportController } from '~/controllers/data-alias-export.controller';
+import { DataAliasNestedController } from '~/controllers/data-alias-nested.controller';
+import { OldDatasController } from '~/controllers/old-datas/old-datas.controller';
+import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
+import { DataAliasNestedService } from '~/services/data-alias-nested.service';
+import { OldDatasService } from '~/controllers/old-datas/old-datas.service';
+import { PublicDatasExportService } from '~/services/public-datas-export.service';
+import { PublicDatasService } from '~/services/public-datas.service';
+import { CalendarDatasController } from '~/controllers/calendars-datas.controller';
+import { CalendarDatasService } from '~/services/calendar-datas.service';
+
+export const nocoModuleMetadata = {
   imports: [
+    EventEmitterModule,
+    JobsModule,
     MulterModule.register({
       storage: multer.diskStorage({}),
       limits: {
@@ -91,6 +136,10 @@ export const metaModuleMetadata = {
   controllers: [
     ...(process.env.NC_WORKER_CONTAINER !== 'true'
       ? [
+          /* Users */
+          UsersController,
+
+          /* Metas */
           ApiDocsController,
           ApiTokensController,
           ...(process.env.NC_SECURE_ATTACHMENTS === 'true'
@@ -101,6 +150,7 @@ export const metaModuleMetadata = {
           CachesController,
           CalendarsController,
           ColumnsController,
+          CommentsController,
           FiltersController,
           FormColumnsController,
           FormsController,
@@ -129,11 +179,36 @@ export const metaModuleMetadata = {
           NotificationsController,
           CommandPaletteController,
           ExtensionsController,
+
+          /* Datas */
+          DataTableController,
+          DatasController,
+          CalendarDatasController,
+          BulkDataAliasController,
+          DataAliasController,
+          DataAliasNestedController,
+          DataAliasExportController,
+          OldDatasController,
+          PublicDatasController,
+          PublicDatasExportController,
         ]
       : []),
   ],
   providers: [
-    /** Services */
+    /* Generic */
+    InitMetaServiceProvider,
+    JwtStrategyProvider,
+    GlobalGuard,
+    SocketGateway,
+    AppHooksService,
+    AppHooksListenerService,
+    TelemetryService,
+    HookHandlerService,
+
+    /* Users */
+    UsersService,
+
+    /* Metas */
     ApiDocsService,
     ApiTokensService,
     AttachmentsService,
@@ -142,6 +217,7 @@ export const metaModuleMetadata = {
     CachesService,
     CalendarsService,
     ColumnsService,
+    CommentsService,
     FiltersService,
     FormColumnsService,
     FormsService,
@@ -168,13 +244,33 @@ export const metaModuleMetadata = {
     SyncService,
     SortsService,
     SharedBasesService,
-    BulkDataAliasService,
     NotificationsService,
     NotificationsGateway,
     CommandPaletteService,
     ExtensionsService,
+
+    /* Datas */
+    DataTableService,
+    DatasService,
+    BulkDataAliasService,
+    DataAliasNestedService,
+    CalendarDatasService,
+    OldDatasService,
+    PublicDatasService,
+    PublicDatasExportService,
   ],
   exports: [
+    /* Generic */
+    AppHooksService,
+    TelemetryService,
+    HookHandlerService,
+    JwtStrategy,
+
+    /* Users */
+    UsersService,
+
+    /* Metas */
+    MetaService,
     TablesService,
     ColumnsService,
     FiltersService,
@@ -193,11 +289,14 @@ export const metaModuleMetadata = {
     BaseUsersService,
     HooksService,
     MetaDiffsService,
-    BasesService,
     SourcesService,
     UtilsService,
+
+    /* Datas */
+    DatasService,
+    BulkDataAliasService,
   ],
 };
 
-@Module(metaModuleMetadata)
-export class MetasModule {}
+@Module(nocoModuleMetadata)
+export class NocoModule {}

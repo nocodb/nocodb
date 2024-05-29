@@ -69,13 +69,27 @@ export class TopbarPage extends BasePage {
     return await this.getClipboardText();
   }
 
-  async openDetailedTab() {
-    await this.btn_details.click();
+  async openDetailedTab({ waitForResponse = true } = {}) {
+    if (waitForResponse) {
+      await this.waitForResponse({
+        uiAction: async () => await this.btn_details.click(),
+        requestUrlPathToMatch: 'api/v1/db/meta/tables/',
+        httpMethodsToMatch: ['GET'],
+        responseJsonMatcher: json => json['hash'],
+      });
+    } else {
+      await this.btn_details.click();
+    }
     await this.rootPage.waitForTimeout(500);
   }
 
   async openDataTab() {
-    await this.btn_data.click();
+    await this.waitForResponse({
+      uiAction: async () => await this.btn_data.click(),
+      requestUrlPathToMatch: 'api/v1/db/data/noco/',
+      httpMethodsToMatch: ['GET'],
+      responseJsonMatcher: json => json['list'],
+    });
     await this.rootPage.waitForTimeout(500);
   }
 

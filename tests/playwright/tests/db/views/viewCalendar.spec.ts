@@ -156,7 +156,8 @@ test.describe('Calendar View', () => {
       fromTitle: 'EndDate',
     });
 
-    await toolbar.clickCalendarViewSettings();
+    // We close the menu on new range is set
+    // await toolbar.clickCalendarViewSettings();
 
     // Verify Sidebar
     const calendar = dashboard.calendar;

@@ -73,7 +73,7 @@ const snippet = computed(
   () =>
     new HTTPSnippet({
       method: 'GET',
-      headers: [{ name: 'xc-auth', value: token.value, comment: 'JWT Auth token' }],
+      headers: [{ name: 'xc-token', value: '<Your API Token>', comment: 'API token' }],
       url: apiUrl.value,
       queryString: [
         ...Object.entries(queryParams.value || {}).map(([name, value]) => {
@@ -95,7 +95,7 @@ const code = computed(() => {
 const api = new Api({
   baseURL: "${(appInfo.value && appInfo.value.ncSiteUrl) || '/'}",
   headers: {
-    "xc-auth": ${JSON.stringify(token.value as string)}
+    "xc-token": "<Your API Token>"
   }
 })
 

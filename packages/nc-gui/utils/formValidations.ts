@@ -77,7 +77,9 @@ export const requiredFieldValidatorFn = (value: unknown) => {
   }
 
   if (typeof value === 'object') {
-    for (let _ in value) return true
+    if (Object.keys(value).length > 0) {
+      return true
+    }
 
     return false
   }

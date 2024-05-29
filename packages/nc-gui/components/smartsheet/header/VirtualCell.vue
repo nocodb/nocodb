@@ -46,6 +46,8 @@ const isForm = inject(IsFormInj, ref(false))
 
 const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 
+const isExpandedBulkUpdateForm = inject(IsExpandedBulkUpdateFormOpenInj, ref(false))
+
 const colOptions = computed(() => column.value?.colOptions)
 
 const tableTile = computed(() => meta?.value?.title)
@@ -140,7 +142,7 @@ const closeAddColumnDropdown = () => {
 }
 
 const openHeaderMenu = (e?: MouseEvent) => {
-  if (isLocked.value || (isExpandedForm.value && e?.type === 'dblclick')) return
+  if (isLocked.value || (isExpandedForm.value && e?.type === 'dblclick') || isExpandedBulkUpdateForm.value) return
 
   if (!isForm.value && isUIAllowed('fieldEdit') && !isMobileMode.value) {
     editColumnDropdown.value = true
@@ -165,7 +167,7 @@ const onClick = (e: Event) => {
     e.preventDefault()
     e.stopPropagation()
   } else {
-    if (isExpandedForm.value && !editColumnDropdown.value) {
+    if (isExpandedForm.value && !editColumnDropdown.value && !isExpandedBulkUpdateForm.value) {
       isDropDownOpen.value = true
       return
     }
@@ -179,9 +181,10 @@ const onClick = (e: Event) => {
   <div
     class="flex items-center w-full h-full text-small text-gray-500 font-weight-medium group"
     :class="{
-      'flex-col !items-start justify-center': isExpandedForm,
-      'bg-gray-100': isExpandedForm ? editColumnDropdown || isDropDownOpen : false,
-      'cursor-pointer hover:bg-gray-100': isExpandedForm && !isMobileMode && isUIAllowed('fieldEdit'),
+      'flex-col !items-start justify-center pt-0.5': isExpandedForm && !isMobileMode && !isExpandedBulkUpdateForm,
+      'bg-gray-100': isExpandedForm && !isExpandedBulkUpdateForm ? editColumnDropdown || isDropDownOpen : false,
+      'cursor-pointer hover:bg-gray-100':
+        isExpandedForm && !isMobileMode && isUIAllowed('fieldEdit') && !isExpandedBulkUpdateForm,
     }"
     @dblclick="openHeaderMenu"
     @click.right="openDropDown"
@@ -191,7 +194,7 @@ const onClick = (e: Event) => {
       class="nc-virtual-cell-name-wrapper flex-1 flex items-center"
       :class="{
         'max-w-[calc(100%_-_23px)]': !isExpandedForm,
-        'max-w-full': isExpandedForm,
+        'max-w-full': isExpandedForm && !isExpandedBulkUpdateForm,
       }"
     >
       <template v-if="column && !props.hideIcon">
@@ -208,7 +211,7 @@ const onClick = (e: Event) => {
         <span
           :data-test-id="column.title"
           :class="{
-            'select-none': isExpandedForm,
+            'select-none': isExpandedForm && !isExpandedBulkUpdateForm,
           }"
         >
           {{ column.title }}
@@ -218,9 +221,9 @@ const onClick = (e: Event) => {
       <span v-if="isVirtualColRequired(column, meta?.columns || []) || required" class="text-red-500">&nbsp;*</span>
 
       <GeneralIcon
-        v-if="isExpandedForm && !isMobileMode && isUIAllowed('fieldEdit')"
+        v-if="isExpandedForm && !isMobileMode && isUIAllowed('fieldEdit') && !isExpandedBulkUpdateForm"
         icon="arrowDown"
-        class="flex-none h-full cursor-pointer ml-1 group-hover:visible"
+        class="flex-none cursor-pointer ml-1 group-hover:visible w-4 h-4"
         :class="{
           visible: editColumnDropdown || isDropDownOpen,
           invisible: !(editColumnDropdown || isDropDownOpen),
@@ -244,10 +247,10 @@ const onClick = (e: Event) => {
       v-model:visible="editColumnDropdown"
       class="h-full"
       :trigger="['click']"
-      :placement="isExpandedForm ? 'bottomLeft' : 'bottomRight'"
+      :placement="isExpandedForm && !isExpandedBulkUpdateForm ? 'bottomLeft' : 'bottomRight'"
       overlay-class-name="nc-dropdown-edit-column"
     >
-      <div v-if="isExpandedForm" class="h-[1px]" @dblclick.stop>&nbsp;</div>
+      <div v-if="isExpandedForm && !isExpandedBulkUpdateForm" class="h-[1px]" @dblclick.stop>&nbsp;</div>
       <div v-else />
       <template #overlay>
         <SmartsheetColumnEditOrAddProvider

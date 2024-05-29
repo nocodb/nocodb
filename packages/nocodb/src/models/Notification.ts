@@ -66,6 +66,9 @@ export default class Notification {
         condition,
         limit,
         offset,
+        orderBy: {
+          created_at: 'desc',
+        },
       },
     );
 

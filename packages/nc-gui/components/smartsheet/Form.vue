@@ -1196,7 +1196,7 @@ useEventListener(
                 }"
               >
                 <!-- Form Field settings -->
-                <div v-if="activeField && activeColumn" :key="activeField?.id">
+                <div v-if="activeField && activeColumn" :key="activeField?.id" class="nc-form-field-right-panel">
                   <!-- Field header -->
                   <div class="px-3 pt-4 pb-2 flex items-center justify-between border-b border-gray-200 font-medium">
                     <div class="flex items-center">
@@ -1297,7 +1297,7 @@ useEventListener(
 
                 <!-- Form Settings -->
                 <template v-else>
-                  <Splitpanes v-if="formViewData" horizontal class="w-full nc-form-right-splitpane">
+                  <Splitpanes v-if="formViewData" horizontal class="nc-form-settings w-full nc-form-right-splitpane">
                     <Pane min-size="30" size="50" class="nc-form-right-splitpane-item p-4 flex flex-col space-y-4 !min-h-200px">
                       <div class="flex flex-wrap justify-between items-center gap-2">
                         <div class="flex gap-3">
@@ -1529,14 +1529,12 @@ useEventListener(
                               class="nc-form-hide-branding"
                               data-testid="nc-form-hide-branding"
                               :disabled="isLocked || !isEditable"
-                              @change="
-                      (value) => {
-                        if (isLocked || !isEditable) return
+                              @change="(value) => {
+                                  if (isLocked || !isEditable) return
 
-                        (formViewData!.meta as Record<string,any>).hide_branding = value
-                        updateView()
-                      }
-                    "
+                                  (formViewData!.meta as Record<string,any>).hide_branding = value
+                                  updateView()
+                                }"
                             />
 
                             <NcTooltip v-else placement="top">
@@ -1558,14 +1556,12 @@ useEventListener(
                               class="nc-form-hide-banner"
                               data-testid="nc-form-hide-banner"
                               :disabled="isLocked || !isEditable"
-                              @change="
-                      (value) => {
-                        if (isLocked || !isEditable) return
+                              @change="(value) => {
+                                  if (isLocked || !isEditable) return
 
-                        (formViewData!.meta as Record<string,any>).hide_banner = value
-                        updateView()
-                      }
-                    "
+                                  (formViewData!.meta as Record<string,any>).hide_banner = value
+                                  updateView()
+                                }"
                             />
                           </div>
                         </div>

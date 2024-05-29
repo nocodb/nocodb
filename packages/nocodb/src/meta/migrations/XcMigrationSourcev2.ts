@@ -32,6 +32,8 @@ import * as nc_042_user_block from '~/meta/migrations/v2/nc_042_user_block';
 import * as nc_043_user_refresh_token from '~/meta/migrations/v2/nc_043_user_refresh_token';
 import * as nc_044_view_column_index from '~/meta/migrations/v2/nc_044_view_column_index';
 import * as nc_045_extensions from '~/meta/migrations/v2/nc_045_extensions';
+import * as nc_046_comment_mentions from '~/meta/migrations/v2/nc_046_comment_mentions';
+import * as nc_047_comment_migration from '~/meta/migrations/v2/nc_047_comment_migration';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev2 {
@@ -75,6 +77,8 @@ export default class XcMigrationSourcev2 {
       'nc_043_user_refresh_token',
       'nc_044_view_column_index',
       'nc_045_extensions',
+      'nc_046_comment_mentions',
+      'nc_047_comment_migration',
     ]);
   }
 
@@ -152,6 +156,10 @@ export default class XcMigrationSourcev2 {
         return nc_044_view_column_index;
       case 'nc_045_extensions':
         return nc_045_extensions;
+      case 'nc_046_comment_mentions':
+        return nc_046_comment_mentions;
+      case 'nc_047_comment_migration':
+        return nc_047_comment_migration;
     }
   }
 }

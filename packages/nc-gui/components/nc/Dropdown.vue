@@ -4,11 +4,13 @@ const props = withDefaults(
     trigger?: Array<'click' | 'hover' | 'contextmenu'>
     visible?: boolean | undefined
     overlayClassName?: string | undefined
+    placement?: 'bottom' | 'top' | 'bottomLeft' | 'bottomRight' | 'topLeft' | 'topRight' | 'topCenter' | 'bottomCenter'
     autoClose?: boolean
   }>(),
   {
     trigger: () => ['click'],
     visible: undefined,
+    placement: 'bottomLeft',
     overlayClassName: undefined,
     autoClose: true,
   },
@@ -19,6 +21,8 @@ const emits = defineEmits(['update:visible'])
 const trigger = toRef(props, 'trigger')
 
 const overlayClassName = toRef(props, 'overlayClassName')
+
+const placement = toRef(props, 'placement')
 
 const autoClose = computed(() => props.autoClose)
 
@@ -58,6 +62,7 @@ const onVisibleUpdate = (event: any) => {
 <template>
   <a-dropdown
     :visible="visible"
+    :placement="placement"
     :trigger="trigger"
     :overlay-class-name="overlayClassNameComputed"
     @update:visible="onVisibleUpdate"

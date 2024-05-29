@@ -26,6 +26,8 @@ const isSurveyForm = inject(IsSurveyFormInj, ref(false))
 
 const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 
+const isExpandedBulkUpdateForm = inject(IsExpandedBulkUpdateFormOpenInj, ref(false))
+
 const isDropDownOpen = ref(false)
 
 const isKanban = inject(IsKanbanInj, ref(false))
@@ -58,7 +60,7 @@ const closeAddColumnDropdown = () => {
 }
 
 const openHeaderMenu = (e?: MouseEvent) => {
-  if (isLocked.value || (isExpandedForm.value && e?.type === 'dblclick')) return
+  if (isLocked.value || (isExpandedForm.value && e?.type === 'dblclick') || isExpandedBulkUpdateForm.value) return
 
   if (!isForm.value && isUIAllowed('fieldEdit') && !isMobileMode.value) {
     editColumnDropdown.value = true
@@ -83,7 +85,7 @@ const onClick = (e: Event) => {
     e.preventDefault()
     e.stopPropagation()
   } else {
-    if (isExpandedForm.value && !editColumnDropdown.value) {
+    if (isExpandedForm.value && !editColumnDropdown.value && !isExpandedBulkUpdateForm.value) {
       isDropDownOpen.value = true
       return
     }
@@ -99,9 +101,10 @@ const onClick = (e: Event) => {
     :class="{
       'h-full': column,
       '!text-gray-400': isKanban,
-      'flex-col !items-start justify-center': isExpandedForm && !isMobileMode,
-      'cursor-pointer hover:bg-gray-100': isExpandedForm && !isMobileMode && isUIAllowed('fieldEdit'),
-      'bg-gray-100': isExpandedForm ? editColumnDropdown || isDropDownOpen : false,
+      'flex-col !items-start justify-center pt-0.5': isExpandedForm && !isMobileMode && !isExpandedBulkUpdateForm,
+      'cursor-pointer hover:bg-gray-100':
+        isExpandedForm && !isMobileMode && isUIAllowed('fieldEdit') && !isExpandedBulkUpdateForm,
+      'bg-gray-100': isExpandedForm && !isExpandedBulkUpdateForm ? editColumnDropdown || isDropDownOpen : false,
     }"
     @dblclick="openHeaderMenu"
     @click.right="openDropDown"
@@ -111,7 +114,7 @@ const onClick = (e: Event) => {
       class="nc-cell-name-wrapper flex-1 flex items-center"
       :class="{
         'max-w-[calc(100%_-_23px)]': !isExpandedForm,
-        'max-w-full': isExpandedForm,
+        'max-w-full': isExpandedForm && !isExpandedBulkUpdateForm,
       }"
     >
       <template v-if="column && !props.hideIcon">
@@ -119,7 +122,7 @@ const onClick = (e: Event) => {
           v-if="isGrid"
           class="flex items-center"
           placement="bottom"
-          :disabled="isExpandedForm ? editColumnDropdown || isDropDownOpen : false"
+          :disabled="isExpandedForm && !isExpandedBulkUpdateForm ? editColumnDropdown || isDropDownOpen : false"
         >
           <template #title> {{ columnTypeName }} </template>
           <SmartsheetHeaderCellIcon
@@ -138,21 +141,21 @@ const onClick = (e: Event) => {
       <NcTooltip
         v-if="column"
         :class="{
-          'cursor-pointer pt-0.25': !isForm && isUIAllowed('fieldEdit') && !hideMenu,
+          'cursor-pointer': !isForm && isUIAllowed('fieldEdit') && !hideMenu,
           'cursor-default': isForm || !isUIAllowed('fieldEdit') || hideMenu,
           'truncate': !isForm,
         }"
         class="name pl-1 max-w-full"
         placement="bottom"
         show-on-truncate-only
-        :disabled="isExpandedForm ? editColumnDropdown || isDropDownOpen : false"
+        :disabled="isExpandedForm && !isExpandedBulkUpdateForm ? editColumnDropdown || isDropDownOpen : false"
       >
         <template #title> {{ column.title }} </template>
 
         <span
           :data-test-id="column.title"
           :class="{
-            'select-none': isExpandedForm,
+            'select-none': isExpandedForm && !isExpandedBulkUpdateForm,
           }"
         >
           {{ column.title }}
@@ -162,9 +165,9 @@ const onClick = (e: Event) => {
       <span v-if="(column.rqd && !column.cdf) || required" class="text-red-500">&nbsp;*</span>
 
       <GeneralIcon
-        v-if="isExpandedForm && !isMobileMode && isUIAllowed('fieldEdit')"
+        v-if="isExpandedForm && !isExpandedBulkUpdateForm && !isMobileMode && isUIAllowed('fieldEdit')"
         icon="arrowDown"
-        class="flex-none text-grey h-full text-grey cursor-pointer ml-1 group-hover:visible"
+        class="flex-none cursor-pointer ml-1 group-hover:visible w-4 h-4"
         :class="{
           visible: editColumnDropdown || isDropDownOpen,
           invisible: !(editColumnDropdown || isDropDownOpen),
@@ -187,10 +190,10 @@ const onClick = (e: Event) => {
       v-model:visible="editColumnDropdown"
       class="h-full"
       :trigger="['click']"
-      :placement="isExpandedForm ? 'bottomLeft' : 'bottomRight'"
+      :placement="isExpandedForm && !isExpandedBulkUpdateForm ? 'bottomLeft' : 'bottomRight'"
       overlay-class-name="nc-dropdown-edit-column"
     >
-      <div v-if="isExpandedForm" class="h-[1px]" @dblclick.stop>&nbsp;</div>
+      <div v-if="isExpandedForm && !isExpandedBulkUpdateForm" class="h-[1px]" @dblclick.stop>&nbsp;</div>
       <div v-else />
 
       <template #overlay>

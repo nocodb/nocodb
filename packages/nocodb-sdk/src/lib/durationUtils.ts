@@ -95,7 +95,7 @@ export const convertMS2Duration = (val: any, durationType: number) => {
   const milliseconds = Math.round((val % 1) * 1000);
   const centiseconds = Math.round(milliseconds / 10);
   const deciseconds = Math.round(centiseconds / 10);
-  const hours = Math.floor(parseInt(val, 10) / (60 * 60));
+  const hours = Math.floor(Number.parseInt(val, 10) / (60 * 60));
   const minutes = Math.floor((parseInt(val, 10) - hours * 60 * 60) / 60);
   const seconds = parseInt(val, 10) - hours * 60 * 60 - minutes * 60;
 

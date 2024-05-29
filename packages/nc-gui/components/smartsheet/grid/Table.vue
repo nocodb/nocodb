@@ -427,12 +427,16 @@ const cellMeta = computed(() => {
 const colMeta = computed(() => {
   return fields.value.map((col) => {
     return {
-      isLookup: isLookup(col),
-      isRollup: isRollup(col),
-      isFormula: isFormula(col),
-      isCreatedOrLastModifiedTimeCol: isCreatedOrLastModifiedTimeCol(col),
-      isCreatedOrLastModifiedByCol: isCreatedOrLastModifiedByCol(col),
       isVirtualCol: isVirtualCol(col),
+      isReadonly:
+        col.pk ||
+        col.system ||
+        isLookup(col) ||
+        isRollup(col) ||
+        isFormula(col) ||
+        isVirtualCol(col) ||
+        isCreatedOrLastModifiedTimeCol(col) ||
+        isCreatedOrLastModifiedByCol(col),
     }
   })
 })
@@ -1259,16 +1263,16 @@ const showFillHandle = computed(
     !dataRef.value[(isNaN(selectedRange.end.row) ? activeCell.row : selectedRange.end.row) ?? -1]?.rowMeta?.new &&
     activeCell.col !== null &&
     fields.value[activeCell.col] &&
-    !(
-      isLookup(fields.value[activeCell.col]) ||
-      isRollup(fields.value[activeCell.col]) ||
-      isFormula(fields.value[activeCell.col]) ||
-      isCreatedOrLastModifiedTimeCol(fields.value[activeCell.col]) ||
-      isCreatedOrLastModifiedByCol(fields.value[activeCell.col])
-    ) &&
     !isViewDataLoading.value &&
     !isPaginationLoading.value &&
-    dataRef.value.length,
+    dataRef.value.length &&
+    // if all the selected columns are not readonly
+    (selectedRange.start.col === null ||
+      selectedRange.end.col === null ||
+      !colMeta.value[activeCell.col].isReadonly ||
+      !Array.from({ length: selectedRange.end.col - selectedRange.start.col + 1 }).every(
+        (_, i) => colMeta.value[selectedRange.start.col + i].isReadonly,
+      )),
 )
 
 watch(
@@ -1660,7 +1664,7 @@ onKeyStroke('ArrowDown', onDown)
                   </div>
                 </th>
                 <th
-                  v-if="fields[0]"
+                  v-if="fields[0] && fields[0].id"
                   v-xc-ver-resize
                   :data-col="fields[0].id"
                   :data-title="fields[0].title"
@@ -1693,9 +1697,9 @@ onKeyStroke('ArrowDown', onDown)
                     <LazySmartsheetHeaderVirtualCell
                       v-if="fields[0] && colMeta[0].isVirtualCol"
                       :column="fields[0]"
-                      :hide-menu="readOnly || isMobileMode"
+                      :hide-menu="readOnly || !!isMobileMode"
                     />
-                    <LazySmartsheetHeaderCell v-else :column="fields[0]" :hide-menu="readOnly || isMobileMode" />
+                    <LazySmartsheetHeaderCell v-else :column="fields[0]" :hide-menu="readOnly || !!isMobileMode" />
                   </div>
                 </th>
                 <th
@@ -1728,9 +1732,9 @@ onKeyStroke('ArrowDown', onDown)
                     <LazySmartsheetHeaderVirtualCell
                       v-if="colMeta[index].isVirtualCol"
                       :column="col"
-                      :hide-menu="readOnly || isMobileMode"
+                      :hide-menu="readOnly || !!isMobileMode"
                     />
-                    <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="readOnly || isMobileMode" />
+                    <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="readOnly || !!isMobileMode" />
                   </div>
                 </th>
                 <th
@@ -1979,14 +1983,7 @@ onKeyStroke('ArrowDown', onDown)
                           'align-middle': !rowHeight || rowHeight === 1,
                           'align-top': rowHeight && rowHeight !== 1,
                           'filling': fillRangeMap[`${rowIndex}-0`],
-                          'readonly':
-                            (colMeta[0].isLookup ||
-                              colMeta[0].isRollup ||
-                              colMeta[0].isFormula ||
-                              colMeta[0].isCreatedOrLastModifiedTimeCol ||
-                              colMeta[0].isCreatedOrLastModifiedByCol) &&
-                            hasEditPermission &&
-                            selectRangeMap[`${rowIndex}-0`],
+                          'readonly': colMeta[0].isReadonly && hasEditPermission && selectRangeMap[`${rowIndex}-0`],
                           '!border-r-blue-400 !border-r-3': toBeDroppedColId === fields[0].id,
                         }"
                         :style="{
@@ -2054,13 +2051,7 @@ onKeyStroke('ArrowDown', onDown)
                           'align-top': rowHeight && rowHeight !== 1,
                           'filling': fillRangeMap[`${rowIndex}-${colIndex}`],
                           'readonly':
-                            (colMeta[colIndex].isLookup ||
-                              colMeta[colIndex].isRollup ||
-                              colMeta[colIndex].isFormula ||
-                              colMeta[colIndex].isCreatedOrLastModifiedTimeCol ||
-                              colMeta[colIndex].isCreatedOrLastModifiedByCol) &&
-                            hasEditPermission &&
-                            selectRangeMap[`${rowIndex}-${colIndex}`],
+                            colMeta[colIndex].isReadonly && hasEditPermission && selectRangeMap[`${rowIndex}-${colIndex}`],
                           '!border-r-blue-400 !border-r-3': toBeDroppedColId === columnObj.id,
                         }"
                         :style="{
@@ -2306,8 +2297,8 @@ onKeyStroke('ArrowDown', onDown)
     </div>
 
     <LazySmartsheetPagination
-      v-if="headerOnly !== true"
-      :key="isMobileMode"
+      v-if="headerOnly !== true && paginationDataRef"
+      :key="`nc-pagination-${isMobileMode}`"
       v-model:pagination-data="paginationDataRef"
       :show-api-timing="!isGroupBy"
       align-count-on-right

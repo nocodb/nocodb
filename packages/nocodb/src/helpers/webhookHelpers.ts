@@ -28,10 +28,15 @@ export function parseBody(template: string, data: any): string {
     return template;
   }
 
-  return Handlebars.compile(template, { noEscape: true })({
-    data,
-    event: data,
-  });
+  try {
+    return Handlebars.compile(template, { noEscape: true })({
+      data,
+      event: data,
+    });
+  } catch (e) {
+    // if parsing fails then return the original template
+    return template;
+  }
 }
 
 export async function validateCondition(
@@ -452,17 +457,30 @@ export function axiosRequestMake(_apiMeta, _user, data) {
   return req;
 }
 
-export async function invokeWebhook(
-  hook: Hook,
-  model: Model,
-  view: View,
-  prevData,
-  newData,
-  user,
-  testFilters = null,
-  throwErrorOnFailure = false,
-  testHook = false,
-) {
+export async function invokeWebhook(param: {
+  hook: Hook;
+  model: Model;
+  view: View;
+  prevData;
+  newData;
+  user;
+  testFilters?;
+  throwErrorOnFailure?: boolean;
+  testHook?: boolean;
+}) {
+  const {
+    hook,
+    model,
+    view,
+    prevData,
+    user,
+    testFilters = null,
+    throwErrorOnFailure = false,
+    testHook = false,
+  } = param;
+
+  let { newData } = param;
+
   let hookLog: HookLogType;
   const startTime = process.hrtime();
   const source = await Source.get(model.source_id);

@@ -100,6 +100,8 @@ const attachments = (record: any): Attachment[] => {
 
 const expandForm = (row: RowType, state?: Record<string, any>) => {
   const rowId = extractPkFromRow(row.row, meta.value!.columns!)
+  expandedFormRow.value = row
+  expandedFormRowState.value = state
 
   if (rowId && !isPublic.value) {
     router.push({
@@ -109,8 +111,6 @@ const expandForm = (row: RowType, state?: Record<string, any>) => {
       },
     })
   } else {
-    expandedFormRow.value = row
-    expandedFormRowState.value = state
     expandedFormDlg.value = true
   }
 }
@@ -340,6 +340,7 @@ watch(
       v-if="expandedFormRow && expandedFormDlg"
       v-model="expandedFormDlg"
       :row="expandedFormRow"
+      :load-row="!isPublic"
       :state="expandedFormRowState"
       :meta="meta"
       :view="view"
@@ -350,8 +351,9 @@ watch(
     <LazySmartsheetExpandedForm
       v-if="expandedFormOnRowIdDlg && meta?.id"
       v-model="expandedFormOnRowIdDlg"
-      :row="{ row: {}, oldRow: {}, rowMeta: {} }"
+      :row="expandedFormRow ?? { row: {}, oldRow: {}, rowMeta: {} }"
       :meta="meta"
+      :load-row="!isPublic"
       :row-id="route.query.rowId"
       :view="view"
       show-next-prev-icons

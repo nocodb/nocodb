@@ -46,13 +46,14 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     !sharedView.value ||
       sharedView.value?.type === ViewTypes.GALLERY ||
       sharedView.value?.type === ViewTypes.KANBAN ||
-      _row.value.rowMeta.new
+      _row.value?.rowMeta?.new
       ? _row.value
       : ({ row: {}, oldRow: {}, rowMeta: {} } as Row),
   )
 
-  row.value.rowMeta.fromExpandedForm = true
-
+  if (row.value?.rowMeta?.fromExpandedForm) {
+    row.value.rowMeta.fromExpandedForm = true
+  }
   const rowStore = useProvideSmartsheetRowStore(row)
 
   const activeView = inject(ActiveViewInj, ref())
@@ -349,53 +350,67 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
   }
 
   const loadRow = async (rowId?: string, onlyVirtual = false, onlyNewColumns = false) => {
-    if (row.value.rowMeta.new || isPublic.value || !meta.value?.id) return
+    if (row?.value?.rowMeta?.new || isPublic.value || !meta.value?.id) return
 
     const recordId = rowId ?? extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
 
     if (!recordId) return
-
-    let record = await $api.dbTableRow.read(
-      NOCO,
-      // todo: base_id missing on view type
-      ((base?.value?.id ?? meta.value?.base_id) || (sharedView.value?.view as any)?.base_id) as string,
-      meta.value.id as string,
-      encodeURIComponent(recordId),
-      {
-        getHiddenColumn: true,
-      },
-    )
-
-    // update only virtual columns value if `onlyVirtual` is true
-    if (onlyVirtual) {
-      record = {
-        ...row.value.row,
-        ...(meta.value.columns ?? []).reduce((partialRecord, col) => {
-          if (isVirtualCol(col) && col.title && col.title in record) {
-            partialRecord[col.title] = (record as Record<string, any>)[col.title as string]
-          }
-          return partialRecord
-        }, {} as Record<string, any>),
+    let record: Record<string, any> = {}
+    try {
+      record = await $api.dbTableRow.read(
+        NOCO,
+        // todo: base_id missing on view type
+        ((base?.value?.id ?? meta.value?.base_id) || (sharedView.value?.view as any)?.base_id) as string,
+        meta.value.id as string,
+        encodeURIComponent(recordId),
+        {
+          getHiddenColumn: true,
+        },
+      )
+    } catch (err: any) {
+      if (err.response?.status === 404) {
+        const router = useRouter()
+        message.error(t('msg.noRecordFound'))
+        router.replace({ query: {} })
+      } else {
+        message.error(`${await extractSdkResponseErrorMsg(err)}`)
       }
     }
 
-    // update only new/duplicated/renamed columns value if `onlyNewColumns` is true
-    if (onlyNewColumns) {
-      record = Object.keys(record).reduce((acc, curr) => {
-        if (!Object.prototype.hasOwnProperty.call(row.value.row, curr)) {
-          acc[curr] = record(record as Record<string, any>)[curr]
-        } else {
-          acc[curr] = row.value.row[curr]
+    try {
+      // update only virtual columns value if `onlyVirtual` is true
+      if (onlyVirtual) {
+        record = {
+          ...row.value.row,
+          ...(meta.value.columns ?? []).reduce((partialRecord, col) => {
+            if (isVirtualCol(col) && col.title && col.title in record) {
+              partialRecord[col.title] = (record as Record<string, any>)[col.title as string]
+            }
+            return partialRecord
+          }, {} as Record<string, any>),
         }
-        return acc
-      }, {} as Record<string, any>)
-    }
+      }
 
-    Object.assign(row.value, {
-      row: record,
-      oldRow: { ...record },
-      rowMeta: {},
-    })
+      // update only new/duplicated/renamed columns value if `onlyNewColumns` is true
+      if (onlyNewColumns) {
+        record = Object.keys(record).reduce((acc, curr) => {
+          if (!Object.prototype.hasOwnProperty.call(row.value.row, curr)) {
+            acc[curr] = record[curr]
+          } else {
+            acc[curr] = row.value.row[curr]
+          }
+          return acc
+        }, {} as Record<string, any>)
+      }
+
+      Object.assign(row.value, {
+        row: record,
+        oldRow: { ...record },
+        rowMeta: {},
+      })
+    } catch (e: any) {
+      message.error(`${t('msg.error.errorLoadingRecord')}`)
+    }
   }
 
   const deleteRowById = async (rowId?: string) => {

@@ -112,7 +112,11 @@ export class JobsController {
               ) {
                 await JobsRedis.unsubscribe(jobId);
                 delete this.jobRooms[jobId];
-                this.closedJobs.push(jobId);
+                // close the job after 1 second (to allow the update of messages)
+                setTimeout(() => {
+                  this.closedJobs.push(jobId);
+                }, 1000);
+                // remove the job after polling interval * 2
                 setTimeout(() => {
                   this.closedJobs = this.closedJobs.filter((j) => j !== jobId);
                 }, POLLING_INTERVAL * 2);

@@ -307,7 +307,9 @@ export class PublicDatasService {
 
     for (const file of param.files || []) {
       // remove `_` prefix and `[]` suffix
-      const fieldName = file?.fieldname?.replace(/^_|\[\d*]$/g, '');
+      const fieldName = Buffer.from(file?.fieldname || '', 'binary')
+        .toString('utf-8')
+        .replace(/^_|\[\d*]$/g, '');
 
       const filePath = sanitizeUrlPath([
         'noco',

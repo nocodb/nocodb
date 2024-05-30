@@ -128,13 +128,14 @@ export class JobsRedis {
       await this.init();
     }
 
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       this.redisClient.publish(
         InstanceTypes.WORKER,
         'count',
         (error, numberOfSubscribers) => {
           if (error) {
-            reject(0);
+            this.logger.warn(error);
+            resolve(0);
           } else {
             resolve(numberOfSubscribers);
           }

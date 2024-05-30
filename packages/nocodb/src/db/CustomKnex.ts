@@ -4,6 +4,7 @@ import dayjs from 'dayjs';
 import type { FilterType } from 'nocodb-sdk';
 import type { BaseModelSql } from '~/db/BaseModelSql';
 import Filter from '~/models/Filter';
+import { NcError } from '~/helpers/catchError';
 
 // refer : https://github.com/brianc/node-pg-types/blob/master/lib/builtins.js
 const pgTypes = {
@@ -492,23 +493,27 @@ const appendWhereCondition = function (
 
   return knexRef;
 };
-type XcConditionObjVal = {
-  [key in 'eq' | 'neq' | 'lt' | 'gt' | 'ge' | 'le' | 'like' | 'nlike']:
-    | string
-    | number
-    | any;
-};
 
-interface XcXonditionObj {
-  _or: XcXonditionObj[];
-  _and: XcXonditionObj[];
-  _not: XcXonditionObj;
+type AtLeastOne<T, U = { [K in keyof T]: Pick<T, K> }> = Partial<T> &
+  U[keyof U];
 
-  [key: string]:
-    | XcXonditionObj
-    | XcXonditionObj[]
-    | XcConditionObjVal
-    | XcConditionObjVal[];
+export type ConditionVal = AtLeastOne<{
+  eq: string | number | boolean | Date;
+  neq: string | number | boolean | Date;
+  lt: number | string | Date;
+  gt: number | string | Date;
+  ge: number | string | Date;
+  le: number | string | Date;
+  like: string;
+  nlike: string;
+}>;
+
+export interface Condition {
+  _or?: Condition[];
+  _and?: Condition[];
+  _not?: Condition;
+
+  [key: string]: ConditionVal | Condition | Condition[];
 }
 
 declare module 'knex' {
@@ -527,7 +532,7 @@ declare module 'knex' {
       ): Knex.QueryBuilder<TRecord, TResult>;
 
       condition<TRecord, TResult>(
-        conditionObj: XcXonditionObj,
+        conditionObj: Condition,
         columnAliases?: {
           [columnAlias: string]: string;
         },
@@ -542,7 +547,7 @@ declare module 'knex' {
       ): Knex.QueryBuilder<TRecord, TResult>;
 
       conditionGraph<TRecord, TResult>(condition: {
-        condition: XcXonditionObj;
+        condition: Condition;
         models: { [key: string]: BaseModelSql };
       }): Knex.QueryBuilder<TRecord, TResult>;
 
@@ -552,6 +557,8 @@ declare module 'knex' {
           [columnAlias: string]: string;
         },
       ): Knex.QueryBuilder<TRecord, TResult>;
+
+      hasWhere(): boolean;
     }
   }
 }
@@ -685,6 +692,11 @@ const parseCondition = (obj, columnAliases, qb, pKey?) => {
             case 'nin':
               qb = qb.whereNotIn(fieldName, val);
               break;
+            default:
+              NcError.metaError({
+                message: `Found invalid conditional operator "${key}" in expression`,
+                sql: '',
+              });
           }
         }
         break;
@@ -1274,8 +1286,15 @@ function parseNestedConditionv2(obj, qb, pKey?, table?, tableAlias?) {
   return qb;
 }
 
-// Conditionv2
+// extend the knex query builder with a method to check if a where clause exists
+knex.QueryBuilder.extend('hasWhere', function () {
+  // Inspect the _statements array for 'where' clauses
+  return (
+    this as unknown as { _statements: { grouping: string }[] }
+  )._statements.some((statement) => statement.grouping === 'where') as any;
+});
 
+// Conditionv2
 /**
  * Append custom where condition(nested object) to knex query builder
  */

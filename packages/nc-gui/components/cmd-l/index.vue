@@ -219,7 +219,7 @@ onMounted(() => {
                 </div>
                 <div class="flex w-1/2 justify-end text-gray-600">
                   <div class="flex gap-2 px-2 py-1 rounded-md items-center">
-                    <component :is="iconMap.projectGray" class="w-3 h-3 text-transparent" />
+                    <component :is="iconMap.project" class="w-3 h-3" />
                     <a-tooltip overlay-class-name="!px-2 !py-1 !rounded-lg">
                       <template #title>
                         {{ cmdOption.baseName }}
@@ -230,7 +230,7 @@ onMounted(() => {
                     </a-tooltip>
                     <span class="text-bold"> / </span>
 
-                    <component :is="iconMap.table" class="w-3 h-3 text-transparent" />
+                    <component :is="iconMap.table" class="w-3 h-3" />
                     <a-tooltip overlay-class-name="!px-2 !py-1 !rounded-lg">
                       <template #title>
                         {{ cmdOption.tableName }}

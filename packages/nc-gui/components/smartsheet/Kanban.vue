@@ -139,7 +139,8 @@ reloadViewMetaHook?.on(async () => {
 
 const expandForm = (row: RowType, state?: Record<string, any>) => {
   const rowId = extractPkFromRow(row.row, meta.value!.columns!)
-
+  expandedFormRow.value = row
+  expandedFormRowState.value = state
   if (rowId && !isPublic.value) {
     router.push({
       query: {
@@ -148,8 +149,6 @@ const expandForm = (row: RowType, state?: Record<string, any>) => {
       },
     })
   } else {
-    expandedFormRow.value = row
-    expandedFormRowState.value = state
     expandedFormDlg.value = true
   }
 }
@@ -729,6 +728,7 @@ const getRowId = (row: RowType) => {
       :row="expandedFormRow"
       :state="expandedFormRowState"
       :meta="meta"
+      :load-row="!isPublic"
       :view="view"
     />
   </Suspense>
@@ -736,9 +736,9 @@ const getRowId = (row: RowType) => {
   <Suspense>
     <LazySmartsheetExpandedForm
       v-if="expandedFormOnRowIdDlg && meta?.id"
-      :key="route.query.rowId"
       v-model="expandedFormOnRowIdDlg"
-      :row="{ row: {}, oldRow: {}, rowMeta: {} }"
+      :load-row="!isPublic"
+      :row="expandedFormRow ?? { row: {}, oldRow: {}, rowMeta: {} }"
       :meta="meta"
       :row-id="route.query.rowId"
       :view="view"

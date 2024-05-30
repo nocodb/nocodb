@@ -12,7 +12,7 @@ const reloadViewMetaHook = inject(ReloadViewMetaHookInj)
 
 const reloadViewDataHook = inject(ReloadViewDataHookInj)
 
-const { isMobileMode } = useGlobal()
+const isPublic = inject(IsPublicInj, ref(false))
 
 provide(IsFormInj, ref(false))
 
@@ -45,14 +45,15 @@ const expandedFormOnRowIdDlg = computed({
   get() {
     return !!route.query.rowId
   },
-  set(val) {
-    if (!val)
+  set(value) {
+    if (!value) {
       router.push({
         query: {
           ...route.query,
           rowId: undefined,
         },
       })
+    }
   },
 })
 
@@ -64,7 +65,11 @@ const expandedFormRowState = ref<Record<string, any>>()
 
 const expandRecord = (row: RowType, state?: Record<string, any>) => {
   const rowId = extractPkFromRow(row.row, meta.value!.columns!)
-  if (rowId) {
+
+  expandedFormRow.value = row
+  expandedFormRowState.value = state
+
+  if (rowId && !isPublic.value) {
     router.push({
       query: {
         ...route.query,
@@ -72,13 +77,12 @@ const expandRecord = (row: RowType, state?: Record<string, any>) => {
       },
     })
   } else {
-    expandedFormRow.value = row
-    expandedFormRowState.value = state
     expandedFormDlg.value = true
   }
 }
 
 const newRecord = (row: RowType) => {
+  if (isPublic.value) return
   $e('c:calendar:new-record', activeCalendarView.value)
   expandRecord({
     row: {
@@ -168,23 +172,27 @@ reloadViewDataHook?.on(async (params: void | { shouldShowLoading?: boolean }) =>
     <LazySmartsheetExpandedForm
       v-if="expandedFormRow && expandedFormDlg"
       v-model="expandedFormDlg"
-      close-after-save
-      :meta="meta"
       :row="expandedFormRow"
+      :load-row="!isPublic"
       :state="expandedFormRowState"
+      :meta="meta"
       :view="view"
     />
   </Suspense>
 
-  <Suspense>
-    <LazySmartsheetExpandedForm
-      v-if="expandedFormOnRowIdDlg && meta?.id"
-      v-model="expandedFormOnRowIdDlg"
-      close-after-save
-      :meta="meta"
-      :row="{ row: {}, oldRow: {}, rowMeta: {} }"
-      :row-id="route.query.rowId"
-      :view="view"
-    />
-  </Suspense>
+  <LazySmartsheetExpandedForm
+    v-if="expandedFormOnRowIdDlg && meta?.id"
+    v-model="expandedFormOnRowIdDlg"
+    close-after-save
+    :load-row="!isPublic"
+    :meta="meta"
+    :state="expandedFormRowState"
+    :row="{
+      row: {},
+      oldRow: {},
+      rowMeta: {},
+    }"
+    :row-id="route.query.rowId"
+    :view="view"
+  />
 </template>

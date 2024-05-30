@@ -1930,7 +1930,6 @@ onKeyStroke('ArrowDown', onDown)
                           <span class="flex-1" />
 
                           <div
-                            v-if="isUIAllowed('expandedForm')"
                             class="nc-expand"
                             :data-testid="`nc-expand-${rowIndex}`"
                             :class="{ 'nc-comment': row.rowMeta?.commentCount }"

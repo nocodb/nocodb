@@ -1,5 +1,3 @@
-import type { UserType } from 'nocodb-sdk';
-
 export const JOBS_QUEUE = 'jobs';
 
 export enum JobTypes {
@@ -46,11 +44,10 @@ export enum InstanceCommands {
 }
 
 export interface HandleWebhookJobData {
-  hookName: string;
+  hookId: string;
+  modelId: string;
+  viewId: string;
   prevData;
   newData;
-  user: UserType;
-  viewId: string;
-  modelId: string;
-  tnPath: string;
+  user;
 }

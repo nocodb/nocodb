@@ -738,6 +738,7 @@
     "noAccess": "No access",
     "restApis": "Rest APIs",
     "apis": "APIs",
+    "apiSnippet": "API Snippets",
     "includeData": "Include Data",
     "includeView": "Include View",
     "includeWebhook": "Include Webhook",

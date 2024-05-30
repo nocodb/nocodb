@@ -63,8 +63,6 @@ const isFirstRow = toRef(props, 'firstRow')
 
 const route = useRoute()
 
-const router = useRouter()
-
 const isPublic = inject(IsPublicInj, ref(false))
 
 // to check if a expanded form which is not yet saved exist or not
@@ -303,13 +301,19 @@ provide(ReloadRowDataHookInj, reloadHook)
 
 if (isKanban.value) {
   // adding column titles to changedColumns if they are preset
-  for (const [k, v] of Object.entries(_row.value.row)) {
-    if (v) {
-      changedColumns.value.add(k)
+  if (_row.value.rowMeta.new) {
+    for (const [k, v] of Object.entries(_row.value.row)) {
+      if (v) {
+        changedColumns.value.add(k)
+      }
     }
   }
 }
 provide(IsExpandedFormOpenInj, isExpanded)
+
+const triggerRowLoad = async (rowId?: string) => {
+  await Promise.allSettled([loadComments(), loadAudits(), _loadRow(rowId)])
+}
 
 const cellWrapperEl = ref()
 
@@ -318,22 +322,15 @@ onMounted(async () => {
   isLoading.value = true
 
   const focusFirstCell = !isExpandedFormCommentMode.value
+  let isTriggered = false
 
-  if (props.loadRow) {
-    await _loadRow()
-    await Promise.all([loadComments(), loadAudits()])
-  }
-
-  if (props.rowId) {
-    try {
-      await _loadRow(props.rowId)
-      await Promise.all([loadComments(), loadAudits()])
-    } catch (e: any) {
-      if (e.response?.status === 404) {
-        message.error(t('msg.noRecordFound'))
-        router.replace({ query: {} })
-      } else throw e
-    }
+  if (props.loadRow && !props.rowId) {
+    await triggerRowLoad()
+    isTriggered = true
+  } else if (props.rowId && props.loadRow && !isTriggered) {
+    await triggerRowLoad(props.rowId)
+  } else {
+    _row.value = props.row
   }
 
   isLoading.value = false
@@ -401,7 +398,7 @@ useActiveKeyupListener(
       ;(document.activeElement as HTMLInputElement)?.blur?.()
 
       if (changedColumns.value.size > 0) {
-        await Modal.confirm({
+        Modal.confirm({
           title: t('msg.saveChanges'),
           okText: t('general.save'),
           cancelText: t('labels.discard'),
@@ -415,7 +412,7 @@ useActiveKeyupListener(
           },
         })
       } else if (isNew.value) {
-        await Modal.confirm({
+        Modal.confirm({
           title: 'Do you want to save the record?',
           okText: t('general.save'),
           cancelText: t('labels.discard'),
@@ -458,8 +455,7 @@ const onConfirmDeleteRowClick = async () => {
 }
 
 watch(rowId, async (nRow) => {
-  await _loadRow(nRow)
-  await Promise.all([loadComments(), loadAudits()])
+  await triggerRowLoad(nRow)
 })
 
 const showRightSections = computed(() => {

@@ -1,8 +1,6 @@
-<script setup lang="ts"></script>
-
 <template>
   <div class="w-full">
-    <a-menu-item class="nc-menu-item">
+    <a-menu-item v-bind="$attrs" class="nc-menu-item">
       <div class="nc-menu-item-inner">
         <slot />
       </div>

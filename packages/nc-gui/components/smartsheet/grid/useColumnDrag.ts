@@ -18,6 +18,7 @@ export const useColumnDrag = ({
   const { leftSidebarWidth } = storeToRefs(useSidebarStore())
   const { width } = useWindowSize()
 
+  const isProcessing = ref<boolean>(false)
   const draggedCol = ref<ColumnType | null>(null)
   const dragColPlaceholderDomRef = ref<HTMLElement | null>(null)
   const toBeDroppedColId = ref<string | null>(null)
@@ -106,9 +107,11 @@ export const useColumnDrag = ({
   }
 
   const handleReorderColumn = async () => {
+    isProcessing.value = true
     dragColPlaceholderDomRef.value!.style.left = '0px'
     dragColPlaceholderDomRef.value!.style.height = '0px'
     await reorderColumn(draggedCol.value!.id!, toBeDroppedColId.value!)
+    isProcessing.value = false
     draggedCol.value = null
     toBeDroppedColId.value = null
   }
@@ -180,10 +183,12 @@ export const useColumnDrag = ({
   }
 
   // fallback for safari browser
-  const onDragEnd = (e: DragEvent) => {
+  const onDragEnd = async (e: DragEvent) => {
     e.preventDefault()
 
     if (!e.dataTransfer || !draggedCol.value || !toBeDroppedColId.value) return
+
+    await until(() => isProcessing.value == false).toBeTruthy()
 
     handleReorderColumn()
   }

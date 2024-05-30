@@ -186,9 +186,9 @@ export const useColumnDrag = ({
   const onDragEnd = async (e: DragEvent) => {
     e.preventDefault()
 
-    if (!e.dataTransfer || !draggedCol.value || !toBeDroppedColId.value) return
-
     await until(() => isProcessing.value == false).toBeTruthy()
+
+    if (!e.dataTransfer || !draggedCol.value || !toBeDroppedColId.value) return
 
     handleReorderColumn()
   }

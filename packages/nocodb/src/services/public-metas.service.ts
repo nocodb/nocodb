@@ -56,20 +56,6 @@ export class PublicMetasService {
       }
     }
 
-
-    // Required for Calendar Views
-    const rangeColumns = [];
-
-    if (view.type === ViewTypes.CALENDAR) {
-      (view.view as CalendarView).calendar_range.forEach((c) => {
-        if (c.fk_from_column_id) {
-          rangeColumns.push(c.fk_from_column_id);
-        } else if ((c as any).fk_to_column_id) {
-          rangeColumns.push((c as any).fk_to_column_id);
-        }
-      });
-    }
-
     view.model.columns = view.columns
       .filter((c) => {
         const column = view.model.columnsById[c.fk_column_id];

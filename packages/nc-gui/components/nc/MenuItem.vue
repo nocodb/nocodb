@@ -1,3 +1,9 @@
+<script>
+export default {
+  inheritAttrs: false,
+}
+</script>
+
 <template>
   <div class="w-full">
     <a-menu-item v-bind="$attrs" class="nc-menu-item">

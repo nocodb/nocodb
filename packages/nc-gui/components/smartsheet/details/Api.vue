@@ -76,7 +76,7 @@ const snippet = computed(
       headers: [
         {
           name: 'xc-token',
-          value: `<CREATE YOUR API TOKEN FROM : ${location.origin + location.pathname}#/account/tokens>`,
+          value: `CREATE_YOUR_API_TOKEN_FROM ${location.origin + location.pathname}#/account/tokens`,
           comment: 'API token',
         },
       ],
@@ -101,7 +101,7 @@ const code = computed(() => {
 const api = new Api({
   baseURL: "${(appInfo.value && appInfo.value.ncSiteUrl) || '/'}",
   headers: {
-    "xc-token": "<CREATE YOUR API TOKEN FROM : ${location.origin + location.pathname}#/account/tokens>"
+    "xc-token": "CREATE_YOUR_API_TOKEN_FROM ${location.origin + location.pathname}#/account/tokens"
   }
 })
 

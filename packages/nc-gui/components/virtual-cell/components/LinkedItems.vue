@@ -453,6 +453,7 @@ const onFilterChange = () => {
       <LazySmartsheetExpandedForm
         v-if="expandedFormRow && expandedFormDlg"
         v-model="expandedFormDlg"
+        :load-row="!isPublic"
         :close-after-save="isExpandedFormCloseAfterSave"
         :meta="relatedTableMeta"
         :new-record-header="

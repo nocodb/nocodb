@@ -567,11 +567,12 @@ const stopDrag = (event: MouseEvent) => {
 }
 
 const dragStart = (event: MouseEvent, record: Row) => {
-  if (!isUIAllowed('dataEdit') || resizeInProgress.value || !record.rowMeta.id) return
+  if (resizeInProgress.value || !record.rowMeta.id) return
   let target = event.target as HTMLElement
   isDragging.value = false
 
   dragTimeout.value = setTimeout(() => {
+    if (!isUIAllowed('dataEdit')) return
     isDragging.value = true
 
     while (!target.classList.contains('draggable-record')) {
@@ -825,7 +826,6 @@ const addRecord = (date: dayjs.Dayjs) => {
               :resize="!!record.rowMeta.range?.fk_to_col && isUIAllowed('dataEdit')"
               :selected="dragRecord?.rowMeta?.id === record.rowMeta.id || resizeRecord?.rowMeta?.id === record.rowMeta.id"
               @resize-start="onResizeStart"
-              @dblclick.stop="emit('expandRecord', record)"
             >
               <template v-if="calDataType === UITypes.DateTime" #time>
                 <span class="text-xs font-medium text-gray-400">

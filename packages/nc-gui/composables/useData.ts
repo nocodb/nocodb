@@ -11,7 +11,7 @@ export function useData(args: {
   callbacks?: {
     changePage?: (page: number) => Promise<void>
     loadData?: () => Promise<void>
-    globalCallback?: (...args: any[]) => void
+    globalCallback?: (...args: any[]) => Promise<void>,
     syncCount?: () => Promise<void>
     syncPagination?: () => Promise<void>
   }

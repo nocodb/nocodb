@@ -445,7 +445,10 @@ const onDeleteRowClick = () => {
 
 const onConfirmDeleteRowClick = async () => {
   showDeleteRowModal.value = false
-  await deleteRowById(primaryKey.value)
+  // Close expanded form
+  isExpanded.value = false
+
+  await deleteRowById(primaryKey.value || undefined)
   message.success(t('msg.rowDeleted'))
   await reloadViewDataTrigger.trigger({
     shouldShowLoading: false,

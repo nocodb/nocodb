@@ -86,7 +86,7 @@ export class ColumnPageObject extends BasePage {
     await this.rootPage.waitForTimeout(500);
     await this.fillTitle({ title });
     await this.rootPage.waitForTimeout(500);
-    await this.selectType({ type });
+    await this.selectType({ type, isCreateColumn: true });
     await this.rootPage.waitForTimeout(500);
 
     switch (type) {
@@ -216,18 +216,30 @@ export class ColumnPageObject extends BasePage {
     await this.get().locator('.nc-column-name-input').fill(title);
   }
 
-  async selectType({ type, first }: { type: string; first?: boolean }) {
-    if (first) {
-      await this.get().locator('.ant-select-selector > .ant-select-selection-item').first().click();
+  async selectType({ type, first, isCreateColumn }: { type: string; first?: boolean; isCreateColumn?: boolean }) {
+    if (isCreateColumn) {
+      const searchInput = this.get().locator('.nc-column-type-search-input >> input');
+      await searchInput.waitFor({ state: 'visible' });
+      await searchInput.click();
+      await searchInput.fill(type);
+
+      await this.get().locator('.nc-column-list-wrapper').getByTestId(type).waitFor();
+      await this.get().locator('.nc-column-list-wrapper').getByTestId(type).click();
+
+      await this.get().locator('.nc-column-type-input').waitFor();
     } else {
-      await this.get().locator('.ant-select-selector > .ant-select-selection-item').click();
+      if (first) {
+        await this.get().locator('.ant-select-selector > .ant-select-selection-item').first().click();
+      } else {
+        await this.get().locator('.ant-select-selector > .ant-select-selection-item').click();
+      }
+
+      await this.get().locator('.ant-select-selection-search-input[aria-expanded="true"]').waitFor();
+      await this.get().locator('.ant-select-selection-search-input[aria-expanded="true"]').fill(type);
+
+      // Select column type
+      await this.rootPage.locator('.rc-virtual-list-holder-inner > div').getByTestId(type).click();
     }
-
-    await this.get().locator('.ant-select-selection-search-input[aria-expanded="true"]').waitFor();
-    await this.get().locator('.ant-select-selection-search-input[aria-expanded="true"]').fill(type);
-
-    // Select column type
-    await this.rootPage.locator('.rc-virtual-list-holder-inner > div').locator(`text="${type}"`).click();
   }
 
   async changeReferencedColumnForQrCode({ titleOfReferencedColumn }: { titleOfReferencedColumn: string }) {

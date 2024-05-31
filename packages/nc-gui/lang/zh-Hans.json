@@ -738,6 +738,7 @@
     "noAccess": "无权访问",
     "restApis": "重置API",
     "apis": "APIs",
+    "apiSnippet": "API Snippets",
     "includeData": "包括数据",
     "includeView": "包括查看",
     "includeWebhook": "包括 Webhook",
@@ -1413,6 +1414,7 @@
       "preventHideAllOptions": "必填项不能为空"
     },
     "error": {
+      "errorLoadingRecord": "Error loading record data",
       "fetchingCalendarData": "获取日历数据时出错",
       "fetchingActiveDates": "获取活动日期时出错",
       "scopesRequired": "范围不能为空",

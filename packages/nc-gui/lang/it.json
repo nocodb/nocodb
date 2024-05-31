@@ -738,6 +738,7 @@
     "noAccess": "Nessun accesso",
     "restApis": "REST API",
     "apis": "API",
+    "apiSnippet": "API Snippets",
     "includeData": "Includi Dati",
     "includeView": "Includi Vista",
     "includeWebhook": "Includi Webhook",
@@ -1413,6 +1414,7 @@
       "preventHideAllOptions": "You cannot hide all options if field is required"
     },
     "error": {
+      "errorLoadingRecord": "Error loading record data",
       "fetchingCalendarData": "Error fetching calendar data",
       "fetchingActiveDates": "Error fetching active dates",
       "scopesRequired": "Scopes required",

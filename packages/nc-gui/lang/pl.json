@@ -738,6 +738,7 @@
     "noAccess": "Brak dostępu",
     "restApis": "Rest APIs",
     "apis": "APIs",
+    "apiSnippet": "API Snippets",
     "includeData": "Dołącz dane",
     "includeView": "Dołącz widok",
     "includeWebhook": "Dołącz Webhook",
@@ -1413,6 +1414,7 @@
       "preventHideAllOptions": "Nie możesz ukryć wszystkich opcji, jeśli pole jest wymagane"
     },
     "error": {
+      "errorLoadingRecord": "Error loading record data",
       "fetchingCalendarData": "Błąd podczas pobierania danych kalendarza",
       "fetchingActiveDates": "Błąd podczas pobierania aktywnych dat",
       "scopesRequired": "Wymagane zakresy",

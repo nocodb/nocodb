@@ -738,6 +738,7 @@
     "noAccess": "Sin acceso",
     "restApis": "API REST",
     "apis": "API",
+    "apiSnippet": "API Snippets",
     "includeData": "Incluir datos",
     "includeView": "Incluir vista",
     "includeWebhook": "Incluir Webhook",
@@ -1413,6 +1414,7 @@
       "preventHideAllOptions": "You cannot hide all options if field is required"
     },
     "error": {
+      "errorLoadingRecord": "Error loading record data",
       "fetchingCalendarData": "Error fetching calendar data",
       "fetchingActiveDates": "Error fetching active dates",
       "scopesRequired": "Scopes required",

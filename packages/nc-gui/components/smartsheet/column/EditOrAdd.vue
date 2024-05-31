@@ -60,7 +60,13 @@ const mounted = ref(false)
 const showDefaultValueInput = ref(false)
 
 const isVisibleDefaultValueInput = computed({
-  get: () => formState.value.cdf !== null || showDefaultValueInput.value,
+  get: () => {
+    if (formState.value.cdf && !showDefaultValueInput.value) {
+      showDefaultValueInput.value = true
+    }
+
+    return formState.value.cdf !== null || showDefaultValueInput.value
+  },
   set: (value: boolean) => {
     showDefaultValueInput.value = value
   },

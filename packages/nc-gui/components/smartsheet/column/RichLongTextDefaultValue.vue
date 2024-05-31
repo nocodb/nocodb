@@ -44,10 +44,31 @@ const updateCdfValue = (cdf: string | null, hideInput?: boolean) => {
     </div>
     <div class="flex flex-row gap-2">
       <div
-        class="border-1 relative pt-11 flex items-center w-full px-0 border-gray-300 rounded-md max-h-70 pb-1 hover:border-brand-400 focus-within:(border-brand-500 shadow-selected) transition-all duration-0.3s"
+        class="nc-rich-long-text-default-value border-1 relative pt-7 flex items-center w-full px-0 border-gray-300 rounded-md max-h-70 pb-1 hover:border-brand-400 focus-within:(border-brand-500 shadow-selected) transition-all duration-0.3s"
       >
         <LazyCellRichText v-model:value="cdfValue" class="border-t-1 border-gray-100 !max-h-80 !min-h-30" show-menu />
       </div>
     </div>
   </template>
 </template>
+
+<style lang="scss" scoped>
+.nc-rich-long-text-default-value {
+  :deep(.nc-rich-text) {
+    .bubble-menu.embed-mode.edit-column-mode {
+      @apply gap-x-0 p-0 h-7 border-0;
+
+      .nc-button {
+        @apply !mt-0 h-7 p-1 min-w-7;
+
+        svg {
+          @apply h-4 w-4;
+        }
+      }
+      .divider {
+        @apply !m-0 !h-7 border-gray-100;
+      }
+    }
+  }
+}
+</style>

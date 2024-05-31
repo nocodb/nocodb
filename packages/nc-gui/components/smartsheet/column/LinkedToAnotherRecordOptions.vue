@@ -61,19 +61,19 @@ const isLinks = computed(() => vModel.value.uidt === UITypes.Links && vModel.val
         <a-radio-group v-model:value="vModel.type" name="type" v-bind="validateInfos.type">
           <a-radio value="mm">
             <span class="nc-ltar-icon nc-mm-icon">
-              <GeneralIcon icon="mm" class="text-white" />
+              <GeneralIcon icon="mm_solid" />
             </span>
             {{ $t('title.manyToMany') }}
           </a-radio>
           <a-radio value="hm">
             <span class="nc-ltar-icon nc-hm-icon">
-              <GeneralIcon icon="hm" class="text-white" />
+              <GeneralIcon icon="hm_solid" />
             </span>
             {{ $t('title.hasMany') }}
           </a-radio>
           <a-radio value="oo">
             <span class="nc-ltar-icon nc-oo-icon">
-              <GeneralIcon icon="oneToOneSolid" class="text-white" />
+              <GeneralIcon icon="oneToOneSolid" />
             </span>
             {{ $t('title.oneToOne') }}
           </a-radio>
@@ -207,18 +207,6 @@ const isLinks = computed(() => vModel.value.uidt === UITypes.Links && vModel.val
 
     .nc-ltar-icon {
       @apply inline-flex items-center p-1 rounded-md;
-      &.nc-mm-icon {
-        @apply bg-pink-500;
-      }
-      &.nc-hm-icon {
-        @apply bg-orange-500;
-      }
-      &.nc-oo-icon {
-        @apply bg-purple-500;
-        svg path {
-          @apply stroke-purple-50;
-        }
-      }
     }
   }
 }

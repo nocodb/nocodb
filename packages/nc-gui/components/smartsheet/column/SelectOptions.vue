@@ -450,6 +450,7 @@ const loadListData = async ($state: any) => {
       }"
       size="small"
       @click="addNewOption()"
+      data-testid="nc-add-select-option-btn"
     >
       <div class="flex items-center">
         <component :is="iconMap.plus" />

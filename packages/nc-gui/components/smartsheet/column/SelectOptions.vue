@@ -364,7 +364,7 @@ const loadListData = async ($state: any) => {
       </InfiniteLoading>
       <Draggable :list="renderedOptions" item-key="id" handle=".nc-child-draggable-icon" @change="syncOptions">
         <template #item="{ element, index }">
-          <div class="flex py-1 items-center nc-select-option border-b-1 border-gray-200 last:border-b-0 hover:bg-gray-100">
+          <div class="flex py-1 items-center nc-select-option hover:bg-gray-100 group">
             <div
               class="flex items-center w-full"
               :data-testid="`select-column-option-${index}`"
@@ -378,19 +378,11 @@ const loadListData = async ($state: any) => {
                 <component :is="iconMap.dragVertical" small class="handle" />
               </div>
 
-              <NcDropdown
-                :class="{
-                  'ml-1': isKanban,
-                }"
-                :auto-close="false"
-                v-model:visible="colorMenus[index]"
-              >
-                <div class="flex items-center">
-                  <MdiArrowDownDropCircle
-                    class="mr-2 text-[1.5em] outline-0 cursor-pointer h-5 w-5"
-                    :class="{ 'text-[1.75em]': colorMenus[index] }"
-                    :style="{ color: element.color }"
-                  />
+              <NcDropdown :auto-close="false" v-model:visible="colorMenus[index]">
+                <div class="flex-none h-6 w-6 flex cursor-pointer mx-1">
+                  <div class="h-6 w-6 rounded-lg flex items-center" :style="{ backgroundColor: element.color }">
+                    <GeneralIcon icon="arrowDown" class="flex-none h-4 w-4 m-auto !text-gray-600" />
+                  </div>
                 </div>
 
                 <template #overlay>
@@ -416,7 +408,7 @@ const loadListData = async ($state: any) => {
             <div
               v-if="element.status !== 'remove'"
               :data-testid="`select-column-option-remove-${index}`"
-              class="mx-1 hover:!text-black-500 text-gray-500 cursor-pointer hover:bg-gray-200 py-1 px-1.5 rounded-md h-7 flex items-center"
+              class="mx-1 hover:!text-black-500 text-gray-500 cursor-pointer hover:bg-gray-200 py-1 px-1.5 rounded-md h-7 flex items-center invisible group-hover:visible"
               @click="removeRenderedOption(index)"
             >
               <component :is="iconMap.close" class="-mt-0.25 w-4 h-4" />
@@ -424,7 +416,7 @@ const loadListData = async ($state: any) => {
             <div
               v-else
               :data-testid="`select-column-option-remove-undo-${index}`"
-              class="mx-1 hover:!text-black-500 text-gray-500 cursor-pointer hover:bg-gray-200 py-1 px-1.5 rounded-md h-7 flex items-center"
+              class="mx-1 hover:!text-black-500 text-gray-500 cursor-pointer hover:bg-gray-200 py-1 px-1.5 rounded-md h-7 flex items-center invisible group-hover:visible"
               @click="undoRemoveRenderedOption(index)"
             >
               <MdiArrowULeftBottom

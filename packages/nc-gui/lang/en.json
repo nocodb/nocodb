@@ -770,7 +770,8 @@
     "limitOptions": "Limit options",
     "limitOptionsSubtext": "Limit options visible to users by selecting available options",
     "clearSelection": "Clear selection",
-    "displayAsProgress": "Display as progress"
+    "displayAsProgress": "Display as progress",
+    "relationType": "Relation type"
   },
   "activity": {
     "renameBase": "Rename Base",

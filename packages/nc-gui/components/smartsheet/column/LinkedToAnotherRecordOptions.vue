@@ -1,15 +1,16 @@
 <script setup lang="ts">
 import { ModelTypes, MssqlUi, RelationTypes, SqliteUi, UITypes } from 'nocodb-sdk'
-import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
-import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
 
 const props = defineProps<{
   value: any
+  isEdit: boolean
 }>()
 
 const emit = defineEmits(['update:value'])
 
 const vModel = useVModel(props, 'value', emit)
+
+const isEdit = toRef(props, 'isEdit')
 
 const meta = inject(MetaInj, ref())
 
@@ -20,25 +21,28 @@ const { tables } = storeToRefs(baseStore)
 
 const { t } = useI18n()
 
-setAdditionalValidations({
-  childId: [{ required: true, message: t('general.required') }],
-})
+if (!isEdit.value) {
+  setAdditionalValidations({
+    childId: [{ required: true, message: t('general.required') }],
+  })
+}
 
 const onUpdateDeleteOptions = sqlUi === MssqlUi ? ['NO ACTION'] : ['NO ACTION', 'CASCADE', 'RESTRICT', 'SET NULL', 'SET DEFAULT']
 
-if (!vModel.value.parentId) vModel.value.parentId = meta.value?.id
-if (!vModel.value.childId) vModel.value.childId = null
-if (!vModel.value.childColumn) vModel.value.childColumn = `${meta.value?.table_name}_id`
-if (!vModel.value.childTable) vModel.value.childTable = meta.value?.table_name
-if (!vModel.value.parentTable) vModel.value.parentTable = vModel.value.rtn || ''
-if (!vModel.value.parentColumn) vModel.value.parentColumn = vModel.value.rcn || ''
+if (!isEdit.value) {
+  if (!vModel.value.parentId) vModel.value.parentId = meta.value?.id
+  if (!vModel.value.childId) vModel.value.childId = null
+  if (!vModel.value.childColumn) vModel.value.childColumn = `${meta.value?.table_name}_id`
+  if (!vModel.value.childTable) vModel.value.childTable = meta.value?.table_name
+  if (!vModel.value.parentTable) vModel.value.parentTable = vModel.value.rtn || ''
+  if (!vModel.value.parentColumn) vModel.value.parentColumn = vModel.value.rcn || ''
 
-if (!vModel.value.type) vModel.value.type = 'mm'
-if (!vModel.value.onUpdate) vModel.value.onUpdate = onUpdateDeleteOptions[0]
-if (!vModel.value.onDelete) vModel.value.onDelete = onUpdateDeleteOptions[0]
-if (!vModel.value.virtual) vModel.value.virtual = sqlUi === SqliteUi // appInfo.isCloud || sqlUi === SqliteUi
-if (!vModel.value.alias) vModel.value.alias = vModel.value.column_name
-
+  if (!vModel.value.type) vModel.value.type = 'mm'
+  if (!vModel.value.onUpdate) vModel.value.onUpdate = onUpdateDeleteOptions[0]
+  if (!vModel.value.onDelete) vModel.value.onDelete = onUpdateDeleteOptions[0]
+  if (!vModel.value.virtual) vModel.value.virtual = sqlUi === SqliteUi // appInfo.isCloud || sqlUi === SqliteUi
+  if (!vModel.value.alias) vModel.value.alias = vModel.value.column_name
+}
 const advancedOptions = ref(false)
 
 const refTables = computed(() => {
@@ -52,13 +56,22 @@ const refTables = computed(() => {
 const filterOption = (value: string, option: { key: string }) => option.key.toLowerCase().includes(value.toLowerCase())
 
 const isLinks = computed(() => vModel.value.uidt === UITypes.Links && vModel.value.type !== RelationTypes.ONE_TO_ONE)
+
+const referenceTableChildId = computed({
+  get: () => (isEdit.value ? vModel.value?.columnOptions?.fk_related_model_id : vModel.value?.childId) ?? null,
+  set: (value) => {
+    if (value) {
+      vModel.value.childId = value
+    }
+  },
+})
 </script>
 
 <template>
   <div class="w-full flex flex-col gap-4">
     <div class="flex flex-col gap-4">
-      <a-form-item v-bind="validateInfos.type" class="nc-ltar-relation-type">
-        <a-radio-group v-model:value="vModel.type" name="type" v-bind="validateInfos.type">
+      <a-form-item :label="$t('labels.relationType')" v-bind="validateInfos.type" class="nc-ltar-relation-type">
+        <a-radio-group v-model:value="vModel.type" name="type" v-bind="validateInfos.type" :disabled="isEdit">
           <a-radio value="mm">
             <span class="nc-ltar-icon nc-mm-icon">
               <GeneralIcon icon="mm_solid" />
@@ -82,8 +95,9 @@ const isLinks = computed(() => vModel.value.uidt === UITypes.Links && vModel.val
 
       <a-form-item class="flex w-full nc-ltar-child-table" v-bind="validateInfos.childId">
         <a-select
-          v-model:value="vModel.childId"
+          v-model:value="referenceTableChildId"
           show-search
+          :disabled="isEdit"
           :filter-option="filterOption"
           placeholder="select table to link"
           dropdown-class-name="nc-dropdown-ltar-child-table"
@@ -92,7 +106,7 @@ const isLinks = computed(() => vModel.value.uidt === UITypes.Links && vModel.val
           <template #suffixIcon>
             <GeneralIcon icon="arrowDown" class="text-gray-700" />
           </template>
-          <a-select-option v-for="table of refTables" :key="table.title" :value="table.id">
+          <a-select-option v-for="table of refTables" :key="table.id" :value="table.id">
             <div class="flex w-full items-center gap-2">
               <div class="min-w-5 flex items-center justify-center">
                 <GeneralTableIcon :meta="table" class="text-gray-500" />
@@ -110,9 +124,11 @@ const isLinks = computed(() => vModel.value.uidt === UITypes.Links && vModel.val
       <div>
         <NcButton @click.stop="advancedOptions = !advancedOptions" size="small" type="text" class="!hover:text-gray-700">
           <div class="flex items-center gap-2">
-            {{ advancedOptions ? $t('general.hideAll') : $t('general.showMore') }}
+            <span class="first-letter:capitalize">
+              {{ $t('title.advancedSettings').toLowerCase() }}
+            </span>
 
-            <component :is="advancedOptions ? MdiMinusIcon : MdiPlusIcon" />
+            <GeneralIcon :icon="advancedOptions ? 'arrowUp' : 'arrowDown'" class="h-4 w-4" />
           </div>
         </NcButton>
       </div>
@@ -189,7 +205,7 @@ const isLinks = computed(() => vModel.value.uidt === UITypes.Links && vModel.val
 
 <style lang="scss" scoped>
 :deep(.nc-ltar-relation-type .ant-radio-group) {
-  @apply flex  justify-between gap-2 children:(flex-1 m-0 px-2 py-1 border-1 border-gray-200 rounded-lg);
+  @apply flex justify-between gap-2 children:(flex-1 m-0 px-2 py-1 border-1 border-gray-200 rounded-lg);
 
   .ant-radio-wrapper {
     @apply transition-all flex-row-reverse justify-between items-center py-1 pl-1 pr-3;
@@ -209,5 +225,9 @@ const isLinks = computed(() => vModel.value.uidt === UITypes.Links && vModel.val
       @apply inline-flex items-center p-1 rounded-md;
     }
   }
+}
+
+:deep(.nc-ltar-relation-type .ant-col.ant-form-item-control) {
+  @apply h-8.5;
 }
 </style>

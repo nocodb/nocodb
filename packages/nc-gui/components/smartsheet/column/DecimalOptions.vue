@@ -47,7 +47,7 @@ const onPrecisionChange = (value: number) => {
     <a-select
       v-if="vModel.meta?.precision"
       v-model:value="vModel.meta.precision"
-      dropdown-class-name="nc-dropdown-decimal-format border-1 !rounded-lg border-gray-200"
+      dropdown-class-name="nc-dropdown-decimal-format"
       @change="onPrecisionChange"
     >
       <template #suffixIcon>

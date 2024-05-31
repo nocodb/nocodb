@@ -21,34 +21,46 @@ if (!vModel.value.meta?.time_format) {
 </script>
 
 <template>
-  <a-form-item :label="$t('labels.dateFormat')">
-    <a-select v-model:value="vModel.meta.date_format" class="nc-date-select" dropdown-class-name="nc-dropdown-date-format">
-      <a-select-option v-for="(format, i) of dateFormats" :key="i" :value="format">
-        <div class="flex gap-2 w-full justify-between items-center">
-          {{ format }}
-          <component
-            :is="iconMap.check"
-            v-if="vModel.meta.date_format === format"
-            id="nc-selected-item-icon"
-            class="text-primary w-4 h-4"
-          />
-        </div>
-      </a-select-option>
-    </a-select>
-  </a-form-item>
-  <a-form-item :label="$t('labels.timeFormat')">
-    <a-select v-model:value="vModel.meta.time_format" class="nc-time-select" dropdown-class-name="nc-dropdown-time-format">
-      <a-select-option v-for="(format, i) of timeFormats" :key="i" :value="format">
-        <div class="flex gap-2 w-full justify-between items-center" :data-testid="`nc-time-${format}`">
-          {{ format }}
-          <component
-            :is="iconMap.check"
-            v-if="vModel.meta.time_format === format"
-            id="nc-selected-item-icon"
-            class="text-primary w-4 h-4"
-          />
-        </div>
-      </a-select-option>
-    </a-select>
-  </a-form-item>
+  <div class="flex flex-col gap-2">
+    <div class="flex items-center gap-2 children:flex-1">
+      <a-form-item>
+        <a-select v-model:value="vModel.meta.date_format" class="nc-date-select" dropdown-class-name="nc-dropdown-date-format">
+          <template #suffixIcon>
+            <GeneralIcon icon="arrowDown" class="text-gray-700" />
+          </template>
+
+          <a-select-option v-for="(format, i) of dateFormats" :key="i" :value="format">
+            <div class="flex gap-2 w-full justify-between items-center">
+              {{ format }}
+              <component
+                :is="iconMap.check"
+                v-if="vModel.meta.date_format === format"
+                id="nc-selected-item-icon"
+                class="text-primary w-4 h-4"
+              />
+            </div>
+          </a-select-option>
+        </a-select>
+      </a-form-item>
+      <a-form-item>
+        <a-select v-model:value="vModel.meta.time_format" class="nc-time-select" dropdown-class-name="nc-dropdown-time-format">
+          <template #suffixIcon>
+            <GeneralIcon icon="arrowDown" class="text-gray-700" />
+          </template>
+
+          <a-select-option v-for="(format, i) of timeFormats" :key="i" :value="format">
+            <div class="flex gap-2 w-full justify-between items-center" :data-testid="`nc-time-${format}`">
+              {{ format }}
+              <component
+                :is="iconMap.check"
+                v-if="vModel.meta.time_format === format"
+                id="nc-selected-item-icon"
+                class="text-primary w-4 h-4"
+              />
+            </div>
+          </a-select-option>
+        </a-select>
+      </a-form-item>
+    </div>
+  </div>
 </template>

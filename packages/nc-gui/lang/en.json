@@ -205,7 +205,8 @@
     "apply": "Apply",
     "text": "Text",
     "appearance": "Appearance",
-    "now": "Now"
+    "now": "Now",
+    "set": "Set"
   },
   "objects": {
     "owner": "Owner",

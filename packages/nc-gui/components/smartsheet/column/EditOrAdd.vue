@@ -238,13 +238,13 @@ if (props.fromTableExplorer) {
       '!w-146': isTextArea(formState) && formState.meta?.richMode,
       '!w-116 overflow-visible': formState.uidt === UITypes.Formula && !props.embedMode,
       '!w-[500px]': formState.uidt === UITypes.Attachment && !props.embedMode && !appInfo.ee,
-      'shadow-lg border-1 border-gray-200 shadow-gray-300 rounded-xl p-6': !embedMode,
+      'shadow-lg border-1 border-gray-200 shadow-gray-300 rounded-xl p-5': !embedMode,
     }"
     @keydown="handleEscape"
     @click.stop
   >
     <a-form v-model="formState" no-style name="column-create-or-edit" layout="vertical" data-testid="add-or-edit-column">
-      <div class="flex flex-col gap-2">
+      <div class="flex flex-col gap-4">
         <a-form-item v-if="isFieldsTab" v-bind="validateInfos.title" class="flex flex-grow">
           <div
             class="flex flex-grow px-2 py-1 items-center rounded-md bg-gray-100 focus:bg-gray-100 outline-none"
@@ -259,16 +259,11 @@ if (props.fromTableExplorer) {
             />
           </div>
         </a-form-item>
-        <a-form-item
-          v-if="!props.hideTitle && !isFieldsTab"
-          :label="`${columnLabel} ${$t('general.name')}`"
-          v-bind="validateInfos.title"
-          :required="false"
-        >
+        <a-form-item v-if="!props.hideTitle && !isFieldsTab" v-bind="validateInfos.title" :required="false" class="!mb-0">
           <a-input
             ref="antInput"
             v-model:value="formState.title"
-            class="nc-column-name-input !rounded-md !mt-1"
+            class="nc-column-name-input !rounded-lg"
             :disabled="isKanban || readOnly"
             @input="onAlter(8)"
           />
@@ -278,9 +273,7 @@ if (props.fromTableExplorer) {
           <a-form-item
             v-if="!props.hideType && !(isEdit && !!onlyNameUpdateOnEditColumns.find((col) => col === formState.uidt))"
             class="flex-1"
-            :label="`${columnLabel} ${$t('general.type')}`"
           >
-            <div class="h-1 w-full"></div>
             <a-select
               v-model:value="formState.uidt"
               show-search
@@ -464,15 +457,19 @@ if (props.fromTableExplorer) {
 }
 
 :deep(.ant-form-item) {
-  @apply !mb-1;
+  @apply !mb-0;
 }
 
 :deep(.ant-select-selection-item) {
   @apply flex items-center;
 }
 
-:deep(.ant-form-item-explain-error) {
-  @apply !text-[10px];
+:deep(.ant-form-item-explain) {
+  @apply !text-[10px] leading-normal;
+
+  & > div:first-child {
+    @apply mt-0.5;
+  }
 }
 
 :deep(.ant-form-item-explain) {

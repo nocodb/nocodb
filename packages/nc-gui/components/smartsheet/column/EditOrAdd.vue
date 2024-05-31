@@ -103,7 +103,12 @@ const showDeprecated = ref(false)
 const uiTypesOptions = computed<typeof uiTypes>(() => {
   return [
     ...uiTypes
-      .filter((t) => geoDataToggleCondition(t) && (!isEdit.value || !t.virtual) && (!t.deprecated || showDeprecated.value))
+      .filter(
+        (t) =>
+          geoDataToggleCondition(t) &&
+          (!isEdit.value || !t.virtual || t.name === formState.value.uidt) &&
+          (!t.deprecated || showDeprecated.value),
+      )
       .filter((t) => !(t.name === UITypes.SpecificDBType && isXcdbBase(meta.value?.source_id))),
     ...(!isEdit.value && meta?.value?.columns?.every((c) => !c.pk)
       ? [
@@ -116,12 +121,6 @@ const uiTypesOptions = computed<typeof uiTypes>(() => {
       : []),
   ]
 })
-
-const searchTypeQuery = ref('')
-
-const filteredUiTypesOptions = computed(
-  () => uiTypesOptions.value?.filter((c) => c.name.toLowerCase().includes(searchTypeQuery.value.toLowerCase())) ?? [],
-)
 
 const onSelectType = (uidt: UITypes) => {
   formState.value.uidt = uidt
@@ -570,7 +569,7 @@ if (props.fromTableExplorer) {
 }
 
 :deep(.ant-alert) {
-  @apply !rounded-lg !bg-white !border-gray-200 !p-4;
+  @apply !rounded-lg !bg-transparent !border-none !p-0;
 
   .ant-alert-message {
     @apply text-sm text-gray-800 font-weight-600;
@@ -584,5 +583,10 @@ if (props.fromTableExplorer) {
   .ant-select-selector {
     @apply !rounded-lg;
   }
+}
+
+:deep(input::placeholder),
+:deep(textarea::placeholder) {
+  @apply text-gray-500;
 }
 </style>

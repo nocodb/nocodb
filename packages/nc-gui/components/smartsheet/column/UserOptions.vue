@@ -40,7 +40,7 @@ const updateIsMulti = (isChecked: boolean) => {
 </script>
 
 <template>
-  <div class="flex flex-col">
+  <div class="flex flex-col gap-4">
     <a-form-item>
       <div v-if="vModel.meta" class="flex items-center gap-1">
         <NcSwitch :checked="vModel.meta.is_multi" @change="updateIsMulti">
@@ -48,13 +48,14 @@ const updateIsMulti = (isChecked: boolean) => {
         </NcSwitch>
       </div>
     </a-form-item>
-    <div v-if="future">
-      <a-checkbox v-if="vModel.meta" v-model:checked="vModel.meta.notify" class="ml-1 mb-1">
-        <span class="text-[10px] text-gray-600">Notify users with base access when they're added</span>
-      </a-checkbox>
-    </div>
-
-    <a-alert v-if="initialIsMulti && isEdit && !vModel.meta.is_multi" class="!mt-2" type="warning" show-icon>
+    <a-form-item v-if="future">
+      <div v-if="vModel.meta" class="flex items-center gap-1">
+        <NcSwitch v-model:checked="vModel.meta.notify" @change="updateIsMulti">
+          <div class="text-sm text-gray-800 select-none">Notify users with base access when they're added</div>
+        </NcSwitch>
+      </div>
+    </a-form-item>
+    <a-alert v-if="initialIsMulti && isEdit && !vModel.meta.is_multi" type="warning" show-icon>
       <template #icon><GeneralIcon icon="alertTriangle" class="h-6 w-6" width="24" height="24" /></template>
       <template #message> Alert </template>
       <template #description class="!text-small">

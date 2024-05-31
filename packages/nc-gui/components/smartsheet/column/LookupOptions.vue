@@ -15,7 +15,7 @@ const meta = inject(MetaInj, ref())
 
 const { t } = useI18n()
 
-const { setAdditionalValidations, validateInfos, onDataTypeChange, isEdit } = useColumnCreateStoreOrThrow()
+const { setAdditionalValidations, validateInfos, onDataTypeChange, isEdit, disableSubmitBtn } = useColumnCreateStoreOrThrow()
 
 const baseStore = useBase()
 
@@ -75,6 +75,14 @@ const onRelationColChange = async () => {
   vModel.value.fk_lookup_column_id = columns.value?.[0]?.id
   onDataTypeChange()
 }
+
+watchEffect(() => {
+  if (!refTables.value.length) {
+    disableSubmitBtn.value = true
+  } else if (refTables.value.length && disableSubmitBtn.value) {
+    disableSubmitBtn.value = false
+  }
+})
 
 const cellIcon = (column: ColumnType) =>
   h(isVirtualCol(column) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'), {

@@ -13,7 +13,7 @@ const vModel = useVModel(props, 'value', emit)
 
 const meta = inject(MetaInj, ref())
 
-const { setAdditionalValidations, validateInfos, onDataTypeChange, isEdit } = useColumnCreateStoreOrThrow()
+const { setAdditionalValidations, validateInfos, onDataTypeChange, isEdit, disableSubmitBtn } = useColumnCreateStoreOrThrow()
 
 const baseStore = useBase()
 
@@ -134,6 +134,14 @@ watch(
     }
   },
 )
+
+watchEffect(() => {
+  if (!refTables.value.length) {
+    disableSubmitBtn.value = true
+  } else if (refTables.value.length && disableSubmitBtn.value) {
+    disableSubmitBtn.value = false
+  }
+})
 </script>
 
 <template>

@@ -23,7 +23,7 @@ const props = defineProps<{
 
 const emit = defineEmits(['submit', 'cancel', 'mounted', 'add', 'update'])
 
-const { formState, generateNewColumnMeta, addOrUpdate, onAlter, onUidtOrIdTypeChange, validateInfos, isEdit } =
+const { formState, generateNewColumnMeta, addOrUpdate, onAlter, onUidtOrIdTypeChange, validateInfos, isEdit, disableSubmitBtn } =
   useColumnCreateStoreOrThrow()
 
 const { getMeta } = useMetas()
@@ -493,7 +493,7 @@ const submitBtnLabel = computed(() => {
                 html-type="submit"
                 type="primary"
                 :loading="saving"
-                :disabled="!formState.uidt"
+                :disabled="!formState.uidt || disableSubmitBtn"
                 size="small"
                 :label="submitBtnLabel.label"
                 :loading-label="submitBtnLabel.loadingLabel"

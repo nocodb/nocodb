@@ -38,6 +38,8 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
     const { activeView } = storeToRefs(useViewsStore())
 
+    const disableSubmitBtn = ref(false)
+
     const isEdit = computed(() => !!column?.value?.id)
 
     const isMysql = computed(() => isMysqlFunc(meta.value?.source_id ? meta.value?.source_id : Object.keys(sqlUis.value)[0]))
@@ -146,6 +148,8 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     const { resetFields, validate, validateInfos } = useForm(formState, validators)
 
     const onUidtOrIdTypeChange = () => {
+      disableSubmitBtn.value = false
+
       const colProp = sqlUi.value.getDataTypeForUiType(formState.value as { uidt: UITypes }, idType ?? undefined)
       formState.value = {
         ...(!isEdit.value && {
@@ -327,6 +331,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       isPg,
       isMysql,
       isXcdbBase,
+      disableSubmitBtn,
     }
   },
 )

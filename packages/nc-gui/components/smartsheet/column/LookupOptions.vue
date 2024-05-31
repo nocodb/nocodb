@@ -83,103 +83,96 @@ const cellIcon = (column: ColumnType) =>
 </script>
 
 <template>
-  <div class="">
-    <div v-if="refTables.length" class="w-full flex flex-row space-x-2">
-      <a-form-item
-        class="flex w-1/2"
-        :label="`${$t('general.link')} ${$t('objects.field')}`"
-        v-bind="validateInfos.fk_relation_column_id"
+  <div v-if="refTables.length" class="w-full flex flex-row space-x-2">
+    <a-form-item
+      class="flex w-1/2 !max-w-[calc(50%_-_4px)]"
+      :label="`${$t('general.link')} ${$t('objects.field')}`"
+      v-bind="validateInfos.fk_relation_column_id"
+    >
+      <a-select
+        v-model:value="vModel.fk_relation_column_id"
+        dropdown-class-name="!w-64 !rounded-md nc-dropdown-relation-table"
+        @change="onRelationColChange"
       >
-        <a-select
-          v-model:value="vModel.fk_relation_column_id"
-          dropdown-class-name="!w-64 !rounded-md nc-dropdown-relation-table"
-          @change="onRelationColChange"
-        >
-          <template #suffixIcon>
-            <GeneralIcon icon="arrowDown" class="text-gray-700" />
-          </template>
-          <a-select-option v-for="(table, i) of refTables" :key="i" :value="table.col.fk_column_id">
-            <div class="flex gap-2 w-full justify-between truncate items-center">
-              <div class="min-w-1/2 flex items-center gap-2">
-                <component :is="cellIcon(table.column)" :column-meta="table.column" class="!mx-0" />
+        <template #suffixIcon>
+          <GeneralIcon icon="arrowDown" class="text-gray-700" />
+        </template>
+        <a-select-option v-for="(table, i) of refTables" :key="i" :value="table.col.fk_column_id">
+          <div class="flex gap-2 w-full justify-between truncate items-center">
+            <div class="min-w-1/2 flex items-center gap-2">
+              <component :is="cellIcon(table.column)" :column-meta="table.column" class="!mx-0" />
 
-                <NcTooltip class="truncate min-w-[calc(100%_-_24px)]" show-on-truncate-only>
-                  <template #title>{{ table.column.title }}</template>
-                  {{ table.column.title }}
-                </NcTooltip>
-              </div>
-              <div class="inline-flex items-center truncate gap-2">
-                <div class="text-[0.65rem] flex-1 truncate text-gray-600 nc-relation-details">
-                  <span class="truncate">{{ table.title || table.table_name }}</span>
-                </div>
-
-                <component
-                  :is="iconMap.check"
-                  v-if="vModel.fk_relation_column_id === table.col.fk_column_id"
-                  id="nc-selected-item-icon"
-                  class="text-primary w-4 h-4"
-                />
-              </div>
+              <NcTooltip class="truncate min-w-[calc(100%_-_24px)]" show-on-truncate-only>
+                <template #title>{{ table.column.title }}</template>
+                {{ table.column.title }}
+              </NcTooltip>
             </div>
-          </a-select-option>
-        </a-select>
-      </a-form-item>
-
-      <a-form-item
-        class="flex w-1/2"
-        :label="`${$t('datatype.Lookup')} ${$t('objects.field')}`"
-        v-bind="validateInfos.fk_lookup_column_id"
-      >
-        <a-select
-          v-model:value="vModel.fk_lookup_column_id"
-          name="fk_lookup_column_id"
-          dropdown-class-name="nc-dropdown-relation-column !rounded-md"
-          @change="onDataTypeChange"
-        >
-          <template #suffixIcon>
-            <GeneralIcon icon="arrowDown" class="text-gray-700" />
-          </template>
-          <a-select-option v-for="(column, index) of columns" :key="index" :value="column.id">
-            <div class="w-full flex gap-2 truncate items-center justify-between">
-              <div class="inline-flex items-center flex-1 truncate">
-                <component :is="cellIcon(column)" :column-meta="column" />
-                <div class="truncate flex-1">{{ column.title }}</div>
+            <div class="inline-flex items-center truncate gap-2">
+              <div class="text-[0.65rem] flex-1 truncate text-gray-600 nc-relation-details">
+                <span class="truncate">{{ table.title || table.table_name }}</span>
               </div>
 
               <component
                 :is="iconMap.check"
-                v-if="vModel.fk_lookup_column_id === column.id"
+                v-if="vModel.fk_relation_column_id === table.col.fk_column_id"
                 id="nc-selected-item-icon"
                 class="text-primary w-4 h-4"
               />
             </div>
-          </a-select-option>
-        </a-select>
-      </a-form-item>
-    </div>
-    <div v-else>
-      <a-alert class="nc-lookup-options-warning" type="warning" show-icon>
-        <template #icon><GeneralIcon icon="alertTriangle" class="h-6 w-6" width="24" height="24" /></template>
-        <template #message> Alert </template>
-        <template #description class="!text-small"> {{ $t('msg.linkColumnClearNotSupportedYet') }} </template>
-      </a-alert>
-    </div>
+          </div>
+        </a-select-option>
+      </a-select>
+    </a-form-item>
+
+    <a-form-item
+      class="flex w-1/2"
+      :label="`${$t('datatype.Lookup')} ${$t('objects.field')}`"
+      v-bind="validateInfos.fk_lookup_column_id"
+    >
+      <a-select
+        v-model:value="vModel.fk_lookup_column_id"
+        name="fk_lookup_column_id"
+        dropdown-class-name="nc-dropdown-relation-column !rounded-md"
+        @change="onDataTypeChange"
+      >
+        <template #suffixIcon>
+          <GeneralIcon icon="arrowDown" class="text-gray-700" />
+        </template>
+        <a-select-option v-for="(column, index) of columns" :key="index" :value="column.id">
+          <div class="w-full flex gap-2 truncate items-center justify-between">
+            <div class="inline-flex items-center gap-2 flex-1 truncate">
+              <component :is="cellIcon(column)" :column-meta="column" class="!mx-0" />
+              <div class="truncate flex-1">{{ column.title }}</div>
+            </div>
+
+            <component
+              :is="iconMap.check"
+              v-if="vModel.fk_lookup_column_id === column.id"
+              id="nc-selected-item-icon"
+              class="text-primary w-4 h-4"
+            />
+          </div>
+        </a-select-option>
+      </a-select>
+    </a-form-item>
+  </div>
+  <div v-else>
+    <a-alert type="warning" show-icon>
+      <template #icon><GeneralIcon icon="alertTriangle" class="h-6 w-6" width="24" height="24" /></template>
+      <template #message> Alert </template>
+      <template #description class="!text-small">
+        {{
+          $t('msg.linkColumnClearNotSupportedYet', {
+            type: 'Lookup',
+          })
+        }}
+      </template>
+    </a-alert>
   </div>
 </template>
 
 <style scoped>
 :deep(.ant-select-selector .ant-select-selection-item .nc-relation-details) {
   @apply hidden;
-}
-
-:deep(.ant-alert.nc-lookup-options-warning) {
-  @apply !rounded-lg !bg-white !border-gray-200 !p-4;
-
-  .ant-alert-message {
-    @apply text-sm text-gray-800 font-weight-600;
-  }
-  .ant-alert-description {
-    @apply text-small text-gray-500 font-weight-500;
-  }
 }
 </style>

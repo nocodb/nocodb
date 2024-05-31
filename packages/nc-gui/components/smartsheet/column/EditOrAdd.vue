@@ -508,4 +508,15 @@ const updateCdfValue = (cdf: string | null) => {
 :deep(.ant-form-item-explain) {
   @apply !min-h-[15px];
 }
+
+:deep(.ant-alert) {
+  @apply !rounded-lg !bg-white !border-gray-200 !p-4;
+
+  .ant-alert-message {
+    @apply text-sm text-gray-800 font-weight-600;
+  }
+  .ant-alert-description {
+    @apply text-small text-gray-500 font-weight-500;
+  }
+}
 </style>

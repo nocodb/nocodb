@@ -54,7 +54,7 @@ const updateIsMulti = (isChecked: boolean) => {
       </a-checkbox>
     </div>
 
-    <a-alert v-if="initialIsMulti && isEdit && !vModel.meta.is_multi" class="nc-lookup-options-warning" type="warning" show-icon>
+    <a-alert v-if="initialIsMulti && isEdit && !vModel.meta.is_multi" class="!mt-2" type="warning" show-icon>
       <template #icon><GeneralIcon icon="alertTriangle" class="h-6 w-6" width="24" height="24" /></template>
       <template #message> Alert </template>
       <template #description class="!text-small">
@@ -63,16 +63,3 @@ const updateIsMulti = (isChecked: boolean) => {
     </a-alert>
   </div>
 </template>
-
-<style scoped>
-:deep(.ant-alert.nc-lookup-options-warning) {
-  @apply !rounded-lg !bg-white !border-gray-200 !p-4 mt-2;
-
-  .ant-alert-message {
-    @apply text-sm text-gray-800 font-weight-600;
-  }
-  .ant-alert-description {
-    @apply text-small text-gray-500 font-weight-500;
-  }
-}
-</style>

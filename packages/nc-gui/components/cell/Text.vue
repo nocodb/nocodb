@@ -35,7 +35,6 @@ const focus: VNodeRef = (el) =>
     :ref="focus"
     v-model="vModel"
     class="nc-cell-field h-full w-full outline-none py-1 bg-transparent"
-    :placeholder="isEditColumn ? $t('labels.optional') : ''"
     @blur="editEnabled = false"
     @keydown.down.stop
     @keydown.left.stop

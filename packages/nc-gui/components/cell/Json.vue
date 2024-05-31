@@ -19,6 +19,8 @@ const editEnabled = inject(EditModeInj, ref(false))
 
 const active = inject(ActiveCellInj, ref(false))
 
+const isEditColumn = inject(EditColumnInj, ref(false))
+
 const isForm = inject(IsFormInj, ref(false))
 
 const readOnly = inject(ReadonlyInj, ref(false))
@@ -133,6 +135,27 @@ onClickOutside(inputWrapperRef, (e) => {
 watch(isExpanded, () => {
   _isExpanded.value = isExpanded.value
 })
+
+const stopPropagation = (event: MouseEvent) => {
+  event.stopPropagation()
+}
+
+watch(inputWrapperRef, () => {
+  if (!isEditColumn.value) return
+
+  // stop event propogation in edit to prevent close edit modal on clicking expanded modal overlay
+  const modal = document.querySelector('.nc-json-expanded-modal') as HTMLElement
+
+  if (isExpanded.value && modal?.parentElement) {
+    modal.parentElement.addEventListener('click', stopPropagation)
+    modal.parentElement.addEventListener('mousedown', stopPropagation)
+    modal.parentElement.addEventListener('mouseup', stopPropagation)
+  } else if (modal?.parentElement) {
+    modal.parentElement.removeEventListener('click', stopPropagation)
+    modal.parentElement.removeEventListener('mousedown', stopPropagation)
+    modal.parentElement.removeEventListener('mouseup', stopPropagation)
+  }
+})
 </script>
 
 <template>
@@ -142,7 +165,7 @@ watch(isExpanded, () => {
     :closable="false"
     centered
     :footer="null"
-    :wrap-class-name="isExpanded ? '!z-1051' : null"
+    :wrap-class-name="isExpanded ? '!z-1051 nc-json-expanded-modal' : null"
   >
     <div v-if="editEnabled && !readOnly" class="flex flex-col w-full" @mousedown.stop @mouseup.stop @click.stop>
       <div class="flex flex-row justify-between pt-1 pb-2 nc-json-action" @mousedown.stop>
@@ -152,12 +175,21 @@ watch(isExpanded, () => {
           <CilFullscreen v-else class="h-2.5" />
         </a-button>
 
-        <div v-if="!isForm || isExpanded" class="flex flex-row my-1">
-          <a-button type="text" size="small" :onclick="clear"
+        <div v-if="!isForm || isExpanded" class="flex flex-row my-1 space-x-1">
+          <a-button type="text" size="small" class="!rounded-lg" @click="clear"
             ><div class="text-xs">{{ $t('general.cancel') }}</div></a-button
           >
 
-          <a-button type="primary" size="small" :disabled="!!error || localValue === vModel" @click="onSave">
+          <a-button
+            :type="isEditColumn && !isExpanded ? 'text' : 'primary'"
+            size="small"
+            class="nc-save-json-value-btn !rounded-lg"
+            :class="{
+              'nc-edit-modal': isEditColumn && !isExpanded,
+            }"
+            :disabled="!!error || localValue === vModel"
+            @click="onSave"
+          >
             <div class="text-xs">{{ $t('general.save') }}</div>
           </a-button>
         </div>
@@ -170,7 +202,7 @@ watch(isExpanded, () => {
         :class="{ 'expanded-editor': isExpanded, 'editor': !isExpanded }"
         :hide-minimap="true"
         :disable-deep-compare="true"
-        :auto-focus="!isForm"
+        :auto-focus="!isForm && !isEditColumn"
         @update:model-value="localValue = $event"
         @keydown.enter.stop
       />
@@ -193,5 +225,11 @@ watch(isExpanded, () => {
 
 .editor {
   min-height: min(200px, 10vh);
+}
+
+.nc-save-json-value-btn {
+  &.nc-edit-modal:not(:disabled) {
+    @apply !text-brand-500 !hover:text-brand-600;
+  }
 }
 </style>

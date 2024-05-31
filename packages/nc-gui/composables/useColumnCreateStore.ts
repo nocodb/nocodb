@@ -19,6 +19,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     meta: Ref<TableType | undefined>,
     column: Ref<ColumnType | undefined>,
     tableExplorerColumns?: Ref<ColumnType[] | undefined>,
+    fromTableExplorer?: Ref<boolean | undefined>,
   ) => {
     const baseStore = useBase()
 
@@ -37,6 +38,8 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     const sqlUi = ref(meta.value?.source_id ? sqlUis.value[meta.value?.source_id] : Object.values(sqlUis.value)[0])
 
     const { activeView } = storeToRefs(useViewsStore())
+
+    const disableSubmitBtn = ref(false)
 
     const isEdit = computed(() => !!column?.value?.id)
 
@@ -60,7 +63,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
     const formState = ref<Record<string, any>>({
       title: 'title',
-      uidt: UITypes.SingleLineText,
+      uidt: fromTableExplorer?.value ? UITypes.SingleLineText : null,
       ...clone(column.value || {}),
     })
 
@@ -79,13 +82,16 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     }
 
     // actions
-    const generateNewColumnMeta = () => {
+    const generateNewColumnMeta = (ignoreUidt = false) => {
       setAdditionalValidations({})
       formState.value = {
         meta: {},
         ...sqlUi.value.getNewColumn(generateUniqueColumnSuffix()),
       }
       formState.value.title = formState.value.column_name
+      if (ignoreUidt && !fromTableExplorer?.value) {
+        formState.value.uidt = null
+      }
     }
 
     const validators = computed(() => {
@@ -143,6 +149,8 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     const { resetFields, validate, validateInfos } = useForm(formState, validators)
 
     const onUidtOrIdTypeChange = () => {
+      disableSubmitBtn.value = false
+
       const colProp = sqlUi.value.getDataTypeForUiType(formState.value as { uidt: UITypes }, idType ?? undefined)
       formState.value = {
         ...(!isEdit.value && {
@@ -324,6 +332,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       isPg,
       isMysql,
       isXcdbBase,
+      disableSubmitBtn,
     }
   },
 )

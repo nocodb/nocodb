@@ -179,6 +179,12 @@ const setFieldMoveHook = (field: TableExplorerColumn, before = false) => {
 }
 
 const changeField = (field?: TableExplorerColumn, event?: MouseEvent) => {
+  if (field && field?.pk) {
+    // Editing primary key not supported
+    message.info(t('msg.info.editingPKnotSupported'))
+    return
+  }
+
   if (event) {
     if (event.target instanceof HTMLElement) {
       if (event.target.closest('.no-action')) return

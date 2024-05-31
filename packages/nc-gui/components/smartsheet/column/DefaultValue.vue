@@ -50,7 +50,7 @@ watch(
 
 <template>
   <div v-if="!isDefaultValueVisible">
-    <NcButton @click="showDefaultValue = true" size="small" type="text">
+    <NcButton @click.stop="showDefaultValue = true" size="small" type="text" class="!hover:text-gray-700">
       <div class="flex items-center gap-2">
         <span>{{ $t('general.set') }} {{ $t('placeholder.defaultValue') }}</span>
         <GeneralIcon icon="plus" class="flex-none h-4 w-4" />
@@ -58,14 +58,14 @@ watch(
     </NcButton>
   </div>
   <template v-else>
-    <div class="my-3 w-full flex items-center gap-2">
+    <div class="w-full flex items-center gap-2 text-gray-600">
       <div class="text-sm flex-1 text-gray-700">{{ $t('placeholder.defaultValue') }}</div>
-      <GeneralIcon icon="delete" class="flex-none h-4 w-4 cursor-pointer !text-gray-600" @click.stop="updateCdfValue(null)" />
+      <GeneralIcon icon="delete" class="flex-none h-4 w-4 cursor-pointer" @click.stop="updateCdfValue(null)" />
     </div>
 
-    <div class="flex flex-row gap-2">
+    <div class="flex flex-row gap-2 mt-2">
       <div
-        class="border-1 flex items-center w-full px-3 my-[-4px] border-gray-300 rounded-md sm:min-h-[32px] xs:min-h-13 flex items-center focus-within:(border-brand-500 shadow-none ring-0)"
+        class="border-1 flex items-center w-full px-3 border-gray-300 rounded-lg sm:min-h-[32px] xs:min-h-13 flex items-center hover:border-brand-400 focus-within:(border-brand-500 shadow-selected ring-0) transition-all duration-0.3s"
         :class="{
           '!border-brand-500': editEnabled,
         }"
@@ -78,12 +78,6 @@ watch(
           @update:cdf="updateCdfValue"
           @update:edit-enabled="editEnabled = $event"
           @click="editEnabled = true"
-        />
-        <component
-          :is="iconMap.close"
-          v-if="![UITypes.Year, UITypes.SingleSelect, UITypes.MultiSelect].includes(vModel.uidt)"
-          class="w-4 h-4 cursor-pointer rounded-full !text-black-500 text-gray-500 cursor-pointer hover:bg-gray-50"
-          @click="updateCdfValue(null)"
         />
       </div>
     </div>

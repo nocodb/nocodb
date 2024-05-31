@@ -39,7 +39,7 @@ const cdfValue = computed({
     </div>
     <div class="flex flex-row gap-2">
       <div
-        class="nc-rich-long-text-default-value border-1 relative pt-7 flex items-center w-full px-0 border-gray-300 rounded-md max-h-70 pb-1 hover:border-brand-400 focus-within:(border-brand-500 shadow-selected) transition-all duration-0.3s"
+        class="nc-default-value-wrapper nc-rich-long-text-default-value border-1 relative pt-7 flex items-center w-full px-0 border-gray-300 rounded-md max-h-70 pb-1 focus-within:(border-brand-500 shadow-selected) transition-all duration-0.3s"
       >
         <LazyCellRichText v-model:value="cdfValue" class="border-t-1 border-gray-100 !max-h-80 !min-h-30" show-menu />
       </div>

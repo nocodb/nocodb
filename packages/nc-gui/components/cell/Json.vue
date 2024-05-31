@@ -193,7 +193,7 @@ watch(inputWrapperRef, () => {
         :class="{ 'expanded-editor': isExpanded, 'editor': !isExpanded }"
         :hide-minimap="true"
         :disable-deep-compare="true"
-        :auto-focus="!isForm"
+        :auto-focus="!isForm && !isEditColumn"
         @update:model-value="localValue = $event"
         @keydown.enter.stop
       />

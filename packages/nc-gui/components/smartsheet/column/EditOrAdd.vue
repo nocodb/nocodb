@@ -527,17 +527,30 @@ const submitBtnLabel = computed(() => {
   }
   &:hover:not(:focus) {
     @apply border-gray-300;
-    box-shadow: 0px 0px 0px 2px rgba(51, 102, 255, 0.24), 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
+    box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.24);
   }
 }
 
-:deep(.nc-column-type-input.ant-select) {
-  &:not(:hover):not(.ant-select-focused) .ant-select-selector {
+:deep(.nc-color-picker-dropdown-trigger),
+:deep(.nc-default-value-wrapper) {
+  @apply transition-all duration-0.3s;
+
+  &:not(:hover):not(:focus-within):not(.shadow-selected) {
     box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
   }
-  &:hover:not(.ant-select-focused) .ant-select-selector {
+  &:hover:not(:focus-within):not(.shadow-selected) {
+    box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.24);
+  }
+}
+
+:deep(.ant-select) {
+  &:not(:hover):not(.ant-select-focused) .ant-select-selector,
+  &:hover.ant-select-disabled .ant-select-selector {
+    box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
+  }
+  &:hover:not(.ant-select-focused):not(.ant-select-disabled) .ant-select-selector {
     @apply border-gray-300;
-    box-shadow: 0px 0px 0px 2px rgba(51, 102, 255, 0.24), 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
+    box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.24);
   }
 }
 

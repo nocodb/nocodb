@@ -59,10 +59,7 @@ watch(
     </div>
     <div class="flex flex-row gap-2">
       <div
-        class="border-1 flex items-center w-full px-3 border-gray-300 rounded-lg sm:min-h-[32px] xs:min-h-13 flex items-center hover:border-brand-400 focus-within:(border-brand-500 shadow-selected ring-0) transition-all duration-0.3s"
-        :class="{
-          '!border-brand-500': editEnabled,
-        }"
+        class="nc-default-value-wrapper border-1 flex items-center w-full px-3 border-gray-300 rounded-lg sm:min-h-[32px] xs:min-h-13 flex items-center focus-within:(border-brand-500 shadow-selected ring-0) transition-all duration-0.3s"
       >
         <LazySmartsheetCell
           :edit-enabled="true"

@@ -103,9 +103,14 @@ watch(
     </a-col>
     <a-col :span="12">
       <a-form-item :label="$t('general.colour')">
-        <NcDropdown placement="bottomRight" :auto-close="false" v-model:visible="isOpenColorPicker">
+        <NcDropdown
+          placement="bottomRight"
+          :auto-close="false"
+          v-model:visible="isOpenColorPicker"
+          class="nc-color-picker-dropdown-trigger"
+        >
           <div
-            class="flex-1 border-1 border-gray-300 hover:border-brand-400 rounded-lg h-8 px-[11px] flex items-center justify-between transition-all cursor-pointer"
+            class="flex-1 border-1 border-gray-300 rounded-lg h-8 px-[11px] flex items-center justify-between transition-all cursor-pointer"
             :class="{
               'border-brand-500 shadow-selected': isOpenColorPicker,
             }"

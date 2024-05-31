@@ -99,6 +99,7 @@ const cellIcon = (column: ColumnType) =>
     >
       <a-select
         v-model:value="vModel.fk_relation_column_id"
+        placeholder="-select-"
         dropdown-class-name="!w-64 !rounded-md nc-dropdown-relation-table"
         @change="onRelationColChange"
       >
@@ -135,11 +136,13 @@ const cellIcon = (column: ColumnType) =>
     <a-form-item
       class="flex w-1/2"
       :label="`${$t('datatype.Lookup')} ${$t('objects.field')}`"
-      v-bind="validateInfos.fk_lookup_column_id"
+      v-bind="vModel.fk_relation_column_id ? validateInfos.fk_lookup_column_id : undefined"
     >
       <a-select
         v-model:value="vModel.fk_lookup_column_id"
         name="fk_lookup_column_id"
+        placeholder="-select-"
+        :disabled="!vModel.fk_relation_column_id"
         dropdown-class-name="nc-dropdown-relation-column !rounded-md"
         @change="onDataTypeChange"
       >

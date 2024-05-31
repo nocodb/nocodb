@@ -312,7 +312,7 @@ watch(sugListRef, () => {
             <component :is="iconMap.function" class="text-lg" />
             {{ suggestionPreviewed.text }}
           </div>
-          <NcButton type="text" size="small" @click="suggestionPreviewed = undefined" class="!h-7 !w-7 !min-w-0">
+          <NcButton type="text" size="small" class="!h-7 !w-7 !min-w-0" @click="suggestionPreviewed = undefined">
             <GeneralIcon icon="close" />
           </NcButton>
         </div>
@@ -436,7 +436,11 @@ watch(sugListRef, () => {
                       <span class="text-small leading-[18px] text-gray-800 font-weight-500">{{ item.text }}</span>
                     </div>
 
-                    <NcButton size="small" type="text" class="nc-variable-list-item-use-field-btn !h-7 px-3 !text-small invisible">
+                    <NcButton
+                      size="small"
+                      type="text"
+                      class="nc-variable-list-item-use-field-btn !h-7 px-3 !text-small invisible"
+                    >
                       {{ $t('general.use') }} {{ $t('objects.field').toLowerCase() }}
                     </NcButton>
                   </div>

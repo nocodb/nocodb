@@ -149,11 +149,12 @@ watchEffect(() => {
     <div class="w-full flex flex-row space-x-2">
       <a-form-item
         class="flex w-1/2 !max-w-[calc(50%_-_4px)] pb-2"
-        :label="$t('labels.links')"
+        :label="`${$t('general.link')} ${$t('objects.field')}`"
         v-bind="validateInfos.fk_relation_column_id"
       >
         <a-select
           v-model:value="vModel.fk_relation_column_id"
+          placeholder="-select-"
           dropdown-class-name="!w-64 nc-dropdown-relation-table !rounded-md"
           @change="onRelationColChange"
         >
@@ -188,10 +189,16 @@ watchEffect(() => {
         </a-select>
       </a-form-item>
 
-      <a-form-item class="flex w-1/2" :label="$t('labels.childColumn')" v-bind="validateInfos.fk_rollup_column_id">
+      <a-form-item
+        class="flex w-1/2"
+        :label="`${$t('datatype.Rollup')} ${$t('objects.field')}`"
+        v-bind="vModel.fk_relation_column_id ? validateInfos.fk_rollup_column_id : undefined"
+      >
         <a-select
           v-model:value="vModel.fk_rollup_column_id"
           name="fk_rollup_column_id"
+          placeholder="-select-"
+          :disabled="!vModel.fk_relation_column_id"
           dropdown-class-name="nc-dropdown-relation-column !rounded-xl"
           @change="onDataTypeChange"
         >
@@ -216,9 +223,14 @@ watchEffect(() => {
       </a-form-item>
     </div>
 
-    <a-form-item :label="$t('labels.aggregateFunction')" v-bind="validateInfos.rollup_function">
+    <a-form-item
+      :label="$t('labels.aggregateFunction')"
+      v-bind="vModel.fk_relation_column_id ? validateInfos.rollup_function : undefined"
+    >
       <a-select
         v-model:value="vModel.rollup_function"
+        :disabled="!vModel.fk_relation_column_id"
+        placeholder="-select-"
         dropdown-class-name="nc-dropdown-rollup-function"
         class="!mt-0.5"
         @change="onDataTypeChange"

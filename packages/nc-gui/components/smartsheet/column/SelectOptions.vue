@@ -377,28 +377,31 @@ const loadListData = async ($state: any) => {
               >
                 <component :is="iconMap.dragVertical" small class="handle" />
               </div>
-              <a-dropdown
-                v-model:visible="colorMenus[index]"
-                :trigger="['click']"
+
+              <NcDropdown
                 :class="{
                   'ml-1': isKanban,
                 }"
-                overlay-class-name="nc-dropdown-select-color-options rounded-md overflow-hidden border-1 border-gray-200 "
+                :auto-close="false"
+                v-model:visible="colorMenus[index]"
               >
-                <template #overlay>
-                  <LazyGeneralColorPicker
-                    v-model="element.color"
-                    :pick-button="true"
-                    @close-modal="colorMenus[index] = false"
-                    @input="(el:string) => (element.color = el)"
+                <div class="flex items-center">
+                  <MdiArrowDownDropCircle
+                    class="mr-2 text-[1.5em] outline-0 cursor-pointer h-5 w-5"
+                    :class="{ 'text-[1.75em]': colorMenus[index] }"
+                    :style="{ color: element.color }"
                   />
+                </div>
+
+                <template #overlay>
+                  <div>
+                    <LazyGeneralAdvanceColorPicker
+                      v-model="element.color"
+                      @input="(el:string) => (element.color = el)"
+                    ></LazyGeneralAdvanceColorPicker>
+                  </div>
                 </template>
-                <MdiArrowDownDropCircle
-                  class="mr-2 text-[1.5em] outline-0 hover:!text-[1.75em] cursor-pointer"
-                  :class="{ 'text-[1.75em]': colorMenus[index] }"
-                  :style="{ color: element.color }"
-                />
-              </a-dropdown>
+              </NcDropdown>
 
               <a-input
                 v-model:value="element.title"

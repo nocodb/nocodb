@@ -487,6 +487,25 @@ if (props.fromTableExplorer) {
 </template>
 
 <style scoped>
+.nc-column-name-input {
+  &:not(:hover):not(:focus) {
+    box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
+  }
+  &:hover:not(:focus) {
+    @apply border-gray-300;
+    box-shadow: 0px 0px 0px 2px rgba(51, 102, 255, 0.24), 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
+  }
+}
+
+:deep(.nc-column-type-input.ant-select) {
+  &:not(:hover):not(.ant-select-focused) .ant-select-selector {
+    box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
+  }
+  &:hover:not(.ant-select-focused) .ant-select-selector {
+    @apply border-gray-300;
+    box-shadow: 0px 0px 0px 2px rgba(51, 102, 255, 0.24), 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
+  }
+}
 :deep(.ant-form-item-label > label) {
   @apply !text-small leading-[18px] mb-2 text-gray-700;
 

@@ -400,30 +400,21 @@ function handleSelectTime(value: dayjs.Dayjs) {
   open.value = false
 }
 
-const selectedTime = computed(() => {
-  const result = {
-    value: '',
-    label: '',
-  }
-  if (localState.value) {
-    const time = localState.value.format(timeFormat.value)
-
-    const [hours, minutes] = time.split(':')
-
-    result.value = `${hours}:${minutes}`
-
-    result.label = time
-  }
-
-  return result
-})
-
 const timeCellMaxWidth = computed(() => {
   return {
-    [timeFormats[0]]: 'max-w-[65px]',
-    [timeFormats[1]]: 'max-w-[80px]',
-    [timeFormats[2]]: 'max-w-[110px]',
-  }[timeFormat.value]
+    [timeFormats[0]]: {
+      12: 'max-w-[75px]',
+      24: 'max-w-[65px]',
+    },
+    [timeFormats[1]]: {
+      12: 'max-w-[100px]',
+      24: 'max-w-[80px]',
+    },
+    [timeFormats[2]]: {
+      12: 'max-w-[130px]',
+      24: 'max-w-[110px]',
+    },
+  }[timeFormat.value][parseProp(column.value.meta).is12hrFormat ? 12 : 24]
 })
 
 const cellValue = computed(

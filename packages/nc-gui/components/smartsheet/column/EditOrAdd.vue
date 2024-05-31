@@ -522,7 +522,8 @@ const submitBtnLabel = computed(() => {
 </style>
 
 <style lang="scss" scoped>
-.nc-column-name-input {
+.nc-column-name-input,
+:deep(.nc-formula-input) {
   &:not(:hover):not(:focus) {
     box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
   }

@@ -284,7 +284,7 @@ onMounted(() => {
   jsep.plugins.register(jsepCurlyHook)
 })
 
-const suggestionPreviewLeft = ref('-left-91')
+const suggestionPreviewLeft = ref('-left-85')
 
 watch(sugListRef, () => {
   nextTick(() => {
@@ -292,7 +292,7 @@ watch(sugListRef, () => {
       const fieldModal = document.querySelector('.nc-dropdown-edit-column.active') as HTMLDivElement
 
       if (fieldModal && fieldModal.getBoundingClientRect().left < 364) {
-        suggestionPreviewLeft.value = '-right-91'
+        suggestionPreviewLeft.value = '-right-85'
       }
     }, 500)
   })
@@ -346,7 +346,7 @@ watch(sugListRef, () => {
         </a>
       </div>
     </div>
-    <a-form-item v-bind="validateInfos.formula_raw" class="!pb-1" :label="$t('datatype.Formula')">
+    <a-form-item v-bind="validateInfos.formula_raw" :label="$t('datatype.Formula')">
       <!-- <GeneralIcon
         v-if="isEeUI"
         icon="magic"
@@ -357,7 +357,7 @@ watch(sugListRef, () => {
       <a-textarea
         ref="formulaRef"
         v-model:value="vModel.formula_raw"
-        class="nc-formula-input !rounded-md !mb-1"
+        class="nc-formula-input !rounded-md"
         @keydown.down.prevent="suggestionListDown"
         @keydown.up.prevent="suggestionListUp"
         @keydown.enter.prevent="selectText"
@@ -365,15 +365,13 @@ watch(sugListRef, () => {
       />
     </a-form-item>
 
-    <div ref="sugListRef" class="h-[250px] overflow-auto nc-scrollbar-thin rounded-t-lg">
+    <div ref="sugListRef" class="h-[250px] overflow-auto nc-scrollbar-thin border-1 border-gray-200 rounded-lg mt-4">
       <template v-if="suggestedFormulas.length > 0">
-        <div class="rounded-t-lg border-1 bg-gray-50 px-3 py-1 uppercase text-gray-600 text-xs sticky top-0 z-10">Formulas</div>
+        <div class="border-b-1 bg-gray-50 px-3 py-1 uppercase text-gray-600 text-xs font-semibold sticky top-0 z-10">
+          Formulas
+        </div>
 
-        <a-list
-          :data-source="suggestedFormulas"
-          :locale="{ emptyText: $t('msg.formula.noSuggestedFormulaFound') }"
-          class="border-1 border-t-0 rounded-b-lg !mb-4"
-        >
+        <a-list :data-source="suggestedFormulas" :locale="{ emptyText: $t('msg.formula.noSuggestedFormulaFound') }">
           <template #renderItem="{ item, index }">
             <a-list-item
               :ref="
@@ -392,12 +390,12 @@ watch(sugListRef, () => {
               <a-list-item-meta>
                 <template #title>
                   <div class="flex items-center gap-x-1" :class="{ 'text-gray-400': item.unsupported }">
-                    <component :is="iconMap.function" v-if="item.type === 'function'" class="text-lg" />
+                    <component :is="iconMap.function" v-if="item.type === 'function'" class="w-4 h-4 !text-gray-600" />
 
-                    <component :is="iconMap.calculator" v-if="item.type === 'op'" class="text-lg" />
+                    <component :is="iconMap.calculator" v-if="item.type === 'op'" class="w-4 h-4 !text-gray-600" />
 
-                    <component :is="item.icon" v-if="item.type === 'column'" class="text-lg" />
-                    <span class="prose-sm" :class="{ 'text-gray-600': !item.unsupported }">{{ item.text }}</span>
+                    <component :is="item.icon" v-if="item.type === 'column'" class="w-4 h-4 !text-gray-600" />
+                    <span class="text-small leading-[18px]" :class="{ 'text-gray-800': !item.unsupported }">{{ item.text }}</span>
                   </div>
                   <div v-if="item.unsupported" class="ml-5 text-gray-400 text-xs">{{ $t('msg.formulaNotSupported') }}</div>
                 </template>
@@ -408,13 +406,13 @@ watch(sugListRef, () => {
       </template>
 
       <template v-if="variableList.length > 0">
-        <div class="rounded-t-lg border-1 bg-gray-50 px-3 py-1 uppercase text-gray-600 text-xs sticky top-0 z-10">Fields</div>
+        <div class="border-b-1 bg-gray-50 px-3 py-1 uppercase text-gray-600 text-xs font-semibold sticky top-0 z-10">Fields</div>
 
         <a-list
           ref="variableListRef"
           :data-source="variableList"
           :locale="{ emptyText: $t('msg.formula.noSuggestedFormulaFound') }"
-          class="border-1 border-t-0 rounded-b-lg !overflow-hidden"
+          class="!overflow-hidden"
         >
           <template #renderItem="{ item, index }">
             <a-list-item
@@ -431,10 +429,16 @@ watch(sugListRef, () => {
             >
               <a-list-item-meta>
                 <template #title>
-                  <div class="flex items-center gap-x-1">
-                    <component :is="item.icon" class="text-lg w-4.5 h-4.5" />
+                  <div class="flex items-center gap-x-1 justify-between">
+                    <div class="flex items-center gap-x-1 rounded-md bg-gray-200 px-1 h-5">
+                      <component :is="item.icon" class="w-4 h-4 !text-gray-600" />
 
-                    <span class="prose-sm text-gray-600">{{ item.text }}</span>
+                      <span class="text-small leading-[18px] text-gray-800 font-weight-500">{{ item.text }}</span>
+                    </div>
+
+                    <NcButton size="xs" type="text" class="nc-variable-list-item-use-field-btn px-3 text-sm invisible">
+                      {{ $t('general.use') }} {{ $t('objects.field').toLowerCase() }}
+                    </NcButton>
                   </div>
                 </template>
               </a-list-item-meta>
@@ -451,6 +455,16 @@ watch(sugListRef, () => {
 
 <style lang="scss" scoped>
 :deep(.ant-list-item) {
-  @apply !pt-1.75 pb-0.75 !px-2;
+  @apply !py-[7px] !px-2 h-8;
+  .ant-list-item-meta-title {
+    @apply m-0;
+  }
+  &.ant-list-item,
+  &.ant-list-item:last-child {
+    @apply !border-b-1 border-gray-200 border-solid;
+  }
+  &:hover .nc-variable-list-item-use-field-btn {
+    @apply visible;
+  }
 }
 </style>

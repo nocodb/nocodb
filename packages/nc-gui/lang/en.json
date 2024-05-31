@@ -209,7 +209,8 @@
     "now": "Now",
     "set": "Set",
     "format": "Format",
-    "colour": "Colour"
+    "colour": "Colour",
+    "use": "Use"
   },
   "objects": {
     "owner": "Owner",

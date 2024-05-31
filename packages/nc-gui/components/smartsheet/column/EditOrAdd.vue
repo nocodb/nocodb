@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { ColumnReqType, ColumnType } from 'nocodb-sdk'
-import { UITypes, isLinksOrLTAR, isSelfReferencingTableColumn, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { UITypes, UITypesName, isLinksOrLTAR, isSelfReferencingTableColumn, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 
 import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
 import MdiIdentifierIcon from '~icons/mdi/identifier'
@@ -279,7 +279,7 @@ if (props.fromTableExplorer) {
               show-search
               class="nc-column-type-input !rounded-md"
               :disabled="isKanban || readOnly"
-              dropdown-class-name="nc-dropdown-column-type border-1 !rounded-md border-gray-200"
+              dropdown-class-name="nc-dropdown-column-type border-1 !rounded-lg border-gray-200"
               @dropdown-visible-change="onDropdownChange"
               @change="onUidtOrIdTypeChange"
               @dblclick="showDeprecated = !showDeprecated"
@@ -337,17 +337,22 @@ if (props.fromTableExplorer) {
           />
         </template>
       </div>
-      <a-checkbox
-        v-if="formState.meta && columnToValidate.includes(formState.uidt)"
-        v-model:checked="formState.meta.validate"
-        class="ml-1 mb-1"
-      >
-        <span class="text-[10px] text-gray-600">
-          {{ `${$t('msg.acceptOnlyValid')} ${formState.uidt}` }}
-        </span>
-      </a-checkbox>
+      <div class="my-4 flex items-center gap-2 justify-between">
+        <div @click="formState.meta.validate = !formState.meta.validate" class="select-none cursor-pointer text-sm text-gray-800">
+          {{ `${$t('msg.acceptOnlyValid', { type: `${UITypesName[formState.uidt as UITypes]}s` })}` }}
+        </div>
+
+        <a-switch v-model:checked="formState.meta.validate" size="small" class="nc-switch" />
+      </div>
+
       <template v-if="!readOnly">
-        <div class="!my-3">
+        <div
+          class="mt-4"
+          :class="{
+            'mb-4': props.fromTableExplorer,
+            'mb-2': !props.fromTableExplorer,
+          }"
+        >
           <!--
             Default Value for JSON & LongText is not supported in MySQL
             Default Value is Disabled for MSSQL -->

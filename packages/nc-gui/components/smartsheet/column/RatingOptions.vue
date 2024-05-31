@@ -79,8 +79,8 @@ watch(
 
           <a-select-option v-for="(icon, i) of iconList" :key="i" :value="i">
             <div class="flex gap-2 w-full truncate items-center">
-              <div class="flex-1 text-gray-700">
-                <component :is="getMdiIcon(icon.full)" class="mr-1" />
+              <div class="flex-1 flex items-center text-gray-700 gap-2 children:(h-4 w-4)">
+                <component :is="getMdiIcon(icon.full)" />
 
                 <component :is="getMdiIcon(icon.empty)" />
               </div>
@@ -110,10 +110,9 @@ watch(
               'border-brand-500 shadow-selected': isOpenColorPicker,
             }"
           >
-            <div class="flex items-center">
+            <div class="flex-1 flex items-center gap-2 children:(h-4 w-4)">
               <component
                 :is="getMdiIcon(iconList[vModel.meta.iconIdx].full)"
-                class="mr-1"
                 :style="{
                   color: vModel.meta.color,
                 }"

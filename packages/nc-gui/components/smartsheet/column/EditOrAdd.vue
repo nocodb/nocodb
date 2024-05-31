@@ -341,6 +341,7 @@ const updateCdfValue = (cdf: string | null) => {
           <LazySmartsheetColumnCheckboxOptions v-if="formState.uidt === UITypes.Checkbox" v-model:value="formState" />
           <LazySmartsheetColumnLookupOptions v-if="formState.uidt === UITypes.Lookup" v-model:value="formState" />
           <LazySmartsheetColumnDateOptions v-if="formState.uidt === UITypes.Date" v-model:value="formState" />
+          <LazySmartsheetColumnTimeOptions v-if="formState.uidt === UITypes.Time" v-model:value="formState" />
           <LazySmartsheetColumnDecimalOptions v-if="formState.uidt === UITypes.Decimal" v-model:value="formState" />
           <LazySmartsheetColumnDateTimeOptions v-if="formState.uidt === UITypes.DateTime" v-model:value="formState" />
           <LazySmartsheetColumnRollupOptions v-if="formState.uidt === UITypes.Rollup" v-model:value="formState" />
@@ -360,10 +361,7 @@ const updateCdfValue = (cdf: string | null) => {
           />
         </template>
       </div>
-      <div
-        v-if="formState.meta && columnToValidate.includes(formState.uidt)"
-        class="my-4 flex items-center gap-1"
-      >
+      <div v-if="formState.meta && columnToValidate.includes(formState.uidt)" class="my-4 flex items-center gap-1">
         <NcSwitch v-model:checked="formState.meta.validate" size="small" class="nc-switch">
           <div class="text-sm text-gray-800">
             {{ `${$t('msg.acceptOnlyValid', { type: `${UITypesName[formState.uidt as UITypes]}s` })}` }}

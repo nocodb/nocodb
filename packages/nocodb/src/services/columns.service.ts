@@ -309,7 +309,14 @@ export class ColumnsService {
               title: colBody.title,
             });
           }
-          if ('meta' in colBody && column.uidt === UITypes.Links) {
+          if (
+            'meta' in colBody &&
+            [
+              UITypes.Links,
+              UITypes.CreatedTime,
+              UITypes.LastModifiedTime,
+            ].includes(column.uidt)
+          ) {
             await Column.updateMeta({
               colId: param.columnId,
               meta: colBody.meta,

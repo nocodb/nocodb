@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { dateFormats, isSystemColumn, isValidTimeFormat, timeFormats } from 'nocodb-sdk'
+import { dateFormats, isSystemColumn, timeFormats } from 'nocodb-sdk'
 
 interface Props {
   modelValue?: string | null
@@ -529,6 +529,7 @@ const cellValue = computed(
       @click.stop="handleSelectDate()"
     />
   </div>
+
   <div v-if="!editable && isGrid" class="absolute inset-0 z-90 cursor-pointer"></div>
 </template>
 

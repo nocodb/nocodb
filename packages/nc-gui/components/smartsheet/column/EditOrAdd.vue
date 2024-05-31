@@ -368,7 +368,10 @@ if (props.fromTableExplorer) {
           <LazySmartsheetColumnDateOptions v-if="formState.uidt === UITypes.Date" v-model:value="formState" />
           <LazySmartsheetColumnTimeOptions v-if="formState.uidt === UITypes.Time" v-model:value="formState" />
           <LazySmartsheetColumnDecimalOptions v-if="formState.uidt === UITypes.Decimal" v-model:value="formState" />
-          <LazySmartsheetColumnDateTimeOptions v-if="formState.uidt === UITypes.DateTime" v-model:value="formState" />
+          <LazySmartsheetColumnDateTimeOptions
+            v-if="[UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(formState.uidt)"
+            v-model:value="formState"
+          />
           <LazySmartsheetColumnRollupOptions v-if="formState.uidt === UITypes.Rollup" v-model:value="formState" />
           <LazySmartsheetColumnLinkedToAnotherRecordOptions
             v-if="formState.uidt === UITypes.LinkToAnotherRecord || formState.uidt === UITypes.Links"

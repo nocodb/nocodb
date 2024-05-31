@@ -544,6 +544,25 @@ const submitBtnLabel = computed(() => {
   }
 }
 
+:deep(.ant-radio-group .ant-radio-wrapper) {
+  @apply transition-all duration-0.3s;
+
+  &.ant-radio-wrapper-checked:not(.ant-radio-wrapper-disabled):focus-within {
+    @apply shadow-selected;
+  }
+
+  .ant-radio-wrapper-disabled {
+    @apply pointer-events-none;
+  }
+  &:not(:hover):not(:focus-within):not(.shadow-selected),
+  &.ant-radio-wrapper-disabled:hover {
+    box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
+  }
+  &:hover:not(:focus-within):not(.ant-radio-wrapper-disabled) {
+    box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.24);
+  }
+}
+
 :deep(.ant-select) {
   &:not(:hover):not(.ant-select-focused) .ant-select-selector,
   &:hover.ant-select-disabled .ant-select-selector {

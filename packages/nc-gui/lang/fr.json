@@ -449,7 +449,7 @@
     "noResultsMatchedYourSearch": "Your search did not yield any matching results."
   },
   "labels": {
-    "connectionDetails": "Connection Details",
+    "connectionDetails": "Détails de connexion",
     "metaSync": "Meta Sync",
     "mention": "Mention",
     "today": "Aujourd'hui",
@@ -738,6 +738,7 @@
     "noAccess": "Accès interdit",
     "restApis": "API REST",
     "apis": "APIs",
+    "apiSnippet": "API Snippets",
     "includeData": "Inclure les données",
     "includeView": "Inclure la vue",
     "includeWebhook": "Inclure le Webhook",
@@ -1413,6 +1414,7 @@
       "preventHideAllOptions": "You cannot hide all options if field is required"
     },
     "error": {
+      "errorLoadingRecord": "Error loading record data",
       "fetchingCalendarData": "Erreur lors de la récupération des données du calendrier",
       "fetchingActiveDates": "Error fetching active dates",
       "scopesRequired": "Scopes required",

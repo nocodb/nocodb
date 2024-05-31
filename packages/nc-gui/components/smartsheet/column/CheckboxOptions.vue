@@ -70,13 +70,19 @@ watch(
     vModel.value.meta.icon = iconList[v]
   },
 )
+
+const isOpenColorPicker = ref(false)
 </script>
 
 <template>
-  <a-row>
-    <a-col :span="24">
+  <a-row :gutter="8">
+    <a-col :span="12">
       <a-form-item label="Icon">
         <a-select v-model:value="vModel.meta.iconIdx" class="w-52" dropdown-class-name="nc-dropdown-checkbox-icon">
+          <template #suffixIcon>
+            <GeneralIcon icon="arrowDown" class="text-gray-700" />
+          </template>
+
           <a-select-option v-for="(icon, i) of iconList" :key="i" :value="i">
             <div class="flex gap-2 w-full truncate items-center">
               <div class="flex-1 truncate">
@@ -106,15 +112,44 @@ watch(
         </a-select>
       </a-form-item>
     </a-col>
-  </a-row>
+    <a-col :span="12">
+      <a-form-item label="Colour">
+        <NcDropdown placement="bottomRight" :auto-close="false" v-model:visible="isOpenColorPicker">
+          <div
+            class="flex-1 border-1 border-gray-300 hover:border-brand-400 rounded-lg h-8 px-[11px] flex items-center justify-between transition-all"
+            :class="{
+              'border-brand-500 shadow-selected': isOpenColorPicker,
+            }"
+          >
+            <div class="flex items-center">
+              <component
+                :is="getMdiIcon(iconList[vModel.meta.iconIdx].checked)"
+                class="mx-1"
+                :style="{
+                  color: vModel.meta.color,
+                }"
+              />
+              <component
+                :is="getMdiIcon(iconList[vModel.meta.iconIdx].unchecked)"
+                :style="{
+                  color: vModel.meta.color,
+                }"
+              />
+            </div>
 
-  <a-row class="w-full justify-center">
-    <LazyGeneralColorPicker
-      v-model="picked"
-      :row-size="8"
-      :colors="['#FF94B6', '#6A8D9D', '#6DAE42', '#4AC0BF', '#905FB3', '#FF8320', '#6BCC72', '#FF4138']"
-      @input="(el:string)=>vModel.meta.color=el"
-    />
+            <GeneralIcon icon="arrowDown" class="text-gray-700 h-4 w-4" />
+          </div>
+          <template #overlay>
+            <div>
+              <LazyGeneralAdvanceColorPicker
+                v-model="picked"
+                @input="(el:string)=>vModel.meta.color=el"
+              ></LazyGeneralAdvanceColorPicker>
+            </div>
+          </template>
+        </NcDropdown>
+      </a-form-item>
+    </a-col>
   </a-row>
 </template>
 

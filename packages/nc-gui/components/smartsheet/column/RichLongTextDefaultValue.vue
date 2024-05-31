@@ -5,6 +5,8 @@ const props = defineProps<{
 }>()
 const emits = defineEmits(['update:value'])
 
+provide(EditColumnInj, ref(true))
+
 const vModel = useVModel(props, 'value', emits)
 
 const isVisibleDefaultValueInput = useVModel(props, 'isVisibleDefaultValueInput', emits)

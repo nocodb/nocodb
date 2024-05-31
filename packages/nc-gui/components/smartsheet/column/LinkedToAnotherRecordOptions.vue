@@ -58,10 +58,19 @@ const filterOption = (value: string, option: { key: string }) => option.key.toLo
 const isLinks = computed(() => vModel.value.uidt === UITypes.Links && vModel.value.type !== RelationTypes.ONE_TO_ONE)
 
 const referenceTableChildId = computed({
-  get: () => (isEdit.value ? vModel.value?.columnOptions?.fk_related_model_id : vModel.value?.childId) ?? null,
+  get: () => (isEdit.value ? vModel.value?.colOptions?.fk_related_model_id : vModel.value?.childId) ?? null,
   set: (value) => {
-    if (value) {
+    if (!isEdit.value && value) {
       vModel.value.childId = value
+    }
+  },
+})
+
+const linkType = computed({
+  get: () => (isEdit.value ? vModel.value?.colOptions?.type : vModel.value?.type) ?? null,
+  set: (value) => {
+    if (!isEdit.value && value) {
+      vModel.value.type = value
     }
   },
 })
@@ -71,7 +80,7 @@ const referenceTableChildId = computed({
   <div class="w-full flex flex-col gap-4">
     <div class="flex flex-col gap-4">
       <a-form-item :label="$t('labels.relationType')" v-bind="validateInfos.type" class="nc-ltar-relation-type">
-        <a-radio-group v-model:value="vModel.type" name="type" v-bind="validateInfos.type" :disabled="isEdit">
+        <a-radio-group v-model:value="linkType" name="type" v-bind="validateInfos.type" :disabled="isEdit">
           <a-radio value="mm">
             <span class="nc-ltar-icon nc-mm-icon">
               <GeneralIcon icon="mm_solid" />
@@ -135,7 +144,7 @@ const referenceTableChildId = computed({
 
       <div v-if="advancedOptions" class="flex flex-col gap-4">
         <LazySmartsheetColumnLinkOptions v-if="isLinks" v-model:value="vModel" />
-        <template v-if="!isXcdbBase">
+        <template v-if="!isXcdbBase && !isEdit">
           <div class="flex flex-row space-x-2">
             <a-form-item class="flex w-1/2" :label="$t('labels.onUpdate')">
               <a-select
@@ -210,7 +219,7 @@ const referenceTableChildId = computed({
   .ant-radio-wrapper {
     @apply transition-all flex-row-reverse justify-between items-center py-1 pl-1 pr-3;
 
-    &.ant-radio-wrapper-checked {
+    &.ant-radio-wrapper-checked:not(.ant-radio-wrapper-disabled) {
       @apply border-brand-500;
     }
 

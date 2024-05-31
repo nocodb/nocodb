@@ -3,8 +3,8 @@ import { DashboardPage } from '../../../pages/Dashboard';
 import setup, { unsetup } from '../../../setup';
 import { enableQuickRun } from '../../../setup/db';
 
-test.describe('LTAR create & update', () => {
-  if (enableQuickRun()) test.skip();
+test.describe.only('LTAR create & update', () => {
+  // if (enableQuickRun()) test.skip();
 
   let dashboard: DashboardPage;
   let context: any;
@@ -43,7 +43,7 @@ test.describe('LTAR create & update', () => {
       title: 'Link1-2mm',
       type: 'Links',
       childTable: 'Sheet2',
-      relationType: 'Many To many',
+      relationType: 'Many to Many',
     });
 
     await dashboard.treeView.openTable({ title: 'Sheet2', networkResponse: false });

@@ -81,19 +81,19 @@ const linkType = computed({
     <div class="flex flex-col gap-4">
       <a-form-item :label="$t('labels.relationType')" v-bind="validateInfos.type" class="nc-ltar-relation-type">
         <a-radio-group v-model:value="linkType" name="type" v-bind="validateInfos.type" :disabled="isEdit">
-          <a-radio value="mm">
+          <a-radio value="mm" data-testid="Many to Many">
             <span class="nc-ltar-icon nc-mm-icon">
               <GeneralIcon icon="mm_solid" />
             </span>
             {{ $t('title.manyToMany') }}
           </a-radio>
-          <a-radio value="hm">
+          <a-radio value="hm" data-testid="Has Many">
             <span class="nc-ltar-icon nc-hm-icon">
               <GeneralIcon icon="hm_solid" />
             </span>
             {{ $t('title.hasMany') }}
           </a-radio>
-          <a-radio value="oo">
+          <a-radio value="oo" data-testid="One to One">
             <span class="nc-ltar-icon nc-oo-icon">
               <GeneralIcon icon="oneToOneSolid" />
             </span>
@@ -115,7 +115,7 @@ const linkType = computed({
           <template #suffixIcon>
             <GeneralIcon icon="arrowDown" class="text-gray-700" />
           </template>
-          <a-select-option v-for="table of refTables" :key="table.id" :value="table.id">
+          <a-select-option v-for="table of refTables" :key="table.title" :value="table.id">
             <div class="flex w-full items-center gap-2">
               <div class="min-w-5 flex items-center justify-center">
                 <GeneralTableIcon :meta="table" class="text-gray-500" />

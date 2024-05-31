@@ -184,10 +184,7 @@ export class FieldsPage extends BasePage {
           .click();
         break;
       case 'Links':
-        await this.addOrEditColumn
-          .locator('.nc-ltar-relation-type >> .ant-radio')
-          .nth(relationType === 'Has Many' ? 1 : 2)
-          .click();
+        await this.addOrEditColumn.locator('.nc-ltar-relation-type').getByTestId(relationType).click();
         await this.addOrEditColumn.locator('.ant-select-single').nth(1).click();
         await this.rootPage.locator(`.nc-ltar-child-table >> input[type="search"]`).fill(childTable);
         await this.rootPage

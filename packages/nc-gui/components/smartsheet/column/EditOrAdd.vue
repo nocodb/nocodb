@@ -489,6 +489,10 @@ if (props.fromTableExplorer) {
 <style scoped>
 :deep(.ant-form-item-label > label) {
   @apply !text-small leading-[18px] mb-2 text-gray-700;
+
+  &.ant-form-item-required:not(.ant-form-item-required-mark-optional)::before {
+    @apply content-[''] m-0;
+  }
 }
 
 :deep(.ant-form-item-label) {

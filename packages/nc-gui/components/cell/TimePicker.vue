@@ -142,7 +142,7 @@ const placeholder = computed(() => {
     ((isForm.value || isExpandedForm.value) && !isTimeInvalid.value) ||
     (isGrid.value && !showNull.value && !isTimeInvalid.value && !isSystemColumn(column.value) && active.value)
   ) {
-    return 'HH:mm'
+    return parseProp(column.value.meta).is12hrFormat ? 'hh:mm AM' : 'HH:mm'
   } else if (isEditColumn.value && (modelValue === '' || modelValue === null)) {
     return t('labels.optional')
   } else if (modelValue === null && showNull.value) {
@@ -298,7 +298,6 @@ function handleSelectTime(value?: dayjs.Dayjs) {
 }
 
 const cellValue = computed(() => localState.value?.format(parseProp(column.value.meta).is12hrFormat ? 'hh:mm A' : 'HH:mm') ?? '')
-
 </script>
 
 <template>

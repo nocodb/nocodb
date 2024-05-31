@@ -3,8 +3,8 @@ import { DashboardPage } from '../../../pages/Dashboard';
 import setup, { unsetup } from '../../../setup';
 import { enableQuickRun } from '../../../setup/db';
 
-test.describe.only('LTAR create & update', () => {
-  // if (enableQuickRun()) test.skip();
+test.describe('LTAR create & update', () => {
+  if (enableQuickRun()) test.skip();
 
   let dashboard: DashboardPage;
   let context: any;

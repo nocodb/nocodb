@@ -175,12 +175,21 @@ watch(inputWrapperRef, () => {
           <CilFullscreen v-else class="h-2.5" />
         </a-button>
 
-        <div v-if="!isForm || isExpanded" class="flex flex-row my-1">
-          <a-button type="text" size="small" :onclick="clear"
+        <div v-if="!isForm || isExpanded" class="flex flex-row my-1 space-x-1">
+          <a-button type="text" size="small" class="!rounded-lg" @click="clear"
             ><div class="text-xs">{{ $t('general.cancel') }}</div></a-button
           >
 
-          <a-button type="primary" size="small" :disabled="!!error || localValue === vModel" @click="onSave">
+          <a-button
+            :type="isEditColumn && !isExpanded ? 'text' : 'primary'"
+            size="small"
+            class="nc-save-json-value-btn !rounded-lg"
+            :class="{
+              'nc-edit-modal': isEditColumn && !isExpanded,
+            }"
+            :disabled="!!error || localValue === vModel"
+            @click="onSave"
+          >
             <div class="text-xs">{{ $t('general.save') }}</div>
           </a-button>
         </div>
@@ -216,5 +225,11 @@ watch(inputWrapperRef, () => {
 
 .editor {
   min-height: min(200px, 10vh);
+}
+
+.nc-save-json-value-btn {
+  &.nc-edit-modal:not(:disabled) {
+    @apply !text-brand-500 !hover:text-brand-600;
+  }
 }
 </style>

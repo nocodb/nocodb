@@ -30,8 +30,8 @@ watch(richMode, () => {
         <NcSwitch v-model:checked="richMode">
           <div class="text-sm text-gray-800 select-none">
             {{ $t('labels.enableRichText') }}
-          </div></NcSwitch
-        >
+          </div>
+        </NcSwitch>
       </div>
     </a-form-item>
   </div>

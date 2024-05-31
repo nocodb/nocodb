@@ -362,13 +362,13 @@ const updateCdfValue = (cdf: string | null) => {
       </div>
       <div
         v-if="formState.meta && columnToValidate.includes(formState.uidt)"
-        class="my-4 flex items-center gap-2 justify-between"
+        class="my-4 flex items-center gap-1"
       >
-        <div @click="formState.meta.validate = !formState.meta.validate" class="select-none cursor-pointer text-sm text-gray-800">
-          {{ `${$t('msg.acceptOnlyValid', { type: `${UITypesName[formState.uidt as UITypes]}s` })}` }}
-        </div>
-
-        <a-switch v-model:checked="formState.meta.validate" size="small" class="nc-switch" />
+        <NcSwitch v-model:checked="formState.meta.validate" size="small" class="nc-switch">
+          <div class="text-sm text-gray-800">
+            {{ `${$t('msg.acceptOnlyValid', { type: `${UITypesName[formState.uidt as UITypes]}s` })}` }}
+          </div>
+        </NcSwitch>
       </div>
 
       <template v-if="!readOnly">

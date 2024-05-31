@@ -1,7 +1,11 @@
 <script lang="ts" setup>
-const props = withDefaults(defineProps<{ checked: boolean; disabled?: boolean; size?: 'default' | 'small' | 'xsmall' }>(), {
-  size: 'small',
-})
+const props = withDefaults(
+  defineProps<{ checked: boolean; disabled?: boolean; size?: 'default' | 'small' | 'xsmall'; placement: 'left' | 'right' }>(),
+  {
+    size: 'small',
+    placement: 'left',
+  },
+)
 
 const emit = defineEmits(['change', 'update:checked'])
 
@@ -15,6 +19,9 @@ const onChange = (e: boolean) => {
 </script>
 
 <template>
+  <span v-if="placement === 'right' && $slots.default" class="cursor-pointer pr-2" @click="checked = !checked">
+    <slot />
+  </span>
   <a-switch
     v-model:checked="checked"
     :disabled="disabled"
@@ -27,7 +34,7 @@ const onChange = (e: boolean) => {
     @change="onChange"
   >
   </a-switch>
-  <span v-if="$slots.default" class="cursor-pointer pl-2" @click="checked = !checked">
+  <span v-if="placement === 'left' && $slots.default" class="cursor-pointer pl-2" @click="checked = !checked">
     <slot />
   </span>
 </template>

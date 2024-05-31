@@ -172,9 +172,11 @@ watchEffect(() => {
                 </NcTooltip>
               </div>
               <div class="inline-flex items-center truncate gap-2">
-                <div class="text-[0.65rem] flex-1 truncate text-gray-600 nc-relation-details">
-                  <span class="uppercase">{{ table.col.type }}</span>
-                  <span class="truncate">{{ table.title || table.table_name }}</span>
+                <div class="text-[0.65rem] leading-4 flex-1 truncate text-gray-600 nc-relation-details">
+                  <NcTooltip class="truncate" show-on-truncate-only>
+                    <template #title>{{ table.title || table.table_name }}</template>
+                    {{ table.title || table.table_name }}
+                  </NcTooltip>
                 </div>
 
                 <component

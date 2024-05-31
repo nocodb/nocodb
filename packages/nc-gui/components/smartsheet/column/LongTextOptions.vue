@@ -24,12 +24,13 @@ watch(richMode, () => {
 </script>
 
 <template>
-  <div class="flex flex-col mt-2 gap-2">
+  <div class="flex flex-col gap-2">
     <a-form-item>
-      <div class="flex flex-row items-center">
-        <NcSwitch v-model:checked="richMode">
-          <div class="text-xs">{{ $t('labels.enableRichText') }}</div>
-        </NcSwitch>
+      <div class="flex items-center gap-2 justify-between">
+        <div class="text-sm text-gray-800 cursor-pointer" @click.stop="richMode = !richMode">
+          {{ $t('labels.enableRichText') }}
+        </div>
+        <NcSwitch v-model:checked="richMode"> </NcSwitch>
       </div>
     </a-form-item>
   </div>

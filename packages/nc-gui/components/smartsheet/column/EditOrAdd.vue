@@ -57,6 +57,15 @@ const advancedOptions = ref(false)
 
 const mounted = ref(false)
 
+const showDefaultValueInput = ref(false)
+
+const isVisibleDefaultValueInput = computed({
+  get: () => formState.value.cdf !== null || showDefaultValueInput.value,
+  set: (value: boolean) => {
+    showDefaultValueInput.value = value
+  },
+})
+
 const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
 
 const onlyNameUpdateOnEditColumns = [
@@ -227,6 +236,14 @@ if (props.fromTableExplorer) {
     { deep: true },
   )
 }
+
+const updateCdfValue = (cdf: string | null) => {
+  formState.value = { ...formState.value, cdf }
+
+  if (cdf === null) {
+    showDefaultValueInput.value = false
+  }
+}
 </script>
 
 <template>
@@ -356,23 +373,39 @@ if (props.fromTableExplorer) {
             'mb-2': !props.fromTableExplorer,
           }"
         >
-          <!--
+          <div v-if="!isVisibleDefaultValueInput">
+            <NcButton @click.stop="isVisibleDefaultValueInput = true" size="small" type="text" class="!hover:text-gray-700">
+              <div class="flex items-center gap-2">
+                <span>{{ $t('general.set') }} {{ $t('placeholder.defaultValue') }}</span>
+                <GeneralIcon icon="plus" class="flex-none h-4 w-4" />
+              </div>
+            </NcButton>
+          </div>
+
+          <template v-else>
+            <div class="w-full flex items-center gap-2 text-gray-600 mb-2">
+              <div class="text-sm flex-1 text-gray-800">{{ $t('placeholder.defaultValue') }}</div>
+              <GeneralIcon icon="delete" class="flex-none h-4 w-4 cursor-pointer" @click.stop="updateCdfValue(null)" />
+            </div>
+
+            <!--
             Default Value for JSON & LongText is not supported in MySQL
             Default Value is Disabled for MSSQL -->
-          <LazySmartsheetColumnRichLongTextDefaultValue
-            v-if="isTextArea(formState) && formState.meta?.richMode"
-            v-model:value="formState"
-          />
-          <LazySmartsheetColumnDefaultValue
-            v-else-if="
+            <LazySmartsheetColumnRichLongTextDefaultValue
+              v-if="isTextArea(formState) && formState.meta?.richMode"
+              v-model:value="formState"
+            />
+            <LazySmartsheetColumnDefaultValue
+              v-else-if="
           !isVirtualCol(formState) &&
           !isAttachment(formState) &&
           !isMssql(meta!.source_id) &&
           !(isMysql(meta!.source_id) && (isJSON(formState) || isTextArea(formState))) &&
           !(isDatabricks(meta!.source_id) && formState.unique)
           "
-            v-model:value="formState"
-          />
+              v-model:value="formState"
+            />
+          </template>
 
           <div
             v-if="isDatabricks(meta!.source_id) && !formState.cdf && ![UITypes.MultiSelect, UITypes.Checkbox, UITypes.Rating, UITypes.Attachment, UITypes.Lookup, UITypes.Rollup, UITypes.Formula, UITypes.Barcode, UITypes.QrCode, UITypes.CreatedTime, UITypes.LastModifiedTime, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(formState.uidt)"

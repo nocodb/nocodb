@@ -416,19 +416,19 @@ const loadListData = async ($state: any) => {
             <div
               v-if="element.status !== 'remove'"
               :data-testid="`select-column-option-remove-${index}`"
-              class="mx-1 hover:!text-black-500 text-gray-500 cursor-pointer hover:bg-gray-200 py-1 px-1.5 rounded-md"
+              class="mx-1 hover:!text-black-500 text-gray-500 cursor-pointer hover:bg-gray-200 py-1 px-1.5 rounded-md h-7 flex items-center"
               @click="removeRenderedOption(index)"
             >
-              <component :is="iconMap.close" class="-mt-0.25" />
+              <component :is="iconMap.close" class="-mt-0.25 w-4 h-4" />
             </div>
             <div
               v-else
               :data-testid="`select-column-option-remove-undo-${index}`"
-              class="mx-1 hover:!text-black-500 text-gray-500 cursor-pointer hover:bg-gray-200 py-1 px-1.5 rounded-md"
+              class="mx-1 hover:!text-black-500 text-gray-500 cursor-pointer hover:bg-gray-200 py-1 px-1.5 rounded-md h-7 flex items-center"
               @click="undoRemoveRenderedOption(index)"
             >
               <MdiArrowULeftBottom
-                class="hover:!text-black-500 text-gray-500 cursor-pointer"
+                class="hover:!text-black-500 text-gray-500 cursor-pointer w-4 h-4"
                 @click="undoRemoveRenderedOption(index)"
               />
             </div>

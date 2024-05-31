@@ -85,20 +85,9 @@ watch(
 
           <a-select-option v-for="(icon, i) of iconList" :key="i" :value="i">
             <div class="flex gap-2 w-full truncate items-center">
-              <div class="flex-1 truncate">
-                <component
-                  :is="getMdiIcon(icon.checked)"
-                  class="mx-1"
-                  :style="{
-                    color: vModel.meta.color,
-                  }"
-                />
-                <component
-                  :is="getMdiIcon(icon.unchecked)"
-                  :style="{
-                    color: vModel.meta.color,
-                  }"
-                />
+              <div class="flex-1 truncate text-gray-700">
+                <component :is="getMdiIcon(icon.checked)" class="mr-1" />
+                <component :is="getMdiIcon(icon.unchecked)" />
               </div>
 
               <component
@@ -124,7 +113,7 @@ watch(
             <div class="flex items-center">
               <component
                 :is="getMdiIcon(iconList[vModel.meta.iconIdx].checked)"
-                class="mx-1"
+                class="mr-1"
                 :style="{
                   color: vModel.meta.color,
                 }"

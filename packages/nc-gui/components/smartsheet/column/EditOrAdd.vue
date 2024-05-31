@@ -513,11 +513,11 @@ if (props.fromTableExplorer) {
 
 <style scoped>
 :deep(.ant-form-item-label > label) {
-  @apply !text-sm mb-2;
+  @apply !text-small mb-2  text-gray-700;
 }
 
 :deep(.ant-form-item-label) {
-  @apply !pb-0 text-sm;
+  @apply !pb-0 text-small text-gray-700;
 }
 
 :deep(.ant-form-item-control-input) {

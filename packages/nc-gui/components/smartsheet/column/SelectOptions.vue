@@ -344,7 +344,10 @@ const loadListData = async ($state: any) => {
   <div class="w-full">
     <div
       ref="optionsWrapperDomRef"
-      class="nc-col-option-select-option overflow-x-auto scrollbar-thin-dull border-1 border-gray-200 rounded-lg"
+      class="nc-col-option-select-option overflow-x-auto scrollbar-thin-dull rounded-lg"
+      :class="{
+        'border-1 border-gray-200': renderedOptions.length,
+      }"
       :style="{
         maxHeight: props.fromTableExplorer ? 'calc(100vh - (var(--topbar-height) * 3.6) - 320px)' : 'calc(min(30vh, 250px))',
       }"
@@ -378,7 +381,7 @@ const loadListData = async ($state: any) => {
                 v-model:visible="colorMenus[index]"
                 :trigger="['click']"
                 :class="{
-                  'ml-1': isKanban
+                  'ml-1': isKanban,
                 }"
                 overlay-class-name="nc-dropdown-select-color-options rounded-md overflow-hidden border-1 border-gray-200 "
               >
@@ -444,7 +447,15 @@ const loadListData = async ($state: any) => {
     <div v-if="validateInfos?.colOptions?.help?.[0]?.[0]" class="text-error text-[10px] mb-1 mt-2">
       {{ validateInfos.colOptions.help[0][0] }}
     </div>
-    <NcButton type="secondary" class="w-full caption mt-2" size="small" @click="addNewOption()">
+    <NcButton
+      type="secondary"
+      class="w-full caption"
+      :class="{
+        'mt-2': renderedOptions.length,
+      }"
+      size="small"
+      @click="addNewOption()"
+    >
       <div class="flex items-center">
         <component :is="iconMap.plus" />
         <span class="flex-auto">Add option</span>

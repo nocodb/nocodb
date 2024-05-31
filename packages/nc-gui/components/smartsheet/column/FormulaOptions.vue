@@ -307,18 +307,18 @@ watch(sugListRef, () => {
       :class="suggestionPreviewLeft"
     >
       <div class="pr-3">
-        <div class="flex flex-row w-full justify-between pb-1 border-b-1">
-          <div class="flex items-center gap-x-1 font-semibold text-base">
+        <div class="flex flex-row w-full justify-between pb-2 border-b-1">
+          <div class="flex items-center gap-x-1 font-semibold text-base text-gray-600">
             <component :is="iconMap.function" class="text-lg" />
             {{ suggestionPreviewed.text }}
           </div>
-          <NcButton type="text" size="small" @click="suggestionPreviewed = undefined">
+          <NcButton type="text" size="small" @click="suggestionPreviewed = undefined" class="!h-7 !w-7 !min-w-0">
             <GeneralIcon icon="close" />
           </NcButton>
         </div>
       </div>
-      <div class="flex flex-col max-h-120 nc-scrollbar-md pr-2">
-        <div class="flex mt-3">{{ suggestionPreviewed.description }}</div>
+      <div class="flex flex-col max-h-120 nc-scrollbar-thin pr-2">
+        <div class="flex mt-3 text-sm">{{ suggestionPreviewed.description }}</div>
 
         <div class="text-gray-500 uppercase text-xs mt-3 mb-2">Syntax</div>
         <div class="bg-white rounded-md py-1 px-2 border-1">{{ suggestionPreviewed.syntax }}</div>
@@ -337,9 +337,9 @@ watch(sugListRef, () => {
           {{ example }}
         </div>
       </div>
-      <div class="flex flex-row mt-1 mb-3 justify-end pr-3">
+      <div class="flex flex-row mt-3 mb-3 justify-end pr-3">
         <a v-if="suggestionPreviewed.docsUrl" target="_blank" rel="noopener noreferrer" :href="suggestionPreviewed.docsUrl">
-          <NcButton type="text" class="!text-gray-400 !hover:text-gray-800 !text-xs"
+          <NcButton type="text" size="small" class="!text-gray-400 !hover:text-gray-700 !text-xs"
             >View in Docs
             <GeneralIcon icon="openInNew" class="ml-1" />
           </NcButton>
@@ -427,7 +427,7 @@ watch(sugListRef, () => {
               class="cursor-pointer hover:bg-gray-50"
               @click.prevent.stop="appendText(item)"
             >
-              <a-list-item-meta>
+              <a-list-item-meta class="nc-variable-list-item">
                 <template #title>
                   <div class="flex items-center gap-x-1 justify-between">
                     <div class="flex items-center gap-x-1 rounded-md bg-gray-200 px-1 h-5">
@@ -436,7 +436,7 @@ watch(sugListRef, () => {
                       <span class="text-small leading-[18px] text-gray-800 font-weight-500">{{ item.text }}</span>
                     </div>
 
-                    <NcButton size="xs" type="text" class="nc-variable-list-item-use-field-btn px-3 text-sm invisible">
+                    <NcButton size="small" type="text" class="nc-variable-list-item-use-field-btn !h-7 px-3 !text-small invisible">
                       {{ $t('general.use') }} {{ $t('objects.field').toLowerCase() }}
                     </NcButton>
                   </div>
@@ -455,7 +455,14 @@ watch(sugListRef, () => {
 
 <style lang="scss" scoped>
 :deep(.ant-list-item) {
-  @apply !py-[7px] !px-2 h-8;
+  @apply !py-0 !px-2;
+
+  &:not(:has(.nc-variable-list-item)) {
+    @apply !py-[7px] !px-2;
+  }
+  .nc-variable-list-item {
+    @apply min-h-8 flex items-center;
+  }
   .ant-list-item-meta-title {
     @apply m-0;
   }

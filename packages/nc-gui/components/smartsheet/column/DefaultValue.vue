@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { UITypes } from 'nocodb-sdk'
 const props = defineProps<{
   value: any
   isVisibleDefaultValueInput: boolean
@@ -25,13 +26,9 @@ const cdfValue = ref<string | null>(null)
 
 const editEnabled = ref(false)
 
-const updateCdfValue = (cdf: string | null, hideInput?: boolean) => {
+const updateCdfValue = (cdf: string | null) => {
   vModel.value = { ...vModel.value, cdf }
   cdfValue.value = cdf
-
-  if (cdf === null && hideInput) {
-    isVisibleDefaultValueInput.value = false
-  }
 }
 
 onMounted(() => {
@@ -59,11 +56,6 @@ watch(
   <template v-else>
     <div class="w-full flex items-center gap-2 mb-2">
       <div class="text-small leading-[18px] flex-1 text-gray-700">{{ $t('placeholder.defaultValue') }}</div>
-      <GeneralIcon
-        icon="delete"
-        class="flex-none h-4 w-4 cursor-pointer !text-gray-500 !hover:text-gray-700"
-        @click.stop="updateCdfValue(null, true)"
-      />
     </div>
     <div class="flex flex-row gap-2">
       <div
@@ -80,6 +72,16 @@ watch(
           @update:cdf="updateCdfValue"
           @update:edit-enabled="editEnabled = $event"
           @click="editEnabled = true"
+        />
+        <component
+          :is="iconMap.close"
+          v-if="
+            ![UITypes.Year, UITypes.Date, UITypes.Time, UITypes.DateTime, UITypes.SingleSelect, UITypes.MultiSelect].includes(
+              vModel.uidt,
+            )
+          "
+          class="w-4 h-4 cursor-pointer rounded-full !text-black-500 text-gray-500 cursor-pointer hover:bg-gray-50"
+          @click="updateCdfValue(null)"
         />
       </div>
     </div>

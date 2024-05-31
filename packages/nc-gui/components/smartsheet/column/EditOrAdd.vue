@@ -498,6 +498,7 @@ const submitBtnLabel = computed(() => {
                 :label="submitBtnLabel.label"
                 :loading-label="submitBtnLabel.loadingLabel"
                 @click.prevent="onSubmit"
+                data-testid="nc-field-modal-submit-btn"
               >
                 {{ submitBtnLabel.label }}
                 <template #loading>

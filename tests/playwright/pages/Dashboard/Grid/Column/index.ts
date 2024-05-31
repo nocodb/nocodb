@@ -386,7 +386,7 @@ export class ColumnPageObject extends BasePage {
 
   async save({ isUpdated }: { isUpdated?: boolean } = {}) {
     await this.waitForResponse({
-      uiAction: async () => await this.get().locator('button:has-text("Save")').click(),
+      uiAction: async () => await this.get().locator('button[data-testid="nc-field-modal-submit-btn"]').click(),
       requestUrlPathToMatch: 'api/v1/db/data/noco/',
       httpMethodsToMatch: ['GET'],
       responseJsonMatcher: json => json['pageInfo'],

@@ -248,13 +248,27 @@ export class FieldsPage extends BasePage {
   }
 
   async selectType({ type }: { type: string }) {
-    await this.addOrEditColumn.locator('.ant-select-selector > .ant-select-selection-item').click();
+    if (await this.addOrEditColumn.getByTestId('nc-column-uitypes-options-list-wrapper').isVisible()) {
+      const searchInput = this.addOrEditColumn.locator('.nc-column-type-search-input >> input');
 
-    await this.addOrEditColumn.locator('.ant-select-selection-search-input[aria-expanded="true"]').waitFor();
-    await this.addOrEditColumn.locator('.ant-select-selection-search-input[aria-expanded="true"]').fill(type);
+      await searchInput.waitFor({ state: 'visible' });
 
-    // Select column type
-    await this.rootPage.locator('.rc-virtual-list-holder-inner > div').locator(`text="${type}"`).click();
+      await searchInput.click();
+      await searchInput.fill(type);
+
+      await this.addOrEditColumn.locator('.nc-column-list-wrapper').getByTestId(type).waitFor();
+      await this.addOrEditColumn.locator('.nc-column-list-wrapper').getByTestId(type).click();
+
+      await this.addOrEditColumn.locator('.nc-column-type-input').waitFor();
+    } else {
+      await this.addOrEditColumn.locator('.ant-select-selector > .ant-select-selection-item').click();
+
+      await this.addOrEditColumn.locator('.ant-select-selection-search-input[aria-expanded="true"]').waitFor();
+      await this.addOrEditColumn.locator('.ant-select-selection-search-input[aria-expanded="true"]').fill(type);
+
+      // Select column type
+      await this.rootPage.locator('.rc-virtual-list-holder-inner > div').getByTestId(type).click();
+    }
   }
 
   async saveChanges() {

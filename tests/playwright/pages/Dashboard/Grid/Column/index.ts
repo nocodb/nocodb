@@ -230,7 +230,7 @@ export class ColumnPageObject extends BasePage {
   }
 
   async selectType({ type, first, isCreateColumn }: { type: string; first?: boolean; isCreateColumn?: boolean }) {
-    if (isCreateColumn) {
+    if (isCreateColumn || (await this.get().getByTestId('nc-column-uitypes-options-list-wrapper').isVisible())) {
       const searchInput = this.get().locator('.nc-column-type-search-input >> input');
       await searchInput.waitFor({ state: 'visible' });
       await searchInput.click();

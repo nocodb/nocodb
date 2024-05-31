@@ -65,6 +65,7 @@ onMounted(() => {
     @keydown.arrow-down.prevent="onArrowDown"
     @keydown.arrow-up.prevent="onArrowUp"
     @keydown.enter.prevent="onClick(filteredOptions[activeFieldIndex].name)"
+    data-testid="nc-column-uitypes-options-list-wrapper"
   >
     <div class="w-full pb-2 px-2" @click.stop>
       <a-input

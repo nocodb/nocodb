@@ -262,6 +262,13 @@ if (props.fromTableExplorer) {
     { deep: true },
   )
 }
+
+const submitBtnLabel = computed(() => {
+  return {
+    label: `${isEdit.value && !props.columnLabel ? t('general.update') : t('general.save')} ${columnLabel.value}`,
+    loadingLabel: `${isEdit.value && !props.columnLabel ? t('general.updating') : t('general.saving')} ${columnLabel.value}`,
+  }
+})
 </script>
 
 <template>
@@ -488,12 +495,14 @@ if (props.fromTableExplorer) {
                 :loading="saving"
                 :disabled="!formState.uidt"
                 size="small"
-                :label="`${$t('general.save')} ${columnLabel}`"
-                :loading-label="`${$t('general.saving')} ${columnLabel}`"
+                :label="submitBtnLabel.label"
+                :loading-label="submitBtnLabel.loadingLabel"
                 @click.prevent="onSubmit"
               >
-                {{ $t('general.save') }} {{ columnLabel }}
-                <template #loading> {{ $t('general.saving') }} {{ columnLabel }} </template>
+                {{ submitBtnLabel.label }}
+                <template #loading>
+                  {{ submitBtnLabel.loadingLabel }}
+                </template>
               </NcButton>
             </div>
           </a-form-item>

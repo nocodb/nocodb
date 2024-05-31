@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { dateFormats, isSystemColumn, isValidTimeFormat, timeFormats } from 'nocodb-sdk'
+import { dateFormats, isSystemColumn, timeFormats } from 'nocodb-sdk'
 
 interface Props {
   modelValue?: string | null
@@ -9,7 +9,14 @@ interface Props {
 }
 
 const { modelValue, isPk, isUpdatedFromCopyNPaste } = defineProps<Props>()
+
 const emit = defineEmits(['update:modelValue'])
+
+const timeFormatsObj = {
+  [timeFormats[0]]: 'hh:mm A',
+  [timeFormats[1]]: 'hh:mm:ss A',
+  [timeFormats[2]]: 'hh:mm:ss.SSS A',
+}
 
 const { isMssql, isXcdbBase } = useBase()
 
@@ -183,11 +190,14 @@ watch(
 const placeholder = computed(() => {
   if (
     ((isForm.value || isExpandedForm.value) && !isDateInvalid.value) ||
-    (isGrid.value && !showNull.value && !isDateInvalid.value && !isSystemColumn(column.value) && active.value)
+    (isGrid.value && !showNull.value && !isDateInvalid.value && !isSystemColumn(column.value) && active.value) ||
+    isEditColumn.value
   ) {
-    return { dateTime: dateTimeFormat.value, date: dateFormat.value, time: timeFormat.value }
-  } else if (isEditColumn.value && (modelValue === '' || modelValue === null)) {
-    return t('labels.optional')
+    return {
+      dateTime: dateTimeFormat.value,
+      date: dateFormat.value,
+      time: parseProp(column.value.meta).is12hrFormat ? `${timeFormat.value} AM` : timeFormat.value,
+    }
   } else if (modelValue === null && showNull.value) {
     return t('general.null').toUpperCase()
   } else if (isDateInvalid.value) {
@@ -346,12 +356,21 @@ const handleUpdateValue = (e: Event, _isDatePicker: boolean) => {
       return
     }
 
-    if (timeFormat.value === 'HH:mm' && targetValue.length > 5) {
-      targetValue = targetValue.slice(0, 5)
-    }
+    targetValue = parseProp(column.value.meta).is12hrFormat
+      ? targetValue
+          .trim()
+          .toUpperCase()
+          .replace(/(AM|PM)$/, ' $1')
+          .replace(/\s+/g, ' ')
+      : targetValue.trim()
 
-    if (isValidTimeFormat(targetValue, timeFormat.value)) {
-      tempDate.value = dayjs(`${(tempDate.value ?? dayjs()).format('YYYY-MM-DD')} ${targetValue}`)
+    const parsedDate = dayjs(
+      targetValue,
+      parseProp(column.value.meta).is12hrFormat ? timeFormatsObj[timeFormat.value] : timeFormat.value,
+    )
+
+    if (parsedDate.isValid()) {
+      tempDate.value = dayjs(`${(tempDate.value ?? dayjs()).format('YYYY-MM-DD')} ${parsedDate.format(timeFormat.value)}`)
     }
   }
 }
@@ -384,35 +403,32 @@ function handleSelectTime(value: dayjs.Dayjs) {
   open.value = false
 }
 
-const selectedTime = computed(() => {
-  const result = {
-    value: '',
-    label: '',
-  }
-  if (localState.value) {
-    const time = localState.value.format(timeFormat.value)
-
-    const [hours, minutes] = time.split(':')
-
-    result.value = `${hours}:${minutes}`
-
-    result.label = time
-  }
-
-  return result
-})
-
 const timeCellMaxWidth = computed(() => {
   return {
-    [timeFormats[0]]: 'max-w-[65px]',
-    [timeFormats[1]]: 'max-w-[80px]',
-    [timeFormats[2]]: 'max-w-[110px]',
-  }[timeFormat.value]
+    [timeFormats[0]]: {
+      12: 'max-w-[85px]',
+      24: 'max-w-[65px]',
+    },
+    [timeFormats[1]]: {
+      12: 'max-w-[100px]',
+      24: 'max-w-[80px]',
+    },
+    [timeFormats[2]]: {
+      12: 'max-w-[130px]',
+      24: 'max-w-[110px]',
+    },
+  }[timeFormat.value][parseProp(column.value.meta).is12hrFormat ? 12 : 24]
 })
+
+const cellValue = computed(
+  () =>
+    localState.value?.format(parseProp(column.value.meta).is12hrFormat ? timeFormatsObj[timeFormat.value] : timeFormat.value) ??
+    '',
+)
 </script>
 
 <template>
-  <div class="nc-cell-field group relative">
+  <div class="nc-cell-field relative">
     <NcDropdown
       :visible="isOpen"
       :placement="isDatePicker ? 'bottomLeft' : 'bottomRight'"
@@ -424,7 +440,7 @@ const timeCellMaxWidth = computed(() => {
     >
       <div
         :title="localState?.format(dateTimeFormat)"
-        class="nc-date-picker ant-picker-input flex justify-between gap-2 relative group !w-auto"
+        class="nc-date-picker ant-picker-input flex justify-between gap-2 relative !w-auto"
       >
         <div
           class="flex-none hover:bg-gray-100 px-1 rounded-md box-border w-[60%] max-w-[110px]"
@@ -461,7 +477,7 @@ const timeCellMaxWidth = computed(() => {
         >
           <input
             ref="timePickerRef"
-            :value="selectedTime.value ? `${selectedTime.label}` : ''"
+            :value="cellValue"
             :placeholder="typeof placeholder === 'string' ? placeholder : placeholder?.time"
             class="nc-time-input w-full !truncate border-transparent outline-none !text-current !bg-transparent !focus:(border-none outline-none ring-transparent)"
             :readonly="!!isMobileMode || isColDisabled"
@@ -497,6 +513,7 @@ const timeCellMaxWidth = computed(() => {
               :selected-date="localState"
               :min-granularity="30"
               is-min-granularity-picker
+              :is12hr-format="!!parseProp(column.meta).is12hrFormat"
               :is-open="isOpen"
               @update:selected-date="handleSelectTime"
             />
@@ -506,17 +523,20 @@ const timeCellMaxWidth = computed(() => {
     </NcDropdown>
 
     <GeneralIcon
-      v-if="localState && (isExpandedForm || isForm || !isGrid)"
+      v-if="localState && (isExpandedForm || isForm || !isGrid || isEditColumn) && !readOnly"
       icon="closeCircle"
-      class="h-4 w-4 absolute right-0 top-[50%] transform -translate-y-1/2 invisible group-hover:visible cursor-pointer"
+      class="nc-clear-date-time-icon h-4 w-4 absolute right-0 top-[50%] transform -translate-y-1/2 invisible cursor-pointer"
       @click.stop="handleSelectDate()"
     />
   </div>
+
   <div v-if="!editable && isGrid" class="absolute inset-0 z-90 cursor-pointer"></div>
 </template>
 
 <style scoped>
-:deep(.ant-picker-input > input) {
-  @apply !text-current;
+.nc-cell-field {
+  &:hover .nc-clear-date-time-icon {
+    @apply visible;
+  }
 }
 </style>

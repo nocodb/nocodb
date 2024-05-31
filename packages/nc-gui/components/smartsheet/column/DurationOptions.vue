@@ -11,7 +11,7 @@ const durationOptionList =
   durationOptions.map((o) => ({
     ...o,
     // h:mm:ss (e.g. 3:45, 1:23:40)
-    title: `${o.title} ${o.example}`,
+    title: `${o.title}`,
   })) || []
 
 // set default value
@@ -24,14 +24,12 @@ vModel.value.meta = {
 <template>
   <a-row>
     <a-col :span="24">
-      <span class="prose-sm mt-2">{{ $t('labels.durationInfo') }}</span>
-    </a-col>
-
-    <a-col :span="24">
-      <a-form-item :label="$t('labels.durationFormat')">
+      <a-form-item :label="$t('general.format')">
         <a-select v-model:value="vModel.meta.duration" class="w-52" dropdown-class-name="nc-dropdown-duration-option">
+          <template #suffixIcon> <GeneralIcon icon="arrowDown" class="text-gray-700" /> </template>
+
           <a-select-option v-for="(duration, i) of durationOptionList" :key="i" :value="duration.id">
-            <div class="flex gap-2 w-full truncate items-center">
+            <div class="flex gap-2 w-full truncate items-center" :data-testid="duration.title">
               <NcTooltip show-on-truncate-only class="flex-1 truncate">
                 <template #title> {{ duration.title }}</template>
                 {{ duration.title }}

@@ -16,13 +16,9 @@ const emit = defineEmits(['submit', 'cancel', 'mounted'])
 
 const meta = inject(MetaInj, ref())
 
-const column = toRef(props, 'column')
+const { column, preload, tableExplorerColumns, fromTableExplorer } = toRefs(props)
 
-const preload = toRef(props, 'preload')
-
-const tableExplorerColumns = toRef(props, 'tableExplorerColumns')
-
-useProvideColumnCreateStore(meta, column, tableExplorerColumns)
+useProvideColumnCreateStore(meta, column, tableExplorerColumns, fromTableExplorer)
 </script>
 
 <template>

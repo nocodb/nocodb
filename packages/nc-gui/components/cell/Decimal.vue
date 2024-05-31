@@ -102,7 +102,7 @@ watch(isExpandedFormOpen, () => {
     class="nc-cell-field outline-none py-1 border-none rounded-md w-full h-full"
     type="number"
     :step="precision"
-    :placeholder="placeholder !== undefined ? placeholder : isEditColumn ? $t('labels.optional') : ''"
+    :placeholder="placeholder"
     style="letter-spacing: 0.06rem"
     @blur="editEnabled = false"
     @keydown.down.stop="onKeyDown"

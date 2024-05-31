@@ -45,6 +45,9 @@ const onPrecisionChange = (value: number) => {
       dropdown-class-name="nc-dropdown-decimal-format"
       @change="onPrecisionChange"
     >
+      <template #suffixIcon>
+        <GeneralIcon icon="arrowDown" class="text-gray-700" />
+      </template>
       <a-select-option v-for="(format, i) of precisionFormats" :key="i" :value="format">
         <div class="flex gap-2 w-full justify-between items-center">
           {{ (precisionFormatsDisplay as any)[format] }}

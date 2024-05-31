@@ -1,5 +1,5 @@
 <script lang="ts" setup></script>
 
-<template></template>
+<template><div class="hidden" /></template>
 
 <style lang="scss" scoped></style>

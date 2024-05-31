@@ -60,6 +60,8 @@ const mounted = ref(false)
 
 const showDefaultValueInput = ref(false)
 
+const showHoverEffectOnSelectedType = ref(true)
+
 const isVisibleDefaultValueInput = computed({
   get: () => {
     if (formState.value.cdf && !showDefaultValueInput.value) {
@@ -239,10 +241,17 @@ const onDropdownChange = (value: boolean) => {
   if (value) {
     isColumnTypeOpen.value = value
   } else {
+    showHoverEffectOnSelectedType.value = true
     setTimeout(() => {
       isColumnTypeOpen.value = value
     }, 300)
   }
+}
+
+const handleResetHoverEffect = () => {
+  if (!showHoverEffectOnSelectedType.value) return
+
+  showHoverEffectOnSelectedType.value = false
 }
 
 if (props.fromTableExplorer) {
@@ -318,7 +327,16 @@ if (props.fromTableExplorer) {
               <template #suffixIcon>
                 <GeneralIcon icon="arrowDown" class="text-gray-700" />
               </template>
-              <a-select-option v-for="opt of uiTypesOptions" :key="opt.name" :value="opt.name" v-bind="validateInfos.uidt">
+              <a-select-option
+                v-for="opt of uiTypesOptions"
+                :key="opt.name"
+                :value="opt.name"
+                v-bind="validateInfos.uidt"
+                @mouseover="handleResetHoverEffect"
+                :class="{
+                  'ant-select-item-option-active-selected': showHoverEffectOnSelectedType && formState.uidt === opt.name,
+                }"
+              >
                 <div class="w-full flex gap-2 items-center justify-between" :data-testid="opt.name">
                   <div class="flex gap-2 items-center">
                     <component :is="opt.icon" class="text-gray-700 w-4 h-4" />
@@ -486,7 +504,15 @@ if (props.fromTableExplorer) {
   </div>
 </template>
 
-<style scoped>
+<style lang="scss">
+.nc-dropdown-column-type {
+  .ant-select-item-option-active-selected {
+    @apply !bg-gray-100;
+  }
+}
+</style>
+
+<style lang="scss" scoped>
 .nc-column-name-input {
   &:not(:hover):not(:focus) {
     box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
@@ -506,6 +532,7 @@ if (props.fromTableExplorer) {
     box-shadow: 0px 0px 0px 2px rgba(51, 102, 255, 0.24), 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
   }
 }
+
 :deep(.ant-form-item-label > label) {
   @apply !text-small leading-[18px] mb-2 text-gray-700;
 

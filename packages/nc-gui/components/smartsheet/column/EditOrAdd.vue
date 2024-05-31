@@ -339,7 +339,7 @@ if (props.fromTableExplorer) {
             <a-select
               v-model:value="formState.uidt"
               show-search
-              class="nc-column-type-input !rounded-md"
+              class="nc-column-type-input !rounded-lg"
               :disabled="isKanban || readOnly"
               dropdown-class-name="nc-dropdown-column-type border-1 !rounded-lg border-gray-200"
               @dropdown-visible-change="onDropdownChange"
@@ -474,7 +474,7 @@ if (props.fromTableExplorer) {
       <template v-else>
         <a-form-item>
           <div
-            class="flex gap-x-2 justify-between"
+            class="flex gap-x-2 justify-end"
             :class="{
               'mt-6': props.hideAdditionalOptions,
               'mt-2': !props.hideAdditionalOptions,
@@ -482,13 +482,12 @@ if (props.fromTableExplorer) {
             }"
           >
             <!-- Cancel -->
-            <NcButton size="small" class="w-full" html-type="button" type="secondary" @click="emit('cancel')">
+            <NcButton size="small" html-type="button" type="secondary" @click="emit('cancel')">
               {{ $t('general.cancel') }}
             </NcButton>
 
             <!-- Save -->
             <NcButton
-              class="w-full"
               html-type="submit"
               type="primary"
               :loading="saving"
@@ -507,14 +506,6 @@ if (props.fromTableExplorer) {
     </a-form>
   </div>
 </template>
-
-<style lang="scss">
-.nc-column-type-input {
-  .ant-select-selector {
-    @apply !rounded-md;
-  }
-}
-</style>
 
 <style scoped>
 :deep(.ant-form-item-label > label) {
@@ -557,6 +548,12 @@ if (props.fromTableExplorer) {
   }
   .ant-alert-description {
     @apply text-small text-gray-500 font-weight-500;
+  }
+}
+
+:deep(.ant-select) {
+  .ant-select-selector {
+    @apply !rounded-lg;
   }
 }
 </style>

@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { UITypes } from 'nocodb-sdk'
 
 const props = defineProps<{
   value: any

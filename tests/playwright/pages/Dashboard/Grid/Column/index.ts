@@ -42,7 +42,11 @@ export class ColumnPageObject extends BasePage {
       },
       click: async () => {
         if (await showDefautlValueBtn.isVisible()) {
+          await showDefautlValueBtn.waitFor();
           await showDefautlValueBtn.click({ force: true });
+
+          await showDefautlValueBtn.waitFor({ state: 'hidden' });
+          await this.get().locator('.nc-default-value-wrapper').waitFor({ state: 'visible' });
         }
       },
     };
@@ -325,6 +329,9 @@ export class ColumnPageObject extends BasePage {
     if (selectType) {
       await this.selectType({ type, first: true });
     }
+
+    // Click set default value to show default value input, on close field modal it will automacally hide input if value is not set
+    await this.defaultValueBtn().click();
 
     switch (type) {
       case 'Formula':

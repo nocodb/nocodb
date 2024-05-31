@@ -48,8 +48,6 @@ export class UserOptionColumnPageObject extends BasePage {
     // Clear previous default value
     await this.clearDefaultValue();
 
-    await this.column.defaultValueBtn().click();
-
     const selector = this.column.get().locator('.nc-user-select >> .ant-select-selector');
     await selector.click();
 
@@ -82,9 +80,7 @@ export class UserOptionColumnPageObject extends BasePage {
   }
 
   async clearDefaultValue(): Promise<void> {
-    if (!(await this.column.defaultValueBtn().isVisible())) {
-      await this.get().locator('.nc-cell-user + svg.nc-icon').click();
-    }
+    await this.get().locator('.nc-cell-user + svg.nc-icon').click();
   }
 
   async verifyDefaultValueOptionCount({

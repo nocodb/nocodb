@@ -46,6 +46,8 @@ const picked = computed({
   },
 })
 
+const isOpenColorPicker = ref(false)
+
 // set default value
 vModel.value.meta = {
   icon: {
@@ -70,14 +72,12 @@ watch(
     vModel.value.meta.icon = iconList[v]
   },
 )
-
-const isOpenColorPicker = ref(false)
 </script>
 
 <template>
   <a-row :gutter="8">
     <a-col :span="12">
-      <a-form-item label="Icon">
+      <a-form-item :label="$t('labels.icon')">
         <a-select v-model:value="vModel.meta.iconIdx" class="w-52" dropdown-class-name="nc-dropdown-checkbox-icon">
           <template #suffixIcon>
             <GeneralIcon icon="arrowDown" class="text-gray-700" />
@@ -113,10 +113,10 @@ const isOpenColorPicker = ref(false)
       </a-form-item>
     </a-col>
     <a-col :span="12">
-      <a-form-item label="Colour">
+      <a-form-item :label="$t('general.colour')">
         <NcDropdown placement="bottomRight" :auto-close="false" v-model:visible="isOpenColorPicker">
           <div
-            class="flex-1 border-1 border-gray-300 hover:border-brand-400 rounded-lg h-8 px-[11px] flex items-center justify-between transition-all"
+            class="flex-1 border-1 border-gray-300 hover:border-brand-400 rounded-lg h-8 px-[11px] flex items-center justify-between transition-all cursor-pointer"
             :class="{
               'border-brand-500 shadow-selected': isOpenColorPicker,
             }"

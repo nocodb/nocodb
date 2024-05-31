@@ -207,7 +207,8 @@
     "appearance": "Appearance",
     "now": "Now",
     "set": "Set",
-    "format": "Format"
+    "format": "Format",
+    "colour": "Colour"
   },
   "objects": {
     "owner": "Owner",

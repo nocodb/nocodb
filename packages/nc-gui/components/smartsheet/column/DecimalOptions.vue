@@ -38,13 +38,21 @@ const onPrecisionChange = (value: number) => {
 </script>
 
 <template>
-  <a-form-item :label="$t('placeholder.precision')">
+  <a-form-item>
+    <template #label>
+      <div class="text-sm mb-2">
+        {{ t('placeholder.precision') }}
+      </div>
+    </template>
     <a-select
       v-if="vModel.meta?.precision"
       v-model:value="vModel.meta.precision"
-      dropdown-class-name="nc-dropdown-decimal-format"
+      dropdown-class-name="nc-dropdown-decimal-format border-1 !rounded-lg border-gray-200"
       @change="onPrecisionChange"
     >
+      <template #suffixIcon>
+        <GeneralIcon icon="arrowDown" class="text-gray-700" />
+      </template>
       <a-select-option v-for="(format, i) of precisionFormats" :key="i" :value="format">
         <div class="flex gap-2 w-full justify-between items-center">
           {{ (precisionFormatsDisplay as any)[format] }}

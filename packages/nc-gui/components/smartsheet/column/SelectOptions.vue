@@ -380,7 +380,7 @@ const loadListData = async ($state: any) => {
 
               <NcDropdown v-model:visible="colorMenus[index]" :auto-close="false">
                 <div class="flex-none h-6 w-6 flex cursor-pointer mx-1">
-                  <div class="h-6 w-6 rounded-lg flex items-center" :style="{ backgroundColor: element.color }">
+                  <div class="h-6 w-6 rounded flex items-center" :style="{ backgroundColor: element.color }">
                     <GeneralIcon icon="arrowDown" class="flex-none h-4 w-4 m-auto !text-gray-600" />
                   </div>
                 </div>

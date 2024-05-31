@@ -8,7 +8,14 @@ interface Props {
   isUpdatedFromCopyNPaste?: Record<string, boolean>
 }
 
+const timeFormatsObj = {
+  [timeFormats[0]]: 'hh:mm A',
+  [timeFormats[1]]: 'hh:mm:ss A',
+  [timeFormats[2]]: 'hh:mm:ss.SSS A',
+}
+
 const { modelValue, isPk, isUpdatedFromCopyNPaste } = defineProps<Props>()
+
 const emit = defineEmits(['update:modelValue'])
 
 const { isMssql, isXcdbBase } = useBase()
@@ -346,12 +353,21 @@ const handleUpdateValue = (e: Event, _isDatePicker: boolean) => {
       return
     }
 
-    if (timeFormat.value === 'HH:mm' && targetValue.length > 5) {
-      targetValue = targetValue.slice(0, 5)
-    }
+    targetValue = parseProp(column.value.meta).is12hrFormat
+      ? targetValue
+          .trim()
+          .toUpperCase()
+          .replace(/(AM|PM)$/, ' $1')
+          .replace(/\s+/g, ' ')
+      : targetValue.trim()
 
-    if (isValidTimeFormat(targetValue, timeFormat.value)) {
-      tempDate.value = dayjs(`${(tempDate.value ?? dayjs()).format('YYYY-MM-DD')} ${targetValue}`)
+    const parsedDate = dayjs(
+      targetValue,
+      parseProp(column.value.meta).is12hrFormat ? timeFormatsObj[timeFormat.value] : timeFormat.value,
+    )
+
+    if (parsedDate.isValid()) {
+      tempDate.value = dayjs(`${(tempDate.value ?? dayjs()).format('YYYY-MM-DD')} ${parsedDate.format(timeFormat.value)}`)
     }
   }
 }
@@ -409,6 +425,12 @@ const timeCellMaxWidth = computed(() => {
     [timeFormats[2]]: 'max-w-[110px]',
   }[timeFormat.value]
 })
+
+const cellValue = computed(
+  () =>
+    localState.value?.format(parseProp(column.value.meta).is12hrFormat ? timeFormatsObj[timeFormat.value] : timeFormat.value) ??
+    '',
+)
 </script>
 
 <template>
@@ -461,7 +483,7 @@ const timeCellMaxWidth = computed(() => {
         >
           <input
             ref="timePickerRef"
-            :value="selectedTime.value ? `${selectedTime.label}` : ''"
+            :value="cellValue"
             :placeholder="typeof placeholder === 'string' ? placeholder : placeholder?.time"
             class="nc-time-input w-full !truncate border-transparent outline-none !text-current !bg-transparent !focus:(border-none outline-none ring-transparent)"
             :readonly="!!isMobileMode || isColDisabled"
@@ -497,6 +519,7 @@ const timeCellMaxWidth = computed(() => {
               :selected-date="localState"
               :min-granularity="30"
               is-min-granularity-picker
+              :is12hr-format="!!parseProp(column.meta).is12hrFormat"
               :is-open="isOpen"
               @update:selected-date="handleSelectTime"
             />

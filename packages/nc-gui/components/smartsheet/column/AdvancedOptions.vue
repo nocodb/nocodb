@@ -73,6 +73,10 @@ vModel.value.au = !!vModel.value.au */
 
       <a-form-item :label="$t('labels.databaseType')" v-bind="validateInfos.dt">
         <a-select v-model:value="vModel.dt" dropdown-class-name="nc-dropdown-db-type " class="!mt-0.5" @change="onDataTypeChange">
+          <template #suffixIcon>
+            <GeneralIcon icon="arrowDown" class="text-gray-700" />
+          </template>
+
           <a-select-option v-for="type in dataTypes" :key="type" :value="type">
             <div class="flex gap-2 items-center justify-between">
               {{ type }}

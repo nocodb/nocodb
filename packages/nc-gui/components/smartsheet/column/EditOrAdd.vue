@@ -2,6 +2,7 @@
 import type { ColumnReqType, ColumnType } from 'nocodb-sdk'
 import { UITypes, UITypesName, isLinksOrLTAR, isSelfReferencingTableColumn, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 
+import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
 import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
 import MdiIdentifierIcon from '~icons/mdi/identifier'
 
@@ -449,15 +450,16 @@ if (props.fromTableExplorer) {
 
         <div
           v-if="!props.hideAdditionalOptions && !isVirtualCol(formState.uidt)&&!(!appInfo.ee && isAttachment(formState)) && (!appInfo.ee || (appInfo.ee && !isXcdbBase(meta!.source_id) && formState.uidt === UITypes.SpecificDBType))"
-          class="text-xs cursor-pointer text-gray-400 nc-more-options mb-1 mt-4 flex items-center gap-1 justify-end"
-          @click="advancedOptions = !advancedOptions"
+          class="text-xs text-gray-400 mb-2 mt-4 flex items-center justify-end"
         >
-          {{ advancedOptions ? $t('general.hideAll') : $t('general.showMore') }}
-          <component :is="advancedOptions ? MdiMinusIcon : MdiPlusIcon" />
+          <div class="nc-more-options flex items-center gap-1 cursor-pointer" @click="advancedOptions = !advancedOptions">
+            {{ advancedOptions ? $t('general.hideAll') : $t('general.showMore') }}
+            <component :is="advancedOptions ? MdiMinusIcon : MdiPlusIcon" />
+          </div>
         </div>
 
         <Transition name="layout" mode="out-in">
-          <div v-if="advancedOptions" class="overflow-hidden">
+          <div v-if="advancedOptions" class="overflow-hidden mb-2">
             <LazySmartsheetColumnAttachmentOptions v-if="appInfo.ee && isAttachment(formState)" v-model:value="formState" />
 
             <LazySmartsheetColumnAdvancedOptions

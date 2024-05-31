@@ -288,10 +288,6 @@ function handleSelectDate(value?: dayjs.Dayjs) {
   localState.value = value
   open.value = false
 }
-
-watchEffect(() => {
-  console.log('readOnly', readOnly.value)
-})
 </script>
 
 <template>

@@ -1200,7 +1200,7 @@
     "noRecordsLinked": "No records linked",
     "noLinkedRecords": "No linked records",
     "recordsLinked": "records linked",
-    "acceptOnlyValid": "Accept valid {type} only",
+    "acceptOnlyValid": "Accept only valid {type}",
     "apiTokenCreate": "Create personal API tokens to use in automation or external apps.",
     "selectFieldToSort": "Select Field to Sort",
     "selectFieldToGroup": "Select Field to Group",

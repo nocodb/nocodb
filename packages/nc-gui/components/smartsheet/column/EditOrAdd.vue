@@ -375,7 +375,14 @@ if (props.fromTableExplorer) {
         <div v-if="formState.meta && columnToValidate.includes(formState.uidt)" class="my-4 flex items-center gap-1">
           <NcSwitch v-model:checked="formState.meta.validate" size="small" class="nc-switch">
             <div class="text-sm text-gray-800">
-              {{ `${$t('msg.acceptOnlyValid', { type: `${UITypesName[formState.uidt as UITypes]}s` })}` }}
+              {{
+                `${$t('msg.acceptOnlyValid', {
+                  type:
+                    formState.uidt === UITypes.URL
+                      ? `${UITypesName[formState.uidt as UITypes]}s`
+                      : `${UITypesName[formState.uidt as UITypes]}s`.toLowerCase(),
+                })}`
+              }}
             </div>
           </NcSwitch>
         </div>

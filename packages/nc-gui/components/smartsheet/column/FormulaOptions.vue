@@ -283,13 +283,28 @@ setAdditionalValidations({
 onMounted(() => {
   jsep.plugins.register(jsepCurlyHook)
 })
+
+const suggestionPreviewLeft = ref('-left-91')
+
+watch(sugListRef, () => {
+  nextTick(() => {
+    setTimeout(() => {
+      const fieldModal = document.querySelector('.nc-dropdown-edit-column.active') as HTMLDivElement
+
+      if (fieldModal && fieldModal.getBoundingClientRect().left < 364) {
+        suggestionPreviewLeft.value = '-right-91'
+      }
+    }, 500)
+  })
+})
 </script>
 
 <template>
   <div class="formula-wrapper relative">
     <div
       v-if="suggestionPreviewed && !suggestionPreviewed.unsupported && suggestionPreviewed.type === 'function'"
-      class="absolute -left-91 w-84 top-0 bg-white z-10 pl-3 pt-3 border-1 shadow-md rounded-xl"
+      class="absolute w-84 top-0 bg-white z-10 pl-3 pt-3 border-1 shadow-md rounded-xl"
+      :class="suggestionPreviewLeft"
     >
       <div class="pr-3">
         <div class="flex flex-row w-full justify-between pb-1 border-b-1">
@@ -350,9 +365,9 @@ onMounted(() => {
       />
     </a-form-item>
 
-    <div ref="sugListRef" class="h-[250px] overflow-auto nc-scrollbar-thin">
+    <div ref="sugListRef" class="h-[250px] overflow-auto nc-scrollbar-thin rounded-t-lg">
       <template v-if="suggestedFormulas.length > 0">
-        <div class="rounded-t-lg border-1 bg-gray-50 px-3 py-1 uppercase text-gray-600 text-xs">Formulas</div>
+        <div class="rounded-t-lg border-1 bg-gray-50 px-3 py-1 uppercase text-gray-600 text-xs sticky top-0 z-10">Formulas</div>
 
         <a-list
           :data-source="suggestedFormulas"
@@ -393,7 +408,7 @@ onMounted(() => {
       </template>
 
       <template v-if="variableList.length > 0">
-        <div class="rounded-t-lg border-1 bg-gray-50 px-3 py-1 uppercase text-gray-600 text-xs">Fields</div>
+        <div class="rounded-t-lg border-1 bg-gray-50 px-3 py-1 uppercase text-gray-600 text-xs sticky top-0 z-10">Fields</div>
 
         <a-list
           ref="variableListRef"

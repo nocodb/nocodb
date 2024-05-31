@@ -10,8 +10,6 @@ const { modelValue, showValidationError = true } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
-const { t } = useI18n()
-
 const { showNull } = useGlobal()
 
 const column = inject(ColumnInj)

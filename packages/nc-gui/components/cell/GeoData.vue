@@ -160,12 +160,12 @@ const openInOSM = () => {
         </a-form-item>
         <a-form-item v-if="vModel">
           <div class="mr-2 flex flex-row items-end gap-1 text-left">
-            <a-button @click="openInOSM" class="!rounded-lg">
+            <a-button class="!rounded-lg" @click="openInOSM">
               <div class="flex items-center gap-1">
                 <component :is="iconMap.openInNew" />{{ $t('activity.map.openInOpenStreetMap') }}
               </div>
             </a-button>
-            <a-button @click="openInGoogleMaps" class="!rounded-lg">
+            <a-button class="!rounded-lg" @click="openInGoogleMaps">
               <div class="flex items-center gap-1">
                 <component :is="iconMap.openInNew" />{{ $t('activity.map.openInGoogleMaps') }}
               </div>
@@ -174,7 +174,7 @@ const openInOSM = () => {
         </a-form-item>
         <a-form-item>
           <div class="ml-auto mr-2 w-auto">
-            <a-button type="text" @click="clear" class="!rounded-lg">{{ $t('general.cancel') }}</a-button>
+            <a-button type="text" class="!rounded-lg" @click="clear">{{ $t('general.cancel') }}</a-button>
             <a-button type="primary" html-type="submit" data-testid="nc-geo-data-save" class="!rounded-lg">{{
               $t('general.submit')
             }}</a-button>

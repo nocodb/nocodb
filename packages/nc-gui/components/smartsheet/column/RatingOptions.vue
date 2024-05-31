@@ -99,9 +99,9 @@ watch(
     <a-col :span="8">
       <a-form-item :label="$t('general.colour')">
         <NcDropdown
+          v-model:visible="isOpenColorPicker"
           placement="bottom"
           :auto-close="false"
-          v-model:visible="isOpenColorPicker"
           class="nc-color-picker-dropdown-trigger"
         >
           <div

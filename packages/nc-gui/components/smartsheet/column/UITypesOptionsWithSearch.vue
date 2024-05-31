@@ -1,5 +1,6 @@
 <script lang="ts" setup>
-import { UITypes, UITypesName } from 'nocodb-sdk'
+import type { UITypes } from 'nocodb-sdk'
+import { UITypesName } from 'nocodb-sdk'
 
 const props = defineProps<{
   options: typeof uiTypes
@@ -62,10 +63,10 @@ onMounted(() => {
 <template>
   <div
     class="flex-1 border-1 border-gray-200 rounded-lg flex flex-col py-2"
+    data-testid="nc-column-uitypes-options-list-wrapper"
     @keydown.arrow-down.prevent="onArrowDown"
     @keydown.arrow-up.prevent="onArrowUp"
     @keydown.enter.prevent="onClick(filteredOptions[activeFieldIndex].name)"
-    data-testid="nc-column-uitypes-options-list-wrapper"
   >
     <div class="w-full pb-2 px-2" @click.stop>
       <a-input

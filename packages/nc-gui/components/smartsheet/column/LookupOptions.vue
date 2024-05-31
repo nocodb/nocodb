@@ -168,7 +168,7 @@ const cellIcon = (column: ColumnType) =>
     <a-alert type="warning" show-icon>
       <template #icon><GeneralIcon icon="alertTriangle" class="h-6 w-6" width="24" height="24" /></template>
       <template #message> Alert </template>
-      <template #description class="!text-small">
+      <template #description>
         {{
           $t('msg.linkColumnClearNotSupportedYet', {
             type: 'Lookup',

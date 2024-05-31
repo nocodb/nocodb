@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { ColumnType } from 'nocodb-sdk'
-import { AllowedColumnTypesForQrAndBarcodes, isVirtualCol, UITypes } from 'nocodb-sdk'
+import type { ColumnType, UITypes } from 'nocodb-sdk'
+import { AllowedColumnTypesForQrAndBarcodes, isVirtualCol } from 'nocodb-sdk'
 
 const props = defineProps<{
   modelValue: any
@@ -61,19 +61,19 @@ const cellIcon = (column: ColumnType) =>
           <GeneralIcon icon="arrowDown" class="text-gray-700" />
         </template>
 
-        <a-select-option v-for="(column, index) of columnsAllowedAsQrValue" :key="index" :value="column.id">
-          <div class="flex gap-2 w-full truncate items-center" :data-testid="`nc-qr-${column.title}`">
+        <a-select-option v-for="(option, index) of columnsAllowedAsQrValue" :key="index" :value="option.id">
+          <div class="flex gap-2 w-full truncate items-center" :data-testid="`nc-qr-${option.title}`">
             <div class="inline-flex items-center gap-2 flex-1 truncate">
-              <component :is="cellIcon(column)" :column-meta="column" class="!mx-0" />
+              <component :is="cellIcon(option)" :column-meta="column" class="!mx-0" />
               <NcTooltip show-on-truncate-only class="flex-1 truncate">
-                <template #title>{{ column.title }}</template>
-                {{ column.title }}
+                <template #title>{{ option.title }}</template>
+                {{ option.title }}
               </NcTooltip>
             </div>
 
             <component
               :is="iconMap.check"
-              v-if="vModel.fk_qr_value_column_id === column.id"
+              v-if="vModel.fk_qr_value_column_id === option.id"
               id="nc-selected-item-icon"
               class="text-primary w-4 h-4"
             />

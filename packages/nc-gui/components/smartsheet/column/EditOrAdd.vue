@@ -335,10 +335,10 @@ const submitBtnLabel = computed(() => {
                 :key="opt.name"
                 :value="opt.name"
                 v-bind="validateInfos.uidt"
-                @mouseover="handleResetHoverEffect"
                 :class="{
                   'ant-select-item-option-active-selected': showHoverEffectOnSelectedType && formState.uidt === opt.name,
                 }"
+                @mouseover="handleResetHoverEffect"
               >
                 <div class="w-full flex gap-2 items-center justify-between" :data-testid="opt.name">
                   <div class="flex gap-2 items-center">
@@ -497,8 +497,8 @@ const submitBtnLabel = computed(() => {
                 size="small"
                 :label="submitBtnLabel.label"
                 :loading-label="submitBtnLabel.loadingLabel"
-                @click.prevent="onSubmit"
                 data-testid="nc-field-modal-submit-btn"
+                @click.prevent="onSubmit"
               >
                 {{ submitBtnLabel.label }}
                 <template #loading>

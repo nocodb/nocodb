@@ -26,11 +26,11 @@ const cdfValue = computed({
 <template>
   <div v-if="!isVisibleDefaultValueInput">
     <NcButton
-      @click.stop="isVisibleDefaultValueInput = true"
       size="small"
       type="text"
       class="!hover:text-gray-700"
       data-testid="nc-show-default-value-btn"
+      @click.stop="isVisibleDefaultValueInput = true"
     >
       <div class="flex items-center gap-2">
         <span>{{ $t('general.set') }} {{ $t('placeholder.defaultValue') }}</span>

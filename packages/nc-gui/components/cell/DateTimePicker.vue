@@ -8,15 +8,15 @@ interface Props {
   isUpdatedFromCopyNPaste?: Record<string, boolean>
 }
 
+const { modelValue, isPk, isUpdatedFromCopyNPaste } = defineProps<Props>()
+
+const emit = defineEmits(['update:modelValue'])
+
 const timeFormatsObj = {
   [timeFormats[0]]: 'hh:mm A',
   [timeFormats[1]]: 'hh:mm:ss A',
   [timeFormats[2]]: 'hh:mm:ss.SSS A',
 }
-
-const { modelValue, isPk, isUpdatedFromCopyNPaste } = defineProps<Props>()
-
-const emit = defineEmits(['update:modelValue'])
 
 const { isMssql, isXcdbBase } = useBase()
 

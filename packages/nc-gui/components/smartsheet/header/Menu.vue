@@ -366,7 +366,7 @@ const filterOrGroupByThisField = (event: SmartsheetStoreEvents) => {
           'min-w-[256px]': isExpandedForm,
         }"
       >
-        <NcMenuItem @click="onEditPress" :disabled="column?.pk || isSystemColumn(column)">
+        <NcMenuItem :disabled="column?.pk || isSystemColumn(column)" @click="onEditPress">
           <div class="nc-column-edit nc-header-menu-item">
             <component :is="iconMap.ncEdit" class="text-gray-700" />
             <!-- Edit -->

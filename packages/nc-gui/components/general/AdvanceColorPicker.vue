@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import tinycolor from 'tinycolor2'
-import { themeV3Colors } from '../../utils/colorsUtils'
 import windiColors from 'windicss/colors'
+import { themeV3Colors } from '../../utils/colorsUtils'
 
 interface Props {
   modelValue?: string | any
@@ -79,8 +79,8 @@ const isDefaultColorTab = ref(true)
         </template>
         <div class="h-full p-2">
           <div class="flex flex-col gap-1">
-            <div v-for="(colors, i) of defaultColors" class="flex">
-              <div v-for="(color, j) of colors" :key="`color-${i}-${j}`" class="p-1 rounded-md flex h-8 hover:bg-gray-200">
+            <div v-for="(colorGroup, i) of defaultColors" :key="i" class="flex">
+              <div v-for="(color, j) of colorGroup" :key="`color-${i}-${j}`" class="p-1 rounded-md flex h-8 hover:bg-gray-200">
                 <button
                   class="color-selector"
                   :class="{ selected: compare(picked, color) }"

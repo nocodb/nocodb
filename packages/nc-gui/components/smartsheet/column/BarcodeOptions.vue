@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { ColumnType } from 'nocodb-sdk'
-import { AllowedColumnTypesForQrAndBarcodes, isVirtualCol, UITypes } from 'nocodb-sdk'
+import type { ColumnType, UITypes } from 'nocodb-sdk'
+import { AllowedColumnTypesForQrAndBarcodes, isVirtualCol } from 'nocodb-sdk'
 
 const props = defineProps<{
   modelValue: any
@@ -88,16 +88,16 @@ const cellIcon = (column: ColumnType) =>
         >
           <template #suffixIcon> <GeneralIcon icon="arrowDown" class="text-gray-700" /> </template>
 
-          <a-select-option v-for="(column, index) of columnsAllowedAsBarcodeValue" :key="index" :value="column.id">
-            <div class="w-full flex gap-2 truncate items-center justify-between" :data-testid="`nc-barcode-${column.title}`">
+          <a-select-option v-for="(option, index) of columnsAllowedAsBarcodeValue" :key="index" :value="option.id">
+            <div class="w-full flex gap-2 truncate items-center justify-between" :data-testid="`nc-barcode-${option.title}`">
               <div class="inline-flex items-center gap-2 flex-1 truncate">
-                <component :is="cellIcon(column)" :column-meta="column" class="!mx-0" />
-                <div class="truncate flex-1">{{ column.title }}</div>
+                <component :is="cellIcon(option)" :column-meta="column" class="!mx-0" />
+                <div class="truncate flex-1">{{ option.title }}</div>
               </div>
 
               <component
                 :is="iconMap.check"
-                v-if="vModel.fk_barcode_value_column_id === column.id"
+                v-if="vModel.fk_barcode_value_column_id === option.id"
                 id="nc-selected-item-icon"
                 class="text-primary w-4 h-4"
               />

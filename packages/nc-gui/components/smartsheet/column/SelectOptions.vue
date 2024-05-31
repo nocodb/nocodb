@@ -378,7 +378,7 @@ const loadListData = async ($state: any) => {
                 <component :is="iconMap.dragVertical" small class="handle" />
               </div>
 
-              <NcDropdown :auto-close="false" v-model:visible="colorMenus[index]">
+              <NcDropdown v-model:visible="colorMenus[index]" :auto-close="false">
                 <div class="flex-none h-6 w-6 flex cursor-pointer mx-1">
                   <div class="h-6 w-6 rounded-lg flex items-center" :style="{ backgroundColor: element.color }">
                     <GeneralIcon icon="arrowDown" class="flex-none h-4 w-4 m-auto !text-gray-600" />
@@ -449,8 +449,8 @@ const loadListData = async ($state: any) => {
         'mt-2': renderedOptions.length,
       }"
       size="small"
-      @click="addNewOption()"
       data-testid="nc-add-select-option-btn"
+      @click="addNewOption()"
     >
       <div class="flex items-center">
         <component :is="iconMap.plus" />

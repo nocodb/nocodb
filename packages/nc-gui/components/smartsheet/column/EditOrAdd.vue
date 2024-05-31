@@ -251,8 +251,8 @@ const updateCdfValue = (cdf: string | null) => {
     class="overflow-auto"
     :class="{
       'bg-white': !props.fromTableExplorer,
-      'w-[400px]': !props.embedMode,
-      '!w-146': isTextArea(formState) && formState.meta?.richMode,
+      'w-[384px]': !props.embedMode,
+      '!w-146': isTextArea(formState) && formState.meta?.richMode && isVisibleDefaultValueInput,
       '!w-116 overflow-visible': formState.uidt === UITypes.Formula && !props.embedMode,
       '!w-[500px]': formState.uidt === UITypes.Attachment && !props.embedMode && !appInfo.ee,
       'shadow-lg border-1 border-gray-200 shadow-gray-300 rounded-xl p-5': !embedMode,

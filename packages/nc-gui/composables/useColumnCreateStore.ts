@@ -19,6 +19,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     meta: Ref<TableType | undefined>,
     column: Ref<ColumnType | undefined>,
     tableExplorerColumns?: Ref<ColumnType[] | undefined>,
+    fromTableExplorer?: Ref<boolean | undefined>,
   ) => {
     const baseStore = useBase()
 
@@ -62,7 +63,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
     const formState = ref<Record<string, any>>({
       title: 'title',
-      uidt: null,
+      uidt: fromTableExplorer?.value ? UITypes.SingleLineText : null,
       ...clone(column.value || {}),
     })
 
@@ -88,7 +89,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
         ...sqlUi.value.getNewColumn(generateUniqueColumnSuffix()),
       }
       formState.value.title = formState.value.column_name
-      if (ignoreUidt) {
+      if (ignoreUidt && !fromTableExplorer?.value) {
         formState.value.uidt = null
       }
     }

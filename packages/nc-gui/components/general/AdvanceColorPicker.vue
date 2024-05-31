@@ -5,15 +5,16 @@ import { themeV3Colors } from '../../utils/colorsUtils'
 
 interface Props {
   modelValue?: string | any
-  colors?: string[]
+  isOpen?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  modelValue: () => enumColor.light[0],
-  colors: () => enumColor.light.concat(enumColor.dark),
+  isOpen: false,
 })
 
 const emit = defineEmits(['input', 'closeModal'])
+
+const { isOpen } = toRefs(props)
 
 const vModel = computed({
   get: () => props.modelValue,
@@ -21,6 +22,8 @@ const vModel = computed({
     emit('input', val || null)
   },
 })
+
+const showActiveColorTab = ref<boolean>(false)
 
 const picked = ref<string>(props.modelValue || enumColor.light[0])
 
@@ -49,6 +52,30 @@ const defaultColors = computed<string[][]>(() => {
   return allColors
 })
 
+const localIsDefaultColorTab = ref(true)
+
+const isDefaultColorTab = computed({
+  get: () => {
+    if (showActiveColorTab.value && vModel.value) {
+      for (const colorGrp of defaultColors.value) {
+        if (colorGrp.includes(vModel.value)) {
+          return true
+        }
+      }
+      return false
+    }
+
+    return localIsDefaultColorTab.value
+  },
+  set: (val: boolean) => {
+    localIsDefaultColorTab.value = val
+
+    if (showActiveColorTab.value) {
+      showActiveColorTab.value = false
+    }
+  },
+})
+
 const selectColor = (color: string, closeModal = false) => {
   picked.value = color
 
@@ -67,7 +94,17 @@ watch(picked, (n, _o) => {
   vModel.value = n
 })
 
-const isDefaultColorTab = ref(true)
+watch(
+  isOpen,
+  (newValue) => {
+    if (newValue) {
+      showActiveColorTab.value = true
+    }
+  },
+  {
+    immediate: true,
+  },
+)
 </script>
 
 <template>

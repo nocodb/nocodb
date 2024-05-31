@@ -389,6 +389,7 @@ const loadListData = async ($state: any) => {
                   <div>
                     <LazyGeneralAdvanceColorPicker
                       v-model="element.color"
+                      :is-open="colorMenus[index]"
                       @input="(el:string) => (element.color = el)"
                     ></LazyGeneralAdvanceColorPicker>
                   </div>

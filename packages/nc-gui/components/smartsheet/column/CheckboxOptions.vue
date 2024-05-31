@@ -136,6 +136,7 @@ watch(
             <div>
               <LazyGeneralAdvanceColorPicker
                 v-model="picked"
+                :is-open="isOpenColorPicker"
                 @input="(el:string)=>vModel.meta.color=el"
               ></LazyGeneralAdvanceColorPicker>
             </div>

@@ -60,7 +60,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
     const formState = ref<Record<string, any>>({
       title: 'title',
-      uidt: UITypes.SingleLineText,
+      uidt: null,
       ...clone(column.value || {}),
     })
 
@@ -79,13 +79,16 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     }
 
     // actions
-    const generateNewColumnMeta = () => {
+    const generateNewColumnMeta = (ignoreUidt = false) => {
       setAdditionalValidations({})
       formState.value = {
         meta: {},
         ...sqlUi.value.getNewColumn(generateUniqueColumnSuffix()),
       }
       formState.value.title = formState.value.column_name
+      if (ignoreUidt) {
+        formState.value.uidt = null
+      }
     }
 
     const validators = computed(() => {

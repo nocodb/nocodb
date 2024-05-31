@@ -206,7 +206,8 @@
     "text": "Text",
     "appearance": "Appearance",
     "now": "Now",
-    "set": "Set"
+    "set": "Set",
+    "format": "Format"
   },
   "objects": {
     "owner": "Owner",

@@ -476,11 +476,11 @@ const updateCdfValue = (cdf: string | null) => {
 
 <style scoped>
 :deep(.ant-form-item-label > label) {
-  @apply !text-xs;
+  @apply !text-sm mb-2;
 }
 
 :deep(.ant-form-item-label) {
-  @apply !pb-0;
+  @apply !pb-0 text-sm;
 }
 
 :deep(.ant-form-item-control-input) {

@@ -40,9 +40,7 @@ const onPrecisionChange = (value: number) => {
 <template>
   <a-form-item>
     <template #label>
-      <div class="text-sm mb-2">
-        {{ $t('placeholder.precision') }}
-      </div>
+      {{ $t('placeholder.precision') }}
     </template>
     <a-select
       v-if="vModel.meta?.precision"

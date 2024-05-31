@@ -129,9 +129,14 @@ const linkType = computed({
         </a-select>
       </a-form-item>
     </div>
-    <template v-if="!isXcdbBase || isLinks">
+    <template v-if="(!isXcdbBase && !isEdit) || isLinks">
       <div>
-        <NcButton size="small" type="text" class="!hover:text-gray-700" @click.stop="advancedOptions = !advancedOptions">
+        <NcButton
+          size="small"
+          type="text"
+          class="!text-gray-500 !hover:text-gray-700"
+          @click.stop="advancedOptions = !advancedOptions"
+        >
           <div class="flex items-center gap-2">
             <span class="first-letter:capitalize">
               {{ $t('title.advancedSettings').toLowerCase() }}

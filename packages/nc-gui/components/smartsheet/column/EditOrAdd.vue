@@ -285,118 +285,123 @@ const submitBtnLabel = computed(() => {
     @keydown="handleEscape"
     @click.stop
   >
-    <a-form v-model="formState" no-style name="column-create-or-edit" layout="vertical" data-testid="add-or-edit-column">
-      <div class="flex flex-col gap-4">
-        <a-form-item v-if="isFieldsTab" v-bind="validateInfos.title" class="flex flex-grow">
-          <div
-            class="flex flex-grow px-2 py-1 items-center rounded-md bg-gray-100 focus:bg-gray-100 outline-none"
-            style="outline-style: solid; outline-width: thin"
-          >
-            <input
-              ref="antInput"
-              v-model="formState.title"
-              :disabled="readOnly"
-              class="flex flex-grow nc-fields-input text-lg font-bold outline-none bg-inherit"
-              :contenteditable="true"
-            />
-          </div>
-        </a-form-item>
-        <a-form-item v-if="!props.hideTitle && !isFieldsTab" v-bind="validateInfos.title" :required="false" class="!mb-0">
-          <a-input
+    <a-form
+      v-model="formState"
+      no-style
+      name="column-create-or-edit"
+      layout="vertical"
+      data-testid="add-or-edit-column"
+      class="flex flex-col gap-4"
+    >
+      <a-form-item v-if="isFieldsTab" v-bind="validateInfos.title" class="flex flex-grow">
+        <div
+          class="flex flex-grow px-2 py-1 items-center rounded-md bg-gray-100 focus:bg-gray-100 outline-none"
+          style="outline-style: solid; outline-width: thin"
+        >
+          <input
             ref="antInput"
-            v-model:value="formState.title"
-            class="nc-column-name-input !rounded-lg"
-            :disabled="isKanban || readOnly"
-            @input="onAlter(8)"
+            v-model="formState.title"
+            :disabled="readOnly"
+            class="flex flex-grow nc-fields-input text-lg font-bold outline-none bg-inherit"
+            :contenteditable="true"
           />
-        </a-form-item>
+        </div>
+      </a-form-item>
+      <a-form-item v-if="!props.hideTitle && !isFieldsTab" v-bind="validateInfos.title" :required="false" class="!mb-0">
+        <a-input
+          ref="antInput"
+          v-model:value="formState.title"
+          class="nc-column-name-input !rounded-lg"
+          :disabled="isKanban || readOnly"
+          @input="onAlter(8)"
+        />
+      </a-form-item>
 
-        <div class="flex items-center gap-1">
-          <template v-if="!props.hideType && !formState.uidt">
-            <SmartsheetColumnUITypesOptionsWithSearch :options="uiTypesOptions" @selected="onSelectType" />
-          </template>
+      <div class="flex items-center gap-1">
+        <template v-if="!props.hideType && !formState.uidt">
+          <SmartsheetColumnUITypesOptionsWithSearch :options="uiTypesOptions" @selected="onSelectType" />
+        </template>
 
-          <a-form-item v-else-if="!props.hideType" class="flex-1">
-            <a-select
-              v-model:value="formState.uidt"
-              show-search
-              class="nc-column-type-input !rounded-lg"
-              :disabled="isKanban || readOnly || (isEdit && !!onlyNameUpdateOnEditColumns.find((col) => col === formState.uidt))"
-              dropdown-class-name="nc-dropdown-column-type border-1 !rounded-lg border-gray-200"
-              @dropdown-visible-change="onDropdownChange"
-              @change="onUidtOrIdTypeChange"
-              @dblclick="showDeprecated = !showDeprecated"
+        <a-form-item v-else-if="!props.hideType" class="flex-1">
+          <a-select
+            v-model:value="formState.uidt"
+            show-search
+            class="nc-column-type-input !rounded-lg"
+            :disabled="isKanban || readOnly || (isEdit && !!onlyNameUpdateOnEditColumns.find((col) => col === formState.uidt))"
+            dropdown-class-name="nc-dropdown-column-type border-1 !rounded-lg border-gray-200"
+            @dropdown-visible-change="onDropdownChange"
+            @change="onUidtOrIdTypeChange"
+            @dblclick="showDeprecated = !showDeprecated"
+          >
+            <template #suffixIcon>
+              <GeneralIcon icon="arrowDown" class="text-gray-700" />
+            </template>
+            <a-select-option
+              v-for="opt of uiTypesOptions"
+              :key="opt.name"
+              :value="opt.name"
+              v-bind="validateInfos.uidt"
+              :class="{
+                'ant-select-item-option-active-selected': showHoverEffectOnSelectedType && formState.uidt === opt.name,
+              }"
+              @mouseover="handleResetHoverEffect"
             >
-              <template #suffixIcon>
-                <GeneralIcon icon="arrowDown" class="text-gray-700" />
-              </template>
-              <a-select-option
-                v-for="opt of uiTypesOptions"
-                :key="opt.name"
-                :value="opt.name"
-                v-bind="validateInfos.uidt"
-                :class="{
-                  'ant-select-item-option-active-selected': showHoverEffectOnSelectedType && formState.uidt === opt.name,
-                }"
-                @mouseover="handleResetHoverEffect"
-              >
-                <div class="w-full flex gap-2 items-center justify-between" :data-testid="opt.name">
-                  <div class="flex gap-2 items-center">
-                    <component :is="opt.icon" class="text-gray-700 w-4 h-4" />
-                    <div class="flex-1">{{ UITypesName[opt.name] }}</div>
-                    <span v-if="opt.deprecated" class="!text-xs !text-gray-300">({{ $t('general.deprecated') }})</span>
-                  </div>
-                  <component
-                    :is="iconMap.check"
-                    v-if="formState.uidt === opt.name"
-                    id="nc-selected-item-icon"
-                    class="text-primary w-4 h-4"
-                  />
+              <div class="w-full flex gap-2 items-center justify-between" :data-testid="opt.name">
+                <div class="flex gap-2 items-center">
+                  <component :is="opt.icon" class="text-gray-700 w-4 h-4" />
+                  <div class="flex-1">{{ UITypesName[opt.name] }}</div>
+                  <span v-if="opt.deprecated" class="!text-xs !text-gray-300">({{ $t('general.deprecated') }})</span>
                 </div>
-              </a-select-option>
-            </a-select>
-          </a-form-item>
-          <!-- <div v-if="isEeUI && !props.hideType" class="mt-2 cursor-pointer" @click="predictColumnType()">
+                <component
+                  :is="iconMap.check"
+                  v-if="formState.uidt === opt.name"
+                  id="nc-selected-item-icon"
+                  class="text-primary w-4 h-4"
+                />
+              </div>
+            </a-select-option>
+          </a-select>
+        </a-form-item>
+        <!-- <div v-if="isEeUI && !props.hideType" class="mt-2 cursor-pointer" @click="predictColumnType()">
             <GeneralIcon icon="magic" :class="{ 'nc-animation-pulse': loadMagic }" class="w-full flex mt-2 text-orange-400" />
           </div> -->
-        </div>
-
-        <template v-if="!readOnly && formState.uidt">
-          <LazySmartsheetColumnFormulaOptions v-if="formState.uidt === UITypes.Formula" v-model:value="formState" />
-          <LazySmartsheetColumnQrCodeOptions v-if="formState.uidt === UITypes.QrCode" v-model="formState" />
-          <LazySmartsheetColumnBarcodeOptions v-if="formState.uidt === UITypes.Barcode" v-model="formState" />
-          <LazySmartsheetColumnCurrencyOptions v-if="formState.uidt === UITypes.Currency" v-model:value="formState" />
-          <LazySmartsheetColumnLongTextOptions v-if="formState.uidt === UITypes.LongText" v-model:value="formState" />
-          <LazySmartsheetColumnDurationOptions v-if="formState.uidt === UITypes.Duration" v-model:value="formState" />
-          <LazySmartsheetColumnRatingOptions v-if="formState.uidt === UITypes.Rating" v-model:value="formState" />
-          <LazySmartsheetColumnCheckboxOptions v-if="formState.uidt === UITypes.Checkbox" v-model:value="formState" />
-          <LazySmartsheetColumnLookupOptions v-if="formState.uidt === UITypes.Lookup" v-model:value="formState" />
-          <LazySmartsheetColumnDateOptions v-if="formState.uidt === UITypes.Date" v-model:value="formState" />
-          <LazySmartsheetColumnTimeOptions v-if="formState.uidt === UITypes.Time" v-model:value="formState" />
-          <LazySmartsheetColumnDecimalOptions v-if="formState.uidt === UITypes.Decimal" v-model:value="formState" />
-          <LazySmartsheetColumnDateTimeOptions
-            v-if="[UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(formState.uidt)"
-            v-model:value="formState"
-          />
-          <LazySmartsheetColumnRollupOptions v-if="formState.uidt === UITypes.Rollup" v-model:value="formState" />
-          <LazySmartsheetColumnLinkedToAnotherRecordOptions
-            v-if="formState.uidt === UITypes.LinkToAnotherRecord || formState.uidt === UITypes.Links"
-            :key="`${formState.uidt}-${formState.id || formState.title}`"
-            v-model:value="formState"
-            :is-edit="isEdit"
-          />
-          <LazySmartsheetColumnPercentOptions v-if="formState.uidt === UITypes.Percent" v-model:value="formState" />
-          <LazySmartsheetColumnSpecificDBTypeOptions v-if="formState.uidt === UITypes.SpecificDBType" />
-          <LazySmartsheetColumnUserOptions v-if="formState.uidt === UITypes.User" v-model:value="formState" :is-edit="isEdit" />
-          <SmartsheetColumnSelectOptions
-            v-if="formState.uidt === UITypes.SingleSelect || formState.uidt === UITypes.MultiSelect"
-            v-model:value="formState"
-            :from-table-explorer="props.fromTableExplorer || false"
-          />
-        </template>
       </div>
+
+      <template v-if="!readOnly && formState.uidt">
+        <LazySmartsheetColumnFormulaOptions v-if="formState.uidt === UITypes.Formula" v-model:value="formState" />
+        <LazySmartsheetColumnQrCodeOptions v-if="formState.uidt === UITypes.QrCode" v-model="formState" />
+        <LazySmartsheetColumnBarcodeOptions v-if="formState.uidt === UITypes.Barcode" v-model="formState" />
+        <LazySmartsheetColumnCurrencyOptions v-if="formState.uidt === UITypes.Currency" v-model:value="formState" />
+        <LazySmartsheetColumnLongTextOptions v-if="formState.uidt === UITypes.LongText" v-model:value="formState" />
+        <LazySmartsheetColumnDurationOptions v-if="formState.uidt === UITypes.Duration" v-model:value="formState" />
+        <LazySmartsheetColumnRatingOptions v-if="formState.uidt === UITypes.Rating" v-model:value="formState" />
+        <LazySmartsheetColumnCheckboxOptions v-if="formState.uidt === UITypes.Checkbox" v-model:value="formState" />
+        <LazySmartsheetColumnLookupOptions v-if="formState.uidt === UITypes.Lookup" v-model:value="formState" />
+        <LazySmartsheetColumnDateOptions v-if="formState.uidt === UITypes.Date" v-model:value="formState" />
+        <LazySmartsheetColumnTimeOptions v-if="formState.uidt === UITypes.Time" v-model:value="formState" />
+        <LazySmartsheetColumnDecimalOptions v-if="formState.uidt === UITypes.Decimal" v-model:value="formState" />
+        <LazySmartsheetColumnDateTimeOptions
+          v-if="[UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(formState.uidt)"
+          v-model:value="formState"
+        />
+        <LazySmartsheetColumnRollupOptions v-if="formState.uidt === UITypes.Rollup" v-model:value="formState" />
+        <LazySmartsheetColumnLinkedToAnotherRecordOptions
+          v-if="formState.uidt === UITypes.LinkToAnotherRecord || formState.uidt === UITypes.Links"
+          :key="`${formState.uidt}-${formState.id || formState.title}`"
+          v-model:value="formState"
+          :is-edit="isEdit"
+        />
+        <LazySmartsheetColumnPercentOptions v-if="formState.uidt === UITypes.Percent" v-model:value="formState" />
+        <LazySmartsheetColumnSpecificDBTypeOptions v-if="formState.uidt === UITypes.SpecificDBType" />
+        <LazySmartsheetColumnUserOptions v-if="formState.uidt === UITypes.User" v-model:value="formState" :is-edit="isEdit" />
+        <SmartsheetColumnSelectOptions
+          v-if="formState.uidt === UITypes.SingleSelect || formState.uidt === UITypes.MultiSelect"
+          v-model:value="formState"
+          :from-table-explorer="props.fromTableExplorer || false"
+        />
+      </template>
       <template v-if="formState.uidt">
-        <div v-if="formState.meta && columnToValidate.includes(formState.uidt)" class="my-4 flex items-center gap-1">
+        <div v-if="formState.meta && columnToValidate.includes(formState.uidt)" class="flex items-center gap-1">
           <NcSwitch v-model:checked="formState.meta.validate" size="small" class="nc-switch">
             <div class="text-sm text-gray-800">
               {{
@@ -412,13 +417,7 @@ const submitBtnLabel = computed(() => {
         </div>
 
         <template v-if="!readOnly">
-          <div
-            class="mt-4"
-            :class="{
-              'mb-4': props.fromTableExplorer,
-              'mb-2': !props.fromTableExplorer,
-            }"
-          >
+          <div class="nc-column-options-wrapper flex flex-col gap-4">
             <!--
             Default Value for JSON & LongText is not supported in MySQL
             Default Value is Disabled for MSSQL -->
@@ -441,24 +440,29 @@ const submitBtnLabel = computed(() => {
 
             <div
               v-if="isDatabricks(meta!.source_id) && !formState.cdf && ![UITypes.MultiSelect, UITypes.Checkbox, UITypes.Rating, UITypes.Attachment, UITypes.Lookup, UITypes.Rollup, UITypes.Formula, UITypes.Barcode, UITypes.QrCode, UITypes.CreatedTime, UITypes.LastModifiedTime, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(formState.uidt)"
-              class="mt-3"
+              class="flex gap-1"
             >
-              <a-checkbox v-model:checked="formState.unique"> Set as Unique </a-checkbox>
+              <NcSwitch v-model:checked="formState.unique" size="small" class="nc-switch">
+                <div class="text-sm text-gray-800">Set as Unique</div>
+              </NcSwitch>
             </div>
           </div>
 
           <div
             v-if="!props.hideAdditionalOptions && !isVirtualCol(formState.uidt)&&!(!appInfo.ee && isAttachment(formState)) && (!appInfo.ee || (appInfo.ee && !isXcdbBase(meta!.source_id) && formState.uidt === UITypes.SpecificDBType))"
-            class="text-xs text-gray-400 mb-2 mt-4 flex items-center justify-end"
+            class="text-xs text-gray-400 flex items-center justify-end"
           >
-            <div class="nc-more-options flex items-center gap-1 cursor-pointer" @click="advancedOptions = !advancedOptions">
+            <div
+              class="nc-more-options flex items-center gap-1 cursor-pointer select-none"
+              @click="advancedOptions = !advancedOptions"
+            >
               {{ advancedOptions ? $t('general.hideAll') : $t('general.showMore') }}
               <component :is="advancedOptions ? MdiMinusIcon : MdiPlusIcon" />
             </div>
           </div>
 
           <Transition name="layout" mode="out-in">
-            <div v-if="advancedOptions" class="overflow-hidden mb-2">
+            <div v-if="advancedOptions" class="overflow-hidden">
               <LazySmartsheetColumnAttachmentOptions v-if="appInfo.ee && isAttachment(formState)" v-model:value="formState" />
 
               <LazySmartsheetColumnAdvancedOptions
@@ -478,8 +482,6 @@ const submitBtnLabel = computed(() => {
             <div
               class="flex gap-x-2 justify-end"
               :class="{
-                'mt-6': props.hideAdditionalOptions,
-                'mt-2': !props.hideAdditionalOptions,
                 'justify-end': !props.embedMode,
               }"
             >
@@ -523,7 +525,8 @@ const submitBtnLabel = computed(() => {
 
 <style lang="scss" scoped>
 .nc-column-name-input,
-:deep(.nc-formula-input) {
+:deep(.nc-formula-input),
+:deep(.ant-form-item-control-input-content > input.ant-input) {
   &:not(:hover):not(:focus) {
     box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
   }
@@ -576,7 +579,7 @@ const submitBtnLabel = computed(() => {
 }
 
 :deep(.ant-form-item-label > label) {
-  @apply !text-small leading-[18px] mb-2 text-gray-700;
+  @apply !text-small !leading-[18px] mb-2 text-gray-700 flex;
 
   &.ant-form-item-required:not(.ant-form-item-required-mark-optional)::before {
     @apply content-[''] m-0;
@@ -631,5 +634,10 @@ const submitBtnLabel = computed(() => {
 :deep(input::placeholder),
 :deep(textarea::placeholder) {
   @apply text-gray-500;
+}
+.nc-column-options-wrapper {
+  &:empty {
+    @apply hidden;
+  }
 }
 </style>

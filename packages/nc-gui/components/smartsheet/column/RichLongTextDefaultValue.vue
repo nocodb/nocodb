@@ -39,7 +39,7 @@ const cdfValue = computed({
     </NcButton>
   </div>
 
-  <template v-else>
+  <div v-else>
     <div class="w-full flex items-center gap-2 mb-2">
       <div class="text-small leading-[18px] flex-1 text-gray-700">{{ $t('placeholder.defaultValue') }}</div>
     </div>
@@ -50,7 +50,7 @@ const cdfValue = computed({
         <LazyCellRichText v-model:value="cdfValue" class="border-t-1 border-gray-100 !max-h-80 !min-h-30" show-menu />
       </div>
     </div>
-  </template>
+  </div>
 </template>
 
 <style lang="scss" scoped>

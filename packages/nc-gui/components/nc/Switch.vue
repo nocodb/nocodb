@@ -13,13 +13,17 @@ const checked = useVModel(props, 'checked', emit)
 
 const switchSize = computed(() => (['default', 'small'].includes(props.size) ? props.size : undefined))
 
-const onChange = (e: boolean) => {
+const onChange = (e: boolean, updateValue = false) => {
+  if (updateValue) {
+    checked.value = e
+  }
+
   emit('change', e)
 }
 </script>
 
 <template>
-  <span v-if="placement === 'right' && $slots.default" class="cursor-pointer pr-2" @click="checked = !checked">
+  <span v-if="placement === 'right' && $slots.default" class="cursor-pointer pr-2" @click="onChange(!checked, true)">
     <slot />
   </span>
   <a-switch
@@ -34,7 +38,7 @@ const onChange = (e: boolean) => {
     @change="onChange"
   >
   </a-switch>
-  <span v-if="placement === 'left' && $slots.default" class="cursor-pointer pl-2" @click="checked = !checked">
+  <span v-if="placement === 'left' && $slots.default" class="cursor-pointer pl-2" @click="onChange(!checked, true)">
     <slot />
   </span>
 </template>

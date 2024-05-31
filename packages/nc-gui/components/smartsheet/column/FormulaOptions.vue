@@ -342,7 +342,7 @@ onMounted(() => {
       <a-textarea
         ref="formulaRef"
         v-model:value="vModel.formula_raw"
-        class="nc-formula-input !rounded-md !my-1"
+        class="nc-formula-input !rounded-md !mb-1"
         @keydown.down.prevent="suggestionListDown"
         @keydown.up.prevent="suggestionListUp"
         @keydown.enter.prevent="selectText"
@@ -350,7 +350,7 @@ onMounted(() => {
       />
     </a-form-item>
 
-    <div ref="sugListRef" class="h-[250px] overflow-auto nc-scrollbar-md">
+    <div ref="sugListRef" class="h-[250px] overflow-auto nc-scrollbar-thin">
       <template v-if="suggestedFormulas.length > 0">
         <div class="rounded-t-lg border-1 bg-gray-50 px-3 py-1 uppercase text-gray-600 text-xs">Formulas</div>
 

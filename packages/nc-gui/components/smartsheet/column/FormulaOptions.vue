@@ -432,7 +432,7 @@ watch(sugListRef, () => {
               <a-list-item-meta>
                 <template #title>
                   <div class="flex items-center gap-x-1">
-                    <component :is="item.icon" class="text-lg" />
+                    <component :is="item.icon" class="text-lg w-4.5 h-4.5" />
 
                     <span class="prose-sm text-gray-600">{{ item.text }}</span>
                   </div>

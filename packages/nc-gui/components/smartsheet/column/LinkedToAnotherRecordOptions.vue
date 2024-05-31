@@ -55,28 +55,43 @@ const isLinks = computed(() => vModel.value.uidt === UITypes.Links && vModel.val
 </script>
 
 <template>
-  <div class="w-full flex flex-col mb-2 mt-4">
-    <div class="border-2 p-6">
+  <div class="w-full flex flex-col gap-4">
+    <div class="flex flex-col gap-4">
       <a-form-item v-bind="validateInfos.type" class="nc-ltar-relation-type">
-        <a-radio-group v-model:value="vModel.type" name="type" v-bind="validateInfos.type" class="!flex flex-col gap-2">
-          <a-radio value="oo">{{ $t('title.oneToOne') }}</a-radio>
-          <a-radio value="hm">{{ $t('title.hasMany') }}</a-radio>
-          <a-radio value="mm">{{ $t('title.manyToMany') }}</a-radio>
+        <a-radio-group v-model:value="vModel.type" name="type" v-bind="validateInfos.type">
+          <a-radio value="mm">
+            <span class="nc-ltar-icon nc-mm-icon">
+              <GeneralIcon icon="mm" class="text-white" />
+            </span>
+            {{ $t('title.manyToMany') }}
+          </a-radio>
+          <a-radio value="hm">
+            <span class="nc-ltar-icon nc-hm-icon">
+              <GeneralIcon icon="hm" class="text-white" />
+            </span>
+            {{ $t('title.hasMany') }}
+          </a-radio>
+          <a-radio value="oo">
+            <span class="nc-ltar-icon nc-oo-icon">
+              <GeneralIcon icon="oneToOneSolid" class="text-white" />
+            </span>
+            {{ $t('title.oneToOne') }}
+          </a-radio>
         </a-radio-group>
       </a-form-item>
 
-      <a-form-item
-        class="flex w-full pb-2 mt-4 nc-ltar-child-table"
-        :label="$t('labels.childTable')"
-        v-bind="validateInfos.childId"
-      >
+      <a-form-item class="flex w-full nc-ltar-child-table" v-bind="validateInfos.childId">
         <a-select
           v-model:value="vModel.childId"
           show-search
           :filter-option="filterOption"
+          placeholder="select table to link"
           dropdown-class-name="nc-dropdown-ltar-child-table"
           @change="onDataTypeChange"
         >
+          <template #suffixIcon>
+            <GeneralIcon icon="arrowDown" class="text-gray-700" />
+          </template>
           <a-select-option v-for="table of refTables" :key="table.title" :value="table.id">
             <div class="flex w-full items-center gap-2">
               <div class="min-w-5 flex items-center justify-center">
@@ -92,17 +107,18 @@ const isLinks = computed(() => vModel.value.uidt === UITypes.Links && vModel.val
       </a-form-item>
     </div>
     <template v-if="!isXcdbBase || isLinks">
-      <div
-        class="text-xs cursor-pointer text-grey nc-more-options my-2 flex items-center gap-1 justify-end"
-        @click="advancedOptions = !advancedOptions"
-      >
-        {{ advancedOptions ? $t('general.hideAll') : $t('general.showMore') }}
+      <div>
+        <NcButton @click.stop="advancedOptions = !advancedOptions" size="small" type="text" class="!hover:text-gray-700">
+          <div class="flex items-center gap-2">
+            {{ advancedOptions ? $t('general.hideAll') : $t('general.showMore') }}
 
-        <component :is="advancedOptions ? MdiMinusIcon : MdiPlusIcon" />
+            <component :is="advancedOptions ? MdiMinusIcon : MdiPlusIcon" />
+          </div>
+        </NcButton>
       </div>
 
-      <div v-if="advancedOptions" class="flex flex-col p-6 gap-4 border-2 mt-2">
-        <LazySmartsheetColumnLinkOptions v-if="isLinks" v-model:value="vModel" class="-my-2" />
+      <div v-if="advancedOptions" class="flex flex-col gap-4">
+        <LazySmartsheetColumnLinkOptions v-if="isLinks" v-model:value="vModel" />
         <template v-if="!isXcdbBase">
           <div class="flex flex-row space-x-2">
             <a-form-item class="flex w-1/2" :label="$t('labels.onUpdate')">
@@ -113,6 +129,9 @@ const isLinks = computed(() => vModel.value.uidt === UITypes.Links && vModel.val
                 dropdown-class-name="nc-dropdown-on-update"
                 @change="onDataTypeChange"
               >
+                <template #suffixIcon>
+                  <GeneralIcon icon="arrowDown" class="text-gray-700" />
+                </template>
                 <a-select-option v-for="(option, i) of onUpdateDeleteOptions" :key="i" :value="option">
                   <template v-if="option === 'NO ACTION'">{{ $t('title.links.noAction') }}</template>
                   <template v-else-if="option === 'CASCADE'">{{ $t('title.links.cascade') }}</template>
@@ -134,6 +153,9 @@ const isLinks = computed(() => vModel.value.uidt === UITypes.Links && vModel.val
                 dropdown-class-name="nc-dropdown-on-delete"
                 @change="onDataTypeChange"
               >
+                <template #suffixIcon>
+                  <GeneralIcon icon="arrowDown" class="text-gray-700" />
+                </template>
                 <a-select-option v-for="(option, i) of onUpdateDeleteOptions" :key="i" :value="option">
                   <template v-if="option === 'NO ACTION'">{{ $t('title.links.noAction') }}</template>
                   <template v-else-if="option === 'CASCADE'">{{ $t('title.links.cascade') }}</template>
@@ -150,9 +172,13 @@ const isLinks = computed(() => vModel.value.uidt === UITypes.Links && vModel.val
 
           <div class="flex flex-row">
             <a-form-item>
-              <a-checkbox v-model:checked="vModel.virtual" name="virtual" @change="onDataTypeChange">{{
-                $t('title.virtualRelation')
-              }}</a-checkbox>
+              <div class="flex items-center gap-1">
+                <NcSwitch v-model:checked="vModel.virtual" @change="onDataTypeChange">
+                  <div class="text-sm text-gray-800 select-none">
+                    {{ $t('title.virtualRelation') }}
+                  </div>
+                </NcSwitch>
+              </div>
             </a-form-item>
           </div>
         </template>
@@ -160,3 +186,40 @@ const isLinks = computed(() => vModel.value.uidt === UITypes.Links && vModel.val
     </template>
   </div>
 </template>
+
+<style lang="scss" scoped>
+:deep(.nc-ltar-relation-type .ant-radio-group) {
+  @apply flex  justify-between gap-2 children:(flex-1 m-0 px-2 py-1 border-1 border-gray-200 rounded-lg);
+
+  .ant-radio-wrapper {
+    @apply transition-all flex-row-reverse justify-between items-center py-1 pl-1 pr-3;
+
+    &.ant-radio-wrapper-checked {
+      @apply border-brand-500;
+    }
+
+    span:not(.ant-radio):not(.nc-ltar-icon) {
+      @apply flex-1 pl-0 flex items-center gap-2;
+    }
+    .ant-radio {
+      @apply top-0;
+    }
+
+    .nc-ltar-icon {
+      @apply inline-flex items-center p-1 rounded-md;
+      &.nc-mm-icon {
+        @apply bg-pink-500;
+      }
+      &.nc-hm-icon {
+        @apply bg-orange-500;
+      }
+      &.nc-oo-icon {
+        @apply bg-purple-500;
+        svg path {
+          @apply stroke-purple-50;
+        }
+      }
+    }
+  }
+}
+</style>

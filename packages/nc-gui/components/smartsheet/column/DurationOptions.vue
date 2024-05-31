@@ -11,7 +11,7 @@ const durationOptionList =
   durationOptions.map((o) => ({
     ...o,
     // h:mm:ss (e.g. 3:45, 1:23:40)
-    title: `${o.title} ${o.example}`,
+    title: `${o.title}`,
   })) || []
 
 // set default value

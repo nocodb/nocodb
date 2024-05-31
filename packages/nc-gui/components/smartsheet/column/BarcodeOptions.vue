@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import type { UITypes } from 'nocodb-sdk'
-import { AllowedColumnTypesForQrAndBarcodes } from 'nocodb-sdk'
-import type { SelectProps } from 'ant-design-vue'
+import type { ColumnType } from 'nocodb-sdk'
+import { AllowedColumnTypesForQrAndBarcodes, isVirtualCol, UITypes } from 'nocodb-sdk'
 
 const props = defineProps<{
   modelValue: any
@@ -17,18 +16,17 @@ const { setAdditionalValidations, validateInfos, column } = useColumnCreateStore
 
 const { t } = useI18n()
 
-const columnsAllowedAsBarcodeValue = computed<SelectProps['options']>(() => {
-  return fields.value
-    ?.filter(
-      (el) =>
-        el.fk_column_id && AllowedColumnTypesForQrAndBarcodes.includes(metaColumnById.value[el.fk_column_id].uidt as UITypes),
-    )
-    .map((field) => {
-      return {
-        value: field.fk_column_id,
-        label: field.title,
-      }
-    })
+const columnsAllowedAsBarcodeValue = computed<ColumnType[]>(() => {
+  return (
+    fields.value
+      ?.filter(
+        (el) =>
+          el.fk_column_id && AllowedColumnTypesForQrAndBarcodes.includes(metaColumnById.value[el.fk_column_id].uidt as UITypes),
+      )
+      .map((field) => {
+        return metaColumnById.value[field.fk_column_id!]
+      }) || []
+  )
 })
 
 const supportedBarcodeFormats = [
@@ -41,8 +39,8 @@ const supportedBarcodeFormats = [
   { value: 'CODE39', label: 'CODE39' },
   { value: 'ITF14', label: 'ITF-14' },
   { value: 'MSI', label: 'MSI' },
-  { value: 'PHARMACODE', label: 'pharmacode' },
-  { value: 'CODABAR', label: 'codabar' },
+  { value: 'PHARMACODE', label: 'PHARMACODE' },
+  { value: 'CODABAR', label: 'CODABAR' },
 ]
 
 onMounted(() => {
@@ -52,13 +50,12 @@ onMounted(() => {
     ...vModel.value.meta,
   }
   vModel.value.fk_barcode_value_column_id =
-    (column?.value?.colOptions as Record<string, any>)?.fk_barcode_value_column_id ||
-    columnsAllowedAsBarcodeValue.value?.[0]?.value
+    (column?.value?.colOptions as Record<string, any>)?.fk_barcode_value_column_id || columnsAllowedAsBarcodeValue.value?.[0]?.id
 })
 
 watch(columnsAllowedAsBarcodeValue, (newColumnsAllowedAsBarcodeValue) => {
   if (vModel.value.fk_barcode_value_column_id === null) {
-    vModel.value.fk_barcode_value_column_id = newColumnsAllowedAsBarcodeValue?.[0]?.value
+    vModel.value.fk_barcode_value_column_id = newColumnsAllowedAsBarcodeValue?.[0]?.id
   }
 })
 
@@ -68,21 +65,45 @@ setAdditionalValidations({
 })
 
 const showBarcodeValueColumnInfoIcon = computed(() => !columnsAllowedAsBarcodeValue.value?.length)
+
+const cellIcon = (column: ColumnType) =>
+  h(isVirtualCol(column) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'), {
+    columnMeta: column,
+  })
 </script>
 
 <template>
   <div class="flex flex-col gap-4">
-    <a-form-item class="flex pb-2 nc-barcode-value-column-select flex-row" v-bind="validateInfos.fk_barcode_value_column_id">
+    <a-form-item
+      class="flex pb-2 nc-barcode-value-column-select flex-row"
+      :label="$t('labels.barcodeValueColumn')"
+      v-bind="validateInfos.fk_barcode_value_column_id"
+    >
       <div class="flex flex-row items-center">
         <a-select
           v-model:value="vModel.fk_barcode_value_column_id"
-          :options="columnsAllowedAsBarcodeValue"
           :placeholder="$t('placeholder.barcodeColumn')"
           :not-found-content="$t('placeholder.notFoundContent')"
           @click.stop
         >
-          <template #suffixIcon> <GeneralIcon icon="arrowDown" class="text-gray-700" /> </template
-        ></a-select>
+          <template #suffixIcon> <GeneralIcon icon="arrowDown" class="text-gray-700" /> </template>
+
+          <a-select-option v-for="(column, index) of columnsAllowedAsBarcodeValue" :key="index" :value="column.id">
+            <div class="w-full flex gap-2 truncate items-center justify-between" :data-testid="`nc-barcode-${column.title}`">
+              <div class="inline-flex items-center gap-2 flex-1 truncate">
+                <component :is="cellIcon(column)" :column-meta="column" class="!mx-0" />
+                <div class="truncate flex-1">{{ column.title }}</div>
+              </div>
+
+              <component
+                :is="iconMap.check"
+                v-if="vModel.fk_barcode_value_column_id === column.id"
+                id="nc-selected-item-icon"
+                class="text-primary w-4 h-4"
+              />
+            </div>
+          </a-select-option>
+        </a-select>
         <div v-if="showBarcodeValueColumnInfoIcon" class="pl-2">
           <a-tooltip placement="bottom">
             <template #title>

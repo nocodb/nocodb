@@ -49,6 +49,26 @@ export class FieldsPage extends BasePage {
     await this.getField({ title }).getByTestId('nc-field-restore-changes').click();
   }
 
+  defaultValueBtn() {
+    const showDefautlValueBtn = this.addOrEditColumn.getByTestId('nc-show-default-value-btn');
+
+    return {
+      locator: showDefautlValueBtn,
+      isVisible: async () => {
+        return await showDefautlValueBtn.isVisible();
+      },
+      click: async () => {
+        if (await showDefautlValueBtn.isVisible()) {
+          await showDefautlValueBtn.waitFor();
+          await showDefautlValueBtn.click({ force: true });
+
+          await showDefautlValueBtn.waitFor({ state: 'hidden' });
+          await this.addOrEditColumn.locator('.nc-default-value-wrapper').waitFor({ state: 'visible' });
+        }
+      },
+    };
+  }
+
   async createOrUpdate({
     title,
     type = UITypes.SingleLineText,
@@ -101,6 +121,9 @@ export class FieldsPage extends BasePage {
 
     await this.selectType({ type });
     await this.rootPage.waitForTimeout(500);
+
+    // Click set default value to show default value input, on close field modal it will automacally hide input if value is not set
+    await this.defaultValueBtn().click();
 
     switch (type) {
       case 'SingleSelect':

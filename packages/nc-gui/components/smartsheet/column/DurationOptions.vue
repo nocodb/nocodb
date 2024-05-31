@@ -29,7 +29,7 @@ vModel.value.meta = {
           <template #suffixIcon> <GeneralIcon icon="arrowDown" class="text-gray-700" /> </template>
 
           <a-select-option v-for="(duration, i) of durationOptionList" :key="i" :value="duration.id">
-            <div class="flex gap-2 w-full truncate items-center">
+            <div class="flex gap-2 w-full truncate items-center" :data-testid="duration.title">
               <NcTooltip show-on-truncate-only class="flex-1 truncate">
                 <template #title> {{ duration.title }}</template>
                 {{ duration.title }}

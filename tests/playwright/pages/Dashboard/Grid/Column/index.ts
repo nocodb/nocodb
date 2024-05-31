@@ -96,11 +96,7 @@ export class ColumnPageObject extends BasePage {
       case 'Duration':
         if (format) {
           await this.get().locator('.ant-select-single').nth(1).click();
-          await this.rootPage
-            .locator(`.ant-select-item`, {
-              hasText: format,
-            })
-            .click();
+          await this.rootPage.locator(`.ant-select-item .ant-select-item-option-content`).getByTestId(format).click();
         }
         break;
       case 'Date':
@@ -323,11 +319,7 @@ export class ColumnPageObject extends BasePage {
         break;
       case 'Duration':
         await this.get().locator('.ant-select-single').nth(1).click();
-        await this.rootPage
-          .locator(`.ant-select-item`, {
-            hasText: format,
-          })
-          .click();
+        await this.rootPage.locator(`.ant-select-item`).getByTestId(format).click();
         break;
       case 'DateTime':
         // Date Format

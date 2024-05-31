@@ -53,7 +53,7 @@ watch(
       @click.stop="isVisibleDefaultValueInput = true"
     >
       <div class="flex items-center gap-2">
-        <span>{{ $t('general.set') }} {{ $t('placeholder.defaultValue') }}</span>
+        <span>{{ $t('general.set') }} {{ $t('placeholder.defaultValue').toLowerCase() }}</span>
         <GeneralIcon icon="plus" class="flex-none h-4 w-4" />
       </div>
     </NcButton>

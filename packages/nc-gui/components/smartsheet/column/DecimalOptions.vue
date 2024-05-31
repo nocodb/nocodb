@@ -41,7 +41,7 @@ const onPrecisionChange = (value: number) => {
   <a-form-item>
     <template #label>
       <div class="text-sm mb-2">
-        {{ t('placeholder.precision') }}
+        {{ $t('placeholder.precision') }}
       </div>
     </template>
     <a-select

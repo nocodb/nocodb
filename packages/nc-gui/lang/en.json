@@ -767,7 +767,8 @@
     "showFieldOnConditionsMet": "Shows field only when conditions are met",
     "limitOptions": "Limit options",
     "limitOptionsSubtext": "Limit options visible to users by selecting available options",
-    "clearSelection": "Clear selection"
+    "clearSelection": "Clear selection",
+    "displayAsProgress": "Display as progress"
   },
   "activity": {
     "renameBase": "Rename Base",

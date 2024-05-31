@@ -190,11 +190,14 @@ watch(
 const placeholder = computed(() => {
   if (
     ((isForm.value || isExpandedForm.value) && !isDateInvalid.value) ||
-    (isGrid.value && !showNull.value && !isDateInvalid.value && !isSystemColumn(column.value) && active.value)
+    (isGrid.value && !showNull.value && !isDateInvalid.value && !isSystemColumn(column.value) && active.value) ||
+    isEditColumn.value
   ) {
-    return { dateTime: dateTimeFormat.value, date: dateFormat.value, time: timeFormat.value }
-  } else if (isEditColumn.value && (modelValue === '' || modelValue === null)) {
-    return t('labels.optional')
+    return {
+      dateTime: dateTimeFormat.value,
+      date: dateFormat.value,
+      time: parseProp(column.value.meta).is12hrFormat ? `${timeFormat.value} AM` : timeFormat.value,
+    }
   } else if (modelValue === null && showNull.value) {
     return t('general.null').toUpperCase()
   } else if (isDateInvalid.value) {
@@ -403,7 +406,7 @@ function handleSelectTime(value: dayjs.Dayjs) {
 const timeCellMaxWidth = computed(() => {
   return {
     [timeFormats[0]]: {
-      12: 'max-w-[75px]',
+      12: 'max-w-[85px]',
       24: 'max-w-[65px]',
     },
     [timeFormats[1]]: {
@@ -520,7 +523,7 @@ const cellValue = computed(
     </NcDropdown>
 
     <GeneralIcon
-      v-if="localState && (isExpandedForm || isForm || !isGrid) && !readOnly"
+      v-if="localState && (isExpandedForm || isForm || !isGrid || isEditColumn) && !readOnly"
       icon="closeCircle"
       class="nc-clear-date-time-icon h-4 w-4 absolute right-0 top-[50%] transform -translate-y-1/2 invisible cursor-pointer"
       @click.stop="handleSelectDate()"

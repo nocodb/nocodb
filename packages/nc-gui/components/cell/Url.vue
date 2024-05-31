@@ -85,7 +85,6 @@ watch(
       v-if="!readOnly && editEnabled"
       :ref="focus"
       v-model="vModel"
-      :placeholder="isEditColumn ? $t('labels.enterDefaultUrlOptional') : ''"
       class="nc-cell-field outline-none w-full py-1 bg-transparent h-full"
       @blur="editEnabled = false"
       @keydown.down.stop

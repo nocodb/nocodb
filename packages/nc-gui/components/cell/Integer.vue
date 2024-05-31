@@ -96,7 +96,6 @@ function onKeyDown(e: any) {
     class="nc-cell-field outline-none py-1 border-none w-full h-full"
     :type="inputType"
     style="letter-spacing: 0.06rem"
-    :placeholder="isEditColumn ? $t('labels.optional') : ''"
     @blur="editEnabled = false"
     @keydown="onKeyDown"
     @keydown.down.stop

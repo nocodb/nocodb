@@ -65,7 +65,6 @@ watch(
     :ref="focus"
     v-model="vModel"
     class="nc-cell-field w-full outline-none py-1"
-    :placeholder="isEditColumn ? $t('labels.optional') : ''"
     @blur="editEnabled = false"
     @keydown.down.stop
     @keydown.left.stop

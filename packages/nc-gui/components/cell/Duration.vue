@@ -30,9 +30,7 @@ const isEdited = ref(false)
 
 const durationType = computed(() => parseProp(column?.value?.meta)?.duration || 0)
 
-const durationPlaceholder = computed(() =>
-  isEditColumn.value ? `(${t('labels.optional')})` : durationOptions[durationType.value].title,
-)
+const durationPlaceholder = computed(() => durationOptions[durationType.value].title)
 
 const localState = computed({
   get: () => convertMS2Duration(modelValue, durationType.value),

@@ -140,11 +140,10 @@ watch(editable, (nextValue) => {
 const placeholder = computed(() => {
   if (
     ((isForm.value || isExpandedForm.value) && !isTimeInvalid.value) ||
-    (isGrid.value && !showNull.value && !isTimeInvalid.value && !isSystemColumn(column.value) && active.value)
+    (isGrid.value && !showNull.value && !isTimeInvalid.value && !isSystemColumn(column.value) && active.value) ||
+    isEditColumn.value
   ) {
     return parseProp(column.value.meta).is12hrFormat ? 'hh:mm AM' : 'HH:mm'
-  } else if (isEditColumn.value && (modelValue === '' || modelValue === null)) {
-    return t('labels.optional')
   } else if (modelValue === null && showNull.value) {
     return t('general.null').toUpperCase()
   } else if (isTimeInvalid.value) {

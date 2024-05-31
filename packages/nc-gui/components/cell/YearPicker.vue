@@ -127,11 +127,10 @@ watch(editable, (nextValue) => {
 const placeholder = computed(() => {
   if (
     ((isForm.value || isExpandedForm.value) && !isYearInvalid.value) ||
-    (isGrid.value && !showNull.value && !isYearInvalid.value && !isSystemColumn(column.value) && active.value)
+    (isGrid.value && !showNull.value && !isYearInvalid.value && !isSystemColumn(column.value) && active.value) ||
+    isEditColumn.value
   ) {
     return 'YYYY'
-  } else if (isEditColumn.value && (modelValue === '' || modelValue === null)) {
-    return t('labels.optional')
   } else if (modelValue === null && showNull.value) {
     return t('general.null').toUpperCase()
   } else if (isYearInvalid.value) {

@@ -344,7 +344,7 @@ const loadListData = async ($state: any) => {
   <div class="w-full">
     <div
       ref="optionsWrapperDomRef"
-      class="nc-col-option-select-option overflow-x-auto scrollbar-thin-dull"
+      class="nc-col-option-select-option overflow-x-auto scrollbar-thin-dull border-1 border-gray-200 rounded-lg"
       :style="{
         maxHeight: props.fromTableExplorer ? 'calc(100vh - (var(--topbar-height) * 3.6) - 320px)' : 'calc(min(30vh, 250px))',
       }"
@@ -361,19 +361,19 @@ const loadListData = async ($state: any) => {
       </InfiniteLoading>
       <Draggable :list="renderedOptions" item-key="id" handle=".nc-child-draggable-icon" @change="syncOptions">
         <template #item="{ element, index }">
-          <div class="flex py-1 items-center nc-select-option">
+          <div class="flex py-1 items-center nc-select-option border-b-1 border-gray-200 last:border-b-0 hover:bg-gray-100">
             <div
               class="flex items-center w-full"
               :data-testid="`select-column-option-${index}`"
               :class="{ removed: element.status === 'remove' }"
             >
-              <component
-                :is="iconMap.dragVertical"
+              <div
                 v-if="!isKanban"
-                small
-                class="nc-child-draggable-icon handle"
+                class="nc-child-draggable-icon p-2 flex cursor-pointer"
                 :data-testid="`select-option-column-handle-icon-${element.title}`"
-              />
+              >
+                <component :is="iconMap.dragVertical" small class="handle" />
+              </div>
               <a-dropdown
                 v-model:visible="colorMenus[index]"
                 :trigger="['click']"
@@ -396,7 +396,7 @@ const loadListData = async ($state: any) => {
 
               <a-input
                 v-model:value="element.title"
-                class="caption !rounded-lg nc-select-col-option-select-option"
+                class="caption !rounded-lg nc-select-col-option-select-option !bg-transparent"
                 :data-testid="`select-column-option-input-${index}`"
                 :disabled="element.status === 'remove'"
                 @keydown.enter.prevent="element.title?.trim() && addNewOption()"
@@ -407,18 +407,22 @@ const loadListData = async ($state: any) => {
             <div
               v-if="element.status !== 'remove'"
               :data-testid="`select-column-option-remove-${index}`"
-              class="ml-1 hover:!text-black-500 text-gray-500 cursor-pointer hover:bg-gray-50 py-1 px-1.5 rounded-md"
+              class="mx-1 hover:!text-black-500 text-gray-500 cursor-pointer hover:bg-gray-200 py-1 px-1.5 rounded-md"
               @click="removeRenderedOption(index)"
             >
               <component :is="iconMap.close" class="-mt-0.25" />
             </div>
-
-            <MdiArrowULeftBottom
+            <div
               v-else
-              class="ml-2 hover:!text-black-500 text-gray-500 cursor-pointer"
               :data-testid="`select-column-option-remove-undo-${index}`"
+              class="mx-1 hover:!text-black-500 text-gray-500 cursor-pointer hover:bg-gray-200 py-1 px-1.5 rounded-md"
               @click="undoRemoveRenderedOption(index)"
-            />
+            >
+              <MdiArrowULeftBottom
+                class="hover:!text-black-500 text-gray-500 cursor-pointer"
+                @click="undoRemoveRenderedOption(index)"
+              />
+            </div>
           </div>
         </template>
       </Draggable>
@@ -437,12 +441,12 @@ const loadListData = async ($state: any) => {
     <div v-if="validateInfos?.colOptions?.help?.[0]?.[0]" class="text-error text-[10px] mb-1 mt-2">
       {{ validateInfos.colOptions.help[0][0] }}
     </div>
-    <a-button type="dashed" class="w-full caption mt-2" @click="addNewOption()">
+    <NcButton type="secondary" class="w-full caption mt-2" size="small" @click="addNewOption()">
       <div class="flex items-center">
         <component :is="iconMap.plus" />
         <span class="flex-auto">Add option</span>
       </div>
-    </a-button>
+    </NcButton>
     <!-- <div v-if="isEeUI" class="w-full cursor-pointer" @click="optionsMagic()">
       <GeneralIcon icon="magic" :class="{ 'nc-animation-pulse': loadMagic }" class="w-full flex mt-2 text-orange-400" />
     </div> -->
@@ -462,5 +466,22 @@ const loadListData = async ($state: any) => {
   content: '';
   width: calc(100% + 5px);
   display: block;
+}
+
+:deep(.nc-select-col-option-select-option) {
+  @apply !truncate;
+
+  &:not(:focus):hover {
+    @apply !border-transparent;
+  }
+
+  &:not(:focus) {
+    @apply !border-transparent;
+  }
+
+  &:focus,
+  &:focus-visible {
+    @apply !border-[var(--ant-primary-color-hover)];
+  }
 }
 </style>

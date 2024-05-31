@@ -95,10 +95,7 @@ const showBarcodeValueColumnInfoIcon = computed(() => !columnsAllowedAsBarcodeVa
         </div>
       </div>
     </a-form-item>
-    <a-form-item class="flexp nc-barcode-format-select" v-bind="validateInfos.barcode_format">
-      <template #label>
-        {{ $t('general.format') }}
-      </template>
+    <a-form-item class="flexp nc-barcode-format-select" :label="$t('general.format')" v-bind="validateInfos.barcode_format">
       <a-select
         v-model:value="vModel.meta.barcodeFormat"
         :options="supportedBarcodeFormats"

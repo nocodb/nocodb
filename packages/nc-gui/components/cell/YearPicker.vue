@@ -265,10 +265,7 @@ function handleSelectDate(value?: dayjs.Dayjs) {
     :class="[`nc-${randomClass}`, { 'nc-null': modelValue === null && showNull }]"
     :overlay-class-name="`${randomClass} nc-picker-year ${open ? 'active' : ''} !min-w-[260px]`"
   >
-    <div
-      :title="localState?.format('YYYY')"
-      class="nc-year-picker flex items-center justify-between ant-picker-input relative group"
-    >
+    <div :title="localState?.format('YYYY')" class="nc-year-picker flex items-center justify-between ant-picker-input relative">
       <input
         ref="datePickerRef"
         type="text"
@@ -285,9 +282,9 @@ function handleSelectDate(value?: dayjs.Dayjs) {
       />
 
       <GeneralIcon
-        v-if="localState"
+        v-if="localState && !readOnly"
         icon="closeCircle"
-        class="absolute right-0 top-[50%] transform -translate-y-1/2 invisible group-hover:visible cursor-pointer"
+        class="nc-clear-year-icon absolute right-0 top-[50%] transform -translate-y-1/2 invisible cursor-pointer"
         @click.stop="handleSelectDate()"
       />
     </div>
@@ -309,7 +306,9 @@ function handleSelectDate(value?: dayjs.Dayjs) {
 </template>
 
 <style scoped>
-:deep(.ant-picker-input > input) {
-  @apply !text-current;
+.nc-cell-field {
+  &:hover .nc-clear-year-icon {
+    @apply visible;
+  }
 }
 </style>

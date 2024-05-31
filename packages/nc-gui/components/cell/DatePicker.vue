@@ -288,6 +288,10 @@ function handleSelectDate(value?: dayjs.Dayjs) {
   localState.value = value
   open.value = false
 }
+
+watchEffect(() => {
+  console.log('readOnly', readOnly.value)
+})
 </script>
 
 <template>
@@ -301,7 +305,7 @@ function handleSelectDate(value?: dayjs.Dayjs) {
   >
     <div
       :title="localState?.format(dateFormat)"
-      class="nc-date-picker h-full flex items-center justify-between ant-picker-input relative group"
+      class="nc-date-picker h-full flex items-center justify-between ant-picker-input relative"
     >
       <input
         ref="datePickerRef"
@@ -320,9 +324,9 @@ function handleSelectDate(value?: dayjs.Dayjs) {
       />
 
       <GeneralIcon
-        v-if="localState"
+        v-if="localState && !readOnly"
         icon="closeCircle"
-        class="absolute right-0 top-[50%] transform -translate-y-1/2 invisible group-hover:visible cursor-pointer"
+        class="nc-clear-date-icon absolute right-0 top-[50%] transform -translate-y-1/2 invisible cursor-pointer"
         @click.stop="handleSelectDate()"
       />
     </div>
@@ -354,7 +358,9 @@ function handleSelectDate(value?: dayjs.Dayjs) {
 </template>
 
 <style scoped>
-:deep(.ant-picker-input > input) {
-  @apply !text-current;
+.nc-cell-field {
+  &:hover .nc-clear-date-icon {
+    @apply visible;
+  }
 }
 </style>

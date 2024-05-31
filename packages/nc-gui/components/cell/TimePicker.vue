@@ -311,7 +311,7 @@ const cellValue = computed(() => localState.value?.format(parseProp(column.value
   >
     <div
       :title="localState?.format('HH:mm')"
-      class="nc-time-picker h-full flex items-center justify-between ant-picker-input relative group"
+      class="nc-time-picker h-full flex items-center justify-between ant-picker-input relative"
     >
       <input
         ref="datePickerRef"
@@ -330,9 +330,9 @@ const cellValue = computed(() => localState.value?.format(parseProp(column.value
       />
 
       <GeneralIcon
-        v-if="localState"
+        v-if="localState && !readOnly"
         icon="closeCircle"
-        class="absolute right-0 top-[50%] transform -translate-y-1/2 invisible group-hover:visible cursor-pointer"
+        class="nc-clear-time-icon absolute right-0 top-[50%] transform -translate-y-1/2 invisible cursor-pointer"
         @click.stop="handleSelectTime()"
       />
     </div>
@@ -352,3 +352,11 @@ const cellValue = computed(() => localState.value?.format(parseProp(column.value
   </NcDropdown>
   <div v-if="!editable && isGrid" class="absolute inset-0 z-90 cursor-pointer"></div>
 </template>
+
+<style scoped>
+.nc-cell-field {
+  &:hover .nc-clear-time-icon {
+    @apply visible;
+  }
+}
+</style>

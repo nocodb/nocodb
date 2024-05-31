@@ -412,7 +412,7 @@ const timeCellMaxWidth = computed(() => {
 </script>
 
 <template>
-  <div class="nc-cell-field group relative">
+  <div class="nc-cell-field relative">
     <NcDropdown
       :visible="isOpen"
       :placement="isDatePicker ? 'bottomLeft' : 'bottomRight'"
@@ -424,7 +424,7 @@ const timeCellMaxWidth = computed(() => {
     >
       <div
         :title="localState?.format(dateTimeFormat)"
-        class="nc-date-picker ant-picker-input flex justify-between gap-2 relative group !w-auto"
+        class="nc-date-picker ant-picker-input flex justify-between gap-2 relative !w-auto"
       >
         <div
           class="flex-none hover:bg-gray-100 px-1 rounded-md box-border w-[60%] max-w-[110px]"
@@ -506,9 +506,9 @@ const timeCellMaxWidth = computed(() => {
     </NcDropdown>
 
     <GeneralIcon
-      v-if="localState && (isExpandedForm || isForm || !isGrid)"
+      v-if="localState && (isExpandedForm || isForm || !isGrid) && !readOnly"
       icon="closeCircle"
-      class="h-4 w-4 absolute right-0 top-[50%] transform -translate-y-1/2 invisible group-hover:visible cursor-pointer"
+      class="nc-clear-date-time-icon h-4 w-4 absolute right-0 top-[50%] transform -translate-y-1/2 invisible cursor-pointer"
       @click.stop="handleSelectDate()"
     />
   </div>
@@ -516,7 +516,9 @@ const timeCellMaxWidth = computed(() => {
 </template>
 
 <style scoped>
-:deep(.ant-picker-input > input) {
-  @apply !text-current;
+.nc-cell-field {
+  &:hover .nc-clear-date-time-icon {
+    @apply visible;
+  }
 }
 </style>

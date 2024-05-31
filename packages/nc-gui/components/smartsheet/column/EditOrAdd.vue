@@ -373,7 +373,7 @@ if (props.fromTableExplorer) {
           </div> -->
         </div>
 
-        <template v-if="!readOnly">
+        <template v-if="!readOnly && formState.uidt">
           <LazySmartsheetColumnFormulaOptions v-if="formState.uidt === UITypes.Formula" v-model:value="formState" />
           <LazySmartsheetColumnQrCodeOptions v-if="formState.uidt === UITypes.QrCode" v-model="formState" />
           <LazySmartsheetColumnBarcodeOptions v-if="formState.uidt === UITypes.Barcode" v-model="formState" />
@@ -404,107 +404,109 @@ if (props.fromTableExplorer) {
           />
         </template>
       </div>
-      <div v-if="formState.meta && columnToValidate.includes(formState.uidt)" class="my-4 flex items-center gap-1">
-        <NcSwitch v-model:checked="formState.meta.validate" size="small" class="nc-switch">
-          <div class="text-sm text-gray-800">
-            {{ `${$t('msg.acceptOnlyValid', { type: `${UITypesName[formState.uidt as UITypes]}s` })}` }}
-          </div>
-        </NcSwitch>
-      </div>
+      <template v-if="formState.uidt">
+        <div v-if="formState.meta && columnToValidate.includes(formState.uidt)" class="my-4 flex items-center gap-1">
+          <NcSwitch v-model:checked="formState.meta.validate" size="small" class="nc-switch">
+            <div class="text-sm text-gray-800">
+              {{ `${$t('msg.acceptOnlyValid', { type: `${UITypesName[formState.uidt as UITypes]}s` })}` }}
+            </div>
+          </NcSwitch>
+        </div>
 
-      <template v-if="!readOnly">
-        <div
-          class="mt-4"
-          :class="{
-            'mb-4': props.fromTableExplorer,
-            'mb-2': !props.fromTableExplorer,
-          }"
-        >
-          <!--
+        <template v-if="!readOnly">
+          <div
+            class="mt-4"
+            :class="{
+              'mb-4': props.fromTableExplorer,
+              'mb-2': !props.fromTableExplorer,
+            }"
+          >
+            <!--
             Default Value for JSON & LongText is not supported in MySQL
             Default Value is Disabled for MSSQL -->
-          <LazySmartsheetColumnRichLongTextDefaultValue
-            v-if="isTextArea(formState) && formState.meta?.richMode"
-            v-model:value="formState"
-            v-model:is-visible-default-value-input="isVisibleDefaultValueInput"
-          />
-          <LazySmartsheetColumnDefaultValue
-            v-else-if="
+            <LazySmartsheetColumnRichLongTextDefaultValue
+              v-if="isTextArea(formState) && formState.meta?.richMode"
+              v-model:value="formState"
+              v-model:is-visible-default-value-input="isVisibleDefaultValueInput"
+            />
+            <LazySmartsheetColumnDefaultValue
+              v-else-if="
           !isVirtualCol(formState) &&
           !isAttachment(formState) &&
           !isMssql(meta!.source_id) &&
           !(isMysql(meta!.source_id) && (isJSON(formState) || isTextArea(formState))) &&
           !(isDatabricks(meta!.source_id) && formState.unique)
           "
-            v-model:value="formState"
-            v-model:is-visible-default-value-input="isVisibleDefaultValueInput"
-          />
-
-          <div
-            v-if="isDatabricks(meta!.source_id) && !formState.cdf && ![UITypes.MultiSelect, UITypes.Checkbox, UITypes.Rating, UITypes.Attachment, UITypes.Lookup, UITypes.Rollup, UITypes.Formula, UITypes.Barcode, UITypes.QrCode, UITypes.CreatedTime, UITypes.LastModifiedTime, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(formState.uidt)"
-            class="mt-3"
-          >
-            <a-checkbox v-model:checked="formState.unique"> Set as Unique </a-checkbox>
-          </div>
-        </div>
-
-        <div
-          v-if="!props.hideAdditionalOptions && !isVirtualCol(formState.uidt)&&!(!appInfo.ee && isAttachment(formState)) && (!appInfo.ee || (appInfo.ee && !isXcdbBase(meta!.source_id) && formState.uidt === UITypes.SpecificDBType))"
-          class="text-xs text-gray-400 mb-2 mt-4 flex items-center justify-end"
-        >
-          <div class="nc-more-options flex items-center gap-1 cursor-pointer" @click="advancedOptions = !advancedOptions">
-            {{ advancedOptions ? $t('general.hideAll') : $t('general.showMore') }}
-            <component :is="advancedOptions ? MdiMinusIcon : MdiPlusIcon" />
-          </div>
-        </div>
-
-        <Transition name="layout" mode="out-in">
-          <div v-if="advancedOptions" class="overflow-hidden mb-2">
-            <LazySmartsheetColumnAttachmentOptions v-if="appInfo.ee && isAttachment(formState)" v-model:value="formState" />
-
-            <LazySmartsheetColumnAdvancedOptions
-              v-if="formState.uidt !== UITypes.Attachment"
               v-model:value="formState"
-              :advanced-db-options="advancedOptions || formState.uidt === UITypes.SpecificDBType"
+              v-model:is-visible-default-value-input="isVisibleDefaultValueInput"
             />
-          </div>
-        </Transition>
-      </template>
 
-      <template v-if="props.fromTableExplorer">
-        <a-form-item></a-form-item>
-      </template>
-      <template v-else>
-        <a-form-item>
-          <div
-            class="flex gap-x-2 justify-end"
-            :class="{
-              'mt-6': props.hideAdditionalOptions,
-              'mt-2': !props.hideAdditionalOptions,
-              'justify-end': !props.embedMode,
-            }"
-          >
-            <!-- Cancel -->
-            <NcButton size="small" html-type="button" type="secondary" @click="emit('cancel')">
-              {{ $t('general.cancel') }}
-            </NcButton>
-
-            <!-- Save -->
-            <NcButton
-              html-type="submit"
-              type="primary"
-              :loading="saving"
-              :disabled="!formState.uidt"
-              size="small"
-              :label="`${$t('general.save')} ${columnLabel}`"
-              :loading-label="`${$t('general.saving')} ${columnLabel}`"
-              @click.prevent="onSubmit"
+            <div
+              v-if="isDatabricks(meta!.source_id) && !formState.cdf && ![UITypes.MultiSelect, UITypes.Checkbox, UITypes.Rating, UITypes.Attachment, UITypes.Lookup, UITypes.Rollup, UITypes.Formula, UITypes.Barcode, UITypes.QrCode, UITypes.CreatedTime, UITypes.LastModifiedTime, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(formState.uidt)"
+              class="mt-3"
             >
-              {{ $t('general.save') }} {{ columnLabel }}
-              <template #loading> {{ $t('general.saving') }} {{ columnLabel }} </template>
-            </NcButton>
+              <a-checkbox v-model:checked="formState.unique"> Set as Unique </a-checkbox>
+            </div>
           </div>
-        </a-form-item>
+
+          <div
+            v-if="!props.hideAdditionalOptions && !isVirtualCol(formState.uidt)&&!(!appInfo.ee && isAttachment(formState)) && (!appInfo.ee || (appInfo.ee && !isXcdbBase(meta!.source_id) && formState.uidt === UITypes.SpecificDBType))"
+            class="text-xs text-gray-400 mb-2 mt-4 flex items-center justify-end"
+          >
+            <div class="nc-more-options flex items-center gap-1 cursor-pointer" @click="advancedOptions = !advancedOptions">
+              {{ advancedOptions ? $t('general.hideAll') : $t('general.showMore') }}
+              <component :is="advancedOptions ? MdiMinusIcon : MdiPlusIcon" />
+            </div>
+          </div>
+
+          <Transition name="layout" mode="out-in">
+            <div v-if="advancedOptions" class="overflow-hidden mb-2">
+              <LazySmartsheetColumnAttachmentOptions v-if="appInfo.ee && isAttachment(formState)" v-model:value="formState" />
+
+              <LazySmartsheetColumnAdvancedOptions
+                v-if="formState.uidt !== UITypes.Attachment"
+                v-model:value="formState"
+                :advanced-db-options="advancedOptions || formState.uidt === UITypes.SpecificDBType"
+              />
+            </div>
+          </Transition>
+        </template>
+
+        <template v-if="props.fromTableExplorer">
+          <a-form-item></a-form-item>
+        </template>
+        <template v-else>
+          <a-form-item>
+            <div
+              class="flex gap-x-2 justify-end"
+              :class="{
+                'mt-6': props.hideAdditionalOptions,
+                'mt-2': !props.hideAdditionalOptions,
+                'justify-end': !props.embedMode,
+              }"
+            >
+              <!-- Cancel -->
+              <NcButton size="small" html-type="button" type="secondary" @click="emit('cancel')">
+                {{ $t('general.cancel') }}
+              </NcButton>
+
+              <!-- Save -->
+              <NcButton
+                html-type="submit"
+                type="primary"
+                :loading="saving"
+                :disabled="!formState.uidt"
+                size="small"
+                :label="`${$t('general.save')} ${columnLabel}`"
+                :loading-label="`${$t('general.saving')} ${columnLabel}`"
+                @click.prevent="onSubmit"
+              >
+                {{ $t('general.save') }} {{ columnLabel }}
+                <template #loading> {{ $t('general.saving') }} {{ columnLabel }} </template>
+              </NcButton>
+            </div>
+          </a-form-item>
+        </template>
       </template>
     </a-form>
   </div>

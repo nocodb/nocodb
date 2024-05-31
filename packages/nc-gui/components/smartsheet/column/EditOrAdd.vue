@@ -297,42 +297,10 @@ if (props.fromTableExplorer) {
         </a-form-item>
 
         <div class="flex items-center gap-1">
-          <div v-if="!props.hideType && !formState.uidt" class="flex-1 border-1 border-gray-200 rounded-lg flex flex-col py-2">
-            <div class="w-full pb-2 px-2" @click.stop>
-              <a-input
-                v-model:value="searchTypeQuery"
-                placeholder="Search field type"
-                class="nc-toolbar-dropdown-search-field-input"
-              >
-                <template #prefix> <GeneralIcon icon="search" class="nc-search-icon h-4 w-4 mr-1" /> </template>
-              </a-input>
-            </div>
-            <div class="nc-field-list-wrapper flex-col w-full max-h-[290px] nc-scrollbar-thin !overflow-y-auto px-2">
-              <div v-if="!filteredUiTypesOptions.length" class="px-2 py-6 text-gray-500 flex flex-col items-center gap-6">
-                <img
-                  src="~assets/img/placeholder/no-search-result-found.png"
-                  class="!w-[164px] flex-none"
-                  alt="No search results found"
-                />
+          <template v-if="!props.hideType && !formState.uidt">
+            <LazySmartsheetColumnUITypesOptionsWithSearch :options="uiTypesOptions" @selected="onSelectType" />
+          </template>
 
-                {{ uiTypesOptions.length ? $t('title.noResultsMatchedYourSearch') : 'The list is empty' }}
-              </div>
-
-              <div
-                v-for="(option, index) in filteredUiTypesOptions"
-                :key="index"
-                class="flex w-full py-2 items-center justify-between px-2 hover:bg-gray-100 cursor-pointer rounded-md"
-                :class="[`nc-field-list-option-${index}`]"
-                @click="onSelectType(option.name)"
-              >
-                <div class="flex gap-2 items-center">
-                  <component :is="option.icon" class="text-gray-700 w-4 h-4" />
-                  <div class="flex-1 text-sm">{{ option.name }}</div>
-                  <span v-if="option.deprecated" class="!text-xs !text-gray-300">({{ $t('general.deprecated') }})</span>
-                </div>
-              </div>
-            </div>
-          </div>
           <a-form-item
             v-else-if="!props.hideType && !(isEdit && !!onlyNameUpdateOnEditColumns.find((col) => col === formState.uidt))"
             class="flex-1"

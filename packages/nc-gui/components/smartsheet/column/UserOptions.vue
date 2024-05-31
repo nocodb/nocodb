@@ -43,14 +43,14 @@ const updateIsMulti = (isChecked: boolean) => {
   <div class="flex flex-col gap-4">
     <a-form-item>
       <div v-if="vModel.meta" class="flex items-center gap-1">
-        <NcSwitch :checked="vModel.meta.is_multi" @change="updateIsMulti">
+        <NcSwitch :checked="vModel.meta.is_multi" @change="updateIsMulti" data-testid="user-column-allow-multiple">
           <div class="text-sm text-gray-800 select-none">Allow adding multiple users</div>
         </NcSwitch>
       </div>
     </a-form-item>
     <a-form-item v-if="future">
       <div v-if="vModel.meta" class="flex items-center gap-1">
-        <NcSwitch v-model:checked="vModel.meta.notify" @change="updateIsMulti">
+        <NcSwitch v-model:checked="vModel.meta.notify" @change="updateIsMulti" data-testid="user-column-notify-user">
           <div class="text-sm text-gray-800 select-none">Notify users with base access when they're added</div>
         </NcSwitch>
       </div>

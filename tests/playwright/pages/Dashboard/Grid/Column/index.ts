@@ -32,6 +32,22 @@ export class ColumnPageObject extends BasePage {
     await this.getColumnHeader(title).click();
   }
 
+  defaultValueBtn() {
+    const showDefautlValueBtn = this.get().getByTestId('nc-show-default-value-btn');
+
+    return {
+      locator: showDefautlValueBtn,
+      isVisible: async () => {
+        return await showDefautlValueBtn.isVisible();
+      },
+      click: async () => {
+        if (await showDefautlValueBtn.isVisible()) {
+          await showDefautlValueBtn.click({ force: true });
+        }
+      },
+    };
+  }
+
   async create({
     title,
     type = 'SingleLineText',

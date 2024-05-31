@@ -310,15 +310,12 @@ if (props.fromTableExplorer) {
             <SmartsheetColumnUITypesOptionsWithSearch :options="uiTypesOptions" @selected="onSelectType" />
           </template>
 
-          <a-form-item
-            v-else-if="!props.hideType && !(isEdit && !!onlyNameUpdateOnEditColumns.find((col) => col === formState.uidt))"
-            class="flex-1"
-          >
+          <a-form-item v-else-if="!props.hideType" class="flex-1">
             <a-select
               v-model:value="formState.uidt"
               show-search
               class="nc-column-type-input !rounded-lg"
-              :disabled="isKanban || readOnly"
+              :disabled="isKanban || readOnly || (isEdit && !!onlyNameUpdateOnEditColumns.find((col) => col === formState.uidt))"
               dropdown-class-name="nc-dropdown-column-type border-1 !rounded-lg border-gray-200"
               @dropdown-visible-change="onDropdownChange"
               @change="onUidtOrIdTypeChange"

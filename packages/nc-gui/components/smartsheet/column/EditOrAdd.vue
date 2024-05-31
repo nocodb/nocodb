@@ -298,7 +298,7 @@ if (props.fromTableExplorer) {
 
         <div class="flex items-center gap-1">
           <template v-if="!props.hideType && !formState.uidt">
-            <LazySmartsheetColumnUITypesOptionsWithSearch :options="uiTypesOptions" @selected="onSelectType" />
+            <SmartsheetColumnUITypesOptionsWithSearch :options="uiTypesOptions" @selected="onSelectType" />
           </template>
 
           <a-form-item
@@ -319,10 +319,10 @@ if (props.fromTableExplorer) {
                 <GeneralIcon icon="arrowDown" class="text-gray-700" />
               </template>
               <a-select-option v-for="opt of uiTypesOptions" :key="opt.name" :value="opt.name" v-bind="validateInfos.uidt">
-                <div class="w-full flex gap-2 items-center justify-between">
+                <div class="w-full flex gap-2 items-center justify-between" :data-testid="opt.name">
                   <div class="flex gap-2 items-center">
                     <component :is="opt.icon" class="text-gray-700 w-4 h-4" />
-                    <div class="flex-1">{{ opt.name }}</div>
+                    <div class="flex-1">{{ UITypesName[opt.name] }}</div>
                     <span v-if="opt.deprecated" class="!text-xs !text-gray-300">({{ $t('general.deprecated') }})</span>
                   </div>
                   <component
@@ -488,11 +488,11 @@ if (props.fromTableExplorer) {
 
 <style scoped>
 :deep(.ant-form-item-label > label) {
-  @apply !text-small mb-2  text-gray-700;
+  @apply !text-small leading-[18px] mb-2 text-gray-700;
 }
 
 :deep(.ant-form-item-label) {
-  @apply !pb-0 text-small text-gray-700;
+  @apply !pb-0 text-small leading-[18px] text-gray-700;
 }
 
 :deep(.ant-form-item-control-input) {

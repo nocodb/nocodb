@@ -76,7 +76,7 @@ const cellIcon = (column: ColumnType) =>
   <div class="flex flex-col gap-4">
     <a-form-item
       class="flex pb-2 nc-barcode-value-column-select flex-row"
-      :label="$t('labels.barcodeValueColumn')"
+      :label="`${$t('placeholder.value')} ${t('objects.field').toLowerCase()}`"
       v-bind="validateInfos.fk_barcode_value_column_id"
     >
       <div class="flex flex-row items-center">

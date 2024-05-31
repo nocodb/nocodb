@@ -49,7 +49,7 @@ const cellIcon = (column: ColumnType) =>
   <div class="flex flex-col gap-2">
     <a-form-item
       class="flex nc-qr-code-value-column-select"
-      :label="$t('labels.qrCodeValueColumn')"
+      :label="`${$t('placeholder.value')} ${t('objects.field').toLowerCase()}`"
       v-bind="validateInfos.fk_qr_value_column_id"
     >
       <a-select

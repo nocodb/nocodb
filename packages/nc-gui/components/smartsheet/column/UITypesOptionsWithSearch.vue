@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { UITypes } from 'nocodb-sdk'
+import { UITypes, UITypesName } from 'nocodb-sdk'
 
 const props = defineProps<{
   options: typeof uiTypes
@@ -71,14 +71,14 @@ onMounted(() => {
         ref="inputRef"
         v-model:value="searchQuery"
         placeholder="Search field type"
-        class="nc-toolbar-dropdown-search-field-input"
+        class="nc-column-type-search-input nc-toolbar-dropdown-search-field-input"
         @keydown.enter.stop="handleKeydownEnter"
         @change="activeFieldIndex = 0"
       >
         <template #prefix> <GeneralIcon icon="search" class="nc-search-icon h-4 w-4 mr-1" /> </template>
       </a-input>
     </div>
-    <div class="nc-field-list-wrapper flex-col w-full max-h-[290px] nc-scrollbar-thin !overflow-y-auto px-2">
+    <div class="nc-column-list-wrapper flex-col w-full max-h-[290px] nc-scrollbar-thin !overflow-y-auto px-2">
       <div v-if="!filteredOptions.length" class="px-2 py-6 text-gray-500 flex flex-col items-center gap-6">
         <img
           src="~assets/img/placeholder/no-search-result-found.png"
@@ -94,16 +94,17 @@ onMounted(() => {
         :key="index"
         class="flex w-full py-2 items-center justify-between px-2 hover:bg-gray-100 cursor-pointer rounded-md"
         :class="[
-          `nc-field-list-option-${index}`,
+          `nc-column-list-option-${index}`,
           {
-            'bg-gray-100 nc-field-list-option-active': activeFieldIndex === index,
+            'bg-gray-100 nc-column-list-option-active': activeFieldIndex === index,
           },
         ]"
+        :data-testid="option.name"
         @click="onClick(option.name)"
       >
         <div class="flex gap-2 items-center">
           <component :is="option.icon" class="text-gray-700 w-4 h-4" />
-          <div class="flex-1 text-sm">{{ option.name }}</div>
+          <div class="flex-1 text-sm">{{ UITypesName[option.name] }}</div>
           <span v-if="option.deprecated" class="!text-xs !text-gray-300">({{ $t('general.deprecated') }})</span>
         </div>
       </div>

@@ -337,7 +337,10 @@ if (props.fromTableExplorer) {
           />
         </template>
       </div>
-      <div class="my-4 flex items-center gap-2 justify-between">
+      <div
+        v-if="formState.meta && columnToValidate.includes(formState.uidt)"
+        class="my-4 flex items-center gap-2 justify-between"
+      >
         <div @click="formState.meta.validate = !formState.meta.validate" class="select-none cursor-pointer text-sm text-gray-800">
           {{ `${$t('msg.acceptOnlyValid', { type: `${UITypesName[formState.uidt as UITypes]}s` })}` }}
         </div>

@@ -59,7 +59,7 @@ watch(
   </div>
   <template v-else>
     <div class="w-full flex items-center gap-2 text-gray-600">
-      <div class="text-sm flex-1 text-gray-700">{{ $t('placeholder.defaultValue') }}</div>
+      <div class="text-sm flex-1 text-gray-800">{{ $t('placeholder.defaultValue') }}</div>
       <GeneralIcon icon="delete" class="flex-none h-4 w-4 cursor-pointer" @click.stop="updateCdfValue(null)" />
     </div>
 

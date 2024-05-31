@@ -377,6 +377,9 @@ const loadListData = async ($state: any) => {
               <a-dropdown
                 v-model:visible="colorMenus[index]"
                 :trigger="['click']"
+                :class="{
+                  'ml-1': isKanban
+                }"
                 overlay-class-name="nc-dropdown-select-color-options rounded-md overflow-hidden border-1 border-gray-200 "
               >
                 <template #overlay>

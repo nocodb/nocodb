@@ -65,7 +65,7 @@ const onPrecisionChange = (value: number) => {
   <a-form-item>
     <div class="flex items-center gap-1">
       <NcSwitch v-if="vModel.meta" v-model:checked="vModel.meta.isLocaleString">
-        <div class="text-sm text-gray-800 select-none">{{ $t('labels.displayInLocaleFormat') }}</div>
+        <div class="text-sm text-gray-800 select-none">{{ $t('labels.showThousandsSeparator') }}</div>
       </NcSwitch>
     </div>
   </a-form-item>

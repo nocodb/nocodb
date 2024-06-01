@@ -774,7 +774,7 @@
     "clearSelection": "Clear selection",
     "displayAsProgress": "Display as progress",
     "relationType": "Relation type",
-    "displayInLocaleFormat":"Display in locale format"
+    "showThousandsSeparator":"Show thousands separator"
   },
   "activity": {
     "renameBase": "Rename Base",

@@ -37,8 +37,10 @@ export class CalendarDatasService extends CalendarDatasServiceCE {
       to_date,
     });
 
-    query.filterArr = [...(query.filterArr ? query.filterArr : []), filterArr];
-
+    query.filterArrJson = JSON.stringify([
+      ...filterArr,
+      ...(query.filterArrJson ? JSON.parse(query.filterArrJson) : []),
+    ]);
     const model = await Model.getByIdOrName({ id: view.fk_model_id });
 
     const data = await this.datasService.dataList({
@@ -138,6 +140,11 @@ export class CalendarDatasService extends CalendarDatasServiceCE {
             value: prevDate as string,
           },
         ];
+        filterArr.push({
+          is_group: true,
+          logical_op: 'or',
+          children: rangeFilter,
+        });
       } else if (fromColumn) {
         rangeFilter = [
           {
@@ -153,14 +160,12 @@ export class CalendarDatasService extends CalendarDatasServiceCE {
             value: from_date as string,
           },
         ];
-      }
-
-      if (rangeFilter.length > 0)
         filterArr.push({
           is_group: true,
-          logical_op: 'or',
+          logical_op: 'and',
           children: rangeFilter,
         });
+      }
     });
 
     return filterArr;

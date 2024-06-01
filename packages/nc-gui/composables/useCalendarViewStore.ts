@@ -251,6 +251,11 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
                 value: fromDate,
               },
             ]
+            combinedFilters.push({
+              is_group: true,
+              logical_op: 'or',
+              children: rangeFilter,
+            })
           } else if (fromCol) {
             rangeFilter = [
               {
@@ -266,11 +271,9 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
                 value: prevDate,
               },
             ]
-          }
-          if (rangeFilter.length > 0) {
             combinedFilters.push({
               is_group: true,
-              logical_op: 'or',
+              logical_op: 'and',
               children: rangeFilter,
             })
           }
@@ -323,9 +326,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
           : await fetchSharedViewData({
               ...params,
               sortsArr: sorts.value,
-              filtersArr: sideBarFilter.value,
+              filtersArr: [...nestedFilters.value, ...sideBarFilter.value],
               offset: params.offset,
-              where: where?.value ?? '',
             })
         formattedSideBarData.value = [...formattedSideBarData.value, ...formatData(response!.list)]
       } catch (e) {
@@ -356,8 +358,6 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       prevDate = prevDate!.format('YYYY-MM-DD HH:mm:ssZ')
       nextDate = nextDate!.format('YYYY-MM-DD HH:mm:ssZ')
 
-      const activeDateFilter: Array<any> = []
-
       if (!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) return
 
       try {
@@ -371,7 +371,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
               from_date: prevDate,
               to_date: nextDate,
               sortsArr: sorts.value,
-              filtersArr: activeDateFilter,
+              filtersArr: nestedFilters.value,
             })
         activeDates.value = res.dates.map((dateObj: unknown) => dayjs(dateObj as string))
 
@@ -516,7 +516,6 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
               from_date: prevDate,
               to_date: nextDate,
               filtersArr: nestedFilters.value,
-              where: where?.value ?? '',
             })
         formattedData.value = formatData(res!.list)
       } catch (e) {
@@ -622,7 +621,10 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
               ...{},
               ...{ filterArrJson: JSON.stringify([...sideBarFilter.value]) },
             })
-          : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: sideBarFilter.value })
+          : await fetchSharedViewData({
+              sortsArr: sorts.value,
+              filtersArr: [...nestedFilters.value, ...sideBarFilter.value],
+            })
 
         formattedSideBarData.value = formatData(res!.list)
       } catch (e) {

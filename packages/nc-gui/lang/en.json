@@ -773,7 +773,8 @@
     "limitOptionsSubtext": "Limit options visible to users by selecting available options",
     "clearSelection": "Clear selection",
     "displayAsProgress": "Display as progress",
-    "relationType": "Relation type"
+    "relationType": "Relation type",
+    "displayInLocaleFormat":"Display in locale format"
   },
   "activity": {
     "renameBase": "Rename Base",

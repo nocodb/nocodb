@@ -1028,23 +1028,31 @@ export default {
 .nc-data-cell {
   @apply !rounded-lg;
   transition: all 0.3s;
-  &:hover:not(.nc-readonly-div-data-cell):not(.nc-system-field) {
-    @apply !border-1 !border-brand-400;
+  
+  &:not(.nc-readonly-div-data-cell):not(.nc-system-field) {
+    box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
+  }
+  &:not(:focus-within):hover:not(.nc-readonly-div-data-cell):not(.nc-system-field) {
+    @apply !border-1;
+    box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.24);
   }
 
+  &.nc-readonly-div-data-cell,
+  &.nc-system-field {
+    @apply !border-gray-200;
+
+    .nc-cell,
+    .nc-virtual-cell {
+      @apply text-gray-400;
+    }
+  }
   &.nc-readonly-div-data-cell:focus-within,
   &.nc-system-field:focus-within {
     @apply !border-gray-200;
   }
 
   &:focus-within:not(.nc-readonly-div-data-cell):not(.nc-system-field) {
-    box-shadow: 0px 0px 0px 2px rgba(51, 102, 255, 0.24) !important;
-  }
-  &.nc-readonly-div-data-cell:not(:has(.nc-virtual-cell)):not(:has(.nc-cell-attachment)):not(:has(.nc-cell-longtext)) {
-    @apply bg-gray-50 cursor-not-allowed;
-  }
-  &.nc-system-field:not(:has(.nc-virtual-cell-barcode)):not(:has(.nc-virtual-cell-qrcode)) {
-    @apply bg-gray-50;
+    @apply !shadow-selected;
   }
 }
 .nc-data-cell:focus-within {

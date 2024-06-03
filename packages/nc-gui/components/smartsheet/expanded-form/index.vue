@@ -124,7 +124,6 @@ const {
   isNew,
   loadRow: _loadRow,
   primaryKey,
-  saveRowAndStay,
   row: _row,
   save: _save,
   loadComments,
@@ -381,9 +380,6 @@ useActiveKeyupListener(
         } else {
           await save()
           reloadHook?.trigger(null)
-        }
-        if (!saveRowAndStay.value) {
-          onClose()
         }
       } catch (e: any) {
         if (isNew.value) {

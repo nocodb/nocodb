@@ -87,6 +87,11 @@ const { isExpandedFormCommentMode } = storeToRefs(useConfigStore())
 // override cell click hook to avoid unexpected behavior at form fields
 provide(CellClickHookInj, undefined)
 
+const loadingEmit = (event: 'update:modelValue' | 'cancel' | 'next' | 'prev' | 'createdRecord') => {
+  emits(event)
+  isLoading.value = true
+}
+
 const fields = computedInject(FieldsInj, (_fields) => {
   if (props.useMetaFields) {
     return (meta.value.columns ?? []).filter((col) => !isSystemColumn(col))
@@ -239,7 +244,7 @@ const isCloseModalOpen = ref(false)
 const discardPreventModal = () => {
   // when user click on next or previous button
   if (isPreventChangeModalOpen.value) {
-    emits('next')
+    loadingEmit('next')
     if (_row.value?.rowMeta?.new) emits('cancel')
     isPreventChangeModalOpen.value = false
   }
@@ -258,7 +263,7 @@ const onNext = async () => {
     isPreventChangeModalOpen.value = true
     return
   }
-  emits('next')
+  loadingEmit('next')
 }
 
 const copyRecordUrl = async () => {
@@ -277,7 +282,7 @@ const saveChanges = async () => {
   if (isPreventChangeModalOpen.value) {
     isUnsavedFormExist.value = false
     await save()
-    emits('next')
+    loadingEmit('next')
     isPreventChangeModalOpen.value = false
   }
   if (isCloseModalOpen.value) {
@@ -312,6 +317,7 @@ provide(IsExpandedFormOpenInj, isExpanded)
 
 const triggerRowLoad = async (rowId?: string) => {
   await Promise.allSettled([loadComments(), loadAudits(), _loadRow(rowId)])
+  isLoading.value = false
 }
 
 const cellWrapperEl = ref()
@@ -361,7 +367,7 @@ useActiveKeyupListener(
     if (!e.altKey) return
     if (e.key === 'ArrowLeft') {
       e.stopPropagation()
-      emits('prev')
+      loadingEmit('prev')
     } else if (e.key === 'ArrowRight') {
       e.stopPropagation()
       onNext()
@@ -567,7 +573,7 @@ export default {
                 class="nc-prev-arrow !w-7 !h-7 !text-gray-500 !disabled:text-gray-300"
                 type="text"
                 size="xsmall"
-                @click="$emit('prev')"
+                @click="loadingEmit('prev')"
               >
                 <GeneralIcon icon="chevronDown" class="transform rotate-180" />
               </NcButton>

@@ -5,14 +5,27 @@ const { isLocked, xWhere } = useProvideSmartsheetStore(sharedView, meta, true, r
 
 const reloadEventHook = createEventHook()
 
+provide(ReloadViewDataHookInj, reloadEventHook)
+
 provide(ReadonlyInj, ref(true))
+
 provide(MetaInj, meta)
+
 provide(ActiveViewInj, sharedView)
+
 provide(IsPublicInj, ref(true))
+
 provide(IsLockedInj, isLocked)
 
 useProvideViewColumns(sharedView, meta, () => reloadEventHook?.trigger(), true)
+
 useProvideViewGroupBy(sharedView, meta, xWhere, true)
+
+useProvideSmartsheetLtarHelpers(meta)
+
+useProvideKanbanViewStore(meta, sharedView)
+
+useProvideCalendarViewStore(meta, sharedView, true, nestedFilters)
 </script>
 
 <template>

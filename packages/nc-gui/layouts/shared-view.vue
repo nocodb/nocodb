@@ -47,39 +47,39 @@ export default {
 <template>
   <a-layout id="nc-app">
     <a-layout class="!flex-col bg-white">
-      <a-layout-header class="flex !bg-primary items-center text-white pl-3 pr-4 shadow-lg">
-        <a
-          class="transition-all duration-200 p-2 cursor-pointer transform hover:scale-105"
-          href="https://github.com/nocodb/nocodb"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <a-tooltip placement="bottom">
-            <template #title>
-              {{ appInfo.version }}
-            </template>
-            <img width="35" alt="NocoDB" src="~/assets/img/icons/256x256-trans.png" />
-          </a-tooltip>
-        </a>
-
-        <div>
-          <div class="flex justify-center items-center">
-            <div class="flex items-center gap-2 ml-3 text-white">
-              <template v-if="isLoading">
-                <span class="text-white" data-testid="nc-loading">{{ $t('general.loading') }}</span>
-
-                <component :is="iconMap.reload" :class="{ 'animate-infinite animate-spin ': isLoading }" />
+      <a-layout-header class="flex items-center justify-between !bg-transparent !px-3 !py-2 border-b-1 border-gray-200 !h-[46px]">
+        <div class="flex items-center gap-6 h-7">
+          <a
+            class="transition-all duration-200 cursor-pointer transform hover:scale-105"
+            href="https://github.com/nocodb/nocodb"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <NcTooltip placement="bottom" class="flex">
+              <template #title>
+                {{ appInfo.version }}
               </template>
+              <img width="96" alt="NocoDB" src="~/assets/img/brand/nocodb.png" />
+            </NcTooltip>
+          </a>
 
-              <div v-else class="text-xl font-semibold truncate text-white nc-shared-view-title flex gap-2 items-center">
-                <GeneralViewIcon v-if="sharedView" class="!text-xl" :meta="sharedView" />
-                {{ sharedView?.title }}
-              </div>
+          <div class="flex items-center gap-2 text-gray-900 text-sm">
+            <template v-if="isLoading">
+              <span data-testid="nc-loading">{{ $t('general.loading') }}</span>
+
+              <component :is="iconMap.reload" :class="{ 'animate-infinite animate-spin ': isLoading }" />
+            </template>
+
+            <div v-else class="text-sm font-semibold truncate nc-shared-view-title flex gap-2 items-center">
+              <GeneralViewIcon v-if="sharedView" class="h-4 w-4" :meta="sharedView" />
+              {{ sharedView?.title }}
             </div>
           </div>
         </div>
 
-        <div class="flex-1" />
+        <div class="flex items-center gap-3">
+          <NcButton size="xs"> Sign up for Free </NcButton>
+        </div>
       </a-layout-header>
 
       <div class="w-full overflow-hidden" style="height: calc(100vh - var(--topbar-height))">
@@ -88,3 +88,16 @@ export default {
     </a-layout>
   </a-layout>
 </template>
+
+<style lang="scss" scoped>
+#nc-app {
+  @apply text-red-400 bg-gray-800;
+  .ant-layout-header {
+    @apply !h-[46px];
+  }
+
+  :deep(.nc-table-toolbar) {
+    @apply px-2;
+  }
+}
+</style>

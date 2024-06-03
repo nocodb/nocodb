@@ -647,10 +647,10 @@ export default {
               <div
                 v-e="['c:row-expand:copy-url']"
                 data-testid="nc-expanded-form-copy-url"
-                class="flex gap-2 items-center text-small"
+                class="flex items-center"
               >
-                <component :is="iconMap.check" v-if="isRecordLinkCopied" class="cursor-pointer nc-duplicate-row" />
-                <component :is="iconMap.copy" v-else class="cursor-pointer nc-duplicate-row" />
+                <component :is="iconMap.check" v-if="isRecordLinkCopied" class="cursor-pointer nc-duplicate-row h-4 w-4" />
+                <component :is="iconMap.copy" v-else class="cursor-pointer nc-duplicate-row h-4 w-4" />
               </div>
             </NcButton>
           </NcTooltip>

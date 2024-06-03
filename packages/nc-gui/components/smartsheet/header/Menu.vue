@@ -389,24 +389,28 @@ const filterOrGroupByThisField = (event: SmartsheetStoreEvents) => {
         <a-divider v-if="!column?.pv" class="!my-0" />
         <NcMenuItem v-if="!column?.pv" @click="hideOrShowField">
           <div v-e="['a:field:hide']" class="nc-column-insert-before nc-header-menu-item">
-            <component :is="isHiddenCol ? iconMap.eye : iconMap.eyeSlash" class="text-gray-700 !w-3.75 !h-3.75" />
+            <component
+              :is="isHiddenCol ? iconMap.eye : iconMap.eyeSlash"
+              v-show="isLoading !== 'hideOrShow'"
+              class="text-gray-700 !w-3.75 !h-3.75"
+            />
+            <GeneralLoader v-show="isLoading === 'hideOrShow'" size="large" class="!w-3.75 !h-3.75" />
             <!-- Hide Field -->
             {{ isHiddenCol ? $t('general.showField') : $t('general.hideField') }}
           </div>
-          <GeneralLoader v-show="isLoading === 'hideOrShow'" size="large" class="ml-2" />
         </NcMenuItem>
         <NcMenuItem
           v-if="(!virtual || column?.uidt === UITypes.Formula) && !column?.pv && !isHiddenCol"
           @click="setAsDisplayValue"
         >
           <div class="nc-column-set-primary nc-header-menu-item item">
-            <GeneralIcon icon="star" class="text-gray-700 !w-4.25 !h-4.25" />
+            <GeneralIcon v-show="isLoading !== 'setDisplay'" icon="star" class="text-gray-700 !w-4.25 !h-4.25" />
+            <GeneralLoader v-show="isLoading === 'setDisplay'" size="large" class="!w-4.25 !h-4.25" />
 
             <!--       todo : tooltip -->
             <!-- Set as Display value -->
             {{ $t('activity.setDisplay') }}
           </div>
-          <GeneralLoader v-show="isLoading === 'setDisplay'" size="large" class="ml-2" />
         </NcMenuItem>
 
         <template v-if="!isExpandedForm">

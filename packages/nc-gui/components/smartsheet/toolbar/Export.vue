@@ -33,7 +33,7 @@ useProvideCalendarViewStore(meta, sharedView, true, nestedFilters)
     <NcButton v-e="['c:actions']" class="nc-actions-menu-btn nc-toolbar-btn" size="xs" type="secondary">
       <div class="flex gap-2 items-center">
         <component :is="iconMap.download" class="group-hover:text-accent text-gray-500" />
-        <span class="text-capitalize !text-sm font-medium text-gray-500">{{ $t('general.download') }}</span>
+        <span class="text-capitalize !text-sm font-medium text-gray-500 xs:hidden">{{ $t('general.download') }}</span>
         <component :is="iconMap.arrowDown" class="text-grey" />
       </div>
     </NcButton>

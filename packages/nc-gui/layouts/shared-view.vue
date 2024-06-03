@@ -48,7 +48,7 @@ export default {
   <a-layout id="nc-app">
     <a-layout class="!flex-col bg-white">
       <a-layout-header class="flex items-center justify-between !bg-transparent !px-3 !py-2 border-b-1 border-gray-200 !h-[46px]">
-        <div class="flex items-center gap-6 h-7">
+        <div class="flex items-center gap-6 h-7 max-w-[calc(100%_-_280px)] xs:max-w-[calc(100%_-_90px)]">
           <a
             class="transition-all duration-200 cursor-pointer transform hover:scale-105"
             href="https://github.com/nocodb/nocodb"
@@ -63,7 +63,7 @@ export default {
             </NcTooltip>
           </a>
 
-          <div class="flex items-center gap-2 text-gray-900 text-sm">
+          <div class="flex items-center gap-2 text-gray-900 text-sm truncate">
             <template v-if="isLoading">
               <span data-testid="nc-loading">{{ $t('general.loading') }}</span>
 
@@ -72,7 +72,9 @@ export default {
 
             <div v-else class="text-sm font-semibold truncate nc-shared-view-title flex gap-2 items-center">
               <GeneralViewIcon v-if="sharedView" class="h-4 w-4" :meta="sharedView" />
-              {{ sharedView?.title }}
+              <span class="truncate">
+                {{ sharedView?.title }}
+              </span>
             </div>
           </div>
         </div>
@@ -80,10 +82,12 @@ export default {
         <div class="flex items-center gap-3">
           <LazySmartsheetToolbarExport v-if="allowCSVDownload" />
 
-          <NcButton size="xs"> Sign up for Free </NcButton>
+          <a href="https://app.nocodb.com/#/signin" target="_blank" class="!no-underline xs:hidden" rel="noopener">
+            <NcButton size="xs"> {{ $t('labels.signUpForFree') }} </NcButton>
+          </a>
         </div>
       </a-layout-header>
-      <div class="w-full overflow-hidden" style="height: calc(100vh - var(--topbar-height))">
+      <div class="w-full overflow-hidden" style="height: calc(100vh - (var(--topbar-height) - 3.6px))">
         <slot />
       </div>
     </a-layout>
@@ -94,6 +98,8 @@ export default {
 #nc-app {
   .ant-layout-header {
     @apply !h-[46px];
+
+    line-height: unset;
   }
 
   :deep(.nc-table-toolbar) {

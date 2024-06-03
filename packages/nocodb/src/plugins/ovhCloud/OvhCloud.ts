@@ -20,28 +20,25 @@ export default class OvhCloud implements IStorageAdapterV2 {
       ACL: 'public-read',
       ContentType: file.mimetype,
     };
-    return new Promise((resolve, reject) => {
-      // Configure the file stream and obtain the upload parameters
-      const fileStream = fs.createReadStream(file.path);
-      fileStream.on('error', (err) => {
-        console.log('File Error', err);
-        reject(err);
-      });
 
-      uploadParams.Body = fileStream;
-      uploadParams.Key = key;
-
-      // call S3 to retrieve upload file to specified bucket
-      this.s3Client.upload(uploadParams, (err, data) => {
-        if (err) {
-          console.log('Error', err);
-          reject(err);
-        }
-        if (data) {
-          resolve(data.Location);
-        }
-      });
+    // Configure the file stream and obtain the upload parameters
+    const fileStream = fs.createReadStream(file.path);
+    fileStream.on('error', (err) => {
+      console.log('File Error', err);
+      throw err;
     });
+
+    uploadParams.Body = fileStream;
+    uploadParams.Key = key;
+
+    try {
+      // call S3 to retrieve upload file to specified bucket
+      const data = await this.s3Client.upload(uploadParams).promise();
+      return data.Location;
+    } catch (err) {
+      console.log('Error', err);
+      throw err;
+    }
   }
 
   async fileCreateByUrl(key: string, url: string): Promise<any> {

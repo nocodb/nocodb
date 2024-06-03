@@ -600,16 +600,6 @@ export default {
               'xs:max-w-[calc(100%_-_82px)]': !isNew,
             }"
           >
-            <div v-if="meta.title" class="flex items-center gap-2 px-2 py-1 rounded-lg bg-gray-100 text-gray-800">
-              <GeneralTableIcon :meta="meta" class="!text-gray-800 !mx-0" />
-
-              <NcTooltip class="truncate text-sm max-w-[100px] xs:(max-w-[82px]) align-middle" show-on-truncate-only>
-                <template #title>
-                  {{ meta.title }}
-                </template>
-                <span class="font-weight-500 truncate text-sm">{{ meta.title }}</span>
-              </NcTooltip>
-            </div>
             <div
               v-if="row.rowMeta?.new || props.newRecordHeader"
               class="flex items-center truncate font-bold text-gray-800 text-base overflow-hidden"

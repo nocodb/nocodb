@@ -809,4 +809,10 @@ const getRowId = (row: RowType) => {
 :deep(.slick-slide) {
   @apply !pointer-events-none;
 }
+
+:deep(.ant-card) {
+  &:hover .nc-action-icon {
+    @apply invisible;
+  }
+}
 </style>

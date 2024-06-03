@@ -110,7 +110,7 @@ onClickOutside(globalSearchWrapperRef, (e) => {
         >
           <GeneralIcon icon="search" class="ml-1 mr-2 h-3.5 w-3.5 text-gray-500 group-hover:text-black" />
           <div v-if="!isMobileMode" class="w-16 text-xs font-medium text-gray-400 truncate">
-            {{ displayColumnLabel }}
+            {{ displayColumnLabel ?? '' }}
           </div>
           <div class="xs:(text-gray-600) group-hover:text-gray-700 sm:(text-gray-400)">
             <component :is="iconMap.arrowDown" class="text-sm text-inherit" />
@@ -136,7 +136,7 @@ onClickOutside(globalSearchWrapperRef, (e) => {
           name="globalSearchQuery"
           size="small"
           class="text-xs w-40 h-full"
-          :placeholder="`${$t('general.searchIn')} ${displayColumnLabel}`"
+          :placeholder="`${$t('general.searchIn')} ${displayColumnLabel ?? ''}`"
           :bordered="false"
           data-testid="search-data-input"
           @press-enter="onPressEnter"

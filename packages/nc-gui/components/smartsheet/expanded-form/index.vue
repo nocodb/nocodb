@@ -1032,7 +1032,7 @@ export default {
     box-shadow: 0px 0px 0px 2px rgba(51, 102, 255, 0.24) !important;
   }
   &.nc-readonly-div-data-cell:not(:has(.nc-virtual-cell)):not(:has(.nc-cell-attachment)):not(:has(.nc-cell-longtext)) {
-    @apply bg-gray-50;
+    @apply bg-gray-50 cursor-not-allowed;
   }
 }
 .nc-data-cell:focus-within {

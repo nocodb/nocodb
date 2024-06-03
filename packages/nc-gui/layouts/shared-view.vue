@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 const { isLoading, appInfo } = useGlobal()
 
-const { sharedView } = useSharedView()
+const { sharedView, allowCSVDownload } = useSharedView()
 
 const router = useRouter()
 
@@ -35,6 +35,10 @@ onMounted(() => {
   } else {
     document.title = 'NocoDB'
   }
+})
+
+watchEffect(() => {
+  console.log('allowCSVDownload', allowCSVDownload.value)
 })
 </script>
 
@@ -78,6 +82,8 @@ export default {
         </div>
 
         <div class="flex items-center gap-3">
+          <LazySmartsheetToolbarExport v-if="allowCSVDownload" />
+
           <NcButton size="xs"> Sign up for Free </NcButton>
         </div>
       </a-layout-header>

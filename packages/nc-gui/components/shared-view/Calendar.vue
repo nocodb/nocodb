@@ -28,7 +28,7 @@ useProvideCalendarViewStore(meta, sharedView, true, nestedFilters)
   <div class="nc-container h-full">
     <div class="flex flex-col h-full flex-1 min-w-0">
       <LazySmartsheetToolbar />
-      <div class="h-full flex-1 min-w-0 min-h-0 bg-gray-50">
+      <div class="h-full flex-1 min-w-0 min-h-0">
         <LazySmartsheetCalendar />
       </div>
     </div>

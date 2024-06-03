@@ -1032,6 +1032,11 @@ export default {
     @apply !border-1 !border-brand-400;
   }
 
+  &.nc-readonly-div-data-cell:focus-within,
+  &.nc-system-field:focus-within {
+    @apply !border-gray-200;
+  }
+
   &:focus-within:not(.nc-readonly-div-data-cell):not(.nc-system-field) {
     box-shadow: 0px 0px 0px 2px rgba(51, 102, 255, 0.24) !important;
   }

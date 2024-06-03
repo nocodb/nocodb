@@ -28,7 +28,7 @@ try {
 
 <template>
   <div v-if="showPassword">
-    <LazySharedViewAskPassword v-model="showPassword" :view-type="ViewTypes.KANBAN"/>
+    <LazySharedViewAskPassword v-model="showPassword" :view-type="ViewTypes.KANBAN" />
   </div>
   <LazySharedViewKanban v-else />
 </template>

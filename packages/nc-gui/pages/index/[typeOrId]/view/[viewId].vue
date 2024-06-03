@@ -39,5 +39,5 @@ onMounted(async () => {
     <LazySharedViewAskPassword v-model="showPassword" />
   </div>
 
-  <LazySharedViewGrid v-else-if="meta" :view-type="ViewTypes.GRID"/>
+  <LazySharedViewGrid v-else-if="meta" :view-type="ViewTypes.GRID" />
 </template>

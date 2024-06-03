@@ -47,7 +47,9 @@ export default {
 <template>
   <a-layout id="nc-app">
     <a-layout class="!flex-col bg-white">
-      <a-layout-header class="flex items-center justify-between !bg-transparent !px-3 !py-2 border-b-1 border-gray-200 !h-[46px]">
+      <a-layout-header
+        class="nc-table-topbar flex items-center justify-between !bg-transparent !px-3 !py-2 border-b-1 border-gray-200 !h-[46px]"
+      >
         <div class="flex items-center gap-6 h-7 max-w-[calc(100%_-_280px)] xs:max-w-[calc(100%_-_90px)]">
           <a
             class="transition-all duration-200 cursor-pointer transform hover:scale-105"

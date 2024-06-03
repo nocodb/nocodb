@@ -27,7 +27,7 @@ try {
 
 <template>
   <div v-if="showPassword">
-    <LazySharedViewAskPassword v-model="showPassword" :view-type="ViewTypes.MAP"/>
+    <LazySharedViewAskPassword v-model="showPassword" :view-type="ViewTypes.MAP" />
   </div>
   <LazySharedViewMap v-else />
 </template>

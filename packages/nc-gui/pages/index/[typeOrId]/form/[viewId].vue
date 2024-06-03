@@ -99,6 +99,7 @@ const focus: VNodeRef = (el: typeof InputPassword) => {
               size="small"
               html-type="submit"
               class="!px-2"
+              data-testid="nc-shared-view-password-submit-btn"
               @click="loadSharedView"
               >{{ $t('objects.view') }}
               <template #loading> {{ $t('msg.verifyingPassword') }}</template>

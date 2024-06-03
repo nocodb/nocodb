@@ -170,7 +170,7 @@ const displayValue = computed(() => {
             </button>
           </NcTooltip>
         </div>
-        <template v-if="!isPublic && !readOnly">
+        <template v-if="(!isPublic && !readOnly) || isForm">
           <NcTooltip class="z-10 flex">
             <template #title> {{ isLinked ? 'Unlink' : 'Link' }}</template>
 

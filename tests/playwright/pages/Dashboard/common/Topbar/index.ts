@@ -1,4 +1,6 @@
-import { Locator } from '@playwright/test';
+import { expect, Locator } from '@playwright/test';
+import * as fs from 'fs';
+
 import BasePage from '../../../Base';
 import { GridPage } from '../../Grid';
 import { GalleryPage } from '../../Gallery';
@@ -97,5 +99,27 @@ export class TopbarPage extends BasePage {
     await this.get().locator(`.nc-icon-reload`).waitFor({ state: 'visible' });
     await this.get().locator(`.nc-icon-reload`).click();
     await this.rootPage.waitForLoadState('networkidle');
+  }
+
+  async clickDownload(type: string, verificationFile = 'expectedData.txt') {
+    await this.get().locator(`.nc-toolbar-btn.nc-actions-menu-btn`).click();
+
+    const [download] = await Promise.all([
+      // Start waiting for the download
+      this.rootPage.waitForEvent('download'),
+      // Perform the action that initiates download
+      this.rootPage
+        .locator(`.nc-dropdown-actions-menu`)
+        .locator(`li.ant-dropdown-menu-item:has-text("${type}")`)
+        .click(),
+    ]);
+
+    // Save downloaded file somewhere
+    await download.saveAs('./output/at.txt');
+
+    // verify downloaded content against expected content
+    const expectedData = fs.readFileSync(`./fixtures/${verificationFile}`, 'utf8').replace(/\r/g, '').split('\n');
+    const file = fs.readFileSync('./output/at.txt', 'utf8').replace(/\r/g, '').split('\n');
+    expect(file).toEqual(expectedData);
   }
 }

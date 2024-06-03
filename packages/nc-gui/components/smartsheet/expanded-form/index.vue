@@ -765,7 +765,7 @@ export default {
                     :ref="i ? null : (el: any) => (cellWrapperEl = el)"
                     class="bg-white flex-1 <lg:w-full px-1 min-h-[37px] flex items-center relative"
                     :class="{
-                      '!bg-gray-50 !select-text nc-system-field': isReadOnlyVirtualCell(col),
+                      ' !select-text nc-system-field': isReadOnlyVirtualCell(col),
                       '!select-text nc-readonly-div-data-cell': readOnly,
                     }"
                   >
@@ -841,7 +841,7 @@ export default {
                       :ref="i ? null : (el: any) => (cellWrapperEl = el)"
                       class="bg-white flex-1 <lg:w-full px-1 min-h-[37px] flex items-center relative"
                       :class="{
-                        '!bg-gray-50 !select-text nc-system-field': isReadOnlyVirtualCell(col),
+                        '!select-text nc-system-field': isReadOnlyVirtualCell(col),
                         '!bg-gray-50 !select-text nc-readonly-div-data-cell': readOnly,
                       }"
                     >
@@ -1037,6 +1037,9 @@ export default {
   }
   &.nc-readonly-div-data-cell:not(:has(.nc-virtual-cell)):not(:has(.nc-cell-attachment)):not(:has(.nc-cell-longtext)) {
     @apply bg-gray-50 cursor-not-allowed;
+  }
+  &.nc-system-field:not(:has(.nc-virtual-cell-barcode)):not(:has(.nc-virtual-cell-qrcode)) {
+    @apply bg-gray-50;
   }
 }
 .nc-data-cell:focus-within {

@@ -863,7 +863,7 @@ export default {
 
           <div
             v-if="isUIAllowed('dataEdit')"
-            class="w-full flex items-center justify-end px-2 py-[9px] xs:(p-0 gap-x-4 justify-between)"
+            class="w-full flex items-center justify-end px-2 xs:(p-0 gap-x-4 justify-between)"
             :class="{
               'xs(border-t-1 border-gray-200)': !isNew,
             }"

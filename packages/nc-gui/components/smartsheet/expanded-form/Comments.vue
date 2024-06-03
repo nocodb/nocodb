@@ -175,7 +175,7 @@ watch(commentsWrapperEl, () => {
               <div v-for="comment of comments" :key="comment.id" class="nc-comment-item">
                 <div
                   :class="{
-                    'hover:bg-gray-50 bg-white': comment.id !== editComment?.id,
+                    'hover:bg-gray-200 bg-white': comment.id !== editComment?.id,
                   }"
                   class="group gap-3 overflow-hidden flex items-start px-3 py-1"
                 >

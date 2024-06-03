@@ -642,24 +642,26 @@ export default {
               <div class="xs:px-1">{{ newRecordSubmitBtnText ?? 'Save Record' }}</div>
             </NcButton>
           </NcTooltip>
-          <NcButton
-            v-if="!isNew && rowId && !isMobileMode"
-            :disabled="isLoading"
-            class="!<lg:hidden text-gray-700 !h-7 !px-2"
-            type="text"
-            size="xsmall"
-            @click="copyRecordUrl()"
-          >
-            <div
-              v-e="['c:row-expand:copy-url']"
-              data-testid="nc-expanded-form-copy-url"
-              class="flex gap-2 items-center text-small"
+          <NcTooltip>
+            <template #title> {{ isRecordLinkCopied ? $t('labels.copiedRecordURL') : $t('labels.copyRecordURL') }} </template>
+            <NcButton
+              v-if="!isNew && rowId && !isMobileMode"
+              :disabled="isLoading"
+              class="!<lg:hidden text-gray-700 !h-7 !px-2"
+              type="text"
+              size="xsmall"
+              @click="copyRecordUrl()"
             >
-              <component :is="iconMap.check" v-if="isRecordLinkCopied" class="cursor-pointer nc-duplicate-row" />
-              <component :is="iconMap.copy" v-else class="cursor-pointer nc-duplicate-row" />
-              {{ isRecordLinkCopied ? $t('labels.copiedRecordURL') : $t('labels.copyRecordURL') }}
-            </div>
-          </NcButton>
+              <div
+                v-e="['c:row-expand:copy-url']"
+                data-testid="nc-expanded-form-copy-url"
+                class="flex gap-2 items-center text-small"
+              >
+                <component :is="iconMap.check" v-if="isRecordLinkCopied" class="cursor-pointer nc-duplicate-row" />
+                <component :is="iconMap.copy" v-else class="cursor-pointer nc-duplicate-row" />
+              </div>
+            </NcButton>
+          </NcTooltip>
           <NcDropdown v-if="!isNew && rowId && !isMobileMode" placement="bottomRight">
             <NcButton type="text" size="xsmall" class="nc-expand-form-more-actions !w-7 !h-7" :disabled="isLoading">
               <GeneralIcon icon="threeDotVertical" class="text-md" :class="isLoading ? 'text-gray-300' : 'text-gray-700'" />

@@ -45,10 +45,11 @@
     "docker:build": "EE=\"true-xc-test\" webpack  --config docker/webpack.config.js"
   },
   "dependencies": {
-    "@aws-sdk/client-kafka": "^3.504.0",
-    "@aws-sdk/client-s3": "^3.504.0",
-    "@aws-sdk/lib-storage": "^3.504.0",
-    "@aws-sdk/s3-request-presigner": "^3.504.0",
+    "@aws-sdk/client-kafka": "^3.588.0",
+    "@aws-sdk/client-ses": "^3.588.0",
+    "@aws-sdk/client-s3": "^3.588.0",
+    "@aws-sdk/lib-storage": "^3.588.0",
+    "@aws-sdk/s3-request-presigner": "^3.588.0",
     "@google-cloud/storage": "^7.7.0",
     "@graphql-tools/merge": "^6.2.17",
     "@jm18457/kafkajs-msk-iam-authentication-mechanism": "^3.1.2",

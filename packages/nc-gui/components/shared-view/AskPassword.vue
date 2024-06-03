@@ -37,6 +37,13 @@ const onFinish = async () => {
 const focus: VNodeRef = (el: typeof InputPassword) => {
   return el && el?.focus?.()
 }
+
+watch(
+  () => formState.value.password,
+  () => {
+    passwordError.value = null
+  },
+)
 </script>
 
 <template>
@@ -68,7 +75,6 @@ const focus: VNodeRef = (el: typeof InputPassword) => {
             v-model:value="formState.password"
             class="!rounded-lg !text-small"
             hide-details
-            @update:value="passwordError = null"
             :placeholder="$t('msg.enterPassword')"
           />
           <Transition name="layout">
@@ -77,8 +83,8 @@ const focus: VNodeRef = (el: typeof InputPassword) => {
         </a-form-item>
       </a-form>
       <div class="flex flex-row justify-end gap-x-2">
-        <NcButton :disabled="!formState.password" type="primary" size="small" html-type="submit" @click="onFinish"
-          >{{ $t('general.unlock') }}
+        <NcButton :disabled="!formState.password" type="primary" size="small" html-type="submit" class="!px-2" @click="onFinish">
+          {{ $t('objects.view') }}
           <template #loading> {{ $t('msg.verifyingPassword') }}</template>
         </NcButton>
       </div>

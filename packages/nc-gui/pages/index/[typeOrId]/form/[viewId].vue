@@ -93,8 +93,14 @@ const focus: VNodeRef = (el: typeof InputPassword) => {
             </a-form-item>
           </a-form>
           <div class="flex flex-row justify-end gap-x-2">
-            <NcButton :disabled="!form.password" type="primary" size="small" html-type="submit" @click="loadSharedView"
-              >{{ $t('general.unlock') }}
+            <NcButton
+              :disabled="!form.password"
+              type="primary"
+              size="small"
+              html-type="submit"
+              class="!px-2"
+              @click="loadSharedView"
+              >{{ $t('objects.view') }}
               <template #loading> {{ $t('msg.verifyingPassword') }}</template>
             </NcButton>
           </div>

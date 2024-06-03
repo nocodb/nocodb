@@ -106,6 +106,8 @@ const focus: VNodeRef = (el: typeof InputPassword) => {
           </div>
         </div>
       </a-modal>
+
+      <img v-if="passwordDlg" alt="view image" src="~/assets/img/views/form.png" class="fixed inset-0 w-full h-full" />
     </NuxtLayout>
   </div>
 </template>

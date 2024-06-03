@@ -36,10 +36,6 @@ onMounted(() => {
     document.title = 'NocoDB'
   }
 })
-
-watchEffect(() => {
-  console.log('allowCSVDownload', allowCSVDownload.value)
-})
 </script>
 
 <script lang="ts">
@@ -87,7 +83,6 @@ export default {
           <NcButton size="xs"> Sign up for Free </NcButton>
         </div>
       </a-layout-header>
-
       <div class="w-full overflow-hidden" style="height: calc(100vh - var(--topbar-height))">
         <slot />
       </div>

@@ -1,9 +1,15 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
 import type { InputPassword } from 'ant-design-vue'
+import { ViewTypes } from 'nocodb-sdk'
+import gridImage from '~/assets/img/views/grid.png'
+import galleryImage from '~/assets/img/views/gallery.png'
+import kanbanImage from '~/assets/img/views/kanban.png'
+import calendarImage from '~/assets/img/views/calendar.png'
 
 const props = defineProps<{
   modelValue: boolean
+  viewType?: ViewTypes
 }>()
 
 const emit = defineEmits(['update:modelValue'])
@@ -12,7 +18,7 @@ const vModel = useVModel(props, 'modelValue', emit)
 
 const route = useRoute()
 
-const { loadSharedView } = useSharedView()
+const { sharedView, loadSharedView } = useSharedView()
 
 const formState = ref({ password: undefined })
 
@@ -44,6 +50,21 @@ watch(
     passwordError.value = null
   },
 )
+
+const bgImageName = computed(() => {
+  switch (props.viewType) {
+    case ViewTypes.GRID:
+      return gridImage
+    case ViewTypes.GALLERY:
+      return galleryImage
+    case ViewTypes.KANBAN:
+      return kanbanImage
+    case ViewTypes.CALENDAR:
+      return calendarImage
+    default:
+      return gridImage
+  }
+})
 </script>
 
 <template>
@@ -90,4 +111,6 @@ watch(
       </div>
     </div>
   </NcModal>
+
+  <img alt="view image" :src="bgImageName" class="fixed inset-0 w-full h-full" />
 </template>

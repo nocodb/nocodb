@@ -221,7 +221,7 @@ watch(
         <div v-for="(record, rowIndex) in data" :key="`record-${record.row.id}`">
           <LazySmartsheetRow :row="record">
             <a-card
-              class="!rounded-lg h-full border-gray-200 border-1 group overflow-hidden break-all max-w-[450px] shadow-sm hover:shadow-md cursor-pointer"
+              class="!rounded-lg h-full border-gray-200 border-1 group overflow-hidden break-all max-w-[450px] shadow-sm hover:shadow-md cursor-pointer children:pointer-events-none"
               :body-style="{ padding: '0px' }"
               :data-testid="`nc-gallery-card-${record.row.id}`"
               @click="expandFormClick($event, record)"

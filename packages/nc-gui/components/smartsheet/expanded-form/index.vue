@@ -553,7 +553,7 @@ export default {
     v-bind="modalProps"
     @update:visible="onIsExpandedUpdate"
   >
-    <div class="h-[85vh] xs:(max-h-full h-auto) max-h-215 flex flex-col">
+    <div class="h-[85vh] xs:(max-h-full h-full) max-h-215 flex flex-col">
       <div v-if="isMobileMode" class="flex-none h-4 flex items-center justify-center">
         <div class="flex-none h-full flex items-center justify-center cursor-pointer" @click="onClose">
           <div class="w-[72px] h-[2px] rounded-full bg-[#49494a]"></div>
@@ -726,7 +726,7 @@ export default {
             'w-full': !showRightSections,
             'flex-1': showRightSections,
           }"
-          class="flex xs:w-full flex-col overflow-hidden"
+          class="h-full flex xs:w-full flex-col overflow-hidden"
         >
           <div
             ref="expandedFormScrollWrapper"
@@ -935,6 +935,7 @@ export default {
               </NcButton>
             </div>
           </div>
+          <div v-else class="p-2"></div>
         </div>
         <div
           v-if="showRightSections"

@@ -547,7 +547,7 @@ export default {
     :closable="false"
     :footer="null"
     :visible="isExpanded"
-    :width="commentsDrawer && isUIAllowed('commentList') ? 'min(80vw,1280px)' : 'min(80vw,1280px)'"
+    :width="showRightSections ? 'min(80vw,1280px)' : 'min(70vw,768px)'"
     class="nc-drawer-expanded-form"
     :size="isMobileMode ? 'medium' : 'small'"
     v-bind="modalProps"
@@ -766,6 +766,7 @@ export default {
                     class="bg-white flex-1 <lg:w-full px-1 min-h-[37px] flex items-center relative"
                     :class="{
                       '!bg-gray-50 !select-text nc-system-field': isReadOnlyVirtualCell(col),
+                      '!select-text nc-readonly-div-data-cell': readOnly,
                     }"
                   >
                     <LazySmartsheetVirtualCell
@@ -841,6 +842,7 @@ export default {
                       class="bg-white flex-1 <lg:w-full px-1 min-h-[37px] flex items-center relative"
                       :class="{
                         '!bg-gray-50 !select-text nc-system-field': isReadOnlyVirtualCell(col),
+                        '!bg-gray-50 !select-text nc-readonly-div-data-cell': readOnly,
                       }"
                     >
                       <LazySmartsheetVirtualCell
@@ -1022,12 +1024,15 @@ export default {
 .nc-data-cell {
   @apply !rounded-lg;
   transition: all 0.3s;
-  &:hover {
+  &:hover:not(.nc-readonly-div-data-cell):not(.nc-system-field) {
     @apply !border-1 !border-brand-400;
   }
 
-  &:focus-within {
+  &:focus-within:not(.nc-readonly-div-data-cell):not(.nc-system-field) {
     box-shadow: 0px 0px 0px 2px rgba(51, 102, 255, 0.24) !important;
+  }
+  &.nc-readonly-div-data-cell:not(:has(.nc-virtual-cell)):not(:has(.nc-cell-attachment)) {
+    @apply bg-gray-50;
   }
 }
 .nc-data-cell:focus-within {

@@ -16,43 +16,68 @@ const { loadSharedView } = useSharedView()
 
 const formState = ref({ password: undefined })
 
+const passwordError = ref<string | null>(null)
+
 const onFinish = async () => {
   try {
     await loadSharedView(route.params.viewId as string, formState.value.password)
     vModel.value = false
   } catch (e: any) {
-    console.error(e)
-    message.error(await extractSdkResponseErrorMsg(e))
+    const error = await extractSdkResponseErrorMsgv2(e)
+    console.error(error.message)
+
+    if (error.error === NcErrorType.INVALID_SHARED_VIEW_PASSWORD) {
+      passwordError.value = error.message
+    } else {
+      message.error(error.message)
+    }
   }
 }
 
-const focus: VNodeRef = (el: typeof InputPassword) => el?.$el?.querySelector('input').focus()
+const focus: VNodeRef = (el: typeof InputPassword) => {
+  return el && el?.focus?.()
+}
 </script>
 
 <template>
-  <NcModal v-model:visible="vModel" c size="small" :class="{ active: vModel }" :mask-closable="false">
-    <template #header>
-      <div class="flex flex-row items-center gap-x-2">
-        <GeneralIcon icon="key" />
+  <NcModal
+    v-model:visible="vModel"
+    c
+    size="small"
+    :class="{ active: vModel }"
+    :mask-closable="false"
+    :mask-style="{
+      backgroundColor: 'rgba(255, 255, 255, 0.64)',
+      backdropFilter: 'blur(8px)',
+    }"
+  >
+    <div class="flex flex-col gap-5">
+      <div class="flex flex-row items-center gap-x-2 text-base font-weight-700 text-gray-800">
+        <GeneralIcon icon="ncKey" class="!text-base w-5 h-5" />
         {{ $t('msg.thisSharedViewIsProtected') }}
       </div>
-    </template>
 
-    <div class="mt-2">
       <a-form ref="formRef" :model="formState" name="create-new-table-form" @finish="onFinish">
-        <a-form-item name="password" :rules="[{ required: true, message: $t('msg.error.signUpRules.passwdRequired') }]">
+        <a-form-item
+          name="password"
+          :rules="[{ required: true, message: $t('msg.error.signUpRules.passwdRequired') }]"
+          class="!mb-0"
+        >
           <a-input-password
-            ref="focus"
+            :ref="focus"
             v-model:value="formState.password"
-            class="nc-input-md"
+            class="!rounded-lg !text-small"
             hide-details
-            size="large"
+            @update:value="passwordError = null"
             :placeholder="$t('msg.enterPassword')"
           />
+          <Transition name="layout">
+            <div v-if="passwordError" class="mb-2 text-sm text-red-500">{{ passwordError }}</div>
+          </Transition>
         </a-form-item>
       </a-form>
-      <div class="flex flex-row justify-end gap-x-2 mt-6">
-        <NcButton type="primary" html-type="submit" @click="onFinish"
+      <div class="flex flex-row justify-end gap-x-2">
+        <NcButton :disabled="!formState.password" type="primary" size="small" html-type="submit" @click="onFinish"
           >{{ $t('general.unlock') }}
           <template #loading> {{ $t('msg.verifyingPassword') }}</template>
         </NcButton>

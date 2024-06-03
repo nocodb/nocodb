@@ -59,7 +59,7 @@ export default {
               <template #title>
                 {{ appInfo.version }}
               </template>
-              <img width="96" alt="NocoDB" src="~/assets/img/brand/nocodb.png" />
+              <img width="96" alt="NocoDB" src="~/assets/img/brand/nocodb.png" class="flex-none min-w-[96px]" />
             </NcTooltip>
           </a>
 
@@ -92,7 +92,6 @@ export default {
 
 <style lang="scss" scoped>
 #nc-app {
-  @apply text-red-400 bg-gray-800;
   .ant-layout-header {
     @apply !h-[46px];
   }

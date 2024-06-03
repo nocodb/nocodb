@@ -29,7 +29,7 @@ useProvideCalendarViewStore(meta, sharedView, true, nestedFilters)
 </script>
 
 <template>
-  <a-dropdown :trigger="['click']" overlay-class-name="nc-dropdown-actions-menu">
+  <NcDropdown :trigger="['click']" overlay-class-name="nc-dropdown-actions-menu">
     <NcButton v-e="['c:actions']" class="nc-actions-menu-btn nc-toolbar-btn" size="xs" type="secondary">
       <div class="flex gap-2 items-center">
         <component :is="iconMap.download" class="group-hover:text-accent text-gray-500" />
@@ -39,9 +39,9 @@ useProvideCalendarViewStore(meta, sharedView, true, nestedFilters)
     </NcButton>
 
     <template #overlay>
-      <a-menu class="ml-6 !text-sm !px-0 !py-2 !rounded">
+      <NcMenu class="ml-6 !text-sm !rounded-lg overflow-hidden">
         <LazySmartsheetToolbarExportSubActions />
-      </a-menu>
+      </NcMenu>
     </template>
-  </a-dropdown>
+  </NcDropdown>
 </template>

@@ -720,7 +720,7 @@ export default {
           </NcButton>
         </div>
       </div>
-      <div ref="wrapper" class="flex flex-grow flex-row h-[calc(100%-4rem)] w-full border-t-1 border-gray-200">
+      <div ref="wrapper" class="flex flex-grow flex-row h-[calc(100%_-_4rem)] w-full border-t-1 border-gray-200">
         <div
           :class="{
             'w-full': !showRightSections,
@@ -1005,6 +1005,9 @@ export default {
 }
 .nc-expanded-cell-header > :first-child {
   @apply !text-md pl-2 xs:(pl-0 -ml-0.5);
+}
+.nc-expanded-cell-header:not(.nc-cell-expanded-form-header) > :first-child {
+  @apply pl-0;
 }
 
 .nc-drawer-expanded-form .nc-modal {

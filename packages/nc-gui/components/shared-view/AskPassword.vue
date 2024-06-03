@@ -18,7 +18,7 @@ const vModel = useVModel(props, 'modelValue', emit)
 
 const route = useRoute()
 
-const { sharedView, loadSharedView } = useSharedView()
+const { loadSharedView } = useSharedView()
 
 const formState = ref({ password: undefined })
 

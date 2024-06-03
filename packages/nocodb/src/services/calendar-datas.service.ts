@@ -44,7 +44,10 @@ export class CalendarDatasService {
       to_date,
     });
 
-    query.filterArr = [...(query.filterArr ? query.filterArr : []), filterArr];
+    query.filterArrJson = JSON.stringify([
+      ...filterArr,
+      ...(query.filterArrJson ? JSON.parse(query.filterArrJson) : []),
+    ]);
 
     const model = await Model.getByIdOrName({
       id: view.fk_model_id,
@@ -146,7 +149,10 @@ export class CalendarDatasService {
       to_date,
     });
 
-    query.filterArr = [...(query.filterArr ? query.filterArr : []), filterArr];
+    query.filterArrJson = JSON.stringify([
+      ...filterArr,
+      ...(query.filterArrJson ? JSON.parse(query.filterArrJson) : []),
+    ]);
 
     const model = await Model.getByIdOrName({
       id: view.fk_model_id,
@@ -193,7 +199,7 @@ export class CalendarDatasService {
     viewId: string;
     from_date: string;
     to_date: string;
-  }) {
+  }): Promise<Array<FilterType>> {
     const calendarRange = await CalendarRange.read(viewId);
     if (!calendarRange?.ranges?.length) NcError.badRequest('No ranges found');
 
@@ -226,6 +232,6 @@ export class CalendarDatasService {
       if (rangeFilter.length > 0) filterArr.children.push(rangeFilter);
     });
 
-    return filterArr;
+    return [filterArr];
   }
 }

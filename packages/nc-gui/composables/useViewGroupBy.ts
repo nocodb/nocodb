@@ -382,7 +382,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
               ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
               ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
             } as any)
-          : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value, isGroupBy: true, ...query })
+          : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value, ...query }, { isGroupBy: true })
 
         group.count = response.pageInfo.totalRows ?? 0
         group.rows = formatData(response.list)

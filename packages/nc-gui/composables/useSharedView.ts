@@ -124,17 +124,21 @@ export function useSharedView() {
     }
   }
 
-  const fetchSharedViewData = async (param: {
-    sortsArr: SortType[]
-    filtersArr: FilterType[]
-    fields?: any[]
-    sort?: any[]
-    where?: string
-    /** Query params for nested data */
-    nested?: any
-    offset?: number
-    isGroupBy?: boolean
-  }) => {
+  const fetchSharedViewData = async (
+    param: {
+      sortsArr: SortType[]
+      filtersArr: FilterType[]
+      fields?: any[]
+      sort?: any[]
+      where?: string
+      /** Query params for nested data */
+      nested?: any
+      offset?: number
+    },
+    opts?: {
+      isGroupBy?: boolean
+    },
+  ) => {
     if (!sharedView.value)
       return {
         list: [],
@@ -143,14 +147,12 @@ export function useSharedView() {
 
     if (!param.offset) {
       const page = paginationData.value.page || 1
-      const pageSize = param.isGroupBy
+      const pageSize = opts?.isGroupBy
         ? appInfo.value.defaultGroupByLimit?.limitRecord || 10
         : paginationData.value.pageSize || appInfoDefaultLimit
       param.offset = (page - 1) * pageSize
       param.limit = sharedView.value?.type === ViewTypes.MAP ? 1000 : pageSize
     }
-
-    delete param.isGroupBy
 
     return await $api.public.dataList(
       sharedView.value.uuid!,

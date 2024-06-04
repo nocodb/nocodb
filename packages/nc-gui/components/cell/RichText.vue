@@ -40,6 +40,8 @@ const rowHeight = inject(RowHeightInj, ref(1 as const))
 
 const readOnlyCell = inject(ReadonlyInj, ref(false))
 
+const isEditColumn = inject(EditColumnInj, ref(false))
+
 const isForm = inject(IsFormInj, ref(false))
 
 const isGrid = inject(IsGridInj, ref(false))
@@ -220,7 +222,7 @@ if (isFormField.value) {
 }
 
 onMounted(() => {
-  if (fullMode.value || isFormField.value || isForm.value) {
+  if (fullMode.value || isFormField.value || isForm.value || isEditColumn.value) {
     setEditorContent(vModel.value, true)
 
     if (fullMode.value || isSurveyForm.value) {

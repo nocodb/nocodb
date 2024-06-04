@@ -121,6 +121,9 @@ export default defineNuxtConfig({
 
   build: {},
 
+  // disabling devtools since causing some significant performance issues when browser console open in development mode
+  devtools: { enabled: false },
+
   vite: {
     worker: {
       format: 'es',

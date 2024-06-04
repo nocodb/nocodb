@@ -190,6 +190,7 @@ import NcHelp from '~icons/nc-icons/help'
 import NcAlertTriangle from '~icons/nc-icons/alert-triangle'
 import NcAudit from '~icons/nc-icons/audit'
 import NcMessageCircle from '~icons/nc-icons/message-circle'
+import NcKey from '~icons/nc-icons/key'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -612,6 +613,7 @@ export const iconMap = {
   alertTriangle: NcAlertTriangle,
   audit: NcAudit,
   messageCircle: NcMessageCircle,
+  ncKey: NcKey,
 }
 
 export const getMdiIcon = (type: string): any => {

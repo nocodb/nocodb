@@ -387,7 +387,6 @@ const onFocus = () => {
         v-model:value="vModel"
         class="w-full overflow-hidden xs:min-h-12"
         :class="{ 'caret-transparent': !hasEditRoles }"
-        :placeholder="isEditColumn ? $t('labels.optional') : ''"
         :allow-clear="!column.rqd && editAllowed"
         :bordered="false"
         :open="isOpen && editAllowed"

@@ -16,15 +16,18 @@ if (!vModel.value.meta?.date_format) {
 </script>
 
 <template>
-  <a-form-item :label="$t('labels.dateFormat')">
+  <a-form-item>
     <a-select
       v-model:value="vModel.meta.date_format"
       show-search
       class="nc-date-select"
       dropdown-class-name="nc-dropdown-date-format"
     >
+      <template #suffixIcon>
+        <GeneralIcon icon="arrowDown" class="text-gray-700" />
+      </template>
       <a-select-option v-for="(format, i) of [...dateFormats, ...dateMonthFormats]" :key="i" :value="format">
-        <div class="flex gap-2 justify-between items-center">
+        <div class="w-full flex gap-2 justify-between items-center">
           {{ format }}
           <component
             :is="iconMap.check"

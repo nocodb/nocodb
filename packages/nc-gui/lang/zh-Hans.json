@@ -98,6 +98,7 @@
     "bulkUpdate": "批量更新",
     "deleting": "删除中",
     "update": "更新",
+    "updating": "Updating",
     "rename": "重命名",
     "reload": "重新加载",
     "reset": "重置",
@@ -205,7 +206,11 @@
     "apply": "应用",
     "text": "文本",
     "appearance": "外观",
-    "now": "Now"
+    "now": "Now",
+    "set": "Set",
+    "format": "Format",
+    "colour": "Colour",
+    "use": "Use"
   },
   "objects": {
     "owner": "所有者",
@@ -331,8 +336,8 @@
     "parameter": "参数",
     "headers": "请求头",
     "parameterName": "参数名称",
-    "currencyLocale": "货币地区",
-    "currencyCode": "货币代码",
+    "currencyLocale": "Locale",
+    "currencyCode": "Code",
     "searchMembers": "搜索成员",
     "noMembersFound": "未找到成员",
     "dateJoined": "加入日期",
@@ -536,7 +541,7 @@
     "headerName": "标题名称",
     "icon": "图标",
     "max": "最大",
-    "enableRichText": "启用富文本",
+    "enableRichText": "Enable rich text",
     "idColon": "Id:",
     "copiedRecordURL": "复制的记录 URL",
     "copyRecordURL": "复制该记录卡片的 URL",
@@ -738,6 +743,7 @@
     "noAccess": "无权访问",
     "restApis": "重置API",
     "apis": "APIs",
+    "apiSnippet": "API Snippets",
     "includeData": "包括数据",
     "includeView": "包括查看",
     "includeWebhook": "包括 Webhook",
@@ -765,7 +771,9 @@
     "showFieldOnConditionsMet": "在满足条件时显示字段",
     "limitOptions": "限制选项",
     "limitOptionsSubtext": "限制用户可见",
-    "clearSelection": "清除选择"
+    "clearSelection": "清除选择",
+    "displayAsProgress": "Display as progress",
+    "relationType": "Relation type"
   },
   "activity": {
     "renameBase": "重命名项目",
@@ -1122,7 +1130,7 @@
     "optimizedQueryEnabled": "已启用优化查询",
     "lookupNonBtWarning": "非 \"所属关系 \"不支持查找字段",
     "invalidTime": "无效时间",
-    "linkColumnClearNotSupportedYet": "您没有任何支持查找的链接",
+    "linkColumnClearNotSupportedYet": "You don't have any supported links for {type}",
     "recordCouldNotBeFound": "找不到记录",
     "invalidPhoneNumber": "无效电话号码",
     "pageSizeChanged": "页面大小已更改",
@@ -1195,7 +1203,7 @@
     "noRecordsLinked": "没有链接记录",
     "noLinkedRecords": "暂无引用数据",
     "recordsLinked": "链接的记录",
-    "acceptOnlyValid": "仅接受",
+    "acceptOnlyValid": "Accept only valid {type}",
     "apiTokenCreate": "创建个人 API tokens，以便在自动化或外部应用程序中使用。",
     "selectFieldToSort": "选择要排序的字段",
     "selectFieldToGroup": "选择要分组的字段",
@@ -1413,6 +1421,7 @@
       "preventHideAllOptions": "必填项不能为空"
     },
     "error": {
+      "errorLoadingRecord": "Error loading record data",
       "fetchingCalendarData": "获取日历数据时出错",
       "fetchingActiveDates": "获取活动日期时出错",
       "scopesRequired": "范围不能为空",

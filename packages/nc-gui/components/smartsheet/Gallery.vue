@@ -396,4 +396,10 @@ watch(
 .ant-carousel.gallery-carousel :deep(.slick-next) {
   @apply right-0;
 }
+
+:deep(.ant-card) {
+  &:hover .nc-action-icon {
+    @apply invisible;
+  }
+}
 </style>

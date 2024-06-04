@@ -251,7 +251,7 @@ a {
 }
 // select dropdown border style
 .ant-select-dropdown {
-  @apply border-1 border-gray-200;
+  @apply border-1 border-gray-200 rounded-lg;
 
   .rc-virtual-list-scrollbar {
     @apply !w-1;

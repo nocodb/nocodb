@@ -53,7 +53,6 @@ const focus: VNodeRef = (el) =>
     class="nc-cell-field outline-none px-1 border-none w-full h-full"
     type="number"
     step="0.1"
-    :placeholder="isEditColumn ? $t('labels.optional') : ''"
     @blur="editEnabled = false"
     @keydown.down.stop
     @keydown.left.stop

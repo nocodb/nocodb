@@ -40,6 +40,7 @@ export class PublicDatasExportController {
       view.type !== ViewTypes.GRID &&
       view.type !== ViewTypes.KANBAN &&
       view.type !== ViewTypes.GALLERY &&
+      view.type !== ViewTypes.CALENDAR &&
       view.type !== ViewTypes.MAP
     )
       NcError.notFound('Not found');
@@ -93,6 +94,7 @@ export class PublicDatasExportController {
       view.type !== ViewTypes.GRID &&
       view.type !== ViewTypes.KANBAN &&
       view.type !== ViewTypes.GALLERY &&
+      view.type !== ViewTypes.CALENDAR &&
       view.type !== ViewTypes.MAP
     )
       NcError.notFound('Not found');

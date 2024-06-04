@@ -98,6 +98,7 @@
     "bulkUpdate": "Masowa aktualizacja",
     "deleting": "Usuwanie",
     "update": "Aktualizuj",
+    "updating": "Updating",
     "rename": "Zmień nazwę",
     "reload": "Przeładuj",
     "reset": "Zresetuj",
@@ -205,7 +206,11 @@
     "apply": "Zastosuj",
     "text": "Tekst",
     "appearance": "Wygląd",
-    "now": "Now"
+    "now": "Now",
+    "set": "Set",
+    "format": "Format",
+    "colour": "Colour",
+    "use": "Use"
   },
   "objects": {
     "owner": "Właściciel",
@@ -331,8 +336,8 @@
     "parameter": "Parametr",
     "headers": "Nagłówki",
     "parameterName": "Nazwa parametru",
-    "currencyLocale": "Lokalizacja waluty",
-    "currencyCode": "Kod waluty",
+    "currencyLocale": "Locale",
+    "currencyCode": "Code",
     "searchMembers": "Szukaj członków",
     "noMembersFound": "Nie znaleziono członków",
     "dateJoined": "Data dołączenia",
@@ -536,7 +541,7 @@
     "headerName": "Nazwa nagłówka",
     "icon": "Ikona",
     "max": "Maks",
-    "enableRichText": "Włącz Edytor Tekstu",
+    "enableRichText": "Enable rich text",
     "idColon": "Id:",
     "copiedRecordURL": "Skopiowano URL rekordu",
     "copyRecordURL": "Kopiuj URL rekordu",
@@ -738,6 +743,7 @@
     "noAccess": "Brak dostępu",
     "restApis": "Rest APIs",
     "apis": "APIs",
+    "apiSnippet": "API Snippets",
     "includeData": "Dołącz dane",
     "includeView": "Dołącz widok",
     "includeWebhook": "Dołącz Webhook",
@@ -765,7 +771,9 @@
     "showFieldOnConditionsMet": "Pokazuje pole tylko, gdy spełnione są warunki",
     "limitOptions": "Ogranicz opcje",
     "limitOptionsSubtext": "Ogranicz opcje widoczne dla użytkowników, wybierając dostępne opcje",
-    "clearSelection": "Wyczyść wybór"
+    "clearSelection": "Wyczyść wybór",
+    "displayAsProgress": "Display as progress",
+    "relationType": "Relation type"
   },
   "activity": {
     "renameBase": "Zmień nazwę tabeli",
@@ -1122,7 +1130,7 @@
     "optimizedQueryEnabled": "Zoptymalizowane zapytanie jest włączone",
     "lookupNonBtWarning": "Pole wyszukiwania nie jest obsługiwane dla relacji innych niż 'Należy do'",
     "invalidTime": "Nieprawidłowy Czas",
-    "linkColumnClearNotSupportedYet": "Nie masz jeszcze żadnych obsługiwanych linków do pola Lookup",
+    "linkColumnClearNotSupportedYet": "You don't have any supported links for {type}",
     "recordCouldNotBeFound": "Nie można znaleźć rekordu",
     "invalidPhoneNumber": "Nieprawidłowy numer telefonu",
     "pageSizeChanged": "Zmieniono rozmiar strony",
@@ -1195,7 +1203,7 @@
     "noRecordsLinked": "Żadne rekordy nie są powiązane",
     "noLinkedRecords": "Brak powiązanych rekordów",
     "recordsLinked": "rekordy powiązane",
-    "acceptOnlyValid": "Akceptuje tylko",
+    "acceptOnlyValid": "Accept only valid {type}",
     "apiTokenCreate": "Utwórz osobiste tokeny API do użytku w automatyzacji lub zewnętrznych aplikacjach.",
     "selectFieldToSort": "Wybierz pole do sortowania",
     "selectFieldToGroup": "Wybierz pole do grupowania",
@@ -1413,6 +1421,7 @@
       "preventHideAllOptions": "Nie możesz ukryć wszystkich opcji, jeśli pole jest wymagane"
     },
     "error": {
+      "errorLoadingRecord": "Error loading record data",
       "fetchingCalendarData": "Błąd podczas pobierania danych kalendarza",
       "fetchingActiveDates": "Błąd podczas pobierania aktywnych dat",
       "scopesRequired": "Wymagane zakresy",

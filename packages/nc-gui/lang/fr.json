@@ -98,6 +98,7 @@
     "bulkUpdate": "Mise à jour par lot",
     "deleting": "Suppression",
     "update": "Mettre à jour",
+    "updating": "Updating",
     "rename": "Renommer",
     "reload": "Recharger",
     "reset": "Réinitialiser",
@@ -205,7 +206,11 @@
     "apply": "Appliquer",
     "text": "Texte",
     "appearance": "Apparence",
-    "now": "Now"
+    "now": "Now",
+    "set": "Set",
+    "format": "Format",
+    "colour": "Colour",
+    "use": "Use"
   },
   "objects": {
     "owner": "Propriétaire",
@@ -331,8 +336,8 @@
     "parameter": "Paramètre",
     "headers": "En-têtes",
     "parameterName": "Nom du paramètre",
-    "currencyLocale": "Langue de la devise",
-    "currencyCode": "Code de la devise",
+    "currencyLocale": "Locale",
+    "currencyCode": "Code",
     "searchMembers": "Rechercher des membres",
     "noMembersFound": "Aucun membre trouvé",
     "dateJoined": "Date d'inscription",
@@ -449,7 +454,7 @@
     "noResultsMatchedYourSearch": "Your search did not yield any matching results."
   },
   "labels": {
-    "connectionDetails": "Connection Details",
+    "connectionDetails": "Détails de connexion",
     "metaSync": "Meta Sync",
     "mention": "Mention",
     "today": "Aujourd'hui",
@@ -536,7 +541,7 @@
     "headerName": "Nom de l'en-tête",
     "icon": "Icône",
     "max": "Maximum",
-    "enableRichText": "Activer le texte enrichi",
+    "enableRichText": "Enable rich text",
     "idColon": "Identifiant:",
     "copiedRecordURL": "URL de l'enregistrement copié",
     "copyRecordURL": "Copier l'URL de l'enregistrement",
@@ -738,6 +743,7 @@
     "noAccess": "Accès interdit",
     "restApis": "API REST",
     "apis": "APIs",
+    "apiSnippet": "API Snippets",
     "includeData": "Inclure les données",
     "includeView": "Inclure la vue",
     "includeWebhook": "Inclure le Webhook",
@@ -765,7 +771,9 @@
     "showFieldOnConditionsMet": "Montre le champ uniquement lorsque les conditions sont réunies",
     "limitOptions": "Limiter les options",
     "limitOptionsSubtext": "Limit options visible to users by selecting available options",
-    "clearSelection": "Effacer la sélection"
+    "clearSelection": "Effacer la sélection",
+    "displayAsProgress": "Display as progress",
+    "relationType": "Relation type"
   },
   "activity": {
     "renameBase": "Renommer la Base",
@@ -1122,7 +1130,7 @@
     "optimizedQueryEnabled": "Optimized query is enabled",
     "lookupNonBtWarning": "Lookup field is not supported for non-Belongs to relation",
     "invalidTime": "Invalid Time",
-    "linkColumnClearNotSupportedYet": "Vous n'avez aucun lien défini pour ajouter un champ Lookup",
+    "linkColumnClearNotSupportedYet": "You don't have any supported links for {type}",
     "recordCouldNotBeFound": "L'enregistrement n'a pas pu être trouvé",
     "invalidPhoneNumber": "Numéro de téléphone invalide",
     "pageSizeChanged": "Taille de la page modifiée",
@@ -1195,7 +1203,7 @@
     "noRecordsLinked": "Aucun enregistrement lié",
     "noLinkedRecords": "Aucun enregistrement lié",
     "recordsLinked": "enregistrements liés",
-    "acceptOnlyValid": "Accepts only",
+    "acceptOnlyValid": "Accept only valid {type}",
     "apiTokenCreate": "Create personal API tokens to use in automation or external apps.",
     "selectFieldToSort": "Sélectionner le champ de tri",
     "selectFieldToGroup": "Sélectionner le champ de regroupement",
@@ -1413,6 +1421,7 @@
       "preventHideAllOptions": "You cannot hide all options if field is required"
     },
     "error": {
+      "errorLoadingRecord": "Error loading record data",
       "fetchingCalendarData": "Erreur lors de la récupération des données du calendrier",
       "fetchingActiveDates": "Error fetching active dates",
       "scopesRequired": "Scopes required",

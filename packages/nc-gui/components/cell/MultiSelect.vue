@@ -469,7 +469,6 @@ const onFocus = () => {
         v-model:value="vModel"
         mode="multiple"
         class="w-full overflow-hidden"
-        :placeholder="isEditColumn ? $t('labels.optional') : ''"
         :bordered="false"
         clear-icon
         :show-search="!isMobileMode"

@@ -27,6 +27,8 @@ const props = withDefaults(defineProps<Props>(), {
 
 const { editor, embedMode, isFormField, hiddenOptions } = toRefs(props)
 
+const isEditColumn = inject(EditColumnInj, ref(false))
+
 const cmdOrCtrlKey = computed(() => {
   return isMac() ? '⌘' : 'CTRL'
 })
@@ -108,6 +110,7 @@ const showDivider = (options: RichTextBubbleMenuOptions[]) => {
       'flex bg-gray-100 px-1 py-1': !isFormField,
       'embed-mode': embedMode,
       'full-mode': !embedMode,
+      'edit-column-mode': isEditColumn,
     }"
   >
     <NcTooltip :placement="tooltipPlacement" :disabled="editor.isActive('codeBlock')">
@@ -172,7 +175,7 @@ const showDivider = (options: RichTextBubbleMenuOptions[]) => {
         <MdiFormatUnderline />
       </NcButton>
     </NcTooltip>
-    <NcTooltip :placement="tooltipPlacement" :disabled="editor.isActive('codeBlock')">
+    <NcTooltip v-if="embedMode && !isEditColumn" :placement="tooltipPlacement" :disabled="editor.isActive('codeBlock')">
       <template #title>
         <div class="flex flex-col items-center">
           <div>
@@ -283,7 +286,10 @@ const showDivider = (options: RichTextBubbleMenuOptions[]) => {
       <div class="divider"></div>
     </template>
 
-    <NcTooltip v-if="embedMode && isOptionVisible(RichTextBubbleMenuOptions.blockQuote)" :placement="tooltipPlacement">
+    <NcTooltip
+      v-if="embedMode && !isEditColumn && isOptionVisible(RichTextBubbleMenuOptions.blockQuote)"
+      :placement="tooltipPlacement"
+    >
       <template #title> {{ $t('labels.blockQuote') }}</template>
       <NcButton
         size="small"

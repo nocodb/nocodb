@@ -247,7 +247,6 @@ watch(inputWrapperRef, () => {
         :style="{
           minHeight: isForm ? '117px' : `${height}px`,
         }"
-        :placeholder="isEditColumn ? $t('labels.optional') : ''"
         :disabled="readOnly"
         @blur="editEnabled = false"
         @keydown.alt.enter.stop

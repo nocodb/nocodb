@@ -520,6 +520,11 @@ const errorHelpers: {
     message: (offset: string) => `Offset value '${offset}' is invalid`,
     code: 422,
   },
+  [NcErrorType.INVALID_PK_VALUE]: {
+    message: (value: any, pkColumn: string) =>
+      `Primary key value '${value}' is invalid for column '${pkColumn}'`,
+    code: 422,
+  },
   [NcErrorType.INVALID_LIMIT_VALUE]: {
     message: `Limit value should be between ${defaultLimitConfig.limitMin} and ${defaultLimitConfig.limitMax}`,
     code: 422,
@@ -677,6 +682,13 @@ export class NcError {
   static invalidOffsetValue(offset: string | number, args?: NcErrorArgs) {
     throw new NcBaseErrorv2(NcErrorType.INVALID_OFFSET_VALUE, {
       params: `${offset}`,
+      ...args,
+    });
+  }
+
+  static invalidPrimaryKey(value: any, pkColumn: string, args?: NcErrorArgs) {
+    throw new NcBaseErrorv2(NcErrorType.INVALID_PK_VALUE, {
+      params: [value, pkColumn],
       ...args,
     });
   }

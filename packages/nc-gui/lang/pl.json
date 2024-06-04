@@ -773,7 +773,9 @@
     "limitOptionsSubtext": "Ogranicz opcje widoczne dla użytkowników, wybierając dostępne opcje",
     "clearSelection": "Wyczyść wybór",
     "displayAsProgress": "Display as progress",
-    "relationType": "Relation type"
+    "relationType": "Relation type",
+    "showThousandsSeparator": "Show thousands separator",
+    "signUpForFree": "Sign up for free"
   },
   "activity": {
     "renameBase": "Zmień nazwę tabeli",

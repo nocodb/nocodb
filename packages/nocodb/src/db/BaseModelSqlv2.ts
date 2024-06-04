@@ -3007,9 +3007,9 @@ class BaseModelSqlv2 {
     }
   }
 
-  async _wherePk(id, skipGetColumns = false) {
+  async _wherePk(id, skipGetColumns = false, skipPkValidation = false) {
     if (!skipGetColumns) await this.model.getColumns();
-    return _wherePk(this.model.primaryKeys, id);
+    return _wherePk(this.model.primaryKeys, id, skipPkValidation);
   }
 
   comparePks(pk1, pk2) {
@@ -6894,23 +6894,34 @@ function applyPaginate(
   return query;
 }
 
-export function _wherePk(primaryKeys: Column[], id: unknown | unknown[]) {
+export function _wherePk(
+  primaryKeys: Column[],
+  id: unknown | unknown[],
+  skipPkValidation = false,
+) {
   const where = {};
 
   // if id object is provided use as it is
   if (id && typeof id === 'object' && !Array.isArray(id)) {
     // verify all pk columns are present in id object
     for (const pk of primaryKeys) {
+      let key: string;
       if (pk.id in id) {
-        where[pk.column_name] = id[pk.id];
+        key = pk.id;
       } else if (pk.title in id) {
-        where[pk.column_name] = id[pk.title];
+        key = pk.title;
       } else if (pk.column_name in id) {
-        where[pk.column_name] = id[pk.column_name];
+        key = pk.column_name;
       } else {
         NcError.badRequest(
           `Primary key column ${pk.title} not found in id object`,
         );
+      }
+      where[pk.column_name] = id[key];
+      // validate value if auto-increment column
+      // todo: add more validation based on column constraints
+      if (!skipPkValidation && pk.ai && !/^\d+$/.test(id[key])) {
+        NcError.invalidPrimaryKey(id[key], pk.title);
       }
     }
 

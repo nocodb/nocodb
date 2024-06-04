@@ -193,7 +193,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
       await $api.utils.commentRow({
         fk_model_id: meta.value?.id as string,
         row_id: rowId,
-        comment: `${comment.value}`,
+        comment: `${comment.value}`.replace(/(<br \/>)+$/g, ''),
       })
 
       reloadTrigger?.trigger()

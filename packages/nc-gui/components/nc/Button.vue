@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import type { ButtonType } from 'ant-design-vue/lib/button'
 import { useSlots } from 'vue'
-import type { NcButtonSize } from '~/lib/types'
 
 /**
  * @description
@@ -76,11 +75,12 @@ useEventListener(NcButton, 'mousedown', () => {
   <a-button
     ref="NcButton"
     :class="{
-      small: size === 'small',
-      medium: size === 'medium',
-      xsmall: size === 'xsmall',
-      xxsmall: size === 'xxsmall',
-      focused: isFocused,
+      'small': size === 'small',
+      'medium': size === 'medium',
+      'xsmall': size === 'xsmall',
+      'xxsmall': size === 'xxsmall',
+      'size-xs': size === 'xs',
+      'focused': isFocused,
     }"
     :disabled="props.disabled"
     :loading="loading"
@@ -168,6 +168,13 @@ useEventListener(NcButton, 'mousedown', () => {
   @apply py-2 px-4 h-10 min-w-10 xs:(h-10.5 max-h-10.5 min-w-10.5 !px-3);
 }
 
+.nc-button.ant-btn.size-xs {
+  @apply px-2 py-0 h-7 min-w-7 rounded-lg text-small leading-[18px];
+
+  & > div {
+    @apply gap-x-2;
+  }
+}
 .nc-button.ant-btn.xsmall {
   @apply p-0.25 h-6.25 min-w-6.25 rounded-md;
 }

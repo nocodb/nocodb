@@ -45,7 +45,7 @@ watch(
 </script>
 
 <template>
-  <div class="nc-container flex flex-col h-full mt-1.5 px-12">
+  <div class="nc-container flex flex-col h-full">
     <LazySmartsheetToolbar />
     <LazySmartsheetGrid />
   </div>

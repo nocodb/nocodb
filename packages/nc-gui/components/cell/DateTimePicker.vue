@@ -525,7 +525,7 @@ const cellValue = computed(
     <GeneralIcon
       v-if="localState && (isExpandedForm || isForm || !isGrid || isEditColumn) && !readOnly"
       icon="closeCircle"
-      class="nc-clear-date-time-icon h-4 w-4 absolute right-0 top-[50%] transform -translate-y-1/2 invisible cursor-pointer"
+      class="nc-clear-date-time-icon nc-action-icon h-4 w-4 absolute right-0 top-[50%] transform -translate-y-1/2 invisible cursor-pointer"
       @click.stop="handleSelectDate()"
     />
   </div>

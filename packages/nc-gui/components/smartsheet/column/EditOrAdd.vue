@@ -269,6 +269,13 @@ const submitBtnLabel = computed(() => {
     loadingLabel: `${isEdit.value && !props.columnLabel ? t('general.updating') : t('general.saving')} ${columnLabel.value}`,
   }
 })
+
+const filterOption = (input: string, option: { value: UITypes }) => {
+  return (
+    option.value.toLowerCase().includes(input.toLowerCase()) ||
+    (UITypesName[option.value] && UITypesName[option.value].toLowerCase().includes(input.toLowerCase()))
+  )
+}
 </script>
 
 <template>
@@ -329,6 +336,7 @@ const submitBtnLabel = computed(() => {
             class="nc-column-type-input !rounded-lg"
             :disabled="isKanban || readOnly || (isEdit && !!onlyNameUpdateOnEditColumns.find((col) => col === formState.uidt))"
             dropdown-class-name="nc-dropdown-column-type border-1 !rounded-lg border-gray-200"
+            :filter-option="filterOption"
             @dropdown-visible-change="onDropdownChange"
             @change="onUidtOrIdTypeChange"
             @dblclick="showDeprecated = !showDeprecated"
@@ -379,6 +387,7 @@ const submitBtnLabel = computed(() => {
         <LazySmartsheetColumnLookupOptions v-if="formState.uidt === UITypes.Lookup" v-model:value="formState" />
         <LazySmartsheetColumnDateOptions v-if="formState.uidt === UITypes.Date" v-model:value="formState" />
         <LazySmartsheetColumnTimeOptions v-if="formState.uidt === UITypes.Time" v-model:value="formState" />
+        <LazySmartsheetColumnNumberOptions v-if="formState.uidt === UITypes.Number" v-model:value="formState" />
         <LazySmartsheetColumnDecimalOptions v-if="formState.uidt === UITypes.Decimal" v-model:value="formState" />
         <LazySmartsheetColumnDateTimeOptions
           v-if="[UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(formState.uidt)"
@@ -557,9 +566,13 @@ const submitBtnLabel = computed(() => {
 
   .ant-radio-wrapper-disabled {
     @apply pointer-events-none;
+    box-shadow: none;
+
+    &:hover {
+      box-shadow: none;
+    }
   }
-  &:not(:hover):not(:focus-within):not(.shadow-selected),
-  &.ant-radio-wrapper-disabled:hover {
+  &:not(.ant-radio-wrapper-disabled):not(:hover):not(:focus-within):not(.shadow-selected) {
     box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
   }
   &:hover:not(:focus-within):not(.ant-radio-wrapper-disabled) {
@@ -568,13 +581,16 @@ const submitBtnLabel = computed(() => {
 }
 
 :deep(.ant-select) {
-  &:not(:hover):not(.ant-select-focused) .ant-select-selector,
-  &:hover.ant-select-disabled .ant-select-selector {
+  &:not(.ant-select-disabled):not(:hover):not(.ant-select-focused) .ant-select-selector,
+  &:not(.ant-select-disabled):hover.ant-select-disabled .ant-select-selector {
     box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
   }
   &:hover:not(.ant-select-focused):not(.ant-select-disabled) .ant-select-selector {
     @apply border-gray-300;
     box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.24);
+  }
+  &.ant-select-disabled .ant-select-selector {
+    box-shadow: none;
   }
 }
 

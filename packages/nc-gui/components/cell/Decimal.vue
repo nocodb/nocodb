@@ -40,6 +40,8 @@ const displayValue = computed(() => {
 
   if (isNaN(Number(_vModel.value))) return null
 
+  if (meta.value.isLocaleString) return (+Number(_vModel.value).toFixed(meta.value.precision ?? 1)).toLocaleString()
+
   return Number(_vModel.value).toFixed(meta.value.precision ?? 1)
 })
 

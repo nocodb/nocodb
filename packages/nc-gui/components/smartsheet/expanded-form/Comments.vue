@@ -175,7 +175,7 @@ watch(commentsWrapperEl, () => {
               <div v-for="comment of comments" :key="comment.id" class="nc-comment-item">
                 <div
                   :class="{
-                    'hover:bg-gray-50 bg-white': comment.id !== editComment?.id,
+                    'hover:bg-gray-200': comment.id !== editComment?.id,
                   }"
                   class="group gap-3 overflow-hidden flex items-start px-3 py-1"
                 >
@@ -313,9 +313,7 @@ watch(commentsWrapperEl, () => {
       <a-tab-pane key="audits" class="w-full" :disabled="appInfo.ee">
         <template #tab>
           <NcTooltip v-if="appInfo.ee" class="tab flex-1">
-            <template #title>
-              <span class="!text-base"> Coming soon </span>
-            </template>
+            <template #title>{{ $t('title.comingSoon') }}</template>
 
             <div v-e="['c:row-expand:audit']" class="flex items-center gap-2 text-gray-400">
               <GeneralIcon icon="audit" class="w-4 h-4" />

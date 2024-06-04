@@ -269,6 +269,13 @@ const submitBtnLabel = computed(() => {
     loadingLabel: `${isEdit.value && !props.columnLabel ? t('general.updating') : t('general.saving')} ${columnLabel.value}`,
   }
 })
+
+const filterOption = (input: string, option: { value: UITypes }) => {
+  return (
+    option.value.toLowerCase().includes(input.toLowerCase()) ||
+    (UITypesName[option.value] && UITypesName[option.value].toLowerCase().includes(input.toLowerCase()))
+  )
+}
 </script>
 
 <template>
@@ -329,6 +336,7 @@ const submitBtnLabel = computed(() => {
             class="nc-column-type-input !rounded-lg"
             :disabled="isKanban || readOnly || (isEdit && !!onlyNameUpdateOnEditColumns.find((col) => col === formState.uidt))"
             dropdown-class-name="nc-dropdown-column-type border-1 !rounded-lg border-gray-200"
+            :filter-option="filterOption"
             @dropdown-visible-change="onDropdownChange"
             @change="onUidtOrIdTypeChange"
             @dblclick="showDeprecated = !showDeprecated"

@@ -283,7 +283,7 @@ function handleSelectDate(value?: dayjs.Dayjs) {
       <GeneralIcon
         v-if="localState && !readOnly"
         icon="closeCircle"
-        class="nc-clear-year-icon absolute right-0 top-[50%] transform -translate-y-1/2 invisible cursor-pointer"
+        class="nc-clear-year-icon nc-action-icon absolute right-0 top-[50%] transform -translate-y-1/2 invisible cursor-pointer"
         @click.stop="handleSelectDate()"
       />
     </div>

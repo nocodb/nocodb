@@ -547,13 +547,13 @@ export default {
     :closable="false"
     :footer="null"
     :visible="isExpanded"
-    :width="commentsDrawer && isUIAllowed('commentList') ? 'min(80vw,1280px)' : 'min(80vw,1280px)'"
+    :width="showRightSections ? 'min(80vw,1280px)' : 'min(70vw,768px)'"
     class="nc-drawer-expanded-form"
     :size="isMobileMode ? 'medium' : 'small'"
     v-bind="modalProps"
     @update:visible="onIsExpandedUpdate"
   >
-    <div class="h-[85vh] xs:(max-h-full h-auto) max-h-215 flex flex-col">
+    <div class="h-[85vh] xs:(max-h-full h-full) max-h-215 flex flex-col">
       <div v-if="isMobileMode" class="flex-none h-4 flex items-center justify-center">
         <div class="flex-none h-full flex items-center justify-center cursor-pointer" @click="onClose">
           <div class="w-[72px] h-[2px] rounded-full bg-[#49494a]"></div>
@@ -720,13 +720,13 @@ export default {
           </NcButton>
         </div>
       </div>
-      <div ref="wrapper" class="flex flex-grow flex-row h-[calc(100%-4rem)] w-full border-t-1 border-gray-200">
+      <div ref="wrapper" class="flex flex-grow flex-row h-[calc(100%_-_4rem)] w-full border-t-1 border-gray-200">
         <div
           :class="{
             'w-full': !showRightSections,
             'flex-1': showRightSections,
           }"
-          class="flex xs:w-full flex-col overflow-hidden"
+          class="h-full flex xs:w-full flex-col overflow-hidden"
         >
           <div
             ref="expandedFormScrollWrapper"
@@ -765,7 +765,8 @@ export default {
                     :ref="i ? null : (el: any) => (cellWrapperEl = el)"
                     class="bg-white flex-1 <lg:w-full px-1 min-h-[37px] flex items-center relative"
                     :class="{
-                      '!bg-gray-50 !select-text nc-system-field': isReadOnlyVirtualCell(col),
+                      ' !select-text nc-system-field': isReadOnlyVirtualCell(col),
+                      '!select-text nc-readonly-div-data-cell': readOnly,
                     }"
                   >
                     <LazySmartsheetVirtualCell
@@ -840,7 +841,8 @@ export default {
                       :ref="i ? null : (el: any) => (cellWrapperEl = el)"
                       class="bg-white flex-1 <lg:w-full px-1 min-h-[37px] flex items-center relative"
                       :class="{
-                        '!bg-gray-50 !select-text nc-system-field': isReadOnlyVirtualCell(col),
+                        '!select-text nc-system-field': isReadOnlyVirtualCell(col),
+                        '!bg-gray-50 !select-text nc-readonly-div-data-cell': readOnly,
                       }"
                     >
                       <LazySmartsheetVirtualCell
@@ -933,6 +935,7 @@ export default {
               </NcButton>
             </div>
           </div>
+          <div v-else class="p-2"></div>
         </div>
         <div
           v-if="showRightSections"
@@ -1004,6 +1007,9 @@ export default {
 .nc-expanded-cell-header > :first-child {
   @apply !text-md pl-2 xs:(pl-0 -ml-0.5);
 }
+.nc-expanded-cell-header:not(.nc-cell-expanded-form-header) > :first-child {
+  @apply pl-0;
+}
 
 .nc-drawer-expanded-form .nc-modal {
   @apply !p-0;
@@ -1022,12 +1028,31 @@ export default {
 .nc-data-cell {
   @apply !rounded-lg;
   transition: all 0.3s;
-  &:hover {
-    @apply !border-1 !border-brand-400;
+  
+  &:not(.nc-readonly-div-data-cell):not(.nc-system-field) {
+    box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
+  }
+  &:not(:focus-within):hover:not(.nc-readonly-div-data-cell):not(.nc-system-field) {
+    @apply !border-1;
+    box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.24);
   }
 
-  &:focus-within {
-    box-shadow: 0px 0px 0px 2px rgba(51, 102, 255, 0.24) !important;
+  &.nc-readonly-div-data-cell,
+  &.nc-system-field {
+    @apply !border-gray-200;
+
+    .nc-cell,
+    .nc-virtual-cell {
+      @apply text-gray-400;
+    }
+  }
+  &.nc-readonly-div-data-cell:focus-within,
+  &.nc-system-field:focus-within {
+    @apply !border-gray-200;
+  }
+
+  &:focus-within:not(.nc-readonly-div-data-cell):not(.nc-system-field) {
+    @apply !shadow-selected;
   }
 }
 .nc-data-cell:focus-within {

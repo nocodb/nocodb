@@ -97,7 +97,7 @@ watch(
   <nuxt-link
     v-else-if="validEmail"
     no-ref
-    class="py-1 underline hover:opacity-75 inline-block nc-cell-field-link max-w-full"
+    class="py-1 underline inline-block nc-cell-field-link max-w-full"
     :href="`mailto:${vModel}`"
     target="_blank"
     :tabindex="readOnly ? -1 : 0"

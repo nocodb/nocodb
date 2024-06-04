@@ -197,7 +197,7 @@ interface Users {
 
 type ViewPageType = 'view' | 'webhook' | 'api' | 'field' | 'relation'
 
-type NcButtonSize = 'xxsmall' | 'xsmall' | 'small' | 'medium'
+type NcButtonSize = 'xxsmall' | 'xsmall' | 'small' | 'medium' | 'xs'
 
 interface SidebarTableNode extends TableType {
   isMetaLoading?: boolean

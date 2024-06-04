@@ -43,7 +43,10 @@ const { gridViewCols } = useViewColumnsOrThrow()
 
 const { fieldsToGroupBy, groupByLimit } = useViewGroupByOrThrow(view)
 
+const isLoading = ref('')
+
 const setAsDisplayValue = async () => {
+  isLoading.value = 'setDisplay'
   try {
     const currentDisplayValue = meta?.value?.columns?.find((f) => f.pv)
 
@@ -92,6 +95,7 @@ const setAsDisplayValue = async () => {
   } catch (e) {
     message.error(t('msg.error.primaryColumnUpdateFailed'))
   }
+  isLoading.value = ''
 }
 
 const sortByColumn = async (direction: 'asc' | 'desc') => {
@@ -233,6 +237,7 @@ const addColumn = async (before = false) => {
 
 // hide the field in view
 const hideOrShowField = async () => {
+  isLoading.value = 'hideOrShow'
   const gridViewColumnList = (await $api.dbViewColumn.list(view.value?.id as string)).list
 
   const currentColumn = gridViewColumnList.find((f) => f.fk_column_id === column!.value.id)
@@ -288,6 +293,7 @@ const hideOrShowField = async () => {
     },
     scope: defineViewScope({ view: view.value }),
   })
+  // isLoading.value = false
 }
 
 const handleDelete = () => {
@@ -383,7 +389,12 @@ const filterOrGroupByThisField = (event: SmartsheetStoreEvents) => {
         <a-divider v-if="!column?.pv" class="!my-0" />
         <NcMenuItem v-if="!column?.pv" @click="hideOrShowField">
           <div v-e="['a:field:hide']" class="nc-column-insert-before nc-header-menu-item">
-            <component :is="isHiddenCol ? iconMap.eye : iconMap.eyeSlash" class="text-gray-700 !w-3.75 !h-3.75" />
+            <component
+              :is="isHiddenCol ? iconMap.eye : iconMap.eyeSlash"
+              v-show="isLoading !== 'hideOrShow'"
+              class="text-gray-700 !w-3.75 !h-3.75"
+            />
+            <GeneralLoader v-show="isLoading === 'hideOrShow'" size="large" class="!w-3.75 !h-3.75" />
             <!-- Hide Field -->
             {{ isHiddenCol ? $t('general.showField') : $t('general.hideField') }}
           </div>
@@ -393,7 +404,8 @@ const filterOrGroupByThisField = (event: SmartsheetStoreEvents) => {
           @click="setAsDisplayValue"
         >
           <div class="nc-column-set-primary nc-header-menu-item item">
-            <GeneralIcon icon="star" class="text-gray-700 !w-4.25 !h-4.25" />
+            <GeneralIcon v-show="isLoading !== 'setDisplay'" icon="star" class="text-gray-700 !w-4.25 !h-4.25" />
+            <GeneralLoader v-show="isLoading === 'setDisplay'" size="large" class="!w-4.25 !h-4.25" />
 
             <!--       todo : tooltip -->
             <!-- Set as Display value -->

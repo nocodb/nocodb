@@ -351,6 +351,9 @@ defineExpose({
 
 <style lang="scss">
 .nc-rich-text-comment {
+  .mention span {
+    display: none;
+  }
   .readonly {
     .nc-comment-rich-editor {
       .ProseMirror {

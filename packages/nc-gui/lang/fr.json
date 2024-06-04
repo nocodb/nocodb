@@ -773,7 +773,9 @@
     "limitOptionsSubtext": "Limit options visible to users by selecting available options",
     "clearSelection": "Effacer la sélection",
     "displayAsProgress": "Display as progress",
-    "relationType": "Relation type"
+    "relationType": "Relation type",
+    "showThousandsSeparator": "Show thousands separator",
+    "signUpForFree": "Sign up for free"
   },
   "activity": {
     "renameBase": "Renommer la Base",

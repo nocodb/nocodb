@@ -773,7 +773,9 @@
     "limitOptionsSubtext": "Kullanıcıya görüntülenen seçenekleri mevcut seçeneklerden seçerek sınırlayın",
     "clearSelection": "Seçimi temizle",
     "displayAsProgress": "Display as progress",
-    "relationType": "Relation type"
+    "relationType": "Relation type",
+    "showThousandsSeparator": "Show thousands separator",
+    "signUpForFree": "Sign up for free"
   },
   "activity": {
     "renameBase": "Rename Base",

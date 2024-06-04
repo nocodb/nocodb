@@ -612,7 +612,10 @@ export default class Model implements TableType {
           }
         }
         if (col.uidt === UITypes.Duration && typeof val === 'string')
-          val = convertDurationToSeconds(val) ?? parseFloat(val);
+          val =
+            val.indexOf(':') > -1
+              ? convertDurationToSeconds(val)
+              : parseFloat(val);
 
         insertObj[sanitize(col.column_name)] = val;
 

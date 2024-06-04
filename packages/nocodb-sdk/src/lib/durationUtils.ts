@@ -91,6 +91,7 @@ export const convertMS2Duration = (val: any, durationType: number) => {
   if (val === '' || val === null || val === undefined) {
     return val;
   }
+  val = Number.parseFloat(val) * 1000;
   // 600.000 s --> 10:00 (10 mins)
   const milliseconds = Math.round((val % 1) * 1000);
   const centiseconds = Math.round(milliseconds / 10);
@@ -125,8 +126,13 @@ export const convertMS2Duration = (val: any, durationType: number) => {
   return val;
 };
 
-export const convertDurationToSeconds = (val: string) => {
-  const { regex, type } = durationOptions.find(({ regex }) => regex.test(val));
+export const convertDurationToSeconds = (
+  val: string,
+  durationType?: number
+) => {
+  const type =
+    durationType || durationOptions.findIndex(({ regex }) => regex.test(val));
+  const regex = durationOptions[type].regex;
   const groups = val.match(regex);
 
   const { h, mm, ss } = extractHMS(groups, type);

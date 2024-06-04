@@ -773,7 +773,9 @@
     "limitOptionsSubtext": "限制用户可见",
     "clearSelection": "清除选择",
     "displayAsProgress": "Display as progress",
-    "relationType": "Relation type"
+    "relationType": "Relation type",
+    "showThousandsSeparator": "Show thousands separator",
+    "signUpForFree": "Sign up for free"
   },
   "activity": {
     "renameBase": "重命名项目",

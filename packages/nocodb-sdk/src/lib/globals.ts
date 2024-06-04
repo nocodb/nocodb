@@ -146,6 +146,7 @@ export enum NcErrorType {
   DATABASE_ERROR = 'DATABASE_ERROR',
   UNKNOWN_ERROR = 'UNKNOWN_ERROR',
   BAD_JSON = 'BAD_JSON',
+  INVALID_PK_VALUE = 'INVALID_PK_VALUE',
 }
 
 type Roles = OrgUserRoles | ProjectRoles | WorkspaceUserRoles;

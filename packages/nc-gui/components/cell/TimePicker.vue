@@ -331,7 +331,7 @@ const cellValue = computed(() => localState.value?.format(parseProp(column.value
       <GeneralIcon
         v-if="localState && !readOnly"
         icon="closeCircle"
-        class="nc-clear-time-icon absolute right-0 top-[50%] transform -translate-y-1/2 invisible cursor-pointer"
+        class="nc-clear-time-icon nc-action-icon absolute right-0 top-[50%] transform -translate-y-1/2 invisible cursor-pointer"
         @click.stop="handleSelectTime()"
       />
     </div>

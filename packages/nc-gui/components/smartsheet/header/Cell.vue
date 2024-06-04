@@ -102,7 +102,7 @@ const onClick = (e: Event) => {
       'h-full': column,
       '!text-gray-400': isKanban,
       'flex-col !items-start justify-center pt-0.5': isExpandedForm && !isMobileMode && !isExpandedBulkUpdateForm,
-      'cursor-pointer hover:bg-gray-100':
+      'nc-cell-expanded-form-header cursor-pointer hover:bg-gray-100':
         isExpandedForm && !isMobileMode && isUIAllowed('fieldEdit') && !isExpandedBulkUpdateForm,
       'bg-gray-100': isExpandedForm && !isExpandedBulkUpdateForm ? editColumnDropdown || isDropDownOpen : false,
     }"

@@ -512,7 +512,7 @@ const getRowId = (row: RowType) => {
                             <LazySmartsheetRow :row="record">
                               <a-card
                                 :key="`${getRowId(record)}-${index}`"
-                                class="!rounded-lg h-full border-gray-200 border-1 group overflow-hidden break-all max-w-[450px] shadow-sm hover:shadow-md cursor-pointer"
+                                class="!rounded-lg h-full border-gray-200 border-1 group overflow-hidden break-all max-w-[450px] shadow-sm hover:shadow-md cursor-pointer children:pointer-events-none"
                                 :body-style="{ padding: '0px' }"
                                 :data-stack="stack.title"
                                 :data-testid="`nc-gallery-card-${record.row.id}`"
@@ -808,5 +808,11 @@ const getRowId = (row: RowType) => {
 
 :deep(.slick-slide) {
   @apply !pointer-events-none;
+}
+
+:deep(.ant-card) {
+  &:hover .nc-action-icon {
+    @apply invisible;
+  }
 }
 </style>

@@ -75,6 +75,7 @@ const exportFile = async (exportType: ExportTypes) => {
       }, 200)
     }
   } catch (e: any) {
+    isExportingType.value = undefined
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }

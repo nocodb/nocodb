@@ -102,7 +102,7 @@ watch(
       v-else-if="isValid && !cellUrlOptions?.overlay"
       no-prefetch
       no-rel
-      class="py-1 z-3 underline hover:opacity-75 nc-cell-field-link max-w-full"
+      class="py-1 z-3 underline nc-cell-field-link max-w-full"
       :to="url"
       :target="cellUrlOptions?.behavior === 'replace' ? undefined : '_blank'"
       :tabindex="readOnly ? -1 : 0"
@@ -114,7 +114,7 @@ watch(
       v-else-if="isValid && !disableOverlay && cellUrlOptions?.overlay"
       no-prefetch
       no-rel
-      class="py-1 z-3 w-full h-full text-center !no-underline hover:opacity-75 nc-cell-field-link max-w-full"
+      class="py-1 z-3 w-full h-full text-center !no-underline nc-cell-field-link max-w-full"
       :to="url"
       :target="cellUrlOptions?.behavior === 'replace' ? undefined : '_blank'"
       :tabindex="readOnly ? -1 : 0"

@@ -79,7 +79,7 @@ watch(
 
   <a
     v-else-if="validPhoneNumber"
-    class="py-1 underline hover:opacity-75 inline-block nc-cell-field-link"
+    class="py-1 underline inline-block nc-cell-field-link"
     :href="`tel:${vModel}`"
     target="_blank"
     rel="noopener noreferrer"

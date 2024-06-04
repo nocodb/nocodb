@@ -774,7 +774,8 @@
     "clearSelection": "Clear selection",
     "displayAsProgress": "Display as progress",
     "relationType": "Relation type",
-    "showThousandsSeparator":"Show thousands separator"
+    "showThousandsSeparator":"Show thousands separator",
+    "signUpForFree": "Sign up for free"
   },
   "activity": {
     "renameBase": "Rename Base",

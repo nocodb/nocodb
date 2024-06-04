@@ -87,7 +87,7 @@ useMenuCloseOnEsc(open)
       <NcButton
         v-e="['c:row-height']"
         :disabled="isLocked"
-        class="nc-height-menu-btn nc-toolbar-btn !border-0 !h-7"
+        class="nc-height-menu-btn nc-toolbar-btn !border-0 !h-7 !px-1.5 !min-w-7"
         size="small"
         type="secondary"
       >

@@ -2476,7 +2476,18 @@ onKeyStroke('ArrowDown', onDown)
       overflow: hidden;
       @apply flex h-auto;
     }
+    &.active-cell {
+      :deep(.nc-cell) {
+        a.nc-cell-field-link {
+          @apply !text-brand-500;
 
+          &:hover,
+          .nc-cell-field {
+            @apply !text-brand-500;
+          }
+        }
+      }
+    }
     :deep(.nc-cell),
     :deep(.nc-virtual-cell) {
       @apply !text-small;
@@ -2504,6 +2515,13 @@ onKeyStroke('ArrowDown', onDown)
       input,
       textarea {
         @apply !p-0 m-0;
+      }
+
+      a.nc-cell-field-link {
+        @apply !text-current;
+        &:hover {
+          @apply !text-current;
+        }
       }
 
       &.nc-cell-longtext {

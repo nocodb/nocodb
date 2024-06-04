@@ -379,6 +379,7 @@ const submitBtnLabel = computed(() => {
         <LazySmartsheetColumnLookupOptions v-if="formState.uidt === UITypes.Lookup" v-model:value="formState" />
         <LazySmartsheetColumnDateOptions v-if="formState.uidt === UITypes.Date" v-model:value="formState" />
         <LazySmartsheetColumnTimeOptions v-if="formState.uidt === UITypes.Time" v-model:value="formState" />
+        <LazySmartsheetColumnNumberOptions v-if="formState.uidt === UITypes.Number" v-model:value="formState" />
         <LazySmartsheetColumnDecimalOptions v-if="formState.uidt === UITypes.Decimal" v-model:value="formState" />
         <LazySmartsheetColumnDateTimeOptions
           v-if="[UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(formState.uidt)"

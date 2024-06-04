@@ -181,11 +181,11 @@ watch(inputWrapperRef, () => {
           >
 
           <a-button
-            :type="isEditColumn && !isExpanded ? 'text' : 'primary'"
+            :type="!isExpanded ? 'text' : 'primary'"
             size="small"
             class="nc-save-json-value-btn !rounded-lg"
             :class="{
-              'nc-edit-modal': isEditColumn && !isExpanded,
+              'nc-edit-modal': !isExpanded,
             }"
             :disabled="!!error || localValue === vModel"
             @click="onSave"

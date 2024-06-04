@@ -557,9 +557,13 @@ const submitBtnLabel = computed(() => {
 
   .ant-radio-wrapper-disabled {
     @apply pointer-events-none;
+    box-shadow: none;
+
+    &:hover {
+      box-shadow: none;
+    }
   }
-  &:not(:hover):not(:focus-within):not(.shadow-selected),
-  &.ant-radio-wrapper-disabled:hover {
+  &:not(.ant-radio-wrapper-disabled):not(:hover):not(:focus-within):not(.shadow-selected) {
     box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
   }
   &:hover:not(:focus-within):not(.ant-radio-wrapper-disabled) {
@@ -568,13 +572,16 @@ const submitBtnLabel = computed(() => {
 }
 
 :deep(.ant-select) {
-  &:not(:hover):not(.ant-select-focused) .ant-select-selector,
-  &:hover.ant-select-disabled .ant-select-selector {
+  &:not(.ant-select-disabled):not(:hover):not(.ant-select-focused) .ant-select-selector,
+  &:not(.ant-select-disabled):hover.ant-select-disabled .ant-select-selector {
     box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
   }
   &:hover:not(.ant-select-focused):not(.ant-select-disabled) .ant-select-selector {
     @apply border-gray-300;
     box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.24);
+  }
+  &.ant-select-disabled .ant-select-selector {
+    box-shadow: none;
   }
 }
 

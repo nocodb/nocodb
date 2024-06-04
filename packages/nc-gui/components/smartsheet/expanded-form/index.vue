@@ -639,16 +639,12 @@ export default {
             <NcButton
               v-if="!isNew && rowId && !isMobileMode"
               :disabled="isLoading"
-              class="!<lg:hidden text-gray-700 !h-7 !px-2"
+              class="!<lg:hidden text-gray-700 !h-7 !w-7"
               type="text"
               size="xsmall"
               @click="copyRecordUrl()"
             >
-              <div
-                v-e="['c:row-expand:copy-url']"
-                data-testid="nc-expanded-form-copy-url"
-                class="flex items-center"
-              >
+              <div v-e="['c:row-expand:copy-url']" data-testid="nc-expanded-form-copy-url" class="flex items-center">
                 <component :is="iconMap.check" v-if="isRecordLinkCopied" class="cursor-pointer nc-duplicate-row h-4 w-4" />
                 <component :is="iconMap.copy" v-else class="cursor-pointer nc-duplicate-row h-4 w-4" />
               </div>
@@ -890,7 +886,7 @@ export default {
                         class="flex gap-2 items-center"
                         data-testid="nc-expanded-form-copy-url"
                       >
-                        <component :is="iconMap.link" class="cursor-pointer nc-duplicate-row" />
+                        <component :is="iconMap.copy" class="cursor-pointer nc-duplicate-row" />
                         {{ $t('labels.copyRecordURL') }}
                       </div>
                     </NcMenuItem>

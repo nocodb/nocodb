@@ -43,7 +43,7 @@ const { gridViewCols } = useViewColumnsOrThrow()
 
 const { fieldsToGroupBy, groupByLimit } = useViewGroupByOrThrow(view)
 
-const isLoading = ref('')
+const isLoading = ref<'' | 'hideOrShow' | 'setDisplay'>('')
 
 const setAsDisplayValue = async () => {
   isLoading.value = 'setDisplay'
@@ -94,8 +94,9 @@ const setAsDisplayValue = async () => {
     })
   } catch (e) {
     message.error(t('msg.error.primaryColumnUpdateFailed'))
+  } finally {
+    isLoading.value = ''
   }
-  isLoading.value = ''
 }
 
 const sortByColumn = async (direction: 'asc' | 'desc') => {
@@ -293,7 +294,8 @@ const hideOrShowField = async () => {
     },
     scope: defineViewScope({ view: view.value }),
   })
-  // isLoading.value = false
+
+  isLoading.value = ''
 }
 
 const handleDelete = () => {
@@ -389,12 +391,8 @@ const filterOrGroupByThisField = (event: SmartsheetStoreEvents) => {
         <a-divider v-if="!column?.pv" class="!my-0" />
         <NcMenuItem v-if="!column?.pv" @click="hideOrShowField">
           <div v-e="['a:field:hide']" class="nc-column-insert-before nc-header-menu-item">
-            <component
-              :is="isHiddenCol ? iconMap.eye : iconMap.eyeSlash"
-              v-show="isLoading !== 'hideOrShow'"
-              class="text-gray-700 !w-3.75 !h-3.75"
-            />
-            <GeneralLoader v-show="isLoading === 'hideOrShow'" size="large" class="!w-3.75 !h-3.75" />
+            <GeneralLoader v-if="isLoading === 'hideOrShow'" size="regular" />
+            <component v-else :is="isHiddenCol ? iconMap.eye : iconMap.eyeSlash" class="text-gray-700 !w-4 !h-4" />
             <!-- Hide Field -->
             {{ isHiddenCol ? $t('general.showField') : $t('general.hideField') }}
           </div>
@@ -404,8 +402,8 @@ const filterOrGroupByThisField = (event: SmartsheetStoreEvents) => {
           @click="setAsDisplayValue"
         >
           <div class="nc-column-set-primary nc-header-menu-item item">
-            <GeneralIcon v-show="isLoading !== 'setDisplay'" icon="star" class="text-gray-700 !w-4.25 !h-4.25" />
-            <GeneralLoader v-show="isLoading === 'setDisplay'" size="large" class="!w-4.25 !h-4.25" />
+            <GeneralLoader v-if="isLoading === 'setDisplay'" size="regular" />
+            <GeneralIcon v-else icon="star" class="text-gray-700 !w-4.25 !h-4.25" />
 
             <!--       todo : tooltip -->
             <!-- Set as Display value -->

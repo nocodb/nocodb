@@ -398,7 +398,6 @@ const filterOrGroupByThisField = (event: SmartsheetStoreEvents) => {
             <!-- Hide Field -->
             {{ isHiddenCol ? $t('general.showField') : $t('general.hideField') }}
           </div>
-          <GeneralLoader v-show="isLoading === 'hideOrShow'" size="large" class="ml-2" />
         </NcMenuItem>
         <NcMenuItem
           v-if="(!virtual || column?.uidt === UITypes.Formula) && !column?.pv && !isHiddenCol"
@@ -412,7 +411,6 @@ const filterOrGroupByThisField = (event: SmartsheetStoreEvents) => {
             <!-- Set as Display value -->
             {{ $t('activity.setDisplay') }}
           </div>
-          <GeneralLoader v-show="isLoading === 'setDisplay'" size="large" class="ml-2" />
         </NcMenuItem>
 
         <template v-if="!isExpandedForm">

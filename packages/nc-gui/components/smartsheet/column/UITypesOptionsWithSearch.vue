@@ -15,7 +15,9 @@ const searchQuery = ref('')
 const filteredOptions = computed(
   () =>
     options.value?.filter(
-      (c) => UITypesName[c.name] && UITypesName[c.name].toLowerCase().includes(searchQuery.value.toLowerCase()),
+      (c) =>
+        c.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+        (UITypesName[c.name] && UITypesName[c.name].toLowerCase().includes(searchQuery.value.toLowerCase())),
     ) ?? [],
 )
 

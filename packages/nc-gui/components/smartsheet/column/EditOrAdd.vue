@@ -270,8 +270,12 @@ const submitBtnLabel = computed(() => {
   }
 })
 
-const filterOption = (input: string, option: Option) =>
-  UITypesName[option.value] && UITypesName[option.value].toLowerCase().includes(input.toLowerCase())
+const filterOption = (input: string, option: { value: UITypes }) => {
+  return (
+    option.value.toLowerCase().includes(input.toLowerCase()) ||
+    (UITypesName[option.value] && UITypesName[option.value].toLowerCase().includes(input.toLowerCase()))
+  )
+}
 </script>
 
 <template>

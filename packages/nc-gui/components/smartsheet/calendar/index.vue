@@ -193,6 +193,7 @@ reloadViewDataHook?.on(async (params: void | { shouldShowLoading?: boolean }) =>
       rowMeta: {},
     }"
     :row-id="route.query.rowId"
+    :expand-form="expandRecord"
     :view="view"
   />
 </template>

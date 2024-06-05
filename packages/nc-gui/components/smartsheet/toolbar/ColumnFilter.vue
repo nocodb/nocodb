@@ -455,6 +455,7 @@ const dynamicColumns = (filter: FilterType) => {
 
 <template>
   <div
+    data-testid="nc-filter"
     class="menu-filter-dropdown"
     :class="{
       'max-h-[max(80vh,500px)] min-w-112 py-2 pl-4': !nested,
@@ -751,7 +752,11 @@ const dynamicColumns = (filter: FilterType) => {
                         >
                           <div class="flex flex-row items-center justify-between w-full">
                             <div class="flex flex-row items-center justify-start gap-x-3">Static condition</div>
-                            <GeneralIcon v-if="!filter.dynamic && !filter.fk_value_col_id" icon="check" class="w-4 h-4 text-primary" />
+                            <GeneralIcon
+                              v-if="!filter.dynamic && !filter.fk_value_col_id"
+                              icon="check"
+                              class="w-4 h-4 text-primary"
+                            />
                           </div>
                           <div class="flex flex-row text-xs text-gray-400">Filter based on static value</div>
                         </div>

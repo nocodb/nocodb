@@ -224,10 +224,9 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
                 `(${relatedTableDisplayValueProp.value},like,${childrenExcludedListPagination.query})`,
               // fields: [relatedTableDisplayValueProp.value, ...relatedTablePrimaryKeyProps.value],
 
-
               // todo: include only required fields
               linkColumnId: column.value.id,
-              linkRowData: JSON.stringify(row),
+              linkRowData: JSON.stringify(row.value.row),
             } as any,
           )
         } else {

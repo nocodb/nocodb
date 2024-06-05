@@ -207,14 +207,12 @@ onUnmounted(() => {
 
       <div class="flex gap-2 items-center" :class="{ 'mb-2': limitRecToView, 'mt-4': !isEdit }">
         <a-switch v-model:checked="limitRecToView" size="small" @change="onLimitRecToViewChange"></a-switch>
-        <span class="text-xs" @click="limitRecToView = !limitRecToView">Limit Record Selection to a View</span>
+        <span class="text-xs" data-testid="nc-limit-record-view" @click="limitRecToView = !limitRecToView"
+          >Limit Record Selection to a View</span
+        >
       </div>
-      <a-form-item
-        v-if="limitRecToView"
-        :label="$t('labels.childView')"
-        class="flex w-full pb-2 mt-4 space-y-2 nc-ltar-child-view"
-      >
-        <NcSelect v-model:value="vModel.childViewId">
+      <a-form-item v-if="limitRecToView" :label="$t('labels.childView')" class="flex w-full pb-2 mt-4 space-y-2">
+        <NcSelect v-model:value="vModel.childViewId" dropdown-class-name="nc-dropdown-ltar-child-view">
           <a-select-option v-for="view of refViews" :key="view.title" :value="view.id">
             <div class="flex w-full items-center gap-2">
               <div class="min-w-5 flex items-center justify-center">
@@ -236,7 +234,9 @@ onUnmounted(() => {
           size="small"
           @change="onLimitRecToViewChange"
         ></a-switch>
-        <span class="text-xs" @click="limitRecToCond = !limitRecToCond">Limit Record Selection to Filters</span>
+        <span class="text-xs" data-testid="nc-limit-record-filters" @click="limitRecToCond = !limitRecToCond"
+          >Limit Record Selection to Filters</span
+        >
       </div>
 
       <div v-if="limitRecToCond">

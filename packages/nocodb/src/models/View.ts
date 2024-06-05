@@ -1229,7 +1229,7 @@ export default class View implements ViewType {
       );
 
       for (const link of links) {
-        await LinkToAnotherRecordColumn.update(link.id, {
+        await LinkToAnotherRecordColumn.update(link.fk_column_id, {
           fk_target_view_id: null,
         });
       }

@@ -19,16 +19,8 @@ const { validateInfos, setAdditionalValidations } = useColumnCreateStoreOrThrow(
 const refViews = computed(() => {
   if (!vModel.value) return []
 
-  console.log(vModel.value)
-
   const views = viewsByTable.value.get(vModel.value.colOptions.fk_related_model_id)
-  console.log(views)
-
   return views || []
-})
-
-onMounted(() => {
-  console.log('vModel', vModel.value)
 })
 
 setAdditionalValidations({

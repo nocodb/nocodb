@@ -636,6 +636,7 @@ const isDynamicFilterAllowed = (filter: Filter) => {
                   v-model="filter.fk_value_col_id"
                   class="nc-filter-field-select min-w-32 max-w-32 max-h-8"
                   :columns="rootMeta.columns"
+                  :meta="rootMeta"
                   @change="saveOrUpdate(filter, i)"
                 />
               </div>

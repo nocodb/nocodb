@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { SelectProps } from 'ant-design-vue'
-import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
+import type {ColumnType, LinkToAnotherRecordType, TableType} from 'nocodb-sdk'
 import { RelationTypes, UITypes, isHiddenCol, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 
 const { modelValue, isSort, allowEmpty, ...restProps } = defineProps<{
@@ -8,13 +8,14 @@ const { modelValue, isSort, allowEmpty, ...restProps } = defineProps<{
   isSort?: boolean
   columns?: ColumnType[]
   allowEmpty?: boolean
+  meta?: TableType
 }>()
 
 const emit = defineEmits(['update:modelValue'])
 
 const customColumns = toRef(restProps, 'columns')
 
-const meta = inject(MetaInj, ref())
+const meta = restProps.meta ? ref(restProps.meta) : inject(MetaInj, ref())
 
 const { metas } = useMetas()
 

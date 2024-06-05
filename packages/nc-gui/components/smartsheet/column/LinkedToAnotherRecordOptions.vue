@@ -108,12 +108,22 @@ watch(
 )
 
 const limitRecToView = ref(!!vModel.value.childViewId)
+const limitRecToCond = ref(!!vModel.value.meta?.filters?.length)
 
 const onLimitRecToViewChange = (value: boolean) => {
   if (!value) {
     vModel.value.childViewId = null
   }
 }
+
+vModel.value.meta = vModel.value.meta || {}
+vModel.value.meta.conditions = vModel.value.meta.conditions || []
+
+const { metas } = useMetas()
+provide(
+  MetaInj,
+  computed(() => metas.value[vModel.value.childId] || {}),
+)
 </script>
 
 <template>
@@ -174,7 +184,6 @@ const onLimitRecToViewChange = (value: boolean) => {
         <a-switch v-model:checked="limitRecToView" size="small" @change="onLimitRecToViewChange"></a-switch>
         <span class="text-xs" @click="limitRecToView = !limitRecToView">Limit Record Selection to a View</span>
       </div>
-
       <a-form-item
         v-if="limitRecToView"
         :label="$t('labels.childView')"
@@ -194,6 +203,29 @@ const onLimitRecToViewChange = (value: boolean) => {
           </a-select-option>
         </NcSelect>
       </a-form-item>
+
+      <template v-if="!isEdit">
+        <div class="flex gap-2 items-center" :class="{ 'mb-2': limitRecToCond, 'mt-4': !isEdit }">
+          <a-switch
+            v-model:checked="limitRecToCond"
+            :disabled="!vModel.childId"
+            size="small"
+            @change="onLimitRecToViewChange"
+          ></a-switch>
+          <span class="text-xs" @click="limitRecToCond = !limitRecToCond">Limit Record Selection to Filters</span>
+        </div>
+
+        <div v-if="limitRecToCond">
+          <LazySmartsheetToolbarColumnFilter
+            ref="filterRef"
+            v-model="vModel.meta.conditions"
+            class="!p-0 mt-4"
+            :auto-save="false"
+            :show-loading="false"
+            :relation="true"
+          />
+        </div>
+      </template>
     </div>
     <template v-if="(!isXcdbBase && !isEdit) || isLinks">
       <div>

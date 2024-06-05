@@ -10,6 +10,7 @@ interface Props {
   showLoading?: boolean
   modelValue?: undefined | Filter[]
   webHook?: boolean
+  relation?: boolean
   draftFilter?: Partial<FilterType>
   isOpen?: boolean
 }
@@ -21,6 +22,7 @@ const props = withDefaults(defineProps<Props>(), {
   parentId: undefined,
   hookId: undefined,
   webHook: false,
+  relation: false,
 })
 
 const emit = defineEmits(['update:filtersLength', 'update:draftFilter', 'update:modelValue'])
@@ -31,7 +33,7 @@ const draftFilter = useVModel(props, 'draftFilter', emit)
 
 const modelValue = useVModel(props, 'modelValue', emit)
 
-const { nestedLevel, parentId, autoSave, hookId, showLoading, webHook } = toRefs(props)
+const { nestedLevel, parentId, autoSave, hookId, showLoading, webHook, relation } = toRefs(props)
 
 const nested = computed(() => nestedLevel.value > 0)
 
@@ -76,6 +78,7 @@ const {
   modelValue.value || nestedFilters.value,
   !modelValue.value,
   webHook.value,
+  relation.value,
 )
 
 const { getPlanLimit } = useWorkspace()
@@ -174,7 +177,8 @@ watch(
   () => activeView.value?.id,
   (n, o) => {
     // if nested no need to reload since it will get reloaded from parent
-    if (!nested.value && n !== o && (hookId?.value || !webHook.value)) loadFilters(hookId?.value, webHook.value)
+    if (!nested.value && n !== o && (hookId?.value || !webHook.value) && !relation.value)
+      loadFilters(hookId?.value, webHook.value)
   },
 )
 
@@ -388,15 +392,6 @@ watch(
     immediate: true,
   },
 )
-
-const addFilterBtnRef = ref()
-watchEffect(() => {
-  if (props.isOpen && !nested.value && addFilterBtnRef.value) {
-    setTimeout(() => {
-      addFilterBtnRef.value?.$el?.focus()
-    }, 10)
-  }
-})
 </script>
 
 <template>
@@ -405,59 +400,9 @@ watchEffect(() => {
     :class="{
       'max-h-[max(80vh,500px)] min-w-112 py-2 pl-4': !nested,
       'w-full ': nested,
+      'py-4': !filters.length,
     }"
   >
-    <div v-if="nested" class="flex w-full items-center mb-2">
-      <div :class="[`nc-filter-logical-op-level-${nestedLevel}`]"><slot name="start"></slot></div>
-      <div class="flex-grow"></div>
-      <NcDropdown :trigger="['hover']" overlay-class-name="nc-dropdown-filter-group-sub-menu">
-        <GeneralIcon icon="plus" class="cursor-pointer" />
-
-        <template #overlay>
-          <NcMenu>
-            <template v-if="isEeUI && !isPublic">
-              <template v-if="filtersCount < getPlanLimit(PlanLimitTypes.FILTER_LIMIT)">
-                <NcMenuItem @click.stop="addFilter()">
-                  <div class="flex items-center gap-1">
-                    <component :is="iconMap.plus" />
-                    <!-- Add Filter -->
-                    {{ $t('activity.addFilter') }}
-                  </div>
-                </NcMenuItem>
-
-                <NcMenuItem v-if="nestedLevel < 5" @click.stop="addFilterGroup()">
-                  <div class="flex items-center gap-1">
-                    <!-- Add Filter Group -->
-                    <component :is="iconMap.plusSquare" />
-                    {{ $t('activity.addFilterGroup') }}
-                  </div>
-                </NcMenuItem>
-              </template>
-            </template>
-            <template v-else>
-              <NcMenuItem @click.stop="addFilter()">
-                <div class="flex items-center gap-1">
-                  <component :is="iconMap.plus" />
-                  <!-- Add Filter -->
-                  {{ $t('activity.addFilter') }}
-                </div>
-              </NcMenuItem>
-
-              <NcMenuItem v-if="!webHook && nestedLevel < 5" @click.stop="addFilterGroup()">
-                <div class="flex items-center gap-1">
-                  <!-- Add Filter Group -->
-                  <component :is="iconMap.plusSquare" />
-                  {{ $t('activity.addFilterGroup') }}
-                </div>
-              </NcMenuItem>
-            </template>
-          </NcMenu>
-        </template>
-      </NcDropdown>
-      <div>
-        <slot name="end"></slot>
-      </div>
-    </div>
     <div
       v-if="filters && filters.length"
       ref="wrapperDomRef"
@@ -479,6 +424,7 @@ watchEffect(() => {
                   :parent-id="filter.id"
                   :auto-save="autoSave"
                   :web-hook="webHook"
+                  :relation="relation"
                 >
                   <template #start>
                     <span v-if="!i" class="flex items-center nc-filter-where-label ml-1">{{ $t('labels.where') }}</span>

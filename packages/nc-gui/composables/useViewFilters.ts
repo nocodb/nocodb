@@ -18,6 +18,7 @@ export function useViewFilters(
   _currentFilters?: Filter[],
   isNestedRoot?: boolean,
   isWebhook?: boolean,
+  isRelation?: boolean,
 ) {
   const parentId = ref(_parentId)
 
@@ -182,15 +183,13 @@ export function useViewFilters(
   }
 
   const placeholderFilter = (): Filter => {
-    const logicalOps = new Set(filters.value.slice(1).map((filter) => filter.logical_op))
-
     return {
       comparison_op: comparisonOpList(options.value?.[0].uidt as UITypes).filter((compOp) =>
         isComparisonOpAllowed({ fk_column_id: options.value?.[0].id }, compOp),
       )?.[0].value as FilterType['comparison_op'],
       value: null,
       status: 'create',
-      logical_op: logicalOps.size === 1 ? logicalOps.values().next().value : 'and',
+      logical_op: 'and',
     }
   }
 
@@ -233,6 +232,8 @@ export function useViewFilters(
   }
 
   const loadFilters = async (hookId?: string, isWebhook = false, loadAllFilters = false) => {
+    if (isRelation) return
+
     if (!view.value?.id) return
 
     if (nestedMode.value) {
@@ -300,7 +301,7 @@ export function useViewFilters(
         }
       }
 
-      if (!isWebhook) reloadData?.()
+      if (!isWebhook && !isRelation) reloadData?.()
     } catch (e: any) {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e))
@@ -372,7 +373,7 @@ export function useViewFilters(
 
     lastFilters.value = clone(filters.value)
 
-    if (!isWebhook && !skipDataReload) reloadData?.()
+    if (!isWebhook && !skipDataReload && !isRelation) reloadData?.()
   }
 
   function deleteFilterGroupFromAllFilters(filter: Filter) {
@@ -414,7 +415,7 @@ export function useViewFilters(
     if (nestedMode.value) {
       filters.value.splice(i, 1)
       filters.value = [...filters.value]
-      if (!isWebhook) reloadData?.()
+      if (!isWebhook && !isRelation) reloadData?.()
     } else {
       if (filter.id) {
         // if auto-apply disabled mark it as disabled
@@ -426,7 +427,7 @@ export function useViewFilters(
           try {
             await $api.dbTableFilter.delete(filter.id)
 
-            if (!isWebhook) reloadData?.()
+            if (!isWebhook && !isRelation) reloadData?.()
             filters.value.splice(i, 1)
           } catch (e: any) {
             console.log(e)

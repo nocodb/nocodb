@@ -58,23 +58,6 @@ const advancedOptions = ref(false)
 
 const mounted = ref(false)
 
-const showDefaultValueInput = ref(false)
-
-const showHoverEffectOnSelectedType = ref(true)
-
-const isVisibleDefaultValueInput = computed({
-  get: () => {
-    if (formState.value.cdf && !showDefaultValueInput.value) {
-      showDefaultValueInput.value = true
-    }
-
-    return formState.value.cdf !== null || showDefaultValueInput.value
-  },
-  set: (value: boolean) => {
-    showDefaultValueInput.value = value
-  },
-})
-
 const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
 
 const onlyNameUpdateOnEditColumns = [
@@ -283,10 +266,12 @@ const filterOption = (input: string, option: { value: UITypes }) => {
     class="overflow-auto"
     :class="{
       'bg-white': !props.fromTableExplorer,
+      'w-[400px]': !props.embedMode && formState.uidt !== UITypes.LinkToAnotherRecord && formState.uidt !== UITypes.Links,
+      'min-w-500px': formState.uidt === UITypes.LinkToAnotherRecord || formState.uidt === UITypes.Links,
+      '!w-146': isTextArea(formState) && formState.meta?.richMode,
       'w-[384px]': !props.embedMode,
       '!w-116 overflow-visible': formState.uidt === UITypes.Formula && !props.embedMode,
       '!w-[500px]': formState.uidt === UITypes.Attachment && !props.embedMode && !appInfo.ee,
-      '!w-[600px]': formState.uidt === UITypes.LinkToAnotherRecord || formState.uidt === UITypes.Links,
       'shadow-lg border-1 border-gray-200 shadow-gray-300 rounded-xl p-5': !embedMode,
     }"
     @keydown="handleEscape"

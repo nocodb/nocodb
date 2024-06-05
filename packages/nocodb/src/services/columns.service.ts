@@ -2737,6 +2737,7 @@ export class ColumnsService {
           });
         }
       }
+
       await createHmAndBtColumn(
         child,
         parent,
@@ -3021,6 +3022,7 @@ export class ColumnsService {
         fk_related_model_id: child.id,
         virtual: (param.column as LinkToAnotherColumnReqType).virtual,
         meta: {
+          ...(param.column['meta'] || {}),
           plural: param.column['meta']?.plural || pluralize(child.title),
           singular: param.column['meta']?.singular || singularize(child.title),
         },

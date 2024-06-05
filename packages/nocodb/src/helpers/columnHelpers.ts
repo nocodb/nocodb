@@ -75,6 +75,7 @@ export async function createHmAndBtColumn(
       (type === 'hm' && alias) || pluralize(child.title),
     );
     const meta = {
+      ...(columnMeta || {}),
       plural: columnMeta?.plural || pluralize(child.title),
       singular: columnMeta?.singular || singularize(child.title),
     };
@@ -163,6 +164,7 @@ export async function createOOColumn(
       alias || child.title,
     );
     const meta = {
+      ...(columnMeta || {}),
       plural: columnMeta?.plural || pluralize(child.title),
       singular: columnMeta?.singular || singularize(child.title),
     };

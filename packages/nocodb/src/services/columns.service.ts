@@ -326,6 +326,7 @@ export class ColumnsService {
               });
             }
 
+          if(isLinksOrLTAR(column)) {
             // check alias value present in colBody
             if ((colBody as any).childViewId) {
               colBody.colOptions = colBody.colOptions || {};
@@ -334,9 +335,7 @@ export class ColumnsService {
               ).colOptions.fk_target_view_id = (colBody as any).childViewId;
             }
 
-            if (
-              isLinksOrLTAR(column) &&
-              (colBody as Column<LinkToAnotherRecordColumn>).colOptions
+            if ((colBody as Column<LinkToAnotherRecordColumn>).colOptions
                 .fk_child_view_id
             ) {
               await Column.updateChildView({

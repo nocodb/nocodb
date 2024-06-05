@@ -1792,6 +1792,16 @@ class BaseModelSqlv2 {
       model: childTable,
     });
     const childView = await relColOptions.getChildView();
+    let listArgs: any = {};
+    if (childView) {
+      const { dependencyFields } = await getAst({
+        model: childTable,
+        query: {},
+        view: childView,
+        throwErrorIfInvalidParams: false,
+      });
+      listArgs = dependencyFields;
+    }
 
     const parentTable = await (await relColOptions.getChildColumn()).getModel();
     await parentTable.getColumns();
@@ -2021,6 +2031,16 @@ class BaseModelSqlv2 {
     });
 
     const childView = await relColOptions.getChildView();
+    let listArgs: any = {};
+    if (childView) {
+      const { dependencyFields } = await getAst({
+        model: childTable,
+        query: {},
+        view: childView,
+        throwErrorIfInvalidParams: false,
+      });
+      listArgs = dependencyFields;
+    }
 
     const rtn = this.getTnPath(parentTable);
     const tn = this.getTnPath(childTable);

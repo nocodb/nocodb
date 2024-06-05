@@ -452,6 +452,11 @@ const dynamicColumns = (filter: FilterType) => {
     return filterColAbstractType === dynamicColAbstractType
   })
 }
+
+const changeToDynamic = async (filter, i) => {
+  filter.dynamic = isDynamicFilterAllowed(filter) || showFilterInput(filter)
+  await saveOrUpdate(filter, i)
+}
 </script>
 
 <template>
@@ -541,7 +546,9 @@ const dynamicColumns = (filter: FilterType) => {
                   :link-col-id="linkColId"
                 >
                   <template #start>
-                    <span v-if="!visibleFilters.indexOf(filter)" class="flex items-center nc-filter-where-label ml-1">{{ $t('labels.where') }}</span>
+                    <span v-if="!visibleFilters.indexOf(filter)" class="flex items-center nc-filter-where-label ml-1">{{
+                      $t('labels.where')
+                    }}</span>
                     <div v-else :key="`${i}nested`" class="flex nc-filter-logical-op">
                       <NcSelect
                         v-model:value="filter.logical_op"
@@ -774,7 +781,7 @@ const dynamicColumns = (filter: FilterType) => {
                           :class="
                             isDynamicFilterAllowed(filter) || showFilterInput(filter) ? 'cursor-pointer' : 'cursor-not-allowed'
                           "
-                          @click="filter.dynamic = isDynamicFilterAllowed(filter) || showFilterInput(filter)"
+                          @click="changeToDynamic(filter, i)"
                         >
                           <div class="flex flex-row items-center justify-between w-full">
                             <div class="flex flex-row items-center justify-start gap-x-2.5">Dynamic condition</div>

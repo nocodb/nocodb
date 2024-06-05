@@ -492,7 +492,7 @@ class BaseModelSqlv2 {
   }
 
   public async count(
-    args: { where?: string; limit?; filterArr?: Filter[] } = {},
+    args: { where?: string; limit?; filterArr?: Filter[]; customConditions?:Filter[] } = {},
     ignoreViewFilterAndSort = false,
     throwErrorIfInvalidParams = false,
   ): Promise<any> {
@@ -513,6 +513,14 @@ class BaseModelSqlv2 {
       await conditionV2(
         this,
         [
+          ...(args.customConditions
+            ? [
+              new Filter({
+                children: args.customConditions,
+                is_group: true,
+              }),
+            ]
+            : []),
           new Filter({
             children:
               (await Filter.rootFilterList({ viewId: this.viewId })) || [],
@@ -538,6 +546,14 @@ class BaseModelSqlv2 {
       await conditionV2(
         this,
         [
+          ...(args.customConditions
+            ? [
+              new Filter({
+                children: args.customConditions,
+                is_group: true,
+              }),
+            ]
+            : []),
           new Filter({
             children: args.filterArr || [],
             is_group: true,

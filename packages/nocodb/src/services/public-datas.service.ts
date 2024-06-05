@@ -469,24 +469,26 @@ export class PublicDatasService {
     let count = 0;
 
     try {
-      const customConditions =
-        (await Filter.rootFilterListByLink({ columnId: param.columnId })) || [];
+      const customConditions = await replaceDynamicFieldWithValue(
+        param.rowData || {},
+        null,
+        currentModel.columns,
+        baseModel.readByPk,
+      )((await Filter.rootFilterListByLink({ columnId: param.columnId })) || []);
 
       data = data = await nocoExecute(
         ast,
         await baseModel.list({
           ...dependencyFields,
-          filterArr: await replaceDynamicFieldWithValue(
-            param.rowData || {},
-            null,
-            currentModel.columns,
-            baseModel.readByPk,
-          )(customConditions),
+          customConditions,
         }),
         {},
         dependencyFields,
       );
-      count = await baseModel.count(dependencyFields as any);
+      count = await baseModel.count({
+        ...dependencyFields,
+        customConditions,
+      } as any);
     } catch (e) {
       console.log(e);
       NcError.internalServerError('Please check server log for more details');

@@ -108,10 +108,15 @@ export const useColumnDrag = ({
 
   const handleReorderColumn = async () => {
     isProcessing.value = true
-    dragColPlaceholderDomRef.value!.style.left = '0px'
-    dragColPlaceholderDomRef.value!.style.height = '0px'
-    await reorderColumn(draggedCol.value!.id!, toBeDroppedColId.value!)
-    isProcessing.value = false
+    try {
+      dragColPlaceholderDomRef.value!.style.left = '0px'
+      dragColPlaceholderDomRef.value!.style.height = '0px'
+      await reorderColumn(draggedCol.value!.id!, toBeDroppedColId.value!)
+    } catch (error) {
+      console.error('Failed to reorder column: ', error)
+    } finally {
+      isProcessing.value = false
+    }
     draggedCol.value = null
     toBeDroppedColId.value = null
   }

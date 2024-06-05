@@ -67,7 +67,17 @@ export class ExpandedFormPage extends BasePage {
     await this.dashboard.waitForLoaderToDisappear();
   }
 
-  async fillField({ columnTitle, value, type = 'text' }: { columnTitle: string; value: string; type?: string }) {
+  async fillField({
+    columnTitle,
+    value,
+    type = 'text',
+    ltarCount,
+  }: {
+    columnTitle: string;
+    value: string;
+    type?: string;
+    ltarCount?: number;
+  }) {
     const field = this.get().getByTestId(`nc-expand-col-${columnTitle}`);
     switch (type) {
       case 'text':
@@ -84,12 +94,18 @@ export class ExpandedFormPage extends BasePage {
       case 'belongsTo':
         await field.locator('.nc-virtual-cell').hover();
         await field.locator('.nc-action-icon').click();
+        if (ltarCount !== undefined && ltarCount !== null) {
+          await this.dashboard.linkRecord.verifyCount(ltarCount);
+        }
         await this.dashboard.linkRecord.select(value, false);
         break;
       case 'hasMany':
       case 'manyToMany':
         await field.locator('.nc-virtual-cell').hover();
         await field.locator('.nc-action-icon').click();
+        if (ltarCount !== undefined && ltarCount !== null) {
+          await this.dashboard.linkRecord.verifyCount(ltarCount);
+        }
         await this.dashboard.linkRecord.select(value);
         break;
       case 'dateTime':

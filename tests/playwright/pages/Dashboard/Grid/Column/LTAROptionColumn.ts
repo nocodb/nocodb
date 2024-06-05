@@ -6,6 +6,7 @@ import { LTARFilterPage } from './LTARFilterOption';
 export class LTAROptionColumnPageObject extends BasePage {
   readonly column: ColumnPageObject;
   readonly filter: LTARFilterPage;
+
   constructor(column: ColumnPageObject) {
     super(column.rootPage);
     this.column = column;
@@ -47,16 +48,14 @@ export class LTAROptionColumnPageObject extends BasePage {
   }
 
   async selectView({ ltarView }: { ltarView: string }) {
-    this.column.getByTestId('nc-limit-record-view').click();
+    await this.get().getByTestId('nc-limit-record-view').click();
 
-    await this.rootPage.locator(`.nc-ltar-child-table >> input[type="search"]`).fill(childTable);
+    await this.rootPage.locator(`.nc-ltar-child-view >> input[type="search"]`).fill(ltarView);
     await this.rootPage
       .locator(`.nc-dropdown-ltar-child-view >> .ant-select-item`, {
-        hasText: childTable,
+        hasText: ltarView,
       })
       .nth(0)
       .click();
-
-    await this.column.save({ isUpdated: true });
   }
 }

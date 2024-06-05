@@ -211,8 +211,10 @@ onUnmounted(() => {
           >Limit Record Selection to a View</span
         >
       </div>
-      <a-form-item v-if="limitRecToView" :label="$t('labels.childView')" class="flex w-full pb-2 mt-4 space-y-2">
-        <NcSelect v-model:value="vModel.childViewId" dropdown-class-name="nc-dropdown-ltar-child-view">
+      <a-form-item v-if="limitRecToView" :label="$t('labels.childView')" class="flex w-full pb-2 mt-4 space-y-2 nc-ltar-child-view">
+        <NcSelect v-model:value="vModel.childViewId"
+                  show-search
+                  :filter-option="filterOption" dropdown-class-name="nc-dropdown-ltar-child-view">
           <a-select-option v-for="view of refViews" :key="view.title" :value="view.id">
             <div class="flex w-full items-center gap-2">
               <div class="min-w-5 flex items-center justify-center">

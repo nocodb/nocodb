@@ -10,7 +10,7 @@ const basesStore = useBases()
 
 const { openedProject, activeProjectId, basesUser, bases } = storeToRefs(basesStore)
 const { activeTables, activeTable } = storeToRefs(useTablesStore())
-const { activeWorkspace, workspaceUserCount } = storeToRefs(useWorkspace())
+const { activeWorkspace } = storeToRefs(useWorkspace())
 
 const { navigateToProjectPage } = useBase()
 
@@ -43,9 +43,7 @@ const { isMobileMode } = useGlobal()
 
 const baseSettingsState = ref('')
 
-const userCount = computed(() =>
-  isEeUI ? workspaceUserCount : activeProjectId.value ? basesUser.value.get(activeProjectId.value)?.length : 0,
-)
+const userCount = computed(() => (activeProjectId.value ? basesUser.value.get(activeProjectId.value)?.length : 0))
 
 watch(
   () => route.value.query?.page,

@@ -69,6 +69,7 @@ export default class Filter implements FilterType {
       'fk_view_id',
       'fk_hook_id',
       'fk_link_col_id',
+      'fk_value_col_id',
       'fk_column_id',
       'comparison_op',
       'comparison_sub_op',
@@ -235,6 +236,7 @@ export default class Filter implements FilterType {
       'fk_parent_id',
       'is_group',
       'logical_op',
+      'fk_value_col_id'
     ]);
 
     if (typeof updateObj.value === 'string')

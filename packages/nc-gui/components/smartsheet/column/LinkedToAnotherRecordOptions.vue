@@ -116,7 +116,15 @@ watch(
 )
 
 const limitRecToView = ref(!!vModel.value.childViewId)
-const limitRecToCond = ref(!!vModel.value.meta?.conditions?.length)
+const limitRecToCond = computed({
+  get() {
+    return !!vModel.value.meta?.enableConditions
+  },
+  set(value) {
+    vModel.value.meta = vModel.value.meta || {}
+    vModel.value.meta.enableConditions = value
+  },
+})
 
 const onLimitRecToViewChange = (value: boolean) => {
   if (!value) {
@@ -133,8 +141,7 @@ provide(
 )
 
 onMounted(() => {
-  setPostSaveOrUpdateCbk(async ({ colId, column, update }) => {
-    if (update) return
+  setPostSaveOrUpdateCbk(async ({ colId, column }) => {
     await filterRef.value?.applyChanges(colId || column.id, false)
   })
 })
@@ -236,7 +243,7 @@ onUnmounted(() => {
         <LazySmartsheetToolbarColumnFilter
           ref="filterRef"
           class="!p-0 mt-4"
-          :auto-save="!!vModel.id"
+          :auto-save="false"
           :show-loading="false"
           :link="true"
           :root-meta="meta"

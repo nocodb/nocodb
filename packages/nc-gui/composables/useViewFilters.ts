@@ -327,7 +327,7 @@ export function useViewFilters(
         }
       }
 
-      if (!isWebhook && !isRelation) reloadData?.()
+      if (!isWebhook && !isLink) reloadData?.()
     } catch (e: any) {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e))
@@ -335,8 +335,6 @@ export function useViewFilters(
   }
 
   const saveOrUpdate = async (filter: Filter, i: number, force = false, undo = false, skipDataReload = false) => {
-
-debugger
     if (!view.value && !linkColId?.vale) return
 
     if (!undo) {
@@ -408,7 +406,7 @@ debugger
 
     lastFilters.value = clone(filters.value)
 
-    if (!isWebhook && !skipDataReload && !isRelation) reloadData?.()
+    if (!isWebhook && !skipDataReload && !isLink) reloadData?.()
   }
 
   function deleteFilterGroupFromAllFilters(filter: Filter) {
@@ -450,7 +448,7 @@ debugger
     if (nestedMode.value) {
       filters.value.splice(i, 1)
       filters.value = [...filters.value]
-      if (!isWebhook && !isRelation) reloadData?.()
+      if (!isWebhook && !isLink) reloadData?.()
     } else {
       if (filter.id) {
         // if auto-apply disabled mark it as disabled
@@ -462,7 +460,7 @@ debugger
           try {
             await $api.dbTableFilter.delete(filter.id)
 
-            if (!isWebhook && !isRelation) reloadData?.()
+            if (!isWebhook && !isLink) reloadData?.()
             filters.value.splice(i, 1)
           } catch (e: any) {
             console.log(e)

@@ -608,12 +608,13 @@ watch(
               </template>
             </NcSelect>
             <div class="flex items-center gap-2">
-              <div v-if="relation && filter.dynamic">
+              <div v-if="link && (filter.dynamic || filter.fk_value_col_id)">
                 <SmartsheetToolbarFieldListAutoCompleteDropdown
                   :key="`${i}_6`"
-                  v-model="filter.value_col_id"
+                  v-model="filter.fk_value_col_id"
                   class="nc-filter-field-select min-w-32 max-w-32 max-h-8"
                   :columns="rootMeta.columns"
+                  @change="saveOrUpdate(filter, i)"
                 />
               </div>
 
@@ -637,7 +638,7 @@ watch(
 
                 <div v-else-if="!isDateType(types[filter.fk_column_id])" class="flex-grow"></div>
               </template>
-              <template v-if="relation">
+              <template v-if="link">
                 <NcDropdown class="h-full flex items-center min-w-0 rounded-lg -mr-2" :trigger="['click']" placement="bottom">
                   <NcButton type="text" size="small">
                     <GeneralIcon icon="settings" />
@@ -656,11 +657,11 @@ watch(
                         <div
                           v-e="['c:row:add:grid']"
                           class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer rounded-md hover:bg-gray-100 text-gray-600 nc-new-record-with-grid group"
-                          @click="filter.dynamic = false"
+                          @click="resetDynamicField(filter)"
                         >
                           <div class="flex flex-row items-center justify-between w-full">
                             <div class="flex flex-row items-center justify-start gap-x-3">Static condition</div>
-                            <GeneralIcon v-if="!filter.dynamic" icon="check" class="w-4 h-4 text-primary" />
+                            <GeneralIcon v-if="!filter.dynamic && !filter.fk_value_col_id" icon="check" class="w-4 h-4 text-primary" />
                           </div>
                           <div class="flex flex-row text-xs text-gray-400">Filter based on static value</div>
                         </div>
@@ -671,7 +672,7 @@ watch(
                         >
                           <div class="flex flex-row items-center justify-between w-full">
                             <div class="flex flex-row items-center justify-start gap-x-2.5">Dynamic condition</div>
-                            <GeneralIcon v-if="filter.dynamic" icon="check" class="w-4 h-4 text-primary" />
+                            <GeneralIcon v-if="filter.dynamic || filter.fk_value_col_id" icon="check" class="w-4 h-4 text-primary" />
                           </div>
                           <div class="flex flex-row text-xs text-gray-400">Filter based on dynamic value</div>
                         </div>
@@ -740,7 +741,7 @@ watch(
           </NcButton>
 
           <NcButton
-            v-if="!relation && !webHook && nestedLevel < 5"
+            v-if="!link && !webHook && nestedLevel < 5"
             class="nc-btn-focus"
             type="text"
             size="small"

@@ -182,6 +182,12 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
           const route = router.currentRoute
 
+          let row
+          try {
+            const { formState } = useSharedFormStoreOrThrow()
+            row = formState?.value
+          } catch {}
+
           childrenExcludedList.value = await $api.public.dataRelationList(
             route.value.params.viewId as string,
             column.value.id,
@@ -197,6 +203,9 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
                   childrenExcludedListPagination.query &&
                   `(${relatedTableDisplayValueProp.value},like,${childrenExcludedListPagination.query})`,
                 fields: [relatedTableDisplayValueProp.value, ...relatedTablePrimaryKeyProps.value],
+
+                // todo: include only required fields
+                rowData: JSON.stringify(row),
               } as RequestParams,
             },
           )

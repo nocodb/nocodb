@@ -439,21 +439,27 @@ const onMove = (_event: { moved: { newIndex: number; oldIndex: number } }) => {
   }
 
   if (op) {
-    onFieldUpdate({
-      ...op.column,
-      column_order: {
-        order,
-        view_id: view.value?.id as string,
+    onFieldUpdate(
+      {
+        ...op.column,
+        column_order: {
+          order,
+          view_id: view.value?.id as string,
+        },
       },
-    }, true)
+      true,
+    )
   } else {
-    onFieldUpdate({
-      ...field,
-      column_order: {
-        order,
-        view_id: view.value?.id as string,
+    onFieldUpdate(
+      {
+        ...field,
+        column_order: {
+          order,
+          view_id: view.value?.id as string,
+        },
       },
-    }, true)
+      true,
+    )
   }
 }
 

@@ -286,7 +286,7 @@ export function useViewFilters(
     }
   }
 
-  const sync = async ({ hookId, linkId, nested = false }: { hookId?: string; nested?: boolean; linkId?: string }) => {
+  const sync = async ({ hookId, linkId }: { hookId?: string; nested?: boolean; linkId?: string }) => {
     try {
       for (const [i, filter] of Object.entries(filters.value)) {
         if (filter.status === 'delete') {

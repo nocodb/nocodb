@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import type { Editor } from '@tiptap/vue-3'
-import MdiFormatStrikeThrough from '~icons/mdi/format-strikethrough'
 
 interface Props {
   editor: Editor | undefined

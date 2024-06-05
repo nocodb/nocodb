@@ -319,7 +319,6 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
         await onSuccess?.()
         return true
       } catch (e: any) {
-        debugger
         message.error(await extractSdkResponseErrorMsg(e))
       }
     }

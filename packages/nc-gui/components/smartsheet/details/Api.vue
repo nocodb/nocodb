@@ -7,7 +7,7 @@ const { t } = useI18n()
 const baseStore = useBase()
 const { base } = storeToRefs(baseStore)
 
-const { appInfo, token } = useGlobal()
+const { appInfo } = useGlobal()
 
 const meta = inject(MetaInj, ref())
 

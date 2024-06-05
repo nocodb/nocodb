@@ -10,7 +10,6 @@ const {
   deleteComment,
   comments,
   audits,
-  isCommentsLoading,
   isAuditLoading,
   saveComment: _saveComment,
   comment: newComment,

@@ -392,7 +392,7 @@ const filterOrGroupByThisField = (event: SmartsheetStoreEvents) => {
         <NcMenuItem v-if="!column?.pv" @click="hideOrShowField">
           <div v-e="['a:field:hide']" class="nc-column-insert-before nc-header-menu-item">
             <GeneralLoader v-if="isLoading === 'hideOrShow'" size="regular" />
-            <component v-else :is="isHiddenCol ? iconMap.eye : iconMap.eyeSlash" class="text-gray-700 !w-4 !h-4" />
+            <component :is="isHiddenCol ? iconMap.eye : iconMap.eyeSlash" v-else class="text-gray-700 !w-4 !h-4" />
             <!-- Hide Field -->
             {{ isHiddenCol ? $t('general.showField') : $t('general.hideField') }}
           </div>

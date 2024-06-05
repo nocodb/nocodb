@@ -201,7 +201,7 @@ const linkType = computed({
         </a-select>
       </a-form-item>
 
-      <div class="w-full flex-col" v-if="isEeUI">
+      <div v-if="isEeUI" class="w-full flex-col">
         <div class="flex gap-2 items-center" :class="{ 'mb-2': limitRecToView }">
           <a-switch
             v-model:checked="limitRecToView"

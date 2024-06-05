@@ -16,13 +16,6 @@ const vModel = useVModel(props, 'value', emit)
 
 const { validateInfos, setAdditionalValidations } = useColumnCreateStoreOrThrow()
 
-const refViews = computed(() => {
-  if (!vModel.value) return []
-
-  const views = viewsByTable.value.get(vModel.value.colOptions.fk_related_model_id)
-  return views || []
-})
-
 setAdditionalValidations({
   'meta.singular': [
     {

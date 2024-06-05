@@ -230,6 +230,17 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             } as any,
           )
         } else {
+          // extract changed data and include with the api call if any
+          let changedRowData
+          try {
+            if (row.value?.row) {
+              changedRowData = Object.keys(row.value?.row).reduce((acc: Record<string, any>, key: string) => {
+                if (row.value.row[key] !== row.value.oldRow[key]) acc[key] = row.value.row[key]
+                return acc
+              }, {})
+            }
+          } catch {}
+
           childrenExcludedList.value = await $api.dbTableRow.nestedChildrenExcludedList(
             NOCO,
             baseId,
@@ -244,6 +255,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
               where:
                 childrenExcludedListPagination.query &&
                 `(${relatedTableDisplayValueProp.value},like,${childrenExcludedListPagination.query})`,
+              linkRowData: changedRowData ? JSON.stringify(changedRowData) : undefined,
             } as any,
           )
         }

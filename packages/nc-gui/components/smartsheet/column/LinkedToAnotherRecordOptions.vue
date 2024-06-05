@@ -370,7 +370,7 @@ onUnmounted(() => {
   .ant-radio-wrapper {
     @apply transition-all flex-row-reverse justify-between items-center py-1 pl-1 pr-3;
 
-    &.ant-radio-wrapper-checked:not(.ant-radio-wrapper-disabled) {
+    &.ant-radio-wrapper-checked:not(.ant-radio-wrapper-disabled):focus-within {
       @apply border-brand-500;
     }
 

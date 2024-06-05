@@ -475,7 +475,9 @@ export class PublicDatasService {
         currentModel.columns,
         baseModel.readByPk,
       )(
-        (await Filter.rootFilterListByLink({ columnId: param.columnId })) || [],
+        (column.meta?.enableConditions
+          ? await Filter.rootFilterListByLink({ columnId: param.columnId })
+          : []) || [],
       );
 
       data = data = await nocoExecute(

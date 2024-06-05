@@ -314,12 +314,18 @@ export class ColumnsService {
 
           if (
             'meta' in colBody &&
+<<<<<<< HEAD
             [
               UITypes.Links,
               UITypes.LinkToAnotherRecord,
               UITypes.CreatedTime,
               UITypes.LastModifiedTime,
             ].includes(column.uidt)
+=======
+            [UITypes.CreatedTime, UITypes.LastModifiedTime].includes(
+              column.uidt,
+            )
+>>>>>>> 6959df003e (fix: apply conditions only if enabled)
           ) {
               await Column.updateMeta({
                 colId: param.columnId,

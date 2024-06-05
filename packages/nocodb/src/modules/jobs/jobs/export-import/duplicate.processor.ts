@@ -3,8 +3,8 @@ import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
 import papaparse from 'papaparse';
 import debug from 'debug';
-import { isLinksOrLTAR, isVirtualCol, RelationTypes } from 'nocodb-sdk';
-import { Base, Column, Model, Source } from '~/models';
+import {isLinksOrLTAR, isVirtualCol, LinkToAnotherRecordType, RelationTypes} from 'nocodb-sdk';
+import {Base, Column, LinkToAnotherRecordColumn, Model, Source} from '~/models';
 import { BasesService } from '~/services/bases.service';
 import {
   findWithIdentifier,
@@ -251,7 +251,39 @@ export class DuplicateProcessor {
       colId: columnId,
     });
 
-    const user = (req as any).user;
+    let filters = null;
+
+
+
+    if(isLinksOrLTAR(sourceColumn)) {
+      const filters = await Filter.rootFilterListByLink({
+        columnId: sourceColumn.id,
+      })
+
+        const export_filters = [];
+        for (const fl of filters) {
+          const tempFl = {
+            id: `${idMap.get(view.id)}::${fl.id}`,
+            fk_column_id: idMap.get(fl.fk_column_id),
+            fk_parent_id: fl.fk_parent_id,
+            is_group: fl.is_group,
+            logical_op: fl.logical_op,
+            comparison_op: fl.comparison_op,
+            comparison_sub_op: fl.comparison_sub_op,
+            value: fl.value,
+          };
+          if (tempFl.is_group) {
+            delete tempFl.comparison_op;
+            delete tempFl.comparison_sub_op;
+            delete tempFl.value;
+          }
+          export_filters.push(tempFl);
+        }
+        view.filter.children = export_filters;
+    }
+
+
+      const user = (req as any).user;
 
     const source = await Source.get(sourceColumn.source_id);
 

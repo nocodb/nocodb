@@ -79,7 +79,7 @@ const {
   computed(() => autoSave.value),
   () => reloadDataHook.trigger({ shouldShowLoading: showLoading.value, offset: 0 }),
   modelValue.value || nestedFilters.value,
-  !modelValue.value,
+  props.nestedLevel > 0,
   webHook.value,
   link.value,
   linkColId,
@@ -217,7 +217,7 @@ const applyChanges = async (hookOrColId?: string, nested = false, isConditionSup
     }
   }
   if (link.value) {
-    if (!hookOrColId) return
+    if (!hookOrColId && !props.nestedLevel) return
     await sync({ linkId: hookOrColId, nested })
   } else {
     await sync({ hookId: hookOrColId, nested })
@@ -227,7 +227,7 @@ const applyChanges = async (hookOrColId?: string, nested = false, isConditionSup
 
   for (const nestedFilter of localNestedFilters.value) {
     if (nestedFilter.parentId) {
-      await nestedFilter.applyChanges(hookId, true)
+      await nestedFilter.applyChanges(hookOrColId, true)
     }
   }
 }

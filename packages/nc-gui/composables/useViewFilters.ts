@@ -254,14 +254,14 @@ export function useViewFilters(
       if (isWebhook || hookId) {
         if (parentId.value) {
           filters.value = (await $api.dbTableFilter.childrenRead(parentId.value)).list as Filter[]
-        } else if (hookId) {
+        } else if (hookId && !isNestedRoot) {
           filters.value = (await $api.dbTableWebhookFilter.read(hookId)).list as Filter[]
         }
       } else {
         if (isLink || linkColId?.value) {
           if (parentId.value) {
             filters.value = (await $api.dbTableFilter.childrenRead(parentId.value)).list as Filter[]
-          } else if (linkColId?.value) {
+          } else if (linkColId?.value && !isNestedRoot) {
             filters.value = (await $api.dbTableLinkFilter.read(linkColId?.value)).list as Filter[]
           }
         } else {

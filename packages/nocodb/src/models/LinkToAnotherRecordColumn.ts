@@ -151,8 +151,8 @@ export default class LinkToAnotherRecordColumn {
       null,
       null,
       MetaTable.COL_RELATIONS,
-      { fk_column_id: columnId },
       updateProps,
+      { fk_column_id: columnId },
     );
 
     await NocoCache.update(

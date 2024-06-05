@@ -462,13 +462,13 @@ const changeToDynamic = async (filter, i) => {
 <template>
   <div
     data-testid="nc-filter"
-    class="menu-filter-dropdown"
+    class="menu-filter-dropdown w-min"
     :class="{
       'max-h-[max(80vh,500px)] min-w-112 py-2 pl-4': !nested,
-      'w-full ': nested,
+      'min-w-full': nested,
     }"
   >
-    <div v-if="nested" class="flex w-full items-center mb-2">
+    <div v-if="nested" class="flex min-w-full w-min items-center mb-2">
       <div :class="[`nc-filter-logical-op-level-${nestedLevel}`]"><slot name="start"></slot></div>
       <div class="flex-grow"></div>
       <NcDropdown :trigger="['hover']" overlay-class-name="nc-dropdown-filter-group-sub-menu">
@@ -522,15 +522,15 @@ const changeToDynamic = async (filter, i) => {
     <div
       v-if="visibleFilters && visibleFilters.length"
       ref="wrapperDomRef"
-      class="flex flex-col gap-y-1.5 nc-filter-grid w-full"
+      class="flex flex-col gap-y-1.5 nc-filter-grid min-w-full w-min"
       :class="{ 'max-h-420px nc-scrollbar-thin nc-filter-top-wrapper pr-4 my-2 py-1': !nested }"
       @click.stop
     >
       <template v-for="(filter, i) in filters" :key="i">
         <template v-if="filter.status !== 'delete'">
           <template v-if="filter.is_group">
-            <div class="flex flex-col w-full gap-y-2">
-              <div class="flex rounded-lg p-2 w-full border-1" :class="[`nc-filter-nested-level-${nestedLevel}`]">
+            <div class="flex flex-col min-w-full w-min gap-y-2">
+              <div class="flex rounded-lg p-2 min-w-full w-min border-1" :class="[`nc-filter-nested-level-${nestedLevel}`]">
                 <LazySmartsheetToolbarColumnFilter
                   v-if="filter.id || filter.children || !autoSave"
                   :key="i"

@@ -190,6 +190,8 @@ export class DatasService {
       listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
     } catch (e) {}
 
+    listArgs.customConditions = param.customConditions;
+
     const [count, data] = await Promise.all([
       baseModel.count(listArgs, false, param.throwErrorIfInvalidParams),
       (async () => {

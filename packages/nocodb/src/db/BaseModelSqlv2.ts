@@ -322,6 +322,7 @@ class BaseModelSqlv2 {
       fieldsSet?: Set<string>;
       limitOverride?: number;
       pks?: string;
+      customConditions?: Filter[];
     } = {},
     options: {
       ignoreViewFilterAndSort?: boolean;
@@ -372,6 +373,14 @@ class BaseModelSqlv2 {
       await conditionV2(
         this,
         [
+          ...(args.customConditions
+            ? [
+                new Filter({
+                  children: args.customConditions,
+                  is_group: true,
+                }),
+              ]
+            : []),
           new Filter({
             children:
               (await Filter.rootFilterList({ viewId: this.viewId })) || [],
@@ -403,6 +412,14 @@ class BaseModelSqlv2 {
       await conditionV2(
         this,
         [
+          ...(args.customConditions
+            ? [
+                new Filter({
+                  children: args.customConditions,
+                  is_group: true,
+                }),
+              ]
+            : []),
           new Filter({
             children: args.filterArr || [],
             is_group: true,

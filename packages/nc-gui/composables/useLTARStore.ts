@@ -29,6 +29,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     const { $api, $e } = useNuxtApp()
 
     const activeView = inject(ActiveViewInj, ref())
+    const isForm = inject(IsFormInj, ref(false))
 
     const { addUndo, clone, defineViewScope } = useUndoRedo()
 
@@ -183,10 +184,11 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           const route = router.currentRoute
 
           let row
-          try {
+          // if shared form extract the current form state
+          if (isForm.value) {
             const { formState } = useSharedFormStoreOrThrow()
             row = formState?.value
-          } catch {}
+          }
 
           childrenExcludedList.value = await $api.public.dataRelationList(
             route.value.params.viewId as string,

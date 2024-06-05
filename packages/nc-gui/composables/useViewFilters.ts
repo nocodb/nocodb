@@ -249,6 +249,13 @@ export function useViewFilters(
           filters.value = (await $api.dbTableWebhookFilter.read(hookId)).list as Filter[]
         }
       } else {
+      if (isRelation || hookId) {
+        if (parentId.value) {
+          filters.value = (await $api.dbTableFilter.childrenRead(parentId.value)).list as Filter[]
+        } else if (hookId) {
+          filters.value = (await $api.dbTableWebhookFilter.read(hookId)).list as Filter[]
+        }
+      } else {
         if (parentId.value) {
           filters.value = (await $api.dbTableFilter.childrenRead(parentId.value)).list as Filter[]
         } else {

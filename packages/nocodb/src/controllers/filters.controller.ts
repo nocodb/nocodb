@@ -76,6 +76,25 @@ export class FiltersController {
     return filter;
   }
 
+  @Post([
+    '/api/v2/meta/links/:columnId/filters',
+  ])
+  @HttpCode(200)
+  @Acl('linkFilterCreate')
+  async hookFilterCreate(
+    @Param('columnId') columnId: string,
+    @Body() body: FilterReqType,
+    @Req() req: Request,
+  ) {
+    const filter = await this.filtersService.linkFilterCreate({
+      filter: body,
+      columnId,
+      user: req.user,
+      req,
+    });
+    return filter;
+  }
+
   @Get(['/api/v1/db/meta/filters/:filterId', '/api/v2/meta/filters/:filterId'])
   @Acl('filterGet')
   async filterGet(@Param('filterId') filterId: string) {
@@ -136,6 +155,18 @@ export class FiltersController {
     return new PagedResponseImpl(
       await this.filtersService.hookFilterList({
         hookId: hookId,
+      }),
+    );
+  }
+
+  @Get([
+    '/api/v2/meta/links/:columnId/filters',
+  ])
+  @Acl('linkFilterList')
+  async hookFilterList(@Param('columnId') columnId: string) {
+    return new PagedResponseImpl(
+      await this.filtersService.linkFilterList({
+        columnId: columnId,
       }),
     );
   }

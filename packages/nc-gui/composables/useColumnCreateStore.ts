@@ -62,7 +62,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     const setAdditionalValidations = (validations: ValidationsObj) => {
       additionalValidations.value = { ...additionalValidations.value, ...validations }
     }
-    const setPostSaveOrUpdateCbk = (cbk: (params: { update?: boolean; colId: string }) => Promise<void>) => {
+    const setPostSaveOrUpdateCbk = (cbk: (params: { update?: boolean; colId: string; column: ColumnType }) => Promise<void>) => {
       postSaveOrUpdateCbk = cbk
     }
 
@@ -292,17 +292,17 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
             //   };
             // }
           }
-          const meta = await $api.dbTableColumn.create(meta.value?.id as string, {
+          const tableMeta = await $api.dbTableColumn.create(meta.value?.id as string, {
             ...formState.value,
             ...columnPosition,
             view_id: activeView.value!.id as string,
           })
 
-          const savedColumn = meta.columns?.find(
+          const savedColumn = tableMeta.columns?.find(
             (c) => c.title === formState.value.title || c.column_name === formState.value.column_name,
           )
 
-          await postSaveOrUpdateCbk?.({ update: false, colId: savedColumn?.id as string })
+          await postSaveOrUpdateCbk?.({ update: false, colId: savedColumn?.id as string, column: savedColumn })
 
           /** if LTAR column then force reload related table meta */
           if (isLinksOrLTAR(formState.value) && meta.value?.id !== formState.value.childId) {
@@ -317,6 +317,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
         await onSuccess?.()
         return true
       } catch (e: any) {
+        debugger
         message.error(await extractSdkResponseErrorMsg(e))
       }
     }

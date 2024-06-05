@@ -14,6 +14,7 @@ interface Props {
   draftFilter?: Partial<FilterType>
   isOpen?: boolean
   rootMeta?: any
+  linkColId?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -81,6 +82,7 @@ const {
   !modelValue.value,
   webHook.value,
   link.value,
+  linkColId,
 )
 
 const { getPlanLimit } = useWorkspace()
@@ -179,7 +181,7 @@ watch(
   () => activeView.value?.id,
   (n, o) => {
     // if nested no need to reload since it will get reloaded from parent
-    if (!nested.value && n !== o && (hookId?.value || !webHook.value) &&  (linkColId?.value || !link.value) && )
+    if (!nested.value && n !== o && (hookId?.value || !webHook.value) && (linkColId?.value || !link.value))
       loadFilters({
         hookId: hookId?.value,
         isWebhook: webHook.value,
@@ -205,7 +207,7 @@ const filtersCount = computed(() => {
   }, 0)
 })
 
-const applyChanges = async (hookId?: string, nested = false, isConditionSupported = true) => {
+const applyChanges = async (hookOrColId?: string, nested = false, isConditionSupported = true) => {
   // if condition is not supported, delete all filters present
   // it's used for bulk webhooks with filters since bulk webhooks don't support conditions at the moment
   if (!isConditionSupported) {
@@ -214,9 +216,12 @@ const applyChanges = async (hookId?: string, nested = false, isConditionSupporte
       await deleteFilter(filters.value[i], i)
     }
   }
-
-  await sync({ hookId, nested })
-
+  if (link.value) {
+    if (!hookOrColId) return
+    await sync({ linkColId: hookOrColId, nested })
+  } else {
+    await sync({ hookId: hookOrColId, nested })
+  }
   if (!localNestedFilters.value?.length) return
 
   for (const nestedFilter of localNestedFilters.value) {
@@ -327,12 +332,15 @@ const showFilterInput = (filter: Filter) => {
 }
 
 onMounted(async () => {
-  await Promise.all([loadFilters({
-    hookId: hookId?.value,
-    isWebhook: webHook.value,
-    linkColId: linkColId?.value,
-    isLink: link.value,
-  }), loadBtLookupTypes()])
+  await Promise.all([
+    loadFilters({
+      hookId: hookId?.value,
+      isWebhook: webHook.value,
+      linkColId: linkColId?.value,
+      isLink: link.value,
+    }),
+    loadBtLookupTypes(),
+  ])
   isMounted.value = true
 })
 

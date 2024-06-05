@@ -68,6 +68,7 @@ export default class Filter implements FilterType {
       'id',
       'fk_view_id',
       'fk_hook_id',
+      'fk_link_col_id',
       'fk_column_id',
       'comparison_op',
       'comparison_sub_op',
@@ -80,9 +81,12 @@ export default class Filter implements FilterType {
       'order',
     ]);
 
-    const referencedModelColName = filter.fk_hook_id
-      ? 'fk_hook_id'
-      : 'fk_view_id';
+    const referencedModelColName = [
+      'fk_view_id',
+      'fk_hook_id',
+      'fk_link_col_id',
+    ].find((k) => filter[k]);
+
     insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.FILTER_EXP, {
       [referencedModelColName]: filter[referencedModelColName],
     });
@@ -93,6 +97,8 @@ export default class Filter implements FilterType {
         model = await View.get(filter.fk_view_id, ncMeta);
       } else if (filter.fk_hook_id) {
         model = await Hook.get(filter.fk_hook_id, ncMeta);
+      } else if (filter.fk_link_col_id) {
+        model = await Column.get({ colId: filter.fk_link_col_id }, ncMeta);
       } else if (filter.fk_column_id) {
         model = await Column.get({ colId: filter.fk_column_id }, ncMeta);
       } else {
@@ -118,8 +124,8 @@ export default class Filter implements FilterType {
             {
               ...f,
               fk_parent_id: row.id,
-              [filter.fk_hook_id ? 'fk_hook_id' : 'fk_view_id']:
-                filter.fk_hook_id ? filter.fk_hook_id : filter.fk_view_id,
+              [referencedModelColName]:
+                filter[referencedModelColName]
             },
             ncMeta,
           ),
@@ -625,7 +631,9 @@ export default class Filter implements FilterType {
     { columnId }: { columnId: any },
     ncMeta = Noco.ncMeta,
   ) {
-    const cachedList = await NocoCache.getList(CacheScope.FILTER_EXP, [columnId]);
+    const cachedList = await NocoCache.getList(CacheScope.FILTER_EXP, [
+      columnId,
+    ]);
     let { list: filterObjs } = cachedList;
     const { isNoneList } = cachedList;
     if (!isNoneList && !filterObjs.length) {

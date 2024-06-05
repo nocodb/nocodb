@@ -19,6 +19,7 @@ export function useViewFilters(
   isNestedRoot?: boolean,
   isWebhook?: boolean,
   isLink?: boolean,
+  linkColId?: Ref<string>,
 ) {
   const parentId = ref(_parentId)
 
@@ -216,7 +217,7 @@ export function useViewFilters(
       if (filter.id && filter.is_group) {
         // Load children filters from the backend
         const childFilterPromise = $api.dbTableFilter.childrenRead(filter.id).then((response) => {
-          const childFilters = response.list as Filter[]
+          const childFilters = respoxnse.list as Filter[]
           allChildFilters.push(...childFilters)
           return loadAllChildFilters(childFilters)
         })
@@ -232,15 +233,19 @@ export function useViewFilters(
   }
 
   const loadFilters = async ({
-                               hookId,
-                               linkColId,
-                               isLink,
-                               isWebhook,
-                               loadAllFilters,
-                             }: {
-    hookId?: string, isWebhook?: boolean, loadAllFilters?: boolean;
-    linkColId?: string; isLink?: boolean; loadAllFilters?: boolean
-  }) => {
+    hookId,
+    linkColId,
+    isLink,
+    isWebhook,
+    loadAllFilters,
+  }: {
+    hookId?: string
+    isWebhook?: boolean
+    loadAllFilters?: boolean
+    linkColId?: string
+    isLink?: boolean
+    loadAllFilters?: boolean
+  } = {}) => {
     if (!view.value?.id) return
 
     if (nestedMode.value) {
@@ -274,15 +279,13 @@ export function useViewFilters(
           }
         }
       }
-    catch
-      (e: any)
-      {
-        console.log(e)
-        message.error(await extractSdkResponseErrorMsg(e))
-      }
+    } catch (e: any) {
+      console.log(e)
+      message.error(await extractSdkResponseErrorMsg(e))
     }
+  }
 
-  const sync = async (hookId?: string, _nested = false) => {
+  const sync = async ({ hookId, linkColId, nested = false }: { linkColId?: string; hookId?: string; nested?: boolean }) => {
     try {
       for (const [i, filter] of Object.entries(filters.value)) {
         if (filter.status === 'delete') {
@@ -332,7 +335,9 @@ export function useViewFilters(
   }
 
   const saveOrUpdate = async (filter: Filter, i: number, force = false, undo = false, skipDataReload = false) => {
-    if (!view.value) return
+
+debugger
+    if (!view.value && !linkColId?.vale) return
 
     if (!undo) {
       const lastFilter = lastFilters.value[i]
@@ -382,10 +387,17 @@ export function useViewFilters(
           comparison: filter.comparison_op,
         })
       } else {
+        if(linkColId?.value){
+          filters.value[i] = await $api.dbTableLinkFilter.create(linkColId.value.id!, {
+            ...filter,
+            fk_parent_id: parentId,
+          })
+      } else {
         filters.value[i] = await $api.dbTableFilter.create(view.value.id!, {
           ...filter,
           fk_parent_id: parentId.value,
         })
+        }
 
         allFilters.value.push(filters.value[+i])
       }

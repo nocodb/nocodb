@@ -16,7 +16,8 @@ const meta = inject(MetaInj, ref())
 
 const filterRef = ref()
 
-const { setAdditionalValidations, validateInfos, onDataTypeChange, sqlUi, isXcdbBase } = useColumnCreateStoreOrThrow()
+const { setAdditionalValidations, setPostSaveOrUpdateCbk, validateInfos, onDataTypeChange, sqlUi, isXcdbBase } =
+  useColumnCreateStoreOrThrow()
 
 const baseStore = useBase()
 const { tables } = storeToRefs(baseStore)
@@ -131,7 +132,16 @@ provide(
   computed(() => metas.value[vModel.value.childId] || {}),
 )
 
+onMounted(() => {
+  setPostSaveOrUpdateCbk(async ({ colId, column, update }) => {
+    if (update) return
+    await filterRef.value?.applyChanges(colId || column.id, false)
+  })
+})
 
+onUnmounted(() => {
+  setPostSaveOrUpdateCbk(null)
+})
 </script>
 
 <template>
@@ -225,9 +235,8 @@ provide(
       <div v-if="limitRecToCond">
         <LazySmartsheetToolbarColumnFilter
           ref="filterRef"
-          v-model="vModel.meta.conditions"
           class="!p-0 mt-4"
-          :auto-save="false"
+          :auto-save="!!vModel.id"
           :show-loading="false"
           :link="true"
           :root-meta="meta"

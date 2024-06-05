@@ -138,6 +138,8 @@ const linkType = computed({
             </div>
           </a-select-option>
         </a-select>
+      </a-form-item>
+      <a-form-item :label="$t('labels.childView')" class="flex w-full pb-2 mt-4 space-y-2 nc-ltar-child-view">
         <NcSelect v-model:value="vModel.childViewId">
           <a-select-option v-for="view of refViews" :key="view.title" :value="view.id">
             <div class="flex w-full items-center gap-2">

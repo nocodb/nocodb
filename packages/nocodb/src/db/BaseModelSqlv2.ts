@@ -1009,8 +1009,6 @@ class BaseModelSqlv2 {
 
       const { where, sort, ...rest } = this._getListArgs(args as any);
       // todo: get only required fields
-
-      // const { cn } = this.hasManyRelations.find(({ tn }) => tn === child) || {};
       const relColumn = (await this.model.getColumns()).find(
         (c) => c.id === colId,
       );
@@ -1065,8 +1063,6 @@ class BaseModelSqlv2 {
           .as('list'),
       );
 
-      // console.log(childQb.toQuery())
-
       const children = await this.execAndParse(
         childQb,
         await childTable.getColumns(),
@@ -1118,25 +1114,6 @@ class BaseModelSqlv2 {
       model: childTable,
     });
 
-    const childView = await relColOptions.getChildView();
-    let listArgs: any = {};
-    if (childView) {
-      const { dependencyFields } = await getAst({
-        model: childTable,
-        query: {},
-        view: childView,
-        throwErrorIfInvalidParams: false,
-      });
-
-      listArgs = dependencyFields;
-      try {
-        listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
-      } catch (e) {}
-      try {
-        listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
-      } catch (e) {}
-    }
-
     const childTn = this.getTnPath(childTable);
     const parentTn = this.getTnPath(parentTable);
 
@@ -1155,13 +1132,11 @@ class BaseModelSqlv2 {
 
     await childModel.selectObject({
       qb,
-      fieldsSet: childView ? listArgs.fieldSet : args.fieldsSet,
-      viewId: childView?.id,
+      fieldsSet: args.fieldsSet,
     });
 
     await this.applySortAndFilter({
       table: childTable,
-      view: childView,
       where,
       qb,
       sort,
@@ -1257,27 +1232,6 @@ class BaseModelSqlv2 {
       });
       await parentTable.getColumns();
 
-      const childView = await (
-        (await relColumn.getColOptions()) as LinkToAnotherRecordColumn
-      ).getChildView();
-      let listArgs: any = {};
-      if (childView) {
-        const { dependencyFields } = await getAst({
-          model: childTable,
-          query: {},
-          view: childView,
-          throwErrorIfInvalidParams: false,
-        });
-
-        listArgs = dependencyFields;
-        try {
-          listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
-        } catch (e) {}
-        try {
-          listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
-        } catch (e) {}
-      }
-
       const childTn = this.getTnPath(childTable);
       const parentTn = this.getTnPath(parentTable);
 
@@ -1297,13 +1251,11 @@ class BaseModelSqlv2 {
 
       await childModel.selectObject({
         qb,
-        fieldsSet: childView ? listArgs.fieldSet : args.fieldSet,
-        viewId: childView?.id,
+        fieldsSet: args.fieldSet,
       });
 
       await this.applySortAndFilter({
         table: childTable,
-        view: childView,
         where,
         qb,
         sort,
@@ -1347,27 +1299,6 @@ class BaseModelSqlv2 {
       const parentTable = await parentCol.getModel();
       await parentTable.getColumns();
 
-      const childView = await (
-        (await relColumn.getColOptions()) as LinkToAnotherRecordColumn
-      ).getChildView();
-      let listArgs: any = {};
-      if (childView) {
-        const { dependencyFields } = await getAst({
-          model: childTable,
-          query: {},
-          view: childView,
-          throwErrorIfInvalidParams: false,
-        });
-
-        listArgs = dependencyFields;
-        try {
-          listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
-        } catch (e) {}
-        try {
-          listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
-        } catch (e) {}
-      }
-
       const childTn = this.getTnPath(childTable);
       const parentTn = this.getTnPath(parentTable);
 
@@ -1385,21 +1316,6 @@ class BaseModelSqlv2 {
       await conditionV2(
         this,
         [
-          ...(childView
-            ? [
-                new Filter({
-                  children:
-                    (await Filter.rootFilterList({ viewId: childView.id })) ||
-                    [],
-                  is_group: true,
-                }),
-                new Filter({
-                  children: args.filterArr || [],
-                  is_group: true,
-                  logical_op: 'and',
-                }),
-              ]
-            : []),
           new Filter({
             children: filterObj,
             is_group: true,
@@ -1458,25 +1374,6 @@ class BaseModelSqlv2 {
       model: childTable,
     });
 
-    const childView = await relColOptions.getChildView();
-    let listArgs: any = {};
-    if (childView) {
-      const { dependencyFields } = await getAst({
-        model: childTable,
-        query: {},
-        view: childView,
-        throwErrorIfInvalidParams: false,
-      });
-
-      listArgs = dependencyFields;
-      try {
-        listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
-      } catch (e) {}
-      try {
-        listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
-      } catch (e) {}
-    }
-
     const childTn = this.getTnPath(childTable);
     const parentTn = this.getTnPath(parentTable);
 
@@ -1489,7 +1386,6 @@ class BaseModelSqlv2 {
 
     await this.applySortAndFilter({
       table: childTable,
-      view: childView,
       where,
       qb,
       sort,
@@ -1695,25 +1591,6 @@ class BaseModelSqlv2 {
     const cn = (await relColOptions.getChildColumn()).column_name;
     const childTable = await (await relColOptions.getParentColumn()).getModel();
 
-    const childView = await relColOptions.getChildView();
-    let listArgs: any = {};
-    if (childView) {
-      const { dependencyFields } = await getAst({
-        model: childTable,
-        query: {},
-        view: childView,
-        throwErrorIfInvalidParams: false,
-      });
-
-      listArgs = dependencyFields;
-      try {
-        listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
-      } catch (e) {}
-      try {
-        listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
-      } catch (e) {}
-    }
-
     const parentTable = await (await relColOptions.getChildColumn()).getModel();
     await parentTable.getColumns();
 
@@ -1741,20 +1618,6 @@ class BaseModelSqlv2 {
     await conditionV2(
       this,
       [
-        ...(childView
-          ? [
-              new Filter({
-                children:
-                  (await Filter.rootFilterList({ viewId: childView.id })) || [],
-                is_group: true,
-              }),
-              new Filter({
-                children: args.filterArr || [],
-                is_group: true,
-                logical_op: 'and',
-              }),
-            ]
-          : []),
         new Filter({
           children: filterObj,
           is_group: true,

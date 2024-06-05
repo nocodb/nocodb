@@ -28,9 +28,9 @@ const props = withDefaults(defineProps<Props>(), {
   linkColId: undefined,
 })
 
-const initialModelValue = props.modelValue
-
 const emit = defineEmits(['update:filtersLength', 'update:draftFilter', 'update:modelValue'])
+
+const initialModelValue = props.modelValue
 
 const excludedFilterColUidt = [UITypes.QrCode, UITypes.Barcode]
 
@@ -60,6 +60,9 @@ const isPublic = inject(IsPublicInj, ref(false))
 const { $e } = useNuxtApp()
 
 const { nestedFilters } = useSmartsheetStoreOrThrow()
+
+const currentFilters = modelValue.value || (!link.value && !webHook.value && nestedFilters.value) || []
+
 const {
   filters,
   nonDeletedFilters,
@@ -80,7 +83,7 @@ const {
   parentId,
   computed(() => autoSave.value),
   () => reloadDataHook.trigger({ shouldShowLoading: showLoading.value, offset: 0 }),
-  modelValue.value || nestedFilters.value || [],
+  currentFilters,
   props.nestedLevel > 0,
   webHook.value,
   link.value,

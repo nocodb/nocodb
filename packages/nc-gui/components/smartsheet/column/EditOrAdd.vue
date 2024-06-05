@@ -187,6 +187,8 @@ onMounted(() => {
         meta,
       }
     }
+  } else {
+    formState.value.filters = undefined
   }
 
   // for cases like formula
@@ -527,6 +529,7 @@ const filterOption = (input: string, option: { value: UITypes }) => {
   &:not(:hover):not(:focus) {
     box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
   }
+
   &:hover:not(:focus) {
     @apply border-gray-300;
     box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.24);
@@ -540,6 +543,7 @@ const filterOption = (input: string, option: { value: UITypes }) => {
   &:not(:hover):not(:focus-within):not(.shadow-selected) {
     box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
   }
+
   &:hover:not(:focus-within):not(.shadow-selected) {
     box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.24);
   }
@@ -560,9 +564,11 @@ const filterOption = (input: string, option: { value: UITypes }) => {
       box-shadow: none;
     }
   }
-  &:not(.ant-radio-wrapper-disabled):not(:hover):not(:focus-within):not(.shadow-selected) {
+  &:not(.ant-radio-wrapper-disabled):not(:hover):not(:focus-within):not(.shadow-selected),
+  &.ant-radio-wrapper-disabled:hover {
     box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
   }
+
   &:hover:not(:focus-within):not(.ant-radio-wrapper-disabled) {
     box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.24);
   }
@@ -624,6 +630,7 @@ const filterOption = (input: string, option: { value: UITypes }) => {
   .ant-alert-message {
     @apply text-sm text-gray-800 font-weight-600;
   }
+
   .ant-alert-description {
     @apply text-small text-gray-500 font-weight-500;
   }
@@ -639,6 +646,7 @@ const filterOption = (input: string, option: { value: UITypes }) => {
 :deep(textarea::placeholder) {
   @apply text-gray-500;
 }
+
 .nc-column-options-wrapper {
   &:empty {
     @apply hidden;

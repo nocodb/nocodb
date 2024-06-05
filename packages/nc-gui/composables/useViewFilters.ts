@@ -43,21 +43,23 @@ export function useViewFilters(
 
   const { addUndo, clone, defineViewScope } = useUndoRedo()
 
-  const _filters = ref<Filter[]>(currentFilters.value || [])
+  const _filters = ref<FilterType[]>([...(currentFilters.value || [])])
 
   const nestedMode = computed(() => isPublic.value || !isUIAllowed('filterSync') || !isUIAllowed('filterChildrenRead'))
 
-  const filters = computed<Filter[]>({
+  const filters = computed<FilterType[]>({
     get: () => {
-      return nestedMode.value ? currentFilters.value! : _filters.value
+      return nestedMode.value && !isLink && !isWebhook ? currentFilters.value! : _filters.value
     },
     set: (value: Filter[]) => {
       if (nestedMode.value) {
         currentFilters.value = value
-        if (isNestedRoot) {
-          nestedFilters.value = value
+        if (!isLink && !isWebhook) {
+          if (isNestedRoot) {
+            nestedFilters.value = value
+          }
+          nestedFilters.value = [...nestedFilters.value]
         }
-        nestedFilters.value = [...nestedFilters.value]
         reloadHook?.trigger()
         return
       }
@@ -231,7 +233,7 @@ export function useViewFilters(
     await Promise.all(promises)
 
     // Push all child filters into the allFilters array
-    allFilters.value.push(...allChildFilters)
+    if (!isLink && !isWebhook) allFilters.value.push(...allChildFilters)
   }
 
   const loadFilters = async ({
@@ -292,7 +294,7 @@ export function useViewFilters(
           if (filter.is_group) {
             deleteFilterGroupFromAllFilters(filter)
           } else {
-            allFilters.value = allFilters.value.filter((f) => f.id !== filter.id)
+            if (!isLink && !isWebhook) allFilters.value = allFilters.value.filter((f) => f.id !== filter.id)
           }
         } else if (filter.status === 'update') {
           await $api.dbTableFilter.update(filter.id as string, {
@@ -323,7 +325,7 @@ export function useViewFilters(
 
           if (children) filters.value[+i].children = children
 
-          allFilters.value.push(filters.value[+i])
+          if (!isLink && !isWebhook) allFilters.value.push(filters.value[+i])
         }
       }
 
@@ -398,8 +400,7 @@ export function useViewFilters(
             fk_parent_id: parentId.value,
           })
         }
-
-        allFilters.value.push(filters.value[+i])
+        if (!isLink && !isWebhook) allFilters.value.push(filters.value[+i])
       }
     } catch (e: any) {
       console.log(e)
@@ -412,6 +413,8 @@ export function useViewFilters(
   }
 
   function deleteFilterGroupFromAllFilters(filter: Filter) {
+    if (!isLink && !isWebhook) return
+
     // Find all child filters of the specified parentId
     const childFilters = allFilters.value.filter((f) => f.fk_parent_id === filter.id)
 
@@ -479,7 +482,7 @@ export function useViewFilters(
     if (filter.is_group) {
       deleteFilterGroupFromAllFilters(filter)
     } else {
-      allFilters.value = allFilters.value.filter((f) => f.id !== filter.id)
+      if (!isLink && !isWebhook) allFilters.value = allFilters.value.filter((f) => f.id !== filter.id)
     }
   }
 

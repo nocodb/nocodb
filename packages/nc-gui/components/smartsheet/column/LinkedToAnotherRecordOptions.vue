@@ -37,12 +37,10 @@ const onUpdateDeleteOptions = sqlUi === MssqlUi ? ['NO ACTION'] : ['NO ACTION', 
 
 if (!isEdit.value) {
   if (!vModel.value.parentId) vModel.value.parentId = meta.value?.id
-  if (!vModel.value.childId) vModel.value.childId = vModel.value?.colOptions?.fk_related_model_id || null
   if (!vModel.value.childColumn) vModel.value.childColumn = `${meta.value?.table_name}_id`
   if (!vModel.value.childTable) vModel.value.childTable = meta.value?.table_name
   if (!vModel.value.parentTable) vModel.value.parentTable = vModel.value.rtn || ''
   if (!vModel.value.parentColumn) vModel.value.parentColumn = vModel.value.rcn || ''
- if (!vModel.value.childViewId) vModel.value.childViewId = vModel.value?.colOptions?.fk_target_view_id || null
 
   if (!vModel.value.type) vModel.value.type = 'mm'
   if (!vModel.value.onUpdate) vModel.value.onUpdate = onUpdateDeleteOptions[0]
@@ -50,6 +48,9 @@ if (!isEdit.value) {
   if (!vModel.value.virtual) vModel.value.virtual = sqlUi === SqliteUi // appInfo.isCloud || sqlUi === SqliteUi
   if (!vModel.value.alias) vModel.value.alias = vModel.value.column_name
 }
+if (!vModel.value.childId) vModel.value.childId = vModel.value?.colOptions?.fk_related_model_id || null
+if (!vModel.value.childViewId) vModel.value.childViewId = vModel.value?.colOptions?.fk_target_view_id || null
+
 const advancedOptions = ref(false)
 
 const refTables = computed(() => {

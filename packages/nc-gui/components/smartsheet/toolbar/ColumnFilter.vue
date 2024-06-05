@@ -697,7 +697,7 @@ const dynamicColumns = (filter: FilterType) => {
                 </a-select-option>
               </template>
             </NcSelect>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center">
               <div v-if="link && (filter.dynamic || filter.fk_value_col_id)">
                 <SmartsheetToolbarFieldListAutoCompleteDropdown
                   :key="`${i}_6`"
@@ -730,7 +730,11 @@ const dynamicColumns = (filter: FilterType) => {
                 <div v-else-if="!isDateType(types[filter.fk_column_id])" class="flex-grow"></div>
               </template>
               <template v-if="link">
-                <NcDropdown class="h-full flex items-center min-w-0 rounded-lg -mr-2" :trigger="['click']" placement="bottom">
+                <NcDropdown
+                  class="nc-settings-dropdown h-full flex items-center min-w-0 rounded-lg"
+                  :trigger="['click']"
+                  placement="bottom"
+                >
                   <NcButton type="text" size="small">
                     <GeneralIcon icon="settings" />
                   </NcButton>
@@ -895,7 +899,8 @@ const dynamicColumns = (filter: FilterType) => {
 .nc-filter-wrapper {
   @apply bg-white !rounded-lg border-1px border-[#E7E7E9];
 
-  & > * {
+  & > *,
+  .nc-filter-value-select {
     @apply !border-none;
   }
 
@@ -908,6 +913,11 @@ const dynamicColumns = (filter: FilterType) => {
     border-right: 1px solid #eee !important;
     border-bottom-right-radius: 0 !important;
     border-top-right-radius: 0 !important;
+  }
+
+  .nc-settings-dropdown {
+    border-left: 1px solid #eee !important;
+    border-radius: 0 !important;
   }
 
   & > :not(:first-child) {

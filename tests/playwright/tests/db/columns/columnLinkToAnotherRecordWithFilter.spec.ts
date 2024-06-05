@@ -76,7 +76,7 @@ test.describe('LTAR with filter create & update', () => {
       ],
     });
 
-    await dashboard.rootPage.waitForTimeout(2000);
+    await dashboard.rootPage.waitForTimeout(500);
 
     // Expanded form insert
     await dashboard.grid.footbar.clickAddRecordFromForm();
@@ -99,9 +99,9 @@ test.describe('LTAR with filter create & update', () => {
     await dashboard.expandedForm.save();
 
     // In cell insert
-    await dashboard.grid.addNewRow({ index: 5, value: '2b' });
-    await dashboard.grid.cell.inCellAdd({ index: 5, columnHeader: 'Link1-hm' });
-    await dashboard.linkRecord.select('2a', false);
+    await dashboard.grid.addNewRow({ index: 4, value: '2b' });
+    await dashboard.grid.cell.inCellAdd({ index: 4, columnHeader: 'Link1-hm' });
+    await dashboard.linkRecord.select('2a', true);
     await dashboard.grid.cell.inCellAdd({
       index: 1,
       columnHeader: 'Link1-mm',
@@ -139,10 +139,11 @@ test.describe('LTAR with filter create & update', () => {
       title: 'Title',
       value: '2c',
       operation: 'eq',
-      locallySaved: false,
     });
 
+    await dashboard.rootPage.waitForTimeout(500);
     await dashboard.grid.toolbar.clickFilter();
+
     await dashboard.treeView.openTable({ title: 'Sheet1' });
 
     await dashboard.grid.addNewRow({ index: 0, value: '1a' });
@@ -164,6 +165,8 @@ test.describe('LTAR with filter create & update', () => {
       relationType: 'Many To many',
       ltarView: 'Sheet2Grid',
     });
+
+    await dashboard.rootPage.waitForTimeout(500);
 
     // Expanded form insert
     await dashboard.grid.footbar.clickAddRecordFromForm();
@@ -188,7 +191,7 @@ test.describe('LTAR with filter create & update', () => {
     // In cell insert
     await dashboard.grid.addNewRow({ index: 4, value: '2c' });
     await dashboard.grid.cell.inCellAdd({ index: 4, columnHeader: 'Link1-hm' });
-    await dashboard.linkRecord.select('2c', false);
+    await dashboard.linkRecord.select('2c', true);
     await dashboard.grid.cell.inCellAdd({
       index: 1,
       columnHeader: 'Link1-mm',

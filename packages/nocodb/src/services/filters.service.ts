@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import {AppEvents, isLinksOrLTAR} from 'nocodb-sdk';
+import { AppEvents, isLinksOrLTAR } from 'nocodb-sdk';
 import type { FilterReqType, UserType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
-import {Column, Filter, Hook, View} from '~/models';
+import { Column, Filter, Hook, View } from '~/models';
 
 @Injectable()
 export class FiltersService {
@@ -68,7 +68,6 @@ export class FiltersService {
   async hookFilterList(param: { hookId: any }) {
     return Filter.rootFilterListByHook({ hookId: param.hookId });
   }
-
 
   async linkFilterList(param: { columnId: any }) {
     return Filter.rootFilterListByLink({ columnId: param.columnId });

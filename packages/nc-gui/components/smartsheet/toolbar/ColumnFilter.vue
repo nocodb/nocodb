@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type ColumnType, type FilterType, isVirtualCol } from 'nocodb-sdk'
+import { type ColumnType, type FilterType, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import { PlanLimitTypes, UITypes } from 'nocodb-sdk'
 
 interface Props {
@@ -423,7 +423,7 @@ const { sqlUis } = storeToRefs(useBase())
 
 const sqlUi = meta.value?.source_id ? sqlUis.value[meta.value?.source_id] : Object.values(sqlUis.value)[0]
 
-const isDynamicFilterAllowed = (filter: Filter) => {
+const isDynamicFilterAllowed = (filter: FilterType) => {
   const col = getColumn(filter)
   // if virtual column, don't allow dynamic filter
   if (isVirtualCol(isDateType(types.value[col.id] as UITypes))) return false
@@ -433,6 +433,23 @@ const isDynamicFilterAllowed = (filter: Filter) => {
   if (!['integer', 'float', 'text', 'string'].includes(abstractType)) return false
 
   return !filter.comparison_op || ['eq', 'lt', 'gt', 'lte', 'gte', 'like', 'nlike', 'neq'].includes(filter.comparison_op)
+}
+
+const dynamicColumns = (filter: FilterType) => {
+  const filterCol = getColumn(filter)
+
+  if (!filterCol) return []
+
+  return props.rootMeta?.columns?.filter((c: ColumnType) => {
+    if (excludedFilterColUidt.includes(c.uidt as UITypes) && !isVirtualCol(c)) {
+      return false
+    }
+    const dynamicColAbstractType = sqlUi.getAbstractType(c)
+
+    const filterColAbstractType = sqlUi.getAbstractType(filterCol)
+
+    return filterColAbstractType === dynamicColAbstractType
+  })
 }
 </script>
 
@@ -635,7 +652,7 @@ const isDynamicFilterAllowed = (filter: Filter) => {
                   :key="`${i}_6`"
                   v-model="filter.fk_value_col_id"
                   class="nc-filter-field-select min-w-32 max-w-32 max-h-8"
-                  :columns="rootMeta.columns"
+                  :columns="dynamicColumns(filter)"
                   :meta="rootMeta"
                   @change="saveOrUpdate(filter, i)"
                 />

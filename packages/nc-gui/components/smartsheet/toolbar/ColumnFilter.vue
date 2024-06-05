@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ColumnType, FilterType } from 'nocodb-sdk'
+import { type ColumnType, type FilterType, isVirtualCol } from 'nocodb-sdk'
 import { PlanLimitTypes, UITypes } from 'nocodb-sdk'
 
 interface Props {
@@ -412,6 +412,28 @@ watch(
     immediate: true,
   },
 )
+
+const resetDynamicField = async (filter: any, i) => {
+  filter.dynamic = false
+  filter.fk_value_col_id = null
+  await saveOrUpdate(filter, i)
+}
+
+const { sqlUis } = storeToRefs(useBase())
+
+const sqlUi = meta.value?.source_id ? sqlUis.value[meta.value?.source_id] : Object.values(sqlUis.value)[0]
+
+const isDynamicFilterAllowed = (filter: Filter) => {
+  const col = getColumn(filter)
+  // if virtual column, don't allow dynamic filter
+  if (isVirtualCol(isDateType(types.value[col.id] as UITypes))) return false
+
+  const abstractType = sqlUi.getAbstractType(col)
+
+  if (!['integer', 'float', 'text', 'string'].includes(abstractType)) return false
+
+  return !filter.comparison_op || ['eq', 'lt', 'gt', 'lte', 'gte', 'like', 'nlike', 'neq'].includes(filter.comparison_op)
+}
 </script>
 
 <template>
@@ -657,7 +679,7 @@ watch(
                         <div
                           v-e="['c:row:add:grid']"
                           class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer rounded-md hover:bg-gray-100 text-gray-600 nc-new-record-with-grid group"
-                          @click="resetDynamicField(filter)"
+                          @click="resetDynamicField(filter, i)"
                         >
                           <div class="flex flex-row items-center justify-between w-full">
                             <div class="flex flex-row items-center justify-start gap-x-3">Static condition</div>
@@ -668,11 +690,16 @@ watch(
                         <div
                           v-e="['c:row:add:form']"
                           class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer rounded-md hover:bg-gray-100 text-gray-600 nc-new-record-with-form group"
+                          :class="isDynamicFilterAllowed(filter) ? 'cursor-pointer' : 'cursor-not-allowed'"
                           @click="filter.dynamic = true"
                         >
                           <div class="flex flex-row items-center justify-between w-full">
                             <div class="flex flex-row items-center justify-start gap-x-2.5">Dynamic condition</div>
-                            <GeneralIcon v-if="filter.dynamic || filter.fk_value_col_id" icon="check" class="w-4 h-4 text-primary" />
+                            <GeneralIcon
+                              v-if="filter.dynamic || filter.fk_value_col_id"
+                              icon="check"
+                              class="w-4 h-4 text-primary"
+                            />
                           </div>
                           <div class="flex flex-row text-xs text-gray-400">Filter based on dynamic value</div>
                         </div>

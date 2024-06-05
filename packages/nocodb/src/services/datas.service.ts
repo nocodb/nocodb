@@ -1,12 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { isSystemColumn } from 'nocodb-sdk';
+import { isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk';
 import * as XLSX from 'xlsx';
 import papaparse from 'papaparse';
 import { nocoExecute } from 'nc-help';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { PathParams } from '~/helpers/dataHelpers';
 import { getDbRows, getViewAndModelByAliasOrId } from '~/helpers/dataHelpers';
-import { Base, Column, Model, Source, View } from '~/models';
+import { Base, Column, Filter, Model, Source, View } from '~/models';
+import type { LinkToAnotherRecordColumn } from '~/models';
 import { NcBaseError, NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
@@ -155,7 +156,12 @@ export class DatasService {
     ignorePagination?: boolean;
     limitOverride?: number;
   }) {
-    const { model, view, query = {}, ignoreViewFilterAndSort = false } = param;
+    const {
+      model,
+      view: _view,
+      query = {},
+      ignoreViewFilterAndSort = false,
+    } = param;
 
     const source = await Source.get(model.source_id);
 
@@ -181,6 +187,10 @@ export class DatasService {
     try {
       listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
     } catch (e) {}
+
+    if(listArgs.filterArr?.length && customConditions?.length){
+      listArgs.filterArr = listArgs.filterArr.concat(customConditions);
+    }
 
     const [count, data] = await Promise.all([
       baseModel.count(listArgs, false, param.throwErrorIfInvalidParams),

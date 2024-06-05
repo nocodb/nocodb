@@ -223,6 +223,11 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
                 childrenExcludedListPagination.query &&
                 `(${relatedTableDisplayValueProp.value},like,${childrenExcludedListPagination.query})`,
               // fields: [relatedTableDisplayValueProp.value, ...relatedTablePrimaryKeyProps.value],
+
+
+              // todo: include only required fields
+              linkColumnId: column.value.id,
+              linkRowData: JSON.stringify(row),
             } as any,
           )
         } else {

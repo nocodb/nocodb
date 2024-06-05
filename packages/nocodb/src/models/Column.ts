@@ -584,7 +584,7 @@ export default class Column<T = any> implements ColumnType {
     return columns.map(c => new Column(c));*/
   }
 
-  public static async get(
+  public static async get<T = any>(
     {
       source_id,
       db_alias,
@@ -595,7 +595,7 @@ export default class Column<T = any> implements ColumnType {
       colId: string;
     },
     ncMeta = Noco.ncMeta,
-  ): Promise<Column> {
+  ): Promise<Column<T>> {
     let colData =
       colId &&
       (await NocoCache.get(

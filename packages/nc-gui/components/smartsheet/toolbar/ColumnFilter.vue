@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type ColumnType, type FilterType, isVirtualCol } from 'nocodb-sdk'
+import { type ColumnType, type FilterType, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import { PlanLimitTypes, UITypes } from 'nocodb-sdk'
 
 interface Props {
@@ -101,7 +101,12 @@ const isMounted = ref(false)
 
 const columns = computed(() => meta.value?.columns)
 
-const fieldsToFilter = computed(() => (columns.value || []).filter((c) => !excludedFilterColUidt.includes(c.uidt as UITypes)))
+const fieldsToFilter = computed(() =>
+  (columns.value || []).filter((c) => {
+    if (link.value && isSystemColumn(c)) return false
+    return !excludedFilterColUidt.includes(c.uidt as UITypes)
+  }),
+)
 
 const getColumn = (filter: Filter) => {
   // extract looked up column if available
@@ -452,7 +457,7 @@ const isDynamicFilterAllowed = (filter: FilterType) => {
   // if virtual column, don't allow dynamic filter
   if (isVirtualCol(col)) return false
 
-  // disable dynamic filte for certain fields like rating, attachment, etc
+  // disable dynamic filter for certain fields like rating, attachment, etc
   if (
     [
       UITypes.Attachment,
@@ -480,7 +485,7 @@ const dynamicColumns = (filter: FilterType) => {
   if (!filterCol) return []
 
   return props.rootMeta?.columns?.filter((c: ColumnType) => {
-    if (excludedFilterColUidt.includes(c.uidt as UITypes) || isVirtualCol(c)) {
+    if (excludedFilterColUidt.includes(c.uidt as UITypes) || isVirtualCol(c) || isSystemColumn(c)) {
       return false
     }
     const dynamicColAbstractType = sqlUi.getAbstractType(c)

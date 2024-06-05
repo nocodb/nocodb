@@ -189,11 +189,18 @@ watch(commentsWrapperEl, () => {
                       <div class="flex items-center max-w-[calc(100%_-_40px)]">
                         <div class="w-full flex flex-wrap gap-3 items-center">
                           <NcTooltip
+                            placement="bottomLeft"
+                            :arrow-point-at-center="false"
                             class="truncate capitalize text-gray-800 font-weight-700 !text-[13px] max-w-42"
-                            show-on-truncate-only
                           >
                             <template #title>
-                              {{ comment.created_display_name?.trim() || comment.created_by_email || 'Shared source' }}
+                              {{
+                                (comment.created_by === user?.id
+                                  ? comment.created_display_name?.trim() || comment.created_by_email
+                                  : comment.created_display_name?.trim()
+                                  ? comment.created_by_email
+                                  : comment.created_display_name?.trim()) || 'Shared source'
+                              }}
                             </template>
                             <span
                               class="text-ellipsis capitalize overflow-hidden"

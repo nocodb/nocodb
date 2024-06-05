@@ -250,7 +250,7 @@ onUnmounted(() => {
         >
       </div>
 
-      <div v-if="limitRecToCond">
+      <div v-if="limitRecToCond" class="overflow-auto">
         <LazySmartsheetToolbarColumnFilter
           ref="filterRef"
           class="!pl-8 !p-0 mt-4 max-w-620px"

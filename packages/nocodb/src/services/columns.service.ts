@@ -328,26 +328,26 @@ export class ColumnsService {
 
           if(isLinksOrLTAR(column)) {
             // check alias value present in colBody
-            if ((colBody as any).childViewId) {
+            if ((colBody as any).childViewId === null ||
+              (colBody as any).childViewId
+            ) {
               colBody.colOptions = colBody.colOptions || {};
               (
                 colBody as Column<LinkToAnotherRecordColumn>
               ).colOptions.fk_target_view_id = (colBody as any).childViewId;
             }
 
-<<<<<<< HEAD
-            if ((colBody as Column<LinkToAnotherRecordColumn>).colOptions
-                .fk_child_view_id
-=======
             if (
               (colBody as Column<LinkToAnotherRecordColumn>).colOptions
-                .fk_target_view_id
->>>>>>> 843a6c0653 (refactor: rename view id column in relation to avoid confusion)
+                .fk_target_view_id ||
+              (colBody as Column<LinkToAnotherRecordColumn>).colOptions
+                .fk_target_view_id === null
             ) {
               await Column.updateChildView({
                 colId: param.columnId,
-                fk_target_view_id: (colBody as Column<LinkToAnotherRecordColumn>)
-                  .colOptions.fk_target_view_id,
+                fk_target_view_id: (
+                  colBody as Column<LinkToAnotherRecordColumn>
+                ).colOptions.fk_target_view_id,
               });
             }
           }

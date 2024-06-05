@@ -2283,7 +2283,34 @@ class BaseModelSqlv2 {
     const aliasColObjMap = await parentTable.getAliasColObjMap();
     const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
 
-    await conditionV2(this, filterObj, qb);
+    const targetView = await relColOptions.getChildView();
+    await conditionV2(
+      this,
+      [
+        ...(targetView
+          ? [
+              new Filter({
+                children:
+                  (await Filter.rootFilterList({ viewId: targetView.id })) ||
+                  [],
+                is_group: true,
+              }),
+              new Filter({
+                children: args.filterArr || [],
+                is_group: true,
+                logical_op: 'and',
+              }),
+            ]
+          : []),
+        new Filter({
+          children: filterObj,
+          is_group: true,
+          logical_op: 'and',
+        }),
+      ],
+      qb,
+      undefined,
+    );
     return (await this.execAndParse(qb, null, { raw: true, first: true }))
       ?.count;
   }

@@ -108,6 +108,12 @@ watch(
 )
 
 const limitRecToView = ref(!!vModel.value.childViewId)
+
+const onLimitRecToViewChange = (value: boolean) => {
+  if (!value) {
+    vModel.value.childViewId = null
+  }
+}
 </script>
 
 <template>
@@ -165,7 +171,7 @@ const limitRecToView = ref(!!vModel.value.childViewId)
       </template>
 
       <div class="flex gap-2 items-center" :class="{ 'mb-4': limitRecToView }">
-        <a-switch v-model:checked="limitRecToView" size="small"></a-switch>
+        <a-switch v-model:checked="limitRecToView" size="small" @change="onLimitRecToViewChange"></a-switch>
         <span class="text-xs" @click="limitRecToView = !limitRecToView">Limit Record Selection to a View</span>
       </div>
 

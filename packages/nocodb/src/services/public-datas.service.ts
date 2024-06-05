@@ -15,8 +15,8 @@ import { getColumnByIdOrName } from '~/helpers/dataHelpers';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { mimeIcons } from '~/utils/mimeTypes';
 import { utf8ify } from '~/helpers/stringHelpers';
-import { replaceDynamicFieldWithValue } from '~/ee/db/BaseModelSqlv2';
-import { Filter } from '~/ee/models';
+import { replaceDynamicFieldWithValue } from '~/db/BaseModelSqlv2';
+import { Filter } from '~/models';
 
 // todo: move to utils
 export function sanitizeUrlPath(paths) {

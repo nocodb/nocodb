@@ -29,7 +29,7 @@ vModel.value.meta = {
 
 <style lang="scss" scoped>
 :deep(.nc-time-form-layout) {
-  @apply flex justify-between gap-2 children:(flex-1 m-0 px-2 py-1 border-1 border-gray-200 rounded-lg);
+  @apply flex justify-between gap-2 children:(flex-1 m-0 px-2 py-1 border-1 border-gray-300 rounded-lg);
 
   .ant-radio-wrapper {
     @apply transition-all;

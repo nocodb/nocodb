@@ -251,6 +251,7 @@ const count = computed(() => paginationData.value.totalRows)
       :meta="meta"
       :load-row="!isPublic"
       :row-id="route.query.rowId"
+      :expand-form="expandForm"
       :view="view"
     />
   </Suspense>

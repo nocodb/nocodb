@@ -363,7 +363,7 @@ const linkType = computed({
 }
 
 :deep(.nc-ltar-relation-type .ant-radio-group) {
-  @apply flex justify-between gap-2 children:(flex-1 m-0 px-2 py-1 border-1 border-gray-200 rounded-lg);
+  @apply flex justify-between gap-2 children:(flex-1 m-0 px-2 py-1 border-1 border-gray-300 rounded-lg);
 
   .ant-radio-wrapper {
     @apply transition-all flex-row-reverse justify-between items-center py-1 pl-1 pr-3;

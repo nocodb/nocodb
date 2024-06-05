@@ -171,6 +171,10 @@ const totalItemsToShow = computed(() => {
     return row.value?.row[relatedTableMeta.value?.title] ? 1 : 0
   }
 
+  if (relation.value === 'oo') {
+    return row.value?.row[injectedColumn!.value?.title] ? 1 : 0
+  }
+
   return childrenListCount.value ?? 0
 })
 

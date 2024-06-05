@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import OnetoOneIcon from '~icons/nc-icons/onetoone'
-
 const {
   relation,
   relatedTableTitle,
@@ -43,7 +41,7 @@ const relationMeta = computed(() => {
   } else {
     return {
       title: t('msg.oo.title'),
-      icon: OnetoOneIcon,
+      icon: iconMap.oneToOneSolid,
       tooltip_desc: t('msg.oo.tooltip_desc'),
       tooltip_desc2: t('msg.oo.tooltip_desc2'),
     }
@@ -80,10 +78,11 @@ const relationMeta = computed(() => {
       </template>
       <component
         :is="relationMeta.icon"
-        class="flex-none w-5 h-5 p-1 rounded-md"
+        class="nc-relation-icon flex-none w-5 h-5 p-1 rounded-md"
         :class="{
           '!bg-orange-500': relation === 'hm',
           '!bg-pink-500': relation === 'mm',
+          '!bg-purple-500 one-to-one': relation === 'oo',
           '!bg-blue-500': relation === 'bt',
         }"
       />
@@ -95,3 +94,9 @@ const relationMeta = computed(() => {
     </div>
   </div>
 </template>
+
+<style lang="scss" scoped>
+:deep(.nc-relation-icon.one-to-one path) {
+  @apply stroke-purple-50;
+}
+</style>

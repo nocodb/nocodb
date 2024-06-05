@@ -574,8 +574,8 @@ const submitBtnLabel = computed(() => {
     @apply shadow-selected;
   }
 
-  .ant-radio-wrapper-disabled {
-    @apply pointer-events-none;
+  &.ant-radio-wrapper-disabled {
+    @apply pointer-events-none !bg-[#f5f5f5];
     box-shadow: none;
 
     &:hover {

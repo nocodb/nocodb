@@ -13,6 +13,7 @@ interface Props {
   relation?: boolean
   draftFilter?: Partial<FilterType>
   isOpen?: boolean
+  rootMeta?: any
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -587,26 +588,80 @@ watch(
                 </a-select-option>
               </template>
             </NcSelect>
+            <div class="flex items-center gap-2">
+              <div v-if="relation && filter.dynamic">
+                <SmartsheetToolbarFieldListAutoCompleteDropdown
+                  :key="`${i}_6`"
+                  v-model="filter.value_col_id"
+                  class="nc-filter-field-select min-w-32 max-w-32 max-h-8"
+                  :columns="rootMeta.columns"
+                />
+              </div>
 
-            <a-checkbox
-              v-if="filter.field && types[filter.field] === 'boolean'"
-              v-model:checked="filter.value"
-              dense
-              :disabled="filter.readOnly"
-              @change="saveOrUpdate(filter, i)"
-            />
+              <template v-else>
+                <a-checkbox
+                  v-if="filter.field && types[filter.field] === 'boolean'"
+                  v-model:checked="filter.value"
+                  dense
+                  :disabled="filter.readOnly"
+                  @change="saveOrUpdate(filter, i)"
+                />
 
-            <SmartsheetToolbarFilterInput
-              v-if="showFilterInput(filter)"
-              class="nc-filter-value-select rounded-md min-w-34"
-              :column="{ ...getColumn(filter), uidt: types[filter.fk_column_id] }"
-              :filter="filter"
-              @update-filter-value="(value) => updateFilterValue(value, filter, i)"
-              @click.stop
-            />
+                <SmartsheetToolbarFilterInput
+                  v-if="showFilterInput(filter)"
+                  class="nc-filter-value-select rounded-md min-w-34"
+                  :column="{ ...getColumn(filter), uidt: types[filter.fk_column_id] }"
+                  :filter="filter"
+                  @update-filter-value="(value) => updateFilterValue(value, filter, i)"
+                  @click.stop
+                />
 
-            <div v-else-if="!isDateType(types[filter.fk_column_id])" class="flex-grow"></div>
+                <div v-else-if="!isDateType(types[filter.fk_column_id])" class="flex-grow"></div>
+              </template>
+              <template v-if="relation">
+                <NcDropdown class="h-full flex items-center min-w-0 rounded-lg -mr-2" :trigger="['click']" placement="bottom">
+                  <NcButton type="text" size="small">
+                    <GeneralIcon icon="settings" />
+                  </NcButton>
 
+                  <template #overlay>
+                    <div class="relative overflow-visible min-h-17 w-10">
+                      <div
+                        class="absolute -top-21 flex flex-col min-h-34.5 w-70 p-1.5 bg-white rounded-lg border-1 border-gray-200 justify-start overflow-hidden"
+                        style="box-shadow: 0px 4px 6px -2px rgba(0, 0, 0, 0.06), 0px -12px 16px -4px rgba(0, 0, 0, 0.1)"
+                        :class="{
+                          '-left-32.5': !isAddNewRecordGridMode,
+                          '-left-21.5': isAddNewRecordGridMode,
+                        }"
+                      >
+                        <div
+                          v-e="['c:row:add:grid']"
+                          class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer rounded-md hover:bg-gray-100 text-gray-600 nc-new-record-with-grid group"
+                          @click="filter.dynamic = false"
+                        >
+                          <div class="flex flex-row items-center justify-between w-full">
+                            <div class="flex flex-row items-center justify-start gap-x-3">Static condition</div>
+                            <GeneralIcon v-if="!filter.dynamic" icon="check" class="w-4 h-4 text-primary" />
+                          </div>
+                          <div class="flex flex-row text-xs text-gray-400">Filter based on static value</div>
+                        </div>
+                        <div
+                          v-e="['c:row:add:form']"
+                          class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer rounded-md hover:bg-gray-100 text-gray-600 nc-new-record-with-form group"
+                          @click="filter.dynamic = true"
+                        >
+                          <div class="flex flex-row items-center justify-between w-full">
+                            <div class="flex flex-row items-center justify-start gap-x-2.5">Dynamic condition</div>
+                            <GeneralIcon v-if="filter.dynamic" icon="check" class="w-4 h-4 text-primary" />
+                          </div>
+                          <div class="flex flex-row text-xs text-gray-400">Filter based on dynamic value</div>
+                        </div>
+                      </div>
+                    </div>
+                  </template>
+                </NcDropdown>
+              </template>
+            </div>
             <NcButton
               v-if="!filter.readOnly"
               v-e="['c:filter:delete']"

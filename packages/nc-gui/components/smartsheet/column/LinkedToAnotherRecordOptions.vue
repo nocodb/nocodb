@@ -88,10 +88,15 @@ const linkType = computed({
 
 const oneToOneEnabled = ref(false)
 
+const { metas, getMeta } = useMetas()
+
 watch(
   () => vModel.value.childId,
   async (tableId) => {
     if (tableId) {
+      getMeta(tableId).catch(() => {
+        // ignore
+      })
       viewsStore
         .loadViews({
           ignoreLoading: true,
@@ -119,7 +124,6 @@ const onLimitRecToViewChange = (value: boolean) => {
 vModel.value.meta = vModel.value.meta || {}
 vModel.value.meta.conditions = vModel.value.meta.conditions || []
 
-const { metas } = useMetas()
 provide(
   MetaInj,
   computed(() => metas.value[vModel.value.childId] || {}),
@@ -222,6 +226,7 @@ provide(
           :auto-save="false"
           :show-loading="false"
           :relation="true"
+          :root-meta="meta"
         />
       </div>
     </div>

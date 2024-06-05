@@ -34,25 +34,6 @@ export default async function ({
   const parentModel = await parentCol?.getModel();
   const refTableAlias = `__nc_rollup`;
 
-  const childView = await relationColumnOption.getChildView();
-  let listArgs: any = {};
-  if (childView) {
-    const { dependencyFields } = await getAst({
-      model: childModel,
-      query: {},
-      view: childView,
-      throwErrorIfInvalidParams: false,
-    });
-
-    listArgs = dependencyFields;
-    try {
-      listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
-    } catch (e) {}
-    try {
-      listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
-    } catch (e) {}
-  }
-
   switch (relationColumnOption.type) {
     case RelationTypes.HAS_MANY: {
       const queryBuilder: any = knex(
@@ -73,24 +54,6 @@ export default async function ({
           '=',
           knex.ref(`${refTableAlias}.${childCol.column_name}`),
         );
-
-      await conditionV2(
-        baseModelSqlv2,
-        [
-          ...(childView
-            ? [
-                new Filter({
-                  children:
-                    (await Filter.rootFilterList({ viewId: childView.id })) ||
-                    [],
-                  is_group: true,
-                }),
-              ]
-            : []),
-        ],
-        queryBuilder,
-        undefined,
-      );
 
       return {
         builder: queryBuilder,
@@ -116,24 +79,6 @@ export default async function ({
           '=',
           knex.ref(`${refTableAlias}.${childCol.column_name}`),
         );
-
-      await conditionV2(
-        baseModelSqlv2,
-        [
-          ...(childView
-            ? [
-                new Filter({
-                  children:
-                    (await Filter.rootFilterList({ viewId: childView.id })) ||
-                    [],
-                  is_group: true,
-                }),
-              ]
-            : []),
-        ],
-        qb,
-        undefined,
-      );
 
       return {
         builder: qb,
@@ -183,24 +128,6 @@ export default async function ({
             }`,
           ),
         );
-
-      await conditionV2(
-        baseModelSqlv2,
-        [
-          ...(childView
-            ? [
-                new Filter({
-                  children:
-                    (await Filter.rootFilterList({ viewId: childView.id })) ||
-                    [],
-                  is_group: true,
-                }),
-              ]
-            : []),
-        ],
-        qb,
-        undefined,
-      );
 
       return {
         builder: qb,

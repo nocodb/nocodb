@@ -285,7 +285,7 @@ const checkForFilterChange = (filters: (FilterType & { status?: string })[]) => 
   }
 }
 // This method is called whenever there is a change in field properties
-const onFieldUpdate = (state: TableExplorerColumn) => {
+const onFieldUpdate = (state: TableExplorerColumn, skipLinkChecks = false) => {
   const col = fields.value.find((col) => compareCols(col, state))
   if (!col) return
 
@@ -330,7 +330,7 @@ const onFieldUpdate = (state: TableExplorerColumn) => {
 
     if (field || (field && moveField)) {
       field.column = state
-    } else if (isLinksOrLTAR(state)) {
+    } else if (isLinksOrLTAR(state) && !skipLinkChecks) {
       if (
         ['title', 'column_name', 'meta'].some((k) => k in diffs) ||
         ('childViewId' in diffs && diffs.childViewId !== col.colOptions?.fk_target_view_id) ||
@@ -445,7 +445,7 @@ const onMove = (_event: { moved: { newIndex: number; oldIndex: number } }) => {
         order,
         view_id: view.value?.id as string,
       },
-    })
+    }, true)
   } else {
     onFieldUpdate({
       ...field,
@@ -453,7 +453,7 @@ const onMove = (_event: { moved: { newIndex: number; oldIndex: number } }) => {
         order,
         view_id: view.value?.id as string,
       },
-    })
+    }, true)
   }
 }
 

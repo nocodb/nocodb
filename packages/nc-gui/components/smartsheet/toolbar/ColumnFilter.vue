@@ -242,6 +242,8 @@ const selectFilterField = (filter: Filter, index: number) => {
     resetDynamicField(filter, index).catch(() => {
       // do nothing
     })
+  } else {
+    filter.fk_value_col_id = null
   }
 
   // when we change the field,
@@ -416,14 +418,11 @@ const onLogicalOpUpdate = async (filter: Filter, index: number) => {
 }
 
 // watch for changes in filters and update the modelValue
-watch(
-  filters,
-  (value) => {
-    if (value && value !== modelValue.value) {
-      modelValue.value = value?.length ? value : null
-    }
-  },
-)
+watch(filters, (value) => {
+  if (value && value !== modelValue.value) {
+    modelValue.value = value?.length ? value : null
+  }
+})
 watch(
   modelValue,
   (value) => {
@@ -451,6 +450,21 @@ const isDynamicFilterAllowed = (filter: FilterType) => {
   // if virtual column, don't allow dynamic filter
   if (isVirtualCol(col)) return false
 
+  // disable dynamic filte for certain fields like rating, attachment, etc
+  if (
+    [
+      UITypes.Attachment,
+      UITypes.Rating,
+      UITypes.Checkbox,
+      UITypes.QrCode,
+      UITypes.Barcode,
+      UITypes.Collaborator,
+      UITypes.GeoData,
+      UITypes.SpecificDBType,
+    ].includes(col.uidt as UITypes)
+  )
+    return false
+
   const abstractType = sqlUi.getAbstractType(col)
 
   if (!['integer', 'float', 'text', 'string'].includes(abstractType)) return false
@@ -470,6 +484,16 @@ const dynamicColumns = (filter: FilterType) => {
     const dynamicColAbstractType = sqlUi.getAbstractType(c)
 
     const filterColAbstractType = sqlUi.getAbstractType(filterCol)
+
+    // treat float and integer as number
+    if ([dynamicColAbstractType, dynamicColAbstractType].every((type) => ['float', 'integer'].includes(type))) {
+      return true
+    }
+
+    // treat text and string as string
+    if ([dynamicColAbstractType, dynamicColAbstractType].every((type) => ['text', 'string'].includes(type))) {
+      return true
+    }
 
     return filterColAbstractType === dynamicColAbstractType
   })
@@ -657,6 +681,7 @@ const changeToDynamic = async (filter, i) => {
               class="nc-filter-field-select min-w-32 max-w-32 max-h-8"
               :columns="fieldsToFilter"
               :disabled="filter.readOnly"
+              :meta="meta"
               @click.stop
               @change="selectFilterField(filter, i)"
             />

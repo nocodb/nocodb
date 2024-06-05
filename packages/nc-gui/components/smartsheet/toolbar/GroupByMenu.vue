@@ -204,6 +204,7 @@ eventBus.on(async (event, column) => {
               :columns="fieldsToGroupBy"
               :allow-empty="true"
               @change="saveGroupBy"
+              :meta="meta"
               @click.stop
             />
             <NcSelect

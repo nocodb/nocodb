@@ -8,14 +8,14 @@ const { modelValue, isSort, allowEmpty, ...restProps } = defineProps<{
   isSort?: boolean
   columns?: ColumnType[]
   allowEmpty?: boolean
-  meta?: TableType
+  meta: TableType
 }>()
 
 const emit = defineEmits(['update:modelValue'])
 
 const customColumns = toRef(restProps, 'columns')
 
-const meta = restProps.meta ? ref(restProps.meta) : inject(MetaInj, ref())
+const meta = toRef(restProps, 'meta')
 
 const { metas } = useMetas()
 

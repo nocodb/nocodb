@@ -322,7 +322,10 @@ export class ColumnsService {
           ) {
               await Column.updateMeta({
                 colId: param.columnId,
-                meta: colBody.meta,
+                meta: {
+                  ...column.meta,
+                  ...colBody.meta,
+                },
               });
             }
 

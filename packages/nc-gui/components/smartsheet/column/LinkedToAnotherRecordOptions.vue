@@ -61,7 +61,7 @@ const refViews = computed(() => {
   if (!vModel.value.childId) return []
   const views = viewsByTable.value.get(vModel.value.childId)
 
-  return views || []
+  return (views || []).filter((v) => v.type !== ViewTypes.FORM)
 })
 
 const filterOption = (value: string, option: { key: string }) => option.key.toLowerCase().includes(value.toLowerCase())
@@ -108,7 +108,7 @@ watch(
 )
 
 const limitRecToView = ref(!!vModel.value.childViewId)
-const limitRecToCond = ref(!!vModel.value.meta?.filters?.length)
+const limitRecToCond = ref(!!vModel.value.meta?.conditions?.length)
 
 const onLimitRecToViewChange = (value: boolean) => {
   if (!value) {
@@ -204,28 +204,26 @@ provide(
         </NcSelect>
       </a-form-item>
 
-      <template v-if="!isEdit">
-        <div class="flex gap-2 items-center" :class="{ 'mb-2': limitRecToCond, 'mt-4': !isEdit }">
-          <a-switch
-            v-model:checked="limitRecToCond"
-            :disabled="!vModel.childId"
-            size="small"
-            @change="onLimitRecToViewChange"
-          ></a-switch>
-          <span class="text-xs" @click="limitRecToCond = !limitRecToCond">Limit Record Selection to Filters</span>
-        </div>
+      <div class="mt-4 flex gap-2 items-center" :class="{ 'mb-2': limitRecToCond, 'mt-4': !isEdit }">
+        <a-switch
+          v-model:checked="limitRecToCond"
+          :disabled="!vModel.childId"
+          size="small"
+          @change="onLimitRecToViewChange"
+        ></a-switch>
+        <span class="text-xs" @click="limitRecToCond = !limitRecToCond">Limit Record Selection to Filters</span>
+      </div>
 
-        <div v-if="limitRecToCond">
-          <LazySmartsheetToolbarColumnFilter
-            ref="filterRef"
-            v-model="vModel.meta.conditions"
-            class="!p-0 mt-4"
-            :auto-save="false"
-            :show-loading="false"
-            :relation="true"
-          />
-        </div>
-      </template>
+      <div v-if="limitRecToCond">
+        <LazySmartsheetToolbarColumnFilter
+          ref="filterRef"
+          v-model="vModel.meta.conditions"
+          class="!p-0 mt-4"
+          :auto-save="false"
+          :show-loading="false"
+          :relation="true"
+        />
+      </div>
     </div>
     <template v-if="(!isXcdbBase && !isEdit) || isLinks">
       <div>

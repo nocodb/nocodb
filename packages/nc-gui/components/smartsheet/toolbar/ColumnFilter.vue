@@ -666,7 +666,7 @@ watch(
           </NcButton>
 
           <NcButton
-            v-if="!webHook && nestedLevel < 5"
+            v-if="!relation && !webHook && nestedLevel < 5"
             class="nc-btn-focus"
             type="text"
             size="small"

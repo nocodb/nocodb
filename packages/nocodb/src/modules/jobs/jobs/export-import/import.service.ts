@@ -280,9 +280,7 @@ export class ImportService {
                       dr: colOptions.dr,
                       childViewId:
                         colOptions.fk_target_view_id &&
-                        getIdOrExternalId(
-                          getParentIdentifier(colOptions.fk_target_view_id),
-                        ),
+                        getIdOrExternalId(colOptions.fk_target_view_id),
                     },
                   }),
                   req: param.req,
@@ -385,9 +383,7 @@ export class ImportService {
                     dr: colOptions.dr,
                     childViewId:
                       colOptions.fk_target_view_id &&
-                      getIdOrExternalId(
-                        getParentIdentifier(colOptions.fk_target_view_id),
-                      ),
+                      getIdOrExternalId(colOptions.fk_target_view_id),
                   },
                 }),
                 req: param.req,
@@ -654,9 +650,7 @@ export class ImportService {
                       dr: colOptions.dr,
                       childViewId:
                         colOptions.fk_target_view_id &&
-                        getIdOrExternalId(
-                          getParentIdentifier(colOptions.fk_target_view_id),
-                        ),
+                        getIdOrExternalId(colOptions.fk_target_view_id),
                     },
                   }) as any,
                   req: param.req,
@@ -829,9 +823,7 @@ export class ImportService {
                       dr: colOptions.dr,
                       childViewId:
                         colOptions.fk_target_view_id &&
-                        getIdOrExternalId(
-                          getParentIdentifier(colOptions.fk_target_view_id),
-                        ),
+                        getIdOrExternalId(colOptions.fk_target_view_id),
                     },
                   }) as any,
                   req: param.req,

@@ -10,7 +10,11 @@ import { View } from '~/models';
 import { Base, Filter, Hook, Model, Source } from '~/models';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { getViewAndModelByAliasOrId } from '~/helpers/dataHelpers';
-import { clearPrefix, generateBaseIdMap } from '~/helpers/exportImportHelpers';
+import {
+  clearPrefix,
+  generateBaseIdMap,
+  getEntityIdentifier,
+} from '~/helpers/exportImportHelpers';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { NcError } from '~/helpers/catchError';
 import { DatasService } from '~/services/datas.service';
@@ -128,7 +132,9 @@ export class ExportService {
                   const view = await View.get(v as string);
                   idMap.set(
                     view.id,
-                    `${source.base_id}::${source.id}::${view.fk_model_id}::${view.id}`,
+                    `${source.base_id}::${source.id}::${getEntityIdentifier(
+                      view.fk_model_id,
+                    )}::${view.id}`,
                   );
                   column.colOptions[k] = idMap.get(v as string);
                 }

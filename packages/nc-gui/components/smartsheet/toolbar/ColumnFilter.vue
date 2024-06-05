@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type ColumnType, type FilterType, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { type ColumnType, type FilterType, isCreatedOrLastModifiedTimeCol, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import { PlanLimitTypes, UITypes } from 'nocodb-sdk'
 
 interface Props {
@@ -103,7 +103,7 @@ const columns = computed(() => meta.value?.columns)
 
 const fieldsToFilter = computed(() =>
   (columns.value || []).filter((c) => {
-    if (link.value && isSystemColumn(c)) return false
+    if (link.value && isSystemColumn(c) && !c.pk && !isCreatedOrLastModifiedTimeCol(c)) return false
     return !excludedFilterColUidt.includes(c.uidt as UITypes)
   }),
 )
@@ -485,7 +485,7 @@ const dynamicColumns = (filter: FilterType) => {
   if (!filterCol) return []
 
   return props.rootMeta?.columns?.filter((c: ColumnType) => {
-    if (excludedFilterColUidt.includes(c.uidt as UITypes) || isVirtualCol(c) || isSystemColumn(c)) {
+    if (excludedFilterColUidt.includes(c.uidt as UITypes) || isVirtualCol(c) || (isSystemColumn(c) && !c.pk)) {
       return false
     }
     const dynamicColAbstractType = sqlUi.getAbstractType(c)
@@ -493,12 +493,12 @@ const dynamicColumns = (filter: FilterType) => {
     const filterColAbstractType = sqlUi.getAbstractType(filterCol)
 
     // treat float and integer as number
-    if ([dynamicColAbstractType, dynamicColAbstractType].every((type) => ['float', 'integer'].includes(type))) {
+    if ([dynamicColAbstractType, filterColAbstractType].every((type) => ['float', 'integer'].includes(type))) {
       return true
     }
 
     // treat text and string as string
-    if ([dynamicColAbstractType, dynamicColAbstractType].every((type) => ['text', 'string'].includes(type))) {
+    if ([dynamicColAbstractType, filterColAbstractType].every((type) => ['text', 'string'].includes(type))) {
       return true
     }
 

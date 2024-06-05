@@ -1252,6 +1252,27 @@ export default class Column<T = any> implements ColumnType {
     );
   }
 
+  static async updateChildView(
+    { colId, fk_child_view_id }: { colId: string; fk_child_view_id: string },
+    ncMeta = Noco.ncMeta,
+  ) {
+    await ncMeta.metaUpdate(
+      null,
+      null,
+      MetaTable.COL_RELATIONS,
+      {
+        fk_child_view_id,
+      },
+      {
+        fk_column_id: colId,
+      },
+    );
+
+    await NocoCache.update(`${CacheScope.COL_RELATION}:${colId}`, {
+      fk_child_view_id,
+    });
+  }
+
   static async bulkInsert(
     param: {
       columns: Column[];

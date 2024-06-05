@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { storeToRefs, useColumnCreateStoreOrThrow, useVModel } from '#imports'
+
 const props = defineProps<{
   value: any
 }>()
@@ -7,9 +9,27 @@ const emit = defineEmits(['update:value'])
 
 const { t } = useI18n()
 
+const viewsStore = useViewsStore()
+const { viewsByTable } = storeToRefs(viewsStore)
+
 const vModel = useVModel(props, 'value', emit)
 
 const { validateInfos, setAdditionalValidations } = useColumnCreateStoreOrThrow()
+
+const refViews = computed(() => {
+  if (!vModel.value) return []
+
+  console.log(vModel.value)
+
+  const views = viewsByTable.value.get(vModel.value.colOptions.fk_related_model_id)
+  console.log(views)
+
+  return views || []
+})
+
+onMounted(() => {
+  console.log('vModel', vModel.value)
+})
 
 setAdditionalValidations({
   'meta.singular': [
@@ -67,5 +87,20 @@ vModel.value.meta = {
         />
       </a-form-item>
     </a-col>
+    <a-form-item :label="$t('labels.childView')" class="flex w-full pb-2 mt-4 space-y-2 nc-ltar-child-view">
+      <NcSelect v-model:value="vModel.colOptions.fk_child_view_id">
+        <a-select-option v-for="view of refViews" :key="view.title" :value="view.id">
+          <div class="flex w-full items-center gap-2">
+            <div class="min-w-5 flex items-center justify-center">
+              <GeneralViewIcon :meta="view" class="text-gray-500" />
+            </div>
+            <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+              <template #title>{{ view.title }}</template>
+              <span>{{ view.title }}</span>
+            </NcTooltip>
+          </div>
+        </a-select-option>
+      </NcSelect>
+    </a-form-item>
   </a-row>
 </template>

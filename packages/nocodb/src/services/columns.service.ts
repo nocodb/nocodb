@@ -234,6 +234,7 @@ export class ColumnsService {
       formula?: string;
       formula_raw?: string;
       parsed_tree?: any;
+      colOptions?: any;
     } & Partial<Pick<ColumnReqType, 'column_order'>>;
 
     if (
@@ -309,6 +310,7 @@ export class ColumnsService {
               title: colBody.title,
             });
           }
+
           if (
             'meta' in colBody &&
             [
@@ -317,12 +319,22 @@ export class ColumnsService {
               UITypes.LastModifiedTime,
             ].includes(column.uidt)
           ) {
-            await Column.updateMeta({
-              colId: param.columnId,
-              meta: colBody.meta,
-            });
+              await Column.updateMeta({
+                colId: param.columnId,
+                meta: colBody.meta,
+              });
+            if (
+              isLinksOrLTAR(column) &&
+              (colBody as Column<LinkToAnotherRecordColumn>).colOptions
+                .fk_child_view_id
+            ) {
+              await Column.updateChildView({
+                colId: param.columnId,
+                fk_child_view_id: (colBody as Column<LinkToAnotherRecordColumn>)
+                  .colOptions.fk_child_view_id,
+              });
+            }
           }
-
           // handle reorder column for Links and LinkToAnotherRecord
           if (
             [UITypes.Links, UITypes.LinkToAnotherRecord].includes(

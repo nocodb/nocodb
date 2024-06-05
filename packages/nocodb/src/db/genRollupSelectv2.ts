@@ -7,9 +7,6 @@ import type {
 } from '~/models';
 import type { XKnex } from '~/db/CustomKnex';
 import type { Knex } from 'knex';
-import { Filter } from '~/models';
-import getAst from '~/helpers/getAst';
-import conditionV2 from '~/db/conditionV2';
 
 export default async function ({
   baseModelSqlv2,

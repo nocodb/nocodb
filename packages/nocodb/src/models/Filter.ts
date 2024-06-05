@@ -24,6 +24,8 @@ export default class Filter implements FilterType {
   fk_hook_id?: string;
   fk_column_id?: string;
   fk_parent_id?: string;
+  fk_link_col_id?: string;
+  fk_value_col_id?: string;
 
   comparison_op?: (typeof COMPARISON_OPS)[number];
   comparison_sub_op?: (typeof COMPARISON_SUB_OPS)[number];
@@ -366,20 +368,32 @@ export default class Filter implements FilterType {
     {
       viewId,
       hookId,
+      linkColId,
     }: {
       viewId?: string;
       hookId?: string;
+      linkColId?: string;
     },
     ncMeta = Noco.ncMeta,
   ): Promise<FilterType> {
     const cachedList = await NocoCache.getList(CacheScope.FILTER_EXP, [
-      viewId || hookId,
+      viewId || hookId || linkColId,
     ]);
     let { list: filters } = cachedList;
     const { isNoneList } = cachedList;
     if (!isNoneList && !filters.length) {
+      const condition: Record<string, string> = {};
+
+      if (viewId) {
+        condition.fk_view_id = viewId;
+      } else if (hookId) {
+        condition.fk_hook_id = hookId;
+      } else if (linkColId) {
+        condition.fk_link_col_id = linkColId;
+      }
+
       filters = await ncMeta.metaList2(null, null, MetaTable.FILTER_EXP, {
-        condition: viewId ? { fk_view_id: viewId } : { fk_hook_id: hookId },
+        condition,
         orderBy: {
           order: 'asc',
         },
@@ -387,7 +401,7 @@ export default class Filter implements FilterType {
 
       await NocoCache.setList(
         CacheScope.FILTER_EXP,
-        [viewId || hookId],
+        [viewId || hookId || linkColId],
         filters,
       );
     }
@@ -419,13 +433,6 @@ export default class Filter implements FilterType {
       if (idFilterMapping?.[id]) idFilterMapping[id].children = children;
     }
 
-    // if (!result) {
-    //   return (await Filter.insert({
-    //     fk_view_id: viewId,
-    //     is_group: true,
-    //     logical_op: 'AND'
-    //   })) as any;
-    // }
     return result;
   }
 

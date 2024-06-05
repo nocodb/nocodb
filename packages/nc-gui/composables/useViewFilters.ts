@@ -217,7 +217,7 @@ export function useViewFilters(
       if (filter.id && filter.is_group) {
         // Load children filters from the backend
         const childFilterPromise = $api.dbTableFilter.childrenRead(filter.id).then((response) => {
-          const childFilters = respoxnse.list as Filter[]
+          const childFilters = response.list as Filter[]
           allChildFilters.push(...childFilters)
           return loadAllChildFilters(childFilters)
         })
@@ -243,7 +243,6 @@ export function useViewFilters(
     loadAllFilters?: boolean
     isLink?: boolean
   } = {}) => {
-
     if (!view.value?.id) return
 
     if (nestedMode.value) {
@@ -283,7 +282,7 @@ export function useViewFilters(
     }
   }
 
-  const sync = async ({ hookId, linkColId, nested = false }: { hookId?: string; nested?: boolean }) => {
+  const sync = async ({ hookId, nested = false }: { hookId?: string; nested?: boolean }) => {
     try {
       for (const [i, filter] of Object.entries(filters.value)) {
         if (filter.status === 'delete') {
@@ -304,11 +303,13 @@ export function useViewFilters(
           if (hookId) {
             filters.value[+i] = (await $api.dbTableWebhookFilter.create(hookId, {
               ...filter,
+              children: undefined,
               fk_parent_id: parentId.value,
             })) as unknown as FilterType
-          } else if (linkColId) {
-            filters.value[+i] = (await $api.dbTableLinkFilter.create(linkColId, {
+          } else if (linkColId?.value) {
+            filters.value[+i] = (await $api.dbTableLinkFilter.create(linkColId.value, {
               ...filter,
+              children: undefined,
               fk_parent_id: parentId.value,
             })) as unknown as FilterType
           } else {
@@ -383,7 +384,7 @@ export function useViewFilters(
         })
       } else {
         if (linkColId?.value) {
-          filters.value[i] = await $api.dbTableLinkFilter.create(linkColId.value.id!, {
+          filters.value[i] = await $api.dbTableLinkFilter.create(linkColId.value, {
             ...filter,
             fk_parent_id: parentId,
           })

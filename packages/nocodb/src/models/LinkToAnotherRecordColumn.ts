@@ -6,6 +6,7 @@ import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import { View } from '~/models/index';
+import Filter from '~/models/Filter';
 
 export default class LinkToAnotherRecordColumn {
   id: string;
@@ -34,6 +35,8 @@ export default class LinkToAnotherRecordColumn {
   mmParentColumn?: Column;
   childColumn?: Column;
   parentColumn?: Column;
+
+  filter?: Filter;
 
   constructor(data: Partial<LinkToAnotherRecordColumn>) {
     Object.assign(this, data);
@@ -135,5 +138,14 @@ export default class LinkToAnotherRecordColumn {
       await NocoCache.set(`${CacheScope.COL_RELATION}:${columnId}`, colData);
     }
     return colData ? new LinkToAnotherRecordColumn(colData) : null;
+  }
+
+  public async getFilters(ncMeta = Noco.ncMeta) {
+    return (this.filter = (await Filter.getFilterObject(
+      {
+        linkColId: this.fk_column_id,
+      },
+      ncMeta,
+    )) as any);
   }
 }

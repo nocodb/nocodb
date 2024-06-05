@@ -21628,7 +21628,7 @@
         ],
         "properties": {
           "childViewId": {
-            "$ref": "#/components/schemas/Id",
+            "$ref": "#/components/schemas/IdOrNull",
             "description": "Foreign Key to child view"
           },
           "childId": {
@@ -23724,6 +23724,20 @@
           }
         ],
         "title": "StringOrNullOrBooleanOrNumber Model"
+      },
+      "IdOrNull": {
+        "description": "Model for IdOrNull",
+        "examples": [
+          "string"
+        ],
+        "oneOf": [{
+            "$ref": "#/components/schemas/Id"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "IdOrNull Model"
       },
       "Table": {
         "description": "Model for Table",

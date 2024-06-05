@@ -5,8 +5,9 @@ import debug from 'debug';
 import { Injectable } from '@nestjs/common';
 import { elapsedTime, initTime } from '../../helpers';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
-import type { View } from '~/models';
-import { Base, Hook, Model, Source } from '~/models';
+import type { LinkToAnotherRecordColumn } from '~/models';
+import { View } from '~/models';
+import { Base, Filter, Hook, Model, Source } from '~/models';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { getViewAndModelByAliasOrId } from '~/helpers/dataHelpers';
 import { clearPrefix, generateBaseIdMap } from '~/helpers/exportImportHelpers';
@@ -122,6 +123,16 @@ export class ExportService {
               case 'fk_barcode_value_column_id':
                 column.colOptions[k] = idMap.get(v as string);
                 break;
+              case 'fk_target_view_id':
+                if (v) {
+                  const view = await View.get(v as string);
+                  idMap.set(
+                    view.id,
+                    `${source.base_id}::${source.id}::${view.fk_model_id}::${view.id}`,
+                  );
+                  column.colOptions[k] = idMap.get(v as string);
+                }
+                break;
               case 'options':
                 for (const o of column.colOptions['options']) {
                   delete o.id;
@@ -168,6 +179,39 @@ export class ExportService {
             }
           }
         }
+
+        // Link column filters
+        if (isLinksOrLTAR(column)) {
+          const colOptions = column.colOptions as LinkToAnotherRecordColumn;
+          colOptions.filter = (await Filter.getFilterObject({
+            linkColId: column.id,
+          })) as any;
+          if (colOptions.filter?.children?.length) {
+            const export_filters = [];
+            for (const fl of colOptions.filter.children) {
+              const tempFl = {
+                id: `${idMap.get(column.id)}::${fl.id}`,
+                fk_column_id: idMap.get(fl.fk_column_id),
+                fk_parent_id: `${idMap.get(column.id)}::${fl.fk_parent_id}`,
+                fk_link_col_id: idMap.get(column.id),
+                fk_value_col_id:
+                  fl.fk_value_col_id || idMap.get(fl.fk_value_col_id),
+                is_group: fl.is_group,
+                logical_op: fl.logical_op,
+                comparison_op: fl.comparison_op,
+                comparison_sub_op: fl.comparison_sub_op,
+                value: fl.value,
+              };
+              if (tempFl.is_group) {
+                delete tempFl.comparison_op;
+                delete tempFl.comparison_sub_op;
+                delete tempFl.value;
+              }
+              export_filters.push(tempFl);
+            }
+            colOptions.filter.children = export_filters;
+          }
+        }
       }
 
       for (const view of model.views) {
@@ -181,7 +225,7 @@ export class ExportService {
             const tempFl = {
               id: `${idMap.get(view.id)}::${fl.id}`,
               fk_column_id: idMap.get(fl.fk_column_id),
-              fk_parent_id: fl.fk_parent_id,
+              fk_parent_id: `${idMap.get(view.id)}::${fl.fk_parent_id}`,
               is_group: fl.is_group,
               logical_op: fl.logical_op,
               comparison_op: fl.comparison_op,

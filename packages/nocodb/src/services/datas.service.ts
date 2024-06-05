@@ -4,8 +4,9 @@ import * as XLSX from 'xlsx';
 import papaparse from 'papaparse';
 import { nocoExecute } from 'nc-help';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
-import { getDbRows, PathParams } from '~/helpers/dataHelpers'
+import type { PathParams } from '~/helpers/dataHelpers';
 import type { Filter } from '~/models';
+import { getDbRows } from '~/helpers/dataHelpers';
 import { getViewAndModelByAliasOrId } from '~/helpers/dataHelpers';
 import { Base, Column, Model, Source, View } from '~/models';
 import { NcBaseError, NcError } from '~/helpers/catchError';

@@ -195,7 +195,7 @@ export class ExportService {
                 fk_parent_id: `${idMap.get(column.id)}::${fl.fk_parent_id}`,
                 fk_link_col_id: idMap.get(column.id),
                 fk_value_col_id: fl.fk_value_col_id
-                  ? `${colOptions.fk_related_model_id}::${fl.fk_value_col_id}`
+                  ? idMap.get(fl.fk_value_col_id)
                   : null,
                 is_group: fl.is_group,
                 logical_op: fl.logical_op,

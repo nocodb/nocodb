@@ -203,61 +203,63 @@ onUnmounted(() => {
       </a-form-item>
       </template>
 
-      <div class="flex gap-2 items-center" :class="{ 'mb-2': limitRecToView, 'mt-4': !isEdit }">
-        <a-switch
-          v-model:checked="limitRecToView"
-          size="small"
-          :disabled="!vModel.childId"
-          @change="onLimitRecToViewChange"
-        ></a-switch>
-        <span class="text-s" data-testid="nc-limit-record-view" @click="limitRecToView = !limitRecToView"
-          >Limit record selection to a view</span
-        >
-      </div>
-      <a-form-item v-if="limitRecToView" class="!pl-8 flex w-full pb-2 mt-4 space-y-2 nc-ltar-child-view">
-        <NcSelect
-          v-model:value="vModel.childViewId"
-          :placeholder="$t('labels.selectView')"
-          show-search
-          :filter-option="filterOption"
-          dropdown-class-name="nc-dropdown-ltar-child-view"
-        >
-          <a-select-option v-for="view of refViews" :key="view.title" :value="view.id">
-            <div class="flex w-full items-center gap-2">
-              <div class="min-w-5 flex items-center justify-center">
-                <GeneralViewIcon :meta="view" class="text-gray-500" />
+      <div class="w-full flex-col">
+        <div class="flex gap-2 items-center" :class="{ 'mb-2': limitRecToView, 'mt-4': !isEdit }">
+          <a-switch
+            v-model:checked="limitRecToView"
+            size="small"
+            :disabled="!vModel.childId"
+            @change="onLimitRecToViewChange"
+          ></a-switch>
+          <span class="text-s" data-testid="nc-limit-record-view" @click="limitRecToView = !limitRecToView"
+            >Limit record selection to a view</span
+          >
+        </div>
+        <a-form-item v-if="limitRecToView" class="!pl-8 flex w-full pb-2 mt-4 space-y-2 nc-ltar-child-view">
+          <NcSelect
+            v-model:value="vModel.childViewId"
+            :placeholder="$t('labels.selectView')"
+            show-search
+            :filter-option="filterOption"
+            dropdown-class-name="nc-dropdown-ltar-child-view"
+          >
+            <a-select-option v-for="view of refViews" :key="view.title" :value="view.id">
+              <div class="flex w-full items-center gap-2">
+                <div class="min-w-5 flex items-center justify-center">
+                  <GeneralViewIcon :meta="view" class="text-gray-500" />
+                </div>
+                <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                  <template #title>{{ view.title }}</template>
+                  <span>{{ view.title }}</span>
+                </NcTooltip>
               </div>
-              <NcTooltip class="flex-1 truncate" show-on-truncate-only>
-                <template #title>{{ view.title }}</template>
-                <span>{{ view.title }}</span>
-              </NcTooltip>
-            </div>
-          </a-select-option>
-        </NcSelect>
-      </a-form-item>
+            </a-select-option>
+          </NcSelect>
+        </a-form-item>
 
-      <div class="mt-4 flex gap-2 items-center" :class="{ 'mb-2': limitRecToCond, 'mt-4': !isEdit }">
-        <a-switch
-          v-model:checked="limitRecToCond"
-          :disabled="!vModel.childId"
-          size="small"
-          @change="onLimitRecToViewChange"
-        ></a-switch>
-        <span class="text-s" data-testid="nc-limit-record-filters" @click="limitRecToCond = !limitRecToCond"
-          >Limit record selection to filters</span
-        >
-      </div>
-      <div v-if="limitRecToCond" class="overflow-auto">
-        <LazySmartsheetToolbarColumnFilter
-          ref="filterRef"
-          v-model="vModel.filters"
-          class="!pl-8 !p-0 mt-4 max-w-620px"
-          :auto-save="false"
-          :show-loading="false"
-          :link="true"
-          :root-meta="meta"
-          :link-col-id="vModel.id"
-        />
+        <div class="mt-4 flex gap-2 items-center" :class="{ 'mb-2': limitRecToCond, 'mt-4': !isEdit }">
+          <a-switch
+            v-model:checked="limitRecToCond"
+            :disabled="!vModel.childId"
+            size="small"
+            @change="onLimitRecToViewChange"
+          ></a-switch>
+          <span class="text-s" data-testid="nc-limit-record-filters" @click="limitRecToCond = !limitRecToCond"
+            >Limit record selection to filters</span
+          >
+        </div>
+        <div v-if="limitRecToCond" class="overflow-auto">
+          <LazySmartsheetToolbarColumnFilter
+            ref="filterRef"
+            v-model="vModel.filters"
+            class="!pl-8 !p-0 mt-4 max-w-620px"
+            :auto-save="false"
+            :show-loading="false"
+            :link="true"
+            :root-meta="meta"
+            :link-col-id="vModel.id"
+          />
+        </div>
       </div>
     </div>
     <template v-if="(!isXcdbBase && !isEdit) || isLinks">

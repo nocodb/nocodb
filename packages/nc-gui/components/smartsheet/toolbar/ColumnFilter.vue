@@ -535,6 +535,9 @@ const dynamicColumns = (filter: FilterType) => {
                   :auto-save="autoSave"
                   :web-hook="webHook"
                   :link="link"
+                  :show-loading="false"
+                  :root-meta="rootMeta"
+                  :link-col-id="linkColId"
                 >
                   <template #start>
                     <span v-if="!i" class="flex items-center nc-filter-where-label ml-1">{{ $t('labels.where') }}</span>

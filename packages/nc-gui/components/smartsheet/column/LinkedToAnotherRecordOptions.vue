@@ -34,12 +34,12 @@ const onUpdateDeleteOptions = sqlUi === MssqlUi ? ['NO ACTION'] : ['NO ACTION', 
 
 if (!isEdit.value) {
   if (!vModel.value.parentId) vModel.value.parentId = meta.value?.id
-  if (!vModel.value.childId) vModel.value.childId = null
+  if (!vModel.value.childId) vModel.value.childId = vModel.value?.colOptions?.fk_related_model_id || null
   if (!vModel.value.childColumn) vModel.value.childColumn = `${meta.value?.table_name}_id`
   if (!vModel.value.childTable) vModel.value.childTable = meta.value?.table_name
   if (!vModel.value.parentTable) vModel.value.parentTable = vModel.value.rtn || ''
   if (!vModel.value.parentColumn) vModel.value.parentColumn = vModel.value.rcn || ''
-  if (!vModel.value.childViewId) vModel.value.childViewId = null
+  if (!vModel.value.childViewId) vModel.value.childViewId = vModel.value?.colOptions?.fk_child_view_id || null
 
   if (!vModel.value.type) vModel.value.type = 'mm'
   if (!vModel.value.onUpdate) vModel.value.onUpdate = onUpdateDeleteOptions[0]
@@ -85,6 +85,29 @@ const linkType = computed({
     }
   },
 })
+
+const oneToOneEnabled = ref(false)
+
+watch(
+  () => vModel.value.childId,
+  async (tableId) => {
+    if (tableId) {
+      viewsStore
+        .loadViews({
+          ignoreLoading: true,
+          tableId,
+        })
+        .catch(() => {
+          // ignore
+        })
+    }
+  },
+  {
+    immediate: true,
+  },
+)
+
+const limitRecToView = ref(!!vModel.value.childViewId)
 </script>
 
 <template>
@@ -139,7 +162,18 @@ const linkType = computed({
           </a-select-option>
         </a-select>
       </a-form-item>
-      <a-form-item :label="$t('labels.childView')" class="flex w-full pb-2 mt-4 space-y-2 nc-ltar-child-view">
+      </template>
+
+      <div class="flex gap-2 items-center" :class="{ 'mb-4': limitRecToView }">
+        <a-switch v-model:checked="limitRecToView" size="small"></a-switch>
+        <span class="text-xs" @click="limitRecToView = !limitRecToView">Limit Record Selection to a View</span>
+      </div>
+
+      <a-form-item
+        v-if="limitRecToView"
+        :label="$t('labels.childView')"
+        class="flex w-full pb-2 mt-4 space-y-2 nc-ltar-child-view"
+      >
         <NcSelect v-model:value="vModel.childViewId">
           <a-select-option v-for="view of refViews" :key="view.title" :value="view.id">
             <div class="flex w-full items-center gap-2">

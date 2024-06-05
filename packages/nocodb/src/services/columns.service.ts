@@ -315,6 +315,7 @@ export class ColumnsService {
             'meta' in colBody &&
             [
               UITypes.Links,
+              UITypes.LinkToAnotherRecord,
               UITypes.CreatedTime,
               UITypes.LastModifiedTime,
             ].includes(column.uidt)
@@ -323,6 +324,16 @@ export class ColumnsService {
                 colId: param.columnId,
                 meta: colBody.meta,
               });
+            }
+
+            // check alias value present in colBody
+            if ((colBody as any).childViewId) {
+              colBody.colOptions = colBody.colOptions || {};
+              (
+                colBody as Column<LinkToAnotherRecordColumn>
+              ).colOptions.fk_target_view_id = (colBody as any).childViewId;
+            }
+
             if (
               isLinksOrLTAR(column) &&
               (colBody as Column<LinkToAnotherRecordColumn>).colOptions

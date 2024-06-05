@@ -21619,6 +21619,10 @@
           }
         ],
         "properties": {
+          "childViewId": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to child view"
+          },
           "childId": {
             "$ref": "#/components/schemas/Id",
             "description": "Foreign Key to chhild column"
@@ -21705,6 +21709,9 @@
             "description": "Foreign Key to Column"
           },
           "fk_index_name": {
+            "type": "string"
+          },
+          "fk_relation_view_id": {
             "type": "string"
           },
           "fk_mm_child_column_id": {

@@ -34,6 +34,7 @@ import * as nc_044_view_column_index from '~/meta/migrations/v2/nc_044_view_colu
 import * as nc_045_extensions from '~/meta/migrations/v2/nc_045_extensions';
 import * as nc_046_comment_mentions from '~/meta/migrations/v2/nc_046_comment_mentions';
 import * as nc_047_comment_migration from '~/meta/migrations/v2/nc_047_comment_migration';
+import * as nc_044_view_links from '~/meta/migrations/v2/nc_044_view_links';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev2 {
@@ -160,6 +161,8 @@ export default class XcMigrationSourcev2 {
         return nc_046_comment_mentions;
       case 'nc_047_comment_migration':
         return nc_047_comment_migration;
+      case 'nc_044_view_links':
+        return nc_044_view_links;
     }
   }
 }

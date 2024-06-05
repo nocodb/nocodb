@@ -19,6 +19,9 @@ const { setAdditionalValidations, validateInfos, onDataTypeChange, sqlUi, isXcdb
 const baseStore = useBase()
 const { tables } = storeToRefs(baseStore)
 
+const viewsStore = useViewsStore()
+const { viewsByTable } = storeToRefs(viewsStore)
+
 const { t } = useI18n()
 
 if (!isEdit.value) {
@@ -36,6 +39,7 @@ if (!isEdit.value) {
   if (!vModel.value.childTable) vModel.value.childTable = meta.value?.table_name
   if (!vModel.value.parentTable) vModel.value.parentTable = vModel.value.rtn || ''
   if (!vModel.value.parentColumn) vModel.value.parentColumn = vModel.value.rcn || ''
+  if (!vModel.value.childViewId) vModel.value.childViewId = null
 
   if (!vModel.value.type) vModel.value.type = 'mm'
   if (!vModel.value.onUpdate) vModel.value.onUpdate = onUpdateDeleteOptions[0]
@@ -51,6 +55,13 @@ const refTables = computed(() => {
   }
 
   return tables.value.filter((t) => t.type === ModelTypes.TABLE && t.source_id === meta.value?.source_id)
+})
+
+const refViews = computed(() => {
+  if (!vModel.value.childId) return []
+  const views = viewsByTable.value.get(vModel.value.childId)
+
+  return views || []
 })
 
 const filterOption = (value: string, option: { key: string }) => option.key.toLowerCase().includes(value.toLowerCase())
@@ -127,6 +138,19 @@ const linkType = computed({
             </div>
           </a-select-option>
         </a-select>
+        <NcSelect v-model:value="vModel.childViewId">
+          <a-select-option v-for="view of refViews" :key="view.title" :value="view.id">
+            <div class="flex w-full items-center gap-2">
+              <div class="min-w-5 flex items-center justify-center">
+                <GeneralViewIcon :meta="view" class="text-gray-500" />
+              </div>
+              <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                <template #title>{{ view.title }}</template>
+                <span>{{ view.title }}</span>
+              </NcTooltip>
+            </div>
+          </a-select-option>
+        </NcSelect>
       </a-form-item>
     </div>
     <template v-if="(!isXcdbBase && !isEdit) || isLinks">

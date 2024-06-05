@@ -13,10 +13,10 @@ import type {
   RollupColumnReqType,
   TableType,
 } from 'nocodb-sdk';
-import type { RollupColumn } from '~/models';
 import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
 import type LookupColumn from '~/models/LookupColumn';
 import type Model from '~/models/Model';
+import type { RollupColumn, View } from '~/models';
 import { GridViewColumn } from '~/models';
 import validateParams from '~/helpers/validateParams';
 import { getUniqueColumnAliasName } from '~/helpers/getUniqueName';
@@ -32,6 +32,7 @@ export async function createHmAndBtColumn(
   child: Model,
   parent: Model,
   childColumn: Column,
+  childView?: View,
   type?: RelationTypes,
   alias?: string,
   fkColName?: string,
@@ -59,6 +60,7 @@ export async function createHmAndBtColumn(
       fk_child_column_id: childColumn.id,
       fk_parent_column_id: parent.primaryKey.id,
       fk_related_model_id: parent.id,
+      fk_child_view_id: childView?.id,
       virtual,
       // if self referencing treat it as system field to hide from ui
       system: isSystemCol || parent.id === child.id,
@@ -83,6 +85,7 @@ export async function createHmAndBtColumn(
       fk_model_id: parent.id,
       uidt: isLinks ? UITypes.Links : UITypes.LinkToAnotherRecord,
       type: 'hm',
+      fk_child_view_id: childView?.id,
       fk_child_column_id: childColumn.id,
       fk_parent_column_id: parent.primaryKey.id,
       fk_related_model_id: child.id,
@@ -101,6 +104,7 @@ export async function createHmAndBtColumn(
  * @param {Model} child - The child model.
  * @param {Model} parent - The parent model.
  * @param {Column} childColumn - The child column.
+ * @param {View} childView - The child column.
  * @param {RelationTypes} [type] - The type of relationship.
  * @param {string} [alias] - The alias for the column.
  * @param {string} [fkColName] - The foreign key column name.
@@ -113,6 +117,7 @@ export async function createOOColumn(
   child: Model,
   parent: Model,
   childColumn: Column,
+  childView?: View,
   type?: RelationTypes,
   alias?: string,
   fkColName?: string,
@@ -133,7 +138,8 @@ export async function createOOColumn(
       // ref_db_alias
       uidt: UITypes.LinkToAnotherRecord,
       type: RelationTypes.ONE_TO_ONE,
-
+      // Child View ID is given for relation from parent to child. not for child to parent
+      fk_child_view_id: null,
       fk_child_column_id: childColumn.id,
       fk_parent_column_id: parent.primaryKey.id,
       fk_related_model_id: parent.id,
@@ -167,6 +173,7 @@ export async function createOOColumn(
       fk_model_id: parent.id,
       uidt: UITypes.LinkToAnotherRecord,
       type: 'oo',
+      fk_child_view_id: childView?.id,
       fk_child_column_id: childColumn.id,
       fk_parent_column_id: parent.primaryKey.id,
       fk_related_model_id: child.id,

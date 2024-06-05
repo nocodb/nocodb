@@ -5,6 +5,7 @@ import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
+import { View } from '~/models/index';
 
 export default class LinkToAnotherRecordColumn {
   id: string;
@@ -15,6 +16,8 @@ export default class LinkToAnotherRecordColumn {
   fk_mm_child_column_id?: string;
   fk_mm_parent_column_id?: string;
   fk_related_model_id?: string;
+
+  fk_child_view_id?: string;
 
   dr?: string;
   ur?: string;
@@ -99,6 +102,7 @@ export default class LinkToAnotherRecordColumn {
       'fk_mm_model_id',
       'fk_mm_child_column_id',
       'fk_mm_parent_column_id',
+      'fk_child_view_id',
       'ur',
       'dr',
       'fk_index_name',
@@ -107,6 +111,11 @@ export default class LinkToAnotherRecordColumn {
     ]);
     await ncMeta.metaInsert2(null, null, MetaTable.COL_RELATIONS, insertObj);
     return this.read(data.fk_column_id, ncMeta);
+  }
+
+  async getChildView(ncMeta = Noco.ncMeta) {
+    if (!this.fk_child_view_id) return;
+    return await View.get(this.fk_child_view_id, ncMeta);
   }
 
   public static async read(columnId: string, ncMeta = Noco.ncMeta) {

@@ -13,19 +13,28 @@ import {
 } from 'nocodb-sdk';
 import { pluralize, singularize } from 'inflection';
 import hash from 'object-hash';
-import type SqlMgrv2 from '~/db/sql-mgr/v2/SqlMgrv2';
-import type { Base, LinkToAnotherRecordColumn } from '~/models';
 import type {
   ColumnReqType,
   LinkToAnotherColumnReqType,
   LinkToAnotherRecordType,
   UserType,
 } from 'nocodb-sdk';
+import type SqlMgrv2 from '~/db/sql-mgr/v2/SqlMgrv2';
+import type { Base, LinkToAnotherRecordColumn } from '~/models';
 import type CustomKnex from '~/db/CustomKnex';
 import type SqlClient from '~/db/sql-client/lib/SqlClient';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { NcRequest } from '~/interface/config';
-import { CalendarRange } from '~/models';
+import {
+  BaseUser,
+  CalendarRange,
+  Column,
+  FormulaColumn,
+  KanbanView,
+  Model,
+  Source,
+  View,
+} from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
@@ -48,15 +57,6 @@ import {
 } from '~/helpers/getUniqueName';
 import mapDefaultDisplayValue from '~/helpers/mapDefaultDisplayValue';
 import validateParams from '~/helpers/validateParams';
-import {
-  BaseUser,
-  Column,
-  FormulaColumn,
-  KanbanView,
-  Model,
-  Source,
-  View,
-} from '~/models';
 import Noco from '~/Noco';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { MetaTable } from '~/utils/globals';
@@ -2589,7 +2589,10 @@ export class ColumnsService {
     reuse?: ReusableParams;
     colExtra?: any;
   }) {
-    validateParams(['parentId', 'childId', 'type'], param.column);
+    validateParams(
+      ['parentId', 'childId', 'childViewId', 'type'],
+      param.column,
+    );
 
     const reuse = param.reuse ?? {};
 
@@ -2601,6 +2604,10 @@ export class ColumnsService {
       id: (param.column as LinkToAnotherColumnReqType).childId,
     });
     let childColumn: Column;
+    const childView: View | null = await View.getByTitleOrId({
+      fk_model_id: child.id,
+      titleOrId: (param.column as LinkToAnotherColumnReqType).childViewId,
+    });
 
     const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
       ProjectMgrv2.getSqlMgr({
@@ -2706,6 +2713,7 @@ export class ColumnsService {
         child,
         parent,
         childColumn,
+        childView,
         (param.column as LinkToAnotherColumnReqType).type as RelationTypes,
         (param.column as LinkToAnotherColumnReqType).title,
         foreignKeyName,
@@ -2803,6 +2811,7 @@ export class ColumnsService {
         child,
         parent,
         childColumn,
+        childView,
         (param.column as LinkToAnotherColumnReqType).type as RelationTypes,
         (param.column as LinkToAnotherColumnReqType).title,
         foreignKeyName,
@@ -2910,6 +2919,7 @@ export class ColumnsService {
         assocModel,
         child,
         childCol,
+        childView,
         null,
         null,
         foreignKeyName1,
@@ -2923,6 +2933,7 @@ export class ColumnsService {
         assocModel,
         parent,
         parentCol,
+        childView,
         null,
         null,
         foreignKeyName2,
@@ -2947,7 +2958,8 @@ export class ColumnsService {
 
         fk_child_column_id: childPK.id,
         fk_parent_column_id: parentPK.id,
-
+        // Adding view ID here applies the view filter in reverse also
+        fk_child_view_id: null,
         fk_mm_model_id: assocModel.id,
         fk_mm_child_column_id: childCol.id,
         fk_mm_parent_column_id: parentCol.id,
@@ -2973,6 +2985,7 @@ export class ColumnsService {
 
         fk_child_column_id: parentPK.id,
         fk_parent_column_id: childPK.id,
+        fk_child_view_id: childView?.id,
 
         fk_mm_model_id: assocModel.id,
         fk_mm_child_column_id: parentCol.id,

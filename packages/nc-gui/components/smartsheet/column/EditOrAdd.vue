@@ -175,13 +175,16 @@ onMounted(() => {
       ...formState.value,
       ...others,
     }
+
     if (colOptions) {
+      const meta = formState.value.meta || {}
       onUidtOrIdTypeChange()
       formState.value = {
         ...formState.value,
         colOptions: {
           ...colOptions,
         },
+        meta,
       }
     }
   }

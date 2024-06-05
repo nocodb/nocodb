@@ -8,7 +8,7 @@ interface Props {
   autoSave: boolean
   hookId?: string
   showLoading?: boolean
-  modelValue?: undefined | Filter[]
+  modelValue?: undefined | FilterType[] | null
   webHook?: boolean
   link?: boolean
   draftFilter?: Partial<FilterType>
@@ -343,12 +343,15 @@ const showFilterInput = (filter: Filter) => {
 
 onMounted(async () => {
   await Promise.all([
-    loadFilters({
-      hookId: hookId?.value,
-      isWebhook: webHook.value,
-      linkColId: unref(linkColId),
-      isLink: link.value,
-    }),
+    (async () => {
+      if (!modelValue.value)
+        await loadFilters({
+          hookId: hookId?.value,
+          isWebhook: webHook.value,
+          linkColId: unref(linkColId),
+          isLink: link.value,
+        })
+    })(),
     loadBtLookupTypes(),
   ])
   isMounted.value = true
@@ -415,11 +418,26 @@ const onLogicalOpUpdate = async (filter: Filter, index: number) => {
 // watch for changes in filters and update the modelValue
 watch(
   filters,
-  () => {
-    if (modelValue.value !== filters.value) modelValue.value = filters.value
+  (value) => {
+    if (value && value !== modelValue.value) {
+      modelValue.value = value?.length ? value : null
+    }
   },
   {
     immediate: true,
+    deep: true,
+  },
+)
+watch(
+  modelValue,
+  (value) => {
+    if (value?.length && value !== filters.value) {
+      filters.value = value
+    }
+  },
+  {
+    immediate: true,
+    deep: true,
   },
 )
 
@@ -478,7 +496,9 @@ const changeToDynamic = async (filter, i) => {
     }"
   >
     <div v-if="nested" class="flex min-w-full w-min items-center mb-2">
-      <div :class="[`nc-filter-logical-op-level-${nestedLevel}`]"><slot name="start"></slot></div>
+      <div :class="[`nc-filter-logical-op-level-${nestedLevel}`]">
+        <slot name="start"></slot>
+      </div>
       <div class="flex-grow"></div>
       <NcDropdown :trigger="['hover']" overlay-class-name="nc-dropdown-filter-group-sub-menu">
         <GeneralIcon icon="plus" class="cursor-pointer" />
@@ -1000,6 +1020,7 @@ const changeToDynamic = async (filter, i) => {
 .nc-filter-where-label {
   @apply text-gray-400;
 }
+
 :deep(.ant-select-disabled.ant-select:not(.ant-select-customize-input) .ant-select-selector) {
   @apply bg-transparent text-gray-400;
 }
@@ -1023,6 +1044,7 @@ const changeToDynamic = async (filter, i) => {
 .nc-filter-input-wrapper :deep(input) {
   @apply !px-2;
 }
+
 .nc-btn-focus:focus {
   @apply !text-brand-500 !shadow-none;
 }

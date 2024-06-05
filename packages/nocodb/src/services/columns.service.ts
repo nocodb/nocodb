@@ -25,6 +25,7 @@ import type CustomKnex from '~/db/CustomKnex';
 import type SqlClient from '~/db/sql-client/lib/SqlClient';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { NcRequest } from '~/interface/config';
+import { Filter } from '~/models';
 import {
   BaseUser,
   CalendarRange,
@@ -3216,13 +3217,15 @@ export class ColumnsService {
 
       if (op.op === 'add') {
         try {
-          await this.columnAdd({
+          const tableMeta = await this.columnAdd({
             tableId,
             column: column as ColumnReqType,
             req,
             user: req.user,
             reuse,
           });
+
+          await this.postColumnAdd(column as ColumnReqType, tableMeta);
         } catch (e) {
           failedOps.push({
             ...op,
@@ -3238,6 +3241,8 @@ export class ColumnsService {
             user: req.user,
             reuse,
           });
+
+          await this.postColumnUpdate(column as ColumnReqType);
         } catch (e) {
           failedOps.push({
             ...op,
@@ -3263,5 +3268,13 @@ export class ColumnsService {
     return {
       failedOps,
     };
+  }
+
+  protected async postColumnAdd(_columnBody: ColumnReqType, _tableMeta: Model) {
+    // placeholder for post column add hook
+  }
+
+  protected async postColumnUpdate(_columnBody: ColumnReqType) {
+    // placeholder for post column update hook
   }
 }

@@ -115,6 +115,7 @@ watch(
   },
 )
 
+vModel.value.meta = vModel.value.meta || {}
 const limitRecToView = ref(!!vModel.value.childViewId)
 const limitRecToCond = computed({
   get() {
@@ -131,9 +132,6 @@ const onLimitRecToViewChange = (value: boolean) => {
     vModel.value.childViewId = null
   }
 }
-
-vModel.value.meta = vModel.value.meta || {}
-vModel.value.meta.conditions = vModel.value.meta.conditions || []
 
 provide(
   MetaInj,
@@ -218,8 +216,8 @@ onUnmounted(() => {
       </div>
       <a-form-item v-if="limitRecToView" class="!pl-8 flex w-full pb-2 mt-4 space-y-2 nc-ltar-child-view">
         <NcSelect
-          :placeholder="$t('labels.selectView')"
           v-model:value="vModel.childViewId"
+          :placeholder="$t('labels.selectView')"
           show-search
           :filter-option="filterOption"
           dropdown-class-name="nc-dropdown-ltar-child-view"
@@ -249,10 +247,10 @@ onUnmounted(() => {
           >Limit record selection to filters</span
         >
       </div>
-
       <div v-if="limitRecToCond" class="overflow-auto">
         <LazySmartsheetToolbarColumnFilter
           ref="filterRef"
+          v-model="vModel.filters"
           class="!pl-8 !p-0 mt-4 max-w-620px"
           :auto-save="false"
           :show-loading="false"

@@ -383,6 +383,8 @@ export function useViewFilters(
         $e('a:filter:update', {
           logical: filter.logical_op,
           comparison: filter.comparison_op,
+          link: !!isLink,
+          webHook: !!isWebhook,
         })
       } else {
         if (linkColId?.value) {
@@ -471,7 +473,7 @@ export function useViewFilters(
       } else {
         filters.value.splice(i, 1)
       }
-      $e('a:filter:delete', { length: nonDeletedFilters.value.length })
+      $e('a:filter:delete', { length: nonDeletedFilters.value.length, link: !!isLink, webHook: !!isWebhook })
     }
 
     if (filter.is_group) {
@@ -508,7 +510,7 @@ export function useViewFilters(
 
     lastFilters.value = clone(filters.value)
 
-    $e('a:filter:add', { length: filters.value.length })
+    $e('a:filter:add', { length: filters.value.length, link: !!isLink, webHook: !!isWebhook })
   }
 
   const addFilterGroup = async () => {
@@ -526,7 +528,7 @@ export function useViewFilters(
 
     lastFilters.value = clone(filters.value)
 
-    $e('a:filter:add', { length: filters.value.length, group: true })
+    $e('a:filter:add', { length: filters.value.length, group: true, link: !!isLink, webHook: !!isWebhook })
   }
 
   /** on column delete reload filters, identify by checking columns count */

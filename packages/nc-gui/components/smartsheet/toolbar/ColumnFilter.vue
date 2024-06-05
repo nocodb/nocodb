@@ -174,6 +174,8 @@ const filterUpdateCondition = (filter: FilterType, i: number) => {
     logical: filter.logical_op,
     comparison: filter.comparison_op,
     comparison_sub_op: filter.comparison_sub_op,
+    link: !!link.value,
+    webHook: !!webHook.value,
   })
 }
 
@@ -628,7 +630,7 @@ const changeToDynamic = async (filter, i) => {
                     <NcButton
                       v-if="!filter.readOnly"
                       :key="i"
-                      v-e="['c:filter:delete']"
+                      v-e="['c:filter:delete', { link: !!link, webHook: !!webHook }]"
                       type="text"
                       size="small"
                       class="nc-filter-item-remove-btn cursor-pointer"
@@ -650,7 +652,7 @@ const changeToDynamic = async (filter, i) => {
             <NcSelect
               v-else
               v-model:value="filter.logical_op"
-              v-e="['c:filter:logical-op:select']"
+              v-e="['c:filter:logical-op:select', { link: !!link, webHook: !!webHook }]"
               :dropdown-match-select-width="false"
               class="h-full !min-w-18 !max-w-18 capitalize"
               hide-details
@@ -688,7 +690,7 @@ const changeToDynamic = async (filter, i) => {
 
             <NcSelect
               v-model:value="filter.comparison_op"
-              v-e="['c:filter:comparison-op:select']"
+              v-e="['c:filter:comparison-op:select', { link: !!link, webHook: !!webHook }]"
               :dropdown-match-select-width="false"
               class="caption nc-filter-operation-select !min-w-26.75 !max-w-26.75 max-h-8"
               :placeholder="$t('labels.operation')"
@@ -722,7 +724,7 @@ const changeToDynamic = async (filter, i) => {
             <NcSelect
               v-else-if="isDateType(types[filter.fk_column_id])"
               v-model:value="filter.comparison_sub_op"
-              v-e="['c:filter:sub-comparison-op:select']"
+              v-e="['c:filter:sub-comparison-op:select', { link: !!link, webHook: !!webHook }]"
               :dropdown-match-select-width="false"
               class="caption nc-filter-sub_operation-select min-w-28"
               :class="{
@@ -810,7 +812,6 @@ const changeToDynamic = async (filter, i) => {
                         }"
                       >
                         <div
-                          v-e="['c:row:add:grid']"
                           class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer rounded-md hover:bg-gray-100 text-gray-600 nc-new-record-with-grid group"
                           @click="resetDynamicField(filter, i)"
                         >
@@ -825,7 +826,7 @@ const changeToDynamic = async (filter, i) => {
                           <div class="flex flex-row text-xs text-gray-400">Filter based on static value</div>
                         </div>
                         <div
-                          v-e="['c:row:add:form']"
+                          v-e="['c:filter:dynamic-filter']"
                           class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer rounded-md hover:bg-gray-100 text-gray-600 nc-new-record-with-form group"
                           :class="
                             isDynamicFilterAllowed(filter) && showFilterInput(filter) ? 'cursor-pointer' : 'cursor-not-allowed'
@@ -850,7 +851,7 @@ const changeToDynamic = async (filter, i) => {
             </div>
             <NcButton
               v-if="!filter.readOnly"
-              v-e="['c:filter:delete']"
+              v-e="['c:filter:delete', { link: !!link, webHook: !!webHook }]"
               type="text"
               size="small"
               class="nc-filter-item-remove-btn self-center"

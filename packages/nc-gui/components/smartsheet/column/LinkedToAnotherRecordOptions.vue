@@ -207,11 +207,16 @@ onUnmounted(() => {
         <div class="flex gap-2 items-center" :class="{ 'mb-2': limitRecToView, 'mt-4': !isEdit }">
           <a-switch
             v-model:checked="limitRecToView"
+            v-e="['c:link:limit-record-by-view', { status: limitRecToView }]"
             size="small"
             :disabled="!vModel.childId"
             @change="onLimitRecToViewChange"
           ></a-switch>
-          <span class="text-s" data-testid="nc-limit-record-view" @click="limitRecToView = !limitRecToView"
+          <span
+            v-e="['c:link:limit-record-by-view', { status: limitRecToView }]"
+            class="text-s"
+            data-testid="nc-limit-record-view"
+            @click="limitRecToView = !!vModel.childId && !limitRecToView"
             >Limit record selection to a view</span
           >
         </div>
@@ -240,13 +245,18 @@ onUnmounted(() => {
         <div class="mt-4 flex gap-2 items-center" :class="{ 'mb-2': limitRecToCond, 'mt-4': !isEdit }">
           <a-switch
             v-model:checked="limitRecToCond"
+            v-e="['c:link:limit-record-by-filter', { status: limitRecToCond }]"
             :disabled="!vModel.childId"
             size="small"
             @change="onLimitRecToViewChange"
           ></a-switch>
-          <span class="text-s" data-testid="nc-limit-record-filters" @click="limitRecToCond = !limitRecToCond"
-            >Limit record selection to filters</span
+          <span
+            v-e="['c:link:limit-record-by-filter', { status: limitRecToCond }]"
+            data-testid="nc-limit-record-filters"
+            @click="limitRecToCond = !!vModel.childId && !limitRecToCond"
           >
+            Limit record selection to filters
+          </span>
         </div>
         <div v-if="limitRecToCond" class="overflow-auto">
           <LazySmartsheetToolbarColumnFilter
@@ -354,6 +364,7 @@ onUnmounted(() => {
 :deep(.nc-filter-grid) {
   @apply !pr-0;
 }
+
 :deep(.nc-ltar-relation-type .ant-radio-group) {
   @apply flex justify-between gap-2 children:(flex-1 m-0 px-2 py-1 border-1 border-gray-200 rounded-lg);
 
@@ -367,6 +378,7 @@ onUnmounted(() => {
     span:not(.ant-radio):not(.nc-ltar-icon) {
       @apply flex-1 pl-0 flex items-center gap-2;
     }
+
     .ant-radio {
       @apply top-0;
     }

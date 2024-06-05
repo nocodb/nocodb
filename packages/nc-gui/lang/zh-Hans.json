@@ -454,6 +454,7 @@
     "noResultsMatchedYourSearch": "您的搜索没有任何匹配结果"
   },
   "labels": {
+    "selectView": "Select a View",
     "connectionDetails": "链接明细",
     "metaSync": "元同步",
     "mention": "Mention",
@@ -492,6 +493,7 @@
     "userOptions": "用户选项",
     "deleteThisOrganization": "删除该组织",
     "dangerZone": "危险区",
+    "childView": "Child View",
     "selectYear": "选择年份",
     "save": "保存",
     "cancel": "取消",
@@ -1210,6 +1212,7 @@
     "selectFieldToSort": "选择要排序的字段",
     "selectFieldToGroup": "选择要分组的字段",
     "thereAreNoRecordsInTable": "表中没有记录",
+    "noRecordsAvailForLinking": "No records are currently available for linking",
     "createWebhookMsg1": "开始使用Web Hooks！",
     "createWebhookMsg2": "数据变更自动发送通知",
     "areYouSureUWantTo": "您确定要删除以下内容",

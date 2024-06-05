@@ -423,10 +423,6 @@ watch(
       modelValue.value = value?.length ? value : null
     }
   },
-  {
-    immediate: true,
-    deep: true,
-  },
 )
 watch(
   modelValue,
@@ -437,7 +433,6 @@ watch(
   },
   {
     immediate: true,
-    deep: true,
   },
 )
 

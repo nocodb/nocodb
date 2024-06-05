@@ -184,13 +184,15 @@ export function useViewFilters(
   }
 
   const placeholderFilter = (): Filter => {
+    const logicalOps = new Set(filters.value.slice(1).map((filter) => filter.logical_op))
+
     return {
       comparison_op: comparisonOpList(options.value?.[0].uidt as UITypes).filter((compOp) =>
         isComparisonOpAllowed({ fk_column_id: options.value?.[0].id }, compOp),
       )?.[0]?.value as FilterType['comparison_op'],
       value: null,
       status: 'create',
-      logical_op: 'and',
+      logical_op: logicalOps.size === 1 ? logicalOps.values().next().value : 'and',
     }
   }
 

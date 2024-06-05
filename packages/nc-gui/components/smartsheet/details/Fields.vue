@@ -2,9 +2,9 @@
 import { diff } from 'deep-object-diff'
 import { message } from 'ant-design-vue'
 import { UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import type { ColumnType, FilterType, SelectOptionsType } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 import { onKeyDown, useMagicKeys } from '@vueuse/core'
-import type { ColumnType, SelectOptionsType } from 'nocodb-sdk'
 
 interface TableExplorerColumn extends ColumnType {
   id?: string
@@ -271,6 +271,19 @@ const duplicateField = async (field: TableExplorerColumn) => {
   duplicateFieldHook.value = fieldPayload as TableExplorerColumn
 }
 
+// Check any filter is changed recursively
+const checkForFilterChange = (filters: (FilterType & { status?: string })[]) => {
+  for (const filter of filters) {
+    if (filter.status) {
+      return true
+    }
+    if (filter.is_group) {
+      if (checkForFilterChange(filter.children || [])) {
+        return true
+      }
+    }
+  }
+}
 // This method is called whenever there is a change in field properties
 const onFieldUpdate = (state: TableExplorerColumn) => {
   const col = fields.value.find((col) => compareCols(col, state))
@@ -317,6 +330,17 @@ const onFieldUpdate = (state: TableExplorerColumn) => {
 
     if (field || (field && moveField)) {
       field.column = state
+    } else if (isLinksOrLTAR(state)) {
+      if (
+        ['title', 'column_name', 'meta'].some((k) => k in diffs) ||
+        ('childViewId' in diffs && diffs.childViewId !== col.colOptions?.fk_target_view_id) ||
+        checkForFilterChange(diffs.filters || [])
+      ) {
+        ops.value.push({
+          op: 'update',
+          column: state,
+        })
+      }
     } else {
       ops.value.push({
         op: 'update',
@@ -961,7 +985,7 @@ watch(
                         {{ $t('labels.multiField.deletedField') }}
                       </NcBadge>
                       <NcBadge
-                        v-else-if="fieldStatus(field) === 'add'"
+                        v-else-if="isColumnValid(field) && fieldStatus(field) === 'add'"
                         color="orange"
                         :border="false"
                         class="bg-green-50 text-green-700"

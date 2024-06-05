@@ -53,7 +53,9 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       isXcdbBaseFunc(meta.value?.source_id ? meta.value?.source_id : Object.keys(sqlUis.value)[0]),
     )
 
-    let postSaveOrUpdateCbk: ((params: { update?: boolean; colId: string; column?: ColumnType | undefined }) => Promise<void>) | null
+    let postSaveOrUpdateCbk:
+      | ((params: { update?: boolean; colId: string; column?: ColumnType | undefined }) => Promise<void>)
+      | null
 
     const idType = null
 

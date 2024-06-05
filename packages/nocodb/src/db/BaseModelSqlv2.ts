@@ -492,7 +492,12 @@ class BaseModelSqlv2 {
   }
 
   public async count(
-    args: { where?: string; limit?; filterArr?: Filter[]; customConditions?:Filter[] } = {},
+    args: {
+      where?: string;
+      limit?;
+      filterArr?: Filter[];
+      customConditions?: Filter[];
+    } = {},
     ignoreViewFilterAndSort = false,
     throwErrorIfInvalidParams = false,
   ): Promise<any> {
@@ -515,11 +520,11 @@ class BaseModelSqlv2 {
         [
           ...(args.customConditions
             ? [
-              new Filter({
-                children: args.customConditions,
-                is_group: true,
-              }),
-            ]
+                new Filter({
+                  children: args.customConditions,
+                  is_group: true,
+                }),
+              ]
             : []),
           new Filter({
             children:
@@ -548,11 +553,11 @@ class BaseModelSqlv2 {
         [
           ...(args.customConditions
             ? [
-              new Filter({
-                children: args.customConditions,
-                is_group: true,
-              }),
-            ]
+                new Filter({
+                  children: args.customConditions,
+                  is_group: true,
+                }),
+              ]
             : []),
           new Filter({
             children: args.filterArr || [],

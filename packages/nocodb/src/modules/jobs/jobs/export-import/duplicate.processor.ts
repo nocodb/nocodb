@@ -3,17 +3,8 @@ import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
 import papaparse from 'papaparse';
 import debug from 'debug';
-import {
-  isLinksOrLTAR,
-  isVirtualCol,
-  RelationTypes,
-} from 'nocodb-sdk';
-import {
-  Base,
-  Column,
-  Model,
-  Source,
-} from '~/models';
+import { isLinksOrLTAR, isVirtualCol, RelationTypes } from 'nocodb-sdk';
+import { Base, Column, Model, Source } from '~/models';
 import { BasesService } from '~/services/bases.service';
 import {
   findWithIdentifier,

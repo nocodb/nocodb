@@ -459,9 +459,59 @@ const dynamicColumns = (filter: FilterType) => {
     :class="{
       'max-h-[max(80vh,500px)] min-w-112 py-2 pl-4': !nested,
       'w-full ': nested,
-      'py-4': !filters.length,
     }"
   >
+    <div v-if="nested" class="flex w-full items-center mb-2">
+      <div :class="[`nc-filter-logical-op-level-${nestedLevel}`]"><slot name="start"></slot></div>
+      <div class="flex-grow"></div>
+      <NcDropdown :trigger="['hover']" overlay-class-name="nc-dropdown-filter-group-sub-menu">
+        <GeneralIcon icon="plus" class="cursor-pointer" />
+
+        <template #overlay>
+          <NcMenu>
+            <template v-if="isEeUI && !isPublic">
+              <template v-if="filtersCount < getPlanLimit(PlanLimitTypes.FILTER_LIMIT)">
+                <NcMenuItem @click.stop="addFilter()">
+                  <div class="flex items-center gap-1">
+                    <component :is="iconMap.plus" />
+                    <!-- Add Filter -->
+                    {{ $t('activity.addFilter') }}
+                  </div>
+                </NcMenuItem>
+
+                <NcMenuItem v-if="nestedLevel < 5" @click.stop="addFilterGroup()">
+                  <div class="flex items-center gap-1">
+                    <!-- Add Filter Group -->
+                    <component :is="iconMap.plusSquare" />
+                    {{ $t('activity.addFilterGroup') }}
+                  </div>
+                </NcMenuItem>
+              </template>
+            </template>
+            <template v-else>
+              <NcMenuItem @click.stop="addFilter()">
+                <div class="flex items-center gap-1">
+                  <component :is="iconMap.plus" />
+                  <!-- Add Filter -->
+                  {{ $t('activity.addFilter') }}
+                </div>
+              </NcMenuItem>
+
+              <NcButton v-if="!webHook && nestedLevel < 5" @click.stop="addFilterGroup()">
+                <div class="flex items-center gap-1">
+                  <!-- Add Filter Group -->
+                  <component :is="iconMap.plusSquare" />
+                  {{ $t('activity.addFilterGroup') }}
+                </div>
+              </NcButton>
+            </template>
+          </NcMenu>
+        </template>
+      </NcDropdown>
+      <div>
+        <slot name="end"></slot>
+      </div>
+    </div>
     <div
       v-if="filters && filters.length"
       ref="wrapperDomRef"

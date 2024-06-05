@@ -43,7 +43,7 @@ export function useViewFilters(
 
   const { addUndo, clone, defineViewScope } = useUndoRedo()
 
-  const _filters = ref<Filter[]>([])
+  const _filters = ref<Filter[]>(currentFilters.value || [])
 
   const nestedMode = computed(() => isPublic.value || !isUIAllowed('filterSync') || !isUIAllowed('filterChildrenRead'))
 

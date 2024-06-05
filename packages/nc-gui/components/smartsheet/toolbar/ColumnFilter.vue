@@ -28,6 +28,8 @@ const props = withDefaults(defineProps<Props>(), {
   linkColId: undefined,
 })
 
+const initialModelValue = props.modelValue
+
 const emit = defineEmits(['update:filtersLength', 'update:draftFilter', 'update:modelValue'])
 
 const excludedFilterColUidt = [UITypes.QrCode, UITypes.Barcode]
@@ -78,7 +80,7 @@ const {
   parentId,
   computed(() => autoSave.value),
   () => reloadDataHook.trigger({ shouldShowLoading: showLoading.value, offset: 0 }),
-  modelValue.value || nestedFilters.value,
+  modelValue.value || nestedFilters.value || [],
   props.nestedLevel > 0,
   webHook.value,
   link.value,
@@ -348,7 +350,7 @@ const showFilterInput = (filter: Filter) => {
 onMounted(async () => {
   await Promise.all([
     (async () => {
-      if (!modelValue.value)
+      if (!initialModelValue)
         await loadFilters({
           hookId: hookId?.value,
           isWebhook: webHook.value,
@@ -420,16 +422,11 @@ const onLogicalOpUpdate = async (filter: Filter, index: number) => {
 }
 
 // watch for changes in filters and update the modelValue
-watch(filters, (value) => {
-  if (value && value !== modelValue.value) {
-    modelValue.value = value?.length ? value : null
-  }
-})
 watch(
-  modelValue,
+  filters,
   (value) => {
-    if (value?.length && value !== filters.value) {
-      filters.value = value
+    if (value && value !== modelValue.value) {
+      modelValue.value = value
     }
   },
   {

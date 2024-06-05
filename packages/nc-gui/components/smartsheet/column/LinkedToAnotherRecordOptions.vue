@@ -204,7 +204,7 @@ onUnmounted(() => {
       </template>
 
       <div class="w-full flex-col">
-        <div class="flex gap-2 items-center" :class="{ 'mb-2': limitRecToView, 'mt-4': !isEdit }">
+        <div class="flex gap-2 items-center" :class="{ 'mb-2': limitRecToView }">
           <a-switch
             v-model:checked="limitRecToView"
             v-e="['c:link:limit-record-by-view', { status: limitRecToView }]"
@@ -242,13 +242,12 @@ onUnmounted(() => {
           </NcSelect>
         </a-form-item>
 
-        <div class="mt-4 flex gap-2 items-center" :class="{ 'mb-2': limitRecToCond, 'mt-4': !isEdit }">
+        <div class="mt-4 flex gap-2 items-center" :class="{ 'mb-2': limitRecToCond }">
           <a-switch
             v-model:checked="limitRecToCond"
             v-e="['c:link:limit-record-by-filter', { status: limitRecToCond }]"
             :disabled="!vModel.childId"
             size="small"
-            @change="onLimitRecToViewChange"
           ></a-switch>
           <span
             v-e="['c:link:limit-record-by-filter', { status: limitRecToCond }]"

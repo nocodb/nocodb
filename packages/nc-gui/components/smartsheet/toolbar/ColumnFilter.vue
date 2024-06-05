@@ -527,7 +527,7 @@ const dynamicColumns = (filter: FilterType) => {
               <div class="flex rounded-lg p-2 w-full border-1" :class="[`nc-filter-nested-level-${nestedLevel}`]">
                 <LazySmartsheetToolbarColumnFilter
                   v-if="filter.id || filter.children || !autoSave"
-                  :key="filter.id ?? i"
+                  :key="i"
                   ref="localNestedFilters"
                   v-model="filter.children"
                   :nested-level="nestedLevel + 1"

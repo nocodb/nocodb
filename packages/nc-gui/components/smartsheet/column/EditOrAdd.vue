@@ -263,7 +263,7 @@ const filterOption = (input: string, option: { value: UITypes }) => {
 
 <template>
   <div
-    class="overflow-auto"
+    class="overflow-auto max-h-[max(80vh,500px)]"
     :class="{
       'bg-white': !props.fromTableExplorer,
       'w-[400px]': !props.embedMode && formState.uidt !== UITypes.LinkToAnotherRecord && formState.uidt !== UITypes.Links,

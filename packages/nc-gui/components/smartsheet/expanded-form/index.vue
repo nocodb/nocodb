@@ -564,7 +564,7 @@ export default {
     :closable="false"
     :footer="null"
     :visible="isExpanded"
-    :width="showRightSections ? 'min(80vw,1280px)' : 'min(70vw,768px)'"
+    :width="commentsDrawer && isUIAllowed('commentList') ? 'min(80vw,1280px)' : 'min(70vw,768px)'"
     class="nc-drawer-expanded-form"
     :size="isMobileMode ? 'medium' : 'small'"
     v-bind="modalProps"

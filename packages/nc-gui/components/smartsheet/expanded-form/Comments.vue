@@ -228,7 +228,7 @@ watch(commentsWrapperEl, () => {
                           placement="bottomRight"
                         >
                           <NcButton class="nc-expand-form-more-actions !w-7 !h-7 !bg-transparent" size="xsmall" type="text">
-                            <GeneralIcon class="text-md" icon="threeDotVertical" />
+                            <GeneralIcon class="text-md !hover:text-brand-500" icon="threeDotVertical" />
                           </NcButton>
                           <template #overlay>
                             <NcMenu>
@@ -242,6 +242,7 @@ watch(commentsWrapperEl, () => {
                                   {{ $t('general.edit') }}
                                 </div>
                               </NcMenuItem>
+                              <NcDivider />
                               <NcMenuItem
                                 v-e="['c:row-expand:comment:delete']"
                                 class="!text-red-500 !hover:bg-red-50"

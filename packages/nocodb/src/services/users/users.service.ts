@@ -485,7 +485,7 @@ export class UsersService {
         html: ejs.render(template, {
           verifyLink:
             (param.req as any).ncSiteUrl +
-            `/email/verify/${user.email_verification_token}`,
+            `/email/validate/${user.email_verification_token}`,
         }),
       });
     } catch (e) {

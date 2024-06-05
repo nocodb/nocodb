@@ -32,6 +32,7 @@ import {
   prepareForResponse,
   stringifyMetaProp,
 } from '~/utils/modelUtils';
+import { LinkToAnotherRecordColumn } from '~/models/index';
 
 const { v4: uuidv4 } = require('uuid');
 
@@ -1213,6 +1214,24 @@ export default class View implements ViewType {
       `${CacheScope.VIEW_ALIAS}:${view.fk_model_id}:${view.title}`,
       `${CacheScope.VIEW_ALIAS}:${view.fk_model_id}:${view.id}`,
     ]);
+
+    // get all Links associated with the view and remove the view from the link
+    const links = await ncMeta.metaList2(
+      view.base_id,
+      null,
+      MetaTable.COL_RELATIONS,
+      {
+        condition: {
+          fk_target_view_id: viewId,
+        },
+      },
+    );
+
+    for (const link of links) {
+      await LinkToAnotherRecordColumn.update(link.id, {
+        fk_target_view_id: null,
+      });
+    }
 
     // on update, delete any optimised single query cache
     await View.clearSingleQueryCache(view.fk_model_id, [view], ncMeta);

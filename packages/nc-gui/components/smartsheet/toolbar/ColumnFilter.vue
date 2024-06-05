@@ -218,10 +218,11 @@ const applyChanges = async (hookOrColId?: string, nested = false, isConditionSup
   }
   if (link.value) {
     if (!hookOrColId) return
-    await sync({ linkColId: hookOrColId, nested })
+    await sync({ linkId: hookOrColId, nested })
   } else {
     await sync({ hookId: hookOrColId, nested })
   }
+
   if (!localNestedFilters.value?.length) return
 
   for (const nestedFilter of localNestedFilters.value) {

@@ -53,7 +53,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       isXcdbBaseFunc(meta.value?.source_id ? meta.value?.source_id : Object.keys(sqlUis.value)[0]),
     )
 
-    let postSaveOrUpdateCbk: ((params: { update?: boolean; colId: string }) => Promise<void>) | undefined
+    let postSaveOrUpdateCbk: ((params: { update?: boolean; colId: string; column?: ColumnType | undefined }) => Promise<void>) | null
 
     const idType = null
 
@@ -62,7 +62,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     const setAdditionalValidations = (validations: ValidationsObj) => {
       additionalValidations.value = { ...additionalValidations.value, ...validations }
     }
-    const setPostSaveOrUpdateCbk = (cbk: (params: { update?: boolean; colId: string; column: ColumnType }) => Promise<void>) => {
+    const setPostSaveOrUpdateCbk = (cbk: typeof postSaveOrUpdateCbk) => {
       postSaveOrUpdateCbk = cbk
     }
 

@@ -282,7 +282,7 @@ export function useViewFilters(
     }
   }
 
-  const sync = async ({ hookId, nested = false }: { hookId?: string; nested?: boolean }) => {
+  const sync = async ({ hookId, linkId, nested = false }: { hookId?: string; nested?: boolean; linkId?: string}) => {
     try {
       for (const [i, filter] of Object.entries(filters.value)) {
         if (filter.status === 'delete') {
@@ -306,8 +306,8 @@ export function useViewFilters(
               children: undefined,
               fk_parent_id: parentId.value,
             })) as unknown as FilterType
-          } else if (linkColId?.value) {
-            filters.value[+i] = (await $api.dbTableLinkFilter.create(linkColId.value, {
+          } else if (linkId || linkColId?.value) {
+            filters.value[+i] = (await $api.dbTableLinkFilter.create(linkId || linkColId.value, {
               ...filter,
               children: undefined,
               fk_parent_id: parentId.value,

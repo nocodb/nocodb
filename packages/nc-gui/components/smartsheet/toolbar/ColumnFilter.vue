@@ -515,7 +515,7 @@ const dynamicColumns = (filter: FilterType) => {
       </div>
     </div>
     <div
-      v-if="filters && filters.length"
+      v-if="visibleFilters && visibleFilters.length"
       ref="wrapperDomRef"
       class="flex flex-col gap-y-1.5 nc-filter-grid w-full"
       :class="{ 'max-h-420px nc-scrollbar-thin nc-filter-top-wrapper pr-4 my-2 py-1': !nested }"
@@ -541,7 +541,7 @@ const dynamicColumns = (filter: FilterType) => {
                   :link-col-id="linkColId"
                 >
                   <template #start>
-                    <span v-if="!i" class="flex items-center nc-filter-where-label ml-1">{{ $t('labels.where') }}</span>
+                    <span v-if="!visibleFilters.indexOf(filter)" class="flex items-center nc-filter-where-label ml-1">{{ $t('labels.where') }}</span>
                     <div v-else :key="`${i}nested`" class="flex nc-filter-logical-op">
                       <NcSelect
                         v-model:value="filter.logical_op"
@@ -588,7 +588,7 @@ const dynamicColumns = (filter: FilterType) => {
           </template>
 
           <div v-else class="flex flex-row gap-x-0 w-full nc-filter-wrapper" :class="`nc-filter-wrapper-${filter.fk_column_id}`">
-            <div v-if="!i" class="flex items-center !min-w-18 !max-w-18 pl-3 nc-filter-where-label">
+            <div v-if="!visibleFilters.indexOf(filter)" class="flex items-center !min-w-18 !max-w-18 pl-3 nc-filter-where-label">
               {{ $t('labels.where') }}
             </div>
 
@@ -867,7 +867,7 @@ const dynamicColumns = (filter: FilterType) => {
       </template>
     </template>
     <div
-      v-if="!filters.length"
+      v-if="!visibleFilters || !visibleFilters.length"
       class="flex flex-row text-gray-400 mt-2"
       :class="{
         'ml-1': nested,

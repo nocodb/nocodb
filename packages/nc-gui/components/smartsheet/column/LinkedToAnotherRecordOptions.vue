@@ -218,6 +218,7 @@ onUnmounted(() => {
       </div>
       <a-form-item v-if="limitRecToView" class="!pl-8 flex w-full pb-2 mt-4 space-y-2 nc-ltar-child-view">
         <NcSelect
+          :placeholder="$t('labels.selectView')"
           v-model:value="vModel.childViewId"
           show-search
           :filter-option="filterOption"

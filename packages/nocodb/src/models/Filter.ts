@@ -621,7 +621,7 @@ export default class Filter implements FilterType {
     return emptyOrNullFilterObjs.length > 0;
   }
 
-  static rootFilterListByLink(
+  static async rootFilterListByLink(
     { columnId }: { columnId: any },
     ncMeta = Noco.ncMeta,
   ) {

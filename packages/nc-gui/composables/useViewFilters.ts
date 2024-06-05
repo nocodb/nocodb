@@ -18,7 +18,7 @@ export function useViewFilters(
   _currentFilters?: Filter[],
   isNestedRoot?: boolean,
   isWebhook?: boolean,
-  isRelation?: boolean,
+  isLink?: boolean,
 ) {
   const parentId = ref(_parentId)
 
@@ -231,9 +231,16 @@ export function useViewFilters(
     allFilters.value.push(...allChildFilters)
   }
 
-  const loadFilters = async (hookId?: string, isWebhook = false, loadAllFilters = false) => {
-    if (isRelation) return
-
+  const loadFilters = async ({
+                               hookId,
+                               linkColId,
+                               isLink,
+                               isWebhook,
+                               loadAllFilters,
+                             }: {
+    hookId?: string, isWebhook?: boolean, loadAllFilters?: boolean;
+    linkColId?: string; isLink?: boolean; loadAllFilters?: boolean
+  }) => {
     if (!view.value?.id) return
 
     if (nestedMode.value) {
@@ -249,28 +256,31 @@ export function useViewFilters(
           filters.value = (await $api.dbTableWebhookFilter.read(hookId)).list as Filter[]
         }
       } else {
-      if (isRelation || hookId) {
-        if (parentId.value) {
-          filters.value = (await $api.dbTableFilter.childrenRead(parentId.value)).list as Filter[]
-        } else if (hookId) {
-          filters.value = (await $api.dbTableWebhookFilter.read(hookId)).list as Filter[]
-        }
-      } else {
-        if (parentId.value) {
-          filters.value = (await $api.dbTableFilter.childrenRead(parentId.value)).list as Filter[]
+        if (isLink || linkColId) {
+          if (parentId) {
+            filters.value = (await $api.dbTableFilter.childrenRead(parentId)).list as Filter[]
+          } else if (linkColId) {
+            filters.value = (await $api.dbTableLinkFilter.read(linkColId)).list as Filter[]
+          }
         } else {
-          filters.value = (await $api.dbTableFilter.read(view.value!.id!)).list as Filter[]
-          if (loadAllFilters) {
-            allFilters.value = [...filters.value]
-            await loadAllChildFilters(allFilters.value)
+        if (parentId.value) {
+          filters.value = (await $api.dbTableFilter.childrenRead(parentId.value)).list as Filter[]
+          } else {
+            filters.value = (await $api.dbTableFilter.read(view.value!.id!)).list as Filter[]
+            if (loadAllFilters) {
+              allFilters.value = [...filters.value]
+              await loadAllChildFilters(allFilters.value)
+            }
           }
         }
       }
-    } catch (e: any) {
-      console.log(e)
-      message.error(await extractSdkResponseErrorMsg(e))
+    catch
+      (e: any)
+      {
+        console.log(e)
+        message.error(await extractSdkResponseErrorMsg(e))
+      }
     }
-  }
 
   const sync = async (hookId?: string, _nested = false) => {
     try {
@@ -292,6 +302,12 @@ export function useViewFilters(
           const children = filters.value[+i]?.children
           if (hookId) {
             filters.value[+i] = (await $api.dbTableWebhookFilter.create(hookId, {
+              ...filter,
+              fk_parent_id: parentId.value,
+            })) as unknown as FilterType
+          }
+          else if (linkColId) {
+            filters.value[+i] = (await $api.dbTableLinkFilter.create(linkColId, {
               ...filter,
               fk_parent_id: parentId.value,
             })) as unknown as FilterType

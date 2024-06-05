@@ -53,12 +53,17 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       isXcdbBaseFunc(meta.value?.source_id ? meta.value?.source_id : Object.keys(sqlUis.value)[0]),
     )
 
+    let postSaveOrUpdateCbk: ((params: { update?: boolean; colId: string }) => Promise<void>) | undefined
+
     const idType = null
 
     const additionalValidations = ref<ValidationsObj>({})
 
     const setAdditionalValidations = (validations: ValidationsObj) => {
       additionalValidations.value = { ...additionalValidations.value, ...validations }
+    }
+    const setPostSaveOrUpdateCbk = (cbk: (params: { update?: boolean; colId: string }) => Promise<void>) => {
+      postSaveOrUpdateCbk = cbk
     }
 
     const formState = ref<Record<string, any>>({
@@ -273,6 +278,8 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
             formState.value.validate = ''
           }
           await $api.dbTableColumn.update(column.value?.id as string, formState.value)
+
+          await postSaveOrUpdateCbk?.({ update: true, colId: column.value?.id })
           // Column updated
           // message.success(t('msg.success.columnUpdated'))
         } else {
@@ -285,11 +292,17 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
             //   };
             // }
           }
-          await $api.dbTableColumn.create(meta.value?.id as string, {
+          const meta = await $api.dbTableColumn.create(meta.value?.id as string, {
             ...formState.value,
             ...columnPosition,
             view_id: activeView.value!.id as string,
           })
+
+          const savedColumn = meta.columns?.find(
+            (c) => c.title === formState.value.title || c.column_name === formState.value.column_name,
+          )
+
+          await postSaveOrUpdateCbk?.({ update: false, colId: savedColumn?.id as string })
 
           /** if LTAR column then force reload related table meta */
           if (isLinksOrLTAR(formState.value) && meta.value?.id !== formState.value.childId) {
@@ -332,6 +345,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       isPg,
       isMysql,
       isXcdbBase,
+      setPostSaveOrUpdateCbk,
       disableSubmitBtn,
     }
   },

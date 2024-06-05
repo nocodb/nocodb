@@ -6998,15 +6998,7 @@ class BaseModelSqlv2 {
       .format(this.isMySQL ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ');
   }
 
-  private async getCustomConditionsAndApply({
-    column,
-    qb,
-    view,
-    filters,
-    args,
-    rowId,
-    refTable,
-  }: {
+  async getCustomConditionsAndApply(_params: {
     view?: View;
     column: Column<any>;
     qb?;
@@ -7014,75 +7006,8 @@ class BaseModelSqlv2 {
     args;
     rowId;
     refTable: Model;
-  }) {
-    const listArgs: any = { ...args };
-
-    try {
-      listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
-    } catch (e) {}
-
-    const customConditions = column.meta?.conditions || [];
-
-    let row: any = null;
-    const refTableColumns = refTable.columns || (await refTable.getColumns());
-
-    if (customConditions?.length) {
-      for (let i = 0; i < customConditions.length; i++) {
-        const condition = customConditions[i] as Filter & {
-          dynamic?: boolean;
-          value_col_id?: string;
-        };
-
-        if (!condition.dynamic) continue;
-
-        // if value follows pattern like '{{ columnName }}' then replace it with row value
-        if (!row) {
-          row = await this.readByPk(
-            rowId,
-            false,
-            {},
-            { ignoreView: true, getHiddenColumn: true },
-          );
-        }
-        const columnName = refTableColumns.find(
-          (c) => c.id === condition.value_col_id,
-        )?.column_name;
-
-        condition.value = row[columnName];
-      }
-    }
-
-    await conditionV2(
-      this,
-      [
-        ...(view
-          ? [
-              new Filter({
-                children:
-                  (await Filter.rootFilterList({ viewId: view.id })) || [],
-                is_group: true,
-              }),
-            ]
-          : []),
-        new Filter({
-          children: filters,
-          is_group: true,
-          logical_op: 'and',
-        }),
-        new Filter({
-          children: customConditions,
-          is_group: true,
-          logical_op: 'and',
-        }),
-        new Filter({
-          children: listArgs.filterArr || [],
-          is_group: true,
-          logical_op: 'and',
-        }),
-      ],
-      qb,
-      undefined,
-    );
+  }):Promise<any> {
+    return;
   }
 }
 

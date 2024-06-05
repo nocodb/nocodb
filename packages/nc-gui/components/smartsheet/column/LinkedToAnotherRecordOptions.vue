@@ -14,6 +14,8 @@ const isEdit = toRef(props, 'isEdit')
 
 const meta = inject(MetaInj, ref())
 
+const filterRef = ref()
+
 const { setAdditionalValidations, validateInfos, onDataTypeChange, sqlUi, isXcdbBase } = useColumnCreateStoreOrThrow()
 
 const baseStore = useBase()
@@ -128,6 +130,8 @@ provide(
   MetaInj,
   computed(() => metas.value[vModel.value.childId] || {}),
 )
+
+
 </script>
 
 <template>
@@ -225,8 +229,9 @@ provide(
           class="!p-0 mt-4"
           :auto-save="false"
           :show-loading="false"
-          :relation="true"
+          :link="true"
           :root-meta="meta"
+          :link-col-id="vModel.id"
         />
       </div>
     </div>

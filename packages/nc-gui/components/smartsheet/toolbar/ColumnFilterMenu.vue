@@ -27,7 +27,11 @@ watch(
   () => activeView?.value?.id,
   async (viewId) => {
     if (viewId) {
-      await loadFilters(undefined, false, true)
+      await loadFilters(undefined, false, true, {
+        hookId: undefined,
+        isWebhook: false,
+        loadAllFilters:true
+      })
       filtersLength.value = nonDeletedFilters.value.length || 0
     }
   },

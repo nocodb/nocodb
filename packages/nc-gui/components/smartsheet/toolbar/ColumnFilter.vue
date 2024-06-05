@@ -10,7 +10,7 @@ interface Props {
   showLoading?: boolean
   modelValue?: undefined | Filter[]
   webHook?: boolean
-  relation?: boolean
+  link?: boolean
   draftFilter?: Partial<FilterType>
   isOpen?: boolean
   rootMeta?: any
@@ -23,7 +23,8 @@ const props = withDefaults(defineProps<Props>(), {
   parentId: undefined,
   hookId: undefined,
   webHook: false,
-  relation: false,
+  link: false,
+  linkColId: undefined,
 })
 
 const emit = defineEmits(['update:filtersLength', 'update:draftFilter', 'update:modelValue'])
@@ -34,7 +35,7 @@ const draftFilter = useVModel(props, 'draftFilter', emit)
 
 const modelValue = useVModel(props, 'modelValue', emit)
 
-const { nestedLevel, parentId, autoSave, hookId, showLoading, webHook, relation } = toRefs(props)
+const { nestedLevel, parentId, autoSave, hookId, showLoading, webHook, link, linkColId } = toRefs(props)
 
 const nested = computed(() => nestedLevel.value > 0)
 
@@ -79,7 +80,7 @@ const {
   modelValue.value || nestedFilters.value,
   !modelValue.value,
   webHook.value,
-  relation.value,
+  link.value,
 )
 
 const { getPlanLimit } = useWorkspace()
@@ -178,8 +179,13 @@ watch(
   () => activeView.value?.id,
   (n, o) => {
     // if nested no need to reload since it will get reloaded from parent
-    if (!nested.value && n !== o && (hookId?.value || !webHook.value) && !relation.value)
-      loadFilters(hookId?.value, webHook.value)
+    if (!nested.value && n !== o && (hookId?.value || !webHook.value) &&  (linkColId?.value || !link.value) && )
+      loadFilters({
+        hookId: hookId?.value,
+        isWebhook: webHook.value,
+        linkColId: linkColId?.value,
+        isLink: link.value,
+      })
   },
 )
 
@@ -209,7 +215,7 @@ const applyChanges = async (hookId?: string, nested = false, isConditionSupporte
     }
   }
 
-  await sync(hookId, nested)
+  await sync({ hookId, nested })
 
   if (!localNestedFilters.value?.length) return
 
@@ -321,7 +327,12 @@ const showFilterInput = (filter: Filter) => {
 }
 
 onMounted(async () => {
-  await Promise.all([loadFilters(hookId?.value, webHook.value), loadBtLookupTypes()])
+  await Promise.all([loadFilters({
+    hookId: hookId?.value,
+    isWebhook: webHook.value,
+    linkColId: linkColId?.value,
+    isLink: link.value,
+  }), loadBtLookupTypes()])
   isMounted.value = true
 })
 
@@ -425,7 +436,7 @@ watch(
                   :parent-id="filter.id"
                   :auto-save="autoSave"
                   :web-hook="webHook"
-                  :relation="relation"
+                  :link="link"
                 >
                   <template #start>
                     <span v-if="!i" class="flex items-center nc-filter-where-label ml-1">{{ $t('labels.where') }}</span>

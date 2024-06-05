@@ -126,6 +126,7 @@ export interface FilterEvent extends NcBaseEvent {
   ip?: string;
   hook?: HookType;
   view?: ViewType;
+  column?: ColumnType;
 }
 
 export interface ColumnEvent extends NcBaseEvent {

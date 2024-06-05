@@ -19103,6 +19103,14 @@
             "$ref": "#/components/schemas/StringOrNull",
             "description": "Foreign Key to View"
           },
+          "fk_val_col_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Foreign Key to View"
+          },
+          "fk_link_col_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Foreign Key to View"
+          },
           "id": {
             "$ref": "#/components/schemas/Id",
             "description": "Unique ID"

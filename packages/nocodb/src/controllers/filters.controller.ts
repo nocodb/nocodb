@@ -76,12 +76,10 @@ export class FiltersController {
     return filter;
   }
 
-  @Post([
-    '/api/v2/meta/links/:columnId/filters',
-  ])
+  @Post(['/api/v2/meta/links/:columnId/filters'])
   @HttpCode(200)
   @Acl('linkFilterCreate')
-  async hookFilterCreate(
+  async linkFilterCreate(
     @Param('columnId') columnId: string,
     @Body() body: FilterReqType,
     @Req() req: Request,
@@ -159,11 +157,9 @@ export class FiltersController {
     );
   }
 
-  @Get([
-    '/api/v2/meta/links/:columnId/filters',
-  ])
+  @Get(['/api/v2/meta/links/:columnId/filters'])
   @Acl('linkFilterList')
-  async hookFilterList(@Param('columnId') columnId: string) {
+  async linkFilterList(@Param('columnId') columnId: string) {
     return new PagedResponseImpl(
       await this.filtersService.linkFilterList({
         columnId: columnId,

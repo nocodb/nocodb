@@ -18,8 +18,8 @@ const down = async (knex: Knex) => {
   });
 
   await knex.schema.alterTable(MetaTable.FILTER_EXP, (table) => {
-    table.dropColumn('fk_link_col_id', 20).index();
-    table.dropColumn('fk_value_col_id', 20).index();
+    table.dropColumn('fk_link_col_id');
+    table.dropColumn('fk_value_col_id');
   });
 };
 

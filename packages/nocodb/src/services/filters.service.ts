@@ -46,7 +46,7 @@ export class FiltersService {
   }) {
     validatePayload('swagger.json#/components/schemas/FilterReq', param.filter);
 
-    const column && !isLinksOrLTARcolumn = await Column.get(param.columnId);
+    const column = await Column.get(param.columnId);
 
     if (!column && !isLinksOrLTAR(column)) {
       NcError.badRequest('Link column not found');

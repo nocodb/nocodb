@@ -27,7 +27,7 @@ const onClick = (uidt: UITypes) => {
 }
 
 const handleAutoScrollOption = () => {
-  const option = document.querySelector('.nc-field-list-option-active')
+  const option = document.querySelector('.nc-column-list-option-active')
 
   if (option) {
     setTimeout(() => {

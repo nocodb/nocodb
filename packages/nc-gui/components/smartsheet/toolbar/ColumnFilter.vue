@@ -234,7 +234,16 @@ const applyChanges = async (hookOrColId?: string, nested = false, isConditionSup
 
 const selectFilterField = (filter: Filter, index: number) => {
   const col = getColumn(filter)
+
   if (!col) return
+
+  // reset dynamic field if the field is changed to virtual column
+  if (isVirtualCol(col)) {
+    resetDynamicField(filter, index).catch(() => {
+      // do nothing
+    })
+  }
+
   // when we change the field,
   // the corresponding default filter operator needs to be changed as well
   // since the existing one may not be supported for the new field
@@ -414,7 +423,7 @@ watch(
   },
 )
 
-const resetDynamicField = async (filter: any, i) => {
+async function resetDynamicField(filter: any, i) {
   filter.dynamic = false
   filter.fk_value_col_id = null
   await saveOrUpdate(filter, i)
@@ -427,7 +436,7 @@ const sqlUi = meta.value?.source_id ? sqlUis.value[meta.value?.source_id] : Obje
 const isDynamicFilterAllowed = (filter: FilterType) => {
   const col = getColumn(filter)
   // if virtual column, don't allow dynamic filter
-  if (isVirtualCol(isDateType(types.value[col.id] as UITypes))) return false
+  if (isVirtualCol(col)) return false
 
   const abstractType = sqlUi.getAbstractType(col)
 
@@ -442,7 +451,7 @@ const dynamicColumns = (filter: FilterType) => {
   if (!filterCol) return []
 
   return props.rootMeta?.columns?.filter((c: ColumnType) => {
-    if (excludedFilterColUidt.includes(c.uidt as UITypes) && !isVirtualCol(c)) {
+    if (excludedFilterColUidt.includes(c.uidt as UITypes) || isVirtualCol(c)) {
       return false
     }
     const dynamicColAbstractType = sqlUi.getAbstractType(c)
@@ -454,7 +463,7 @@ const dynamicColumns = (filter: FilterType) => {
 }
 
 const changeToDynamic = async (filter, i) => {
-  filter.dynamic = isDynamicFilterAllowed(filter) || showFilterInput(filter)
+  filter.dynamic = isDynamicFilterAllowed(filter) && showFilterInput(filter)
   await saveOrUpdate(filter, i)
 }
 </script>
@@ -779,7 +788,7 @@ const changeToDynamic = async (filter, i) => {
                           v-e="['c:row:add:form']"
                           class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer rounded-md hover:bg-gray-100 text-gray-600 nc-new-record-with-form group"
                           :class="
-                            isDynamicFilterAllowed(filter) || showFilterInput(filter) ? 'cursor-pointer' : 'cursor-not-allowed'
+                            isDynamicFilterAllowed(filter) && showFilterInput(filter) ? 'cursor-pointer' : 'cursor-not-allowed'
                           "
                           @click="changeToDynamic(filter, i)"
                         >

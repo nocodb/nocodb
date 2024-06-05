@@ -206,7 +206,12 @@ onUnmounted(() => {
       </template>
 
       <div class="flex gap-2 items-center" :class="{ 'mb-2': limitRecToView, 'mt-4': !isEdit }">
-        <a-switch v-model:checked="limitRecToView" size="small" @change="onLimitRecToViewChange"></a-switch>
+        <a-switch
+          v-model:checked="limitRecToView"
+          size="small"
+          :disabled="!vModel.childId"
+          @change="onLimitRecToViewChange"
+        ></a-switch>
         <span class="text-s" data-testid="nc-limit-record-view" @click="limitRecToView = !limitRecToView"
           >Limit record selection to a view</span
         >
@@ -345,6 +350,9 @@ onUnmounted(() => {
 </template>
 
 <style lang="scss" scoped>
+:deep(.nc-filter-grid) {
+  @apply !pr-0;
+}
 :deep(.nc-ltar-relation-type .ant-radio-group) {
   @apply flex justify-between gap-2 children:(flex-1 m-0 px-2 py-1 border-1 border-gray-200 rounded-lg);
 

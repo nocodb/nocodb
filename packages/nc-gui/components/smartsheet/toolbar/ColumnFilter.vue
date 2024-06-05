@@ -698,11 +698,11 @@ const dynamicColumns = (filter: FilterType) => {
               </template>
             </NcSelect>
             <div class="flex items-center flex-grow">
-              <div v-if="link && (filter.dynamic || filter.fk_value_col_id)">
+              <div v-if="link && (filter.dynamic || filter.fk_value_col_id)" class="flex-grow">
                 <SmartsheetToolbarFieldListAutoCompleteDropdown
-                  :key="`${i}_6`"
+                  v-if="showFilterInput(filter)"
                   v-model="filter.fk_value_col_id"
-                  class="nc-filter-field-select min-w-32 max-w-32 max-h-8"
+                  class="nc-filter-field-select min-w-32 w-full max-h-8"
                   :columns="dynamicColumns(filter)"
                   :meta="rootMeta"
                   @change="saveOrUpdate(filter, i)"
@@ -767,8 +767,10 @@ const dynamicColumns = (filter: FilterType) => {
                         <div
                           v-e="['c:row:add:form']"
                           class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer rounded-md hover:bg-gray-100 text-gray-600 nc-new-record-with-form group"
-                          :class="isDynamicFilterAllowed(filter) ? 'cursor-pointer' : 'cursor-not-allowed'"
-                          @click="filter.dynamic = true"
+                          :class="
+                            isDynamicFilterAllowed(filter) || showFilterInput(filter) ? 'cursor-pointer' : 'cursor-not-allowed'
+                          "
+                          @click="filter.dynamic = isDynamicFilterAllowed(filter) || showFilterInput(filter)"
                         >
                           <div class="flex flex-row items-center justify-between w-full">
                             <div class="flex flex-row items-center justify-start gap-x-2.5">Dynamic condition</div>
@@ -904,7 +906,8 @@ const dynamicColumns = (filter: FilterType) => {
     @apply !border-none;
   }
 
-  & > * > :deep(.ant-select-selector) {
+  & > div > :deep(.ant-select-selector),
+  :deep(.nc-filter-field-select) > div {
     border: none !important;
     box-shadow: none !important;
   }

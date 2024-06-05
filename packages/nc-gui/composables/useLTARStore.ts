@@ -225,7 +225,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
               // fields: [relatedTableDisplayValueProp.value, ...relatedTablePrimaryKeyProps.value],
 
               // todo: include only required fields
-              linkColumnId: column.value.id,
+              linkColumnId: column.value.fk_column_id || column.value.id,
               linkRowData: JSON.stringify(row.value.row),
             } as any,
           )

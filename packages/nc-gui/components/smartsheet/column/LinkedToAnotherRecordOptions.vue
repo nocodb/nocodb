@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ModelTypes, MssqlUi, RelationTypes, SqliteUi, UITypes } from 'nocodb-sdk'
+import { ModelTypes, MssqlUi, RelationTypes, SqliteUi, UITypes, ViewTypes } from 'nocodb-sdk'
 
 const props = defineProps<{
   value: any
@@ -72,26 +72,6 @@ const filterOption = (value: string, option: { key: string }) => option.key.toLo
 
 const isLinks = computed(() => vModel.value.uidt === UITypes.Links && vModel.value.type !== RelationTypes.ONE_TO_ONE)
 
-const referenceTableChildId = computed({
-  get: () => (isEdit.value ? vModel.value?.colOptions?.fk_related_model_id : vModel.value?.childId) ?? null,
-  set: (value) => {
-    if (!isEdit.value && value) {
-      vModel.value.childId = value
-    }
-  },
-})
-
-const linkType = computed({
-  get: () => (isEdit.value ? vModel.value?.colOptions?.type : vModel.value?.type) ?? null,
-  set: (value) => {
-    if (!isEdit.value && value) {
-      vModel.value.type = value
-    }
-  },
-})
-
-const oneToOneEnabled = ref(false)
-
 const { metas, getMeta } = useMetas()
 
 watch(
@@ -148,6 +128,24 @@ onMounted(() => {
 onUnmounted(() => {
   setPostSaveOrUpdateCbk(null)
 })
+
+const referenceTableChildId = computed({
+  get: () => (isEdit.value ? vModel.value?.colOptions?.fk_related_model_id : vModel.value?.childId) ?? null,
+  set: (value) => {
+    if (!isEdit.value && value) {
+      vModel.value.childId = value
+    }
+  },
+})
+
+const linkType = computed({
+  get: () => (isEdit.value ? vModel.value?.colOptions?.type : vModel.value?.type) ?? null,
+  set: (value) => {
+    if (!isEdit.value && value) {
+      vModel.value.type = value
+    }
+  },
+})
 </script>
 
 <template>
@@ -202,9 +200,8 @@ onUnmounted(() => {
           </a-select-option>
         </a-select>
       </a-form-item>
-      </template>
 
-      <div class="w-full flex-col">
+      <div class="w-full flex-col" v-if="isEeUI">
         <div class="flex gap-2 items-center" :class="{ 'mb-2': limitRecToView }">
           <a-switch
             v-model:checked="limitRecToView"

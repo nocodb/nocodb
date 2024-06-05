@@ -58,6 +58,23 @@ const advancedOptions = ref(false)
 
 const mounted = ref(false)
 
+const showDefaultValueInput = ref(false)
+
+const showHoverEffectOnSelectedType = ref(true)
+
+const isVisibleDefaultValueInput = computed({
+  get: () => {
+    if (formState.value.cdf && !showDefaultValueInput.value) {
+      showDefaultValueInput.value = true
+    }
+
+    return formState.value.cdf !== null || showDefaultValueInput.value
+  },
+  set: (value: boolean) => {
+    showDefaultValueInput.value = value
+  },
+})
+
 const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
 
 const onlyNameUpdateOnEditColumns = [
@@ -257,13 +274,6 @@ const submitBtnLabel = computed(() => {
     loadingLabel: `${isEdit.value && !props.columnLabel ? t('general.updating') : t('general.saving')} ${columnLabel.value}`,
   }
 })
-
-const filterOption = (input: string, option: { value: UITypes }) => {
-  return (
-    option.value.toLowerCase().includes(input.toLowerCase()) ||
-    (UITypesName[option.value] && UITypesName[option.value].toLowerCase().includes(input.toLowerCase()))
-  )
-}
 </script>
 
 <template>
@@ -271,12 +281,12 @@ const filterOption = (input: string, option: { value: UITypes }) => {
     class="overflow-auto max-h-[max(80vh,500px)]"
     :class="{
       'bg-white': !props.fromTableExplorer,
-      'w-[400px]': !props.embedMode && formState.uidt !== UITypes.LinkToAnotherRecord && formState.uidt !== UITypes.Links,
+      'w-[384px]': !props.embedMode,
       'min-w-500px': formState.uidt === UITypes.LinkToAnotherRecord || formState.uidt === UITypes.Links,
       '!w-146': isTextArea(formState) && formState.meta?.richMode,
-      'w-[384px]': !props.embedMode,
       '!w-116 overflow-visible': formState.uidt === UITypes.Formula && !props.embedMode,
       '!w-[500px]': formState.uidt === UITypes.Attachment && !props.embedMode && !appInfo.ee,
+      '!w-[600px]': formState.uidt === UITypes.LinkToAnotherRecord || formState.uidt === UITypes.Links,
       'shadow-lg border-1 border-gray-200 shadow-gray-300 rounded-xl p-5': !embedMode,
     }"
     @keydown="handleEscape"
@@ -326,7 +336,6 @@ const filterOption = (input: string, option: { value: UITypes }) => {
             class="nc-column-type-input !rounded-lg"
             :disabled="isKanban || readOnly || (isEdit && !!onlyNameUpdateOnEditColumns.find((col) => col === formState.uidt))"
             dropdown-class-name="nc-dropdown-column-type border-1 !rounded-lg border-gray-200"
-            :filter-option="filterOption"
             @dropdown-visible-change="onDropdownChange"
             @change="onUidtOrIdTypeChange"
             @dblclick="showDeprecated = !showDeprecated"
@@ -564,8 +573,8 @@ const filterOption = (input: string, option: { value: UITypes }) => {
       box-shadow: none;
     }
   }
-  &:not(.ant-radio-wrapper-disabled):not(:hover):not(:focus-within):not(.shadow-selected),
-  &.ant-radio-wrapper-disabled:hover {
+
+  &:not(.ant-radio-wrapper-disabled):not(:hover):not(:focus-within):not(.shadow-selected) {
     box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
   }
 
@@ -579,6 +588,7 @@ const filterOption = (input: string, option: { value: UITypes }) => {
   &:not(.ant-select-disabled):hover.ant-select-disabled .ant-select-selector {
     box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
   }
+
   &:hover:not(.ant-select-focused):not(.ant-select-disabled) .ant-select-selector {
     @apply border-gray-300;
     box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.24);

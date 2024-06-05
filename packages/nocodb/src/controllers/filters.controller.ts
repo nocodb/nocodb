@@ -21,7 +21,7 @@ import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class FiltersController {
-  constructor(private readonly filtersService: FiltersService) {}
+  constructor(protected readonly filtersService: FiltersService) {}
 
   @Get([
     '/api/v1/db/meta/views/:viewId/filters',
@@ -70,23 +70,6 @@ export class FiltersController {
     const filter = await this.filtersService.hookFilterCreate({
       filter: body,
       hookId,
-      user: req.user,
-      req,
-    });
-    return filter;
-  }
-
-  @Post(['/api/v2/meta/links/:columnId/filters'])
-  @HttpCode(200)
-  @Acl('linkFilterCreate')
-  async linkFilterCreate(
-    @Param('columnId') columnId: string,
-    @Body() body: FilterReqType,
-    @Req() req: Request,
-  ) {
-    const filter = await this.filtersService.linkFilterCreate({
-      filter: body,
-      columnId,
       user: req.user,
       req,
     });
@@ -153,16 +136,6 @@ export class FiltersController {
     return new PagedResponseImpl(
       await this.filtersService.hookFilterList({
         hookId: hookId,
-      }),
-    );
-  }
-
-  @Get(['/api/v2/meta/links/:columnId/filters'])
-  @Acl('linkFilterList')
-  async linkFilterList(@Param('columnId') columnId: string) {
-    return new PagedResponseImpl(
-      await this.filtersService.linkFilterList({
-        columnId: columnId,
       }),
     );
   }

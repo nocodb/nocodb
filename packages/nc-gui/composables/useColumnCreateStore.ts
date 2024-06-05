@@ -348,8 +348,8 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       isPg,
       isMysql,
       isXcdbBase,
-      setPostSaveOrUpdateCbk,
       disableSubmitBtn,
+      setPostSaveOrUpdateCbk,
     }
   },
 )

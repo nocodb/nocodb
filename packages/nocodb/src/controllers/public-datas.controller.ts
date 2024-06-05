@@ -99,10 +99,12 @@ export class PublicDatasController {
   ) {
     let rowData: any;
 
-    try {
-      rowData = JSON.parse(req.query.rowData as string);
-    } catch {
-      rowData = {};
+    if (req.query.rowData) {
+      try {
+        rowData = JSON.parse(req.query.rowData as string);
+      } catch {
+        rowData = {};
+      }
     }
 
     const pagedResponse = await this.publicDatasService.relDataList({

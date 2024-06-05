@@ -1,4 +1,5 @@
 import type { BoolType } from 'nocodb-sdk';
+import type Filter from '~/models/Filter';
 import Model from '~/models/Model';
 import Column from '~/models/Column';
 import Noco from '~/Noco';
@@ -6,7 +7,6 @@ import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import { View } from '~/models/index';
-import Filter from '~/models/Filter';
 
 export default class LinkToAnotherRecordColumn {
   id: string;
@@ -138,37 +138,5 @@ export default class LinkToAnotherRecordColumn {
       await NocoCache.set(`${CacheScope.COL_RELATION}:${columnId}`, colData);
     }
     return colData ? new LinkToAnotherRecordColumn(colData) : null;
-  }
-
-  public static async update(
-    columnId: string,
-    updateBody: Partial<LinkToAnotherRecordColumn>,
-    ncMeta = Noco.ncMeta,
-  ) {
-    if (!columnId) return;
-    const updateProps = extractProps(updateBody, ['fk_target_view_id']);
-    const res = await ncMeta.metaUpdate(
-      null,
-      null,
-      MetaTable.COL_RELATIONS,
-      updateProps,
-      { fk_column_id: columnId },
-    );
-
-    await NocoCache.update(
-      `${CacheScope.COL_RELATION}:${columnId}`,
-      updateProps,
-    );
-
-    return res;
-  }
-
-  public async getFilters(ncMeta = Noco.ncMeta) {
-    return (this.filter = (await Filter.getFilterObject(
-      {
-        linkColId: this.fk_column_id,
-      },
-      ncMeta,
-    )) as any);
   }
 }

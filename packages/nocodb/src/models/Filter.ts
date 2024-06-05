@@ -636,25 +636,9 @@ export default class Filter implements FilterType {
   }
 
   static async rootFilterListByLink(
-    { columnId }: { columnId: any },
-    ncMeta = Noco.ncMeta,
+    { columnId: _columnId }: { columnId: any },
+    _ncMeta = Noco.ncMeta,
   ) {
-    const cachedList = await NocoCache.getList(CacheScope.FILTER_EXP, [
-      columnId,
-    ]);
-    let { list: filterObjs } = cachedList;
-    const { isNoneList } = cachedList;
-    if (!isNoneList && !filterObjs.length) {
-      filterObjs = await ncMeta.metaList2(null, null, MetaTable.FILTER_EXP, {
-        condition: { fk_link_col_id: columnId },
-        orderBy: {
-          order: 'asc',
-        },
-      });
-      await NocoCache.setList(CacheScope.FILTER_EXP, [columnId], filterObjs);
-    }
-    return filterObjs
-      ?.filter((f) => !f.fk_parent_id)
-      ?.map((f) => this.castType(f));
+    return [];
   }
 }

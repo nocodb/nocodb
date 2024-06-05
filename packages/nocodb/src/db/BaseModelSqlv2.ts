@@ -151,6 +151,19 @@ export async function getColumnName(column: Column<any>, columns?: Column[]) {
   }
 }
 
+export function replaceDynamicFieldWithValue(
+  _row: any,
+  _rowId,
+  _tableColumns: Column[],
+  _readByPk: typeof BaseModelSqlv2.prototype.readByPk,
+  _queryParams?: Record<string, string>,
+) {
+  const replaceWithValue = async (conditions: Filter[]) => {
+    return conditions;
+  };
+  return replaceWithValue;
+}
+
 /**
  * Base class for models
  *

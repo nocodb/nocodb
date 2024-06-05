@@ -32,7 +32,7 @@ import {
   prepareForResponse,
   stringifyMetaProp,
 } from '~/utils/modelUtils';
-import { LinkToAnotherRecordColumn } from '~/models/index';
+import { LinkToAnotherRecordColumn } from '~/models';
 
 const { v4: uuidv4 } = require('uuid');
 

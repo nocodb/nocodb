@@ -25,7 +25,6 @@ import type CustomKnex from '~/db/CustomKnex';
 import type SqlClient from '~/db/sql-client/lib/SqlClient';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { NcRequest } from '~/interface/config';
-import { Filter } from '~/models';
 import {
   BaseUser,
   CalendarRange,
@@ -311,22 +310,20 @@ export class ColumnsService {
               title: colBody.title,
             });
           }
-
           if (
             'meta' in colBody &&
-<<<<<<< HEAD
-            [
-              UITypes.Links,
-              UITypes.LinkToAnotherRecord,
-              UITypes.CreatedTime,
-              UITypes.LastModifiedTime,
-            ].includes(column.uidt)
-=======
             [UITypes.CreatedTime, UITypes.LastModifiedTime].includes(
               column.uidt,
             )
->>>>>>> 6959df003e (fix: apply conditions only if enabled)
           ) {
+            await Column.updateMeta({
+              colId: param.columnId,
+              meta: colBody.meta,
+            });
+          }
+
+          if (isLinksOrLTAR(column)) {
+            if ('meta' in colBody) {
               await Column.updateMeta({
                 colId: param.columnId,
                 meta: {
@@ -336,9 +333,9 @@ export class ColumnsService {
               });
             }
 
-          if(isLinksOrLTAR(column)) {
             // check alias value present in colBody
-            if ((colBody as any).childViewId === null ||
+            if (
+              (colBody as any).childViewId === null ||
               (colBody as any).childViewId
             ) {
               colBody.colOptions = colBody.colOptions || {};
@@ -353,7 +350,7 @@ export class ColumnsService {
               (colBody as Column<LinkToAnotherRecordColumn>).colOptions
                 .fk_target_view_id === null
             ) {
-              await Column.updateChildView({
+              await Column.updateTargetView({
                 colId: param.columnId,
                 fk_target_view_id: (
                   colBody as Column<LinkToAnotherRecordColumn>

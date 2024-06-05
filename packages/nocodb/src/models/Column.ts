@@ -1252,7 +1252,7 @@ export default class Column<T = any> implements ColumnType {
     );
   }
 
-  static async updateChildView(
+  static async updateTargetView(
     { colId, fk_target_view_id }: { colId: string; fk_target_view_id: string },
     ncMeta = Noco.ncMeta,
   ) {

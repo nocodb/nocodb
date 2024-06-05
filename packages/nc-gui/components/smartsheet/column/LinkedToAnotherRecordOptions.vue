@@ -262,7 +262,7 @@ onUnmounted(() => {
           <LazySmartsheetToolbarColumnFilter
             ref="filterRef"
             v-model="vModel.filters"
-            class="!pl-8 !p-0 mt-4 max-w-620px"
+            class="!pl-8 !p-0 max-w-620px"
             :auto-save="false"
             :show-loading="false"
             :link="true"

@@ -1361,7 +1361,6 @@ class BaseModelSqlv2 {
           }),
         ],
         query,
-        undefined,
       );
 
       return (await this.execAndParse(query, null, { raw: true, first: true }))
@@ -1663,7 +1662,6 @@ class BaseModelSqlv2 {
         }),
       ],
       qb,
-      undefined,
     );
     return (await this.execAndParse(qb, null, { raw: true, first: true }))
       ?.count;

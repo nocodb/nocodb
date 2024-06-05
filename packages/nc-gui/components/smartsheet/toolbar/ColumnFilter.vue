@@ -8,7 +8,7 @@ interface Props {
   autoSave: boolean
   hookId?: string
   showLoading?: boolean
-  modelValue?: undefined | FilterType[] | null
+  modelValue?: FilterType[] | null
   webHook?: boolean
   link?: boolean
   draftFilter?: Partial<FilterType>

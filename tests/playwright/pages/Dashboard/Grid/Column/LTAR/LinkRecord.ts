@@ -46,6 +46,11 @@ export class LinkRecord extends BasePage {
     }
   }
 
+  async verifyCount(count: string) {
+    await this.rootPage.waitForTimeout(100);
+    await expect(this.get().locator('button.nc-list-item-link-unlink-btn')).toHaveCount(parseInt(count));
+  }
+
   async close() {
     await this.get().getByTestId('nc-link-count-info').click();
     await this.rootPage.keyboard.press('Escape');

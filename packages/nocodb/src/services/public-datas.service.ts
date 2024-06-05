@@ -15,6 +15,8 @@ import { getColumnByIdOrName } from '~/helpers/dataHelpers';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { mimeIcons } from '~/utils/mimeTypes';
 import { utf8ify } from '~/helpers/stringHelpers';
+import { replaceDynamicFieldWithValue } from '~/db/BaseModelSqlv2';
+import { Filter } from '~/models';
 
 // todo: move to utils
 export function sanitizeUrlPath(paths) {
@@ -427,6 +429,7 @@ export class PublicDatasService {
     sharedViewUuid: string;
     password?: string;
     columnId: string;
+    rowData: Record<string, any>;
   }) {
     const view = await View.getByUUID(param.sharedViewUuid);
 
@@ -441,6 +444,8 @@ export class PublicDatasService {
     }
 
     const column = await Column.get({ colId: param.columnId });
+    const currentModel = await view.getModel();
+    await currentModel.getColumns();
     const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();
 
     const model = await colOptions.getRelatedTable();
@@ -449,7 +454,7 @@ export class PublicDatasService {
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
-      viewId: view?.id,
+      viewId: colOptions.fk_target_view_id,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
@@ -464,13 +469,30 @@ export class PublicDatasService {
     let count = 0;
 
     try {
+      const customConditions = await replaceDynamicFieldWithValue(
+        param.rowData || {},
+        null,
+        currentModel.columns,
+        baseModel.readByPk,
+      )(
+        (column.meta?.enableConditions
+          ? await Filter.rootFilterListByLink({ columnId: param.columnId })
+          : []) || [],
+      );
+
       data = data = await nocoExecute(
         ast,
-        await baseModel.list(dependencyFields),
+        await baseModel.list({
+          ...dependencyFields,
+          customConditions,
+        }),
         {},
         dependencyFields,
       );
-      count = await baseModel.count(dependencyFields as any);
+      count = await baseModel.count({
+        ...dependencyFields,
+        customConditions,
+      } as any);
     } catch (e) {
       console.log(e);
       NcError.internalServerError('Please check server log for more details');

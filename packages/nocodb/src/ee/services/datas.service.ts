@@ -1,14 +1,18 @@
 import { Injectable, Optional } from '@nestjs/common';
 import { DatasService as DatasServiceCE } from 'src/services/datas.service';
 import { InjectSentry, SentryService } from '@ntegral/nestjs-sentry';
+import { isLinksOrLTAR } from 'nocodb-sdk';
 import type { PathParams } from '~/helpers/dataHelpers';
-import type { View } from '~/models';
+import type { LinkToAnotherRecordColumn } from '~/models';
+import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
+import { View } from '~/models';
 import { getViewAndModelByAliasOrId } from '~/helpers/dataHelpers';
-import { Model, Source } from '~/models';
+import { Column, Filter, Model, Source } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { DataOptService } from '~/services/data-opt/data-opt.service';
 import { isMysqlVersionSupported } from '~/services/data-opt/mysql-helpers';
+import { replaceDynamicFieldWithValue } from '~/db/BaseModelSqlv2';
 
 @Injectable()
 export class DatasService extends DatasServiceCE {
@@ -27,18 +31,72 @@ export class DatasService extends DatasServiceCE {
       limitOverride?: number;
     },
   ) {
-    let { model, view } = param as { view?: View; model?: Model };
+    let { model, view: _view } = param as { view?: View; model?: Model };
 
     if (!model) {
       const modelAndView = await getViewAndModelByAliasOrId(
         param as PathParams,
       );
       model = modelAndView.model;
-      view = modelAndView.view;
+      _view = modelAndView.view;
     }
 
     let responseData;
     const source = await Source.get(model.source_id);
+
+    let view = _view;
+    let customConditions = [];
+    let baseModel: BaseModelSqlv2 = null;
+
+    // check for link list query params
+    if (param.query?.linkColumnId) {
+      baseModel = await Model.getBaseModelSQL({
+        id: model.id,
+        viewId: view?.id,
+        dbDriver: await NcConnectionMgrv2.get(source),
+      });
+
+      const column = await Column.get<LinkToAnotherRecordColumn>({
+        colId: param.query.linkColumnId,
+      });
+
+      const linkModel = await column.getModel();
+
+      if (
+        !column ||
+        !isLinksOrLTAR(column) ||
+        column.colOptions.fk_related_model_id !== model.id
+      ) {
+        NcError.fieldNotFound(param.query?.linkColumnId, {
+          customMessage: `Link column with id ${param.query.linkColumnId} not found`,
+        });
+      }
+
+      if (column.colOptions.fk_target_view_id) {
+        view = await View.get(column.colOptions.fk_target_view_id);
+      }
+
+      const linkConditions = column.meta?.enableConditions
+        ? (await Filter.rootFilterListByLink({ columnId: column.id })) || []
+        : [];
+
+      let rowData = {};
+
+      if (param.query?.linkRowData) {
+        try {
+          rowData = JSON.parse(param.query.linkRowData);
+        } catch {
+          // do nothing
+        }
+      }
+
+      customConditions = await replaceDynamicFieldWithValue(
+        rowData,
+        null,
+        linkModel.columns || (await linkModel.getColumns()),
+        baseModel.readByPk,
+      )(linkConditions);
+    }
 
     if (
       ((['mysql', 'mysql2'].includes(source.type) &&
@@ -54,6 +112,8 @@ export class DatasService extends DatasServiceCE {
         throwErrorIfInvalidParams: true,
         ignorePagination: param.ignorePagination,
         limitOverride: param.limitOverride,
+        baseModel,
+        customConditions,
       });
     } else {
       responseData = await this.getDataList({
@@ -63,6 +123,8 @@ export class DatasService extends DatasServiceCE {
         throwErrorIfInvalidParams: true,
         ignorePagination: param.ignorePagination,
         limitOverride: param.limitOverride,
+        baseModel,
+        customConditions,
       });
     }
 

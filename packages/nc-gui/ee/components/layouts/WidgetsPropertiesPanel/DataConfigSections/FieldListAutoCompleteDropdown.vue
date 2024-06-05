@@ -34,7 +34,7 @@ const filterOption = (input: string, option: any) => option.label.toLowerCase()?
 
 // when a new filter is created, select a field by default
 if (!localValue.value) {
-  localValue.value = (options.value?.[0].value as string) || ''
+  localValue.value = (options.value?.[0]?.value as string) || ''
 }
 </script>
 

@@ -2669,6 +2669,150 @@
           }
         }
       }
+    },
+    "/api/v2/meta/links/{columnId}/filters": {
+      "parameters": [
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "cl_0063k4o1frnxbr"
+          },
+          "name": "columnId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Link Column ID"
+        }
+      ],
+      "get": {
+        "summary": "Get Link Filter",
+        "operationId": "db-table-link-filter-read",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FilterList"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "list": [
+                        {
+                          "source_id": "ds_g4ccx6e77h1dmi",
+                          "comparison_op": "eq",
+                          "comparison_sub_op": null,
+                          "created_at": "2023-03-02 18:18:05",
+                          "fk_column_id": "cl_d7ah9n2qfupgys",
+                          "fk_hook_id": null,
+                          "fk_parent_id": null,
+                          "fk_view_id": "vw_b739e29vqmrxnf",
+                          "id": "fi_xn647tpmdq8fu8",
+                          "is_group": null,
+                          "logical_op": "and",
+                          "order": 1,
+                          "base_id": "p_xm3thidrblw4n7",
+                          "updated_at": "2023-03-02 18:18:05",
+                          "value": "foo"
+                        }
+                      ],
+                      "pageInfo": {
+                        "isFirstPage": true,
+                        "isLastPage": true,
+                        "page": 1,
+                        "pageSize": 10,
+                        "totalRows": 1
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "DB Table Link Filter"
+        ],
+        "description": "Get the filter data in a given Link",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      },
+      "post": {
+        "summary": "Create Link Filter",
+        "operationId": "db-table-link-filter-create",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Filter"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "source_id": "ds_g4ccx6e77h1dmi",
+                      "comparison_op": "eq",
+                      "comparison_sub_op": null,
+                      "created_at": "2023-03-02 18:18:05",
+                      "fk_column_id": "cl_d7ah9n2qfupgys",
+                      "fk_hook_id": null,
+                      "fk_parent_id": null,
+                      "fk_view_id": "vw_b739e29vqmrxnf",
+                      "id": "fi_xn647tpmdq8fu8",
+                      "is_group": null,
+                      "logical_op": "and",
+                      "order": 1,
+                      "base_id": "p_xm3thidrblw4n7",
+                      "updated_at": "2023-03-02 18:18:05",
+                      "value": "foo"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "DB Table Link Filter"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FilterReq"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "comparison_op": "eq",
+                    "comparison_sub_op": null,
+                    "fk_column_id": "cl_d7ah9n2qfupgys",
+                    "is_group": false,
+                    "logical_op": "and",
+                    "value": "foo"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": "Create filter(s) in a given Link",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -3824,6 +3968,10 @@
             "description": "Foreign Key to Column"
           },
           "fk_hook_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Foreign Key to Hook"
+          },
+          "fk_link_col_id": {
             "$ref": "#/components/schemas/StringOrNull",
             "description": "Foreign Key to Hook"
           },

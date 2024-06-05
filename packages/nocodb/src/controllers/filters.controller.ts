@@ -21,7 +21,7 @@ import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class FiltersController {
-  constructor(private readonly filtersService: FiltersService) {}
+  constructor(protected readonly filtersService: FiltersService) {}
 
   @Get([
     '/api/v1/db/meta/views/:viewId/filters',

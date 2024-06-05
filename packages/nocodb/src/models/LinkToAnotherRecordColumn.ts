@@ -1,10 +1,12 @@
 import type { BoolType } from 'nocodb-sdk';
+import type Filter from '~/models/Filter';
 import Model from '~/models/Model';
 import Column from '~/models/Column';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
+import { View } from '~/models/index';
 
 export default class LinkToAnotherRecordColumn {
   id: string;
@@ -15,6 +17,8 @@ export default class LinkToAnotherRecordColumn {
   fk_mm_child_column_id?: string;
   fk_mm_parent_column_id?: string;
   fk_related_model_id?: string;
+
+  fk_target_view_id?: string | null;
 
   dr?: string;
   ur?: string;
@@ -31,6 +35,8 @@ export default class LinkToAnotherRecordColumn {
   mmParentColumn?: Column;
   childColumn?: Column;
   parentColumn?: Column;
+
+  filter?: Filter;
 
   constructor(data: Partial<LinkToAnotherRecordColumn>) {
     Object.assign(this, data);
@@ -99,6 +105,7 @@ export default class LinkToAnotherRecordColumn {
       'fk_mm_model_id',
       'fk_mm_child_column_id',
       'fk_mm_parent_column_id',
+      'fk_target_view_id',
       'ur',
       'dr',
       'fk_index_name',
@@ -107,6 +114,11 @@ export default class LinkToAnotherRecordColumn {
     ]);
     await ncMeta.metaInsert2(null, null, MetaTable.COL_RELATIONS, insertObj);
     return this.read(data.fk_column_id, ncMeta);
+  }
+
+  async getChildView(ncMeta = Noco.ncMeta) {
+    if (!this.fk_target_view_id) return;
+    return await View.get(this.fk_target_view_id, ncMeta);
   }
 
   public static async read(columnId: string, ncMeta = Noco.ncMeta) {
@@ -126,5 +138,12 @@ export default class LinkToAnotherRecordColumn {
       await NocoCache.set(`${CacheScope.COL_RELATION}:${columnId}`, colData);
     }
     return colData ? new LinkToAnotherRecordColumn(colData) : null;
+  }
+
+  static async update(
+    _fk_column_id: string,
+    _param: { fk_target_view_id: string | null },
+  ) {
+    // placeholder method
   }
 }

@@ -360,16 +360,20 @@ export class ToolbarFilterPage extends BasePage {
 
         default:
           fillFilter = async () => {
-            await this.rootPage.locator('.nc-filter-value-select > input').last().clear({ force: true });
-            return this.rootPage.locator('.nc-filter-value-select > input').last().fill(value);
+            await this.get().locator('.nc-filter-value-select > input').last().clear({ force: true });
+            return this.get().locator('.nc-filter-value-select > input').last().fill(value);
           };
-          await this.waitForResponse({
-            uiAction: fillFilter,
-            httpMethodsToMatch: ['GET'],
-            requestUrlPathToMatch: locallySaved ? `/api/v1/db/public/` : `/api/v1/db/data/noco/`,
-          });
-          await this.toolbar.parent.dashboard.waitForLoaderToDisappear();
-          await this.toolbar.parent.waitLoading();
+          if (!skipWaitingResponse) {
+            await this.waitForResponse({
+              uiAction: fillFilter,
+              httpMethodsToMatch: ['GET'],
+              requestUrlPathToMatch: locallySaved ? `/api/v1/db/public/` : `/api/v1/db/data/noco/`,
+            });
+            await this.toolbar.parent.dashboard.waitForLoaderToDisappear();
+            await this.toolbar.parent.waitLoading();
+          } else {
+            await fillFilter();
+          }
           break;
       }
     }

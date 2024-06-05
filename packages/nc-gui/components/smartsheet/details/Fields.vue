@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { diff } from 'deep-object-diff'
 import { message } from 'ant-design-vue'
-import { UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import type { ColumnType, FilterType, SelectOptionsType } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 import { onKeyDown, useMagicKeys } from '@vueuse/core'
-import type { ColumnType, SelectOptionsType } from 'nocodb-sdk'
 
 interface TableExplorerColumn extends ColumnType {
   id?: string
@@ -271,8 +271,21 @@ const duplicateField = async (field: TableExplorerColumn) => {
   duplicateFieldHook.value = fieldPayload as TableExplorerColumn
 }
 
+// Check any filter is changed recursively
+const checkForFilterChange = (filters: (FilterType & { status?: string })[]) => {
+  for (const filter of filters) {
+    if (filter.status) {
+      return true
+    }
+    if (filter.is_group) {
+      if (checkForFilterChange(filter.children || [])) {
+        return true
+      }
+    }
+  }
+}
 // This method is called whenever there is a change in field properties
-const onFieldUpdate = (state: TableExplorerColumn) => {
+const onFieldUpdate = (state: TableExplorerColumn, skipLinkChecks = false) => {
   const col = fields.value.find((col) => compareCols(col, state))
   if (!col) return
 
@@ -317,6 +330,17 @@ const onFieldUpdate = (state: TableExplorerColumn) => {
 
     if (field || (field && moveField)) {
       field.column = state
+    } else if (isLinksOrLTAR(state) && !skipLinkChecks) {
+      if (
+        ['title', 'column_name', 'meta'].some((k) => k in diffs) ||
+        ('childViewId' in diffs && diffs.childViewId !== col.colOptions?.fk_target_view_id) ||
+        checkForFilterChange(diffs.filters || [])
+      ) {
+        ops.value.push({
+          op: 'update',
+          column: state,
+        })
+      }
     } else {
       ops.value.push({
         op: 'update',
@@ -415,21 +439,27 @@ const onMove = (_event: { moved: { newIndex: number; oldIndex: number } }) => {
   }
 
   if (op) {
-    onFieldUpdate({
-      ...op.column,
-      column_order: {
-        order,
-        view_id: view.value?.id as string,
+    onFieldUpdate(
+      {
+        ...op.column,
+        column_order: {
+          order,
+          view_id: view.value?.id as string,
+        },
       },
-    })
+      true,
+    )
   } else {
-    onFieldUpdate({
-      ...field,
-      column_order: {
-        order,
-        view_id: view.value?.id as string,
+    onFieldUpdate(
+      {
+        ...field,
+        column_order: {
+          order,
+          view_id: view.value?.id as string,
+        },
       },
-    })
+      true,
+    )
   }
 }
 
@@ -961,7 +991,7 @@ watch(
                         {{ $t('labels.multiField.deletedField') }}
                       </NcBadge>
                       <NcBadge
-                        v-else-if="fieldStatus(field) === 'add'"
+                        v-else-if="isColumnValid(field) && fieldStatus(field) === 'add'"
                         color="orange"
                         :border="false"
                         class="bg-green-50 text-green-700"

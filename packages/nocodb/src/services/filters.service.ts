@@ -122,4 +122,14 @@ export class FiltersService {
     const filter = await Filter.rootFilterList({ viewId: param.viewId });
     return filter;
   }
+
+  async linkFilterCreate(_param: {
+    filter: any;
+    columnId: string;
+    user: UserType;
+    req: NcRequest;
+  }): Promise<any> {
+    // placeholder method
+    return null;
+  }
 }

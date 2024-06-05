@@ -19,3 +19,4 @@ export { default as DbMux } from './DbMux';
 export { default as Domain } from './Domain';
 export { default as Org } from './Org';
 export { default as OrgUser } from './OrgUser';
+export { default as LinkToAnotherRecordColumn } from './LinkToAnotherRecordColumn';

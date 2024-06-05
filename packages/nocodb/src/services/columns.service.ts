@@ -13,19 +13,28 @@ import {
 } from 'nocodb-sdk';
 import { pluralize, singularize } from 'inflection';
 import hash from 'object-hash';
-import type SqlMgrv2 from '~/db/sql-mgr/v2/SqlMgrv2';
-import type { Base, LinkToAnotherRecordColumn } from '~/models';
 import type {
   ColumnReqType,
   LinkToAnotherColumnReqType,
   LinkToAnotherRecordType,
   UserType,
 } from 'nocodb-sdk';
+import type SqlMgrv2 from '~/db/sql-mgr/v2/SqlMgrv2';
+import type { Base, LinkToAnotherRecordColumn } from '~/models';
 import type CustomKnex from '~/db/CustomKnex';
 import type SqlClient from '~/db/sql-client/lib/SqlClient';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { NcRequest } from '~/interface/config';
-import { CalendarRange } from '~/models';
+import {
+  BaseUser,
+  CalendarRange,
+  Column,
+  FormulaColumn,
+  KanbanView,
+  Model,
+  Source,
+  View,
+} from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
@@ -48,15 +57,6 @@ import {
 } from '~/helpers/getUniqueName';
 import mapDefaultDisplayValue from '~/helpers/mapDefaultDisplayValue';
 import validateParams from '~/helpers/validateParams';
-import {
-  BaseUser,
-  Column,
-  FormulaColumn,
-  KanbanView,
-  Model,
-  Source,
-  View,
-} from '~/models';
 import Noco from '~/Noco';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { MetaTable } from '~/utils/globals';
@@ -234,6 +234,7 @@ export class ColumnsService {
       formula?: string;
       formula_raw?: string;
       parsed_tree?: any;
+      colOptions?: any;
     } & Partial<Pick<ColumnReqType, 'column_order'>>;
 
     if (
@@ -311,11 +312,9 @@ export class ColumnsService {
           }
           if (
             'meta' in colBody &&
-            [
-              UITypes.Links,
-              UITypes.CreatedTime,
-              UITypes.LastModifiedTime,
-            ].includes(column.uidt)
+            [UITypes.CreatedTime, UITypes.LastModifiedTime].includes(
+              column.uidt,
+            )
           ) {
             await Column.updateMeta({
               colId: param.columnId,
@@ -323,6 +322,42 @@ export class ColumnsService {
             });
           }
 
+          if (isLinksOrLTAR(column)) {
+            if ('meta' in colBody) {
+              await Column.updateMeta({
+                colId: param.columnId,
+                meta: {
+                  ...column.meta,
+                  ...colBody.meta,
+                },
+              });
+            }
+
+            // check alias value present in colBody
+            if (
+              (colBody as any).childViewId === null ||
+              (colBody as any).childViewId
+            ) {
+              colBody.colOptions = colBody.colOptions || {};
+              (
+                colBody as Column<LinkToAnotherRecordColumn>
+              ).colOptions.fk_target_view_id = (colBody as any).childViewId;
+            }
+
+            if (
+              (colBody as Column<LinkToAnotherRecordColumn>).colOptions
+                .fk_target_view_id ||
+              (colBody as Column<LinkToAnotherRecordColumn>).colOptions
+                .fk_target_view_id === null
+            ) {
+              await Column.updateTargetView({
+                colId: param.columnId,
+                fk_target_view_id: (
+                  colBody as Column<LinkToAnotherRecordColumn>
+                ).colOptions.fk_target_view_id,
+              });
+            }
+          }
           // handle reorder column for Links and LinkToAnotherRecord
           if (
             [UITypes.Links, UITypes.LinkToAnotherRecord].includes(
@@ -2601,6 +2636,13 @@ export class ColumnsService {
       id: (param.column as LinkToAnotherColumnReqType).childId,
     });
     let childColumn: Column;
+    const childView: View | null = (param.column as LinkToAnotherColumnReqType)
+      ?.childViewId
+      ? await View.getByTitleOrId({
+          fk_model_id: child.id,
+          titleOrId: (param.column as LinkToAnotherColumnReqType).childViewId,
+        })
+      : null;
 
     const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
       ProjectMgrv2.getSqlMgr({
@@ -2702,10 +2744,12 @@ export class ColumnsService {
           });
         }
       }
+
       await createHmAndBtColumn(
         child,
         parent,
         childColumn,
+        childView,
         (param.column as LinkToAnotherColumnReqType).type as RelationTypes,
         (param.column as LinkToAnotherColumnReqType).title,
         foreignKeyName,
@@ -2803,6 +2847,7 @@ export class ColumnsService {
         child,
         parent,
         childColumn,
+        childView,
         (param.column as LinkToAnotherColumnReqType).type as RelationTypes,
         (param.column as LinkToAnotherColumnReqType).title,
         foreignKeyName,
@@ -2912,6 +2957,7 @@ export class ColumnsService {
         childCol,
         null,
         null,
+        null,
         foreignKeyName1,
         (param.column as LinkToAnotherColumnReqType).virtual,
         true,
@@ -2923,6 +2969,7 @@ export class ColumnsService {
         assocModel,
         parent,
         parentCol,
+        null,
         null,
         null,
         foreignKeyName2,
@@ -2947,7 +2994,8 @@ export class ColumnsService {
 
         fk_child_column_id: childPK.id,
         fk_parent_column_id: parentPK.id,
-
+        // Adding view ID here applies the view filter in reverse also
+        fk_target_view_id: null,
         fk_mm_model_id: assocModel.id,
         fk_mm_child_column_id: childCol.id,
         fk_mm_parent_column_id: parentCol.id,
@@ -2973,6 +3021,7 @@ export class ColumnsService {
 
         fk_child_column_id: parentPK.id,
         fk_parent_column_id: childPK.id,
+        fk_target_view_id: childView?.id,
 
         fk_mm_model_id: assocModel.id,
         fk_mm_child_column_id: parentCol.id,
@@ -2980,6 +3029,7 @@ export class ColumnsService {
         fk_related_model_id: child.id,
         virtual: (param.column as LinkToAnotherColumnReqType).virtual,
         meta: {
+          ...(param.column['meta'] || {}),
           plural: param.column['meta']?.plural || pluralize(child.title),
           singular: param.column['meta']?.singular || singularize(child.title),
         },
@@ -3170,13 +3220,15 @@ export class ColumnsService {
 
       if (op.op === 'add') {
         try {
-          await this.columnAdd({
+          const tableMeta = await this.columnAdd({
             tableId,
             column: column as ColumnReqType,
             req,
             user: req.user,
             reuse,
           });
+
+          await this.postColumnAdd(column as ColumnReqType, tableMeta);
         } catch (e) {
           failedOps.push({
             ...op,
@@ -3192,6 +3244,8 @@ export class ColumnsService {
             user: req.user,
             reuse,
           });
+
+          await this.postColumnUpdate(column as ColumnReqType);
         } catch (e) {
           failedOps.push({
             ...op,
@@ -3217,5 +3271,13 @@ export class ColumnsService {
     return {
       failedOps,
     };
+  }
+
+  protected async postColumnAdd(_columnBody: ColumnReqType, _tableMeta: Model) {
+    // placeholder for post column add hook
+  }
+
+  protected async postColumnUpdate(_columnBody: ColumnReqType) {
+    // placeholder for post column update hook
   }
 }

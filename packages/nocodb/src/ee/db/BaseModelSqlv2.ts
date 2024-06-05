@@ -46,6 +46,64 @@ import { runExternal } from '~/helpers/muxHelpers';
 
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 
+export function replaceDynamicFieldWithValue(
+  row: any,
+  rowId,
+  tableColumns: Column[],
+  readByPk: typeof BaseModelSqlv2.prototype.readByPk,
+  queryParams?: Record<string, string>,
+) {
+  const replaceWithValue = async (conditions: Filter[]) => {
+    const filters: Filter[] = [];
+
+    for (let i = 0; i < conditions.length; i++) {
+      if (conditions[i].is_group) {
+        const children = await replaceWithValue(conditions[i].children);
+        filters.push({
+          ...conditions[i],
+          children,
+        } as Filter);
+        continue;
+      } else if (!conditions[i].fk_value_col_id) {
+        filters.push(conditions[i]);
+        continue;
+      }
+
+      const condition = { ...conditions[i] } as Filter;
+
+      // if value follows pattern like '{{ columnName }}' then replace it with row value
+      if (!row) {
+        row = await readByPk(
+          rowId,
+          false,
+          {},
+          { ignoreView: true, getHiddenColumn: true },
+        );
+
+        // if linkRowData is passed over queryParams, then override props from the row
+        if (queryParams?.linkRowData) {
+          try {
+            const rowDataFromReq = JSON.parse(queryParams.linkRowData);
+            if (rowDataFromReq && typeof rowDataFromReq === 'object')
+              Object.assign(row, rowDataFromReq);
+          } catch {
+            // do nothing
+          }
+        }
+      }
+      const columnName = tableColumns.find(
+        (c) => c.id === condition.fk_value_col_id,
+      )?.title;
+
+      condition.value = row[columnName] ?? null;
+      filters.push(condition);
+    }
+
+    return filters;
+  };
+  return replaceWithValue;
+}
+
 /**
  * Base class for models
  *
@@ -1749,6 +1807,78 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     if (ignoreWebhook === undefined || ignoreWebhook === 'false') {
       await this.handleHooks('after.update', prevData, newData, req);
     }
+  }
+
+  async getCustomConditionsAndApply({
+    column,
+    qb,
+    view,
+    filters,
+    args,
+    rowId,
+    columns,
+  }: {
+    view?: View;
+    column: Column<any>;
+    qb?;
+    filters?;
+    args;
+    rowId;
+    columns?: Column[];
+  }): Promise<any> {
+    const listArgs: any = { ...args };
+
+    try {
+      listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
+    } catch (e) {}
+
+    const customConditions = column.meta?.enableConditions
+      ? (await Filter.rootFilterListByLink({ columnId: column.id })) || []
+      : [];
+
+    const row: any = null;
+    const tableColumns =
+      columns || this.model.columns || (await this.model.getColumns());
+
+    const replaceWithValue = replaceDynamicFieldWithValue(
+      row,
+      rowId,
+      tableColumns,
+      this.readByPk,
+      args,
+    );
+
+    await conditionV2(
+      this,
+      [
+        ...(view
+          ? [
+              new Filter({
+                children:
+                  (await Filter.rootFilterList({ viewId: view.id })) || [],
+                is_group: true,
+              }),
+            ]
+          : []),
+        new Filter({
+          children: filters,
+          is_group: true,
+          logical_op: 'and',
+        }),
+        new Filter({
+          children: await replaceWithValue(customConditions),
+          is_group: true,
+          logical_op: 'and',
+        }),
+        new Filter({
+          children: listArgs.filterArr || [],
+          is_group: true,
+          logical_op: 'and',
+        }),
+      ],
+      qb,
+      undefined,
+    );
   }
 }
 

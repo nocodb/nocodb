@@ -1071,6 +1071,8 @@ export async function singleQueryList(ctx: {
   validateFormula?: boolean;
   ignorePagination?: boolean;
   limitOverride?: number;
+  baseModel?: BaseModelSqlv2;
+  customConditions?: Filter[];
 }): Promise<PagedResponseImpl<Record<string, any>>> {
   const excludeCount = ctx.params?.excludeCount;
 
@@ -1088,11 +1090,13 @@ export async function singleQueryList(ctx: {
   // get knex connection
   const knex = await NcConnectionMgrv2.get(ctx.source);
 
-  const baseModel = await Model.getBaseModelSQL({
-    id: ctx.model.id,
-    viewId: ctx.view?.id,
-    dbDriver: knex,
-  });
+  const baseModel =
+    ctx.baseModel ||
+    (await Model.getBaseModelSQL({
+      id: ctx.model.id,
+      viewId: ctx.view?.id,
+      dbDriver: knex,
+    }));
 
   const cacheKey = `${CacheScope.SINGLE_QUERY}:${ctx.model.id}:${
     ctx.view?.id ?? 'default'
@@ -1225,6 +1229,14 @@ export async function singleQueryList(ctx: {
               (await Filter.rootFilterList({
                 viewId: ctx.view.id,
               })) || [],
+            is_group: true,
+          }),
+        ]
+      : []),
+    ...(ctx.customConditions
+      ? [
+          new Filter({
+            children: ctx.customConditions,
             is_group: true,
           }),
         ]

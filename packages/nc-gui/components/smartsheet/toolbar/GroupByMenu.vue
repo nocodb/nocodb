@@ -203,6 +203,7 @@ eventBus.on(async (event, column) => {
               class="caption nc-sort-field-select w-44 flex flex-grow"
               :columns="fieldsToGroupBy"
               :allow-empty="true"
+              :meta="meta"
               @change="saveGroupBy"
               @click.stop
             />

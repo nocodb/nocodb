@@ -1,7 +1,10 @@
+import type { Filter } from '~/models';
+
 export function shouldSkipCache(
   ctx: {
     params: any;
     validateFormula?: boolean;
+    customConditions?: Filter[];
   },
   isList = true,
 ) {
@@ -24,6 +27,7 @@ export function shouldSkipCache(
   return (
     process.env.NC_DISABLE_CACHE === 'true' ||
     ctx.validateFormula ||
-    queryParamKeys.some((key) => key in ctx.params)
+    queryParamKeys.some((key) => key in ctx.params) ||
+    ctx.customConditions?.length
   );
 }

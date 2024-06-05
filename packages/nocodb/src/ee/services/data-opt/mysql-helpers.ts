@@ -1080,6 +1080,8 @@ export async function singleQueryList(ctx: {
   validateFormula?: boolean;
   ignorePagination?: boolean;
   limitOverride?: number;
+  baseModel?: BaseModelSqlv2;
+  customConditions?: Filter[];
 }): Promise<PagedResponseImpl<Record<string, any>>> {
   if (!['mysql', 'mysql2'].includes(ctx.source.type)) {
     throw new Error('Source is not mysql');
@@ -1101,11 +1103,13 @@ export async function singleQueryList(ctx: {
   await ctx.model.getColumns();
   let dbQueryTime;
 
-  const baseModel = await Model.getBaseModelSQL({
-    model: ctx.model,
-    viewId: ctx.view?.id,
-    dbDriver: knex,
-  });
+  const baseModel =
+    ctx.baseModel ||
+    (await Model.getBaseModelSQL({
+      model: ctx.model,
+      viewId: ctx.view?.id,
+      dbDriver: knex,
+    }));
   if (!skipCache) {
     const cachedQuery = await NocoCache.get(cacheKey, CacheGetType.TYPE_STRING);
     if (cachedQuery) {
@@ -1166,6 +1170,14 @@ export async function singleQueryList(ctx: {
               (await Filter.rootFilterList({
                 viewId: ctx.view.id,
               })) || [],
+            is_group: true,
+          }),
+        ]
+      : []),
+    ...(ctx.customConditions
+      ? [
+          new Filter({
+            children: ctx.customConditions,
             is_group: true,
           }),
         ]

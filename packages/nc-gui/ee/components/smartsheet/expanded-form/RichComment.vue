@@ -6,10 +6,8 @@ import { marked } from 'marked'
 import { generateJSON } from '@tiptap/html'
 import Underline from '@tiptap/extension-underline'
 import Placeholder from '@tiptap/extension-placeholder'
-import TaskList from '@tiptap/extension-task-list'
 import { Mention } from '~/helpers/tiptapExtensions/mention'
 import suggestion from '~/helpers/tiptapExtensions/mention/suggestion.ts'
-import { TaskItem } from '~/helpers/dbTiptapExtensions/task-item'
 import { Link } from '~/helpers/dbTiptapExtensions/links'
 
 const props = withDefaults(

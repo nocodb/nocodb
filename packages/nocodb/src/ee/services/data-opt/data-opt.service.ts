@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import type { Model, Source, View } from '~/models';
 import type { PagedResponseImpl } from '~/helpers/PagedResponse';
+import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
+import type { Filter } from '~/models';
 import {
   singleQueryList,
   singleQueryRead,
@@ -22,6 +24,8 @@ export class DataOptService {
     validateFormula?: boolean;
     ignorePagination?: boolean;
     limitOverride?: number;
+    baseModel?: BaseModelSqlv2;
+    customConditions?: Filter[];
   }): Promise<PagedResponseImpl<Record<string, any>>> {
     const params = { ...(ctx.params || {}) };
 

@@ -697,7 +697,7 @@ const dynamicColumns = (filter: FilterType) => {
                 </a-select-option>
               </template>
             </NcSelect>
-            <div class="flex items-center">
+            <div class="flex items-center flex-grow">
               <div v-if="link && (filter.dynamic || filter.fk_value_col_id)">
                 <SmartsheetToolbarFieldListAutoCompleteDropdown
                   :key="`${i}_6`"

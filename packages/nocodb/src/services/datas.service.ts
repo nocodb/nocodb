@@ -5,9 +5,11 @@ import papaparse from 'papaparse';
 import { nocoExecute } from 'nc-help';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { PathParams } from '~/helpers/dataHelpers';
-import { getDbRows, getViewAndModelByAliasOrId } from '~/helpers/dataHelpers';
 import { Base, Column, Filter, Model, Source, View } from '~/models';
-import type { LinkToAnotherRecordColumn } from '~/models';
+import type { PathParams } from '~/modules/datas/helpers';
+import type { Filter, LinkToAnotherRecordColumn } from '~/models';
+import { getDbRows, getViewAndModelByAliasOrId } from '~/modules/datas/helpers';
+import { Base, Column, Model, Source, View } from '~/models';
 import { NcBaseError, NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
@@ -155,10 +157,11 @@ export class DatasService {
     ignoreViewFilterAndSort?: boolean;
     ignorePagination?: boolean;
     limitOverride?: number;
+    customConditions?: Filter[];
   }) {
     const {
       model,
-      view: _view,
+      view: view,
       query = {},
       ignoreViewFilterAndSort = false,
     } = param;
@@ -176,7 +179,7 @@ export class DatasService {
     const { ast, dependencyFields } = await getAst({
       model,
       query,
-      view,
+      view: view,
       throwErrorIfInvalidParams: param.throwErrorIfInvalidParams,
     });
 
@@ -187,10 +190,6 @@ export class DatasService {
     try {
       listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
     } catch (e) {}
-
-    if(listArgs.filterArr?.length && customConditions?.length){
-      listArgs.filterArr = listArgs.filterArr.concat(customConditions);
-    }
 
     const [count, data] = await Promise.all([
       baseModel.count(listArgs, false, param.throwErrorIfInvalidParams),

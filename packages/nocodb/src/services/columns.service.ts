@@ -2589,10 +2589,7 @@ export class ColumnsService {
     reuse?: ReusableParams;
     colExtra?: any;
   }) {
-    validateParams(
-      ['parentId', 'childId', 'childViewId', 'type'],
-      param.column,
-    );
+    validateParams(['parentId', 'childId', 'type'], param.column);
 
     const reuse = param.reuse ?? {};
 
@@ -2604,10 +2601,13 @@ export class ColumnsService {
       id: (param.column as LinkToAnotherColumnReqType).childId,
     });
     let childColumn: Column;
-    const childView: View | null = await View.getByTitleOrId({
-      fk_model_id: child.id,
-      titleOrId: (param.column as LinkToAnotherColumnReqType).childViewId,
-    });
+    const childView: View | null = (param.column as LinkToAnotherColumnReqType)
+      ?.childViewId
+      ? await View.getByTitleOrId({
+          fk_model_id: child.id,
+          titleOrId: (param.column as LinkToAnotherColumnReqType).childViewId,
+        })
+      : null;
 
     const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
       ProjectMgrv2.getSqlMgr({

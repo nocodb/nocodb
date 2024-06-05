@@ -144,6 +144,7 @@ onMounted(() => {
               class="flex caption nc-sort-field-select w-44 flex-grow"
               :columns="columns"
               is-sort
+              :meta="meta"
               @click.stop
               @update:model-value="saveOrUpdate(sort, i)"
             />

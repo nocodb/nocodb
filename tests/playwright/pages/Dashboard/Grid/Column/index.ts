@@ -5,12 +5,14 @@ import { SelectOptionColumnPageObject } from './SelectOptionColumn';
 import { AttachmentColumnPageObject } from './Attachment';
 import { getTextExcludeIconText } from '../../../../tests/utils/general';
 import { UserOptionColumnPageObject } from './UserOptionColumn';
+import { LTAROptionColumnPageObject } from './LTAROptionColumn';
 
 export class ColumnPageObject extends BasePage {
   readonly grid: GridPage;
   readonly selectOption: SelectOptionColumnPageObject;
   readonly attachmentColumnPageObject: AttachmentColumnPageObject;
   readonly userOption: UserOptionColumnPageObject;
+  readonly ltarOption: LTAROptionColumnPageObject;
 
   constructor(grid: GridPage) {
     super(grid.rootPage);
@@ -18,6 +20,7 @@ export class ColumnPageObject extends BasePage {
     this.selectOption = new SelectOptionColumnPageObject(this);
     this.attachmentColumnPageObject = new AttachmentColumnPageObject(this);
     this.userOption = new UserOptionColumnPageObject(this);
+    this.ltarOption = new LTAROptionColumnPageObject(this);
   }
 
   get() {
@@ -69,6 +72,8 @@ export class ColumnPageObject extends BasePage {
     insertAfterColumnTitle,
     insertBeforeColumnTitle,
     isDisplayValue = false,
+    ltarFilters,
+    ltarView,
   }: {
     title: string;
     type?: string;
@@ -86,6 +91,8 @@ export class ColumnPageObject extends BasePage {
     insertBeforeColumnTitle?: string;
     insertAfterColumnTitle?: string;
     isDisplayValue?: boolean;
+    ltarFilters?: any[];
+    ltarView?: string;
   }) {
     if (insertBeforeColumnTitle) {
       await this.grid.get().locator(`th[data-title="${insertBeforeColumnTitle}"] .nc-ui-dt-dropdown`).click();
@@ -187,6 +194,9 @@ export class ColumnPageObject extends BasePage {
           .click();
         break;
       case 'Links':
+        // kludge, fix me
+        await this.rootPage.waitForTimeout(2000);
+
         await this.get().locator('.nc-ltar-relation-type').getByTestId(relationType).click();
         await this.get().locator('.ant-select-single').nth(1).click();
         await this.rootPage.locator(`.nc-ltar-child-table >> input[type="search"]`).fill(childTable);
@@ -196,6 +206,15 @@ export class ColumnPageObject extends BasePage {
           })
           .nth(0)
           .click();
+
+        if (ltarView) {
+          await this.ltarOption.selectView({ ltarView: ltarView });
+        }
+
+        if (ltarFilters) {
+          await this.ltarOption.addFilters(ltarFilters);
+        }
+
         break;
       case 'User':
         break;

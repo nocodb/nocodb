@@ -392,8 +392,7 @@ const onFilterChange = () => {
 
           <p v-if="childrenExcludedListPagination.query">{{ $t('msg.noRecordsMatchYourSearchQuery') }}</p>
           <p v-else>
-            {{ $t('msg.thereAreNoRecordsInTable') }}
-            {{ relatedTableMeta?.title }}
+            {{ $t('msg.noRecordsAvailForLinking') }}
           </p>
         </div>
       </div>

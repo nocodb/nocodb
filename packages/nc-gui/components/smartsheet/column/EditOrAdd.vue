@@ -192,15 +192,20 @@ onMounted(() => {
       ...formState.value,
       ...others,
     }
+
     if (colOptions) {
+      const meta = formState.value.meta || {}
       onUidtOrIdTypeChange()
       formState.value = {
         ...formState.value,
         colOptions: {
           ...colOptions,
         },
+        meta,
       }
     }
+  } else {
+    formState.value.filters = undefined
   }
 
   // for cases like formula
@@ -269,21 +274,16 @@ const submitBtnLabel = computed(() => {
     loadingLabel: `${isEdit.value && !props.columnLabel ? t('general.updating') : t('general.saving')} ${columnLabel.value}`,
   }
 })
-
-const filterOption = (input: string, option: { value: UITypes }) => {
-  return (
-    option.value.toLowerCase().includes(input.toLowerCase()) ||
-    (UITypesName[option.value] && UITypesName[option.value].toLowerCase().includes(input.toLowerCase()))
-  )
-}
 </script>
 
 <template>
   <div
-    class="overflow-auto"
+    class="overflow-auto max-h-[max(80vh,500px)]"
     :class="{
       'bg-white': !props.fromTableExplorer,
       'w-[384px]': !props.embedMode,
+      'min-w-500px': formState.uidt === UITypes.LinkToAnotherRecord || formState.uidt === UITypes.Links,
+      '!w-146': isTextArea(formState) && formState.meta?.richMode,
       '!w-116 overflow-visible': formState.uidt === UITypes.Formula && !props.embedMode,
       '!w-[500px]': formState.uidt === UITypes.Attachment && !props.embedMode && !appInfo.ee,
       '!w-[600px]': formState.uidt === UITypes.LinkToAnotherRecord || formState.uidt === UITypes.Links,
@@ -336,7 +336,6 @@ const filterOption = (input: string, option: { value: UITypes }) => {
             class="nc-column-type-input !rounded-lg"
             :disabled="isKanban || readOnly || (isEdit && !!onlyNameUpdateOnEditColumns.find((col) => col === formState.uidt))"
             dropdown-class-name="nc-dropdown-column-type border-1 !rounded-lg border-gray-200"
-            :filter-option="filterOption"
             @dropdown-visible-change="onDropdownChange"
             @change="onUidtOrIdTypeChange"
             @dblclick="showDeprecated = !showDeprecated"
@@ -539,6 +538,7 @@ const filterOption = (input: string, option: { value: UITypes }) => {
   &:not(:hover):not(:focus) {
     box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
   }
+
   &:hover:not(:focus) {
     @apply border-gray-300;
     box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.24);
@@ -552,6 +552,7 @@ const filterOption = (input: string, option: { value: UITypes }) => {
   &:not(:hover):not(:focus-within):not(.shadow-selected) {
     box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
   }
+
   &:hover:not(:focus-within):not(.shadow-selected) {
     box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.24);
   }
@@ -572,9 +573,11 @@ const filterOption = (input: string, option: { value: UITypes }) => {
       box-shadow: none;
     }
   }
+
   &:not(.ant-radio-wrapper-disabled):not(:hover):not(:focus-within):not(.shadow-selected) {
     box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
   }
+
   &:hover:not(:focus-within):not(.ant-radio-wrapper-disabled) {
     box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.24);
   }
@@ -585,6 +588,7 @@ const filterOption = (input: string, option: { value: UITypes }) => {
   &:not(.ant-select-disabled):hover.ant-select-disabled .ant-select-selector {
     box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
   }
+
   &:hover:not(.ant-select-focused):not(.ant-select-disabled) .ant-select-selector {
     @apply border-gray-300;
     box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.24);
@@ -636,6 +640,7 @@ const filterOption = (input: string, option: { value: UITypes }) => {
   .ant-alert-message {
     @apply text-sm text-gray-800 font-weight-600;
   }
+
   .ant-alert-description {
     @apply text-small text-gray-500 font-weight-500;
   }
@@ -651,6 +656,7 @@ const filterOption = (input: string, option: { value: UITypes }) => {
 :deep(textarea::placeholder) {
   @apply text-gray-500;
 }
+
 .nc-column-options-wrapper {
   &:empty {
     @apply hidden;

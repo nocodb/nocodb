@@ -58,6 +58,9 @@ test.describe('Shared view', () => {
     });
     await dashboard.grid.toolbar.clickFilter();
 
+    // kludge: wait for 2 seconds to avoid flaky test
+    await page.waitForTimeout(2000);
+
     await page.goto(sharedLink);
     await page.reload();
 
@@ -84,6 +87,9 @@ test.describe('Shared view', () => {
 
     await dashboard.grid.toolbar.filter.reset();
 
+    // kludge: wait for 2 seconds to avoid flaky test
+    await page.waitForTimeout(2000);
+
     await page.goto(sharedLink);
     await page.reload();
 
@@ -103,6 +109,9 @@ test.describe('Shared view', () => {
     await dashboard.treeView.openTable({ title: 'Film' });
 
     await dashboard.grid.toolbar.groupBy.remove({ index: 0 });
+
+    // kludge: wait for 2 seconds to avoid flaky test
+    await page.waitForTimeout(2000);
 
     await page.goto(sharedLink);
     await page.reload();

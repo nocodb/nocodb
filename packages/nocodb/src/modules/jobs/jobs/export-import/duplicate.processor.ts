@@ -277,7 +277,7 @@ export class DuplicateProcessor {
 
     const exportedModel = (
       await this.exportService.serializeModels({
-        modelIds: [sourceModel.id],
+        modelIds: [sourceModel.id, ...relatedModelIds],
         excludeData,
         excludeHooks: true,
         excludeViews: true,

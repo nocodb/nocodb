@@ -29,6 +29,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     const { $api, $e } = useNuxtApp()
 
     const activeView = inject(ActiveViewInj, ref())
+    const isForm = inject(IsFormInj, ref(false))
 
     const { addUndo, clone, defineViewScope } = useUndoRedo()
 
@@ -182,6 +183,13 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
           const route = router.currentRoute
 
+          let row
+          // if shared form extract the current form state
+          if (isForm.value) {
+            const { formState } = useSharedFormStoreOrThrow()
+            row = formState?.value
+          }
+
           childrenExcludedList.value = await $api.public.dataRelationList(
             route.value.params.viewId as string,
             column.value.id,
@@ -197,6 +205,9 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
                   childrenExcludedListPagination.query &&
                   `(${relatedTableDisplayValueProp.value},like,${childrenExcludedListPagination.query})`,
                 fields: [relatedTableDisplayValueProp.value, ...relatedTablePrimaryKeyProps.value],
+
+                // todo: include only required fields
+                rowData: JSON.stringify(row),
               } as RequestParams,
             },
           )
@@ -214,9 +225,24 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
                 childrenExcludedListPagination.query &&
                 `(${relatedTableDisplayValueProp.value},like,${childrenExcludedListPagination.query})`,
               // fields: [relatedTableDisplayValueProp.value, ...relatedTablePrimaryKeyProps.value],
+
+              // todo: include only required fields
+              linkColumnId: column.value.fk_column_id || column.value.id,
+              linkRowData: JSON.stringify(row.value.row),
             } as any,
           )
         } else {
+          // extract changed data and include with the api call if any
+          let changedRowData
+          try {
+            if (row.value?.row) {
+              changedRowData = Object.keys(row.value?.row).reduce((acc: Record<string, any>, key: string) => {
+                if (row.value.row[key] !== row.value.oldRow[key]) acc[key] = row.value.row[key]
+                return acc
+              }, {})
+            }
+          } catch {}
+
           childrenExcludedList.value = await $api.dbTableRow.nestedChildrenExcludedList(
             NOCO,
             baseId,
@@ -231,6 +257,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
               where:
                 childrenExcludedListPagination.query &&
                 `(${relatedTableDisplayValueProp.value},like,${childrenExcludedListPagination.query})`,
+              linkRowData: changedRowData ? JSON.stringify(changedRowData) : undefined,
             } as any,
           )
         }

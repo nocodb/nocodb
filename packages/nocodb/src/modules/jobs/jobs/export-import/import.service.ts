@@ -13,6 +13,7 @@ import type { UserType, ViewCreateReqType } from 'nocodb-sdk';
 import type { Readable } from 'stream';
 import type {
   CalendarView,
+  LinksColumn,
   LinkToAnotherRecordColumn,
   User,
   View,
@@ -119,6 +120,7 @@ export class ImportService {
         );
 
         await model.getColumns();
+        await model.getViews();
 
         const primaryKey = model.primaryKey;
         if (primaryKey) {
@@ -132,6 +134,13 @@ export class ImportService {
           externalIdMap.set(
             `${model.base_id}::${model.source_id}::${model.id}::${col.id}`,
             col.id,
+          );
+        }
+
+        for (const view of model.views) {
+          externalIdMap.set(
+            `${model.base_id}::${model.source_id}::${model.id}::${view.id}`,
+            view.id,
           );
         }
       }
@@ -229,6 +238,8 @@ export class ImportService {
 
     const referencedColumnSet = [];
 
+    const ltarFilterCreateCbks: (() => Promise<any>)[] = [];
+
     // create LTAR columns
     for (const data of param.data) {
       const modelData = data.model;
@@ -245,7 +256,7 @@ export class ImportService {
 
       for (const col of linkedColumnSet) {
         if (col.colOptions) {
-          const colOptions = col.colOptions;
+          const colOptions = col.colOptions as LinksColumn;
           if (idMap.has(colOptions.fk_related_model_id)) {
             if (colOptions.type === 'mm') {
               if (!linkMap.has(colOptions.fk_mm_model_id)) {
@@ -267,6 +278,9 @@ export class ImportService {
                       virtual: colOptions.virtual,
                       ur: colOptions.ur,
                       dr: colOptions.dr,
+                      childViewId:
+                        colOptions.fk_target_view_id &&
+                        getIdOrExternalId(colOptions.fk_target_view_id),
                     },
                   }),
                   req: param.req,
@@ -367,6 +381,9 @@ export class ImportService {
                     virtual: colOptions.virtual,
                     ur: colOptions.ur,
                     dr: colOptions.dr,
+                    childViewId:
+                      colOptions.fk_target_view_id &&
+                      getIdOrExternalId(colOptions.fk_target_view_id),
                   },
                 }),
                 req: param.req,
@@ -505,6 +522,9 @@ export class ImportService {
                       virtual: colOptions.virtual,
                       ur: colOptions.ur,
                       dr: colOptions.dr,
+                      childViewId:
+                        colOptions.fk_target_view_id &&
+                        getIdOrExternalId(colOptions.fk_target_view_id),
                     },
                   }) as any,
                   req: param.req,
@@ -628,6 +648,9 @@ export class ImportService {
                       virtual: colOptions.virtual,
                       ur: colOptions.ur,
                       dr: colOptions.dr,
+                      childViewId:
+                        colOptions.fk_target_view_id &&
+                        getIdOrExternalId(colOptions.fk_target_view_id),
                     },
                   }) as any,
                   req: param.req,
@@ -798,6 +821,9 @@ export class ImportService {
                       virtual: colOptions.virtual,
                       ur: colOptions.ur,
                       dr: colOptions.dr,
+                      childViewId:
+                        colOptions.fk_target_view_id &&
+                        getIdOrExternalId(colOptions.fk_target_view_id),
                     },
                   }) as any,
                   req: param.req,
@@ -942,6 +968,32 @@ export class ImportService {
                 }
               }
             }
+          }
+
+          // filter creation for LTAR columns
+          if (colOptions.filter?.children?.length) {
+            ltarFilterCreateCbks.push(async () => {
+              // create filters
+              const filters = colOptions.filter?.children;
+
+              for (const fl of filters) {
+                const fg = await this.filtersService.linkFilterCreate({
+                  columnId: getIdOrExternalId(col.id),
+                  filter: withoutId({
+                    ...fl,
+                    fk_value_col_id: getIdOrExternalId(fl.fk_value_col_id),
+                    fk_link_col_id: getIdOrExternalId(fl.fk_link_col_id),
+                    fk_column_id: getIdOrExternalId(fl.fk_column_id),
+                    fk_parent_id: getIdOrExternalId(fl.fk_parent_id),
+                  }),
+                  user: param.user,
+                  req: param.req,
+                });
+                if (fg) {
+                  idMap.set(fl.id, fg.id);
+                }
+              }
+            });
           }
         }
       }
@@ -1353,6 +1405,13 @@ export class ImportService {
     }
 
     elapsedTime(hrTime, 'create hooks', 'importModels');
+
+    // create link filter, triggers at the end since it requires all columns to be created
+    for (const ltarFilterCreateCbk of ltarFilterCreateCbks) {
+      await ltarFilterCreateCbk();
+    }
+
+    elapsedTime(hrTime, 'create link filters', 'importModels');
 
     return idMap;
   }

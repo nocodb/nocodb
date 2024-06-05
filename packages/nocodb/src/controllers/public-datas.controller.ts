@@ -97,11 +97,22 @@ export class PublicDatasController {
     @Param('sharedViewUuid') sharedViewUuid: string,
     @Param('columnId') columnId: string,
   ) {
+    let rowData: any;
+
+    if (req.query.rowData) {
+      try {
+        rowData = JSON.parse(req.query.rowData as string);
+      } catch {
+        rowData = {};
+      }
+    }
+
     const pagedResponse = await this.publicDatasService.relDataList({
       query: req.query,
       password: req.headers?.['xc-password'] as string,
       sharedViewUuid: sharedViewUuid,
       columnId: columnId,
+      rowData,
     });
 
     return pagedResponse;

@@ -19103,6 +19103,14 @@
             "$ref": "#/components/schemas/StringOrNull",
             "description": "Foreign Key to View"
           },
+          "fk_value_col_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Foreign Key to dynamic value Column"
+          },
+          "fk_link_col_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Foreign Key to Link Column"
+          },
           "id": {
             "$ref": "#/components/schemas/Id",
             "description": "Unique ID"
@@ -21619,6 +21627,10 @@
           }
         ],
         "properties": {
+          "childViewId": {
+            "$ref": "#/components/schemas/IdOrNull",
+            "description": "Foreign Key to child view"
+          },
           "childId": {
             "$ref": "#/components/schemas/Id",
             "description": "Foreign Key to chhild column"
@@ -21705,6 +21717,9 @@
             "description": "Foreign Key to Column"
           },
           "fk_index_name": {
+            "type": "string"
+          },
+          "fk_relation_view_id": {
             "type": "string"
           },
           "fk_mm_child_column_id": {
@@ -23709,6 +23724,20 @@
           }
         ],
         "title": "StringOrNullOrBooleanOrNumber Model"
+      },
+      "IdOrNull": {
+        "description": "Model for IdOrNull",
+        "examples": [
+          "string"
+        ],
+        "oneOf": [{
+            "$ref": "#/components/schemas/Id"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "IdOrNull Model"
       },
       "Table": {
         "description": "Model for Table",

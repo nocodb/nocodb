@@ -5,7 +5,9 @@ import papaparse from 'papaparse';
 import { nocoExecute } from 'nc-help';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { PathParams } from '~/helpers/dataHelpers';
-import { getDbRows, getViewAndModelByAliasOrId } from '~/helpers/dataHelpers';
+import type { Filter } from '~/models';
+import { getDbRows } from '~/helpers/dataHelpers';
+import { getViewAndModelByAliasOrId } from '~/helpers/dataHelpers';
 import { Base, Column, Model, Source, View } from '~/models';
 import { NcBaseError, NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
@@ -154,8 +156,14 @@ export class DatasService {
     ignoreViewFilterAndSort?: boolean;
     ignorePagination?: boolean;
     limitOverride?: number;
+    customConditions?: Filter[];
   }) {
-    const { model, view, query = {}, ignoreViewFilterAndSort = false } = param;
+    const {
+      model,
+      view: view,
+      query = {},
+      ignoreViewFilterAndSort = false,
+    } = param;
 
     const source = await Source.get(model.source_id);
 
@@ -170,7 +178,7 @@ export class DatasService {
     const { ast, dependencyFields } = await getAst({
       model,
       query,
-      view,
+      view: view,
       throwErrorIfInvalidParams: param.throwErrorIfInvalidParams,
     });
 
@@ -181,6 +189,8 @@ export class DatasService {
     try {
       listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
     } catch (e) {}
+
+    listArgs.customConditions = param.customConditions;
 
     const [count, data] = await Promise.all([
       baseModel.count(listArgs, false, param.throwErrorIfInvalidParams),

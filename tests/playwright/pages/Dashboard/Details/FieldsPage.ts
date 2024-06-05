@@ -209,7 +209,7 @@ export class FieldsPage extends BasePage {
       case 'Links':
         await this.addOrEditColumn.locator('.nc-ltar-relation-type').getByTestId(relationType).click();
         await this.addOrEditColumn.locator('.ant-select-single').nth(1).click();
-        await this.rootPage.locator(`.nc-ltar-child-table >> input[type="search"]`).fill(childTable);
+        await this.rootPage.locator(`.nc-ltar-child-table >> input[type="search"]`).first().fill(childTable);
         await this.rootPage
           .locator(`.nc-dropdown-ltar-child-table >> .ant-select-item`, {
             hasText: childTable,

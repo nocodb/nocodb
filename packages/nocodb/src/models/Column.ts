@@ -265,6 +265,7 @@ export default class Column<T = any> implements ColumnType {
             fk_child_column_id: column.fk_child_column_id,
             fk_parent_column_id: column.fk_parent_column_id,
 
+            fk_target_view_id: column.fk_target_view_id,
             fk_mm_model_id: column.fk_mm_model_id,
             fk_mm_child_column_id: column.fk_mm_child_column_id,
             fk_mm_parent_column_id: column.fk_mm_parent_column_id,
@@ -583,7 +584,7 @@ export default class Column<T = any> implements ColumnType {
     return columns.map(c => new Column(c));*/
   }
 
-  public static async get(
+  public static async get<T = any>(
     {
       source_id,
       db_alias,
@@ -594,7 +595,7 @@ export default class Column<T = any> implements ColumnType {
       colId: string;
     },
     ncMeta = Noco.ncMeta,
-  ): Promise<Column> {
+  ): Promise<Column<T>> {
     let colData =
       colId &&
       (await NocoCache.get(
@@ -1249,6 +1250,27 @@ export default class Column<T = any> implements ColumnType {
       `${CacheScope.COLUMN}:${colId}`,
       prepareForResponse({ meta }),
     );
+  }
+
+  static async updateTargetView(
+    { colId, fk_target_view_id }: { colId: string; fk_target_view_id: string },
+    ncMeta = Noco.ncMeta,
+  ) {
+    await ncMeta.metaUpdate(
+      null,
+      null,
+      MetaTable.COL_RELATIONS,
+      {
+        fk_target_view_id,
+      },
+      {
+        fk_column_id: colId,
+      },
+    );
+
+    await NocoCache.update(`${CacheScope.COL_RELATION}:${colId}`, {
+      fk_target_view_id,
+    });
   }
 
   static async bulkInsert(

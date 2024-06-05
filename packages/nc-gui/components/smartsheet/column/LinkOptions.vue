@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { storeToRefs, useColumnCreateStoreOrThrow, useVModel } from '#imports'
+
 const props = defineProps<{
   value: any
 }>()
@@ -6,6 +8,9 @@ const props = defineProps<{
 const emit = defineEmits(['update:value'])
 
 const { t } = useI18n()
+
+const viewsStore = useViewsStore()
+const { viewsByTable } = storeToRefs(viewsStore)
 
 const vModel = useVModel(props, 'value', emit)
 

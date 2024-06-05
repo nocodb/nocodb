@@ -1018,7 +1018,7 @@ export default {
 .nc-data-cell {
   @apply !rounded-lg;
   transition: all 0.3s;
-  
+
   &:not(.nc-readonly-div-data-cell):not(.nc-system-field) {
     box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
   }

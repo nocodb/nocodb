@@ -23,8 +23,17 @@ const props = defineProps<{
 
 const emit = defineEmits(['submit', 'cancel', 'mounted', 'add', 'update'])
 
-const { formState, generateNewColumnMeta, addOrUpdate, onAlter, onUidtOrIdTypeChange, validateInfos, isEdit, disableSubmitBtn } =
-  useColumnCreateStoreOrThrow()
+const {
+  formState,
+  column,
+  generateNewColumnMeta,
+  addOrUpdate,
+  onAlter,
+  onUidtOrIdTypeChange,
+  validateInfos,
+  isEdit,
+  disableSubmitBtn,
+} = useColumnCreateStoreOrThrow()
 
 const { getMeta } = useMetas()
 
@@ -334,7 +343,7 @@ const submitBtnLabel = computed(() => {
             v-model:value="formState.uidt"
             show-search
             class="nc-column-type-input !rounded-lg"
-            :disabled="isKanban || readOnly || (isEdit && !!onlyNameUpdateOnEditColumns.find((col) => col === formState.uidt))"
+            :disabled="isKanban || readOnly || (isEdit && !!onlyNameUpdateOnEditColumns.find((col) => col === column?.uidt))"
             dropdown-class-name="nc-dropdown-column-type border-1 !rounded-lg border-gray-200"
             @dropdown-visible-change="onDropdownChange"
             @change="onUidtOrIdTypeChange"

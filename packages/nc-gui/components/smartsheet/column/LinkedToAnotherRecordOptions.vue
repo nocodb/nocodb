@@ -170,7 +170,7 @@ const onLimitRecToViewChange = (value: boolean) => {
       </a-form-item>
       </template>
 
-      <div class="flex gap-2 items-center" :class="{ 'mb-4': limitRecToView }">
+      <div class="flex gap-2 items-center" :class="{ 'mb-2': limitRecToView, 'mt-4': !isEdit }">
         <a-switch v-model:checked="limitRecToView" size="small" @change="onLimitRecToViewChange"></a-switch>
         <span class="text-xs" @click="limitRecToView = !limitRecToView">Limit Record Selection to a View</span>
       </div>

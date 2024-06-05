@@ -207,8 +207,8 @@ onUnmounted(() => {
 
       <div class="flex gap-2 items-center" :class="{ 'mb-2': limitRecToView, 'mt-4': !isEdit }">
         <a-switch v-model:checked="limitRecToView" size="small" @change="onLimitRecToViewChange"></a-switch>
-        <span class="text-xs" data-testid="nc-limit-record-view" @click="limitRecToView = !limitRecToView"
-          >Limit Record Selection to a View</span
+        <span class="text-s" data-testid="nc-limit-record-view" @click="limitRecToView = !limitRecToView"
+          >Limit record selection to a view</span
         >
       </div>
       <a-form-item v-if="limitRecToView" class="!pl-8 flex w-full pb-2 mt-4 space-y-2 nc-ltar-child-view">
@@ -239,8 +239,8 @@ onUnmounted(() => {
           size="small"
           @change="onLimitRecToViewChange"
         ></a-switch>
-        <span class="text-xs" data-testid="nc-limit-record-filters" @click="limitRecToCond = !limitRecToCond"
-          >Limit Record Selection to Filters</span
+        <span class="text-s" data-testid="nc-limit-record-filters" @click="limitRecToCond = !limitRecToCond"
+          >Limit record selection to filters</span
         >
       </div>
 

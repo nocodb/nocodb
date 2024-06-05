@@ -29,6 +29,7 @@ interface Props {
   newRecordHeader?: string
   skipReload?: boolean
   newRecordSubmitBtnText?: string
+  expandForm?: (row: Row) => void
 }
 
 const props = defineProps<Props>()
@@ -67,6 +68,8 @@ const isPublic = inject(IsPublicInj, ref(false))
 
 // to check if a expanded form which is not yet saved exist or not
 const isUnsavedFormExist = ref(false)
+
+const isUnsavedDuplicatedRecordExist = ref(false)
 
 const isRecordLinkCopied = ref(false)
 
@@ -176,6 +179,7 @@ const onClose = () => {
 const onDuplicateRow = () => {
   duplicatingRowInProgress.value = true
   isUnsavedFormExist.value = true
+  isUnsavedDuplicatedRecordExist.value = true
   const oldRow = { ..._row.value.row }
   delete oldRow.ncRecordId
   const newRow = Object.assign(
@@ -224,6 +228,17 @@ const save = async () => {
 
     if (props.closeAfterSave) {
       isExpanded.value = false
+    } else {
+      if (isUnsavedDuplicatedRecordExist.value) {
+        const newRowId = extractPkFromRow(_row.value.row, meta.value.columns as ColumnType[])
+        if (newRowId !== rowId.value) {
+          props?.expandForm?.(_row.value)
+        }
+
+        setTimeout(() => {
+          isUnsavedDuplicatedRecordExist.value = false
+        }, 500)
+      }
     }
 
     emits('createdRecord', _row.value.row)
@@ -549,7 +564,7 @@ export default {
     :closable="false"
     :footer="null"
     :visible="isExpanded"
-    :width="showRightSections ? 'min(80vw,1280px)' : 'min(70vw,768px)'"
+    :width="commentsDrawer && isUIAllowed('commentList') ? 'min(80vw,1280px)' : 'min(70vw,768px)'"
     class="nc-drawer-expanded-form"
     :size="isMobileMode ? 'medium' : 'small'"
     v-bind="modalProps"
@@ -928,7 +943,7 @@ export default {
           <div v-else class="p-2"></div>
         </div>
         <div
-          v-if="showRightSections"
+          v-if="showRightSections && !isUnsavedDuplicatedRecordExist"
           :class="{ active: commentsDrawer && isUIAllowed('commentList') }"
           class="nc-comments-drawer border-l-1 relative border-gray-200 bg-gray-50 w-1/3 max-w-[340px] min-w-0 h-full xs:hidden rounded-br-2xl"
         >

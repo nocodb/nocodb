@@ -357,6 +357,7 @@ watch(
       :row-id="route.query.rowId"
       :view="view"
       show-next-prev-icons
+      :expand-form="expandForm"
       @next="navigateToSiblingRow(NavigateDir.NEXT)"
       @prev="navigateToSiblingRow(NavigateDir.PREV)"
     />

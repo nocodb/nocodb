@@ -257,6 +257,7 @@ const goToPreviousRow = () => {
       show-next-prev-icons
       :first-row="isFirstRow"
       :last-row="islastRow"
+      :expand-form="expandForm"
       @next="goToNextRow()"
       @prev="goToPreviousRow()"
     />

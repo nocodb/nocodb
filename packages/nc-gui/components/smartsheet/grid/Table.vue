@@ -2770,6 +2770,10 @@ onKeyStroke('ArrowDown', onDown)
   @apply rounded text-gray-100 !bg-gray-100 !bg-opacity-65;
   animation: slow-show-1 5s ease 5s forwards;
 }
-</style>
 
-<style lang="scss"></style>
+.nc-grid-add-new-row {
+  :deep(.ant-btn.ant-dropdown-trigger.ant-btn-icon-only){
+    @apply !flex items-center justify-center;
+  }
+}
+</style>

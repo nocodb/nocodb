@@ -740,6 +740,7 @@ const getRowId = (row: RowType) => {
       :load-row="!isPublic"
       :row="expandedFormRow ?? { row: {}, oldRow: {}, rowMeta: {} }"
       :meta="meta"
+      :expand-form="expandForm"
       :row-id="route.query.rowId"
       :view="view"
     />

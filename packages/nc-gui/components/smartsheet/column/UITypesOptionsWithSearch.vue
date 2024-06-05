@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { UITypes } from 'nocodb-sdk'
+import { UITypes } from 'nocodb-sdk'
 import { UITypesName } from 'nocodb-sdk'
 
 const props = defineProps<{
@@ -56,7 +56,7 @@ const handleKeydownEnter = () => {
 
 onMounted(() => {
   searchQuery.value = ''
-  activeFieldIndex.value = -1
+  activeFieldIndex.value = options.value.findIndex((o) => o.name === UITypes.SingleLineText)
 })
 </script>
 

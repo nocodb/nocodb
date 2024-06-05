@@ -139,4 +139,11 @@ export default class LinkToAnotherRecordColumn {
     }
     return colData ? new LinkToAnotherRecordColumn(colData) : null;
   }
+
+  static async update(
+    _fk_column_id: string,
+    _param: { fk_target_view_id: string | null },
+  ) {
+    // placeholder method
+  }
 }

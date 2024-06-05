@@ -265,7 +265,7 @@ export default class Column<T = any> implements ColumnType {
             fk_child_column_id: column.fk_child_column_id,
             fk_parent_column_id: column.fk_parent_column_id,
 
-            fk_child_view_id: column.fk_child_view_id,
+            fk_target_view_id: column.fk_target_view_id,
             fk_mm_model_id: column.fk_mm_model_id,
             fk_mm_child_column_id: column.fk_mm_child_column_id,
             fk_mm_parent_column_id: column.fk_mm_parent_column_id,
@@ -1253,7 +1253,7 @@ export default class Column<T = any> implements ColumnType {
   }
 
   static async updateChildView(
-    { colId, fk_child_view_id }: { colId: string; fk_child_view_id: string },
+    { colId, fk_target_view_id }: { colId: string; fk_target_view_id: string },
     ncMeta = Noco.ncMeta,
   ) {
     await ncMeta.metaUpdate(
@@ -1261,7 +1261,7 @@ export default class Column<T = any> implements ColumnType {
       null,
       MetaTable.COL_RELATIONS,
       {
-        fk_child_view_id,
+        fk_target_view_id,
       },
       {
         fk_column_id: colId,
@@ -1269,7 +1269,7 @@ export default class Column<T = any> implements ColumnType {
     );
 
     await NocoCache.update(`${CacheScope.COL_RELATION}:${colId}`, {
-      fk_child_view_id,
+      fk_target_view_id,
     });
   }
 

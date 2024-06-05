@@ -17,7 +17,7 @@ export default class LinkToAnotherRecordColumn {
   fk_mm_parent_column_id?: string;
   fk_related_model_id?: string;
 
-  fk_child_view_id?: string;
+  fk_target_view_id?: string;
 
   dr?: string;
   ur?: string;
@@ -102,7 +102,7 @@ export default class LinkToAnotherRecordColumn {
       'fk_mm_model_id',
       'fk_mm_child_column_id',
       'fk_mm_parent_column_id',
-      'fk_child_view_id',
+      'fk_target_view_id',
       'ur',
       'dr',
       'fk_index_name',
@@ -114,8 +114,8 @@ export default class LinkToAnotherRecordColumn {
   }
 
   async getChildView(ncMeta = Noco.ncMeta) {
-    if (!this.fk_child_view_id) return;
-    return await View.get(this.fk_child_view_id, ncMeta);
+    if (!this.fk_target_view_id) return;
+    return await View.get(this.fk_target_view_id, ncMeta);
   }
 
   public static async read(columnId: string, ncMeta = Noco.ncMeta) {

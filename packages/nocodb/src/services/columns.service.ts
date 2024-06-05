@@ -335,13 +335,19 @@ export class ColumnsService {
               ).colOptions.fk_target_view_id = (colBody as any).childViewId;
             }
 
+<<<<<<< HEAD
             if ((colBody as Column<LinkToAnotherRecordColumn>).colOptions
                 .fk_child_view_id
+=======
+            if (
+              (colBody as Column<LinkToAnotherRecordColumn>).colOptions
+                .fk_target_view_id
+>>>>>>> 843a6c0653 (refactor: rename view id column in relation to avoid confusion)
             ) {
               await Column.updateChildView({
                 colId: param.columnId,
-                fk_child_view_id: (colBody as Column<LinkToAnotherRecordColumn>)
-                  .colOptions.fk_child_view_id,
+                fk_target_view_id: (colBody as Column<LinkToAnotherRecordColumn>)
+                  .colOptions.fk_target_view_id,
               });
             }
           }
@@ -2981,7 +2987,7 @@ export class ColumnsService {
         fk_child_column_id: childPK.id,
         fk_parent_column_id: parentPK.id,
         // Adding view ID here applies the view filter in reverse also
-        fk_child_view_id: null,
+        fk_target_view_id: null,
         fk_mm_model_id: assocModel.id,
         fk_mm_child_column_id: childCol.id,
         fk_mm_parent_column_id: parentCol.id,
@@ -3007,7 +3013,7 @@ export class ColumnsService {
 
         fk_child_column_id: parentPK.id,
         fk_parent_column_id: childPK.id,
-        fk_child_view_id: childView?.id,
+        fk_target_view_id: childView?.id,
 
         fk_mm_model_id: assocModel.id,
         fk_mm_child_column_id: parentCol.id,

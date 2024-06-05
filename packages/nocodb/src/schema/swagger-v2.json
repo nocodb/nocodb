@@ -15419,7 +15419,7 @@
           "fk_mm_model_id": {
             "type": "string"
           },
-          "fk_child_view_id": {
+          "fk_target_view_id": {
             "type": "string"
           },
           "fk_mm_parent_column_id": {

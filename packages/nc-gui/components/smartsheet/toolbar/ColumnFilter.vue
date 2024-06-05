@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type ColumnType, type FilterType, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { type ColumnType, type FilterType, isVirtualCol } from 'nocodb-sdk'
 import { PlanLimitTypes, UITypes } from 'nocodb-sdk'
 
 interface Props {
@@ -183,9 +183,9 @@ watch(
     // if nested no need to reload since it will get reloaded from parent
     if (!nested.value && n !== o && (hookId?.value || !webHook.value) && (linkColId?.value || !link.value))
       loadFilters({
-        hookId: hookId?.value,
+        hookId: hookId.value,
         isWebhook: webHook.value,
-        linkColId: linkColId?.value,
+        linkColId: unref(linkColId),
         isLink: link.value,
       })
   },
@@ -336,7 +336,7 @@ onMounted(async () => {
     loadFilters({
       hookId: hookId?.value,
       isWebhook: webHook.value,
-      linkColId: linkColId?.value,
+      linkColId: unref(linkColId),
       isLink: link.value,
     }),
     loadBtLookupTypes(),

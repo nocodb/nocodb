@@ -133,8 +133,14 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
           resolved_display_name: resolvedUser ? resolvedUser.display_name ?? resolvedUser.email.split('@')[0] : null,
         }
       })
-    } catch (e: any) {
-      message.error(e.message)
+    } catch (e: unknown) {
+      message.error(
+        (
+          e as Error & {
+            message: string
+          }
+        ).message,
+      )
     } finally {
       isCommentsLoading.value = false
     }
@@ -157,7 +163,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
           commentCount: (row.value.rowMeta.commentCount ?? 1) - 1,
         },
       })
-    } catch (e) {
+    } catch (e: unknown) {
       message.error((e as any).message)
       comments.value = [...comments.value, tempC]
     }
@@ -255,6 +261,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
       comment.value = ''
     } catch (e: any) {
+      comments.value = comments.value.filter((c) => !(c.id ?? '').startsWith('temp-'))
       message.error(e.message)
     }
 

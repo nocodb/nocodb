@@ -51,7 +51,7 @@ export const useNotification = defineStore('notificationStore', () => {
 
       readPageInfo.value = response.pageInfo
 
-      unreadCount.value = response.unreadCount
+      unreadCount.value = response.unreadCount as number
     } catch (e) {
       console.log(e)
     }
@@ -73,7 +73,7 @@ export const useNotification = defineStore('notificationStore', () => {
 
       unreadPageInfo.value = response.pageInfo
 
-      unreadCount.value = (response as any).unreadCount
+      unreadCount.value = response.unreadCount as number
     } catch (e) {
       console.log(e)
     }

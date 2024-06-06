@@ -73,7 +73,7 @@ export class PubSubRedis {
       if (!PubSubRedis.available) {
         return;
       }
-      await this.init();
+      await PubSubRedis.init();
     }
 
     await PubSubRedis.redisSubscriber.subscribe(channel);

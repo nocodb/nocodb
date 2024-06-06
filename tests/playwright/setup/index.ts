@@ -467,8 +467,6 @@ const setup = async ({
 
   await page.addInitScript(() => (window.isPlaywright = true));
 
-  // Since we are doing long polling for notifications, the networkidele state won't be reached
-  // Hence changing to load
   await page.goto(baseUrl, {
     waitUntil: 'networkidle',
   });

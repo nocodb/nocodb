@@ -162,11 +162,11 @@ export const useNotification = defineStore('notificationStore', () => {
 
   const init = async () => {
     await Promise.allSettled([loadReadNotifications(), loadUnReadNotifications()])
-
-    setTimeout(() => {
+    // For playwright, polling will cause the test to hang indefinitely
+    // as we wait for the networkidle event. So, we disable polling for playwright
+    if (!(window as any).isPlaywright) {
       pollNotifications()
-      Promise.allSettled([loadReadNotifications(), loadUnReadNotifications()])
-    }, 5000)
+    }
   }
 
   onMounted(init)
@@ -188,5 +188,5 @@ export const useNotification = defineStore('notificationStore', () => {
 })
 
 if (import.meta.hot) {
-  import.meta.hot.accept(acceptHMRUpdate(useNotification as any, import.meta.hot))
+  import.meta.hot.accept(acceptHMRUpdate(useNotification, import.meta.hot))
 }

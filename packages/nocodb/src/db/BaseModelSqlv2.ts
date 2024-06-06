@@ -6715,6 +6715,7 @@ class BaseModelSqlv2 {
       if (
         ![
           UITypes.Attachment,
+          UITypes.JSON,
           UITypes.User,
           UITypes.CreatedTime,
           UITypes.LastModifiedTime,
@@ -6888,6 +6889,13 @@ class BaseModelSqlv2 {
               }
             }
           }
+        }
+      } else if (UITypes.JSON === column.uidt) {
+        if (
+          data[column.column_name] &&
+          typeof data[column.column_name] !== 'string'
+        ) {
+          data[column.column_name] = JSON.stringify(data[column.column_name]);
         }
       }
     }

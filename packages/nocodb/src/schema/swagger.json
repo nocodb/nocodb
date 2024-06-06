@@ -16142,6 +16142,28 @@
         ]
       }
     },
+    "/api/v1/notifications/poll": {
+      "get": {
+        "summary": "Notification Poll",
+        "operationId": "notification-poll",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Notification"
+        ],
+        "description": "Poll notifications"
+      }
+    },
     "/api/v1/notifications": {
       "get": {
         "summary": "Notification list",

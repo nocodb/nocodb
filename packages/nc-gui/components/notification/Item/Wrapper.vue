@@ -38,7 +38,7 @@ const { markAsRead } = notificationStore
           type="secondary"
           class="!border-0 transition-all duration-100 !opacity-0 !group-hover:opacity-100"
           size="xsmall"
-          @click="() => markAsRead(item)"
+          @click.stop="() => markAsRead(item)"
         >
           <GeneralIcon icon="check" class="text-gray-700" />
         </NcButton>

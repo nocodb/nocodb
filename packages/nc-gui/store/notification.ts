@@ -10,6 +10,15 @@ export const useNotification = defineStore('notificationStore', () => {
 
   const { api, isLoading } = useApi()
 
+  const pollNotifications = async () => {
+    const res = await api.notification.poll()
+
+    if (res.status === 'success' && notificationTab.value === 'unread') {
+      notifications.value = [JSON.parse(res.data), ...notifications.value]
+    }
+    await pollNotifications()
+  }
+
   const loadNotifications = async (loadMore = false) => {
     const response = await api.notification.list({
       is_read: notificationTab.value === 'read',
@@ -47,6 +56,13 @@ export const useNotification = defineStore('notificationStore', () => {
   watch(notificationTab, async () => {
     await loadNotifications()
   })
+
+  const init = async () => {
+    await loadNotifications()
+    pollNotifications()
+  }
+
+  onMounted(init)
 
   return {
     notifications,

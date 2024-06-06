@@ -59,14 +59,6 @@ const { notifications, pageInfo, notificationTab } = storeToRefs(notificationSto
                 v-if="notifications && pageInfo && pageInfo.totalRows > notifications.length"
                 @infinite="loadNotifications(true)"
               >
-                <template #spinner>
-                  <div class="flex flex-row w-full justify-center mt-2">
-                    <a-spin />
-                  </div>
-                </template>
-                <template #complete>
-                  <span></span>
-                </template>
               </InfiniteLoading>
             </template>
           </div>
@@ -105,14 +97,6 @@ const { notifications, pageInfo, notificationTab } = storeToRefs(notificationSto
                 v-if="notifications && pageInfo && pageInfo.totalRows > notifications.length"
                 @infinite="loadNotifications(true)"
               >
-                <template #spinner>
-                  <div class="flex flex-row w-full justify-center mt-2">
-                    <a-spin />
-                  </div>
-                </template>
-                <template #complete>
-                  <span></span>
-                </template>
               </InfiniteLoading>
             </template>
           </div>

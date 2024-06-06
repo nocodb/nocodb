@@ -3,9 +3,13 @@ import type { NotificationType } from 'nocodb-sdk'
 
 export const useNotification = defineStore('notificationStore', () => {
   const readNotifications = ref<NotificationType[]>([])
+
   const unreadNotifications = ref<NotificationType[]>([])
+
   const readPageInfo = ref()
+
   const unreadPageInfo = ref()
+
   const unreadCount = ref(0)
 
   const notificationTab = ref<'read' | 'unread'>('unread')
@@ -44,10 +48,10 @@ export const useNotification = defineStore('notificationStore', () => {
       }
 
       readPageInfo.value = response.pageInfo
+
       unreadCount.value = response.unreadCount
     } catch (e) {
       console.log(e)
-
       message.error(`Failed to load notifications: ${await extractSdkResponseErrorMsgv2(e as any)}`)
     }
   }
@@ -67,6 +71,7 @@ export const useNotification = defineStore('notificationStore', () => {
       }
 
       unreadPageInfo.value = response.pageInfo
+
       unreadCount.value = (response as any).unreadCount
     } catch (e) {
       console.log(e)
@@ -77,6 +82,7 @@ export const useNotification = defineStore('notificationStore', () => {
   const insertAndSort = (notification: NotificationType, oldState?: boolean) => {
     if (oldState) {
       readNotifications.value = readNotifications.value.filter((n) => n.id !== notification.id)
+
       unreadNotifications.value = [...[notification], ...unreadNotifications.value].sort((a, b) => {
         return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       })
@@ -86,7 +92,9 @@ export const useNotification = defineStore('notificationStore', () => {
       readNotifications.value = [...[notification], ...readNotifications.value].sort((a, b) => {
         return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       })
+
       unreadNotifications.value = unreadNotifications.value.filter((n) => n.id !== notification.id)
+
       unreadCount.value = unreadCount.value - 1
     }
   }
@@ -112,7 +120,19 @@ export const useNotification = defineStore('notificationStore', () => {
     if (notification.is_read) return
 
     await api.notification.markAllAsRead()
+
     await Promise.allSettled([loadReadNotifications(), loadUnReadNotifications()])
+  }
+
+  const deleteNotification = async (notification: NotificationType) => {
+    try {
+      readNotifications.value = readNotifications.value.filter((n) => n.id !== notification.id)
+
+      await api.notification.delete(notification.id!)
+    } catch (e) {
+      readNotifications.value = [notification, ...readNotifications.value]
+      message.error(`Failed to delete Notification: ${await extractSdkResponseErrorMsgv2(e as any)}`)
+    }
   }
 
   watch(notificationTab, async () => {
@@ -135,6 +155,7 @@ export const useNotification = defineStore('notificationStore', () => {
     readNotifications,
     loadUnReadNotifications,
     loadReadNotifications,
+    deleteNotification,
     readPageInfo,
     unreadPageInfo,
     isLoading,

@@ -38,6 +38,18 @@ export default class Notification {
     );
   }
 
+  public static async get(
+    params: {
+      fk_user_id: string;
+      id: string;
+    },
+    ncMeta = Noco.ncMeta,
+  ) {
+    const condition = extractProps(params, ['id', 'fk_user_id']);
+
+    return await ncMeta.metaGet2(null, null, MetaTable.NOTIFICATION, condition);
+  }
+
   public static async list(
     params: {
       fk_user_id: string;

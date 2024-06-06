@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   Param,
@@ -89,6 +90,17 @@ export class NotificationsController {
     return this.notificationsService.notificationUpdate({
       notificationId,
       body: extractProps(body, ['is_read']),
+      user: req.user,
+    });
+  }
+
+  @Delete('/api/v1/notifications/:notificationId')
+  async notificationDelete(
+    @Param('notificationId') notificationId,
+    @Req() req: NcRequest,
+  ) {
+    return this.notificationsService.notificationDelete({
+      notificationId,
       user: req.user,
     });
   }

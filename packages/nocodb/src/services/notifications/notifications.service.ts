@@ -133,10 +133,37 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  async notificationUpdate(param: { notificationId: string; body; user: any }) {
+  async notificationUpdate(param: {
+    notificationId: string;
+    body;
+    user: UserType;
+  }) {
+    const notification = Notification.get({
+      id: param.notificationId,
+      fk_user_id: param.user.id,
+    });
+
+    if (!notification) {
+      NcError.unauthorized('Unauthorized to update notification');
+    }
     await Notification.update(param.notificationId, param.body);
 
     return true;
+  }
+
+  async notificationDelete(param: { notificationId: string; user: UserType }) {
+    const notification = Notification.get({
+      id: param.notificationId,
+      fk_user_id: param.user.id,
+    });
+
+    if (!notification) {
+      NcError.unauthorized('Unauthorized to delete notification');
+    }
+
+    await Notification.update(param.notificationId, {
+      is_deleted: true,
+    });
   }
 
   async markAllRead(param: { user: any }) {

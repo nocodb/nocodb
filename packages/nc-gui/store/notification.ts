@@ -83,6 +83,7 @@ export const useNotification = defineStore('notificationStore', () => {
       })
       notification.is_read = true
       readNotifications.value = [...[notification], ...readNotifications.value]
+      unreadNotifications.value = unreadNotifications.value.filter((n) => n.id !== notification.id)
       unreadCount.value = unreadCount.value - 1
     } catch (e) {
       message.error(`Failed to mark notification as read: ${await extractSdkResponseErrorMsgv2(e as any)}`)

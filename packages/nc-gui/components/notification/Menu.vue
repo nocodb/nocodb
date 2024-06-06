@@ -6,13 +6,13 @@ const { unreadCount } = toRefs(notificationStore)
 
 <template>
   <div class="cursor-pointer flex items-center">
-    <NcDropdown placement="topRight" :trigger="['click']">
+    <NcDropdown overlay-class-name="!shadow-none" placement="topRight" :trigger="['click']">
       <div class="relative leading-none">
         <GeneralIcon icon="notification" />
         <span
           v-if="unreadCount"
           :key="unreadCount"
-          class="bg-red-500 flex items-center min-w-[14px] h-[18px] px-1 rounded-[6px] absolute top-[-10px] right-[-13px] text-white"
+          class="bg-red-500 flex items-center text-xs min-w-[14px] h-[18px] px-1 rounded-[6px] absolute top-[-10px] right-[-13px] text-white"
           >{{ unreadCount }}</span
         >
       </div>

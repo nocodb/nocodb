@@ -34,6 +34,7 @@ export const timeAgo = (date: any) => {
   const years = Math.floor(days / 365)
 
   if (seconds < 60) {
+    if (seconds < 0) return '1s ago'
     return `${seconds}s ago`
   }
   if (minutes < 60) {

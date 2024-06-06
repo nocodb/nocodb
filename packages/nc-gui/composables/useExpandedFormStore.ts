@@ -139,12 +139,15 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
   const deleteComment = async (commentId: string) => {
     if (!isUIAllowed('commentDelete')) return
+    const tempC = comments.value.find((c) => c.id === commentId)
 
     try {
+      comments.value = comments.value.filter((c) => c.id !== commentId)
+
       await $api.utils.commentDelete(commentId)
-      await loadComments()
     } catch (e: any) {
       message.error(e.message)
+      comments.value = [...comments.value, tempC]
     }
   }
 

@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import { timeAgo } from 'nocodb-sdk'
+import type { NotificationType } from 'nocodb-sdk'
+import { timeAgo } from '~/utils/datetimeutils'
 
 const props = defineProps<{
-  item: {
-    created_at: any
-  }
+  item: NotificationType
 }>()
 
 const item = toRef(props, 'item')
@@ -16,19 +15,19 @@ const { markAsRead } = notificationStore
 
 <template>
   <div class="flex pl-6 pr-4 group py-4 relative gap-4 cursor-pointer">
-    <div class="w-12 h-12">
+    <div class="w-8 h-8">
       <slot name="avatar">
-        <img src="~assets/img/brand/nocodb-logo.svg" alt="NocoDB" class="flex-none w-12 h-12" />
+        <img src="~assets/img/brand/nocodb-logo.svg" alt="NocoDB" class="flex-none w-8 h-8" />
       </slot>
     </div>
 
     <div class="flex flex-grow-1">
       <slot />
     </div>
-    <div v-if="item" class="text-xs whitespace-nowrap text-gray-600">
+    <div v-if="item" class="text-xs whitespace-nowrap absolute right-5 bottom-5 text-gray-600">
       {{ timeAgo(item.created_at) }}
     </div>
-    <div v-if="!item.is_read" class="flex absolute right-5 top-10 items-center">
+    <div v-if="!item.is_read" class="flex items-start">
       <NcTooltip>
         <template #title>
           <span>Mark as read</span>
@@ -36,7 +35,7 @@ const { markAsRead } = notificationStore
 
         <NcButton
           type="secondary"
-          class="!border-0 transition-all duration-100 !opacity-0 !group-hover:opacity-100"
+          class="!border-0 transition-all duration-100 opacity-0 !group-hover:opacity-100"
           size="xsmall"
           @click.stop="() => markAsRead(item)"
         >

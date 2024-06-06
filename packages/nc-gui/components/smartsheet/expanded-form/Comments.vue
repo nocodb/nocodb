@@ -122,11 +122,28 @@ const saveComment = async () => {
 
   isCommentMode.value = true
   isSaving.value = true
+  // Optimistic Insert
+
+  comments.value = [
+    ...comments.value,
+    {
+      id: `temp-${new Date().getTime()}`,
+      comment: newComment.value,
+      created_at: new Date().toISOString(),
+      created_by: user.value?.id,
+      created_by_email: user.value?.email,
+      created_display_name: user.value?.display_name ?? '',
+    },
+  ]
+
+  commentInputRef?.value?.setEditorContent('', true)
+  await nextTick(() => {
+    scrollComments()
+  })
 
   try {
     await _saveComment()
     await nextTick(() => {
-      commentInputRef?.value?.setEditorContent('', true)
       isExpandedFormCommentMode.value = true
     })
     scrollComments()

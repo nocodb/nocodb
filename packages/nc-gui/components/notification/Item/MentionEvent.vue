@@ -1,35 +1,9 @@
 <script lang="ts" setup>
+import type { MentionEventType } from 'nocodb-sdk'
 import type { NcProjectType } from '~/utils/baseCreateUtils'
 
 const props = defineProps<{
-  item: {
-    body: {
-      base: {
-        id: string
-        title: string
-        base_type: NcProjectType
-      }
-      comment: string
-      row: {
-        id: string
-        value: string
-      }
-      table: {
-        id: string
-        title: string
-      }
-      user: {
-        display_name: string
-        email: string
-        id: string
-      }
-      workspace: {
-        id: string
-        title: string
-      }
-    }
-    created_at: any
-  }
+  item: MentionEventType
 }>()
 
 const { ncNavigateTo } = useGlobal()
@@ -46,7 +20,7 @@ const item = toRef(props, 'item')
           baseId: item.body.base.id,
           tableId: item.body.table.id,
           workspaceId: item.body.workspace?.id ?? '',
-          type: item.body.base.base_type,
+          type: item.body.base.type as NcProjectType,
           query: {
             rowId: item.body.row.id,
             commentId: item.body.comment.id,
@@ -56,7 +30,7 @@ const item = toRef(props, 'item')
     "
   >
     <template #avatar>
-      <GeneralUserIcon class="w-12 h-12" :email="item.body.user.email" :name="item.body.user.display_name" />
+      <GeneralUserIcon class="w-8 h-8" :email="item.body.user.email" :name="item.body.user.display_name" />
     </template>
     <div class="text-sm">
       <p class="!mb-2">
@@ -66,7 +40,7 @@ const item = toRef(props, 'item')
         <span class="inline-flex items-center gap-1">
           <strong>{{ item.body.table.title }} / </strong>
         </span>
-        <span class="flex inline-flex items-center ml-1 gap-1">
+        <span class="flex inline-flex items-center gap-1">
           <strong>{{ item.body.base.title }}</strong>
         </span>
       </p>

@@ -1,22 +1,15 @@
 <script setup lang="ts">
+import type { WelcomeEventType } from 'nocodb-sdk'
+
 const props = defineProps<{
-  item: any
+  item: WelcomeEventType
 }>()
 
-const router = useRouter()
-const route = router.currentRoute
-
 const item = toRef(props, 'item')
-
-const navigateToHome = () => {
-  if (route.value.path !== '/') {
-    navigateTo(`/`)
-  }
-}
 </script>
 
 <template>
-  <NotificationItemWrapper :item="item" @click="navigateToHome">
+  <NotificationItemWrapper :item="item">
     <div class="text-sm">Welcome to <strong>NocoDB!</strong> We’re excited to have you onboard.</div>
   </NotificationItemWrapper>
 </template>

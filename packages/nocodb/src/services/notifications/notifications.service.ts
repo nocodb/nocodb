@@ -5,7 +5,7 @@ import type {
   WelcomeEvent,
 } from '~/services/app-hooks/interfaces';
 import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import type { UserType } from 'nocodb-sdk';
+import type { NotificationType, UserType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import type { Response } from 'express';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -165,10 +165,16 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
               fk_user_id: user.id,
               type: AppEvents.PROJECT_INVITE,
               body: {
-                id: base.id,
-                title: base.title,
-                type: base.type,
-                invited_by: invitedBy.email,
+                base: {
+                  id: base.id,
+                  title: base.title,
+                  type: base.type,
+                },
+                user: {
+                  id: invitedBy.id,
+                  email: invitedBy.email,
+                  displayName: invitedBy.display_name,
+                },
               },
             },
             req,

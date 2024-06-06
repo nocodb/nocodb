@@ -13,12 +13,13 @@ const { unreadNotifications, readNotifications, readPageInfo, unreadPageInfo, no
 
 <template>
   <div
+    style="box-shadow: 0px -12px 16px -4px rgba(0, 0, 0, 0.1), 0px -4px 6px -2px rgba(0, 0, 0, 0.06)"
     :class="{
       '!w-[100svw] !h-[100svh]': isMobileMode,
     }"
     class="w-[520px] h-[620px] pt-4"
   >
-    <div class="space-y-6">
+    <div class="space-y-3">
       <div class="flex px-6 justify-between items-center">
         <span class="text-md font-bold text-gray-800" @click.stop> {{ $t('general.notification') }}s </span>
 
@@ -49,7 +50,7 @@ const { unreadNotifications, readNotifications, readPageInfo, unreadPageInfo, no
             </span>
           </template>
           <div
-            class="overflow-y-auto max-h-[522px] min-h-100"
+            class="overflow-y-auto max-h-[534px] min-h-100"
             :class="{
               'flex items-center justify-center': !unreadNotifications?.length,
             }"
@@ -65,7 +66,6 @@ const { unreadNotifications, readNotifications, readPageInfo, unreadPageInfo, no
                 <template v-if="!item.is_read">
                   <TransitionGroup>
                     <NotificationItem class="" :item="item" />
-                    <NcDivider />
                   </TransitionGroup>
                 </template>
               </template>
@@ -91,7 +91,7 @@ const { unreadNotifications, readNotifications, readPageInfo, unreadPageInfo, no
           </template>
 
           <div
-            class="overflow-y-auto max-h-[522px] min-h-100"
+            class="overflow-y-auto max-h-[534px] min-h-100"
             :class="{
               'flex items-center justify-center': !readNotifications?.length,
             }"
@@ -105,7 +105,6 @@ const { unreadNotifications, readNotifications, readPageInfo, unreadPageInfo, no
             <template v-else>
               <template v-for="item in readNotifications" :key="item.id">
                 <NotificationItem class="" :item="item" />
-                <NcDivider />
               </template>
 
               <InfiniteLoading

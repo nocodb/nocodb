@@ -657,7 +657,7 @@ test.describe('Form view: field validation', () => {
     await dashboard.viewSidebar.createFormView({ title: 'NewForm' });
   }
 
-  test.only('Form builder field validation', async () => {
+  test('Form builder field validation', async () => {
     await createTable({ tableName: 'FormFieldValidation' });
 
     const url = dashboard.rootPage.url();

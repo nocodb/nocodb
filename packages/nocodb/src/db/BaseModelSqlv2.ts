@@ -3831,6 +3831,7 @@ class BaseModelSqlv2 {
       raw = false,
       insertOneByOneAsFallback = false,
       isSingleRecordInsertion = false,
+      allowSystemColumn = false,
     }: {
       chunkSize?: number;
       cookie?: any;
@@ -3839,6 +3840,7 @@ class BaseModelSqlv2 {
       raw?: boolean;
       insertOneByOneAsFallback?: boolean;
       isSingleRecordInsertion?: boolean;
+      allowSystemColumn?: boolean;
     } = {},
   ) {
     let trx;
@@ -3872,7 +3874,7 @@ class BaseModelSqlv2 {
                 );
               }
 
-              if (col.system) {
+              if (col.system && !allowSystemColumn) {
                 NcError.badRequest(
                   `Column "${col.title}" is system column and cannot be updated`,
                 );

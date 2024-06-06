@@ -208,7 +208,6 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       }
 
       formState.value.altered = formState.value.altered || 2
-
     }
 
     const onDataTypeChange = () => {

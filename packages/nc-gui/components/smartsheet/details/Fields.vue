@@ -353,8 +353,8 @@ const onFieldUpdate = (state: TableExplorerColumn, skipLinkChecks = false) => {
     if (
       activeField.value &&
       Object.keys(activeField.value).length &&
-      ((state?.id && activeField.value?.id && state?.id == activeField.value?.id) ||
-        (state?.temp_id && activeField.value?.temp_id && state?.temp_id == activeField.value?.temp_id))
+      ((state?.id && activeField.value?.id && state?.id === activeField.value?.id) ||
+        (state?.temp_id && activeField.value?.temp_id && state?.temp_id === activeField.value?.temp_id))
     ) {
       activeField.value = state
     }

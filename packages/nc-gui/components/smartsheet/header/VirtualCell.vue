@@ -48,8 +48,6 @@ const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 
 const isExpandedBulkUpdateForm = inject(IsExpandedBulkUpdateFormOpenInj, ref(false))
 
-const colOptions = computed(() => column.value?.colOptions)
-
 const tableTile = computed(() => meta?.value?.title)
 
 const relationColumnOptions = computed<LinkToAnotherRecordType | null>(() => {
@@ -69,22 +67,6 @@ const relatedTableMeta = computed(
 )
 
 const relatedTableTitle = computed(() => relatedTableMeta.value?.title)
-
-const childColumn = computed(() => {
-  if (relatedTableMeta.value?.columns) {
-    if (isRollup(column.value)) {
-      return relatedTableMeta.value?.columns.find(
-        (c: ColumnType) => c.id === (colOptions.value as RollupType).fk_rollup_column_id,
-      )
-    }
-    if (isLookup(column.value)) {
-      return relatedTableMeta.value?.columns.find(
-        (c: ColumnType) => c.id === (colOptions.value as LookupType).fk_lookup_column_id,
-      )
-    }
-  }
-  return ''
-})
 
 const tooltipMsg = computed(() => {
   if (!column.value) {

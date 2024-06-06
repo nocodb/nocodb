@@ -94,7 +94,7 @@ import { ViewsService } from '~/services/views.service';
 import { ApiDocsService } from '~/services/api-docs/api-docs.service';
 import { BaseUsersController } from '~/controllers/base-users.controller';
 import { BaseUsersService } from '~/services/base-users/base-users.service';
-import { NotificationsService } from '~/services/notifications.service';
+import { NotificationsService } from '~/services/notifications/notifications.service';
 import { NotificationsController } from '~/controllers/notifications.controller';
 import { CommandPaletteService } from '~/services/command-palette.service';
 import { CommandPaletteController } from '~/controllers/command-palette.controller';

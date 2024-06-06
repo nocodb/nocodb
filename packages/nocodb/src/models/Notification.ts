@@ -2,7 +2,7 @@ import type { AppEvents } from 'nocodb-sdk';
 import { extractProps } from '~/helpers/extractProps';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
-import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
+import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 
 export default class Notification {
   id?: string;
@@ -30,13 +30,11 @@ export default class Notification {
       'is_deleted',
     ]);
 
-    insertData.body = stringifyMetaProp(insertData, 'body');
-
     return await ncMeta.metaInsert2(
       null,
       null,
       MetaTable.NOTIFICATION,
-      insertData,
+      prepareForDb(insertData, ['body']),
     );
   }
 
@@ -72,10 +70,9 @@ export default class Notification {
       },
     );
 
-    for (const notification of notifications) {
-      notification.body = parseMetaProp(notification, 'body');
+    for (let notification of notifications) {
+      notification = prepareForResponse(notification, ['body']);
     }
-
     return notifications;
   }
 
@@ -112,15 +109,11 @@ export default class Notification {
       'is_deleted',
     ]);
 
-    if ('body' in updateData) {
-      updateData.body = stringifyMetaProp(updateData, 'body');
-    }
-
     return await ncMeta.metaUpdate(
       null,
       null,
       MetaTable.NOTIFICATION,
-      updateData,
+      prepareForDb(updateData, ['body']),
       id,
     );
   }

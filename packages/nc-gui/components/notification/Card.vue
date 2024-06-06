@@ -17,7 +17,7 @@ const { notifications, isRead, pageInfo, notificationTab } = storeToRefs(notific
       </div>
       <div
         v-if="!isRead && notifications?.length"
-        class="cursor-pointer right-5 pointer-events-auto top-10 absolute text-[13px] text-gray-700 font-weight-semibold"
+        class="cursor-pointer right-5 pointer-events-auto top-10 z-2 absolute text-[13px] text-gray-700 font-weight-semibold"
         @click.stop="notificationStore.markAllAsRead"
       >
         {{ $t('activity.markAllAsRead') }}

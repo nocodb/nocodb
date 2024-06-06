@@ -85,6 +85,21 @@ export class CommentsService {
     });
   }
 
+  async commentResolve(param: {
+    commentId: string;
+    user: UserType;
+    req: NcRequest;
+  }) {
+    const comment = await Comment.get(param.commentId);
+
+    const res = await Comment.update(param.commentId, {
+      resolved_by: comment.resolved_by ? null : param.user.id,
+      resolved_by_email: comment.resolved_by ? null : param.user.email,
+    });
+
+    return res;
+  }
+
   async commentUpdate(param: {
     commentId: string;
     user: UserType;

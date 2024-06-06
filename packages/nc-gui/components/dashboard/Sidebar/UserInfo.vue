@@ -63,7 +63,7 @@ onMounted(() => {
         >
           <GeneralUserIcon :email="user?.email" size="auto" :name="user?.display_name" />
           <NcTooltip>
-            <div class="flex capitalize max-w-32 truncate">
+            <div class="flex max-w-32 truncate">
               {{ name ? name : user?.email }}
             </div>
 

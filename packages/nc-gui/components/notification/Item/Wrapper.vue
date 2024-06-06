@@ -14,14 +14,14 @@ const { toggleRead, deleteNotification } = notificationStore
 </script>
 
 <template>
-  <div class="flex pl-6 pr-4 group py-4 hover:bg-gray-50 relative gap-4 cursor-pointer">
+  <div class="flex pl-6 pr-4 overflow-x-hidden group py-4 hover:bg-gray-50 relative gap-4 cursor-pointer">
     <div class="w-8 h-8">
       <slot name="avatar">
         <img src="~assets/img/brand/nocodb-logo.svg" alt="NocoDB" class="flex-none w-8 h-8" />
       </slot>
     </div>
 
-    <div class="flex w-full text-[13px] leading-5 flex-grow-1">
+    <div class="flex text-[13px] leading-5 flex-grow-1">
       <slot />
     </div>
     <div v-if="item" class="text-xs whitespace-nowrap absolute right-5 bottom-5 text-gray-600">

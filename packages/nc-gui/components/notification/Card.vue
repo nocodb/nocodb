@@ -17,6 +17,7 @@ const { unreadNotifications, readNotifications, readPageInfo, unreadPageInfo, no
     :style="!isMobileMode ? 'width: min(80svw, 520px)' : 'width: 100svw'"
     :class="{
       '!h-[100svh]': isMobileMode,
+      'max-h-[60vh]': !isMobileMode,
     }"
     class="!rounded-lg h-[620px] pt-4"
   >

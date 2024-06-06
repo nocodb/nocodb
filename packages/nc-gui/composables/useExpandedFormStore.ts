@@ -14,6 +14,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     Array<
       CommentType & {
         created_display_name: string
+        resolved_display_name?: string
       }
     >
   >([])
@@ -125,9 +126,11 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
       comments.value = res.map((comment) => {
         const user = baseUsers.value.find((u) => u.id === comment.created_by)
+        const resolvedUser = comment.resolved_by ? baseUsers.value.find((u) => u.id === comment.resolved_by) : null
         return {
           ...comment,
           created_display_name: user?.display_name ?? (user?.email ?? '').split('@')[0],
+          resolved_display_name: resolvedUser ? resolvedUser.display_name ?? resolvedUser.email.split('@')[0] : null,
         }
       })
     } catch (e: any) {
@@ -145,6 +148,15 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
       comments.value = comments.value.filter((c) => c.id !== commentId)
 
       await $api.utils.commentDelete(commentId)
+
+      // update comment count in rowMeta
+      Object.assign(row.value, {
+        ...row.value,
+        rowMeta: {
+          ...row.value.rowMeta,
+          commentCount: (row.value.rowMeta.commentCount ?? 1) - 1,
+        },
+      })
     } catch (e) {
       message.error((e as any).message)
       comments.value = [...comments.value, tempC]
@@ -185,6 +197,35 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     }
   }
 
+  const resolveComment = async (commentId: string) => {
+    const tempC = comments.value.find((c) => c.id === commentId)
+
+    try {
+      comments.value = comments.value.map((c) => {
+        if (c.id === commentId) {
+          return {
+            ...c,
+            resolved_by: tempC.resolved_by ? null : $state.user?.value?.id,
+            resolved_by_email: tempC.resolved_by ? null : $state.user?.value?.email,
+            resolved_display_name: tempC.resolved_by
+              ? null
+              : $state.user?.value?.display_name ?? $state.user?.value?.email.split('@')[0],
+          }
+        }
+        return c
+      })
+      await $api.utils.commentResolve(commentId)
+    } catch (e: any) {
+      comments.value = comments.value.map((c) => {
+        if (c.id === commentId) {
+          return tempC
+        }
+        return c
+      })
+      message.error(e.message)
+    }
+  }
+
   const saveComment = async () => {
     try {
       if (!row.value || !comment.value) return
@@ -199,7 +240,16 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
         comment: `${comment.value}`.replace(/(<br \/>)+$/g, ''),
       })
 
-      reloadTrigger?.trigger()
+      // Increase Comment Count in rowMeta
+      Object.assign(row.value, {
+        ...row.value,
+        rowMeta: {
+          ...row.value.rowMeta,
+          commentCount: (row.value.rowMeta.commentCount ?? 0) + 1,
+        },
+      })
+
+      // reloadTrigger?.trigger()
 
       await Promise.all([loadComments(), loadAudits()])
 
@@ -457,6 +507,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     comments,
     audits,
     isAuditLoading,
+    resolveComment,
     isCommentsLoading,
     saveComment,
     comment,

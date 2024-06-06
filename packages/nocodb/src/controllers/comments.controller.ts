@@ -76,6 +76,19 @@ export class CommentsController {
     });
   }
 
+  @Post([
+    '/api/v1/db/meta/comment/:commentId/resolve',
+    '/api/v2/meta/comment/:commentId/resolve',
+  ])
+  @Acl('commentUpdate')
+  async commentResolve(@Param('commentId') commentId: string, @Req() req: any) {
+    return await this.commentsService.commentResolve({
+      commentId: commentId,
+      user: req.user,
+      req,
+    });
+  }
+
   @Get(['/api/v1/db/meta/comments/count', '/api/v2/meta/comments/count'])
   @Acl('commentsCount')
   async commentsCount(

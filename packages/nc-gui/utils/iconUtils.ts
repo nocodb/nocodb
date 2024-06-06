@@ -131,6 +131,7 @@ import NcOffice from '~icons/nc-icons/office'
 import NcArrowUpRight from '~icons/nc-icons/arrow-up-right'
 import NcSlash from '~icons/nc-icons/slash'
 import NcNotification from '~icons/nc-icons/bell'
+import NcCheckCircle from '~icons/nc-icons/check-circle'
 
 // import NcProjectGray from '~icons/nc-icons/project-gray'
 import NcPhoneCall from '~icons/nc-icons/phone-call'
@@ -397,6 +398,7 @@ export const iconMap = {
   project: Project,
   search: NcSearch,
   calendar: Calendar,
+  checkCircle: NcCheckCircle,
   error: h('span', { class: 'material-symbols' }, 'error'),
   info: h(MsInfo, {}, () => 'info'),
   inbox: h('span', { class: 'material-symbols' }, 'inbox'),

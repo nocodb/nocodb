@@ -8815,6 +8815,60 @@
         }
       }
     },
+    "/api/v2/meta/comment/{commentId}/resolve": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string",
+            "example": "adt_zlskd6rlf3liay"
+          },
+          "name": "commentId",
+          "in": "path",
+          "required": true,
+          "description": "Comment ID"
+        },
+        {
+          "name": "xc-auth",
+          "in": "header",
+          "required": false,
+          "schema": {
+            "type": "string"
+          },
+          "description": "Auth Token is a JWT Token generated based on the logged-in user. By default, the token is only valid for 10 hours. However, you can change the value by defining it using environment variable NC_JWT_EXPIRES_IN."
+        }
+      ],
+      "post": {
+        "summary": "Resolve Comment",
+        "operationId": "utils-comment-resolve",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "number",
+                  "example": 1
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Utils"
+        ],
+        "description": "Resolve comment",
+        "requestBody": {
+          "content": {
+            "application/json": {}
+          }
+        }
+      }
+    },
     "/api/v2/meta/comments/count": {
       "parameters": [
         {

@@ -32,7 +32,7 @@ const item = toRef(props, 'item')
     <template #avatar>
       <GeneralUserIcon class="w-8 h-8" :email="item.body.user.email" :name="item.body.user.display_name" />
     </template>
-    <div class="text-sm">
+    <div>
       <p class="!mb-2">
         <strong>{{ item.body.user.display_name ?? item.body.user.email }}</strong> has mentioned you in a comment on
         <strong> {{ item.body.row.value }} </strong> {{ ' ' }}
@@ -41,7 +41,7 @@ const item = toRef(props, 'item')
           <strong>{{ item.body.table.title }} / </strong>
         </span>
         <span class="flex inline-flex items-center gap-1">
-          <strong>{{ item.body.base.title }}</strong>
+          <strong> {{ item.body.base.title }}</strong>
         </span>
       </p>
       <span v-if="item.body.workspace.title" class="capitalize text-gray-600 bg-gray-200 rounded-lg px-2">

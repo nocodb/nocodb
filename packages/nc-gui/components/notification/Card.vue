@@ -17,7 +17,7 @@ const { unreadNotifications, readNotifications, readPageInfo, unreadPageInfo, no
     :class="{
       '!w-[100svw] !h-[100svh]': isMobileMode,
     }"
-    class="w-[520px] h-[620px] pt-4"
+    class="w-[520px] !rounded-lg h-[620px] pt-4"
   >
     <div class="space-y-3">
       <div class="flex px-6 justify-between items-center">
@@ -32,7 +32,7 @@ const { unreadNotifications, readNotifications, readPageInfo, unreadPageInfo, no
         :class="{
           'text-gray-400': !unreadNotifications?.length,
         }"
-        class="cursor-pointer right-5 pointer-events-auto top-12.5 z-2 absolute text-[13px] text-gray-700 font-weight-semibold"
+        class="cursor-pointer right-5 pointer-events-auto top-12.5 z-2 absolute text-[13px] text-gray-600 font-weight-semibold"
         @click.stop="markAllAsRead"
       >
         {{ $t('activity.markAllAsRead') }}

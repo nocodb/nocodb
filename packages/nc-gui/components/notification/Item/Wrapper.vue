@@ -10,7 +10,7 @@ const item = toRef(props, 'item')
 
 const notificationStore = useNotification()
 
-const { markAsRead } = notificationStore
+const { toggleRead } = notificationStore
 </script>
 
 <template>
@@ -21,23 +21,23 @@ const { markAsRead } = notificationStore
       </slot>
     </div>
 
-    <div class="flex flex-grow-1">
+    <div class="flex w-full text-[13px] leading-5 flex-grow-1">
       <slot />
     </div>
     <div v-if="item" class="text-xs whitespace-nowrap absolute right-5 bottom-5 text-gray-600">
       {{ timeAgo(item.created_at) }}
     </div>
-    <div v-if="!item.is_read" class="flex items-start">
+    <div class="flex items-start">
       <NcTooltip>
         <template #title>
-          <span>Mark as read</span>
+          <span>{{ item.is_read ? 'Mark as unread' : 'Mark as read' }}</span>
         </template>
 
         <NcButton
           type="secondary"
           class="!border-0 transition-all duration-100 opacity-0 !group-hover:opacity-100"
           size="xsmall"
-          @click.stop="() => markAsRead(item)"
+          @click.stop="() => toggleRead(item)"
         >
           <GeneralIcon icon="check" class="text-gray-700" />
         </NcButton>

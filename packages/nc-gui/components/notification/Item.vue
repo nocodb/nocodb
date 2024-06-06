@@ -10,11 +10,11 @@ const item = toRef(props, 'item')
 
 const notificationStore = useNotification()
 
-const { markAsRead } = notificationStore
+const { toggleRead } = notificationStore
 </script>
 
 <template>
-  <div class="select-none" @click="markAsRead(item)">
+  <div class="select-none" @click="toggleRead(item, item.is_read)">
     <NotificationItemWelcome v-if="item.type === AppEvents.WELCOME" :item="item" />
     <NotificationItemProjectInvite v-else-if="item.type === AppEvents.PROJECT_INVITE" :item="item" />
     <NotificationItemWorkspaceInvite v-else-if="item.type === AppEvents.WORKSPACE_INVITE" :item="item" />

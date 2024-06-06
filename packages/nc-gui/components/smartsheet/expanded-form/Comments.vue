@@ -194,8 +194,8 @@ const createdBy = (
   },
 ) => {
   return (
-    (comment.created_by === user?.id
-      ? comment.created_display_name?.trim() || comment.created_by_email
+    (comment.created_by === user.value?.id
+      ? 'You'
       : comment.created_display_name?.trim()
       ? comment.created_by_email
       : comment.created_display_name?.trim()) || 'Shared source'
@@ -301,15 +301,19 @@ const createdBy = (
                       </NcDropdown>
 
                       <div>
-                        <NcButton
-                          v-if="!comment.resolved_by"
-                          class="!w-7 !h-7 !bg-transparent opacity-0 group-hover:opacity-100"
-                          size="xsmall"
-                          type="text"
-                          @click="resolveComment(comment.id!)"
-                        >
-                          <GeneralIcon class="text-md" icon="checkCircle" />
-                        </NcButton>
+                        <NcTooltip v-if="!comment.resolved_by">
+                          <NcButton
+                            class="!w-7 !h-7 !bg-transparent opacity-0 group-hover:opacity-100"
+                            size="xsmall"
+                            type="text"
+                            @click="resolveComment(comment.id!)"
+                          >
+                            <GeneralIcon class="text-md" icon="checkCircle" />
+                          </NcButton>
+
+                          <template #title>Click to resolve </template>
+                        </NcTooltip>
+
                         <NcTooltip v-else>
                           <template #title>{{ `Resolved by ${comment.resolved_display_name}` }}</template>
                           <div class="flex text-[#17803D] font-semibold items-center">

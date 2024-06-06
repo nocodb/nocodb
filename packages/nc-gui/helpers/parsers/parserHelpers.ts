@@ -1,5 +1,6 @@
 import { FieldNameFromUITypes, UITypes, type ColumnType } from 'nocodb-sdk'
 import isURL from 'validator/lib/isURL'
+import { pluralize } from 'inflection'
 
 // This regex pattern matches email addresses by looking for sequences that start with characters before the "@" symbol, followed by the domain.
 // It's designed to capture most email formats, including those with periods and "+" symbols in the local part.
@@ -366,6 +367,7 @@ export const generateUniqueColumnName = ({
   formState: Record<string, any>
   newFieldTitles?: string[]
 }) => {
+  console.log('pluralize', pluralize('country'))
   let defaultColumnName = FieldNameFromUITypes[formState.uidt as UITypes]
 
   if (!defaultColumnName) {
@@ -386,12 +388,12 @@ export const generateUniqueColumnName = ({
         return `title${generateUniqueColumnSuffix({ tableExplorerColumns, metaColumns })}`
       }
 
-      // Remove s if it is one to one type
-      if (formState.uidt === UITypes.Links && formState?.type === 'oo') {
-        defaultColumnName = defaultColumnName.slice(0, defaultColumnName.length - 1)
-      }
-
       let childTableTitle = formState.childTableTitle
+
+      // Use plural for links except oo relation type
+      if (formState.uidt === UITypes.Links && formState?.type !== 'oo') {
+        childTableTitle = pluralize(childTableTitle)
+      }
 
       // Calculate the remaining length available for childTableTitle
       const maxLength = 255 - (defaultColumnName.length - 11 + '{TableName}'.length)
@@ -444,14 +446,34 @@ export const generateUniqueColumnName = ({
     }
 
     case UITypes.Rollup: {
-      if (!formState.rollupTableTitle || !formState.rollupColumnTitle) {
+      if (!formState.rollupTableTitle || !formState.rollupColumnTitle || !formState?.rollup_function_name) {
         return `title${generateUniqueColumnSuffix({ tableExplorerColumns, metaColumns })}`
       }
+      let rollupTableTitle = formState.rollupTableTitle
+      let rollupColumnTitle = formState.rollupColumnTitle
 
-      defaultColumnName = defaultColumnName
-        .replace('{TableName}', formState.rollupTableTitle)
-        .replace('{FieldName}', formState.rollupColumnTitle)
+      // Update rollup function name
+      defaultColumnName = defaultColumnName.replace('{RollupFunction}', formState.rollup_function_name)
 
+      // Calculate the lengths of the placeholders
+      const placeholderLength = '{TableName}'.length + '{FieldName}'.length
+      const baseLength = defaultColumnName.length - placeholderLength
+
+      // Calculate the maximum length allowed for both titles combined
+      const maxTotalLength = 255 - baseLength
+      const maxLengthPerTitle = Math.floor(maxTotalLength / 2)
+
+      // Truncate the titles if necessary
+      if (rollupTableTitle.length > maxLengthPerTitle) {
+        rollupTableTitle = `${rollupTableTitle.slice(0, maxLengthPerTitle - 3)}...`
+      }
+
+      if (rollupColumnTitle.length > maxLengthPerTitle) {
+        rollupColumnTitle = `${rollupColumnTitle.slice(0, maxLengthPerTitle - 3)}...`
+      }
+
+      // Replace placeholders
+      defaultColumnName = defaultColumnName.replace('{TableName}', rollupTableTitle).replace('{FieldName}', rollupColumnTitle)
       break
     }
   }

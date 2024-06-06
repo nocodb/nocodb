@@ -136,6 +136,15 @@ const filteredColumns = computed(() => {
   })
 })
 
+const onRollupFunctionChange = () => {
+  const rollupFun = aggFunctionsList.value.find((func) => func.value === vModel.value.rollup_function)
+  if (rollupFun && rollupFun?.text) {
+    vModel.value.rollup_function_name = rollupFun.text
+  }
+  onDataTypeChange()
+  updateFieldName()
+}
+
 watch(
   () => vModel.value.fk_rollup_column_id,
   () => {
@@ -147,6 +156,7 @@ watch(
       // when the previous roll up function was numeric type and the current child field is non-numeric
       // reset rollup function with a non-numeric type
       vModel.value.rollup_function = aggFunctionsList.value[0].value
+      vModel.value.rollup_function_name = aggFunctionsList.value[0].text
     }
 
     vModel.value.rollupColumnTitle = childFieldColumn?.title || childFieldColumn?.column_name
@@ -267,7 +277,7 @@ watch(
         placeholder="-select-"
         dropdown-class-name="nc-dropdown-rollup-function"
         class="!mt-0.5"
-        @change="onDataTypeChange"
+        @change="onRollupFunctionChange"
       >
         <template #suffixIcon>
           <GeneralIcon icon="arrowDown" class="text-gray-700" />

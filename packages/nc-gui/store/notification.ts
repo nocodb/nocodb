@@ -162,7 +162,11 @@ export const useNotification = defineStore('notificationStore', () => {
 
   const init = async () => {
     await Promise.allSettled([loadReadNotifications(), loadUnReadNotifications()])
-    pollNotifications()
+
+    setTimeout(() => {
+      pollNotifications()
+      Promise.allSettled([loadReadNotifications(), loadUnReadNotifications()])
+    }, 5000)
   }
 
   onMounted(init)

@@ -14,10 +14,11 @@ const { unreadNotifications, readNotifications, readPageInfo, unreadPageInfo, no
 <template>
   <div
     style="box-shadow: 0px -12px 16px -4px rgba(0, 0, 0, 0.1), 0px -4px 6px -2px rgba(0, 0, 0, 0.06)"
+    :style="!isMobileMode ? 'width: min(80svw, 520px)' : 'width: 100svw'"
     :class="{
-      '!w-[100svw] !h-[100svh]': isMobileMode,
+      '!h-[100svh]': isMobileMode,
     }"
-    class="w-[520px] !rounded-lg h-[620px] pt-4"
+    class="!rounded-lg h-[620px] pt-4"
   >
     <div class="space-y-3">
       <div class="flex px-6 justify-between items-center">

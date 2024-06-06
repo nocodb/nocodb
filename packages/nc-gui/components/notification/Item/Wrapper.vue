@@ -8,23 +8,25 @@ const props = defineProps<{
 
 const item = toRef(props, 'item')
 
+const { isMobileMode } = useGlobal()
+
 const notificationStore = useNotification()
 
 const { toggleRead, deleteNotification } = notificationStore
 </script>
 
 <template>
-  <div class="flex pl-6 pr-4 overflow-x-hidden group py-4 hover:bg-gray-50 relative gap-4 cursor-pointer">
-    <div class="w-8 h-8">
+  <div class="flex pl-6 pr-4 w-full overflow-x-hidden group py-4 hover:bg-gray-50 gap-3 relative cursor-pointer">
+    <div class="w-9.625">
       <slot name="avatar">
-        <img src="~assets/img/brand/nocodb-logo.svg" alt="NocoDB" class="flex-none w-8 h-8" />
+        <img src="~assets/img/brand/nocodb-logo.svg" alt="NocoDB" class="w-8" />
       </slot>
     </div>
 
-    <div class="flex text-[13px] leading-5 flex-grow-1">
+    <div class="text-[13px] min-h-12 w-full leading-5">
       <slot />
     </div>
-    <div v-if="item" class="text-xs whitespace-nowrap absolute right-5 bottom-5 text-gray-600">
+    <div v-if="item" class="text-xs whitespace-nowrap absolute right-4.1 bottom-5 text-gray-600">
       {{ timeAgo(item.created_at) }}
     </div>
     <div class="flex items-start">
@@ -34,6 +36,9 @@ const { toggleRead, deleteNotification } = notificationStore
         </template>
 
         <NcButton
+          :class="{
+            '!opacity-100': isMobileMode,
+          }"
           type="secondary"
           class="!border-0 transition-all duration-100 opacity-0 !group-hover:opacity-100"
           size="xsmall"
@@ -42,7 +47,13 @@ const { toggleRead, deleteNotification } = notificationStore
           <GeneralIcon icon="check" class="text-gray-700" />
         </NcButton>
       </NcTooltip>
-      <NcDropdown v-else>
+      <NcDropdown
+        v-else
+        :class="{
+          '!opacity-100': isMobileMode,
+        }"
+        class="transition-all duration-100 opacity-0 !group-hover:opacity-100"
+      >
         <NcButton size="xsmall" type="secondary" @click.stop>
           <GeneralIcon icon="threeDotVertical" />
         </NcButton>

@@ -313,13 +313,11 @@ watch(commentsWrapperEl, () => {
                         <NcTooltip v-else>
                           <template #title>{{ `Resolved by ${comment.resolved_display_name}` }}</template>
                           <div class="flex text-[#17803D] font-semibold items-center">
-                            <NcButton
-                              class="!w-7 !h-7 !bg-transparent"
-                              size="xsmall"
-                              type="text"
-                              @click="resolveComment(comment.id)"
-                            >
-                              <component :is="iconMap.checkCircle" class="!text-[#17803D]" />
+                            <NcButton class="!h-7 !bg-transparent" size="xsmall" type="text" @click="resolveComment(comment.id)">
+                              <div class="flex items-center gap-2 !text-[#17803D]">
+                                <span> Resolved </span>
+                                <component :is="iconMap.checkCircle" />
+                              </div>
                             </NcButton>
                           </div>
                         </NcTooltip>

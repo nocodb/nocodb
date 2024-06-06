@@ -55,7 +55,7 @@ onMounted(() => {
 
 <template>
   <div class="flex w-full flex-col py-0.9 px-1 border-gray-200 gap-y-1">
-    <div class="flex items-center pr-4 justify-between">
+    <div class="flex items-center pr-2 justify-between">
       <NcDropdown v-model:visible="isMenuOpen" placement="topLeft" overlay-class-name="!min-w-64">
         <div
           class="flex flex-row py-1 px-3 gap-x-2 items-center hover:bg-gray-200 rounded-lg cursor-pointer h-8"
@@ -68,7 +68,7 @@ onMounted(() => {
             </div>
 
             <template #title>
-              <span class="capitalize">
+              <span>
                 {{ name ? name : user?.email }}
               </span>
             </template>

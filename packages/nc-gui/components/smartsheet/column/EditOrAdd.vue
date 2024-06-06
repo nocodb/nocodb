@@ -328,6 +328,7 @@ const filterOption = (input: string, option: { value: UITypes }) => {
             :placeholder="`${$t('objects.field')} ${$t('general.name').toLowerCase()} ${isEdit ? '' : $t('labels.optional')}`"
             class="flex flex-grow nc-fields-input text-lg font-bold outline-none bg-inherit"
             :contenteditable="true"
+            @input="formState.userHasChangedTitle = true"
           />
         </div>
       </a-form-item>

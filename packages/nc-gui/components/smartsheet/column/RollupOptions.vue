@@ -20,7 +20,8 @@ const vModel = useVModel(props, 'value', emit)
 
 const meta = inject(MetaInj, ref())
 
-const { setAdditionalValidations, validateInfos, onDataTypeChange, isEdit, disableSubmitBtn } = useColumnCreateStoreOrThrow()
+const { setAdditionalValidations, validateInfos, onDataTypeChange, isEdit, disableSubmitBtn, updateFieldName } =
+  useColumnCreateStoreOrThrow()
 
 const baseStore = useBase()
 
@@ -149,6 +150,8 @@ watch(
     }
 
     vModel.value.rollupColumnTitle = childFieldColumn?.title || childFieldColumn?.column_name
+
+    updateFieldName()
   },
 )
 

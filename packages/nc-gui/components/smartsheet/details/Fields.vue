@@ -16,6 +16,7 @@ interface TableExplorerColumn extends ColumnType {
     view_id: string
   }
   view_id?: string
+  userHasChangedTitle?: boolean
 }
 
 interface op {
@@ -609,7 +610,7 @@ const saveChanges = async () => {
     const newFieldTitles: string[] = []
     for (const mop of moveOps.value) {
       const op = ops.value.find((op) => compareCols(op.column, mop.column))
-      if (op && op.op === 'add') {
+      if (op && op.op === 'add' && !op.column?.userHasChangedTitle && !op.column.title) {
         const defaultColumnName = generateUniqueColumnName({
           formState: op.column,
           tableExplorerColumns: fields.value || [],
@@ -841,11 +842,47 @@ const onFieldOptionUpdate = () => {
 watch(
   fields,
   () => {
-    if (activeField.value) {
-      activeField.value = fields.value.find((field) => field.id === activeField.value.id) || activeField.value
+    if (activeField.value && Object.keys(activeField.value).length) {
+      activeField.value =
+        fields.value.find((field) => {
+          if (field.id && activeField.value.id) {
+            return field.id === activeField.value.id
+          }
+          return field.temp_id === activeField.value.temp_id
+        }) || activeField.value
     }
   },
   { deep: true },
+)
+
+watch(
+  () => activeField.value?.temp_id,
+  (_newValue, oldValue) => {
+    if (!oldValue) return
+
+    const oldField = fields.value.find((field) => field.temp_id === oldValue)
+    if (
+      !oldField ||
+      (oldField &&
+        (oldField.title ||
+          !ops.value.find((op) => op.op === 'add' && op.column.temp_id === oldField.temp_id) ||
+          oldField?.userHasChangedTitle ||
+          !isColumnValid(oldField)))
+    ) {
+      return
+    }
+
+    const newFieldTitles = ops.value.filter((op) => op.op === 'add' && op.column.title).map((op) => op.column.title)
+    const defaultColumnName = generateUniqueColumnName({
+      formState: oldField,
+      tableExplorerColumns: fields.value || [],
+      metaColumns: meta.value?.columns || [],
+      newFieldTitles,
+    })
+
+    oldField.title = defaultColumnName
+    oldField.column_name = defaultColumnName
+  },
 )
 </script>
 
@@ -1292,6 +1329,7 @@ watch(
                 :column="activeField"
                 :preload="fieldState(activeField)"
                 :table-explorer-columns="fields"
+                :is-column-valid="isColumnValid"
                 embed-mode
                 :readonly="isLocked"
                 from-table-explorer

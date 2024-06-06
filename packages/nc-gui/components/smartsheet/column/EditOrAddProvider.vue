@@ -8,6 +8,7 @@ interface Props {
   preload?: Partial<ColumnType>
   tableExplorerColumns?: ColumnType[]
   fromTableExplorer?: boolean
+  isColumnValid?: (value: Partial<ColumnType>) => boolean
 }
 
 const props = defineProps<Props>()
@@ -16,9 +17,9 @@ const emit = defineEmits(['submit', 'cancel', 'mounted'])
 
 const meta = inject(MetaInj, ref())
 
-const { column, preload, tableExplorerColumns, fromTableExplorer } = toRefs(props)
+const { column, preload, tableExplorerColumns, fromTableExplorer, isColumnValid } = toRefs(props)
 
-useProvideColumnCreateStore(meta, column, tableExplorerColumns, fromTableExplorer)
+useProvideColumnCreateStore(meta, column, tableExplorerColumns, fromTableExplorer, isColumnValid)
 </script>
 
 <template>

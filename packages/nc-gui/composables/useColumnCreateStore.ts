@@ -21,6 +21,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     column: Ref<ColumnType | undefined>,
     tableExplorerColumns?: Ref<ColumnType[] | undefined>,
     fromTableExplorer?: Ref<boolean | undefined>,
+    isColumnValid?: Ref<((value: Partial<ColumnType>) => boolean) | undefined>,
   ) => {
     const baseStore = useBase()
 
@@ -161,6 +162,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
           column_name: formState.value.column_name,
           uidt: formState.value.uidt,
           temp_id: formState.value.temp_id,
+          userHasChangedTitle: !!formState.value?.userHasChangedTitle,
         }),
         ...(isEdit.value && {
           // take the existing formState.value when editing a column
@@ -204,6 +206,22 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       }
 
       formState.value.altered = formState.value.altered || 2
+
+      if (
+        !isEdit.value &&
+        fromTableExplorer?.value &&
+        !formState.value?.userHasChangedTitle &&
+        isColumnValid?.value?.(formState.value)
+      ) {
+        const defaultColumnName = generateUniqueColumnName({
+          formState: formState.value,
+          tableExplorerColumns: tableExplorerColumns?.value || [],
+          metaColumns: meta.value?.columns || [],
+        })
+
+        formState.value.title = defaultColumnName
+        formState.value.column_name = defaultColumnName
+      }
     }
 
     const onDataTypeChange = () => {
@@ -326,11 +344,51 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       }
     }
 
+    const updateFieldName = () => {
+      if (
+        isEdit.value ||
+        !fromTableExplorer?.value ||
+        formState.value?.userHasChangedTitle ||
+        !isColumnValid?.value?.(formState.value)
+      ) {
+        return
+      }
+
+      const defaultColumnName = generateUniqueColumnName({
+        formState: formState.value,
+        tableExplorerColumns: tableExplorerColumns?.value || [],
+        metaColumns: meta.value?.columns || [],
+      })
+
+      formState.value.title = defaultColumnName
+      formState.value.column_name = defaultColumnName
+    }
+
     /** set column name same as title which is actual name in db */
     watch(
       () => formState.value?.title,
       (newTitle) => (formState.value.column_name = newTitle),
     )
+
+    if (!isEdit.value && fromTableExplorer?.value) {
+      watch(
+        () => isColumnValid?.value?.(formState.value),
+        (newValue) => {
+          nextTick(() => {
+            if (newValue && !formState.value?.userHasChangedTitle) {
+              const defaultColumnName = generateUniqueColumnName({
+                formState: formState.value,
+                tableExplorerColumns: tableExplorerColumns?.value || [],
+                metaColumns: meta.value?.columns || [],
+              })
+
+              formState.value.title = defaultColumnName
+              formState.value.column_name = defaultColumnName
+            }
+          })
+        },
+      )
+    }
 
     return {
       formState,
@@ -352,6 +410,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       isXcdbBase,
       disableSubmitBtn,
       setPostSaveOrUpdateCbk,
+      updateFieldName,
     }
   },
 )

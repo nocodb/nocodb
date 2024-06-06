@@ -15,7 +15,8 @@ const meta = inject(MetaInj, ref())
 
 const { t } = useI18n()
 
-const { setAdditionalValidations, validateInfos, onDataTypeChange, isEdit, disableSubmitBtn } = useColumnCreateStoreOrThrow()
+const { setAdditionalValidations, validateInfos, onDataTypeChange, isEdit, disableSubmitBtn, updateFieldName } =
+  useColumnCreateStoreOrThrow()
 
 const baseStore = useBase()
 
@@ -117,6 +118,8 @@ watch(
     const selectedColumn = columns.value.find((c) => c.id === newValue)
     if (selectedColumn) {
       vModel.value.lookupColumnTitle = selectedColumn?.title || selectedColumn.column_name
+
+      updateFieldName()
     }
   },
 )

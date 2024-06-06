@@ -307,23 +307,29 @@ const extractNextDefaultColumnName = ({
   metaColumns,
   defaultColumnName,
   newFieldTitles,
+  formState,
 }: {
   tableExplorerColumns?: ColumnType[]
   metaColumns: ColumnType[]
   defaultColumnName: string
   newFieldTitles: string[]
+  formState: Record<string, any>
 }): string => {
   // Extract and sort numbers associated with the provided defaultName
   const namesData = ((tableExplorerColumns || metaColumns)
     ?.flatMap((c) => {
-      if (c.title !== c.column_name) {
-        return [c.title, c.column_name]
+      if (formState?.temp_id && c?.temp_id && formState?.temp_id === c?.temp_id) {
+        return []
       }
-      return [c.title]
-    })
-    .filter((t) => t && t.startsWith(defaultColumnName)) || []) as string[]
 
-  if (![...namesData, ...newFieldTitles].includes(defaultColumnName)) {
+      if (c.title !== c.column_name) {
+        return [c.title?.toLowerCase(), c.column_name?.toLowerCase()]
+      }
+      return [c.title?.toLowerCase()]
+    })
+    .filter((t) => t && t.startsWith(defaultColumnName.toLowerCase())) || []) as string[]
+
+  if (![...namesData, ...newFieldTitles].includes(defaultColumnName.toLowerCase())) {
     return defaultColumnName
   }
 
@@ -331,7 +337,7 @@ const extractNextDefaultColumnName = ({
     (namesData
       .map((name) => {
         const [_defaultName, number] = name.split(/ (?!.* )/)
-        if (_defaultName === defaultColumnName && !isNaN(Number(number?.trim()))) {
+        if (_defaultName === defaultColumnName.toLowerCase() && !isNaN(Number(number?.trim()))) {
           return Number(number?.trim())
         }
         return undefined
@@ -379,8 +385,23 @@ export const generateUniqueColumnName = ({
       if (!formState.childTableTitle) {
         return `title${generateUniqueColumnSuffix({ tableExplorerColumns, metaColumns })}`
       }
+      let childTableTitle = formState.childTableTitle
 
-      defaultColumnName = defaultColumnName.replace('{TableName}', formState.childTableTitle)
+      // Calculate the remaining length available for childTableTitle
+      const maxLength = 255 - (defaultColumnName.length - 11 + '{TableName}'.length)
+
+      // Truncate childTableTitle if it exceeds the maxLength
+      if (childTableTitle.length > maxLength) {
+        childTableTitle = `${childTableTitle.slice(0, maxLength - 3)}...`
+      }
+
+      // Replace {TableName} with the potentially truncated childTableTitle
+      defaultColumnName = defaultColumnName.replace('{TableName}', childTableTitle)
+
+      // Ensure the final defaultColumnName is less than 255 characters
+      if (defaultColumnName.length >= 255) {
+        defaultColumnName = defaultColumnName.slice(0, 252) + '...'
+      }
 
       break
     }
@@ -390,12 +411,32 @@ export const generateUniqueColumnName = ({
         return `title${generateUniqueColumnSuffix({ tableExplorerColumns, metaColumns })}`
       }
 
-      defaultColumnName = defaultColumnName
-        .replace('{TableName}', formState.lookupTableTitle)
-        .replace('{FieldName}', formState.lookupColumnTitle)
+      let lookupTableTitle = formState.lookupTableTitle
+      let lookupColumnTitle = formState.lookupColumnTitle
+
+      // Calculate the lengths of the placeholders
+      const placeholderLength = '{TableName}'.length + '{FieldName}'.length
+      const baseLength = defaultColumnName.length - placeholderLength
+
+      // Calculate the maximum length allowed for both titles combined
+      const maxTotalLength = 255 - baseLength
+      const maxLengthPerTitle = Math.floor(maxTotalLength / 2)
+
+      // Truncate the titles if necessary
+      if (lookupTableTitle.length > maxLengthPerTitle) {
+        lookupTableTitle = `${lookupTableTitle.slice(0, maxLengthPerTitle - 3)}...`
+      }
+
+      if (lookupColumnTitle.length > maxLengthPerTitle) {
+        lookupColumnTitle = `${lookupColumnTitle.slice(0, maxLengthPerTitle - 3)}...`
+      }
+
+      // Replace placeholders
+      defaultColumnName = defaultColumnName.replace('{TableName}', lookupTableTitle).replace('{FieldName}', lookupColumnTitle)
 
       break
     }
+
     case UITypes.Rollup: {
       if (!formState.rollupTableTitle || !formState.rollupColumnTitle) {
         return `title${generateUniqueColumnSuffix({ tableExplorerColumns, metaColumns })}`
@@ -414,5 +455,6 @@ export const generateUniqueColumnName = ({
     metaColumns,
     defaultColumnName,
     newFieldTitles: newFieldTitles || [],
+    formState,
   })
 }

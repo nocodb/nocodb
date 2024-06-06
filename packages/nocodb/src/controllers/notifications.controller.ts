@@ -56,8 +56,11 @@ export class NotificationsController {
       );
     }
 
-    res.on('close', () => {
+    res.on('close', async () => {
       this.notificationsService.removeConnection(req.user.id, res);
+      if (PubSubRedis.available) {
+        await PubSubRedis.unsubscribe(`notification:${req.user.id}`);
+      }
     });
 
     setTimeout(() => {

@@ -35,7 +35,7 @@ import * as nc_045_extensions from '~/meta/migrations/v2/nc_045_extensions';
 import * as nc_046_comment_mentions from '~/meta/migrations/v2/nc_046_comment_mentions';
 import * as nc_047_comment_migration from '~/meta/migrations/v2/nc_047_comment_migration';
 import * as nc_048_view_links from '~/meta/migrations/v2/nc_048_view_links';
-import * as nc_048_clear_notifications from '~/meta/migrations/v2/nc_048_clear_notifications';
+import * as nc_049_clear_notifications from '~/meta/migrations/v2/nc_049_clear_notifications';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev2 {
@@ -82,7 +82,7 @@ export default class XcMigrationSourcev2 {
       'nc_046_comment_mentions',
       'nc_047_comment_migration',
       'nc_048_view_links',
-      'nc_048_clear_notifications',
+      'nc_049_clear_notifications',
     ]);
   }
 
@@ -166,8 +166,8 @@ export default class XcMigrationSourcev2 {
         return nc_047_comment_migration;
       case 'nc_048_view_links':
         return nc_048_view_links;
-      case 'nc_048_clear_notifications':
-        return nc_048_clear_notifications;
+      case 'nc_049_clear_notifications':
+        return nc_049_clear_notifications;
     }
   }
 }

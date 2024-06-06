@@ -551,6 +551,11 @@ const filterOption = (input: string, option: { value: UITypes }) => {
 </style>
 
 <style lang="scss" scoped>
+.nc-fields-input {
+  &::placeholder {
+    @apply font-normal text-gray-400;
+  }
+}
 .nc-column-name-input,
 :deep(.nc-formula-input),
 :deep(.ant-form-item-control-input-content > input.ant-input) {

@@ -4,16 +4,27 @@ import InfiniteLoading from 'v3-infinite-loading'
 
 const notificationStore = useNotification()
 
+const { isMobileMode } = useGlobal()
+
 const { loadNotifications, markAllAsRead } = notificationStore
 
 const { notifications, pageInfo, notificationTab } = storeToRefs(notificationStore)
 </script>
 
 <template>
-  <div class="w-[520px] h-[620px] pt-4">
+  <div
+    :class="{
+      '!w-[100svw] !h-[100svh]': isMobileMode,
+    }"
+    class="w-[520px] h-[620px] pt-4"
+  >
     <div class="space-y-6">
-      <div class="flex px-6 items-center" @click.stop>
-        <span class="text-md font-bold text-gray-800"> {{ $t('general.notification') }}s </span>
+      <div class="flex px-6 justify-between items-center">
+        <span class="text-md font-bold text-gray-800" @click.stop> {{ $t('general.notification') }}s </span>
+
+        <NcButton v-if="isMobileMode" size="small" type="secondary">
+          <GeneralIcon icon="close" class="text-gray-700" />
+        </NcButton>
       </div>
       <div
         v-if="notificationTab !== 'read'"
@@ -30,7 +41,7 @@ const { notifications, pageInfo, notificationTab } = storeToRefs(notificationSto
           <template #tab>
             <span
               :class="{
-                'font-semibold': notificationTab === 'read',
+                'font-semibold': notificationTab === 'unread',
               }"
               class="text-xs"
             >
@@ -52,7 +63,7 @@ const { notifications, pageInfo, notificationTab } = storeToRefs(notificationSto
             <template v-else>
               <template v-for="item in notifications" :key="item.id">
                 <NotificationItem class="" :item="item" />
-                <a-divider class="!my-0" />
+                <NcDivider />
               </template>
 
               <InfiniteLoading
@@ -90,7 +101,7 @@ const { notifications, pageInfo, notificationTab } = storeToRefs(notificationSto
             <template v-else>
               <template v-for="item in notifications" :key="item.id">
                 <NotificationItem class="" :item="item" />
-                <a-divider class="!my-0" />
+                <NcDivider />
               </template>
 
               <InfiniteLoading

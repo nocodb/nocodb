@@ -36,18 +36,14 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
       return;
     }
 
-    const conns = this.connections.get(userId);
+    const userConnections = this.connections.get(userId);
 
-    const idx = conns.findIndex((c) => c.resId === res.resId);
+    const idx = userConnections.findIndex((c) => c.resId === res.resId);
 
     if (idx > -1) {
-      conns.splice(idx, 1);
+      userConnections.splice(idx, 1);
     }
-    this.connections.set(userId, conns);
-  };
-
-  getConnections = (userId: string) => {
-    return this.connections.get(userId) || [];
+    this.connections.set(userId, userConnections);
   };
 
   public sendToConnections(key: string, payload: string): void {
@@ -63,9 +59,9 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
     insertData: Partial<Notification>,
     req: NcRequest,
   ) {
-    this.appHooks.emit('notification' as any, { ...insertData, req } as any);
-
     await Notification.insert(insertData);
+
+    this.sendToConnections(insertData.fk_user_id, JSON.stringify(insertData));
   }
 
   async notificationList(param: {

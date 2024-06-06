@@ -17,6 +17,7 @@ import { GlobalGuard } from '~/guards/global/global.guard';
 import { extractProps } from '~/helpers/extractProps';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { NcRequest } from '~/interface/config';
+import { NcError } from '~/helpers/catchError';
 
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 const POLL_INTERVAL = 30000;
@@ -38,6 +39,24 @@ export class NotificationsController {
   ) {
     res.setHeader('Cache-Control', 'no-cache, must-revalidate');
     res.resId = nanoidv2();
+
+    if (!req.user?.id) {
+      NcError.authenticationRequired();
+    }
+
+    this.notificationsService.addConnection(req.user.id, res);
+
+    res.on('close', () => {
+      this.notificationsService.removeConnection(req.user.id, res);
+    });
+
+    setTimeout(() => {
+      if (!res.headersSent) {
+        res.send({
+          status: 'refresh',
+        });
+      }
+    }, POLL_INTERVAL);
   }
 
   @Get('/api/v1/notifications')

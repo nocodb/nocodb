@@ -2,8 +2,10 @@ import { defineStore } from 'pinia'
 import type { NotificationType } from 'nocodb-sdk'
 
 export const useNotification = defineStore('notificationStore', () => {
-  const notifications = ref<NotificationType[]>([])
-  const pageInfo = ref()
+  const readNotifications = ref<NotificationType[]>([])
+  const unreadNotifications = ref<NotificationType[]>([])
+  const readPageInfo = ref()
+  const unreadPageInfo = ref()
   const unreadCount = ref(0)
 
   const notificationTab = ref<'read' | 'unread'>('unread')
@@ -16,7 +18,7 @@ export const useNotification = defineStore('notificationStore', () => {
 
       if (res.status === 'success') {
         if (notificationTab.value === 'unread') {
-          notifications.value = [JSON.parse(res.data), ...notifications.value]
+          unreadNotifications.value = [JSON.parse(res.data), ...unreadNotifications.value]
         }
         unreadCount.value = unreadCount.value + 1
       }
@@ -27,57 +29,97 @@ export const useNotification = defineStore('notificationStore', () => {
     }
   }
 
-  const loadNotifications = async (loadMore = false) => {
-    const response = await api.notification.list({
-      is_read: notificationTab.value === 'read',
-      limit: 10,
-      offset: loadMore ? notifications.value.length : 0,
-    })
+  const loadReadNotifications = async (loadMore?: boolean) => {
+    try {
+      const response = await api.notification.list({
+        is_read: true,
+        limit: 10,
+        offset: loadMore ? readNotifications.value.length : 0,
+      })
 
-    if (loadMore) {
-      notifications.value = [...notifications.value, ...response.list]
-    } else {
-      notifications.value = response.list
+      if (loadMore) {
+        readNotifications.value = [...readNotifications.value, ...response.list]
+      } else {
+        readNotifications.value = response.list
+      }
+
+      readPageInfo.value = response.pageInfo
+      unreadCount.value = (response as any).unreadCount
+    } catch (e) {
+      console.log(e)
+
+      message.error(`Failed to load notifications: ${await extractSdkResponseErrorMsgv2(e as any)}`)
     }
+  }
 
-    pageInfo.value = response.pageInfo
-    unreadCount.value = (response as any).unreadCount
+  const loadUnReadNotifications = async (loadMore?: boolean) => {
+    try {
+      const response = await api.notification.list({
+        is_read: false,
+        limit: 10,
+        offset: loadMore ? unreadNotifications.value.length : 0,
+      })
+
+      if (loadMore) {
+        unreadNotifications.value = [...unreadNotifications.value, ...response.list]
+      } else {
+        unreadNotifications.value = response.list
+      }
+
+      unreadPageInfo.value = response.pageInfo
+      unreadCount.value = (response as any).unreadCount
+    } catch (e) {
+      console.log(e)
+      message.error(`Failed to load notifications: ${await extractSdkResponseErrorMsgv2(e as any)}`)
+    }
   }
 
   const markAsRead = async (notification: NotificationType) => {
     if (notification.is_read) return
 
-    await api.notification.update(notification.id!, {
-      is_read: true,
-    })
-
-    notification.is_read = true
+    try {
+      await api.notification.update(notification.id!, {
+        is_read: true,
+      })
+      notification.is_read = true
+      readNotifications.value = [...[notification], ...readNotifications.value]
+      unreadCount.value = unreadCount.value - 1
+    } catch (e) {
+      message.error(`Failed to mark notification as read: ${await extractSdkResponseErrorMsgv2(e as any)}`)
+    }
   }
 
   const markAllAsRead = async (notification: NotificationType) => {
     if (notification.is_read) return
 
     await api.notification.markAllAsRead()
-    await loadNotifications()
+    await Promise.allSettled([loadReadNotifications(), loadUnReadNotifications()])
   }
 
   watch(notificationTab, async () => {
-    await loadNotifications()
+    if (notificationTab.value === 'read') {
+      await loadReadNotifications()
+    } else {
+      await loadUnReadNotifications()
+    }
   })
 
   const init = async () => {
-    await loadNotifications()
+    await Promise.allSettled([loadReadNotifications(), loadUnReadNotifications()])
     pollNotifications()
   }
 
   onMounted(init)
 
   return {
-    notifications,
-    loadNotifications,
+    unreadNotifications,
+    readNotifications,
+    loadUnReadNotifications,
+    loadReadNotifications,
+    readPageInfo,
+    unreadPageInfo,
     isLoading,
     notificationTab,
-    pageInfo,
     markAsRead,
     markAllAsRead,
     unreadCount,

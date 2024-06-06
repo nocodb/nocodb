@@ -17,6 +17,6 @@ const navigateToHome = () => {
 
 <template>
   <NotificationItemWrapper :item="item" @click="navigateToHome">
-    <div class="text-sm">Welcome to <strong>NocoHUB!</strong> We’re excited to have you onboard.</div>
+    <div class="text-sm">Welcome to <strong>NocoDB!</strong> We’re excited to have you onboard.</div>
   </NotificationItemWrapper>
 </template>

@@ -6,9 +6,9 @@ const notificationStore = useNotification()
 
 const { isMobileMode } = useGlobal()
 
-const { loadNotifications, markAllAsRead } = notificationStore
+const { loadUnReadNotifications, loadReadNotifications, markAllAsRead } = notificationStore
 
-const { notifications, pageInfo, notificationTab } = storeToRefs(notificationStore)
+const { unreadNotifications, readNotifications, readPageInfo, unreadPageInfo, notificationTab } = storeToRefs(notificationStore)
 </script>
 
 <template>
@@ -29,7 +29,7 @@ const { notifications, pageInfo, notificationTab } = storeToRefs(notificationSto
       <div
         v-if="notificationTab !== 'read'"
         :class="{
-          'text-gray-400': !notifications?.length,
+          'text-gray-400': !unreadNotifications?.length,
         }"
         class="cursor-pointer right-5 pointer-events-auto top-12.5 z-2 absolute text-[13px] text-gray-700 font-weight-semibold"
         @click.stop="markAllAsRead"
@@ -49,26 +49,30 @@ const { notifications, pageInfo, notificationTab } = storeToRefs(notificationSto
             </span>
           </template>
           <div
-            class="overflow-y-auto max-h-[max(60vh,520px)] min-h-100"
+            class="overflow-y-auto max-h-[522px] min-h-100"
             :class="{
-              'flex items-center justify-center': !notifications?.length,
+              'flex items-center justify-center': !unreadNotifications?.length,
             }"
           >
-            <template v-if="!notifications?.length">
+            <template v-if="!unreadNotifications?.length">
               <div class="flex flex-col gap-2 items-center justify-center">
                 <div class="text-sm text-gray-400">{{ $t('msg.noNewNotifications') }}</div>
                 <GeneralIcon icon="inbox" class="!text-40px text-gray-400" />
               </div>
             </template>
             <template v-else>
-              <template v-for="item in notifications" :key="item.id">
-                <NotificationItem class="" :item="item" />
-                <NcDivider />
+              <template v-for="item in unreadNotifications" :key="item.id">
+                <template v-if="!item.is_read">
+                  <TransitionGroup>
+                    <NotificationItem class="" :item="item" />
+                    <NcDivider />
+                  </TransitionGroup>
+                </template>
               </template>
 
               <InfiniteLoading
-                v-if="notifications && pageInfo && pageInfo.totalRows > notifications.length"
-                @infinite="loadNotifications(true)"
+                v-if="unreadNotifications && unreadPageInfo && unreadPageInfo.totalRows > unreadNotifications.length"
+                @infinite="loadUnReadNotifications(true)"
               >
               </InfiniteLoading>
             </template>
@@ -87,26 +91,26 @@ const { notifications, pageInfo, notificationTab } = storeToRefs(notificationSto
           </template>
 
           <div
-            class="overflow-y-auto max-h-[max(60vh,520px)] min-h-100"
+            class="overflow-y-auto max-h-[522px] min-h-100"
             :class="{
-              'flex items-center justify-center': !notifications?.length,
+              'flex items-center justify-center': !readNotifications?.length,
             }"
           >
-            <template v-if="!notifications?.length">
+            <template v-if="!readNotifications?.length">
               <div class="flex flex-col gap-2 items-center justify-center">
                 <div class="text-sm text-gray-500">{{ $t('msg.noNewNotifications') }}</div>
                 <GeneralIcon icon="inbox" class="!text-40px text-gray-500" />
               </div>
             </template>
             <template v-else>
-              <template v-for="item in notifications" :key="item.id">
+              <template v-for="item in readNotifications" :key="item.id">
                 <NotificationItem class="" :item="item" />
                 <NcDivider />
               </template>
 
               <InfiniteLoading
-                v-if="notifications && pageInfo && pageInfo.totalRows > notifications.length"
-                @infinite="loadNotifications(true)"
+                v-if="readNotifications && readPageInfo && readPageInfo.totalRows > readNotifications.length"
+                @infinite="loadReadNotifications(true)"
               >
               </InfiniteLoading>
             </template>

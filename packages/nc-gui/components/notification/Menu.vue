@@ -1,13 +1,7 @@
 <script lang="ts" setup>
 const notificationStore = useNotification()
 
-const { loadNotifications } = notificationStore
-
 const { unreadCount } = toRefs(notificationStore)
-
-onMounted(async () => {
-  await loadNotifications()
-})
 </script>
 
 <template>
@@ -15,7 +9,12 @@ onMounted(async () => {
     <NcDropdown placement="topRight" :trigger="['click']">
       <div class="relative leading-none">
         <GeneralIcon icon="notification" />
-        <span v-if="unreadCount" class="nc-count-badge">{{ unreadCount }}</span>
+        <span
+          v-if="unreadCount"
+          :key="unreadCount"
+          class="bg-red-500 flex items-center min-w-[14px] h-[18px] px-1 rounded-[6px] absolute top-[-10px] right-[-13px] text-white"
+          >{{ unreadCount }}</span
+        >
       </div>
       <template #overlay>
         <NotificationCard />
@@ -26,6 +25,6 @@ onMounted(async () => {
 
 <style scoped>
 .nc-count-badge {
-  @apply absolute flex items-center top-[-6px] right-[-6px] px-1 min-w-[14px] h-[14px] rounded-full bg-accent bg-opacity-100 text-white !text-[9px] !z-21;
+  @apply flex items-center  px-1  rounded-full bg-[red-500] bg-opacity-100 !text-[9px] !z-21;
 }
 </style>

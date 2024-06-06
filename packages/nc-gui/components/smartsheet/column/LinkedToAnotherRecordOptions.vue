@@ -17,7 +17,6 @@ const meta = inject(MetaInj, ref())
 const filterRef = ref()
 
 const { setAdditionalValidations, setPostSaveOrUpdateCbk, validateInfos, onDataTypeChange, sqlUi, isXcdbBase, updateFieldName } =
- 
   useColumnCreateStoreOrThrow()
 
 const baseStore = useBase()

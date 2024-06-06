@@ -1,6 +1,13 @@
 <script setup lang="ts">
 import { onMounted } from '@vue/runtime-core'
-import { type ColumnType, type LinkToAnotherRecordType, RelationTypes, type TableType, type UITypes } from 'nocodb-sdk'
+import {
+  type ColumnType,
+  type LinkToAnotherRecordType,
+  RelationTypes,
+  type RollupType,
+  type TableType,
+  UITypes,
+} from 'nocodb-sdk'
 import { getAvailableRollupForUiType, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 
 const props = defineProps<{
@@ -79,11 +86,19 @@ onMounted(() => {
   }
 })
 
+const getNextColumnId = () => {
+  const usedLookupColumnIds = (meta.value?.columns || [])
+    .filter((c) => c.uidt === UITypes.Rollup)
+    .map((c) => (c.colOptions as RollupType)?.fk_rollup_column_id)
+
+  return columns.value.find((c) => !usedLookupColumnIds.includes(c.id))?.id
+}
+
 const onRelationColChange = async () => {
   if (selectedTable.value) {
     await getMeta(selectedTable.value.id)
   }
-  vModel.value.fk_rollup_column_id = columns.value?.[0]?.id
+  vModel.value.fk_rollup_column_id = getNextColumnId() || columns.value?.[0]?.id
   onDataTypeChange()
 }
 
@@ -132,6 +147,8 @@ watch(
       // reset rollup function with a non-numeric type
       vModel.value.rollup_function = aggFunctionsList.value[0].value
     }
+
+    vModel.value.rollupColumnTitle = childFieldColumn?.title || childFieldColumn?.column_name
   },
 )
 
@@ -142,6 +159,18 @@ watchEffect(() => {
     disableSubmitBtn.value = false
   }
 })
+
+watch(
+  () => vModel.value.fk_relation_column_id,
+  (newValue) => {
+    if (!newValue) return
+
+    const selectedTable = refTables.value.find((t) => t.col.fk_column_id === newValue)
+    if (selectedTable) {
+      vModel.value.rollupTableTitle = selectedTable?.title || selectedTable.table_name
+    }
+  },
+)
 </script>
 
 <template>

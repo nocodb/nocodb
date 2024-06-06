@@ -325,6 +325,7 @@ const filterOption = (input: string, option: { value: UITypes }) => {
             ref="antInput"
             v-model="formState.title"
             :disabled="readOnly"
+            :placeholder="`${$t('objects.field')} ${$t('general.name').toLowerCase()} ${isEdit ? '' : $t('labels.optional')}`"
             class="flex flex-grow nc-fields-input text-lg font-bold outline-none bg-inherit"
             :contenteditable="true"
           />
@@ -335,6 +336,7 @@ const filterOption = (input: string, option: { value: UITypes }) => {
           ref="antInput"
           v-model:value="formState.title"
           class="nc-column-name-input !rounded-lg"
+          :placeholder="`${$t('objects.field')} ${$t('general.name').toLowerCase()} ${isEdit ? '' : $t('labels.optional')}`"
           :disabled="isKanban || readOnly"
           @input="onAlter(8)"
         />

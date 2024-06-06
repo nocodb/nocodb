@@ -134,6 +134,7 @@ const referenceTableChildId = computed({
   set: (value) => {
     if (!isEdit.value && value) {
       vModel.value.childId = value
+      vModel.value.childTableTitle = refTables.value.find((t) => t.id === value)?.title
     }
   },
 })

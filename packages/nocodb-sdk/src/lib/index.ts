@@ -10,6 +10,7 @@ export * from '~/lib/formulaHelpers';
 export {
   default as UITypes,
   UITypesName,
+  FieldNameFromUITypes,
   numericUITypes,
   isNumericCol,
   isVirtualCol,

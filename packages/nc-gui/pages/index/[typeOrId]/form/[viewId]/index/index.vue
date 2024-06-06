@@ -17,6 +17,7 @@ const {
   progress,
   validateInfos,
   validate,
+  fieldMappings,
 } = useSharedFormStoreOrThrow()
 
 const { isMobileMode } = storeToRefs(useConfigStore())
@@ -175,7 +176,12 @@ const onDecode = async (scannedCodeValue: string) => {
             <a-form :model="formState">
               <div class="nc-form h-full">
                 <div class="flex flex-col gap-3 md:gap-6">
-                  <div v-for="(field, index) in formColumns" :key="index" class="flex flex-col gap-2">
+                  <div
+                    v-for="(field, index) in formColumns"
+                    :key="index"
+                    class="flex flex-col gap-2"
+                    :data-testid="`nc-shared-form-item-${field.title?.replace(' ', '')}`"
+                  >
                     <div class="nc-form-column-label text-sm font-semibold text-gray-800">
                       <span>
                         {{ field.label || field.title }}
@@ -196,9 +202,10 @@ const onDecode = async (scannedCodeValue: string) => {
                       <NcTooltip :disabled="!field?.read_only">
                         <template #title> {{ $t('activity.preFilledFields.lockedFieldTooltip') }} </template>
                         <a-form-item
-                          :name="field.title"
+                          v-if="field.title && fieldMappings[field.title]"
+                          :name="fieldMappings[field.title]"
                           class="!my-0 nc-input-required-error"
-                          v-bind="validateInfos[field.title]"
+                          v-bind="validateInfos[fieldMappings[field.title]]"
                         >
                           <LazySmartsheetDivDataCell class="flex relative">
                             <LazySmartsheetVirtualCell
@@ -225,7 +232,7 @@ const onDecode = async (scannedCodeValue: string) => {
                               :read-only="field?.read_only"
                               @update:model-value="
                                 () => {
-                                  validate(field.title)
+                                  validate(fieldMappings[field.title])
                                 }
                               "
                             />
@@ -317,6 +324,7 @@ const onDecode = async (scannedCodeValue: string) => {
     }
   }
 }
+
 :deep(.ant-form-item-has-error .ant-select:not(.ant-select-disabled) .ant-select-selector) {
   border: none !important;
 }

@@ -18,7 +18,7 @@ import { extractProps } from '~/helpers/extractProps';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { NcRequest } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
-import { PubSubRedis } from '~/modules/redis/pubsub-redis';
+import { PubSubRedis } from '~/redis/pubsub-redis';
 
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 const POLL_INTERVAL = 30000;

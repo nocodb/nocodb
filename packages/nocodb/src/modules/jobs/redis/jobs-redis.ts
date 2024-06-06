@@ -1,6 +1,6 @@
 import { Logger } from '@nestjs/common';
 import type { InstanceCommands } from '~/interface/Jobs';
-import { PubSubRedis } from '~/modules/redis/pubsub-redis';
+import { PubSubRedis } from '~/redis/pubsub-redis';
 import { InstanceTypes } from '~/interface/Jobs';
 
 export class JobsRedis extends PubSubRedis {

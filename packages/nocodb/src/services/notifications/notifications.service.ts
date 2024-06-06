@@ -14,7 +14,7 @@ import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { Notification } from '~/models';
 
 import { getCircularReplacer } from '~/utils';
-import { PubSubRedis } from '~/modules/redis/pubsub-redis';
+import { PubSubRedis } from '~/redis/pubsub-redis';
 @Injectable()
 export class NotificationsService implements OnModuleInit, OnModuleDestroy {
   constructor(protected readonly appHooks: AppHooksService) {}
@@ -57,14 +57,12 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
   sendToConnections(key: string, payload: string): void {
     const connections = this.connections.get(String(key));
 
-    if (connections && connections.length)
-      connections.forEach((res) => {
-        res.send({
-          status: 'success',
-          data: payload,
-        });
+    for (const res of connections ?? []) {
+      res.send({
+        status: 'success',
+        data: payload,
       });
-
+    }
     this.removeConnectionByUserId(key);
   }
 

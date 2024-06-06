@@ -51,7 +51,7 @@ export const useNotification = defineStore('notificationStore', () => {
 
       readPageInfo.value = response.pageInfo
 
-      unreadCount.value = response.unreadCount as number
+      unreadCount.value = Number(response.unreadCount)
     } catch (e) {
       console.log(e)
     }
@@ -73,7 +73,7 @@ export const useNotification = defineStore('notificationStore', () => {
 
       unreadPageInfo.value = response.pageInfo
 
-      unreadCount.value = response.unreadCount as number
+      unreadCount.value = Number(response.unreadCount)
     } catch (e) {
       console.log(e)
     }
@@ -113,13 +113,7 @@ export const useNotification = defineStore('notificationStore', () => {
       insertAndSort(notification, currState)
     } catch (e) {
       message.error(
-        `Failed to update Notification: ${await extractSdkResponseErrorMsgv2(
-          e as Error & {
-            response: {
-              data: string
-            }
-          },
-        )}`,
+        `Failed to update Notification: ${await extractSdkResponseErrorMsgv2(e as Error & { response: { data: string } })}`,
       )
     }
   }

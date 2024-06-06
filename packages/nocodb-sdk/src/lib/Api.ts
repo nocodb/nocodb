@@ -691,6 +691,10 @@ export interface FilterType {
   fk_parent_id?: StringOrNullType;
   /** Foreign Key to View */
   fk_view_id?: StringOrNullType;
+  /** Foreign Key to dynamic value Column */
+  fk_value_col_id?: StringOrNullType;
+  /** Foreign Key to Link Column */
+  fk_link_col_id?: StringOrNullType;
   /** Unique ID */
   id?: IdType;
   /** Is this filter grouped? */
@@ -1637,6 +1641,8 @@ export interface LicenseReqType {
  * Model for LinkToAnotherColumn Request
  */
 export interface LinkToAnotherColumnReqType {
+  /** Foreign Key to child view */
+  childViewId?: IdOrNullType;
   /** Foreign Key to chhild column */
   childId: IdType;
   /** Foreign Key to parent column */
@@ -1661,6 +1667,7 @@ export interface LinkToAnotherRecordType {
   /** Foreign Key to Column */
   fk_column_id?: IdType;
   fk_index_name?: string;
+  fk_relation_view_id?: string;
   fk_mm_child_column_id?: string;
   fk_mm_model_id?: string;
   fk_mm_parent_column_id?: string;
@@ -2459,6 +2466,11 @@ export type StringOrNullOrBooleanOrNumberType =
   | number;
 
 /**
+ * Model for IdOrNull
+ */
+export type IdOrNullType = IdType | null;
+
+/**
  * Model for Table
  */
 export interface TableType {
@@ -2769,27 +2781,22 @@ export interface ProjectInviteEventType {
   type: string;
   body: {
     /** The ID of the base being invited to */
-    id: string;
-    /** The title of the base being invited to */
-    title: string;
-    /** The type of the base being invited to */
-    type: string;
-    /** The email address of the user who invited the recipient */
-    invited_by: string;
-  };
-}
-
-export interface ProjectEventType {
-  /** The ID of the user */
-  fk_user_id: string;
-  type: string;
-  body: {
-    /** The ID of the base */
-    id: string;
-    /** The title of the base */
-    title: string;
-    /** The type of the base */
-    type: string;
+    base: {
+      /** The ID of the base being invited to */
+      id: string;
+      /** The title of the base being invited to */
+      title: string;
+      /** The type of the base being invited to */
+      type: string;
+    };
+    user: {
+      /** The ID of the user who invited to the base */
+      id: string;
+      /** The email address of the user who invited to the base */
+      email: string;
+      /** The display name of the user who invited to the base */
+      display_name?: string;
+    };
   };
 }
 
@@ -2800,75 +2807,6 @@ export interface WelcomeEventType {
   type: string;
   /** An empty object */
   body: object;
-}
-
-export interface SortEventType {
-  /** The ID of the user who created sort */
-  fk_user_id: string;
-  type: string;
-  body: object;
-}
-
-export interface FilterEventType {
-  /** The ID of the user who created filter */
-  fk_user_id: string;
-  type: string;
-  body: object;
-}
-
-export interface TableEventType {
-  /** The ID of the user who triggered the event */
-  fk_user_id: string;
-  /** The type of the event */
-  type: string;
-  body: {
-    /** The title of the table associated with the event */
-    title: string;
-    /** The ID of the base that the table belongs to */
-    base_id: string;
-    /** The ID of the source that the table belongs to */
-    source_id: string;
-    /** The ID of the table associated with the event */
-    id: string;
-  };
-}
-
-export interface ViewEventType {
-  /** The ID of the user who triggered the event */
-  fk_user_id: string;
-  /** The type of the event */
-  type: string;
-  body: {
-    /** The title of the view associated with the event */
-    title: string;
-    /** The ID of the base that the view belongs to */
-    base_id: string;
-    /** The ID of the source that the view belongs to */
-    source_id: string;
-    /** The ID of the view associated with the event */
-    id: string;
-    /** The ID of the model that the view is based on */
-    fk_model_id: string;
-  };
-}
-
-export interface ColumnEventType {
-  /** The ID of the user who triggered the event */
-  fk_user_id: string;
-  /** The type of the event */
-  type: string;
-  body: {
-    /** The title of the column associated with the event */
-    title: string;
-    /** The ID of the base that the column belongs to */
-    base_id: string;
-    /** The ID of the source that the column belongs to */
-    source_id: string;
-    /** The ID of the column associated with the event */
-    id: string;
-    /** The ID of the model that the column belongs to */
-    fk_model_id: string;
-  };
 }
 
 export type NotificationType = {
@@ -2882,16 +2820,7 @@ export type NotificationType = {
   type?: string;
   updated_at?: any;
   created_at?: any;
-} & (
-  | ProjectInviteEventType
-  | ProjectEventType
-  | TableEventType
-  | ViewEventType
-  | ColumnEventType
-  | WelcomeEventType
-  | SortEventType
-  | FilterEventType
-);
+} & (ProjectInviteEventType | WelcomeEventType);
 
 /**
  * Model for Notification List
@@ -11195,6 +11124,23 @@ export class Api<
       }),
   };
   notification = {
+    /**
+     * @description Poll notifications
+     *
+     * @tags Notification
+     * @name Poll
+     * @summary Notification Poll
+     * @request GET:/api/v1/notifications/poll
+     * @response `200` `object` OK
+     */
+    poll: (params: RequestParams = {}) =>
+      this.request<object, any>({
+        path: `/api/v1/notifications/poll`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
     /**
      * @description List notifications
      *

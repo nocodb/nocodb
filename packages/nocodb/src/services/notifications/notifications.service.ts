@@ -28,12 +28,7 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
 
   addConnection = (userId: string, res: Response & { resId: string }) => {
     if (!this.connections.has(userId)) {
-      this.connections.set(
-        userId,
-        [] as (Response & {
-          resId: string;
-        })[],
-      );
+      this.connections.set(userId, [] as (Response & { resId: string })[]);
     }
 
     this.connections.get(userId).push(res);

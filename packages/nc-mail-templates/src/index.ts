@@ -23,7 +23,7 @@ if (fs.existsSync("./.dist")) {
 
 for (const file of fs.readdirSync("./src/templates")) {
     if (file.endsWith(".vue")) {
-        const markup = decode(await emailClient.renderEmail(file, {}, {}))p
+        const markup = decode(await emailClient.renderEmail(file, {}, {}))
 
         if (!fs.existsSync("./.dist")) {
             fs.mkdirSync("./.dist");

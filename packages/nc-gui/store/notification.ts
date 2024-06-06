@@ -44,7 +44,7 @@ export const useNotification = defineStore('notificationStore', () => {
       }
 
       readPageInfo.value = response.pageInfo
-      unreadCount.value = (response as any).unreadCount
+      unreadCount.value = response.unreadCount
     } catch (e) {
       console.log(e)
 

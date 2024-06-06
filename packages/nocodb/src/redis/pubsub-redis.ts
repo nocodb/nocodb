@@ -39,15 +39,14 @@ export class PubSubRedis {
 
       await PubSubRedis.init();
     }
-
-    if (typeof message === 'string') {
-      await PubSubRedis.redisClient.publish(channel, message);
-    } else {
-      try {
+    try {
+      if (typeof message === 'string') {
+        await PubSubRedis.redisClient.publish(channel, message);
+      } else {
         await PubSubRedis.redisClient.publish(channel, JSON.stringify(message));
-      } catch (e) {
-        PubSubRedis.logger.error(e);
       }
+    } catch (e) {
+      PubSubRedis.logger.error(e);
     }
   }
 

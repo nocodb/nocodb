@@ -113,7 +113,7 @@ export default class Notification {
       null,
       null,
       MetaTable.NOTIFICATION,
-      prepareForDb(updateData, ['body']),
+      prepareForDb(updateData, 'body'),
       id,
     );
   }

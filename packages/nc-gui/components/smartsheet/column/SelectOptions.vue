@@ -22,7 +22,7 @@ const emit = defineEmits(['update:value'])
 
 const vModel = useVModel(props, 'value', emit)
 
-const { setAdditionalValidations, validateInfos } = useColumnCreateStoreOrThrow()
+const { setAdditionalValidations, validateInfos, isEdit } = useColumnCreateStoreOrThrow()
 
 // const { base } = storeToRefs(useBase())
 
@@ -187,7 +187,7 @@ const syncOptions = () => {
     })
     .map((op) => {
       const { index: _i, status: _s, ...rest } = op
-      return rest
+      return isEdit.value ? rest : { ...rest, index: _i }
     })
 }
 
@@ -221,7 +221,13 @@ const removeRenderedOption = (index: number) => {
 }
 
 const optionChanged = (changedElement: Option) => {
-  const changedDefaultOptionIndex = defaultOption.value.findIndex((o) => o.id === changedElement.id)
+  const changedDefaultOptionIndex = defaultOption.value.findIndex((o) => {
+    if (isEdit.value) {
+      return o.id === changedElement.id
+    } else {
+      return o.index === changedElement.index
+    }
+  })
 
   if (changedDefaultOptionIndex !== -1) {
     if (vModel.value.uidt === UITypes.SingleSelect) {

@@ -13,6 +13,13 @@ export class JobsRedis extends PubSubRedis {
     {};
 
   static async initJobs() {
+    if (!this.initialized) {
+      if (!this.available) {
+        return;
+      }
+
+      await this.init();
+    }
     const onMessage = async (channel, message) => {
       const args = message.split(':');
       const command = args.shift();

@@ -29,8 +29,6 @@ export class NotificationsController {
   constructor(private readonly notificationsService: NotificationsService) {}
 
   @Get('/api/v1/notifications/poll')
-  // @Acl('notificationList')
-  // TODO: @DarkPhoenix2704 ACL?
   async notificationPoll(
     @Req() req: NcRequest,
     @Res()
@@ -73,8 +71,6 @@ export class NotificationsController {
   }
 
   @Get('/api/v1/notifications')
-  // @Acl('notificationList')
-  // TODO: @DarkPhoenix2704 ACL?
   async notificationList(@Req() req: NcRequest) {
     return this.notificationsService.notificationList({
       user: req.user,
@@ -85,8 +81,6 @@ export class NotificationsController {
   }
 
   @Patch('/api/v1/notifications/:notificationId')
-  // TODO: @DarkPhoenix2704 ACL?
-  // @Acl('notificationUpdate')
   async notificationUpdate(
     @Param('notificationId') notificationId,
     @Body() body,
@@ -101,7 +95,6 @@ export class NotificationsController {
 
   @Post('/api/v1/notifications/mark-all-read')
   @HttpCode(200)
-  // TODO: @DarkPhoenix2704 ACL?
   async markAllRead(@Req() req: NcRequest) {
     return this.notificationsService.markAllRead({
       user: req.user,

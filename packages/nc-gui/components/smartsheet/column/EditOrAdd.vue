@@ -231,7 +231,7 @@ onMounted(() => {
       }
     }
 
-    if ((isForm.value && !props.fromTableExplorer) || props.fromTableExplorer) {
+    if (isForm.value && !props.fromTableExplorer) {
       setTimeout(() => {
         antInput.value?.focus()
         antInput.value?.select()

@@ -609,17 +609,19 @@ const saveChanges = async () => {
     const newFieldTitles: string[] = []
     for (const mop of moveOps.value) {
       const op = ops.value.find((op) => compareCols(op.column, mop.column))
-      if (op && op.op === 'add' && !op.column?.userHasChangedTitle && !op.column.title) {
-        const defaultColumnName = generateUniqueColumnName({
-          formState: op.column,
-          tableExplorerColumns: fields.value || [],
-          metaColumns: meta.value?.columns || [],
-          newFieldTitles,
-        })
-        newFieldTitles.push(defaultColumnName)
+      if (op && op.op === 'add') {
+        if (!op.column?.userHasChangedTitle && !op.column.title) {
+          const defaultColumnName = generateUniqueColumnName({
+            formState: op.column,
+            tableExplorerColumns: fields.value || [],
+            metaColumns: meta.value?.columns || [],
+            newFieldTitles,
+          })
+          newFieldTitles.push(defaultColumnName)
 
-        op.column.title = defaultColumnName
-        op.column.column_name = defaultColumnName
+          op.column.title = defaultColumnName
+          op.column.column_name = defaultColumnName
+        }
 
         op.column.column_order = {
           order: mop.order,

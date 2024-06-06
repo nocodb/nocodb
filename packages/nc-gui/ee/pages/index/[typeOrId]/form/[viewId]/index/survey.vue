@@ -31,6 +31,7 @@ const {
   clearValidate,
   isRequired,
   handleAddMissingRequiredFieldDefaultState,
+  fieldMappings,
 } = useSharedFormStoreOrThrow()
 
 const { isMobileMode } = storeToRefs(useConfigStore())
@@ -79,7 +80,7 @@ const field = computed(() => formColumns.value?.[index.value])
 
 const fieldHasError = computed(() => {
   if (field.value?.title) {
-    return validateInfos[field.value.title].validateStatus === 'error'
+    return validateInfos[fieldMappings.value[field.value.title]]?.validateStatus === 'error'
   }
 
   return false
@@ -113,7 +114,7 @@ function animate(target: AnimationTarget) {
 
 const validateField = async (title: string) => {
   try {
-    await validate(title)
+    await validate(fieldMappings.value[title])
 
     return true
   } catch (_e: any) {
@@ -407,8 +408,13 @@ onMounted(() => {
 
                   <NcTooltip :disabled="!field?.read_only">
                     <template #title> {{ $t('activity.preFilledFields.lockedFieldTooltip') }} </template>
-                    <a-form-item :name="field.title" class="!my-0 nc-input-required-error" v-bind="validateInfos[field.title]">
-                      <SmartsheetDivDataCell v-if="field.title" class="relative nc-form-data-cell" @click.stop="handleFocus">
+                    <a-form-item
+                      v-if="field.title && fieldMappings[field.title]"
+                      :name="fieldMappings[field.title]"
+                      class="!my-0 nc-input-required-error"
+                      v-bind="validateInfos[fieldMappings[field.title]]"
+                    >
+                      <SmartsheetDivDataCell class="relative nc-form-data-cell" @click.stop="handleFocus">
                         <LazySmartsheetVirtualCell
                           v-if="isVirtualCol(field)"
                           v-model="formState[field.title]"

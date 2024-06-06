@@ -57,10 +57,19 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
       return null
     })
 
+    const fieldMappings = computed(() => {
+      const uniqueFieldNames: Set<string> = new Set()
+
+      return visibleColumns.value.reduce((acc, c) => {
+        acc[c.title] = getValidFieldName(c.title, uniqueFieldNames)
+        return acc
+      }, {} as Record<string, string>)
+    })
+
     const validators = computed(() => {
       const rulesObj: Record<string, RuleObject[]> = {}
 
-      if (!visibleColumns.value) return rulesObj
+      if (!visibleColumns.value || !Object.keys(fieldMappings.value).length) return rulesObj
 
       for (const column of visibleColumns.value) {
         let rules: RuleObject[] = [
@@ -90,15 +99,24 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
         rules = [...rules, ...additionalRules]
 
         if (rules.length) {
-          rulesObj[column.title!] = rules
+          rulesObj[fieldMappings.value[column.title!]] = rules
         }
       }
 
       return rulesObj
     })
 
+    const fieldMappingFormState = computed(() => {
+      if (!Object.keys(fieldMappings.value).length) return {}
+
+      return Object.keys(formState.value).reduce((acc, key) => {
+        acc[fieldMappings.value[key]] = formState.value[key]
+        return acc
+      }, {} as Record<string, any>)
+    })
+
     // Form field validation
-    const { validate, validateInfos, clearValidate } = useForm(formState, validators)
+    const { validate, validateInfos, clearValidate } = useForm(fieldMappingFormState, validators)
 
     // Initialize form data object with nested objects for each item
     const visibleColumnsMap = computed(() =>
@@ -386,8 +404,10 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
       }
 
       // Validate field value
+      if (!col.title) return
+
       try {
-        await validate(col.title)
+        await validate(fieldMappings.value[col.title])
       } catch {}
     }
 
@@ -456,6 +476,7 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
       validateInfos,
       clearValidate,
       getActiveFieldValidationErrors,
+      fieldMappings,
     }
   },
   'form-view-store',

@@ -187,10 +187,19 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     }
   }
 
+  const fieldMappings = computed(() => {
+    const uniqueFieldNames: Set<string> = new Set()
+
+    return formColumns.value.reduce((acc, c) => {
+      acc[c.title!] = getValidFieldName(c.title!, uniqueFieldNames)
+      return acc
+    }, {} as Record<string, string>)
+  })
+
   const validators = computed(() => {
     const rulesObj: Record<string, RuleObject[]> = {}
 
-    if (!formColumns.value) return rulesObj
+    if (!formColumns.value || !Object.keys(fieldMappings.value).length) return rulesObj
 
     for (const column of formColumns.value) {
       let rules: RuleObject[] = [
@@ -220,7 +229,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       rules = [...rules, ...additionalRules]
 
       if (rules.length) {
-        rulesObj[column.title!] = rules
+        rulesObj[fieldMappings.value[column.title!]] = rules
       }
     }
 
@@ -228,7 +237,19 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   })
 
   const validationFieldState = computed(() => {
-    return { ...formState.value, ...additionalState.value }
+    if (!Object.keys(fieldMappings.value).length) return {}
+
+    const fieldMappingFormState = Object.keys(formState.value).reduce((acc, key) => {
+      acc[fieldMappings.value[key]] = formState.value[key]
+      return acc
+    }, {} as Record<string, any>)
+
+    const fieldMappingAdditionalState = Object.keys(additionalState.value).reduce((acc, key) => {
+      acc[fieldMappings.value[key]] = additionalState.value[key]
+      return acc
+    }, {} as Record<string, any>)
+
+    return { ...fieldMappingFormState, ...fieldMappingAdditionalState }
   })
 
   const { validate, validateInfos, clearValidate } = useForm(validationFieldState, validators)
@@ -254,7 +275,10 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     handleAddMissingRequiredFieldDefaultState()
 
     try {
-      await validate([...Object.keys(formState.value), ...Object.keys(additionalState.value)])
+      await validate([
+        ...Object.keys(formState.value).map((title) => fieldMappings.value[title]),
+        ...Object.keys(additionalState.value).map((title) => fieldMappings.value[title]),
+      ])
       return true
     } catch (e: any) {
       if (e.errorFields.length) {
@@ -571,7 +595,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     additionalState,
     async () => {
       try {
-        await validate(Object.keys(additionalState.value))
+        await validate(Object.keys(additionalState.value).map((title) => fieldMappings.value[title]))
       } catch {}
     },
     {
@@ -606,6 +630,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     additionalState,
     isRequired,
     handleAddMissingRequiredFieldDefaultState,
+    fieldMappings,
   }
 }, 'shared-form-view-store')
 

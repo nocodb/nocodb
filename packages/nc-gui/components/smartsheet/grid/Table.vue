@@ -2772,7 +2772,7 @@ onKeyStroke('ArrowDown', onDown)
 }
 
 .nc-grid-add-new-row {
-  :deep(.ant-btn.ant-dropdown-trigger.ant-btn-icon-only){
+  :deep(.ant-btn.ant-dropdown-trigger.ant-btn-icon-only) {
     @apply !flex items-center justify-center;
   }
 }

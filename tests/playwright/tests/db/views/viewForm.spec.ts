@@ -610,8 +610,8 @@ test.describe('Form view: field validation', () => {
           ]
         : [
             {
-              column_name: 'SingleLineText',
-              title: 'SingleLineText',
+              column_name: 'SingleLine.Text',
+              title: 'SingleLine.Text',
               uidt: UITypes.SingleLineText,
             },
             {
@@ -672,7 +672,7 @@ test.describe('Form view: field validation', () => {
     });
 
     // 1.
-    await form.selectVisibleField({ title: 'SingleLineText' });
+    await form.selectVisibleField({ title: 'SingleLine.Text' });
 
     await form.addCustomValidation({ type: StringValidationType.MinLength, value: '2', index: 0 });
     await form.addCustomValidation({ type: StringValidationType.MaxLength, value: '4', index: 1 });
@@ -782,7 +782,7 @@ test.describe('Form view: field validation', () => {
     await form.addCustomValidation({ type: StringValidationType.StartsWith, value: 'https://', index: 0 });
 
     const validatorFillDetails = {
-      SingleLineText: [
+      'SingleLine.Text': [
         {
           type: UITypes.SingleLineText,
           fillValue: 's',

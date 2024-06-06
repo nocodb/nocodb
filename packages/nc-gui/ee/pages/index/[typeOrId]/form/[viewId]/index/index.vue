@@ -17,6 +17,7 @@ const {
   progress,
   validateInfos,
   validate,
+  fieldMappings,
 } = useSharedFormStoreOrThrow()
 
 const { isMobileMode } = storeToRefs(useConfigStore())
@@ -214,9 +215,10 @@ const onDecode = async (scannedCodeValue: string) => {
                       <NcTooltip :disabled="!field?.read_only">
                         <template #title> {{ $t('activity.preFilledFields.lockedFieldTooltip') }} </template>
                         <a-form-item
-                          :name="field.title"
+                          v-if="field.title && fieldMappings[field.title]"
+                          :name="fieldMappings[field.title]"
                           class="!my-0 nc-input-required-error"
-                          v-bind="validateInfos[field.title]"
+                          v-bind="validateInfos[fieldMappings[field.title]]"
                         >
                           <LazySmartsheetDivDataCell class="flex relative">
                             <LazySmartsheetVirtualCell
@@ -243,7 +245,7 @@ const onDecode = async (scannedCodeValue: string) => {
                               :read-only="field?.read_only"
                               @update:model-value="
                                 () => {
-                                  validate(field.title)
+                                  validate(fieldMappings[field.title])
                                 }
                               "
                             />

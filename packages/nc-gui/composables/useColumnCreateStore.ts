@@ -152,14 +152,16 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     const onUidtOrIdTypeChange = () => {
       disableSubmitBtn.value = false
 
+      const newTitle = updateFieldName(false)
+
       const colProp = sqlUi.value.getDataTypeForUiType(formState.value as { uidt: UITypes }, idType ?? undefined)
       formState.value = {
         ...(!isEdit.value && {
           // only take title, column_name and uidt when creating a column
           // to avoid the extra props from being taken (e.g. SingleLineText -> LTAR -> SingleLineText)
           // to mess up the column creation
-          title: formState.value.title,
-          column_name: formState.value.column_name,
+          title: newTitle || formState.value.title,
+          column_name: newTitle || formState.value.column_name,
           uidt: formState.value.uidt,
           temp_id: formState.value.temp_id,
           userHasChangedTitle: !!formState.value?.userHasChangedTitle,
@@ -207,21 +209,6 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
       formState.value.altered = formState.value.altered || 2
 
-      if (
-        !isEdit.value &&
-        fromTableExplorer?.value &&
-        !formState.value?.userHasChangedTitle &&
-        isColumnValid?.value?.(formState.value)
-      ) {
-        const defaultColumnName = generateUniqueColumnName({
-          formState: formState.value,
-          tableExplorerColumns: tableExplorerColumns?.value || [],
-          metaColumns: meta.value?.columns || [],
-        })
-
-        formState.value.title = defaultColumnName
-        formState.value.column_name = defaultColumnName
-      }
     }
 
     const onDataTypeChange = () => {
@@ -344,7 +331,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       }
     }
 
-    const updateFieldName = () => {
+    function updateFieldName(updateFormState: boolean = true) {
       if (
         isEdit.value ||
         !fromTableExplorer?.value ||
@@ -360,8 +347,12 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
         metaColumns: meta.value?.columns || [],
       })
 
-      formState.value.title = defaultColumnName
-      formState.value.column_name = defaultColumnName
+      if (updateFormState) {
+        formState.value.title = defaultColumnName
+        formState.value.column_name = defaultColumnName
+      } else {
+        return defaultColumnName
+      }
     }
 
     /** set column name same as title which is actual name in db */
@@ -369,26 +360,6 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       () => formState.value?.title,
       (newTitle) => (formState.value.column_name = newTitle),
     )
-
-    if (!isEdit.value && fromTableExplorer?.value) {
-      watch(
-        () => isColumnValid?.value?.(formState.value),
-        (newValue) => {
-          nextTick(() => {
-            if (newValue && !formState.value?.userHasChangedTitle) {
-              const defaultColumnName = generateUniqueColumnName({
-                formState: formState.value,
-                tableExplorerColumns: tableExplorerColumns?.value || [],
-                metaColumns: meta.value?.columns || [],
-              })
-
-              formState.value.title = defaultColumnName
-              formState.value.column_name = defaultColumnName
-            }
-          })
-        },
-      )
-    }
 
     return {
       formState,

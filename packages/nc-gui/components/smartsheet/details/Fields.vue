@@ -349,6 +349,15 @@ const onFieldUpdate = (state: TableExplorerColumn, skipLinkChecks = false) => {
         column: state,
       })
     }
+
+    if (
+      activeField.value &&
+      Object.keys(activeField.value).length &&
+      ((state?.id && activeField.value?.id && state?.id == activeField.value?.id) ||
+        (state?.temp_id && activeField.value?.temp_id && state?.temp_id == activeField.value?.temp_id))
+    ) {
+      activeField.value = state
+    }
   }
 }
 
@@ -841,22 +850,6 @@ const onFieldOptionUpdate = () => {
 }
 
 watch(
-  fields,
-  () => {
-    if (activeField.value && Object.keys(activeField.value).length) {
-      activeField.value =
-        fields.value.find((field) => {
-          if (field.id && activeField.value.id) {
-            return field.id === activeField.value.id
-          }
-          return field.temp_id === activeField.value.temp_id
-        }) || activeField.value
-    }
-  },
-  { deep: true },
-)
-
-watch(
   () => activeField.value?.temp_id,
   (_newValue, oldValue) => {
     if (!oldValue) return
@@ -873,7 +866,11 @@ watch(
       return
     }
 
-    const newFieldTitles = ops.value.filter((op) => op.op === 'add' && op.column.title).map((op) => op.column.title)
+    const newFieldTitles = ops.value
+      .filter((op) => op.op === 'add' && op.column.title)
+      .map((op) => op.column.title)
+      .filter((t) => t) as string[]
+
     const defaultColumnName = generateUniqueColumnName({
       formState: oldField,
       tableExplorerColumns: fields.value || [],

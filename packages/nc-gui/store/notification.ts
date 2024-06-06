@@ -24,8 +24,10 @@ export const useNotification = defineStore('notificationStore', () => {
         if (notificationTab.value === 'unread') {
           unreadNotifications.value = [JSON.parse(res.data), ...unreadNotifications.value]
         }
+
         unreadCount.value = unreadCount.value + 1
       }
+
       await pollNotifications()
     } catch (e) {
       // If network error, retry after 2 seconds
@@ -52,7 +54,16 @@ export const useNotification = defineStore('notificationStore', () => {
       unreadCount.value = response.unreadCount
     } catch (e) {
       console.log(e)
-      message.error(`Failed to load notifications: ${await extractSdkResponseErrorMsgv2(e as any)}`)
+
+      message.error(
+        `Failed to load notifications: ${await extractSdkResponseErrorMsgv2(
+          e as Error & {
+            response: {
+              data: string
+            }
+          },
+        )}`,
+      )
     }
   }
 
@@ -75,7 +86,16 @@ export const useNotification = defineStore('notificationStore', () => {
       unreadCount.value = (response as any).unreadCount
     } catch (e) {
       console.log(e)
-      message.error(`Failed to load notifications: ${await extractSdkResponseErrorMsgv2(e as any)}`)
+
+      message.error(
+        `Failed to load notifications: ${await extractSdkResponseErrorMsgv2(
+          e as Error & {
+            response: {
+              data: string
+            }
+          },
+        )}`,
+      )
     }
   }
 
@@ -112,7 +132,15 @@ export const useNotification = defineStore('notificationStore', () => {
 
       insertAndSort(notification, currState)
     } catch (e) {
-      message.error(`Failed to update Notification: ${await extractSdkResponseErrorMsgv2(e as any)}`)
+      message.error(
+        `Failed to update Notification: ${await extractSdkResponseErrorMsgv2(
+          e as Error & {
+            response: {
+              data: string
+            }
+          },
+        )}`,
+      )
     }
   }
 
@@ -131,7 +159,16 @@ export const useNotification = defineStore('notificationStore', () => {
       await api.notification.delete(notification.id!)
     } catch (e) {
       readNotifications.value = [notification, ...readNotifications.value]
-      message.error(`Failed to delete Notification: ${await extractSdkResponseErrorMsgv2(e as any)}`)
+
+      message.error(
+        `Failed to delete Notification: ${await extractSdkResponseErrorMsgv2(
+          e as Error & {
+            response: {
+              data: string
+            }
+          },
+        )}`,
+      )
     }
   }
 

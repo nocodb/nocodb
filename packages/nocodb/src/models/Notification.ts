@@ -34,7 +34,7 @@ export default class Notification {
       null,
       null,
       MetaTable.NOTIFICATION,
-      prepareForDb(insertData, ['body']),
+      prepareForDb(insertData, 'body'),
     );
   }
 

@@ -166,7 +166,7 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
     });
   }
 
-  async markAllRead(param: { user: any }) {
+  async markAllRead(param: { user: UserType }) {
     if (!param.user?.id) {
       NcError.badRequest('User id is required');
     }

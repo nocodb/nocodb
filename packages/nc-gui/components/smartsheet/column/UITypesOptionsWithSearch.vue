@@ -13,7 +13,10 @@ const { options } = toRefs(props)
 const searchQuery = ref('')
 
 const filteredOptions = computed(
-  () => options.value?.filter((c) => c.name.toLowerCase().includes(searchQuery.value.toLowerCase())) ?? [],
+  () =>
+    options.value?.filter(
+      (c) => UITypesName[c.name] && UITypesName[c.name].toLowerCase().includes(searchQuery.value.toLowerCase()),
+    ) ?? [],
 )
 
 const inputRef = ref()

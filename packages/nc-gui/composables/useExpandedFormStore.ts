@@ -102,10 +102,10 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     return extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
   })
 
-  const loadComments = async () => {
-    if (!isUIAllowed('commentList') || !row.value) return
+  const loadComments = async (_rowId?: string) => {
+    if (!isUIAllowed('commentList') || (!row.value && !_rowId)) return
 
-    const rowId = extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
+    const rowId = extractPkFromRow(row.value.row, meta.value.columns as ColumnType[]) ?? _rowId
 
     if (!rowId) return
 
@@ -151,10 +151,10 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     }
   }
 
-  const loadAudits = async () => {
-    if (!isUIAllowed('auditList') || !row.value) return
+  const loadAudits = async (_rowId?: string) => {
+    if (!isUIAllowed('auditList') || (!row.value && !_rowId)) return
 
-    const rowId = extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
+    const rowId = extractPkFromRow(row.value.row, meta.value.columns as ColumnType[]) ?? _rowId
 
     if (!rowId) return
 

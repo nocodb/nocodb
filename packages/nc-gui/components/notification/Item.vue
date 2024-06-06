@@ -37,6 +37,7 @@ const { markAsRead } = notificationStore
       v-else-if="[AppEvents.WORKSPACE_CREATE, AppEvents.WORKSPACE_DELETE, AppEvents.WORKSPACE_UPDATE].includes(item.type)"
       :item="item"
     />
+    <NotificationItemMentionEvent v-else-if="['mention'].includes(item.type)" :item="item" />
     <span v-else />
   </div>
 </template>

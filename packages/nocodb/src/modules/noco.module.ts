@@ -96,7 +96,6 @@ import { BaseUsersController } from '~/controllers/base-users.controller';
 import { BaseUsersService } from '~/services/base-users/base-users.service';
 import { NotificationsService } from '~/services/notifications.service';
 import { NotificationsController } from '~/controllers/notifications.controller';
-import { NotificationsGateway } from '~/gateways/notifications/notifications.gateway';
 import { CommandPaletteService } from '~/services/command-palette.service';
 import { CommandPaletteController } from '~/controllers/command-palette.controller';
 import { ExtensionsService } from '~/services/extensions.service';
@@ -245,7 +244,6 @@ export const nocoModuleMetadata = {
     SortsService,
     SharedBasesService,
     NotificationsService,
-    NotificationsGateway,
     CommandPaletteService,
     ExtensionsService,
 

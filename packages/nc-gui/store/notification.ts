@@ -1,7 +1,5 @@
 import { defineStore } from 'pinia'
 import type { NotificationType } from 'nocodb-sdk'
-import type { Socket } from 'socket.io-client'
-import io from 'socket.io-client'
 
 export const useNotification = defineStore('notificationStore', () => {
   const notifications = ref<NotificationType[]>([])
@@ -10,39 +8,11 @@ export const useNotification = defineStore('notificationStore', () => {
   const pageInfo = ref()
   const unreadCount = ref(0)
 
+  const notificationTab = ref<'read' | 'unread'>('read')
+
   const isRead = ref(false)
 
   const { api, isLoading } = useApi()
-
-  const { appInfo, token } = useGlobal()
-
-  let socket: Socket
-
-  const init = (token) => {
-    const url = new URL(appInfo.value.ncSiteUrl, window.location.href.split(/[?#]/)[0]).href
-
-    socket = io(`${url}${url.endsWith('/') ? '' : '/'}notifications`, {
-      extraHeaders: { 'xc-auth': token },
-    })
-
-    socket.on('notification', (data) => {
-      notifications.value = [data, ...notifications.value]
-      pageInfo.value.totalRows += 1
-      unreadCount.value += 1
-      isOpened.value = false
-    })
-
-    socket.emit('subscribe', {})
-  }
-
-  watch(
-    () => token.value,
-    (newToken, oldToken) => {
-      if (newToken && newToken !== oldToken) init(newToken)
-      else if (!newToken) socket?.disconnect()
-    },
-    { immediate: true },
-  )
 
   const loadNotifications = async (loadMore = false) => {
     const response = await api.notification.list({
@@ -83,10 +53,15 @@ export const useNotification = defineStore('notificationStore', () => {
     isOpened.value = true
   }
 
+  watch(notificationTab, async () => {
+    await loadNotifications()
+  })
+
   return {
     notifications,
     loadNotifications,
     isLoading,
+    notificationTab,
     isRead,
     pageInfo,
     markAsRead,
@@ -96,3 +71,7 @@ export const useNotification = defineStore('notificationStore', () => {
     markAsOpened,
   }
 })
+
+if (import.meta.hot) {
+  import.meta.hot.accept(acceptHMRUpdate(useNotification as any, import.meta.hot))
+}

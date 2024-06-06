@@ -4,39 +4,53 @@ import InfiniteLoading from 'v3-infinite-loading'
 
 const notificationStore = useNotification()
 
-const { notifications, isRead, pageInfo } = storeToRefs(notificationStore)
+const { loadNotifications } = notificationStore
 
-/*
-const groupType = computed({
-  get() {
-    return isRead.value ? 'read' : 'unread'
-  },
-  set(value) {
-    isRead.value = value === 'read'
-    notificationStore.loadNotifications()
-  },
-})
-*/
+const { notifications, isRead, pageInfo, notificationTab } = storeToRefs(notificationStore)
 </script>
 
 <template>
-  <div class="min-w-[350px] max-w-[350px] min-h-[400px] !rounded-2xl bg-white rounded-xl nc-card">
-    <div class="p-3" @click.stop>
-      <div class="flex items-center">
-        <span class="text-md font-medium text-[#212121]">
-          {{ $t('general.notification') }}
-        </span>
-        <div class="flex-grow"></div>
-        <div
-          v-if="!isRead && notifications?.length"
-          class="cursor-pointer text-xs text-gray-500 hover:text-primary"
-          @click.stop="notificationStore.markAllAsRead"
-        >
-          {{ $t('activity.markAllAsRead') }}
-        </div>
+  <div class="w-[520px] h-[620px] pt-4 border-1 border-gray-200 shadow-md !rounded-2xl bg-white rounded-xl">
+    <div class="space-y-6">
+      <div class="flex px-6 items-center" @click.stop>
+        <span class="text-md font-bold text-gray-800"> {{ $t('general.notification') }}s </span>
       </div>
+      <div
+        v-if="!isRead && notifications?.length"
+        class="cursor-pointer right-5 pointer-events-auto top-10 absolute text-[13px] text-gray-700 font-weight-semibold"
+        @click.stop="notificationStore.markAllAsRead"
+      >
+        {{ $t('activity.markAllAsRead') }}
+      </div>
+      <NcTabs v-model:model-value="notificationTab" @click.stop>
+        <a-tab-pane key="unread">
+          hello
+          <template #tab>
+            <span
+              :class="{
+                'font-semibold': notificationTab === 'read',
+              }"
+              class="text-xs"
+            >
+              Unread
+            </span>
+          </template>
+        </a-tab-pane>
+        <a-tab-pane key="read">
+          hello
+          <template #tab>
+            <span
+              :class="{
+                'font-semibold': notificationTab === 'read',
+              }"
+              class="text-xs"
+            >
+              Read
+            </span>
+          </template>
+        </a-tab-pane>
+      </NcTabs>
     </div>
-    <a-divider class="!my-0" />
 
     <div
       class="overflow-y-auto max-h-[max(60vh,500px)] min-h-100"
@@ -58,7 +72,7 @@ const groupType = computed({
 
         <InfiniteLoading
           v-if="notifications && pageInfo && pageInfo.totalRows > notifications.length"
-          @infinite="notificationStore.loadNotifications(true)"
+          @infinite="loadNotifications(true)"
         >
           <template #spinner>
             <div class="flex flex-row w-full justify-center mt-2">
@@ -75,12 +89,12 @@ const groupType = computed({
 </template>
 
 <style scoped>
-.nc-card {
-  border: solid 1px #e1e3e6;
+:deep(.ant-tabs-nav-wrap) {
+  @apply px-3;
 }
 
-:deep(.ant-tabs-nav-wrap) {
-  @apply px-6;
+:deep(.ant-tabs-tab) {
+  @apply pb-1.5 pt-1;
 }
 
 :deep(.ant-tabs-nav) {

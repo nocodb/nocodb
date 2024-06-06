@@ -19,7 +19,6 @@ const onOpen = (visible: boolean) => {
     <a-dropdown :trigger="['click']" @visible-change="onOpen">
       <div class="relative leading-none">
         <GeneralIcon icon="notification" />
-        <GeneralIcon icon="menuDown" />
         <span v-if="!notificationStore.isOpened && notificationStore.unreadCount" class="nc-count-badge">{{
           notificationStore.unreadCount
         }}</span>

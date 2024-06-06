@@ -231,7 +231,7 @@ onMounted(() => {
       }
     }
 
-    if (isForm.value && !props.fromTableExplorer) {
+    if ((isForm.value && !props.fromTableExplorer) || props.fromTableExplorer) {
       setTimeout(() => {
         antInput.value?.focus()
         antInput.value?.select()
@@ -326,7 +326,7 @@ const filterOption = (input: string, option: { value: UITypes }) => {
             v-model="formState.title"
             :disabled="readOnly"
             :placeholder="`${$t('objects.field')} ${$t('general.name').toLowerCase()} ${isEdit ? '' : $t('labels.optional')}`"
-            class="flex flex-grow nc-fields-input text-lg font-bold outline-none bg-inherit"
+            class="flex flex-grow nc-fields-input text-sm font-semibold outline-none bg-inherit min-h-6"
             :contenteditable="true"
             @input="formState.userHasChangedTitle = true"
           />
@@ -554,7 +554,7 @@ const filterOption = (input: string, option: { value: UITypes }) => {
 <style lang="scss" scoped>
 .nc-fields-input {
   &::placeholder {
-    @apply font-normal text-gray-400;
+    @apply font-normal;
   }
 }
 .nc-column-name-input,

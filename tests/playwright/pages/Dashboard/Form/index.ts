@@ -221,7 +221,7 @@ export class FormPage extends BasePage {
 
   getVisibleField({ title }: { title: string }) {
     return this.get()
-      .locator(`.nc-form-drag-${title.replace(' ', '')}`)
+      .locator(`[data-testid="nc-form-fields"][data-title="${title}"]`)
       .locator('[data-testid="nc-form-input-label"]');
   }
 
@@ -661,7 +661,7 @@ export class FormPage extends BasePage {
 
   async getFormFieldErrors({ title }: { title: string }) {
     // ant-form-item-explain
-    const field = this.get().locator(`.nc-form-drag-${title.replace(' ', '')}`);
+    const field = this.get().locator(`[data-testid="nc-form-fields"][data-title="${title}"]`);
     await field.scrollIntoViewIfNeeded();
     const fieldErrorEl = field.locator('.ant-form-item-explain');
 

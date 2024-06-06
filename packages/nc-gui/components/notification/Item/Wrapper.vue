@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { NotificationType } from 'nocodb-sdk'
-import { timeAgo } from '~/utils/datetimeutils'
+import { timeAgo } from '~/utils/datetimeUtils'
 
 const props = defineProps<{
   item: NotificationType

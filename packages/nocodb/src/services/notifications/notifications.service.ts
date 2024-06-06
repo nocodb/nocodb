@@ -51,7 +51,10 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
 
     if (connections && connections.length)
       connections.forEach((res) => {
-        res.send(payload);
+        res.send({
+          status: 'success',
+          data: payload,
+        });
       });
   }
 

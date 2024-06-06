@@ -54,16 +54,6 @@ export const useNotification = defineStore('notificationStore', () => {
       unreadCount.value = response.unreadCount
     } catch (e) {
       console.log(e)
-
-      message.error(
-        `Failed to load notifications: ${await extractSdkResponseErrorMsgv2(
-          e as Error & {
-            response: {
-              data: string
-            }
-          },
-        )}`,
-      )
     }
   }
 
@@ -86,16 +76,6 @@ export const useNotification = defineStore('notificationStore', () => {
       unreadCount.value = (response as any).unreadCount
     } catch (e) {
       console.log(e)
-
-      message.error(
-        `Failed to load notifications: ${await extractSdkResponseErrorMsgv2(
-          e as Error & {
-            response: {
-              data: string
-            }
-          },
-        )}`,
-      )
     }
   }
 

@@ -454,6 +454,7 @@
     "noResultsMatchedYourSearch": "Your search did not yield any matching results."
   },
   "labels": {
+    "selectView": "Select a View",
     "connectionDetails": "Connection Details",
     "metaSync": "Meta Sync",
     "mention": "Mention",
@@ -492,6 +493,7 @@
     "userOptions": "User Options",
     "deleteThisOrganization": "Delete this Organisation",
     "dangerZone": "Dangerzone",
+    "childView": "Child View",
     "selectYear": "Select Year",
     "save": "Save",
     "cancel": "Cancel",
@@ -1210,6 +1212,7 @@
     "selectFieldToSort": "정렬할 필드 선택",
     "selectFieldToGroup": "Select Field to Group",
     "thereAreNoRecordsInTable": "테이블에 레코드가 없습니다.",
+    "noRecordsAvailForLinking": "No records are currently available for linking",
     "createWebhookMsg1": "웹훅을 생성하여 자동화를 구동하고,",
     "createWebhookMsg2": "Power your automations. Get notified as soon as there are changes in your data",
     "areYouSureUWantTo": "삭제하시겠습니까?",

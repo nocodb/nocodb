@@ -454,6 +454,7 @@
     "noResultsMatchedYourSearch": "Your search did not yield any matching results."
   },
   "labels": {
+    "selectView": "Select a View",
     "connectionDetails": "Connection Details",
     "metaSync": "Meta Sync",
     "mention": "Mention",
@@ -492,6 +493,7 @@
     "userOptions": "User Options",
     "deleteThisOrganization": "Delete this Organisation",
     "dangerZone": "Dangerzone",
+    "childView": "Child View",
     "selectYear": "Yıl Seçin",
     "save": "Kaydet",
     "cancel": "İptal",
@@ -1210,6 +1212,7 @@
     "selectFieldToSort": "Select Field to Sort",
     "selectFieldToGroup": "Select Field to Group",
     "thereAreNoRecordsInTable": "There are no records in table",
+    "noRecordsAvailForLinking": "No records are currently available for linking",
     "createWebhookMsg1": "Get started with web-hooks!",
     "createWebhookMsg2": "Power your automations. Get notified as soon as there are changes in your data",
     "areYouSureUWantTo": "Are you sure you want to delete the following",

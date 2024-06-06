@@ -16,7 +16,7 @@ const meta = inject(MetaInj, ref())
 
 const filterRef = ref()
 
-const { setAdditionalValidations, setPostSaveOrUpdateCbk, validateInfos, onDataTypeChange, sqlUi, isXcdbBase } =
+const { setAdditionalValidations, setPostSaveOrUpdateCbk, validateInfos, onDataTypeChange, sqlUi, isXcdbBase, updateFieldName } =
   useColumnCreateStoreOrThrow()
 
 const baseStore = useBase()
@@ -134,6 +134,7 @@ const referenceTableChildId = computed({
   set: (value) => {
     if (!isEdit.value && value) {
       vModel.value.childId = value
+      vModel.value.childTableTitle = refTables.value.find((t) => t.id === value)?.title
     }
   },
 })
@@ -143,9 +144,19 @@ const linkType = computed({
   set: (value) => {
     if (!isEdit.value && value) {
       vModel.value.type = value
+
+      updateFieldName()
     }
   },
 })
+
+const handleUpdateRefTable = () => {
+  onDataTypeChange()
+
+  nextTick(() => {
+    updateFieldName()
+  })
+}
 </script>
 
 <template>
@@ -182,7 +193,7 @@ const linkType = computed({
           :filter-option="filterOption"
           placeholder="select table to link"
           dropdown-class-name="nc-dropdown-ltar-child-table"
-          @change="onDataTypeChange"
+          @change="handleUpdateRefTable"
         >
           <template #suffixIcon>
             <GeneralIcon icon="arrowDown" class="text-gray-700" />

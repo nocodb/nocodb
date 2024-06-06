@@ -14,7 +14,7 @@ const initialIsMulti = ref()
 
 const validators = {}
 
-const { setAdditionalValidations } = useColumnCreateStoreOrThrow()
+const { setAdditionalValidations, updateFieldName } = useColumnCreateStoreOrThrow()
 
 setAdditionalValidations({
   ...validators,
@@ -36,6 +36,7 @@ const updateIsMulti = (isChecked: boolean) => {
   if (!vModel.value.meta.is_multi) {
     vModel.value.cdf = vModel.value.cdf?.split(',')[0] || null
   }
+  updateFieldName()
 }
 </script>
 
@@ -50,7 +51,7 @@ const updateIsMulti = (isChecked: boolean) => {
     </a-form-item>
     <a-form-item v-if="future">
       <div v-if="vModel.meta" class="flex items-center gap-1">
-        <NcSwitch v-model:checked="vModel.meta.notify" data-testid="user-column-notify-user" @change="updateIsMulti">
+        <NcSwitch v-model:checked="vModel.meta.notify" data-testid="user-column-notify-user">
           <div class="text-sm text-gray-800 select-none">Notify users with base access when they're added</div>
         </NcSwitch>
       </div>

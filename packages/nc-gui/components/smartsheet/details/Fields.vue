@@ -5,6 +5,7 @@ import { UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk
 import type { ColumnType, FilterType, SelectOptionsType } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 import { onKeyDown, useMagicKeys } from '@vueuse/core'
+import { generateUniqueColumnName } from '~/helpers/parsers/parserHelpers'
 
 interface TableExplorerColumn extends ColumnType {
   id?: string
@@ -14,6 +15,7 @@ interface TableExplorerColumn extends ColumnType {
     view_id: string
   }
   view_id?: string
+  userHasChangedTitle?: boolean
 }
 
 interface op {
@@ -347,6 +349,15 @@ const onFieldUpdate = (state: TableExplorerColumn, skipLinkChecks = false) => {
         column: state,
       })
     }
+
+    if (
+      activeField.value &&
+      Object.keys(activeField.value).length &&
+      ((state?.id && activeField.value?.id && state?.id === activeField.value?.id) ||
+        (state?.temp_id && activeField.value?.temp_id && state?.temp_id === activeField.value?.temp_id))
+    ) {
+      activeField.value = state
+    }
   }
 }
 
@@ -467,7 +478,7 @@ const isColumnValid = (column: TableExplorerColumn) => {
   const isDeleteOp = ops.value.find((op) => compareCols(column, op.column) && op.op === 'delete')
   const isNew = ops.value.find((op) => compareCols(column, op.column) && op.op === 'add')
   if (isDeleteOp) return true
-  if (!column.title) {
+  if (!column.title && !isNew) {
     return false
   }
   if ((column.uidt === UITypes.Links || column.uidt === UITypes.LinkToAnotherRecord) && isNew) {
@@ -604,10 +615,23 @@ const saveChanges = async () => {
     if (!meta.value?.id) return
 
     loading.value = true
-
+    const newFieldTitles: string[] = []
     for (const mop of moveOps.value) {
       const op = ops.value.find((op) => compareCols(op.column, mop.column))
       if (op && op.op === 'add') {
+        if (!op.column?.userHasChangedTitle && !op.column.title) {
+          const defaultColumnName = generateUniqueColumnName({
+            formState: op.column,
+            tableExplorerColumns: fields.value || [],
+            metaColumns: meta.value?.columns || [],
+            newFieldTitles,
+          })
+          newFieldTitles.push(defaultColumnName)
+
+          op.column.title = defaultColumnName
+          op.column.column_name = defaultColumnName
+        }
+
         op.column.column_order = {
           order: mop.order,
           view_id: view.value?.id as string,
@@ -826,13 +850,37 @@ const onFieldOptionUpdate = () => {
 }
 
 watch(
-  fields,
-  () => {
-    if (activeField.value) {
-      activeField.value = fields.value.find((field) => field.id === activeField.value.id) || activeField.value
+  () => activeField.value?.temp_id,
+  (_newValue, oldValue) => {
+    if (!oldValue) return
+
+    const oldField = fields.value.find((field) => field.temp_id === oldValue)
+    if (
+      !oldField ||
+      (oldField &&
+        (oldField.title ||
+          !ops.value.find((op) => op.op === 'add' && op.column.temp_id === oldField.temp_id) ||
+          oldField?.userHasChangedTitle ||
+          !isColumnValid(oldField)))
+    ) {
+      return
     }
+
+    const newFieldTitles = ops.value
+      .filter((op) => op.op === 'add' && op.column.title)
+      .map((op) => op.column.title)
+      .filter((t) => t) as string[]
+
+    const defaultColumnName = generateUniqueColumnName({
+      formState: oldField,
+      tableExplorerColumns: fields.value || [],
+      metaColumns: meta.value?.columns || [],
+      newFieldTitles,
+    })
+
+    oldField.title = defaultColumnName
+    oldField.column_name = defaultColumnName
   },
-  { deep: true },
 )
 </script>
 
@@ -1279,6 +1327,7 @@ watch(
                 :column="activeField"
                 :preload="fieldState(activeField)"
                 :table-explorer-columns="fields"
+                :is-column-valid="isColumnValid"
                 embed-mode
                 :readonly="isLocked"
                 from-table-explorer

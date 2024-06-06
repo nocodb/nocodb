@@ -48,8 +48,6 @@ const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 
 const isExpandedBulkUpdateForm = inject(IsExpandedBulkUpdateFormOpenInj, ref(false))
 
-const colOptions = computed(() => column.value?.colOptions)
-
 const tableTile = computed(() => meta?.value?.title)
 
 const relationColumnOptions = computed<LinkToAnotherRecordType | null>(() => {
@@ -70,22 +68,6 @@ const relatedTableMeta = computed(
 
 const relatedTableTitle = computed(() => relatedTableMeta.value?.title)
 
-const childColumn = computed(() => {
-  if (relatedTableMeta.value?.columns) {
-    if (isRollup(column.value)) {
-      return relatedTableMeta.value?.columns.find(
-        (c: ColumnType) => c.id === (colOptions.value as RollupType).fk_rollup_column_id,
-      )
-    }
-    if (isLookup(column.value)) {
-      return relatedTableMeta.value?.columns.find(
-        (c: ColumnType) => c.id === (colOptions.value as LookupType).fk_lookup_column_id,
-      )
-    }
-  }
-  return ''
-})
-
 const tooltipMsg = computed(() => {
   if (!column.value) {
     return ''
@@ -99,8 +81,6 @@ const tooltipMsg = computed(() => {
     return `'${column?.value?.title}' ${t('labels.belongsTo')} '${relatedTableTitle.value}'`
   } else if (isOo(column.value)) {
     return `'${tableTile.value}' & '${relatedTableTitle.value}' ${t('labels.oneToOne')}`
-  } else if (isLookup(column.value)) {
-    return `'${childColumn.value.title}' from '${relatedTableTitle.value}' (${childColumn.value.uidt})`
   } else if (isFormula(column.value)) {
     const formula = substituteColumnIdWithAliasInFormula(
       (column.value?.colOptions as FormulaType)?.formula,
@@ -108,14 +88,12 @@ const tooltipMsg = computed(() => {
       (column.value?.colOptions as any)?.formula_raw,
     )
     return `Formula - ${formula}`
-  } else if (isRollup(column.value)) {
-    return `'${childColumn.value.title}' of '${relatedTableTitle.value}' (${childColumn.value.uidt})`
   }
   return column?.value?.title || ''
 })
 
 const showTooltipAlways = computed(() => {
-  return isLinksOrLTAR(column.value) || isFormula(column.value) || isRollup(column.value) || isLookup(column.value)
+  return isLinksOrLTAR(column.value) || isFormula(column.value)
 })
 
 const columnOrder = ref<Pick<ColumnReqType, 'column_order'> | null>(null)

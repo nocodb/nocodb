@@ -466,8 +466,11 @@ const setup = async ({
   }
 
   // Since we are doing long polling for notifications, the networkidele state won't be reached
-  // Hence changing to domcontentloaded
-  await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+  // Hence changing to load
+  await page.waitForTimeout(3000);
+  await page.goto(baseUrl, {
+    waitUntil: 'load',
+  });
 
   console.timeEnd('Setup');
 

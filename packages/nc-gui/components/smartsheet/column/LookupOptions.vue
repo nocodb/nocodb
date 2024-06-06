@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted } from '@vue/runtime-core'
-import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
+import type { ColumnType, LinkToAnotherRecordType, LookupType, TableType } from 'nocodb-sdk'
 import { UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 
 const props = defineProps<{
@@ -15,7 +15,8 @@ const meta = inject(MetaInj, ref())
 
 const { t } = useI18n()
 
-const { setAdditionalValidations, validateInfos, onDataTypeChange, isEdit, disableSubmitBtn } = useColumnCreateStoreOrThrow()
+const { setAdditionalValidations, validateInfos, onDataTypeChange, isEdit, disableSubmitBtn, updateFieldName } =
+  useColumnCreateStoreOrThrow()
 
 const baseStore = useBase()
 
@@ -68,11 +69,19 @@ onMounted(() => {
   }
 })
 
+const getNextColumnId = () => {
+  const usedLookupColumnIds = (meta.value?.columns || [])
+    .filter((c) => c.uidt === UITypes.Lookup)
+    .map((c) => (c.colOptions as LookupType)?.fk_lookup_column_id)
+
+  return columns.value.find((c) => !usedLookupColumnIds.includes(c.id))?.id
+}
+
 const onRelationColChange = async () => {
   if (selectedTable.value) {
     await getMeta(selectedTable.value.id)
   }
-  vModel.value.fk_lookup_column_id = columns.value?.[0]?.id
+  vModel.value.fk_lookup_column_id = getNextColumnId() || columns.value?.[0]?.id
   onDataTypeChange()
 }
 
@@ -88,6 +97,32 @@ const cellIcon = (column: ColumnType) =>
   h(isVirtualCol(column) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'), {
     columnMeta: column,
   })
+
+watch(
+  () => vModel.value.fk_relation_column_id,
+  (newValue) => {
+    if (!newValue) return
+
+    const selectedTable = refTables.value.find((t) => t.col.fk_column_id === newValue)
+    if (selectedTable) {
+      vModel.value.lookupTableTitle = selectedTable?.title || selectedTable.table_name
+    }
+  },
+)
+
+watch(
+  () => vModel.value.fk_lookup_column_id,
+  (newValue) => {
+    if (!newValue) return
+
+    const selectedColumn = columns.value.find((c) => c.id === newValue)
+    if (selectedColumn) {
+      vModel.value.lookupColumnTitle = selectedColumn?.title || selectedColumn.column_name
+
+      updateFieldName()
+    }
+  },
+)
 </script>
 
 <template>

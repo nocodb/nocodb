@@ -325,8 +325,10 @@ const filterOption = (input: string, option: { value: UITypes }) => {
             ref="antInput"
             v-model="formState.title"
             :disabled="readOnly"
-            class="flex flex-grow nc-fields-input text-lg font-bold outline-none bg-inherit"
+            :placeholder="`${$t('objects.field')} ${$t('general.name').toLowerCase()} ${isEdit ? '' : $t('labels.optional')}`"
+            class="flex flex-grow nc-fields-input text-sm font-semibold outline-none bg-inherit min-h-6"
             :contenteditable="true"
+            @input="formState.userHasChangedTitle = true"
           />
         </div>
       </a-form-item>
@@ -335,6 +337,7 @@ const filterOption = (input: string, option: { value: UITypes }) => {
           ref="antInput"
           v-model:value="formState.title"
           class="nc-column-name-input !rounded-lg"
+          :placeholder="`${$t('objects.field')} ${$t('general.name').toLowerCase()} ${isEdit ? '' : $t('labels.optional')}`"
           :disabled="isKanban || readOnly"
           @input="onAlter(8)"
         />
@@ -549,6 +552,11 @@ const filterOption = (input: string, option: { value: UITypes }) => {
 </style>
 
 <style lang="scss" scoped>
+.nc-fields-input {
+  &::placeholder {
+    @apply font-normal;
+  }
+}
 .nc-column-name-input,
 :deep(.nc-formula-input),
 :deep(.ant-form-item-control-input-content > input.ant-input) {

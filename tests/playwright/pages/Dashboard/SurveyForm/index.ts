@@ -116,9 +116,17 @@ export class SurveyFormPage extends BasePage {
     await this.rootPage.waitForTimeout(100);
   }
 
-  async validateSuccessMessage(param: { message: string; showAnotherForm?: boolean }) {
+  async validateSuccessMessage(param: { message: string; showAnotherForm?: boolean; isCustomMsg?: boolean }) {
     await this.get().locator('[data-testid="nc-survey-form__success-msg"]').waitFor({ state: 'visible' });
 
+    if (param.isCustomMsg) {
+      await this.get()
+        .locator('[data-testid="nc-survey-form__success-msg"]')
+        .locator('.tiptap.ProseMirror')
+        .waitFor({ state: 'visible' });
+    }
+
+    await this.rootPage.waitForTimeout(200);
     await expect(
       this.get().locator(`[data-testid="nc-survey-form__success-msg"]:has-text("${param.message}")`)
     ).toBeVisible();

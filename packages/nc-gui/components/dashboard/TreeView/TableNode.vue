@@ -207,6 +207,7 @@ const deleteTable = () => {
   isTableDeleteDialogVisible.value = true
 }
 
+// TODO: Should find a way to render the components without using the `nextTick` function
 const refreshViews = async () => {
   isExpanded.value = false
   await nextTick()

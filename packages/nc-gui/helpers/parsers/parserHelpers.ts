@@ -385,6 +385,12 @@ export const generateUniqueColumnName = ({
       if (!formState.childTableTitle) {
         return `title${generateUniqueColumnSuffix({ tableExplorerColumns, metaColumns })}`
       }
+
+      // Remove s if it is one to one type
+      if (formState.uidt === UITypes.Links && formState?.type === 'oo') {
+        defaultColumnName = defaultColumnName.slice(0, defaultColumnName.length - 1)
+      }
+
       let childTableTitle = formState.childTableTitle
 
       // Calculate the remaining length available for childTableTitle

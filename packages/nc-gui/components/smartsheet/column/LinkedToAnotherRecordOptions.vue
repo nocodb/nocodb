@@ -145,6 +145,8 @@ const linkType = computed({
   set: (value) => {
     if (!isEdit.value && value) {
       vModel.value.type = value
+
+      updateFieldName()
     }
   },
 })

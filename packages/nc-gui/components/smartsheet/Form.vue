@@ -85,6 +85,7 @@ const {
   validateInfos,
   validate,
   clearValidate,
+  fieldMappings,
 } = useProvideFormViewStore(meta, view, formViewData, updateFormView, isEditable)
 
 const { preFillFormSearchParams } = storeToRefs(useViewsStore())
@@ -198,9 +199,9 @@ async function submitForm() {
   }
 
   try {
-    await validate([...Object.keys(formState.value)])
+    await validate([...Object.keys(formState.value).map((title) => fieldMappings.value[title])])
   } catch (e: any) {
-    if (e.errorFields.length) {
+    if (e?.errorFields?.length) {
       message.error(t('msg.error.someOfTheRequiredFieldsAreEmpty'))
       return
     }
@@ -586,7 +587,7 @@ watch(
     updatePreFillFormSearchParams()
 
     try {
-      await validate([...Object.keys(formState.value)])
+      await validate([...Object.keys(formState.value).map((title) => fieldMappings.value[title])])
     } catch {}
   },
   {
@@ -1103,9 +1104,10 @@ useEventListener(
                             <div class="nc-form-field-body">
                               <div class="mt-2">
                                 <a-form-item
-                                  :name="element.title"
+                                  v-if="fieldMappings[element.title]"
+                                  :name="fieldMappings[element.title]"
                                   class="!my-0 nc-input-required-error nc-form-input-item"
-                                  v-bind="validateInfos[element.title]"
+                                  v-bind="validateInfos[fieldMappings[element.title]]"
                                 >
                                   <LazySmartsheetDivDataCell class="relative" @click.stop>
                                     <LazySmartsheetVirtualCell

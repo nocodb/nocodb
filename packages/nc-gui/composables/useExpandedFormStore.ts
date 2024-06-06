@@ -145,8 +145,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
       comments.value = comments.value.filter((c) => c.id !== commentId)
 
       await $api.utils.commentDelete(commentId)
-    } catch (e: any) {
-      message.error(e.message)
+    } catch (e) {
+      message.error((e as any).message)
       comments.value = [...comments.value, tempC]
     }
   }

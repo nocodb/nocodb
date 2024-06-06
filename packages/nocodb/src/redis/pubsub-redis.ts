@@ -24,7 +24,7 @@ export class PubSubRedis {
 
     PubSubRedis.redisSubscriber.on('message', async (channel, message) => {
       const [command, ...args] = message.split(':');
-      const callback = this.callbacks[command];
+      const callback = PubSubRedis.callbacks[command];
       if (callback) await callback(...args);
     });
 

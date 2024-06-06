@@ -465,7 +465,9 @@ const setup = async ({
     baseUrl = url ? url : `/#/nc/${base.id}`;
   }
 
-  await page.goto(baseUrl, { waitUntil: 'networkidle' });
+  // Since we are doing long polling for notifications, the networkidele state won't be reached
+  // Hence changing to domcontentloaded
+  await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
 
   console.timeEnd('Setup');
 

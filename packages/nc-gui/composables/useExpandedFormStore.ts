@@ -247,7 +247,10 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
       Object.assign(row.value, {
         row: data,
-        rowMeta: {},
+        rowMeta: {
+          ...row.value.rowMeta,
+          new: false,
+        },
         oldRow: { ...data },
       })
 
@@ -409,7 +412,9 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
       Object.assign(row.value, {
         row: record,
         oldRow: { ...record },
-        rowMeta: {},
+        rowMeta: {
+          ...row.value.rowMeta,
+        },
       })
     } catch (e: any) {
       message.error(`${t('msg.error.errorLoadingRecord')}`)

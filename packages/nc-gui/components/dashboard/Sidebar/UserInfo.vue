@@ -62,9 +62,18 @@ onMounted(() => {
           data-testid="nc-sidebar-userinfo"
         >
           <GeneralUserIcon :email="user?.email" size="auto" :name="user?.display_name" />
-          <div class="flex truncate">
-            {{ name ? name : user?.email }}
-          </div>
+          <NcTooltip>
+            <div class="flex capitalize max-w-32 truncate">
+              {{ name ? name : user?.email }}
+            </div>
+
+            <template #title>
+              <span class="capitalize">
+                {{ name ? name : user?.email }}
+              </span>
+            </template>
+          </NcTooltip>
+
           <GeneralIcon icon="chevronDown" class="flex-none !min-w-5 transform rotate-180 !text-gray-500" />
         </div>
         <template #overlay>

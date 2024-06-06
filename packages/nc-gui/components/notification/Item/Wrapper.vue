@@ -14,7 +14,7 @@ const { toggleRead, deleteNotification } = notificationStore
 </script>
 
 <template>
-  <div class="flex pl-6 pr-4 group py-4 relative gap-4 cursor-pointer">
+  <div class="flex pl-6 pr-4 group py-4 hover:bg-gray-50 relative gap-4 cursor-pointer">
     <div class="w-8 h-8">
       <slot name="avatar">
         <img src="~assets/img/brand/nocodb-logo.svg" alt="NocoDB" class="flex-none w-8 h-8" />
@@ -49,7 +49,7 @@ const { toggleRead, deleteNotification } = notificationStore
 
         <template #overlay>
           <NcMenu>
-            <NcMenuItem @click.stop="() => toggleRead(item)"> Mark as Unread </NcMenuItem>
+            <NcMenuItem @click.stop="() => toggleRead(item)"> Mark as unread </NcMenuItem>
             <NcDivider />
             <NcMenuItem class="!text-red-500" @click.stop="deleteNotification(item)"> Delete </NcMenuItem>
           </NcMenu>
@@ -59,12 +59,4 @@ const { toggleRead, deleteNotification } = notificationStore
   </div>
 </template>
 
-<style scoped lang="scss">
-.nc-notification-dot {
-  @apply min-w-2 min-h-2 mr-1  rounded-full;
-
-  &.active {
-    @apply bg-accent bg-opacity-100;
-  }
-}
-</style>
+<style scoped lang="scss"></style>

@@ -99,8 +99,6 @@ const tooltipMsg = computed(() => {
     return `'${column?.value?.title}' ${t('labels.belongsTo')} '${relatedTableTitle.value}'`
   } else if (isOo(column.value)) {
     return `'${tableTile.value}' & '${relatedTableTitle.value}' ${t('labels.oneToOne')}`
-  } else if (isLookup(column.value)) {
-    return `'${childColumn.value.title}' from '${relatedTableTitle.value}' (${childColumn.value.uidt})`
   } else if (isFormula(column.value)) {
     const formula = substituteColumnIdWithAliasInFormula(
       (column.value?.colOptions as FormulaType)?.formula,
@@ -108,14 +106,12 @@ const tooltipMsg = computed(() => {
       (column.value?.colOptions as any)?.formula_raw,
     )
     return `Formula - ${formula}`
-  } else if (isRollup(column.value)) {
-    return `'${childColumn.value.title}' of '${relatedTableTitle.value}' (${childColumn.value.uidt})`
   }
   return column?.value?.title || ''
 })
 
 const showTooltipAlways = computed(() => {
-  return isLinksOrLTAR(column.value) || isFormula(column.value) || isRollup(column.value) || isLookup(column.value)
+  return isLinksOrLTAR(column.value) || isFormula(column.value)
 })
 
 const columnOrder = ref<Pick<ColumnReqType, 'column_order'> | null>(null)

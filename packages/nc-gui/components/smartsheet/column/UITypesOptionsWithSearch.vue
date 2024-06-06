@@ -1,6 +1,5 @@
 <script lang="ts" setup>
-import { UITypes } from 'nocodb-sdk'
-import { UITypesName } from 'nocodb-sdk'
+import { UITypes, UITypesName } from 'nocodb-sdk'
 
 const props = defineProps<{
   options: typeof uiTypes

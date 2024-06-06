@@ -74,19 +74,37 @@ export const useNotification = defineStore('notificationStore', () => {
     }
   }
 
-  const markAsRead = async (notification: NotificationType) => {
-    if (notification.is_read) return
+  const insertAndSort = (notification: NotificationType, oldState?: boolean) => {
+    if (oldState) {
+      readNotifications.value = readNotifications.value.filter((n) => n.id !== notification.id)
+      unreadNotifications.value = [...[notification], ...unreadNotifications.value].sort((a, b) => {
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      })
+
+      unreadCount.value = unreadCount.value + 1
+    } else {
+      readNotifications.value = [...[notification], ...readNotifications.value].sort((a, b) => {
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      })
+      unreadNotifications.value = unreadNotifications.value.filter((n) => n.id !== notification.id)
+      unreadCount.value = unreadCount.value - 1
+    }
+  }
+
+  const toggleRead = async (notification: NotificationType, ignoreTrigger?: boolean) => {
+    if (ignoreTrigger) return
+
+    const currState = notification.is_read
 
     try {
       await api.notification.update(notification.id!, {
-        is_read: true,
+        is_read: !currState,
       })
-      notification.is_read = true
-      readNotifications.value = [...[notification], ...readNotifications.value]
-      unreadNotifications.value = unreadNotifications.value.filter((n) => n.id !== notification.id)
-      unreadCount.value = unreadCount.value - 1
+      notification.is_read = !currState
+
+      insertAndSort(notification, currState)
     } catch (e) {
-      message.error(`Failed to mark notification as read: ${await extractSdkResponseErrorMsgv2(e as any)}`)
+      message.error(`Failed to update Notification: ${await extractSdkResponseErrorMsgv2(e as any)}`)
     }
   }
 
@@ -121,7 +139,7 @@ export const useNotification = defineStore('notificationStore', () => {
     unreadPageInfo,
     isLoading,
     notificationTab,
-    markAsRead,
+    toggleRead,
     markAllAsRead,
     unreadCount,
   }

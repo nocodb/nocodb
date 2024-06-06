@@ -21,7 +21,7 @@ export class JobsService extends JobsServiceCE implements OnModuleInit {
 
   // pause primary instance queue
   async onModuleInit() {
-    await JobsRedis.init();
+    await JobsRedis.initJobs();
 
     await this.jobsQueue.add(
       JobTypes.HealthCheck,

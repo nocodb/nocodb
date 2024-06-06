@@ -695,6 +695,60 @@
       },
       "parameters": []
     },
+    "/api/v2/meta/comment/{commentId}/resolve": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string",
+            "example": "adt_zlskd6rlf3liay"
+          },
+          "name": "commentId",
+          "in": "path",
+          "required": true,
+          "description": "Comment ID"
+        },
+        {
+          "name": "xc-auth",
+          "in": "header",
+          "required": false,
+          "schema": {
+            "type": "string"
+          },
+          "description": "Auth Token is a JWT Token generated based on the logged-in user. By default, the token is only valid for 10 hours. However, you can change the value by defining it using environment variable NC_JWT_EXPIRES_IN."
+        }
+      ],
+      "post": {
+        "summary": "Resolve Comment",
+        "operationId": "utils-comment-resolve",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "number",
+                  "example": 1
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Utils"
+        ],
+        "description": "Resolve comment",
+        "requestBody": {
+          "content": {
+            "application/json": {}
+          }
+        }
+      }
+    },
     "/api/v1/docs/{baseId}/pages/{id}": {
       "get": {
         "summary": "Get page by id",
@@ -3735,77 +3789,72 @@
           "body": {
             "type": "object",
             "properties": {
-              "id": {
-                "type": "string",
-                "description": "The ID of the base being invited to"
+              "workspace": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "The ID of the Workspace being invited to"
+                  },
+                  "title": {
+                    "type": "string",
+                    "description": "The title of the Workspace being invited to"
+                  }
+                },
+                "required": [
+                  "id",
+                  "title"
+                ]
               },
-              "title": {
-                "type": "string",
-                "description": "The title of the base being invited to"
+              "base": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "The ID of the base being invited to"
+                  },
+                  "title": {
+                    "type": "string",
+                    "description": "The title of the base being invited to"
+                  },
+                  "type": {
+                    "type": "string",
+                    "description": "The type of the base being invited to"
+                  }
+                },
+                "required": [
+                  "id",
+                  "title",
+                  "type"
+                ],
+                "description": "The base being invited to"
               },
-              "type": {
-                "type": "string",
-                "description": "The type of the base being invited to"
-              },
-              "invited_by": {
-                "type": "string",
-                "description": "The email address of the user who invited the recipient"
-              },
-              "workspace_id": {
-                "type": "string",
-                "description": "The ID of the workspace that the base being invited to belongs to"
+              "user": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "The ID of the user who invited to the base"
+                  },
+                  "email": {
+                    "type": "string",
+                    "description": "The email address of the user who invited to the base"
+                  },
+                  "display_name": {
+                    "type": "string",
+                    "description": "The display name of the user who invited to the base"
+                  }
+                },
+                "required": [
+                  "id",
+                  "email"
+                ]
               }
             },
             "required": [
-              "id",
-              "title",
-              "type",
-              "invited_by",
-              "workspace_id"
-            ]
-          }
-        },
-        "required": [
-          "fk_user_id",
-          "type",
-          "body"
-        ]
-      },
-      "ProjectEvent": {
-        "type": "object",
-        "properties": {
-          "fk_user_id": {
-            "type": "string",
-            "description": "The ID of the user"
-          },
-          "type": {
-            "type": "string"
-          },
-          "body": {
-            "type": "object",
-            "properties": {
-              "id": {
-                "type": "string",
-                "description": "The ID of the base"
-              },
-              "title": {
-                "type": "string",
-                "description": "The title of the base"
-              },
-              "type": {
-                "type": "string",
-                "description": "The type of the base"
-              },
-              "workspace_id": {
-                "type": "string",
-                "description": "The ID of the workspace that the base belongs to"
-              }
-            },
-            "required": [
-              "id",
-              "title",
-              "type",
-              "workspace_id"
+              "base",
+              "user",
+              "workspace"
             ]
           }
         },
@@ -3829,23 +3878,192 @@
           "body": {
             "type": "object",
             "properties": {
-              "id": {
-                "type": "string",
-                "description": "The ID of the workspace being invited to"
+              "workspace": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "The ID of the Workspace being invited to"
+                  },
+                  "title": {
+                    "type": "string",
+                    "description": "The title of the Workspace being invited to"
+                  }
+                },
+                "required": [
+                  "id",
+                  "title"
+                ]
               },
-              "invited_by": {
-                "type": "string",
-                "description": "The email address of the user who invited the recipient"
-              },
-              "title": {
-                "type": "string",
-                "description": "The title of the workspace being invited to"
+              "user": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "The ID of the user who invited to the base"
+                  },
+                  "email": {
+                    "type": "string",
+                    "description": "The email address of the user who invited to the base"
+                  },
+                  "display_name": {
+                    "type": "string",
+                    "description": "The display name of the user who invited to the base"
+                  }
+                },
+                "required": [
+                  "id",
+                  "email"
+                ]
               }
             },
             "required": [
-              "id",
-              "invited_by",
-              "title"
+              "user",
+              "workspace"
+            ]
+          }
+        },
+        "required": [
+          "fk_user_id",
+          "type",
+          "body"
+        ]
+      },
+      "MentionEvent": {
+        "type": "object",
+        "properties": {
+          "fk_user_id": {
+            "type": "string",
+            "description": "The ID of the user who receives the mention"
+          },
+          "type": {
+            "type": "string",
+            "description": "The type of event, which should be set to 'MENTION'"
+          },
+          "body": {
+            "type": "object",
+            "properties": {
+              "workspace": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "The ID of the Workspace"
+                  },
+                  "title": {
+                    "type": "string",
+                    "description": "The title of the Workspace"
+                  }
+                },
+                "required": [
+                  "id",
+                  "title"
+                ]
+              },
+              "base": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "The ID of the Base"
+                  },
+                  "title": {
+                    "type": "string",
+                    "description": "The title of the Base"
+                  },
+                  "type": {
+                    "type": "string",
+                    "description": "The type of the Base"
+                  }
+                },
+                "required": [
+                  "id",
+                  "title",
+                  "type"
+                ]
+              },
+              "table": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "The ID of the Table"
+                  },
+                  "title": {
+                    "type": "string",
+                    "description": "The title of the Table"
+                  }
+                },
+                "required": [
+                  "id",
+                  "title"
+                ]
+              },
+              "comment": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "The ID of the Comment"
+                  },
+                  "comment": {
+                    "type": "string",
+                    "description": "The content of the Comment"
+                  }
+                },
+                "required": [
+                  "id",
+                  "comment"
+                ]
+              },
+              "row": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "The ID of the Row"
+                  },
+                  "value": {
+                    "type": "string",
+                    "description": "The Display Value of the Row"
+                  },
+                  "column": {
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              },
+              "user": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "The ID of the user who mentioned"
+                  },
+                  "email": {
+                    "type": "string",
+                    "description": "The email address of the user who mentioned"
+                  },
+                  "display_name": {
+                    "type": "string",
+                    "description": "The display name of the user who mentioned"
+                  }
+                },
+                "required": [
+                  "id",
+                  "email"
+                ]
+              }
+            },
+            "required": [
+              "user",
+              "workspace",
+              "comment",
+              "table",
+              "base",
+              "row"
             ]
           }
         },
@@ -4160,28 +4378,13 @@
                 "$ref": "#/components/schemas/ProjectInviteEvent"
               },
               {
-                "$ref": "#/components/schemas/ProjectEvent"
-              },
-              {
                 "$ref": "#/components/schemas/WorkspaceInviteEvent"
-              },
-              {
-                "$ref": "#/components/schemas/TableEvent"
-              },
-              {
-                "$ref": "#/components/schemas/ViewEvent"
-              },
-              {
-                "$ref": "#/components/schemas/ColumnEvent"
               },
               {
                 "$ref": "#/components/schemas/WelcomeEvent"
               },
               {
-                "$ref": "#/components/schemas/SortEvent"
-              },
-              {
-                "$ref": "#/components/schemas/FilterEvent"
+                "$ref": "#/components/schemas/MentionEvent"
               }
             ]
           }

@@ -159,7 +159,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       const extension = await Extension.get(req.params.extensionId);
       req.ncBaseId = extension.base_id;
     }
-    // extract fk_model_id from query params only if it's audit post endpoint
+    // extract fk_model_id from query params only if it's audit post or comments post, get, patch, delete endpoint
     else if (
       [
         '/api/v1/db/meta/audits/rows/:rowId/update',
@@ -176,9 +176,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         id: req.body.fk_model_id,
       });
       req.ncBaseId = model?.base_id;
-    }
-    // extract fk_model_id from query params only if it's audit get endpoint
-    else if (
+    } else if (
       [
         '/api/v2/meta/comments/count',
         '/api/v1/db/meta/comments/count',
@@ -198,8 +196,12 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       [
         '/api/v1/db/meta/comment/:commentId',
         '/api/v2/meta/comment/:commentId',
+        '/api/v1/db/meta/comment/:commentId/resolve',
+        '/api/v2/meta/comment/:commentId/resolve',
       ].some((auditPatchPath) => req.route.path === auditPatchPath) &&
-      (req.method === 'PATCH' || req.method === 'DELETE') &&
+      (req.method === 'PATCH' ||
+        req.method === 'DELETE' ||
+        req.method === 'POST') &&
       req.params.commentId
     ) {
       const audit = await Comment.get(params.commentId);

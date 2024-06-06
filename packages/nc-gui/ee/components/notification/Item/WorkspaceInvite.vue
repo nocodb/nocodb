@@ -1,6 +1,8 @@
 <script setup lang="ts">
+import type { WorkspaceInviteEventType } from 'nocodb-sdk'
+
 const props = defineProps<{
-  item: any
+  item: WorkspaceInviteEventType
 }>()
 
 const { navigateToProject } = useGlobal()
@@ -9,10 +11,10 @@ const item = toRef(props, 'item')
 </script>
 
 <template>
-  <NotificationItemWrapper :item="item" @click="navigateToProject({ workspaceId: item.body.id })">
-    <div class="text-xs">
-      <strong>{{ item.body.invited_by }}</strong> has invited you to collaborate on
-      <strong>{{ item.body.title }}</strong> workspace.
+  <NotificationItemWrapper :item="item" @click="navigateToProject({ workspaceId: item.body.workspace.id })">
+    <div>
+      <span class="font-semibold">{{ item.body.user.display_name ?? item.body.user.email }}</span> has invited you to collaborate
+      on <span class="font-semibold">{{ item.body.workspace.title }}</span> workspace.
     </div>
   </NotificationItemWrapper>
 </template>

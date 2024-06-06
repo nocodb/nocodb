@@ -48,8 +48,6 @@ const { $e } = useNuxtApp()
 
 const { t } = useI18n()
 
-const { isDataSourceLimitReached } = storeToRefs(useBases())
-
 const dataSourcesReload = ref(false)
 
 const tabsInfo: TabGroup = {

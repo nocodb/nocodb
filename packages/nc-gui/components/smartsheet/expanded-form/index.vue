@@ -331,7 +331,7 @@ if (isKanban.value) {
 provide(IsExpandedFormOpenInj, isExpanded)
 
 const triggerRowLoad = async (rowId?: string) => {
-  await Promise.allSettled([loadComments(), loadAudits(), _loadRow(rowId)])
+  await Promise.allSettled([loadComments(rowId), loadAudits(rowId), _loadRow(rowId)])
   isLoading.value = false
 }
 

@@ -14,6 +14,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     Array<
       CommentType & {
         created_display_name: string
+        resolved_display_name?: string
       }
     >
   >([])
@@ -102,10 +103,10 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     return extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
   })
 
-  const loadComments = async () => {
-    if (!isUIAllowed('commentList') || !row.value) return
+  const loadComments = async (_rowId?: string) => {
+    if (!isUIAllowed('commentList') || (!row.value && !_rowId)) return
 
-    const rowId = extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
+    const rowId = extractPkFromRow(row.value.row, meta.value.columns as ColumnType[]) ?? _rowId
 
     if (!rowId) return
 
@@ -125,13 +126,21 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
       comments.value = res.map((comment) => {
         const user = baseUsers.value.find((u) => u.id === comment.created_by)
+        const resolvedUser = comment.resolved_by ? baseUsers.value.find((u) => u.id === comment.resolved_by) : null
         return {
           ...comment,
           created_display_name: user?.display_name ?? (user?.email ?? '').split('@')[0],
+          resolved_display_name: resolvedUser ? resolvedUser.display_name ?? resolvedUser.email.split('@')[0] : null,
         }
       })
-    } catch (e: any) {
-      message.error(e.message)
+    } catch (e: unknown) {
+      message.error(
+        await extractSdkResponseErrorMsg(
+          e as Error & {
+            response: any
+          },
+        ),
+      )
     } finally {
       isCommentsLoading.value = false
     }
@@ -139,19 +148,37 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
   const deleteComment = async (commentId: string) => {
     if (!isUIAllowed('commentDelete')) return
+    const tempC = comments.value.find((c) => c.id === commentId)
 
     try {
+      comments.value = comments.value.filter((c) => c.id !== commentId)
+
       await $api.utils.commentDelete(commentId)
-      await loadComments()
-    } catch (e: any) {
-      message.error(e.message)
+
+      // update comment count in rowMeta
+      Object.assign(row.value, {
+        ...row.value,
+        rowMeta: {
+          ...row.value.rowMeta,
+          commentCount: (row.value.rowMeta.commentCount ?? 1) - 1,
+        },
+      })
+    } catch (e: unknown) {
+      message.error(
+        await extractSdkResponseErrorMsg(
+          e as Error & {
+            response: any
+          },
+        ),
+      )
+      comments.value = [...comments.value, tempC]
     }
   }
 
-  const loadAudits = async () => {
-    if (!isUIAllowed('auditList') || !row.value) return
+  const loadAudits = async (_rowId?: string) => {
+    if (!isUIAllowed('auditList') || (!row.value && !_rowId)) return
 
-    const rowId = extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
+    const rowId = extractPkFromRow(row.value.row, meta.value.columns as ColumnType[]) ?? _rowId
 
     if (!rowId) return
 
@@ -165,7 +192,13 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
           })
         ).list?.reverse?.() || []
     } catch (e: any) {
-      message.error(e.message)
+      message.error(
+        await extractSdkResponseErrorMsg(
+          e as Error & {
+            response: any
+          },
+        ),
+      )
     } finally {
       isAuditLoading.value = false
     }
@@ -179,6 +212,41 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     if (activeView.value?.type === ViewTypes.KANBAN) {
       const { loadKanbanData: _loadKanbanData } = useKanbanViewStoreOrThrow()
       await _loadKanbanData()
+    }
+  }
+
+  const resolveComment = async (commentId: string) => {
+    const tempC = comments.value.find((c) => c.id === commentId)
+
+    try {
+      comments.value = comments.value.map((c) => {
+        if (c.id === commentId) {
+          return {
+            ...c,
+            resolved_by: tempC.resolved_by ? null : $state.user?.value?.id,
+            resolved_by_email: tempC.resolved_by ? null : $state.user?.value?.email,
+            resolved_display_name: tempC.resolved_by
+              ? null
+              : $state.user?.value?.display_name ?? $state.user?.value?.email.split('@')[0],
+          }
+        }
+        return c
+      })
+      await $api.utils.commentResolve(commentId)
+    } catch (e: unknown) {
+      comments.value = comments.value.map((c) => {
+        if (c.id === commentId) {
+          return tempC
+        }
+        return c
+      })
+      message.error(
+        await extractSdkResponseErrorMsg(
+          e as Error & {
+            response: any
+          },
+        ),
+      )
     }
   }
 
@@ -196,13 +264,28 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
         comment: `${comment.value}`.replace(/(<br \/>)+$/g, ''),
       })
 
-      reloadTrigger?.trigger()
+      // Increase Comment Count in rowMeta
+      Object.assign(row.value, {
+        rowMeta: {
+          ...row.value.rowMeta,
+          commentCount: (row.value.rowMeta.commentCount ?? 0) + 1,
+        },
+      })
+
+      // reloadTrigger?.trigger()
 
       await Promise.all([loadComments(), loadAudits()])
 
       comment.value = ''
     } catch (e: any) {
-      message.error(e.message)
+      comments.value = comments.value.filter((c) => !(c.id ?? '').startsWith('temp-'))
+      message.error(
+        await extractSdkResponseErrorMsg(
+          e as Error & {
+            response: any
+          },
+        ),
+      )
     }
 
     $e('a:row-expand:comment')
@@ -244,7 +327,10 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
       Object.assign(row.value, {
         row: data,
-        rowMeta: {},
+        rowMeta: {
+          ...row.value.rowMeta,
+          new: false,
+        },
         oldRow: { ...data },
       })
 
@@ -406,7 +492,9 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
       Object.assign(row.value, {
         row: record,
         oldRow: { ...record },
-        rowMeta: {},
+        rowMeta: {
+          ...row.value.rowMeta,
+        },
       })
     } catch (e: any) {
       message.error(`${t('msg.error.errorLoadingRecord')}`)
@@ -449,6 +537,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     comments,
     audits,
     isAuditLoading,
+    resolveComment,
     isCommentsLoading,
     saveComment,
     comment,

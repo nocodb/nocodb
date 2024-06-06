@@ -42,6 +42,9 @@ import { WorkspacesController } from '~/controllers/workspaces.controller';
 import { WorkspaceUsersService } from '~/services/workspace-users.service';
 import { WorkspaceUsersController } from '~/controllers/workspace-users.controller';
 
+/* Mail Service */
+import { MailService } from '~/services/mail/mail.service';
+
 export const nocoModuleEeMetadata = {
   imports: [...nocoModuleMetadata.imports],
   providers: [
@@ -75,6 +78,9 @@ export const nocoModuleEeMetadata = {
     /* Workspaces */
     WorkspacesService,
     WorkspaceUsersService,
+
+    /* Mail Service */
+    MailService,
   ],
   controllers: [
     ...nocoModuleMetadata.controllers,

@@ -135,11 +135,11 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
       })
     } catch (e: unknown) {
       message.error(
-        (
+        await extractSdkResponseErrorMsg(
           e as Error & {
-            message: string
-          }
-        ).message,
+            response: any
+          },
+        ),
       )
     } finally {
       isCommentsLoading.value = false
@@ -164,7 +164,13 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
         },
       })
     } catch (e: unknown) {
-      message.error((e as any).message)
+      message.error(
+        await extractSdkResponseErrorMsg(
+          e as Error & {
+            response: any
+          },
+        ),
+      )
       comments.value = [...comments.value, tempC]
     }
   }
@@ -186,7 +192,13 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
           })
         ).list?.reverse?.() || []
     } catch (e: any) {
-      message.error(e.message)
+      message.error(
+        await extractSdkResponseErrorMsg(
+          e as Error & {
+            response: any
+          },
+        ),
+      )
     } finally {
       isAuditLoading.value = false
     }
@@ -221,14 +233,20 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
         return c
       })
       await $api.utils.commentResolve(commentId)
-    } catch (e: any) {
+    } catch (e: unknown) {
       comments.value = comments.value.map((c) => {
         if (c.id === commentId) {
           return tempC
         }
         return c
       })
-      message.error(e.message)
+      message.error(
+        await extractSdkResponseErrorMsg(
+          e as Error & {
+            response: any
+          },
+        ),
+      )
     }
   }
 
@@ -248,7 +266,6 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
       // Increase Comment Count in rowMeta
       Object.assign(row.value, {
-        ...row.value,
         rowMeta: {
           ...row.value.rowMeta,
           commentCount: (row.value.rowMeta.commentCount ?? 0) + 1,
@@ -262,7 +279,13 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
       comment.value = ''
     } catch (e: any) {
       comments.value = comments.value.filter((c) => !(c.id ?? '').startsWith('temp-'))
-      message.error(e.message)
+      message.error(
+        await extractSdkResponseErrorMsg(
+          e as Error & {
+            response: any
+          },
+        ),
+      )
     }
 
     $e('a:row-expand:comment')

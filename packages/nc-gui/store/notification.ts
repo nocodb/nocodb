@@ -83,13 +83,13 @@ export const useNotification = defineStore('notificationStore', () => {
     if (oldState) {
       readNotifications.value = readNotifications.value.filter((n) => n.id !== notification.id)
 
-      unreadNotifications.value = [...[notification], ...unreadNotifications.value].sort((a, b) => {
+      unreadNotifications.value = [notification, ...unreadNotifications.value].sort((a, b) => {
         return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       })
 
       unreadCount.value = unreadCount.value + 1
     } else {
-      readNotifications.value = [...[notification], ...readNotifications.value].sort((a, b) => {
+      readNotifications.value = [notification, ...readNotifications.value].sort((a, b) => {
         return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       })
 
@@ -152,8 +152,8 @@ export const useNotification = defineStore('notificationStore', () => {
     }
   }
 
-  watch(notificationTab, async () => {
-    if (notificationTab.value === 'read') {
+  watch(notificationTab, async (tab) => {
+    if (tab === 'read') {
       await loadReadNotifications()
     } else {
       await loadUnReadNotifications()

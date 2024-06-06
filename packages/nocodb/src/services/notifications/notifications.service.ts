@@ -1,11 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { AppEvents } from 'nocodb-sdk';
 import type {
   ProjectInviteEvent,
   WelcomeEvent,
 } from '~/services/app-hooks/interfaces';
 import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import type { NotificationType, UserType } from 'nocodb-sdk';
+import type { UserType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import type { Response } from 'express';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -17,6 +17,8 @@ import { getCircularReplacer } from '~/utils';
 import { PubSubRedis } from '~/redis/pubsub-redis';
 @Injectable()
 export class NotificationsService implements OnModuleInit, OnModuleDestroy {
+  private logger: Logger = new Logger(NotificationsService.name);
+
   constructor(protected readonly appHooks: AppHooksService) {}
 
   connections = new Map<
@@ -128,7 +130,7 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
         { unreadCount },
       );
     } catch (e) {
-      console.log(e);
+      this.logger.error(e);
       throw e;
     }
   }

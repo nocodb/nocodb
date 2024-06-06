@@ -22,5 +22,3 @@ const { unreadCount } = toRefs(notificationStore)
     </NcDropdown>
   </div>
 </template>
-
-<style scoped></style>

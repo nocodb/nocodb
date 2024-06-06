@@ -193,13 +193,15 @@ const createdBy = (
     created_display_name?: string
   },
 ) => {
-  return (
-    (comment.created_by === user.value?.id
-      ? 'You'
-      : comment.created_display_name?.trim()
-      ? comment.created_by_email
-      : comment.created_display_name?.trim()) || 'Shared source'
-  )
+  if (comment.created_by === user.value?.id) {
+    return 'You'
+  } else if (comment.created_display_name?.trim()) {
+    return comment.created_by_email || 'Shared source'
+  } else if (comment.created_by_email) {
+    return comment.created_by_email
+  } else {
+    return 'Shared source'
+  }
 }
 </script>
 

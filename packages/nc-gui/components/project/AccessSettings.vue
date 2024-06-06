@@ -157,7 +157,7 @@ const selected = reactive<{
 }>({})
 
 const toggleSelectAll = (value: boolean) => {
-  filteredCollaborators.value.forEach((_, _i) => {
+  filteredCollaborators.value.forEach((_) => {
     selected[_.id] = value
   })
 }

@@ -82,8 +82,8 @@ export default class Notification {
       },
     );
 
-    for (let notification of notifications) {
-      notification = prepareForResponse(notification, ['body']);
+    for (const notification of notifications) {
+      prepareForResponse(notification, 'body');
     }
     return notifications;
   }

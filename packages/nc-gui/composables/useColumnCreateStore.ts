@@ -1,8 +1,9 @@
 import rfdc from 'rfdc'
 import type { ColumnReqType, ColumnType, TableType } from 'nocodb-sdk'
-import { FieldNameFromUITypes, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
+import { UITypes, isLinksOrLTAR } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import type { RuleObject } from 'ant-design-vue/es/form'
+import { generateUniqueColumnName } from '~/helpers/parsers/parserHelpers'
 
 const clone = rfdc()
 
@@ -73,112 +74,6 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       uidt: fromTableExplorer?.value ? UITypes.SingleLineText : null,
       ...clone(column.value || {}),
     })
-
-    const generateUniqueColumnSuffix = () => {
-      let suffix = (meta.value?.columns?.length || 0) + 1
-      let columnName = `title${suffix}`
-      while (
-        (tableExplorerColumns?.value || meta.value?.columns)?.some(
-          (c) =>
-            (c.column_name || '').toLowerCase() === columnName.toLowerCase() ||
-            (c.title || '').toLowerCase() === columnName.toLowerCase(),
-        )
-      ) {
-        suffix++
-        columnName = `title${suffix}`
-      }
-      return suffix
-    }
-
-    const extractNextDefaultColumnName = (defaultColumnName: string): string => {
-      // Extract and sort numbers associated with the provided defaultName
-      const namesData = ((tableExplorerColumns?.value || meta.value?.columns)
-        ?.flatMap((c) => {
-          if (c.title !== c.column_name) {
-            return [c.title, c.column_name]
-          }
-          return [c.title]
-        })
-        .filter((t) => t && t.startsWith(defaultColumnName)) || []) as string[]
-
-      if (!namesData.includes(defaultColumnName)) {
-        return defaultColumnName
-      }
-
-      const extractedSortedNumbers =
-        (namesData
-          .map((name) => {
-            const [_defaultName, number] = name.split(/ (?!.* )/)
-            if (_defaultName === defaultColumnName && !isNaN(Number(number?.trim()))) {
-              return Number(number?.trim())
-            }
-            return undefined
-          })
-          .filter((e) => e)
-          .sort((a, b) => {
-            if (a !== undefined && b !== undefined) {
-              return a - b
-            }
-            return 0
-          }) as number[]) || []
-
-      return extractedSortedNumbers.length
-        ? `${defaultColumnName} ${extractedSortedNumbers[extractedSortedNumbers.length - 1] + 1}`
-        : `${defaultColumnName} 1`
-    }
-
-    const generateUniqueColumnName = () => {
-      let defaultColumnName = FieldNameFromUITypes[formState.value.uidt as UITypes]
-
-      if (!defaultColumnName) {
-        return `title${generateUniqueColumnSuffix()}`
-      }
-
-      switch (formState.value.uidt) {
-        case UITypes.User: {
-          if (formState.value.meta.is_multi) {
-            defaultColumnName = `${defaultColumnName}s`
-          }
-          break
-        }
-
-        case UITypes.Links:
-        case UITypes.LinkToAnotherRecord: {
-          if (!formState.value.childTableTitle) {
-            return `title${generateUniqueColumnSuffix()}`
-          }
-
-          defaultColumnName = defaultColumnName.replace('{TableName}', formState.value.childTableTitle)
-
-          break
-        }
-
-        case UITypes.Lookup: {
-          if (!formState.value.lookupTableTitle || !formState.value.lookupColumnTitle) {
-            return `title${generateUniqueColumnSuffix()}`
-          }
-
-          defaultColumnName = defaultColumnName
-            .replace('{TableName}', formState.value.lookupTableTitle)
-            .replace('{FieldName}', formState.value.lookupColumnTitle)
-
-          break
-        }
-        case UITypes.Rollup: {
-          if (!formState.value.rollupTableTitle || !formState.value.rollupColumnTitle) {
-            return `title${generateUniqueColumnSuffix()}`
-          }
-
-          defaultColumnName = defaultColumnName
-            .replace('{TableName}', formState.value.rollupTableTitle)
-            .replace('{FieldName}', formState.value.rollupColumnTitle)
-
-          break
-        }
-      }
-
-      return extractNextDefaultColumnName(defaultColumnName)
-    }
 
     // actions
     const generateNewColumnMeta = (ignoreUidt = false) => {
@@ -385,7 +280,11 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
         } else {
           // set default field title
           if (!formState.value.title.trim()) {
-            const columnName = generateUniqueColumnName()
+            const columnName = generateUniqueColumnName({
+              formState: formState.value,
+              tableExplorerColumns: tableExplorerColumns?.value,
+              metaColumns: meta.value?.columns || [],
+            })
             formState.value.title = columnName
             formState.value.column_name = columnName
           }

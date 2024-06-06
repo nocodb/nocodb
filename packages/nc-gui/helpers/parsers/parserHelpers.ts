@@ -1,4 +1,4 @@
-import { UITypes } from 'nocodb-sdk'
+import { FieldNameFromUITypes, UITypes, type ColumnType } from 'nocodb-sdk'
 import isURL from 'validator/lib/isURL'
 
 // This regex pattern matches email addresses by looking for sequences that start with characters before the "@" symbol, followed by the domain.
@@ -278,4 +278,141 @@ export const getFormattedViewTabTitle = ({
   }
 
   return title
+}
+
+export const generateUniqueColumnSuffix = ({
+  tableExplorerColumns,
+  metaColumns,
+}: {
+  tableExplorerColumns?: ColumnType[]
+  metaColumns: ColumnType[]
+}) => {
+  let suffix = (metaColumns?.length || 0) + 1
+  let columnName = `title${suffix}`
+  while (
+    (tableExplorerColumns || metaColumns)?.some(
+      (c) =>
+        (c.column_name || '').toLowerCase() === columnName.toLowerCase() ||
+        (c.title || '').toLowerCase() === columnName.toLowerCase(),
+    )
+  ) {
+    suffix++
+    columnName = `title${suffix}`
+  }
+  return suffix
+}
+
+const extractNextDefaultColumnName = ({
+  tableExplorerColumns,
+  metaColumns,
+  defaultColumnName,
+  newFieldTitles,
+}: {
+  tableExplorerColumns?: ColumnType[]
+  metaColumns: ColumnType[]
+  defaultColumnName: string
+  newFieldTitles: string[]
+}): string => {
+  // Extract and sort numbers associated with the provided defaultName
+  const namesData = ((tableExplorerColumns || metaColumns)
+    ?.flatMap((c) => {
+      if (c.title !== c.column_name) {
+        return [c.title, c.column_name]
+      }
+      return [c.title]
+    })
+    .filter((t) => t && t.startsWith(defaultColumnName)) || []) as string[]
+
+  if (![...namesData, ...newFieldTitles].includes(defaultColumnName)) {
+    return defaultColumnName
+  }
+
+  const extractedSortedNumbers =
+    (namesData
+      .map((name) => {
+        const [_defaultName, number] = name.split(/ (?!.* )/)
+        if (_defaultName === defaultColumnName && !isNaN(Number(number?.trim()))) {
+          return Number(number?.trim())
+        }
+        return undefined
+      })
+      .filter((e) => e)
+      .sort((a, b) => {
+        if (a !== undefined && b !== undefined) {
+          return a - b
+        }
+        return 0
+      }) as number[]) || []
+
+  return extractedSortedNumbers.length
+    ? `${defaultColumnName} ${extractedSortedNumbers[extractedSortedNumbers.length - 1] + 1}`
+    : `${defaultColumnName} 1`
+}
+
+export const generateUniqueColumnName = ({
+  tableExplorerColumns,
+  metaColumns,
+  formState,
+  newFieldTitles,
+}: {
+  tableExplorerColumns?: ColumnType[]
+  metaColumns: ColumnType[]
+  formState: Record<string, any>
+  newFieldTitles?: string[]
+}) => {
+  let defaultColumnName = FieldNameFromUITypes[formState.uidt as UITypes]
+
+  if (!defaultColumnName) {
+    return `title${generateUniqueColumnSuffix({ tableExplorerColumns, metaColumns })}`
+  }
+
+  switch (formState.uidt) {
+    case UITypes.User: {
+      if (formState.meta.is_multi) {
+        defaultColumnName = `${defaultColumnName}s`
+      }
+      break
+    }
+
+    case UITypes.Links:
+    case UITypes.LinkToAnotherRecord: {
+      if (!formState.childTableTitle) {
+        return `title${generateUniqueColumnSuffix({ tableExplorerColumns, metaColumns })}`
+      }
+
+      defaultColumnName = defaultColumnName.replace('{TableName}', formState.childTableTitle)
+
+      break
+    }
+
+    case UITypes.Lookup: {
+      if (!formState.lookupTableTitle || !formState.lookupColumnTitle) {
+        return `title${generateUniqueColumnSuffix({ tableExplorerColumns, metaColumns })}`
+      }
+
+      defaultColumnName = defaultColumnName
+        .replace('{TableName}', formState.lookupTableTitle)
+        .replace('{FieldName}', formState.lookupColumnTitle)
+
+      break
+    }
+    case UITypes.Rollup: {
+      if (!formState.rollupTableTitle || !formState.rollupColumnTitle) {
+        return `title${generateUniqueColumnSuffix({ tableExplorerColumns, metaColumns })}`
+      }
+
+      defaultColumnName = defaultColumnName
+        .replace('{TableName}', formState.rollupTableTitle)
+        .replace('{FieldName}', formState.rollupColumnTitle)
+
+      break
+    }
+  }
+
+  return extractNextDefaultColumnName({
+    tableExplorerColumns,
+    metaColumns,
+    defaultColumnName,
+    newFieldTitles: newFieldTitles || [],
+  })
 }

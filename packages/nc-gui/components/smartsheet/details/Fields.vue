@@ -5,6 +5,8 @@ import { UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk
 import type { ColumnType, FilterType, SelectOptionsType } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 import { onKeyDown, useMagicKeys } from '@vueuse/core'
+import type { ColumnType, SelectOptionsType } from 'nocodb-sdk'
+import { generateUniqueColumnName } from '~/helpers/parsers/parserHelpers'
 
 interface TableExplorerColumn extends ColumnType {
   id?: string
@@ -467,7 +469,7 @@ const isColumnValid = (column: TableExplorerColumn) => {
   const isDeleteOp = ops.value.find((op) => compareCols(column, op.column) && op.op === 'delete')
   const isNew = ops.value.find((op) => compareCols(column, op.column) && op.op === 'add')
   if (isDeleteOp) return true
-  if (!column.title) {
+  if (!column.title && !isNew) {
     return false
   }
   if ((column.uidt === UITypes.Links || column.uidt === UITypes.LinkToAnotherRecord) && isNew) {
@@ -604,10 +606,21 @@ const saveChanges = async () => {
     if (!meta.value?.id) return
 
     loading.value = true
-
+    const newFieldTitles: string[] = []
     for (const mop of moveOps.value) {
       const op = ops.value.find((op) => compareCols(op.column, mop.column))
       if (op && op.op === 'add') {
+        const defaultColumnName = generateUniqueColumnName({
+          formState: op.column,
+          tableExplorerColumns: fields.value || [],
+          metaColumns: meta.value?.columns || [],
+          newFieldTitles,
+        })
+        newFieldTitles.push(defaultColumnName)
+
+        op.column.title = defaultColumnName
+        op.column.column_name = defaultColumnName
+
         op.column.column_order = {
           order: mop.order,
           view_id: view.value?.id as string,

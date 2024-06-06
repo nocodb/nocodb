@@ -300,7 +300,7 @@ const createdBy = (
                         </template>
                       </NcDropdown>
 
-                      <div>
+                      <div v-if="appInfo.ee">
                         <NcTooltip v-if="!comment.resolved_by">
                           <NcButton
                             class="!w-7 !h-7 !bg-transparent opacity-0 group-hover:opacity-100"

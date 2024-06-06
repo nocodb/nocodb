@@ -21,7 +21,7 @@ import { NcRequest } from '~/interface/config';
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class CommentsController {
-  constructor(private readonly commentsService: CommentsService) {}
+  constructor(protected readonly commentsService: CommentsService) {}
 
   @Get(['/api/v1/db/meta/comments', '/api/v2/meta/comments'])
   @Acl('commentList')
@@ -72,19 +72,6 @@ export class CommentsController {
       commentId: commentId,
       user: req.user,
       body: body,
-      req,
-    });
-  }
-
-  @Post([
-    '/api/v1/db/meta/comment/:commentId/resolve',
-    '/api/v2/meta/comment/:commentId/resolve',
-  ])
-  @Acl('commentUpdate')
-  async commentResolve(@Param('commentId') commentId: string, @Req() req: any) {
-    return await this.commentsService.commentResolve({
-      commentId: commentId,
-      user: req.user,
       req,
     });
   }

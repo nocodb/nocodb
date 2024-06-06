@@ -1,4 +1,4 @@
-import { FieldNameFromUITypes, UITypes, type ColumnType } from 'nocodb-sdk'
+import { type ColumnType, FieldNameFromUITypes, UITypes } from 'nocodb-sdk'
 import isURL from 'validator/lib/isURL'
 import { pluralize } from 'inflection'
 
@@ -367,7 +367,6 @@ export const generateUniqueColumnName = ({
   formState: Record<string, any>
   newFieldTitles?: string[]
 }) => {
-  console.log('pluralize', pluralize('country'))
   let defaultColumnName = FieldNameFromUITypes[formState.uidt as UITypes]
 
   if (!defaultColumnName) {
@@ -408,7 +407,7 @@ export const generateUniqueColumnName = ({
 
       // Ensure the final defaultColumnName is less than 255 characters
       if (defaultColumnName.length >= 255) {
-        defaultColumnName = defaultColumnName.slice(0, 252) + '...'
+        defaultColumnName = `${defaultColumnName.slice(0, 252)}...`
       }
 
       break

@@ -23,8 +23,4 @@ const { unreadCount } = toRefs(notificationStore)
   </div>
 </template>
 
-<style scoped>
-.nc-count-badge {
-  @apply flex items-center  px-1  rounded-full bg-[red-500] bg-opacity-100 !text-[9px] !z-21;
-}
-</style>
+<style scoped></style>

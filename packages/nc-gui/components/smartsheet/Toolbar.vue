@@ -1,8 +1,6 @@
 <script lang="ts" setup>
 const { isGrid, isGallery, isKanban, isMap, isCalendar } = useSmartsheetStoreOrThrow()
 
-const isPublic = inject(IsPublicInj, ref(false))
-
 const { isMobileMode } = useGlobal()
 const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
@@ -16,8 +14,6 @@ const isTab = computed(() => {
   if (!isCalendar.value) return false
   return width.value > 1200
 })
-
-const { allowCSVDownload } = useSharedView()
 </script>
 
 <template>

@@ -183,6 +183,24 @@ watch(commentsWrapperEl, () => {
     })
   }, 100)
 })
+
+const timesAgo = (comment: CommentType) => {
+  return comment.created_at !== comment.updated_at ? `Edited ${timeAgo(comment.updated_at!)}` : timeAgo(comment.created_at!)
+}
+
+const createdBy = (
+  comment: CommentType & {
+    created_display_name?: string
+  },
+) => {
+  return (
+    (comment.created_by === user?.id
+      ? comment.created_display_name?.trim() || comment.created_by_email
+      : comment.created_display_name?.trim()
+      ? comment.created_by_email
+      : comment.created_display_name?.trim()) || 'Shared source'
+  )
+}
 </script>
 
 <template>
@@ -234,31 +252,13 @@ watch(commentsWrapperEl, () => {
                           <template #title>
                             {{ comment.created_display_name?.trim() || comment.created_by_email || 'Shared source' }}
                           </template>
-                          <span
-                            class="text-ellipsis capitalize overflow-hidden"
-                            :style="{
-                              lineHeight: '18px',
-                              wordBreak: 'keep-all',
-                              whiteSpace: 'nowrap',
-                              display: 'inline',
-                            }"
-                          >
-                            {{
-                              (comment.created_by === user?.id
-                                ? comment.created_display_name?.trim() || comment.created_by_email
-                                : comment.created_display_name?.trim()
-                                ? comment.created_by_email
-                                : comment.created_display_name?.trim()) || 'Shared source'
-                            }}
+                          <span class="text-ellipsis capitalize overflow-hidden" :style="{}">
+                            {{ createdBy(comment) }}
                           </span>
                         </NcTooltip>
 
                         <div class="text-xs text-gray-500">
-                          {{
-                            comment.created_at !== comment.updated_at
-                              ? `Edited ${timeAgo(comment.updated_at)}`
-                              : timeAgo(comment.created_at)
-                          }}
+                          {{ timesAgo(comment) }}
                         </div>
                       </div>
                     </div>
@@ -421,14 +421,7 @@ watch(commentsWrapperEl, () => {
                       <template #title>
                         {{ audit.display_name?.trim() || audit.user || 'Shared source' }}
                       </template>
-                      <span
-                        class="text-ellipsis overflow-hidden font-bold text-gray-800"
-                        :style="{
-                          wordBreak: 'keep-all',
-                          whiteSpace: 'nowrap',
-                          display: 'inline',
-                        }"
-                      >
+                      <span class="text-ellipsis break-keep inline whitespace-nowrap overflow-hidden font-bold text-gray-800">
                         {{ audit.display_name?.trim() || audit.user || 'Shared source' }}
                       </span>
                     </NcTooltip>

@@ -19,9 +19,10 @@ const { unreadNotifications, readNotifications, readPageInfo, unreadPageInfo, no
   <div
     ref="container"
     style="box-shadow: 0px -12px 16px -4px rgba(0, 0, 0, 0.1), 0px -4px 6px -2px rgba(0, 0, 0, 0.06)"
-    :style="!isMobileMode ? 'width: min(80svw, 520px); height:620px' : 'width: 100svw; height: 100svh'"
+    :style="!isMobileMode ? 'width: min(80svw, 520px);' : ''"
     :class="{
-      'max-h-[70vh]': !isMobileMode,
+      'max-h-[70vh] h-[620px]': !isMobileMode,
+      'h-[100svh] w-[100svw]': isMobileMode,
     }"
     class="!rounded-lg pt-4"
   >

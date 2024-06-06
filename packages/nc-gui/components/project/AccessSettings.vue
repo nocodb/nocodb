@@ -153,11 +153,11 @@ onMounted(async () => {
 })
 
 const selected = reactive<{
-  [key: number]: boolean
+  [key: string]: boolean
 }>({})
 
 const toggleSelectAll = (value: boolean) => {
-  filteredCollaborators.value.forEach((_, i) => {
+  filteredCollaborators.value.forEach((_, _i) => {
     selected[_.id] = value
   })
 }

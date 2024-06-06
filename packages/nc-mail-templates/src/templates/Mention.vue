@@ -36,7 +36,7 @@ const { Container } = defaultComponents;
           <strong> <%- table %> / <%- base %> </strong>.
         </p>
 
-        <a href="<%- display_name %>" style="text-decoration: none">
+        <a href="<%- url %>" style="text-decoration: none">
           <div
               style="
               cursor: pointer;

@@ -54,6 +54,7 @@ export class CommentsController {
     return await this.commentsService.commentDelete({
       commentId,
       user: req.user,
+      req,
     });
   }
 

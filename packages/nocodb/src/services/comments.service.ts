@@ -11,6 +11,7 @@ import { NcError } from '~/helpers/catchError';
 import { validatePayload } from '~/helpers';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import Comment from '~/models/Comment';
+import { getCircularReplacer } from '~/utils';
 
 @Injectable()
 export class CommentsService {
@@ -35,7 +36,7 @@ export class CommentsService {
       base: await Base.getByTitleOrId(model.base_id),
       model: model,
       user: param.user,
-      comment: param.body.comment,
+      comment: res,
       rowId: param.body.row_id,
       req: param.req,
     });
@@ -43,7 +44,11 @@ export class CommentsService {
     return res;
   }
 
-  async commentDelete(param: { commentId: string; user: UserType }) {
+  async commentDelete(param: {
+    commentId: string;
+    user: UserType;
+    req: NcRequest;
+  }) {
     const comment = await Comment.get(param.commentId);
 
     if (comment.created_by !== param.user.id || comment.is_deleted) {
@@ -58,9 +63,9 @@ export class CommentsService {
       base: await Base.getByTitleOrId(model.base_id),
       model: model,
       user: param.user,
-      comment: comment.comment,
+      comment: comment,
       rowId: comment.row_id,
-      req: {},
+      req: param.req,
     });
     return res;
   }
@@ -108,7 +113,10 @@ export class CommentsService {
       base: await Base.getByTitleOrId(model.base_id),
       model: model,
       user: param.user,
-      comment: param.body.comment,
+      comment: {
+        ...comment,
+        comment: param.body.comment,
+      },
       rowId: comment.row_id,
       req: param.req,
     });

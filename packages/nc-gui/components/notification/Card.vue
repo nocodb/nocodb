@@ -49,7 +49,7 @@ const { notifications, pageInfo, notificationTab } = storeToRefs(notificationSto
             </span>
           </template>
           <div
-            class="overflow-y-auto max-h-[max(60vh,500px)] min-h-100"
+            class="overflow-y-auto max-h-[max(60vh,520px)] min-h-100"
             :class="{
               'flex items-center justify-center': !notifications?.length,
             }"
@@ -87,7 +87,7 @@ const { notifications, pageInfo, notificationTab } = storeToRefs(notificationSto
           </template>
 
           <div
-            class="overflow-y-auto max-h-[max(60vh,500px)] min-h-100"
+            class="overflow-y-auto max-h-[max(60vh,520px)] min-h-100"
             :class="{
               'flex items-center justify-center': !notifications?.length,
             }"

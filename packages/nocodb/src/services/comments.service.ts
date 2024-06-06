@@ -11,7 +11,6 @@ import { NcError } from '~/helpers/catchError';
 import { validatePayload } from '~/helpers';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import Comment from '~/models/Comment';
-import { getCircularReplacer } from '~/utils';
 
 @Injectable()
 export class CommentsService {

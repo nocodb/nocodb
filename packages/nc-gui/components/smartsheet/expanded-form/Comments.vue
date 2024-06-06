@@ -32,6 +32,8 @@ const tab = ref<'comments' | 'audits'>('comments')
 
 const { isUIAllowed } = useRoles()
 
+const router = useRouter()
+
 const hasEditPermission = computed(() => isUIAllowed('commentEdit'))
 
 const editComment = ref<CommentType>()
@@ -135,10 +137,31 @@ const saveComment = async () => {
   }
 }
 
+function scrollToComment(commentId: string) {
+  const commentEl = document.querySelector(`.${commentId}`)
+  if (commentEl) {
+    commentEl.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center',
+    })
+  }
+}
+
 watch(commentsWrapperEl, () => {
   setTimeout(() => {
     nextTick(() => {
-      scrollComments()
+      const query = router.currentRoute.value.query
+      const commentId = query.commentId
+      if (commentId) {
+        router.push({
+          query: {
+            rowId: query.rowId,
+          },
+        })
+        scrollToComment(commentId as string)
+      } else {
+        scrollComments()
+      }
     })
   }, 100)
 })
@@ -171,7 +194,7 @@ watch(commentsWrapperEl, () => {
               <div class="font-medium text-center my-6 text-gray-500">{{ $t('activity.startCommenting') }}</div>
             </div>
             <div v-else ref="commentsWrapperEl" class="flex flex-col h-full py-1 nc-scrollbar-thin">
-              <div v-for="comment of comments" :key="comment.id" class="nc-comment-item">
+              <div v-for="comment of comments" :key="comment.id" :class="`${comment.id}`" class="nc-comment-item">
                 <div
                   :class="{
                     'hover:bg-gray-200': comment.id !== editComment?.id,

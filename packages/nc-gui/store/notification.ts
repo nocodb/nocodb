@@ -11,12 +11,20 @@ export const useNotification = defineStore('notificationStore', () => {
   const { api, isLoading } = useApi()
 
   const pollNotifications = async () => {
-    const res = await api.notification.poll()
+    try {
+      const res = await api.notification.poll()
 
-    if (res.status === 'success' && notificationTab.value === 'unread') {
-      notifications.value = [JSON.parse(res.data), ...notifications.value]
+      if (res.status === 'success') {
+        if (notificationTab.value === 'unread') {
+          notifications.value = [JSON.parse(res.data), ...notifications.value]
+        }
+        unreadCount.value = unreadCount.value + 1
+      }
+      await pollNotifications()
+    } catch (e) {
+      // If network error, retry after 2 seconds
+      setTimeout(pollNotifications, 2000)
     }
-    await pollNotifications()
   }
 
   const loadNotifications = async (loadMore = false) => {

@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { AppEvents } from 'nocodb-sdk';
 import type {
   ProjectInviteEvent,
-  RowCommentEvent,
   WelcomeEvent,
 } from '~/services/app-hooks/interfaces';
 import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
@@ -12,17 +11,12 @@ import type { Response } from 'express';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { NcError } from '~/helpers/catchError';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
-import { BaseUser, Column, Notification } from '~/models';
+import { Notification } from '~/models';
 
-import { DatasService } from '~/services/datas.service';
-import { extractMentions } from '~/utils/richTextHelper';
 import { getCircularReplacer } from '~/utils';
 @Injectable()
 export class NotificationsService implements OnModuleInit, OnModuleDestroy {
-  constructor(
-    protected readonly appHooks: AppHooksService,
-    private readonly datasService: DatasService,
-  ) {}
+  constructor(protected readonly appHooks: AppHooksService) {}
 
   connections = new Map<
     string,
@@ -178,82 +172,6 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
           );
         }
         break;
-      case AppEvents.COMMENT_UPDATE:
-      case AppEvents.COMMENT_CREATE: {
-        console.log('COMMENT_UPDATE/CREATE');
-        const {
-          user,
-          base,
-          comment,
-          rowId,
-          model: table,
-          req,
-        } = data as RowCommentEvent;
-        const mentions = extractMentions(comment.comment);
-        console.log(mentions);
-
-        if (!mentions || !mentions.length) break;
-
-        const row = await this.datasService.dataRead({
-          rowId: rowId,
-          baseName: base.id,
-          tableName: table.id,
-          query: {},
-        });
-
-        const cols = await Column.list({
-          fk_model_id: table.id,
-        });
-
-        const pvc = cols.find((c) => c.pv);
-
-        const displayValue = row[pvc?.title ?? ''] ?? '';
-
-        const baseUsers = await BaseUser.getUsersList({
-          base_id: base.id,
-        });
-
-        for (const mention of mentions ?? []) {
-          const mentionedUser = baseUsers.find((b) => b.id === mention);
-          if (!mentionedUser) continue;
-          // TODO: Do not send email if the mentioned user is the same as the user who commented
-          // if (mentionedUser.id === user.id) continue;
-
-          await this.insertNotification(
-            {
-              fk_user_id: mentionedUser.id,
-              type: 'mention' as any,
-              body: {
-                workspace: {
-                  id: (base as any).fk_workspace_id,
-                },
-                base: {
-                  id: base.id,
-                  title: base.title,
-                  base_type: base.type,
-                },
-                table: {
-                  id: table.id,
-                  title: table.title,
-                },
-                row: {
-                  id: rowId,
-                  value: displayValue,
-                },
-                comment: comment,
-                user: {
-                  id: user.id,
-                  email: user.email,
-                  display_name: user.display_name,
-                },
-              },
-            },
-            req,
-          );
-        }
-
-        break;
-      }
     }
   }
 

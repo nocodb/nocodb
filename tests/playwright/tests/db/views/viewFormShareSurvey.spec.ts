@@ -85,6 +85,7 @@ test.describe('Share form', () => {
     await surveyForm.validateSuccessMessage({
       message: 'Thank you for submitting the form',
       showAnotherForm: true,
+      isCustomMsg: true,
     });
   });
 });

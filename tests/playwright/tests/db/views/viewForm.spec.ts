@@ -968,6 +968,7 @@ test.describe('Form view: field validation', () => {
     // validate post submit data
     await surveyForm.validateSuccessMessage({
       message: 'Thank you for submitting the form',
+      isCustomMsg: true,
     });
   });
 
@@ -1306,6 +1307,7 @@ test.describe('Form view: field validation', () => {
     // validate post submit data
     await surveyForm.validateSuccessMessage({
       message: 'Thank you for submitting the form',
+      isCustomMsg: true,
     });
   });
 
@@ -1418,6 +1420,7 @@ test.describe('Form view: field validation', () => {
     // validate post submit data
     await surveyForm.validateSuccessMessage({
       message: 'Thank you for submitting the form',
+      isCustomMsg: true,
     });
   });
 });

@@ -187,19 +187,6 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     }
   }
 
-  const getValidFieldName = (title: string, uniqueFieldNames: Set<string>) => {
-    let newTitle = title.replace(/\./g, '_')
-    let counter = 1
-
-    while (uniqueFieldNames.has(newTitle)) {
-      newTitle = `${newTitle}_${counter}`
-      counter++
-      // console.log('recursive')
-    }
-    uniqueFieldNames.add(newTitle)
-    return newTitle
-  }
-
   const fieldMappings = computed(() => {
     const uniqueFieldNames: Set<string> = new Set()
 

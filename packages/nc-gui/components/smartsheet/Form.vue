@@ -199,7 +199,7 @@ async function submitForm() {
   }
 
   try {
-    await validate([...Object.keys(formState.value).map((title) => fieldMappings.value[title])])
+    await validate(Object.keys(formState.value).map((title) => fieldMappings.value[title]))
   } catch (e: any) {
     if (e?.errorFields?.length) {
       message.error(t('msg.error.someOfTheRequiredFieldsAreEmpty'))
@@ -587,7 +587,7 @@ watch(
     updatePreFillFormSearchParams()
 
     try {
-      await validate([...Object.keys(formState.value).map((title) => fieldMappings.value[title])])
+      await validate(Object.keys(formState.value).map((title) => fieldMappings.value[title]))
     } catch {}
   },
   {

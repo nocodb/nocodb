@@ -48,7 +48,7 @@ export default defineComponent({
                 `
                         ),
                     ]),
-                    h("body", {}, slots.default && slots.default()),
+                    h("body", {}, slots?.default()),
                 ]
             );
         };

@@ -28,7 +28,12 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
 
   addConnection = (userId: string, res: Response & { resId: string }) => {
     if (!this.connections.has(userId)) {
-      this.connections.set(userId, [] as any);
+      this.connections.set(
+        userId,
+        [] as (Response & {
+          resId: string;
+        })[],
+      );
     }
 
     this.connections.get(userId).push(res);
@@ -152,7 +157,7 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
     data,
   }: {
     event: AppEvents;
-    data: any;
+    data: ProjectInviteEvent | WelcomeEvent;
   }) {
     const { req } = data;
     switch (event) {

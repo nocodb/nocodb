@@ -28,10 +28,10 @@ export class PubSubRedis {
       if (callback) await callback(...args);
     });
 
-    this.initialized = true;
+    PubSubRedis.initialized = true;
   }
 
-  static async publish(channel: string, message: string | any) {
+  static async publish(channel: string, message: string | Record<string, any>) {
     if (!PubSubRedis.initialized) {
       if (!PubSubRedis.available) {
         return;
@@ -46,7 +46,7 @@ export class PubSubRedis {
       try {
         await PubSubRedis.redisClient.publish(channel, JSON.stringify(message));
       } catch (e) {
-        this.logger.error(e);
+        PubSubRedis.logger.error(e);
       }
     }
   }
@@ -87,7 +87,7 @@ export class PubSubRedis {
     };
 
     PubSubRedis.redisSubscriber.on('message', onMessage);
-    this.unsubscribeCallbacks[channel] = async () => {
+    PubSubRedis.unsubscribeCallbacks[channel] = async () => {
       await PubSubRedis.redisSubscriber.unsubscribe(channel);
       PubSubRedis.redisSubscriber.off('message', onMessage);
     };

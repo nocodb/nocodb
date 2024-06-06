@@ -21,15 +21,13 @@ if (fs.existsSync("./.dist")) {
 }
 
 
-fs.readdirSync("./src/templates").forEach(async file => {
+for (const file of fs.readdirSync("./src/templates")) {
     if (file.endsWith(".vue")) {
-        const markup = decode(await emailClient.renderEmail(file, {}, {}))
-
-
+        const markup = decode(await emailClient.renderEmail(file, {}, {}))p
 
         if (!fs.existsSync("./.dist")) {
             fs.mkdirSync("./.dist");
         }
         fs.writeFileSync(`./.dist/${file.replace(".vue", ".ts")}`, exportString + markup + "`")
     }
-});
+}

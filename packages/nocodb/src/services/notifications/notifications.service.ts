@@ -14,6 +14,7 @@ import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { Notification } from '~/models';
 
 import { getCircularReplacer } from '~/utils';
+import { PubSubRedis } from '~/modules/redis/pubsub-redis';
 @Injectable()
 export class NotificationsService implements OnModuleInit, OnModuleDestroy {
   constructor(protected readonly appHooks: AppHooksService) {}
@@ -45,10 +46,15 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
     if (idx > -1) {
       userConnections.splice(idx, 1);
     }
-    this.connections.set(userId, userConnections);
+
+    if (userConnections.length === 0) {
+      this.connections.delete(userId);
+    } else {
+      this.connections.set(userId, userConnections);
+    }
   };
 
-  public sendToConnections(key: string, payload: string): void {
+  sendToConnections(key: string, payload: string): void {
     const connections = this.connections.get(String(key));
 
     if (connections && connections.length)
@@ -58,6 +64,12 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
           data: payload,
         });
       });
+
+    this.removeConnectionByUserId(key);
+  }
+
+  removeConnectionByUserId(userId: string) {
+    this.connections.delete(userId);
   }
 
   protected async insertNotification(
@@ -65,6 +77,13 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
     _req: NcRequest,
   ) {
     await Notification.insert(insertData);
+
+    if (PubSubRedis.available) {
+      await PubSubRedis.publish(
+        `notification:${insertData.fk_user_id}`,
+        JSON.stringify(insertData, getCircularReplacer()),
+      );
+    }
 
     this.sendToConnections(
       insertData.fk_user_id,

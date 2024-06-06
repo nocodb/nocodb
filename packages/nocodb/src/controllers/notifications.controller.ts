@@ -18,6 +18,7 @@ import { extractProps } from '~/helpers/extractProps';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { NcRequest } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
+import { PubSubRedis } from '~/modules/redis/pubsub-redis';
 
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 const POLL_INTERVAL = 30000;
@@ -45,6 +46,15 @@ export class NotificationsController {
     }
 
     this.notificationsService.addConnection(req.user.id, res);
+
+    if (PubSubRedis.available) {
+      await PubSubRedis.subscribe(
+        `notification:${req.user.id}`,
+        async (data) => {
+          this.notificationsService.sendToConnections(req.user.id, data);
+        },
+      );
+    }
 
     res.on('close', () => {
       this.notificationsService.removeConnection(req.user.id, res);

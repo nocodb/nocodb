@@ -454,6 +454,7 @@
     "noResultsMatchedYourSearch": "Your search did not yield any matching results."
   },
   "labels": {
+    "selectView": "Select a View",
     "connectionDetails": "Connection Details",
     "metaSync": "Meta Sync",
     "mention": "Mention",
@@ -492,6 +493,7 @@
     "userOptions": "User Options",
     "deleteThisOrganization": "Delete this Organisation",
     "dangerZone": "Dangerzone",
+    "childView": "Child View",
     "selectYear": "Seleccionar Año",
     "save": "Guardar",
     "cancel": "Cancelar",
@@ -1210,6 +1212,7 @@
     "selectFieldToSort": "Seleccionar campo para ordenar",
     "selectFieldToGroup": "Seleccione el campo al grupo",
     "thereAreNoRecordsInTable": "No hay registros en la tabla",
+    "noRecordsAvailForLinking": "No records are currently available for linking",
     "createWebhookMsg1": "¡Empieza con web-hooks!",
     "createWebhookMsg2": "Power your automations. Get notified as soon as there are changes in your data",
     "areYouSureUWantTo": "¿Realmente quieres eliminar lo siguiente?",

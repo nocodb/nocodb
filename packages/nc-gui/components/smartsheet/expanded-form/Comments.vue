@@ -221,43 +221,45 @@ watch(commentsWrapperEl, () => {
                   }"
                   class="group gap-3 overflow-hidden px-3 py-2"
                 >
-                  <div class="flex justify-between">
-                    <div class="flex items-end gap-3">
+                  <div class="flex items-start justify-between">
+                    <div class="flex items-start gap-3">
                       <GeneralUserIcon
                         :email="comment.created_by_email"
                         :name="comment.created_display_name"
                         class="mt-0.5"
                         size="medium"
                       />
-                      <NcTooltip class="truncate capitalize text-gray-800 font-weight-700 !text-[13px] max-w-42">
-                        <template #title>
-                          {{ comment.created_display_name?.trim() || comment.created_by_email || 'Shared source' }}
-                        </template>
-                        <span
-                          class="text-ellipsis capitalize overflow-hidden"
-                          :style="{
-                            lineHeight: '18px',
-                            wordBreak: 'keep-all',
-                            whiteSpace: 'nowrap',
-                            display: 'inline',
-                          }"
-                        >
-                          {{
-                            (comment.created_by === user?.id
-                              ? comment.created_display_name?.trim() || comment.created_by_email
-                              : comment.created_display_name?.trim()
-                              ? comment.created_by_email
-                              : comment.created_display_name?.trim()) || 'Shared source'
-                          }}
-                        </span>
-                      </NcTooltip>
+                      <div class="flex h-[28px] items-center gap-3">
+                        <NcTooltip class="truncate capitalize text-gray-800 font-weight-700 !text-[13px] max-w-42">
+                          <template #title>
+                            {{ comment.created_display_name?.trim() || comment.created_by_email || 'Shared source' }}
+                          </template>
+                          <span
+                            class="text-ellipsis capitalize overflow-hidden"
+                            :style="{
+                              lineHeight: '18px',
+                              wordBreak: 'keep-all',
+                              whiteSpace: 'nowrap',
+                              display: 'inline',
+                            }"
+                          >
+                            {{
+                              (comment.created_by === user?.id
+                                ? comment.created_display_name?.trim() || comment.created_by_email
+                                : comment.created_display_name?.trim()
+                                ? comment.created_by_email
+                                : comment.created_display_name?.trim()) || 'Shared source'
+                            }}
+                          </span>
+                        </NcTooltip>
 
-                      <div class="text-xs text-gray-500">
-                        {{
-                          comment.created_at !== comment.updated_at
-                            ? `Edited ${timeAgo(comment.updated_at)}`
-                            : timeAgo(comment.created_at)
-                        }}
+                        <div class="text-xs text-gray-500">
+                          {{
+                            comment.created_at !== comment.updated_at
+                              ? `Edited ${timeAgo(comment.updated_at)}`
+                              : timeAgo(comment.created_at)
+                          }}
+                        </div>
                       </div>
                     </div>
                     <div class="flex items-center gap-2">

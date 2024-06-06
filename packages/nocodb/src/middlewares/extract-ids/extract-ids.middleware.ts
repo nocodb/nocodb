@@ -171,8 +171,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         '/api/v1/db/meta/comment/:commentId',
         '/api/v2/meta/comment/:commentId',
       ].some((commentPatchPath) => req.route.path === commentPatchPath) &&
-      (req.method === 'PATCH' ||
-        req.method === 'DELETE' ||
+      (req.method === 'PATCH' || req.method === 'DELETE') &&
       req.params.commentId
     ) {
       const comment = await Comment.get(params.commentId);

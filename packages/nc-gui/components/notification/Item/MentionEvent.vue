@@ -41,7 +41,6 @@ const item = toRef(props, 'item')
     :item="item"
     @click="
       () => {
-        console.log(item.body.base.id)
         ncNavigateTo({
           baseId: item.body.base.id,
           tableId: item.body.table.id,
@@ -55,9 +54,9 @@ const item = toRef(props, 'item')
     "
   >
     <template #avatar>
-      <GeneralUserIcon :email="item.body.user.email" :name="item.body.user.display_name" />
+      <GeneralUserIcon class="w-12 h-12" :email="item.body.user.email" :name="item.body.user.display_name" />
     </template>
-    <p class="text-xs">
+    <p class="text-sm">
       <strong>{{ item.body.user.display_name ?? item.body.user.email }}</strong> has mentioned you in a comment on
       <strong> {{ item.body.row.value }} </strong> {{ ' ' }}
       in

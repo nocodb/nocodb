@@ -1,32 +1,26 @@
 <script lang="ts" setup>
 const notificationStore = useNotification()
 
-const { loadNotifications, markAsOpened } = notificationStore
+const { loadNotifications } = notificationStore
+
+const { unreadCount } = toRefs(notificationStore)
 
 onMounted(async () => {
   await loadNotifications()
 })
-
-const onOpen = (visible: boolean) => {
-  if (visible) {
-    markAsOpened()
-  }
-}
 </script>
 
 <template>
   <div class="cursor-pointer flex items-center">
-    <a-dropdown :trigger="['click']" @visible-change="onOpen">
+    <NcDropdown placement="topRight" :trigger="['click']">
       <div class="relative leading-none">
         <GeneralIcon icon="notification" />
-        <span v-if="!notificationStore.isOpened && notificationStore.unreadCount" class="nc-count-badge">{{
-          notificationStore.unreadCount
-        }}</span>
+        <span v-if="unreadCount" class="nc-count-badge">{{ unreadCount }}</span>
       </div>
       <template #overlay>
         <NotificationCard />
       </template>
-    </a-dropdown>
+    </NcDropdown>
   </div>
 </template>
 

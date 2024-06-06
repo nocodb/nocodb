@@ -10,8 +10,8 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
-import { Response } from 'express';
 import { customAlphabet } from 'nanoid';
+import type { Response } from 'express';
 import { NotificationsService } from '~/services/notifications/notifications.service';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { extractProps } from '~/helpers/extractProps';
@@ -62,7 +62,7 @@ export class NotificationsController {
   @Get('/api/v1/notifications')
   // @Acl('notificationList')
   // TODO: @DarkPhoenix2704 ACL?
-  async notificationList(@Req() req: NcRequest, @Res() res: Response) {
+  async notificationList(@Req() req: NcRequest) {
     return this.notificationsService.notificationList({
       user: req.user,
       is_deleted: false,

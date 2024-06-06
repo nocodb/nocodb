@@ -12,7 +12,7 @@ const item = toRef(props, 'item')
   <NotificationItemWrapper :item="item" @click="navigateToProject({ baseId: item.body.id })">
     <div class="text-xs">
       <strong>{{ item.body.invited_by }}</strong> has invited you to collaborate on
-      <!--      <GeneralProjectIcon style="vertical-align: middle" :type="item.body.type" /> <strong>{{ item.body.title }}</strong> base. -->
+      <GeneralProjectIcon style="vertical-align: middle" :type="item.body.type" /> <strong>{{ item.body.title }}</strong> base.
     </div>
   </NotificationItemWrapper>
 </template>

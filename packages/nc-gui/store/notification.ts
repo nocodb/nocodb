@@ -3,20 +3,16 @@ import type { NotificationType } from 'nocodb-sdk'
 
 export const useNotification = defineStore('notificationStore', () => {
   const notifications = ref<NotificationType[]>([])
-  const isOpened = ref(false)
-
   const pageInfo = ref()
   const unreadCount = ref(0)
 
-  const notificationTab = ref<'read' | 'unread'>('read')
-
-  const isRead = ref(false)
+  const notificationTab = ref<'read' | 'unread'>('unread')
 
   const { api, isLoading } = useApi()
 
   const loadNotifications = async (loadMore = false) => {
     const response = await api.notification.list({
-      is_read: isRead.value,
+      is_read: notificationTab.value === 'read',
       limit: 10,
       offset: loadMore ? notifications.value.length : 0,
     })
@@ -45,12 +41,7 @@ export const useNotification = defineStore('notificationStore', () => {
     if (notification.is_read) return
 
     await api.notification.markAllAsRead()
-
     await loadNotifications()
-  }
-
-  const markAsOpened = async () => {
-    isOpened.value = true
   }
 
   watch(notificationTab, async () => {
@@ -62,13 +53,10 @@ export const useNotification = defineStore('notificationStore', () => {
     loadNotifications,
     isLoading,
     notificationTab,
-    isRead,
     pageInfo,
     markAsRead,
     markAllAsRead,
     unreadCount,
-    isOpened,
-    markAsOpened,
   }
 })
 

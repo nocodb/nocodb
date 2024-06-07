@@ -65,12 +65,14 @@ export class ToolbarFilterPage extends BasePage {
     await this.get().locator(`button:has-text("Add Filter Group")`).last().click();
     const filterDropdown = this.get().locator('.menu-filter-dropdown').nth(filterGroupIndex);
     await filterDropdown.waitFor({ state: 'visible' });
-    await filterDropdown.locator(`span:has-text("add")`).first().click();
+    const ADD_BUTTON_SELECTOR = `span:has-text("add")`;
+    const FILTER_GROUP_SUB_MENU_SELECTOR = `.nc-dropdown-filter-group-sub-menu`;
+    const ADD_FILTER_SELECTOR = `.nc-menu-item:has-text("Add Filter")`;
 
-    const filterGroupSubMenu = this.rootPage.locator(`.nc-dropdown-filter-group-sub-menu`).last();
+    await filterDropdown.locator(ADD_BUTTON_SELECTOR).first().click();
+    const filterGroupSubMenu = this.rootPage.locator(FILTER_GROUP_SUB_MENU_SELECTOR).last();
     await filterGroupSubMenu.waitFor({ state: 'visible' });
-
-    await filterGroupSubMenu.locator(`.nc-menu-item:has-text("Add Filter")`).first().click();
+    await filterGroupSubMenu.locator(ADD_FILTER_SELECTOR).first().click();
     const selectField = filterDropdown.locator('.nc-filter-field-select').last();
     const selectOperation = filterDropdown.locator('.nc-filter-operation-select').last();
     const selectValue = filterDropdown.locator('.nc-filter-value-select > input').last();

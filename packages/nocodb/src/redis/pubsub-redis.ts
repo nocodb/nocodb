@@ -23,9 +23,19 @@ export class PubSubRedis {
     PubSubRedis.redisSubscriber = new Redis(process.env.NC_REDIS_JOB_URL);
 
     PubSubRedis.redisSubscriber.on('message', async (channel, message) => {
-      const [command, ...args] = message.split(':');
-      const callback = PubSubRedis.callbacks[command];
-      if (callback) await callback(...args);
+      try {
+        if (!message || !message.includes(':')) {
+          return;
+        }
+        const [command, ...args] = message.split(':');
+        const callback = PubSubRedis.callbacks[command];
+
+        if (callback) {
+          await callback(...args);
+        }
+      } catch (error) {
+        PubSubRedis.logger.error('Error processing message', error);
+      }
     });
 
     PubSubRedis.initialized = true;

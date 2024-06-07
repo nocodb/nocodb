@@ -1,7 +1,7 @@
 import type { AppEvents } from 'nocodb-sdk';
 import { extractProps } from '~/helpers/extractProps';
 import Noco from '~/Noco';
-import { MetaTable } from '~/utils/globals';
+import { MetaTable, RootScopes } from '~/utils/globals';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 
 export default class Notification {
@@ -31,8 +31,8 @@ export default class Notification {
     ]);
 
     return await ncMeta.metaInsert2(
-      null,
-      null,
+      RootScopes.ROOT,
+      RootScopes.ROOT,
       MetaTable.NOTIFICATION,
       prepareForDb(insertData, 'body'),
     );
@@ -47,7 +47,12 @@ export default class Notification {
   ) {
     const condition = extractProps(params, ['id', 'fk_user_id']);
 
-    return await ncMeta.metaGet2(null, null, MetaTable.NOTIFICATION, condition);
+    return await ncMeta.metaGet2(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.NOTIFICATION,
+      condition,
+    );
   }
 
   public static async list(
@@ -68,9 +73,9 @@ export default class Notification {
       'fk_user_id',
     ]);
 
-    const notifications = await ncMeta.metaList(
-      null,
-      null,
+    const notifications = await ncMeta.metaList2(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
       MetaTable.NOTIFICATION,
       {
         condition,
@@ -101,9 +106,14 @@ export default class Notification {
       'is_deleted',
       'fk_user_id',
     ]);
-    const count = await ncMeta.metaCount(null, null, MetaTable.NOTIFICATION, {
-      condition,
-    });
+    const count = await ncMeta.metaCount(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.NOTIFICATION,
+      {
+        condition,
+      },
+    );
 
     return count;
   }
@@ -122,8 +132,8 @@ export default class Notification {
     ]);
 
     return await ncMeta.metaUpdate(
-      null,
-      null,
+      RootScopes.ROOT,
+      RootScopes.ROOT,
       MetaTable.NOTIFICATION,
       prepareForDb(updateData, 'body'),
       id,
@@ -132,8 +142,8 @@ export default class Notification {
 
   public static async markAllAsRead(fk_user_id: string, ncMeta = Noco.ncMeta) {
     return ncMeta.metaUpdate(
-      null,
-      null,
+      RootScopes.ROOT,
+      RootScopes.ROOT,
       MetaTable.NOTIFICATION,
       { is_read: true },
       {

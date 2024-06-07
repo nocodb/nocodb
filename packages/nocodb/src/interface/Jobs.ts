@@ -1,3 +1,4 @@
+import type { NcContext } from '~/interface/config';
 export const JOBS_QUEUE = 'jobs';
 
 export enum JobTypes {
@@ -44,6 +45,7 @@ export enum InstanceCommands {
 }
 
 export interface HandleWebhookJobData {
+  context: NcContext;
   hookId: string;
   modelId: string;
   viewId: string;

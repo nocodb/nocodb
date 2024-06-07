@@ -2,11 +2,15 @@ import { OrgUserRoles } from 'nocodb-sdk';
 import { NC_APP_SETTINGS } from '../constants';
 import type { NcUpgraderCtx } from './NcUpgrader';
 import Store from '~/models/Store';
-import { MetaTable } from '~/utils/globals';
+import { MetaTable, RootScopes } from '~/utils/globals';
 
 /** Upgrader for upgrading roles */
 export default async function ({ ncMeta }: NcUpgraderCtx) {
-  const users = await ncMeta.metaList2(null, null, MetaTable.USERS);
+  const users = await ncMeta.metaList2(
+    RootScopes.ROOT,
+    RootScopes.ROOT,
+    MetaTable.USERS,
+  );
 
   for (const user of users) {
     user.roles = user.roles
@@ -22,8 +26,8 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
       })
       .join(',');
     await ncMeta.metaUpdate(
-      null,
-      null,
+      RootScopes.ROOT,
+      RootScopes.ROOT,
       MetaTable.USERS,
       { roles: user.roles },
       user.id,

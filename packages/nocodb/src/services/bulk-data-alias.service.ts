@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { PathParams } from '~/helpers/dataHelpers';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
+import type { NcContext } from '~/interface/config';
 import { getViewAndModelByAliasOrId } from '~/helpers/dataHelpers';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { Model, Source } from '~/models';
@@ -14,21 +15,22 @@ type BulkOperation =
 
 @Injectable()
 export class BulkDataAliasService {
-  async getModelViewBase(param: PathParams) {
-    const { model, view } = await getViewAndModelByAliasOrId(param);
+  async getModelViewBase(context: NcContext, param: PathParams) {
+    const { model, view } = await getViewAndModelByAliasOrId(context, param);
 
-    const source = await Source.get(model.source_id);
+    const source = await Source.get(context, model.source_id);
     return { model, view, source };
   }
 
   async executeBulkOperation<T extends BulkOperation>(
+    context: NcContext,
     param: PathParams & {
       operation: T;
       options: Parameters<(typeof BaseModelSqlv2.prototype)[T]>;
     },
   ) {
-    const { model, view, source } = await this.getModelViewBase(param);
-    const baseModel = await Model.getBaseModelSQL({
+    const { model, view, source } = await this.getModelViewBase(context, param);
+    const baseModel = await Model.getBaseModelSQL(context, {
       id: model.id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
@@ -38,6 +40,7 @@ export class BulkDataAliasService {
 
   // todo: Integrate with filterArrJson bulkDataUpdateAll
   async bulkDataInsert(
+    context: NcContext,
     param: PathParams & {
       body: any;
       cookie: any;
@@ -47,7 +50,7 @@ export class BulkDataAliasService {
       raw?: boolean;
     },
   ) {
-    return await this.executeBulkOperation({
+    return await this.executeBulkOperation(context, {
       ...param,
       operation: 'bulkInsert',
       options: [
@@ -64,13 +67,14 @@ export class BulkDataAliasService {
 
   // todo: Integrate with filterArrJson bulkDataUpdateAll
   async bulkDataUpdate(
+    context: NcContext,
     param: PathParams & {
       body: any;
       cookie: any;
       raw?: boolean;
     },
   ) {
-    return await this.executeBulkOperation({
+    return await this.executeBulkOperation(context, {
       ...param,
       operation: 'bulkUpdate',
       options: [param.body, { cookie: param.cookie, raw: param.raw }],
@@ -79,13 +83,14 @@ export class BulkDataAliasService {
 
   // todo: Integrate with filterArrJson bulkDataUpdateAll
   async bulkDataUpdateAll(
+    context: NcContext,
     param: PathParams & {
       body: any;
       cookie: any;
       query: any;
     },
   ) {
-    return await this.executeBulkOperation({
+    return await this.executeBulkOperation(context, {
       ...param,
       operation: 'bulkUpdateAll',
       options: [param.query, param.body, { cookie: param.cookie }],
@@ -93,12 +98,13 @@ export class BulkDataAliasService {
   }
 
   async bulkDataDelete(
+    context: NcContext,
     param: PathParams & {
       body: any;
       cookie: any;
     },
   ) {
-    return await this.executeBulkOperation({
+    return await this.executeBulkOperation(context, {
       ...param,
       operation: 'bulkDelete',
       options: [param.body, { cookie: param.cookie }],
@@ -107,11 +113,12 @@ export class BulkDataAliasService {
 
   // todo: Integrate with filterArrJson bulkDataDeleteAll
   async bulkDataDeleteAll(
+    context: NcContext,
     param: PathParams & {
       query: any;
     },
   ) {
-    return await this.executeBulkOperation({
+    return await this.executeBulkOperation(context, {
       ...param,
       operation: 'bulkDeleteAll',
       options: [param.query],

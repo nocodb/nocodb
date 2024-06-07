@@ -12,6 +12,7 @@ import NcPluginMgrv2 from './NcPluginMgrv2';
 import type { HookLogType } from 'nocodb-sdk';
 import type { Column, FormView, Hook, Model, View } from '~/models';
 import { Filter, HookLog, Source } from '~/models';
+import { NcContext } from '~/interface/config';
 
 dayjs.extend(isBetween);
 dayjs.extend(isSameOrBefore);
@@ -40,6 +41,7 @@ export function parseBody(template: string, data: any): string {
 }
 
 export async function validateCondition(
+  context: NcContext,
   filters: Filter[],
   data: any,
   {
@@ -58,14 +60,15 @@ export async function validateCondition(
     let res;
     if (filter.is_group) {
       res = await validateCondition(
-        filter.children || (await filter.getChildren()),
+        context,
+        filter.children || (await filter.getChildren(context)),
         data,
         {
           client,
         },
       );
     } else {
-      const column = await filter.getColumn();
+      const column = await filter.getColumn(context);
       const field = column.title;
       let val = data[field];
       if (
@@ -457,17 +460,20 @@ export function axiosRequestMake(_apiMeta, _user, data) {
   return req;
 }
 
-export async function invokeWebhook(param: {
-  hook: Hook;
-  model: Model;
-  view: View;
-  prevData;
-  newData;
-  user;
-  testFilters?;
-  throwErrorOnFailure?: boolean;
-  testHook?: boolean;
-}) {
+export async function invokeWebhook(
+  context: NcContext,
+  param: {
+    hook: Hook;
+    model: Model;
+    view: View;
+    prevData;
+    newData;
+    user;
+    testFilters?;
+    throwErrorOnFailure?: boolean;
+    testHook?: boolean;
+  },
+) {
   const {
     hook,
     model,
@@ -483,7 +489,7 @@ export async function invokeWebhook(param: {
 
   let hookLog: HookLogType;
   const startTime = process.hrtime();
-  const source = await Source.get(model.source_id);
+  const source = await Source.get(context, model.source_id);
   let notification;
   try {
     notification =
@@ -499,7 +505,7 @@ export async function invokeWebhook(param: {
     }
 
     if (hook.condition && !testHook) {
-      const filters = testFilters || (await hook.getFilters());
+      const filters = testFilters || (await hook.getFilters(context));
 
       if (isBulkOperation) {
         const filteredData = [];
@@ -521,7 +527,8 @@ export async function invokeWebhook(param: {
 
           if (
             await validateCondition(
-              testFilters || (await hook.getFilters()),
+              context,
+              testFilters || (await hook.getFilters(context)),
               data,
               { client: source?.type },
             )
@@ -539,13 +546,16 @@ export async function invokeWebhook(param: {
         if (
           prevData &&
           filters.length &&
-          (await validateCondition(filters, prevData, { client: source?.type }))
+          (await validateCondition(context, filters, prevData, {
+            client: source?.type,
+          }))
         ) {
           return;
         }
         if (
           !(await validateCondition(
-            testFilters || (await hook.getFilters()),
+            context,
+            testFilters || (await hook.getFilters(context)),
             newData,
             { client: source?.type },
           ))
@@ -678,7 +688,7 @@ export async function invokeWebhook(param: {
       hookLog.execution_time = parseHrtimeToMilliSeconds(
         process.hrtime(startTime),
       );
-      HookLog.insert({ ...hookLog, test_call: testHook });
+      HookLog.insert(context, { ...hookLog, test_call: testHook });
     }
   }
 }

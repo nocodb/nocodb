@@ -9,13 +9,13 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { Request } from 'express';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { UtilsService } from '~/services/utils.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
 import { TelemetryService } from '~/services/telemetry.service';
+import { NcRequest } from '~/interface/config';
 
 @Controller()
 export class UtilsController {
@@ -49,7 +49,7 @@ export class UtilsController {
     scope: 'org',
   })
   @HttpCode(200)
-  async testConnection(@Body() body: any, @Req() _req: Request) {
+  async testConnection(@Body() body: any, @Req() _req: NcRequest) {
     body.pool = {
       min: 0,
       max: 1,
@@ -64,7 +64,7 @@ export class UtilsController {
     '/api/v2/meta/nocodb/info',
     '/api/v1/meta/nocodb/info',
   ])
-  async appInfo(@Req() req: Request) {
+  async appInfo(@Req() req: NcRequest) {
     return await this.utilsService.appInfo({
       req: {
         ncSiteUrl: (req as any).ncSiteUrl,

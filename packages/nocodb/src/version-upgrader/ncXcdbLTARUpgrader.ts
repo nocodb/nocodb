@@ -2,6 +2,7 @@ import { RelationTypes, UITypes } from 'nocodb-sdk';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import type { MetaService } from '~/meta/meta.service';
 import type { NcUpgraderCtx } from './NcUpgrader';
+import type { NcContext } from '~/interface/config';
 import { MetaTable } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
 import { Source } from '~/models';
@@ -13,34 +14,38 @@ import { Model } from '~/models';
 // it will delete all the foreign keys and create a new index
 // and treat all the LTAR as virtual
 
-async function upgradeModelRelations({
-  model,
-  relations,
-  ncMeta,
-  sqlClient,
-}: {
-  ncMeta: MetaService;
-  model: Model;
-  sqlClient: ReturnType<
-    (typeof NcConnectionMgrv2)['getSqlClient']
-  > extends Promise<infer U>
-    ? U
-    : ReturnType<(typeof NcConnectionMgrv2)['getSqlClient']>;
-  relations: {
-    tn: string;
-    rtn: string;
-    cn: string;
-    rcn: string;
-    cstn?: string;
-  }[];
-}) {
+async function upgradeModelRelations(
+  context: NcContext,
+  {
+    model,
+    relations,
+    ncMeta,
+    sqlClient,
+  }: {
+    ncMeta: MetaService;
+    model: Model;
+    sqlClient: ReturnType<
+      (typeof NcConnectionMgrv2)['getSqlClient']
+    > extends Promise<infer U>
+      ? U
+      : ReturnType<(typeof NcConnectionMgrv2)['getSqlClient']>;
+    relations: {
+      tn: string;
+      rtn: string;
+      cn: string;
+      rcn: string;
+      cstn?: string;
+    }[];
+  },
+) {
   // Iterate over each column and upgrade LTAR
-  for (const column of await model.getColumns(ncMeta)) {
+  for (const column of await model.getColumns(context, ncMeta)) {
     if (column.uidt !== UITypes.LinkToAnotherRecord) {
       continue;
     }
 
     const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
+      context,
       ncMeta,
     );
 
@@ -57,11 +62,11 @@ async function upgradeModelRelations({
             break;
           }
 
-          const parentCol = await colOptions.getParentColumn(ncMeta);
-          const childCol = await colOptions.getChildColumn(ncMeta);
+          const parentCol = await colOptions.getParentColumn(context, ncMeta);
+          const childCol = await colOptions.getChildColumn(context, ncMeta);
 
-          const parentModel = await parentCol.getModel(ncMeta);
-          const childModel = await childCol.getModel(ncMeta);
+          const parentModel = await parentCol.getModel(context, ncMeta);
+          const childModel = await childCol.getModel(context, ncMeta);
 
           // delete the foreign key constraint if exists
           const relation = relations.find((r) => {
@@ -100,8 +105,8 @@ async function upgradeModelRelations({
 
     // update the relation as virtual
     await ncMeta.metaUpdate(
-      null,
-      null,
+      context.workspace_id,
+      context.base_id,
       MetaTable.COL_RELATIONS,
       { virtual: true },
       colOptions.id,
@@ -123,23 +128,30 @@ async function upgradeModelRelations({
 }
 
 // An upgrader for upgrading any existing relation in xcdb
-async function upgradeBaseRelations({
-  ncMeta,
-  source,
-  relations,
-}: {
-  ncMeta: MetaService;
-  source: any;
-  relations: any;
-}) {
+async function upgradeBaseRelations(
+  context: NcContext,
+  {
+    ncMeta,
+    source,
+    relations,
+  }: {
+    ncMeta: MetaService;
+    source: any;
+    relations: any;
+  },
+) {
   const sqlClient = await NcConnectionMgrv2.getSqlClient(source, ncMeta.knex);
 
   // get models for the base
-  const models = await ncMeta.metaList2(null, source.id, MetaTable.MODELS);
+  const models = await ncMeta.metaList2(
+    context.workspace_id,
+    context.base_id,
+    MetaTable.MODELS,
+  );
 
   // get all columns and filter out relations and upgrade
   for (const model of models) {
-    await upgradeModelRelations({
+    await upgradeModelRelations(context, {
       ncMeta,
       model: new Model(model),
       sqlClient,
@@ -151,11 +163,8 @@ async function upgradeBaseRelations({
 // database to virtual relation and create an index for it
 export default async function ({ ncMeta }: NcUpgraderCtx) {
   // get all xcdb sources
-  const sources = await ncMeta.metaList2(null, null, MetaTable.BASES, {
-    condition: {
-      is_meta: 1,
-    },
-    orderBy: {},
+  const sources = await ncMeta.knexConnection(MetaTable.BASES).where({
+    is_meta: 1,
   });
 
   if (!sources.length) return;
@@ -170,7 +179,11 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
 
   // iterate and upgrade each base
   for (const source of sources) {
-    await upgradeBaseRelations({
+    const context = {
+      workspace_id: source.fk_workspace_id,
+      base_id: source.id,
+    };
+    await upgradeBaseRelations(context, {
       ncMeta,
       source: new Source(source),
       relations,

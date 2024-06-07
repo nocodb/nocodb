@@ -18,7 +18,7 @@ import type {
   User,
   View,
 } from '~/models';
-import type { NcRequest } from '~/interface/config';
+import type { NcContext, NcRequest } from '~/interface/config';
 import { Base, Column, Model, Source } from '~/models';
 import {
   findWithIdentifier,
@@ -72,18 +72,21 @@ export class ImportService {
     private viewsService: ViewsService,
   ) {}
 
-  async importModels(param: {
-    user: User;
-    baseId: string;
-    sourceId: string;
-    data:
-      | { models: { model: any; views: any[]; hooks?: any[] }[] }
-      | { model: any; views: any[]; hooks?: any[] }[];
-    req: NcRequest;
-    externalModels?: Model[];
-    existingModel?: Model;
-    importColumnIds?: string[];
-  }) {
+  async importModels(
+    context: NcContext,
+    param: {
+      user: User;
+      baseId: string;
+      sourceId: string;
+      data:
+        | { models: { model: any; views: any[]; hooks?: any[] }[] }
+        | { model: any; views: any[]; hooks?: any[] }[];
+      req: NcRequest;
+      externalModels?: Model[];
+      existingModel?: Model;
+      importColumnIds?: string[];
+    },
+  ) {
     const hrTime = initTime();
 
     // structured id to db id
@@ -94,11 +97,11 @@ export class ImportService {
       return idMap.get(k) || externalIdMap.get(k);
     };
 
-    const base = await Base.get(param.baseId);
+    const base = await Base.get(context, param.baseId);
 
     if (!base) return NcError.baseNotFound(param.baseId);
 
-    const source = await Source.get(param.sourceId);
+    const source = await Source.get(context, param.sourceId);
 
     if (!source) return NcError.sourceNotFound(param.sourceId);
 
@@ -119,8 +122,8 @@ export class ImportService {
           model.id,
         );
 
-        await model.getColumns();
-        await model.getViews();
+        await model.getColumns(context);
+        await model.getViews(context);
 
         const primaryKey = model.primaryKey;
         if (primaryKey) {
@@ -164,7 +167,7 @@ export class ImportService {
       // create table with static columns
       const table =
         param.existingModel ||
-        (await this.tablesService.tableCreate({
+        (await this.tablesService.tableCreate(context, {
           baseId: base.id,
           sourceId: source.id,
           user: param.user,
@@ -179,14 +182,17 @@ export class ImportService {
       if (param.existingModel) {
         if (reducedColumnSet.length) {
           for (const col of reducedColumnSet) {
-            const freshModelData = await this.columnsService.columnAdd({
-              tableId: getIdOrExternalId(getParentIdentifier(col.id)),
-              column: withoutId({
-                ...col,
-              }) as any,
-              req: param.req,
-              user: param.user,
-            });
+            const freshModelData = await this.columnsService.columnAdd(
+              context,
+              {
+                tableId: getIdOrExternalId(getParentIdentifier(col.id)),
+                column: withoutId({
+                  ...col,
+                }) as any,
+                req: param.req,
+                user: param.user,
+              },
+            );
 
             for (const nColumn of freshModelData.columns) {
               if (nColumn.title === col.title) {
@@ -211,7 +217,7 @@ export class ImportService {
           if (source.type === 'pg') {
             if (modelData.pgSerialLastVal) {
               if (col.ai) {
-                const baseModel = await Model.getBaseModelSQL({
+                const baseModel = await Model.getBaseModelSQL(context, {
                   id: table.id,
                   viewId: null,
                   dbDriver: await NcConnectionMgrv2.get(source),
@@ -263,29 +269,32 @@ export class ImportService {
                 // delete col.column_name as it is not required and will cause ajv error (null for LTAR)
                 delete col.column_name;
 
-                const freshModelData = await this.columnsService.columnAdd({
-                  tableId: table.id,
-                  column: withoutId({
-                    ...col,
-                    ...{
-                      parentId: getIdOrExternalId(
-                        getParentIdentifier(colOptions.fk_child_column_id),
-                      ),
-                      childId: getIdOrExternalId(
-                        getParentIdentifier(colOptions.fk_parent_column_id),
-                      ),
-                      type: colOptions.type,
-                      virtual: colOptions.virtual,
-                      ur: colOptions.ur,
-                      dr: colOptions.dr,
-                      childViewId:
-                        colOptions.fk_target_view_id &&
-                        getIdOrExternalId(colOptions.fk_target_view_id),
-                    },
-                  }),
-                  req: param.req,
-                  user: param.user,
-                });
+                const freshModelData = await this.columnsService.columnAdd(
+                  context,
+                  {
+                    tableId: table.id,
+                    column: withoutId({
+                      ...col,
+                      ...{
+                        parentId: getIdOrExternalId(
+                          getParentIdentifier(colOptions.fk_child_column_id),
+                        ),
+                        childId: getIdOrExternalId(
+                          getParentIdentifier(colOptions.fk_parent_column_id),
+                        ),
+                        type: colOptions.type,
+                        virtual: colOptions.virtual,
+                        ur: colOptions.ur,
+                        dr: colOptions.dr,
+                        childViewId:
+                          colOptions.fk_target_view_id &&
+                          getIdOrExternalId(colOptions.fk_target_view_id),
+                      },
+                    }),
+                    req: param.req,
+                    user: param.user,
+                  },
+                );
 
                 for (const nColumn of freshModelData.columns) {
                   if (nColumn.title === col.title) {
@@ -298,11 +307,12 @@ export class ImportService {
                   }
                 }
 
-                const childModel =
+                const childModel: Model =
                   getParentIdentifier(colOptions.fk_parent_column_id) ===
                   modelData.id
                     ? freshModelData
                     : await Model.get(
+                        context,
                         getIdOrExternalId(
                           getParentIdentifier(colOptions.fk_parent_column_id),
                         ),
@@ -312,7 +322,7 @@ export class ImportService {
                   getParentIdentifier(colOptions.fk_parent_column_id) !==
                   modelData.id
                 )
-                  await childModel.getColumns();
+                  await childModel.getColumns(context);
 
                 const childColumn = param.data
                   .find(
@@ -345,7 +355,7 @@ export class ImportService {
                         );
                       }
 
-                      await this.columnsService.columnUpdate({
+                      await this.columnsService.columnUpdate(context, {
                         columnId: nColumn.id,
                         column: {
                           ...nColumn,
@@ -366,29 +376,32 @@ export class ImportService {
               // delete col.column_name as it is not required and will cause ajv error (null for LTAR)
               delete col.column_name;
 
-              const freshModelData = await this.columnsService.columnAdd({
-                tableId: table.id,
-                column: withoutId({
-                  ...col,
-                  ...{
-                    parentId: getIdOrExternalId(
-                      getParentIdentifier(colOptions.fk_parent_column_id),
-                    ),
-                    childId: getIdOrExternalId(
-                      getParentIdentifier(colOptions.fk_child_column_id),
-                    ),
-                    type: colOptions.type,
-                    virtual: colOptions.virtual,
-                    ur: colOptions.ur,
-                    dr: colOptions.dr,
-                    childViewId:
-                      colOptions.fk_target_view_id &&
-                      getIdOrExternalId(colOptions.fk_target_view_id),
-                  },
-                }),
-                req: param.req,
-                user: param.user,
-              });
+              const freshModelData = await this.columnsService.columnAdd(
+                context,
+                {
+                  tableId: table.id,
+                  column: withoutId({
+                    ...col,
+                    ...{
+                      parentId: getIdOrExternalId(
+                        getParentIdentifier(colOptions.fk_parent_column_id),
+                      ),
+                      childId: getIdOrExternalId(
+                        getParentIdentifier(colOptions.fk_child_column_id),
+                      ),
+                      type: colOptions.type,
+                      virtual: colOptions.virtual,
+                      ur: colOptions.ur,
+                      dr: colOptions.dr,
+                      childViewId:
+                        colOptions.fk_target_view_id &&
+                        getIdOrExternalId(colOptions.fk_target_view_id),
+                    },
+                  }),
+                  req: param.req,
+                  user: param.user,
+                },
+              );
 
               for (const nColumn of freshModelData.columns) {
                 if (nColumn.title === col.title) {
@@ -405,15 +418,16 @@ export class ImportService {
                 }
               }
 
-              const childModel =
+              const childModel: Model =
                 colOptions.fk_related_model_id === modelData.id
                   ? freshModelData
                   : await Model.get(
+                      context,
                       getIdOrExternalId(colOptions.fk_related_model_id),
                     );
 
               if (colOptions.fk_related_model_id !== modelData.id)
-                await childModel.getColumns();
+                await childModel.getColumns(context);
 
               const childColumn = param.data
                 .find((a) => a.model.id === colOptions.fk_related_model_id)
@@ -450,7 +464,7 @@ export class ImportService {
                       );
                     }
 
-                    await this.columnsService.columnUpdate({
+                    await this.columnsService.columnUpdate(context, {
                       columnId: nColumn.id,
                       column: {
                         ...nColumn,
@@ -487,7 +501,7 @@ export class ImportService {
                         );
                       }
 
-                      await this.columnsService.columnUpdate({
+                      await this.columnsService.columnUpdate(context, {
                         columnId: nColumn.id,
                         column: {
                           ...nColumn,
@@ -507,29 +521,32 @@ export class ImportService {
                 // delete col.column_name as it is not required and will cause ajv error (null for LTAR)
                 delete col.column_name;
 
-                const freshModelData = await this.columnsService.columnAdd({
-                  tableId: table.id,
-                  column: withoutId({
-                    ...col,
-                    ...{
-                      parentId: getIdOrExternalId(
-                        getParentIdentifier(colOptions.fk_child_column_id),
-                      ),
-                      childId: getIdOrExternalId(
-                        getParentIdentifier(colOptions.fk_parent_column_id),
-                      ),
-                      type: colOptions.type,
-                      virtual: colOptions.virtual,
-                      ur: colOptions.ur,
-                      dr: colOptions.dr,
-                      childViewId:
-                        colOptions.fk_target_view_id &&
-                        getIdOrExternalId(colOptions.fk_target_view_id),
-                    },
-                  }) as any,
-                  req: param.req,
-                  user: param.user,
-                });
+                const freshModelData = await this.columnsService.columnAdd(
+                  context,
+                  {
+                    tableId: table.id,
+                    column: withoutId({
+                      ...col,
+                      ...{
+                        parentId: getIdOrExternalId(
+                          getParentIdentifier(colOptions.fk_child_column_id),
+                        ),
+                        childId: getIdOrExternalId(
+                          getParentIdentifier(colOptions.fk_parent_column_id),
+                        ),
+                        type: colOptions.type,
+                        virtual: colOptions.virtual,
+                        ur: colOptions.ur,
+                        dr: colOptions.dr,
+                        childViewId:
+                          colOptions.fk_target_view_id &&
+                          getIdOrExternalId(colOptions.fk_target_view_id),
+                      },
+                    }) as any,
+                    req: param.req,
+                    user: param.user,
+                  },
+                );
 
                 for (const nColumn of freshModelData.columns) {
                   if (nColumn.title === col.title) {
@@ -542,11 +559,12 @@ export class ImportService {
                   }
                 }
 
-                const childModel =
+                const childModel: Model =
                   getParentIdentifier(colOptions.fk_parent_column_id) ===
                   modelData.id
                     ? freshModelData
                     : await Model.get(
+                        context,
                         getIdOrExternalId(
                           getParentIdentifier(colOptions.fk_parent_column_id),
                         ),
@@ -556,7 +574,7 @@ export class ImportService {
                   getParentIdentifier(colOptions.fk_parent_column_id) !==
                   modelData.id
                 )
-                  await childModel.getColumns();
+                  await childModel.getColumns(context);
 
                 const childColumn = (
                   param.data.find(
@@ -607,7 +625,7 @@ export class ImportService {
                         );
                       }
 
-                      await this.columnsService.columnUpdate({
+                      await this.columnsService.columnUpdate(context, {
                         columnId: nColumn.id,
                         column: {
                           ...nColumn,
@@ -633,29 +651,32 @@ export class ImportService {
                 // delete col.column_name as it is not required and will cause ajv error (null for LTAR)
                 delete col.column_name;
 
-                const freshModelData = await this.columnsService.columnAdd({
-                  tableId: table.id,
-                  column: withoutId({
-                    ...col,
-                    ...{
-                      parentId: getIdOrExternalId(
-                        getParentIdentifier(colOptions.fk_parent_column_id),
-                      ),
-                      childId: getIdOrExternalId(
-                        getParentIdentifier(colOptions.fk_child_column_id),
-                      ),
-                      type: colOptions.type,
-                      virtual: colOptions.virtual,
-                      ur: colOptions.ur,
-                      dr: colOptions.dr,
-                      childViewId:
-                        colOptions.fk_target_view_id &&
-                        getIdOrExternalId(colOptions.fk_target_view_id),
-                    },
-                  }) as any,
-                  req: param.req,
-                  user: param.user,
-                });
+                const freshModelData = await this.columnsService.columnAdd(
+                  context,
+                  {
+                    tableId: table.id,
+                    column: withoutId({
+                      ...col,
+                      ...{
+                        parentId: getIdOrExternalId(
+                          getParentIdentifier(colOptions.fk_parent_column_id),
+                        ),
+                        childId: getIdOrExternalId(
+                          getParentIdentifier(colOptions.fk_child_column_id),
+                        ),
+                        type: colOptions.type,
+                        virtual: colOptions.virtual,
+                        ur: colOptions.ur,
+                        dr: colOptions.dr,
+                        childViewId:
+                          colOptions.fk_target_view_id &&
+                          getIdOrExternalId(colOptions.fk_target_view_id),
+                      },
+                    }) as any,
+                    req: param.req,
+                    user: param.user,
+                  },
+                );
 
                 linkMap.set(
                   `${colOptions.fk_parent_column_id}::${colOptions.fk_child_column_id}`,
@@ -677,15 +698,16 @@ export class ImportService {
                   }
                 }
 
-                const childModel =
+                const childModel: Model =
                   colOptions.fk_related_model_id === modelData.id
                     ? freshModelData
                     : await Model.get(
+                        context,
                         getIdOrExternalId(colOptions.fk_related_model_id),
                       );
 
                 if (colOptions.fk_related_model_id !== modelData.id)
-                  await childModel.getColumns();
+                  await childModel.getColumns(context);
 
                 const childColumn = (
                   param.data.find(
@@ -741,7 +763,7 @@ export class ImportService {
                         );
                       }
 
-                      await this.columnsService.columnUpdate({
+                      await this.columnsService.columnUpdate(context, {
                         columnId: nColumn.id,
                         column: {
                           ...nColumn,
@@ -779,7 +801,7 @@ export class ImportService {
                             );
                           }
 
-                          await this.columnsService.columnUpdate({
+                          await this.columnsService.columnUpdate(context, {
                             columnId: nColumn.id,
                             column: {
                               ...nColumn,
@@ -806,29 +828,32 @@ export class ImportService {
                 // delete col.column_name as it is not required and will cause ajv error (null for LTAR)
                 delete col.column_name;
 
-                const freshModelData = await this.columnsService.columnAdd({
-                  tableId: table.id,
-                  column: withoutId({
-                    ...col,
-                    ...{
-                      parentId: getIdOrExternalId(
-                        getParentIdentifier(colOptions.fk_parent_column_id),
-                      ),
-                      childId: getIdOrExternalId(
-                        getParentIdentifier(colOptions.fk_child_column_id),
-                      ),
-                      type: colOptions.type,
-                      virtual: colOptions.virtual,
-                      ur: colOptions.ur,
-                      dr: colOptions.dr,
-                      childViewId:
-                        colOptions.fk_target_view_id &&
-                        getIdOrExternalId(colOptions.fk_target_view_id),
-                    },
-                  }) as any,
-                  req: param.req,
-                  user: param.user,
-                });
+                const freshModelData = await this.columnsService.columnAdd(
+                  context,
+                  {
+                    tableId: table.id,
+                    column: withoutId({
+                      ...col,
+                      ...{
+                        parentId: getIdOrExternalId(
+                          getParentIdentifier(colOptions.fk_parent_column_id),
+                        ),
+                        childId: getIdOrExternalId(
+                          getParentIdentifier(colOptions.fk_child_column_id),
+                        ),
+                        type: colOptions.type,
+                        virtual: colOptions.virtual,
+                        ur: colOptions.ur,
+                        dr: colOptions.dr,
+                        childViewId:
+                          colOptions.fk_target_view_id &&
+                          getIdOrExternalId(colOptions.fk_target_view_id),
+                      },
+                    }) as any,
+                    req: param.req,
+                    user: param.user,
+                  },
+                );
 
                 linkMap.set(
                   `${colOptions.fk_parent_column_id}::${colOptions.fk_child_column_id}`,
@@ -850,15 +875,16 @@ export class ImportService {
                   }
                 }
 
-                const childModel =
+                const childModel: Model =
                   colOptions.fk_related_model_id === modelData.id
                     ? freshModelData
                     : await Model.get(
+                        context,
                         getIdOrExternalId(colOptions.fk_related_model_id),
                       );
 
                 if (colOptions.fk_related_model_id !== modelData.id)
-                  await childModel.getColumns();
+                  await childModel.getColumns(context);
 
                 const childColumn = (
                   param.data.find(
@@ -914,7 +940,7 @@ export class ImportService {
                         );
                       }
 
-                      await this.columnsService.columnUpdate({
+                      await this.columnsService.columnUpdate(context, {
                         columnId: nColumn.id,
                         column: {
                           ...nColumn,
@@ -953,7 +979,7 @@ export class ImportService {
                           );
                         }
 
-                        await this.columnsService.columnUpdate({
+                        await this.columnsService.columnUpdate(context, {
                           columnId: nColumn.id,
                           column: {
                             ...nColumn,
@@ -977,7 +1003,7 @@ export class ImportService {
               const filters = colOptions.filter?.children;
 
               for (const fl of filters) {
-                const fg = await this.filtersService.linkFilterCreate({
+                const fg = await this.filtersService.linkFilterCreate(context, {
                   columnId: getIdOrExternalId(col.id),
                   filter: withoutId({
                     ...fl,
@@ -1071,7 +1097,7 @@ export class ImportService {
       const { colOptions, ...flatCol } = col;
       if (col.uidt === UITypes.Lookup) {
         if (!getIdOrExternalId(colOptions.fk_relation_column_id)) continue;
-        const freshModelData = await this.columnsService.columnAdd({
+        const freshModelData = await this.columnsService.columnAdd(context, {
           tableId: getIdOrExternalId(getParentIdentifier(col.id)),
           column: withoutId({
             ...flatCol,
@@ -1096,7 +1122,7 @@ export class ImportService {
         }
       } else if (col.uidt === UITypes.Rollup) {
         if (!getIdOrExternalId(colOptions.fk_relation_column_id)) continue;
-        const freshModelData = await this.columnsService.columnAdd({
+        const freshModelData = await this.columnsService.columnAdd(context, {
           tableId: getIdOrExternalId(getParentIdentifier(col.id)),
           column: withoutId({
             ...flatCol,
@@ -1121,7 +1147,7 @@ export class ImportService {
           }
         }
       } else if (col.uidt === UITypes.Formula) {
-        const freshModelData = await this.columnsService.columnAdd({
+        const freshModelData = await this.columnsService.columnAdd(context, {
           tableId: getIdOrExternalId(getParentIdentifier(col.id)),
           column: withoutId({
             ...flatCol,
@@ -1146,7 +1172,7 @@ export class ImportService {
         col.uidt === UITypes.LastModifiedBy
       ) {
         if (col.system) continue;
-        const freshModelData = await this.columnsService.columnAdd({
+        const freshModelData = await this.columnsService.columnAdd(context, {
           tableId: getIdOrExternalId(getParentIdentifier(col.id)),
           column: withoutId({
             ...flatCol,
@@ -1166,7 +1192,7 @@ export class ImportService {
           }
         }
       } else if (col.uidt === UITypes.QrCode) {
-        const freshModelData = await this.columnsService.columnAdd({
+        const freshModelData = await this.columnsService.columnAdd(context, {
           tableId: getIdOrExternalId(getParentIdentifier(col.id)),
           column: withoutId({
             ...flatCol,
@@ -1188,7 +1214,7 @@ export class ImportService {
         }
       } else if (col.uidt === UITypes.Barcode) {
         flatCol.validate = null;
-        const freshModelData = await this.columnsService.columnAdd({
+        const freshModelData = await this.columnsService.columnAdd(context, {
           tableId: getIdOrExternalId(getParentIdentifier(col.id)),
           column: withoutId({
             ...flatCol,
@@ -1223,7 +1249,7 @@ export class ImportService {
       const table = tableReferences.get(modelData.id);
 
       // get default view
-      await table.getViews();
+      await table.getViews(context);
 
       for (const view of viewsData) {
         const viewData = withoutId({
@@ -1231,6 +1257,7 @@ export class ImportService {
         });
 
         const vw = await this.createView(
+          context,
           idMap,
           table,
           viewData,
@@ -1247,7 +1274,7 @@ export class ImportService {
         const filters = view.filter.children;
 
         for (const fl of filters) {
-          const fg = await this.filtersService.filterCreate({
+          const fg = await this.filtersService.filterCreate(context, {
             viewId: vw.id,
             filter: withoutId({
               ...fl,
@@ -1263,7 +1290,7 @@ export class ImportService {
 
         // create sorts
         for (const sr of view.sorts) {
-          await this.sortsService.sortCreate({
+          await this.sortsService.sortCreate(context, {
             viewId: vw.id,
             sort: withoutId({
               ...sr,
@@ -1274,7 +1301,7 @@ export class ImportService {
         }
 
         // update view columns
-        const vwColumns = await this.viewColumnsService.columnList({
+        const vwColumns = await this.viewColumnsService.columnList(context, {
           viewId: vw.id,
         });
 
@@ -1291,7 +1318,7 @@ export class ImportService {
                   underline: fcl.underline,
                 }
               : {};
-          await this.viewColumnsService.columnUpdate({
+          await this.viewColumnsService.columnUpdate(context, {
             viewId: vw.id,
             columnId: cl.id,
             column: {
@@ -1311,7 +1338,7 @@ export class ImportService {
               );
               if (!fcl) continue;
               const { fk_column_id, ...rest } = fcl;
-              await this.gridColumnsService.gridColumnUpdate({
+              await this.gridColumnsService.gridColumnUpdate(context, {
                 gridViewColumnId: cl.id,
                 grid: {
                   ...withoutNull(rest),
@@ -1327,7 +1354,7 @@ export class ImportService {
               );
               if (!fcl) continue;
               const { fk_column_id, ...rest } = fcl;
-              await this.formColumnsService.columnUpdate({
+              await this.formColumnsService.columnUpdate(context, {
                 formViewColumnId: cl.id,
                 formViewColumn: {
                   ...withoutNull(rest),
@@ -1344,7 +1371,7 @@ export class ImportService {
 
         // fix view order (view insert will always put it at the end)
         if (view.order !== vw.order) {
-          await this.viewsService.viewUpdate({
+          await this.viewsService.viewUpdate(context, {
             viewId: vw.id,
             view: {
               order: view.order,
@@ -1374,7 +1401,7 @@ export class ImportService {
           ...rest,
         });
 
-        const hk = await this.hooksService.hookCreate({
+        const hk = await this.hooksService.hookCreate(context, {
           tableId: table.id,
           hook: {
             ...hookData,
@@ -1388,7 +1415,7 @@ export class ImportService {
 
         // create filters
         for (const fl of filters) {
-          const fg = await this.filtersService.hookFilterCreate({
+          const fg = await this.filtersService.hookFilterCreate(context, {
             hookId: hk.id,
             filter: withoutId({
               ...fl,
@@ -1417,6 +1444,7 @@ export class ImportService {
   }
 
   async createView(
+    context: NcContext,
     idMap: Map<string, string>,
     md: Model,
     vw: Partial<View>,
@@ -1429,7 +1457,7 @@ export class ImportService {
       if (view) {
         const gridData = withoutNull(vw.view);
         if (gridData) {
-          await this.gridsService.gridViewUpdate({
+          await this.gridsService.gridViewUpdate(context, {
             viewId: view.id,
             grid: gridData,
             req,
@@ -1441,14 +1469,14 @@ export class ImportService {
 
     switch (vw.type) {
       case ViewTypes.GRID: {
-        const gview = await this.gridsService.gridViewCreate({
+        const gview = await this.gridsService.gridViewCreate(context, {
           tableId: md.id,
           grid: vw as ViewCreateReqType,
           req,
         });
         const gridData = withoutNull(vw.view);
         if (gridData) {
-          await this.gridsService.gridViewUpdate({
+          await this.gridsService.gridViewUpdate(context, {
             viewId: gview.id,
             grid: gridData,
             req,
@@ -1457,7 +1485,7 @@ export class ImportService {
         return gview;
       }
       case ViewTypes.FORM: {
-        const fview = await this.formsService.formViewCreate({
+        const fview = await this.formsService.formViewCreate(context, {
           tableId: md.id,
           body: vw as ViewCreateReqType,
           user,
@@ -1465,7 +1493,7 @@ export class ImportService {
         });
         const formData = withoutNull(vw.view);
         if (formData) {
-          await this.formsService.formViewUpdate({
+          await this.formsService.formViewUpdate(context, {
             formViewId: fview.id,
             form: formData,
             req,
@@ -1474,7 +1502,7 @@ export class ImportService {
         return fview;
       }
       case ViewTypes.CALENDAR: {
-        return await this.calendarsService.calendarViewCreate({
+        return await this.calendarsService.calendarViewCreate(context, {
           tableId: md.id,
           calendar: {
             ...vw,
@@ -1490,7 +1518,7 @@ export class ImportService {
         });
       }
       case ViewTypes.GALLERY: {
-        const glview = await this.galleriesService.galleryViewCreate({
+        const glview = await this.galleriesService.galleryViewCreate(context, {
           tableId: md.id,
           gallery: vw as ViewCreateReqType,
           user,
@@ -1505,7 +1533,7 @@ export class ImportService {
                 break;
             }
           }
-          await this.galleriesService.galleryViewUpdate({
+          await this.galleriesService.galleryViewUpdate(context, {
             galleryViewId: glview.id,
             gallery: galleryData,
             req,
@@ -1514,7 +1542,7 @@ export class ImportService {
         return glview;
       }
       case ViewTypes.KANBAN: {
-        const kview = await this.kanbansService.kanbanViewCreate({
+        const kview = await this.kanbansService.kanbanViewCreate(context, {
           tableId: md.id,
           kanban: vw as ViewCreateReqType,
           user,
@@ -1522,7 +1550,7 @@ export class ImportService {
         });
         const kanbanData = withoutNull(vw.view);
         if (kanbanData) {
-          const grpCol = await Column.get({
+          const grpCol = await Column.get(context, {
             source_id: md.source_id,
             colId: idMap.get(kanbanData['fk_grp_col_id']),
           });
@@ -1561,7 +1589,7 @@ export class ImportService {
               }
             }
           }
-          await this.kanbansService.kanbanViewUpdate({
+          await this.kanbansService.kanbanViewUpdate(context, {
             kanbanViewId: kview.id,
             kanban: kanbanData,
             req,
@@ -1574,24 +1602,27 @@ export class ImportService {
     return null;
   }
 
-  async importBase(param: {
-    user: User;
-    baseId: string;
-    sourceId: string;
-    src: {
-      type: 'local' | 'url' | 'file';
-      path?: string;
-      url?: string;
-      file?: any;
-    };
-    req: NcRequest;
-  }) {
+  async importBase(
+    context: NcContext,
+    param: {
+      user: User;
+      baseId: string;
+      sourceId: string;
+      src: {
+        type: 'local' | 'url' | 'file';
+        path?: string;
+        url?: string;
+        file?: any;
+      };
+      req: NcRequest;
+    },
+  ) {
     const hrTime = initTime();
 
     const { user, baseId, sourceId, src, req } = param;
 
-    const destProject = await Base.get(baseId);
-    const destBase = await Source.get(sourceId);
+    const destProject = await Base.get(context, baseId);
+    const destBase = await Source.get(context, sourceId);
 
     if (!destProject) return NcError.baseNotFound(baseId);
     if (!destBase) return NcError.sourceNotFound(sourceId);
@@ -1612,7 +1643,7 @@ export class ImportService {
           // store fk_mm_model_id (mm) to link once
           let handledLinks = [];
 
-          const idMap = await this.importModels({
+          const idMap = await this.importModels(context, {
             user,
             baseId,
             sourceId,
@@ -1641,11 +1672,11 @@ export class ImportService {
                 file.replace(/\.csv$/, ''),
               );
 
-              const model = await Model.get(modelId);
+              const model = await Model.get(context, modelId);
 
               this.debugLog(`Importing ${model.title}...`);
 
-              await this.importDataFromCsvStream({
+              await this.importDataFromCsvStream(context, {
                 idMap,
                 dataStream: readStream,
                 destProject,
@@ -1668,7 +1699,7 @@ export class ImportService {
             ).fileReadByStream(linkFile);
 
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            handledLinks = await this.importLinkFromCsvStream({
+            handledLinks = await this.importLinkFromCsvStream(context, {
               idMap,
               linkStream: linkReadStream,
               destProject,
@@ -1690,13 +1721,16 @@ export class ImportService {
     }
   }
 
-  importDataFromCsvStream(param: {
-    idMap: Map<string, string>;
-    dataStream: Readable;
-    destProject: Base;
-    destBase: Source;
-    destModel: Model;
-  }): Promise<void> {
+  importDataFromCsvStream(
+    context: NcContext,
+    param: {
+      idMap: Map<string, string>;
+      dataStream: Readable;
+      destProject: Base;
+      destBase: Source;
+      destModel: Model;
+    },
+  ): Promise<void> {
     const { idMap, dataStream, destBase, destProject, destModel } = param;
 
     const headers: string[] = [];
@@ -1711,7 +1745,7 @@ export class ImportService {
             for (const header of results.data as any) {
               const id = idMap.get(header);
               if (id) {
-                const col = await Column.get({
+                const col = await Column.get(context, {
                   source_id: destBase.id,
                   colId: id,
                 });
@@ -1721,7 +1755,7 @@ export class ImportService {
                     (col.colOptions?.type === RelationTypes.ONE_TO_ONE &&
                       col.meta?.bt)
                   ) {
-                    const childCol = await Column.get({
+                    const childCol = await Column.get(context, {
                       source_id: destBase.id,
                       colId: col.colOptions.fk_child_column_id,
                     });
@@ -1760,7 +1794,7 @@ export class ImportService {
               if (chunk.length > 1000) {
                 parser.pause();
                 try {
-                  await this.bulkDataService.bulkDataInsert({
+                  await this.bulkDataService.bulkDataInsert(context, {
                     baseName: destProject.id,
                     tableName: destModel.id,
                     body: chunk,
@@ -1781,7 +1815,7 @@ export class ImportService {
         complete: async () => {
           if (chunk.length > 0) {
             try {
-              await this.bulkDataService.bulkDataInsert({
+              await this.bulkDataService.bulkDataInsert(context, {
                 baseName: destProject.id,
                 tableName: destModel.id,
                 body: chunk,
@@ -1802,13 +1836,16 @@ export class ImportService {
   }
 
   // import links and return handled links
-  async importLinkFromCsvStream(param: {
-    idMap: Map<string, string>;
-    linkStream: Readable;
-    destProject: Base;
-    destBase: Source;
-    handledLinks: string[];
-  }): Promise<string[]> {
+  async importLinkFromCsvStream(
+    context: NcContext,
+    param: {
+      idMap: Map<string, string>;
+      linkStream: Readable;
+      destProject: Base;
+      destBase: Source;
+      handledLinks: string[];
+    },
+  ): Promise<string[]> {
     const { idMap, linkStream, destBase, destProject, handledLinks } = param;
 
     const lChunks: Record<string, any[]> = {}; // fk_mm_model_id: { rowId, childId }[]
@@ -1817,7 +1854,7 @@ export class ImportService {
       for (const [k, v] of Object.entries(lChunks)) {
         try {
           if (v.length === 0) continue;
-          await this.bulkDataService.bulkDataInsert({
+          await this.bulkDataService.bulkDataInsert(context, {
             baseName: destProject.id,
             tableName: k,
             body: v,
@@ -1878,17 +1915,23 @@ export class ImportService {
 
                   await insertChunks();
 
-                  const col = await Column.get({
+                  const col = await Column.get(context, {
                     source_id: destBase.id,
                     colId: findWithIdentifier(idMap, columnId),
                   });
 
                   if (col) {
                     const colOptions =
-                      await col.getColOptions<LinkToAnotherRecordColumn>();
+                      await col.getColOptions<LinkToAnotherRecordColumn>(
+                        context,
+                      );
 
-                    const vChildCol = await colOptions.getMMChildColumn();
-                    const vParentCol = await colOptions.getMMParentColumn();
+                    const vChildCol = await colOptions.getMMChildColumn(
+                      context,
+                    );
+                    const vParentCol = await colOptions.getMMParentColumn(
+                      context,
+                    );
 
                     mmParentChild[col.colOptions.fk_mm_model_id] = {
                       parent: vParentCol.column_name,

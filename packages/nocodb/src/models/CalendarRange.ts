@@ -1,4 +1,5 @@
 import type { CalendarRangeType } from 'nocodb-sdk';
+import type { NcContext } from '~/interface/config';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
@@ -7,6 +8,8 @@ import { CacheDelDirection, CacheScope, MetaTable } from '~/utils/globals';
 export default class CalendarRange implements CalendarRangeType {
   id?: string;
   fk_from_column_id?: string;
+  fk_workspace_id?: string;
+  base_id?: string;
   fk_view_id?: string;
 
   constructor(data: Partial<CalendarRange>) {
@@ -14,23 +17,27 @@ export default class CalendarRange implements CalendarRangeType {
   }
 
   public static async bulkInsert(
+    context: NcContext,
     data: Partial<CalendarRange>[],
     ncMeta = Noco.ncMeta,
   ) {
-    let insertObj = [];
+    const calRanges: {
+      fk_from_column_id?: string;
+      fk_view_id?: string;
+    }[] = [];
 
     for (const d of data) {
       const tempObj = extractProps(d, ['fk_from_column_id', 'fk_view_id']);
-      insertObj.push(tempObj);
+      calRanges.push(tempObj);
     }
 
-    if (!insertObj.length) return false;
+    if (!calRanges.length) return false;
 
-    insertObj = insertObj[0];
+    const insertObj = calRanges[0];
 
     const insertData = await ncMeta.metaInsert2(
-      null,
-      null,
+      context.workspace_id,
+      context.base_id,
       MetaTable.CALENDAR_VIEW_RANGE,
       insertObj,
     );
@@ -54,7 +61,11 @@ export default class CalendarRange implements CalendarRangeType {
     return true;
   }
 
-  public static async read(fk_view_id: string, ncMeta = Noco.ncMeta) {
+  public static async read(
+    context: NcContext,
+    fk_view_id: string,
+    ncMeta = Noco.ncMeta,
+  ) {
     const cachedList = await NocoCache.getList(CacheScope.CALENDAR_VIEW_RANGE, [
       fk_view_id,
     ]);
@@ -62,8 +73,8 @@ export default class CalendarRange implements CalendarRangeType {
     const { isNoneList } = cachedList;
     if (!isNoneList && !ranges.length) {
       ranges = await ncMeta.metaList2(
-        null, //,
-        null, //model.db_alias,
+        context.workspace_id,
+        context.base_id,
         MetaTable.CALENDAR_VIEW_RANGE,
         { condition: { fk_view_id } },
       );
@@ -84,12 +95,13 @@ export default class CalendarRange implements CalendarRangeType {
   }
 
   public static async find(
+    context: NcContext,
     fk_view_id: string,
     ncMeta = Noco.ncMeta,
   ): Promise<CalendarRange> {
     const data = await ncMeta.metaGet2(
-      null,
-      null,
+      context.workspace_id,
+      context.base_id,
       MetaTable.CALENDAR_VIEW_RANGE,
       {
         fk_view_id,
@@ -100,22 +112,28 @@ export default class CalendarRange implements CalendarRangeType {
   }
 
   public static async IsColumnBeingUsedAsRange(
+    context: NcContext,
     columnId: string,
     ncMeta = Noco.ncMeta,
   ) {
     return (
       (
-        await ncMeta.metaList2(null, null, MetaTable.CALENDAR_VIEW_RANGE, {
-          xcCondition: {
-            _or: [
-              {
-                fk_from_column_id: {
-                  eq: columnId,
+        await ncMeta.metaList2(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.CALENDAR_VIEW_RANGE,
+          {
+            xcCondition: {
+              _or: [
+                {
+                  fk_from_column_id: {
+                    eq: columnId,
+                  },
                 },
-              },
-            ],
+              ],
+            },
           },
-        })
+        )
       ).length > 0
     );
   }

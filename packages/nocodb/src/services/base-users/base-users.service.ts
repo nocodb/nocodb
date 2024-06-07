@@ -10,7 +10,7 @@ import { v4 as uuidv4 } from 'uuid';
 import * as ejs from 'ejs';
 import validator from 'validator';
 import type { ProjectUserReqType, UserType } from 'nocodb-sdk';
-import type { NcRequest } from '~/interface/config';
+import type { NcContext, NcRequest } from '~/interface/config';
 import { validatePayload } from '~/helpers';
 import Noco from '~/Noco';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -28,8 +28,11 @@ import { sanitiseEmailContent } from '~/utils';
 export class BaseUsersService {
   constructor(protected appHooksService: AppHooksService) {}
 
-  async userList(param: { baseId: string; mode?: 'full' | 'viewer' }) {
-    const baseUsers = await BaseUser.getUsersList({
+  async userList(
+    context: NcContext,
+    param: { baseId: string; mode?: 'full' | 'viewer' },
+  ) {
+    const baseUsers = await BaseUser.getUsersList(context, {
       base_id: param.baseId,
       mode: param.mode,
     });
@@ -39,11 +42,14 @@ export class BaseUsersService {
     });
   }
 
-  async userInvite(param: {
-    baseId: string;
-    baseUser: ProjectUserReqType;
-    req: NcRequest;
-  }): Promise<any> {
+  async userInvite(
+    context: NcContext,
+    param: {
+      baseId: string;
+      baseUser: ProjectUserReqType;
+      req: NcRequest;
+    },
+  ): Promise<any> {
     validatePayload(
       'swagger.json#/components/schemas/ProjectUserReq',
       param.baseUser,
@@ -90,7 +96,7 @@ export class BaseUsersService {
       // add user to base if user already exist
       const user = await User.getByEmail(email);
 
-      const base = await Base.get(param.baseId);
+      const base = await Base.get(context, param.baseId);
 
       if (!base) {
         return NcError.baseNotFound(param.baseId);
@@ -98,9 +104,9 @@ export class BaseUsersService {
 
       if (user) {
         // check if this user has been added to this base
-        const baseUser = await BaseUser.get(param.baseId, user.id);
+        const baseUser = await BaseUser.get(context, param.baseId, user.id);
 
-        const base = await Base.get(param.baseId);
+        const base = await Base.get(context, param.baseId);
 
         if (!base) {
           return NcError.baseNotFound(param.baseId);
@@ -112,7 +118,7 @@ export class BaseUsersService {
           );
         }
 
-        await BaseUser.insert({
+        await BaseUser.insert(context, {
           base_id: param.baseId,
           fk_user_id: user.id,
           roles: param.baseUser.roles || 'editor',
@@ -137,7 +143,7 @@ export class BaseUsersService {
           });
 
           // add user to base
-          await BaseUser.insert({
+          await BaseUser.insert(context, {
             base_id: param.baseId,
             fk_user_id: user.id,
             roles: param.baseUser.roles,
@@ -181,14 +187,17 @@ export class BaseUsersService {
     }
   }
 
-  async baseUserUpdate(param: {
-    userId: string;
-    // todo: update swagger
-    baseUser: ProjectUserReqType & { base_id: string };
-    // todo: refactor
-    req: any;
-    baseId: string;
-  }): Promise<any> {
+  async baseUserUpdate(
+    context: NcContext,
+    param: {
+      userId: string;
+      // todo: update swagger
+      baseUser: ProjectUserReqType & { base_id: string };
+      // todo: refactor
+      req: any;
+      baseId: string;
+    },
+  ): Promise<any> {
     validatePayload(
       'swagger.json#/components/schemas/ProjectUserReq',
       param.baseUser,
@@ -198,7 +207,7 @@ export class BaseUsersService {
       NcError.badRequest('Missing base id');
     }
 
-    const base = await Base.get(param.baseId);
+    const base = await Base.get(context, param.baseId);
 
     if (!base) {
       return NcError.baseNotFound(param.baseId);
@@ -226,7 +235,7 @@ export class BaseUsersService {
       NcError.badRequest(`User with id '${param.userId}' doesn't exist`);
     }
 
-    const targetUser = await User.getWithRoles(param.userId, {
+    const targetUser = await User.getWithRoles(context, param.userId, {
       user,
       baseId: param.baseId,
     });
@@ -244,6 +253,7 @@ export class BaseUsersService {
     }
 
     await BaseUser.updateRoles(
+      context,
       param.baseId,
       param.userId,
       param.baseUser.roles,
@@ -263,12 +273,15 @@ export class BaseUsersService {
     };
   }
 
-  async baseUserDelete(param: {
-    baseId: string;
-    userId: string;
-    // todo: refactor
-    req: any;
-  }): Promise<any> {
+  async baseUserDelete(
+    context: NcContext,
+    param: {
+      baseId: string;
+      userId: string;
+      // todo: refactor
+      req: any;
+    },
+  ): Promise<any> {
     const base_id = param.baseId;
 
     if (param.req.user?.id === param.userId) {
@@ -282,29 +295,32 @@ export class BaseUsersService {
           'Insufficient privilege to delete a super admin user.',
         );
 
-      const baseUser = await BaseUser.get(base_id, param.userId);
+      const baseUser = await BaseUser.get(context, base_id, param.userId);
       if (baseUser?.roles?.split(',').includes('owner'))
         NcError.forbidden('Insufficient privilege to delete a owner user.');
     }
 
-    await BaseUser.delete(base_id, param.userId);
+    await BaseUser.delete(context, base_id, param.userId);
     return true;
   }
 
-  async baseUserInviteResend(param: {
-    userId: string;
-    baseUser: ProjectUserReqType;
-    baseId: string;
-    // todo: refactor
-    req: any;
-  }): Promise<any> {
+  async baseUserInviteResend(
+    context: NcContext,
+    param: {
+      userId: string;
+      baseUser: ProjectUserReqType;
+      baseId: string;
+      // todo: refactor
+      req: any;
+    },
+  ): Promise<any> {
     const user = await User.get(param.userId);
 
     if (!user) {
       NcError.badRequest(`User with id '${param.userId}' not found`);
     }
 
-    const base = await Base.get(param.baseId);
+    const base = await Base.get(context, param.baseId);
 
     if (!base) {
       return NcError.baseNotFound(param.baseId);
@@ -318,8 +334,8 @@ export class BaseUsersService {
     });
 
     const pluginData = await Noco.ncMeta.metaGet2(
-      null,
-      null,
+      context.workspace_id,
+      context.base_id,
       MetaTable.PLUGIN,
       {
         category: PluginCategory.EMAIL,
@@ -385,11 +401,14 @@ export class BaseUsersService {
     }
   }
 
-  async baseUserMetaUpdate(param: {
-    body: any;
-    baseId: string;
-    user: UserType;
-  }) {
+  async baseUserMetaUpdate(
+    context: NcContext,
+    param: {
+      body: any;
+      baseId: string;
+      user: UserType;
+    },
+  ) {
     // update base user data
     const baseUserData = extractProps(param.body, [
       'starred',
@@ -399,14 +418,19 @@ export class BaseUsersService {
 
     if (Object.keys(baseUserData).length) {
       // create new base user if it doesn't exist
-      if (!(await BaseUser.get(param.baseId, param.user?.id))) {
-        await BaseUser.insert({
+      if (!(await BaseUser.get(context, param.baseId, param.user?.id))) {
+        await BaseUser.insert(context, {
           ...baseUserData,
           base_id: param.baseId,
           fk_user_id: param.user?.id,
         });
       } else {
-        await BaseUser.update(param.baseId, param.user?.id, baseUserData);
+        await BaseUser.update(
+          context,
+          param.baseId,
+          param.user?.id,
+          baseUserData,
+        );
       }
     }
 

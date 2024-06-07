@@ -9,6 +9,7 @@ import dayjs from 'dayjs';
 import type { BoolType, TableReqType, TableType } from 'nocodb-sdk';
 import type { XKnex } from '~/db/CustomKnex';
 import type { LinksColumn, LinkToAnotherRecordColumn } from '~/models/index';
+import type { NcContext } from '~/interface/config';
 import Hook from '~/models/Hook';
 import View from '~/models/View';
 import Comment from '~/models/Comment';
@@ -42,6 +43,7 @@ export default class Model implements TableType {
   parent_id: string;
   password: string;
   pin: BoolType;
+  fk_workspace_id?: string;
   base_id: string;
   schema: any;
   show_all_fields: boolean;
@@ -65,10 +67,12 @@ export default class Model implements TableType {
   }
 
   public async getColumns(
+    context: NcContext,
     ncMeta = Noco.ncMeta,
     defaultViewId = undefined,
   ): Promise<Column[]> {
     this.columns = await Column.list(
+      context,
       {
         fk_model_id: this.id,
         fk_default_view_id: defaultViewId,
@@ -79,9 +83,13 @@ export default class Model implements TableType {
   }
 
   // @ts-ignore
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public async getViews(force = false, ncMeta = Noco.ncMeta): Promise<View[]> {
-    this.views = await View.listWithInfo(this.id, ncMeta);
+  public async getViews(
+    context: NcContext,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    force = false,
+    ncMeta = Noco.ncMeta,
+  ): Promise<View[]> {
+    this.views = await View.listWithInfo(context, this.id, ncMeta);
     return this.views;
   }
 
@@ -118,11 +126,13 @@ export default class Model implements TableType {
   }
 
   public static async insert(
+    context: NcContext,
     baseId,
     sourceId,
     model: Partial<TableReqType> & {
       mm?: BoolType;
       type?: ModelTypes;
+      source_id?: string;
     },
     ncMeta = Noco.ncMeta,
   ) {
@@ -152,14 +162,17 @@ export default class Model implements TableType {
       insertObj.type = ModelTypes.TABLE;
     }
 
+    insertObj.source_id = sourceId;
+
     const { id } = await ncMeta.metaInsert2(
-      baseId,
-      sourceId,
+      context.workspace_id,
+      context.base_id,
       MetaTable.MODELS,
       insertObj,
     );
 
     const insertedColumns = await Column.bulkInsert(
+      context,
       {
         columns: (model?.columns || []) as Column[],
         fk_model_id: id,
@@ -170,6 +183,7 @@ export default class Model implements TableType {
     );
 
     await View.insertMetaOnly(
+      context,
       {
         fk_model_id: id,
         title: model.title || model.table_name,
@@ -184,7 +198,7 @@ export default class Model implements TableType {
       ncMeta,
     );
 
-    const modelRes = await this.getWithInfo({ id }, ncMeta);
+    const modelRes = await this.getWithInfo(context, { id }, ncMeta);
 
     // append to model list since model list cache will be there already
     if (sourceId) {
@@ -206,6 +220,7 @@ export default class Model implements TableType {
   }
 
   public static async list(
+    context: NcContext,
     {
       base_id,
       source_id,
@@ -222,11 +237,16 @@ export default class Model implements TableType {
     let { list: modelList } = cachedList;
     const { isNoneList } = cachedList;
     if (!isNoneList && !modelList.length) {
-      modelList = await ncMeta.metaList2(base_id, source_id, MetaTable.MODELS, {
-        orderBy: {
-          order: 'asc',
+      modelList = await ncMeta.metaList2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.MODELS,
+        {
+          orderBy: {
+            order: 'asc',
+          },
         },
-      });
+      );
 
       // parse meta of each model
       for (const model of modelList) {
@@ -255,6 +275,7 @@ export default class Model implements TableType {
         model.meta = {
           ...(model.meta ?? {}),
           hasNonDefaultViews: await Model.getNonDefaultViewsCountAndReset(
+            context,
             { modelId: model.id },
             ncMeta,
           ),
@@ -266,6 +287,7 @@ export default class Model implements TableType {
   }
 
   public static async listWithInfo(
+    context: NcContext,
     {
       base_id,
       db_alias,
@@ -282,7 +304,11 @@ export default class Model implements TableType {
     let { list: modelList } = cachedList;
     const { isNoneList } = cachedList;
     if (!isNoneList && !modelList.length) {
-      modelList = await ncMeta.metaList2(base_id, db_alias, MetaTable.MODELS);
+      modelList = await ncMeta.metaList2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.MODELS,
+      );
 
       // parse meta of each model
       for (const model of modelList) {
@@ -297,6 +323,7 @@ export default class Model implements TableType {
         model.meta = {
           ...(model.meta ?? {}),
           hasNonDefaultViews: await Model.getNonDefaultViewsCountAndReset(
+            context,
             { modelId: model.id },
             ncMeta,
           ),
@@ -307,7 +334,11 @@ export default class Model implements TableType {
     return modelList.map((m) => new Model(m));
   }
 
-  public static async get(id: string, ncMeta = Noco.ncMeta): Promise<Model> {
+  public static async get(
+    context: NcContext,
+    id: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<Model> {
     let modelData =
       id &&
       (await NocoCache.get(
@@ -315,7 +346,12 @@ export default class Model implements TableType {
         CacheGetType.TYPE_OBJECT,
       ));
     if (!modelData) {
-      modelData = await ncMeta.metaGet2(null, null, MetaTable.MODELS, id);
+      modelData = await ncMeta.metaGet2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.MODELS,
+        id,
+      );
 
       if (modelData) {
         modelData.meta = parseMetaProp(modelData);
@@ -326,6 +362,7 @@ export default class Model implements TableType {
   }
 
   public static async getByIdOrName(
+    context: NcContext,
     args:
       | {
           base_id: string;
@@ -345,7 +382,12 @@ export default class Model implements TableType {
         CacheGetType.TYPE_OBJECT,
       ));
     if (!modelData) {
-      modelData = await ncMeta.metaGet2(null, null, MetaTable.MODELS, k);
+      modelData = await ncMeta.metaGet2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.MODELS,
+        k,
+      );
       if (modelData) {
         modelData.meta = parseMetaProp(modelData);
       }
@@ -359,6 +401,7 @@ export default class Model implements TableType {
   }
 
   public static async getWithInfo(
+    context: NcContext,
     {
       table_name,
       id,
@@ -376,8 +419,8 @@ export default class Model implements TableType {
       ));
     if (!modelData) {
       modelData = await ncMeta.metaGet2(
-        null,
-        null,
+        context.workspace_id,
+        context.base_id,
         MetaTable.MODELS,
         id || {
           table_name,
@@ -395,11 +438,11 @@ export default class Model implements TableType {
     if (modelData) {
       const m = new Model(modelData);
 
-      await m.getViews(false, ncMeta);
+      await m.getViews(context, false, ncMeta);
 
       const defaultViewId = m.views.find((view) => view.is_default).id;
 
-      const columns = await m.getColumns(ncMeta, defaultViewId);
+      const columns = await m.getColumns(context, ncMeta, defaultViewId);
 
       m.columnsById = columns.reduce((agg, c) => ({ ...agg, [c.id]: c }), {});
       return m;
@@ -408,6 +451,7 @@ export default class Model implements TableType {
   }
 
   public static async getBaseModelSQL(
+    context: NcContext,
     args: {
       id?: string;
       viewId?: string;
@@ -417,33 +461,42 @@ export default class Model implements TableType {
     },
     ncMeta = Noco.ncMeta,
   ): Promise<BaseModelSqlv2> {
-    const model = args?.model || (await this.get(args.id, ncMeta));
+    const model = args?.model || (await this.get(context, args.id, ncMeta));
 
     if (!args?.viewId && args.extractDefaultView) {
-      const view = await View.getDefaultView(model.id, ncMeta);
+      const view = await View.getDefaultView(context, model.id, ncMeta);
       args.viewId = view.id;
     }
 
     return new BaseModelSqlv2({
+      context,
       dbDriver: args.dbDriver,
       viewId: args.viewId,
       model,
     });
   }
 
-  async delete(ncMeta = Noco.ncMeta, force = false): Promise<boolean> {
-    await Comment.deleteRowComments(this.id, ncMeta);
+  async delete(
+    context: NcContext,
+    ncMeta = Noco.ncMeta,
+    force = false,
+  ): Promise<boolean> {
+    await Comment.deleteRowComments(context, this.id, ncMeta);
 
-    for (const view of await this.getViews(true, ncMeta)) {
-      await view.delete(ncMeta);
+    for (const view of await this.getViews(context, true, ncMeta)) {
+      await view.delete(context, ncMeta);
     }
 
     // delete associated hooks
-    for (const hook of await Hook.list({ fk_model_id: this.id }, ncMeta)) {
-      await Hook.delete(hook.id, ncMeta);
+    for (const hook of await Hook.list(
+      context,
+      { fk_model_id: this.id },
+      ncMeta,
+    )) {
+      await Hook.delete(context, hook.id, ncMeta);
     }
 
-    for (const col of await this.getColumns(ncMeta)) {
+    for (const col of await this.getColumns(context, ncMeta)) {
       let colOptionTableName = null;
       let cacheScopeName = null;
       switch (col.uidt) {
@@ -479,9 +532,14 @@ export default class Model implements TableType {
           break;
       }
       if (colOptionTableName && cacheScopeName) {
-        await ncMeta.metaDelete(null, null, colOptionTableName, {
-          fk_column_id: col.id,
-        });
+        await ncMeta.metaDelete(
+          context.workspace_id,
+          context.base_id,
+          colOptionTableName,
+          {
+            fk_column_id: col.id,
+          },
+        );
         await NocoCache.deepDel(
           `${cacheScopeName}:${col.id}`,
           CacheDelDirection.CHILD_TO_PARENT,
@@ -491,8 +549,8 @@ export default class Model implements TableType {
 
     if (force) {
       const leftOverColumns = await ncMeta.metaList2(
-        null,
-        null,
+        context.workspace_id,
+        context.base_id,
         MetaTable.COL_RELATIONS,
         {
           condition: {
@@ -508,24 +566,39 @@ export default class Model implements TableType {
         );
       }
 
-      await ncMeta.metaDelete(null, null, MetaTable.COL_RELATIONS, {
-        fk_related_model_id: this.id,
-      });
+      await ncMeta.metaDelete(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.COL_RELATIONS,
+        {
+          fk_related_model_id: this.id,
+        },
+      );
     }
 
     await NocoCache.deepDel(
       `${CacheScope.COLUMN}:${this.id}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
-    await ncMeta.metaDelete(null, null, MetaTable.COLUMNS, {
-      fk_model_id: this.id,
-    });
+    await ncMeta.metaDelete(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.COLUMNS,
+      {
+        fk_model_id: this.id,
+      },
+    );
 
     await NocoCache.deepDel(
       `${CacheScope.MODEL}:${this.id}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
-    await ncMeta.metaDelete(null, null, MetaTable.MODELS, this.id);
+    await ncMeta.metaDelete(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.MODELS,
+      this.id,
+    );
 
     // delete alias cache
     await NocoCache.del([
@@ -538,6 +611,7 @@ export default class Model implements TableType {
   }
 
   async mapAliasToColumn(
+    context: NcContext,
     data,
     clientMeta = {
       isMySQL: false,
@@ -549,7 +623,7 @@ export default class Model implements TableType {
     columns?: Column[],
   ) {
     const insertObj = {};
-    for (const col of columns || (await this.getColumns())) {
+    for (const col of columns || (await this.getColumns(context))) {
       if (isVirtualCol(col)) continue;
       let val =
         data?.[col.column_name] !== undefined
@@ -627,9 +701,9 @@ export default class Model implements TableType {
     return insertObj;
   }
 
-  async mapColumnToAlias(data, columns?: Column[]) {
+  async mapColumnToAlias(context: NcContext, data, columns?: Column[]) {
     const res = {};
-    for (const col of columns || (await this.getColumns())) {
+    for (const col of columns || (await this.getColumns(context))) {
       if (isVirtualCol(col)) continue;
       let val =
         data?.[col.title] !== undefined
@@ -646,6 +720,7 @@ export default class Model implements TableType {
   }
 
   static async updateAliasAndTableName(
+    context: NcContext,
     tableId,
     title: string,
     table_name: string,
@@ -658,12 +733,12 @@ export default class Model implements TableType {
       NcError.badRequest("Missing 'table_name' property in body");
     }
 
-    const oldModel = await this.get(tableId, ncMeta);
+    const oldModel = await this.get(context, tableId, ncMeta);
 
     // set meta
     const res = await ncMeta.metaUpdate(
-      null,
-      null,
+      context.workspace_id,
+      context.base_id,
       MetaTable.MODELS,
       {
         title,
@@ -686,17 +761,23 @@ export default class Model implements TableType {
     ]);
 
     // clear all the cached query under this model
-    await View.clearSingleQueryCache(tableId, null, ncMeta);
+    await View.clearSingleQueryCache(context, tableId, null, ncMeta);
 
     // clear all the cached query under related models
-    for (const col of await this.get(tableId).then((t) => t.getColumns())) {
+    for (const col of await this.get(context, tableId).then((t) =>
+      t.getColumns(context),
+    )) {
       if (!isLinksOrLTAR(col)) continue;
 
-      const colOptions = await col.getColOptions<LinkToAnotherRecordColumn>();
+      const colOptions = await col.getColOptions<LinkToAnotherRecordColumn>(
+        context,
+        ncMeta,
+      );
 
       if (colOptions.fk_related_model_id === tableId) continue;
 
       await View.clearSingleQueryCache(
+        context,
         colOptions.fk_related_model_id,
         null,
         ncMeta,
@@ -706,11 +787,16 @@ export default class Model implements TableType {
     return res;
   }
 
-  static async markAsMmTable(tableId, isMm = true, ncMeta = Noco.ncMeta) {
+  static async markAsMmTable(
+    context: NcContext,
+    tableId,
+    isMm = true,
+    ncMeta = Noco.ncMeta,
+  ) {
     // set meta
     const res = await ncMeta.metaUpdate(
-      null,
-      null,
+      context.workspace_id,
+      context.base_id,
       MetaTable.MODELS,
       {
         mm: isMm,
@@ -725,8 +811,8 @@ export default class Model implements TableType {
     return res;
   }
 
-  async getAliasColMapping() {
-    return (await this.getColumns()).reduce((o, c) => {
+  async getAliasColMapping(context: NcContext) {
+    return (await this.getColumns(context)).reduce((o, c) => {
       if (c.column_name) {
         o[c.title] = c.column_name;
       }
@@ -734,8 +820,8 @@ export default class Model implements TableType {
     }, {});
   }
 
-  async getColAliasMapping() {
-    return (await this.getColumns()).reduce((o, c) => {
+  async getColAliasMapping(context: NcContext) {
+    return (await this.getColumns(context)).reduce((o, c) => {
       if (c.column_name) {
         o[c.column_name] = c.title;
       }
@@ -744,14 +830,15 @@ export default class Model implements TableType {
   }
 
   static async updateOrder(
+    context: NcContext,
     tableId: string,
     order: number,
     ncMeta = Noco.ncMeta,
   ) {
     // set meta
     const res = await ncMeta.metaUpdate(
-      null,
-      null,
+      context.workspace_id,
+      context.base_id,
       MetaTable.MODELS,
       {
         order,
@@ -767,11 +854,12 @@ export default class Model implements TableType {
   }
 
   static async updatePrimaryColumn(
+    context: NcContext,
     tableId: string,
     columnId: string,
     ncMeta = Noco.ncMeta,
   ) {
-    const model = await this.getWithInfo({ id: tableId });
+    const model = await this.getWithInfo(context, { id: tableId }, ncMeta);
     const newPvCol = model.columns.find((c) => c.id === columnId);
 
     if (!newPvCol) NcError.fieldNotFound(columnId);
@@ -780,8 +868,8 @@ export default class Model implements TableType {
     for (const col of model.columns?.filter((c) => c.pv) || []) {
       // set meta
       await ncMeta.metaUpdate(
-        null,
-        null,
+        context.workspace_id,
+        context.base_id,
         MetaTable.COLUMNS,
         {
           pv: false,
@@ -796,8 +884,8 @@ export default class Model implements TableType {
 
     // set meta
     await ncMeta.metaUpdate(
-      null,
-      null,
+      context.workspace_id,
+      context.base_id,
       MetaTable.COLUMNS,
       {
         pv: true,
@@ -810,8 +898,8 @@ export default class Model implements TableType {
     });
 
     const grid_views_with_column = await ncMeta.metaList2(
-      null,
-      null,
+      context.workspace_id,
+      context.base_id,
       MetaTable.GRID_VIEW_COLUMNS,
       {
         condition: {
@@ -822,7 +910,7 @@ export default class Model implements TableType {
 
     if (grid_views_with_column.length) {
       for (const gv of grid_views_with_column) {
-        await View.fixPVColumnForView(gv.fk_view_id, ncMeta);
+        await View.fixPVColumnForView(context, gv.fk_view_id, ncMeta);
       }
     }
 
@@ -834,24 +922,24 @@ export default class Model implements TableType {
       if (!isLinksOrLTAR(col)) continue;
       const colOptions = await col.getColOptions<
         LinkToAnotherRecordColumn | LinksColumn
-      >();
+      >(context);
       relatedModelIds.add(colOptions?.fk_related_model_id);
     }
 
     await Promise.all(
       Array.from(relatedModelIds).map(async (modelId: string) => {
-        await View.clearSingleQueryCache(modelId, null, ncMeta);
+        await View.clearSingleQueryCache(context, modelId, null, ncMeta);
       }),
     );
 
     return true;
   }
 
-  static async setAsMm(id: any, ncMeta = Noco.ncMeta) {
+  static async setAsMm(context: NcContext, id: any, ncMeta = Noco.ncMeta) {
     // set meta
     await ncMeta.metaUpdate(
-      null,
-      null,
+      context.workspace_id,
+      context.base_id,
       MetaTable.MODELS,
       {
         mm: true,
@@ -865,6 +953,7 @@ export default class Model implements TableType {
   }
 
   static async getByAliasOrId(
+    context: NcContext,
     {
       base_id,
       source_id,
@@ -886,8 +975,8 @@ export default class Model implements TableType {
     if (!modelId) {
       const model = source_id
         ? await ncMeta.metaGet2(
-            null,
-            null,
+            context.workspace_id,
+            context.base_id,
             MetaTable.MODELS,
             { base_id, source_id },
             null,
@@ -907,8 +996,8 @@ export default class Model implements TableType {
             },
           )
         : await ncMeta.metaGet2(
-            null,
-            null,
+            context.workspace_id,
+            context.base_id,
             MetaTable.MODELS,
             { base_id },
             null,
@@ -933,21 +1022,17 @@ export default class Model implements TableType {
       }
       return model && new Model(model);
     }
-    return modelId && this.get(modelId);
+    return modelId && this.get(context, modelId);
   }
 
   static async checkTitleAvailable(
-    {
-      table_name,
-      base_id,
-      source_id,
-      exclude_id,
-    }: { table_name; base_id; source_id; exclude_id? },
+    context: NcContext,
+    { table_name, exclude_id }: { table_name; base_id; source_id; exclude_id? },
     ncMeta = Noco.ncMeta,
   ) {
     return !(await ncMeta.metaGet2(
-      base_id,
-      source_id,
+      context.workspace_id,
+      context.base_id,
       MetaTable.MODELS,
       {
         table_name,
@@ -958,17 +1043,13 @@ export default class Model implements TableType {
   }
 
   static async checkAliasAvailable(
-    {
-      title,
-      base_id,
-      source_id,
-      exclude_id,
-    }: { title; base_id; source_id; exclude_id? },
+    context: NcContext,
+    { title, exclude_id }: { title; base_id; source_id; exclude_id? },
     ncMeta = Noco.ncMeta,
   ) {
     return !(await ncMeta.metaGet2(
-      base_id,
-      source_id,
+      context.workspace_id,
+      context.base_id,
       MetaTable.MODELS,
       {
         title,
@@ -978,8 +1059,8 @@ export default class Model implements TableType {
     ));
   }
 
-  async getAliasColObjMap(columns?: Column[]) {
-    return (columns || (await this.getColumns())).reduce(
+  async getAliasColObjMap(context: NcContext, columns?: Column[]) {
+    return (columns || (await this.getColumns(context))).reduce(
       (sortAgg, c) => ({ ...sortAgg, [c.title]: c }),
       {},
     );
@@ -987,14 +1068,15 @@ export default class Model implements TableType {
 
   // For updating table meta
   static async updateMeta(
+    context: NcContext,
     tableId: string,
     meta: string | Record<string, any>,
     ncMeta = Noco.ncMeta,
   ) {
     // set meta
     const res = await ncMeta.metaUpdate(
-      null,
-      null,
+      context.workspace_id,
+      context.base_id,
       MetaTable.MODELS,
       prepareForDb({
         meta,
@@ -1013,6 +1095,7 @@ export default class Model implements TableType {
   }
 
   static async getNonDefaultViewsCountAndReset(
+    context: NcContext,
     {
       modelId,
     }: {
@@ -1020,16 +1103,16 @@ export default class Model implements TableType {
     },
     ncMeta = Noco.ncMeta,
   ) {
-    const model = await this.get(modelId, ncMeta);
+    const model = await this.get(context, modelId, ncMeta);
     let modelMeta = parseMetaProp(model);
 
-    const views = await View.list(modelId, ncMeta);
+    const views = await View.list(context, modelId, ncMeta);
     modelMeta = {
       ...(modelMeta ?? {}),
       hasNonDefaultViews: views.length > 1,
     };
 
-    await this.updateMeta(modelId, modelMeta, ncMeta);
+    await this.updateMeta(context, modelId, modelMeta, ncMeta);
 
     return modelMeta?.hasNonDefaultViews;
   }

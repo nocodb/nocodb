@@ -74,6 +74,8 @@ const parseConditionV2 = async (
 ) => {
   const knex = baseModelSqlv2.dbDriver;
 
+  const context = baseModelSqlv2.context;
+
   let filter: Filter;
   if (!Array.isArray(_filter)) {
     if (!(_filter instanceof Filter)) filter = new Filter(_filter as Filter);
@@ -101,7 +103,7 @@ const parseConditionV2 = async (
       });
     };
   } else if (filter.is_group) {
-    const children = await filter.getChildren();
+    const children = await filter.getChildren(context);
 
     const qbs = await Promise.all(
       (children || []).map((child) =>
@@ -134,13 +136,16 @@ const parseConditionV2 = async (
     ) {
       (filter as any).groupby = true;
 
-      const column = await getRefColumnIfAlias(await filter.getColumn());
+      const column = await getRefColumnIfAlias(
+        context,
+        await filter.getColumn(context),
+      );
 
       if (
         column.uidt === UITypes.Lookup ||
         column.uidt === UITypes.LinkToAnotherRecord
       ) {
-        const model = await column.getModel();
+        const model = await column.getModel(context);
         const lkQb = await generateLookupSelectQuery({
           baseModelSqlv2,
           alias: alias,
@@ -159,12 +164,15 @@ const parseConditionV2 = async (
         // if qrCode or Barcode replace it with value column
         if ([UITypes.QrCode, UITypes.Barcode].includes(column.uidt))
           filter.fk_column_id = await column
-            .getColOptions<BarcodeColumn | QrCodeColumn>()
+            .getColOptions<BarcodeColumn | QrCodeColumn>(context)
             .then((col) => col.fk_column_id);
       }
     }
 
-    const column = await getRefColumnIfAlias(await filter.getColumn());
+    const column = await getRefColumnIfAlias(
+      context,
+      await filter.getColumn(context),
+    );
     if (!column) {
       if (throwErrorIfInvalid) {
         NcError.fieldNotFound(filter.fk_column_id);
@@ -172,14 +180,15 @@ const parseConditionV2 = async (
       return;
     }
     if (column.uidt === UITypes.LinkToAnotherRecord) {
-      const colOptions =
-        (await column.getColOptions()) as LinkToAnotherRecordColumn;
-      const childColumn = await colOptions.getChildColumn();
-      const parentColumn = await colOptions.getParentColumn();
-      const childModel = await childColumn.getModel();
-      await childModel.getColumns();
-      const parentModel = await parentColumn.getModel();
-      await parentModel.getColumns();
+      const colOptions = (await column.getColOptions(
+        context,
+      )) as LinkToAnotherRecordColumn;
+      const childColumn = await colOptions.getChildColumn(context);
+      const parentColumn = await colOptions.getParentColumn(context);
+      const childModel = await childColumn.getModel(context);
+      await childModel.getColumns(context);
+      const parentModel = await parentColumn.getModel(context);
+      await parentModel.getColumns(context);
 
       let relationType = colOptions.type;
 
@@ -325,9 +334,9 @@ const parseConditionV2 = async (
           } else qbP.whereIn(childColumn.column_name, selectQb);
         };
       } else if (relationType === RelationTypes.MANY_TO_MANY) {
-        const mmModel = await colOptions.getMMModel();
-        const mmParentColumn = await colOptions.getMMParentColumn();
-        const mmChildColumn = await colOptions.getMMChildColumn();
+        const mmModel = await colOptions.getMMModel(context);
+        const mmParentColumn = await colOptions.getMMParentColumn(context);
+        const mmChildColumn = await colOptions.getMMChildColumn(context);
 
         if (
           ['blank', 'notblank', 'checked', 'notchecked'].includes(
@@ -428,7 +437,7 @@ const parseConditionV2 = async (
           baseModelSqlv2,
           knex,
           alias,
-          columnOptions: (await column.getColOptions()) as RollupColumn,
+          columnOptions: (await column.getColOptions(context)) as RollupColumn,
         })
       ).builder;
       return parseConditionV2(
@@ -445,8 +454,8 @@ const parseConditionV2 = async (
         builder,
       );
     } else if (column.uidt === UITypes.Formula && !customWhereClause) {
-      const model = await column.getModel();
-      const formula = await column.getColOptions<FormulaColumn>();
+      const model = await column.getModel(context);
+      const formula = await column.getColOptions<FormulaColumn>(context);
       const builder = (
         await formulaQueryBuilderv2(
           baseModelSqlv2,
@@ -479,9 +488,9 @@ const parseConditionV2 = async (
       ['like', 'nlike'].includes(filter.comparison_op)
     ) {
       // get column name for CreatedBy, LastModifiedBy
-      column.column_name = await getColumnName(column);
+      column.column_name = await getColumnName(context, column);
 
-      const baseUsers = await BaseUser.getUsersList({
+      const baseUsers = await BaseUser.getUsersList(context, {
         base_id: column.base_id,
       });
       return (qb: Knex.QueryBuilder) => {
@@ -573,7 +582,7 @@ const parseConditionV2 = async (
       const _val = customWhereClause ? customWhereClause : filter.value;
 
       // get column name for CreateTime, LastModifiedTime
-      column.column_name = await getColumnName(column);
+      column.column_name = await getColumnName(context, column);
 
       return (qb: Knex.QueryBuilder) => {
         let [field, val] = [_field, _val];
@@ -1240,21 +1249,23 @@ async function generateLookupCondition(
   aliasCount = { count: 0 },
   throwErrorIfInvalid = false,
 ): Promise<any> {
-  const colOptions = await col.getColOptions<LookupColumn>();
-  const relationColumn = await colOptions.getRelationColumn();
+  const context = baseModelSqlv2.context;
+
+  const colOptions = await col.getColOptions<LookupColumn>(context);
+  const relationColumn = await colOptions.getRelationColumn(context);
   const relationColumnOptions =
-    await relationColumn.getColOptions<LinkToAnotherRecordColumn>();
+    await relationColumn.getColOptions<LinkToAnotherRecordColumn>(context);
   // const relationModel = await relationColumn.getModel();
-  const lookupColumn = await colOptions.getLookupColumn();
+  const lookupColumn = await colOptions.getLookupColumn(context);
   const alias = getAlias(aliasCount);
   let qb;
   {
-    const childColumn = await relationColumnOptions.getChildColumn();
-    const parentColumn = await relationColumnOptions.getParentColumn();
-    const childModel = await childColumn.getModel();
-    await childModel.getColumns();
-    const parentModel = await parentColumn.getModel();
-    await parentModel.getColumns();
+    const childColumn = await relationColumnOptions.getChildColumn(context);
+    const parentColumn = await relationColumnOptions.getParentColumn(context);
+    const childModel = await childColumn.getModel(context);
+    await childModel.getColumns(context);
+    const parentModel = await parentColumn.getModel(context);
+    await parentModel.getColumns(context);
 
     let relationType = relationColumnOptions.type;
 
@@ -1330,9 +1341,13 @@ async function generateLookupCondition(
         else qbP.whereIn(childColumn.column_name, qb);
       };
     } else if (relationType === RelationTypes.MANY_TO_MANY) {
-      const mmModel = await relationColumnOptions.getMMModel();
-      const mmParentColumn = await relationColumnOptions.getMMParentColumn();
-      const mmChildColumn = await relationColumnOptions.getMMChildColumn();
+      const mmModel = await relationColumnOptions.getMMModel(context);
+      const mmParentColumn = await relationColumnOptions.getMMParentColumn(
+        context,
+      );
+      const mmChildColumn = await relationColumnOptions.getMMChildColumn(
+        context,
+      );
 
       const childAlias = `__nc${aliasCount.count++}`;
 
@@ -1391,6 +1406,8 @@ async function nestedConditionJoin(
   aliasCount: { count: number },
   throwErrorIfInvalid = false,
 ) {
+  const context = baseModelSqlv2.context;
+
   if (
     lookupColumn.uidt === UITypes.Lookup ||
     lookupColumn.uidt === UITypes.LinkToAnotherRecord
@@ -1398,19 +1415,19 @@ async function nestedConditionJoin(
     const relationColumn =
       lookupColumn.uidt === UITypes.Lookup
         ? await (
-            await lookupColumn.getColOptions<LookupColumn>()
-          ).getRelationColumn()
+            await lookupColumn.getColOptions<LookupColumn>(context)
+          ).getRelationColumn(context)
         : lookupColumn;
     const relationColOptions =
-      await relationColumn.getColOptions<LinkToAnotherRecordColumn>();
+      await relationColumn.getColOptions<LinkToAnotherRecordColumn>(context);
     const relAlias = `__nc${aliasCount.count++}`;
 
-    const childColumn = await relationColOptions.getChildColumn();
-    const parentColumn = await relationColOptions.getParentColumn();
-    const childModel = await childColumn.getModel();
-    await childModel.getColumns();
-    const parentModel = await parentColumn.getModel();
-    await parentModel.getColumns();
+    const childColumn = await relationColOptions.getChildColumn(context);
+    const parentColumn = await relationColOptions.getParentColumn(context);
+    const childModel = await childColumn.getModel(context);
+    await childModel.getColumns(context);
+    const parentModel = await parentColumn.getModel(context);
+    await parentModel.getColumns(context);
     {
       switch (relationColOptions.type) {
         case RelationTypes.HAS_MANY:
@@ -1439,9 +1456,13 @@ async function nestedConditionJoin(
           break;
         case 'mm':
           {
-            const mmModel = await relationColOptions.getMMModel();
-            const mmParentColumn = await relationColOptions.getMMParentColumn();
-            const mmChildColumn = await relationColOptions.getMMChildColumn();
+            const mmModel = await relationColOptions.getMMModel(context);
+            const mmParentColumn = await relationColOptions.getMMParentColumn(
+              context,
+            );
+            const mmChildColumn = await relationColOptions.getMMChildColumn(
+              context,
+            );
 
             const assocAlias = `__nc${aliasCount.count++}`;
 
@@ -1470,8 +1491,8 @@ async function nestedConditionJoin(
         baseModelSqlv2,
         filter,
         await (
-          await lookupColumn.getColOptions<LookupColumn>()
-        ).getLookupColumn(),
+          await lookupColumn.getColOptions<LookupColumn>(context)
+        ).getLookupColumn(context),
         qb,
         knex,
         relAlias,
@@ -1542,7 +1563,7 @@ async function nestedConditionJoin(
         baseModelSqlv2,
         new Filter({
           ...filter,
-          fk_model_id: (await lookupColumn.getModel()).id,
+          fk_model_id: (await lookupColumn.getModel(context)).id,
           fk_column_id: lookupColumn?.id,
         }),
         aliasCount,

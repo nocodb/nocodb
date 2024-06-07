@@ -3,6 +3,7 @@ import { RelationTypes, UITypes } from 'nocodb-sdk';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import type { MetaService } from '~/meta/meta.service';
 import type { NcUpgraderCtx } from './NcUpgrader';
+import type { NcContext } from '~/interface/config';
 import { MetaTable } from '~/utils/globals';
 import { Source } from '~/models';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
@@ -11,36 +12,40 @@ import { Model } from '~/models';
 const logger = new Logger('LTARIndexUpgrader');
 
 // An upgrader for adding missing index of LTAR relations in XCDB sources
-async function upgradeModelRelationsIndex({
-  model,
-  indexes,
-  ncMeta,
-  sqlClient,
-}: {
-  ncMeta: MetaService;
-  model: Model;
-  sqlClient: ReturnType<
-    (typeof NcConnectionMgrv2)['getSqlClient']
-  > extends Promise<infer U>
-    ? U
-    : ReturnType<(typeof NcConnectionMgrv2)['getSqlClient']>;
-  indexes: {
-    cn: string;
-    key_name: string;
+async function upgradeModelRelationsIndex(
+  context: NcContext,
+  {
+    model,
+    indexes,
+    ncMeta,
+    sqlClient,
+  }: {
+    ncMeta: MetaService;
+    model: Model;
+    sqlClient: ReturnType<
+      (typeof NcConnectionMgrv2)['getSqlClient']
+    > extends Promise<infer U>
+      ? U
+      : ReturnType<(typeof NcConnectionMgrv2)['getSqlClient']>;
+    indexes: {
+      cn: string;
+      key_name: string;
 
-    type: string;
-    rqd: boolean | number;
-    cst: string;
-    cstn: string;
-  }[];
-}) {
+      type: string;
+      rqd: boolean | number;
+      cst: string;
+      cstn: string;
+    }[];
+  },
+) {
   // Iterate over each column and upgrade LTAR
-  for (const column of await model.getColumns(ncMeta)) {
+  for (const column of await model.getColumns(context, ncMeta)) {
     if (column.uidt !== UITypes.LinkToAnotherRecord) {
       continue;
     }
 
     const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
+      context,
       ncMeta,
     );
 
@@ -54,10 +59,10 @@ async function upgradeModelRelationsIndex({
       case RelationTypes.BELONGS_TO:
         {
           // const parentCol = await colOptions.getParentColumn(ncMeta);
-          const childCol = await colOptions.getChildColumn(ncMeta);
+          const childCol = await colOptions.getChildColumn(context, ncMeta);
 
           // const parentModel = await parentCol.getModel(ncMeta);
-          const childModel = await childCol.getModel(ncMeta);
+          const childModel = await childCol.getModel(context, ncMeta);
 
           // check index already exists or not
           const indexExists = indexes.find((index) => {
@@ -92,17 +97,24 @@ async function upgradeModelRelationsIndex({
 }
 
 // An upgrader for adding missing index for LTAR relations in XCDB sources
-async function upgradeBaseRelations({
-  ncMeta,
-  source,
-}: {
-  ncMeta: MetaService;
-  source: Source;
-}) {
+async function upgradeBaseRelations(
+  context: NcContext,
+  {
+    ncMeta,
+    source,
+  }: {
+    ncMeta: MetaService;
+    source: Source;
+  },
+) {
   const sqlClient = await NcConnectionMgrv2.getSqlClient(source, ncMeta.knex);
 
   // get models for the base
-  const models = await ncMeta.metaList2(null, source.id, MetaTable.MODELS);
+  const models = await ncMeta.metaList2(
+    context.workspace_id,
+    context.base_id,
+    MetaTable.MODELS,
+  );
 
   // get all columns and filter out relations and create index if not exists
   for (const model of models) {
@@ -122,7 +134,7 @@ async function upgradeBaseRelations({
       });
     });
 
-    await upgradeModelRelationsIndex({
+    await upgradeModelRelationsIndex(context, {
       ncMeta,
       model: new Model(model),
       sqlClient,
@@ -139,11 +151,8 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
   );
 
   // get all xcdb sources
-  const sources = await ncMeta.metaList2(null, null, MetaTable.BASES, {
-    condition: {
-      is_meta: 1,
-    },
-    orderBy: {},
+  const sources = await ncMeta.knexConnection(MetaTable.BASES).where({
+    is_meta: 1,
   });
 
   if (!sources.length) return;
@@ -152,18 +161,23 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
   for (const _base of sources) {
     const source = new Source(_base);
 
+    const context = {
+      workspace_id: source.fk_workspace_id,
+      base_id: source.id,
+    };
+
     // skip if not pg, since for other db we don't need to upgrade
     if (ncMeta.knex.clientType() !== 'pg') {
       continue;
     }
-    const base = await source.getProject(ncMeta);
+    const base = await source.getProject(context, ncMeta);
 
     // skip deleted bases
     if (!base || base.deleted) continue;
 
     logger.log(`Upgrading source '${source.alias}'(${base.title})`);
 
-    await upgradeBaseRelations({
+    await upgradeBaseRelations(context, {
       ncMeta,
       source,
     });

@@ -16,7 +16,13 @@ const createTable = async (context, base, args = {}) => {
     .set('xc-auth', context.token)
     .send({ ...defaultValue, ...args });
 
-  const table: Model = await Model.get(response.body.id);
+  const table: Model = await Model.get(
+    {
+      workspace_id: base.fk_workspace_id,
+      base_id: base.id,
+    },
+    response.body.id,
+  );
   return table;
 };
 
@@ -38,19 +44,31 @@ const getColumnsByAPI = async (context, base, table) => {
 
 const getTable = async ({ base, name }: { base: Base; name: string }) => {
   const sources = await base.getSources();
-  return await Model.getByIdOrName({
-    base_id: base.id,
-    source_id: sources[0].id!,
-    table_name: name,
-  });
+  return await Model.getByIdOrName(
+    {
+      workspace_id: base.fk_workspace_id,
+      base_id: base.id,
+    },
+    {
+      base_id: base.id,
+      source_id: sources[0].id!,
+      table_name: name,
+    },
+  );
 };
 
 const getAllTables = async ({ base }: { base: Base }) => {
   const sources = await base.getSources();
-  const tables = await Model.list({
-    base_id: base.id,
-    source_id: sources[0].id!,
-  });
+  const tables = await Model.list(
+    {
+      workspace_id: base.fk_workspace_id,
+      base_id: base.id,
+    },
+    {
+      base_id: base.id,
+      source_id: sources[0].id!,
+    },
+  );
 
   return tables;
 };

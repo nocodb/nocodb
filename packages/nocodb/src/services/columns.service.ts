@@ -24,7 +24,7 @@ import type { Base, LinkToAnotherRecordColumn } from '~/models';
 import type CustomKnex from '~/db/CustomKnex';
 import type SqlClient from '~/db/sql-client/lib/SqlClient';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
-import type { NcRequest } from '~/interface/config';
+import type { NcContext, NcRequest } from '~/interface/config';
 import {
   BaseUser,
   CalendarRange,
@@ -80,10 +80,45 @@ interface ReusableParams {
 }
 
 async function reuseOrSave(
-  tp: keyof ReusableParams,
+  tp: 'table',
   params: ReusableParams,
   get: () => Promise<any>,
-) {
+): Promise<Model>;
+async function reuseOrSave(
+  tp: 'source',
+  params: ReusableParams,
+  get: () => Promise<any>,
+): Promise<Source>;
+async function reuseOrSave(
+  tp: 'base',
+  params: ReusableParams,
+  get: () => Promise<any>,
+): Promise<Base>;
+async function reuseOrSave(
+  tp: 'dbDriver',
+  params: ReusableParams,
+  get: () => Promise<any>,
+): Promise<CustomKnex>;
+async function reuseOrSave(
+  tp: 'sqlClient',
+  params: ReusableParams,
+  get: () => Promise<any>,
+): Promise<ReturnType<typeof NcConnectionMgrv2.getSqlClient>>;
+async function reuseOrSave(
+  tp: 'sqlMgr',
+  params: ReusableParams,
+  get: () => Promise<any>,
+): Promise<SqlMgrv2>;
+async function reuseOrSave(
+  tp: 'baseModel',
+  params: ReusableParams,
+  get: () => Promise<any>,
+): Promise<BaseModelSqlv2>;
+async function reuseOrSave(
+  tp: string,
+  params: ReusableParams,
+  get: () => Promise<any>,
+): Promise<any> {
   if (params[tp]) {
     return params[tp];
   }
@@ -102,7 +137,10 @@ export class ColumnsService {
     protected readonly appHooksService: AppHooksService,
   ) {}
 
-  async updateFormulas(args: { oldColumn: any; colBody: any }) {
+  async updateFormulas(
+    context: NcContext,
+    args: { oldColumn: any; colBody: any },
+  ) {
     const { oldColumn, colBody } = args;
 
     // update formula if column name or title is changed
@@ -124,7 +162,7 @@ export class ColumnsService {
           );
 
           // update the formula_raw and set parsed_tree to null to reparse the formula
-          await FormulaColumn.update(oldColumn.id, {
+          await FormulaColumn.update(context, oldColumn.id, {
             formula_raw: new_formula_raw,
             parsed_tree: null,
           });
@@ -133,27 +171,30 @@ export class ColumnsService {
     }
   }
 
-  async columnUpdate(param: {
-    req?: any;
-    columnId: string;
-    column: ColumnReqType & { colOptions?: any };
-    cookie?: any;
-    user: UserType;
-    reuse?: ReusableParams;
-  }) {
+  async columnUpdate(
+    context: NcContext,
+    param: {
+      req?: any;
+      columnId: string;
+      column: ColumnReqType & { colOptions?: any };
+      cookie?: any;
+      user: UserType;
+      reuse?: ReusableParams;
+    },
+  ) {
     const reuse = param.reuse || {};
 
     const { cookie } = param;
-    const column = await Column.get({ colId: param.columnId });
+    const column = await Column.get(context, { colId: param.columnId });
 
     const table = await reuseOrSave('table', reuse, async () =>
-      Model.getWithInfo({
+      Model.getWithInfo(context, {
         id: column.fk_model_id,
       }),
     );
 
     const source = await reuseOrSave('source', reuse, async () =>
-      Source.get(table.source_id),
+      Source.get(context, table.source_id),
     );
 
     const sqlClient = await reuseOrSave('sqlClient', reuse, async () =>
@@ -181,7 +222,7 @@ export class ColumnsService {
       let colName = param.column.column_name.slice(0, mxColumnLength - 5);
       let suffix = 1;
       while (
-        !(await Column.checkTitleAvailable({
+        !(await Column.checkTitleAvailable(context, {
           column_name: colName,
           fk_model_id: column.fk_model_id,
           exclude_id: param.columnId,
@@ -212,7 +253,7 @@ export class ColumnsService {
       !isVirtualCol(param.column) &&
       !isCreatedOrLastModifiedTimeCol(param.column) &&
       !isCreatedOrLastModifiedByCol(param.column) &&
-      !(await Column.checkTitleAvailable({
+      !(await Column.checkTitleAvailable(context, {
         column_name: param.column.column_name,
         fk_model_id: column.fk_model_id,
         exclude_id: param.columnId,
@@ -221,7 +262,7 @@ export class ColumnsService {
       NcError.badRequest('Duplicate column name');
     }
     if (
-      !(await Column.checkAliasAvailable({
+      !(await Column.checkAliasAvailable(context, {
         title: param.column.title,
         fk_model_id: column.fk_model_id,
         exclude_id: param.columnId,
@@ -253,7 +294,7 @@ export class ColumnsService {
     ) {
       if (column.uidt === colBody.uidt) {
         if ([UITypes.QrCode, UITypes.Barcode].includes(column.uidt)) {
-          await Column.update(column.id, {
+          await Column.update(context, column.id, {
             ...column,
             ...colBody,
           } as Column);
@@ -266,17 +307,17 @@ export class ColumnsService {
             formula: colBody.formula || colBody.formula_raw,
             columns: table.columns,
             column,
-            clientOrSqlUi: source.type,
+            clientOrSqlUi: source.type as any,
             getMeta: async (modelId) => {
-              const model = await Model.get(modelId);
-              await model.getColumns();
+              const model = await Model.get(context, modelId);
+              await model.getColumns(context);
               return model;
             },
           });
 
           try {
             const baseModel = await reuseOrSave('baseModel', reuse, async () =>
-              Model.getBaseModelSQL({
+              Model.getBaseModelSQL(context, {
                 id: table.id,
                 dbDriver: await reuseOrSave('dbDriver', reuse, async () =>
                   NcConnectionMgrv2.get(source),
@@ -299,14 +340,14 @@ export class ColumnsService {
             NcError.badRequest('Invalid Formula');
           }
 
-          await Column.update(column.id, {
+          await Column.update(context, column.id, {
             // title: colBody.title,
             ...column,
             ...colBody,
           });
         } else {
           if (colBody.title !== column.title) {
-            await Column.updateAlias(param.columnId, {
+            await Column.updateAlias(context, param.columnId, {
               title: colBody.title,
             });
           }
@@ -316,7 +357,7 @@ export class ColumnsService {
               column.uidt,
             )
           ) {
-            await Column.updateMeta({
+            await Column.updateMeta(context, {
               colId: param.columnId,
               meta: colBody.meta,
             });
@@ -324,7 +365,7 @@ export class ColumnsService {
 
           if (isLinksOrLTAR(column)) {
             if ('meta' in colBody) {
-              await Column.updateMeta({
+              await Column.updateMeta(context, {
                 colId: param.columnId,
                 meta: {
                   ...column.meta,
@@ -350,7 +391,7 @@ export class ColumnsService {
               (colBody as Column<LinkToAnotherRecordColumn>).colOptions
                 .fk_target_view_id === null
             ) {
-              await Column.updateTargetView({
+              await Column.updateTargetView(context, {
                 colId: param.columnId,
                 fk_target_view_id: (
                   colBody as Column<LinkToAnotherRecordColumn>
@@ -368,9 +409,10 @@ export class ColumnsService {
             colBody.column_order?.view_id
           ) {
             const viewColumn = (
-              await View.getColumns(colBody.column_order.view_id)
+              await View.getColumns(context, colBody.column_order.view_id)
             ).find((col) => col.fk_column_id === column.id);
             await View.updateColumn(
+              context,
               colBody.column_order.view_id,
               viewColumn.id,
               {
@@ -380,7 +422,7 @@ export class ColumnsService {
           }
         }
 
-        await this.updateRollupOrLookup(colBody, column);
+        await this.updateRollupOrLookup(context, colBody, column);
       } else {
         NcError.notImplemented(`Updating ${colBody.uidt} => ${colBody.uidt}`);
       }
@@ -405,7 +447,7 @@ export class ColumnsService {
       ].includes(colBody.uidt)
     ) {
       // allow updating of title only
-      await Column.update(param.columnId, {
+      await Column.update(context, param.columnId, {
         ...column,
         title: colBody.title,
       });
@@ -415,7 +457,7 @@ export class ColumnsService {
       colBody = await getColumnPropsFromUIDT(colBody, source);
 
       const baseModel = await reuseOrSave('baseModel', reuse, async () =>
-        Model.getBaseModelSQL({
+        Model.getBaseModelSQL(context, {
           id: table.id,
           dbDriver: await reuseOrSave('dbDriver', reuse, async () =>
             NcConnectionMgrv2.get(source),
@@ -488,17 +530,19 @@ export class ColumnsService {
           );
 
           const baseModel = await reuseOrSave('baseModel', reuse, async () =>
-            Model.getBaseModelSQL({
+            Model.getBaseModelSQL(context, {
               id: table.id,
               dbDriver: dbDriver,
             }),
           );
 
           const data = await baseModel.execAndParse(
-            baseModel.dbDriver.raw('SELECT DISTINCT ?? FROM ??', [
-              column.column_name,
-              baseModel.getTnPath(table.table_name),
-            ]),
+            baseModel.dbDriver
+              .raw('SELECT DISTINCT ?? FROM ??', [
+                column.column_name,
+                baseModel.getTnPath(table.table_name),
+              ])
+              .toQuery(),
             null,
             {
               raw: true,
@@ -848,13 +892,13 @@ export class ColumnsService {
               };
 
               const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
-                ProjectMgrv2.getSqlMgr({
+                ProjectMgrv2.getSqlMgr(context, {
                   id: source.base_id,
                 }),
               );
               await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
 
-              await Column.update(param.columnId, {
+              await Column.update(context, param.columnId, {
                 ...column,
               });
             }
@@ -1057,7 +1101,7 @@ export class ColumnsService {
               };
 
               // update formula with new column name
-              await this.updateFormulas({
+              await this.updateFormulas(context, {
                 oldColumn: column,
                 colBody,
               });
@@ -1071,17 +1115,17 @@ export class ColumnsService {
       };
 
       const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
-        ProjectMgrv2.getSqlMgr({ id: source.base_id }),
+        ProjectMgrv2.getSqlMgr(context, { id: source.base_id }),
       );
       await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
 
-      await Column.update(param.columnId, {
+      await Column.update(context, param.columnId, {
         ...colBody,
       });
     } else if (colBody.uidt === UITypes.User) {
       // handle default value for user column
       if (colBody.cdf) {
-        const baseUsers = await BaseUser.getUsersList({
+        const baseUsers = await BaseUser.getUsersList(context, {
           base_id: source.base_id,
           include_ws_deleted: false,
         });
@@ -1116,7 +1160,7 @@ export class ColumnsService {
           column.meta?.is_multi === true
         ) {
           const baseModel = await reuseOrSave('baseModel', reuse, async () =>
-            Model.getBaseModelSQL({
+            Model.getBaseModelSQL(context, {
               id: table.id,
               dbDriver: await reuseOrSave('dbDriver', reuse, async () =>
                 NcConnectionMgrv2.get(source),
@@ -1192,7 +1236,7 @@ export class ColumnsService {
                 };
 
                 // update formula with new column name
-                await this.updateFormulas({
+                await this.updateFormulas(context, {
                   oldColumn: column,
                   colBody,
                 });
@@ -1206,11 +1250,11 @@ export class ColumnsService {
         };
 
         const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
-          ProjectMgrv2.getSqlMgr({ id: source.base_id }),
+          ProjectMgrv2.getSqlMgr(context, { id: source.base_id }),
         );
         await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
 
-        await Column.update(param.columnId, {
+        await Column.update(context, param.columnId, {
           ...colBody,
         });
       } else if (
@@ -1218,7 +1262,7 @@ export class ColumnsService {
       ) {
         // email/text to user
         const baseModel = await reuseOrSave('baseModel', reuse, async () =>
-          Model.getBaseModelSQL({
+          Model.getBaseModelSQL(context, {
             id: table.id,
             dbDriver: await reuseOrSave('dbDriver', reuse, async () =>
               NcConnectionMgrv2.get(source),
@@ -1226,7 +1270,7 @@ export class ColumnsService {
           }),
         );
 
-        const baseUsers = await BaseUser.getUsersList({
+        const baseUsers = await BaseUser.getUsersList(context, {
           base_id: column.base_id,
         });
 
@@ -1308,7 +1352,7 @@ export class ColumnsService {
                 };
 
                 // update formula with new column name
-                await this.updateFormulas({
+                await this.updateFormulas(context, {
                   oldColumn: column,
                   colBody,
                 });
@@ -1322,11 +1366,11 @@ export class ColumnsService {
         };
 
         const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
-          ProjectMgrv2.getSqlMgr({ id: source.base_id }),
+          ProjectMgrv2.getSqlMgr(context, { id: source.base_id }),
         );
         await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
 
-        await Column.update(param.columnId, {
+        await Column.update(context, param.columnId, {
           ...colBody,
         });
       } else {
@@ -1336,7 +1380,7 @@ export class ColumnsService {
       if ([UITypes.SingleLineText, UITypes.Email].includes(colBody.uidt)) {
         // user to email/text
         const baseModel = await reuseOrSave('baseModel', reuse, async () =>
-          Model.getBaseModelSQL({
+          Model.getBaseModelSQL(context, {
             id: table.id,
             dbDriver: await reuseOrSave('dbDriver', reuse, async () =>
               NcConnectionMgrv2.get(source),
@@ -1344,7 +1388,7 @@ export class ColumnsService {
           }),
         );
 
-        const baseUsers = await BaseUser.getUsersList({
+        const baseUsers = await BaseUser.getUsersList(context, {
           base_id: column.base_id,
         });
 
@@ -1383,7 +1427,7 @@ export class ColumnsService {
                 };
 
                 // update formula with new column name
-                await this.updateFormulas({
+                await this.updateFormulas(context, {
                   oldColumn: column,
                   colBody,
                 });
@@ -1397,11 +1441,11 @@ export class ColumnsService {
         };
 
         const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
-          ProjectMgrv2.getSqlMgr({ id: source.base_id }),
+          ProjectMgrv2.getSqlMgr(context, { id: source.base_id }),
         );
         await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
 
-        await Column.update(param.columnId, {
+        await Column.update(context, param.columnId, {
           ...colBody,
         });
       } else {
@@ -1429,7 +1473,7 @@ export class ColumnsService {
               };
 
               // update formula with new column name
-              await this.updateFormulas({
+              await this.updateFormulas(context, {
                 oldColumn: column,
                 colBody,
               });
@@ -1443,16 +1487,16 @@ export class ColumnsService {
       };
 
       const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
-        ProjectMgrv2.getSqlMgr({ id: source.base_id }),
+        ProjectMgrv2.getSqlMgr(context, { id: source.base_id }),
       );
       await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
 
-      await Column.update(param.columnId, {
+      await Column.update(context, param.columnId, {
         ...colBody,
       });
     }
 
-    await table.getColumns();
+    await table.getColumns(context);
 
     this.appHooksService.emit(AppEvents.COLUMN_UPDATE, {
       table,
@@ -1465,38 +1509,41 @@ export class ColumnsService {
     return table;
   }
 
-  async columnGet(param: { columnId: string }) {
-    return Column.get({ colId: param.columnId });
+  async columnGet(context: NcContext, param: { columnId: string }) {
+    return Column.get(context, { colId: param.columnId });
   }
 
-  async columnSetAsPrimary(param: { columnId: string }) {
-    const column = await Column.get({ colId: param.columnId });
-    return Model.updatePrimaryColumn(column.fk_model_id, column.id);
+  async columnSetAsPrimary(context: NcContext, param: { columnId: string }) {
+    const column = await Column.get(context, { colId: param.columnId });
+    return Model.updatePrimaryColumn(context, column.fk_model_id, column.id);
   }
 
-  async columnAdd(param: {
-    req: NcRequest;
-    tableId: string;
-    column: ColumnReqType;
-    user: UserType;
-    reuse?: ReusableParams;
-  }) {
+  async columnAdd(
+    context: NcContext,
+    param: {
+      req: NcRequest;
+      tableId: string;
+      column: ColumnReqType;
+      user: UserType;
+      reuse?: ReusableParams;
+    },
+  ) {
     validatePayload('swagger.json#/components/schemas/ColumnReq', param.column);
 
     const reuse = param.reuse || {};
 
     const table = await reuseOrSave('table', reuse, async () =>
-      Model.getWithInfo({
+      Model.getWithInfo(context, {
         id: param.tableId,
       }),
     );
 
     const source = await reuseOrSave('source', reuse, async () =>
-      Source.get(table.source_id),
+      Source.get(context, table.source_id),
     );
 
     const base = await reuseOrSave('base', reuse, async () =>
-      source.getProject(),
+      source.getProject(context),
     );
 
     if (param.column.title || param.column.column_name) {
@@ -1525,7 +1572,7 @@ export class ColumnsService {
         let colName = param.column.column_name.slice(0, mxColumnLength - 5);
         let suffix = 1;
         while (
-          !(await Column.checkTitleAvailable({
+          !(await Column.checkTitleAvailable(context, {
             column_name: colName,
             fk_model_id: param.tableId,
           }))
@@ -1554,7 +1601,7 @@ export class ColumnsService {
 
     if (
       !isVirtualCol(param.column) &&
-      !(await Column.checkTitleAvailable({
+      !(await Column.checkTitleAvailable(context, {
         column_name: param.column.column_name,
         fk_model_id: param.tableId,
       }))
@@ -1562,7 +1609,7 @@ export class ColumnsService {
       NcError.badRequest('Duplicate column name');
     }
     if (
-      !(await Column.checkAliasAvailable({
+      !(await Column.checkAliasAvailable(context, {
         title: param.column.title || param.column.column_name,
         fk_model_id: param.tableId,
       }))
@@ -1580,9 +1627,9 @@ export class ColumnsService {
     switch (colBody.uidt) {
       case UITypes.Rollup:
         {
-          await validateRollupPayload(param.column);
+          await validateRollupPayload(context, param.column);
 
-          await Column.insert({
+          await Column.insert(context, {
             ...colBody,
             fk_model_id: table.id,
           });
@@ -1590,9 +1637,9 @@ export class ColumnsService {
         break;
       case UITypes.Lookup:
         {
-          await validateLookupPayload(param.column);
+          await validateLookupPayload(context, param.column);
 
-          await Column.insert({
+          await Column.insert(context, {
             ...colBody,
             fk_model_id: table.id,
           });
@@ -1601,7 +1648,7 @@ export class ColumnsService {
 
       case UITypes.Links:
       case UITypes.LinkToAnotherRecord:
-        await this.createLTARColumn({
+        await this.createLTARColumn(context, {
           ...param,
           source,
           base,
@@ -1621,13 +1668,13 @@ export class ColumnsService {
         break;
 
       case UITypes.QrCode:
-        await Column.insert({
+        await Column.insert(context, {
           ...colBody,
           fk_model_id: table.id,
         });
         break;
       case UITypes.Barcode:
-        await Column.insert({
+        await Column.insert(context, {
           ...colBody,
           fk_model_id: table.id,
         });
@@ -1646,17 +1693,17 @@ export class ColumnsService {
             colOptions: colBody,
           },
           columns: table.columns,
-          clientOrSqlUi: source.type,
+          clientOrSqlUi: source.type as any,
           getMeta: async (modelId) => {
-            const model = await Model.get(modelId);
-            await model.getColumns();
+            const model = await Model.get(context, modelId);
+            await model.getColumns(context);
             return model;
           },
         });
 
         try {
           const baseModel = await reuseOrSave('baseModel', reuse, async () =>
-            Model.getBaseModelSQL({
+            Model.getBaseModelSQL(context, {
               id: table.id,
               dbDriver: await reuseOrSave('dbDriver', reuse, async () =>
                 NcConnectionMgrv2.get(source),
@@ -1678,7 +1725,7 @@ export class ColumnsService {
           NcError.badRequest('Invalid Formula');
         }
 
-        await Column.insert({
+        await Column.insert(context, {
           ...colBody,
           fk_model_id: table.id,
         });
@@ -1690,7 +1737,7 @@ export class ColumnsService {
       case UITypes.LastModifiedBy:
         {
           let columnName: string;
-          const columns = await table.getColumns();
+          const columns = await table.getColumns(context);
           // check if column already exists, then just create a new column in meta
           // else create a new column in meta and db
           const existingColumn = columns.find(
@@ -1753,14 +1800,14 @@ export class ColumnsService {
                 ],
               };
               const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
-                ProjectMgrv2.getSqlMgr({ id: source.base_id }),
+                ProjectMgrv2.getSqlMgr(context, { id: source.base_id }),
               );
               await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
             }
 
             const title = getUniqueColumnAliasName(table.columns, columnTitle);
 
-            await Column.insert({
+            await Column.insert(context, {
               ...colBody,
               title,
               system: 1,
@@ -1770,7 +1817,7 @@ export class ColumnsService {
           } else {
             columnName = existingColumn.column_name;
           }
-          await Column.insert({
+          await Column.insert(context, {
             ...colBody,
             fk_model_id: table.id,
             column_name: null,
@@ -1920,7 +1967,7 @@ export class ColumnsService {
           if (colBody.uidt === UITypes.User) {
             // handle default value for user column
             if (colBody.cdf) {
-              const baseUsers = await BaseUser.getUsersList({
+              const baseUsers = await BaseUser.getUsersList(context, {
                 base_id: base.id,
                 include_ws_deleted: false,
               });
@@ -1972,7 +2019,7 @@ export class ColumnsService {
             NcConnectionMgrv2.getSqlClient(source),
           );
           const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
-            ProjectMgrv2.getSqlMgr({ id: source.base_id }),
+            ProjectMgrv2.getSqlMgr(context, { id: source.base_id }),
           );
           await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
 
@@ -1995,7 +2042,7 @@ export class ColumnsService {
             Object.assign(colBody, insertedColumnMeta);
           }
 
-          await Column.insert({
+          await Column.insert(context, {
             ...colBody,
             fk_model_id: table.id,
           });
@@ -2003,7 +2050,7 @@ export class ColumnsService {
         break;
     }
 
-    await table.getColumns();
+    await table.getColumns(context);
 
     this.appHooksService.emit(AppEvents.COLUMN_CREATE, {
       table,
@@ -2020,6 +2067,7 @@ export class ColumnsService {
   }
 
   async columnDelete(
+    context: NcContext,
     param: {
       req?: any;
       columnId: string;
@@ -2031,7 +2079,7 @@ export class ColumnsService {
   ) {
     const reuse = param.reuse || {};
 
-    const column = await Column.get({ colId: param.columnId }, ncMeta);
+    const column = await Column.get(context, { colId: param.columnId }, ncMeta);
 
     if (column.system && !param.forceDeleteSystem) {
       NcError.badRequest(
@@ -2043,6 +2091,7 @@ export class ColumnsService {
 
     const table = await reuseOrSave('table', reuse, async () =>
       Model.getWithInfo(
+        context,
         {
           id: column.fk_model_id,
         },
@@ -2050,11 +2099,11 @@ export class ColumnsService {
       ),
     );
     const source = await reuseOrSave('source', reuse, async () =>
-      Source.get(table.source_id, false, ncMeta),
+      Source.get(context, table.source_id, false, ncMeta),
     );
 
     const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
-      ProjectMgrv2.getSqlMgr({ id: source.base_id }, ncMeta),
+      ProjectMgrv2.getSqlMgr(context, { id: source.base_id }, ncMeta),
     );
 
     /**
@@ -2074,14 +2123,14 @@ export class ColumnsService {
       case UITypes.QrCode:
       case UITypes.Barcode:
       case UITypes.Formula:
-        await Column.delete(param.columnId, ncMeta);
+        await Column.delete(context, param.columnId, ncMeta);
         break;
       // on deleting created/last modified columns, keep the column in table and delete the column from meta
       case UITypes.CreatedTime:
       case UITypes.LastModifiedTime:
       case UITypes.CreatedBy:
       case UITypes.LastModifiedBy: {
-        await Column.delete(param.columnId, ncMeta);
+        await Column.delete(context, param.columnId, ncMeta);
         break;
       }
       // Since Links is just an extended version of LTAR, we can use the same logic
@@ -2089,18 +2138,27 @@ export class ColumnsService {
       case UITypes.LinkToAnotherRecord:
         {
           const relationColOpt =
-            await column.getColOptions<LinkToAnotherRecordColumn>(ncMeta);
-          const childColumn = await relationColOpt.getChildColumn(ncMeta);
-          const childTable = await childColumn.getModel(ncMeta);
+            await column.getColOptions<LinkToAnotherRecordColumn>(
+              context,
+              ncMeta,
+            );
+          const childColumn = await relationColOpt.getChildColumn(
+            context,
+            ncMeta,
+          );
+          const childTable = await childColumn.getModel(context, ncMeta);
 
-          const parentColumn = await relationColOpt.getParentColumn(ncMeta);
-          const parentTable = await parentColumn.getModel(ncMeta);
+          const parentColumn = await relationColOpt.getParentColumn(
+            context,
+            ncMeta,
+          );
+          const parentTable = await parentColumn.getModel(context, ncMeta);
 
           switch (relationColOpt.type) {
             case 'bt':
             case 'hm':
               {
-                await this.deleteHmOrBtRelation({
+                await this.deleteHmOrBtRelation(context, {
                   relationColOpt,
                   source,
                   childColumn,
@@ -2114,7 +2172,7 @@ export class ColumnsService {
               break;
             case 'oo':
               {
-                await this.deleteOoRelation({
+                await this.deleteOoRelation(context, {
                   relationColOpt,
                   source,
                   childColumn,
@@ -2128,15 +2186,21 @@ export class ColumnsService {
               break;
             case 'mm':
               {
-                const mmTable = await relationColOpt.getMMModel(ncMeta);
+                const mmTable = await relationColOpt.getMMModel(
+                  context,
+                  ncMeta,
+                );
                 const mmParentCol = await relationColOpt.getMMParentColumn(
+                  context,
                   ncMeta,
                 );
                 const mmChildCol = await relationColOpt.getMMChildColumn(
+                  context,
                   ncMeta,
                 );
 
                 await this.deleteHmOrBtRelation(
+                  context,
                   {
                     relationColOpt: null,
                     parentColumn: parentColumn,
@@ -2152,6 +2216,7 @@ export class ColumnsService {
                 );
 
                 await this.deleteHmOrBtRelation(
+                  context,
                   {
                     relationColOpt: null,
                     parentColumn: childColumn,
@@ -2166,13 +2231,16 @@ export class ColumnsService {
                   true,
                 );
                 const columnsInRelatedTable: Column[] = await relationColOpt
-                  .getRelatedTable(ncMeta)
-                  .then((m) => m.getColumns(ncMeta));
+                  .getRelatedTable(context, ncMeta)
+                  .then((m) => m.getColumns(context, ncMeta));
 
                 for (const c of columnsInRelatedTable) {
                   if (!isLinksOrLTAR(c.uidt)) continue;
                   const colOpt =
-                    await c.getColOptions<LinkToAnotherRecordColumn>(ncMeta);
+                    await c.getColOptions<LinkToAnotherRecordColumn>(
+                      context,
+                      ncMeta,
+                    );
                   if (
                     colOpt.type === 'mm' &&
                     colOpt.fk_parent_column_id === childColumn.id &&
@@ -2183,62 +2251,75 @@ export class ColumnsService {
                     colOpt.fk_mm_child_column_id ===
                       relationColOpt.fk_mm_parent_column_id
                   ) {
-                    await Column.delete(c.id, ncMeta);
+                    await Column.delete(context, c.id, ncMeta);
                     break;
                   }
                 }
 
-                await Column.delete(relationColOpt.fk_column_id, ncMeta);
+                await Column.delete(
+                  context,
+                  relationColOpt.fk_column_id,
+                  ncMeta,
+                );
 
                 if (mmTable) {
                   // delete bt columns in m2m table
-                  await mmTable.getColumns(ncMeta);
+                  await mmTable.getColumns(context, ncMeta);
                   for (const c of mmTable.columns) {
                     if (!isLinksOrLTAR(c.uidt)) continue;
                     const colOpt =
-                      await c.getColOptions<LinkToAnotherRecordColumn>(ncMeta);
+                      await c.getColOptions<LinkToAnotherRecordColumn>(
+                        context,
+                        ncMeta,
+                      );
                     if (colOpt.type === 'bt') {
-                      await Column.delete(c.id, ncMeta);
+                      await Column.delete(context, c.id, ncMeta);
                     }
                   }
                 }
 
                 // delete hm columns in parent table
-                await parentTable.getColumns(ncMeta);
+                await parentTable.getColumns(context, ncMeta);
                 for (const c of parentTable.columns) {
                   if (!isLinksOrLTAR(c.uidt)) continue;
                   const colOpt =
-                    await c.getColOptions<LinkToAnotherRecordColumn>(ncMeta);
+                    await c.getColOptions<LinkToAnotherRecordColumn>(
+                      context,
+                      ncMeta,
+                    );
                   if (
                     colOpt.fk_related_model_id === relationColOpt.fk_mm_model_id
                   ) {
-                    await Column.delete(c.id, ncMeta);
+                    await Column.delete(context, c.id, ncMeta);
                   }
                 }
 
                 // delete hm columns in child table
-                await childTable.getColumns(ncMeta);
+                await childTable.getColumns(context, ncMeta);
                 for (const c of childTable.columns) {
                   if (!isLinksOrLTAR(c.uidt)) continue;
                   const colOpt =
-                    await c.getColOptions<LinkToAnotherRecordColumn>(ncMeta);
+                    await c.getColOptions<LinkToAnotherRecordColumn>(
+                      context,
+                      ncMeta,
+                    );
                   if (
                     colOpt.fk_related_model_id === relationColOpt.fk_mm_model_id
                   ) {
-                    await Column.delete(c.id, ncMeta);
+                    await Column.delete(context, c.id, ncMeta);
                   }
                 }
 
                 if (mmTable) {
                   // retrieve columns in m2m table again
-                  await mmTable.getColumns(ncMeta);
+                  await mmTable.getColumns(context, ncMeta);
 
                   // ignore deleting table if it has more than 2 columns
                   // the expected 2 columns would be table1_id & table2_id
                   if (mmTable.columns.length === 2) {
                     (mmTable as any).tn = mmTable.table_name;
                     await sqlMgr.sqlOpPlus(source, 'tableDelete', mmTable);
-                    await mmTable.delete(ncMeta);
+                    await mmTable.delete(context, ncMeta);
                   }
                 }
               }
@@ -2255,7 +2336,9 @@ export class ColumnsService {
         break;
       }
       case UITypes.SingleSelect: {
-        if (await KanbanView.IsColumnBeingUsedAsGroupingField(column.id)) {
+        if (
+          await KanbanView.IsColumnBeingUsedAsGroupingField(context, column.id)
+        ) {
           NcError.badRequest(
             `The column '${column.column_name}' is being used in Kanban View. Please delete Kanban View first.`,
           );
@@ -2266,7 +2349,11 @@ export class ColumnsService {
       case UITypes.Date: {
         if (
           [UITypes.DateTime, UITypes.Date].includes(column.uidt) &&
-          (await CalendarRange.IsColumnBeingUsedAsRange(column.id, ncMeta))
+          (await CalendarRange.IsColumnBeingUsedAsRange(
+            context,
+            column.id,
+            ncMeta,
+          ))
         ) {
           NcError.badRequest(
             `The column '${column.column_name}' is being used in Calendar View. Please delete Calendar View first.`,
@@ -2300,14 +2387,15 @@ export class ColumnsService {
 
         await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
 
-        await Column.delete(param.columnId, ncMeta);
+        await Column.delete(context, param.columnId, ncMeta);
       }
     }
-    await table.getColumns(ncMeta);
+    await table.getColumns(context, ncMeta);
 
     const displayValueColumn = mapDefaultDisplayValue(table.columns);
     if (displayValueColumn) {
       await Model.updatePrimaryColumn(
+        context,
         displayValueColumn.fk_model_id,
         displayValueColumn.id,
         ncMeta,
@@ -2326,6 +2414,7 @@ export class ColumnsService {
   }
 
   deleteHmOrBtRelation = async (
+    context: NcContext,
     {
       relationColOpt,
       source,
@@ -2357,11 +2446,14 @@ export class ColumnsService {
       if (!relationColOpt) {
         foreignKeyName = (
           (
-            await childTable.getColumns(ncMeta).then(async (cols) => {
+            await childTable.getColumns(context, ncMeta).then(async (cols) => {
               for (const col of cols) {
                 if (col.uidt === UITypes.LinkToAnotherRecord) {
                   const colOptions =
-                    await col.getColOptions<LinkToAnotherRecordColumn>(ncMeta);
+                    await col.getColOptions<LinkToAnotherRecordColumn>(
+                      context,
+                      ncMeta,
+                    );
                   if (colOptions.fk_related_model_id === parentTable.id) {
                     return { colOptions };
                   }
@@ -2393,27 +2485,31 @@ export class ColumnsService {
 
     if (!relationColOpt) return;
     const columnsInRelatedTable: Column[] = await relationColOpt
-      .getRelatedTable(ncMeta)
-      .then((m) => m.getColumns(ncMeta));
+      .getRelatedTable(context, ncMeta)
+      .then((m) => m.getColumns(context, ncMeta));
     const relType = relationColOpt.type === 'bt' ? 'hm' : 'bt';
     for (const c of columnsInRelatedTable) {
       if (c.uidt !== UITypes.LinkToAnotherRecord) continue;
-      const colOpt = await c.getColOptions<LinkToAnotherRecordColumn>(ncMeta);
+      const colOpt = await c.getColOptions<LinkToAnotherRecordColumn>(
+        context,
+        ncMeta,
+      );
       if (
         colOpt.fk_parent_column_id === parentColumn.id &&
         colOpt.fk_child_column_id === childColumn.id &&
         colOpt.type === relType
       ) {
-        await Column.delete(c.id, ncMeta);
+        await Column.delete(context, c.id, ncMeta);
         break;
       }
     }
 
     // delete virtual columns
-    await Column.delete(relationColOpt.fk_column_id, ncMeta);
+    await Column.delete(context, relationColOpt.fk_column_id, ncMeta);
 
     if (!ignoreFkDelete) {
       const cTable = await Model.getWithInfo(
+        context,
         {
           id: childTable.id,
         },
@@ -2466,11 +2562,12 @@ export class ColumnsService {
 
       await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
       // delete foreign key column
-      await Column.delete(childColumn.id, ncMeta);
+      await Column.delete(context, childColumn.id, ncMeta);
     }
   };
 
   deleteOoRelation = async (
+    context: NcContext,
     {
       relationColOpt,
       source,
@@ -2502,11 +2599,14 @@ export class ColumnsService {
       if (!relationColOpt) {
         foreignKeyName = (
           (
-            await childTable.getColumns(ncMeta).then(async (cols) => {
+            await childTable.getColumns(context, ncMeta).then(async (cols) => {
               for (const col of cols) {
                 if (col.uidt === UITypes.LinkToAnotherRecord) {
                   const colOptions =
-                    await col.getColOptions<LinkToAnotherRecordColumn>(ncMeta);
+                    await col.getColOptions<LinkToAnotherRecordColumn>(
+                      context,
+                      ncMeta,
+                    );
                   if (colOptions.fk_related_model_id === parentTable.id) {
                     return { colOptions };
                   }
@@ -2538,27 +2638,31 @@ export class ColumnsService {
 
     if (!relationColOpt) return;
     const columnsInRelatedTable: Column[] = await relationColOpt
-      .getRelatedTable(ncMeta)
-      .then((m) => m.getColumns(ncMeta));
+      .getRelatedTable(context, ncMeta)
+      .then((m) => m.getColumns(context, ncMeta));
     const relType = RelationTypes.ONE_TO_ONE;
     for (const c of columnsInRelatedTable) {
       if (c.uidt !== UITypes.LinkToAnotherRecord) continue;
-      const colOpt = await c.getColOptions<LinkToAnotherRecordColumn>(ncMeta);
+      const colOpt = await c.getColOptions<LinkToAnotherRecordColumn>(
+        context,
+        ncMeta,
+      );
       if (
         colOpt.fk_parent_column_id === parentColumn.id &&
         colOpt.fk_child_column_id === childColumn.id &&
         colOpt.type === relType
       ) {
-        await Column.delete(c.id, ncMeta);
+        await Column.delete(context, c.id, ncMeta);
         break;
       }
     }
 
     // delete virtual columns
-    await Column.delete(relationColOpt.fk_column_id, ncMeta);
+    await Column.delete(context, relationColOpt.fk_column_id, ncMeta);
 
     if (!ignoreFkDelete) {
       const cTable = await Model.getWithInfo(
+        context,
         {
           id: childTable.id,
         },
@@ -2612,40 +2716,43 @@ export class ColumnsService {
       await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
 
       // delete foreign key column
-      await Column.delete(childColumn.id, ncMeta);
+      await Column.delete(context, childColumn.id, ncMeta);
     }
   };
 
-  async createLTARColumn(param: {
-    tableId: string;
-    column: ColumnReqType;
-    source: Source;
-    base: Base;
-    reuse?: ReusableParams;
-    colExtra?: any;
-  }) {
+  async createLTARColumn(
+    context: NcContext,
+    param: {
+      tableId: string;
+      column: ColumnReqType;
+      source: Source;
+      base: Base;
+      reuse?: ReusableParams;
+      colExtra?: any;
+    },
+  ) {
     validateParams(['parentId', 'childId', 'type'], param.column);
 
     const reuse = param.reuse ?? {};
 
     // get parent and child models
-    const parent = await Model.getWithInfo({
+    const parent = await Model.getWithInfo(context, {
       id: (param.column as LinkToAnotherColumnReqType).parentId,
     });
-    const child = await Model.getWithInfo({
+    const child = await Model.getWithInfo(context, {
       id: (param.column as LinkToAnotherColumnReqType).childId,
     });
     let childColumn: Column;
     const childView: View | null = (param.column as LinkToAnotherColumnReqType)
       ?.childViewId
-      ? await View.getByTitleOrId({
+      ? await View.getByTitleOrId(context, {
           fk_model_id: child.id,
           titleOrId: (param.column as LinkToAnotherColumnReqType).childViewId,
         })
       : null;
 
     const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
-      ProjectMgrv2.getSqlMgr({
+      ProjectMgrv2.getSqlMgr(context, {
         id: param.source.base_id,
       }),
     );
@@ -2664,7 +2771,7 @@ export class ColumnsService {
     ) {
       // populate fk column name
       const fkColName = getUniqueColumnName(
-        await child.getColumns(),
+        await child.getColumns(context),
         `${parent.table_name}_id`,
       );
 
@@ -2704,13 +2811,13 @@ export class ColumnsService {
 
         await sqlMgr.sqlOpPlus(param.source, 'tableUpdate', tableUpdateBody);
 
-        const { id } = await Column.insert({
+        const { id } = await Column.insert(context, {
           ...newColumn,
           uidt: UITypes.ForeignKey,
           fk_model_id: child.id,
         });
 
-        childColumn = await Column.get({ colId: id });
+        childColumn = await Column.get(context, { colId: id });
 
         // ignore relation creation if virtual
         if (!(param.column as LinkToAnotherColumnReqType).virtual) {
@@ -2734,7 +2841,7 @@ export class ColumnsService {
           param.source.type === 'pg' ||
           (param.column as LinkToAnotherColumnReqType).virtual
         ) {
-          await this.createColumnIndex({
+          await this.createColumnIndex(context, {
             column: new Column({
               ...newColumn,
               fk_model_id: child.id,
@@ -2746,6 +2853,7 @@ export class ColumnsService {
       }
 
       await createHmAndBtColumn(
+        context,
         child,
         parent,
         childColumn,
@@ -2762,7 +2870,7 @@ export class ColumnsService {
     } else if ((param.column as LinkToAnotherColumnReqType).type === 'oo') {
       // populate fk column name
       const fkColName = getUniqueColumnName(
-        await child.getColumns(),
+        await child.getColumns(context),
         `${parent.table_name}_id`,
       );
 
@@ -2803,13 +2911,13 @@ export class ColumnsService {
 
         await sqlMgr.sqlOpPlus(param.source, 'tableUpdate', tableUpdateBody);
 
-        const { id } = await Column.insert({
+        const { id } = await Column.insert(context, {
           ...newColumn,
           uidt: UITypes.ForeignKey,
           fk_model_id: child.id,
         });
 
-        childColumn = await Column.get({ colId: id });
+        childColumn = await Column.get(context, { colId: id });
 
         // ignore relation creation if virtual
         if (!(param.column as LinkToAnotherColumnReqType).virtual) {
@@ -2833,7 +2941,7 @@ export class ColumnsService {
           param.source.type === 'pg' ||
           (param.column as LinkToAnotherColumnReqType).virtual
         ) {
-          await this.createColumnIndex({
+          await this.createColumnIndex(context, {
             column: new Column({
               ...newColumn,
               fk_model_id: child.id,
@@ -2844,6 +2952,7 @@ export class ColumnsService {
         }
       }
       await createOOColumn(
+        context,
         child,
         parent,
         childColumn,
@@ -2907,13 +3016,18 @@ export class ColumnsService {
         columns: associateTableCols,
       });
 
-      const assocModel = await Model.insert(param.base.id, param.source.id, {
-        table_name: aTn,
-        title: aTnAlias,
-        // todo: sanitize
-        mm: true,
-        columns: associateTableCols,
-      });
+      const assocModel = await Model.insert(
+        context,
+        param.base.id,
+        param.source.id,
+        {
+          table_name: aTn,
+          title: aTnAlias,
+          // todo: sanitize
+          mm: true,
+          columns: associateTableCols,
+        },
+      );
 
       let foreignKeyName1;
       let foreignKeyName2;
@@ -2944,14 +3058,15 @@ export class ColumnsService {
         await sqlMgr.sqlOpPlus(param.source, 'relationCreate', rel1Args);
         await sqlMgr.sqlOpPlus(param.source, 'relationCreate', rel2Args);
       }
-      const parentCol = (await assocModel.getColumns())?.find(
+      const parentCol = (await assocModel.getColumns(context))?.find(
         (c) => c.column_name === parentCn,
       );
-      const childCol = (await assocModel.getColumns())?.find(
+      const childCol = (await assocModel.getColumns(context))?.find(
         (c) => c.column_name === childCn,
       );
 
       await createHmAndBtColumn(
+        context,
         assocModel,
         child,
         childCol,
@@ -2966,6 +3081,7 @@ export class ColumnsService {
         param.colExtra,
       );
       await createHmAndBtColumn(
+        context,
         assocModel,
         parent,
         parentCol,
@@ -2980,9 +3096,9 @@ export class ColumnsService {
         param.colExtra,
       );
 
-      await Column.insert({
+      await Column.insert(context, {
         title: getUniqueColumnAliasName(
-          await child.getColumns(),
+          await child.getColumns(context),
           pluralize(parent.title),
         ),
         uidt: isLinks ? UITypes.Links : UITypes.LinkToAnotherRecord,
@@ -3008,9 +3124,9 @@ export class ColumnsService {
         // if self referencing treat it as system field to hide from ui
         system: parent.id === child.id,
       });
-      await Column.insert({
+      await Column.insert(context, {
         title: getUniqueColumnAliasName(
-          await parent.getColumns(),
+          await parent.getColumns(context),
           param.column.title ?? pluralize(child.title),
         ),
 
@@ -3041,7 +3157,7 @@ export class ColumnsService {
       // todo: create index for virtual relations as well
       // create index for foreign key in pg
       if (param.source.type === 'pg') {
-        await this.createColumnIndex({
+        await this.createColumnIndex(context, {
           column: new Column({
             ...associateTableCols[0],
             fk_model_id: assocModel.id,
@@ -3049,7 +3165,7 @@ export class ColumnsService {
           source: param.source,
           sqlMgr,
         });
-        await this.createColumnIndex({
+        await this.createColumnIndex(context, {
           column: new Column({
             ...associateTableCols[1],
             fk_model_id: assocModel.id,
@@ -3061,22 +3177,25 @@ export class ColumnsService {
     }
   }
 
-  async createColumnIndex({
-    column,
-    sqlMgr,
-    source,
-    indexName = null,
-    nonUnique = true,
-  }: {
-    column: Column;
-    sqlMgr: SqlMgrv2;
-    source: Source;
-    indexName?: string;
-    nonUnique?: boolean;
-  }) {
+  async createColumnIndex(
+    context: NcContext,
+    {
+      column,
+      sqlMgr,
+      source,
+      indexName = null,
+      nonUnique = true,
+    }: {
+      column: Column;
+      sqlMgr: SqlMgrv2;
+      source: Source;
+      indexName?: string;
+      nonUnique?: boolean;
+    },
+  ) {
     // TODO: implement for snowflake (right now create index does not work with identifier quoting in snowflake - bug?)
     if (source.type === 'snowflake') return;
-    const model = await column.getModel();
+    const model = await column.getModel(context);
     const indexArgs = {
       columns: [column.column_name],
       tn: model.table_name,
@@ -3086,7 +3205,11 @@ export class ColumnsService {
     await sqlMgr.sqlOpPlus(source, 'indexCreate', indexArgs);
   }
 
-  async updateRollupOrLookup(colBody: any, column: Column<any>) {
+  async updateRollupOrLookup(
+    context: NcContext,
+    colBody: any,
+    column: Column<any>,
+  ) {
     // Validate rollup or lookup payload before proceeding with the update
     if (
       UITypes.Lookup === column.uidt &&
@@ -3096,8 +3219,8 @@ export class ColumnsService {
       ])
     ) {
       // Perform additional validation for lookup payload
-      await validateLookupPayload(colBody, column.id);
-      await Column.update(column.id, colBody);
+      await validateLookupPayload(context, colBody, column.id);
+      await Column.update(context, column.id, colBody);
     } else if (
       UITypes.Rollup === column.uidt &&
       validateRequiredField(colBody, [
@@ -3107,13 +3230,13 @@ export class ColumnsService {
       ])
     ) {
       // Perform additional validation for rollup payload
-      await validateRollupPayload(colBody);
-      await Column.update(column.id, colBody);
+      await validateRollupPayload(context, colBody);
+      await Column.update(context, column.id, colBody);
     }
   }
 
-  async columnsHash(tableId: string) {
-    const table = await Model.getWithInfo({
+  async columnsHash(context: NcContext, tableId: string) {
+    const table = await Model.getWithInfo(context, {
       id: tableId,
     });
 
@@ -3121,7 +3244,7 @@ export class ColumnsService {
       NcError.tableNotFound(tableId);
     }
 
-    const columns = await table.getColumns();
+    const columns = await table.getColumns(context);
 
     return {
       hash: hash(columns),
@@ -3129,6 +3252,7 @@ export class ColumnsService {
   }
 
   async columnBulk(
+    context: NcContext,
     tableId: string,
     params: {
       hash: string;
@@ -3141,7 +3265,7 @@ export class ColumnsService {
   ) {
     // TODO validatePayload
 
-    const table = await Model.getWithInfo({
+    const table = await Model.getWithInfo(context, {
       id: tableId,
     });
 
@@ -3149,7 +3273,7 @@ export class ColumnsService {
       NcError.tableNotFound(tableId);
     }
 
-    const columns = await table.getColumns();
+    const columns = await table.getColumns(context);
 
     if (hash(columns) !== params.hash) {
       NcError.badRequest(
@@ -3157,13 +3281,13 @@ export class ColumnsService {
       );
     }
 
-    const source = await Source.get(table.source_id);
+    const source = await Source.get(context, table.source_id);
 
     if (!source) {
       NcError.sourceNotFound(table.source_id);
     }
 
-    const base = await source.getProject();
+    const base = await source.getProject(context);
 
     if (!base) {
       NcError.baseNotFound(source.base_id);
@@ -3171,8 +3295,10 @@ export class ColumnsService {
 
     const dbDriver = await NcConnectionMgrv2.get(source);
     const sqlClient = await NcConnectionMgrv2.getSqlClient(source);
-    const sqlMgr = await ProjectMgrv2.getSqlMgr({ id: source.base_id });
-    const baseModel = await Model.getBaseModelSQL({
+    const sqlMgr = await ProjectMgrv2.getSqlMgr(context, {
+      id: source.base_id,
+    });
+    const baseModel = await Model.getBaseModelSQL(context, {
       id: table.id,
       dbDriver: dbDriver,
     });
@@ -3220,7 +3346,7 @@ export class ColumnsService {
 
       if (op.op === 'add') {
         try {
-          const tableMeta = await this.columnAdd({
+          const tableMeta = await this.columnAdd(context, {
             tableId,
             column: column as ColumnReqType,
             req,
@@ -3228,7 +3354,7 @@ export class ColumnsService {
             reuse,
           });
 
-          await this.postColumnAdd(column as ColumnReqType, tableMeta);
+          await this.postColumnAdd(context, column as ColumnReqType, tableMeta);
         } catch (e) {
           failedOps.push({
             ...op,
@@ -3237,7 +3363,7 @@ export class ColumnsService {
         }
       } else if (op.op === 'update') {
         try {
-          await this.columnUpdate({
+          await this.columnUpdate(context, {
             columnId: op.column.id,
             column: column as ColumnReqType,
             req,
@@ -3245,7 +3371,7 @@ export class ColumnsService {
             reuse,
           });
 
-          await this.postColumnUpdate(column as ColumnReqType);
+          await this.postColumnUpdate(context, column as ColumnReqType);
         } catch (e) {
           failedOps.push({
             ...op,
@@ -3254,7 +3380,7 @@ export class ColumnsService {
         }
       } else if (op.op === 'delete') {
         try {
-          await this.columnDelete({
+          await this.columnDelete(context, {
             columnId: op.column.id,
             req,
             user: req.user,
@@ -3273,11 +3399,18 @@ export class ColumnsService {
     };
   }
 
-  protected async postColumnAdd(_columnBody: ColumnReqType, _tableMeta: Model) {
+  protected async postColumnAdd(
+    _context: NcContext,
+    _columnBody: ColumnReqType,
+    _tableMeta: Model,
+  ) {
     // placeholder for post column add hook
   }
 
-  protected async postColumnUpdate(_columnBody: ColumnReqType) {
+  protected async postColumnUpdate(
+    _context: NcContext,
+    _columnBody: ColumnReqType,
+  ) {
     // placeholder for post column update hook
   }
 }

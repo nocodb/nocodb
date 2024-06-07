@@ -1,5 +1,6 @@
 import { UITypes } from 'nocodb-sdk';
 import { convertDateFormat } from './convertDateFormat';
+import type { NcContext } from '~/interface/config';
 import Column from '~/models/Column';
 
 export function getWeekdayByText(v: string) {
@@ -27,6 +28,7 @@ export function getWeekdayByIndex(idx: number): string {
 }
 
 export async function convertDateFormatForConcat(
+  context: NcContext,
   o,
   columnIdToUidt,
   query,
@@ -38,7 +40,7 @@ export async function convertDateFormatForConcat(
     columnIdToUidt[o.name] === UITypes.Date
   ) {
     const meta = (
-      await Column.get({
+      await Column.get(context, {
         colId: o.name,
       })
     ).meta;

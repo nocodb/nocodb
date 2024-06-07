@@ -54,7 +54,7 @@ export class BasesController {
     '/api/v1/db/meta/projects/:baseId/info',
     '/api/v2/meta/bases/:baseId/info',
   ])
-  async baseInfoGet(@TenantContext() _context: NcContext) {
+  async baseInfoGet() {
     return {
       Node: process.version,
       Arch: process.arch,

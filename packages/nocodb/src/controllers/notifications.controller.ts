@@ -18,8 +18,8 @@ import { GlobalGuard } from '~/guards/global/global.guard';
 import { extractProps } from '~/helpers/extractProps';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { NcRequest } from '~/interface/config';
-import { NcError } from '~/helpers/catchError';
 import { PubSubRedis } from '~/redis/pubsub-redis';
+import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 const POLL_INTERVAL = 30000;
@@ -30,6 +30,9 @@ export class NotificationsController {
   constructor(private readonly notificationsService: NotificationsService) {}
 
   @Get('/api/v1/notifications/poll')
+  @Acl('notification', {
+    scope: 'org',
+  })
   async notificationPoll(
     @Req() req: NcRequest,
     @Res()
@@ -39,10 +42,6 @@ export class NotificationsController {
   ) {
     res.setHeader('Cache-Control', 'no-cache, must-revalidate');
     res.resId = nanoidv2();
-
-    if (!req.user?.id) {
-      NcError.authenticationRequired();
-    }
 
     this.notificationsService.addConnection(req.user.id, res);
 
@@ -72,11 +71,10 @@ export class NotificationsController {
   }
 
   @Get('/api/v1/notifications')
+  @Acl('notification', {
+    scope: 'org',
+  })
   async notificationList(@Req() req: NcRequest) {
-    if (!req.user?.id) {
-      NcError.authenticationRequired();
-    }
-
     return this.notificationsService.notificationList({
       user: req.user,
       is_deleted: false,
@@ -86,15 +84,14 @@ export class NotificationsController {
   }
 
   @Patch('/api/v1/notifications/:notificationId')
+  @Acl('notification', {
+    scope: 'org',
+  })
   async notificationUpdate(
     @Param('notificationId') notificationId,
     @Body() body,
     @Req() req: NcRequest,
   ) {
-    if (!req.user?.id) {
-      NcError.authenticationRequired();
-    }
-
     return this.notificationsService.notificationUpdate({
       notificationId,
       body: extractProps(body, ['is_read']),
@@ -103,14 +100,13 @@ export class NotificationsController {
   }
 
   @Delete('/api/v1/notifications/:notificationId')
+  @Acl('notification', {
+    scope: 'org',
+  })
   async notificationDelete(
     @Param('notificationId') notificationId,
     @Req() req: NcRequest,
   ) {
-    if (!req.user?.id) {
-      NcError.authenticationRequired();
-    }
-
     return this.notificationsService.notificationDelete({
       notificationId,
       user: req.user,
@@ -118,12 +114,11 @@ export class NotificationsController {
   }
 
   @Post('/api/v1/notifications/mark-all-read')
+  @Acl('notification', {
+    scope: 'org',
+  })
   @HttpCode(200)
   async markAllRead(@Req() req: NcRequest) {
-    if (!req.user?.id) {
-      NcError.authenticationRequired();
-    }
-
     return this.notificationsService.markAllRead({
       user: req.user,
     });

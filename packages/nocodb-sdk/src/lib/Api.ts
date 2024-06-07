@@ -2100,6 +2100,11 @@ export interface BaseType {
    * @example p_124hhlkbeasewh
    */
   id?: string;
+  /**
+   * Workspace ID
+   * @example ws_123456
+   */
+  fk_workspace_id?: string;
   /** Model for Bool */
   is_meta?: BoolType;
   /** Meta Info such as theme colors */

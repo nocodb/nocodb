@@ -21,7 +21,7 @@ import { NcRequest } from '~/interface/config';
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class CommentsController {
-  constructor(private readonly commentsService: CommentsService) {}
+  constructor(protected readonly commentsService: CommentsService) {}
 
   @Get(['/api/v1/db/meta/comments', '/api/v2/meta/comments'])
   @Acl('commentList')
@@ -54,6 +54,7 @@ export class CommentsController {
     return await this.commentsService.commentDelete({
       commentId,
       user: req.user,
+      req,
     });
   }
 

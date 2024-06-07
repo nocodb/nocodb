@@ -17,7 +17,7 @@ export function parseStringDateTime(
   return v
 }
 
-export const timeAgo = (date: any) => {
+export const timeAgo = (date: string) => {
   if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(date)) {
     // if there is no timezone info, consider as UTC
     // e.g. 2023-01-01 08:00:00 (MySQL)
@@ -34,6 +34,7 @@ export const timeAgo = (date: any) => {
   const years = Math.floor(days / 365)
 
   if (seconds < 60) {
+    if (seconds < 0) return '1s ago'
     return `${seconds}s ago`
   }
   if (minutes < 60) {

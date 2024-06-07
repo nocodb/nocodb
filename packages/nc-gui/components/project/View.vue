@@ -35,13 +35,9 @@ const currentBase = computedAsync(async () => {
 
 const { isUIAllowed, baseRoles } = useRoles()
 
-const { base } = storeToRefs(useBase())
-
 const { projectPageTab } = storeToRefs(useConfigStore())
 
 const { isMobileMode } = useGlobal()
-
-const baseSettingsState = ref('')
 
 const userCount = computed(() => (activeProjectId.value ? basesUser.value.get(activeProjectId.value)?.length : 0))
 

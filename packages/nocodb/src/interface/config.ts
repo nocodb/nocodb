@@ -331,4 +331,5 @@ export interface NcRequest {
   ncBaseId?: string;
   headers?: Record<string, string | undefined> | IncomingHttpHeaders;
   clientIp?: string;
+  query?: Record<string, any>;
 }

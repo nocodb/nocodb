@@ -2,7 +2,7 @@ import type { AppEvents } from 'nocodb-sdk';
 import { extractProps } from '~/helpers/extractProps';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
-import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
+import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 
 export default class Notification {
   id?: string;
@@ -30,14 +30,24 @@ export default class Notification {
       'is_deleted',
     ]);
 
-    insertData.body = stringifyMetaProp(insertData, 'body');
-
     return await ncMeta.metaInsert2(
       null,
       null,
       MetaTable.NOTIFICATION,
-      insertData,
+      prepareForDb(insertData, 'body'),
     );
+  }
+
+  public static async get(
+    params: {
+      fk_user_id: string;
+      id: string;
+    },
+    ncMeta = Noco.ncMeta,
+  ) {
+    const condition = extractProps(params, ['id', 'fk_user_id']);
+
+    return await ncMeta.metaGet2(null, null, MetaTable.NOTIFICATION, condition);
   }
 
   public static async list(
@@ -73,9 +83,8 @@ export default class Notification {
     );
 
     for (const notification of notifications) {
-      notification.body = parseMetaProp(notification, 'body');
+      prepareForResponse(notification, 'body');
     }
-
     return notifications;
   }
 
@@ -112,15 +121,11 @@ export default class Notification {
       'is_deleted',
     ]);
 
-    if ('body' in updateData) {
-      updateData.body = stringifyMetaProp(updateData, 'body');
-    }
-
     return await ncMeta.metaUpdate(
       null,
       null,
       MetaTable.NOTIFICATION,
-      updateData,
+      prepareForDb(updateData, 'body'),
       id,
     );
   }

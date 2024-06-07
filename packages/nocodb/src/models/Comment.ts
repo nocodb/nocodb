@@ -95,7 +95,11 @@ export default class Comment implements CommentType {
     comment: Partial<Comment>,
     ncMeta = Noco.ncMeta,
   ) {
-    const updateObj = extractProps(comment, ['comment', 'resolved_by']);
+    const updateObj = extractProps(comment, [
+      'comment',
+      'resolved_by',
+      'resolved_by_email',
+    ]);
 
     await ncMeta.metaUpdate(
       null,

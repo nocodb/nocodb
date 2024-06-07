@@ -1,94 +1,73 @@
 <script setup lang="ts">
-import { timeAgo } from 'nocodb-sdk'
+import type { NotificationType } from 'nocodb-sdk'
+import { timeAgo } from '~/utils/datetimeUtils'
 
 const props = defineProps<{
-  item: {
-    created_at: any
-  }
+  item: NotificationType
 }>()
 
 const item = toRef(props, 'item')
 
+const { isMobileMode } = useGlobal()
+
 const notificationStore = useNotification()
 
-const { markAsRead } = notificationStore
+const { toggleRead, deleteNotification } = notificationStore
 </script>
 
 <template>
-  <div
-    class="flex items-center gap-1 cursor-pointer nc-notification-item-wrapper"
-    :class="{
-      active: !item.is_read,
-    }"
-  >
-    <div class="nc-notification-dot" :class="{ active: !item.is_read }"></div>
-    <div class="nc-avatar-wrapper">
+  <div class="flex pl-6 pr-4 w-full overflow-x-hidden group py-4 hover:bg-gray-50 gap-3 relative cursor-pointer">
+    <div class="w-9.625">
       <slot name="avatar">
-        <div class="nc-notification-avatar"></div>
+        <img src="~assets/img/brand/nocodb-logo.svg" alt="NocoDB" class="w-8" />
       </slot>
     </div>
-    <div class="flex-grow ml-3">
-      <div class="flex items-center">
-        <slot />
-      </div>
-      <div
-        v-if="item"
-        class="text-xs text-gray-500 mt-1"
-        :class="{
-          'text-primary': !item.is_read,
-        }"
-      >
-        {{ timeAgo(item.created_at) }}
-      </div>
+
+    <div class="text-[13px] min-h-12 w-full leading-5">
+      <slot />
     </div>
-    <div @click.stop>
-      <a-dropdown>
-        <GeneralIcon v-if="!item.is_read" icon="threeDotVertical" class="nc-notification-menu-icon" />
-        <template #overlay>
-          <a-menu>
-            <a-menu-item @click="markAsRead(item)">
-              <div class="p-2 text-xs">Mark as read</div>
-            </a-menu-item>
-          </a-menu>
+    <div v-if="item" class="text-xs whitespace-nowrap absolute right-4.1 bottom-5 text-gray-600">
+      {{ timeAgo(item.created_at) }}
+    </div>
+    <div class="flex items-start">
+      <NcTooltip v-if="!item.is_read">
+        <template #title>
+          <span>Mark as read</span>
         </template>
-      </a-dropdown>
+
+        <NcButton
+          :class="{
+            '!opacity-100': isMobileMode,
+          }"
+          type="secondary"
+          class="!border-0 transition-all duration-100 opacity-0 !group-hover:opacity-100"
+          size="xsmall"
+          @click.stop="() => toggleRead(item)"
+        >
+          <GeneralIcon icon="check" class="text-gray-700" />
+        </NcButton>
+      </NcTooltip>
+      <NcDropdown
+        v-else
+        :class="{
+          '!opacity-100': isMobileMode,
+        }"
+        class="transition-all duration-100 opacity-0 !group-hover:opacity-100"
+      >
+        <NcButton size="xsmall" type="secondary" @click.stop>
+          <GeneralIcon icon="threeDotVertical" />
+        </NcButton>
+
+        <template #overlay>
+          <NcMenu>
+            <NcMenuItem @click.stop="() => toggleRead(item)"> Mark as unread </NcMenuItem>
+            <NcDivider />
+            <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click.stop="deleteNotification(item)"> Delete </NcMenuItem>
+          </NcMenu>
+        </template>
+      </NcDropdown>
     </div>
   </div>
 </template>
 
-<style scoped lang="scss">
-.nc-avatar-wrapper {
-  @apply min-w-6 h-6 flex items-center justify-center;
-}
-
-.nc-notification-avatar {
-  @apply w-6 h-6 rounded-full text-white font-weight-bold uppercase bg-gray-100;
-  font-size: 0.7rem;
-}
-
-.nc-notification-dot {
-  @apply min-w-2 min-h-2 mr-1  rounded-full;
-
-  &.active {
-    @apply bg-accent bg-opacity-100;
-  }
-}
-
-.nc-notification-item-wrapper {
-  .nc-notification-menu-icon {
-    @apply !text-12px text-gray-500 opacity-0 transition-opacity duration-200 cursor-pointer;
-  }
-
-  &:hover {
-    .nc-notification-menu-icon {
-      @apply opacity-100;
-    }
-  }
-
-  &.active {
-    @apply bg-primary bg-opacity-4;
-  }
-
-  @apply py-3 px-3;
-}
-</style>
+<style scoped lang="scss"></style>

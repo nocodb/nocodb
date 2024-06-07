@@ -9,6 +9,7 @@ const {
   loadComments,
   deleteComment,
   comments,
+  resolveComment,
   audits,
   isAuditLoading,
   saveComment: _saveComment,
@@ -31,6 +32,8 @@ const isExpandedFormLoading = computed(() => props.loading)
 const tab = ref<'comments' | 'audits'>('comments')
 
 const { isUIAllowed } = useRoles()
+
+const router = useRouter()
 
 const hasEditPermission = computed(() => isUIAllowed('commentEdit'))
 
@@ -120,11 +123,28 @@ const saveComment = async () => {
 
   isCommentMode.value = true
   isSaving.value = true
+  // Optimistic Insert
+
+  comments.value = [
+    ...comments.value,
+    {
+      id: `temp-${new Date().getTime()}`,
+      comment: newComment.value,
+      created_at: new Date().toISOString(),
+      created_by: user.value?.id,
+      created_by_email: user.value?.email,
+      created_display_name: user.value?.display_name ?? '',
+    },
+  ]
+
+  commentInputRef?.value?.setEditorContent('', true)
+  await nextTick(() => {
+    scrollComments()
+  })
 
   try {
     await _saveComment()
     await nextTick(() => {
-      commentInputRef?.value?.setEditorContent('', true)
       isExpandedFormCommentMode.value = true
     })
     scrollComments()
@@ -135,13 +155,54 @@ const saveComment = async () => {
   }
 }
 
+function scrollToComment(commentId: string) {
+  const commentEl = document.querySelector(`.${commentId}`)
+  if (commentEl) {
+    commentEl.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center',
+    })
+  }
+}
+
 watch(commentsWrapperEl, () => {
   setTimeout(() => {
     nextTick(() => {
-      scrollComments()
+      const query = router.currentRoute.value.query
+      const commentId = query.commentId
+      if (commentId) {
+        router.push({
+          query: {
+            rowId: query.rowId,
+          },
+        })
+        scrollToComment(commentId as string)
+      } else {
+        scrollComments()
+      }
     })
   }, 100)
 })
+
+const timesAgo = (comment: CommentType) => {
+  return comment.created_at !== comment.updated_at ? `Edited ${timeAgo(comment.updated_at!)}` : timeAgo(comment.created_at!)
+}
+
+const createdBy = (
+  comment: CommentType & {
+    created_display_name?: string
+  },
+) => {
+  if (comment.created_by === user.value?.id) {
+    return 'You'
+  } else if (comment.created_display_name?.trim()) {
+    return comment.created_by_email || 'Shared source'
+  } else if (comment.created_by_email) {
+    return comment.created_by_email
+  } else {
+    return 'Shared source'
+  }
+}
 </script>
 
 <template>
@@ -171,108 +232,112 @@ watch(commentsWrapperEl, () => {
               <div class="font-medium text-center my-6 text-gray-500">{{ $t('activity.startCommenting') }}</div>
             </div>
             <div v-else ref="commentsWrapperEl" class="flex flex-col h-full py-1 nc-scrollbar-thin">
-              <div v-for="comment of comments" :key="comment.id" class="nc-comment-item">
+              <div v-for="comment of comments" :key="comment.id" :class="`${comment.id}`" class="nc-comment-item">
                 <div
                   :class="{
-                    'hover:bg-gray-200': comment.id !== editComment?.id,
+                    'hover:bg-gray-200 bg-[#F9F9FA]': comment.id !== editComment?.id,
+                    'bg-gray-200': comment.id === editComment?.id,
+                    '!bg-[#E7E7E9]': comment.resolved_by,
                   }"
-                  class="group gap-3 overflow-hidden flex items-start px-3 py-1"
+                  class="group gap-3 overflow-hidden px-3 py-2"
                 >
-                  <GeneralUserIcon
-                    :email="comment.created_by_email"
-                    :name="comment.created_display_name"
-                    class="mt-0.5"
-                    size="medium"
-                  />
-                  <div class="flex-1 flex flex-col gap-1 max-w-[calc(100%_-_24px)]">
-                    <div class="w-full flex justify-between gap-3 min-h-7">
-                      <div class="flex items-center max-w-[calc(100%_-_40px)]">
-                        <div class="w-full flex flex-wrap gap-3 items-center">
-                          <NcTooltip
-                            placement="bottomLeft"
-                            :arrow-point-at-center="false"
-                            class="truncate capitalize text-gray-800 font-weight-700 !text-[13px] max-w-42"
-                          >
-                            <template #title>
-                              {{
-                                (comment.created_by === user?.id
-                                  ? comment.created_display_name?.trim() || comment.created_by_email
-                                  : comment.created_display_name?.trim()
-                                  ? comment.created_by_email
-                                  : comment.created_display_name?.trim()) || 'Shared source'
-                              }}
-                            </template>
-                            <span
-                              class="text-ellipsis capitalize overflow-hidden"
-                              :style="{
-                                lineHeight: '18px',
-                                wordBreak: 'keep-all',
-                                whiteSpace: 'nowrap',
-                                display: 'inline',
-                              }"
-                            >
-                              {{
-                                comment.created_by === user?.id
-                                  ? 'You'
-                                  : comment.created_display_name?.trim() || comment.created_by_email || 'Shared source'
-                              }}
-                            </span>
-                          </NcTooltip>
-                          <div class="text-xs text-gray-500">
-                            {{
-                              comment.created_at !== comment.updated_at
-                                ? `Edited ${timeAgo(comment.updated_at)}`
-                                : timeAgo(comment.created_at)
-                            }}
-                          </div>
+                  <div class="flex items-start justify-between">
+                    <div class="flex items-start gap-3">
+                      <GeneralUserIcon
+                        :email="comment.created_by_email"
+                        :name="comment.created_display_name"
+                        class="mt-0.5"
+                        size="medium"
+                      />
+                      <div class="flex h-[28px] items-center gap-3">
+                        <NcTooltip class="truncate capitalize text-gray-800 font-weight-700 !text-[13px] max-w-42">
+                          <template #title>
+                            {{ comment.created_display_name?.trim() || comment.created_by_email || 'Shared source' }}
+                          </template>
+                          <span class="text-ellipsis capitalize overflow-hidden" :style="{}">
+                            {{ createdBy(comment) }}
+                          </span>
+                        </NcTooltip>
+
+                        <div class="text-xs text-gray-500">
+                          {{ timesAgo(comment) }}
                         </div>
                       </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <NcDropdown
+                        v-if="(comment.created_by_email === user!.email && !editComment )"
+                        :class="{
+                        'opacity-0 group-hover:opacity-100': comment.created_by_email === user!.email && !editComment,
+                        }"
+                        overlay-class-name="!min-w-[160px]"
+                        placement="bottomRight"
+                      >
+                        <NcButton class="nc-expand-form-more-actions !w-7 !h-7 !bg-transparent" size="xsmall" type="text">
+                          <GeneralIcon class="text-md" icon="threeDotVertical" />
+                        </NcButton>
+                        <template #overlay>
+                          <NcMenu>
+                            <NcMenuItem
+                              v-e="['c:comment-expand:comment:edit']"
+                              class="text-gray-700"
+                              @click="editComments(comment)"
+                            >
+                              <div class="flex gap-2 items-center">
+                                <component :is="iconMap.rename" class="cursor-pointer" />
+                                {{ $t('general.edit') }}
+                              </div>
+                            </NcMenuItem>
+                            <NcMenuItem
+                              v-e="['c:row-expand:comment:delete']"
+                              class="!text-red-500 !hover:bg-red-50"
+                              @click="deleteComment(comment.id!)"
+                            >
+                              <div class="flex gap-2 items-center">
+                                <component :is="iconMap.delete" class="cursor-pointer" />
+                                {{ $t('general.delete') }}
+                              </div>
+                            </NcMenuItem>
+                          </NcMenu>
+                        </template>
+                      </NcDropdown>
 
-                      <div class="flex items-center opacity-0 transition-all group-hover:opacity-100 ease-out duration-400 gap-2">
-                        <NcDropdown
-                          v-if="comment.created_by_email === user!.email && !editComment"
-                          overlay-class-name="!min-w-[160px]"
-                          placement="bottomRight"
-                        >
-                          <NcButton class="nc-expand-form-more-actions !w-7 !h-7 !bg-transparent" size="xsmall" type="text">
-                            <GeneralIcon class="text-md !hover:text-brand-500" icon="threeDotVertical" />
+                      <div v-if="appInfo.ee">
+                        <NcTooltip v-if="!comment.resolved_by">
+                          <NcButton
+                            class="!w-7 !h-7 !bg-transparent opacity-0 group-hover:opacity-100"
+                            size="xsmall"
+                            type="text"
+                            @click="resolveComment(comment.id!)"
+                          >
+                            <GeneralIcon class="text-md" icon="checkCircle" />
                           </NcButton>
-                          <template #overlay>
-                            <NcMenu>
-                              <NcMenuItem
-                                v-e="['c:row-expand:comment:edit']"
-                                class="text-gray-700"
-                                @click="editComments(comment)"
-                              >
-                                <div class="flex gap-2 items-center">
-                                  <component :is="iconMap.rename" class="cursor-pointer" />
-                                  {{ $t('general.edit') }}
-                                </div>
-                              </NcMenuItem>
-                              <NcDivider />
-                              <NcMenuItem
-                                v-e="['c:row-expand:comment:delete']"
-                                class="!text-red-500 !hover:bg-red-50"
-                                @click="deleteComment(comment.id!)"
-                              >
-                                <div class="flex gap-2 items-center">
-                                  <component :is="iconMap.delete" class="cursor-pointer" />
-                                  {{ $t('general.delete') }}
-                                </div>
-                              </NcMenuItem>
-                            </NcMenu>
-                          </template>
-                        </NcDropdown>
+
+                          <template #title>Click to resolve </template>
+                        </NcTooltip>
+
+                        <NcTooltip v-else>
+                          <template #title>{{ `Resolved by ${comment.resolved_display_name}` }}</template>
+                          <div class="flex text-[#17803D] font-semibold items-center">
+                            <NcButton class="!h-7 !bg-transparent" size="xsmall" type="text" @click="resolveComment(comment.id)">
+                              <div class="flex items-center gap-2 !text-[#17803D]">
+                                <span> Resolved </span>
+                                <component :is="iconMap.checkCircle" />
+                              </div>
+                            </NcButton>
+                          </div>
+                        </NcTooltip>
                       </div>
                     </div>
-
+                  </div>
+                  <div class="flex-1 flex flex-col gap-1 mt-1 max-w-[calc(100%)]">
                     <SmartsheetExpandedFormRichComment
                       v-if="comment.id === editComment?.id"
                       ref="editRef"
                       v-model:value="value"
                       autofocus
                       :hide-options="false"
-                      class="expanded-form-comment-input !pt-1 !pb-0.5 !pl-2 !m-0 w-full !border-1 !border-gray-200 !rounded-lg !bg-transparent !text-gray-800 !text-small !leading-18px !max-h-[694px]"
+                      class="expanded-form-comment-edit-input expanded-form-comment-input !pt-2 !pb-0.5 !pl-2 !m-0 w-full !border-1 !border-gray-200 !rounded-lg !bg-white !text-gray-800 !text-small !leading-18px !max-h-[694px]"
                       data-testid="expanded-form-comment-input"
                       sync-value-change
                       @save="onEditComment"
@@ -286,7 +351,7 @@ watch(commentsWrapperEl, () => {
                       @keydown.enter.exact.prevent="onEditComment"
                     />
 
-                    <div v-else class="text-small leading-18px text-gray-800">
+                    <div v-else class="text-small pl-9 leading-18px text-gray-800">
                       <SmartsheetExpandedFormRichComment
                         :value="comment.comment"
                         class="!text-small !leading-18px !text-gray-800 -ml-1"
@@ -362,14 +427,7 @@ watch(commentsWrapperEl, () => {
                       <template #title>
                         {{ audit.display_name?.trim() || audit.user || 'Shared source' }}
                       </template>
-                      <span
-                        class="text-ellipsis overflow-hidden font-bold text-gray-800"
-                        :style="{
-                          wordBreak: 'keep-all',
-                          whiteSpace: 'nowrap',
-                          display: 'inline',
-                        }"
-                      >
+                      <span class="text-ellipsis break-keep inline whitespace-nowrap overflow-hidden font-bold text-gray-800">
                         {{ audit.display_name?.trim() || audit.user || 'Shared source' }}
                       </span>
                     </NcTooltip>
@@ -459,5 +517,9 @@ watch(commentsWrapperEl, () => {
   &::placeholder {
     @apply !text-gray-400;
   }
+}
+
+:deep(.expanded-form-comment-edit-input .nc-comment-rich-editor) {
+  @apply !pl-2 bg-white;
 }
 </style>

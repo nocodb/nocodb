@@ -12,8 +12,6 @@ const props = defineProps<{
 }>()
 const emit = defineEmits(['update:modelValue'])
 
-const { baseRoles, workspaceRoles } = useRoles()
-
 const basesStore = useBases()
 
 const workspaceStore = useWorkspace()
@@ -26,10 +24,6 @@ const dialogShow = useVModel(props, 'modelValue', emit)
 
 const orderedRoles = computed(() => {
   return props.type === 'base' ? ProjectRoles : WorkspaceUserRoles
-})
-
-const userRoles = computed(() => {
-  return props.type === 'base' ? baseRoles.value : workspaceRoles.value
 })
 
 const inviteData = reactive({

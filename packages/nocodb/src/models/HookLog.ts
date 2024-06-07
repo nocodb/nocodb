@@ -1,5 +1,5 @@
 import type { HookLogType } from 'nocodb-sdk';
-import { NcContext } from '~/interface/config';
+import type { NcContext } from '~/interface/config';
 import Hook from '~/models/Hook';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';

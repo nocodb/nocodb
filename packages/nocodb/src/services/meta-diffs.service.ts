@@ -9,6 +9,7 @@ import {
 } from 'nocodb-sdk';
 import { pluralize, singularize } from 'inflection';
 import type { LinksColumn, LinkToAnotherRecordColumn } from '~/models';
+import type { NcContext } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import ModelXcMetaFactory from '~/db/sql-mgr/code/models/xc/ModelXcMetaFactory';
 import getColumnUiType from '~/helpers/getColumnUiType';
@@ -19,7 +20,6 @@ import { NcError } from '~/helpers/catchError';
 import NcHelp from '~/utils/NcHelp';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { Base, Column, Model, Source } from '~/models';
-import { NcContext } from '~/interface/config';
 
 // todo:move enum and types
 export enum MetaDiffType {

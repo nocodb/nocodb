@@ -5,6 +5,7 @@ import {
 } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
 import type { ColumnReqType, ColumnType } from 'nocodb-sdk';
+import type { NcContext } from '~/interface/config';
 import FormulaColumn from '~/models/FormulaColumn';
 import LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
 import LookupColumn from '~/models/LookupColumn';
@@ -34,7 +35,6 @@ import {
   prepareForResponse,
 } from '~/utils/modelUtils';
 import { getFormulasReferredTheColumn } from '~/helpers/formulaHelpers';
-import { NcContext } from '~/interface/config';
 
 const selectColors = [
   '#cfdffe',

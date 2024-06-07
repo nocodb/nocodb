@@ -7156,7 +7156,11 @@ class BaseModelSqlv2 {
   public now() {
     return dayjs()
       .utc()
-      .format(this.isMySQL ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ');
+      .format(
+        this.isMySQL || this.isMssql
+          ? 'YYYY-MM-DD HH:mm:ss'
+          : 'YYYY-MM-DD HH:mm:ssZ',
+      );
   }
 
   async getCustomConditionsAndApply(_params: {

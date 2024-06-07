@@ -14,7 +14,7 @@ import { MetaTable } from '~/utils/globals';
 */
 
 const log = (message: string) => {
-  console.log(`nc_023_tenant_isolation: ${message}`);
+  console.log(`nc_050_tenant_isolation: ${message}`);
 };
 
 let hrTime = process.hrtime();
@@ -127,12 +127,12 @@ const listIndexesOnColumn = async (
         [table, column],
       );
 
-      return indexes.map((row: any) => row.INDEX_NAME);
+      return indexes[0].map((row: any) => row.INDEX_NAME);
     }
     case 'sqlite3': {
       const indexes = await knex.raw(
         `
-        PRAGMA index_list(?)
+        PRAGMA index_list(??)
         `,
         [table],
       );
@@ -265,9 +265,12 @@ const up = async (knex: Knex) => {
   hrTime = process.hrtime();
 
   for (const table of dropBaseIdIndexes) {
-    const indexes = await listIndexesOnColumn(knex, table, 'base_id');
+    const indexes: string[] = await listIndexesOnColumn(knex, table, 'base_id');
 
-    for (const index of indexes) {
+    // remove duplicate indexes
+    const uniqueIndexes = Array.from(new Set(indexes));
+
+    for (const index of uniqueIndexes) {
       log(`Dropping index ${index} on ${table}.base_id`);
 
       await knex.schema.alterTable(table, (table) => {
@@ -277,6 +280,36 @@ const up = async (knex: Knex) => {
   }
 
   logExecutionTime('Dropped existing base_id indexes');
+
+  // Recreate existing source_id indexes as name might clash with base_id (old name for source_id)
+  const recreateSourceIdIndexes = [MetaTable.MODELS, MetaTable.SYNC_SOURCE];
+
+  log('Recreating existing source_id indexes');
+
+  hrTime = process.hrtime();
+
+  for (const tbl of recreateSourceIdIndexes) {
+    const indexes: string[] = await listIndexesOnColumn(knex, tbl, 'source_id');
+
+    // remove duplicate indexes
+    const uniqueIndexes = Array.from(new Set(indexes));
+
+    for (const index of uniqueIndexes) {
+      // Recreate only if index name will clash with base_id
+      if (index !== `${tbl}_base_id_index`) {
+        continue;
+      }
+
+      log(`Recreating index ${index} on ${tbl}.source_id`);
+
+      await knex.schema.alterTable(tbl, (table) => {
+        table.dropIndex('source_id', `${tbl}_base_id_index`);
+        table.index('source_id');
+      });
+    }
+  }
+
+  logExecutionTime('Recreated existing source_id indexes');
 
   // Add indexes
 
@@ -327,11 +360,6 @@ const up = async (knex: Knex) => {
     hrTime = process.hrtime();
 
     await knex.schema.alterTable(tbl, (table) => {
-      // Recreate source_id index as name will clash with base_id (old name for source_id)
-      if ([MetaTable.MODELS, MetaTable.SYNC_SOURCE].includes(tbl)) {
-        table.dropIndex('source_id', `${tbl}_base_id_index`);
-        table.index('source_id');
-      }
       table.index('base_id');
     });
 

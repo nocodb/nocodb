@@ -14,8 +14,6 @@ export const useNotification = defineStore('notificationStore', () => {
 
   const notificationTab = ref<'read' | 'unread'>('unread')
 
-  const unreadPageInfo = ref()
-
   const pollNotifications = async () => {
     try {
       const res = await api.notification.poll()

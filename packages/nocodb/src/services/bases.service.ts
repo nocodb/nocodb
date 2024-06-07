@@ -24,7 +24,7 @@ import { Base, BaseUser } from '~/models';
 import Noco from '~/Noco';
 import { getToolDir } from '~/utils/nc-config';
 import { MetaService } from '~/meta/meta.service';
-import { MetaTable } from '~/utils/globals';
+import { MetaTable, RootScopes } from '~/utils/globals';
 import { TablesService } from '~/services/tables.service';
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
@@ -112,7 +112,13 @@ export class BasesService {
     if (
       data?.title &&
       base.title !== data.title &&
-      (await Base.getByTitle(context, data.title))
+      (await Base.getByTitle(
+        {
+          workspace_id: RootScopes.BASE,
+          base_id: RootScopes.BASE,
+        },
+        data.title,
+      ))
     ) {
       NcError.badRequest('Base title already in use');
     }

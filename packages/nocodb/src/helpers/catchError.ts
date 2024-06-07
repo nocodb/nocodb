@@ -498,6 +498,10 @@ const errorHelpers: {
     },
     code: 404,
   },
+  [NcErrorType.GENERIC_NOT_FOUND]: {
+    message: (resource: string, id: string) => `${resource} '${id}' not found`,
+    code: 404,
+  },
   [NcErrorType.ERROR_DUPLICATE_RECORD]: {
     message: (...ids: string[]) => {
       const isMultiple = Array.isArray(ids) && ids.length > 1;
@@ -661,6 +665,13 @@ export class NcError {
   static recordNotFound(id: string | string[], args?: NcErrorArgs) {
     throw new NcBaseErrorv2(NcErrorType.RECORD_NOT_FOUND, {
       params: id,
+      ...args,
+    });
+  }
+
+  static genericNotFound(resource: string, id: string, args?: NcErrorArgs) {
+    throw new NcBaseErrorv2(NcErrorType.GENERIC_NOT_FOUND, {
+      params: [resource, id],
       ...args,
     });
   }

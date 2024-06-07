@@ -80,11 +80,21 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       const model = await Model.getByIdOrName(context, {
         id: params.tableId || params.modelId,
       });
+
+      if (!model) {
+        NcError.tableNotFound(params.tableId || params.modelId);
+      }
+
       req.ncBaseId = model?.base_id;
     } else if (params.viewId) {
       const view =
         (await View.get(context, params.viewId)) ||
         (await Model.get(context, params.viewId));
+
+      if (!view) {
+        NcError.viewNotFound(params.viewId);
+      }
+
       req.ncBaseId = view?.base_id;
     } else if (
       params.formViewId ||
@@ -101,48 +111,114 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
           params.galleryViewId ||
           params.calendarViewId,
       );
+
+      if (!view) {
+        NcError.viewNotFound(
+          params.formViewId ||
+            params.gridViewId ||
+            params.kanbanViewId ||
+            params.galleryViewId ||
+            params.calendarViewId,
+        );
+      }
+
       req.ncBaseId = view?.base_id;
     } else if (params.publicDataUuid) {
       const view = await View.getByUUID(context, req.params.publicDataUuid);
+
+      if (!view) {
+        NcError.viewNotFound(params.publicDataUuid);
+      }
+
       req.ncBaseId = view?.base_id;
     } else if (params.hookId) {
       const hook = await Hook.get(context, params.hookId);
+
+      if (!hook) {
+        NcError.genericNotFound('Webhook', params.hookId);
+      }
+
       req.ncBaseId = hook?.base_id;
     } else if (params.gridViewColumnId) {
       const gridViewColumn = await GridViewColumn.get(
         context,
         params.gridViewColumnId,
       );
+
+      if (!gridViewColumn) {
+        NcError.fieldNotFound(params.gridViewColumnId);
+      }
+
       req.ncBaseId = gridViewColumn?.base_id;
     } else if (params.formViewColumnId) {
       const formViewColumn = await FormViewColumn.get(
         context,
         params.formViewColumnId,
       );
+
+      if (!formViewColumn) {
+        NcError.fieldNotFound(params.formViewColumnId);
+      }
+
       req.ncBaseId = formViewColumn?.base_id;
     } else if (params.galleryViewColumnId) {
       const galleryViewColumn = await GalleryViewColumn.get(
         context,
         params.galleryViewColumnId,
       );
+
+      if (!galleryViewColumn) {
+        NcError.fieldNotFound(params.galleryViewColumnId);
+      }
+
       req.ncBaseId = galleryViewColumn?.base_id;
     } else if (params.columnId) {
       const column = await Column.get(context, { colId: params.columnId });
+
+      if (!column) {
+        NcError.fieldNotFound(params.columnId);
+      }
+
       req.ncBaseId = column?.base_id;
     } else if (params.filterId) {
       const filter = await Filter.get(context, params.filterId);
+
+      if (!filter) {
+        NcError.genericNotFound('Filter', params.filterId);
+      }
+
       req.ncBaseId = filter?.base_id;
     } else if (params.filterParentId) {
       const filter = await Filter.get(context, params.filterParentId);
+
+      if (!filter) {
+        NcError.genericNotFound('Filter', params.filterParentId);
+      }
+
       req.ncBaseId = filter?.base_id;
     } else if (params.sortId) {
       const sort = await Sort.get(context, params.sortId);
+
+      if (!sort) {
+        NcError.genericNotFound('Sort', params.sortId);
+      }
+
       req.ncBaseId = sort?.base_id;
     } else if (params.syncId) {
       const syncSource = await SyncSource.get(context, req.params.syncId);
+
+      if (!syncSource) {
+        NcError.genericNotFound('Sync Source', params.syncId);
+      }
+
       req.ncBaseId = syncSource.base_id;
     } else if (params.extensionId) {
       const extension = await Extension.get(context, req.params.extensionId);
+
+      if (!extension) {
+        NcError.genericNotFound('Extension', params.extensionId);
+      }
+
       req.ncBaseId = extension.base_id;
     }
     // extract fk_model_id from query params only if it's audit post endpoint
@@ -161,6 +237,11 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       const model = await Model.getByIdOrName(context, {
         id: req.body.fk_model_id,
       });
+
+      if (!model) {
+        NcError.tableNotFound(req.body.fk_model_id);
+      }
+
       req.ncBaseId = model?.base_id;
     }
     // extract fk_model_id from query params only if it's audit get endpoint
@@ -179,6 +260,11 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       const model = await Model.getByIdOrName(context, {
         id: req.query?.fk_model_id,
       });
+
+      if (!model) {
+        NcError.tableNotFound(req.query?.fk_model_id);
+      }
+
       req.ncBaseId = model?.base_id;
     } else if (
       [
@@ -189,6 +275,11 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       req.params.commentId
     ) {
       const comment = await Comment.get(context, params.commentId);
+
+      if (!comment) {
+        NcError.genericNotFound('Comment', params.commentId);
+      }
+
       req.ncBaseId = comment?.base_id;
     }
     // extract base id from query params only if it's userMe endpoint or webhook plugin list

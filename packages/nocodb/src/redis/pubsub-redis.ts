@@ -24,7 +24,7 @@ export class PubSubRedis {
 
     PubSubRedis.redisSubscriber.on('message', async (channel, message) => {
       try {
-        if (!message || !message.includes(':')) {
+        if (!message) {
           return;
         }
         const [command, ...args] = message.split(':');

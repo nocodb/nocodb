@@ -135,8 +135,6 @@ let countryColumns;
 let cityTable: Model;
 let cityColumns;
 
-const unauthorizedResponse = process.env.EE !== 'true' ? 404 : 403;
-
 // Optimisation scope for time reduction
 // 1. BeforeEach can be changed to BeforeAll for List and Read APIs
 
@@ -848,7 +846,7 @@ function textBased() {
     // Invalid table ID
     await ncAxiosGet({
       url: `/api/v2/tables/123456789/records`,
-      status: unauthorizedResponse,
+      status: 404,
     });
 
     // Invalid view ID
@@ -978,7 +976,7 @@ function textBased() {
     // Invalid table ID
     await ncAxiosPost({
       url: `/api/v2/tables/123456789/records`,
-      status: unauthorizedResponse,
+      status: 404,
     });
 
     // Invalid data - create should not specify ID
@@ -1012,7 +1010,7 @@ function textBased() {
     // Invalid table ID
     await ncAxiosGet({
       url: `/api/v2/tables/123456789/records/100`,
-      status: unauthorizedResponse,
+      status: 404,
     });
     // Invalid row ID
     await ncAxiosGet({
@@ -1097,7 +1095,7 @@ function textBased() {
     await ncAxiosPatch({
       url: `/api/v2/tables/123456789/records`,
       body: { Id: 100, SingleLineText: 'some text' },
-      status: unauthorizedResponse,
+      status: 404,
     });
     // Invalid row ID
     await ncAxiosPatch({
@@ -1146,7 +1144,7 @@ function textBased() {
     await ncAxiosDelete({
       url: `/api/v2/tables/123456789/records`,
       body: { Id: 100 },
-      status: unauthorizedResponse,
+      status: 404,
     });
     // Invalid row ID
     await ncAxiosDelete({ body: { Id: '123456789' }, status: 404 });
@@ -2410,7 +2408,7 @@ function linkBased() {
     await ncAxiosLinkAdd({
       ...validParams,
       urlParams: { ...validParams.urlParams, tableId: 9999 },
-      status: unauthorizedResponse,
+      status: 404,
     });
 
     // Link Add: Invalid link ID
@@ -2482,7 +2480,7 @@ function linkBased() {
     await ncAxiosLinkRemove({
       ...validParams,
       urlParams: { ...validParams.urlParams, tableId: 9999 },
-      status: unauthorizedResponse,
+      status: 404,
     });
 
     // Link Remove: Invalid link ID
@@ -2554,7 +2552,7 @@ function linkBased() {
     await ncAxiosLinkGet({
       ...validParams,
       urlParams: { ...validParams.urlParams, tableId: 9999 },
-      status: unauthorizedResponse,
+      status: 404,
     });
 
     // Link List: Invalid link ID

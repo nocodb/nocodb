@@ -34,7 +34,7 @@ export class PubSubRedis {
           await callback(...args);
         }
       } catch (error) {
-        PubSubRedis.logger.error('Error processing message', error);
+        PubSubRedis.logger.error('Error processing message' + error);
       }
     });
 

@@ -36,7 +36,13 @@ export class JobsRedis extends PubSubRedis {
             (await this.primaryCallbacks[command](...args));
         }
       } catch (error) {
-        this.logger.error('Error processing message' + error);
+        this.logger.error({
+          message: 'Error processing redis pub-sub message',
+          error: {
+            message: error?.message,
+            stack: error?.stack,
+          },
+        });
       }
     };
     if (process.env.NC_WORKER_CONTAINER === 'true') {

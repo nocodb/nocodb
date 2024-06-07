@@ -34,7 +34,13 @@ export class PubSubRedis {
           await callback(...args);
         }
       } catch (error) {
-        PubSubRedis.logger.error('Error processing message' + error);
+        PubSubRedis.logger.error({
+          message: 'Error processing redis pub-sub message',
+          error: {
+            message: error?.message,
+            stack: error?.stack,
+          },
+        });
       }
     });
 

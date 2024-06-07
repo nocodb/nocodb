@@ -200,6 +200,19 @@ export class AtImportProcessor {
       };
     } = {};
 
+    const atFieldAliasToNcFieldAlias = {};
+
+    const addFieldAlias = (ncTableTitle, atFieldAlias, ncFieldAlias) => {
+      if (!atFieldAliasToNcFieldAlias[ncTableTitle]) {
+        atFieldAliasToNcFieldAlias[ncTableTitle] = {};
+      }
+      atFieldAliasToNcFieldAlias[ncTableTitle][atFieldAlias] = ncFieldAlias;
+    };
+
+    const getNcFieldAlias = (ncTableTitle, atFieldAlias) => {
+      return atFieldAliasToNcFieldAlias[ncTableTitle][atFieldAlias];
+    };
+
     const uniqueTableNameGen = getUniqueNameGenerator('sheet');
 
     // run time counter (statistics)
@@ -313,7 +326,7 @@ export class AtImportProcessor {
       rollup: UITypes.Rollup,
       count: UITypes.Rollup,
       lookup: UITypes.Lookup,
-      autoNumber: UITypes.AutoNumber,
+      autoNumber: UITypes.Decimal,
       barcode: UITypes.SingleLineText,
       button: UITypes.Button,
     };
@@ -545,6 +558,7 @@ export class AtImportProcessor {
         for (const sysCol of sysColumns) {
           // call to avoid clash with system columns
           nc_getSanitizedColumnName(sysCol.title, table.table_name);
+          addFieldAlias(table.title, sysCol.title, sysCol.title);
         }
 
         for (let j = 0; j < tblSchema[i].columns.length; j++) {
@@ -561,8 +575,7 @@ export class AtImportProcessor {
             table.table_name,
           );
 
-          // update col for mapping
-          col.name = ncName.title;
+          addFieldAlias(table.title, col.name, ncName.title);
 
           const ncCol: any = {
             // Enable to use aTbl identifiers as is: id: col.id,
@@ -652,7 +665,10 @@ export class AtImportProcessor {
         for (let colIdx = 0; colIdx < table.columns.length; colIdx++) {
           const aId = aTblSchema[idx].columns.find(
             (x) =>
-              x.name.trim().replace(/\./g, '_') === table.columns[colIdx].title,
+              getNcFieldAlias(
+                table.title,
+                x.name.trim().replace(/\./g, '_'),
+              ) === table.columns[colIdx].title,
           )?.id;
           if (aId)
             await sMap.addToMappingTbl(
@@ -1411,7 +1427,10 @@ export class AtImportProcessor {
       // trim spaces on either side of column name
       // leads to error in NocoDB
       Object.keys(rec).forEach((key) => {
-        const replacedKey = key.trim().replace(/\./g, '_');
+        const replacedKey = getNcFieldAlias(
+          table.title,
+          key.trim().replace(/\./g, '_'),
+        );
         if (key !== replacedKey) {
           rec[replacedKey] = rec[key];
           delete rec[key];
@@ -2585,10 +2604,10 @@ const getUniqueNameGenerator = (defaultName = 'name', context = 'default') => {
   return (initName: string = defaultName): string => {
     let name = initName === '_' ? defaultName : initName;
     let c = 0;
-    while (name in namesRef[finalContext]) {
+    while (name.toLowerCase() in namesRef[finalContext]) {
       name = `${initName}_${++c}`;
     }
-    namesRef[finalContext][name] = true;
+    namesRef[finalContext][name.toLowerCase()] = true;
     return name;
   };
 };

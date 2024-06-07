@@ -904,7 +904,7 @@ const changeToDynamic = async (filter, i) => {
             'mt-1 mb-2': filters.length,
           }"
         >
-          <NcButton ref="addFilterBtnRef" class="nc-btn-focus" size="small" type="text" @click.stop="addFilter()">
+          <NcButton :ref="addFilterBtnRef" class="nc-btn-focus" size="small" type="text" @click.stop="addFilter()">
             <div class="flex items-center gap-1">
               <component :is="iconMap.plus" />
               <!-- Add Filter -->

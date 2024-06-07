@@ -66,13 +66,27 @@ const options = computed<SelectProps['options']>(() =>
     })
   )
     // sort and keep system columns at the end
-    ?.sort((field1, field2) => +isSystemColumn(field2) - +isSystemColumn(field1))
+    ?.sort((field1, field2) => {
+      let orderVal1 = 0
+      let orderVal2 = 0
+
+      if (isSystemColumn(field1)) {
+        orderVal1 = 1
+      }
+      if (isSystemColumn(field2)) {
+        orderVal2 = 1
+      }
+
+      return orderVal1 - orderVal2
+    })
     ?.map((c: ColumnType) => ({
       value: c.id,
       label: c.title,
       icon: h(
         isVirtualCol(c) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'),
-        { columnMeta: c },
+        {
+          columnMeta: c,
+        },
       ),
       c,
     })),

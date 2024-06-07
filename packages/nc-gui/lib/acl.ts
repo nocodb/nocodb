@@ -34,6 +34,8 @@ const rolePermissions = {
       baseDelete: true,
       baseDuplicate: true,
       newUser: true,
+      tableRename: true,
+      tableDelete: true,
       viewCreateOrEdit: true,
       baseReorder: true,
       orgAdminPanel: true,

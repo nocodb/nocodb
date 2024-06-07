@@ -22,7 +22,7 @@ export class JobsRedis extends PubSubRedis {
     }
     const onMessage = async (channel, message) => {
       try {
-        if (!message || !message.includes(':')) {
+        if (!message) {
           return;
         }
         const args = message.split(':');

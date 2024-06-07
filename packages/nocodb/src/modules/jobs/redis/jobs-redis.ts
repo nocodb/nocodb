@@ -21,14 +21,28 @@ export class JobsRedis extends PubSubRedis {
       await this.init();
     }
     const onMessage = async (channel, message) => {
-      const args = message.split(':');
-      const command = args.shift();
-      if (channel === InstanceTypes.WORKER) {
-        this.workerCallbacks[command] &&
-          (await this.workerCallbacks[command](...args));
-      } else if (channel === InstanceTypes.PRIMARY) {
-        this.primaryCallbacks[command] &&
-          (await this.primaryCallbacks[command](...args));
+      try {
+        if (!message) {
+          return;
+        }
+        const args = message.split(':');
+        const command = args.shift();
+
+        if (channel === InstanceTypes.WORKER) {
+          this.workerCallbacks[command] &&
+            (await this.workerCallbacks[command](...args));
+        } else if (channel === InstanceTypes.PRIMARY) {
+          this.primaryCallbacks[command] &&
+            (await this.primaryCallbacks[command](...args));
+        }
+      } catch (error) {
+        this.logger.error({
+          message: 'Error processing redis pub-sub message',
+          error: {
+            message: error?.message,
+            stack: error?.stack,
+          },
+        });
       }
     };
     if (process.env.NC_WORKER_CONTAINER === 'true') {

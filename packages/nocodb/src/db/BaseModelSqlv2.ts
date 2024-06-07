@@ -199,6 +199,7 @@ class BaseModelSqlv2 {
     dbDriver,
     model,
     viewId,
+    context,
   }: {
     [key: string]: any;
     model: Model;
@@ -206,6 +207,7 @@ class BaseModelSqlv2 {
     this._dbDriver = dbDriver;
     this.model = model;
     this.viewId = viewId;
+    this.context = context;
     autoBind(this);
   }
 

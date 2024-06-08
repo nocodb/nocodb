@@ -1,7 +1,7 @@
 import { CloudOrgUserRoles } from 'nocodb-sdk';
 import type { OrgUserType } from 'nocodb-sdk';
 import Noco from '~/Noco';
-import { MetaTable } from '~/utils/globals';
+import { MetaTable, RootScopes } from '~/utils/globals';
 import { extractProps } from '~/helpers/extractProps';
 
 // todo: caching
@@ -75,18 +75,23 @@ export default class OrgUser {
   }
 
   static async get(orgId: string, userId: string, ncMeta = Noco.ncMeta) {
-    const user = await ncMeta.metaGet2(null, null, MetaTable.ORG_USERS, {
-      fk_org_id: orgId,
-      fk_user_id: userId,
-    });
+    const user = await ncMeta.metaGet2(
+      RootScopes.ORG,
+      RootScopes.ORG,
+      MetaTable.ORG_USERS,
+      {
+        fk_org_id: orgId,
+        fk_user_id: userId,
+      },
+    );
 
     return new OrgUser(user);
   }
 
   static async insert(param: OrgUserType, ncMeta = Noco.ncMeta) {
     const user = await ncMeta.metaInsert2(
-      null,
-      null,
+      RootScopes.ORG,
+      RootScopes.ORG,
       MetaTable.ORG_USERS,
       {
         fk_org_id: param.fk_org_id,
@@ -107,19 +112,30 @@ export default class OrgUser {
   ) {
     const updateObj = extractProps(updateBody, ['role']);
 
-    await ncMeta.metaUpdate(null, null, MetaTable.ORG_USERS, updateObj, {
-      fk_user_id: userId,
-      fk_org_id: orgId,
-    });
+    await ncMeta.metaUpdate(
+      RootScopes.ORG,
+      RootScopes.ORG,
+      MetaTable.ORG_USERS,
+      updateObj,
+      {
+        fk_user_id: userId,
+        fk_org_id: orgId,
+      },
+    );
   }
 
   static async getOwnedOrgs(userId: string, ncMeta = Noco.ncMeta) {
-    const orgs = await ncMeta.metaList2(null, null, MetaTable.ORG_USERS, {
-      condition: {
-        fk_user_id: userId,
-        roles: CloudOrgUserRoles.OWNER,
+    const orgs = await ncMeta.metaList2(
+      RootScopes.ORG,
+      RootScopes.ORG,
+      MetaTable.ORG_USERS,
+      {
+        condition: {
+          fk_user_id: userId,
+          roles: CloudOrgUserRoles.OWNER,
+        },
       },
-    });
+    );
 
     return orgs;
   }

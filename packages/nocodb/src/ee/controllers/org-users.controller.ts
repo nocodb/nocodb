@@ -10,11 +10,11 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { OrgUserReqType } from 'nocodb-sdk';
-import { NcRequest } from '../../interface/config';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { OrgUsersService } from '~/services/org-users.service';
+import { NcRequest } from '~/interface/config';
 
 @Controller()
 export class OrgUsersController {

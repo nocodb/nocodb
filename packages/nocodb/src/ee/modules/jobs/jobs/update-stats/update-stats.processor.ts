@@ -4,9 +4,6 @@ import { Job } from 'bull';
 import { JOBS_QUEUE, JobTypes } from '~/interface/Jobs';
 import { Base, Model, ModelStat, Source, Workspace } from '~/models';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
-import getWorkspaceForBase from '~/utils/getWorkspaceForBase';
-import NocoCache from '~/cache/NocoCache';
-import { CacheGetType } from '~/utils/globals';
 
 @Processor(JOBS_QUEUE)
 export class UpdateStatsProcessor {
@@ -17,6 +14,7 @@ export class UpdateStatsProcessor {
   @Process(JobTypes.UpdateModelStat)
   async updateModelStat(job: Job) {
     const {
+      context,
       fk_workspace_id,
       fk_model_id,
       row_count: _row_count,
@@ -31,17 +29,17 @@ export class UpdateStatsProcessor {
     }
 
     if (row_count === undefined) {
-      const model = await Model.get(fk_model_id);
-      const source = await Source.get(model.source_id);
+      const model = await Model.get(context, fk_model_id);
+      const source = await Source.get(context, model.source_id);
 
-      const baseModel = await Model.getBaseModelSQL({
+      const baseModel = await Model.getBaseModelSQL(context, {
         id: model.id,
         dbDriver: await NcConnectionMgrv2.get(source),
       });
       row_count = await baseModel.count();
     }
 
-    const stat = await ModelStat.get(fk_workspace_id, fk_model_id);
+    const stat = await ModelStat.get(context, fk_workspace_id, fk_model_id);
 
     if (stat && stat.updated_at && updated_at) {
       const diff =
@@ -54,7 +52,7 @@ export class UpdateStatsProcessor {
       }
     }
 
-    await ModelStat.upsert(fk_workspace_id, fk_model_id, {
+    await ModelStat.upsert(context, fk_workspace_id, fk_model_id, {
       row_count,
     });
 
@@ -71,7 +69,7 @@ export class UpdateStatsProcessor {
       `Start updating stats for workspace ${job.data.fk_workspace_id}`,
     );
 
-    const { fk_workspace_id, updatedModels } = job.data;
+    const { context, fk_workspace_id, updatedModels } = job.data;
 
     const workspace = await Workspace.get(fk_workspace_id);
 
@@ -82,9 +80,9 @@ export class UpdateStatsProcessor {
 
     if (updatedModels) {
       for (const fk_model_id of updatedModels) {
-        const model = await Model.get(fk_model_id);
+        const model = await Model.get(context, fk_model_id);
 
-        const source = await Source.get(model.source_id);
+        const source = await Source.get(context, model.source_id);
 
         if (!source || !source.isMeta()) {
           continue;
@@ -105,7 +103,7 @@ export class UpdateStatsProcessor {
       const bases = await Base.listByWorkspace(workspace.id);
 
       for (const base of bases) {
-        const models = await Model.list({
+        const models = await Model.list(context, {
           base_id: base.id,
           source_id: base.sources[0].id,
         });
@@ -132,6 +130,7 @@ export class UpdateStatsProcessor {
 
   @Process(JobTypes.UpdateSrcStat)
   async UpdateSrcStat(_job: Job) {
+    /* TODO - fix for context
     this.debugLog(`Start fetching stats for external sources`);
 
     const lastFetch = await NocoCache.get(
@@ -156,33 +155,26 @@ export class UpdateStatsProcessor {
       new Date().toISOString(),
     );
 
-    const sources = await Source.list({
+    const sources = await Source.list(context, {
       baseId: null,
     });
 
     for (const source of sources) {
       if (source.isMeta()) continue;
 
-      const models = await Model.list({
+      const models = await Model.list(context, {
         base_id: source.base_id,
         source_id: source.id,
       });
 
-      const workspaceId = await getWorkspaceForBase(source.base_id);
-
-      if (!workspaceId) {
-        this.debugLog(`No workspace found for base ${source.base_id}`);
-        continue;
-      }
-
       try {
         for (const model of models) {
           // TODO - remove this on next release
-          await ModelStat.delete(workspaceId, model.id);
+          await ModelStat.delete(context, model.fk_workspace_id, model.id);
 
           await this.updateModelStat({
             data: {
-              fk_workspace_id: workspaceId,
+              fk_workspace_id: model.fk_workspace_id,
               fk_model_id: model.id,
             },
           } as any);
@@ -195,5 +187,6 @@ export class UpdateStatsProcessor {
     this.debugLog(`Finished updating stats for external sources`);
 
     return true;
+    */
   }
 }

@@ -9,11 +9,11 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { Request } from 'express';
 import { AuthGuard } from '@nestjs/passport';
 import { WorkspaceUsersService } from '~/services/workspace-users.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
+import { NcRequest } from '~/interface/config';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, AuthGuard('jwt'))
@@ -52,7 +52,7 @@ export class WorkspaceUsersController {
     @Param('workspaceId') workspaceId: string,
     @Param('userId') userId: string,
     @Body() body: any,
-    @Req() req: Request,
+    @Req() req: NcRequest,
   ) {
     return await this.workspaceUsersService.update({
       workspaceId,
@@ -84,7 +84,7 @@ export class WorkspaceUsersController {
   async invite(
     @Param('workspaceId') workspaceId: string,
     @Body() body: any,
-    @Req() req: Request,
+    @Req() req: NcRequest,
   ) {
     return await this.workspaceUsersService.invite({
       workspaceId,

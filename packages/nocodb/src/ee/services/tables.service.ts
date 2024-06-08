@@ -5,7 +5,7 @@ import { Configuration, OpenAIApi } from 'openai';
 import { TablesService as TableServiceCE } from 'src/services/tables.service';
 import type { TableReqType, UserType } from 'nocodb-sdk';
 import type { User } from '~/models';
-import type { NcRequest } from '~/interface/config';
+import type { NcContext, NcRequest } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
 import getTableNameAlias from '~/helpers/getTableName';
 import { Base, Model } from '~/models';
@@ -13,7 +13,6 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { MetaDiffsService } from '~/services/meta-diffs.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { ColumnsService } from '~/services/columns.service';
-import getWorkspaceForBase from '~/utils/getWorkspaceForBase';
 import { getLimit, PlanLimitTypes } from '~/plan-limits';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
@@ -34,14 +33,17 @@ export class TablesService extends TableServiceCE {
     super(metaDiffServiceEE, appHooksServiceEE, columnsServiceEE);
   }
 
-  async tableCreate(param: {
-    baseId: string;
-    sourceId?: string;
-    table: TableReqType;
-    user: User | UserType;
-    req?: NcRequest;
-  }) {
-    const base = await Base.getWithInfo(param.baseId);
+  async tableCreate(
+    context: NcContext,
+    param: {
+      baseId: string;
+      sourceId?: string;
+      table: TableReqType;
+      user: User | UserType;
+      req?: NcRequest;
+    },
+  ) {
+    const base = await Base.getWithInfo(context, param.baseId);
     let source = base.sources[0];
 
     if (source.id !== param.sourceId) {
@@ -49,11 +51,9 @@ export class TablesService extends TableServiceCE {
     }
 
     if (source && source.isMeta()) {
-      const workspaceId = await getWorkspaceForBase(base.id);
-
       const tablesInSource = await Noco.ncMeta.metaCount(
-        null,
-        null,
+        context.workspace_id,
+        context.base_id,
         MetaTable.MODELS,
         {
           condition: {
@@ -64,7 +64,7 @@ export class TablesService extends TableServiceCE {
 
       const tableLimitForWorkspace = await getLimit(
         PlanLimitTypes.TABLE_LIMIT,
-        workspaceId,
+        context.workspace_id,
       );
 
       if (tablesInSource >= tableLimitForWorkspace) {
@@ -74,23 +74,26 @@ export class TablesService extends TableServiceCE {
       }
     }
 
-    return super.tableCreate(param);
+    return super.tableCreate(context, param);
   }
 
-  async tableCreateMagic(param: {
-    baseId: string;
-    sourceId: string;
-    tableName: string;
-    title: string;
-    user?: UserType;
-    req: NcRequest;
-  }) {
+  async tableCreateMagic(
+    context: NcContext,
+    param: {
+      baseId: string;
+      sourceId: string;
+      tableName: string;
+      title: string;
+      user?: UserType;
+      req: NcRequest;
+    },
+  ) {
     const tableCreateBody = {
       tableName: param.tableName,
       title: param.title,
     };
 
-    const base = await Base.getWithInfo(param.baseId);
+    const base = await Base.getWithInfo(context, param.baseId);
     let source = base.sources[0];
 
     if (param.sourceId) {
@@ -122,7 +125,7 @@ export class TablesService extends TableServiceCE {
     }
 
     if (
-      !(await Model.checkTitleAvailable({
+      !(await Model.checkTitleAvailable(context, {
         table_name: tableCreateBody.tableName,
         base_id: base.id,
         source_id: source.id,
@@ -140,7 +143,7 @@ export class TablesService extends TableServiceCE {
     }
 
     if (
-      !(await Model.checkAliasAvailable({
+      !(await Model.checkAliasAvailable(context, {
         title: tableCreateBody.title,
         base_id: base.id,
         source_id: source.id,
@@ -188,13 +191,13 @@ export class TablesService extends TableServiceCE {
       await sqlClient.raw(sql);
     }
 
-    await this.metaDiffServiceEE.baseMetaDiffSync({
+    await this.metaDiffServiceEE.baseMetaDiffSync(context, {
       baseId: base.id,
       sourceId: source.id,
       req: param.req,
     });
 
-    const table = await Model.getByIdOrName({
+    const table = await Model.getByIdOrName(context, {
       base_id: base.id,
       source_id: source.id,
       table_name: param.tableName,
@@ -209,14 +212,17 @@ export class TablesService extends TableServiceCE {
     return table;
   }
 
-  async schemaMagic(param: {
-    baseId: string;
-    sourceId: string;
-    schemaName: string;
-    title: string;
-    req: NcRequest;
-  }) {
-    const base = await Base.getWithInfo(param.baseId);
+  async schemaMagic(
+    context: NcContext,
+    param: {
+      baseId: string;
+      sourceId: string;
+      schemaName: string;
+      title: string;
+      req: NcRequest;
+    },
+  ) {
+    const base = await Base.getWithInfo(context, param.baseId);
     let source = base.sources[0];
     let prefixPrompt = '';
 
@@ -313,7 +319,7 @@ export class TablesService extends TableServiceCE {
         await sqlClient.raw(sql);
       }
 
-      await this.metaDiffServiceEE.baseMetaDiffSync({
+      await this.metaDiffServiceEE.baseMetaDiffSync(context, {
         baseId: base.id,
         sourceId: source.id,
         req: param.req,

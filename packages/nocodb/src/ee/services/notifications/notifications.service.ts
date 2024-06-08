@@ -33,7 +33,7 @@ export class NotificationsService extends NotificationsServiceCE {
         {
           const { base, user, invitedBy, req } = data as ProjectInviteEvent;
 
-          const ws = await Workspace.get((base as any).fk_workspace_id);
+          const ws = await Workspace.get(base.fk_workspace_id);
 
           await this.insertNotification(
             {
@@ -113,14 +113,14 @@ export class NotificationsService extends NotificationsServiceCE {
 
         if (!mentions || !mentions.length) break;
 
-        const row = await this.datasService.dataRead({
+        const row = await this.datasService.dataRead(req.context, {
           rowId: rowId,
           baseName: base.id,
           tableName: table.id,
           query: {},
         });
 
-        const cols = await Column.list({
+        const cols = await Column.list(req.context, {
           fk_model_id: table.id,
         });
 
@@ -128,11 +128,11 @@ export class NotificationsService extends NotificationsServiceCE {
 
         const displayValue = row[pvc?.title ?? ''] ?? '';
 
-        const baseUsers = await BaseUser.getUsersList({
+        const baseUsers = await BaseUser.getUsersList(req.context, {
           base_id: base.id,
         });
 
-        const ws = await Workspace.get((base as any).fk_workspace_id);
+        const ws = await Workspace.get(base.fk_workspace_id);
 
         for (const mention of mentions) {
           const mentionedUser = baseUsers.find((b) => b.id === mention);

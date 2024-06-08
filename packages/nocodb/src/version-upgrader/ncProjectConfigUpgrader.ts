@@ -13,11 +13,16 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
   const actions = [];
 
   // Get all the base sources
-  const sources = await ncMeta.metaList2(null, null, MetaTable.BASES);
+  const sources = await ncMeta.knexConnection(MetaTable.BASES);
 
   // Update the base config with the new secret key if we could decrypt the base config with the fallback secret key
   for (const source of sources) {
     let config;
+
+    const context = {
+      workspace_id: source.fk_workspace_id,
+      base_id: source.id,
+    };
 
     // Try to decrypt the base config with the fallback secret key
     // if we could decrypt the base config with the fallback secret key then we will update the base config with the new secret key
@@ -32,6 +37,7 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
       // Update the base config with the new secret key
       actions.push(
         Source.updateBase(
+          context,
           source.id,
           {
             id: source.id,

@@ -8,7 +8,6 @@ import { T } from 'nc-help';
 import * as ejs from 'ejs';
 import bcrypt from 'bcryptjs';
 import { setTokenCookie } from './helpers';
-import type { Request } from 'express';
 import type { SignUpReqType, UserType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import { NC_APP_SETTINGS } from '~/constants';
@@ -107,7 +106,7 @@ export class UsersService extends UsersServiceCE {
 
   async signup(param: {
     body: SignUpReqType;
-    req: Request;
+    req: any;
     res: any;
   }): Promise<any> {
     validatePayload('swagger.json#/components/schemas/SignUpReq', param.body);
@@ -239,7 +238,7 @@ export class UsersService extends UsersServiceCE {
     return { ...(await this.login(user, param.req)), createdWorkspace };
   }
 
-  private async createDefaultWorkspace(user: User, req: NcRequest) {
+  private async createDefaultWorkspace(user: User, req: any) {
     const title = `${user.email?.split('@')?.[0]}`;
 
     let createdWorkspace;

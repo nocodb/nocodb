@@ -61,24 +61,24 @@ export class MailService implements OnModuleInit, OnModuleDestroy {
         const mentions = extractMentions(comment.comment);
 
         if (mentions && mentions.length) {
-          const row = await this.datasService.dataRead({
+          const row = await this.datasService.dataRead(req.context, {
             rowId: rowId,
             baseName: base.id,
             tableName: table.id,
             query: {},
           });
 
-          const cols = await Column.list({
+          const cols = await Column.list(req.context, {
             fk_model_id: table.id,
           });
 
-          const ws = await Workspace.get((base as any).fk_workspace_id);
+          const ws = await Workspace.get(base.fk_workspace_id);
 
           const pvc = cols.find((c) => c.pv);
 
           const displayValue = row[pvc?.title ?? ''] ?? '';
 
-          const baseUsers = await BaseUser.getUsersList({
+          const baseUsers = await BaseUser.getUsersList(req.context, {
             base_id: base.id,
           });
 

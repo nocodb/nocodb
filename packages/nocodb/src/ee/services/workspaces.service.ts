@@ -25,7 +25,7 @@ import { extractProps } from '~/helpers/extractProps';
 import { BasesService } from '~/services/bases.service';
 import { TablesService } from '~/services/tables.service';
 import Noco from '~/Noco';
-import { CacheScope, MetaTable } from '~/utils/globals';
+import { CacheScope, MetaTable, RootScopes } from '~/utils/globals';
 import { JobTypes } from '~/interface/Jobs';
 import NocoCache from '~/cache/NocoCache';
 
@@ -52,7 +52,13 @@ export class WorkspacesService implements OnApplicationBootstrap {
 
   async prepopulateWorkspaces(req: NcRequest) {
     if (process.env.NC_SEED_WORKSPACE === 'true') {
-      const templateBase = await Base.get(process.env.NC_SEED_BASE_ID_SOURCE);
+      const templateBase = await Base.get(
+        {
+          workspace_id: RootScopes.BASE,
+          base_id: RootScopes.BASE,
+        },
+        process.env.NC_SEED_BASE_ID_SOURCE,
+      );
 
       if (!templateBase) {
         return new Error('Template base not found');
@@ -101,6 +107,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
     });
 
     await this.jobsService.add(JobTypes.DuplicateBase, {
+      context,
       baseId: templateBase.id,
       sourceId: source.id,
       dupProjectId: dupBase.id,
@@ -166,7 +173,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
         const transferred = await this.transferOwnership({
           user: param.user,
           workspace: prepopulatedWorkspace,
-          req: param.req,
+          req: param.req as any,
         });
         if (transferred) {
           await Workspace.update(prepopulatedWorkspace.id, {
@@ -217,10 +224,15 @@ export class WorkspacesService implements OnApplicationBootstrap {
           req: param.req,
         });
 
+        const context = {
+          workspace_id: workspace.id,
+          base_id: base.id,
+        };
+
         const sqlUI = SqlUiFactory.create({ client: base.sources[0].type });
         const columns = sqlUI?.getNewTableColumns() as any;
 
-        const table = await this.tablesService.tableCreate({
+        const table = await this.tablesService.tableCreate(context, {
           baseId: base.id,
           sourceId: base.sources[0].id,
           table: {
@@ -243,7 +255,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
   async transferOwnership(param: {
     user: UserType & { extra?: any };
     workspace: WorkspaceType;
-    req: NcRequest;
+    req: Request;
   }) {
     const user = await User.get(param.user.id);
 
@@ -252,6 +264,11 @@ export class WorkspacesService implements OnApplicationBootstrap {
     const workspace = await Workspace.get(param.workspace.id);
 
     if (!workspace) NcError.workspaceNotFound(param.workspace.id);
+
+    const context = {
+      workspace_id: workspace.id,
+      base_id: RootScopes.WORKSPACE,
+    };
 
     const oldWorkspaceOwnerId = workspace.fk_user_id;
 
@@ -268,8 +285,8 @@ export class WorkspacesService implements OnApplicationBootstrap {
 
       // update workspace owner
       await ncMeta.metaUpdate(
-        null,
-        null,
+        RootScopes.WORKSPACE,
+        RootScopes.WORKSPACE,
         MetaTable.WORKSPACE,
         updateObj,
         workspace.id,
@@ -284,8 +301,8 @@ export class WorkspacesService implements OnApplicationBootstrap {
       // and if not then create new workspace user
 
       const workspaceUsers = await ncMeta.metaList2(
-        null,
-        null,
+        context.workspace_id,
+        context.base_id,
         MetaTable.WORKSPACE_USER,
         {
           condition: {
@@ -297,8 +314,8 @@ export class WorkspacesService implements OnApplicationBootstrap {
       if (workspaceUsers.length) {
         // update workspace user
         await ncMeta.metaUpdate(
-          null,
-          null,
+          context.workspace_id,
+          context.base_id,
           MetaTable.WORKSPACE_USER,
           {
             fk_user_id: user.id,
@@ -318,15 +335,20 @@ export class WorkspacesService implements OnApplicationBootstrap {
       }
 
       // get all bases
-      const bases = await ncMeta.metaList2(null, null, MetaTable.PROJECT, {
-        condition: { fk_workspace_id: workspace.id },
-      });
+      const bases = await ncMeta.metaList2(
+        context.workspace_id,
+        RootScopes.BASE,
+        MetaTable.PROJECT,
+        {
+          condition: { fk_workspace_id: workspace.id },
+        },
+      );
 
       // update base owners
       for (const base of bases) {
         await ncMeta.metaUpdate(
-          null,
-          null,
+          context.workspace_id,
+          base.id,
           MetaTable.PROJECT_USERS,
           {
             fk_user_id: user.id,
@@ -343,7 +365,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
 
       if (workspace.fk_user_id === mockUser.id) {
         // prepopulate more workspaces if required
-        this.prepopulateWorkspaces(param.req).catch((e) => {
+        this.prepopulateWorkspaces(param.req as any).catch((e) => {
           this.logger.error('### Failed to prepopulate workspace');
           this.logger.error(e);
         });
@@ -361,8 +383,8 @@ export class WorkspacesService implements OnApplicationBootstrap {
     if (process.env.NC_SEED_WORKSPACE !== 'true') return null;
 
     const workspaces = await Noco.ncMeta.metaList2(
-      null,
-      null,
+      RootScopes.WORKSPACE,
+      RootScopes.WORKSPACE,
       MetaTable.WORKSPACE,
       {
         condition: {
@@ -515,9 +537,15 @@ export class WorkspacesService implements OnApplicationBootstrap {
     baseId: string;
   }) {
     const { workspaceId, baseId, user } = param;
-    const base = await Base.get(baseId);
 
-    const baseUser = await BaseUser.get(baseId, user.id);
+    const context = {
+      workspace_id: workspaceId,
+      base_id: baseId,
+    };
+
+    const base = await Base.get(context, baseId);
+
+    const baseUser = await BaseUser.get(context, baseId, user.id);
     const currentWorkspaceUser = await WorkspaceUser.get(
       (base as Base).fk_workspace_id,
       user.id,
@@ -539,7 +567,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
     }
 
     // update the base workspace id
-    await Base.update(param.baseId, {
+    await Base.update(context, param.baseId, {
       fk_workspace_id: workspaceId,
     });
 
@@ -627,8 +655,8 @@ export class WorkspacesService implements OnApplicationBootstrap {
 
     if (deprecatedWorkspaceTemplates) {
       const list = await Noco.ncMeta.metaList2(
-        null,
-        null,
+        RootScopes.WORKSPACE,
+        RootScopes.WORKSPACE,
         MetaTable.WORKSPACE,
         {
           condition: {

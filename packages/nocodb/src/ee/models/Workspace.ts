@@ -6,6 +6,7 @@ import {
   CacheGetType,
   CacheScope,
   MetaTable,
+  RootScopes,
 } from '~/utils/globals';
 
 import { NcError } from '~/helpers/catchError';
@@ -47,9 +48,14 @@ export default class Workspace implements WorkspaceType {
     title: string;
     ncMeta?: any;
   }): Promise<Workspace | undefined> {
-    const workspace = await ncMeta.metaGet2(null, null, MetaTable.WORKSPACE, {
-      title,
-    });
+    const workspace = await ncMeta.metaGet2(
+      RootScopes.WORKSPACE,
+      RootScopes.WORKSPACE,
+      MetaTable.WORKSPACE,
+      {
+        title,
+      },
+    );
     if (workspace?.meta && typeof workspace.meta === 'string') {
       try {
         workspace.meta = JSON.parse(workspace.meta);
@@ -71,9 +77,14 @@ export default class Workspace implements WorkspaceType {
     );
 
     if (!workspaceData) {
-      workspaceData = await ncMeta.metaGet2(null, null, MetaTable.WORKSPACE, {
-        id: workspaceId,
-      });
+      workspaceData = await ncMeta.metaGet2(
+        RootScopes.WORKSPACE,
+        RootScopes.WORKSPACE,
+        MetaTable.WORKSPACE,
+        {
+          id: workspaceId,
+        },
+      );
       if (workspaceData) {
         workspaceData.meta = parseMetaProp(workspaceData);
         workspaceData.infra_meta = parseMetaProp(workspaceData, 'infra_meta');
@@ -116,8 +127,8 @@ export default class Workspace implements WorkspaceType {
     }
 
     const { id } = await ncMeta.metaInsert2(
-      null,
-      null,
+      RootScopes.WORKSPACE,
+      RootScopes.WORKSPACE,
       MetaTable.WORKSPACE,
       insertObject,
     );
@@ -159,8 +170,8 @@ export default class Workspace implements WorkspaceType {
     }
 
     const res = await ncMeta.metaUpdate(
-      null,
-      null,
+      RootScopes.WORKSPACE,
+      RootScopes.WORKSPACE,
       MetaTable.WORKSPACE,
       prepareForDb(updateObject),
       id,
@@ -188,8 +199,8 @@ export default class Workspace implements WorkspaceType {
     ]);
 
     const res = await ncMeta.metaUpdate(
-      null,
-      null,
+      RootScopes.WORKSPACE,
+      RootScopes.WORKSPACE,
       MetaTable.WORKSPACE,
       prepareForDb(updateObject, 'infra_meta'),
       id,
@@ -211,9 +222,14 @@ export default class Workspace implements WorkspaceType {
 
     if (!workspace) NcError.workspaceNotFound(id);
 
-    await ncMeta.metaDelete(null, null, MetaTable.WORKSPACE_USER, {
-      fk_workspace_id: id,
-    });
+    await ncMeta.metaDelete(
+      RootScopes.WORKSPACE,
+      RootScopes.WORKSPACE,
+      MetaTable.WORKSPACE_USER,
+      {
+        fk_workspace_id: id,
+      },
+    );
 
     await NocoCache.deepDel(
       `${CacheScope.WORKSPACE_USER}:${id}:list`,
@@ -223,14 +239,20 @@ export default class Workspace implements WorkspaceType {
     const bases = await Base.listByWorkspace(id, ncMeta);
 
     for (const base of bases) {
-      await Base.delete(base.id, ncMeta);
+      await Base.delete(
+        {
+          workspace_id: id,
+          base_id: base.id,
+        },
+        base.id,
+        ncMeta,
+      );
     }
 
-    // todo: reset base workspace mapping
-    // and mark it as deleted
+    // TODO: THIS LOOKS UNNECESSARY AS WE ARE DELETING BASES ABOVE - CHECK
     await ncMeta.metaUpdate(
-      null,
-      null,
+      RootScopes.BASE,
+      RootScopes.BASE,
       MetaTable.PROJECT,
       {
         fk_workspace_id: null,
@@ -243,7 +265,12 @@ export default class Workspace implements WorkspaceType {
 
     await NocoCache.del(`${CacheScope.WORKSPACE}:${id}`);
 
-    return await ncMeta.metaDelete(null, null, MetaTable.WORKSPACE, id);
+    return await ncMeta.metaDelete(
+      RootScopes.WORKSPACE,
+      RootScopes.WORKSPACE,
+      MetaTable.WORKSPACE,
+      id,
+    );
   }
 
   public static async softDelete(id: string, ncMeta = Noco.ncMeta) {
@@ -256,8 +283,8 @@ export default class Workspace implements WorkspaceType {
     await NocoCache.del(`${CacheScope.WORKSPACE}:${id}`);
 
     return await ncMeta.metaUpdate(
-      null,
-      null,
+      RootScopes.WORKSPACE,
+      RootScopes.WORKSPACE,
       MetaTable.WORKSPACE,
       {
         deleted: true,
@@ -268,11 +295,16 @@ export default class Workspace implements WorkspaceType {
   }
 
   static async list(ncMeta = Noco.ncMeta) {
-    const workspaces = await ncMeta.metaList(null, null, MetaTable.WORKSPACE, {
-      condition: {
-        deleted: false,
+    const workspaces = await ncMeta.metaList2(
+      RootScopes.WORKSPACE,
+      RootScopes.WORKSPACE,
+      MetaTable.WORKSPACE,
+      {
+        condition: {
+          deleted: false,
+        },
       },
-    });
+    );
     return workspaces.map((workspace) => {
       workspace.meta = parseMetaProp(workspace);
       workspace.infra_meta = parseMetaProp(workspace, 'infra_meta');
@@ -281,9 +313,14 @@ export default class Workspace implements WorkspaceType {
   }
 
   static async count(condition: any, ncMeta = Noco.ncMeta) {
-    return await ncMeta.metaCount(null, null, MetaTable.WORKSPACE, {
-      condition: { ...condition, deleted: false },
-    });
+    return await ncMeta.metaCount(
+      RootScopes.WORKSPACE,
+      RootScopes.WORKSPACE,
+      MetaTable.WORKSPACE,
+      {
+        condition: { ...condition, deleted: false },
+      },
+    );
   }
 
   static async listByOrgId(param: { orgId: string }, ncMeta = Noco.ncMeta) {
@@ -349,8 +386,8 @@ export default class Workspace implements WorkspaceType {
     ncMeta = Noco.ncMeta,
   ) {
     const res = await ncMeta.metaUpdate(
-      null,
-      null,
+      RootScopes.WORKSPACE,
+      RootScopes.WORKSPACE,
       MetaTable.WORKSPACE,
       {
         fk_org_id: param.orgId,

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { Model, Source, View } from '~/models';
 import type { PagedResponseImpl } from '~/helpers/PagedResponse';
+import type { NcContext } from '~/interface/config';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { Filter } from '~/models';
 import {
@@ -15,18 +16,21 @@ import { haveFormulaColumn } from '~/db/BaseModelSqlv2';
 
 @Injectable()
 export class DataOptService {
-  async list(ctx: {
-    model: Model;
-    view: View;
-    source: Source;
-    params;
-    throwErrorIfInvalidParams?: boolean;
-    validateFormula?: boolean;
-    ignorePagination?: boolean;
-    limitOverride?: number;
-    baseModel?: BaseModelSqlv2;
-    customConditions?: Filter[];
-  }): Promise<PagedResponseImpl<Record<string, any>>> {
+  async list(
+    context: NcContext,
+    ctx: {
+      model: Model;
+      view: View;
+      source: Source;
+      params;
+      throwErrorIfInvalidParams?: boolean;
+      validateFormula?: boolean;
+      ignorePagination?: boolean;
+      limitOverride?: number;
+      baseModel?: BaseModelSqlv2;
+      customConditions?: Filter[];
+    },
+  ): Promise<PagedResponseImpl<Record<string, any>>> {
     const params = { ...(ctx.params || {}) };
 
     // parse json filter/sort params if found
@@ -43,42 +47,45 @@ export class DataOptService {
     }
     try {
       if (['mysql', 'mysql2'].includes(ctx.source.type)) {
-        return await mysqlSingleQueryList({ ...ctx, params });
+        return await mysqlSingleQueryList(context, { ...ctx, params });
       }
-      return await singleQueryList({ ...ctx, params });
+      return await singleQueryList(context, { ...ctx, params });
     } catch (e) {
       if (
         ctx.validateFormula ||
-        !haveFormulaColumn(await ctx.model.getColumns())
+        !haveFormulaColumn(await ctx.model.getColumns(context))
       )
         throw e;
       console.log(e);
-      return this.list({ ...ctx, validateFormula: true });
+      return this.list(context, { ...ctx, validateFormula: true });
     }
   }
 
-  async read(ctx: {
-    model: Model;
-    view: View;
-    source: Source;
-    params;
-    id: string;
-    throwErrorIfInvalidParams?: boolean;
-    validateFormula?: boolean;
-  }): Promise<PagedResponseImpl<Record<string, any>>> {
+  async read(
+    context: NcContext,
+    ctx: {
+      model: Model;
+      view: View;
+      source: Source;
+      params;
+      id: string;
+      throwErrorIfInvalidParams?: boolean;
+      validateFormula?: boolean;
+    },
+  ): Promise<PagedResponseImpl<Record<string, any>>> {
     try {
       if (['mysql', 'mysql2'].includes(ctx.source.type)) {
-        return mysqlSingleQueryRead(ctx);
+        return mysqlSingleQueryRead(context, ctx);
       }
-      return singleQueryRead(ctx);
+      return singleQueryRead(context, ctx);
     } catch (e) {
       if (
         ctx.validateFormula ||
-        !haveFormulaColumn(await ctx.model.getColumns())
+        !haveFormulaColumn(await ctx.model.getColumns(context))
       )
         throw e;
       console.log(e);
-      return this.read({ ...ctx, validateFormula: true });
+      return this.read(context, { ...ctx, validateFormula: true });
     }
   }
 }

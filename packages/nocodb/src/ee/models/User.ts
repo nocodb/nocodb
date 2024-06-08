@@ -1,10 +1,16 @@
 import UserCE from 'src/models/User';
 import { extractRolesObj, type UserType } from 'nocodb-sdk';
+import type { NcContext } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import NocoCache from '~/cache/NocoCache';
-import { CacheDelDirection, CacheScope, MetaTable } from '~/utils/globals';
+import {
+  CacheDelDirection,
+  CacheScope,
+  MetaTable,
+  RootScopes,
+} from '~/utils/globals';
 import { BaseUser, OrgUser, WorkspaceUser } from '~/models';
 import { sanitiseUserObj } from '~/utils';
 import { mapWorkspaceRolesObjToProjectRolesObj } from '~/utils/roleHelper';
@@ -47,8 +53,8 @@ export default class User extends UserCE implements UserType {
     }
 
     const { id } = await ncMeta.metaInsert2(
-      null,
-      null,
+      RootScopes.ROOT,
+      RootScopes.ROOT,
       MetaTable.USERS,
       insertObj,
     );
@@ -109,7 +115,13 @@ export default class User extends UserCE implements UserType {
       CacheDelDirection.CHILD_TO_PARENT,
     );
 
-    await ncMeta.metaUpdate(null, null, MetaTable.USERS, updateObj, id);
+    await ncMeta.metaUpdate(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.USERS,
+      updateObj,
+      id,
+    );
 
     // clear all user related cache
     await this.clearCache(id, ncMeta);
@@ -119,9 +131,14 @@ export default class User extends UserCE implements UserType {
 
   // TODO: cache
   public static async getByUsername(username: string, ncMeta = Noco.ncMeta) {
-    const user = await ncMeta.metaGet2(null, null, MetaTable.USERS, {
-      user_name: username,
-    });
+    const user = await ncMeta.metaGet2(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.USERS,
+      {
+        user_name: username,
+      },
+    );
 
     return this.castType(user);
   }
@@ -181,16 +198,22 @@ export default class User extends UserCE implements UserType {
     userId,
     ncMeta = Noco.ncMeta,
   ): Promise<Partial<UserType>> {
-    const profile = await ncMeta.metaGet2(null, null, MetaTable.USERS, userId, [
-      'id',
-      'email',
-      'avatar',
-      'user_name',
-      'display_name',
-      'bio',
-      'location',
-      'website',
-    ]);
+    const profile = await ncMeta.metaGet2(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.USERS,
+      userId,
+      [
+        'id',
+        'email',
+        'avatar',
+        'user_name',
+        'display_name',
+        'bio',
+        'location',
+        'website',
+      ],
+    );
     const followerCount = (await this.getFollowerList(userId)).length;
     const followingCount = (await this.getFollowingList(userId)).length;
     return {
@@ -211,10 +234,15 @@ export default class User extends UserCE implements UserType {
     },
     ncMeta = Noco.ncMeta,
   ): Promise<UserType> {
-    return await ncMeta.metaGet2(null, null, MetaTable.FOLLOWER, {
-      fk_user_id,
-      fk_follower_id,
-    });
+    return await ncMeta.metaGet2(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.FOLLOWER,
+      {
+        fk_user_id,
+        fk_follower_id,
+      },
+    );
   }
 
   // TODO: cache
@@ -308,8 +336,8 @@ export default class User extends UserCE implements UserType {
     if (!fk_user_id) NcError.badRequest('fk_user_id is required');
     if (!fk_follower_id) NcError.badRequest('fk_follower_id is required');
     await ncMeta.metaInsert2(
-      null,
-      null,
+      RootScopes.ROOT,
+      RootScopes.ROOT,
       MetaTable.FOLLOWER,
       {
         fk_user_id,
@@ -332,10 +360,15 @@ export default class User extends UserCE implements UserType {
   ) {
     if (!fk_user_id) NcError.badRequest('fk_user_id is required');
     if (!fk_follower_id) NcError.badRequest('fk_follower_id is required');
-    return await ncMeta.metaGet2(null, null, MetaTable.FOLLOWER, {
-      fk_user_id,
-      fk_follower_id,
-    });
+    return await ncMeta.metaGet2(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.FOLLOWER,
+      {
+        fk_user_id,
+        fk_follower_id,
+      },
+    );
   }
 
   // TODO: cache
@@ -352,13 +385,19 @@ export default class User extends UserCE implements UserType {
     if (!fk_user_id) NcError.badRequest('fk_user_id is required');
     if (!fk_follower_id) NcError.badRequest('fk_follower_id is required');
 
-    return await ncMeta.metaDelete(null, null, MetaTable.FOLLOWER, {
-      fk_user_id,
-      fk_follower_id,
-    });
+    return await ncMeta.metaDelete(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.FOLLOWER,
+      {
+        fk_user_id,
+        fk_follower_id,
+      },
+    );
   }
 
   static async getWithRoles(
+    context: NcContext,
     userId: string,
     args: {
       user?: User;
@@ -394,7 +433,7 @@ export default class User extends UserCE implements UserType {
       // extract base level roles
       new Promise((resolve) => {
         if (args.baseId) {
-          BaseUser.get(args.baseId, user.id)
+          BaseUser.get(context, args.baseId, user.id)
             .then(async (baseUser) => {
               const roles = baseUser?.roles;
               // + (user.roles ? `,${user.roles}` : '');

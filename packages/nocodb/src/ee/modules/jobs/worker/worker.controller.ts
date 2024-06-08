@@ -5,6 +5,8 @@ import { UtilsService } from '~/services/utils.service';
 import { InstanceCommands, InstanceTypes } from '~/interface/Jobs';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { JobsRedis } from '~/modules/jobs/redis/jobs-redis';
+import { TenantContext } from '~/decorators/tenant-context.decorator';
+import { NcContext, NcRequest } from '~/interface/config';
 
 @Controller()
 export class WorkerController {

@@ -32,7 +32,7 @@ export class SamlStrategy extends PassportStrategy(Strategy, 'saml') {
     if (user) {
       // if base id defined extract base level roles
       if (req.ncBaseId) {
-        user = await BaseUser.get(req.ncBaseId, user.id).then(
+        user = await BaseUser.get(req.context, req.ncBaseId, user.id).then(
           async (baseUser) => {
             user.roles = baseUser?.roles || user.roles;
             return sanitiseUserObj(user);

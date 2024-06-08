@@ -26,13 +26,14 @@ import View from '~/models/View';
 import Sort from '~/models/Sort';
 import Filter from '~/models/Filter';
 import ModelRoleVisibility from '~/models/ModelRoleVisibility';
-import { MetaTable } from '~/utils/globals';
+import { MetaTable, RootScopes } from '~/utils/globals';
 import Hook from '~/models/Hook';
 import FormViewColumn from '~/models/FormViewColumn';
 import GridViewColumn from '~/models/GridViewColumn';
 import Audit from '~/models/Audit';
 
-export default async function (ctx: NcUpgraderCtx) {
+export default async function (_ctx: NcUpgraderCtx) {
+  /* TODO : decide on how to handle migrating from very old versions
   const ncMeta = ctx.ncMeta;
 
   const bases = await ctx.ncMeta.baseList();
@@ -63,7 +64,7 @@ export default async function (ctx: NcUpgraderCtx) {
 }
 
 async function migrateUsers(ncMeta = Noco.ncMeta) {
-  const users = await ncMeta.metaList(null, null, 'xc_users');
+  const users = await ncMeta.metaList2(context.workspace_id, context.base_id, 'xc_users');
   const userObj: { [id: string]: User | UserType } = {};
 
   for (const user of users) {
@@ -109,7 +110,7 @@ async function migrateProjectUsers(
   usersObj: { [p: string]: User | UserType },
   ncMeta = Noco.ncMeta,
 ) {
-  const baseUsers = await ncMeta.metaList(null, null, 'nc_projects_users');
+  const baseUsers = await ncMeta.metaList2(context.workspace_id, context.base_id, 'nc_projects_users');
 
   for (const baseUser of baseUsers) {
     // skip if base is missing
@@ -348,11 +349,11 @@ async function migrateProjectModels(
 ): Promise<MigrateCtxV1> {
   // @ts-ignore
 
-  const metas: ModelMetav1[] = await ncMeta.metaList(null, null, 'nc_models');
+  const metas: ModelMetav1[] = await ncMeta.metaList2(context.workspace_id, context.base_id, 'nc_models');
   // @ts-ignore
-  const relations: Relationv1[] = await ncMeta.metaList(
-    null,
-    null,
+  const relations: Relationv1[] = await ncMeta.metaList2(
+    context.workspace_id,
+    context.base_id,
     'nc_relations',
   );
   const models: Model[] = [];
@@ -1050,7 +1051,7 @@ async function migrateUIAcl(ctx: MigrateCtxV1, ncMeta: any) {
     tn: string;
     parent_model_title: string;
     base_id: string;
-  }> = await ncMeta.metaList(null, null, 'nc_disabled_models_for_role');
+  }> = await ncMeta.metaList2(context.workspace_id, context.base_id, 'nc_disabled_models_for_role');
 
   for (const acl of uiAclList) {
     // if missing model name skip the view acl migration
@@ -1096,7 +1097,7 @@ async function migrateSharedViews(ctx: MigrateCtxV1, ncMeta: any) {
     password: string;
     view_name: string;
     base_id: string;
-  }> = await ncMeta.metaList(null, null, 'nc_shared_views');
+  }> = await ncMeta.metaList2(context.workspace_id, context.base_id, 'nc_shared_views');
 
   for (const sharedView of sharedViews) {
     let fk_view_id;
@@ -1143,7 +1144,7 @@ async function migrateSharedBase(ncMeta: any) {
     enabled: boolean;
     base_id: string;
     password: string;
-  }> = await ncMeta.metaList(null, null, 'nc_shared_bases');
+  }> = await ncMeta.metaList2(context.workspace_id, context.base_id, 'nc_shared_bases');
 
   for (const sharedBase of sharedBases) {
     await Base.update(
@@ -1159,26 +1160,31 @@ async function migrateSharedBase(ncMeta: any) {
 }
 
 async function migratePlugins(ncMeta: any) {
-  const plugins: Array<any> = await ncMeta.metaList(null, null, 'nc_plugins');
+  const plugins: Array<any> = await ncMeta.metaList2(context.workspace_id, context.base_id, 'nc_plugins');
 
   for (const plugin of plugins) {
-    await ncMeta.metaInsert2(null, null, MetaTable.PLUGIN, {
-      title: plugin.title,
-      description: plugin.description,
-      active: plugin.active,
-      version: plugin.version,
-      docs: plugin.docs,
-      status: plugin.status,
-      status_details: plugin.status_details,
-      logo: plugin.logo,
-      tags: plugin.tags,
-      category: plugin.category,
-      input: plugin.input,
-      input_schema: plugin.input_schema,
-      creator: plugin.creator,
-      creator_website: plugin.creator_website,
-      price: plugin.price,
-    });
+    await ncMeta.metaInsert2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.PLUGIN,
+      {
+        title: plugin.title,
+        description: plugin.description,
+        active: plugin.active,
+        version: plugin.version,
+        docs: plugin.docs,
+        status: plugin.status,
+        status_details: plugin.status_details,
+        logo: plugin.logo,
+        tags: plugin.tags,
+        category: plugin.category,
+        input: plugin.input,
+        input_schema: plugin.input_schema,
+        creator: plugin.creator,
+        creator_website: plugin.creator_website,
+        price: plugin.price,
+      },
+    );
   }
 }
 
@@ -1203,7 +1209,7 @@ async function migrateWebhooks(ctx: MigrateCtxV1, ncMeta: any) {
     retry_interval: number;
     timeout: number;
     active: boolean;
-  }> = await ncMeta.metaList(null, null, 'nc_hooks');
+  }> = await ncMeta.metaList2(context.workspace_id, context.base_id, 'nc_hooks');
 
   for (const hookMeta of hooks) {
     if (
@@ -1281,7 +1287,7 @@ async function migrateAutitLog(
     status: string;
     description: string;
     details: string;
-  }> = await ncMeta.metaList(null, null, 'nc_audit');
+  }> = await ncMeta.metaList2(context.workspace_id, context.base_id, 'nc_audit');
 
   for (const audit of audits) {
     // skip deleted bases audit
@@ -1319,4 +1325,5 @@ async function migrateAutitLog(
 
     await Audit.insert(insertObj, ncMeta);
   }
+  */
 }

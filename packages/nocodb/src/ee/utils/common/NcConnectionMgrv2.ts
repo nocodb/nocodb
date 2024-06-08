@@ -106,7 +106,13 @@ export default class NcConnectionMgrv2 extends NcConnectionMgrv2CE {
     if ((source as any).fk_sql_executor_id) {
       se = await DbMux.get((source as any).fk_sql_executor_id);
     } else {
-      se = await DbMux.bindToSuitableDbMux(source.id);
+      se = await DbMux.bindToSuitableDbMux(
+        {
+          workspace_id: source.fk_workspace_id,
+          base_id: source.base_id,
+        },
+        source.id,
+      );
     }
 
     if (!se) {

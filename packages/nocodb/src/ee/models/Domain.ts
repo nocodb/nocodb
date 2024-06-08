@@ -1,5 +1,10 @@
 import type { DomainType } from 'nocodb-sdk';
-import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
+import {
+  CacheGetType,
+  CacheScope,
+  MetaTable,
+  RootScopes,
+} from '~/utils/globals';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import {
@@ -27,9 +32,14 @@ export default class Domain {
     const key = `${CacheScope.ORG_DOMAIN}:${domainId}`;
     let domain = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
     if (!domain) {
-      domain = await ncMeta.metaGet2(null, null, MetaTable.ORG_DOMAIN, {
-        id: domainId,
-      });
+      domain = await ncMeta.metaGet2(
+        RootScopes.ORG,
+        RootScopes.ORG,
+        MetaTable.ORG_DOMAIN,
+        {
+          id: domainId,
+        },
+      );
 
       if (!domain) return null;
 
@@ -52,8 +62,8 @@ export default class Domain {
     ]);
 
     const { id } = await ncMeta.metaInsert2(
-      null,
-      null,
+      RootScopes.ORG,
+      RootScopes.ORG,
       MetaTable.ORG_DOMAIN,
       insertObj,
     );
@@ -77,8 +87,8 @@ export default class Domain {
     ]);
 
     await ncMeta.metaUpdate(
-      null,
-      null,
+      RootScopes.ORG,
+      RootScopes.ORG,
       MetaTable.ORG_DOMAIN,
       prepareForDb(updateObj, 'config'),
       domainId,
@@ -94,7 +104,12 @@ export default class Domain {
 
   public static async delete(domainId: string, ncMeta = Noco.ncMeta) {
     // delete from cache
-    await ncMeta.metaDelete(null, null, MetaTable.ORG_DOMAIN, domainId);
+    await ncMeta.metaDelete(
+      RootScopes.ORG,
+      RootScopes.ORG,
+      MetaTable.ORG_DOMAIN,
+      domainId,
+    );
 
     const key = `${CacheScope.ORG_DOMAIN}:${domainId}`;
     await NocoCache.del(key);
@@ -104,8 +119,8 @@ export default class Domain {
 
   static async list(param: { orgId: string }) {
     const domains = await Noco.ncMeta.metaList2(
-      null,
-      null,
+      RootScopes.ORG,
+      RootScopes.ORG,
       MetaTable.ORG_DOMAIN,
       {
         condition: { fk_org_id: param.orgId },
@@ -120,10 +135,15 @@ export default class Domain {
 
   // todo: cache this
   static async getByDomain(domain: string, ncMeta = Noco.ncMeta) {
-    const domainObj = await ncMeta.metaGet2(null, null, MetaTable.ORG_DOMAIN, {
-      domain,
-      verified: true,
-    });
+    const domainObj = await ncMeta.metaGet2(
+      RootScopes.ORG,
+      RootScopes.ORG,
+      MetaTable.ORG_DOMAIN,
+      {
+        domain,
+        verified: true,
+      },
+    );
 
     if (!domainObj) return null;
 

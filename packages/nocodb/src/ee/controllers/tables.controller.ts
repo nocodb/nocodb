@@ -1,11 +1,12 @@
 import { Body, Controller, Param, Post, Req, UseGuards } from '@nestjs/common';
-import { Request } from 'express';
 import { TableReqType } from 'nocodb-sdk';
 import { TablesController as TablesControllerCE } from 'src/controllers/tables.controller';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { TablesService } from '~/services/tables.service';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
+import { TenantContext } from '~/decorators/tenant-context.decorator';
+import { NcContext, NcRequest } from '~/interface/config';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -20,12 +21,13 @@ export class TablesController extends TablesControllerCE {
   ])
   @Acl('tableCreateMagic')
   async tableCreateMagic(
+    @TenantContext() context: NcContext,
     @Param('baseId') baseId: string,
     @Param('sourceId') sourceId: string,
     @Body() body: TableReqType,
-    @Req() req: Request,
+    @Req() req: NcRequest,
   ) {
-    return await this.tablesServiceEE.tableCreateMagic({
+    return await this.tablesServiceEE.tableCreateMagic(context, {
       baseId,
       sourceId,
       title: body.title,
@@ -41,12 +43,13 @@ export class TablesController extends TablesControllerCE {
   ])
   @Acl('schemaMagic')
   async schemaMagic(
+    @TenantContext() context: NcContext,
     @Param('baseId') baseId: string,
     @Param('sourceId') sourceId: string,
     @Body() body: any,
-    @Req() req: Request,
+    @Req() req: NcRequest,
   ) {
-    return await this.tablesServiceEE.schemaMagic({
+    return await this.tablesServiceEE.schemaMagic(context, {
       baseId: baseId,
       sourceId: sourceId,
       title: body.title,

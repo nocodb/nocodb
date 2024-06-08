@@ -1,6 +1,7 @@
 import CryptoJS from 'crypto-js';
 import { Source as SourceCE } from 'src/models';
 import type { BoolType, SourceType } from 'nocodb-sdk';
+import type { NcContext } from '~/interface/config';
 import NocoCache from '~/cache/NocoCache';
 import { CacheScope, MetaTable } from '~/utils/globals';
 import Noco from '~/Noco';
@@ -21,6 +22,7 @@ export default class Source extends SourceCE implements SourceType {
   }
 
   public static async createBase(
+    context: NcContext,
     source: SourceType & { baseId: string; created_at?; updated_at? },
     ncMeta = Noco.ncMeta,
   ) {
@@ -50,14 +52,14 @@ export default class Source extends SourceCE implements SourceType {
     });
 
     const { id } = await ncMeta.metaInsert2(
-      source.baseId,
-      null,
+      context.workspace_id,
+      context.base_id,
       MetaTable.BASES,
       insertObj,
     );
 
     // call before reorder to update cache
-    const returnBase = await this.get(id, false, ncMeta);
+    const returnBase = await this.get(context, id, false, ncMeta);
 
     await NocoCache.appendToList(
       CacheScope.BASE,

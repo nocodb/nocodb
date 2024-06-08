@@ -25,18 +25,20 @@ export default class Page {
     baseId: string;
     workspaceId?: string;
   }) {
-    const prefix = 'nc_d_page_';
+    throw new Error('Not implemented.');
+    /* const prefix = 'nc_d_page_';
     if (workspaceId) return `${prefix}${workspaceId}`;
 
     const base = await Base.get(baseId);
-    return `${prefix}${(base as Base).fk_workspace_id}`;
+    return `${prefix}${(base as Base).fk_workspace_id}`; */
   }
 
   static async createPageTable(
     { baseId, workspaceId }: { baseId: string; workspaceId?: string },
     ncMeta = Noco.ncMeta,
   ) {
-    const knex = ncMeta.knex;
+    throw new Error('Not implemented.');
+    /* const knex = ncMeta.knex;
     const pageTableName = await Page.tableName({ baseId, workspaceId });
 
     await knex.schema.createTable(pageTableName, (table) => {
@@ -110,6 +112,6 @@ export default class Page {
       table.text('last_snapshot_json', 'longtext').defaultTo('');
 
       table.text('content_html', 'longtext').defaultTo('');
-    });
+    }); */
   }
 }

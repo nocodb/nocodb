@@ -17,23 +17,24 @@ export class WebhookHandlerProcessor {
 
   @Process(JobTypes.HandleWebhook)
   async job(job: Job<HandleWebhookJobData>) {
-    const { hookId, modelId, viewId, prevData, newData, user } = job.data;
+    const { context, hookId, modelId, viewId, prevData, newData, user } =
+      job.data;
 
-    const hook = await Hook.get(hookId);
+    const hook = await Hook.get(context, hookId);
     if (!hook) {
       this.logger.error(`Hook not found for id: ${hookId}`);
       return;
     }
 
-    const model = await Model.get(modelId);
+    const model = await Model.get(context, modelId);
     if (!model) {
       this.logger.error(`Model not found for id: ${modelId}`);
       return;
     }
 
-    const view = viewId ? await View.get(viewId) : null;
+    const view = viewId ? await View.get(context, viewId) : null;
 
-    await invokeWebhook({
+    await invokeWebhook(context, {
       hook,
       model,
       view,

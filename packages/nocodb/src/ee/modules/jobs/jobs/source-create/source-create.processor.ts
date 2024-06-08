@@ -5,7 +5,6 @@ import { WorkspacePlan } from 'nocodb-sdk';
 import { JOBS_QUEUE, JobTypes } from '~/interface/Jobs';
 import { SourcesService } from '~/services/sources.service';
 import { JobsLogService } from '~/modules/jobs/jobs/jobs-log.service';
-import getWorkspaceForBase from '~/utils/getWorkspaceForBase';
 import { Base, Model, Workspace } from '~/models';
 import { WorkspacesService } from '~/services/workspaces.service';
 import { TelemetryService } from '~/services/telemetry.service';
@@ -26,13 +25,14 @@ export class SourceCreateProcessor {
   async job(job: Job) {
     this.debugLog(`job started for ${job.id}`);
 
-    const { baseId, source, user } = job.data;
+    const { context, source, user } = job.data;
 
-    const workspaceId = await getWorkspaceForBase(baseId);
+    const workspaceId = context.workspace_id;
+    const baseId = context.base_id;
 
     const workspace = await Workspace.get(workspaceId);
 
-    const base = await Base.get(baseId);
+    const base = await Base.get(context, baseId);
 
     let needUpgrade = false;
 
@@ -46,7 +46,7 @@ export class SourceCreateProcessor {
     };
 
     const { source: createdSource, error } =
-      await this.sourcesService.baseCreate({
+      await this.sourcesService.baseCreate(context, {
         baseId,
         source,
         logger: logBasic,
@@ -54,7 +54,7 @@ export class SourceCreateProcessor {
       });
 
     if (error) {
-      await this.sourcesService.baseDelete({
+      await this.sourcesService.baseDelete(context, {
         sourceId: createdSource.id,
         req: {},
       });
@@ -99,7 +99,7 @@ export class SourceCreateProcessor {
       needUpgrade = false;
     }
 
-    const models = await Model.list({
+    const models = await Model.list(context, {
       base_id: baseId,
       source_id: createdSource.id,
     });
@@ -107,7 +107,7 @@ export class SourceCreateProcessor {
     const promises = [];
 
     for (const model of models) {
-      promises.push(model.getColumns());
+      promises.push(model.getColumns(context));
     }
 
     await Promise.all(promises);

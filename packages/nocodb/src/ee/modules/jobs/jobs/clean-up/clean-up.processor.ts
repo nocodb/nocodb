@@ -3,7 +3,7 @@ import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
 import { Logger } from '@nestjs/common';
 import { JOBS_QUEUE, JobTypes } from '~/interface/Jobs';
-import { MetaTable } from '~/utils/globals';
+import { MetaTable, RootScopes } from '~/utils/globals';
 import Noco from '~/Noco';
 import Workspace from '~/models/Workspace';
 import Base from '~/models/Base';
@@ -23,8 +23,8 @@ export class CleanUpProcessor {
     const ncMeta = Noco.ncMeta;
 
     const deletedWorkspaces = await ncMeta.metaList2(
-      null,
-      null,
+      RootScopes.WORKSPACE,
+      RootScopes.WORKSPACE,
       MetaTable.WORKSPACE,
       {
         condition: {
@@ -52,11 +52,16 @@ export class CleanUpProcessor {
       return logger.error(e);
     }
 
-    const deletedBases = await ncMeta.metaList2(null, null, MetaTable.PROJECT, {
-      condition: {
-        deleted: true,
+    const deletedBases = await ncMeta.metaList2(
+      RootScopes.BASE,
+      RootScopes.BASE,
+      MetaTable.PROJECT,
+      {
+        condition: {
+          deleted: true,
+        },
       },
-    });
+    );
 
     const cleanUpBases = deletedBases.filter((base) => {
       return (

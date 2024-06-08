@@ -2,24 +2,24 @@ import BaseCE from 'src/models/Base';
 import { ProjectRoles, ProjectTypes, WorkspaceUserRoles } from 'nocodb-sdk';
 import type { BaseType } from 'nocodb-sdk';
 import type { DB_TYPES } from '~/utils/globals';
+import type { NcContext } from '~/interface/config';
 import {
   CacheDelDirection,
   CacheGetType,
   CacheScope,
   MetaTable,
+  RootScopes,
 } from '~/utils/globals';
 import DashboardProjectDBProject from '~/models/DashboardProjectDBProject';
 import Noco from '~/Noco';
 
-import Source from '~/models/Source';
-import { BaseUser, ModelStat } from '~/models';
+import { BaseUser, ModelStat, Source } from '~/models';
 import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
 import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
 
 export default class Base extends BaseCE {
   public type?: 'database' | 'documentation' | 'dashboard';
-  public fk_workspace_id?: string;
 
   public static castType(base: Base): Base {
     return base && new Base(base);
@@ -35,25 +35,30 @@ export default class Base extends BaseCE {
     let { list: baseList } = cachedList;
     const { isNoneList } = cachedList;
     if (!isNoneList && !baseList.length) {
-      baseList = await ncMeta.metaList2(null, null, MetaTable.PROJECT, {
-        xcCondition: {
-          _or: [
-            {
-              deleted: {
-                eq: false,
+      baseList = await ncMeta.metaList2(
+        RootScopes.BASE,
+        RootScopes.BASE,
+        MetaTable.PROJECT,
+        {
+          xcCondition: {
+            _or: [
+              {
+                deleted: {
+                  eq: false,
+                },
               },
-            },
-            {
-              deleted: {
-                eq: null,
+              {
+                deleted: {
+                  eq: null,
+                },
               },
-            },
-          ],
+            ],
+          },
+          orderBy: {
+            order: 'asc',
+          },
         },
-        orderBy: {
-          order: 'asc',
-        },
-      });
+      );
       await NocoCache.setList(CacheScope.PROJECT, [], baseList);
     }
 
@@ -75,7 +80,7 @@ export default class Base extends BaseCE {
   }
 
   public static async createProject(
-    base: Partial<BaseType>,
+    base: Partial<BaseType> & { fk_workspace_id?: string },
     ncMeta = Noco.ncMeta,
   ): Promise<BaseCE> {
     const insertObj = extractProps(base, [
@@ -103,14 +108,20 @@ export default class Base extends BaseCE {
     }
 
     const { id: baseId } = await ncMeta.metaInsert2(
-      null,
-      null,
+      RootScopes.BASE,
+      RootScopes.BASE,
       MetaTable.PROJECT,
       insertObj,
     );
 
+    const context = {
+      workspace_id: base.fk_workspace_id,
+      base_id: baseId,
+    } as NcContext;
+
     for (const source of base.sources) {
       await Source.createBase(
+        context,
         {
           type: source.config?.client as (typeof DB_TYPES)[number],
           ...source,
@@ -121,7 +132,7 @@ export default class Base extends BaseCE {
     }
 
     await NocoCache.del(CacheScope.INSTANCE_META);
-    return this.getWithInfo(baseId, ncMeta).then(async (base) => {
+    return this.getWithInfo(context, baseId, ncMeta).then(async (base) => {
       await NocoCache.appendToList(
         CacheScope.PROJECT,
         [],
@@ -133,6 +144,7 @@ export default class Base extends BaseCE {
 
   // @ts-ignore
   static async update(
+    context: NcContext,
     baseId: string,
     base: Partial<Base> & { fk_workspace_id?: string },
     ncMeta = Noco.ncMeta,
@@ -191,8 +203,8 @@ export default class Base extends BaseCE {
 
     // set meta
     return await ncMeta.metaUpdate(
-      null,
-      null,
+      context.workspace_id,
+      context.base_id,
       MetaTable.PROJECT,
       updateObj,
       baseId,
@@ -200,10 +212,11 @@ export default class Base extends BaseCE {
   }
 
   static async getWithInfo(
+    context: NcContext,
     baseId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<BaseCE> {
-    let base: Base = await super.getWithInfo(baseId, ncMeta);
+    let base: Base = await super.getWithInfo(context, baseId, ncMeta);
 
     if (base && base.type === ProjectTypes.DASHBOARD) {
       base = this.castType(base);
@@ -213,9 +226,14 @@ export default class Base extends BaseCE {
     return base as BaseCE;
   }
 
-  static async delete(baseId, ncMeta = Noco.ncMeta): Promise<any> {
-    let base = await this.get(baseId, ncMeta);
+  static async delete(
+    context: NcContext,
+    baseId,
+    ncMeta = Noco.ncMeta,
+  ): Promise<any> {
+    let base = await this.get(context, baseId, ncMeta);
     const users = await BaseUser.getUsersList(
+      context,
       {
         base_id: baseId,
       },
@@ -223,22 +241,32 @@ export default class Base extends BaseCE {
     );
 
     for (const user of users) {
-      await BaseUser.delete(baseId, user.id, ncMeta);
+      await BaseUser.delete(context, baseId, user.id, ncMeta);
     }
 
     // remove left over users (used for workspace template)
-    await ncMeta.metaDelete(null, null, MetaTable.PROJECT_USERS, {
-      base_id: baseId,
-    });
+    await ncMeta.metaDelete(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.PROJECT_USERS,
+      {
+        base_id: baseId,
+      },
+    );
 
-    const sources = await Source.list({ baseId }, ncMeta);
+    const sources = await Source.list(context, { baseId }, ncMeta);
     for (const source of sources) {
-      await source.delete(ncMeta, { force: true });
+      await source.delete(context, ncMeta, { force: true });
     }
 
-    base = await this.get(baseId, ncMeta);
+    base = await this.get(context, baseId, ncMeta);
 
-    const res = await ncMeta.metaDelete(null, null, MetaTable.PROJECT, baseId);
+    const res = await ncMeta.metaDelete(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.PROJECT,
+      baseId,
+    );
 
     if (base) {
       // delete <scope>:<uuid>
@@ -260,7 +288,7 @@ export default class Base extends BaseCE {
 
     await NocoCache.del(`${CacheScope.BASE_TO_WORKSPACE}:${baseId}`);
 
-    await ncMeta.metaDelete(null, null, MetaTable.AUDIT, {
+    await ncMeta.metaDelete(RootScopes.ROOT, RootScopes.ROOT, MetaTable.AUDIT, {
       base_id: baseId,
     });
 
@@ -268,19 +296,30 @@ export default class Base extends BaseCE {
   }
 
   // @ts-ignore
-  static async softDelete(baseId: string, ncMeta = Noco.ncMeta): Promise<any> {
-    const base = (await this.get(baseId, ncMeta)) as Base;
+  static async softDelete(
+    context: NcContext,
+    baseId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<any> {
+    const base = (await this.get(context, baseId, ncMeta)) as Base;
 
-    await this.clearConnectionPool(baseId, ncMeta);
+    await this.clearConnectionPool(context, baseId, ncMeta);
 
-    const models = await ncMeta.metaList2(null, null, MetaTable.MODELS, {
-      condition: {
-        base_id: baseId,
+    const models = await ncMeta.metaList2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.MODELS,
+      {
+        condition: {
+          base_id: baseId,
+        },
       },
-    });
+    );
 
     await Promise.all(
-      models.map((model) => ModelStat.delete(base.fk_workspace_id, model.id)),
+      models.map((model) =>
+        ModelStat.delete(context, base.fk_workspace_id, model.id),
+      ),
     );
 
     if (base) {
@@ -307,8 +346,8 @@ export default class Base extends BaseCE {
 
     // set meta
     return await ncMeta.metaUpdate(
-      null,
-      null,
+      context.workspace_id,
+      context.base_id,
       MetaTable.PROJECT,
       { deleted: true },
       baseId,
@@ -442,12 +481,17 @@ export default class Base extends BaseCE {
   }
 
   static async countByWorkspace(fk_workspace_id: string, ncMeta = Noco.ncMeta) {
-    const count = await ncMeta.metaCount(null, null, MetaTable.PROJECT, {
-      condition: {
-        fk_workspace_id,
-        deleted: false,
+    const count = await ncMeta.metaCount(
+      RootScopes.BASE,
+      RootScopes.BASE,
+      MetaTable.PROJECT,
+      {
+        condition: {
+          fk_workspace_id,
+          deleted: false,
+        },
       },
-    });
+    );
 
     return count;
   }

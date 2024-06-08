@@ -33,7 +33,7 @@ export class ShortLivedTokenStrategy extends PassportStrategy(
         sso_client_type: jwtPayload.sso_client_type,
       },
       saml: jwtPayload.saml,
-      ...(await User.getWithRoles(user.id, {
+      ...(await User.getWithRoles(req.context, user.id, {
         user,
         baseId: req.ncBaseId,
         workspaceId: req.ncWorkspaceId,

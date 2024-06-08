@@ -1,9 +1,9 @@
 import type { Knex } from 'knex';
-import { MetaTable } from '~/utils/globals';
-import Page from '~/models/Page';
+// import { MetaTable } from '~/utils/globals';
+// import Page from '~/models/Page';
 
-const up = async (knex: Knex) => {
-  const workspaces = await knex(MetaTable.WORKSPACE).select('id');
+const up = async (_knex: Knex) => {
+  /* const workspaces = await knex(MetaTable.WORKSPACE).select('id');
 
   for (const workspace of workspaces) {
     await knex.schema.alterTable(
@@ -17,11 +17,11 @@ const up = async (knex: Knex) => {
         table.text('last_snapshot_json', 'longtext').nullable();
       },
     );
-  }
+  } */
 };
 
-const down = async (knex: Knex) => {
-  const workspaces = await knex(MetaTable.WORKSPACE).select('id');
+const down = async (_knex: Knex) => {
+  /* const workspaces = await knex(MetaTable.WORKSPACE).select('id');
 
   for (const workspace of workspaces) {
     await knex.schema.alterTable(
@@ -35,7 +35,7 @@ const down = async (knex: Knex) => {
         table.dropColumn('last_snapshot_json');
       },
     );
-  }
+  } */
 };
 
 export { up, down };

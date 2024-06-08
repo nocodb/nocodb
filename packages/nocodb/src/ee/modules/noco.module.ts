@@ -10,25 +10,25 @@ import { OrgWorkspacesService } from '~/services/org-workspaces.service';
 import { OrgWorkspacesController } from '~/controllers/org-workspaces.controller';
 import { OrgsService } from '~/services/orgs.service';
 import { OrgsController } from '~/controllers/orgs.controller';
-import { PageDao } from '~/daos/page.dao';
-import { PageSnapshotDao } from '~/daos/page-snapshot.dao';
-import { DocsPagesHistoryController } from '~/controllers/docs/docs-pages-history.controller';
-import { DocsPagesController } from '~/controllers/docs/docs-pages.controller';
-import { DocsPageHistoryService } from '~/services/docs/history/docs-page-history.service';
-import { WidgetDataService } from '~/services/dashboards/widgetData.service';
-import { WidgetsService } from '~/services/dashboards/widgets.service';
-import { LayoutsService } from '~/services/dashboards/layouts.service';
-import { LayoutFilterService } from '~/services/dashboards/layoutFilter.service';
+// import { PageDao } from '~/daos/page.dao';
+// import { PageSnapshotDao } from '~/daos/page-snapshot.dao';
+// import { DocsPagesHistoryController } from '~/controllers/docs/docs-pages-history.controller';
+// import { DocsPagesController } from '~/controllers/docs/docs-pages.controller';
+// import { DocsPageHistoryService } from '~/services/docs/history/docs-page-history.service';
+// import { WidgetDataService } from '~/services/dashboards/widgetData.service';
+// import { WidgetsService } from '~/services/dashboards/widgets.service';
+// import { LayoutsService } from '~/services/dashboards/layouts.service';
+// import { LayoutFilterService } from '~/services/dashboards/layoutFilter.service';
 
-import { WidgetsController } from '~/controllers/dashboards/widgets.controller';
-import { LayoutsController } from '~/controllers/dashboards/layouts.controller';
-import { LayoutFilterController } from '~/controllers/dashboards/layoutFilter.controller';
+// import { WidgetsController } from '~/controllers/dashboards/widgets.controller';
+// import { LayoutsController } from '~/controllers/dashboards/layouts.controller';
+// import { LayoutFilterController } from '~/controllers/dashboards/layoutFilter.controller';
 import { TelemetryController } from '~/controllers/telemetry.controller';
 
-import { DocsPagesService } from '~/services/docs/docs-pages.service';
-import { DocsPagesUpdateService } from '~/services/docs/docs-page-update.service';
-import { DocsPublicController } from '~/controllers/docs/public/docs-public.controller';
-import { PublicDocsService } from '~/services/docs/public/public-docs.service';
+// import { DocsPagesService } from '~/services/docs/docs-pages.service';
+// import { DocsPagesUpdateService } from '~/services/docs/docs-page-update.service';
+// import { DocsPublicController } from '~/controllers/docs/public/docs-public.controller';
+// import { PublicDocsService } from '~/services/docs/public/public-docs.service';
 import { SSOClientService } from '~/services/sso-client.service';
 import { SsoClientController } from '~/controllers/sso-client.controller';
 import { OrgSSOClientService } from '~/services/org-sso-client.service';
@@ -62,18 +62,18 @@ export const nocoModuleEeMetadata = {
     OrgSSOClientService,
     OrgsService,
     /** DAOs */
-    PageDao,
-    PageSnapshotDao,
+    // PageDao,
+    // PageSnapshotDao,
     /** Docs Services */
-    DocsPageHistoryService,
-    DocsPagesService,
-    DocsPagesUpdateService,
-    PublicDocsService,
+    // DocsPageHistoryService,
+    // DocsPagesService,
+    // DocsPagesUpdateService,
+    // PublicDocsService,
     /** Layouts Services */
-    WidgetDataService,
-    WidgetsService,
-    LayoutsService,
-    LayoutFilterService,
+    // WidgetDataService,
+    // WidgetsService,
+    // LayoutsService,
+    // LayoutFilterService,
 
     /* Workspaces */
     WorkspacesService,
@@ -86,13 +86,13 @@ export const nocoModuleEeMetadata = {
     ...nocoModuleMetadata.controllers,
 
     /* Metas */
-    DocsPagesHistoryController,
-    DocsPagesController,
-    DocsPublicController,
+    // DocsPagesHistoryController,
+    // DocsPagesController,
+    // DocsPublicController,
 
-    WidgetsController,
-    LayoutsController,
-    LayoutFilterController,
+    // WidgetsController,
+    // LayoutsController,
+    // LayoutFilterController,
 
     TelemetryController,
     SsoClientController,

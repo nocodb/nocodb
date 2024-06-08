@@ -14,6 +14,7 @@ import type {
   View,
 } from '~/models';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
+import type { NcContext } from '~/interface/config';
 import { Column, Filter, Model, Sort } from '~/models';
 import {
   _wherePk,
@@ -149,18 +150,22 @@ export async function extractColumn({
   validateFormula: boolean;
   columns?: Column[];
 }) {
+  const context = baseModel.context;
+
   const result = { isArray: false };
   // todo: check system field enabled / not
   //      filter on nested list
   //      sort on nested list
 
   // if (isSystemColumn(column)) return result;
-  // const model = await column.getModel();
+  // const model = await column.getModel(context);
   switch (column.uidt) {
     case UITypes.LinkToAnotherRecord:
       {
-        const relatedModel = await column.colOptions.getRelatedTable();
-        await relatedModel.getColumns();
+        const relatedModel = await (
+          column.colOptions as LinkToAnotherRecordColumn
+        ).getRelatedTable(context);
+        await relatedModel.getColumns(context);
         // @ts-ignore
         const pkColumn = relatedModel.primaryKey;
         // if mm table then only extract primary keys
@@ -174,7 +179,7 @@ export async function extractColumn({
           ignoreAssigningWildcardSelect: true,
         });
 
-        const aliasColObjMap = await relatedModel.getAliasColObjMap();
+        const aliasColObjMap = await relatedModel.getAliasColObjMap(context);
 
         // todo: check if fields are allowed
         let fields = [
@@ -213,13 +218,24 @@ export async function extractColumn({
               const alias4 = getAlias();
               const alias5 = getAlias();
 
-              const parentModel = await column.colOptions.getRelatedTable();
-              const mmChildColumn = await column.colOptions.getMMChildColumn();
-              const mmParentColumn =
-                await column.colOptions.getMMParentColumn();
-              const assocModel = await column.colOptions.getMMModel();
-              const childColumn = await column.colOptions.getChildColumn();
-              const parentColumn = await column.colOptions.getParentColumn();
+              const parentModel = await (
+                column.colOptions as LinkToAnotherRecordColumn
+              ).getRelatedTable(context);
+              const mmChildColumn = await (
+                column.colOptions as LinkToAnotherRecordColumn
+              ).getMMChildColumn(context);
+              const mmParentColumn = await (
+                column.colOptions as LinkToAnotherRecordColumn
+              ).getMMParentColumn(context);
+              const assocModel = await (
+                column.colOptions as LinkToAnotherRecordColumn
+              ).getMMModel(context);
+              const childColumn = await (
+                column.colOptions as LinkToAnotherRecordColumn
+              ).getChildColumn(context);
+              const parentColumn = await (
+                column.colOptions as LinkToAnotherRecordColumn
+              ).getParentColumn(context);
 
               // if mm table is not present then return
               if (!assocModel) {
@@ -301,9 +317,15 @@ export async function extractColumn({
               const alias2 = getAlias();
               const alias3 = getAlias();
 
-              const parentModel = await column.colOptions.getRelatedTable();
-              const childColumn = await column.colOptions.getChildColumn();
-              const parentColumn = await column.colOptions.getParentColumn();
+              const parentModel = await (
+                column.colOptions as LinkToAnotherRecordColumn
+              ).getRelatedTable(context);
+              const childColumn = await (
+                column.colOptions as LinkToAnotherRecordColumn
+              ).getChildColumn(context);
+              const parentColumn = await (
+                column.colOptions as LinkToAnotherRecordColumn
+              ).getParentColumn(context);
               const btQb = knex(baseModel.getTnPath(parentModel))
                 .select('*')
                 .where(
@@ -359,9 +381,15 @@ export async function extractColumn({
               const alias2 = getAlias();
               const alias3 = getAlias();
 
-              const parentModel = await column.colOptions.getRelatedTable();
-              const childColumn = await column.colOptions.getChildColumn();
-              const parentColumn = await column.colOptions.getParentColumn();
+              const parentModel = await (
+                column.colOptions as LinkToAnotherRecordColumn
+              ).getRelatedTable(context);
+              const childColumn = await (
+                column.colOptions as LinkToAnotherRecordColumn
+              ).getChildColumn(context);
+              const parentColumn = await (
+                column.colOptions as LinkToAnotherRecordColumn
+              ).getParentColumn(context);
 
               if (isBt) {
                 const btQb = knex(baseModel.getTnPath(parentModel))
@@ -465,9 +493,15 @@ export async function extractColumn({
               const alias2 = getAlias();
               const alias3 = getAlias();
 
-              const childModel = await column.colOptions.getRelatedTable();
-              const childColumn = await column.colOptions.getChildColumn();
-              const parentColumn = await column.colOptions.getParentColumn();
+              const childModel = await (
+                column.colOptions as LinkToAnotherRecordColumn
+              ).getRelatedTable(context);
+              const childColumn = await (
+                column.colOptions as LinkToAnotherRecordColumn
+              ).getChildColumn(context);
+              const parentColumn = await (
+                column.colOptions as LinkToAnotherRecordColumn
+              ).getParentColumn(context);
 
               const hmQb = knex(baseModel.getTnPath(childModel))
                 .select('*')
@@ -525,12 +559,14 @@ export async function extractColumn({
         const alias2 = getAlias();
         const lookupTableAlias = getAlias();
 
-        const lookupColOpt = await column.getColOptions<LookupColumn>();
-        const lookupColumn = await lookupColOpt.getLookupColumn();
+        const lookupColOpt = await column.getColOptions<LookupColumn>(context);
+        const lookupColumn = await lookupColOpt.getLookupColumn(context);
 
-        const relationColumn = await lookupColOpt.getRelationColumn();
+        const relationColumn = await lookupColOpt.getRelationColumn(context);
         const relationColOpts =
-          await relationColumn.getColOptions<LinkToAnotherRecordColumn>();
+          await relationColumn.getColOptions<LinkToAnotherRecordColumn>(
+            context,
+          );
         let relQb;
         const relTableAlias = getAlias();
 
@@ -542,12 +578,20 @@ export async function extractColumn({
               const alias1 = getAlias();
               const alias4 = getAlias();
 
-              const parentModel = await relationColOpts.getRelatedTable();
-              const mmChildColumn = await relationColOpts.getMMChildColumn();
-              const mmParentColumn = await relationColOpts.getMMParentColumn();
-              const assocModel = await relationColOpts.getMMModel();
-              const childColumn = await relationColOpts.getChildColumn();
-              const parentColumn = await relationColOpts.getParentColumn();
+              const parentModel = await relationColOpts.getRelatedTable(
+                context,
+              );
+              const mmChildColumn = await relationColOpts.getMMChildColumn(
+                context,
+              );
+              const mmParentColumn = await relationColOpts.getMMParentColumn(
+                context,
+              );
+              const assocModel = await relationColOpts.getMMModel(context);
+              const childColumn = await relationColOpts.getChildColumn(context);
+              const parentColumn = await relationColOpts.getParentColumn(
+                context,
+              );
 
               // if mm table is not present then return
               if (!assocModel) {
@@ -585,9 +629,13 @@ export async function extractColumn({
               // if (aliasC) break
               // const alias2 = getAlias();
 
-              const parentModel = await relationColOpts.getRelatedTable();
-              const childColumn = await relationColOpts.getChildColumn();
-              const parentColumn = await relationColOpts.getParentColumn();
+              const parentModel = await relationColOpts.getRelatedTable(
+                context,
+              );
+              const childColumn = await relationColOpts.getChildColumn(context);
+              const parentColumn = await relationColOpts.getParentColumn(
+                context,
+              );
               relQb = knex(
                 knex.raw('?? as ??', [
                   baseModel.getTnPath(parentModel),
@@ -606,9 +654,15 @@ export async function extractColumn({
             {
               const isBt = relationColumn.meta?.bt;
               if (isBt) {
-                const parentModel = await relationColOpts.getRelatedTable();
-                const childColumn = await relationColOpts.getChildColumn();
-                const parentColumn = await relationColOpts.getParentColumn();
+                const parentModel = await relationColOpts.getRelatedTable(
+                  context,
+                );
+                const childColumn = await relationColOpts.getChildColumn(
+                  context,
+                );
+                const parentColumn = await relationColOpts.getParentColumn(
+                  context,
+                );
                 relQb = knex(
                   knex.raw('?? as ??', [
                     baseModel.getTnPath(parentModel),
@@ -622,9 +676,15 @@ export async function extractColumn({
                   ]),
                 );
               } else {
-                const childModel = await relationColOpts.getRelatedTable();
-                const childColumn = await relationColOpts.getChildColumn();
-                const parentColumn = await relationColOpts.getParentColumn();
+                const childModel = await relationColOpts.getRelatedTable(
+                  context,
+                );
+                const childColumn = await relationColOpts.getChildColumn(
+                  context,
+                );
+                const parentColumn = await relationColOpts.getParentColumn(
+                  context,
+                );
                 relQb = knex(
                   knex.raw('?? as ??', [
                     baseModel.getTnPath(childModel),
@@ -643,9 +703,11 @@ export async function extractColumn({
           case RelationTypes.HAS_MANY:
             {
               result.isArray = true;
-              const childModel = await relationColOpts.getRelatedTable();
-              const childColumn = await relationColOpts.getChildColumn();
-              const parentColumn = await relationColOpts.getParentColumn();
+              const childModel = await relationColOpts.getRelatedTable(context);
+              const childColumn = await relationColOpts.getChildColumn(context);
+              const parentColumn = await relationColOpts.getParentColumn(
+                context,
+              );
               relQb = knex(
                 knex.raw('?? as ??', [
                   baseModel.getTnPath(childModel),
@@ -725,8 +787,8 @@ export async function extractColumn({
       break;
     case UITypes.Formula:
       {
-        const model: Model = await column.getModel();
-        const formula = await column.getColOptions<FormulaColumn>();
+        const model: Model = await column.getModel(context);
+        const formula = await column.getColOptions<FormulaColumn>(context);
         if (formula.error) return result;
         const selectQb = await formulaQueryBuilderv2(
           baseModel,
@@ -748,7 +810,7 @@ export async function extractColumn({
           await genRollupSelectv2({
             baseModelSqlv2: baseModel,
             knex,
-            columnOptions: await column.getColOptions(),
+            columnOptions: await column.getColOptions(context),
             alias: rootAlias,
           })
         ).builder.as(column.id),
@@ -756,8 +818,8 @@ export async function extractColumn({
       break;
     case UITypes.Barcode:
       {
-        const barcodeCol = await column.getColOptions<BarcodeColumn>();
-        const barcodeValCol = await barcodeCol.getValueColumn();
+        const barcodeCol = await column.getColOptions<BarcodeColumn>(context);
+        const barcodeValCol = await barcodeCol.getValueColumn(context);
 
         return extractColumn({
           column: new Column({
@@ -781,8 +843,8 @@ export async function extractColumn({
       break;
     case UITypes.QrCode:
       {
-        const qrCol = await column.getColOptions<QrCodeColumn>();
-        const qrValCol = await qrCol.getValueColumn();
+        const qrCol = await column.getColOptions<QrCodeColumn>(context);
+        const qrValCol = await qrCol.getValueColumn(context);
 
         return extractColumn({
           column: new Column({
@@ -819,7 +881,7 @@ export async function extractColumn({
     case UITypes.CreatedTime:
     case UITypes.LastModifiedTime:
     case UITypes.DateTime: {
-      const columnName = await getColumnName(column, columns);
+      const columnName = await getColumnName(context, column, columns);
 
       // if there is no timezone info,
       // convert to database timezone,
@@ -847,7 +909,7 @@ export async function extractColumn({
     }
     case UITypes.CreatedBy:
     case UITypes.LastModifiedBy: {
-      const columnName = await getColumnName(column, columns);
+      const columnName = await getColumnName(context, column, columns);
 
       qb.select(
         knex.raw(`??.?? as ??`, [rootAlias, sanitize(columnName), column.id]),
@@ -893,17 +955,20 @@ function getUniquePlaceholders(
   return placeholder;
 }
 
-export async function singleQueryRead(ctx: {
-  model: Model;
-  view: View;
-  source: Source;
-  params;
-  id: string;
-  getHiddenColumn?: boolean;
-  throwErrorIfInvalidParams?: boolean;
-  validateFormula?: boolean;
-}): Promise<PagedResponseImpl<Record<string, any>>> {
-  await ctx.model.getColumns();
+export async function singleQueryRead(
+  context: NcContext,
+  ctx: {
+    model: Model;
+    view: View;
+    source: Source;
+    params;
+    id: string;
+    getHiddenColumn?: boolean;
+    throwErrorIfInvalidParams?: boolean;
+    validateFormula?: boolean;
+  },
+): Promise<PagedResponseImpl<Record<string, any>>> {
+  await ctx.model.getColumns(context);
 
   if (ctx.source.type !== 'pg') {
     throw new Error('Single query only supported in postgres');
@@ -914,7 +979,7 @@ export async function singleQueryRead(ctx: {
   // get knex connection
   const knex = await NcConnectionMgrv2.get(ctx.source);
 
-  const baseModel = await Model.getBaseModelSQL({
+  const baseModel = await Model.getBaseModelSQL(context, {
     id: ctx.model.id,
     viewId: ctx.view?.id,
     dbDriver: knex,
@@ -946,7 +1011,7 @@ export async function singleQueryRead(ctx: {
   const getAlias = getAliasGenerator();
 
   // load columns list
-  const columns = await ctx.model.getColumns();
+  const columns = await ctx.model.getColumns(context);
 
   const rootQb = knex(baseModel.getTnPath(ctx.model));
 
@@ -961,7 +1026,7 @@ export async function singleQueryRead(ctx: {
     }, {}),
   );
 
-  const aliasColObjMap = await ctx.model.getAliasColObjMap();
+  const aliasColObjMap = await ctx.model.getAliasColObjMap(context);
   // let sorts = extractSortsObject(listArgs?.sort, aliasColObjMap);
   const queryFilterObj = extractFilterFromXwhere(
     listArgs?.where,
@@ -973,7 +1038,7 @@ export async function singleQueryRead(ctx: {
       ? [
           new Filter({
             children:
-              (await Filter.rootFilterList({
+              (await Filter.rootFilterList(context, {
                 viewId: ctx.view.id,
               })) || [],
             is_group: true,
@@ -997,7 +1062,7 @@ export async function singleQueryRead(ctx: {
 
   const qb = knex.from(rootQb.as(ROOT_ALIAS));
 
-  const { ast } = await getAst({
+  const { ast } = await getAst(context, {
     query: ctx.params,
     model: ctx.model,
     view: ctx.view,
@@ -1062,18 +1127,21 @@ export async function singleQueryRead(ctx: {
   return res;
 }
 
-export async function singleQueryList(ctx: {
-  model: Model;
-  view: View;
-  source: Source;
-  params;
-  throwErrorIfInvalidParams?: boolean;
-  validateFormula?: boolean;
-  ignorePagination?: boolean;
-  limitOverride?: number;
-  baseModel?: BaseModelSqlv2;
-  customConditions?: Filter[];
-}): Promise<PagedResponseImpl<Record<string, any>>> {
+export async function singleQueryList(
+  context: NcContext,
+  ctx: {
+    model: Model;
+    view: View;
+    source: Source;
+    params;
+    throwErrorIfInvalidParams?: boolean;
+    validateFormula?: boolean;
+    ignorePagination?: boolean;
+    limitOverride?: number;
+    baseModel?: BaseModelSqlv2;
+    customConditions?: Filter[];
+  },
+): Promise<PagedResponseImpl<Record<string, any>>> {
   const excludeCount = ctx.params?.excludeCount;
 
   if (ctx.source.type !== 'pg') {
@@ -1092,7 +1160,7 @@ export async function singleQueryList(ctx: {
 
   const baseModel =
     ctx.baseModel ||
-    (await Model.getBaseModelSQL({
+    (await Model.getBaseModelSQL(context, {
       id: ctx.model.id,
       viewId: ctx.view?.id,
       dbDriver: knex,
@@ -1191,7 +1259,7 @@ export async function singleQueryList(ctx: {
   }
 
   // load columns list
-  const columns = await ctx.model.getColumns();
+  const columns = await ctx.model.getColumns(context);
 
   const rootQb = knex(baseModel.getTnPath(ctx.model));
 
@@ -1203,7 +1271,7 @@ export async function singleQueryList(ctx: {
     await baseModel.shuffle({ qb: rootQb });
   }
 
-  const aliasColObjMap = await ctx.model.getAliasColObjMap();
+  const aliasColObjMap = await ctx.model.getAliasColObjMap(context);
   let sorts = extractSortsObject(
     listArgs?.sort,
     aliasColObjMap,
@@ -1218,7 +1286,7 @@ export async function singleQueryList(ctx: {
   if (!sorts?.['length'] && ctx.params.sortArr?.length) {
     sorts = ctx.params.sortArr;
   } else if (ctx.view) {
-    sorts = await Sort.list({ viewId: ctx.view.id });
+    sorts = await Sort.list(context, { viewId: ctx.view.id });
   }
 
   const aggrConditionObj = [
@@ -1226,7 +1294,7 @@ export async function singleQueryList(ctx: {
       ? [
           new Filter({
             children:
-              (await Filter.rootFilterList({
+              (await Filter.rootFilterList(context, {
                 viewId: ctx.view.id,
               })) || [],
             is_group: true,
@@ -1276,7 +1344,7 @@ export async function singleQueryList(ctx: {
 
   const qb = knex.from(rootQb.as(ROOT_ALIAS));
 
-  const { ast } = await getAst({
+  const { ast } = await getAst(context, {
     query: ctx.params,
     model: ctx.model,
     view: ctx.view,

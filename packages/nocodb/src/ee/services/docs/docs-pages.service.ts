@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Injectable } from '@nestjs/common';
 import { Configuration, OpenAIApi } from 'openai';
 import JSON5 from 'json5';
@@ -90,7 +91,9 @@ export class DocsPagesService {
     selectedPageText: string;
     response: any;
   }) {
-    const response = param.response;
+    throw new Error('Not implemented.');
+
+    /* const response = param.response;
     const base = await Base.getByTitleOrId(param.baseId);
     if (!base) NcError.notFound('Base not found');
 
@@ -165,11 +168,13 @@ export class DocsPagesService {
       NcError.badRequest('Could not generate data');
     }
 
-    return response;
+    return response; */
   }
 
   async magicOutline(param: { baseId: string; pageId: string }) {
-    let response;
+    throw new Error('Not implemented.');
+
+    /* let response;
 
     const base = await Base.getByTitleOrId(param.baseId);
     if (!base) throw new Error('Base not found');
@@ -209,7 +214,7 @@ export class DocsPagesService {
       NcError.badRequest('Could not generate data');
     }
 
-    return { text: response.data?.choices[0]?.text };
+    return { text: response.data?.choices[0]?.text }; */
   }
 
   async handlePageJSON(

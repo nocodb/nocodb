@@ -7,6 +7,7 @@ import {
   CacheGetType,
   CacheScope,
   MetaTable,
+  RootScopes,
 } from '~/utils/globals';
 import { extractProps } from '~/helpers/extractProps';
 import NocoCache from '~/cache/NocoCache';
@@ -38,8 +39,8 @@ export default class WorkspaceUser {
 
     try {
       const wsUser = await ncMetaTrans.metaGet2(
-        null,
-        null,
+        RootScopes.WORKSPACE,
+        RootScopes.WORKSPACE,
         MetaTable.WORKSPACE_USER,
         {
           fk_user_id,
@@ -63,8 +64,8 @@ export default class WorkspaceUser {
       );
 
       await ncMetaTrans.metaInsert2(
-        null,
-        null,
+        RootScopes.WORKSPACE,
+        RootScopes.WORKSPACE,
         MetaTable.WORKSPACE_USER,
         {
           fk_user_id: workspaceUser.fk_user_id,
@@ -118,8 +119,8 @@ export default class WorkspaceUser {
       ));
     if (!workspaceUser) {
       workspaceUser = await ncMeta.metaGet2(
-        null,
-        null,
+        RootScopes.WORKSPACE,
+        RootScopes.WORKSPACE,
         MetaTable.WORKSPACE_USER,
         {
           fk_user_id: userId,
@@ -218,7 +219,7 @@ export default class WorkspaceUser {
         `${MetaTable.WORKSPACE}.id`,
         ncMeta
           .knex(MetaTable.PROJECT)
-          .select('fk_workspace_id')
+          .select(`${MetaTable.PROJECT}.fk_workspace_id`)
           .innerJoin(MetaTable.PROJECT_USERS, function () {
             this.on(
               `${MetaTable.PROJECT_USERS}.base_id`,
@@ -335,13 +336,18 @@ export default class WorkspaceUser {
     let count = await NocoCache.get(key, CacheGetType.TYPE_STRING);
 
     if (!count) {
-      count = await ncMeta.metaCount(null, null, MetaTable.WORKSPACE_USER, {
-        condition: {
-          fk_workspace_id: workspaceId,
-          deleted: false,
+      count = await ncMeta.metaCount(
+        RootScopes.WORKSPACE,
+        RootScopes.WORKSPACE,
+        MetaTable.WORKSPACE_USER,
+        {
+          condition: {
+            fk_workspace_id: workspaceId,
+            deleted: false,
+          },
+          aggField: 'fk_user_id',
         },
-        aggField: 'fk_user_id',
-      });
+      );
 
       await NocoCache.set(key, count);
     } else {
@@ -366,10 +372,16 @@ export default class WorkspaceUser {
       'order',
     ]);
 
-    await ncMeta.metaUpdate(null, null, MetaTable.WORKSPACE_USER, updateObj, {
-      fk_user_id: userId,
-      fk_workspace_id: workspaceId,
-    });
+    await ncMeta.metaUpdate(
+      RootScopes.WORKSPACE,
+      RootScopes.WORKSPACE,
+      MetaTable.WORKSPACE_USER,
+      updateObj,
+      {
+        fk_user_id: userId,
+        fk_workspace_id: workspaceId,
+      },
+    );
 
     await NocoCache.update(
       `${CacheScope.WORKSPACE_USER}:${workspaceId}:${userId}`,
@@ -403,10 +415,15 @@ export default class WorkspaceUser {
   }
 
   static async delete(workspaceId: any, userId: any, ncMeta = Noco.ncMeta) {
-    const res = await ncMeta.metaDelete(null, null, MetaTable.WORKSPACE_USER, {
-      fk_user_id: userId,
-      fk_workspace_id: workspaceId,
-    });
+    const res = await ncMeta.metaDelete(
+      RootScopes.WORKSPACE,
+      RootScopes.WORKSPACE,
+      MetaTable.WORKSPACE_USER,
+      {
+        fk_user_id: userId,
+        fk_workspace_id: workspaceId,
+      },
+    );
 
     // delete cache
     await NocoCache.deepDel(
@@ -424,8 +441,8 @@ export default class WorkspaceUser {
     ncMeta = Noco.ncMeta,
   ) {
     const workspaceUser = await ncMeta.metaGet2(
-      null,
-      null,
+      RootScopes.WORKSPACE,
+      RootScopes.WORKSPACE,
       MetaTable.WORKSPACE_USER,
       {
         invite_token: invitationToken,

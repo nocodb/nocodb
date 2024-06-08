@@ -8,7 +8,6 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { Request } from 'express';
 import { UtilsController as UtilsControllerCE } from 'src/controllers/utils.controller';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { GlobalGuard } from '~/guards/global/global.guard';
@@ -16,6 +15,7 @@ import { UtilsService } from '~/services/utils.service';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { NcError } from '~/helpers/catchError';
 import { TelemetryService } from '~/services/telemetry.service';
+import { NcRequest } from '~/interface/config';
 
 @Controller()
 export class UtilsController extends UtilsControllerCE {
@@ -41,7 +41,7 @@ export class UtilsController extends UtilsControllerCE {
     scope: 'org',
   })
   @HttpCode(200)
-  async testConnection(@Body() body: any, @Req() req: Request) {
+  async testConnection(@Body() body: any, @Req() req: NcRequest) {
     if (process.env.NC_ALLOW_LOCAL_EXTERNAL_DBS !== 'true') {
       if (
         body.client !== 'snowflake' &&

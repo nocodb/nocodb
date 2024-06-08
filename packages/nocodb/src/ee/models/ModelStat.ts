@@ -1,3 +1,4 @@
+import type { NcContext } from '~/interface/config';
 import { extractProps } from '~/helpers/extractProps';
 import Noco from '~/Noco';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
@@ -15,11 +16,14 @@ export default class ModelStat {
   created_at?: string;
   updated_at?: string;
 
+  base_id?: string;
+
   constructor(stat: ModelStat) {
     Object.assign(this, stat);
   }
 
   public static async get(
+    context: NcContext,
     workspaceId: string,
     modelId: string,
     ncMeta = Noco.ncMeta,
@@ -30,10 +34,15 @@ export default class ModelStat {
     );
 
     if (!statData) {
-      statData = await ncMeta.metaGet2(null, null, MetaTable.MODEL_STAT, {
-        fk_workspace_id: workspaceId,
-        fk_model_id: modelId,
-      });
+      statData = await ncMeta.metaGet2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.MODEL_STAT,
+        {
+          fk_workspace_id: workspaceId,
+          fk_model_id: modelId,
+        },
+      );
       if (statData) {
         await NocoCache.set(
           `${CacheScope.MODEL_STAT}:${workspaceId}:${modelId}`,
@@ -46,6 +55,7 @@ export default class ModelStat {
   }
 
   public static async upsert(
+    context: NcContext,
     workspaceId: string,
     modelId: string,
     stat: Partial<ModelStat>,
@@ -54,23 +64,29 @@ export default class ModelStat {
     // extract props which is allowed to be inserted
     const insertObject = extractProps(stat, ['row_count']);
 
-    const statData = await this.get(workspaceId, modelId, ncMeta);
+    const statData = await this.get(context, workspaceId, modelId, ncMeta);
 
     if (statData) {
-      await ncMeta.metaUpdate(null, null, MetaTable.MODEL_STAT, insertObject, {
-        fk_workspace_id: workspaceId,
-        fk_model_id: modelId,
-      });
+      await ncMeta.metaUpdate(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.MODEL_STAT,
+        insertObject,
+        {
+          fk_workspace_id: workspaceId,
+          fk_model_id: modelId,
+        },
+      );
     } else {
-      const model = await Model.get(modelId, ncMeta);
+      const model = await Model.get(context, modelId, ncMeta);
 
-      const source = await Source.get(model.source_id, false, ncMeta);
+      const source = await Source.get(context, model.source_id, false, ncMeta);
 
       const is_external = !source.isMeta();
 
       await ncMeta.metaInsert2(
-        null,
-        null,
+        context.workspace_id,
+        context.base_id,
         MetaTable.MODEL_STAT,
         {
           fk_workspace_id: workspaceId,
@@ -85,19 +101,25 @@ export default class ModelStat {
     await NocoCache.del(`${CacheScope.MODEL_STAT}:${workspaceId}:${modelId}`);
     await NocoCache.del(`${CacheScope.MODEL_STAT}:${workspaceId}:sum`);
 
-    return this.get(workspaceId, modelId, ncMeta);
+    return this.get(context, workspaceId, modelId, ncMeta);
   }
 
   public static async delete(
+    context: NcContext,
     workspaceId: string,
     modelId: string,
     ncMeta = Noco.ncMeta,
   ) {
     try {
-      await ncMeta.metaDelete(null, null, MetaTable.MODEL_STAT, {
-        fk_workspace_id: workspaceId,
-        fk_model_id: modelId,
-      });
+      await ncMeta.metaDelete(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.MODEL_STAT,
+        {
+          fk_workspace_id: workspaceId,
+          fk_model_id: modelId,
+        },
+      );
 
       await NocoCache.del(`${CacheScope.MODEL_STAT}:${workspaceId}:${modelId}`);
       await NocoCache.del(`${CacheScope.MODEL_STAT}:${workspaceId}:sum`);

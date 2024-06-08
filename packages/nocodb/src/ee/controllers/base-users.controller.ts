@@ -7,7 +7,6 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { Request } from 'express';
 import { ProjectUserReqType, WorkspaceUserRoles } from 'nocodb-sdk';
 import { BaseUsersController as BaseUsersControllerCE } from 'src/controllers/base-users.controller';
 import { GlobalGuard } from '~/guards/global/global.guard';
@@ -17,6 +16,8 @@ import { NcError } from '~/helpers/catchError';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { WorkspaceUsersService } from '~/services/workspace-users.service';
+import { TenantContext } from '~/decorators/tenant-context.decorator';
+import { NcContext, NcRequest } from '~/interface/config';
 
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 @Controller()
@@ -35,8 +36,9 @@ export class BaseUsersController extends BaseUsersControllerCE {
   @HttpCode(200)
   @Acl('userInvite')
   async userInvite(
+    @TenantContext() context: NcContext,
     @Param('baseId') baseId: string,
-    @Req() req: Request,
+    @Req() req: NcRequest,
     @Body() body: ProjectUserReqType,
   ): Promise<any> {
     // todo: move this to a service
@@ -65,7 +67,7 @@ export class BaseUsersController extends BaseUsersControllerCE {
       });
     }
 
-    return await this.baseUsersService.userInvite({
+    return await this.baseUsersService.userInvite(context, {
       baseId,
       baseUser: body,
       req,

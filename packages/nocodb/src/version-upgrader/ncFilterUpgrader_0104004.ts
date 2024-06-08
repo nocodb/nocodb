@@ -2,6 +2,7 @@ import { UITypes } from 'nocodb-sdk';
 import type { MetaService } from '~/meta/meta.service';
 import type { NcUpgraderCtx } from './NcUpgrader';
 import type { SelectOptionsType } from 'nocodb-sdk';
+import type { NcContext } from '~/interface/config';
 import { MetaTable } from '~/utils/globals';
 import Column from '~/models/Column';
 import Filter from '~/models/Filter';
@@ -90,7 +91,12 @@ const migrateNullAndEmptyToBlankFilters = (filter, ncMeta) => {
   return actions;
 };
 
-const migrateMultiSelectEq = async (filter, col: Column, ncMeta) => {
+const migrateMultiSelectEq = async (
+  context: NcContext,
+  filter,
+  col: Column,
+  ncMeta,
+) => {
   // only allow eq / neq
   if (!['eq', 'neq'].includes(filter.comparison_op)) return;
   // if there is no value -> delete this filter
@@ -100,7 +106,7 @@ const migrateMultiSelectEq = async (filter, col: Column, ncMeta) => {
   // options inputted from users
   const options = filter.value.split(',');
   // retrieve the possible col options
-  const colOptions = (await col.getColOptions()) as SelectOptionsType;
+  const colOptions = (await col.getColOptions(context)) as SelectOptionsType;
   // only include valid options as the input value becomes dropdown type now
   const validOptions = [];
   for (const option of options) {
@@ -231,12 +237,22 @@ const migrateToCheckboxFilter = (filter, ncMeta) => {
 };
 
 async function migrateFilters(ncMeta: MetaService) {
-  const filters = await ncMeta.metaList2(null, null, MetaTable.FILTER_EXP);
+  const filters = await ncMeta.knexConnection(MetaTable.FILTER_EXP);
   for (const filter of filters) {
     if (!filter.fk_column_id || filter.is_group) {
       continue;
     }
-    const col = await Column.get({ colId: filter.fk_column_id }, ncMeta);
+
+    const context = {
+      workspace_id: filter.fk_workspace_id,
+      base_id: filter.fk_base_id,
+    };
+
+    const col = await Column.get(
+      context,
+      { colId: filter.fk_column_id },
+      ncMeta,
+    );
     if (
       [
         UITypes.SingleLineText,
@@ -272,7 +288,7 @@ async function migrateFilters(ncMeta: MetaService) {
         ...removeLikeFilters(filter, ncMeta),
         ...migrateNullAndEmptyToBlankFilters(filter, ncMeta),
       ]);
-      await migrateMultiSelectEq(filter, col, ncMeta);
+      await migrateMultiSelectEq(context, filter, col, ncMeta);
     } else if (col.uidt === UITypes.Attachment) {
       await Promise.all([
         ...removeArithmeticFilters(filter, ncMeta),
@@ -301,7 +317,7 @@ async function migrateFilters(ncMeta: MetaService) {
 async function updateProjectMeta(ncMeta: MetaService) {
   const baseHasEmptyOrFilters: Record<string, boolean> = {};
 
-  const filters = await ncMeta.metaList2(null, null, MetaTable.FILTER_EXP);
+  const filters = await ncMeta.knexConnection(MetaTable.FILTER_EXP);
 
   const actions = [];
 
@@ -313,7 +329,7 @@ async function updateProjectMeta(ncMeta: MetaService) {
     }
   }
 
-  const bases = await ncMeta.metaList2(null, null, MetaTable.PROJECT);
+  const bases = await ncMeta.knexConnection(MetaTable.PROJECT);
 
   const defaultProjectMeta = {
     showNullAndEmptyInFilter: false,
@@ -336,6 +352,10 @@ async function updateProjectMeta(ncMeta: MetaService) {
 
     actions.push(
       Base.update(
+        {
+          workspace_id: base.fk_workspace_id,
+          base_id: base.id,
+        },
         base.id,
         {
           meta: JSON.stringify(newProjectMeta),

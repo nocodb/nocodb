@@ -2,6 +2,7 @@ import LinkToAnotherRecordColumnCE from 'src/models/LinkToAnotherRecordColumn';
 import type { BoolType } from 'nocodb-sdk';
 import type Model from '~/models/Model';
 import type Column from '~/models/Column';
+import type { NcContext } from '~/interface/config';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
@@ -43,6 +44,7 @@ export default class LinkToAnotherRecordColumn extends LinkToAnotherRecordColumn
   }
 
   public static async update(
+    context: NcContext,
     columnId: string,
     updateBody: Partial<LinkToAnotherRecordColumn>,
     ncMeta = Noco.ncMeta,
@@ -50,8 +52,8 @@ export default class LinkToAnotherRecordColumn extends LinkToAnotherRecordColumn
     if (!columnId) return;
     const updateProps = extractProps(updateBody, ['fk_target_view_id']);
     const res = await ncMeta.metaUpdate(
-      null,
-      null,
+      context.workspace_id,
+      context.base_id,
       MetaTable.COL_RELATIONS,
       updateProps,
       { fk_column_id: columnId },
@@ -65,8 +67,9 @@ export default class LinkToAnotherRecordColumn extends LinkToAnotherRecordColumn
     return res;
   }
 
-  public async getFilters(ncMeta = Noco.ncMeta) {
+  public async getFilters(context: NcContext, ncMeta = Noco.ncMeta) {
     return (this.filter = (await Filter.getFilterObject(
+      context,
       {
         linkColId: this.fk_column_id,
       },

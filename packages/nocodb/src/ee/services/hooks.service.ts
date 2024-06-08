@@ -1,12 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { HooksService as HooksServiceCE } from 'src/services/hooks.service';
 import type { HookReqType } from 'nocodb-sdk';
-import type { NcRequest } from '~/interface/config';
+import type { NcContext, NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { Model } from '~/models';
-import getWorkspaceForBase from '~/utils/getWorkspaceForBase';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
 import { getLimit, PlanLimitTypes } from '~/plan-limits';
@@ -17,24 +16,25 @@ export class HooksService extends HooksServiceCE {
     super(appHooksService);
   }
 
-  async hookCreate(param: {
-    tableId: string;
-    hook: HookReqType;
-    req: NcRequest;
-  }) {
+  async hookCreate(
+    context: NcContext,
+    param: {
+      tableId: string;
+      hook: HookReqType;
+      req: NcRequest;
+    },
+  ) {
     validatePayload('swagger.json#/components/schemas/HookReq', param.hook);
 
-    const model = await Model.get(param.tableId);
+    const model = await Model.get(context, param.tableId);
 
     if (!model) {
       NcError.tableNotFound(param.tableId);
     }
 
-    const workspaceId = await getWorkspaceForBase(model.base_id);
-
     const webhooksInTable = await Noco.ncMeta.metaCount(
-      null,
-      null,
+      context.workspace_id,
+      context.base_id,
       MetaTable.HOOKS,
       {
         condition: {
@@ -45,7 +45,7 @@ export class HooksService extends HooksServiceCE {
 
     const webhookLimitForWorkspace = await getLimit(
       PlanLimitTypes.WEBHOOK_LIMIT,
-      workspaceId,
+      context.workspace_id,
     );
 
     if (webhooksInTable >= webhookLimitForWorkspace) {
@@ -54,6 +54,6 @@ export class HooksService extends HooksServiceCE {
       );
     }
 
-    return await super.hookCreate(param);
+    return await super.hookCreate(context, param);
   }
 }

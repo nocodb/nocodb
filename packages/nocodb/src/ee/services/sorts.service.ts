@@ -1,12 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { SortsService as SortsServiceCE } from 'src/services/sorts.service';
 import type { SortReqType } from 'nocodb-sdk';
-import type { NcRequest } from '~/interface/config';
+import type { NcContext, NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { View } from '~/models';
-import getWorkspaceForBase from '~/utils/getWorkspaceForBase';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
 import { getLimit, PlanLimitTypes } from '~/plan-limits';
@@ -17,20 +16,21 @@ export class SortsService extends SortsServiceCE {
     super(appHooksService);
   }
 
-  async sortCreate(param: { viewId: any; sort: SortReqType; req: NcRequest }) {
+  async sortCreate(
+    context: NcContext,
+    param: { viewId: any; sort: SortReqType; req: NcRequest },
+  ) {
     validatePayload('swagger.json#/components/schemas/SortReq', param.sort);
 
-    const view = await View.get(param.viewId);
+    const view = await View.get(context, param.viewId);
 
     if (!view) {
       NcError.viewNotFound(param.viewId);
     }
 
-    const workspaceId = await getWorkspaceForBase(view.base_id);
-
     const sortsInView = await Noco.ncMeta.metaCount(
-      null,
-      null,
+      context.workspace_id,
+      context.base_id,
       MetaTable.SORT,
       {
         condition: {
@@ -41,7 +41,7 @@ export class SortsService extends SortsServiceCE {
 
     const sortLimitForWorkspace = await getLimit(
       PlanLimitTypes.SORT_LIMIT,
-      workspaceId,
+      context.workspace_id,
     );
 
     if (sortsInView >= sortLimitForWorkspace) {
@@ -50,6 +50,6 @@ export class SortsService extends SortsServiceCE {
       );
     }
 
-    return super.sortCreate(param);
+    return super.sortCreate(context, param);
   }
 }

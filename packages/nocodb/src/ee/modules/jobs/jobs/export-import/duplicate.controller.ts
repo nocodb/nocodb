@@ -8,7 +8,6 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { Request } from 'express';
 import { ProjectStatus } from 'nocodb-sdk';
 import { DuplicateController as DuplicateControllerCE } from 'src/modules/jobs/jobs/export-import/duplicate.controller';
 import { GlobalGuard } from '~/guards/global/global.guard';
@@ -17,6 +16,8 @@ import { BasesService } from '~/services/bases.service';
 import { Base } from '~/models';
 import { JobTypes } from '~/interface/Jobs';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
+import { TenantContext } from '~/decorators/tenant-context.decorator';
+import { NcContext, NcRequest } from '~/interface/config';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -37,7 +38,8 @@ export class DuplicateController extends DuplicateControllerCE {
     scope: 'workspace',
   })
   public async duplicateSharedBase(
-    @Req() req: Request,
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
     @Param('workspaceId') workspaceId: string,
     @Param('sharedBaseId') sharedBaseId: string,
     @Body()
@@ -50,7 +52,7 @@ export class DuplicateController extends DuplicateControllerCE {
       base?: any;
     },
   ) {
-    const base = await Base.getByUuid(sharedBaseId);
+    const base = await Base.getByUuid(context, sharedBaseId);
 
     if (!base) {
       throw new Error(`Base not found for id '${sharedBaseId}'`);
@@ -69,10 +71,11 @@ export class DuplicateController extends DuplicateControllerCE {
         ...({ ...body.base, fk_workspace_id: workspaceId } || {}),
       },
       user: { id: req.user.id },
-      req: {},
+      req: {} as any,
     });
 
     const job = await this.jobsService.add(JobTypes.DuplicateBase, {
+      context,
       baseId: base.id,
       sourceId: source.id,
       dupProjectId: dupProject.id,

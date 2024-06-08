@@ -5,7 +5,12 @@ import {
   stringifyMetaProp,
 } from '~/utils/modelUtils';
 import { extractProps } from '~/helpers/extractProps';
-import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
+import {
+  CacheGetType,
+  CacheScope,
+  MetaTable,
+  RootScopes,
+} from '~/utils/globals';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { deserializeJSON, serializeJSON } from '~/utils/serialize';
@@ -76,10 +81,16 @@ export default class Org implements OrganizationType {
 
     await Promise.all(
       bases.map(async (base) => {
-        base.members = await BaseUser.getUsersList({
-          base_id: base.id,
-          include_ws_deleted: false,
-        });
+        base.members = await BaseUser.getUsersList(
+          {
+            workspace_id: base.workspace_id,
+            base_id: base.id,
+          },
+          {
+            base_id: base.id,
+            include_ws_deleted: false,
+          },
+        );
       }),
     );
 
@@ -90,9 +101,14 @@ export default class Org implements OrganizationType {
     const key = `${CacheScope.ORG}:${orgId}`;
     let org = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
     if (!org) {
-      org = await ncMeta.metaGet2(null, null, MetaTable.ORG, {
-        id: orgId,
-      });
+      org = await ncMeta.metaGet2(
+        RootScopes.ORG,
+        RootScopes.ORG,
+        MetaTable.ORG,
+        {
+          id: orgId,
+        },
+      );
 
       if (org) {
         org.meta = deserializeJSON(org.meta);
@@ -124,8 +140,8 @@ export default class Org implements OrganizationType {
     }
 
     const { id } = await ncMeta.metaInsert2(
-      null,
-      null,
+      RootScopes.ORG,
+      RootScopes.ORG,
       MetaTable.ORG,
       insertObj,
     );
@@ -151,8 +167,8 @@ export default class Org implements OrganizationType {
     }
 
     const res = await ncMeta.metaUpdate(
-      null,
-      null,
+      RootScopes.ORG,
+      RootScopes.ORG,
       MetaTable.ORG,
       prepareForDb(updateObj),
       orgId,
@@ -168,7 +184,12 @@ export default class Org implements OrganizationType {
 
   public static async delete(orgId: string, ncMeta = Noco.ncMeta) {
     // delete from cache
-    await ncMeta.metaDelete(null, null, MetaTable.ORG, orgId);
+    await ncMeta.metaDelete(
+      RootScopes.ORG,
+      RootScopes.ORG,
+      MetaTable.ORG,
+      orgId,
+    );
 
     const key = `${CacheScope.ORG}:${orgId}`;
 

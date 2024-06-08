@@ -9,12 +9,13 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { Request } from 'express';
 import { MapUpdateReqType, ViewCreateReqType } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { MapsService } from '~/services/maps.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
+import { TenantContext } from '~/decorators/tenant-context.decorator';
+import { NcContext, NcRequest } from '~/interface/config';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -23,8 +24,11 @@ export class MapsController {
 
   @Get(['/api/v1/db/meta/maps/:mapViewId', '/api/v2/meta/maps/:mapViewId'])
   @Acl('mapViewGet')
-  async mapViewGet(@Param('mapViewId') mapViewId: string) {
-    return await this.mapsService.mapViewGet({ mapViewId });
+  async mapViewGet(
+    @TenantContext() context: NcContext,
+    @Param('mapViewId') mapViewId: string,
+  ) {
+    return await this.mapsService.mapViewGet(context, { mapViewId });
   }
 
   @Post([
@@ -34,11 +38,12 @@ export class MapsController {
   @HttpCode(200)
   @Acl('mapViewCreate')
   async mapViewCreate(
+    @TenantContext() context: NcContext,
     @Param('tableId') tableId: string,
     @Body() body: ViewCreateReqType,
-    @Req() req: Request,
+    @Req() req: NcRequest,
   ) {
-    const view = await this.mapsService.mapViewCreate({
+    const view = await this.mapsService.mapViewCreate(context, {
       tableId,
       map: body,
       user: req.user,
@@ -50,12 +55,13 @@ export class MapsController {
   @Patch(['/api/v1/db/meta/maps/:mapViewId', '/api/v2/meta/maps/:mapViewId'])
   @Acl('mapViewUpdate')
   async mapViewUpdate(
+    @TenantContext() context: NcContext,
     @Param('mapViewId') mapViewId: string,
     @Body() body: MapUpdateReqType,
 
-    @Req() req: Request,
+    @Req() req: NcRequest,
   ) {
-    return await this.mapsService.mapViewUpdate({
+    return await this.mapsService.mapViewUpdate(context, {
       mapViewId: mapViewId,
       map: body,
       req,

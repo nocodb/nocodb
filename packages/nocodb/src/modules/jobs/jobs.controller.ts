@@ -20,6 +20,8 @@ import { CacheGetType, CacheScope } from '~/utils/globals';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { JobsRedis } from '~/modules/jobs/redis/jobs-redis';
+import { TenantContext } from '~/decorators/tenant-context.decorator';
+import { NcContext, NcRequest } from '~/interface/config';
 
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 const POLLING_INTERVAL = 30000;
@@ -39,7 +41,7 @@ export class JobsController {
   @HttpCode(200)
   async listen(
     @Res() res: Response & { resId?: string },
-    @Req() req: Request,
+    @Req() req: NcRequest,
     @Body() body: { _mid: number; data: { id: string } },
   ) {
     const { _mid = 0, data } = body;

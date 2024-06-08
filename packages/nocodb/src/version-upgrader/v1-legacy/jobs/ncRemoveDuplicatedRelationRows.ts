@@ -2,9 +2,9 @@ import type { NcBuilderUpgraderCtx } from '../BaseApiBuilder';
 
 export default async function (ctx: NcBuilderUpgraderCtx) {
   try {
-    const relations = await ctx.xcMeta.metaList(
-      ctx.baseId,
-      ctx.dbAlias,
+    const relations = await ctx.xcMeta.metaList2(
+      context.workspace_id,
+      context.base_id,
       'nc_relations',
     );
 
@@ -27,12 +27,11 @@ export default async function (ctx: NcBuilderUpgraderCtx) {
 
     // delete relation
     for (const dupRelation of duplicates) {
-      await ctx.xcMeta.metaDelete(
-        ctx.baseId,
-        ctx.dbAlias,
-        'nc_relations',
-        dupRelation.id,
-      );
+      await ctx.xcMeta.metaDeleteAll('nc_relations', {
+        id: dupRelation.id,
+        base_id: ctx.baseId,
+        db_alias: ctx.dbAlias,
+      });
       {
         const tnModel = await ctx.xcMeta.metaGet(
           ctx.baseId,
@@ -60,8 +59,8 @@ export default async function (ctx: NcBuilderUpgraderCtx) {
         }
 
         await ctx.xcMeta.metaUpdate(
-          ctx.baseId,
-          ctx.dbAlias,
+          context.workspace_id,
+          context.base_id,
           'nc_models',
           { meta: JSON.stringify(meta) },
           {
@@ -96,8 +95,8 @@ export default async function (ctx: NcBuilderUpgraderCtx) {
           meta.hasMany.splice(meta.hasMany.indexOf(duplicateHms[1]), 1);
         }
         await ctx.xcMeta.metaUpdate(
-          ctx.baseId,
-          ctx.dbAlias,
+          context.workspace_id,
+          context.base_id,
           'nc_models',
           { meta: JSON.stringify(meta) },
           {

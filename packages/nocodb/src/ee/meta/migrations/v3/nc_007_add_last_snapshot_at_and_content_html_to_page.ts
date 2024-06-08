@@ -1,9 +1,9 @@
 import type { Knex } from 'knex';
-import { MetaTable } from '~/utils/globals';
-import Page from '~/models/Page';
+// import { MetaTable } from '~/utils/globals';
+// import Page from '~/models/Page';
 
-const up = async (knex: Knex) => {
-  const workspaces = await knex(MetaTable.WORKSPACE).select('id');
+const up = async (_knex: Knex) => {
+  /* const workspaces = await knex(MetaTable.WORKSPACE).select('id');
 
   for (const workspace of workspaces) {
     await knex.schema.alterTable(
@@ -18,11 +18,11 @@ const up = async (knex: Knex) => {
         table.text('content_html', 'longtext').defaultTo('');
       },
     );
-  }
+  } */
 };
 
-const down = async (knex: Knex) => {
-  const workspaces = await knex(MetaTable.WORKSPACE).select('id');
+const down = async (_knex: Knex) => {
+  /* const workspaces = await knex(MetaTable.WORKSPACE).select('id');
 
   for (const workspace of workspaces) {
     await knex.schema.alterTable(
@@ -37,7 +37,7 @@ const down = async (knex: Knex) => {
         table.dropColumn('content_html');
       },
     );
-  }
+  } */
 };
 
 export { up, down };

@@ -17,9 +17,11 @@ export default class Layout implements LayoutType {
   }
 
   public static async delete(layoutId: string, ncMeta = Noco.ncMeta) {
-    const layout = await this.get(layoutId, ncMeta);
+    throw new Error('Not implemented');
 
-    await ncMeta.metaDelete(null, null, MetaTable.LAYOUT, {
+    /* const layout = await this.get(layoutId, ncMeta);
+
+    await ncMeta.metaDelete(context.workspace_id, context.base_id, {
       id: layoutId,
     });
 
@@ -31,14 +33,15 @@ export default class Layout implements LayoutType {
       await Widget.delete(widget.id);
     }
 
-    return layout;
+    return layout; */
   }
 
   public static async get(layoutId: string, ncMeta = Noco.ncMeta) {
+    throw new Error('Not implemented');
     // TODO: Caching
-    const layout = await ncMeta.metaGet2(
-      null,
-      null,
+    /* const layout = await ncMeta.metaGet2(
+      context.workspace_id,
+      context.base_id,
       MetaTable.LAYOUT,
       layoutId,
       [
@@ -53,7 +56,7 @@ export default class Layout implements LayoutType {
         'grid_padding_horizontal',
       ],
     );
-    return layout && new Layout(layout);
+    return layout && new Layout(layout); */
   }
 
   static async list(
@@ -62,10 +65,11 @@ export default class Layout implements LayoutType {
     },
     ncMeta = Noco.ncMeta,
   ) {
+    throw new Error('Not implemented');
     // TODO: Caching
-    const layouts = await ncMeta.metaList(
-      param.dashboard_id,
-      null,
+    /* const layouts = await ncMeta.metaList2(
+      context.workspace_id,
+      context.base_id,
       MetaTable.LAYOUT,
       {
         orderBy: {
@@ -74,11 +78,13 @@ export default class Layout implements LayoutType {
       },
     );
 
-    return layouts?.map((h) => new Layout(h));
+    return layouts?.map((h) => new Layout(h)); */
   }
 
   public static async insert(layout: Partial<Layout>, ncMeta = Noco.ncMeta) {
-    const insertObj = extractProps(layout, [
+    throw new Error('Not implemented');
+
+    /* const insertObj = extractProps(layout, [
       'title',
       'base_id',
       'source_id',
@@ -89,13 +95,13 @@ export default class Layout implements LayoutType {
       'grid_padding_horizontal',
     ]);
 
-    const { id } = await ncMeta.metaInsert2(null, null, MetaTable.LAYOUT, {
+    const { id } = await ncMeta.metaInsert2(context.workspace_id, context.base_id, {
       ...insertObj,
       meta: JSON.stringify([]),
     });
 
     // TODO: Caching
-    return this.get(id, ncMeta);
+    return this.get(id, ncMeta); */
   }
 
   public static async update(
@@ -103,7 +109,9 @@ export default class Layout implements LayoutType {
     layout: Partial<Layout>,
     ncMeta = Noco.ncMeta,
   ) {
-    const updateObj = extractProps(layout, [
+    throw new Error('Not implemented');
+
+    /* const updateObj = extractProps(layout, [
       'title',
       'base_id',
       'source_id',
@@ -115,8 +123,8 @@ export default class Layout implements LayoutType {
     ]);
 
     await ncMeta.metaUpdate(
-      layout.base_id,
-      null,
+      context.workspace_id,
+      context.base_id,
       MetaTable.LAYOUT,
       updateObj,
       layoutId,
@@ -124,6 +132,6 @@ export default class Layout implements LayoutType {
 
     // TODO: Caching
 
-    return this.get(layout.id, ncMeta);
+    return this.get(layout.id, ncMeta); */
   }
 }

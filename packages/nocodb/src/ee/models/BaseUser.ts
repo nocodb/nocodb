@@ -1,6 +1,7 @@
 import { ProjectRoles } from 'nocodb-sdk';
 import { BaseUser as BaseUserCE } from 'src/models';
 import type { BaseType } from 'nocodb-sdk';
+import type { NcContext } from '~/interface/config';
 import {
   CacheDelDirection,
   CacheGetType,
@@ -11,18 +12,16 @@ import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { parseMetaProp } from '~/utils/modelUtils';
 import Base from '~/models/Base';
-import getWorkspaceForBase from '~/utils/getWorkspaceForBase';
 import { extractProps } from '~/helpers/extractProps';
 import WorkspaceUser from '~/models/WorkspaceUser';
 
 export default class BaseUser extends BaseUserCE {
-  fk_workspace_id?: string;
-
   protected static castType(baseUser: BaseUser): BaseUser {
     return baseUser && new BaseUser(baseUser);
   }
 
   public static async bulkInsert(
+    context: NcContext,
     baseUsers: Partial<BaseUser>[],
     ncMeta = Noco.ncMeta,
   ) {
@@ -36,9 +35,13 @@ export default class BaseUser extends BaseUserCE {
       insertObj.push(tempObj);
     }
 
+    if (!insertObj.length) {
+      return;
+    }
+
     const bulkData = await ncMeta.bulkMetaInsert(
-      null,
-      null,
+      context.workspace_id,
+      context.base_id,
       MetaTable.PROJECT_USERS,
       insertObj,
       true,
@@ -70,11 +73,12 @@ export default class BaseUser extends BaseUserCE {
   }
 
   public static async insert(
+    context: NcContext,
     baseUser: Partial<BaseUser>,
     ncMeta = Noco.ncMeta,
   ) {
-    const base = await Base.get(baseUser.base_id, ncMeta);
-    const workspace_id = (base as any)?.fk_workspace_id;
+    const base = await Base.get(context, baseUser.base_id, ncMeta);
+    const workspace_id = base.fk_workspace_id;
 
     const wsUser = await WorkspaceUser.get(
       workspace_id,
@@ -93,14 +97,14 @@ export default class BaseUser extends BaseUserCE {
     ]);
 
     const { base_id, fk_user_id } = await ncMeta.metaInsert2(
-      null,
-      null,
+      context.workspace_id,
+      context.base_id,
       MetaTable.PROJECT_USERS,
       insertObj,
       true,
     );
 
-    const res = await this.get(base_id, fk_user_id, ncMeta);
+    const res = await this.get(context, base_id, fk_user_id, ncMeta);
 
     await NocoCache.appendToList(
       CacheScope.BASE_USER,
@@ -111,7 +115,12 @@ export default class BaseUser extends BaseUserCE {
     return res;
   }
 
-  static async get(baseId: string, userId: string, ncMeta = Noco.ncMeta) {
+  static async get(
+    context: NcContext,
+    baseId: string,
+    userId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
     let baseUser =
       baseId &&
       userId &&
@@ -120,8 +129,8 @@ export default class BaseUser extends BaseUserCE {
         CacheGetType.TYPE_OBJECT,
       ));
     if (!baseUser || !baseUser.roles) {
-      const base = await Base.get(baseId, ncMeta);
-      const workspace_id = (base as any)?.fk_workspace_id;
+      const base = await Base.get(context, baseId, ncMeta);
+      const workspace_id = base.fk_workspace_id;
       const queryBuilder = ncMeta
         .knex(MetaTable.USERS)
         .select(
@@ -180,6 +189,7 @@ export default class BaseUser extends BaseUserCE {
   }
 
   public static async getUsersList(
+    context: NcContext,
     {
       base_id,
       mode = 'full',
@@ -191,7 +201,6 @@ export default class BaseUser extends BaseUserCE {
     },
     ncMeta = Noco.ncMeta,
   ) {
-    const workspace_id = await getWorkspaceForBase(base_id);
     const cachedList = await NocoCache.getList(CacheScope.BASE_USER, [base_id]);
     let { list: baseUsers } = cachedList;
     const { isNoneList } = cachedList;
@@ -232,7 +241,7 @@ export default class BaseUser extends BaseUserCE {
           ).andOn(
             `${MetaTable.WORKSPACE_USER}.fk_workspace_id`,
             '=',
-            ncMeta.knex.raw('?', [workspace_id]),
+            ncMeta.knex.raw('?', [context.workspace_id]),
           );
         })
         .leftJoin(MetaTable.PROJECT_USERS, function () {

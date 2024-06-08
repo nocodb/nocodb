@@ -1,5 +1,6 @@
 import FilterCE from 'src/models/Filter';
 import type { FilterType } from 'nocodb-sdk';
+import type { NcContext } from '~/interface/config';
 import Column from '~/models/Column';
 import Hook from '~/models/Hook';
 import View from '~/models/View';
@@ -23,6 +24,7 @@ export default class Filter extends FilterCE implements FilterType {
   }
 
   public static async insert(
+    context: NcContext,
     filter: Partial<FilterType> & { order?: number },
     ncMeta = Noco.ncMeta,
   ) {
@@ -58,31 +60,36 @@ export default class Filter extends FilterCE implements FilterType {
       [referencedModelColName]: filter[referencedModelColName],
     });
 
-    if (!filter.fk_widget_id && !(filter.base_id && filter.source_id)) {
+    if (!filter.source_id) {
       let model: { base_id?: string; source_id?: string };
       if (filter.fk_view_id) {
-        model = await View.get(filter.fk_view_id, ncMeta);
+        model = await View.get(context, filter.fk_view_id, ncMeta);
       } else if (filter.fk_hook_id) {
-        model = await Hook.get(filter.fk_hook_id, ncMeta);
+        model = await Hook.get(context, filter.fk_hook_id, ncMeta);
       } else if (filter.fk_link_col_id) {
-        model = await Column.get({ colId: filter.fk_link_col_id }, ncMeta);
+        model = await Column.get(
+          context,
+          { colId: filter.fk_link_col_id },
+          ncMeta,
+        );
       } else if (filter.fk_column_id) {
-        model = await Column.get({ colId: filter.fk_column_id }, ncMeta);
+        model = await Column.get(
+          context,
+          { colId: filter.fk_column_id },
+          ncMeta,
+        );
       } else {
         NcError.invalidFilter(JSON.stringify(filter));
       }
-      // TODO: consider to imporve this logic
-      // currently this null check is done because filters for Dashboard Widgets do not have a base_id and source_id atm
-      // but just a widget_id (which is potentially not the best approach)
+
       if (model != null) {
-        insertObj.base_id = model.base_id;
         insertObj.source_id = model.source_id;
       }
     }
 
     const row = await ncMeta.metaInsert2(
-      null,
-      null,
+      context.workspace_id,
+      context.base_id,
       MetaTable.FILTER_EXP,
       insertObj,
     );
@@ -90,6 +97,7 @@ export default class Filter extends FilterCE implements FilterType {
       await Promise.all(
         filter.children.map((f) =>
           this.insert(
+            context,
             {
               ...f,
               fk_parent_id: row.id,
@@ -100,10 +108,11 @@ export default class Filter extends FilterCE implements FilterType {
         ),
       );
     }
-    return await this.redisPostInsert(row.id, filter, ncMeta);
+    return await this.redisPostInsert(context, row.id, filter, ncMeta);
   }
 
   static async redisPostInsert(
+    context: NcContext,
     id,
     filter: Partial<FilterType>,
     ncMeta = Noco.ncMeta,
@@ -125,7 +134,12 @@ export default class Filter extends FilterCE implements FilterType {
     let value = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
     if (!value) {
       /* get from db */
-      value = await ncMeta.metaGet2(null, null, MetaTable.FILTER_EXP, id);
+      value = await ncMeta.metaGet2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.FILTER_EXP,
+        id,
+      );
 
       /* store in redis */
       await NocoCache.set(key, value).then(async () => {
@@ -220,8 +234,9 @@ export default class Filter extends FilterCE implements FilterType {
     {
       // if not a view filter then no need to delete
       if (filter.fk_view_id) {
-        const view = await View.get(filter.fk_view_id, ncMeta);
+        const view = await View.get(context, filter.fk_view_id, ncMeta);
         await View.clearSingleQueryCache(
+          context,
           view.fk_model_id,
           [{ id: filter.fk_view_id }],
           ncMeta,
@@ -235,12 +250,13 @@ export default class Filter extends FilterCE implements FilterType {
   // EXTRA METHODS
 
   static rootFilterListByWidget? = async (
+    context: NcContext,
     { widgetId }: { widgetId: string },
     ncMeta = Noco.ncMeta,
   ) => {
     const filterObjs = await ncMeta.metaList2(
-      null,
-      null,
+      context.workspace_id,
+      context.base_id,
       MetaTable.FILTER_EXP,
       {
         condition: { fk_widget_id: widgetId },
@@ -253,6 +269,7 @@ export default class Filter extends FilterCE implements FilterType {
   };
 
   static async rootFilterListByLink(
+    context: NcContext,
     { columnId }: { columnId: any },
     ncMeta = Noco.ncMeta,
   ) {
@@ -262,12 +279,17 @@ export default class Filter extends FilterCE implements FilterType {
     let { list: filterObjs } = cachedList;
     const { isNoneList } = cachedList;
     if (!isNoneList && !filterObjs.length) {
-      filterObjs = await ncMeta.metaList2(null, null, MetaTable.FILTER_EXP, {
-        condition: { fk_link_col_id: columnId },
-        orderBy: {
-          order: 'asc',
+      filterObjs = await ncMeta.metaList2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.FILTER_EXP,
+        {
+          condition: { fk_link_col_id: columnId },
+          orderBy: {
+            order: 'asc',
+          },
         },
-      });
+      );
       await NocoCache.setList(CacheScope.FILTER_EXP, [columnId], filterObjs);
     }
     return filterObjs

@@ -1,9 +1,11 @@
+import type { NcContext } from '~/interface/config';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import { MetaTable } from '~/utils/globals';
 
 export default class SyncLogs {
   id?: string;
+  fk_workspace_id?: string;
   base_id?: string;
   fk_sync_source_id?: string;
   time_taken?: string;
@@ -14,19 +16,28 @@ export default class SyncLogs {
     Object.assign(this, syncLog);
   }
 
-  static async list(baseId: string, ncMeta = Noco.ncMeta) {
-    const syncLogs = await ncMeta.metaList(null, null, MetaTable.SYNC_LOGS, {
-      condition: {
-        base_id: baseId,
+  static async list(context: NcContext, baseId: string, ncMeta = Noco.ncMeta) {
+    const syncLogs = await ncMeta.metaList2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.SYNC_LOGS,
+      {
+        condition: {
+          base_id: baseId,
+        },
+        orderBy: {
+          created_at: 'asc',
+        },
       },
-      orderBy: {
-        created_at: 'asc',
-      },
-    });
+    );
     return syncLogs?.map((h) => new SyncLogs(h));
   }
 
-  public static async insert(syncLog: Partial<SyncLogs>, ncMeta = Noco.ncMeta) {
+  public static async insert(
+    context: NcContext,
+    syncLog: Partial<SyncLogs>,
+    ncMeta = Noco.ncMeta,
+  ) {
     const insertObj = extractProps(syncLog, [
       'base_id',
       'fk_sync_source_id',
@@ -36,15 +47,11 @@ export default class SyncLogs {
     ]);
 
     const { id } = await ncMeta.metaInsert2(
-      null,
-      null,
+      context.workspace_id,
+      context.base_id,
       MetaTable.SYNC_LOGS,
       insertObj,
     );
     return new SyncLogs({ ...insertObj, id });
-  }
-
-  static async delete(syncLogId: any, ncMeta = Noco.ncMeta) {
-    return await ncMeta.metaDelete(null, null, MetaTable.SYNC_LOGS, syncLogId);
   }
 }

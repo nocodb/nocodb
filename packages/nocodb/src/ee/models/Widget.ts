@@ -26,10 +26,12 @@ export default class Widget implements WidgetType {
   }
 
   public static async get(widgetId: string, ncMeta = Noco.ncMeta) {
-    let widget;
+    throw new Error('Not implemented');
+
+    /* let widget;
     // TODO: Caching
     if (!widget) {
-      widget = await ncMeta.metaGet2(null, null, MetaTable.WIDGET, widgetId, [
+      widget = await ncMeta.metaGet2(context.workspace_id, context.base_id, MetaTable.WIDGET, widgetId, [
         'id',
         'layout_id',
         'schema_version',
@@ -44,6 +46,8 @@ export default class Widget implements WidgetType {
   }
 
   public static async insert(widget: Partial<Widget>, ncMeta = Noco.ncMeta) {
+    throw new Error('Not implemented');
+
     const insertObj = extractProps(widget, [
       'layout_id',
       'schema_version',
@@ -53,17 +57,19 @@ export default class Widget implements WidgetType {
       'appearance_config',
     ]);
 
-    const { id } = await ncMeta.metaInsert2(null, null, MetaTable.WIDGET, {
+    const { id } = await ncMeta.metaInsert2(context.workspace_id, context.base_id, {
       ...insertObj,
     });
 
     // TODO: Caching
-    return this.get(id, ncMeta);
+    return this.get(id, ncMeta); */
   }
 
   static async delete(layoutId: string, ncMeta = Noco.ncMeta) {
-    await ncMeta.metaDelete(null, null, MetaTable.WIDGET, layoutId);
-    return true;
+    throw new Error('Not implemented');
+
+    /* await ncMeta.metaDelete(context.workspace_id, context.base_id, layoutId);
+    return true; */
   }
 
   static async list(
@@ -72,10 +78,12 @@ export default class Widget implements WidgetType {
     },
     ncMeta = Noco.ncMeta,
   ) {
-    let widgets;
+    throw new Error('Not implemented');
+
+    /* let widgets;
     // TODO: Caching
     if (!widgets?.length) {
-      widgets = await ncMeta.metaList(null, null, MetaTable.WIDGET, {
+      widgets = await ncMeta.metaList2(context.workspace_id, context.base_id, MetaTable.WIDGET, {
         condition: {
           layout_id: param.layout_id,
         },
@@ -83,7 +91,7 @@ export default class Widget implements WidgetType {
 
       // TODO: Caching
     }
-    return widgets?.map((h) => new Widget(h));
+    return widgets?.map((h) => new Widget(h)); */
   }
 
   public static async update(
@@ -91,7 +99,9 @@ export default class Widget implements WidgetType {
     widget: Partial<Widget>,
     ncMeta = Noco.ncMeta,
   ) {
-    const updateObj = extractProps(widget, [
+    throw new Error('Not implemented');
+
+    /* const updateObj = extractProps(widget, [
       'layout_id',
       'schema_version',
       'data_config',
@@ -108,8 +118,8 @@ export default class Widget implements WidgetType {
     };
 
     await ncMeta.metaUpdate(
-      null,
-      null,
+      context.workspace_id,
+      context.base_id,
       MetaTable.WIDGET,
       stringifiedUpdateObj,
       widgetId,
@@ -117,6 +127,6 @@ export default class Widget implements WidgetType {
 
     // TODO: Caching
 
-    return this.get(widget.id, ncMeta);
+    return this.get(widget.id, ncMeta); */
   }
 }

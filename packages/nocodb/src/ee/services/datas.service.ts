@@ -3,6 +3,7 @@ import { DatasService as DatasServiceCE } from 'src/services/datas.service';
 import { InjectSentry, SentryService } from '@ntegral/nestjs-sentry';
 import { isLinksOrLTAR } from 'nocodb-sdk';
 import type { PathParams } from '~/helpers/dataHelpers';
+import type { NcContext } from '~/interface/config';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import { View } from '~/models';
@@ -24,6 +25,7 @@ export class DatasService extends DatasServiceCE {
   }
 
   async dataList(
+    context: NcContext,
     param: (PathParams | { view?: View; model: Model }) & {
       query: any;
       disableOptimization?: boolean;
@@ -35,6 +37,7 @@ export class DatasService extends DatasServiceCE {
 
     if (!model) {
       const modelAndView = await getViewAndModelByAliasOrId(
+        context,
         param as PathParams,
       );
       model = modelAndView.model;
@@ -42,7 +45,7 @@ export class DatasService extends DatasServiceCE {
     }
 
     let responseData;
-    const source = await Source.get(model.source_id);
+    const source = await Source.get(context, model.source_id);
 
     let view = _view;
     let customConditions = [];
@@ -50,17 +53,17 @@ export class DatasService extends DatasServiceCE {
 
     // check for link list query params
     if (param.query?.linkColumnId) {
-      baseModel = await Model.getBaseModelSQL({
+      baseModel = await Model.getBaseModelSQL(context, {
         id: model.id,
         viewId: view?.id,
         dbDriver: await NcConnectionMgrv2.get(source),
       });
 
-      const column = await Column.get<LinkToAnotherRecordColumn>({
+      const column = await Column.get<LinkToAnotherRecordColumn>(context, {
         colId: param.query.linkColumnId,
       });
 
-      const linkModel = await column.getModel();
+      const linkModel = await column.getModel(context);
 
       if (
         !column ||
@@ -73,11 +76,13 @@ export class DatasService extends DatasServiceCE {
       }
 
       if (column.colOptions.fk_target_view_id) {
-        view = await View.get(column.colOptions.fk_target_view_id);
+        view = await View.get(context, column.colOptions.fk_target_view_id);
       }
 
       const linkConditions = column.meta?.enableConditions
-        ? (await Filter.rootFilterListByLink({ columnId: column.id })) || []
+        ? (await Filter.rootFilterListByLink(context, {
+            columnId: column.id,
+          })) || []
         : [];
 
       let rowData = {};
@@ -93,18 +98,18 @@ export class DatasService extends DatasServiceCE {
       customConditions = await replaceDynamicFieldWithValue(
         rowData,
         null,
-        linkModel.columns || (await linkModel.getColumns()),
+        linkModel.columns || (await linkModel.getColumns(context)),
         baseModel.readByPk,
       )(linkConditions);
     }
 
     if (
       ((['mysql', 'mysql2'].includes(source.type) &&
-        (await isMysqlVersionSupported(source))) ||
+        (await isMysqlVersionSupported(context, source))) ||
         ['pg'].includes(source.type)) &&
       !param.disableOptimization
     ) {
-      responseData = await this.dataOptService.list({
+      responseData = await this.dataOptService.list(context, {
         model,
         view,
         params: param.query,
@@ -116,7 +121,7 @@ export class DatasService extends DatasServiceCE {
         customConditions,
       });
     } else {
-      responseData = await this.getDataList({
+      responseData = await this.getDataList(context, {
         model,
         view,
         query: param.query,
@@ -132,6 +137,7 @@ export class DatasService extends DatasServiceCE {
   }
 
   async dataRead(
+    context: NcContext,
     param: PathParams & {
       query: any;
       rowId: string;
@@ -139,16 +145,16 @@ export class DatasService extends DatasServiceCE {
       getHiddenColumn?: boolean;
     },
   ) {
-    const { model, view } = await getViewAndModelByAliasOrId(param);
+    const { model, view } = await getViewAndModelByAliasOrId(context, param);
 
-    const source = await Source.get(model.source_id);
+    const source = await Source.get(context, model.source_id);
 
     let row;
     if (
       ['pg', 'mysql', 'mysql2'].includes(source.type) &&
       !param.disableOptimization
     ) {
-      row = await this.dataOptService.read({
+      row = await this.dataOptService.read(context, {
         model,
         view,
         params: param.query,
@@ -157,7 +163,7 @@ export class DatasService extends DatasServiceCE {
         throwErrorIfInvalidParams: true,
       });
     } else {
-      const baseModel = await Model.getBaseModelSQL({
+      const baseModel = await Model.getBaseModelSQL(context, {
         id: model.id,
         viewId: view?.id,
         dbDriver: await NcConnectionMgrv2.get(source),

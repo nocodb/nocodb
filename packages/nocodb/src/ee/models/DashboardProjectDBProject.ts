@@ -16,14 +16,16 @@ export default class DashboardProjectDBProject {
     dashboardProjectDBProject: Partial<DashboardProjectDBProject>,
     ncMeta = Noco.ncMeta,
   ) {
+    throw new Error('Not implemented');
+    /*
     const insertObj = extractProps(dashboardProjectDBProject, [
       'dashboard_project_id',
       'db_project_id',
     ]);
 
     const dashboardProject = await ncMeta.metaGet2(
-      null,
-      null,
+      context.workspace_id,
+      context.base_id,
       MetaTable.PROJECT,
       {
         id: dashboardProjectDBProject.dashboard_project_id,
@@ -36,7 +38,7 @@ export default class DashboardProjectDBProject {
       );
     }
 
-    const dbProject = await ncMeta.metaGet2(null, null, MetaTable.PROJECT, {
+    const dbProject = await ncMeta.metaGet2(context.workspace_id, context.base_id, MetaTable.PROJECT, {
       id: dashboardProjectDBProject.db_project_id,
     });
 
@@ -47,14 +49,15 @@ export default class DashboardProjectDBProject {
     }
 
     const { dashboard_project_id, db_project_id } = await ncMeta.metaInsert2(
-      null,
-      null,
+      context.workspace_id,
+      context.base_id,
       MetaTable.DASHBOARD_PROJECT_DB_PROJECT_LINKINGS,
       insertObj,
       true,
     );
 
     return this.get(dashboard_project_id, db_project_id, ncMeta);
+    */
   }
 
   static async get(
@@ -62,17 +65,18 @@ export default class DashboardProjectDBProject {
     dbProjectId: string,
     ncMeta = Noco.ncMeta,
   ) {
-    // TODO: add cache logic
+    throw new Error('Not implemented');
+    /* // TODO: add cache logic
     const dashboardProjectDbProject = await ncMeta.metaGet2(
-      null,
-      null,
+      context.workspace_id,
+      context.base_id,
       MetaTable.DASHBOARD_PROJECT_DB_PROJECT_LINKINGS,
       {
         dashboard_project_id: dashboardProjectId,
         db_project_id: dbProjectId,
       },
     );
-    return dashboardProjectDbProject;
+    return dashboardProjectDbProject; */
   }
 
   public static async getDbProjectsList(
@@ -87,7 +91,8 @@ export default class DashboardProjectDBProject {
     },
     ncMeta = Noco.ncMeta,
   ) {
-    // TODO: consider to also do checks here that the bases are actually of type Dashboard and DB
+    throw new Error('Not implemented');
+    /* // TODO: consider to also do checks here that the bases are actually of type Dashboard and DB
     const queryBuilder = ncMeta
       .knex(MetaTable.PROJECT)
       .select(
@@ -113,7 +118,7 @@ export default class DashboardProjectDBProject {
       },
     );
 
-    return await queryBuilder;
+    return await queryBuilder; */
   }
 
   static async delete(
@@ -121,30 +126,32 @@ export default class DashboardProjectDBProject {
     dbProjectId: string,
     ncMeta = Noco.ncMeta,
   ) {
-    // TODO: cache cleanup
+    throw new Error('Not implemented');
+    /* // TODO: cache cleanup
     return await ncMeta.metaDelete(
-      null,
-      null,
+      context.workspace_id,
+      context.base_id,
       MetaTable.DASHBOARD_PROJECT_DB_PROJECT_LINKINGS,
       {
         dashboard_project_id: dashboardProjectId,
         db_project_id: dbProjectId,
       },
-    );
+    ); */
   }
 
   static async getDashboardProjectsIdList(
     dbProjectId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<DashboardProjectDBProject[]> {
-    return await ncMeta.metaList2(
-      null,
-      null,
+    throw new Error('Not implemented');
+    /* return await ncMeta.metaList2(
+      context.workspace_id,
+      context.base_id,
       MetaTable.DASHBOARD_PROJECT_DB_PROJECT_LINKINGS,
       {
         condition: { db_project_id: dbProjectId },
       },
-    );
+    ); */
   }
 
   static async getDashboardProjectsList(
@@ -152,7 +159,8 @@ export default class DashboardProjectDBProject {
     _params?: any,
     ncMeta = Noco.ncMeta,
   ): Promise<BaseType[]> {
-    const dashboardProjectList = await ncMeta
+    throw new Error('Not implemented');
+    /* const dashboardProjectList = await ncMeta
       .knex(MetaTable.PROJECT)
       .select(`${MetaTable.PROJECT}.*`)
       .innerJoin(MetaTable.DASHBOARD_PROJECT_DB_PROJECT_LINKINGS, function () {
@@ -171,6 +179,6 @@ export default class DashboardProjectDBProject {
         );
       });
 
-    return dashboardProjectList;
+    return dashboardProjectList; */
   }
 }

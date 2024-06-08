@@ -10,19 +10,19 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { Request } from 'express';
 import { WorkspacePlan } from 'nocodb-sdk';
 import { AuthGuard } from '@nestjs/passport';
 import type { WorkspaceType } from 'nocodb-sdk';
 import { WorkspacesService } from '~/services/workspaces.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { NcError } from '~/helpers/catchError';
-import { CacheScope, MetaTable } from '~/utils/globals';
+import { CacheScope, MetaTable, RootScopes } from '~/utils/globals';
 import { MetaService } from '~/meta/meta.service';
 import NocoCache from '~/cache/NocoCache';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { WorkspaceUsersService } from '~/services/workspace-users.service';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
+import { NcRequest } from '~/interface/config';
 
 @Controller()
 export class WorkspacesController {
@@ -39,7 +39,7 @@ export class WorkspacesController {
   @Acl('workspaceList', {
     scope: 'org',
   })
-  async list(@Req() req: Request) {
+  async list(@Req() req: NcRequest) {
     return await this.workspacesService.list({
       user: req.user,
     });
@@ -50,7 +50,7 @@ export class WorkspacesController {
   @Acl('workspaceGet', {
     scope: 'workspace',
   })
-  async get(@Param('workspaceId') workspaceId: string, @Req() req: Request) {
+  async get(@Param('workspaceId') workspaceId: string, @Req() req: NcRequest) {
     const workspace: WorkspaceType & {
       roles?: any;
     } = await this.workspacesService.get({
@@ -71,7 +71,7 @@ export class WorkspacesController {
     scope: 'org',
     blockApiTokenAccess: true,
   })
-  async create(@Body() body: any, @Req() req: Request) {
+  async create(@Body() body: any, @Req() req: NcRequest) {
     return await this.workspacesService.create({
       workspaces: body,
       user: req.user,
@@ -88,7 +88,7 @@ export class WorkspacesController {
   async update(
     @Param('workspaceId') workspaceId: string,
     @Body() body: any,
-    @Req() req: Request,
+    @Req() req: NcRequest,
   ) {
     return await this.workspacesService.update({
       workspaceId,
@@ -105,7 +105,7 @@ export class WorkspacesController {
     scope: 'workspace',
     blockApiTokenAccess: true,
   })
-  async upgrade(@Param('workspaceId') workspaceId: string, @Req() req: Request) {
+  async upgrade(@Param('workspaceId') workspaceId: string, @Req() req: NcRequest) {
     return await this.workspacesService.upgrade({
       workspaceId,
       user: req.user,
@@ -119,7 +119,10 @@ export class WorkspacesController {
     scope: 'workspace',
     blockApiTokenAccess: true,
   })
-  async delete(@Param('workspaceId') workspaceId: string, @Req() req: Request) {
+  async delete(
+    @Param('workspaceId') workspaceId: string,
+    @Req() req: NcRequest,
+  ) {
     return await this.workspacesService.delete({
       workspaceId,
       user: req.user,
@@ -136,7 +139,7 @@ export class WorkspacesController {
   async moveProjectToWorkspace(
     @Param('workspaceId') workspaceId: string,
     @Param('baseId') baseId: string,
-    @Req() req: Request,
+    @Req() req: NcRequest,
   ) {
     return await this.workspacesService.moveProject({
       workspaceId,
@@ -152,7 +155,7 @@ export class WorkspacesController {
   })
   async listProjects(
     @Param('workspaceId') workspaceId: string,
-    @Req() req: Request,
+    @Req() req: NcRequest,
   ) {
     return await this.workspacesService.getProjectList({
       workspaceId,
@@ -164,15 +167,15 @@ export class WorkspacesController {
   @Patch('/api/v1/workspaces/:workspaceId/status')
   @UseGuards(MetaApiLimiterGuard, AuthGuard('basic'))
   async updateStatus(
-    @Req() req: Request,
+    @Req() req: NcRequest,
     @Body() body,
     @Param('workspaceId') workspaceId: string,
   ) {
     if (!body.status) NcError.badRequest('Missing status in body');
 
     const workspace = await this.metaService.metaGet2(
-      null,
-      null,
+      RootScopes.WORKSPACE,
+      RootScopes.WORKSPACE,
       MetaTable.WORKSPACE,
       workspaceId,
     );
@@ -192,8 +195,8 @@ export class WorkspacesController {
     }
 
     await this.metaService.metaUpdate(
-      null,
-      null,
+      RootScopes.WORKSPACE,
+      RootScopes.WORKSPACE,
       MetaTable.WORKSPACE,
       updateWorkspacePayload,
       workspace.id,

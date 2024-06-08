@@ -28,6 +28,7 @@ import { UsersService } from '~/services/users/users.service';
 import { getWorkspaceRolePower } from '~/utils/roleHelper';
 import Noco from '~/Noco';
 import { getLimit, PlanLimitTypes } from '~/plan-limits';
+import { RootScopes } from '~/utils/globals';
 
 @Injectable()
 export class WorkspaceUsersService {
@@ -101,10 +102,17 @@ export class WorkspaceUsersService {
       NcError.badRequest('Invalid role');
     }
 
-    const targetUser = await User.getWithRoles(user.id, {
-      user,
-      workspaceId: workspace.id,
-    });
+    const targetUser = await User.getWithRoles(
+      {
+        workspace_id: RootScopes.WORKSPACE,
+        base_id: RootScopes.WORKSPACE,
+      },
+      user.id,
+      {
+        user,
+        workspaceId: workspace.id,
+      },
+    );
 
     if (!targetUser) {
       NcError.userNotFound(param.userId);
@@ -182,7 +190,15 @@ export class WorkspaceUsersService {
       const workspaceBases = await Base.listByWorkspace(workspaceId, ncMeta);
 
       for (const base of workspaceBases) {
-        await BaseUser.delete(base.id, userId, ncMeta);
+        await BaseUser.delete(
+          {
+            workspace_id: workspaceId,
+            base_id: base.id,
+          },
+          base.id,
+          userId,
+          ncMeta,
+        );
       }
 
       const res = await WorkspaceUser.softDelete(workspaceId, userId, ncMeta);

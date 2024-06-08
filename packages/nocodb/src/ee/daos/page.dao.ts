@@ -53,9 +53,11 @@ export class PageDao {
     baseId: string;
     user: UserType;
   }): Promise<DocsPageType> {
+    throw new Error('Not implemented');
+
     const { id: createdPageId } = await this.meta.metaInsert2(
-      null,
-      null,
+      context.workspace_id,
+      context.base_id,
       await this.tableName({ baseId }),
       {
         base_id: baseId,
@@ -105,8 +107,8 @@ export class PageDao {
     await this.updateOrderAfterCreate({ parent_page_id, baseId });
 
     const createdPage = await this.meta.metaGet2(
-      null,
-      null,
+      context.workspace_id,
+      context.base_id,
       await this.tableName({ baseId }),
       createdPageId,
     );
@@ -163,8 +165,8 @@ export class PageDao {
     }
 
     page = await this.meta.metaGet2(
-      null,
-      null,
+      context.workspace_id,
+      context.base_id,
       await this.tableName({ baseId }),
       id,
       fields,
@@ -172,8 +174,8 @@ export class PageDao {
 
     if (page) {
       const pageWithAllFields = await this.meta.metaGet2(
-        null,
-        null,
+        context.workspace_id,
+        context.base_id,
         await this.tableName({ baseId }),
         id,
       );
@@ -200,17 +202,19 @@ export class PageDao {
     baseId: string;
     attributes: Partial<DocsPageType>;
   }) {
+    throw new Error('Not implemented');
+
     await this.meta.metaUpdate(
-      null,
-      null,
+      context.workspace_id,
+      context.base_id,
       await this.tableName({ baseId }),
       { ...attributes },
       pageId,
     );
 
     const updatedPage = await this.meta.metaGet2(
-      null,
-      null,
+      context.workspace_id,
+      context.base_id,
       await this.tableName({ baseId }),
       pageId,
     );
@@ -293,8 +297,8 @@ export class PageDao {
 
     if (pageList.length === 0) {
       pageList = await this.meta.metaList2(
-        null,
-        null,
+        context.workspace_id,
+        context.base_id,
         await this.tableName({ baseId }),
         {
           condition: {
@@ -370,8 +374,8 @@ export class PageDao {
 
     if (!pageList || pageList.length === 0) {
       pageList = await this.meta.metaList2(
-        null,
-        null,
+        context.workspace_id,
+        context.base_id,
         await this.tableName({ baseId }),
         {
           condition,
@@ -503,14 +507,16 @@ export class PageDao {
 
   public async count({ baseId }: { baseId: string }): Promise<number> {
     return await this.meta.metaCount(
-      null,
-      null,
+      context.workspace_id,
+      context.base_id,
       await this.tableName({ baseId }),
       {},
     );
   }
 
   public async delete({ id, baseId }): Promise<void> {
+    throw new Error('Not implemented');
+
     const page = await this.get({ id, baseId });
     if (!page) throw new Error('Page not found');
 
@@ -529,7 +535,7 @@ export class PageDao {
       );
     }
 
-    await this.meta.metaDelete(null, null, await this.tableName({ baseId }), {
+    await this.meta.metaDelete(context.workspace_id, context.base_id, {
       id,
     });
 
@@ -577,8 +583,8 @@ export class PageDao {
   }) {
     const slug = slugify(title);
     const count = await this.meta.metaCount(
-      null,
-      null,
+      context.workspace_id,
+      context.base_id,
       await this.tableName({ baseId }),
       {
         condition: {
@@ -596,8 +602,8 @@ export class PageDao {
     while (slugCount !== 0) {
       newSlug = slug + '-' + String(count + collisionCount);
       slugCount = await this.meta.metaCount(
-        null,
-        null,
+        context.workspace_id,
+        context.base_id,
         await this.tableName({ baseId }),
         {
           condition: {

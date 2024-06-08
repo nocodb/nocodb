@@ -9,12 +9,13 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { Request } from 'express';
 import { ViewCreateReqType } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { FormsService } from '~/services/forms.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
+import { TenantContext } from '~/decorators/tenant-context.decorator';
+import { NcContext, NcRequest } from '~/interface/config';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -23,8 +24,11 @@ export class FormsController {
 
   @Get(['/api/v1/db/meta/forms/:formViewId', '/api/v2/meta/forms/:formViewId'])
   @Acl('formViewGet')
-  async formViewGet(@Param('formViewId') formViewId: string) {
-    const formViewData = await this.formsService.formViewGet({
+  async formViewGet(
+    @TenantContext() context: NcContext,
+    @Param('formViewId') formViewId: string,
+  ) {
+    const formViewData = await this.formsService.formViewGet(context, {
       formViewId,
     });
     return formViewData;
@@ -37,11 +41,12 @@ export class FormsController {
   @HttpCode(200)
   @Acl('formViewCreate')
   async formViewCreate(
+    @TenantContext() context: NcContext,
     @Param('tableId') tableId: string,
     @Body() body: ViewCreateReqType,
-    @Req() req: Request,
+    @Req() req: NcRequest,
   ) {
-    const view = await this.formsService.formViewCreate({
+    const view = await this.formsService.formViewCreate(context, {
       body,
       tableId,
       user: req.user,
@@ -55,11 +60,12 @@ export class FormsController {
   ])
   @Acl('formViewUpdate')
   async formViewUpdate(
+    @TenantContext() context: NcContext,
     @Param('formViewId') formViewId: string,
     @Body() body,
-    @Req() req: Request,
+    @Req() req: NcRequest,
   ) {
-    return await this.formsService.formViewUpdate({
+    return await this.formsService.formViewUpdate(context, {
       formViewId,
       form: body,
       req,

@@ -1,5 +1,7 @@
 export * from 'src/utils/globals';
 
+import { RootScopes } from 'src/utils/globals';
+
 export enum MetaTable {
   PROJECT = 'nc_bases_v2',
   BASES = 'nc_source_v2',
@@ -192,6 +194,30 @@ export enum CacheScope {
   ORG_WORKSPACE = 'orgWorkspace',
   EXTENSION = 'uiExtension',
 }
+
+export const RootScopeTables = {
+  [RootScopes.ROOT]: [
+    MetaTable.USERS,
+    MetaTable.USER_REFRESH_TOKENS,
+    MetaTable.API_TOKENS,
+    MetaTable.FOLLOWER,
+    MetaTable.PLUGIN,
+    MetaTable.DB_MUX,
+    MetaTable.STORE,
+    MetaTable.NOTIFICATION,
+    // Temporarily added need to be discussed within team
+    MetaTable.AUDIT,
+  ],
+  [RootScopes.ORG]: [
+    MetaTable.ORG,
+    MetaTable.ORG_DOMAIN,
+    MetaTable.ORG_USERS,
+    MetaTable.SSO_CLIENT,
+    MetaTable.SSO_CLIENT_DOMAIN,
+  ],
+  [RootScopes.WORKSPACE]: [MetaTable.WORKSPACE, MetaTable.WORKSPACE_USER],
+  [RootScopes.BASE]: [MetaTable.PROJECT],
+};
 
 export enum DbMuxStatus {
   ACTIVE = 'active',

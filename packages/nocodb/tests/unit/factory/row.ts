@@ -219,7 +219,7 @@ const listRow = async ({
   base,
   table,
   options,
-  view
+  view,
 }: {
   base: Base;
   table: Model;
@@ -231,8 +231,13 @@ const listRow = async ({
     sortArr?: Sort[];
   };
 }) => {
+  const ctx = {
+    workspace_id: base.fk_workspace_id,
+    base_id: base.id,
+  };
+
   const sources = await base.getSources();
-  const baseModel = await Model.getBaseModelSQL({
+  const baseModel = await Model.getBaseModelSQL(ctx, {
     id: table.id,
     dbDriver: await NcConnectionMgrv2.get(sources[0]!),
     viewId: view?.id,
@@ -287,7 +292,12 @@ const createRow = async (
     index?: number;
   },
 ) => {
-  const columns = await table.getColumns();
+  const ctx = {
+    workspace_id: base.fk_workspace_id,
+    base_id: base.id,
+  };
+
+  const columns = await table.getColumns(ctx);
   const rowData = generateDefaultRowAttributes({ columns, index });
 
   const response = await request(context.app)

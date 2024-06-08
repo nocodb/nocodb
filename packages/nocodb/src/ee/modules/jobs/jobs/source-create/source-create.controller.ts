@@ -10,7 +10,6 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { Request } from 'express';
 import { BaseReqType } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
@@ -19,8 +18,9 @@ import { JobTypes } from '~/interface/Jobs';
 import { Base } from '~/models';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
-import getWorkspaceForBase from '~/utils/getWorkspaceForBase';
 import { getLimit, PlanLimitTypes } from '~/plan-limits';
+import { TenantContext } from '~/decorators/tenant-context.decorator';
+import { NcContext, NcRequest } from '~/interface/config';
 
 @Controller()
 @UseGuards(GlobalGuard)
@@ -34,9 +34,10 @@ export class SourceCreateController {
   @HttpCode(200)
   @Acl('baseCreate')
   async baseCreate(
+    @TenantContext() context: NcContext,
     @Param('baseId') baseId: string,
     @Body() body: BaseReqType,
-    @Req() req: Request,
+    @Req() req: NcRequest,
   ) {
     const jobs = await this.jobsService.jobList();
     const fnd = jobs.find(
@@ -49,15 +50,15 @@ export class SourceCreateController {
       );
     }
 
-    const base = await Base.get(baseId);
+    const base = await Base.get(context, baseId);
 
     if (!base) {
       NcError.baseNotFound(baseId);
     }
 
     const sourcesInBase = await Noco.ncMeta.metaCount(
-      null,
-      null,
+      context.workspace_id,
+      context.base_id,
       MetaTable.BASES,
       {
         condition: {
@@ -66,11 +67,9 @@ export class SourceCreateController {
       },
     );
 
-    const workspaceId = await getWorkspaceForBase(base.id);
-
     const sourceLimitForWorkspace = await getLimit(
       PlanLimitTypes.SOURCE_LIMIT,
-      workspaceId,
+      base.fk_workspace_id,
     );
 
     if (sourcesInBase >= sourceLimitForWorkspace) {
@@ -109,6 +108,7 @@ export class SourceCreateController {
     }
 
     const job = await this.jobsService.add(JobTypes.SourceCreate, {
+      context,
       baseId,
       source: body,
       user: req.user,

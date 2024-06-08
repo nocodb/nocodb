@@ -33,7 +33,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       NcError.unauthorized('Token Expired. Please login again.');
     }
     return {
-      ...(await User.getWithRoles(user.id, {
+      ...(await User.getWithRoles(req.context, user.id, {
         user,
         baseId: req.ncBaseId,
         workspaceId: req.ncWorkspaceId,

@@ -6,6 +6,8 @@ import type { AppConfig } from '~/interface/config';
 import { UsersService } from '~/services/users/users.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
+import { TenantContext } from '~/decorators/tenant-context.decorator';
+import { NcContext, NcRequest } from '~/interface/config';
 
 @Controller()
 export class SSOAuthController {
@@ -17,7 +19,7 @@ export class SSOAuthController {
 
   @Get('/sso/:clientId/')
   @UseGuards(PublicApiLimiterGuard)
-  async ssoLogin(@Req() req: Request & { extra: any }, @Res() res: Response) {
+  async ssoLogin(@Req() req: NcRequest & { extra: any }, @Res() res: Response) {
     res.json({
       ...(await this.usersService.login(
         {
@@ -33,7 +35,7 @@ export class SSOAuthController {
   @Post('/sso/:clientId/redirect')
   @UseGuards(PublicApiLimiterGuard)
   async ssoRedirect(
-    @Req() req: Request & { extra: any },
+    @Req() req: NcRequest & { extra: any },
     @Res() res: Response,
   ) {
     const redirectUrl = `${req.dashboardUrl}?short-token=${req.user['token']}`;
@@ -43,7 +45,7 @@ export class SSOAuthController {
   @Get('/sso/:clientId/redirect')
   @UseGuards(PublicApiLimiterGuard)
   async ssoRedirectGet(
-    @Req() req: Request & { extra: any },
+    @Req() req: NcRequest & { extra: any },
     @Res() res: Response,
   ) {
     const redirectUrl = `${req.dashboardUrl}?short-token=${req.user['token']}`;

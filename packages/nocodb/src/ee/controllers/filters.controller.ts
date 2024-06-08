@@ -8,7 +8,6 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { Request } from 'express';
 import { FilterReqType } from 'nocodb-sdk';
 import { FiltersController as FiltersControllerCE } from 'src/controllers/filters.controller';
 import { GlobalGuard } from '~/guards/global/global.guard';
@@ -16,6 +15,8 @@ import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { FiltersService } from '~/services/filters.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
+import { TenantContext } from '~/decorators/tenant-context.decorator';
+import { NcContext, NcRequest } from '~/interface/config';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -26,9 +27,12 @@ export class FiltersController extends FiltersControllerCE {
 
   @Get(['/api/v2/meta/links/:columnId/filters'])
   @Acl('linkFilterList')
-  async linkFilterList(@Param('columnId') columnId: string) {
+  async linkFilterList(
+    @TenantContext() context: NcContext,
+    @Param('columnId') columnId: string,
+  ) {
     return new PagedResponseImpl(
-      await this.filtersService.linkFilterList({
+      await this.filtersService.linkFilterList(context, {
         columnId: columnId,
       }),
     );
@@ -38,11 +42,12 @@ export class FiltersController extends FiltersControllerCE {
   @HttpCode(200)
   @Acl('linkFilterCreate')
   async linkFilterCreate(
+    @TenantContext() context: NcContext,
     @Param('columnId') columnId: string,
     @Body() body: FilterReqType,
-    @Req() req: Request,
+    @Req() req: NcRequest,
   ) {
-    const filter = await this.filtersService.linkFilterCreate({
+    const filter = await this.filtersService.linkFilterCreate(context, {
       filter: body,
       columnId,
       user: req.user,

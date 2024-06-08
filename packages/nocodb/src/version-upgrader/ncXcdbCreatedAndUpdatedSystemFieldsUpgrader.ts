@@ -65,9 +65,14 @@ async function upgradeModels({
   base: Base;
   models: Model[];
 }) {
+  const context = { workspace_id: base.fk_workspace_id, base_id: base.id };
   // get existing columns from database
   const sqlClient = await NcConnectionMgrv2.getSqlClient(source, ncMeta.knex);
-  const sqlMgr = ProjectMgrv2.getSqlMgr({ id: source.base_id }, ncMeta);
+  const sqlMgr = ProjectMgrv2.getSqlMgr(
+    context,
+    { id: source.base_id },
+    ncMeta,
+  );
 
   await Promise.all(
     models.map(async (model) => {
@@ -122,6 +127,7 @@ async function upgradeModels({
             isCreatedTimeExists = true;
             if (column.uidt !== UITypes.CreatedTime || !column.system) {
               await Column.update(
+                context,
                 column.id,
                 {
                   ...column,
@@ -144,6 +150,7 @@ async function upgradeModels({
             isLastModifiedTimeExists = true;
             if (column.uidt !== UITypes.LastModifiedTime || !column.system) {
               await Column.update(
+                context,
                 column.id,
                 {
                   ...column,
@@ -341,6 +348,7 @@ async function upgradeModels({
         }
         for (const newColumn of [...existingDbColumns, ...newColumns]) {
           await Column.insert(
+            context,
             {
               ...newColumn,
               system: true,
@@ -362,25 +370,23 @@ async function upgradeModels({
 // database to virtual relation and create an index for it
 export default async function ({ ncMeta }: NcUpgraderCtx) {
   // get all xcdb sources
-  const sources = await ncMeta.metaList2(null, null, MetaTable.BASES, {
-    xcCondition: {
-      _or: [
-        {
-          is_meta: {
-            eq: 1,
-          },
+  const sources = await ncMeta.knexConnection(MetaTable.BASES).condition({
+    _or: [
+      {
+        is_meta: {
+          eq: 1,
         },
-        ...(Noco.isEE()
-          ? [
-              {
-                is_local: {
-                  eq: 1,
-                },
+      },
+      ...(Noco.isEE()
+        ? [
+            {
+              is_local: {
+                eq: 1,
               },
-            ]
-          : []),
-      ],
-    },
+            },
+          ]
+        : []),
+    ],
   });
 
   const requestQueue = new RequestQueue();
@@ -389,7 +395,12 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
     sources.map(async (_source, i) => {
       const source = new Source(_source);
 
-      const base = await source.getProject(ncMeta);
+      const context = {
+        workspace_id: source.fk_workspace_id,
+        base_id: source.base_id,
+      };
+
+      const base = await source.getProject(context, ncMeta);
 
       // skip deleted base bases
       if (!base || base.deleted) {
@@ -404,6 +415,7 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
       // update the meta props
       return requestQueue.enqueue(async () => {
         const models = await Model.list(
+          context,
           {
             base_id: source.base_id,
             source_id: source.id,
@@ -412,7 +424,7 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
         );
 
         for (const model of models) {
-          await model.getColumns(ncMeta);
+          await model.getColumns(context, ncMeta);
         }
 
         logger.log(

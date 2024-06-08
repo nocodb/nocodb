@@ -263,3 +263,26 @@ export const DB_TYPES = <const>[
   'pg',
   'databricks',
 ];
+
+export enum RootScopes {
+  ROOT = 'root',
+  ORG = 'org',
+  WORKSPACE = 'workspace',
+  BASE = 'base',
+  // This scope only used for extract-ids middleware to get initial entity
+  BYPASS = 'bypass',
+}
+
+export const RootScopeTables = {
+  [RootScopes.ROOT]: [
+    MetaTable.USERS,
+    MetaTable.USER_REFRESH_TOKENS,
+    MetaTable.API_TOKENS,
+    MetaTable.PLUGIN,
+    MetaTable.STORE,
+    MetaTable.NOTIFICATION,
+    // Temporarily added need to be discussed within team
+    MetaTable.AUDIT,
+  ],
+  [RootScopes.BASE]: [MetaTable.PROJECT],
+};

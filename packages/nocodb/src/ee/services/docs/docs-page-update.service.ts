@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import { DocsPageHistoryService } from './history/docs-page-history.service';
 import type { DocsPageType, UserType } from 'nocodb-sdk';
@@ -30,6 +31,8 @@ export class DocsPagesUpdateService {
     user: UserType;
     snapshotDisabled?: boolean;
   }) {
+    throw new Error('Not implemented.');
+    /* 
     const oldPage = await this.pageDao.get({ id: pageId, baseId });
     if (!oldPage) throw new Error('Page not found');
 
@@ -123,7 +126,7 @@ export class DocsPagesUpdateService {
         });
     }
 
-    return updatedPage;
+    return updatedPage; */
   }
 
   /**
@@ -135,6 +138,8 @@ export class DocsPagesUpdateService {
    * */
 
   async unpublishPage(pageId: string, baseId: string) {
+    throw new Error('Not implemented.');
+    /* 
     await this.pageDao.updatePage({
       pageId: pageId,
       baseId,
@@ -149,7 +154,7 @@ export class DocsPagesUpdateService {
       baseId,
       nestedParentPageId: pageId,
       isPublished: false,
-    });
+    }); */
   }
 
   async updateChildPagesIsPublish({
@@ -163,7 +168,9 @@ export class DocsPagesUpdateService {
     nestedParentPageId: string;
     isPublished: boolean;
   }) {
-    const childPages = await this.pageDao.getChildPages({
+    throw new Error('Not implemented.');
+
+    /* const childPages = await this.pageDao.getChildPages({
       parent_page_id: pageId,
       baseId,
     });
@@ -185,14 +192,14 @@ export class DocsPagesUpdateService {
         baseId,
         isPublished,
       });
-    }
+    } */
   }
 
   private sanitizeAttributes(
     attributes: Partial<DocsPageType>,
     oldPage: DocsPageType,
   ) {
-    if (attributes.title && attributes.title.length === 0) {
+    /* if (attributes.title && attributes.title.length === 0) {
       throw new Error('Title cannot be empty');
     }
 
@@ -214,7 +221,7 @@ export class DocsPagesUpdateService {
       }
     }
 
-    return attributes;
+    return attributes; */
   }
 
   async generateSlug(
@@ -222,17 +229,21 @@ export class DocsPagesUpdateService {
     attributes: Partial<DocsPageType>,
     oldPage: DocsPageType,
   ) {
-    const uniqueSlug = await this.pageDao.uniqueSlug({
+    throw new Error('Not implemented.');
+
+    /* const uniqueSlug = await this.pageDao.uniqueSlug({
       baseId,
       parent_page_id: oldPage.parent_page_id,
       title: attributes.title,
     });
 
-    attributes.slug = uniqueSlug;
+    attributes.slug = uniqueSlug; */
   }
 
   async handlePagePublishWithNewParent(pageId: string, baseId: string) {
-    const page = await this.pageDao.get({ id: pageId, baseId });
+    throw new Error('Not implemented.');
+
+    /* const page = await this.pageDao.get({ id: pageId, baseId });
     if (!page.parent_page_id) return;
 
     const parentPage = await this.pageDao.get({
@@ -274,14 +285,16 @@ export class DocsPagesUpdateService {
         nestedParentPageId: pageId,
         isPublished: false,
       });
-    }
+    } */
   }
 
   async updateOldParentPagesIsParentFlag(
     baseId: string,
     oldPage: DocsPageType,
   ) {
-    const previousParentChildren = await this.pageDao.getChildPages({
+    throw new Error('Not implemented.');
+
+    /* const previousParentChildren = await this.pageDao.getChildPages({
       parent_page_id: oldPage.parent_page_id,
       baseId,
     });
@@ -293,7 +306,7 @@ export class DocsPagesUpdateService {
           is_parent: false,
         },
       });
-    }
+    } */
   }
 
   async updateParentAndSlugOnCollision(
@@ -301,7 +314,9 @@ export class DocsPagesUpdateService {
     attributes: Partial<DocsPageType>,
     baseId: string,
   ) {
-    if (attributes.parent_page_id) {
+    throw new Error('Not implemented.');
+
+    /* if (attributes.parent_page_id) {
       await this.pageDao.updatePage({
         pageId: attributes.parent_page_id,
         baseId,
@@ -327,7 +342,7 @@ export class DocsPagesUpdateService {
           slug: uniqueSlug,
         },
       });
-    }
+    } */
   }
 
   async reorderPage({
@@ -339,7 +354,9 @@ export class DocsPagesUpdateService {
     parent_page_id?: string;
     keepPageId?: string;
   }) {
-    const pages = await this.pageDao.list({ parent_page_id, baseId });
+    throw new Error('Not implemented.');
+
+    /* const pages = await this.pageDao.list({ parent_page_id, baseId });
 
     if (keepPageId) {
       const kpPage = pages.splice(
@@ -362,6 +379,6 @@ export class DocsPagesUpdateService {
           order: b.order,
         },
       });
-    }
+    } */
   }
 }

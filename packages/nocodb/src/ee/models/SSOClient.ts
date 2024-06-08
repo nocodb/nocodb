@@ -4,7 +4,12 @@ import type {
   SAMLClientConfigType,
   SSOClientType,
 } from 'nocodb-sdk';
-import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
+import {
+  CacheGetType,
+  CacheScope,
+  MetaTable,
+  RootScopes,
+} from '~/utils/globals';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import {
@@ -38,8 +43,8 @@ export default class SSOClient implements SSOClientType {
     let client = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
     if (!client) {
       client = await ncMeta.metaGet2(
-        null,
-        null,
+        RootScopes.ORG,
+        RootScopes.ORG,
         MetaTable.SSO_CLIENT,
         clientId,
       );
@@ -70,8 +75,8 @@ export default class SSOClient implements SSOClientType {
     }
 
     const { id } = await ncMeta.metaInsert2(
-      null,
-      null,
+      RootScopes.ORG,
+      RootScopes.ORG,
       MetaTable.SSO_CLIENT,
       client,
     );
@@ -93,8 +98,8 @@ export default class SSOClient implements SSOClientType {
     ]);
 
     await ncMeta.metaUpdate(
-      null,
-      null,
+      RootScopes.ORG,
+      RootScopes.ORG,
       MetaTable.SSO_CLIENT,
       prepareForDb(updateObj, 'config'),
       clientId,
@@ -111,7 +116,12 @@ export default class SSOClient implements SSOClientType {
 
   public static async delete(clientId: string, ncMeta = Noco.ncMeta) {
     // delete from cache
-    await ncMeta.metaDelete(null, null, MetaTable.SSO_CLIENT, clientId);
+    await ncMeta.metaDelete(
+      RootScopes.ORG,
+      RootScopes.ORG,
+      MetaTable.SSO_CLIENT,
+      clientId,
+    );
 
     const key = `${CacheScope.SSO_CLIENT}:${clientId}`;
     await NocoCache.del(key);
@@ -135,8 +145,8 @@ export default class SSOClient implements SSOClientType {
     }
 
     const clients = await Noco.ncMeta.metaList2(
-      null,
-      null,
+      RootScopes.ORG,
+      RootScopes.ORG,
       MetaTable.SSO_CLIENT,
       {
         condition,
@@ -178,8 +188,8 @@ export default class SSOClient implements SSOClientType {
 
   static async listByOrgId(fk_org_id: string, siteUrl: string) {
     const clients = await Noco.ncMeta.metaList2(
-      null,
-      null,
+      RootScopes.ORG,
+      RootScopes.ORG,
       MetaTable.SSO_CLIENT,
       {
         condition: {

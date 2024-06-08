@@ -90,6 +90,8 @@ const permissionScopes = {
     // TODO: add ACL with base scope
     'upload',
     'uploadViaURL',
+
+    'notification',
   ],
   workspace: [
     'workspaceBaseList',
@@ -243,6 +245,7 @@ const rolePermissions:
       commandPalette: true,
       // allow only in cloud
       testConnection: true,
+      notification: true,
     },
   },
   [CloudOrgUserRoles.VIEWER]: {

@@ -14,13 +14,14 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import type { AttachmentReqType, FileType } from 'nocodb-sdk';
 import { UploadAllowedInterceptor } from '~/interceptors/is-upload-allowed/is-upload-allowed.interceptor';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { AttachmentsService } from '~/services/attachments.service';
 import { PresignedUrl } from '~/models';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
+import { NcRequest } from '~/interface/config';
 
 @Controller()
 export class AttachmentsController {
@@ -30,7 +31,7 @@ export class AttachmentsController {
   @Post(['/api/v1/db/storage/upload', '/api/v2/storage/upload'])
   @HttpCode(200)
   @UseInterceptors(UploadAllowedInterceptor, AnyFilesInterceptor())
-  async upload(@UploadedFiles() files: Array<FileType>, @Req() req: Request) {
+  async upload(@UploadedFiles() files: Array<FileType>, @Req() req: NcRequest) {
     const attachments = await this.attachmentsService.upload({
       files: files,
       path: req.query?.path?.toString(),
@@ -47,7 +48,7 @@ export class AttachmentsController {
   async uploadViaURL(
     @Body() body: Array<AttachmentReqType>,
     @Query('path') path: string,
-    @Req() req: Request,
+    @Req() req: NcRequest,
   ) {
     const attachments = await this.attachmentsService.uploadViaURL({
       urls: body,

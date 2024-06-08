@@ -117,12 +117,14 @@ export class SSOPassportMiddleware implements NestMiddleware {
           if (user) {
             // if base id defined extract base level roles
             if (req.ncBaseId) {
-              user = await BaseUser.get(req.ncBaseId, user.id).then(
-                async (baseUser) => {
-                  user.roles = baseUser?.roles || user.roles;
-                  return sanitiseUserObj(user);
-                },
-              );
+              user = await BaseUser.get(
+                (req as any).context,
+                req.ncBaseId,
+                user.id,
+              ).then(async (baseUser) => {
+                user.roles = baseUser?.roles || user.roles;
+                return sanitiseUserObj(user);
+              });
             } else {
               user = sanitiseUserObj(user);
             }
@@ -138,7 +140,7 @@ export class SSOPassportMiddleware implements NestMiddleware {
               email,
               password: '',
               salt,
-              req,
+              req: req as any,
             });
             user = sanitiseUserObj(user);
           }
@@ -430,12 +432,14 @@ export class SSOPassportMiddleware implements NestMiddleware {
           if (user) {
             // if base id defined extract base level roles
             if (req.ncBaseId) {
-              return await BaseUser.get(req.ncBaseId, user.id).then(
-                async (baseUser) => {
-                  user.roles = baseUser?.roles || user.roles;
-                  return sanitiseUserObj(user);
-                },
-              );
+              return await BaseUser.get(
+                (req as any).context,
+                req.ncBaseId,
+                user.id,
+              ).then(async (baseUser) => {
+                user.roles = baseUser?.roles || user.roles;
+                return sanitiseUserObj(user);
+              });
             } else {
               return sanitiseUserObj(user);
             }

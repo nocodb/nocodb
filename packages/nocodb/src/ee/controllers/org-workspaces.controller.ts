@@ -7,11 +7,11 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { NcRequest } from '../../interface/config';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { OrgWorkspacesService } from '~/services/org-workspaces.service';
+import { NcRequest } from '~/interface/config';
 
 @Controller()
 export class OrgWorkspacesController {

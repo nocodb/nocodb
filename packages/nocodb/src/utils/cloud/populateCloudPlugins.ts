@@ -1,7 +1,7 @@
 import S3PluginConfig from '../../plugins/s3';
 import SESPluginConfig from '../../plugins/ses';
-import { MetaTable } from '../globals';
 import Noco from '~/Noco';
+import { MetaTable, RootScopes } from '~/utils/globals';
 
 export const populatePluginsForCloud = async ({ ncMeta = Noco.ncMeta }) => {
   if (
@@ -13,9 +13,14 @@ export const populatePluginsForCloud = async ({ ncMeta = Noco.ncMeta }) => {
     throw new Error('S3 env variables not found');
   }
 
-  const s3PluginData = await ncMeta.metaGet2(null, null, MetaTable.PLUGIN, {
-    title: S3PluginConfig.title,
-  });
+  const s3PluginData = await ncMeta.metaGet2(
+    RootScopes.ROOT,
+    RootScopes.ROOT,
+    MetaTable.PLUGIN,
+    {
+      title: S3PluginConfig.title,
+    },
+  );
 
   if (!s3PluginData) throw new Error('S3 plugin not found');
 
@@ -36,8 +41,8 @@ export const populatePluginsForCloud = async ({ ncMeta = Noco.ncMeta }) => {
 
   if (isS3PluginUpdateNeeded) {
     await ncMeta.metaUpdate(
-      null,
-      null,
+      RootScopes.ROOT,
+      RootScopes.ROOT,
       MetaTable.PLUGIN,
       {
         input: JSON.stringify(s3PluginFromEnv),
@@ -57,9 +62,14 @@ export const populatePluginsForCloud = async ({ ncMeta = Noco.ncMeta }) => {
     throw new Error('SES env variables not found');
   }
 
-  const sesPluginData = await ncMeta.metaGet2(null, null, MetaTable.PLUGIN, {
-    title: SESPluginConfig.title,
-  });
+  const sesPluginData = await ncMeta.metaGet2(
+    RootScopes.ROOT,
+    RootScopes.ROOT,
+    MetaTable.PLUGIN,
+    {
+      title: SESPluginConfig.title,
+    },
+  );
 
   if (!sesPluginData) throw new Error('SES plugin not found');
 
@@ -80,8 +90,8 @@ export const populatePluginsForCloud = async ({ ncMeta = Noco.ncMeta }) => {
 
   if (isSESPluginUpdateNeeded) {
     await ncMeta.metaUpdate(
-      null,
-      null,
+      RootScopes.ROOT,
+      RootScopes.ROOT,
       MetaTable.PLUGIN,
       {
         input: JSON.stringify(sesPluginFromEnv),

@@ -13,7 +13,8 @@ import { GlobalGuard } from '~/guards/global/global.guard';
 import { ModelVisibilitiesService } from '~/services/model-visibilities.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
-import { NcRequest } from '~/interface/config';
+import { TenantContext } from '~/decorators/tenant-context.decorator';
+import { NcContext, NcRequest } from '~/interface/config';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -29,11 +30,12 @@ export class ModelVisibilitiesController {
   @HttpCode(200)
   @Acl('modelVisibilitySet')
   async xcVisibilityMetaSetAll(
+    @TenantContext() context: NcContext,
     @Param('baseId') baseId: string,
     @Body() body: any,
     @Req() req: NcRequest,
   ) {
-    await this.modelVisibilitiesService.xcVisibilityMetaSetAll({
+    await this.modelVisibilitiesService.xcVisibilityMetaSetAll(context, {
       visibilityRule: body,
       baseId,
       req,
@@ -48,10 +50,11 @@ export class ModelVisibilitiesController {
   ])
   @Acl('modelVisibilityList')
   async modelVisibilityList(
+    @TenantContext() context: NcContext,
     @Param('baseId') baseId: string,
     @Query('includeM2M') includeM2M: boolean | string,
   ) {
-    return await this.modelVisibilitiesService.xcVisibilityMetaGet({
+    return await this.modelVisibilitiesService.xcVisibilityMetaGet(context, {
       baseId,
       includeM2M: includeM2M === true || includeM2M === 'true',
     });

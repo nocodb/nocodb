@@ -20,6 +20,8 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
+import { TenantContext } from '~/decorators/tenant-context.decorator';
+import { NcContext, NcRequest } from '~/interface/config';
 
 const IS_UPGRADE_ALLOWED_CACHE_KEY = 'nc_upgrade_allowed';
 
@@ -35,7 +37,7 @@ export class AuthController extends AuthControllerCE {
 
   @Get(['/auth/user/me', '/api/v1/db/auth/user/me', '/api/v1/auth/user/me'])
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
-  async me(@Req() req: Request) {
+  async me(@Req() req: NcRequest) {
     const featureFlags: Record<string, boolean> = (
       await Promise.all([
         (async () => {
@@ -67,7 +69,7 @@ export class AuthController extends AuthControllerCE {
   /* OpenID Connect APIs */
   @Post('/auth/oidc/genTokenByCode')
   @UseGuards(PublicApiLimiterGuard, AuthGuard('openid'))
-  async oidcSignin(@Req() req: Request & { extra: any }, @Res() res: Response) {
+  async oidcSignin(@Req() req: NcRequest & { extra: any }, @Res() res: Response) {
     await this.setRefreshToken({ req, res });
     res.json({
       ...(await this.usersService.login(
@@ -89,7 +91,7 @@ export class AuthController extends AuthControllerCE {
 
   @Get('/auth/oidc/redirect')
   @UseGuards(PublicApiLimiterGuard)
-  async redirect(@Req() req: Request, @Res() res: Response) {
+  async redirect(@Req() req: NcRequest, @Res() res: Response) {
     const key = `oidc:${req.query.state}`;
     const state = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
     if (!state) {
@@ -109,7 +111,7 @@ export class AuthController extends AuthControllerCE {
 
   @Get('/auth/oidc/logout-redirect')
   @UseGuards(PublicApiLimiterGuard)
-  async logoutRedirect(@Req() req: Request, @Res() res: Response) {
+  async logoutRedirect(@Req() req: NcRequest, @Res() res: Response) {
     const host = req.query.state;
 
     const dashboardPath = this.config.get('dashboardPath', {
@@ -126,7 +128,7 @@ export class AuthController extends AuthControllerCE {
   @UseGuards(PublicApiLimiterGuard, GlobalGuard)
   @Post(['/api/v1/auth/user/signout'])
   @HttpCode(200)
-  async signOut(@Req() req: Request, @Res() res: Response): Promise<any> {
+  async signOut(@Req() req: NcRequest, @Res() res: Response): Promise<any> {
     const result: Record<string, string> = await this.usersService.signOut({
       req,
       res,
@@ -168,7 +170,7 @@ export class AuthController extends AuthControllerCE {
   @Post('/auth/cognito')
   @UseGuards(PublicApiLimiterGuard, AuthGuard('cognito'))
   async cognitoSignin(
-    @Req() req: Request & { extra: any },
+    @Req() req: NcRequest & { extra: any },
     @Res() res: Response,
   ) {
     await this.setRefreshToken({ req, res });
@@ -190,7 +192,7 @@ export class AuthController extends AuthControllerCE {
 
   @Get('/auth/saml/logout')
   @UseGuards(PublicApiLimiterGuard, AuthGuard('saml'))
-  async samlLogout(@Req() req: Request & { extra: any }, @Res() res: Response) {
+  async samlLogout(@Req() req: NcRequest & { extra: any }, @Res() res: Response) {
     (req as any).logout(req, function (err, request) {
       if (!err) {
         //redirect to the IdP Logout URL
@@ -202,7 +204,7 @@ export class AuthController extends AuthControllerCE {
   @Post('/auth/saml/redirect')
   @UseGuards(PublicApiLimiterGuard, AuthGuard('saml'))
   async samlLoginCallback(
-    @Req() req: Request & { extra: any },
+    @Req() req: NcRequest & { extra: any },
     @Res() res: Response,
   ) {
     const dashboardPath = this.config.get('dashboardPath', {
@@ -217,7 +219,7 @@ export class AuthController extends AuthControllerCE {
   @Post('/auth/long-lived-token')
   @UseGuards(PublicApiLimiterGuard, AuthGuard('short-lived-token'))
   async longLivedTokenRefresh(
-    @Req() req: Request & { extra: any },
+    @Req() req: NcRequest & { extra: any },
     @Res() res: Response,
   ) {
     await this.setRefreshToken({ req, res });

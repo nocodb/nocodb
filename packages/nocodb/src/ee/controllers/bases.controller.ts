@@ -8,7 +8,6 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { Request } from 'express';
 import { PagedResponseImpl } from 'src/helpers/PagedResponse';
 import { ProjectReqType } from 'nocodb-sdk';
 import { BasesController as BasesControllerCE } from 'src/controllers/bases.controller';
@@ -17,6 +16,8 @@ import { GlobalGuard } from '~/guards/global/global.guard';
 import { BasesService } from '~/services/bases.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
+import { TenantContext } from '~/decorators/tenant-context.decorator';
+import { NcContext, NcRequest } from '~/interface/config';
 
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 @Controller()
@@ -29,8 +30,12 @@ export class BasesController extends BasesControllerCE {
     scope: 'workspace',
   })
   @Get(['/api/v1/db/meta/projects/', '/api/v2/meta/bases/'])
-  async list(@Query() queryParams: Record<string, any>, @Req() req: Request) {
-    const bases = await this.projectsService.baseList({
+  async list(
+    @TenantContext() context: NcContext,
+    @Query() queryParams: Record<string, any>,
+    @Req() req: NcRequest,
+  ) {
+    const bases = await this.projectsService.baseList(context, {
       user: req.user,
       query: queryParams,
     });
@@ -45,7 +50,11 @@ export class BasesController extends BasesControllerCE {
   })
   @Post(['/api/v1/db/meta/projects', '/api/v2/meta/bases'])
   @HttpCode(200)
-  async baseCreate(@Body() baseBody: ProjectReqType, @Req() req: Request) {
+  async baseCreate(
+    @TenantContext() context: NcContext,
+    @Body() baseBody: ProjectReqType,
+    @Req() req: NcRequest,
+  ) {
     const base = await this.projectsService.baseCreate({
       base: baseBody,
       user: req['user'],

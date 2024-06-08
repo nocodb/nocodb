@@ -1,5 +1,6 @@
 import AWS from 'aws-sdk';
 import axios from 'axios';
+import type { NcContext } from '~/interface/config';
 import { extractProps } from '~/helpers/extractProps';
 import Noco from '~/Noco';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
@@ -9,6 +10,7 @@ import {
   CacheScope,
   DbMuxStatus,
   MetaTable,
+  RootScopes,
 } from '~/utils/globals';
 import { NcError } from '~/helpers/catchError';
 import NocoCache from '~/cache/NocoCache';
@@ -33,7 +35,11 @@ export default class DbMux {
     let { list: dbMuxList } = cachedList;
     const { isNoneList } = cachedList;
     if (!isNoneList && !dbMuxList.length) {
-      dbMuxList = await ncMeta.metaList2(null, null, MetaTable.DB_MUX);
+      dbMuxList = await ncMeta.metaList2(
+        RootScopes.ROOT,
+        RootScopes.ROOT,
+        MetaTable.DB_MUX,
+      );
 
       for (const dbMux of dbMuxList) {
         dbMux.sourceCount = await this.sourceCount(dbMux.id, ncMeta);
@@ -56,9 +62,14 @@ export default class DbMux {
     );
 
     if (!dbMuxData) {
-      dbMuxData = await ncMeta.metaGet2(null, null, MetaTable.DB_MUX, {
-        id: dbMuxId,
-      });
+      dbMuxData = await ncMeta.metaGet2(
+        RootScopes.ROOT,
+        RootScopes.ROOT,
+        MetaTable.DB_MUX,
+        {
+          id: dbMuxId,
+        },
+      );
 
       if (dbMuxData) {
         dbMuxData.sourceCount = await this.sourceCount(dbMuxId, ncMeta);
@@ -99,8 +110,8 @@ export default class DbMux {
     }
 
     const { id } = await ncMeta.metaInsert2(
-      null,
-      null,
+      RootScopes.ROOT,
+      RootScopes.ROOT,
       MetaTable.DB_MUX,
       insertObject,
     );
@@ -123,7 +134,13 @@ export default class DbMux {
       NcError.badRequest('Nothing to update');
     }
 
-    await ncMeta.metaUpdate(null, null, MetaTable.DB_MUX, updateObject, {});
+    await ncMeta.metaUpdate(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.DB_MUX,
+      updateObject,
+      {},
+    );
 
     await NocoCache.deepDel(
       `${CacheScope.DB_MUX}:list`,
@@ -134,11 +151,16 @@ export default class DbMux {
   }
 
   public async getSources(ncMeta = Noco.ncMeta) {
-    return await ncMeta.metaList2(null, null, MetaTable.BASES, {
-      condition: {
-        fk_sql_executor_id: this.id,
+    return await ncMeta.metaList2(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.BASES,
+      {
+        condition: {
+          fk_sql_executor_id: this.id,
+        },
       },
-    });
+    );
   }
 
   public async update(
@@ -152,7 +174,13 @@ export default class DbMux {
       'capacity',
     ]);
 
-    await ncMeta.metaUpdate(null, null, MetaTable.DB_MUX, updateObj, this.id);
+    await ncMeta.metaUpdate(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.DB_MUX,
+      updateObj,
+      this.id,
+    );
 
     await NocoCache.update(`${CacheScope.DB_MUX}:${this.id}`, updateObj);
 
@@ -164,6 +192,10 @@ export default class DbMux {
       await Promise.all([
         ...sources.map((source) =>
           Source.updateBase(
+            {
+              workspace_id: source.fk_workspace_id,
+              base_id: source.base_id,
+            },
             source.id,
             {
               baseId: source.base_id,
@@ -182,14 +214,23 @@ export default class DbMux {
 
   public async delete(ncMeta = Noco.ncMeta) {
     // unbind all sources
-    const sources = await ncMeta.metaList2(null, null, MetaTable.BASES, {
-      condition: {
-        fk_sql_executor_id: this.id,
+    const sources = await ncMeta.metaList2(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.BASES,
+      {
+        condition: {
+          fk_sql_executor_id: this.id,
+        },
       },
-    });
+    );
 
     for (const source of sources) {
       await Source.updateBase(
+        {
+          workspace_id: source.fk_workspace_id,
+          base_id: source.base_id,
+        },
         source.id,
         {
           baseId: source.base_id,
@@ -204,17 +245,27 @@ export default class DbMux {
       CacheDelDirection.CHILD_TO_PARENT,
     );
 
-    return await ncMeta.metaDelete(null, null, MetaTable.DB_MUX, this.id);
+    return await ncMeta.metaDelete(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.DB_MUX,
+      this.id,
+    );
   }
 
-  public async bindSource(sourceId: string, ncMeta = Noco.ncMeta) {
+  public async bindSource(
+    context: NcContext,
+    sourceId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
     if (!sourceId) NcError.badRequest('Source id is required');
 
-    const source = await Source.get(sourceId, false, ncMeta);
+    const source = await Source.get(context, sourceId, false, ncMeta);
 
     if (!source) NcError.sourceNotFound(sourceId);
 
     await Source.updateBase(
+      context,
       sourceId,
       {
         baseId: source.base_id,
@@ -233,10 +284,11 @@ export default class DbMux {
   }
 
   public static async bindToSuitableDbMux(
+    context: NcContext,
     sourceId: string,
     ncMeta = Noco.ncMeta,
   ) {
-    const source = await Source.get(sourceId, false, ncMeta);
+    const source = await Source.get(context, sourceId, false, ncMeta);
 
     if (!source) NcError.sourceNotFound(sourceId);
 
@@ -276,7 +328,7 @@ export default class DbMux {
       NcError.internalServerError('There is no suitable DB Mux available');
     }
 
-    await suitableDbMux.bindSource(source.id, ncMeta);
+    await suitableDbMux.bindSource(context, source.id, ncMeta);
 
     // check if db mux is active
     if (suitableDbMux.status === DbMuxStatus.INACTIVE) {
@@ -304,7 +356,7 @@ export default class DbMux {
     if (!dbMuxId) NcError.badRequest('DbMux id is required');
 
     return (
-      ncMeta.metaCount(null, null, MetaTable.BASES, {
+      ncMeta.metaCount(RootScopes.BYPASS, RootScopes.BYPASS, MetaTable.BASES, {
         condition: {
           fk_sql_executor_id: dbMuxId,
         },

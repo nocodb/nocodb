@@ -6,7 +6,7 @@ import { customAlphabet } from 'nanoid';
 import { AppEvents, OrgUserRoles } from 'nocodb-sdk';
 import { extractRolesObj } from 'nocodb-sdk';
 import type { ProjectReqType } from 'nocodb-sdk';
-import type { NcRequest } from '~/interface/config';
+import type { NcContext } from '~/interface/config';
 import { populateMeta, validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import syncMigration from '~/helpers/syncMigration';
@@ -29,6 +29,7 @@ import { getLimit, PlanLimitTypes } from '~/plan-limits';
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
 
 const validateUserHasReadPermissionsForLinkedDbProjects = async (
+  context: NcContext,
   dbProjectIds: string[],
   user: {
     id: string;
@@ -37,7 +38,7 @@ const validateUserHasReadPermissionsForLinkedDbProjects = async (
 ) => {
   await Promise.all(
     dbProjectIds?.map(async (dbProjectId: string) => {
-      const dbProject = await Base.get(dbProjectId);
+      const dbProject = await Base.get(context, dbProjectId);
       if (!dbProject) {
         NcError.baseNotFound(dbProjectId);
       }
@@ -58,7 +59,7 @@ const validateUserHasReadPermissionsForLinkedDbProjects = async (
       // Background: checked if I still can access DB bases via NocoDB UI after I removed all entries from BaseUser table
       // and restarted server. I could still access the DB bases via NocoDB UI.
       // After removing the workspace-user association though, I coudln't access it anymore.
-      const dbProjectUser = await BaseUser.get(dbProjectId, user.id);
+      const dbProjectUser = await BaseUser.get(context, dbProjectId, user.id);
       if (!dbProjectUser) {
         NcError.forbidden(
           'User does not have read permissions for linked db base',
@@ -78,10 +79,13 @@ export class BasesService extends BasesServiceCE {
     super(appHooksService, metaService, tablesService);
   }
 
-  async baseList(param: {
-    user: { id: string; roles?: Record<string, boolean> | string };
-    query?: any;
-  }) {
+  async baseList(
+    context: NcContext,
+    param: {
+      user: { id: string; roles?: Record<string, boolean> | string };
+      query?: any;
+    },
+  ) {
     const bases =
       extractRolesObj(param.user?.roles)[OrgUserRoles.SUPER_ADMIN] &&
       !['shared', 'starred', 'recent'].some((k) => k in param.query)
@@ -91,7 +95,7 @@ export class BasesService extends BasesServiceCE {
     return bases;
   }
 
-  async baseCreate(param: { base: ProjectReqType; user: any; req: NcRequest }) {
+  async baseCreate(param: { base: ProjectReqType; user: any; req: any }) {
     validatePayload('swagger.json#/components/schemas/ProjectReq', param.base);
 
     if (process.env.TEST !== 'true') {
@@ -209,6 +213,7 @@ export class BasesService extends BasesServiceCE {
       baseBody.linked_db_project_ids?.length > 0
     ) {
       await validateUserHasReadPermissionsForLinkedDbProjects(
+        { workspace_id: baseBody.fk_workspace_id, base_id: baseBody.id },
         baseBody.linked_db_project_ids,
         param.user,
       );
@@ -218,6 +223,11 @@ export class BasesService extends BasesServiceCE {
     baseBody.slug = baseBody.title;
 
     const base = await Base.createProject(baseBody);
+
+    const context = {
+      workspace_id: base.fk_workspace_id,
+      base_id: base.id,
+    };
 
     // TODO: consider to also include check if the base is of type Dashboard
     // (because probably also in the future no other base types will be tied to db bases)
@@ -233,7 +243,7 @@ export class BasesService extends BasesServiceCE {
     }
 
     // TODO: create n:m instances here
-    await BaseUser.insert({
+    await BaseUser.insert(context, {
       fk_user_id: (param as any).user.id,
       base_id: base.id,
       roles: 'owner',
@@ -244,7 +254,7 @@ export class BasesService extends BasesServiceCE {
     // populate metadata if existing table
     for (const source of await base.getSources()) {
       if (process.env.NC_CLOUD !== 'true' && !base.is_meta) {
-        const info = await populateMeta(source, base);
+        const info = await populateMeta(context, source, base);
 
         this.appHooksService.emit(AppEvents.APIS_CREATED, {
           info,
@@ -265,5 +275,9 @@ export class BasesService extends BasesServiceCE {
     return base;
   }
 
-  protected async validateProjectTitle(_data: Partial<Base>, _project: Base) {}
+  protected async validateProjectTitle(
+    _context: NcContext,
+    _data: Partial<Base>,
+    _project: Base,
+  ) {}
 }

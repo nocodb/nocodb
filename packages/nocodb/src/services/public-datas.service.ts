@@ -6,6 +6,7 @@ import slash from 'slash';
 import { nocoExecute } from 'nc-help';
 
 import type { LinkToAnotherRecordColumn } from '~/models';
+import type { NcContext } from '~/interface/config';
 import { Column, Model, Source, View } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
@@ -25,13 +26,16 @@ export function sanitizeUrlPath(paths) {
 
 @Injectable()
 export class PublicDatasService {
-  async dataList(param: {
-    sharedViewUuid: string;
-    password?: string;
-    query: any;
-  }) {
+  async dataList(
+    context: NcContext,
+    param: {
+      sharedViewUuid: string;
+      password?: string;
+      query: any;
+    },
+  ) {
     const { sharedViewUuid, password, query = {} } = param;
-    const view = await View.getByUUID(sharedViewUuid);
+    const view = await View.getByUUID(context, sharedViewUuid);
 
     if (!view) NcError.viewNotFound(sharedViewUuid);
     if (
@@ -48,19 +52,19 @@ export class PublicDatasService {
       return NcError.invalidSharedViewPassword();
     }
 
-    const model = await Model.getByIdOrName({
+    const model = await Model.getByIdOrName(context, {
       id: view?.fk_model_id,
     });
 
-    const source = await Source.get(model.source_id);
+    const source = await Source.get(context, model.source_id);
 
-    const baseModel = await Model.getBaseModelSQL({
+    const baseModel = await Model.getBaseModelSQL(context, {
       id: model.id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
-    const { ast, dependencyFields } = await getAst({
+    const { ast, dependencyFields } = await getAst(context, {
       model,
       query: {},
       view,
@@ -93,13 +97,16 @@ export class PublicDatasService {
   }
 
   // todo: Handle the error case where view doesnt belong to model
-  async groupedDataList(param: {
-    sharedViewUuid: string;
-    password?: string;
-    query: any;
-    groupColumnId: string;
-  }) {
-    const view = await View.getByUUID(param.sharedViewUuid);
+  async groupedDataList(
+    context: NcContext,
+    param: {
+      sharedViewUuid: string;
+      password?: string;
+      query: any;
+      groupColumnId: string;
+    },
+  ) {
+    const view = await View.getByUUID(context, param.sharedViewUuid);
 
     if (!view) NcError.viewNotFound(param.sharedViewUuid);
 
@@ -115,11 +122,11 @@ export class PublicDatasService {
       return NcError.invalidSharedViewPassword();
     }
 
-    const model = await Model.getByIdOrName({
+    const model = await Model.getByIdOrName(context, {
       id: view?.fk_model_id,
     });
 
-    return await this.getGroupedDataList({
+    return await this.getGroupedDataList(context, {
       model,
       view,
       query: param.query,
@@ -127,22 +134,25 @@ export class PublicDatasService {
     });
   }
 
-  async getGroupedDataList(param: {
-    model: Model;
-    view: View;
-    query: any;
-    groupColumnId: string;
-  }) {
+  async getGroupedDataList(
+    context: NcContext,
+    param: {
+      model: Model;
+      view: View;
+      query: any;
+      groupColumnId: string;
+    },
+  ) {
     const { model, view, query = {}, groupColumnId } = param;
-    const source = await Source.get(param.model.source_id);
+    const source = await Source.get(context, param.model.source_id);
 
-    const baseModel = await Model.getBaseModelSQL({
+    const baseModel = await Model.getBaseModelSQL(context, {
       id: model.id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
-    const { ast } = await getAst({ model, query: param.query, view });
+    const { ast } = await getAst(context, { model, query: param.query, view });
 
     const listArgs: any = { ...query };
     try {
@@ -191,12 +201,15 @@ export class PublicDatasService {
     return data;
   }
 
-  async dataGroupBy(param: {
-    sharedViewUuid: string;
-    password?: string;
-    query: any;
-  }) {
-    const view = await View.getByUUID(param.sharedViewUuid);
+  async dataGroupBy(
+    context: NcContext,
+    param: {
+      sharedViewUuid: string;
+      password?: string;
+      query: any;
+    },
+  ) {
+    const view = await View.getByUUID(context, param.sharedViewUuid);
 
     if (!view) NcError.viewNotFound(param.sharedViewUuid);
 
@@ -208,20 +221,27 @@ export class PublicDatasService {
       return NcError.invalidSharedViewPassword();
     }
 
-    const model = await Model.getByIdOrName({
+    const model = await Model.getByIdOrName(context, {
       id: view?.fk_model_id,
     });
 
-    return await this.getDataGroupBy({ model, view, query: param.query });
+    return await this.getDataGroupBy(context, {
+      model,
+      view,
+      query: param.query,
+    });
   }
 
-  async getDataGroupBy(param: { model: Model; view: View; query?: any }) {
+  async getDataGroupBy(
+    context: NcContext,
+    param: { model: Model; view: View; query?: any },
+  ) {
     try {
       const { model, view, query = {} } = param;
 
-      const source = await Source.get(model.source_id);
+      const source = await Source.get(context, model.source_id);
 
-      const baseModel = await Model.getBaseModelSQL({
+      const baseModel = await Model.getBaseModelSQL(context, {
         id: model.id,
         viewId: view?.id,
         dbDriver: await NcConnectionMgrv2.get(source),
@@ -249,14 +269,17 @@ export class PublicDatasService {
     }
   }
 
-  async dataInsert(param: {
-    sharedViewUuid: string;
-    password?: string;
-    body: any;
-    files: any[];
-    siteUrl: string;
-  }) {
-    const view = await View.getByUUID(param.sharedViewUuid);
+  async dataInsert(
+    context: NcContext,
+    param: {
+      sharedViewUuid: string;
+      password?: string;
+      body: any;
+      files: any[];
+      siteUrl: string;
+    },
+  ) {
+    const view = await View.getByUUID(context, param.sharedViewUuid);
 
     if (!view) NcError.viewNotFound(param.sharedViewUuid);
     if (view.type !== ViewTypes.FORM) NcError.notFound();
@@ -265,23 +288,23 @@ export class PublicDatasService {
       return NcError.invalidSharedViewPassword();
     }
 
-    const model = await Model.getByIdOrName({
+    const model = await Model.getByIdOrName(context, {
       id: view?.fk_model_id,
     });
 
-    const source = await Source.get(model.source_id);
-    const base = await source.getProject();
+    const source = await Source.get(context, model.source_id);
+    const base = await source.getProject(context);
 
-    const baseModel = await Model.getBaseModelSQL({
+    const baseModel = await Model.getBaseModelSQL(context, {
       id: model.id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
-    await view.getViewWithInfo();
-    await view.getColumns();
-    await view.getModelWithInfo();
-    await view.model.getColumns();
+    await view.getViewWithInfo(context);
+    await view.getColumns(context);
+    await view.getModelWithInfo(context);
+    await view.model.getColumns(context);
 
     const fields = (view.model.columns = view.columns
       .filter((c) => c.show)
@@ -424,14 +447,17 @@ export class PublicDatasService {
     return await baseModel.nestedInsert(insertObject, null);
   }
 
-  async relDataList(param: {
-    query: any;
-    sharedViewUuid: string;
-    password?: string;
-    columnId: string;
-    rowData: Record<string, any>;
-  }) {
-    const view = await View.getByUUID(param.sharedViewUuid);
+  async relDataList(
+    context: NcContext,
+    param: {
+      query: any;
+      sharedViewUuid: string;
+      password?: string;
+      columnId: string;
+      rowData: Record<string, any>;
+    },
+  ) {
+    const view = await View.getByUUID(context, param.sharedViewUuid);
 
     if (!view) NcError.viewNotFound(param.sharedViewUuid);
 
@@ -443,22 +469,24 @@ export class PublicDatasService {
       NcError.invalidSharedViewPassword();
     }
 
-    const column = await Column.get({ colId: param.columnId });
-    const currentModel = await view.getModel();
-    await currentModel.getColumns();
-    const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();
+    const column = await Column.get(context, { colId: param.columnId });
+    const currentModel = await view.getModel(context);
+    await currentModel.getColumns(context);
+    const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
+      context,
+    );
 
-    const model = await colOptions.getRelatedTable();
+    const model = await colOptions.getRelatedTable(context);
 
-    const source = await Source.get(model.source_id);
+    const source = await Source.get(context, model.source_id);
 
-    const baseModel = await Model.getBaseModelSQL({
+    const baseModel = await Model.getBaseModelSQL(context, {
       id: model.id,
       viewId: colOptions.fk_target_view_id,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
-    const { ast, dependencyFields } = await getAst({
+    const { ast, dependencyFields } = await getAst(context, {
       query: param.query,
       model,
       extractOnlyPrimaries: true,
@@ -476,7 +504,9 @@ export class PublicDatasService {
         baseModel.readByPk,
       )(
         (column.meta?.enableConditions
-          ? await Filter.rootFilterListByLink({ columnId: param.columnId })
+          ? await Filter.rootFilterListByLink(context, {
+              columnId: param.columnId,
+            })
           : []) || [],
       );
 
@@ -501,14 +531,17 @@ export class PublicDatasService {
     return new PagedResponseImpl(data, { ...param.query, count });
   }
 
-  async publicMmList(param: {
-    query: any;
-    sharedViewUuid: string;
-    password?: string;
-    columnId: string;
-    rowId: string;
-  }) {
-    const view = await View.getByUUID(param.sharedViewUuid);
+  async publicMmList(
+    context: NcContext,
+    param: {
+      query: any;
+      sharedViewUuid: string;
+      password?: string;
+      columnId: string;
+      rowId: string;
+    },
+  ) {
+    const view = await View.getByUUID(context, param.sharedViewUuid);
 
     if (!view) NcError.viewNotFound(param.sharedViewUuid);
     if (
@@ -525,16 +558,17 @@ export class PublicDatasService {
     }
 
     const column = await getColumnByIdOrName(
+      context,
       param.columnId,
-      await view.getModel(),
+      await view.getModel(context),
     );
 
     if (column.fk_model_id !== view.fk_model_id)
       NcError.badRequest("Column doesn't belongs to the model");
 
-    const source = await Source.get(view.source_id);
+    const source = await Source.get(context, view.source_id);
 
-    const baseModel = await Model.getBaseModelSQL({
+    const baseModel = await Model.getBaseModelSQL(context, {
       id: view.fk_model_id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
@@ -576,14 +610,17 @@ export class PublicDatasService {
     return new PagedResponseImpl(data, { ...param.query, count });
   }
 
-  async publicHmList(param: {
-    query: any;
-    rowId: string;
-    sharedViewUuid: string;
-    password?: string;
-    columnId: string;
-  }) {
-    const view = await View.getByUUID(param.sharedViewUuid);
+  async publicHmList(
+    context: NcContext,
+    param: {
+      query: any;
+      rowId: string;
+      sharedViewUuid: string;
+      password?: string;
+      columnId: string;
+    },
+  ) {
+    const view = await View.getByUUID(context, param.sharedViewUuid);
 
     if (!view) NcError.viewNotFound(param.sharedViewUuid);
     if (
@@ -600,16 +637,17 @@ export class PublicDatasService {
     }
 
     const column = await getColumnByIdOrName(
+      context,
       param.columnId,
-      await view.getModel(),
+      await view.getModel(context),
     );
 
     if (column.fk_model_id !== view.fk_model_id)
       NcError.badRequest("Column doesn't belongs to the model");
 
-    const source = await Source.get(view.source_id);
+    const source = await Source.get(context, view.source_id);
 
-    const baseModel = await Model.getBaseModelSQL({
+    const baseModel = await Model.getBaseModelSQL(context, {
       id: view.fk_model_id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),

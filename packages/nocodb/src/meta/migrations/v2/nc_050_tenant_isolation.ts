@@ -232,20 +232,29 @@ const up = async (knex: Knex) => {
   ];
 
   for (const table of migrateBaseId) {
-    const column =
-      table === MetaTable.CALENDAR_VIEW_RANGE ? 'fk_view_id' : 'fk_column_id';
-
     hrTime = process.hrtime();
 
-    await migrateDataWithJoin(
-      knex,
-      table,
-      column,
-      MetaTable.VIEWS,
-      'id',
-      'base_id',
-      'base_id',
-    );
+    if (table === MetaTable.CALENDAR_VIEW_RANGE) {
+      await migrateDataWithJoin(
+        knex,
+        MetaTable.CALENDAR_VIEW_RANGE,
+        'fk_view_id',
+        MetaTable.VIEWS,
+        'id',
+        'base_id',
+        'base_id',
+      );
+    } else {
+      await migrateDataWithJoin(
+        knex,
+        table,
+        'fk_column_id',
+        MetaTable.COLUMNS,
+        'id',
+        'base_id',
+        'base_id',
+      );
+    }
 
     logExecutionTime(`Migrated base_id for ${table}`);
   }

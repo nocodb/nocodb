@@ -121,10 +121,11 @@ const listIndexesOnColumn = async (
         FROM
           INFORMATION_SCHEMA.STATISTICS
         WHERE
-          TABLE_NAME = ?
+          TABLE_SCHEMA = ?
+          AND TABLE_NAME = ?
           AND COLUMN_NAME = ?
         `,
-        [table, column],
+        [knex.client.database(), table, column],
       );
 
       return indexes[0].map((row: any) => row.INDEX_NAME);
@@ -196,9 +197,11 @@ const up = async (knex: Knex) => {
   hrTime = process.hrtime();
 
   for (const table of addBaseId) {
-    await knex.schema.alterTable(table, (table) => {
-      table.string('base_id', 20);
-    });
+    if (!(await knex.schema.hasColumn(table, 'base_id'))) {
+      await knex.schema.alterTable(table, (table) => {
+        table.string('base_id', 20);
+      });
+    }
   }
 
   logExecutionTime('Added missing base_id columns');
@@ -276,10 +279,7 @@ const up = async (knex: Knex) => {
   for (const table of dropBaseIdIndexes) {
     const indexes: string[] = await listIndexesOnColumn(knex, table, 'base_id');
 
-    // remove duplicate indexes
-    const uniqueIndexes = Array.from(new Set(indexes));
-
-    for (const index of uniqueIndexes) {
+    for (const index of indexes) {
       log(`Dropping index ${index} on ${table}.base_id`);
 
       await knex.schema.alterTable(table, (table) => {

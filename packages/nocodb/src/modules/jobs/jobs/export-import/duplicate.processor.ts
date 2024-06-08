@@ -48,6 +48,11 @@ export class DuplicateProcessor {
     const dupProject = await Base.get(context, dupProjectId);
     const source = await Source.get(context, sourceId);
 
+    const targetContext = {
+      ...context,
+      base_id: dupProject.id,
+    };
+
     try {
       if (!base || !dupProject || !source) {
         throw new Error(`Base or source not found!`);
@@ -81,7 +86,7 @@ export class DuplicateProcessor {
 
       const dupBase = dupProject.sources[0];
 
-      const idMap = await this.importService.importModels(context, {
+      const idMap = await this.importService.importModels(targetContext, {
         user,
         baseId: dupProject.id,
         sourceId: dupBase.id,
@@ -96,7 +101,7 @@ export class DuplicateProcessor {
       }
 
       if (!excludeData) {
-        await this.importModelsData(context, {
+        await this.importModelsData(targetContext, {
           idMap,
           sourceProject: base,
           sourceModels: models,
@@ -106,7 +111,7 @@ export class DuplicateProcessor {
         });
       }
 
-      await this.projectsService.baseUpdate(context, {
+      await this.projectsService.baseUpdate(targetContext, {
         baseId: dupProject.id,
         base: {
           status: null,
@@ -116,7 +121,7 @@ export class DuplicateProcessor {
       });
     } catch (e) {
       if (dupProject?.id) {
-        await this.projectsService.baseSoftDelete(context, {
+        await this.projectsService.baseSoftDelete(targetContext, {
           baseId: dupProject.id,
           user: req.user,
           req,

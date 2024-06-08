@@ -131,6 +131,22 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       }
 
       req.ncBaseId = view?.base_id;
+    } else if (params.sharedViewUuid) {
+      const view = await View.getByUUID(context, req.params.sharedViewUuid);
+
+      if (!view) {
+        NcError.viewNotFound(req.params.sharedViewUuid);
+      }
+
+      req.ncBaseId = view?.base_id;
+    } else if (params.sharedBaseUuid) {
+      const base = await Base.getByUuid(context, req.params.sharedBaseUuid);
+
+      if (!base) {
+        NcError.baseNotFound(req.params.sharedBaseUuid);
+      }
+
+      req.ncBaseId = base?.id;
     } else if (params.hookId) {
       const hook = await Hook.get(context, params.hookId);
 

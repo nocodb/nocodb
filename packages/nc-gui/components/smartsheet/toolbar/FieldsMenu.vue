@@ -1,11 +1,32 @@
 <script lang="ts" setup>
 import type { CalendarType, ColumnType, GalleryType, KanbanType } from 'nocodb-sdk'
-import { UITypes, ViewTypes, isVirtualCol } from 'nocodb-sdk'
+import { ProjectRoles, UITypes, ViewTypes, isVirtualCol } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 
 import type { SelectProps } from 'ant-design-vue'
 
+import {
+  ActiveViewInj,
+  FieldsInj,
+  IsLockedInj,
+  IsPublicInj,
+  computed,
+  iconMap,
+  inject,
+  ref,
+  resolveComponent,
+  useMenuCloseOnEsc,
+  useNuxtApp,
+  useRoles,
+  useSmartsheetStoreOrThrow,
+  useUndoRedo,
+  useViewColumnsOrThrow,
+  watch,
+} from '#imports'
+
 const activeView = inject(ActiveViewInj, ref())
+
+const { baseRoles } = useRoles()
 
 const reloadViewMetaHook = inject(ReloadViewMetaHookInj, undefined)!
 
@@ -33,7 +54,20 @@ const {
   toggleFieldVisibility,
 } = useViewColumnsOrThrow()
 
-const { eventBus, isDefaultView } = useSmartsheetStoreOrThrow()
+
+const hiddenFields = ref<string[]>([])
+
+const isLocalMode = computed(
+  () => isPublic.value || baseRoles?.value[ProjectRoles.COMMENTER] || baseRoles?.value[ProjectRoles.VIEWER],
+)
+
+const shouldShowField = (id: string) => {
+  if (isLocalMode.value && hiddenFields.value.includes(id)) return false
+  return true
+}
+
+const { eventBus } = useSmartsheetStoreOrThrow()
+
 
 const { addUndo, defineViewScope } = useUndoRedo()
 
@@ -45,7 +79,26 @@ eventBus.on((event) => {
   }
 })
 
-const numberOfHiddenFields = computed(() => filteredFieldList.value?.filter((field) => !field.show)?.length)
+
+watch(
+  sortedAndFilteredFields,
+  (v) => {
+    if (rootFields) rootFields.value = v || []
+  },
+  { immediate: true },
+)
+
+const numberOfHiddenFields = computed(() => {
+  if (isLocalMode.value) {
+    // slice is added to remove the first element, ie column with name title as default value,
+    // without slice the count will always be one more than the exact count
+    return filteredFieldList.value?.slice(1).filter((field) => !hiddenFields.value.includes(field.id) && field.show === false)
+      ?.length
+  } else {
+    return filteredFieldList.value?.filter((field) => !field.show)?.length
+  }
+})
+
 
 const gridDisplayValueField = computed(() => {
   if (activeView.value?.type !== ViewTypes.GRID && activeView.value?.type !== ViewTypes.CALENDAR) return null
@@ -194,7 +247,7 @@ const coverImageColumnId = computed({
   },
 })
 
-const onShowAll = () => {
+const onShowAll = (hiddenFields: Array<string> = []) => {
   addUndo({
     undo: {
       fn: async () => {
@@ -210,7 +263,7 @@ const onShowAll = () => {
     },
     scope: defineViewScope({ view: activeView.value }),
   })
-  showAll()
+  showAll(hiddenFields)
 }
 
 const onHideAll = () => {
@@ -232,13 +285,29 @@ const onHideAll = () => {
   hideAll()
 }
 
+onMounted(() => {
+  if (isLocalMode.value) {
+    hiddenFields.value = filteredFieldList.value.filter((field) => !field.show).map((field) => field.id)
+  }
+})
+
 const showAllColumns = computed({
   get: () => {
+    if (isLocalMode.value) {
+      if (filteredFieldList.value?.every((field) => !field.show)) return false
+      return filteredFieldList.value?.every((field) => {
+        if (hiddenFields.value.includes(field.id)) {
+          // Skip fields with IDs listed in hiddenFields
+          return true
+        }
+        return field?.show
+      })
+    }
     return filteredFieldList.value?.every((field) => field.show)
   },
   set: async (val) => {
     if (val) {
-      await onShowAll()
+      await onShowAll(hiddenFields.value)
     } else {
       await onHideAll()
     }
@@ -393,7 +462,7 @@ useMenuCloseOnEsc(open)
                   v-if="
                     filteredFieldList
                       .filter((el) => (activeView.type !== ViewTypes.CALENDAR ? el !== gridDisplayValueField : true))
-                      .includes(field)
+                      .includes(field) && shouldShowField(field.id)
                   "
                   :key="field.id"
                   :data-testid="`nc-fields-menu-${field.title}`"

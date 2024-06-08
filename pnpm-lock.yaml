@@ -127,6 +127,9 @@ importers:
       httpsnippet:
         specifier: ^2.0.0
         version: 2.0.0(mkdirp@2.1.6)
+      inflection:
+        specifier: ^1.13.4
+        version: 1.13.4
       jsbarcode:
         specifier: ^3.11.6
         version: 3.11.6
@@ -317,6 +320,9 @@ importers:
       '@types/file-saver':
         specifier: ^2.0.7
         version: 2.0.7
+      '@types/inflection':
+        specifier: ^1.13.2
+        version: 1.13.2
       '@types/leaflet':
         specifier: ^1.9.12
         version: 1.9.12
@@ -9494,6 +9500,10 @@ packages:
     resolution: {integrity: sha512-SSrD0c1OQzlFX7pGu1eXxSEjemej64aaNPRhhVYUGqXh0BtldAAx37MG8btcumvpgKyZp1F5Gn3JkktdxiFv6w==}
     dependencies:
       '@types/node': 20.11.30
+    dev: true
+
+  /@types/inflection@1.13.2:
+    resolution: {integrity: sha512-VxXY8dNLrxn7nDvsud77K60uD3a9RSmKfa0k/N/zvP2G55R5/8DSO5Ferz3mQdlAo8jPnpQLilCx9rABdPHSVg==}
     dev: true
 
   /@types/ioredis-mock@8.2.5:

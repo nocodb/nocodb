@@ -309,7 +309,7 @@ export class DataTableService {
     });
 
     if (!(await baseModel.exist(param.rowId))) {
-      NcError.recordNotFound(`${param.rowId}`);
+      NcError.recordNotFound(param.rowId);
     }
 
     const column = await this.getColumn(context, param);

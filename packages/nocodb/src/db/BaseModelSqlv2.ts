@@ -3395,9 +3395,7 @@ class BaseModelSqlv2 {
       );
 
       if (!prevData) {
-        NcError.recordNotFound(
-          typeof id === 'string' ? id : JSON.stringify(id),
-        );
+        NcError.recordNotFound(id);
       }
 
       const query = this.dbDriver(this.tnPath)
@@ -4186,7 +4184,7 @@ class BaseModelSqlv2 {
         if (!pkValues) {
           // throw or skip if no pk provided
           if (throwExceptionIfNotExist) {
-            NcError.recordNotFound(JSON.stringify(pkValues));
+            NcError.recordNotFound(pkValues);
           }
           continue;
         }
@@ -4223,7 +4221,7 @@ class BaseModelSqlv2 {
                 if (!oldRecord) {
                   // throw or skip if no record found
                   if (throwExceptionIfNotExist) {
-                    NcError.recordNotFound(JSON.stringify(recordPk));
+                    NcError.recordNotFound(recordPk);
                   }
                   continue;
                 }
@@ -4422,7 +4420,7 @@ class BaseModelSqlv2 {
         if (!pkValues) {
           // throw or skip if no pk provided
           if (throwExceptionIfNotExist) {
-            NcError.recordNotFound(JSON.stringify(pkValues));
+            NcError.recordNotFound(pkValues);
           }
           continue;
         }
@@ -4452,7 +4450,7 @@ class BaseModelSqlv2 {
               if (!oldRecord) {
                 // throw or skip if no record found
                 if (throwExceptionIfNotExist) {
-                  NcError.recordNotFound(JSON.stringify(pk));
+                  NcError.recordNotFound(pk);
                 }
                 continue;
               }

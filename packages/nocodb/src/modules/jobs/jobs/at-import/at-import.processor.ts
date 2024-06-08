@@ -533,7 +533,7 @@ export class AtImportProcessor {
 
         table.columns = [];
 
-        const source = await Source.get(syncDB.sourceId);
+        const source = await Source.get(context, syncDB.sourceId);
 
         const sqlUi = SqlUiFactory.create({ client: source.type });
 

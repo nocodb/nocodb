@@ -73,7 +73,13 @@ const createSakilaProject = async (context) => {
     .set('xc-auth', context.token)
     .send(sakilaProjectConfig(context));
 
-  return (await Base.getByTitleOrId(response.body.id)) as Base;
+  return (await Base.getByTitleOrId(
+    {
+      workspace_id: response.body.fk_workspace_id,
+      base_id: response.body.id,
+    },
+    response.body.id,
+  )) as Base;
 };
 
 const createProject = async (
@@ -88,7 +94,13 @@ const createProject = async (
       ...(process.env.EE ? { fk_workspace_id: context.fk_workspace_id } : {}),
     });
 
-  return (await Base.getByTitleOrId(response.body.id)) as Base;
+  return (await Base.getByTitleOrId(
+    {
+      workspace_id: response.body.fk_workspace_id,
+      base_id: response.body.id,
+    },
+    response.body.id,
+  )) as Base;
 };
 
 export { createProject, createSharedBase, createSakilaProject };

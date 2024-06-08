@@ -1,4 +1,5 @@
 import type { GridType, MetaType } from 'nocodb-sdk';
+import type { NcContext } from '~/interface/config';
 import GridViewColumn from '~/models/GridViewColumn';
 import View from '~/models/View';
 import Noco from '~/Noco';
@@ -9,6 +10,7 @@ import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 
 export default class GridView implements GridType {
   fk_view_id: string;
+  fk_workspace_id?: string;
   base_id?: string;
   source_id?: string;
   meta?: MetaType;
@@ -19,11 +21,15 @@ export default class GridView implements GridType {
     Object.assign(this, data);
   }
 
-  async getColumns(): Promise<GridViewColumn[]> {
-    return (this.columns = await GridViewColumn.list(this.fk_view_id));
+  async getColumns(context: NcContext): Promise<GridViewColumn[]> {
+    return (this.columns = await GridViewColumn.list(context, this.fk_view_id));
   }
 
-  public static async get(viewId: string, ncMeta = Noco.ncMeta) {
+  public static async get(
+    context: NcContext,
+    viewId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
     let view =
       viewId &&
       (await NocoCache.get(
@@ -31,16 +37,25 @@ export default class GridView implements GridType {
         CacheGetType.TYPE_OBJECT,
       ));
     if (!view) {
-      view = await ncMeta.metaGet2(null, null, MetaTable.GRID_VIEW, {
-        fk_view_id: viewId,
-      });
+      view = await ncMeta.metaGet2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.GRID_VIEW,
+        {
+          fk_view_id: viewId,
+        },
+      );
       await NocoCache.set(`${CacheScope.GRID_VIEW}:${viewId}`, view);
     }
 
     return view && new GridView(view);
   }
 
-  static async insert(view: Partial<GridView>, ncMeta = Noco.ncMeta) {
+  static async insert(
+    context: NcContext,
+    view: Partial<GridView>,
+    ncMeta = Noco.ncMeta,
+  ) {
     const insertObj = extractProps(view, [
       'fk_view_id',
       'base_id',
@@ -48,23 +63,34 @@ export default class GridView implements GridType {
       'row_height',
     ]);
 
-    if (!(insertObj.base_id && insertObj.source_id)) {
-      const viewRef = await View.get(insertObj.fk_view_id, ncMeta);
-      insertObj.base_id = viewRef.base_id;
+    const viewRef = await View.get(context, insertObj.fk_view_id, ncMeta);
+
+    if (!insertObj.source_id) {
       insertObj.source_id = viewRef.source_id;
     }
 
-    await ncMeta.metaInsert2(null, null, MetaTable.GRID_VIEW, insertObj, true);
+    await ncMeta.metaInsert2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.GRID_VIEW,
+      insertObj,
+      true,
+    );
 
-    return this.get(view.fk_view_id, ncMeta);
+    return this.get(context, view.fk_view_id, ncMeta);
   }
 
-  static async getWithInfo(id: string, ncMeta = Noco.ncMeta) {
-    const view = await this.get(id, ncMeta);
+  static async getWithInfo(
+    context: NcContext,
+    id: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const view = await this.get(context, id, ncMeta);
     return view;
   }
 
   static async update(
+    context: NcContext,
     viewId: string,
     body: Partial<GridView>,
     ncMeta = Noco.ncMeta,
@@ -73,8 +99,8 @@ export default class GridView implements GridType {
 
     // update meta
     const res = await ncMeta.metaUpdate(
-      null,
-      null,
+      context.workspace_id,
+      context.base_id,
       MetaTable.GRID_VIEW,
       prepareForDb(updateObj),
       {

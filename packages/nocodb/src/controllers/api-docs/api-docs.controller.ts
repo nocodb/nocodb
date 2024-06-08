@@ -13,6 +13,8 @@ import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { ApiDocsService } from '~/services/api-docs/api-docs.service';
 import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
+import { TenantContext } from '~/decorators/tenant-context.decorator';
+import { NcContext } from '~/interface/config';
 
 @Controller()
 export class ApiDocsController {
@@ -21,8 +23,12 @@ export class ApiDocsController {
   @Get(['/api/v1/db/meta/projects/:baseId/swagger.json'])
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
   @Acl('swaggerJson')
-  async swaggerJson(@Param('baseId') baseId: string, @Request() req) {
-    const swagger = await this.apiDocsService.swaggerJson({
+  async swaggerJson(
+    @TenantContext() context: NcContext,
+    @Param('baseId') baseId: string,
+    @Request() req,
+  ) {
+    const swagger = await this.apiDocsService.swaggerJson(context, {
       baseId: baseId,
       siteUrl: req.ncSiteUrl,
     });
@@ -33,8 +39,12 @@ export class ApiDocsController {
   @Get(['/api/v2/meta/bases/:baseId/swagger.json'])
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
   @Acl('swaggerJson')
-  async swaggerJsonV2(@Param('baseId') baseId: string, @Request() req) {
-    const swagger = await this.apiDocsService.swaggerJsonV2({
+  async swaggerJsonV2(
+    @TenantContext() context: NcContext,
+    @Param('baseId') baseId: string,
+    @Request() req,
+  ) {
+    const swagger = await this.apiDocsService.swaggerJsonV2(context, {
       baseId: baseId,
       siteUrl: req.ncSiteUrl,
     });

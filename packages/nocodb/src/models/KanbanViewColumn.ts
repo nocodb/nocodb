@@ -1,4 +1,5 @@
 import type { BoolType, KanbanColumnType } from 'nocodb-sdk';
+import type { NcContext } from '~/interface/config';
 import View from '~/models/View';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
@@ -13,6 +14,7 @@ export default class KanbanViewColumn implements KanbanColumnType {
 
   fk_view_id: string;
   fk_column_id: string;
+  fk_workspace_id?: string;
   base_id?: string;
   source_id?: string;
 
@@ -20,7 +22,11 @@ export default class KanbanViewColumn implements KanbanColumnType {
     Object.assign(this, data);
   }
 
-  public static async get(kanbanViewColumnId: string, ncMeta = Noco.ncMeta) {
+  public static async get(
+    context: NcContext,
+    kanbanViewColumnId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
     let view =
       kanbanViewColumnId &&
       (await NocoCache.get(
@@ -29,8 +35,8 @@ export default class KanbanViewColumn implements KanbanColumnType {
       ));
     if (!view) {
       view = await ncMeta.metaGet2(
-        null,
-        null,
+        context.workspace_id,
+        context.base_id,
         MetaTable.KANBAN_VIEW_COLUMNS,
         kanbanViewColumnId,
       );
@@ -41,7 +47,11 @@ export default class KanbanViewColumn implements KanbanColumnType {
     }
     return view && new KanbanViewColumn(view);
   }
-  static async insert(column: Partial<KanbanViewColumn>, ncMeta = Noco.ncMeta) {
+  static async insert(
+    context: NcContext,
+    column: Partial<KanbanViewColumn>,
+    ncMeta = Noco.ncMeta,
+  ) {
     const insertObj = extractProps(column, [
       'fk_view_id',
       'fk_column_id',
@@ -57,20 +67,20 @@ export default class KanbanViewColumn implements KanbanColumnType {
       },
     );
 
-    if (!(column.base_id && column.source_id)) {
-      const viewRef = await View.get(column.fk_view_id, ncMeta);
-      insertObj.base_id = viewRef.base_id;
+    const viewRef = await View.get(context, insertObj.fk_view_id, ncMeta);
+
+    if (!insertObj.source_id) {
       insertObj.source_id = viewRef.source_id;
     }
 
     const { id } = await ncMeta.metaInsert2(
-      null,
-      null,
+      context.workspace_id,
+      context.base_id,
       MetaTable.KANBAN_VIEW_COLUMNS,
       insertObj,
     );
 
-    return this.get(id, ncMeta).then(async (kanbanViewColumn) => {
+    return this.get(context, id, ncMeta).then(async (kanbanViewColumn) => {
       await NocoCache.appendToList(
         CacheScope.KANBAN_VIEW_COLUMN,
         [column.fk_view_id],
@@ -81,6 +91,7 @@ export default class KanbanViewColumn implements KanbanColumnType {
   }
 
   public static async list(
+    context: NcContext,
     viewId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<KanbanViewColumn[]> {
@@ -91,8 +102,8 @@ export default class KanbanViewColumn implements KanbanColumnType {
     const { isNoneList } = cachedList;
     if (!isNoneList && !views.length) {
       views = await ncMeta.metaList2(
-        null,
-        null,
+        context.workspace_id,
+        context.base_id,
         MetaTable.KANBAN_VIEW_COLUMNS,
         {
           condition: {
@@ -115,6 +126,7 @@ export default class KanbanViewColumn implements KanbanColumnType {
 
   // todo: update prop names
   static async update(
+    context: NcContext,
     columnId: string,
     body: Partial<KanbanViewColumn>,
     ncMeta = Noco.ncMeta,
@@ -123,8 +135,8 @@ export default class KanbanViewColumn implements KanbanColumnType {
 
     // set meta
     const res = await ncMeta.metaUpdate(
-      null,
-      null,
+      context.workspace_id,
+      context.base_id,
       MetaTable.KANBAN_VIEW_COLUMNS,
       updateObj,
       columnId,
@@ -136,9 +148,9 @@ export default class KanbanViewColumn implements KanbanColumnType {
 
     // on view column update, delete any optimised single query cache
     {
-      const viewCol = await this.get(columnId, ncMeta);
-      const view = await View.get(viewCol.fk_view_id, ncMeta);
-      await View.clearSingleQueryCache(view.fk_model_id, [view]);
+      const viewCol = await this.get(context, columnId, ncMeta);
+      const view = await View.get(context, viewCol.fk_view_id, ncMeta);
+      await View.clearSingleQueryCache(context, view.fk_model_id, [view]);
     }
 
     return res;

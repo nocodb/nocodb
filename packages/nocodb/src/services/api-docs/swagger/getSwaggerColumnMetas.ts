@@ -1,9 +1,11 @@
 import { RelationTypes, UITypes } from 'nocodb-sdk';
 import type { Base, Column, LinkToAnotherRecordColumn } from '~/models';
+import type { NcContext } from '~/interface/config';
 import SwaggerTypes from '~/db/sql-mgr/code/routers/xc-ts/SwaggerTypes';
 import Noco from '~/Noco';
 
 export default async (
+  context: NcContext,
   columns: Column[],
   base: Base,
   ncMeta = Noco.ncMeta,
@@ -22,10 +24,11 @@ export default async (
         case UITypes.LinkToAnotherRecord:
           {
             const colOpt = await c.getColOptions<LinkToAnotherRecordColumn>(
+              context,
               ncMeta,
             );
             if (colOpt) {
-              const relTable = await colOpt.getRelatedTable(ncMeta);
+              const relTable = await colOpt.getRelatedTable(context, ncMeta);
               if (colOpt.type === RelationTypes.BELONGS_TO) {
                 field.type = undefined;
                 field.$ref = `#/components/schemas/${relTable.title}Request`;

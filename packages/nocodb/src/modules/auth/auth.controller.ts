@@ -9,7 +9,7 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { AuthGuard } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
 import { extractRolesObj } from 'nocodb-sdk';
@@ -24,6 +24,7 @@ import { NcError } from '~/helpers/catchError';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
+import { NcRequest } from '~/interface/config';
 
 @Controller()
 export class AuthController {
@@ -40,7 +41,7 @@ export class AuthController {
   ])
   @UseGuards(PublicApiLimiterGuard)
   @HttpCode(200)
-  async signup(@Req() req: Request, @Res() res: Response): Promise<any> {
+  async signup(@Req() req: NcRequest, @Res() res: Response): Promise<any> {
     if (this.config.get('auth', { infer: true }).disableEmailAuth) {
       NcError.forbidden('Email authentication is disabled');
     }
@@ -60,7 +61,10 @@ export class AuthController {
   ])
   @UseGuards(PublicApiLimiterGuard)
   @HttpCode(200)
-  async refreshToken(@Req() req: Request, @Res() res: Response): Promise<any> {
+  async refreshToken(
+    @Req() req: NcRequest,
+    @Res() res: Response,
+  ): Promise<any> {
     res.json(
       await this.usersService.refreshToken({
         body: req.body,
@@ -77,7 +81,7 @@ export class AuthController {
   ])
   @UseGuards(PublicApiLimiterGuard, AuthGuard('local'))
   @HttpCode(200)
-  async signin(@Req() req: Request, @Res() res: Response) {
+  async signin(@Req() req: NcRequest, @Res() res: Response) {
     if (this.config.get('auth', { infer: true }).disableEmailAuth) {
       NcError.forbidden('Email authentication is disabled');
     }
@@ -88,7 +92,7 @@ export class AuthController {
   @UseGuards(GlobalGuard)
   @Post('/api/v1/auth/user/signout')
   @HttpCode(200)
-  async signOut(@Req() req: Request, @Res() res: Response): Promise<any> {
+  async signOut(@Req() req: NcRequest, @Res() res: Response): Promise<any> {
     if (!(req as any).isAuthenticated?.()) {
       NcError.forbidden('Not allowed');
     }
@@ -103,7 +107,7 @@ export class AuthController {
   @Post(`/auth/google/genTokenByCode`)
   @HttpCode(200)
   @UseGuards(PublicApiLimiterGuard, AuthGuard('google'))
-  async googleSignin(@Req() req: Request, @Res() res: Response) {
+  async googleSignin(@Req() req: NcRequest, @Res() res: Response) {
     await this.setRefreshToken({ req, res });
     res.json(await this.usersService.login(req.user, req));
   }
@@ -116,7 +120,7 @@ export class AuthController {
 
   @Get(['/auth/user/me', '/api/v1/db/auth/user/me', '/api/v1/auth/user/me'])
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
-  async me(@Req() req: Request) {
+  async me(@Req() req: NcRequest) {
     const user = {
       ...req.user,
       roles: extractRolesObj(req.user.roles),
@@ -136,7 +140,7 @@ export class AuthController {
     scope: 'org',
   })
   @HttpCode(200)
-  async passwordChange(@Req() req: Request): Promise<any> {
+  async passwordChange(@Req() req: NcRequest): Promise<any> {
     if (!(req as any).isAuthenticated?.()) {
       NcError.forbidden('Not allowed');
     }
@@ -157,7 +161,7 @@ export class AuthController {
   ])
   @UseGuards(PublicApiLimiterGuard)
   @HttpCode(200)
-  async passwordForgot(@Req() req: Request): Promise<any> {
+  async passwordForgot(@Req() req: NcRequest): Promise<any> {
     await this.usersService.passwordForgot({
       siteUrl: (req as any).ncSiteUrl,
       body: req.body,
@@ -189,7 +193,7 @@ export class AuthController {
   @UseGuards(PublicApiLimiterGuard)
   @HttpCode(200)
   async passwordReset(
-    @Req() req: Request,
+    @Req() req: NcRequest,
     @Param('tokenId') tokenId: string,
     @Body() body: any,
   ): Promise<any> {
@@ -209,7 +213,7 @@ export class AuthController {
   @UseGuards(PublicApiLimiterGuard)
   @HttpCode(200)
   async emailVerification(
-    @Req() req: Request,
+    @Req() req: NcRequest,
     @Param('tokenId') tokenId: string,
   ): Promise<any> {
     await this.usersService.emailVerification({
@@ -226,7 +230,7 @@ export class AuthController {
   ])
   @UseGuards(PublicApiLimiterGuard)
   async renderPasswordReset(
-    @Req() req: Request,
+    @Req() req: NcRequest,
     @Res() res: Response,
     @Param('tokenId') tokenId: string,
   ): Promise<any> {

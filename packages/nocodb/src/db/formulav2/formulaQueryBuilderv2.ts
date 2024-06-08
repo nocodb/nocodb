@@ -70,7 +70,9 @@ async function _formulaQueryBuilder(
 ) {
   const knex = baseModelSqlv2.dbDriver;
 
-  const columns = await model.getColumns();
+  const context = baseModelSqlv2.context;
+
+  const columns = await model.getColumns(context);
 
   let tree = parsedTree;
   if (!tree) {
@@ -92,15 +94,15 @@ async function _formulaQueryBuilder(
         | 'sqlite'
         | 'snowflake',
       getMeta: async (modelId) => {
-        const model = await Model.get(modelId);
-        await model.getColumns();
+        const model = await Model.get(context, modelId);
+        await model.getColumns(context);
         return model;
       },
     });
 
     // populate and save parsedTree to column if not exist
     if (column) {
-      FormulaColumn.update(column.id, { parsed_tree: tree }).then(
+      FormulaColumn.update(context, column.id, { parsed_tree: tree }).then(
         () => {
           // ignore
         },
@@ -121,7 +123,9 @@ async function _formulaQueryBuilder(
       case UITypes.Formula:
         {
           aliasToColumn[col.id] = async () => {
-            const formulOption = await col.getColOptions<FormulaColumn>();
+            const formulOption = await col.getColOptions<FormulaColumn>(
+              context,
+            );
             const { builder } = await _formulaQueryBuilder(
               baseModelSqlv2,
               formulOption.formula,
@@ -144,19 +148,21 @@ async function _formulaQueryBuilder(
           let selectQb;
           let isArray = false;
           const alias = `__nc_formula${aliasCount++}`;
-          const lookup = await col.getColOptions<LookupColumn>();
+          const lookup = await col.getColOptions<LookupColumn>(context);
           {
-            const relationCol = await lookup.getRelationColumn();
+            const relationCol = await lookup.getRelationColumn(context);
             const relation =
-              await relationCol.getColOptions<LinkToAnotherRecordColumn>();
+              await relationCol.getColOptions<LinkToAnotherRecordColumn>(
+                context,
+              );
             // if (relation.type !== RelationTypes.BELONGS_TO) continue;
 
-            const childColumn = await relation.getChildColumn();
-            const parentColumn = await relation.getParentColumn();
-            const childModel = await childColumn.getModel();
-            await childModel.getColumns();
-            const parentModel = await parentColumn.getModel();
-            await parentModel.getColumns();
+            const childColumn = await relation.getChildColumn(context);
+            const parentColumn = await relation.getParentColumn(context);
+            const childModel = await childColumn.getModel(context);
+            await childModel.getColumns(context);
+            const parentModel = await parentColumn.getModel(context);
+            await parentModel.getColumns(context);
 
             let relationType = relation.type;
 
@@ -203,9 +209,13 @@ async function _formulaQueryBuilder(
               case RelationTypes.MANY_TO_MANY:
                 {
                   isArray = true;
-                  const mmModel = await relation.getMMModel();
-                  const mmParentColumn = await relation.getMMParentColumn();
-                  const mmChildColumn = await relation.getMMChildColumn();
+                  const mmModel = await relation.getMMModel(context);
+                  const mmParentColumn = await relation.getMMParentColumn(
+                    context,
+                  );
+                  const mmChildColumn = await relation.getMMChildColumn(
+                    context,
+                  );
 
                   const assocAlias = `__nc${aliasCount++}`;
                   selectQb = knex(
@@ -235,25 +245,27 @@ async function _formulaQueryBuilder(
                 break;
             }
 
-            let lookupColumn = await lookup.getLookupColumn();
+            let lookupColumn = await lookup.getLookupColumn(context);
             let prevAlias = alias;
             while (lookupColumn.uidt === UITypes.Lookup) {
               const nestedAlias = `__nc_formula${aliasCount++}`;
               const nestedLookup =
-                await lookupColumn.getColOptions<LookupColumn>();
-              const relationCol = await nestedLookup.getRelationColumn();
+                await lookupColumn.getColOptions<LookupColumn>(context);
+              const relationCol = await nestedLookup.getRelationColumn(context);
               const relation =
-                await relationCol.getColOptions<LinkToAnotherRecordColumn>();
+                await relationCol.getColOptions<LinkToAnotherRecordColumn>(
+                  context,
+                );
               // if any of the relation in nested lookup is
               // not belongs to then ignore the sort option
               // if (relation.type !== RelationTypes.BELONGS_TO) continue;
 
-              const childColumn = await relation.getChildColumn();
-              const parentColumn = await relation.getParentColumn();
-              const childModel = await childColumn.getModel();
-              await childModel.getColumns();
-              const parentModel = await parentColumn.getModel();
-              await parentModel.getColumns();
+              const childColumn = await relation.getChildColumn(context);
+              const parentColumn = await relation.getParentColumn(context);
+              const childModel = await childColumn.getModel(context);
+              await childModel.getColumns(context);
+              const parentModel = await parentColumn.getModel(context);
+              await parentModel.getColumns(context);
 
               let relationType = relation.type;
 
@@ -291,9 +303,13 @@ async function _formulaQueryBuilder(
                   break;
                 case RelationTypes.MANY_TO_MANY: {
                   isArray = true;
-                  const mmModel = await relation.getMMModel();
-                  const mmParentColumn = await relation.getMMParentColumn();
-                  const mmChildColumn = await relation.getMMChildColumn();
+                  const mmModel = await relation.getMMModel(context);
+                  const mmParentColumn = await relation.getMMParentColumn(
+                    context,
+                  );
+                  const mmChildColumn = await relation.getMMChildColumn(
+                    context,
+                  );
 
                   const assocAlias = `__nc${aliasCount++}`;
 
@@ -323,7 +339,7 @@ async function _formulaQueryBuilder(
 `${prevAlias}.${childColumn.title}`
 );*/
 
-              lookupColumn = await nestedLookup.getLookupColumn();
+              lookupColumn = await nestedLookup.getLookupColumn(context);
               prevAlias = nestedAlias;
             }
 
@@ -336,8 +352,9 @@ async function _formulaQueryBuilder(
                       baseModelSqlv2,
                       knex,
                       alias: prevAlias,
-                      columnOptions:
-                        (await lookupColumn.getColOptions()) as RollupColumn,
+                      columnOptions: (await lookupColumn.getColOptions(
+                        context,
+                      )) as RollupColumn,
                     })
                   ).builder;
                   // selectQb.select(builder);
@@ -363,17 +380,22 @@ async function _formulaQueryBuilder(
                 {
                   const nestedAlias = `__nc_formula${aliasCount++}`;
                   const relation =
-                    await lookupColumn.getColOptions<LinkToAnotherRecordColumn>();
+                    await lookupColumn.getColOptions<LinkToAnotherRecordColumn>(
+                      context,
+                    );
                   // if (relation.type !== RelationTypes.BELONGS_TO) continue;
 
-                  const colOptions =
-                    (await lookupColumn.getColOptions()) as LinkToAnotherRecordColumn;
-                  const childColumn = await colOptions.getChildColumn();
-                  const parentColumn = await colOptions.getParentColumn();
-                  const childModel = await childColumn.getModel();
-                  await childModel.getColumns();
-                  const parentModel = await parentColumn.getModel();
-                  await parentModel.getColumns();
+                  const colOptions = (await lookupColumn.getColOptions(
+                    context,
+                  )) as LinkToAnotherRecordColumn;
+                  const childColumn = await colOptions.getChildColumn(context);
+                  const parentColumn = await colOptions.getParentColumn(
+                    context,
+                  );
+                  const childModel = await childColumn.getModel(context);
+                  await childModel.getColumns(context);
+                  const parentModel = await parentColumn.getModel(context);
+                  await parentModel.getColumns(context);
                   let cn;
 
                   let relationType = relation.type;
@@ -421,10 +443,13 @@ async function _formulaQueryBuilder(
                     case RelationTypes.MANY_TO_MANY:
                       {
                         isArray = true;
-                        const mmModel = await relation.getMMModel();
-                        const mmParentColumn =
-                          await relation.getMMParentColumn();
-                        const mmChildColumn = await relation.getMMChildColumn();
+                        const mmModel = await relation.getMMModel(context);
+                        const mmParentColumn = await relation.getMMParentColumn(
+                          context,
+                        );
+                        const mmChildColumn = await relation.getMMChildColumn(
+                          context,
+                        );
 
                         const assocAlias = `__nc${aliasCount++}`;
 
@@ -481,8 +506,8 @@ async function _formulaQueryBuilder(
               case UITypes.Formula:
                 {
                   const formulaOption =
-                    await lookupColumn.getColOptions<FormulaColumn>();
-                  const lookupModel = await lookupColumn.getModel();
+                    await lookupColumn.getColOptions<FormulaColumn>(context);
+                  const lookupModel = await lookupColumn.getModel(context);
                   const { builder } = await _formulaQueryBuilder(
                     baseModelSqlv2,
                     formulaOption.formula,
@@ -546,7 +571,7 @@ async function _formulaQueryBuilder(
           const qb = await genRollupSelectv2({
             baseModelSqlv2,
             knex,
-            columnOptions: (await col.getColOptions()) as RollupColumn,
+            columnOptions: (await col.getColOptions(context)) as RollupColumn,
             alias: tableAlias,
           });
           return { builder: knex.raw(qb.builder).wrap('(', ')') };
@@ -555,17 +580,20 @@ async function _formulaQueryBuilder(
       case UITypes.LinkToAnotherRecord:
         aliasToColumn[col.id] = async (): Promise<any> => {
           const alias = `__nc_formula_ll`;
-          const relation = await col.getColOptions<LinkToAnotherRecordColumn>();
+          const relation = await col.getColOptions<LinkToAnotherRecordColumn>(
+            context,
+          );
           // if (relation.type !== RelationTypes.BELONGS_TO) continue;
 
-          const colOptions =
-            (await col.getColOptions()) as LinkToAnotherRecordColumn;
-          const childColumn = await colOptions.getChildColumn();
-          const parentColumn = await colOptions.getParentColumn();
-          const childModel = await childColumn.getModel();
-          await childModel.getColumns();
-          const parentModel = await parentColumn.getModel();
-          await parentModel.getColumns();
+          const colOptions = (await col.getColOptions(
+            context,
+          )) as LinkToAnotherRecordColumn;
+          const childColumn = await colOptions.getChildColumn(context);
+          const parentColumn = await colOptions.getParentColumn(context);
+          const childModel = await childColumn.getModel(context);
+          await childModel.getColumns(context);
+          const parentModel = await parentColumn.getModel(context);
+          await parentModel.getColumns(context);
 
           let relationType = relation.type;
 
@@ -641,9 +669,9 @@ async function _formulaQueryBuilder(
 
             //   todo: provide unique alias
 
-            const mmModel = await relation.getMMModel();
-            const mmParentColumn = await relation.getMMParentColumn();
-            const mmChildColumn = await relation.getMMChildColumn();
+            const mmModel = await relation.getMMModel(context);
+            const mmParentColumn = await relation.getMMParentColumn(context);
+            const mmChildColumn = await relation.getMMChildColumn(context);
 
             const qb = knex(
               knex.raw(`?? as ??`, [
@@ -693,7 +721,7 @@ async function _formulaQueryBuilder(
       case UITypes.LastModifiedTime:
       case UITypes.DateTime:
         {
-          const refCol = await getRefColumnIfAlias(col);
+          const refCol = await getRefColumnIfAlias(context, col);
 
           if (refCol.id in aliasToColumn) {
             aliasToColumn[col.id] = aliasToColumn[refCol.id];
@@ -749,8 +777,8 @@ async function _formulaQueryBuilder(
       case UITypes.CreatedBy:
       case UITypes.LastModifiedBy:
         {
-          const base = await Base.get(model.base_id);
-          const baseUsers = await BaseUser.getUsersList({
+          const base = await Base.get(context, model.base_id);
+          const baseUsers = await BaseUser.getUsersList(context, {
             base_id: base.id,
           });
 
@@ -902,6 +930,7 @@ async function _formulaQueryBuilder(
                 if (calleeName === 'CONCAT') {
                   if (knex.clientType() !== 'sqlite3') {
                     query = await convertDateFormatForConcat(
+                      context,
                       arg,
                       columnIdToUidt,
                       query,
@@ -1126,12 +1155,14 @@ async function _formulaQueryBuilder(
       if (pt.left.fnName === 'CONCAT' && knex.clientType() === 'sqlite3') {
         // handle date format
         left = await convertDateFormatForConcat(
+          context,
           pt.left?.arguments?.[0],
           columnIdToUidt,
           left,
           knex.clientType(),
         );
         right = await convertDateFormatForConcat(
+          context,
           pt.right?.arguments?.[0],
           columnIdToUidt,
           right,
@@ -1228,6 +1259,9 @@ export default async function formulaQueryBuilderv2(
   parsedTree?: any,
 ) {
   const knex = baseModelSqlv2.dbDriver;
+
+  const context = baseModelSqlv2.context;
+
   // register jsep curly hook once only
   jsep.plugins.register(jsepCurlyHook);
   let qb;
@@ -1242,7 +1276,7 @@ export default async function formulaQueryBuilderv2(
       tableAlias,
       parsedTree ??
         (await column
-          ?.getColOptions<FormulaColumn>()
+          ?.getColOptions<FormulaColumn>(context)
           .then((formula) => formula?.getParsedTree())),
     );
 
@@ -1260,10 +1294,10 @@ export default async function formulaQueryBuilderv2(
 
     // if column is provided, i.e. formula has been created
     if (column) {
-      const formula = await column.getColOptions<FormulaColumn>();
+      const formula = await column.getColOptions<FormulaColumn>(context);
       // clean the previous formula error if the formula works this time
       if (formula.error) {
-        await FormulaColumn.update(column.id, {
+        await FormulaColumn.update(context, column.id, {
           error: null,
         });
       }
@@ -1274,7 +1308,7 @@ export default async function formulaQueryBuilderv2(
     console.error(e);
     if (column) {
       // add formula error to show in UI
-      await FormulaColumn.update(column.id, {
+      await FormulaColumn.update(context, column.id, {
         error: e.message,
       });
       // update cache to reflect the error in UI

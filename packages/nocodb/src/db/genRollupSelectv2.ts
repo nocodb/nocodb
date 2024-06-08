@@ -21,14 +21,16 @@ export default async function ({
   alias?: string;
   columnOptions: RollupColumn | LinksColumn;
 }): Promise<{ builder: Knex.QueryBuilder | any }> {
-  const relationColumn = await columnOptions.getRelationColumn();
+  const context = baseModelSqlv2.context;
+
+  const relationColumn = await columnOptions.getRelationColumn(context);
   const relationColumnOption: LinkToAnotherRecordColumn =
-    (await relationColumn.getColOptions()) as LinkToAnotherRecordColumn;
-  const rollupColumn = await columnOptions.getRollupColumn();
-  const childCol = await relationColumnOption.getChildColumn();
-  const childModel = await childCol?.getModel();
-  const parentCol = await relationColumnOption.getParentColumn();
-  const parentModel = await parentCol?.getModel();
+    (await relationColumn.getColOptions(context)) as LinkToAnotherRecordColumn;
+  const rollupColumn = await columnOptions.getRollupColumn(context);
+  const childCol = await relationColumnOption.getChildColumn(context);
+  const childModel = await childCol?.getModel(context);
+  const parentCol = await relationColumnOption.getParentColumn(context);
+  const parentModel = await parentCol?.getModel(context);
   const refTableAlias = `__nc_rollup`;
 
   switch (relationColumnOption.type) {
@@ -83,9 +85,9 @@ export default async function ({
     }
 
     case RelationTypes.MANY_TO_MANY: {
-      const mmModel = await relationColumnOption.getMMModel();
-      const mmChildCol = await relationColumnOption.getMMChildColumn();
-      const mmParentCol = await relationColumnOption.getMMParentColumn();
+      const mmModel = await relationColumnOption.getMMModel(context);
+      const mmChildCol = await relationColumnOption.getMMChildColumn(context);
+      const mmParentCol = await relationColumnOption.getMMParentColumn(context);
 
       if (!mmModel) {
         return this.dbDriver.raw(`?`, [

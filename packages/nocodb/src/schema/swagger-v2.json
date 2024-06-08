@@ -16355,6 +16355,11 @@
             "example": "p_124hhlkbeasewh",
             "type": "string"
           },
+          "fk_workspace_id": {
+            "description": "Workspace ID",
+            "example": "ws_123456",
+            "type": "string"
+          },
           "is_meta": {
             "$ref": "#/components/schemas/Bool"
           },

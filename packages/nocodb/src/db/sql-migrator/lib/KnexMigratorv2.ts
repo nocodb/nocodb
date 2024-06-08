@@ -9,6 +9,7 @@ import Result from '../../util/Result';
 import type Source from '~/models/Source';
 import type { XKnex } from '~/db/CustomKnex';
 import type { Knex } from 'knex';
+import type { NcContext } from '~/interface/config';
 import SqlClientFactory from '~/db/sql-client/lib/SqlClientFactory';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import Noco from '~/Noco';
@@ -26,6 +27,8 @@ const NC_MIGRATION = 'nc_migrations';
  * @extends {SqlMigrator}
  */
 export default class KnexMigratorv2 {
+  public context: NcContext;
+
   //extends SqlMigrator {
   private baseId: string;
   private toolDir = process.cwd();
@@ -34,8 +37,9 @@ export default class KnexMigratorv2 {
    * Creates an instance of KnexMigrator.
    * @memberof KnexMigrator
    */
-  constructor(base: { id: string }) {
+  constructor(context: NcContext, base: { id: string }) {
     this.baseId = base.id;
+    this.context = context;
   }
 
   protected get metaDb(): XKnex {
@@ -43,7 +47,7 @@ export default class KnexMigratorv2 {
   }
 
   private async getProject(): Promise<Base> {
-    return Base.getWithInfo(this.baseId);
+    return Base.getWithInfo(this.context, this.baseId);
   }
 
   emit(data, _args?) {

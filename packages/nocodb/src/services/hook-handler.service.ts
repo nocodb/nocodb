@@ -1,6 +1,7 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { UITypes, ViewTypes } from 'nocodb-sdk';
 import ejs from 'ejs';
+import type { NcContext } from '~/interface/config';
 import type { FormColumnType, HookType } from 'nocodb-sdk';
 import type { ColumnType } from 'nocodb-sdk';
 import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
@@ -24,17 +25,12 @@ export class HookHandlerService implements OnModuleInit, OnModuleDestroy {
     @Inject('JobsService') private readonly jobsService: IJobsService,
   ) {}
 
-  public async handleHooks({
-    hookName,
-    prevData,
-    newData,
-    user,
-    viewId,
-    modelId,
-    tnPath,
-  }): Promise<void> {
-    const view = await View.get(viewId);
-    const model = await Model.get(modelId);
+  public async handleHooks(
+    context: NcContext,
+    { hookName, prevData, newData, user, viewId, modelId, tnPath },
+  ): Promise<void> {
+    const view = await View.get(context, viewId);
+    const model = await Model.get(context, modelId);
 
     // handle form view data submission
     if (
@@ -42,15 +38,18 @@ export class HookHandlerService implements OnModuleInit, OnModuleDestroy {
       view.type === ViewTypes.FORM
     ) {
       try {
-        const formView = await view.getView<FormView>();
+        const formView = await view.getView<FormView>(context);
 
         const emails = Object.entries(JSON.parse(formView?.email) || {})
           .filter((a) => a[1])
           .map((a) => a[0]);
 
         if (emails?.length) {
-          const { columns } = await FormView.getWithInfo(formView.fk_view_id);
-          const allColumns = await model.getColumns();
+          const { columns } = await FormView.getWithInfo(
+            context,
+            formView.fk_view_id,
+          );
+          const allColumns = await model.getColumns(context);
           const fieldById = columns.reduce(
             (o: Record<string, FormColumnType>, f: FormColumnType) => {
               return Object.assign(o, { [f.fk_column_id]: f });
@@ -111,7 +110,7 @@ export class HookHandlerService implements OnModuleInit, OnModuleDestroy {
     }
 
     const [event, operation] = hookName.split('.');
-    const hooks = await Hook.list({
+    const hooks = await Hook.list(context, {
       fk_model_id: modelId,
       event: event as HookType['event'],
       operation: operation as HookType['operation'],
@@ -120,6 +119,7 @@ export class HookHandlerService implements OnModuleInit, OnModuleDestroy {
       if (hook.active) {
         try {
           await this.jobsService.add(JobTypes.HandleWebhook, {
+            context,
             hookId: hook.id,
             modelId,
             viewId,
@@ -139,10 +139,10 @@ export class HookHandlerService implements OnModuleInit, OnModuleDestroy {
   }
 
   onModuleInit(): any {
-    this.unsubscribe = this.eventEmitter.on(
-      HANDLE_WEBHOOK,
-      this.handleHooks.bind(this),
-    );
+    this.unsubscribe = this.eventEmitter.on(HANDLE_WEBHOOK, async (arg) => {
+      const { context, ...rest } = arg;
+      return this.handleHooks(context, rest);
+    });
   }
 
   onModuleDestroy() {

@@ -3,6 +3,7 @@ import { isLinksOrLTAR, RelationTypes } from 'nocodb-sdk';
 import { nocoExecute } from 'nc-help';
 import { validatePayload } from 'src/helpers';
 import type { LinkToAnotherRecordColumn } from '~/models';
+import type { NcContext } from '~/interface/config';
 import { Column, Model, Source, View } from '~/models';
 import { DatasService } from '~/services/datas.service';
 import { NcError } from '~/helpers/catchError';
@@ -14,34 +15,40 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 export class DataTableService {
   constructor(private datasService: DatasService) {}
 
-  async dataList(param: {
-    baseId?: string;
-    modelId: string;
-    query: any;
-    viewId?: string;
-    ignorePagination?: boolean;
-  }) {
+  async dataList(
+    context: NcContext,
+    param: {
+      baseId?: string;
+      modelId: string;
+      query: any;
+      viewId?: string;
+      ignorePagination?: boolean;
+    },
+  ) {
     const { modelId, viewId, baseId, ...rest } = param;
-    const { model, view } = await this.getModelAndView({
+    const { model, view } = await this.getModelAndView(context, {
       modelId,
       viewId,
       baseId,
     });
-    return await this.datasService.dataList({ ...rest, model, view });
+    return await this.datasService.dataList(context, { ...rest, model, view });
   }
 
-  async dataRead(param: {
-    baseId?: string;
-    modelId: string;
-    rowId: string;
-    viewId?: string;
-    query: any;
-  }) {
-    const { model, view } = await this.getModelAndView(param);
+  async dataRead(
+    context: NcContext,
+    param: {
+      baseId?: string;
+      modelId: string;
+      rowId: string;
+      viewId?: string;
+      query: any;
+    },
+  ) {
+    const { model, view } = await this.getModelAndView(context, param);
 
-    const source = await Source.get(model.source_id);
+    const source = await Source.get(context, model.source_id);
 
-    const baseModel = await Model.getBaseModelSQL({
+    const baseModel = await Model.getBaseModelSQL(context, {
       id: model.id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
@@ -58,17 +65,20 @@ export class DataTableService {
     return row;
   }
 
-  async dataInsert(param: {
-    baseId?: string;
-    viewId?: string;
-    modelId: string;
-    body: any;
-    cookie: any;
-  }) {
-    const { model, view } = await this.getModelAndView(param);
-    const source = await Source.get(model.source_id);
+  async dataInsert(
+    context: NcContext,
+    param: {
+      baseId?: string;
+      viewId?: string;
+      modelId: string;
+      body: any;
+      cookie: any;
+    },
+  ) {
+    const { model, view } = await this.getModelAndView(context, param);
+    const source = await Source.get(context, model.source_id);
 
-    const baseModel = await Model.getBaseModelSQL({
+    const baseModel = await Model.getBaseModelSQL(context, {
       id: model.id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
@@ -87,21 +97,24 @@ export class DataTableService {
     return Array.isArray(param.body) ? result : result[0];
   }
 
-  async dataUpdate(param: {
-    baseId?: string;
-    modelId: string;
-    viewId?: string;
-    // rowId: string;
-    body: any;
-    cookie: any;
-  }) {
-    const { model, view } = await this.getModelAndView(param);
+  async dataUpdate(
+    context: NcContext,
+    param: {
+      baseId?: string;
+      modelId: string;
+      viewId?: string;
+      // rowId: string;
+      body: any;
+      cookie: any;
+    },
+  ) {
+    const { model, view } = await this.getModelAndView(context, param);
 
-    await this.checkForDuplicateRow({ rows: param.body, model });
+    await this.checkForDuplicateRow(context, { rows: param.body, model });
 
-    const source = await Source.get(model.source_id);
+    const source = await Source.get(context, model.source_id);
 
-    const baseModel = await Model.getBaseModelSQL({
+    const baseModel = await Model.getBaseModelSQL(context, {
       id: model.id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
@@ -116,23 +129,26 @@ export class DataTableService {
       },
     );
 
-    return this.extractIdObj({ body: param.body, model });
+    return this.extractIdObj(context, { body: param.body, model });
   }
 
-  async dataDelete(param: {
-    baseId?: string;
-    modelId: string;
-    viewId?: string;
-    // rowId: string;
-    cookie: any;
-    body: any;
-  }) {
-    const { model, view } = await this.getModelAndView(param);
+  async dataDelete(
+    context: NcContext,
+    param: {
+      baseId?: string;
+      modelId: string;
+      viewId?: string;
+      // rowId: string;
+      cookie: any;
+      body: any;
+    },
+  ) {
+    const { model, view } = await this.getModelAndView(context, param);
 
-    await this.checkForDuplicateRow({ rows: param.body, model });
+    await this.checkForDuplicateRow(context, { rows: param.body, model });
 
-    const source = await Source.get(model.source_id);
-    const baseModel = await Model.getBaseModelSQL({
+    const source = await Source.get(context, model.source_id);
+    const baseModel = await Model.getBaseModelSQL(context, {
       id: model.id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
@@ -147,20 +163,23 @@ export class DataTableService {
       },
     );
 
-    return this.extractIdObj({ body: param.body, model });
+    return this.extractIdObj(context, { body: param.body, model });
   }
 
-  async dataCount(param: {
-    baseId?: string;
-    viewId?: string;
-    modelId: string;
-    query: any;
-  }) {
-    const { model, view } = await this.getModelAndView(param);
+  async dataCount(
+    context: NcContext,
+    param: {
+      baseId?: string;
+      viewId?: string;
+      modelId: string;
+      query: any;
+    },
+  ) {
+    const { model, view } = await this.getModelAndView(context, param);
 
-    const source = await Source.get(model.source_id);
+    const source = await Source.get(context, model.source_id);
 
-    const baseModel = await Model.getBaseModelSQL({
+    const baseModel = await Model.getBaseModelSQL(context, {
       id: model.id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
@@ -176,12 +195,15 @@ export class DataTableService {
     return { count };
   }
 
-  private async getModelAndView(param: {
-    baseId?: string;
-    viewId?: string;
-    modelId: string;
-  }) {
-    const model = await Model.get(param.modelId);
+  private async getModelAndView(
+    context: NcContext,
+    param: {
+      baseId?: string;
+      viewId?: string;
+      modelId: string;
+    },
+  ) {
+    const model = await Model.get(context, param.modelId);
 
     if (!model) {
       NcError.tableNotFound(param.modelId);
@@ -194,7 +216,7 @@ export class DataTableService {
     let view: View;
 
     if (param.viewId) {
-      view = await View.get(param.viewId);
+      view = await View.get(context, param.viewId);
       if (!view || (view.fk_model_id && view.fk_model_id !== param.modelId)) {
         NcError.viewNotFound(param.viewId);
       }
@@ -203,15 +225,18 @@ export class DataTableService {
     return { model, view };
   }
 
-  private async extractIdObj({
-    model,
-    body,
-  }: {
-    body: Record<string, any> | Record<string, any>[];
-    model: Model;
-  }) {
+  private async extractIdObj(
+    context: NcContext,
+    {
+      model,
+      body,
+    }: {
+      body: Record<string, any> | Record<string, any>[];
+      model: Model;
+    },
+  ) {
     const pkColumns = await model
-      .getColumns()
+      .getColumns(context)
       .then((cols) => cols.filter((col) => col.pk));
 
     const result = (Array.isArray(body) ? body : [body]).map((row) => {
@@ -224,18 +249,21 @@ export class DataTableService {
     return Array.isArray(body) ? result : result[0];
   }
 
-  private async checkForDuplicateRow({
-    rows,
-    model,
-  }: {
-    rows: any[] | any;
-    model: Model;
-  }) {
+  private async checkForDuplicateRow(
+    context: NcContext,
+    {
+      rows,
+      model,
+    }: {
+      rows: any[] | any;
+      model: Model;
+    },
+  ) {
     if (!rows || !Array.isArray(rows) || rows.length === 1) {
       return;
     }
 
-    await model.getColumns();
+    await model.getColumns(context);
 
     const keys = new Set();
 
@@ -261,17 +289,20 @@ export class DataTableService {
     }
   }
 
-  async nestedDataList(param: {
-    viewId: string;
-    modelId: string;
-    query: any;
-    rowId: string | string[] | number | number[];
-    columnId: string;
-  }) {
-    const { model, view } = await this.getModelAndView(param);
-    const source = await Source.get(model.source_id);
+  async nestedDataList(
+    context: NcContext,
+    param: {
+      viewId: string;
+      modelId: string;
+      query: any;
+      rowId: string | string[] | number | number[];
+      columnId: string;
+    },
+  ) {
+    const { model, view } = await this.getModelAndView(context, param);
+    const source = await Source.get(context, model.source_id);
 
-    const baseModel = await Model.getBaseModelSQL({
+    const baseModel = await Model.getBaseModelSQL(context, {
       id: model.id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
@@ -281,13 +312,15 @@ export class DataTableService {
       NcError.recordNotFound(`${param.rowId}`);
     }
 
-    const column = await this.getColumn(param);
+    const column = await this.getColumn(context, param);
 
-    const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();
+    const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
+      context,
+    );
 
-    const relatedModel = await colOptions.getRelatedTable();
+    const relatedModel = await colOptions.getRelatedTable(context);
 
-    const { ast, dependencyFields } = await getAst({
+    const { ast, dependencyFields } = await getAst(context, {
       model: relatedModel,
       query: param.query,
       extractOnlyPrimaries: !(param.query?.f || param.query?.fields),
@@ -353,8 +386,11 @@ export class DataTableService {
     });
   }
 
-  private async getColumn(param: { modelId: string; columnId: string }) {
-    const column = await Column.get({ colId: param.columnId });
+  private async getColumn(
+    context: NcContext,
+    param: { modelId: string; columnId: string },
+  ) {
+    const column = await Column.get(context, { colId: param.columnId });
 
     if (!column) NcError.fieldNotFound(param.columnId);
 
@@ -365,34 +401,37 @@ export class DataTableService {
     return column;
   }
 
-  async nestedLink(param: {
-    cookie: any;
-    viewId: string;
-    modelId: string;
-    columnId: string;
-    query: any;
-    refRowIds:
-      | string
-      | string[]
-      | number
-      | number[]
-      | Record<string, any>
-      | Record<string, any>[];
-    rowId: string;
-  }) {
+  async nestedLink(
+    context: NcContext,
+    param: {
+      cookie: any;
+      viewId: string;
+      modelId: string;
+      columnId: string;
+      query: any;
+      refRowIds:
+        | string
+        | string[]
+        | number
+        | number[]
+        | Record<string, any>
+        | Record<string, any>[];
+      rowId: string;
+    },
+  ) {
     this.validateIds(param.refRowIds);
 
-    const { model, view } = await this.getModelAndView(param);
+    const { model, view } = await this.getModelAndView(context, param);
 
-    const source = await Source.get(model.source_id);
+    const source = await Source.get(context, model.source_id);
 
-    const baseModel = await Model.getBaseModelSQL({
+    const baseModel = await Model.getBaseModelSQL(context, {
       id: model.id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
-    const column = await this.getColumn(param);
+    const column = await this.getColumn(context, param);
 
     await baseModel.addLinks({
       colId: column.id,
@@ -406,29 +445,32 @@ export class DataTableService {
     return true;
   }
 
-  async nestedUnlink(param: {
-    cookie: any;
-    viewId: string;
-    modelId: string;
-    columnId: string;
-    query: any;
-    refRowIds: string | string[] | number | number[] | Record<string, any>;
-    rowId: string;
-  }) {
+  async nestedUnlink(
+    context: NcContext,
+    param: {
+      cookie: any;
+      viewId: string;
+      modelId: string;
+      columnId: string;
+      query: any;
+      refRowIds: string | string[] | number | number[] | Record<string, any>;
+      rowId: string;
+    },
+  ) {
     this.validateIds(param.refRowIds);
 
-    const { model, view } = await this.getModelAndView(param);
+    const { model, view } = await this.getModelAndView(context, param);
     if (!model) NcError.tableNotFound(param.modelId);
 
-    const source = await Source.get(model.source_id);
+    const source = await Source.get(context, model.source_id);
 
-    const baseModel = await Model.getBaseModelSQL({
+    const baseModel = await Model.getBaseModelSQL(context, {
       id: model.id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
-    const column = await this.getColumn(param);
+    const column = await this.getColumn(context, param);
 
     await baseModel.removeLinks({
       colId: column.id,
@@ -443,19 +485,22 @@ export class DataTableService {
   }
 
   // todo: naming & optimizing
-  async nestedListCopyPasteOrDeleteAll(param: {
-    cookie: any;
-    viewId: string;
-    modelId: string;
-    columnId: string;
-    query: any;
-    data: {
-      operation: 'copy' | 'paste' | 'deleteAll';
-      rowId: string;
+  async nestedListCopyPasteOrDeleteAll(
+    context: NcContext,
+    param: {
+      cookie: any;
+      viewId: string;
+      modelId: string;
       columnId: string;
-      fk_related_model_id: string;
-    }[];
-  }) {
+      query: any;
+      data: {
+        operation: 'copy' | 'paste' | 'deleteAll';
+        rowId: string;
+        columnId: string;
+        fk_related_model_id: string;
+      }[];
+    },
+  ) {
     validatePayload(
       'swagger.json#/components/schemas/nestedListCopyPasteOrDeleteAllReq',
       param.data,
@@ -487,11 +532,11 @@ export class DataTableService {
       );
     }
 
-    const { model, view } = await this.getModelAndView(param);
+    const { model, view } = await this.getModelAndView(context, param);
 
-    const source = await Source.get(model.source_id);
+    const source = await Source.get(context, model.source_id);
 
-    const baseModel = await Model.getBaseModelSQL({
+    const baseModel = await Model.getBaseModelSQL(context, {
       id: model.id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
@@ -519,14 +564,16 @@ export class DataTableService {
       }
     }
 
-    const column = await this.getColumn(param);
-    const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();
-    const relatedModel = await colOptions.getRelatedTable();
-    await relatedModel.getColumns();
+    const column = await this.getColumn(context, param);
+    const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
+      context,
+    );
+    const relatedModel = await colOptions.getRelatedTable(context);
+    await relatedModel.getColumns(context);
 
     if (colOptions.type !== RelationTypes.MANY_TO_MANY) return;
 
-    const { dependencyFields } = await getAst({
+    const { dependencyFields } = await getAst(context, {
       model: relatedModel,
       query: param.query,
       extractOnlyPrimaries: !(param.query?.f || param.query?.fields),

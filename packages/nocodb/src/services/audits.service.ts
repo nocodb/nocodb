@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import DOMPurify from 'isomorphic-dompurify';
 import { AuditOperationSubTypes, AuditOperationTypes } from 'nocodb-sdk';
 import type { AuditRowUpdateReqType } from 'nocodb-sdk';
+import type { NcContext } from '~/interface/config';
 import { AppHooksListenerService } from '~/services/app-hooks-listener.service';
 import { validatePayload } from '~/helpers';
 import { Audit, Model } from '~/models';
@@ -14,13 +15,18 @@ export class AuditsService {
     protected readonly appHooksService: AppHooksService,
   ) {}
 
-  async auditRowUpdate(param: { rowId: string; body: AuditRowUpdateReqType }) {
+  async auditRowUpdate(
+    context: NcContext,
+    param: { rowId: string; body: AuditRowUpdateReqType },
+  ) {
     validatePayload(
       'swagger.json#/components/schemas/AuditRowUpdateReq',
       param.body,
     );
 
-    const model = await Model.getByIdOrName({ id: param.body.fk_model_id });
+    const model = await Model.getByIdOrName(context, {
+      id: param.body.fk_model_id,
+    });
     return await Audit.insert({
       fk_model_id: param.body.fk_model_id,
       row_id: param.rowId,

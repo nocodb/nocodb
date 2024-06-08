@@ -19,6 +19,7 @@ import ncXcdbLTARIndexUpgrader from './ncXcdbLTARIndexUpgrader';
 import ncXcdbCreatedAndUpdatedSystemFieldsUpgrader from './ncXcdbCreatedAndUpdatedSystemFieldsUpgrader';
 import type { MetaService } from '~/meta/meta.service';
 import type { NcConfig } from '~/interface/config';
+import { RootScopes } from '~/utils/globals';
 
 const log = debug('nc:version-upgrader');
 
@@ -42,9 +43,14 @@ export default class NcUpgrader {
       }
       this.log(`upgrade : Getting configuration from meta database`);
 
-      const config = await ctx.ncMeta.metaGet('', '', 'nc_store', {
-        key: this.STORE_KEY,
-      });
+      const config = await ctx.ncMeta.metaGet(
+        RootScopes.ROOT,
+        RootScopes.ROOT,
+        'nc_store',
+        {
+          key: this.STORE_KEY,
+        },
+      );
 
       const NC_VERSIONS: any[] = this.getUpgraderList();
 
@@ -65,8 +71,8 @@ export default class NcUpgrader {
               // update version in meta after each upgrade
               config.version = version.name;
               await ctx.ncMeta.metaUpdate(
-                '',
-                '',
+                RootScopes.ROOT,
+                RootScopes.ROOT,
                 'nc_store',
                 {
                   value: JSON.stringify({ version: config.version }),
@@ -91,10 +97,16 @@ export default class NcUpgrader {
           process.env.NC_CLOUD !== 'true' &&
           (await ctx.ncMeta.baseList())?.length;
         configObj.version = isOld ? '0009000' : process.env.NC_VERSION;
-        await ctx.ncMeta.metaInsert('', '', 'nc_store', {
-          key: NcUpgrader.STORE_KEY,
-          value: JSON.stringify(configObj),
-        });
+        await ctx.ncMeta.metaInsert2(
+          RootScopes.ROOT,
+          RootScopes.ROOT,
+          'nc_store',
+          {
+            key: NcUpgrader.STORE_KEY,
+            value: JSON.stringify(configObj),
+          },
+          true,
+        );
         if (isOld) {
           await this.upgrade(ctx);
         }

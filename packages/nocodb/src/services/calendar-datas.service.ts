@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ViewTypes } from 'nocodb-sdk';
 import dayjs from 'dayjs';
 import type { CalendarRangeType, FilterType } from 'nocodb-sdk';
+import type { NcContext } from '~/interface/config';
 import { CalendarRange, Model, View } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { DatasService } from '~/services/datas.service';
@@ -12,12 +13,15 @@ export class CalendarDatasService {
 
   constructor(protected datasService: DatasService) {}
 
-  async getCalendarDataList(param: {
-    viewId: string;
-    query: any;
-    from_date: string;
-    to_date: string;
-  }) {
+  async getCalendarDataList(
+    context: NcContext,
+    param: {
+      viewId: string;
+      query: any;
+      from_date: string;
+      to_date: string;
+    },
+  ) {
     const { viewId, query, from_date, to_date } = param;
 
     if (!from_date || !to_date)
@@ -27,18 +31,18 @@ export class CalendarDatasService {
       NcError.badRequest('Date range should not exceed 42 days');
     }
 
-    const view = await View.get(viewId);
+    const view = await View.get(context, viewId);
 
     if (!view) NcError.viewNotFound(viewId);
 
     if (view.type !== ViewTypes.CALENDAR)
       NcError.badRequest('View is not a calendar view');
 
-    const calendarRange = await CalendarRange.read(view.id);
+    const calendarRange = await CalendarRange.read(context, view.id);
 
     if (!calendarRange?.ranges?.length) NcError.badRequest('No ranges found');
 
-    const filterArr = await this.buildFilterArr({
+    const filterArr = await this.buildFilterArr(context, {
       viewId,
       from_date,
       to_date,
@@ -49,11 +53,11 @@ export class CalendarDatasService {
       ...(query.filterArrJson ? JSON.parse(query.filterArrJson) : []),
     ]);
 
-    const model = await Model.getByIdOrName({
+    const model = await Model.getByIdOrName(context, {
       id: view.fk_model_id,
     });
 
-    return await this.datasService.dataList({
+    return await this.datasService.dataList(context, {
       ...param,
       ...query,
       viewName: view.id,
@@ -63,15 +67,18 @@ export class CalendarDatasService {
     });
   }
 
-  async getPublicCalendarRecordCount(param: {
-    password: string;
-    query: any;
-    sharedViewUuid: string;
-    from_date: string;
-    to_date: string;
-  }) {
+  async getPublicCalendarRecordCount(
+    context: NcContext,
+    param: {
+      password: string;
+      query: any;
+      sharedViewUuid: string;
+      from_date: string;
+      to_date: string;
+    },
+  ) {
     const { sharedViewUuid, password, query = {} } = param;
-    const view = await View.getByUUID(sharedViewUuid);
+    const view = await View.getByUUID(context, sharedViewUuid);
 
     if (!view) NcError.viewNotFound(sharedViewUuid);
     if (view.type !== ViewTypes.CALENDAR) {
@@ -82,7 +89,7 @@ export class CalendarDatasService {
       return NcError.invalidSharedViewPassword();
     }
 
-    return this.getCalendarRecordCount({
+    return this.getCalendarRecordCount(context, {
       viewId: view.id,
       query,
       from_date: param.from_date,
@@ -90,15 +97,18 @@ export class CalendarDatasService {
     });
   }
 
-  async getPublicCalendarDataList(param: {
-    password: string;
-    query: any;
-    sharedViewUuid: string;
-    from_date: string;
-    to_date: string;
-  }) {
+  async getPublicCalendarDataList(
+    context: NcContext,
+    param: {
+      password: string;
+      query: any;
+      sharedViewUuid: string;
+      from_date: string;
+      to_date: string;
+    },
+  ) {
     const { sharedViewUuid, password, query = {} } = param;
-    const view = await View.getByUUID(sharedViewUuid);
+    const view = await View.getByUUID(context, sharedViewUuid);
 
     if (!view) NcError.viewNotFound(sharedViewUuid);
     if (view.type !== ViewTypes.CALENDAR) {
@@ -109,7 +119,7 @@ export class CalendarDatasService {
       return NcError.invalidSharedViewPassword();
     }
 
-    return this.getCalendarDataList({
+    return this.getCalendarDataList(context, {
       viewId: view.id,
       query,
       from_date: param.from_date,
@@ -117,12 +127,15 @@ export class CalendarDatasService {
     });
   }
 
-  async getCalendarRecordCount(param: {
-    viewId: string;
-    query: any;
-    from_date: string;
-    to_date: string;
-  }) {
+  async getCalendarRecordCount(
+    context: NcContext,
+    param: {
+      viewId: string;
+      query: any;
+      from_date: string;
+      to_date: string;
+    },
+  ) {
     const { viewId, query, from_date, to_date } = param;
 
     if (!from_date || !to_date)
@@ -132,18 +145,18 @@ export class CalendarDatasService {
       NcError.badRequest('Date range should not exceed 395 days');
     }
 
-    const view = await View.get(viewId);
+    const view = await View.get(context, viewId);
 
     if (!view) NcError.viewNotFound(viewId);
 
     if (view.type !== ViewTypes.CALENDAR)
       NcError.badRequest('View is not a calendar view');
 
-    const ranges = await CalendarRange.read(view.id);
+    const ranges = await CalendarRange.read(context, view.id);
 
     if (!ranges?.ranges.length) NcError.badRequest('No ranges found');
 
-    const filterArr = await this.buildFilterArr({
+    const filterArr = await this.buildFilterArr(context, {
       viewId,
       from_date,
       to_date,
@@ -154,11 +167,11 @@ export class CalendarDatasService {
       ...(query.filterArrJson ? JSON.parse(query.filterArrJson) : []),
     ]);
 
-    const model = await Model.getByIdOrName({
+    const model = await Model.getByIdOrName(context, {
       id: view.fk_model_id,
     });
 
-    const data = await this.datasService.dataList({
+    const data = await this.datasService.dataList(context, {
       ...param,
       baseName: model.base_id,
       tableName: model.id,
@@ -169,7 +182,7 @@ export class CalendarDatasService {
 
     const dates: Array<string> = [];
 
-    const columns = await model.getColumns();
+    const columns = await model.getColumns(context);
 
     ranges?.ranges?.forEach((range: CalendarRangeType) => {
       const fromCol = columns.find(
@@ -191,16 +204,19 @@ export class CalendarDatasService {
     };
   }
 
-  async buildFilterArr({
-    viewId,
-    from_date,
-    to_date,
-  }: {
-    viewId: string;
-    from_date: string;
-    to_date: string;
-  }): Promise<Array<FilterType>> {
-    const calendarRange = await CalendarRange.read(viewId);
+  async buildFilterArr(
+    context: NcContext,
+    {
+      viewId,
+      from_date,
+      to_date,
+    }: {
+      viewId: string;
+      from_date: string;
+      to_date: string;
+    },
+  ): Promise<Array<FilterType>> {
+    const calendarRange = await CalendarRange.read(context, viewId);
     if (!calendarRange?.ranges?.length) NcError.badRequest('No ranges found');
 
     const filterArr: FilterType = {

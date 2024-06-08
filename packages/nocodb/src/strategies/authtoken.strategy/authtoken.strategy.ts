@@ -2,14 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { extractRolesObj, ProjectRoles } from 'nocodb-sdk';
 import { Strategy } from 'passport-custom';
-import type { Request } from 'express';
+import type { NcRequest } from '~/interface/config';
 import { ApiToken, User } from '~/models';
 import { sanitiseUserObj } from '~/utils';
 
 @Injectable()
 export class AuthTokenStrategy extends PassportStrategy(Strategy, 'authtoken') {
   // eslint-disable-next-line @typescript-eslint/ban-types
-  async validate(req: Request, callback: Function) {
+  async validate(req: NcRequest, callback: Function) {
     try {
       let user;
       if (req.headers['xc-token']) {
@@ -29,6 +29,7 @@ export class AuthTokenStrategy extends PassportStrategy(Strategy, 'authtoken') {
         }
 
         const dbUser: Record<string, any> = await User.getWithRoles(
+          req.context,
           apiToken.fk_user_id,
           {
             baseId: req['ncBaseId'],

@@ -9,6 +9,7 @@ import type { TablesService } from '~/services/tables.service';
 import type { AirtableBase } from 'airtable/lib/airtable_base';
 import type { TableType } from 'nocodb-sdk';
 import type { Source } from '~/models';
+import type { NcContext } from '~/interface/config';
 
 const logger = new Logger('at-import:readAndProcessData');
 
@@ -106,43 +107,46 @@ async function readAllData({
   });
 }
 
-export async function importData({
-  baseName,
-  table,
-  atBase,
-  nocoBaseDataProcessing_v2,
-  syncDB,
-  source,
-  logBasic = (_str) => {},
-  logDetailed = (_str) => {},
-  logWarning = (_str) => {},
-  services,
-  // link related props start
-  insertedAssocRef = {},
-  atNcAliasRef,
-  ncLinkMappingTable,
-}: {
-  baseName: string;
-  table: { title?: string; id?: string };
-  fields?;
-  atBase: AirtableBase;
-  source: Source;
-  logBasic: (string) => void;
-  logDetailed: (string) => void;
-  logWarning: (string) => void;
-  nocoBaseDataProcessing_v2;
-  // link related props start
-  insertedAssocRef: { [assocTableId: string]: boolean };
-  atNcAliasRef: {
-    [ncTableId: string]: {
-      [ncTitle: string]: string;
+export async function importData(
+  context: NcContext,
+  {
+    baseName,
+    table,
+    atBase,
+    nocoBaseDataProcessing_v2,
+    syncDB,
+    source,
+    logBasic = (_str) => {},
+    logDetailed = (_str) => {},
+    logWarning = (_str) => {},
+    services,
+    // link related props start
+    insertedAssocRef = {},
+    atNcAliasRef,
+    ncLinkMappingTable,
+  }: {
+    baseName: string;
+    table: { title?: string; id?: string };
+    fields?;
+    atBase: AirtableBase;
+    source: Source;
+    logBasic: (string) => void;
+    logDetailed: (string) => void;
+    logWarning: (string) => void;
+    nocoBaseDataProcessing_v2;
+    // link related props start
+    insertedAssocRef: { [assocTableId: string]: boolean };
+    atNcAliasRef: {
+      [ncTableId: string]: {
+        [ncTitle: string]: string;
+      };
     };
-  };
-  ncLinkMappingTable: Record<string, Record<string, any>>[];
-  // link related props end
-  syncDB;
-  services: AirtableImportContext;
-}): Promise<{
+    ncLinkMappingTable: Record<string, Record<string, any>>[];
+    // link related props end
+    syncDB;
+    services: AirtableImportContext;
+  },
+): Promise<{
   nestedLinkCount: number;
   importedCount: number;
 }> {
@@ -173,7 +177,7 @@ export async function importData({
     return new Promise(async (resolve) => {
       const queue = new PQueue({ concurrency: BULK_PARALLEL_PROCESS });
 
-      const ltarPromise = importLTARData({
+      const ltarPromise = importLTARData(context, {
         table,
         baseName,
         insertedAssocRef,
@@ -218,7 +222,7 @@ export async function importData({
                   if (sizeof(tempData) >= BULK_DATA_BATCH_SIZE) {
                     let insertArray = tempData.splice(0, tempData.length);
 
-                    await services.bulkDataService.bulkDataInsert({
+                    await services.bulkDataService.bulkDataInsert(context, {
                       baseName,
                       tableName: table.id,
                       body: insertArray,
@@ -264,7 +268,7 @@ export async function importData({
 
           // insert remaining data
           if (tempData.length > 0) {
-            await services.bulkDataService.bulkDataInsert({
+            await services.bulkDataService.bulkDataInsert(context, {
               baseName,
               tableName: table.id,
               body: tempData,
@@ -305,38 +309,41 @@ export async function importData({
   }
 }
 
-export async function importLTARData({
-  table,
-  baseName,
-  insertedAssocRef = {},
-  dataStream,
-  atNcAliasRef,
-  ncLinkMappingTable,
-  syncDB,
-  source,
-  services,
-  queue,
-  logBasic = (_str) => {},
-  logWarning = (_str) => {},
-}: {
-  baseName: string;
-  table: { title?: string; id?: string };
-  insertedAssocRef: { [assocTableId: string]: boolean };
-  dataStream?: Readable;
-  atNcAliasRef: {
-    [ncTableId: string]: {
-      [ncTitle: string]: string;
+export async function importLTARData(
+  context: NcContext,
+  {
+    table,
+    baseName,
+    insertedAssocRef = {},
+    dataStream,
+    atNcAliasRef,
+    ncLinkMappingTable,
+    syncDB,
+    source,
+    services,
+    queue,
+    logBasic = (_str) => {},
+    logWarning = (_str) => {},
+  }: {
+    baseName: string;
+    table: { title?: string; id?: string };
+    insertedAssocRef: { [assocTableId: string]: boolean };
+    dataStream?: Readable;
+    atNcAliasRef: {
+      [ncTableId: string]: {
+        [ncTitle: string]: string;
+      };
     };
-  };
-  ncLinkMappingTable: Record<string, Record<string, any>>[];
-  syncDB;
-  source: Source;
-  services: AirtableImportContext;
-  queue: PQueue;
-  logBasic: (string) => void;
-  logDetailed: (string) => void;
-  logWarning: (string) => void;
-}): Promise<number> {
+    ncLinkMappingTable: Record<string, Record<string, any>>[];
+    syncDB;
+    source: Source;
+    services: AirtableImportContext;
+    queue: PQueue;
+    logBasic: (string) => void;
+    logDetailed: (string) => void;
+    logWarning: (string) => void;
+  },
+): Promise<number> {
   const assocTableMetas: Array<{
     modelMeta: { id?: string; title?: string };
     colMeta: { title?: string };
@@ -345,7 +352,7 @@ export async function importLTARData({
   }> = [];
 
   const modelMeta: any =
-    await services.tableService.getTableWithAccessibleViews({
+    await services.tableService.getTableWithAccessibleViews(context, {
       tableId: table.id,
       user: syncDB.user,
     });
@@ -369,7 +376,7 @@ export async function importLTARData({
     insertedAssocRef[colMeta.colOptions.fk_mm_model_id] = true;
 
     const assocModelMeta: TableType =
-      (await services.tableService.getTableWithAccessibleViews({
+      (await services.tableService.getTableWithAccessibleViews(context, {
         tableId: colMeta.colOptions.fk_mm_model_id,
         user: syncDB.user,
       })) as any;
@@ -434,7 +441,7 @@ export async function importLTARData({
                       }`,
                     );
 
-                    await services.bulkDataService.bulkDataInsert({
+                    await services.bulkDataService.bulkDataInsert(context, {
                       baseName,
                       tableName: assocMeta.modelMeta.id,
                       body: insertArray,
@@ -477,7 +484,7 @@ export async function importLTARData({
               }`,
             );
 
-            await services.bulkDataService.bulkDataInsert({
+            await services.bulkDataService.bulkDataInsert(context, {
               baseName,
               tableName: assocMeta.modelMeta.id,
               body: assocTableData[assocMeta.modelMeta.id],

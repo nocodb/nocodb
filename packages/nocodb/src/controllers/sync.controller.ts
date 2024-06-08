@@ -14,7 +14,8 @@ import { GlobalGuard } from '~/guards/global/global.guard';
 import { SyncService } from '~/services/sync.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
-import { NcRequest } from '~/interface/config';
+import { TenantContext } from '~/decorators/tenant-context.decorator';
+import { NcContext, NcRequest } from '~/interface/config';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -29,10 +30,11 @@ export class SyncController {
   ])
   @Acl('syncSourceList')
   async syncSourceList(
+    @TenantContext() context: NcContext,
     @Param('baseId') baseId: string,
     @Param('sourceId') sourceId?: string,
   ) {
-    return await this.syncService.syncSourceList({
+    return await this.syncService.syncSourceList(context, {
       baseId,
       sourceId,
     });
@@ -47,12 +49,13 @@ export class SyncController {
   @HttpCode(200)
   @Acl('syncSourceCreate')
   async syncCreate(
+    @TenantContext() context: NcContext,
     @Param('baseId') baseId: string,
     @Body() body: any,
     @Req() req: NcRequest,
     @Param('sourceId') sourceId?: string,
   ) {
-    return await this.syncService.syncCreate({
+    return await this.syncService.syncCreate(context, {
       baseId: baseId,
       sourceId: sourceId,
       userId: (req as any).user.id,
@@ -63,8 +66,12 @@ export class SyncController {
 
   @Delete(['/api/v1/db/meta/syncs/:syncId', '/api/v2/meta/syncs/:syncId'])
   @Acl('syncSourceDelete')
-  async syncDelete(@Param('syncId') syncId: string, @Req() req: NcRequest) {
-    return await this.syncService.syncDelete({
+  async syncDelete(
+    @TenantContext() context: NcContext,
+    @Param('syncId') syncId: string,
+    @Req() req: NcRequest,
+  ) {
+    return await this.syncService.syncDelete(context, {
       syncId: syncId,
       req,
     });
@@ -73,11 +80,12 @@ export class SyncController {
   @Patch(['/api/v1/db/meta/syncs/:syncId', '/api/v2/meta/syncs/:syncId'])
   @Acl('syncSourceUpdate')
   async syncUpdate(
+    @TenantContext() context: NcContext,
     @Param('syncId') syncId: string,
     @Body() body: any,
     @Req() req: NcRequest,
   ) {
-    return await this.syncService.syncUpdate({
+    return await this.syncService.syncUpdate(context, {
       syncId: syncId,
       syncPayload: body,
       req,

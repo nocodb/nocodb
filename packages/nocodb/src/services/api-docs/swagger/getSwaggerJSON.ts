@@ -11,9 +11,11 @@ import type {
   Model,
   View,
 } from '~/models';
+import type { NcContext } from '~/interface/config';
 import Noco from '~/Noco';
 
 export default async function getSwaggerJSON(
+  context: NcContext,
   base: Base,
   models: Model[],
   ncMeta = Noco.ncMeta,
@@ -33,24 +35,25 @@ export default async function getSwaggerJSON(
     let paths = {};
 
     const columns = await getSwaggerColumnMetas(
-      await model.getColumns(ncMeta),
+      context,
+      await model.getColumns(context, ncMeta),
       base,
       ncMeta,
     );
 
     const views: SwaggerView[] = [];
 
-    for (const view of (await model.getViews(false, ncMeta)) || []) {
+    for (const view of (await model.getViews(context, false, ncMeta)) || []) {
       if (view.type !== ViewTypes.GRID) continue;
       views.push({
         view,
-        columns: await view.getColumns(ncMeta),
+        columns: await view.getColumns(context, ncMeta),
       });
     }
 
     // skip mm tables
     if (!model.mm)
-      paths = await getPaths({ base, model, columns, views }, ncMeta);
+      paths = await getPaths(context, { base, model, columns, views }, ncMeta);
 
     const schemas = await getSchemas({ base, model, columns, views }, ncMeta);
 

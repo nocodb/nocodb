@@ -1,3 +1,4 @@
+import type { NcContext } from '~/interface/config';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
@@ -7,6 +8,8 @@ import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
 export default class FormulaColumn {
   formula: string;
   formula_raw: string;
+  fk_workspace_id?: string;
+  base_id?: string;
   fk_column_id: string;
   error: string;
   private parsed_tree?: any;
@@ -18,6 +21,7 @@ export default class FormulaColumn {
   }
 
   public static async insert(
+    context: NcContext,
     formulaColumn: Partial<FormulaColumn> & { parsed_tree?: any },
     ncMeta = Noco.ncMeta,
   ) {
@@ -31,12 +35,21 @@ export default class FormulaColumn {
 
     insertObj.parsed_tree = stringifyMetaProp(insertObj, 'parsed_tree');
 
-    await ncMeta.metaInsert2(null, null, MetaTable.COL_FORMULA, insertObj);
+    await ncMeta.metaInsert2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.COL_FORMULA,
+      insertObj,
+    );
 
-    return this.read(formulaColumn.fk_column_id, ncMeta);
+    return this.read(context, formulaColumn.fk_column_id, ncMeta);
   }
 
-  public static async read(columnId: string, ncMeta = Noco.ncMeta) {
+  public static async read(
+    context: NcContext,
+    columnId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
     let column =
       columnId &&
       (await NocoCache.get(
@@ -45,8 +58,8 @@ export default class FormulaColumn {
       ));
     if (!column) {
       column = await ncMeta.metaGet2(
-        null, //,
-        null, //model.db_alias,
+        context.workspace_id,
+        context.base_id,
         MetaTable.COL_FORMULA,
         { fk_column_id: columnId },
       );
@@ -62,6 +75,7 @@ export default class FormulaColumn {
   id: string;
 
   static async update(
+    context: NcContext,
     columnId: string,
     formula: Partial<FormulaColumn> & { parsed_tree?: any },
     ncMeta = Noco.ncMeta,
@@ -77,9 +91,15 @@ export default class FormulaColumn {
     if ('parsed_tree' in updateObj)
       updateObj.parsed_tree = stringifyMetaProp(updateObj, 'parsed_tree');
     // set meta
-    await ncMeta.metaUpdate(null, null, MetaTable.COL_FORMULA, updateObj, {
-      fk_column_id: columnId,
-    });
+    await ncMeta.metaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.COL_FORMULA,
+      updateObj,
+      {
+        fk_column_id: columnId,
+      },
+    );
 
     await NocoCache.update(`${CacheScope.COL_FORMULA}:${columnId}`, updateObj);
   }

@@ -5,7 +5,7 @@ import type {
   UserType,
   ViewCreateReqType,
 } from 'nocodb-sdk';
-import type { NcRequest } from '~/interface/config';
+import type { NcContext, NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -17,24 +17,28 @@ import { CacheScope } from '~/utils/globals';
 export class CalendarsService {
   constructor(private readonly appHooksService: AppHooksService) {}
 
-  async calendarViewGet(param: { calendarViewId: string }) {
-    return await CalendarView.get(param.calendarViewId);
+  async calendarViewGet(context: NcContext, param: { calendarViewId: string }) {
+    return await CalendarView.get(context, param.calendarViewId);
   }
 
-  async calendarViewCreate(param: {
-    tableId: string;
-    calendar: ViewCreateReqType;
-    user: UserType;
-    req: NcRequest;
-  }) {
+  async calendarViewCreate(
+    context: NcContext,
+    param: {
+      tableId: string;
+      calendar: ViewCreateReqType;
+      user: UserType;
+      req: NcRequest;
+    },
+  ) {
     validatePayload(
       'swagger.json#/components/schemas/ViewCreateReq',
       param.calendar,
     );
 
-    const model = await Model.get(param.tableId);
+    const model = await Model.get(context, param.tableId);
 
     const { id } = await View.insertMetaOnly(
+      context,
       {
         ...param.calendar,
         fk_model_id: param.tableId,
@@ -45,7 +49,7 @@ export class CalendarsService {
       model,
     );
 
-    const view = await View.get(id);
+    const view = await View.get(context, id);
 
     await NocoCache.appendToList(
       CacheScope.VIEW,
@@ -64,23 +68,30 @@ export class CalendarsService {
     return view;
   }
 
-  async calendarViewUpdate(param: {
-    calendarViewId: string;
-    calendar: CalendarUpdateReqType;
-    req: NcRequest;
-  }) {
+  async calendarViewUpdate(
+    context: NcContext,
+    param: {
+      calendarViewId: string;
+      calendar: CalendarUpdateReqType;
+      req: NcRequest;
+    },
+  ) {
     validatePayload(
       'swagger.json#/components/schemas/CalendarUpdateReq',
       param.calendar,
     );
 
-    const view = await View.get(param.calendarViewId);
+    const view = await View.get(context, param.calendarViewId);
 
     if (!view) {
       NcError.viewNotFound(param.calendarViewId);
     }
 
-    const res = await CalendarView.update(param.calendarViewId, param.calendar);
+    const res = await CalendarView.update(
+      context,
+      param.calendarViewId,
+      param.calendar,
+    );
 
     this.appHooksService.emit(AppEvents.VIEW_UPDATE, {
       view,

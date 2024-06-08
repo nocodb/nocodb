@@ -131,7 +131,6 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
       );
     } catch (e) {
       this.logger.error(e);
-      throw e;
     }
   }
 

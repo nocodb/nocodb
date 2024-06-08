@@ -11,17 +11,21 @@ import type {
   LinkToAnotherRecordColumn,
   LookupColumn,
 } from '~/models';
+import type { NcContext } from '~/interface/config';
 import { Base, BaseUser, Column, Model, Source, View } from '~/models';
 import { NcError } from '~/helpers/catchError';
 
 @Injectable()
 export class PublicMetasService {
-  async viewMetaGet(param: { sharedViewUuid: string; password: string }) {
+  async viewMetaGet(
+    context: NcContext,
+    param: { sharedViewUuid: string; password: string },
+  ) {
     const view: View & {
       relatedMetas?: { [ket: string]: Model };
       users?: { id: string; display_name: string; email: string }[];
       client?: string;
-    } = await View.getByUUID(param.sharedViewUuid);
+    } = await View.getByUUID(context, param.sharedViewUuid);
 
     if (!view) NcError.viewNotFound(param.sharedViewUuid);
 
@@ -29,15 +33,15 @@ export class PublicMetasService {
       NcError.invalidSharedViewPassword();
     }
 
-    await view.getFilters();
-    await view.getSorts();
+    await view.getFilters(context);
+    await view.getSorts(context);
 
-    await view.getViewWithInfo();
-    await view.getColumns();
-    await view.getModelWithInfo();
-    await view.model.getColumns();
+    await view.getViewWithInfo(context);
+    await view.getColumns(context);
+    await view.getModelWithInfo(context);
+    await view.model.getColumns(context);
 
-    const source = await Source.get(view.model.source_id);
+    const source = await Source.get(context, view.model.source_id);
     view.client = source.type;
 
     // todo: return only required props
@@ -93,7 +97,7 @@ export class PublicMetasService {
 
     // load related table metas
     for (const col of view.model.columns) {
-      await this.extractRelatedMetas({ col, relatedMetas });
+      await this.extractRelatedMetas(context, { col, relatedMetas });
     }
 
     view.relatedMetas = relatedMetas;
@@ -103,7 +107,7 @@ export class PublicMetasService {
         (c) => c.uidt === UITypes.User || isCreatedOrLastModifiedByCol(c),
       )
     ) {
-      const baseUsers = await BaseUser.getUsersList({
+      const baseUsers = await BaseUser.getUsersList(context, {
         base_id: view.model.base_id,
       });
 
@@ -117,61 +121,78 @@ export class PublicMetasService {
     return view;
   }
 
-  private async extractRelatedMetas({
-    col,
-    relatedMetas = {},
-  }: {
-    col: Column<any>;
-    relatedMetas: Record<string, Model>;
-  }) {
+  private async extractRelatedMetas(
+    context: NcContext,
+    {
+      col,
+      relatedMetas = {},
+    }: {
+      col: Column<any>;
+      relatedMetas: Record<string, Model>;
+    },
+  ) {
     if (isLinksOrLTAR(col.uidt)) {
-      await this.extractLTARRelatedMetas({
-        ltarColOption: await col.getColOptions<LinkToAnotherRecordColumn>(),
+      await this.extractLTARRelatedMetas(context, {
+        ltarColOption: await col.getColOptions<LinkToAnotherRecordColumn>(
+          context,
+        ),
         relatedMetas,
       });
     } else if (UITypes.Lookup === col.uidt) {
-      await this.extractLookupRelatedMetas({
-        lookupColOption: await col.getColOptions<LookupColumn>(),
+      await this.extractLookupRelatedMetas(context, {
+        lookupColOption: await col.getColOptions<LookupColumn>(context),
         relatedMetas,
       });
     }
   }
 
-  private async extractLTARRelatedMetas({
-    ltarColOption,
-    relatedMetas = {},
-  }: {
-    ltarColOption: LinkToAnotherRecordColumn;
-    relatedMetas: { [key: string]: Model };
-  }) {
-    relatedMetas[ltarColOption.fk_related_model_id] = await Model.getWithInfo({
-      id: ltarColOption.fk_related_model_id,
-    });
+  private async extractLTARRelatedMetas(
+    context: NcContext,
+    {
+      ltarColOption,
+      relatedMetas = {},
+    }: {
+      ltarColOption: LinkToAnotherRecordColumn;
+      relatedMetas: { [key: string]: Model };
+    },
+  ) {
+    relatedMetas[ltarColOption.fk_related_model_id] = await Model.getWithInfo(
+      context,
+      {
+        id: ltarColOption.fk_related_model_id,
+      },
+    );
     if (ltarColOption.type === 'mm') {
-      relatedMetas[ltarColOption.fk_mm_model_id] = await Model.getWithInfo({
-        id: ltarColOption.fk_mm_model_id,
-      });
+      relatedMetas[ltarColOption.fk_mm_model_id] = await Model.getWithInfo(
+        context,
+        {
+          id: ltarColOption.fk_mm_model_id,
+        },
+      );
     }
   }
 
-  private async extractLookupRelatedMetas({
-    lookupColOption,
-    relatedMetas = {},
-  }: {
-    lookupColOption: LookupColumn;
-    relatedMetas: { [key: string]: Model };
-  }) {
-    const relationCol = await Column.get({
+  private async extractLookupRelatedMetas(
+    context: NcContext,
+    {
+      lookupColOption,
+      relatedMetas = {},
+    }: {
+      lookupColOption: LookupColumn;
+      relatedMetas: { [key: string]: Model };
+    },
+  ) {
+    const relationCol = await Column.get(context, {
       colId: lookupColOption.fk_relation_column_id,
     });
-    const lookedUpCol = await Column.get({
+    const lookedUpCol = await Column.get(context, {
       colId: lookupColOption.fk_lookup_column_id,
     });
 
     // extract meta for table which belongs the relation column
     // if not already extracted
     if (!relatedMetas[relationCol.fk_model_id]) {
-      relatedMetas[relationCol.fk_model_id] = await Model.getWithInfo({
+      relatedMetas[relationCol.fk_model_id] = await Model.getWithInfo(context, {
         id: relationCol.fk_model_id,
       });
     }
@@ -179,20 +200,23 @@ export class PublicMetasService {
     // extract meta for table in which looked up column belongs
     // if not already extracted
     if (!relatedMetas[lookedUpCol.fk_model_id]) {
-      relatedMetas[lookedUpCol.fk_model_id] = await Model.getWithInfo({
+      relatedMetas[lookedUpCol.fk_model_id] = await Model.getWithInfo(context, {
         id: lookedUpCol.fk_model_id,
       });
     }
 
     // extract metas related to the looked up column
-    await this.extractRelatedMetas({
+    await this.extractRelatedMetas(context, {
       col: lookedUpCol,
       relatedMetas,
     });
   }
 
-  async publicSharedBaseGet(param: { sharedBaseUuid: string }): Promise<any> {
-    const base = await Base.getByUuid(param.sharedBaseUuid);
+  async publicSharedBaseGet(
+    context: NcContext,
+    param: { sharedBaseUuid: string },
+  ): Promise<any> {
+    const base = await Base.getByUuid(context, param.sharedBaseUuid);
 
     if (!base) {
       NcError.baseNotFound(param.sharedBaseUuid);

@@ -71,8 +71,8 @@ export class PubSubRedis {
 
     await PubSubRedis.redisSubscriber.subscribe(channel);
 
-    const onMessage = async (channel, message) => {
-      if (channel !== channel) {
+    const onMessage = async (messageChannel, message) => {
+      if (channel !== messageChannel) {
         return;
       }
 

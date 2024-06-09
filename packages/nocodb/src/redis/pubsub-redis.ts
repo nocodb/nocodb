@@ -12,7 +12,6 @@ export class PubSubRedis {
   public static redisSubscriber: Redis;
   private static unsubscribeCallbacks: { [key: string]: () => Promise<void> } =
     {};
-  private static callbacks: Record<string, (...args) => Promise<void>> = {};
 
   public static async init() {
     if (!PubSubRedis.available) {

@@ -6,6 +6,8 @@ import { InstanceTypes } from '~/interface/Jobs';
 export class JobsRedis {
   protected static logger = new Logger(JobsRedis.name);
 
+  public static available = PubSubRedis.available;
+
   public static primaryCallbacks: {
     [key: string]: (...args) => Promise<void>;
   } = {};

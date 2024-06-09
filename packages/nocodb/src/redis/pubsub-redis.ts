@@ -8,11 +8,10 @@ export class PubSubRedis {
 
   protected static logger = new Logger(PubSubRedis.name);
 
-  static redisClient: Redis;
-  private static redisSubscriber: Redis;
+  public static redisClient: Redis;
+  public static redisSubscriber: Redis;
   private static unsubscribeCallbacks: { [key: string]: () => Promise<void> } =
     {};
-  private static callbacks: Record<string, (...args) => Promise<void>> = {};
 
   public static async init() {
     if (!PubSubRedis.available) {
@@ -21,28 +20,6 @@ export class PubSubRedis {
 
     PubSubRedis.redisClient = new Redis(process.env.NC_REDIS_JOB_URL);
     PubSubRedis.redisSubscriber = new Redis(process.env.NC_REDIS_JOB_URL);
-
-    PubSubRedis.redisSubscriber.on('message', async (channel, message) => {
-      try {
-        if (!message) {
-          return;
-        }
-        const [command, ...args] = message.split(':');
-        const callback = PubSubRedis.callbacks[command];
-
-        if (callback) {
-          await callback(...args);
-        }
-      } catch (error) {
-        PubSubRedis.logger.error({
-          message: 'Error processing redis pub-sub message',
-          error: {
-            message: error?.message,
-            stack: error?.stack,
-          },
-        });
-      }
-    });
 
     PubSubRedis.initialized = true;
   }
@@ -94,7 +71,11 @@ export class PubSubRedis {
 
     await PubSubRedis.redisSubscriber.subscribe(channel);
 
-    const onMessage = async (_channel, message) => {
+    const onMessage = async (messageChannel, message) => {
+      if (channel !== messageChannel) {
+        return;
+      }
+
       try {
         message = JSON.parse(message);
       } catch (e) {}

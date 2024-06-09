@@ -8,7 +8,6 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
-import { Request } from 'express';
 import { OnEvent } from '@nestjs/event-emitter';
 import { customAlphabet } from 'nanoid';
 import type { Response } from 'express';
@@ -20,8 +19,7 @@ import { CacheGetType, CacheScope } from '~/utils/globals';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { JobsRedis } from '~/modules/jobs/redis/jobs-redis';
-import { TenantContext } from '~/decorators/tenant-context.decorator';
-import { NcContext, NcRequest } from '~/interface/config';
+import { NcRequest } from '~/interface/config';
 
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 const POLLING_INTERVAL = 30000;

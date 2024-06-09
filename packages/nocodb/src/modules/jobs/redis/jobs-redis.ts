@@ -3,8 +3,10 @@ import type { InstanceCommands } from '~/interface/Jobs';
 import { PubSubRedis } from '~/redis/pubsub-redis';
 import { InstanceTypes } from '~/interface/Jobs';
 
-export class JobsRedis extends PubSubRedis {
+export class JobsRedis {
   protected static logger = new Logger(JobsRedis.name);
+
+  public static available = PubSubRedis.available;
 
   public static primaryCallbacks: {
     [key: string]: (...args) => Promise<void>;
@@ -13,13 +15,14 @@ export class JobsRedis extends PubSubRedis {
     {};
 
   static async initJobs() {
-    if (!this.initialized) {
-      if (!this.available) {
+    if (!PubSubRedis.initialized) {
+      if (!PubSubRedis.available) {
         return;
       }
 
-      await this.init();
+      await PubSubRedis.init();
     }
+
     const onMessage = async (channel, message) => {
       try {
         if (!message) {
@@ -37,37 +40,36 @@ export class JobsRedis extends PubSubRedis {
         }
       } catch (error) {
         this.logger.error({
-          message: 'Error processing redis pub-sub message',
-          error: {
-            message: error?.message,
-            stack: error?.stack,
-          },
+          message: `Error processing redis pub-sub message ${message}`,
         });
       }
     };
+
+    PubSubRedis.redisSubscriber.on('message', onMessage);
+
     if (process.env.NC_WORKER_CONTAINER === 'true') {
-      await this.subscribe(InstanceTypes.WORKER, async (message) => {
+      await PubSubRedis.subscribe(InstanceTypes.WORKER, async (message) => {
         await onMessage(InstanceTypes.WORKER, message);
       });
     } else {
-      await this.subscribe(InstanceTypes.PRIMARY, async (message) => {
+      await PubSubRedis.subscribe(InstanceTypes.PRIMARY, async (message) => {
         await onMessage(InstanceTypes.PRIMARY, message);
       });
     }
   }
 
   static async workerCount(): Promise<number> {
-    if (!this.initialized) {
-      if (!this.available) {
+    if (!PubSubRedis.initialized) {
+      if (!PubSubRedis.available) {
         return;
       }
 
-      await this.init();
+      await PubSubRedis.init();
       await this.initJobs();
     }
 
     return new Promise((resolve) => {
-      this.redisClient.publish(
+      PubSubRedis.redisClient.publish(
         InstanceTypes.WORKER,
         'count',
         (error, numberOfSubscribers) => {
@@ -84,11 +86,15 @@ export class JobsRedis extends PubSubRedis {
 
   static async emitWorkerCommand(command: InstanceCommands, ...args: any[]) {
     const data = `${command}${args.length ? `:${args.join(':')}` : ''}`;
-    await this.publish(InstanceTypes.WORKER, data);
+    await PubSubRedis.publish(InstanceTypes.WORKER, data);
   }
 
   static async emitPrimaryCommand(command: InstanceCommands, ...args: any[]) {
     const data = `${command}${args.length ? `:${args.join(':')}` : ''}`;
-    await this.publish(InstanceTypes.PRIMARY, data);
+    await PubSubRedis.publish(InstanceTypes.PRIMARY, data);
   }
+
+  static publish = PubSubRedis.publish;
+  static subscribe = PubSubRedis.subscribe;
+  static unsubscribe = PubSubRedis.unsubscribe;
 }

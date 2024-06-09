@@ -49,7 +49,7 @@ export class DuplicateProcessor {
     const source = await Source.get(context, sourceId);
 
     const targetContext = {
-      ...context,
+      workspace_id: dupProject.fk_workspace_id,
       base_id: dupProject.id,
     };
 

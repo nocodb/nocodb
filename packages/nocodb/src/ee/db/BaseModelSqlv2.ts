@@ -39,7 +39,6 @@ import {
   UPDATE_WORKSPACE_COUNTER,
 } from '~/services/update-stats.service';
 import Noco from '~/Noco';
-import { getLimit, PlanLimitTypes } from '~/plan-limits';
 import { NcError } from '~/helpers/catchError';
 import { sanitize } from '~/helpers/sqlSanitize';
 import { runExternal } from '~/helpers/muxHelpers';
@@ -600,7 +599,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
   }
 
   public async beforeBulkInsert(data: any, _trx: any, req): Promise<void> {
-    const modelStats = await ModelStat.get(
+    /* const modelStats = await ModelStat.get(
       this.context,
       this.model.fk_workspace_id,
       this.model.id,
@@ -634,7 +633,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       NcError.badRequest(
         `Only ${modelRowLimit} records are allowed in your table, for more please upgrade your plan`,
       );
-    }
+    } */
 
     await this.handleHooks('before.bulkInsert', null, data, req);
   }

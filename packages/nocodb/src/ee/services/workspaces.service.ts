@@ -301,8 +301,8 @@ export class WorkspacesService implements OnApplicationBootstrap {
       // and if not then create new workspace user
 
       const workspaceUsers = await ncMeta.metaList2(
-        context.workspace_id,
-        context.base_id,
+        RootScopes.WORKSPACE,
+        RootScopes.WORKSPACE,
         MetaTable.WORKSPACE_USER,
         {
           condition: {
@@ -314,8 +314,8 @@ export class WorkspacesService implements OnApplicationBootstrap {
       if (workspaceUsers.length) {
         // update workspace user
         await ncMeta.metaUpdate(
-          context.workspace_id,
-          context.base_id,
+          RootScopes.WORKSPACE,
+          RootScopes.WORKSPACE,
           MetaTable.WORKSPACE_USER,
           {
             fk_user_id: user.id,

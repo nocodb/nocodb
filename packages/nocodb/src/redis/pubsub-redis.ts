@@ -71,7 +71,11 @@ export class PubSubRedis {
 
     await PubSubRedis.redisSubscriber.subscribe(channel);
 
-    const onMessage = async (_channel, message) => {
+    const onMessage = async (channel, message) => {
+      if (channel !== channel) {
+        return;
+      }
+
       try {
         message = JSON.parse(message);
       } catch (e) {}

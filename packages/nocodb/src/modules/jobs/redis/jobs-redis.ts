@@ -93,4 +93,8 @@ export class JobsRedis {
     const data = `${command}${args.length ? `:${args.join(':')}` : ''}`;
     await PubSubRedis.publish(InstanceTypes.PRIMARY, data);
   }
+
+  static publish = PubSubRedis.publish;
+  static subscribe = PubSubRedis.subscribe;
+  static unsubscribe = PubSubRedis.unsubscribe;
 }

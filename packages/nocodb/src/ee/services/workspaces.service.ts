@@ -107,7 +107,10 @@ export class WorkspacesService implements OnApplicationBootstrap {
     });
 
     await this.jobsService.add(JobTypes.DuplicateBase, {
-      context,
+      context: {
+        workspace_id: templateBase.fk_workspace_id,
+        base_id: templateBase.id,
+      },
       baseId: templateBase.id,
       sourceId: source.id,
       dupProjectId: dupBase.id,

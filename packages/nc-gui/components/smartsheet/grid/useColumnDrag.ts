@@ -191,7 +191,7 @@ export const useColumnDrag = ({
   const onDragEnd = async (e: DragEvent) => {
     e.preventDefault()
 
-    await until(() => isProcessing.value == false).toBeTruthy()
+    await until(() => !isProcessing.value).toBeTruthy()
 
     if (!e.dataTransfer || !draggedCol.value || !toBeDroppedColId.value) return
 

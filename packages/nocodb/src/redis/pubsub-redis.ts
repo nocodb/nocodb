@@ -8,8 +8,8 @@ export class PubSubRedis {
 
   protected static logger = new Logger(PubSubRedis.name);
 
-  static redisClient: Redis;
-  private static redisSubscriber: Redis;
+  public static redisClient: Redis;
+  public static redisSubscriber: Redis;
   private static unsubscribeCallbacks: { [key: string]: () => Promise<void> } =
     {};
   private static callbacks: Record<string, (...args) => Promise<void>> = {};
@@ -21,12 +21,6 @@ export class PubSubRedis {
 
     PubSubRedis.redisClient = new Redis(process.env.NC_REDIS_JOB_URL);
     PubSubRedis.redisSubscriber = new Redis(process.env.NC_REDIS_JOB_URL);
-
-    PubSubRedis.redisSubscriber.on('message', async (channel, message) => {
-      const [command, ...args] = message.split(':');
-      const callback = PubSubRedis.callbacks[command];
-      if (callback) await callback(...args);
-    });
 
     PubSubRedis.initialized = true;
   }

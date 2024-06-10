@@ -406,9 +406,14 @@ onClickOutside(searchRef, toggleSearch)
     >
       <div class="flex px-4 items-center gap-3">
         <span class="capitalize font-medium text-gray-700">{{ $t('objects.records') }}</span>
-        <NcSelect v-model:value="sideBarFilterOption" class="w-full !text-gray-600" data-testid="nc-calendar-sidebar-filter">
+        <NcSelect
+          v-model:value="sideBarFilterOption"
+          size="small"
+          class="w-full !h-7 !text-gray-600"
+          data-testid="nc-calendar-sidebar-filter"
+        >
           <a-select-option v-for="option in options" :key="option.value" :value="option.value" class="!text-gray-600">
-            <div class="flex items-center w-full justify-between gap-2">
+            <div class="flex items-center h-7 w-full justify-between gap-2">
               <div class="truncate">
                 <NcTooltip :title="option.label" placement="top" show-on-truncate-only>
                   <template #title>{{ option.label }}</template>
@@ -654,5 +659,17 @@ onClickOutside(searchRef, toggleSearch)
 <style lang="scss" scoped>
 :deep(.nc-attachment-image) {
   @apply rounded-md;
+}
+
+:deep(.ant-select-selector) {
+  @apply !h-7;
+}
+
+:deep(.nc-month-picker-pagination) {
+  @apply !border-b-0;
+}
+
+:deep(.nc-date-week-header) {
+  @apply !border-b-0;
 }
 </style>

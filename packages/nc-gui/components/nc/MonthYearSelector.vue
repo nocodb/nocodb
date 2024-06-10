@@ -93,10 +93,10 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
 <template>
   <div class="flex flex-col">
     <div
-      class="flex border-b-1 justify-between items-center"
+      class="flex border-b-1 nc-month-picker-pagination justify-between items-center"
       :class="{
         'px-2 py-1 h-10': isCellInputField,
-        'px-3 py-0.5': !isCellInputField,
+        'px-2 py-0.5': !isCellInputField,
       }"
     >
       <div class="flex">
@@ -137,10 +137,10 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
     </div>
     <div
       v-if="!hideCalendar"
-      class="rounded-y-xl py-1 max-w-[350px]"
+      class="rounded-y-xl max-w-[350px]"
       :class="{
-        'px-2': isCellInputField,
-        'px-2.5': !isCellInputField,
+        'px-2  py-1': isCellInputField,
+        'px-2.5 py-2': !isCellInputField,
       }"
     >
       <div class="grid grid-cols-4 gap-2">
@@ -153,10 +153,10 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
               'bg-gray-300 !font-weight-600 ': isMonthSelected(month) && isCellInputField,
               'hover:(border-1 border-gray-200 bg-gray-100)': !isMonthSelected(month),
               '!text-brand-500': dayjs().isSame(month, 'month'),
-              'font-weight-400 rounded': isCellInputField,
-              'font-medium rounded-lg': !isCellInputField,
+              'font-weight-400': isCellInputField,
+              'font-medium': !isCellInputField,
             }"
-            class="nc-month-item h-8 flex items-center transition-all justify-center text-gray-700 cursor-pointer"
+            class="nc-month-item h-8 flex items-center rounded transition-all justify-center text-gray-700 cursor-pointer"
             :title="isCellInputField ? month.format('YYYY-MM') : undefined"
             @click="selectedDate = month"
           >
@@ -172,10 +172,10 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
               'bg-gray-300 !text-brand-500 !font-weight-600 ': compareYear(year, selectedDate) && isCellInputField,
               'hover:(border-1 border-gray-200 bg-gray-100)': !compareYear(year, selectedDate),
               '!text-brand-500': dayjs().isSame(year, 'year'),
-              'font-weight-400 text-gray-700 rounded': isCellInputField,
-              'font-medium text-gray-900 rounded-lg': !isCellInputField,
+              'font-weight-400 text-gray-700': isCellInputField,
+              'font-medium text-gray-900': !isCellInputField,
             }"
-            class="nc-year-item h-8 flex items-center transition-all justify-center cursor-pointer"
+            class="nc-year-item h-8 flex items-center rounded transition-all justify-center cursor-pointer"
             :title="isCellInputField ? year.format('YYYY') : undefined"
             @click="selectedDate = year"
           >

@@ -1841,9 +1841,10 @@ export default class View implements ViewType {
         if (view.type === ViewTypes.GALLERY) {
           const galleryView = await GalleryView.get(context, view.id, ncMeta);
           if (
-            column.id === galleryView.fk_cover_image_col_id ||
-            column.pv ||
-            galleryShowLimit < 3
+            (column.id === galleryView.fk_cover_image_col_id && column.pv) ||
+            (column.id !== galleryView.fk_cover_image_col_id &&
+              !isSystemColumn(column) &&
+              (column.pv || galleryShowLimit < 3))
           ) {
             show = true;
             galleryShowLimit++;
@@ -1856,13 +1857,17 @@ export default class View implements ViewType {
             // include grouping field if it exists
             show = true;
           } else if (
-            column.id === kanbanView.fk_cover_image_col_id ||
-            column.pv
+            (column.id === kanbanView.fk_cover_image_col_id && column.pv) ||
+            (column.id !== kanbanView.fk_cover_image_col_id && column.pv)
           ) {
-            // Show cover image or primary key
+            // Show primary key and cover image if it is a primary value; otherwise, it will be redundant.
             show = true;
             kanbanShowLimit++;
-          } else if (kanbanShowLimit < 3 && !isSystemColumn(column)) {
+          } else if (
+            column.id !== kanbanView.fk_cover_image_col_id &&
+            kanbanShowLimit < 3 &&
+            !isSystemColumn(column)
+          ) {
             // show at most 3 non-system columns
             show = true;
             kanbanShowLimit++;

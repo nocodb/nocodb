@@ -527,8 +527,8 @@ onClickOutside(searchRef, toggleSearch)
                 :from-date="
                 record.rowMeta.range?.fk_from_col
                   ? calDataType === UITypes.Date
-                    ? dayjs(record.row[record.rowMeta.range.fk_from_col.title!]).format('DD MMM')
-                    : dayjs(record.row[record.rowMeta.range.fk_from_col.title!]).format('DD MMM • HH:mm A')
+                    ? dayjs(record.row[record.rowMeta.range.fk_from_col.title!]).format('D MMM')
+                    : dayjs(record.row[record.rowMeta.range.fk_from_col.title!]).format('D MMM • h:mm a')
                   : null
               "
                 :invalid="

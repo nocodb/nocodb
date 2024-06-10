@@ -31,10 +31,12 @@ const props = withDefaults(defineProps<Props>(), {
       ></span>
       <slot name="image" />
       <div class="flex gap-1 flex-col">
-        <span class="text-sm max-w-56 font-medium truncate text-gray-800">
+        <span class="text-[13px] leading-4 max-w-56 font-medium truncate text-gray-800">
           <slot />
         </span>
-        <span v-if="showDate" class="text-xs font-medium text-gray-600">{{ fromDate }} {{ toDate ? ` - ${toDate}` : '' }}</span>
+        <span v-if="showDate" class="text-xs font-medium leading-4 text-gray-600"
+          >{{ fromDate }} {{ toDate ? ` - ${toDate}` : '' }}</span
+        >
       </div>
     </div>
 

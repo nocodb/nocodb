@@ -35,7 +35,7 @@ const headerText = computed(() => {
       <template #title> {{ $t('labels.previous') }}</template>
       <a-button
         v-e="`['c:calendar:calendar-${activeCalendarView}-prev-btn']`"
-        class="w-6 h-6 !rounded-lg flex items-center justify-center !bg-gray-100 !border-0"
+        class="w-6 h-6 !hover:shadow-[0px_0px_4px_0px_rgba(0,0,0,0.08)] !rounded-lg flex items-center justify-center !bg-gray-100 !border-0"
         data-testid="nc-calendar-prev-btn"
         size="small"
         @click="paginateCalendarView('prev')"
@@ -108,7 +108,7 @@ const headerText = computed(() => {
       <template #title> {{ $t('labels.next') }}</template>
       <a-button
         v-e="`['c:calendar:calendar-${activeCalendarView}-next-btn']`"
-        class="w-6 h-6 !rounded-lg flex items-center !bg-gray-100 !border-0 justify-center"
+        class="w-6 h-6 !rounded-lg flex items-center !hover:shadow-[0px_0px_4px_0px_rgba(0,0,0,0.08)] !bg-gray-100 !border-0 justify-center"
         data-testid="nc-calendar-next-btn"
         size="small"
         @click="paginateCalendarView('next')"

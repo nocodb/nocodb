@@ -560,10 +560,9 @@ export default class Base implements BaseType {
   ) {
     const base = await this.getByTitleOrId(context, titleOrId, ncMeta);
 
-    // parse meta
-    base.meta = parseMetaProp(base);
-
     if (base) {
+      // parse meta
+      base.meta = parseMetaProp(base);
       await base.getSources(ncMeta);
     }
 

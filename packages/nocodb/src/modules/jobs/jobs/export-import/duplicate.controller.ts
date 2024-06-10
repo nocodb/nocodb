@@ -19,6 +19,7 @@ import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
+import { RootScopes } from '~/utils/globals';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -50,7 +51,13 @@ export class DuplicateController {
       base?: any;
     },
   ) {
-    const base = await Base.getByUuid(context, sharedBaseId);
+    const base = await Base.getByUuid(
+      {
+        workspace_id: RootScopes.BASE,
+        base_id: RootScopes.BASE,
+      },
+      sharedBaseId,
+    );
 
     if (!base) {
       throw new Error(`Base not found for id '${sharedBaseId}'`);
@@ -80,7 +87,10 @@ export class DuplicateController {
     });
 
     const job = await this.jobsService.add(JobTypes.DuplicateBase, {
-      context,
+      context: {
+        workspace_id: base.fk_workspace_id,
+        base_id: base.id,
+      },
       baseId: base.id,
       sourceId: source.id,
       dupProjectId: dupProject.id,

@@ -49,7 +49,7 @@ export class DuplicateProcessor {
     const source = await Source.get(context, sourceId);
 
     const targetContext = {
-      ...context,
+      workspace_id: dupProject.fk_workspace_id,
       base_id: dupProject.id,
     };
 
@@ -101,7 +101,7 @@ export class DuplicateProcessor {
       }
 
       if (!excludeData) {
-        await this.importModelsData(targetContext, {
+        await this.importModelsData(targetContext, context, {
           idMap,
           sourceProject: base,
           sourceModels: models,
@@ -225,7 +225,7 @@ export class DuplicateProcessor {
         }
       }
 
-      await this.importModelsData(context, {
+      await this.importModelsData(context, context, {
         idMap,
         sourceProject: base,
         sourceModels: [sourceModel],
@@ -362,7 +362,7 @@ export class DuplicateProcessor {
         }
       }
 
-      await this.importModelsData(context, {
+      await this.importModelsData(context, context, {
         idMap,
         sourceProject: base,
         sourceModels: [],
@@ -405,7 +405,8 @@ export class DuplicateProcessor {
   }
 
   async importModelsData(
-    context: NcContext,
+    targetContext: NcContext,
+    sourceContext: NcContext,
     param: {
       idMap: Map<string, string>;
       sourceProject: Base;
@@ -444,7 +445,7 @@ export class DuplicateProcessor {
       });
 
       this.exportService
-        .streamModelDataAsCsv(context, {
+        .streamModelDataAsCsv(sourceContext, {
           dataStream,
           linkStream,
           baseId: sourceProject.id,
@@ -459,11 +460,11 @@ export class DuplicateProcessor {
         });
 
       const model = await Model.get(
-        context,
+        targetContext,
         findWithIdentifier(idMap, sourceModel.id),
       );
 
-      await this.importService.importDataFromCsvStream(context, {
+      await this.importService.importDataFromCsvStream(targetContext, {
         idMap,
         dataStream,
         destProject,
@@ -471,13 +472,16 @@ export class DuplicateProcessor {
         destModel: model,
       });
 
-      handledLinks = await this.importService.importLinkFromCsvStream(context, {
-        idMap,
-        linkStream,
-        destProject,
-        destBase,
-        handledLinks,
-      });
+      handledLinks = await this.importService.importLinkFromCsvStream(
+        targetContext,
+        {
+          idMap,
+          linkStream,
+          destProject,
+          destBase,
+          handledLinks,
+        },
+      );
 
       elapsedTime(
         hrTime,
@@ -506,7 +510,7 @@ export class DuplicateProcessor {
         let error = null;
 
         this.exportService
-          .streamModelDataAsCsv(context, {
+          .streamModelDataAsCsv(targetContext, {
             dataStream,
             linkStream,
             baseId: sourceProject.id,
@@ -524,7 +528,7 @@ export class DuplicateProcessor {
         const headers: string[] = [];
         let chunk = [];
 
-        const model = await Model.get(context, sourceModel.id);
+        const model = await Model.get(targetContext, sourceModel.id);
 
         await new Promise((resolve) => {
           papaparse.parse(dataStream, {
@@ -535,7 +539,7 @@ export class DuplicateProcessor {
                 for (const header of results.data as any) {
                   const id = idMap.get(header);
                   if (id) {
-                    const col = await Column.get(context, {
+                    const col = await Column.get(targetContext, {
                       source_id: destBase.id,
                       colId: id,
                     });
@@ -545,7 +549,7 @@ export class DuplicateProcessor {
                         (col.colOptions?.type === RelationTypes.ONE_TO_ONE &&
                           col.meta?.bt)
                       ) {
-                        const childCol = await Column.get(context, {
+                        const childCol = await Column.get(targetContext, {
                           source_id: destBase.id,
                           colId: col.colOptions.fk_child_column_id,
                         });
@@ -585,13 +589,16 @@ export class DuplicateProcessor {
                       // remove empty rows (only pk is present)
                       chunk = chunk.filter((r) => Object.keys(r).length > 1);
                       if (chunk.length > 0) {
-                        await this.bulkDataService.bulkDataUpdate(context, {
-                          baseName: destProject.id,
-                          tableName: model.id,
-                          body: chunk,
-                          cookie: null,
-                          raw: true,
-                        });
+                        await this.bulkDataService.bulkDataUpdate(
+                          targetContext,
+                          {
+                            baseName: destProject.id,
+                            tableName: model.id,
+                            body: chunk,
+                            cookie: null,
+                            raw: true,
+                          },
+                        );
                       }
                     } catch (e) {
                       this.debugLog(e);
@@ -608,7 +615,7 @@ export class DuplicateProcessor {
                   // remove empty rows (only pk is present)
                   chunk = chunk.filter((r) => Object.keys(r).length > 1);
                   if (chunk.length > 0) {
-                    await this.bulkDataService.bulkDataUpdate(context, {
+                    await this.bulkDataService.bulkDataUpdate(targetContext, {
                       baseName: destProject.id,
                       tableName: model.id,
                       body: chunk,
@@ -629,7 +636,7 @@ export class DuplicateProcessor {
         if (error) throw error;
 
         handledLinks = await this.importService.importLinkFromCsvStream(
-          context,
+          targetContext,
           {
             idMap,
             linkStream,

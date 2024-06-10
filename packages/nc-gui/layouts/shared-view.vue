@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 const { isLoading, appInfo } = useGlobal()
 
+const { isMobileMode } = storeToRefs(useConfigStore())
+
 const { sharedView, allowCSVDownload } = useSharedView()
 
 const router = useRouter()
@@ -73,7 +75,8 @@ export default {
             </template>
 
             <div v-else class="text-sm font-semibold truncate nc-shared-view-title flex gap-2 items-center">
-              <GeneralViewIcon v-if="sharedView" class="h-4 w-4" :meta="sharedView" />
+              <GeneralViewIcon v-if="sharedView" class="h-4 w-4 ml-0.5" :meta="sharedView" />
+
               <span class="truncate">
                 {{ sharedView?.title }}
               </span>
@@ -89,7 +92,12 @@ export default {
           </a>
         </div>
       </a-layout-header>
-      <div class="w-full overflow-hidden" style="height: calc(100vh - (var(--topbar-height) - 3.6px))">
+      <div
+        class="nc-shared-view-container w-full overflow-hidden"
+        :class="{
+          'nc-shared-mobile-view': isMobileMode,
+        }"
+      >
         <slot />
       </div>
     </a-layout>
@@ -106,6 +114,14 @@ export default {
 
   :deep(.nc-table-toolbar) {
     @apply px-2;
+  }
+
+  .nc-shared-view-container {
+    height: calc(100vh - (var(--topbar-height) - 3.6px));
+
+    @supports (height: 100dvh) {
+      height: calc(100dvh - (var(--topbar-height) - 3.6px));
+    }
   }
 }
 </style>

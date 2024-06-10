@@ -70,7 +70,7 @@ const { isViewDataLoading } = storeToRefs(useViewsStore())
 
 const { isUIAllowed } = useRoles()
 
-const { appInfo } = useGlobal()
+const { appInfo, isMobileMode } = useGlobal()
 
 const { addUndo, defineViewScope } = useUndoRedo()
 
@@ -372,18 +372,18 @@ const getRowId = (row: RowType) => {
 
 <template>
   <div
-    class="flex flex-col w-full bg-white"
+    class="flex flex-col w-full bg-white h-full"
     data-testid="nc-kanban-wrapper"
     :style="{
-      minHeight: 'calc(100vh - var(--topbar-height))',
+      minHeight: 'calc(100% - var(--topbar-height))',
     }"
   >
     <div
       ref="kanbanContainerRef"
       class="nc-kanban-container flex mt-4 pb-4 px-4 overflow-y-hidden w-full nc-scrollbar-x-lg"
       :style="{
-        minHeight: 'calc(100vh - var(--topbar-height) - 4.1rem)',
-        maxHeight: 'calc(100vh - var(--topbar-height) - 4.1rem)',
+        minHeight: isMobileMode ? 'calc(100%  - 2rem)' : 'calc(100vh - var(--topbar-height) - 4.1rem)',
+        maxHeight: isMobileMode ? 'calc(100%  - 2rem)' : 'calc(100vh - var(--topbar-height) - 4.1rem)',
       }"
     >
       <div v-if="isViewDataLoading" class="flex flex-row min-h-full gap-x-2">
@@ -733,7 +733,12 @@ const getRowId = (row: RowType) => {
         </template>
       </a-dropdown>
     </div>
-    <LazySmartsheetPagination v-model:pagination-data="emptyPagination" align-count-on-right hide-pagination class="!py-4">
+    <LazySmartsheetPagination
+      v-model:pagination-data="emptyPagination"
+      align-count-on-right
+      hide-pagination
+      class="!py-4 h-10 !xs:py-0"
+    >
     </LazySmartsheetPagination>
   </div>
 

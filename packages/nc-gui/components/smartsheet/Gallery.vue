@@ -46,6 +46,8 @@ const router = useRouter()
 
 const { getPossibleAttachmentSrc } = useAttachment()
 
+const { isMobileMode } = useGlobal()
+
 const fieldsWithoutDisplay = computed(() => fields.value.filter((f) => !isPrimary(f)))
 
 const displayField = computed(() => meta.value?.columns?.find((c) => c.pv && fields.value.includes(c)) ?? null)
@@ -207,7 +209,7 @@ watch(
     <div
       class="flex flex-col w-full nc-gallery nc-scrollbar-md bg-gray-50"
       data-testid="nc-gallery-wrapper"
-      style="height: calc(100% - var(--topbar-height) + 0.7rem)"
+      :style="{ height: isMobileMode ? 'calc(100% - var(--topbar-height))' : 'calc(100% - var(--topbar-height) + 0.7rem)' }"
       :class="{
         '!overflow-hidden': isViewDataLoading,
       }"

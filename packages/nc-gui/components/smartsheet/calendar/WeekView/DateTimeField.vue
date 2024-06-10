@@ -25,6 +25,8 @@ const scrollContainer = ref<null | HTMLElement>(null)
 
 const { width: containerWidth } = useElementSize(container)
 
+const isPublic = inject(IsPublicInj, ref(false))
+
 const { isUIAllowed } = useRoles()
 
 const meta = inject(MetaInj, ref())
@@ -45,6 +47,35 @@ const fieldStyles = computed(() => {
       },
     ]),
   )
+})
+
+const getDayIndex = (date: dayjs.Dayjs) => {
+  let dayIndex = date.day() - 1
+  if (dayIndex === -1) {
+    dayIndex = 6
+  }
+  return dayIndex
+}
+
+const overlayStyle = computed(() => {
+  if (!containerWidth.value)
+    return {
+      top: 0,
+      left: 0,
+    }
+
+  const day = dayjs()
+
+  const left = (containerWidth.value / 7) * getDayIndex(day)
+  const minutes = day.hour() * 60 + day.minute()
+
+  const top = (52 / 60) * minutes
+
+  return {
+    width: `${containerWidth.value / 7}px`,
+    top: `${top}px`,
+    left: `${left}px`,
+  }
 })
 
 const getFieldStyle = (field: ColumnType) => {
@@ -106,14 +137,6 @@ const datesHours = computed(() => {
   }
   return datesHours
 })
-
-const getDayIndex = (date: dayjs.Dayjs) => {
-  let dayIndex = date.day() - 1
-  if (dayIndex === -1) {
-    dayIndex = 6
-  }
-  return dayIndex
-}
 
 const getGridTime = (date: dayjs.Dayjs, round = false) => {
   const gridCalc = date.hour() * 60 + date.minute()
@@ -877,6 +900,22 @@ watch(
     data-testid="nc-calendar-week-view"
     @drop="dropEvent"
   >
+    <div
+      v-if="!isPublic && dayjs().isBetween(selectedDateRange.start, selectedDateRange.end)"
+      class="absolute ml-16 mt-7 pointer-events-none z-4"
+      :style="overlayStyle"
+    >
+      <div class="flex w-full items-center">
+        <span
+          class="text-brand-500 rounded-md text-xs border-1 pointer-events-auto px-0.5 border-brand-200 cursor-pointer bg-brand-50"
+          @click="addRecord(dayjs())"
+        >
+          {{ dayjs().format('hh:mm A') }}
+        </span>
+        <div class="flex-1 border-1 border-brand-500"></div>
+      </div>
+    </div>
+
     <div class="flex sticky h-6 z-1 top-0 pl-16 bg-gray-50 w-full">
       <div
         v-for="date in datesHours"

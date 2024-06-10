@@ -58,6 +58,16 @@ const hours = computed(() => {
   return hours
 })
 
+const overlayTop = computed(() => {
+  const perRecordHeight = 52
+
+  const currTime = dayjs().minute() + dayjs().hour() * 60
+
+  const top = (perRecordHeight / 60) * currTime
+
+  return top
+})
+
 const calculateNewDates = useMemoize(
   ({
     endDate,
@@ -870,6 +880,24 @@ watch(
     data-testid="nc-calendar-day-view"
     @drop="dropEvent"
   >
+    <div
+      v-if="!isPublic && dayjs().isSame(selectedDate, 'day')"
+      class="absolute ml-2 pointer-events-none w-full z-4"
+      :style="{
+        top: `${overlayTop}px`,
+      }"
+    >
+      <div class="flex w-full items-center">
+        <span
+          class="text-brand-500 text-xs rounded-md border-1 pointer-events-auto px-0.5 border-brand-200 cursor-pointer bg-brand-50"
+          @click="newRecord(dayjs())"
+        >
+          {{ dayjs().format('hh:mm A') }}
+        </span>
+        <div class="flex-1 border-1 border-brand-500"></div>
+      </div>
+    </div>
+
     <div>
       <div
         v-for="(hour, index) in hours"

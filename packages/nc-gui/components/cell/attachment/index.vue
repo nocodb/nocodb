@@ -157,7 +157,7 @@ const onExpand = () => {
 const onImageClick = (item: any) => {
   if (isMobileMode.value && !isExpandedForm.value) return
 
-  if (!isMobileMode.value && (isGallery.value || (isKanban.value && !isExpandedForm.value))) return
+  if (!isMobileMode.value && (isGallery.value || isKanban.value) && !isExpandedForm.value) return
 
   selectedImage.value = item
 }

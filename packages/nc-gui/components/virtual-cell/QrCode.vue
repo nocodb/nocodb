@@ -39,7 +39,6 @@ const qrCodeLarge = useQRCode(qrValue, {
 const modalVisible = ref(false)
 
 const showQrModal = (ev: MouseEvent) => {
-  if (isGallery.value) return
   ev.stopPropagation()
   modalVisible.value = true
 }

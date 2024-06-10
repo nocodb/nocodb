@@ -14,9 +14,21 @@ const IsPublic = inject(IsPublicInj, ref(false))
 
 const { loadViewColumns } = useViewColumnsOrThrow()
 
-const { loadCalendarMeta, loadCalendarData, loadSidebarData, fetchActiveDates } = useCalendarViewStoreOrThrow()
+const { loadCalendarMeta, loadCalendarData, loadSidebarData, fetchActiveDates, updateCalendarMeta, viewMetaProperties } =
+  useCalendarViewStoreOrThrow()
 
 const calendarRangeDropdown = ref(false)
+
+const hideWeekends = computed({
+  get: () => viewMetaProperties.value?.hide_weekend ?? false,
+  set: (newValue) => {
+    updateCalendarMeta({
+      meta: {
+        hide_weekend: newValue,
+      },
+    })
+  },
+})
 
 watch(
   () => activeView.value?.id,
@@ -135,6 +147,7 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
     </div>
     <template #overlay>
       <div v-if="calendarRangeDropdown" class="w-98 space-y-6 rounded-2xl p-6" data-testid="nc-calendar-range-menu" @click.stop>
+        <NcSwitch v-model:checked="hideWeekends"> Hide Weekends </NcSwitch>
         <div
           v-for="(range, id) in _calendar_ranges"
           :key="id"

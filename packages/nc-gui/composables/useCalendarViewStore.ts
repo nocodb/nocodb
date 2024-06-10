@@ -116,6 +116,24 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       return calendarRange.value[0]?.fk_from_col?.uidt
     })
 
+    const viewMetaProperties = computed<{
+      active_view: string
+      hide_weekend: boolean
+    }>(() => {
+      let meta = calendarMetaData.value?.meta ?? {}
+
+      if (typeof meta === 'string') {
+        try {
+          meta = JSON.parse(meta)
+        } catch (e) {}
+      }
+
+      return meta as {
+        active_view: string
+        hide_weekend: boolean
+      }
+    })
+
     const sideBarFilter = computed(() => {
       let combinedFilters: any = []
 
@@ -813,6 +831,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       fetchActiveDates,
       formattedSideBarData,
       loadMoreSidebarData,
+      updateCalendarMeta,
       loadSidebarData,
       displayField,
       sideBarFilterOption,
@@ -838,6 +857,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       selectedMonth,
       selectedDateRange,
       paginateCalendarView,
+      viewMetaProperties,
     }
   },
 )

@@ -14,6 +14,7 @@ const {
   sideBarFilterOption,
   displayField,
   calendarRange,
+  viewMetaProperties,
   showSideMenu,
   updateRowProperty,
 } = useCalendarViewStoreOrThrow()
@@ -26,12 +27,24 @@ const { isUIAllowed } = useRoles()
 
 const meta = inject(MetaInj, ref())
 
+const maxVisibleDays = computed(() => {
+  return viewMetaProperties.value?.hide_weekend ? 5 : 7
+})
+
 const days = computed(() => {
+  let days = []
+
   if (isMondayFirst.value) {
-    return ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+    days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
   } else {
-    return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+    days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
   }
+
+  if (maxVisibleDays.value === 5) {
+    days = days.filter((day) => day !== 'Sat' && day !== 'Sun')
+  }
+
+  return days
 })
 
 const calendarGridContainer = ref()
@@ -40,6 +53,14 @@ const { width: gridContainerWidth, height: gridContainerHeight } = useElementSiz
 
 const isDayInPagedMonth = (date: dayjs.Dayjs) => {
   return date.month() === selectedMonth.value.month()
+}
+
+const getDayIndex = (date: dayjs.Dayjs) => {
+  let dayIndex = date.day() - 1
+  if (dayIndex === -1) {
+    dayIndex = 6
+  }
+  return dayIndex
 }
 
 const dragElement = ref<HTMLElement | null>(null)
@@ -115,7 +136,7 @@ const recordsToDisplay = computed<{
 }>(() => {
   if (!dates.value || !calendarRange.value) return []
 
-  const perWidth = gridContainerWidth.value / 7
+  const perWidth = gridContainerWidth.value / maxVisibleDays.value
   const perHeight = gridContainerHeight.value / dates.value.length
   const perRecordHeight = 24
 
@@ -174,6 +195,12 @@ const recordsToDisplay = computed<{
         const style: Partial<CSSStyleDeclaration> = {
           left: `${dayIndex * perWidth}px`,
           width: `${perWidth}px`,
+        }
+
+        if (maxVisibleDays.value === 5) {
+          if (dayIndex === 0 || dayIndex === 6) {
+            style.display = 'none'
+          }
         }
 
         // Number of records in that day
@@ -364,7 +391,7 @@ const calculateNewRow = (event: MouseEvent, updateSideBar?: boolean, skipChangeC
   if (!fromCol) return { newRow: null, updateProperty: [] }
 
   const week = Math.floor(percentY * dates.value.length)
-  const day = Math.floor(percentX * 7)
+  const day = Math.floor(percentX * maxVisibleDays.value)
 
   let newStartDate = dates.value[week] ? dayjs(dates.value[week][day]) : null
   if (!newStartDate) return { newRow: null, updateProperty: [] }
@@ -464,7 +491,7 @@ const onResize = (event: MouseEvent) => {
   const toCol = resizeRecord.value.rowMeta.range?.fk_to_col
 
   const week = Math.floor(percentY * dates.value.length)
-  const day = Math.floor(percentX * 7)
+  const day = Math.floor(percentX * maxVisibleDays.value)
 
   let updateProperty: string[] = []
   let newRow: Row
@@ -674,7 +701,13 @@ const addRecord = (date: dayjs.Dayjs) => {
 
 <template>
   <div v-if="calendarRange" class="h-full prevent-select relative" data-testid="nc-calendar-month-view">
-    <div class="grid grid-cols-7">
+    <div
+      class="grid"
+      :class="{
+        'grid-cols-7': maxVisibleDays === 7,
+        'grid-cols-5': maxVisibleDays === 5,
+      }"
+    >
       <div
         v-for="(day, index) in days"
         :key="index"
@@ -694,50 +727,59 @@ const addRecord = (date: dayjs.Dayjs) => {
       style="height: calc(100% - 1.59rem)"
       @drop="dropEvent"
     >
-      <div v-for="(week, weekIndex) in dates" :key="weekIndex" class="grid grid-cols-7 grow" data-testid="nc-calendar-month-week">
-        <div
-          v-for="(day, dateIndex) in week"
-          :key="`${weekIndex}-${dateIndex}`"
-          :class="{
-            'border-brand-500 border-1 !border-r-1 border-b-1':
-              isDateSelected(day) || (focusedDate && dayjs(day).isSame(focusedDate, 'day')),
-            '!text-gray-400': !isDayInPagedMonth(day),
-            '!bg-gray-50': day.get('day') === 0 || day.get('day') === 6,
-          }"
-          class="text-right relative group last:border-r-0 transition text-sm h-full border-r-1 border-b-1 border-gray-200 font-medium hover:bg-gray-50 text-gray-800 bg-white"
-          data-testid="nc-calendar-month-day"
-          @click="selectDate(day)"
-          @dblclick="addRecord(day)"
-        >
-          <div v-if="isUIAllowed('dataEdit')" class="flex justify-between p-1">
-            <span
-              :class="{
-                block: !isDateSelected(day),
-                hidden: isDateSelected(day),
-              }"
-              class="group-hover:hidden"
-            ></span>
-
-            <NcDropdown v-if="calendarRange.length > 1" auto-close>
-              <NcButton
+      <div
+        v-for="(week, weekIndex) in dates"
+        :key="weekIndex"
+        :class="{
+          'grid-cols-7': maxVisibleDays === 7,
+          'grid-cols-5': maxVisibleDays === 5,
+        }"
+        class="grid grow"
+        data-testid="nc-calendar-month-week"
+      >
+        <template v-for="(day, dateIndex) in week">
+          <div
+            v-if="maxVisibleDays === 5 ? day.get('day') !== 0 && day.get('day') !== 6 : true"
+            :key="`${weekIndex}-${dateIndex}`"
+            :class="{
+              'border-brand-500 border-1 !border-r-1 border-b-1':
+                isDateSelected(day) || (focusedDate && dayjs(day).isSame(focusedDate, 'day')),
+              '!text-gray-400': !isDayInPagedMonth(day),
+            }"
+            class="text-right relative group last:border-r-0 transition text-sm h-full border-r-1 border-b-1 border-gray-200 font-medium hover:bg-gray-50 text-gray-800 bg-white"
+            data-testid="nc-calendar-month-day"
+            @click="selectDate(day)"
+            @dblclick="addRecord(day)"
+          >
+            <div v-if="isUIAllowed('dataEdit')" class="flex justify-between p-1">
+              <span
                 :class="{
-                  '!block': isDateSelected(day),
-                  '!hidden': !isDateSelected(day),
+                  block: !isDateSelected(day),
+                  hidden: isDateSelected(day),
                 }"
-                class="!group-hover:block rounded"
-                size="small"
-                type="secondary"
-              >
-                <component :is="iconMap.plus" class="h-4 w-4" />
-              </NcButton>
-              <template #overlay>
-                <NcMenu class="w-64">
-                  <NcMenuItem> Select date field to add </NcMenuItem>
-                  <NcMenuItem
-                    v-for="(range, index) in calendarRange"
-                    :key="index"
-                    class="text-gray-800 font-semibold text-sm"
-                    @click="
+                class="group-hover:hidden"
+              ></span>
+
+              <NcDropdown v-if="calendarRange.length > 1" auto-close>
+                <NcButton
+                  :class="{
+                    '!block': isDateSelected(day),
+                    '!hidden': !isDateSelected(day),
+                  }"
+                  class="!group-hover:block rounded"
+                  size="small"
+                  type="secondary"
+                >
+                  <component :is="iconMap.plus" class="h-4 w-4" />
+                </NcButton>
+                <template #overlay>
+                  <NcMenu class="w-64">
+                    <NcMenuItem> Select date field to add </NcMenuItem>
+                    <NcMenuItem
+                      v-for="(range, index) in calendarRange"
+                      :key="index"
+                      class="text-gray-800 font-semibold text-sm"
+                      @click="
                       () => {
                         const record = {
                           row: {
@@ -747,25 +789,25 @@ const addRecord = (date: dayjs.Dayjs) => {
                         emit('newRecord', record)
                       }
                     "
-                  >
-                    <div class="flex items-center gap-1">
-                      <LazySmartsheetHeaderCellIcon :column-meta="range.fk_from_col" />
-                      <span class="ml-1">{{ range.fk_from_col!.title }}</span>
-                    </div>
-                  </NcMenuItem>
-                </NcMenu>
-              </template>
-            </NcDropdown>
-            <NcButton
-              v-else
-              :class="{
-                '!block': isDateSelected(day),
-                '!hidden': !isDateSelected(day),
-              }"
-              class="!group-hover:block !w-6 !h-6 !rounded"
-              size="xsmall"
-              type="secondary"
-              @click="
+                    >
+                      <div class="flex items-center gap-1">
+                        <LazySmartsheetHeaderCellIcon :column-meta="range.fk_from_col" />
+                        <span class="ml-1">{{ range.fk_from_col!.title }}</span>
+                      </div>
+                    </NcMenuItem>
+                  </NcMenu>
+                </template>
+              </NcDropdown>
+              <NcButton
+                v-else
+                :class="{
+                  '!block': isDateSelected(day),
+                  '!hidden': !isDateSelected(day),
+                }"
+                class="!group-hover:block !w-6 !h-6 !rounded"
+                size="xsmall"
+                type="secondary"
+                @click="
                 () => {
                   const record = {
                     row: {
@@ -775,35 +817,36 @@ const addRecord = (date: dayjs.Dayjs) => {
                   emit('newRecord', record)
                 }
               "
-            >
-              <component :is="iconMap.plus" />
-            </NcButton>
-            <span
-              :class="{
-                'bg-brand-50 text-brand-500 !font-bold': day.isSame(dayjs(), 'date'),
-              }"
-              class="px-1.3 py-1 text-sm leading-3 font-medium rounded-lg"
-            >
-              {{ day.format('DD') }}
-            </span>
-          </div>
-          <div v-if="!isUIAllowed('dataEdit')" class="leading-3 p-3">{{ dayjs(day).format('DD') }}</div>
+              >
+                <component :is="iconMap.plus" />
+              </NcButton>
+              <span
+                :class="{
+                  'bg-brand-50 text-brand-500 !font-bold': day.isSame(dayjs(), 'date'),
+                }"
+                class="px-1.3 py-1 text-sm leading-3 font-medium rounded-lg"
+              >
+                {{ day.format('DD') }}
+              </span>
+            </div>
+            <div v-if="!isUIAllowed('dataEdit')" class="leading-3 p-3">{{ dayjs(day).format('DD') }}</div>
 
-          <NcButton
-            v-if="
-              recordsToDisplay.count[dayjs(day).format('YYYY-MM-DD')] &&
-              recordsToDisplay.count[dayjs(day).format('YYYY-MM-DD')]?.overflow &&
-              !draggingId
-            "
-            v-e="`['c:calendar:month-view-more']`"
-            class="!absolute bottom-1 right-1 text-center min-w-4.5 mx-auto z-3 text-gray-500"
-            size="xxsmall"
-            type="secondary"
-            @click="viewMore(day)"
-          >
-            <span class="text-xs px-1"> + {{ recordsToDisplay.count[dayjs(day).format('YYYY-MM-DD')]?.overflowCount }} </span>
-          </NcButton>
-        </div>
+            <NcButton
+              v-if="
+                recordsToDisplay.count[dayjs(day).format('YYYY-MM-DD')] &&
+                recordsToDisplay.count[dayjs(day).format('YYYY-MM-DD')]?.overflow &&
+                !draggingId
+              "
+              v-e="`['c:calendar:month-view-more']`"
+              class="!absolute bottom-1 right-1 text-center min-w-4.5 mx-auto z-3 text-gray-500"
+              size="xxsmall"
+              type="secondary"
+              @click="viewMore(day)"
+            >
+              <span class="text-xs px-1"> + {{ recordsToDisplay.count[dayjs(day).format('YYYY-MM-DD')]?.overflowCount }} </span>
+            </NcButton>
+          </div>
+        </template>
       </div>
     </div>
     <div class="absolute inset-0 pointer-events-none mt-8 pb-7.5" data-testid="nc-calendar-month-record-container">
@@ -859,5 +902,9 @@ const addRecord = (date: dayjs.Dayjs) => {
   -webkit-user-select: none; /* Safari */
   -ms-user-select: none; /* IE 10 and IE 11 */
   user-select: none; /* Standard syntax */
+}
+
+.grid-cols-5 {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 </style>

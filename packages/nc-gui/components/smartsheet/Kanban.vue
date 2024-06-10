@@ -520,7 +520,7 @@ const getRowId = (row: RowType) => {
                             <LazySmartsheetRow :row="record">
                               <a-card
                                 :key="`${getRowId(record)}-${index}`"
-                                class="!rounded-xl h-full border-gray-200 border-1 group overflow-hidden break-all max-w-[450px] cursor-pointer !children:pointer-events-none"
+                                class="!rounded-xl h-full border-gray-200 border-1 group overflow-hidden break-all max-w-[450px] cursor-pointer"
                                 :body-style="{ padding: '16px !important' }"
                                 :data-stack="stack.title"
                                 :data-testid="`nc-gallery-card-${record.row.id}`"
@@ -579,7 +579,7 @@ const getRowId = (row: RowType) => {
                                     <img class="object-contain w-[48px] h-[48px]" src="~assets/icons/FileIconImageBox.png" />
                                   </div>
                                 </template>
-                                <div class="flex flex-col gap-3">
+                                <div class="flex flex-col gap-3 !children:pointer-events-none">
                                   <h2 v-if="displayField" class="nc-card-display-value-wrapper">
                                     <LazySmartsheetVirtualCell
                                       v-if="isVirtualCol(displayField)"

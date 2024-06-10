@@ -213,7 +213,7 @@ watch(
     </template>
 
     <div
-      class="flex flex-col w-full nc-gallery nc-scrollbar-md bg-[#fbfbfb]"
+      class="flex flex-col w-full nc-gallery nc-scrollbar-md bg-gray-50"
       data-testid="nc-gallery-wrapper"
       style="height: calc(100% - var(--topbar-height) + 0.7rem)"
       :class="{

@@ -832,7 +832,7 @@ const getRowId = (row: RowType) => {
   box-shadow: 0px 2px 4px -2px rgba(0, 0, 0, 0.06), 0px 4px 4px -2px rgba(0, 0, 0, 0.02);
 
   &:hover {
-    box-shadow: 0px 20px 24px -4px rgba(0, 0, 0, 0.1), 0px 8px 8px -4px rgba(0, 0, 0, 0.04);
+    box-shadow: 0px 12px 16px -4px rgba(0, 0, 0, 0.1), 0px 4px 6px -2px rgba(0, 0, 0, 0.06);
 
     .nc-action-icon {
       @apply invisible;
@@ -841,7 +841,7 @@ const getRowId = (row: RowType) => {
 }
 
 .nc-card-display-value-wrapper {
-  @apply my-0 text-xl leading-8 text-gray-800;
+  @apply my-0 text-xl leading-8 text-gray-600;
 
   .nc-cell,
   .nc-virtual-cell {
@@ -851,7 +851,7 @@ const getRowId = (row: RowType) => {
     :deep(input),
     :deep(textarea),
     :deep(.nc-cell-field-link) {
-      @apply !text-xl leading-8 text-gray-800;
+      @apply !text-xl leading-8 text-gray-600;
     }
   }
 }

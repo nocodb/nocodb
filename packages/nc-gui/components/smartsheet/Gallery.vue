@@ -427,7 +427,7 @@ watch(
 }
 
 .nc-card-display-value-wrapper {
-  @apply my-0 text-xl leading-8 text-gray-800;
+  @apply my-0 text-xl leading-8 text-gray-600;
 
   .nc-cell,
   .nc-virtual-cell {
@@ -437,7 +437,7 @@ watch(
     :deep(input),
     :deep(textarea),
     :deep(.nc-cell-field-link) {
-      @apply !text-xl leading-8 text-gray-800;
+      @apply !text-xl leading-8 text-gray-600;
     }
   }
 }

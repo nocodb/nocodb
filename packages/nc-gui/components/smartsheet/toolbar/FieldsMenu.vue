@@ -230,7 +230,6 @@ const updateCoverImageObjectFit = async (val: string) => {
 
 const coverImageObjectFitOptions = [
   { value: CoverImageObjectFit.FIT, label: t('labels.fitImage') },
-  { value: CoverImageObjectFit.FILL, label: t('labels.fillImageArea') },
   { value: CoverImageObjectFit.COVER, label: t('labels.coverImageArea') },
 ]
 
@@ -436,7 +435,15 @@ useMenuCloseOnEsc(open)
 
               <a-select-option v-for="option of coverOptions" :key="option.value" :value="option.value">
                 <div class="w-full flex gap-2 items-center justify-between">
-                  <span> {{ option.label }} </span>
+                  <div class="flex items-center gap-1">
+                    <component
+                      v-if="option.value"
+                      :is="getIcon(metaColumnById[option.value])"
+                      class="!w-3.5 !h-3.5 !text-gray-700 !ml-0"
+                    />
+
+                    <span> {{ option.label }} </span>
+                  </div>
                   <GeneralIcon
                     v-if="coverImageColumnId === option.value"
                     id="nc-selected-item-icon"

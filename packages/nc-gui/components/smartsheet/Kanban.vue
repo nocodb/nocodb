@@ -100,7 +100,6 @@ const coverImageObjectFitClass = computed(() => {
   const fk_cover_image_object_fit = parseProp(kanbanMetaData.value?.meta)?.fk_cover_image_object_fit || CoverImageObjectFit.FIT
 
   if (fk_cover_image_object_fit === CoverImageObjectFit.FIT) return '!object-contain'
-  if (fk_cover_image_object_fit === CoverImageObjectFit.FILL) return '!object-fill'
   if (fk_cover_image_object_fit === CoverImageObjectFit.COVER) return '!object-cover'
 })
 

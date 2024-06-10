@@ -651,4 +651,8 @@ onClickOutside(searchRef, toggleSearch)
   </div>
 </template>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+:deep(.nc-attachment-image) {
+  @apply rounded-md;
+}
+</style>

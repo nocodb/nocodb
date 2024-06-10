@@ -582,22 +582,25 @@ const getRowId = (row: RowType) => {
                                 </template>
                                 <div class="flex flex-col gap-3 !children:pointer-events-none">
                                   <h2 v-if="displayField" class="nc-card-display-value-wrapper">
-                                    <LazySmartsheetVirtualCell
-                                      v-if="isVirtualCol(displayField)"
-                                      v-model="record.row[displayField.title]"
-                                      class="!text-brand-500"
-                                      :column="displayField"
-                                      :row="record"
-                                    />
+                                    <template v-if="!isRowEmpty(record, displayField)">
+                                      <LazySmartsheetVirtualCell
+                                        v-if="isVirtualCol(displayField)"
+                                        v-model="record.row[displayField.title]"
+                                        class="!text-brand-500"
+                                        :column="displayField"
+                                        :row="record"
+                                      />
 
-                                    <LazySmartsheetCell
-                                      v-else
-                                      v-model="record.row[displayField.title]"
-                                      class="!text-brand-500"
-                                      :column="displayField"
-                                      :edit-enabled="false"
-                                      :read-only="true"
-                                    />
+                                      <LazySmartsheetCell
+                                        v-else
+                                        v-model="record.row[displayField.title]"
+                                        class="!text-brand-500"
+                                        :column="displayField"
+                                        :edit-enabled="false"
+                                        :read-only="true"
+                                      />
+                                    </template>
+                                    <template v-else> - </template>
                                   </h2>
 
                                   <div v-for="col in fieldsWithoutDisplay" :key="`record-${record.row.id}-${col.id}`">
@@ -838,7 +841,7 @@ const getRowId = (row: RowType) => {
 }
 
 .nc-card-display-value-wrapper {
-  @apply my-0;
+  @apply my-0 text-xl leading-8 text-gray-800;
 
   .nc-cell,
   .nc-virtual-cell {
@@ -874,6 +877,12 @@ const getRowId = (row: RowType) => {
 :deep(.nc-cell) {
   &.nc-cell-checkbox {
     @apply children:pl-0;
+  }
+  &.nc-cell-singleselect .nc-cell-field > div {
+    @apply flex items-center;
+  }
+  &.nc-cell-multiselect .nc-cell-field > div {
+    @apply h-5;
   }
 }
 

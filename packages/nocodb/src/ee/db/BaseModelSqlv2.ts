@@ -500,6 +500,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             { ignoreView: true, getHiddenColumn: true },
           );
 
+      if (!prevData) {
+        NcError.recordNotFound(id);
+      }
+
       const query = this.dbDriver(this.tnPath)
         .update(updateObj)
         .where(await this._wherePk(id, true));
@@ -947,6 +951,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       raw = false,
       insertOneByOneAsFallback = false,
       isSingleRecordInsertion = false,
+      allowSystemColumn = false,
     }: {
       chunkSize?: number;
       cookie?: any;
@@ -955,6 +960,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       raw?: boolean;
       insertOneByOneAsFallback?: boolean;
       isSingleRecordInsertion?: boolean;
+      allowSystemColumn?: boolean;
     } = {},
   ) {
     const queries: string[] = [];
@@ -980,14 +986,21 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           for (let i = 0; i < this.model.columns.length; ++i) {
             const col = this.model.columns[i];
 
-            if (
-              col.title in d &&
-              (isCreatedOrLastModifiedTimeCol(col) ||
-                isCreatedOrLastModifiedByCol(col))
-            ) {
-              NcError.badRequest(
-                `Column "${col.title}" is auto generated and cannot be updated`,
-              );
+            if (col.title in d) {
+              if (
+                isCreatedOrLastModifiedTimeCol(col) ||
+                isCreatedOrLastModifiedByCol(col)
+              ) {
+                NcError.badRequest(
+                  `Column "${col.title}" is auto generated and cannot be updated`,
+                );
+              }
+
+              if (col.system && !allowSystemColumn) {
+                NcError.badRequest(
+                  `Column "${col.title}" is system column and cannot be updated`,
+                );
+              }
             }
 
             // populate pk columns
@@ -1359,7 +1372,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         if (!pkValues) {
           // throw or skip if no pk provided
           if (throwExceptionIfNotExist) {
-            NcError.recordNotFound(JSON.stringify(pkValues));
+            NcError.recordNotFound(pkValues);
           }
           continue;
         }
@@ -1396,7 +1409,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                 if (!oldRecord) {
                   // throw or skip if no record found
                   if (throwExceptionIfNotExist) {
-                    NcError.recordNotFound(JSON.stringify(recordPk));
+                    NcError.recordNotFound(pkValues);
                   }
                   continue;
                 }
@@ -1544,7 +1557,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         if (!pkValues) {
           // throw or skip if no pk provided
           if (throwExceptionIfNotExist) {
-            NcError.recordNotFound(JSON.stringify(pkValues));
+            NcError.recordNotFound(pkValues);
           }
           continue;
         }
@@ -1574,7 +1587,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
               if (!oldRecord) {
                 // throw or skip if no record found
                 if (throwExceptionIfNotExist) {
-                  NcError.recordNotFound(JSON.stringify(pk));
+                  NcError.recordNotFound(pkValues);
                 }
                 continue;
               }

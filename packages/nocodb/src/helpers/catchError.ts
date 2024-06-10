@@ -502,6 +502,10 @@ const errorHelpers: {
     message: (resource: string, id: string) => `${resource} '${id}' not found`,
     code: 404,
   },
+  [NcErrorType.REQUIRED_FIELD_MISSING]: {
+    message: (field: string) => `Field '${field}' is required`,
+    code: 422,
+  },
   [NcErrorType.ERROR_DUPLICATE_RECORD]: {
     message: (...ids: string[]) => {
       const isMultiple = Array.isArray(ids) && ids.length > 1;
@@ -662,7 +666,22 @@ export class NcError {
     });
   }
 
-  static recordNotFound(id: string | string[], args?: NcErrorArgs) {
+  static recordNotFound(
+    id: string | string[] | Record<string, string> | Record<string, string>[],
+    args?: NcErrorArgs,
+  ) {
+    if (typeof id === 'string') {
+      id = [id];
+    } else if (Array.isArray(id)) {
+      if (id.every((i) => typeof i === 'string')) {
+        id = id as string[];
+      } else {
+        id = id.map((i) => Object.values(i).join('___'));
+      }
+    } else {
+      id = Object.values(id).join('___');
+    }
+
     throw new NcBaseErrorv2(NcErrorType.RECORD_NOT_FOUND, {
       params: id,
       ...args,
@@ -672,6 +691,13 @@ export class NcError {
   static genericNotFound(resource: string, id: string, args?: NcErrorArgs) {
     throw new NcBaseErrorv2(NcErrorType.GENERIC_NOT_FOUND, {
       params: [resource, id],
+      ...args,
+    });
+  }
+
+  static requiredFieldMissing(field: string, args?: NcErrorArgs) {
+    throw new NcBaseErrorv2(NcErrorType.REQUIRED_FIELD_MISSING, {
+      params: field,
       ...args,
     });
   }

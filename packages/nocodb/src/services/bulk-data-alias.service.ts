@@ -48,6 +48,7 @@ export class BulkDataAliasService {
       foreign_key_checks?: boolean;
       skip_hooks?: boolean;
       raw?: boolean;
+      allowSystemColumn?: boolean;
     },
   ) {
     return await this.executeBulkOperation(context, {
@@ -60,6 +61,7 @@ export class BulkDataAliasService {
           foreign_key_checks: param.foreign_key_checks,
           skip_hooks: param.skip_hooks,
           raw: param.raw,
+          allowSystemColumn: param.allowSystemColumn,
         },
       ],
     });

@@ -52,7 +52,7 @@ const headerText = computed(() => {
           'w-29': activeCalendarView === 'day',
           'w-38': activeCalendarView === 'week',
         }"
-        class="!h-6 !bg-gray-100 !border-0"
+        class="!h-6 prev-next-btn !bg-gray-100 !border-0"
         full-width
         size="small"
         type="secondary"
@@ -125,8 +125,6 @@ const headerText = computed(() => {
 }
 
 .prev-next-btn {
-  &:hover {
-    box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
-  }
+  box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
 }
 </style>

@@ -148,7 +148,7 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
     <template #overlay>
       <div
         v-if="calendarRangeDropdown"
-        class="w-[500px] space-y-6 rounded-2xl p-6"
+        class="w-[448px] space-y-6 rounded-2xl p-6"
         data-testid="nc-calendar-range-menu"
         @click.stop
       >

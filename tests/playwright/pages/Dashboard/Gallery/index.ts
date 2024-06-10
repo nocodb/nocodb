@@ -26,8 +26,8 @@ export class GalleryPage extends BasePage {
   async openExpandedRow({ index }: { index: number }) {
     await this.card(index).click({
       position: {
-        x: 1,
-        y: 1,
+        x: 5,
+        y: 5,
       },
     });
   }

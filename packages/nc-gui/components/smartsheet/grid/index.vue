@@ -88,7 +88,6 @@ const skipRowRemovalOnCancel = ref(false)
 
 function expandForm(row: Row, state?: Record<string, any>, fromToolbar = false) {
   const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
-  expandedFormRow.value = row
   expandedFormRowState.value = state
   if (rowId && !isPublic.value) {
     router.push({
@@ -98,6 +97,7 @@ function expandForm(row: Row, state?: Record<string, any>, fromToolbar = false) 
       },
     })
   } else {
+    expandedFormRow.value = row
     expandedFormDlg.value = true
     skipRowRemovalOnCancel.value = !fromToolbar
   }

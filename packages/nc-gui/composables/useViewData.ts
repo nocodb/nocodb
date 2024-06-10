@@ -318,12 +318,8 @@ export function useViewData(
   const navigateToSiblingRow = async (dir: NavigateDir) => {
     const expandedRowIndex = getExpandedRowIndex()
 
-    console.log('current', expandedRowIndex)
-
     // calculate next row index based on direction
     let siblingRowIndex = expandedRowIndex + (dir === NavigateDir.NEXT ? 1 : -1)
-
-    console.log('singlin', siblingRowIndex)
 
     // if unsaved row skip it
     while (formattedData.value[siblingRowIndex]?.rowMeta?.new) {
@@ -360,10 +356,6 @@ export function useViewData(
       })
     }
   }
-
-  watch(formattedData, () => {
-    console.log('mutation')
-  })
 
   return {
     error,

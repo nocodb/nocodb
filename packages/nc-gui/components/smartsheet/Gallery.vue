@@ -349,7 +349,7 @@ watch(
     </div>
   </a-dropdown>
 
-  <LazySmartsheetPagination v-model:pagination-data="paginationData" show-api-timing :change-page="changePage" />
+  <LazySmartsheetPagination v-model:pagination-data="paginationData" align-count-on-right show-api-timing :change-page="changePage" />
   <Suspense>
     <LazySmartsheetExpandedForm
       v-if="expandedFormRow && expandedFormDlg"

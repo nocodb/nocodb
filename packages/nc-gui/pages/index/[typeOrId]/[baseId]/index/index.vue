@@ -21,7 +21,7 @@ useSidebar('nc-left-sidebar')
 
 <style scoped lang="scss">
 .nc-container {
-  height: 100vh;
+  height: 100dvh;
   flex: 1 1 100%;
 }
 

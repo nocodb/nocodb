@@ -125,6 +125,6 @@ const headerText = computed(() => {
 }
 
 .prev-next-btn {
-  box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
+  @apply !hover:bg-gray-200;
 }
 </style>

@@ -7,11 +7,6 @@ import ncStickyColumnUpgrader from './ncStickyColumnUpgrader';
 import ncFilterUpgrader_0104004 from './ncFilterUpgrader_0104004';
 import ncFilterUpgrader_0105003 from './ncFilterUpgrader_0105003';
 import ncFilterUpgrader from './ncFilterUpgrader';
-import ncProjectRolesUpgrader from './ncProjectRolesUpgrader';
-import ncDataTypesUpgrader from './ncDataTypesUpgrader';
-import ncProjectUpgraderV2_0090000 from './ncProjectUpgraderV2_0090000';
-import ncProjectEnvUpgrader0011045 from './ncProjectEnvUpgrader0011045';
-import ncProjectEnvUpgrader from './ncProjectEnvUpgrader';
 import ncHookUpgrader from './ncHookUpgrader';
 import ncProjectConfigUpgrader from './ncProjectConfigUpgrader';
 import ncXcdbLTARUpgrader from './ncXcdbLTARUpgrader';
@@ -19,7 +14,7 @@ import ncXcdbLTARIndexUpgrader from './ncXcdbLTARIndexUpgrader';
 import ncXcdbCreatedAndUpdatedSystemFieldsUpgrader from './ncXcdbCreatedAndUpdatedSystemFieldsUpgrader';
 import type { MetaService } from '~/meta/meta.service';
 import type { NcConfig } from '~/interface/config';
-import { RootScopes } from '~/utils/globals';
+import { MetaTable, RootScopes } from '~/utils/globals';
 
 const log = debug('nc:version-upgrader');
 
@@ -38,7 +33,9 @@ export default class NcUpgrader {
     try {
       ctx.ncMeta = await ctx.ncMeta.startTransaction();
 
-      if (!(await ctx.ncMeta.knexConnection?.schema?.hasTable?.('nc_store'))) {
+      if (
+        !(await ctx.ncMeta.knexConnection?.schema?.hasTable?.(MetaTable.STORE))
+      ) {
         return;
       }
       this.log(`upgrade : Getting configuration from meta database`);
@@ -46,7 +43,7 @@ export default class NcUpgrader {
       const config = await ctx.ncMeta.metaGet(
         RootScopes.ROOT,
         RootScopes.ROOT,
-        'nc_store',
+        MetaTable.STORE,
         {
           key: this.STORE_KEY,
         },
@@ -73,7 +70,7 @@ export default class NcUpgrader {
               await ctx.ncMeta.metaUpdate(
                 RootScopes.ROOT,
                 RootScopes.ROOT,
-                'nc_store',
+                MetaTable.STORE,
                 {
                   value: JSON.stringify({ version: config.version }),
                 },
@@ -100,7 +97,7 @@ export default class NcUpgrader {
         await ctx.ncMeta.metaInsert2(
           RootScopes.ROOT,
           RootScopes.ROOT,
-          'nc_store',
+          MetaTable.STORE,
           {
             key: NcUpgrader.STORE_KEY,
             value: JSON.stringify(configObj),
@@ -140,13 +137,6 @@ export default class NcUpgrader {
     handler: (ctx?: NcUpgraderCtx) => Promise<void> | void;
   }[] {
     return [
-      { name: '0009000', handler: null },
-      { name: '0009044', handler: null },
-      { name: '0011043', handler: ncProjectEnvUpgrader },
-      { name: '0011045', handler: ncProjectEnvUpgrader0011045 },
-      { name: '0090000', handler: ncProjectUpgraderV2_0090000 },
-      { name: '0098004', handler: ncDataTypesUpgrader },
-      { name: '0098005', handler: ncProjectRolesUpgrader },
       { name: '0100002', handler: ncFilterUpgrader },
       { name: '0101002', handler: ncAttachmentUpgrader },
       { name: '0104002', handler: ncAttachmentUpgrader_0104002 },

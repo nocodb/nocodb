@@ -230,7 +230,7 @@ watch(
               <template v-if="galleryData?.fk_cover_image_col_id" #cover>
                 <a-carousel
                   v-if="!reloadAttachments && attachments(record).length"
-                  class="gallery-carousel !border-b-1 !border-gray-200"
+                  class="gallery-carousel !border-b-1 !border-gray-200 min-h-52"
                   arrows
                 >
                   <template #customPaging>

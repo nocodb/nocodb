@@ -17,7 +17,6 @@ export class JobsEventService {
 
   @OnQueueActive()
   onActive(job: Job) {
-    this.logger.log(`Processing job ${job.id} of type ${job.name}`);
     this.eventEmitter.emit(JobEvents.STATUS, {
       id: job.id.toString(),
       status: JobStatus.ACTIVE,
@@ -26,7 +25,6 @@ export class JobsEventService {
 
   @OnQueueFailed()
   onFailed(job: Job, error: Error) {
-    this.logger.error(`Job ${job.id} failed with error ${error.message}`);
     this.logger.error(
       `---- !! JOB FAILED !! ----\nid:${job.id}\nerror:${error.name} (${error.message})\n\nstack: ${error.stack}`,
     );
@@ -44,7 +42,6 @@ export class JobsEventService {
 
   @OnQueueCompleted()
   onCompleted(job: Job, data: any) {
-    this.logger.log(`Job ${job.id} completed`);
     this.eventEmitter.emit(JobEvents.STATUS, {
       id: job.id.toString(),
       status: JobStatus.COMPLETED,

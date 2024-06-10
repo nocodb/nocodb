@@ -100,7 +100,7 @@ export default class GalleryView implements GalleryType {
 
     insertObj.meta = {
       fk_cover_image_object_fit:
-        parseMetaProp(insertObj).fk_cover_image_object_fit || 'fit',
+        parseMetaProp(insertObj)?.fk_cover_image_object_fit || 'fit',
     };
 
     insertObj.meta = stringifyMetaProp(insertObj);

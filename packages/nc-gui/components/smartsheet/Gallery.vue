@@ -338,6 +338,10 @@ watch(
             </a-card>
           </LazySmartsheetRow>
         </div>
+
+        <template v-if="data.length < 4">
+          <div v-for="index of Array(4 - data.length)" :key="index" class="nc-empty-card"></div>
+        </template>
       </div>
     </div>
   </a-dropdown>

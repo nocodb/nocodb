@@ -413,12 +413,13 @@ watch(
 }
 
 :deep(.ant-card) {
-  @apply transition-shadow duration-0.3s;
+  @apply transition-all duration-0.3s;
 
   box-shadow: 0px 2px 4px -2px rgba(0, 0, 0, 0.06), 0px 4px 4px -2px rgba(0, 0, 0, 0.02);
 
   &:hover {
-    box-shadow: 0px 20px 24px -4px rgba(0, 0, 0, 0.1), 0px 8px 8px -4px rgba(0, 0, 0, 0.04);
+    @apply !border-gray-300;
+    box-shadow: 0px 0px 24px 0px rgba(0, 0, 0, 0.1), 0px 0px 8px 0px rgba(0, 0, 0, 0.04);
 
     .nc-action-icon {
       @apply invisible;

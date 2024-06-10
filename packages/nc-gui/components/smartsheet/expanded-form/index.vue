@@ -1026,9 +1026,6 @@ export default {
   @apply !xs:(h-full);
 }
 
-:deep(.ant-select-selection-item) {
-  @apply !xs:(mt-1.75 ml-1);
-}
 
 .nc-data-cell {
   @apply !rounded-lg;

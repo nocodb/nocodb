@@ -58,14 +58,27 @@ const hours = computed(() => {
   return hours
 })
 
+const currTime = ref(dayjs())
+
 const overlayTop = computed(() => {
   const perRecordHeight = 52
 
-  const currTime = dayjs().minute() + dayjs().hour() * 60
+  const minutes = currTime.value.minute() + currTime.value.hour() * 60
 
-  const top = (perRecordHeight / 60) * currTime
+  const top = (perRecordHeight / 60) * minutes
 
   return top
+})
+
+onMounted(() => {
+  const intervalId = setInterval(() => {
+    currTime.value = dayjs()
+  }, 10000) // 10000 ms = 10 seconds
+
+  // Clean up the interval when the component is unmounted
+  onUnmounted(() => {
+    clearInterval(intervalId)
+  })
 })
 
 const calculateNewDates = useMemoize(

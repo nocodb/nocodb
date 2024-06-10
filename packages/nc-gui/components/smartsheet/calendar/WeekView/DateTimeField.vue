@@ -62,6 +62,8 @@ const maxVisibleDays = computed(() => {
   return viewMetaProperties.value?.hide_weekend ? 5 : 7
 })
 
+const currTime = ref(dayjs())
+
 const overlayStyle = computed(() => {
   if (!containerWidth.value)
     return {
@@ -69,10 +71,8 @@ const overlayStyle = computed(() => {
       left: 0,
     }
 
-  const day = dayjs()
-
-  const left = (containerWidth.value / maxVisibleDays.value) * getDayIndex(day)
-  const minutes = day.hour() * 60 + day.minute()
+  const left = (containerWidth.value / maxVisibleDays.value) * getDayIndex(currTime.value)
+  const minutes = currTime.value.hour() * 60 + currTime.value.minute()
 
   const top = (52 / 60) * minutes
 
@@ -81,6 +81,17 @@ const overlayStyle = computed(() => {
     top: `${top}px`,
     left: `${left}px`,
   }
+})
+
+onMounted(() => {
+  const intervalId = setInterval(() => {
+    currTime.value = dayjs()
+  }, 10000) // 10000 ms = 10 seconds
+
+  // Clean up the interval when the component is unmounted
+  onUnmounted(() => {
+    clearInterval(intervalId)
+  })
 })
 
 const getFieldStyle = (field: ColumnType) => {

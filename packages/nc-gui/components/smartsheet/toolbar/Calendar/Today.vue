@@ -24,10 +24,9 @@ const goToToday = () => {
 
 <template>
   <NcButton
-    class="!border-0 !h-6 !hover:shadow-[0_0_4px_0_rgba(0,0,0,0.08)] !bg-gray-100"
+    class="!border-0 !h-6 today-btn !bg-gray-100"
     data-testid="nc-calendar-today-btn"
     size="small"
-    style=""
     type="secondary"
     @click="goToToday"
   >
@@ -37,4 +36,10 @@ const goToToday = () => {
   </NcButton>
 </template>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.today-btn {
+  &:hover {
+    box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
+  }
+}
+</style>

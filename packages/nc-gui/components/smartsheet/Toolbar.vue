@@ -18,7 +18,7 @@ const isTab = computed(() => {
 
 <template>
   <div
-    v-if="!isMobileMode || isCalendar"
+    v-if="!isMobileMode"
     ref="containerRef"
     :class="{
       'px-4': isMobileMode,

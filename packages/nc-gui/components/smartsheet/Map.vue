@@ -51,9 +51,8 @@ const getMapCenterLocalStorageKey = (viewId: string) => `mapView.${viewId}.cente
 
 const expandForm = (row: Row, state?: Record<string, any>) => {
   const rowId = extractPkFromRow(row.row, meta.value!.columns!)
-  expandedFormRow.value = row
 
-  if (rowId) {
+  if (rowId && !isPublic.value) {
     router.push({
       query: {
         ...route.query,
@@ -61,6 +60,7 @@ const expandForm = (row: Row, state?: Record<string, any>) => {
       },
     })
   } else {
+    expandedFormRow.value = row
     expandedFormRowState.value = state
     expandedFormDlg.value = true
   }

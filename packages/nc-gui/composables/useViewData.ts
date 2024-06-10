@@ -347,9 +347,8 @@ export function useViewData(
 
     // extract the row id of the sibling row
     const rowId = extractPkFromRow(formattedData.value[siblingRowIndex].row, meta.value?.columns as ColumnType[])
-
     if (rowId) {
-      router.push({
+      await router.push({
         query: {
           ...routeQuery.value,
           rowId,

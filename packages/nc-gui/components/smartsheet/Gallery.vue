@@ -213,7 +213,7 @@ watch(
       }"
     >
       <div v-if="isViewDataLoading" class="flex flex-col h-full">
-        <div class="flex flex-row p-3 !pr-1 gap-x-2 flex-wrap gap-y-2">
+        <div class="nc-gallery-container-skeleton grid gap-3 p-3">
           <a-skeleton-input v-for="index of Array(20)" :key="index" class="!min-w-60.5 !h-96 !rounded-md overflow-hidden" />
         </div>
       </div>
@@ -380,7 +380,8 @@ watch(
 </template>
 
 <style lang="scss" scoped>
-.nc-gallery-container {
+.nc-gallery-container,
+.nc-gallery-container-skeleton {
   @apply auto-rows-[1fr] grid-cols-[repeat(auto-fit,minmax(250px,1fr))];
 }
 

@@ -437,8 +437,8 @@ useMenuCloseOnEsc(open)
                 <div class="w-full flex gap-2 items-center justify-between">
                   <div class="flex items-center gap-1">
                     <component
-                      v-if="option.value"
                       :is="getIcon(metaColumnById[option.value])"
+                      v-if="option.value"
                       class="!w-3.5 !h-3.5 !text-gray-700 !ml-0"
                     />
 

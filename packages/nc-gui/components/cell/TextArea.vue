@@ -64,8 +64,8 @@ const height = computed(() => {
   return rowHeight.value * 36
 })
 
-const localRowHeight = computed(()=>{
-  if(readOnly.value && !isExpandedFormOpen.value && (isGallery.value || isKanban.value)) return 6
+const localRowHeight = computed(() => {
+  if (readOnly.value && !isExpandedFormOpen.value && (isGallery.value || isKanban.value)) return 6
 
   return rowHeight.value
 })

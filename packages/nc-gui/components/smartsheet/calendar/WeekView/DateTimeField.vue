@@ -233,8 +233,20 @@ const getMaxOverlaps = ({
 
   let maxOverlaps = 1
   if (graph.has(id)) {
-    maxOverlaps = dfs(id)
+    dfs(id)
   }
+
+  const overlapIterations: Array<number> = []
+
+  columnArray[dayIndex]
+    .flat()
+    .filter((record) => visited.has(record.rowMeta.id!))
+    .forEach((record) => {
+      overlapIterations.push(record.rowMeta.overLapIteration!)
+    })
+
+  maxOverlaps = Math.max(...overlapIterations)
+
   return { maxOverlaps, dayIndex, overlapIndex }
 }
 

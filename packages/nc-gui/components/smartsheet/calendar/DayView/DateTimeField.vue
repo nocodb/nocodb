@@ -178,12 +178,21 @@ const getMaxOverlaps = ({
     return maxOverlaps
   }
 
-  let maxOverlaps = 1
   const id = row.rowMeta.id as string
   if (graph.has(id)) {
-    maxOverlaps = dfs(id)
+    dfs(id)
   }
-  return maxOverlaps
+
+  const overlapIterations: Array<number> = []
+
+  columnArray
+    .flat()
+    .filter((record) => visited.has(record.rowMeta.id!))
+    .forEach((record) => {
+      overlapIterations.push(record.rowMeta.overLapIteration!)
+    })
+
+  return Math.max(...overlapIterations)
 }
 
 const recordsAcrossAllRange = computed<{

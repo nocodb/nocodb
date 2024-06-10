@@ -114,7 +114,7 @@ useSelectedCellKeyupListener(active, (e) => {
         'justify-center': !isEditColumnMenu && !isGallery && !isForm,
         'py-2': isEditColumnMenu,
       }"
-      @click="onClick(true)"
+      @click.stop="onClick(true)"
     >
       <Transition name="layout" mode="out-in" :duration="100">
         <component

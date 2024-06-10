@@ -19,6 +19,8 @@ const isPublic = inject(IsPublicInj, ref(false))
 
 const { $api, $e } = useNuxtApp()
 
+const { t } = useI18n()
+
 const {
   showSystemFields,
   fields,
@@ -194,6 +196,80 @@ const coverImageColumnId = computed({
   },
 })
 
+const updateCoverImageObjectFit = async (val: string) => {
+  if (
+    ![ViewTypes.GALLERY, ViewTypes.KANBAN].includes(activeView.value?.type as ViewTypes) ||
+    !activeView.value?.id ||
+    !activeView.value?.view
+  ) {
+    return
+  }
+
+  if (activeView.value?.type === ViewTypes.GALLERY) {
+    const payload = {
+      ...parseProp((activeView.value?.view as GalleryType)?.meta),
+      fk_cover_image_object_fit: val,
+    }
+    await $api.dbView.galleryUpdate(activeView.value?.id, {
+      meta: payload,
+    })
+    ;(activeView.value.view as GalleryType).meta = payload
+  } else if (activeView.value?.type === ViewTypes.KANBAN) {
+    const payload = {
+      ...parseProp((activeView.value?.view as KanbanType)?.meta),
+      fk_cover_image_object_fit: val,
+    }
+    await $api.dbView.kanbanUpdate(activeView.value?.id, {
+      meta: payload,
+    })
+    ;(activeView.value.view as KanbanType).meta = payload
+  }
+
+  await reloadViewMetaHook?.trigger()
+}
+
+const coverImageObjectFitOptions = [
+  { value: CoverImageObjectFit.FIT, label: t('labels.fitImage') },
+  { value: CoverImageObjectFit.COVER, label: t('labels.coverImageArea') },
+]
+
+const coverImageObjectFitDropdown = ref<{
+  isOpen: boolean
+  isSaving: keyof typeof CoverImageObjectFit | null
+}>({
+  isOpen: false,
+  isSaving: null,
+})
+
+const coverImageObjectFit = computed({
+  get: () => {
+    return [ViewTypes.GALLERY, ViewTypes.KANBAN].includes(activeView.value?.type as ViewTypes) && activeView.value?.view
+      ? parseProp(activeView.value?.view?.meta)?.fk_cover_image_object_fit || CoverImageObjectFit.FIT
+      : undefined
+  },
+  set: async (val) => {
+    if (val !== coverImageObjectFit.value) {
+      coverImageObjectFitDropdown.value.isSaving = val
+
+      addUndo({
+        undo: {
+          fn: updateCoverImageObjectFit,
+          args: [coverImageObjectFit.value],
+        },
+        redo: {
+          fn: updateCoverImageObjectFit,
+          args: [val],
+        },
+        scope: defineViewScope({ view: activeView.value }),
+      })
+
+      await updateCoverImageObjectFit(val)
+    }
+    coverImageObjectFitDropdown.value.isSaving = null
+    coverImageObjectFitDropdown.value.isOpen = false
+  },
+})
+
 const onShowAll = () => {
   addUndo({
     undo: {
@@ -341,18 +417,80 @@ useMenuCloseOnEsc(open)
       >
         <div
           v-if="!isPublic && (activeView?.type === ViewTypes.GALLERY || activeView?.type === ViewTypes.KANBAN)"
-          class="flex flex-col gap-y-2 px-2 mb-6"
+          class="flex flex-col gap-y-2 px-2 mb-3"
         >
-          <div class="flex text-sm select-none">Select cover image field</div>
-          <a-select
-            v-model:value="coverImageColumnId"
-            :options="coverOptions"
-            class="w-full"
-            dropdown-class-name="nc-dropdown-cover-image !rounded-lg"
-            @click.stop
+          <div class="flex text-sm select-none text-gray-600">{{ $t('labels.coverImageField') }}</div>
+
+          <div
+            class="nc-dropdown-cover-image-wrapper flex items-stretch border-1 border-gray-200 rounded-lg transition-all duration-0.3s"
           >
-            <template #suffixIcon><GeneralIcon class="text-gray-700" icon="arrowDown" /></template>
-          </a-select>
+            <a-select
+              v-model:value="coverImageColumnId"
+              class="w-full"
+              dropdown-class-name="nc-dropdown-cover-image !rounded-lg"
+              :bordered="false"
+              @click.stop
+            >
+              <template #suffixIcon><GeneralIcon class="text-gray-700" icon="arrowDown" /></template>
+
+              <a-select-option v-for="option of coverOptions" :key="option.value" :value="option.value">
+                <div class="w-full flex gap-2 items-center justify-between">
+                  <div class="flex items-center gap-1">
+                    <component
+                      :is="getIcon(metaColumnById[option.value])"
+                      v-if="option.value"
+                      class="!w-3.5 !h-3.5 !text-gray-700 !ml-0"
+                    />
+
+                    <span> {{ option.label }} </span>
+                  </div>
+                  <GeneralIcon
+                    v-if="coverImageColumnId === option.value"
+                    id="nc-selected-item-icon"
+                    icon="check"
+                    class="flex-none text-primary w-4 h-4"
+                  />
+                </div>
+              </a-select-option>
+            </a-select>
+            <NcDropdown v-if="coverImageObjectFit" v-model:visible="coverImageObjectFitDropdown.isOpen" placement="bottomRight">
+              <button class="flex items-center px-2 border-l-1 border-gray-200 cursor-pointer">
+                <GeneralIcon
+                  icon="settings"
+                  class="h-4 w-4"
+                  :class="{
+                    '!text-brand-500': coverImageObjectFitDropdown.isOpen,
+                  }"
+                />
+              </button>
+              <template #overlay>
+                <NcMenu class="nc-cover-image-object-fit-dropdown-menu min-w-[168px]">
+                  <NcMenuItem
+                    v-for="option in coverImageObjectFitOptions"
+                    :key="option.value"
+                    class="!children:w-full"
+                    @click.stop="coverImageObjectFit = option.value"
+                  >
+                    <span>
+                      {{ option.label }}
+                    </span>
+
+                    <GeneralLoader
+                      v-if="option.value === coverImageObjectFitDropdown.isSaving"
+                      size="regular"
+                      class="flex-none"
+                    />
+
+                    <GeneralIcon
+                      v-else-if="option.value === coverImageObjectFit"
+                      icon="check"
+                      class="flex-none text-primary w-4 h-4"
+                    />
+                  </NcMenuItem>
+                </NcMenu>
+              </template>
+            </NcDropdown>
+          </div>
         </div>
 
         <div class="px-2" @click.stop>
@@ -469,7 +607,7 @@ useMenuCloseOnEsc(open)
         </div>
         <div v-if="!filterQuery" class="flex px-2 gap-2 py-2">
           <NcButton class="nc-fields-show-all-fields" size="small" type="ghost" @click="showAllColumns = !showAllColumns">
-            {{ showAllColumns ? 'Hide all' : 'Show all' }} fields
+            {{ showAllColumns ? $t('general.hideAll') : $t('general.showAll') }} {{ $t('objects.fields') }}
           </NcButton>
           <NcButton
             v-if="!isPublic"
@@ -478,7 +616,7 @@ useMenuCloseOnEsc(open)
             type="ghost"
             @click="showSystemField = !showSystemField"
           >
-            {{ showSystemField ? 'Hide system fields' : 'Show system fields' }}
+            {{ showSystemField ? $t('title.hideSystemFields') : $t('activity.showSystemFields') }}
           </NcButton>
         </div>
       </div>
@@ -498,5 +636,30 @@ useMenuCloseOnEsc(open)
 .nc-fields-show-all-fields,
 .nc-fields-show-system-fields {
   @apply !text-xs !w-1/2 !text-gray-500 !border-none bg-gray-100 hover:(!text-gray-600 bg-gray-200);
+}
+
+.nc-cover-image-object-fit-dropdown-menu {
+  :deep(.nc-menu-item-inner) {
+    @apply !w-full flex items-center justify-between;
+  }
+}
+.nc-dropdown-cover-image-wrapper {
+  @apply h-8;
+  &:not(:focus-within) {
+    @apply shadow-default hover:shadow-hover;
+  }
+  &:focus-within {
+    @apply shadow-selected border-brand-500;
+  }
+}
+
+:deep(.ant-input-affix-wrapper) {
+  &:not(.ant-input-affix-wrapper-disabled):not(.ant-input-affix-wrapper-focused):not(:focus) {
+    @apply shadow-default hover:(shadow-hover border-gray-200);
+  }
+  &.ant-input-affix-wrapper-focused,
+  &:focus {
+    @apply border-brand-500 shadow-selected;
+  }
 }
 </style>

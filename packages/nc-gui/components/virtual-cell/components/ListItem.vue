@@ -41,13 +41,6 @@ interface Attachment {
   mimetype: string
 }
 
-const isRowEmpty = (row: any, col: any) => {
-  const val = row[col.title]
-  if (!val) return true
-
-  return Array.isArray(val) && val.length === 0
-}
-
 const attachments: ComputedRef<Attachment[]> = computed(() => {
   try {
     if (props.attachment && row.value[props.attachment.title]) {
@@ -124,7 +117,7 @@ const displayValue = computed(() => {
             class="flex ml-[-0.25rem] sm:flex-row xs:(flex-col mt-2) gap-4 min-h-5"
           >
             <div v-for="field in fields" :key="field.id" class="sm:(w-1/3 max-w-1/3 overflow-hidden)">
-              <div v-if="!isRowEmpty(row, field)" class="flex flex-col gap-[-1]">
+              <div v-if="!isRowEmpty({ row }, field)" class="flex flex-col gap-[-1]">
                 <NcTooltip class="z-10 flex" placement="bottomLeft" :arrow-point-at-center="false">
                   <template #title>
                     <LazySmartsheetHeaderVirtualCell

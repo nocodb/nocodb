@@ -141,8 +141,6 @@ export const extractFieldValidator = (_validators: Validation[], element: Column
   return rules
 }
 
-
-
 export const getValidFieldName = (title: string, uniqueFieldNames: Set<string>) => {
   title = title.replace(/\./g, '_')
   let counter = 1

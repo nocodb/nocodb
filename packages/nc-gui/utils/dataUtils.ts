@@ -119,8 +119,9 @@ export const rowDefaultData = (columns: ColumnType[] = []) => {
 
 export const isRowEmpty = (record: any, col: any) => {
   if (!record || !col) return true
+
   const val = record.row[col.title]
-  if (!val) return true
+  if (val === null || val === undefined || val === '') return true
 
   return Array.isArray(val) && val.length === 0
 }

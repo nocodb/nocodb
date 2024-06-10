@@ -903,7 +903,7 @@ watch(
         >
           {{ dayjs().format('hh:mm A') }}
         </span>
-        <div class="flex-1 border-1 border-brand-500"></div>
+        <div class="flex-1 border-b-1 border-brand-500"></div>
       </div>
     </div>
 

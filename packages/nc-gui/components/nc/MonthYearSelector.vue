@@ -168,8 +168,8 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
             v-for="(year, id) in years"
             :key="id"
             :class="{
-              'bg-gray-200 !text-brand-500 !font-bold ': compareYear(year, selectedDate) && !isCellInputField,
-              'bg-gray-300 !font-weight-600 ': compareYear(year, selectedDate) && isCellInputField,
+              'bg-gray-200 !font-bold ': compareYear(year, selectedDate) && !isCellInputField,
+              'bg-gray-300 !text-brand-500 !font-weight-600 ': compareYear(year, selectedDate) && isCellInputField,
               'hover:(border-1 border-gray-200 bg-gray-100)': !compareYear(year, selectedDate),
               '!text-brand-500': dayjs().isSame(year, 'year'),
               'font-weight-400 text-gray-700 rounded': isCellInputField,

@@ -454,7 +454,7 @@ onClickOutside(searchRef, toggleSearch)
           v-if="!showSearch"
           data-testid="nc-calendar-sidebar-search-btn"
           size="small"
-          class="!h-7"
+          class="!h-7 !rounded-md"
           type="secondary"
           @click="clickSearch"
         >
@@ -469,7 +469,7 @@ onClickOutside(searchRef, toggleSearch)
           v-if="isUIAllowed('dataEdit') && props.visible"
           v-e="['c:calendar:calendar-sidemenu-new-record-btn']"
           data-testid="nc-calendar-side-menu-new-btn"
-          class="!h-7"
+          class="!h-7 !rounded-md"
           size="small"
           type="secondary"
           @click="newRecord"

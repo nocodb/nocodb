@@ -41,13 +41,6 @@ interface Attachment {
   mimetype: string
 }
 
-const isRowEmpty = (row: any, col: any) => {
-  const val = row[col.title]
-  if (!val) return true
-
-  return Array.isArray(val) && val.length === 0
-}
-
 const attachments: ComputedRef<Attachment[]> = computed(() => {
   try {
     if (props.attachment && row.value[props.attachment.title]) {

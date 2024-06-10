@@ -64,13 +64,6 @@ const coverImageObjectFitClass = computed(() => {
   if (fk_cover_image_object_fit === CoverImageObjectFit.COVER) return '!object-cover'
 })
 
-const isRowEmpty = (record: any, col: any) => {
-  const val = record.row[col.title]
-  if (!val) return true
-
-  return Array.isArray(val) && val.length === 0
-}
-
 const { isUIAllowed } = useRoles()
 const hasEditPermission = computed(() => isUIAllowed('dataEdit'))
 // TODO: extract this code (which is duplicated in grid and gallery) into a separate component

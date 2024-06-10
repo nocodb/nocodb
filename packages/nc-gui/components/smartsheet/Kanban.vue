@@ -108,13 +108,6 @@ const kanbanContainerRef = ref()
 
 const selectedStackTitle = ref('')
 
-const isRowEmpty = (record: any, col: any) => {
-  const val = record.row[col.title]
-  if (!val) return true
-
-  return Array.isArray(val) && val.length === 0
-}
-
 reloadViewDataHook?.on(async () => {
   await loadKanbanMeta()
   await loadKanbanData()

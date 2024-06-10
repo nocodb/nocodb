@@ -707,6 +707,15 @@ export class MetaService {
    * @returns {Promise<any[]>} - List of bases
    * */
   public async baseList(): Promise<any[]> {
+    // check if table exists
+    const tableExists = await this.knexConnection.schema.hasTable(
+      'nc_projects',
+    );
+
+    if (!tableExists) {
+      return [];
+    }
+
     return (await this.knexConnection('nc_projects').select()).map((p) => {
       p.config = CryptoJS.AES.decrypt(
         p.config,

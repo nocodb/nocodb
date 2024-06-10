@@ -14,7 +14,7 @@ import ncXcdbLTARIndexUpgrader from './ncXcdbLTARIndexUpgrader';
 import ncXcdbCreatedAndUpdatedSystemFieldsUpgrader from './ncXcdbCreatedAndUpdatedSystemFieldsUpgrader';
 import type { MetaService } from '~/meta/meta.service';
 import type { NcConfig } from '~/interface/config';
-import { RootScopes } from '~/utils/globals';
+import { MetaTable, RootScopes } from '~/utils/globals';
 
 const log = debug('nc:version-upgrader');
 
@@ -33,7 +33,9 @@ export default class NcUpgrader {
     try {
       ctx.ncMeta = await ctx.ncMeta.startTransaction();
 
-      if (!(await ctx.ncMeta.knexConnection?.schema?.hasTable?.('nc_store'))) {
+      if (
+        !(await ctx.ncMeta.knexConnection?.schema?.hasTable?.(MetaTable.STORE))
+      ) {
         return;
       }
       this.log(`upgrade : Getting configuration from meta database`);
@@ -41,7 +43,7 @@ export default class NcUpgrader {
       const config = await ctx.ncMeta.metaGet(
         RootScopes.ROOT,
         RootScopes.ROOT,
-        'nc_store',
+        MetaTable.STORE,
         {
           key: this.STORE_KEY,
         },
@@ -68,7 +70,7 @@ export default class NcUpgrader {
               await ctx.ncMeta.metaUpdate(
                 RootScopes.ROOT,
                 RootScopes.ROOT,
-                'nc_store',
+                MetaTable.STORE,
                 {
                   value: JSON.stringify({ version: config.version }),
                 },
@@ -95,7 +97,7 @@ export default class NcUpgrader {
         await ctx.ncMeta.metaInsert2(
           RootScopes.ROOT,
           RootScopes.ROOT,
-          'nc_store',
+          MetaTable.STORE,
           {
             key: NcUpgrader.STORE_KEY,
             value: JSON.stringify(configObj),

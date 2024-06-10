@@ -11,7 +11,7 @@ import getInstance from '~/utils/getInstance';
 import initAdminFromEnv from '~/helpers/initAdminFromEnv';
 import { User } from '~/models';
 import { NcConfig, prepareEnv } from '~/utils/nc-config';
-import { RootScopes } from '~/utils/globals';
+import { MetaTable, RootScopes } from '~/utils/globals';
 
 export const InitMetaServiceProvider: FactoryProvider = {
   // initialize app,
@@ -38,7 +38,7 @@ export const InitMetaServiceProvider: FactoryProvider = {
 
     // check if nc_store exists
     const ncStoreExists = await metaService.knexConnection.schema.hasTable(
-      'nc_store',
+      MetaTable.STORE,
     );
 
     // get instance config
@@ -46,7 +46,7 @@ export const InitMetaServiceProvider: FactoryProvider = {
       ? await metaService.metaGet(
           RootScopes.ROOT,
           RootScopes.ROOT,
-          'nc_store',
+          MetaTable.STORE,
           {
             key: 'NC_CONFIG_MAIN',
           },

@@ -1026,7 +1026,6 @@ export default {
   @apply !xs:(h-full);
 }
 
-
 .nc-data-cell {
   @apply !rounded-lg;
   transition: all 0.3s;

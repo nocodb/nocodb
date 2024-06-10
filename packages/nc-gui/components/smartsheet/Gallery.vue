@@ -466,7 +466,14 @@ watch(
 
 :deep(.nc-cell),
 :deep(.nc-virtual-cell) {
-  @apply text-sm;
+  @apply text-small leading-[18px];
+
+  .nc-cell-field,
+  input,
+  textarea,
+  .nc-cell-field-link {
+    @apply !text-small !leading-[18px];
+  }
 }
 :deep(.nc-cell) {
   &.nc-cell-checkbox {
@@ -478,6 +485,18 @@ watch(
   &.nc-cell-multiselect .nc-cell-field > div {
     @apply h-5;
   }
+  &.nc-cell-email,
+  &.nc-cell-phonenumber {
+    @apply flex items-center;
+  }
+
+  &.nc-cell-email,
+  &.nc-cell-phonenumber,
+  &.nc-cell-url {
+    .nc-cell-field-link {
+      @apply py-0;
+    }
+  }
 }
 
 :deep(.nc-virtual-cell) {
@@ -486,7 +505,7 @@ watch(
   }
   &.nc-virtual-cell-linktoanotherrecord {
     .chips-wrapper {
-      @apply !children:min-h-4;
+      @apply min-h-4 !children:min-h-4;
       .chip.group {
         @apply my-0;
       }

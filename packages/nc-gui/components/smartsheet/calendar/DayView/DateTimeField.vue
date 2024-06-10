@@ -26,6 +26,8 @@ const meta = inject(MetaInj, ref())
 
 const fields = inject(FieldsInj, ref())
 
+const isPublic = inject(IsPublicInj, ref(false))
+
 const { fields: _fields } = useViewColumnsOrThrow()
 
 const fieldStyles = computed(() => {
@@ -246,8 +248,8 @@ const recordsAcrossAllRange = computed<{
         const heightInPixels = Math.max(endDate.diff(startDate, 'minute'), perRecordHeight)
 
         const style: Partial<CSSStyleDeclaration> = {
-          height: `${heightInPixels - 8}px`,
-          top: `${topInPixels + 4}px`,
+          height: `${heightInPixels - 2}px`,
+          top: `${topInPixels + 1}px`,
         }
 
         // This property is used to determine which side the record should be rounded. It can be top, bottom, both or none
@@ -298,8 +300,8 @@ const recordsAcrossAllRange = computed<{
         const heightInPixels = Math.max((endDate.diff(startDate, 'minute') / 60) * 52, perRecordHeight)
         style = {
           ...style,
-          top: `${topInPixels + 4}px`,
-          height: `${heightInPixels - 8}px`,
+          top: `${topInPixels + 1}px`,
+          height: `${heightInPixels - 2}px`,
         }
 
         recordsByRange.push({
@@ -895,7 +897,7 @@ watch(
         @dblclick="newRecord(hour)"
       >
         <NcDropdown
-          v-if="calendarRange.length > 1"
+          v-if="calendarRange.length > 1 && !isPublic"
           :class="{
             '!block': hour.isSame(selectedTime),
             '!hidden': !hour.isSame(selectedTime),
@@ -903,7 +905,7 @@ watch(
           auto-close
         >
           <NcButton
-            class="!group-hover:block mr-4 my-auto ml-auto z-10 top-0 bottom-0 !group-hover:block absolute"
+            class="!group-hover:block mr-12 my-auto ml-auto z-10 top-0 bottom-0 !group-hover:block absolute"
             size="xsmall"
             type="secondary"
           >
@@ -944,12 +946,12 @@ watch(
           </template>
         </NcDropdown>
         <NcButton
-          v-else
+          v-else-if="!isPublic"
           :class="{
             '!block': hour.isSame(selectedTime),
             '!hidden': !hour.isSame(selectedTime),
           }"
-          class="!group-hover:block mr-4 my-auto ml-auto z-10 top-0 bottom-0 !group-hover:block absolute"
+          class="!group-hover:block mr-12 my-auto ml-auto z-10 top-0 bottom-0 !group-hover:block absolute"
           size="xsmall"
           type="secondary"
           @click="

@@ -9,6 +9,10 @@ const props = defineProps<{
 
 const emit = defineEmits(['expandRecord', 'newRecord'])
 
+interface Attachment {
+  url: string
+}
+
 const INFINITY_SCROLL_THRESHOLD = 100
 
 const { isUIAllowed } = useRoles()
@@ -20,6 +24,10 @@ const { appInfo, isMobileMode } = useGlobal()
 const { height } = useWindowSize()
 
 const meta = inject(MetaInj, ref())
+
+const { fields } = useViewColumnsOrThrow()
+
+const { getPossibleAttachmentSrc } = useAttachment()
 
 const { t } = useI18n()
 
@@ -44,6 +52,23 @@ const {
 } = useCalendarViewStoreOrThrow()
 
 const sideBarListRef = ref<VNodeRef | null>(null)
+
+const coverImageColumns: any = computed(() => {
+  if (!fields.value || !meta.value?.columns) return
+  return meta.value.columns.find((c) => c.uidt === UITypes.Attachment && fields.value?.find((f) => f.fk_column_id === c.id).show)
+})
+
+const attachments = (record: any): Attachment[] => {
+  const col = coverImageColumns.value
+  try {
+    if (col?.title && record.row[col.title]) {
+      return typeof record.row[col.title] === 'string' ? JSON.parse(record.row[col.title]) : record.row[col.title]
+    }
+    return []
+  } catch (e) {
+    return []
+  }
+}
 
 const pushToArray = (arr: Array<Row>, record: Row, range) => {
   arr.push({
@@ -521,6 +546,50 @@ onClickOutside(searchRef, toggleSearch)
                 @dragstart="dragStart($event, record)"
                 @dragover.prevent
               >
+                <template v-if="coverImageColumns" #image>
+                  <a-carousel
+                    v-if="attachments(record).length"
+                    class="gallery-carousel rounded-md !border-1 !border-gray-200"
+                    arrows
+                  >
+                    <template #customPaging>
+                      <a>
+                        <div class="pt-[12px]">
+                          <div></div>
+                        </div>
+                      </a>
+                    </template>
+
+                    <template #prevArrow>
+                      <div class="z-10 arrow">
+                        <MdiChevronLeft
+                          class="text-gray-700 w-6 h-6 absolute left-1.5 bottom-[-90px] !opacity-0 !group-hover:opacity-100 !bg-white border-1 border-gray-200 rounded-md transition"
+                        />
+                      </div>
+                    </template>
+
+                    <template #nextArrow>
+                      <div class="z-10 arrow">
+                        <MdiChevronRight
+                          class="text-gray-700 w-6 h-6 absolute right-1.5 bottom-[-90px] !opacity-0 !group-hover:opacity-100 !bg-white border-1 border-gray-200 rounded-md transition"
+                        />
+                      </div>
+                    </template>
+
+                    <template v-for="(attachment, index) in attachments(record)">
+                      <LazyCellAttachmentImage
+                        v-if="isImage(attachment.title, attachment.mimetype ?? attachment.type)"
+                        :key="`carousel-${record.row.id}-${index}`"
+                        class="h-10 !w-10 !object-contain"
+                        :srcs="getPossibleAttachmentSrc(attachment)"
+                      />
+                    </template>
+                  </a-carousel>
+                  <div v-else class="h-10 w-10 !flex flex-row !border-1 rounded-md !border-gray-200 items-center justify-center">
+                    <img class="object-contain w-[40px] h-[40px]" src="~assets/icons/FileIconImageBox.png" />
+                  </div>
+                </template>
+
                 <template v-if="!isRowEmpty(record, displayField)">
                   <LazySmartsheetPlainCell v-model="record.row[displayField!.title!]" :column="displayField" />
                 </template>

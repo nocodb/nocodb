@@ -135,29 +135,6 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
     </div>
     <template #overlay>
       <div v-if="calendarRangeDropdown" class="w-98 space-y-6 rounded-2xl p-6" data-testid="nc-calendar-range-menu" @click.stop>
-        <div>
-          <div class="flex mb-3 justify-between">
-            <div class="flex items-center gap-3">
-              <GeneralViewIcon
-                :meta="{
-                  type: ViewTypes.CALENDAR,
-                }"
-                class="w-6 h-6"
-              />
-              <span class="font-bold text-base"> {{ `${$t('activity.calendar')} ${$t('activity.viewSettings')}` }}</span>
-            </div>
-
-            <a
-              class="text-sm !text-gray-600 !font-default !hover:text-gray-600"
-              href="`https://docs.nocodb.com/views/view-types/calendar`"
-              target="_blank"
-            >
-              Go to Docs
-            </a>
-          </div>
-          <NcDivider divider-class="!border-gray-200" />
-        </div>
-
         <div
           v-for="(range, id) in _calendar_ranges"
           :key="id"

@@ -369,7 +369,10 @@ const calculateNewRow = (event: MouseEvent, updateSideBar?: boolean, skipChangeC
   let newStartDate = dates.value[week] ? dayjs(dates.value[week][day]) : null
   if (!newStartDate) return { newRow: null, updateProperty: [] }
 
-  const fromDate = dayjs(dragRecord.value.row[fromCol.title!])
+  let fromDate = dayjs(dragRecord.value.row[fromCol.title!])
+  if (!fromDate.isValid()) {
+    fromDate = dayjs()
+  }
 
   newStartDate = newStartDate.add(fromDate.hour(), 'hour').add(fromDate.minute(), 'minute').add(fromDate.second(), 'second')
 

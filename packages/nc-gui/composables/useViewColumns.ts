@@ -159,7 +159,8 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       if (isLocalMode.value) {
         const fieldById = (fields.value || []).reduce<Record<string, any>>((acc, curr) => {
           if (curr.fk_column_id) {
-            ;(curr.show = !!curr.isViewEssentialField), (acc[curr.fk_column_id] = curr)
+            curr.show = !!curr.isViewEssentialField
+            acc[curr.fk_column_id] = curr
           }
           return acc
         }, {})
@@ -307,7 +308,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
 
     const toggleFieldVisibility = (checked: boolean, field: any) => {
       const fieldIndex = fields.value?.findIndex((f) => f.fk_column_id === field.fk_column_id)
-      console.log('field index', fieldIndex)
+
       if (!fieldIndex && fieldIndex !== 0) return
       addUndo({
         undo: {

@@ -540,7 +540,7 @@ const getRowId = (row: RowType) => {
                                       <template #prevArrow>
                                         <div class="z-10 arrow">
                                           <MdiChevronLeft
-                                            class="text-gray-700 w-6 h-6 absolute left-1.5 bottom-[-90px] !opacity-0 !group-hover:opacity-100 !bg-white border-1 border-gray-200 rounded-md transition"
+                                            class="text-gray-700 w-6 h-6 absolute left-1.5 bottom-[-90px] !opacity-0 !group-hover:opacity-100 !bg-white border-1 border-gray-200 rounded-lg transition"
                                           />
                                         </div>
                                       </template>
@@ -548,7 +548,7 @@ const getRowId = (row: RowType) => {
                                       <template #nextArrow>
                                         <div class="z-10 arrow">
                                           <MdiChevronRight
-                                            class="text-gray-700 w-6 h-6 absolute right-1.5 bottom-[-90px] !opacity-0 !group-hover:opacity-100 !bg-white border-1 border-gray-200 rounded-md transition"
+                                            class="text-gray-700 w-6 h-6 absolute right-1.5 bottom-[-90px] !opacity-0 !group-hover:opacity-100 !bg-white border-1 border-gray-200 rounded-lg transition"
                                           />
                                         </div>
                                       </template>
@@ -570,8 +570,8 @@ const getRowId = (row: RowType) => {
                                     <img class="object-contain w-[48px] h-[48px]" src="~assets/icons/FileIconImageBox.png" />
                                   </div>
                                 </template>
-                                <div class="flex flex-col gap-2">
-                                  <h2 v-if="displayField" class="text-base mt-3 mx-3 font-bold">
+                                <div class="flex flex-col gap-3">
+                                  <h2 v-if="displayField" class="nc-card-display-value-wrapper">
                                     <LazySmartsheetVirtualCell
                                       v-if="isVirtualCol(displayField)"
                                       v-model="record.row[displayField.title]"
@@ -625,9 +625,7 @@ const getRowId = (row: RowType) => {
                                           class="!text-gray-800"
                                         />
                                       </div>
-                                      <div v-else class="flex flex-row w-full h-[1.375rem] pl-1 items-center justify-start">
-                                        -
-                                      </div>
+                                      <div v-else class="flex flex-row w-full h-8 pl-1 items-center justify-start">-</div>
                                     </div>
                                   </div>
                                 </div>
@@ -830,10 +828,33 @@ const getRowId = (row: RowType) => {
   }
 }
 
+.nc-card-display-value-wrapper {
+  @apply my-0;
+
+  .nc-cell,
+  .nc-virtual-cell {
+    @apply text-xl leading-8;
+
+    :deep(.nc-cell-field),
+    :deep(input),
+    :deep(textarea),
+    :deep(.nc-cell-field-link) {
+      @apply !text-xl leading-8 text-gray-800;
+    }
+  }
+}
+
 .nc-card-col-header {
   :deep(.nc-cell-icon),
   :deep(.nc-virtual-cell-icon) {
     @apply ml-0;
+  }
+}
+
+:deep(.long-text-wrapper .nc-rich-text) {
+  @apply pl-0;
+  .tiptap.ProseMirror {
+    @apply -ml-1;
   }
 }
 </style>

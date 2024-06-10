@@ -198,7 +198,7 @@ const recordsToDisplay = computed<{
         }
 
         if (maxVisibleDays.value === 5) {
-          if (dayIndex === 0 || dayIndex === 6) {
+          if (dayIndex === 5 || dayIndex === 6) {
             style.display = 'none'
           }
         }
@@ -711,7 +711,7 @@ const addRecord = (date: dayjs.Dayjs) => {
       <div
         v-for="(day, index) in days"
         :key="index"
-        class="text-center bg-gray-50 py-1 border-b-1 border-r-1 last:border-r-0 border-gray-200 font-regular uppercase text-xs text-gray-500"
+        class="text-center bg-gray-50 py-1 border-b-1 border-r-1 last:border-r-0 border-gray-200 font-semibold leading-4 uppercase text-[10px] text-gray-500"
       >
         {{ day }}
       </div>
@@ -745,6 +745,7 @@ const addRecord = (date: dayjs.Dayjs) => {
               'border-brand-500 border-1 !border-r-1 border-b-1':
                 isDateSelected(day) || (focusedDate && dayjs(day).isSame(focusedDate, 'day')),
               '!text-gray-400': !isDayInPagedMonth(day),
+              '!bg-gray-50 !hover:bg-gray-100': day.get('day') === 0 || day.get('day') === 6,
             }"
             class="text-right relative group last:border-r-0 transition text-sm h-full border-r-1 border-b-1 border-gray-200 font-medium hover:bg-gray-50 text-gray-800 bg-white"
             data-testid="nc-calendar-month-day"

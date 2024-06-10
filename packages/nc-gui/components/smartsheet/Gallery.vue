@@ -221,7 +221,7 @@ watch(
         <div v-for="(record, rowIndex) in data" :key="`record-${record.row.id}`">
           <LazySmartsheetRow :row="record">
             <a-card
-              class="!rounded-lg h-full border-gray-200 border-1 group overflow-hidden break-all max-w-[450px] shadow-sm hover:shadow-md cursor-pointer"
+              class="!rounded-xl h-full border-gray-200 border-1 group overflow-hidden break-all max-w-[450px] cursor-pointer children:pointer-events-none"
               :body-style="{ padding: '16px !important' }"
               :data-testid="`nc-gallery-card-${record.row.id}`"
               @click="expandFormClick($event, record)"
@@ -294,7 +294,7 @@ watch(
                 <div v-for="col in fieldsWithoutDisplay" :key="`record-${record.row.id}-${col.id}`">
                   <div class="flex flex-col rounded-lg w-full">
                     <div class="flex flex-row w-full justify-start">
-                      <div class="nc-gallery-card-col-header w-full text-gray-500 uppercase">
+                      <div class="nc-card-col-header w-full text-gray-500 uppercase">
                         <LazySmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" :hide-menu="true" />
 
                         <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="true" />
@@ -398,12 +398,20 @@ watch(
 }
 
 :deep(.ant-card) {
-  &:hover .nc-action-icon {
-    @apply invisible;
+  @apply transition-shadow duration-0.3s;
+
+  box-shadow: 0px 2px 4px -2px rgba(0, 0, 0, 0.06), 0px 4px 4px -2px rgba(0, 0, 0, 0.02);
+
+  &:hover {
+    box-shadow: 0px 20px 24px -4px rgba(0, 0, 0, 0.1), 0px 8px 8px -4px rgba(0, 0, 0, 0.04);
+
+    .nc-action-icon {
+      @apply invisible;
+    }
   }
 }
 
-.nc-gallery-card-col-header {
+.nc-card-col-header {
   :deep(.nc-cell-icon),
   :deep(.nc-virtual-cell-icon) {
     @apply ml-0;

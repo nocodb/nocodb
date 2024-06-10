@@ -512,8 +512,8 @@ const getRowId = (row: RowType) => {
                             <LazySmartsheetRow :row="record">
                               <a-card
                                 :key="`${getRowId(record)}-${index}`"
-                                class="!rounded-lg h-full border-gray-200 border-1 group overflow-hidden break-all max-w-[450px] shadow-sm hover:shadow-md cursor-pointer children:pointer-events-none"
-                                :body-style="{ padding: '0px' }"
+                                class="!rounded-xl h-full border-gray-200 border-1 group overflow-hidden break-all max-w-[450px] cursor-pointer children:pointer-events-none"
+                                :body-style="{ padding: '16px !important' }"
                                 :data-stack="stack.title"
                                 :data-testid="`nc-gallery-card-${record.row.id}`"
                                 :class="{
@@ -570,60 +570,65 @@ const getRowId = (row: RowType) => {
                                     <img class="object-contain w-[48px] h-[48px]" src="~assets/icons/FileIconImageBox.png" />
                                   </div>
                                 </template>
-                                <h2 v-if="displayField" class="text-base mt-3 mx-3 font-bold">
-                                  <LazySmartsheetVirtualCell
-                                    v-if="isVirtualCol(displayField)"
-                                    v-model="record.row[displayField.title]"
-                                    class="!text-brand-500"
-                                    :column="displayField"
-                                    :row="record"
-                                  />
+                                <div class="flex flex-col gap-2">
+                                  <h2 v-if="displayField" class="text-base mt-3 mx-3 font-bold">
+                                    <LazySmartsheetVirtualCell
+                                      v-if="isVirtualCol(displayField)"
+                                      v-model="record.row[displayField.title]"
+                                      class="!text-brand-500"
+                                      :column="displayField"
+                                      :row="record"
+                                    />
 
-                                  <LazySmartsheetCell
-                                    v-else
-                                    v-model="record.row[displayField.title]"
-                                    class="!text-brand-500"
-                                    :column="displayField"
-                                    :edit-enabled="false"
-                                    :read-only="true"
-                                  />
-                                </h2>
+                                    <LazySmartsheetCell
+                                      v-else
+                                      v-model="record.row[displayField.title]"
+                                      class="!text-brand-500"
+                                      :column="displayField"
+                                      :edit-enabled="false"
+                                      :read-only="true"
+                                    />
+                                  </h2>
 
-                                <div v-for="col in fieldsWithoutDisplay" :key="`record-${record.row.id}-${col.id}`">
-                                  <div class="flex flex-col first:mt-3 ml-2 !pr-3.5 !mb-[0.75rem] rounded-lg w-full">
-                                    <div class="flex flex-row w-full justify-start scale-75">
-                                      <div class="w-full pb-1 text-gray-300">
-                                        <LazySmartsheetHeaderVirtualCell
+                                  <div v-for="col in fieldsWithoutDisplay" :key="`record-${record.row.id}-${col.id}`">
+                                    <div class="flex flex-col rounded-lg w-full">
+                                      <div class="flex flex-row w-full justify-start">
+                                        <div class="nc-card-col-header w-full text-gray-500 uppercase">
+                                          <LazySmartsheetHeaderVirtualCell
+                                            v-if="isVirtualCol(col)"
+                                            :column="col"
+                                            :hide-menu="true"
+                                          />
+
+                                          <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="true" />
+                                        </div>
+                                      </div>
+
+                                      <div
+                                        v-if="!isRowEmpty(record, col)"
+                                        class="flex flex-row w-full text-gray-800 items-center justify-start min-h-7 py-1"
+                                      >
+                                        <LazySmartsheetVirtualCell
                                           v-if="isVirtualCol(col)"
+                                          v-model="record.row[col.title]"
                                           :column="col"
-                                          :hide-menu="true"
-                                          :hide-icon="true"
+                                          :row="record"
+                                          class="!text-gray-800"
                                         />
 
-                                        <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="true" :hide-icon="true" />
+                                        <LazySmartsheetCell
+                                          v-else
+                                          v-model="record.row[col.title]"
+                                          :column="col"
+                                          :edit-enabled="false"
+                                          :read-only="true"
+                                          class="!text-gray-800"
+                                        />
+                                      </div>
+                                      <div v-else class="flex flex-row w-full h-[1.375rem] pl-1 items-center justify-start">
+                                        -
                                       </div>
                                     </div>
-
-                                    <div
-                                      v-if="!isRowEmpty(record, col)"
-                                      class="flex flex-row w-full text-gray-700 px-1 mt-[-0.25rem] items-center justify-start"
-                                    >
-                                      <LazySmartsheetVirtualCell
-                                        v-if="isVirtualCol(col)"
-                                        v-model="record.row[col.title]"
-                                        :column="col"
-                                        :row="record"
-                                      />
-
-                                      <LazySmartsheetCell
-                                        v-else
-                                        v-model="record.row[col.title]"
-                                        :column="col"
-                                        :edit-enabled="false"
-                                        :read-only="true"
-                                      />
-                                    </div>
-                                    <div v-else class="flex flex-row w-full h-[1.375rem] pl-1 items-center justify-start">-</div>
                                   </div>
                                 </div>
                               </a-card>
@@ -812,8 +817,23 @@ const getRowId = (row: RowType) => {
 }
 
 :deep(.ant-card) {
-  &:hover .nc-action-icon {
-    @apply invisible;
+  @apply transition-shadow duration-0.3s;
+
+  box-shadow: 0px 2px 4px -2px rgba(0, 0, 0, 0.06), 0px 4px 4px -2px rgba(0, 0, 0, 0.02);
+
+  &:hover {
+    box-shadow: 0px 20px 24px -4px rgba(0, 0, 0, 0.1), 0px 8px 8px -4px rgba(0, 0, 0, 0.04);
+
+    .nc-action-icon {
+      @apply invisible;
+    }
+  }
+}
+
+.nc-card-col-header {
+  :deep(.nc-cell-icon),
+  :deep(.nc-virtual-cell-icon) {
+    @apply ml-0;
   }
 }
 </style>

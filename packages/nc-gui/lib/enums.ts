@@ -164,10 +164,8 @@ export enum RichTextBubbleMenuOptions {
   link = 'link',
 }
 
-
 export enum CoverImageObjectFit {
   FIT = 'fit',
   FILL = 'fill',
   COVER = 'cover',
 }
-

@@ -422,7 +422,9 @@ useMenuCloseOnEsc(open)
         >
           <div class="flex text-sm select-none text-gray-600">{{ $t('labels.coverImageField') }}</div>
 
-          <div class="flex items-stretch border-1 border-gray-200 rounded-lg transition-all duration-0.3s hover:border-brand-400 focus-within:(shadow-selected border-brand-500)">
+          <div
+            class="flex items-stretch border-1 border-gray-200 rounded-lg transition-all duration-0.3s hover:border-brand-400 focus-within:(shadow-selected border-brand-500)"
+          >
             <a-select
               v-model:value="coverImageColumnId"
               class="w-full"

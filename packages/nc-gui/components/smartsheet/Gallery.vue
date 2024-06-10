@@ -251,17 +251,25 @@ watch(
 
                   <template #prevArrow>
                     <div class="z-10 arrow">
-                      <MdiChevronLeft
-                        class="text-gray-700 w-6 h-6 absolute left-1.5 bottom-[-90px] !opacity-0 !group-hover:opacity-100 !bg-white border-1 border-gray-200 rounded-lg transition"
-                      />
+                      <NcButton
+                        type="secondary"
+                        size="xsmall"
+                        class="!absolute !left-1.5 !bottom-[-90px] !opacity-0 !group-hover:opacity-100 !rounded-lg cursor-pointer"
+                      >
+                        <GeneralIcon icon="arrowLeft" class="text-gray-700 w-4 h-4" />
+                      </NcButton>
                     </div>
                   </template>
 
                   <template #nextArrow>
                     <div class="z-10 arrow">
-                      <MdiChevronRight
-                        class="text-gray-700 w-6 h-6 absolute right-1.5 bottom-[-90px] !opacity-0 !group-hover:opacity-100 !bg-white border-1 border-gray-200 rounded-lg transition"
-                      />
+                      <NcButton
+                        type="secondary"
+                        size="xsmall"
+                        class="!absolute !right-1.5 !bottom-[-90px] !opacity-0 !group-hover:opacity-100 !rounded-lg cursor-pointer"
+                      >
+                        <GeneralIcon icon="arrowRight" class="text-gray-700 w-4 h-4" />
+                      </NcButton>
                     </div>
                   </template>
 

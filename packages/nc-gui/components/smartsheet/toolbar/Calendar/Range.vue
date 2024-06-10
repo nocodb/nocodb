@@ -146,7 +146,12 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
       </NcButton>
     </div>
     <template #overlay>
-      <div v-if="calendarRangeDropdown" class="w-98 space-y-6 rounded-2xl p-6" data-testid="nc-calendar-range-menu" @click.stop>
+      <div
+        v-if="calendarRangeDropdown"
+        class="w-[500px] space-y-6 rounded-2xl p-6"
+        data-testid="nc-calendar-range-menu"
+        @click.stop
+      >
         <div
           v-for="(range, id) in _calendar_ranges"
           :key="id"
@@ -248,7 +253,11 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
         </div>
 
         <div>
-          <NcSwitch v-model:checked="hideWeekends"> Hide weekends </NcSwitch>
+          <NcSwitch v-model:checked="hideWeekends">
+            <span class="text-gray-800">
+              {{ $t('activity.hideWeekends') }}
+            </span>
+          </NcSwitch>
         </div>
 
         <!--

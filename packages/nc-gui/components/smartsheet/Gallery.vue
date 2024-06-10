@@ -339,8 +339,8 @@ watch(
           </LazySmartsheetRow>
         </div>
 
-        <template v-if="data.length < 4">
-          <div v-for="index of Array(4 - data.length)" :key="index" class="nc-empty-card"></div>
+        <template v-if="data.length <= 4">
+          <div v-for="index of Array(8 - data.length)" :key="index" class="nc-empty-card"></div>
         </template>
       </div>
     </div>
@@ -378,7 +378,7 @@ watch(
 
 <style lang="scss" scoped>
 .nc-gallery-container {
-  @apply auto-rows-[1fr] grid-cols-[repeat(auto-fit,minmax(250px,1fr))];
+  @apply auto-rows-[1fr] grid-cols-[repeat(auto-fit,minmax(300px,1fr))];
 }
 
 :deep(.slick-dots li button) {

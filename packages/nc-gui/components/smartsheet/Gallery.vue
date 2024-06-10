@@ -56,8 +56,12 @@ const coverImageColumn: any = computed(() =>
     : {},
 )
 
-const coverImageObjectFit = computed<'fit' | 'fill' | 'cover'>(() => {
-  return parseProp(galleryData.value?.meta)?.fk_cover_image_object_fit || 'fit'
+const coverImageObjectFitClass = computed(() => {
+  const fk_cover_image_object_fit = parseProp(galleryData.value?.meta)?.fk_cover_image_object_fit || CoverImageObjectFit.FIT
+
+  if (fk_cover_image_object_fit === CoverImageObjectFit.FIT) return '!object-contain'
+  if (fk_cover_image_object_fit === CoverImageObjectFit.FILL) return '!object-fill'
+  if (fk_cover_image_object_fit === CoverImageObjectFit.COVER) return '!object-cover'
 })
 
 const isRowEmpty = (record: any, col: any) => {
@@ -225,7 +229,7 @@ watch(
         <div v-for="(record, rowIndex) in data" :key="`record-${record.row.id}`">
           <LazySmartsheetRow :row="record">
             <a-card
-              class="!rounded-xl h-full border-gray-200 border-1 group overflow-hidden break-all max-w-[450px] cursor-pointer"
+              class="!rounded-xl h-full border-gray-200 border-1 group overflow-hidden break-all max-w-[450px] cursor-pointer !children:pointer-events-none"
               :body-style="{ padding: '16px !important' }"
               :data-testid="`nc-gallery-card-${record.row.id}`"
               @click="expandFormClick($event, record)"
@@ -266,11 +270,7 @@ watch(
                       v-if="isImage(attachment.title, attachment.mimetype ?? attachment.type)"
                       :key="`carousel-${record.row.id}-${index}`"
                       class="h-52"
-                      :class="{
-                        '!object-contain': coverImageObjectFit === 'fit',
-                        '!object-fill': coverImageObjectFit === 'fill',
-                        '!object-cover': coverImageObjectFit === 'cover',
-                      }"
+                      :class="[`${coverImageObjectFitClass}`]"
                       :srcs="getPossibleAttachmentSrc(attachment)"
                       @click="expandFormClick($event, record)"
                     />
@@ -331,7 +331,7 @@ watch(
                         class="!text-gray-800"
                       />
                     </div>
-                    <div v-else class="flex flex-row w-full h-8 pl-1 items-center justify-start">-</div>
+                    <div v-else class="flex flex-row w-full h-7 pl-1 items-center justify-start">-</div>
                   </div>
                 </div>
               </div>
@@ -372,7 +372,7 @@ watch(
   </Suspense>
 </template>
 
-<style scoped>
+<style lang="scss" scoped>
 .nc-gallery-container {
   @apply auto-rows-[1fr] grid-cols-[repeat(auto-fit,minmax(250px,1fr))];
 }
@@ -447,6 +447,49 @@ watch(
   @apply pl-0;
   .tiptap.ProseMirror {
     @apply -ml-1;
+  }
+}
+
+:deep(.nc-cell),
+:deep(.nc-virtual-cell) {
+  @apply text-sm;
+}
+:deep(.nc-cell) {
+  &.nc-cell-checkbox {
+    @apply children:pl-0;
+  }
+}
+
+:deep(.nc-virtual-cell) {
+  .nc-links-wrapper {
+    @apply py-0 children:min-h-4;
+  }
+  &.nc-virtual-cell-linktoanotherrecord {
+    .chips-wrapper {
+      @apply !children:min-h-4;
+      .chip.group {
+        @apply my-0;
+      }
+    }
+  }
+  &.nc-virtual-cell-lookup {
+    .nc-lookup-cell {
+      @apply !h-5.5;
+
+      .nc-cell-lookup-scroll {
+        @apply py-0 h-auto;
+      }
+    }
+  }
+  &.nc-virtual-cell-formula {
+    .nc-cell-field {
+      @apply py-0;
+    }
+  }
+
+  &.nc-virtual-cell-qrcode,
+  &.nc-virtual-cell-barcode {
+    @apply children:justify-start;
   }
 }
 </style>

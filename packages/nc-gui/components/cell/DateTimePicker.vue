@@ -449,7 +449,7 @@ const cellValue = computed(
           class="flex-none rounded-md box-border w-[60%] max-w-[110px]"
           :class="{
             'py-0': isForm,
-            'py-0.5': !isForm,
+            'py-0.5': !isForm && !isColDisabled,
             'bg-gray-100': isDatePicker && isOpen,
             'hover:bg-gray-100 px-1': !isColDisabled,
           }"
@@ -474,7 +474,7 @@ const cellValue = computed(
             `${timeCellMaxWidth}`,
             {
               'py-0': isForm,
-              'py-0.5': !isForm,
+              'py-0.5': !isForm && !isColDisabled,
               'bg-gray-100': !isDatePicker && isOpen,
               'hover:bg-gray-100 px-1': !isColDisabled,
             },

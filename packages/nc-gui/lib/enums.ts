@@ -163,3 +163,11 @@ export enum RichTextBubbleMenuOptions {
   taskList = 'taskList',
   link = 'link',
 }
+
+
+export enum CoverImageObjectFit {
+  FIT = 'fit',
+  FILL = 'fill',
+  COVER = 'cover',
+}
+

@@ -229,21 +229,29 @@ const updateCoverImageObjectFit = async (val: string) => {
 }
 
 const coverImageObjectFitOptions = [
-  { value: 'fit', label: t('labels.fitImage') },
-  { value: 'fill', label: t('labels.fillImageArea') },
-  { value: 'cover', label: t('labels.coverImageArea') },
+  { value: CoverImageObjectFit.FIT, label: t('labels.fitImage') },
+  { value: CoverImageObjectFit.FILL, label: t('labels.fillImageArea') },
+  { value: CoverImageObjectFit.COVER, label: t('labels.coverImageArea') },
 ]
 
-const isOpenCoverImageObjectFitDropdown = ref<boolean>(false)
+const coverImageObjectFitDropdown = ref<{
+  isOpen: boolean
+  isSaving: keyof typeof CoverImageObjectFit | null
+}>({
+  isOpen: false,
+  isSaving: null,
+})
 
 const coverImageObjectFit = computed({
   get: () => {
     return [ViewTypes.GALLERY, ViewTypes.KANBAN].includes(activeView.value?.type as ViewTypes) && activeView.value?.view
-      ? parseProp(activeView.value?.view?.meta)?.fk_cover_image_object_fit || coverImageObjectFitOptions[0].value
+      ? parseProp(activeView.value?.view?.meta)?.fk_cover_image_object_fit || CoverImageObjectFit.FIT
       : undefined
   },
   set: async (val) => {
     if (val !== coverImageObjectFit.value) {
+      coverImageObjectFitDropdown.value.isSaving = val
+
       addUndo({
         undo: {
           fn: updateCoverImageObjectFit,
@@ -258,7 +266,8 @@ const coverImageObjectFit = computed({
 
       await updateCoverImageObjectFit(val)
     }
-    isOpenCoverImageObjectFitDropdown.value = false
+    coverImageObjectFitDropdown.value.isSaving = null
+    coverImageObjectFitDropdown.value.isOpen = false
   },
 })
 
@@ -411,26 +420,37 @@ useMenuCloseOnEsc(open)
           v-if="!isPublic && (activeView?.type === ViewTypes.GALLERY || activeView?.type === ViewTypes.KANBAN)"
           class="flex flex-col gap-y-2 px-2 mb-3"
         >
-          <div class="flex text-sm select-none">{{ $t('labels.coverImageField') }}</div>
+          <div class="flex text-sm select-none text-gray-600">{{ $t('labels.coverImageField') }}</div>
 
-          <div class="flex items-stretch border-1 border-gray-200 rounded-lg focus-within:(shadow-selected border-brand-500)">
+          <div class="flex items-stretch border-1 border-gray-200 rounded-lg transition-all duration-0.3s hover:border-brand-400 focus-within:(shadow-selected border-brand-500)">
             <a-select
               v-model:value="coverImageColumnId"
-              :options="coverOptions"
               class="w-full"
               dropdown-class-name="nc-dropdown-cover-image !rounded-lg"
               :bordered="false"
               @click.stop
             >
               <template #suffixIcon><GeneralIcon class="text-gray-700" icon="arrowDown" /></template>
+
+              <a-select-option v-for="option of coverOptions" :key="option.value" :value="option.value">
+                <div class="w-full flex gap-2 items-center justify-between">
+                  <span> {{ option.label }} </span>
+                  <GeneralIcon
+                    v-if="coverImageColumnId === option.value"
+                    id="nc-selected-item-icon"
+                    icon="check"
+                    class="flex-none text-primary w-4 h-4"
+                  />
+                </div>
+              </a-select-option>
             </a-select>
-            <NcDropdown v-model:visible="isOpenCoverImageObjectFitDropdown" placement="bottomRight">
+            <NcDropdown v-if="coverImageObjectFit" v-model:visible="coverImageObjectFitDropdown.isOpen" placement="bottomRight">
               <div class="flex items-center px-2 border-l-1 border-gray-200 cursor-pointer">
                 <GeneralIcon
                   icon="settings"
                   class="h-4 w-4"
                   :class="{
-                    '!text-brand-500': isOpenCoverImageObjectFitDropdown,
+                    '!text-brand-500': coverImageObjectFitDropdown.isOpen,
                   }"
                 />
               </div>
@@ -446,7 +466,17 @@ useMenuCloseOnEsc(open)
                       {{ option.label }}
                     </span>
 
-                    <GeneralIcon v-if="option.value === coverImageObjectFit" icon="check" class="flex-none text-primary w-4 h-4" />
+                    <GeneralLoader
+                      v-if="option.value === coverImageObjectFitDropdown.isSaving"
+                      size="regular"
+                      class="flex-none"
+                    />
+
+                    <GeneralIcon
+                      v-else-if="option.value === coverImageObjectFit"
+                      icon="check"
+                      class="flex-none text-primary w-4 h-4"
+                    />
                   </NcMenuItem>
                 </NcMenu>
               </template>

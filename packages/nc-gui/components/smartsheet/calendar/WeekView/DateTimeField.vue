@@ -968,17 +968,20 @@ watch(
           'w-1/5': maxVisibleDays === 5,
           'w-1/7': maxVisibleDays === 7,
         }"
-        class="h-full mt-7.1"
+        class="h-full mt-5.95"
         data-testid="nc-calendar-week-day"
       >
         <div
           v-for="(hour, hourIndex) in date"
           :key="hourIndex"
           :class="{
+            'border-1 !border-brand-500 !bg-gray-100':
+              hour.isSame(selectedTime, 'hour') && (hour.get('day') === 6 || hour.get('day') === 0),
             'border-1 !border-brand-500 bg-gray-50': hour.isSame(selectedTime, 'hour'),
-            '!bg-gray-50': hour.get('day') === 0 || hour.get('day') === 6,
+            'bg-gray-50 hover:bg-gray-100': hour.get('day') === 0 || hour.get('day') === 6,
+            'hover:bg-gray-50': hour.get('day') !== 0 && hour.get('day') !== 6,
           }"
-          class="text-center relative transition h-13 text-sm text-gray-500 w-full hover:bg-gray-50 py-1 border-transparent border-1 border-x-gray-100 border-t-gray-100 border-l-gray-200"
+          class="text-center relative transition h-13 text-sm text-gray-500 w-full py-1 border-transparent border-1 border-x-gray-100 border-t-gray-100 border-l-gray-200"
           data-testid="nc-calendar-week-hour"
           @dblclick="addRecord(hour)"
           @click="
@@ -1005,10 +1008,7 @@ watch(
         </div>
       </div>
 
-      <div
-        class="absolute pointer-events-none inset-0 overflow-hidden !mt-[29px]"
-        data-testid="nc-calendar-week-record-container"
-      >
+      <div class="absolute pointer-events-none inset-0 overflow-hidden !mt-5.95" data-testid="nc-calendar-week-record-container">
         <template v-for="(record, rowIndex) in recordsAcrossAllRange.records" :key="rowIndex">
           <div
             v-if="record.rowMeta.style?.display !== 'none'"

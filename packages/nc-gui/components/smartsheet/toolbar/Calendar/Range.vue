@@ -248,7 +248,7 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
         </div>
 
         <div>
-          <NcSwitch v-model:checked="hideWeekends"> Hide Weekends </NcSwitch>
+          <NcSwitch v-model:checked="hideWeekends"> Hide weekends </NcSwitch>
         </div>
 
         <!--

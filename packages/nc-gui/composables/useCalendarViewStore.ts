@@ -485,8 +485,15 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         case 'week':
           fromDate = selectedDateRange.value.start.startOf('day')
           toDate = selectedDateRange.value.end.endOf('day')
+
           prevDate = selectedDateRange.value.start.subtract(1, 'day').endOf('day')
           nextDate = selectedDateRange.value.end.add(1, 'day').startOf('day')
+
+          // Hide weekends
+          if (viewMetaProperties.value?.hide_weekend) {
+            toDate = toDate.subtract(2, 'day')
+            nextDate = nextDate.subtract(2, 'day')
+          }
           break
         case 'month': {
           const startOfMonth = selectedMonth.value.startOf('month')
@@ -826,6 +833,15 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       if (activeCalendarView.value === 'year') return
       await fetchActiveDates()
     })
+
+    watch(
+      () => viewMetaProperties.value.hide_weekend,
+      async () => {
+        if (activeCalendarView.value === 'week') {
+          await loadCalendarData()
+        }
+      },
+    )
 
     return {
       fetchActiveDates,

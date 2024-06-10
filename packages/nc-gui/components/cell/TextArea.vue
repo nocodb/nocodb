@@ -280,7 +280,7 @@ watch(inputWrapperRef, () => {
       <NcTooltip
         v-if="!isVisible && !isForm"
         placement="bottom"
-        class="!absolute !hidden nc-text-area-expand-btn group-hover:block z-3"
+        class="nc-action-icon !absolute !hidden nc-text-area-expand-btn group-hover:block z-3"
         :class="{
           'right-1': isForm,
           'right-0': !isForm,

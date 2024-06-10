@@ -243,7 +243,7 @@ watch(
                 >
                   <template #customPaging>
                     <a>
-                      <div class="pt-[12px]">
+                      <div>
                         <div></div>
                       </div>
                     </a>
@@ -382,8 +382,7 @@ watch(
 }
 
 .ant-carousel.gallery-carousel :deep(.slick-dots) {
-  @apply !w-auto absolute h-auto bottom-[-15px] absolute h-auto;
-  height: auto;
+  @apply !w-full max-w-[calc(100%_-_36%)] absolute left-0 right-0 bottom-[-18px] h-6 overflow-x-auto nc-scrollbar-thin !mx-auto;
 }
 
 .ant-carousel.gallery-carousel :deep(.slick-dots li div > div) {

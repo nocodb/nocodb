@@ -536,10 +536,11 @@ const getRowId = (row: RowType) => {
                                     <a-carousel
                                       :key="attachments(record).reduce((acc, curr) => acc + curr?.path, '')"
                                       class="gallery-carousel !border-b-1 !border-gray-200"
+                                      arrows
                                     >
                                       <template #customPaging>
                                         <a>
-                                          <div class="pt-[12px]">
+                                          <div>
                                             <div></div>
                                           </div>
                                         </a>
@@ -565,7 +566,7 @@ const getRowId = (row: RowType) => {
                                         <LazyCellAttachmentImage
                                           v-if="isImage(attachment.title, attachment.mimetype ?? attachment.type)"
                                           :key="attachment.path"
-                                          class="h-52 object-cover"
+                                          class="h-52"
                                           :class="[`${coverImageObjectFitClass}`]"
                                           :srcs="getPossibleAttachmentSrc(attachment)"
                                         />
@@ -795,8 +796,7 @@ const getRowId = (row: RowType) => {
 }
 
 .ant-carousel.gallery-carousel :deep(.slick-dots) {
-  @apply !w-auto absolute h-auto bottom-[-15px] absolute h-auto;
-  height: auto;
+  @apply !w-full max-w-[calc(100%_-_36%)] absolute left-0 right-0 bottom-[-18px] h-6 overflow-x-auto nc-scrollbar-thin !mx-auto;
 }
 
 .ant-carousel.gallery-carousel :deep(.slick-dots li div > div) {

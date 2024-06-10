@@ -61,14 +61,18 @@ export function useApi<Data = any, RequestConfig = any>({
   const api = useGlobalInstance && !!nuxtApp.$api ? nuxtApp.$api : createApiInstance(apiOptions)
 
   /** set loading to true and increment local and global request counter */
-  function onRequestStart() {
-    isLoading.value = true
+  // Long Polling causes the loading spinner to never stop
+  // hence we are excluding the polling request from the loading spinner
+  function onRequestStart(config) {
+    if (config.url !== '/api/v1/notifications/poll') {
+      isLoading.value = true
 
-    /** local count */
-    inc()
+      /** local count */
+      inc()
 
-    /** global count */
-    nuxtApp.$state.runningRequests.inc()
+      /** global count */
+      nuxtApp.$state.runningRequests.inc()
+    }
   }
 
   /** decrement local and global request counter and check if we can stop loading */
@@ -99,7 +103,7 @@ export function useApi<Data = any, RequestConfig = any>({
     (config) => {
       reset()
 
-      onRequestStart()
+      onRequestStart(config)
 
       return {
         ...config,

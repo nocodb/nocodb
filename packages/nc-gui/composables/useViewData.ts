@@ -318,8 +318,12 @@ export function useViewData(
   const navigateToSiblingRow = async (dir: NavigateDir) => {
     const expandedRowIndex = getExpandedRowIndex()
 
+    console.log('current', expandedRowIndex)
+
     // calculate next row index based on direction
     let siblingRowIndex = expandedRowIndex + (dir === NavigateDir.NEXT ? 1 : -1)
+
+    console.log('singlin', siblingRowIndex)
 
     // if unsaved row skip it
     while (formattedData.value[siblingRowIndex]?.rowMeta?.new) {
@@ -347,9 +351,8 @@ export function useViewData(
 
     // extract the row id of the sibling row
     const rowId = extractPkFromRow(formattedData.value[siblingRowIndex].row, meta.value?.columns as ColumnType[])
-
     if (rowId) {
-      router.push({
+      await router.push({
         query: {
           ...routeQuery.value,
           rowId,
@@ -357,6 +360,10 @@ export function useViewData(
       })
     }
   }
+
+  watch(formattedData, () => {
+    console.log('mutation')
+  })
 
   return {
     error,

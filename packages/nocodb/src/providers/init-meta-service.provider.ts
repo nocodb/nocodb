@@ -11,6 +11,7 @@ import getInstance from '~/utils/getInstance';
 import initAdminFromEnv from '~/helpers/initAdminFromEnv';
 import { User } from '~/models';
 import { NcConfig, prepareEnv } from '~/utils/nc-config';
+import { RootScopes } from '~/utils/globals';
 
 export const InitMetaServiceProvider: FactoryProvider = {
   // initialize app,
@@ -34,6 +35,43 @@ export const InitMetaServiceProvider: FactoryProvider = {
 
     // init meta service
     const metaService = new MetaService(config);
+
+    // check if nc_store exists
+    const ncStoreExists = await metaService.knexConnection.schema.hasTable(
+      'nc_store',
+    );
+
+    // get instance config
+    const instanceConfig = ncStoreExists
+      ? await metaService.metaGet(
+          RootScopes.ROOT,
+          RootScopes.ROOT,
+          'nc_store',
+          {
+            key: 'NC_CONFIG_MAIN',
+          },
+        )
+      : null;
+
+    // Avoid upgrading directly from versions lower than 0100002 (NC_VERSION)
+    if (instanceConfig) {
+      const configObj: NcConfig = JSON.parse(instanceConfig.value);
+
+      if (+configObj.version < 100002) {
+        throw new Error(
+          `You are trying to upgrade from an old version of NocoDB. Please upgrade to 0.207.3 first and then you can upgrade to the latest version.`,
+        );
+      }
+    } else {
+      // if bases are present then it is an old version missing the config
+      const isOld = (await metaService.baseList())?.length;
+      if (isOld) {
+        throw new Error(
+          `You are trying to upgrade from an old version of NocoDB. Please upgrade to 0.207.3 first and then you can upgrade to the latest version.`,
+        );
+      }
+    }
+
     await metaService.init();
 
     // provide meta and config to Noco

@@ -73,7 +73,9 @@ export default {
             </template>
 
             <div v-else class="text-sm font-semibold truncate nc-shared-view-title flex gap-2 items-center">
-              <GeneralViewIcon v-if="sharedView" class="h-4 w-4" :meta="sharedView" />
+              <div class="flex-none ml-0.5">
+                <GeneralViewIcon v-if="sharedView" class="h-4 w-4" :meta="sharedView" />
+              </div>
               <span class="truncate">
                 {{ sharedView?.title }}
               </span>

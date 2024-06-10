@@ -30,7 +30,7 @@ export default class XcMigrationSource {
       'nc_009_add_model_order',
       'nc_010_add_parent_title_column',
       'nc_011_remove_old_ses_plugin',
-      ...(process.env.NC_CLOUD === 'true' ? ['nc_012_cloud_cleanup'] : []),
+      'nc_012_cloud_cleanup',
     ]);
   }
 

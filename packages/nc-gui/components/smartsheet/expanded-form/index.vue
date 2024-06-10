@@ -921,7 +921,7 @@ export default {
                 </template>
               </NcDropdown>
             </div>
-
+            <div v-if="isNew && isMobileMode"></div>
             <div v-if="isMobileMode" class="p-2">
               <NcButton
                 v-e="['c:row-expand:save']"

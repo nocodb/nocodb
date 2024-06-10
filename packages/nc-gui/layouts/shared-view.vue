@@ -93,9 +93,9 @@ export default {
         </div>
       </a-layout-header>
       <div
-        class="w-full overflow-hidden"
-        :style="{
-          height: isMobileMode ? 'calc(100dvh - (var(--topbar-height) - 3.6px))' : 'calc(100vh - (var(--topbar-height) - 3.6px))',
+        class="nc-shared-view-container w-full overflow-hidden"
+        :class="{
+          'nc-shared-mobile-view': isMobileMode,
         }"
       >
         <slot />
@@ -114,6 +114,14 @@ export default {
 
   :deep(.nc-table-toolbar) {
     @apply px-2;
+  }
+
+  .nc-shared-view-container {
+    height: calc(100vh - (var(--topbar-height) - 3.6px));
+
+    @supports (height: 100dvh) {
+      height: calc(100dvh - (var(--topbar-height) - 3.6px));
+    }
   }
 }
 </style>

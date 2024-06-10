@@ -21,8 +21,12 @@ useSidebar('nc-left-sidebar')
 
 <style scoped lang="scss">
 .nc-container {
-  height: 100dvh;
+  height: 100vh;
   flex: 1 1 100%;
+
+  @supports (height: 100dvh) {
+    height: 100dvh;
+  }
 }
 
 :deep(.nc-root-tabs) {

@@ -56,6 +56,10 @@ const coverImageColumn: any = computed(() =>
     : {},
 )
 
+const coverImageObjectFit = computed<'fit' | 'fill' | 'cover'>(() => {
+  return parseProp(galleryData.value?.meta)?.fk_cover_image_object_fit || 'fit'
+})
+
 const isRowEmpty = (record: any, col: any) => {
   const val = record.row[col.title]
   if (!val) return true
@@ -261,7 +265,12 @@ watch(
                     <LazyCellAttachmentImage
                       v-if="isImage(attachment.title, attachment.mimetype ?? attachment.type)"
                       :key="`carousel-${record.row.id}-${index}`"
-                      class="h-52 !object-contain"
+                      class="h-52"
+                      :class="{
+                        '!object-contain': coverImageObjectFit === 'fit',
+                        '!object-fill': coverImageObjectFit === 'fill',
+                        '!object-cover': coverImageObjectFit === 'cover',
+                      }"
                       :srcs="getPossibleAttachmentSrc(attachment)"
                       @click="expandFormClick($event, record)"
                     />

@@ -96,6 +96,10 @@ const coverImageColumn: any = computed(() =>
     : {},
 )
 
+const coverImageObjectFit = computed<'fit' | 'fill' | 'cover'>(() => {
+  return parseProp(kanbanMetaData.value?.meta)?.fk_cover_image_object_fit || 'fit'
+})
+
 const kanbanContainerRef = ref()
 
 const selectedStackTitle = ref('')
@@ -558,6 +562,11 @@ const getRowId = (row: RowType) => {
                                           v-if="isImage(attachment.title, attachment.mimetype ?? attachment.type)"
                                           :key="attachment.path"
                                           class="h-52 object-cover"
+                                          :class="{
+                                            '!object-contain': coverImageObjectFit === 'fit',
+                                            '!object-fill': coverImageObjectFit === 'fill',
+                                            '!object-cover': coverImageObjectFit === 'cover',
+                                          }"
                                           :srcs="getPossibleAttachmentSrc(attachment)"
                                         />
                                       </template>

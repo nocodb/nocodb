@@ -6,7 +6,12 @@ import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
-import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
+import {
+  parseMetaProp,
+  prepareForDb,
+  prepareForResponse,
+  stringifyMetaProp,
+} from '~/utils/modelUtils';
 
 export default class KanbanView implements KanbanType {
   fk_view_id: string;
@@ -101,6 +106,13 @@ export default class KanbanView implements KanbanType {
     insertObj.fk_cover_image_col_id =
       view?.fk_cover_image_col_id ||
       columns?.find((c) => c.uidt === UITypes.Attachment)?.id;
+
+    insertObj.meta = {
+      fk_cover_image_object_fit:
+        parseMetaProp(insertObj).fk_cover_image_object_fit || 'fit',
+    };
+
+    insertObj.meta = stringifyMetaProp(insertObj);
 
     const viewRef = await View.get(context, insertObj.fk_view_id, ncMeta);
 

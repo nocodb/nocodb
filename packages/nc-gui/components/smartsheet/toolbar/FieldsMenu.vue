@@ -423,7 +423,7 @@ useMenuCloseOnEsc(open)
           <div class="flex text-sm select-none text-gray-600">{{ $t('labels.coverImageField') }}</div>
 
           <div
-            class="flex items-stretch border-1 border-gray-200 rounded-lg transition-all duration-0.3s hover:border-brand-400 focus-within:(shadow-selected border-brand-500)"
+            class="nc-dropdown-cover-image-wrapper flex items-stretch border-1 border-gray-200 rounded-lg transition-all duration-0.3s"
           >
             <a-select
               v-model:value="coverImageColumnId"
@@ -447,7 +447,7 @@ useMenuCloseOnEsc(open)
               </a-select-option>
             </a-select>
             <NcDropdown v-if="coverImageObjectFit" v-model:visible="coverImageObjectFitDropdown.isOpen" placement="bottomRight">
-              <div class="flex items-center px-2 border-l-1 border-gray-200 cursor-pointer">
+              <button class="flex items-center px-2 border-l-1 border-gray-200 cursor-pointer">
                 <GeneralIcon
                   icon="settings"
                   class="h-4 w-4"
@@ -455,7 +455,7 @@ useMenuCloseOnEsc(open)
                     '!text-brand-500': coverImageObjectFitDropdown.isOpen,
                   }"
                 />
-              </div>
+              </button>
               <template #overlay>
                 <NcMenu class="nc-cover-image-object-fit-dropdown-menu min-w-[168px]">
                   <NcMenuItem
@@ -634,6 +634,25 @@ useMenuCloseOnEsc(open)
 .nc-cover-image-object-fit-dropdown-menu {
   :deep(.nc-menu-item-inner) {
     @apply !w-full flex items-center justify-between;
+  }
+}
+.nc-dropdown-cover-image-wrapper {
+  @apply h-8;
+  &:not(:focus-within) {
+    @apply shadow-default hover:shadow-hover;
+  }
+  &:focus-within {
+    @apply shadow-selected border-brand-500;
+  }
+}
+
+:deep(.ant-input-affix-wrapper) {
+  &:not(.ant-input-affix-wrapper-disabled):not(.ant-input-affix-wrapper-focused):not(:focus) {
+    @apply shadow-default hover:(shadow-hover border-gray-200);
+  }
+  &.ant-input-affix-wrapper-focused,
+  &:focus {
+    @apply border-brand-500 shadow-selected;
   }
 }
 </style>

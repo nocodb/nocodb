@@ -3394,6 +3394,10 @@ class BaseModelSqlv2 {
         { ignoreView: true, getHiddenColumn: true },
       );
 
+      if (!prevData) {
+        NcError.recordNotFound(id);
+      }
+
       const query = this.dbDriver(this.tnPath)
         .update(updateObj)
         .where(await this._wherePk(id, true));
@@ -3825,6 +3829,7 @@ class BaseModelSqlv2 {
       raw = false,
       insertOneByOneAsFallback = false,
       isSingleRecordInsertion = false,
+      allowSystemColumn = false,
     }: {
       chunkSize?: number;
       cookie?: any;
@@ -3833,6 +3838,7 @@ class BaseModelSqlv2 {
       raw?: boolean;
       insertOneByOneAsFallback?: boolean;
       isSingleRecordInsertion?: boolean;
+      allowSystemColumn?: boolean;
     } = {},
   ) {
     let trx;
@@ -3856,14 +3862,21 @@ class BaseModelSqlv2 {
           for (let i = 0; i < this.model.columns.length; ++i) {
             const col = this.model.columns[i];
 
-            if (
-              col.title in d &&
-              (isCreatedOrLastModifiedTimeCol(col) ||
-                isCreatedOrLastModifiedByCol(col))
-            ) {
-              NcError.badRequest(
-                `Column "${col.title}" is auto generated and cannot be updated`,
-              );
+            if (col.title in d) {
+              if (
+                isCreatedOrLastModifiedTimeCol(col) ||
+                isCreatedOrLastModifiedByCol(col)
+              ) {
+                NcError.badRequest(
+                  `Column "${col.title}" is auto generated and cannot be updated`,
+                );
+              }
+
+              if (col.system && !allowSystemColumn) {
+                NcError.badRequest(
+                  `Column "${col.title}" is system column and cannot be updated`,
+                );
+              }
             }
 
             // populate pk columns
@@ -4171,7 +4184,7 @@ class BaseModelSqlv2 {
         if (!pkValues) {
           // throw or skip if no pk provided
           if (throwExceptionIfNotExist) {
-            NcError.recordNotFound(JSON.stringify(pkValues));
+            NcError.recordNotFound(pkValues);
           }
           continue;
         }
@@ -4208,7 +4221,7 @@ class BaseModelSqlv2 {
                 if (!oldRecord) {
                   // throw or skip if no record found
                   if (throwExceptionIfNotExist) {
-                    NcError.recordNotFound(JSON.stringify(recordPk));
+                    NcError.recordNotFound(recordPk);
                   }
                   continue;
                 }
@@ -4407,7 +4420,7 @@ class BaseModelSqlv2 {
         if (!pkValues) {
           // throw or skip if no pk provided
           if (throwExceptionIfNotExist) {
-            NcError.recordNotFound(JSON.stringify(pkValues));
+            NcError.recordNotFound(pkValues);
           }
           continue;
         }
@@ -4437,7 +4450,7 @@ class BaseModelSqlv2 {
               if (!oldRecord) {
                 // throw or skip if no record found
                 if (throwExceptionIfNotExist) {
-                  NcError.recordNotFound(JSON.stringify(pk));
+                  NcError.recordNotFound(pk);
                 }
                 continue;
               }
@@ -4926,14 +4939,21 @@ class BaseModelSqlv2 {
     for (let i = 0; i < cols.length; ++i) {
       const column = this.model.columns[i];
 
-      if (
-        column.title in data &&
-        (isCreatedOrLastModifiedTimeCol(column) ||
-          isCreatedOrLastModifiedByCol(column))
-      ) {
-        NcError.badRequest(
-          `Column "${column.title}" is auto generated and cannot be updated`,
-        );
+      if (column.title in data) {
+        if (
+          isCreatedOrLastModifiedTimeCol(column) ||
+          isCreatedOrLastModifiedByCol(column)
+        ) {
+          NcError.badRequest(
+            `Column "${column.title}" is auto generated and cannot be updated`,
+          );
+        }
+
+        if (column.system) {
+          NcError.badRequest(
+            `Column "${column.title}" is system column and cannot be updated`,
+          );
+        }
       }
       await this.validateOptions(column, data);
       // Validates the constraints on the data based on the column definitions
@@ -7480,6 +7500,10 @@ export function _wherePk(
 
 export function getCompositePkValue(primaryKeys: Column[], row) {
   if (typeof row !== 'object') return row;
+
+  if (row === null)
+    NcError.requiredFieldMissing(primaryKeys.map((c) => c.title).join(','));
+
   return primaryKeys.map((c) => row[c.title] ?? row[c.column_name]).join('___');
 }
 

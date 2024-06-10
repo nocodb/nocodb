@@ -451,13 +451,6 @@ watch(
   }
 }
 
-:deep(.long-text-wrapper .nc-rich-text) {
-  @apply pl-0;
-  .tiptap.ProseMirror {
-    @apply -ml-1;
-  }
-}
-
 :deep(.nc-cell),
 :deep(.nc-virtual-cell) {
   @apply text-small leading-[18px];
@@ -470,6 +463,20 @@ watch(
   }
 }
 :deep(.nc-cell) {
+  &.nc-cell-longtext {
+    .long-text-wrapper {
+      @apply min-h-1;
+      .nc-readonly-rich-text-wrapper {
+        @apply !min-h-1;
+      }
+      .nc-rich-text {
+        @apply pl-0;
+        .tiptap.ProseMirror {
+          @apply -ml-1 min-h-1;
+        }
+      }
+    }
+  }
   &.nc-cell-checkbox {
     @apply children:pl-0;
   }

@@ -777,7 +777,10 @@
     "displayAsProgress": "Display as progress",
     "relationType": "Relation type",
     "showThousandsSeparator": "Afficher le séparateur de milliers",
-    "signUpForFree": "Inscrivez-vous gratuitement"
+    "signUpForFree": "Inscrivez-vous gratuitement",
+    "coverImageField": "Cover image field",
+    "fitImage": "Fit image",
+    "coverImageArea": "Cover image"
   },
   "activity": {
     "renameBase": "Renommer la Base",

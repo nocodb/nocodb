@@ -42,7 +42,6 @@ const downloadSvg = () => {
 }
 
 const onBarcodeClick = (ev: MouseEvent) => {
-  if (isGallery.value) return
   ev.stopPropagation()
   emit('onClickBarcode')
 }

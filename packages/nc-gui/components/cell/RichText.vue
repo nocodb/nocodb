@@ -48,9 +48,19 @@ const isGrid = inject(IsGridInj, ref(false))
 
 const isSurveyForm = inject(IsSurveyFormInj, ref(false))
 
+const isGallery = inject(IsGalleryInj, ref(false))
+
+const isKanban = inject(IsKanbanInj, ref(false))
+
 const isFocused = ref(false)
 
 const keys = useMagicKeys()
+
+const localRowHeight = computed(() => {
+  if (readOnlyCell.value && !isExpandedFormOpen.value && (isGallery.value || isKanban.value)) return 6
+
+  return rowHeight.value
+})
 
 const shouldShowLinkOption = computed(() => {
   return isFormField.value ? isFocused.value : true
@@ -157,7 +167,7 @@ const editor = useEditor({
       .turndown(editor.getHTML().replaceAll(/<p><\/p>/g, '<br />'))
       .replaceAll(/\n\n<br \/>\n\n/g, '<br>\n\n')
 
-    vModel.value = isFormField.value && markdown === '<br />' ? '' : markdown
+    vModel.value = markdown === '<br />' ? '' : markdown
   },
   editable: !props.readOnly,
   autofocus: props.autofocus,
@@ -322,8 +332,8 @@ onClickOutside(editorDom, (e) => {
           'mt-2.5 flex-grow': fullMode,
           'scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent': !fullMode || (!fullMode && isExpandedFormOpen),
           'flex-grow': isExpandedFormOpen,
-          [`!overflow-hidden nc-truncate nc-line-clamp-${rowHeightTruncateLines(rowHeight)}`]:
-            !fullMode && readOnly && rowHeight && !isExpandedFormOpen && !isForm,
+          [`!overflow-hidden nc-truncate nc-line-clamp-${rowHeightTruncateLines(localRowHeight)}`]:
+            !fullMode && readOnly && localRowHeight && !isExpandedFormOpen && !isForm,
         }"
         @keydown.alt.enter.stop
         @keydown.shift.enter.stop

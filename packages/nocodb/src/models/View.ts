@@ -1843,7 +1843,6 @@ export default class View implements ViewType {
           if (
             (column.id === galleryView.fk_cover_image_col_id && column.pv) ||
             (column.id !== galleryView.fk_cover_image_col_id &&
-              !isSystemColumn(column) &&
               (column.pv || galleryShowLimit < 3))
           ) {
             show = true;

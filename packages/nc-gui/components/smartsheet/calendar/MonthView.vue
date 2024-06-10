@@ -782,12 +782,12 @@ const addRecord = (date: dayjs.Dayjs) => {
               :class="{
                 'bg-brand-50 text-brand-500 !font-bold': day.isSame(dayjs(), 'date'),
               }"
-              class="px-1.3 py-1 text-sm font-medium rounded-lg"
+              class="px-1.3 py-1 text-sm leading-3 font-medium rounded-lg"
             >
               {{ day.format('DD') }}
             </span>
           </div>
-          <div v-if="!isUIAllowed('dataEdit')" class="p-3">{{ dayjs(day).format('DD') }}</div>
+          <div v-if="!isUIAllowed('dataEdit')" class="leading-3 p-3">{{ dayjs(day).format('DD') }}</div>
 
           <NcButton
             v-if="

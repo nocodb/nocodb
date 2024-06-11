@@ -1118,7 +1118,9 @@ export class ColumnsService {
       });
     } else if (colBody.uidt === UITypes.User) {
       // handle default value for user column
-      if (colBody.cdf) {
+      if (typeof colBody.cdf !== 'string') {
+        colBody.cdf = '';
+      } else if (colBody.cdf) {
         const baseUsers = await BaseUser.getUsersList(context, {
           base_id: source.base_id,
           include_ws_deleted: false,

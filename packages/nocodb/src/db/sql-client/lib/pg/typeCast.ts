@@ -134,7 +134,7 @@ function generateNumberBoundingQuery(
 function generateToDurationQuery(source: string) {
   return `
     CASE
-      WHEN ${source} ~ '^\\d{1,2}:\\d{1,2}$' THEN 60 * CAST(SPLIT_PART(${source}, ':', 1) AS INT) + CAST(SPLIT_PART(${source}, ':', 2) AS INT)
+      WHEN ${source} ~ '^\\d+:\\d{1,2}$' THEN 60 * CAST(SPLIT_PART(${source}, ':', 1) AS INT) + CAST(SPLIT_PART(${source}, ':', 2) AS INT)
       ELSE ${extractNumberQuery(source)}
     END;
   `;

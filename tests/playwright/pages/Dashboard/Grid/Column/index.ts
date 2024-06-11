@@ -435,7 +435,7 @@ export class ColumnPageObject extends BasePage {
       await this.get().locator('button:has-text("Save")').click();
       // click on update button on warning popup
       await this.waitForResponse({
-        uiAction: async () => await this.get().locator('button:has-text("Update")').click(),
+        uiAction: async () => await this.rootPage.locator('button:has-text("Update")').click(),
         requestUrlPathToMatch: 'api/v1/db/data/noco/',
         httpMethodsToMatch: ['GET'],
         responseJsonMatcher: json => json['pageInfo'],

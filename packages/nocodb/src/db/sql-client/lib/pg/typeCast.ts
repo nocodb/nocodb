@@ -201,6 +201,30 @@ function generateMultiSelectCastQuery(columnName: string, options: string[]) {
 }
 
 /*
+ * Generate SQL query to extract a number from a string and make out-of-bounds values NULL.
+ *
+ * @param {String} source - Source column name.
+ * @param {Number} minValue - Minimum allowed value.
+ * @param {Number} maxValue - Maximum allowed value.
+ * @returns {String} - SQL query to extract number and handle out-of-bounds values.
+ */
+function generateNumberBoundingQuery(
+  source: string,
+  minValue: number,
+  maxValue: number,
+) {
+  return `
+  NULLIF(
+    NULLIF(
+      LEAST(
+        ${maxValue + 1}, GREATEST(${minValue - 1}, ${source})
+      ), ${minValue - 1}
+    ), ${maxValue + 1}
+  );
+`;
+}
+
+/*
  * Generate query to cast a column to a specific data type based on the UI data type.
  *
  * @param {UITypes} uidt - UI data type
@@ -229,9 +253,11 @@ export function generateCastQuery(
     case UITypes.Number:
       return `CAST(${extractNumberQuery(source)} AS BIGINT);`;
     case UITypes.Year:
-      return `CAST(LEAST(9999, GREATEST(1000, ${extractNumberQuery(
-        source,
-      )})) AS INT);`;
+      return generateNumberBoundingQuery(
+        extractNumberQuery(source),
+        1000,
+        9999,
+      );
     case UITypes.Decimal:
     case UITypes.Currency:
       return `${extractNumberQuery(source)};`;

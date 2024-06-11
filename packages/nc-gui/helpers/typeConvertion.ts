@@ -39,7 +39,7 @@ function toDuration(value: string) {
  * @example convert('1a23', 'SingleLineText') -> '1a23'
  * @example convert('1', 'Checkbox') -> true
  */
-export function convert(value: string, type: string): unknown {
+export function convert(value: string, type: string, limit = 100): unknown {
   switch (type) {
     case UITypes.SingleLineText:
     case UITypes.SingleSelect:
@@ -53,7 +53,8 @@ export function convert(value: string, type: string): unknown {
     case UITypes.Currency:
       return extractNumbers(value)
     case UITypes.Percent:
-      return Math.min(100, Math.max(0, extractNumbers(value)))
+    case UITypes.Rating:
+      return Math.min(limit, Math.max(0, extractNumbers(value)))
     case UITypes.Checkbox:
       return getCheckboxValue(value)
     case UITypes.Date:

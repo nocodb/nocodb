@@ -424,10 +424,18 @@ export class ColumnPageObject extends BasePage {
 
   async save({ isUpdated, typeChange }: { isUpdated?: boolean; typeChange?: boolean } = {}) {
     // if type is changed, then we need to click the update button during the warning popup
-    if (!typeChange) {
-      const buttonText = isUpdated ? 'Update' : 'Save';
+    if (!typeChange)
       await this.waitForResponse({
-        uiAction: async () => await this.get().locator(`button:has-text("${buttonText}")`).click(),
+        uiAction: async () => await this.get().locator('button:has-text("Update Field")').click(),
+        requestUrlPathToMatch: 'api/v1/db/data/noco/',
+        httpMethodsToMatch: ['GET'],
+        responseJsonMatcher: json => json['pageInfo'],
+      });
+    else {
+      await this.get().locator('button:has-text("Update Field")').click();
+      // click on update button on warning popup
+      await this.waitForResponse({
+        uiAction: async () => await this.rootPage.locator('button:has-text("Update")').click(),
         requestUrlPathToMatch: 'api/v1/db/data/noco/',
         httpMethodsToMatch: ['GET'],
         responseJsonMatcher: json => json['pageInfo'],
@@ -448,22 +456,6 @@ export class ColumnPageObject extends BasePage {
     });
     await this.get().waitFor({ state: 'hidden' });
     await this.rootPage.waitForTimeout(200);
-  }
-
-  async checkMessageAndClose({ errorMessage }: { errorMessage?: RegExp } = {}) {
-    await this.verifyErrorMessage({
-      message: errorMessage,
-    });
-    await this.get().locator('button:has-text("Cancel")').click();
-    await this.get().waitFor({ state: 'hidden' });
-    await this.rootPage.waitForTimeout(200);
-  }
-
-  async verify({ title, isVisible = true }: { title: string; isVisible?: boolean }) {
-    if (!isVisible) {
-      return await expect(this.getColumnHeader(title)).not.toBeVisible();
-    }
-    await expect(this.getColumnHeader(title)).toContainText(title);
   }
 
   async verifyRoleAccess(param: { role: string }) {

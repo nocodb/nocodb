@@ -37,8 +37,8 @@ function extractNumberQuery(source: string) {
 function generateBooleanCastQuery(columnName: string): string {
   return `
     CASE
-      WHEN ${columnName} IN ('checked', 'x', 'yes', 'y', '1', '[x]', '☑', '✅', '✓', '✔', 'enabled', 'on', 'done', 'true') THEN true
-      WHEN ${columnName} IN ('unchecked', '', 'no', 'n', '0', '[]', '[ ]', 'disabled', 'off', 'false') THEN false
+      WHEN LOWER(${columnName}) IN ('checked', 'x', 'yes', 'y', '1', '[x]', '☑', '✅', '✓', '✔', 'enabled', 'on', 'done', 'true') THEN true
+      WHEN LOWER(${columnName}) IN ('unchecked', '', 'no', 'n', '0', '[]', '[ ]', 'disabled', 'off', 'false') THEN false
       ELSE null
     END;
   `;

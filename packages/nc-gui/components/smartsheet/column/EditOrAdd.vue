@@ -2,6 +2,7 @@
 import type { ColumnReqType, ColumnType } from 'nocodb-sdk'
 import { UITypes, UITypesName, isLinksOrLTAR, isSelfReferencingTableColumn, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 
+import Icon from '../header/Icon.vue'
 import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
 import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
 import MdiIdentifierIcon from '~icons/mdi/identifier'
@@ -109,7 +110,8 @@ const geoDataToggleCondition = (t: { name: UITypes }) => {
 
 const showDeprecated = ref(false)
 
-const isSystemField = (t) => [UITypes.CreatedBy, UITypes.CreatedTime, UITypes.LastModifiedBy, UITypes.LastModifiedTime].includes(t.name);
+const isSystemField = (t) =>
+  [UITypes.CreatedBy, UITypes.CreatedTime, UITypes.LastModifiedBy, UITypes.LastModifiedTime].includes(t.name)
 
 const uiTypesOptions = computed<typeof uiTypes>(() => {
   return [
@@ -144,7 +146,9 @@ const reloadMetaAndData = async () => {
 
 const saving = ref(false)
 
-async function onSubmit() {
+const warningVisible = ref(false)
+
+const saveSubmitted = async () => {
   if (readOnly.value) return
 
   saving.value = true
@@ -162,6 +166,14 @@ async function onSubmit() {
   if (isForm.value) {
     $e('a:form-view:add-new-field')
   }
+}
+
+async function onSubmit() {
+  if (readOnly.value) return
+
+  // Show warning message if user tries to change type of column
+  if (isEdit.value && formState.value.uidt !== column.value?.uidt) warningVisible.value = true
+  else saveSubmitted()
 }
 
 // focus and select the column name field
@@ -292,6 +304,7 @@ const filterOption = (input: string, option: { value: UITypes }) => {
 
 <template>
   <div
+    v-if="!warningVisible"
     class="overflow-auto max-h-[max(80vh,500px)]"
     :class="{
       'bg-white': !props.fromTableExplorer,
@@ -538,6 +551,39 @@ const filterOption = (input: string, option: { value: UITypes }) => {
       </template>
     </a-form>
   </div>
+  <GeneralModal v-model:visible="warningVisible" size="small" centered>
+    <div class="flex flex-col p-6">
+      <div class="flex flex-row pb-2 mb-4 font-medium text-lg border-b-1 border-gray-50 text-gray-800">Column Type Change</div>
+
+      <div class="mb-3 text-gray-800">
+        <div class="flex item-center gap-2 mb-4">
+          <component :is="iconMap.warning" id="nc-selected-item-icon" class="text-yellow-500 w-10 h-10" />
+          This action cannot be undone. Converting data types may result in data loss. Proceed with caution.
+        </div>
+        Are you sure you want to change the column type?
+      </div>
+
+      <slot name="entity-preview"></slot>
+
+      <div class="flex flex-row gap-x-2 mt-2.5 pt-2.5 justify-end">
+        <NcButton type="secondary" @click="warningVisible = false">
+          {{ $t('general.cancel') }}
+        </NcButton>
+
+        <NcButton
+          key="submit"
+          type="danger"
+          html-type="submit"
+          :loading="saving"
+          data-testid="nc-delete-modal-delete-btn"
+          @click="saveSubmitted"
+        >
+          Update
+          <template #loading> Saving... </template>
+        </NcButton>
+      </div>
+    </div>
+  </GeneralModal>
 </template>
 
 <style lang="scss">

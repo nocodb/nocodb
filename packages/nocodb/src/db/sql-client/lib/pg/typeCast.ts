@@ -58,7 +58,7 @@ function generateDateCastQuery(source: string, format: string) {
 
   const cases = DATE_FORMATS[format].map(
     ([format, regex]) =>
-      `WHEN ${source} ~ '${regex}' THEN TO_DATE(${source}, '${format}')`,
+      `WHEN ${source} ~ '${regex}' THEN to_date_time_safe(${source}, '${format}')::date`,
   );
 
   return `CASE 
@@ -73,6 +73,7 @@ function generateDateCastQuery(source: string, format: string) {
  * @param {String} source - Source column name
  * @param {String} dateFormat - Date format
  * @param {String} timeFormat - Time format
+ * @param {String} functionName - Function name to cast value to date time
  * @returns {String} - query to cast value to date time
  */
 function generateDateTimeCastQuery(source: string, dateFormat: string) {
@@ -80,55 +81,19 @@ function generateDateTimeCastQuery(source: string, dateFormat: string) {
     throw new Error(`Invalid date format: ${dateFormat}`);
   }
 
+  const timeFormats = dateFormat === 'empty' ? TIME_FORMATS: [...TIME_FORMATS, ['', '^$']];
+
   const cases = DATE_FORMATS[dateFormat].map(([format, regex]) =>
-    TIME_FORMATS.map(
+    timeFormats.map(
       ([timeFormat, timeRegex]) =>
-        `WHEN ${source} ~ '${regex.slice(0, -1)} ${timeRegex.slice(
+        `WHEN ${source} ~ '${regex.slice(0, -1)}\s*${timeRegex.slice(
           1,
-        )}' THEN TO_TIMESTAMP(${source}, '${format} ${timeFormat}')`,
+        )}' THEN to_date_time_safe(${source}, '${format} ${timeFormat}')`,
     ).join('\n'),
   );
 
   return `CASE 
     ${cases.join('\n')}
-    ELSE NULL
-   END;`;
-}
-
-/*
- * Generate query to cast a value to time based on the given time formats.
- *
- * @param {String} source - Source column name
- * @returns {String} - query to cast value to time
- */
-function generateTimeCastQuery(source: string) {
-  const cases = TIME_FORMATS.map(
-    ([format, regex]) =>
-      `WHEN ${source} ~ '${regex}' THEN TO_TIMESTAMP(${source}, '${format}')`,
-  );
-
-  return `CASE 
-    ${cases.join('\n')}
-    ELSE NULL
-   END;`;
-}
-
-/*
- * Generate query to cast a value to duration. The duration is determined based on the given formats.
- *
- * @param {String} source - Source column name
- * @returns {String} - query to cast value to duration
- */
-function generateDurationCastQuery(source: string) {
-  return `CASE 
-    WHEN ${source} ~ '\\d+' THEN CAST(${source} as DECIMAL) 
-    ${Object.keys(TIME_FORMATS)
-      .map(
-        (format) =>
-          `WHEN ${source} ~ '${TIME_FORMATS[format]}' THEN 
-            EXTRACT(EPOCH FROM TO_TIMESTAMP(${source}, '${format}'))`,
-      )
-      .join('\n')}
     ELSE NULL
    END;`;
 }
@@ -155,6 +120,21 @@ function generateNumberBoundingQuery(
     ), ${maxValue + 1}
   );
 `;
+}
+
+/*
+ * Generate query to cast a value to duration.
+ *
+ * @param {String} source - Source column name
+ * @returns {String} - query to cast value to duration
+ */
+function generateToDurationQuery(source: string) {
+  return `
+    CASE
+      WHEN ${source} ~ '^\\d{1,2}:\\d{1,2}$' THEN 60 * CAST(SPLIT_PART(${source}, ':', 1) AS INT) + CAST(SPLIT_PART(${source}, ':', 2) AS INT)
+      ELSE ${extractNumberQuery(source)}
+    END;
+  `;
 }
 
 /*
@@ -205,9 +185,9 @@ export function generateCastQuery(
     case UITypes.DateTime:
       return generateDateTimeCastQuery(source, dateFormat);
     case UITypes.Time:
-      return generateTimeCastQuery(source);
+      return generateDateTimeCastQuery(source, 'empty');
     case UITypes.Duration:
-      return generateDurationCastQuery(source);
+      return generateToDurationQuery(source);
     default:
       return `null::${dt};`;
   }

@@ -11,6 +11,8 @@ import {
   formatColumn,
   generateCastQuery,
 } from '~/db/sql-client/lib/pg/typeCast';
+import {UITypes} from "nocodb-sdk";
+import pgQueries from "~/db/sql-client/lib/pg/pg.queries";
 
 const log = new Debug('PGClient');
 
@@ -2893,6 +2895,15 @@ class PGClient extends KnexClient {
           shouldSanitize,
         );
 
+        if ([
+          UITypes.Date,
+          UITypes.DateTime,
+          UITypes.Time,
+          UITypes.Duration,
+        ].includes(n.uidt)) {
+          query += pgQueries.dateConversionFunction.default.sql;
+        }
+
         query += this.genQuery(
           `\nALTER TABLE ?? ALTER COLUMN ?? TYPE ${this.sanitiseDataType(
             n.dt,
@@ -2902,12 +2913,9 @@ class PGClient extends KnexClient {
         );
 
         const castedColumn = formatColumn(n.cn, o.uidt);
+        const castQuery = generateCastQuery(n.uidt, n.dt, castedColumn, n.dtxp);
 
-        query += this.genQuery(
-          generateCastQuery(n.uidt, n.dt, castedColumn, n.dtxp),
-          [],
-          shouldSanitize,
-        );
+        query += this.genQuery(castQuery, [], shouldSanitize);
       }
 
       if (n.rqd !== o.rqd) {

@@ -1253,8 +1253,7 @@ export class ColumnsService {
         await Column.update(context, param.columnId, {
           ...colBody,
         });
-      } else {
-        // email/text to user
+      } else {   // email/text to user
         const baseModel = await reuseOrSave('baseModel', reuse, async () =>
           Model.getBaseModelSQL(context, {
             id: table.id,

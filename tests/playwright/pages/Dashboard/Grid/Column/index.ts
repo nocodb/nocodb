@@ -424,14 +424,15 @@ export class ColumnPageObject extends BasePage {
 
   async save({ isUpdated, typeChange }: { isUpdated?: boolean; typeChange?: boolean } = {}) {
     // if type is changed, then we need to click the update button during the warning popup
-    if (!typeChange)
+    if (!typeChange) {
+      const buttonText = isUpdated ? 'Update' : 'Save';
       await this.waitForResponse({
-        uiAction: async () => await this.get().locator('button:has-text("Update Field")').click(),
+        uiAction: async () => await this.get().locator(`button:has-text("${buttonText}")`).click(),
         requestUrlPathToMatch: 'api/v1/db/data/noco/',
         httpMethodsToMatch: ['GET'],
         responseJsonMatcher: json => json['pageInfo'],
       });
-    else {
+    } else {
       await this.get().locator('button:has-text("Update Field")').click();
       // click on update button on warning popup
       await this.waitForResponse({

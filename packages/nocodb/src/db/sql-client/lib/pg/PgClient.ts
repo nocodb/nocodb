@@ -2916,7 +2916,13 @@ class PGClient extends KnexClient {
 
         const castedColumn = formatColumn(n.cn, o.uidt);
         const limit = typeof n.dtxp === 'number' ? n.dtxp : null;
-        const castQuery = generateCastQuery(n.uidt, n.dt, castedColumn, limit);
+        const castQuery = generateCastQuery(
+          n.uidt,
+          n.dt,
+          castedColumn,
+          limit,
+          n.meta.date_format,
+        );
 
         query += this.genQuery(castQuery, [], shouldSanitize);
       }

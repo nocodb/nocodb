@@ -45,26 +45,6 @@ function generateBooleanCastQuery(columnName: string): string {
 }
 
 /*
- * Generate query to cast a value to single select. The single select value is
- * determined based on the given options.
- *
- * @param {String} columnName - Source column name
- * @param {String[]} options - Single select options
- * @returns {String} - query to cast value to single select
- */
-function generateSingleSelectCastQuery(
-  columnName: string,
-  options: string[],
-): string {
-  return `CASE 
-    WHEN ${columnName} IN (${options
-    .map((option) => `'${option}'`)
-    .join(',')}) THEN ${columnName}
-    ELSE NULL
-    END;`;
-}
-
-/*
  * Generate query to cast a value to date based on the given format.
  *
  * @param {String} source - Source column name
@@ -154,32 +134,6 @@ function generateDurationCastQuery(source: string) {
 }
 
 /*
- * Generate SQL script to transform a multi-select VARCHAR column to a filtered text field in PostgreSQL using regex.
- *
- * @param {String} columnName - The name of the column to be transformed.
- * @param {String[]} options - Array of valid options.
- * @returns {String} - SQL script to transform the column using regex.
- */
-function generateMultiSelectCastQuery(columnName: string, options: string[]) {
-  // Escape special characters in options and join them with the regex OR operator
-  const escapedOptions = options.map((opt) =>
-    opt.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&'),
-  );
-
-  return `
-    NULLIF(
-      REGEXP_REPLACE(
-        ${columnName},
-        '((^|,)(\\?!(${escapedOptions.join('|')})($|,))[^,]*)',
-        '',
-        'g'
-      ),
-      ''
-    );
-  `;
-}
-
-/*
  * Generate SQL query to extract a number from a string and make out-of-bounds values NULL.
  *
  * @param {String} source - Source column name.
@@ -218,9 +172,10 @@ export function generateCastQuery(
   source: string,
   limit: number,
   dateFormat = 'dmy',
-  options: string[] = [],
 ) {
   switch (uidt) {
+    case UITypes.MultiSelect:
+    case UITypes.SingleSelect:
     case UITypes.LongText:
       return `${source}::TEXT;`;
     case UITypes.SingleLineText:
@@ -255,10 +210,6 @@ export function generateCastQuery(
       return generateTimeCastQuery(source);
     case UITypes.Duration:
       return generateDurationCastQuery(source);
-    case UITypes.SingleSelect:
-      return generateSingleSelectCastQuery(source, options);
-    case UITypes.MultiSelect:
-      return generateMultiSelectCastQuery(source, options);
     default:
       throw new Error(`Data type conversion not implemented for: ${uidt}`);
   }

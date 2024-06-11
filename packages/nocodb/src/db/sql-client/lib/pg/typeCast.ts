@@ -210,7 +210,7 @@ export function formatColumn(columnName: string, uiDataType: UITypes) {
     case UITypes.URL:
     case UITypes.SingleSelect:
     case UITypes.PhoneNumber:
-      return `"${columnName}"`;
+      return columnName;
     case UITypes.Number:
     case UITypes.Decimal:
     case UITypes.Currency:
@@ -218,10 +218,10 @@ export function formatColumn(columnName: string, uiDataType: UITypes) {
     case UITypes.Rating:
     case UITypes.Duration:
     case UITypes.Year:
-      return `CAST("${columnName}" AS VARCHAR(255))`;
+      return `CAST(${columnName} AS VARCHAR(255))`;
     case UITypes.Checkbox:
-      return `CAST(CASE WHEN "${columnName}" THEN '1' ELSE '0' END AS TEXT)`;
+      return `CAST(CASE WHEN ${columnName} THEN '1' ELSE '0' END AS TEXT)`;
     default:
-      return `CAST("${columnName}" AS TEXT)`;
+      return `CAST(${columnName} AS TEXT)`;
   }
 }

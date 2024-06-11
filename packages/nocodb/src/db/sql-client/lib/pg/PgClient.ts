@@ -2914,7 +2914,10 @@ class PGClient extends KnexClient {
           shouldSanitize,
         );
 
-        const castedColumn = formatColumn(n.cn, o.uidt);
+        const castedColumn = formatColumn(
+          this.genQuery('??', [n.cn], shouldSanitize),
+          o.uidt,
+        );
         const limit = typeof n.dtxp === 'number' ? n.dtxp : null;
         const castQuery = generateCastQuery(
           n.uidt,

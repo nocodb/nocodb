@@ -180,8 +180,19 @@ async function onSubmit() {
   if (readOnly.value) return
 
   // Show warning message if user tries to change type of column
-  if (isEdit.value && formState.value.uidt !== column.value?.uidt) warningVisible.value = true
-  else saveSubmitted()
+  if (isEdit.value && formState.value.uidt !== column.value?.uidt) {
+    warningVisible.value = true
+
+    const { close } = useDialog(resolveComponent('DlgColumnUpdateConfirm'), {
+      'visible': warningVisible,
+      'onUpdate:visible': (value) => (warningVisible.value = value),
+      'saving': saving,
+      'onSubmit': async () => {
+        close()
+        await saveSubmitted()
+      },
+    })
+  } else await saveSubmitted()
 }
 
 // focus and select the column name field
@@ -559,39 +570,6 @@ const filterOption = (input: string, option: { value: UITypes }) => {
       </template>
     </a-form>
   </div>
-  <GeneralModal v-model:visible="warningVisible" size="small" centered>
-    <div class="flex flex-col p-6">
-      <div class="flex flex-row pb-2 mb-4 font-medium text-lg border-b-1 border-gray-50 text-gray-800">Field Type Change</div>
-
-      <div class="mb-3 text-gray-800">
-        <div class="flex item-center gap-2 mb-4">
-          <component :is="iconMap.warning" id="nc-selected-item-icon" class="text-yellow-500 w-10 h-10" />
-          This action cannot be undone. Converting data types may result in data loss. Proceed with caution!
-        </div>
-      </div>
-
-      <slot name="entity-preview"></slot>
-
-      <div class="flex flex-row gap-x-2 mt-2.5 pt-2.5 justify-end">
-        <NcButton type="secondary" @click="warningVisible = false">
-          {{ $t('general.cancel') }}
-        </NcButton>
-
-        <NcButton
-          key="submit"
-          autofocus
-          type="primary"
-          html-type="submit"
-          :loading="saving"
-          data-testid="nc-delete-modal-delete-btn"
-          @click="saveSubmitted"
-        >
-          Update
-          <template #loading> Saving... </template>
-        </NcButton>
-      </div>
-    </div>
-  </GeneralModal>
 </template>
 
 <style lang="scss">
@@ -608,6 +586,7 @@ const filterOption = (input: string, option: { value: UITypes }) => {
     @apply font-normal;
   }
 }
+
 .nc-column-name-input,
 :deep(.nc-formula-input),
 :deep(.ant-form-item-control-input-content > input.ant-input) {
@@ -669,6 +648,7 @@ const filterOption = (input: string, option: { value: UITypes }) => {
     @apply border-gray-300;
     box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.24);
   }
+
   &.ant-select-disabled .ant-select-selector {
     box-shadow: none;
   }

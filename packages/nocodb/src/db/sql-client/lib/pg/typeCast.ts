@@ -140,6 +140,20 @@ function generateToDurationQuery(source: string) {
   `;
 }
 
+function getDateFormat(format: string) {
+  const y = format.indexOf('Y');
+  const m = format.indexOf('M');
+  const d = format.indexOf('D');
+
+  if (y < m) {
+    if (m < d) return 'ymd';
+    else if (y < d) return 'ydm';
+    else return 'dym';
+  } else if (y < d) return 'myd';
+  else if (m < d) return 'mdy';
+  else return 'dmy';
+}
+
 /*
  * Generate query to cast a column to a specific data type based on the UI data type.
  *
@@ -156,7 +170,7 @@ export function generateCastQuery(
   dt: string,
   source: string,
   limit: number,
-  dateFormat = 'dmy',
+  format: string,
 ) {
   switch (uidt) {
     case UITypes.SingleLineText:
@@ -188,9 +202,9 @@ export function generateCastQuery(
     case UITypes.Checkbox:
       return generateBooleanCastQuery(source);
     case UITypes.Date:
-      return generateDateCastQuery(source, dateFormat);
+      return generateDateCastQuery(source, getDateFormat(format));
     case UITypes.DateTime:
-      return generateDateTimeCastQuery(source, dateFormat);
+      return generateDateTimeCastQuery(source, getDateFormat(format));
     case UITypes.Time:
       return generateDateTimeCastQuery(source, 'empty');
     case UITypes.Duration:

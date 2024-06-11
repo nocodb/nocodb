@@ -777,7 +777,10 @@
     "displayAsProgress": "הצג כתקדום",
     "relationType": "סוג יחס",
     "showThousandsSeparator": "הצג מפריד לאלפים",
-    "signUpForFree": "הירשם בחינם"
+    "signUpForFree": "הירשם בחינם",
+    "coverImageField": "Cover image field",
+    "fitImage": "Fit image",
+    "coverImageArea": "Cover image"
   },
   "activity": {
     "renameBase": "שנה את שם הבסיס",

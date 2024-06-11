@@ -45,29 +45,6 @@ function generateBooleanCastQuery(columnName: string): string {
 }
 
 /*
- * Generate query to cast a value to date based on the given format.
- *
- * @param {String} source - Source column name
- * @param {String} format - Date format
- * @returns {String} - query to cast value to date
- */
-function generateDateCastQuery(source: string, format: string) {
-  if (!(format in DATE_FORMATS)) {
-    throw new Error(`Invalid date format: ${format}`);
-  }
-
-  const cases = DATE_FORMATS[format].map(
-    ([format, regex]) =>
-      `WHEN ${source} ~ '${regex}' THEN to_date_time_safe(${source}, '${format}')::date`,
-  );
-
-  return `CASE 
-    ${cases.join('\n')}
-    ELSE NULL
-   END;`;
-}
-
-/*
  * Generate query to cast a value to date time based on the given date and time formats.
  *
  * @param {String} source - Source column name
@@ -202,7 +179,10 @@ export function generateCastQuery(
     case UITypes.Checkbox:
       return generateBooleanCastQuery(source);
     case UITypes.Date:
-      return generateDateCastQuery(source, getDateFormat(format));
+      return `CAST(${generateDateTimeCastQuery(
+        source,
+        getDateFormat(format),
+      ).slice(0, -1)} AS DATE);`;
     case UITypes.DateTime:
       return generateDateTimeCastQuery(source, getDateFormat(format));
     case UITypes.Time:

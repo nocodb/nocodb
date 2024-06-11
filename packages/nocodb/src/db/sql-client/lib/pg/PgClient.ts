@@ -13,6 +13,8 @@ import {
   generateCastQuery,
 } from '~/db/sql-client/lib/pg/typeCast';
 import pgQueries from '~/db/sql-client/lib/pg/pg.queries';
+import Noco from "~/Noco";
+import { MetaTable } from "~/ee/utils/globals";
 
 const log = new Debug('PGClient');
 
@@ -2888,7 +2890,6 @@ class PGClient extends KnexClient {
         );
       }
 
-
       if (n.dt !== o.dt) {
         query += this.genQuery(
           `\nALTER TABLE ?? ALTER COLUMN ?? DROP DEFAULT;\n`,
@@ -3081,8 +3082,8 @@ class PGClient extends KnexClient {
         REPLACE(
           REPLACE(
             REGEXP_REPLACE(
-              REGEXP_REPLACE("${source}", '[^0-9.]', '', 'g'), 
-              '\\.', '-'
+              REGEXP_REPLACE(${source}, '[^0-9.]', '', 'g'), 
+              '(\\d)\\.', '\\1-'
             ), 
             '.', ''
           ), 
@@ -3102,8 +3103,8 @@ class PGClient extends KnexClient {
   private generateBooleanCastQuery(columnName: string): string {
     return `
     CASE
-      WHEN "${columnName}" IN ('checked', 'x', 'yes', 'y', '1', '[x]', '☑', '✅', '✓', '✔', 'enabled', 'on', 'done', 'true') THEN true
-      WHEN "${columnName}" IN ('unchecked', '', 'no', 'n', '0', '[]', '[ ]', 'disabled', 'off', 'false') THEN false
+      WHEN ${columnName} IN ('checked', 'x', 'yes', 'y', '1', '[x]', '☑', '✅', '✓', '✔', 'enabled', 'on', 'done', 'true') THEN true
+      WHEN ${columnName} IN ('unchecked', '', 'no', 'n', '0', '[]', '[ ]', 'disabled', 'off', 'false') THEN false
       ELSE null
     END;
   `;
@@ -3114,9 +3115,9 @@ class PGClient extends KnexClient {
     options: string[],
   ): string {
     return `CASE 
-    WHEN "${columnName}" IN (${options
+    WHEN ${columnName} IN (${options
       .map((option) => `'${option}'`)
-      .join(',')}) THEN "${columnName}"
+      .join(',')}) THEN ${columnName}
     ELSE NULL
     END;`;
   }
@@ -3124,31 +3125,60 @@ class PGClient extends KnexClient {
   private generateCastQuery(uidt: UITypes, source: string, limit: number) {
     switch (uidt) {
       case UITypes.LongText:
-        return `"${source}"::TEXT;`;
+        return `${source}::TEXT;`;
       case UITypes.SingleLineText:
       case UITypes.Email:
       case UITypes.URL:
-        return `"${source}"::VARCHAR(${limit});`;
+        return `${source}::VARCHAR(${limit || 255});`;
       case UITypes.Number:
-        return `CAST(${this.extractNumberQuery(source)} AS INTEGER);`;
+        return `CAST(${this.extractNumberQuery(source)} AS BIGINT);`;
       case UITypes.Decimal:
       case UITypes.Currency:
         return `${this.extractNumberQuery(source)};`;
       case UITypes.Percent:
+        return `MIN(100, MAX(0, ${this.extractNumberQuery(source)}));`;
       case UITypes.Rating:
-        return `MIN(100, MAX(${limit}, ${this.extractNumberQuery(source)}));`;
+        return `MIN(${limit || 5}, MAX(0, ${this.extractNumberQuery(
+          source,
+        )}));`;
       case UITypes.Checkbox:
         return this.generateBooleanCastQuery(source);
       case UITypes.Date:
       case UITypes.DateTime:
       case UITypes.Time:
-        return `TRY_CAST("${source}" AS TIMESTAMP);`;
+        return `CAST(${source} AS TIMESTAMP);`;
       case UITypes.Duration:
         return `CAST(${this.extractNumberQuery(source)} AS INTEGER);`;
       case UITypes.SingleSelect:
         return this.generateSingleSelectCastQuery(source, []);
       case UITypes.MultiSelect:
-        return `"${source}"::ARRAY;`;
+        return `${source}::ARRAY;`;
+    }
+  }
+
+  private formatColumn(columnName: string, uiDataType: UITypes) {
+    switch (uiDataType) {
+      case UITypes.LongText:
+      case UITypes.SingleLineText:
+      case UITypes.Email:
+      case UITypes.URL:
+      case UITypes.SingleSelect:
+        return `"${columnName}"`;
+      case UITypes.Number:
+      case UITypes.Decimal:
+      case UITypes.Currency:
+      case UITypes.Percent:
+      case UITypes.Rating:
+      case UITypes.Duration:
+        return `CAST("${columnName}" AS TEXT)`;
+      case UITypes.Checkbox:
+        return `CAST(CASE WHEN "${columnName}" THEN '1' ELSE '0' END AS TEXT)`;
+      case UITypes.Date:
+      case UITypes.DateTime:
+      case UITypes.Time:
+        return `CAST("${columnName}" AS TEXT)`;
+      case UITypes.MultiSelect:
+        return `ARRAY_TO_STRING("${columnName}", ',')`;
     }
   }
 }

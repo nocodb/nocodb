@@ -3,6 +3,7 @@ import knex from 'knex';
 import isEmpty from 'lodash/isEmpty';
 import mapKeys from 'lodash/mapKeys';
 import find from 'lodash/find';
+import { UITypes } from 'nocodb-sdk';
 import KnexClient from '~/db/sql-client/lib/KnexClient';
 import Debug from '~/db/util/Debug';
 import Result from '~/db/util/Result';
@@ -11,8 +12,7 @@ import {
   formatColumn,
   generateCastQuery,
 } from '~/db/sql-client/lib/pg/typeCast';
-import {UITypes} from "nocodb-sdk";
-import pgQueries from "~/db/sql-client/lib/pg/pg.queries";
+import pgQueries from '~/db/sql-client/lib/pg/pg.queries';
 
 const log = new Debug('PGClient');
 
@@ -2895,12 +2895,14 @@ class PGClient extends KnexClient {
           shouldSanitize,
         );
 
-        if ([
-          UITypes.Date,
-          UITypes.DateTime,
-          UITypes.Time,
-          UITypes.Duration,
-        ].includes(n.uidt)) {
+        if (
+          [
+            UITypes.Date,
+            UITypes.DateTime,
+            UITypes.Time,
+            UITypes.Duration,
+          ].includes(n.uidt)
+        ) {
           query += pgQueries.dateConversionFunction.default.sql;
         }
 
@@ -2913,7 +2915,8 @@ class PGClient extends KnexClient {
         );
 
         const castedColumn = formatColumn(n.cn, o.uidt);
-        const castQuery = generateCastQuery(n.uidt, n.dt, castedColumn, n.dtxp);
+        const limit = typeof n.dtxp === 'number' ? n.dtxp : null;
+        const castQuery = generateCastQuery(n.uidt, n.dt, castedColumn, limit);
 
         query += this.genQuery(castQuery, [], shouldSanitize);
       }

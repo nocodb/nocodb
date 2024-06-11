@@ -3668,7 +3668,7 @@ class BaseModelSqlv2 {
       const pkObj = {};
       for (const pk of this.model.primaryKeys) {
         const key = pk.title;
-        if (ai && pk.id === ai.id && (rowId === null || rowId === undefined)) {
+        if (ai && pk.id === ai.id && !(rowId === null || rowId === undefined)) {
           pkObj[key] = rowId;
         } else {
           pkObj[key] = insertObj[pk.column_name] ?? null;

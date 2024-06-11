@@ -516,14 +516,7 @@ export class ColumnsService {
               ],
             );
           }
-        } else if (
-          [
-            UITypes.SingleLineText,
-            UITypes.Email,
-            UITypes.PhoneNumber,
-            UITypes.URL,
-          ].includes(column.uidt)
-        ) {
+        } else {
           // Text to SingleSelect/MultiSelect
           const dbDriver = await reuseOrSave('dbDriver', reuse, async () =>
             NcConnectionMgrv2.get(source),
@@ -555,7 +548,7 @@ export class ColumnsService {
             );
             const options = data.reduce((acc, el) => {
               if (el[column.column_name]) {
-                const values = el[column.column_name].split(',');
+                const values = String(el[column.column_name]).split(',');
                 if (values.length > 1) {
                   if (colBody.uidt === UITypes.SingleSelect) {
                     NcError.badRequest(

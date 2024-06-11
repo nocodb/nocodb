@@ -3663,18 +3663,12 @@ class BaseModelSqlv2 {
     // handle if composite primary key is used along with ai or ag
     if (ag) {
       return insertObj[ag.column_name] ?? rowId;
-    } else if ((ai || ag) && (force || this.model.primaryKeys?.length > 1)) {
+    } else if (ai && (force || this.model.primaryKeys?.length > 1)) {
       // generate object with ai column and rest of the primary keys
       const pkObj = {};
       for (const pk of this.model.primaryKeys) {
         const key = pk.title;
         if (ai && pk.id === ai.id && (rowId === null || rowId === undefined)) {
-          pkObj[key] = rowId;
-        } else if (
-          ag &&
-          pk.id === ag.id &&
-          (rowId === null || rowId === undefined)
-        ) {
           pkObj[key] = rowId;
         } else {
           pkObj[key] = insertObj[pk.column_name] ?? null;

@@ -576,6 +576,7 @@ const filterOption = (input: string, option: { value: UITypes }) => {
 
         <NcButton
           key="submit"
+          autofocus
           type="primary"
           html-type="submit"
           :loading="saving"

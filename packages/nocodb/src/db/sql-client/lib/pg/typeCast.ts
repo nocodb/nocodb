@@ -175,6 +175,32 @@ function generateDurationCastQuery(source: string) {
 }
 
 /*
+ * Generate SQL script to transform a multi-select VARCHAR column to a filtered text field in PostgreSQL using regex.
+ *
+ * @param {String} columnName - The name of the column to be transformed.
+ * @param {String[]} options - Array of valid options.
+ * @returns {String} - SQL script to transform the column using regex.
+ */
+function generateMultiSelectCastQuery(columnName: string, options: string[]) {
+  // Escape special characters in options and join them with the regex OR operator
+  const escapedOptions = options.map((opt) =>
+    opt.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&'),
+  );
+
+  return `
+    NULLIF(
+      REGEXP_REPLACE(
+        "${columnName}",
+        '((^|,)(?!(${escapedOptions.join('|')})($|,))[^,]*)',
+        '',
+        'g'
+      ),
+      ''
+    );
+  `;
+}
+
+/*
  * Generate query to cast a column to a specific data type based on the UI data type.
  *
  * @param {UITypes} uidt - UI data type
@@ -190,6 +216,7 @@ export function generateCastQuery(
   limit: number,
   dateFormat = 'YYYY-MM-DD',
   timeFormat = 'HH:mm:ss',
+  options: string[] = [],
 ) {
   switch (uidt) {
     case UITypes.LongText:
@@ -225,9 +252,9 @@ export function generateCastQuery(
     case UITypes.Duration:
       return generateDurationCastQuery(source);
     case UITypes.SingleSelect:
-      return generateSingleSelectCastQuery(source, []);
+      return generateSingleSelectCastQuery(source, options);
     case UITypes.MultiSelect:
-      return `${source}::ARRAY;`;
+      return generateMultiSelectCastQuery(source, options);
     default:
       throw new Error(`Data type conversion not implemented for: ${uidt}`);
   }
@@ -244,6 +271,7 @@ export function formatColumn(columnName: string, uiDataType: UITypes) {
   switch (uiDataType) {
     case UITypes.LongText:
     case UITypes.SingleLineText:
+    case UITypes.MultiSelect:
     case UITypes.Email:
     case UITypes.URL:
     case UITypes.SingleSelect:
@@ -263,8 +291,6 @@ export function formatColumn(columnName: string, uiDataType: UITypes) {
     case UITypes.DateTime:
     case UITypes.Time:
       return `CAST("${columnName}" AS TEXT)`;
-    case UITypes.MultiSelect:
-      return `ARRAY_TO_STRING("${columnName}", ',')`;
     default:
       return `CAST("${columnName}" AS TEXT)`;
   }

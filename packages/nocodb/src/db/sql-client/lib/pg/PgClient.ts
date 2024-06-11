@@ -2904,7 +2904,7 @@ class PGClient extends KnexClient {
         const castedColumn = formatColumn(n.cn, o.uidt);
 
         query += this.genQuery(
-          generateCastQuery(n.uidt, castedColumn, n.dtxp),
+          generateCastQuery(n.uidt, n.dt, castedColumn, n.dtxp),
           [],
           shouldSanitize,
         );

@@ -1251,9 +1251,7 @@ export class ColumnsService {
         await Column.update(context, param.columnId, {
           ...colBody,
         });
-      } else if (
-        [UITypes.SingleLineText, UITypes.Email].includes(column.uidt)
-      ) {
+      } else {
         // email/text to user
         const baseModel = await reuseOrSave('baseModel', reuse, async () =>
           Model.getBaseModelSQL(context, {
@@ -1282,7 +1280,8 @@ export class ColumnsService {
 
           const rows = data.map((el) => el[column.column_name]);
           const emails = rows
-            .map((el) => {
+            .filter((el?: string) => el)
+            .map((el: string) => {
               const res = el.split(',').map((e) => e.trim());
               if (res.length > 1) {
                 isMultiple = true;
@@ -1312,13 +1311,26 @@ export class ColumnsService {
         }
 
         // create nested replace statement for each user
-        const setStatement = baseUsers.reduce((acc, user) => {
-          const qb = sqlClient.knex.raw(`REPLACE(${acc}, ?, ?)`, [
-            user.email,
-            user.id,
-          ]);
-          return qb.toQuery();
-        }, sqlClient.knex.raw(`??`, [column.column_name]).toQuery());
+        let setStatement = 'null';
+
+        if (
+          [
+            UITypes.URL,
+            UITypes.Email,
+            UITypes.SingleLineText,
+            UITypes.PhoneNumber,
+            UITypes.SingleLineText,
+            UITypes.LongText,
+            UITypes.MultiSelect,
+          ].includes(column.uidt)
+        )
+          setStatement = baseUsers.reduce((acc, user) => {
+            const qb = sqlClient.knex.raw(`REPLACE(${acc}, ?, ?)`, [
+              user.email,
+              user.id,
+            ]);
+            return qb.toQuery();
+          }, sqlClient.knex.raw(`??`, [column.column_name]).toQuery());
 
         await sqlClient.raw(`UPDATE ?? SET ?? = ${setStatement};`, [
           baseModel.getTnPath(table.table_name),
@@ -1367,12 +1379,9 @@ export class ColumnsService {
         await Column.update(context, param.columnId, {
           ...colBody,
         });
-      } else {
-        NcError.notImplemented(`Updating ${column.uidt} => ${colBody.uidt}`);
       }
-    } else if (column.uidt === UITypes.User) {
-      if ([UITypes.SingleLineText, UITypes.Email].includes(colBody.uidt)) {
-        // user to email/text
+    } else {
+      if (column.uidt === UITypes.User) {
         const baseModel = await reuseOrSave('baseModel', reuse, async () =>
           Model.getBaseModelSQL(context, {
             id: table.id,
@@ -1399,53 +1408,8 @@ export class ColumnsService {
           baseModel.getTnPath(table.table_name),
           column.column_name,
         ]);
-
-        colBody = await getColumnPropsFromUIDT(colBody, source);
-        const tableUpdateBody = {
-          ...table,
-          tn: table.table_name,
-          originalColumns: table.columns.map((c) => ({
-            ...c,
-            cn: c.column_name,
-            cno: c.column_name,
-          })),
-          columns: await Promise.all(
-            table.columns.map(async (c) => {
-              if (c.id === param.columnId) {
-                const res = {
-                  ...c,
-                  ...colBody,
-                  cn: colBody.column_name,
-                  cno: c.column_name,
-                  altered: Altered.UPDATE_COLUMN,
-                };
-
-                // update formula with new column name
-                await this.updateFormulas(context, {
-                  oldColumn: column,
-                  colBody,
-                });
-                return Promise.resolve(res);
-              } else {
-                (c as any).cn = c.column_name;
-              }
-              return Promise.resolve(c);
-            }),
-          ),
-        };
-
-        const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
-          ProjectMgrv2.getSqlMgr(context, { id: source.base_id }),
-        );
-        await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
-
-        await Column.update(context, param.columnId, {
-          ...colBody,
-        });
-      } else {
-        NcError.notImplemented(`Updating ${column.uidt} => ${colBody.uidt}`);
       }
-    } else {
+
       colBody = await getColumnPropsFromUIDT(colBody, source);
       const tableUpdateBody = {
         ...table,

@@ -161,6 +161,7 @@ function generateNumberBoundingQuery(
  * Generate query to cast a column to a specific data type based on the UI data type.
  *
  * @param {UITypes} uidt - UI data type
+ * @param {String} dt - DB Data type
  * @param {String} source - Source column name
  * @param {Number} limit - Limit for the data type
  * @param {String} dateFormat - Date format
@@ -169,15 +170,12 @@ function generateNumberBoundingQuery(
  */
 export function generateCastQuery(
   uidt: UITypes,
+  dt: string,
   source: string,
   limit: number,
   dateFormat = 'dmy',
 ) {
   switch (uidt) {
-    case UITypes.MultiSelect:
-    case UITypes.SingleSelect:
-    case UITypes.LongText:
-      return `${source}::TEXT;`;
     case UITypes.SingleLineText:
     case UITypes.Email:
     case UITypes.PhoneNumber:
@@ -211,7 +209,7 @@ export function generateCastQuery(
     case UITypes.Duration:
       return generateDurationCastQuery(source);
     default:
-      throw new Error(`Data type conversion not implemented for: ${uidt}`);
+      return `null::${dt};`;
   }
 }
 
@@ -242,10 +240,6 @@ export function formatColumn(columnName: string, uiDataType: UITypes) {
       return `CAST("${columnName}" AS VARCHAR(255))`;
     case UITypes.Checkbox:
       return `CAST(CASE WHEN "${columnName}" THEN '1' ELSE '0' END AS TEXT)`;
-    case UITypes.Date:
-    case UITypes.DateTime:
-    case UITypes.Time:
-      return `CAST("${columnName}" AS TEXT)`;
     default:
       return `CAST("${columnName}" AS TEXT)`;
   }

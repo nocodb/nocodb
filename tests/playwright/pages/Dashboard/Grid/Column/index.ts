@@ -422,25 +422,13 @@ export class ColumnPageObject extends BasePage {
     await expect(this.grid.get().locator(`th[data-title="${title}"]`)).toHaveCount(0);
   }
 
-  async save({ isUpdated, typeChange }: { isUpdated?: boolean; typeChange?: boolean } = {}) {
-    // if type is changed, then we need to click the update button during the warning popup
-    if (!typeChange)
-      await this.waitForResponse({
-        uiAction: async () => await this.get().locator('button:has-text("Save")').click(),
-        requestUrlPathToMatch: 'api/v1/db/data/noco/',
-        httpMethodsToMatch: ['GET'],
-        responseJsonMatcher: json => json['pageInfo'],
-      });
-    else {
-      await this.get().locator('button:has-text("Save")').click();
-      // click on update button on warning popup
-      await this.waitForResponse({
-        uiAction: async () => await this.rootPage.locator('button:has-text("Update")').click(),
-        requestUrlPathToMatch: 'api/v1/db/data/noco/',
-        httpMethodsToMatch: ['GET'],
-        responseJsonMatcher: json => json['pageInfo'],
-      });
-    }
+  async save({ isUpdated }: { isUpdated?: boolean } = {}) {
+    await this.waitForResponse({
+      uiAction: async () => await this.get().locator('button:has-text("Save")').click(),
+      requestUrlPathToMatch: 'api/v1/db/data/noco/',
+      httpMethodsToMatch: ['GET'],
+      responseJsonMatcher: json => json['pageInfo'],
+    });
 
     await this.verifyToast({
       message: isUpdated ? 'Column updated' : 'Column created',

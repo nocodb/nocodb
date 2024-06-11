@@ -281,7 +281,7 @@ export class ColumnPageObject extends BasePage {
       })
       .click();
 
-    await this.save();
+    await this.save({ isUpdated: true });
   }
 
   async changeReferencedColumnForBarcode({ titleOfReferencedColumn }: { titleOfReferencedColumn: string }) {
@@ -292,7 +292,7 @@ export class ColumnPageObject extends BasePage {
       })
       .click();
 
-    await this.save();
+    await this.save({ isUpdated: true });
   }
 
   async changeBarcodeFormat({ barcodeFormatName }: { barcodeFormatName: string }) {
@@ -303,7 +303,7 @@ export class ColumnPageObject extends BasePage {
       })
       .click();
 
-    await this.save();
+    await this.save({ isUpdated: true });
   }
 
   async delete({ title }: { title: string }) {

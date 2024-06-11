@@ -190,8 +190,8 @@ function generateMultiSelectCastQuery(columnName: string, options: string[]) {
   return `
     NULLIF(
       REGEXP_REPLACE(
-        "${columnName}",
-        '((^|,)(?!(${escapedOptions.join('|')})($|,))[^,]*)',
+        ${columnName},
+        '((^|,)(\\?!(${escapedOptions.join('|')})($|,))[^,]*)',
         '',
         'g'
       ),

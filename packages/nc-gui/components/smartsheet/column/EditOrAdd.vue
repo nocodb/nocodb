@@ -124,19 +124,17 @@ const showDeprecated = ref(false)
 const isSystemField = (t: { name: UITypes }) =>
   [UITypes.CreatedBy, UITypes.CreatedTime, UITypes.LastModifiedBy, UITypes.LastModifiedTime].includes(t.name)
 
+const uiFilters = (t: { name: UITypes; virtual?: number }) => {
+  const systemFiledNotEdited = !isSystemField(t) || formState.value.uidt === t.name || !isEdit.value
+  const geoDataToggle = geoDataToggleCondition(t) && (!isEdit.value || !t.virtual || t.name === formState.value.uidt)
+  const specificDBType = t.name === UITypes.SpecificDBType && isXcdbBase(meta.value?.source_id)
+
+  return systemFiledNotEdited && geoDataToggle && !specificDBType
+}
+
 const uiTypesOptions = computed<typeof uiTypes>(() => {
   return [
-    ...uiTypes
-      .filter((t) => !isSystemField(t) || formState.value.uidt === t.name || !isEdit.value)
-      .filter(
-        (t) =>
-          geoDataToggleCondition(t) &&
-          (!isEdit.value || !t.virtual || t.name === formState.value.uidt) &&
-          (!t.deprecated || showDeprecated.value),
-      )
-      .filter((t) => !isSystemField(t) || formState.uidt === t.name || !isEdit.value)
-      .filter((t) => geoDataToggleCondition(t) && (!isEdit.value || !t.virtual) && (!t.deprecated || showDeprecated.value))
-      .filter((t) => !(t.name === UITypes.SpecificDBType && isXcdbBase(meta.value?.source_id))),
+    ...uiTypes.filter(uiFilters),
     ...(!isEdit.value && meta?.value?.columns?.every((c) => !c.pk)
       ? [
           {

@@ -115,7 +115,7 @@ onMounted(() => {
       <NcButton
         v-e="['c:sort']"
         :class="{
-          '!border-1 !rounded-lg': isCalendar,
+          '!border-1 !rounded-md': isCalendar,
           '!border-0': !isCalendar,
         }"
         :disabled="isLocked"

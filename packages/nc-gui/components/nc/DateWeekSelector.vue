@@ -191,7 +191,7 @@ const paginate = (action: 'next' | 'prev') => {
     <div v-if="!hideCalendar" class="max-w-[320px] rounded-y-xl">
       <div class="py-1 px-2.5 h-10">
         <div
-          class="flex gap-1"
+          class="flex justify-between gap-1"
           :class="{
             'border-b-1 border-gray-200 ': isCellInputField,
           }"

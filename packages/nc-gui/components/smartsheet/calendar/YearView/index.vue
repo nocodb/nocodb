@@ -22,7 +22,7 @@ const handleResize = () => {
   if (width.value > 1250) {
     size.value = 'medium'
     cols.value = 4
-  } else if (width.value > 850) {
+  } else if (width.value > 950) {
     size.value = 'medium'
     cols.value = 3
   } else if (width.value > 680) {

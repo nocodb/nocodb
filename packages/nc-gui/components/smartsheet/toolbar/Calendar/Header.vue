@@ -35,7 +35,7 @@ const headerText = computed(() => {
       <template #title> {{ $t('labels.previous') }}</template>
       <a-button
         v-e="`['c:calendar:calendar-${activeCalendarView}-prev-btn']`"
-        class="w-6 h-6 !rounded-lg flex items-center justify-center !bg-gray-100 !border-0"
+        class="w-6 h-6 prev-next-btn !hover:text-gray-700 transition-all !rounded-lg flex items-center justify-center !bg-gray-100 !border-0"
         data-testid="nc-calendar-prev-btn"
         size="small"
         @click="paginateCalendarView('prev')"
@@ -52,7 +52,7 @@ const headerText = computed(() => {
           'w-29': activeCalendarView === 'day',
           'w-38': activeCalendarView === 'week',
         }"
-        class="!h-6 !bg-gray-100 !border-0"
+        class="!h-6 prev-next-btn !bg-gray-100 !border-0"
         full-width
         size="small"
         type="secondary"
@@ -108,7 +108,7 @@ const headerText = computed(() => {
       <template #title> {{ $t('labels.next') }}</template>
       <a-button
         v-e="`['c:calendar:calendar-${activeCalendarView}-next-btn']`"
-        class="w-6 h-6 !rounded-lg flex items-center !bg-gray-100 !border-0 justify-center"
+        class="w-6 h-6 !rounded-lg flex items-center !hover:text-gray-700 prev-next-btn !bg-gray-100 !border-0 justify-center"
         data-testid="nc-calendar-next-btn"
         size="small"
         @click="paginateCalendarView('next')"
@@ -122,5 +122,9 @@ const headerText = computed(() => {
 <style lang="scss" scoped>
 .nc-cal-toolbar-header {
   @apply !h-6 !w-6;
+}
+
+.prev-next-btn {
+  @apply !hover:bg-gray-200;
 }
 </style>

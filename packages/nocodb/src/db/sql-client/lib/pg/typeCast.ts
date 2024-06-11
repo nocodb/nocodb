@@ -20,6 +20,11 @@ const TIME_FORMATS = {
   'HH:mm': '^[0-9]{2}:[0-9]{2}$',
   'HH:mm:ss': '^[0-9]{2}:[0-9]{2}:[0-9]{2}$',
   'HH:mm:ss.SSS': '^[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}$',
+  'h:mm': '^[0-9]{1,2}:[0-9]{2}$',
+  'h:mm:ss': '^[0-9]{1,2}:[0-9]{2}:[0-9]{2}$',
+  'h:mm:ss.s': '^[0-9]{1,2}:[0-9]{2}:[0-9]{2}.[0-9]$',
+  'h:mm:ss.ss': '^[0-9]{1,2}:[0-9]{2}:[0-9]{2}.[0-9]{2}$',
+  'h:mm:ss.sss': '^[0-9]{1,2}:[0-9]{2}:[0-9]{2}.[0-9]{3}$',
 };
 
 /*
@@ -150,6 +155,26 @@ function generateTimeCastQuery(source: string) {
 }
 
 /*
+ * Generate query to cast a value to duration. The duration is determined based on the given formats.
+ *
+ * @param {String} source - Source column name
+ * @returns {String} - query to cast value to duration
+ */
+function generateDurationCastQuery(source: string) {
+  return `CASE 
+    WHEN ${source} ~ '\\d+' THEN CAST(${source} as DECIMAL) 
+    ${Object.keys(TIME_FORMATS)
+      .map(
+        (format) =>
+          `WHEN ${source} ~ '${TIME_FORMATS[format]}' THEN 
+            EXTRACT(EPOCH FROM TO_TIMESTAMP(${source}, '${format}'))`,
+      )
+      .join('\n')}
+    ELSE NULL
+   END;`;
+}
+
+/*
  * Generate query to cast a column to a specific data type based on the UI data type.
  *
  * @param {UITypes} uidt - UI data type
@@ -198,7 +223,7 @@ export function generateCastQuery(
     case UITypes.Time:
       return generateTimeCastQuery(source);
     case UITypes.Duration:
-      return `CAST(${extractNumberQuery(source)} AS INTEGER);`;
+      return generateDurationCastQuery(source);
     case UITypes.SingleSelect:
       return generateSingleSelectCastQuery(source, []);
     case UITypes.MultiSelect:

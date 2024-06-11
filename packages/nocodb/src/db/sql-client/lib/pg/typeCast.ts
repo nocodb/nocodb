@@ -81,15 +81,18 @@ function generateDateTimeCastQuery(source: string, dateFormat: string) {
     throw new Error(`Invalid date format: ${dateFormat}`);
   }
 
-  const timeFormats = dateFormat === 'empty' ? TIME_FORMATS: [...TIME_FORMATS, ['', '^$']];
+  const timeFormats =
+    dateFormat === 'empty' ? TIME_FORMATS : [...TIME_FORMATS, ['', '^$']];
 
   const cases = DATE_FORMATS[dateFormat].map(([format, regex]) =>
-    timeFormats.map(
-      ([timeFormat, timeRegex]) =>
-        `WHEN ${source} ~ '${regex.slice(0, -1)}\s*${timeRegex.slice(
-          1,
-        )}' THEN to_date_time_safe(${source}, '${format} ${timeFormat}')`,
-    ).join('\n'),
+    timeFormats
+      .map(
+        ([timeFormat, timeRegex]) =>
+          `WHEN ${source} ~ '${regex.slice(0, -1)}\\s*${timeRegex.slice(
+            1,
+          )}' THEN to_date_time_safe(${source}, '${format} ${timeFormat}')`,
+      )
+      .join('\n'),
   );
 
   return `CASE 
@@ -157,10 +160,14 @@ export function generateCastQuery(
 ) {
   switch (uidt) {
     case UITypes.SingleLineText:
+    case UITypes.MultiSelect:
+    case UITypes.SingleSelect:
     case UITypes.Email:
     case UITypes.PhoneNumber:
     case UITypes.URL:
       return `${source}::VARCHAR(${limit || 255});`;
+    case UITypes.LongText:
+      return `${source}::TEXT;`;
     case UITypes.Number:
       return `CAST(${extractNumberQuery(source)} AS BIGINT);`;
     case UITypes.Year:

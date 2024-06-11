@@ -209,16 +209,15 @@ watch(inputWrapperRef, () => {
     >
       <div v-if="isForm && isRichMode" class="w-full">
         <div
-          class="w-full relative w-full px-0 pb-1"
+          class="w-full relative w-full px-0"
           :class="{
             'pt-11': !readOnly,
           }"
         >
           <LazyCellRichText
             v-model:value="vModel"
-            class="!max-h-50"
             :class="{
-              'border-t-1 border-gray-100': !readOnly,
+              'border-t-1 border-gray-100 allow-vertical-resize': !readOnly,
             }"
             :autofocus="false"
             show-menu
@@ -256,6 +255,7 @@ watch(inputWrapperRef, () => {
         }"
         :style="{
           minHeight: isForm ? '117px' : `${height}px`,
+          maxHeight: 'min(800px, calc(100vh - 200px))',
         }"
         :disabled="readOnly"
         @blur="editEnabled = false"

@@ -510,10 +510,7 @@ export default abstract class CacheMgr {
     });
 
     list.push(key);
-    return this.set(listKey, list).then(async (res) => {
-      await this.refreshTTL(listKey);
-      return res;
-    });
+    return this.set(listKey, list);
   }
 
   async update(key: string, value: any): Promise<boolean> {

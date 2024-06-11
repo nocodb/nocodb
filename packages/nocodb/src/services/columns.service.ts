@@ -1279,7 +1279,7 @@ export class ColumnsService {
 
         const rows = data.map((el) => el[column.column_name]);
 
-        if (rows.find((el) => el?.split(',').length > 1) !== undefined) {
+        if (rows.some((el) => el?.split(',').length > 1)) {
           colBody.meta = {
             is_multi: true,
           };

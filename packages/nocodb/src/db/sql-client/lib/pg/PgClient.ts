@@ -3,6 +3,7 @@ import knex from 'knex';
 import isEmpty from 'lodash/isEmpty';
 import mapKeys from 'lodash/mapKeys';
 import find from 'lodash/find';
+import { UITypes } from 'nocodb-sdk';
 import KnexClient from '~/db/sql-client/lib/KnexClient';
 import Debug from '~/db/util/Debug';
 import Result from '~/db/util/Result';
@@ -2886,8 +2887,14 @@ class PGClient extends KnexClient {
         query += this.genQuery(
           `\nALTER TABLE ?? ALTER COLUMN ?? TYPE ${this.sanitiseDataType(
             n.dt,
-          )} USING ??::${this.sanitiseDataType(n.dt)};\n`,
-          [t, n.cn, n.cn],
+          )} USING `,
+          [t, n.cn],
+          shouldSanitize,
+        );
+
+        query += this.genQuery(
+          this.generateCastQuery(n.uidt, n.cn, n.dtxp),
+          [],
           shouldSanitize,
         );
       }
@@ -3025,6 +3032,92 @@ class PGClient extends KnexClient {
     }
 
     return result;
+  }
+
+  /*
+   * Generate query to extract number from a string. The number is extracted by
+   * removing all non-numeric characters from the string. Decimal point is allowed.
+   * If there are more than one decimal points, only the first one is considered, the rest are ignored.
+   *
+   * @param {String} source - source column name
+   * @returns {String} - query to extract number from a string
+   */
+  private extractNumberQuery(source: string) {
+    return `
+    CAST(
+      NULLIF(
+        REPLACE(
+          REPLACE(
+            REGEXP_REPLACE(
+              REGEXP_REPLACE("${source}", '[^0-9.]', '', 'g'), 
+              '\\.', '-'
+            ), 
+            '.', ''
+          ), 
+          '-', '.'
+        ), ''
+      ) AS DECIMAL
+    )
+  `;
+  }
+
+  /*
+   * Generate query to cast a value to boolean. The boolean value is determined based on the given mappings.
+   *
+   * @param {String} columnName - Source column name
+   * @returns {String} - query to cast value to boolean
+   */
+  private generateBooleanCastQuery(columnName: string): string {
+    return `
+    CASE
+      WHEN "${columnName}" IN ('checked', 'x', 'yes', 'y', '1', '[x]', '☑', '✅', '✓', '✔', 'enabled', 'on', 'done', 'true') THEN true
+      WHEN "${columnName}" IN ('unchecked', '', 'no', 'n', '0', '[]', '[ ]', 'disabled', 'off', 'false') THEN false
+      ELSE null
+    END;
+  `;
+  }
+
+  private generateSingleSelectCastQuery(
+    columnName: string,
+    options: string[],
+  ): string {
+    return `CASE 
+    WHEN "${columnName}" IN (${options
+      .map((option) => `'${option}'`)
+      .join(',')}) THEN "${columnName}"
+    ELSE NULL
+    END;`;
+  }
+
+  private generateCastQuery(uidt: UITypes, source: string, limit: number) {
+    switch (uidt) {
+      case UITypes.LongText:
+        return `"${source}"::TEXT;`;
+      case UITypes.SingleLineText:
+      case UITypes.Email:
+      case UITypes.URL:
+        return `"${source}"::VARCHAR(${limit});`;
+      case UITypes.Number:
+        return `CAST(${this.extractNumberQuery(source)} AS INTEGER);`;
+      case UITypes.Decimal:
+      case UITypes.Currency:
+        return `${this.extractNumberQuery(source)};`;
+      case UITypes.Percent:
+      case UITypes.Rating:
+        return `MIN(100, MAX(${limit}, ${this.extractNumberQuery(source)}));`;
+      case UITypes.Checkbox:
+        return this.generateBooleanCastQuery(source);
+      case UITypes.Date:
+      case UITypes.DateTime:
+      case UITypes.Time:
+        return `TRY_CAST("${source}" AS TIMESTAMP);`;
+      case UITypes.Duration:
+        return `CAST(${this.extractNumberQuery(source)} AS INTEGER);`;
+      case UITypes.SingleSelect:
+        return this.generateSingleSelectCastQuery(source, []);
+      case UITypes.MultiSelect:
+        return `"${source}"::ARRAY;`;
+    }
   }
 }
 export default PGClient;

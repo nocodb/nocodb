@@ -11,6 +11,7 @@ import filterTest from './tests/filter.test';
 import newDataApisTest from './tests/newDataApis.test';
 import groupByTest from './tests/groupby.test';
 import formulaTests from './tests/formula.test';
+import typeCastsTest from './tests/typeCasts.test';
 
 let workspaceTest = () => {};
 let ssoTest = () => {};
@@ -39,6 +40,7 @@ function restTests() {
   formulaTests();
   ssoTest();
   cloudOrgTest();
+  typeCastsTest();
 
   // Enable for dashboard feature
   // widgetTest();

@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { VNodeRef } from '@vue/runtime-core'
+import round from 'lodash/round'
 
 interface Props {
   // when we set a number, then it is number type
@@ -40,9 +41,11 @@ const displayValue = computed(() => {
 
   if (isNaN(Number(_vModel.value))) return null
 
-  if (meta.value.isLocaleString) return (+Number(_vModel.value).toFixed(meta.value.precision ?? 1)).toLocaleString()
+  const rounded = round(+Number(_vModel.value), meta.value.precision ?? 1)
 
-  return Number(_vModel.value).toFixed(meta.value.precision ?? 1)
+  if (meta.value.isLocaleString) return rounded.toLocaleString()
+
+  return rounded
 })
 
 const vModel = computed({

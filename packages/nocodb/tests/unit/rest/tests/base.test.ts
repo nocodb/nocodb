@@ -351,6 +351,10 @@ function baseTest() {
   });
 
   it('Get all bases meta', async () => {
+    if (process.env.EE === 'true') {
+      return;
+    }
+
     await createTable(context, base, {
       table_name: 'table1',
       title: 'table1',

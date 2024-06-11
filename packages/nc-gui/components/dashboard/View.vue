@@ -137,6 +137,16 @@ function onResize(widthPercent: any) {
 
   const fontSize = parseFloat(getComputedStyle(document.documentElement).fontSize)
 
+  // If the viewport width is less than 1560px, the max sidebar width should be 20rem
+
+  if (viewportWidth.value <= 1560) {
+    if (width > remToPx(20)) {
+      sideBarSize.value.old = ((20 * fontSize) / viewportWidth.value) * 100
+      if (isLeftSidebarOpen.value) sideBarSize.value.current = sideBarSize.value.old
+      return
+    }
+  }
+
   const widthRem = width / fontSize
 
   if (widthRem < 16) {

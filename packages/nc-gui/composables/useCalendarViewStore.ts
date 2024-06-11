@@ -116,6 +116,24 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       return calendarRange.value[0]?.fk_from_col?.uidt
     })
 
+    const viewMetaProperties = computed<{
+      active_view: string
+      hide_weekend: boolean
+    }>(() => {
+      let meta = calendarMetaData.value?.meta ?? {}
+
+      if (typeof meta === 'string') {
+        try {
+          meta = JSON.parse(meta)
+        } catch (e) {}
+      }
+
+      return meta as {
+        active_view: string
+        hide_weekend: boolean
+      }
+    })
+
     const sideBarFilter = computed(() => {
       let combinedFilters: any = []
 
@@ -467,8 +485,15 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         case 'week':
           fromDate = selectedDateRange.value.start.startOf('day')
           toDate = selectedDateRange.value.end.endOf('day')
+
           prevDate = selectedDateRange.value.start.subtract(1, 'day').endOf('day')
           nextDate = selectedDateRange.value.end.add(1, 'day').startOf('day')
+
+          // Hide weekends
+          if (viewMetaProperties.value?.hide_weekend) {
+            toDate = toDate.subtract(2, 'day')
+            nextDate = nextDate.subtract(2, 'day')
+          }
           break
         case 'month': {
           const startOfMonth = selectedMonth.value.startOf('month')
@@ -809,10 +834,20 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       await fetchActiveDates()
     })
 
+    watch(
+      () => viewMetaProperties.value.hide_weekend,
+      async () => {
+        if (activeCalendarView.value === 'week') {
+          await loadCalendarData()
+        }
+      },
+    )
+
     return {
       fetchActiveDates,
       formattedSideBarData,
       loadMoreSidebarData,
+      updateCalendarMeta,
       loadSidebarData,
       displayField,
       sideBarFilterOption,
@@ -838,6 +873,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       selectedMonth,
       selectedDateRange,
       paginateCalendarView,
+      viewMetaProperties,
     }
   },
 )

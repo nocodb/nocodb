@@ -62,7 +62,9 @@ watch(activeCalendarView, () => {
               {{ option }}
             </span>
           </template>
-          {{ option }}
+          <span class="text-[13px]">
+            {{ option }}
+          </span>
         </NcTooltip>
 
         <component

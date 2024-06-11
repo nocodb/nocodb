@@ -14,9 +14,21 @@ const IsPublic = inject(IsPublicInj, ref(false))
 
 const { loadViewColumns } = useViewColumnsOrThrow()
 
-const { loadCalendarMeta, loadCalendarData, loadSidebarData, fetchActiveDates } = useCalendarViewStoreOrThrow()
+const { loadCalendarMeta, loadCalendarData, loadSidebarData, fetchActiveDates, updateCalendarMeta, viewMetaProperties } =
+  useCalendarViewStoreOrThrow()
 
 const calendarRangeDropdown = ref(false)
+
+const hideWeekends = computed({
+  get: () => viewMetaProperties.value?.hide_weekend ?? false,
+  set: (newValue) => {
+    updateCalendarMeta({
+      meta: {
+        hide_weekend: newValue,
+      },
+    })
+  },
+})
 
 watch(
   () => activeView.value?.id,
@@ -135,29 +147,6 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
     </div>
     <template #overlay>
       <div v-if="calendarRangeDropdown" class="w-98 space-y-6 rounded-2xl p-6" data-testid="nc-calendar-range-menu" @click.stop>
-        <div>
-          <div class="flex mb-3 justify-between">
-            <div class="flex items-center gap-3">
-              <GeneralViewIcon
-                :meta="{
-                  type: ViewTypes.CALENDAR,
-                }"
-                class="w-6 h-6"
-              />
-              <span class="font-bold text-base"> {{ `${$t('activity.calendar')} ${$t('activity.viewSettings')}` }}</span>
-            </div>
-
-            <a
-              class="text-sm !text-gray-600 !font-default !hover:text-gray-600"
-              href="`https://docs.nocodb.com/views/view-types/calendar`"
-              target="_blank"
-            >
-              Go to Docs
-            </a>
-          </div>
-          <NcDivider divider-class="!border-gray-200" />
-        </div>
-
         <div
           v-for="(range, id) in _calendar_ranges"
           :key="id"
@@ -252,9 +241,18 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
           </NcButton>
             -->
         </div>
+
         <div v-if="!isSetup" class="flex items-center gap-2 !mt-2">
           <GeneralIcon icon="warning" class="text-sm mt-0.5 text-orange-500" />
           <span class="text-sm text-gray-500"> Date field is required! </span>
+        </div>
+
+        <div>
+          <NcSwitch v-model:checked="hideWeekends">
+            <span class="text-gray-800">
+              {{ $t('activity.hideWeekends') }}
+            </span>
+          </NcSwitch>
         </div>
 
         <!--

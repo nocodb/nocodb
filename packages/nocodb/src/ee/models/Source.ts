@@ -37,6 +37,7 @@ export default class Source extends SourceCE implements SourceType {
       'inflection_table',
       'order',
       'enabled',
+      'meta',
     ]);
     insertObj.config = CryptoJS.AES.encrypt(
       JSON.stringify(source.config),

@@ -459,6 +459,22 @@ export class ColumnPageObject extends BasePage {
     await this.rootPage.waitForTimeout(200);
   }
 
+  async checkMessageAndClose({ errorMessage }: { errorMessage?: RegExp } = {}) {
+    await this.verifyErrorMessage({
+      message: errorMessage,
+    });
+    await this.get().locator('button:has-text("Cancel")').click();
+    await this.get().waitFor({ state: 'hidden' });
+    await this.rootPage.waitForTimeout(200);
+  }
+
+  async verify({ title, isVisible = true }: { title: string; isVisible?: boolean }) {
+    if (!isVisible) {
+      return await expect(this.getColumnHeader(title)).not.toBeVisible();
+    }
+    await expect(this.getColumnHeader(title)).toContainText(title);
+  }
+
   async verifyRoleAccess(param: { role: string }) {
     const role = param.role.toLowerCase();
     const count = role.toLowerCase() === 'creator' || role.toLowerCase() === 'owner' ? 1 : 0;

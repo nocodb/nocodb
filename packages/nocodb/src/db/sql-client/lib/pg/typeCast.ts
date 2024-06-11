@@ -1,31 +1,5 @@
-/*
- * Map of date formats to their respective regex patterns.
- */
-const DATE_FORMATS = {
-  'YYYY-MM-DD': '^[0-9]{4}-[0-9]{2}-[0-9]{2}$',
-  'YYYY/MM/DD': '^[0-9]{4}/[0-9]{2}/[0-9]{2}$',
-  'DD-MM-YYYY': '^[0-9]{2}-[0-9]{2}-[0-9]{4}$',
-  'MM-DD-YYYY': '^[0-9]{2}-[0-9]{2}-[0-9]{4}$',
-  'DD/MM/YYYY': '^[0-9]{2}/[0-9]{2}/[0-9]{4}$',
-  'MM/DD/YYYY': '^[0-9]{2}/[0-9]{2}/[0-9]{4}$',
-  'DD MM YYYY': '^[0-9]{2} [0-9]{2} [0-9]{4}$',
-  'MM DD YYYY': '^[0-9]{2} [0-9]{2} [0-9]{4}$',
-  'YYYY MM DD': '^[0-9]{4} [0-9]{2} [0-9]{2}$',
-};
-
-/*
- * Map of date time formats to their respective regex patterns.
- */
-const TIME_FORMATS = {
-  'HH:mm': '^[0-9]{2}:[0-9]{2}$',
-  'HH:mm:ss': '^[0-9]{2}:[0-9]{2}:[0-9]{2}$',
-  'HH:mm:ss.SSS': '^[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}$',
-  'h:mm': '^[0-9]{1,2}:[0-9]{2}$',
-  'h:mm:ss': '^[0-9]{1,2}:[0-9]{2}:[0-9]{2}$',
-  'h:mm:ss.s': '^[0-9]{1,2}:[0-9]{2}:[0-9]{2}.[0-9]$',
-  'h:mm:ss.ss': '^[0-9]{1,2}:[0-9]{2}:[0-9]{2}.[0-9]{2}$',
-  'h:mm:ss.sss': '^[0-9]{1,2}:[0-9]{2}:[0-9]{2}.[0-9]{3}$',
-};
+import { UITypes } from 'nocodb-sdk';
+import { DATE_FORMATS, TIME_FORMATS } from '~/db/sql-client/lib/pg/constants';
 
 /*
  * Generate query to extract number from a string. The number is extracted by
@@ -35,8 +9,6 @@ const TIME_FORMATS = {
  * @param {String} source - source column name
  * @returns {String} - query to extract number from a string
  */
-import { UITypes } from 'nocodb-sdk';
-
 function extractNumberQuery(source: string) {
   return `
     CAST(
@@ -104,8 +76,13 @@ function generateDateCastQuery(source: string, format: string) {
     throw new Error(`Invalid date format: ${format}`);
   }
 
+  const cases = DATE_FORMATS[format].map(
+    ([format, regex]) =>
+      `WHEN ${source} ~ '${regex}' THEN TO_DATE(${source}, '${format}')`,
+  );
+
   return `CASE 
-    WHEN ${source} ~ '${DATE_FORMATS[format]}' THEN TO_DATE(${source}, '${format}')
+    ${cases.join('\n')}
     ELSE NULL
    END;`;
 }
@@ -118,20 +95,22 @@ function generateDateCastQuery(source: string, format: string) {
  * @param {String} timeFormat - Time format
  * @returns {String} - query to cast value to date time
  */
-function generateDateTimeCastQuery(
-  source: string,
-  dateFormat: string,
-  timeFormat: string,
-) {
-  if (!(dateFormat in DATE_FORMATS) || !(timeFormat in TIME_FORMATS)) {
-    throw new Error(
-      `Invalid date or time format: ${dateFormat}, ${timeFormat}`,
-    );
+function generateDateTimeCastQuery(source: string, dateFormat: string) {
+  if (!(dateFormat in DATE_FORMATS)) {
+    throw new Error(`Invalid date format: ${dateFormat}`);
   }
 
+  const cases = DATE_FORMATS[dateFormat].map(([format, regex]) =>
+    TIME_FORMATS.map(
+      ([timeFormat, timeRegex]) =>
+        `WHEN ${source} ~ '${regex.slice(0, -1)} ${timeRegex.slice(
+          1,
+        )}' THEN TO_TIMESTAMP(${source}, '${format} ${timeFormat}')`,
+    ).join('\n'),
+  );
+
   return `CASE 
-    WHEN ${source} ~ '${DATE_FORMATS[dateFormat]} ${TIME_FORMATS[timeFormat]}' 
-      THEN TO_TIMESTAMP(${source}, '${dateFormat} ${timeFormat}')
+    ${cases.join('\n')}
     ELSE NULL
    END;`;
 }
@@ -143,13 +122,13 @@ function generateDateTimeCastQuery(
  * @returns {String} - query to cast value to time
  */
 function generateTimeCastQuery(source: string) {
+  const cases = TIME_FORMATS.map(
+    ([format, regex]) =>
+      `WHEN ${source} ~ '${regex}' THEN TO_TIMESTAMP(${source}, '${format}')`,
+  );
+
   return `CASE 
-    ${Object.keys(TIME_FORMATS)
-      .map(
-        (format) =>
-          `WHEN ${source} ~ '${TIME_FORMATS[format]}' THEN TO_TIMESTAMP(${source}, '${format}')`,
-      )
-      .join('\n')}
+    ${cases.join('\n')}
     ELSE NULL
    END;`;
 }
@@ -238,8 +217,7 @@ export function generateCastQuery(
   uidt: UITypes,
   source: string,
   limit: number,
-  dateFormat = 'YYYY-MM-DD',
-  timeFormat = 'HH:mm:ss',
+  dateFormat = 'dmy',
   options: string[] = [],
 ) {
   switch (uidt) {
@@ -272,7 +250,7 @@ export function generateCastQuery(
     case UITypes.Date:
       return generateDateCastQuery(source, dateFormat);
     case UITypes.DateTime:
-      return generateDateTimeCastQuery(source, dateFormat, timeFormat);
+      return generateDateTimeCastQuery(source, dateFormat);
     case UITypes.Time:
       return generateTimeCastQuery(source);
     case UITypes.Duration:

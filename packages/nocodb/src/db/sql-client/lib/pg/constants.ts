@@ -34,17 +34,16 @@ const MONTH_FORMATS = {
 export const DATE_FORMATS = {
   ymd: Object.keys(MONTH_FORMATS).map((format) => [
     `Y-${format}-DD`,
-    `^\\d{1,4}[:\\- /]+${MONTH_FORMATS[format]}[:\\- /]+\\d{1,2}$`,
+    `^\\d{1,4}[:\\- /]+${MONTH_FORMATS[format]}[:\\- /]+\\d{1,2}`,
   ]),
   dmy: Object.keys(MONTH_FORMATS).map((format) => [
     `DD-${format}-Y`,
-    `^\\d{1,2}[:\\- /]+${MONTH_FORMATS[format]}[:\\- /]+\\d{1,4}$`,
+    `^\\d{1,2}[:\\- /]+${MONTH_FORMATS[format]}[:\\- /]+\\d{1,4}`,
   ]),
   mdy: Object.keys(MONTH_FORMATS).map((format) => [
     `${format}-DD-Y`,
-    `^${MONTH_FORMATS[format]}[:\\- /]+\\d{1,2}[:\\- /]+\\d{1,4}$`,
+    `^${MONTH_FORMATS[format]}[:\\- /]+\\d{1,2}[:\\- /]+\\d{1,4}`,
   ]),
-  empty: [['', '^.*$']],
 };
 
 /*
@@ -53,7 +52,7 @@ export const DATE_FORMATS = {
 export const TIME_FORMATS = [
   [
     'HH24:MI:SS:MS:US',
-    '^\\d{1,2}[:\\- /]+\\d{1,2}[:\\- /]+\\d{1,2}[:\\- /]+\\d{1,3}[:\\- /]+\\d*$',
+    '^\\d{1,2}[:\\- /]+\\d{1,2}[:\\- /]+\\d{1,2}[:\\- /]+\\d{1,3}[:\\- /]+\\d{0,6}$',
   ],
   [
     'HH24:MI:SS:MS',
@@ -64,16 +63,16 @@ export const TIME_FORMATS = [
   ['HH24', '^\\d{1,2}$'],
   [
     'HH12:MI:SS:MS:US (AM|PM)',
-    '^\\d{1,2}[:\\- /]+\\d{1,2}[:\\- /]+\\d{1,2}[:\\- /]+\\d{1,3}[:\\- /]+\\d* (AM|PM)$',
+    '^[01]\\d?[:\\- /]+\\d{1,2}[:\\- /]+\\d{1,2}[:\\- /]+\\d{1,3}[:\\- /]+\\d{0,6} (AM|PM)$',
   ],
   [
     'HH12:MI:SS:MS (AM|PM)',
-    '^\\d{1,2}[:\\- /]+\\d{1,2}[:\\- /]+\\d{1,2}[:\\- /]+\\d{1,3} (AM|PM)$',
+    '^[01]\\d?[:\\- /]+\\d{1,2}[:\\- /]+\\d{1,2}[:\\- /]+\\d{1,3} (AM|PM)$',
   ],
   [
     'HH12:MI:SS (AM|PM)',
-    '^\\d{1,2}[:\\- /]+\\d{1,2}[:\\- /]+\\d{1,2} (AM|PM)$',
+    '^[01]\\d?[:\\- /]+\\d{1,2}[:\\- /]+\\d{1,2} (AM|PM)$',
   ],
-  ['HH12:MI (AM|PM)', '^\\d{1,2}[:\\- /]+\\d{1,2} (AM|PM)$'],
-  ['HH12 (AM|PM)', '^\\d{1,2} (AM|PM)$'],
+  ['HH12:MI (AM|PM)', '^[01]\\d?[:\\- /]+\\d{1,2} (AM|PM)$'],
+  ['HH12 (AM|PM)', '^[01]\\d? (AM|PM)$'],
 ];

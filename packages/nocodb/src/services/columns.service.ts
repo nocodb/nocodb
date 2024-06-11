@@ -1299,13 +1299,14 @@ export class ColumnsService {
             UITypes.MultiSelect,
           ].includes(column.uidt)
         ) {
-          const columnName = sqlClient.knex
-            .raw(`??`, [column.column_name])
-            .toQuery();
           setStatement = baseUsers
             .map((user) =>
               sqlClient.knex
-                .raw(`WHEN ${columnName} = '${user.email}' THEN '${user.id}'`)
+                .raw('WHEN ?? = ? THEN ?', [
+                  column.column_name,
+                  user.email,
+                  user.id,
+                ])
                 .toQuery(),
             )
             .join('\n');

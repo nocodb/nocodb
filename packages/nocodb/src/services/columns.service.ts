@@ -1268,48 +1268,21 @@ export class ColumnsService {
           base_id: column.base_id,
         });
 
-        try {
-          const data = await baseModel.execAndParse(
-            sqlClient.knex
-              .raw('SELECT DISTINCT ?? FROM ??', [
-                column.column_name,
-                baseModel.getTnPath(table.table_name),
-              ])
-              .toQuery(),
-          );
+        const data = await baseModel.execAndParse(
+          sqlClient.knex
+            .raw('SELECT DISTINCT ?? FROM ??', [
+              column.column_name,
+              baseModel.getTnPath(table.table_name),
+            ])
+            .toQuery(),
+        );
 
-          let isMultiple = false;
+        const rows = data.map((el) => el[column.column_name]);
 
-          const rows = data.map((el) => el[column.column_name]);
-          const emails = rows
-            .filter((el?: string) => el)
-            .map((el: string) => {
-              const res = el.split(',').map((e) => e.trim());
-              if (res.length > 1) {
-                isMultiple = true;
-              }
-              return res;
-            })
-            .flat();
-
-          // check if emails are present baseUsers
-          const emailsNotPresent = emails.filter((el) => {
-            return !baseUsers.find((user) => user.email === el);
-          });
-
-          if (emailsNotPresent.length) {
-            NcError.badRequest(
-              `Some of the emails are not present in the database.`,
-            );
-          }
-
-          if (isMultiple) {
-            colBody.meta = {
-              is_multi: true,
-            };
-          }
-        } catch (e) {
-          NcError.badRequest('Some of the emails are present in the database.');
+        if (rows.find((el) => el?.split(',').length > 1) !== undefined) {
+          colBody.meta = {
+            is_multi: true,
+          };
         }
 
         // create nested replace statement for each user
@@ -1325,14 +1298,20 @@ export class ColumnsService {
             UITypes.LongText,
             UITypes.MultiSelect,
           ].includes(column.uidt)
-        )
-          setStatement = baseUsers.reduce((acc, user) => {
-            const qb = sqlClient.knex.raw(`REPLACE(${acc}, ?, ?)`, [
-              user.email,
-              user.id,
-            ]);
-            return qb.toQuery();
-          }, sqlClient.knex.raw(`??`, [column.column_name]).toQuery());
+        ) {
+          const columnName = sqlClient.knex
+            .raw(`??`, [column.column_name])
+            .toQuery();
+          setStatement = baseUsers
+            .map((user) =>
+              sqlClient.knex
+                .raw(`WHEN ${columnName} = '${user.email}' THEN '${user.id}'`)
+                .toQuery(),
+            )
+            .join('\n');
+
+          setStatement = `CASE\n${setStatement}\nELSE null\nEND`;
+        }
 
         await sqlClient.raw(`UPDATE ?? SET ?? = ${setStatement};`, [
           baseModel.getTnPath(table.table_name),

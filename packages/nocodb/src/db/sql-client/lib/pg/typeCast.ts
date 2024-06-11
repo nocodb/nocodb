@@ -1,4 +1,28 @@
 /*
+ * Map of date formats to their respective regex patterns.
+ */
+const DATE_FORMATS = {
+  'YYYY-MM-DD': '^[0-9]{4}-[0-9]{2}-[0-9]{2}$',
+  'YYYY/MM/DD': '^[0-9]{4}/[0-9]{2}/[0-9]{2}$',
+  'DD-MM-YYYY': '^[0-9]{2}-[0-9]{2}-[0-9]{4}$',
+  'MM-DD-YYYY': '^[0-9]{2}-[0-9]{2}-[0-9]{4}$',
+  'DD/MM/YYYY': '^[0-9]{2}/[0-9]{2}/[0-9]{4}$',
+  'MM/DD/YYYY': '^[0-9]{2}/[0-9]{2}/[0-9]{4}$',
+  'DD MM YYYY': '^[0-9]{2} [0-9]{2} [0-9]{4}$',
+  'MM DD YYYY': '^[0-9]{2} [0-9]{2} [0-9]{4}$',
+  'YYYY MM DD': '^[0-9]{4} [0-9]{2} [0-9]{2}$',
+};
+
+/*
+ * Map of date time formats to their respective regex patterns.
+ */
+const TIME_FORMATS = {
+  'HH:mm': '^[0-9]{2}:[0-9]{2}$',
+  'HH:mm:ss': '^[0-9]{2}:[0-9]{2}:[0-9]{2}$',
+  'HH:mm:ss.SSS': '^[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}$',
+};
+
+/*
  * Generate query to extract number from a string. The number is extracted by
  * removing all non-numeric characters from the string. Decimal point is allowed.
  * If there are more than one decimal points, only the first one is considered, the rest are ignored.
@@ -55,10 +79,53 @@ function generateSingleSelectCastQuery(
     END;`;
 }
 
+function generateDateCastQuery(source: string, format: string) {
+  if (!(format in DATE_FORMATS)) {
+    throw new Error(`Invalid date format: ${format}`);
+  }
+
+  return `CASE 
+    WHEN ${source} ~ '${DATE_FORMATS[format]}' THEN TO_DATE(${source}, '${format}')
+    ELSE NULL
+   END;`;
+}
+
+function generateDateTimeCastQuery(
+  source: string,
+  dateFormat: string,
+  timeFormat: string,
+) {
+  if (!(dateFormat in DATE_FORMATS) || !(timeFormat in TIME_FORMATS)) {
+    throw new Error(
+      `Invalid date or time format: ${dateFormat}, ${timeFormat}`,
+    );
+  }
+
+  return `CASE 
+    WHEN ${source} ~ '${DATE_FORMATS[dateFormat]} ${TIME_FORMATS[timeFormat]}' 
+      THEN TO_TIMESTAMP(${source}, '${dateFormat} ${timeFormat}')
+    ELSE NULL
+   END;`;
+}
+
+function generateTimeCastQuery(source: string) {
+  return `CASE 
+    ${Object.keys(TIME_FORMATS)
+      .map(
+        (format) =>
+          `WHEN ${source} ~ '${TIME_FORMATS[format]}' THEN TO_TIMESTAMP(${source}, '${format}')`,
+      )
+      .join('\n')}
+    ELSE NULL
+   END;`;
+}
+
 export function generateCastQuery(
   uidt: UITypes,
   source: string,
   limit: number,
+  dateFormat = 'YYYY-MM-DD',
+  timeFormat = 'HH:mm:ss',
 ) {
   switch (uidt) {
     case UITypes.LongText:
@@ -79,9 +146,11 @@ export function generateCastQuery(
     case UITypes.Checkbox:
       return generateBooleanCastQuery(source);
     case UITypes.Date:
+      return generateDateCastQuery(source, dateFormat);
     case UITypes.DateTime:
+      return generateDateTimeCastQuery(source, dateFormat, timeFormat);
     case UITypes.Time:
-      return `CAST(${source} AS TIMESTAMP);`;
+      return generateTimeCastQuery(source);
     case UITypes.Duration:
       return `CAST(${extractNumberQuery(source)} AS INTEGER);`;
     case UITypes.SingleSelect:

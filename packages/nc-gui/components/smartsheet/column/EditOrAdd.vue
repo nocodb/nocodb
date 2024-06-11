@@ -96,6 +96,9 @@ const onlyNameUpdateOnEditColumns = [
   UITypes.LastModifiedTime,
   UITypes.CreatedBy,
   UITypes.LastModifiedBy,
+  UITypes.Formula,
+  UITypes.QrCode,
+  UITypes.Barcode,
 ]
 
 // To close column type dropdown on escape and
@@ -368,7 +371,7 @@ const filterOption = (input: string, option: { value: UITypes }) => {
             v-model:value="formState.uidt"
             show-search
             class="nc-column-type-input !rounded-lg"
-            :disabled="isKanban || readOnly || (isEdit && !!onlyNameUpdateOnEditColumns.find((col) => col === column?.uidt))"
+            :disabled="isKanban || readOnly || (isEdit && !!onlyNameUpdateOnEditColumns.includes(column?.uidt))"
             dropdown-class-name="nc-dropdown-column-type border-1 !rounded-lg border-gray-200"
             :filter-option="filterOption"
             @dropdown-visible-change="onDropdownChange"

@@ -1,10 +1,18 @@
+import TestDbMngr from '../TestDbMngr';
 import { Base, Model } from '~/models';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
-import { orderedMetaTables } from '~/utils/globals';
-import TestDbMngr from '../TestDbMngr';
+import { MetaTable, orderedMetaTables, RootScopes } from '~/utils/globals';
+import Noco from '~/Noco';
 
 const dropTablesAllNonExternalProjects = async () => {
-  const bases = await Base.list({});
+  const rawBases = await Noco.ncMeta.metaList2(
+    RootScopes.BASE,
+    RootScopes.BASE,
+    MetaTable.PROJECT,
+  );
+
+  const bases = rawBases.map((b) => Base.castType(b));
+
   const userCreatedTableNames: string[] = [];
   await Promise.all(
     bases

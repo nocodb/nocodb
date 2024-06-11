@@ -3,6 +3,7 @@ import { useAgent } from 'request-filtering-agent';
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   Post,
   Req,
@@ -95,5 +96,10 @@ export class UtilsController extends UtilsControllerCE {
       });
       NcError.unprocessableEntity(result.message);
     }
+  }
+
+  @Get('/api/v1/aggregated-meta-info')
+  async aggregatedMetaInfo() {
+    return null;
   }
 }

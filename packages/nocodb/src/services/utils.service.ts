@@ -212,8 +212,9 @@ export class UtilsService {
   }
 
   async aggregatedMetaInfo() {
+    // TODO: fix or deprecate for EE
     const [bases, userCount] = await Promise.all([
-      Base.list({}),
+      Base.list(),
       Noco.ncMeta.metaCount(RootScopes.ROOT, RootScopes.ROOT, MetaTable.USERS),
     ]);
 

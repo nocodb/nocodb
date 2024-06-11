@@ -3,8 +3,7 @@ import { BasesService as BasesServiceCE } from 'src/services/bases.service';
 import { Injectable } from '@nestjs/common';
 import * as DOMPurify from 'isomorphic-dompurify';
 import { customAlphabet } from 'nanoid';
-import { AppEvents, OrgUserRoles } from 'nocodb-sdk';
-import { extractRolesObj } from 'nocodb-sdk';
+import { AppEvents } from 'nocodb-sdk';
 import type { ProjectReqType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import { populateMeta, validatePayload } from '~/helpers';
@@ -86,11 +85,7 @@ export class BasesService extends BasesServiceCE {
       query?: any;
     },
   ) {
-    const bases =
-      extractRolesObj(param.user?.roles)[OrgUserRoles.SUPER_ADMIN] &&
-      !['shared', 'starred', 'recent'].some((k) => k in param.query)
-        ? await Base.list(param.query)
-        : await BaseUser.getProjectsList(param.user.id, param.query);
+    const bases = await BaseUser.getProjectsList(param.user.id, param.query);
 
     return bases;
   }

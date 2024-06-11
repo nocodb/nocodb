@@ -26,12 +26,16 @@ export default class Base extends BaseCE {
   }
 
   static async list(
-    // @ts-ignore
-    param,
+    workspaceId?: string,
     ncMeta = Noco.ncMeta,
   ): Promise<BaseCE[]> {
-    // todo: pagination
-    const cachedList = await NocoCache.getList(CacheScope.PROJECT, []);
+    if (!workspaceId) {
+      return [];
+    }
+
+    const cachedList = await NocoCache.getList(CacheScope.PROJECT, [
+      workspaceId,
+    ]);
     let { list: baseList } = cachedList;
     const { isNoneList } = cachedList;
     if (!isNoneList && !baseList.length) {
@@ -41,16 +45,25 @@ export default class Base extends BaseCE {
         MetaTable.PROJECT,
         {
           xcCondition: {
-            _or: [
+            _and: [
               {
-                deleted: {
-                  eq: false,
+                fk_workspace_id: {
+                  eq: workspaceId,
                 },
               },
               {
-                deleted: {
-                  eq: null,
-                },
+                _or: [
+                  {
+                    deleted: {
+                      eq: false,
+                    },
+                  },
+                  {
+                    deleted: {
+                      eq: null,
+                    },
+                  },
+                ],
               },
             ],
           },
@@ -59,17 +72,12 @@ export default class Base extends BaseCE {
           },
         },
       );
-      await NocoCache.setList(CacheScope.PROJECT, [], baseList);
+      await NocoCache.setList(CacheScope.PROJECT, [workspaceId], baseList);
     }
 
     return baseList
       .filter(
-        (p) =>
-          p.deleted === 0 ||
-          p.deleted === false ||
-          p.deleted === null ||
-          !param?.type ||
-          p.type === param.type,
+        (p) => p.deleted === 0 || p.deleted === false || p.deleted === null,
       )
       .sort(
         (a, b) =>
@@ -135,7 +143,7 @@ export default class Base extends BaseCE {
     return this.getWithInfo(context, baseId, ncMeta).then(async (base) => {
       await NocoCache.appendToList(
         CacheScope.PROJECT,
-        [],
+        [base.fk_workspace_id],
         `${CacheScope.PROJECT}:${baseId}`,
       );
       return base;

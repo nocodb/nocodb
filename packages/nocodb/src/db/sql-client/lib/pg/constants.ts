@@ -44,7 +44,7 @@ export const DATE_FORMATS = {
     `${format}-DD-Y`,
     `^${MONTH_FORMATS[format]}[:\\- /]+\\d{1,2}[:\\- /]+\\d{1,4}$`,
   ]),
-  empty: [['', '^$']],
+  empty: [['', '^.*$']],
 };
 
 /*

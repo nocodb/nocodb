@@ -49,7 +49,7 @@ test.describe('View', () => {
         });
         count = count + 1;
       }
-      await dashboard.grid.column.save();
+      await dashboard.grid.column.save({ typeChange: true });
     }
   });
 

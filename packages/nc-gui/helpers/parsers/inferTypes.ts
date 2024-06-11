@@ -1,3 +1,5 @@
+import { UITypes } from 'nocodb-sdk'
+
 class Field {
   id
   name
@@ -27,11 +29,11 @@ class Field {
 }
 
 const TYPES = [
-  new Field(0b00000000000000001, 'LongText', /.*/),
-  new Field(0b00000000000000011, 'SingleLineText', /.*/),
-  new Field(0b00000000000000111, 'PhoneNumber', /\+?d{10,13}/),
-  new Field(0b00000000000001011, 'URL', /https?:\/\/.*/),
-  new Field(0b00000000000011011, 'Email', /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/),
+  new Field(0b00000000000000001, UITypes.LongText, /.*/),
+  new Field(0b00000000000000011, UITypes.SingleLineText, /.*/),
+  new Field(0b00000000000000111, UITypes.PhoneNumber, /\+?d{10,13}/),
+  new Field(0b00000000000001011, UITypes.URL, /https?:\/\/.*/),
+  new Field(0b00000000000011011, UITypes.Email, /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/),
 ].sort()
 
 export function infer(input: string) {

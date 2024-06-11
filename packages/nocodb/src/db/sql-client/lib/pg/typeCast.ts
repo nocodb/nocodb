@@ -171,17 +171,24 @@ export function generateCastQuery(
       return `${source}::TEXT;`;
     case UITypes.SingleLineText:
     case UITypes.Email:
+    case UITypes.PhoneNumber:
     case UITypes.URL:
       return `${source}::VARCHAR(${limit || 255});`;
     case UITypes.Number:
       return `CAST(${extractNumberQuery(source)} AS BIGINT);`;
+    case UITypes.Year:
+      return `CAST(LEAST(9999, GREATEST(1000, ${extractNumberQuery(
+        source,
+      )})) AS INT);`;
     case UITypes.Decimal:
     case UITypes.Currency:
       return `${extractNumberQuery(source)};`;
     case UITypes.Percent:
-      return `MIN(100, MAX(0, ${extractNumberQuery(source)}));`;
+      return `LEAST(100, GREATEST(0, ${extractNumberQuery(source)}));`;
     case UITypes.Rating:
-      return `MIN(${limit || 5}, MAX(0, ${extractNumberQuery(source)}));`;
+      return `LEAST(${limit || 5}, GREATEST(0, ${extractNumberQuery(
+        source,
+      )}));`;
     case UITypes.Checkbox:
       return generateBooleanCastQuery(source);
     case UITypes.Date:
@@ -196,6 +203,8 @@ export function generateCastQuery(
       return generateSingleSelectCastQuery(source, []);
     case UITypes.MultiSelect:
       return `${source}::ARRAY;`;
+    default:
+      throw new Error(`Data type conversion not implemented for: ${uidt}`);
   }
 }
 
@@ -213,6 +222,7 @@ export function formatColumn(columnName: string, uiDataType: UITypes) {
     case UITypes.Email:
     case UITypes.URL:
     case UITypes.SingleSelect:
+    case UITypes.PhoneNumber:
       return `"${columnName}"`;
     case UITypes.Number:
     case UITypes.Decimal:
@@ -220,7 +230,8 @@ export function formatColumn(columnName: string, uiDataType: UITypes) {
     case UITypes.Percent:
     case UITypes.Rating:
     case UITypes.Duration:
-      return `CAST("${columnName}" AS TEXT)`;
+    case UITypes.Year:
+      return `CAST("${columnName}" AS VARCHAR(255))`;
     case UITypes.Checkbox:
       return `CAST(CASE WHEN "${columnName}" THEN '1' ELSE '0' END AS TEXT)`;
     case UITypes.Date:
@@ -229,5 +240,7 @@ export function formatColumn(columnName: string, uiDataType: UITypes) {
       return `CAST("${columnName}" AS TEXT)`;
     case UITypes.MultiSelect:
       return `ARRAY_TO_STRING("${columnName}", ',')`;
+    default:
+      return `CAST("${columnName}" AS TEXT)`;
   }
 }

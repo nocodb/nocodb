@@ -563,8 +563,7 @@ export default abstract class CacheMgr {
   }
 
   async execRefreshTTL(keys: string, timestamp?: number): Promise<void> {
-    const p = this.client.pipeline();
-    await this.refreshTTL(p, keys, timestamp);
+    const p = await this.refreshTTL(this.client.pipeline(), keys, timestamp);
     await p.exec();
   }
 

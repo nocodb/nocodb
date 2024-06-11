@@ -69,7 +69,7 @@ export class DuplicateController {
       throw new Error(`Source not found!`);
     }
 
-    const bases = await Base.list({});
+    const bases = await Base.list(context.workspace_id);
 
     const uniqueTitle = generateUniqueName(
       `${base.title} copy`,
@@ -145,7 +145,7 @@ export class DuplicateController {
       throw new Error(`Source not found!`);
     }
 
-    const bases = await Base.list({});
+    const bases = await Base.list(context.workspace_id);
 
     const uniqueTitle = generateUniqueName(
       `${base.title} copy`,

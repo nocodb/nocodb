@@ -67,6 +67,14 @@ function generateBooleanCastQuery(columnName: string): string {
   `;
 }
 
+/*
+ * Generate query to cast a value to single select. The single select value is
+ * determined based on the given options.
+ *
+ * @param {String} columnName - Source column name
+ * @param {String[]} options - Single select options
+ * @returns {String} - query to cast value to single select
+ */
 function generateSingleSelectCastQuery(
   columnName: string,
   options: string[],
@@ -79,6 +87,13 @@ function generateSingleSelectCastQuery(
     END;`;
 }
 
+/*
+ * Generate query to cast a value to date based on the given format.
+ *
+ * @param {String} source - Source column name
+ * @param {String} format - Date format
+ * @returns {String} - query to cast value to date
+ */
 function generateDateCastQuery(source: string, format: string) {
   if (!(format in DATE_FORMATS)) {
     throw new Error(`Invalid date format: ${format}`);
@@ -90,6 +105,14 @@ function generateDateCastQuery(source: string, format: string) {
    END;`;
 }
 
+/*
+ * Generate query to cast a value to date time based on the given date and time formats.
+ *
+ * @param {String} source - Source column name
+ * @param {String} dateFormat - Date format
+ * @param {String} timeFormat - Time format
+ * @returns {String} - query to cast value to date time
+ */
 function generateDateTimeCastQuery(
   source: string,
   dateFormat: string,
@@ -108,6 +131,12 @@ function generateDateTimeCastQuery(
    END;`;
 }
 
+/*
+ * Generate query to cast a value to time based on the given time formats.
+ *
+ * @param {String} source - Source column name
+ * @returns {String} - query to cast value to time
+ */
 function generateTimeCastQuery(source: string) {
   return `CASE 
     ${Object.keys(TIME_FORMATS)
@@ -120,6 +149,16 @@ function generateTimeCastQuery(source: string) {
    END;`;
 }
 
+/*
+ * Generate query to cast a column to a specific data type based on the UI data type.
+ *
+ * @param {UITypes} uidt - UI data type
+ * @param {String} source - Source column name
+ * @param {Number} limit - Limit for the data type
+ * @param {String} dateFormat - Date format
+ * @param {String} timeFormat - Time format
+ * @returns {String} - query to cast column to a specific data type
+ */
 export function generateCastQuery(
   uidt: UITypes,
   source: string,
@@ -160,6 +199,13 @@ export function generateCastQuery(
   }
 }
 
+/*
+ * Generate query to format a column based on the UI data type.
+ *
+ * @param {String} columnName - Column name
+ * @param {UITypes} uiDataType - UI data type
+ * @returns {String} - query to format a column
+ */
 export function formatColumn(columnName: string, uiDataType: UITypes) {
   switch (uiDataType) {
     case UITypes.LongText:

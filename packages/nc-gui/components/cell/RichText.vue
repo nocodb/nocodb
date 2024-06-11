@@ -405,6 +405,17 @@ onClickOutside(editorDom, (e) => {
       }
     }
   }
+  &.allow-vertical-resize:not(.readonly) {
+    .ProseMirror {
+      @apply nc-scrollbar-thin;
+
+      overflow-y: auto;
+      overflow-x: hidden;
+      resize: vertical;
+      min-width: 100%;
+      max-height: min(800px, calc(100vh - 200px)) !important;
+    }
+  }
 }
 
 .nc-rich-text-full {

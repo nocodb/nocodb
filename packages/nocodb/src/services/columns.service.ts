@@ -699,10 +699,11 @@ export class ColumnsService {
 
         // Handle option delete
         if (column.colOptions?.options) {
-          for (const option of column.colOptions.options.filter((oldOp) =>
-            colBody.colOptions.options.find((newOp) => newOp.id === oldOp.id)
-              ? false
-              : true,
+          for (const option of column.colOptions.options.filter(
+            (oldOp) =>
+              !colBody.colOptions.options.find(
+                (newOp) => newOp.id === oldOp.id,
+              ),
           )) {
             if (
               !supportedDrivers.includes(driverType) &&

@@ -558,14 +558,13 @@ const filterOption = (input: string, option: { value: UITypes }) => {
   </div>
   <GeneralModal v-model:visible="warningVisible" size="small" centered>
     <div class="flex flex-col p-6">
-      <div class="flex flex-row pb-2 mb-4 font-medium text-lg border-b-1 border-gray-50 text-gray-800">Column Type Change</div>
+      <div class="flex flex-row pb-2 mb-4 font-medium text-lg border-b-1 border-gray-50 text-gray-800">Field Type Change</div>
 
       <div class="mb-3 text-gray-800">
         <div class="flex item-center gap-2 mb-4">
           <component :is="iconMap.warning" id="nc-selected-item-icon" class="text-yellow-500 w-10 h-10" />
-          This action cannot be undone. Converting data types may result in data loss. Proceed with caution.
+          This action cannot be undone. Converting data types may result in data loss. Proceed with caution!
         </div>
-        Are you sure you want to change the column type?
       </div>
 
       <slot name="entity-preview"></slot>
@@ -577,7 +576,7 @@ const filterOption = (input: string, option: { value: UITypes }) => {
 
         <NcButton
           key="submit"
-          type="danger"
+          type="primary"
           html-type="submit"
           :loading="saving"
           data-testid="nc-delete-modal-delete-btn"

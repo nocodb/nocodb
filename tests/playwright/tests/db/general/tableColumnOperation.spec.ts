@@ -22,7 +22,7 @@ test.describe('Table Column Operations', () => {
     await grid.column.openEdit({ title: 'column_name_a' });
     await grid.column.fillTitle({ title: 'column_name_b' });
     await grid.column.selectType({ type: 'LongText' });
-    await grid.column.save({ isUpdated: true });
+    await grid.column.save({ isUpdated: true, typeChange: true });
     await grid.column.verify({ title: 'column_name_b' });
 
     await grid.column.delete({ title: 'column_name_b' });

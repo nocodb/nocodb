@@ -15,12 +15,13 @@ import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
 import type LookupColumn from '~/models/LookupColumn';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type Column from '~/models/Column';
+import type { User } from '~/models';
 import Model from '~/models/Model';
 import NocoCache from '~/cache/NocoCache';
 import { CacheScope } from '~/utils/globals';
 import { convertDateFormatForConcat } from '~/helpers/formulaFnHelper';
 import FormulaColumn from '~/models/FormulaColumn';
-import { Base, BaseUser } from '~/models';
+import { BaseUser } from '~/models';
 import { getRefColumnIfAlias } from '~/helpers';
 
 const logger = new Logger('FormulaQueryBuilderv2');
@@ -58,16 +59,30 @@ const getAggregateFn: (fnName: string) => (args: { qb; knex?; cn }) => any = (
   }
 };
 
-async function _formulaQueryBuilder(
-  baseModelSqlv2: BaseModelSqlv2,
-  _tree,
-  alias,
-  model: Model,
-  aliasToColumn: Record<string, () => Promise<{ builder: any }>> = {},
-  tableAlias?: string,
-  parsedTree?: any,
-  column: Column = null,
-) {
+async function _formulaQueryBuilder(params: {
+  baseModelSqlv2: BaseModelSqlv2;
+  _tree;
+  alias;
+  model: Model;
+  aliasToColumn?: Record<string, () => Promise<{ builder: any }>>;
+  tableAlias?: string;
+  parsedTree?: any;
+  column?: Column;
+  baseUsers?: (Partial<User> & BaseUser)[];
+}) {
+  const {
+    baseModelSqlv2,
+    _tree,
+    alias,
+    model,
+    aliasToColumn = {},
+    tableAlias,
+    parsedTree,
+    column = null,
+  } = params;
+
+  let { baseUsers = null } = params;
+
   const knex = baseModelSqlv2.dbDriver;
 
   const context = baseModelSqlv2.context;
@@ -126,15 +141,16 @@ async function _formulaQueryBuilder(
             const formulOption = await col.getColOptions<FormulaColumn>(
               context,
             );
-            const { builder } = await _formulaQueryBuilder(
+            const { builder } = await _formulaQueryBuilder({
               baseModelSqlv2,
-              formulOption.formula,
+              _tree: formulOption.formula,
               alias,
               model,
-              { ...aliasToColumn, [col.id]: null },
+              aliasToColumn: { ...aliasToColumn, [col.id]: null },
               tableAlias,
-              formulOption.getParsedTree(),
-            );
+              parsedTree: formulOption.getParsedTree(),
+              baseUsers,
+            });
             builder.sql = '(' + builder.sql + ')';
             return {
               builder,
@@ -508,14 +524,14 @@ async function _formulaQueryBuilder(
                   const formulaOption =
                     await lookupColumn.getColOptions<FormulaColumn>(context);
                   const lookupModel = await lookupColumn.getModel(context);
-                  const { builder } = await _formulaQueryBuilder(
+                  const { builder } = await _formulaQueryBuilder({
                     baseModelSqlv2,
-                    formulaOption.formula,
-                    '',
-                    lookupModel,
+                    _tree: formulaOption.formula,
+                    alias: '',
+                    model: lookupModel,
                     aliasToColumn,
-                    formulaOption.getParsedTree(),
-                  );
+                    parsedTree: formulaOption.getParsedTree(),
+                  });
                   if (isArray) {
                     const qb = selectQb;
                     selectQb = (fn) =>
@@ -777,18 +793,22 @@ async function _formulaQueryBuilder(
       case UITypes.CreatedBy:
       case UITypes.LastModifiedBy:
         {
-          const base = await Base.get(context, model.base_id);
-          const baseUsers = await BaseUser.getUsersList(context, {
-            base_id: base.id,
-          });
-
-          // create nested replace statement for each user
-          const finalStatement = baseUsers.reduce((acc, user) => {
-            const qb = knex.raw(`REPLACE(${acc}, ?, ?)`, [user.id, user.email]);
-            return qb.toQuery();
-          }, knex.raw(`??`, [col.column_name]).toQuery());
-
           aliasToColumn[col.id] = async (): Promise<any> => {
+            baseUsers =
+              baseUsers ??
+              (await BaseUser.getUsersList(context, {
+                base_id: model.base_id,
+              }));
+
+            // create nested replace statement for each user
+            const finalStatement = baseUsers.reduce((acc, user) => {
+              const qb = knex.raw(`REPLACE(${acc}, ?, ?)`, [
+                user.id,
+                user.email,
+              ]);
+              return qb.toQuery();
+            }, knex.raw(`??`, [col.column_name]).toQuery());
+
             return {
               builder: knex.raw(finalStatement).wrap('(', ')'),
             };
@@ -1257,6 +1277,7 @@ export default async function formulaQueryBuilderv2(
   tableAlias?: string,
   validateFormula = false,
   parsedTree?: any,
+  baseUsers?: (Partial<User> & BaseUser)[],
 ) {
   const knex = baseModelSqlv2.dbDriver;
 
@@ -1267,18 +1288,20 @@ export default async function formulaQueryBuilderv2(
   let qb;
   try {
     // generate qb
-    qb = await _formulaQueryBuilder(
+    qb = await _formulaQueryBuilder({
       baseModelSqlv2,
       _tree,
       alias,
       model,
       aliasToColumn,
       tableAlias,
-      parsedTree ??
+      parsedTree:
+        parsedTree ??
         (await column
           ?.getColOptions<FormulaColumn>(context)
           .then((formula) => formula?.getParsedTree())),
-    );
+      baseUsers,
+    });
 
     if (!validateFormula) return qb;
 

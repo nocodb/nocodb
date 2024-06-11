@@ -109,15 +109,13 @@ const geoDataToggleCondition = (t: { name: UITypes }) => {
 
 const showDeprecated = ref(false)
 
+const isSystemField = (t) => [UITypes.CreatedBy, UITypes.CreatedTime, UITypes.LastModifiedBy, UITypes.LastModifiedTime].includes(t.name);
+
 const uiTypesOptions = computed<typeof uiTypes>(() => {
   return [
     ...uiTypes
-      .filter(
-        (t) =>
-          geoDataToggleCondition(t) &&
-          (!isEdit.value || !t.virtual || t.name === formState.value.uidt) &&
-          (!t.deprecated || showDeprecated.value),
-      )
+      .filter((t) => !isSystemField(t) || formState.uidt === t.name || !isEdit.value)
+      .filter((t) => geoDataToggleCondition(t) && (!isEdit.value || !t.virtual) && (!t.deprecated || showDeprecated.value))
       .filter((t) => !(t.name === UITypes.SpecificDBType && isXcdbBase(meta.value?.source_id))),
     ...(!isEdit.value && meta?.value?.columns?.every((c) => !c.pk)
       ? [

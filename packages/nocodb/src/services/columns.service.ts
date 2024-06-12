@@ -516,14 +516,7 @@ export class ColumnsService {
               ],
             );
           }
-        } else if (
-          [
-            UITypes.SingleLineText,
-            UITypes.Email,
-            UITypes.PhoneNumber,
-            UITypes.URL,
-          ].includes(column.uidt)
-        ) {
+        } else {
           // Text to SingleSelect/MultiSelect
           const dbDriver = await reuseOrSave('dbDriver', reuse, async () =>
             NcConnectionMgrv2.get(source),
@@ -555,7 +548,7 @@ export class ColumnsService {
             );
             const options = data.reduce((acc, el) => {
               if (el[column.column_name]) {
-                const values = el[column.column_name].split(',');
+                const values = String(el[column.column_name]).split(',');
                 if (values.length > 1) {
                   if (colBody.uidt === UITypes.SingleSelect) {
                     NcError.badRequest(
@@ -706,10 +699,11 @@ export class ColumnsService {
 
         // Handle option delete
         if (column.colOptions?.options) {
-          for (const option of column.colOptions.options.filter((oldOp) =>
-            colBody.colOptions.options.find((newOp) => newOp.id === oldOp.id)
-              ? false
-              : true,
+          for (const option of column.colOptions.options.filter(
+            (oldOp) =>
+              !colBody.colOptions.options.find(
+                (newOp) => newOp.id === oldOp.id,
+              ),
           )) {
             if (
               !supportedDrivers.includes(driverType) &&
@@ -1124,7 +1118,9 @@ export class ColumnsService {
       });
     } else if (colBody.uidt === UITypes.User) {
       // handle default value for user column
-      if (colBody.cdf) {
+      if (typeof colBody.cdf !== 'string') {
+        colBody.cdf = '';
+      } else if (colBody.cdf) {
         const baseUsers = await BaseUser.getUsersList(context, {
           base_id: source.base_id,
           include_ws_deleted: false,
@@ -1257,9 +1253,7 @@ export class ColumnsService {
         await Column.update(context, param.columnId, {
           ...colBody,
         });
-      } else if (
-        [UITypes.SingleLineText, UITypes.Email].includes(column.uidt)
-      ) {
+      } else {
         // email/text to user
         const baseModel = await reuseOrSave('baseModel', reuse, async () =>
           Model.getBaseModelSQL(context, {
@@ -1274,57 +1268,51 @@ export class ColumnsService {
           base_id: column.base_id,
         });
 
-        try {
-          const data = await baseModel.execAndParse(
-            sqlClient.knex
-              .raw('SELECT DISTINCT ?? FROM ??', [
-                column.column_name,
-                baseModel.getTnPath(table.table_name),
-              ])
-              .toQuery(),
-          );
+        const data = await baseModel.execAndParse(
+          sqlClient.knex
+            .raw('SELECT DISTINCT ?? FROM ??', [
+              column.column_name,
+              baseModel.getTnPath(table.table_name),
+            ])
+            .toQuery(),
+        );
 
-          let isMultiple = false;
+        const rows = data.map((el) => el[column.column_name]);
 
-          const rows = data.map((el) => el[column.column_name]);
-          const emails = rows
-            .map((el) => {
-              const res = el.split(',').map((e) => e.trim());
-              if (res.length > 1) {
-                isMultiple = true;
-              }
-              return res;
-            })
-            .flat();
-
-          // check if emails are present baseUsers
-          const emailsNotPresent = emails.filter((el) => {
-            return !baseUsers.find((user) => user.email === el);
-          });
-
-          if (emailsNotPresent.length) {
-            NcError.badRequest(
-              `Some of the emails are not present in the database.`,
-            );
-          }
-
-          if (isMultiple) {
-            colBody.meta = {
-              is_multi: true,
-            };
-          }
-        } catch (e) {
-          NcError.badRequest('Some of the emails are present in the database.');
+        if (rows.some((el) => el?.split(',').length > 1)) {
+          colBody.meta = {
+            is_multi: true,
+          };
         }
 
         // create nested replace statement for each user
-        const setStatement = baseUsers.reduce((acc, user) => {
-          const qb = sqlClient.knex.raw(`REPLACE(${acc}, ?, ?)`, [
-            user.email,
-            user.id,
-          ]);
-          return qb.toQuery();
-        }, sqlClient.knex.raw(`??`, [column.column_name]).toQuery());
+        let setStatement = 'null';
+
+        if (
+          [
+            UITypes.URL,
+            UITypes.Email,
+            UITypes.SingleLineText,
+            UITypes.PhoneNumber,
+            UITypes.SingleLineText,
+            UITypes.LongText,
+            UITypes.MultiSelect,
+          ].includes(column.uidt)
+        ) {
+          setStatement = baseUsers
+            .map((user) =>
+              sqlClient.knex
+                .raw('WHEN ?? = ? THEN ?', [
+                  column.column_name,
+                  user.email,
+                  user.id,
+                ])
+                .toQuery(),
+            )
+            .join('\n');
+
+          setStatement = `CASE\n${setStatement}\nELSE null\nEND`;
+        }
 
         await sqlClient.raw(`UPDATE ?? SET ?? = ${setStatement};`, [
           baseModel.getTnPath(table.table_name),
@@ -1373,12 +1361,9 @@ export class ColumnsService {
         await Column.update(context, param.columnId, {
           ...colBody,
         });
-      } else {
-        NcError.notImplemented(`Updating ${column.uidt} => ${colBody.uidt}`);
       }
-    } else if (column.uidt === UITypes.User) {
-      if ([UITypes.SingleLineText, UITypes.Email].includes(colBody.uidt)) {
-        // user to email/text
+    } else {
+      if (column.uidt === UITypes.User) {
         const baseModel = await reuseOrSave('baseModel', reuse, async () =>
           Model.getBaseModelSQL(context, {
             id: table.id,
@@ -1405,53 +1390,8 @@ export class ColumnsService {
           baseModel.getTnPath(table.table_name),
           column.column_name,
         ]);
-
-        colBody = await getColumnPropsFromUIDT(colBody, source);
-        const tableUpdateBody = {
-          ...table,
-          tn: table.table_name,
-          originalColumns: table.columns.map((c) => ({
-            ...c,
-            cn: c.column_name,
-            cno: c.column_name,
-          })),
-          columns: await Promise.all(
-            table.columns.map(async (c) => {
-              if (c.id === param.columnId) {
-                const res = {
-                  ...c,
-                  ...colBody,
-                  cn: colBody.column_name,
-                  cno: c.column_name,
-                  altered: Altered.UPDATE_COLUMN,
-                };
-
-                // update formula with new column name
-                await this.updateFormulas(context, {
-                  oldColumn: column,
-                  colBody,
-                });
-                return Promise.resolve(res);
-              } else {
-                (c as any).cn = c.column_name;
-              }
-              return Promise.resolve(c);
-            }),
-          ),
-        };
-
-        const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
-          ProjectMgrv2.getSqlMgr(context, { id: source.base_id }),
-        );
-        await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
-
-        await Column.update(context, param.columnId, {
-          ...colBody,
-        });
-      } else {
-        NcError.notImplemented(`Updating ${column.uidt} => ${colBody.uidt}`);
       }
-    } else {
+
       colBody = await getColumnPropsFromUIDT(colBody, source);
       const tableUpdateBody = {
         ...table,

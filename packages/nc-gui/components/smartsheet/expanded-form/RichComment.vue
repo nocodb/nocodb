@@ -74,7 +74,7 @@ const editor = useEditor({
   extensions: tiptapExtensions,
   onUpdate: ({ editor }) => {
     let markdown = turndownService.turndown(editor.getHTML().replaceAll(/<p><\/p>/g, '<br />')).replaceAll('/\n\n<br />', '\n')
-    if (!(editor?.isActive('bulletList') || editor?.isActive('orderedList'))) {
+    if (!(editor?.isActive('bulletList') || editor?.isActive('orderedList') || editor?.isActive('blockquote'))) {
       if (markdown.endsWith('<br />')) markdown = markdown.slice(0, -6)
     }
     vModel.value = markdown === '<br />' ? '' : markdown
@@ -133,7 +133,7 @@ const onFocusWrapper = () => {
 
 if (props.syncValueChange) {
   watch([vModel, editor], () => {
-    setEditorContent(vModel.value)
+    setEditorContent(vModel.value, true)
   })
 }
 
@@ -196,7 +196,7 @@ const emitSave = (event: KeyboardEvent) => {
       // If Enter was pressed in the list, do not emit save
       triggerSaveFromList.value = false
     } else {
-      if (editor.value.isActive('bulletList') || editor.value.isActive('orderedList')) {
+      if (editor.value.isActive('bulletList') || editor.value.isActive('orderedList') || editor.value.isActive('blockquote')) {
         event.stopPropagation()
       } else {
         emits('save')
@@ -206,7 +206,8 @@ const emitSave = (event: KeyboardEvent) => {
 }
 
 const handleEnterDown = (event: KeyboardEvent) => {
-  const isListsActive = editor.value?.isActive('bulletList') || editor.value?.isActive('orderedList')
+  const isListsActive =
+    editor.value?.isActive('bulletList') || editor.value?.isActive('orderedList') || editor.value.isActive('blockquote')
   if (isListsActive) {
     triggerSaveFromList.value = true
     setTimeout(() => {

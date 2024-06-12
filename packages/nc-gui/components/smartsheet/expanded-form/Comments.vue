@@ -54,6 +54,11 @@ const isCommentMode = ref(false)
 async function onEditComment() {
   if (!isEditing.value || !editCommentValue.value) return
 
+  if (editCommentValue.value.comment === '<br /><br />' || editCommentValue.value.comment === '<br /><br /><br />') {
+    editCommentValue.value.comment = ''
+    return
+  }
+
   isCommentMode.value = true
 
   await updateComment(editCommentValue.value.id!, {

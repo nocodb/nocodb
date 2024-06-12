@@ -214,6 +214,14 @@ const getUserRole = (email: string) => {
 
   return user.roles
 }
+
+const editedAt = (comment: CommentType) => {
+  if (comment.updated_at !== comment.created_at) {
+    const str = timeAgo(comment.updated_at).replace(' ', '_')
+    return `[(edited)](a~~~###~~~Edited_${str}) `
+  }
+  return ''
+}
 </script>
 
 <template>
@@ -382,7 +390,7 @@ const getUserRole = (email: string) => {
 
                     <div v-else class="text-small space-y-1 pl-9 leading-18px text-gray-800">
                       <SmartsheetExpandedFormRichComment
-                        :value="comment.comment"
+                        :value="`${comment.comment}  ${editedAt(comment)}`"
                         class="!text-small !leading-18px !text-gray-800 -ml-1"
                         read-only
                         sync-value-change

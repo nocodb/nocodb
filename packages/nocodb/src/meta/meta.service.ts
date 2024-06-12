@@ -596,6 +596,7 @@ export class MetaService {
     data: any,
     idOrCondition?: string | { [p: string]: any },
     xcCondition?: Condition,
+    skipUpdatedAt = false,
     force = false,
   ): Promise<any> {
     const query = this.knexConnection(target);
@@ -625,7 +626,10 @@ export class MetaService {
 
     delete data.created_at;
 
-    query.update({ ...data, updated_at: this.now() });
+    if (!skipUpdatedAt) {
+      data.updated_at = this.now();
+    }
+    query.update({ ...data });
     if (typeof idOrCondition !== 'object') {
       query.where('id', idOrCondition);
     } else if (idOrCondition) {

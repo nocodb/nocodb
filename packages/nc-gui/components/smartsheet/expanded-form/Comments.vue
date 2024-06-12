@@ -349,7 +349,7 @@ const editedAt = (comment: CommentType) => {
                             >
                               <div class="flex gap-2 items-center">
                                 <component :is="iconMap.copy" class="cursor-pointer" />
-                                {{ $t('general.copy') }}
+                                {{ $t('general.copy') }} URL
                               </div>
                             </NcMenuItem>
                             <NcDivider />

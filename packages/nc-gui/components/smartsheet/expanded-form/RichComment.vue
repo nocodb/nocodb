@@ -252,14 +252,14 @@ defineExpose({
         ref="editorDom"
         :editor="editor"
         :class="{
-          'px-1.5': !props.readOnly,
+          'px-2': !props.readOnly,
           'px-[0.25rem]': props.readOnly,
         }"
-        class="flex flex-col nc-comment-rich-editor w-full scrollbar-thin scrollbar-thumb-gray-200 nc-truncate scrollbar-track-transparent"
+        class="flex flex-col nc-comment-rich-editor py-2.125 w-full scrollbar-thin scrollbar-thumb-gray-200 nc-truncate scrollbar-track-transparent"
         @keydown.stop="handleKeyPress"
       />
 
-      <div v-if="!hideOptions" class="flex justify-between px-2 py-2 items-center">
+      <div v-if="!hideOptions" class="flex justify-between p-2 items-center">
         <LazySmartsheetExpandedFormRichTextOptions :editor="editor" class="!bg-transparent" />
         <NcButton
           v-e="['a:row-expand:comment:save']"

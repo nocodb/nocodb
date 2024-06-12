@@ -192,10 +192,6 @@ watch(commentsWrapperEl, () => {
   }, 100)
 })
 
-const timesAgo = (comment: CommentType) => {
-  return comment.created_at !== comment.updated_at ? `edited ${timeAgo(comment.updated_at!)}` : timeAgo(comment.created_at!)
-}
-
 const createdBy = (
   comment: CommentType & {
     created_display_name?: string
@@ -221,7 +217,7 @@ const getUserRole = (email: string) => {
 </script>
 
 <template>
-  <div class="flex flex-col !h-full w-full">
+  <div class="flex flex-col bg-white !h-full w-full">
     <NcTabs v-model:activeKey="tab" class="h-full">
       <a-tab-pane key="comments" class="w-full h-full">
         <template #tab>
@@ -248,14 +244,7 @@ const getUserRole = (email: string) => {
             </div>
             <div v-else ref="commentsWrapperEl" class="flex flex-col h-full py-1 nc-scrollbar-thin">
               <div v-for="comment of comments" :key="comment.id" :class="`${comment.id}`" class="nc-comment-item">
-                <div
-                  :class="{
-                    'hover:bg-gray-200': comment.id !== editComment?.id,
-                    'bg-gray-200': comment.id === editComment?.id,
-                    '!bg-gray-100': comment.resolved_by,
-                  }"
-                  class="group gap-3 overflow-hidden px-3 py-2"
-                >
+                <div class="group gap-3 hover:bg-gray-100 overflow-hidden px-3 py-2">
                   <div class="flex items-start justify-between">
                     <div class="flex items-start gap-3">
                       <GeneralUserIcon
@@ -265,8 +254,8 @@ const getUserRole = (email: string) => {
                         size="medium"
                       />
                       <div class="flex h-[28px] items-center gap-3">
-                        <NcDropdown placement="topLeft" :trigger="['hover']" overlay-class-name="!border-0">
-                          <span class="text-ellipsis text-gray-800 !text-[13px] max-w-42 overflow-hidden" :style="{}">
+                        <NcDropdown placement="topLeft" :trigger="['click']">
+                          <span class="text-ellipsis text-gray-800 font-medium !text-[13px] max-w-42 overflow-hidden" :style="{}">
                             {{ createdBy(comment) }}
                           </span>
 
@@ -287,20 +276,23 @@ const getUserRole = (email: string) => {
                                   </div>
                                 </div>
                               </div>
-                              <div class="px-3 rounded-b-lg border-t-1 border-gray-200 flex gap-1 bg-gray-50 py-1.5">
+                              <div class="px-3 rounded-b-lg text-gray-600 flex gap-1 bg-gray-100 py-1.5">
                                 Has <RolesBadge size="sm" :border="false" :role="getUserRole(comment.created_by_email!)" />
                                 role in base
                               </div>
                             </div>
                           </template>
                         </NcDropdown>
+                        <div class="text-xs text-gray-500">
+                          {{ timeAgo(comment.created_at!) }}
+                        </div>
                       </div>
                     </div>
                     <div class="flex items-center gap-2">
                       <div v-if="appInfo.ee">
                         <NcTooltip v-if="!comment.resolved_by">
                           <NcButton
-                            class="!w-7 !h-7 !bg-transparent !hidden !group-hover:block"
+                            class="!w-7 !h-7 !bg-transparent !hover:bg-gray-200 !hidden !group-hover:block"
                             size="xsmall"
                             type="text"
                             @click="resolveComment(comment.id!)"
@@ -314,12 +306,12 @@ const getUserRole = (email: string) => {
                         <NcTooltip v-else>
                           <template #title>{{ `Resolved by ${comment.resolved_display_name}` }}</template>
                           <NcButton
-                            class="!h-7 !w-7 !bg-transparent text-semibold !text-[#17803D]"
+                            class="!h-7 !w-7 !bg-transparent !hover:bg-gray-200 text-semibold"
                             size="xsmall"
                             type="text"
                             @click="resolveComment(comment.id)"
                           >
-                            <GeneralIcon class="text-md" icon="checkCircle" />
+                            <GeneralIcon class="text-md rounded-full bg-[#17803D] text-white" icon="check" />
                           </NcButton>
                         </NcTooltip>
                       </div>
@@ -331,7 +323,11 @@ const getUserRole = (email: string) => {
                         overlay-class-name="!min-w-[160px]"
                         placement="bottomRight"
                       >
-                        <NcButton class="nc-expand-form-more-actions !w-7 !h-7 !bg-transparent" size="xsmall" type="text">
+                        <NcButton
+                          class="nc-expand-form-more-actions !hover:bg-gray-200 !w-7 !h-7 !bg-transparent"
+                          size="xsmall"
+                          type="text"
+                        >
                           <GeneralIcon class="text-md" icon="threeDotVertical" />
                         </NcButton>
                         <template #overlay>
@@ -346,6 +342,8 @@ const getUserRole = (email: string) => {
                                 {{ $t('general.edit') }}
                               </div>
                             </NcMenuItem>
+
+                            <NcDivider />
                             <NcMenuItem
                               v-e="['c:row-expand:comment:delete']"
                               class="!text-red-500 !hover:bg-red-50"
@@ -389,21 +387,18 @@ const getUserRole = (email: string) => {
                         read-only
                         sync-value-change
                       />
-                      <div class="text-xs text-gray-500">
-                        {{ timesAgo(comment) }}
-                      </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-            <div v-if="hasEditPermission" class="bg-white nc-comment-input !rounded-br-2xl gap-2 flex">
+            <div v-if="hasEditPermission" class="bg-white p-3 nc-comment-input !rounded-br-2xl gap-2 flex">
               <SmartsheetExpandedFormRichComment
                 ref="commentInputRef"
                 v-model:value="newComment"
                 :hide-options="false"
                 placeholder="Comment..."
-                class="expanded-form-comment-input !m-0 pt-2 w-full !border-t-1 !border-gray-200 !bg-transparent !text-gray-800 !text-small !leading-18px !max-h-[566px]"
+                class="expanded-form-comment-input !hover:bg-gray-50 border-gray-200 border-1 rounded-lg w-full !bg-transparent !text-gray-800 !text-small !leading-18px !max-h-[546px]"
                 :autofocus="isExpandedFormCommentMode"
                 data-testid="expanded-form-comment-input"
                 @focus="isExpandedFormCommentMode = false"
@@ -485,12 +480,6 @@ const getUserRole = (email: string) => {
   @apply max-w-1/2;
 }
 
-.nc-comment-input {
-  :deep(.nc-comment-rich-editor) {
-    @apply !ml-1;
-  }
-}
-
 .nc-audit-item {
   @apply border-b-1 gap-3 border-gray-200;
 }
@@ -521,7 +510,7 @@ const getUserRole = (email: string) => {
 :deep(.ant-tabs) {
   @apply !overflow-visible;
   .ant-tabs-nav {
-    @apply px-3;
+    @apply px-3 bg-white;
     .ant-tabs-nav-list {
       @apply w-[99%] mx-auto gap-6;
 
@@ -542,11 +531,12 @@ const getUserRole = (email: string) => {
 }
 
 :deep(.expanded-form-comment-input) {
-  @apply transition-all duration-150 min-h-8;
+  @apply transition-all duration-150 min-h-8 !focus-within:border-brand-500;
   box-shadow: none;
   &:focus,
   &:focus-within {
     @apply min-h-16;
+    box-shadow: 0px 0px 0px 2px rgba(51, 102, 255, 0.24);
   }
   &::placeholder {
     @apply !text-gray-400;

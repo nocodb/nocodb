@@ -43,6 +43,8 @@ const { gridViewCols } = useViewColumnsOrThrow()
 
 const { fieldsToGroupBy, groupByLimit } = useViewGroupByOrThrow(view)
 
+const { isUIAllowed } = useRoles()
+
 const isLoading = ref<'' | 'hideOrShow' | 'setDisplay'>('')
 
 const setAsDisplayValue = async () => {
@@ -374,7 +376,7 @@ const filterOrGroupByThisField = (event: SmartsheetStoreEvents) => {
           'min-w-[256px]': isExpandedForm,
         }"
       >
-        <NcMenuItem :disabled="column?.pk || isSystemColumn(column)" @click="onEditPress">
+        <NcMenuItem v-if="isUIAllowed('fieldAlter')" :disabled="column?.pk || isSystemColumn(column)" @click="onEditPress">
           <div class="nc-column-edit nc-header-menu-item">
             <component :is="iconMap.ncEdit" class="text-gray-700" />
             <!-- Edit -->
@@ -388,7 +390,7 @@ const filterOrGroupByThisField = (event: SmartsheetStoreEvents) => {
             {{ t('general.duplicate') }}
           </div>
         </NcMenuItem>
-        <a-divider v-if="!column?.pv" class="!my-0" />
+        <a-divider v-if="isUIAllowed('fieldAlter') && !column?.pv" class="!my-0" />
         <NcMenuItem v-if="!column?.pv" @click="hideOrShowField">
           <div v-e="['a:field:hide']" class="nc-column-insert-before nc-header-menu-item">
             <GeneralLoader v-if="isLoading === 'hideOrShow'" size="regular" />
@@ -514,7 +516,12 @@ const filterOrGroupByThisField = (event: SmartsheetStoreEvents) => {
         </template>
         <a-divider v-if="!column?.pv" class="!my-0" />
 
-        <NcMenuItem v-if="!column?.pv" :disabled="!isDeleteAllowed" class="!hover:bg-red-50" @click="handleDelete">
+        <NcMenuItem
+          v-if="!column?.pv && isUIAllowed('fieldDelete')"
+          :disabled="!isDeleteAllowed"
+          class="!hover:bg-red-50"
+          @click="handleDelete"
+        >
           <div class="nc-column-delete nc-header-menu-item text-red-600">
             <component :is="iconMap.delete" />
             <!-- Delete -->

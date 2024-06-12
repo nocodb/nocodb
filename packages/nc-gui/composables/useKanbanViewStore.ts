@@ -1,7 +1,6 @@
 import type { ComputedRef, Ref } from 'vue'
 import type { Api, ColumnType, KanbanType, SelectOptionType, SelectOptionsType, TableType, ViewType } from 'nocodb-sdk'
 
-
 type GroupingFieldColOptionsType = SelectOptionType & { collapsed: boolean }
 
 const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(

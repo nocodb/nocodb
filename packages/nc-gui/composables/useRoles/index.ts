@@ -1,6 +1,7 @@
 import { isString } from '@vue/shared'
 import { type Roles, type RolesObj, SourceRestriction, type SourceType, type WorkspaceUserRoles } from 'nocodb-sdk'
 import { extractRolesObj } from 'nocodb-sdk'
+import type { MaybeRef } from 'vue'
 
 const hasPermission = (role: Exclude<Roles, WorkspaceUserRoles>, hasRole: boolean, permission: Permission | string) => {
   const rolePermission = rolePermissions[role]
@@ -131,7 +132,8 @@ export const useRolesShared = createSharedComposable(() => {
     permission: Permission | string,
     args: {
       roles?: string | Record<string, boolean> | string[] | null
-      source?: SourceType & { meta?: Record<string, any> }
+      source?: MaybeRef<SourceType & { meta?: Record<string, any> }>
+      skipSourceCheck?: boolean
     } = {},
   ) => {
     const { roles } = args
@@ -146,13 +148,14 @@ export const useRolesShared = createSharedComposable(() => {
 
     // check source level restrictions
     if (
-      sourceRestrictions[SourceRestriction.DATA_READONLY][permission] ||
-      sourceRestrictions[SourceRestriction.META_READONLY][permission]
+      !args.skipSourceCheck &&
+      (sourceRestrictions[SourceRestriction.DATA_READONLY][permission] ||
+        sourceRestrictions[SourceRestriction.META_READONLY][permission])
     ) {
       const source = unref(args.source || null)
 
       if (!source) {
-        console.warn('Source not found', permission, new Error().stack)
+        console.warn('Source reference not found', permission)
         return false
       }
 
@@ -172,6 +175,8 @@ export const useRolesShared = createSharedComposable(() => {
   return { allRoles, orgRoles, workspaceRoles, baseRoles, loadRoles, isUIAllowed }
 })
 
+type IsUIAllowedParams = Parameters<ReturnType<typeof useRolesShared>['isUIAllowed']>
+
 /**
  * Wrap the default shared composable to inject the current source if available
  * which will be used to determine if a user has permission to perform an action based on the source's restrictions
@@ -182,7 +187,7 @@ export const useRoles = () => {
 
   return {
     ...useRolesRes,
-    isUIAllowed: (...args: Parameters<ReturnType<typeof useRoles>['isUIAllowed']>) => {
+    isUIAllowed: (...args: IsUIAllowedParams) => {
       return useRolesRes.isUIAllowed(args[0], { source: currentSource, ...(args[1] || {}) })
     },
   }

@@ -4,7 +4,6 @@ import { ExportTypes } from 'nocodb-sdk'
 import { saveAs } from 'file-saver'
 import * as XLSX from 'xlsx'
 
-
 const { t } = useI18n()
 
 const sharedViewListDlg = ref(false)

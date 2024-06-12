@@ -3,7 +3,6 @@ import type { ColumnType } from 'nocodb-sdk'
 import { isSystemColumn } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 
-
 const column = inject(ColumnInj)!
 
 const cellValue = inject(CellValueInj)!

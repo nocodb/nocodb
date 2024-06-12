@@ -1,10 +1,11 @@
 <script lang="ts" setup>
-import type { ViewType } from 'nocodb-sdk'
+import { SourceRestriction, type ViewType } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
 
 const props = defineProps<{
   // Prop used to align the dropdown to the left in sidebar
   alignLeftLevel: number | undefined
+  source: Source
 }>()
 
 const { $e } = useNuxtApp()
@@ -122,7 +123,7 @@ async function onOpenModal({
           </div>
         </NcMenuItem>
 
-        <NcMenuItem @click="onOpenModal({ type: ViewTypes.FORM })">
+        <NcMenuItem v-if="!source.meta?.[SourceRestriction.DATA_READONLY]" @click="onOpenModal({ type: ViewTypes.FORM })">
           <div class="item" data-testid="sidebar-view-create-form">
             <div class="item-inner">
               <GeneralViewIcon :meta="{ type: ViewTypes.FORM }" />

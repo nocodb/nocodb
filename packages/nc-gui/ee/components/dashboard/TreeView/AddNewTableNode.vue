@@ -191,7 +191,7 @@ function openTableCreateMagicDialog(sourceId?: string) {
             </a-menu-item>
 
             <a-menu-item
-              v-if="isUIAllowed('excelImport', { roles: baseRole })"
+              v-if="isUIAllowed('excelImport', { roles: baseRole, source: base.sources[baseIndex] })"
               key="quick-import-excel"
               @click="openQuickImportDialog('excel', base.sources[baseIndex].id)"
             >

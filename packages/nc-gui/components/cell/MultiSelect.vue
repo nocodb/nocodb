@@ -6,7 +6,6 @@ import type { SelectOptionType, SelectOptionsType } from 'nocodb-sdk'
 import type { FormFieldsLimitOptionsType } from '~/lib/types'
 import MdiCloseCircle from '~icons/mdi/close-circle'
 
-
 interface Props {
   modelValue?: string | string[]
   rowIndex?: number

@@ -457,6 +457,7 @@ const rolePermissions:
 };
 
 // Excluded permissions for source restrictions
+// `true` means permission is restricted and `false`/missing means permission is allowed
 export const sourceRestrictions = {
   [SourceRestriction.META_READONLY]: {
     tableCreate: true,

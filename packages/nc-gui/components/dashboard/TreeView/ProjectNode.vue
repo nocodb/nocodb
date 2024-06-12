@@ -101,7 +101,9 @@ const baseViewOpen = computed(() => {
 })
 
 const showBaseOption = computed(() => {
-  return ['airtableImport', 'csvImport', 'jsonImport', 'excelImport'].some((permission) => isUIAllowed(permission))
+  return ['airtableImport', 'csvImport', 'jsonImport', 'excelImport'].some((permission) =>
+    isUIAllowed(permission, { skipSourceCheck: true }),
+  )
 })
 
 const enableEditMode = () => {

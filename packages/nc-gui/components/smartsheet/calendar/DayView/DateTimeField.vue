@@ -2,7 +2,6 @@
 import dayjs from 'dayjs'
 import type { ColumnType } from 'nocodb-sdk'
 
-
 const emit = defineEmits(['expandRecord', 'newRecord'])
 
 const {

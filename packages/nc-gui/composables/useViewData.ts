@@ -4,7 +4,6 @@ import type { Api, ColumnType, FormColumnType, FormType, GalleryType, PaginatedT
 import type { ComputedRef, Ref } from 'vue'
 import { NavigateDir } from '#imports'
 
-
 const formatData = (list: Record<string, any>[]) =>
   list.map((row) => ({
     row: { ...row },

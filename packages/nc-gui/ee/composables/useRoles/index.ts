@@ -1,7 +1,7 @@
 import { isString } from '@vue/shared'
-import { type Roles, type RolesObj, SourceRestriction, type SourceType } from 'nocodb-sdk'
+import { type Roles, type RolesObj, SourceRestriction, type SourceType, type WorkspaceUserRoles } from 'nocodb-sdk'
 import { extractRolesObj } from 'nocodb-sdk'
-import type { MaybeRef } from '@vue/reactivity'
+import type { MaybeRef } from 'vue'
 
 const hasPermission = (role: Roles, hasRole: boolean, permission: Permission | string) => {
   const rolePermission = rolePermissions[role]
@@ -163,6 +163,7 @@ export const useRolesShared = createSharedComposable(() => {
     args: {
       roles?: string | Record<string, boolean> | string[] | null
       source?: MaybeRef<SourceType & { meta?: Record<string, any> }>
+      skipSourceCheck?: boolean
     } = {},
   ) => {
     const { roles } = args
@@ -177,13 +178,14 @@ export const useRolesShared = createSharedComposable(() => {
 
     // check source level restrictions
     if (
-      sourceRestrictions[SourceRestriction.DATA_READONLY][permission] ||
-      sourceRestrictions[SourceRestriction.META_READONLY][permission]
+      !args.skipSourceCheck &&
+      (sourceRestrictions[SourceRestriction.DATA_READONLY][permission] ||
+        sourceRestrictions[SourceRestriction.META_READONLY][permission])
     ) {
       const source = unref(args.source || null)
 
       if (!source) {
-        console.warn('Source not found', permission, new Error().stack)
+        console.warn('Source not found', permission)
         return false
       }
 
@@ -195,11 +197,15 @@ export const useRolesShared = createSharedComposable(() => {
       }
     }
 
-    return Object.entries(checkRoles).some(([role, hasRole]) => hasPermission(role as Roles, hasRole, permission))
+    return Object.entries(checkRoles).some(([role, hasRole]) =>
+      hasPermission(role as Exclude<Roles, WorkspaceUserRoles>, hasRole, permission),
+    )
   }
 
   return { allRoles, orgRoles, workspaceRoles, baseRoles, loadRoles, isUIAllowed }
 })
+
+type IsUIAllowedParams = Parameters<ReturnType<typeof useRolesShared>['isUIAllowed']>
 
 /**
  * Wrap the default shared composable to inject the current source if available
@@ -211,7 +217,7 @@ export const useRoles = () => {
 
   return {
     ...useRolesRes,
-    isUIAllowed: (...args: Parameters<ReturnType<typeof useRoles>['isUIAllowed']>) => {
+    isUIAllowed: (...args: IsUIAllowedParams) => {
       return useRolesRes.isUIAllowed(args[0], { source: currentSource, ...(args[1] || {}) })
     },
   }

@@ -4,7 +4,6 @@ import type { ColumnType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { ref } from 'vue'
 
-
 const value = inject(CellValueInj, ref(0))
 
 const column = inject(ColumnInj)!

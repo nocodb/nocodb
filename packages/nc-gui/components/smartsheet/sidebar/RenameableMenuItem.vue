@@ -3,7 +3,6 @@ import type { VNodeRef } from '@vue/runtime-core'
 import type { KanbanType, ViewType, ViewTypes } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
 
-
 interface Props {
   view: ViewType
   onValidate: (view: ViewType) => boolean | string

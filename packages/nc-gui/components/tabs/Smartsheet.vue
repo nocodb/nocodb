@@ -64,7 +64,7 @@ provide(
   computed(
     () =>
       !isUIAllowed('dataEdit', {
-        source: activeSource.value,
+        skipSourceCheck: true,
       }),
   ),
 )

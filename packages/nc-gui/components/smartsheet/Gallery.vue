@@ -2,7 +2,6 @@
 import { ViewTypes, isVirtualCol } from 'nocodb-sdk'
 import type { Row as RowType } from '#imports'
 
-
 interface Attachment {
   url: string
 }

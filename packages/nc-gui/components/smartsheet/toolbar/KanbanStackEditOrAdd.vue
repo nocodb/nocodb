@@ -1,6 +1,4 @@
 <script setup lang="ts">
-
-
 const { isUIAllowed } = useRoles()
 
 const { groupingFieldColumn } = useKanbanViewStoreOrThrow()

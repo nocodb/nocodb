@@ -3,7 +3,6 @@ import type { TableType, ViewType } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
 import { LockType } from '#imports'
 
-
 const props = withDefaults(
   defineProps<{
     view: ViewType

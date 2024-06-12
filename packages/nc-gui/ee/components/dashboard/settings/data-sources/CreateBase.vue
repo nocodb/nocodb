@@ -2,7 +2,7 @@
 import { Form, message } from 'ant-design-vue'
 import type { SelectHandler } from 'ant-design-vue/es/vc-select/Select'
 import type { Card as AntCard } from 'ant-design-vue'
-import { WorkspaceStatus,SourceRestriction } from 'nocodb-sdk'
+import { SourceRestriction, WorkspaceStatus } from 'nocodb-sdk'
 import {
   type CertTypes,
   ClientType,

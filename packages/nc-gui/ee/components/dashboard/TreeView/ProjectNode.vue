@@ -107,11 +107,11 @@ const baseViewOpen = computed(() => {
   return routeNameAfterProjectView.split('-').length === 2 || routeNameAfterProjectView.split('-').length === 1
 })
 
-const showBaseOption = computed(() => {
+const showBaseOption = (source: SourceType) => {
   return ['airtableImport', 'csvImport', 'jsonImport', 'excelImport'].some((permission) =>
-    isUIAllowed(permission, false, baseRole!.value),
+    isUIAllowed(permission, { roles: baseRole!.value, source }),
   )
-})
+}
 
 const enableEditMode = () => {
   editMode.value = true
@@ -670,7 +670,7 @@ const onTableIdCopy = async () => {
                   </NcMenuItem>
 
                   <DashboardTreeViewBaseOptions
-                    v-if="base?.sources?.[0]?.enabled && showBaseOption"
+                    v-if="base?.sources?.[0]?.enabled && showBaseOption(base.sources[0])"
                     v-model:base="base"
                     :source="base.sources[0]"
                   />
@@ -891,7 +891,11 @@ const onTableIdCopy = async () => {
                                     Relations
                                   </NcMenuItem>
 
-                                  <DashboardTreeViewBaseOptions v-if="showBaseOption" v-model:base="base" :source="source" />
+                                  <DashboardTreeViewBaseOptions
+                                    v-if="showBaseOption(source)"
+                                    v-model:base="base"
+                                    :source="source"
+                                  />
                                 </NcMenu>
                               </template>
                             </NcDropdown>

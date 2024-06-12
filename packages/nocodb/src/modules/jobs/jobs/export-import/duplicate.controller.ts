@@ -8,7 +8,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { ProjectStatus } from 'nocodb-sdk';
+import { ProjectStatus, SourceRestriction } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { BasesService } from '~/services/bases.service';
@@ -20,6 +20,7 @@ import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
 import { RootScopes } from '~/utils/globals';
+import { NcError } from '~/helpers/catchError';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -212,6 +213,14 @@ export class DuplicateController {
 
     const source = await Source.get(context, model.source_id);
 
+    // if data/schema is readonly, then restrict duplication
+    if (source.meta?.[SourceRestriction.META_READONLY]) {
+      NcError.sourceMetaReadOnly(source.alias);
+    }
+    if (source.meta?.[SourceRestriction.DATA_READONLY]) {
+      NcError.sourceDataReadOnly(source.alias);
+    }
+
     const models = await source.getModels(context);
 
     const uniqueTitle = generateUniqueName(
@@ -274,6 +283,16 @@ export class DuplicateController {
 
     if (!model) {
       throw new Error(`Model not found!`);
+    }
+
+    const source = await Source.get(context, model.source_id);
+
+    // if data/schema is readonly, then restrict duplication
+    if (source.meta?.[SourceRestriction.META_READONLY]) {
+      NcError.sourceMetaReadOnly(source.alias);
+    }
+    if (source.meta?.[SourceRestriction.DATA_READONLY]) {
+      NcError.sourceDataReadOnly(source.alias);
     }
 
     const job = await this.jobsService.add(JobTypes.DuplicateColumn, {

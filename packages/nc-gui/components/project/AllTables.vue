@@ -76,7 +76,7 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
       }"
     >
       <div
-        v-if="isUIAllowed('tableCreate', {source: openedProject?.sources?.[0]})"
+        v-if="isUIAllowed('tableCreate', { source: openedProject?.sources?.[0] })"
         role="button"
         class="nc-base-view-all-table-btn"
         data-testid="proj-view-btn__add-new-table"
@@ -86,7 +86,7 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
         <div class="label">{{ $t('general.new') }} {{ $t('objects.table') }}</div>
       </div>
       <div
-        v-if="isUIAllowed('tableCreate', {source: openedProject?.sources?.[0]})"
+        v-if="isUIAllowed('tableCreate', { source: openedProject?.sources?.[0] })"
         v-e="['c:table:import']"
         role="button"
         class="nc-base-view-all-table-btn"

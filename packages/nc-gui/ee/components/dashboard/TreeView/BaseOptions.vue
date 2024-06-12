@@ -136,7 +136,9 @@ function openQuickImportDialog(type: string) {
   <!-- Quick Import From -->
   <NcSubMenu
     v-if="
-      ['airtableImport', 'csvImport', 'jsonImport', 'excelImport'].some((permission) => isUIAllowed(permission, false, baseRole))
+      ['airtableImport', 'csvImport', 'jsonImport', 'excelImport'].some((permission) =>
+        isUIAllowed(permission, { roles: baseRole, skipSourceCheck: true }),
+      )
     "
     class="py-0"
     data-testid="nc-sidebar-base-import"
@@ -148,7 +150,7 @@ function openQuickImportDialog(type: string) {
     </template>
 
     <NcMenuItem
-      v-if="isUIAllowed('airtableImport', { roles: baseRole })"
+      v-if="isUIAllowed('airtableImport', { roles: baseRole, source })"
       key="quick-import-airtable"
       v-e="['c:import:airtable']"
       @click="openAirtableImportDialog(source.base_id, source.id)"
@@ -158,7 +160,7 @@ function openQuickImportDialog(type: string) {
     </NcMenuItem>
 
     <NcMenuItem
-      v-if="isUIAllowed('csvImport', { roles: baseRole })"
+      v-if="isUIAllowed('csvImport', { roles: baseRole, source })"
       key="quick-import-csv"
       v-e="['c:import:csv']"
       @click="openQuickImportDialog('csv')"
@@ -168,7 +170,7 @@ function openQuickImportDialog(type: string) {
     </NcMenuItem>
 
     <NcMenuItem
-      v-if="isUIAllowed('jsonImport', { roles: baseRole })"
+      v-if="isUIAllowed('jsonImport', { roles: baseRole, source })"
       key="quick-import-json"
       v-e="['c:import:json']"
       @click="openQuickImportDialog('json')"
@@ -178,7 +180,7 @@ function openQuickImportDialog(type: string) {
     </NcMenuItem>
 
     <NcMenuItem
-      v-if="isUIAllowed('excelImport', { roles: baseRole })"
+      v-if="isUIAllowed('excelImport', { roles: baseRole, source })"
       key="quick-import-excel"
       v-e="['c:import:excel']"
       @click="openQuickImportDialog('excel')"

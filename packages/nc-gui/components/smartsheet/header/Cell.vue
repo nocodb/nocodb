@@ -2,7 +2,6 @@
 import type { ColumnReqType, ColumnType } from 'nocodb-sdk'
 import { UITypes, UITypesName } from 'nocodb-sdk'
 
-
 interface Props {
   column: ColumnType
   required?: boolean | number

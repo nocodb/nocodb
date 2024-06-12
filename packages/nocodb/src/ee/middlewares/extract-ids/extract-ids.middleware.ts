@@ -622,14 +622,14 @@ export class AclMiddleware implements NestInterceptor {
         source.meta?.[SourceRestriction.META_READONLY] &&
         sourceRestrictions[SourceRestriction.META_READONLY][permissionName]
       ) {
-        NcError.forbidden('Schema changes are not allowed');
+        NcError.sourceMetaReadOnly(source.alias);
       }
 
       if (
         source.meta[SourceRestriction.DATA_READONLY] &&
         sourceRestrictions[SourceRestriction.DATA_READONLY][permissionName]
       ) {
-        NcError.forbidden('Data changes are not allowed');
+        NcError.sourceDataReadOnly(source.alias);
       }
     }
 

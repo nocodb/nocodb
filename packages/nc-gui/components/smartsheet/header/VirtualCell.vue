@@ -10,7 +10,6 @@ import {
 } from 'nocodb-sdk'
 import { RelationTypes, UITypes, UITypesName, substituteColumnIdWithAliasInFormula } from 'nocodb-sdk'
 
-
 const props = defineProps<{
   column: ColumnType
   hideMenu?: boolean

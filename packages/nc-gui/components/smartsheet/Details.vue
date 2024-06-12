@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { LoadingOutlined } from '@ant-design/icons-vue'
 
-
 const { openedViewsTab } = storeToRefs(useViewsStore())
 const { onViewsTabChange } = useViewsStore()
 

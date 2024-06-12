@@ -379,7 +379,12 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
             base_id: base.id,
             aliasOrId: req.params.tableName,
           });
-          req.ncSourceId = model.source_id;
+
+          if (!model) {
+            NcError.tableNotFound(req.params.tableName);
+          }
+
+          req.ncSourceId = model?.source_id;
         }
       } else {
         NcError.baseNotFound(params.baseName);

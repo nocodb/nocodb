@@ -142,18 +142,15 @@ export default class Comment implements CommentType {
     return true;
   }
 
-  static async deleteRowComments(
+  static async deleteModelComments(
     context: NcContext,
     fk_model_id: string,
     ncMeta = Noco.ncMeta,
   ) {
-    return ncMeta.metaUpdate(
+    return ncMeta.metaDelete(
       context.workspace_id,
       context.base_id,
       MetaTable.COMMENTS,
-      {
-        is_deleted: true,
-      },
       {
         fk_model_id,
       },

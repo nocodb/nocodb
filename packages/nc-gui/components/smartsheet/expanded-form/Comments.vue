@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import type { CommentType } from 'nocodb-sdk'
+import { type CommentType, ProjectRoles } from 'nocodb-sdk'
 
 const props = defineProps<{
   loading: boolean
+  primaryKey: string
 }>()
 
 const {
@@ -23,9 +24,23 @@ const commentsWrapperEl = ref<HTMLDivElement>()
 
 const commentInputRef = ref<any>()
 
+const { copy } = useClipboard()
+
+const route = useRoute()
+
+const { dashboardUrl } = useDashboard()
+
 const editRef = ref<any>()
 
 const { user, appInfo } = useGlobal()
+
+const basesStore = useBases()
+
+const { basesUser } = storeToRefs(basesStore)
+
+const meta = inject(MetaInj, ref())
+
+const baseUsers = computed(() => (meta.value?.base_id ? basesUser.value.get(meta.value?.base_id) || [] : []))
 
 const isExpandedFormLoading = computed(() => props.loading)
 
@@ -37,73 +52,61 @@ const router = useRouter()
 
 const hasEditPermission = computed(() => isUIAllowed('commentEdit'))
 
-const editComment = ref<CommentType>()
+const editCommentValue = ref<CommentType>()
 
 const isEditing = ref<boolean>(false)
 
 const isCommentMode = ref(false)
 
-function onKeyDown(event: KeyboardEvent) {
-  if (event.key === 'Escape') {
-    onKeyEsc(event)
-  } else if (event.key === 'Enter' && !event.shiftKey) {
-    onKeyEnter(event)
-  }
-}
-
-function onKeyEnter(event: KeyboardEvent) {
-  event.stopImmediatePropagation()
-  event.preventDefault()
-  onEditComment()
-}
-
-function onKeyEsc(event: KeyboardEvent) {
-  event.stopImmediatePropagation()
-  event.preventDefault()
-  onCancel()
-}
-
 async function onEditComment() {
-  if (!isEditing.value || !editComment.value) return
+  if (!isEditing.value || !editCommentValue.value?.comment) return
+
+  while (editCommentValue.value.comment.endsWith('<br />') || editCommentValue.value.comment.endsWith('\n')) {
+    if (editCommentValue.value.comment.endsWith('<br />')) {
+      editCommentValue.value.comment = editCommentValue.value.comment.slice(0, -6)
+    } else {
+      editCommentValue.value.comment = editCommentValue.value.comment.slice(0, -2)
+    }
+  }
 
   isCommentMode.value = true
 
-  await updateComment(editComment.value.id!, {
-    comment: editComment.value?.comment,
+  await updateComment(editCommentValue.value.id!, {
+    comment: editCommentValue.value?.comment,
   })
-  onStopEdit()
-}
-
-function onCancel() {
-  if (!isEditing.value) return
-  editComment.value = undefined
-  onStopEdit()
-}
-
-function onStopEdit() {
   loadComments()
   isEditing.value = false
-  editComment.value = undefined
+  editCommentValue.value = undefined
 }
 
-onKeyStroke('Enter', (event) => {
-  if (isEditing.value) {
-    onKeyEnter(event)
-  }
-})
+function onCancel(e: KeyboardEvent) {
+  if (!isEditing.value) return
+  e.preventDefault()
+  e.stopPropagation()
+  editCommentValue.value = undefined
+  loadComments()
+  isEditing.value = false
+  editCommentValue.value = undefined
+}
 
-function editComments(comment: CommentType) {
-  editComment.value = comment
+function editComment(comment: CommentType) {
+  editCommentValue.value = {
+    ...comment,
+  }
   isEditing.value = true
+  nextTick(() => {
+    scrollToComment(comment.id)
+    editRef.value?.focus()
+  })
 }
 
 const value = computed({
   get() {
-    return editComment.value?.comment || ''
+    return editCommentValue.value?.comment || ''
   },
   set(val) {
-    if (!editComment.value) return
-    editComment.value.comment = val
+    if (!editCommentValue.value) return
+    editCommentValue.value.comment = val
   },
 })
 
@@ -116,15 +119,20 @@ function scrollComments() {
   }
 }
 
-const isSaving = ref(false)
-
 const saveComment = async () => {
-  if (isSaving.value) return
+  if (!newComment.value.trim()) return
+
+  while (newComment.value.endsWith('<br />') || newComment.value.endsWith('\n')) {
+    if (newComment.value.endsWith('<br />')) {
+      newComment.value = newComment.value.slice(0, -6)
+    } else {
+      newComment.value = newComment.value.slice(0, -2)
+    }
+  }
 
   isCommentMode.value = true
-  isSaving.value = true
-  // Optimistic Insert
 
+  // Optimistic Insert
   comments.value = [
     ...comments.value,
     {
@@ -150,9 +158,15 @@ const saveComment = async () => {
     scrollComments()
   } catch (e) {
     console.error(e)
-  } finally {
-    isSaving.value = false
   }
+}
+
+const copyComment = async (comment: CommentType) => {
+  await copy(
+    encodeURI(
+      `${dashboardUrl?.value}#/${route.params.typeOrId}/${route.params.baseId}/${meta.value?.id}?rowId=${props.primaryKey}&commentId=${comment.id}`,
+    ),
+  )
 }
 
 function scrollToComment(commentId: string) {
@@ -184,10 +198,6 @@ watch(commentsWrapperEl, () => {
   }, 100)
 })
 
-const timesAgo = (comment: CommentType) => {
-  return comment.created_at !== comment.updated_at ? `Edited ${timeAgo(comment.updated_at!)}` : timeAgo(comment.created_at!)
-}
-
 const createdBy = (
   comment: CommentType & {
     created_display_name?: string
@@ -196,17 +206,32 @@ const createdBy = (
   if (comment.created_by === user.value?.id) {
     return 'You'
   } else if (comment.created_display_name?.trim()) {
-    return comment.created_by_email || 'Shared source'
+    return comment.created_display_name || 'Shared source'
   } else if (comment.created_by_email) {
     return comment.created_by_email
   } else {
     return 'Shared source'
   }
 }
+
+const getUserRole = (email: string) => {
+  const user = baseUsers.value.find((user) => user.email === email)
+  if (!user) return ProjectRoles.NO_ACCESS
+
+  return user.roles
+}
+
+const editedAt = (comment: CommentType) => {
+  if (comment.updated_at !== comment.created_at && comment.updated_at) {
+    const str = timeAgo(comment.updated_at).replace(' ', '_')
+    return `[(edited)](a~~~###~~~Edited_${str}) `
+  }
+  return ''
+}
 </script>
 
 <template>
-  <div class="flex flex-col !h-full w-full">
+  <div class="flex flex-col bg-white !h-full w-full rounded-br-2xl">
     <NcTabs v-model:activeKey="tab" class="h-full">
       <a-tab-pane key="comments" class="w-full h-full">
         <template #tab>
@@ -221,8 +246,8 @@ const createdBy = (
             'pb-1': tab !== 'comments' && !appInfo.ee,
           }"
         >
-          <div v-if="isExpandedFormLoading" class="flex flex-col h-full">
-            <GeneralLoader class="!mt-16" size="xlarge" />
+          <div v-if="isExpandedFormLoading" class="flex flex-col items-center justify-center w-full h-full">
+            <GeneralLoader size="xlarge" />
           </div>
           <div v-else class="flex flex-col h-full">
             <div v-if="comments.length === 0" class="flex flex-col my-1 text-center justify-center h-full nc-scrollbar-thin">
@@ -232,13 +257,16 @@ const createdBy = (
               <div class="font-medium text-center my-6 text-gray-500">{{ $t('activity.startCommenting') }}</div>
             </div>
             <div v-else ref="commentsWrapperEl" class="flex flex-col h-full py-1 nc-scrollbar-thin">
+              <!-- The scrollbar doesn't work when flex-end is used. https://issues.chromium.org/issues/41130651
+              Hence using a div to fix the issue
+              https://stackoverflow.com/questions/36130760/use-justify-content-flex-end-and-to-have-vertical-scrollbar
+              -->
+              <div class="scroll-fix"></div>
               <div v-for="comment of comments" :key="comment.id" :class="`${comment.id}`" class="nc-comment-item">
                 <div
                   :class="{
-                    'hover:bg-gray-200 bg-[#F9F9FA]': comment.id !== editComment?.id,
-                    'bg-gray-200': comment.id === editComment?.id,
-                    '!bg-[#E7E7E9]': comment.resolved_by,
-                  }"
+                  'hover:bg-gray-100': editCommentValue?.id !== comment!.id
+                }"
                   class="group gap-3 overflow-hidden px-3 py-2"
                 >
                   <div class="flex items-start justify-between">
@@ -250,30 +278,56 @@ const createdBy = (
                         size="medium"
                       />
                       <div class="flex h-[28px] items-center gap-3">
-                        <NcTooltip class="truncate capitalize text-gray-800 font-weight-700 !text-[13px] max-w-42">
-                          <template #title>
-                            {{ comment.created_display_name?.trim() || comment.created_by_email || 'Shared source' }}
-                          </template>
-                          <span class="text-ellipsis capitalize overflow-hidden" :style="{}">
+                        <NcDropdown placement="topLeft" :trigger="['hover']">
+                          <span class="text-ellipsis text-gray-800 font-medium !text-[13px] max-w-42 overflow-hidden" :style="{}">
                             {{ createdBy(comment) }}
                           </span>
-                        </NcTooltip>
 
+                          <template #overlay>
+                            <div class="bg-white rounded-lg">
+                              <div class="flex items-center gap-4 py-3 px-2">
+                                <GeneralUserIcon
+                                  class="!w-8 !h-8 border-1 border-gray-200 rounded-full"
+                                  :name="comment.created_display_name"
+                                  :email="comment.created_by_email"
+                                />
+                                <div class="flex flex-col">
+                                  <div class="font-semibold text-gray-800">
+                                    {{ createdBy(comment) }}
+                                  </div>
+                                  <div class="text-xs text-gray-600">
+                                    {{ comment.created_by_email }}
+                                  </div>
+                                </div>
+                              </div>
+                              <div
+                                class="px-3 rounded-b-lg !text-[13px] items-center text-gray-600 flex gap-1 bg-gray-100 py-1.5"
+                              >
+                                Has <RolesBadge size="sm" :border="false" :role="getUserRole(comment.created_by_email!)" />
+                                role in base
+                              </div>
+                            </div>
+                          </template>
+                        </NcDropdown>
                         <div class="text-xs text-gray-500">
-                          {{ timesAgo(comment) }}
+                          {{ timeAgo(comment.created_at!) }}
                         </div>
                       </div>
                     </div>
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center">
                       <NcDropdown
-                        v-if="(comment.created_by_email === user!.email && !editComment )"
+                        v-if="(comment.created_by_email === user!.email && !editCommentValue )"
                         :class="{
-                        'opacity-0 group-hover:opacity-100': comment.created_by_email === user!.email && !editComment,
+                        '!hidden !group-hover:block': comment.created_by_email === user!.email && !editCommentValue,
                         }"
                         overlay-class-name="!min-w-[160px]"
                         placement="bottomRight"
                       >
-                        <NcButton class="nc-expand-form-more-actions !w-7 !h-7 !bg-transparent" size="xsmall" type="text">
+                        <NcButton
+                          class="nc-expand-form-more-actions !hover:bg-gray-200 !w-7 !h-7 !bg-transparent"
+                          size="xsmall"
+                          type="text"
+                        >
                           <GeneralIcon class="text-md" icon="threeDotVertical" />
                         </NcButton>
                         <template #overlay>
@@ -281,13 +335,24 @@ const createdBy = (
                             <NcMenuItem
                               v-e="['c:comment-expand:comment:edit']"
                               class="text-gray-700"
-                              @click="editComments(comment)"
+                              @click="editComment(comment)"
                             >
                               <div class="flex gap-2 items-center">
                                 <component :is="iconMap.rename" class="cursor-pointer" />
                                 {{ $t('general.edit') }}
                               </div>
                             </NcMenuItem>
+                            <NcMenuItem
+                              v-e="['c:comment-expand:comment:copy']"
+                              class="text-gray-700"
+                              @click="copyComment(comment)"
+                            >
+                              <div class="flex gap-2 items-center">
+                                <component :is="iconMap.copy" class="cursor-pointer" />
+                                {{ $t('general.copy') }} URL
+                              </div>
+                            </NcMenuItem>
+                            <NcDivider />
                             <NcMenuItem
                               v-e="['c:row-expand:comment:delete']"
                               class="!text-red-500 !hover:bg-red-50"
@@ -301,11 +366,10 @@ const createdBy = (
                           </NcMenu>
                         </template>
                       </NcDropdown>
-
                       <div v-if="appInfo.ee">
                         <NcTooltip v-if="!comment.resolved_by">
                           <NcButton
-                            class="!w-7 !h-7 !bg-transparent opacity-0 group-hover:opacity-100"
+                            class="!w-7 !h-7 !bg-transparent !hover:bg-gray-200 !hidden !group-hover:block"
                             size="xsmall"
                             type="text"
                             @click="resolveComment(comment.id!)"
@@ -318,42 +382,47 @@ const createdBy = (
 
                         <NcTooltip v-else>
                           <template #title>{{ `Resolved by ${comment.resolved_display_name}` }}</template>
-                          <div class="flex text-[#17803D] font-semibold items-center">
-                            <NcButton class="!h-7 !bg-transparent" size="xsmall" type="text" @click="resolveComment(comment.id)">
-                              <div class="flex items-center gap-2 !text-[#17803D]">
-                                <span> Resolved </span>
-                                <component :is="iconMap.checkCircle" />
-                              </div>
-                            </NcButton>
-                          </div>
+                          <NcButton
+                            class="!h-7 !w-7 !bg-transparent !hover:bg-gray-200 text-semibold"
+                            size="xsmall"
+                            type="text"
+                            @click="resolveComment(comment.id)"
+                          >
+                            <GeneralIcon class="text-md rounded-full bg-[#17803D] text-white" icon="checkFill" />
+                          </NcButton>
                         </NcTooltip>
                       </div>
                     </div>
                   </div>
-                  <div class="flex-1 flex flex-col gap-1 mt-1 max-w-[calc(100%)]">
+                  <div
+                    :class="{
+                      'mt-3': comment.id === editCommentValue?.id,
+                    }"
+                    class="flex-1 flex flex-col gap-1 max-w-[calc(100%)]"
+                  >
                     <SmartsheetExpandedFormRichComment
-                      v-if="comment.id === editComment?.id"
+                      v-if="comment.id === editCommentValue?.id"
                       ref="editRef"
                       v-model:value="value"
                       autofocus
                       :hide-options="false"
-                      class="expanded-form-comment-edit-input expanded-form-comment-input !pt-2 !pb-0.5 !pl-2 !m-0 w-full !border-1 !border-gray-200 !rounded-lg !bg-white !text-gray-800 !text-small !leading-18px !max-h-[694px]"
+                      class="expanded-form-comment-edit-input expanded-form-comment-input !py-2 !px-2 !m-0 w-full !border-1 !border-gray-200 !rounded-lg !bg-white !text-gray-800 !text-small !leading-18px !max-h-[240px]"
                       data-testid="expanded-form-comment-input"
                       sync-value-change
                       @save="onEditComment"
-                      @keydown.stop="onKeyDown"
+                      @keydown.esc="onCancel"
                       @blur="
                         () => {
-                          editComment = undefined
+                          editCommentValue = undefined
                           isEditing = false
                         }
                       "
                       @keydown.enter.exact.prevent="onEditComment"
                     />
 
-                    <div v-else class="text-small pl-9 leading-18px text-gray-800">
+                    <div v-else class="space-y-1 pl-9">
                       <SmartsheetExpandedFormRichComment
-                        :value="comment.comment"
+                        :value="`${comment.comment}  ${editedAt(comment)}`"
                         class="!text-small !leading-18px !text-gray-800 -ml-1"
                         read-only
                         sync-value-change
@@ -363,13 +432,13 @@ const createdBy = (
                 </div>
               </div>
             </div>
-            <div v-if="hasEditPermission" class="bg-gray-50 nc-comment-input !rounded-br-2xl gap-2 flex">
+            <div v-if="hasEditPermission" class="px-3 pb-3 nc-comment-input !rounded-br-2xl gap-2 flex">
               <SmartsheetExpandedFormRichComment
                 ref="commentInputRef"
                 v-model:value="newComment"
                 :hide-options="false"
                 placeholder="Comment..."
-                class="expanded-form-comment-input !m-0 pt-2 w-full !border-t-1 !border-gray-200 !bg-transparent !text-gray-800 !text-small !leading-18px !max-h-[566px]"
+                class="expanded-form-comment-input !py-2 !px-2 border-1 rounded-lg w-full bg-transparent !text-gray-800 !text-small !leading-18px !max-h-[240px]"
                 :autofocus="isExpandedFormCommentMode"
                 data-testid="expanded-form-comment-input"
                 @focus="isExpandedFormCommentMode = false"
@@ -404,8 +473,8 @@ const createdBy = (
             'pb-1': !appInfo.ee,
           }"
         >
-          <div v-if="isExpandedFormLoading || isAuditLoading" class="flex flex-col h-full">
-            <GeneralLoader class="!mt-16" size="xlarge" />
+          <div v-if="isExpandedFormLoading || isAuditLoading" class="flex flex-col items-center justify-center w-full h-full">
+            <GeneralLoader size="xlarge" />
           </div>
 
           <div v-else ref="commentsWrapperEl" class="flex flex-col h-full py-1 nc-scrollbar-thin !overflow-y-auto">
@@ -451,10 +520,8 @@ const createdBy = (
   @apply max-w-1/2;
 }
 
-.nc-comment-input {
-  :deep(.nc-comment-rich-editor) {
-    @apply !ml-1;
-  }
+.scroll-fix {
+  flex: 1 1 auto;
 }
 
 .nc-audit-item {
@@ -487,7 +554,7 @@ const createdBy = (
 :deep(.ant-tabs) {
   @apply !overflow-visible;
   .ant-tabs-nav {
-    @apply px-3;
+    @apply px-3 bg-white;
     .ant-tabs-nav-list {
       @apply w-[99%] mx-auto gap-6;
 
@@ -512,7 +579,11 @@ const createdBy = (
   box-shadow: none;
   &:focus,
   &:focus-within {
-    @apply min-h-16;
+    @apply min-h-16 !bg-white border-brand-500;
+    box-shadow: 0px 0px 0px 2px rgba(51, 102, 255, 0.24);
+  }
+  &:hover:not(:focus) {
+    background-color: #f9f9fa;
   }
   &::placeholder {
     @apply !text-gray-400;
@@ -520,6 +591,6 @@ const createdBy = (
 }
 
 :deep(.expanded-form-comment-edit-input .nc-comment-rich-editor) {
-  @apply !pl-2 bg-white;
+  @apply bg-white;
 }
 </style>

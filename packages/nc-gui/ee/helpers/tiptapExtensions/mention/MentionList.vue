@@ -51,7 +51,7 @@ export default {
 
       if (event.key === 'Enter') {
         event.stopPropagation()
-        this.enterHandler()
+        this.enterHandler(event)
         return true
       }
 
@@ -78,11 +78,11 @@ export default {
       this.selectedIndex = (this.selectedIndex + 1) % this.items.length
     },
 
-    enterHandler() {
-      this.selectItem(this.selectedIndex)
+    enterHandler(e) {
+      this.selectItem(this.selectedIndex, e)
     },
 
-    selectItem(index) {
+    selectItem(index, e) {
       const item = this.items[index]
       if (item) {
         this.command({
@@ -105,7 +105,7 @@ export default {
         :key="index"
         :class="{ 'is-selected': index === selectedIndex }"
         class="py-2 flex hover:bg-gray-100 transition-all cursor-pointer items-center text-gray-800 pl-4"
-        @click="selectItem(index)"
+        @click="selectItem(index, $event)"
       >
         <GeneralUserIcon :email="item.email" :name="item.name" class="w-4 h-4 mr-2" size="medium" />
         <div class="max-w-64 truncate">

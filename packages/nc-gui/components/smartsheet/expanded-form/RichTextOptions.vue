@@ -67,8 +67,22 @@ const onToggleLink = () => {
 }
 
 const newMentionNode = () => {
-  editor.value?.commands.insertContent('@')
-  editor.value?.chain().focus().run()
+  if (!editor.value) return
+
+  const lastCharacter = editor.value.state.doc.textBetween(
+    editor.value.state.selection.$from.pos - 1,
+    editor.value.state.selection.$from.pos,
+  )
+
+  if (lastCharacter === '@') {
+    editor.value
+      .chain()
+      .deleteRange({ from: editor.value.state.selection.$from.pos - 1, to: editor.value.state.selection.$from.pos })
+      .run()
+  } else {
+    editor.value?.commands.insertContent('@')
+    editor.value?.chain().focus().run()
+  }
 }
 </script>
 

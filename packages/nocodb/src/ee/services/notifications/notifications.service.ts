@@ -113,69 +113,77 @@ export class NotificationsService extends NotificationsServiceCE {
 
         if (!mentions || !mentions.length) break;
 
-        const row = await this.datasService.dataRead(req.context, {
-          rowId: rowId,
-          baseName: base.id,
-          tableName: table.id,
-          query: {},
-        });
+        try {
+          const row = await this.datasService.dataRead(req.context, {
+            rowId: rowId,
+            baseName: base.id,
+            tableName: table.id,
+            query: {},
+          });
 
-        const cols = await Column.list(req.context, {
-          fk_model_id: table.id,
-        });
+          const cols = await Column.list(req.context, {
+            fk_model_id: table.id,
+          });
 
-        const pvc = cols.find((c) => c.pv);
+          const pvc = cols.find((c) => c.pv);
 
-        const displayValue = row[pvc?.title ?? ''] ?? '';
+          const displayValue = row[pvc?.title ?? ''] ?? '';
 
-        const baseUsers = await BaseUser.getUsersList(req.context, {
-          base_id: base.id,
-        });
+          const baseUsers = await BaseUser.getUsersList(req.context, {
+            base_id: base.id,
+          });
 
-        const ws = await Workspace.get(base.fk_workspace_id);
+          const ws = await Workspace.get(base.fk_workspace_id);
 
-        for (const mention of mentions) {
-          const mentionedUser = baseUsers.find((b) => b.id === mention);
-          if (!mentionedUser) continue; // Do not send notification if user is not in the base
-          // If user is the same as the one who commented, do not send notification?
-          // if (mentionedUser.id === user.id) continue;
+          for (const mention of mentions) {
+            const mentionedUser = baseUsers.find((b) => b.id === mention);
+            if (!mentionedUser) continue; // Do not send notification if user is not in the base
+            // If user is the same as the one who commented, do not send notification?
+            // if (mentionedUser.id === user.id) continue;
 
-          await this.insertNotification(
-            {
-              fk_user_id: mentionedUser.id,
-              type: 'mention' as any,
-              body: {
-                workspace: {
-                  id: ws.id,
-                  title: ws.title,
-                },
-                base: {
-                  id: base.id,
-                  title: base.title,
-                  type: base.type,
-                },
-                table: {
-                  id: table.id,
-                  title: table.title,
-                },
-                row: {
-                  id: rowId,
-                  value: displayValue,
-                  column: pvc,
-                },
-                comment: {
-                  id: comment.id,
-                  comment: comment.comment,
-                },
-                user: {
-                  id: user.id,
-                  email: user.email,
-                  display_name: user.display_name,
+            await this.insertNotification(
+              {
+                fk_user_id: mentionedUser.id,
+                type: 'mention' as any,
+                body: {
+                  workspace: {
+                    id: ws.id,
+                    title: ws.title,
+                  },
+                  base: {
+                    id: base.id,
+                    title: base.title,
+                    type: base.type,
+                  },
+                  table: {
+                    id: table.id,
+                    title: table.title,
+                  },
+                  row: {
+                    id: rowId,
+                    value: displayValue,
+                    column: pvc,
+                  },
+                  comment: {
+                    id: comment.id,
+                    comment: comment.comment,
+                  },
+                  user: {
+                    id: user.id,
+                    email: user.email,
+                    display_name: user.display_name,
+                  },
                 },
               },
-            },
-            req,
-          );
+              req,
+            );
+          }
+        } catch (e) {
+          this.logger.error({
+            error: e,
+            details: 'Error while sending notifications',
+            comment: comment.id,
+          });
         }
 
         break;

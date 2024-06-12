@@ -21,7 +21,7 @@ export class CommentsService extends CommentsServiceCE {
   ) {
     const comment = await Comment.get(context, param.commentId);
 
-    const res = await Comment.update(context, param.commentId, {
+    const res = await Comment.resolve(context, param.commentId, {
       resolved_by: comment.resolved_by ? null : param.user.id,
       resolved_by_email: comment.resolved_by ? null : param.user.email,
     });

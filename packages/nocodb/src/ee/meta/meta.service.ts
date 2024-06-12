@@ -575,6 +575,7 @@ export class MetaService extends MetaServiceCE {
    * @param data - Data to be updated
    * @param idOrCondition - If string, will update the record with the given id. If object, will update the record with the given condition.
    * @param xcCondition - Additional nested or complex condition to be added to the query.
+   * @param skipUpdatedAt - If true, will not update the updated_at field
    * @param force - If true, will not check if a condition is present in the query builder and will execute the query as is.
    */
   public async metaUpdate(
@@ -584,6 +585,7 @@ export class MetaService extends MetaServiceCE {
     data: any,
     idOrCondition?: string | { [p: string]: any },
     xcCondition?: Condition,
+    skipUpdatedAt = false,
     force = false,
   ): Promise<any> {
     const query = this.knexConnection(target);
@@ -620,7 +622,11 @@ export class MetaService extends MetaServiceCE {
 
     delete data.created_at;
 
-    query.update({ ...data, updated_at: this.now() });
+    if (!skipUpdatedAt) {
+      data.updated_at = this.now();
+    }
+
+    query.update(data);
     if (typeof idOrCondition !== 'object') {
       query.where('id', idOrCondition);
     } else if (idOrCondition) {

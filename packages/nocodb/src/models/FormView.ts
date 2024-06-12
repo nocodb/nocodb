@@ -74,10 +74,13 @@ export default class FormView implements FormViewType {
       }
     }
 
-    const convertedAttachment = await this.convertAttachmentType({
-      banner_image_url: view?.banner_image_url,
-      logo_url: view?.logo_url,
-    });
+    const convertedAttachment = await this.convertAttachmentType(
+      {
+        banner_image_url: view?.banner_image_url,
+        logo_url: view?.logo_url,
+      },
+      ncMeta,
+    );
 
     view.banner_image_url = convertedAttachment.banner_image_url || null;
     view.logo_url = convertedAttachment.logo_url || null;
@@ -221,6 +224,7 @@ export default class FormView implements FormViewType {
 
   protected static async convertAttachmentType(
     formAttachments: Record<string, any>,
+    ncMeta = Noco.ncMeta,
   ) {
     try {
       if (formAttachments) {
@@ -236,9 +240,12 @@ export default class FormView implements FormViewType {
 
           if (formAttachments[key]?.path) {
             promises.push(
-              PresignedUrl.getSignedUrl({
-                path: formAttachments[key].path.replace(/^download\//, ''),
-              }).then((r) => (formAttachments[key].signedPath = r)),
+              PresignedUrl.getSignedUrl(
+                {
+                  path: formAttachments[key].path.replace(/^download\//, ''),
+                },
+                ncMeta,
+              ).then((r) => (formAttachments[key].signedPath = r)),
             );
           } else if (formAttachments[key]?.url) {
             if (formAttachments[key].url.includes('.amazonaws.com/')) {
@@ -246,10 +253,13 @@ export default class FormView implements FormViewType {
                 formAttachments[key].url.split('.amazonaws.com/')[1],
               );
               promises.push(
-                PresignedUrl.getSignedUrl({
-                  path: relativePath,
-                  s3: true,
-                }).then((r) => (formAttachments[key].signedUrl = r)),
+                PresignedUrl.getSignedUrl(
+                  {
+                    path: relativePath,
+                    s3: true,
+                  },
+                  ncMeta,
+                ).then((r) => (formAttachments[key].signedUrl = r)),
               );
             }
           }

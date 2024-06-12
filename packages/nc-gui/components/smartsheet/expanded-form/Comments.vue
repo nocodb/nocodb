@@ -80,7 +80,7 @@ function editComment(comment: CommentType) {
   }
   isEditing.value = true
   nextTick(() => {
-    scrollComments()
+    scrollToComment(comment.id)
     editRef.value?.focus()
   })
 }
@@ -362,7 +362,6 @@ const editedAt = (comment: CommentType) => {
                   <div
                     :class="{
                       'mt-3': comment.id === editCommentValue?.id,
-                      'mt-1': comment.id !== editCommentValue?.id,
                     }"
                     class="flex-1 flex flex-col gap-1 max-w-[calc(100%)]"
                   >

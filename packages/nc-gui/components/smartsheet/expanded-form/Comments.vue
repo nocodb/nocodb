@@ -265,16 +265,16 @@ const getUserRole = (email: string) => {
                         size="medium"
                       />
                       <div class="flex h-[28px] items-center gap-3">
-                        <NcDropdown placement="topLeft" :trigger="['hover']">
+                        <NcDropdown placement="topLeft" :trigger="['hover']" overlay-class-name="!border-0">
                           <span class="text-ellipsis text-gray-800 !text-[13px] max-w-42 overflow-hidden" :style="{}">
                             {{ createdBy(comment) }}
                           </span>
 
                           <template #overlay>
-                            <div class="bg-white rounded-md">
-                              <div class="flex items-center gap-1 py-2 px-4">
+                            <div class="bg-white rounded-lg">
+                              <div class="flex items-center gap-4 py-3 px-2">
                                 <GeneralUserIcon
-                                  class="!w-9 !h-9"
+                                  class="!w-8 !h-8 border-1 border-gray-200 rounded-full"
                                   :name="comment.created_display_name"
                                   :email="comment.created_by_email"
                                 />
@@ -282,12 +282,12 @@ const getUserRole = (email: string) => {
                                   <div class="font-semibold text-gray-800">
                                     {{ createdBy(comment) }}
                                   </div>
-                                  <div class="text-xs text-gray-400">
+                                  <div class="text-xs text-gray-600">
                                     {{ comment.created_by_email }}
                                   </div>
                                 </div>
                               </div>
-                              <div class="px-4 rounded-b-md flex gap-1 bg-gray-100 py-2">
+                              <div class="px-3 rounded-b-lg border-t-1 border-gray-200 flex gap-1 bg-gray-50 py-1.5">
                                 Has <RolesBadge size="sm" :border="false" :role="getUserRole(comment.created_by_email!)" />
                                 role in base
                               </div>

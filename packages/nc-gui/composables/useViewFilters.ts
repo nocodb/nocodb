@@ -9,7 +9,7 @@ import {
 import type { ComputedRef, Ref } from 'vue'
 import type { SelectProps } from 'ant-design-vue'
 import { UITypes, isSystemColumn } from 'nocodb-sdk'
-import {useRolesWrapper} from "~/composables/useRoles";
+
 
 type ColumnFilterType = FilterType & { status?: string; id?: string; children?: ColumnFilterType[]; is_group?: boolean }
 
@@ -42,7 +42,7 @@ export function useViewFilters(
 
   const { $api, $e } = useNuxtApp()
 
-  const { isUIAllowed } = useRolesWrapper()
+  const { isUIAllowed } = useRoles()
 
   const { metas, getMeta } = useMetas()
 

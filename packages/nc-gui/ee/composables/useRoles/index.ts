@@ -25,7 +25,7 @@ const hasPermission = (role: Roles, hasRole: boolean, permission: Permission | s
  * * `allRoles` - all roles a user has (userRoles + baseRoles)
  * * `loadRoles` - a function to load reload user roles for scope
  */
-export const useRoles = createSharedComposable(() => {
+export const useRolesShared = createSharedComposable(() => {
   const { user } = useGlobal()
 
   const { api } = useApi()
@@ -186,7 +186,7 @@ export const useRoles = createSharedComposable(() => {
         console.warn('Source not found', permission, new Error().stack)
         return false
       }
-      
+
       if (source?.meta?.[SourceRestriction.DATA_READONLY] && sourceRestrictions[SourceRestriction.DATA_READONLY][permission]) {
         return false
       }
@@ -201,9 +201,13 @@ export const useRoles = createSharedComposable(() => {
   return { allRoles, orgRoles, workspaceRoles, baseRoles, loadRoles, isUIAllowed }
 })
 
-export const useRolesWrapper = () => {
+/**
+ * Wrap the default shared composable to inject the current source if available
+ * which will be used to determine if a user has permission to perform an action based on the source's restrictions
+ */
+export const useRoles = () => {
   const currentSource = inject(ActiveSourceInj, ref())
-  const useRolesRes = useRoles()
+  const useRolesRes = useRolesShared()
 
   return {
     ...useRolesRes,

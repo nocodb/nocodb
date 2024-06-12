@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { LoadingOutlined } from '@ant-design/icons-vue'
-import {useRolesWrapper} from "~/composables/useRoles";
+
 
 const { openedViewsTab } = storeToRefs(useViewsStore())
 const { onViewsTabChange } = useViewsStore()
@@ -9,7 +9,7 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 const { $e } = useNuxtApp()
 
-const { isUIAllowed } = useRolesWrapper()
+const { isUIAllowed } = useRoles()
 
 const { base } = storeToRefs(useBase())
 const meta = inject(MetaInj, ref())

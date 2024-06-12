@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { ColumnType } from 'nocodb-sdk'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
-import {useRolesWrapper} from "~/composables/useRoles";
+
 
 interface Props {
   value: string | number | boolean
@@ -18,7 +18,7 @@ const emit = defineEmits(['unlink'])
 
 const { relatedTableMeta } = useLTARStoreOrThrow()!
 
-const { isUIAllowed } = useRolesWrapper()
+const { isUIAllowed } = useRoles()
 
 const readOnly = inject(ReadonlyInj, ref(false))
 

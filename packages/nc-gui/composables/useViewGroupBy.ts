@@ -2,7 +2,7 @@ import type { ColumnType, LinkToAnotherRecordType, LookupType, SelectOptionsType
 import { UITypes } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { message } from 'ant-design-vue'
-import {useRolesWrapper} from "~/composables/useRoles";
+
 
 const excludedGroupingUidt = [UITypes.Attachment, UITypes.QrCode, UITypes.Barcode]
 
@@ -49,7 +49,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
 
     const isGroupBy = computed(() => !!groupBy.value.length)
 
-    const { isUIAllowed } = useRolesWrapper()
+    const { isUIAllowed } = useRoles()
 
     const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
 

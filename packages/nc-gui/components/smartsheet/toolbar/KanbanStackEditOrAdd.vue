@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import {useRolesWrapper} from "~/composables/useRoles";
 
-const { isUIAllowed } = useRolesWrapper()
+
+const { isUIAllowed } = useRoles()
 
 const { groupingFieldColumn } = useKanbanViewStoreOrThrow()
 

@@ -1,6 +1,6 @@
 import type { ComputedRef, Ref } from 'vue'
 import type { Api, ColumnType, KanbanType, SelectOptionType, SelectOptionsType, TableType, ViewType } from 'nocodb-sdk'
-import {useRolesWrapper} from "~/composables/useRoles";
+
 
 type GroupingFieldColOptionsType = SelectOptionType & { collapsed: boolean }
 
@@ -28,7 +28,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
     const { sharedView, fetchSharedViewData, fetchSharedViewGroupedData } = useSharedView()
 
-    const { isUIAllowed } = useRolesWrapper()
+    const { isUIAllowed } = useRoles()
 
     const isPublic = ref(shared) || inject(IsPublicInj, ref(false))
 

@@ -1,7 +1,7 @@
 import type { ColumnType, GridColumnReqType, GridColumnType, MapType, TableType, ViewType } from 'nocodb-sdk'
 import { ViewTypes, isHiddenCol, isSystemColumn } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
-import {useRolesWrapper} from "~/composables/useRoles";
+
 
 const [useProvideViewColumns, useViewColumns] = useInjectionState(
   (
@@ -18,7 +18,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
 
     const { $api, $e } = useNuxtApp()
 
-    const { isUIAllowed } = useRolesWrapper()
+    const { isUIAllowed } = useRoles()
 
     const { isSharedBase } = storeToRefs(useBase())
 

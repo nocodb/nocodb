@@ -2,7 +2,7 @@
 import type { VNodeRef } from '@vue/runtime-core'
 import type { KanbanType, ViewType, ViewTypes } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
-import {useRolesWrapper} from "~/composables/useRoles";
+
 
 interface Props {
   view: ViewType
@@ -31,7 +31,7 @@ const vModel = useVModel(props, 'view', emits) as WritableComputedRef<ViewType &
 
 const { $e } = useNuxtApp()
 
-const { isUIAllowed } = useRolesWrapper()
+const { isUIAllowed } = useRoles()
 
 const activeView = inject(ActiveViewInj, ref())
 

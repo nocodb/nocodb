@@ -2,7 +2,7 @@
 import { ViewTypes } from 'nocodb-sdk'
 import { isString } from '@vue/shared'
 import tinycolor from 'tinycolor2'
-import {useRolesWrapper} from "~/composables/useRoles";
+
 
 const { t } = useI18n()
 
@@ -14,7 +14,7 @@ const { $e } = useNuxtApp()
 
 const { dashboardUrl } = useDashboard()
 
-const { isUIAllowed } = useRolesWrapper()
+const { isUIAllowed } = useRoles()
 
 const { isSharedBase } = storeToRefs(useBase())
 

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import {useRolesWrapper} from "~/composables/useRoles";
+
 
 const column = inject(ColumnInj)!
 
@@ -25,7 +25,7 @@ const isOpen = ref(false)
 
 const hideBackBtn = ref(false)
 
-const { isUIAllowed } = useRolesWrapper()
+const { isUIAllowed } = useRoles()
 
 const { state, isNew, removeLTARRef } = useSmartsheetRowStoreOrThrow()
 

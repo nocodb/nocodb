@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import {useRolesWrapper} from "~/composables/useRoles";
+
 
 const workspaceStore = useWorkspace()
 const baseStore = useBase()
 
-const { isUIAllowed } = useRolesWrapper()
+const { isUIAllowed } = useRoles()
 
 const { appInfo } = useGlobal()
 

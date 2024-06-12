@@ -133,6 +133,7 @@ import NcSlash from '~icons/nc-icons/slash'
 import NcNotification from '~icons/nc-icons/bell'
 import NcCheckCircle from '~icons/nc-icons/check-circle'
 import NcCheckFill from '~icons/nc-icons/checkFill'
+import NcExternalLink from '~icons/nc-icons/external-link'
 
 // import NcProjectGray from '~icons/nc-icons/project-gray'
 import NcPhoneCall from '~icons/nc-icons/phone-call'
@@ -401,6 +402,7 @@ export const iconMap = {
   calendar: Calendar,
   checkCircle: NcCheckCircle,
   checkFill: NcCheckFill,
+  externalLink: NcExternalLink,
   error: h('span', { class: 'material-symbols' }, 'error'),
   info: h(MsInfo, {}, () => 'info'),
   inbox: h('span', { class: 'material-symbols' }, 'inbox'),

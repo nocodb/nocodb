@@ -193,7 +193,7 @@ watch(commentsWrapperEl, () => {
 })
 
 const timesAgo = (comment: CommentType) => {
-  return comment.created_at !== comment.updated_at ? `Edited ${timeAgo(comment.updated_at!)}` : timeAgo(comment.created_at!)
+  return comment.created_at !== comment.updated_at ? `edited ${timeAgo(comment.updated_at!)}` : timeAgo(comment.created_at!)
 }
 
 const createdBy = (

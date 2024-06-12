@@ -587,6 +587,7 @@ export class MetaService {
    * @param data - Data to be updated
    * @param idOrCondition - If string, will update the record with the given id. If object, will update the record with the given condition.
    * @param xcCondition - Additional nested or complex condition to be added to the query.
+   * @param skipUpdatedAt - If true, will not update the updated_at field
    * @param force - If true, will not check if a condition is present in the query builder and will execute the query as is.
    */
   public async metaUpdate(

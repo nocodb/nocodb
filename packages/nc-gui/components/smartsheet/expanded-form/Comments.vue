@@ -230,7 +230,7 @@ const editedAt = (comment: CommentType) => {
               </div>
               <div class="font-medium text-center my-6 text-gray-500">{{ $t('activity.startCommenting') }}</div>
             </div>
-            <div v-else ref="commentsWrapperEl" class="flex flex-col h-full py-1 nc-scrollbar-thin">
+            <div v-else ref="commentsWrapperEl" class="flex flex-col justify-end h-full py-1 nc-scrollbar-thin">
               <div v-for="comment of comments" :key="comment.id" :class="`${comment.id}`" class="nc-comment-item">
                 <div
                   :class="{
@@ -283,7 +283,7 @@ const editedAt = (comment: CommentType) => {
                         </div>
                       </div>
                     </div>
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center">
                       <div v-if="appInfo.ee">
                         <NcTooltip v-if="!comment.resolved_by">
                           <NcButton
@@ -399,7 +399,7 @@ const editedAt = (comment: CommentType) => {
                 v-model:value="newComment"
                 :hide-options="false"
                 placeholder="Comment..."
-                class="expanded-form-comment-input !hover:bg-gray-50 border-gray-200 border-1 rounded-lg w-full !bg-transparent !text-gray-800 !text-small !leading-18px !max-h-[240px]"
+                class="expanded-form-comment-input !focus:bg-white hover:bg-gray-50 focus:border-gray-200 border-1 rounded-lg w-full bg-transparent !text-gray-800 !text-small !leading-18px !max-h-[240px]"
                 :autofocus="isExpandedFormCommentMode"
                 data-testid="expanded-form-comment-input"
                 @focus="isExpandedFormCommentMode = false"

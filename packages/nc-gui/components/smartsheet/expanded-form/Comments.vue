@@ -45,73 +45,49 @@ const router = useRouter()
 
 const hasEditPermission = computed(() => isUIAllowed('commentEdit'))
 
-const editComment = ref<CommentType>()
+const editCommentValue = ref<CommentType>()
 
 const isEditing = ref<boolean>(false)
 
 const isCommentMode = ref(false)
 
-function onKeyDown(event: KeyboardEvent) {
-  if (event.key === 'Escape') {
-    onKeyEsc(event)
-  } else if (event.key === 'Enter' && !event.shiftKey) {
-    onKeyEnter(event)
-  }
-}
-
-function onKeyEnter(event: KeyboardEvent) {
-  event.stopImmediatePropagation()
-  event.preventDefault()
-  onEditComment()
-}
-
-function onKeyEsc(event: KeyboardEvent) {
-  event.stopImmediatePropagation()
-  event.preventDefault()
-  onCancel()
-}
-
 async function onEditComment() {
-  if (!isEditing.value || !editComment.value) return
+  if (!isEditing.value || !editCommentValue.value) return
 
   isCommentMode.value = true
 
-  await updateComment(editComment.value.id!, {
-    comment: editComment.value?.comment,
+  await updateComment(editCommentValue.value.id!, {
+    comment: editCommentValue.value?.comment,
   })
-  onStopEdit()
-}
-
-function onCancel() {
-  if (!isEditing.value) return
-  editComment.value = undefined
-  onStopEdit()
-}
-
-function onStopEdit() {
   loadComments()
   isEditing.value = false
-  editComment.value = undefined
+  editCommentValue.value = undefined
 }
 
-onKeyStroke('Enter', (event) => {
-  if (isEditing.value) {
-    onKeyEnter(event)
-  }
-})
+function onCancel(e: KeyboardEvent) {
+  if (!isEditing.value) return
+  e.preventDefault()
+  e.stopPropagation()
+  editCommentValue.value = undefined
+  loadComments()
+  isEditing.value = false
+  editCommentValue.value = undefined
+}
 
-function editComments(comment: CommentType) {
-  editComment.value = comment
+function editComment(comment: CommentType) {
+  editCommentValue.value = {
+    ...comment,
+  }
   isEditing.value = true
 }
 
 const value = computed({
   get() {
-    return editComment.value?.comment || ''
+    return editCommentValue.value?.comment || ''
   },
   set(val) {
-    if (!editComment.value) return
-    editComment.value.comment = val
+    if (!editCommentValue.value) return
+    editCommentValue.value.comment = val
   },
 })
 
@@ -124,8 +100,6 @@ function scrollComments() {
   }
 }
 
-const isSaving = ref(false)
-
 const saveComment = async () => {
   if (!newComment.value.trim()) return
 
@@ -134,12 +108,9 @@ const saveComment = async () => {
     return
   }
 
-  if (isSaving.value) return
-
   isCommentMode.value = true
-  isSaving.value = true
-  // Optimistic Insert
 
+  // Optimistic Insert
   comments.value = [
     ...comments.value,
     {
@@ -165,8 +136,6 @@ const saveComment = async () => {
     scrollComments()
   } catch (e) {
     console.error(e)
-  } finally {
-    isSaving.value = false
   }
 }
 
@@ -331,9 +300,9 @@ const editedAt = (comment: CommentType) => {
                         </NcTooltip>
                       </div>
                       <NcDropdown
-                        v-if="(comment.created_by_email === user!.email && !editComment )"
+                        v-if="(comment.created_by_email === user!.email && !editCommentValue )"
                         :class="{
-                        '!hidden !group-hover:block': comment.created_by_email === user!.email && !editComment,
+                        '!hidden !group-hover:block': comment.created_by_email === user!.email && !editCommentValue,
                         }"
                         overlay-class-name="!min-w-[160px]"
                         placement="bottomRight"
@@ -350,7 +319,7 @@ const editedAt = (comment: CommentType) => {
                             <NcMenuItem
                               v-e="['c:comment-expand:comment:edit']"
                               class="text-gray-700"
-                              @click="editComments(comment)"
+                              @click="editComment(comment)"
                             >
                               <div class="flex gap-2 items-center">
                                 <component :is="iconMap.rename" class="cursor-pointer" />
@@ -376,7 +345,7 @@ const editedAt = (comment: CommentType) => {
                   </div>
                   <div class="flex-1 flex flex-col gap-1 mt-1 max-w-[calc(100%)]">
                     <SmartsheetExpandedFormRichComment
-                      v-if="comment.id === editComment?.id"
+                      v-if="comment.id === editCommentValue?.id"
                       ref="editRef"
                       v-model:value="value"
                       autofocus
@@ -385,10 +354,10 @@ const editedAt = (comment: CommentType) => {
                       data-testid="expanded-form-comment-input"
                       sync-value-change
                       @save="onEditComment"
-                      @keydown.stop="onKeyDown"
+                      @keydown.esc="onCancel"
                       @blur="
                         () => {
-                          editComment = undefined
+                          editCommentValue = undefined
                           isEditing = false
                         }
                       "

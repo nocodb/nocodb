@@ -210,7 +210,7 @@ const editedAt = (comment: CommentType) => {
 </script>
 
 <template>
-  <div class="flex flex-col bg-white !h-full w-full">
+  <div class="flex flex-col bg-white !h-full w-full rounded-br-2xl">
     <NcTabs v-model:activeKey="tab" class="h-full">
       <a-tab-pane key="comments" class="w-full h-full">
         <template #tab>
@@ -402,7 +402,7 @@ const editedAt = (comment: CommentType) => {
                 </div>
               </div>
             </div>
-            <div v-if="hasEditPermission" class="bg-white p-3 nc-comment-input !rounded-br-2xl gap-2 flex">
+            <div v-if="hasEditPermission" class="p-3 nc-comment-input !rounded-br-2xl gap-2 flex">
               <SmartsheetExpandedFormRichComment
                 ref="commentInputRef"
                 v-model:value="newComment"

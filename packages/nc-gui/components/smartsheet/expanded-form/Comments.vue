@@ -289,32 +289,6 @@ const editedAt = (comment: CommentType) => {
                       </div>
                     </div>
                     <div class="flex items-center">
-                      <div v-if="appInfo.ee">
-                        <NcTooltip v-if="!comment.resolved_by">
-                          <NcButton
-                            class="!w-7 !h-7 !bg-transparent !hover:bg-gray-200 !hidden !group-hover:block"
-                            size="xsmall"
-                            type="text"
-                            @click="resolveComment(comment.id!)"
-                          >
-                            <GeneralIcon class="text-md" icon="checkCircle" />
-                          </NcButton>
-
-                          <template #title>Click to resolve </template>
-                        </NcTooltip>
-
-                        <NcTooltip v-else>
-                          <template #title>{{ `Resolved by ${comment.resolved_display_name}` }}</template>
-                          <NcButton
-                            class="!h-7 !w-7 !bg-transparent !hover:bg-gray-200 text-semibold"
-                            size="xsmall"
-                            type="text"
-                            @click="resolveComment(comment.id)"
-                          >
-                            <GeneralIcon class="text-md rounded-full bg-[#17803D] text-white" icon="checkFill" />
-                          </NcButton>
-                        </NcTooltip>
-                      </div>
                       <NcDropdown
                         v-if="(comment.created_by_email === user!.email && !editCommentValue )"
                         :class="{
@@ -357,6 +331,32 @@ const editedAt = (comment: CommentType) => {
                           </NcMenu>
                         </template>
                       </NcDropdown>
+                      <div v-if="appInfo.ee">
+                        <NcTooltip v-if="!comment.resolved_by">
+                          <NcButton
+                            class="!w-7 !h-7 !bg-transparent !hover:bg-gray-200 !hidden !group-hover:block"
+                            size="xsmall"
+                            type="text"
+                            @click="resolveComment(comment.id!)"
+                          >
+                            <GeneralIcon class="text-md" icon="checkCircle" />
+                          </NcButton>
+
+                          <template #title>Click to resolve </template>
+                        </NcTooltip>
+
+                        <NcTooltip v-else>
+                          <template #title>{{ `Resolved by ${comment.resolved_display_name}` }}</template>
+                          <NcButton
+                            class="!h-7 !w-7 !bg-transparent !hover:bg-gray-200 text-semibold"
+                            size="xsmall"
+                            type="text"
+                            @click="resolveComment(comment.id)"
+                          >
+                            <GeneralIcon class="text-md rounded-full bg-[#17803D] text-white" icon="checkFill" />
+                          </NcButton>
+                        </NcTooltip>
+                      </div>
                     </div>
                   </div>
                   <div

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { CommentType } from 'nocodb-sdk'
+import { type CommentType, ProjectRoles } from 'nocodb-sdk'
 
 const props = defineProps<{
   loading: boolean
@@ -26,6 +26,14 @@ const commentInputRef = ref<any>()
 const editRef = ref<any>()
 
 const { user, appInfo } = useGlobal()
+
+const basesStore = useBases()
+
+const { basesUser } = storeToRefs(basesStore)
+
+const meta = inject(MetaInj, ref())
+
+const baseUsers = computed(() => (meta.value?.base_id ? basesUser.value.get(meta.value?.base_id) || [] : []))
 
 const isExpandedFormLoading = computed(() => props.loading)
 
@@ -196,12 +204,19 @@ const createdBy = (
   if (comment.created_by === user.value?.id) {
     return 'You'
   } else if (comment.created_display_name?.trim()) {
-    return comment.created_by_email || 'Shared source'
+    return comment.created_display_name || 'Shared source'
   } else if (comment.created_by_email) {
     return comment.created_by_email
   } else {
     return 'Shared source'
   }
+}
+
+const getUserRole = (email: string) => {
+  const user = baseUsers.value.find((user) => user.email === email)
+  if (!user) return ProjectRoles.NO_ACCESS
+
+  return user.roles
 }
 </script>
 
@@ -235,9 +250,9 @@ const createdBy = (
               <div v-for="comment of comments" :key="comment.id" :class="`${comment.id}`" class="nc-comment-item">
                 <div
                   :class="{
-                    'hover:bg-gray-200 bg-[#F9F9FA]': comment.id !== editComment?.id,
+                    'hover:bg-gray-200': comment.id !== editComment?.id,
                     'bg-gray-200': comment.id === editComment?.id,
-                    '!bg-[#E7E7E9]': comment.resolved_by,
+                    '!bg-gray-100': comment.resolved_by,
                   }"
                   class="group gap-3 overflow-hidden px-3 py-2"
                 >
@@ -250,25 +265,68 @@ const createdBy = (
                         size="medium"
                       />
                       <div class="flex h-[28px] items-center gap-3">
-                        <NcTooltip class="truncate capitalize text-gray-800 font-weight-700 !text-[13px] max-w-42">
-                          <template #title>
-                            {{ comment.created_display_name?.trim() || comment.created_by_email || 'Shared source' }}
-                          </template>
-                          <span class="text-ellipsis capitalize overflow-hidden" :style="{}">
+                        <NcDropdown placement="topLeft" :trigger="['hover']">
+                          <span class="text-ellipsis text-gray-800 !text-[13px] max-w-42 overflow-hidden" :style="{}">
                             {{ createdBy(comment) }}
                           </span>
-                        </NcTooltip>
 
-                        <div class="text-xs text-gray-500">
-                          {{ timesAgo(comment) }}
-                        </div>
+                          <template #overlay>
+                            <div class="bg-white rounded-md">
+                              <div class="flex items-center gap-1 py-2 px-4">
+                                <GeneralUserIcon
+                                  class="!w-9 !h-9"
+                                  :name="comment.created_display_name"
+                                  :email="comment.created_by_email"
+                                />
+                                <div class="flex flex-col">
+                                  <div class="font-semibold text-gray-800">
+                                    {{ createdBy(comment) }}
+                                  </div>
+                                  <div class="text-xs text-gray-400">
+                                    {{ comment.created_by_email }}
+                                  </div>
+                                </div>
+                              </div>
+                              <div class="px-4 rounded-b-md flex gap-1 bg-gray-100 py-2">
+                                Has <RolesBadge size="sm" :border="false" :role="getUserRole(comment.created_by_email!)" />
+                                role in base
+                              </div>
+                            </div>
+                          </template>
+                        </NcDropdown>
                       </div>
                     </div>
                     <div class="flex items-center gap-2">
+                      <div v-if="appInfo.ee">
+                        <NcTooltip v-if="!comment.resolved_by">
+                          <NcButton
+                            class="!w-7 !h-7 !bg-transparent !hidden !group-hover:block"
+                            size="xsmall"
+                            type="text"
+                            @click="resolveComment(comment.id!)"
+                          >
+                            <GeneralIcon class="text-md" icon="checkCircle" />
+                          </NcButton>
+
+                          <template #title>Click to resolve </template>
+                        </NcTooltip>
+
+                        <NcTooltip v-else>
+                          <template #title>{{ `Resolved by ${comment.resolved_display_name}` }}</template>
+                          <NcButton
+                            class="!h-7 !w-7 !bg-transparent text-semibold !text-[#17803D]"
+                            size="xsmall"
+                            type="text"
+                            @click="resolveComment(comment.id)"
+                          >
+                            <GeneralIcon class="text-md" icon="checkCircle" />
+                          </NcButton>
+                        </NcTooltip>
+                      </div>
                       <NcDropdown
                         v-if="(comment.created_by_email === user!.email && !editComment )"
                         :class="{
-                        'opacity-0 group-hover:opacity-100': comment.created_by_email === user!.email && !editComment,
+                        '!hidden !group-hover:block': comment.created_by_email === user!.email && !editComment,
                         }"
                         overlay-class-name="!min-w-[160px]"
                         placement="bottomRight"
@@ -301,33 +359,6 @@ const createdBy = (
                           </NcMenu>
                         </template>
                       </NcDropdown>
-
-                      <div v-if="appInfo.ee">
-                        <NcTooltip v-if="!comment.resolved_by">
-                          <NcButton
-                            class="!w-7 !h-7 !bg-transparent opacity-0 group-hover:opacity-100"
-                            size="xsmall"
-                            type="text"
-                            @click="resolveComment(comment.id!)"
-                          >
-                            <GeneralIcon class="text-md" icon="checkCircle" />
-                          </NcButton>
-
-                          <template #title>Click to resolve </template>
-                        </NcTooltip>
-
-                        <NcTooltip v-else>
-                          <template #title>{{ `Resolved by ${comment.resolved_display_name}` }}</template>
-                          <div class="flex text-[#17803D] font-semibold items-center">
-                            <NcButton class="!h-7 !bg-transparent" size="xsmall" type="text" @click="resolveComment(comment.id)">
-                              <div class="flex items-center gap-2 !text-[#17803D]">
-                                <span> Resolved </span>
-                                <component :is="iconMap.checkCircle" />
-                              </div>
-                            </NcButton>
-                          </div>
-                        </NcTooltip>
-                      </div>
                     </div>
                   </div>
                   <div class="flex-1 flex flex-col gap-1 mt-1 max-w-[calc(100%)]">
@@ -351,19 +382,22 @@ const createdBy = (
                       @keydown.enter.exact.prevent="onEditComment"
                     />
 
-                    <div v-else class="text-small pl-9 leading-18px text-gray-800">
+                    <div v-else class="text-small space-y-1 pl-9 leading-18px text-gray-800">
                       <SmartsheetExpandedFormRichComment
                         :value="comment.comment"
                         class="!text-small !leading-18px !text-gray-800 -ml-1"
                         read-only
                         sync-value-change
                       />
+                      <div class="text-xs text-gray-500">
+                        {{ timesAgo(comment) }}
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-            <div v-if="hasEditPermission" class="bg-gray-50 nc-comment-input !rounded-br-2xl gap-2 flex">
+            <div v-if="hasEditPermission" class="bg-white nc-comment-input !rounded-br-2xl gap-2 flex">
               <SmartsheetExpandedFormRichComment
                 ref="commentInputRef"
                 v-model:value="newComment"

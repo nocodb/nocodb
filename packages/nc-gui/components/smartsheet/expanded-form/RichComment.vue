@@ -85,7 +85,9 @@ const editor = useEditor({
   },
   onBlur: (e) => {
     if (
-      !(e?.event?.relatedTarget as HTMLElement)?.closest('.comment-bubble-menu, .nc-comment-rich-editor, .nc-rich-text-comment')
+      !(e?.event?.relatedTarget as HTMLElement)?.closest(
+        '.comment-bubble-menu, .nc-comment-save-btn, .nc-comment-rich-editor, .nc-rich-text-comment',
+      )
     ) {
       isFocused.value = false
       emits('blur')
@@ -138,7 +140,9 @@ useEventListener(
     const targetEl = e?.relatedTarget as HTMLElement
     if (
       targetEl?.classList?.contains('tiptap') ||
-      !targetEl?.closest('.comment-bubble-menu, .tippy-content, .nc-comment-rich-editor')
+      !targetEl?.closest(
+        '.comment-bubble-menu, .nc-comment-save-btn, .tippy-content, .nc-comment-save-btn, .nc-comment-rich-editor',
+      )
     ) {
       isFocused.value = false
       emits('blur')
@@ -151,9 +155,13 @@ useEventListener(
   'focusout',
   (e: FocusEvent) => {
     const targetEl = e?.relatedTarget as HTMLElement
-    if (!targetEl && (e.target as HTMLElement)?.closest('.comment-bubble-menu, .tippy-content, .nc-comment-rich-editor')) return
+    if (
+      !targetEl &&
+      (e.target as HTMLElement)?.closest('.comment-bubble-menu, .nc-comment-save-btn, .tippy-content, .nc-comment-rich-editor')
+    )
+      return
 
-    if (!targetEl?.closest('.comment-bubble-menu, .tippy-content, .nc-comment-rich-editor')) {
+    if (!targetEl?.closest('.comment-bubble-menu, .nc-comment-save-btn, .tippy-content, .nc-comment-rich-editor')) {
       isFocused.value = false
       emits('blur')
     }
@@ -165,7 +173,7 @@ onClickOutside(editorDom, (e) => {
 
   const targetEl = e?.target as HTMLElement
 
-  if (!targetEl?.closest('.tippy-content, .comment-bubble-menu, .nc-comment-rich-editor')) {
+  if (!targetEl?.closest('.tippy-content, .nc-comment-save-btn, .comment-bubble-menu, .nc-comment-rich-editor')) {
     isFocused.value = false
     emits('blur')
   }
@@ -256,7 +264,7 @@ defineExpose({
         <NcButton
           v-e="['a:row-expand:comment:save']"
           :disabled="!vModel?.length"
-          class="!disabled:bg-gray-100 !h-7 !w-7 !shadow-none"
+          class="!disabled:bg-gray-100 nc-comment-save-btn !h-7 !w-7 !shadow-none"
           size="xsmall"
           @click="emits('save')"
         >

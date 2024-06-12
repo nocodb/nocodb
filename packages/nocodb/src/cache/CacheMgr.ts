@@ -1,5 +1,6 @@
 import debug from 'debug';
 import { Logger } from '@nestjs/common';
+import type { ChainableCommander } from 'ioredis';
 import type IORedis from 'ioredis';
 import { CacheDelDirection, CacheGetType } from '~/utils/globals';
 
@@ -77,7 +78,7 @@ export default abstract class CacheMgr {
             if (!skipTTL && o.timestamp) {
               const diff = Date.now() - o.timestamp;
               if (diff > NC_REDIS_GRACE_TTL * 1000) {
-                await this.refreshTTL(key);
+                await this.execRefreshTTL(key);
               }
             }
 
@@ -166,7 +167,7 @@ export default abstract class CacheMgr {
           NC_REDIS_TTL,
         )
         .then(async () => {
-          await this.refreshTTL(key, timestamp);
+          await this.execRefreshTTL(key, timestamp);
           return true;
         });
     } else {
@@ -317,7 +318,7 @@ export default abstract class CacheMgr {
         if (typeof o === 'object') {
           const diff = Date.now() - o.timestamp;
           if (diff > NC_REDIS_GRACE_TTL * 1000) {
-            await this.refreshTTL(key);
+            await this.execRefreshTTL(key);
           }
         }
       } catch (e) {
@@ -510,10 +511,7 @@ export default abstract class CacheMgr {
     });
 
     list.push(key);
-    return this.set(listKey, list).then(async (res) => {
-      await this.refreshTTL(listKey);
-      return res;
-    });
+    return this.set(listKey, list);
   }
 
   async update(key: string, value: any): Promise<boolean> {
@@ -564,7 +562,16 @@ export default abstract class CacheMgr {
     }
   }
 
-  async refreshTTL(key: string, timestamp?: number): Promise<void> {
+  async execRefreshTTL(keys: string, timestamp?: number): Promise<void> {
+    const p = await this.refreshTTL(this.client.pipeline(), keys, timestamp);
+    await p.exec();
+  }
+
+  async refreshTTL(
+    pipeline: ChainableCommander,
+    key: string,
+    timestamp?: number,
+  ): Promise<ChainableCommander> {
     log(`${this.context}::refreshTTL: refreshing TTL for ${key}`);
     const isParent = /:list$/.test(key);
     timestamp = timestamp || Date.now();
@@ -573,7 +580,6 @@ export default abstract class CacheMgr {
         (await this.getRaw(key, CacheGetType.TYPE_ARRAY, true)) || [];
       if (list && list.length) {
         const listValues = await this.client.mget(list);
-        const pipeline = this.client.pipeline();
         for (const [i, v] of listValues.entries()) {
           const key = list[i];
           if (v) {
@@ -602,19 +608,18 @@ export default abstract class CacheMgr {
           }
         }
         pipeline.expire(key, NC_REDIS_TTL - 60);
-        await pipeline.exec();
       }
     } else {
       const rawValue = await this.getRaw(key, null, true);
       if (rawValue) {
         if (rawValue.parentKeys && rawValue.parentKeys.length) {
           for (const parent of rawValue.parentKeys) {
-            await this.refreshTTL(parent, timestamp);
+            pipeline = await this.refreshTTL(pipeline, parent, timestamp);
           }
         } else {
           if (rawValue.timestamp !== timestamp) {
             rawValue.timestamp = timestamp;
-            await this.client.set(
+            pipeline.set(
               key,
               JSON.stringify(rawValue, this.getCircularReplacer()),
               'EX',
@@ -624,6 +629,8 @@ export default abstract class CacheMgr {
         }
       }
     }
+
+    return pipeline;
   }
 
   async destroy(): Promise<boolean> {

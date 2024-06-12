@@ -45,7 +45,7 @@ export class BasesService {
     },
   ) {
     const bases = extractRolesObj(param.user?.roles)[OrgUserRoles.SUPER_ADMIN]
-      ? await Base.list(param.query)
+      ? await Base.list()
       : await BaseUser.getProjectsList(param.user.id, param.query);
 
     return bases;

@@ -105,8 +105,7 @@ export default class Base implements BaseType {
   }
 
   static async list(
-    // @ts-ignore
-    param,
+    workspaceId?: string,
     ncMeta = Noco.ncMeta,
   ): Promise<Base[]> {
     // todo: pagination

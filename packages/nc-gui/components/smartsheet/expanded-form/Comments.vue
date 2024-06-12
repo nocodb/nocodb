@@ -127,6 +127,13 @@ function scrollComments() {
 const isSaving = ref(false)
 
 const saveComment = async () => {
+  if (!newComment.value.trim()) return
+
+  if (newComment.value === '<br /><br />' || newComment.value === '<br /><br /><br />') {
+    newComment.value = ''
+    return
+  }
+
   if (isSaving.value) return
 
   isCommentMode.value = true
@@ -216,7 +223,7 @@ const getUserRole = (email: string) => {
 }
 
 const editedAt = (comment: CommentType) => {
-  if (comment.updated_at !== comment.created_at) {
+  if (comment.updated_at !== comment.created_at && comment.updated_at) {
     const str = timeAgo(comment.updated_at).replace(' ', '_')
     return `[(edited)](a~~~###~~~Edited_${str}) `
   }
@@ -240,8 +247,8 @@ const editedAt = (comment: CommentType) => {
             'pb-1': tab !== 'comments' && !appInfo.ee,
           }"
         >
-          <div v-if="isExpandedFormLoading" class="flex flex-col h-full">
-            <GeneralLoader class="!mt-16" size="xlarge" />
+          <div v-if="isExpandedFormLoading" class="flex flex-col items-center justify-center w-full h-full">
+            <GeneralLoader size="xlarge" />
           </div>
           <div v-else class="flex flex-col h-full">
             <div v-if="comments.length === 0" class="flex flex-col my-1 text-center justify-center h-full nc-scrollbar-thin">
@@ -388,7 +395,7 @@ const editedAt = (comment: CommentType) => {
                       @keydown.enter.exact.prevent="onEditComment"
                     />
 
-                    <div v-else class="text-small space-y-1 pl-9 leading-18px text-gray-800">
+                    <div v-else class="space-y-1 pl-9">
                       <SmartsheetExpandedFormRichComment
                         :value="`${comment.comment}  ${editedAt(comment)}`"
                         class="!text-small !leading-18px !text-gray-800 -ml-1"
@@ -441,8 +448,8 @@ const editedAt = (comment: CommentType) => {
             'pb-1': !appInfo.ee,
           }"
         >
-          <div v-if="isExpandedFormLoading || isAuditLoading" class="flex flex-col h-full">
-            <GeneralLoader class="!mt-16" size="xlarge" />
+          <div v-if="isExpandedFormLoading || isAuditLoading" class="flex flex-col items-center justify-center w-full h-full">
+            <GeneralLoader size="xlarge" />
           </div>
 
           <div v-else ref="commentsWrapperEl" class="flex flex-col h-full py-1 nc-scrollbar-thin !overflow-y-auto">

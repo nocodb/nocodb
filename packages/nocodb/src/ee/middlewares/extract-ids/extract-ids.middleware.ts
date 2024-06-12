@@ -36,12 +36,16 @@ import {
   // Layout,
   Model,
   Sort,
+  Source,
   SyncSource,
   View,
   // Widget,
   Workspace,
 } from '~/models';
-import rolePermissions from '~/utils/acl';
+import rolePermissions, {
+  SourceRestriction,
+  sourceRestrictions,
+} from '~/utils/acl';
 import { NcError } from '~/helpers/catchError';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { JwtStrategy } from '~/strategies/jwt.strategy';
@@ -370,6 +374,15 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       if (base) {
         req.ncBaseId = base.id;
         req.ncWorkspaceId = (base as Base).fk_workspace_id;
+
+        if (req.params.tableName) {
+          // extract model and then source id from model
+          const model = await Model.getByAliasOrId(context, {
+            base_id: base.id,
+            aliasOrId: req.params.tableName,
+          });
+          req.ncSourceId = model.source_id;
+        }
       } else {
         NcError.baseNotFound(params.baseName);
       }
@@ -591,6 +604,35 @@ export class AclMiddleware implements NestInterceptor {
           Object.keys(roles).filter((k) => roles[k]),
         )} : Not allowed`,
       );
+    }
+
+    // check if permission have source level permission restriction
+    // 1. Check if it's present in the source restriction list
+    // 2. If present, check if write permission is allowed
+    if (
+      sourceRestrictions[SourceRestriction.META_READONLY][permissionName] ||
+      sourceRestrictions[SourceRestriction.DATA_READONLY][permissionName]
+    ) {
+      const source = await Source.get(req.context, req.ncSourceId);
+
+      // todo: replace with better error and this is not an expected error
+      if (!source || !req.ncSourceId) {
+        NcError.notFound('Source not found or source id not extracted');
+      }
+
+      if (
+        source.meta?.readOnlySchema &&
+        sourceRestrictions[SourceRestriction.META_READONLY][permissionName]
+      ) {
+        NcError.forbidden('Schema changes are not allowed');
+      }
+
+      if (
+        source.meta?.readOnlyData &&
+        sourceRestrictions[SourceRestriction.DATA_READONLY][permissionName]
+      ) {
+        NcError.forbidden('Data changes are not allowed');
+      }
     }
 
     return next.handle().pipe(

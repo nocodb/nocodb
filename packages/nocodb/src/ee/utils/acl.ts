@@ -455,6 +455,40 @@ const rolePermissions:
   },
 };
 
+export enum SourceRestriction {
+  META_READONLY = 'META_READONLY',
+  DATA_READONLY = 'DATA_READONLY',
+}
+
+// Excluded permissions for source restrictions
+export const sourceRestrictions = {
+  [SourceRestriction.META_READONLY]: {
+    tableCreate: true,
+    tableDelete: true,
+    tableUpdate: true,
+    columnAdd: true,
+    columnDelete: true,
+    columnUpdate: true,
+    columnBulk: true,
+  },
+  [SourceRestriction.DATA_READONLY]: {
+    dataUpdate: true,
+    dataDelete: true,
+    dataInsert: true,
+    bulkDataInsert: true,
+    bulkDataUpdate: true,
+    bulkDataUpdateAll: true,
+    bulkDataDelete: true,
+    bulkDataDeleteAll: true,
+    relationDataRemove: true,
+    relationDataAdd: true,
+    nestedDataListCopyPasteOrDeleteAll: true,
+    nestedDataUnlink: true,
+    nestedDataLink: true,
+  },
+}
+
+
 // VALIDATIONS
 
 // validate no permission shared between scopes

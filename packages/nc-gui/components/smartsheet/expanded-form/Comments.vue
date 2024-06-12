@@ -230,7 +230,12 @@ const editedAt = (comment: CommentType) => {
               </div>
               <div class="font-medium text-center my-6 text-gray-500">{{ $t('activity.startCommenting') }}</div>
             </div>
-            <div v-else ref="commentsWrapperEl" class="flex flex-col justify-end h-full py-1 nc-scrollbar-thin">
+            <div v-else ref="commentsWrapperEl" class="flex flex-col h-full py-1 nc-scrollbar-thin">
+              <!-- The scrollbar doesn't work when flex-end is used. https://issues.chromium.org/issues/41130651
+              Hence using a div to fix the issue
+              https://stackoverflow.com/questions/36130760/use-justify-content-flex-end-and-to-have-vertical-scrollbar
+              -->
+              <div class="scroll-fix"></div>
               <div v-for="comment of comments" :key="comment.id" :class="`${comment.id}`" class="nc-comment-item">
                 <div
                   :class="{
@@ -247,7 +252,7 @@ const editedAt = (comment: CommentType) => {
                         size="medium"
                       />
                       <div class="flex h-[28px] items-center gap-3">
-                        <NcDropdown placement="topLeft" :trigger="['click']">
+                        <NcDropdown placement="topLeft" :trigger="['hover']">
                           <span class="text-ellipsis text-gray-800 font-medium !text-[13px] max-w-42 overflow-hidden" :style="{}">
                             {{ createdBy(comment) }}
                           </span>
@@ -367,7 +372,7 @@ const editedAt = (comment: CommentType) => {
                       v-model:value="value"
                       autofocus
                       :hide-options="false"
-                      class="expanded-form-comment-edit-input expanded-form-comment-input !pt-2 !pb-0.5 !pl-2 !m-0 w-full !border-1 !border-gray-200 !rounded-lg !bg-white !text-gray-800 !text-small !leading-18px !max-h-[694px]"
+                      class="expanded-form-comment-edit-input expanded-form-comment-input !py-2 !px-2 !m-0 w-full !border-1 !border-gray-200 !rounded-lg !bg-white !text-gray-800 !text-small !leading-18px !max-h-[240px]"
                       data-testid="expanded-form-comment-input"
                       sync-value-change
                       @save="onEditComment"
@@ -399,7 +404,7 @@ const editedAt = (comment: CommentType) => {
                 v-model:value="newComment"
                 :hide-options="false"
                 placeholder="Comment..."
-                class="expanded-form-comment-input !focus:bg-white hover:bg-gray-50 focus:border-gray-200 border-1 rounded-lg w-full bg-transparent !text-gray-800 !text-small !leading-18px !max-h-[240px]"
+                class="expanded-form-comment-input !py-2 !px-2 border-1 rounded-lg w-full bg-transparent !text-gray-800 !text-small !leading-18px !max-h-[240px]"
                 :autofocus="isExpandedFormCommentMode"
                 data-testid="expanded-form-comment-input"
                 @focus="isExpandedFormCommentMode = false"
@@ -481,6 +486,10 @@ const editedAt = (comment: CommentType) => {
   @apply max-w-1/2;
 }
 
+.scroll-fix {
+  flex: 1 1 auto;
+}
+
 .nc-audit-item {
   @apply border-b-1 gap-3 border-gray-200;
 }
@@ -532,12 +541,15 @@ const editedAt = (comment: CommentType) => {
 }
 
 :deep(.expanded-form-comment-input) {
-  @apply transition-all duration-150 min-h-8 !focus-within:border-brand-500;
+  @apply transition-all duration-150 min-h-8;
   box-shadow: none;
   &:focus,
   &:focus-within {
-    @apply min-h-16;
+    @apply min-h-16 !bg-white border-brand-500;
     box-shadow: 0px 0px 0px 2px rgba(51, 102, 255, 0.24);
+  }
+  &:hover:not(:focus) {
+    background-color: #f9f9fa;
   }
   &::placeholder {
     @apply !text-gray-400;
@@ -545,6 +557,6 @@ const editedAt = (comment: CommentType) => {
 }
 
 :deep(.expanded-form-comment-edit-input .nc-comment-rich-editor) {
-  @apply !pl-2 bg-white;
+  @apply bg-white;
 }
 </style>

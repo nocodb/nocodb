@@ -143,7 +143,7 @@ useEventListener(
     if (
       targetEl?.classList?.contains('tiptap') ||
       !targetEl?.closest(
-        '.comment-bubble-menu, .nc-comment-save-btn, .tippy-content, .nc-comment-save-btn, .nc-comment-rich-editor',
+        '.comment-bubble-menu, .nc-rich-text-comment, .nc-comment-save-btn, .tippy-content, .nc-comment-save-btn, .nc-comment-rich-editor',
       )
     ) {
       isFocused.value = false
@@ -175,7 +175,11 @@ onClickOutside(editorDom, (e) => {
 
   const targetEl = e?.target as HTMLElement
 
-  if (!targetEl?.closest('.tippy-content, .nc-comment-save-btn, .comment-bubble-menu, .nc-comment-rich-editor')) {
+  if (
+    !targetEl?.closest(
+      '.tippy-content, .nc-rich-text-comment, .nc-comment-save-btn, .comment-bubble-menu, .nc-comment-rich-editor',
+    )
+  ) {
     isFocused.value = false
     emits('blur')
   }

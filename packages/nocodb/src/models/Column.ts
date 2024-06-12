@@ -651,7 +651,13 @@ export default class Column<T = any> implements ColumnType {
     }
     if (colData) {
       const column = new Column(colData);
-      await column.getColOptions(context, ncMeta);
+      await column.getColOptions(
+        {
+          workspace_id: column.fk_workspace_id,
+          base_id: column.base_id,
+        },
+        ncMeta,
+      );
       return column;
     }
     return null;

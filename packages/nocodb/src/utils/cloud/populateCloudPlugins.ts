@@ -52,15 +52,15 @@ export const populatePluginsForCloud = async ({ ncMeta = Noco.ncMeta }) => {
     );
   }
 
-  // SES
-  if (
-    !process.env.NC_CLOUD_SES_ACCESS_KEY ||
-    !process.env.NC_CLOUD_SES_ACCESS_SECRET ||
-    !process.env.NC_CLOUD_SES_REGION ||
-    !process.env.NC_CLOUD_SES_FROM
-  ) {
-    throw new Error('SES env variables not found');
-  }
+  // // SES
+  // if (
+  //   !process.env.NC_CLOUD_SES_ACCESS_KEY ||
+  //   !process.env.NC_CLOUD_SES_ACCESS_SECRET ||
+  //   !process.env.NC_CLOUD_SES_REGION ||
+  //   !process.env.NC_CLOUD_SES_FROM
+  // ) {
+  //   throw new Error('SES env variables not found');
+  // }
 
   const sesPluginData = await ncMeta.metaGet2(
     RootScopes.ROOT,

@@ -440,6 +440,11 @@ export class MetaService extends MetaServiceCE {
         });
       }
 
+      const r = RootScopeTables[workspace_id];
+      if (!r) {
+        console.log('Invalid scope', RootScopeTables);
+      }
+
       if (!RootScopeTables[workspace_id].includes(target)) {
         NcError.metaError({
           message: 'Table not accessible from this scope',

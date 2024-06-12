@@ -439,7 +439,7 @@ test.describe('Calendar View', () => {
       selectType: true,
     });
 
-    await dashboard.grid.column.save({ isUpdated: true });
+    await dashboard.grid.column.save({ isUpdated: true, typeChange: true });
 
     await dashboard.viewSidebar.createCalendarView({
       title: 'Calendar',

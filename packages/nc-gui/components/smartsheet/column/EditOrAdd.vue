@@ -2,6 +2,7 @@
 import type { ColumnReqType, ColumnType } from 'nocodb-sdk'
 import { UITypes, UITypesName, isLinksOrLTAR, isSelfReferencingTableColumn, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 
+import Icon from '../header/Icon.vue'
 import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
 import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
 import MdiIdentifierIcon from '~icons/mdi/identifier'
@@ -25,7 +26,6 @@ const emit = defineEmits(['submit', 'cancel', 'mounted', 'add', 'update'])
 
 const {
   formState,
-  column,
   generateNewColumnMeta,
   addOrUpdate,
   onAlter,
@@ -33,6 +33,7 @@ const {
   validateInfos,
   isEdit,
   disableSubmitBtn,
+  column,
 } = useColumnCreateStoreOrThrow()
 
 const { getMeta } = useMetas()
@@ -95,6 +96,9 @@ const onlyNameUpdateOnEditColumns = [
   UITypes.LastModifiedTime,
   UITypes.CreatedBy,
   UITypes.LastModifiedBy,
+  UITypes.Formula,
+  UITypes.QrCode,
+  UITypes.Barcode,
 ]
 
 // To close column type dropdown on escape and
@@ -109,16 +113,20 @@ const geoDataToggleCondition = (t: { name: UITypes }) => {
 
 const showDeprecated = ref(false)
 
+const isSystemField = (t: { name: UITypes }) =>
+  [UITypes.CreatedBy, UITypes.CreatedTime, UITypes.LastModifiedBy, UITypes.LastModifiedTime].includes(t.name)
+
+const uiFilters = (t: { name: UITypes; virtual?: number }) => {
+  const systemFiledNotEdited = !isSystemField(t) || formState.value.uidt === t.name || !isEdit.value
+  const geoDataToggle = geoDataToggleCondition(t) && (!isEdit.value || !t.virtual || t.name === formState.value.uidt)
+  const specificDBType = t.name === UITypes.SpecificDBType && isXcdbBase(meta.value?.source_id)
+
+  return systemFiledNotEdited && geoDataToggle && !specificDBType
+}
+
 const uiTypesOptions = computed<typeof uiTypes>(() => {
   return [
-    ...uiTypes
-      .filter(
-        (t) =>
-          geoDataToggleCondition(t) &&
-          (!isEdit.value || !t.virtual || t.name === formState.value.uidt) &&
-          (!t.deprecated || showDeprecated.value),
-      )
-      .filter((t) => !(t.name === UITypes.SpecificDBType && isXcdbBase(meta.value?.source_id))),
+    ...uiTypes.filter(uiFilters),
     ...(!isEdit.value && meta?.value?.columns?.every((c) => !c.pk)
       ? [
           {
@@ -146,7 +154,9 @@ const reloadMetaAndData = async () => {
 
 const saving = ref(false)
 
-async function onSubmit() {
+const warningVisible = ref(false)
+
+const saveSubmitted = async () => {
   if (readOnly.value) return
 
   saving.value = true
@@ -164,6 +174,25 @@ async function onSubmit() {
   if (isForm.value) {
     $e('a:form-view:add-new-field')
   }
+}
+
+async function onSubmit() {
+  if (readOnly.value) return
+
+  // Show warning message if user tries to change type of column
+  if (isEdit.value && formState.value.uidt !== column.value?.uidt) {
+    warningVisible.value = true
+
+    const { close } = useDialog(resolveComponent('DlgColumnUpdateConfirm'), {
+      'visible': warningVisible,
+      'onUpdate:visible': (value) => (warningVisible.value = value),
+      'saving': saving,
+      'onSubmit': async () => {
+        close()
+        await saveSubmitted()
+      },
+    })
+  } else await saveSubmitted()
 }
 
 // focus and select the column name field
@@ -294,6 +323,7 @@ const filterOption = (input: string, option: { value: UITypes }) => {
 
 <template>
   <div
+    v-if="!warningVisible"
     class="overflow-auto max-h-[max(80vh,500px)]"
     :class="{
       'bg-white': !props.fromTableExplorer,
@@ -352,7 +382,7 @@ const filterOption = (input: string, option: { value: UITypes }) => {
             v-model:value="formState.uidt"
             show-search
             class="nc-column-type-input !rounded-lg"
-            :disabled="isKanban || readOnly || (isEdit && !!onlyNameUpdateOnEditColumns.find((col) => col === column?.uidt))"
+            :disabled="isKanban || readOnly || (isEdit && !!onlyNameUpdateOnEditColumns.includes(column?.uidt))"
             dropdown-class-name="nc-dropdown-column-type border-1 !rounded-lg border-gray-200"
             :filter-option="filterOption"
             @dropdown-visible-change="onDropdownChange"
@@ -556,6 +586,7 @@ const filterOption = (input: string, option: { value: UITypes }) => {
     @apply font-normal;
   }
 }
+
 .nc-column-name-input,
 :deep(.nc-formula-input),
 :deep(.ant-form-item-control-input-content > input.ant-input) {
@@ -617,6 +648,7 @@ const filterOption = (input: string, option: { value: UITypes }) => {
     @apply border-gray-300;
     box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.24);
   }
+
   &.ant-select-disabled .ant-select-selector {
     box-shadow: none;
   }

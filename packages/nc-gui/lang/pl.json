@@ -783,6 +783,7 @@
     "coverImageArea": "Cover image"
   },
   "activity": {
+    "hideWeekends": "Hide weekends",
     "renameBase": "Zmień nazwę tabeli",
     "renameWorkspace": "Zmień nazwę przestrzeni roboczej",
     "deactivate": "Deaktywuj",

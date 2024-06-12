@@ -252,7 +252,10 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
   const saveComment = async () => {
     try {
-      if (!row.value || !comment.value) return
+      if (!row.value || !comment.value) {
+        comments.value = comments.value.filter((c) => !c.id?.startsWith('temp-'))
+        return
+      }
 
       const rowId = extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
 

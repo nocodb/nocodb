@@ -73,11 +73,16 @@ const tiptapExtensions = [
 const editor = useEditor({
   extensions: tiptapExtensions,
   onUpdate: ({ editor }) => {
-    let markdown = turndownService.turndown(editor.getHTML().replaceAll(/<p><\/p>/g, '<br />')).replaceAll('/\n\n<br />', '\n')
-    if (!(editor?.isActive('bulletList') || editor?.isActive('orderedList') || editor?.isActive('blockquote'))) {
+    let markdown = turndownService.turndown(editor.getHTML().replaceAll(/<p><\/p>/g, '<br />'))
+
+    const isListsActive = editor?.isActive('bulletList') || editor?.isActive('orderedList') || editor?.isActive('blockquote')
+    if (isListsActive) {
       if (markdown.endsWith('<br />')) markdown = markdown.slice(0, -6)
     }
-    vModel.value = markdown === '<br />' ? '' : markdown
+
+    markdown = markdown.replaceAll(/\n\n<br \/>\n\n/g, '<br>\n\n')
+
+    vModel.value = markdown === '<br />' ? '' : `${markdown}`
   },
   editable: !props.readOnly,
   autofocus: props.autofocus,

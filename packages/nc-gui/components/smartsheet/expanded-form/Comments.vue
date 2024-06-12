@@ -3,6 +3,7 @@ import { type CommentType, ProjectRoles } from 'nocodb-sdk'
 
 const props = defineProps<{
   loading: boolean
+  primaryKey: string
 }>()
 
 const {
@@ -22,6 +23,12 @@ const { isExpandedFormCommentMode } = storeToRefs(useConfigStore())
 const commentsWrapperEl = ref<HTMLDivElement>()
 
 const commentInputRef = ref<any>()
+
+const { copy } = useClipboard()
+
+const route = useRoute()
+
+const { dashboardUrl } = useDashboard()
 
 const editRef = ref<any>()
 
@@ -52,11 +59,14 @@ const isEditing = ref<boolean>(false)
 const isCommentMode = ref(false)
 
 async function onEditComment() {
-  if (!isEditing.value || !editCommentValue.value) return
+  if (!isEditing.value || !editCommentValue.value?.comment) return
 
-  if (editCommentValue.value.comment === '<br /><br />' || editCommentValue.value.comment === '<br /><br /><br />') {
-    editCommentValue.value.comment = ''
-    return
+  while (editCommentValue.value.comment.endsWith('<br />') || editCommentValue.value.comment.endsWith('\n')) {
+    if (editCommentValue.value.comment.endsWith('<br />')) {
+      editCommentValue.value.comment = editCommentValue.value.comment.slice(0, -6)
+    } else {
+      editCommentValue.value.comment = editCommentValue.value.comment.slice(0, -2)
+    }
   }
 
   isCommentMode.value = true
@@ -112,9 +122,12 @@ function scrollComments() {
 const saveComment = async () => {
   if (!newComment.value.trim()) return
 
-  if (newComment.value === '<br /><br />' || newComment.value === '<br /><br /><br />') {
-    newComment.value = ''
-    return
+  while (newComment.value.endsWith('<br />') || newComment.value.endsWith('\n')) {
+    if (newComment.value.endsWith('<br />')) {
+      newComment.value = newComment.value.slice(0, -6)
+    } else {
+      newComment.value = newComment.value.slice(0, -2)
+    }
   }
 
   isCommentMode.value = true
@@ -146,6 +159,14 @@ const saveComment = async () => {
   } catch (e) {
     console.error(e)
   }
+}
+
+const copyComment = async (comment: CommentType) => {
+  await copy(
+    encodeURI(
+      `${dashboardUrl?.value}#/${route.params.typeOrId}/${route.params.baseId}/${meta.value?.id}?rowId=${props.primaryKey}&commentId=${comment.id}`,
+    ),
+  )
 }
 
 function scrollToComment(commentId: string) {
@@ -321,7 +342,16 @@ const editedAt = (comment: CommentType) => {
                                 {{ $t('general.edit') }}
                               </div>
                             </NcMenuItem>
-
+                            <NcMenuItem
+                              v-e="['c:comment-expand:comment:copy']"
+                              class="text-gray-700"
+                              @click="copyComment(comment)"
+                            >
+                              <div class="flex gap-2 items-center">
+                                <component :is="iconMap.copy" class="cursor-pointer" />
+                                {{ $t('general.copy') }}
+                              </div>
+                            </NcMenuItem>
                             <NcDivider />
                             <NcMenuItem
                               v-e="['c:row-expand:comment:delete']"
@@ -402,7 +432,7 @@ const editedAt = (comment: CommentType) => {
                 </div>
               </div>
             </div>
-            <div v-if="hasEditPermission" class="p-3 nc-comment-input !rounded-br-2xl gap-2 flex">
+            <div v-if="hasEditPermission" class="px-3 pb-3 nc-comment-input !rounded-br-2xl gap-2 flex">
               <SmartsheetExpandedFormRichComment
                 ref="commentInputRef"
                 v-model:value="newComment"

@@ -481,7 +481,7 @@ export default class Model implements TableType {
     ncMeta = Noco.ncMeta,
     force = false,
   ): Promise<boolean> {
-    await Comment.deleteRowComments(context, this.id, ncMeta);
+    await Comment.deleteModelComments(context, this.id, ncMeta);
 
     for (const view of await this.getViews(context, true, ncMeta)) {
       await view.delete(context, ncMeta);

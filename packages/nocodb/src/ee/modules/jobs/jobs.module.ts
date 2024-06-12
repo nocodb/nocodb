@@ -5,13 +5,18 @@ import {
 } from 'src/modules/jobs/jobs.module';
 import { UpdateStatsProcessor } from '~/modules/jobs/jobs/update-stats/update-stats.processor';
 import { CleanUpProcessor } from '~/modules/jobs/jobs/clean-up/clean-up.processor';
+import { CleanUpController } from '~/modules/jobs/jobs/clean-up/clean-up.controller';
 import { WorkerController } from '~/modules/jobs/worker/worker.controller';
 import { HealthCheckProcessor } from '~/modules/jobs/jobs/health-check.processor';
 
 @Module({
   ...JobsModuleMetadata,
   imports: [...JobsModuleMetadata.imports],
-  controllers: [...JobsModuleMetadata.controllers, WorkerController],
+  controllers: [
+    ...JobsModuleMetadata.controllers,
+    WorkerController,
+    CleanUpController,
+  ],
   providers: [
     ...JobsModuleMetadata.providers,
     UpdateStatsProcessor,

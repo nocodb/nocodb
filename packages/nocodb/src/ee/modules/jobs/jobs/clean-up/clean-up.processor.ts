@@ -43,7 +43,12 @@ export class CleanUpProcessor {
     const deleteWsTransaction = await ncMeta.startTransaction();
 
     try {
-      for (const ws of cleanUpWorkspaces) {
+      for (const [i, ws] of Object.entries(cleanUpWorkspaces)) {
+        logger.log(
+          `Deleting workspace ${ws.id} ${+i + 1} of ${
+            cleanUpWorkspaces.length
+          }`,
+        );
         await Workspace.delete(ws.id, deleteWsTransaction);
       }
       await deleteWsTransaction.commit();
@@ -73,8 +78,18 @@ export class CleanUpProcessor {
     const deleteBaseTransaction = await ncMeta.startTransaction();
 
     try {
-      for (const base of cleanUpBases) {
-        await Base.delete(base.id, deleteBaseTransaction);
+      for (const [i, base] of Object.entries(cleanUpBases)) {
+        logger.log(
+          `Deleting base ${base.id} ${+i + 1} of ${cleanUpBases.length}`,
+        );
+        await Base.delete(
+          {
+            workspace_id: base.fk_workspace_id,
+            base_id: base.id,
+          },
+          base.id,
+          deleteBaseTransaction,
+        );
       }
       await deleteBaseTransaction.commit();
     } catch (e) {

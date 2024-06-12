@@ -1133,6 +1133,7 @@
     "thisSharedViewIsProtected": "此共享视图受到保护",
     "successfullySubmittedFormData": "成功提交表格数据",
     "formViewNotSupportedOnMobile": "移动设备上不支持表单视图",
+    "calendarViewNotSupportedOnMobile": "Calendar view is not supported on mobile",
     "newFormWillBeLoaded": "新表格将在 {seconds} 秒后加载",
     "optimizedQueryDisabled": "优化查询已禁用",
     "optimizedQueryEnabled": "已启用优化查询",

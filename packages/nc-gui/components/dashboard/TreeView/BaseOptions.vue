@@ -68,7 +68,7 @@ function openQuickImportDialog(type: string) {
     <template #expandIcon></template>
 
     <NcMenuItem
-      v-if="isUIAllowed('airtableImport', { roles: baseRole })"
+      v-if="isUIAllowed('airtableImport', { roles: baseRole, source })"
       key="quick-import-airtable"
       @click="openAirtableImportDialog(source.base_id, source.id)"
     >
@@ -86,7 +86,7 @@ function openQuickImportDialog(type: string) {
     </NcMenuItem>
 
     <NcMenuItem
-      v-if="isUIAllowed('jsonImport', { roles: baseRole })"
+      v-if="isUIAllowed('jsonImport', { roles: baseRole, source })"
       key="quick-import-json"
       @click="openQuickImportDialog('json')"
     >
@@ -97,7 +97,7 @@ function openQuickImportDialog(type: string) {
     </NcMenuItem>
 
     <NcMenuItem
-      v-if="isUIAllowed('excelImport', { roles: baseRole })"
+      v-if="isUIAllowed('excelImport', { roles: baseRole, source })"
       key="quick-import-excel"
       @click="openQuickImportDialog('excel')"
     >

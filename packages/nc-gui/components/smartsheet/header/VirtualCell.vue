@@ -9,6 +9,7 @@ import {
   isLinksOrLTAR,
 } from 'nocodb-sdk'
 import { RelationTypes, UITypes, UITypesName, substituteColumnIdWithAliasInFormula } from 'nocodb-sdk'
+import {useRolesWrapper} from "~/composables/useRoles";
 
 const props = defineProps<{
   column: ColumnType
@@ -36,7 +37,7 @@ provide(ColumnInj, column)
 
 const { metas } = useMetas()
 
-const { isUIAllowed } = useRoles()
+const { isUIAllowed } = useRolesWrapper()
 
 const meta = inject(MetaInj, ref())
 

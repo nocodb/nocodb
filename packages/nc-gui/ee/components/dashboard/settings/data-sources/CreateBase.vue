@@ -2,7 +2,7 @@
 import { Form, message } from 'ant-design-vue'
 import type { SelectHandler } from 'ant-design-vue/es/vc-select/Select'
 import type { Card as AntCard } from 'ant-design-vue'
-import { WorkspaceStatus } from 'nocodb-sdk'
+import { WorkspaceStatus,SourceRestriction } from 'nocodb-sdk'
 import {
   type CertTypes,
   ClientType,
@@ -93,8 +93,8 @@ const formState = ref<ProjectCreateForm>({
   sslUse: SSLUsage.No,
   extraParameters: [],
   meta: {
-    readOnlySchema: true,
-    readOnlyData: false,
+    [SourceRestriction.META_READONLY]: true,
+    [SourceRestriction.DATA_READONLY]: false,
   },
 })
 
@@ -814,10 +814,10 @@ const onUseCaseFormSubmit = async () => {
                 </a-form-item>
 
                 <a-form-item label="Readonly Schema">
-                  <a-switch v-model:checked="formState.meta.readOnlySchema" size="small"></a-switch>
+                  <a-switch v-model:checked="formState.meta[SourceRestriction.META_READONLY]" size="small"></a-switch>
                 </a-form-item>
                 <a-form-item label="Readonly Data">
-                  <a-switch v-model:checked="formState.meta.readOnlyData" size="small"></a-switch>
+                  <a-switch v-model:checked="formState.meta[SourceRestriction.DATA_READONLY]" size="small"></a-switch>
                 </a-form-item>
 
                 <div class="flex items-right justify-end gap-2">

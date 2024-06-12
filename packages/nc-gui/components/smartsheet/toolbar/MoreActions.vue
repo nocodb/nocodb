@@ -3,6 +3,7 @@ import type { RequestParams } from 'nocodb-sdk'
 import { ExportTypes } from 'nocodb-sdk'
 import { saveAs } from 'file-saver'
 import * as XLSX from 'xlsx'
+import {useRolesWrapper} from "~/composables/useRoles";
 
 const { t } = useI18n()
 
@@ -32,7 +33,7 @@ const showWebhookDrawer = ref(false)
 
 const quickImportDialog = ref(false)
 
-const { isUIAllowed } = useRoles()
+const { isUIAllowed } = useRolesWrapper()
 
 const exportFile = async (exportType: ExportTypes) => {
   let offset = 0

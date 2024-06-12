@@ -1,4 +1,4 @@
-import { CloudOrgUserRoles, OrgUserRoles, ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk'
+import { CloudOrgUserRoles, OrgUserRoles, ProjectRoles, SourceRestriction, WorkspaceUserRoles } from 'nocodb-sdk'
 
 const roleScopes = {
   org: [OrgUserRoles.VIEWER, OrgUserRoles.CREATOR],
@@ -176,6 +176,22 @@ const rolePermissions = {
     include: {},
   },
 } as Record<OrgUserRoles | WorkspaceUserRoles | ProjectRoles, Perm | '*'>
+
+// excluded/restricted permissions at source level based on source restriction
+// `true` means permission is restricted and `false`/missing means permission is allowed
+export const sourceRestrictions = {
+  [SourceRestriction.DATA_READONLY]: {
+    dataInsert: true,
+    dataEdit: true,
+    dataDelete: true,
+  },
+  [SourceRestriction.META_READONLY]: {
+    tableCreate: true,
+    tableRename: true,
+    tableDelete: true,
+    tableDuplicate: true,
+  },
+}
 
 /*
   We inherit include permissions from previous roles in the same scope (role order)

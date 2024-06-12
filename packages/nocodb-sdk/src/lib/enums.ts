@@ -326,3 +326,11 @@ export enum APIContext {
   FILTERS = 'filters',
   SORTS = 'sorts',
 }
+
+
+export enum SourceRestriction {
+  META_READONLY = 'metaReadOnly',
+  DATA_READONLY = 'dataReadOnly',
+}
+
+

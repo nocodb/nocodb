@@ -705,7 +705,7 @@ const onTableIdCopy = async () => {
             </NcDropdown>
 
             <NcButton
-              v-if="isUIAllowed('tableCreate', { roles: baseRole })"
+              v-if="isUIAllowed('tableCreate', { roles: baseRole, source: base?.sources?.[0] })"
               :disabled="!base?.sources?.[0]?.enabled"
               class="nc-sidebar-node-btn"
               type="text"
@@ -897,7 +897,7 @@ const onTableIdCopy = async () => {
                             </NcDropdown>
 
                             <NcButton
-                              v-if="isUIAllowed('tableCreate', { roles: baseRole })"
+                              v-if="isUIAllowed('tableCreate', { roles: baseRole, source })"
                               type="text"
                               size="xxsmall"
                               class="nc-sidebar-node-btn"

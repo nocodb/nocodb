@@ -3,6 +3,7 @@ import axios from 'axios'
 import type { Api, ColumnType, FormColumnType, FormType, GalleryType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import { NavigateDir } from '#imports'
+import {useRolesWrapper} from "~/composables/useRoles";
 
 const formatData = (list: Record<string, any>[]) =>
   list.map((row) => ({
@@ -59,7 +60,7 @@ export function useViewData(
 
   const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
 
-  const { isUIAllowed } = useRoles()
+  const { isUIAllowed } = useRolesWrapper()
 
   const routeQuery = computed(() => route.value.query as Record<string, string>)
 

@@ -2,8 +2,9 @@
 import { onKeyDown, useEventListener } from '@vueuse/core'
 import { useAttachmentCell } from './utils'
 import { useSortable } from './sort'
+import {useRolesWrapper} from "~/composables/useRoles";
 
-const { isUIAllowed } = useRoles()
+const { isUIAllowed } = useRolesWrapper()
 
 const {
   open,

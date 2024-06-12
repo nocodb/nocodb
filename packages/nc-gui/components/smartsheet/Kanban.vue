@@ -4,6 +4,7 @@ import Draggable from 'vuedraggable'
 import tinycolor from 'tinycolor2'
 import { ViewTypes, isVirtualCol } from 'nocodb-sdk'
 import type { Row as RowType } from '#imports'
+import {useRolesWrapper} from "~/composables/useRoles";
 
 interface Attachment {
   url: string
@@ -73,7 +74,7 @@ const {
 
 const { isViewDataLoading } = storeToRefs(useViewsStore())
 
-const { isUIAllowed } = useRoles()
+const { isUIAllowed } = useRolesWrapper()
 
 const { appInfo, isMobileMode } = useGlobal()
 

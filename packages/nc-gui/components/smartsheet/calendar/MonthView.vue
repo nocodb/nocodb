@@ -2,6 +2,7 @@
 import dayjs from 'dayjs'
 import type { ColumnType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
+import {useRolesWrapper} from "~/composables/useRoles";
 
 const emit = defineEmits(['newRecord', 'expandRecord'])
 
@@ -23,7 +24,7 @@ const { $e } = useNuxtApp()
 
 const isMondayFirst = ref(true)
 
-const { isUIAllowed } = useRoles()
+const { isUIAllowed } = useRolesWrapper()
 
 const meta = inject(MetaInj, ref())
 

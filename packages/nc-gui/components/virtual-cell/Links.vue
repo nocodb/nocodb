@@ -3,6 +3,7 @@ import { computed } from '@vue/reactivity'
 import type { ColumnType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { ref } from 'vue'
+import {useRolesWrapper} from "~/composables/useRoles";
 
 const value = inject(CellValueInj, ref(0))
 
@@ -28,7 +29,7 @@ const isOpen = ref(false)
 
 const hideBackBtn = ref(false)
 
-const { isUIAllowed } = useRoles()
+const { isUIAllowed } = useRolesWrapper()
 
 const { t } = useI18n()
 

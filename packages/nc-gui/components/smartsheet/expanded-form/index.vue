@@ -12,6 +12,7 @@ import type { Ref } from 'vue'
 import { Drawer } from 'ant-design-vue'
 import NcModal from '../../nc/Modal.vue'
 import MdiChevronDown from '~icons/mdi/chevron-down'
+import {useRolesWrapper} from "~/composables/useRoles";
 
 interface Props {
   modelValue?: boolean
@@ -73,7 +74,7 @@ const isUnsavedDuplicatedRecordExist = ref(false)
 
 const isRecordLinkCopied = ref(false)
 
-const { isUIAllowed } = useRoles()
+const { isUIAllowed } = useRolesWrapper()
 
 const readOnly = computed(() => !isUIAllowed('dataEdit') || isPublic.value)
 

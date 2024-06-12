@@ -5,6 +5,7 @@ import type { Select as AntSelect } from 'ant-design-vue'
 import type { SelectOptionType, SelectOptionsType } from 'nocodb-sdk'
 import type { FormFieldsLimitOptionsType } from '~/lib/types'
 import MdiCloseCircle from '~icons/mdi/close-circle'
+import {useRolesWrapper} from "~/composables/useRoles";
 
 interface Props {
   modelValue?: string | string[]
@@ -57,7 +58,7 @@ const { $api } = useNuxtApp()
 
 const { getMeta } = useMetas()
 
-const { isUIAllowed } = useRoles()
+const { isUIAllowed } = useRolesWrapper()
 
 const { isPg, isMysql } = useBase()
 

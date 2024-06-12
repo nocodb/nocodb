@@ -2,6 +2,7 @@
 import dayjs from 'dayjs'
 import type { ColumnType } from 'nocodb-sdk'
 import type { Row } from '~/lib/types'
+import {useRolesWrapper} from "~/composables/useRoles";
 
 const emits = defineEmits(['expandRecord', 'newRecord'])
 
@@ -24,7 +25,7 @@ const container = ref<null | HTMLElement>(null)
 
 const { width: containerWidth } = useElementSize(container)
 
-const { isUIAllowed } = useRoles()
+const { isUIAllowed } = useRolesWrapper()
 
 const meta = inject(MetaInj, ref())
 

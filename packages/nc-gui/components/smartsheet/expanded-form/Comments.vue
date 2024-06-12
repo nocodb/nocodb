@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { type CommentType, ProjectRoles } from 'nocodb-sdk'
+import {useRolesWrapper} from "~/composables/useRoles";
 
 const props = defineProps<{
   loading: boolean
@@ -45,7 +46,7 @@ const isExpandedFormLoading = computed(() => props.loading)
 
 const tab = ref<'comments' | 'audits'>('comments')
 
-const { isUIAllowed } = useRoles()
+const { isUIAllowed } = useRolesWrapper()
 
 const router = useRouter()
 

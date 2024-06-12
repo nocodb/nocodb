@@ -213,6 +213,10 @@ const refreshViews = async () => {
   await nextTick()
   isExpanded.value = true
 }
+
+const source = computed(() => {
+  return base.value?.sources?.[sourceIndex.value]
+})
 </script>
 
 <template>
@@ -331,15 +335,16 @@ const refreshViews = async () => {
               <template
                 v-if="
                   !isSharedBase &&
-                  (isUIAllowed('tableRename', { roles: baseRole }) || isUIAllowed('tableDelete', { roles: baseRole }))
+                  (isUIAllowed('tableRename', { roles: baseRole, source }) ||
+                    isUIAllowed('tableDelete', { roles: baseRole, source }))
                 "
               >
                 <NcDivider />
                 <NcMenuItem
-                  v-if="isUIAllowed('tableRename', { roles: baseRole })"
+                  v-if="isUIAllowed('tableRename', { roles: baseRole, source })"
                   :data-testid="`sidebar-table-rename-${table.title}`"
                   class="nc-table-rename"
-                  @click="openRenameTableDialog(table, base.sources[sourceIndex].id)"
+                  @click="openRenameTableDialog(table, source.id)"
                 >
                   <div v-e="['c:table:rename']" class="flex gap-2 items-center">
                     <GeneralIcon icon="rename" class="text-gray-700" />
@@ -349,9 +354,11 @@ const refreshViews = async () => {
 
                 <NcMenuItem
                   v-if="
-                    isUIAllowed('tableDuplicate') &&
+                    isUIAllowed('tableDuplicate', {
+                      source,
+                    }) &&
                     base.sources?.[sourceIndex] &&
-                    (base.sources[sourceIndex].is_meta || base.sources[sourceIndex].is_local)
+                    (source.is_meta || source.is_local)
                   "
                   :data-testid="`sidebar-table-duplicate-${table.title}`"
                   @click="duplicateTable(table)"
@@ -364,7 +371,7 @@ const refreshViews = async () => {
 
                 <NcDivider />
                 <NcMenuItem
-                  v-if="isUIAllowed('tableDelete', { roles: baseRole })"
+                  v-if="isUIAllowed('tableDelete', { roles: baseRole, source })"
                   :data-testid="`sidebar-table-delete-${table.title}`"
                   class="!text-red-500 !hover:bg-red-50 nc-table-delete"
                   @click="deleteTable"

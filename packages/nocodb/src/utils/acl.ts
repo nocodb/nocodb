@@ -450,4 +450,20 @@ Object.values(rolePermissions).forEach((role) => {
   }
 });
 
+// excluded/restricted permissions at source level based on source restriction
+// `true` means permission is restricted and `false`/missing means permission is allowed
+export const sourceRestrictions = {
+  [SourceRestriction.DATA_READONLY]: {
+    dataInsert: true,
+    dataEdit: true,
+    dataDelete: true,
+  },
+  [SourceRestriction.META_READONLY]: {
+    tableCreate: true,
+    tableRename: true,
+    tableDelete: true,
+    tableDuplicate: true,
+  },
+}
+
 export default rolePermissions;

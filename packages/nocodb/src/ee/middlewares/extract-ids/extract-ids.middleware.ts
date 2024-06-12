@@ -10,6 +10,7 @@ import {
   extractRolesObj,
   OrgUserRoles,
   ProjectRoles,
+  SourceRestriction,
   WorkspacePlan,
   WorkspaceUserRoles,
 } from 'nocodb-sdk';
@@ -42,10 +43,7 @@ import {
   // Widget,
   Workspace,
 } from '~/models';
-import rolePermissions, {
-  SourceRestriction,
-  sourceRestrictions,
-} from '~/utils/acl';
+import rolePermissions, { sourceRestrictions } from '~/utils/acl';
 import { NcError } from '~/helpers/catchError';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { JwtStrategy } from '~/strategies/jwt.strategy';
@@ -621,14 +619,14 @@ export class AclMiddleware implements NestInterceptor {
       }
 
       if (
-        source.meta?.readOnlySchema &&
+        source.meta?.[SourceRestriction.META_READONLY] &&
         sourceRestrictions[SourceRestriction.META_READONLY][permissionName]
       ) {
         NcError.forbidden('Schema changes are not allowed');
       }
 
       if (
-        source.meta?.readOnlyData &&
+        source.meta[SourceRestriction.DATA_READONLY] &&
         sourceRestrictions[SourceRestriction.DATA_READONLY][permissionName]
       ) {
         NcError.forbidden('Data changes are not allowed');

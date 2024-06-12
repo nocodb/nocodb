@@ -2,6 +2,7 @@ import {
   CloudOrgUserRoles,
   OrgUserRoles,
   ProjectRoles,
+  SourceRestriction,
   WorkspaceUserRoles,
 } from 'nocodb-sdk';
 
@@ -455,11 +456,6 @@ const rolePermissions:
   },
 };
 
-export enum SourceRestriction {
-  META_READONLY = 'META_READONLY',
-  DATA_READONLY = 'DATA_READONLY',
-}
-
 // Excluded permissions for source restrictions
 export const sourceRestrictions = {
   [SourceRestriction.META_READONLY]: {
@@ -486,8 +482,7 @@ export const sourceRestrictions = {
     nestedDataUnlink: true,
     nestedDataLink: true,
   },
-}
-
+};
 
 // VALIDATIONS
 

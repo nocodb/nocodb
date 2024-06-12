@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import dayjs from 'dayjs'
 import type { ColumnType } from 'nocodb-sdk'
+import {useRolesWrapper} from "~/composables/useRoles";
 
 const emit = defineEmits(['expandRecord', 'newRecord'])
 
@@ -8,7 +9,7 @@ const meta = inject(MetaInj, ref())
 
 const container = ref()
 
-const { isUIAllowed } = useRoles()
+const { isUIAllowed } = useRolesWrapper()
 
 const { selectedDate, formattedData, formattedSideBarData, calendarRange, updateRowProperty } = useCalendarViewStoreOrThrow()
 

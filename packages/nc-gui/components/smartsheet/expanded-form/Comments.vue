@@ -306,7 +306,7 @@ const editedAt = (comment: CommentType) => {
                             type="text"
                             @click="resolveComment(comment.id)"
                           >
-                            <GeneralIcon class="text-md rounded-full bg-[#17803D] text-white" icon="check" />
+                            <GeneralIcon class="text-md rounded-full bg-[#17803D] text-white" icon="checkFill" />
                           </NcButton>
                         </NcTooltip>
                       </div>
@@ -399,7 +399,7 @@ const editedAt = (comment: CommentType) => {
                 v-model:value="newComment"
                 :hide-options="false"
                 placeholder="Comment..."
-                class="expanded-form-comment-input !hover:bg-gray-50 border-gray-200 border-1 rounded-lg w-full !bg-transparent !text-gray-800 !text-small !leading-18px !max-h-[546px]"
+                class="expanded-form-comment-input !hover:bg-gray-50 border-gray-200 border-1 rounded-lg w-full !bg-transparent !text-gray-800 !text-small !leading-18px !max-h-[240px]"
                 :autofocus="isExpandedFormCommentMode"
                 data-testid="expanded-form-comment-input"
                 @focus="isExpandedFormCommentMode = false"

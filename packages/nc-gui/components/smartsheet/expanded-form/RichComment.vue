@@ -73,9 +73,10 @@ const tiptapExtensions = [
 const editor = useEditor({
   extensions: tiptapExtensions,
   onUpdate: ({ editor }) => {
-    const markdown = turndownService
-      .turndown(editor.getHTML().replaceAll(/<p><\/p>/g, '<br />'))
-      .replaceAll(/\n\n<br \/>\n\n/g, '<br>\n\n')
+    let markdown = turndownService.turndown(editor.getHTML().replaceAll(/<p><\/p>/g, '<br />')).replaceAll('/\n\n<br />', '\n')
+    if (!(editor?.isActive('bulletList') || editor?.isActive('orderedList'))) {
+      if (markdown.endsWith('<br />')) markdown = markdown.slice(0, -6)
+    }
     vModel.value = markdown === '<br />' ? '' : markdown
   },
   editable: !props.readOnly,
@@ -244,6 +245,12 @@ onMounted(() => {
     })
   }, 1000)
 })
+
+const saveComment = (e) => {
+  e.preventDefault()
+  e.stopPropagation()
+  emits('save')
+}
 </script>
 
 <template>
@@ -286,7 +293,7 @@ onMounted(() => {
           :disabled="!vModel?.length"
           class="!disabled:bg-gray-100 nc-comment-save-btn !h-7 !w-7 !shadow-none"
           size="xsmall"
-          @click="emits('save')"
+          @click="saveComment"
         >
           <GeneralIcon icon="send" />
         </NcButton>

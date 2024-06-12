@@ -79,6 +79,10 @@ function editComment(comment: CommentType) {
     ...comment,
   }
   isEditing.value = true
+  nextTick(() => {
+    scrollComments()
+    editRef.value?.focus()
+  })
 }
 
 const value = computed({
@@ -228,7 +232,12 @@ const editedAt = (comment: CommentType) => {
             </div>
             <div v-else ref="commentsWrapperEl" class="flex flex-col h-full py-1 nc-scrollbar-thin">
               <div v-for="comment of comments" :key="comment.id" :class="`${comment.id}`" class="nc-comment-item">
-                <div class="group gap-3 hover:bg-gray-100 overflow-hidden px-3 py-2">
+                <div
+                  :class="{
+                  'hover:bg-gray-100': editCommentValue?.id !== comment!.id
+                }"
+                  class="group gap-3 overflow-hidden px-3 py-2"
+                >
                   <div class="flex items-start justify-between">
                     <div class="flex items-start gap-3">
                       <GeneralUserIcon
@@ -260,7 +269,9 @@ const editedAt = (comment: CommentType) => {
                                   </div>
                                 </div>
                               </div>
-                              <div class="px-3 rounded-b-lg text-gray-600 flex gap-1 bg-gray-100 py-1.5">
+                              <div
+                                class="px-3 rounded-b-lg !text-[13px] items-center text-gray-600 flex gap-1 bg-gray-100 py-1.5"
+                              >
                                 Has <RolesBadge size="sm" :border="false" :role="getUserRole(comment.created_by_email!)" />
                                 role in base
                               </div>
@@ -343,7 +354,13 @@ const editedAt = (comment: CommentType) => {
                       </NcDropdown>
                     </div>
                   </div>
-                  <div class="flex-1 flex flex-col gap-1 mt-1 max-w-[calc(100%)]">
+                  <div
+                    :class="{
+                      'mt-3': comment.id === editCommentValue?.id,
+                      'mt-1': comment.id !== editCommentValue?.id,
+                    }"
+                    class="flex-1 flex flex-col gap-1 max-w-[calc(100%)]"
+                  >
                     <SmartsheetExpandedFormRichComment
                       v-if="comment.id === editCommentValue?.id"
                       ref="editRef"

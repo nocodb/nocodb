@@ -86,9 +86,11 @@ const editor = useEditor({
     emits('focus')
   },
   onBlur: (e) => {
+    const targetEl = e?.event.relatedTarget as HTMLElement
+
     if (
-      !(e?.event?.relatedTarget as HTMLElement)?.closest(
-        '.comment-bubble-menu, .nc-comment-save-btn, .nc-comment-rich-editor, .nc-rich-text-comment',
+      !targetEl.closest(
+        '.comment-bubble-menu, .nc-rich-text-comment, .tippy-box, .nc-comment-save-btn, .rich-text-bottom-bar, .mention, .nc-mention-list, .tippy-content, .nc-comment-rich-editor',
       )
     ) {
       isFocused.value = false
@@ -143,7 +145,7 @@ useEventListener(
     if (
       targetEl?.classList?.contains('tiptap') ||
       !targetEl?.closest(
-        '.comment-bubble-menu, .nc-rich-text-comment, .nc-comment-save-btn, .tippy-content, .nc-comment-save-btn, .nc-comment-rich-editor',
+        '.comment-bubble-menu, .nc-rich-text-comment, .tippy-box, .nc-comment-save-btn, .rich-text-bottom-bar, .mention, .nc-mention-list, .tippy-content, .nc-comment-rich-editor',
       )
     ) {
       isFocused.value = false
@@ -165,6 +167,7 @@ useEventListener(
 
     if (!targetEl?.closest('.comment-bubble-menu, .nc-comment-save-btn, .tippy-content, .nc-comment-rich-editor')) {
       isFocused.value = false
+
       emits('blur')
     }
   },

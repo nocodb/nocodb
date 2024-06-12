@@ -783,6 +783,7 @@
     "coverImageArea": "Cover image"
   },
   "activity": {
+    "hideWeekends": "Hide weekends",
     "renameBase": "שנה את שם הבסיס",
     "renameWorkspace": "שנה את שם מרחב העבודה",
     "deactivate": "השבת",

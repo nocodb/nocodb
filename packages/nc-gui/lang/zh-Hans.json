@@ -783,6 +783,7 @@
     "coverImageArea": "Cover image"
   },
   "activity": {
+    "hideWeekends": "Hide weekends",
     "renameBase": "重命名项目",
     "renameWorkspace": "重命名工作区",
     "deactivate": "取消激活",

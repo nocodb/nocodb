@@ -301,6 +301,15 @@ const handleCollapseStack = async (stackIdx: number) => {
     await updateKanbanStackMeta()
   }
 }
+const handleCollapseAllStack = async () => {
+  groupingFieldColOptions.value.forEach((stack) => {
+    stack.collapsed = true
+  })
+
+  if (!isPublic.value) {
+    await updateKanbanStackMeta()
+  }
+}
 
 const openNewRecordFormHookHandler = async () => {
   const newRow = await addEmptyRow()
@@ -410,7 +419,7 @@ const getRowId = (row: RowType) => {
           @change="onMoveStack($event)"
         >
           <template #item="{ element: stack, index: stackIdx }">
-            <div class="nc-kanban-stack" :class="{ 'w-[50px]': stack.collapsed }">
+            <div class="nc-kanban-stack" :class="{ 'w-[44px]': stack.collapsed }">
               <!-- Non Collapsed Stacks -->
               <a-card
                 v-if="!stack.collapsed"
@@ -522,8 +531,8 @@ const getRowId = (row: RowType) => {
                                 {{ $t('activity.kanban.collapseStack') }}
                               </div>
                             </NcMenuItem>
-                            <!--  Todo: Collapse all stack function -->
-                            <NcMenuItem v-e="['c:kanban:collapse-all-stack']">
+
+                            <NcMenuItem v-e="['c:kanban:collapse-all-stack']" @click="handleCollapseAllStack">
                               <div class="flex gap-2 items-center">
                                 <component :is="iconMap.minimize" />
                                 {{ $t('activity.kanban.collapseAll') }}
@@ -759,18 +768,13 @@ const getRowId = (row: RowType) => {
                   <div v-if="!formattedData.get(stack.title) || !countByStack" class="!w-full">
                     <a-skeleton-input :active="true" class="!w-full !h-4 !rounded-lg overflow-hidden" />
                   </div>
-                  <div v-else class="nc-kanban-stack-head w-full flex items-center justify-between gap-3">
+                  <div v-else class="nc-kanban-stack-head w-full flex items-center justify-between gap-2">
                     <div class="flex items-center gap-1">
-                      <NcButton
-                        :disabled="!stack.title"
-                        type="text"
-                        size="xs"
-                        class="!px-1.5 !cursor-move"
-                      >
+                      <NcButton :disabled="!stack.title" type="text" size="xs" class="!px-1.5 !cursor-move">
                         <GeneralIcon icon="drag" />
                       </NcButton>
 
-                      <div class="nc-kanban-data-count flex-1 flex max-w-[115px]">
+                      <div class="flex-1 flex max-w-[115px]">
                         <a-tag class="max-w-full !rounded-full !px-2 !py-1 h-7 !m-0 !border-none" :color="stack.color">
                           <span
                             :style="{
@@ -780,7 +784,7 @@ const getRowId = (row: RowType) => {
                             }"
                             class="text-sm font-semibold"
                           >
-                            <NcTooltip class="truncate max-w-full" placement="bottom" show-on-truncate-only>
+                            <NcTooltip class="truncate max-w-full" placement="left" show-on-truncate-only>
                               <template #title>
                                 {{ stack.title ?? 'Uncategorized' }}
                               </template>
@@ -801,7 +805,10 @@ const getRowId = (row: RowType) => {
                     </div>
 
                     <div class="flex items-center gap-3">
-                      <div class="px-1 rounded bg-gray-200 text-gray-800 text-sm font-weight-500">
+                      <div
+                        class="nc-kanban-data-count px-1 rounded bg-gray-200 text-gray-800 text-sm font-weight-500"
+                        :style="{ 'word-break': 'keep-all', 'white-space': 'nowrap' }"
+                      >
                         <!-- Record Count -->
                         {{ formattedData.get(stack.title)!.length }}/{{ countByStack.get(stack.title) }}
                         {{ countByStack.get(stack.title) !== 1 ? $t('objects.records') : $t('objects.record') }}

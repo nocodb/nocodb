@@ -230,7 +230,9 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
         // handle deleted options
         const columnOptionIds = (groupingFieldColumn.value?.colOptions as SelectOptionsType)?.options.map(({ id }) => id)
-        const cols = stackMetaObj.value[fk_grp_col_id].filter(({ id }) => id !== 'uncategorized' && !columnOptionIds.includes(id))
+        const cols = stackMetaObj.value[fk_grp_col_id].filter(
+          ({ id }) => id !== 'uncategorized' && id !== addNewStackId && !columnOptionIds.includes(id),
+        )
         for (const col of cols) {
           const idx = stackMetaObj.value[fk_grp_col_id].map((ele: Record<string, any>) => ele.id).indexOf(col.id)
           if (idx !== -1) {

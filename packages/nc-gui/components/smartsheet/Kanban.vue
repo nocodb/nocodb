@@ -412,6 +412,7 @@ const hideEmptyStack = computed(() => parseProp(kanbanMetaData.value?.meta).hide
           item-key="id"
           group="kanban-stack"
           draggable=".nc-kanban-stack"
+          handle=".nc-kanban-stack-drag-handler"
           filter=".not-draggable"
           :move="onMoveCallback"
           @start="(e) => e.target.classList.add('grabbing')"
@@ -449,42 +450,45 @@ const hideEmptyStack = computed(() => parseProp(kanbanMetaData.value?.meta).hide
                 <a-layout v-else>
                   <a-layout-header>
                     <div class="nc-kanban-stack-head w-full flex items-center gap-1">
-                      <NcButton
-                        :disabled="!stack.title"
-                        type="text"
-                        size="xs"
-                        class="!px-1.5 !cursor-move !:disabled:cursor-not-allowed"
-                      >
-                        <GeneralIcon icon="drag" />
-                      </NcButton>
+                      <div class="flex-1 flex items-center gap-1">
+                        <NcButton
+                          v-if="!(stack.title === null || isLocked || isPublic || !hasEditPermission)"
+                          :disabled="!stack.title"
+                          type="text"
+                          size="xs"
+                          class="nc-kanban-stack-drag-handler !px-1.5 !cursor-move !:disabled:cursor-not-allowed"
+                        >
+                          <GeneralIcon icon="drag" />
+                        </NcButton>
 
-                      <div class="flex-1 flex max-w-[calc(100%_-_64px)]">
-                        <a-tag class="max-w-full !rounded-full !px-2 !py-1 h-7 !m-0 !border-none" :color="stack.color">
-                          <span
-                            :style="{
-                              color: tinycolor.isReadable(stack.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
-                                ? '#fff'
-                                : tinycolor.mostReadable(stack.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
-                            }"
-                            class="text-sm font-semibold"
-                          >
-                            <NcTooltip class="truncate max-w-full" placement="bottom" show-on-truncate-only>
-                              <template #title>
-                                {{ stack.title ?? 'Uncategorized' }}
-                              </template>
-                              <span
-                                class="text-ellipsis overflow-hidden"
-                                :style="{
-                                  wordBreak: 'keep-all',
-                                  whiteSpace: 'nowrap',
-                                  display: 'inline',
-                                }"
-                              >
-                                {{ stack.title ?? 'Uncategorized' }}
-                              </span>
-                            </NcTooltip>
-                          </span>
-                        </a-tag>
+                        <div class="flex-1 flex max-w-[calc(100%_-_64px)]">
+                          <a-tag class="max-w-full !rounded-full !px-2 !py-1 h-7 !m-0 !border-none" :color="stack.color">
+                            <span
+                              :style="{
+                                color: tinycolor.isReadable(stack.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
+                                  ? '#fff'
+                                  : tinycolor.mostReadable(stack.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
+                              }"
+                              class="text-sm font-semibold"
+                            >
+                              <NcTooltip class="truncate max-w-full" placement="bottom" show-on-truncate-only>
+                                <template #title>
+                                  {{ stack.title ?? 'Uncategorized' }}
+                                </template>
+                                <span
+                                  class="text-ellipsis overflow-hidden"
+                                  :style="{
+                                    wordBreak: 'keep-all',
+                                    whiteSpace: 'nowrap',
+                                    display: 'inline',
+                                  }"
+                                >
+                                  {{ stack.title ?? 'Uncategorized' }}
+                                </span>
+                              </NcTooltip>
+                            </span>
+                          </a-tag>
+                        </div>
                       </div>
                       <NcDropdown
                         v-if="!isLocked"
@@ -804,7 +808,14 @@ const hideEmptyStack = computed(() => parseProp(kanbanMetaData.value?.meta).hide
                   </div>
                   <div v-else class="nc-kanban-stack-head w-full flex items-center justify-between gap-2">
                     <div class="flex items-center gap-1">
-                      <NcButton :disabled="!stack.title" type="text" size="xs" class="!px-1.5 !cursor-move">
+                      <NcButton
+                        v-if="!(stack.title === null || isLocked || isPublic || !hasEditPermission)"
+                        :disabled="!stack.title"
+                        type="text"
+                        size="xs"
+                        class="nc-kanban-stack-drag-handler !px-1.5 !cursor-move"
+                        @click.stop
+                      >
                         <GeneralIcon icon="drag" />
                       </NcButton>
 

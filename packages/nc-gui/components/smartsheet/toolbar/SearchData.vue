@@ -128,7 +128,7 @@ onClickOutside(globalSearchWrapperRef, (e) => {
         </template>
       </NcDropdown>
 
-      <form class="p-0">
+      <form class="p-0" @submit.prevent>
         <a-input
           v-if="search.query || showSearchBox"
           ref="globalSearchRef"

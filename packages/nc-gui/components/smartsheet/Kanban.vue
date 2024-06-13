@@ -277,7 +277,13 @@ const kanbanListScrollHandler = useDebounceFn(async (e: any) => {
 
     if (stack && (countByStack.value.get(stackTitle) === undefined || stack.length < countByStack.value.get(stackTitle)!)) {
       const page = Math.ceil(stack.length / pageSize)
-      await loadMoreKanbanData(stackTitle, { offset: page * pageSize })
+
+      await loadMoreKanbanData(stackTitle, {
+        offset:
+          page * pageSize > countByStack.value.get(stackTitle)! || page * pageSize > stack.length
+            ? (page - 1) * pageSize
+            : page * pageSize,
+      })
     }
   }
 })
@@ -700,7 +706,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                     >
                       <div
                         :ref="kanbanListRef"
-                        class="nc-kanban-list h-full nc-scrollbar-thin p-2"
+                        class="nc-kanban-list h-full px-2 nc-scrollbar-thin"
                         :data-stack-title="stack.title"
                       >
                         <!-- Draggable Record Card -->
@@ -709,17 +715,14 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                           item-key="row.Id"
                           draggable=".nc-kanban-item"
                           group="kanban-card"
-                          class="flex flex-col gap-2"
-                          :class="{
-                            'h-full': !formattedData.get(stack.title)?.length,
-                          }"
+                          class="flex flex-col h-full mb-2"
                           filter=".not-draggable"
                           @start="(e) => e.target.classList.add('grabbing')"
                           @end="(e) => e.target.classList.remove('grabbing')"
                           @change="onMove($event, stack.title)"
                         >
                           <template #item="{ element: record, index }">
-                            <div class="nc-kanban-item">
+                            <div class="nc-kanban-item py-1 first:pt-2 last:pb-2">
                               <LazySmartsheetRow :row="record">
                                 <a-card
                                   :key="`${getRowId(record)}-${index}`"

@@ -143,6 +143,24 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       }
     }
 
+    const filerDuplicateRecords = (existingRecords: Row[], newRecords: Row[]) => {
+      const existingRecordsMap = (existingRecords || []).reduce((acc, curr) => {
+        const primaryKey = extractPkFromRow(curr.row, meta!.value!.columns as ColumnType[])
+        if (primaryKey) {
+          acc[primaryKey] = curr
+        }
+        return acc
+      }, {} as Record<string, Row>)
+
+      return (newRecords || []).filter(({ row }) => {
+        const primaryKey = extractPkFromRow(row, meta!.value!.columns as ColumnType[])
+        if (primaryKey && existingRecordsMap[primaryKey]) {
+          return false
+        }
+        return true
+      })
+    }
+
     async function loadMoreKanbanData(stackTitle: string, params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) {
       if ((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic.value) return
       let where = `(${groupingField.value},eq,${stackTitle})`
@@ -168,8 +186,11 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
             offset: params.offset,
             where,
           })
-
-      formattedData.value.set(stackTitle, [...formattedData.value.get(stackTitle)!, ...formatData(response!.list!)])
+      console.log('old', formattedData.value.get(stackTitle), formatData(response!.list!))
+      formattedData.value.set(stackTitle, [
+        ...formattedData.value.get(stackTitle)!,
+        ...filerDuplicateRecords(formattedData.value.get(stackTitle)!, formatData(response!.list!)),
+      ])
     }
 
     async function loadKanbanMeta() {

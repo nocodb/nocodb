@@ -26,9 +26,9 @@ export function useCachedDebouncedFunction<T extends FunctionArgs>(
   // Cache to store debounced functions based on a unique key
   const debounceCache = new Map<string | number, any>()
 
-  return function (...args: Parameters<T>): ReturnType<T> {
+  return (...args: Parameters<T>): ReturnType<T> => {
     // Generate a unique key for the given arguments
-    const key = getCacheKey(args)
+    const key = getCacheKey(...args)
 
     // If the debounced function for the given key is not in the cache, create and cache it
     if (!debounceCache.has(key)) {

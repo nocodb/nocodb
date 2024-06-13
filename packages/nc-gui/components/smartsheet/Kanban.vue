@@ -376,6 +376,8 @@ const getRowId = (row: RowType) => {
   const pk = extractPkFromRow(row.row, meta.value!.columns!)
   return pk ? `row-${pk}` : ''
 }
+
+const hideEmptyStack = computed(() => parseProp(kanbanMetaData.value?.meta).hide_empty_stack || false)
 </script>
 
 <template>
@@ -417,7 +419,10 @@ const getRowId = (row: RowType) => {
           @change="onMoveStack($event)"
         >
           <template #item="{ element: stack, index: stackIdx }">
-            <div class="nc-kanban-stack" :class="{ 'w-[44px]': stack.collapsed }">
+            <div
+              class="nc-kanban-stack"
+              :class="{ 'w-[44px]': stack.collapsed, 'hidden': hideEmptyStack && !formattedData.get(stack.title)?.length }"
+            >
               <!-- Non Collapsed Stacks -->
               <a-card
                 v-if="!stack.collapsed"
@@ -569,186 +574,186 @@ const getRowId = (row: RowType) => {
                       :data-stack-title="stack.title"
                     >
                       <!-- Draggable Record Card -->
-                      <template v-if="formattedData.get(stack.title)?.length">
-                        <Draggable
-                          :list="formattedData.get(stack.title)"
-                          item-key="row.Id"
-                          draggable=".nc-kanban-item"
-                          group="kanban-card"
-                          class="h-full flex flex-col gap-2"
-                          filter=".not-draggable"
-                          @start="(e) => e.target.classList.add('grabbing')"
-                          @end="(e) => e.target.classList.remove('grabbing')"
-                          @change="onMove($event, stack.title)"
-                        >
-                          <template #item="{ element: record, index }">
-                            <div class="nc-kanban-item">
-                              <LazySmartsheetRow :row="record">
-                                <a-card
-                                  :key="`${getRowId(record)}-${index}`"
-                                  class="!rounded-lg h-full border-gray-200 border-1 group overflow-hidden break-all max-w-[450px] cursor-pointer"
-                                  :body-style="{ padding: '16px !important' }"
-                                  :data-stack="stack.title"
-                                  :data-testid="`nc-gallery-card-${record.row.id}`"
-                                  :class="{
-                                    'not-draggable': isLocked || !hasEditPermission || isPublic,
-                                    '!cursor-default': isLocked || !hasEditPermission || isPublic,
-                                  }"
-                                  @click="expandFormClick($event, record)"
-                                  @contextmenu="showContextMenu($event, record)"
-                                >
-                                  <template v-if="kanbanMetaData?.fk_cover_image_col_id" #cover>
-                                    <template v-if="!reloadAttachments && attachments(record).length">
-                                      <a-carousel
-                                        :key="attachments(record).reduce((acc, curr) => acc + curr?.path, '')"
-                                        class="gallery-carousel !border-b-1 !border-gray-200"
-                                        arrows
-                                      >
-                                        <template #customPaging>
-                                          <a>
-                                            <div>
-                                              <div></div>
-                                            </div>
-                                          </a>
-                                        </template>
-
-                                        <template #prevArrow>
-                                          <div class="z-10 arrow">
-                                            <NcButton
-                                              type="secondary"
-                                              size="xsmall"
-                                              class="!absolute !left-1.5 !bottom-[-90px] !opacity-0 !group-hover:opacity-100 !rounded-lg cursor-pointer"
-                                            >
-                                              <GeneralIcon icon="arrowLeft" class="text-gray-700 w-4 h-4" />
-                                            </NcButton>
-                                          </div>
-                                        </template>
-
-                                        <template #nextArrow>
-                                          <div class="z-10 arrow">
-                                            <NcButton
-                                              type="secondary"
-                                              size="xsmall"
-                                              class="!absolute !right-1.5 !bottom-[-90px] !opacity-0 !group-hover:opacity-100 !rounded-lg cursor-pointer"
-                                            >
-                                              <GeneralIcon icon="arrowRight" class="text-gray-700 w-4 h-4" />
-                                            </NcButton>
-                                          </div>
-                                        </template>
-
-                                        <template v-for="attachment in attachments(record)">
-                                          <LazyCellAttachmentImage
-                                            v-if="isImage(attachment.title, attachment.mimetype ?? attachment.type)"
-                                            :key="attachment.path"
-                                            class="h-52"
-                                            :class="[`${coverImageObjectFitClass}`]"
-                                            :srcs="getPossibleAttachmentSrc(attachment)"
-                                          />
-                                        </template>
-                                      </a-carousel>
-                                    </template>
-                                    <div
-                                      v-else
-                                      class="h-52 w-full !flex flex-row !border-b-1 !border-gray-200 items-center justify-center"
+                      <Draggable
+                        :list="formattedData.get(stack.title)"
+                        item-key="row.Id"
+                        draggable=".nc-kanban-item"
+                        group="kanban-card"
+                        class="h-full flex flex-col gap-2"
+                        filter=".not-draggable"
+                        @start="(e) => e.target.classList.add('grabbing')"
+                        @end="(e) => e.target.classList.remove('grabbing')"
+                        @change="onMove($event, stack.title)"
+                      >
+                        <template #item="{ element: record, index }">
+                          <div class="nc-kanban-item">
+                            <LazySmartsheetRow :row="record">
+                              <a-card
+                                :key="`${getRowId(record)}-${index}`"
+                                class="!rounded-lg h-full border-gray-200 border-1 group overflow-hidden break-all max-w-[450px] cursor-pointer"
+                                :body-style="{ padding: '16px !important' }"
+                                :data-stack="stack.title"
+                                :data-testid="`nc-gallery-card-${record.row.id}`"
+                                :class="{
+                                  'not-draggable': isLocked || !hasEditPermission || isPublic,
+                                  '!cursor-default': isLocked || !hasEditPermission || isPublic,
+                                }"
+                                @click="expandFormClick($event, record)"
+                                @contextmenu="showContextMenu($event, record)"
+                              >
+                                <template v-if="kanbanMetaData?.fk_cover_image_col_id" #cover>
+                                  <template v-if="!reloadAttachments && attachments(record).length">
+                                    <a-carousel
+                                      :key="attachments(record).reduce((acc, curr) => acc + curr?.path, '')"
+                                      class="gallery-carousel !border-b-1 !border-gray-200"
+                                      arrows
                                     >
-                                      <img class="object-contain w-[48px] h-[48px]" src="~assets/icons/FileIconImageBox.png" />
-                                    </div>
+                                      <template #customPaging>
+                                        <a>
+                                          <div>
+                                            <div></div>
+                                          </div>
+                                        </a>
+                                      </template>
+
+                                      <template #prevArrow>
+                                        <div class="z-10 arrow">
+                                          <NcButton
+                                            type="secondary"
+                                            size="xsmall"
+                                            class="!absolute !left-1.5 !bottom-[-90px] !opacity-0 !group-hover:opacity-100 !rounded-lg cursor-pointer"
+                                          >
+                                            <GeneralIcon icon="arrowLeft" class="text-gray-700 w-4 h-4" />
+                                          </NcButton>
+                                        </div>
+                                      </template>
+
+                                      <template #nextArrow>
+                                        <div class="z-10 arrow">
+                                          <NcButton
+                                            type="secondary"
+                                            size="xsmall"
+                                            class="!absolute !right-1.5 !bottom-[-90px] !opacity-0 !group-hover:opacity-100 !rounded-lg cursor-pointer"
+                                          >
+                                            <GeneralIcon icon="arrowRight" class="text-gray-700 w-4 h-4" />
+                                          </NcButton>
+                                        </div>
+                                      </template>
+
+                                      <template v-for="attachment in attachments(record)">
+                                        <LazyCellAttachmentImage
+                                          v-if="isImage(attachment.title, attachment.mimetype ?? attachment.type)"
+                                          :key="attachment.path"
+                                          class="h-52"
+                                          :class="[`${coverImageObjectFitClass}`]"
+                                          :srcs="getPossibleAttachmentSrc(attachment)"
+                                        />
+                                      </template>
+                                    </a-carousel>
                                   </template>
-                                  <div class="flex flex-col gap-3 !children:pointer-events-none">
-                                    <h2 v-if="displayField" class="nc-card-display-value-wrapper">
-                                      <template v-if="!isRowEmpty(record, displayField)">
+                                  <div
+                                    v-else
+                                    class="h-52 w-full !flex flex-row !border-b-1 !border-gray-200 items-center justify-center"
+                                  >
+                                    <img class="object-contain w-[48px] h-[48px]" src="~assets/icons/FileIconImageBox.png" />
+                                  </div>
+                                </template>
+                                <div class="flex flex-col gap-3 !children:pointer-events-none">
+                                  <h2 v-if="displayField" class="nc-card-display-value-wrapper">
+                                    <template v-if="!isRowEmpty(record, displayField)">
+                                      <LazySmartsheetVirtualCell
+                                        v-if="isVirtualCol(displayField)"
+                                        v-model="record.row[displayField.title]"
+                                        class="!text-brand-500"
+                                        :column="displayField"
+                                        :row="record"
+                                      />
+
+                                      <LazySmartsheetCell
+                                        v-else
+                                        v-model="record.row[displayField.title]"
+                                        class="!text-brand-500"
+                                        :column="displayField"
+                                        :edit-enabled="false"
+                                        :read-only="true"
+                                      />
+                                    </template>
+                                    <template v-else> - </template>
+                                  </h2>
+
+                                  <div v-for="col in fieldsWithoutDisplay" :key="`record-${record.row.id}-${col.id}`">
+                                    <div class="flex flex-col rounded-lg w-full">
+                                      <div class="flex flex-row w-full justify-start">
+                                        <div class="nc-card-col-header w-full text-gray-500 uppercase">
+                                          <LazySmartsheetHeaderVirtualCell
+                                            v-if="isVirtualCol(col)"
+                                            :column="col"
+                                            :hide-menu="true"
+                                          />
+
+                                          <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="true" />
+                                        </div>
+                                      </div>
+
+                                      <div
+                                        v-if="!isRowEmpty(record, col)"
+                                        class="flex flex-row w-full text-gray-800 items-center justify-start min-h-7 py-1"
+                                      >
                                         <LazySmartsheetVirtualCell
-                                          v-if="isVirtualCol(displayField)"
-                                          v-model="record.row[displayField.title]"
-                                          class="!text-brand-500"
-                                          :column="displayField"
+                                          v-if="isVirtualCol(col)"
+                                          v-model="record.row[col.title]"
+                                          :column="col"
                                           :row="record"
+                                          class="!text-gray-800"
                                         />
 
                                         <LazySmartsheetCell
                                           v-else
-                                          v-model="record.row[displayField.title]"
-                                          class="!text-brand-500"
-                                          :column="displayField"
+                                          v-model="record.row[col.title]"
+                                          :column="col"
                                           :edit-enabled="false"
                                           :read-only="true"
+                                          class="!text-gray-800"
                                         />
-                                      </template>
-                                      <template v-else> - </template>
-                                    </h2>
-
-                                    <div v-for="col in fieldsWithoutDisplay" :key="`record-${record.row.id}-${col.id}`">
-                                      <div class="flex flex-col rounded-lg w-full">
-                                        <div class="flex flex-row w-full justify-start">
-                                          <div class="nc-card-col-header w-full text-gray-500 uppercase">
-                                            <LazySmartsheetHeaderVirtualCell
-                                              v-if="isVirtualCol(col)"
-                                              :column="col"
-                                              :hide-menu="true"
-                                            />
-
-                                            <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="true" />
-                                          </div>
-                                        </div>
-
-                                        <div
-                                          v-if="!isRowEmpty(record, col)"
-                                          class="flex flex-row w-full text-gray-800 items-center justify-start min-h-7 py-1"
-                                        >
-                                          <LazySmartsheetVirtualCell
-                                            v-if="isVirtualCol(col)"
-                                            v-model="record.row[col.title]"
-                                            :column="col"
-                                            :row="record"
-                                            class="!text-gray-800"
-                                          />
-
-                                          <LazySmartsheetCell
-                                            v-else
-                                            v-model="record.row[col.title]"
-                                            :column="col"
-                                            :edit-enabled="false"
-                                            :read-only="true"
-                                            class="!text-gray-800"
-                                          />
-                                        </div>
-                                        <div v-else class="flex flex-row w-full h-7 pl-1 items-center justify-start">-</div>
                                       </div>
+                                      <div v-else class="flex flex-row w-full h-7 pl-1 items-center justify-start">-</div>
                                     </div>
                                   </div>
-                                </a-card>
-                              </LazySmartsheetRow>
-                            </div>
-                          </template>
-                        </Draggable>
-                      </template>
-                      <div v-else class="h-full w-full flex flex-col gap-4 items-center justify-center">
-                        <div class="flex flex-col items-center gap-2 text-gray-600">
-                          <span class="text-sm font-semibold">
-                            {{ $t('general.empty') }} {{ $t('general.stack').toLowerCase() }}
-                          </span>
-                          <span class="text-xs font-weight-500">
-                            {{ $t('title.looksLikeThisStackIsEmpty') }}
-                          </span>
-                        </div>
-                        <NcButton
-                          v-if="isUIAllowed('dataInsert')"
-                          size="xs"
-                          type="secondary"
-                          @click="
-                            () => {
-                              selectedStackTitle = stack.title
-                              openNewRecordFormHook.trigger(stack.title)
-                            }
-                          "
-                        >
-                          <div class="flex items-center gap-2">
-                            <component :is="iconMap.plus" v-if="!isPublic && !isLocked" />
-
-                            {{ $t('activity.newRecord') }}
+                                </div>
+                              </a-card>
+                            </LazySmartsheetRow>
                           </div>
-                        </NcButton>
-                      </div>
+                        </template>
+                        <template v-if="!formattedData.get(stack.title)?.length" #footer>
+                          <div class="h-full w-full flex flex-col gap-4 items-center justify-center">
+                            <div class="flex flex-col items-center gap-2 text-gray-600">
+                              <span class="text-sm font-semibold">
+                                {{ $t('general.empty') }} {{ $t('general.stack').toLowerCase() }}
+                              </span>
+                              <span class="text-xs font-weight-500">
+                                {{ $t('title.looksLikeThisStackIsEmpty') }}
+                              </span>
+                            </div>
+                            <NcButton
+                              v-if="isUIAllowed('dataInsert')"
+                              size="xs"
+                              type="secondary"
+                              @click="
+                                () => {
+                                  selectedStackTitle = stack.title
+                                  openNewRecordFormHook.trigger(stack.title)
+                                }
+                              "
+                            >
+                              <div class="flex items-center gap-2">
+                                <component :is="iconMap.plus" v-if="!isPublic && !isLocked" />
+
+                                {{ $t('activity.newRecord') }}
+                              </div>
+                            </NcButton>
+                          </div>
+                        </template>
+                      </Draggable>
                     </div>
                   </a-layout-content>
                   <a-layout-footer v-if="formattedData.get(stack.title)">

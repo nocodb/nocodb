@@ -450,7 +450,7 @@ const hideEmptyStack = computed(() => parseProp(kanbanMetaData.value?.meta).hide
                 <a-layout v-else>
                   <a-layout-header>
                     <div class="nc-kanban-stack-head w-full flex items-center gap-1">
-                      <div class="flex-1 flex items-center gap-1">
+                      <div class="flex-1 flex items-center gap-1 max-w-[calc(100%_-_32px)]">
                         <NcButton
                           v-if="!(stack.title === null || isLocked || isPublic || !hasEditPermission)"
                           :disabled="!stack.title"

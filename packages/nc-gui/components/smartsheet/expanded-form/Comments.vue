@@ -13,7 +13,6 @@ const {
   audits,
   isAuditLoading,
   saveComment: _saveComment,
-  comment: newComment,
   updateComment,
 } = useExpandedFormStoreOrThrow()
 
@@ -22,6 +21,14 @@ const { isExpandedFormCommentMode } = storeToRefs(useConfigStore())
 const commentsWrapperEl = ref<HTMLDivElement>()
 
 const commentInputRef = ref<any>()
+
+const comment = ref('')
+
+const { copy } = useClipboard()
+
+const route = useRoute()
+
+const { dashboardUrl } = useDashboard()
 
 const editRef = ref<any>()
 
@@ -68,10 +75,16 @@ async function onEditComment() {
 
   isCommentMode.value = true
 
-  await updateComment(editComment.value.id!, {
-    comment: editComment.value?.comment,
+  const tempCom = {
+    ...editCommentValue.value,
+  }
+
+  isEditing.value = false
+  editCommentValue.value = undefined
+  await updateComment(tempCom.id!, {
+    comment: tempCom.comment,
   })
-  onStopEdit()
+  loadComments()
 }
 
 function onCancel() {
@@ -116,10 +129,16 @@ function scrollComments() {
   }
 }
 
-const isSaving = ref(false)
-
 const saveComment = async () => {
-  if (isSaving.value) return
+  if (!comment.value.trim()) return
+
+  while (comment.value.endsWith('<br />') || comment.value.endsWith('\n')) {
+    if (comment.value.endsWith('<br />')) {
+      comment.value = comment.value.slice(0, -6)
+    } else {
+      comment.value = comment.value.slice(0, -2)
+    }
+  }
 
   isCommentMode.value = true
   isSaving.value = true
@@ -129,7 +148,7 @@ const saveComment = async () => {
     ...comments.value,
     {
       id: `temp-${new Date().getTime()}`,
-      comment: newComment.value,
+      comment: comment.value,
       created_at: new Date().toISOString(),
       created_by: user.value?.id,
       created_by_email: user.value?.email,
@@ -137,13 +156,16 @@ const saveComment = async () => {
     },
   ]
 
+  const tempCom = comment.value
+  comment.value = ''
+
   commentInputRef?.value?.setEditorContent('', true)
   await nextTick(() => {
     scrollComments()
   })
 
   try {
-    await _saveComment()
+    await _saveComment(tempCom)
     await nextTick(() => {
       isExpandedFormCommentMode.value = true
     })
@@ -235,10 +257,8 @@ const createdBy = (
               <div v-for="comment of comments" :key="comment.id" :class="`${comment.id}`" class="nc-comment-item">
                 <div
                   :class="{
-                    'hover:bg-gray-200 bg-[#F9F9FA]': comment.id !== editComment?.id,
-                    'bg-gray-200': comment.id === editComment?.id,
-                    '!bg-[#E7E7E9]': comment.resolved_by,
-                  }"
+                  'hover:bg-gray-100': editCommentValue?.id !== comment!.id
+                }"
                   class="group gap-3 overflow-hidden px-3 py-2"
                 >
                   <div class="flex items-start justify-between">
@@ -337,7 +357,7 @@ const createdBy = (
                       v-model:value="value"
                       autofocus
                       :hide-options="false"
-                      class="expanded-form-comment-edit-input expanded-form-comment-input !pt-2 !pb-0.5 !pl-2 !m-0 w-full !border-1 !border-gray-200 !rounded-lg !bg-white !text-gray-800 !text-small !leading-18px !max-h-[694px]"
+                      class="expanded-form-comment-edit-input cursor-text expanded-form-comment-input !py-2 !px-2 !m-0 w-full !border-1 !border-gray-200 !rounded-lg !bg-white !text-gray-800 !text-small !leading-18px !max-h-[240px]"
                       data-testid="expanded-form-comment-input"
                       sync-value-change
                       @save="onEditComment"
@@ -366,10 +386,10 @@ const createdBy = (
             <div v-if="hasEditPermission" class="bg-gray-50 nc-comment-input !rounded-br-2xl gap-2 flex">
               <SmartsheetExpandedFormRichComment
                 ref="commentInputRef"
-                v-model:value="newComment"
+                v-model:value="comment"
                 :hide-options="false"
                 placeholder="Comment..."
-                class="expanded-form-comment-input !m-0 pt-2 w-full !border-t-1 !border-gray-200 !bg-transparent !text-gray-800 !text-small !leading-18px !max-h-[566px]"
+                class="expanded-form-comment-input !py-2 !px-2 cursor-text border-1 rounded-lg w-full bg-transparent !text-gray-800 !text-small !leading-18px !max-h-[240px]"
                 :autofocus="isExpandedFormCommentMode"
                 data-testid="expanded-form-comment-input"
                 @focus="isExpandedFormCommentMode = false"
@@ -512,7 +532,8 @@ const createdBy = (
   box-shadow: none;
   &:focus,
   &:focus-within {
-    @apply min-h-16;
+    @apply min-h-16 !bg-white border-brand-500;
+    box-shadow: 0px 0px 0px 2px rgba(51, 102, 255, 0.24);
   }
   &::placeholder {
     @apply !text-gray-400;

@@ -214,7 +214,7 @@ watch(inputWrapperRef, () => {
 
     <span v-else-if="vModel === null && showNull" class="nc-cell-field nc-null uppercase">{{ $t('general.null') }}</span>
 
-    <LazyCellClampedText v-else :value="vModel" :lines="rowHeight" class="nc-cell-field" />
+    <LazyCellClampedText v-else :value="vModel ? stringifyProp(vModel) : ''" :lines="rowHeight" class="nc-cell-field" />
   </component>
 </template>
 

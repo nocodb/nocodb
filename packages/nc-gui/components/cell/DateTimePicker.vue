@@ -428,7 +428,7 @@ const cellValue = computed(
 </script>
 
 <template>
-  <div class="nc-cell-field relative">
+  <div v-bind="$attrs" class="nc-cell-field relative">
     <NcDropdown
       :visible="isOpen"
       :placement="isDatePicker ? 'bottomLeft' : 'bottomRight'"

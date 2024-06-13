@@ -30,8 +30,6 @@ const isExpandedBulkUpdateForm = inject(IsExpandedBulkUpdateFormOpenInj, ref(fal
 
 const isDropDownOpen = ref(false)
 
-const isKanban = inject(IsKanbanInj, ref(false))
-
 const column = toRef(props, 'column')
 
 const { isUIAllowed } = useRoles()
@@ -100,7 +98,6 @@ const onClick = (e: Event) => {
     class="flex items-center w-full text-xs text-gray-500 font-weight-medium group"
     :class="{
       'h-full': column,
-      '!text-gray-400': isKanban,
       'flex-col !items-start justify-center pt-0.5': isExpandedForm && !isMobileMode && !isExpandedBulkUpdateForm,
       'nc-cell-expanded-form-header cursor-pointer hover:bg-gray-100':
         isExpandedForm && !isMobileMode && isUIAllowed('fieldEdit') && !isExpandedBulkUpdateForm,

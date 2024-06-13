@@ -77,9 +77,9 @@ const contextMenu = computed({
     }
   },
 })
-const contextMenuTarget = ref<{ row: number } | null>(null)
+const contextMenuTarget = ref<{ row: RowType; index: number } | null>(null)
 
-const showContextMenu = (e: MouseEvent, target?: { row: number }) => {
+const showContextMenu = (e: MouseEvent, target?: { row: RowType; index: number }) => {
   if (isSqlView.value) return
   e.preventDefault()
   if (target) {
@@ -183,27 +183,41 @@ watch(
 </script>
 
 <template>
-  <a-dropdown
+  <NcDropdown
     v-model:visible="contextMenu"
     :trigger="isSqlView ? [] : ['contextmenu']"
     overlay-class-name="nc-dropdown-grid-context-menu"
   >
     <template #overlay>
-      <a-menu class="shadow !rounded !py-0" @click="contextMenu = false">
-        <a-menu-item v-if="contextMenuTarget" @click="deleteRow(contextMenuTarget.row)">
-          <div v-e="['a:row:delete']" class="nc-base-menu-item">
+      <NcMenu @click="contextMenu = false">
+        <NcMenuItem v-if="contextMenuTarget" @click="expandForm(contextMenuTarget.row)">
+          <div v-e="['a:row:expand-record']" class="flex items-center gap-2">
+            <component :is="iconMap.expand" class="flex" />
+            <!-- Expand Record -->
+            {{ $t('activity.expandRecord') }}
+          </div>
+        </NcMenuItem>
+        <NcDivider />
+
+        <NcMenuItem
+          v-if="contextMenuTarget?.index !== undefined"
+          class="!text-red-600 !hover:bg-red-50"
+          @click="deleteRow(contextMenuTarget.index)"
+        >
+          <div v-e="['a:row:delete']" class="flex items-center gap-2">
+            <component :is="iconMap.delete" class="flex" />
             <!-- Delete Row -->
             {{ $t('activity.deleteRow') }}
           </div>
-        </a-menu-item>
+        </NcMenuItem>
 
-        <!--        <a-menu-item v-if="contextMenuTarget" @click="openNewRecordFormHook.trigger()"> -->
-        <!--          <div v-e="['a:row:insert']" class="nc-base-menu-item"> -->
+        <!--        <NcMenuItem v-if="contextMenuTarget" @click="openNewRecordFormHook.trigger()"> -->
+        <!--          <div v-e="['a:row:insert']" class="flex items-center gap-2"> -->
         <!--            &lt;!&ndash; Insert New Row &ndash;&gt; -->
         <!--            {{ $t('activity.insertRow') }} -->
         <!--          </div> -->
-        <!--        </a-menu-item> -->
-      </a-menu>
+        <!--        </NcMenuItem> -->
+      </NcMenu>
     </template>
 
     <div
@@ -227,7 +241,7 @@ watch(
               :body-style="{ padding: '16px !important' }"
               :data-testid="`nc-gallery-card-${record.row.id}`"
               @click="expandFormClick($event, record)"
-              @contextmenu="showContextMenu($event, { row: rowIndex })"
+              @contextmenu="showContextMenu($event, { row: record, index: rowIndex })"
             >
               <template v-if="galleryData?.fk_cover_image_col_id" #cover>
                 <a-carousel
@@ -308,7 +322,7 @@ watch(
                 <div v-for="col in fieldsWithoutDisplay" :key="`record-${record.row.id}-${col.id}`">
                   <div class="flex flex-col rounded-lg w-full">
                     <div class="flex flex-row w-full justify-start">
-                      <div class="nc-card-col-header w-full text-gray-500 uppercase">
+                      <div class="nc-card-col-header w-full !children:text-gray-500">
                         <LazySmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" :hide-menu="true" />
 
                         <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="true" />
@@ -349,7 +363,7 @@ watch(
         </template>
       </div>
     </div>
-  </a-dropdown>
+  </NcDropdown>
 
   <LazySmartsheetPagination
     v-model:pagination-data="paginationData"
@@ -454,7 +468,7 @@ watch(
 .nc-card-col-header {
   :deep(.nc-cell-icon),
   :deep(.nc-virtual-cell-icon) {
-    @apply ml-0;
+    @apply ml-0 !w-3.5 !h-3.5;
   }
 }
 

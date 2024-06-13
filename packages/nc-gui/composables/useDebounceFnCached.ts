@@ -2,9 +2,6 @@ import type { DebounceFilterOptions, MaybeRefOrGetter } from '@vueuse/core'
 
 type FunctionArgs = (...args: any[]) => any
 
-// Cache to store debounced functions based on a unique key
-const debounceCache = new Map<string | number, any>()
-
 // Default function to generate a cache key
 function defaultGetCacheKey(): string {
   return 'default'
@@ -26,6 +23,9 @@ export function useCachedDebouncedFunction<T extends FunctionArgs>(
   getCacheKey: (...args: Parameters<T>) => string | number = defaultGetCacheKey,
   options: DebounceFilterOptions = {},
 ): (...args: Parameters<T>) => ReturnType<T> {
+  // Cache to store debounced functions based on a unique key
+  const debounceCache = new Map<string | number, any>()
+
   return function (...args: Parameters<T>): ReturnType<T> {
     // Generate a unique key for the given arguments
     const key = getCacheKey(args)

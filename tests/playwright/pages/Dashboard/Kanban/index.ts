@@ -52,8 +52,8 @@ export class KanbanPage extends BasePage {
   async dragDropStack(param: { from: number; to: number }) {
     const { from, to } = param;
     const [fromStack, toStack] = await Promise.all([
-      this.rootPage.locator(`.nc-kanban-stack-head`).nth(from),
-      this.rootPage.locator(`.nc-kanban-stack-head`).nth(to),
+      this.rootPage.locator(`.nc-kanban-stack-head >> .nc-kanban-stack-drag-handler`).nth(from),
+      this.rootPage.locator(`.nc-kanban-stack-head >> .nc-kanban-stack-drag-handler`).nth(to),
     ]);
     await fromStack.dragTo(toStack);
   }

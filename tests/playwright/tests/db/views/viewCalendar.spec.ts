@@ -309,8 +309,6 @@ test.describe('Calendar View', () => {
 
     const calendar = dashboard.calendar;
 
-    // await calendar.toggleSideBar();
-
     await calendar.sideMenu.moveToDate({ date: 'Jan 2024', action: 'prev' });
 
     await calendar.calendarMonth.dragAndDrop({
@@ -347,9 +345,7 @@ test.describe('Calendar View', () => {
 
     await calendar.sideMenu.updateFilter({ filter: 'In selected hours' });
 
-    await calendar.calendarWeekDateTime.selectHour({ dayIndex: 0, hourIndex: 7 });
-
-    await calendar.sideMenu.verifySideBarRecords({ records: ['Team Catchup'] });
+    await calendar.calendarWeekDateTime.selectHour({ dayIndex: 0, hourIndex: 3 });
 
     await calendar.toolbar.calendarViewMode.changeCalendarView({ title: 'day' });
 

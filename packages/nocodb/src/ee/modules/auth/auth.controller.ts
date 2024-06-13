@@ -69,7 +69,10 @@ export class AuthController extends AuthControllerCE {
   /* OpenID Connect APIs */
   @Post('/auth/oidc/genTokenByCode')
   @UseGuards(PublicApiLimiterGuard, AuthGuard('openid'))
-  async oidcSignin(@Req() req: NcRequest & { extra: any }, @Res() res: Response) {
+  async oidcSignin(
+    @Req() req: NcRequest & { extra: any },
+    @Res() res: Response,
+  ) {
     await this.setRefreshToken({ req, res });
     res.json({
       ...(await this.usersService.login(
@@ -192,7 +195,10 @@ export class AuthController extends AuthControllerCE {
 
   @Get('/auth/saml/logout')
   @UseGuards(PublicApiLimiterGuard, AuthGuard('saml'))
-  async samlLogout(@Req() req: NcRequest & { extra: any }, @Res() res: Response) {
+  async samlLogout(
+    @Req() req: NcRequest & { extra: any },
+    @Res() res: Response,
+  ) {
     (req as any).logout(req, function (err, request) {
       if (!err) {
         //redirect to the IdP Logout URL

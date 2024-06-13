@@ -33,12 +33,7 @@ async function onSubmit(
 
   const saved = await addOrUpdate(reloadMetaAndData)
 
-  if (!saved && submit) {
-    emit('cancel')
-    return
-  }
-
-  if (submit) {
+  if (submit && saved) {
     emit('submit', true, payload)
   }
 }

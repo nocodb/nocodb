@@ -499,7 +499,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
 
                   <!-- Stack -->
                   <a-layout v-else>
-                    <a-layout-header class="border-b-1 border-gray-100">
+                    <a-layout-header class="border-b-1 border-gray-100 min-h-[49px]">
                       <div
                         class="nc-kanban-stack-head w-full flex gap-1"
                         :class="{
@@ -521,13 +521,10 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                             "
                             type="text"
                             size="xs"
-                            class="nc-kanban-stack-drag-handler !px-1.5 !cursor-move !:disabled:cursor-not-allowed"
-                            :class="{
-                              'mt-0.5': compareStack(stack, isRenameOrNewStack),
-                            }"
+                            class="nc-kanban-stack-drag-handler !px-1.5 !cursor-move !:disabled:cursor-not-allowed mt-0.5"
                           >
                             <GeneralLoader v-if="compareStack(stack, isSavingStack)" size="regular" class="stack-rename-loader" />
-                            <GeneralIcon v-else icon="drag" />
+                            <GeneralIcon v-else icon="ncDrag" class="!font-weight-800 flex-none" />
                           </NcButton>
 
                           <div
@@ -543,12 +540,11 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                                 :column="metaColumnById[isRenameOrNewStack?.fk_column_id]"
                                 :option-id="isRenameOrNewStack.id"
                                 @submit="(loadMeta, payload) => handleSubmitRenameOrNewStack(loadMeta, payload, stackIdx)"
-                                @cancel="isRenameOrNewStack = null"
                               />
                             </template>
                             <a-tag
                               v-else
-                              class="max-w-full !rounded-full !px-2 !py-1 h-7 !m-0 !border-none"
+                              class="max-w-full !rounded-full !px-2 !py-1 h-7 !m-0 !border-none !mt-0.5"
                               :color="stack.color"
                               @dblclick="
                                 () => {
@@ -596,10 +592,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                             :disabled="compareStack(stack, isSavingStack)"
                             type="text"
                             size="xs"
-                            class="!px-1.5"
-                            :class="{
-                              'mt-0.5': compareStack(stack, isRenameOrNewStack),
-                            }"
+                            class="!px-1.5 mt-0.5"
                             data-testid="nc-kanban-stack-context-menu"
                           >
                             <GeneralIcon icon="threeDotVertical" />
@@ -655,7 +648,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                                 @click="handleCollapseAllStack"
                               >
                                 <div class="flex gap-2 items-center">
-                                  <component :is="iconMap.minimize" class="flex-none w-4 h-4" />
+                                  <component :is="iconMap.minimizeAll" class="flex-none w-4 h-4" />
                                   {{ $t('activity.kanban.collapseAll') }}
                                 </div>
                               </NcMenuItem>
@@ -665,7 +658,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                                 @click="handleExpandAllStack"
                               >
                                 <div class="flex gap-2 items-center">
-                                  <component :is="iconMap.maximize" class="flex-none w-4 h-4" />
+                                  <component :is="iconMap.maximizeAll" class="flex-none w-4 h-4" />
                                   {{ $t('activity.kanban.expandAll') }}
                                 </div>
                               </NcMenuItem>
@@ -824,7 +817,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                                     <div v-for="col in fieldsWithoutDisplay" :key="`record-${record.row.id}-${col.id}`">
                                       <div class="flex flex-col rounded-lg w-full">
                                         <div class="flex flex-row w-full justify-start">
-                                          <div class="nc-card-col-header w-full !children:text-gray-400">
+                                          <div class="nc-card-col-header w-full !children:text-gray-500">
                                             <LazySmartsheetHeaderVirtualCell
                                               v-if="isVirtualCol(col)"
                                               :column="col"
@@ -918,7 +911,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                         <div v-else>&nbsp;</div>
 
                         <!-- Record Count -->
-                        <div class="nc-kanban-data-count text-gray-600 font-weight-500 px-1">
+                        <div class="nc-kanban-data-count text-gray-500 font-weight-500 px-1">
                           {{ formattedData.get(stack.title)!.length }}/{{ countByStack.get(stack.title) ?? 0 }}
                           {{ countByStack.get(stack.title) !== 1 ? $t('objects.records') : $t('objects.record') }}
                         </div>
@@ -931,7 +924,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                 <a-card
                   v-else
                   :key="`${stack.id}-collapsed`"
-                  class="nc-kanban-collapsed-stack flex items-center w-[320px] h-[44px] !rounded-xl cursor-pointer h-full !p-2 overflow-hidden !shadow-none !hover:shadow-none !border-gray-200"
+                  class="nc-kanban-collapsed-stack flex items-center w-68.5 h-[44px] !rounded-xl cursor-pointer h-full !p-2 overflow-hidden !shadow-none !hover:shadow-none !border-gray-200"
                   :class="{
                     'not-draggable': stack.title === null || isLocked || isPublic || !hasEditPermission,
                   }"
@@ -960,7 +953,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                           class="nc-kanban-stack-drag-handler !px-1.5 !cursor-move"
                           @click.stop
                         >
-                          <GeneralIcon icon="drag" />
+                          <GeneralIcon icon="ncDrag" class="font-weight-800 flex-none" />
                         </NcButton>
 
                         <div class="flex-1 flex max-w-[115px]">
@@ -1018,7 +1011,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
           <div v-if="hasEditPermission && !isPublic && !isLocked && groupingFieldColumn?.id" class="nc-kanban-add-new-stack">
             <!-- Add New Stack -->
             <a-card
-              class="flex flex-col w-68.5 !rounded-lg overflow-y-hidden !shadow-none !hover:shadow-none border-gray-200"
+              class="flex flex-col w-68.5 !rounded-xl overflow-y-hidden !shadow-none !hover:shadow-none border-gray-200"
               :class="{
                 '!cursor-default': isLocked || !hasEditPermission,
                 '!border-none': !compareStack(addNewStackObj, isRenameOrNewStack),
@@ -1027,7 +1020,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
               :body-style="{
                 padding: '0px !important',
                 height: '100%',
-                borderRadius: '0.5rem !important',
+                borderRadius: '0.75rem !important',
                 paddingBottom: '0rem !important',
               }"
             >
@@ -1060,7 +1053,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                     <NcButton
                       v-if="!compareStack(addNewStackObj, isRenameOrNewStack)"
                       type="secondary"
-                      class="add-new-stack-btn w-full !rounded-lg min-h-11"
+                      class="add-new-stack-btn w-full !rounded-xl min-h-11"
                     >
                       <div class="flex items-center gap-2">
                         <component :is="iconMap.plus" v-if="!isPublic && !isLocked" class="" />
@@ -1084,7 +1077,6 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                           :column="metaColumnById[groupingFieldColumn?.id]"
                           is-new-stack
                           @submit="(loadMeta) => handleSubmitRenameOrNewStack(loadMeta, undefined)"
-                          @cancel="isRenameOrNewStack = null"
                         />
                       </template>
                     </div>

@@ -3850,7 +3850,6 @@ class BaseModelSqlv2 {
       let preInsertOps: (() => Promise<string>)[] = [];
       let aiPkCol: Column;
       let agPkCol: Column;
-
       if (!raw) {
         const columns = await this.model.getColumns(this.context);
 
@@ -3873,7 +3872,11 @@ class BaseModelSqlv2 {
                 );
               }
 
-              if (col.system && !allowSystemColumn) {
+              if (
+                col.system &&
+                !allowSystemColumn &&
+                col.uidt !== UITypes.ForeignKey
+              ) {
                 NcError.badRequest(
                   `Column "${col.title}" is system column and cannot be updated`,
                 );
@@ -4950,7 +4953,7 @@ class BaseModelSqlv2 {
           );
         }
 
-        if (column.system) {
+        if (column.system && column.uidt !== UITypes.ForeignKey) {
           NcError.badRequest(
             `Column "${column.title}" is system column and cannot be updated`,
           );

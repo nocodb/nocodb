@@ -5,7 +5,7 @@ import type { ColumnReqType, ColumnType } from 'nocodb-sdk'
 interface Props {
   column?: ColumnType
   optionId?: string
-  isNew?: boolean
+  isNewStack?: boolean
 }
 
 const props = defineProps<Props>()
@@ -22,7 +22,7 @@ useProvideColumnCreateStore(meta, column, undefined, undefined, undefined, ref(t
 <template>
   <SmartsheetKanbanEditOrAddStack
     :option-id="optionId"
-    :is-new="isNew"
+    :is-new-stack="isNewStack"
     @submit="emit('submit')"
     @cancel="emit('cancel')"
     @mounted="emit('mounted')"

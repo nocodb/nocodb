@@ -111,12 +111,16 @@ const addNewOption = () => {
   }
   options.value.push(tempOption)
 
-  isReverseLazyLoad.value = true
+  if (isKanbanStack.value) {
+    renderedOptions.value = options.value
+  } else {
+    isReverseLazyLoad.value = true
 
-  loadedOptionAnchor.value = options.value.length - OPTIONS_PAGE_COUNT
-  loadedOptionAnchor.value = Math.max(loadedOptionAnchor.value, 0)
+    loadedOptionAnchor.value = options.value.length - OPTIONS_PAGE_COUNT
+    loadedOptionAnchor.value = Math.max(loadedOptionAnchor.value, 0)
 
-  renderedOptions.value = options.value.slice(loadedOptionAnchor.value, options.value.length)
+    renderedOptions.value = options.value.slice(loadedOptionAnchor.value, options.value.length)
+  }
 
   optionsWrapperDomRef.value!.scrollTop = optionsWrapperDomRef.value!.scrollHeight
 
@@ -332,9 +336,13 @@ onMounted(() => {
     return el
   })
 
-  loadedOptionAnchor.value = Math.min(loadedOptionAnchor.value, options.value.length)
+  if (isKanbanStack.value) {
+    renderedOptions.value = options.value
+  } else {
+    loadedOptionAnchor.value = Math.min(loadedOptionAnchor.value, options.value.length)
 
-  renderedOptions.value = [...options.value].slice(0, loadedOptionAnchor.value)
+    renderedOptions.value = [...options.value].slice(0, loadedOptionAnchor.value)
+  }
 
   // Support for older options
   for (const op of options.value.filter((el) => el.order === null)) {
@@ -385,7 +393,7 @@ if (isKanbanStack.value) {
       (o) => o?.id && o.id === kanbanStackOption.value?.id,
     )
 
-    if (option?.title !== kanbanStackOption.value?.title) {
+    if (option?.title !== kanbanStackOption.value?.title || option?.color !== kanbanStackOption.value?.color) {
       syncOptions(true, true)
     } else {
       emit('saveChanges', true, false)
@@ -408,8 +416,8 @@ if (isKanbanStack.value) {
       }"
     >
       <template v-if="isKanbanStack">
-        <div v-if="kanbanStackOption" class="flex items-center nc-select-option group">
-          <div class="flex items-center w-full" :class="{ removed: kanbanStackOption.status === 'remove' }">
+        <div v-if="kanbanStackOption" class="flex items-center nc-select-option">
+          <div class="flex items-center w-full">
             <NcDropdown
               v-model:visible="colorMenus[kanbanStackOption.index!]"
               :auto-close="false"
@@ -427,9 +435,8 @@ if (isKanbanStack.value) {
                     v-model="kanbanStackOption.color"
                     :is-open="colorMenus[kanbanStackOption.index!]"
                     @input="(el:string) => {
-                      console.log('value', el, kanbanStackOption!.color)
                       kanbanStackOption!.color = el
-                      optionChanged(kanbanStackOption!, true)
+                      optionChanged(kanbanStackOption!)
                     }"
                   ></LazyGeneralAdvanceColorPicker>
                 </div>
@@ -438,9 +445,8 @@ if (isKanbanStack.value) {
 
             <a-input
               v-model:value="kanbanStackOption.title"
-              class="caption !rounded-lg nc-select-col-option-select-option !bg-transparent"
+              class="caption !rounded-lg nc-select-col-option-select-option nc-kanban-stack-input !bg-transparent"
               :data-testid="`select-column-option-input-${kanbanStackOption.index!}`"
-              :disabled="kanbanStackOption.status === 'remove'"
               @keydown.enter.prevent.stop="syncOptions(true, true)"
               @change="optionChanged(kanbanStackOption!)"
             />
@@ -448,8 +454,8 @@ if (isKanbanStack.value) {
 
           <div
             v-if="isNewStack"
-            class="mx-1 hover:!text-black-500 text-gray-500 cursor-pointer hover:bg-gray-200 py-1 px-1.5 rounded-md h-7 flex items-center invisible group-hover:visible"
-            @click="removeRenderedOption(renderedOptions.length - 1)"
+            class="ml-1 hover:!text-black-500 text-gray-500 cursor-pointer hover:bg-gray-200 py-1 px-1.5 rounded-md h-7 flex items-center"
+            @click="emit('saveChanges', true, false)"
           >
             <component :is="iconMap.close" class="-mt-0.25 w-4 h-4" />
           </div>
@@ -588,11 +594,11 @@ if (isKanbanStack.value) {
 :deep(.nc-select-col-option-select-option) {
   @apply !truncate;
 
-  &:not(:focus):hover {
+  &:not(.nc-kanban-stack-input):not(:focus):hover {
     @apply !border-transparent;
   }
 
-  &:not(:focus) {
+  &:not(.nc-kanban-stack-input):not(:focus) {
     @apply !border-transparent;
   }
 

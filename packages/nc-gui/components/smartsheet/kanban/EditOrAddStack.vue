@@ -1,13 +1,13 @@
 <script lang="ts" setup>
 const props = defineProps<{
   optionId?: string
-  isNew?: boolean
+  isNewStack?: boolean
   readonly?: boolean
 }>()
 
 const emit = defineEmits(['submit', 'cancel', 'mounted', 'add', 'update'])
 
-const { optionId, isNew, readonly } = toRefs(props)
+const { optionId, isNewStack } = toRefs(props)
 
 const { formState, addOrUpdate } = useColumnCreateStoreOrThrow()
 
@@ -56,7 +56,7 @@ async function onSubmit(submit: boolean = false, saveChanges: boolean = true) {
       v-model:value="formState"
       is-kanban-stack
       :option-id="optionId"
-      :is-new="isNew"
+      :is-new-stack="isNewStack"
       @save-changes="onSubmit"
     />
   </a-form>

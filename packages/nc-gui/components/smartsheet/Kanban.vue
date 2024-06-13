@@ -65,6 +65,7 @@ const {
   shouldScrollToRight,
   deleteRow,
   moveHistory,
+  addNewStackId,
 } = useKanbanViewStoreOrThrow()
 
 const { isViewDataLoading } = storeToRefs(useViewsStore())
@@ -303,7 +304,9 @@ const handleCollapseStack = async (stackIdx: number) => {
 }
 const handleCollapseAllStack = async () => {
   groupingFieldColOptions.value.forEach((stack) => {
-    stack.collapsed = true
+    if (stack.id !== addNewStackId) {
+      stack.collapsed = true
+    }
   })
 
   if (!isPublic.value) {
@@ -433,11 +436,81 @@ const compareStack = (stack: any, stack2?: any) => {
           <template #item="{ element: stack, index: stackIdx }">
             <div
               class="nc-kanban-stack"
-              :class="{ 'w-[44px]': stack.collapsed, 'hidden': hideEmptyStack && !formattedData.get(stack.title)?.length }"
+              :class="{
+                'w-[44px]': stack.collapsed,
+                'hidden': stack.id !== addNewStackId && hideEmptyStack && !formattedData.get(stack.title)?.length,
+              }"
             >
+              <a-card
+                v-if="stack.id === addNewStackId && hasEditPermission && !isPublic && !isLocked"
+                :key="`${stack.id}-stack`"
+                class="not-draggable flex flex-col w-80 !rounded-xl overflow-y-hidden !shadow-none !hover:shadow-none"
+                :class="{
+                  '!cursor-default': isLocked || !hasEditPermission,
+                }"
+                :head-style="{ paddingBottom: '0px' }"
+                :body-style="{
+                  padding: '0px !important',
+                  height: '100%',
+                  borderRadius: '0.75rem !important',
+                  paddingBottom: '0rem !important',
+                }"
+              >
+                <!-- Skeleton -->
+                <div v-if="!formattedData.get(stack.title) || !countByStack" class="mt-2.5 px-3 !w-full">
+                  <a-skeleton-input :active="true" class="!w-full !h-9.75 !rounded-lg overflow-hidden" />
+                </div>
+
+                <!-- Stack -->
+                <a-layout v-else>
+                  <a-layout-header>
+                    <div
+                      class="nc-kanban-stack-head w-full flex"
+                      :class="{
+                        'items-start': compareStack(stack, isRenameOrNewStack),
+                        'cursor-pointer': !compareStack(stack, isRenameOrNewStack),
+                      }"
+                      @click="
+                        () => {
+                          if (!compareStack(stack, isRenameOrNewStack)) {
+                            isRenameOrNewStack = stack
+                          }
+                        }
+                      "
+                    >
+                      <div
+                        v-if="!compareStack(stack, isRenameOrNewStack)"
+                        class="w-full flex items-center justify-center gap-2 hover:text-brand-500 transition-colors duration-0.3s"
+                      >
+                        <component :is="iconMap.plus" v-if="!isPublic && !isLocked" class="" />
+
+                        {{ $t('general.new') }} {{ $t('general.stack').toLowerCase() }}
+                      </div>
+
+                      <div
+                        v-else
+                        class="flex-1 flex"
+                        :class="{
+                          '-ml-1': compareStack(stack, isRenameOrNewStack),
+                        }"
+                        @click.stop
+                      >
+                        <template v-if="compareStack(stack, isRenameOrNewStack)">
+                          <SmartsheetKanbanEditOrAddStackProvider
+                            :column="metaColumnById[isRenameOrNewStack?.fk_column_id]"
+                            is-new-stack
+                            @submit="isRenameOrNewStack = null"
+                          />
+                        </template>
+                      </div>
+                    </div>
+                  </a-layout-header>
+                </a-layout>
+              </a-card>
+
               <!-- Non Collapsed Stacks -->
               <a-card
-                v-if="!stack.collapsed"
+                v-else-if="!stack.collapsed"
                 :key="`${stack.id}-${stackIdx}`"
                 class="flex flex-col w-80 h-full !rounded-xl overflow-y-hidden !shadow-none !hover:shadow-none"
                 :class="{

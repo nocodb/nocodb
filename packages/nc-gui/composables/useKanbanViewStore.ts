@@ -13,6 +13,8 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       throw new Error('Table meta is not available')
     }
 
+    const addNewStackId = 'addNewStack'
+
     const { t } = useI18n()
 
     const { api } = useApi()
@@ -250,7 +252,16 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
             isChanged = true
           }
         }
-        groupingFieldColOptions.value = stackMetaObj.value[fk_grp_col_id]
+        groupingFieldColOptions.value = [
+          ...stackMetaObj.value[fk_grp_col_id],
+          {
+            id: addNewStackId,
+            title: null,
+            order: stackMetaObj.value[fk_grp_col_id].length + 1,
+            color: themeV3Colors.gray[600],
+            fk_column_id: fk_grp_col_id,
+          } as any,
+        ]
 
         if (isChanged) {
           await updateKanbanStackMeta()
@@ -264,6 +275,14 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
           ...((groupingFieldColumn.value?.colOptions as SelectOptionsType & { collapsed: boolean })?.options ?? []),
           // enrich uncategorized stack
           { id: 'uncategorized', title: null, order: 0, color: themeV3Colors.gray[600] } as any,
+          {
+            id: addNewStackId,
+            title: null,
+            order:
+              ((groupingFieldColumn.value?.colOptions as SelectOptionsType & { collapsed: boolean })?.options ?? []).length + 1,
+            color: themeV3Colors.gray[600],
+            fk_column_id: fk_grp_col_id,
+          } as any,
         ]
           // sort by initial order
           .sort((a, b) => a.order! - b.order!)
@@ -682,6 +701,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       shouldScrollToRight,
       deleteRow,
       moveHistory,
+      addNewStackId,
     }
   },
   'kanban-view-store',

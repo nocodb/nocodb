@@ -744,7 +744,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                   </a-layout-header>
 
                   <a-layout-content
-                    class="overflow-y-hidden !py-2"
+                    class="overflow-y-hidden"
                     :style="{
                       backgroundColor: tinycolor
                         .mix(
@@ -759,18 +759,17 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                         .toString(),
                     }"
                   >
-                    <div
-                      :ref="kanbanListRef"
-                      class="nc-kanban-list h-full nc-scrollbar-thin px-2"
-                      :data-stack-title="stack.title"
-                    >
+                    <div :ref="kanbanListRef" class="nc-kanban-list h-full nc-scrollbar-thin p-2" :data-stack-title="stack.title">
                       <!-- Draggable Record Card -->
                       <Draggable
                         :list="formattedData.get(stack.title)"
                         item-key="row.Id"
                         draggable=".nc-kanban-item"
                         group="kanban-card"
-                        class="h-full flex flex-col gap-2"
+                        class="flex flex-col gap-2"
+                        :class="{
+                          'h-full': !formattedData.get(stack.title)?.length,
+                        }"
                         filter=".not-draggable"
                         @start="(e) => e.target.classList.add('grabbing')"
                         @end="(e) => e.target.classList.remove('grabbing')"

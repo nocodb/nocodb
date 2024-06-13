@@ -555,7 +555,14 @@ const getRowId = (row: RowType) => {
                     </div>
                   </a-layout-header>
 
-                  <a-layout-content class="overflow-y-hidden !py-2">
+                  <a-layout-content
+                    class="overflow-y-hidden !py-2"
+                    :style="{
+                      backgroundColor: tinycolor
+                        .mix(stack.color || '#ccc', '#ffffff', tinycolor(stack.color || '#ccc').isLight() ? 70 : 90)
+                        .toString(),
+                    }"
+                  >
                     <div
                       :ref="kanbanListRef"
                       class="nc-kanban-list h-full nc-scrollbar-thin px-2"
@@ -918,11 +925,12 @@ const getRowId = (row: RowType) => {
 // override ant design style
 .a-layout,
 .ant-layout-header,
-.ant-layout-footer,
-.ant-layout-content {
+.ant-layout-footer {
   @apply !bg-white;
 }
-
+.ant-layout-content {
+  background-color: unset;
+}
 .ant-layout-header,
 .ant-layout-footer {
   @apply p-2 text-sm;

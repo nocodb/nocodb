@@ -440,14 +440,6 @@ const hideEmptyStack = computed(() => parseProp(kanbanMetaData.value?.meta).hide
                   paddingBottom: '0rem !important',
                 }"
               >
-                <!-- Header Color Bar -->
-                <!-- 
-                <div
-                  :style="`background-color: ${stack.color}`"
-                  class="nc-kanban-stack-head-color h-[10px] mt-3 mx-3 rounded-full"
-                ></div> 
-                -->
-
                 <!-- Skeleton -->
                 <div v-if="!formattedData.get(stack.title) || !countByStack" class="mt-2.5 px-3 !w-full">
                   <a-skeleton-input :active="true" class="!w-full !h-9.75 !rounded-lg overflow-hidden" />
@@ -803,8 +795,11 @@ const hideEmptyStack = computed(() => parseProp(kanbanMetaData.value?.meta).hide
                   paddingBottom: '0rem !important',
                 }"
               >
-                <div class="items-center justify-between" @click="handleCollapseStack(stackIdx)">
-                  <div v-if="!formattedData.get(stack.title) || !countByStack" class="!w-full">
+                <div class="h-full flex items-center justify-between" @click="handleCollapseStack(stackIdx)">
+                  <div
+                    v-if="!formattedData.get(stack.title) || !countByStack"
+                    class="!w-full !h-full flex items-center justify-center"
+                  >
                     <a-skeleton-input :active="true" class="!w-full !h-4 !rounded-lg overflow-hidden" />
                   </div>
                   <div v-else class="nc-kanban-stack-head w-full flex items-center justify-between gap-2">

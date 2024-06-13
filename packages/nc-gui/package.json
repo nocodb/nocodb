@@ -76,7 +76,7 @@
     "marked": "^4.3.0",
     "monaco-editor": "^0.45.0",
     "monaco-sql-languages": "^0.11.0",
-    "nocodb-sdk": "0.207.3",
+    "nocodb-sdk": "0.250.0",
     "papaparse": "^5.4.1",
     "parse-github-url": "^1.0.2",
     "pinia": "^2.1.7",

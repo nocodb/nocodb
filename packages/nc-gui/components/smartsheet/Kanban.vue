@@ -453,7 +453,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean) => {
               <a-card
                 v-if="stack.id === addNewStackId && hasEditPermission && !isPublic && !isLocked"
                 :key="`${stack.id}-stack`"
-                class="flex flex-col w-80 !rounded-xl overflow-y-hidden !shadow-none !hover:shadow-none border-gray-200"
+                class="flex flex-col w-68.5 !rounded-xl overflow-y-hidden !shadow-none !hover:shadow-none border-gray-200"
                 :class="{
                   '!cursor-default': isLocked || !hasEditPermission,
                   '!border-none': !compareStack(stack, isRenameOrNewStack),
@@ -531,7 +531,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean) => {
               <a-card
                 v-else-if="!stack.collapsed"
                 :key="`${stack.id}-${stackIdx}`"
-                class="flex flex-col w-80 h-full !rounded-xl overflow-y-hidden !shadow-none !hover:shadow-none !border-gray-200"
+                class="flex flex-col w-68.5 h-full !rounded-xl overflow-y-hidden !shadow-none !hover:shadow-none !border-gray-200"
                 :class="{
                   'not-draggable': stack.title === null || isLocked || isPublic || !hasEditPermission,
                   '!cursor-default': isLocked || !hasEditPermission,
@@ -720,7 +720,15 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean) => {
                     class="overflow-y-hidden !py-2"
                     :style="{
                       backgroundColor: tinycolor
-                        .mix(stack.color || '#ccc', '#ffffff', tinycolor(stack.color || '#ccc').isLight() ? 70 : 90)
+                        .mix(
+                          stack.color || '#ccc',
+                          '#ffffff',
+                          tinycolor(stack.color || '#ccc').isLight()
+                            ? 70
+                            : tinycolor(stack.color || '#ccc').getBrightness() <= 100
+                            ? 80
+                            : 90,
+                        )
                         .toString(),
                     }"
                   >

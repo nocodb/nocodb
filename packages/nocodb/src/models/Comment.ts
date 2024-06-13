@@ -126,6 +126,30 @@ export default class Comment implements CommentType {
     return Comment.get(context, commentId, ncMeta);
   }
 
+  public static async resolve(
+    context,
+    commentId: string,
+    comment: Partial<Comment>,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const updateObj = extractProps(comment, [
+      'resolved_by',
+      'resolved_by_email',
+    ]);
+
+    await ncMeta.metaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.COMMENTS,
+      prepareForDb(updateObj),
+      commentId,
+      {},
+      true,
+    );
+
+    return Comment.get(context, commentId, ncMeta);
+  }
+
   static async delete(
     context: NcContext,
     commentId: string,

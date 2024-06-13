@@ -14,7 +14,6 @@ const {
   audits,
   isAuditLoading,
   saveComment: _saveComment,
-  comment: newComment,
   updateComment,
 } = useExpandedFormStoreOrThrow()
 
@@ -23,6 +22,8 @@ const { isExpandedFormCommentMode } = storeToRefs(useConfigStore())
 const commentsWrapperEl = ref<HTMLDivElement>()
 
 const commentInputRef = ref<any>()
+
+const comment = ref('')
 
 const { copy } = useClipboard()
 
@@ -71,12 +72,16 @@ async function onEditComment() {
 
   isCommentMode.value = true
 
-  await updateComment(editCommentValue.value.id!, {
-    comment: editCommentValue.value?.comment,
-  })
-  loadComments()
+  const tempCom = {
+    ...editCommentValue.value,
+  }
+
   isEditing.value = false
   editCommentValue.value = undefined
+  await updateComment(tempCom.id!, {
+    comment: tempCom.comment,
+  })
+  loadComments()
 }
 
 function onCancel(e: KeyboardEvent) {
@@ -120,13 +125,13 @@ function scrollComments() {
 }
 
 const saveComment = async () => {
-  if (!newComment.value.trim()) return
+  if (!comment.value.trim()) return
 
-  while (newComment.value.endsWith('<br />') || newComment.value.endsWith('\n')) {
-    if (newComment.value.endsWith('<br />')) {
-      newComment.value = newComment.value.slice(0, -6)
+  while (comment.value.endsWith('<br />') || comment.value.endsWith('\n')) {
+    if (comment.value.endsWith('<br />')) {
+      comment.value = comment.value.slice(0, -6)
     } else {
-      newComment.value = newComment.value.slice(0, -2)
+      comment.value = comment.value.slice(0, -2)
     }
   }
 
@@ -137,7 +142,7 @@ const saveComment = async () => {
     ...comments.value,
     {
       id: `temp-${new Date().getTime()}`,
-      comment: newComment.value,
+      comment: comment.value,
       created_at: new Date().toISOString(),
       created_by: user.value?.id,
       created_by_email: user.value?.email,
@@ -145,13 +150,16 @@ const saveComment = async () => {
     },
   ]
 
+  const tempCom = comment.value
+  comment.value = ''
+
   commentInputRef?.value?.setEditorContent('', true)
   await nextTick(() => {
     scrollComments()
   })
 
   try {
-    await _saveComment()
+    await _saveComment(tempCom)
     await nextTick(() => {
       isExpandedFormCommentMode.value = true
     })
@@ -406,7 +414,7 @@ const editedAt = (comment: CommentType) => {
                       v-model:value="value"
                       autofocus
                       :hide-options="false"
-                      class="expanded-form-comment-edit-input expanded-form-comment-input !py-2 !px-2 !m-0 w-full !border-1 !border-gray-200 !rounded-lg !bg-white !text-gray-800 !text-small !leading-18px !max-h-[240px]"
+                      class="expanded-form-comment-edit-input cursor-text expanded-form-comment-input !py-2 !px-2 !m-0 w-full !border-1 !border-gray-200 !rounded-lg !bg-white !text-gray-800 !text-small !leading-18px !max-h-[240px]"
                       data-testid="expanded-form-comment-input"
                       sync-value-change
                       @save="onEditComment"
@@ -435,10 +443,10 @@ const editedAt = (comment: CommentType) => {
             <div v-if="hasEditPermission" class="px-3 pb-3 nc-comment-input !rounded-br-2xl gap-2 flex">
               <SmartsheetExpandedFormRichComment
                 ref="commentInputRef"
-                v-model:value="newComment"
+                v-model:value="comment"
                 :hide-options="false"
                 placeholder="Comment..."
-                class="expanded-form-comment-input !py-2 !px-2 border-1 rounded-lg w-full bg-transparent !text-gray-800 !text-small !leading-18px !max-h-[240px]"
+                class="expanded-form-comment-input !py-2 !px-2 cursor-text border-1 rounded-lg w-full bg-transparent !text-gray-800 !text-small !leading-18px !max-h-[240px]"
                 :autofocus="isExpandedFormCommentMode"
                 data-testid="expanded-form-comment-input"
                 @focus="isExpandedFormCommentMode = false"
@@ -581,9 +589,6 @@ const editedAt = (comment: CommentType) => {
   &:focus-within {
     @apply min-h-16 !bg-white border-brand-500;
     box-shadow: 0px 0px 0px 2px rgba(51, 102, 255, 0.24);
-  }
-  &:hover:not(:focus) {
-    background-color: #f9f9fa;
   }
   &::placeholder {
     @apply !text-gray-400;

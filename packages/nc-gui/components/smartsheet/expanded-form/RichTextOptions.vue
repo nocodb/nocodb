@@ -79,6 +79,9 @@ const newMentionNode = () => {
       .chain()
       .deleteRange({ from: editor.value.state.selection.$from.pos - 1, to: editor.value.state.selection.$from.pos })
       .run()
+  } else if (lastCharacter !== ' ') {
+    editor.value?.commands.insertContent(' @')
+    editor.value?.chain().focus().run()
   } else {
     editor.value?.commands.insertContent('@')
     editor.value?.chain().focus().run()

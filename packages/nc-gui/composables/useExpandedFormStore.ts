@@ -25,8 +25,6 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
   const isAuditLoading = ref(false)
 
-  const comment = ref('')
-
   const commentsDrawer = ref(true)
 
   const saveRowAndStay = ref(0)
@@ -250,9 +248,9 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     }
   }
 
-  const saveComment = async () => {
+  const saveComment = async (comment: string) => {
     try {
-      if (!row.value || !comment.value) {
+      if (!row.value || !comment) {
         comments.value = comments.value.filter((c) => !c.id?.startsWith('temp-'))
         return
       }
@@ -264,7 +262,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
       await $api.utils.commentRow({
         fk_model_id: meta.value?.id as string,
         row_id: rowId,
-        comment: `${comment.value}`.replace(/(<br \/>)+$/g, ''),
+        comment: `${comment}`.replace(/(<br \/>)+$/g, ''),
       })
 
       // Increase Comment Count in rowMeta
@@ -278,8 +276,6 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
       // reloadTrigger?.trigger()
 
       await Promise.all([loadComments(), loadAudits()])
-
-      comment.value = ''
     } catch (e: any) {
       comments.value = comments.value.filter((c) => !(c.id ?? '').startsWith('temp-'))
       message.error(
@@ -529,7 +525,34 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
   }
 
   const updateComment = async (commentId: string, comment: Partial<CommentType>) => {
-    return await $api.utils.commentUpdate(commentId, comment)
+    const tempEdit = comments.value.find((c) => c.id === commentId)
+    try {
+      comments.value = comments.value.map((c) => {
+        if (c.id === commentId) {
+          return {
+            ...c,
+            ...comment,
+            updated_at: new Date().toISOString(),
+          }
+        }
+        return c
+      })
+      await $api.utils.commentUpdate(commentId, comment)
+    } catch (e: any) {
+      comments.value = comments.value.map((c) => {
+        if (c.id === commentId) {
+          return tempEdit
+        }
+        return c
+      })
+      message.error(
+        await extractSdkResponseErrorMsg(
+          e as Error & {
+            response: any
+          },
+        ),
+      )
+    }
   }
 
   return {
@@ -543,7 +566,6 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     resolveComment,
     isCommentsLoading,
     saveComment,
-    comment,
     isYou,
     commentsDrawer,
     row,

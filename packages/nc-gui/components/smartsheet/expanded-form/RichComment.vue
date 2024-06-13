@@ -61,6 +61,8 @@ const vModel = useVModel(props, 'value', emits, { defaultValue: '' })
 const tiptapExtensions = [
   StarterKit.configure({
     heading: false,
+    codeBlock: false,
+    code: false,
   }),
   Underline,
   Link,
@@ -89,6 +91,7 @@ const editor = useEditor({
   onFocus: () => {
     isFocused.value = true
     emits('focus')
+    onFocusWrapper()
   },
   onBlur: (e) => {
     const targetEl = e?.event.relatedTarget as HTMLElement
@@ -133,12 +136,13 @@ const setEditorContent = (contentMd: any, focusEndOfDoc?: boolean) => {
 const onFocusWrapper = () => {
   if (!props.readOnly && !keys.shift.value) {
     editor.value?.chain().focus().run()
+    setEditorContent(vModel.value, true)
   }
 }
 
 if (props.syncValueChange) {
   watch([vModel, editor], () => {
-    setEditorContent(vModel.value, true)
+    setEditorContent(vModel.value)
   })
 }
 
@@ -284,6 +288,7 @@ const saveComment = (e) => {
         v-if="editor"
         ref="richTextLinkOptionRef"
         :editor="editor"
+        :is-comment="true"
         :is-form-field="true"
         @blur="isFocused = false"
       />

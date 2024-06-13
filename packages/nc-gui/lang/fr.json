@@ -1133,6 +1133,7 @@
     "thisSharedViewIsProtected": "Cette vue partagée est protégée",
     "successfullySubmittedFormData": "Données du formulaire soumises avec succès",
     "formViewNotSupportedOnMobile": "L'affichage des formulaires n'est pas pris en charge sur les téléphones portables",
+    "calendarViewNotSupportedOnMobile": "Calendar view is not supported on mobile",
     "newFormWillBeLoaded": "Un nouveau formulaire sera chargé après {seconds} secondes",
     "optimizedQueryDisabled": "Optimized query is disabled",
     "optimizedQueryEnabled": "Optimized query is enabled",

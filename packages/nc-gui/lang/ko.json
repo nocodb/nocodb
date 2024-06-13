@@ -1133,6 +1133,7 @@
     "thisSharedViewIsProtected": "이 공유 뷰는 비밀번호로 보호됩니다.",
     "successfullySubmittedFormData": "양식 데이터가 성공적으로 제출되었습니다.",
     "formViewNotSupportedOnMobile": "모바일에서는 폼 뷰가 지원되지 않습니다.",
+    "calendarViewNotSupportedOnMobile": "Calendar view is not supported on mobile",
     "newFormWillBeLoaded": "{seconds}초 후에 새 양식이 로드됩니다.",
     "optimizedQueryDisabled": "최적화된 쿼리가 비활성화되었습니다",
     "optimizedQueryEnabled": "최적화된 쿼리가 활성화되었습니다",

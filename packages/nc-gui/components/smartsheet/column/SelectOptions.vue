@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
-import { UITypes } from 'nocodb-sdk'
+import { UITypes, type SelectOptionsType } from 'nocodb-sdk'
 import InfiniteLoading from 'v3-infinite-loading'
 
 interface Option {
@@ -27,7 +27,7 @@ const vModel = useVModel(props, 'value', emit)
 
 const { isKanbanStack, optionId, isNewStack } = toRefs(props)
 
-const { setAdditionalValidations, validateInfos } = useColumnCreateStoreOrThrow()
+const { setAdditionalValidations, validateInfos, column } = useColumnCreateStoreOrThrow()
 
 // const { base } = storeToRefs(useBase())
 
@@ -140,7 +140,7 @@ const addNewOption = () => {
 //   await _optionsMagic(base, formState, getNextColor, options.value, renderedOptions.value)
 // }
 
-const syncOptions = (saveChanges: boolean = false) => {
+const syncOptions = (saveChanges: boolean = false, submit: boolean = false) => {
   // set initial colOptions if not set
   vModel.value.colOptions = vModel.value.colOptions || {}
   vModel.value.colOptions.options = options.value
@@ -157,7 +157,7 @@ const syncOptions = (saveChanges: boolean = false) => {
     })
 
   if (saveChanges) {
-    emit('saveChanges')
+    emit('saveChanges', submit)
   }
 }
 
@@ -354,23 +354,42 @@ onMounted(() => {
   }
   if (isKanbanStack.value && isNewStack.value) {
     addNewOption()
+  } else {
+    nextTick(() => {
+      setTimeout(() => {
+        const doms = document.querySelectorAll(`.nc-col-option-select-option .nc-select-col-option-select-option`)
+        const dom = doms[doms.length - 1] as HTMLInputElement
+
+        if (dom) {
+          dom.focus()
+        }
+      }, 150)
+    })
   }
 })
 
-const kanbanStackOption = computed({
-  get: () => {
-    if (isNewStack.value) {
-      return renderedOptions.value[renderedOptions.value.length - 1]
-    } else if (optionId.value) {
-      return renderedOptions.value.find((o) => o.id === optionId.value)
-    }
-    return null
-  },
-  set: (value) => {
-    console.log(value)
-  },
+const kanbanStackOption = computed(() => {
+  if (isNewStack.value) {
+    return renderedOptions.value[renderedOptions.value.length - 1]
+  } else if (optionId.value) {
+    return renderedOptions.value.find((o) => o.id === optionId.value)
+  }
+  return null
 })
 
+if (isKanbanStack.value) {
+  onClickOutside(optionsWrapperDomRef, (e) => {
+    if (!kanbanStackOption.value || (e.target as HTMLElement)?.closest(`.nc-select-option-color-picker`)) return
+
+    const option = (column.value?.colOptions as SelectOptionsType)?.options?.find(
+      (o) => o?.id && o.id === kanbanStackOption.value?.id,
+    )
+
+    if (option?.title !== kanbanStackOption.value?.title) {
+      syncOptions(true, true)
+    }
+  })
+}
 </script>
 
 <template>
@@ -389,7 +408,11 @@ const kanbanStackOption = computed({
       <template v-if="isKanbanStack">
         <div v-if="kanbanStackOption" class="flex items-center nc-select-option group">
           <div class="flex items-center w-full" :class="{ removed: kanbanStackOption.status === 'remove' }">
-            <NcDropdown v-model:visible="colorMenus[kanbanStackOption.index!]" :auto-close="false">
+            <NcDropdown
+              v-model:visible="colorMenus[kanbanStackOption.index!]"
+              :auto-close="false"
+              overlay-class-name="nc-select-option-color-picker"
+            >
               <div class="flex-none h-6 w-6 flex cursor-pointer mx-1">
                 <div class="h-6 w-6 rounded flex items-center" :style="{ backgroundColor: kanbanStackOption.color }">
                   <GeneralIcon icon="arrowDown" class="flex-none h-4 w-4 m-auto !text-gray-600" />
@@ -416,9 +439,8 @@ const kanbanStackOption = computed({
               class="caption !rounded-lg nc-select-col-option-select-option !bg-transparent"
               :data-testid="`select-column-option-input-${kanbanStackOption.index!}`"
               :disabled="kanbanStackOption.status === 'remove'"
-              @keydown.enter.prevent="syncOptions(true)"
+              @keydown.enter.prevent.stop="syncOptions(true, true)"
               @change="optionChanged(kanbanStackOption!)"
-              @blur="syncOptions(true)"
             />
           </div>
 

@@ -23,8 +23,7 @@ const reloadMetaAndData = async () => {
 
 const saving = ref(false)
 
-async function onSubmit() {
-  console.log('on finish')
+async function onSubmit(submit: boolean = false) {
   saving.value = true
   const saved = await addOrUpdate(reloadMetaAndData)
   saving.value = false
@@ -32,6 +31,10 @@ async function onSubmit() {
   if (!saved) return
 
   await loadKanbanMeta()
+
+  if (submit) {
+    emit('submit')
+  }
 }
 </script>
 
@@ -50,7 +53,6 @@ async function onSubmit() {
       :option-id="optionId"
       :is-new="isNew"
       @save-changes="onSubmit"
-      @submit="onSubmit"
     />
   </a-form>
 </template>

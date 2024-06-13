@@ -383,7 +383,6 @@ const hideEmptyStack = computed(() => parseProp(kanbanMetaData.value?.meta).hide
 
 const isRenameOrNewStack = ref(null)
 
-
 const compareStack = (stack: any, stack2?: any) => {
   if (stack?.id && stack2?.id) {
     return stack.id === stack2.id
@@ -488,7 +487,12 @@ const compareStack = (stack: any, stack2?: any) => {
                           <GeneralIcon icon="drag" />
                         </NcButton>
 
-                        <div class="flex-1 flex max-w-[calc(100%_-_28px)] -ml-1">
+                        <div
+                          class="flex-1 flex max-w-[calc(100%_-_28px)]"
+                          :class="{
+                            '-ml-1': compareStack(stack, isRenameOrNewStack),
+                          }"
+                        >
                           <template v-if="compareStack(stack, isRenameOrNewStack)">
                             <SmartsheetKanbanEditOrAddStackProvider
                               :column="metaColumnById[isRenameOrNewStack?.fk_column_id]"
@@ -496,7 +500,12 @@ const compareStack = (stack: any, stack2?: any) => {
                               @submit="isRenameOrNewStack = null"
                             />
                           </template>
-                          <a-tag v-else class="max-w-full !rounded-full !px-2 !py-1 h-7 !m-0 !border-none" :color="stack.color">
+                          <a-tag
+                            v-else
+                            class="max-w-full !rounded-full !px-2 !py-1 h-7 !m-0 !border-none"
+                            :color="stack.color"
+                            @dblclick="isRenameOrNewStack = stack"
+                          >
                             <span
                               :style="{
                                 color: tinycolor.isReadable(stack.color || '#ccc', '#fff', { level: 'AA', size: 'large' })

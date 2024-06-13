@@ -210,7 +210,8 @@
     "set": "Set",
     "format": "Format",
     "colour": "Colour",
-    "use": "Use"
+    "use": "Use",
+    "stack": "Stack"
   },
   "objects": {
     "owner": "所有者",
@@ -336,8 +337,8 @@
     "parameter": "参数",
     "headers": "请求头",
     "parameterName": "参数名称",
-    "currencyLocale": "Locale",
-    "currencyCode": "Code",
+    "currencyLocale": "货币地区",
+    "currencyCode": "货币代码",
     "searchMembers": "搜索成员",
     "noMembersFound": "未找到成员",
     "dateJoined": "加入日期",
@@ -451,7 +452,8 @@
     "selectFieldsFromRightPannelToAddHere": "从右侧面板选择要添加的字段",
     "noOptionsFound": "未找到选项",
     "surveyFormSubmitConfirmMsg": "您确定要提交吗？",
-    "noResultsMatchedYourSearch": "您的搜索没有任何匹配结果"
+    "noResultsMatchedYourSearch": "您的搜索没有任何匹配结果",
+    "looksLikeThisStackIsEmpty": "Looks like this stack does not have any records"
   },
   "labels": {
     "selectView": "Select a View",
@@ -543,7 +545,7 @@
     "headerName": "标题名称",
     "icon": "图标",
     "max": "最大",
-    "enableRichText": "Enable rich text",
+    "enableRichText": "启用富文本",
     "idColon": "Id:",
     "copiedRecordURL": "复制的记录 URL",
     "copyRecordURL": "复制该记录卡片的 URL",
@@ -1006,6 +1008,9 @@
     },
     "kanban": {
       "collapseStack": "折叠此类别",
+      "collapseAll": "Collapse all",
+      "expandAll": "Expand all",
+      "renameStack": "Rename stack",
       "deleteStack": "删除此类别",
       "stackedBy": "分类依据为",
       "chooseGroupingField": "选择分组字段",
@@ -1139,7 +1144,7 @@
     "optimizedQueryEnabled": "已启用优化查询",
     "lookupNonBtWarning": "非 \"所属关系 \"不支持查找字段",
     "invalidTime": "无效时间",
-    "linkColumnClearNotSupportedYet": "You don't have any supported links for {type}",
+    "linkColumnClearNotSupportedYet": "您没有任何支持查找的链接",
     "recordCouldNotBeFound": "找不到记录",
     "invalidPhoneNumber": "无效电话号码",
     "pageSizeChanged": "页面大小已更改",
@@ -1212,7 +1217,7 @@
     "noRecordsLinked": "没有链接记录",
     "noLinkedRecords": "暂无引用数据",
     "recordsLinked": "链接的记录",
-    "acceptOnlyValid": "Accept only valid {type}",
+    "acceptOnlyValid": "仅接受",
     "apiTokenCreate": "创建个人 API tokens，以便在自动化或外部应用程序中使用。",
     "selectFieldToSort": "选择要排序的字段",
     "selectFieldToGroup": "选择要分组的字段",
@@ -1519,7 +1524,7 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "可接受的文件类型是 .xls, .xlsx, .xlsm, .ods, .ots",
       "parameterKeyCannotBeEmpty": "参数键不能为空",
       "duplicateParameterKeysAreNotAllowed": "不允许重复的参数键",
-      "fieldRequired": "此字段不能为空。",
+      "fieldRequired": "{value} 不能为空。",
       "projectNotAccessible": "无权访问此项目",
       "copyToClipboardError": "未能复制到剪贴板",
       "pasteFromClipboardError": "从剪贴板粘贴失败",

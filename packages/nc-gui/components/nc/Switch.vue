@@ -4,7 +4,7 @@ const props = withDefaults(
     checked: boolean
     disabled?: boolean
     size?: 'default' | 'small' | 'xsmall'
-    placement: 'left' | 'right'
+    placement?: 'left' | 'right'
     loading?: boolean
   }>(),
   {

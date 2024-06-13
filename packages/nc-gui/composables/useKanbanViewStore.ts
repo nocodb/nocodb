@@ -252,15 +252,23 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
             isChanged = true
           }
         }
+        const hasNewStackObj =
+          stackMetaObj.value[fk_grp_col_id].length &&
+          stackMetaObj.value[stackMetaObj.value[fk_grp_col_id].length - 1]?.id === addNewStackId
+
         groupingFieldColOptions.value = [
           ...stackMetaObj.value[fk_grp_col_id],
-          {
-            id: addNewStackId,
-            title: null,
-            order: stackMetaObj.value[fk_grp_col_id].length + 1,
-            color: themeV3Colors.gray[600],
-            fk_column_id: fk_grp_col_id,
-          } as any,
+          ...(hasNewStackObj
+            ? []
+            : [
+                {
+                  id: addNewStackId,
+                  title: null,
+                  order: stackMetaObj.value[fk_grp_col_id].length + 1,
+                  color: themeV3Colors.gray[600],
+                  fk_column_id: fk_grp_col_id,
+                } as any,
+              ]),
         ]
 
         if (isChanged) {
@@ -271,18 +279,29 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
         }
       } else {
         // build stack meta
+        const hasNewStackObj =
+          (groupingFieldColumn.value?.colOptions?.options ?? []).length &&
+          (groupingFieldColumn.value?.colOptions?.options ?? [])[
+            (groupingFieldColumn.value?.colOptions?.options ?? []).length - 1
+          ]?.id === addNewStackId
+
         groupingFieldColOptions.value = [
           ...((groupingFieldColumn.value?.colOptions as SelectOptionsType & { collapsed: boolean })?.options ?? []),
           // enrich uncategorized stack
           { id: 'uncategorized', title: null, order: 0, color: themeV3Colors.gray[600] } as any,
-          {
-            id: addNewStackId,
-            title: null,
-            order:
-              ((groupingFieldColumn.value?.colOptions as SelectOptionsType & { collapsed: boolean })?.options ?? []).length + 1,
-            color: themeV3Colors.gray[600],
-            fk_column_id: fk_grp_col_id,
-          } as any,
+          ...(hasNewStackObj
+            ? []
+            : [
+                {
+                  id: addNewStackId,
+                  title: null,
+                  order:
+                    ((groupingFieldColumn.value?.colOptions as SelectOptionsType & { collapsed: boolean })?.options ?? [])
+                      .length + 1,
+                  color: themeV3Colors.gray[600],
+                  fk_column_id: fk_grp_col_id,
+                } as any,
+              ]),
         ]
           // sort by initial order
           .sort((a, b) => a.order! - b.order!)

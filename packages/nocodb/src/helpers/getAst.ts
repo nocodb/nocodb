@@ -19,6 +19,7 @@ import {
   GalleryView,
   GridViewColumn,
   KanbanView,
+  KanbanViewColumn,
   View,
 } from '~/models';
 
@@ -38,6 +39,7 @@ const getAst = async (
     getHiddenColumn = query?.['getHiddenColumn'],
     throwErrorIfInvalidParams = false,
     extractOnlyRangeFields = false,
+    groupColumnId,
   }: {
     query?: RequestQuery;
     extractOnlyPrimaries?: boolean;
@@ -49,6 +51,7 @@ const getAst = async (
     throwErrorIfInvalidParams?: boolean;
     // Used for calendar view
     extractOnlyRangeFields?: boolean;
+    groupColumnId?: string;
   },
 ) => {
   // set default values of dependencyFields and nested
@@ -140,7 +143,10 @@ const getAst = async (
     allowedCols = (await View.getColumns(context, view.id)).reduce(
       (o, c) => ({
         ...o,
-        [c.fk_column_id]: c.show || (c instanceof GridViewColumn && c.group_by),
+        [c.fk_column_id]:
+          c.show ||
+          (c instanceof GridViewColumn && c.group_by) ||
+          (c instanceof KanbanViewColumn && c.fk_column_id === groupColumnId),
       }),
       {},
     );

@@ -387,6 +387,7 @@ export class DatasService {
       model,
       query,
       view,
+      groupColumnId: param.columnId,
     });
 
     const listArgs: any = { ...dependencyFields };

@@ -304,7 +304,7 @@ const handleCollapseStack = async (stackIdx: number) => {
 }
 const handleCollapseAllStack = async () => {
   groupingFieldColOptions.value.forEach((stack) => {
-    if (stack.id !== addNewStackId) {
+    if (stack.id !== addNewStackId && !stack.collapsed) {
       stack.collapsed = true
     }
   })
@@ -453,7 +453,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean) => {
               <a-card
                 v-if="stack.id === addNewStackId && hasEditPermission && !isPublic && !isLocked"
                 :key="`${stack.id}-stack`"
-                class="flex flex-col w-68.5 !rounded-xl overflow-y-hidden !shadow-none !hover:shadow-none border-gray-200"
+                class="flex flex-col w-68.5 !rounded-lg overflow-y-hidden !shadow-none !hover:shadow-none border-gray-200"
                 :class="{
                   '!cursor-default': isLocked || !hasEditPermission,
                   '!border-none': !compareStack(stack, isRenameOrNewStack),
@@ -462,7 +462,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean) => {
                 :body-style="{
                   padding: '0px !important',
                   height: '100%',
-                  borderRadius: '0.75rem !important',
+                  borderRadius: '0.5rem !important',
                   paddingBottom: '0rem !important',
                 }"
               >
@@ -495,7 +495,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean) => {
                       <NcButton
                         v-if="!compareStack(stack, isRenameOrNewStack)"
                         type="secondary"
-                        class="w-full !rounded-xl min-h-11"
+                        class="w-full !rounded-lg min-h-11"
                       >
                         <div class="flex items-center gap-2">
                           <component :is="iconMap.plus" v-if="!isPublic && !isLocked" class="" />
@@ -568,7 +568,9 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean) => {
                       >
                         <NcButton
                           v-if="!(isLocked || isPublic || !hasEditPermission)"
-                          :disabled="!stack.title || compareStack(stack, isSavingStack)"
+                          :disabled="
+                            !stack.title || compareStack(stack, isSavingStack) || compareStack(stack, isRenameOrNewStack)
+                          "
                           type="text"
                           size="xs"
                           class="nc-kanban-stack-drag-handler !px-1.5 !cursor-move !:disabled:cursor-not-allowed"
@@ -636,12 +638,12 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean) => {
                       </div>
                       <NcDropdown
                         v-if="!isLocked"
-                        :disabled="compareStack(stack, isSavingStack)"
                         placement="bottomRight"
                         overlay-class-name="nc-dropdown-kanban-stack-context-menu"
                         class="bg-white !rounded-lg"
                       >
                         <NcButton
+                          :disabled="compareStack(stack, isSavingStack)"
                           type="text"
                           size="xs"
                           class="!px-1.5"
@@ -890,7 +892,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean) => {
                         </template>
                         <template v-if="!formattedData.get(stack.title)?.length" #footer>
                           <div class="h-full w-full flex flex-col gap-4 items-center justify-center">
-                            <div class="flex flex-col items-center gap-2 text-gray-600">
+                            <div class="flex flex-col items-center gap-2 text-gray-600 text-center">
                               <span class="text-sm font-semibold">
                                 {{ $t('general.empty') }} {{ $t('general.stack').toLowerCase() }}
                               </span>

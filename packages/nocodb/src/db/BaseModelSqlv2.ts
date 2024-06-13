@@ -7184,7 +7184,7 @@ class BaseModelSqlv2 {
       );
   }
 
-  async getCustomConditionsAndApply(_params: {
+  async getCustomConditionsAndApply(params: {
     view?: View;
     column: Column<any>;
     qb?;
@@ -7193,7 +7193,8 @@ class BaseModelSqlv2 {
     rowId;
     columns?: Column[];
   }): Promise<any> {
-    return;
+    const { filters, qb } = params;
+    await conditionV2(this, filters, qb);
   }
 }
 

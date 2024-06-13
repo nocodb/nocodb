@@ -382,17 +382,23 @@ const getRowId = (row: RowType) => {
   return pk ? `row-${pk}` : ''
 }
 
-const hideEmptyStack = computed(() => parseProp(kanbanMetaData.value?.meta).hide_empty_stack || false)
+const hideEmptyStack = computed<boolean>(() => parseProp(kanbanMetaData.value?.meta).hide_empty_stack || false)
 
 const isRenameOrNewStack = ref(null)
 
 const compareStack = (stack: any, stack2?: any) => stack?.id && stack2?.id && stack.id === stack2.id
 
+const isSavingStack = ref(null)
+
 const handleSubmitRenameOrNewStack = async (loadMeta: boolean) => {
+  isSavingStack.value = isRenameOrNewStack.value
   isRenameOrNewStack.value = null
+
   if (loadMeta) {
     await loadKanbanMeta()
   }
+
+  isSavingStack.value = null
 }
 </script>
 
@@ -562,7 +568,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean) => {
                       >
                         <NcButton
                           v-if="!(isLocked || isPublic || !hasEditPermission)"
-                          :disabled="!stack.title"
+                          :disabled="!stack.title || compareStack(stack, isSavingStack)"
                           type="text"
                           size="xs"
                           class="nc-kanban-stack-drag-handler !px-1.5 !cursor-move !:disabled:cursor-not-allowed"
@@ -570,7 +576,8 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean) => {
                             'mt-0.5': compareStack(stack, isRenameOrNewStack),
                           }"
                         >
-                          <GeneralIcon icon="drag" />
+                          <GeneralLoader v-if="compareStack(stack, isSavingStack)" size="regular" />
+                          <GeneralIcon v-else icon="drag" />
                         </NcButton>
 
                         <div
@@ -629,6 +636,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean) => {
                       </div>
                       <NcDropdown
                         v-if="!isLocked"
+                        :disabled="compareStack(stack, isSavingStack)"
                         placement="bottomRight"
                         overlay-class-name="nc-dropdown-kanban-stack-context-menu"
                         class="bg-white !rounded-lg"

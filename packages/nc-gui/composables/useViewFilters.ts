@@ -404,7 +404,8 @@ export function useViewFilters(
             ...filter,
             fk_parent_id: parentId,
           })
-          // override any local changes with saved filter since user can change value while saving
+          // extract id from saved filter and update the filter object
+          // avoiding whole object update to prevent overwriting of current filter object changes
           filters.value[i] = {
             ...filters.value[i],
             fk_parent_id: parentId,
@@ -417,7 +418,8 @@ export function useViewFilters(
             ...filter,
             fk_parent_id: parentId.value,
           })
-          // override any local changes with saved filter since user can change value while saving
+          // extract id from saved filter and update the filter object
+          // avoiding whole object update to prevent overwriting of current filter object changes
           filters.value[i] = {
             ...filters.value[i],
             fk_parent_id: parentId,

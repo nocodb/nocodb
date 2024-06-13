@@ -43,9 +43,9 @@ const isTab = computed(() => {
 
         <LazySmartsheetToolbarCalendarRange v-if="isCalendar" />
 
-        <LazySmartsheetToolbarFieldsMenu v-if="isGrid || isGallery || isKanban || isMap" :show-system-fields="false" />
-
         <LazySmartsheetToolbarStackedBy v-if="isKanban" />
+        
+        <LazySmartsheetToolbarFieldsMenu v-if="isGrid || isGallery || isKanban || isMap" :show-system-fields="false" />
 
         <LazySmartsheetToolbarColumnFilterMenu v-if="isGrid || isGallery || isKanban || isMap" />
 

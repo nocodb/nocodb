@@ -82,6 +82,7 @@ const editor = useEditor({
   onFocus: () => {
     isFocused.value = true
     emits('focus')
+    onFocusWrapper()
   },
   onBlur: (e) => {
     if (
@@ -122,6 +123,7 @@ const setEditorContent = (contentMd: any, focusEndOfDoc?: boolean) => {
 const onFocusWrapper = () => {
   if (!props.readOnly && !keys.shift.value) {
     editor.value?.chain().focus().run()
+    setEditorContent(vModel.value, true)
   }
 }
 

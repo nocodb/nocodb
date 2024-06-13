@@ -17,7 +17,7 @@ import { getCircularReplacer } from '~/utils';
 import { PubSubRedis } from '~/redis/pubsub-redis';
 @Injectable()
 export class NotificationsService implements OnModuleInit, OnModuleDestroy {
-  private logger: Logger = new Logger(NotificationsService.name);
+  protected logger: Logger = new Logger(NotificationsService.name);
 
   constructor(protected readonly appHooks: AppHooksService) {}
 

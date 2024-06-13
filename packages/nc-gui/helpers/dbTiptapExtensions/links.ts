@@ -19,6 +19,7 @@ export const Link = TiptapLink.extend({
       internal: false,
     }
   },
+
   addAttributes() {
     return {
       href: {
@@ -36,7 +37,17 @@ export const Link = TiptapLink.extend({
   renderHTML({ HTMLAttributes }) {
     const attr = mergeAttributes(this.options.HTMLAttributes, HTMLAttributes)
 
-    return ['a', attr, 0]
+    // We use this as a workaround to show a tooltip on the content
+    // We use the href to store the tooltip content
+    if (isValidURL(attr.href) || !attr.href.includes('~~~###~~~')) {
+      return ['a', attr, 0]
+    }
+
+    // The class is used to identify the text that needs to show the tooltip
+    // The data-tooltip is the content of the tooltip
+    attr.class = 'nc-rich-link-tooltip'
+    attr['data-tooltip'] = attr.href?.split('~~~###~~~')[1]?.replace(/_/g, ' ')
+    return ['span', attr]
   },
 
   addKeyboardShortcuts() {

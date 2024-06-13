@@ -186,7 +186,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
             offset: params.offset,
             where,
           })
-      console.log('old', formattedData.value.get(stackTitle), formatData(response!.list!))
+
       formattedData.value.set(stackTitle, [
         ...formattedData.value.get(stackTitle)!,
         ...filerDuplicateRecords(formattedData.value.get(stackTitle)!, formatData(response!.list!)),

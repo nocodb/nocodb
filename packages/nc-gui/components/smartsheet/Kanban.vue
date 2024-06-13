@@ -10,8 +10,6 @@ interface Attachment {
 
 const INFINITY_SCROLL_THRESHOLD = 100
 
-const emptyPagination = ref()
-
 const meta = inject(MetaInj, ref())
 
 const view = inject(ActiveViewInj, ref())
@@ -392,8 +390,8 @@ const getRowId = (row: RowType) => {
       ref="kanbanContainerRef"
       class="nc-kanban-container flex p-3 overflow-y-hidden w-full nc-scrollbar-x-lg"
       :style="{
-        minHeight: isMobileMode ? 'calc(100%  - 2rem)' : 'calc(100vh - var(--topbar-height) - 4.1rem)',
-        maxHeight: isMobileMode ? 'calc(100%  - 2rem)' : 'calc(100vh - var(--topbar-height) - 4.1rem)',
+        minHeight: isMobileMode ? 'calc(100%  - 2rem)' : 'calc(100vh - var(--topbar-height) - var(--toolbar-height) - 0.4rem)',
+        maxHeight: isMobileMode ? 'calc(100%  - 2rem)' : 'calc(100vh - var(--topbar-height) - var(--toolbar-height) - 0.4rem)',
       }"
     >
       <div v-if="isViewDataLoading" class="flex flex-row min-h-full gap-x-2">
@@ -875,13 +873,6 @@ const getRowId = (row: RowType) => {
         </template>
       </NcDropdown>
     </div>
-    <LazySmartsheetPagination
-      v-model:pagination-data="emptyPagination"
-      align-count-on-right
-      hide-pagination
-      class="!py-0 h-10 !xs:py-0"
-    >
-    </LazySmartsheetPagination>
   </div>
 
   <Suspense>

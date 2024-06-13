@@ -527,7 +527,8 @@ const createdBy = (
   box-shadow: none;
   &:focus,
   &:focus-within {
-    @apply min-h-16;
+    @apply min-h-16 !bg-white border-brand-500;
+    box-shadow: 0px 0px 0px 2px rgba(51, 102, 255, 0.24);
   }
   &::placeholder {
     @apply !text-gray-400;

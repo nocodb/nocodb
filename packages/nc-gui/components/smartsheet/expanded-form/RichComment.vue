@@ -60,6 +60,8 @@ const vModel = useVModel(props, 'value', emits, { defaultValue: '' })
 const tiptapExtensions = [
   StarterKit.configure({
     heading: false,
+    codeBlock: false,
+    code: false,
   }),
   Underline,
   Link,

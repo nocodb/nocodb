@@ -1,13 +1,10 @@
 import { Controller, Get, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { Response } from 'express';
 import { ConfigService } from '@nestjs/config';
-import type { Request } from 'express';
-import type { AppConfig } from '~/interface/config';
+import type { AppConfig, NcRequest } from '~/interface/config';
 import { UsersService } from '~/services/users/users.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
-import { TenantContext } from '~/decorators/tenant-context.decorator';
-import { NcContext, NcRequest } from '~/interface/config';
 
 @Controller()
 export class SSOAuthController {

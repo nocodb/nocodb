@@ -996,7 +996,11 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                 );
               }
 
-              if (col.system && !allowSystemColumn) {
+              if (
+                col.system &&
+                !allowSystemColumn &&
+                col.uidt !== UITypes.ForeignKey
+              ) {
                 NcError.badRequest(
                   `Column "${col.title}" is system column and cannot be updated`,
                 );

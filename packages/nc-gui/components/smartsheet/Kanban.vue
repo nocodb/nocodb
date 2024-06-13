@@ -499,7 +499,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
 
                   <!-- Stack -->
                   <a-layout v-else>
-                    <a-layout-header>
+                    <a-layout-header class="border-b-1 border-gray-100">
                       <div
                         class="nc-kanban-stack-head w-full flex gap-1"
                         :class="{
@@ -1228,17 +1228,17 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
 }
 
 .nc-card-display-value-wrapper {
-  @apply my-0 text-xl leading-8 text-gray-600;
+  @apply my-0 text-base leading-8 text-gray-800;
 
   .nc-cell,
   .nc-virtual-cell {
-    @apply text-xl leading-8;
+    @apply text-base leading-6;
 
     :deep(.nc-cell-field),
     :deep(input),
     :deep(textarea),
     :deep(.nc-cell-field-link) {
-      @apply !text-xl leading-8 text-gray-600;
+      @apply !text-base leading-6 text-gray-800;
     }
   }
 }

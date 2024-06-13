@@ -387,6 +387,8 @@ if (isKanbanStack.value) {
 
     if (option?.title !== kanbanStackOption.value?.title) {
       syncOptions(true, true)
+    } else {
+      emit('saveChanges', true, false)
     }
   })
 }

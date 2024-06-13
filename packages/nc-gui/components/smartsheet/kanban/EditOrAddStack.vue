@@ -23,7 +23,12 @@ const reloadMetaAndData = async () => {
 
 const saving = ref(false)
 
-async function onSubmit(submit: boolean = false) {
+async function onSubmit(submit: boolean = false, saveChanges: boolean = true) {
+  if (!saveChanges && submit) {
+    emit('submit')
+    return
+  }
+
   saving.value = true
   const saved = await addOrUpdate(reloadMetaAndData)
   saving.value = false

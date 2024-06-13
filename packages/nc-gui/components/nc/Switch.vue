@@ -36,10 +36,10 @@ const onChange = (e: boolean, updateValue = false) => {
 <template>
   <span
     v-if="placement === 'right' && $slots.default"
-    class="cursor-pointer pr-2"
+    class="pr-2"
     :class="{
-      'cursor-not-allowed': loading || disabled,
-      'cursor-pointer': !loading,
+      'cursor-not-allowed': disabled,
+      'cursor-pointer': !disabled,
     }"
     @click="onChange(!checked, true)"
   >
@@ -62,8 +62,8 @@ const onChange = (e: boolean, updateValue = false) => {
     v-if="placement === 'left' && $slots.default"
     class="pl-2"
     :class="{
-      'cursor-not-allowed': loading || disabled,
-      'cursor-pointer': !loading,
+      'cursor-not-allowed': disabled,
+      'cursor-pointer': !disabled,
     }"
     @click="onChange(!checked, true)"
   >

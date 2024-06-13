@@ -236,6 +236,12 @@ export default class Model implements TableType {
     ]);
     let { list: modelList } = cachedList;
     const { isNoneList } = cachedList;
+
+    let condition;
+    if(source_id){
+      condition = { source_id }
+    }
+
     if (!isNoneList && !modelList.length) {
       modelList = await ncMeta.metaList2(
         context.workspace_id,
@@ -245,6 +251,7 @@ export default class Model implements TableType {
           orderBy: {
             order: 'asc',
           },
+          condition,
         },
       );
 

@@ -338,7 +338,9 @@ export function useViewFilters(
     }
   }
 
-  const saveOrUpdate = async (filter: Filter, i: number, force = false, undo = false, skipDataReload = false) => {
+  const saveOrUpdateDebounced = useCachedDebouncedFunction(saveOrUpdate, 500, (_filter: Filter, i: number) => i)
+
+  async function saveOrUpdate(filter: Filter, i: number, force = false, undo = false, skipDataReload = false) {
     // if already in progress the debounced function which will call this function again with 500ms delay until it's not saving
     if (savingStatus[i]) {
       return saveOrUpdateDebounced(filter, i, force, undo, skipDataReload)
@@ -386,7 +388,7 @@ export function useViewFilters(
         filters.value = [...filters.value]
       } else if (!autoApply?.value && !force) {
         filter.status = filter.id ? 'update' : 'create'
-      } else if (filters.value[i]?.id && filter.status !== 'create') {
+      } else if (filters.value[i]?.id && filters.value[i]?.status !== 'create') {
         await $api.dbTableFilter.update(filters.value[i].id!, {
           ...filter,
           fk_parent_id: parentId.value,
@@ -399,15 +401,23 @@ export function useViewFilters(
         })
       } else {
         if (linkColId?.value) {
-          filters.value[i] = await $api.dbTableLinkFilter.create(linkColId.value, {
-            ...filter,
-            fk_parent_id: parentId,
-          })
+          // set value with current value of filter since user can change value while saving
+          filters.value[i] = {
+            ...((await $api.dbTableLinkFilter.create(linkColId.value, {
+              ...filter,
+              fk_parent_id: parentId,
+            })) || {}),
+            value: (filters.value[i] || filter).value,
+          }
         } else {
-          filters.value[i] = await $api.dbTableFilter.create(view.value.id!, {
-            ...filter,
-            fk_parent_id: parentId.value,
-          })
+          // set value with current value of filter since user can change value while saving
+          filters.value[i] = {
+            ...((await $api.dbTableFilter.create(view.value.id!, {
+              ...filter,
+              fk_parent_id: parentId.value,
+            })) || {}),
+            value: (filters.value[i] || filter).value,
+          }
         }
         if (!isLink && !isWebhook) allFilters.value.push(filters.value[+i])
       }
@@ -496,9 +506,6 @@ export function useViewFilters(
       if (!isLink && !isWebhook) allFilters.value = allFilters.value.filter((f) => f.id !== filter.id)
     }
   }
-
-  const saveOrUpdateDebounced = useDebounceFn(saveOrUpdate, 500)
-
   const addFilter = async (undo = false, draftFilter: Partial<FilterType> = {}) => {
     filters.value.push(draftFilter?.fk_column_id ? { ...placeholderFilter(), ...draftFilter } : placeholderFilter())
     if (!undo) {

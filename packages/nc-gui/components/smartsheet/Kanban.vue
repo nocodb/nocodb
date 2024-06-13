@@ -519,6 +519,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean) => {
                             :column="metaColumnById[isRenameOrNewStack?.fk_column_id]"
                             is-new-stack
                             @submit="handleSubmitRenameOrNewStack"
+                            @cancel="isRenameOrNewStack = null"
                           />
                         </template>
                       </div>
@@ -595,6 +596,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean) => {
                               :column="metaColumnById[isRenameOrNewStack?.fk_column_id]"
                               :option-id="isRenameOrNewStack.id"
                               @submit="handleSubmitRenameOrNewStack"
+                              @cancel="isRenameOrNewStack = null"
                             />
                           </template>
                           <a-tag

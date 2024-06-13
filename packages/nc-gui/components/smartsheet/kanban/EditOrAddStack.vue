@@ -7,7 +7,7 @@ const props = defineProps<{
   isNewStack?: boolean
 }>()
 
-const emit = defineEmits(['submit'])
+const emit = defineEmits(['submit', 'cancel'])
 
 const { column, optionId, isNewStack } = toRefs(props)
 
@@ -21,19 +21,18 @@ const reloadMetaAndData = async () => {
   await getMeta(meta.value?.id as string, true)
 }
 
-const saving = ref(false)
-
 async function onSubmit(submit: boolean = false, saveChanges: boolean = true) {
   if (!saveChanges && submit) {
     emit('submit')
     return
   }
 
-  saving.value = true
   const saved = await addOrUpdate(reloadMetaAndData)
-  saving.value = false
 
-  if (!saved) return
+  if (!saved && submit) {
+    emit('cancel')
+    return
+  }
 
   if (submit) {
     emit('submit', true)

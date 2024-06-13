@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
+import tinycolor from 'tinycolor2'
 import { type SelectOptionsType, UITypes } from 'nocodb-sdk'
 import InfiniteLoading from 'v3-infinite-loading'
 
@@ -429,9 +430,12 @@ if (isKanbanStack.value) {
                   class="h-6 w-6 rounded flex items-center"
                   :style="{
                     backgroundColor: kanbanStackOption.color,
+                    color: tinycolor.isReadable(kanbanStackOption.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
+                      ? '#fff'
+                      : tinycolor.mostReadable(kanbanStackOption.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
                   }"
                 >
-                  <GeneralIcon icon="arrowDown" class="flex-none h-4 w-4 m-auto !text-gray-600" />
+                  <GeneralIcon icon="arrowDown" class="flex-none h-4 w-4 m-auto !text-current" />
                 </div>
               </div>
 
@@ -500,8 +504,16 @@ if (isKanbanStack.value) {
 
                 <NcDropdown v-model:visible="colorMenus[index]" :auto-close="false">
                   <div class="flex-none h-6 w-6 flex cursor-pointer mx-1">
-                    <div class="h-6 w-6 rounded flex items-center" :style="{ backgroundColor: element.color }">
-                      <GeneralIcon icon="arrowDown" class="flex-none h-4 w-4 m-auto !text-gray-600" />
+                    <div
+                      class="h-6 w-6 rounded flex items-center"
+                      :style="{
+                        backgroundColor: element.color,
+                        color: tinycolor.isReadable(element.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
+                          ? '#fff'
+                          : tinycolor.mostReadable(element.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
+                      }"
+                    >
+                      <GeneralIcon icon="arrowDown" class="flex-none h-4 w-4 m-auto !text-current" />
                     </div>
                   </div>
 

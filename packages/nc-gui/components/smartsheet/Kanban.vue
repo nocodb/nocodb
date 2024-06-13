@@ -313,6 +313,17 @@ const handleCollapseAllStack = async () => {
     await updateKanbanStackMeta()
   }
 }
+const handleExpandAllStack = async () => {
+  groupingFieldColOptions.value.forEach((stack) => {
+    if (stack.id !== addNewStackId && stack.collapsed) {
+      stack.collapsed = false
+    }
+  })
+
+  if (!isPublic.value) {
+    await updateKanbanStackMeta()
+  }
+}
 
 const openNewRecordFormHookHandler = async () => {
   const newRow = await addEmptyRow()
@@ -457,7 +468,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
               <!-- Add New Stack -->
               <a-card
                 v-if="stack.id === addNewStackId && hasEditPermission && !isPublic && !isLocked"
-                :key="`${stack.id}-stack`"
+                :key="`${stack.id}-new-stack`"
                 class="flex flex-col w-68.5 !rounded-lg overflow-y-hidden !shadow-none !hover:shadow-none border-gray-200"
                 :class="{
                   '!cursor-default': isLocked || !hasEditPermission,
@@ -705,6 +716,12 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                               <div class="flex gap-2 items-center">
                                 <component :is="iconMap.minimize" />
                                 {{ $t('activity.kanban.collapseAll') }}
+                              </div>
+                            </NcMenuItem>
+                            <NcMenuItem v-e="['c:kanban:expand-all-stack']" @click="handleExpandAllStack">
+                              <div class="flex gap-2 items-center">
+                                <component :is="iconMap.maximize" />
+                                {{ $t('activity.kanban.expandAll') }}
                               </div>
                             </NcMenuItem>
                             <template v-if="stack.title !== null && !isPublic && hasEditPermission">

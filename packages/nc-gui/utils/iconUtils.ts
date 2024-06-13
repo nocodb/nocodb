@@ -195,6 +195,7 @@ import NcMessageCircle from '~icons/nc-icons/message-circle'
 import NcKey from '~icons/nc-icons/key'
 
 import NcMinimize from '~icons/nc-icons/minimize'
+import NcMaximize from '~icons/nc-icons/maximize'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -620,6 +621,7 @@ export const iconMap = {
   messageCircle: NcMessageCircle,
   ncKey: NcKey,
   minimize: NcMinimize,
+  maximize: NcMaximize,
 }
 
 export const getMdiIcon = (type: string): any => {

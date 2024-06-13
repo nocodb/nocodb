@@ -1009,6 +1009,7 @@
     "kanban": {
       "collapseStack": "Collapse stack",
       "collapseAll": "Collapse all",
+      "expandAll": "Expand all",
       "renameStack": "Rename stack",
       "deleteStack": "Delete stack",
       "stackedBy": "Stacked by",

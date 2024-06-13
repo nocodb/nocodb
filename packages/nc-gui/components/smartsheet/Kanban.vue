@@ -619,11 +619,10 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                                 "
                               >
                                 <div class="flex gap-2 items-center">
-                                  <component :is="iconMap.plus" />
+                                  <component :is="iconMap.plus" class="flex-none w-4 h-4" />
                                   {{ $t('activity.addNewRecord') }}
                                 </div>
                               </NcMenuItem>
-                              <!--  Todo: rename stack function -->
                               <NcMenuItem
                                 v-if="stack.title !== null && hasEditPermission && !isPublic && !isLocked"
                                 v-e="['c:kanban:rename-stack']"
@@ -635,7 +634,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                                 "
                               >
                                 <div class="flex gap-2 items-center">
-                                  <component :is="iconMap.ncEdit" />
+                                  <component :is="iconMap.ncEdit" class="flex-none w-4 h-4" />
                                   {{ $t('activity.kanban.renameStack') }}
                                 </div>
                               </NcMenuItem>
@@ -645,7 +644,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                                 @click="handleCollapseStack(stackIdx)"
                               >
                                 <div class="flex gap-2 items-center">
-                                  <component :is="iconMap.minimize" />
+                                  <component :is="iconMap.minimize" class="flex-none w-4 h-4" />
                                   {{ $t('activity.kanban.collapseStack') }}
                                 </div>
                               </NcMenuItem>
@@ -656,7 +655,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                                 @click="handleCollapseAllStack"
                               >
                                 <div class="flex gap-2 items-center">
-                                  <component :is="iconMap.minimize" />
+                                  <component :is="iconMap.minimize" class="flex-none w-4 h-4" />
                                   {{ $t('activity.kanban.collapseAll') }}
                                 </div>
                               </NcMenuItem>
@@ -666,7 +665,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                                 @click="handleExpandAllStack"
                               >
                                 <div class="flex gap-2 items-center">
-                                  <component :is="iconMap.maximize" />
+                                  <component :is="iconMap.maximize" class="flex-none w-4 h-4" />
                                   {{ $t('activity.kanban.expandAll') }}
                                 </div>
                               </NcMenuItem>
@@ -679,7 +678,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                                   @click="handleDeleteStackClick(stack.title, stackIdx)"
                                 >
                                   <div class="flex gap-2 items-center">
-                                    <component :is="iconMap.delete" />
+                                    <component :is="iconMap.delete" class="flex-none w-4 h-4" />
                                     {{ $t('activity.kanban.deleteStack') }}
                                   </div>
                                 </NcMenuItem>
@@ -897,7 +896,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                         </Draggable>
                       </div>
                     </a-layout-content>
-                    <a-layout-footer v-if="formattedData.get(stack.title)">
+                    <a-layout-footer v-if="formattedData.get(stack.title)" class="border-t-1 border-gray-100">
                       <div class="flex items-center justify-between">
                         <NcButton
                           v-if="isUIAllowed('dataInsert')"

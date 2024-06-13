@@ -210,7 +210,8 @@
     "set": "Set",
     "format": "Format",
     "colour": "Colour",
-    "use": "Use"
+    "use": "Use",
+    "stack": "Stack"
   },
   "objects": {
     "owner": "Owner",
@@ -451,7 +452,8 @@
     "selectFieldsFromRightPannelToAddHere": "Select fields from right panel to add here",
     "noOptionsFound": "No options found",
     "surveyFormSubmitConfirmMsg": "Are you sure you want to submit this form?",
-    "noResultsMatchedYourSearch": "Your search did not yield any matching results"
+    "noResultsMatchedYourSearch": "Your search did not yield any matching results",
+    "looksLikeThisStackIsEmpty": "Looks like this stack does not have any records"
   },
   "labels": {
     "selectView": "Select a View",

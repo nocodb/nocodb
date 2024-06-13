@@ -22,6 +22,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     tableExplorerColumns?: Ref<ColumnType[] | undefined>,
     fromTableExplorer?: Ref<boolean | undefined>,
     isColumnValid?: Ref<((value: Partial<ColumnType>) => boolean) | undefined>,
+    fromKanbanStack?: Ref<boolean | undefined>,
   ) => {
     const baseStore = useBase()
 
@@ -260,12 +261,16 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
           ?.map((e: any) => e.errors?.join(', '))
           .filter(Boolean)
           .join(', ')
+
         if (errorMsgs) {
           message.error(errorMsgs)
+          return
         } else {
-          message.error(t('msg.error.formValidationFailed'))
+          if (!fromKanbanStack?.value || (fromKanbanStack.value && !e.outOfDate)) {
+            message.error(t('msg.error.formValidationFailed'))
+            return
+          }
         }
-        return
       }
 
       try {

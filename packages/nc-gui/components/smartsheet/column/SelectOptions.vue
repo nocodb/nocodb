@@ -16,11 +16,16 @@ interface Option {
 const props = defineProps<{
   value: any
   fromTableExplorer?: boolean
+  isKanbanStack?: boolean
+  optionId?: string
+  isNewStack?: boolean
 }>()
 
-const emit = defineEmits(['update:value'])
+const emit = defineEmits(['update:value', 'saveChanges'])
 
 const vModel = useVModel(props, 'value', emit)
+
+const { isKanbanStack, optionId, isNewStack } = toRefs(props)
 
 const { setAdditionalValidations, validateInfos } = useColumnCreateStoreOrThrow()
 
@@ -87,45 +92,6 @@ setAdditionalValidations({
   ...validators,
 } as any)
 
-onMounted(() => {
-  if (!vModel.value.colOptions?.options) {
-    vModel.value.colOptions = {
-      options: [],
-    }
-  }
-
-  isReverseLazyLoad.value = false
-
-  options.value = vModel.value.colOptions.options
-
-  let indexCounter = 0
-  options.value.map((el) => {
-    el.index = indexCounter++
-    return el
-  })
-
-  loadedOptionAnchor.value = Math.min(loadedOptionAnchor.value, options.value.length)
-
-  renderedOptions.value = [...options.value].slice(0, loadedOptionAnchor.value)
-
-  // Support for older options
-  for (const op of options.value.filter((el) => el.order === null)) {
-    op.title = op.title.replace(/^'/, '').replace(/'$/, '')
-  }
-
-  if (vModel.value.cdf && typeof vModel.value.cdf === 'string') {
-    const fndDefaultOption = options.value.filter((el) => el.title === vModel.value.cdf)
-    if (!fndDefaultOption.length) {
-      vModel.value.cdf = vModel.value.cdf.replace(/^'/, '').replace(/'$/, '')
-    }
-  }
-
-  const fndDefaultOption = options.value.filter((el) => el.title === vModel.value.cdf)
-  if (fndDefaultOption.length) {
-    defaultOption.value = vModel.value.uidt === UITypes.SingleSelect ? [fndDefaultOption[0]] : fndDefaultOption
-  }
-})
-
 const getNextColor = () => {
   let tempColor = colors.value[0]
   if (options.value.length && options.value[options.value.length - 1].color) {
@@ -174,7 +140,7 @@ const addNewOption = () => {
 //   await _optionsMagic(base, formState, getNextColor, options.value, renderedOptions.value)
 // }
 
-const syncOptions = () => {
+const syncOptions = (saveChanges: boolean = false) => {
   // set initial colOptions if not set
   vModel.value.colOptions = vModel.value.colOptions || {}
   vModel.value.colOptions.options = options.value
@@ -189,6 +155,10 @@ const syncOptions = () => {
       const { status: _s, ...rest } = op
       return rest
     })
+
+  if (saveChanges) {
+    emit('saveChanges')
+  }
 }
 
 const removeRenderedOption = (index: number) => {
@@ -220,7 +190,7 @@ const removeRenderedOption = (index: number) => {
   }
 }
 
-const optionChanged = (changedElement: Option) => {
+const optionChanged = (changedElement: Option, saveChanges: boolean = false) => {
   const changedDefaultOptionIndex = defaultOption.value.findIndex((o) => {
     if (o.id !== undefined && changedElement.id !== undefined) {
       return o.id === changedElement.id
@@ -238,7 +208,7 @@ const optionChanged = (changedElement: Option) => {
       vModel.value.cdf = defaultOption.value.map((o) => o.title).join(',')
     }
   }
-  syncOptions()
+  syncOptions(saveChanges)
 }
 
 const undoRemoveRenderedOption = (index: number) => {
@@ -344,112 +314,218 @@ const loadListData = async ($state: any) => {
 
   $state.loaded()
 }
+
+onMounted(() => {
+  if (!vModel.value.colOptions?.options) {
+    vModel.value.colOptions = {
+      options: [],
+    }
+  }
+
+  isReverseLazyLoad.value = false
+
+  options.value = vModel.value.colOptions.options
+
+  let indexCounter = 0
+  options.value.map((el) => {
+    el.index = indexCounter++
+    return el
+  })
+
+  loadedOptionAnchor.value = Math.min(loadedOptionAnchor.value, options.value.length)
+
+  renderedOptions.value = [...options.value].slice(0, loadedOptionAnchor.value)
+
+  // Support for older options
+  for (const op of options.value.filter((el) => el.order === null)) {
+    op.title = op.title.replace(/^'/, '').replace(/'$/, '')
+  }
+
+  if (vModel.value.cdf && typeof vModel.value.cdf === 'string') {
+    const fndDefaultOption = options.value.filter((el) => el.title === vModel.value.cdf)
+    if (!fndDefaultOption.length) {
+      vModel.value.cdf = vModel.value.cdf.replace(/^'/, '').replace(/'$/, '')
+    }
+  }
+
+  const fndDefaultOption = options.value.filter((el) => el.title === vModel.value.cdf)
+  if (fndDefaultOption.length) {
+    defaultOption.value = vModel.value.uidt === UITypes.SingleSelect ? [fndDefaultOption[0]] : fndDefaultOption
+  }
+  if (isKanbanStack.value && isNewStack.value) {
+    addNewOption()
+  }
+})
+
+const kanbanStackOption = computed({
+  get: () => {
+    if (isNewStack.value) {
+      return renderedOptions.value[renderedOptions.value.length - 1]
+    } else if (optionId.value) {
+      return renderedOptions.value.find((o) => o.id === optionId.value)
+    }
+    return null
+  },
+  set: (value) => {
+    console.log(value)
+  },
+})
+
 </script>
 
 <template>
   <div class="w-full">
     <div
       ref="optionsWrapperDomRef"
-      class="nc-col-option-select-option overflow-x-auto scrollbar-thin-dull rounded-lg"
+      class="nc-col-option-select-option"
       :class="{
-        'border-1 border-gray-200': renderedOptions.length,
+        'overflow-x-auto scrollbar-thin-dull rounded-lg': !isKanbanStack,
+        'border-1 border-gray-200': renderedOptions.length && !isKanbanStack,
       }"
       :style="{
         maxHeight: props.fromTableExplorer ? 'calc(100vh - (var(--topbar-height) * 3.6) - 320px)' : 'calc(min(30vh, 250px))',
       }"
     >
-      <InfiniteLoading v-if="isReverseLazyLoad" v-bind="$attrs" @infinite="loadListDataReverse">
-        <template #spinner>
-          <div class="flex flex-row w-full justify-center mt-2">
-            <GeneralLoader />
-          </div>
-        </template>
-        <template #complete>
-          <span></span>
-        </template>
-      </InfiniteLoading>
-      <Draggable :list="renderedOptions" item-key="id" handle=".nc-child-draggable-icon" @change="syncOptions">
-        <template #item="{ element, index }">
-          <div class="flex py-1 items-center nc-select-option hover:bg-gray-100 group">
-            <div
-              class="flex items-center w-full"
-              :data-testid="`select-column-option-${index}`"
-              :class="{ removed: element.status === 'remove' }"
-            >
-              <div
-                v-if="!isKanban"
-                class="nc-child-draggable-icon p-2 flex cursor-pointer"
-                :data-testid="`select-option-column-handle-icon-${element.title}`"
-              >
-                <component :is="iconMap.dragVertical" small class="handle" />
+      <template v-if="isKanbanStack">
+        <div v-if="kanbanStackOption" class="flex items-center nc-select-option group">
+          <div class="flex items-center w-full" :class="{ removed: kanbanStackOption.status === 'remove' }">
+            <NcDropdown v-model:visible="colorMenus[kanbanStackOption.index!]" :auto-close="false">
+              <div class="flex-none h-6 w-6 flex cursor-pointer mx-1">
+                <div class="h-6 w-6 rounded flex items-center" :style="{ backgroundColor: kanbanStackOption.color }">
+                  <GeneralIcon icon="arrowDown" class="flex-none h-4 w-4 m-auto !text-gray-600" />
+                </div>
               </div>
 
-              <NcDropdown v-model:visible="colorMenus[index]" :auto-close="false">
-                <div class="flex-none h-6 w-6 flex cursor-pointer mx-1">
-                  <div class="h-6 w-6 rounded flex items-center" :style="{ backgroundColor: element.color }">
-                    <GeneralIcon icon="arrowDown" class="flex-none h-4 w-4 m-auto !text-gray-600" />
-                  </div>
+              <template #overlay>
+                <div>
+                  <LazyGeneralAdvanceColorPicker
+                    v-model="kanbanStackOption.color"
+                    :is-open="colorMenus[kanbanStackOption.index!]"
+                    @input="(el:string) => {
+                      console.log('value', el, kanbanStackOption!.color)
+                      kanbanStackOption!.color = el
+                      optionChanged(kanbanStackOption!, true)
+                    }"
+                  ></LazyGeneralAdvanceColorPicker>
+                </div>
+              </template>
+            </NcDropdown>
+
+            <a-input
+              v-model:value="kanbanStackOption.title"
+              class="caption !rounded-lg nc-select-col-option-select-option !bg-transparent"
+              :data-testid="`select-column-option-input-${kanbanStackOption.index!}`"
+              :disabled="kanbanStackOption.status === 'remove'"
+              @keydown.enter.prevent="syncOptions(true)"
+              @change="optionChanged(kanbanStackOption!)"
+              @blur="syncOptions(true)"
+            />
+          </div>
+
+          <div
+            v-if="isNewStack"
+            class="mx-1 hover:!text-black-500 text-gray-500 cursor-pointer hover:bg-gray-200 py-1 px-1.5 rounded-md h-7 flex items-center invisible group-hover:visible"
+            @click="removeRenderedOption(renderedOptions.length - 1)"
+          >
+            <component :is="iconMap.close" class="-mt-0.25 w-4 h-4" />
+          </div>
+        </div>
+      </template>
+      <template v-else>
+        <InfiniteLoading v-if="isReverseLazyLoad" v-bind="$attrs" @infinite="loadListDataReverse">
+          <template #spinner>
+            <div class="flex flex-row w-full justify-center mt-2">
+              <GeneralLoader />
+            </div>
+          </template>
+          <template #complete>
+            <span></span>
+          </template>
+        </InfiniteLoading>
+        <Draggable :list="renderedOptions" item-key="id" handle=".nc-child-draggable-icon" @change="syncOptions">
+          <template #item="{ element, index }">
+            <div class="flex py-1 items-center nc-select-option hover:bg-gray-100 group">
+              <div
+                class="flex items-center w-full"
+                :data-testid="`select-column-option-${index}`"
+                :class="{ removed: element.status === 'remove' }"
+              >
+                <div
+                  v-if="!isKanban"
+                  class="nc-child-draggable-icon p-2 flex cursor-pointer"
+                  :data-testid="`select-option-column-handle-icon-${element.title}`"
+                >
+                  <component :is="iconMap.dragVertical" small class="handle" />
                 </div>
 
-                <template #overlay>
-                  <div>
-                    <LazyGeneralAdvanceColorPicker
-                      v-model="element.color"
-                      :is-open="colorMenus[index]"
-                      @input="(el:string) => (element.color = el)"
-                    ></LazyGeneralAdvanceColorPicker>
+                <NcDropdown v-model:visible="colorMenus[index]" :auto-close="false">
+                  <div class="flex-none h-6 w-6 flex cursor-pointer mx-1">
+                    <div class="h-6 w-6 rounded flex items-center" :style="{ backgroundColor: element.color }">
+                      <GeneralIcon icon="arrowDown" class="flex-none h-4 w-4 m-auto !text-gray-600" />
+                    </div>
                   </div>
-                </template>
-              </NcDropdown>
 
-              <a-input
-                v-model:value="element.title"
-                class="caption !rounded-lg nc-select-col-option-select-option !bg-transparent"
-                :data-testid="`select-column-option-input-${index}`"
-                :disabled="element.status === 'remove'"
-                @keydown.enter.prevent="element.title?.trim() && addNewOption()"
-                @change="optionChanged(element)"
-              />
-            </div>
+                  <template #overlay>
+                    <div>
+                      <LazyGeneralAdvanceColorPicker
+                        v-model="element.color"
+                        :is-open="colorMenus[index]"
+                        @input="(el:string) => (element.color = el)"
+                      ></LazyGeneralAdvanceColorPicker>
+                    </div>
+                  </template>
+                </NcDropdown>
 
-            <div
-              v-if="element.status !== 'remove'"
-              :data-testid="`select-column-option-remove-${index}`"
-              class="mx-1 hover:!text-black-500 text-gray-500 cursor-pointer hover:bg-gray-200 py-1 px-1.5 rounded-md h-7 flex items-center invisible group-hover:visible"
-              @click="removeRenderedOption(index)"
-            >
-              <component :is="iconMap.close" class="-mt-0.25 w-4 h-4" />
-            </div>
-            <div
-              v-else
-              :data-testid="`select-column-option-remove-undo-${index}`"
-              class="mx-1 hover:!text-black-500 text-gray-500 cursor-pointer hover:bg-gray-200 py-1 px-1.5 rounded-md h-7 flex items-center invisible group-hover:visible"
-              @click="undoRemoveRenderedOption(index)"
-            >
-              <MdiArrowULeftBottom
-                class="hover:!text-black-500 text-gray-500 cursor-pointer w-4 h-4"
+                <a-input
+                  v-model:value="element.title"
+                  class="caption !rounded-lg nc-select-col-option-select-option !bg-transparent"
+                  :data-testid="`select-column-option-input-${index}`"
+                  :disabled="element.status === 'remove'"
+                  @keydown.enter.prevent="element.title?.trim() && addNewOption()"
+                  @change="optionChanged(element)"
+                />
+              </div>
+
+              <div
+                v-if="element.status !== 'remove'"
+                :data-testid="`select-column-option-remove-${index}`"
+                class="mx-1 hover:!text-black-500 text-gray-500 cursor-pointer hover:bg-gray-200 py-1 px-1.5 rounded-md h-7 flex items-center invisible group-hover:visible"
+                @click="removeRenderedOption(index)"
+              >
+                <component :is="iconMap.close" class="-mt-0.25 w-4 h-4" />
+              </div>
+              <div
+                v-else
+                :data-testid="`select-column-option-remove-undo-${index}`"
+                class="mx-1 hover:!text-black-500 text-gray-500 cursor-pointer hover:bg-gray-200 py-1 px-1.5 rounded-md h-7 flex items-center invisible group-hover:visible"
                 @click="undoRemoveRenderedOption(index)"
-              />
+              >
+                <MdiArrowULeftBottom
+                  class="hover:!text-black-500 text-gray-500 cursor-pointer w-4 h-4"
+                  @click="undoRemoveRenderedOption(index)"
+                />
+              </div>
             </div>
-          </div>
-        </template>
-      </Draggable>
-      <InfiniteLoading v-if="!isReverseLazyLoad" v-bind="$attrs" @infinite="loadListData">
-        <template #spinner>
-          <div class="flex flex-row w-full justify-center mt-2">
-            <GeneralLoader />
-          </div>
-        </template>
-        <template #complete>
-          <span></span>
-        </template>
-      </InfiniteLoading>
+          </template>
+        </Draggable>
+        <InfiniteLoading v-if="!isReverseLazyLoad" v-bind="$attrs" @infinite="loadListData">
+          <template #spinner>
+            <div class="flex flex-row w-full justify-center mt-2">
+              <GeneralLoader />
+            </div>
+          </template>
+          <template #complete>
+            <span></span>
+          </template>
+        </InfiniteLoading>
+      </template>
     </div>
 
     <div v-if="validateInfos?.colOptions?.help?.[0]?.[0]" class="text-error text-[10px] mb-1 mt-2">
       {{ validateInfos.colOptions.help[0][0] }}
     </div>
     <NcButton
+      v-if="!isKanbanStack"
       type="secondary"
       class="w-full caption"
       :class="{

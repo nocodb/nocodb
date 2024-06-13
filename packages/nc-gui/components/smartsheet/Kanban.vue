@@ -46,6 +46,8 @@ const route = router.currentRoute
 
 const { getPossibleAttachmentSrc } = useAttachment()
 
+const { metaColumnById } = useViewColumnsOrThrow(view, meta)
+
 const {
   loadKanbanData,
   loadMoreKanbanData,
@@ -378,6 +380,16 @@ const getRowId = (row: RowType) => {
 }
 
 const hideEmptyStack = computed(() => parseProp(kanbanMetaData.value?.meta).hide_empty_stack || false)
+
+const isRenameOrNewStack = ref(null)
+
+
+const compareStack = (stack: any, stack2?: any) => {
+  if (stack?.id && stack2?.id) {
+    return stack.id === stack2.id
+  }
+  return false
+}
 </script>
 
 <template>
@@ -449,20 +461,42 @@ const hideEmptyStack = computed(() => parseProp(kanbanMetaData.value?.meta).hide
                 <!-- Stack -->
                 <a-layout v-else>
                   <a-layout-header>
-                    <div class="nc-kanban-stack-head w-full flex items-center gap-1">
-                      <div class="flex-1 flex items-center gap-1 max-w-[calc(100%_-_32px)]">
+                    <div
+                      class="nc-kanban-stack-head w-full flex gap-1"
+                      :class="{
+                        'items-start': compareStack(stack, isRenameOrNewStack),
+                        'items-center': !compareStack(stack, isRenameOrNewStack),
+                      }"
+                    >
+                      <div
+                        class="flex-1 flex gap-1 max-w-[calc(100%_-_32px)]"
+                        :class="{
+                          'items-start': compareStack(stack, isRenameOrNewStack),
+                          'items-center': !compareStack(stack, isRenameOrNewStack),
+                        }"
+                      >
                         <NcButton
                           v-if="!(stack.title === null || isLocked || isPublic || !hasEditPermission)"
                           :disabled="!stack.title"
                           type="text"
                           size="xs"
                           class="nc-kanban-stack-drag-handler !px-1.5 !cursor-move !:disabled:cursor-not-allowed"
+                          :class="{
+                            'mt-0.5': compareStack(stack, isRenameOrNewStack),
+                          }"
                         >
                           <GeneralIcon icon="drag" />
                         </NcButton>
 
-                        <div class="flex-1 flex max-w-[calc(100%_-_64px)]">
-                          <a-tag class="max-w-full !rounded-full !px-2 !py-1 h-7 !m-0 !border-none" :color="stack.color">
+                        <div class="flex-1 flex max-w-[calc(100%_-_28px)] -ml-1">
+                          <template v-if="compareStack(stack, isRenameOrNewStack)">
+                            <SmartsheetKanbanEditOrAddStackProvider
+                              :column="metaColumnById[isRenameOrNewStack?.fk_column_id]"
+                              :option-id="isRenameOrNewStack.id"
+                              @submit="isRenameOrNewStack = null"
+                            />
+                          </template>
+                          <a-tag v-else class="max-w-full !rounded-full !px-2 !py-1 h-7 !m-0 !border-none" :color="stack.color">
                             <span
                               :style="{
                                 color: tinycolor.isReadable(stack.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
@@ -496,7 +530,14 @@ const hideEmptyStack = computed(() => parseProp(kanbanMetaData.value?.meta).hide
                         overlay-class-name="nc-dropdown-kanban-stack-context-menu"
                         class="bg-white !rounded-lg"
                       >
-                        <NcButton type="text" size="xs" class="!px-1.5">
+                        <NcButton
+                          type="text"
+                          size="xs"
+                          class="!px-1.5"
+                          :class="{
+                            'mt-0.5': compareStack(stack, isRenameOrNewStack),
+                          }"
+                        >
                           <GeneralIcon icon="threeDotVertical" />
                         </NcButton>
 
@@ -518,7 +559,15 @@ const hideEmptyStack = computed(() => parseProp(kanbanMetaData.value?.meta).hide
                               </div>
                             </NcMenuItem>
                             <!--  Todo: rename stack function -->
-                            <NcMenuItem v-if="hasEditPermission && !isPublic && !isLocked" v-e="['c:kanban:rename-stack']">
+                            <NcMenuItem
+                              v-if="hasEditPermission && !isPublic && !isLocked"
+                              v-e="['c:kanban:rename-stack']"
+                              @click="
+                                () => {
+                                  isRenameOrNewStack = stack
+                                }
+                              "
+                            >
                               <div class="flex gap-2 items-center">
                                 <component :is="iconMap.ncEdit" />
                                 {{ $t('activity.kanban.renameStack') }}
@@ -945,6 +994,7 @@ const hideEmptyStack = computed(() => parseProp(kanbanMetaData.value?.meta).hide
 .ant-layout-header,
 .ant-layout-footer {
   @apply p-2 text-sm;
+  height: unset !important;
 }
 
 .nc-kanban-collapsed-stack {

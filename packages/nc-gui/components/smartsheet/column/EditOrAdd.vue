@@ -2,7 +2,6 @@
 import type { ColumnReqType, ColumnType } from 'nocodb-sdk'
 import { UITypes, UITypesName, isLinksOrLTAR, isSelfReferencingTableColumn, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 
-import Icon from '../header/Icon.vue'
 import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
 import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
 import MdiIdentifierIcon from '~icons/mdi/identifier'

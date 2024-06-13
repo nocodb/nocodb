@@ -19,6 +19,7 @@ import {
   GalleryView,
   GridViewColumn,
   KanbanView,
+  KanbanViewColumn,
   View,
 } from '~/models';
 
@@ -57,12 +58,14 @@ const getAst = async (
 
   let coverImageId;
   let dependencyFieldsForCalenderView;
+  let kanbanGroupColumnId;
   if (view && view.type === ViewTypes.GALLERY) {
     const gallery = await GalleryView.get(context, view.id);
     coverImageId = gallery.fk_cover_image_col_id;
   } else if (view && view.type === ViewTypes.KANBAN) {
     const kanban = await KanbanView.get(context, view.id);
     coverImageId = kanban.fk_cover_image_col_id;
+    kanbanGroupColumnId = kanban.fk_grp_col_id;
   } else if (view && view.type === ViewTypes.CALENDAR) {
     // const calendar = await CalendarView.get(view.id);
     // coverImageId = calendar.fk_cover_image_col_id;
@@ -140,7 +143,11 @@ const getAst = async (
     allowedCols = (await View.getColumns(context, view.id)).reduce(
       (o, c) => ({
         ...o,
-        [c.fk_column_id]: c.show || (c instanceof GridViewColumn && c.group_by),
+        [c.fk_column_id]:
+          c.show ||
+          (c instanceof GridViewColumn && c.group_by) ||
+          (c instanceof KanbanViewColumn &&
+            c.fk_column_id === kanbanGroupColumnId),
       }),
       {},
     );

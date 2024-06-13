@@ -499,6 +499,9 @@ const onIsExpandedUpdate = (v: boolean) => {
 
   if (changedColumns.value.size === 0 && !isUnsavedFormExist.value) {
     isExpanded.value = v
+    if (isKanban.value) {
+      emits('cancel')
+    }
   } else if (!v && isUIAllowed('dataEdit')) {
     preventModalStatus.value = true
   } else {

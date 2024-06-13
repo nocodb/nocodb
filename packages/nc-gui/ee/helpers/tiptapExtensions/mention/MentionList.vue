@@ -82,7 +82,7 @@ export default {
       this.selectItem(this.selectedIndex, e)
     },
 
-    selectItem(index, e) {
+    selectItem(index, _e) {
       const item = this.items[index]
       if (item) {
         this.command({

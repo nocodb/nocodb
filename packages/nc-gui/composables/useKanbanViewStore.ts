@@ -13,6 +13,8 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       throw new Error('Table meta is not available')
     }
 
+    const addNewStackId = 'addNewStack'
+
     const { t } = useI18n()
 
     const { api } = useApi()
@@ -141,6 +143,24 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       }
     }
 
+    const filerDuplicateRecords = (existingRecords: Row[], newRecords: Row[]) => {
+      const existingRecordsMap = (existingRecords || []).reduce((acc, curr) => {
+        const primaryKey = extractPkFromRow(curr.row, meta!.value!.columns as ColumnType[])
+        if (primaryKey) {
+          acc[primaryKey] = curr
+        }
+        return acc
+      }, {} as Record<string, Row>)
+
+      return (newRecords || []).filter(({ row }) => {
+        const primaryKey = extractPkFromRow(row, meta!.value!.columns as ColumnType[])
+        if (primaryKey && existingRecordsMap[primaryKey]) {
+          return false
+        }
+        return true
+      })
+    }
+
     async function loadMoreKanbanData(stackTitle: string, params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) {
       if ((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic.value) return
       let where = `(${groupingField.value},eq,${stackTitle})`
@@ -167,7 +187,10 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
             where,
           })
 
-      formattedData.value.set(stackTitle, [...formattedData.value.get(stackTitle)!, ...formatData(response!.list!)])
+      formattedData.value.set(stackTitle, [
+        ...formattedData.value.get(stackTitle)!,
+        ...filerDuplicateRecords(formattedData.value.get(stackTitle)!, formatData(response!.list!)),
+      ])
     }
 
     async function loadKanbanMeta() {
@@ -250,7 +273,8 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
             isChanged = true
           }
         }
-        groupingFieldColOptions.value = stackMetaObj.value[fk_grp_col_id]
+
+        groupingFieldColOptions.value = [...stackMetaObj.value[fk_grp_col_id]]
 
         if (isChanged) {
           await updateKanbanStackMeta()
@@ -260,10 +284,11 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
         }
       } else {
         // build stack meta
+
         groupingFieldColOptions.value = [
           ...((groupingFieldColumn.value?.colOptions as SelectOptionsType & { collapsed: boolean })?.options ?? []),
           // enrich uncategorized stack
-          { id: 'uncategorized', title: null, order: 0, color: enumColor.light[2] } as any,
+          { id: 'uncategorized', title: null, order: 0, color: themeV3Colors.gray[500] } as any,
         ]
           // sort by initial order
           .sort((a, b) => a.order! - b.order!)
@@ -485,11 +510,14 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
           (o) => o.title !== stackTitle,
         )
         ;(groupingFieldColumn.value.colOptions as SelectOptionsType).options = newOptions
+
+        const cdf = groupingFieldColumn.value.cdf ? groupingFieldColumn.value.cdf.replace(/^'/, '').replace(/'$/, '') : null
         await api.dbTableColumn.update(groupingFieldColumn.value.id!, {
           ...groupingFieldColumn.value,
           colOptions: {
             options: newOptions,
           },
+          cdf: cdf === stackTitle ? null : cdf,
         } as any)
 
         // update kanban stack meta
@@ -682,6 +710,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       shouldScrollToRight,
       deleteRow,
       moveHistory,
+      addNewStackId,
     }
   },
   'kanban-view-store',

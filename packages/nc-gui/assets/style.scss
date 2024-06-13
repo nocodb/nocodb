@@ -249,6 +249,23 @@ a {
     @apply !rounded-md;
   }
 }
+
+.nc-select-shadow {
+  &.ant-select {
+    &:not(.ant-select-disabled):not(:hover):not(.ant-select-focused) .ant-select-selector,
+    &:not(.ant-select-disabled):hover.ant-select-disabled .ant-select-selector {
+      @apply shadow-default;
+    }
+
+    &:hover:not(.ant-select-focused):not(.ant-select-disabled) .ant-select-selector {
+      @apply border-gray-300 shadow-hover;
+    }
+    &.ant-select-disabled .ant-select-selector {
+      box-shadow: none;
+    }
+  }
+}
+
 // select dropdown border style
 .ant-select-dropdown {
   @apply border-1 border-gray-200 rounded-lg;

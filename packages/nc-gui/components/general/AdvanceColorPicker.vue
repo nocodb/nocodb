@@ -52,22 +52,22 @@ const defaultColors = computed<string[][]>(() => {
   return allColors
 })
 
-const localIsDefaultColorTab = ref(true)
+const localIsDefaultColorTab = ref<'true' | 'false'>('true')
 
 const isDefaultColorTab = computed({
   get: () => {
     if (showActiveColorTab.value && vModel.value) {
       for (const colorGrp of defaultColors.value) {
         if (colorGrp.includes(vModel.value)) {
-          return true
+          return 'true'
         }
       }
-      return false
+      return 'false'
     }
 
     return localIsDefaultColorTab.value
   },
-  set: (val: boolean) => {
+  set: (val: 'true' | 'false') => {
     localIsDefaultColorTab.value = val
 
     if (showActiveColorTab.value) {
@@ -110,7 +110,7 @@ watch(
 <template>
   <div class="nc-advance-color-picker w-[336px] pt-2" click.stop>
     <NcTabs v-model:activeKey="isDefaultColorTab" class="nc-advance-color-picker-tab w-full">
-      <a-tab-pane :key="true">
+      <a-tab-pane key="true">
         <template #tab>
           <div class="tab" data-testid="nc-default-colors-tab">Default colors</div>
         </template>
@@ -131,7 +131,7 @@ watch(
           </div>
         </div>
       </a-tab-pane>
-      <a-tab-pane :key="false">
+      <a-tab-pane key="false">
         <template #tab>
           <div class="tab" data-testid="nc-custom-colors-tab">
             <div>Custom colours</div>

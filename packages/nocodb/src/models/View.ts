@@ -1852,7 +1852,7 @@ export default class View implements ViewType {
           }
         } else if (view.type === ViewTypes.KANBAN && !copyFromView) {
           const kanbanView = await KanbanView.get(context, view.id, ncMeta);
-          if (column.id === kanbanView?.fk_grp_col_id) {
+          if (column.id === kanbanView?.fk_grp_col_id && column.pv) {
             // include grouping field if it exists
             show = true;
           } else if (

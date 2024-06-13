@@ -417,12 +417,12 @@ useMenuCloseOnEsc(open)
       >
         <div
           v-if="!isPublic && (activeView?.type === ViewTypes.GALLERY || activeView?.type === ViewTypes.KANBAN)"
-          class="flex flex-col gap-y-2 px-2 mb-3"
+          class="flex items-center gap-2 px-2 mb-4"
         >
-          <div class="flex text-sm select-none text-gray-600">{{ $t('labels.coverImageField') }}</div>
+          <div class="pl-2 flex text-sm select-none text-gray-600">{{ $t('labels.coverImageField') }}</div>
 
           <div
-            class="nc-dropdown-cover-image-wrapper flex items-stretch border-1 border-gray-200 rounded-lg transition-all duration-0.3s"
+            class="flex-1 nc-dropdown-cover-image-wrapper flex items-stretch border-1 border-gray-200 rounded-lg transition-all duration-0.3s"
           >
             <a-select
               v-model:value="coverImageColumnId"
@@ -607,7 +607,7 @@ useMenuCloseOnEsc(open)
         </div>
         <div v-if="!filterQuery" class="flex px-2 gap-2 py-2">
           <NcButton class="nc-fields-show-all-fields" size="small" type="ghost" @click="showAllColumns = !showAllColumns">
-            {{ showAllColumns ? $t('general.hideAll') : $t('general.showAll') }} {{ $t('objects.fields') }}
+            {{ showAllColumns ? $t('general.hideAll') : $t('general.showAll') }} {{ $t('objects.fields').toLowerCase() }}
           </NcButton>
           <NcButton
             v-if="!isPublic"

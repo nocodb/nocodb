@@ -21,6 +21,8 @@ export function useViewFilters(
   isLink?: boolean,
   linkColId?: Ref<string>,
 ) {
+  const savingStatus: Record<number, boolean> = {}
+
   const parentId = ref(_parentId)
 
   const currentFilters = ref(_currentFilters)
@@ -337,6 +339,13 @@ export function useViewFilters(
   }
 
   const saveOrUpdate = async (filter: Filter, i: number, force = false, undo = false, skipDataReload = false) => {
+    // if already in progress the debounced function which will call this function again with 500ms delay until it's not saving
+    if (savingStatus[i]) {
+      return saveOrUpdateDebounced(filter, i, force, undo, skipDataReload)
+    } else {
+      savingStatus[i] = true
+    }
+
     if (!view.value && !linkColId?.value) return
 
     if (!undo) {
@@ -377,8 +386,8 @@ export function useViewFilters(
         filters.value = [...filters.value]
       } else if (!autoApply?.value && !force) {
         filter.status = filter.id ? 'update' : 'create'
-      } else if (filter.id && filter.status !== 'create') {
-        await $api.dbTableFilter.update(filter.id, {
+      } else if (filters.value[i]?.id && filter.status !== 'create') {
+        await $api.dbTableFilter.update(filters.value[i].id!, {
           ...filter,
           fk_parent_id: parentId.value,
         })
@@ -405,6 +414,8 @@ export function useViewFilters(
     } catch (e: any) {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e))
+    } finally {
+      savingStatus[i] = false
     }
 
     lastFilters.value = clone(filters.value)

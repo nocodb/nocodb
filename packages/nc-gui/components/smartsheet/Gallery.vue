@@ -190,7 +190,7 @@ watch(
   >
     <template #overlay>
       <NcMenu @click="contextMenu = false">
-        <NcMenuItem v-if="contextMenuTarget" @click="deleteRow(contextMenuTarget.row)" class="!text-red-600 !hover:bg-red-50">
+        <NcMenuItem v-if="contextMenuTarget" class="!text-red-600 !hover:bg-red-50" @click="deleteRow(contextMenuTarget.row)">
           <div v-e="['a:row:delete']" class="flex items-center gap-2">
             <component :is="iconMap.delete" class="flex" />
             <!-- Delete Row -->

@@ -265,11 +265,11 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
         if (errorMsgs) {
           message.error(errorMsgs)
           return
-        } else {
-          if (!fromKanbanStack?.value || (fromKanbanStack.value && !e.outOfDate)) {
-            message.error(t('msg.error.formValidationFailed'))
-            return
-          }
+        }
+
+        if (!fromKanbanStack?.value || (fromKanbanStack.value && !e.outOfDate)) {
+          message.error(t('msg.error.formValidationFailed'))
+          return
         }
       }
 

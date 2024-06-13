@@ -1,21 +1,21 @@
 <script lang="ts" setup>
+import type { ColumnType } from 'nocodb-sdk'
+
 const props = defineProps<{
+  column: ColumnType
   optionId?: string
   isNewStack?: boolean
-  readonly?: boolean
 }>()
 
-const emit = defineEmits(['submit', 'cancel', 'mounted', 'add', 'update'])
+const emit = defineEmits(['submit'])
 
-const { optionId, isNewStack } = toRefs(props)
-
-const { formState, addOrUpdate } = useColumnCreateStoreOrThrow()
-
-const { loadKanbanMeta } = useKanbanViewStoreOrThrow()
-
-const { getMeta } = useMetas()
+const { column, optionId, isNewStack } = toRefs(props)
 
 const meta = inject(MetaInj, ref())
+
+const { formState, addOrUpdate } = useProvideColumnCreateStore(meta, column, undefined, undefined, undefined, ref(true))
+
+const { getMeta } = useMetas()
 
 const reloadMetaAndData = async () => {
   await getMeta(meta.value?.id as string, true)
@@ -35,10 +35,8 @@ async function onSubmit(submit: boolean = false, saveChanges: boolean = true) {
 
   if (!saved) return
 
-  await loadKanbanMeta()
-
   if (submit) {
-    emit('submit')
+    emit('submit', true)
   }
 }
 </script>
@@ -50,7 +48,7 @@ async function onSubmit(submit: boolean = false, saveChanges: boolean = true) {
     name="column-create-or-edit"
     layout="vertical"
     data-testid="add-or-edit-column"
-    class="w-full"
+    class="w-full flex"
   >
     <SmartsheetColumnSelectOptions
       v-model:value="formState"
@@ -61,5 +59,3 @@ async function onSubmit(submit: boolean = false, saveChanges: boolean = true) {
     />
   </a-form>
 </template>
-
-<style lang="scss" scoped></style>

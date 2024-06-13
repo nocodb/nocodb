@@ -1,9 +1,7 @@
 <script setup lang="ts">
-import type { KanbanType } from 'nocodb-sdk'
-import { UITypes } from 'nocodb-sdk'
+import type { ColumnType, KanbanType } from 'nocodb-sdk'
+import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import type { SelectProps } from 'ant-design-vue'
-import type { ColumnType } from 'nocodb-sdk'
-import { isVirtualCol } from 'nocodb-sdk'
 
 provide(IsKanbanInj, ref(true))
 
@@ -17,8 +15,7 @@ const isLocked = inject(IsLockedInj, ref(false))
 
 const { fields, loadViewColumns, metaColumnById } = useViewColumnsOrThrow(activeView, meta)
 
-const { kanbanMetaData, loadKanbanMeta, loadKanbanData, updateKanbanMeta, groupingField, groupingFieldColumn } =
-  useKanbanViewStoreOrThrow()
+const { kanbanMetaData, loadKanbanMeta, loadKanbanData, updateKanbanMeta, groupingField } = useKanbanViewStoreOrThrow()
 
 const { addUndo, defineViewScope } = useUndoRedo()
 
@@ -115,13 +112,6 @@ const singleSelectFieldOptions = computed<SelectProps['options']>(() => {
       }
     })
 })
-
-const onSubmit = async () => {
-  open.value = false
-
-  await loadKanbanMeta()
-  await loadKanbanData()
-}
 
 const handleChange = () => {
   open.value = false

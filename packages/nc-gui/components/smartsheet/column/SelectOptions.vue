@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
-import { UITypes, type SelectOptionsType } from 'nocodb-sdk'
+import { type SelectOptionsType, UITypes } from 'nocodb-sdk'
 import InfiniteLoading from 'v3-infinite-loading'
 
 interface Option {
@@ -9,7 +9,7 @@ interface Option {
   id?: string
   fk_colum_id?: string
   order?: number
-  status?: 'remove'
+  status?: 'remove' | 'new'
   index?: number
 }
 
@@ -66,7 +66,7 @@ const validators = {
           validator: (_: any, _opt: any) => {
             return new Promise<void>((resolve, reject) => {
               for (const opt of options.value) {
-                if ((opt as any).status === 'remove') continue
+                if ((opt as any).status === 'remove' || (opt as any).status === 'new') continue
 
                 if (!opt.title.length) {
                   return reject(new Error(t('msg.selectOption.cantBeNull')))
@@ -108,8 +108,9 @@ const addNewOption = () => {
     title: '',
     color: getNextColor(),
     index: options.value.length,
+    ...(isKanbanStack.value ? { status: 'new' } : {}),
   }
-  options.value.push(tempOption)
+  options.value.push(tempOption as Option)
 
   if (isKanbanStack.value) {
     renderedOptions.value = options.value
@@ -445,10 +446,14 @@ if (isKanbanStack.value) {
 
             <a-input
               v-model:value="kanbanStackOption.title"
+              placeholder="Enter option name..."
               class="caption !rounded-lg nc-select-col-option-select-option nc-kanban-stack-input !bg-transparent"
               :data-testid="`select-column-option-input-${kanbanStackOption.index!}`"
               @keydown.enter.prevent.stop="syncOptions(true, true)"
-              @change="optionChanged(kanbanStackOption!)"
+              @change="() => {
+                  kanbanStackOption!.status = undefined
+                  optionChanged(kanbanStackOption!)
+              }"
             />
           </div>
 
@@ -551,7 +556,13 @@ if (isKanbanStack.value) {
       </template>
     </div>
 
-    <div v-if="validateInfos?.colOptions?.help?.[0]?.[0]" class="text-error text-[10px] mb-1 mt-2">
+    <div
+      v-if="validateInfos?.colOptions?.help?.[0]?.[0]"
+      class="text-error text-[10px] mb-1 mt-2"
+      :class="{
+        'pl-1': isKanbanStack,
+      }"
+    >
       {{ validateInfos.colOptions.help[0][0] }}
     </div>
     <NcButton

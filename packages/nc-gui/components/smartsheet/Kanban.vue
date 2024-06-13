@@ -386,11 +386,13 @@ const hideEmptyStack = computed(() => parseProp(kanbanMetaData.value?.meta).hide
 
 const isRenameOrNewStack = ref(null)
 
-const compareStack = (stack: any, stack2?: any) => {
-  if (stack?.id && stack2?.id) {
-    return stack.id === stack2.id
+const compareStack = (stack: any, stack2?: any) => stack?.id && stack2?.id && stack.id === stack2.id
+
+const handleSubmitRenameOrNewStack = async (loadMeta: boolean) => {
+  isRenameOrNewStack.value = null
+  if (loadMeta) {
+    await loadKanbanMeta()
   }
-  return false
 }
 </script>
 
@@ -441,12 +443,14 @@ const compareStack = (stack: any, stack2?: any) => {
                 'hidden': stack.id !== addNewStackId && hideEmptyStack && !formattedData.get(stack.title)?.length,
               }"
             >
+              <!-- Add New Stack -->
               <a-card
                 v-if="stack.id === addNewStackId && hasEditPermission && !isPublic && !isLocked"
                 :key="`${stack.id}-stack`"
-                class="not-draggable flex flex-col w-80 !rounded-xl overflow-y-hidden !shadow-none !hover:shadow-none"
+                class="flex flex-col w-80 !rounded-xl overflow-y-hidden !shadow-none !hover:shadow-none border-gray-200"
                 :class="{
                   '!cursor-default': isLocked || !hasEditPermission,
+                  '!border-none': !compareStack(stack, isRenameOrNewStack),
                 }"
                 :head-style="{ paddingBottom: '0px' }"
                 :body-style="{
@@ -463,7 +467,11 @@ const compareStack = (stack: any, stack2?: any) => {
 
                 <!-- Stack -->
                 <a-layout v-else>
-                  <a-layout-header>
+                  <a-layout-header
+                    :class="{
+                      '!p-0 overflow-hidden': !compareStack(stack, isRenameOrNewStack),
+                    }"
+                  >
                     <div
                       class="nc-kanban-stack-head w-full flex"
                       :class="{
@@ -478,14 +486,17 @@ const compareStack = (stack: any, stack2?: any) => {
                         }
                       "
                     >
-                      <div
+                      <NcButton
                         v-if="!compareStack(stack, isRenameOrNewStack)"
-                        class="w-full flex items-center justify-center gap-2 hover:text-brand-500 transition-colors duration-0.3s"
+                        type="secondary"
+                        class="w-full !rounded-xl min-h-11"
                       >
-                        <component :is="iconMap.plus" v-if="!isPublic && !isLocked" class="" />
+                        <div class="flex items-center gap-2">
+                          <component :is="iconMap.plus" v-if="!isPublic && !isLocked" class="" />
 
-                        {{ $t('general.new') }} {{ $t('general.stack').toLowerCase() }}
-                      </div>
+                          {{ $t('general.new') }} {{ $t('general.stack').toLowerCase() }}
+                        </div>
+                      </NcButton>
 
                       <div
                         v-else
@@ -495,11 +506,13 @@ const compareStack = (stack: any, stack2?: any) => {
                         }"
                         @click.stop
                       >
-                        <template v-if="compareStack(stack, isRenameOrNewStack)">
-                          <SmartsheetKanbanEditOrAddStackProvider
+                        <template
+                          v-if="compareStack(stack, isRenameOrNewStack) && metaColumnById[isRenameOrNewStack?.fk_column_id]"
+                        >
+                          <SmartsheetKanbanEditOrAddStack
                             :column="metaColumnById[isRenameOrNewStack?.fk_column_id]"
                             is-new-stack
-                            @submit="isRenameOrNewStack = null"
+                            @submit="handleSubmitRenameOrNewStack"
                           />
                         </template>
                       </div>
@@ -512,7 +525,7 @@ const compareStack = (stack: any, stack2?: any) => {
               <a-card
                 v-else-if="!stack.collapsed"
                 :key="`${stack.id}-${stackIdx}`"
-                class="flex flex-col w-80 h-full !rounded-xl overflow-y-hidden !shadow-none !hover:shadow-none"
+                class="flex flex-col w-80 h-full !rounded-xl overflow-y-hidden !shadow-none !hover:shadow-none !border-gray-200"
                 :class="{
                   'not-draggable': stack.title === null || isLocked || isPublic || !hasEditPermission,
                   '!cursor-default': isLocked || !hasEditPermission,
@@ -566,11 +579,13 @@ const compareStack = (stack: any, stack2?: any) => {
                             '-ml-1': compareStack(stack, isRenameOrNewStack),
                           }"
                         >
-                          <template v-if="compareStack(stack, isRenameOrNewStack)">
-                            <SmartsheetKanbanEditOrAddStackProvider
+                          <template
+                            v-if="compareStack(stack, isRenameOrNewStack) && metaColumnById[isRenameOrNewStack?.fk_column_id]"
+                          >
+                            <SmartsheetKanbanEditOrAddStack
                               :column="metaColumnById[isRenameOrNewStack?.fk_column_id]"
                               :option-id="isRenameOrNewStack.id"
-                              @submit="isRenameOrNewStack = null"
+                              @submit="handleSubmitRenameOrNewStack"
                             />
                           </template>
                           <a-tag
@@ -678,8 +693,8 @@ const compareStack = (stack: any, stack2?: any) => {
                               <NcDivider />
                               <NcMenuItem
                                 v-e="['c:kanban:delete-stack']"
-                                @click="handleDeleteStackClick(stack.title, stackIdx)"
                                 class="!text-red-600 !hover:bg-red-50"
+                                @click="handleDeleteStackClick(stack.title, stackIdx)"
                               >
                                 <div class="flex gap-2 items-center">
                                   <component :is="iconMap.delete" />
@@ -924,7 +939,7 @@ const compareStack = (stack: any, stack2?: any) => {
               <a-card
                 v-else
                 :key="`${stack.id}-collapsed`"
-                class="nc-kanban-collapsed-stack flex items-center w-[320px] h-[44px] !rounded-xl cursor-pointer h-full !p-2 overflow-hidden !shadow-none !hover:shadow-none"
+                class="nc-kanban-collapsed-stack flex items-center w-[320px] h-[44px] !rounded-xl cursor-pointer h-full !p-2 overflow-hidden !shadow-none !hover:shadow-none !border-gray-200"
                 :class="{
                   'not-draggable': stack.title === null || isLocked || isPublic || !hasEditPermission,
                 }"
@@ -1017,7 +1032,7 @@ const compareStack = (stack: any, stack2?: any) => {
               </div>
             </NcMenuItem>
             <NcDivider />
-            <NcMenuItem v-if="contextMenuTarget" @click="deleteRow(contextMenuTarget)" class="!text-red-600 !hover:bg-red-50">
+            <NcMenuItem v-if="contextMenuTarget" class="!text-red-600 !hover:bg-red-50" @click="deleteRow(contextMenuTarget)">
               <div v-e="['a:kanban:delete-record']" class="flex items-center gap-2 nc-kanban-context-menu-item">
                 <component :is="iconMap.delete" class="flex" />
                 <!-- Delete Record -->

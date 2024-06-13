@@ -489,11 +489,14 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
           (o) => o.title !== stackTitle,
         )
         ;(groupingFieldColumn.value.colOptions as SelectOptionsType).options = newOptions
+
+        const cdf = groupingFieldColumn.value.cdf ? groupingFieldColumn.value.cdf.replace(/^'/, '').replace(/'$/, '') : null
         await api.dbTableColumn.update(groupingFieldColumn.value.id!, {
           ...groupingFieldColumn.value,
           colOptions: {
             options: newOptions,
           },
+          cdf: cdf === stackTitle ? null : cdf,
         } as any)
 
         // update kanban stack meta

@@ -381,7 +381,6 @@ export function useViewFilters(
         }
       }
     }
-
     try {
       if (nestedMode.value) {
         filters.value[i] = { ...filter }
@@ -407,19 +406,22 @@ export function useViewFilters(
           })
           // override any local changes with saved filter since user can change value while saving
           filters.value[i] = {
-            ...(savedFilter || {}),
             ...filters.value[i],
+            fk_parent_id: parentId,
+            id: savedFilter.id,
             status: undefined,
           }
         } else {
+          console.log(parentId.value)
           const savedFilter = await $api.dbTableFilter.create(view.value.id!, {
             ...filter,
             fk_parent_id: parentId.value,
           })
           // override any local changes with saved filter since user can change value while saving
           filters.value[i] = {
-            ...(savedFilter || {}),
             ...filters.value[i],
+            fk_parent_id: parentId,
+            id: savedFilter.id,
             status: undefined,
           }
         }

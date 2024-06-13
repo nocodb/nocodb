@@ -225,6 +225,21 @@ const createdBy = (
     return 'Shared source'
   }
 }
+
+const getUserRole = (email: string) => {
+  const user = baseUsers.value.find((user) => user.email === email)
+  if (!user) return ProjectRoles.NO_ACCESS
+
+  return user.roles || ProjectRoles.NO_ACCESS
+}
+
+const editedAt = (comment: CommentType) => {
+  if (comment.updated_at !== comment.created_at && comment.updated_at) {
+    const str = timeAgo(comment.updated_at).replace(' ', '_')
+    return `[(edited)](a~~~###~~~Edited_${str}) `
+  }
+  return ''
+}
 </script>
 
 <template>
@@ -286,10 +301,8 @@ const createdBy = (
                     </div>
                     <div class="flex items-center gap-2">
                       <NcDropdown
-                        v-if="(comment.created_by_email === user!.email && !editComment )"
-                        :class="{
-                        'opacity-0 group-hover:opacity-100': comment.created_by_email === user!.email && !editComment,
-                        }"
+                        v-if="!editCommentValue"
+                        class="!hidden !group-hover:block"
                         overlay-class-name="!min-w-[160px]"
                         placement="bottomRight"
                       >
@@ -299,6 +312,7 @@ const createdBy = (
                         <template #overlay>
                           <NcMenu>
                             <NcMenuItem
+                              v-if="(comment.created_by_email === user!.email)"
                               v-e="['c:comment-expand:comment:edit']"
                               class="text-gray-700"
                               @click="editComments(comment)"
@@ -309,6 +323,18 @@ const createdBy = (
                               </div>
                             </NcMenuItem>
                             <NcMenuItem
+                              v-e="['c:comment-expand:comment:copy']"
+                              class="text-gray-700"
+                              @click="copyComment(comment)"
+                            >
+                              <div class="flex gap-2 items-center">
+                                <component :is="iconMap.copy" class="cursor-pointer" />
+                                {{ $t('general.copy') }} URL
+                              </div>
+                            </NcMenuItem>
+                            <NcDivider v-if="(comment.created_by_email === user!.email)" />
+                            <NcMenuItem
+                              v-if="(comment.created_by_email === user!.email)"
                               v-e="['c:row-expand:comment:delete']"
                               class="!text-red-500 !hover:bg-red-50"
                               @click="deleteComment(comment.id!)"

@@ -98,6 +98,8 @@ const rolePermissions = {
   },
   [ProjectRoles.COMMENTER]: {
     include: {
+      commentDelete: true,
+      commentResolve: true,
       commentEdit: true,
       commentList: true,
       commentCount: true,

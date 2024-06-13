@@ -230,9 +230,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
         // handle deleted options
         const columnOptionIds = (groupingFieldColumn.value?.colOptions as SelectOptionsType)?.options.map(({ id }) => id)
-        const cols = stackMetaObj.value[fk_grp_col_id].filter(
-          ({ id }) => id !== 'uncategorized' && id !== addNewStackId && !columnOptionIds.includes(id),
-        )
+        const cols = stackMetaObj.value[fk_grp_col_id].filter(({ id }) => id !== 'uncategorized' && !columnOptionIds.includes(id))
         for (const col of cols) {
           const idx = stackMetaObj.value[fk_grp_col_id].map((ele: Record<string, any>) => ele.id).indexOf(col.id)
           if (idx !== -1) {
@@ -254,24 +252,8 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
             isChanged = true
           }
         }
-        const hasNewStackObj =
-          stackMetaObj.value[fk_grp_col_id].length &&
-          stackMetaObj.value[stackMetaObj.value[fk_grp_col_id].length - 1]?.id === addNewStackId
 
-        groupingFieldColOptions.value = [
-          ...stackMetaObj.value[fk_grp_col_id],
-          ...(hasNewStackObj
-            ? []
-            : [
-                {
-                  id: addNewStackId,
-                  title: null,
-                  order: stackMetaObj.value[fk_grp_col_id].length + 1,
-                  color: themeV3Colors.gray[600],
-                  fk_column_id: fk_grp_col_id,
-                } as any,
-              ]),
-        ]
+        groupingFieldColOptions.value = [...stackMetaObj.value[fk_grp_col_id]]
 
         if (isChanged) {
           await updateKanbanStackMeta()
@@ -281,29 +263,11 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
         }
       } else {
         // build stack meta
-        const hasNewStackObj =
-          (groupingFieldColumn.value?.colOptions?.options ?? []).length &&
-          (groupingFieldColumn.value?.colOptions?.options ?? [])[
-            (groupingFieldColumn.value?.colOptions?.options ?? []).length - 1
-          ]?.id === addNewStackId
 
         groupingFieldColOptions.value = [
           ...((groupingFieldColumn.value?.colOptions as SelectOptionsType & { collapsed: boolean })?.options ?? []),
           // enrich uncategorized stack
           { id: 'uncategorized', title: null, order: 0, color: themeV3Colors.gray[500] } as any,
-          ...(hasNewStackObj
-            ? []
-            : [
-                {
-                  id: addNewStackId,
-                  title: null,
-                  order:
-                    ((groupingFieldColumn.value?.colOptions as SelectOptionsType & { collapsed: boolean })?.options ?? [])
-                      .length + 1,
-                  color: themeV3Colors.gray[600],
-                  fk_column_id: fk_grp_col_id,
-                } as any,
-              ]),
         ]
           // sort by initial order
           .sort((a, b) => a.order! - b.order!)

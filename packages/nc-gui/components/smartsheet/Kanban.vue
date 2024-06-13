@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import Draggable from 'vuedraggable'
+import tinycolor from 'tinycolor2'
 import { ViewTypes, isVirtualCol } from 'nocodb-sdk'
 import type { Row as RowType } from '#imports'
 
@@ -372,7 +373,7 @@ const getRowId = (row: RowType) => {
 
 <template>
   <div
-    class="flex flex-col w-full bg-white h-full"
+    class="flex flex-col w-full bg-gray-50 h-full"
     data-testid="nc-kanban-wrapper"
     :style="{
       minHeight: 'calc(100% - var(--topbar-height))',
@@ -380,7 +381,7 @@ const getRowId = (row: RowType) => {
   >
     <div
       ref="kanbanContainerRef"
-      class="nc-kanban-container flex mt-4 pb-4 px-4 overflow-y-hidden w-full nc-scrollbar-x-lg"
+      class="nc-kanban-container flex p-3 overflow-y-hidden w-full nc-scrollbar-x-lg"
       :style="{
         minHeight: isMobileMode ? 'calc(100%  - 2rem)' : 'calc(100vh - var(--topbar-height) - 4.1rem)',
         maxHeight: isMobileMode ? 'calc(100%  - 2rem)' : 'calc(100vh - var(--topbar-height) - 4.1rem)',
@@ -389,7 +390,7 @@ const getRowId = (row: RowType) => {
       <div v-if="isViewDataLoading" class="flex flex-row min-h-full gap-x-2">
         <a-skeleton-input v-for="index of Array(20)" :key="index" class="!min-w-80 !min-h-full !rounded-xl overflow-hidden" />
       </div>
-      <a-dropdown
+      <NcDropdown
         v-else
         v-model:visible="contextMenu"
         :trigger="['contextmenu']"
@@ -398,7 +399,7 @@ const getRowId = (row: RowType) => {
         <!-- Draggable Stack -->
         <Draggable
           v-model="groupingFieldColOptions"
-          class="flex gap-4"
+          class="flex gap-3"
           item-key="id"
           group="kanban-stack"
           draggable=".nc-kanban-stack"
@@ -414,19 +415,26 @@ const getRowId = (row: RowType) => {
               <a-card
                 v-if="!stack.collapsed"
                 :key="`${stack.id}-${stackIdx}`"
-                class="mx-4 !bg-gray-100 flex flex-col w-80 h-full !rounded-xl overflow-y-hidden"
+                class="flex flex-col w-80 h-full !rounded-xl overflow-y-hidden !shadow-none !hover:shadow-none"
                 :class="{
                   'not-draggable': stack.title === null || isLocked || isPublic || !hasEditPermission,
                   '!cursor-default': isLocked || !hasEditPermission,
                 }"
                 :head-style="{ paddingBottom: '0px' }"
-                :body-style="{ padding: '0px', height: '100%', borderRadius: '0.75rem !important', paddingBottom: '0rem' }"
+                :body-style="{
+                  padding: '0px !important',
+                  height: '100%',
+                  borderRadius: '0.75rem !important',
+                  paddingBottom: '0rem !important',
+                }"
               >
                 <!-- Header Color Bar -->
+                <!-- 
                 <div
                   :style="`background-color: ${stack.color}`"
                   class="nc-kanban-stack-head-color h-[10px] mt-3 mx-3 rounded-full"
-                ></div>
+                ></div> 
+                -->
 
                 <!-- Skeleton -->
                 <div v-if="!formattedData.get(stack.title) || !countByStack" class="mt-2.5 px-3 !w-full">
@@ -434,26 +442,59 @@ const getRowId = (row: RowType) => {
                 </div>
 
                 <!-- Stack -->
-                <a-layout v-else class="!bg-gray-100">
+                <a-layout v-else>
                   <a-layout-header>
-                    <div class="nc-kanban-stack-head font-medium flex items-center">
-                      <a-dropdown
-                        :trigger="['click']"
+                    <div class="nc-kanban-stack-head w-full flex items-center gap-1">
+                      <NcButton
+                        :disabled="!stack.title"
+                        type="text"
+                        size="xs"
+                        class="!px-1.5 !cursor-move !:disabled:cursor-not-allowed"
+                      >
+                        <GeneralIcon icon="drag" />
+                      </NcButton>
+
+                      <div class="flex-1 flex max-w-[calc(100%_-_64px)]">
+                        <a-tag class="max-w-full !rounded-full !px-2 !py-1 h-7 !m-0 !border-none" :color="stack.color">
+                          <span
+                            :style="{
+                              color: tinycolor.isReadable(stack.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
+                                ? '#fff'
+                                : tinycolor.mostReadable(stack.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
+                            }"
+                            class="text-sm font-semibold"
+                          >
+                            <NcTooltip class="truncate max-w-full" placement="bottom" show-on-truncate-only>
+                              <template #title>
+                                {{ stack.title ?? 'Uncategorized' }}
+                              </template>
+                              <span
+                                class="text-ellipsis overflow-hidden"
+                                :style="{
+                                  wordBreak: 'keep-all',
+                                  whiteSpace: 'nowrap',
+                                  display: 'inline',
+                                }"
+                              >
+                                {{ stack.title ?? 'Uncategorized' }}
+                              </span>
+                            </NcTooltip>
+                          </span>
+                        </a-tag>
+                      </div>
+                      <NcDropdown
+                        v-if="!isLocked"
+                        placement="bottomRight"
                         overlay-class-name="nc-dropdown-kanban-stack-context-menu"
                         class="bg-white !rounded-lg"
                       >
-                        <div
-                          class="flex items-center w-full mx-2 px-3 py-1"
-                          :class="{ 'capitalize': stack.title === null, 'cursor-pointer': !isLocked }"
-                        >
-                          <LazyGeneralTruncateText>{{ stack.title ?? 'uncategorized' }}</LazyGeneralTruncateText>
-                          <span v-if="!isLocked" class="w-full flex w-[15px]">
-                            <component :is="iconMap.arrowDown" class="text-grey text-lg ml-auto" />
-                          </span>
-                        </div>
-                        <template v-if="!isLocked" #overlay>
-                          <a-menu class="ml-6 !text-sm !px-0 !py-2 !rounded">
-                            <a-menu-item
+                        <NcButton type="text" size="xs" class="!px-1.5">
+                          <GeneralIcon icon="threeDotVertical" />
+                        </NcButton>
+
+                        <template #overlay>
+                          <NcMenu class="!text-sm">
+                            <NcMenuItem
                               v-if="hasEditPermission && !isPublic && !isLocked"
                               v-e="['c:kanban:add-new-record']"
                               @click="
@@ -463,52 +504,70 @@ const getRowId = (row: RowType) => {
                                 }
                               "
                             >
-                              <div class="py-2 flex gap-2 items-center">
-                                <component :is="iconMap.plus" class="text-gray-500" />
+                              <div class="flex gap-2 items-center">
+                                <component :is="iconMap.plus" />
                                 {{ $t('activity.addNewRecord') }}
                               </div>
-                            </a-menu-item>
-                            <a-menu-item v-e="['c:kanban:collapse-stack']" @click="handleCollapseStack(stackIdx)">
-                              <div class="py-2 flex gap-1.8 items-center">
-                                <component :is="iconMap.arrowCollapse" class="text-gray-500" />
+                            </NcMenuItem>
+                            <!--  Todo: rename stack function -->
+                            <NcMenuItem v-if="hasEditPermission && !isPublic && !isLocked" v-e="['c:kanban:rename-stack']">
+                              <div class="flex gap-2 items-center">
+                                <component :is="iconMap.ncEdit" />
+                                {{ $t('activity.kanban.renameStack') }}
+                              </div>
+                            </NcMenuItem>
+                            <NcMenuItem v-e="['c:kanban:collapse-stack']" @click="handleCollapseStack(stackIdx)">
+                              <div class="flex gap-2 items-center">
+                                <component :is="iconMap.minimize" />
                                 {{ $t('activity.kanban.collapseStack') }}
                               </div>
-                            </a-menu-item>
-                            <a-menu-item
-                              v-if="stack.title !== null && !isPublic && hasEditPermission"
-                              v-e="['c:kanban:delete-stack']"
-                              @click="handleDeleteStackClick(stack.title, stackIdx)"
-                            >
-                              <div class="py-2 flex gap-2 items-center">
-                                <component :is="iconMap.delete" class="text-gray-500" />
-                                {{ $t('activity.kanban.deleteStack') }}
+                            </NcMenuItem>
+                            <!--  Todo: Collapse all stack function -->
+                            <NcMenuItem v-e="['c:kanban:collapse-all-stack']">
+                              <div class="flex gap-2 items-center">
+                                <component :is="iconMap.minimize" />
+                                {{ $t('activity.kanban.collapseAll') }}
                               </div>
-                            </a-menu-item>
-                          </a-menu>
+                            </NcMenuItem>
+                            <template v-if="stack.title !== null && !isPublic && hasEditPermission">
+                              <NcDivider />
+                              <NcMenuItem
+                                v-e="['c:kanban:delete-stack']"
+                                @click="handleDeleteStackClick(stack.title, stackIdx)"
+                                class="!text-red-600 !hover:bg-red-50"
+                              >
+                                <div class="flex gap-2 items-center">
+                                  <component :is="iconMap.delete" />
+                                  {{ $t('activity.kanban.deleteStack') }}
+                                </div>
+                              </NcMenuItem>
+                            </template>
+                          </NcMenu>
                         </template>
-                      </a-dropdown>
+                      </NcDropdown>
                     </div>
                   </a-layout-header>
 
-                  <a-layout-content
-                    class="overflow-y-hidden mt-1"
-                    :style="{ maxHeight: isUIAllowed('dataInsert') ? 'calc(100% - 11rem)' : 'calc(100% - 8rem)' }"
-                  >
-                    <div :ref="kanbanListRef" class="nc-kanban-list h-full nc-scrollbar-dark-md" :data-stack-title="stack.title">
+                  <a-layout-content class="overflow-y-hidden !py-2">
+                    <div
+                      :ref="kanbanListRef"
+                      class="nc-kanban-list h-full nc-scrollbar-thin px-2"
+                      :data-stack-title="stack.title"
+                    >
                       <!-- Draggable Record Card -->
                       <Draggable
                         :list="formattedData.get(stack.title)"
                         item-key="row.Id"
                         draggable=".nc-kanban-item"
                         group="kanban-card"
-                        class="h-full"
+                        class="h-full flex flex-col gap-2"
                         filter=".not-draggable"
                         @start="(e) => e.target.classList.add('grabbing')"
                         @end="(e) => e.target.classList.remove('grabbing')"
                         @change="onMove($event, stack.title)"
                       >
                         <template #item="{ element: record, index }">
-                          <div class="nc-kanban-item py-2 pl-3 pr-2">
+                          <div class="nc-kanban-item">
                             <LazySmartsheetRow :row="record">
                               <a-card
                                 :key="`${getRowId(record)}-${index}`"
@@ -649,20 +708,12 @@ const getRowId = (row: RowType) => {
                       </Draggable>
                     </div>
                   </a-layout-content>
-
-                  <div class="!rounded-lg !px-3 pt-3">
-                    <div v-if="formattedData.get(stack.title)" class="text-center">
-                      <!-- Stack Title -->
-
-                      <!-- Record Count -->
-                      <div class="nc-kanban-data-count text-gray-500">
-                        {{ formattedData.get(stack.title)!.length }} / {{ countByStack.get(stack.title) ?? 0 }}
-                        {{ countByStack.get(stack.title) !== 1 ? $t('objects.records') : $t('objects.record') }}
-                      </div>
-
-                      <div
+                  <a-layout-footer v-if="formattedData.get(stack.title)">
+                    <div class="flex items-center justify-between">
+                      <NcButton
                         v-if="isUIAllowed('dataInsert')"
-                        class="flex flex-row w-full mt-3 justify-between items-center cursor-pointer bg-white px-4 py-2 rounded-lg border-gray-100 border-1 shadow-sm shadow-gray-100"
+                        size="xs"
+                        type="secondary"
                         @click="
                           () => {
                             selectedStackTitle = stack.title
@@ -670,11 +721,21 @@ const getRowId = (row: RowType) => {
                           }
                         "
                       >
-                        Add Record
-                        <component :is="iconMap.plus" v-if="!isPublic && !isLocked" class="" />
+                        <div class="flex items-center gap-2">
+                          <component :is="iconMap.plus" v-if="!isPublic && !isLocked" class="" />
+
+                          {{ $t('activity.newRecord') }}
+                        </div>
+                      </NcButton>
+                      <div v-else>&nbsp;</div>
+
+                      <!-- Record Count -->
+                      <div class="nc-kanban-data-count text-gray-600 font-weight-500 px-1">
+                        {{ formattedData.get(stack.title)!.length }}/{{ countByStack.get(stack.title) ?? 0 }}
+                        {{ countByStack.get(stack.title) !== 1 ? $t('objects.records') : $t('objects.record') }}
                       </div>
                     </div>
-                  </div>
+                  </a-layout-footer>
                 </a-layout>
               </a-card>
 
@@ -682,29 +743,74 @@ const getRowId = (row: RowType) => {
               <a-card
                 v-else
                 :key="`${stack.id}-collapsed`"
-                :style="`background-color: ${stack.color} !important`"
-                class="nc-kanban-collapsed-stack mx-4 flex items-center w-[300px] h-[50px] !rounded-xl cursor-pointer h-full !pr-[10px] overflow-hidden"
+                class="nc-kanban-collapsed-stack flex items-center w-[320px] h-[44px] !rounded-xl cursor-pointer h-full !p-2 overflow-hidden !shadow-none !hover:shadow-none"
                 :class="{
                   'not-draggable': stack.title === null || isLocked || isPublic || !hasEditPermission,
                 }"
-                :body-style="{ padding: '0px', height: '100%', width: '100%', background: '#f0f2f5 !important' }"
+                :body-style="{
+                  padding: '0px !important',
+                  height: '100%',
+                  width: '100%',
+                  borderRadius: '0.75rem !important',
+                  paddingBottom: '0rem !important',
+                }"
               >
                 <div class="items-center justify-between" @click="handleCollapseStack(stackIdx)">
-                  <div v-if="!formattedData.get(stack.title) || !countByStack" class="mt-4 px-3 !w-full">
+                  <div v-if="!formattedData.get(stack.title) || !countByStack" class="!w-full">
                     <a-skeleton-input :active="true" class="!w-full !h-4 !rounded-lg overflow-hidden" />
                   </div>
-                  <div v-else class="nc-kanban-data-count mt-[12px] mx-[10px]">
-                    <!--  Stack title -->
-                    <div
-                      class="float-right flex gap-2 items-center cursor-pointer font-bold"
-                      :class="{ capitalize: stack.title === null }"
-                    >
-                      <LazyGeneralTruncateText>{{ stack.title ?? 'uncategorized' }}</LazyGeneralTruncateText>
-                      <component :is="iconMap.arrowDown" class="text-grey text-lg" />
+                  <div v-else class="nc-kanban-stack-head w-full flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-1">
+                      <NcButton
+                        :disabled="!stack.title"
+                        type="text"
+                        size="xs"
+                        class="!px-1.5 !cursor-move"
+                      >
+                        <GeneralIcon icon="drag" />
+                      </NcButton>
+
+                      <div class="nc-kanban-data-count flex-1 flex max-w-[115px]">
+                        <a-tag class="max-w-full !rounded-full !px-2 !py-1 h-7 !m-0 !border-none" :color="stack.color">
+                          <span
+                            :style="{
+                              color: tinycolor.isReadable(stack.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
+                                ? '#fff'
+                                : tinycolor.mostReadable(stack.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
+                            }"
+                            class="text-sm font-semibold"
+                          >
+                            <NcTooltip class="truncate max-w-full" placement="bottom" show-on-truncate-only>
+                              <template #title>
+                                {{ stack.title ?? 'Uncategorized' }}
+                              </template>
+                              <span
+                                class="text-ellipsis overflow-hidden"
+                                :style="{
+                                  wordBreak: 'keep-all',
+                                  whiteSpace: 'nowrap',
+                                  display: 'inline',
+                                }"
+                              >
+                                {{ stack.title ?? 'Uncategorized' }}
+                              </span>
+                            </NcTooltip>
+                          </span>
+                        </a-tag>
+                      </div>
                     </div>
-                    <!-- Record Count -->
-                    {{ formattedData.get(stack.title)!.length }} / {{ countByStack.get(stack.title) }}
-                    {{ countByStack.get(stack.title) !== 1 ? $t('objects.records') : $t('objects.record') }}
+
+                    <div class="flex items-center gap-3">
+                      <div class="px-1 rounded bg-gray-200 text-gray-800 text-sm font-weight-500">
+                        <!-- Record Count -->
+                        {{ formattedData.get(stack.title)!.length }}/{{ countByStack.get(stack.title) }}
+                        {{ countByStack.get(stack.title) !== 1 ? $t('objects.records') : $t('objects.record') }}
+                      </div>
+
+                      <NcButton type="text" size="xs" class="!px-1.5">
+                        <component :is="iconMap.arrowDown" class="text-grey h-4 w-4 flex-none" />
+                      </NcButton>
+                    </div>
                   </div>
                 </div>
               </a-card>
@@ -713,31 +819,31 @@ const getRowId = (row: RowType) => {
         </Draggable>
         <!-- Drop down Menu -->
         <template v-if="!isLocked && !isPublic && hasEditPermission" #overlay>
-          <a-menu class="shadow !rounded !py-0" @click="contextMenu = false">
-            <a-menu-item v-if="contextMenuTarget" @click="expandForm(contextMenuTarget)">
-              <div v-e="['a:kanban:expand-record']" class="nc-base-menu-item nc-kanban-context-menu-item">
+          <NcMenu @click="contextMenu = false">
+            <NcMenuItem v-if="contextMenuTarget" @click="expandForm(contextMenuTarget)">
+              <div v-e="['a:kanban:expand-record']" class="flex items-center gap-2 nc-kanban-context-menu-item">
                 <component :is="iconMap.expand" class="flex" />
                 <!-- Expand Record -->
                 {{ $t('activity.expandRecord') }}
               </div>
-            </a-menu-item>
-            <a-divider class="!m-0 !p-0" />
-            <a-menu-item v-if="contextMenuTarget" @click="deleteRow(contextMenuTarget)">
-              <div v-e="['a:kanban:delete-record']" class="nc-base-menu-item nc-kanban-context-menu-item">
+            </NcMenuItem>
+            <NcDivider />
+            <NcMenuItem v-if="contextMenuTarget" @click="deleteRow(contextMenuTarget)" class="!text-red-600 !hover:bg-red-50">
+              <div v-e="['a:kanban:delete-record']" class="flex items-center gap-2 nc-kanban-context-menu-item">
                 <component :is="iconMap.delete" class="flex" />
                 <!-- Delete Record -->
                 {{ $t('activity.deleteRecord') }}
               </div>
-            </a-menu-item>
-          </a-menu>
+            </NcMenuItem>
+          </NcMenu>
         </template>
-      </a-dropdown>
+      </NcDropdown>
     </div>
     <LazySmartsheetPagination
       v-model:pagination-data="emptyPagination"
       align-count-on-right
       hide-pagination
-      class="!py-4 h-10 !xs:py-0"
+      class="!py-0 h-10 !xs:py-0"
     >
     </LazySmartsheetPagination>
   </div>
@@ -785,12 +891,14 @@ const getRowId = (row: RowType) => {
 // override ant design style
 .a-layout,
 .ant-layout-header,
+.ant-layout-footer,
 .ant-layout-content {
-  @apply !bg-gray-100;
+  @apply !bg-white;
 }
 
-.ant-layout-header {
-  @apply !h-[30px] !leading-[30px] !px-[5px] !my-[10px];
+.ant-layout-header,
+.ant-layout-footer {
+  @apply p-2 text-sm;
 }
 
 .nc-kanban-collapsed-stack {

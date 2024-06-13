@@ -978,7 +978,7 @@
     "clearCell": "Clear cell",
     "addFilterGroup": "Add filter group",
     "linkRecord": "Link record",
-    "addNewRecord": "Add new record",
+    "addNewRecord": "Add record",
     "newRecord": "New record",
     "tableNameCreateNewRecord": "{tableName}: Create new record",
     "gotSavedLinkedSuccessfully": "{tableName} '{recordTitle}' got saved & linked successfully",
@@ -1005,8 +1005,10 @@
       "showJunctionTableNames": "Show Junction Table Names"
     },
     "kanban": {
-      "collapseStack": "Collapse Stack",
-      "deleteStack": "Delete Stack",
+      "collapseStack": "Collapse stack",
+      "collapseAll": "Collapse all",
+      "renameStack": "Rename stack",
+      "deleteStack": "Delete stack",
       "stackedBy": "Stacked By",
       "chooseGroupingField": "Choose a Grouping Field",
       "addOrEditStack": "Add / Edit Stack"

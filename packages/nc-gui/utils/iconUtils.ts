@@ -194,6 +194,8 @@ import NcAudit from '~icons/nc-icons/audit'
 import NcMessageCircle from '~icons/nc-icons/message-circle'
 import NcKey from '~icons/nc-icons/key'
 
+import NcMinimize from '~icons/nc-icons/minimize'
+
 // keep it for reference
 // todo: remove it after all icons are migrated
 /* export const iconMapOld = {
@@ -617,6 +619,7 @@ export const iconMap = {
   audit: NcAudit,
   messageCircle: NcMessageCircle,
   ncKey: NcKey,
+  minimize: NcMinimize,
 }
 
 export const getMdiIcon = (type: string): any => {

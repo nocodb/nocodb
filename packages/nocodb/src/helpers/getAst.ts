@@ -39,7 +39,6 @@ const getAst = async (
     getHiddenColumn = query?.['getHiddenColumn'],
     throwErrorIfInvalidParams = false,
     extractOnlyRangeFields = false,
-    groupColumnId,
   }: {
     query?: RequestQuery;
     extractOnlyPrimaries?: boolean;
@@ -51,7 +50,6 @@ const getAst = async (
     throwErrorIfInvalidParams?: boolean;
     // Used for calendar view
     extractOnlyRangeFields?: boolean;
-    groupColumnId?: string;
   },
 ) => {
   // set default values of dependencyFields and nested
@@ -60,12 +58,14 @@ const getAst = async (
 
   let coverImageId;
   let dependencyFieldsForCalenderView;
+  let kanbanGroupColumnId;
   if (view && view.type === ViewTypes.GALLERY) {
     const gallery = await GalleryView.get(context, view.id);
     coverImageId = gallery.fk_cover_image_col_id;
   } else if (view && view.type === ViewTypes.KANBAN) {
     const kanban = await KanbanView.get(context, view.id);
     coverImageId = kanban.fk_cover_image_col_id;
+    kanbanGroupColumnId = kanban.fk_grp_col_id;
   } else if (view && view.type === ViewTypes.CALENDAR) {
     // const calendar = await CalendarView.get(view.id);
     // coverImageId = calendar.fk_cover_image_col_id;
@@ -146,7 +146,8 @@ const getAst = async (
         [c.fk_column_id]:
           c.show ||
           (c instanceof GridViewColumn && c.group_by) ||
-          (c instanceof KanbanViewColumn && c.fk_column_id === groupColumnId),
+          (c instanceof KanbanViewColumn &&
+            c.fk_column_id === kanbanGroupColumnId),
       }),
       {},
     );

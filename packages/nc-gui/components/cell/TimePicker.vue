@@ -309,6 +309,7 @@ const cellValue = computed(() => localState.value?.format(parseProp(column.value
     :overlay-class-name="`${randomClass} nc-picker-time ${isOpen ? 'active' : ''} !min-w-[0]`"
   >
     <div
+      v-bind="$attrs"
       :title="localState?.format('HH:mm')"
       class="nc-time-picker h-full flex items-center justify-between ant-picker-input relative"
     >

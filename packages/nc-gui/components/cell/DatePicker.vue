@@ -299,6 +299,7 @@ function handleSelectDate(value?: dayjs.Dayjs) {
     :overlay-class-name="`${randomClass} nc-picker-date ${open ? 'active' : ''} !min-w-[260px]`"
   >
     <div
+      v-bind="$attrs"
       :title="localState?.format(dateFormat)"
       class="nc-date-picker h-full flex items-center justify-between ant-picker-input relative"
     >

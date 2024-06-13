@@ -264,7 +264,11 @@ function handleSelectDate(value?: dayjs.Dayjs) {
     :class="[`nc-${randomClass}`, { 'nc-null': modelValue === null && showNull }]"
     :overlay-class-name="`${randomClass} nc-picker-year ${open ? 'active' : ''} !min-w-[260px]`"
   >
-    <div :title="localState?.format('YYYY')" class="nc-year-picker flex items-center justify-between ant-picker-input relative">
+    <div
+      v-bind="$attrs"
+      :title="localState?.format('YYYY')"
+      class="nc-year-picker flex items-center justify-between ant-picker-input relative"
+    >
       <input
         ref="datePickerRef"
         type="text"

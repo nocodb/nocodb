@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import type { VNodeRef } from '@vue/runtime-core'
 import Draggable from 'vuedraggable'
 import tinycolor from 'tinycolor2'
 import { ViewTypes, isVirtualCol } from 'nocodb-sdk'
@@ -278,10 +279,10 @@ const kanbanListScrollHandler = useDebounceFn(async (e: any) => {
   }
 })
 
-const kanbanListRef = (kanbanListElement: HTMLElement) => {
+const kanbanListRef: VNodeRef = (kanbanListElement) => {
   if (kanbanListElement) {
-    kanbanListElement.removeEventListener('scroll', kanbanListScrollHandler)
-    kanbanListElement.addEventListener('scroll', kanbanListScrollHandler)
+    ;(kanbanListElement as HTMLElement).removeEventListener('scroll', kanbanListScrollHandler)
+    ;(kanbanListElement as HTMLElement).addEventListener('scroll', kanbanListScrollHandler)
   }
 }
 
@@ -461,6 +462,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
             <div
               :class="{
                 'nc-kanban-stack': stack.id !== addNewStackId,
+                'nc-kanban-add-new-stack': stack.id === addNewStackId,
                 'w-[44px]': stack.collapsed,
                 'hidden': stack.id !== addNewStackId && hideEmptyStack && !formattedData.get(stack.title)?.length,
               }"
@@ -511,7 +513,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                       <NcButton
                         v-if="!compareStack(stack, isRenameOrNewStack)"
                         type="secondary"
-                        class="w-full !rounded-lg min-h-11"
+                        class="add-new-stack-btn w-full !rounded-lg min-h-11"
                       >
                         <div class="flex items-center gap-2">
                           <component :is="iconMap.plus" v-if="!isPublic && !isLocked" class="" />

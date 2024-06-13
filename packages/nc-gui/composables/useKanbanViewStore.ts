@@ -288,7 +288,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
         groupingFieldColOptions.value = [
           ...((groupingFieldColumn.value?.colOptions as SelectOptionsType & { collapsed: boolean })?.options ?? []),
           // enrich uncategorized stack
-          { id: 'uncategorized', title: null, order: 0, color: themeV3Colors.gray[600] } as any,
+          { id: 'uncategorized', title: null, order: 0, color: themeV3Colors.gray[500] } as any,
           ...(hasNewStackObj
             ? []
             : [

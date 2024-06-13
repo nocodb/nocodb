@@ -1133,6 +1133,7 @@
     "thisSharedViewIsProtected": "תצוגה זו מוגנת",
     "successfullySubmittedFormData": "הנתונים של הטופס נשלחו בהצלחה",
     "formViewNotSupportedOnMobile": "תצוגת טופס אינה נתמכת בנייד",
+    "calendarViewNotSupportedOnMobile": "Calendar view is not supported on mobile",
     "newFormWillBeLoaded": "הטופס החדש יטען אחרי {seconds} שניות",
     "optimizedQueryDisabled": "שאילתה מקורטת מנוטרלת",
     "optimizedQueryEnabled": "שאילתה מקורטת מופעלת",

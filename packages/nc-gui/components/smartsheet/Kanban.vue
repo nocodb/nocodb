@@ -610,13 +610,13 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                               <NcMenuItem
                                 v-if="hasEditPermission && !isPublic && !isLocked"
                                 v-e="['c:kanban:add-new-record']"
+                                data-testid="nc-kanban-context-menu-add-new-record"
                                 @click="
                                   () => {
                                     selectedStackTitle = stack.title
                                     openNewRecordFormHook.trigger(stack.title)
                                   }
                                 "
-                                data-testid="nc-kanban-context-menu-add-new-record"
                               >
                                 <div class="flex gap-2 items-center">
                                   <component :is="iconMap.plus" />
@@ -627,12 +627,12 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                               <NcMenuItem
                                 v-if="stack.title !== null && hasEditPermission && !isPublic && !isLocked"
                                 v-e="['c:kanban:rename-stack']"
+                                data-testid="nc-kanban-context-menu-rename-stack"
                                 @click="
                                   () => {
                                     isRenameOrNewStack = stack
                                   }
                                 "
-                                data-testid="nc-kanban-context-menu-rename-stack"
                               >
                                 <div class="flex gap-2 items-center">
                                   <component :is="iconMap.ncEdit" />
@@ -641,8 +641,8 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                               </NcMenuItem>
                               <NcMenuItem
                                 v-e="['c:kanban:collapse-stack']"
-                                @click="handleCollapseStack(stackIdx)"
                                 data-testid="nc-kanban-context-menu-collapse-stack"
+                                @click="handleCollapseStack(stackIdx)"
                               >
                                 <div class="flex gap-2 items-center">
                                   <component :is="iconMap.minimize" />
@@ -652,8 +652,8 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
 
                               <NcMenuItem
                                 v-e="['c:kanban:collapse-all-stack']"
-                                @click="handleCollapseAllStack"
                                 data-testid="nc-kanban-context-menu-collapse-all-stack"
+                                @click="handleCollapseAllStack"
                               >
                                 <div class="flex gap-2 items-center">
                                   <component :is="iconMap.minimize" />
@@ -662,8 +662,8 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                               </NcMenuItem>
                               <NcMenuItem
                                 v-e="['c:kanban:expand-all-stack']"
-                                @click="handleExpandAllStack"
                                 data-testid="nc-kanban-context-menu-expand-all-stack"
+                                @click="handleExpandAllStack"
                               >
                                 <div class="flex gap-2 items-center">
                                   <component :is="iconMap.maximize" />
@@ -675,8 +675,8 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                                 <NcMenuItem
                                   v-e="['c:kanban:delete-stack']"
                                   class="!text-red-600 !hover:bg-red-50"
-                                  @click="handleDeleteStackClick(stack.title, stackIdx)"
                                   data-testid="nc-kanban-context-menu-delete-stack"
+                                  @click="handleDeleteStackClick(stack.title, stackIdx)"
                                 >
                                   <div class="flex gap-2 items-center">
                                     <component :is="iconMap.delete" />

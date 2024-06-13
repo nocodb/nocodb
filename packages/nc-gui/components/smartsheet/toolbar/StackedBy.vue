@@ -134,7 +134,7 @@ const getIcon = (c: ColumnType) =>
     <div class="nc-kanban-btn">
       <NcButton
         v-e="['c:kanban:change-grouping-field']"
-        class="nc-kanban-stacked-by-menu-btn nc-toolbar-btn !border-0 !h-7"
+        class="nc-kanban-stacked-by-menu-btn nc-toolbar-btn !border-0 !h-7 group"
         size="small"
         type="secondary"
         :disabled="isLocked"
@@ -145,7 +145,9 @@ const getIcon = (c: ColumnType) =>
             <span class="text-capitalize !text-sm flex items-center gap-1 text-gray-700">
               {{ $t('activity.kanban.stackedBy') }}
             </span>
-            <div class="flex items-center rounded-md bg-gray-200 px-1 min-h-5 text-gray-600">
+            <div
+              class="flex items-center rounded-md transition-colors duration-0.3s bg-gray-100 group-hover:bg-gray-200 px-1 min-h-5 text-gray-600"
+            >
               <span class="font-weight-500 text-sm">{{ groupingField }}</span>
             </div>
           </div>
@@ -153,7 +155,7 @@ const getIcon = (c: ColumnType) =>
       </NcButton>
     </div>
     <template #overlay>
-      <div v-if="open" class="p-6 w-90 bg-white nc-table-toolbar-menu rounded-lg flex flex-col gap-5" @click.stop>
+      <div v-if="open" class="p-4 w-90 bg-white nc-table-toolbar-menu rounded-lg flex flex-col gap-5" @click.stop>
         <div class="flex flex-col gap-2">
           <div>
             {{ $t('general.groupingField').toLowerCase().replace(/^./, $t('general.groupingField').charAt(0).toUpperCase()) }}
@@ -170,7 +172,7 @@ const getIcon = (c: ColumnType) =>
               >
                 <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-gray-700" /></template>
                 <a-select-option v-for="option of singleSelectFieldOptions" :key="option.value" :value="option.value">
-                  <div class="w-full flex gap-2 items-center justify-between">
+                  <div class="w-full flex gap-2 items-center justify-between" :title="option.label">
                     <div class="flex items-center gap-1">
                       <component
                         :is="getIcon(metaColumnById[option.value])"

@@ -170,7 +170,7 @@ const syncOptions = (saveChanges: boolean = false, submit: boolean = false, payl
       return rest
     })
 
-    if (saveChanges) {
+  if (saveChanges) {
     emit('saveChanges', submit, true, payload)
   }
 }
@@ -425,7 +425,12 @@ if (isKanbanStack.value) {
               overlay-class-name="nc-select-option-color-picker"
             >
               <div class="flex-none h-6 w-6 flex cursor-pointer mx-1">
-                <div class="h-6 w-6 rounded flex items-center" :style="{ backgroundColor: kanbanStackOption.color }">
+                <div
+                  class="h-6 w-6 rounded flex items-center"
+                  :style="{
+                    backgroundColor: kanbanStackOption.color,
+                  }"
+                >
                   <GeneralIcon icon="arrowDown" class="flex-none h-4 w-4 m-auto !text-gray-600" />
                 </div>
               </div>

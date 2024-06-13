@@ -71,7 +71,8 @@ export class KanbanPage extends BasePage {
       const stack = this.get().locator(`.nc-kanban-stack`).nth(i);
       await stack.scrollIntoViewIfNeeded();
       // Since otherwise stack title will be repeated as title is in two divs, with one having hidden class
-      const stackTitle = stack.locator(`.nc-kanban-stack-head >> [data-testid="truncate-label"]`);
+      const stackTitle = stack.locator(`.nc-kanban-stack-head >> [data-testid="nc-kanban-stack-title"]`);
+      await stackTitle.waitFor({ state: 'visible' });
       await expect(stackTitle).toHaveText(order[i], { ignoreCase: true });
     }
   }

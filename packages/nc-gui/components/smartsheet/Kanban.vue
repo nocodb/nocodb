@@ -448,8 +448,8 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
         >
           <template #item="{ element: stack, index: stackIdx }">
             <div
-              class="nc-kanban-stack"
               :class="{
+                'nc-kanban-stack': stack.id !== addNewStackId,
                 'w-[44px]': stack.collapsed,
                 'hidden': stack.id !== addNewStackId && hideEmptyStack && !formattedData.get(stack.title)?.length,
               }"
@@ -484,7 +484,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                     }"
                   >
                     <div
-                      class="nc-kanban-stack-head w-full flex"
+                      class="w-full flex"
                       :class="{
                         'items-start': compareStack(stack, isRenameOrNewStack),
                         'cursor-pointer': !compareStack(stack, isRenameOrNewStack),
@@ -629,6 +629,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                                   {{ stack.title ?? 'Uncategorized' }}
                                 </template>
                                 <span
+                                  data-testid="nc-kanban-stack-title"
                                   class="text-ellipsis overflow-hidden"
                                   :style="{
                                     wordBreak: 'keep-all',
@@ -1011,6 +1012,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                                 {{ stack.title ?? 'Uncategorized' }}
                               </template>
                               <span
+                                data-testid="nc-kanban-stack-title"
                                 class="text-ellipsis overflow-hidden"
                                 :style="{
                                   wordBreak: 'keep-all',

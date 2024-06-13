@@ -67,6 +67,7 @@ const {
   deleteRow,
   moveHistory,
   addNewStackId,
+  removeRowFromUncategorizedStack,
 } = useKanbanViewStoreOrThrow()
 
 const { isViewDataLoading } = storeToRefs(useViewsStore())
@@ -1116,6 +1117,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
       :meta="meta"
       :load-row="!isPublic"
       :view="view"
+      @cancel="removeRowFromUncategorizedStack"
     />
   </Suspense>
 

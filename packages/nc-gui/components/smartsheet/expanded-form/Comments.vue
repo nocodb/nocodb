@@ -255,7 +255,12 @@ const createdBy = (
             </div>
             <div v-else ref="commentsWrapperEl" class="flex flex-col h-full py-1 nc-scrollbar-thin">
               <div v-for="comment of comments" :key="comment.id" :class="`${comment.id}`" class="nc-comment-item">
-                <div class="group gap-3 overflow-hidden px-3 py-2">
+                <div
+                  :class="{
+                  'hover:bg-gray-100': editCommentValue?.id !== comment!.id
+                }"
+                  class="group gap-3 overflow-hidden px-3 py-2"
+                >
                   <div class="flex items-start justify-between">
                     <div class="flex items-start gap-3">
                       <GeneralUserIcon

@@ -401,22 +401,26 @@ export function useViewFilters(
         })
       } else {
         if (linkColId?.value) {
-          // set value with current value of filter since user can change value while saving
+          const savedFilter = await $api.dbTableLinkFilter.create(linkColId.value, {
+            ...filter,
+            fk_parent_id: parentId,
+          })
+          // override any local changes with saved filter since user can change value while saving
           filters.value[i] = {
-            ...((await $api.dbTableLinkFilter.create(linkColId.value, {
-              ...filter,
-              fk_parent_id: parentId,
-            })) || {}),
-            value: (filters.value[i] || filter).value,
+            ...(savedFilter || {}),
+            ...filters.value[i],
+            status: undefined,
           }
         } else {
-          // set value with current value of filter since user can change value while saving
+          const savedFilter = await $api.dbTableFilter.create(view.value.id!, {
+            ...filter,
+            fk_parent_id: parentId.value,
+          })
+          // override any local changes with saved filter since user can change value while saving
           filters.value[i] = {
-            ...((await $api.dbTableFilter.create(view.value.id!, {
-              ...filter,
-              fk_parent_id: parentId.value,
-            })) || {}),
-            value: (filters.value[i] || filter).value,
+            ...(savedFilter || {}),
+            ...filters.value[i],
+            status: undefined,
           }
         }
         if (!isLink && !isWebhook) allFilters.value.push(filters.value[+i])

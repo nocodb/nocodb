@@ -521,6 +521,10 @@ const onTableIdCopy = async () => {
     message.error(e.message)
   }
 }
+
+const getSource = (sourceId: string) => {
+  return base.value.sources?.find((s) => s.id === sourceId)
+}
 </script>
 
 <template>
@@ -985,9 +989,17 @@ const onTableIdCopy = async () => {
               </NcButton>
             </div>
           </NcTooltip>
-          <template v-if="isUIAllowed('tableRename') || isUIAllowed('tableDelete')">
+          <template
+            v-if="
+              isUIAllowed('tableRename', { source: getSource(contextMenuTarget.value?.source_id) }) ||
+              isUIAllowed('tableDelete', { source: getSource(contextMenuTarget.value?.source_id) })
+            "
+          >
             <NcDivider />
-            <NcMenuItem v-if="isUIAllowed('tableRename')" @click="openRenameTableDialog(contextMenuTarget.value, true)">
+            <NcMenuItem
+              v-if="isUIAllowed('tableRename', { source: getSource(contextMenuTarget.value?.source_id) })"
+              @click="openRenameTableDialog(contextMenuTarget.value, true)"
+            >
               <div class="nc-base-option-item">
                 <GeneralIcon icon="rename" class="text-gray-700" />
                 {{ $t('general.rename') }} {{ $t('objects.table') }}
@@ -995,7 +1007,10 @@ const onTableIdCopy = async () => {
             </NcMenuItem>
 
             <NcMenuItem
-              v-if="isUIAllowed('tableDuplicate') && (contextMenuBase?.is_meta || contextMenuBase?.is_local)"
+              v-if="
+                isUIAllowed('tableDuplicate', { source: getSource(contextMenuTarget.value?.source_id) }) &&
+                (contextMenuBase?.is_meta || contextMenuBase?.is_local)
+              "
               @click="duplicateTable(contextMenuTarget.value)"
             >
               <div class="nc-base-option-item">
@@ -1004,7 +1019,10 @@ const onTableIdCopy = async () => {
               </div>
             </NcMenuItem>
             <NcDivider />
-            <NcMenuItem v-if="isUIAllowed('tableDelete')" @click="isTableDeleteDialogVisible = true">
+            <NcMenuItem
+              v-if="isUIAllowed('tableDelete', { source: getSource(contextMenuTarget.value?.source_id) })"
+              @click="isTableDeleteDialogVisible = true"
+            >
               <div class="nc-base-option-item text-red-600">
                 <GeneralIcon icon="delete" />
                 {{ $t('general.delete') }} {{ $t('objects.table') }}

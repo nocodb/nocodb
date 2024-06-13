@@ -192,6 +192,7 @@ export const sourceRestrictions = {
     excelImport: true,
     duplicateColumn: true,
     duplicateModel: true,
+    tableDuplicate: true,
   },
   [SourceRestriction.META_READONLY]: {
     tableCreate: true,

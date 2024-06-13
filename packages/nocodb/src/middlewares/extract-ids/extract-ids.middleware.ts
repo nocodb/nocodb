@@ -1,6 +1,11 @@
 import { Injectable, SetMetadata, UseInterceptors } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { extractRolesObj, OrgUserRoles, ProjectRoles } from 'nocodb-sdk';
+import {
+  extractRolesObj,
+  OrgUserRoles,
+  ProjectRoles,
+  SourceRestriction,
+} from 'nocodb-sdk';
 import { map } from 'rxjs';
 import type { Observable } from 'rxjs';
 import type {
@@ -28,6 +33,8 @@ import {
 import rolePermissions from '~/utils/acl';
 import { NcError } from '~/helpers/catchError';
 import { RootScopes } from '~/utils/globals';
+import { sourceRestrictions } from '~/utils/acl';
+import { Source } from '~/models';
 
 export const rolesLabel = {
   [OrgUserRoles.SUPER_ADMIN]: 'Super Admin',
@@ -453,6 +460,49 @@ export class AclMiddleware implements NestInterceptor {
           Object.keys(roles).filter((k) => roles[k]),
         )} : Not allowed`,
       );
+    }
+
+    // check if permission have source level permission restriction
+    // 1. Check if it's present in the source restriction list
+    // 2. If present, check if write permission is allowed
+    if (
+      sourceRestrictions[SourceRestriction.META_READONLY][permissionName] ||
+      sourceRestrictions[SourceRestriction.DATA_READONLY][permissionName]
+    ) {
+      let source: Source;
+
+      // if tableCreate and source ID is empty, then extract the default source from base
+      if (!req.ncSourceId && req.ncBaseId && permissionName === 'tableCreate') {
+        const sources = await Source.list(req.context, {
+          baseId: req.ncBaseId,
+        });
+        if (req.params.sourceId) {
+          source = sources.find((s) => s.id === req.params.sourceId);
+        } else {
+          source = sources.find((s) => s.isMeta());
+        }
+      } else if (req.ncSourceId) {
+        source = await Source.get(req.context, req.ncSourceId);
+      }
+
+      // todo: replace with better error and this is not an expected error
+      if (!source) {
+        NcError.notFound('Source not found or source id not extracted');
+      }
+
+      if (
+        source.meta?.[SourceRestriction.META_READONLY] &&
+        sourceRestrictions[SourceRestriction.META_READONLY][permissionName]
+      ) {
+        NcError.sourceMetaReadOnly(source.alias);
+      }
+
+      if (
+        source.meta?.[SourceRestriction.DATA_READONLY] &&
+        sourceRestrictions[SourceRestriction.DATA_READONLY][permissionName]
+      ) {
+        NcError.sourceDataReadOnly(source.alias);
+      }
     }
 
     return next.handle().pipe(

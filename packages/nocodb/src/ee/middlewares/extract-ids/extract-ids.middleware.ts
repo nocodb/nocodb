@@ -616,10 +616,24 @@ export class AclMiddleware implements NestInterceptor {
       sourceRestrictions[SourceRestriction.META_READONLY][permissionName] ||
       sourceRestrictions[SourceRestriction.DATA_READONLY][permissionName]
     ) {
-      const source = await Source.get(req.context, req.ncSourceId);
+      let source: Source;
+
+      // if tableCreate and source ID is empty, then extract the default source from base
+      if (!req.ncSourceId && req.ncBaseId && permissionName === 'tableCreate') {
+        const sources = await Source.list(req.context, {
+          baseId: req.ncBaseId,
+        });
+        if (req.params.sourceId) {
+          source = sources.find((s) => s.id === req.params.sourceId);
+        } else {
+          source = sources.find((s) => s.isMeta());
+        }
+      } else if (req.ncSourceId) {
+        source = await Source.get(req.context, req.ncSourceId);
+      }
 
       // todo: replace with better error and this is not an expected error
-      if (!source || !req.ncSourceId) {
+      if (!source) {
         NcError.notFound('Source not found or source id not extracted');
       }
 
@@ -631,7 +645,7 @@ export class AclMiddleware implements NestInterceptor {
       }
 
       if (
-        source.meta[SourceRestriction.DATA_READONLY] &&
+        source.meta?.[SourceRestriction.DATA_READONLY] &&
         sourceRestrictions[SourceRestriction.DATA_READONLY][permissionName]
       ) {
         NcError.sourceDataReadOnly(source.alias);

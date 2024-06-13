@@ -11,6 +11,7 @@ const emits = defineEmits(['blur'])
 interface Props {
   editor: Editor
   isFormField?: boolean
+  isComment?: boolean
 }
 
 const { editor, isFormField } = toRefs(props)
@@ -164,6 +165,9 @@ const openLink = () => {
 
 const onMountLinkOptions = (e) => {
   if (e?.popper?.style) {
+    if (props.isComment) {
+      e.popper.style.left = '-10%'
+    }
     e.popper.style.width = '95%'
   }
 }

@@ -240,6 +240,7 @@ defineExpose({
         v-if="editor"
         ref="richTextLinkOptionRef"
         :editor="editor"
+        :is-comment="true"
         :is-form-field="true"
         @blur="isFocused = false"
       />

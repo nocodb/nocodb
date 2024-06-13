@@ -156,7 +156,6 @@ const getIcon = (c: ColumnType) =>
               {{ $t('activity.kanban.stackedBy') }}
             </span>
             <div class="flex items-center rounded-md bg-gray-200 px-1 min-h-5 text-gray-600">
-              <component :is="getIcon(metaColumnById[groupingFieldColumnId])" class="!w-4 !h-4 !text-gray-600 !ml-0" />
               <span class="font-weight-500 text-sm">{{ groupingField }}</span>
             </div>
           </div>

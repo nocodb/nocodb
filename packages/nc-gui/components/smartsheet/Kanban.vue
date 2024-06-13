@@ -475,7 +475,7 @@ const compareStack = (stack: any, stack2?: any) => {
                         }"
                       >
                         <NcButton
-                          v-if="!(stack.title === null || isLocked || isPublic || !hasEditPermission)"
+                          v-if="!(isLocked || isPublic || !hasEditPermission)"
                           :disabled="!stack.title"
                           type="text"
                           size="xs"
@@ -504,7 +504,13 @@ const compareStack = (stack: any, stack2?: any) => {
                             v-else
                             class="max-w-full !rounded-full !px-2 !py-1 h-7 !m-0 !border-none"
                             :color="stack.color"
-                            @dblclick="isRenameOrNewStack = stack"
+                            @dblclick="
+                              () => {
+                                if (stack.title !== null && hasEditPermission && !isPublic && !isLocked) {
+                                  isRenameOrNewStack = stack
+                                }
+                              }
+                            "
                           >
                             <span
                               :style="{
@@ -569,7 +575,7 @@ const compareStack = (stack: any, stack2?: any) => {
                             </NcMenuItem>
                             <!--  Todo: rename stack function -->
                             <NcMenuItem
-                              v-if="hasEditPermission && !isPublic && !isLocked"
+                              v-if="stack.title !== null && hasEditPermission && !isPublic && !isLocked"
                               v-e="['c:kanban:rename-stack']"
                               @click="
                                 () => {
@@ -867,7 +873,7 @@ const compareStack = (stack: any, stack2?: any) => {
                   <div v-else class="nc-kanban-stack-head w-full flex items-center justify-between gap-2">
                     <div class="flex items-center gap-1">
                       <NcButton
-                        v-if="!(stack.title === null || isLocked || isPublic || !hasEditPermission)"
+                        v-if="!(isLocked || isPublic || !hasEditPermission)"
                         :disabled="!stack.title"
                         type="text"
                         size="xs"
@@ -913,7 +919,7 @@ const compareStack = (stack: any, stack2?: any) => {
                         :style="{ 'word-break': 'keep-all', 'white-space': 'nowrap' }"
                       >
                         <!-- Record Count -->
-                        {{ formattedData.get(stack.title)!.length }}/{{ countByStack.get(stack.title) }}
+                        {{ formattedData.get(stack.title)!.length }}
                         {{ countByStack.get(stack.title) !== 1 ? $t('objects.records') : $t('objects.record') }}
                       </div>
 

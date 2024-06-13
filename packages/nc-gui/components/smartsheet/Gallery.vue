@@ -77,9 +77,9 @@ const contextMenu = computed({
     }
   },
 })
-const contextMenuTarget = ref<{ row: number } | null>(null)
+const contextMenuTarget = ref<{ row: RowType; index: number } | null>(null)
 
-const showContextMenu = (e: MouseEvent, target?: { row: number }) => {
+const showContextMenu = (e: MouseEvent, target?: { row: RowType; index: number }) => {
   if (isSqlView.value) return
   e.preventDefault()
   if (target) {
@@ -190,7 +190,20 @@ watch(
   >
     <template #overlay>
       <NcMenu @click="contextMenu = false">
-        <NcMenuItem v-if="contextMenuTarget" class="!text-red-600 !hover:bg-red-50" @click="deleteRow(contextMenuTarget.row)">
+        <NcMenuItem v-if="contextMenuTarget" @click="expandForm(contextMenuTarget.row)">
+          <div v-e="['a:row:expand-record']" class="flex items-center gap-2">
+            <component :is="iconMap.expand" class="flex" />
+            <!-- Expand Record -->
+            {{ $t('activity.expandRecord') }}
+          </div>
+        </NcMenuItem>
+        <NcDivider />
+
+        <NcMenuItem
+          v-if="contextMenuTarget?.index !== undefined"
+          class="!text-red-600 !hover:bg-red-50"
+          @click="deleteRow(contextMenuTarget.index)"
+        >
           <div v-e="['a:row:delete']" class="flex items-center gap-2">
             <component :is="iconMap.delete" class="flex" />
             <!-- Delete Row -->
@@ -228,7 +241,7 @@ watch(
               :body-style="{ padding: '16px !important' }"
               :data-testid="`nc-gallery-card-${record.row.id}`"
               @click="expandFormClick($event, record)"
-              @contextmenu="showContextMenu($event, { row: rowIndex })"
+              @contextmenu="showContextMenu($event, { row: record, index: rowIndex })"
             >
               <template v-if="galleryData?.fk_cover_image_col_id" #cover>
                 <a-carousel

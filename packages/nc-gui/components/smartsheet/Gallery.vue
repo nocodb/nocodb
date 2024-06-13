@@ -309,7 +309,7 @@ watch(
                 <div v-for="col in fieldsWithoutDisplay" :key="`record-${record.row.id}-${col.id}`">
                   <div class="flex flex-col rounded-lg w-full">
                     <div class="flex flex-row w-full justify-start">
-                      <div class="nc-card-col-header w-full text-gray-500 uppercase">
+                      <div class="nc-card-col-header w-full !children:text-gray-400">
                         <LazySmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" :hide-menu="true" />
 
                         <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="true" />
@@ -455,7 +455,7 @@ watch(
 .nc-card-col-header {
   :deep(.nc-cell-icon),
   :deep(.nc-virtual-cell-icon) {
-    @apply ml-0;
+    @apply ml-0 !w-3.5 !h-3.5;
   }
 }
 

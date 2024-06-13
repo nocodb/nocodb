@@ -810,11 +810,11 @@ export class NcError {
     throw new MetaError(param);
   }
 
-  static sourceDataReadOnly(name: any) {
+  static sourceDataReadOnly(name: string) {
     NcError.forbidden(`Source '${name}' is read-only`);
   }
 
-  static sourceMetaReadOnly(name: any) {
+  static sourceMetaReadOnly(name: string) {
     NcError.forbidden(`Source '${name}' schema is read-only`);
   }
 }

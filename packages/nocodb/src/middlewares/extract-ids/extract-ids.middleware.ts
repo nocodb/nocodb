@@ -75,13 +75,18 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     // extract base id based on request path params
     if (params.baseName) {
       const base = await Base.getByTitleOrId(context, params.baseName);
+
+      if (!base) {
+        NcError.baseNotFound(params.baseName);
+      }
+
       if (base) {
         req.ncBaseId = base.id;
-        if (req.params.tableName) {
+        if (params.tableName) {
           // extract model and then source id from model
           const model = await Model.getByAliasOrId(context, {
             base_id: base.id,
-            aliasOrId: req.params.tableName,
+            aliasOrId: params.tableName,
           });
 
           if (!model) {

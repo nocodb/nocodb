@@ -185,7 +185,8 @@ export const useRolesShared = createSharedComposable(() => {
       const source = unref(args.source || null)
 
       if (!source) {
-        console.warn('Source not found', permission)
+        // todo: temporary log for debugging
+        console.warn('Source not found', permission, new Error().stack)
         return false
       }
 

@@ -22,7 +22,7 @@ const { bases, basesList, activeProjectId } = storeToRefs(basesStore)
 
 const baseStore = useBase()
 
-const { isSharedBase } = storeToRefs(baseStore)
+const { isSharedBase, base } = storeToRefs(baseStore)
 
 const { activeTable: _activeTable } = storeToRefs(useTablesStore())
 
@@ -108,7 +108,7 @@ const duplicateTable = async (table: TableType) => {
 
 const isCreateTableAllowed = computed(
   () =>
-    isUIAllowed('tableCreate') &&
+    isUIAllowed('tableCreate', { source: base.value.sources?.[0] }) &&
     route.value.name !== 'index' &&
     route.value.name !== 'index-index' &&
     route.value.name !== 'index-index-create' &&

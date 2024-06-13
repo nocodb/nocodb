@@ -26,6 +26,8 @@ const meta = inject(MetaInj, ref())
 
 const fields = inject(FieldsInj, ref())
 
+const isPublic = inject(IsPublicInj, ref(false))
+
 const { fields: _fields } = useViewColumnsOrThrow()
 
 const fieldStyles = computed(() => {
@@ -54,6 +56,29 @@ const hours = computed(() => {
     hours.push(_selectedDate.clone().startOf('day').add(i, 'hour'))
   }
   return hours
+})
+
+const currTime = ref(dayjs())
+
+const overlayTop = computed(() => {
+  const perRecordHeight = 52
+
+  const minutes = currTime.value.minute() + currTime.value.hour() * 60
+
+  const top = (perRecordHeight / 60) * minutes
+
+  return top
+})
+
+onMounted(() => {
+  const intervalId = setInterval(() => {
+    currTime.value = dayjs()
+  }, 10000) // 10000 ms = 10 seconds
+
+  // Clean up the interval when the component is unmounted
+  onUnmounted(() => {
+    clearInterval(intervalId)
+  })
 })
 
 const calculateNewDates = useMemoize(
@@ -166,12 +191,21 @@ const getMaxOverlaps = ({
     return maxOverlaps
   }
 
-  let maxOverlaps = 1
   const id = row.rowMeta.id as string
   if (graph.has(id)) {
-    maxOverlaps = dfs(id)
+    dfs(id)
   }
-  return maxOverlaps
+
+  const overlapIterations: Array<number> = []
+
+  columnArray
+    .flat()
+    .filter((record) => visited.has(record.rowMeta.id!))
+    .forEach((record) => {
+      overlapIterations.push(record.rowMeta.overLapIteration!)
+    })
+
+  return Math.max(...overlapIterations)
 }
 
 const recordsAcrossAllRange = computed<{
@@ -246,8 +280,8 @@ const recordsAcrossAllRange = computed<{
         const heightInPixels = Math.max(endDate.diff(startDate, 'minute'), perRecordHeight)
 
         const style: Partial<CSSStyleDeclaration> = {
-          height: `${heightInPixels - 8}px`,
-          top: `${topInPixels + 4}px`,
+          height: `${heightInPixels - 2}px`,
+          top: `${topInPixels + 1}px`,
         }
 
         // This property is used to determine which side the record should be rounded. It can be top, bottom, both or none
@@ -298,8 +332,8 @@ const recordsAcrossAllRange = computed<{
         const heightInPixels = Math.max((endDate.diff(startDate, 'minute') / 60) * 52, perRecordHeight)
         style = {
           ...style,
-          top: `${topInPixels + 4}px`,
-          height: `${heightInPixels - 8}px`,
+          top: `${topInPixels + 1}px`,
+          height: `${heightInPixels - 2}px`,
         }
 
         recordsByRange.push({
@@ -681,13 +715,13 @@ const stopDrag = (event: MouseEvent) => {
 }
 
 const dragStart = (event: MouseEvent, record: Row) => {
-  if (!isUIAllowed('dataEdit')) return
   let target = event.target as HTMLElement
 
   isDragging.value = false
 
   // We use a timeout to determine if the user is dragging or clicking on the record
   dragTimeout.value = setTimeout(() => {
+    if (!isUIAllowed('dataEdit')) return
     isDragging.value = true
     while (!target.classList.contains('draggable-record')) {
       target = target.parentElement as HTMLElement
@@ -868,6 +902,24 @@ watch(
     data-testid="nc-calendar-day-view"
     @drop="dropEvent"
   >
+    <div
+      v-if="!isPublic && dayjs().isSame(selectedDate, 'day')"
+      class="absolute ml-2 pointer-events-none w-full z-4"
+      :style="{
+        top: `${overlayTop}px`,
+      }"
+    >
+      <div class="flex w-full items-center">
+        <span
+          class="text-brand-500 text-xs rounded-md border-1 pointer-events-auto px-0.5 border-brand-200 cursor-pointer bg-brand-50"
+          @click="newRecord(dayjs())"
+        >
+          {{ dayjs().format('hh:mm A') }}
+        </span>
+        <div class="flex-1 border-b-1 border-brand-500"></div>
+      </div>
+    </div>
+
     <div>
       <div
         v-for="(hour, index) in hours"
@@ -895,7 +947,7 @@ watch(
         @dblclick="newRecord(hour)"
       >
         <NcDropdown
-          v-if="calendarRange.length > 1"
+          v-if="calendarRange.length > 1 && !isPublic"
           :class="{
             '!block': hour.isSame(selectedTime),
             '!hidden': !hour.isSame(selectedTime),
@@ -903,7 +955,7 @@ watch(
           auto-close
         >
           <NcButton
-            class="!group-hover:block mr-4 my-auto ml-auto z-10 top-0 bottom-0 !group-hover:block absolute"
+            class="!group-hover:block mr-12 my-auto ml-auto z-10 top-0 bottom-0 !group-hover:block absolute"
             size="xsmall"
             type="secondary"
           >
@@ -944,12 +996,12 @@ watch(
           </template>
         </NcDropdown>
         <NcButton
-          v-else
+          v-else-if="!isPublic"
           :class="{
             '!block': hour.isSame(selectedTime),
             '!hidden': !hour.isSame(selectedTime),
           }"
-          class="!group-hover:block mr-4 my-auto ml-auto z-10 top-0 bottom-0 !group-hover:block absolute"
+          class="!group-hover:block mr-12 my-auto ml-auto z-10 top-0 bottom-0 !group-hover:block absolute"
           size="xsmall"
           type="secondary"
           @click="

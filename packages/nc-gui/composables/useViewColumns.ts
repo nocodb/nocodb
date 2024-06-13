@@ -113,10 +113,30 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
 
     const showAll = async (ignoreIds?: any) => {
       if (isLocalMode.value) {
+        const fieldById = (fields.value || []).reduce<Record<string, any>>((acc, curr) => {
+          if (curr.fk_column_id) {
+            curr.show = true
+            acc[curr.fk_column_id] = curr
+          }
+          return acc
+        }, {})
+
         fields.value = fields.value?.map((field: Field) => ({
           ...field,
-          show: true,
+          show: fieldById[field.fk_column_id!]?.show,
         }))
+
+        meta.value!.columns = meta.value!.columns?.map((column: ColumnType) => {
+          if (fieldById[column.id!]) {
+            return {
+              ...column,
+              ...fieldById[column.id!],
+              id: fieldById[column.id!].fk_column_id,
+            }
+          }
+          return column
+        })
+
         reloadData?.()
         return
       }
@@ -137,10 +157,30 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
     }
     const hideAll = async (ignoreIds?: any) => {
       if (isLocalMode.value) {
+        const fieldById = (fields.value || []).reduce<Record<string, any>>((acc, curr) => {
+          if (curr.fk_column_id) {
+            curr.show = !!curr.isViewEssentialField
+            acc[curr.fk_column_id] = curr
+          }
+          return acc
+        }, {})
+
         fields.value = fields.value?.map((field: Field) => ({
           ...field,
-          show: !!field.isViewEssentialField,
+          show: fieldById[field.fk_column_id!]?.show,
         }))
+
+        meta.value!.columns = meta.value!.columns?.map((column: ColumnType) => {
+          if (fieldById[column.id!]) {
+            return {
+              ...column,
+              ...fieldById[column.id!],
+              id: fieldById[column.id!].fk_column_id,
+            }
+          }
+          return column
+        })
+
         reloadData?.()
         return
       }
@@ -268,6 +308,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
 
     const toggleFieldVisibility = (checked: boolean, field: any) => {
       const fieldIndex = fields.value?.findIndex((f) => f.fk_column_id === field.fk_column_id)
+
       if (!fieldIndex && fieldIndex !== 0) return
       addUndo({
         undo: {

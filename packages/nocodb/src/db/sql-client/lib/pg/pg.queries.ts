@@ -234,6 +234,18 @@ AND t.table_name=?;`,
       paramsHints: ['databaseName'],
     },
   },
+  dateConversionFunction: {
+    default: {
+      sql: `CREATE OR REPLACE FUNCTION to_date_time_safe(value text, format text) RETURNS TIMESTAMP AS $$
+  BEGIN
+    RETURN to_timestamp(value, format);
+    EXCEPTION
+      WHEN others THEN RETURN NULL;  
+  END;
+  $$ LANGUAGE plpgsql;`,
+      paramsHints: [],
+    },
+  },
 };
 
 export default pgQueries;

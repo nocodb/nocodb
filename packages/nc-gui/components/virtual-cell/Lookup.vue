@@ -106,7 +106,7 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
     >
       <template v-if="lookupColumn">
         <!-- Render virtual cell -->
-        <div v-if="isVirtualCol(lookupColumn)" class="flex h-full">
+        <div v-if="isVirtualCol(lookupColumn) && lookupColumn.uidt !== UITypes.Rollup" class="flex h-full">
           <!-- If non-belongs-to and non-one-to-one LTAR column then pass the array value, else iterate and render -->
           <template
             v-if="
@@ -174,7 +174,16 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
                     'min-h-0 min-w-0': isAttachment(lookupColumn),
                   }"
                 >
+                  <LazySmartsheetVirtualCell
+                    v-if="lookupColumn.uidt === UITypes.Rollup"
+                    :edit-enabled="false"
+                    :read-only="true"
+                    :model-value="v"
+                    :column="lookupColumn"
+                    class="px-2"
+                  />
                   <LazySmartsheetCell
+                    v-else
                     :model-value="v"
                     :column="lookupColumn"
                     :edit-enabled="false"
@@ -216,6 +225,7 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
     @apply bg-transparent;
   }
 }
+
 .nc-cell-lookup-scroll:hover {
   &::-webkit-scrollbar-thumb {
     @apply bg-gray-200;

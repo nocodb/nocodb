@@ -116,6 +116,24 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       return calendarRange.value[0]?.fk_from_col?.uidt
     })
 
+    const viewMetaProperties = computed<{
+      active_view: string
+      hide_weekend: boolean
+    }>(() => {
+      let meta = calendarMetaData.value?.meta ?? {}
+
+      if (typeof meta === 'string') {
+        try {
+          meta = JSON.parse(meta)
+        } catch (e) {}
+      }
+
+      return meta as {
+        active_view: string
+        hide_weekend: boolean
+      }
+    })
+
     const sideBarFilter = computed(() => {
       let combinedFilters: any = []
 
@@ -251,6 +269,11 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
                 value: fromDate,
               },
             ]
+            combinedFilters.push({
+              is_group: true,
+              logical_op: 'or',
+              children: rangeFilter,
+            })
           } else if (fromCol) {
             rangeFilter = [
               {
@@ -266,11 +289,9 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
                 value: prevDate,
               },
             ]
-          }
-          if (rangeFilter.length > 0) {
             combinedFilters.push({
               is_group: true,
-              logical_op: 'or',
+              logical_op: 'and',
               children: rangeFilter,
             })
           }
@@ -323,9 +344,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
           : await fetchSharedViewData({
               ...params,
               sortsArr: sorts.value,
-              filtersArr: sideBarFilter.value,
+              filtersArr: [...nestedFilters.value, ...sideBarFilter.value],
               offset: params.offset,
-              where: where?.value ?? '',
             })
         formattedSideBarData.value = [...formattedSideBarData.value, ...formatData(response!.list)]
       } catch (e) {
@@ -356,8 +376,6 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       prevDate = prevDate!.format('YYYY-MM-DD HH:mm:ssZ')
       nextDate = nextDate!.format('YYYY-MM-DD HH:mm:ssZ')
 
-      const activeDateFilter: Array<any> = []
-
       if (!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) return
 
       try {
@@ -371,7 +389,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
               from_date: prevDate,
               to_date: nextDate,
               sortsArr: sorts.value,
-              filtersArr: activeDateFilter,
+              filtersArr: nestedFilters.value,
             })
         activeDates.value = res.dates.map((dateObj: unknown) => dayjs(dateObj as string))
 
@@ -467,8 +485,15 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         case 'week':
           fromDate = selectedDateRange.value.start.startOf('day')
           toDate = selectedDateRange.value.end.endOf('day')
+
           prevDate = selectedDateRange.value.start.subtract(1, 'day').endOf('day')
           nextDate = selectedDateRange.value.end.add(1, 'day').startOf('day')
+
+          // Hide weekends
+          if (viewMetaProperties.value?.hide_weekend) {
+            toDate = toDate.subtract(2, 'day')
+            nextDate = nextDate.subtract(2, 'day')
+          }
           break
         case 'month': {
           const startOfMonth = selectedMonth.value.startOf('month')
@@ -516,7 +541,6 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
               from_date: prevDate,
               to_date: nextDate,
               filtersArr: nestedFilters.value,
-              where: where?.value ?? '',
             })
         formattedData.value = formatData(res!.list)
       } catch (e) {
@@ -622,7 +646,10 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
               ...{},
               ...{ filterArrJson: JSON.stringify([...sideBarFilter.value]) },
             })
-          : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: sideBarFilter.value })
+          : await fetchSharedViewData({
+              sortsArr: sorts.value,
+              filtersArr: [...nestedFilters.value, ...sideBarFilter.value],
+            })
 
         formattedSideBarData.value = formatData(res!.list)
       } catch (e) {
@@ -807,10 +834,20 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       await fetchActiveDates()
     })
 
+    watch(
+      () => viewMetaProperties.value.hide_weekend,
+      async () => {
+        if (activeCalendarView.value === 'week') {
+          await loadCalendarData()
+        }
+      },
+    )
+
     return {
       fetchActiveDates,
       formattedSideBarData,
       loadMoreSidebarData,
+      updateCalendarMeta,
       loadSidebarData,
       displayField,
       sideBarFilterOption,
@@ -836,6 +873,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       selectedMonth,
       selectedDateRange,
       paginateCalendarView,
+      viewMetaProperties,
     }
   },
 )

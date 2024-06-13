@@ -7,6 +7,7 @@ import { Base } from '../../../../src/models';
 import { createTable } from '../../factory/table';
 import init from '../../init';
 import { createProject, createSharedBase } from '../../factory/base';
+import { RootScopes } from '../../../../src/utils/globals';
 
 // Test case list
 // 1. Get base info
@@ -87,7 +88,13 @@ function baseTest() {
       })
       .expect(200);
 
-    const newProject = await Base.getByTitleOrId(response.body.id);
+    const newProject = await Base.getByTitleOrId(
+      {
+        workspace_id: RootScopes.BASE,
+        base_id: RootScopes.BASE,
+      },
+      response.body.id,
+    );
     if (!newProject) return new Error('Base not created');
   });
 
@@ -147,7 +154,13 @@ function baseTest() {
       })
       .expect(200);
 
-    const newProject = await Base.getByTitleOrId(base.id);
+    const newProject = await Base.getByTitleOrId(
+      {
+        workspace_id: RootScopes.BASE,
+        base_id: RootScopes.BASE,
+      },
+      base.id,
+    );
     if (newProject.title !== 'NewTitle') {
       return new Error('Base not updated');
     }
@@ -180,7 +193,13 @@ function baseTest() {
       })
       .expect(200);
 
-    const updatedProject = await Base.getByTitleOrId(base.id);
+    const updatedProject = await Base.getByTitleOrId(
+      {
+        workspace_id: RootScopes.BASE,
+        base_id: RootScopes.BASE,
+      },
+      base.id,
+    );
 
     if (
       !updatedProject.uuid ||
@@ -201,7 +220,13 @@ function baseTest() {
       })
       .expect(200);
 
-    const updatedProject = await Base.getByTitleOrId(base.id);
+    const updatedProject = await Base.getByTitleOrId(
+      {
+        workspace_id: RootScopes.BASE,
+        base_id: RootScopes.BASE,
+      },
+      base.id,
+    );
 
     if (updatedProject.roles === 'commenter') {
       return new Error('Shared base not configured properly');
@@ -220,7 +245,13 @@ function baseTest() {
       })
       .expect(200);
 
-    const updatedProject = await Base.getByTitleOrId(base.id);
+    const updatedProject = await Base.getByTitleOrId(
+      {
+        workspace_id: RootScopes.BASE,
+        base_id: RootScopes.BASE,
+      },
+      base.id,
+    );
 
     if (updatedProject.roles === 'commenter') {
       throw new Exception('Shared base not updated properly');
@@ -238,7 +269,13 @@ function baseTest() {
         password: 'password123',
       })
       .expect(200);
-    const updatedProject = await Base.getByTitleOrId(base.id);
+    const updatedProject = await Base.getByTitleOrId(
+      {
+        workspace_id: RootScopes.BASE,
+        base_id: RootScopes.BASE,
+      },
+      base.id,
+    );
 
     if (updatedProject.roles !== 'editor') {
       throw new Exception('Shared base not updated properly');
@@ -254,7 +291,13 @@ function baseTest() {
       .send()
       .expect(200);
 
-    const updatedProject = await Base.getByTitleOrId(base.id);
+    const updatedProject = await Base.getByTitleOrId(
+      {
+        workspace_id: RootScopes.BASE,
+        base_id: RootScopes.BASE,
+      },
+      base.id,
+    );
     if (!updatedProject.uuid) {
       throw new Exception('Shared base not created');
     }
@@ -268,7 +311,13 @@ function baseTest() {
       .set('xc-auth', context.token)
       .send()
       .expect(200);
-    const updatedProject = await Base.getByTitleOrId(base.id);
+    const updatedProject = await Base.getByTitleOrId(
+      {
+        workspace_id: RootScopes.BASE,
+        base_id: RootScopes.BASE,
+      },
+      base.id,
+    );
     if (updatedProject.uuid) {
       throw new Exception('Shared base not deleted');
     }
@@ -302,6 +351,10 @@ function baseTest() {
   });
 
   it('Get all bases meta', async () => {
+    if (process.env.EE === 'true') {
+      return;
+    }
+
     await createTable(context, base, {
       table_name: 'table1',
       title: 'table1',

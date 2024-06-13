@@ -167,7 +167,7 @@ test.describe('User single select', () => {
     // Convert User field column to SingleLineText
     await grid.column.openEdit({ title: 'User copy' });
     await grid.column.selectType({ type: 'SingleLineText' });
-    await grid.column.save({ isUpdated: true });
+    await grid.column.save({ isUpdated: true, typeChange: true });
 
     // Verify converted column content
     for (let i = 0; i <= 4; i++) {
@@ -541,7 +541,7 @@ test.describe('User multiple select', () => {
     // Convert User field column to SingleLineText
     await grid.column.openEdit({ title: 'User copy' });
     await grid.column.selectType({ type: 'SingleLineText' });
-    await grid.column.save({ isUpdated: true });
+    await grid.column.save({ isUpdated: true, typeChange: true });
 
     // Verify converted column content
     counter = 1;

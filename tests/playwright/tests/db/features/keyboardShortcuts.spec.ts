@@ -72,6 +72,7 @@ test.describe('Verify shortcuts', () => {
 
     await page.keyboard.press('Alt+c');
     await grid.column.fillTitle({ title: 'New Column' });
+    await grid.column.selectType({ type: UITypes.SingleLineText });
     await grid.column.save();
     await grid.column.verify({ title: 'New Column' });
 

@@ -5,18 +5,21 @@ import type {
   UserType,
   ViewUpdateReqType,
 } from 'nocodb-sdk';
-import type { NcRequest } from '~/interface/config';
+import type { NcContext, NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { Model, ModelRoleVisibility, View } from '~/models';
 
 // todo: move
-async function xcVisibilityMetaGet(param: {
-  baseId: string;
-  includeM2M?: boolean;
-  models?: Model[];
-}) {
+async function xcVisibilityMetaGet(
+  context: NcContext,
+  param: {
+    baseId: string;
+    includeM2M?: boolean;
+    models?: Model[];
+  },
+) {
   const { includeM2M = true, baseId, models: _models } = param ?? {};
 
   // todo: move to
@@ -26,7 +29,7 @@ async function xcVisibilityMetaGet(param: {
 
   let models =
     _models ||
-    (await Model.list({
+    (await Model.list(context, {
       base_id: baseId,
       source_id: undefined,
     }));
@@ -36,7 +39,7 @@ async function xcVisibilityMetaGet(param: {
   const result = await models.reduce(async (_obj, model) => {
     const obj = await _obj;
 
-    const views = await model.getViews();
+    const views = await model.getViews(context);
     for (const view of views) {
       obj[view.id] = {
         ptn: model.table_name,
@@ -53,7 +56,7 @@ async function xcVisibilityMetaGet(param: {
     return obj;
   }, Promise.resolve({}));
 
-  const disabledList = await ModelRoleVisibility.list(baseId);
+  const disabledList = await ModelRoleVisibility.list(context, baseId);
 
   for (const d of disabledList) {
     if (result[d.fk_view_id])
@@ -67,20 +70,23 @@ async function xcVisibilityMetaGet(param: {
 export class ViewsService {
   constructor(private appHooksService: AppHooksService) {}
 
-  async viewList(param: {
-    tableId: string;
-    user: {
-      roles?: Record<string, boolean> | string;
-      base_roles?: Record<string, boolean>;
-    };
-  }) {
-    const model = await Model.get(param.tableId);
+  async viewList(
+    context: NcContext,
+    param: {
+      tableId: string;
+      user: {
+        roles?: Record<string, boolean> | string;
+        base_roles?: Record<string, boolean>;
+      };
+    },
+  ) {
+    const model = await Model.get(context, param.tableId);
 
     if (!model) {
       NcError.tableNotFound(param.tableId);
     }
 
-    const viewList = await xcVisibilityMetaGet({
+    const viewList = await xcVisibilityMetaGet(context, {
       baseId: model.base_id,
       models: [model],
     });
@@ -96,10 +102,13 @@ export class ViewsService {
     return filteredViewList;
   }
 
-  async shareView(param: { viewId: string; user: UserType; req: NcRequest }) {
-    const res = await View.share(param.viewId);
+  async shareView(
+    context: NcContext,
+    param: { viewId: string; user: UserType; req: NcRequest },
+  ) {
+    const res = await View.share(context, param.viewId);
 
-    const view = await View.get(param.viewId);
+    const view = await View.get(context, param.viewId);
 
     if (!view) {
       NcError.viewNotFound(param.viewId);
@@ -114,24 +123,27 @@ export class ViewsService {
     return res;
   }
 
-  async viewUpdate(param: {
-    viewId: string;
-    view: ViewUpdateReqType;
-    user: UserType;
-    req: NcRequest;
-  }) {
+  async viewUpdate(
+    context: NcContext,
+    param: {
+      viewId: string;
+      view: ViewUpdateReqType;
+      user: UserType;
+      req: NcRequest;
+    },
+  ) {
     validatePayload(
       'swagger.json#/components/schemas/ViewUpdateReq',
       param.view,
     );
 
-    const view = await View.get(param.viewId);
+    const view = await View.get(context, param.viewId);
 
     if (!view) {
       NcError.viewNotFound(param.viewId);
     }
 
-    const result = await View.update(param.viewId, param.view);
+    const result = await View.update(context, param.viewId, param.view);
 
     this.appHooksService.emit(AppEvents.VIEW_UPDATE, {
       view: {
@@ -145,14 +157,17 @@ export class ViewsService {
     return result;
   }
 
-  async viewDelete(param: { viewId: string; user: UserType; req: NcRequest }) {
-    const view = await View.get(param.viewId);
+  async viewDelete(
+    context: NcContext,
+    param: { viewId: string; user: UserType; req: NcRequest },
+  ) {
+    const view = await View.get(context, param.viewId);
 
     if (!view) {
       NcError.viewNotFound(param.viewId);
     }
 
-    await View.delete(param.viewId);
+    await View.delete(context, param.viewId);
 
     this.appHooksService.emit(AppEvents.VIEW_DELETE, {
       view,
@@ -163,24 +178,27 @@ export class ViewsService {
     return true;
   }
 
-  async shareViewUpdate(param: {
-    viewId: string;
-    sharedView: SharedViewReqType;
-    user: UserType;
-    req: NcRequest;
-  }) {
+  async shareViewUpdate(
+    context: NcContext,
+    param: {
+      viewId: string;
+      sharedView: SharedViewReqType;
+      user: UserType;
+      req: NcRequest;
+    },
+  ) {
     validatePayload(
       'swagger.json#/components/schemas/SharedViewReq',
       param.sharedView,
     );
 
-    const view = await View.get(param.viewId);
+    const view = await View.get(context, param.viewId);
 
     if (!view) {
       NcError.viewNotFound(param.viewId);
     }
 
-    const result = await View.update(param.viewId, param.sharedView);
+    const result = await View.update(context, param.viewId, param.sharedView);
 
     this.appHooksService.emit(AppEvents.SHARED_VIEW_UPDATE, {
       user: param.user,
@@ -191,17 +209,20 @@ export class ViewsService {
     return result;
   }
 
-  async shareViewDelete(param: {
-    viewId: string;
-    user: UserType;
-    req: NcRequest;
-  }) {
-    const view = await View.get(param.viewId);
+  async shareViewDelete(
+    context: NcContext,
+    param: {
+      viewId: string;
+      user: UserType;
+      req: NcRequest;
+    },
+  ) {
+    const view = await View.get(context, param.viewId);
 
     if (!view) {
       NcError.viewNotFound(param.viewId);
     }
-    await View.sharedViewDelete(param.viewId);
+    await View.sharedViewDelete(context, param.viewId);
 
     this.appHooksService.emit(AppEvents.SHARED_VIEW_DELETE, {
       user: param.user,
@@ -212,17 +233,23 @@ export class ViewsService {
     return true;
   }
 
-  async showAllColumns(param: { viewId: string; ignoreIds?: string[] }) {
-    await View.showAllColumns(param.viewId, param.ignoreIds || []);
+  async showAllColumns(
+    context: NcContext,
+    param: { viewId: string; ignoreIds?: string[] },
+  ) {
+    await View.showAllColumns(context, param.viewId, param.ignoreIds || []);
     return true;
   }
 
-  async hideAllColumns(param: { viewId: string; ignoreIds?: string[] }) {
-    await View.hideAllColumns(param.viewId, param.ignoreIds || []);
+  async hideAllColumns(
+    context: NcContext,
+    param: { viewId: string; ignoreIds?: string[] },
+  ) {
+    await View.hideAllColumns(context, param.viewId, param.ignoreIds || []);
     return true;
   }
 
-  async shareViewList(param: { tableId: string }) {
-    return await View.shareViewList(param.tableId);
+  async shareViewList(context: NcContext, param: { tableId: string }) {
+    return await View.shareViewList(context, param.tableId);
   }
 }

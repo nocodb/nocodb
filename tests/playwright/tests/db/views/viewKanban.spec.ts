@@ -49,7 +49,7 @@ test.describe('View', () => {
         });
         count = count + 1;
       }
-      await dashboard.grid.column.save();
+      await dashboard.grid.column.save({ typeChange: true });
     }
   });
 
@@ -103,11 +103,12 @@ test.describe('View', () => {
       ['AIRPORT POLLOCK', 'ALONE TRIP', 'AMELIE HELLFIGHTERS'],
       ['ADAPTATION HOLES', 'ALADDIN CALENDAR', 'ALICE FANTASIA'],
     ];
-    for (let i = 1; i <= order.length; i++)
+    for (let i = 1; i <= order.length; i++) {
       await kanban.verifyCardOrder({
         stackIndex: i,
         order: order[i - 1],
       });
+    }
 
     // // verify inter stack drag-drop
     // await kanban.dragDropCard({

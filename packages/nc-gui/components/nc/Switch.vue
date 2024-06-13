@@ -1,20 +1,50 @@
 <script lang="ts" setup>
-const props = withDefaults(defineProps<{ checked: boolean; disabled?: boolean; size?: 'default' | 'small' | 'xsmall' }>(), {
-  size: 'small',
-})
+const props = withDefaults(
+  defineProps<{
+    checked: boolean
+    disabled?: boolean
+    size?: 'default' | 'small' | 'xsmall'
+    placement?: 'left' | 'right'
+    loading?: boolean
+  }>(),
+  {
+    size: 'small',
+    placement: 'left',
+    loading: false,
+  },
+)
 
 const emit = defineEmits(['change', 'update:checked'])
 
 const checked = useVModel(props, 'checked', emit)
 
+const { loading } = toRefs(props)
+
 const switchSize = computed(() => (['default', 'small'].includes(props.size) ? props.size : undefined))
 
-const onChange = (e: boolean) => {
+const onChange = (e: boolean, updateValue = false) => {
+  if (loading.value) return
+
+  if (updateValue) {
+    checked.value = e
+  }
+
   emit('change', e)
 }
 </script>
 
 <template>
+  <span
+    v-if="placement === 'right' && $slots.default"
+    class="pr-2"
+    :class="{
+      'cursor-not-allowed': disabled,
+      'cursor-pointer': !disabled,
+    }"
+    @click="onChange(!checked, true)"
+  >
+    <slot />
+  </span>
   <a-switch
     v-model:checked="checked"
     :disabled="disabled"
@@ -22,12 +52,21 @@ const onChange = (e: boolean) => {
     :class="{
       'size-xsmall': size === 'xsmall',
     }"
+    :loading="loading"
     v-bind="$attrs"
     :size="switchSize"
     @change="onChange"
   >
   </a-switch>
-  <span v-if="$slots.default" class="cursor-pointer pl-2" @click="checked = !checked">
+  <span
+    v-if="placement === 'left' && $slots.default"
+    class="pl-2"
+    :class="{
+      'cursor-not-allowed': disabled,
+      'cursor-pointer': !disabled,
+    }"
+    @click="onChange(!checked, true)"
+  >
     <slot />
   </span>
 </template>

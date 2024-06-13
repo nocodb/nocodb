@@ -51,6 +51,8 @@ const permissionScopes = {
     // TODO: add ACL with base scope
     'upload',
     'uploadViaURL',
+
+    'notification',
   ],
   base: [
     'formViewGet',
@@ -279,6 +281,7 @@ const rolePermissions:
       testConnection: true,
       isPluginActive: true,
       commandPalette: true,
+      notification: true,
     },
   },
   [OrgUserRoles.CREATOR]: {

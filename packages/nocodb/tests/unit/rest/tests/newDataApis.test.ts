@@ -112,6 +112,14 @@ import type Model from '../../../../src/models/Model';
 const debugMode = false;
 
 let context;
+let ctx: {
+  workspace_id: string;
+  base_id: string;
+};
+let sakilaCtx: {
+  workspace_id: string;
+  base_id: string;
+};
 let base: Base;
 let table: Model;
 let columns: any[];
@@ -126,8 +134,6 @@ let countryTable: Model;
 let countryColumns;
 let cityTable: Model;
 let cityColumns;
-
-const unauthorizedResponse = process.env.EE !== 'true' ? 404 : 403;
 
 // Optimisation scope for time reduction
 // 1. BeforeEach can be changed to BeforeAll for List and Read APIs
@@ -224,7 +230,8 @@ async function ncAxiosLinkGet({
   if (debugMode && status !== 200) {
     console.log('#### ', response.body.message || response.body.msg);
   }
-  if (!debugMode && msg) expect(response.body.message || response.body.msg).to.equal(msg);
+  if (!debugMode && msg)
+    expect(response.body.message || response.body.msg).to.equal(msg);
 
   return response;
 }
@@ -251,7 +258,8 @@ async function ncAxiosLinkAdd({
     console.log('#### ', response.body.message || response.body.msg);
   }
 
-  if (!debugMode && msg) expect(response.body.message || response.body.msg).to.equal(msg);
+  if (!debugMode && msg)
+    expect(response.body.message || response.body.msg).to.equal(msg);
 
   return response;
 }
@@ -276,7 +284,8 @@ async function ncAxiosLinkRemove({
   if (debugMode && status !== 200) {
     console.log('#### ', response.body.message || response.body.msg);
   }
-  if (!debugMode && msg) expect(response.body.message || response.body.msg).to.equal(msg);
+  if (!debugMode && msg)
+    expect(response.body.message || response.body.msg).to.equal(msg);
 
   return response;
 }
@@ -290,29 +299,39 @@ function generalDb() {
     sakilaProject = await createSakilaProject(context);
     base = await createProject(context);
 
+    ctx = {
+      workspace_id: base.fk_workspace_id,
+      base_id: base.id,
+    };
+
+    sakilaCtx = {
+      workspace_id: sakilaProject.fk_workspace_id,
+      base_id: sakilaProject.id,
+    };
+
     customerTable = await getTable({
       base: sakilaProject,
       name: 'customer',
     });
-    customerColumns = await customerTable.getColumns();
+    customerColumns = await customerTable.getColumns(sakilaCtx);
 
     actorTable = await getTable({
       base: sakilaProject,
       name: 'actor',
     });
-    actorColumns = await actorTable.getColumns();
+    actorColumns = await actorTable.getColumns(sakilaCtx);
 
     countryTable = await getTable({
       base: sakilaProject,
       name: 'country',
     });
-    countryColumns = await countryTable.getColumns();
+    countryColumns = await countryTable.getColumns(sakilaCtx);
 
     cityTable = await getTable({
       base: sakilaProject,
       name: 'city',
     });
-    cityColumns = await cityTable.getColumns();
+    cityColumns = await cityTable.getColumns(sakilaCtx);
   });
 
   it('Nested List - Link to another record', async function () {
@@ -436,6 +455,10 @@ function textBased() {
   beforeEach(async function () {
     context = await init(false);
     base = await createProject(context);
+    ctx = {
+      workspace_id: base.fk_workspace_id,
+      base_id: base.id,
+    };
     table = await createTable(context, base, {
       table_name: 'textBased',
       title: 'TextBased',
@@ -443,7 +466,7 @@ function textBased() {
     });
 
     // retrieve column meta
-    columns = await table.getColumns();
+    columns = await table.getColumns(ctx);
 
     // build records
     const rowAttributes = [];
@@ -823,7 +846,7 @@ function textBased() {
     // Invalid table ID
     await ncAxiosGet({
       url: `/api/v2/tables/123456789/records`,
-      status: unauthorizedResponse,
+      status: 404,
     });
 
     // Invalid view ID
@@ -885,9 +908,7 @@ function textBased() {
       },
       status: 422,
     });
-    expect(rsp.body.message).to.equal(
-      "Offset value '10000' is invalid",
-    );
+    expect(rsp.body.message).to.equal("Offset value '10000' is invalid");
   });
 
   it('List: invalid sort, filter, fields', async function () {
@@ -955,7 +976,7 @@ function textBased() {
     // Invalid table ID
     await ncAxiosPost({
       url: `/api/v2/tables/123456789/records`,
-      status: unauthorizedResponse,
+      status: 404,
     });
 
     // Invalid data - create should not specify ID
@@ -989,7 +1010,7 @@ function textBased() {
     // Invalid table ID
     await ncAxiosGet({
       url: `/api/v2/tables/123456789/records/100`,
-      status: unauthorizedResponse,
+      status: 404,
     });
     // Invalid row ID
     await ncAxiosGet({
@@ -1074,7 +1095,7 @@ function textBased() {
     await ncAxiosPatch({
       url: `/api/v2/tables/123456789/records`,
       body: { Id: 100, SingleLineText: 'some text' },
-      status: unauthorizedResponse,
+      status: 404,
     });
     // Invalid row ID
     await ncAxiosPatch({
@@ -1123,7 +1144,7 @@ function textBased() {
     await ncAxiosDelete({
       url: `/api/v2/tables/123456789/records`,
       body: { Id: 100 },
-      status: unauthorizedResponse,
+      status: 404,
     });
     // Invalid row ID
     await ncAxiosDelete({ body: { Id: '123456789' }, status: 404 });
@@ -1135,6 +1156,10 @@ function numberBased() {
   beforeEach(async function () {
     context = await init();
     base = await createProject(context);
+    ctx = {
+      workspace_id: base.fk_workspace_id,
+      base_id: base.id,
+    };
     table = await createTable(context, base, {
       table_name: 'numberBased',
       title: 'numberBased',
@@ -1142,7 +1167,7 @@ function numberBased() {
     });
 
     // retrieve column meta
-    columns = await table.getColumns();
+    columns = await table.getColumns(ctx);
 
     // build records
     const rowAttributes = [];
@@ -1375,6 +1400,10 @@ function selectBased() {
   beforeEach(async function () {
     context = await init();
     base = await createProject(context);
+    ctx = {
+      workspace_id: base.fk_workspace_id,
+      base_id: base.id,
+    };
     table = await createTable(context, base, {
       table_name: 'selectBased',
       title: 'selectBased',
@@ -1382,7 +1411,7 @@ function selectBased() {
     });
 
     // retrieve column meta
-    columns = await table.getColumns();
+    columns = await table.getColumns(ctx);
 
     // build records
     const rowAttributes = [];
@@ -1565,6 +1594,10 @@ function dateBased() {
   beforeEach(async function () {
     context = await init();
     base = await createProject(context);
+    ctx = {
+      workspace_id: base.fk_workspace_id,
+      base_id: base.id,
+    };
     table = await createTable(context, base, {
       table_name: 'dateBased',
       title: 'dateBased',
@@ -1572,7 +1605,7 @@ function dateBased() {
     });
 
     // retrieve column meta
-    columns = await table.getColumns();
+    columns = await table.getColumns(ctx);
 
     // build records
     // 800: one year before to one year after
@@ -1739,6 +1772,10 @@ function linkBased() {
   beforeEach(async function () {
     context = await init();
     base = await createProject(context);
+    ctx = {
+      workspace_id: base.fk_workspace_id,
+      base_id: base.id,
+    };
 
     const columns = [
       {
@@ -1830,10 +1867,10 @@ function linkBased() {
         type: 'mm',
       });
 
-      columnsFilm = await tblFilm.getColumns();
-      columnsActor = await tblActor.getColumns();
-      columnsCountry = await tblCountry.getColumns();
-      columnsCity = await tblCity.getColumns();
+      columnsFilm = await tblFilm.getColumns(ctx);
+      columnsActor = await tblActor.getColumns(ctx);
+      columnsCountry = await tblCountry.getColumns(ctx);
+      columnsCity = await tblCity.getColumns(ctx);
     } catch (e) {
       console.log(e);
     }
@@ -2371,7 +2408,7 @@ function linkBased() {
     await ncAxiosLinkAdd({
       ...validParams,
       urlParams: { ...validParams.urlParams, tableId: 9999 },
-      status: unauthorizedResponse,
+      status: 404,
     });
 
     // Link Add: Invalid link ID
@@ -2412,7 +2449,7 @@ function linkBased() {
         ...validParams,
         body: [999, 998],
         status: 404,
-        msg: 'Record \'999\' not found',
+        msg: "Record '999' not found",
       });
     } else {
       // Link Add: Invalid body parameter - row id invalid
@@ -2422,7 +2459,7 @@ function linkBased() {
         ...validParams,
         body: [999, 998, 997],
         status: 404,
-        msg: 'Records \'999, 998, 997\' not found',
+        msg: "Records '999, 998, 997' not found",
       });
 
       // Link Add: Invalid body parameter - repeated row id
@@ -2443,7 +2480,7 @@ function linkBased() {
     await ncAxiosLinkRemove({
       ...validParams,
       urlParams: { ...validParams.urlParams, tableId: 9999 },
-      status: unauthorizedResponse,
+      status: 404,
     });
 
     // Link Remove: Invalid link ID
@@ -2494,7 +2531,7 @@ function linkBased() {
         ...validParams,
         body: [999, 998],
         status: 404,
-        msg: 'Records \'999, 998\' not found',
+        msg: "Records '999, 998' not found",
       });
 
       // Link Remove: Invalid body parameter - repeated row id
@@ -2515,7 +2552,7 @@ function linkBased() {
     await ncAxiosLinkGet({
       ...validParams,
       urlParams: { ...validParams.urlParams, tableId: 9999 },
-      status: unauthorizedResponse,
+      status: 404,
     });
 
     // Link List: Invalid link ID
@@ -2807,6 +2844,10 @@ function userFieldBased() {
   beforeEach(async function () {
     context = await init(false, 'creator');
     base = await createProject(context);
+    ctx = {
+      workspace_id: context.fk_workspace_id,
+      base_id: base.id,
+    };
     table = await createTable(context, base, {
       table_name: 'userBased',
       title: 'userBased',
@@ -2814,7 +2855,7 @@ function userFieldBased() {
     });
 
     // retrieve column meta
-    columns = await table.getColumns();
+    columns = await table.getColumns(ctx);
 
     // add users to workspace
     const users = [

@@ -2,8 +2,9 @@ import { Knex, knex } from 'knex';
 import { defaults, types } from 'pg';
 import dayjs from 'dayjs';
 import type { FilterType } from 'nocodb-sdk';
-import type { BaseModelSql } from '~/db/BaseModelSql';
+import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import Filter from '~/models/Filter';
+import { NcError } from '~/helpers/catchError';
 
 // refer : https://github.com/brianc/node-pg-types/blob/master/lib/builtins.js
 const pgTypes = {
@@ -547,7 +548,7 @@ declare module 'knex' {
 
       conditionGraph<TRecord, TResult>(condition: {
         condition: Condition;
-        models: { [key: string]: BaseModelSql };
+        models: { [key: string]: BaseModelSqlv2 };
       }): Knex.QueryBuilder<TRecord, TResult>;
 
       xhaving<TRecord, TResult>(
@@ -691,6 +692,11 @@ const parseCondition = (obj, columnAliases, qb, pKey?) => {
             case 'nin':
               qb = qb.whereNotIn(fieldName, val);
               break;
+            default:
+              NcError.metaError({
+                message: `Found invalid conditional operator "${key}" in expression`,
+                sql: '',
+              });
           }
         }
         break;

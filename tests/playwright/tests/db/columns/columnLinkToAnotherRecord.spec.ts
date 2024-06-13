@@ -43,7 +43,7 @@ test.describe('LTAR create & update', () => {
       title: 'Link1-2mm',
       type: 'Links',
       childTable: 'Sheet2',
-      relationType: 'Many To many',
+      relationType: 'Many to Many',
     });
 
     await dashboard.treeView.openTable({ title: 'Sheet2', networkResponse: false });

@@ -1,10 +1,18 @@
+import TestDbMngr from '../TestDbMngr';
 import { Base, Model } from '~/models';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
-import { orderedMetaTables } from '~/utils/globals';
-import TestDbMngr from '../TestDbMngr';
+import { MetaTable, orderedMetaTables, RootScopes } from '~/utils/globals';
+import Noco from '~/Noco';
 
 const dropTablesAllNonExternalProjects = async () => {
-  const bases = await Base.list({});
+  const rawBases = await Noco.ncMeta.metaList2(
+    RootScopes.BASE,
+    RootScopes.BASE,
+    MetaTable.PROJECT,
+  );
+
+  const bases = rawBases.map((b) => Base.castType(b));
+
   const userCreatedTableNames: string[] = [];
   await Promise.all(
     bases
@@ -14,10 +22,16 @@ const dropTablesAllNonExternalProjects = async () => {
         const source = base.sources && base.sources[0];
         if (!source) return;
 
-        const models = await Model.list({
-          base_id: base.id,
-          source_id: source.id!,
-        });
+        const models = await Model.list(
+          {
+            workspace_id: base.fk_workspace_id,
+            base_id: base.id,
+          },
+          {
+            base_id: base.id,
+            source_id: source.id!,
+          },
+        );
         models.forEach((model) => {
           userCreatedTableNames.push(model.table_name);
         });

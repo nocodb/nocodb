@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { diff } from 'deep-object-diff'
 import { message } from 'ant-design-vue'
-import { UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import type { ColumnType, FilterType, SelectOptionsType } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 import { onKeyDown, useMagicKeys } from '@vueuse/core'
-import type { ColumnType, SelectOptionsType } from 'nocodb-sdk'
+import { generateUniqueColumnName } from '~/helpers/parsers/parserHelpers'
 
 interface TableExplorerColumn extends ColumnType {
   id?: string
@@ -14,6 +15,7 @@ interface TableExplorerColumn extends ColumnType {
     view_id: string
   }
   view_id?: string
+  userHasChangedTitle?: boolean
 }
 
 interface op {
@@ -179,6 +181,12 @@ const setFieldMoveHook = (field: TableExplorerColumn, before = false) => {
 }
 
 const changeField = (field?: TableExplorerColumn, event?: MouseEvent) => {
+  if (field && field?.pk) {
+    // Editing primary key not supported
+    message.info(t('msg.info.editingPKnotSupported'))
+    return
+  }
+
   if (event) {
     if (event.target instanceof HTMLElement) {
       if (event.target.closest('.no-action')) return
@@ -265,8 +273,21 @@ const duplicateField = async (field: TableExplorerColumn) => {
   duplicateFieldHook.value = fieldPayload as TableExplorerColumn
 }
 
+// Check any filter is changed recursively
+const checkForFilterChange = (filters: (FilterType & { status?: string })[]) => {
+  for (const filter of filters) {
+    if (filter.status) {
+      return true
+    }
+    if (filter.is_group) {
+      if (checkForFilterChange(filter.children || [])) {
+        return true
+      }
+    }
+  }
+}
 // This method is called whenever there is a change in field properties
-const onFieldUpdate = (state: TableExplorerColumn) => {
+const onFieldUpdate = (state: TableExplorerColumn, skipLinkChecks = false) => {
   const col = fields.value.find((col) => compareCols(col, state))
   if (!col) return
 
@@ -311,11 +332,31 @@ const onFieldUpdate = (state: TableExplorerColumn) => {
 
     if (field || (field && moveField)) {
       field.column = state
+    } else if (isLinksOrLTAR(state) && !skipLinkChecks) {
+      if (
+        ['title', 'column_name', 'meta'].some((k) => k in diffs) ||
+        ('childViewId' in diffs && diffs.childViewId !== col.colOptions?.fk_target_view_id) ||
+        checkForFilterChange(diffs.filters || [])
+      ) {
+        ops.value.push({
+          op: 'update',
+          column: state,
+        })
+      }
     } else {
       ops.value.push({
         op: 'update',
         column: state,
       })
+    }
+
+    if (
+      activeField.value &&
+      Object.keys(activeField.value).length &&
+      ((state?.id && activeField.value?.id && state?.id === activeField.value?.id) ||
+        (state?.temp_id && activeField.value?.temp_id && state?.temp_id === activeField.value?.temp_id))
+    ) {
+      activeField.value = state
     }
   }
 }
@@ -409,21 +450,27 @@ const onMove = (_event: { moved: { newIndex: number; oldIndex: number } }) => {
   }
 
   if (op) {
-    onFieldUpdate({
-      ...op.column,
-      column_order: {
-        order,
-        view_id: view.value?.id as string,
+    onFieldUpdate(
+      {
+        ...op.column,
+        column_order: {
+          order,
+          view_id: view.value?.id as string,
+        },
       },
-    })
+      true,
+    )
   } else {
-    onFieldUpdate({
-      ...field,
-      column_order: {
-        order,
-        view_id: view.value?.id as string,
+    onFieldUpdate(
+      {
+        ...field,
+        column_order: {
+          order,
+          view_id: view.value?.id as string,
+        },
       },
-    })
+      true,
+    )
   }
 }
 
@@ -431,7 +478,7 @@ const isColumnValid = (column: TableExplorerColumn) => {
   const isDeleteOp = ops.value.find((op) => compareCols(column, op.column) && op.op === 'delete')
   const isNew = ops.value.find((op) => compareCols(column, op.column) && op.op === 'add')
   if (isDeleteOp) return true
-  if (!column.title) {
+  if (!column.title && !isNew) {
     return false
   }
   if ((column.uidt === UITypes.Links || column.uidt === UITypes.LinkToAnotherRecord) && isNew) {
@@ -568,10 +615,23 @@ const saveChanges = async () => {
     if (!meta.value?.id) return
 
     loading.value = true
-
+    const newFieldTitles: string[] = []
     for (const mop of moveOps.value) {
       const op = ops.value.find((op) => compareCols(op.column, mop.column))
       if (op && op.op === 'add') {
+        if (!op.column?.userHasChangedTitle && !op.column.title) {
+          const defaultColumnName = generateUniqueColumnName({
+            formState: op.column,
+            tableExplorerColumns: fields.value || [],
+            metaColumns: meta.value?.columns || [],
+            newFieldTitles,
+          })
+          newFieldTitles.push(defaultColumnName)
+
+          op.column.title = defaultColumnName
+          op.column.column_name = defaultColumnName
+        }
+
         op.column.column_order = {
           order: mop.order,
           view_id: view.value?.id as string,
@@ -790,13 +850,37 @@ const onFieldOptionUpdate = () => {
 }
 
 watch(
-  fields,
-  () => {
-    if (activeField.value) {
-      activeField.value = fields.value.find((field) => field.id === activeField.value.id) || activeField.value
+  () => activeField.value?.temp_id,
+  (_newValue, oldValue) => {
+    if (!oldValue) return
+
+    const oldField = fields.value.find((field) => field.temp_id === oldValue)
+    if (
+      !oldField ||
+      (oldField &&
+        (oldField.title ||
+          !ops.value.find((op) => op.op === 'add' && op.column.temp_id === oldField.temp_id) ||
+          oldField?.userHasChangedTitle ||
+          !isColumnValid(oldField)))
+    ) {
+      return
     }
+
+    const newFieldTitles = ops.value
+      .filter((op) => op.op === 'add' && op.column.title)
+      .map((op) => op.column.title)
+      .filter((t) => t) as string[]
+
+    const defaultColumnName = generateUniqueColumnName({
+      formState: oldField,
+      tableExplorerColumns: fields.value || [],
+      metaColumns: meta.value?.columns || [],
+      newFieldTitles,
+    })
+
+    oldField.title = defaultColumnName
+    oldField.column_name = defaultColumnName
   },
-  { deep: true },
 )
 </script>
 
@@ -955,7 +1039,7 @@ watch(
                         {{ $t('labels.multiField.deletedField') }}
                       </NcBadge>
                       <NcBadge
-                        v-else-if="fieldStatus(field) === 'add'"
+                        v-else-if="isColumnValid(field) && fieldStatus(field) === 'add'"
                         color="orange"
                         :border="false"
                         class="bg-green-50 text-green-700"
@@ -1243,6 +1327,7 @@ watch(
                 :column="activeField"
                 :preload="fieldState(activeField)"
                 :table-explorer-columns="fields"
+                :is-column-valid="isColumnValid"
                 embed-mode
                 :readonly="isLocked"
                 from-table-explorer

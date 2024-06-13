@@ -10,13 +10,14 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { Request } from 'express';
 import { ColumnReqType } from 'nocodb-sdk';
 import type { Column } from '~/models';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { ColumnsService } from '~/services/columns.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
+import { TenantContext } from '~/decorators/tenant-context.decorator';
+import { NcContext, NcRequest } from '~/interface/config';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -30,11 +31,12 @@ export class ColumnsController {
   @HttpCode(200)
   @Acl('columnAdd')
   async columnAdd(
+    @TenantContext() context: NcContext,
     @Param('tableId') tableId: string,
     @Body() body: ColumnReqType,
-    @Req() req: Request,
+    @Req() req: NcRequest,
   ) {
-    return await this.columnsService.columnAdd({
+    return await this.columnsService.columnAdd(context, {
       tableId,
       column: body,
       req,
@@ -48,11 +50,12 @@ export class ColumnsController {
   ])
   @Acl('columnUpdate')
   async columnUpdate(
+    @TenantContext() context: NcContext,
     @Param('columnId') columnId: string,
     @Body() body: ColumnReqType,
-    @Req() req: Request,
+    @Req() req: NcRequest,
   ) {
-    return await this.columnsService.columnUpdate({
+    return await this.columnsService.columnUpdate(context, {
       columnId: columnId,
       column: body,
       req,
@@ -65,8 +68,12 @@ export class ColumnsController {
     '/api/v2/meta/columns/:columnId',
   ])
   @Acl('columnDelete')
-  async columnDelete(@Param('columnId') columnId: string, @Req() req: Request) {
-    return await this.columnsService.columnDelete({
+  async columnDelete(
+    @TenantContext() context: NcContext,
+    @Param('columnId') columnId: string,
+    @Req() req: NcRequest,
+  ) {
+    return await this.columnsService.columnDelete(context, {
       columnId,
       req,
       user: req.user,
@@ -75,8 +82,11 @@ export class ColumnsController {
 
   @Get(['/api/v1/db/meta/columns/:columnId', '/api/v2/meta/columns/:columnId'])
   @Acl('columnGet')
-  async columnGet(@Param('columnId') columnId: string) {
-    return await this.columnsService.columnGet({ columnId });
+  async columnGet(
+    @TenantContext() context: NcContext,
+    @Param('columnId') columnId: string,
+  ) {
+    return await this.columnsService.columnGet(context, { columnId });
   }
 
   @Post([
@@ -85,8 +95,11 @@ export class ColumnsController {
   ])
   @HttpCode(200)
   @Acl('columnSetAsPrimary')
-  async columnSetAsPrimary(@Param('columnId') columnId: string) {
-    return await this.columnsService.columnSetAsPrimary({ columnId });
+  async columnSetAsPrimary(
+    @TenantContext() context: NcContext,
+    @Param('columnId') columnId: string,
+  ) {
+    return await this.columnsService.columnSetAsPrimary(context, { columnId });
   }
 
   @Get([
@@ -94,8 +107,11 @@ export class ColumnsController {
     '/api/v2/meta/tables/:tableId/columns/hash',
   ])
   @Acl('columnsHash')
-  async columnsHash(@Param('tableId') tableId: string) {
-    return await this.columnsService.columnsHash(tableId);
+  async columnsHash(
+    @TenantContext() context: NcContext,
+    @Param('tableId') tableId: string,
+  ) {
+    return await this.columnsService.columnsHash(context, tableId);
   }
 
   @Post([
@@ -105,6 +121,7 @@ export class ColumnsController {
   @HttpCode(200)
   @Acl('columnBulk')
   async columnBulk(
+    @TenantContext() context: NcContext,
     @Param('tableId') tableId: string,
     @Body()
     body: {
@@ -114,8 +131,8 @@ export class ColumnsController {
         column: Partial<Column>;
       }[];
     },
-    @Req() req: Request,
+    @Req() req: NcRequest,
   ) {
-    return await this.columnsService.columnBulk(tableId, body, req);
+    return await this.columnsService.columnBulk(context, tableId, body, req);
   }
 }

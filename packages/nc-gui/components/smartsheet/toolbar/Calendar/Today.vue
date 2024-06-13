@@ -24,7 +24,7 @@ const goToToday = () => {
 
 <template>
   <NcButton
-    class="!border-0 !h-6 !bg-gray-100"
+    class="!border-0 !h-6 today-btn !bg-gray-100"
     data-testid="nc-calendar-today-btn"
     size="small"
     type="secondary"
@@ -36,4 +36,8 @@ const goToToday = () => {
   </NcButton>
 </template>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.today-btn {
+  @apply !hover:bg-gray-200;
+}
+</style>

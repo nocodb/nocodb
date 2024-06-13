@@ -21,6 +21,10 @@ const isForm = inject(IsFormInj, ref(false))
 
 const isGrid = inject(IsGridInj, ref(false))
 
+const isGallery = inject(IsGalleryInj, ref(false))
+
+const isKanban = inject(IsKanbanInj, ref(false))
+
 const readOnly = inject(ReadonlyInj, ref(false))
 
 const { showNull } = useGlobal()
@@ -58,6 +62,12 @@ const height = computed(() => {
   if (!rowHeight.value || rowHeight.value === 1 || isEditColumn.value) return 36
 
   return rowHeight.value * 36
+})
+
+const localRowHeight = computed(() => {
+  if (readOnly.value && !isExpandedFormOpen.value && (isGallery.value || isKanban.value)) return 6
+
+  return rowHeight.value
 })
 
 const isVisible = ref(false)
@@ -199,16 +209,15 @@ watch(inputWrapperRef, () => {
     >
       <div v-if="isForm && isRichMode" class="w-full">
         <div
-          class="w-full relative w-full px-0 pb-1"
+          class="w-full relative w-full px-0"
           :class="{
             'pt-11': !readOnly,
           }"
         >
           <LazyCellRichText
             v-model:value="vModel"
-            class="!max-h-50"
             :class="{
-              'border-t-1 border-gray-100': !readOnly,
+              'border-t-1 border-gray-100 allow-vertical-resize': !readOnly,
             }"
             :autofocus="false"
             show-menu
@@ -222,11 +231,11 @@ watch(inputWrapperRef, () => {
         class="w-full cursor-pointer nc-readonly-rich-text-wrapper"
         :class="{
           'nc-readonly-rich-text-grid ': !isExpandedFormOpen && !isForm,
-          'nc-readonly-rich-text-sort-height': rowHeight === 1 && !isExpandedFormOpen && !isForm,
+          'nc-readonly-rich-text-sort-height': localRowHeight === 1 && !isExpandedFormOpen && !isForm,
         }"
         :style="{
-          maxHeight: isForm ? undefined : isExpandedFormOpen ? `${height}px` : `${21 * rowHeightTruncateLines(rowHeight)}px`,
-          minHeight: isForm ? undefined : isExpandedFormOpen ? `${height}px` : `${21 * rowHeightTruncateLines(rowHeight)}px`,
+          maxHeight: isForm ? undefined : isExpandedFormOpen ? `${height}px` : `${21 * rowHeightTruncateLines(localRowHeight)}px`,
+          minHeight: isForm ? undefined : isExpandedFormOpen ? `${height}px` : `${21 * rowHeightTruncateLines(localRowHeight)}px`,
         }"
         @dblclick="onExpand"
         @keydown.enter="onExpand"
@@ -246,8 +255,8 @@ watch(inputWrapperRef, () => {
         }"
         :style="{
           minHeight: isForm ? '117px' : `${height}px`,
+          maxHeight: 'min(800px, calc(100vh - 200px))',
         }"
-        :placeholder="isEditColumn ? $t('labels.optional') : ''"
         :disabled="readOnly"
         @blur="editEnabled = false"
         @keydown.alt.enter.stop
@@ -266,12 +275,12 @@ watch(inputWrapperRef, () => {
       <LazyCellClampedText
         v-else-if="rowHeight"
         :value="vModel"
-        :lines="rowHeightTruncateLines(rowHeight)"
+        :lines="rowHeightTruncateLines(localRowHeight)"
         class="nc-text-area-clamped-text"
         :style="{
           'word-break': 'break-word',
-          'max-height': `${25 * rowHeightTruncateLines(rowHeight)}px`,
-          'my-auto': rowHeightTruncateLines(rowHeight) === 1,
+          'max-height': `${25 * rowHeightTruncateLines(localRowHeight)}px`,
+          'my-auto': rowHeightTruncateLines(localRowHeight) === 1,
         }"
         @click="onTextClick"
       />
@@ -281,7 +290,7 @@ watch(inputWrapperRef, () => {
       <NcTooltip
         v-if="!isVisible && !isForm"
         placement="bottom"
-        class="!absolute !hidden nc-text-area-expand-btn group-hover:block z-3"
+        class="nc-action-icon !absolute !hidden nc-text-area-expand-btn group-hover:block z-3"
         :class="{
           'right-1': isForm,
           'right-0': !isForm,

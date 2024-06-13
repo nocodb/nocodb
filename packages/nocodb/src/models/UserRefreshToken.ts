@@ -1,7 +1,7 @@
 import dayjs from 'dayjs';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
-import { MetaTable } from '~/utils/globals';
+import { MetaTable, RootScopes } from '~/utils/globals';
 import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
 
 const NC_REFRESH_TOKEN_EXP_IN_DAYS =
@@ -27,8 +27,8 @@ export default class UserRefreshToken {
     // clear old invalid tokens before inserting new one
     // todo: verify the populated sql query
     await ncMeta.metaDelete(
-      null,
-      null,
+      RootScopes.ROOT,
+      RootScopes.ROOT,
       MetaTable.USER_REFRESH_TOKENS,
       {
         fk_user_id: userRefreshToken.fk_user_id,
@@ -59,8 +59,8 @@ export default class UserRefreshToken {
     }
 
     await ncMeta.metaInsert2(
-      null,
-      null,
+      RootScopes.ROOT,
+      RootScopes.ROOT,
       MetaTable.USER_REFRESH_TOKENS,
       insertObj,
       true,
@@ -75,8 +75,8 @@ export default class UserRefreshToken {
     ncMeta = Noco.ncMeta,
   ) {
     return await ncMeta.metaUpdate(
-      null,
-      null,
+      RootScopes.ROOT,
+      RootScopes.ROOT,
       MetaTable.USER_REFRESH_TOKENS,
       {
         token: newToken,
@@ -89,15 +89,25 @@ export default class UserRefreshToken {
   }
 
   static async deleteToken(token: string, ncMeta = Noco.ncMeta) {
-    return await ncMeta.metaDelete(null, null, MetaTable.USER_REFRESH_TOKENS, {
-      token,
-    });
+    return await ncMeta.metaDelete(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.USER_REFRESH_TOKENS,
+      {
+        token,
+      },
+    );
   }
 
   static async deleteAllUserToken(userId: string, ncMeta = Noco.ncMeta) {
-    return await ncMeta.metaDelete(null, null, MetaTable.USER_REFRESH_TOKENS, {
-      fk_user_id: userId,
-    });
+    return await ncMeta.metaDelete(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.USER_REFRESH_TOKENS,
+      {
+        fk_user_id: userId,
+      },
+    );
   }
 
   static async getByToken(
@@ -105,8 +115,8 @@ export default class UserRefreshToken {
     ncMeta = Noco.ncMeta,
   ): Promise<UserRefreshToken> {
     const userToken = await ncMeta.metaGet2(
-      null,
-      null,
+      RootScopes.ROOT,
+      RootScopes.ROOT,
       MetaTable.USER_REFRESH_TOKENS,
       {
         token,

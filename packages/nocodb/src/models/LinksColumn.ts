@@ -1,4 +1,5 @@
 import type { RollupColumn } from '~/models/';
+import type { NcContext } from '~/interface/config';
 import { Column } from '~/models/';
 import LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
 import Noco from '~/Noco';
@@ -20,21 +21,39 @@ export default class LinksColumn
     }
   }
 
-  async getRelationColumn(ncMeta = Noco.ncMeta): Promise<Column> {
-    return await Column.get({ colId: this.fk_column_id }, ncMeta);
+  async getRelationColumn(
+    context: NcContext,
+    ncMeta = Noco.ncMeta,
+  ): Promise<Column> {
+    return await Column.get(context, { colId: this.fk_column_id }, ncMeta);
   }
 
-  async getRollupColumn(ncMeta = Noco.ncMeta): Promise<Column> {
-    return await Column.get({ colId: this.fk_rollup_column_id }, ncMeta);
+  async getRollupColumn(
+    context: NcContext,
+    ncMeta = Noco.ncMeta,
+  ): Promise<Column> {
+    return await Column.get(
+      context,
+      { colId: this.fk_rollup_column_id },
+      ncMeta,
+    );
   }
 
-  public static async read(columnId: string, ncMeta = Noco.ncMeta) {
-    const colData = await super.read(columnId, ncMeta);
+  public static async read(
+    context: NcContext,
+    columnId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const colData = await super.read(context, columnId, ncMeta);
     return colData && new LinksColumn(colData);
   }
 
-  public static async insert(data: Partial<LinksColumn>, ncMeta = Noco.ncMeta) {
-    const colData = await super.insert(data, ncMeta);
+  public static async insert(
+    context: NcContext,
+    data: Partial<LinksColumn>,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const colData = await super.insert(context, data, ncMeta);
     return colData && new LinksColumn(colData);
   }
 }

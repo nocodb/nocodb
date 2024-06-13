@@ -79,6 +79,8 @@ provide(IsCalendarInj, ref(false))
 
 provide(RowHeightInj, rowHeight)
 
+const isPublic = inject(IsPublicInj, ref(false))
+
 // reload table data reload hook as fallback to rowdatareload
 provide(ReloadRowDataHookInj, reloadViewDataHook)
 
@@ -86,10 +88,8 @@ const skipRowRemovalOnCancel = ref(false)
 
 function expandForm(row: Row, state?: Record<string, any>, fromToolbar = false) {
   const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
-
-  if (rowId) {
-    expandedFormRowState.value = state
-
+  expandedFormRowState.value = state
+  if (rowId && !isPublic.value) {
     router.push({
       query: {
         ...routeQuery.value,
@@ -98,7 +98,6 @@ function expandForm(row: Row, state?: Record<string, any>, fromToolbar = false) 
     })
   } else {
     expandedFormRow.value = row
-    expandedFormRowState.value = state
     expandedFormDlg.value = true
     skipRowRemovalOnCancel.value = !fromToolbar
   }
@@ -238,6 +237,7 @@ const goToPreviousRow = () => {
       <LazySmartsheetExpandedForm
         v-if="expandedFormRow && expandedFormDlg"
         v-model="expandedFormDlg"
+        :load-row="!isPublic"
         :row="expandedFormRow"
         :state="expandedFormRowState"
         :meta="meta"
@@ -248,14 +248,16 @@ const goToPreviousRow = () => {
     <SmartsheetExpandedForm
       v-if="expandedFormOnRowIdDlg && meta?.id"
       v-model="expandedFormOnRowIdDlg"
-      :row="{ row: {}, oldRow: {}, rowMeta: {} }"
+      :row="expandedFormRow ?? { row: {}, oldRow: {}, rowMeta: {} }"
       :meta="meta"
+      :load-row="!isPublic"
       :state="expandedFormRowState"
       :row-id="routeQuery.rowId"
       :view="view"
       show-next-prev-icons
       :first-row="isFirstRow"
       :last-row="islastRow"
+      :expand-form="expandForm"
       @next="goToNextRow()"
       @prev="goToPreviousRow()"
     />

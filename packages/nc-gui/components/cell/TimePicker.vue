@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { isSystemColumn, isValidTimeFormat } from 'nocodb-sdk'
+import { isSystemColumn } from 'nocodb-sdk'
 
 interface Props {
   modelValue?: string | null | undefined
@@ -140,11 +140,10 @@ watch(editable, (nextValue) => {
 const placeholder = computed(() => {
   if (
     ((isForm.value || isExpandedForm.value) && !isTimeInvalid.value) ||
-    (isGrid.value && !showNull.value && !isTimeInvalid.value && !isSystemColumn(column.value) && active.value)
+    (isGrid.value && !showNull.value && !isTimeInvalid.value && !isSystemColumn(column.value) && active.value) ||
+    isEditColumn.value
   ) {
-    return 'HH:mm'
-  } else if (isEditColumn.value && (modelValue === '' || modelValue === null)) {
-    return t('labels.optional')
+    return parseProp(column.value.meta).is12hrFormat ? 'hh:mm AM' : 'HH:mm'
   } else if (modelValue === null && showNull.value) {
     return t('general.null').toUpperCase()
   } else if (isTimeInvalid.value) {
@@ -212,6 +211,12 @@ const handleKeydown = (e: KeyboardEvent, _open?: boolean) => {
     default:
       if (!_open && /^[0-9a-z]$/i.test(e.key)) {
         open.value = true
+        const targetEl = e.target as HTMLInputElement
+        const value = targetEl.value
+
+        nextTick(() => {
+          targetEl.value = value
+        })
       }
   }
 }
@@ -256,12 +261,18 @@ const handleUpdateValue = (e: Event) => {
     return
   }
 
-  if (targetValue.length > 5) {
-    targetValue = targetValue.slice(0, 5)
-  }
+  targetValue = parseProp(column.value.meta).is12hrFormat
+    ? targetValue
+        .trim()
+        .toUpperCase()
+        .replace(/(AM|PM)$/, ' $1')
+        .replace(/\s+/g, ' ')
+    : targetValue.trim()
 
-  if (isValidTimeFormat(targetValue, 'HH:mm')) {
-    tempDate.value = dayjs(`${dayjs().format('YYYY-MM-DD')} ${targetValue}`)
+  const parsedDate = dayjs(targetValue, parseProp(column.value.meta).is12hrFormat ? 'hh:mm A' : 'HH:mm')
+
+  if (parsedDate.isValid()) {
+    tempDate.value = dayjs(`${dayjs().format('YYYY-MM-DD')} ${parsedDate.format('HH:mm')}`)
   }
 }
 
@@ -284,6 +295,8 @@ function handleSelectTime(value?: dayjs.Dayjs) {
 
   open.value = false
 }
+
+const cellValue = computed(() => localState.value?.format(parseProp(column.value.meta).is12hrFormat ? 'hh:mm A' : 'HH:mm') ?? '')
 </script>
 
 <template>
@@ -296,13 +309,14 @@ function handleSelectTime(value?: dayjs.Dayjs) {
     :overlay-class-name="`${randomClass} nc-picker-time ${isOpen ? 'active' : ''} !min-w-[0]`"
   >
     <div
+      v-bind="$attrs"
       :title="localState?.format('HH:mm')"
-      class="nc-time-picker h-full flex items-center justify-between ant-picker-input relative group"
+      class="nc-time-picker h-full flex items-center justify-between ant-picker-input relative"
     >
       <input
         ref="datePickerRef"
         type="text"
-        :value="localState?.format('HH:mm') ?? ''"
+        :value="cellValue"
         :placeholder="placeholder"
         class="nc-time-input border-none outline-none !text-current bg-transparent !focus:(border-none outline-none ring-transparent)"
         :readonly="readOnly || !!isMobileMode"
@@ -316,19 +330,20 @@ function handleSelectTime(value?: dayjs.Dayjs) {
       />
 
       <GeneralIcon
-        v-if="localState"
+        v-if="localState && !readOnly"
         icon="closeCircle"
-        class="absolute right-0 top-[50%] transform -translate-y-1/2 invisible group-hover:visible cursor-pointer"
+        class="nc-clear-time-icon nc-action-icon absolute right-0 top-[50%] transform -translate-y-1/2 invisible cursor-pointer"
         @click.stop="handleSelectTime()"
       />
     </div>
 
     <template #overlay>
-      <div class="w-[72px]">
+      <div class="min-w-[72px]">
         <NcTimeSelector
           :selected-date="localState"
           :min-granularity="30"
           is-min-granularity-picker
+          :is12hr-format="!!parseProp(column.meta).is12hrFormat"
           :is-open="isOpen"
           @update:selected-date="handleSelectTime"
         />
@@ -337,3 +352,11 @@ function handleSelectTime(value?: dayjs.Dayjs) {
   </NcDropdown>
   <div v-if="!editable && isGrid" class="absolute inset-0 z-90 cursor-pointer"></div>
 </template>
+
+<style scoped>
+.nc-cell-field {
+  &:hover .nc-clear-time-icon {
+    @apply visible;
+  }
+}
+</style>

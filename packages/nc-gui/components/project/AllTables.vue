@@ -1,15 +1,12 @@
 <script lang="ts" setup>
 import type { SourceType, TableType } from 'nocodb-sdk'
 import dayjs from 'dayjs'
-import NcTooltip from '~/components/nc/Tooltip.vue'
 
 const { activeTables } = storeToRefs(useTablesStore())
 const { openTable } = useTablesStore()
-const { openedProject, isDataSourceLimitReached } = storeToRefs(useBases())
+const { openedProject } = storeToRefs(useBases())
 
 const { base } = useBase()
-
-const isNewBaseModalOpen = ref(false)
 
 const { isUIAllowed } = useRoles()
 
@@ -67,12 +64,6 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
 
     close(1000)
   }
-}
-
-const onCreateBaseClick = () => {
-  if (isDataSourceLimitReached.value) return
-
-  isNewBaseModalOpen.value = true
 }
 </script>
 

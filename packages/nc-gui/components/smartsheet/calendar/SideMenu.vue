@@ -9,6 +9,10 @@ const props = defineProps<{
 
 const emit = defineEmits(['expandRecord', 'newRecord'])
 
+interface Attachment {
+  url: string
+}
+
 const INFINITY_SCROLL_THRESHOLD = 100
 
 const { isUIAllowed } = useRoles()
@@ -20,6 +24,10 @@ const { appInfo, isMobileMode } = useGlobal()
 const { height } = useWindowSize()
 
 const meta = inject(MetaInj, ref())
+
+const { fields } = useViewColumnsOrThrow()
+
+const { getPossibleAttachmentSrc } = useAttachment()
 
 const { t } = useI18n()
 
@@ -44,6 +52,23 @@ const {
 } = useCalendarViewStoreOrThrow()
 
 const sideBarListRef = ref<VNodeRef | null>(null)
+
+const coverImageColumns: any = computed(() => {
+  if (!fields.value || !meta.value?.columns) return
+  return meta.value.columns.find((c) => c.uidt === UITypes.Attachment && fields.value?.find((f) => f.fk_column_id === c.id).show)
+})
+
+const attachments = (record: any): Attachment[] => {
+  const col = coverImageColumns.value
+  try {
+    if (col?.title && record.row[col.title]) {
+      return typeof record.row[col.title] === 'string' ? JSON.parse(record.row[col.title]) : record.row[col.title]
+    }
+    return []
+  } catch (e) {
+    return []
+  }
+}
 
 const pushToArray = (arr: Array<Row>, record: Row, range) => {
   arr.push({
@@ -381,9 +406,14 @@ onClickOutside(searchRef, toggleSearch)
     >
       <div class="flex px-4 items-center gap-3">
         <span class="capitalize font-medium text-gray-700">{{ $t('objects.records') }}</span>
-        <NcSelect v-model:value="sideBarFilterOption" class="w-full !text-gray-600" data-testid="nc-calendar-sidebar-filter">
+        <NcSelect
+          v-model:value="sideBarFilterOption"
+          size="small"
+          class="w-full !h-7 !text-gray-600"
+          data-testid="nc-calendar-sidebar-filter"
+        >
           <a-select-option v-for="option in options" :key="option.value" :value="option.value" class="!text-gray-600">
-            <div class="flex items-center w-full justify-between gap-2">
+            <div class="flex items-center h-7 w-full justify-between gap-2">
               <div class="truncate">
                 <NcTooltip :title="option.label" placement="top" show-on-truncate-only>
                   <template #title>{{ option.label }}</template>
@@ -429,7 +459,7 @@ onClickOutside(searchRef, toggleSearch)
           v-if="!showSearch"
           data-testid="nc-calendar-sidebar-search-btn"
           size="small"
-          class="!h-7"
+          class="!h-7 !rounded-md"
           type="secondary"
           @click="clickSearch"
         >
@@ -444,7 +474,7 @@ onClickOutside(searchRef, toggleSearch)
           v-if="isUIAllowed('dataEdit') && props.visible"
           v-e="['c:calendar:calendar-sidemenu-new-record-btn']"
           data-testid="nc-calendar-side-menu-new-btn"
-          class="!h-7"
+          class="!h-7 !rounded-md"
           size="small"
           type="secondary"
           @click="newRecord"
@@ -497,8 +527,8 @@ onClickOutside(searchRef, toggleSearch)
                 :from-date="
                 record.rowMeta.range?.fk_from_col
                   ? calDataType === UITypes.Date
-                    ? dayjs(record.row[record.rowMeta.range.fk_from_col.title!]).format('DD MMM')
-                    : dayjs(record.row[record.rowMeta.range.fk_from_col.title!]).format('DD MMM • HH:mm A')
+                    ? dayjs(record.row[record.rowMeta.range.fk_from_col.title!]).format('D MMM')
+                    : dayjs(record.row[record.rowMeta.range.fk_from_col.title!]).format('D MMM • h:mm a')
                   : null
               "
                 :invalid="
@@ -521,6 +551,50 @@ onClickOutside(searchRef, toggleSearch)
                 @dragstart="dragStart($event, record)"
                 @dragover.prevent
               >
+                <template v-if="coverImageColumns" #image>
+                  <a-carousel
+                    v-if="attachments(record).length"
+                    class="gallery-carousel rounded-md !border-1 !border-gray-200"
+                    arrows
+                  >
+                    <template #customPaging>
+                      <a>
+                        <div class="pt-[12px]">
+                          <div></div>
+                        </div>
+                      </a>
+                    </template>
+
+                    <template #prevArrow>
+                      <div class="z-10 arrow">
+                        <MdiChevronLeft
+                          class="text-gray-700 w-6 h-6 absolute left-1.5 bottom-[-90px] !opacity-0 !group-hover:opacity-100 !bg-white border-1 border-gray-200 rounded-md transition"
+                        />
+                      </div>
+                    </template>
+
+                    <template #nextArrow>
+                      <div class="z-10 arrow">
+                        <MdiChevronRight
+                          class="text-gray-700 w-6 h-6 absolute right-1.5 bottom-[-90px] !opacity-0 !group-hover:opacity-100 !bg-white border-1 border-gray-200 rounded-md transition"
+                        />
+                      </div>
+                    </template>
+
+                    <template v-for="(attachment, index) in attachments(record)">
+                      <LazyCellAttachmentImage
+                        v-if="isImage(attachment.title, attachment.mimetype ?? attachment.type)"
+                        :key="`carousel-${record.row.id}-${index}`"
+                        class="h-10 !w-10 !object-contain"
+                        :srcs="getPossibleAttachmentSrc(attachment)"
+                      />
+                    </template>
+                  </a-carousel>
+                  <div v-else class="h-10 w-10 !flex flex-row !border-1 rounded-md !border-gray-200 items-center justify-center">
+                    <img class="object-contain w-[40px] h-[40px]" src="~assets/icons/FileIconImageBox.png" />
+                  </div>
+                </template>
+
                 <template v-if="!isRowEmpty(record, displayField)">
                   <LazySmartsheetPlainCell v-model="record.row[displayField!.title!]" :column="displayField" />
                 </template>
@@ -582,4 +656,20 @@ onClickOutside(searchRef, toggleSearch)
   </div>
 </template>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+:deep(.nc-attachment-image) {
+  @apply rounded-md;
+}
+
+:deep(.ant-select-selector) {
+  @apply !h-7;
+}
+
+:deep(.nc-month-picker-pagination) {
+  @apply !border-b-0;
+}
+
+:deep(.nc-date-week-header) {
+  @apply !border-b-0;
+}
+</style>

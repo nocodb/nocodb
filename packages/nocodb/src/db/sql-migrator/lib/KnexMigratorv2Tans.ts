@@ -12,6 +12,7 @@ import type MysqlClient from '~/db/sql-client/lib/mysql/MysqlClient';
 import type OracleClient from '~/db/sql-client/lib/oracle/OracleClient';
 import type PGClient from '~/db/sql-client/lib/pg/PgClient';
 import type SqliteClient from '~/db/sql-client/lib/sqlite/SqliteClient';
+import type { NcContext } from '~/interface/config';
 import Noco from '~/Noco';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
@@ -20,8 +21,13 @@ export default class KnexMigratorv2Tans extends KnexMigratorv2 {
   // todo: tobe changed
   protected ncMeta: any; // NcMetaIO;
 
-  constructor(base: { id: string }, sqlClient = null, ncMeta = Noco.ncMeta) {
-    super(base);
+  constructor(
+    context: NcContext,
+    base: { id: string },
+    sqlClient = null,
+    ncMeta = Noco.ncMeta,
+  ) {
+    super(context, base);
     this.sqlClient = sqlClient;
     this.ncMeta = ncMeta;
   }

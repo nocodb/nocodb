@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { ColumnReqType } from 'nocodb-sdk'
-import { PlanLimitTypes, RelationTypes, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
+import { PlanLimitTypes, RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 import { SmartsheetStoreEvents } from '#imports'
 
 const props = defineProps<{ virtual?: boolean; isOpen: boolean; isHiddenCol?: boolean }>()
@@ -43,7 +43,10 @@ const { gridViewCols } = useViewColumnsOrThrow()
 
 const { fieldsToGroupBy, groupByLimit } = useViewGroupByOrThrow(view)
 
+const isLoading = ref<'' | 'hideOrShow' | 'setDisplay'>('')
+
 const setAsDisplayValue = async () => {
+  isLoading.value = 'setDisplay'
   try {
     const currentDisplayValue = meta?.value?.columns?.find((f) => f.pv)
 
@@ -91,6 +94,8 @@ const setAsDisplayValue = async () => {
     })
   } catch (e) {
     message.error(t('msg.error.primaryColumnUpdateFailed'))
+  } finally {
+    isLoading.value = ''
   }
 }
 
@@ -233,6 +238,7 @@ const addColumn = async (before = false) => {
 
 // hide the field in view
 const hideOrShowField = async () => {
+  isLoading.value = 'hideOrShow'
   const gridViewColumnList = (await $api.dbViewColumn.list(view.value?.id as string)).list
 
   const currentColumn = gridViewColumnList.find((f) => f.fk_column_id === column!.value.id)
@@ -288,6 +294,8 @@ const hideOrShowField = async () => {
     },
     scope: defineViewScope({ view: view.value }),
   })
+
+  isLoading.value = ''
 }
 
 const handleDelete = () => {
@@ -366,7 +374,7 @@ const filterOrGroupByThisField = (event: SmartsheetStoreEvents) => {
           'min-w-[256px]': isExpandedForm,
         }"
       >
-        <NcMenuItem @click="onEditPress">
+        <NcMenuItem :disabled="column?.pk || isSystemColumn(column)" @click="onEditPress">
           <div class="nc-column-edit nc-header-menu-item">
             <component :is="iconMap.ncEdit" class="text-gray-700" />
             <!-- Edit -->
@@ -383,7 +391,8 @@ const filterOrGroupByThisField = (event: SmartsheetStoreEvents) => {
         <a-divider v-if="!column?.pv" class="!my-0" />
         <NcMenuItem v-if="!column?.pv" @click="hideOrShowField">
           <div v-e="['a:field:hide']" class="nc-column-insert-before nc-header-menu-item">
-            <component :is="isHiddenCol ? iconMap.eye : iconMap.eyeSlash" class="text-gray-700 !w-3.75 !h-3.75" />
+            <GeneralLoader v-if="isLoading === 'hideOrShow'" size="regular" />
+            <component :is="isHiddenCol ? iconMap.eye : iconMap.eyeSlash" v-else class="text-gray-700 !w-4 !h-4" />
             <!-- Hide Field -->
             {{ isHiddenCol ? $t('general.showField') : $t('general.hideField') }}
           </div>
@@ -393,7 +402,8 @@ const filterOrGroupByThisField = (event: SmartsheetStoreEvents) => {
           @click="setAsDisplayValue"
         >
           <div class="nc-column-set-primary nc-header-menu-item item">
-            <GeneralIcon icon="star" class="text-gray-700 !w-4.25 !h-4.25" />
+            <GeneralLoader v-if="isLoading === 'setDisplay'" size="regular" />
+            <GeneralIcon v-else icon="star" class="text-gray-700 !w-4.25 !h-4.25" />
 
             <!--       todo : tooltip -->
             <!-- Set as Display value -->

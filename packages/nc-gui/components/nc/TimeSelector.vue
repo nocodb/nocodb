@@ -42,7 +42,7 @@ const handleSelectTime = (time: dayjs.Dayjs) => {
 
 // TODO: 12hr time format & regular time picker
 const timeOptions = computed(() => {
-  return Array.from({ length: is12hrFormat.value ? 12 : 24 }).flatMap((_, h) => {
+  return Array.from({ length: 24 }).flatMap((_, h) => {
     return (isMinGranularityPicker.value ? [0, minGranularity.value] : Array.from({ length: 60 })).map((_m, m) => {
       const time = dayjs()
         .set('hour', h)
@@ -89,7 +89,7 @@ onMounted(() => {
         :data-testid="`time-option-${time.format('HH:mm')}`"
         @click="handleSelectTime(time)"
       >
-        {{ time.format('HH:mm') }}
+        {{ time.format(is12hrFormat ? 'hh:mm A' : 'HH:mm') }}
       </div>
     </div>
     <div v-else></div>

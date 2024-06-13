@@ -15419,6 +15419,9 @@
           "fk_mm_model_id": {
             "type": "string"
           },
+          "fk_target_view_id": {
+            "type": "string"
+          },
           "fk_mm_parent_column_id": {
             "type": "string"
           },
@@ -16350,6 +16353,11 @@
           "id": {
             "description": "Unique Base ID",
             "example": "p_124hhlkbeasewh",
+            "type": "string"
+          },
+          "fk_workspace_id": {
+            "description": "Workspace ID",
+            "example": "ws_123456",
             "type": "string"
           },
           "is_meta": {

@@ -1,6 +1,13 @@
 <script setup lang="ts">
 import { onMounted } from '@vue/runtime-core'
-import { type ColumnType, type LinkToAnotherRecordType, RelationTypes, type TableType, type UITypes } from 'nocodb-sdk'
+import {
+  type ColumnType,
+  type LinkToAnotherRecordType,
+  RelationTypes,
+  type RollupType,
+  type TableType,
+  UITypes,
+} from 'nocodb-sdk'
 import { getAvailableRollupForUiType, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 
 const props = defineProps<{
@@ -13,7 +20,8 @@ const vModel = useVModel(props, 'value', emit)
 
 const meta = inject(MetaInj, ref())
 
-const { setAdditionalValidations, validateInfos, onDataTypeChange, isEdit } = useColumnCreateStoreOrThrow()
+const { setAdditionalValidations, validateInfos, onDataTypeChange, isEdit, disableSubmitBtn, updateFieldName } =
+  useColumnCreateStoreOrThrow()
 
 const baseStore = useBase()
 
@@ -79,11 +87,19 @@ onMounted(() => {
   }
 })
 
+const getNextColumnId = () => {
+  const usedLookupColumnIds = (meta.value?.columns || [])
+    .filter((c) => c.uidt === UITypes.Rollup)
+    .map((c) => (c.colOptions as RollupType)?.fk_rollup_column_id)
+
+  return columns.value.find((c) => !usedLookupColumnIds.includes(c.id))?.id
+}
+
 const onRelationColChange = async () => {
   if (selectedTable.value) {
     await getMeta(selectedTable.value.id)
   }
-  vModel.value.fk_rollup_column_id = columns.value?.[0]?.id
+  vModel.value.fk_rollup_column_id = getNextColumnId() || columns.value?.[0]?.id
   onDataTypeChange()
 }
 
@@ -120,6 +136,15 @@ const filteredColumns = computed(() => {
   })
 })
 
+const onRollupFunctionChange = () => {
+  const rollupFun = aggFunctionsList.value.find((func) => func.value === vModel.value.rollup_function)
+  if (rollupFun && rollupFun?.text) {
+    vModel.value.rollup_function_name = rollupFun.text
+  }
+  onDataTypeChange()
+  updateFieldName()
+}
+
 watch(
   () => vModel.value.fk_rollup_column_id,
   () => {
@@ -131,30 +156,69 @@ watch(
       // when the previous roll up function was numeric type and the current child field is non-numeric
       // reset rollup function with a non-numeric type
       vModel.value.rollup_function = aggFunctionsList.value[0].value
+      vModel.value.rollup_function_name = aggFunctionsList.value[0].text
+    }
+
+    vModel.value.rollupColumnTitle = childFieldColumn?.title || childFieldColumn?.column_name
+
+    updateFieldName()
+  },
+)
+
+watchEffect(() => {
+  if (!refTables.value.length) {
+    disableSubmitBtn.value = true
+  } else if (refTables.value.length && disableSubmitBtn.value) {
+    disableSubmitBtn.value = false
+  }
+})
+
+watch(
+  () => vModel.value.fk_relation_column_id,
+  (newValue) => {
+    if (!newValue) return
+
+    const selectedTable = refTables.value.find((t) => t.col.fk_column_id === newValue)
+    if (selectedTable) {
+      vModel.value.rollupTableTitle = selectedTable?.title || selectedTable.table_name
     }
   },
 )
 </script>
 
 <template>
-  <div class="p-6 w-full flex flex-col border-2 mb-2 mt-4">
+  <div v-if="refTables.length" class="flex flex-col gap-4">
     <div class="w-full flex flex-row space-x-2">
-      <a-form-item class="flex w-1/2 pb-2" :label="$t('labels.links')" v-bind="validateInfos.fk_relation_column_id">
+      <a-form-item
+        class="flex w-1/2 !max-w-[calc(50%_-_4px)] pb-2"
+        :label="`${$t('general.link')} ${$t('objects.field')}`"
+        v-bind="validateInfos.fk_relation_column_id"
+      >
         <a-select
           v-model:value="vModel.fk_relation_column_id"
+          placeholder="-select-"
           dropdown-class-name="!w-64 nc-dropdown-relation-table !rounded-md"
           @change="onRelationColChange"
         >
+          <template #suffixIcon>
+            <GeneralIcon icon="arrowDown" class="text-gray-700" />
+          </template>
           <a-select-option v-for="(table, i) of refTables" :key="i" :value="table.col.fk_column_id">
             <div class="flex gap-2 w-full justify-between truncate items-center">
-              <NcTooltip class="font-semibold truncate min-w-1/2" show-on-truncate-only>
-                <template #title>{{ table.column.title }}</template>
-                {{ table.column.title }}</NcTooltip
-              >
+              <div class="min-w-1/2 flex items-center gap-2">
+                <component :is="cellIcon(table.column)" :column-meta="table.column" class="!mx-0" />
+
+                <NcTooltip class="truncate min-w-[calc(100%_-_24px)]" show-on-truncate-only>
+                  <template #title>{{ table.column.title }}</template>
+                  {{ table.column.title }}
+                </NcTooltip>
+              </div>
               <div class="inline-flex items-center truncate gap-2">
-                <div class="text-[0.65rem] flex-1 truncate text-gray-600 nc-relation-details">
-                  <span class="uppercase">{{ table.col.type }}</span>
-                  <span class="truncate">{{ table.title || table.table_name }}</span>
+                <div class="text-[0.65rem] leading-4 flex-1 truncate text-gray-600 nc-relation-details">
+                  <NcTooltip class="truncate" show-on-truncate-only>
+                    <template #title>{{ table.title || table.table_name }}</template>
+                    {{ table.title || table.table_name }}
+                  </NcTooltip>
                 </div>
 
                 <component
@@ -169,17 +233,26 @@ watch(
         </a-select>
       </a-form-item>
 
-      <a-form-item class="flex w-1/2" :label="$t('labels.childColumn')" v-bind="validateInfos.fk_rollup_column_id">
+      <a-form-item
+        class="flex w-1/2"
+        :label="`${$t('datatype.Rollup')} ${$t('objects.field')}`"
+        v-bind="vModel.fk_relation_column_id ? validateInfos.fk_rollup_column_id : undefined"
+      >
         <a-select
           v-model:value="vModel.fk_rollup_column_id"
           name="fk_rollup_column_id"
+          placeholder="-select-"
+          :disabled="!vModel.fk_relation_column_id"
           dropdown-class-name="nc-dropdown-relation-column !rounded-xl"
           @change="onDataTypeChange"
         >
+          <template #suffixIcon>
+            <GeneralIcon icon="arrowDown" class="text-gray-700" />
+          </template>
           <a-select-option v-for="(column, index) of filteredColumns" :key="index" :value="column.id">
-            <div class="flex gap-2 truncate items-center">
-              <div class="flex items-center flex-1 truncate font-semibold">
-                <component :is="cellIcon(column)" :column-meta="column" />
+            <div class="w-full flex gap-2 truncate items-center justify-between">
+              <div class="flex items-center gap-2 flex-1 truncate">
+                <component :is="cellIcon(column)" :column-meta="column" class="!mx-0" />
                 <div class="truncate flex-1">{{ column.title }}</div>
               </div>
               <component
@@ -194,13 +267,21 @@ watch(
       </a-form-item>
     </div>
 
-    <a-form-item :label="$t('labels.aggregateFunction')" v-bind="validateInfos.rollup_function">
+    <a-form-item
+      :label="$t('labels.aggregateFunction')"
+      v-bind="vModel.fk_relation_column_id ? validateInfos.rollup_function : undefined"
+    >
       <a-select
         v-model:value="vModel.rollup_function"
+        :disabled="!vModel.fk_relation_column_id"
+        placeholder="-select-"
         dropdown-class-name="nc-dropdown-rollup-function"
         class="!mt-0.5"
-        @change="onDataTypeChange"
+        @change="onRollupFunctionChange"
       >
+        <template #suffixIcon>
+          <GeneralIcon icon="arrowDown" class="text-gray-700" />
+        </template>
         <a-select-option v-for="(func, index) of aggFunctionsList" :key="index" :value="func.value">
           <div class="flex gap-2 justify-between items-center">
             {{ func.text }}
@@ -214,6 +295,19 @@ watch(
         </a-select-option>
       </a-select>
     </a-form-item>
+  </div>
+  <div v-else>
+    <a-alert type="warning" show-icon>
+      <template #icon><GeneralIcon icon="alertTriangle" class="h-6 w-6" width="24" height="24" /></template>
+      <template #message> Alert </template>
+      <template #description>
+        {{
+          $t('msg.linkColumnClearNotSupportedYet', {
+            type: 'Rollup',
+          })
+        }}
+      </template>
+    </a-alert>
   </div>
 </template>
 

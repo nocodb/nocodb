@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import type { UITypes } from 'nocodb-sdk'
-import { AllowedColumnTypesForQrAndBarcodes } from 'nocodb-sdk'
-import type { SelectProps } from 'ant-design-vue'
+import type { ColumnType, UITypes } from 'nocodb-sdk'
+import { AllowedColumnTypesForQrAndBarcodes, isVirtualCol } from 'nocodb-sdk'
 
 const props = defineProps<{
   modelValue: any
@@ -17,18 +16,17 @@ const { setAdditionalValidations, validateInfos, column } = useColumnCreateStore
 
 const { t } = useI18n()
 
-const columnsAllowedAsBarcodeValue = computed<SelectProps['options']>(() => {
-  return fields.value
-    ?.filter(
-      (el) =>
-        el.fk_column_id && AllowedColumnTypesForQrAndBarcodes.includes(metaColumnById.value[el.fk_column_id].uidt as UITypes),
-    )
-    .map((field) => {
-      return {
-        value: field.fk_column_id,
-        label: field.title,
-      }
-    })
+const columnsAllowedAsBarcodeValue = computed<ColumnType[]>(() => {
+  return (
+    fields.value
+      ?.filter(
+        (el) =>
+          el.fk_column_id && AllowedColumnTypesForQrAndBarcodes.includes(metaColumnById.value[el.fk_column_id].uidt as UITypes),
+      )
+      .map((field) => {
+        return metaColumnById.value[field.fk_column_id!]
+      }) || []
+  )
 })
 
 const supportedBarcodeFormats = [
@@ -41,8 +39,8 @@ const supportedBarcodeFormats = [
   { value: 'CODE39', label: 'CODE39' },
   { value: 'ITF14', label: 'ITF-14' },
   { value: 'MSI', label: 'MSI' },
-  { value: 'PHARMACODE', label: 'pharmacode' },
-  { value: 'CODABAR', label: 'codabar' },
+  { value: 'PHARMACODE', label: 'PHARMACODE' },
+  { value: 'CODABAR', label: 'CODABAR' },
 ]
 
 onMounted(() => {
@@ -52,13 +50,12 @@ onMounted(() => {
     ...vModel.value.meta,
   }
   vModel.value.fk_barcode_value_column_id =
-    (column?.value?.colOptions as Record<string, any>)?.fk_barcode_value_column_id ||
-    columnsAllowedAsBarcodeValue.value?.[0]?.value
+    (column?.value?.colOptions as Record<string, any>)?.fk_barcode_value_column_id || columnsAllowedAsBarcodeValue.value?.[0]?.id
 })
 
 watch(columnsAllowedAsBarcodeValue, (newColumnsAllowedAsBarcodeValue) => {
   if (vModel.value.fk_barcode_value_column_id === null) {
-    vModel.value.fk_barcode_value_column_id = newColumnsAllowedAsBarcodeValue?.[0]?.value
+    vModel.value.fk_barcode_value_column_id = newColumnsAllowedAsBarcodeValue?.[0]?.id
   }
 })
 
@@ -68,48 +65,66 @@ setAdditionalValidations({
 })
 
 const showBarcodeValueColumnInfoIcon = computed(() => !columnsAllowedAsBarcodeValue.value?.length)
+
+const cellIcon = (column: ColumnType) =>
+  h(isVirtualCol(column) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'), {
+    columnMeta: column,
+  })
 </script>
 
 <template>
-  <a-row>
-    <a-col :span="24">
-      <a-form-item
-        class="flex pb-2 nc-barcode-value-column-select flex-row"
-        :label="$t('labels.barcodeValueColumn')"
-        v-bind="validateInfos.fk_barcode_value_column_id"
-      >
-        <div class="flex w-1/2 flex-row items-center">
-          <a-select
-            v-model:value="vModel.fk_barcode_value_column_id"
-            :options="columnsAllowedAsBarcodeValue"
-            :placeholder="$t('placeholder.barcodeColumn')"
-            :not-found-content="$t('placeholder.notFoundContent')"
-            @click.stop
-          />
-          <div v-if="showBarcodeValueColumnInfoIcon" class="pl-2">
-            <a-tooltip placement="bottom">
-              <template #title>
-                <span>
-                  {{ $t('msg.validColumnsForBarCode') }}
-                </span>
-              </template>
-              <component :is="iconMap.info" class="cursor-pointer" />
-            </a-tooltip>
-          </div>
-        </div>
-      </a-form-item>
-      <a-form-item
-        class="flex w-1/2 pb-2 nc-barcode-format-select"
-        :label="$t('labels.barcodeFormat')"
-        v-bind="validateInfos.barcode_format"
-      >
+  <div class="flex flex-col gap-4">
+    <a-form-item
+      class="flex pb-2 nc-barcode-value-column-select flex-row"
+      :label="`${$t('placeholder.value')} ${t('objects.field').toLowerCase()}`"
+      v-bind="validateInfos.fk_barcode_value_column_id"
+    >
+      <div class="flex flex-row items-center">
         <a-select
-          v-model:value="vModel.meta.barcodeFormat"
-          :options="supportedBarcodeFormats"
-          :placeholder="$t('placeholder.selectBarcodeFormat')"
+          v-model:value="vModel.fk_barcode_value_column_id"
+          :placeholder="$t('placeholder.barcodeColumn')"
+          :not-found-content="$t('placeholder.notFoundContent')"
           @click.stop
-        />
-      </a-form-item>
-    </a-col>
-  </a-row>
+        >
+          <template #suffixIcon> <GeneralIcon icon="arrowDown" class="text-gray-700" /> </template>
+
+          <a-select-option v-for="(option, index) of columnsAllowedAsBarcodeValue" :key="index" :value="option.id">
+            <div class="w-full flex gap-2 truncate items-center justify-between" :data-testid="`nc-barcode-${option.title}`">
+              <div class="inline-flex items-center gap-2 flex-1 truncate">
+                <component :is="cellIcon(option)" :column-meta="option" class="!mx-0" />
+                <div class="truncate flex-1">{{ option.title }}</div>
+              </div>
+
+              <component
+                :is="iconMap.check"
+                v-if="vModel.fk_barcode_value_column_id === option.id"
+                id="nc-selected-item-icon"
+                class="text-primary w-4 h-4"
+              />
+            </div>
+          </a-select-option>
+        </a-select>
+        <div v-if="showBarcodeValueColumnInfoIcon" class="pl-2">
+          <a-tooltip placement="bottom">
+            <template #title>
+              <span>
+                {{ $t('msg.validColumnsForBarCode') }}
+              </span>
+            </template>
+            <component :is="iconMap.info" class="cursor-pointer" />
+          </a-tooltip>
+        </div>
+      </div>
+    </a-form-item>
+    <a-form-item class="flexp nc-barcode-format-select" :label="$t('general.format')" v-bind="validateInfos.barcode_format">
+      <a-select
+        v-model:value="vModel.meta.barcodeFormat"
+        :options="supportedBarcodeFormats"
+        :placeholder="$t('placeholder.selectBarcodeFormat')"
+        @click.stop
+      >
+        <template #suffixIcon> <GeneralIcon icon="arrowDown" class="text-gray-700" /> </template
+      ></a-select>
+    </a-form-item>
+  </div>
 </template>

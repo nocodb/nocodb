@@ -108,7 +108,7 @@ onMounted(() => {
     type="number"
     class="nc-cell-field h-full border-none rounded-md py-1 outline-none focus:outline-none focus:ring-0"
     :class="isForm && !isEditColumn ? 'flex flex-1' : 'w-full'"
-    :placeholder="placeholder !== undefined ? placeholder : isEditColumn ? $t('labels.optional') : ''"
+    :placeholder="placeholder"
     :disabled="readOnly"
     @blur="onBlur"
     @keydown.enter="onKeydownEnter"

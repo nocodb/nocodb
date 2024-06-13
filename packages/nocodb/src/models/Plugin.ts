@@ -2,7 +2,12 @@ import type { PluginType } from 'nocodb-sdk';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
-import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
+import {
+  CacheGetType,
+  CacheScope,
+  MetaTable,
+  RootScopes,
+} from '~/utils/globals';
 
 export default class Plugin implements PluginType {
   id?: string;
@@ -36,7 +41,12 @@ export default class Plugin implements PluginType {
         CacheGetType.TYPE_OBJECT,
       ));
     if (!plugin) {
-      plugin = await ncMeta.metaGet2(null, null, MetaTable.PLUGIN, pluginId);
+      plugin = await ncMeta.metaGet2(
+        RootScopes.ROOT,
+        RootScopes.ROOT,
+        MetaTable.PLUGIN,
+        pluginId,
+      );
       await NocoCache.set(`${CacheScope.PLUGIN}:${pluginId}`, plugin);
     }
     return plugin && new Plugin(plugin);
@@ -47,7 +57,11 @@ export default class Plugin implements PluginType {
     let { list: pluginList } = cachedList;
     const { isNoneList } = cachedList;
     if (!isNoneList && !pluginList.length) {
-      pluginList = await ncMeta.metaList2(null, null, MetaTable.PLUGIN);
+      pluginList = await ncMeta.metaList2(
+        RootScopes.ROOT,
+        RootScopes.ROOT,
+        MetaTable.PLUGIN,
+      );
       await NocoCache.setList(CacheScope.PLUGIN, [], pluginList);
     }
     return pluginList;
@@ -67,8 +81,8 @@ export default class Plugin implements PluginType {
 
     // set meta
     await Noco.ncMeta.metaUpdate(
-      null,
-      null,
+      RootScopes.ROOT,
+      RootScopes.ROOT,
       MetaTable.PLUGIN,
       updateObj,
       pluginId,
@@ -95,9 +109,14 @@ export default class Plugin implements PluginType {
         CacheGetType.TYPE_OBJECT,
       ));
     if (!plugin) {
-      plugin = await ncMeta.metaGet2(null, null, MetaTable.PLUGIN, {
-        title,
-      });
+      plugin = await ncMeta.metaGet2(
+        RootScopes.ROOT,
+        RootScopes.ROOT,
+        MetaTable.PLUGIN,
+        {
+          title,
+        },
+      );
       await NocoCache.set(`${CacheScope.PLUGIN}:${title}`, plugin);
     }
     return plugin;

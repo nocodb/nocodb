@@ -10,13 +10,14 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { Request } from 'express';
 import { ProjectRoles, ProjectUserReqType } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { BaseUsersService } from '~/services/base-users/base-users.service';
 import { NcError } from '~/helpers/catchError';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
+import { TenantContext } from '~/decorators/tenant-context.decorator';
+import { NcContext, NcRequest } from '~/interface/config';
 
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 @Controller()
@@ -28,8 +29,12 @@ export class BaseUsersController {
     '/api/v2/meta/bases/:baseId/users',
   ])
   @Acl('baseUserList')
-  async userList(@Param('baseId') baseId: string, @Req() req: Request) {
-    const baseRoles = Object.keys(req.user?.base_roles ?? {});
+  async userList(
+    @TenantContext() context: NcContext,
+    @Param('baseId') baseId: string,
+    @Req() req: NcRequest,
+  ) {
+    const baseRoles = Object.keys((req.user as any)?.base_roles ?? {});
     const mode =
       baseRoles.includes(ProjectRoles.OWNER) ||
       baseRoles.includes(ProjectRoles.CREATOR)
@@ -37,7 +42,7 @@ export class BaseUsersController {
         : 'viewer';
 
     return {
-      users: await this.baseUsersService.userList({
+      users: await this.baseUsersService.userList(context, {
         baseId,
         mode,
       }),
@@ -51,15 +56,16 @@ export class BaseUsersController {
   @HttpCode(200)
   @Acl('userInvite')
   async userInvite(
+    @TenantContext() context: NcContext,
     @Param('baseId') baseId: string,
-    @Req() req: Request,
+    @Req() req: NcRequest,
     @Body() body: ProjectUserReqType,
   ): Promise<any> {
     // todo: move this to a service
     if (!body.email) {
       NcError.badRequest('Email is required');
     }
-    return await this.baseUsersService.userInvite({
+    return await this.baseUsersService.userInvite(context, {
       baseId,
       baseUser: body,
       req,
@@ -72,15 +78,16 @@ export class BaseUsersController {
   ])
   @Acl('baseUserUpdate')
   async baseUserUpdate(
+    @TenantContext() context: NcContext,
     @Param('baseId') baseId: string,
     @Param('userId') userId: string,
-    @Req() req: Request,
+    @Req() req: NcRequest,
     @Body()
     body: ProjectUserReqType & {
       base_id: string;
     },
   ): Promise<any> {
-    await this.baseUsersService.baseUserUpdate({
+    await this.baseUsersService.baseUserUpdate(context, {
       baseUser: body,
       baseId,
       userId,
@@ -97,11 +104,12 @@ export class BaseUsersController {
   ])
   @Acl('baseUserDelete')
   async baseUserDelete(
+    @TenantContext() context: NcContext,
     @Param('baseId') baseId: string,
     @Param('userId') userId: string,
-    @Req() req: Request,
+    @Req() req: NcRequest,
   ): Promise<any> {
-    await this.baseUsersService.baseUserDelete({
+    await this.baseUsersService.baseUserDelete(context, {
       baseId,
       userId,
       req,
@@ -118,12 +126,13 @@ export class BaseUsersController {
   @HttpCode(200)
   @Acl('baseUserInviteResend')
   async baseUserInviteResend(
+    @TenantContext() context: NcContext,
     @Param('baseId') baseId: string,
     @Param('userId') userId: string,
-    @Req() req: Request,
+    @Req() req: NcRequest,
     @Body() body: ProjectUserReqType,
   ): Promise<any> {
-    await this.baseUsersService.baseUserInviteResend({
+    await this.baseUsersService.baseUserInviteResend(context, {
       baseId: baseId,
       userId: userId,
       baseUser: body,
@@ -140,11 +149,12 @@ export class BaseUsersController {
   ])
   @Acl('baseUserMetaUpdate')
   async baseUserMetaUpdate(
+    @TenantContext() context: NcContext,
     @Param('baseId') baseId: string,
-    @Req() req: Request,
+    @Req() req: NcRequest,
     @Body() body: ProjectUserReqType,
   ): Promise<any> {
-    return await this.baseUsersService.baseUserMetaUpdate({
+    return await this.baseUsersService.baseUserMetaUpdate(context, {
       baseId,
       body,
       user: req.user,

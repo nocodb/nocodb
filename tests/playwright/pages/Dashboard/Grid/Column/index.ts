@@ -5,12 +5,14 @@ import { SelectOptionColumnPageObject } from './SelectOptionColumn';
 import { AttachmentColumnPageObject } from './Attachment';
 import { getTextExcludeIconText } from '../../../../tests/utils/general';
 import { UserOptionColumnPageObject } from './UserOptionColumn';
+import { LTAROptionColumnPageObject } from './LTAROptionColumn';
 
 export class ColumnPageObject extends BasePage {
   readonly grid: GridPage;
   readonly selectOption: SelectOptionColumnPageObject;
   readonly attachmentColumnPageObject: AttachmentColumnPageObject;
   readonly userOption: UserOptionColumnPageObject;
+  readonly ltarOption: LTAROptionColumnPageObject;
 
   constructor(grid: GridPage) {
     super(grid.rootPage);
@@ -18,6 +20,7 @@ export class ColumnPageObject extends BasePage {
     this.selectOption = new SelectOptionColumnPageObject(this);
     this.attachmentColumnPageObject = new AttachmentColumnPageObject(this);
     this.userOption = new UserOptionColumnPageObject(this);
+    this.ltarOption = new LTAROptionColumnPageObject(this);
   }
 
   get() {
@@ -32,13 +35,32 @@ export class ColumnPageObject extends BasePage {
     await this.getColumnHeader(title).click();
   }
 
+  defaultValueBtn() {
+    const showDefautlValueBtn = this.get().getByTestId('nc-show-default-value-btn');
+
+    return {
+      locator: showDefautlValueBtn,
+      isVisible: async () => {
+        return await showDefautlValueBtn.isVisible();
+      },
+      click: async () => {
+        if (await showDefautlValueBtn.isVisible()) {
+          await showDefautlValueBtn.waitFor();
+          await showDefautlValueBtn.click({ force: true });
+
+          await showDefautlValueBtn.waitFor({ state: 'hidden' });
+          await this.get().locator('.nc-default-value-wrapper').waitFor({ state: 'visible' });
+        }
+      },
+    };
+  }
+
   async create({
     title,
     type = 'SingleLineText',
     formula = '',
     qrCodeValueColumnTitle = '',
     barcodeValueColumnTitle = '',
-    barcodeFormat = '',
     childTable = '',
     childColumn = '',
     relationType = '',
@@ -49,6 +71,8 @@ export class ColumnPageObject extends BasePage {
     insertAfterColumnTitle,
     insertBeforeColumnTitle,
     isDisplayValue = false,
+    ltarFilters,
+    ltarView,
   }: {
     title: string;
     type?: string;
@@ -66,6 +90,8 @@ export class ColumnPageObject extends BasePage {
     insertBeforeColumnTitle?: string;
     insertAfterColumnTitle?: string;
     isDisplayValue?: boolean;
+    ltarFilters?: any[];
+    ltarView?: string;
   }) {
     if (insertBeforeColumnTitle) {
       await this.grid.get().locator(`th[data-title="${insertBeforeColumnTitle}"] .nc-ui-dt-dropdown`).click();
@@ -86,7 +112,7 @@ export class ColumnPageObject extends BasePage {
     await this.rootPage.waitForTimeout(500);
     await this.fillTitle({ title });
     await this.rootPage.waitForTimeout(500);
-    await this.selectType({ type });
+    await this.selectType({ type, isCreateColumn: true });
     await this.rootPage.waitForTimeout(500);
 
     switch (type) {
@@ -96,11 +122,7 @@ export class ColumnPageObject extends BasePage {
       case 'Duration':
         if (format) {
           await this.get().locator('.ant-select-single').nth(1).click();
-          await this.rootPage
-            .locator(`.ant-select-item`, {
-              hasText: format,
-            })
-            .click();
+          await this.rootPage.locator(`.ant-select-item .ant-select-item-option-content`).getByTestId(format).click();
         }
         break;
       case 'Date':
@@ -171,10 +193,10 @@ export class ColumnPageObject extends BasePage {
           .click();
         break;
       case 'Links':
-        await this.get()
-          .locator('.nc-ltar-relation-type >> .ant-radio')
-          .nth(relationType === 'Has Many' ? 1 : 2)
-          .click();
+        // kludge, fix me
+        await this.rootPage.waitForTimeout(2000);
+
+        await this.get().locator('.nc-ltar-relation-type').getByTestId(relationType).click();
         await this.get().locator('.ant-select-single').nth(1).click();
         await this.rootPage.locator(`.nc-ltar-child-table >> input[type="search"]`).fill(childTable);
         await this.rootPage
@@ -183,6 +205,15 @@ export class ColumnPageObject extends BasePage {
           })
           .nth(0)
           .click();
+
+        if (ltarView) {
+          await this.ltarOption.selectView({ ltarView: ltarView });
+        }
+
+        if (ltarFilters) {
+          await this.ltarOption.addFilters(ltarFilters);
+        }
+
         break;
       case 'User':
         break;
@@ -216,18 +247,30 @@ export class ColumnPageObject extends BasePage {
     await this.get().locator('.nc-column-name-input').fill(title);
   }
 
-  async selectType({ type, first }: { type: string; first?: boolean }) {
-    if (first) {
-      await this.get().locator('.ant-select-selector > .ant-select-selection-item').first().click();
+  async selectType({ type, first, isCreateColumn }: { type: string; first?: boolean; isCreateColumn?: boolean }) {
+    if (isCreateColumn || (await this.get().getByTestId('nc-column-uitypes-options-list-wrapper').isVisible())) {
+      const searchInput = this.get().locator('.nc-column-type-search-input >> input');
+      await searchInput.waitFor({ state: 'visible' });
+      await searchInput.click();
+      await searchInput.fill(type);
+
+      await this.get().locator('.nc-column-list-wrapper').getByTestId(type).waitFor();
+      await this.get().locator('.nc-column-list-wrapper').getByTestId(type).click();
+
+      await this.get().locator('.nc-column-type-input').waitFor();
     } else {
-      await this.get().locator('.ant-select-selector > .ant-select-selection-item').click();
+      if (first) {
+        await this.get().locator('.ant-select-selector > .ant-select-selection-item').first().click();
+      } else {
+        await this.get().locator('.ant-select-selector > .ant-select-selection-item').click();
+      }
+
+      await this.get().locator('.ant-select-selection-search-input[aria-expanded="true"]').waitFor();
+      await this.get().locator('.ant-select-selection-search-input[aria-expanded="true"]').fill(type);
+
+      // Select column type
+      await this.rootPage.locator('.rc-virtual-list-holder-inner > div').getByTestId(type).click();
     }
-
-    await this.get().locator('.ant-select-selection-search-input[aria-expanded="true"]').waitFor();
-    await this.get().locator('.ant-select-selection-search-input[aria-expanded="true"]').fill(type);
-
-    // Select column type
-    await this.rootPage.locator('.rc-virtual-list-holder-inner > div').locator(`text="${type}"`).click();
   }
 
   async changeReferencedColumnForQrCode({ titleOfReferencedColumn }: { titleOfReferencedColumn: string }) {
@@ -238,7 +281,7 @@ export class ColumnPageObject extends BasePage {
       })
       .click();
 
-    await this.save();
+    await this.save({ isUpdated: true });
   }
 
   async changeReferencedColumnForBarcode({ titleOfReferencedColumn }: { titleOfReferencedColumn: string }) {
@@ -249,7 +292,7 @@ export class ColumnPageObject extends BasePage {
       })
       .click();
 
-    await this.save();
+    await this.save({ isUpdated: true });
   }
 
   async changeBarcodeFormat({ barcodeFormatName }: { barcodeFormatName: string }) {
@@ -260,7 +303,7 @@ export class ColumnPageObject extends BasePage {
       })
       .click();
 
-    await this.save();
+    await this.save({ isUpdated: true });
   }
 
   async delete({ title }: { title: string }) {
@@ -305,17 +348,16 @@ export class ColumnPageObject extends BasePage {
       await this.selectType({ type, first: true });
     }
 
+    // Click set default value to show default value input, on close field modal it will automacally hide input if value is not set
+    await this.defaultValueBtn().click();
+
     switch (type) {
       case 'Formula':
         await this.get().locator('.nc-formula-input').fill(formula);
         break;
       case 'Duration':
         await this.get().locator('.ant-select-single').nth(1).click();
-        await this.rootPage
-          .locator(`.ant-select-item`, {
-            hasText: format,
-          })
-          .click();
+        await this.rootPage.locator(`.ant-select-item`).getByTestId(format).click();
         break;
       case 'DateTime':
         // Date Format
@@ -380,13 +422,26 @@ export class ColumnPageObject extends BasePage {
     await expect(this.grid.get().locator(`th[data-title="${title}"]`)).toHaveCount(0);
   }
 
-  async save({ isUpdated }: { isUpdated?: boolean } = {}) {
-    await this.waitForResponse({
-      uiAction: async () => await this.get().locator('button:has-text("Save")').click(),
-      requestUrlPathToMatch: 'api/v1/db/data/noco/',
-      httpMethodsToMatch: ['GET'],
-      responseJsonMatcher: json => json['pageInfo'],
-    });
+  async save({ isUpdated, typeChange }: { isUpdated?: boolean; typeChange?: boolean } = {}) {
+    // if type is changed, then we need to click the update button during the warning popup
+    if (!typeChange) {
+      const buttonText = isUpdated ? 'Update' : 'Save';
+      await this.waitForResponse({
+        uiAction: async () => await this.get().locator(`button:has-text("${buttonText}")`).click(),
+        requestUrlPathToMatch: 'api/v1/db/data/noco/',
+        httpMethodsToMatch: ['GET'],
+        responseJsonMatcher: json => json['pageInfo'],
+      });
+    } else {
+      await this.get().locator('button:has-text("Update Field")').click();
+      // click on update button on warning popup
+      await this.waitForResponse({
+        uiAction: async () => await this.rootPage.locator('button:has-text("Update")').click(),
+        requestUrlPathToMatch: 'api/v1/db/data/noco/',
+        httpMethodsToMatch: ['GET'],
+        responseJsonMatcher: json => json['pageInfo'],
+      });
+    }
 
     await this.verifyToast({
       message: isUpdated ? 'Column updated' : 'Column created',

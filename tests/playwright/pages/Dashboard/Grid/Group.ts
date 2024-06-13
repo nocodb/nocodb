@@ -28,11 +28,15 @@ export class GroupPageObject extends BasePage {
   }
 
   async openGroup({ indexMap }: { indexMap: number[] }) {
+    await this.rootPage.waitForTimeout(500);
+
     let root = this.rootPage.locator('.nc-group');
+
     for (const n of indexMap) {
       await root.nth(n).click();
       root = root.nth(n).locator('.nc-group');
     }
+    await this.rootPage.waitForTimeout(500);
   }
 
   async verifyGroupHeader({ indexMap, count, title }: { indexMap: number[]; count: number; title: string }) {

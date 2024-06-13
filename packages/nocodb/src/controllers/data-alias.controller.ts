@@ -12,12 +12,14 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { parseHrtimeToMilliSeconds } from '~/helpers';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { DatasService } from '~/services/datas.service';
 import { DataApiLimiterGuard } from '~/guards/data-api-limiter.guard';
+import { TenantContext } from '~/decorators/tenant-context.decorator';
+import { NcContext, NcRequest } from '~/interface/config';
 
 @Controller()
 @UseGuards(DataApiLimiterGuard, GlobalGuard)
@@ -31,7 +33,8 @@ export class DataAliasController {
   ])
   @Acl('dataList')
   async dataList(
-    @Req() req: Request,
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
     @Res() res: Response,
     @Param('baseName') baseName: string,
     @Param('tableName') tableName: string,
@@ -39,7 +42,7 @@ export class DataAliasController {
     @Query('opt') opt: string,
   ) {
     const startTime = process.hrtime();
-    const responseData = await this.datasService.dataList({
+    const responseData = await this.datasService.dataList(context, {
       query: req.query,
       baseName: baseName,
       tableName: tableName,
@@ -63,12 +66,13 @@ export class DataAliasController {
   ])
   @Acl('dataFindOne')
   async dataFindOne(
-    @Req() req: Request,
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
     @Param('baseName') baseName: string,
     @Param('tableName') tableName: string,
     @Param('viewName') viewName: string,
   ) {
-    return await this.datasService.dataFindOne({
+    return await this.datasService.dataFindOne(context, {
       query: req.query,
       baseName: baseName,
       tableName: tableName,
@@ -82,12 +86,13 @@ export class DataAliasController {
   ])
   @Acl('dataGroupBy')
   async dataGroupBy(
-    @Req() req: Request,
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
     @Param('baseName') baseName: string,
     @Param('tableName') tableName: string,
     @Param('viewName') viewName: string,
   ) {
-    return await this.datasService.dataGroupBy({
+    return await this.datasService.dataGroupBy(context, {
       query: req.query,
       baseName: baseName,
       tableName: tableName,
@@ -101,13 +106,14 @@ export class DataAliasController {
   ])
   @Acl('dataCount')
   async dataCount(
-    @Req() req: Request,
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
     @Res() res: Response,
     @Param('baseName') baseName: string,
     @Param('tableName') tableName: string,
     @Param('viewName') viewName: string,
   ) {
-    const countResult = await this.datasService.dataCount({
+    const countResult = await this.datasService.dataCount(context, {
       query: req.query,
       baseName: baseName,
       tableName: tableName,
@@ -124,14 +130,15 @@ export class DataAliasController {
   @HttpCode(200)
   @Acl('dataInsert')
   async dataInsert(
-    @Req() req: Request,
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
     @Param('baseName') baseName: string,
     @Param('tableName') tableName: string,
     @Param('viewName') viewName: string,
     @Body() body: any,
     @Query('opt') opt: string,
   ) {
-    return await this.datasService.dataInsert({
+    return await this.datasService.dataInsert(context, {
       baseName: baseName,
       tableName: tableName,
       viewName: viewName,
@@ -147,14 +154,15 @@ export class DataAliasController {
   ])
   @Acl('dataUpdate')
   async dataUpdate(
-    @Req() req: Request,
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
     @Param('baseName') baseName: string,
     @Param('tableName') tableName: string,
     @Param('viewName') viewName: string,
     @Param('rowId') rowId: string,
     @Query('opt') opt: string,
   ) {
-    return await this.datasService.dataUpdate({
+    return await this.datasService.dataUpdate(context, {
       baseName: baseName,
       tableName: tableName,
       viewName: viewName,
@@ -171,13 +179,14 @@ export class DataAliasController {
   ])
   @Acl('dataDelete')
   async dataDelete(
-    @Req() req: Request,
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
     @Param('baseName') baseName: string,
     @Param('tableName') tableName: string,
     @Param('viewName') viewName: string,
     @Param('rowId') rowId: string,
   ) {
-    return await this.datasService.dataDelete({
+    return await this.datasService.dataDelete(context, {
       baseName: baseName,
       tableName: tableName,
       viewName: viewName,
@@ -192,7 +201,8 @@ export class DataAliasController {
   ])
   @Acl('dataRead')
   async dataRead(
-    @Req() req: Request,
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
     @Param('baseName') baseName: string,
     @Param('tableName') tableName: string,
     @Param('viewName') viewName: string,
@@ -200,7 +210,7 @@ export class DataAliasController {
     @Query('opt') opt: string,
     @Query('getHiddenColumn') getHiddenColumn: boolean,
   ) {
-    return await this.datasService.dataRead({
+    return await this.datasService.dataRead(context, {
       baseName: baseName,
       tableName: tableName,
       viewName: viewName,
@@ -217,14 +227,15 @@ export class DataAliasController {
   ])
   @Acl('dataExist')
   async dataExist(
-    @Req() req: Request,
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
     @Res() res: Response,
     @Param('baseName') baseName: string,
     @Param('tableName') tableName: string,
     @Param('viewName') viewName: string,
     @Param('rowId') rowId: string,
   ) {
-    const exists = await this.datasService.dataExist({
+    const exists = await this.datasService.dataExist(context, {
       baseName: baseName,
       tableName: tableName,
       viewName: viewName,
@@ -243,7 +254,8 @@ export class DataAliasController {
   ])
   @Acl('groupedDataList')
   async groupedDataList(
-    @Req() req: Request,
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
     @Res() res: Response,
     @Param('baseName') baseName: string,
     @Param('tableName') tableName: string,
@@ -251,7 +263,7 @@ export class DataAliasController {
     @Param('columnId') columnId: string,
   ) {
     const startTime = process.hrtime();
-    const groupedData = await this.datasService.groupedDataList({
+    const groupedData = await this.datasService.groupedDataList(context, {
       baseName: baseName,
       tableName: tableName,
       viewName: viewName,

@@ -103,7 +103,6 @@ const handleFileDelete = (i: number) => {
         </div>
 
         <div class="flex items-center gap-2">
-          <div v-if="readOnly" class="text-gray-400">[{{ $t('labels.readOnly') }}]</div>
           {{ $t('labels.viewingAttachmentsOf') }}
           <div class="font-semibold underline">{{ column?.title }}</div>
         </div>

@@ -80,7 +80,7 @@ export class UserOptionColumnPageObject extends BasePage {
   }
 
   async clearDefaultValue(): Promise<void> {
-    await this.column.get().locator('.nc-cell-user + svg.nc-icon').click();
+    await this.get().locator('.nc-cell-user + svg.nc-icon').click();
   }
 
   async verifyDefaultValueOptionCount({

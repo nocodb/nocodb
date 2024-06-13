@@ -40,15 +40,27 @@ const rowHeight = inject(RowHeightInj, ref(1 as const))
 
 const readOnlyCell = inject(ReadonlyInj, ref(false))
 
+const isEditColumn = inject(EditColumnInj, ref(false))
+
 const isForm = inject(IsFormInj, ref(false))
 
 const isGrid = inject(IsGridInj, ref(false))
 
 const isSurveyForm = inject(IsSurveyFormInj, ref(false))
 
+const isGallery = inject(IsGalleryInj, ref(false))
+
+const isKanban = inject(IsKanbanInj, ref(false))
+
 const isFocused = ref(false)
 
 const keys = useMagicKeys()
+
+const localRowHeight = computed(() => {
+  if (readOnlyCell.value && !isExpandedFormOpen.value && (isGallery.value || isKanban.value)) return 6
+
+  return rowHeight.value
+})
 
 const shouldShowLinkOption = computed(() => {
   return isFormField.value ? isFocused.value : true
@@ -155,7 +167,7 @@ const editor = useEditor({
       .turndown(editor.getHTML().replaceAll(/<p><\/p>/g, '<br />'))
       .replaceAll(/\n\n<br \/>\n\n/g, '<br>\n\n')
 
-    vModel.value = isFormField.value && markdown === '<br />' ? '' : markdown
+    vModel.value = markdown === '<br />' ? '' : markdown
   },
   editable: !props.readOnly,
   autofocus: props.autofocus,
@@ -220,7 +232,7 @@ if (isFormField.value) {
 }
 
 onMounted(() => {
-  if (fullMode.value || isFormField.value || isForm.value) {
+  if (fullMode.value || isFormField.value || isForm.value || isEditColumn.value) {
     setEditorContent(vModel.value, true)
 
     if (fullMode.value || isSurveyForm.value) {
@@ -320,8 +332,8 @@ onClickOutside(editorDom, (e) => {
           'mt-2.5 flex-grow': fullMode,
           'scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent': !fullMode || (!fullMode && isExpandedFormOpen),
           'flex-grow': isExpandedFormOpen,
-          [`!overflow-hidden nc-truncate nc-line-clamp-${rowHeightTruncateLines(rowHeight)}`]:
-            !fullMode && readOnly && rowHeight && !isExpandedFormOpen && !isForm,
+          [`!overflow-hidden nc-truncate nc-line-clamp-${rowHeightTruncateLines(localRowHeight)}`]:
+            !fullMode && readOnly && localRowHeight && !isExpandedFormOpen && !isForm,
         }"
         @keydown.alt.enter.stop
         @keydown.shift.enter.stop
@@ -391,6 +403,17 @@ onClickOutside(editorDom, (e) => {
         resize: none;
         white-space: pre-line;
       }
+    }
+  }
+  &.allow-vertical-resize:not(.readonly) {
+    .ProseMirror {
+      @apply nc-scrollbar-thin;
+
+      overflow-y: auto;
+      overflow-x: hidden;
+      resize: vertical;
+      min-width: 100%;
+      max-height: min(800px, calc(100vh - 200px)) !important;
     }
   }
 }

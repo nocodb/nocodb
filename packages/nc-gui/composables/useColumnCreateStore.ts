@@ -3,6 +3,7 @@ import type { ColumnReqType, ColumnType, TableType } from 'nocodb-sdk'
 import { UITypes, isLinksOrLTAR } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import type { RuleObject } from 'ant-design-vue/es/form'
+import { generateUniqueColumnName } from '~/helpers/parsers/parserHelpers'
 
 const clone = rfdc()
 
@@ -19,6 +20,9 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     meta: Ref<TableType | undefined>,
     column: Ref<ColumnType | undefined>,
     tableExplorerColumns?: Ref<ColumnType[] | undefined>,
+    fromTableExplorer?: Ref<boolean | undefined>,
+    isColumnValid?: Ref<((value: Partial<ColumnType>) => boolean) | undefined>,
+    fromKanbanStack?: Ref<boolean | undefined>,
   ) => {
     const baseStore = useBase()
 
@@ -38,6 +42,8 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
     const { activeView } = storeToRefs(useViewsStore())
 
+    const disableSubmitBtn = ref(false)
+
     const isEdit = computed(() => !!column?.value?.id)
 
     const isMysql = computed(() => isMysqlFunc(meta.value?.source_id ? meta.value?.source_id : Object.keys(sqlUis.value)[0]))
@@ -50,6 +56,10 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       isXcdbBaseFunc(meta.value?.source_id ? meta.value?.source_id : Object.keys(sqlUis.value)[0]),
     )
 
+    let postSaveOrUpdateCbk:
+      | ((params: { update?: boolean; colId: string; column?: ColumnType | undefined }) => Promise<void>)
+      | null
+
     const idType = null
 
     const additionalValidations = ref<ValidationsObj>({})
@@ -57,44 +67,42 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     const setAdditionalValidations = (validations: ValidationsObj) => {
       additionalValidations.value = { ...additionalValidations.value, ...validations }
     }
+    const setPostSaveOrUpdateCbk = (cbk: typeof postSaveOrUpdateCbk) => {
+      postSaveOrUpdateCbk = cbk
+    }
 
     const formState = ref<Record<string, any>>({
-      title: 'title',
-      uidt: UITypes.SingleLineText,
+      title: '',
+      uidt: fromTableExplorer?.value ? UITypes.SingleLineText : null,
       ...clone(column.value || {}),
     })
 
-    const generateUniqueColumnSuffix = () => {
-      let suffix = (meta.value?.columns?.length || 0) + 1
-      let columnName = `title${suffix}`
-      while (
-        (tableExplorerColumns?.value || meta.value?.columns)?.some(
-          (c) => (c.column_name || '').toLowerCase() === columnName.toLowerCase(),
-        )
-      ) {
-        suffix++
-        columnName = `title${suffix}`
-      }
-      return suffix
-    }
-
     // actions
-    const generateNewColumnMeta = () => {
+    const generateNewColumnMeta = (ignoreUidt = false) => {
       setAdditionalValidations({})
       formState.value = {
         meta: {},
-        ...sqlUi.value.getNewColumn(generateUniqueColumnSuffix()),
+        ...sqlUi.value.getNewColumn(1),
       }
-      formState.value.title = formState.value.column_name
+      formState.value.title = ''
+      formState.value.column_name = ''
+
+      if (ignoreUidt && !fromTableExplorer?.value) {
+        formState.value.uidt = null
+      }
     }
 
     const validators = computed(() => {
       return {
         title: [
-          {
-            required: true,
-            message: t('msg.error.columnNameRequired'),
-          },
+          ...(isEdit.value
+            ? [
+                {
+                  required: true,
+                  message: t('msg.error.columnNameRequired'),
+                },
+              ]
+            : []),
           // validation for unique column name
           {
             validator: (rule: any, value: any) => {
@@ -143,16 +151,21 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     const { resetFields, validate, validateInfos } = useForm(formState, validators)
 
     const onUidtOrIdTypeChange = () => {
+      disableSubmitBtn.value = false
+
+      const newTitle = updateFieldName(false)
+
       const colProp = sqlUi.value.getDataTypeForUiType(formState.value as { uidt: UITypes }, idType ?? undefined)
       formState.value = {
         ...(!isEdit.value && {
           // only take title, column_name and uidt when creating a column
           // to avoid the extra props from being taken (e.g. SingleLineText -> LTAR -> SingleLineText)
           // to mess up the column creation
-          title: formState.value.title,
-          column_name: formState.value.column_name,
+          title: newTitle || formState.value.title,
+          column_name: newTitle || formState.value.column_name,
           uidt: formState.value.uidt,
           temp_id: formState.value.temp_id,
+          userHasChangedTitle: !!formState.value?.userHasChangedTitle,
         }),
         ...(isEdit.value && {
           // take the existing formState.value when editing a column
@@ -248,12 +261,16 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
           ?.map((e: any) => e.errors?.join(', '))
           .filter(Boolean)
           .join(', ')
+
         if (errorMsgs) {
           message.error(errorMsgs)
-        } else {
-          message.error(t('msg.error.formValidationFailed'))
+          return
         }
-        return
+
+        if (!fromKanbanStack?.value || (fromKanbanStack.value && !e.outOfDate)) {
+          message.error(t('msg.error.formValidationFailed'))
+          return
+        }
       }
 
       try {
@@ -265,9 +282,21 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
             formState.value.validate = ''
           }
           await $api.dbTableColumn.update(column.value?.id as string, formState.value)
+
+          await postSaveOrUpdateCbk?.({ update: true, colId: column.value?.id })
           // Column updated
           // message.success(t('msg.success.columnUpdated'))
         } else {
+          // set default field title
+          if (!formState.value.title.trim()) {
+            const columnName = generateUniqueColumnName({
+              formState: formState.value,
+              tableExplorerColumns: tableExplorerColumns?.value,
+              metaColumns: meta.value?.columns || [],
+            })
+            formState.value.title = columnName
+            formState.value.column_name = columnName
+          }
           // todo : set additional meta for auto generated string id
           if (formState.value.uidt === UITypes.ID) {
             // based on id column type set autogenerated meta prop
@@ -277,11 +306,17 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
             //   };
             // }
           }
-          await $api.dbTableColumn.create(meta.value?.id as string, {
+          const tableMeta = await $api.dbTableColumn.create(meta.value?.id as string, {
             ...formState.value,
             ...columnPosition,
             view_id: activeView.value!.id as string,
           })
+
+          const savedColumn = tableMeta.columns?.find(
+            (c) => c.title === formState.value.title || c.column_name === formState.value.column_name,
+          )
+
+          await postSaveOrUpdateCbk?.({ update: false, colId: savedColumn?.id as string, column: savedColumn })
 
           /** if LTAR column then force reload related table meta */
           if (isLinksOrLTAR(formState.value) && meta.value?.id !== formState.value.childId) {
@@ -297,6 +332,30 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
         return true
       } catch (e: any) {
         message.error(await extractSdkResponseErrorMsg(e))
+      }
+    }
+
+    function updateFieldName(updateFormState: boolean = true) {
+      if (
+        isEdit.value ||
+        !fromTableExplorer?.value ||
+        formState.value?.userHasChangedTitle ||
+        !isColumnValid?.value?.(formState.value)
+      ) {
+        return
+      }
+
+      const defaultColumnName = generateUniqueColumnName({
+        formState: formState.value,
+        tableExplorerColumns: tableExplorerColumns?.value || [],
+        metaColumns: meta.value?.columns || [],
+      })
+
+      if (updateFormState) {
+        formState.value.title = defaultColumnName
+        formState.value.column_name = defaultColumnName
+      } else {
+        return defaultColumnName
       }
     }
 
@@ -324,6 +383,9 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       isPg,
       isMysql,
       isXcdbBase,
+      disableSubmitBtn,
+      setPostSaveOrUpdateCbk,
+      updateFieldName,
     }
   },
 )

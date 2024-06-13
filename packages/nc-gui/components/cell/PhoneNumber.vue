@@ -65,7 +65,6 @@ watch(
     :ref="focus"
     v-model="vModel"
     class="nc-cell-field w-full outline-none py-1"
-    :placeholder="isEditColumn ? $t('labels.optional') : ''"
     @blur="editEnabled = false"
     @keydown.down.stop
     @keydown.left.stop
@@ -80,7 +79,7 @@ watch(
 
   <a
     v-else-if="validPhoneNumber"
-    class="py-1 underline hover:opacity-75 inline-block nc-cell-field-link"
+    class="py-1 underline inline-block nc-cell-field-link"
     :href="`tel:${vModel}`"
     target="_blank"
     rel="noopener noreferrer"

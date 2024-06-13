@@ -37,11 +37,8 @@ function getTnPath(knex: XKnex, tb: Model) {
 }
 
 export default async function ({ ncMeta }: NcUpgraderCtx) {
-  const sources: SourceType[] = await ncMeta.metaList2(
-    null,
-    null,
-    MetaTable.BASES,
-  );
+  const sources: SourceType[] = await ncMeta.knexConnection(MetaTable.BASES);
+
   for (const _base of sources) {
     const source = new Source(_base);
 
@@ -50,9 +47,19 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
       continue;
     }
 
-    const base = await ncMeta.metaGet2(null, null, MetaTable.PROJECT, {
-      id: source.base_id,
-    });
+    const context = {
+      workspace_id: source.fk_workspace_id,
+      base_id: source.base_id,
+    };
+
+    const base = await ncMeta.metaGet2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.PROJECT,
+      {
+        id: source.base_id,
+      },
+    );
 
     // skip if the base is missing
     if (!base) {
@@ -64,7 +71,7 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
     const knex: Knex = source.is_meta
       ? ncMeta.knexConnection
       : await NcConnectionMgrv2.get(source);
-    const models = await source.getModels(ncMeta);
+    const models = await source.getModels(context, ncMeta);
 
     // used in timeout error message
     const timeoutErrorInfo = {
@@ -83,8 +90,8 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
 
         // get all attachment & primary key columns
         // and filter out the columns that are missing in database
-        const columns = await (await Model.get(model.id, ncMeta))
-          .getColumns(ncMeta)
+        const columns = await (await Model.get(context, model.id, ncMeta))
+          .getColumns(context, ncMeta)
           .then(async (columns) => {
             const filteredColumns = [];
 

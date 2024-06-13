@@ -15,6 +15,8 @@ import { GlobalGuard } from '~/guards/global/global.guard';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { UsersService } from '~/services/users/users.service';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
+import { TenantContext } from '~/decorators/tenant-context.decorator';
+import { NcContext, NcRequest } from '~/interface/config';
 
 @Controller()
 export class UsersController {

@@ -49,6 +49,26 @@ export class FieldsPage extends BasePage {
     await this.getField({ title }).getByTestId('nc-field-restore-changes').click();
   }
 
+  defaultValueBtn() {
+    const showDefautlValueBtn = this.addOrEditColumn.getByTestId('nc-show-default-value-btn');
+
+    return {
+      locator: showDefautlValueBtn,
+      isVisible: async () => {
+        return await showDefautlValueBtn.isVisible();
+      },
+      click: async () => {
+        if (await showDefautlValueBtn.isVisible()) {
+          await showDefautlValueBtn.waitFor();
+          await showDefautlValueBtn.click({ force: true });
+
+          await showDefautlValueBtn.waitFor({ state: 'hidden' });
+          await this.addOrEditColumn.locator('.nc-default-value-wrapper').waitFor({ state: 'visible' });
+        }
+      },
+    };
+  }
+
   async createOrUpdate({
     title,
     type = UITypes.SingleLineText,
@@ -101,6 +121,9 @@ export class FieldsPage extends BasePage {
 
     await this.selectType({ type });
     await this.rootPage.waitForTimeout(500);
+
+    // Click set default value to show default value input, on close field modal it will automacally hide input if value is not set
+    await this.defaultValueBtn().click();
 
     switch (type) {
       case 'SingleSelect':
@@ -184,12 +207,9 @@ export class FieldsPage extends BasePage {
           .click();
         break;
       case 'Links':
-        await this.addOrEditColumn
-          .locator('.nc-ltar-relation-type >> .ant-radio')
-          .nth(relationType === 'Has Many' ? 1 : 2)
-          .click();
+        await this.addOrEditColumn.locator('.nc-ltar-relation-type').getByTestId(relationType).click();
         await this.addOrEditColumn.locator('.ant-select-single').nth(1).click();
-        await this.rootPage.locator(`.nc-ltar-child-table >> input[type="search"]`).fill(childTable);
+        await this.rootPage.locator(`.nc-ltar-child-table >> input[type="search"]`).first().fill(childTable);
         await this.rootPage
           .locator(`.nc-dropdown-ltar-child-table >> .ant-select-item`, {
             hasText: childTable,
@@ -228,13 +248,27 @@ export class FieldsPage extends BasePage {
   }
 
   async selectType({ type }: { type: string }) {
-    await this.addOrEditColumn.locator('.ant-select-selector > .ant-select-selection-item').click();
+    if (await this.addOrEditColumn.getByTestId('nc-column-uitypes-options-list-wrapper').isVisible()) {
+      const searchInput = this.addOrEditColumn.locator('.nc-column-type-search-input >> input');
 
-    await this.addOrEditColumn.locator('.ant-select-selection-search-input[aria-expanded="true"]').waitFor();
-    await this.addOrEditColumn.locator('.ant-select-selection-search-input[aria-expanded="true"]').fill(type);
+      await searchInput.waitFor({ state: 'visible' });
 
-    // Select column type
-    await this.rootPage.locator('.rc-virtual-list-holder-inner > div').locator(`text="${type}"`).click();
+      await searchInput.click();
+      await searchInput.fill(type);
+
+      await this.addOrEditColumn.locator('.nc-column-list-wrapper').getByTestId(type).waitFor();
+      await this.addOrEditColumn.locator('.nc-column-list-wrapper').getByTestId(type).click();
+
+      await this.addOrEditColumn.locator('.nc-column-type-input').waitFor();
+    } else {
+      await this.addOrEditColumn.locator('.ant-select-selector > .ant-select-selection-item').click();
+
+      await this.addOrEditColumn.locator('.ant-select-selection-search-input[aria-expanded="true"]').waitFor();
+      await this.addOrEditColumn.locator('.ant-select-selection-search-input[aria-expanded="true"]').fill(type);
+
+      // Select column type
+      await this.rootPage.locator('.rc-virtual-list-holder-inner > div').getByTestId(type).click();
+    }
   }
 
   async saveChanges() {

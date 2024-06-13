@@ -16142,6 +16142,28 @@
         ]
       }
     },
+    "/api/v1/notifications/poll": {
+      "get": {
+        "summary": "Notification Poll",
+        "operationId": "notification-poll",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Notification"
+        ],
+        "description": "Poll notifications"
+      }
+    },
     "/api/v1/notifications": {
       "get": {
         "summary": "Notification list",
@@ -19103,6 +19125,14 @@
             "$ref": "#/components/schemas/StringOrNull",
             "description": "Foreign Key to View"
           },
+          "fk_value_col_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Foreign Key to dynamic value Column"
+          },
+          "fk_link_col_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Foreign Key to Link Column"
+          },
           "id": {
             "$ref": "#/components/schemas/Id",
             "description": "Unique ID"
@@ -21619,6 +21649,10 @@
           }
         ],
         "properties": {
+          "childViewId": {
+            "$ref": "#/components/schemas/IdOrNull",
+            "description": "Foreign Key to child view"
+          },
           "childId": {
             "$ref": "#/components/schemas/Id",
             "description": "Foreign Key to chhild column"
@@ -21705,6 +21739,9 @@
             "description": "Foreign Key to Column"
           },
           "fk_index_name": {
+            "type": "string"
+          },
+          "fk_relation_view_id": {
             "type": "string"
           },
           "fk_mm_child_column_id": {
@@ -22653,6 +22690,11 @@
           "id": {
             "description": "Unique Base ID",
             "example": "p_124hhlkbeasewh",
+            "type": "string"
+          },
+          "fk_workspace_id": {
+            "description": "Workspace ID",
+            "example": "ws_123456",
             "type": "string"
           },
           "is_meta": {
@@ -23709,6 +23751,20 @@
           }
         ],
         "title": "StringOrNullOrBooleanOrNumber Model"
+      },
+      "IdOrNull": {
+        "description": "Model for IdOrNull",
+        "examples": [
+          "string"
+        ],
+        "oneOf": [{
+            "$ref": "#/components/schemas/Id"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "IdOrNull Model"
       },
       "Table": {
         "description": "Model for Table",
@@ -25203,67 +25259,54 @@
           "body": {
             "type": "object",
             "properties": {
-              "id": {
-                "type": "string",
+              "base": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "The ID of the base being invited to"
+                  },
+                  "title": {
+                    "type": "string",
+                    "description": "The title of the base being invited to"
+                  },
+                  "type": {
+                    "type": "string",
+                    "description": "The type of the base being invited to"
+                  }
+                },
+                "required": [
+                  "id",
+                  "title",
+                  "type"
+                ],
                 "description": "The ID of the base being invited to"
               },
-              "title": {
-                "type": "string",
-                "description": "The title of the base being invited to"
-              },
-              "type": {
-                "type": "string",
-                "description": "The type of the base being invited to"
-              },
-              "invited_by": {
-                "type": "string",
-                "description": "The email address of the user who invited the recipient"
+              "user": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "The ID of the user who invited to the base"
+                  },
+                  "email": {
+                    "type": "string",
+                    "description": "The email address of the user who invited to the base"
+                  },
+                  "display_name": {
+                    "type": "string",
+                    "description": "The display name of the user who invited to the base"
+                  }
+                },
+                "required": [
+                  "id",
+                  "email"
+                ]
               }
             },
             "required": [
-              "id",
-              "title",
-              "type",
-              "invited_by"
-            ]
-          }
-        },
-        "required": [
-          "fk_user_id",
-          "type",
-          "body"
-        ]
-      },
-      "ProjectEvent": {
-        "type": "object",
-        "properties": {
-          "fk_user_id": {
-            "type": "string",
-            "description": "The ID of the user"
-          },
-          "type": {
-            "type": "string"
-          },
-          "body": {
-            "type": "object",
-            "properties": {
-              "id": {
-                "type": "string",
-                "description": "The ID of the base"
-              },
-              "title": {
-                "type": "string",
-                "description": "The title of the base"
-              },
-              "type": {
-                "type": "string",
-                "description": "The type of the base"
-              }
-            },
-            "required": [
-              "id",
-              "title",
-              "type"
+              "base",
+              "user"
             ]
           }
         },
@@ -25287,191 +25330,6 @@
           "body": {
             "type": "object",
             "description": "An empty object"
-          }
-        },
-        "required": [
-          "fk_user_id",
-          "type",
-          "body"
-        ]
-      },
-      "SortEvent": {
-        "type": "object",
-        "properties": {
-          "fk_user_id": {
-            "type": "string",
-            "description": "The ID of the user who created sort"
-          },
-          "type": {
-            "type": "string"
-          },
-          "body": {
-            "type": "object"
-          }
-        },
-        "required": [
-          "fk_user_id",
-          "type",
-          "body"
-        ]
-      },
-      "FilterEvent": {
-        "type": "object",
-        "properties": {
-          "fk_user_id": {
-            "type": "string",
-            "description": "The ID of the user who created filter"
-          },
-          "type": {
-            "type": "string"
-          },
-          "body": {
-            "type": "object"
-          }
-        },
-        "required": [
-          "fk_user_id",
-          "type",
-          "body"
-        ]
-      },
-      "TableEvent": {
-        "type": "object",
-        "properties": {
-          "fk_user_id": {
-            "type": "string",
-            "description": "The ID of the user who triggered the event"
-          },
-          "type": {
-            "type": "string",
-            "description": "The type of the event"
-          },
-          "body": {
-            "type": "object",
-            "properties": {
-              "title": {
-                "type": "string",
-                "description": "The title of the table associated with the event"
-              },
-              "base_id": {
-                "type": "string",
-                "description": "The ID of the base that the table belongs to"
-              },
-              "source_id": {
-                "type": "string",
-                "description": "The ID of the source that the table belongs to"
-              },
-              "id": {
-                "type": "string",
-                "description": "The ID of the table associated with the event"
-              }
-            },
-            "required": [
-              "title",
-              "base_id",
-              "source_id",
-              "id"
-            ]
-          }
-        },
-        "required": [
-          "fk_user_id",
-          "type",
-          "body"
-        ]
-      },
-      "ViewEvent": {
-        "type": "object",
-        "properties": {
-          "fk_user_id": {
-            "type": "string",
-            "description": "The ID of the user who triggered the event"
-          },
-          "type": {
-            "type": "string",
-            "description": "The type of the event"
-          },
-          "body": {
-            "type": "object",
-            "properties": {
-              "title": {
-                "type": "string",
-                "description": "The title of the view associated with the event"
-              },
-              "base_id": {
-                "type": "string",
-                "description": "The ID of the base that the view belongs to"
-              },
-              "source_id": {
-                "type": "string",
-                "description": "The ID of the source that the view belongs to"
-              },
-              "id": {
-                "type": "string",
-                "description": "The ID of the view associated with the event"
-              },
-              "fk_model_id": {
-                "type": "string",
-                "description": "The ID of the model that the view is based on"
-              }
-            },
-            "required": [
-              "title",
-              "base_id",
-              "source_id",
-              "id",
-              "fk_model_id"
-            ]
-          }
-        },
-        "required": [
-          "fk_user_id",
-          "type",
-          "body"
-        ]
-      },
-      "ColumnEvent": {
-        "type": "object",
-        "properties": {
-          "fk_user_id": {
-            "type": "string",
-            "description": "The ID of the user who triggered the event"
-          },
-          "type": {
-            "type": "string",
-            "description": "The type of the event"
-          },
-          "body": {
-            "type": "object",
-            "properties": {
-              "title": {
-                "type": "string",
-                "description": "The title of the column associated with the event"
-              },
-              "base_id": {
-                "type": "string",
-                "description": "The ID of the base that the column belongs to"
-              },
-              "source_id": {
-                "type": "string",
-                "description": "The ID of the source that the column belongs to"
-              },
-              "id": {
-                "type": "string",
-                "description": "The ID of the column associated with the event"
-              },
-              "fk_model_id": {
-                "type": "string",
-                "description": "The ID of the model that the column belongs to"
-              }
-            },
-            "required": [
-              "title",
-              "base_id",
-              "source_id",
-              "id",
-              "fk_model_id"
-            ]
           }
         },
         "required": [
@@ -25513,25 +25371,7 @@
                 "$ref": "#/components/schemas/ProjectInviteEvent"
               },
               {
-                "$ref": "#/components/schemas/ProjectEvent"
-              },
-              {
-                "$ref": "#/components/schemas/TableEvent"
-              },
-              {
-                "$ref": "#/components/schemas/ViewEvent"
-              },
-              {
-                "$ref": "#/components/schemas/ColumnEvent"
-              },
-              {
                 "$ref": "#/components/schemas/WelcomeEvent"
-              },
-              {
-                "$ref": "#/components/schemas/SortEvent"
-              },
-              {
-                "$ref": "#/components/schemas/FilterEvent"
               }
             ]
           }

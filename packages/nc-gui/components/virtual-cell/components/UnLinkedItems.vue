@@ -171,6 +171,10 @@ const totalItemsToShow = computed(() => {
     return row.value?.row[relatedTableMeta.value?.title] ? 1 : 0
   }
 
+  if (relation.value === 'oo') {
+    return row.value?.row[injectedColumn!.value?.title] ? 1 : 0
+  }
+
   return childrenListCount.value ?? 0
 })
 
@@ -392,8 +396,7 @@ const onFilterChange = () => {
 
           <p v-if="childrenExcludedListPagination.query">{{ $t('msg.noRecordsMatchYourSearchQuery') }}</p>
           <p v-else>
-            {{ $t('msg.thereAreNoRecordsInTable') }}
-            {{ relatedTableMeta?.title }}
+            {{ $t('msg.noRecordsAvailForLinking') }}
           </p>
         </div>
       </div>
@@ -439,6 +442,7 @@ const onFilterChange = () => {
       <LazySmartsheetExpandedForm
         v-if="expandedFormDlg"
         v-model="expandedFormDlg"
+        :load-row="!isPublic"
         :close-after-save="isExpandedFormCloseAfterSave"
         :meta="relatedTableMeta"
         :new-record-header="

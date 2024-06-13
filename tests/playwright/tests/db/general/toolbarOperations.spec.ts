@@ -162,6 +162,7 @@ test.describe('Toolbar operations (GRID)', () => {
 
     // GroupBy Category Descending Order
     await toolbar.groupBy.add({ title: 'Length', ascending: false, locallySaved: false });
+    await toolbar.rootPage.waitForTimeout(500);
     await toolbar.groupBy.add({ title: 'RentalDuration', ascending: false, locallySaved: false });
 
     // Hide Field and Verify

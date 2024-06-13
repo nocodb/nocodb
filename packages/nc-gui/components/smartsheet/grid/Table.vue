@@ -234,6 +234,9 @@ const isKeyDown = ref(false)
 async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = false) {
   if (!ctx || !hasEditPermission.value || (!isLinksOrLTAR(fields.value[ctx.col]) && isVirtualCol(fields.value[ctx.col]))) return
 
+  // eslint-disable-next-line @typescript-eslint/no-use-before-define
+  if (colMeta.value[ctx.col].isReadonly) return
+
   const rowObj = dataRef.value[ctx.row]
   const columnObj = fields.value[ctx.col]
 
@@ -424,15 +427,23 @@ const cellMeta = computed(() => {
   })
 })
 
+const isReadonly = (col: ColumnType) => {
+  return (
+    isSystemColumn(col) ||
+    isLookup(col) ||
+    isRollup(col) ||
+    isFormula(col) ||
+    isVirtualCol(col) ||
+    isCreatedOrLastModifiedTimeCol(col) ||
+    isCreatedOrLastModifiedByCol(col)
+  )
+}
+
 const colMeta = computed(() => {
   return fields.value.map((col) => {
     return {
-      isLookup: isLookup(col),
-      isRollup: isRollup(col),
-      isFormula: isFormula(col),
-      isCreatedOrLastModifiedTimeCol: isCreatedOrLastModifiedTimeCol(col),
-      isCreatedOrLastModifiedByCol: isCreatedOrLastModifiedByCol(col),
       isVirtualCol: isVirtualCol(col),
+      isReadonly: isReadonly(col),
     }
   })
 })
@@ -932,6 +943,9 @@ async function clearSelectedRangeOfCells() {
         continue
       }
 
+      // skip readonly columns
+      if (isReadonly(col)) continue
+
       row.row[col.title] = null
       props.push(col.title)
     }
@@ -1251,6 +1265,16 @@ const refreshFillHandle = () => {
   })
 }
 
+const selectedReadonly = computed(
+  () =>
+    // if all the selected columns are not readonly
+    (selectedRange.isEmpty() && activeCell.col && colMeta.value[activeCell.col].isReadonly) ||
+    (!selectedRange.isEmpty() &&
+      Array.from({ length: selectedRange.end.col - selectedRange.start.col + 1 }).every(
+        (_, i) => colMeta.value[selectedRange.start.col + i].isReadonly,
+      )),
+)
+
 const showFillHandle = computed(
   () =>
     !readOnly.value &&
@@ -1259,16 +1283,10 @@ const showFillHandle = computed(
     !dataRef.value[(isNaN(selectedRange.end.row) ? activeCell.row : selectedRange.end.row) ?? -1]?.rowMeta?.new &&
     activeCell.col !== null &&
     fields.value[activeCell.col] &&
-    !(
-      isLookup(fields.value[activeCell.col]) ||
-      isRollup(fields.value[activeCell.col]) ||
-      isFormula(fields.value[activeCell.col]) ||
-      isCreatedOrLastModifiedTimeCol(fields.value[activeCell.col]) ||
-      isCreatedOrLastModifiedByCol(fields.value[activeCell.col])
-    ) &&
     !isViewDataLoading.value &&
     !isPaginationLoading.value &&
-    dataRef.value.length,
+    dataRef.value.length &&
+    !selectedReadonly.value,
 )
 
 watch(
@@ -1660,7 +1678,7 @@ onKeyStroke('ArrowDown', onDown)
                   </div>
                 </th>
                 <th
-                  v-if="fields[0]"
+                  v-if="fields[0] && fields[0].id"
                   v-xc-ver-resize
                   :data-col="fields[0].id"
                   :data-title="fields[0].title"
@@ -1693,9 +1711,9 @@ onKeyStroke('ArrowDown', onDown)
                     <LazySmartsheetHeaderVirtualCell
                       v-if="fields[0] && colMeta[0].isVirtualCol"
                       :column="fields[0]"
-                      :hide-menu="readOnly || isMobileMode"
+                      :hide-menu="readOnly || !!isMobileMode"
                     />
-                    <LazySmartsheetHeaderCell v-else :column="fields[0]" :hide-menu="readOnly || isMobileMode" />
+                    <LazySmartsheetHeaderCell v-else :column="fields[0]" :hide-menu="readOnly || !!isMobileMode" />
                   </div>
                 </th>
                 <th
@@ -1728,9 +1746,9 @@ onKeyStroke('ArrowDown', onDown)
                     <LazySmartsheetHeaderVirtualCell
                       v-if="colMeta[index].isVirtualCol"
                       :column="col"
-                      :hide-menu="readOnly || isMobileMode"
+                      :hide-menu="readOnly || !!isMobileMode"
                     />
-                    <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="readOnly || isMobileMode" />
+                    <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="readOnly || !!isMobileMode" />
                   </div>
                 </th>
                 <th
@@ -1930,7 +1948,6 @@ onKeyStroke('ArrowDown', onDown)
                           <span class="flex-1" />
 
                           <div
-                            v-if="isUIAllowed('expandedForm')"
                             class="nc-expand"
                             :data-testid="`nc-expand-${rowIndex}`"
                             :class="{ 'nc-comment': row.rowMeta?.commentCount }"
@@ -1980,14 +1997,7 @@ onKeyStroke('ArrowDown', onDown)
                           'align-middle': !rowHeight || rowHeight === 1,
                           'align-top': rowHeight && rowHeight !== 1,
                           'filling': fillRangeMap[`${rowIndex}-0`],
-                          'readonly':
-                            (colMeta[0].isLookup ||
-                              colMeta[0].isRollup ||
-                              colMeta[0].isFormula ||
-                              colMeta[0].isCreatedOrLastModifiedTimeCol ||
-                              colMeta[0].isCreatedOrLastModifiedByCol) &&
-                            hasEditPermission &&
-                            selectRangeMap[`${rowIndex}-0`],
+                          'readonly': colMeta[0].isReadonly && hasEditPermission && selectRangeMap[`${rowIndex}-0`],
                           '!border-r-blue-400 !border-r-3': toBeDroppedColId === fields[0].id,
                         }"
                         :style="{
@@ -2055,13 +2065,7 @@ onKeyStroke('ArrowDown', onDown)
                           'align-top': rowHeight && rowHeight !== 1,
                           'filling': fillRangeMap[`${rowIndex}-${colIndex}`],
                           'readonly':
-                            (colMeta[colIndex].isLookup ||
-                              colMeta[colIndex].isRollup ||
-                              colMeta[colIndex].isFormula ||
-                              colMeta[colIndex].isCreatedOrLastModifiedTimeCol ||
-                              colMeta[colIndex].isCreatedOrLastModifiedByCol) &&
-                            hasEditPermission &&
-                            selectRangeMap[`${rowIndex}-${colIndex}`],
+                            colMeta[colIndex].isReadonly && hasEditPermission && selectRangeMap[`${rowIndex}-${colIndex}`],
                           '!border-r-blue-400 !border-r-3': toBeDroppedColId === columnObj.id,
                         }"
                         :style="{
@@ -2223,7 +2227,7 @@ onKeyStroke('ArrowDown', onDown)
               v-if="contextMenuTarget && hasEditPermission"
               class="nc-base-menu-item"
               data-testid="context-menu-item-paste"
-              :disabled="isSystemColumn(fields[contextMenuTarget.col])"
+              :disabled="selectedReadonly"
               @click="paste"
             >
               <div v-e="['a:row:paste']" class="flex gap-2 items-center">
@@ -2242,7 +2246,7 @@ onKeyStroke('ArrowDown', onDown)
                 (isLinksOrLTAR(fields[contextMenuTarget.col]) || !cellMeta[0]?.[contextMenuTarget.col].isVirtualCol)
               "
               class="nc-base-menu-item"
-              :disabled="isSystemColumn(fields[contextMenuTarget.col])"
+              :disabled="selectedReadonly"
               data-testid="context-menu-item-clear"
               @click="clearCell(contextMenuTarget)"
             >
@@ -2256,7 +2260,7 @@ onKeyStroke('ArrowDown', onDown)
             <NcMenuItem
               v-else-if="contextMenuTarget && hasEditPermission"
               class="nc-base-menu-item"
-              :disabled="isSystemColumn(fields[contextMenuTarget.col])"
+              :disabled="selectedReadonly"
               data-testid="context-menu-item-clear"
               @click="clearSelectedRangeOfCells()"
             >
@@ -2307,8 +2311,8 @@ onKeyStroke('ArrowDown', onDown)
     </div>
 
     <LazySmartsheetPagination
-      v-if="headerOnly !== true"
-      :key="isMobileMode"
+      v-if="headerOnly !== true && paginationDataRef"
+      :key="`nc-pagination-${isMobileMode}`"
       v-model:pagination-data="paginationDataRef"
       :show-api-timing="!isGroupBy"
       align-count-on-right
@@ -2477,7 +2481,18 @@ onKeyStroke('ArrowDown', onDown)
       overflow: hidden;
       @apply flex h-auto;
     }
+    &.active-cell {
+      :deep(.nc-cell) {
+        a.nc-cell-field-link {
+          @apply !text-brand-500;
 
+          &:hover,
+          .nc-cell-field {
+            @apply !text-brand-500;
+          }
+        }
+      }
+    }
     :deep(.nc-cell),
     :deep(.nc-virtual-cell) {
       @apply !text-small;
@@ -2505,6 +2520,13 @@ onKeyStroke('ArrowDown', onDown)
       input,
       textarea {
         @apply !p-0 m-0;
+      }
+
+      a.nc-cell-field-link {
+        @apply !text-current;
+        &:hover {
+          @apply !text-current;
+        }
       }
 
       &.nc-cell-longtext {
@@ -2753,6 +2775,10 @@ onKeyStroke('ArrowDown', onDown)
   @apply rounded text-gray-100 !bg-gray-100 !bg-opacity-65;
   animation: slow-show-1 5s ease 5s forwards;
 }
-</style>
 
-<style lang="scss"></style>
+.nc-grid-add-new-row {
+  :deep(.ant-btn.ant-dropdown-trigger.ant-btn-icon-only) {
+    @apply !flex items-center justify-center;
+  }
+}
+</style>

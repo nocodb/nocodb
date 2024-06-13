@@ -110,7 +110,6 @@ import NcIconsRowHeightShort from '~icons/nc-icons/row-height-short'
 import NcIconsRowHeightTall from '~icons/nc-icons/row-height-tall'
 import NcIconsRowHeightExtraTall from '~icons/nc-icons/row-height-extra-tall'
 import NcArticle from '~icons/nc-icons/article'
-import NcNotification from '~icons/material-symbols/notifications-outline'
 import NcCommentHere from '~icons/nc-icons/comment-here'
 import NcAddDataSource from '~icons/nc-icons/add-data-source'
 import NcDatabaseIcon from '~icons/nc-icons/database'
@@ -131,6 +130,9 @@ import NcDownload from '~icons/nc-icons/download'
 import NcOffice from '~icons/nc-icons/office'
 import NcArrowUpRight from '~icons/nc-icons/arrow-up-right'
 import NcSlash from '~icons/nc-icons/slash'
+import NcNotification from '~icons/nc-icons/bell'
+import NcCheckCircle from '~icons/nc-icons/check-circle'
+
 // import NcProjectGray from '~icons/nc-icons/project-gray'
 import NcPhoneCall from '~icons/nc-icons/phone-call'
 import NcItalic from '~icons/nc-icons/italic'
@@ -190,6 +192,13 @@ import NcHelp from '~icons/nc-icons/help'
 import NcAlertTriangle from '~icons/nc-icons/alert-triangle'
 import NcAudit from '~icons/nc-icons/audit'
 import NcMessageCircle from '~icons/nc-icons/message-circle'
+import NcKey from '~icons/nc-icons/key'
+
+import NcMinimize from '~icons/nc-icons/minimize'
+import NcMinimizeAll from '~icons/nc-icons/minimize-all'
+import NcMaximize from '~icons/nc-icons/maximize'
+import NcMaximizeAll from '~icons/nc-icons/maximize-all'
+import NcDrag from '~icons/nc-icons/drag'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -395,6 +404,7 @@ export const iconMap = {
   project: Project,
   search: NcSearch,
   calendar: Calendar,
+  checkCircle: NcCheckCircle,
   error: h('span', { class: 'material-symbols' }, 'error'),
   info: h(MsInfo, {}, () => 'info'),
   inbox: h('span', { class: 'material-symbols' }, 'inbox'),
@@ -612,6 +622,12 @@ export const iconMap = {
   alertTriangle: NcAlertTriangle,
   audit: NcAudit,
   messageCircle: NcMessageCircle,
+  ncKey: NcKey,
+  minimize: NcMinimize,
+  minimizeAll: NcMinimizeAll,
+  maximize: NcMaximize,
+  maximizeAll: NcMaximizeAll,
+  ncDrag: NcDrag,
 }
 
 export const getMdiIcon = (type: string): any => {

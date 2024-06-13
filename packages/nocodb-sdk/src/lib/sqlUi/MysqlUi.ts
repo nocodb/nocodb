@@ -1,5 +1,5 @@
 import UITypes from '../UITypes';
-import { IDType } from './index';
+import { IDType } from '~/lib';
 
 const dbTypes = [
   'int',
@@ -630,17 +630,13 @@ export class MysqlUi {
 
   static colPropUNDisabled(col) {
     // console.log(col);
-    if (
+    return !(
       col.dt === 'int' ||
       col.dt === 'tinyint' ||
       col.dt === 'smallint' ||
       col.dt === 'mediumint' ||
       col.dt === 'bigint'
-    ) {
-      return false;
-    } else {
-      return true;
-    }
+    );
   }
 
   static onCheckboxChangeAI(col) {

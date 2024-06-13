@@ -1,5 +1,6 @@
 import { isSystemColumn, UITypes, ViewTypes } from 'nocodb-sdk';
 import type { BoolType, ColumnReqType, ViewType } from 'nocodb-sdk';
+import type { NcContext } from '~/interface/config';
 import Model from '~/models/Model';
 import FormView from '~/models/FormView';
 import GridView from '~/models/GridView';
@@ -32,6 +33,7 @@ import {
   prepareForResponse,
   stringifyMetaProp,
 } from '~/utils/modelUtils';
+import { LinkToAnotherRecordColumn } from '~/models';
 
 const { v4: uuidv4 } = require('uuid');
 
@@ -82,6 +84,7 @@ export default class View implements ViewType {
 
   sorts: Sort[];
   filter: Filter;
+  fk_workspace_id?: string;
   base_id?: string;
   source_id?: string;
   show_system_fields?: boolean;
@@ -91,7 +94,11 @@ export default class View implements ViewType {
     Object.assign(this, data);
   }
 
-  public static async get(viewId: string, ncMeta = Noco.ncMeta) {
+  public static async get(
+    context: NcContext,
+    viewId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
     let view =
       viewId &&
       (await NocoCache.get(
@@ -99,7 +106,12 @@ export default class View implements ViewType {
         CacheGetType.TYPE_OBJECT,
       ));
     if (!view) {
-      view = await ncMeta.metaGet2(null, null, MetaTable.VIEWS, viewId);
+      view = await ncMeta.metaGet2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.VIEWS,
+        viewId,
+      );
       if (view) {
         view.meta = parseMetaProp(view);
         await NocoCache.set(`${CacheScope.VIEW}:${view.id}`, view);
@@ -110,6 +122,7 @@ export default class View implements ViewType {
   }
 
   public static async getByTitleOrId(
+    context: NcContext,
     { fk_model_id, titleOrId }: { titleOrId: string; fk_model_id: string },
     ncMeta = Noco.ncMeta,
   ) {
@@ -121,8 +134,8 @@ export default class View implements ViewType {
       ));
     if (!viewId) {
       const view = await ncMeta.metaGet2(
-        null,
-        null,
+        context.workspace_id,
+        context.base_id,
         MetaTable.VIEWS,
         { fk_model_id },
         null,
@@ -156,10 +169,11 @@ export default class View implements ViewType {
       }
       return view && new View(view);
     }
-    return viewId && this.get(viewId?.id || viewId);
+    return viewId && this.get(context, viewId?.id || viewId);
   }
 
   public static async getDefaultView(
+    context: NcContext,
     fk_model_id: string,
     ncMeta = Noco.ncMeta,
   ) {
@@ -171,8 +185,8 @@ export default class View implements ViewType {
       ));
     if (!view) {
       view = await ncMeta.metaGet2(
-        null,
-        null,
+        context.workspace_id,
+        context.base_id,
         MetaTable.VIEWS,
         {
           fk_model_id,
@@ -188,19 +202,28 @@ export default class View implements ViewType {
     return view && new View(view);
   }
 
-  public static async list(modelId: string, ncMeta = Noco.ncMeta) {
+  public static async list(
+    context: NcContext,
+    modelId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
     const cachedList = await NocoCache.getList(CacheScope.VIEW, [modelId]);
     let { list: viewsList } = cachedList;
     const { isNoneList } = cachedList;
     if (!isNoneList && !viewsList.length) {
-      viewsList = await ncMeta.metaList2(null, null, MetaTable.VIEWS, {
-        condition: {
-          fk_model_id: modelId,
+      viewsList = await ncMeta.metaList2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.VIEWS,
+        {
+          condition: {
+            fk_model_id: modelId,
+          },
+          orderBy: {
+            order: 'asc',
+          },
         },
-        orderBy: {
-          order: 'asc',
-        },
-      });
+      );
       for (const view of viewsList) {
         view.meta = parseMetaProp(view);
       }
@@ -215,6 +238,7 @@ export default class View implements ViewType {
   }
 
   static async insert(
+    context: NcContext,
     view: Partial<View> &
       Partial<
         FormView | GridView | GalleryView | KanbanView | MapView | CalendarView
@@ -249,32 +273,37 @@ export default class View implements ViewType {
 
     insertObj.meta = stringifyMetaProp(insertObj);
 
+    const model = await Model.getByIdOrName(
+      context,
+      { id: view.fk_model_id },
+      ncMeta,
+    );
+
     // get base and base id if missing
-    if (!(view.base_id && view.source_id)) {
-      const model = await Model.getByIdOrName({ id: view.fk_model_id }, ncMeta);
-      insertObj.base_id = model.base_id;
+    if (!view.source_id) {
       insertObj.source_id = model.source_id;
     }
 
     const copyFromView =
-      view.copy_from_id && (await View.get(view.copy_from_id, ncMeta));
-    await copyFromView?.getView();
+      view.copy_from_id && (await View.get(context, view.copy_from_id, ncMeta));
+    await copyFromView?.getView(context);
 
     const { id: view_id } = await ncMeta.metaInsert2(
-      null,
-      null,
+      context.workspace_id,
+      context.base_id,
       MetaTable.VIEWS,
       insertObj,
     );
 
     let columns: any[] = await (
-      await Model.getByIdOrName({ id: view.fk_model_id }, ncMeta)
-    ).getColumns(ncMeta);
+      await Model.getByIdOrName(context, { id: view.fk_model_id }, ncMeta)
+    ).getColumns(context, ncMeta);
 
     // insert view metadata based on view type
     switch (view.type) {
       case ViewTypes.GRID:
         await GridView.insert(
+          context,
           {
             ...((copyFromView?.view as GridView) || {}),
             ...(view as GridView),
@@ -285,6 +314,7 @@ export default class View implements ViewType {
         break;
       case ViewTypes.MAP:
         await MapView.insert(
+          context,
           {
             ...(view as MapView),
             fk_view_id: view_id,
@@ -294,6 +324,7 @@ export default class View implements ViewType {
         break;
       case ViewTypes.GALLERY:
         await GalleryView.insert(
+          context,
           {
             ...(copyFromView?.view || {}),
             ...view,
@@ -304,6 +335,7 @@ export default class View implements ViewType {
         break;
       case ViewTypes.FORM:
         await FormView.insert(
+          context,
           {
             heading: view.title,
             ...(copyFromView?.view || {}),
@@ -318,6 +350,7 @@ export default class View implements ViewType {
         (view as KanbanView).fk_grp_col_id = view.fk_grp_col_id;
 
         await KanbanView.insert(
+          context,
           {
             ...(copyFromView?.view || {}),
             ...view,
@@ -335,6 +368,7 @@ export default class View implements ViewType {
         });
 
         await CalendarView.insert(
+          context,
           {
             ...(copyFromView?.view || {}),
             ...view,
@@ -343,17 +377,18 @@ export default class View implements ViewType {
           ncMeta,
         );
 
-        await CalendarRange.bulkInsert(calendarRange, ncMeta);
+        await CalendarRange.bulkInsert(context, calendarRange, ncMeta);
       }
     }
 
     if (copyFromView) {
-      const sorts = await copyFromView.getSorts(ncMeta);
-      const filters = await copyFromView.getFilters(ncMeta);
-      columns = await copyFromView.getColumns(ncMeta);
+      const sorts = await copyFromView.getSorts(context, ncMeta);
+      const filters = await copyFromView.getFilters(context, ncMeta);
+      columns = await copyFromView.getColumns(context, ncMeta);
 
       for (const sort of sorts) {
         await Sort.insert(
+          context,
           {
             ...extractProps(sort, [
               'fk_column_id',
@@ -371,6 +406,7 @@ export default class View implements ViewType {
 
       for (const filter of filters.children) {
         await Filter.insert(
+          context,
           {
             ...extractProps(filter, [
               'id',
@@ -399,7 +435,11 @@ export default class View implements ViewType {
       let calendarRanges: Array<string> | null = null;
 
       if (view.type === ViewTypes.CALENDAR) {
-        calendarRanges = await View.getRangeColumnsAsArray(view_id, ncMeta);
+        calendarRanges = await View.getRangeColumnsAsArray(
+          context,
+          view_id,
+          ncMeta,
+        );
       }
 
       if (view.type === ViewTypes.KANBAN && !copyFromView) {
@@ -432,7 +472,7 @@ export default class View implements ViewType {
         const italic = false;
 
         if (view.type === ViewTypes.GALLERY) {
-          const galleryView = await GalleryView.get(view_id, ncMeta);
+          const galleryView = await GalleryView.get(context, view_id, ncMeta);
           if (
             vCol.id === galleryView.fk_cover_image_col_id ||
             vCol.pv ||
@@ -444,7 +484,7 @@ export default class View implements ViewType {
             show = false;
           }
         } else if (view.type === ViewTypes.KANBAN && !copyFromView) {
-          const kanbanView = await KanbanView.get(view_id, ncMeta);
+          const kanbanView = await KanbanView.get(context, view_id, ncMeta);
           if (vCol.id === kanbanView?.fk_grp_col_id) {
             // include grouping field if it exists
             show = true;
@@ -461,14 +501,14 @@ export default class View implements ViewType {
             show = false;
           }
         } else if (view.type === ViewTypes.CALENDAR && !copyFromView) {
-          const calendarView = await CalendarView.get(view_id, ncMeta);
+          const calendarView = await CalendarView.get(context, view_id, ncMeta);
           if (calendarRanges && calendarRanges.includes(vCol.id)) {
             show = true;
           } else
             show = vCol.id === calendarView?.fk_cover_image_col_id || vCol.pv;
           // Show all Fields in Ranges
         } else if (view.type === ViewTypes.MAP && !copyFromView) {
-          const mapView = await MapView.get(view_id, ncMeta);
+          const mapView = await MapView.get(context, view_id, ncMeta);
           if (vCol.id === mapView?.fk_geo_data_col_id) {
             show = true;
           }
@@ -476,11 +516,12 @@ export default class View implements ViewType {
 
         // if columns is list of virtual columns then get the parent column
         const col = vCol.fk_column_id
-          ? await Column.get({ colId: vCol.fk_column_id }, ncMeta)
+          ? await Column.get(context, { colId: vCol.fk_column_id }, ncMeta)
           : vCol;
 
         if (isSystemColumn(col)) show = false;
         await View.insertColumn(
+          context,
           {
             order: order++,
             ...col,
@@ -499,11 +540,12 @@ export default class View implements ViewType {
     }
 
     await Model.getNonDefaultViewsCountAndReset(
+      context,
       { modelId: view.fk_model_id },
       ncMeta,
     );
 
-    return View.get(view_id, ncMeta).then(async (v) => {
+    return View.get(context, view_id, ncMeta).then(async (v) => {
       await NocoCache.appendToList(
         CacheScope.VIEW,
         [view.fk_model_id],
@@ -513,8 +555,12 @@ export default class View implements ViewType {
     });
   }
 
-  static async getRangeColumnsAsArray(viewId: string, ncMeta) {
-    const calRange = await CalendarRange.read(viewId, ncMeta);
+  static async getRangeColumnsAsArray(
+    context: NcContext,
+    viewId: string,
+    ncMeta,
+  ) {
+    const calRange = await CalendarRange.read(context, viewId, ncMeta);
     if (calRange) {
       const calIds: Set<string> = new Set();
       calRange.ranges.forEach((range) => {
@@ -526,6 +572,7 @@ export default class View implements ViewType {
   }
 
   static async insertColumnToAllViews(
+    context: NcContext,
     param: {
       fk_column_id: any;
       fk_model_id: any;
@@ -543,9 +590,10 @@ export default class View implements ViewType {
       order: param.order,
       show: param.column_show.show,
     };
-    const views = await this.list(param.fk_model_id, ncMeta);
+    const views = await this.list(context, param.fk_model_id, ncMeta);
 
     const tableColumns = await Column.list(
+      context,
       { fk_model_id: param.fk_model_id },
       ncMeta,
     );
@@ -566,14 +614,14 @@ export default class View implements ViewType {
       // if gallery/kanban view, show only 3 columns(excluding system columns)
       else if (view.type === ViewTypes.GALLERY) {
         const visibleColumnsCount = (
-          await GalleryViewColumn.list(view.id, ncMeta)
+          await GalleryViewColumn.list(context, view.id, ncMeta)
         )?.filter(
           (c) => c.show && !isSystemColumn(colIdMap.get(c.fk_column_id)),
         ).length;
         modifiedInsertObj.show = visibleColumnsCount < 3;
       } else if (view.type === ViewTypes.KANBAN) {
         const visibleColumnsCount = (
-          await KanbanViewColumn.list(view.id, ncMeta)
+          await KanbanViewColumn.list(context, view.id, ncMeta)
         )?.filter(
           (c) => c.show && !isSystemColumn(colIdMap.get(c.fk_column_id)),
         ).length;
@@ -588,14 +636,15 @@ export default class View implements ViewType {
 
       switch (view.type) {
         case ViewTypes.GRID:
-          await GridViewColumn.insert(modifiedInsertObj, ncMeta);
+          await GridViewColumn.insert(context, modifiedInsertObj, ncMeta);
           break;
         case ViewTypes.GALLERY:
-          await GalleryViewColumn.insert(modifiedInsertObj, ncMeta);
+          await GalleryViewColumn.insert(context, modifiedInsertObj, ncMeta);
           break;
 
         case ViewTypes.MAP:
           await MapViewColumn.insert(
+            context,
             {
               ...insertObj,
               fk_view_id: view.id,
@@ -604,10 +653,11 @@ export default class View implements ViewType {
           );
           break;
         case ViewTypes.KANBAN:
-          await KanbanViewColumn.insert(modifiedInsertObj, ncMeta);
+          await KanbanViewColumn.insert(context, modifiedInsertObj, ncMeta);
           break;
         case ViewTypes.CALENDAR:
           await CalendarViewColumn.insert(
+            context,
             {
               ...insertObj,
               fk_view_id: view.id,
@@ -616,13 +666,14 @@ export default class View implements ViewType {
           );
           break;
         case ViewTypes.FORM:
-          await FormViewColumn.insert(modifiedInsertObj, ncMeta);
+          await FormViewColumn.insert(context, modifiedInsertObj, ncMeta);
           break;
       }
     }
   }
 
   static async insertColumn(
+    context: NcContext,
     param: {
       view_id: any;
       order;
@@ -636,13 +687,14 @@ export default class View implements ViewType {
       Partial<CalendarViewColumn>,
     ncMeta = Noco.ncMeta,
   ) {
-    const view = await this.get(param.view_id, ncMeta);
+    const view = await this.get(context, param.view_id, ncMeta);
 
     let col;
     switch (view.type) {
       case ViewTypes.GRID:
         {
           col = await GridViewColumn.insert(
+            context,
             {
               ...param,
               fk_view_id: view.id,
@@ -654,6 +706,7 @@ export default class View implements ViewType {
       case ViewTypes.GALLERY:
         {
           col = await GalleryViewColumn.insert(
+            context,
             {
               ...param,
               fk_view_id: view.id,
@@ -665,6 +718,7 @@ export default class View implements ViewType {
       case ViewTypes.MAP:
         {
           col = await MapViewColumn.insert(
+            context,
             {
               ...param,
               fk_view_id: view.id,
@@ -676,6 +730,7 @@ export default class View implements ViewType {
       case ViewTypes.FORM:
         {
           col = await FormViewColumn.insert(
+            context,
             {
               ...param,
               fk_view_id: view.id,
@@ -687,6 +742,7 @@ export default class View implements ViewType {
       case ViewTypes.KANBAN:
         {
           col = await KanbanViewColumn.insert(
+            context,
             {
               ...param,
               fk_view_id: view.id,
@@ -698,6 +754,7 @@ export default class View implements ViewType {
       case ViewTypes.CALENDAR:
         {
           col = await CalendarViewColumn.insert(
+            context,
             {
               ...param,
               fk_view_id: view.id,
@@ -711,15 +768,20 @@ export default class View implements ViewType {
     return col;
   }
 
-  static async listWithInfo(id: string, ncMeta = Noco.ncMeta) {
-    const list = await this.list(id, ncMeta);
+  static async listWithInfo(
+    context: NcContext,
+    id: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const list = await this.list(context, id, ncMeta);
     for (const item of list) {
-      await item.getViewWithInfo(ncMeta);
+      await item.getViewWithInfo(context, ncMeta);
     }
     return list;
   }
 
   static async getColumns(
+    context: NcContext,
     viewId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<
@@ -733,27 +795,27 @@ export default class View implements ViewType {
     >
   > {
     let columns: Array<GridViewColumn | any> = [];
-    const view = await this.get(viewId, ncMeta);
+    const view = await this.get(context, viewId, ncMeta);
 
     // todo:  just get - order & show props
     switch (view.type) {
       case ViewTypes.GRID:
-        columns = await GridViewColumn.list(viewId, ncMeta);
+        columns = await GridViewColumn.list(context, viewId, ncMeta);
         break;
       case ViewTypes.GALLERY:
-        columns = await GalleryViewColumn.list(viewId, ncMeta);
+        columns = await GalleryViewColumn.list(context, viewId, ncMeta);
         break;
       case ViewTypes.MAP:
-        columns = await MapViewColumn.list(viewId, ncMeta);
+        columns = await MapViewColumn.list(context, viewId, ncMeta);
         break;
       case ViewTypes.FORM:
-        columns = await FormViewColumn.list(viewId, ncMeta);
+        columns = await FormViewColumn.list(context, viewId, ncMeta);
         break;
       case ViewTypes.KANBAN:
-        columns = await KanbanViewColumn.list(viewId, ncMeta);
+        columns = await KanbanViewColumn.list(context, viewId, ncMeta);
         break;
       case ViewTypes.CALENDAR:
-        columns = await CalendarViewColumn.list(viewId, ncMeta);
+        columns = await CalendarViewColumn.list(context, viewId, ncMeta);
         break;
     }
 
@@ -761,6 +823,7 @@ export default class View implements ViewType {
   }
 
   static async getViewColumnId(
+    context: NcContext,
     {
       viewId,
       colId,
@@ -770,7 +833,7 @@ export default class View implements ViewType {
     },
     ncMeta = Noco.ncMeta,
   ) {
-    const view = await this.get(viewId);
+    const view = await this.get(context, viewId);
     if (!view) return undefined;
 
     let tableName;
@@ -812,10 +875,15 @@ export default class View implements ViewType {
     const o = await NocoCache.get(key, CacheGetType.TYPE_STRING);
     if (o) return o;
 
-    const viewColumn = await ncMeta.metaGet2(null, null, tableName, {
-      fk_view_id: viewId,
-      fk_column_id: colId,
-    });
+    const viewColumn = await ncMeta.metaGet2(
+      context.workspace_id,
+      context.base_id,
+      tableName,
+      {
+        fk_view_id: viewId,
+        fk_column_id: colId,
+      },
+    );
     if (!viewColumn) return undefined;
 
     await NocoCache.set(key, viewColumn.id);
@@ -824,6 +892,7 @@ export default class View implements ViewType {
   }
 
   static async updateColumn(
+    context: NcContext,
     viewId: string,
     colId: string,
     colData: {
@@ -835,7 +904,7 @@ export default class View implements ViewType {
     },
     ncMeta = Noco.ncMeta,
   ) {
-    const view = await this.get(viewId, ncMeta);
+    const view = await this.get(context, viewId, ncMeta);
     let table;
     let cacheScope;
     switch (view.type) {
@@ -868,8 +937,8 @@ export default class View implements ViewType {
     // keep primary_value_column always visible and first in grid view
     if (view.type === ViewTypes.GRID) {
       const primary_value_column_meta = await ncMeta.metaGet2(
-        null,
-        null,
+        context.workspace_id,
+        context.base_id,
         MetaTable.COLUMNS,
         {
           fk_model_id: view.fk_model_id,
@@ -878,8 +947,8 @@ export default class View implements ViewType {
       );
 
       const primary_value_column = await ncMeta.metaGet2(
-        null,
-        null,
+        context.workspace_id,
+        context.base_id,
         MetaTable.GRID_VIEW_COLUMNS,
         {
           fk_view_id: view.id,
@@ -900,17 +969,24 @@ export default class View implements ViewType {
     }
 
     // set meta
-    const res = await ncMeta.metaUpdate(null, null, table, updateObj, colId);
+    const res = await ncMeta.metaUpdate(
+      context.workspace_id,
+      context.base_id,
+      table,
+      updateObj,
+      colId,
+    );
 
     await NocoCache.update(`${cacheScope}:${colId}`, updateObj);
 
     // on view column update, delete corresponding single query cache
-    await View.clearSingleQueryCache(view.fk_model_id, [view], ncMeta);
+    await View.clearSingleQueryCache(context, view.fk_model_id, [view], ncMeta);
 
     return res;
   }
 
   static async insertOrUpdateColumn(
+    context: NcContext,
     viewId: string,
     fkColId: string,
     colData: {
@@ -926,18 +1002,23 @@ export default class View implements ViewType {
     | MapViewColumn
     | any
   > {
-    const view = await this.get(viewId);
+    const view = await this.get(context, viewId, ncMeta);
     const table = this.extractViewColumnsTableName(view);
 
-    const existingCol = await ncMeta.metaGet2(null, null, table, {
-      fk_view_id: viewId,
-      fk_column_id: fkColId,
-    });
+    const existingCol = await ncMeta.metaGet2(
+      context.workspace_id,
+      context.base_id,
+      table,
+      {
+        fk_view_id: viewId,
+        fk_column_id: fkColId,
+      },
+    );
 
     if (existingCol) {
       await ncMeta.metaUpdate(
-        null,
-        null,
+        context.workspace_id,
+        context.base_id,
         table,
         {
           order: colData.order,
@@ -947,68 +1028,112 @@ export default class View implements ViewType {
       );
 
       // on view column update, delete any optimised single query cache
-      await View.clearSingleQueryCache(view.fk_model_id, [view], ncMeta);
+      await View.clearSingleQueryCache(
+        context,
+        view.fk_model_id,
+        [view],
+        ncMeta,
+      );
 
       return { ...existingCol, ...colData };
     } else {
       switch (view.type) {
         case ViewTypes.GRID:
-          return await GridViewColumn.insert({
-            fk_view_id: viewId,
-            fk_column_id: fkColId,
-            order: colData.order,
-            show: colData.show,
-          });
+          return await GridViewColumn.insert(
+            context,
+            {
+              fk_view_id: viewId,
+              fk_column_id: fkColId,
+              order: colData.order,
+              show: colData.show,
+            },
+            ncMeta,
+          );
         case ViewTypes.GALLERY:
-          return await GalleryViewColumn.insert({
-            fk_view_id: viewId,
-            fk_column_id: fkColId,
-            order: colData.order,
-            show: colData.show,
-          });
+          return await GalleryViewColumn.insert(
+            context,
+            {
+              fk_view_id: viewId,
+              fk_column_id: fkColId,
+              order: colData.order,
+              show: colData.show,
+            },
+            ncMeta,
+          );
         case ViewTypes.KANBAN:
-          return await KanbanViewColumn.insert({
-            fk_view_id: viewId,
-            fk_column_id: fkColId,
-            order: colData.order,
-            show: colData.show,
-          });
+          return await KanbanViewColumn.insert(
+            context,
+            {
+              fk_view_id: viewId,
+              fk_column_id: fkColId,
+              order: colData.order,
+              show: colData.show,
+            },
+            ncMeta,
+          );
         case ViewTypes.MAP:
-          return await MapViewColumn.insert({
-            fk_view_id: viewId,
-            fk_column_id: fkColId,
-            order: colData.order,
-            show: colData.show,
-          });
+          return await MapViewColumn.insert(
+            context,
+            {
+              fk_view_id: viewId,
+              fk_column_id: fkColId,
+              order: colData.order,
+              show: colData.show,
+            },
+            ncMeta,
+          );
         case ViewTypes.FORM:
-          return await FormViewColumn.insert({
-            fk_view_id: viewId,
-            fk_column_id: fkColId,
-            order: colData.order,
-            show: colData.show,
-          });
+          return await FormViewColumn.insert(
+            context,
+            {
+              fk_view_id: viewId,
+              fk_column_id: fkColId,
+              order: colData.order,
+              show: colData.show,
+            },
+            ncMeta,
+          );
         case ViewTypes.CALENDAR:
-          return await CalendarViewColumn.insert({
-            fk_view_id: viewId,
-            fk_column_id: fkColId,
-            order: colData.order,
-            show: colData.show,
-          });
+          return await CalendarViewColumn.insert(
+            context,
+            {
+              fk_view_id: viewId,
+              fk_column_id: fkColId,
+              order: colData.order,
+              show: colData.show,
+            },
+            ncMeta,
+          );
       }
-      return await ncMeta.metaInsert2(view.base_id, view.source_id, table, {
-        fk_view_id: viewId,
-        fk_column_id: fkColId,
-        order: colData.order,
-        show: colData.show,
-      });
+      return await ncMeta.metaInsert2(
+        context.workspace_id,
+        context.base_id,
+        table,
+        {
+          source_id: view.source_id,
+          fk_view_id: viewId,
+          fk_column_id: fkColId,
+          order: colData.order,
+          show: colData.show,
+        },
+      );
     }
   }
 
   // todo: cache
-  static async getByUUID(uuid: string, ncMeta = Noco.ncMeta) {
-    const view = await ncMeta.metaGet2(null, null, MetaTable.VIEWS, {
-      uuid,
-    });
+  static async getByUUID(
+    context: NcContext,
+    uuid: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const view = await ncMeta.metaGet2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.VIEWS,
+      {
+        uuid,
+      },
+    );
 
     if (view) {
       view.meta = parseMetaProp(view);
@@ -1017,16 +1142,16 @@ export default class View implements ViewType {
     return view && new View(view);
   }
 
-  static async share(viewId, ncMeta = Noco.ncMeta) {
-    const view = await this.get(viewId);
+  static async share(context: NcContext, viewId, ncMeta = Noco.ncMeta) {
+    const view = await this.get(context, viewId);
     if (!view.uuid) {
       const uuid = uuidv4();
       view.uuid = uuid;
 
       // set meta
       await ncMeta.metaUpdate(
-        null,
-        null,
+        context.workspace_id,
+        context.base_id,
         MetaTable.VIEWS,
         {
           uuid: view.uuid,
@@ -1047,8 +1172,8 @@ export default class View implements ViewType {
 
       // set meta
       await ncMeta.metaUpdate(
-        null,
-        null,
+        context.workspace_id,
+        context.base_id,
         MetaTable.VIEWS,
         prepareForDb({
           meta: defaultMeta,
@@ -1067,14 +1192,15 @@ export default class View implements ViewType {
   }
 
   static async passwordUpdate(
+    context: NcContext,
     viewId: string,
     { password }: { password: string },
     ncMeta = Noco.ncMeta,
   ) {
     // set meta
     await ncMeta.metaUpdate(
-      null,
-      null,
+      context.workspace_id,
+      context.base_id,
       MetaTable.VIEWS,
       {
         password,
@@ -1087,11 +1213,15 @@ export default class View implements ViewType {
     });
   }
 
-  static async sharedViewDelete(viewId, ncMeta = Noco.ncMeta) {
+  static async sharedViewDelete(
+    context: NcContext,
+    viewId,
+    ncMeta = Noco.ncMeta,
+  ) {
     // set meta
     await ncMeta.metaUpdate(
-      null,
-      null,
+      context.workspace_id,
+      context.base_id,
       MetaTable.VIEWS,
       {
         uuid: null,
@@ -1105,6 +1235,7 @@ export default class View implements ViewType {
   }
 
   static async update(
+    context: NcContext,
     viewId: string,
     body: {
       title?: string;
@@ -1127,12 +1258,12 @@ export default class View implements ViewType {
       'uuid',
     ]);
 
-    const oldView = await this.get(viewId, ncMeta);
+    const oldView = await this.get(context, viewId, ncMeta);
 
     // set meta
     await ncMeta.metaUpdate(
-      null,
-      null,
+      context.workspace_id,
+      context.base_id,
       MetaTable.VIEWS,
       prepareForDb(updateObj),
       viewId,
@@ -1155,37 +1286,47 @@ export default class View implements ViewType {
       );
     }
 
-    const view = await this.get(viewId);
+    const view = await this.get(context, viewId, ncMeta);
 
     if (view.type === ViewTypes.GRID) {
       if ('show_system_fields' in updateObj) {
-        await View.fixPVColumnForView(viewId, ncMeta);
+        await View.fixPVColumnForView(context, viewId, ncMeta);
       }
     }
 
     // on update, delete any optimised single query cache
-    await View.clearSingleQueryCache(view.fk_model_id, [view], ncMeta);
+    await View.clearSingleQueryCache(context, view.fk_model_id, [view], ncMeta);
 
     return view;
   }
 
   // @ts-ignore
-  static async delete(viewId, ncMeta = Noco.ncMeta) {
-    const view = await this.get(viewId, ncMeta);
-    await Sort.deleteAll(viewId, ncMeta);
-    await Filter.deleteAll(viewId, ncMeta);
+  static async delete(context: NcContext, viewId, ncMeta = Noco.ncMeta) {
+    const view = await this.get(context, viewId, ncMeta);
+    await Sort.deleteAll(context, viewId, ncMeta);
+    await Filter.deleteAll(context, viewId, ncMeta);
     const table = this.extractViewTableName(view);
 
     const tableScope = this.extractViewTableNameScope(view);
     const columnTable = this.extractViewColumnsTableName(view);
     const columnTableScope = this.extractViewColumnsTableNameScope(view);
-    await ncMeta.metaDelete(null, null, columnTable, {
+    await ncMeta.metaDelete(
+      context.workspace_id,
+      context.base_id,
+      columnTable,
+      {
+        fk_view_id: viewId,
+      },
+    );
+    await ncMeta.metaDelete(context.workspace_id, context.base_id, table, {
       fk_view_id: viewId,
     });
-    await ncMeta.metaDelete(null, null, table, {
-      fk_view_id: viewId,
-    });
-    await ncMeta.metaDelete(null, null, MetaTable.VIEWS, viewId);
+    await ncMeta.metaDelete(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.VIEWS,
+      viewId,
+    );
     await NocoCache.deepDel(
       `${tableScope}:${viewId}`,
       CacheDelDirection.CHILD_TO_PARENT,
@@ -1193,9 +1334,14 @@ export default class View implements ViewType {
 
     // For Calendar View, delete the range associated with viewId
     if (view.type === ViewTypes.CALENDAR) {
-      await ncMeta.metaDelete(null, null, MetaTable.CALENDAR_VIEW_RANGE, {
-        fk_view_id: viewId,
-      });
+      await ncMeta.metaDelete(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.CALENDAR_VIEW_RANGE,
+        {
+          fk_view_id: viewId,
+        },
+      );
       await NocoCache.deepDel(
         `${CacheScope.CALENDAR_VIEW_RANGE}:${viewId}`,
         CacheDelDirection.CHILD_TO_PARENT,
@@ -1214,28 +1360,49 @@ export default class View implements ViewType {
       `${CacheScope.VIEW_ALIAS}:${view.fk_model_id}:${view.id}`,
     ]);
 
+    if (view?.id) {
+      // get all Links associated with the view and remove the view from the link
+      const links = await ncMeta.metaList2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.COL_RELATIONS,
+        {
+          condition: {
+            fk_target_view_id: view.id,
+          },
+        },
+      );
+
+      for (const link of links) {
+        await LinkToAnotherRecordColumn.update(context, link.fk_column_id, {
+          fk_target_view_id: null,
+        });
+      }
+    }
     // on update, delete any optimised single query cache
-    await View.clearSingleQueryCache(view.fk_model_id, [view], ncMeta);
+    await View.clearSingleQueryCache(context, view.fk_model_id, [view], ncMeta);
 
     await Model.getNonDefaultViewsCountAndReset(
+      context,
       { modelId: view.fk_model_id },
       ncMeta,
     );
   }
 
   static async showAllColumns(
+    context: NcContext,
     viewId,
     ignoreColdIds = [],
     ncMeta = Noco.ncMeta,
   ) {
-    const view = await this.get(viewId);
+    const view = await this.get(context, viewId);
     const table = this.extractViewColumnsTableName(view);
     const scope = this.extractViewColumnsTableNameScope(view);
 
     const columns = await view
-      .getModel(ncMeta)
-      .then((meta) => meta.getColumns());
-    const viewColumns = await this.getColumns(viewId, ncMeta);
+      .getModel(context, ncMeta)
+      .then((meta) => meta.getColumns(context, ncMeta));
+    const viewColumns = await this.getColumns(context, viewId, ncMeta);
     const availableColumnsInView = viewColumns.map(
       (column) => column.fk_column_id,
     );
@@ -1262,6 +1429,7 @@ export default class View implements ViewType {
       const colIndex = availableColumnsInView.indexOf(col.id);
       if (colIndex > -1) {
         await this.updateColumn(
+          context,
           viewId,
           viewColumns[colIndex].id,
           { show: true },
@@ -1269,6 +1437,7 @@ export default class View implements ViewType {
         );
       } else {
         await this.insertColumn(
+          context,
           {
             view_id: viewId,
             order: await ncMeta.metaGetNextOrder(table, {
@@ -1282,8 +1451,8 @@ export default class View implements ViewType {
       }
 
       // return await ncMeta.metaUpdate(
-      //   null,
-      //   null,
+      // context.workspace_id,
+      // context.base_id,
       //   table,
       //   { show: true },
       //   {
@@ -1303,18 +1472,19 @@ export default class View implements ViewType {
   }
 
   static async hideAllColumns(
+    context: NcContext,
     viewId,
     ignoreColdIds = [],
     ncMeta = Noco.ncMeta,
   ) {
-    const view = await this.get(viewId);
+    const view = await this.get(context, viewId, ncMeta);
     const table = this.extractViewColumnsTableName(view);
     const scope = this.extractViewColumnsTableNameScope(view);
 
     if (view.type === ViewTypes.GRID) {
       const primary_value_column = await ncMeta.metaGet2(
-        null,
-        null,
+        context.workspace_id,
+        context.base_id,
         MetaTable.COLUMNS,
         {
           fk_model_id: view.fk_model_id,
@@ -1335,7 +1505,7 @@ export default class View implements ViewType {
 
     const colsEssentialForView =
       view.type === ViewTypes.MAP
-        ? [(await MapView.get(viewId)).fk_geo_data_col_id]
+        ? [(await MapView.get(context, viewId, ncMeta)).fk_geo_data_col_id]
         : [];
 
     const mergedIgnoreColdIds = [...ignoreColdIds, ...colsEssentialForView];
@@ -1355,8 +1525,8 @@ export default class View implements ViewType {
     }
     // set meta
     return await ncMeta.metaUpdate(
-      null,
-      null,
+      context.workspace_id,
+      context.base_id,
       table,
       { show: false },
       {
@@ -1374,34 +1544,47 @@ export default class View implements ViewType {
     );
   }
 
-  static async shareViewList(tableId, ncMeta = Noco.ncMeta) {
+  static async shareViewList(
+    context: NcContext,
+    tableId,
+    ncMeta = Noco.ncMeta,
+  ) {
     const cachedList = await NocoCache.getList(CacheScope.VIEW, [tableId]);
     let { list: sharedViews } = cachedList;
     const { isNoneList } = cachedList;
     if (!isNoneList && !sharedViews.length) {
-      sharedViews = await ncMeta.metaList2(null, null, MetaTable.VIEWS, {
-        xcCondition: {
-          fk_model_id: {
-            eq: tableId,
-          },
-          _not: {
-            uuid: {
-              eq: null,
+      sharedViews = await ncMeta.metaList2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.VIEWS,
+        {
+          xcCondition: {
+            fk_model_id: {
+              eq: tableId,
+            },
+            _not: {
+              uuid: {
+                eq: null,
+              },
             },
           },
         },
-      });
+      );
       await NocoCache.setList(CacheScope.VIEW, [tableId], sharedViews);
     }
     sharedViews = sharedViews.filter((v) => v.uuid !== null);
     return sharedViews?.map((v) => new View(v));
   }
 
-  static async fixPVColumnForView(viewId, ncMeta = Noco.ncMeta) {
+  static async fixPVColumnForView(
+    context: NcContext,
+    viewId,
+    ncMeta = Noco.ncMeta,
+  ) {
     // get a list of view columns sorted by order
     const view_columns = await ncMeta.metaList2(
-      null,
-      null,
+      context.workspace_id,
+      context.base_id,
       MetaTable.GRID_VIEW_COLUMNS,
       {
         condition: {
@@ -1417,8 +1600,8 @@ export default class View implements ViewType {
     // get column meta for each view column
     for (const col of view_columns) {
       const col_meta = await ncMeta.metaGet2(
-        null,
-        null,
+        context.workspace_id,
+        context.base_id,
         MetaTable.COLUMNS,
         col.fk_column_id,
       );
@@ -1440,8 +1623,8 @@ export default class View implements ViewType {
       // if primary_value_column is not visible, make it visible
       if (!primary_value_column.show) {
         await ncMeta.metaUpdate(
-          null,
-          null,
+          context.workspace_id,
+          context.base_id,
           MetaTable.GRID_VIEW_COLUMNS,
           { show: true },
           primary_value_column.id,
@@ -1468,8 +1651,8 @@ export default class View implements ViewType {
         // update order of all columns in view to match the order in array
         for (let i = 0; i < view_columns.length; i++) {
           await ncMeta.metaUpdate(
-            null,
-            null,
+            context.workspace_id,
+            context.base_id,
             MetaTable.GRID_VIEW_COLUMNS,
             { order: i + 1 },
             view_columns[i].id,
@@ -1483,8 +1666,8 @@ export default class View implements ViewType {
     }
 
     const views = await ncMeta.metaList2(
-      null,
-      null,
+      context.workspace_id,
+      context.base_id,
       MetaTable.GRID_VIEW_COLUMNS,
       {
         condition: {
@@ -1499,6 +1682,7 @@ export default class View implements ViewType {
   }
 
   public static async clearSingleQueryCache(
+    context: NcContext,
     modelId: string,
     views?: { id?: string }[],
     ncMeta = Noco.ncMeta,
@@ -1510,11 +1694,16 @@ export default class View implements ViewType {
       views || (await NocoCache.getList(CacheScope.VIEW, [modelId])).list;
 
     if (!views && !viewsList?.length) {
-      viewsList = await ncMeta.metaList2(null, null, MetaTable.VIEWS, {
-        condition: {
-          fk_model_id: modelId,
+      viewsList = await ncMeta.metaList2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.VIEWS,
+        {
+          condition: {
+            fk_model_id: modelId,
+          },
         },
-      });
+      );
     }
 
     const deleteKeys = [];
@@ -1537,6 +1726,7 @@ export default class View implements ViewType {
   }
 
   static async bulkColumnInsertToViews(
+    context: NcContext,
     {
       columns,
       viewColumns,
@@ -1594,7 +1784,7 @@ export default class View implements ViewType {
       }
     } else {
       if (!columns) {
-        columns = await Column.list({ fk_model_id: view.fk_model_id });
+        columns = await Column.list(context, { fk_model_id: view.fk_model_id });
       }
 
       // todo: avoid duplicate code
@@ -1628,7 +1818,11 @@ export default class View implements ViewType {
       let calendarRangeColumns;
 
       if (view.type == ViewTypes.CALENDAR) {
-        const calendarRange = await CalendarRange.read(view.id, ncMeta);
+        const calendarRange = await CalendarRange.read(
+          context,
+          view.id,
+          ncMeta,
+        );
         if (calendarRange) {
           calendarRangeColumns = calendarRange.ranges
             .map((range) => [
@@ -1645,11 +1839,11 @@ export default class View implements ViewType {
         let show = 'show' in column ? column.show : true;
 
         if (view.type === ViewTypes.GALLERY) {
-          const galleryView = await GalleryView.get(view.id, ncMeta);
+          const galleryView = await GalleryView.get(context, view.id, ncMeta);
           if (
-            column.id === galleryView.fk_cover_image_col_id ||
-            column.pv ||
-            galleryShowLimit < 3
+            (column.id === galleryView.fk_cover_image_col_id && column.pv) ||
+            (column.id !== galleryView.fk_cover_image_col_id &&
+              (column.pv || galleryShowLimit < 3))
           ) {
             show = true;
             galleryShowLimit++;
@@ -1657,18 +1851,22 @@ export default class View implements ViewType {
             show = false;
           }
         } else if (view.type === ViewTypes.KANBAN && !copyFromView) {
-          const kanbanView = await KanbanView.get(view.id, ncMeta);
-          if (column.id === kanbanView?.fk_grp_col_id) {
+          const kanbanView = await KanbanView.get(context, view.id, ncMeta);
+          if (column.id === kanbanView?.fk_grp_col_id && column.pv) {
             // include grouping field if it exists
             show = true;
           } else if (
-            column.id === kanbanView.fk_cover_image_col_id ||
-            column.pv
+            (column.id === kanbanView.fk_cover_image_col_id && column.pv) ||
+            (column.id !== kanbanView.fk_cover_image_col_id && column.pv)
           ) {
-            // Show cover image or primary key
+            // Show primary key and cover image if it is a primary value; otherwise, it will be redundant.
             show = true;
             kanbanShowLimit++;
-          } else if (kanbanShowLimit < 3 && !isSystemColumn(column)) {
+          } else if (
+            column.id !== kanbanView.fk_cover_image_col_id &&
+            kanbanShowLimit < 3 &&
+            !isSystemColumn(column)
+          ) {
             // show at most 3 non-system columns
             show = true;
             kanbanShowLimit++;
@@ -1677,7 +1875,7 @@ export default class View implements ViewType {
             show = false;
           }
         } else if (view.type === ViewTypes.MAP && !copyFromView) {
-          const mapView = await MapView.get(view.id, ncMeta);
+          const mapView = await MapView.get(context, view.id, ncMeta);
           if (column.id === mapView?.fk_geo_data_col_id) {
             show = true;
           }
@@ -1704,48 +1902,48 @@ export default class View implements ViewType {
     switch (view.type) {
       case ViewTypes.GRID:
         await ncMeta.bulkMetaInsert(
-          null,
-          null,
+          context.workspace_id,
+          context.base_id,
           MetaTable.GRID_VIEW_COLUMNS,
           insertObjs,
         );
         break;
       case ViewTypes.GALLERY:
         await ncMeta.bulkMetaInsert(
-          null,
-          null,
+          context.workspace_id,
+          context.base_id,
           MetaTable.GALLERY_VIEW_COLUMNS,
           insertObjs,
         );
         break;
       case ViewTypes.MAP:
         await ncMeta.bulkMetaInsert(
-          null,
-          null,
+          context.workspace_id,
+          context.base_id,
           MetaTable.MAP_VIEW_COLUMNS,
           insertObjs,
         );
         break;
       case ViewTypes.KANBAN:
         await ncMeta.bulkMetaInsert(
-          null,
-          null,
+          context.workspace_id,
+          context.base_id,
           MetaTable.KANBAN_VIEW_COLUMNS,
           insertObjs,
         );
         break;
       case ViewTypes.FORM:
         await ncMeta.bulkMetaInsert(
-          null,
-          null,
+          context.workspace_id,
+          context.base_id,
           MetaTable.FORM_VIEW_COLUMNS,
           insertObjs,
         );
         break;
       case ViewTypes.CALENDAR:
         await ncMeta.bulkMetaInsert(
-          null,
-          null,
+          context.workspace_id,
+          context.base_id,
           MetaTable.CALENDAR_VIEW_COLUMNS,
           insertObjs,
         );
@@ -1753,6 +1951,7 @@ export default class View implements ViewType {
   }
 
   static async insertMetaOnly(
+    context: NcContext,
     view: Partial<View> &
       Partial<
         FormView | GridView | GalleryView | KanbanView | MapView | CalendarView
@@ -1762,7 +1961,7 @@ export default class View implements ViewType {
         calendar_range?: Partial<CalendarRange>[];
       },
     model: {
-      getColumns: () => Promise<Column[]>;
+      getColumns: (context: NcContext, ncMeta?) => Promise<Column[]>;
     },
     ncMeta = Noco.ncMeta,
   ) {
@@ -1793,19 +1992,23 @@ export default class View implements ViewType {
     insertObj.meta = stringifyMetaProp(insertObj);
 
     const copyFromView =
-      view.copy_from_id && (await View.get(view.copy_from_id, ncMeta));
-    await copyFromView?.getView();
+      view.copy_from_id && (await View.get(context, view.copy_from_id, ncMeta));
+    await copyFromView?.getView(context);
+
+    const table = await Model.getByIdOrName(
+      context,
+      { id: view.fk_model_id },
+      ncMeta,
+    );
 
     // get base and base id if missing
-    if (!(view.base_id && view.source_id)) {
-      const model = await Model.getByIdOrName({ id: view.fk_model_id }, ncMeta);
-      insertObj.base_id = model.base_id;
-      insertObj.source_id = model.source_id;
+    if (!view.source_id) {
+      insertObj.source_id = table.source_id;
     }
 
     const insertedView = await ncMeta.metaInsert2(
-      null,
-      null,
+      context.workspace_id,
+      context.base_id,
       MetaTable.VIEWS,
       insertObj,
     );
@@ -1816,6 +2019,7 @@ export default class View implements ViewType {
     switch (view.type) {
       case ViewTypes.GRID:
         await GridView.insert(
+          context,
           {
             ...((copyFromView?.view as GridView) || {}),
             ...(view as GridView),
@@ -1826,6 +2030,7 @@ export default class View implements ViewType {
         break;
       case ViewTypes.MAP:
         await MapView.insert(
+          context,
           {
             ...(view as MapView),
             fk_view_id: view_id,
@@ -1835,6 +2040,7 @@ export default class View implements ViewType {
         break;
       case ViewTypes.GALLERY:
         await GalleryView.insert(
+          context,
           {
             ...(copyFromView?.view || {}),
             ...view,
@@ -1845,6 +2051,7 @@ export default class View implements ViewType {
         break;
       case ViewTypes.FORM:
         await FormView.insert(
+          context,
           {
             heading: view.title,
             ...(copyFromView?.view || {}),
@@ -1859,6 +2066,7 @@ export default class View implements ViewType {
         (view as KanbanView).fk_grp_col_id = view.fk_grp_col_id;
 
         await KanbanView.insert(
+          context,
           {
             ...(copyFromView?.view || {}),
             ...view,
@@ -1875,8 +2083,9 @@ export default class View implements ViewType {
           range.fk_view_id = view_id;
         });
 
-        await CalendarRange.bulkInsert(calendarRange, ncMeta);
+        await CalendarRange.bulkInsert(context, calendarRange, ncMeta);
         await CalendarView.insert(
+          context,
           {
             ...(copyFromView?.view || {}),
             ...view,
@@ -1891,12 +2100,13 @@ export default class View implements ViewType {
 
     //  copy from view
     if (copyFromView) {
-      const sorts = await copyFromView.getSorts(ncMeta);
+      const sorts = await copyFromView.getSorts(context, ncMeta);
       const filters = await Filter.rootFilterList(
+        context,
         { viewId: copyFromView.id },
         ncMeta,
       );
-      const viewColumns = await copyFromView.getColumns(ncMeta);
+      const viewColumns = await copyFromView.getColumns(context, ncMeta);
 
       const sortInsertObjs = [];
       const filterInsertObjs = [];
@@ -1937,7 +2147,7 @@ export default class View implements ViewType {
           });
           if (filter.is_group)
             await Promise.all(
-              ((await filter.getChildren()) || []).map(async (child) => {
+              ((await filter.getChildren(context)) || []).map(async (child) => {
                 await fn(child, generatedId);
               }),
             );
@@ -1946,11 +2156,16 @@ export default class View implements ViewType {
         await fn(filter);
       }
 
-      await ncMeta.bulkMetaInsert(null, null, MetaTable.SORT, sortInsertObjs);
+      await ncMeta.bulkMetaInsert(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.SORT,
+        sortInsertObjs,
+      );
 
       await ncMeta.bulkMetaInsert(
-        null,
-        null,
+        context.workspace_id,
+        context.base_id,
         MetaTable.FILTER_EXP,
         filterInsertObjs,
         true,
@@ -1958,18 +2173,21 @@ export default class View implements ViewType {
 
       // populate view columns
       await View.bulkColumnInsertToViews(
+        context,
         { viewColumns, copyFromView },
         insertedView,
       );
     } else {
       // populate view columns
       await View.bulkColumnInsertToViews(
-        { columns: (await model.getColumns()) as any[] },
+        context,
+        { columns: (await model.getColumns(context, ncMeta)) as any[] },
         insertedView,
       );
     }
 
     await Model.getNonDefaultViewsCountAndReset(
+      context,
       { modelId: view.fk_model_id },
       ncMeta,
     );
@@ -2077,72 +2295,79 @@ export default class View implements ViewType {
     return scope;
   }
 
-  async getModel(ncMeta = Noco.ncMeta): Promise<Model> {
+  async getModel(context: NcContext, ncMeta = Noco.ncMeta): Promise<Model> {
     return (this.model = await Model.getByIdOrName(
+      context,
       { id: this.fk_model_id },
       ncMeta,
     ));
   }
 
-  async getModelWithInfo(ncMeta = Noco.ncMeta): Promise<Model> {
+  async getModelWithInfo(
+    context: NcContext,
+    ncMeta = Noco.ncMeta,
+  ): Promise<Model> {
     return (this.model = await Model.getWithInfo(
+      context,
       { id: this.fk_model_id },
       ncMeta,
     ));
   }
 
-  async getView<T>(): Promise<T> {
+  async getView<T>(context: NcContext, ncMeta = Noco.ncMeta): Promise<T> {
     switch (this.type) {
       case ViewTypes.GRID:
-        this.view = await GridView.get(this.id);
+        this.view = await GridView.get(context, this.id, ncMeta);
         break;
       case ViewTypes.KANBAN:
-        this.view = await KanbanView.get(this.id);
+        this.view = await KanbanView.get(context, this.id, ncMeta);
         break;
       case ViewTypes.GALLERY:
-        this.view = await GalleryView.get(this.id);
+        this.view = await GalleryView.get(context, this.id, ncMeta);
         break;
       case ViewTypes.MAP:
-        this.view = await MapView.get(this.id);
+        this.view = await MapView.get(context, this.id, ncMeta);
         break;
       case ViewTypes.FORM:
-        this.view = await FormView.get(this.id);
+        this.view = await FormView.get(context, this.id, ncMeta);
         break;
       case ViewTypes.CALENDAR:
-        this.view = await CalendarView.get(this.id);
+        this.view = await CalendarView.get(context, this.id, ncMeta);
         break;
     }
     return <T>this.view;
   }
 
   async getViewWithInfo(
+    context: NcContext,
     ncMeta = Noco.ncMeta,
   ): Promise<FormView | GridView | KanbanView | GalleryView> {
     switch (this.type) {
       case ViewTypes.GRID:
-        this.view = await GridView.getWithInfo(this.id, ncMeta);
+        this.view = await GridView.getWithInfo(context, this.id, ncMeta);
         break;
       case ViewTypes.KANBAN:
-        this.view = await KanbanView.get(this.id, ncMeta);
+        this.view = await KanbanView.get(context, this.id, ncMeta);
         break;
       case ViewTypes.GALLERY:
-        this.view = await GalleryView.get(this.id, ncMeta);
+        this.view = await GalleryView.get(context, this.id, ncMeta);
         break;
       case ViewTypes.MAP:
-        this.view = await MapView.get(this.id, ncMeta);
+        this.view = await MapView.get(context, this.id, ncMeta);
         break;
       case ViewTypes.FORM:
-        this.view = await FormView.get(this.id, ncMeta);
+        this.view = await FormView.get(context, this.id, ncMeta);
         break;
       case ViewTypes.CALENDAR:
-        this.view = await CalendarView.get(this.id, ncMeta);
+        this.view = await CalendarView.get(context, this.id, ncMeta);
         break;
     }
     return this.view;
   }
 
-  public async getFilters(ncMeta = Noco.ncMeta) {
+  public async getFilters(context: NcContext, ncMeta = Noco.ncMeta) {
     return (this.filter = (await Filter.getFilterObject(
+      context,
       {
         viewId: this.id,
       },
@@ -2150,15 +2375,15 @@ export default class View implements ViewType {
     )) as any);
   }
 
-  public async getSorts(ncMeta = Noco.ncMeta) {
-    return (this.sorts = await Sort.list({ viewId: this.id }, ncMeta));
+  public async getSorts(context: NcContext, ncMeta = Noco.ncMeta) {
+    return (this.sorts = await Sort.list(context, { viewId: this.id }, ncMeta));
   }
 
-  async getColumns(ncMeta = Noco.ncMeta) {
-    return (this.columns = await View.getColumns(this.id, ncMeta));
+  async getColumns(context: NcContext, ncMeta = Noco.ncMeta) {
+    return (this.columns = await View.getColumns(context, this.id, ncMeta));
   }
 
-  async delete(ncMeta = Noco.ncMeta) {
-    await View.delete(this.id, ncMeta);
+  async delete(context: NcContext, ncMeta = Noco.ncMeta) {
+    await View.delete(context, this.id, ncMeta);
   }
 }

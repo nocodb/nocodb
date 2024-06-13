@@ -1,9 +1,17 @@
+<script>
+export default {
+  inheritAttrs: false,
+}
+</script>
+
 <template>
-  <a-menu-item class="nc-menu-item">
-    <div class="nc-menu-item-inner">
-      <slot />
-    </div>
-  </a-menu-item>
+  <div class="w-full">
+    <a-menu-item v-bind="$attrs" class="nc-menu-item">
+      <div class="nc-menu-item-inner">
+        <slot />
+      </div>
+    </a-menu-item>
+  </div>
 </template>
 
 <style lang="scss">

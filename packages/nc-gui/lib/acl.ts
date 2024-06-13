@@ -34,6 +34,8 @@ const rolePermissions = {
       baseDelete: true,
       baseDuplicate: true,
       newUser: true,
+      tableRename: true,
+      tableDelete: true,
       viewCreateOrEdit: true,
       baseReorder: true,
       orgAdminPanel: true,
@@ -96,6 +98,8 @@ const rolePermissions = {
   },
   [ProjectRoles.COMMENTER]: {
     include: {
+      commentDelete: true,
+      commentResolve: true,
       commentEdit: true,
       commentList: true,
       commentCount: true,

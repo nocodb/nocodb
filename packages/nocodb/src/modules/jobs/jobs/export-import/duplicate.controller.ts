@@ -8,7 +8,6 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { Request } from 'express';
 import { ProjectStatus } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
@@ -18,6 +17,9 @@ import { generateUniqueName } from '~/helpers/exportImportHelpers';
 import { JobTypes } from '~/interface/Jobs';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
+import { TenantContext } from '~/decorators/tenant-context.decorator';
+import { NcContext, NcRequest } from '~/interface/config';
+import { RootScopes } from '~/utils/globals';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -36,7 +38,8 @@ export class DuplicateController {
     scope: 'org',
   })
   public async duplicateSharedBase(
-    @Req() req: Request,
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
     @Param('workspaceId') _workspaceId: string,
     @Param('sharedBaseId') sharedBaseId: string,
     @Body()
@@ -48,7 +51,13 @@ export class DuplicateController {
       base?: any;
     },
   ) {
-    const base = await Base.getByUuid(sharedBaseId);
+    const base = await Base.getByUuid(
+      {
+        workspace_id: RootScopes.BASE,
+        base_id: RootScopes.BASE,
+      },
+      sharedBaseId,
+    );
 
     if (!base) {
       throw new Error(`Base not found for id '${sharedBaseId}'`);
@@ -60,7 +69,7 @@ export class DuplicateController {
       throw new Error(`Source not found!`);
     }
 
-    const bases = await Base.list({});
+    const bases = await Base.list(context.workspace_id);
 
     const uniqueTitle = generateUniqueName(
       `${base.title} copy`,
@@ -78,6 +87,10 @@ export class DuplicateController {
     });
 
     const job = await this.jobsService.add(JobTypes.DuplicateBase, {
+      context: {
+        workspace_id: base.fk_workspace_id,
+        base_id: base.id,
+      },
       baseId: base.id,
       sourceId: source.id,
       dupProjectId: dupProject.id,
@@ -103,7 +116,8 @@ export class DuplicateController {
   @HttpCode(200)
   @Acl('duplicateBase')
   async duplicateBase(
-    @Req() req: Request,
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
     @Param('baseId') baseId: string,
     @Param('sourceId') sourceId?: string,
     @Body()
@@ -117,21 +131,21 @@ export class DuplicateController {
       base?: any;
     },
   ) {
-    const base = await Base.get(baseId);
+    const base = await Base.get(context, baseId);
 
     if (!base) {
       throw new Error(`Base not found for id '${baseId}'`);
     }
 
     const source = sourceId
-      ? await Source.get(sourceId)
+      ? await Source.get(context, sourceId)
       : (await base.getSources())[0];
 
     if (!source) {
       throw new Error(`Source not found!`);
     }
 
-    const bases = await Base.list({});
+    const bases = await Base.list(context.workspace_id);
 
     const uniqueTitle = generateUniqueName(
       `${base.title} copy`,
@@ -149,6 +163,7 @@ export class DuplicateController {
     });
 
     const job = await this.jobsService.add(JobTypes.DuplicateBase, {
+      context,
       baseId: base.id,
       sourceId: source.id,
       dupProjectId: dupProject.id,
@@ -170,7 +185,8 @@ export class DuplicateController {
   @HttpCode(200)
   @Acl('duplicateModel')
   async duplicateModel(
-    @Req() req: Request,
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
     @Param('baseId') baseId: string,
     @Param('modelId') modelId?: string,
     @Body()
@@ -182,21 +198,21 @@ export class DuplicateController {
       };
     },
   ) {
-    const base = await Base.get(baseId);
+    const base = await Base.get(context, baseId);
 
     if (!base) {
       throw new Error(`Base not found for id '${baseId}'`);
     }
 
-    const model = await Model.get(modelId);
+    const model = await Model.get(context, modelId);
 
     if (!model) {
       throw new Error(`Model not found!`);
     }
 
-    const source = await Source.get(model.source_id);
+    const source = await Source.get(context, model.source_id);
 
-    const models = await source.getModels();
+    const models = await source.getModels(context);
 
     const uniqueTitle = generateUniqueName(
       `${model.title} copy`,
@@ -204,6 +220,7 @@ export class DuplicateController {
     );
 
     const job = await this.jobsService.add(JobTypes.DuplicateModel, {
+      context,
       baseId: base.id,
       sourceId: source.id,
       modelId: model.id,
@@ -226,7 +243,8 @@ export class DuplicateController {
   @HttpCode(200)
   @Acl('duplicateColumn')
   async duplicateColumn(
-    @Req() req: Request,
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
     @Param('baseId') baseId: string,
     @Param('columnId') columnId?: string,
     @Body()
@@ -237,13 +255,13 @@ export class DuplicateController {
       extra?: any;
     },
   ) {
-    const base = await Base.get(baseId);
+    const base = await Base.get(context, baseId);
 
     if (!base) {
       throw new Error(`Base not found for id '${baseId}'`);
     }
 
-    const column = await Column.get({
+    const column = await Column.get(context, {
       source_id: base.id,
       colId: columnId,
     });
@@ -252,13 +270,14 @@ export class DuplicateController {
       throw new Error(`Column not found!`);
     }
 
-    const model = await Model.get(column.fk_model_id);
+    const model = await Model.get(context, column.fk_model_id);
 
     if (!model) {
       throw new Error(`Model not found!`);
     }
 
     const job = await this.jobsService.add(JobTypes.DuplicateColumn, {
+      context,
       baseId: base.id,
       sourceId: column.source_id,
       modelId: model.id,

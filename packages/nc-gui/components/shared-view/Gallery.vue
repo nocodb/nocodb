@@ -23,7 +23,7 @@ useProvideKanbanViewStore(meta, sharedView)
 </script>
 
 <template>
-  <div class="nc-container h-full mt-1.5 px-12">
+  <div class="nc-container h-full">
     <div class="flex flex-col h-full flex-1 min-w-0">
       <LazySmartsheetToolbar />
       <div class="h-full flex-1 min-w-0 min-h-0 bg-gray-50">

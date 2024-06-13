@@ -58,6 +58,9 @@ test.describe('Shared view', () => {
     });
     await dashboard.grid.toolbar.clickFilter();
 
+    // kludge: wait for 2 seconds to avoid flaky test
+    await page.waitForTimeout(2000);
+
     await page.goto(sharedLink);
     await page.reload();
 
@@ -84,6 +87,9 @@ test.describe('Shared view', () => {
 
     await dashboard.grid.toolbar.filter.reset();
 
+    // kludge: wait for 2 seconds to avoid flaky test
+    await page.waitForTimeout(2000);
+
     await page.goto(sharedLink);
     await page.reload();
 
@@ -103,6 +109,9 @@ test.describe('Shared view', () => {
     await dashboard.treeView.openTable({ title: 'Film' });
 
     await dashboard.grid.toolbar.groupBy.remove({ index: 0 });
+
+    // kludge: wait for 2 seconds to avoid flaky test
+    await page.waitForTimeout(2000);
 
     await page.goto(sharedLink);
     await page.reload();
@@ -246,7 +255,7 @@ test.describe('Shared view', () => {
      **/
 
     // verify download
-    await sharedPage.grid.toolbar.clickDownload(
+    await sharedPage.grid.topbar.clickDownload(
       'Download CSV',
       isSqlite(context) || isPg(context) ? 'expectedDataSqlite.txt' : 'expectedData.txt'
     );
@@ -284,12 +293,12 @@ test.describe('Shared view', () => {
     // verify if password request modal exists
     const sharedPage2 = new DashboardPage(page, context.base);
     await sharedPage2.rootPage.locator('input[placeholder="Enter password"]').fill('incorrect p@ssword');
-    await sharedPage2.rootPage.click('button:has-text("Unlock")');
+    await sharedPage2.rootPage.click('button[data-testid="nc-shared-view-password-submit-btn"]');
     await sharedPage2.verifyToast({ message: 'INVALID_SHARED_VIEW_PASSWORD' });
 
     // correct password
     await sharedPage2.rootPage.locator('input[placeholder="Enter password"]').fill('p@ssword');
-    await sharedPage2.rootPage.click('button:has-text("Unlock")');
+    await sharedPage2.rootPage.click('button[data-testid="nc-shared-view-password-submit-btn"]');
 
     // verify if download button is disabled
     await sharedPage2.grid.toolbar.verifyDownloadDisabled();

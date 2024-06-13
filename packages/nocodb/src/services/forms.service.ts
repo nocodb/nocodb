@@ -5,7 +5,7 @@ import type {
   UserType,
   ViewCreateReqType,
 } from 'nocodb-sdk';
-import type { NcRequest } from '~/interface/config';
+import type { NcContext, NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -17,25 +17,29 @@ import { CacheScope } from '~/utils/globals';
 export class FormsService {
   constructor(private readonly appHooksService: AppHooksService) {}
 
-  async formViewGet(param: { formViewId: string }) {
-    const formViewData = await FormView.getWithInfo(param.formViewId);
+  async formViewGet(context: NcContext, param: { formViewId: string }) {
+    const formViewData = await FormView.getWithInfo(context, param.formViewId);
     return formViewData;
   }
 
-  async formViewCreate(param: {
-    tableId: string;
-    body: ViewCreateReqType;
-    user: UserType;
-    req: NcRequest;
-  }) {
+  async formViewCreate(
+    context: NcContext,
+    param: {
+      tableId: string;
+      body: ViewCreateReqType;
+      user: UserType;
+      req: NcRequest;
+    },
+  ) {
     validatePayload(
       'swagger.json#/components/schemas/ViewCreateReq',
       param.body,
     );
 
-    const model = await Model.get(param.tableId);
+    const model = await Model.get(context, param.tableId);
 
     const { id } = await View.insertMetaOnly(
+      context,
       {
         ...param.body,
         // todo: sanitize
@@ -48,7 +52,7 @@ export class FormsService {
     );
 
     // populate  cache and add to list since the list cache already exist
-    const view = await View.get(id);
+    const view = await View.get(context, id);
     await NocoCache.appendToList(
       CacheScope.VIEW,
       [view.fk_model_id],
@@ -65,22 +69,25 @@ export class FormsService {
     return view;
   }
 
-  async formViewUpdate(param: {
-    formViewId: string;
-    form: FormUpdateReqType;
-    req: NcRequest;
-  }) {
+  async formViewUpdate(
+    context: NcContext,
+    param: {
+      formViewId: string;
+      form: FormUpdateReqType;
+      req: NcRequest;
+    },
+  ) {
     validatePayload(
       'swagger.json#/components/schemas/FormUpdateReq',
       param.form,
     );
-    const view = await View.get(param.formViewId);
+    const view = await View.get(context, param.formViewId);
 
     if (!view) {
       NcError.viewNotFound(param.formViewId);
     }
 
-    const res = await FormView.update(param.formViewId, param.form);
+    const res = await FormView.update(context, param.formViewId, param.form);
 
     this.appHooksService.emit(AppEvents.VIEW_UPDATE, {
       view,

@@ -115,11 +115,11 @@ onMounted(() => {
       <NcButton
         v-e="['c:sort']"
         :class="{
-          '!border-1 !rounded-lg !h-7': isCalendar,
-          '!border-0 ': !isCalendar,
+          '!border-1 !rounded-md': isCalendar,
+          '!border-0': !isCalendar,
         }"
         :disabled="isLocked"
-        class="nc-sort-menu-btn nc-toolbar-btn"
+        class="nc-sort-menu-btn nc-toolbar-btn !h-7"
         size="small"
         type="secondary"
       >
@@ -144,6 +144,7 @@ onMounted(() => {
               class="flex caption nc-sort-field-select w-44 flex-grow"
               :columns="columns"
               is-sort
+              :meta="meta"
               @click.stop
               @update:model-value="saveOrUpdate(sort, i)"
             />

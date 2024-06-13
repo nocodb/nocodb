@@ -1,7 +1,8 @@
 import { Controller, Get, Param, Req, UseGuards } from '@nestjs/common';
-import { Request } from 'express';
 import { PublicMetasService } from '~/services/public-metas.service';
 import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
+import { TenantContext } from '~/decorators/tenant-context.decorator';
+import { NcContext, NcRequest } from '~/interface/config';
 
 @UseGuards(PublicApiLimiterGuard)
 @Controller()
@@ -13,10 +14,11 @@ export class PublicMetasController {
     '/api/v2/public/shared-view/:sharedViewUuid/meta',
   ])
   async viewMetaGet(
-    @Req() req: Request,
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
     @Param('sharedViewUuid') sharedViewUuid: string,
   ) {
-    return await this.publicMetasService.viewMetaGet({
+    return await this.publicMetasService.viewMetaGet(context, {
       password: req.headers?.['xc-password'] as string,
       sharedViewUuid: sharedViewUuid,
     });
@@ -27,9 +29,10 @@ export class PublicMetasController {
     '/api/v2/public/shared-base/:sharedBaseUuid/meta',
   ])
   async publicSharedBaseGet(
+    @TenantContext() context: NcContext,
     @Param('sharedBaseUuid') sharedBaseUuid: string,
   ): Promise<any> {
-    return await this.publicMetasService.publicSharedBaseGet({
+    return await this.publicMetasService.publicSharedBaseGet(context, {
       sharedBaseUuid,
     });
   }

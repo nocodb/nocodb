@@ -144,11 +144,10 @@ watch(editable, (nextValue) => {
 const placeholder = computed(() => {
   if (
     ((isForm.value || isExpandedForm.value) && !isDateInvalid.value) ||
-    (isGrid.value && !showNull.value && !isDateInvalid.value && !isSystemColumn(columnMeta.value) && active.value)
+    (isGrid.value && !showNull.value && !isDateInvalid.value && !isSystemColumn(columnMeta.value) && active.value) ||
+    isEditColumn.value
   ) {
     return dateFormat.value
-  } else if (isEditColumn.value && (modelValue === '' || modelValue === null)) {
-    return t('labels.optional')
   } else if (modelValue === null && showNull.value) {
     return t('general.null').toUpperCase()
   } else if (isDateInvalid.value) {
@@ -300,8 +299,9 @@ function handleSelectDate(value?: dayjs.Dayjs) {
     :overlay-class-name="`${randomClass} nc-picker-date ${open ? 'active' : ''} !min-w-[260px]`"
   >
     <div
+      v-bind="$attrs"
       :title="localState?.format(dateFormat)"
-      class="nc-date-picker h-full flex items-center justify-between ant-picker-input relative group"
+      class="nc-date-picker h-full flex items-center justify-between ant-picker-input relative"
     >
       <input
         ref="datePickerRef"
@@ -320,9 +320,9 @@ function handleSelectDate(value?: dayjs.Dayjs) {
       />
 
       <GeneralIcon
-        v-if="localState"
+        v-if="localState && !readOnly"
         icon="closeCircle"
-        class="absolute right-0 top-[50%] transform -translate-y-1/2 invisible group-hover:visible cursor-pointer"
+        class="nc-clear-date-icon nc-action-icon absolute right-0 top-[50%] transform -translate-y-1/2 invisible cursor-pointer"
         @click.stop="handleSelectDate()"
       />
     </div>
@@ -354,7 +354,9 @@ function handleSelectDate(value?: dayjs.Dayjs) {
 </template>
 
 <style scoped>
-:deep(.ant-picker-input > input) {
-  @apply !text-current;
+.nc-cell-field {
+  &:hover .nc-clear-date-icon {
+    @apply visible;
+  }
 }
 </style>

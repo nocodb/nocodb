@@ -28,12 +28,16 @@ const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
 const isForm = inject(IsFormInj)!
 
+const column = inject(ColumnInj, null)!
+
 const _vModel = useVModel(props, 'modelValue', emits)
 
 const displayValue = computed(() => {
   if (_vModel.value === null) return null
 
   if (isNaN(Number(_vModel.value))) return null
+
+  if (parseProp(column.value.meta).isLocaleString) return Number(_vModel.value).toLocaleString()
 
   return Number(_vModel.value)
 })
@@ -96,7 +100,6 @@ function onKeyDown(e: any) {
     class="nc-cell-field outline-none py-1 border-none w-full h-full"
     :type="inputType"
     style="letter-spacing: 0.06rem"
-    :placeholder="isEditColumn ? $t('labels.optional') : ''"
     @blur="editEnabled = false"
     @keydown="onKeyDown"
     @keydown.down.stop

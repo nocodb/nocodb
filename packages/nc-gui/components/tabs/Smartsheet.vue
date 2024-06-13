@@ -14,6 +14,8 @@ const { metas, getMeta } = useMetas()
 
 useSidebar('nc-right-sidebar')
 
+const { isMobileMode } = useGlobal()
+
 const activeTab = toRef(props, 'activeTab')
 
 const route = useRoute()
@@ -160,7 +162,10 @@ const onResize = (sizes: { min: number; max: number; size: number }[]) => {
       <Splitpanes v-if="openedViewsTab === 'view'" class="nc-extensions-content-resizable-wrapper" @resized="onResize">
         <Pane class="flex flex-col h-full flex-1 min-w-0" size="60">
           <LazySmartsheetToolbar v-if="!isForm" />
-          <div :style="{ height: isForm ? '100%' : 'calc(100% - var(--toolbar-height))' }" class="flex flex-row w-full">
+          <div
+            :style="{ height: isForm || isMobileMode ? '100%' : 'calc(100% - var(--toolbar-height))' }"
+            class="flex flex-row w-full"
+          >
             <Transition name="layout" mode="out-in">
               <div v-if="openedViewsTab === 'view'" class="flex flex-1 min-h-0 w-3/4">
                 <div class="h-full flex-1 min-w-0 min-h-0 bg-white">

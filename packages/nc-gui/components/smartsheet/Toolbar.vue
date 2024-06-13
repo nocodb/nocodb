@@ -1,8 +1,6 @@
 <script lang="ts" setup>
 const { isGrid, isGallery, isKanban, isMap, isCalendar } = useSmartsheetStoreOrThrow()
 
-const isPublic = inject(IsPublicInj, ref(false))
-
 const { isMobileMode } = useGlobal()
 const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
@@ -16,13 +14,11 @@ const isTab = computed(() => {
   if (!isCalendar.value) return false
   return width.value > 1200
 })
-
-const { allowCSVDownload } = useSharedView()
 </script>
 
 <template>
   <div
-    v-if="!isMobileMode || isCalendar"
+    v-if="!isMobileMode"
     ref="containerRef"
     :class="{
       'px-4': isMobileMode,
@@ -47,9 +43,9 @@ const { allowCSVDownload } = useSharedView()
 
         <LazySmartsheetToolbarCalendarRange v-if="isCalendar" />
 
-        <LazySmartsheetToolbarFieldsMenu v-if="isGrid || isGallery || isKanban || isMap" :show-system-fields="false" />
-
         <LazySmartsheetToolbarStackedBy v-if="isKanban" />
+
+        <LazySmartsheetToolbarFieldsMenu v-if="isGrid || isGallery || isKanban || isMap" :show-system-fields="false" />
 
         <LazySmartsheetToolbarColumnFilterMenu v-if="isGrid || isGallery || isKanban || isMap" />
 
@@ -64,8 +60,6 @@ const { allowCSVDownload } = useSharedView()
         <LazySmartsheetToolbarRowHeight v-if="isGrid" />
 
         <!-- <LazySmartsheetToolbarQrScannerButton v-if="isMobileMode && (isGrid || isKanban || isGallery)" /> -->
-
-        <LazySmartsheetToolbarExport v-if="isPublic && allowCSVDownload" />
 
         <div class="flex-1" />
       </template>

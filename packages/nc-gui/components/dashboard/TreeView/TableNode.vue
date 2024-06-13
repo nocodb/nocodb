@@ -206,6 +206,13 @@ const deleteTable = () => {
   isOptionsOpen.value = false
   isTableDeleteDialogVisible.value = true
 }
+
+// TODO: Should find a way to render the components without using the `nextTick` function
+const refreshViews = async () => {
+  isExpanded.value = false
+  await nextTick()
+  isExpanded.value = true
+}
 </script>
 
 <template>
@@ -397,7 +404,7 @@ const deleteTable = () => {
       :base-id="base.id"
     />
 
-    <DashboardTreeViewViewsList v-if="isExpanded" :table-id="table.id" :base-id="base.id" />
+    <DashboardTreeViewViewsList v-if="isExpanded" :table-id="table.id" :base-id="base.id" @deleted="refreshViews" />
   </div>
 </template>
 

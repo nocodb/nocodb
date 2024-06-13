@@ -18,7 +18,11 @@ export function useViewFilters(
   _currentFilters?: Filter[],
   isNestedRoot?: boolean,
   isWebhook?: boolean,
+  isLink?: boolean,
+  linkColId?: Ref<string>,
 ) {
+  const savingStatus: Record<number, boolean> = {}
+
   const parentId = ref(_parentId)
 
   const currentFilters = ref(_currentFilters)
@@ -41,21 +45,23 @@ export function useViewFilters(
 
   const { addUndo, clone, defineViewScope } = useUndoRedo()
 
-  const _filters = ref<Filter[]>([])
+  const _filters = ref<FilterType[]>([...(currentFilters.value || [])])
 
   const nestedMode = computed(() => isPublic.value || !isUIAllowed('filterSync') || !isUIAllowed('filterChildrenRead'))
 
-  const filters = computed<Filter[]>({
+  const filters = computed<FilterType[]>({
     get: () => {
-      return nestedMode.value ? currentFilters.value! : _filters.value
+      return nestedMode.value && !isLink && !isWebhook ? currentFilters.value! : _filters.value
     },
     set: (value: Filter[]) => {
       if (nestedMode.value) {
         currentFilters.value = value
-        if (isNestedRoot) {
-          nestedFilters.value = value
+        if (!isLink && !isWebhook) {
+          if (isNestedRoot) {
+            nestedFilters.value = value
+          }
+          nestedFilters.value = [...nestedFilters.value]
         }
-        nestedFilters.value = [...nestedFilters.value]
         reloadHook?.trigger()
         return
       }
@@ -187,7 +193,7 @@ export function useViewFilters(
     return {
       comparison_op: comparisonOpList(options.value?.[0].uidt as UITypes).filter((compOp) =>
         isComparisonOpAllowed({ fk_column_id: options.value?.[0].id }, compOp),
-      )?.[0].value as FilterType['comparison_op'],
+      )?.[0]?.value as FilterType['comparison_op'],
       value: null,
       status: 'create',
       logical_op: logicalOps.size === 1 ? logicalOps.values().next().value : 'and',
@@ -229,10 +235,20 @@ export function useViewFilters(
     await Promise.all(promises)
 
     // Push all child filters into the allFilters array
-    allFilters.value.push(...allChildFilters)
+    if (!isLink && !isWebhook) allFilters.value.push(...allChildFilters)
   }
 
-  const loadFilters = async (hookId?: string, isWebhook = false, loadAllFilters = false) => {
+  const loadFilters = async ({
+    hookId,
+    isLink,
+    isWebhook,
+    loadAllFilters,
+  }: {
+    hookId?: string
+    isWebhook?: boolean
+    loadAllFilters?: boolean
+    isLink?: boolean
+  } = {}) => {
     if (!view.value?.id) return
 
     if (nestedMode.value) {
@@ -244,17 +260,25 @@ export function useViewFilters(
       if (isWebhook || hookId) {
         if (parentId.value) {
           filters.value = (await $api.dbTableFilter.childrenRead(parentId.value)).list as Filter[]
-        } else if (hookId) {
+        } else if (hookId && !isNestedRoot) {
           filters.value = (await $api.dbTableWebhookFilter.read(hookId)).list as Filter[]
         }
       } else {
-        if (parentId.value) {
-          filters.value = (await $api.dbTableFilter.childrenRead(parentId.value)).list as Filter[]
+        if (isLink || linkColId?.value) {
+          if (parentId.value) {
+            filters.value = (await $api.dbTableFilter.childrenRead(parentId.value)).list as Filter[]
+          } else if (linkColId?.value && !isNestedRoot) {
+            filters.value = (await $api.dbTableLinkFilter.read(linkColId?.value)).list as Filter[]
+          }
         } else {
-          filters.value = (await $api.dbTableFilter.read(view.value!.id!)).list as Filter[]
-          if (loadAllFilters) {
-            allFilters.value = [...filters.value]
-            await loadAllChildFilters(allFilters.value)
+          if (parentId.value) {
+            filters.value = (await $api.dbTableFilter.childrenRead(parentId.value)).list as Filter[]
+          } else {
+            filters.value = (await $api.dbTableFilter.read(view.value!.id!)).list as Filter[]
+            if (loadAllFilters) {
+              allFilters.value = [...filters.value]
+              await loadAllChildFilters(allFilters.value)
+            }
           }
         }
       }
@@ -264,7 +288,7 @@ export function useViewFilters(
     }
   }
 
-  const sync = async (hookId?: string, _nested = false) => {
+  const sync = async ({ hookId, linkId }: { hookId?: string; nested?: boolean; linkId?: string }) => {
     try {
       for (const [i, filter] of Object.entries(filters.value)) {
         if (filter.status === 'delete') {
@@ -272,7 +296,7 @@ export function useViewFilters(
           if (filter.is_group) {
             deleteFilterGroupFromAllFilters(filter)
           } else {
-            allFilters.value = allFilters.value.filter((f) => f.id !== filter.id)
+            if (!isLink && !isWebhook) allFilters.value = allFilters.value.filter((f) => f.id !== filter.id)
           }
         } else if (filter.status === 'update') {
           await $api.dbTableFilter.update(filter.id as string, {
@@ -285,6 +309,13 @@ export function useViewFilters(
           if (hookId) {
             filters.value[+i] = (await $api.dbTableWebhookFilter.create(hookId, {
               ...filter,
+              children: undefined,
+              fk_parent_id: parentId.value,
+            })) as unknown as FilterType
+          } else if (linkId || linkColId?.value) {
+            filters.value[+i] = (await $api.dbTableLinkFilter.create(linkId || linkColId.value, {
+              ...filter,
+              children: undefined,
               fk_parent_id: parentId.value,
             })) as unknown as FilterType
           } else {
@@ -296,11 +327,11 @@ export function useViewFilters(
 
           if (children) filters.value[+i].children = children
 
-          allFilters.value.push(filters.value[+i])
+          if (!isLink && !isWebhook) allFilters.value.push(filters.value[+i])
         }
       }
 
-      if (!isWebhook) reloadData?.()
+      if (!isWebhook && !isLink) reloadData?.()
     } catch (e: any) {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e))
@@ -308,7 +339,14 @@ export function useViewFilters(
   }
 
   const saveOrUpdate = async (filter: Filter, i: number, force = false, undo = false, skipDataReload = false) => {
-    if (!view.value) return
+    // if already in progress the debounced function which will call this function again with 500ms delay until it's not saving
+    if (savingStatus[i]) {
+      return saveOrUpdateDebounced(filter, i, force, undo, skipDataReload)
+    } else {
+      savingStatus[i] = true
+    }
+
+    if (!view.value && !linkColId?.value) return
 
     if (!undo) {
       const lastFilter = lastFilters.value[i]
@@ -348,34 +386,46 @@ export function useViewFilters(
         filters.value = [...filters.value]
       } else if (!autoApply?.value && !force) {
         filter.status = filter.id ? 'update' : 'create'
-      } else if (filter.id && filter.status !== 'create') {
-        await $api.dbTableFilter.update(filter.id, {
+      } else if (filters.value[i]?.id && filter.status !== 'create') {
+        await $api.dbTableFilter.update(filters.value[i].id!, {
           ...filter,
           fk_parent_id: parentId.value,
         })
         $e('a:filter:update', {
           logical: filter.logical_op,
           comparison: filter.comparison_op,
+          link: !!isLink,
+          webHook: !!isWebhook,
         })
       } else {
-        filters.value[i] = await $api.dbTableFilter.create(view.value.id!, {
-          ...filter,
-          fk_parent_id: parentId.value,
-        })
-
-        allFilters.value.push(filters.value[+i])
+        if (linkColId?.value) {
+          filters.value[i] = await $api.dbTableLinkFilter.create(linkColId.value, {
+            ...filter,
+            fk_parent_id: parentId,
+          })
+        } else {
+          filters.value[i] = await $api.dbTableFilter.create(view.value.id!, {
+            ...filter,
+            fk_parent_id: parentId.value,
+          })
+        }
+        if (!isLink && !isWebhook) allFilters.value.push(filters.value[+i])
       }
     } catch (e: any) {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e))
+    } finally {
+      savingStatus[i] = false
     }
 
     lastFilters.value = clone(filters.value)
 
-    if (!isWebhook && !skipDataReload) reloadData?.()
+    if (!isWebhook && !skipDataReload && !isLink) reloadData?.()
   }
 
   function deleteFilterGroupFromAllFilters(filter: Filter) {
+    if (!isLink && !isWebhook) return
+
     // Find all child filters of the specified parentId
     const childFilters = allFilters.value.filter((f) => f.fk_parent_id === filter.id)
 
@@ -414,7 +464,7 @@ export function useViewFilters(
     if (nestedMode.value) {
       filters.value.splice(i, 1)
       filters.value = [...filters.value]
-      if (!isWebhook) reloadData?.()
+      if (!isWebhook && !isLink) reloadData?.()
     } else {
       if (filter.id) {
         // if auto-apply disabled mark it as disabled
@@ -426,7 +476,7 @@ export function useViewFilters(
           try {
             await $api.dbTableFilter.delete(filter.id)
 
-            if (!isWebhook) reloadData?.()
+            if (!isWebhook && !isLink) reloadData?.()
             filters.value.splice(i, 1)
           } catch (e: any) {
             console.log(e)
@@ -437,13 +487,13 @@ export function useViewFilters(
       } else {
         filters.value.splice(i, 1)
       }
-      $e('a:filter:delete', { length: nonDeletedFilters.value.length })
+      $e('a:filter:delete', { length: nonDeletedFilters.value.length, link: !!isLink, webHook: !!isWebhook })
     }
 
     if (filter.is_group) {
       deleteFilterGroupFromAllFilters(filter)
     } else {
-      allFilters.value = allFilters.value.filter((f) => f.id !== filter.id)
+      if (!isLink && !isWebhook) allFilters.value = allFilters.value.filter((f) => f.id !== filter.id)
     }
   }
 
@@ -474,7 +524,7 @@ export function useViewFilters(
 
     lastFilters.value = clone(filters.value)
 
-    $e('a:filter:add', { length: filters.value.length })
+    $e('a:filter:add', { length: filters.value.length, link: !!isLink, webHook: !!isWebhook })
   }
 
   const addFilterGroup = async () => {
@@ -492,7 +542,7 @@ export function useViewFilters(
 
     lastFilters.value = clone(filters.value)
 
-    $e('a:filter:add', { length: filters.value.length, group: true })
+    $e('a:filter:add', { length: filters.value.length, group: true, link: !!isLink, webHook: !!isWebhook })
   }
 
   /** on column delete reload filters, identify by checking columns count */

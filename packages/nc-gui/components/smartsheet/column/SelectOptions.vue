@@ -453,7 +453,7 @@ if (isKanbanStack.value) {
               v-model:value="kanbanStackOption.title"
               placeholder="Enter option name..."
               class="caption !rounded-lg nc-select-col-option-select-option nc-kanban-stack-input !bg-transparent"
-              :data-testid="`select-column-option-input-${kanbanStackOption.index!}`"
+              data-testid="nc-kanban-stack-title-input"
               @keydown.enter.prevent.stop="syncOptions(true, true, kanbanStackOption!)"
               @change="() => {
                   kanbanStackOption!.status = undefined

@@ -372,7 +372,7 @@ onMounted(() => {
   }
   if (isKanbanStack.value && isNewStack.value) {
     addNewOption()
-  } else {
+  } else if (isKanbanStack.value) {
     nextTick(() => {
       setTimeout(() => {
         const doms = document.querySelectorAll(`.nc-col-option-select-option .nc-select-col-option-select-option`)

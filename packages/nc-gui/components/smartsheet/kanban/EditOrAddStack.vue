@@ -21,7 +21,11 @@ const reloadMetaAndData = async () => {
   await getMeta(meta.value?.id as string, true)
 }
 
-async function onSubmit(submit: boolean = false, saveChanges: boolean = true) {
+async function onSubmit(
+  submit: boolean = false,
+  saveChanges: boolean = true,
+  payload: Partial<{ color: string; title: string; [key: string]: any }>,
+) {
   if (!saveChanges && submit) {
     emit('submit')
     return
@@ -35,7 +39,7 @@ async function onSubmit(submit: boolean = false, saveChanges: boolean = true) {
   }
 
   if (submit) {
-    emit('submit', true)
+    emit('submit', true, payload)
   }
 }
 </script>

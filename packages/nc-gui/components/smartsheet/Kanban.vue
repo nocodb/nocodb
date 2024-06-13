@@ -390,9 +390,14 @@ const compareStack = (stack: any, stack2?: any) => stack?.id && stack2?.id && st
 
 const isSavingStack = ref(null)
 
-const handleSubmitRenameOrNewStack = async (loadMeta: boolean) => {
+const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stackIdx: number) => {
   isSavingStack.value = isRenameOrNewStack.value
   isRenameOrNewStack.value = null
+
+  if (stack && stack?.title && stack?.color) {
+    groupingFieldColOptions.value[stackIdx].title = stack.title
+    groupingFieldColOptions.value[stackIdx].color = stack.color
+  }
 
   if (loadMeta) {
     await loadKanbanMeta()
@@ -518,7 +523,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean) => {
                           <SmartsheetKanbanEditOrAddStack
                             :column="metaColumnById[isRenameOrNewStack?.fk_column_id]"
                             is-new-stack
-                            @submit="handleSubmitRenameOrNewStack"
+                            @submit="(loadMeta) => handleSubmitRenameOrNewStack(loadMeta, undefined, stackIdx)"
                             @cancel="isRenameOrNewStack = null"
                           />
                         </template>
@@ -595,7 +600,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean) => {
                             <SmartsheetKanbanEditOrAddStack
                               :column="metaColumnById[isRenameOrNewStack?.fk_column_id]"
                               :option-id="isRenameOrNewStack.id"
-                              @submit="handleSubmitRenameOrNewStack"
+                              @submit="(loadMeta, payload) => handleSubmitRenameOrNewStack(loadMeta, payload, stackIdx)"
                               @cancel="isRenameOrNewStack = null"
                             />
                           </template>

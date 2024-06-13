@@ -92,6 +92,15 @@ setAdditionalValidations({
   ...validators,
 } as any)
 
+const kanbanStackOption = computed(() => {
+  if (isNewStack.value) {
+    return renderedOptions.value[renderedOptions.value.length - 1]
+  } else if (optionId.value) {
+    return renderedOptions.value.find((o) => o.id === optionId.value)
+  }
+  return null
+})
+
 const getNextColor = () => {
   let tempColor = colors.value[0]
   if (options.value.length && options.value[options.value.length - 1].color) {
@@ -145,7 +154,7 @@ const addNewOption = () => {
 //   await _optionsMagic(base, formState, getNextColor, options.value, renderedOptions.value)
 // }
 
-const syncOptions = (saveChanges: boolean = false, submit: boolean = false) => {
+const syncOptions = (saveChanges: boolean = false, submit: boolean = false, payload?: Option) => {
   // set initial colOptions if not set
   vModel.value.colOptions = vModel.value.colOptions || {}
   vModel.value.colOptions.options = options.value
@@ -161,8 +170,8 @@ const syncOptions = (saveChanges: boolean = false, submit: boolean = false) => {
       return rest
     })
 
-  if (saveChanges) {
-    emit('saveChanges', submit)
+    if (saveChanges) {
+    emit('saveChanges', submit, true, payload)
   }
 }
 
@@ -377,15 +386,6 @@ onMounted(() => {
   }
 })
 
-const kanbanStackOption = computed(() => {
-  if (isNewStack.value) {
-    return renderedOptions.value[renderedOptions.value.length - 1]
-  } else if (optionId.value) {
-    return renderedOptions.value.find((o) => o.id === optionId.value)
-  }
-  return null
-})
-
 if (isKanbanStack.value) {
   onClickOutside(optionsWrapperDomRef, (e) => {
     if (!kanbanStackOption.value || (e.target as HTMLElement)?.closest(`.nc-select-option-color-picker`)) return
@@ -395,7 +395,7 @@ if (isKanbanStack.value) {
     )
 
     if (option?.title !== kanbanStackOption.value?.title || option?.color !== kanbanStackOption.value?.color) {
-      syncOptions(true, true)
+      syncOptions(true, true, kanbanStackOption.value)
     } else {
       emit('saveChanges', true, false)
     }
@@ -449,7 +449,7 @@ if (isKanbanStack.value) {
               placeholder="Enter option name..."
               class="caption !rounded-lg nc-select-col-option-select-option nc-kanban-stack-input !bg-transparent"
               :data-testid="`select-column-option-input-${kanbanStackOption.index!}`"
-              @keydown.enter.prevent.stop="syncOptions(true, true)"
+              @keydown.enter.prevent.stop="syncOptions(true, true, kanbanStackOption!)"
               @change="() => {
                   kanbanStackOption!.status = undefined
                   optionChanged(kanbanStackOption!)

@@ -159,6 +159,8 @@ const rolePermissions = {
   [ProjectRoles.COMMENTER]: {
     include: {
       commentEdit: true,
+      commentDelete: true,
+      commentResolve: true,
       commentList: true,
       commentCount: true,
     },

@@ -31,8 +31,6 @@ const route = useRoute()
 
 const { dashboardUrl } = useDashboard()
 
-const editRef = ref<any>()
-
 const { user, appInfo } = useGlobal()
 
 const basesStore = useBases()
@@ -101,7 +99,6 @@ function editComment(comment: CommentType) {
   isEditing.value = true
   nextTick(() => {
     scrollToComment(comment.id)
-    editRef.value?.focus()
   })
 }
 
@@ -226,7 +223,7 @@ const getUserRole = (email: string) => {
   const user = baseUsers.value.find((user) => user.email === email)
   if (!user) return ProjectRoles.NO_ACCESS
 
-  return user.roles
+  return user.roles || ProjectRoles.NO_ACCESS
 }
 
 const editedAt = (comment: CommentType) => {
@@ -324,10 +321,8 @@ const editedAt = (comment: CommentType) => {
                     </div>
                     <div class="flex items-center">
                       <NcDropdown
-                        v-if="(comment.created_by_email === user!.email && !editCommentValue )"
-                        :class="{
-                        '!hidden !group-hover:block': comment.created_by_email === user!.email && !editCommentValue,
-                        }"
+                        v-if="!editCommentValue"
+                        class="!hidden !group-hover:block"
                         overlay-class-name="!min-w-[160px]"
                         placement="bottomRight"
                       >
@@ -341,6 +336,7 @@ const editedAt = (comment: CommentType) => {
                         <template #overlay>
                           <NcMenu>
                             <NcMenuItem
+                              v-if="user && comment.created_by_email === user.email"
                               v-e="['c:comment-expand:comment:edit']"
                               class="text-gray-700"
                               @click="editComment(comment)"
@@ -360,17 +356,19 @@ const editedAt = (comment: CommentType) => {
                                 {{ $t('general.copy') }} URL
                               </div>
                             </NcMenuItem>
-                            <NcDivider />
-                            <NcMenuItem
-                              v-e="['c:row-expand:comment:delete']"
-                              class="!text-red-500 !hover:bg-red-50"
-                              @click="deleteComment(comment.id!)"
-                            >
-                              <div class="flex gap-2 items-center">
-                                <component :is="iconMap.delete" class="cursor-pointer" />
-                                {{ $t('general.delete') }}
-                              </div>
-                            </NcMenuItem>
+                            <template v-if="user && comment.created_by_email === user.email">
+                              <NcDivider />
+                              <NcMenuItem
+                                v-e="['c:row-expand:comment:delete']"
+                                class="!text-red-500 !hover:bg-red-50"
+                                @click="deleteComment(comment.id!)"
+                              >
+                                <div class="flex gap-2 items-center">
+                                  <component :is="iconMap.delete" class="cursor-pointer" />
+                                  {{ $t('general.delete') }}
+                                </div>
+                              </NcMenuItem>
+                            </template>
                           </NcMenu>
                         </template>
                       </NcDropdown>
@@ -410,7 +408,6 @@ const editedAt = (comment: CommentType) => {
                   >
                     <SmartsheetExpandedFormRichComment
                       v-if="comment.id === editCommentValue?.id"
-                      ref="editRef"
                       v-model:value="value"
                       autofocus
                       :hide-options="false"

@@ -214,6 +214,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
   }
 
   const resolveComment = async (commentId: string) => {
+    if (!isUIAllowed('commentResolve')) return
     const tempC = comments.value.find((c) => c.id === commentId)
 
     try {

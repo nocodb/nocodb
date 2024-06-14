@@ -3,7 +3,7 @@ import { type CommentType, ProjectRoles } from 'nocodb-sdk'
 
 const props = defineProps<{
   loading: boolean
-  primaryKey: string
+  primaryKey: string | null
 }>()
 
 const {

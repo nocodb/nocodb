@@ -13,7 +13,7 @@ interface Props {
   groupingFieldColumnId?: string
   geoDataFieldColumnId?: string
   tableId: string
-  calendarRange: Array<{
+  calendarRange?: Array<{
     fk_from_column_id: string
     fk_to_column_id: string | null // for ee only
   }>
@@ -36,7 +36,7 @@ interface Form {
   // for calendar view only
   calendar_range: Array<{
     fk_from_column_id: string
-    fk_to_column_id: string | undefined // for ee only
+    fk_to_column_id: string | null // for ee only
   }>
 }
 

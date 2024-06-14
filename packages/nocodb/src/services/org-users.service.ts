@@ -16,7 +16,7 @@ import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
 import { randomTokenString } from '~/helpers/stringHelpers';
-import { BaseUser, Store, User } from '~/models';
+import { BaseUser, Store, SyncSource, User } from '~/models';
 
 import Noco from '~/Noco';
 import { MetaTable, RootScopes } from '~/utils/globals';
@@ -65,7 +65,6 @@ export class OrgUsersService {
       }
 
       // delete base user entry and assign to super admin
-      // TODO-TENANT: scope this to org
       const baseUsers = await BaseUser.getProjectsIdList(param.userId, ncMeta);
 
       // todo: clear cache
@@ -84,8 +83,7 @@ export class OrgUsersService {
       }
 
       // delete sync source entry
-      // TODO-TENANT: ENABLE THIS & CONFIRM SCOPE
-      // await SyncSource.deleteByUserId(param.userId, ncMeta);
+      await SyncSource.deleteByUserId(param.userId, ncMeta);
 
       // delete user
       await User.delete(param.userId, ncMeta);

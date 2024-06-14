@@ -3850,7 +3850,6 @@ class BaseModelSqlv2 {
       let preInsertOps: (() => Promise<string>)[] = [];
       let aiPkCol: Column;
       let agPkCol: Column;
-
       if (!raw) {
         const columns = await this.model.getColumns(this.context);
 
@@ -3873,7 +3872,11 @@ class BaseModelSqlv2 {
                 );
               }
 
-              if (col.system && !allowSystemColumn) {
+              if (
+                col.system &&
+                !allowSystemColumn &&
+                col.uidt !== UITypes.ForeignKey
+              ) {
                 NcError.badRequest(
                   `Column "${col.title}" is system column and cannot be updated`,
                 );
@@ -4950,7 +4953,7 @@ class BaseModelSqlv2 {
           );
         }
 
-        if (column.system) {
+        if (column.system && column.uidt !== UITypes.ForeignKey) {
           NcError.badRequest(
             `Column "${column.title}" is system column and cannot be updated`,
           );
@@ -7184,7 +7187,7 @@ class BaseModelSqlv2 {
       );
   }
 
-  async getCustomConditionsAndApply(_params: {
+  async getCustomConditionsAndApply(params: {
     view?: View;
     column: Column<any>;
     qb?;
@@ -7193,7 +7196,8 @@ class BaseModelSqlv2 {
     rowId;
     columns?: Column[];
   }): Promise<any> {
-    return;
+    const { filters, qb } = params;
+    await conditionV2(this, filters, qb);
   }
 }
 
@@ -7500,10 +7504,11 @@ export function _wherePk(
 }
 
 export function getCompositePkValue(primaryKeys: Column[], row) {
-  if (typeof row !== 'object') return row;
-
-  if (row === null)
+  if (row === null || row === undefined) {
     NcError.requiredFieldMissing(primaryKeys.map((c) => c.title).join(','));
+  }
+
+  if (typeof row !== 'object') return row;
 
   return primaryKeys.map((c) => row[c.title] ?? row[c.column_name]).join('___');
 }

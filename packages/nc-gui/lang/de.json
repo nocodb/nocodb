@@ -210,7 +210,8 @@
     "set": "Set",
     "format": "Format",
     "colour": "Colour",
-    "use": "Use"
+    "use": "Use",
+    "stack": "Stack"
   },
   "objects": {
     "owner": "Owner",
@@ -336,8 +337,8 @@
     "parameter": "Parameter",
     "headers": "Kopfzeilen",
     "parameterName": "Parametername",
-    "currencyLocale": "Locale",
-    "currencyCode": "Code",
+    "currencyLocale": "Währung",
+    "currencyCode": "Währungscode",
     "searchMembers": "Nach Nutzern suchen",
     "noMembersFound": "Keine Mitglieder gefunden",
     "dateJoined": "Beitrittsdatum",
@@ -451,7 +452,8 @@
     "selectFieldsFromRightPannelToAddHere": "Select fields from right panel to add here",
     "noOptionsFound": "No options found",
     "surveyFormSubmitConfirmMsg": "Are you sure you want to submit this form?",
-    "noResultsMatchedYourSearch": "Your search did not yield any matching results."
+    "noResultsMatchedYourSearch": "Your search did not yield any matching results.",
+    "looksLikeThisStackIsEmpty": "Looks like this stack does not have any records"
   },
   "labels": {
     "selectView": "Select a View",
@@ -543,7 +545,7 @@
     "headerName": "Header Name",
     "icon": "Icon",
     "max": "Max",
-    "enableRichText": "Enable rich text",
+    "enableRichText": "Rich-Text-Format aktivieren",
     "idColon": "ID:",
     "copiedRecordURL": "Copied Record URL",
     "copyRecordURL": "Copy Record URL",
@@ -1006,6 +1008,9 @@
     },
     "kanban": {
       "collapseStack": "Stapel einklappen",
+      "collapseAll": "Collapse all",
+      "expandAll": "Expand all",
+      "renameStack": "Rename stack",
       "deleteStack": "Stapel löschen",
       "stackedBy": "Gestapelt von",
       "chooseGroupingField": "Wählen Sie ein Gruppierungsfeld",
@@ -1139,7 +1144,7 @@
     "optimizedQueryEnabled": "Optimized query is enabled",
     "lookupNonBtWarning": "Lookup field is not supported for non-Belongs to relation",
     "invalidTime": "Ungültige Uhrzeit",
-    "linkColumnClearNotSupportedYet": "You don't have any supported links for {type}",
+    "linkColumnClearNotSupportedYet": "You don't have any supported links for Lookup",
     "recordCouldNotBeFound": "Record could not be found",
     "invalidPhoneNumber": "Ungültige Telefonnummer",
     "pageSizeChanged": "Page size changed",
@@ -1212,7 +1217,7 @@
     "noRecordsLinked": "No records linked",
     "noLinkedRecords": "No linked records",
     "recordsLinked": "records linked",
-    "acceptOnlyValid": "Accept only valid {type}",
+    "acceptOnlyValid": "Accepts only",
     "apiTokenCreate": "Personalisierte API Tokens zur Verwendung in Automatisierungen oder externen Apps erstellen.",
     "selectFieldToSort": "Feld zum Sortieren auswählen",
     "selectFieldToGroup": "Feld zum Gruppieren auswählen",

@@ -210,7 +210,8 @@
     "set": "הגדר",
     "format": "פורמט",
     "colour": "צבע",
-    "use": "השתמש"
+    "use": "השתמש",
+    "stack": "Stack"
   },
   "objects": {
     "owner": "בעלים",
@@ -336,8 +337,8 @@
     "parameter": "פרמטר",
     "headers": "כותרות",
     "parameterName": "שם פרמטר",
-    "currencyLocale": "אזור",
-    "currencyCode": "קוד",
+    "currencyLocale": "Currency Locale",
+    "currencyCode": "Currency Code",
     "searchMembers": "חיפוש חברים",
     "noMembersFound": "לא נמצאו חברים",
     "dateJoined": "תאריך הצטרפות",
@@ -451,7 +452,8 @@
     "selectFieldsFromRightPannelToAddHere": "בחר שדות מהפאנל הימני להוסיף כאן",
     "noOptionsFound": "לא נמצאו אפשרויות",
     "surveyFormSubmitConfirmMsg": "האם אתה בטוח שברצונך לשלוח את הטופס הזה?",
-    "noResultsMatchedYourSearch": "לא נמצאו תוצאות התואמות את החיפוש שלך."
+    "noResultsMatchedYourSearch": "לא נמצאו תוצאות התואמות את החיפוש שלך.",
+    "looksLikeThisStackIsEmpty": "Looks like this stack does not have any records"
   },
   "labels": {
     "selectView": "Select a View",
@@ -543,7 +545,7 @@
     "headerName": "שם הכותרת",
     "icon": "סמל",
     "max": "מקסימום",
-    "enableRichText": "אפשר טקסט עשיר",
+    "enableRichText": "Enable Rich Text",
     "idColon": "מזהה:",
     "copiedRecordURL": "כתובת URL של הרשומה הועתקה",
     "copyRecordURL": "העתק כתובת URL של הרשומה",
@@ -1006,6 +1008,9 @@
     },
     "kanban": {
       "collapseStack": "כווץ מחסנית",
+      "collapseAll": "Collapse all",
+      "expandAll": "Expand all",
+      "renameStack": "Rename stack",
       "deleteStack": "מחק מחסנית",
       "stackedBy": "מחוסנית על ידי",
       "chooseGroupingField": "בחר שדה לקיבוץ",
@@ -1139,7 +1144,7 @@
     "optimizedQueryEnabled": "שאילתה מקורטת מופעלת",
     "lookupNonBtWarning": "שדה החיפוש לא נתמך לאינטרקציה מחוץ ליחס 'נמצא ב'",
     "invalidTime": "זמן לא חוקי",
-    "linkColumnClearNotSupportedYet": "אין לך שום קישורים נתמכים עבור {type}",
+    "linkColumnClearNotSupportedYet": "You don't have any supported links for Lookup",
     "recordCouldNotBeFound": "הרשומה לא נמצאה",
     "invalidPhoneNumber": "מספר טלפון לא חוקי",
     "pageSizeChanged": "גודל העמוד השתנה",
@@ -1212,7 +1217,7 @@
     "noRecordsLinked": "לא נקשרו רשומות",
     "noLinkedRecords": "אין רשומות מקושרות",
     "recordsLinked": "רשומות מקושרות",
-    "acceptOnlyValid": "קבל רק {type} חוקי",
+    "acceptOnlyValid": "Accepts only",
     "apiTokenCreate": "צור אסימון API אישי כדי להשתמש באוטומציה או ביישומי חיצוניים.",
     "selectFieldToSort": "בחר שדה למיון",
     "selectFieldToGroup": "בחר שדה לקיבוץ",

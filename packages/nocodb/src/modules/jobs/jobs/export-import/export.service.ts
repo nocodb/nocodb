@@ -279,6 +279,9 @@ export class ExportService {
                 if (view.type === ViewTypes.KANBAN) {
                   const meta = parseMetaProp(view.view) as Record<string, any>;
                   for (const [k, v] of Object.entries(meta)) {
+                    // keep non-array meta as it is
+                    if (!Array.isArray(v)) continue;
+
                     const colId = idMap.get(k as string);
                     for (const op of v) {
                       op.fk_column_id = idMap.get(op.fk_column_id);

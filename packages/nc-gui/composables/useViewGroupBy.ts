@@ -532,6 +532,8 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
               (c) => c.id === (nextCol?.colOptions as LookupType).fk_relation_column_id,
             )
 
+            if (!lookupRelation?.colOptions) break
+
             const relatedTableMeta = await getMeta(
               (lookupRelation?.colOptions as LinkToAnotherRecordType).fk_related_model_id as string,
             )

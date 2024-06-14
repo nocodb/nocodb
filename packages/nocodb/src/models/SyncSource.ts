@@ -150,17 +150,14 @@ export default class SyncSource {
     );
   }
 
-  static async deleteByUserId(
-    context: NcContext,
-    userId: string,
-    ncMeta = Noco.ncMeta,
-  ) {
-    throw new Error('Method not implemented.');
-
+  static async deleteByUserId(userId: string, ncMeta = Noco.ncMeta) {
     if (!userId) NcError.badRequest('User Id is required');
 
-    return await ncMeta.metaDeleteAll(MetaTable.SYNC_SOURCE, {
-      fk_user_id: userId,
-    });
+    return await ncMeta
+      .knex(MetaTable.SYNC_SOURCE)
+      .where({
+        fk_user_id: userId,
+      })
+      .del();
   }
 }

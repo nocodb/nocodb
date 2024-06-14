@@ -10,12 +10,14 @@ import type { ComputedRef, Ref } from 'vue'
 import type { SelectProps } from 'ant-design-vue'
 import { UITypes, isSystemColumn } from 'nocodb-sdk'
 
+type ColumnFilterType = FilterType & { status?: string; id?: string; children?: ColumnFilterType[]; is_group?: boolean }
+
 export function useViewFilters(
   view: Ref<ViewType | undefined>,
   _parentId: Ref<string | null> | null | string,
   autoApply?: ComputedRef<boolean>,
   reloadData?: () => void,
-  _currentFilters?: Filter[],
+  _currentFilters?: ColumnFilterType[],
   isNestedRoot?: boolean,
   isWebhook?: boolean,
   isLink?: boolean,
@@ -27,7 +29,7 @@ export function useViewFilters(
 
   const currentFilters = ref(_currentFilters)
 
-  const btLookupTypesMap = ref({})
+  const btLookupTypesMap = ref<Record<string, any>>({})
 
   const reloadHook = inject(ReloadViewDataHookInj)
 
@@ -45,15 +47,15 @@ export function useViewFilters(
 
   const { addUndo, clone, defineViewScope } = useUndoRedo()
 
-  const _filters = ref<FilterType[]>([...(currentFilters.value || [])])
+  const _filters = ref<ColumnFilterType[]>([...(currentFilters.value || [])])
 
   const nestedMode = computed(() => isPublic.value || !isUIAllowed('filterSync') || !isUIAllowed('filterChildrenRead'))
 
-  const filters = computed<FilterType[]>({
+  const filters = computed<ColumnFilterType[]>({
     get: () => {
       return nestedMode.value && !isLink && !isWebhook ? currentFilters.value! : _filters.value
     },
-    set: (value: Filter[]) => {
+    set: (value: ColumnFilterType[]) => {
       if (nestedMode.value) {
         currentFilters.value = value
         if (!isLink && !isWebhook) {
@@ -117,9 +119,9 @@ export function useViewFilters(
     }, {})
   })
 
-  const lastFilters = ref<Filter[]>([])
+  const lastFilters = ref<ColumnFilterType[]>([])
 
-  watchOnce(filters, (filters: Filter[]) => {
+  watchOnce(filters, (filters: ColumnFilterType[]) => {
     lastFilters.value = clone(filters)
   })
 
@@ -131,7 +133,7 @@ export function useViewFilters(
   }
 
   const isComparisonOpAllowed = (
-    filter: FilterType,
+    filter: ColumnFilterType,
     compOp: {
       text: string
       value: string
@@ -141,7 +143,7 @@ export function useViewFilters(
     },
   ) => {
     const isNullOrEmptyOp = ['empty', 'notempty', 'null', 'notnull'].includes(compOp.value)
-    const uidt = types.value[filter.fk_column_id]
+    const uidt = types.value[filter.fk_column_id!]
 
     if (compOp.includedTypes) {
       // include allowed values only if selected column type matches
@@ -167,7 +169,7 @@ export function useViewFilters(
   }
 
   const isComparisonSubOpAllowed = (
-    filter: FilterType,
+    filter: ColumnFilterType,
     compOp: {
       text: string
       value: string
@@ -176,7 +178,7 @@ export function useViewFilters(
       excludedTypes?: UITypes[]
     },
   ) => {
-    const uidt = types.value[filter.fk_column_id]
+    const uidt = types.value[filter.fk_column_id!]
 
     if (compOp.includedTypes) {
       // include allowed values only if selected column type matches
@@ -187,7 +189,7 @@ export function useViewFilters(
     }
   }
 
-  const placeholderFilter = (): Filter => {
+  const placeholderFilter = (): ColumnFilterType => {
     const logicalOps = new Set(filters.value.slice(1).map((filter) => filter.logical_op))
 
     return {
@@ -200,7 +202,7 @@ export function useViewFilters(
     }
   }
 
-  const placeholderGroupFilter = (): Filter => {
+  const placeholderGroupFilter = (): ColumnFilterType => {
     const logicalOps = new Set(filters.value.slice(1).map((filter) => filter.logical_op))
 
     return {
@@ -210,12 +212,12 @@ export function useViewFilters(
     }
   }
 
-  const loadAllChildFilters = async (filters: Filter[]) => {
+  const loadAllChildFilters = async (filters: ColumnFilterType[]) => {
     // Array to store promises of child filter loading
     const promises = []
 
     // Array to store all child filters
-    const allChildFilters: Filter[] = []
+    const allChildFilters: ColumnFilterType[] = []
 
     // Iterate over all filters
     for (const filter of filters) {
@@ -223,7 +225,7 @@ export function useViewFilters(
       if (filter.id && filter.is_group) {
         // Load children filters from the backend
         const childFilterPromise = $api.dbTableFilter.childrenRead(filter.id).then((response) => {
-          const childFilters = response.list as Filter[]
+          const childFilters = response.list as ColumnFilterType[]
           allChildFilters.push(...childFilters)
           return loadAllChildFilters(childFilters)
         })
@@ -235,7 +237,7 @@ export function useViewFilters(
     await Promise.all(promises)
 
     // Push all child filters into the allFilters array
-    if (!isLink && !isWebhook) allFilters.value.push(...allChildFilters)
+    if (!isLink && !isWebhook) allFilters.value.push(...(allChildFilters as FilterType[]))
   }
 
   const loadFilters = async ({
@@ -259,25 +261,25 @@ export function useViewFilters(
     try {
       if (isWebhook || hookId) {
         if (parentId.value) {
-          filters.value = (await $api.dbTableFilter.childrenRead(parentId.value)).list as Filter[]
+          filters.value = (await $api.dbTableFilter.childrenRead(parentId.value)).list as ColumnFilterType[]
         } else if (hookId && !isNestedRoot) {
-          filters.value = (await $api.dbTableWebhookFilter.read(hookId)).list as Filter[]
+          filters.value = (await $api.dbTableWebhookFilter.read(hookId)).list as ColumnFilterType[]
         }
       } else {
         if (isLink || linkColId?.value) {
           if (parentId.value) {
-            filters.value = (await $api.dbTableFilter.childrenRead(parentId.value)).list as Filter[]
+            filters.value = (await $api.dbTableFilter.childrenRead(parentId.value)).list as ColumnFilterType[]
           } else if (linkColId?.value && !isNestedRoot) {
-            filters.value = (await $api.dbTableLinkFilter.read(linkColId?.value)).list as Filter[]
+            filters.value = (await $api.dbTableLinkFilter.read(linkColId?.value)).list as ColumnFilterType[]
           }
         } else {
           if (parentId.value) {
-            filters.value = (await $api.dbTableFilter.childrenRead(parentId.value)).list as Filter[]
+            filters.value = (await $api.dbTableFilter.childrenRead(parentId.value)).list as ColumnFilterType[]
           } else {
-            filters.value = (await $api.dbTableFilter.read(view.value!.id!)).list as Filter[]
+            filters.value = (await $api.dbTableFilter.read(view.value!.id!)).list as ColumnFilterType[]
             if (loadAllFilters) {
-              allFilters.value = [...filters.value]
-              await loadAllChildFilters(allFilters.value)
+              allFilters.value = [...filters.value] as FilterType[]
+              await loadAllChildFilters(allFilters.value as ColumnFilterType[])
             }
           }
         }
@@ -311,23 +313,26 @@ export function useViewFilters(
               ...filter,
               children: undefined,
               fk_parent_id: parentId.value,
-            })) as unknown as FilterType
+            } as FilterType)) as ColumnFilterType
           } else if (linkId || linkColId?.value) {
             filters.value[+i] = (await $api.dbTableLinkFilter.create(linkId || linkColId.value, {
               ...filter,
               children: undefined,
               fk_parent_id: parentId.value,
-            })) as unknown as FilterType
+            } as FilterType)) as ColumnFilterType
           } else {
-            filters.value[+i] = await $api.dbTableFilter.create(view?.value?.id as string, {
-              ...filter,
-              fk_parent_id: parentId.value,
-            })
+            filters.value[+i] = (await $api.dbTableFilter.create(
+              view?.value?.id as string,
+              {
+                ...filter,
+                fk_parent_id: parentId.value,
+              } as FilterType,
+            )) as ColumnFilterType
           }
 
           if (children) filters.value[+i].children = children
 
-          if (!isLink && !isWebhook) allFilters.value.push(filters.value[+i])
+          if (!isLink && !isWebhook) allFilters.value.push(filters.value[+i] as FilterType)
         }
       }
 
@@ -338,13 +343,18 @@ export function useViewFilters(
     }
   }
 
-  const saveOrUpdate = async (filter: Filter, i: number, force = false, undo = false, skipDataReload = false) => {
+  const saveOrUpdateDebounced = useCachedDebouncedFunction(saveOrUpdate, 500, (_filter: ColumnFilterType, i: number) => i)
+
+  async function saveOrUpdate(filter: ColumnFilterType, i: number, force = false, undo = false, skipDataReload = false) {
     // if already in progress the debounced function which will call this function again with 500ms delay until it's not saving
     if (savingStatus[i]) {
       return saveOrUpdateDebounced(filter, i, force, undo, skipDataReload)
-    } else {
-      savingStatus[i] = true
     }
+    // wait if any previous filter save is in progress, it's to avoid messing up the order of filters
+    else if (Array.from({ length: i }).some((_, index) => savingStatus[index])) {
+      return saveOrUpdateDebounced(filter, i, force, undo, skipDataReload)
+    }
+    savingStatus[i] = true
 
     if (!view.value && !linkColId?.value) return
 
@@ -358,7 +368,7 @@ export function useViewFilters(
               fn: (prop: string, data: any) => {
                 const f = filters.value[i]
                 if (f) {
-                  f[prop as keyof Filter] = data
+                  f[prop as keyof ColumnFilterType] = data
                   saveOrUpdate(f, i, force, true)
                 }
               },
@@ -368,25 +378,24 @@ export function useViewFilters(
               fn: (prop: string, data: any) => {
                 const f = filters.value[i]
                 if (f) {
-                  f[prop as keyof Filter] = data
+                  f[prop as keyof ColumnFilterType] = data
                   saveOrUpdate(f, i, force, true)
                 }
               },
-              args: [Object.keys(delta)[0], filter[Object.keys(delta)[0] as keyof Filter]],
+              args: [Object.keys(delta)[0], filter[Object.keys(delta)[0] as keyof ColumnFilterType]],
             },
             scope: defineViewScope({ view: activeView.value }),
           })
         }
       }
     }
-
     try {
       if (nestedMode.value) {
         filters.value[i] = { ...filter }
         filters.value = [...filters.value]
       } else if (!autoApply?.value && !force) {
         filter.status = filter.id ? 'update' : 'create'
-      } else if (filters.value[i]?.id && filter.status !== 'create') {
+      } else if (filters.value[i]?.id && filters.value[i]?.status !== 'create') {
         await $api.dbTableFilter.update(filters.value[i].id!, {
           ...filter,
           fk_parent_id: parentId.value,
@@ -399,17 +408,33 @@ export function useViewFilters(
         })
       } else {
         if (linkColId?.value) {
-          filters.value[i] = await $api.dbTableLinkFilter.create(linkColId.value, {
-            ...filter,
-            fk_parent_id: parentId,
-          })
-        } else {
-          filters.value[i] = await $api.dbTableFilter.create(view.value.id!, {
+          const savedFilter = await $api.dbTableLinkFilter.create(linkColId.value, {
             ...filter,
             fk_parent_id: parentId.value,
           })
+          // extract id from saved filter and update the filter object
+          // avoiding whole object update to prevent overwriting of current filter object changes
+          filters.value[i] = {
+            ...filters.value[i],
+            fk_parent_id: parentId.value,
+            id: savedFilter.id,
+            status: undefined,
+          }
+        } else {
+          const savedFilter = await $api.dbTableFilter.create(view.value!.id!, {
+            ...filter,
+            fk_parent_id: parentId.value,
+          })
+          // extract id from saved filter and update the filter object
+          // avoiding whole object update to prevent overwriting of current filter object changes
+          filters.value[i] = {
+            ...filters.value[i],
+            fk_parent_id: parentId.value,
+            id: savedFilter.id,
+            status: undefined,
+          }
         }
-        if (!isLink && !isWebhook) allFilters.value.push(filters.value[+i])
+        if (!isLink && !isWebhook) allFilters.value.push(filters.value[+i] as FilterType)
       }
     } catch (e: any) {
       console.log(e)
@@ -423,7 +448,7 @@ export function useViewFilters(
     if (!isWebhook && !skipDataReload && !isLink) reloadData?.()
   }
 
-  function deleteFilterGroupFromAllFilters(filter: Filter) {
+  function deleteFilterGroupFromAllFilters(filter: ColumnFilterType) {
     if (!isLink && !isWebhook) return
 
     // Find all child filters of the specified parentId
@@ -432,7 +457,7 @@ export function useViewFilters(
     // Recursively delete child filter of child filter
     childFilters.forEach((childFilter) => {
       if (childFilter.is_group) {
-        deleteFilterGroupFromAllFilters(childFilter)
+        deleteFilterGroupFromAllFilters(childFilter as ColumnFilterType)
       }
     })
 
@@ -440,11 +465,13 @@ export function useViewFilters(
     allFilters.value = allFilters.value.filter((f) => f.id !== filter.id && f.fk_parent_id !== filter.id)
   }
 
-  const deleteFilter = async (filter: Filter, i: number, undo = false) => {
+  const deleteFilter = async (filter: ColumnFilterType, i: number, undo = false) => {
+    // update the filter status
+    filter.status = 'delete'
     if (!undo && !filter.is_group) {
       addUndo({
         undo: {
-          fn: async (fl: Filter) => {
+          fn: async (fl: ColumnFilterType) => {
             fl.status = 'create'
             filters.value.splice(i, 0, fl)
             await saveOrUpdate(fl, i, false, true)
@@ -496,11 +523,10 @@ export function useViewFilters(
       if (!isLink && !isWebhook) allFilters.value = allFilters.value.filter((f) => f.id !== filter.id)
     }
   }
-
-  const saveOrUpdateDebounced = useDebounceFn(saveOrUpdate, 500)
-
   const addFilter = async (undo = false, draftFilter: Partial<FilterType> = {}) => {
-    filters.value.push(draftFilter?.fk_column_id ? { ...placeholderFilter(), ...draftFilter } : placeholderFilter())
+    filters.value.push(
+      (draftFilter?.fk_column_id ? { ...placeholderFilter(), ...draftFilter } : placeholderFilter()) as ColumnFilterType,
+    )
     if (!undo) {
       addUndo({
         undo: {
@@ -511,7 +537,7 @@ export function useViewFilters(
           args: [filters.value.length - 1],
         },
         redo: {
-          fn: async (i: number, fl: Filter) => {
+          fn: async (i: number, fl: ColumnFilterType) => {
             fl.status = 'create'
             filters.value.splice(i, 0, fl)
             await saveOrUpdate(fl, i, false, true)
@@ -530,7 +556,7 @@ export function useViewFilters(
   const addFilterGroup = async () => {
     const child = placeholderFilter()
 
-    const placeHolderGroupFilter: Filter = placeholderGroupFilter()
+    const placeHolderGroupFilter: ColumnFilterType = placeholderGroupFilter()
 
     if (nestedMode.value) placeHolderGroupFilter.children = [child]
 
@@ -562,28 +588,34 @@ export function useViewFilters(
   // method to extract looked up column meta for all bt lookup columns
   // it helps to decide the condition operations for the column
   const loadBtLookupTypes = async () => {
-    const btLookupTypes = {}
+    const btLookupTypes: Record<string, any> = {}
     try {
       for (const col of meta.value?.columns || []) {
         if (col.uidt !== UITypes.Lookup) continue
-        let nextCol = col
+        let nextCol: ColumnType | undefined = col
         // check all the relation of nested lookup columns is bt or not
         // include the column only if all only if all relations are bt
         while (nextCol && nextCol.uidt === UITypes.Lookup) {
           // extract the relation column meta
-          const lookupRelation = (await getMeta(nextCol.fk_model_id))?.columns?.find(
-            (c) => c.id === (nextCol.colOptions as LookupType).fk_relation_column_id,
+          const lookupRelation = (await getMeta(nextCol.fk_model_id!))?.columns?.find(
+            (c) => c.id === (nextCol!.colOptions as LookupType).fk_relation_column_id,
           )
-          const relatedTableMeta = await getMeta((lookupRelation.colOptions as LinkToAnotherRecordType).fk_related_model_id)
-          nextCol = relatedTableMeta?.columns?.find((c) => c.id === (nextCol.colOptions as LookupType).fk_lookup_column_id)
+
+          // this is less likely to happen but if relation column is not found then break the loop
+          if (!lookupRelation) {
+            break
+          }
+
+          const relatedTableMeta = await getMeta((lookupRelation?.colOptions as LinkToAnotherRecordType).fk_related_model_id!)
+          nextCol = relatedTableMeta?.columns?.find((c) => c.id === (nextCol!.colOptions as LookupType).fk_lookup_column_id)
 
           // if next column is same as root lookup column then break the loop
           // since it's going to be a circular loop
-          if (nextCol.id === col.id) {
+          if (nextCol?.id === col.id) {
             break
           }
         }
-        btLookupTypes[col.id] = nextCol
+        btLookupTypes[col.id!] = nextCol
       }
       btLookupTypesMap.value = btLookupTypes
     } catch (e) {

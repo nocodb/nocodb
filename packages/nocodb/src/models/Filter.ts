@@ -385,9 +385,13 @@ export default class Filter implements FilterType {
   ): Promise<Filter[]> {
     if (this.children) return this.children;
     if (!this.is_group) return null;
-    const cachedList = await NocoCache.getList(CacheScope.FILTER_EXP, [
-      this.id,
-    ]);
+    const cachedList = await NocoCache.getList(
+      CacheScope.FILTER_EXP,
+      [this.id],
+      {
+        key: 'order',
+      },
+    );
     let { list: childFilters } = cachedList;
     const { isNoneList } = cachedList;
     if (!isNoneList && !childFilters.length) {
@@ -438,9 +442,13 @@ export default class Filter implements FilterType {
     },
     ncMeta = Noco.ncMeta,
   ): Promise<FilterType> {
-    const cachedList = await NocoCache.getList(CacheScope.FILTER_EXP, [
-      viewId || hookId || linkColId,
-    ]);
+    const cachedList = await NocoCache.getList(
+      CacheScope.FILTER_EXP,
+      [viewId || hookId || linkColId],
+      {
+        key: 'order',
+      },
+    );
     let { list: filters } = cachedList;
     const { isNoneList } = cachedList;
     if (!isNoneList && !filters.length) {
@@ -596,7 +604,13 @@ export default class Filter implements FilterType {
     { viewId }: { viewId: any },
     ncMeta = Noco.ncMeta,
   ) {
-    const cachedList = await NocoCache.getList(CacheScope.FILTER_EXP, [viewId]);
+    const cachedList = await NocoCache.getList(
+      CacheScope.FILTER_EXP,
+      [viewId],
+      {
+        key: 'order',
+      },
+    );
     let { list: filterObjs } = cachedList;
     const { isNoneList } = cachedList;
     if (!isNoneList && !filterObjs.length) {
@@ -623,7 +637,11 @@ export default class Filter implements FilterType {
     { hookId }: { hookId: any },
     ncMeta = Noco.ncMeta,
   ) {
-    const cachedList = await NocoCache.getList(CacheScope.FILTER_EXP, [hookId]);
+    const cachedList = await NocoCache.getList(
+      CacheScope.FILTER_EXP,
+      [hookId],
+      { key: 'order' },
+    );
     let { list: filterObjs } = cachedList;
     const { isNoneList } = cachedList;
     if (!isNoneList && !filterObjs.length) {
@@ -654,9 +672,11 @@ export default class Filter implements FilterType {
     },
     ncMeta = Noco.ncMeta,
   ) {
-    const cachedList = await NocoCache.getList(CacheScope.FILTER_EXP, [
-      parentId,
-    ]);
+    const cachedList = await NocoCache.getList(
+      CacheScope.FILTER_EXP,
+      [parentId],
+      { key: 'order' },
+    );
     let { list: filterObjs } = cachedList;
     const { isNoneList } = cachedList;
     if (!isNoneList && !filterObjs.length) {
@@ -690,10 +710,13 @@ export default class Filter implements FilterType {
     },
     ncMeta = Noco.ncMeta,
   ) {
-    const cachedList = await NocoCache.getList(CacheScope.FILTER_EXP, [
-      hookId,
-      parentId,
-    ]);
+    const cachedList = await NocoCache.getList(
+      CacheScope.FILTER_EXP,
+      [hookId, parentId],
+      {
+        key: 'order',
+      },
+    );
     let { list: filterObjs } = cachedList;
     const { isNoneList } = cachedList;
     if (!isNoneList && !filterObjs.length) {

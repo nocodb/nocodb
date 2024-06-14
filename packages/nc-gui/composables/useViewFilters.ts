@@ -349,9 +349,12 @@ export function useViewFilters(
     // if already in progress the debounced function which will call this function again with 500ms delay until it's not saving
     if (savingStatus[i]) {
       return saveOrUpdateDebounced(filter, i, force, undo, skipDataReload)
-    } else {
-      savingStatus[i] = true
     }
+    // wait if any previous filter save is in progress, it's to avoid messing up the order of filters
+    else if (Array.from({ length: i }).some((_, index) => savingStatus[index])) {
+      return saveOrUpdateDebounced(filter, i, force, undo, skipDataReload)
+    }
+    savingStatus[i] = true
 
     if (!view.value && !linkColId?.value) return
 

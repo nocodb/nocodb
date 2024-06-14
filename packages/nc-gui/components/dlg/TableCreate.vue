@@ -160,7 +160,7 @@ onMounted(() => {
             <a-checkbox v-model:checked="table.is_hybrid" class="!flex flex-row items-center"> Hybrid Table </a-checkbox>
           </template>
         </div>
-        <div class="nc-table-advanced-options" v-if="isAdvanceOptVisible" :class="{ active: isAdvanceOptVisible }">
+        <div v-if="isAdvanceOptVisible" class="nc-table-advanced-options" :class="{ active: isAdvanceOptVisible }">
           <div>
             <div class="mb-1">
               <!-- Add Default Columns -->

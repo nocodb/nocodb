@@ -51,7 +51,7 @@ onMounted(() => {
       <div class="text-lg font-semibold self-start mb-5">{{ $t('title.renameFile') }}</div>
 
       <a-form class="w-full h-full" no-style :model="form" @finish="renameFile(form.title)">
-        <a-form-item class="w-full !mb-0" name="title" :rules="rules.title" >
+        <a-form-item class="w-full !mb-0" name="title" :rules="rules.title">
           <a-input
             ref="inputEl"
             v-model:value="form.title"

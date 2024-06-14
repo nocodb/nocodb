@@ -311,12 +311,9 @@ const onFieldUpdate = (state: TableExplorerColumn, skipLinkChecks = false) => {
   const pdiffs: Record<string, any> = diff(col, state)
 
   // remove undefined values
-  const diffs = Object.keys(pdiffs).reduce((acc, key) => {
-    if (pdiffs[key] !== undefined) {
-      acc[key] = pdiffs[key]
-    }
-    return acc
-  }, {} as Record<string, any>) as Partial<TableExplorerColumn>
+  const diffs = Object.fromEntries(
+    Object.entries(pdiffs).filter(([_, value]) => value !== undefined),
+  ) as Partial<TableExplorerColumn>
 
   if (Object.keys(diffs).length === 0 || (Object.keys(diffs).length === 1 && 'altered' in diffs)) {
     ops.value = ops.value.filter((op) => op.op === 'add' || !compareCols(op.column, state))

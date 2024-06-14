@@ -444,16 +444,22 @@ onMounted(async () => {
             v-model:value="form.fk_cover_image_col_id"
             :disabled="isMetaLoading"
             :loading="isMetaLoading"
+            dropdown-match-select-width
             :not-found-content="$t('placeholder.selectGroupFieldNotFound')"
             :placeholder="$t('placeholder.selectCoverImageField')"
             class="nc-select-shadow w-full nc-gallery-cover-image-field-select"
           >
             <a-select-option v-for="option of viewSelectFieldOptions" :key="option.value" :value="option.value">
               <div class="w-full flex gap-2 items-center justify-between" :title="option.label">
-                <div class="flex items-center gap-1">
+                <div class="flex-1 flex items-center gap-1 max-w-[calc(100%_-_24px)]">
                   <SmartsheetHeaderIcon v-if="option.value" :column="option" class="!ml-0" />
 
-                  <span> {{ option.label }} </span>
+                  <NcTooltip class="flex-1 max-w-[calc(100%_-_20px)] truncate" show-on-truncate-only>
+                    <template #title>
+                      {{ option.label }}
+                    </template>
+                    <template #default>{{ option.label }}</template>
+                  </NcTooltip>
                 </div>
                 <GeneralIcon
                   v-if="form.fk_cover_image_col_id === option.value"
@@ -475,16 +481,22 @@ onMounted(async () => {
             v-model:value="form.fk_grp_col_id"
             :disabled="isMetaLoading"
             :loading="isMetaLoading"
+            dropdown-match-select-width
             :not-found-content="$t('placeholder.selectGroupFieldNotFound')"
             :placeholder="$t('placeholder.selectGroupField')"
             class="nc-select-shadow w-full nc-kanban-grouping-field-select"
           >
             <a-select-option v-for="option of viewSelectFieldOptions" :key="option.value" :value="option.value">
               <div class="w-full flex gap-2 items-center justify-between" :title="option.label">
-                <div class="flex items-center gap-1">
+                <div class="flex-1 flex items-center gap-1 max-w-[calc(100%_-_24px)]">
                   <SmartsheetHeaderIcon :column="option" class="!ml-0" />
 
-                  <span> {{ option.label }} </span>
+                  <NcTooltip class="flex-1 max-w-[calc(100%_-_20px)] truncate" show-on-truncate-only>
+                    <template #title>
+                      {{ option.label }}
+                    </template>
+                    <template #default>{{ option.label }}</template>
+                  </NcTooltip>
                 </div>
                 <GeneralIcon
                   v-if="form.fk_grp_col_id === option.value"

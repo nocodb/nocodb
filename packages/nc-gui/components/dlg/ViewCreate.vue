@@ -279,7 +279,7 @@ onMounted(async () => {
 
         if (coverImageColumnId.value) {
           form.fk_cover_image_col_id = coverImageColumnId.value
-        } else if (viewSelectFieldOptions.value.length > 1) {
+        } else if (viewSelectFieldOptions.value.length > 1 && !form.copy_from_id) {
           form.fk_cover_image_col_id = viewSelectFieldOptions.value[1].value as string
         } else {
           form.fk_cover_image_col_id = null
@@ -307,6 +307,14 @@ onMounted(async () => {
         } else {
           // if there is no grouping field column, disable the create button
           isNecessaryColumnsPresent.value = false
+        }
+
+        if (coverImageColumnId.value) {
+          form.fk_cover_image_col_id = coverImageColumnId.value
+        } else if (viewSelectFieldOptions.value.length > 1 && !form.copy_from_id) {
+          form.fk_cover_image_col_id = viewSelectFieldOptions.value[1].value as string
+        } else {
+          form.fk_cover_image_col_id = null
         }
       }
 
@@ -428,7 +436,7 @@ onMounted(async () => {
           />
         </a-form-item>
         <a-form-item
-          v-if="form.type === ViewTypes.GALLERY"
+          v-if="form.type === ViewTypes.GALLERY && !form.copy_from_id"
           :label="`${$t('labels.coverImageField')}`"
           name="fk_cover_image_col_id"
         >
@@ -458,7 +466,7 @@ onMounted(async () => {
           </NcSelect>
         </a-form-item>
         <a-form-item
-          v-if="form.type === ViewTypes.KANBAN"
+          v-if="form.type === ViewTypes.KANBAN && !form.copy_from_id"
           :label="$t('general.groupingField')"
           :rules="groupingFieldColumnRules"
           name="fk_grp_col_id"
@@ -504,7 +512,7 @@ onMounted(async () => {
             class="nc-select-shadow w-full"
           />
         </a-form-item>
-        <template v-if="form.type === ViewTypes.CALENDAR">
+        <template v-if="form.type === ViewTypes.CALENDAR && !form.copy_from_id">
           <div v-for="(range, index) in form.calendar_range" :key="`range-${index}`" class="flex w-full items-center gap-2">
             <span class="text-gray-800">
               {{ $t('labels.organiseBy') }}

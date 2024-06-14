@@ -272,6 +272,9 @@ export class FieldsPage extends BasePage {
   }
 
   async saveChanges() {
+    // allow the changes triggered earlier (toggle visibility, etc) to settle
+    await this.rootPage.waitForTimeout(1000);
+
     await this.waitForResponse({
       uiAction: async () => await this.saveChangesButton.click(),
       requestUrlPathToMatch: 'api/v1/db/meta/tables/',

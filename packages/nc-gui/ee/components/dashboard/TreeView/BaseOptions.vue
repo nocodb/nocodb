@@ -137,7 +137,7 @@ function openQuickImportDialog(type: string) {
   <NcSubMenu
     v-if="
       ['airtableImport', 'csvImport', 'jsonImport', 'excelImport'].some((permission) =>
-        isUIAllowed(permission, { roles: baseRole, skipSourceCheck: true }),
+        isUIAllowed(permission, { roles: baseRole, source }),
       )
     "
     class="py-0"

@@ -1563,6 +1563,12 @@ export class ImportService {
               case 'meta': {
                 const meta = {};
                 for (const [mk, mv] of Object.entries(v as any)) {
+                  // copy non-array meta as it is
+                  if (!Array.isArray(mv)) {
+                    meta[mk] = mv;
+                    continue;
+                  }
+
                   const tempVal = [];
                   for (const vl of mv as any) {
                     if (vl.fk_column_id) {

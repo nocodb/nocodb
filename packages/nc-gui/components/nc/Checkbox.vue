@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 interface Props {
-  checked: boolean
+  checked?: boolean
   size?: 'small' | 'default' | 'large'
   disabled?: boolean
 }
@@ -15,7 +15,7 @@ const emit = defineEmits(['change', 'update:checked'])
 const checked = useVModel(props, 'checked', emit)
 
 const onChange = (e: Event) => {
-  emit('change', e, checked.value)
+  emit('change', e, (e.target as HTMLInputElement).checked)
 }
 </script>
 

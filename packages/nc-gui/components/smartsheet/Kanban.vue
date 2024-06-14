@@ -113,7 +113,6 @@ const kanbanContainerRef = ref()
 const selectedStackTitle = ref('')
 
 reloadViewDataHook?.on(async () => {
-  console.log('load')
   await loadKanbanMeta()
   await loadKanbanData()
 })

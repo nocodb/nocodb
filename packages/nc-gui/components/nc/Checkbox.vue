@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 interface Props {
-  checked: boolean
+  checked: boolean | undefined
   size?: 'small' | 'default' | 'large'
   disabled?: boolean
 }
@@ -14,13 +14,20 @@ const emit = defineEmits(['change', 'update:checked'])
 
 const checked = useVModel(props, 'checked', emit)
 
+const vModel = computed({
+  get: () => !!checked.value,
+  set: (value: boolean) => {
+    checked.value = value
+  },
+})
+
 const onChange = (e: Event) => {
   emit('change', e, checked.value)
 }
 </script>
 
 <template>
-  <a-checkbox v-model:checked="checked" class="nc-checkbox" :disabled="props.disabled" @change="onChange">
+  <a-checkbox v-model:checked="vModel" class="nc-checkbox" :disabled="props.disabled" @change="onChange">
     <slot />
   </a-checkbox>
 </template>

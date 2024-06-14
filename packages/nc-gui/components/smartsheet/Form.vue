@@ -969,7 +969,7 @@ useEventListener(
                               :bordered="false"
                               :data-testid="NcForm.heading"
                               :data-title="NcForm.heading"
-                              @update:value="updateView"
+                              @input="updateView"
                               @focus="activeRow = NcForm.heading"
                               @blur="activeRow = ''"
                             />
@@ -1280,7 +1280,7 @@ useEventListener(
                       :placeholder="$t('msg.info.formInput')"
                       @focus="onFocusActiveFieldLabel"
                       @keydown.enter.prevent
-                      @update:value="updateFieldTitle"
+                      @input="updateFieldTitle($event.target.value)"
                       @change="updateColMeta(activeField)"
                     />
 

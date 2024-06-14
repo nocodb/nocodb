@@ -423,7 +423,7 @@ onMounted(async () => {
             v-model:value="form.title"
             :placeholder="$t('labels.viewName')"
             autofocus
-            class="nc-input-sm"
+            class="nc-input-sm nc-input-shadow"
             @keydown.enter="onSubmit"
           />
         </a-form-item>
@@ -438,7 +438,7 @@ onMounted(async () => {
             :loading="isMetaLoading"
             :not-found-content="$t('placeholder.selectGroupFieldNotFound')"
             :placeholder="$t('placeholder.selectCoverImageField')"
-            class="w-full nc-gallery-cover-image-field-select"
+            class="nc-select-shadow w-full nc-gallery-cover-image-field-select"
           >
             <a-select-option v-for="option of viewSelectFieldOptions" :key="option.value" :value="option.value">
               <div class="w-full flex gap-2 items-center justify-between" :title="option.label">
@@ -469,7 +469,7 @@ onMounted(async () => {
             :loading="isMetaLoading"
             :not-found-content="$t('placeholder.selectGroupFieldNotFound')"
             :placeholder="$t('placeholder.selectGroupField')"
-            class="w-full nc-kanban-grouping-field-select"
+            class="nc-select-shadow w-full nc-kanban-grouping-field-select"
           >
             <a-select-option v-for="option of viewSelectFieldOptions" :key="option.value" :value="option.value">
               <div class="w-full flex gap-2 items-center justify-between" :title="option.label">
@@ -484,8 +484,9 @@ onMounted(async () => {
                   icon="check"
                   class="flex-none text-primary w-4 h-4"
                 />
-              </div> </a-select-option
-          ></NcSelect>
+              </div>
+            </a-select-option>
+          </NcSelect>
         </a-form-item>
         <a-form-item
           v-if="form.type === ViewTypes.MAP"
@@ -500,7 +501,7 @@ onMounted(async () => {
             :not-found-content="$t('placeholder.selectGeoFieldNotFound')"
             :options="viewSelectFieldOptions"
             :placeholder="$t('placeholder.selectGeoField')"
-            class="w-full"
+            class="nc-select-shadow w-full"
           />
         </a-form-item>
         <template v-if="form.type === ViewTypes.CALENDAR">
@@ -512,7 +513,7 @@ onMounted(async () => {
               v-model:value="range.fk_from_column_id"
               :disabled="isMetaLoading"
               :loading="isMetaLoading"
-              class="nc-from-select"
+              class="nc-select-shadow nc-from-select"
             >
               <a-select-option
                 v-for="(option, id) in [...viewSelectFieldOptions!].filter((f) => {

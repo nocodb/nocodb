@@ -109,7 +109,7 @@ export default class KanbanView implements KanbanType {
 
     insertObj.meta = {
       fk_cover_image_object_fit:
-        parseMetaProp(insertObj)?.fk_cover_image_object_fit || 'cover',
+        parseMetaProp(insertObj)?.fk_cover_image_object_fit || 'fit',
     };
 
     insertObj.meta = stringifyMetaProp(insertObj);

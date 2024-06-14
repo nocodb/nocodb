@@ -355,7 +355,7 @@ onMounted(async () => {
     <template #header>
       <div class="flex w-full flex-row justify-between items-center">
         <div class="flex font-bold text-base gap-x-3 items-center">
-          <GeneralViewIcon :meta="{ type: form.type }" class="nc-view-icon !text-xl" />
+          <GeneralViewIcon :meta="{ type: form.type }" class="nc-view-icon !text-[24px] !leading-6 max-h-6 max-w-6" />
           <template v-if="form.type === ViewTypes.GRID">
             <template v-if="form.copy_from_id">
               {{ $t('labels.duplicateGridView') }}
@@ -613,7 +613,7 @@ onMounted(async () => {
       </a-form>
       <div v-else-if="!isNecessaryColumnsPresent" class="flex flex-row p-4 border-gray-200 border-1 gap-x-4 rounded-lg w-full">
         <div class="text-gray-500 flex gap-4">
-          <GeneralIcon class="min-w-6 h-6 text-orange-500" icon="warning" />
+          <GeneralIcon class="min-w-6 h-6 text-orange-500" icon="alertTriangle" />
           <div class="flex flex-col gap-1">
             <h2 class="font-semibold text-sm mb-0 text-gray-800">Suitable fields not present</h2>
             <span class="text-gray-500 font-default text-sm"> {{ errorMessages[form.type] }}</span>

@@ -8,12 +8,12 @@ import {
   CacheGetType,
   CacheScope,
   MetaTable,
-  RootScopes,
 } from '~/utils/globals';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
 import { parseMetaProp } from '~/utils/modelUtils';
+import { NcError } from '~/helpers/catchError';
 
 export default class BaseUser {
   fk_workspace_id?: string;
@@ -359,14 +359,11 @@ export default class BaseUser {
     userId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<BaseUser[]> {
-    return await ncMeta.metaList2(
-      RootScopes.BASE,
-      RootScopes.BASE,
-      MetaTable.PROJECT_USERS,
-      {
-        condition: { fk_user_id: userId },
-      },
-    );
+    if (!userId) NcError.badRequest('User Id is required');
+
+    return await ncMeta.knex(MetaTable.PROJECT_USERS).where({
+      fk_user_id: userId,
+    });
   }
 
   static async getProjectsList(

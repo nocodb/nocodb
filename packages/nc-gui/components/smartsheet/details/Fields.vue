@@ -46,6 +46,8 @@ const isLocked = inject(IsLockedInj, ref(false))
 
 const { openedViewsTab } = storeToRefs(useViewsStore())
 
+const localMetaColumns = ref<ColumnType[] | undefined>([])
+
 const moveOps = ref<moveOp[]>([])
 
 const visibilityOps = ref<fieldsVisibilityOps[]>([])
@@ -99,7 +101,7 @@ const getFieldOrder = (field?: TableExplorerColumn) => {
 
 const fields = computed<TableExplorerColumn[]>({
   get: () => {
-    const x = ((meta.value?.columns as ColumnType[]) ?? [])
+    const x = ((localMetaColumns.value as ColumnType[]) ?? [])
       .filter((field) => !field.fk_column_id && !isSystemColumn(field))
       .concat(newFields.value)
       .map((field) => updateDefaultColumnValues(field))
@@ -109,7 +111,7 @@ const fields = computed<TableExplorerColumn[]>({
     return x
   },
   set: (val) => {
-    meta.value!.columns = meta.value?.columns?.map((col) => {
+    localMetaColumns.value = localMetaColumns.value?.map((col) => {
       const field = val.find((f) => compareCols(f, col))
       if (field) {
         return field
@@ -217,15 +219,15 @@ const addField = (field?: TableExplorerColumn, before = false) => {
 }
 
 const displayColumn = computed(() => {
-  if (!meta.value?.columns) return
-  return meta.value?.columns.find((col) => col.pv)
+  if (!localMetaColumns.value) return
+  return localMetaColumns.value.find((col) => col.pv)
 })
 
 const duplicateField = async (field: TableExplorerColumn) => {
-  if (!meta.value?.columns) return
+  if (!localMetaColumns.value) return
 
   // generate duplicate column name
-  const duplicateColumnName = getUniqueColumnName(`${field.title}_copy`, meta.value?.columns)
+  const duplicateColumnName = getUniqueColumnName(`${field.title}_copy`, localMetaColumns.value)
 
   let fieldPayload = {}
 
@@ -612,6 +614,21 @@ const clearChanges = () => {
 
 const isColumnsValid = computed(() => fields.value.every((f) => isColumnValid(f)))
 
+const metaToLocal = () => {
+  localMetaColumns.value = meta.value?.columns?.map((c: ColumnType) => {
+    if (c.uidt && c.uidt in columnDefaultMeta) {
+      if (!c.meta) c.meta = {}
+      c.meta = {
+        ...columnDefaultMeta[c.uidt],
+        ...(c.meta || {}),
+      }
+    }
+    return {
+      ...c,
+    }
+  })
+}
+
 const saveChanges = async () => {
   if (!isColumnsValid.value) {
     message.error(t('msg.error.multiFieldSaveValidation'))
@@ -700,6 +717,9 @@ const saveChanges = async () => {
     }
 
     await getMeta(meta.value.id, true)
+
+    metaToLocal()
+
     columnsHash.value = (await $api.dbTableColumn.hash(meta.value?.id)).hash
 
     visibilityOps.value = []
@@ -852,18 +872,7 @@ onMounted(async () => {
 
   await until(() => meta.value?.columns)
 
-  meta.value!.columns = meta.value?.columns?.map((c: ColumnType) => {
-    if (c.uidt && c.uidt in columnDefaultMeta) {
-      if (!c.meta) c.meta = {}
-      c.meta = {
-        ...columnDefaultMeta[c.uidt],
-        ...c.meta,
-      }
-    }
-    return {
-      ...c,
-    }
-  })
+  metaToLocal()
 })
 
 const onFieldOptionUpdate = () => {
@@ -897,7 +906,7 @@ watch(
     const defaultColumnName = generateUniqueColumnName({
       formState: oldField,
       tableExplorerColumns: fields.value || [],
-      metaColumns: meta.value?.columns || [],
+      metaColumns: localMetaColumns.value || [],
       newFieldTitles,
     })
 

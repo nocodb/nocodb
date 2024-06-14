@@ -62,6 +62,11 @@ export default class NocoCache {
   public static async getList(
     scope: string,
     subKeys: string[],
+    orderBy?: {
+      key: string;
+      dir?: 'asc' | 'desc';
+      isString?: boolean;
+    },
   ): Promise<{
     list: any[];
     isNoneList: boolean;
@@ -71,7 +76,7 @@ export default class NocoCache {
         list: [],
         isNoneList: false,
       });
-    return this.client.getList(scope, subKeys);
+    return this.client.getList(scope, subKeys, orderBy);
   }
 
   public static async setList(

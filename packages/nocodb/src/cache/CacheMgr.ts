@@ -251,6 +251,11 @@ export default abstract class CacheMgr {
   async getList(
     scope: string,
     subKeys: string[],
+    orderBy?: {
+      key: string;
+      dir?: 'asc' | 'desc';
+      isString?: boolean;
+    },
   ): Promise<{
     list: any[];
     isNoneList: boolean;
@@ -326,6 +331,34 @@ export default abstract class CacheMgr {
           `${this.context}::getList: Bad value stored for key ${arr[0]} : ${values[0]}`,
         );
       }
+    }
+
+    // Check if orderBy parameter is provided and valid
+    if (orderBy?.key) {
+      // Destructure the properties from orderBy object
+      const { key, dir, isString } = orderBy;
+
+      // Determine the multiplier for sorting order: -1 for descending, 1 for ascending
+      const orderMultiplier = dir === 'desc' ? -1 : 1;
+
+      // Sort the values array based on the specified property
+      values.sort((a, b) => {
+        // Get the property values from a and b
+        const aValue = a?.[key];
+        const bValue = b?.[key];
+
+        // If aValue is null or undefined, move it to the end
+        if (aValue === null || aValue === undefined) return 1;
+        // If bValue is null or undefined, move it to the end
+        if (bValue === null || bValue === undefined) return -1;
+
+        if (isString) {
+          // If the property is a string, use localeCompare for comparison
+          return orderMultiplier * String(aValue).localeCompare(String(bValue));
+        }
+        // If the property is a number, subtract the values directly
+        return orderMultiplier * (aValue - bValue);
+      });
     }
 
     return {

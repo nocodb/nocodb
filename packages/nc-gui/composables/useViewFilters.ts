@@ -418,8 +418,7 @@ export function useViewFilters(
             status: undefined,
           }
         } else {
-          console.log(parentId.value)
-          const savedFilter = await $api.dbTableFilter.create(view.value.id!, {
+          const savedFilter = await $api.dbTableFilter.create(view.value!.id!, {
             ...filter,
             fk_parent_id: parentId.value,
           })
@@ -455,7 +454,7 @@ export function useViewFilters(
     // Recursively delete child filter of child filter
     childFilters.forEach((childFilter) => {
       if (childFilter.is_group) {
-        deleteFilterGroupFromAllFilters(childFilter)
+        deleteFilterGroupFromAllFilters(childFilter as ColumnFilterType)
       }
     })
 
@@ -598,6 +597,12 @@ export function useViewFilters(
           const lookupRelation = (await getMeta(nextCol.fk_model_id!))?.columns?.find(
             (c) => c.id === (nextCol!.colOptions as LookupType).fk_relation_column_id,
           )
+
+          // this is less likely to happen but if relation column is not found then break the loop
+          if (!lookupRelation) {
+            break
+          }
+
           const relatedTableMeta = await getMeta((lookupRelation?.colOptions as LinkToAnotherRecordType).fk_related_model_id!)
           nextCol = relatedTableMeta?.columns?.find((c) => c.id === (nextCol!.colOptions as LookupType).fk_lookup_column_id)
 

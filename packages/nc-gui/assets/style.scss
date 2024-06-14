@@ -60,6 +60,10 @@ main {
   @apply !rounded-lg !py-2 !px-3 mb-1;
 }
 
+.nc-input-sm {
+  @apply !rounded-lg !py-1 !px-3 mb-1;
+}
+
 .mobile {
   .nc-scrollbar-md,
   .nc-scrollbar-lg,

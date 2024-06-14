@@ -266,6 +266,7 @@ onMounted(async () => {
             return {
               value: field.id,
               label: field.title,
+              uidt: field.uidt,
             }
           })
 
@@ -319,7 +320,9 @@ onMounted(async () => {
 <template>
   <NcModal
     v-model:visible="vModel"
-    :size="[ViewTypes.KANBAN, ViewTypes.MAP, ViewTypes.CALENDAR].includes(form.type) ? 'medium' : 'small'"
+    class="nc-view-create-modal"
+    :show-separator="false"
+    :size="[ViewTypes.MAP].includes(form.type) ? 'medium' : 'small'"
   >
     <template #header>
       <div class="flex w-full flex-row justify-between items-center">
@@ -380,19 +383,19 @@ onMounted(async () => {
           :href="`https://docs.nocodb.com/views/view-types/${typeAlias}`"
           target="_blank"
         >
-          Go to Docs
+          Docs
         </a>
       </div>
     </template>
-    <div class="mt-2">
-      <a-form v-if="isNecessaryColumnsPresent" ref="formValidator" :model="form" layout="vertical">
+    <div class="mt-1">
+      <a-form v-if="isNecessaryColumnsPresent" ref="formValidator" :model="form" layout="vertical" class="flex flex-col gap-y-5">
         <a-form-item :rules="viewNameRules" name="title">
           <a-input
             ref="inputEl"
             v-model:value="form.title"
             :placeholder="$t('labels.viewName')"
             autofocus
-            class="nc-input-md h-10"
+            class="nc-input-sm"
             @keydown.enter="onSubmit"
           />
         </a-form-item>
@@ -407,10 +410,24 @@ onMounted(async () => {
             :disabled="isMetaLoading"
             :loading="isMetaLoading"
             :not-found-content="$t('placeholder.selectGroupFieldNotFound')"
-            :options="viewSelectFieldOptions"
             :placeholder="$t('placeholder.selectGroupField')"
             class="w-full nc-kanban-grouping-field-select"
-          />
+          >
+            <a-select-option v-for="option of viewSelectFieldOptions" :key="option.value" :value="option.value">
+              <div class="w-full flex gap-2 items-center justify-between" :title="option.label">
+                <div class="flex items-center gap-1">
+                  <SmartsheetHeaderIcon :column="option" class="!ml-0 !w-4 !h-4" />
+
+                  <span> {{ option.label }} </span>
+                </div>
+                <GeneralIcon
+                  v-if="form.fk_grp_col_id === option.value"
+                  id="nc-selected-item-icon"
+                  icon="check"
+                  class="flex-none text-primary w-4 h-4"
+                />
+              </div> </a-select-option
+          ></NcSelect>
         </a-form-item>
         <a-form-item
           v-if="form.type === ViewTypes.MAP"
@@ -546,8 +563,8 @@ onMounted(async () => {
         </div>
       </div>
 
-      <div class="flex flex-row w-full justify-end gap-x-2 mt-7">
-        <NcButton type="secondary" @click="vModel = false">
+      <div class="flex flex-row w-full justify-end gap-x-2 mt-5">
+        <NcButton type="secondary" size="small" @click="vModel = false">
           {{ $t('general.cancel') }}
         </NcButton>
 
@@ -556,6 +573,7 @@ onMounted(async () => {
           :disabled="!isNecessaryColumnsPresent"
           :loading="isViewCreating"
           type="primary"
+          size="small"
           @click="onSubmit"
         >
           {{ $t('labels.createView') }}
@@ -582,11 +600,29 @@ onMounted(async () => {
   @apply !rounded-r-none;
 }
 
-.ant-input {
-  @apply border-gray-200;
+.ant-form-item {
+  @apply !mb-0;
 }
 
-.ant-form-item {
-  @apply !mb-6;
+.nc-input-sm {
+  @apply !mb-0;
+}
+
+.nc-view-create-modal {
+  :deep(.nc-modal) {
+  }
+}
+
+:deep(.ant-form-item-label > label) {
+  @apply !text-sm text-gray-800 flex;
+
+  &.ant-form-item-required:not(.ant-form-item-required-mark-optional)::before {
+    @apply content-[''] m-0;
+  }
+}
+:deep(.ant-select) {
+  .ant-select-selector {
+    @apply !rounded-lg;
+  }
 }
 </style>

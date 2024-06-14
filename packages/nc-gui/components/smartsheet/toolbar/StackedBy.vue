@@ -158,7 +158,7 @@ const getIcon = (c: ColumnType) =>
       <div v-if="open" class="p-4 w-90 bg-white nc-table-toolbar-menu rounded-lg flex flex-col gap-5" @click.stop>
         <div class="flex flex-col gap-2">
           <div>
-            {{ $t('general.groupingField').toLowerCase().replace(/^./, $t('general.groupingField').charAt(0).toUpperCase()) }}
+            {{ $t('general.groupingField') }}
           </div>
           <div class="nc-fields-list">
             <div class="grouping-field">

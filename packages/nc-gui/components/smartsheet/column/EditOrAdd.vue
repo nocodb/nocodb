@@ -115,12 +115,13 @@ const showDeprecated = ref(false)
 const isSystemField = (t: { name: UITypes }) =>
   [UITypes.CreatedBy, UITypes.CreatedTime, UITypes.LastModifiedBy, UITypes.LastModifiedTime].includes(t.name)
 
-const uiFilters = (t: { name: UITypes; virtual?: number }) => {
+const uiFilters = (t: { name: UITypes; virtual?: number; deprecated?: boolean }) => {
   const systemFiledNotEdited = !isSystemField(t) || formState.value.uidt === t.name || !isEdit.value
   const geoDataToggle = geoDataToggleCondition(t) && (!isEdit.value || !t.virtual || t.name === formState.value.uidt)
   const specificDBType = t.name === UITypes.SpecificDBType && isXcdbBase(meta.value?.source_id)
+  const showDeprecatedField = !t.deprecated || showDeprecated.value
 
-  return systemFiledNotEdited && geoDataToggle && !specificDBType
+  return systemFiledNotEdited && geoDataToggle && !specificDBType && showDeprecatedField
 }
 
 const uiTypesOptions = computed<typeof uiTypes>(() => {
@@ -329,7 +330,6 @@ const filterOption = (input: string, option: { value: UITypes }) => {
       'w-[384px]': !props.embedMode,
       'min-w-500px': formState.uidt === UITypes.LinkToAnotherRecord || formState.uidt === UITypes.Links,
       '!w-116 overflow-visible': formState.uidt === UITypes.Formula && !props.embedMode,
-      '!w-[500px]': formState.uidt === UITypes.Attachment && !props.embedMode && !appInfo.ee,
       '!w-[600px]': formState.uidt === UITypes.LinkToAnotherRecord || formState.uidt === UITypes.Links,
       'shadow-lg border-1 border-gray-200 shadow-gray-300 rounded-xl p-5': !embedMode,
     }"

@@ -327,35 +327,6 @@ export class MetaService {
   }
 
   /***
-   * Delete meta data with condition (USE WITH CAUTION)
-   * @param target - Table name
-   * @param idOrCondition - If string, will delete the record with the given id. If object, will delete the record with the given condition.
-   * @param xcCondition - Additional nested or complex condition to be added to the query.
-   */
-  public async metaDeleteAll(
-    target: string,
-    idOrCondition: string | { [p: string]: any },
-    xcCondition?: Condition,
-  ): Promise<void> {
-    const query = this.knexConnection(target);
-
-    if (typeof idOrCondition !== 'object') {
-      query.where('id', idOrCondition);
-    } else if (idOrCondition) {
-      query.where(idOrCondition);
-    }
-
-    if (xcCondition) {
-      query.condition(xcCondition, {});
-    }
-
-    // Check if a condition is present in the query builder and throw an error if not.
-    this.checkConditionPresent(query, 'delete');
-
-    return query.del();
-  }
-
-  /***
    * Get meta data
    * @param workspace_id - Workspace id
    * @param base_id - Base id

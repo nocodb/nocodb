@@ -48,7 +48,7 @@ const config = reactive<ERDConfig>({
 const loadMetaOfTablesNotInMetas = async (localTables: TableType[]) => {
   await Promise.all(
     localTables
-      .filter((table) => !metas.value[table.id!])
+      .filter((table) => !metas.value[table.id!] && table.source_id === props.sourceId)
       .map(async (table) => {
         await getMeta(table.id!)
       }),

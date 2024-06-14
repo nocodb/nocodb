@@ -46,13 +46,25 @@ const config = reactive<ERDConfig>({
 })
 
 const loadMetaOfTablesNotInMetas = async (localTables: TableType[]) => {
-  await Promise.all(
-    localTables
-      .filter((table) => !metas.value[table.id!] && table.source_id === props.sourceId)
-      .map(async (table) => {
+  const chunkSize = 5
+
+  // Function to process a chunk of tables
+  const processChunk = async (chunk: TableType[]) => {
+    await Promise.all(
+      chunk.map(async (table) => {
         await getMeta(table.id!)
       }),
-  )
+    )
+  }
+
+  // filter out tables that are already loaded and are not from the same source
+  const filteredTables = localTables.filter((t) => !metas.value[t.id!] && t.source_id === props.sourceId)
+
+  // Split the tables into chunks and process each chunk sequentially to avoid hitting throttling limits
+  for (let i = 0; i < filteredTables.length; i += chunkSize) {
+    const chunk = filteredTables.slice(i, i + chunkSize)
+    await processChunk(chunk)
+  }
 }
 
 const populateTables = async () => {

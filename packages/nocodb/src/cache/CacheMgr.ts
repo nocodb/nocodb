@@ -332,6 +332,17 @@ export default abstract class CacheMgr {
         );
       }
     }
+    const list = values.map((res) => {
+      try {
+        const o = JSON.parse(res);
+        if (typeof o === 'object') {
+          return o.value;
+        }
+      } catch (e) {
+        return res;
+      }
+      return res;
+    });
 
     // Check if orderBy parameter is provided and valid
     if (orderBy?.key) {
@@ -342,7 +353,7 @@ export default abstract class CacheMgr {
       const orderMultiplier = dir === 'desc' ? -1 : 1;
 
       // Sort the values array based on the specified property
-      values.sort((a, b) => {
+      list.sort((a, b) => {
         // Get the property values from a and b
         const aValue = a?.[key];
         const bValue = b?.[key];
@@ -362,17 +373,7 @@ export default abstract class CacheMgr {
     }
 
     return {
-      list: values.map((res) => {
-        try {
-          const o = JSON.parse(res);
-          if (typeof o === 'object') {
-            return o.value;
-          }
-        } catch (e) {
-          return res;
-        }
-        return res;
-      }),
+      list,
       isNoneList,
     };
   }

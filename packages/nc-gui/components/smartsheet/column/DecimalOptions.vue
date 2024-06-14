@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { UITypes } from 'nocodb-sdk'
+
 const props = defineProps<{
   value: any
 }>()
@@ -24,8 +26,7 @@ const vModel = useVModel(props, 'value', emit)
 
 // set default value
 vModel.value.meta = {
-  precision: precisionFormats[0],
-  isLocaleString: false,
+  ...columnDefaultMeta[UITypes.Decimal],
   ...(vModel.value.meta || {}),
 }
 

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { UITypes } from 'nocodb-sdk'
+
 const props = defineProps<{
   value: any
 }>()
@@ -50,12 +52,8 @@ const isOpenColorPicker = ref(false)
 
 // set default value
 vModel.value.meta = {
-  icon: {
-    checked: 'mdi-check-bold',
-    unchecked: 'mdi-crop-square',
-  },
-  color: '#777',
-  ...vModel.value.meta,
+  ...columnDefaultMeta[UITypes.Checkbox],
+  ...(vModel.value.meta || {}),
 }
 
 // antdv doesn't support object as value

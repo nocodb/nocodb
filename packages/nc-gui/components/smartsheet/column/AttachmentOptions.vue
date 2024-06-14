@@ -33,7 +33,7 @@ vModel.value.meta = {
     // allow all mime types by default
     supportedAttachmentMimeTypes: ['*'],
   }),
-  ...vModel.value.meta,
+  ...(vModel.value.meta || {}),
 }
 
 const expandedKeys = ref<(string | number)[]>([])

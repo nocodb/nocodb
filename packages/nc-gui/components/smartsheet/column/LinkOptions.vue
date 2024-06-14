@@ -44,7 +44,7 @@ setAdditionalValidations({
 vModel.value.meta = {
   singular: '',
   plural: '',
-  ...vModel.value.meta,
+  ...(vModel.value.meta || {}),
 }
 </script>
 

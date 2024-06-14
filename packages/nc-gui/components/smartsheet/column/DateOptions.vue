@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { dateFormats, dateMonthFormats } from 'nocodb-sdk'
+import { UITypes, dateFormats, dateMonthFormats } from 'nocodb-sdk'
 
 const props = defineProps<{
   value: any
@@ -9,9 +9,10 @@ const emit = defineEmits(['update:value'])
 
 const vModel = useVModel(props, 'value', emit)
 
-if (!vModel.value.meta?.date_format) {
-  if (!vModel.value.meta) vModel.value.meta = {}
-  vModel.value.meta.date_format = dateFormats[0]
+// set default value
+vModel.value.meta = {
+  ...columnDefaultMeta[UITypes.Date],
+  ...(vModel.value.meta || {}),
 }
 </script>
 

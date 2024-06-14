@@ -542,7 +542,7 @@ export class ColumnsService {
             },
           );
 
-          if (data.length) {
+          if (data.length && column.uidt !== colBody.uidt) {
             const existingOptions = colBody.colOptions.options.map(
               (el) => el.title,
             );

@@ -1082,6 +1082,7 @@
     "projName": "Enter Base Name",
     "selectGroupField": "Select a Grouping Field",
     "selectGroupFieldNotFound": "No Single Select Field can be found. Please create one first.",
+    "selectCoverImageField": "Select a cover image field",
     "selectGeoField": "Select a GeoData Field",
     "notSelected": "-not selected-",
     "selectGeoFieldNotFound": "No GeoData Field can be found. Please create one first.",

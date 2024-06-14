@@ -17,6 +17,7 @@ interface Props {
     fk_from_column_id: string
     fk_to_column_id: string | null // for ee only
   }>
+  coverImageColumnId?: string
 }
 
 interface Emits {
@@ -38,6 +39,7 @@ interface Form {
     fk_from_column_id: string
     fk_to_column_id: string | null // for ee only
   }>
+  fk_cover_image_col_id: string | null
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -45,6 +47,7 @@ const props = withDefaults(defineProps<Props>(), {
   groupingFieldColumnId: undefined,
   geoDataFieldColumnId: undefined,
   calendarRange: undefined,
+  coverImageColumnId: undefined,
 })
 
 const emits = defineEmits<Emits>()
@@ -55,7 +58,7 @@ const { viewsByTable } = storeToRefs(useViewsStore())
 
 const { refreshCommandPalette } = useCommandPalette()
 
-const { selectedViewId, groupingFieldColumnId, geoDataFieldColumnId, tableId } = toRefs(props)
+const { selectedViewId, groupingFieldColumnId, geoDataFieldColumnId, tableId, coverImageColumnId } = toRefs(props)
 
 const meta = ref<TableType | undefined>()
 
@@ -88,13 +91,14 @@ const form = reactive<Form>({
   fk_grp_col_id: null,
   fk_geo_data_col_id: null,
   calendar_range: props.calendarRange || [],
+  fk_cover_image_col_id: null,
 })
 
 const viewSelectFieldOptions = ref<SelectProps['options']>([])
 
 const viewNameRules = [
   // name is required
-  { required: true, message: `${t('labels.viewName')} ${t('general.required')}` },
+  { required: true, message: `${t('labels.viewName')} ${t('general.required').toLowerCase()}` },
   // name is unique
   {
     validator: (_: unknown, v: string) =>
@@ -231,7 +235,7 @@ const addCalendarRange = async () => {
 const isMetaLoading = ref(false)
 
 onMounted(async () => {
-  if (props.type === ViewTypes.KANBAN || props.type === ViewTypes.MAP || props.type === ViewTypes.CALENDAR) {
+  if ([ViewTypes.GALLERY, ViewTypes.KANBAN, ViewTypes.MAP, ViewTypes.CALENDAR].includes(props.type)) {
     isMetaLoading.value = true
     try {
       meta.value = (await getMeta(tableId.value))!
@@ -255,6 +259,30 @@ onMounted(async () => {
         } else {
           // if there is no geo data column, disable the create button
           isNecessaryColumnsPresent.value = false
+        }
+      }
+
+      // preset the cover image field
+      if (props.type === ViewTypes.GALLERY) {
+        viewSelectFieldOptions.value = [
+          { value: null, label: 'No Image' },
+          ...meta.value
+            .columns!.filter((el) => el.uidt === UITypes.Attachment)
+            .map((field) => {
+              return {
+                value: field.id,
+                label: field.title,
+                uidt: field.uidt,
+              }
+            }),
+        ]
+
+        if (coverImageColumnId.value) {
+          form.fk_cover_image_col_id = coverImageColumnId.value
+        } else if (viewSelectFieldOptions.value.length > 1) {
+          form.fk_cover_image_col_id = viewSelectFieldOptions.value[1].value as string
+        } else {
+          form.fk_cover_image_col_id = null
         }
       }
 
@@ -400,6 +428,36 @@ onMounted(async () => {
           />
         </a-form-item>
         <a-form-item
+          v-if="form.type === ViewTypes.GALLERY"
+          :label="`${$t('labels.coverImageField')} ${$t('objects.field').toLowerCase()}`"
+          name="fk_cover_image_col_id"
+        >
+          <NcSelect
+            v-model:value="form.fk_cover_image_col_id"
+            :disabled="isMetaLoading"
+            :loading="isMetaLoading"
+            :not-found-content="$t('placeholder.selectGroupFieldNotFound')"
+            :placeholder="$t('placeholder.selectCoverImageField')"
+            class="w-full nc-gallery-cover-image-field-select"
+          >
+            <a-select-option v-for="option of viewSelectFieldOptions" :key="option.value" :value="option.value">
+              <div class="w-full flex gap-2 items-center justify-between" :title="option.label">
+                <div class="flex items-center gap-1">
+                  <SmartsheetHeaderIcon v-if="option.value" :column="option" class="!ml-0" />
+
+                  <span> {{ option.label }} </span>
+                </div>
+                <GeneralIcon
+                  v-if="form.fk_cover_image_col_id === option.value"
+                  id="nc-selected-item-icon"
+                  icon="check"
+                  class="flex-none text-primary w-4 h-4"
+                />
+              </div>
+            </a-select-option>
+          </NcSelect>
+        </a-form-item>
+        <a-form-item
           v-if="form.type === ViewTypes.KANBAN"
           :label="$t('general.groupingField')"
           :rules="groupingFieldColumnRules"
@@ -447,7 +505,7 @@ onMounted(async () => {
         </a-form-item>
         <template v-if="form.type === ViewTypes.CALENDAR">
           <div v-for="(range, index) in form.calendar_range" :key="`range-${index}`" class="flex w-full items-center gap-2">
-            <span>
+            <span class="text-gray-800">
               {{ $t('labels.organiseBy') }}
             </span>
             <NcSelect
@@ -558,7 +616,7 @@ onMounted(async () => {
           <GeneralIcon class="min-w-6 h-6 text-orange-500" icon="warning" />
           <div class="flex flex-col gap-1">
             <h2 class="font-semibold text-sm mb-0 text-gray-800">Suitable fields not present</h2>
-            <span class="text-gray-500 font-default"> {{ errorMessages[form.type] }}</span>
+            <span class="text-gray-500 font-default text-sm"> {{ errorMessages[form.type] }}</span>
           </div>
         </div>
       </div>

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { UITypes } from 'nocodb-sdk'
+
 const props = defineProps<{
   value: any
   isEdit?: boolean
@@ -18,8 +20,8 @@ setAdditionalValidations({
 
 // set default value
 vModel.value.meta = {
-  is_progress: false,
-  ...vModel.value.meta,
+  ...columnDefaultMeta[UITypes.Percent],
+  ...(vModel.value.meta || {}),
 }
 </script>
 

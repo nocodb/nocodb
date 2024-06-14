@@ -121,29 +121,46 @@ onMounted(() => {
 </script>
 
 <template>
-  <NcModal v-model:visible="dialogShow" :header="$t('activity.createTable')" size="small" @keydown.esc="dialogShow = false">
+  <NcModal
+    v-model:visible="dialogShow"
+    :show-separator="false"
+    :header="$t('activity.createTable')"
+    size="small"
+    @keydown.esc="dialogShow = false"
+  >
     <template #header>
-      <div class="flex flex-row items-center gap-x-2">
-        <GeneralIcon icon="table" class="!text-gray-600/75" />
+      <div class="flex flex-row items-center gap-x-2 text-base text-gray-800">
+        <GeneralIcon icon="table" class="!text-gray-600 w-5 h-5" />
         {{ $t('activity.createTable') }}
       </div>
     </template>
-    <div class="flex flex-col mt-2">
-      <a-form :model="table" name="create-new-table-form" @keydown.enter="_createTable" @keydown.esc="dialogShow = false">
-        <a-form-item v-bind="validateInfos.title" :class="{ '!mb-1': isSnowflake(props.sourceId) }">
-          <a-input
-            ref="inputEl"
-            v-model:value="table.title"
-            class="nc-input-md"
-            hide-details
-            data-testid="create-table-title-input"
-            :placeholder="$t('msg.info.enterTableName')"
-          />
-        </a-form-item>
-        <template v-if="isSnowflake(props.sourceId)">
-          <a-checkbox v-model:checked="table.is_hybrid" class="!flex flex-row items-center"> Hybrid Table </a-checkbox>
-        </template>
-        <div class="nc-table-advanced-options" :class="{ active: isAdvanceOptVisible }">
+    <div class="flex flex-col mt-1">
+      <a-form
+        :model="table"
+        name="create-new-table-form"
+        class="flex flex-col gap-5"
+        @keydown.enter="_createTable"
+        @keydown.esc="dialogShow = false"
+      >
+        <div>
+          <a-form-item
+            v-bind="validateInfos.title"
+            :class="{ '!mb-1': isSnowflake(props.sourceId), '!mb-0': !isSnowflake(props.sourceId) }"
+          >
+            <a-input
+              ref="inputEl"
+              v-model:value="table.title"
+              class="nc-input-sm nc-input-shadow"
+              hide-details
+              data-testid="create-table-title-input"
+              :placeholder="$t('msg.info.enterTableName')"
+            />
+          </a-form-item>
+          <template v-if="isSnowflake(props.sourceId)">
+            <a-checkbox v-model:checked="table.is_hybrid" class="!flex flex-row items-center"> Hybrid Table </a-checkbox>
+          </template>
+        </div>
+        <div class="nc-table-advanced-options" v-if="isAdvanceOptVisible" :class="{ active: isAdvanceOptVisible }">
           <div>
             <div class="mb-1">
               <!-- Add Default Columns -->
@@ -171,12 +188,13 @@ onMounted(() => {
             </a-row>
           </div>
         </div>
-        <div class="flex flex-row justify-end gap-x-2 mt-2">
-          <NcButton type="secondary" @click="dialogShow = false">{{ $t('general.cancel') }}</NcButton>
+        <div class="flex flex-row justify-end gap-x-2">
+          <NcButton type="secondary" size="small" @click="dialogShow = false">{{ $t('general.cancel') }}</NcButton>
 
           <NcButton
             v-e="['a:table:create']"
             type="primary"
+            size="small"
             :disabled="validateInfos.title.validateStatus === 'error'"
             :loading="creating"
             @click="_createTable"

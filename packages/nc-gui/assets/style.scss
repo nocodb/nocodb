@@ -61,7 +61,7 @@ main {
 }
 
 .nc-input-sm {
-  @apply !rounded-lg !py-1 !px-3 mb-1;
+  @apply !rounded-lg !py-1 !px-3;
 }
 
 .nc-input-shadow {
@@ -79,6 +79,16 @@ main {
   }
 }
 
+.ant-form-item-explain {
+  @apply !min-h-5;
+  .ant-form-item-explain-error {
+    @apply text-sm;
+    &:first-child {
+      @apply mt-1;
+    }
+  }
+}
+
 .ant-form-item-has-error :not(.ant-input-affix-wrapper-disabled):not(.ant-input-affix-wrapper-borderless).ant-input-affix-wrapper,
 .ant-form-item-has-error
   :not(.ant-input-affix-wrapper-disabled):not(.ant-input-affix-wrapper-borderless).ant-input-affix-wrapper:hover,
@@ -91,6 +101,12 @@ main {
     .ant-input-number-affix-wrapper-borderless
   ).ant-input-number-affix-wrapper:hover {
   border-color: var(--ant-error-color) !important;
+}
+
+ant-form-item-explain-error {
+  &:first-child {
+    @apply mt-2;
+  }
 }
 
 .mobile {

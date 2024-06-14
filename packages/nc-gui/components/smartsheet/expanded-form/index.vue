@@ -959,7 +959,7 @@ export default {
   <GeneralDeleteModal v-model:visible="showDeleteRowModal" entity-name="Record" :on-delete="() => onConfirmDeleteRowClick()">
     <template #entity-preview>
       <span>
-        <div class="flex flex-row items-center py-2.25 px-2.5 bg-gray-50 rounded-lg text-gray-700 mb-4">
+        <div class="flex flex-row items-center py-2.25 px-2.5 bg-gray-50 rounded-lg text-gray-700">
           <div class="text-ellipsis overflow-hidden select-none w-full pl-1.75 break-keep whitespace-nowrap">
             <LazySmartsheetPlainCell v-model="displayValue" :column="displayField" />
           </div>
@@ -978,9 +978,9 @@ export default {
         {{ $t('activity.doYouWantToSaveTheChanges') }}
       </div>
       <div class="flex flex-row justify-end gap-x-2 mt-5">
-        <NcButton type="secondary" @click="discardPreventModal">{{ $t('labels.discard') }}</NcButton>
+        <NcButton type="secondary" size="small" @click="discardPreventModal">{{ $t('labels.discard') }}</NcButton>
 
-        <NcButton key="submit" type="primary" :loading="isSaving" @click="saveChanges">
+        <NcButton key="submit" type="primary" size="small" :loading="isSaving" @click="saveChanges">
           {{ $t('tooltip.saveChanges') }}
         </NcButton>
       </div>

@@ -22,7 +22,7 @@ const checked = computed({
 })
 
 const onChange = (e: Event) => {
-  emit('change', e, checked.value)
+  emit('change', e, (e.target as HTMLInputElement).checked)
 }
 </script>
 

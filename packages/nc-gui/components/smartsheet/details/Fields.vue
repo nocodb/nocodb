@@ -306,7 +306,15 @@ const onFieldUpdate = (state: TableExplorerColumn, skipLinkChecks = false) => {
     }
   }
 
-  const diffs = diff(col, state) as Partial<TableExplorerColumn>
+  const pdiffs: Record<string, any> = diff(col, state)
+
+  // remove undefined values
+  const diffs = Object.keys(pdiffs).reduce((acc, key) => {
+    if (pdiffs[key] !== undefined) {
+      acc[key] = pdiffs[key]
+    }
+    return acc
+  }, {} as Record<string, any>) as Partial<TableExplorerColumn>
 
   if (Object.keys(diffs).length === 0 || (Object.keys(diffs).length === 1 && 'altered' in diffs)) {
     ops.value = ops.value.filter((op) => op.op === 'add' || !compareCols(op.column, state))
@@ -841,6 +849,21 @@ onMounted(async () => {
   if (meta.value && meta.value.id) {
     columnsHash.value = (await $api.dbTableColumn.hash(meta.value.id)).hash
   }
+
+  await until(() => meta.value?.columns)
+
+  meta.value!.columns = meta.value?.columns?.map((c: ColumnType) => {
+    if (c.uidt && c.uidt in columnDefaultMeta) {
+      if (!c.meta) c.meta = {}
+      c.meta = {
+        ...columnDefaultMeta[c.uidt],
+        ...c.meta,
+      }
+    }
+    return {
+      ...c,
+    }
+  })
 })
 
 const onFieldOptionUpdate = () => {

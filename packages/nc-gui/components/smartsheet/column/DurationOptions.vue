@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { UITypes } from 'nocodb-sdk'
+
 const props = defineProps<{
   value: any
 }>()
@@ -16,7 +18,7 @@ const durationOptionList =
 
 // set default value
 vModel.value.meta = {
-  duration: 0,
+  ...columnDefaultMeta[UITypes.Duration],
   ...vModel.value.meta,
 }
 </script>

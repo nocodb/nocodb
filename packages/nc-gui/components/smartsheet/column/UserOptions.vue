@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { UITypes } from 'nocodb-sdk'
+
 const props = defineProps<{
   value: any
   isEdit: boolean
@@ -22,8 +24,7 @@ setAdditionalValidations({
 
 // set default value
 vModel.value.meta = {
-  is_multi: false,
-  notify: false,
+  ...columnDefaultMeta[UITypes.User],
   ...vModel.value.meta,
 }
 

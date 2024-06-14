@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { UITypes } from 'nocodb-sdk'
+
 interface Option {
   label: string
   value: string
@@ -64,8 +66,7 @@ function filterOption(input: string, option: Option) {
 
 // set default value
 vModel.value.meta = {
-  currency_locale: 'en-US',
-  currency_code: 'USD',
+  ...columnDefaultMeta[UITypes.Currency],
   ...vModel.value.meta,
 }
 

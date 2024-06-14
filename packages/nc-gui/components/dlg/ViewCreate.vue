@@ -429,7 +429,7 @@ onMounted(async () => {
         </a-form-item>
         <a-form-item
           v-if="form.type === ViewTypes.GALLERY"
-          :label="`${$t('labels.coverImageField')} ${$t('objects.field').toLowerCase()}`"
+          :label="`${$t('labels.coverImageField')}`"
           name="fk_cover_image_col_id"
         >
           <NcSelect

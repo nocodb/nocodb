@@ -210,7 +210,8 @@
     "set": "Set",
     "format": "Format",
     "colour": "Colour",
-    "use": "Use"
+    "use": "Use",
+    "stack": "Stack"
   },
   "objects": {
     "owner": "Owner",
@@ -336,8 +337,8 @@
     "parameter": "Parámetro",
     "headers": "Encabezados",
     "parameterName": "Nombre del parámetro",
-    "currencyLocale": "Locale",
-    "currencyCode": "Code",
+    "currencyLocale": "Moneda local",
+    "currencyCode": "Código de moneda",
     "searchMembers": "Buscar miembros",
     "noMembersFound": "Ningún miembro encontrado",
     "dateJoined": "Fecha de incorporación",
@@ -451,7 +452,8 @@
     "selectFieldsFromRightPannelToAddHere": "Selecciona los campos del panel derecho para añadirlos aquí",
     "noOptionsFound": "No options found",
     "surveyFormSubmitConfirmMsg": "Are you sure you want to submit this form?",
-    "noResultsMatchedYourSearch": "Your search did not yield any matching results."
+    "noResultsMatchedYourSearch": "Your search did not yield any matching results.",
+    "looksLikeThisStackIsEmpty": "Looks like this stack does not have any records"
   },
   "labels": {
     "selectView": "Select a View",
@@ -543,7 +545,7 @@
     "headerName": "Nombre del encabezado",
     "icon": "Icono",
     "max": "Máximo",
-    "enableRichText": "Enable rich text",
+    "enableRichText": "Activar Texto Enriquecido",
     "idColon": "Id:",
     "copiedRecordURL": "URL del registro copiado",
     "copyRecordURL": "Copiar URL de registro",
@@ -598,7 +600,7 @@
     "untitledToken": "Token sin título",
     "tableName": "Nombre de la tabla",
     "dashboardName": "Nombre del panel",
-    "createView": "Crear Vista",
+    "createView": "Crear una vista",
     "creatingView": "Creando Vista",
     "duplicateView": "Duplicar vista",
     "duplicateGridView": "Duplicar vista en cuadrcula",
@@ -937,7 +939,7 @@
     "clearMetadata": "Limpiar metadatos",
     "exportToFile": "Exportar a archivo",
     "changePwd": "Cambia la contraseña",
-    "createView": "Crear vista",
+    "createView": "Crear una Vista",
     "shareView": "Compartir vista",
     "findRowByCodeScan": "Find row by scan",
     "fillByCodeScan": "Rellenar por escaneo",
@@ -1006,6 +1008,9 @@
     },
     "kanban": {
       "collapseStack": "Colapsar pila",
+      "collapseAll": "Collapse all",
+      "expandAll": "Expand all",
+      "renameStack": "Rename stack",
       "deleteStack": "Borrar pila",
       "stackedBy": "Apilado por",
       "chooseGroupingField": "Elija un campo de agrupación",
@@ -1033,7 +1038,7 @@
     "group": "Group"
   },
   "tooltip": {
-    "reachedSourceLimit": "Limitado a una única fuente de datos por el momento",
+    "reachedSourceLimit": "Limited to 10 data sources per base",
     "saveChanges": "Guardar cambios",
     "xcDB": "Crear un nuevo proyecto",
     "extDB": "Soporta MySQL, PostgreSQL, SQL Server y SQLite",
@@ -1139,7 +1144,7 @@
     "optimizedQueryEnabled": "Optimized query is enabled",
     "lookupNonBtWarning": "Lookup field is not supported for non-Belongs to relation",
     "invalidTime": "Hora no válida",
-    "linkColumnClearNotSupportedYet": "You don't have any supported links for {type}",
+    "linkColumnClearNotSupportedYet": "You don't have any supported links for Lookup",
     "recordCouldNotBeFound": "Record could not be found",
     "invalidPhoneNumber": "Invalid phone number",
     "pageSizeChanged": "Tamaño de página modificado",
@@ -1212,7 +1217,7 @@
     "noRecordsLinked": "No hay registros vinculados",
     "noLinkedRecords": "No linked records",
     "recordsLinked": "registros vinculados",
-    "acceptOnlyValid": "Accept only valid {type}",
+    "acceptOnlyValid": "Sólo acepta",
     "apiTokenCreate": "Cree tokens de API personales para utilizarlos en la automatización o en aplicaciones externas.",
     "selectFieldToSort": "Seleccionar campo para ordenar",
     "selectFieldToGroup": "Seleccione el campo al grupo",
@@ -1519,7 +1524,7 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "Los tipos de archivo aceptados son .xls, .xlsx, .xlsm, .ods, .ots",
       "parameterKeyCannotBeEmpty": "La clave del parámetro no puede estar vacía",
       "duplicateParameterKeysAreNotAllowed": "No se permiten claves de parámetros duplicadas",
-      "fieldRequired": "This field cannot be empty.",
+      "fieldRequired": "{value} no puede estar vacía.",
       "projectNotAccessible": "Proyecto no accesible",
       "copyToClipboardError": "Fallo al copiar al portapapeles",
       "pasteFromClipboardError": "Failed to paste from clipboard",

@@ -12,14 +12,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits(['change', 'update:checked'])
 
-const vModel = useVModel(props, 'checked', emit)
-
-const checked = computed({
-  get: () => !!vModel.value,
-  set: (value: boolean) => {
-    vModel.value = value
-  },
-})
+const checked = useVModel(props, 'checked', emit)
 
 const onChange = (e: Event) => {
   emit('change', e, (e.target as HTMLInputElement).checked)

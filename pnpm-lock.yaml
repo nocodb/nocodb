@@ -158,7 +158,7 @@ importers:
         specifier: ^0.11.0
         version: 0.11.0
       nocodb-sdk:
-        specifier: 0.250.2
+        specifier: workspace:^
         version: link:../nocodb-sdk
       papaparse:
         specifier: ^5.4.1
@@ -727,7 +727,7 @@ importers:
         specifier: ^0.4.4
         version: 0.4.4(@nestjs/common@10.3.8)(@nestjs/core@10.3.8)(@nestjs/throttler@5.1.2)(ioredis@5.4.1)(reflect-metadata@0.2.1)
       nocodb-sdk:
-        specifier: 0.250.2
+        specifier: workspace:^
         version: link:../nocodb-sdk
       nodemailer:
         specifier: ^6.9.13
@@ -15717,7 +15717,7 @@ packages:
       eslint: 8.56.0
       eslint-import-resolver-node: 0.3.9
       eslint-module-utils: 2.8.0(@typescript-eslint/parser@5.62.0)(eslint-import-resolver-node@0.3.9)(eslint@8.56.0)
-      hasown: 2.0.1
+      hasown: 2.0.0
       is-core-module: 2.13.1
       is-glob: 4.0.3
       minimatch: 3.1.2

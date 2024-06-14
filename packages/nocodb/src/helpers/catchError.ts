@@ -670,7 +670,9 @@ export class NcError {
     id: string | string[] | Record<string, string> | Record<string, string>[],
     args?: NcErrorArgs,
   ) {
-    if (typeof id === 'string') {
+    if (!id) {
+      id = 'unknown';
+    } else if (typeof id === 'string') {
       id = [id];
     } else if (Array.isArray(id)) {
       if (id.every((i) => typeof i === 'string')) {

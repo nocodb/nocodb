@@ -281,6 +281,7 @@ export class FieldsPage extends BasePage {
       httpMethodsToMatch: ['GET'],
       responseJsonMatcher: json => json['hash'],
     });
+    await this.rootPage.waitForTimeout(1000);
   }
 
   getField({ title }: { title: string }) {

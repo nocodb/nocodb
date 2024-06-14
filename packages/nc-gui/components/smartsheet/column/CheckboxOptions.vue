@@ -53,7 +53,7 @@ const isOpenColorPicker = ref(false)
 // set default value
 vModel.value.meta = {
   ...columnDefaultMeta[UITypes.Checkbox],
-  ...vModel.value.meta,
+  ...(vModel.value.meta || {}),
 }
 
 // antdv doesn't support object as value

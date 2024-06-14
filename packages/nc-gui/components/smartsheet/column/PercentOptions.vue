@@ -21,7 +21,7 @@ setAdditionalValidations({
 // set default value
 vModel.value.meta = {
   ...columnDefaultMeta[UITypes.Percent],
-  ...vModel.value.meta,
+  ...(vModel.value.meta || {}),
 }
 </script>
 

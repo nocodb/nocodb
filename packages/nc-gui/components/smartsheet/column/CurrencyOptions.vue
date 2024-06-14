@@ -67,7 +67,7 @@ function filterOption(input: string, option: Option) {
 // set default value
 vModel.value.meta = {
   ...columnDefaultMeta[UITypes.Currency],
-  ...vModel.value.meta,
+  ...(vModel.value.meta || {}),
 }
 
 currencyLocales().then((locales) => {

@@ -25,7 +25,7 @@ setAdditionalValidations({
 // set default value
 vModel.value.meta = {
   ...columnDefaultMeta[UITypes.User],
-  ...vModel.value.meta,
+  ...(vModel.value.meta || {}),
 }
 
 onMounted(() => {

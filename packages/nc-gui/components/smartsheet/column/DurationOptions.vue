@@ -19,7 +19,7 @@ const durationOptionList =
 // set default value
 vModel.value.meta = {
   ...columnDefaultMeta[UITypes.Duration],
-  ...vModel.value.meta,
+  ...(vModel.value.meta || {}),
 }
 </script>
 

@@ -33,7 +33,7 @@ onMounted(() => {
   // set default value
   vModel.value.meta = {
     ...columnDefaultMeta[UITypes.Barcode],
-    ...vModel.value.meta,
+    ...(vModel.value.meta || {}),
   }
   vModel.value.fk_barcode_value_column_id =
     (column?.value?.colOptions as Record<string, any>)?.fk_barcode_value_column_id || columnsAllowedAsBarcodeValue.value?.[0]?.id

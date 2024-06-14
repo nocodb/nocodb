@@ -12,7 +12,7 @@ const vModel = useVModel(props, 'value', emit)
 // set default value
 vModel.value.meta = {
   ...columnDefaultMeta[UITypes.Date],
-  ...vModel.value.meta,
+  ...(vModel.value.meta || {}),
 }
 </script>
 

@@ -45,7 +45,7 @@ const config = reactive<ERDConfig>({
   isFullScreen: false,
 })
 
-const loadMetaOfTablesNotInMetas = async (localTables: TableType[]) => {
+const fetchMissingTableMetas = async (localTables: TableType[]) => {
   const chunkSize = 5
 
   // Function to process a chunk of tables
@@ -85,7 +85,7 @@ const populateTables = async () => {
     localTables = baseTables.value
   }
 
-  await loadMetaOfTablesNotInMetas(localTables)
+  await fetchMissingTableMetas(localTables)
 
   tables.value = localTables
     .filter(

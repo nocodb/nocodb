@@ -416,7 +416,7 @@ onMounted(async () => {
             <a-select-option v-for="option of viewSelectFieldOptions" :key="option.value" :value="option.value">
               <div class="w-full flex gap-2 items-center justify-between" :title="option.label">
                 <div class="flex items-center gap-1">
-                  <SmartsheetHeaderIcon :column="option" class="!ml-0 !w-4 !h-4" />
+                  <SmartsheetHeaderIcon :column="option" class="!ml-0" />
 
                   <span> {{ option.label }} </span>
                 </div>
@@ -446,7 +446,7 @@ onMounted(async () => {
           />
         </a-form-item>
         <template v-if="form.type === ViewTypes.CALENDAR">
-          <div v-for="(range, index) in form.calendar_range" :key="`range-${index}`" class="flex w-full mb-2 items-center gap-2">
+          <div v-for="(range, index) in form.calendar_range" :key="`range-${index}`" class="flex w-full items-center gap-2">
             <span>
               {{ $t('labels.organiseBy') }}
             </span>
@@ -470,7 +470,7 @@ onMounted(async () => {
               >
                 <div class="flex w-full gap-2 justify-between items-center">
                   <div class="flex gap-2 items-center">
-                    <SmartsheetHeaderIcon :column="option" />
+                    <SmartsheetHeaderIcon :column="option" class="!ml-0" />
                     <NcTooltip class="truncate flex-1 max-w-18" placement="top" show-on-truncate-only>
                       <template #title>{{ option.label }}</template>
                       {{ option.label }}

@@ -273,9 +273,11 @@ export default class Filter extends FilterCE implements FilterType {
     { columnId }: { columnId: any },
     ncMeta = Noco.ncMeta,
   ) {
-    const cachedList = await NocoCache.getList(CacheScope.FILTER_EXP, [
-      columnId,
-    ]);
+    const cachedList = await NocoCache.getList(
+      CacheScope.FILTER_EXP,
+      [columnId],
+      { key: 'order' },
+    );
     let { list: filterObjs } = cachedList;
     const { isNoneList } = cachedList;
     if (!isNoneList && !filterObjs.length) {

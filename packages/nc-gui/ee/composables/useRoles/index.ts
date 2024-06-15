@@ -216,10 +216,20 @@ export const useRoles = () => {
   const currentSource = inject(ActiveSourceInj, ref())
   const useRolesRes = useRolesShared()
 
+  const isMetaReadOnly = computed(() => {
+    return currentSource.value?.meta?.[SourceRestriction.META_READONLY] || false
+  })
+
+  const isDataReadOnly = computed(() => {
+    return currentSource.value?.meta?.[SourceRestriction.DATA_READONLY] || false
+  })
+
   return {
     ...useRolesRes,
     isUIAllowed: (...args: IsUIAllowedParams) => {
       return useRolesRes.isUIAllowed(args[0], { source: currentSource, ...(args[1] || {}) })
     },
+    isDataReadOnly,
+    isMetaReadOnly,
   }
 }

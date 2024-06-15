@@ -463,9 +463,9 @@ export const sourceRestrictions = {
     tableCreate: true,
     tableDelete: true,
     tableUpdate: true,
-    columnAdd: true,
-    columnDelete: true,
-    columnUpdate: true,
+    // columnAdd: true,
+    // columnDelete: true,
+    // columnUpdate: true,
     columnBulk: true,
   },
   [SourceRestriction.DATA_READONLY]: {

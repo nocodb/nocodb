@@ -94,7 +94,7 @@ onMounted(() => {
 
 <template>
   <div
-    v-if="isForm && !isEditColumn && !hidePrefix"
+    v-if="isForm && !isEditColumn && editEnabled && !hidePrefix"
     class="nc-currency-code h-full !bg-gray-100 border-r border-gray-200 px-3 mr-1 flex items-center"
   >
     <span>
@@ -102,7 +102,7 @@ onMounted(() => {
     </span>
   </div>
   <input
-    v-if="(!readOnly && editEnabled) || (isForm && !isEditColumn)"
+    v-if="(!readOnly && editEnabled) || (isForm && !isEditColumn && editEnabled)"
     :ref="focus"
     v-model="vModel"
     type="number"

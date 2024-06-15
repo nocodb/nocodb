@@ -10,11 +10,11 @@ const emits = defineEmits(['update:base'])
 
 const source = toRef(props, 'source')
 
-const _project = useVModel(props, 'base', emits)
+const base = useVModel(props, 'base', emits)
 
 const { isUIAllowed } = useRoles()
 
-const baseRole = inject(ProjectRoleInj)
+const baseRole = computed(() => base.project_role || base.workspace_role)
 
 const { $e } = useNuxtApp()
 
@@ -132,7 +132,6 @@ function openQuickImportDialog(type: string) {
       </div>
     </a-menu-item>
   </a-sub-menu>
-
   <!-- Quick Import From -->
   <NcSubMenu
     v-if="

@@ -8,9 +8,11 @@ const props = defineProps<{
 
 const source = toRef(props, 'source')
 
+const base = toRef(props, 'base')
+
 const { isUIAllowed } = useRoles()
 
-const baseRole = inject(ProjectRoleInj)
+const baseRole = computed(() => base.value.project_role || base.value.workspace_role)
 
 const { $e } = useNuxtApp()
 

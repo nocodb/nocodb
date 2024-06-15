@@ -109,7 +109,7 @@ const baseViewOpen = computed(() => {
 
 const showBaseOption = (source: SourceType) => {
   return ['airtableImport', 'csvImport', 'jsonImport', 'excelImport'].some((permission) =>
-    isUIAllowed(permission, { roles: baseRole!.value, source }),
+    isUIAllowed(permission, { source }),
   )
 }
 
@@ -627,7 +627,7 @@ const getSource = (sourceId: string) => {
                   <NcMenuItem
                     v-if="
                       base.type === NcProjectType.DB &&
-                      isUIAllowed('baseDuplicate', { roles: [base.workspace_role, base.project_role].join() })
+                      isUIAllowed('baseDuplicate', { roles: base.project_role || base.workspace_role })
                     "
                     data-testid="nc-sidebar-base-duplicate"
                     @click="duplicateProject(base)"
@@ -692,9 +692,8 @@ const getSource = (sourceId: string) => {
                     <GeneralIcon icon="settings" class="group-hover:text-black" />
                     {{ $t('activity.settings') }}
                   </NcMenuItem>
-
                   <NcMenuItem
-                    v-if="isUIAllowed('baseDelete', { roles: [base.workspace_role, base.project_role].join() })"
+                    v-if="isUIAllowed('baseDelete', { roles: base.project_role || base.workspace_role })"
                     class="!text-red-500 !hover:bg-red-50"
                     data-testid="nc-sidebar-base-delete"
                     @click="isProjectDeleteDialogVisible = true"
@@ -709,7 +708,7 @@ const getSource = (sourceId: string) => {
             </NcDropdown>
 
             <NcButton
-              v-if="isUIAllowed('tableCreate', { roles: baseRole, source: base?.sources?.[0] })"
+              v-if="isUIAllowed('tableCreate', { roles: base.project_role || base.workspace_role, source: base?.sources?.[0] })"
               :disabled="!base?.sources?.[0]?.enabled"
               class="nc-sidebar-node-btn"
               type="text"
@@ -905,7 +904,7 @@ const getSource = (sourceId: string) => {
                             </NcDropdown>
 
                             <NcButton
-                              v-if="isUIAllowed('tableCreate', { roles: baseRole, source })"
+                              v-if="isUIAllowed('tableCreate', { roles: base.project_role || base.workspace_role, source })"
                               type="text"
                               size="xxsmall"
                               class="nc-sidebar-node-btn"

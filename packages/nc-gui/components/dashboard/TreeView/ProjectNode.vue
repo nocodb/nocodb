@@ -69,7 +69,7 @@ const { t } = useI18n()
 
 const input = ref<HTMLInputElement>()
 
-const baseRole = inject(ProjectRoleInj)
+const baseRole = computed(() => base.value.project_role || base.value.workspace_role)
 
 const { activeProjectId } = storeToRefs(useBases())
 
@@ -100,9 +100,9 @@ const baseViewOpen = computed(() => {
   return routeNameAfterProjectView.split('-').length === 2 || routeNameAfterProjectView.split('-').length === 1
 })
 
-const showBaseOption = computed(() => {
+const showBaseOption = (source: SourceType) => {
   return ['airtableImport', 'csvImport', 'jsonImport', 'excelImport'].some((permission) =>
-    isUIAllowed(permission, { skipSourceCheck: true }),
+    isUIAllowed(permission, { source }),
   )
 })
 
@@ -602,7 +602,7 @@ const getSource = (sourceId: string) => {
                     </NcMenuItem>
                   </template>
 
-                  <template v-if="base?.sources?.[0]?.enabled && showBaseOption">
+                  <template v-if="base?.sources?.[0]?.enabled && showBaseOption(base?.sources?.[0])">
                     <NcDivider />
                     <DashboardTreeViewBaseOptions v-model:base="base" :source="base.sources[0]" />
                   </template>
@@ -823,7 +823,7 @@ const getSource = (sourceId: string) => {
                                     </div>
                                   </NcMenuItem>
 
-                                  <DashboardTreeViewBaseOptions v-if="showBaseOption" v-model:base="base" :source="source" />
+                                  <DashboardTreeViewBaseOptions v-if="showBaseOption(source)" v-model:base="base" :source="source" />
                                 </NcMenu>
                               </template>
                             </NcDropdown>

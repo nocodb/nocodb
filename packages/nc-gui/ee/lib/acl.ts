@@ -94,6 +94,9 @@ const rolePermissions = {
       tableDelete: true,
       viewCreateOrEdit: true,
       baseReorder: true,
+      airtableImport: true,
+      jsonImport: true,
+      excelImport: true,
     },
   },
   [WorkspaceUserRoles.EDITOR]: {

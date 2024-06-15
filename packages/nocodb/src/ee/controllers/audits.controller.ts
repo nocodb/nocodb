@@ -1,16 +1,13 @@
 import {
-  Body,
   Controller,
   Get,
-  HttpCode,
   Param,
-  Post,
   Req,
   UseGuards,
 } from '@nestjs/common';
+import { AuditsController as AuditsControllerCE } from 'src/controllers/audits.controller';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
-import { AuditsController as AuditsControllerCE } from 'src/controllers/audit.controller';
 import { AuditsService } from '~/services/audits.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
@@ -20,7 +17,7 @@ import { NcContext, NcRequest } from '~/interface/config';
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class AuditsController extends AuditsControllerCE {
-  constructor(private readonly auditsService: AuditsService) {
+  constructor(protected readonly auditsService: AuditsService) {
     super(auditsService);
   }
 

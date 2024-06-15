@@ -19,7 +19,7 @@ import { NcContext, NcRequest } from '~/interface/config';
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class AuditsController {
-  constructor(private readonly auditsService: AuditsService) {}
+  constructor(protected readonly auditsService: AuditsService) {}
 
   @Get(['/api/v1/db/meta/audits/', '/api/v2/meta/audits/'])
   @Acl('auditList')

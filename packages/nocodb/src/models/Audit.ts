@@ -4,6 +4,47 @@ import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import { MetaTable, RootScopes } from '~/utils/globals';
 
+const opTypes = <const>[
+  'COMMENT',
+  'DATA',
+  'PROJECT',
+  'VIRTUAL_RELATION',
+  'RELATION',
+  'TABLE_VIEW',
+  'TABLE',
+  'VIEW',
+  'META',
+  'WEBHOOKS',
+  'AUTHENTICATION',
+  'TABLE_COLUMN',
+  'ORG_USER',
+];
+
+const opSubTypes = <const>[
+  'UPDATE',
+  'INSERT',
+  'BULK_INSERT',
+  'BULK_UPDATE',
+  'BULK_DELETE',
+  'LINK_RECORD',
+  'UNLINK_RECORD',
+  'DELETE',
+  'CREATE',
+  'RENAME',
+  'IMPORT_FROM_ZIP',
+  'EXPORT_TO_FS',
+  'EXPORT_TO_ZIP',
+  'SIGNIN',
+  'SIGNUP',
+  'PASSWORD_RESET',
+  'PASSWORD_FORGOT',
+  'PASSWORD_CHANGE',
+  'EMAIL_VERIFICATION',
+  'ROLES_MANAGEMENT',
+  'INVITE',
+  'RESEND_INVITE',
+];
+
 export default class Audit implements AuditType {
   id?: string;
   user?: string;
@@ -13,8 +54,8 @@ export default class Audit implements AuditType {
   base_id?: string;
   fk_model_id?: string;
   row_id?: string;
-  op_type?: AuditOperationTypes;
-  op_sub_type?: AuditOperationSubTypes;
+  op_type?: (typeof opTypes)[number];
+  op_sub_type?: (typeof opSubTypes)[number];
   status?: string;
   description?: string;
   details?: string;

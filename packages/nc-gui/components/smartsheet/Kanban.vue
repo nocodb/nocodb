@@ -714,7 +714,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                           item-key="row.Id"
                           draggable=".nc-kanban-item"
                           group="kanban-card"
-                          class="flex flex-col h-full mb-2"
+                          class="flex flex-col h-full"
                           filter=".not-draggable"
                           @start="(e) => e.target.classList.add('grabbing')"
                           @end="(e) => e.target.classList.remove('grabbing')"

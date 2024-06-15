@@ -21,7 +21,10 @@ interface Emits {
 
   (event: 'delete', view: ViewType): void
 
-  (event: 'openModal', data: { type: ViewTypes; title?: string; copyViewId?: string; groupingFieldColumnId?: string }): void
+  (
+    event: 'openModal',
+    data: { type: ViewTypes; title?: string; copyViewId?: string; groupingFieldColumnId?: string; coverImageColumnId?: string },
+  ): void
 }
 
 const props = defineProps<Props>()

@@ -13,6 +13,7 @@ interface Emits {
       title?: string
       copyViewId?: string
       groupingFieldColumnId?: string
+      coverImageColumnId?: string
     },
   ): void
 
@@ -337,6 +338,7 @@ function onOpenModal({
   copyViewId,
   groupingFieldColumnId,
   calendarRange,
+  coverImageColumnId,
 }: {
   title?: string
   type: ViewTypes
@@ -346,6 +348,7 @@ function onOpenModal({
     fk_from_column_id: string
     fk_to_column_id: string | null // for ee only
   }>
+  coverImageColumnId?: string
 }) {
   const isOpen = ref(true)
 
@@ -358,6 +361,7 @@ function onOpenModal({
     groupingFieldColumnId,
     'views': views,
     calendarRange,
+    coverImageColumnId,
     'onUpdate:modelValue': closeDialog,
     'onCreated': async (view: ViewType) => {
       closeDialog()

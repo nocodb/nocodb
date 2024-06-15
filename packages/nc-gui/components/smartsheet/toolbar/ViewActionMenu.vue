@@ -103,6 +103,7 @@ function onDuplicate() {
     'groupingFieldColumnId': view.value!.view!.fk_grp_col_id,
     'views': views,
     'calendarRange': view.value!.view!.calendar_range,
+    'coverImageColumnId': view.value!.view!.fk_cover_image_col_id,
     'onUpdate:modelValue': closeDialog,
     'onCreated': async (view: ViewType) => {
       closeDialog()

@@ -174,33 +174,34 @@ const renameTable = async (undo = false, disableTitleDiffCheck?: boolean | undef
 </script>
 
 <template>
-  <NcModal v-model:visible="dialogShow" size="small">
+  <NcModal v-model:visible="dialogShow" size="small" :show-separator="false">
     <template #header>
       <div class="flex flex-row items-center gap-x-2">
         <GeneralIcon icon="rename" />
         {{ $t('activity.renameTable') }}
       </div>
     </template>
-    <div class="mt-2">
+    <div class="mt-1">
       <a-form :model="formState" name="create-new-table-form">
         <a-form-item v-bind="validateInfos.title">
           <a-input
             ref="inputEl"
             v-model:value="formState.title"
-            class="nc-input-md"
+            class="nc-input-sm nc-input-shadow"
             hide-details
-            size="large"
+            size="small"
             :placeholder="$t('msg.info.enterTableName')"
             @keydown.enter="() => renameTable()"
           />
         </a-form-item>
       </a-form>
-      <div class="flex flex-row justify-end gap-x-2 mt-6">
-        <NcButton type="secondary" @click="dialogShow = false">{{ $t('general.cancel') }}</NcButton>
+      <div class="flex flex-row justify-end gap-x-2 mt-5">
+        <NcButton type="secondary" size="small" @click="dialogShow = false">{{ $t('general.cancel') }}</NcButton>
 
         <NcButton
           key="submit"
           type="primary"
+          size="small"
           :disabled="validateInfos.title.validateStatus === 'error' || formState.title?.trim() === tableMeta.title"
           label="Rename Table"
           loading-label="Renaming Table"

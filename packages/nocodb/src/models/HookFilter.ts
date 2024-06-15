@@ -247,9 +247,11 @@ export default class Filter {
   ): Promise<Filter[]> {
     if (this.children) return this.children;
     if (!this.is_group) return null;
-    const cachedList = await NocoCache.getList(CacheScope.FILTER_EXP, [
-      this.id,
-    ]);
+    const cachedList = await NocoCache.getList(
+      CacheScope.FILTER_EXP,
+      [this.id],
+      { key: 'order' },
+    );
     let { list: childFilters } = cachedList;
     const { isNoneList } = cachedList;
     if (!isNoneList && !childFilters.length) {
@@ -293,7 +295,11 @@ export default class Filter {
     },
     ncMeta = Noco.ncMeta,
   ): Promise<FilterType> {
-    const cachedList = await NocoCache.getList(CacheScope.FILTER_EXP, [viewId]);
+    const cachedList = await NocoCache.getList(
+      CacheScope.FILTER_EXP,
+      [viewId],
+      { key: 'order' },
+    );
     let { list: filters } = cachedList;
     const { isNoneList } = cachedList;
     if (!isNoneList && !filters.length) {
@@ -393,7 +399,11 @@ export default class Filter {
     { viewId }: { viewId: any },
     ncMeta = Noco.ncMeta,
   ) {
-    const cachedList = await NocoCache.getList(CacheScope.FILTER_EXP, [viewId]);
+    const cachedList = await NocoCache.getList(
+      CacheScope.FILTER_EXP,
+      [viewId],
+      { key: 'order' },
+    );
     let { list: filterObjs } = cachedList;
     const { isNoneList } = cachedList;
     if (!isNoneList && !filterObjs.length) {

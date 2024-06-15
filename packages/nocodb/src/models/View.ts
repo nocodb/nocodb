@@ -1856,7 +1856,7 @@ export default class View implements ViewType {
 
         const aggregation = CommonAggregations.None;
 
-        if (view.type === ViewTypes.GALLERY) {
+        if (view.type === ViewTypes.GALLERY && !copyFromView) {
           const galleryView = await GalleryView.get(context, view.id, ncMeta);
           if (
             (column.id === galleryView.fk_cover_image_col_id && column.pv) ||

@@ -502,9 +502,11 @@ export function useViewFilters(
         } else {
           try {
             await $api.dbTableFilter.delete(filter.id)
-
             if (!isWebhook && !isLink) reloadData?.()
-            filters.value.splice(i, 1)
+
+            // find item index by using id and remove it from array since item index may change
+            const itemIndex = filters.value.findIndex((f) => f.id === filter.id)
+            if (itemIndex > -1) filters.value.splice(itemIndex)
           } catch (e: any) {
             console.log(e)
             message.error(await extractSdkResponseErrorMsg(e))

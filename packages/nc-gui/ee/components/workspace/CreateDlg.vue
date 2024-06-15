@@ -106,26 +106,27 @@ watch(
 </script>
 
 <template>
-  <NcModal v-model:visible="dialogShow" size="small">
+  <NcModal v-model:visible="dialogShow" size="small" :show-separator="false">
     <template #header>
-      <div class="flex flex-row items-center gap-x-2">
+      <div class="flex flex-row items-center gap-x-2 text-base text-gray-800">
         <GeneralIcon icon="workspaceDefault" />
         <div>
           {{ $t('activity.createWorkspace') }}
         </div>
       </div>
     </template>
-    <a-form :model="workspace" name="create-new-workspace-form" class="!mt-2" @keydown.enter="_createWorkspace">
-      <a-form-item v-bind="validateInfos.title">
-        <InputOrTags ref="inputRef" v-model="workspace.title" class="nc-input-md" />
+    <a-form :model="workspace" name="create-new-workspace-form" class="!mt-1" @keydown.enter="_createWorkspace">
+      <a-form-item v-bind="validateInfos.title" class="!mb-0">
+        <InputOrTags ref="inputRef" v-model="workspace.title" class="nc-input-sm nc-input-shadow" />
       </a-form-item>
-      <div class="flex flex-row justify-end mt-7 gap-x-2">
-        <NcButton type="secondary" @click="dialogShow = false">
+      <div class="flex flex-row justify-end mt-5 gap-x-2">
+        <NcButton type="secondary" size="small" @click="dialogShow = false">
           {{ $t('general.cancel') }}
         </NcButton>
         <NcButton
           v-e="['a:workspace:create']"
           type="primary"
+          size="small"
           :loading="isCreating"
           :disabled="validateInfos.title.validateStatus === 'error'"
           @click="_createWorkspace"

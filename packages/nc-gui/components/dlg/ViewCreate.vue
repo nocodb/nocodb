@@ -17,6 +17,7 @@ interface Props {
     fk_from_column_id: string
     fk_to_column_id: string | null // for ee only
   }>
+  coverImageColumnId?: string
 }
 
 interface Emits {
@@ -38,6 +39,7 @@ interface Form {
     fk_from_column_id: string
     fk_to_column_id: string | null // for ee only
   }>
+  fk_cover_image_col_id: string | null
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -45,6 +47,7 @@ const props = withDefaults(defineProps<Props>(), {
   groupingFieldColumnId: undefined,
   geoDataFieldColumnId: undefined,
   calendarRange: undefined,
+  coverImageColumnId: undefined,
 })
 
 const emits = defineEmits<Emits>()
@@ -55,7 +58,7 @@ const { viewsByTable } = storeToRefs(useViewsStore())
 
 const { refreshCommandPalette } = useCommandPalette()
 
-const { selectedViewId, groupingFieldColumnId, geoDataFieldColumnId, tableId } = toRefs(props)
+const { selectedViewId, groupingFieldColumnId, geoDataFieldColumnId, tableId, coverImageColumnId } = toRefs(props)
 
 const meta = ref<TableType | undefined>()
 
@@ -88,13 +91,14 @@ const form = reactive<Form>({
   fk_grp_col_id: null,
   fk_geo_data_col_id: null,
   calendar_range: props.calendarRange || [],
+  fk_cover_image_col_id: null,
 })
 
 const viewSelectFieldOptions = ref<SelectProps['options']>([])
 
 const viewNameRules = [
   // name is required
-  { required: true, message: `${t('labels.viewName')} ${t('general.required')}` },
+  { required: true, message: `${t('labels.viewName')} ${t('general.required').toLowerCase()}` },
   // name is unique
   {
     validator: (_: unknown, v: string) =>
@@ -231,7 +235,7 @@ const addCalendarRange = async () => {
 const isMetaLoading = ref(false)
 
 onMounted(async () => {
-  if (props.type === ViewTypes.KANBAN || props.type === ViewTypes.MAP || props.type === ViewTypes.CALENDAR) {
+  if ([ViewTypes.GALLERY, ViewTypes.KANBAN, ViewTypes.MAP, ViewTypes.CALENDAR].includes(props.type)) {
     isMetaLoading.value = true
     try {
       meta.value = (await getMeta(tableId.value))!
@@ -258,6 +262,30 @@ onMounted(async () => {
         }
       }
 
+      // preset the cover image field
+      if (props.type === ViewTypes.GALLERY) {
+        viewSelectFieldOptions.value = [
+          { value: null, label: 'No Image' },
+          ...meta.value
+            .columns!.filter((el) => el.uidt === UITypes.Attachment)
+            .map((field) => {
+              return {
+                value: field.id,
+                label: field.title,
+                uidt: field.uidt,
+              }
+            }),
+        ]
+
+        if (coverImageColumnId.value) {
+          form.fk_cover_image_col_id = coverImageColumnId.value
+        } else if (viewSelectFieldOptions.value.length > 1 && !form.copy_from_id) {
+          form.fk_cover_image_col_id = viewSelectFieldOptions.value[1].value as string
+        } else {
+          form.fk_cover_image_col_id = null
+        }
+      }
+
       // preset the grouping field column
       if (props.type === ViewTypes.KANBAN) {
         viewSelectFieldOptions.value = meta.value
@@ -266,6 +294,7 @@ onMounted(async () => {
             return {
               value: field.id,
               label: field.title,
+              uidt: field.uidt,
             }
           })
 
@@ -278,6 +307,14 @@ onMounted(async () => {
         } else {
           // if there is no grouping field column, disable the create button
           isNecessaryColumnsPresent.value = false
+        }
+
+        if (coverImageColumnId.value) {
+          form.fk_cover_image_col_id = coverImageColumnId.value
+        } else if (viewSelectFieldOptions.value.length > 1 && !form.copy_from_id) {
+          form.fk_cover_image_col_id = viewSelectFieldOptions.value[1].value as string
+        } else {
+          form.fk_cover_image_col_id = null
         }
       }
 
@@ -319,12 +356,14 @@ onMounted(async () => {
 <template>
   <NcModal
     v-model:visible="vModel"
-    :size="[ViewTypes.KANBAN, ViewTypes.MAP, ViewTypes.CALENDAR].includes(form.type) ? 'medium' : 'small'"
+    class="nc-view-create-modal"
+    :show-separator="false"
+    :size="[ViewTypes.MAP].includes(form.type) ? 'medium' : 'small'"
   >
     <template #header>
       <div class="flex w-full flex-row justify-between items-center">
         <div class="flex font-bold text-base gap-x-3 items-center">
-          <GeneralViewIcon :meta="{ type: form.type }" class="nc-view-icon !text-xl" />
+          <GeneralViewIcon :meta="{ type: form.type }" class="nc-view-icon !text-[24px] !leading-6 max-h-6 max-w-6" />
           <template v-if="form.type === ViewTypes.GRID">
             <template v-if="form.copy_from_id">
               {{ $t('labels.duplicateGridView') }}
@@ -380,24 +419,60 @@ onMounted(async () => {
           :href="`https://docs.nocodb.com/views/view-types/${typeAlias}`"
           target="_blank"
         >
-          Go to Docs
+          Docs
         </a>
       </div>
     </template>
-    <div class="mt-2">
-      <a-form v-if="isNecessaryColumnsPresent" ref="formValidator" :model="form" layout="vertical">
+    <div class="mt-1">
+      <a-form v-if="isNecessaryColumnsPresent" ref="formValidator" :model="form" layout="vertical" class="flex flex-col gap-y-5">
         <a-form-item :rules="viewNameRules" name="title">
           <a-input
             ref="inputEl"
             v-model:value="form.title"
             :placeholder="$t('labels.viewName')"
             autofocus
-            class="nc-input-md h-10"
+            class="nc-input-sm nc-input-shadow"
             @keydown.enter="onSubmit"
           />
         </a-form-item>
         <a-form-item
-          v-if="form.type === ViewTypes.KANBAN"
+          v-if="form.type === ViewTypes.GALLERY && !form.copy_from_id"
+          :label="`${$t('labels.coverImageField')}`"
+          name="fk_cover_image_col_id"
+        >
+          <NcSelect
+            v-model:value="form.fk_cover_image_col_id"
+            :disabled="isMetaLoading"
+            :loading="isMetaLoading"
+            dropdown-match-select-width
+            :not-found-content="$t('placeholder.selectGroupFieldNotFound')"
+            :placeholder="$t('placeholder.selectCoverImageField')"
+            class="nc-select-shadow w-full nc-gallery-cover-image-field-select"
+          >
+            <a-select-option v-for="option of viewSelectFieldOptions" :key="option.value" :value="option.value">
+              <div class="w-full flex gap-2 items-center justify-between" :title="option.label">
+                <div class="flex-1 flex items-center gap-1 max-w-[calc(100%_-_24px)]">
+                  <SmartsheetHeaderIcon v-if="option.value" :column="option" class="!ml-0" />
+
+                  <NcTooltip class="flex-1 max-w-[calc(100%_-_20px)] truncate" show-on-truncate-only>
+                    <template #title>
+                      {{ option.label }}
+                    </template>
+                    <template #default>{{ option.label }}</template>
+                  </NcTooltip>
+                </div>
+                <GeneralIcon
+                  v-if="form.fk_cover_image_col_id === option.value"
+                  id="nc-selected-item-icon"
+                  icon="check"
+                  class="flex-none text-primary w-4 h-4"
+                />
+              </div>
+            </a-select-option>
+          </NcSelect>
+        </a-form-item>
+        <a-form-item
+          v-if="form.type === ViewTypes.KANBAN && !form.copy_from_id"
           :label="$t('general.groupingField')"
           :rules="groupingFieldColumnRules"
           name="fk_grp_col_id"
@@ -406,11 +481,32 @@ onMounted(async () => {
             v-model:value="form.fk_grp_col_id"
             :disabled="isMetaLoading"
             :loading="isMetaLoading"
+            dropdown-match-select-width
             :not-found-content="$t('placeholder.selectGroupFieldNotFound')"
-            :options="viewSelectFieldOptions"
             :placeholder="$t('placeholder.selectGroupField')"
-            class="w-full nc-kanban-grouping-field-select"
-          />
+            class="nc-select-shadow w-full nc-kanban-grouping-field-select"
+          >
+            <a-select-option v-for="option of viewSelectFieldOptions" :key="option.value" :value="option.value">
+              <div class="w-full flex gap-2 items-center justify-between" :title="option.label">
+                <div class="flex-1 flex items-center gap-1 max-w-[calc(100%_-_24px)]">
+                  <SmartsheetHeaderIcon :column="option" class="!ml-0" />
+
+                  <NcTooltip class="flex-1 max-w-[calc(100%_-_20px)] truncate" show-on-truncate-only>
+                    <template #title>
+                      {{ option.label }}
+                    </template>
+                    <template #default>{{ option.label }}</template>
+                  </NcTooltip>
+                </div>
+                <GeneralIcon
+                  v-if="form.fk_grp_col_id === option.value"
+                  id="nc-selected-item-icon"
+                  icon="check"
+                  class="flex-none text-primary w-4 h-4"
+                />
+              </div>
+            </a-select-option>
+          </NcSelect>
         </a-form-item>
         <a-form-item
           v-if="form.type === ViewTypes.MAP"
@@ -425,19 +521,19 @@ onMounted(async () => {
             :not-found-content="$t('placeholder.selectGeoFieldNotFound')"
             :options="viewSelectFieldOptions"
             :placeholder="$t('placeholder.selectGeoField')"
-            class="w-full"
+            class="nc-select-shadow w-full"
           />
         </a-form-item>
-        <template v-if="form.type === ViewTypes.CALENDAR">
-          <div v-for="(range, index) in form.calendar_range" :key="`range-${index}`" class="flex w-full mb-2 items-center gap-2">
-            <span>
+        <template v-if="form.type === ViewTypes.CALENDAR && !form.copy_from_id">
+          <div v-for="(range, index) in form.calendar_range" :key="`range-${index}`" class="flex w-full items-center gap-2">
+            <span class="text-gray-800">
               {{ $t('labels.organiseBy') }}
             </span>
             <NcSelect
               v-model:value="range.fk_from_column_id"
               :disabled="isMetaLoading"
               :loading="isMetaLoading"
-              class="nc-from-select"
+              class="nc-select-shadow nc-from-select"
             >
               <a-select-option
                 v-for="(option, id) in [...viewSelectFieldOptions!].filter((f) => {
@@ -453,7 +549,7 @@ onMounted(async () => {
               >
                 <div class="flex w-full gap-2 justify-between items-center">
                   <div class="flex gap-2 items-center">
-                    <SmartsheetHeaderIcon :column="option" />
+                    <SmartsheetHeaderIcon :column="option" class="!ml-0" />
                     <NcTooltip class="truncate flex-1 max-w-18" placement="top" show-on-truncate-only>
                       <template #title>{{ option.label }}</template>
                       {{ option.label }}
@@ -538,16 +634,16 @@ onMounted(async () => {
       </a-form>
       <div v-else-if="!isNecessaryColumnsPresent" class="flex flex-row p-4 border-gray-200 border-1 gap-x-4 rounded-lg w-full">
         <div class="text-gray-500 flex gap-4">
-          <GeneralIcon class="min-w-6 h-6 text-orange-500" icon="warning" />
+          <GeneralIcon class="min-w-6 h-6 text-orange-500" icon="alertTriangle" />
           <div class="flex flex-col gap-1">
             <h2 class="font-semibold text-sm mb-0 text-gray-800">Suitable fields not present</h2>
-            <span class="text-gray-500 font-default"> {{ errorMessages[form.type] }}</span>
+            <span class="text-gray-500 font-default text-sm"> {{ errorMessages[form.type] }}</span>
           </div>
         </div>
       </div>
 
-      <div class="flex flex-row w-full justify-end gap-x-2 mt-7">
-        <NcButton type="secondary" @click="vModel = false">
+      <div class="flex flex-row w-full justify-end gap-x-2 mt-5">
+        <NcButton type="secondary" size="small" @click="vModel = false">
           {{ $t('general.cancel') }}
         </NcButton>
 
@@ -556,6 +652,7 @@ onMounted(async () => {
           :disabled="!isNecessaryColumnsPresent"
           :loading="isViewCreating"
           type="primary"
+          size="small"
           @click="onSubmit"
         >
           {{ $t('labels.createView') }}
@@ -582,11 +679,29 @@ onMounted(async () => {
   @apply !rounded-r-none;
 }
 
-.ant-input {
-  @apply border-gray-200;
+.ant-form-item {
+  @apply !mb-0;
 }
 
-.ant-form-item {
-  @apply !mb-6;
+.nc-input-sm {
+  @apply !mb-0;
+}
+
+.nc-view-create-modal {
+  :deep(.nc-modal) {
+  }
+}
+
+:deep(.ant-form-item-label > label) {
+  @apply !text-sm text-gray-800 flex;
+
+  &.ant-form-item-required:not(.ant-form-item-required-mark-optional)::before {
+    @apply content-[''] m-0;
+  }
+}
+:deep(.ant-select) {
+  .ant-select-selector {
+    @apply !rounded-lg;
+  }
 }
 </style>

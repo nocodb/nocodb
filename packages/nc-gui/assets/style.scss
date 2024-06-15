@@ -60,6 +60,55 @@ main {
   @apply !rounded-lg !py-2 !px-3 mb-1;
 }
 
+.nc-input-sm {
+  @apply !rounded-lg !py-1 !px-3;
+}
+
+.nc-input-shadow {
+  &.ant-input {
+    &:not(:hover):not(:focus):not(:disabled) {
+      @apply shadow-default border-gray-200;
+    }
+
+    &:hover:not(:focus):not(:disabled) {
+      @apply border-gray-200 shadow-hover;
+    }
+    &:focus {
+      @apply shadow-selected ring-0;
+    }
+  }
+}
+
+.ant-form-item-explain {
+  @apply !min-h-5;
+  .ant-form-item-explain-error {
+    @apply text-sm;
+    &:first-child {
+      @apply mt-1;
+    }
+  }
+}
+
+.ant-form-item-has-error :not(.ant-input-affix-wrapper-disabled):not(.ant-input-affix-wrapper-borderless).ant-input-affix-wrapper,
+.ant-form-item-has-error
+  :not(.ant-input-affix-wrapper-disabled):not(.ant-input-affix-wrapper-borderless).ant-input-affix-wrapper:hover,
+.ant-form-item-has-error :not(.ant-input-disabled):not(.ant-input-borderless).ant-input,
+.ant-form-item-has-error :not(.ant-input-disabled):not(.ant-input-borderless).ant-input:hover,
+.ant-form-item-has-error
+  :not(.ant-input-number-affix-wrapper-disabled):not(.ant-input-number-affix-wrapper-borderless).ant-input-number-affix-wrapper,
+.ant-form-item-has-error
+  :not(.ant-input-number-affix-wrapper-disabled):not(
+    .ant-input-number-affix-wrapper-borderless
+  ).ant-input-number-affix-wrapper:hover {
+  border-color: var(--ant-error-color) !important;
+}
+
+ant-form-item-explain-error {
+  &:first-child {
+    @apply mt-2;
+  }
+}
+
 .mobile {
   .nc-scrollbar-md,
   .nc-scrollbar-lg,
@@ -264,6 +313,21 @@ a {
       box-shadow: none;
     }
   }
+}
+
+.ant-form-item:not(.ant-form-item-has-error)
+  .nc-select-shadow.ant-select-focused:not(.ant-select-disabled).ant-select:not(.ant-select-customize-input)
+  .ant-select-selector {
+  @apply !shadow-selected;
+}
+
+.ant-form-item.ant-form-item-has-error
+  .nc-select-shadow.ant-select:not(.ant-select-disabled):not(.ant-select-customize-input).ant-select-focused
+  .ant-select-selector,
+.ant-form-item.ant-form-item-has-error
+  .nc-select-shadow.ant-select:not(.ant-select-disabled):not(.ant-select-customize-input).ant-select-open
+  .ant-select-selector {
+  @apply !shadow-error;
 }
 
 // select dropdown border style

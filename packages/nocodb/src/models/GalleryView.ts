@@ -95,8 +95,9 @@ export default class GalleryView implements GalleryType {
     ]);
 
     insertObj.fk_cover_image_col_id =
-      view?.fk_cover_image_col_id ||
-      columns?.find((c) => c.uidt === UITypes.Attachment)?.id;
+      view?.fk_cover_image_col_id !== undefined
+        ? view?.fk_cover_image_col_id
+        : columns?.find((c) => c.uidt === UITypes.Attachment)?.id;
 
     insertObj.meta = {
       fk_cover_image_object_fit:

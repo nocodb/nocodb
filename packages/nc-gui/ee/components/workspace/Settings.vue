@@ -191,28 +191,31 @@ const onCancel = () => {
     </div>
   </div>
 
-  <GeneralModal v-model:visible="isDeleteModalVisible" class="nc-attachment-rename-modal !w-112">
+  <GeneralModal v-model:visible="isDeleteModalVisible" class="nc-attachment-rename-modal" size="small">
     <div class="flex flex-col items-center justify-center h-full !p-6">
-      <div class="text-lg font-semibold self-start mb-4">Delete Workspace</div>
+      <div class="text-lg font-semibold self-start mb-5">Delete Workspace</div>
       <span class="self-start mb-2"
         >Enter workspace name to delete - <b class="select-none"> ‘{{ toBeDeletedWorkspaceTitle }}’ </b>
       </span>
       <a-form class="w-full h-full" no-style :model="form" @finish="onDelete">
-        <a-form-item class="w-full" name="title" :rules="rules.modalInput">
+        <a-form-item class="w-full !mb-0" name="title" :rules="rules.modalInput">
           <a-input
             ref="inputEl"
             v-model:value="form.modalInput"
-            class="w-full !rounded-lg !h-4 !px-2 !py-4"
+            class="w-full nc-input-sm nc-input-shadow"
             placeholder="Workspace Name"
           />
         </a-form-item>
         <div class="flex flex-row gap-x-2 mt-2.5 pt-2.5 justify-end">
-          <NcButton html-type="back" type="secondary" @click="isDeleteModalVisible = false">{{ $t('general.cancel') }} </NcButton>
+          <NcButton html-type="back" type="secondary" size="small" @click="isDeleteModalVisible = false"
+            >{{ $t('general.cancel') }}
+          </NcButton>
           <NcButton
             key="submit"
             v-e="['a:workspace:settings:delete']"
             html-type="submit"
             type="danger"
+            size="small"
             :disabled="form.modalInput !== currentWorkspace?.title"
             :loading="isDeleting"
             >Delete Workspace</NcButton

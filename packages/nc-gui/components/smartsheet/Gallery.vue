@@ -26,7 +26,6 @@ const {
   loadGalleryData,
   galleryData,
   changePage,
-  addEmptyRow,
   deleteRow,
   navigateToSiblingRow,
 } = useViewData(meta, view, xWhere)
@@ -123,10 +122,19 @@ const expandFormClick = async (e: MouseEvent, row: RowType) => {
   expandForm(row)
 }
 
-openNewRecordFormHook?.on(async () => {
-  const newRow = await addEmptyRow()
-  expandForm(newRow)
-})
+const openNewRecordFormHookHandler = async () => {
+  expandForm({
+    row: { ...rowDefaultData(meta.value?.columns) },
+    oldRow: {},
+    rowMeta: { new: true },
+  })
+}
+
+openNewRecordFormHook?.on(openNewRecordFormHookHandler)
+
+// remove openNewRecordFormHookHandler before unmounting
+// so that it won't be triggered multiple times
+onBeforeUnmount(() => openNewRecordFormHook.off(openNewRecordFormHookHandler))
 
 const expandedFormOnRowIdDlg = computed({
   get() {
@@ -223,7 +231,7 @@ watch(
     <div
       class="flex flex-col w-full nc-gallery nc-scrollbar-md bg-gray-50"
       data-testid="nc-gallery-wrapper"
-      :style="{ height: isMobileMode ? 'calc(100% - var(--topbar-height))' : 'calc(100% - var(--topbar-height) + 0.7rem)' }"
+      :style="{ height: isMobileMode ? 'calc(100% - var(--topbar-height))' : 'calc(100% - var(--topbar-height) + 0.6rem)' }"
       :class="{
         '!overflow-hidden': isViewDataLoading,
       }"
@@ -370,7 +378,18 @@ watch(
     align-count-on-right
     show-api-timing
     :change-page="changePage"
-  />
+    class=""
+  >
+    <template #add-record>
+      <NcButton v-if="isUIAllowed('dataInsert')" size="xs" type="secondary" class="ml-2" @click="openNewRecordFormHook.trigger">
+        <div class="flex items-center gap-2">
+          <component :is="iconMap.plus" class="" />
+
+          {{ $t('activity.newRecord') }}
+        </div>
+      </NcButton>
+    </template>
+  </LazySmartsheetPagination>
   <Suspense>
     <LazySmartsheetExpandedForm
       v-if="expandedFormRow && expandedFormDlg"

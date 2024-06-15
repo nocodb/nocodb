@@ -25,6 +25,8 @@ const active = inject(ActiveCellInj, ref(false))
 
 const isForm = inject(IsFormInj)!
 
+const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
+
 const { open } = useExpandedFormDetached()
 
 function openExpandedForm() {
@@ -89,7 +91,7 @@ export default {
     </div>
 
     <div
-      v-show="active || isForm"
+      v-show="active || isForm || isExpandedForm"
       v-if="showUnlinkButton && !readOnly && isUIAllowed('dataEdit')"
       class="flex items-center cursor-pointer"
     >

@@ -56,9 +56,8 @@ const formState = ref<ProjectCreateForm>({
   },
   sslUse: SSLUsage.No,
   extraParameters: [],
-  meta: {
-    [SourceRestriction.META_READONLY]: true,
-    [SourceRestriction.DATA_READONLY]: false,
+  'is_schema_readonly': true,
+  'is_data_readonly': false,
   },
 })
 
@@ -249,7 +248,8 @@ const createSource = async () => {
       config,
       inflection_column: formState.value.inflection.inflectionColumn,
       inflection_table: formState.value.inflection.inflectionTable,
-      meta: formState.value.meta,
+      is_schema_readonly: formState.value.is_schema_readonly,
+      is_data_readonly: formState.value.is_data_readonly,
     })
 
     $poller.subscribe(
@@ -401,18 +401,16 @@ const toggleModal = (val: boolean) => {
 }
 
 const allowMetaWrite = computed({
-  get: () => !formState.value.meta[SourceRestriction.META_READONLY],
+  get: () => !formState.value.is_schema_readonly,
   set: (v) => {
-    formState.value.meta = formState.value.meta || {}
-    formState.value.meta[SourceRestriction.META_READONLY] = !v
+    formState.value.is_schema_readonly = !v
   },
 })
 
 const allowDataWrite = computed({
-  get: () => !formState.value.meta[SourceRestriction.DATA_READONLY],
+  get: () => !formState.value.is_data_readonly,
   set: (v) => {
-    formState.value.meta = formState.value.meta || {}
-    formState.value.meta[SourceRestriction.DATA_READONLY] = !v
+    formState.value.is_data_readonly = !v
   },
 })
 </script>

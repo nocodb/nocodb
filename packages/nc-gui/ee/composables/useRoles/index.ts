@@ -180,7 +180,7 @@ export const useRolesShared = createSharedComposable(() => {
     if (
       !args.skipSourceCheck &&
       (sourceRestrictions[SourceRestriction.DATA_READONLY][permission] ||
-        sourceRestrictions[SourceRestriction.META_READONLY][permission])
+        sourceRestrictions[SourceRestriction.SCHEMA_READONLY][permission])
     ) {
       const source = unref(args.source || null)
 
@@ -190,10 +190,10 @@ export const useRolesShared = createSharedComposable(() => {
         return false
       }
 
-      if (source?.meta?.[SourceRestriction.DATA_READONLY] && sourceRestrictions[SourceRestriction.DATA_READONLY][permission]) {
+      if (source?.is_data_readonly && sourceRestrictions[SourceRestriction.DATA_READONLY][permission]) {
         return false
       }
-      if (source?.meta?.[SourceRestriction.META_READONLY] && sourceRestrictions[SourceRestriction.META_READONLY][permission]) {
+      if (source?.is_schema_readonly && sourceRestrictions[SourceRestriction.SCHEMA_READONLY][permission]) {
         return false
       }
     }
@@ -217,11 +217,11 @@ export const useRoles = () => {
   const useRolesRes = useRolesShared()
 
   const isMetaReadOnly = computed(() => {
-    return currentSource.value?.meta?.[SourceRestriction.META_READONLY] || false
+    return currentSource.value?.is_schema_readonly|| false
   })
 
   const isDataReadOnly = computed(() => {
-    return currentSource.value?.meta?.[SourceRestriction.DATA_READONLY] || false
+    return currentSource.value?.is_data_readonly || false
   })
 
   return {

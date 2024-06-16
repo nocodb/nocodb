@@ -197,7 +197,7 @@ export const sourceRestrictions = {
     duplicateModel: true,
     tableDuplicate: true,
   },
-  [SourceRestriction.META_READONLY]: {
+  [SourceRestriction.SCHEMA_READONLY]: {
     tableCreate: true,
     tableRename: true,
     tableDelete: true,

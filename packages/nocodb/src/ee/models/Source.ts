@@ -38,6 +38,8 @@ export default class Source extends SourceCE implements SourceType {
       'order',
       'enabled',
       'meta',
+      'is_schema_readonly',
+      'is_data_readonly',
     ]);
     insertObj.config = CryptoJS.AES.encrypt(
       JSON.stringify(source.config),

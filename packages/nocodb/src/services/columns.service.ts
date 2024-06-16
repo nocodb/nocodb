@@ -201,7 +201,7 @@ export class ColumnsService {
 
     // check if source is readonly and column type is not allowed
     if (
-      source?.meta?.[SourceRestriction.META_READONLY] &&
+      source?.is_schema_readonly &&
       (!readonlyMetaAllowedTypes.includes(column.uidt) ||
         (param.column.uidt &&
           !readonlyMetaAllowedTypes.includes(param.column.uidt as UITypes)))
@@ -1496,7 +1496,7 @@ export class ColumnsService {
 
     // check if source is readonly and column type is not allowed
     if (
-      source?.meta?.[SourceRestriction.META_READONLY] &&
+      source?.is_schema_readonly &&
       !readonlyMetaAllowedTypes.includes(param.column.uidt as UITypes)
     ) {
       NcError.sourceMetaReadOnly(source.alias);
@@ -2064,7 +2064,7 @@ export class ColumnsService {
 
     // check if source is readonly and column type is not allowed
     if (
-      source?.meta?.[SourceRestriction.META_READONLY] &&
+      source?.is_schema_readonly &&
       !readonlyMetaAllowedTypes.includes(column.uidt)
     ) {
       NcError.sourceMetaReadOnly(source.alias);

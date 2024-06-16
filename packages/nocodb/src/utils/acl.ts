@@ -462,7 +462,7 @@ export const sourceRestrictions = {
     jsonImport: true,
     excelImport: true,
   },
-  [SourceRestriction.META_READONLY]: {
+  [SourceRestriction.SCHEMA_READONLY]: {
     tableCreate: true,
     tableRename: true,
     tableDelete: true,

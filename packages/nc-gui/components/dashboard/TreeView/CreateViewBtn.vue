@@ -123,7 +123,7 @@ async function onOpenModal({
           </div>
         </NcMenuItem>
 
-        <NcMenuItem v-if="!source.meta?.[SourceRestriction.DATA_READONLY]" @click="onOpenModal({ type: ViewTypes.FORM })">
+        <NcMenuItem v-if="!source.is_schema_readonly" @click="onOpenModal({ type: ViewTypes.FORM })">
           <div class="item" data-testid="sidebar-view-create-form">
             <div class="item-inner">
               <GeneralViewIcon :meta="{ type: ViewTypes.FORM }" />

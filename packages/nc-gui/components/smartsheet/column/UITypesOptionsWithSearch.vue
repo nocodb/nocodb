@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { UITypes, UITypesName } from 'nocodb-sdk'
+import { UITypes, UITypesName, readonlyMetaAllowedTypes } from 'nocodb-sdk'
 
 const props = defineProps<{
   options: typeof uiTypes
@@ -64,15 +64,6 @@ onMounted(() => {
   searchQuery.value = ''
   activeFieldIndex.value = options.value.findIndex((o) => o.name === UITypes.SingleLineText)
 })
-
-
-const readonlyMetaAllowedTypes = [
-  UITypes.Lookup,
-  UITypes.Rollup,
-  UITypes.Formula,
-  UITypes.Barcode,
-  UITypes.QrCode,
-]
 
 const isDisabledUIType = (type: UITypes) => {
   return isMetaReadOnly.value && !readonlyMetaAllowedTypes.includes(type)

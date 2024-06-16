@@ -484,7 +484,7 @@ export class AclMiddleware implements NestInterceptor {
         if (req.params.sourceId) {
           source = sources.find((s) => s.id === req.params.sourceId);
         } else {
-          source = sources.find((s) => s.isMeta());
+          source = sources.find((s) => s.isMeta()) || sources[0];
         }
       } else if (req.ncSourceId) {
         source = await Source.get(req.context, req.ncSourceId);

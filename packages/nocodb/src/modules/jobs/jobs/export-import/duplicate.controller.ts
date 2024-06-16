@@ -8,7 +8,12 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { ProjectStatus, SourceRestriction } from 'nocodb-sdk';
+import {
+  ProjectStatus,
+  readonlyMetaAllowedTypes,
+  SourceRestriction,
+} from 'nocodb-sdk';
+import type { UITypes } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { BasesService } from '~/services/bases.service';
@@ -287,12 +292,14 @@ export class DuplicateController {
 
     const source = await Source.get(context, model.source_id);
 
-    // if data/schema is readonly, then restrict duplication
-    if (source.is_schema_readonly) {
-      NcError.sourceMetaReadOnly(source.alias);
-    }
-    if (source.is_data_readonly) {
-      NcError.sourceDataReadOnly(source.alias);
+    // check if source is readonly and column type is not allowed
+    if (!readonlyMetaAllowedTypes.includes(column.uidt as UITypes)) {
+      if (source.is_schema_readonly) {
+        NcError.sourceMetaReadOnly(source.alias);
+      }
+      if (source.is_data_readonly) {
+        NcError.sourceDataReadOnly(source.alias);
+      }
     }
 
     const job = await this.jobsService.add(JobTypes.DuplicateColumn, {

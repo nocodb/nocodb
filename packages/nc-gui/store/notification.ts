@@ -28,7 +28,7 @@ export const useNotification = defineStore('notificationStore', () => {
         unreadCount.value = unreadCount.value + 1
       }
 
-      await pollNotifications()
+      setTimeout(pollNotifications, 0)
     } catch (e) {
       // If network error, retry after 2 seconds
       setTimeout(pollNotifications, 2000)

@@ -15,7 +15,7 @@ const basesStore = useBases()
 
 const { createProject: _createProject, updateProject } = basesStore
 
-const { bases, basesList, activeProjectId, b } = storeToRefs(basesStore)
+const { bases, basesList, activeProjectId } = storeToRefs(basesStore)
 
 const { isWorkspaceLoading } = storeToRefs(useWorkspace())
 
@@ -248,9 +248,9 @@ watch(
           ghost-class="ghost"
           @change="onMove($event)"
         >
-          <template #item="{ element: base }">
+          <template #item="{ element: base1 }">
             <div :key="base.id">
-              <ProjectWrapper :base-role="base.project_role" :base="base">
+              <ProjectWrapper :base-role="base1.project_role" :base="base1">
                 <DashboardTreeViewProjectNode />
               </ProjectWrapper>
             </div>

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { ColumnReqType } from 'nocodb-sdk'
+import { type ColumnReqType, readonlyMetaAllowedTypes } from 'nocodb-sdk'
 import { PlanLimitTypes, RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 import { SmartsheetStoreEvents } from '#imports'
 
@@ -43,7 +43,7 @@ const { gridViewCols } = useViewColumnsOrThrow()
 
 const { fieldsToGroupBy, groupByLimit } = useViewGroupByOrThrow(view)
 
-const { isUIAllowed } = useRoles()
+const { isUIAllowed, isMetaReadOnly } = useRoles()
 
 const isLoading = ref<'' | 'hideOrShow' | 'setDisplay'>('')
 
@@ -354,6 +354,11 @@ const filterOrGroupByThisField = (event: SmartsheetStoreEvents) => {
   }
   isOpen.value = false
 }
+
+const isColumnCRUDAllowed = computed(() => {
+  if (isMetaReadOnly.value && !readonlyMetaAllowedTypes.includes(column.value?.uidt)) return false
+  return true
+})
 </script>
 
 <template>
@@ -376,7 +381,11 @@ const filterOrGroupByThisField = (event: SmartsheetStoreEvents) => {
           'min-w-[256px]': isExpandedForm,
         }"
       >
-        <NcMenuItem v-if="isUIAllowed('fieldAlter')" :disabled="column?.pk || isSystemColumn(column)" @click="onEditPress">
+        <NcMenuItem
+          v-if="isUIAllowed('fieldAlter') && isColumnCRUDAllowed"
+          :disabled="column?.pk || isSystemColumn(column)"
+          @click="onEditPress"
+        >
           <div class="nc-column-edit nc-header-menu-item">
             <component :is="iconMap.ncEdit" class="text-gray-700" />
             <!-- Edit -->
@@ -471,13 +480,15 @@ const filterOrGroupByThisField = (event: SmartsheetStoreEvents) => {
           <NcTooltip
             :disabled="(isGroupBySupported && !isGroupByLimitExceeded) || isGroupedByThisField || !(isEeUI && !isPublic)"
           >
-            <template #title>{{
-              !isGroupBySupported
-                ? "This field type doesn't support grouping"
-                : isGroupByLimitExceeded
-                ? 'Group by limit exceeded'
-                : ''
-            }}</template>
+            <template #title
+              >{{
+                !isGroupBySupported
+                  ? "This field type doesn't support grouping"
+                  : isGroupByLimitExceeded
+                  ? 'Group by limit exceeded'
+                  : ''
+              }}
+            </template>
             <NcMenuItem
               :disabled="isEeUI && !isPublic && (!isGroupBySupported || isGroupByLimitExceeded) && !isGroupedByThisField"
               @click="
@@ -521,7 +532,7 @@ const filterOrGroupByThisField = (event: SmartsheetStoreEvents) => {
         <a-divider v-if="!column?.pv" class="!my-0" />
 
         <NcMenuItem
-          v-if="!column?.pv && isUIAllowed('fieldDelete')"
+          v-if="!column?.pv && isUIAllowed('fieldDelete') && isColumnCRUDAllowed"
           :disabled="!isDeleteAllowed"
           class="!hover:bg-red-50"
           @click="handleDelete"
@@ -559,6 +570,7 @@ const filterOrGroupByThisField = (event: SmartsheetStoreEvents) => {
 :deep(.ant-dropdown-menu-item:not(.ant-dropdown-menu-item-disabled)) {
   @apply !hover:text-black text-gray-700;
 }
+
 :deep(.ant-dropdown-menu-item.ant-dropdown-menu-item-disabled .nc-icon) {
   @apply text-current;
 }

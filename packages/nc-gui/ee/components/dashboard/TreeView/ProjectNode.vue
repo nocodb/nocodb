@@ -74,8 +74,6 @@ const input = ref<HTMLInputElement>()
 
 const { isUIAllowed } = useRoles()
 
-const baseRole = inject(ProjectRoleInj)
-
 const toggleDialog = inject(ToggleDialogInj, () => {})
 
 const { refreshCommandPalette } = useCommandPalette()
@@ -108,9 +106,7 @@ const baseViewOpen = computed(() => {
 })
 
 const showBaseOption = (source: SourceType) => {
-  return ['airtableImport', 'csvImport', 'jsonImport', 'excelImport'].some((permission) =>
-    isUIAllowed(permission, { source }),
-  )
+  return ['airtableImport', 'csvImport', 'jsonImport', 'excelImport'].some((permission) => isUIAllowed(permission, { source }))
 }
 
 const enableEditMode = () => {

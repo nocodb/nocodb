@@ -367,6 +367,22 @@ watch(
     immediate: true,
   },
 )
+
+const allowMetaWrite = computed({
+  get: () => !formState.value.meta[SourceRestriction.META_READONLY],
+  set: (v) => {
+    formState.value.meta = formState.value.meta || {}
+    formState.value.meta[SourceRestriction.META_READONLY] = !v
+  },
+})
+
+const allowDataWrite = computed({
+  get: () => !formState.value.meta[SourceRestriction.DATA_READONLY],
+  set: (v) => {
+    formState.value.meta = formState.value.meta || {}
+    formState.value.meta[SourceRestriction.DATA_READONLY] = !v
+  },
+})
 </script>
 
 <template>
@@ -536,13 +552,38 @@ watch(
             <a-input v-model:value="formState.dataSource.searchPath[0]" />
           </a-form-item>
 
-          <a-form-item label="Readonly Schema">
-            <a-switch v-model:checked="formState.meta[SourceRestriction.META_READONLY]" size="small"></a-switch>
+          <a-form-item>
+            <template #label>
+              <div class="flex gap-1 justify-end">
+                <span>
+                  {{ $t('labels.allowMetaWrite') }}
+                </span>
+                <NcTooltip>
+                  <template #title>
+                    <span>{{ $t('tooltip.allowMetaWrite') }}</span>
+                  </template>
+                  <GeneralIcon class="text-gray-500" icon="info" />
+                </NcTooltip>
+              </div>
+            </template>
+            <a-switch v-model:checked="allowMetaWrite" size="small"></a-switch>
           </a-form-item>
-          <a-form-item label="Readonly Data">
-            <a-switch v-model:checked="formState.meta[SourceRestriction.DATA_READONLY]" size="small"></a-switch>
+          <a-form-item>
+            <template #label>
+              <div class="flex gap-1 justify-end">
+                <span>
+                  {{ $t('labels.allowDataWrite') }}
+                </span>
+                <NcTooltip>
+                  <template #title>
+                    <span>{{ $t('tooltip.allowDataWrite') }}</span>
+                  </template>
+                  <GeneralIcon class="text-gray-500" icon="info" />
+                </NcTooltip>
+              </div>
+            </template>
+            <a-switch v-model:checked="allowDataWrite" size="small"></a-switch>
           </a-form-item>
-
           <!--                Use Connection URL -->
           <div class="flex justify-end gap-2">
             <NcButton size="small" type="ghost" class="nc-extdb-btn-import-url !rounded-md" @click.stop="importURLDlg = true">

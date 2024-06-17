@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import dayjs from 'dayjs'
 import { Tooltip as ATooltip, Empty } from 'ant-design-vue'
-import type { AuditType, PaginatedType } from 'nocodb-sdk'
+import type { AuditType, WorkspaceUserType } from 'nocodb-sdk'
 import { timeAgo } from 'nocodb-sdk'
 
 interface Props {
@@ -18,21 +17,19 @@ const { removeCollaborator, updateCollaborator: _updateCollaborator, loadWorkspa
 
 const { collaborators, activeWorkspace, workspacesList } = storeToRefs(workspaceStore)
 
-const currentWorkspace = computedAsync(async () => {
-  if (props.workspaceId) {
-    const ws = workspacesList.value.find((workspace) => workspace.id === props.workspaceId)
-    if (!ws) {
-      await loadWorkspace(props.workspaceId)
-
-      return workspacesList.value.find((workspace) => workspace.id === props.workspaceId)
+const collaboratorsMap = computed<Map<string, WorkspaceUserType & { id: string }>>(() => {
+  const map = new Map<string, WorkspaceUserType & { id: string }>()
+  collaborators.value?.forEach((coll) => {
+    if (coll?.email) {
+      map.set(coll.email, coll)
     }
-  }
-  return activeWorkspace.value ?? workspacesList.value[0]
+  })
+  return map
 })
 
-const baseStore = useBase()
+const basesStore = useBases()
 
-const { base } = storeToRefs(baseStore)
+const { bases, basesList } = storeToRefs(basesStore)
 
 const { $api } = useNuxtApp()
 
@@ -53,6 +50,10 @@ const isRowExpanded = ref(false)
 const selectedAudit = ref<null | AuditType>(null)
 
 const { appInfo } = useGlobal()
+
+watchEffect(() => {
+  console.log('bases', bases.value, collaborators.value, collaboratorsMap.value)
+})
 
 async function loadAudits(page = currentPage.value, limit = currentLimit.value) {
   try {
@@ -158,7 +159,7 @@ const columns = [
             </div>
           </NcButton>
         </div>
-        <div class="text-base text-gray-600">Track and monitor any changes made to any base in your workspace.</div>
+        <div class="text-sm text-gray-600">Track and monitor any changes made to any base in your workspace.</div>
       </div>
       <div></div>
     </div>
@@ -188,15 +189,34 @@ const columns = [
             </div>
             <template v-if="audits?.length">
               <template v-for="(audit, i) of audits" :key="i">
-                <div class="tr" @click="handleRowClick(audit)">
+                <div
+                  class="tr"
+                  @click="handleRowClick(audit)"
+                  :class="{
+                    selected: selectedAudit?.id === audit.id && isRowExpanded,
+                  }"
+                >
                   <div class="td cell-user">
-                    <div class="truncate">
-                      <NcTooltip placement="bottom" show-on-truncate-only>
-                        <template #title> {{ audit.user }}</template>
-
-                        {{ audit.user }}
-                      </NcTooltip>
+                    <div v-if="collaboratorsMap.get(audit.user)?.email" class="w-full flex gap-3 items-center">
+                      <GeneralUserIcon :email="collaboratorsMap.get(audit.user)?.email" size="base" class="flex-none" />
+                      <div class="flex-1 flex flex-col max-w-[calc(100%_-_44px)]">
+                        <div class="w-full flex gap-3">
+                          <span class="text-sm text-gray-800 capitalize font-semibold truncate">
+                            {{
+                              collaboratorsMap.get(audit.user)?.display_name ||
+                              collaboratorsMap
+                                .get(audit.user)
+                                ?.email?.slice(0, collaboratorsMap.get(audit.user)?.email.indexOf('@'))
+                            }}
+                            some of the things that i wanted to ask
+                          </span>
+                        </div>
+                        <span class="text-xs text-gray-600 truncate">
+                          {{ collaboratorsMap.get(audit.user)?.email }}
+                        </span>
+                      </div>
                     </div>
+                    <template v-else>{{ audit.user }} </template>
                   </div>
                   <div class="td cell-timestamp">
                     <NcTooltip placement="bottom">
@@ -205,7 +225,17 @@ const columns = [
                       {{ timeAgo(audit.created_at) }}
                     </NcTooltip>
                   </div>
-                  <div class="td cell-base">{{ audit.base_id }}</div>
+                  <div class="td cell-base">
+                    <div v-if="audit.base_id" class="w-full">
+                      <div class="truncate text-sm text-gray-800 font-semibold">
+                        {{ bases.get(audit.base_id)?.title }}
+                      </div>
+                      <div class="text-gray-600 text-xs">ID: {{ audit.base_id }}</div>
+                    </div>
+                    <template v-else>
+                      {{ audit.base_id }}
+                    </template>
+                  </div>
                   <div class="td cell-type">{{ audit.op_type }}</div>
                   <div class="td cell-sub-type">{{ audit.op_sub_type }}</div>
                   <div class="td cell-description">
@@ -241,6 +271,7 @@ const columns = [
             v-model:page-size="currentLimit"
             :total="+totalRows"
             show-size-changer
+            :use-stored-page-size="false"
             @update:current="loadAudits"
             @update:page-size="loadAudits(currentPage, $event)"
           />
@@ -264,7 +295,29 @@ const columns = [
         <div class="bg-gray-50 rounded-lg border-1 border-gray-200 flex">
           <div class="w-1/2 border-r border-gray-200 flex flex-col gap-2 px-4 py-3">
             <div class="cell-header">Performed by</div>
-            <div class="text-small leading-[18px] text-gray-600">{{ selectedAudit?.user }}</div>
+            <div
+              v-if="selectedAudit?.user && collaboratorsMap.get(selectedAudit.user)?.email"
+              class="w-full flex gap-3 items-center"
+            >
+              <GeneralUserIcon :email="collaboratorsMap.get(selectedAudit.user)?.email" size="base" class="flex-none" />
+              <div class="flex-1 flex flex-col">
+                <div class="w-full flex gap-3">
+                  <span class="text-sm text-gray-800 capitalize font-semibold">
+                    {{
+                      collaboratorsMap.get(selectedAudit.user)?.display_name ||
+                      collaboratorsMap
+                        .get(selectedAudit.user)
+                        ?.email?.slice(0, collaboratorsMap.get(selectedAudit.user)?.email.indexOf('@'))
+                    }}
+                  </span>
+                </div>
+                <span class="text-xs text-gray-600">
+                  {{ collaboratorsMap.get(selectedAudit.user)?.email }}
+                </span>
+              </div>
+            </div>
+
+            <div v-else class="text-small leading-[18px] text-gray-600">{{ selectedAudit?.user }}</div>
           </div>
           <div class="w-1/2 flex flex-col gap-2 px-4 py-3">
             <div class="cell-header">IP Address</div>
@@ -274,7 +327,22 @@ const columns = [
         <div class="bg-gray-50 rounded-lg border-1 border-gray-200 flex">
           <div class="w-1/2 border-r border-gray-200 flex flex-col gap-2 px-4 py-3">
             <div class="cell-header">Base</div>
-            <div class="text-small leading-[18px] text-gray-600">{{ selectedAudit?.base_id }}</div>
+            <div v-if="selectedAudit?.base_id && bases.get(selectedAudit?.base_id)" class="flex items-stretch gap-3">
+              <div class="flex items-center">
+                <GeneralProjectIcon
+                  :color="bases.get(selectedAudit?.base_id)?.meta?.iconColor"
+                  :type="bases.get(selectedAudit?.base_id)?.type || 'database'"
+                  class="nc-view-icon w-5 h-5"
+                />
+              </div>
+              <div>
+                <div class="text-sm">{{ bases.get(selectedAudit?.base_id)?.title }}</div>
+                <div class="text-small leading-[18px] text-gray-600">{{ selectedAudit?.base_id }}</div>
+              </div>
+            </div>
+            <template v-else>
+              {{ selectedAudit.base_id }}
+            </template>
           </div>
           <div class="w-1/2">
             <div class="h-1/2 border-b border-gray-200 flex items-center gap-2 px-4 py-3">
@@ -326,6 +394,10 @@ const columns = [
       @apply bg-gray-50;
     }
 
+    &.selected .td {
+      @apply bg-gray-50;
+    }
+
     .th,
     .td {
       @apply px-6 h-full flex items-center;
@@ -333,6 +405,7 @@ const columns = [
       &.cell-user {
         @apply w-[220px];
       }
+
       &.cell-timestamp,
       &.cell-base,
       &.cell-ip {

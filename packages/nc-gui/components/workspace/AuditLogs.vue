@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import dayjs from 'dayjs'
 import { Tooltip as ATooltip, Empty } from 'ant-design-vue'
 import type { AuditType, PaginatedType } from 'nocodb-sdk'
 import { timeAgo } from 'nocodb-sdk'
@@ -47,6 +48,10 @@ const currentPage = ref(1)
 
 const currentLimit = ref(25)
 
+const isRowExpanded = ref(false)
+
+const selectedAudit = ref<null | AuditType>(null)
+
 const { appInfo } = useGlobal()
 
 async function loadAudits(page = currentPage.value, limit = currentLimit.value) {
@@ -72,6 +77,11 @@ async function loadAudits(page = currentPage.value, limit = currentLimit.value) 
   } finally {
     isLoading.value = false
   }
+}
+
+const handleRowClick = (audit: AuditType) => {
+  selectedAudit.value = audit
+  isRowExpanded.value = true
 }
 
 onMounted(async () => {
@@ -169,15 +179,19 @@ const columns = [
           <div class="tbody">
             <template v-if="audits?.length">
               <template v-for="(audit, i) of audits" :key="i">
-                <div class="tr">
+                <div class="tr" @click="handleRowClick(audit)">
                   <div class="td cell-user">
                     <div class="truncate">
-                      {{ audit.user }}
+                      <NcTooltip placement="bottom" show-on-truncate-only>
+                        <template #title> {{ audit.user }}</template>
+
+                        {{ audit.user }}
+                      </NcTooltip>
                     </div>
                   </div>
                   <div class="td cell-timestamp">
                     <NcTooltip placement="bottom">
-                      <template #title> {{ audit.created_at }}</template>
+                      <template #title> {{ parseStringDateTime(audit.created_at, 'D MMMM YYYY HH:mm') }}</template>
 
                       {{ timeAgo(audit.created_at) }}
                     </NcTooltip>
@@ -205,7 +219,7 @@ const columns = [
         </div>
       </div>
       <div v-if="+totalRows > currentLimit" class="flex flex-row justify-center items-center bg-gray-50 min-h-10">
-        <div class="flex justify-between items-center w-full">
+        <div class="flex justify-between items-center w-full px-6">
           <div>&nbsp;</div>
           <NcPagination
             v-model:current="currentPage"
@@ -219,24 +233,51 @@ const columns = [
         </div>
       </div>
     </div>
-
-    <!-- <div class="h-[calc(100%_-_102px)] overflow-y-auto nc-scrollbar-thin">
-      <a-table
-        class="nc-audit-table w-full"
-        size="small"
-        :data-source="audits ?? []"
-        :columns="columns"
-        :pagination="false"
-        :loading="isLoading"
-        data-testid="audit-tab-table"
-        sticky
-        bordered
-      >
-        <template #emptyText>
-          <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
-        </template>
-      </a-table>
-    </div> -->
+    <NcModal v-model:visible="isRowExpanded" size="medium" :show-separator="false" @keydown.esc="isRowExpanded = false">
+      <template #header>
+        <div class="flex items-center justify-between gap-x-2 w-full">
+          <div class="flex-1 text-base font-weight-700 text-gray-900">Audit Details</div>
+          <div class="flex items-center gap-2">
+            <span class="cell-header"> Time stamp </span>
+            <span class="text-gray-600 text-small leading-[18px]">{{
+              parseStringDateTime(selectedAudit.created_at, 'D MMMM YYYY HH:mm')
+            }}</span>
+          </div>
+        </div>
+      </template>
+      <div class="flex flex-col gap-4" v-if="selectedAudit">
+        <div class="bg-gray-50 rounded-lg border-1 border-gray-200 flex">
+          <div class="w-1/2 border-r border-gray-200 flex flex-col gap-2 px-4 py-3">
+            <div class="cell-header">Performed by</div>
+            <div class="text-small leading-[18px] text-gray-600">{{ selectedAudit?.user }}</div>
+          </div>
+          <div class="w-1/2 flex flex-col gap-2 px-4 py-3">
+            <div class="cell-header">IP Address</div>
+            <div class="text-small leading-[18px] text-gray-600">{{ selectedAudit?.ip }}</div>
+          </div>
+        </div>
+        <div class="bg-gray-50 rounded-lg border-1 border-gray-200 flex">
+          <div class="w-1/2 border-r border-gray-200 flex flex-col gap-2 px-4 py-3">
+            <div class="cell-header">Base</div>
+            <div class="text-small leading-[18px] text-gray-600">{{ selectedAudit?.base_id }}</div>
+          </div>
+          <div class="w-1/2">
+            <div class="h-1/2 border-b border-gray-200 flex items-center gap-2 px-4 py-3">
+              <div class="cell-header">Type</div>
+              <div class="text-small leading-[18px] text-gray-600">{{ selectedAudit?.op_type }}</div>
+            </div>
+            <div class="h-1/2 flex items-center gap-2 px-4 py-3">
+              <div class="cell-header">Sub-type</div>
+              <div class="text-small leading-[18px] text-gray-600">{{ selectedAudit?.op_sub_type }}</div>
+            </div>
+          </div>
+        </div>
+        <div class="flex flex-col gap-2">
+          <div class="cell-header">{{ $t('labels.description') }}</div>
+          <div class="text-small leading-[18px] text-gray-600">{{ selectedAudit?.description }}</div>
+        </div>
+      </div>
+    </NcModal>
   </div>
 </template>
 
@@ -295,9 +336,7 @@ const columns = [
   }
 }
 
-.pagination {
-  .ant-select-dropdown {
-    @apply !border-1 !border-gray-200;
-  }
+.cell-header {
+  @apply uppercase text-tiny font-semibold text-gray-500;
 }
 </style>

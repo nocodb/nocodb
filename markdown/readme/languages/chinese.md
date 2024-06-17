@@ -79,14 +79,6 @@ docker run -d --name nocodb-postgres \
 -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
 nocodb/nocodb:latest
 
-# 如果使用 MSSQL 的话
-docker run -d --name nocodb-mssql \
--v "$(pwd)"/nocodb:/usr/app/data/ \
--p 8080:8080 \
--e NC_DB="mssql://host.docker.internal:1433?u=root&p=password&d=d1" \
--e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
-nocodb/nocodb:latest
-```
 
 > 你可以通过在 0.10.6 以上的版本中挂载 `/usr/app/data/` 来持久化数据，否则你的数据会在重新创建容器后完全丢失。
 
@@ -102,9 +94,6 @@ git clone https://github.com/nocodb/nocodb
 cd nocodb/docker-compose/mysql
 # 如果使用 PostgreSQL 的话
 cd nocodb/docker-compose/pg
-# 如果使用 MSSQL 的话
-cd nocodb/docker-compose/mssql
-docker-compose up -d
 ```
 
 > 你可以通过在 0.10.6 以上的版本中挂载 `/usr/app/data/` 来持久化数据，否则你的数据会在重新创建容器后完全丢失。

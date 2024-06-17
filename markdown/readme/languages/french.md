@@ -163,20 +163,13 @@ docker run -d -p 8080:8080 \
     nocodb/nocodb:latest
 ```
 
-#### Exemple SQL Server
-```
-docker run -d -p 8080:8080 \
-    -e NC_DB="mssql://host:port?u=user&p=password&d=database" \
-    -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
-    nocodb/nocodb:latest
-```
 
 ## Docker Compose
 ```
 git clone https://github.com/nocodb/nocodb
 cd nocodb
 cd docker-compose
-cd mysql or pg or mssql
+cd mysql or pg 
 docker-compose up -d
 ```
 

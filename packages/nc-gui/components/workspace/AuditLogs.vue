@@ -162,7 +162,7 @@ const columns = [
       </div>
       <div></div>
     </div>
-    <div class="h-[calc(100%_-_102px)]">
+    <div class="h-[calc(100%_-_102px)] relative">
       <div class="table-wrapper h-[calc(100%_-_40px)] overflow-auto nc-scrollbar-thin">
         <div class="nc-audit-logs-table table h-full">
           <div class="thead sticky top-0">
@@ -177,6 +177,15 @@ const columns = [
             </div>
           </div>
           <div class="tbody">
+            <div
+              v-show="isLoading"
+              class="flex items-center justify-center absolute l-0 t-0 w-full h-full z-10 pb-10 pointer-events-none"
+            >
+              <div class="flex flex-col justify-center items-center gap-2">
+                <GeneralLoader size="xlarge" />
+                <span class="text-center">Loading...</span>
+              </div>
+            </div>
             <template v-if="audits?.length">
               <template v-for="(audit, i) of audits" :key="i">
                 <div class="tr" @click="handleRowClick(audit)">
@@ -212,13 +221,19 @@ const columns = [
                 </div>
               </template>
             </template>
-            <div v-else class="tr flex items-center justify-center text-gray-500">
+            <div v-else-if="!isLoading" class="flex items-center justify-center text-gray-500">
               <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
             </div>
           </div>
         </div>
       </div>
-      <div v-if="+totalRows > currentLimit" class="flex flex-row justify-center items-center bg-gray-50 min-h-10">
+      <div
+        v-if="+totalRows > currentLimit"
+        class="flex flex-row justify-center items-center bg-gray-50 min-h-10"
+        :class="{
+          'pointer-events-none': isLoading,
+        }"
+      >
         <div class="flex justify-between items-center w-full px-6">
           <div>&nbsp;</div>
           <NcPagination

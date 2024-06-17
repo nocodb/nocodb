@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { diff } from 'deep-object-diff'
 import { message } from 'ant-design-vue'
-import { UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol, readonlyMetaAllowedTypes } from 'nocodb-sdk'
 import type { ColumnType, FilterType, SelectOptionsType } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 import { onKeyDown, useMagicKeys } from '@vueuse/core'
@@ -182,7 +182,18 @@ const setFieldMoveHook = (field: TableExplorerColumn, before = false) => {
   }
 }
 
+const { isMetaReadOnly } = useRoles()
+
+const isColumnUpdateAllowed = (column: ColumnType) => {
+  if (isMetaReadOnly.value && !readonlyMetaAllowedTypes.includes(column?.uidt)) return false
+  return true
+}
+
 const changeField = (field?: TableExplorerColumn, event?: MouseEvent) => {
+  if (!isColumnUpdateAllowed(field)) {
+    return message.info(t('msg.info.schemaReadOnly'))
+  }
+
   if (field && field?.pk) {
     // Editing primary key not supported
     message.info(t('msg.info.editingPKnotSupported'))
@@ -1003,7 +1014,7 @@ watch(
                 <div
                   v-if="field.title.toLowerCase().includes(searchQuery.toLowerCase()) && !field.pv"
                   class="flex px-2 hover:bg-gray-100 first:rounded-t-lg border-b-1 last:rounded-b-none border-gray-200 pl-5 group"
-                  :class="` ${compareCols(field, activeField) ? 'selected' : ''}`"
+                  :class="{ 'selected': compareCols(field, activeField), 'cursor-not-allowed': !isColumnUpdateAllowed(field) }"
                   :data-testid="`nc-field-item-${fieldState(field)?.title || field.title}`"
                   @click="changeField(field, $event)"
                 >

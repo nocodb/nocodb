@@ -217,7 +217,7 @@ export const useRoles = () => {
   const useRolesRes = useRolesShared()
 
   const isMetaReadOnly = computed(() => {
-    return currentSource.value?.is_schema_readonly|| false
+    return currentSource.value?.is_schema_readonly || false
   })
 
   const isDataReadOnly = computed(() => {

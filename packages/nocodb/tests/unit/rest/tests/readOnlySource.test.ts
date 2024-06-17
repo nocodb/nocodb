@@ -44,7 +44,7 @@ function sourceTest() {
       base_id: base.id,
     };
 
-    const countryColumns = await countryTable.getColumns(sakilaCtx);
+    const countryColumns = (await countryTable.getColumns(sakilaCtx)).filter(c => !c.pk);
     const rowAttributes = Array(99)
       .fill(0)
       .map((index) =>
@@ -84,7 +84,7 @@ function sourceTest() {
       base_id: base.id,
     };
 
-    const countryColumns = await countryTable.getColumns(sakilaCtx);
+    const countryColumns = (await countryTable.getColumns(sakilaCtx)).filter(c => !c.pk);
     const rowAttributes = Array(99)
       .fill(0)
       .map((index) =>
@@ -96,7 +96,6 @@ function sourceTest() {
       .set('xc-auth', context.token)
       .send(rowAttributes)
       .expect(200);
-
     await request(context.app)
       .post(`/api/v1/db/meta/projects/${base.id}/tables`)
       .set('xc-auth', context.token)
@@ -123,7 +122,7 @@ function sourceTest() {
       base_id: base.id,
     };
 
-    const countryColumns = await countryTable.getColumns(sakilaCtx);
+    const countryColumns = (await countryTable.getColumns(sakilaCtx)).filter(c => !c.pk);
     const rowAttributes = Array(99)
       .fill(0)
       .map((index) =>

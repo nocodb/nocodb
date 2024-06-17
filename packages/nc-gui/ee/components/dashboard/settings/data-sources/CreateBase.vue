@@ -2,7 +2,7 @@
 import { Form, message } from 'ant-design-vue'
 import type { SelectHandler } from 'ant-design-vue/es/vc-select/Select'
 import type { Card as AntCard } from 'ant-design-vue'
-import { SourceRestriction, WorkspaceStatus } from 'nocodb-sdk'
+import { WorkspaceStatus } from 'nocodb-sdk'
 import {
   type CertTypes,
   ClientType,
@@ -616,6 +616,7 @@ const allowMetaWrite = computed({
   get: () => !formState.value.is_schema_readonly,
   set: (v) => {
     formState.value.is_schema_readonly = !v
+    $e('c:source:schema-write-toggle', { allowed: !v })
   },
 })
 
@@ -623,6 +624,7 @@ const allowDataWrite = computed({
   get: () => !formState.value.is_data_readonly,
   set: (v) => {
     formState.value.is_data_readonly = !v
+    $e('c:source:data-write-toggle', { allowed: !v })
   },
 })
 </script>

@@ -1263,6 +1263,7 @@
       }
     },
     "info": {
+      "schemaReadOnly": "Schema alterations are disabled for this source",
       "enterWorkspaceName": "Enter workspace name",
       "enterBaseName": "Enter base name",
       "idpPaste": "Paste these URL in your Identity Providers console",

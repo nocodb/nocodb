@@ -253,9 +253,9 @@ const onMove = async (
           ghost-class="ghost"
           @change="onMove($event, nonStarredProjectList)"
         >
-          <template #item="{ element: base }">
+          <template #item="{ element: base1 }">
             <div :key="base.id">
-              <ProjectWrapper :base-role="base.project_role || stringifyRolesObj(workspaceRoles)" :base="base">
+              <ProjectWrapper :base-role="base1.project_role || stringifyRolesObj(workspaceRoles)" :base="base1">
                 <DashboardTreeViewProjectNode />
               </ProjectWrapper>
             </div>

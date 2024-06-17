@@ -18,6 +18,7 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart spreadshe
 [![Node version](https://img.shields.io/badge/node-%3E%3D%2018.19.1-brightgreen)](http://nodejs.org/download/)
 [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-green.svg)](https://conventionalcommits.org)
 
+
 </div>
 
 <p align="center">

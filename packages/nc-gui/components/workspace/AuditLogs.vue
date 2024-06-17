@@ -90,59 +90,6 @@ onMounted(async () => {
     await loadAudits(currentPage.value, currentLimit.value)
   }
 })
-
-const tableHeaderRenderer = (label: string) => () => h('div', { class: 'text-gray-500' }, label)
-
-const columns = [
-  {
-    // User
-    title: tableHeaderRenderer(t('objects.user')),
-    dataIndex: 'user',
-    key: 'user',
-    customRender: (value: { text: string }) => h('div', {}, value.text || 'Shared base'),
-    width: 200,
-  },
-  {
-    // Created
-    title: tableHeaderRenderer(t('labels.created')),
-    dataIndex: 'created_at',
-    key: 'created_at',
-    sort: 'desc',
-    customRender: (value: { text: string }) =>
-      h(ATooltip, { placement: 'bottom', title: h('span', {}, value.text) }, () => timeAgo(value.text)),
-    width: 180,
-  },
-  {
-    // Base
-    title: tableHeaderRenderer('Base'),
-    dataIndex: 'base_id',
-    key: 'base_id',
-    customRender: (value: { text: string }) => h('div', {}, value.text || 'Shared base'),
-    width: 200,
-  },
-  {
-    // Operation Type
-    title: tableHeaderRenderer(t('labels.operationType')),
-    dataIndex: 'op_type',
-    key: 'op_type',
-    width: 120,
-  },
-  {
-    // Operation sub-type
-    title: tableHeaderRenderer(t('labels.operationSubType')),
-    dataIndex: 'op_sub_type',
-    key: 'op_sub_type',
-    width: 160,
-  },
-  {
-    // Description
-    title: tableHeaderRenderer(t('labels.description')),
-    dataIndex: 'description',
-    key: 'description',
-    customRender: (value: { text: string }) => h('pre', {}, value.text),
-    width: 350,
-  },
-]
 </script>
 
 <template>

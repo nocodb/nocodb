@@ -1,10 +1,4 @@
-import {
-  Controller,
-  Get,
-  Param,
-  Req,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Param, Req, UseGuards } from '@nestjs/common';
 import { AuditsController as AuditsControllerCE } from 'src/controllers/audits.controller';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
@@ -21,8 +15,7 @@ export class AuditsController extends AuditsControllerCE {
     super(auditsService);
   }
 
-  @Get(['/api/v2/meta/workspaces/:workspaceId/audits/'])
-  @Acl('workspaceAuditList')
+  @Get(['/api/v2/meta/workspace/:workspaceId/audits/'])
   async workspaceAuditList(
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,

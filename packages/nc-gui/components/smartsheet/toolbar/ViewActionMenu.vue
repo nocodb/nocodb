@@ -16,7 +16,7 @@ const props = withDefaults(
 
 const emits = defineEmits(['rename', 'closeModal', 'delete'])
 
-const { isUIAllowed } = useRoles()
+const { isUIAllowed, isDataReadOnly } = useRoles()
 
 const isPublicView = inject(IsPublicInj, ref(false))
 
@@ -192,7 +192,7 @@ const onDelete = async () => {
 
     <template v-if="view.type !== ViewTypes.FORM">
       <NcDivider />
-      <template v-if="isUIAllowed('csvTableImport') && !isPublicView">
+      <template v-if="isUIAllowed('csvTableImport') && !isPublicView && !isDataReadOnly">
         <NcSubMenu key="upload">
           <template #title>
             <div

@@ -320,46 +320,6 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
           return acc
         }, [])
 
-        // TODO: Move this logic to sql query
-        if (
-          groupby.column.uidt === UITypes.User ||
-          groupby.column.uidt === UITypes.CreatedBy ||
-          groupby.column.uidt === UITypes.LastModifiedBy
-        ) {
-          const tempListUsers = tempList.map((t) =>
-            typeof t.key === 'string' && t.key !== GROUP_BY_VARS.NULL ? JSON.parse(t.key) : t.key,
-          )
-          const user = [...baseUsers.filter((u) => !u.deleted)]
-
-          for (const u of user) {
-            const keyExists = tempListUsers.find((a) => a.id === u.id)
-            if (!keyExists) {
-              tempList.push({
-                key: JSON.stringify(u),
-                column: groupby.column,
-                count: 0,
-                color: findKeyColor(u.id),
-                nestedIn: [
-                  ...group!.nestedIn,
-                  {
-                    title: groupby.column.title,
-                    column_name: groupby.column.title!,
-                    key: JSON.stringify(u),
-                    column_uidt: groupby.column.uidt,
-                  },
-                ],
-                paginationData: {
-                  page: 1,
-                  pageSize:
-                    group!.nestedIn.length < groupBy.value.length - 1 ? groupByGroupLimit.value : groupByRecordLimit.value,
-                  totalRows: 0,
-                },
-                nested: group!.nestedIn.length < groupBy.value.length - 1,
-              })
-            }
-          }
-        }
-
         if (!group.children) group.children = []
 
         for (const temp of tempList) {

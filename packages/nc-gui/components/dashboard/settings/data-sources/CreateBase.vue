@@ -85,7 +85,7 @@ const onEasterEgg = () => {
 
 const clientTypes = computed(() => {
   return _clientTypes.filter((type) => {
-    return ![ClientType.SNOWFLAKE, ClientType.DATABRICKS, ...(easterEgg.value ? [ClientType.MSSQL] : [])].includes(type.value)
+    return ![ClientType.SNOWFLAKE, ClientType.DATABRICKS, ...(easterEgg.value ? [] : [ClientType.MSSQL])].includes(type.value)
   })
 })
 

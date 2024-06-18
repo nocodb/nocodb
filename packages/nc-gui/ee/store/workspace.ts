@@ -3,11 +3,21 @@ import { WorkspaceStatus } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { message } from 'ant-design-vue'
 import { isString } from '@vue/shared'
+import type { AuditType } from 'nocodb-sdk'
 
 interface NcWorkspace extends WorkspaceType {
   edit?: boolean
   temp_title?: string | null
   roles?: string
+}
+
+const defaultAuditLogsQuery = {
+  type: undefined,
+  subType: undefined,
+  base: undefined,
+  user: undefined,
+  search: undefined,
+  sourceId: undefined,
 }
 
 export const useWorkspace = defineStore('workspaceStore', () => {
@@ -48,6 +58,15 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const isWorkspaceLoading = ref(true)
   const isCollaboratorsLoading = ref(true)
   const isInvitingCollaborators = ref(false)
+
+  const auditLogsQuery = ref<{
+    type?: string
+    subType?: string
+    base?: string
+    user?: string
+    search?: string
+    sourceId?: string
+  }>(defaultAuditLogsQuery)
 
   const activePage = computed<'workspace' | 'recent' | 'shared' | 'starred'>(
     () => (route.value.query.page as 'workspace' | 'recent' | 'shared' | 'starred') ?? 'workspace',
@@ -418,18 +437,53 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     await ncNavigateTo({ workspaceId })
   }
 
-  const navigateToWorkspaceSettings = async (workspaceId?: string, cmdOrCtrl?: boolean) => {
+  const navigateToWorkspaceSettings = async (workspaceId?: string, cmdOrCtrl?: boolean, query: Record<string, string> = {}) => {
     workspaceId = workspaceId || activeWorkspaceId.value!
     if (!workspaceId) {
       throw new Error('Workspace not selected')
     }
 
     if (cmdOrCtrl) {
-      await navigateTo(router.resolve({ name: 'index-typeOrId-settings', params: { typeOrId: workspaceId } }).href, {
-        open: navigateToBlankTargetOpenOption,
-      })
+      await navigateTo(
+        router.resolve({ name: 'index-typeOrId-settings', params: { typeOrId: workspaceId }, query: { ...query } }).href,
+        {
+          open: navigateToBlankTargetOpenOption,
+        },
+      )
     } else {
-      router.push({ name: 'index-typeOrId-settings', params: { typeOrId: workspaceId } })
+      router.push({ name: 'index-typeOrId-settings', params: { typeOrId: workspaceId }, query: { ...query } })
+    }
+  }
+
+  const audits = ref<null | Array<AuditType>>(null)
+
+  const auditTotalRows = ref(0)
+
+  const auditCurrentPage = ref(1)
+
+  const auditCurrentLimit = ref(25)
+
+  const loadAudits = async (
+    workspaceId: string,
+    page: number = auditCurrentPage.value,
+    limit: number = auditCurrentLimit.value,
+  ) => {
+    try {
+      if (limit * (page - 1) > auditTotalRows.value) {
+        auditCurrentPage.value = 1
+        page = 1
+      }
+
+      const { list, pageInfo } = await $api.workspace.auditList(workspaceId, {
+        offset: limit * (page - 1),
+        limit,
+        ...auditLogsQuery.value,
+      })
+
+      audits.value = list
+      auditTotalRows.value = pageInfo.totalRows ?? 0
+    } catch (e) {
+      console.error(e)
     }
   }
 
@@ -444,6 +498,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   }
 
   watch(activeWorkspaceId, async () => {
+    auditLogsQuery.value = defaultAuditLogsQuery
     await loadRoles(undefined, {}, activeWorkspaceId.value)
   })
 
@@ -493,6 +548,12 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     workspaceUserCount,
     getPlanLimit,
     moveToOrg,
+    auditLogsQuery,
+    audits,
+    auditTotalRows,
+    auditCurrentPage,
+    auditCurrentLimit,
+    loadAudits,
   }
 })
 

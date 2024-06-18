@@ -8,6 +8,7 @@ export default class Audit extends AuditCE {
     {
       limit = 25,
       offset = 0,
+      sourceId,
       user,
       base,
       type,
@@ -19,6 +20,7 @@ export default class Audit extends AuditCE {
     }: {
       limit?: number;
       offset?: number;
+      sourceId?: string;
       user?: string;
       base?: string;
       type?: string;
@@ -39,6 +41,7 @@ export default class Audit extends AuditCE {
     const additionalConditions = [
       user && { user: user },
       base && { base_id: base },
+      sourceId && { source_id: sourceId },
       type && { op_type: type },
       subType && { op_sub_type: subType },
     ].filter(Boolean);
@@ -87,6 +90,7 @@ export default class Audit extends AuditCE {
     {
       user,
       base,
+      sourceId,
       type,
       subType,
       startDate,
@@ -95,6 +99,7 @@ export default class Audit extends AuditCE {
     }: {
       user?: string;
       base?: string;
+      sourceId?: string;
       type?: string;
       subType?: string;
       startDate?: string;
@@ -109,6 +114,7 @@ export default class Audit extends AuditCE {
     const additionalConditions = [
       user && { user: user },
       base && { base_id: base },
+      sourceId && { source_id: sourceId },
       type && { op_type: type },
       subType && { op_sub_type: subType },
     ].filter(Boolean);

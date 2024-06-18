@@ -2975,6 +2975,13 @@
               "type": "string"
             },
             "in": "query",
+            "name": "sourceId"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
             "name": "startDate"
           },
           {

@@ -96,6 +96,12 @@ const isProjectDeleteDialogVisible = ref(false)
 
 const { refreshViewTabTitle } = useViewsStore()
 
+const workspaceStore = useWorkspace()
+
+const { navigateToWorkspaceSettings, loadAudits } = workspaceStore
+
+const { activeWorkspace, auditLogsQuery } = storeToRefs(workspaceStore)
+
 // If only base is open, i.e in case of docs, base view is open and not the page view
 const baseViewOpen = computed(() => {
   const routeNameSplit = String(route.value?.name).split('baseId-index-index')
@@ -279,23 +285,20 @@ function openErdView(source: SourceType) {
   }
 }
 
-function openAudit(source: SourceType) {
+async function openAudit(source: SourceType) {
   $e('c:project:audit')
 
-  const isOpen = ref(true)
+  if (!activeWorkspace.value?.id) return
 
-  const { close } = useDialog(resolveComponent('DlgProjectAudit'), {
-    'modelValue': isOpen,
-    'sourceId': source!.id,
-    'onUpdate:modelValue': () => closeDialog(),
-    'baseId': base.value!.id,
-  })
+  auditLogsQuery.value.base = base.value.id
+  auditLogsQuery.value.sourceId = source!.id
+  auditLogsQuery.value.user = undefined
 
-  function closeDialog() {
-    isOpen.value = false
+  const cmdOrCtrl = isMac() ? metaKey.value : control.value
 
-    close(1000)
-  }
+  await navigateToWorkspaceSettings('', cmdOrCtrl, { tab: 'audit' })
+
+  await loadAudits(activeWorkspace.value?.id)
 }
 
 const isAddNewProjectChildEntityLoading = ref(false)

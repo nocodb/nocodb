@@ -3,7 +3,6 @@ import type { Api, CalendarRangeType, CalendarType, ColumnType, PaginatedType, T
 import { UITypes } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 
-
 const formatData = (list: Record<string, any>[]) =>
   list.map(
     (row) =>

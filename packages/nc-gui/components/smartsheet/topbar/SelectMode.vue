@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-
-
 const { openedViewsTab, activeView } = storeToRefs(useViewsStore())
 
 const { isUIAllowed } = useRoles()

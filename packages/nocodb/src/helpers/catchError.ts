@@ -809,4 +809,12 @@ export class NcError {
   static metaError(param: { message: string; sql: string }) {
     throw new MetaError(param);
   }
+
+  static sourceDataReadOnly(name: any) {
+    NcError.forbidden(`Source '${name}' is read-only`);
+  }
+
+  static sourceMetaReadOnly(name: any) {
+    NcError.forbidden(`Source '${name}' schema is read-only`);
+  }
 }

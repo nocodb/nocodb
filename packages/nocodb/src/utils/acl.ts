@@ -1,4 +1,4 @@
-import { OrgUserRoles, ProjectRoles } from 'nocodb-sdk';
+import { OrgUserRoles, ProjectRoles, SourceRestriction } from 'nocodb-sdk';
 
 const roleScopes = {
   org: [OrgUserRoles.VIEWER, OrgUserRoles.CREATOR],
@@ -457,13 +457,21 @@ export const sourceRestrictions = {
     dataInsert: true,
     dataEdit: true,
     dataDelete: true,
+    airtableImport: true,
+    csvImport: true,
+    jsonImport: true,
+    excelImport: true,
   },
   [SourceRestriction.META_READONLY]: {
     tableCreate: true,
     tableRename: true,
     tableDelete: true,
     tableDuplicate: true,
+    airtableImport: true,
+    csvImport: true,
+    jsonImport: true,
+    excelImport: true,
   },
-}
+};
 
 export default rolePermissions;

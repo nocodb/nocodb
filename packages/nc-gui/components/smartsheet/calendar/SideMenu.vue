@@ -3,7 +3,6 @@ import type { VNodeRef } from '@vue/runtime-core'
 import { UITypes } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 
-
 const props = defineProps<{
   visible: boolean
 }>()

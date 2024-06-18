@@ -2,7 +2,6 @@ import type { ColumnType, GridColumnReqType, GridColumnType, MapType, TableType,
 import { ViewTypes, isHiddenCol, isSystemColumn } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 
-
 const [useProvideViewColumns, useViewColumns] = useInjectionState(
   (
     view: Ref<ViewType | undefined>,

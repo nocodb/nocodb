@@ -3,7 +3,6 @@ import { ViewTypes } from 'nocodb-sdk'
 import { isString } from '@vue/shared'
 import tinycolor from 'tinycolor2'
 
-
 const { t } = useI18n()
 
 const { view, $api } = useSmartsheetStoreOrThrow()

@@ -2,7 +2,6 @@
 import type { ColumnType } from 'nocodb-sdk'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 
-
 interface Props {
   value: string | number | boolean
   item: any

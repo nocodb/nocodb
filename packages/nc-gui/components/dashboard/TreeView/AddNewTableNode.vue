@@ -5,7 +5,6 @@ import { toRef } from '@vue/reactivity'
 import { resolveComponent } from '@vue/runtime-core'
 import { ref } from 'vue'
 
-
 const props = withDefaults(
   defineProps<{
     base: BaseType
@@ -192,7 +191,7 @@ function openTableCreateMagicDialog(sourceId?: string) {
             </a-menu-item>
 
             <a-menu-item
-              v-if="isUIAllowed('excelImport', { roles: baseRole })"
+              v-if="isUIAllowed('excelImport', { roles: baseRole, source: base.sources[sourceIndex] })"
               key="quick-import-excel"
               @click="openQuickImportDialog('excel', base.sources[sourceIndex].id)"
             >

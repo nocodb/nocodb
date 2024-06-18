@@ -3,7 +3,6 @@ import { UITypes } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { message } from 'ant-design-vue'
 
-
 const excludedGroupingUidt = [UITypes.Attachment, UITypes.QrCode, UITypes.Barcode]
 
 const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(

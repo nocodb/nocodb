@@ -13,7 +13,6 @@ import { Drawer } from 'ant-design-vue'
 import NcModal from '../../nc/Modal.vue'
 import MdiChevronDown from '~icons/mdi/chevron-down'
 
-
 interface Props {
   modelValue?: boolean
   state?: Record<string, any> | null

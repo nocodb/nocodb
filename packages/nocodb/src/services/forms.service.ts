@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents, ViewTypes } from 'nocodb-sdk';
+import { AppEvents, SourceRestriction, ViewTypes } from 'nocodb-sdk';
 import type {
   FormUpdateReqType,
   UserType,
@@ -9,7 +9,7 @@ import type { NcContext, NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
-import { FormView, Model, View } from '~/models';
+import { FormView, Model, Source, View } from '~/models';
 import NocoCache from '~/cache/NocoCache';
 import { CacheScope } from '~/utils/globals';
 
@@ -37,6 +37,12 @@ export class FormsService {
     );
 
     const model = await Model.get(context, param.tableId);
+
+    const source = await Source.get(context, model.source_id);
+
+    if (source.meta?.[SourceRestriction.DATA_READONLY]) {
+      NcError.sourceDataReadOnly(source.alias);
+    }
 
     const { id } = await View.insertMetaOnly(
       context,

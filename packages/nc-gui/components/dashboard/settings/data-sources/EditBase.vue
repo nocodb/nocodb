@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { SourceType } from 'nocodb-sdk'
+import { SourceRestriction } from 'nocodb-sdk'
 import { Form, message } from 'ant-design-vue'
 import type { SelectHandler } from 'ant-design-vue/es/vc-select/Select'
 import {
@@ -60,6 +61,10 @@ const formState = ref<ProjectCreateForm>({
   },
   sslUse: SSLUsage.No,
   extraParameters: [],
+  meta: {
+    [SourceRestriction.META_READONLY]: true,
+    [SourceRestriction.DATA_READONLY]: false,
+  },
 })
 
 const customFormState = ref<ProjectCreateForm>({
@@ -232,6 +237,7 @@ const editBase = async () => {
       config,
       inflection_column: formState.value.inflection.inflectionColumn,
       inflection_table: formState.value.inflection.inflectionTable,
+      meta: formState.value.meta || {},
     })
 
     $e('a:source:edit:extdb')
@@ -343,6 +349,7 @@ onMounted(async () => {
       },
       extraParameters: tempParameters,
       sslUse: SSLUsage.No,
+      meta: activeBase.meta || {},
     }
     updateSSLUse()
   }

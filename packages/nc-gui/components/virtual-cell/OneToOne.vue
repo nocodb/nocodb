@@ -2,7 +2,6 @@
 import type { ColumnType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 
-
 const column = inject(ColumnInj)!
 
 const reloadRowTrigger = inject(ReloadRowDataHookInj, createEventHook())

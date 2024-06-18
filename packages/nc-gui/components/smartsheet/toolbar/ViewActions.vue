@@ -2,7 +2,6 @@
 import type { Ref } from '@vue/reactivity'
 import { LockType } from '#imports'
 
-
 const { t } = useI18n()
 
 const sharedViewListDlg = ref(false)

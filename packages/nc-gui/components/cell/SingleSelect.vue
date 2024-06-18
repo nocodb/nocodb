@@ -5,7 +5,6 @@ import tinycolor from 'tinycolor2'
 import type { SelectOptionType } from 'nocodb-sdk'
 import type { FormFieldsLimitOptionsType } from '~/lib/types'
 
-
 interface Props {
   modelValue?: string | undefined
   rowIndex?: number

@@ -3,7 +3,6 @@ import dayjs from 'dayjs'
 import type { ColumnType } from 'nocodb-sdk'
 import type { Row } from '~/lib/types'
 
-
 const emits = defineEmits(['expandRecord', 'newRecord'])
 
 const {

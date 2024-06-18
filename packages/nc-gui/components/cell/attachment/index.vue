@@ -3,7 +3,6 @@ import { onKeyDown } from '@vueuse/core'
 import { useProvideAttachmentCell } from './utils'
 import { useSortable } from './sort'
 
-
 interface Props {
   modelValue?: string | Record<string, any>[] | null
   rowIndex?: number

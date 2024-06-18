@@ -144,6 +144,10 @@ export default class Source implements SourceType {
       updateObj.type = oldSource.type;
     }
 
+    if ('meta' in updateObj) {
+      updateObj.meta = stringifyMetaProp(updateObj);
+    }
+
     // if order is missing (possible in old versions), get next order
     if (!oldSource.order && !updateObj.order) {
       updateObj.order = await ncMeta.metaGetNextOrder(MetaTable.BASES, {

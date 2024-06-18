@@ -3,7 +3,6 @@ import { onKeyDown, useEventListener } from '@vueuse/core'
 import { useAttachmentCell } from './utils'
 import { useSortable } from './sort'
 
-
 const { isUIAllowed } = useRoles()
 
 const {

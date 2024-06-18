@@ -1,6 +1,4 @@
 <script setup lang="ts">
-
-
 const workspaceStore = useWorkspace()
 const baseStore = useBase()
 

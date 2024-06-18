@@ -58,7 +58,11 @@ export default class Audit extends AuditCE {
         offset,
         condition,
         orderBy: {
-          created_at: orderBy?.created_at || 'desc',
+          ...(orderBy?.created_at
+            ? { created_at: orderBy?.created_at }
+            : !orderBy?.user
+            ? { created_at: 'desc' }
+            : {}),
           ...(orderBy?.user ? { user: orderBy?.user } : {}),
         },
         xcCondition: {

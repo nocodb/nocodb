@@ -1,9 +1,9 @@
-import type { Api, BaseType, PlanLimitTypes, WorkspaceType, WorkspaceUserRoles, WorkspaceUserType } from 'nocodb-sdk'
+import type { Api, AuditType, BaseType, PlanLimitTypes, WorkspaceType, WorkspaceUserRoles, WorkspaceUserType } from 'nocodb-sdk'
 import { WorkspaceStatus } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { message } from 'ant-design-vue'
 import { isString } from '@vue/shared'
-import type { AuditType } from 'nocodb-sdk'
+import type { AuditLogsQuery } from '~/lib/types'
 
 interface NcWorkspace extends WorkspaceType {
   edit?: boolean
@@ -18,7 +18,11 @@ const defaultAuditLogsQuery = {
   user: undefined,
   search: undefined,
   sourceId: undefined,
-}
+  orderBy: {
+    created_at: 'desc',
+    user: undefined,
+  },
+} as AuditLogsQuery
 
 export const useWorkspace = defineStore('workspaceStore', () => {
   // todo: update type in swagger
@@ -59,14 +63,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const isCollaboratorsLoading = ref(true)
   const isInvitingCollaborators = ref(false)
 
-  const auditLogsQuery = ref<{
-    type?: string
-    subType?: string
-    base?: string
-    user?: string
-    search?: string
-    sourceId?: string
-  }>(defaultAuditLogsQuery)
+  const auditLogsQuery = ref<AuditLogsQuery>(defaultAuditLogsQuery)
 
   const activePage = computed<'workspace' | 'recent' | 'shared' | 'starred'>(
     () => (route.value.query.page as 'workspace' | 'recent' | 'shared' | 'starred') ?? 'workspace',

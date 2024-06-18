@@ -53,6 +53,19 @@ enum WidgetTypeText {
   Divider = 'Divider',
 }
 
+interface AuditLogsQuery {
+  type?: string
+  subType?: string
+  base?: string
+  user?: string
+  search?: string
+  sourceId?: string
+  orderBy?: {
+    created_at?: 'asc' | 'desc'
+    user?: 'asc' | 'desc'
+  }
+}
+
 export {
   PageSidebarNode,
   LayoutSidebarNode,
@@ -62,4 +75,5 @@ export {
   WidgetTemplate,
   SelectedLayoutDimension,
   WidgetTypeText,
+  AuditLogsQuery,
 }

@@ -2,16 +2,18 @@
 import { Empty } from 'ant-design-vue'
 import type { AuditType, WorkspaceUserType } from 'nocodb-sdk'
 import {
-  timeAgo,
-  AuditOperationTypes,
   AuditOperationSubTypes,
-  auditOperationTypeLabels,
+  AuditOperationTypes,
   auditOperationSubTypeLabels,
+  auditOperationTypeLabels,
+  timeAgo,
 } from 'nocodb-sdk'
 
 interface Props {
   workspaceId?: string
 }
+
+const props = defineProps<Props>()
 
 const allowedAuditOperationTypes = [AuditOperationTypes.DATA, AuditOperationTypes.TABLE, AuditOperationTypes.TABLE_COLUMN]
 
@@ -23,8 +25,6 @@ const allowedAuditOperationSubTypes = [
   AuditOperationSubTypes.LINK_RECORD,
   AuditOperationSubTypes.UNLINK_RECORD,
 ]
-const props = defineProps<Props>()
-
 const workspaceStore = useWorkspace()
 
 const { loadAudits: _loadAudits } = workspaceStore
@@ -125,6 +125,29 @@ const handleRowClick = (audit: AuditType) => {
 const handleSearchAuditLogs = useDebounceFn(() => {
   loadAudits()
 }, 500)
+
+const toggleOrderBy = (orderBy: 'created_at' | 'user') => {
+  if (orderBy === 'created_at') {
+    auditLogsQuery.value.orderBy = {
+      ...auditLogsQuery.value.orderBy,
+      created_at:
+        auditLogsQuery.value.orderBy?.created_at === 'asc'
+          ? 'desc'
+          : auditLogsQuery.value.orderBy?.created_at === 'desc'
+          ? undefined
+          : 'asc',
+    }
+  }
+  if (orderBy === 'user') {
+    auditLogsQuery.value.orderBy = {
+      ...auditLogsQuery.value.orderBy,
+      user:
+        auditLogsQuery.value.orderBy?.user === 'asc' ? 'desc' : auditLogsQuery.value.orderBy?.user === 'desc' ? undefined : 'asc',
+    }
+  }
+
+  loadAudits()
+}
 
 onMounted(async () => {
   if (audits.value === null) {
@@ -415,8 +438,48 @@ onMounted(async () => {
         <div class="nc-audit-logs-table table h-full">
           <div class="thead sticky top-0">
             <div class="tr">
-              <div class="th cell-user">User</div>
-              <div class="th cell-timestamp">Time stamp</div>
+              <div class="th cell-user">
+                <div class="flex items-center gap-3">
+                  <div class="flex-1">User</div>
+                  <button class="!p-0 flex flex-col" @click="toggleOrderBy('user')">
+                    <GeneralIcon
+                      icon="arrowUp"
+                      class="flex-none h-4 w-4"
+                      :class="{
+                        '!text-brand-500': auditLogsQuery.orderBy?.user === 'asc',
+                      }"
+                    />
+                    <GeneralIcon
+                      icon="arrowDown"
+                      class="flex-none h-4 w-4"
+                      :class="{
+                        '!text-brand-500': auditLogsQuery.orderBy?.user === 'desc',
+                      }"
+                    />
+                  </button>
+                </div>
+              </div>
+              <div class="th cell-timestamp">
+                <div class="flex items-center gap-3">
+                  <div class="flex-1">Time stamp</div>
+                  <button class="!p-0 flex flex-col" @click="toggleOrderBy('created_at')">
+                    <GeneralIcon
+                      icon="arrowUp"
+                      class="flex-none h-4 w-4"
+                      :class="{
+                        '!text-brand-500': auditLogsQuery.orderBy?.created_at === 'asc',
+                      }"
+                    />
+                    <GeneralIcon
+                      icon="arrowDown"
+                      class="flex-none h-4 w-4"
+                      :class="{
+                        '!text-brand-500': auditLogsQuery.orderBy?.created_at === 'desc',
+                      }"
+                    />
+                  </button>
+                </div>
+              </div>
               <div class="th cell-base">Base</div>
               <div class="th cell-type">Type</div>
               <div class="th cell-sub-type">Sub-type</div>
@@ -438,10 +501,10 @@ onMounted(async () => {
               <template v-for="(audit, i) of audits" :key="i">
                 <div
                   class="tr"
-                  @click="handleRowClick(audit)"
                   :class="{
                     selected: selectedAudit?.id === audit.id && isRowExpanded,
                   }"
+                  @click="handleRowClick(audit)"
                 >
                   <div class="td cell-user">
                     <div v-if="collaboratorsMap.get(audit.user)?.email" class="w-full flex gap-3 items-center">
@@ -554,7 +617,7 @@ onMounted(async () => {
           </div>
         </div>
       </template>
-      <div class="flex flex-col gap-4" v-if="selectedAudit">
+      <div v-if="selectedAudit" class="flex flex-col gap-4">
         <div class="bg-gray-50 rounded-lg border-1 border-gray-200 flex">
           <div class="w-1/2 border-r border-gray-200 flex flex-col gap-2 px-4 py-3">
             <div class="cell-header">Performed by</div>
@@ -610,11 +673,15 @@ onMounted(async () => {
           <div class="w-1/2">
             <div class="h-1/2 border-b border-gray-200 flex items-center gap-2 px-4 py-3">
               <div class="cell-header">Type</div>
-              <div class="text-small leading-[18px] text-gray-600">{{ selectedAudit?.op_type }}</div>
+              <div class="text-small leading-[18px] text-gray-600 bg-gray-200 px-3 py-1 rounded-lg">
+                {{ auditOperationTypeLabels[selectedAudit?.op_type] }}
+              </div>
             </div>
             <div class="h-1/2 flex items-center gap-2 px-4 py-3">
               <div class="cell-header">Sub-type</div>
-              <div class="text-small leading-[18px] text-gray-600">{{ selectedAudit?.op_sub_type }}</div>
+              <div class="text-small leading-[18px] text-gray-600">
+                {{ auditOperationSubTypeLabels[selectedAudit?.op_sub_type] }}
+              </div>
             </div>
           </div>
         </div>

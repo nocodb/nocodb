@@ -66,21 +66,7 @@ export default class Audit extends AuditCE {
           ...(orderBy?.user ? { user: orderBy?.user } : {}),
         },
         xcCondition: {
-          _or: [
-            ...(search?.trim()
-              ? [
-                  {
-                    user: {
-                      like: `%${search.toLowerCase()}%`,
-                    },
-                  },
-                  {
-                    description: {
-                      like: `%${search}%`,
-                    },
-                  },
-                ]
-              : []),
+          _and: [
             ...(startDate ? [{ created_at: { ge: startDate } }] : []),
             ...(endDate ? [{ created_at: { le: endDate } }] : []),
           ],
@@ -133,21 +119,7 @@ export default class Audit extends AuditCE {
       {
         condition,
         xcCondition: {
-          _or: [
-            ...(search?.trim()
-              ? [
-                  {
-                    user: {
-                      like: `%${search.toLowerCase()}%`,
-                    },
-                  },
-                  {
-                    description: {
-                      like: `%${search}%`,
-                    },
-                  },
-                ]
-              : []),
+          _and: [
             ...(startDate ? [{ created_at: { ge: startDate } }] : []),
             ...(endDate ? [{ created_at: { le: endDate } }] : []),
           ],

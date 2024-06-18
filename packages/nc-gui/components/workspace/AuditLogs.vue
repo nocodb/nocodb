@@ -2,13 +2,9 @@
 import { Empty } from 'ant-design-vue'
 import type { VNodeRef } from '@vue/runtime-core'
 import type { AuditType, WorkspaceUserType } from 'nocodb-sdk'
-import {
-  AuditOperationSubTypes,
-  AuditOperationTypes,
-  auditOperationSubTypeLabels,
-  auditOperationTypeLabels,
-  timeAgo,
-} from 'nocodb-sdk'
+import { AuditOperationTypes, auditOperationSubTypeLabels, auditOperationTypeLabels, timeAgo } from 'nocodb-sdk'
+import dayjs from 'dayjs'
+import { AuditLogsDateRange } from '~/lib/enums'
 
 interface Props {
   workspaceId?: string
@@ -18,14 +14,6 @@ const props = defineProps<Props>()
 
 const allowedAuditOperationTypes = [AuditOperationTypes.DATA, AuditOperationTypes.TABLE, AuditOperationTypes.TABLE_COLUMN]
 
-const allowedAuditOperationSubTypes = [
-  AuditOperationSubTypes.CREATE,
-  AuditOperationSubTypes.UPDATE,
-  AuditOperationSubTypes.DELETE,
-  AuditOperationSubTypes.INSERT,
-  AuditOperationSubTypes.LINK_RECORD,
-  AuditOperationSubTypes.UNLINK_RECORD,
-]
 const workspaceStore = useWorkspace()
 
 const { loadAudits: _loadAudits } = workspaceStore
@@ -67,6 +55,7 @@ const auditDropdowns = ref({
   subType: false,
   base: false,
   user: false,
+  dateRange: false,
 })
 
 const auditDropdownsSearch = ref({
@@ -94,32 +83,25 @@ const auditTypeOptions = computed(() => {
     }))
 })
 
-const auditSubTypeOptions = computed(() => {
-  return Object.values(AuditOperationSubTypes)
-    .filter((subType) => {
-      if (
-        auditLogsQuery.value.type === AuditOperationTypes.TABLE ||
-        auditLogsQuery.value.type === AuditOperationTypes.TABLE_COLUMN
-      ) {
-        return [AuditOperationSubTypes.CREATE, AuditOperationSubTypes.UPDATE, AuditOperationSubTypes.DELETE].includes(subType)
-      }
-
-      if (auditLogsQuery.value.type === AuditOperationTypes.DATA) {
-        return [
-          AuditOperationSubTypes.UPDATE,
-          AuditOperationSubTypes.DELETE,
-          AuditOperationSubTypes.INSERT,
-          AuditOperationSubTypes.LINK_RECORD,
-          AuditOperationSubTypes.UNLINK_RECORD,
-        ].includes(subType)
-      }
-
-      return allowedAuditOperationSubTypes.includes(subType)
-    })
-    .map((subType) => ({
-      label: auditOperationSubTypeLabels[subType],
-      value: subType,
-    }))
+const dateRangeOptions = computed(() => {
+  return [
+    {
+      label: 'Last 24H',
+      value: AuditLogsDateRange.Last24H,
+    },
+    {
+      label: 'Past Week',
+      value: AuditLogsDateRange.PastWeek,
+    },
+    {
+      label: 'Past Month',
+      value: AuditLogsDateRange.PastMonth,
+    },
+    {
+      label: 'Past Year',
+      value: AuditLogsDateRange.PastYear,
+    },
+  ]
 })
 
 async function loadAudits(page = currentPage.value, limit = currentLimit.value) {
@@ -156,7 +138,7 @@ const updateOrderBy = (field: 'created_at' | 'user') => {
   loadAudits()
 }
 
-const handleCloseDropdown = (field: 'user' | 'base' | 'type') => {
+const handleCloseDropdown = (field: 'user' | 'base' | 'type' | 'dateRange') => {
   auditDropdowns.value[field] = false
   loadAudits()
 }
@@ -165,6 +147,55 @@ const handleClearDropdownSearch = (isOpen: boolean, field: 'user' | 'base' | 'ty
   if (isOpen) {
     auditDropdownsSearch.value[field] = ''
   }
+}
+
+const handleClearDateRange = () => {
+  auditLogsQuery.value.dateRange = undefined
+  auditLogsQuery.value.dateRangeLabel = undefined
+  auditLogsQuery.value.startDate = undefined
+  auditLogsQuery.value.endDate = undefined
+
+  auditDropdowns.value.dateRange = false
+
+  currentPage.value = 1
+  currentLimit.value = 25
+  loadAudits()
+}
+
+const handleUpdateDateRange = (range?: AuditLogsDateRange, label?: string) => {
+  auditLogsQuery.value.dateRange = range
+  auditLogsQuery.value.dateRangeLabel = label
+
+  const now = dayjs(new Date()).utc()
+
+  switch (range) {
+    case AuditLogsDateRange.Last24H:
+      auditLogsQuery.value.startDate = now.subtract(24, 'hours').format('YYYY-MM-DD HH:mm:ssZ')
+      auditLogsQuery.value.endDate = now.format('YYYY-MM-DD HH:mm:ssZ')
+      break
+    case AuditLogsDateRange.PastWeek:
+      auditLogsQuery.value.startDate = now.subtract(1, 'week').startOf('day').format('YYYY-MM-DD')
+      auditLogsQuery.value.endDate = now.format('YYYY-MM-DD HH:mm:ss')
+      break
+    case AuditLogsDateRange.PastMonth:
+      auditLogsQuery.value.startDate = now.subtract(1, 'month').startOf('month').format('YYYY-MM-DD')
+      auditLogsQuery.value.endDate = now.subtract(1, 'month').endOf('month').format('YYYY-MM-DD')
+      break
+    case AuditLogsDateRange.PastYear:
+      auditLogsQuery.value.startDate = now.subtract(1, 'year').startOf('year').format('YYYY-MM-DD')
+      auditLogsQuery.value.endDate = now.subtract(1, 'year').endOf('year').format('YYYY-MM-DD')
+      break
+    default:
+      auditLogsQuery.value.startDate = undefined
+      auditLogsQuery.value.endDate = undefined
+      auditLogsQuery.value.dateRange = undefined
+      auditLogsQuery.value.dateRangeLabel = undefined
+  }
+
+  auditDropdowns.value.dateRange = false
+  currentPage.value = 1
+  currentLimit.value = 25
+  loadAudits()
 }
 
 onMounted(async () => {
@@ -181,7 +212,7 @@ onMounted(async () => {
       <div class="flex flex-col gap-3">
         <div class="flex flex-row items-center gap-3">
           <h6 class="text-xl font-semibold text-gray-900 !my-0">Audit Logs</h6>
-          <NcButton class="!px-1" type="text" size="xs" :disabled="isLoading" @click="loadAudits">
+          <NcButton class="!px-1" type="text" size="xs" :disabled="isLoading" @click="loadAudits()">
             <!-- Reload -->
             <div class="flex items-center text-gray-600 font-light">
               <component :is="iconMap.refresh" :class="{ 'animate-infinite animate-spin': isLoading }" />
@@ -200,7 +231,7 @@ onMounted(async () => {
             <div class="!w-[106px] flex items-center justify-between gap-2">
               <div class="max-w-full truncate text-sm !leading-5">
                 User:
-                <span :class="{ 'text-brand-500': auditLogsQuery.user }">
+                <span class="capitalize" :class="{ 'text-brand-500': auditLogsQuery.user }">
                   {{
                     (auditLogsQuery.user &&
                       (collaboratorsMap.get(auditLogsQuery.user)?.display_name ||
@@ -219,12 +250,12 @@ onMounted(async () => {
             <div class="w-[256px]">
               <div class="px-2 py-2" @click.stop>
                 <a-input
+                  :ref="focusUserSearchRef"
                   v-model:value="auditDropdownsSearch.user"
                   type="text"
-                  :ref="focusUserSearchRef"
                   autocomplete="off"
                   class="nc-input-sm nc-input-shadow"
-                  placeholder="Search"
+                  placeholder="Search user"
                   data-testid="nc-audit-dropdown-user-search-input"
                 >
                   <template #prefix>
@@ -311,12 +342,12 @@ onMounted(async () => {
             <div class="w-[256px]">
               <div class="px-2 py-2" @click.stop>
                 <a-input
+                  :ref="focusBaseSearchRef"
                   v-model:value="auditDropdownsSearch.base"
                   type="text"
-                  :ref="focusBaseSearchRef"
                   autocomplete="off"
                   class="nc-input-sm nc-input-shadow"
-                  placeholder="Search"
+                  placeholder="Search base"
                   data-testid="nc-audit-dropdown-base-search-input"
                 >
                   <template #prefix>
@@ -392,12 +423,12 @@ onMounted(async () => {
             <div class="w-[256px]">
               <div class="px-2 py-2" @click.stop>
                 <a-input
+                  :ref="focusTypeSearchRef"
                   v-model:value="auditDropdownsSearch.type"
                   type="text"
-                  :ref="focusTypeSearchRef"
                   autocomplete="off"
                   class="nc-input-sm nc-input-shadow"
-                  placeholder="Search"
+                  placeholder="Search type"
                   data-testid="nc-audit-dropdown-type-search-input"
                 >
                   <template #prefix>
@@ -439,6 +470,54 @@ onMounted(async () => {
 
                       <GeneralIcon
                         v-if="auditLogsQuery.type === type.value"
+                        icon="check"
+                        class="flex-none text-primary w-4 h-4"
+                      />
+                    </div>
+                  </NcMenuItem>
+                </template>
+              </NcMenu>
+            </div>
+          </template>
+        </NcDropdown>
+        <NcDropdown v-model:visible="auditDropdowns.dateRange">
+          <NcButton type="secondary" size="small">
+            <div class="!w-[127px] flex items-center justify-between gap-2">
+              <div class="max-w-full truncate text-sm !leading-5">
+                Range:
+                <span :class="{ 'text-brand-500': auditLogsQuery.type }">
+                  {{ auditLogsQuery.dateRange ? auditLogsQuery.dateRangeLabel : 'All Time' }}
+                </span>
+              </div>
+              <GeneralIcon icon="arrowDown" class="flex-none h-4 w-4" />
+            </div>
+          </NcButton>
+
+          <template #overlay>
+            <div class="w-[256px]">
+              <NcMenu class="w-full max-h-[360px] nc-scrollbar-thin">
+                <NcMenuItem
+                  class="!children:w-full ant-dropdown-menu-item ant-dropdown-menu-item-only-child"
+                  @click="handleClearDateRange"
+                >
+                  <div class="w-full flex items-center justify-between gap-3">
+                    <span class="flex-1 text-gray-800"> All Time </span>
+                    <GeneralIcon v-if="!auditLogsQuery.dateRange" icon="check" class="flex-none text-primary w-4 h-4" />
+                  </div>
+                </NcMenuItem>
+                <NcDivider />
+                <template v-for="range of dateRangeOptions" :key="range.value">
+                  <NcMenuItem
+                    class="!children:w-full ant-dropdown-menu-item ant-dropdown-menu-item-only-child"
+                    @click="handleUpdateDateRange(range.value, range.label)"
+                  >
+                    <div class="w-full flex items-center justify-between gap-3">
+                      <div class="flex-1 flex items-center gap-2 max-w-[calc(100%_-_28px)] text-gray-800">
+                        {{ range.label }}
+                      </div>
+
+                      <GeneralIcon
+                        v-if="auditLogsQuery.dateRange === range.value"
                         icon="check"
                         class="flex-none text-primary w-4 h-4"
                       />
@@ -601,7 +680,7 @@ onMounted(async () => {
               :total="+totalRows"
               show-size-changer
               :use-stored-page-size="false"
-              @update:current="loadAudits"
+              @update:current="loadAudits()"
               @update:page-size="loadAudits(currentPage, $event)"
             />
           </template>

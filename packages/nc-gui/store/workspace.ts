@@ -2,6 +2,7 @@ import type { BaseType } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { message } from 'ant-design-vue'
 import { isString } from '@vue/shared'
+import type { AuditLogsQuery } from '~/lib/types'
 
 const defaultAuditLogsQuery = {
   type: undefined,
@@ -10,11 +11,14 @@ const defaultAuditLogsQuery = {
   user: undefined,
   search: undefined,
   sourceId: undefined,
+  startDate: undefined,
+  endData: undefined,
+  dateRangeLabel: undefined,
   orderBy: {
     created_at: 'desc',
     user: undefined,
   },
-}
+} as AuditLogsQuery
 
 export const useWorkspace = defineStore('workspaceStore', () => {
   const basesStore = useBases()

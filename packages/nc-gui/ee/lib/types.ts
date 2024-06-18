@@ -1,4 +1,4 @@
-import type { DocsPageType, LayoutType, WidgetTypeType, AuditOperationTypes, AuditOperationSubTypes } from 'nocodb-sdk'
+import type { DocsPageType, LayoutType, WidgetTypeType } from 'nocodb-sdk'
 
 interface AntSidebarNode {
   parentNodeId?: string
@@ -53,19 +53,6 @@ enum WidgetTypeText {
   Divider = 'Divider',
 }
 
-interface AuditLogsQuery {
-  type?: AuditOperationTypes
-  subType?: AuditOperationSubTypes
-  base?: string
-  user?: string
-  search?: string
-  sourceId?: string
-  orderBy: {
-    created_at?: 'asc' | 'desc'
-    user?: 'asc' | 'desc'
-  }
-}
-
 export {
   PageSidebarNode,
   LayoutSidebarNode,
@@ -75,5 +62,4 @@ export {
   WidgetTemplate,
   SelectedLayoutDimension,
   WidgetTypeText,
-  AuditLogsQuery,
 }

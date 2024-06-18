@@ -18,6 +18,9 @@ const defaultAuditLogsQuery = {
   user: undefined,
   search: undefined,
   sourceId: undefined,
+  startDate: undefined,
+  endData: undefined,
+  dateRangeLabel: undefined, 
   orderBy: {
     created_at: 'desc',
     user: undefined,

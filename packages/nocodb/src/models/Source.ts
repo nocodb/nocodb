@@ -33,6 +33,8 @@ export default class Source implements SourceType {
   alias?: string;
   type?: DriverClient;
   is_meta?: BoolType;
+  is_schema_readonly?: BoolType;
+  is_data_readonly?: BoolType;
   config?: string;
   inflection_column?: string;
   inflection_table?: string;
@@ -70,6 +72,8 @@ export default class Source implements SourceType {
       'order',
       'enabled',
       'meta',
+      'is_schema_readonly',
+      'is_data_readonly',
     ]);
 
     insertObj.config = CryptoJS.AES.encrypt(
@@ -130,6 +134,8 @@ export default class Source implements SourceType {
       'meta',
       'deleted',
       'fk_sql_executor_id',
+      'is_schema_readonly',
+      'is_data_readonly',
     ]);
 
     if (updateObj.config) {
@@ -142,6 +148,10 @@ export default class Source implements SourceType {
     // type property is undefined even if not provided
     if (!updateObj.type) {
       updateObj.type = oldSource.type;
+    }
+
+    if ('meta' in updateObj) {
+      updateObj.meta = stringifyMetaProp(updateObj);
     }
 
     // if order is missing (possible in old versions), get next order

@@ -1,7 +1,12 @@
 import path from 'path';
 import { Injectable } from '@nestjs/common';
 import { nanoid } from 'nanoid';
-import { populateUniqueFileName, UITypes, ViewTypes } from 'nocodb-sdk';
+import {
+  populateUniqueFileName,
+  SourceRestriction,
+  UITypes,
+  ViewTypes,
+} from 'nocodb-sdk';
 import slash from 'slash';
 import { nocoExecute } from 'nc-help';
 
@@ -293,6 +298,11 @@ export class PublicDatasService {
     });
 
     const source = await Source.get(context, model.source_id);
+
+    if (source?.is_data_readonly) {
+      NcError.sourceDataReadOnly(source.alias);
+    }
+
     const base = await source.getProject(context);
 
     const baseModel = await Model.getBaseModelSQL(context, {

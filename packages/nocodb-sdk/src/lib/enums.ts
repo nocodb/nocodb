@@ -326,3 +326,11 @@ export enum APIContext {
   FILTERS = 'filters',
   SORTS = 'sorts',
 }
+
+
+export enum SourceRestriction {
+  SCHEMA_READONLY = 'is_schema_readonly',
+  DATA_READONLY = 'is_data_readonly',
+}
+
+

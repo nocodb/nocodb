@@ -21,6 +21,8 @@ const { t } = useI18n()
 
 const { $e } = useNuxtApp()
 
+const { isDataReadOnly } = useRoles()
+
 const {
   childrenExcludedList,
   isChildrenExcludedListLinked,
@@ -403,7 +405,7 @@ const onFilterChange = () => {
       <div class="nc-dropdown-link-record-footer bg-gray-100 p-2 rounded-b-xl flex items-center justify-between min-h-11">
         <div class="flex">
           <NcButton
-            v-if="!isPublic"
+            v-if="!isPublic && !isDataReadOnly"
             v-e="['c:row-expand:open']"
             size="small"
             class="!hover:(bg-white text-brand-500) !h-7 !text-small"

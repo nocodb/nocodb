@@ -39,6 +39,12 @@ const reloadViewMetaEventHook = createEventHook<void | boolean>()
 
 const openNewRecordFormHook = createEventHook<void>()
 
+const { base } = storeToRefs(useBase())
+
+const activeSource = computed(() => {
+  return meta.value?.source_id && base.value && base.value.sources?.find((source) => source.id === meta.value?.source_id)
+})
+
 useProvideKanbanViewStore(meta, activeView)
 useProvideMapViewStore(meta, activeView)
 useProvideCalendarViewStore(meta, activeView)
@@ -52,9 +58,15 @@ provide(ReloadViewMetaHookInj, reloadViewMetaEventHook)
 provide(OpenNewRecordFormHookInj, openNewRecordFormHook)
 provide(IsFormInj, isForm)
 provide(TabMetaInj, activeTab)
+provide(ActiveSourceInj, activeSource)
 provide(
   ReadonlyInj,
-  computed(() => !isUIAllowed('dataEdit')),
+  computed(
+    () =>
+      !isUIAllowed('dataEdit', {
+        skipSourceCheck: true,
+      }),
+  ),
 )
 useExpandedFormDetachedProvider()
 

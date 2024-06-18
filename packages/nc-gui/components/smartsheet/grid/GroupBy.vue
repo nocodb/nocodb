@@ -254,29 +254,48 @@ const expandAllGroup = () => {
 }
 
 const computedWidth = computed(() => {
-  const baseValue = Number((viewDisplayField.value?.width ?? '').replace('px', '')) + 82
-
+  // 55 is padding and margin of column header. 9 is padding of each level of nesting
+  const baseValue = Number((viewDisplayField.value?.width ?? '').replace('px', '')) + 55 + props.maxDepth * 9
+  const maxDepth = props.maxDepth ?? 1
+  // The _scrollLeft is calculated only on root and passed down to nested groups
   const tempScrollLeft = vGroup.value.root ? _scrollLeft.value ?? 0 : scrollLeft.value ?? 0
+
+  const getSubGroupWidth = (depth: number) => {
+    switch (depth) {
+      case 3:
+        return `${baseValue - 26}px`
+      case 2:
+        return `${baseValue - 17}px`
+      case 1:
+        return `${baseValue - 8}px`
+      default:
+        return `${baseValue}px`
+    }
+    return baseValue
+  }
 
   if (_depth === 0) {
     if (tempScrollLeft < 29) {
+      // The equation is calculated on trial and error basis
       return `${baseValue + tempScrollLeft - (53 / 29) * tempScrollLeft}px`
     }
-    return `${baseValue - 26}px`
+    return getSubGroupWidth(maxDepth)
   }
 
   if (_depth === 1) {
     if (tempScrollLeft < 30) {
+      // The equation is calculated on trial and error basis
       return `${baseValue + tempScrollLeft - 9 - (23 / 15) * tempScrollLeft}px`
     }
-    return `${baseValue - 26}px`
+    return getSubGroupWidth(maxDepth)
   }
 
   if (_depth === 2) {
     if (tempScrollLeft < 15) {
+      // The equation is calculated on trial and error basis
       return `${baseValue + tempScrollLeft - 18 - (19 / 15) * tempScrollLeft}px`
     }
-    return `${baseValue - 26}px`
+    return getSubGroupWidth(maxDepth)
   }
 
   // TODO: We only allow 3 levels of nesting for now
@@ -474,6 +493,7 @@ const computedWidth = computed(() => {
               :expand-form="expandForm"
               :view-width="viewWidth"
               :depth="_depth + 1"
+              :max-depth="maxDepth"
               :scroll-left="scrollBump"
               :full-page="fullPage"
             />

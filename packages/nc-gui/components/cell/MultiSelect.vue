@@ -282,6 +282,8 @@ async function addIfMissingAndSave() {
         updatedColMeta,
       )
 
+      vModel.value = [...vModel.value]
+
       activeOptCreateInProgress.value--
       if (!activeOptCreateInProgress.value) {
         await getMeta(column.value.fk_model_id!, true)

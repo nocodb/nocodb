@@ -457,9 +457,6 @@ export const sourceRestrictions = {
     tableCreate: true,
     tableDelete: true,
     tableUpdate: true,
-    // columnAdd: true,
-    // columnDelete: true,
-    // columnUpdate: true,
     columnBulk: true,
   },
   [SourceRestriction.DATA_READONLY]: {
@@ -478,6 +475,5 @@ export const sourceRestrictions = {
     nestedDataLink: true,
   },
 };
-
 
 export default rolePermissions;

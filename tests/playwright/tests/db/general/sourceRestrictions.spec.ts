@@ -29,7 +29,7 @@ test.describe('Source Restrictions', () => {
   });
 
   test('Readonly data source', async () => {
-    await dashboard.treeView.openProjectSourceSettings({ title: context.defaultProjectTitle, context });
+    await dashboard.treeView.openProjectSourceSettings({ title: context.base.title, context });
 
     await settingsPage.selectTab({ tab: 'dataSources' });
     await dashboard.rootPage.waitForTimeout(300);
@@ -56,7 +56,7 @@ test.describe('Source Restrictions', () => {
   });
 
   test('Readonly schema source', async () => {
-    await dashboard.treeView.openProjectSourceSettings({ title: context.defaultProjectTitle, context });
+    await dashboard.treeView.openProjectSourceSettings({ title: context.base.title, context });
 
     await settingsPage.selectTab({ tab: 'dataSources' });
     await dashboard.rootPage.waitForTimeout(300);

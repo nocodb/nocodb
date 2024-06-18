@@ -222,9 +222,21 @@ const isTypableInputColumn = (colOrUidt: ColumnType | UITypes) => {
   ].includes(uidt)
 }
 
+const isColumnSupportsGroupBySettings = (colOrUidt: ColumnType) => {
+  let uidt: UITypes
+  if (typeof colOrUidt === 'object') {
+    uidt = colOrUidt.uidt as UITypes
+  } else {
+    uidt = colOrUidt
+  }
+
+  return [UITypes.SingleSelect, UITypes.User, UITypes.CreatedBy, UITypes.Checkbox, UITypes.Rating].includes(uidt)
+}
+
 export {
   uiTypes,
   isTypableInputColumn,
+  isColumnSupportsGroupBySettings,
   getUIDTIcon,
   getUniqueColumnName,
   isColumnRequiredAndNull,

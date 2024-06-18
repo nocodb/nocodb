@@ -881,7 +881,7 @@
     "addFilter": "Add filter",
     "share": "Share",
     "groupBy": "Group By",
-    "addSubGroup": "Add subgroup",
+    "addSubGroup": "New subgroup",
     "shareBase": {
       "label": "Share Base",
       "disable": "Disable shared base",

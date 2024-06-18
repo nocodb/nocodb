@@ -57,7 +57,7 @@ export default abstract class BasePage {
     let isResJsonMatched = true;
     if (responseJsonMatcher) {
       try {
-        isResJsonMatched = responseJsonMatcher(res.json());
+        isResJsonMatched = responseJsonMatcher(await res.json());
       } catch {
         isResJsonMatched = false;
       }

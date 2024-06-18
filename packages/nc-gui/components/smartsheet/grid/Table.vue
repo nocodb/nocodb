@@ -42,6 +42,7 @@ const props = defineProps<{
   ) => Promise<void>
   headerOnly?: boolean
   hideHeader?: boolean
+  hideCheckbox?: boolean
   pagination?: {
     fixedSize?: number
     hideSidebars?: boolean
@@ -1118,12 +1119,12 @@ const maxGridWidth = computed(() => {
   // 64 for the row number column
   // count first column twice because it's sticky
   // 100 for add new column
-  return colPositions.value[colPositions.value.length - 1] + colPositions.value[1] + 64 + 100
+  return colPositions.value[colPositions.value.length - 1] + 64
 })
 
 const maxGridHeight = computed(() => {
   // 2 extra rows for the add new row and the sticky header
-  return dataRef.value.length * rowHeightInPx[`${props.rowHeight}`] + 2 * rowHeightInPx[`${props.rowHeight}`]
+  return dataRef.value.length * rowHeightInPx[`${props.rowHeight}`]
 })
 
 const colSlice = ref({
@@ -1606,9 +1607,9 @@ onKeyStroke('ArrowDown', onDown)
     <div ref="gridWrapper" class="nc-grid-wrapper min-h-0 flex-1 relative" :class="gridWrapperClass">
       <div
         v-show="isPaginationLoading && !headerOnly"
-        class="flex items-center justify-center absolute l-0 t-0 w-full h-full z-10 pb-10 pointer-events-none"
+        class="flex items-center justify-center bg-white/80 absolute l-0 t-0 w-full h-full z-10 pb-10 pointer-events-none"
       >
-        <div class="flex flex-col justify-center gap-2">
+        <div class="flex flex-col items-center justify-center gap-2">
           <GeneralLoader size="xlarge" />
           <span class="text-center" v-html="loaderText"></span>
         </div>
@@ -1658,7 +1659,7 @@ onKeyStroke('ArrowDown', onDown)
                   }"
                 >
                   <div class="w-full h-full flex pl-2 pr-1 items-center" data-testid="nc-check-all">
-                    <template v-if="!readOnly">
+                    <template v-if="!readOnly && !hideCheckbox">
                       <div class="nc-no-label text-gray-500" :class="{ hidden: vSelectedAllRecords }">#</div>
                       <div
                         :class="{
@@ -1874,6 +1875,7 @@ onKeyStroke('ArrowDown', onDown)
             </thead>
           </table>
           <div
+            v-if="!showSkeleton"
             class="table-overlay"
             :class="{ 'nc-grid-skeleton-loader': showSkeleton }"
             :style="{
@@ -1887,7 +1889,6 @@ onKeyStroke('ArrowDown', onDown)
               :class="{
                 'mobile': isMobileMode,
                 'desktop': !isMobileMode,
-                'pr-60 pb-12': !headerOnly,
                 'w-full': dataRef.length === 0,
               }"
               :style="{
@@ -1961,10 +1962,7 @@ onKeyStroke('ArrowDown', onDown)
                             <span
                               v-if="row.rowMeta?.commentCount && expandForm"
                               v-e="['c:expanded-form:open']"
-                              class="py-1 px-1 rounded-full text-xs cursor-pointer select-none transform hover:(scale-110)"
-                              :style="{
-                                backgroundColor: getEnumColorByIndex(row.rowMeta.commentCount || 0),
-                              }"
+                              class="px-1 rounded-md rounded-bl-none transition-all border-1 border-brand-200 text-xs cursor-pointer font-sembold select-none leading-5 text-brand-500 bg-brand-50"
                               @click="expandAndLooseFocus(row, state)"
                             >
                               {{ row.rowMeta.commentCount }}

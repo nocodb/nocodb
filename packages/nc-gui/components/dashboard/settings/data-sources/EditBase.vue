@@ -71,6 +71,10 @@ const customFormState = ref<ProjectCreateForm>({
   },
   sslUse: SSLUsage.No,
   extraParameters: [],
+  meta: {
+    readOnlySchema: true,
+    readOnlyData: false,
+  },
 })
 
 const validators = computed(() => {
@@ -524,6 +528,14 @@ watch(
           >
             <a-input v-model:value="formState.dataSource.searchPath[0]" />
           </a-form-item>
+
+          <a-form-item label="Readonly Schema">
+            <a-switch v-model:checked="formState.meta.readOnlySchema" size="small"></a-switch>
+          </a-form-item>
+          <a-form-item label="Readonly Data">
+            <a-switch v-model:checked="formState.meta.readOnlyData" size="small"></a-switch>
+          </a-form-item>
+
           <!--                Use Connection URL -->
           <div class="flex justify-end gap-2">
             <NcButton size="small" type="ghost" class="nc-extdb-btn-import-url !rounded-md" @click.stop="importURLDlg = true">

@@ -55,6 +55,10 @@ const formState = ref<ProjectCreateForm>({
   },
   sslUse: SSLUsage.No,
   extraParameters: [],
+  meta: {
+    readOnlySchema: true,
+    readOnlyData: false,
+  },
 })
 
 const customFormState = ref<ProjectCreateForm>({
@@ -244,6 +248,7 @@ const createSource = async () => {
       config,
       inflection_column: formState.value.inflection.inflectionColumn,
       inflection_table: formState.value.inflection.inflectionTable,
+      meta: formState.value.meta,
     })
 
     $poller.subscribe(
@@ -508,6 +513,14 @@ const toggleModal = (val: boolean) => {
               >
                 <a-input v-model:value="formState.dataSource.searchPath[0]" />
               </a-form-item>
+
+              <a-form-item label="Readonly Schema">
+                <a-switch v-model:checked="formState.meta.readOnlySchema" size="small"></a-switch>
+              </a-form-item>
+              <a-form-item label="Readonly Data">
+                <a-switch v-model:checked="formState.meta.readOnlyData" size="small"></a-switch>
+              </a-form-item>
+
               <div class="flex items-right justify-end gap-2">
                 <!--                Use Connection URL -->
                 <NcButton type="ghost" size="small" class="nc-extdb-btn-import-url !rounded-md" @click.stop="importURLDlg = true">

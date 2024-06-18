@@ -44,16 +44,32 @@ export enum AuditOperationTypes {
   ORG_USER = 'ORG_USER',
 }
 
+export const auditOperationTypeLabels = {
+  [AuditOperationTypes.COMMENT]: 'Comment',
+  [AuditOperationTypes.DATA]: 'Data',
+  [AuditOperationTypes.PROJECT]: 'Project',
+  [AuditOperationTypes.VIRTUAL_RELATION]: 'Virtual Relation',
+  [AuditOperationTypes.RELATION]: 'Relation',
+  [AuditOperationTypes.TABLE_VIEW]: 'Table View',
+  [AuditOperationTypes.TABLE]: 'Table',
+  [AuditOperationTypes.VIEW]: 'View',
+  [AuditOperationTypes.META]: 'Meta',
+  [AuditOperationTypes.WEBHOOKS]: 'Webhooks',
+  [AuditOperationTypes.AUTHENTICATION]: 'Authentication',
+  [AuditOperationTypes.TABLE_COLUMN]: 'Table Column',
+  [AuditOperationTypes.ORG_USER]: 'Org User',
+};
+
 export enum AuditOperationSubTypes {
-  UPDATE = 'UPDATE',
   INSERT = 'INSERT',
+  CREATE = 'CREATE',
+  UPDATE = 'UPDATE',
+  DELETE = 'DELETE',
   BULK_INSERT = 'BULK_INSERT',
   BULK_UPDATE = 'BULK_UPDATE',
   BULK_DELETE = 'BULK_DELETE',
   LINK_RECORD = 'LINK_RECORD',
   UNLINK_RECORD = 'UNLINK_RECORD',
-  DELETE = 'DELETE',
-  CREATE = 'CREATE',
   RENAME = 'RENAME',
   IMPORT_FROM_ZIP = 'IMPORT_FROM_ZIP',
   EXPORT_TO_FS = 'EXPORT_TO_FS',
@@ -68,6 +84,31 @@ export enum AuditOperationSubTypes {
   INVITE = 'INVITE',
   RESEND_INVITE = 'RESEND_INVITE',
 }
+
+export const auditOperationSubTypeLabels = {
+  [AuditOperationSubTypes.UPDATE]: 'Update',
+  [AuditOperationSubTypes.INSERT]: 'Insert',
+  [AuditOperationSubTypes.DELETE]: 'Delete',
+  [AuditOperationSubTypes.BULK_INSERT]: 'Bulk Insert',
+  [AuditOperationSubTypes.BULK_UPDATE]: 'Bulk Update',
+  [AuditOperationSubTypes.BULK_DELETE]: 'Bulk Delete',
+  [AuditOperationSubTypes.LINK_RECORD]: 'Link Record',
+  [AuditOperationSubTypes.UNLINK_RECORD]: 'Unlink Record',
+  [AuditOperationSubTypes.CREATE]: 'Create',
+  [AuditOperationSubTypes.RENAME]: 'Rename',
+  [AuditOperationSubTypes.IMPORT_FROM_ZIP]: 'Import From Zip',
+  [AuditOperationSubTypes.EXPORT_TO_FS]: 'Export To FS',
+  [AuditOperationSubTypes.EXPORT_TO_ZIP]: 'Export To Zip',
+  [AuditOperationSubTypes.SIGNIN]: 'Signin',
+  [AuditOperationSubTypes.SIGNUP]: 'Signup',
+  [AuditOperationSubTypes.PASSWORD_RESET]: 'Password Reset',
+  [AuditOperationSubTypes.PASSWORD_FORGOT]: 'Password Forgot',
+  [AuditOperationSubTypes.PASSWORD_CHANGE]: 'Password Change',
+  [AuditOperationSubTypes.EMAIL_VERIFICATION]: 'Email Verification',
+  [AuditOperationSubTypes.ROLES_MANAGEMENT]: 'Roles Management',
+  [AuditOperationSubTypes.INVITE]: 'Invite',
+  [AuditOperationSubTypes.RESEND_INVITE]: 'Resend Invite',
+};
 
 export enum PluginCategory {
   STORAGE = 'Storage',

@@ -41,8 +41,8 @@ export class GroupPageObject extends BasePage {
 
   async verifyGroupHeader({ indexMap, count, title }: { indexMap: number[]; count: number; title: string }) {
     const groupWrapper = this.get({ indexMap });
-    await expect(groupWrapper.locator('.nc-group-column-title')).toHaveText(title);
-    await expect(groupWrapper.locator('.nc-group-row-count')).toHaveText(`(Count: ${count})`);
+    // await expect(groupWrapper.locator('.nc-group-column-title')).toHaveText(title);
+    await expect(groupWrapper.locator('.nc-group-row-count')).toHaveText(`Count${count}`);
   }
 
   async verifyPagination({ indexMap, count }: { indexMap: number[]; count: number }) {

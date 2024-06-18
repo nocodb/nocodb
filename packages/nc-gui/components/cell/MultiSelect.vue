@@ -285,8 +285,8 @@ async function addIfMissingAndSave() {
       activeOptCreateInProgress.value--
       if (!activeOptCreateInProgress.value) {
         vModel.value = [...vModel.value]
+        // await getMeta(column.value.fk_model_id!, true)
         tempSelectedOptsState.splice(0, tempSelectedOptsState.length)
-        await getMeta(column.value.fk_model_id!, true)
       }
     } else {
       activeOptCreateInProgress.value--

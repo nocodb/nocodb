@@ -33,6 +33,8 @@ const vGroup = useVModel(props, 'group', emits)
 
 const meta = inject(MetaInj, ref())
 
+const scrollLeft = toRef(props, 'scrollLeft')
+
 const { isViewDataLoading, isPaginationLoading } = storeToRefs(useViewsStore())
 
 const { gridViewCols } = useViewColumnsOrThrow()
@@ -250,6 +252,40 @@ const expandAllGroup = () => {
     })
   }
 }
+
+const computedWidth = computed(() => {
+  const baseValue = Number((viewDisplayField.value?.width ?? '').replace('px', '')) + 82
+
+  const tempScrollLeft = vGroup.value.root ? _scrollLeft.value ?? 0 : scrollLeft.value ?? 0
+
+  if (_depth === 0) {
+    if (tempScrollLeft < 29) {
+      return `${baseValue + tempScrollLeft - (53 / 29) * tempScrollLeft}px`
+    }
+    return `${baseValue - 26}px`
+  }
+
+  if (_depth === 1) {
+    if (tempScrollLeft < 30) {
+      return `${baseValue + tempScrollLeft - 9 - (23 / 15) * tempScrollLeft}px`
+    }
+    return `${baseValue - 26}px`
+  }
+
+  if (_depth === 2) {
+    if (tempScrollLeft < 15) {
+      return `${baseValue + tempScrollLeft - 18 - (19 / 15) * tempScrollLeft}px`
+    }
+    return `${baseValue - 26}px`
+  }
+
+  // TODO: We only allow 3 levels of nesting for now
+  // We only allow 3 levels of nesting for now
+  // If we add support for more levels, we need to adjust the width calculation
+  // for each level
+
+  return `${baseValue}px`
+})
 </script>
 
 <template>
@@ -297,19 +333,7 @@ const expandAllGroup = () => {
                 class="flex !sticky w-full items-center group !hover:bg-[#F4F4F5] select-none transition-all !rounded-t-[8px] !h-10"
               >
                 <div
-                  :class="{
-                    [`w-[${
-                      Number((viewDisplayField?.width ?? '').replace('px', '')) +
-                      82 +
-                      ((): number => {
-                        const tempScrollLeft = scrollLeft ?? 0
-
-                        // f(tempScrollLeft < 26) return -26
-
-                        return 0
-                      })()
-                    }px]`]: viewDisplayField?.width,
-                  }"
+                  :style="`width:${computedWidth};`"
                   class="!sticky flex justify-between !h-10 border-r-1 pr-2 border-gray-200 overflow-clip items-center !left-2"
                 >
                   <div class="flex items-center">

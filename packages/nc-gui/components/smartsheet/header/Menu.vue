@@ -393,7 +393,7 @@ const isColumnCRUDAllowed = computed(() => {
           </div>
         </NcMenuItem>
         <NcMenuItem
-          v-if="isUIAllowed('duplicateColumn') && isExpandedForm && !column?.pk"
+          v-if="isUIAllowed('duplicateColumn') && isExpandedForm && !column?.pk && isColumnCRUDAllowed"
           :disabled="!isDuplicateAllowed"
           @click="openDuplicateDlg"
         >

@@ -208,7 +208,10 @@ const isGridCellMouseDown = ref(false)
 // #Context Menu
 const _contextMenu = ref(false)
 const contextMenu = computed({
-  get: () => _contextMenu.value,
+  get: () => {
+    if (props.data?.some((r) => r.rowMeta.selected) && isDataReadOnly.value) return false
+    return _contextMenu.value
+  },
   set: (val) => {
     _contextMenu.value = val
   },
@@ -2174,7 +2177,9 @@ onKeyStroke('ArrowDown', onDown)
         <template #overlay>
           <NcMenu class="!rounded !py-0" @click="contextMenu = false">
             <NcMenuItem
-              v-if="isEeUI && !contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected)"
+              v-if="
+                isEeUI && !contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected) && !isDataReadOnly
+              "
               @click="emits('bulkUpdateDlg')"
             >
               <div v-e="['a:row:update-bulk']" class="flex gap-2 items-center">

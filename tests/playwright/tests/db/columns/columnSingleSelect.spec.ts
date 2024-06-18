@@ -51,7 +51,7 @@ test.describe('Single select', () => {
       index: 0,
       columnHeader: 'SingleSelect',
       option: 'Option 3',
-      ignoreDblClick: true,
+      ignoreDblClick: false,
     });
     await grid.cell.selectOption.verify({ index: 0, columnHeader: 'SingleSelect', option: 'Option 3' });
 

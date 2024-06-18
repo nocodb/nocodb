@@ -146,7 +146,9 @@ const toggleOptimisedQuery = () => {
 const { rootGroup, groupBy, isGroupBy, loadGroups, loadGroupData, loadGroupPage, groupWrapperChangePage, redistributeRows } =
   useViewGroupByOrThrow()
 
-const coreWrapperRef = ref<HTMLElement>()
+const sidebarStore = useSidebarStore()
+
+const { windowSize, leftSidebarWidth } = toRefs(sidebarStore)
 
 const viewWidth = ref(0)
 
@@ -154,17 +156,6 @@ eventBus.on((event) => {
   if (event === SmartsheetStoreEvents.GROUP_BY_RELOAD || event === SmartsheetStoreEvents.DATA_RELOAD) {
     reloadViewDataHook?.trigger()
   }
-})
-
-onMounted(() => {
-  until(coreWrapperRef)
-    .toBeTruthy()
-    .then(() => {
-      const resizeObserver = new ResizeObserver(() => {
-        viewWidth.value = coreWrapperRef.value?.clientWidth || 0
-      })
-      if (coreWrapperRef.value) resizeObserver.observe(coreWrapperRef.value)
-    })
 })
 
 const goToNextRow = () => {
@@ -190,91 +181,102 @@ const goToPreviousRow = () => {
 
   navigateToSiblingRow(NavigateDir.PREV)
 }
+
+const updateViewWidth = () => {
+  viewWidth.value = windowSize.value - leftSidebarWidth.value
+}
+
+watch([windowSize, leftSidebarWidth], updateViewWidth)
+
+onMounted(() => {
+  updateViewWidth()
+})
 </script>
 
 <template>
-  <div
-    ref="coreWrapperRef"
-    class="relative flex flex-col h-full min-h-0 w-full nc-grid-wrapper"
-    data-testid="nc-grid-wrapper"
-    style="background-color: var(--nc-grid-bg)"
-  >
-    <Table
-      v-if="!isGroupBy"
-      ref="tableRef"
-      v-model:selected-all-records="selectedAllRecords"
-      :data="data"
-      :pagination-data="paginationData"
-      :load-data="loadData"
-      :change-page="changePage"
-      :call-add-empty-row="_addEmptyRow"
-      :delete-row="deleteRow"
-      :update-or-save-row="updateOrSaveRow"
-      :delete-selected-rows="deleteSelectedRows"
-      :delete-range-of-rows="deleteRangeOfRows"
-      :bulk-update-rows="bulkUpdateRows"
-      :remove-row-if-new="removeRowIfNew"
-      :expand-form="expandForm"
-      :row-height="rowHeight"
-      @toggle-optimised-query="toggleOptimisedQuery"
-      @bulk-update-dlg="bulkUpdateDlg = true"
-    />
-
-    <GroupBy
-      v-else
-      :group="rootGroup"
-      :load-groups="loadGroups"
-      :load-group-data="loadGroupData"
-      :load-group-page="loadGroupPage"
-      :group-wrapper-change-page="groupWrapperChangePage"
-      :row-height="rowHeight"
-      :max-depth="groupBy.length"
-      :redistribute-rows="redistributeRows"
-      :expand-form="expandForm"
-      :view-width="viewWidth"
-    />
-    <Suspense>
-      <LazySmartsheetExpandedForm
-        v-if="expandedFormRow && expandedFormDlg"
-        v-model="expandedFormDlg"
-        :load-row="!isPublic"
-        :row="expandedFormRow"
-        :state="expandedFormRowState"
-        :meta="meta"
-        :view="view"
-        @update:model-value="addRowExpandOnClose(expandedFormRow)"
-      />
-    </Suspense>
-    <SmartsheetExpandedForm
-      v-if="expandedFormOnRowIdDlg && meta?.id"
-      v-model="expandedFormOnRowIdDlg"
-      :row="expandedFormRow ?? { row: {}, oldRow: {}, rowMeta: {} }"
-      :meta="meta"
-      :load-row="!isPublic"
-      :state="expandedFormRowState"
-      :row-id="routeQuery.rowId"
-      :view="view"
-      show-next-prev-icons
-      :first-row="isFirstRow"
-      :last-row="islastRow"
-      :expand-form="expandForm"
-      @next="goToNextRow()"
-      @prev="goToPreviousRow()"
-    />
-
-    <Suspense>
-      <LazyDlgBulkUpdate
-        v-if="bulkUpdateDlg"
-        v-model="bulkUpdateDlg"
+  <div :style="`width: ${viewWidth}px`" class="h-full overflow-x-hidden">
+    <div
+      class="relative flex flex-col h-full min-h-0 w-full nc-grid-wrapper"
+      data-testid="nc-grid-wrapper"
+      style="background-color: var(--nc-grid-bg)"
+    >
+      <Table
+        v-if="!isGroupBy"
+        ref="tableRef"
+        v-model:selected-all-records="selectedAllRecords"
+        :data="data"
         :pagination-data="paginationData"
-        :meta="meta"
-        :view="view"
+        :load-data="loadData"
+        :change-page="changePage"
+        :call-add-empty-row="_addEmptyRow"
+        :delete-row="deleteRow"
+        :update-or-save-row="updateOrSaveRow"
+        :delete-selected-rows="deleteSelectedRows"
+        :delete-range-of-rows="deleteRangeOfRows"
         :bulk-update-rows="bulkUpdateRows"
-        :bulk-update-view="bulkUpdateView"
-        :selected-all-records="selectedAllRecords"
-        :rows="data.filter((r) => r.rowMeta.selected)"
+        :remove-row-if-new="removeRowIfNew"
+        :expand-form="expandForm"
+        :row-height="rowHeight"
+        @toggle-optimised-query="toggleOptimisedQuery"
+        @bulk-update-dlg="bulkUpdateDlg = true"
       />
-    </Suspense>
+
+      <GroupBy
+        v-else
+        :group="rootGroup"
+        :load-groups="loadGroups"
+        :load-group-data="loadGroupData"
+        :load-group-page="loadGroupPage"
+        :group-wrapper-change-page="groupWrapperChangePage"
+        :row-height="rowHeight"
+        :max-depth="groupBy.length"
+        :redistribute-rows="redistributeRows"
+        :expand-form="expandForm"
+        :view-width="viewWidth"
+      />
+      <Suspense>
+        <LazySmartsheetExpandedForm
+          v-if="expandedFormRow && expandedFormDlg"
+          v-model="expandedFormDlg"
+          :load-row="!isPublic"
+          :row="expandedFormRow"
+          :state="expandedFormRowState"
+          :meta="meta"
+          :view="view"
+          @update:model-value="addRowExpandOnClose(expandedFormRow)"
+        />
+      </Suspense>
+      <SmartsheetExpandedForm
+        v-if="expandedFormOnRowIdDlg && meta?.id"
+        v-model="expandedFormOnRowIdDlg"
+        :row="expandedFormRow ?? { row: {}, oldRow: {}, rowMeta: {} }"
+        :meta="meta"
+        :load-row="!isPublic"
+        :state="expandedFormRowState"
+        :row-id="routeQuery.rowId"
+        :view="view"
+        show-next-prev-icons
+        :first-row="isFirstRow"
+        :last-row="islastRow"
+        :expand-form="expandForm"
+        @next="goToNextRow()"
+        @prev="goToPreviousRow()"
+      />
+
+      <Suspense>
+        <LazyDlgBulkUpdate
+          v-if="bulkUpdateDlg"
+          v-model="bulkUpdateDlg"
+          :pagination-data="paginationData"
+          :meta="meta"
+          :view="view"
+          :bulk-update-rows="bulkUpdateRows"
+          :bulk-update-view="bulkUpdateView"
+          :selected-all-records="selectedAllRecords"
+          :rows="data.filter((r) => r.rowMeta.selected)"
+        />
+      </Suspense>
+    </div>
   </div>
 </template>
 

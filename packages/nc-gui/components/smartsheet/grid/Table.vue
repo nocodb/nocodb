@@ -1118,7 +1118,7 @@ const maxGridWidth = computed(() => {
   // 64 for the row number column
   // count first column twice because it's sticky
   // 100 for add new column
-  return colPositions.value[colPositions.value.length - 1] + colPositions.value[1] + 64 + 100
+  return colPositions.value[colPositions.value.length - 1] + 64
 })
 
 const maxGridHeight = computed(() => {
@@ -1874,6 +1874,7 @@ onKeyStroke('ArrowDown', onDown)
             </thead>
           </table>
           <div
+            v-if="!showSkeleton"
             class="table-overlay"
             :class="{ 'nc-grid-skeleton-loader': showSkeleton }"
             :style="{
@@ -1887,7 +1888,6 @@ onKeyStroke('ArrowDown', onDown)
               :class="{
                 'mobile': isMobileMode,
                 'desktop': !isMobileMode,
-                'pr-60': !headerOnly,
                 'w-full': dataRef.length === 0,
               }"
               :style="{

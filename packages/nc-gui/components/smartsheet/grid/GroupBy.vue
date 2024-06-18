@@ -239,7 +239,8 @@ const expandAllGroup = () => {
 <template>
   <div
     ref="wrapper"
-    class="h-full overflow-auto"
+    :class="{ 'overflow-y-auto': vGroup.root === true }"
+    class="h-full"
     :style="`${!vGroup.root && vGroup.nested ? 'padding-left: 12px; padding-right: 12px;' : ''}`"
     @scroll="onScroll"
   >
@@ -277,7 +278,7 @@ const expandAllGroup = () => {
                   'hover:rounded-b-lg': !activeGroups.includes(grp.key),
                   'border-b-1': activeGroups.includes(grp.key),
                 }"
-                class="flex !sticky w-full items-center !hover:bg-[#F4F4F5] select-none transition-all !rounded-t-[8px] !h-10"
+                class="flex !sticky w-full items-center group !hover:bg-[#F4F4F5] select-none transition-all !rounded-t-[8px] !h-10"
               >
                 <div class="!sticky flex items-center left-0">
                   <NcButton class="!border-0 !shadow-none !bg-transparent !hover:bg-transparent" type="secondary" size="small">
@@ -356,7 +357,7 @@ const expandAllGroup = () => {
                     <span class="text-[#374151] ml-2"> {{ grp.count }} </span>
                   </div>
 
-                  <NcDropdown>
+                  <NcDropdown class="opacity-0 group-hover:opacity-100">
                     <NcButton size="small" type="text" @click.stop>
                       <GeneralIcon icon="threeDotVertical" />
                     </NcButton>
@@ -371,14 +372,13 @@ const expandAllGroup = () => {
                           <GeneralIcon icon="maximize" />
                           Expand Group
                         </NcMenuItem>
+                        <NcMenuItem @click="expandAllGroup">
+                          <GeneralIcon icon="maximizeAll" />
+                          Expand all
+                        </NcMenuItem>
                         <NcMenuItem @click="collapseAllGroup">
                           <GeneralIcon icon="minimizeAll" />
                           Collapse all
-                        </NcMenuItem>
-                        <NcMenuItem @click="expandAllGroup">
-                          <GeneralIcon icon="maximizeAll" />
-
-                          Expand all
                         </NcMenuItem>
                       </NcMenu>
                     </template>

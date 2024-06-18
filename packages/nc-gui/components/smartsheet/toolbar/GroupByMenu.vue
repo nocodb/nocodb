@@ -344,6 +344,13 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number } }) 
   }
 }
 
+:deep(.nc-select:hover) {
+  &,
+  .ant-select-selector {
+    @apply bg-gray-50;
+  }
+}
+
 :deep(.nc-sort-dir-select) {
   .ant-select-selector {
     @apply !rounded-none !border-gray-200 !shadow-none;

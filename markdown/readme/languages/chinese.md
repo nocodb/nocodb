@@ -83,8 +83,6 @@ nocodb/nocodb:latest
 
 ```bash
 git clone https://github.com/nocodb/nocodb
-# 如果使用 MySQL 的话
-cd nocodb/docker-compose/mysql
 # 如果使用 PostgreSQL 的话
 cd nocodb/docker-compose/pg
 ```

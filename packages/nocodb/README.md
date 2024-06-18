@@ -158,12 +158,8 @@ We provide different docker-compose.yml files under [this directory](https://git
 
 ```bash
 git clone https://github.com/nocodb/nocodb
-# for MySQL
-cd nocodb/docker-compose/mysql
 # for PostgreSQL
 cd nocodb/docker-compose/pg
-# for MSSQL
-cd nocodb/docker-compose/mssql
 docker-compose up -d
 ```
 

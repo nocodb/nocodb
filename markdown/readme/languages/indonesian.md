@@ -126,8 +126,6 @@ Kami menyediakan berbagai file docker-compose.yml di [bawah direktori](https://g
 
 ```bash
 git clone https://github.com/nocodb/nocodb
-# for MySQL
-cd nocodb/docker-compose/mysql
 # for PostgreSQL
 cd nocodb/docker-compose/pg
 docker-compose up -d

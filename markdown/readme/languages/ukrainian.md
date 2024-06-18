@@ -85,14 +85,6 @@ docker run -d --name nocodb-postgres \
 -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
 nocodb/nocodb:latest
 
-# для MSSQL
-docker run -d --name nocodb-mssql \
--v "$(pwd)"/nocodb:/usr/app/data/ \
--p 8080:8080 \
--e NC_DB="mssql://host.docker.internal:1433?u=root&p=password&d=d1" \
--e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
-nocodb/nocodb:latest
-```
 
 > Щоб зберегти дані в Docker, ви можете змонтувати том в /usr/app/data/ з версії 0.10.6. В іншому випадку ваші дані будуть втрачені після перестворення контейнера.
 
@@ -146,12 +138,8 @@ iwr http://get.nocodb.com/win-arm64.exe -o Noco-win-arm64.exe
 
 ```bash
 git clone https://github.com/nocodb/nocodb
-# для MySQL
-cd nocodb/docker-compose/mysql
 # для PostgreSQL
 cd nocodb/docker-compose/pg
-# для MSSQL
-cd nocodb/docker-compose/mssql
 docker-compose up -d
 ```
 

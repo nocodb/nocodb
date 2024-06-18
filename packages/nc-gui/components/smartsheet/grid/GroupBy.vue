@@ -131,8 +131,8 @@ const scrollBump = computed<number>(() => {
   } else {
     if (props.scrollLeft && props.viewWidth && scrollable.value) {
       const scrollWidth = scrollable.value.scrollWidth + 12 + 12
-      if (props.scrollLeft + props.viewWidth > scrollWidth) {
-        return scrollWidth - props.viewWidth
+      if (props.scrollLeft + props.viewWidth + 20 > scrollWidth) {
+        return scrollWidth - props.viewWidth - 20
       }
       return Math.max(Math.min(scrollWidth - props.viewWidth, (props.scrollLeft ?? 0) - 12), 0)
     }
@@ -430,7 +430,7 @@ const expandAllGroup = () => {
     custom-label="groups"
     show-api-timing
     :change-page="(p: number) => groupWrapperChangePage(p, vGroup)"
-    :style="`${props.depth && props.depth > 0 ? 'border-radius: 0 0 8px 8px !important;' : ''} border-top: 0px;`"
+    :style="`${props.depth && props.depth > 0 ? 'border-radius: 0 0 8px 8px !important;' : ''}`"
   ></LazySmartsheetPagination>
 
   <LazySmartsheetPagination
@@ -441,9 +441,7 @@ const expandAllGroup = () => {
     show-api-timing
     :change-page="(p: number) => groupWrapperChangePage(p, vGroup)"
     :hide-sidebars="true"
-    :style="`${
-      props.depth && props.depth > 0 ? 'border-radius: 0 0 8px 8px !important;' : ''
-    }margin-left: ${scrollBump}px; border-top: 0px;`"
+    :style="`${props.depth && props.depth > 0 ? 'border-radius: 0 0 8px 8px !important;' : ''}margin-left: ${scrollBump}px;`"
     :fixed-size="fullPage ? props.viewWidth : undefined"
   ></LazySmartsheetPagination>
 </template>

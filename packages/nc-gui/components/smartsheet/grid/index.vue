@@ -183,6 +183,10 @@ const goToPreviousRow = () => {
 }
 
 const updateViewWidth = () => {
+  if (isPublic.value) {
+    viewWidth.value = windowSize.value
+    return
+  }
   viewWidth.value = windowSize.value - leftSidebarWidth.value
 }
 

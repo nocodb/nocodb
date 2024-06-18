@@ -369,6 +369,10 @@ const allowMetaWrite = computed({
   get: () => !formState.value.is_schema_readonly,
   set: (v) => {
     formState.value.is_schema_readonly = !v
+    // if schema write is allowed, data write should be allowed too
+    if (v) {
+      formState.value.is_data_readonly = false
+    }
     $e('c:source:schema-write-toggle', { allowed: !v, edit: true })
   },
 })
@@ -579,7 +583,19 @@ const allowDataWrite = computed({
                 </NcTooltip>
               </div>
             </template>
-            <a-switch v-model:checked="allowDataWrite" data-testid="nc-allow-data-write" size="small"></a-switch>
+            <div class="flex justify-start">
+              <NcTooltip :disabled="!allowMetaWrite" placement="topLeft">
+                <template #title>
+                  {{ $t('tooltip.dataWriteOptionDisabled') }}
+                </template>
+                <a-switch
+                  v-model:checked="allowDataWrite"
+                  :disabled="allowMetaWrite"
+                  data-testid="nc-allow-data-write"
+                  size="small"
+                ></a-switch>
+              </NcTooltip>
+            </div>
           </a-form-item>
           <!--                Use Connection URL -->
           <div class="flex justify-end gap-2">

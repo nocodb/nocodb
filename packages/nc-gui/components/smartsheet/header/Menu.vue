@@ -43,7 +43,7 @@ const { gridViewCols } = useViewColumnsOrThrow()
 
 const { fieldsToGroupBy, groupByLimit } = useViewGroupByOrThrow(view)
 
-const { isUIAllowed, isMetaReadOnly } = useRoles()
+const { isUIAllowed, isMetaReadOnly, isDataReadOnly } = useRoles()
 
 const isLoading = ref<'' | 'hideOrShow' | 'setDisplay'>('')
 
@@ -325,7 +325,11 @@ const isDeleteAllowed = computed(() => {
   return column?.value && !column.value.system
 })
 const isDuplicateAllowed = computed(() => {
-  return column?.value && !column.value.system
+  return (
+    column?.value &&
+    !column.value.system &&
+    ((!isMetaReadOnly.value && !isDataReadOnly.value) || readonlyMetaAllowedTypes.includes(column.value?.uidt))
+  )
 })
 const isFilterSupported = computed(
   () =>
@@ -394,7 +398,7 @@ const isColumnUpdateAllowed = computed(() => {
         </NcMenuItem>
         <NcMenuItem
           v-if="isUIAllowed('duplicateColumn') && isExpandedForm && !column?.pk"
-          :disabled="!isDuplicateAllowed || !isColumnUpdateAllowed"
+          :disabled="!isDuplicateAllowed"
           @click="openDuplicateDlg"
         >
           <div v-e="['a:field:duplicate']" class="nc-column-duplicate nc-header-menu-item">
@@ -530,14 +534,16 @@ const isColumnUpdateAllowed = computed(() => {
           </NcMenuItem>
         </template>
         <a-divider v-if="!column?.pv" class="!my-0" />
-
         <NcMenuItem
           v-if="!column?.pv && isUIAllowed('fieldDelete')"
           :disabled="!isDeleteAllowed || !isColumnUpdateAllowed"
           class="!hover:bg-red-50"
           @click="handleDelete"
         >
-          <div class="nc-column-delete nc-header-menu-item text-red-600">
+          <div
+            class="nc-column-delete nc-header-menu-item"
+            :class="{ ' text-red-600': isDeleteAllowed && isColumnUpdateAllowed }"
+          >
             <component :is="iconMap.delete" />
             <!-- Delete -->
             {{ $t('general.delete') }}

@@ -34,6 +34,7 @@ test.describe('Source Restrictions', () => {
     await settingsPage.selectTab({ tab: 'dataSources' });
     await dashboard.rootPage.waitForTimeout(300);
 
+    await settingsPage.source.updateSchemaReadOnly({ sourceName: 'Default', readOnly: true });
     await settingsPage.source.updateDataReadOnly({ sourceName: 'Default', readOnly: true });
     await settingsPage.close();
 
@@ -78,6 +79,13 @@ test.describe('Source Restrictions', () => {
       .locator('.nc-ui-dt-dropdown')
       .scrollIntoViewIfNeeded();
     await dashboard.grid.get().locator(`th[data-title="LastName"]`).first().locator('.nc-ui-dt-dropdown').click();
-    await expect(await dashboard.rootPage.locator('li[role="menuitem"]:has-text("Edit"):visible').last()).toBeVisible();
+    for (const item of ['Edit', 'Delete', 'Duplicate']) {
+      await expect(
+        await dashboard.rootPage.locator(`li[role="menuitem"]:has-text("${item}"):visible`).last()
+      ).toBeVisible();
+      await expect(
+        await dashboard.rootPage.locator(`li[role="menuitem"]:has-text("${item}"):visible`).last()
+      ).toHaveClass(/ant-dropdown-menu-item-disabled/);
+    }
   });
 });

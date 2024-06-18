@@ -27,7 +27,7 @@ const inputRef = ref()
 const activeFieldIndex = ref(-1)
 
 const onClick = (uidt: UITypes) => {
-  if (!uidt) return
+  if (!uidt || isDisabledUIType(uidt)) return
 
   emits('selected', uidt)
 }

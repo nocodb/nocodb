@@ -72,9 +72,20 @@ const customFormState = ref<ProjectCreateForm>({
   extraParameters: [],
 })
 
+const easterEgg = ref(false)
+
+const easterEggCount = ref(0)
+
+const onEasterEgg = () => {
+  easterEggCount.value += 1
+  if (easterEggCount.value >= 2) {
+    easterEgg.value = true
+  }
+}
+
 const clientTypes = computed(() => {
   return _clientTypes.filter((type) => {
-    return ![ClientType.SNOWFLAKE, ClientType.DATABRICKS].includes(type.value)
+    return ![ClientType.SNOWFLAKE, ClientType.DATABRICKS, ...(easterEgg.value ? [ClientType.MSSQL] : [])].includes(type.value)
   })
 })
 
@@ -404,7 +415,11 @@ const allowMetaWrite = computed({
   get: () => !formState.value.is_schema_readonly,
   set: (v) => {
     formState.value.is_schema_readonly = !v
-    $e('c:source:schema-write-toggle', {allowed: !v})
+    // if schema write is allowed, data write should be allowed too
+    if (v) {
+      formState.value.is_data_readonly = false
+    }
+    $e('c:source:schema-write-toggle', { allowed: !v, edit: true })
   },
 })
 
@@ -550,18 +565,30 @@ const allowDataWrite = computed({
               <a-form-item>
                 <template #label>
                   <div class="flex gap-1 justify-end">
-                    <span>
-                      {{ $t('labels.allowDataWrite') }}
-                    </span>
+                <span>
+                  {{ $t('labels.allowDataWrite') }}
+                </span>
                     <NcTooltip>
                       <template #title>
                         <span>{{ $t('tooltip.allowDataWrite') }}</span>
                       </template>
-                      <GeneralIcon class="text-gray-500" icon="info"/>
+                      <GeneralIcon class="text-gray-500" icon="info" />
                     </NcTooltip>
                   </div>
                 </template>
-                <a-switch v-model:checked="allowDataWrite"  data-testid="nc-allow-data-write" size="small"></a-switch>
+                <div class="flex justify-start">
+                  <NcTooltip :disabled="!allowMetaWrite" placement="topLeft">
+                    <template #title>
+                      {{ $t('tooltip.dataWriteOptionDisabled') }}
+                    </template>
+                    <a-switch
+                        v-model:checked="allowDataWrite"
+                        :disabled="allowMetaWrite"
+                        data-testid="nc-allow-data-write"
+                        size="small"
+                    ></a-switch>
+                  </NcTooltip>
+                </div>
               </a-form-item>
 
               <div class="flex items-right justify-end gap-2">
@@ -730,6 +757,7 @@ const allowDataWrite = computed({
 
           <a-form-item class="flex justify-end !mt-5">
             <div class="flex justify-end gap-2">
+              <div class="w-[15px] h-[15px] cursor-pointer" @dblclick="onEasterEgg"></div>
               <NcButton
                   :type="testSuccess ? 'ghost' : 'primary'"
                   size="small"

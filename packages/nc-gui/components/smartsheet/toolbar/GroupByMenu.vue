@@ -154,6 +154,35 @@ eventBus.on(async (event, column) => {
     await saveGroupBy()
   }
 })
+
+const onMove = async (_event: {
+  moved: {
+    newIndex: number
+    oldIndex: number
+  }
+}) => {
+  // Write code to update the value of atribute order in _groupBy array
+
+  const { newIndex, oldIndex } = _event.moved
+
+  console.log(oldIndex, newIndex)
+
+  const tempGroups = [..._groupBy.value]
+
+  const [movedItem] = tempGroups.splice(oldIndex, 1)
+
+  console.log(movedItem)
+
+  tempGroups.splice(newIndex, 0, movedItem)
+
+  const updatedGroups = tempGroups.map((group, index) => ({ ...group, order: index }))
+
+  _groupBy.value = updatedGroups
+
+  console.log('Updated _groupBy.value:', _groupBy.value)
+
+  await saveGroupBy()
+}
 </script>
 
 <template>
@@ -198,7 +227,7 @@ eventBus.on(async (event, column) => {
         data-testid="nc-group-by-menu"
       >
         <div class="group-by-grid max-h-100 nc-scrollbar-thing pr-4 py-2" @click.stop>
-          <Draggable v-model="_groupBy" item-key="id" ghost-class="">
+          <Draggable v-model="_groupBy" item-key="id" ghost-class="bg-gray-50" @change="onMove($event)">
             <template #item="{ element: group }">
               <div class="flex first:mb-0 !mb-5 items-center">
                 <NcButton type="secondary" size="small" class="!border-r-transparent !rounded-r-none">

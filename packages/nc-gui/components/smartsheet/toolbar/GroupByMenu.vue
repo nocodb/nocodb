@@ -133,6 +133,8 @@ const removeFieldFromGroupBy = async (index: string | number) => {
   await saveGroupBy()
 }
 
+const isDragging = ref<boolean>(false)
+
 watch(open, () => {
   if (open.value) {
     _groupBy.value = [...groupBy.value]
@@ -155,31 +157,18 @@ eventBus.on(async (event, column) => {
   }
 })
 
-const onMove = async (_event: {
-  moved: {
-    newIndex: number
-    oldIndex: number
-  }
-}) => {
-  // Write code to update the value of atribute order in _groupBy array
-
-  const { newIndex, oldIndex } = _event.moved
-
-  console.log(oldIndex, newIndex)
+const onMove = async (event: { moved: { newIndex: number; oldIndex: number } }) => {
+  const { newIndex, oldIndex } = event.moved
 
   const tempGroups = [..._groupBy.value]
 
   const [movedItem] = tempGroups.splice(oldIndex, 1)
 
-  console.log(movedItem)
-
   tempGroups.splice(newIndex, 0, movedItem)
 
-  const updatedGroups = tempGroups.map((group, index) => ({ ...group, order: index }))
+  const updatedGroups = tempGroups.map((group, index) => ({ ...group, order: index + 1 }))
 
-  _groupBy.value = updatedGroups
-
-  console.log('Updated _groupBy.value:', _groupBy.value)
+  _groupBy.value = [...updatedGroups]
 
   await saveGroupBy()
 }
@@ -227,9 +216,16 @@ const onMove = async (_event: {
         data-testid="nc-group-by-menu"
       >
         <div class="max-h-100" @click.stop>
-          <Draggable v-model="_groupBy" item-key="id" ghost-class="bg-gray-50" @change="onMove($event)">
+          <Draggable
+            :model-value="_groupBy"
+            item-key="fk_column_id"
+            ghost-class="bg-gray-50"
+            @change="onMove($event)"
+            @start="isDragging = true"
+            @end="isDragging = false"
+          >
             <template #item="{ element: group }">
-              <div class="flex first:mb-0 !mb-5 !last:mb-0 items-center">
+              <div :key="group.fk_column_id" class="flex first:mb-0 !mb-5 !last:mb-0 items-center">
                 <NcButton type="secondary" size="small" class="!border-r-transparent !rounded-r-none">
                   <component :is="iconMap.drag" />
                 </NcButton>
@@ -301,9 +297,6 @@ const onMove = async (_event: {
               </div>
             </template>
           </Draggable>
-          <!--
-          <template v-for="[i, group] of Object.entries(_groupBy)" :key="`grouped-by-${group.fk_column_id}`"> </template>
--->
         </div>
         <NcDropdown
           v-if="availableColumns.length && fieldsToGroupBy.length > _groupBy.length && _groupBy.length < groupByLimit"
@@ -342,12 +335,17 @@ const onMove = async (_event: {
 <style scoped lang="scss">
 :deep(.nc-sort-field-select) {
   .ant-select-selector {
-    @apply !rounded-none !shadow-none;
+    @apply !rounded-none !border-r-0 !border-gray-200 !shadow-none;
+
+    &.ant-select-focused:not(.ant-select-disabled) {
+      @apply !border-r-transparent;
+    }
   }
 }
+
 :deep(.nc-sort-dir-select) {
   .ant-select-selector {
-    @apply !rounded-none !border-l-transparent !hover:border-l-brand-500 !shadow-none;
+    @apply !rounded-none !border-gray-200 !shadow-none;
   }
 }
 </style>

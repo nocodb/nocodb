@@ -277,7 +277,7 @@ const expandAllGroup = () => {
                   'hover:rounded-b-lg': !activeGroups.includes(grp.key),
                   'border-b-1': activeGroups.includes(grp.key),
                 }"
-                class="flex w-full items-center !hover:bg-[#F4F4F5] select-none transition-all !rounded-t-[8px] !h-10"
+                class="flex !sticky w-full items-center !hover:bg-[#F4F4F5] select-none transition-all !rounded-t-[8px] !h-10"
               >
                 <div class="!sticky flex items-center left-0">
                   <NcButton class="!border-0 !shadow-none !bg-transparent !hover:bg-transparent" type="secondary" size="small">

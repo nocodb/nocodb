@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { Form, message } from 'ant-design-vue'
 import type { SelectHandler } from 'ant-design-vue/es/vc-select/Select'
+import { SourceRestriction } from 'nocodb-sdk'
 import {
   type CertTypes,
   ClientType,
@@ -55,6 +56,8 @@ const formState = ref<ProjectCreateForm>({
   },
   sslUse: SSLUsage.No,
   extraParameters: [],
+  is_schema_readonly: true,
+  is_data_readonly: false,
 })
 
 const customFormState = ref<ProjectCreateForm>({
@@ -68,9 +71,20 @@ const customFormState = ref<ProjectCreateForm>({
   extraParameters: [],
 })
 
+const easterEgg = ref(false)
+
+const easterEggCount = ref(0)
+
+const onEasterEgg = () => {
+  easterEggCount.value += 1
+  if (easterEggCount.value >= 2) {
+    easterEgg.value = true
+  }
+}
+
 const clientTypes = computed(() => {
   return _clientTypes.filter((type) => {
-    return ![ClientType.SNOWFLAKE, ClientType.DATABRICKS].includes(type.value)
+    return ![ClientType.SNOWFLAKE, ClientType.DATABRICKS, ...(easterEgg.value ? [] : [ClientType.MSSQL])].includes(type.value)
   })
 })
 
@@ -244,6 +258,8 @@ const createSource = async () => {
       config,
       inflection_column: formState.value.inflection.inflectionColumn,
       inflection_table: formState.value.inflection.inflectionTable,
+      is_schema_readonly: formState.value.is_schema_readonly,
+      is_data_readonly: formState.value.is_data_readonly,
     })
 
     $poller.subscribe(
@@ -393,6 +409,26 @@ watch(
 const toggleModal = (val: boolean) => {
   vOpen.value = val
 }
+
+const allowMetaWrite = computed({
+  get: () => !formState.value.is_schema_readonly,
+  set: (v) => {
+    formState.value.is_schema_readonly = !v
+    // if schema write is allowed, data write should be allowed too
+    if (v) {
+      formState.value.is_data_readonly = false
+    }
+    $e('c:source:schema-write-toggle', { allowed: !v, edit: true })
+  },
+})
+
+const allowDataWrite = computed({
+  get: () => !formState.value.is_data_readonly,
+  set: (v) => {
+    formState.value.is_data_readonly = !v
+    $e('c:source:data-write-toggle', { allowed: !v })
+  },
+})
 </script>
 
 <template>
@@ -508,6 +544,58 @@ const toggleModal = (val: boolean) => {
               >
                 <a-input v-model:value="formState.dataSource.searchPath[0]" />
               </a-form-item>
+            </template>
+            <a-form-item>
+              <template #label>
+                <div class="flex gap-1 justify-end">
+                  <span>
+                    {{ $t('labels.allowMetaWrite') }}
+                  </span>
+                  <NcTooltip>
+                    <template #title>
+                      <span>{{ $t('tooltip.allowMetaWrite') }}</span>
+                    </template>
+                    <GeneralIcon class="text-gray-500" icon="info" />
+                  </NcTooltip>
+                </div>
+              </template>
+              <a-switch v-model:checked="allowMetaWrite" data-testid="nc-allow-meta-write" size="small"></a-switch>
+            </a-form-item>
+            <a-form-item>
+              <template #label>
+                <div class="flex gap-1 justify-end">
+                  <span>
+                    {{ $t('labels.allowDataWrite') }}
+                  </span>
+                  <NcTooltip>
+                    <template #title>
+                      <span>{{ $t('tooltip.allowDataWrite') }}</span>
+                    </template>
+                    <GeneralIcon class="text-gray-500" icon="info" />
+                  </NcTooltip>
+                </div>
+              </template>
+              <div class="flex justify-start">
+                <NcTooltip :disabled="!allowMetaWrite" placement="topLeft">
+                  <template #title>
+                    {{ $t('tooltip.dataWriteOptionDisabled') }}
+                  </template>
+                  <a-switch
+                    v-model:checked="allowDataWrite"
+                    :disabled="allowMetaWrite"
+                    data-testid="nc-allow-data-write"
+                    size="small"
+                  ></a-switch>
+                </NcTooltip>
+              </div>
+            </a-form-item>
+            <template
+              v-if="
+                formState.dataSource.client !== ClientType.SQLITE &&
+                formState.dataSource.client !== ClientType.DATABRICKS &&
+                formState.dataSource.client !== ClientType.SNOWFLAKE
+              "
+            >
               <div class="flex items-right justify-end gap-2">
                 <!--                Use Connection URL -->
                 <NcButton type="ghost" size="small" class="nc-extdb-btn-import-url !rounded-md" @click.stop="importURLDlg = true">
@@ -639,8 +727,8 @@ const toggleModal = (val: boolean) => {
                       v-model:value="formState.inflection.inflectionColumn"
                       dropdown-class-name="nc-dropdown-inflection-column-name"
                     >
-                      <a-select-option v-for="tp in inflectionTypes" :key="tp" :value="tp"
-                        ><div class="flex items-center gap-2 justify-between">
+                      <a-select-option v-for="tp in inflectionTypes" :key="tp" :value="tp">
+                        <div class="flex items-center gap-2 justify-between">
                           <div>{{ tp }}</div>
                           <component
                             :is="iconMap.check"
@@ -666,6 +754,7 @@ const toggleModal = (val: boolean) => {
 
           <a-form-item class="flex justify-end !mt-5">
             <div class="flex justify-end gap-2">
+              <div class="w-[15px] h-[15px] cursor-pointer" @dblclick="onEasterEgg"></div>
               <NcButton
                 :type="testSuccess ? 'ghost' : 'primary'"
                 size="small"

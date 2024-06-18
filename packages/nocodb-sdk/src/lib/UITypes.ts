@@ -254,3 +254,11 @@ export const isSelectTypeCol = (
   );
 };
 export default UITypes;
+
+export const readonlyMetaAllowedTypes = [
+  UITypes.Lookup,
+  UITypes.Rollup,
+  UITypes.Formula,
+  UITypes.Barcode,
+  UITypes.QrCode,
+];

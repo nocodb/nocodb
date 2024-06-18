@@ -20,6 +20,7 @@ export {
   isHiddenCol,
   getEquivalentUIType,
   isSelectTypeCol,
+  readonlyMetaAllowedTypes,
 } from '~/lib/UITypes';
 export { default as CustomAPI, FileType } from '~/lib/CustomAPI';
 export { default as TemplateGenerator } from '~/lib/TemplateGenerator';

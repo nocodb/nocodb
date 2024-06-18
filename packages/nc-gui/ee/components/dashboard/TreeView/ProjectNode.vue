@@ -74,8 +74,6 @@ const input = ref<HTMLInputElement>()
 
 const { isUIAllowed } = useRoles()
 
-const baseRole = inject(ProjectRoleInj)
-
 const toggleDialog = inject(ToggleDialogInj, () => {})
 
 const { refreshCommandPalette } = useCommandPalette()
@@ -107,11 +105,9 @@ const baseViewOpen = computed(() => {
   return routeNameAfterProjectView.split('-').length === 2 || routeNameAfterProjectView.split('-').length === 1
 })
 
-const showBaseOption = computed(() => {
-  return ['airtableImport', 'csvImport', 'jsonImport', 'excelImport'].some((permission) =>
-    isUIAllowed(permission, false, baseRole!.value),
-  )
-})
+const showBaseOption = (source: SourceType) => {
+  return ['airtableImport', 'csvImport', 'jsonImport', 'excelImport'].some((permission) => isUIAllowed(permission, { source }))
+}
 
 const enableEditMode = () => {
   editMode.value = true
@@ -521,6 +517,10 @@ const onTableIdCopy = async () => {
     message.error(e.message)
   }
 }
+
+const getSource = (sourceId: string) => {
+  return base.value.sources?.find((s) => s.id === sourceId)
+}
 </script>
 
 <template>
@@ -623,7 +623,7 @@ const onTableIdCopy = async () => {
                   <NcMenuItem
                     v-if="
                       base.type === NcProjectType.DB &&
-                      isUIAllowed('baseDuplicate', { roles: [base.workspace_role, base.project_role].join() })
+                      isUIAllowed('baseDuplicate', { roles: base.project_role || base.workspace_role })
                     "
                     data-testid="nc-sidebar-base-duplicate"
                     @click="duplicateProject(base)"
@@ -670,7 +670,7 @@ const onTableIdCopy = async () => {
                   </NcMenuItem>
 
                   <DashboardTreeViewBaseOptions
-                    v-if="base?.sources?.[0]?.enabled && showBaseOption"
+                    v-if="base?.sources?.[0]?.enabled && showBaseOption(base.sources[0])"
                     v-model:base="base"
                     :source="base.sources[0]"
                   />
@@ -688,9 +688,8 @@ const onTableIdCopy = async () => {
                     <GeneralIcon icon="settings" class="group-hover:text-black" />
                     {{ $t('activity.settings') }}
                   </NcMenuItem>
-
                   <NcMenuItem
-                    v-if="isUIAllowed('baseDelete', { roles: [base.workspace_role, base.project_role].join() })"
+                    v-if="isUIAllowed('baseDelete', { roles: base.project_role || base.workspace_role })"
                     class="!text-red-500 !hover:bg-red-50"
                     data-testid="nc-sidebar-base-delete"
                     @click="isProjectDeleteDialogVisible = true"
@@ -705,7 +704,7 @@ const onTableIdCopy = async () => {
             </NcDropdown>
 
             <NcButton
-              v-if="isUIAllowed('tableCreate', { roles: baseRole })"
+              v-if="isUIAllowed('tableCreate', { roles: base.project_role || base.workspace_role, source: base?.sources?.[0] })"
               :disabled="!base?.sources?.[0]?.enabled"
               class="nc-sidebar-node-btn"
               type="text"
@@ -891,13 +890,17 @@ const onTableIdCopy = async () => {
                                     Relations
                                   </NcMenuItem>
 
-                                  <DashboardTreeViewBaseOptions v-if="showBaseOption" v-model:base="base" :source="source" />
+                                  <DashboardTreeViewBaseOptions
+                                    v-if="showBaseOption(source)"
+                                    v-model:base="base"
+                                    :source="source"
+                                  />
                                 </NcMenu>
                               </template>
                             </NcDropdown>
 
                             <NcButton
-                              v-if="isUIAllowed('tableCreate', { roles: baseRole })"
+                              v-if="isUIAllowed('tableCreate', { roles: base.project_role || base.workspace_role, source })"
                               type="text"
                               size="xxsmall"
                               class="nc-sidebar-node-btn"
@@ -981,9 +984,17 @@ const onTableIdCopy = async () => {
               </NcButton>
             </div>
           </NcTooltip>
-          <template v-if="isUIAllowed('tableRename') || isUIAllowed('tableDelete')">
+          <template
+            v-if="
+              isUIAllowed('tableRename', { source: getSource(contextMenuTarget.value?.source_id) }) ||
+              isUIAllowed('tableDelete', { source: getSource(contextMenuTarget.value?.source_id) })
+            "
+          >
             <NcDivider />
-            <NcMenuItem v-if="isUIAllowed('tableRename')" @click="openRenameTableDialog(contextMenuTarget.value, true)">
+            <NcMenuItem
+              v-if="isUIAllowed('tableRename', { source: getSource(contextMenuTarget.value?.source_id) })"
+              @click="openRenameTableDialog(contextMenuTarget.value, true)"
+            >
               <div class="nc-base-option-item">
                 <GeneralIcon icon="rename" class="text-gray-700" />
                 {{ $t('general.rename') }} {{ $t('objects.table') }}
@@ -991,7 +1002,10 @@ const onTableIdCopy = async () => {
             </NcMenuItem>
 
             <NcMenuItem
-              v-if="isUIAllowed('tableDuplicate') && (contextMenuBase?.is_meta || contextMenuBase?.is_local)"
+              v-if="
+                isUIAllowed('tableDuplicate', { source: getSource(contextMenuTarget.value?.source_id) }) &&
+                (contextMenuBase?.is_meta || contextMenuBase?.is_local)
+              "
               @click="duplicateTable(contextMenuTarget.value)"
             >
               <div class="nc-base-option-item">
@@ -1000,7 +1014,10 @@ const onTableIdCopy = async () => {
               </div>
             </NcMenuItem>
             <NcDivider />
-            <NcMenuItem v-if="isUIAllowed('tableDelete')" @click="isTableDeleteDialogVisible = true">
+            <NcMenuItem
+              v-if="isUIAllowed('tableDelete', { source: getSource(contextMenuTarget.value?.source_id) })"
+              @click="isTableDeleteDialogVisible = true"
+            >
               <div class="nc-base-option-item text-red-600">
                 <GeneralIcon icon="delete" />
                 {{ $t('general.delete') }} {{ $t('objects.table') }}

@@ -12166,6 +12166,14 @@
             "$ref": "#/components/schemas/Bool",
             "description": "Is the data source minimal db"
           },
+          "is_schema_readonly": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is the data source minimal db"
+          },
+          "is_data_readonly": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is the data source minimal db"
+          },
           "order": {
             "description": "The order of the list of sources",
             "example": 1,

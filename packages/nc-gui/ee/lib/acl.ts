@@ -1,4 +1,4 @@
-import { CloudOrgUserRoles, OrgUserRoles, ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk'
+import { CloudOrgUserRoles, OrgUserRoles, ProjectRoles, SourceRestriction, WorkspaceUserRoles } from 'nocodb-sdk'
 
 const roleScopes = {
   org: [OrgUserRoles.VIEWER, OrgUserRoles.CREATOR],
@@ -94,6 +94,9 @@ const rolePermissions = {
       tableDelete: true,
       viewCreateOrEdit: true,
       baseReorder: true,
+      airtableImport: true,
+      jsonImport: true,
+      excelImport: true,
     },
   },
   [WorkspaceUserRoles.EDITOR]: {
@@ -133,6 +136,8 @@ const rolePermissions = {
       newUser: true,
       webhook: true,
       fieldEdit: true,
+      fieldAlter: true,
+      fieldDelete: true,
       fieldAdd: true,
       tableIconEdit: true,
       viewCreateOrEdit: true,
@@ -176,6 +181,35 @@ const rolePermissions = {
     include: {},
   },
 } as Record<OrgUserRoles | WorkspaceUserRoles | ProjectRoles, Perm | '*'>
+
+// excluded/restricted permissions at source level based on source restriction
+// `true` means permission is restricted and `false`/missing means permission is allowed
+export const sourceRestrictions = {
+  [SourceRestriction.DATA_READONLY]: {
+    dataInsert: true,
+    dataEdit: true,
+    dataDelete: true,
+    airtableImport: true,
+    csvImport: true,
+    jsonImport: true,
+    excelImport: true,
+    duplicateColumn: true,
+    duplicateModel: true,
+    tableDuplicate: true,
+  },
+  [SourceRestriction.SCHEMA_READONLY]: {
+    tableCreate: true,
+    tableRename: true,
+    tableDelete: true,
+    tableDuplicate: true,
+    airtableImport: true,
+    csvImport: true,
+    jsonImport: true,
+    excelImport: true,
+    duplicateColumn: true,
+    duplicateModel: true,
+  },
+}
 
 /*
   We inherit include permissions from previous roles in the same scope (role order)

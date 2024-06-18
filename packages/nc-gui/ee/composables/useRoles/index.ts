@@ -1,6 +1,7 @@
 import { isString } from '@vue/shared'
-import type { Roles, RolesObj } from 'nocodb-sdk'
+import { type Roles, type RolesObj, SourceRestriction, type SourceType, type WorkspaceUserRoles } from 'nocodb-sdk'
 import { extractRolesObj } from 'nocodb-sdk'
+import type { MaybeRef } from 'vue'
 
 const hasPermission = (role: Roles, hasRole: boolean, permission: Permission | string) => {
   const rolePermission = rolePermissions[role]
@@ -24,7 +25,7 @@ const hasPermission = (role: Roles, hasRole: boolean, permission: Permission | s
  * * `allRoles` - all roles a user has (userRoles + baseRoles)
  * * `loadRoles` - a function to load reload user roles for scope
  */
-export const useRoles = createSharedComposable(() => {
+export const useRolesShared = createSharedComposable(() => {
   const { user } = useGlobal()
 
   const { api } = useApi()
@@ -159,7 +160,11 @@ export const useRoles = createSharedComposable(() => {
 
   const isUIAllowed = (
     permission: Permission | string,
-    args: { roles?: string | Record<string, boolean> | string[] | null } = {},
+    args: {
+      roles?: string | Record<string, boolean> | string[] | null
+      source?: MaybeRef<SourceType & { meta?: Record<string, any> }>
+      skipSourceCheck?: boolean
+    } = {},
   ) => {
     const { roles } = args
 
@@ -171,8 +176,60 @@ export const useRoles = createSharedComposable(() => {
       checkRoles = extractRolesObj(roles)
     }
 
-    return Object.entries(checkRoles).some(([role, hasRole]) => hasPermission(role as Roles, hasRole, permission))
+    // check source level restrictions
+    if (
+      !args.skipSourceCheck &&
+      (sourceRestrictions[SourceRestriction.DATA_READONLY][permission] ||
+        sourceRestrictions[SourceRestriction.SCHEMA_READONLY][permission])
+    ) {
+      const source = unref(args.source || null)
+
+      if (!source) {
+        // todo: temporary log for debugging
+        console.warn('Source not found', permission)
+        return false
+      }
+
+      if (source?.is_data_readonly && sourceRestrictions[SourceRestriction.DATA_READONLY][permission]) {
+        return false
+      }
+      if (source?.is_schema_readonly && sourceRestrictions[SourceRestriction.SCHEMA_READONLY][permission]) {
+        return false
+      }
+    }
+
+    return Object.entries(checkRoles).some(([role, hasRole]) =>
+      hasPermission(role as Exclude<Roles, WorkspaceUserRoles>, hasRole, permission),
+    )
   }
 
   return { allRoles, orgRoles, workspaceRoles, baseRoles, loadRoles, isUIAllowed }
 })
+
+type IsUIAllowedParams = Parameters<ReturnType<typeof useRolesShared>['isUIAllowed']>
+
+/**
+ * Wrap the default shared composable to inject the current source if available
+ * which will be used to determine if a user has permission to perform an action based on the source's restrictions
+ */
+export const useRoles = () => {
+  const currentSource = inject(ActiveSourceInj, ref())
+  const useRolesRes = useRolesShared()
+
+  const isMetaReadOnly = computed(() => {
+    return currentSource.value?.is_schema_readonly || false
+  })
+
+  const isDataReadOnly = computed(() => {
+    return currentSource.value?.is_data_readonly || false
+  })
+
+  return {
+    ...useRolesRes,
+    isUIAllowed: (...args: IsUIAllowedParams) => {
+      return useRolesRes.isUIAllowed(args[0], { source: currentSource, ...(args[1] || {}) })
+    },
+    isDataReadOnly,
+    isMetaReadOnly,
+  }
+}

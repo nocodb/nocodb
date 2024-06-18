@@ -67,6 +67,8 @@ export function useMultiSelect(
 
   const { addUndo, clone, defineViewScope } = useUndoRedo()
 
+  const { isDataReadOnly } = useRoles()
+
   const editEnabled = ref(_editEnabled)
 
   const isMouseDown = ref(false)
@@ -611,7 +613,9 @@ export function useMultiSelect(
       case 'Delete':
       case 'Backspace':
         e.preventDefault()
-
+        if (isDataReadOnly.value) {
+          return
+        }
         if (selectedRange.isSingleCell()) {
           selectedRange.clear()
 
@@ -797,6 +801,10 @@ export function useMultiSelect(
   const clearSelectedRange = selectedRange.clear.bind(selectedRange)
 
   const handlePaste = async (e: ClipboardEvent) => {
+    if (isDataReadOnly.value) {
+      return
+    }
+
     if (isDrawerOrModalExist() || isExpandedCellInputExist()) {
       return
     }

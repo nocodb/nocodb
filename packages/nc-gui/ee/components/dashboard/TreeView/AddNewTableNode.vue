@@ -112,11 +112,15 @@ function openTableCreateMagicDialog(sourceId?: string) {
     close(1000)
   }
 }
+
+const source = computed(() => {
+  return base.value?.sources?.[props.sourceIndex]
+})
 </script>
 
 <template>
   <div
-    v-if="isUIAllowed('tableCreate', { roles: baseRole })"
+    v-if="isUIAllowed('tableCreate', { roles: baseRole, source })"
     class="group flex items-center gap-2 pl-2 pr-4.75 py-1 text-primary/70 hover:(text-primary/100) cursor-pointer select-none"
     @click="emit('openTableCreateDialog')"
   >
@@ -191,7 +195,7 @@ function openTableCreateMagicDialog(sourceId?: string) {
             </a-menu-item>
 
             <a-menu-item
-              v-if="isUIAllowed('excelImport', { roles: baseRole })"
+              v-if="isUIAllowed('excelImport', { roles: baseRole, source: base.sources[baseIndex] })"
               key="quick-import-excel"
               @click="openQuickImportDialog('excel', base.sources[baseIndex].id)"
             >

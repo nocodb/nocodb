@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type CalendarRangeType, UITypes, ViewTypes, isSystemColumn } from 'nocodb-sdk'
+import { type CalendarRangeType, UITypes, isSystemColumn } from 'nocodb-sdk'
 import type { SelectProps } from 'ant-design-vue'
 
 const meta = inject(MetaInj, ref())

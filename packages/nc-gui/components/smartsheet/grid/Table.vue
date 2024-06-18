@@ -166,7 +166,7 @@ const isViewColumnsLoading = computed(() => _isViewColumnsLoading.value || !meta
 const resizingColumn = ref(false)
 
 // #Permissions
-const { isUIAllowed } = useRoles()
+const { isUIAllowed, isDataReadOnly } = useRoles()
 const hasEditPermission = computed(() => isUIAllowed('dataEdit'))
 const isAddingColumnAllowed = computed(() => !readOnly.value && !isLocked.value && isUIAllowed('fieldAdd') && !isSqlView.value)
 
@@ -209,7 +209,10 @@ const isGridCellMouseDown = ref(false)
 // #Context Menu
 const _contextMenu = ref(false)
 const contextMenu = computed({
-  get: () => _contextMenu.value,
+  get: () => {
+    if (props.data?.some((r) => r.rowMeta.selected) && isDataReadOnly.value) return false
+    return _contextMenu.value
+  },
   set: (val) => {
     _contextMenu.value = val
   },
@@ -233,7 +236,13 @@ const isKeyDown = ref(false)
 // #Cell - 1
 
 async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = false) {
-  if (!ctx || !hasEditPermission.value || (!isLinksOrLTAR(fields.value[ctx.col]) && isVirtualCol(fields.value[ctx.col]))) return
+  if (
+    isDataReadOnly.value ||
+    !ctx ||
+    !hasEditPermission.value ||
+    (!isLinksOrLTAR(fields.value[ctx.col]) && isVirtualCol(fields.value[ctx.col]))
+  )
+    return
 
   // eslint-disable-next-line @typescript-eslint/no-use-before-define
   if (colMeta.value[ctx.col].isReadonly) return
@@ -916,7 +925,7 @@ const onNavigate = (dir: NavigateDir) => {
 // #Cell - 2
 
 async function clearSelectedRangeOfCells() {
-  if (!hasEditPermission.value) return
+  if (!hasEditPermission.value || isDataReadOnly.value) return
 
   const start = selectedRange.start
   const end = selectedRange.end
@@ -1278,6 +1287,7 @@ const selectedReadonly = computed(
 
 const showFillHandle = computed(
   () =>
+    !isDataReadOnly.value &&
     !readOnly.value &&
     !editEnabled.value &&
     (!selectedRange.isEmpty() || (activeCell.row !== null && activeCell.col !== null)) &&
@@ -2165,7 +2175,9 @@ onKeyStroke('ArrowDown', onDown)
         <template #overlay>
           <NcMenu class="!rounded !py-0" @click="contextMenu = false">
             <NcMenuItem
-              v-if="isEeUI && !contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected)"
+              v-if="
+                isEeUI && !contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected) && !isDataReadOnly
+              "
               @click="emits('bulkUpdateDlg')"
             >
               <div v-e="['a:row:update-bulk']" class="flex gap-2 items-center">
@@ -2175,7 +2187,7 @@ onKeyStroke('ArrowDown', onDown)
             </NcMenuItem>
 
             <NcMenuItem
-              v-if="!contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected)"
+              v-if="!contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected) && !isDataReadOnly"
               class="nc-base-menu-item !text-red-600 !hover:bg-red-50"
               data-testid="nc-delete-row"
               @click="deleteSelectedRows"
@@ -2222,7 +2234,7 @@ onKeyStroke('ArrowDown', onDown)
             </NcMenuItem>
 
             <NcMenuItem
-              v-if="contextMenuTarget && hasEditPermission"
+              v-if="contextMenuTarget && hasEditPermission && !isDataReadOnly"
               class="nc-base-menu-item"
               data-testid="context-menu-item-paste"
               :disabled="selectedReadonly"
@@ -2241,7 +2253,8 @@ onKeyStroke('ArrowDown', onDown)
                 contextMenuTarget &&
                 hasEditPermission &&
                 selectedRange.isSingleCell() &&
-                (isLinksOrLTAR(fields[contextMenuTarget.col]) || !cellMeta[0]?.[contextMenuTarget.col].isVirtualCol)
+                (isLinksOrLTAR(fields[contextMenuTarget.col]) || !cellMeta[0]?.[contextMenuTarget.col].isVirtualCol) &&
+                !isDataReadOnly
               "
               class="nc-base-menu-item"
               :disabled="selectedReadonly"
@@ -2256,7 +2269,7 @@ onKeyStroke('ArrowDown', onDown)
 
             <!-- Clear cell -->
             <NcMenuItem
-              v-else-if="contextMenuTarget && hasEditPermission"
+              v-else-if="contextMenuTarget && hasEditPermission && !isDataReadOnly"
               class="nc-base-menu-item"
               :disabled="selectedReadonly"
               data-testid="context-menu-item-clear"
@@ -2278,7 +2291,7 @@ onKeyStroke('ArrowDown', onDown)
               </NcMenuItem>
             </template>
 
-            <template v-if="hasEditPermission">
+            <template v-if="hasEditPermission && !isDataReadOnly">
               <NcDivider v-if="!(!contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected))" />
               <NcMenuItem
                 v-if="contextMenuTarget && (selectedRange.isSingleCell() || selectedRange.isSingleRow())"

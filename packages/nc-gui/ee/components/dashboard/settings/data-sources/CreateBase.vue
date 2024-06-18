@@ -92,6 +92,8 @@ const formState = ref<ProjectCreateForm>({
   },
   sslUse: SSLUsage.No,
   extraParameters: [],
+  is_schema_readonly: true,
+  is_data_readonly: false,
 })
 
 const customFormState = ref<ProjectCreateForm>({
@@ -404,6 +406,8 @@ const createSource = async () => {
       config,
       inflection_column: formState.value.inflection.inflectionColumn,
       inflection_table: formState.value.inflection.inflectionTable,
+      is_schema_readonly: formState.value.is_schema_readonly,
+      is_data_readonly: formState.value.is_data_readonly,
     })
 
     $poller.subscribe(
@@ -607,6 +611,26 @@ const onUseCaseFormSubmit = async () => {
   $e('a:extdb:usecase', useCaseFormState.value)
   return onDashboard()
 }
+
+const allowMetaWrite = computed({
+  get: () => !formState.value.is_schema_readonly,
+  set: (v) => {
+    formState.value.is_schema_readonly = !v
+    // if schema write is allowed, data write should be allowed too
+    if (v) {
+      formState.value.is_data_readonly = false
+    }
+    $e('c:source:schema-write-toggle', { allowed: !v, edit: true })
+  },
+})
+
+const allowDataWrite = computed({
+  get: () => !formState.value.is_data_readonly,
+  set: (v) => {
+    formState.value.is_data_readonly = !v
+    $e('c:source:data-write-toggle', { allowed: !v })
+  },
+})
 </script>
 
 <template>
@@ -807,6 +831,59 @@ const onUseCaseFormSubmit = async () => {
                 >
                   <a-input v-model:value="formState.dataSource.searchPath[0]" />
                 </a-form-item>
+              </template>
+
+              <a-form-item>
+                <template #label>
+                  <div class="flex gap-1 justify-end">
+                    <span>
+                      {{ $t('labels.allowMetaWrite') }}
+                    </span>
+                    <NcTooltip>
+                      <template #title>
+                        <span>{{ $t('tooltip.allowMetaWrite') }}</span>
+                      </template>
+                      <GeneralIcon class="text-gray-500" icon="info" />
+                    </NcTooltip>
+                  </div>
+                </template>
+                <a-switch v-model:checked="allowMetaWrite" data-testid="nc-allow-meta-write" size="small"></a-switch>
+              </a-form-item>
+              <a-form-item>
+                <template #label>
+                  <div class="flex gap-1 justify-end">
+                    <span>
+                      {{ $t('labels.allowDataWrite') }}
+                    </span>
+                    <NcTooltip>
+                      <template #title>
+                        <span>{{ $t('tooltip.allowDataWrite') }}</span>
+                      </template>
+                      <GeneralIcon class="text-gray-500" icon="info" />
+                    </NcTooltip>
+                  </div>
+                </template>
+                <div class="flex justify-start">
+                  <NcTooltip :disabled="!allowMetaWrite" placement="topLeft">
+                    <template #title>
+                      {{ $t('tooltip.dataWriteOptionDisabled') }}
+                    </template>
+                    <a-switch
+                      v-model:checked="allowDataWrite"
+                      :disabled="allowMetaWrite"
+                      data-testid="nc-allow-data-write"
+                      size="small"
+                    ></a-switch>
+                  </NcTooltip>
+                </div>
+              </a-form-item>
+              <template
+                v-if="
+                  formState.dataSource.client !== ClientType.SQLITE &&
+                  formState.dataSource.client !== ClientType.DATABRICKS &&
+                  formState.dataSource.client !== ClientType.SNOWFLAKE
+                "
+              >
                 <div class="flex items-right justify-end gap-2">
                   <!--                Use Connection URL -->
                   <NcButton

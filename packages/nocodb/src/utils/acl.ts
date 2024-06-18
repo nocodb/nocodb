@@ -1,4 +1,4 @@
-import { OrgUserRoles, ProjectRoles } from 'nocodb-sdk';
+import { OrgUserRoles, ProjectRoles, SourceRestriction } from 'nocodb-sdk';
 
 const roleScopes = {
   org: [OrgUserRoles.VIEWER, OrgUserRoles.CREATOR],
@@ -449,5 +449,31 @@ Object.values(rolePermissions).forEach((role) => {
     );
   }
 });
+
+// Excluded permissions for source restrictions
+// `true` means permission is restricted and `false`/missing means permission is allowed
+export const sourceRestrictions = {
+  [SourceRestriction.SCHEMA_READONLY]: {
+    tableCreate: true,
+    tableDelete: true,
+    tableUpdate: true,
+    columnBulk: true,
+  },
+  [SourceRestriction.DATA_READONLY]: {
+    dataUpdate: true,
+    dataDelete: true,
+    dataInsert: true,
+    bulkDataInsert: true,
+    bulkDataUpdate: true,
+    bulkDataUpdateAll: true,
+    bulkDataDelete: true,
+    bulkDataDeleteAll: true,
+    relationDataRemove: true,
+    relationDataAdd: true,
+    nestedDataListCopyPasteOrDeleteAll: true,
+    nestedDataUnlink: true,
+    nestedDataLink: true,
+  },
+};
 
 export default rolePermissions;

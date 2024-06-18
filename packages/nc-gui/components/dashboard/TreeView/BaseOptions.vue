@@ -80,7 +80,11 @@ function openQuickImportDialog(type: string) {
       </div>
     </NcMenuItem>
 
-    <NcMenuItem v-if="isUIAllowed('csvImport', { roles: baseRole })" key="quick-import-csv" @click="openQuickImportDialog('csv')">
+    <NcMenuItem
+      v-if="isUIAllowed('csvImport', { roles: baseRole, source })"
+      key="quick-import-csv"
+      @click="openQuickImportDialog('csv')"
+    >
       <div v-e="['c:import:csv']" class="flex gap-2 items-center">
         <GeneralIcon icon="csv" class="w-4 group-hover:text-black" />
         {{ $t('labels.csvFile') }}

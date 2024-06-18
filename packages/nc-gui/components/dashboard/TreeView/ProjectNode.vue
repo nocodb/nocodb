@@ -101,9 +101,7 @@ const baseViewOpen = computed(() => {
 })
 
 const showBaseOption = (source: SourceType) => {
-  return ['airtableImport', 'csvImport', 'jsonImport', 'excelImport'].some((permission) =>
-    isUIAllowed(permission, { source }),
-  )
+  return ['airtableImport', 'csvImport', 'jsonImport', 'excelImport'].some((permission) => isUIAllowed(permission, { source }))
 }
 
 const enableEditMode = () => {
@@ -823,7 +821,11 @@ const getSource = (sourceId: string) => {
                                     </div>
                                   </NcMenuItem>
 
-                                  <DashboardTreeViewBaseOptions v-if="showBaseOption(source)" v-model:base="base" :source="source" />
+                                  <DashboardTreeViewBaseOptions
+                                    v-if="showBaseOption(source)"
+                                    v-model:base="base"
+                                    :source="source"
+                                  />
                                 </NcMenu>
                               </template>
                             </NcDropdown>

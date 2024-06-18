@@ -424,6 +424,7 @@ const filterOption = (input: string, option: { value: UITypes }) => {
               v-for="opt of uiTypesOptions"
               :key="opt.name"
               :value="opt.name"
+              :disabled="isMetaReadOnly && !readonlyMetaAllowedTypes.includes(opt.name)"
               v-bind="validateInfos.uidt"
               :class="{
                 'ant-select-item-option-active-selected': showHoverEffectOnSelectedType && formState.uidt === opt.name,
@@ -432,7 +433,11 @@ const filterOption = (input: string, option: { value: UITypes }) => {
             >
               <div class="w-full flex gap-2 items-center justify-between" :data-testid="opt.name">
                 <div class="flex gap-2 items-center">
-                  <component :is="opt.icon" class="text-gray-700 w-4 h-4" />
+                  <component
+                    :is="opt.icon"
+                    class="w-4 h-4"
+                    :class="isMetaReadOnly && !readonlyMetaAllowedTypes.includes(opt.name) ? 'text-gray-300' : 'text-gray-700'"
+                  />
                   <div class="flex-1">{{ UITypesName[opt.name] }}</div>
                   <span v-if="opt.deprecated" class="!text-xs !text-gray-300">({{ $t('general.deprecated') }})</span>
                 </div>

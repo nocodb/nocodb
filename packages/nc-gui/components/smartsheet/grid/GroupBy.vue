@@ -243,9 +243,14 @@ const shouldRenderCell = (column) =>
               :show-arrow="false"
             >
               <template #header>
-                <div class="flex !sticky select-none w-full transition-all !hover:bg-[#F4F4F5] !h-10">
+                <div
+                  :class="{
+                    'hover:rounded-b-lg': !activeGroups.includes(grp.key),
+                  }"
+                  class="flex !sticky select-none w-full transition-all rounded-t-lg !hover:bg-[#F4F4F5] !h-10"
+                >
                   <div class="flex items-center">
-                    <NcButton class="!border-0 !bg-transparent !hover:bg-transparent" type="secondary" size="small">
+                    <NcButton class="!border-0 !shadow-none !bg-transparent !hover:bg-transparent" type="secondary" size="small">
                       <GeneralIcon
                         icon="chevronDown"
                         class="transition-all"
@@ -320,6 +325,31 @@ const shouldRenderCell = (column) =>
                       </span>
                       <span class="text-[#374151] ml-2"> {{ grp.count }} </span>
                     </div>
+
+                    <NcDropdown>
+                      <NcButton size="small" type="text" @click.stop>
+                        <GeneralIcon icon="threeDotVertical" />
+                      </NcButton>
+
+                      <template #overlay>
+                        <NcMenu>
+                          <NcMenuItem v-if="activeGroups.includes(grp.key)"> Collapse </NcMenuItem>
+                          <NcMenuItem v-else>
+                            <GeneralIcon icon="maximize" />
+                            Expand
+                          </NcMenuItem>
+                          <NcMenuItem>
+                            <GeneralIcon icon="minimize" />
+                            Collapse all
+                          </NcMenuItem>
+                          <NcMenuItem>
+                            <GeneralIcon icon="maximize-all" />
+
+                            Expand all
+                          </NcMenuItem>
+                        </NcMenu>
+                      </template>
+                    </NcDropdown>
                   </div>
                 </div>
               </template>
@@ -389,18 +419,13 @@ const shouldRenderCell = (column) =>
   border-radius: 0 0 12px 12px !important;
 }
 
-:deep(.ant-collapse-item > .ant-collapse-header) {
-  border-radius: 12px !important;
-  background: white;
-}
-
 :deep(.ant-collapse-header) {
   @apply !p-0;
 }
 :deep(.ant-collapse-item-active > .ant-collapse-header) {
   border-radius: 12px 12px 0 0 !important;
   background: white;
-  border-bottom: solid 1px lightgray;
+  border-bottom: solid 1px #e7e7e9;
 }
 
 :deep(.ant-collapse-borderless > .ant-collapse-item:last-child) {

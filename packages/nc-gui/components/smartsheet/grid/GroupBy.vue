@@ -343,7 +343,7 @@ const shouldRenderCell = (column) =>
                             Collapse all
                           </NcMenuItem>
                           <NcMenuItem>
-                            <GeneralIcon icon="maximize-all" />
+                            <GeneralIcon icon="maximizeAll" />
 
                             Expand all
                           </NcMenuItem>

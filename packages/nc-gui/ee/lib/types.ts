@@ -1,4 +1,4 @@
-import type { DocsPageType, LayoutType, WidgetTypeType } from 'nocodb-sdk'
+import type { DocsPageType, LayoutType, WidgetTypeType, AuditOperationTypes, AuditOperationSubTypes } from 'nocodb-sdk'
 
 interface AntSidebarNode {
   parentNodeId?: string
@@ -54,8 +54,8 @@ enum WidgetTypeText {
 }
 
 interface AuditLogsQuery {
-  type?: string
-  subType?: string
+  type?: AuditOperationTypes
+  subType?: AuditOperationSubTypes
   base?: string
   user?: string
   search?: string

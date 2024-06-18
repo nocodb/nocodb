@@ -38,6 +38,8 @@ const { getMeta } = useMetas()
 
 const { t } = useI18n()
 
+const {isMetaReadOnly} = useRoles()
+
 const columnLabel = computed(() => props.columnLabel || t('objects.field'))
 
 const { $e } = useNuxtApp()
@@ -99,6 +101,14 @@ const onlyNameUpdateOnEditColumns = [
   UITypes.Barcode,
 ]
 
+const readonlyMetaAllowedTypes = [
+  UITypes.Lookup,
+  UITypes.Rollup,
+  UITypes.Formula,
+  UITypes.Barcode,
+  UITypes.QrCode,
+]
+
 // To close column type dropdown on escape and
 // close modal only when the type popup is close
 const isColumnTypeOpen = ref(false)
@@ -124,7 +134,7 @@ const uiFilters = (t: { name: UITypes; virtual?: number; deprecated?: boolean })
 }
 
 const uiTypesOptions = computed<typeof uiTypes>(() => {
-  return [
+  const types = [
     ...uiTypes.filter(uiFilters),
     ...(!isEdit.value && meta?.value?.columns?.every((c) => !c.pk)
       ? [
@@ -136,6 +146,21 @@ const uiTypesOptions = computed<typeof uiTypes>(() => {
         ]
       : []),
   ]
+
+  // if meta is readonly, move disabled types to the end
+  if(isMetaReadOnly.value) {
+    types.sort((a, b) => {
+      const aDisabled = readonlyMetaAllowedTypes.includes(a.name)
+      const bDisabled = readonlyMetaAllowedTypes.includes(b.name)
+
+      if(aDisabled && !bDisabled) return -1
+      if(!aDisabled && bDisabled) return 1
+
+      return 0
+    })
+  }
+
+  return types
 })
 
 const onSelectType = (uidt: UITypes) => {
@@ -380,7 +405,7 @@ const filterOption = (input: string, option: { value: UITypes }) => {
             v-model:value="formState.uidt"
             show-search
             class="nc-column-type-input !rounded-lg"
-            :disabled="isKanban || readOnly || (isEdit && !!onlyNameUpdateOnEditColumns.includes(column?.uidt))"
+            :disabled="(isMetaReadOnly && !readonlyMetaAllowedTypes.includes(formState.uidt)) || isKanban || readOnly || (isEdit && !!onlyNameUpdateOnEditColumns.includes(column?.uidt))"
             dropdown-class-name="nc-dropdown-column-type border-1 !rounded-lg border-gray-200"
             :filter-option="filterOption"
             @dropdown-visible-change="onDropdownChange"

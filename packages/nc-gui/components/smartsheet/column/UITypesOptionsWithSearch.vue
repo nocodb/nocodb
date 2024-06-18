@@ -11,6 +11,8 @@ const { options } = toRefs(props)
 
 const searchQuery = ref('')
 
+const {isMetaReadOnly} = useRoles()
+
 const filteredOptions = computed(
   () =>
     options.value?.filter(
@@ -62,6 +64,19 @@ onMounted(() => {
   searchQuery.value = ''
   activeFieldIndex.value = options.value.findIndex((o) => o.name === UITypes.SingleLineText)
 })
+
+
+const readonlyMetaAllowedTypes = [
+  UITypes.Lookup,
+  UITypes.Rollup,
+  UITypes.Formula,
+  UITypes.Barcode,
+  UITypes.QrCode,
+]
+
+const isDisabledUIType = (type: UITypes) => {
+  return isMetaReadOnly.value && !readonlyMetaAllowedTypes.includes(type)
+}
 </script>
 
 <template>
@@ -98,18 +113,21 @@ onMounted(() => {
       <div
         v-for="(option, index) in filteredOptions"
         :key="index"
-        class="flex w-full py-2 items-center justify-between px-2 hover:bg-gray-100 cursor-pointer rounded-md"
+        class="flex w-full py-2 items-center justify-between px-2 rounded-md"
         :class="[
           `nc-column-list-option-${index}`,
           {
-            'bg-gray-100 nc-column-list-option-active': activeFieldIndex === index,
+            'hover:bg-gray-100 cursor-pointer' : !isDisabledUIType(option.name),
+            'bg-gray-100 nc-column-list-option-active': activeFieldIndex === index && !isDisabledUIType(option.name),
+            '!text-gray-400 cursor-not-allowed': isDisabledUIType(option.name),
+
           },
         ]"
         :data-testid="option.name"
         @click="onClick(option.name)"
       >
         <div class="flex gap-2 items-center">
-          <component :is="option.icon" class="text-gray-700 w-4 h-4" />
+          <component :is="option.icon" class="w-4 h-4" :class="isDisabledUIType(option.name) ? '!text-gray-400' : 'text-gray-700' "/>
           <div class="flex-1 text-sm">{{ UITypesName[option.name] }}</div>
           <span v-if="option.deprecated" class="!text-xs !text-gray-300">({{ $t('general.deprecated') }})</span>
         </div>

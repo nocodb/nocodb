@@ -45,9 +45,20 @@ const { t } = useI18n()
 
 const editingSource = ref(false)
 
+const easterEgg = ref(false)
+
+const easterEggCount = ref(0)
+
+const onEasterEgg = () => {
+  easterEggCount.value += 1
+  if (easterEggCount.value >= 2) {
+    easterEgg.value = true
+  }
+}
+
 const clientTypes = computed(() => {
   return _clientTypes.filter((type) => {
-    return ![ClientType.SNOWFLAKE, ClientType.DATABRICKS].includes(type.value)
+    return ![ClientType.SNOWFLAKE, ClientType.DATABRICKS, ...(easterEgg.value ? [] : [ClientType.MSSQL])].includes(type.value)
   })
 })
 
@@ -400,7 +411,6 @@ const allowDataWrite = computed({
         <a-form-item label="Source Name" v-bind="validateInfos.title">
           <a-input v-model:value="formState.title" class="nc-extdb-proj-name" />
         </a-form-item>
-
         <a-form-item :label="$t('labels.dbType')" v-bind="validateInfos['dataSource.client']">
           <a-select
             v-model:value="formState.dataSource.client"
@@ -717,6 +727,7 @@ const allowDataWrite = computed({
 
       <a-form-item class="flex justify-end !mt-5">
         <div class="flex justify-end gap-2">
+          <div class="w-[15px] h-[15px] cursor-pointer" @dblclick="onEasterEgg"></div>
           <NcButton
             :type="testSuccess ? 'ghost' : 'primary'"
             size="small"

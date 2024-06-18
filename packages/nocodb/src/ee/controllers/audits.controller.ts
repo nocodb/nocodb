@@ -27,7 +27,10 @@ export class AuditsController extends AuditsControllerCE {
         workspaceId,
       }),
       {
-        count: await this.auditsService.workspaceAuditCount({ workspaceId }),
+        count: await this.auditsService.workspaceAuditCount({
+          query: req.query,
+          workspaceId,
+        }),
         ...req.query,
       },
     );

@@ -17,7 +17,7 @@ export class AuditsService extends AuditsServiceCE {
     return await Audit.workspaceAuditList(param.workspaceId, param.query);
   }
 
-  async workspaceAuditCount(param: { workspaceId: string }) {
-    return await Audit.workspaceAuditCount(param.workspaceId);
+  async workspaceAuditCount(param: { query: any; workspaceId: string }) {
+    return await Audit.workspaceAuditCount(param.workspaceId, param.query);
   }
 }

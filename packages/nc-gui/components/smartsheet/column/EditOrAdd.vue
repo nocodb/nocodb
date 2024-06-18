@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { ColumnReqType, ColumnType } from 'nocodb-sdk'
-import { UITypes, UITypesName, isLinksOrLTAR, isSelfReferencingTableColumn, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { UITypes, UITypesName, isLinksOrLTAR, isSelfReferencingTableColumn, isSystemColumn, isVirtualCol, readonlyMetaAllowedTypes } from 'nocodb-sdk'
 import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
 import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
 import MdiIdentifierIcon from '~icons/mdi/identifier'
@@ -99,14 +99,6 @@ const onlyNameUpdateOnEditColumns = [
   UITypes.Formula,
   UITypes.QrCode,
   UITypes.Barcode,
-]
-
-const readonlyMetaAllowedTypes = [
-  UITypes.Lookup,
-  UITypes.Rollup,
-  UITypes.Formula,
-  UITypes.Barcode,
-  UITypes.QrCode,
 ]
 
 // To close column type dropdown on escape and

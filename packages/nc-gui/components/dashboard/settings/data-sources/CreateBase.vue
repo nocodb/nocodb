@@ -545,7 +545,7 @@ const allowDataWrite = computed({
                     </NcTooltip>
                   </div>
                 </template>
-                <a-switch v-model:checked="allowMetaWrite" size="small"></a-switch>
+                <a-switch v-model:checked="allowMetaWrite" data-testid="nc-allow-meta-write" size="small"></a-switch>
               </a-form-item>
               <a-form-item>
                 <template #label>
@@ -561,7 +561,7 @@ const allowDataWrite = computed({
                     </NcTooltip>
                   </div>
                 </template>
-                <a-switch v-model:checked="allowDataWrite" size="small"></a-switch>
+                <a-switch v-model:checked="allowDataWrite"  data-testid="nc-allow-data-write" size="small"></a-switch>
               </a-form-item>
 
               <div class="flex items-right justify-end gap-2">

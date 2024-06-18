@@ -60,6 +60,10 @@ export const JsonExpandInj: InjectionKey<Ref<boolean>> = Symbol('json-expand-inj
 export const AllFiltersInj: InjectionKey<Ref<Record<string, FilterType[]>>> = Symbol('all-filters-injection')
 
 export const IsAdminPanelInj: InjectionKey<Ref<boolean>> = Symbol('is-admin-panel-injection')
+/**
+ * `ActiveSourceInj` is an injection key for providing the active source context to Vue components.
+ * This is mainly used in useRoles composable to get source level restriction configuration in GUI.
+ */
 export const ActiveSourceInj: InjectionKey<
   ComputedRef<
     SourceType & {

@@ -84,7 +84,7 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
     }
 
     async function updateMapMeta(updateObj: Partial<MapType>) {
-      if (!viewMeta?.value?.id || !isUIAllowed('dataEdit')) return
+      if (!viewMeta?.value?.id || !isUIAllowed('dataEdit', { skipSourceCheck: true })) return
       await $api.dbView.mapUpdate(viewMeta.value.id, updateObj)
     }
 

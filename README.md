@@ -71,62 +71,46 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart spreadshe
 ## Docker
 
 ```bash
-# for SQLite
-docker run -d --name nocodb \
--v "$(pwd)"/nocodb:/usr/app/data/ \
--p 8080:8080 \
-nocodb/nocodb:latest
-
-# for MySQL
-docker run -d --name nocodb-mysql \
--v "$(pwd)"/nocodb:/usr/app/data/ \
--p 8080:8080 \
--e NC_DB="mysql2://host.docker.internal:3306?u=root&p=password&d=d1" \
--e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
-nocodb/nocodb:latest
-
-# with SQLite : 
-## If `/usr/app/data/` is not mounted and containers are recreated - data will be LOST!
-docker run -d --name nocodb \
+# with PostgreSQL
+docker run -d --name nocodb-postgres \
 -v "$(pwd)"/nocodb:/usr/app/data/ \
 -p 8080:8080 \
 -e NC_DB="pg://host.docker.internal:5432?u=root&p=password&d=d1" \
 -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
 nocodb/nocodb:latest
-```
 
+# with SQLite
+docker run -d --name nocodb \
+-v "$(pwd)"/nocodb:/usr/app/data/ \
+-p 8080:8080 \
+nocodb/nocodb:latest
+> If `/usr/app/data/` is not mounted and containers are recreated - data will be LOST!
+ 
 ## Binaries
 - Binaries are only for quick try or testing purposes and not recommended for production use.
-```
+
+```bash
 # MacOS (arm64)
 curl http://get.nocodb.com/macos-arm64 -o nocodb -L && chmod +x nocodb && ./nocodb
-```
 
-##### Linux (x64)
+# For MacOS (x64)
+curl http://get.nocodb.com/macos-x64 -o nocodb -L && chmod +x nocodb && ./nocodb
 
-```bash
+# Linux (x64)
 curl http://get.nocodb.com/linux-x64 -o nocodb -L && chmod +x nocodb && ./nocodb
-```
 
-##### Linux (arm64)
-
-```bash
+# Linux (arm64)
 curl http://get.nocodb.com/linux-arm64 -o nocodb -L && chmod +x nocodb && ./nocodb
-```
 
-##### Windows (x64)
-
-```bash
+# Windows (x64)
 iwr http://get.nocodb.com/win-x64.exe -o Noco-win-x64.exe
 .\Noco-win-x64.exe
-```
 
-##### Windows (arm64)
-
-```bash
+# Windows (arm64)
 iwr http://get.nocodb.com/win-arm64.exe -o Noco-win-arm64.exe
 .\Noco-win-arm64.exe
 ```
+
 
 ## Docker Compose
 
@@ -134,37 +118,8 @@ We provide different docker-compose.yml files under [this directory](https://git
 
 ```bash
 git clone https://github.com/nocodb/nocodb
-# for MySQL
-cd nocodb/docker-compose/mysql
-# for PostgreSQL
 cd nocodb/docker-compose/pg
 ```
-
-> To persist data in docker, you can mount volume at `/usr/app/data/` since 0.10.6. Otherwise your data will be lost after recreating the container.
-
-> If you plan to input some special characters, you may need to change the character set and collation yourself when creating the database. Please check out the examples for [MySQL Docker Compose](https://github.com/nocodb/nocodb/issues/1313#issuecomment-1046625974).
-
-## NPX
-
-You can run the below command if you need an interactive configuration.
-
-```
-npx create-nocodb-app
-```
-
-<img src="https://user-images.githubusercontent.com/35857179/163672964-00ef5d62-0434-447d-ac01-3ebb780099b9.png" width="520px"/>
-
-## Node Application
-
-We provide a simple NodeJS Application for getting started.
-
-```bash
-git clone https://github.com/nocodb/nocodb-seed
-cd nocodb-seed
-npm install
-npm start
-```
-
 
 # GUI
 
@@ -189,8 +144,6 @@ Access Dashboard using: [http://localhost:8080/dashboard](http://localhost:8080/
 # Table of Contents
 
 - [Quick try](#quick-try)
-    - [NPX](#npx)
-    - [Node Application](#node-application)
     - [Docker](#docker)
     - [Docker Compose](#docker-compose)
 - [GUI](#gui)

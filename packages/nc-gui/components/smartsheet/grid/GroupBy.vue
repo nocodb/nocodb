@@ -471,11 +471,11 @@ const bgColor = computed(() => {
                         <NcMenu>
                           <NcMenuItem v-if="activeGroups.includes(grp.key)" @click="collapseGroup(grp.key)">
                             <GeneralIcon icon="minimize" />
-                            Collapse Group
+                            Collapse group
                           </NcMenuItem>
                           <NcMenuItem v-else @click="expandGroup(grp.key)">
                             <GeneralIcon icon="maximize" />
-                            Expand Group
+                            Expand group
                           </NcMenuItem>
                           <NcMenuItem @click="expandAllGroup">
                             <GeneralIcon icon="maximizeAll" />

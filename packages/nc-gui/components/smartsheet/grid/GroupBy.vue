@@ -467,6 +467,8 @@ const computedWidth = computed(() => {
             <GroupByTable
               v-if="!grp.nested && grp.rows"
               :group="grp"
+              :max-depth="maxDepth"
+              :depth="depth"
               :load-groups="loadGroups"
               :load-group-data="_loadGroupData"
               :load-group-page="loadGroupPage"

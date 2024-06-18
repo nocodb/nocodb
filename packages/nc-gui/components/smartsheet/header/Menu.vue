@@ -382,8 +382,8 @@ const isColumnUpdateAllowed = computed(() => {
         }"
       >
         <NcMenuItem
-          v-if="isUIAllowed('fieldAlter') && isColumnUpdateAllowed"
-          :disabled="column?.pk || isSystemColumn(column)"
+          v-if="isUIAllowed('fieldAlter')"
+          :disabled="column?.pk || isSystemColumn(column) || !isColumnUpdateAllowed"
           @click="onEditPress"
         >
           <div class="nc-column-edit nc-header-menu-item">
@@ -393,8 +393,8 @@ const isColumnUpdateAllowed = computed(() => {
           </div>
         </NcMenuItem>
         <NcMenuItem
-          v-if="isUIAllowed('duplicateColumn') && isExpandedForm && !column?.pk && isColumnUpdateAllowed"
-          :disabled="!isDuplicateAllowed"
+          v-if="isUIAllowed('duplicateColumn') && isExpandedForm && !column?.pk"
+          :disabled="!isDuplicateAllowed || !isColumnUpdateAllowed"
           @click="openDuplicateDlg"
         >
           <div v-e="['a:field:duplicate']" class="nc-column-duplicate nc-header-menu-item">
@@ -532,8 +532,8 @@ const isColumnUpdateAllowed = computed(() => {
         <a-divider v-if="!column?.pv" class="!my-0" />
 
         <NcMenuItem
-          v-if="!column?.pv && isUIAllowed('fieldDelete') && isColumnUpdateAllowed"
-          :disabled="!isDeleteAllowed"
+          v-if="!column?.pv && isUIAllowed('fieldDelete')"
+          :disabled="!isDeleteAllowed || !isColumnUpdateAllowed"
           class="!hover:bg-red-50"
           @click="handleDelete"
         >

@@ -68,26 +68,6 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart spreadshe
 
 # Quick try
 
-## NPX
-
-You can run the below command if you need an interactive configuration.
-
-```
-npx create-nocodb-app
-```
-
-<img src="https://user-images.githubusercontent.com/35857179/163672964-00ef5d62-0434-447d-ac01-3ebb780099b9.png" width="520px"/>
-
-## Node Application
-
-We provide a simple NodeJS Application for getting started.
-
-```bash
-git clone https://github.com/nocodb/nocodb-seed
-cd nocodb-seed
-pnpm install
-pnpm start
-```
 
 ## Docker
 
@@ -98,13 +78,6 @@ docker run -d --name nocodb \
 -p 8080:8080 \
 nocodb/nocodb:latest
 
-# for MySQL
-docker run -d --name nocodb-mysql \
--v "$(pwd)"/nocodb:/usr/app/data/ \
--p 8080:8080 \
--e NC_DB="mysql2://host.docker.internal:3306?u=root&p=password&d=d1" \
--e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
-nocodb/nocodb:latest
 
 # for PostgreSQL
 docker run -d --name nocodb-postgres \
@@ -165,12 +138,8 @@ We provide different docker-compose.yml files under [this directory](https://git
 
 ```bash
 git clone https://github.com/nocodb/nocodb
-# for MySQL
-cd nocodb/docker-compose/mysql
 # for PostgreSQL
 cd nocodb/docker-compose/pg
-# for MSSQL
-cd nocodb/docker-compose/mssql
 docker-compose up -d
 ```
 

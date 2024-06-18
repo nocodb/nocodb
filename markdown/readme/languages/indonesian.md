@@ -66,13 +66,6 @@ docker run -d --name nocodb \
 -p 8080:8080 \
 nocodb/nocodb:latest
 
-# for MySQL
-docker run -d --name nocodb-mysql \
--v "$(pwd)"/nocodb:/usr/app/data/ \
--p 8080:8080 \
--e NC_DB="mysql2://host.docker.internal:3306?u=root&p=password&d=d1" \
--e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
-nocodb/nocodb:latest
 
 # for PostgreSQL
 docker run -d --name nocodb-postgres \
@@ -133,8 +126,6 @@ Kami menyediakan berbagai file docker-compose.yml di [bawah direktori](https://g
 
 ```bash
 git clone https://github.com/nocodb/nocodb
-# for MySQL
-cd nocodb/docker-compose/mysql
 # for PostgreSQL
 cd nocodb/docker-compose/pg
 docker-compose up -d

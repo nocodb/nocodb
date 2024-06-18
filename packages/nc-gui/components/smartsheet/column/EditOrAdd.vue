@@ -1,6 +1,14 @@
 <script lang="ts" setup>
 import type { ColumnReqType, ColumnType } from 'nocodb-sdk'
-import { UITypes, UITypesName, isLinksOrLTAR, isSelfReferencingTableColumn, isSystemColumn, isVirtualCol, readonlyMetaAllowedTypes } from 'nocodb-sdk'
+import {
+  UITypes,
+  UITypesName,
+  isLinksOrLTAR,
+  isSelfReferencingTableColumn,
+  isSystemColumn,
+  isVirtualCol,
+  readonlyMetaAllowedTypes,
+} from 'nocodb-sdk'
 import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
 import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
 import MdiIdentifierIcon from '~icons/mdi/identifier'
@@ -38,7 +46,7 @@ const { getMeta } = useMetas()
 
 const { t } = useI18n()
 
-const {isMetaReadOnly} = useRoles()
+const { isMetaReadOnly } = useRoles()
 
 const columnLabel = computed(() => props.columnLabel || t('objects.field'))
 
@@ -140,13 +148,13 @@ const uiTypesOptions = computed<typeof uiTypes>(() => {
   ]
 
   // if meta is readonly, move disabled types to the end
-  if(isMetaReadOnly.value) {
+  if (isMetaReadOnly.value) {
     types.sort((a, b) => {
       const aDisabled = readonlyMetaAllowedTypes.includes(a.name)
       const bDisabled = readonlyMetaAllowedTypes.includes(b.name)
 
-      if(aDisabled && !bDisabled) return -1
-      if(!aDisabled && bDisabled) return 1
+      if (aDisabled && !bDisabled) return -1
+      if (!aDisabled && bDisabled) return 1
 
       return 0
     })
@@ -397,7 +405,12 @@ const filterOption = (input: string, option: { value: UITypes }) => {
             v-model:value="formState.uidt"
             show-search
             class="nc-column-type-input !rounded-lg"
-            :disabled="(isMetaReadOnly && !readonlyMetaAllowedTypes.includes(formState.uidt)) || isKanban || readOnly || (isEdit && !!onlyNameUpdateOnEditColumns.includes(column?.uidt))"
+            :disabled="
+              (isMetaReadOnly && !readonlyMetaAllowedTypes.includes(formState.uidt)) ||
+              isKanban ||
+              readOnly ||
+              (isEdit && !!onlyNameUpdateOnEditColumns.includes(column?.uidt))
+            "
             dropdown-class-name="nc-dropdown-column-type border-1 !rounded-lg border-gray-200"
             :filter-option="filterOption"
             @dropdown-visible-change="onDropdownChange"

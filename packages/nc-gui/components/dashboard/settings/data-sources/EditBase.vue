@@ -562,51 +562,58 @@ const allowDataWrite = computed({
           >
             <a-input v-model:value="formState.dataSource.searchPath[0]" />
           </a-form-item>
-
-          <a-form-item>
-            <template #label>
-              <div class="flex gap-1 justify-end">
-                <span>
-                  {{ $t('labels.allowMetaWrite') }}
-                </span>
-                <NcTooltip>
-                  <template #title>
-                    <span>{{ $t('tooltip.allowMetaWrite') }}</span>
-                  </template>
-                  <GeneralIcon class="text-gray-500" icon="info" />
-                </NcTooltip>
-              </div>
-            </template>
-            <a-switch v-model:checked="allowMetaWrite" data-testid="nc-allow-meta-write" size="small"></a-switch>
-          </a-form-item>
-          <a-form-item>
-            <template #label>
-              <div class="flex gap-1 justify-end">
-                <span>
-                  {{ $t('labels.allowDataWrite') }}
-                </span>
-                <NcTooltip>
-                  <template #title>
-                    <span>{{ $t('tooltip.allowDataWrite') }}</span>
-                  </template>
-                  <GeneralIcon class="text-gray-500" icon="info" />
-                </NcTooltip>
-              </div>
-            </template>
-            <div class="flex justify-start">
-              <NcTooltip :disabled="!allowMetaWrite" placement="topLeft">
+        </template>
+        <a-form-item>
+          <template #label>
+            <div class="flex gap-1 justify-end">
+              <span>
+                {{ $t('labels.allowMetaWrite') }}
+              </span>
+              <NcTooltip>
                 <template #title>
-                  {{ $t('tooltip.dataWriteOptionDisabled') }}
+                  <span>{{ $t('tooltip.allowMetaWrite') }}</span>
                 </template>
-                <a-switch
-                  v-model:checked="allowDataWrite"
-                  :disabled="allowMetaWrite"
-                  data-testid="nc-allow-data-write"
-                  size="small"
-                ></a-switch>
+                <GeneralIcon class="text-gray-500" icon="info" />
               </NcTooltip>
             </div>
-          </a-form-item>
+          </template>
+          <a-switch v-model:checked="allowMetaWrite" data-testid="nc-allow-meta-write" size="small"></a-switch>
+        </a-form-item>
+        <a-form-item>
+          <template #label>
+            <div class="flex gap-1 justify-end">
+              <span>
+                {{ $t('labels.allowDataWrite') }}
+              </span>
+              <NcTooltip>
+                <template #title>
+                  <span>{{ $t('tooltip.allowDataWrite') }}</span>
+                </template>
+                <GeneralIcon class="text-gray-500" icon="info" />
+              </NcTooltip>
+            </div>
+          </template>
+          <div class="flex justify-start">
+            <NcTooltip :disabled="!allowMetaWrite" placement="topLeft">
+              <template #title>
+                {{ $t('tooltip.dataWriteOptionDisabled') }}
+              </template>
+              <a-switch
+                v-model:checked="allowDataWrite"
+                :disabled="allowMetaWrite"
+                data-testid="nc-allow-data-write"
+                size="small"
+              ></a-switch>
+            </NcTooltip>
+          </div>
+        </a-form-item>
+        <template
+          v-if="
+            formState.dataSource.client !== ClientType.SQLITE &&
+            formState.dataSource.client !== ClientType.DATABRICKS &&
+            formState.dataSource.client !== ClientType.SNOWFLAKE
+          "
+        >
           <!--                Use Connection URL -->
           <div class="flex justify-end gap-2">
             <NcButton size="small" type="ghost" class="nc-extdb-btn-import-url !rounded-md" @click.stop="importURLDlg = true">

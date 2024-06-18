@@ -162,9 +162,9 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number } }) 
 
   const tempGroups = [..._groupBy.value]
 
-  const [movedItem] = tempGroups.splice(oldIndex, 1)
+  const movedItem = tempGroups.splice(oldIndex, 1)[0]
 
-  tempGroups.splice(newIndex, 0, movedItem)
+  tempGroups.splice(newIndex, 0, movedItem ?? [])
 
   const updatedGroups = tempGroups.map((group, index) => ({ ...group, order: index + 1 }))
 
@@ -221,8 +221,6 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number } }) 
             item-key="fk_column_id"
             ghost-class="bg-gray-50"
             @change="onMove($event)"
-            @start="isDragging = true"
-            @end="isDragging = false"
           >
             <template #item="{ element: group }">
               <div :key="group.fk_column_id" class="flex first:mb-0 !mb-1.5 !last:mb-0 items-center">

@@ -124,7 +124,7 @@ const scrollBump = computed<number>(() => {
     if (props.scrollLeft + props.viewWidth > scrollWidth) {
       return scrollWidth - props.viewWidth
     }
-    return Math.max(Math.min(scrollWidth - props.viewWidth, (props.scrollLeft ?? 0) - 24), 0)
+    return Math.max(Math.min(scrollWidth - props.viewWidth, (props.scrollLeft ?? 0) - 28), 0)
   }
   return 0
 })

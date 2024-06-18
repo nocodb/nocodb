@@ -1961,7 +1961,7 @@ onKeyStroke('ArrowDown', onDown)
                             <span
                               v-if="row.rowMeta?.commentCount && expandForm"
                               v-e="['c:expanded-form:open']"
-                              class="py-1 px-1 rounded-md text-xs cursor-pointer select-none transform bg-brand-500 text-brand-50"
+                              class="px-1 rounded-md rounded-bl-none transition-all border-1 border-brand-200 text-xs cursor-pointer font-sembold select-none leading-5 text-brand-500 bg-brand-50"
                               @click="expandAndLooseFocus(row, state)"
                             >
                               {{ row.rowMeta.commentCount }}

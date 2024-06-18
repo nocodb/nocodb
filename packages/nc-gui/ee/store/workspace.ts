@@ -20,7 +20,7 @@ const defaultAuditLogsQuery = {
   sourceId: undefined,
   startDate: undefined,
   endData: undefined,
-  dateRangeLabel: undefined, 
+  dateRangeLabel: undefined,
   orderBy: {
     created_at: 'desc',
     user: undefined,
@@ -444,14 +444,11 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     }
 
     if (cmdOrCtrl) {
-      await navigateTo(
-        router.resolve({ name: 'index-typeOrId-settings', params: { typeOrId: workspaceId }, query: { ...query } }).href,
-        {
-          open: navigateToBlankTargetOpenOption,
-        },
-      )
+      await navigateTo(router.resolve({ name: 'index-typeOrId-settings', params: { typeOrId: workspaceId }, query }).href, {
+        open: navigateToBlankTargetOpenOption,
+      })
     } else {
-      router.push({ name: 'index-typeOrId-settings', params: { typeOrId: workspaceId }, query: { ...query } })
+      router.push({ name: 'index-typeOrId-settings', params: { typeOrId: workspaceId }, query })
     }
   }
 

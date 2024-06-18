@@ -33,13 +33,6 @@
 
 # 快速尝试
 
-## NPX
-
-如果你需要一个交互式的配置，你可以运行下面的命令。
-
-```
-npx create-nocodb-app
-```
 
 <img src="https://user-images.githubusercontent.com/35857179/163672964-00ef5d62-0434-447d-ac01-3ebb780099b9.png" width="520px"/>
 

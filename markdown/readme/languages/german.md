@@ -55,20 +55,6 @@ docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
 npm install create-nocodb-app
 ```
 
-### Verwenden von NPX 
-
-```
-npx create-nocodb-app
-```
-
-### Verwenden von Git
-
-```
-git clone https://github.com/nocodb/nocodb-seed
-cd nocodb-seed
-npm install
-npm start
-```
 
 ### GUI
 

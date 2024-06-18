@@ -49,20 +49,6 @@ docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
   docker run -d -p 8080:8080 --name nocodb -v "$(pwd)"/nocodb:/usr/app/data/ nocodb/nocodb:latest
   ```
 
-### Con NPM
-
-```
-npx create-nocodb-app
-```
-
-### Con git
-
-```
-git clone https://github.com/nocodb/nocodb-seed
-cd nocodb-seed
-npm install
-npm start
-```
 
 ### GUI
 

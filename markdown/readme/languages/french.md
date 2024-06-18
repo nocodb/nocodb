@@ -50,16 +50,6 @@ docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
   ```
 > Pour conserver les données, vous pouvez installer le volume dans `/usr/app/data/`.
 
-### NPX
-
-Vous pouvez exécuter la commande ci-dessous pour passer par la configuration interactive.
-
-```
-npx create-nocodb-app
-```
-
-<img src="https://user-images.githubusercontent.com/35857179/163672964-00ef5d62-0434-447d-ac01-3ebb780099b9.png" width="520px"/>
-
 ### En utilisant git
 ```
 git clone https://github.com/nocodb/nocodb-seed

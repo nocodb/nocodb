@@ -85,32 +85,20 @@ docker run -d --name nocodb-mysql \
 -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
 nocodb/nocodb:latest
 
-# for PostgreSQL
-docker run -d --name nocodb-postgres \
+# with SQLite : 
+## If `/usr/app/data/` is not mounted and containers are recreated - data will be LOST!
+docker run -d --name nocodb \
 -v "$(pwd)"/nocodb:/usr/app/data/ \
 -p 8080:8080 \
 -e NC_DB="pg://host.docker.internal:5432?u=root&p=password&d=d1" \
 -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
 nocodb/nocodb:latest
-
-
-> To persist data in docker you can mount volume at `/usr/app/data/` since 0.10.6. Otherwise your data will be lost after recreating the container.
-
-> If you plan to input some special characters, you may need to change the character set and collation yourself when creating the database. Please check out the examples for [MySQL Docker](https://github.com/nocodb/nocodb/issues/1340#issuecomment-1049481043).
-
-> Different commands just indicate the database that NocoDB will use internally for metadata storage, but that doesn't influence the ability to connect to a different database type. 
-
-## Binaries
-
-##### MacOS (x64)
-
-```bash
-curl http://get.nocodb.com/macos-x64 -o nocodb -L && chmod +x nocodb && ./nocodb
 ```
 
-##### MacOS (arm64)
-
-```bash
+## Binaries
+- Binaries are only for quick try or testing purposes and not recommended for production use.
+```
+# MacOS (arm64)
 curl http://get.nocodb.com/macos-arm64 -o nocodb -L && chmod +x nocodb && ./nocodb
 ```
 

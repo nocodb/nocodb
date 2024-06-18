@@ -28,12 +28,6 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
 
     const sharedViewPassword = inject(SharedViewPasswordInj, ref(null))
 
-    const basesStore = useBases()
-
-    const { basesUser } = storeToRefs(basesStore)
-
-    const baseUsers = meta.value?.base_id ? basesUser.value.get(meta?.value.base_id) || [] : []
-
     const groupBy = computed<{ column: ColumnType; sort: string; order?: number }[]>(() => {
       const tempGroupBy: { column: ColumnType; sort: string; order?: number }[] = []
       Object.values(gridViewCols.value).forEach((col) => {

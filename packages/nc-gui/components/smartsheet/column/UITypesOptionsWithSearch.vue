@@ -101,31 +101,39 @@ const isDisabledUIType = (type: UITypes) => {
         {{ options.length ? $t('title.noResultsMatchedYourSearch') : 'The list is empty' }}
       </div>
 
-      <div
+      <NcTooltip
         v-for="(option, index) in filteredOptions"
         :key="index"
-        class="flex w-full py-2 items-center justify-between px-2 rounded-md"
-        :class="[
-          `nc-column-list-option-${index}`,
-          {
-            'hover:bg-gray-100 cursor-pointer': !isDisabledUIType(option.name),
-            'bg-gray-100 nc-column-list-option-active': activeFieldIndex === index && !isDisabledUIType(option.name),
-            '!text-gray-400 cursor-not-allowed': isDisabledUIType(option.name),
-          },
-        ]"
-        :data-testid="option.name"
-        @click="onClick(option.name)"
+        :disabled="!isDisabledUIType(option.name)"
+        placement="left"
       >
-        <div class="flex gap-2 items-center">
-          <component
-            :is="option.icon"
-            class="w-4 h-4"
-            :class="isDisabledUIType(option.name) ? '!text-gray-400' : 'text-gray-700'"
-          />
-          <div class="flex-1 text-sm">{{ UITypesName[option.name] }}</div>
-          <span v-if="option.deprecated" class="!text-xs !text-gray-300">({{ $t('general.deprecated') }})</span>
+        <template #title>
+          {{ $t('tooltip.typeNotAllowed') }}
+        </template>
+        <div
+          class="flex w-full py-2 items-center justify-between px-2 rounded-md"
+          :class="[
+            `nc-column-list-option-${index}`,
+            {
+              'hover:bg-gray-100 cursor-pointer': !isDisabledUIType(option.name),
+              'bg-gray-100 nc-column-list-option-active': activeFieldIndex === index && !isDisabledUIType(option.name),
+              '!text-gray-400 cursor-not-allowed': isDisabledUIType(option.name),
+            },
+          ]"
+          :data-testid="option.name"
+          @click="onClick(option.name)"
+        >
+          <div class="flex gap-2 items-center">
+            <component
+              :is="option.icon"
+              class="w-4 h-4"
+              :class="isDisabledUIType(option.name) ? '!text-gray-400' : 'text-gray-700'"
+            />
+            <div class="flex-1 text-sm">{{ UITypesName[option.name] }}</div>
+            <span v-if="option.deprecated" class="!text-xs !text-gray-300">({{ $t('general.deprecated') }})</span>
+          </div>
         </div>
-      </div>
+      </NcTooltip>
     </div>
   </div>
 </template>

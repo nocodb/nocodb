@@ -131,10 +131,6 @@ const handleRowClick = (audit: AuditType) => {
   isRowExpanded.value = true
 }
 
-const handleSearchAuditLogs = useDebounceFn(() => {
-  loadAudits()
-}, 500)
-
 const toggleOrderBy = (orderBy: 'created_at' | 'user') => {
   if (orderBy === 'created_at') {
     auditLogsQuery.value.orderBy = {
@@ -203,33 +199,6 @@ const focusTypeSearchRef: VNodeRef = (el) => {
         <div class="text-sm text-gray-600">Track and monitor any changes made to any base in your workspace.</div>
       </div>
       <div class="pr-6 pl-1 flex items-center gap-3">
-        <form autocomplete="off" @submit.prevent>
-          <a-input
-            key="nc-audit-logs-search-input"
-            v-model:value="auditLogsQuery.search"
-            type="text"
-            autocomplete="off"
-            class="nc-input-sm nc-input-shadow"
-            placeholder="Search a record"
-            name="nc-audit-logs-search-input"
-            data-testid="nc-audit-logs-search-input"
-            @input="handleSearchAuditLogs"
-            @keydown.enter.exact="loadAudits"
-          >
-            <template #prefix>
-              <GeneralIcon icon="search" class="mr-1 h-4 w-4 text-gray-500 group-hover:text-black" />
-            </template>
-            <template #suffix>
-              <GeneralIcon
-                v-if="auditLogsQuery.search && auditLogsQuery.search.length > 0"
-                icon="close"
-                class="ml-1 h-4 w-4 text-gray-500 group-hover:text-black"
-                data-testid="nc-audit-logs-clear-search"
-                @click="auditLogsQuery.search = undefined"
-              />
-            </template>
-          </a-input>
-        </form>
         <NcDropdown
           v-if="collaborators?.length"
           v-model:visible="auditDropdowns.user"
@@ -242,8 +211,8 @@ const focusTypeSearchRef: VNodeRef = (el) => {
           "
         >
           <NcButton type="secondary" size="small">
-            <div class="flex items-center gap-2">
-              <div class="max-w-[120px] truncate text-sm !leading-5">
+            <div class="!w-[106px] flex items-center justify-between gap-2">
+              <div class="max-w-full truncate text-sm !leading-5">
                 User:
                 <span :class="{ 'text-brand-500': auditLogsQuery.user }">
                   {{
@@ -355,8 +324,8 @@ const focusTypeSearchRef: VNodeRef = (el) => {
           "
         >
           <NcButton type="secondary" size="small">
-            <div class="flex items-center gap-2">
-              <div class="max-w-[120px] truncate text-sm !leading-5">
+            <div class="!w-[106px] flex items-center justify-between gap-2">
+              <div class="max-w-full truncate text-sm !leading-5">
                 Base:
                 <span :class="{ 'text-brand-500': auditLogsQuery.base }">
                   {{ (auditLogsQuery.base && bases.get(auditLogsQuery.base)?.title) || 'All' }}
@@ -368,7 +337,7 @@ const focusTypeSearchRef: VNodeRef = (el) => {
 
           <template #overlay>
             <div class="w-[256px]">
-              <div class="px-2 pt-2" @click.stop>
+              <div class="px-2 py-2" @click.stop>
                 <a-input
                   v-model:value="auditDropdownsSearch.base"
                   type="text"
@@ -464,7 +433,7 @@ const focusTypeSearchRef: VNodeRef = (el) => {
         >
           <NcButton type="secondary" size="small">
             <div class="!w-[106px] flex items-center justify-between gap-2">
-              <div class="max-w-[120px] truncate text-sm !leading-5">
+              <div class="max-w-full truncate text-sm !leading-5">
                 Type:
                 <span :class="{ 'text-brand-500': auditLogsQuery.type }">
                   {{ auditLogsQuery.type ? auditOperationTypeLabels[auditLogsQuery.type] : 'All' }}
@@ -476,7 +445,7 @@ const focusTypeSearchRef: VNodeRef = (el) => {
 
           <template #overlay>
             <div class="w-[256px]">
-              <div class="px-2 pt-2" @click.stop>
+              <div class="px-2 py-2" @click.stop>
                 <a-input
                   v-model:value="auditDropdownsSearch.type"
                   type="text"

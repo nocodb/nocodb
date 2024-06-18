@@ -214,10 +214,10 @@ export class DuplicateController {
     const source = await Source.get(context, model.source_id);
 
     // if data/schema is readonly, then restrict duplication
-    if (source.meta?.[SourceRestriction.META_READONLY]) {
+    if (source.is_schema_readonly) {
       NcError.sourceMetaReadOnly(source.alias);
     }
-    if (source.meta?.[SourceRestriction.DATA_READONLY]) {
+    if (source.is_data_readonly) {
       NcError.sourceDataReadOnly(source.alias);
     }
 
@@ -288,10 +288,10 @@ export class DuplicateController {
     const source = await Source.get(context, model.source_id);
 
     // if data/schema is readonly, then restrict duplication
-    if (source.meta?.[SourceRestriction.META_READONLY]) {
+    if (source.is_schema_readonly) {
       NcError.sourceMetaReadOnly(source.alias);
     }
-    if (source.meta?.[SourceRestriction.DATA_READONLY]) {
+    if (source.is_data_readonly) {
       NcError.sourceDataReadOnly(source.alias);
     }
 

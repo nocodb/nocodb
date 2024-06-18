@@ -61,10 +61,8 @@ const formState = ref<ProjectCreateForm>({
   },
   sslUse: SSLUsage.No,
   extraParameters: [],
-  meta: {
-    [SourceRestriction.META_READONLY]: true,
-    [SourceRestriction.DATA_READONLY]: false,
-  },
+  is_schema_readonly: true,
+  is_data_readonly: false,
 })
 
 const customFormState = ref<ProjectCreateForm>({
@@ -76,10 +74,8 @@ const customFormState = ref<ProjectCreateForm>({
   },
   sslUse: SSLUsage.No,
   extraParameters: [],
-  meta: {
-    [SourceRestriction.META_READONLY]: true,
-    [SourceRestriction.DATA_READONLY]: false,
-  },
+  is_schema_readonly: true,
+  is_data_readonly: false,
 })
 
 const validators = computed(() => {
@@ -237,7 +233,8 @@ const editBase = async () => {
       config,
       inflection_column: formState.value.inflection.inflectionColumn,
       inflection_table: formState.value.inflection.inflectionTable,
-      meta: formState.value.meta || {},
+      is_schema_readonly: formState.value.is_schema_readonly,
+      is_data_readonly: formState.value.is_data_readonly,
     })
 
     $e('a:source:edit:extdb')
@@ -349,7 +346,8 @@ onMounted(async () => {
       },
       extraParameters: tempParameters,
       sslUse: SSLUsage.No,
-      meta: activeBase.meta || {},
+      is_schema_readonly: activeBase.is_schema_readonly,
+      is_data_readonly: activeBase.is_data_readonly,
     }
     updateSSLUse()
   }
@@ -369,18 +367,16 @@ watch(
 )
 
 const allowMetaWrite = computed({
-  get: () => !formState.value.meta[SourceRestriction.META_READONLY],
+  get: () => !formState.value.is_schema_readonly,
   set: (v) => {
-    formState.value.meta = formState.value.meta || {}
-    formState.value.meta[SourceRestriction.META_READONLY] = !v
+    formState.value.is_schema_readonly = !v
   },
 })
 
 const allowDataWrite = computed({
-  get: () => !formState.value.meta[SourceRestriction.DATA_READONLY],
+  get: () => !formState.value.is_data_readonly,
   set: (v) => {
-    formState.value.meta = formState.value.meta || {}
-    formState.value.meta[SourceRestriction.DATA_READONLY] = !v
+    formState.value.is_data_readonly = !v
   },
 })
 </script>

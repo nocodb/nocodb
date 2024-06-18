@@ -40,7 +40,7 @@ export class FormsService {
 
     const source = await Source.get(context, model.source_id);
 
-    if (source.meta?.[SourceRestriction.DATA_READONLY]) {
+    if (source.is_data_readonly) {
       NcError.sourceDataReadOnly(source.alias);
     }
 

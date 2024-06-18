@@ -471,7 +471,7 @@ export class AclMiddleware implements NestInterceptor {
     // 1. Check if it's present in the source restriction list
     // 2. If present, check if write permission is allowed
     if (
-      sourceRestrictions[SourceRestriction.META_READONLY][permissionName] ||
+      sourceRestrictions[SourceRestriction.SCHEMA_READONLY][permissionName] ||
       sourceRestrictions[SourceRestriction.DATA_READONLY][permissionName]
     ) {
       let source: Source;
@@ -496,14 +496,14 @@ export class AclMiddleware implements NestInterceptor {
       }
 
       if (
-        source.meta?.[SourceRestriction.META_READONLY] &&
-        sourceRestrictions[SourceRestriction.META_READONLY][permissionName]
+        source.is_schema_readonly &&
+        sourceRestrictions[SourceRestriction.SCHEMA_READONLY][permissionName]
       ) {
         NcError.sourceMetaReadOnly(source.alias);
       }
 
       if (
-        source.meta?.[SourceRestriction.DATA_READONLY] &&
+        source.is_data_readonly &&
         sourceRestrictions[SourceRestriction.DATA_READONLY][permissionName]
       ) {
         NcError.sourceDataReadOnly(source.alias);

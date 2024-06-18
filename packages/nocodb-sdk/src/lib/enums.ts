@@ -329,8 +329,8 @@ export enum APIContext {
 
 
 export enum SourceRestriction {
-  META_READONLY = 'metaReadOnly',
-  DATA_READONLY = 'dataReadOnly',
+  SCHEMA_READONLY = 'is_schema_readonly',
+  DATA_READONLY = 'is_data_readonly',
 }
 
 

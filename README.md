@@ -79,17 +79,17 @@ docker run -d --name nocodb-postgres \
 -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
 nocodb/nocodb:latest
 
-# with SQLite
+# with SQLite : 
+## If `/usr/app/data/` is not mounted and containers are recreated - data will be LOST!
 docker run -d --name nocodb \
 -v "$(pwd)"/nocodb:/usr/app/data/ \
 -p 8080:8080 \
 nocodb/nocodb:latest
-> If `/usr/app/data/` is not mounted and containers are recreated - data will be LOST!
- 
+```
+
 ## Binaries
 - Binaries are only for quick try or testing purposes and not recommended for production use.
-
-```bash
+```
 # MacOS (arm64)
 curl http://get.nocodb.com/macos-arm64 -o nocodb -L && chmod +x nocodb && ./nocodb
 
@@ -110,7 +110,6 @@ iwr http://get.nocodb.com/win-x64.exe -o Noco-win-x64.exe
 iwr http://get.nocodb.com/win-arm64.exe -o Noco-win-arm64.exe
 .\Noco-win-arm64.exe
 ```
-
 
 ## Docker Compose
 

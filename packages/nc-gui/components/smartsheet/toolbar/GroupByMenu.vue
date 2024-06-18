@@ -231,7 +231,7 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number } }) 
                 </NcButton>
                 <LazySmartsheetToolbarFieldListAutoCompleteDropdown
                   v-model="group.fk_column_id"
-                  class="caption nc-sort-field-select w-44 flex flex-grow"
+                  class="caption nc-sort-field-select !w-36"
                   :columns="fieldsToGroupBy"
                   :allow-empty="true"
                   :meta="meta"
@@ -241,7 +241,7 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number } }) 
                 <NcSelect
                   ref=""
                   v-model:value="group.sort"
-                  class="shrink grow-0 nc-sort-dir-select"
+                  class="flex flex-grow-1 w-full nc-sort-dir-select"
                   :label="$t('labels.operation')"
                   dropdown-class-name="sort-dir-dropdown nc-dropdown-sort-dir"
                   :disabled="!group.fk_column_id"
@@ -334,8 +334,9 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number } }) 
 
 <style scoped lang="scss">
 :deep(.nc-sort-field-select) {
+  @apply !w-36;
   .ant-select-selector {
-    @apply !rounded-none !border-r-0 !border-gray-200 !shadow-none;
+    @apply !rounded-none !border-r-0 !border-gray-200 !shadow-none !w-36;
 
     &.ant-select-focused:not(.ant-select-disabled) {
       @apply !border-r-transparent;

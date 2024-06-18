@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import type { SourceType } from 'nocodb-sdk'
-import { SourceRestriction } from 'nocodb-sdk'
 import { Form, message } from 'ant-design-vue'
 import type { SelectHandler } from 'ant-design-vue/es/vc-select/Select'
 import {
@@ -370,6 +369,7 @@ const allowMetaWrite = computed({
   get: () => !formState.value.is_schema_readonly,
   set: (v) => {
     formState.value.is_schema_readonly = !v
+    $e('c:source:schema-write-toggle', { allowed: !v, edit: true })
   },
 })
 
@@ -377,6 +377,7 @@ const allowDataWrite = computed({
   get: () => !formState.value.is_data_readonly,
   set: (v) => {
     formState.value.is_data_readonly = !v
+    $e('c:source:data-write-toggle', { allowed: !v, edit: true })
   },
 })
 </script>

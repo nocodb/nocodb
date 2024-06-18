@@ -355,7 +355,7 @@ const filterOrGroupByThisField = (event: SmartsheetStoreEvents) => {
   isOpen.value = false
 }
 
-const isColumnCRUDAllowed = computed(() => {
+const isColumnUpdateAllowed = computed(() => {
   if (isMetaReadOnly.value && !readonlyMetaAllowedTypes.includes(column.value?.uidt)) return false
   return true
 })
@@ -382,7 +382,7 @@ const isColumnCRUDAllowed = computed(() => {
         }"
       >
         <NcMenuItem
-          v-if="isUIAllowed('fieldAlter') && isColumnCRUDAllowed"
+          v-if="isUIAllowed('fieldAlter') && isColumnUpdateAllowed"
           :disabled="column?.pk || isSystemColumn(column)"
           @click="onEditPress"
         >
@@ -393,7 +393,7 @@ const isColumnCRUDAllowed = computed(() => {
           </div>
         </NcMenuItem>
         <NcMenuItem
-          v-if="isUIAllowed('duplicateColumn') && isExpandedForm && !column?.pk && isColumnCRUDAllowed"
+          v-if="isUIAllowed('duplicateColumn') && isExpandedForm && !column?.pk && isColumnUpdateAllowed"
           :disabled="!isDuplicateAllowed"
           @click="openDuplicateDlg"
         >
@@ -532,7 +532,7 @@ const isColumnCRUDAllowed = computed(() => {
         <a-divider v-if="!column?.pv" class="!my-0" />
 
         <NcMenuItem
-          v-if="!column?.pv && isUIAllowed('fieldDelete') && isColumnCRUDAllowed"
+          v-if="!column?.pv && isUIAllowed('fieldDelete') && isColumnUpdateAllowed"
           :disabled="!isDeleteAllowed"
           class="!hover:bg-red-50"
           @click="handleDelete"

@@ -130,6 +130,9 @@ export const sourceRestrictions = {
     csvImport: true,
     jsonImport: true,
     excelImport: true,
+    duplicateColumn: true,
+    duplicateModel: true,
+    tableDuplicate: true,
   },
   [SourceRestriction.META_READONLY]: {
     tableCreate: true,
@@ -142,6 +145,8 @@ export const sourceRestrictions = {
     excelImport: true,
     fieldAdd: true,
     fieldAlter: true,
+    duplicateColumn: true,
+    duplicateModel: true,
   },
 }
 

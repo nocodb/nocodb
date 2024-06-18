@@ -383,7 +383,11 @@ const filterOrGroupByThisField = (event: SmartsheetStoreEvents) => {
             {{ $t('general.edit') }}
           </div>
         </NcMenuItem>
-        <NcMenuItem v-if="isExpandedForm && !column?.pk" :disabled="!isDuplicateAllowed" @click="openDuplicateDlg">
+        <NcMenuItem
+          v-if="isUIAllowed('duplicateColumn') && isExpandedForm && !column?.pk"
+          :disabled="!isDuplicateAllowed"
+          @click="openDuplicateDlg"
+        >
           <div v-e="['a:field:duplicate']" class="nc-column-duplicate nc-header-menu-item">
             <component :is="iconMap.duplicate" class="text-gray-700" />
             <!-- Duplicate -->

@@ -206,8 +206,6 @@ export const sourceRestrictions = {
     csvImport: true,
     jsonImport: true,
     excelImport: true,
-    // fieldAdd: true,
-    // fieldAlter: true,
     duplicateColumn: true,
     duplicateModel: true,
   },

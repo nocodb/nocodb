@@ -15,7 +15,7 @@ import {
   isVirtualCol,
 } from 'nocodb-sdk'
 import type { ImageCropperConfig } from '~/lib/types'
-import {useRolesWrapper} from "~/composables/useRoles";
+
 
 provide(IsFormInj, ref(true))
 provide(IsGalleryInj, ref(false))
@@ -53,7 +53,7 @@ const { isMobileMode, user } = useGlobal()
 
 const { $api, $e } = useNuxtApp()
 
-const { isUIAllowed } = useRolesWrapper()
+const { isUIAllowed } = useRoles()
 
 const { base } = storeToRefs(useBase())
 

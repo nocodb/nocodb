@@ -2,7 +2,7 @@
 import { onKeyDown } from '@vueuse/core'
 import { useProvideAttachmentCell } from './utils'
 import { useSortable } from './sort'
-import {useRolesWrapper} from "~/composables/useRoles";
+
 
 interface Props {
   modelValue?: string | Record<string, any>[] | null
@@ -176,7 +176,7 @@ const keydownSpace = (e: KeyboardEvent) => {
   }
 }
 
-const { isUIAllowed } = useRolesWrapper()
+const { isUIAllowed } = useRoles()
 const isConfirmModalOpen = ref(false)
 const filetoDelete = reactive({
   title: '',

@@ -28,7 +28,7 @@ const { width: containerWidth } = useElementSize(container)
 
 const isPublic = inject(IsPublicInj, ref(false))
 
-const { isUIAllowed } = useRolesWrapper()
+const { isUIAllowed } = useRoles()
 
 const meta = inject(MetaInj, ref())
 

@@ -2,7 +2,7 @@
 import type { VNodeRef } from '@vue/runtime-core'
 import { UITypes } from 'nocodb-sdk'
 import dayjs from 'dayjs'
-import {useRolesWrapper} from "~/composables/useRoles";
+
 
 const props = defineProps<{
   visible: boolean
@@ -16,7 +16,7 @@ interface Attachment {
 
 const INFINITY_SCROLL_THRESHOLD = 100
 
-const { isUIAllowed } = useRolesWrapper()
+const { isUIAllowed } = useRoles()
 
 const { $e } = useNuxtApp()
 

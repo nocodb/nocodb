@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { ViewTypes, isVirtualCol } from 'nocodb-sdk'
 import type { Row as RowType } from '#imports'
-import {useRolesWrapper} from "~/composables/useRoles";
+
 
 interface Attachment {
   url: string
@@ -65,7 +65,7 @@ const coverImageObjectFitClass = computed(() => {
   if (fk_cover_image_object_fit === CoverImageObjectFit.COVER) return '!object-cover'
 })
 
-const { isUIAllowed } = useRolesWrapper()
+const { isUIAllowed } = useRoles()
 const hasEditPermission = computed(() => isUIAllowed('dataEdit'))
 // TODO: extract this code (which is duplicated in grid and gallery) into a separate component
 const _contextMenu = ref(false)

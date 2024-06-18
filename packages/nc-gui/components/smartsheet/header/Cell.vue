@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { ColumnReqType, ColumnType } from 'nocodb-sdk'
 import { UITypes, UITypesName } from 'nocodb-sdk'
-import {useRolesWrapper} from "~/composables/useRoles";
+
 
 interface Props {
   column: ColumnType
@@ -33,7 +33,7 @@ const isDropDownOpen = ref(false)
 
 const column = toRef(props, 'column')
 
-const { isUIAllowed } = useRolesWrapper()
+const { isUIAllowed } = useRoles()
 
 provide(ColumnInj, column)
 

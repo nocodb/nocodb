@@ -8,7 +8,7 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
 
   const { $api, $e } = useNuxtApp()
 
-  const { isUIAllowed } = useRolesWrapper()
+  const { isUIAllowed } = useRoles()
 
   const { isSharedBase } = storeToRefs(useBase())
 

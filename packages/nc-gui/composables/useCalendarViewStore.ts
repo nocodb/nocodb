@@ -2,7 +2,7 @@ import type { ComputedRef, Ref } from 'vue'
 import type { Api, CalendarRangeType, CalendarType, ColumnType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import dayjs from 'dayjs'
-import {useRolesWrapper} from "~/composables/useRoles";
+
 
 const formatData = (list: Record<string, any>[]) =>
   list.map(
@@ -34,7 +34,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const pageDate = ref<dayjs.Dayjs>(dayjs())
 
-    const { isUIAllowed } = useRolesWrapper()
+    const { isUIAllowed } = useRoles()
 
     const { isMobileMode } = useGlobal()
 

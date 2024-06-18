@@ -450,28 +450,34 @@ Object.values(rolePermissions).forEach((role) => {
   }
 });
 
-// excluded/restricted permissions at source level based on source restriction
+// Excluded permissions for source restrictions
 // `true` means permission is restricted and `false`/missing means permission is allowed
 export const sourceRestrictions = {
-  [SourceRestriction.DATA_READONLY]: {
-    dataInsert: true,
-    dataEdit: true,
-    dataDelete: true,
-    airtableImport: true,
-    csvImport: true,
-    jsonImport: true,
-    excelImport: true,
-  },
   [SourceRestriction.SCHEMA_READONLY]: {
     tableCreate: true,
-    tableRename: true,
     tableDelete: true,
-    tableDuplicate: true,
-    airtableImport: true,
-    csvImport: true,
-    jsonImport: true,
-    excelImport: true,
+    tableUpdate: true,
+    // columnAdd: true,
+    // columnDelete: true,
+    // columnUpdate: true,
+    columnBulk: true,
+  },
+  [SourceRestriction.DATA_READONLY]: {
+    dataUpdate: true,
+    dataDelete: true,
+    dataInsert: true,
+    bulkDataInsert: true,
+    bulkDataUpdate: true,
+    bulkDataUpdateAll: true,
+    bulkDataDelete: true,
+    bulkDataDeleteAll: true,
+    relationDataRemove: true,
+    relationDataAdd: true,
+    nestedDataListCopyPasteOrDeleteAll: true,
+    nestedDataUnlink: true,
+    nestedDataLink: true,
   },
 };
+
 
 export default rolePermissions;

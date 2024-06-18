@@ -104,7 +104,7 @@ const showBaseOption = (source: SourceType) => {
   return ['airtableImport', 'csvImport', 'jsonImport', 'excelImport'].some((permission) =>
     isUIAllowed(permission, { source }),
   )
-})
+}
 
 const enableEditMode = () => {
   editMode.value = true

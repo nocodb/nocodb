@@ -10,6 +10,10 @@ const defaultAuditLogsQuery = {
   user: undefined,
   search: undefined,
   sourceId: undefined,
+  orderBy: {
+    created_at: 'desc',
+    user: undefined,
+  },
 }
 
 export const useWorkspace = defineStore('workspaceStore', () => {

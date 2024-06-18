@@ -75,7 +75,15 @@ const auditDropdownsSearch = ref({
   user: '',
 })
 
-console.log('changing')
+const focusUserSearchRef: VNodeRef = (el) => {
+  return el && auditDropdowns.value.user && el?.focus?.()
+}
+const focusBaseSearchRef: VNodeRef = (el) => {
+  return el && auditDropdowns.value.base && el?.focus?.()
+}
+const focusTypeSearchRef: VNodeRef = (el) => {
+  return el && auditDropdowns.value.type && el?.focus?.()
+}
 
 const auditTypeOptions = computed(() => {
   return Object.values(AuditOperationTypes)
@@ -131,27 +139,32 @@ const handleRowClick = (audit: AuditType) => {
   isRowExpanded.value = true
 }
 
-const toggleOrderBy = (orderBy: 'created_at' | 'user') => {
-  if (orderBy === 'created_at') {
-    auditLogsQuery.value.orderBy = {
-      ...auditLogsQuery.value.orderBy,
-      created_at:
-        auditLogsQuery.value.orderBy?.created_at === 'asc'
-          ? 'desc'
-          : auditLogsQuery.value.orderBy?.created_at === 'desc'
-          ? undefined
-          : 'asc',
-    }
-  }
-  if (orderBy === 'user') {
-    auditLogsQuery.value.orderBy = {
-      ...auditLogsQuery.value.orderBy,
-      user:
-        auditLogsQuery.value.orderBy?.user === 'asc' ? 'desc' : auditLogsQuery.value.orderBy?.user === 'desc' ? undefined : 'asc',
-    }
+const handleUpdateBaseQuery = (baseId?: string, sourceId?: string) => {
+  auditLogsQuery.value.base = baseId
+  auditLogsQuery.value.sourceId = sourceId
+}
+
+const updateOrderBy = (field: 'created_at' | 'user') => {
+  if (auditLogsQuery.value.orderBy?.[field] === 'asc') {
+    auditLogsQuery.value.orderBy[field] = 'desc'
+  } else if (auditLogsQuery.value.orderBy?.[field] === 'desc') {
+    auditLogsQuery.value.orderBy[field] = undefined
+  } else {
+    auditLogsQuery.value.orderBy[field] = 'asc'
   }
 
   loadAudits()
+}
+
+const handleCloseDropdown = (field: 'user' | 'base' | 'type') => {
+  auditDropdowns.value[field] = false
+  loadAudits()
+}
+
+const handleClearDropdownSearch = (isOpen: boolean, field: 'user' | 'base' | 'type') => {
+  if (isOpen) {
+    auditDropdownsSearch.value[field] = ''
+  }
 }
 
 onMounted(async () => {
@@ -159,27 +172,6 @@ onMounted(async () => {
     await loadAudits(currentPage.value, currentLimit.value)
   }
 })
-
-watchEffect(() => {
-  console.log('auditDropdownsSearch', auditDropdownsSearch.value)
-})
-watch(
-  auditDropdownsSearch,
-  () => {
-    console.log('fdlsa', auditDropdownsSearch.value)
-  },
-  { deep: true },
-)
-
-const focusUserSearchRef: VNodeRef = (el) => {
-  return el && auditDropdowns.value.user && el?.focus?.()
-}
-const focusBaseSearchRef: VNodeRef = (el) => {
-  return el && auditDropdowns.value.base && el?.focus?.()
-}
-const focusTypeSearchRef: VNodeRef = (el) => {
-  return el && auditDropdowns.value.type && el?.focus?.()
-}
 </script>
 
 <template>
@@ -202,13 +194,7 @@ const focusTypeSearchRef: VNodeRef = (el) => {
         <NcDropdown
           v-if="collaborators?.length"
           v-model:visible="auditDropdowns.user"
-          @update:visible="
-            (value) => {
-              if (value) {
-                auditDropdownsSearch.user = ''
-              }
-            }
-          "
+          @update:visible="handleClearDropdownSearch($event, 'user')"
         >
           <NcButton type="secondary" size="small">
             <div class="!w-[106px] flex items-center justify-between gap-2">
@@ -256,15 +242,7 @@ const focusTypeSearchRef: VNodeRef = (el) => {
                 </a-input>
               </div>
 
-              <NcMenu
-                class="w-full max-h-[360px] nc-scrollbar-thin"
-                @click="
-                  () => {
-                    auditDropdowns.user = false
-                    loadAudits()
-                  }
-                "
-              >
+              <NcMenu class="w-full max-h-[360px] nc-scrollbar-thin" @click="handleCloseDropdown('user')">
                 <NcMenuItem
                   class="!children:w-full ant-dropdown-menu-item ant-dropdown-menu-item-only-child sticky top-0"
                   @click="auditLogsQuery.user = undefined"
@@ -315,13 +293,7 @@ const focusTypeSearchRef: VNodeRef = (el) => {
         <NcDropdown
           v-if="basesList?.length"
           v-model:visible="auditDropdowns.base"
-          @update:visible="
-            (value) => {
-              if (value) {
-                auditDropdownsSearch.base = ''
-              }
-            }
-          "
+          @update:visible="handleClearDropdownSearch($event, 'base')"
         >
           <NcButton type="secondary" size="small">
             <div class="!w-[106px] flex items-center justify-between gap-2">
@@ -362,23 +334,10 @@ const focusTypeSearchRef: VNodeRef = (el) => {
                 </a-input>
               </div>
 
-              <NcMenu
-                class="w-full max-h-[360px] nc-scrollbar-thin"
-                @click="
-                  () => {
-                    auditDropdowns.base = false
-                    loadAudits()
-                  }
-                "
-              >
+              <NcMenu class="w-full max-h-[360px] nc-scrollbar-thin" @click="handleCloseDropdown('base')">
                 <NcMenuItem
                   class="!children:w-full ant-dropdown-menu-item ant-dropdown-menu-item-only-child"
-                  @click="
-                    () => {
-                      auditLogsQuery.base = undefined
-                      auditLogsQuery.sourceId = undefined
-                    }
-                  "
+                  @click="handleUpdateBaseQuery()"
                 >
                   <div class="w-full flex items-center justify-between gap-3">
                     <span class="flex-1 text-gray-800"> All Bases </span>
@@ -392,12 +351,7 @@ const focusTypeSearchRef: VNodeRef = (el) => {
                       base?.sources?.[0]?.enabled && base.title?.toLowerCase()?.includes(auditDropdownsSearch.base.toLowerCase())
                     "
                     class="!children:w-full ant-dropdown-menu-item ant-dropdown-menu-item-only-child"
-                    @click="
-                      () => {
-                        auditLogsQuery.base = base.id
-                        auditLogsQuery.sourceId = base?.sources?.[0]?.id
-                      }
-                    "
+                    @click="handleUpdateBaseQuery(base.id, base?.sources?.[0]?.id)"
                   >
                     <div class="w-full flex items-center justify-between gap-3">
                       <div class="flex-1 flex items-center gap-2 max-w-[calc(100%_-_28px)]">
@@ -421,16 +375,7 @@ const focusTypeSearchRef: VNodeRef = (el) => {
             </div>
           </template>
         </NcDropdown>
-        <NcDropdown
-          v-model:visible="auditDropdowns.type"
-          @update:visible="
-            (value) => {
-              if (value) {
-                auditDropdownsSearch.type = ''
-              }
-            }
-          "
-        >
+        <NcDropdown v-model:visible="auditDropdowns.type" @update:visible="handleClearDropdownSearch($event, 'type')">
           <NcButton type="secondary" size="small">
             <div class="!w-[106px] flex items-center justify-between gap-2">
               <div class="max-w-full truncate text-sm !leading-5">
@@ -470,15 +415,7 @@ const focusTypeSearchRef: VNodeRef = (el) => {
                 </a-input>
               </div>
 
-              <NcMenu
-                class="w-full max-h-[360px] nc-scrollbar-thin"
-                @click="
-                  () => {
-                    auditDropdowns.type = false
-                    loadAudits()
-                  }
-                "
-              >
+              <NcMenu class="w-full max-h-[360px] nc-scrollbar-thin" @click="handleCloseDropdown('type')">
                 <NcMenuItem
                   class="!children:w-full ant-dropdown-menu-item ant-dropdown-menu-item-only-child"
                   @click="auditLogsQuery.type = undefined"
@@ -489,16 +426,11 @@ const focusTypeSearchRef: VNodeRef = (el) => {
                   </div>
                 </NcMenuItem>
                 <NcDivider />
-                <template v-for="type in auditTypeOptions" :key="type.value">
+                <template v-for="type of auditTypeOptions" :key="type.value">
                   <NcMenuItem
                     v-if="type.label.toLowerCase().includes(auditDropdownsSearch.type.toLowerCase())"
                     class="!children:w-full ant-dropdown-menu-item ant-dropdown-menu-item-only-child"
-                    @click="
-                      () => {
-                        auditLogsQuery.type = type.value
-                        auditLogsQuery.subType = undefined
-                      }
-                    "
+                    @click="auditLogsQuery.type = type.value"
                   >
                     <div class="w-full flex items-center justify-between gap-3">
                       <div class="flex-1 flex items-center gap-2 max-w-[calc(100%_-_28px)] text-gray-800">
@@ -524,7 +456,7 @@ const focusTypeSearchRef: VNodeRef = (el) => {
         <div class="nc-audit-logs-table table h-full">
           <div class="thead sticky top-0">
             <div class="tr">
-              <div class="th cell-user !hover:bg-gray-100" @click="toggleOrderBy('user')">
+              <div class="th cell-user !hover:bg-gray-100" @click="updateOrderBy('user')">
                 <div class="flex items-center gap-3">
                   <div class="flex-1">User</div>
                   <NcButton type="text" size="xs" class="!p-0">
@@ -538,7 +470,7 @@ const focusTypeSearchRef: VNodeRef = (el) => {
                   </NcButton>
                 </div>
               </div>
-              <div class="th cell-timestamp !hover:bg-gray-100" @click="toggleOrderBy('created_at')">
+              <div class="th cell-timestamp !hover:bg-gray-100" @click="updateOrderBy('created_at')">
                 <div class="flex items-center gap-3">
                   <div class="flex-1">Time stamp</div>
                   <NcButton type="text" size="xs" class="!p-0">

@@ -60,7 +60,7 @@ interface AuditLogsQuery {
   user?: string
   search?: string
   sourceId?: string
-  orderBy?: {
+  orderBy: {
     created_at?: 'asc' | 'desc'
     user?: 'asc' | 'desc'
   }

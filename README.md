@@ -87,7 +87,6 @@ docker run -d --name nocodb \
 nocodb/nocodb:latest
 ```
 
- 
 ## Binaries
 - Binaries are only for quick try or testing purposes and not recommended for production use.
 ```

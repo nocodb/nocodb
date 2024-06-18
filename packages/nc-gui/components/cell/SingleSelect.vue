@@ -4,6 +4,7 @@ import { message } from 'ant-design-vue'
 import tinycolor from 'tinycolor2'
 import type { SelectOptionType } from 'nocodb-sdk'
 import type { FormFieldsLimitOptionsType } from '~/lib/types'
+import {useRolesWrapper} from "~/composables/useRoles";
 
 interface Props {
   modelValue?: string | undefined
@@ -49,7 +50,7 @@ const searchVal = ref()
 
 const { getMeta } = useMetas()
 
-const { isUIAllowed } = useRoles()
+const { isUIAllowed } = useRolesWrapper()
 
 const { isPg, isMysql } = useBase()
 

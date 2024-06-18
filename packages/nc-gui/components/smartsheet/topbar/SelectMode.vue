@@ -1,7 +1,9 @@
 <script lang="ts" setup>
+import {useRolesWrapper} from "~/composables/useRoles";
+
 const { openedViewsTab, activeView } = storeToRefs(useViewsStore())
 
-const { isUIAllowed } = useRoles()
+const { isUIAllowed } = useRolesWrapper()
 
 const { onViewsTabChange } = useViewsStore()
 

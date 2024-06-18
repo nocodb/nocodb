@@ -4,6 +4,7 @@ import { storeToRefs } from 'pinia'
 import { toRef } from '@vue/reactivity'
 import { resolveComponent } from '@vue/runtime-core'
 import { ref } from 'vue'
+import {useRolesWrapper} from "~/composables/useRoles";
 
 const props = withDefaults(
   defineProps<{
@@ -19,7 +20,7 @@ const emit = defineEmits<{
   openTableCreateDialog: () => void
 }>()
 
-const { isUIAllowed } = useRoles()
+const { isUIAllowed } = useRolesWrapper()
 
 const base = toRef(props, 'base')
 

@@ -2,6 +2,7 @@
 import type { TableType, ViewType } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
 import { LockType } from '#imports'
+import {useRolesWrapper} from "~/composables/useRoles";
 
 const props = withDefaults(
   defineProps<{
@@ -16,7 +17,7 @@ const props = withDefaults(
 
 const emits = defineEmits(['rename', 'closeModal', 'delete'])
 
-const { isUIAllowed } = useRoles()
+const { isUIAllowed } = useRolesWrapper()
 
 const isPublicView = inject(IsPublicInj, ref(false))
 

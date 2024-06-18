@@ -823,7 +823,7 @@ const onTableIdCopy = async () => {
                             </NcDropdown>
 
                             <NcButton
-                              v-if="isUIAllowed('tableCreate', { roles: baseRole })"
+                              v-if="isUIAllowed('tableCreate', { roles: baseRole, source })"
                               v-e="['c:source:add-table']"
                               type="text"
                               size="xxsmall"

@@ -2,6 +2,7 @@ import type { AuditType, ColumnType, CommentType, TableType } from 'nocodb-sdk'
 import { UITypes, ViewTypes, isVirtualCol } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import dayjs from 'dayjs'
+import {useRolesWrapper} from "~/composables/useRoles";
 
 const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((meta: Ref<TableType>, _row: Ref<Row>) => {
   const { $e, $state, $api } = useNuxtApp()
@@ -61,7 +62,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
   const reloadTrigger = inject(ReloadRowDataHookInj, createEventHook())
 
-  const { isUIAllowed } = useRoles()
+  const { isUIAllowed } = useRolesWrapper()
 
   // getters
   const displayValue = computed(() => {

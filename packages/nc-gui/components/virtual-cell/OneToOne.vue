@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
+import {useRolesWrapper} from "~/composables/useRoles";
 
 const column = inject(ColumnInj)!
 
@@ -18,7 +19,7 @@ const isForm = inject(IsFormInj, ref(false))
 
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 
-const { isUIAllowed } = useRoles()
+const { isUIAllowed } = useRolesWrapper()
 
 const listItemsDlg = ref(false)
 

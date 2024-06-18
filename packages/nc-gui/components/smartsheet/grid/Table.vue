@@ -166,7 +166,7 @@ const isViewColumnsLoading = computed(() => _isViewColumnsLoading.value || !meta
 const resizingColumn = ref(false)
 
 // #Permissions
-const { isUIAllowed } = useRoles()
+const { isUIAllowed } = useRolesWrapper()
 const hasEditPermission = computed(() => isUIAllowed('dataEdit'))
 const isAddingColumnAllowed = computed(() => !readOnly.value && !isLocked.value && isUIAllowed('fieldAdd') && !isSqlView.value)
 

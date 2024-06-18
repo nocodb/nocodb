@@ -10,6 +10,7 @@ import {
   SSLUsage,
   clientTypes as _clientTypes,
 } from '#imports'
+import {SourceRestriction} from "nocodb-sdk";
 
 const props = defineProps<{ open: boolean; connectionType?: ClientType }>()
 
@@ -56,8 +57,8 @@ const formState = ref<ProjectCreateForm>({
   sslUse: SSLUsage.No,
   extraParameters: [],
   meta: {
-    readOnlySchema: true,
-    readOnlyData: false,
+    [SourceRestriction.META_READONLY]: true,
+    [SourceRestriction.DATA_READONLY]: false,
   },
 })
 
@@ -515,10 +516,10 @@ const toggleModal = (val: boolean) => {
               </a-form-item>
 
               <a-form-item label="Readonly Schema">
-                <a-switch v-model:checked="formState.meta.readOnlySchema" size="small"></a-switch>
+                <a-switch v-model:checked="formState.meta[SourceRestriction.META_READONLY]" size="small"></a-switch>
               </a-form-item>
               <a-form-item label="Readonly Data">
-                <a-switch v-model:checked="formState.meta.readOnlyData" size="small"></a-switch>
+                <a-switch v-model:checked="formState.meta[SourceRestriction.DATA_READONLY]" size="small"></a-switch>
               </a-form-item>
 
               <div class="flex items-right justify-end gap-2">

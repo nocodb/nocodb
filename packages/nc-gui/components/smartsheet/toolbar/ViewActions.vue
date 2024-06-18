@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type { Ref } from '@vue/reactivity'
 import { LockType } from '#imports'
+import {useRolesWrapper} from "~/composables/useRoles";
 
 const { t } = useI18n()
 
@@ -37,7 +38,7 @@ const quickImportDialogs: Record<(typeof quickImportDialogTypes)[number], Ref<bo
   {},
 ) as Record<QuickImportDialogType, Ref<boolean>>
 
-const { isUIAllowed } = useRoles()
+const { isUIAllowed } = useRolesWrapper()
 
 useBase()
 

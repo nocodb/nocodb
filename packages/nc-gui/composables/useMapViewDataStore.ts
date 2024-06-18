@@ -1,5 +1,6 @@
 import type { ComputedRef, Ref } from 'vue'
 import type { ColumnType, MapType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
+import {useRolesWrapper} from "~/composables/useRoles";
 
 const formatData = (list: Record<string, any>[]) =>
   list.map(
@@ -32,7 +33,7 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
 
     const { $api } = useNuxtApp()
 
-    const { isUIAllowed } = useRoles()
+    const { isUIAllowed } = useRolesWrapper()
 
     const isPublic = ref(shared) || inject(IsPublicInj, ref(false))
 

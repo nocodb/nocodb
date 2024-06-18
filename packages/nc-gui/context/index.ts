@@ -1,4 +1,4 @@
-import type { ColumnType, FilterType, TableType, ViewType } from 'nocodb-sdk'
+import type { ColumnType, FilterType, SourceType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, InjectionKey, Ref } from 'vue'
 import type { EventHook } from '@vueuse/core'
 import type { PageSidebarNode } from '#imports'
@@ -60,3 +60,10 @@ export const JsonExpandInj: InjectionKey<Ref<boolean>> = Symbol('json-expand-inj
 export const AllFiltersInj: InjectionKey<Ref<Record<string, FilterType[]>>> = Symbol('all-filters-injection')
 
 export const IsAdminPanelInj: InjectionKey<Ref<boolean>> = Symbol('is-admin-panel-injection')
+export const ActiveSourceInj: InjectionKey<
+  ComputedRef<
+    SourceType & {
+      meta?: Record<string, any>
+    }
+  >
+> = Symbol('active-source-injection')

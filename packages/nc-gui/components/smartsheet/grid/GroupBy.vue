@@ -362,13 +362,16 @@ const expandAllGroup = () => {
 
                   <template #overlay>
                     <NcMenu>
-                      <NcMenuItem v-if="activeGroups.includes(grp.key)" @click="collapseGroup(grp.key)"> Collapse </NcMenuItem>
+                      <NcMenuItem v-if="activeGroups.includes(grp.key)" @click="collapseGroup(grp.key)">
+                        <GeneralIcon icon="minimize" />
+                        Collapse Group
+                      </NcMenuItem>
                       <NcMenuItem v-else @click="expandGroup(grp.key)">
                         <GeneralIcon icon="maximize" />
-                        Expand
+                        Expand Group
                       </NcMenuItem>
                       <NcMenuItem @click="collapseAllGroup">
-                        <GeneralIcon icon="minimize" />
+                        <GeneralIcon icon="minimizeAll" />
                         Collapse all
                       </NcMenuItem>
                       <NcMenuItem @click="expandAllGroup">

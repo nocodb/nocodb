@@ -223,13 +223,13 @@ const onMove = async (_event: {
       />
       <div
         v-else
-        class="flex flex-col bg-white overflow-auto nc-group-by-list menu-filter-dropdown max-h-[max(80vh,500px)] min-w-102 pt-2 pb-2 pl-4"
+        class="flex flex-col bg-white overflow-auto nc-group-by-list menu-filter-dropdown w-100 p-6"
         data-testid="nc-group-by-menu"
       >
-        <div class="group-by-grid max-h-100 nc-scrollbar-thing pr-4 py-2" @click.stop>
+        <div class="max-h-100" @click.stop>
           <Draggable v-model="_groupBy" item-key="id" ghost-class="bg-gray-50" @change="onMove($event)">
             <template #item="{ element: group }">
-              <div class="flex first:mb-0 !mb-5 items-center">
+              <div class="flex first:mb-0 !mb-5 !last:mb-0 items-center">
                 <NcButton type="secondary" size="small" class="!border-r-transparent !rounded-r-none">
                   <component :is="iconMap.drag" />
                 </NcButton>
@@ -269,6 +269,24 @@ const onMove = async (_event: {
                   </a-select-option>
                 </NcSelect>
 
+                <NcDropdown :disabled="!isColumnSupportsGroupBySettings(columnByID[group.fk_column_id])" :trigger="['click']">
+                  <NcButton
+                    :disabled="!isColumnSupportsGroupBySettings(columnByID[group.fk_column_id])"
+                    class="!rounded-none !border-gray-200 !border-l-transparent"
+                    type="secondary"
+                    size="small"
+                  >
+                    <GeneralIcon icon="ncSettings" />
+                  </NcButton>
+
+                  <template #overlay>
+                    <NcMenu>
+                      <NcMenuItem> Hide groups with no records </NcMenuItem>
+                      <NcMenuItem> Show groups with no records </NcMenuItem>
+                    </NcMenu>
+                  </template>
+                </NcDropdown>
+
                 <NcTooltip placement="top" title="Remove" class="flex-none">
                   <NcButton
                     v-e="['c:group-by:remove']"
@@ -295,7 +313,7 @@ const onMove = async (_event: {
         >
           <NcButton
             v-e="['c:group-by:add']"
-            class="nc-add-group-by-btn mt-1 mb-2"
+            class="nc-add-group-by-btn mt-5"
             style="width: fit-content"
             size="small"
             type="text"
@@ -322,12 +340,6 @@ const onMove = async (_event: {
 </template>
 
 <style scoped lang="scss">
-.group-by-grid {
-  display: grid;
-  grid-template-columns: auto 150px auto;
-  @apply gap-x-2 gap-y-3;
-}
-
 :deep(.nc-sort-field-select) {
   .ant-select-selector {
     @apply !rounded-none !shadow-none;

@@ -1606,9 +1606,9 @@ onKeyStroke('ArrowDown', onDown)
     <div ref="gridWrapper" class="nc-grid-wrapper min-h-0 flex-1 relative" :class="gridWrapperClass">
       <div
         v-show="isPaginationLoading && !headerOnly"
-        class="flex items-center justify-center absolute l-0 t-0 w-full h-full z-10 pb-10 pointer-events-none"
+        class="flex items-center justify-center bg-white/80 absolute l-0 t-0 w-full h-full z-10 pb-10 pointer-events-none"
       >
-        <div class="flex flex-col justify-center gap-2">
+        <div class="flex flex-col items-center justify-center gap-2">
           <GeneralLoader size="xlarge" />
           <span class="text-center" v-html="loaderText"></span>
         </div>

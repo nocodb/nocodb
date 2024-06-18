@@ -147,13 +147,6 @@ NocoDB nécessite une base de données pour stocker les métadonnées des vues d
 
 ## Docker 
 
-#### Exemple MySQL
-```
-docker run -d -p 8080:8080 \
-    -e NC_DB="mysql2://host.docker.internal:3306?u=root&p=password&d=d1" \
-    -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
-    nocodb/nocodb:latest
-```
 
 #### Exemple Postgres
 ```
@@ -169,7 +162,7 @@ docker run -d -p 8080:8080 \
 git clone https://github.com/nocodb/nocodb
 cd nocodb
 cd docker-compose
-cd mysql or pg 
+cd pg 
 docker-compose up -d
 ```
 

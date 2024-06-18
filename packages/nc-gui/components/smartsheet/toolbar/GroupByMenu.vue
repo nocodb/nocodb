@@ -225,7 +225,7 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number } }) 
             @end="isDragging = false"
           >
             <template #item="{ element: group }">
-              <div :key="group.fk_column_id" class="flex first:mb-0 !mb-5 !last:mb-0 items-center">
+              <div :key="group.fk_column_id" class="flex first:mb-0 !mb-1.5 !last:mb-0 items-center">
                 <NcButton type="secondary" size="small" class="!border-r-transparent !rounded-r-none">
                   <component :is="iconMap.drag" />
                 </NcButton>

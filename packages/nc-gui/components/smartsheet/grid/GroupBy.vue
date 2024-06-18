@@ -343,11 +343,7 @@ const bgColor = computed(() => {
     :style="`${!vGroup.root && vGroup.nested ? 'padding-left: 8px; padding-right: 8px;' : ''}`"
     @scroll="onScroll"
   >
-    <div
-      ref="scrollable"
-      :class="{ 'my-2': vGroup.root !== true }"
-      :style="`${vGroup.root === true ? 'width: fit-content' : 'width: 100%'}`"
-    >
+    <div ref="scrollable" :style="`${vGroup.root === true ? 'width: fit-content' : 'width: 100%'}`">
       <div v-if="vGroup.root === true" class="flex sticky top-0 z-5">
         <div
           class="border-b-1 border-gray-200 mb-2"

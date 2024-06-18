@@ -28,6 +28,7 @@ export default class Audit extends AuditCE {
       search?: string;
       orderBy?: {
         created_at?: 'asc' | 'desc';
+        user?: 'asc' | 'desc';
       };
     },
   ) {
@@ -53,14 +54,17 @@ export default class Audit extends AuditCE {
         limit,
         offset,
         condition,
-        orderBy: { created_at: orderBy?.created_at || 'desc' },
+        orderBy: {
+          created_at: orderBy?.created_at || 'desc',
+          ...(orderBy?.user ? { user: orderBy?.user } : {}),
+        },
         xcCondition: {
           _or: [
-            ...(search
+            ...(search?.trim()
               ? [
                   {
                     user: {
-                      like: `%${search}%`,
+                      like: `%${search.toLowerCase()}%`,
                     },
                   },
                   {
@@ -120,11 +124,11 @@ export default class Audit extends AuditCE {
         condition,
         xcCondition: {
           _or: [
-            ...(search
+            ...(search?.trim()
               ? [
                   {
                     user: {
-                      like: `%${search}%`,
+                      like: `%${search.toLowerCase()}%`,
                     },
                   },
                   {

@@ -2995,6 +2995,15 @@
                     "desc"
                   ],
                   "example": "desc"
+                },
+                "user": {
+                  "type": "string",
+                  "description": "Sort direction",
+                  "enum": [
+                    "asc",
+                    "desc"
+                  ],
+                  "example": "desc"
                 }
               },
               "type": "object"

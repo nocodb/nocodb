@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
+import Draggable from 'vuedraggable'
 
 const meta = inject(MetaInj, ref())
 const view = inject(ActiveViewInj, ref())
@@ -197,55 +198,65 @@ eventBus.on(async (event, column) => {
         data-testid="nc-group-by-menu"
       >
         <div class="group-by-grid max-h-100 nc-scrollbar-thing pr-4 py-2" @click.stop>
-          <template v-for="[i, group] of Object.entries(_groupBy)" :key="`grouped-by-${group.fk_column_id}`">
-            <LazySmartsheetToolbarFieldListAutoCompleteDropdown
-              v-model="group.fk_column_id"
-              class="caption nc-sort-field-select w-44 flex flex-grow"
-              :columns="fieldsToGroupBy"
-              :allow-empty="true"
-              :meta="meta"
-              @change="saveGroupBy"
-              @click.stop
-            />
-            <NcSelect
-              ref=""
-              v-model:value="group.sort"
-              class="shrink grow-0 nc-sort-dir-select"
-              :label="$t('labels.operation')"
-              dropdown-class-name="sort-dir-dropdown nc-dropdown-sort-dir"
-              :disabled="!group.fk_column_id"
-              @change="saveGroupBy"
-              @click.stop
-            >
-              <a-select-option
-                v-for="(option, j) of getSortDirectionOptions(getColumnUidtByID(group.fk_column_id), true)"
-                :key="j"
-                :value="option.value"
-              >
-                <div class="w-full flex items-center justify-between gap-2">
-                  <div class="truncate flex-1">{{ option.text }}</div>
-                  <component
-                    :is="iconMap.check"
-                    v-if="group.sort === option.value"
-                    id="nc-selected-item-icon"
-                    class="text-primary w-4 h-4"
-                  />
-                </div>
-              </a-select-option>
-            </NcSelect>
+          <Draggable v-model="_groupBy" item-key="id" ghost-class="">
+            <template #item="{ element: group }">
+              <div class="flex first:mb-0 !mb-5 items-center">
+                <NcButton type="secondary" size="small" class="!border-r-transparent !rounded-r-none">
+                  <component :is="iconMap.drag" />
+                </NcButton>
+                <LazySmartsheetToolbarFieldListAutoCompleteDropdown
+                  v-model="group.fk_column_id"
+                  class="caption nc-sort-field-select w-44 flex flex-grow"
+                  :columns="fieldsToGroupBy"
+                  :allow-empty="true"
+                  :meta="meta"
+                  @change="saveGroupBy"
+                  @click.stop
+                />
+                <NcSelect
+                  ref=""
+                  v-model:value="group.sort"
+                  class="shrink grow-0 nc-sort-dir-select"
+                  :label="$t('labels.operation')"
+                  dropdown-class-name="sort-dir-dropdown nc-dropdown-sort-dir"
+                  :disabled="!group.fk_column_id"
+                  @change="saveGroupBy"
+                  @click.stop
+                >
+                  <a-select-option
+                    v-for="(option, j) of getSortDirectionOptions(getColumnUidtByID(group.fk_column_id), true)"
+                    :key="j"
+                    :value="option.value"
+                  >
+                    <div class="w-full flex items-center justify-between gap-2">
+                      <div class="truncate flex-1">{{ option.text }}</div>
+                      <component
+                        :is="iconMap.check"
+                        v-if="group.sort === option.value"
+                        id="nc-selected-item-icon"
+                        class="text-primary w-4 h-4"
+                      />
+                    </div>
+                  </a-select-option>
+                </NcSelect>
 
-            <a-tooltip placement="right" title="Remove" class="flex-none min-w-40">
-              <NcButton
-                v-e="['c:group-by:remove']"
-                class="nc-group-by-item-remove-btn min-w-40"
-                size="small"
-                type="text"
-                @click.stop="removeFieldFromGroupBy(i)"
-              >
-                <component :is="iconMap.deleteListItem" />
-              </NcButton>
-            </a-tooltip>
-          </template>
+                <NcTooltip placement="top" title="Remove" class="flex-none">
+                  <NcButton
+                    v-e="['c:group-by:remove']"
+                    class="nc-group-by-item-remove-btn !border-l-transparent !rounded-l-none min-w-40"
+                    size="small"
+                    type="secondary"
+                    @click.stop="removeFieldFromGroupBy(i)"
+                  >
+                    <component :is="iconMap.deleteListItem" />
+                  </NcButton>
+                </NcTooltip>
+              </div>
+            </template>
+          </Draggable>
+          <!--
+          <template v-for="[i, group] of Object.entries(_groupBy)" :key="`grouped-by-${group.fk_column_id}`"> </template>
+-->
         </div>
         <NcDropdown
           v-if="availableColumns.length && fieldsToGroupBy.length > _groupBy.length && _groupBy.length < groupByLimit"
@@ -255,7 +266,7 @@ eventBus.on(async (event, column) => {
         >
           <NcButton
             v-e="['c:group-by:add']"
-            class="nc-add-group-by-btn !text-brand-500 mt-1 mb-2"
+            class="nc-add-group-by-btn mt-1 mb-2"
             style="width: fit-content"
             size="small"
             type="text"
@@ -281,10 +292,21 @@ eventBus.on(async (event, column) => {
   </NcDropdown>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .group-by-grid {
   display: grid;
   grid-template-columns: auto 150px auto;
   @apply gap-x-2 gap-y-3;
+}
+
+:deep(.nc-sort-field-select) {
+  .ant-select-selector {
+    @apply !rounded-none !shadow-none;
+  }
+}
+:deep(.nc-sort-dir-select) {
+  .ant-select-selector {
+    @apply !rounded-none !border-l-transparent !hover:border-l-brand-500 !shadow-none;
+  }
 }
 </style>

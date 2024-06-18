@@ -1123,7 +1123,7 @@ const maxGridWidth = computed(() => {
 
 const maxGridHeight = computed(() => {
   // 2 extra rows for the add new row and the sticky header
-  return dataRef.value.length * rowHeightInPx[`${props.rowHeight}`] + 2 * rowHeightInPx[`${props.rowHeight}`]
+  return dataRef.value.length * rowHeightInPx[`${props.rowHeight}`]
 })
 
 const colSlice = ref({
@@ -1887,7 +1887,7 @@ onKeyStroke('ArrowDown', onDown)
               :class="{
                 'mobile': isMobileMode,
                 'desktop': !isMobileMode,
-                'pr-60 pb-12': !headerOnly,
+                'pr-60': !headerOnly,
                 'w-full': dataRef.length === 0,
               }"
               :style="{
@@ -1961,10 +1961,7 @@ onKeyStroke('ArrowDown', onDown)
                             <span
                               v-if="row.rowMeta?.commentCount && expandForm"
                               v-e="['c:expanded-form:open']"
-                              class="py-1 px-1 rounded-full text-xs cursor-pointer select-none transform hover:(scale-110)"
-                              :style="{
-                                backgroundColor: getEnumColorByIndex(row.rowMeta.commentCount || 0),
-                              }"
+                              class="py-1 px-1 rounded-md text-xs cursor-pointer select-none transform bg-brand-500 text-brand-50"
                               @click="expandAndLooseFocus(row, state)"
                             >
                               {{ row.rowMeta.commentCount }}

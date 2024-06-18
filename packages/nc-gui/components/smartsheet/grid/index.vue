@@ -198,7 +198,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div :style="`width: ${viewWidth}px`" class="h-full overflow-x-hidden">
+  <div :style="`width: ${viewWidth}px`" class="h-full">
     <div
       class="relative flex flex-col h-full min-h-0 w-full nc-grid-wrapper"
       data-testid="nc-grid-wrapper"

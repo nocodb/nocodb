@@ -31,7 +31,23 @@ const emits = defineEmits(['update:paginationData'])
 
 const vGroup = useVModel(props, 'group', emits)
 
+const meta = inject(MetaInj, ref())
+
 const { isViewDataLoading, isPaginationLoading } = storeToRefs(useViewsStore())
+
+const { gridViewCols } = useViewColumnsOrThrow()
+
+const displayField = computed(() => {
+  return meta.value?.columns?.find((c) => c.pv)
+})
+
+const viewDisplayField = computed(() => {
+  if (!displayField.value || !displayField.value.id)
+    return {
+      width: '100px',
+    }
+  return gridViewCols.value[displayField.value.id]
+})
 
 const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 
@@ -241,7 +257,7 @@ const expandAllGroup = () => {
     ref="wrapper"
     :class="{ 'overflow-y-auto': vGroup.root === true }"
     class="h-full"
-    :style="`${!vGroup.root && vGroup.nested ? 'padding-left: 12px; padding-right: 12px;' : ''}`"
+    :style="`${!vGroup.root && vGroup.nested ? 'padding-left: 8px; padding-right: 8px;' : ''}`"
     @scroll="onScroll"
   >
     <div
@@ -253,11 +269,11 @@ const expandAllGroup = () => {
         <div
           class="border-b-1 border-gray-200 mb-2"
           style="background-color: #f9f9fa"
-          :style="{ 'padding-left': `${(maxDepth || 1) * 13}px` }"
+          :style="{ 'padding-left': `${(maxDepth || 1) * 9}px` }"
         ></div>
         <Table ref="tableHeader" class="mb-2" :data="[]" :header-only="true" />
       </div>
-      <div :class="{ 'pl-3': vGroup.root === true }">
+      <div :class="{ 'pl-2': vGroup.root === true }">
         <a-collapse
           v-model:activeKey="_activeGroupKeys"
           class="!bg-transparent nc-group-wrapper"
@@ -268,8 +284,8 @@ const expandAllGroup = () => {
             v-for="[i, grp] of Object.entries(vGroup?.children ?? [])"
             :key="`group-panel-${grp.key}`"
             class="!border-1 border-gray-200 nc-group rounded-[8px]"
-            :style="`background: rgb(${245 - _depth * 10}, ${245 - _depth * 10}, ${245 - _depth * 10})`"
-            :class="{ 'mb-4': vGroup.children && +i !== vGroup.children.length - 1 }"
+            :style="`background: rgb(${245 - _depth * 10}, ${245 - _depth * 10}, ${245 - _depth * 10});`"
+            :class="{ 'mb-2': vGroup.children && +i !== vGroup.children.length - 1 }"
             :show-arrow="false"
           >
             <template #header>
@@ -280,109 +296,128 @@ const expandAllGroup = () => {
                 }"
                 class="flex !sticky w-full items-center group !hover:bg-[#F4F4F5] select-none transition-all !rounded-t-[8px] !h-10"
               >
-                <div class="!sticky flex items-center left-0">
-                  <NcButton class="!border-0 !shadow-none !bg-transparent !hover:bg-transparent" type="secondary" size="small">
-                    <GeneralIcon
-                      icon="chevronDown"
-                      class="transition-all"
-                      :style="`${activeGroups.includes(grp.key) ? 'transform: rotate(360deg)' : 'transform: rotate(270deg)'}`"
-                    />
-                  </NcButton>
+                <div
+                  :class="{
+                    [`w-[${
+                      Number((viewDisplayField?.width ?? '').replace('px', '')) +
+                      82 +
+                      ((): number => {
+                        const tempScrollLeft = scrollLeft ?? 0
 
-                  <div class="flex">
-                    <template v-if="grp.column.uidt === 'MultiSelect'">
+                        // f(tempScrollLeft < 26) return -26
+
+                        return 0
+                      })()
+                    }px]`]: viewDisplayField?.width,
+                  }"
+                  class="!sticky flex justify-between !h-10 border-r-1 pr-2 border-gray-200 overflow-clip items-center !left-2"
+                >
+                  <div class="flex items-center">
+                    <NcButton class="!border-0 !shadow-none !bg-transparent !hover:bg-transparent" type="secondary" size="small">
+                      <GeneralIcon
+                        icon="chevronDown"
+                        class="transition-all"
+                        :style="`${activeGroups.includes(grp.key) ? 'transform: rotate(360deg)' : 'transform: rotate(270deg)'}`"
+                      />
+                    </NcButton>
+
+                    <div class="flex">
+                      <template v-if="grp.column.uidt === 'MultiSelect'">
+                        <a-tag
+                          v-for="[tagIndex, tag] of Object.entries(grp.key.split(','))"
+                          :key="`panel-tag-${grp.column.id}-${tag}`"
+                          class="!py-0 !px-[12px] !rounded-[12px]"
+                          :color="grp.color.split(',')[+tagIndex]"
+                        >
+                          <span
+                            class="nc-group-value"
+                            :style="{
+                              'color': tinycolor.isReadable(grp.color.split(',')[+tagIndex] || '#ccc', '#fff', {
+                                level: 'AA',
+                                size: 'large',
+                              })
+                                ? '#fff'
+                                : tinycolor
+                                    .mostReadable(grp.color.split(',')[+tagIndex] || '#ccc', ['#0b1d05', '#fff'])
+                                    .toHex8String(),
+                              'font-size': '14px',
+                              'font-weight': 500,
+                            }"
+                          >
+                            {{ tag in GROUP_BY_VARS.VAR_TITLES ? GROUP_BY_VARS.VAR_TITLES[tag] : tag }}
+                          </span>
+                        </a-tag>
+                      </template>
+                      <div
+                        v-else-if="!(grp.key in GROUP_BY_VARS.VAR_TITLES) && shouldRenderCell(grp.column)"
+                        class="flex min-w-[100px] flex-wrap"
+                      >
+                        <template v-for="(val, ind) of parseKey(grp)" :key="ind">
+                          <GroupByLabel v-if="val" :column="grp.column" :model-value="val" />
+                          <span v-else class="text-gray-400">No mapped value</span>
+                        </template>
+                      </div>
                       <a-tag
-                        v-for="[tagIndex, tag] of Object.entries(grp.key.split(','))"
-                        :key="`panel-tag-${grp.column.id}-${tag}`"
-                        class="!py-0 !px-[12px] !rounded-[12px]"
-                        :color="grp.color.split(',')[+tagIndex]"
+                        v-else
+                        :key="`panel-tag-${grp.column.id}-${grp.key}`"
+                        class="!py-0 !px-[12px]"
+                        :class="`${grp.column.uidt === 'SingleSelect' ? '!rounded-[12px]' : '!rounded-[6px]'}`"
+                        :color="grp.color"
                       >
                         <span
-                          class="nc-group-value"
+                          class="nc-group-value font-semibold text-[13px]"
                           :style="{
-                            'color': tinycolor.isReadable(grp.color.split(',')[+tagIndex] || '#ccc', '#fff', {
+                            color: tinycolor.isReadable(grp.color || '#ccc', '#fff', {
                               level: 'AA',
                               size: 'large',
                             })
                               ? '#fff'
-                              : tinycolor
-                                  .mostReadable(grp.color.split(',')[+tagIndex] || '#ccc', ['#0b1d05', '#fff'])
-                                  .toHex8String(),
-                            'font-size': '14px',
-                            'font-weight': 500,
+                              : tinycolor.mostReadable(grp.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
                           }"
                         >
-                          {{ tag in GROUP_BY_VARS.VAR_TITLES ? GROUP_BY_VARS.VAR_TITLES[tag] : tag }}
+                          <template v-if="grp.key in GROUP_BY_VARS.VAR_TITLES">{{ GROUP_BY_VARS.VAR_TITLES[grp.key] }}</template>
+                          <template v-else>
+                            {{ parseKey(grp)?.join(', ') }}
+                          </template>
                         </span>
                       </a-tag>
-                    </template>
-                    <div
-                      v-else-if="!(grp.key in GROUP_BY_VARS.VAR_TITLES) && shouldRenderCell(grp.column)"
-                      class="flex min-w-[100px] flex-wrap"
-                    >
-                      <template v-for="(val, ind) of parseKey(grp)" :key="ind">
-                        <GroupByLabel v-if="val" :column="grp.column" :model-value="val" />
-                        <span v-else class="text-gray-400">No mapped value</span>
-                      </template>
                     </div>
-                    <a-tag
-                      v-else
-                      :key="`panel-tag-${grp.column.id}-${grp.key}`"
-                      class="!py-0 !px-[12px]"
-                      :class="`${grp.column.uidt === 'SingleSelect' ? '!rounded-[12px]' : '!rounded-[6px]'}`"
-                      :color="grp.color"
-                    >
-                      <span
-                        class="nc-group-value font-semibold text-[13px]"
-                        :style="{
-                          color: tinycolor.isReadable(grp.color || '#ccc', '#fff', {
-                            level: 'AA',
-                            size: 'large',
-                          })
-                            ? '#fff'
-                            : tinycolor.mostReadable(grp.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
-                        }"
-                      >
-                        <template v-if="grp.key in GROUP_BY_VARS.VAR_TITLES">{{ GROUP_BY_VARS.VAR_TITLES[grp.key] }}</template>
-                        <template v-else>
-                          {{ parseKey(grp)?.join(', ') }}
-                        </template>
+                  </div>
+                  <div class="flex items-center">
+                    <div class="text-xs group-hover:hidden text-gray-500 nc-group-row-count">
+                      <span>
+                        {{ $t('datatype.Count') }}
                       </span>
-                    </a-tag>
-                  </div>
-                  <div class="text-xs text-gray-500 nc-group-row-count">
-                    <span>
-                      {{ $t('datatype.Count') }}
-                    </span>
-                    <span class="text-[#374151] ml-2"> {{ grp.count }} </span>
-                  </div>
+                      <span class="text-[#374151] ml-2"> {{ grp.count }} </span>
+                    </div>
 
-                  <NcDropdown class="opacity-0 group-hover:opacity-100">
-                    <NcButton size="small" type="text" @click.stop>
-                      <GeneralIcon icon="threeDotVertical" />
-                    </NcButton>
+                    <NcDropdown class="!hidden !group-hover:block">
+                      <NcButton size="small" type="text" @click.stop>
+                        <GeneralIcon icon="threeDotVertical" />
+                      </NcButton>
 
-                    <template #overlay>
-                      <NcMenu>
-                        <NcMenuItem v-if="activeGroups.includes(grp.key)" @click="collapseGroup(grp.key)">
-                          <GeneralIcon icon="minimize" />
-                          Collapse Group
-                        </NcMenuItem>
-                        <NcMenuItem v-else @click="expandGroup(grp.key)">
-                          <GeneralIcon icon="maximize" />
-                          Expand Group
-                        </NcMenuItem>
-                        <NcMenuItem @click="expandAllGroup">
-                          <GeneralIcon icon="maximizeAll" />
-                          Expand all
-                        </NcMenuItem>
-                        <NcMenuItem @click="collapseAllGroup">
-                          <GeneralIcon icon="minimizeAll" />
-                          Collapse all
-                        </NcMenuItem>
-                      </NcMenu>
-                    </template>
-                  </NcDropdown>
+                      <template #overlay>
+                        <NcMenu>
+                          <NcMenuItem v-if="activeGroups.includes(grp.key)" @click="collapseGroup(grp.key)">
+                            <GeneralIcon icon="minimize" />
+                            Collapse Group
+                          </NcMenuItem>
+                          <NcMenuItem v-else @click="expandGroup(grp.key)">
+                            <GeneralIcon icon="maximize" />
+                            Expand Group
+                          </NcMenuItem>
+                          <NcMenuItem @click="expandAllGroup">
+                            <GeneralIcon icon="maximizeAll" />
+                            Expand all
+                          </NcMenuItem>
+                          <NcMenuItem @click="collapseAllGroup">
+                            <GeneralIcon icon="minimizeAll" />
+                            Collapse all
+                          </NcMenuItem>
+                        </NcMenu>
+                      </template>
+                    </NcDropdown>
+                  </div>
                 </div>
               </div>
             </template>
@@ -441,8 +476,8 @@ const expandAllGroup = () => {
     show-api-timing
     :change-page="(p: number) => groupWrapperChangePage(p, vGroup)"
     :hide-sidebars="true"
-    :style="`${props.depth && props.depth > 0 ? 'border-radius: 0 0 8px 8px !important;' : ''}margin-left: ${scrollBump}px;`"
-    :fixed-size="fullPage ? props.viewWidth : undefined"
+    :style="`${props.depth && props.depth > 0 ? 'border-radius: 0 0 8px 8px !important;' : ''}`"
+    :fixed-size="undefined"
   ></LazySmartsheetPagination>
 </template>
 

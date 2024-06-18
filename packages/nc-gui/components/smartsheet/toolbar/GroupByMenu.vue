@@ -265,7 +265,7 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number } }) 
                   </a-select-option>
                 </NcSelect>
 
-                <NcDropdown :disabled="!isColumnSupportsGroupBySettings(columnByID[group.fk_column_id])" :trigger="['click']">
+                <!--                <NcDropdown :disabled="!isColumnSupportsGroupBySettings(columnByID[group.fk_column_id])" :trigger="['click']">
                   <NcButton
                     :disabled="!isColumnSupportsGroupBySettings(columnByID[group.fk_column_id])"
                     class="!rounded-none !border-gray-200 !border-l-transparent"
@@ -281,7 +281,7 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number } }) 
                       <NcMenuItem> Show groups with no records </NcMenuItem>
                     </NcMenu>
                   </template>
-                </NcDropdown>
+                </NcDropdown> -->
 
                 <NcTooltip placement="top" title="Remove" class="flex-none">
                   <NcButton

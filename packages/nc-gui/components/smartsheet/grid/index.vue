@@ -190,6 +190,19 @@ const updateViewWidth = () => {
   viewWidth.value = windowSize.value - leftSidebarWidth.value
 }
 
+const baseColor = computed(() => {
+  switch (groupBy.value.length) {
+    case 1:
+      return '#F9F9FA'
+    case 2:
+      return '#F4F4F5'
+    case 3:
+      return '#E7E7E9'
+    default:
+      return '#F9F9FA'
+  }
+})
+
 watch([windowSize, leftSidebarWidth], updateViewWidth)
 
 onMounted(() => {
@@ -201,7 +214,7 @@ onMounted(() => {
   <div
     class="relative flex flex-col h-full min-h-0 w-full nc-grid-wrapper"
     data-testid="nc-grid-wrapper"
-    :style="`background-color: var(--nc-grid-bg); width: ${viewWidth}px;`"
+    :style="`width: ${viewWidth}px; background-color: ${isGroupBy ? `${baseColor}` : 'var(--nc-grid-bg)'};`"
   >
     <Table
       v-if="!isGroupBy"

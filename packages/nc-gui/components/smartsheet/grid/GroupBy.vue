@@ -271,7 +271,6 @@ const computedWidth = computed(() => {
       default:
         return `${baseValue}px`
     }
-    return baseValue
   }
 
   if (_depth === 0) {
@@ -305,6 +304,35 @@ const computedWidth = computed(() => {
 
   return `${baseValue}px`
 })
+
+const bgColor = computed(() => {
+  console.log(props.group.key, 'props.maxDepth', props.maxDepth, _depth)
+  if (props.maxDepth === 3) {
+    switch (_depth) {
+      case 2:
+        return '#F9F9FA'
+      case 1:
+        return '#F4F4F5'
+      default:
+        return '#F1F1F1'
+    }
+  }
+
+  if (props.maxDepth === 2) {
+    switch (_depth) {
+      case 1:
+        return '#F9F9FA'
+      default:
+        return '#F4F4F5'
+    }
+  }
+
+  if (props.maxDepth === 1) {
+    return '#F9F9FA'
+  }
+
+  return '#F9F9FA'
+})
 </script>
 
 <template>
@@ -323,37 +351,37 @@ const computedWidth = computed(() => {
       <div v-if="vGroup.root === true" class="flex sticky top-0 z-5">
         <div
           class="border-b-1 border-gray-200 mb-2"
-          style="background-color: #f9f9fa"
+          style="background-color: #f4f4f5"
           :style="{ 'padding-left': `${(maxDepth || 1) * 9}px` }"
         ></div>
-        <Table ref="tableHeader" class="mb-2" :data="[]" :header-only="true" />
+        <Table ref="tableHeader" class="mb-2" :data="[]" :hide-checkbox="true" :header-only="true" />
       </div>
       <div :class="{ 'pl-2': vGroup.root === true }">
         <a-collapse
           v-model:activeKey="_activeGroupKeys"
-          class="!bg-transparent nc-group-wrapper"
+          class="nc-group-wrapper !rounded-lg"
           :bordered="false"
           @change="findAndLoadSubGroup"
         >
           <a-collapse-panel
             v-for="[i, grp] of Object.entries(vGroup?.children ?? [])"
             :key="`group-panel-${grp.key}`"
-            class="!border-1 border-gray-200 nc-group rounded-[8px]"
-            :style="`background: rgb(${245 - _depth * 10}, ${245 - _depth * 10}, ${245 - _depth * 10});`"
+            class="!border-1 border-gray-300 nc-group rounded-[8px]"
+            :style="`background: ${bgColor};`"
             :class="{ 'mb-2': vGroup.children && +i !== vGroup.children.length - 1 }"
             :show-arrow="false"
           >
             <template #header>
               <div
                 :class="{
-                  'hover:rounded-b-lg': !activeGroups.includes(grp.key),
-                  'border-b-1': activeGroups.includes(grp.key),
+                  '!rounded-b-none': activeGroups.includes(grp.key),
+                  'border-b-1': _depth === (maxDepth ?? 1) - 1 && activeGroups.includes(grp.key),
                 }"
-                class="flex !sticky w-full items-center group !hover:bg-[#F4F4F5] select-none transition-all !rounded-t-[8px] !h-10"
+                class="flex !sticky w-full items-center rounded-b-lg group select-none transition-all !rounded-t-[8px] !h-10"
               >
                 <div
                   :style="`width:${computedWidth};`"
-                  class="!sticky flex justify-between !h-10 border-r-1 pr-2 border-gray-200 overflow-clip items-center !left-2"
+                  class="!sticky flex justify-between !h-10 border-r-1 pr-2 border-gray-300 overflow-clip items-center !left-2"
                 >
                   <div class="flex items-center">
                     <NcButton class="!border-0 !shadow-none !bg-transparent !hover:bg-transparent" type="secondary" size="small">
@@ -522,7 +550,11 @@ const computedWidth = computed(() => {
     show-api-timing
     :change-page="(p: number) => groupWrapperChangePage(p, vGroup)"
     :hide-sidebars="true"
-    :style="`${props.depth && props.depth > 0 ? 'border-radius: 0 0 8px 8px !important;' : ''}`"
+    :style="`${
+      props.depth && props.depth > 0
+        ? 'border-radius: 0 0 8px 8px !important; background: transparent; border-top: 0px; height: 24px'
+        : ''
+    }`"
     :fixed-size="undefined"
   ></LazySmartsheetPagination>
 </template>
@@ -533,19 +565,18 @@ const computedWidth = computed(() => {
   border-radius: 0 0 8px 8px !important;
 }
 :deep(.ant-collapse) {
-  @apply !border-gray-200;
+  @apply !border-gray-300 !bg-transparent;
 }
 
 :deep(.ant-collapse-item) {
-  @apply !border-gray-200;
+  @apply !border-gray-300;
 }
 
 :deep(.ant-collapse-header) {
-  @apply !p-0 bg-white !border-gray-200 !rounded-lg;
+  @apply !p-0 !border-gray-300 !rounded-lg;
 }
 :deep(.ant-collapse-item-active > .ant-collapse-header) {
   border-radius: 8px 8px 0 0 !important;
-  background: white;
 }
 
 :deep(.ant-collapse-borderless > .ant-collapse-item:last-child) {

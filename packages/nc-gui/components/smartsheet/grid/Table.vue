@@ -42,6 +42,7 @@ const props = defineProps<{
   ) => Promise<void>
   headerOnly?: boolean
   hideHeader?: boolean
+  hideCheckbox?: boolean
   pagination?: {
     fixedSize?: number
     hideSidebars?: boolean
@@ -1658,7 +1659,7 @@ onKeyStroke('ArrowDown', onDown)
                   }"
                 >
                   <div class="w-full h-full flex pl-2 pr-1 items-center" data-testid="nc-check-all">
-                    <template v-if="!readOnly">
+                    <template v-if="!readOnly && !hideCheckbox">
                       <div class="nc-no-label text-gray-500" :class="{ hidden: vSelectedAllRecords }">#</div>
                       <div
                         :class="{

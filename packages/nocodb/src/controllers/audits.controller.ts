@@ -58,7 +58,10 @@ export class AuditsController {
         baseId,
       }),
       {
-        count: await this.auditsService.auditCount({ baseId }),
+        count: await this.auditsService.auditCount({
+          query: req.query,
+          baseId,
+        }),
         ...req.query,
       },
     );

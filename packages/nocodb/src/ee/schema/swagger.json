@@ -2953,20 +2953,6 @@
               "type": "string"
             },
             "in": "query",
-            "name": "subType"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "query",
-            "name": "search"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "query",
             "name": "base"
           },
           {

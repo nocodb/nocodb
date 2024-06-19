@@ -9015,7 +9015,6 @@
                     "list": {
                       "type": "array",
                       "uniqueItems": true,
-                      "minItems": 1,
                       "items": {
                         "$ref": "#/components/schemas/Audit"
                       }
@@ -9060,6 +9059,61 @@
             },
             "in": "query",
             "name": "sourceId"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "user"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "type"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "startDate"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "endDate"
+          },
+          {
+            "schema": {
+              "properties": {
+                "created_at": {
+                  "type": "string",
+                  "description": "Sort direction",
+                  "enum": [
+                    "asc",
+                    "desc"
+                  ],
+                  "example": "desc"
+                },
+                "user": {
+                  "type": "string",
+                  "description": "Sort direction",
+                  "enum": [
+                    "asc",
+                    "desc"
+                  ],
+                  "example": "desc"
+                }
+              },
+              "type": "object"
+            },
+            "in": "query",
+            "name": "orderBy"
           },
           {
             "$ref": "#/components/parameters/xc-auth"

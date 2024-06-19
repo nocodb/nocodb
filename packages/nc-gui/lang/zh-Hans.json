@@ -456,6 +456,8 @@
     "looksLikeThisStackIsEmpty": "Looks like this stack does not have any records"
   },
   "labels": {
+    "allowMetaWrite": "Allow Schema Edit",
+    "allowDataWrite": "Allow Data Edit",
     "selectView": "Select a View",
     "connectionDetails": "链接明细",
     "metaSync": "元同步",
@@ -1038,6 +1040,10 @@
     "group": "分组"
   },
   "tooltip": {
+    "typeNotAllowed": "This datatype is not allowed due to restricted schema alterations for this source.",
+    "dataWriteOptionDisabled": "Data editing can only be disabled when 'Schema editing' is also disabled.",
+    "allowMetaWrite": "Enable this option to allow modifications to the database schema, including adding, altering, or deleting tables and columns. Use with caution, as changes may affect application functionality.",
+    "allowDataWrite": "Enable this option to allow updating, deleting, or inserting data within the database tables. Ideal for administrative users who need to manage data directly.",
     "reachedSourceLimit": "暂时只限于一个数据源",
     "saveChanges": "保存更改",
     "xcDB": "新建项目",
@@ -1260,6 +1266,7 @@
       }
     },
     "info": {
+      "schemaReadOnly": "Schema alterations are disabled for this source",
       "enterWorkspaceName": "输入工作区名称",
       "enterBaseName": "输入项目名称",
       "idpPaste": "将此URL粘贴到您的身份提供商后台",

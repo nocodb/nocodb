@@ -16,6 +16,7 @@ export class AuditsController extends AuditsControllerCE {
   }
 
   @Get(['/api/v2/meta/workspace/:workspaceId/audits/'])
+  @Acl('workspaceAuditList')
   async workspaceAuditList(
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,

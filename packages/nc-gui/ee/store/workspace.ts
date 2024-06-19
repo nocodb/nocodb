@@ -471,16 +471,25 @@ export const useWorkspace = defineStore('workspaceStore', () => {
         page = 1
       }
 
-      const { list, pageInfo } = await $api.workspace.auditList(workspaceId, {
-        offset: limit * (page - 1),
-        limit,
-        ...auditLogsQuery.value,
-      })
+      const { list, pageInfo } = auditLogsQuery.value.base
+        ? await $api.base.auditList(auditLogsQuery.value.base, {
+            offset: limit * (page - 1),
+            limit,
+            ...auditLogsQuery.value,
+          })
+        : await $api.workspace.auditList(workspaceId, {
+            offset: limit * (page - 1),
+            limit,
+            ...auditLogsQuery.value,
+          })
 
       audits.value = list
       auditTotalRows.value = pageInfo.totalRows ?? 0
     } catch (e) {
-      console.error(e)
+      message.error(await extractSdkResponseErrorMsg(e))
+      audits.value = []
+      auditTotalRows.value = 0
+      auditCurrentPage.value = 1
     }
   }
 

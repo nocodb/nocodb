@@ -8,9 +8,9 @@ export default class Audit extends AuditCE {
     {
       limit = 25,
       offset = 0,
+      baseId,
       sourceId,
       user,
-      base,
       type,
       startDate,
       endDate,
@@ -18,9 +18,9 @@ export default class Audit extends AuditCE {
     }: {
       limit?: number;
       offset?: number;
+      baseId?: string;
       sourceId?: string;
       user?: string;
-      base?: string;
       type?: string;
       startDate?: string;
       endDate?: string;
@@ -40,7 +40,7 @@ export default class Audit extends AuditCE {
         condition: {
           fk_workspace_id: workspaceId,
           ...(user ? { user: user } : {}),
-          ...(base ? { base_id: base } : {}),
+          ...(baseId ? { base_id: baseId } : {}),
           ...(sourceId ? { source_id: sourceId } : {}),
           ...(type ? { op_type: type } : {}),
         },
@@ -66,14 +66,14 @@ export default class Audit extends AuditCE {
     workspaceId: string,
     {
       user,
-      base,
+      baseId,
       sourceId,
       type,
       startDate,
       endDate,
     }: {
       user?: string;
-      base?: string;
+      baseId?: string;
       sourceId?: string;
       type?: string;
       startDate?: string;
@@ -88,7 +88,7 @@ export default class Audit extends AuditCE {
         condition: {
           fk_workspace_id: workspaceId,
           ...(user ? { user: user } : {}),
-          ...(base ? { base_id: base } : {}),
+          ...(baseId ? { base_id: baseId } : {}),
           ...(sourceId ? { source_id: sourceId } : {}),
           ...(type ? { op_type: type } : {}),
         },

@@ -701,7 +701,7 @@ onMounted(async () => {
         class="relative"
         :class="{
           'h-[calc(100%_-_92px)] ': baseId,
-          'h-[calc(100%_-_134px)]': !baseId,
+          'h-[calc(100%_-_140px)]': !baseId,
         }"
       >
         <div class="table-wrapper max-h-[calc(100%_-_40px)] overflow-auto nc-scrollbar-thin relative">

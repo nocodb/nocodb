@@ -13,11 +13,9 @@ interface NcWorkspace extends WorkspaceType {
 
 const defaultAuditLogsQuery = {
   type: undefined,
-  subType: undefined,
-  base: undefined,
-  user: undefined,
-  search: undefined,
+  baseId: undefined,
   sourceId: undefined,
+  user: undefined,
   startDate: undefined,
   endData: undefined,
   dateRangeLabel: undefined,
@@ -479,7 +477,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
             limit,
             ...auditLogsQuery.value,
           })
-        : await $api.base.auditList(auditLogsQuery.value.base, {
+        : await $api.base.auditList(auditLogsQuery.value.baseId, {
             offset: limit * (page - 1),
             limit,
             ...auditLogsQuery.value,

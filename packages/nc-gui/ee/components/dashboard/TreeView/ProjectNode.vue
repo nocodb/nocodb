@@ -291,7 +291,7 @@ async function openAudit(source: SourceType) {
   if (isUIAllowed('workspaceAuditList') && activeWorkspace.value?.id) {
     auditLogsQuery.value = {
       ...auditLogsQuery.value,
-      base: base.value.id,
+      baseId: base.value.id,
       sourceId: source!.id,
       user: undefined,
     }

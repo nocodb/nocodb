@@ -240,11 +240,9 @@ interface ImageCropperConfig {
 
 interface AuditLogsQuery {
   type?: AuditOperationTypes
-  subType?: AuditOperationSubTypes
-  base?: string
-  user?: string
-  search?: string
+  baseId?: string
   sourceId?: string
+  user?: string
   startDate?: string
   endDate?: string
   dateRange?: AuditLogsDateRange

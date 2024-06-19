@@ -456,7 +456,6 @@ export const sourceRestrictions = {
   [SourceRestriction.SCHEMA_READONLY]: {
     tableCreate: true,
     tableDelete: true,
-    tableUpdate: true,
   },
   [SourceRestriction.DATA_READONLY]: {
     dataUpdate: true,

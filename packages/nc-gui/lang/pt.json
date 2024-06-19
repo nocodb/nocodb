@@ -456,6 +456,8 @@
     "looksLikeThisStackIsEmpty": "Looks like this stack does not have any records"
   },
   "labels": {
+    "allowMetaWrite": "Allow Schema Edit",
+    "allowDataWrite": "Allow Data Edit",
     "selectView": "Select a View",
     "connectionDetails": "Connection Details",
     "metaSync": "Meta Sync",
@@ -1038,6 +1040,10 @@
     "group": "Group"
   },
   "tooltip": {
+    "typeNotAllowed": "This datatype is not allowed due to restricted schema alterations for this source.",
+    "dataWriteOptionDisabled": "Data editing can only be disabled when 'Schema editing' is also disabled.",
+    "allowMetaWrite": "Enable this option to allow modifications to the database schema, including adding, altering, or deleting tables and columns. Use with caution, as changes may affect application functionality.",
+    "allowDataWrite": "Enable this option to allow updating, deleting, or inserting data within the database tables. Ideal for administrative users who need to manage data directly.",
     "reachedSourceLimit": "Limited to only one data source for the moment",
     "saveChanges": "Salvar alterações",
     "xcDB": "Criar um novo projecto",
@@ -1260,6 +1266,7 @@
       }
     },
     "info": {
+      "schemaReadOnly": "Schema alterations are disabled for this source",
       "enterWorkspaceName": "Enter workspace name",
       "enterBaseName": "Enter base name",
       "idpPaste": "Paste these URL in your Identity Providers console",

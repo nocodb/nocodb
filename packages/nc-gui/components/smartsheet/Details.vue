@@ -8,7 +8,7 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 const { $e } = useNuxtApp()
 
-const { isUIAllowed } = useRoles()
+const { isUIAllowed, isDataReadOnly } = useRoles()
 
 const { base } = storeToRefs(useBase())
 const meta = inject(MetaInj, ref())
@@ -85,7 +85,7 @@ watch(openedSubTab, () => {
         </div>
       </a-tab-pane>
 
-      <a-tab-pane v-if="isUIAllowed('hookList')" key="webhook">
+      <a-tab-pane v-if="isUIAllowed('hookList') && !isDataReadOnly" key="webhook">
         <template #tab>
           <div class="tab" data-testid="nc-webhooks-tab">
             <GeneralIcon icon="webhook" class="tab-icon" :class="{}" />

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ColumnReqType, ColumnType } from 'nocodb-sdk'
+import { type ColumnReqType, type ColumnType, readonlyMetaAllowedTypes } from 'nocodb-sdk'
 import { UITypes, UITypesName } from 'nocodb-sdk'
 
 interface Props {
@@ -32,7 +32,7 @@ const isDropDownOpen = ref(false)
 
 const column = toRef(props, 'column')
 
-const { isUIAllowed } = useRoles()
+const { isUIAllowed, isMetaReadOnly } = useRoles()
 
 provide(ColumnInj, column)
 
@@ -60,7 +60,12 @@ const closeAddColumnDropdown = () => {
 const openHeaderMenu = (e?: MouseEvent) => {
   if (isLocked.value || (isExpandedForm.value && e?.type === 'dblclick') || isExpandedBulkUpdateForm.value) return
 
-  if (!isForm.value && isUIAllowed('fieldEdit') && !isMobileMode.value) {
+  if (
+    !isForm.value &&
+    isUIAllowed('fieldEdit') &&
+    !isMobileMode.value &&
+    (!isMetaReadOnly.value || readonlyMetaAllowedTypes.includes(column.value.uidt))
+  ) {
     editColumnDropdown.value = true
   }
 }

@@ -1,6 +1,11 @@
 import { Injectable, SetMetadata, UseInterceptors } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { extractRolesObj, OrgUserRoles, ProjectRoles } from 'nocodb-sdk';
+import {
+  extractRolesObj,
+  OrgUserRoles,
+  ProjectRoles,
+  SourceRestriction,
+} from 'nocodb-sdk';
 import { map } from 'rxjs';
 import type { Observable } from 'rxjs';
 import type {
@@ -28,6 +33,8 @@ import {
 import rolePermissions from '~/utils/acl';
 import { NcError } from '~/helpers/catchError';
 import { RootScopes } from '~/utils/globals';
+import { sourceRestrictions } from '~/utils/acl';
+import { Source } from '~/models';
 
 export const rolesLabel = {
   [OrgUserRoles.SUPER_ADMIN]: 'Super Admin',
@@ -68,8 +75,26 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     // extract base id based on request path params
     if (params.baseName) {
       const base = await Base.getByTitleOrId(context, params.baseName);
+
+      if (!base) {
+        NcError.baseNotFound(params.baseName);
+      }
+
       if (base) {
         req.ncBaseId = base.id;
+        if (params.tableName) {
+          // extract model and then source id from model
+          const model = await Model.getByAliasOrId(context, {
+            base_id: base.id,
+            aliasOrId: params.tableName,
+          });
+
+          if (!model) {
+            NcError.tableNotFound(req.params.tableName);
+          }
+
+          req.ncSourceId = model?.source_id;
+        }
       }
     }
     if (params.baseId) {
@@ -85,7 +110,8 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         NcError.tableNotFound(params.tableId || params.modelId);
       }
 
-      req.ncBaseId = model?.base_id;
+      req.ncBaseId = model.base_id;
+      req.ncSourceId = model.source_id;
     } else if (params.viewId) {
       const view =
         (await View.get(context, params.viewId)) ||
@@ -95,7 +121,8 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         NcError.viewNotFound(params.viewId);
       }
 
-      req.ncBaseId = view?.base_id;
+      req.ncBaseId = view.base_id;
+      req.ncSourceId = view.source_id;
     } else if (
       params.formViewId ||
       params.gridViewId ||
@@ -122,7 +149,8 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         );
       }
 
-      req.ncBaseId = view?.base_id;
+      req.ncBaseId = view.base_id;
+      req.ncSourceId = view.source_id;
     } else if (params.publicDataUuid) {
       const view = await View.getByUUID(context, req.params.publicDataUuid);
 
@@ -130,7 +158,8 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         NcError.viewNotFound(params.publicDataUuid);
       }
 
-      req.ncBaseId = view?.base_id;
+      req.ncBaseId = view.base_id;
+      req.ncSourceId = view.source_id;
     } else if (params.sharedViewUuid) {
       const view = await View.getByUUID(context, req.params.sharedViewUuid);
 
@@ -138,7 +167,8 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         NcError.viewNotFound(req.params.sharedViewUuid);
       }
 
-      req.ncBaseId = view?.base_id;
+      req.ncBaseId = view.base_id;
+      req.ncSourceId = view.source_id;
     } else if (params.sharedBaseUuid) {
       const base = await Base.getByUuid(context, req.params.sharedBaseUuid);
 
@@ -154,7 +184,8 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         NcError.genericNotFound('Webhook', params.hookId);
       }
 
-      req.ncBaseId = hook?.base_id;
+      req.ncBaseId = hook.base_id;
+      req.ncSourceId = hook.source_id;
     } else if (params.gridViewColumnId) {
       const gridViewColumn = await GridViewColumn.get(
         context,
@@ -165,7 +196,8 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         NcError.fieldNotFound(params.gridViewColumnId);
       }
 
-      req.ncBaseId = gridViewColumn?.base_id;
+      req.ncBaseId = gridViewColumn.base_id;
+      req.ncSourceId = gridViewColumn.source_id;
     } else if (params.formViewColumnId) {
       const formViewColumn = await FormViewColumn.get(
         context,
@@ -176,7 +208,8 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         NcError.fieldNotFound(params.formViewColumnId);
       }
 
-      req.ncBaseId = formViewColumn?.base_id;
+      req.ncBaseId = formViewColumn.base_id;
+      req.ncSourceId = formViewColumn.source_id;
     } else if (params.galleryViewColumnId) {
       const galleryViewColumn = await GalleryViewColumn.get(
         context,
@@ -187,7 +220,8 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         NcError.fieldNotFound(params.galleryViewColumnId);
       }
 
-      req.ncBaseId = galleryViewColumn?.base_id;
+      req.ncBaseId = galleryViewColumn.base_id;
+      req.ncSourceId = galleryViewColumn.source_id;
     } else if (params.columnId) {
       const column = await Column.get(context, { colId: params.columnId });
 
@@ -195,7 +229,8 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         NcError.fieldNotFound(params.columnId);
       }
 
-      req.ncBaseId = column?.base_id;
+      req.ncBaseId = column.base_id;
+      req.ncSourceId = column.source_id;
     } else if (params.filterId) {
       const filter = await Filter.get(context, params.filterId);
 
@@ -203,7 +238,8 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         NcError.genericNotFound('Filter', params.filterId);
       }
 
-      req.ncBaseId = filter?.base_id;
+      req.ncBaseId = filter.base_id;
+      req.ncSourceId = filter.source_id;
     } else if (params.filterParentId) {
       const filter = await Filter.get(context, params.filterParentId);
 
@@ -211,7 +247,8 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         NcError.genericNotFound('Filter', params.filterParentId);
       }
 
-      req.ncBaseId = filter?.base_id;
+      req.ncBaseId = filter.base_id;
+      req.ncSourceId = filter.source_id;
     } else if (params.sortId) {
       const sort = await Sort.get(context, params.sortId);
 
@@ -219,7 +256,8 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         NcError.genericNotFound('Sort', params.sortId);
       }
 
-      req.ncBaseId = sort?.base_id;
+      req.ncBaseId = sort.base_id;
+      req.ncSourceId = sort.source_id;
     } else if (params.syncId) {
       const syncSource = await SyncSource.get(context, req.params.syncId);
 
@@ -228,6 +266,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       }
 
       req.ncBaseId = syncSource.base_id;
+      req.ncSourceId = syncSource.source_id;
     } else if (params.extensionId) {
       const extension = await Extension.get(context, req.params.extensionId);
 
@@ -258,7 +297,8 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         NcError.tableNotFound(req.body.fk_model_id);
       }
 
-      req.ncBaseId = model?.base_id;
+      req.ncBaseId = model.base_id;
+      req.ncSourceId = model.source_id;
     }
     // extract fk_model_id from query params only if it's audit get endpoint
     else if (
@@ -281,7 +321,8 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         NcError.tableNotFound(req.query?.fk_model_id);
       }
 
-      req.ncBaseId = model?.base_id;
+      req.ncBaseId = model.base_id;
+      req.ncSourceId = model.source_id;
     } else if (
       [
         '/api/v1/db/meta/comment/:commentId',
@@ -296,7 +337,8 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         NcError.genericNotFound('Comment', params.commentId);
       }
 
-      req.ncBaseId = comment?.base_id;
+      req.ncBaseId = comment.base_id;
+      req.ncSourceId = comment.source_id;
     }
     // extract base id from query params only if it's userMe endpoint or webhook plugin list
     else if (
@@ -423,6 +465,49 @@ export class AclMiddleware implements NestInterceptor {
           Object.keys(roles).filter((k) => roles[k]),
         )} : Not allowed`,
       );
+    }
+
+    // check if permission have source level permission restriction
+    // 1. Check if it's present in the source restriction list
+    // 2. If present, check if write permission is allowed
+    if (
+      sourceRestrictions[SourceRestriction.SCHEMA_READONLY][permissionName] ||
+      sourceRestrictions[SourceRestriction.DATA_READONLY][permissionName]
+    ) {
+      let source: Source;
+
+      // if tableCreate and source ID is empty, then extract the default source from base
+      if (!req.ncSourceId && req.ncBaseId && permissionName === 'tableCreate') {
+        const sources = await Source.list(req.context, {
+          baseId: req.ncBaseId,
+        });
+        if (req.params.sourceId) {
+          source = sources.find((s) => s.id === req.params.sourceId);
+        } else {
+          source = sources.find((s) => s.isMeta()) || sources[0];
+        }
+      } else if (req.ncSourceId) {
+        source = await Source.get(req.context, req.ncSourceId);
+      }
+
+      // todo: replace with better error and this is not an expected error
+      if (!source) {
+        NcError.notFound('Source not found or source id not extracted');
+      }
+
+      if (
+        source.is_schema_readonly &&
+        sourceRestrictions[SourceRestriction.SCHEMA_READONLY][permissionName]
+      ) {
+        NcError.sourceMetaReadOnly(source.alias);
+      }
+
+      if (
+        source.is_data_readonly &&
+        sourceRestrictions[SourceRestriction.DATA_READONLY][permissionName]
+      ) {
+        NcError.sourceDataReadOnly(source.alias);
+      }
     }
 
     return next.handle().pipe(

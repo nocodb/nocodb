@@ -7,6 +7,7 @@ import {
   type LookupType,
   type RollupType,
   isLinksOrLTAR,
+  readonlyMetaAllowedTypes,
 } from 'nocodb-sdk'
 import { RelationTypes, UITypes, UITypesName, substituteColumnIdWithAliasInFormula } from 'nocodb-sdk'
 
@@ -36,7 +37,7 @@ provide(ColumnInj, column)
 
 const { metas } = useMetas()
 
-const { isUIAllowed } = useRoles()
+const { isUIAllowed, isMetaReadOnly } = useRoles()
 
 const meta = inject(MetaInj, ref())
 
@@ -122,7 +123,12 @@ const closeAddColumnDropdown = () => {
 const openHeaderMenu = (e?: MouseEvent) => {
   if (isLocked.value || (isExpandedForm.value && e?.type === 'dblclick') || isExpandedBulkUpdateForm.value) return
 
-  if (!isForm.value && isUIAllowed('fieldEdit') && !isMobileMode.value) {
+  if (
+    !isForm.value &&
+    isUIAllowed('fieldEdit') &&
+    !isMobileMode.value &&
+    (!isMetaReadOnly.value || readonlyMetaAllowedTypes.includes(column.value.uidt))
+  ) {
     editColumnDropdown.value = true
   }
 }

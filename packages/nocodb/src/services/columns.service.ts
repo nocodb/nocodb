@@ -5,7 +5,9 @@ import {
   isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
   isVirtualCol,
+  readonlyMetaAllowedTypes,
   RelationTypes,
+  SourceRestriction,
   substituteColumnAliasWithIdInFormula,
   substituteColumnIdWithAliasInFormula,
   UITypes,
@@ -196,6 +198,16 @@ export class ColumnsService {
     const source = await reuseOrSave('source', reuse, async () =>
       Source.get(context, table.source_id),
     );
+
+    // check if source is readonly and column type is not allowed
+    if (
+      source?.is_schema_readonly &&
+      (!readonlyMetaAllowedTypes.includes(column.uidt) ||
+        (param.column.uidt &&
+          !readonlyMetaAllowedTypes.includes(param.column.uidt as UITypes)))
+    ) {
+      NcError.sourceMetaReadOnly(source.alias);
+    }
 
     const sqlClient = await reuseOrSave('sqlClient', reuse, async () =>
       NcConnectionMgrv2.getSqlClient(source),
@@ -1482,6 +1494,14 @@ export class ColumnsService {
       Source.get(context, table.source_id),
     );
 
+    // check if source is readonly and column type is not allowed
+    if (
+      source?.is_schema_readonly &&
+      !readonlyMetaAllowedTypes.includes(param.column.uidt as UITypes)
+    ) {
+      NcError.sourceMetaReadOnly(source.alias);
+    }
+
     const base = await reuseOrSave('base', reuse, async () =>
       source.getProject(context),
     );
@@ -2041,6 +2061,14 @@ export class ColumnsService {
     const source = await reuseOrSave('source', reuse, async () =>
       Source.get(context, table.source_id, false, ncMeta),
     );
+
+    // check if source is readonly and column type is not allowed
+    if (
+      source?.is_schema_readonly &&
+      !readonlyMetaAllowedTypes.includes(column.uidt)
+    ) {
+      NcError.sourceMetaReadOnly(source.alias);
+    }
 
     const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
       ProjectMgrv2.getSqlMgr(context, { id: source.base_id }, ncMeta),

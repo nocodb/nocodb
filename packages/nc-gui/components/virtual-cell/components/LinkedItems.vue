@@ -31,6 +31,8 @@ const readOnly = inject(ReadonlyInj, ref(false))
 
 const filterQueryRef = ref<HTMLInputElement>()
 
+const { isDataReadOnly } = useRoles()
+
 const { isSharedBase } = storeToRefs(useBase())
 
 const {
@@ -410,7 +412,7 @@ const onFilterChange = () => {
       <div class="nc-dropdown-link-record-footer bg-gray-100 p-2 rounded-b-xl flex items-center justify-between gap-3 min-h-11">
         <div class="flex items-center gap-2">
           <NcButton
-            v-if="!isPublic"
+            v-if="!isPublic && !isDataReadOnly"
             v-e="['c:row-expand:open']"
             size="small"
             class="!hover:(bg-white text-brand-500) !h-7 !text-small"

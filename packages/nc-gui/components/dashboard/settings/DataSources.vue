@@ -260,7 +260,7 @@ const openedTab = ref('erd')
 </script>
 
 <template>
-  <div class="flex flex-col h-full">
+  <div class="flex flex-col h-full" data-testid="nc-settings-datasources-tab">
     <div class="px-4 py-2 flex justify-between">
       <a-breadcrumb separator=">" class="w-full cursor-pointer font-weight-bold">
         <a-breadcrumb-item @click="activeSource = null">
@@ -307,7 +307,7 @@ const openedTab = ref('erd')
               <LazyDashboardSettingsBaseAudit :source-id="activeSource.id" />
             </div>
           </a-tab-pane>
-          <a-tab-pane v-if="!activeSource.is_meta && !activeSource.is_local" key="audit">
+          <a-tab-pane v-if="!activeSource.is_meta && !activeSource.is_local" key="edit">
             <template #tab>
               <div class="tab" data-testid="nc-connection-tab">
                 <div>{{ $t('labels.connectionDetails') }}</div>
@@ -397,7 +397,7 @@ const openedTab = ref('erd')
                     <NcButton
                       v-if="!sources[0].is_meta && !sources[0].is_local"
                       size="small"
-                      class="nc-action-btn cursor-pointer outline-0 !w-8 !px-1 !rounded-lg"
+                      class="nc-action-btn nc-edit-base cursor-pointer outline-0 !w-8 !px-1 !rounded-lg"
                       type="text"
                       @click.stop="baseAction(sources[0].id, DataSourcesSubTab.Edit)"
                     >
@@ -446,7 +446,7 @@ const openedTab = ref('erd')
                       <NcButton
                         v-if="!source.is_meta && !source.is_local"
                         size="small"
-                        class="nc-action-btn cursor-pointer outline-0 !w-8 !px-1 !rounded-lg"
+                        class="nc-action-btn nc-delete-base cursor-pointer outline-0 !w-8 !px-1 !rounded-lg"
                         type="text"
                         @click.stop="openDeleteBase(source)"
                       >

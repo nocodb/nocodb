@@ -312,7 +312,13 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
     }
 
     async function updateKanbanMeta(updateObj: Partial<KanbanType>) {
-      if (!viewMeta?.value?.id || !isUIAllowed('dataEdit')) return
+      if (
+        !viewMeta?.value?.id ||
+        !isUIAllowed('dataEdit', {
+          skipSourceCheck: true,
+        })
+      )
+        return
       await $api.dbView.kanbanUpdate(viewMeta.value.id, updateObj)
     }
 

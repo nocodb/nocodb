@@ -415,11 +415,11 @@ const isFullUpdateAllowed = computed(() => {
             show-search
             class="nc-column-type-input !rounded-lg"
             :disabled="
-              (isMetaReadOnly && !readonlyMetaAllowedTypes.includes(formState.uidt)) ||
+              (isEdit && isMetaReadOnly && !readonlyMetaAllowedTypes.includes(formState.uidt)) ||
               isKanban ||
               readOnly ||
               (isEdit && !!onlyNameUpdateOnEditColumns.includes(column?.uidt)) ||
-              !isFullUpdateAllowed
+              (isEdit && !isFullUpdateAllowed)
             "
             dropdown-class-name="nc-dropdown-column-type border-1 !rounded-lg border-gray-200"
             :filter-option="filterOption"

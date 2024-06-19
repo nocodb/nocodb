@@ -202,7 +202,7 @@ const isColumnUpdateAllowed = (column: ColumnType) => {
 }
 
 const changeField = (field?: TableExplorerColumn, event?: MouseEvent) => {
-  if (!isColumnUpdateAllowed(field)) {
+  if (field?.id && field?.uidt && !isColumnUpdateAllowed(field)) {
     return message.info(t('msg.info.schemaReadOnly'))
   }
 

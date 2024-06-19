@@ -23,6 +23,7 @@ export enum Language {
   he = 'עִברִית',
   hi = 'हिन्दी',
   hr = 'Hrvatski',
+  hu = 'Magyar',
   id = 'Bahasa Indonesia',
   it = 'Italiano',
   ja = '日本語',

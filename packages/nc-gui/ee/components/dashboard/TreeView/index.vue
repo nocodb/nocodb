@@ -232,9 +232,9 @@ const onMove = async (
             ghost-class="ghost"
             @change="onMove($event, starredProjectList)"
           >
-            <template #item="{ element: base1 }">
+            <template #item="{ element: baseItem }">
               <div :key="base.id">
-                <ProjectWrapper :base-role="base1.project_role || base1.workspace_role" :base="base1">
+                <ProjectWrapper :base-role="baseItem.project_role || baseItem.workspace_role" :base="base1">
                   <DashboardTreeViewProjectNode />
                 </ProjectWrapper>
               </div>
@@ -254,9 +254,9 @@ const onMove = async (
           ghost-class="ghost"
           @change="onMove($event, nonStarredProjectList)"
         >
-          <template #item="{ element: base1 }">
+          <template #item="{ element: baseItem }">
             <div :key="base.id">
-              <ProjectWrapper :base-role="base1.project_role || stringifyRolesObj(workspaceRoles)" :base="base1">
+              <ProjectWrapper :base-role="baseItem.project_role || stringifyRolesObj(workspaceRoles)" :base="baseItem">
                 <DashboardTreeViewProjectNode />
               </ProjectWrapper>
             </div>

@@ -288,17 +288,49 @@ function openErdView(source: SourceType) {
 async function openAudit(source: SourceType) {
   $e('c:project:audit')
 
-  if (!activeWorkspace.value?.id) return
+  if (isUIAllowed('workspaceAuditList') && activeWorkspace.value?.id) {
+    auditLogsQuery.value = {
+      ...auditLogsQuery.value,
+      base: base.value.id,
+      sourceId: source!.id,
+      user: undefined,
+    }
 
-  auditLogsQuery.value.base = base.value.id
-  auditLogsQuery.value.sourceId = source!.id
-  auditLogsQuery.value.user = undefined
+    const cmdOrCtrl = isMac() ? metaKey.value : control.value
 
-  const cmdOrCtrl = isMac() ? metaKey.value : control.value
+    await navigateToWorkspaceSettings('', cmdOrCtrl, { tab: 'audit' })
 
-  await navigateToWorkspaceSettings('', cmdOrCtrl, { tab: 'audit' })
+    await loadAudits(activeWorkspace.value?.id)
+  } else {
+    auditLogsQuery.value = {
+      ...auditLogsQuery.value,
+      user: undefined,
+      dateRange: undefined,
+      dateRangeLabel: undefined,
+      startDate: undefined,
+      endData: undefined,
+      orderBy: {
+        created_at: 'desc',
+        user: undefined,
+      },
+    }
 
-  await loadAudits(activeWorkspace.value?.id)
+    const isOpen = ref(true)
+
+    const { close } = useDialog(resolveComponent('DlgProjectAudit'), {
+      'modelValue': isOpen,
+      'workspaceId': activeWorkspace.value?.id,
+      'sourceId': source!.id,
+      'onUpdate:modelValue': () => closeDialog(),
+      'baseId': base.value!.id,
+    })
+
+    function closeDialog() {
+      isOpen.value = false
+
+      close(1000)
+    }
+  }
 }
 
 const isAddNewProjectChildEntityLoading = ref(false)
@@ -650,7 +682,7 @@ const getSource = (sourceId: string) => {
 
                   <!-- Audit -->
                   <NcMenuItem
-                    v-if="base?.sources?.[0]?.enabled"
+                    v-if="isUIAllowed('baseAuditList') && base?.sources?.[0]?.enabled"
                     key="erd"
                     data-testid="nc-sidebar-base-audit"
                     @click="openAudit(base?.sources?.[0])"

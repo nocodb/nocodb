@@ -461,11 +461,13 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const auditCurrentLimit = ref(25)
 
   const loadAudits = async (
-    workspaceId: string,
+    workspaceId?: string,
     page: number = auditCurrentPage.value,
     limit: number = auditCurrentLimit.value,
   ) => {
     try {
+      if (isUIAllowed('workspaceAuditList') && !workspaceId) return
+
       if (limit * (page - 1) > auditTotalRows.value) {
         auditCurrentPage.value = 1
         page = 1

@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 const props = defineProps<{
+  workspaceId?: string
   baseId: string
   sourceId: string
   modelValue: boolean
@@ -9,7 +10,7 @@ const emit = defineEmits(['update:modelValue'])
 
 const isOpen = useVModel(props, 'modelValue', emit)
 
-const activeSourceId = computed(() => props.sourceId)
+const { workspaceId, sourceId } = toRefs(props)
 
 const { openedProject: base } = storeToRefs(useBases())
 
@@ -47,7 +48,7 @@ onMounted(async () => {
 <template>
   <GeneralModal v-model:visible="isOpen" size="xl" class="!w-[70rem] !top-[5vh]">
     <div class="p-6 h-full">
-      <DashboardSettingsBaseAudit v-if="!isLoading" :source-id="activeSourceId" :base-id="baseId" :show-all-columns="false" />
+      <WorkspaceAuditLogs v-if="!isLoading" :workspace-id="workspaceId" :source-id="sourceId" :base-id="baseId" />
     </div>
   </GeneralModal>
 </template>

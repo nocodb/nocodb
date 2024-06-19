@@ -39,7 +39,9 @@ const { projectPageTab } = storeToRefs(useConfigStore())
 
 const { isMobileMode } = useGlobal()
 
-const userCount = computed(() => (activeProjectId.value ? basesUser.value.get(activeProjectId.value)?.length : 0))
+const userCount = computed(() =>
+  activeProjectId.value ? basesUser.value.get(activeProjectId.value)?.filter((user) => !user?.deleted)?.length : 0,
+)
 
 watch(
   () => route.value.query?.page,

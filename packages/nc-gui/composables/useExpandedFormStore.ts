@@ -104,7 +104,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
   const loadComments = async (_rowId?: string) => {
     if (!isUIAllowed('commentList') || (!row.value && !_rowId)) return
 
-    const rowId = extractPkFromRow(row.value.row, meta.value.columns as ColumnType[]) ?? _rowId
+    const rowId = _rowId ?? extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
 
     if (!rowId) return
 
@@ -176,7 +176,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
   const loadAudits = async (_rowId?: string) => {
     if (!isUIAllowed('auditList') || (!row.value && !_rowId)) return
 
-    const rowId = extractPkFromRow(row.value.row, meta.value.columns as ColumnType[]) ?? _rowId
+    const rowId = _rowId ?? extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
 
     if (!rowId) return
 

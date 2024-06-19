@@ -29,12 +29,19 @@ const {
 
 const basesStore = useBases()
 
-const { bases, basesList } = storeToRefs(basesStore)
+const { getBaseUsers } = basesStore
+const { bases, basesList, basesUser } = storeToRefs(basesStore)
 
-const collaboratorsMap = computed<Map<string, WorkspaceUserType & { id: string }>>(() => {
+const baseCollaborators = ref<User[]>([])
+
+const auditCollaborators = computed(() => {
+  return (auditLogsQuery.value.base ? baseCollaborators.value : collaborators.value) || []
+})
+
+const collaboratorsMap = computed<Map<string, (WorkspaceUserType & { id: string }) | User>>(() => {
   const map = new Map<string, WorkspaceUserType & { id: string }>()
 
-  collaborators.value?.forEach((coll) => {
+  auditCollaborators.value?.forEach((coll) => {
     if (coll?.email) {
       map.set(coll.email, coll)
     }
@@ -113,6 +120,20 @@ async function loadAudits(page = currentPage.value, limit = currentLimit.value) 
   } catch {
   } finally {
     isLoading.value = false
+  }
+}
+
+const loadCollaborators = async () => {
+  try {
+    if (!auditLogsQuery.value.base) return
+
+    const { users } = await getBaseUsers({
+      baseId: auditLogsQuery.value.base,
+    })
+
+    baseCollaborators.value = users
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
   }
 }
 
@@ -238,6 +259,18 @@ const handleUpdateCustomDateRange = (value: string | null, field: 'startDate' | 
   loadAudits()
 }
 
+watch(
+  () => auditLogsQuery.value.base,
+  () => {
+    if (!auditLogsQuery.value.base) return
+
+    loadCollaborators()
+  },
+  {
+    immediate: true,
+  },
+)
+
 onMounted(async () => {
   if (audits.value === null) {
     await loadAudits(currentPage.value, currentLimit.value)
@@ -266,6 +299,7 @@ onMounted(async () => {
           v-if="collaborators?.length"
           v-model:visible="auditDropdowns.user"
           @update:visible="handleClearDropdownSearch($event, 'user')"
+          overlay-class-name="overflow-hidden"
         >
           <NcButton type="secondary" size="small">
             <div class="!w-[106px] flex items-center justify-between gap-2">
@@ -287,8 +321,14 @@ onMounted(async () => {
           </NcButton>
 
           <template #overlay>
-            <div class="w-[256px]">
-              <div class="px-2 py-2" @click.stop>
+            <div
+              class="w-[256px]"
+              :class="{
+                'pt-2': auditCollaborators.length >= 6,
+                'pt-1.5': auditCollaborators.length < 6,
+              }"
+            >
+              <div v-if="auditCollaborators.length >= 6" class="px-2 pb-2" @click.stop>
                 <a-input
                   :ref="focusUserSearchRef"
                   v-model:value="auditDropdownsSearch.user"
@@ -324,7 +364,7 @@ onMounted(async () => {
                   </div>
                 </NcMenuItem>
                 <NcDivider />
-                <template v-for="(coll, index) of collaborators" :key="index">
+                <template v-for="(coll, index) of auditCollaborators" :key="index">
                   <NcMenuItem
                     v-if="
                       coll.email?.includes(auditDropdownsSearch.user.toLowerCase()) ||
@@ -366,6 +406,7 @@ onMounted(async () => {
           v-if="basesList?.length"
           v-model:visible="auditDropdowns.base"
           @update:visible="handleClearDropdownSearch($event, 'base')"
+          overlay-class-name="overflow-hidden"
         >
           <NcButton type="secondary" size="small">
             <div class="!w-[106px] flex items-center justify-between gap-2">
@@ -380,8 +421,14 @@ onMounted(async () => {
           </NcButton>
 
           <template #overlay>
-            <div class="w-[256px]">
-              <div class="px-2 py-2" @click.stop>
+            <div
+              class="w-[256px]"
+              :class="{
+                'pt-2': basesList.length >= 6,
+                'pt-1.5': basesList.length < 6,
+              }"
+            >
+              <div v-if="basesList.length >= 6" class="px-2 pb-2" @click.stop>
                 <a-input
                   :ref="focusBaseSearchRef"
                   v-model:value="auditDropdownsSearch.base"
@@ -447,7 +494,11 @@ onMounted(async () => {
             </div>
           </template>
         </NcDropdown>
-        <NcDropdown v-model:visible="auditDropdowns.type" @update:visible="handleClearDropdownSearch($event, 'type')">
+        <NcDropdown
+          v-model:visible="auditDropdowns.type"
+          @update:visible="handleClearDropdownSearch($event, 'type')"
+          overlay-class-name="overflow-hidden"
+        >
           <NcButton type="secondary" size="small">
             <div class="!w-[106px] flex items-center justify-between gap-2">
               <div class="max-w-full truncate text-sm !leading-5">
@@ -461,8 +512,14 @@ onMounted(async () => {
           </NcButton>
 
           <template #overlay>
-            <div class="w-[256px]">
-              <div class="px-2 py-2" @click.stop>
+            <div
+              class="w-[256px]"
+              :class="{
+                'pt-2': auditTypeOptions.length >= 6,
+                'pt-1.5': auditTypeOptions.length < 6,
+              }"
+            >
+              <div v-if="auditTypeOptions.length >= 6" class="px-2 pb-2" @click.stop>
                 <a-input
                   :ref="focusTypeSearchRef"
                   v-model:value="auditDropdownsSearch.type"
@@ -521,7 +578,7 @@ onMounted(async () => {
             </div>
           </template>
         </NcDropdown>
-        <NcDropdown v-model:visible="auditDropdowns.dateRange">
+        <NcDropdown v-model:visible="auditDropdowns.dateRange" overlay-class-name="overflow-hidden">
           <NcButton type="secondary" size="small">
             <div class="!w-[127px] flex items-center justify-between gap-2">
               <div class="max-w-full truncate text-sm !leading-5">
@@ -617,8 +674,8 @@ onMounted(async () => {
       </div>
     </div>
     <div class="h-[calc(100%_-_134px)] relative">
-      <div class="table-wrapper h-[calc(100%_-_40px)] overflow-auto nc-scrollbar-thin">
-        <div class="nc-audit-logs-table table h-full">
+      <div class="table-wrapper max-h-[calc(100%_-_40px)] overflow-auto nc-scrollbar-thin">
+        <div class="nc-audit-logs-table table h-full relative">
           <div class="thead sticky top-0">
             <div class="tr">
               <div class="th cell-user !hover:bg-gray-100" @click="updateOrderBy('user')">
@@ -676,7 +733,7 @@ onMounted(async () => {
                   @click="handleRowClick(audit)"
                 >
                   <div class="td cell-user">
-                    <div v-if="collaboratorsMap.get(audit.user)?.email" class="w-full flex gap-3 items-center">
+                    <div v-if="audit.user && collaboratorsMap.get(audit.user)?.email" class="w-full flex gap-3 items-center">
                       <GeneralUserIcon :email="collaboratorsMap.get(audit.user)?.email" size="base" class="flex-none" />
                       <div class="flex-1 flex flex-col max-w-[calc(100%_-_44px)]">
                         <div class="w-full flex gap-3">
@@ -752,6 +809,7 @@ onMounted(async () => {
         </div>
       </div>
       <div
+        v-if="totalRows"
         class="flex flex-row justify-center items-center bg-gray-50 min-h-10"
         :class="{
           'pointer-events-none': isLoading,
@@ -945,7 +1003,7 @@ onMounted(async () => {
   content: none;
 }
 :deep(.ant-menu.nc-menu) {
-  @apply !pt-0;
+  @apply !pt-0 !border-none !rounded-none;
   &.nc-audit-date-range-menu {
     @apply !pb-0;
   }

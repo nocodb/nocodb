@@ -31,7 +31,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   // todo: update type in swagger
   const basesStore = useBases()
 
-  const { loadRoles } = useRoles()
+  const { loadRoles, isUIAllowed } = useRoles()
 
   const collaborators = ref<WorkspaceUserType[] | null>()
 
@@ -471,13 +471,13 @@ export const useWorkspace = defineStore('workspaceStore', () => {
         page = 1
       }
 
-      const { list, pageInfo } = auditLogsQuery.value.base
-        ? await $api.base.auditList(auditLogsQuery.value.base, {
+      const { list, pageInfo } = isUIAllowed('workspaceAuditList')
+        ? await $api.workspace.auditList(workspaceId, {
             offset: limit * (page - 1),
             limit,
             ...auditLogsQuery.value,
           })
-        : await $api.workspace.auditList(workspaceId, {
+        : await $api.base.auditList(auditLogsQuery.value.base, {
             offset: limit * (page - 1),
             limit,
             ...auditLogsQuery.value,

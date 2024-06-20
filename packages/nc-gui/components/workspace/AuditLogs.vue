@@ -14,7 +14,12 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const allowedAuditOperationTypes = [AuditOperationTypes.DATA, AuditOperationTypes.TABLE, AuditOperationTypes.TABLE_COLUMN]
+const allowedAuditOperationTypes = [
+  AuditOperationTypes.DATA,
+  AuditOperationTypes.TABLE,
+  AuditOperationTypes.TABLE_COLUMN,
+  ...(!isEeUI ? [AuditOperationTypes.AUTHENTICATION] : []),
+]
 
 const { isUIAllowed } = useRoles()
 
@@ -224,7 +229,7 @@ const handleUpdateDateRange = (range?: AuditLogsDateRange, label?: string) => {
       break
     case AuditLogsDateRange.PastWeek:
       auditLogsQuery.value.startDate = now.subtract(1, 'week').startOf('day').format('YYYY-MM-DD')
-      auditLogsQuery.value.endDate = now.format('YYYY-MM-DD HH:mm:ss')
+      auditLogsQuery.value.endDate = now.subtract(1, 'week').endOf('day').format('YYYY-MM-DD')
       break
     case AuditLogsDateRange.PastMonth:
       auditLogsQuery.value.startDate = now.subtract(1, 'month').startOf('month').format('YYYY-MM-DD')
@@ -302,13 +307,14 @@ watch(
 onMounted(async () => {
   if (props.baseId) {
     auditLogsQuery.value.baseId = props.baseId
-  } else {
-    await loadProjects()
-    await loadOrgUsers()
   }
 
   if (props.sourceId) {
     auditLogsQuery.value.sourceId = props.sourceId
+  }
+
+  if (!props.baseId && !isEeUI) {
+    await Promise.allSettled([loadProjects(), loadOrgUsers()])
   }
 
   if (audits.value === null && appInfo.value.auditEnabled) {

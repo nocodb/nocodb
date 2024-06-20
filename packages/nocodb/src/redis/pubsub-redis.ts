@@ -50,7 +50,7 @@ export class PubSubRedis {
   static async subscribe(
     channel: string,
     callback: (message: any) => Promise<void>,
-  ) {
+  ): Promise<(keepRedisChannel?: boolean) => Promise<void>> {
     if (!PubSubRedis.initialized) {
       if (!PubSubRedis.available) {
         return;
@@ -72,8 +72,9 @@ export class PubSubRedis {
     };
 
     PubSubRedis.redisSubscriber.on('message', onMessage);
-    return async () => {
-      await PubSubRedis.redisSubscriber.unsubscribe(channel);
+    return async (keepRedisChannel = false) => {
+      // keepRedisChannel is used to keep the channel open for other subscribers
+      if (!keepRedisChannel) await PubSubRedis.redisSubscriber.unsubscribe(channel);
       PubSubRedis.redisSubscriber.off('message', onMessage);
     };
   }

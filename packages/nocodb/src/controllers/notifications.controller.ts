@@ -45,7 +45,7 @@ export class NotificationsController {
 
     this.notificationsService.addConnection(req.user.id, res);
 
-    let unsubscribeCallback = null;
+    let unsubscribeCallback: (keepRedisChannel?: boolean) => Promise<void> = null;
 
     if (PubSubRedis.available) {
       unsubscribeCallback = await PubSubRedis.subscribe(
@@ -57,10 +57,7 @@ export class NotificationsController {
     }
 
     res.on('close', async () => {
-      this.notificationsService.removeConnection(req.user.id, res);
-      if (PubSubRedis.available) {
-        await unsubscribeCallback();
-      }
+      await this.notificationsService.removeConnection(req.user.id, res, unsubscribeCallback);
     });
 
     setTimeout(() => {

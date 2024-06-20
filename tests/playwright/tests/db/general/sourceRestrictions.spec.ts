@@ -123,7 +123,7 @@ test.describe('Source Restrictions', () => {
       .locator('.nc-ui-dt-dropdown')
       .scrollIntoViewIfNeeded();
 
-    await dashboard.grid.get().locator(`th[data-title="LastName"]`).first().locator('.nc-ui-dt-dropdown').click();
+    await dashboard.grid.get().locator(`th[data-title="Rating"]`).first().locator('.nc-ui-dt-dropdown').click();
     for (const item of ['Delete', 'Duplicate']) {
       await expect(
         await dashboard.rootPage.locator(`li[role="menuitem"]:has-text("${item}"):visible`).last()

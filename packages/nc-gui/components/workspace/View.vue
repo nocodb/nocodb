@@ -69,9 +69,9 @@ onMounted(() => {
 
 <template>
   <div v-if="currentWorkspace" class="flex w-full px-6 max-w-[97.5rem] flex-col nc-workspace-settings">
-    <div v-if="!props.workspaceId" class="flex gap-2 items-center min-w-0 py-6">
+    <div v-if="!props.workspaceId" class="flex gap-2 items-center min-w-0 p-4">
       <GeneralWorkspaceIcon :workspace="currentWorkspace" />
-      <h1 class="text-3xl capitalize font-weight-bold tracking-[0.5px] mb-0 nc-workspace-title truncate min-w-10 capitalize">
+      <h1 class="text-base capitalize font-weight-bold tracking-[0.5px] mb-0 nc-workspace-title truncate min-w-10 capitalize">
         {{ currentWorkspace?.title }}
       </h1>
     </div>
@@ -121,7 +121,7 @@ onMounted(() => {
         </a-tab-pane>
       </template>
 
-      <template v-if="isUIAllowed('workspaceAuditList')">
+      <template v-if="isUIAllowed('workspaceAuditList') && !props.workspaceId">
         <a-tab-pane key="audit" class="w-full">
           <template #tab>
             <div class="flex flex-row items-center px-2 pb-1 gap-x-1.5">
@@ -129,7 +129,7 @@ onMounted(() => {
               Audit Logs
             </div>
           </template>
-          <div class="h-[calc(100vh-120px)]">
+          <div class="h-[calc(100vh-92px)]" >
             <WorkspaceAuditLogs :workspace-id="currentWorkspace.id" />
           </div>
         </a-tab-pane>

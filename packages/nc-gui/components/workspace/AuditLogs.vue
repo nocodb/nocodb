@@ -182,6 +182,8 @@ const handleUpdateBaseQuery = (baseId?: string, sourceId?: string) => {
 }
 
 const updateOrderBy = (field: 'created_at' | 'user') => {
+  if (!audits.value?.length) return
+
   if (auditLogsQuery.value.orderBy?.[field] === 'asc') {
     auditLogsQuery.value.orderBy[field] = 'desc'
   } else if (auditLogsQuery.value.orderBy?.[field] === 'desc') {
@@ -335,12 +337,15 @@ onMounted(async () => {
             Audit Logs
             <span v-if="baseId"> : {{ bases.get(baseId)?.title }} </span>
           </h6>
-          <NcButton v-if="appInfo.auditEnabled" class="!px-1" type="text" size="xs" :disabled="isLoading" @click="loadAudits()">
-            <!-- Reload -->
-            <div class="flex items-center text-gray-600 font-light">
-              <component :is="iconMap.refresh" :class="{ 'animate-infinite animate-spin': isLoading }" />
-            </div>
-          </NcButton>
+          <NcTooltip>
+            <template #title> {{ $t('general.reload') }} </template>
+            <NcButton v-if="appInfo.auditEnabled" class="!px-1" type="text" size="xs" :disabled="isLoading" @click="loadAudits()">
+              <!-- Reload -->
+              <div class="flex items-center text-gray-600 font-light">
+                <component :is="iconMap.refresh" class="h-3.5 w-3.5" :class="{ 'animate-infinite animate-spin': isLoading }" />
+              </div>
+            </NcButton>
+          </NcTooltip>
         </div>
         <div v-if="!baseId" class="text-sm text-gray-600">Track and monitor any changes made to any base in your workspace.</div>
       </div>
@@ -353,9 +358,24 @@ onMounted(async () => {
         >
           <NcButton type="secondary" size="small">
             <div class="!w-[106px] flex items-center justify-between gap-2">
-              <div class="max-w-full truncate text-sm !leading-5">
+              <div class="max-w-full truncate text-sm !leading-5 flex items-center gap-1">
                 User:
-                <span class="capitalize" :class="{ 'text-brand-500': auditLogsQuery.user }">
+                <NcTooltip
+                  class="capitalize truncate !leading-5"
+                  :class="{ 'text-brand-500': auditLogsQuery.user }"
+                  show-on-truncate-only
+                >
+                  <template #title>
+                    {{
+                      (auditLogsQuery.user &&
+                        (collaboratorsMap.get(auditLogsQuery.user)?.display_name ||
+                          collaboratorsMap
+                            .get(auditLogsQuery.user)
+                            ?.email?.slice(0, collaboratorsMap.get(auditLogsQuery.user)?.email.indexOf('@')))) ||
+                      'All'
+                    }}
+                  </template>
+
                   {{
                     (auditLogsQuery.user &&
                       (collaboratorsMap.get(auditLogsQuery.user)?.display_name ||
@@ -364,7 +384,7 @@ onMounted(async () => {
                           ?.email?.slice(0, collaboratorsMap.get(auditLogsQuery.user)?.email.indexOf('@')))) ||
                     'All'
                   }}
-                </span>
+                </NcTooltip>
               </div>
               <GeneralIcon icon="arrowDown" class="flex-none h-4 w-4" />
             </div>
@@ -460,11 +480,14 @@ onMounted(async () => {
         >
           <NcButton type="secondary" size="small">
             <div class="!w-[106px] flex items-center justify-between gap-2">
-              <div class="max-w-full truncate text-sm !leading-5">
+              <div class="max-w-full truncate text-sm !leading-5 flex items-center gap-1">
                 Base:
-                <span :class="{ 'text-brand-500': auditLogsQuery.baseId }">
+                <NcTooltip class="truncate !leading-5" :class="{ 'text-brand-500': auditLogsQuery.baseId }" show-on-truncate-only>
+                  <template #title>
+                    {{ (auditLogsQuery.baseId && bases.get(auditLogsQuery.baseId)?.title) || 'All' }}
+                  </template>
                   {{ (auditLogsQuery.baseId && bases.get(auditLogsQuery.baseId)?.title) || 'All' }}
-                </span>
+                </NcTooltip>
               </div>
               <GeneralIcon icon="arrowDown" class="flex-none h-4 w-4" />
             </div>
@@ -551,11 +574,14 @@ onMounted(async () => {
         >
           <NcButton type="secondary" size="small">
             <div class="!w-[106px] flex items-center justify-between gap-2">
-              <div class="max-w-full truncate text-sm !leading-5">
+              <div class="max-w-full truncate text-sm !leading-5 flex items-center gap-1">
                 Type:
-                <span :class="{ 'text-brand-500': auditLogsQuery.type }">
+                <NcTooltip class="truncate !leading-5" :class="{ 'text-brand-500': auditLogsQuery.type }" show-on-truncate-only>
+                  <template #title>
+                    {{ auditLogsQuery.type ? auditOperationTypeLabels[auditLogsQuery.type] : 'All' }}
+                  </template>
                   {{ auditLogsQuery.type ? auditOperationTypeLabels[auditLogsQuery.type] : 'All' }}
-                </span>
+                </NcTooltip>
               </div>
               <GeneralIcon icon="arrowDown" class="flex-none h-4 w-4" />
             </div>
@@ -631,11 +657,18 @@ onMounted(async () => {
         <NcDropdown v-model:visible="auditDropdowns.dateRange" overlay-class-name="overflow-hidden">
           <NcButton type="secondary" size="small">
             <div class="!w-[127px] flex items-center justify-between gap-2">
-              <div class="max-w-full truncate text-sm !leading-5">
+              <div class="max-w-full truncate text-sm !leading-5 flex items-center gap-1">
                 Range:
-                <span :class="{ 'text-brand-500': auditLogsQuery.dateRange }">
+                <NcTooltip
+                  class="truncate !leading-5"
+                  :class="{ 'text-brand-500': auditLogsQuery.dateRange }"
+                  show-on-truncate-only
+                >
+                  <template #title>
+                    {{ auditLogsQuery.dateRange ? auditLogsQuery.dateRangeLabel : 'All Time' }}
+                  </template>
                   {{ auditLogsQuery.dateRange ? auditLogsQuery.dateRangeLabel : 'All Time' }}
-                </span>
+                </NcTooltip>
               </div>
               <GeneralIcon icon="arrowDown" class="flex-none h-4 w-4" />
             </div>
@@ -736,7 +769,13 @@ onMounted(async () => {
           <div class="nc-audit-logs-table table h-full relative">
             <div class="thead sticky top-0">
               <div class="tr">
-                <div class="th cell-user !hover:bg-gray-100 select-none cursor-pointer" @click="updateOrderBy('user')">
+                <div
+                  class="th cell-user !hover:bg-gray-100 select-none cursor-pointer"
+                  :class="{
+                    'cursor-not-allowed': !audits?.length,
+                  }"
+                  @click="updateOrderBy('user')"
+                >
                   <div class="flex items-center gap-3 sticky left-0">
                     <div>User</div>
                     <GeneralIcon
@@ -750,9 +789,15 @@ onMounted(async () => {
                     <GeneralIcon v-else icon="chevronUpDown" class="flex-none" />
                   </div>
                 </div>
-                <div class="th cell-timestamp !hover:bg-gray-100 select-none cursor-pointer" @click="updateOrderBy('created_at')">
+                <div
+                  class="th cell-timestamp !hover:bg-gray-100 select-none cursor-pointer"
+                  :class="{
+                    'cursor-not-allowed': !audits?.length,
+                  }"
+                  @click="updateOrderBy('created_at')"
+                >
                   <div class="flex items-center gap-3">
-                    <div>Time stamp</div>
+                    <div>Time</div>
 
                     <GeneralIcon
                       v-if="auditLogsQuery.orderBy?.created_at"
@@ -769,7 +814,7 @@ onMounted(async () => {
                 <div class="th cell-type">Type</div>
                 <div class="th cell-sub-type">Sub-type</div>
                 <div class="th cell-description">Description</div>
-                <div class="th cell-ip">IP</div>
+                <div class="th cell-ip">IP Address</div>
               </div>
             </div>
             <div class="tbody">
@@ -787,18 +832,33 @@ onMounted(async () => {
                         <GeneralUserIcon :email="collaboratorsMap.get(audit.user)?.email" size="base" class="flex-none" />
                         <div class="flex-1 flex flex-col max-w-[calc(100%_-_44px)]">
                           <div class="w-full flex gap-3">
-                            <span class="text-sm text-gray-800 capitalize font-semibold truncate">
+                            <NcTooltip
+                              class="text-sm !leading-5 text-gray-800 capitalize font-semibold truncate"
+                              show-on-truncate-only
+                              placement="bottom"
+                            >
+                              <template #title>
+                                {{
+                                  collaboratorsMap.get(audit.user)?.display_name ||
+                                  collaboratorsMap
+                                    .get(audit.user)
+                                    ?.email?.slice(0, collaboratorsMap.get(audit.user)?.email.indexOf('@'))
+                                }}
+                              </template>
                               {{
                                 collaboratorsMap.get(audit.user)?.display_name ||
                                 collaboratorsMap
                                   .get(audit.user)
                                   ?.email?.slice(0, collaboratorsMap.get(audit.user)?.email.indexOf('@'))
                               }}
-                            </span>
+                            </NcTooltip>
                           </div>
-                          <span class="text-xs text-gray-600 truncate">
+                          <NcTooltip class="text-xs !leading-4 text-gray-600 truncate" show-on-truncate-only placement="bottom">
+                            <template #title>
+                              {{ collaboratorsMap.get(audit.user)?.email }}
+                            </template>
                             {{ collaboratorsMap.get(audit.user)?.email }}
-                          </span>
+                          </NcTooltip>
                         </div>
                       </div>
                       <template v-else>{{ audit.user }} </template>
@@ -812,9 +872,17 @@ onMounted(async () => {
                     </div>
                     <div class="td cell-base">
                       <div v-if="audit.base_id" class="w-full">
-                        <div class="truncate text-sm text-gray-800 font-semibold">
+                        <NcTooltip
+                          class="truncate text-sm !leading-5 text-gray-800 font-semibold"
+                          show-on-truncate-only
+                          placement="bottom"
+                        >
+                          <template #title>
+                            {{ bases.get(audit.base_id)?.title }}
+                          </template>
                           {{ bases.get(audit.base_id)?.title }}
-                        </div>
+                        </NcTooltip>
+
                         <div class="text-gray-600 text-xs">ID: {{ audit.base_id }}</div>
                       </div>
                       <template v-else>
@@ -852,9 +920,6 @@ onMounted(async () => {
                   </div>
                 </template>
               </template>
-              <div v-else-if="!isLoading" class="flex items-center justify-center text-gray-500">
-                <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
-              </div>
             </div>
           </div>
         </div>
@@ -864,8 +929,14 @@ onMounted(async () => {
         >
           <div class="flex flex-col justify-center items-center gap-2">
             <GeneralLoader size="xlarge" />
-            <span class="text-center">Loading...</span>
+            <span class="text-center">{{ $t('general.loading') }}</span>
           </div>
+        </div>
+        <div
+          v-if="!isLoading && !audits?.length"
+          class="flex items-center justify-center absolute left-0 top-[54px] w-full h-[calc(100%_-_54px)] pb-10 flex items-center justify-center text-gray-500"
+        >
+          <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
         </div>
         <div
           v-if="totalRows"

@@ -263,12 +263,13 @@ export const readonlyMetaAllowedTypes = [
   UITypes.QrCode,
 ];
 
-
 export const partialUpdateAllowedTypes = [
+  // Single/Multi select is disabled for now since it involves updating type in some cases
   // UITypes.SingleSelect,
   // UITypes.MultiSelect,
   UITypes.Checkbox,
   UITypes.Number,
+  UITypes.Decimal,
   UITypes.Currency,
   UITypes.Percent,
   UITypes.Duration,

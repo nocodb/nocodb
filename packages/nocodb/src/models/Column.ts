@@ -1401,10 +1401,7 @@ export default class Column<T = any> implements ColumnType {
       colId,
     );
 
-    await NocoCache.update(
-      `${CacheScope.COLUMN}:${colId}`,
-      { validate }
-    );
+    await NocoCache.update(`${CacheScope.COLUMN}:${colId}`, { validate });
   }
 
   static async updateTargetView(

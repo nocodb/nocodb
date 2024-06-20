@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { SourceRestriction, type ViewType } from 'nocodb-sdk'
+import { type ViewType } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
 
 const props = defineProps<{

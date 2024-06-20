@@ -735,16 +735,16 @@ const getSource = (sourceId: string) => {
                               <template #title>
                                 {{ getSourceTooltip(source) }}
                                 <a
-                                    class="!text-current"
-                                    href="https://docs.nocodb.com/data-sources/connect-to-data-source#configuring-permissions"
-                                    target="_blank"
+                                  class="!text-current"
+                                  href="https://docs.nocodb.com/data-sources/connect-to-data-source#configuring-permissions"
+                                  target="_blank"
                                 >
                                   Learn more
                                 </a>
                               </template>
                               <GeneralBaseLogo
-                                  :color="getSourceIconColor(source)"
-                                  class="flex-none min-w-4 !xs:(min-w-4.25 w-4.25 text-sm)"
+                                :color="getSourceIconColor(source)"
+                                class="flex-none min-w-4 !xs:(min-w-4.25 w-4.25 text-sm)"
                               />
                             </NcTooltip>
                             <input

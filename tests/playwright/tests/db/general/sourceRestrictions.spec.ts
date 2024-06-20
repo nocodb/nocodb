@@ -137,7 +137,7 @@ test.describe('Source Restrictions', () => {
       await dashboard.rootPage.locator(`li[role="menuitem"]:has-text("${item}"):visible`).last()
     ).toBeVisible();
 
-    await dashboard.rootPage.locator(`li[role="menuitem"]:has-text("${item}"):visible`).last().click();
+    await dashboard.rootPage.locator(`li[role="menuitem"]:has-text("Edit"):visible`).last().click();
 
     await dashboard.rootPage
       .locator(`.nc-dropdown-edit-column .ant-form-item-label:has-text(Icon)`)

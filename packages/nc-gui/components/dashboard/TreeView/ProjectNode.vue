@@ -474,6 +474,7 @@ async function openAudit(source: SourceType) {
     'sourceId': source!.id,
     'onUpdate:modelValue': () => closeDialog(),
     'baseId': base.value!.id,
+    'bordered': true,
   })
 
   function closeDialog() {

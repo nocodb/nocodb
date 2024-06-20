@@ -4,13 +4,14 @@ const props = defineProps<{
   baseId: string
   sourceId: string
   modelValue: boolean
+  bordered?: boolean
 }>()
 
 const emit = defineEmits(['update:modelValue'])
 
 const isOpen = useVModel(props, 'modelValue', emit)
 
-const { workspaceId, sourceId } = toRefs(props)
+const { workspaceId, sourceId, bordered } = toRefs(props)
 
 const { openedProject: base } = storeToRefs(useBases())
 
@@ -48,7 +49,13 @@ onMounted(async () => {
 <template>
   <GeneralModal v-model:visible="isOpen" size="xl" class="!w-[70rem] !top-[5vh]">
     <div class="p-6 h-full">
-      <WorkspaceAuditLogs v-if="!isLoading" :workspace-id="workspaceId" :source-id="sourceId" :base-id="baseId" />
+      <WorkspaceAuditLogs
+        v-if="!isLoading"
+        :workspace-id="workspaceId"
+        :source-id="sourceId"
+        :base-id="baseId"
+        :bordered="bordered"
+      />
     </div>
   </GeneralModal>
 </template>

@@ -45,8 +45,10 @@ export class NotificationsController {
 
     this.notificationsService.addConnection(req.user.id, res);
 
+    let unsubscribeCallback = null;
+
     if (PubSubRedis.available) {
-      await PubSubRedis.subscribe(
+      unsubscribeCallback = await PubSubRedis.subscribe(
         `notification:${req.user.id}`,
         async (data) => {
           this.notificationsService.sendToConnections(req.user.id, data);
@@ -57,7 +59,7 @@ export class NotificationsController {
     res.on('close', async () => {
       this.notificationsService.removeConnection(req.user.id, res);
       if (PubSubRedis.available) {
-        await PubSubRedis.unsubscribe(`notification:${req.user.id}`);
+        await unsubscribeCallback();
       }
     });
 

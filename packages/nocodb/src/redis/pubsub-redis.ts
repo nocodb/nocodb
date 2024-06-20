@@ -10,8 +10,6 @@ export class PubSubRedis {
 
   public static redisClient: Redis;
   public static redisSubscriber: Redis;
-  private static unsubscribeCallbacks: { [key: string]: () => Promise<void> } =
-    {};
 
   public static async init() {
     if (!PubSubRedis.available) {
@@ -43,21 +41,12 @@ export class PubSubRedis {
     }
   }
 
-  static async unsubscribe(channel: string) {
-    if (!PubSubRedis.initialized) {
-      if (!PubSubRedis.available) {
-        return;
-      }
-
-      await PubSubRedis.init();
-    }
-
-    if (PubSubRedis.unsubscribeCallbacks[channel]) {
-      await PubSubRedis.unsubscribeCallbacks[channel]();
-      delete PubSubRedis.unsubscribeCallbacks[channel];
-    }
-  }
-
+  /**
+   * 
+   * @param channel 
+   * @param callback 
+   * @returns Returns a callback to unsubscribe
+   */
   static async subscribe(
     channel: string,
     callback: (message: any) => Promise<void>,
@@ -83,7 +72,7 @@ export class PubSubRedis {
     };
 
     PubSubRedis.redisSubscriber.on('message', onMessage);
-    PubSubRedis.unsubscribeCallbacks[channel] = async () => {
+    return async () => {
       await PubSubRedis.redisSubscriber.unsubscribe(channel);
       PubSubRedis.redisSubscriber.off('message', onMessage);
     };

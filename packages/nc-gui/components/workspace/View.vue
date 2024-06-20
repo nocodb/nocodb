@@ -129,7 +129,7 @@ onMounted(() => {
               Audit Logs
             </div>
           </template>
-          <div class="h-[calc(100vh-92px)]" >
+          <div class="h-[calc(100vh-92px)]">
             <WorkspaceAuditLogs :workspace-id="currentWorkspace.id" />
           </div>
         </a-tab-pane>

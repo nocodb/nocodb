@@ -47,7 +47,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <GeneralModal v-model:visible="isOpen" size="xl" class="!w-[70rem] !top-[5vh]">
+  <GeneralModal v-model:visible="isOpen" size="xl" class="!top-[5vh]" width="96.95rem">
     <div class="p-6 h-full">
       <WorkspaceAuditLogs
         v-if="!isLoading"

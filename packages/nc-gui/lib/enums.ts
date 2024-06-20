@@ -170,7 +170,6 @@ export enum CoverImageObjectFit {
   COVER = 'cover',
 }
 
-
 export enum AuditLogsDateRange {
   Last24H = 'last24H',
   PastWeek = 'pastWeek',

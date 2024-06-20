@@ -1,5 +1,4 @@
 import type {
-  AuditOperationSubTypes,
   AuditOperationTypes,
   BaseType,
   ColumnType,

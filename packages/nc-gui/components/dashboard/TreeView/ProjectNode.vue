@@ -29,7 +29,7 @@ const { isMobileMode } = useGlobal()
 
 const { api } = useApi()
 
-const { auditLogsQuery } = storeToRefs(useWorkspace())
+const { auditLogsQuery, auditCurrentPage } = storeToRefs(useWorkspace())
 
 const { createProject: _createProject, updateProject, getProjectMetaInfo, loadProject } = basesStore
 
@@ -453,6 +453,8 @@ const getSource = (sourceId: string) => {
 
 async function openAudit(source: SourceType) {
   $e('c:project:audit')
+
+  auditCurrentPage.value = 1
 
   auditLogsQuery.value = {
     ...auditLogsQuery.value,

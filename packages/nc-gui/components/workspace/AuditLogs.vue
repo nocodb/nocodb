@@ -228,16 +228,16 @@ const handleUpdateDateRange = (range?: AuditLogsDateRange, label?: string) => {
       auditLogsQuery.value.endDate = now.format('YYYY-MM-DD HH:mm:ssZ')
       break
     case AuditLogsDateRange.PastWeek:
-      auditLogsQuery.value.startDate = now.subtract(1, 'week').startOf('day').format('YYYY-MM-DD')
-      auditLogsQuery.value.endDate = now.subtract(1, 'week').endOf('day').format('YYYY-MM-DD')
+      auditLogsQuery.value.startDate = now.subtract(7, 'days').format('YYYY-MM-DD HH:mm:ssZ')
+      auditLogsQuery.value.endDate = now.format('YYYY-MM-DD HH:mm:ssZ')
       break
     case AuditLogsDateRange.PastMonth:
-      auditLogsQuery.value.startDate = now.subtract(1, 'month').startOf('month').format('YYYY-MM-DD')
-      auditLogsQuery.value.endDate = now.subtract(1, 'month').endOf('month').format('YYYY-MM-DD')
+      auditLogsQuery.value.startDate = now.subtract(30, 'days').format('YYYY-MM-DD HH:mm:ssZ')
+      auditLogsQuery.value.endDate = now.format('YYYY-MM-DD HH:mm:ssZ')
       break
     case AuditLogsDateRange.PastYear:
-      auditLogsQuery.value.startDate = now.subtract(1, 'year').startOf('year').format('YYYY-MM-DD')
-      auditLogsQuery.value.endDate = now.subtract(1, 'year').endOf('year').format('YYYY-MM-DD')
+      auditLogsQuery.value.startDate = now.subtract(365, 'days').format('YYYY-MM-DD HH:mm:ssZ')
+      auditLogsQuery.value.endDate = now.format('YYYY-MM-DD HH:mm:ssZ')
       break
     default:
       auditLogsQuery.value.startDate = undefined
@@ -734,7 +734,7 @@ onMounted(async () => {
           <div class="nc-audit-logs-table table h-full relative">
             <div class="thead sticky top-0">
               <div class="tr">
-                <div class="th cell-user !hover:bg-gray-100" @click="updateOrderBy('user')">
+                <div class="th cell-user !hover:bg-gray-100 select-none cursor-pointer" @click="updateOrderBy('user')">
                   <div class="flex items-center gap-3">
                     <div>User</div>
                     <GeneralIcon
@@ -745,9 +745,10 @@ onMounted(async () => {
                         'transform rotate-180': auditLogsQuery.orderBy?.user === 'asc',
                       }"
                     />
+                    <GeneralIcon v-else icon="chevronUpDown" class="flex-none" />
                   </div>
                 </div>
-                <div class="th cell-timestamp !hover:bg-gray-100" @click="updateOrderBy('created_at')">
+                <div class="th cell-timestamp !hover:bg-gray-100 select-none cursor-pointer" @click="updateOrderBy('created_at')">
                   <div class="flex items-center gap-3">
                     <div>Time stamp</div>
 
@@ -759,6 +760,7 @@ onMounted(async () => {
                         'transform rotate-180': auditLogsQuery.orderBy?.created_at === 'asc',
                       }"
                     />
+                    <GeneralIcon v-else icon="chevronUpDown" class="flex-none" />
                   </div>
                 </div>
                 <div class="th cell-base">Base</div>
@@ -1002,13 +1004,17 @@ onMounted(async () => {
   }
 
   .tbody {
-    .td {
-      @apply text-small leading-[18px] text-gray-600;
+    .tr {
+      @apply cursor-pointer;
+
+      .td {
+        @apply text-small leading-[18px] text-gray-600;
+      }
     }
   }
 
   .tr {
-    @apply h-[54px] flex overflow-hidden border-b-1  border-gray-200 cursor-pointer;
+    @apply h-[54px] flex overflow-hidden border-b-1  border-gray-200;
 
     &:hover .td {
       @apply bg-gray-50;

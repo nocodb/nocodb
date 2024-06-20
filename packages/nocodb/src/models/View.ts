@@ -1809,6 +1809,11 @@ export default class View implements ViewType {
             defaultOrder
           );
         });
+      } else if (!copyFromView) {
+        // sort by display value first, then other columns
+        columns.sort((a, b) => {
+          return +b.pv - +a.pv;
+        });
       }
 
       let order = 1;

@@ -202,7 +202,7 @@ export class ColumnsService {
 
     const isMetaOnlyUpdateAllowed =
       source?.is_schema_readonly &&
-      partialUpdateAllowedTypes.includes(column.uidt as UITypes);
+      partialUpdateAllowedTypes.includes(column.uidt);
 
     // check if source is readonly and column type is not allowed
     if (
@@ -210,7 +210,7 @@ export class ColumnsService {
       (!readonlyMetaAllowedTypes.includes(column.uidt) ||
         (param.column.uidt &&
           !readonlyMetaAllowedTypes.includes(param.column.uidt as UITypes))) &&
-      !partialUpdateAllowedTypes.includes(column.uidt as UITypes)
+      !partialUpdateAllowedTypes.includes(column.uidt)
     ) {
       NcError.sourceMetaReadOnly(source.alias);
     }

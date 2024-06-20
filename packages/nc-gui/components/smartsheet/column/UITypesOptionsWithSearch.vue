@@ -100,16 +100,12 @@ onMounted(() => {
 
         {{ options.length ? $t('title.noResultsMatchedYourSearch') : 'The list is empty' }}
       </div>
-
-      <NcTooltip
+      <GeneralSourceRestrictionTooltip
         v-for="(option, index) in filteredOptions"
         :key="index"
-        :disabled="!isDisabledUIType(option.name)"
-        placement="left"
+        :message="$t('tooltip.typeNotAllowed')"
+        :enabled="isDisabledUIType(option.name)"
       >
-        <template #title>
-          {{ $t('tooltip.typeNotAllowed') }}
-        </template>
         <div
           class="flex w-full py-2 items-center justify-between px-2 rounded-md"
           :class="[
@@ -133,7 +129,7 @@ onMounted(() => {
             <span v-if="option.deprecated" class="!text-xs !text-gray-300">({{ $t('general.deprecated') }})</span>
           </div>
         </div>
-      </NcTooltip>
+      </GeneralSourceRestrictionTooltip>
     </div>
   </div>
 </template>

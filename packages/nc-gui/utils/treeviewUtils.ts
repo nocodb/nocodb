@@ -14,7 +14,7 @@ export const getSourceIconColor = (source: SourceType) => {
 
 // based on source restriction decide the tooltip message with docs link
 export const getSourceTooltip = (source: SourceType) => {
-  const dbLabel = `External DB - ${clientTypes.find((c) => c.value === source.type)?.text || source.type?.toUpperCase()}`
+  const dbLabel = `Connection type is ${clientTypes.find((c) => c.value === source.type)?.text || source.type?.toUpperCase()}.`
 
   if (source.is_schema_readonly && source.is_data_readonly) {
     return h(
@@ -25,9 +25,9 @@ export const getSourceTooltip = (source: SourceType) => {
       [
         dbLabel,
         h('br'),
-        `External source is connected in Read Only Mode.`,
+        'Both data and schema editing are disabled.',
         h('br'),
-        `Schema and Data is not editable.`,
+        'These settings are ideal for read-only use cases of your data.',
         h('br'),
         h(
           'a',
@@ -45,39 +45,14 @@ export const getSourceTooltip = (source: SourceType) => {
     return h(
       'div',
       {
-        className: 'w-max',
+        className: 'max-w-90',
       },
       [
         dbLabel,
         h('br'),
-        'Data Edit is enabled.',
+        'Data editing is allowed and Schema edit is not disabled.',
         h('br'),
-        'Schema is in disabled state.',
-        h('br'),
-        h(
-          'a',
-          {
-            className: '!text-current',
-            href: 'https://docs.nocodb.com/data-sources/connect-to-data-source#configuring-permissions',
-            target: '_blank',
-          },
-          'Learn more',
-        ),
-      ],
-    )
-  }
-  if (source.is_data_readonly) {
-    return h(
-      'div',
-      {
-        className: 'w-max',
-      },
-      [
-        dbLabel,
-        h('br'),
-        'Schema Edit is enabled.',
-        h('br'),
-        'Data is in disabled state.',
+        'An ideal settings for administrative users who need to change data directly on database.',
         h('br'),
         h(
           'a',
@@ -94,14 +69,14 @@ export const getSourceTooltip = (source: SourceType) => {
   return h(
     'div',
     {
-      className: 'w-max',
+      className: 'max-w-90',
     },
     [
       dbLabel,
       h('br'),
-      'Both Data and Schema Editing is enabled.',
+      'Both Data and Schema Editing are enabled.',
       h('br'),
-      'We suggest to disable ',
+      'We highly recommend ',
       h(
         'a',
         {
@@ -109,9 +84,9 @@ export const getSourceTooltip = (source: SourceType) => {
           href: 'https://docs.nocodb.com/data-sources/connect-to-data-source#configuring-permissions',
           target: '_blank',
         },
-        'Schema editing',
+        'disabling schema editing',
       ),
-      '.',
+      ' to maintain data integrity and avoid potential issues.',
     ],
   )
 }

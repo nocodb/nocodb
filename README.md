@@ -75,12 +75,11 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart spreadshe
 docker run -d --name nocodb-postgres \
 -v "$(pwd)"/nocodb:/usr/app/data/ \
 -p 8080:8080 \
--e NC_DB="pg://host.docker.internal:5432?u=root&p=password&d=d1" \
+-e NC_DB="pg://host.docker.internal:5432?u=root&p=password&d=d1" \ 
 -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
 nocodb/nocodb:latest
 
-# with SQLite : 
-## If `/usr/app/data/` is not mounted and containers are recreated - data will be LOST!
+# with SQLite : mounting volume `/usr/app/data/` is crucial to avoid data loss.
 docker run -d --name nocodb \
 -v "$(pwd)"/nocodb:/usr/app/data/ \
 -p 8080:8080 \
@@ -88,28 +87,16 @@ nocodb/nocodb:latest
 ```
 
 ## Binaries
-- Binaries are only for quick try or testing purposes and not recommended for production use.
-```
-# MacOS (arm64)
-curl http://get.nocodb.com/macos-arm64 -o nocodb -L && chmod +x nocodb && ./nocodb
-
-# For MacOS (x64)
-curl http://get.nocodb.com/macos-x64 -o nocodb -L && chmod +x nocodb && ./nocodb
-
-# Linux (x64)
-curl http://get.nocodb.com/linux-x64 -o nocodb -L && chmod +x nocodb && ./nocodb
-
-# Linux (arm64)
-curl http://get.nocodb.com/linux-arm64 -o nocodb -L && chmod +x nocodb && ./nocodb
-
-# Windows (x64)
-iwr http://get.nocodb.com/win-x64.exe -o Noco-win-x64.exe
-.\Noco-win-x64.exe
-
-# Windows (arm64)
-iwr http://get.nocodb.com/win-arm64.exe -o Noco-win-arm64.exe
-.\Noco-win-arm64.exe
-```
+🚥 Binaries are intended for ONLY quick trials or testing purposes and are not recommended for production use.
+  | OS      | Architecture | Command                                                                                      |
+  |---------|--------------|----------------------------------------------------------------------------------------------|
+  | macOS   | arm64        | `curl http://get.nocodb.com/macos-arm64 -o nocodb -L && chmod +x nocodb && ./nocodb`         |
+  | macOS   | x64          | `curl http://get.nocodb.com/macos-x64 -o nocodb -L && chmod +x nocodb && ./nocodb`           |
+  | Linux   | x64          | `curl http://get.nocodb.com/linux-x64 -o nocodb -L && chmod +x nocodb && ./nocodb`           |
+  | Linux   | arm64        | `curl http://get.nocodb.com/linux-arm64 -o nocodb -L && chmod +x nocodb && ./nocodb`         |
+  | Windows | x64          | `iwr http://get.nocodb.com/win-x64.exe -o Noco-win-x64.exe &&.\Noco-win-x64.exe`             |
+  | Windows | arm64        | `iwr http://get.nocodb.com/win-arm64.exe -o Noco-win-arm64.exe && .\Noco-win-arm64.exe`      |
+  
 
 ## Docker Compose
 

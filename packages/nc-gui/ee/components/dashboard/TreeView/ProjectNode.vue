@@ -683,7 +683,7 @@ const getSource = (sourceId: string) => {
                   <!-- Audit -->
                   <NcMenuItem
                     v-if="isUIAllowed('baseAuditList') && base?.sources?.[0]?.enabled"
-                    key="erd"
+                    key="audit"
                     data-testid="nc-sidebar-base-audit"
                     @click="openAudit(base?.sources?.[0])"
                   >

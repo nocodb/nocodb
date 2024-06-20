@@ -64,8 +64,6 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const isCollaboratorsLoading = ref(true)
   const isInvitingCollaborators = ref(false)
 
-  const auditLogsQuery = ref<AuditLogsQuery>(defaultAuditLogsQuery)
-
   const activePage = computed<'workspace' | 'recent' | 'shared' | 'starred'>(
     () => (route.value.query.page as 'workspace' | 'recent' | 'shared' | 'starred') ?? 'workspace',
   )
@@ -449,6 +447,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       router.push({ name: 'index-typeOrId-settings', params: { typeOrId: workspaceId }, query })
     }
   }
+
+  const auditLogsQuery = ref<AuditLogsQuery>(defaultAuditLogsQuery)
 
   const audits = ref<null | Array<AuditType>>(null)
 

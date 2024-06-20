@@ -1,4 +1,4 @@
-import type { BaseType } from 'nocodb-sdk'
+import type { AuditType, BaseType } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { message } from 'ant-design-vue'
 import { isString } from '@vue/shared'
@@ -6,11 +6,9 @@ import type { AuditLogsQuery } from '~/lib/types'
 
 const defaultAuditLogsQuery = {
   type: undefined,
-  subType: undefined,
-  base: undefined,
-  user: undefined,
-  search: undefined,
+  baseId: undefined,
   sourceId: undefined,
+  user: undefined,
   startDate: undefined,
   endData: undefined,
   dateRangeLabel: undefined,
@@ -22,6 +20,8 @@ const defaultAuditLogsQuery = {
 
 export const useWorkspace = defineStore('workspaceStore', () => {
   const basesStore = useBases()
+
+  const { isUIAllowed } = useRoles()
 
   const collaborators = ref<any[] | null>()
 
@@ -50,15 +50,6 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const isCollaboratorsLoading = ref(true)
   const isInvitingCollaborators = ref(false)
   const workspaceUserCount = ref<number | undefined>(undefined)
-
-  const auditLogsQuery = ref<{
-    type?: string
-    subType?: string
-    base?: string
-    user?: string
-    search?: string
-    sourceId?: string
-  }>(defaultAuditLogsQuery)
 
   const activePage = computed<'workspace' | 'recent' | 'shared' | 'starred'>(
     () => (route.value.query.page as 'workspace' | 'recent' | 'shared' | 'starred') ?? 'recent',
@@ -237,6 +228,49 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     }
   }
 
+  const auditLogsQuery = ref<AuditLogsQuery>(defaultAuditLogsQuery)
+
+  const audits = ref<null | Array<AuditType>>(null)
+
+  const auditTotalRows = ref(0)
+
+  const auditCurrentPage = ref(1)
+
+  const auditCurrentLimit = ref(25)
+
+  const loadAudits = async (
+    workspaceId?: string,
+    page: number = auditCurrentPage.value,
+    limit: number = auditCurrentLimit.value,
+  ) => {
+    try {
+      if (limit * (page - 1) > auditTotalRows.value) {
+        auditCurrentPage.value = 1
+        page = 1
+      }
+
+      const { list, pageInfo } = isUIAllowed('workspaceAuditList')
+        ? await $api.utils.projectAuditList({
+            offset: limit * (page - 1),
+            limit,
+            ...auditLogsQuery.value,
+          })
+        : await $api.base.auditList(auditLogsQuery.value.baseId, {
+            offset: limit * (page - 1),
+            limit,
+            ...auditLogsQuery.value,
+          })
+
+      audits.value = list
+      auditTotalRows.value = pageInfo.totalRows ?? 0
+    } catch (e) {
+      message.error(await extractSdkResponseErrorMsg(e))
+      audits.value = []
+      auditTotalRows.value = 0
+      auditCurrentPage.value = 1
+    }
+  }
+
   function setLoadingState(isLoading = false) {
     isWorkspaceLoading.value = isLoading
   }
@@ -283,6 +317,11 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     workspaceRole,
     moveToOrg,
     auditLogsQuery,
+    audits,
+    auditTotalRows,
+    auditCurrentPage,
+    auditCurrentLimit,
+    loadAudits,
   }
 })
 

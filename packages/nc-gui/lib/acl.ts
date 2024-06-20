@@ -39,6 +39,7 @@ const rolePermissions = {
       viewCreateOrEdit: true,
       baseReorder: true,
       orgAdminPanel: true,
+      workspaceAuditList: true,
     },
   },
   [OrgUserRoles.VIEWER]: {

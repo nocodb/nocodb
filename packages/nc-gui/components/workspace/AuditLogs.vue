@@ -70,6 +70,8 @@ const isRowExpanded = ref(false)
 
 const selectedAudit = ref<null | AuditType>(null)
 
+const tableWrapper = ref<HTMLDivElement>()
+
 const auditDropdowns = ref({
   type: false,
   subType: false,
@@ -322,6 +324,20 @@ onMounted(async () => {
 
   if (audits.value === null && appInfo.value.auditEnabled) {
     await loadAudits(currentPage.value, currentLimit.value, false)
+  }
+})
+
+useEventListener(tableWrapper, 'scroll', () => {
+  const stickyHeaderCell = tableWrapper.value?.querySelector('th.cell-user')
+  const nonStickyHeaderFirstCell = tableWrapper.value?.querySelector('th.cell-base')
+  if (!stickyHeaderCell?.getBoundingClientRect().right || !nonStickyHeaderFirstCell?.getBoundingClientRect().left) {
+    return
+  }
+
+  if (nonStickyHeaderFirstCell?.getBoundingClientRect().left < stickyHeaderCell?.getBoundingClientRect().right + 180) {
+    tableWrapper.value?.classList.add('sticky-shadow')
+  } else {
+    tableWrapper.value?.classList.remove('sticky-shadow')
   }
 })
 </script>
@@ -765,18 +781,21 @@ onMounted(async () => {
           'bordered': bordered,
         }"
       >
-        <div class="table-wrapper h-full max-h-[calc(100%_-_40px)] overflow-auto nc-scrollbar-thin relative">
-          <div class="nc-audit-logs-table table h-full relative">
-            <div class="thead sticky top-0">
-              <div class="tr">
-                <div
-                  class="th cell-user !hover:bg-gray-100 select-none cursor-pointer"
+        <div
+          ref="tableWrapper"
+          class="nc-audit-logs-table h-full max-h-[calc(100%_-_40px)] nc-scrollbar-thin relative !overflow-auto"
+        >
+          <table class="!sticky top-0 z-10">
+            <thead>
+              <tr>
+                <th
+                  class="cell-user !hover:bg-gray-100 select-none cursor-pointer"
                   :class="{
                     'cursor-not-allowed': !audits?.length,
                   }"
                   @click="updateOrderBy('user')"
                 >
-                  <div class="flex items-center gap-3 sticky left-0">
+                  <div class="flex items-center gap-3">
                     <div>User</div>
                     <GeneralIcon
                       v-if="auditLogsQuery.orderBy?.user"
@@ -788,9 +807,9 @@ onMounted(async () => {
                     />
                     <GeneralIcon v-else icon="chevronUpDown" class="flex-none" />
                   </div>
-                </div>
-                <div
-                  class="th cell-timestamp !hover:bg-gray-100 select-none cursor-pointer"
+                </th>
+                <th
+                  class="cell-timestamp !hover:bg-gray-100 select-none cursor-pointer"
                   :class="{
                     'cursor-not-allowed': !audits?.length,
                   }"
@@ -809,25 +828,38 @@ onMounted(async () => {
                     />
                     <GeneralIcon v-else icon="chevronUpDown" class="flex-none" />
                   </div>
-                </div>
-                <div class="th cell-base">Base</div>
-                <div class="th cell-type">Type</div>
-                <div class="th cell-sub-type">Sub-type</div>
-                <div class="th cell-description">Description</div>
-                <div class="th cell-ip">IP Address</div>
-              </div>
-            </div>
-            <div class="tbody">
-              <template v-if="audits?.length">
-                <template v-for="(audit, i) of audits" :key="i">
-                  <div
-                    class="tr"
-                    :class="{
-                      selected: selectedAudit?.id === audit.id && isRowExpanded,
-                    }"
-                    @click="handleRowClick(audit)"
-                  >
-                    <div class="td cell-user">
+                </th>
+                <th class="cell-base">
+                  <div>Base</div>
+                </th>
+                <th class="cell-type">
+                  <div>Type</div>
+                </th>
+                <th class="cell-sub-type">
+                  <div>Sub-type</div>
+                </th>
+                <th class="cell-description">
+                  <div>Description</div>
+                </th>
+                <th class="cell-ip">
+                  <div>IP Address</div>
+                </th>
+              </tr>
+            </thead>
+          </table>
+          <template v-if="audits?.length">
+            <table>
+              <tbody>
+                <tr
+                  v-for="(audit, i) of audits"
+                  :key="i"
+                  :class="{
+                    selected: selectedAudit?.id === audit.id && isRowExpanded,
+                  }"
+                  @click="handleRowClick(audit)"
+                >
+                  <td class="cell-user">
+                    <div>
                       <div v-if="audit.user && collaboratorsMap.get(audit.user)?.email" class="w-full flex gap-3 items-center">
                         <GeneralUserIcon :email="collaboratorsMap.get(audit.user)?.email" size="base" class="flex-none" />
                         <div class="flex-1 flex flex-col max-w-[calc(100%_-_44px)]">
@@ -863,14 +895,18 @@ onMounted(async () => {
                       </div>
                       <template v-else>{{ audit.user }} </template>
                     </div>
-                    <div class="td cell-timestamp">
+                  </td>
+                  <td class="cell-timestamp">
+                    <div>
                       <NcTooltip placement="bottom">
                         <template #title> {{ parseStringDateTime(audit.created_at, 'D MMMM YYYY HH:mm') }}</template>
 
                         {{ timeAgo(audit.created_at) }}
                       </NcTooltip>
                     </div>
-                    <div class="td cell-base">
+                  </td>
+                  <td class="cell-base">
+                    <div>
                       <div v-if="audit.base_id" class="w-full">
                         <NcTooltip
                           class="truncate text-sm !leading-5 text-gray-800 font-semibold"
@@ -889,7 +925,9 @@ onMounted(async () => {
                         {{ audit.base_id }}
                       </template>
                     </div>
-                    <div class="td cell-type">
+                  </td>
+                  <td class="cell-type">
+                    <div>
                       <div class="truncate bg-gray-200 px-2 py-1 rounded-lg">
                         <NcTooltip class="truncate" placement="bottom" show-on-truncate-only>
                           <template #title> {{ auditOperationTypeLabels[audit.op_type] }}</template>
@@ -898,7 +936,9 @@ onMounted(async () => {
                         </NcTooltip>
                       </div>
                     </div>
-                    <div class="td cell-sub-type">
+                  </td>
+                  <td class="cell-sub-type">
+                    <div>
                       <div class="truncate">
                         <NcTooltip class="truncate" placement="bottom" show-on-truncate-only>
                           <template #title> {{ auditOperationSubTypeLabels[audit.op_sub_type] }}</template>
@@ -907,21 +947,25 @@ onMounted(async () => {
                         </NcTooltip>
                       </div>
                     </div>
-                    <div class="td cell-description">
+                  </td>
+                  <td class="cell-description">
+                    <div>
                       <div class="truncate">
                         {{ audit.description }}
                       </div>
                     </div>
-                    <div class="td cell-ip">
+                  </td>
+                  <td class="cell-ip">
+                    <div>
                       <div class="truncate">
                         {{ audit.ip }}
                       </div>
                     </div>
-                  </div>
-                </template>
-              </template>
-            </div>
-          </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </template>
         </div>
         <div
           v-show="isLoading"
@@ -1074,39 +1118,61 @@ onMounted(async () => {
 }
 
 .nc-audit-logs-table {
-  .thead {
-    .th {
+  &.sticky-shadow {
+    th,
+    td {
+      &.cell-user {
+        box-shadow: 2px 0px 4px 0px rgba(0, 0, 0, 0.08);
+      }
+    }
+  }
+  thead {
+    th {
       @apply bg-gray-50 text-sm text-gray-600;
+
+      &.cell-user {
+        @apply sticky left-0 z-4 bg-gray-50;
+      }
     }
   }
 
-  .tbody {
-    .tr {
+  tbody {
+    tr {
       @apply cursor-pointer;
 
       .td {
         @apply text-small leading-[18px] text-gray-600;
       }
+
+      td {
+        &.cell-user {
+          @apply sticky left-0 z-4 bg-white;
+        }
+      }
     }
   }
 
-  .tr {
-    @apply h-[54px] flex overflow-hidden border-b-1  border-gray-200;
+  tr {
+    @apply h-[54px] flex border-b-1  border-gray-200;
 
-    &:hover .td {
-      @apply bg-gray-50;
+    &:hover td {
+      @apply !bg-gray-50;
     }
 
-    &.selected .td {
-      @apply bg-gray-50;
+    &.selected td {
+      @apply !bg-gray-50;
     }
 
-    .th,
-    .td {
-      @apply px-6 h-full flex items-center;
+    th,
+    td {
+      @apply h-full;
+
+      & > div {
+        @apply px-6 h-full flex items-center;
+      }
 
       &.cell-user {
-        @apply w-[220px];
+        @apply w-[220px] sticky left-0 z-5;
       }
 
       &.cell-timestamp,

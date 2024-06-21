@@ -80,12 +80,70 @@ test.describe('Source Restrictions', () => {
       .scrollIntoViewIfNeeded();
     await dashboard.grid.get().locator(`th[data-title="LastName"]`).first().locator('.nc-ui-dt-dropdown').click();
     for (const item of ['Edit', 'Delete', 'Duplicate']) {
-      await expect(
-        await dashboard.rootPage.locator(`li[role="menuitem"]:has-text("${item}"):visible`).last()
-      ).toBeVisible();
-      await expect(
-        await dashboard.rootPage.locator(`li[role="menuitem"]:has-text("${item}"):visible`).last()
-      ).toHaveClass(/ant-dropdown-menu-item-disabled/);
+      await expect(dashboard.rootPage.locator(`li[role="menuitem"]:has-text("${item}"):visible`).last()).toBeVisible();
+      await expect(dashboard.rootPage.locator(`li[role="menuitem"]:has-text("${item}"):visible`).last()).toHaveClass(
+        /ant-dropdown-menu-item-disabled/
+      );
     }
+  });
+
+  test('Readonly schema source - edit column', async () => {
+    await dashboard.treeView.openTable({
+      title: 'Country',
+    });
+
+    // Create Rating column
+    await dashboard.grid.column.create({
+      title: 'Rating',
+      type: 'Rating',
+    });
+
+    await dashboard.treeView.openProjectSourceSettings({ title: context.base.title, context });
+
+    await settingsPage.selectTab({ tab: 'dataSources' });
+    await dashboard.rootPage.waitForTimeout(300);
+
+    await settingsPage.source.updateSchemaReadOnly({ sourceName: 'Default', readOnly: true });
+    await settingsPage.close();
+
+    // reload page to reflect source changes
+    await dashboard.rootPage.reload();
+
+    await dashboard.treeView.verifyTable({ title: 'Country' });
+
+    // open table and verify that it is readonly
+    await dashboard.treeView.openTable({ title: 'Country' });
+
+    await dashboard.grid
+      .get()
+      .locator(`th[data-title="Rating"]`)
+      .first()
+      .locator('.nc-ui-dt-dropdown')
+      .scrollIntoViewIfNeeded();
+
+    await dashboard.grid.get().locator(`th[data-title="Rating"]`).first().locator('.nc-ui-dt-dropdown').click();
+    for (const item of ['Delete', 'Duplicate']) {
+      await expect(dashboard.rootPage.locator(`li[role="menuitem"]:has-text("${item}"):visible`).last()).toBeVisible();
+      await expect(dashboard.rootPage.locator(`li[role="menuitem"]:has-text("${item}"):visible`).last()).toHaveClass(
+        /ant-dropdown-menu-item-disabled/
+      );
+    }
+
+    await expect(await dashboard.rootPage.locator(`li[role="menuitem"]:has-text("Edit"):visible`).last()).toBeVisible();
+
+    await dashboard.rootPage.locator(`li[role="menuitem"]:has-text("Edit"):visible`).last().click();
+    await dashboard.rootPage.waitForTimeout(300);
+    await expect(
+      dashboard.rootPage.locator(`.nc-dropdown-edit-column .ant-form-item-label:has-text("Icon")`).last()
+    ).toBeVisible();
+
+    await dashboard.rootPage.locator(`.nc-dropdown-edit-column`).getByTestId('nc-dropdown-rating-max').click();
+
+    await dashboard.rootPage.locator(`.nc-dropdown-rating-max-option:has-text("9")`).click();
+
+    await dashboard.grid.column.save({ isUpdated: true });
+
+    await dashboard.grid.cell.rating.select({ index: 0, columnHeader: 'Rating', rating: 6 });
+    await dashboard.grid.cell.rating.verify({ index: 0, columnHeader: 'Rating', rating: 6 });
   });
 });

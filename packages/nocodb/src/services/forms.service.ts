@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents, SourceRestriction, ViewTypes } from 'nocodb-sdk';
+import { AppEvents, ViewTypes } from 'nocodb-sdk';
 import type {
   FormUpdateReqType,
   UserType,

@@ -3,7 +3,6 @@ import { Injectable } from '@nestjs/common';
 import { nanoid } from 'nanoid';
 import {
   populateUniqueFileName,
-  SourceRestriction,
   UITypes,
   ViewTypes,
 } from 'nocodb-sdk';

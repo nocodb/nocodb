@@ -5,6 +5,7 @@ import {
   isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
   isVirtualCol,
+  partialUpdateAllowedTypes,
   readonlyMetaAllowedTypes,
   RelationTypes,
   SourceRestriction,
@@ -199,12 +200,17 @@ export class ColumnsService {
       Source.get(context, table.source_id),
     );
 
+    const isMetaOnlyUpdateAllowed =
+      source?.is_schema_readonly &&
+      partialUpdateAllowedTypes.includes(column.uidt);
+
     // check if source is readonly and column type is not allowed
     if (
       source?.is_schema_readonly &&
       (!readonlyMetaAllowedTypes.includes(column.uidt) ||
         (param.column.uidt &&
-          !readonlyMetaAllowedTypes.includes(param.column.uidt as UITypes)))
+          !readonlyMetaAllowedTypes.includes(param.column.uidt as UITypes))) &&
+      !partialUpdateAllowedTypes.includes(column.uidt)
     ) {
       NcError.sourceMetaReadOnly(source.alias);
     }
@@ -217,7 +223,7 @@ export class ColumnsService {
 
     const mxColumnLength = Column.getMaxColumnNameLength(sqlClientType);
 
-    if (!isVirtualCol(param.column)) {
+    if (!isVirtualCol(param.column) && !isMetaOnlyUpdateAllowed) {
       param.column.column_name = sanitizeColumnName(
         param.column.column_name,
         source.type,
@@ -229,7 +235,7 @@ export class ColumnsService {
       param.column.title = param.column.title.trim();
     }
 
-    if (param.column.column_name) {
+    if (param.column.column_name && !isMetaOnlyUpdateAllowed) {
       // - 5 is a buffer for suffix
       let colName = param.column.column_name.slice(0, mxColumnLength - 5);
       let suffix = 1;
@@ -247,6 +253,7 @@ export class ColumnsService {
     }
 
     if (
+      !isMetaOnlyUpdateAllowed &&
       !isVirtualCol(param.column) &&
       param.column.column_name.length > mxColumnLength
     ) {
@@ -291,6 +298,7 @@ export class ColumnsService {
     } & Partial<Pick<ColumnReqType, 'column_order'>>;
 
     if (
+      isMetaOnlyUpdateAllowed ||
       isCreatedOrLastModifiedTimeCol(column) ||
       isCreatedOrLastModifiedByCol(column) ||
       [
@@ -365,13 +373,26 @@ export class ColumnsService {
           }
           if (
             'meta' in colBody &&
-            [UITypes.CreatedTime, UITypes.LastModifiedTime].includes(
+            ([UITypes.CreatedTime, UITypes.LastModifiedTime].includes(
               column.uidt,
-            )
+            ) ||
+              isMetaOnlyUpdateAllowed)
           ) {
             await Column.updateMeta(context, {
               colId: param.columnId,
               meta: colBody.meta,
+            });
+          }
+          if (
+            'validate' in colBody &&
+            ([UITypes.URL, UITypes.PhoneNumber, UITypes.Email].includes(
+              column.uidt,
+            ) ||
+              isMetaOnlyUpdateAllowed)
+          ) {
+            await Column.updateValidation(context, {
+              colId: param.columnId,
+              validate: colBody.validate,
             });
           }
 
@@ -436,7 +457,7 @@ export class ColumnsService {
 
         await this.updateRollupOrLookup(context, colBody, column);
       } else {
-        NcError.notImplemented(`Updating ${colBody.uidt} => ${colBody.uidt}`);
+        NcError.notImplemented(`Updating ${column.uidt} => ${colBody.uidt}`);
       }
     } else if (
       [

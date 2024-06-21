@@ -36,6 +36,8 @@ vModel.value.meta = {
 const onPrecisionChange = (value: number) => {
   vModel.value.dtxs = Math.max(value, vModel.value.dtxs)
 }
+
+const { isMetaReadOnly } = useRoles()
 </script>
 
 <template>
@@ -43,6 +45,7 @@ const onPrecisionChange = (value: number) => {
     <a-select
       v-if="vModel.meta?.precision"
       v-model:value="vModel.meta.precision"
+      :disabled="isMetaReadOnly"
       dropdown-class-name="nc-dropdown-decimal-format"
       @change="onPrecisionChange"
     >

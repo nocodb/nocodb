@@ -345,45 +345,45 @@ useEventListener(tableWrapper, 'scroll', () => {
 </script>
 
 <template>
-  <div class="h-full flex flex-col" :class="{ 'gap-6': !baseId, 'pt-6': !baseId && isEeUI, 'gap-4': baseId }">
+  <div class="h-full flex flex-col" :class="{ 'gap-6': !baseId, 'py-6': !baseId && isEeUI, 'gap-4': baseId }">
     <div v-if="!appInfo.auditEnabled" class="text-red-500">Audit logs are currently disabled by administrators.</div>
 
     <div class="flex flex-col" :class="{ 'gap-6': !baseId, 'gap-4': baseId }">
-      <div class="flex flex-col gap-3">
-        <div class="flex flex-row items-center gap-3">
-          <h6 class="text-xl font-semibold text-gray-900 !my-0">
-            Audit Logs
-            <span v-if="baseId"> : {{ bases.get(baseId)?.title }} </span>
-          </h6>
-          <NcTooltip>
-            <template #title> {{ $t('general.reload') }} </template>
-            <NcButton v-if="appInfo.auditEnabled" class="!px-1" type="text" size="xs" :disabled="isLoading" @click="loadAudits()">
-              <!-- Reload -->
-              <div class="flex items-center text-gray-600 font-light">
-                <component :is="iconMap.refresh" class="h-3.5 w-3.5" :class="{ 'animate-infinite animate-spin': isLoading }" />
-              </div>
-            </NcButton>
-          </NcTooltip>
-        </div>
-        <div v-if="!baseId" class="text-sm text-gray-600">Track and monitor any changes made to any base in your workspace.</div>
+      <div v-if="baseId" class="flex flex-row items-center gap-3">
+        <h6 class="text-xl font-semibold text-gray-900 !my-0">
+          Audit Logs
+          <span> : {{ bases.get(baseId)?.title }} </span>
+        </h6>
       </div>
-      <div v-if="appInfo.auditEnabled" class="px-1 flex items-center gap-3">
-        <NcDropdown
-          v-if="auditCollaborators?.length"
-          v-model:visible="auditDropdowns.user"
-          overlay-class-name="overflow-hidden"
-          @update:visible="handleClearDropdownSearch($event, 'user')"
-        >
-          <NcButton type="secondary" size="small">
-            <div class="!w-[106px] flex items-center justify-between gap-2">
-              <div class="max-w-full truncate text-sm !leading-5 flex items-center gap-1">
-                User:
-                <NcTooltip
-                  class="capitalize truncate !leading-5"
-                  :class="{ 'text-brand-500': auditLogsQuery.user }"
-                  show-on-truncate-only
-                >
-                  <template #title>
+
+      <div v-if="appInfo.auditEnabled" class="px-1 flex items-center gap-3 justify-between flex-wrap">
+        <div class="flex items-center gap-3">
+          <NcDropdown
+            v-if="auditCollaborators?.length"
+            v-model:visible="auditDropdowns.user"
+            overlay-class-name="overflow-hidden"
+            @update:visible="handleClearDropdownSearch($event, 'user')"
+          >
+            <NcButton type="secondary" size="small">
+              <div class="!w-[106px] flex items-center justify-between gap-2">
+                <div class="max-w-full truncate text-sm !leading-5 flex items-center gap-1">
+                  {{ $t('objects.user') }}:
+                  <NcTooltip
+                    class="capitalize truncate !leading-5"
+                    :class="{ 'text-brand-500': auditLogsQuery.user }"
+                    show-on-truncate-only
+                  >
+                    <template #title>
+                      {{
+                        (auditLogsQuery.user &&
+                          (collaboratorsMap.get(auditLogsQuery.user)?.display_name ||
+                            collaboratorsMap
+                              .get(auditLogsQuery.user)
+                              ?.email?.slice(0, collaboratorsMap.get(auditLogsQuery.user)?.email.indexOf('@')))) ||
+                        'All'
+                      }}
+                    </template>
+
                     {{
                       (auditLogsQuery.user &&
                         (collaboratorsMap.get(auditLogsQuery.user)?.display_name ||
@@ -392,386 +392,396 @@ useEventListener(tableWrapper, 'scroll', () => {
                             ?.email?.slice(0, collaboratorsMap.get(auditLogsQuery.user)?.email.indexOf('@')))) ||
                       'All'
                     }}
-                  </template>
-
-                  {{
-                    (auditLogsQuery.user &&
-                      (collaboratorsMap.get(auditLogsQuery.user)?.display_name ||
-                        collaboratorsMap
-                          .get(auditLogsQuery.user)
-                          ?.email?.slice(0, collaboratorsMap.get(auditLogsQuery.user)?.email.indexOf('@')))) ||
-                    'All'
-                  }}
-                </NcTooltip>
+                  </NcTooltip>
+                </div>
+                <GeneralIcon icon="arrowDown" class="flex-none h-4 w-4" />
               </div>
-              <GeneralIcon icon="arrowDown" class="flex-none h-4 w-4" />
-            </div>
-          </NcButton>
+            </NcButton>
 
-          <template #overlay>
-            <div
-              class="w-[256px]"
-              :class="{
-                'pt-2': auditCollaborators.length >= 6,
-                'pt-1.5': auditCollaborators.length < 6,
-              }"
-            >
-              <div v-if="auditCollaborators.length >= 6" class="px-2 pb-2" @click.stop>
-                <a-input
-                  :ref="focusUserSearchRef"
-                  v-model:value="auditDropdownsSearch.user"
-                  type="text"
-                  autocomplete="off"
-                  class="nc-input-sm nc-input-shadow"
-                  placeholder="Search user"
-                  data-testid="nc-audit-dropdown-user-search-input"
-                >
-                  <template #prefix>
-                    <GeneralIcon icon="search" class="mr-1 h-4 w-4 text-gray-500 group-hover:text-black" />
-                  </template>
-                  <template #suffix>
-                    <GeneralIcon
-                      v-if="auditDropdownsSearch.user.length > 0"
-                      icon="close"
-                      class="ml-1 h-4 w-4 text-gray-500 group-hover:text-black"
-                      data-testid="nc-audit-logs-clear-search"
-                      @click="auditDropdownsSearch.user = ''"
-                    />
-                  </template>
-                </a-input>
-              </div>
+            <template #overlay>
+              <div
+                class="w-[256px]"
+                :class="{
+                  'pt-2': auditCollaborators.length >= 6,
+                  'pt-1.5': auditCollaborators.length < 6,
+                }"
+              >
+                <div v-if="auditCollaborators.length >= 6" class="px-2 pb-2" @click.stop>
+                  <a-input
+                    :ref="focusUserSearchRef"
+                    v-model:value="auditDropdownsSearch.user"
+                    type="text"
+                    autocomplete="off"
+                    class="nc-input-sm nc-input-shadow"
+                    placeholder="Search user"
+                    data-testid="nc-audit-dropdown-user-search-input"
+                  >
+                    <template #prefix>
+                      <GeneralIcon icon="search" class="mr-1 h-4 w-4 text-gray-500 group-hover:text-black" />
+                    </template>
+                    <template #suffix>
+                      <GeneralIcon
+                        v-if="auditDropdownsSearch.user.length > 0"
+                        icon="close"
+                        class="ml-1 h-4 w-4 text-gray-500 group-hover:text-black"
+                        data-testid="nc-audit-logs-clear-search"
+                        @click="auditDropdownsSearch.user = ''"
+                      />
+                    </template>
+                  </a-input>
+                </div>
 
-              <NcMenu class="w-full max-h-[360px] nc-scrollbar-thin" @click="handleCloseDropdown('user')">
-                <NcMenuItem
-                  class="!children:w-full ant-dropdown-menu-item ant-dropdown-menu-item-only-child sticky top-0"
-                  @click="auditLogsQuery.user = undefined"
-                >
-                  <div class="w-full flex items-center justify-between gap-3">
-                    <span class="flex-1 text-gray-800"> All Users </span>
-                    <GeneralIcon v-if="!auditLogsQuery.user" icon="check" class="flex-none text-primary w-4 h-4" />
-                  </div>
-                </NcMenuItem>
-                <NcDivider />
-                <template v-for="(coll, index) of auditCollaborators" :key="index">
+                <NcMenu class="w-full max-h-[360px] nc-scrollbar-thin" @click="handleCloseDropdown('user')">
                   <NcMenuItem
-                    v-if="
-                      coll.email?.includes(auditDropdownsSearch.user.toLowerCase()) ||
-                      coll.display_name?.includes(auditDropdownsSearch.user.toLowerCase())
-                    "
-                    class="!children:w-full ant-dropdown-menu-item ant-dropdown-menu-item-only-child"
-                    @click="auditLogsQuery.user = coll.email"
+                    class="!children:w-full ant-dropdown-menu-item ant-dropdown-menu-item-only-child sticky top-0"
+                    @click="auditLogsQuery.user = undefined"
                   >
                     <div class="w-full flex items-center justify-between gap-3">
-                      <div v-if="coll?.email" class="w-full flex gap-3 items-center max-w-[calc(100%_-_28px)]">
-                        <GeneralUserIcon :email="coll?.email" size="base" class="flex-none" />
-                        <div class="flex-1 flex flex-col max-w-[calc(100%_-_44px)]">
-                          <div class="w-full flex gap-3">
-                            <span class="text-sm text-gray-800 capitalize font-semibold truncate">
-                              {{ coll?.display_name || coll?.email?.slice(0, coll?.email.indexOf('@')) }}
+                      <span class="flex-1 text-gray-800"> All Users </span>
+                      <GeneralIcon v-if="!auditLogsQuery.user" icon="check" class="flex-none text-primary w-4 h-4" />
+                    </div>
+                  </NcMenuItem>
+                  <NcDivider />
+                  <template v-for="(coll, index) of auditCollaborators" :key="index">
+                    <NcMenuItem
+                      v-if="
+                        coll.email?.includes(auditDropdownsSearch.user.toLowerCase()) ||
+                        coll.display_name?.includes(auditDropdownsSearch.user.toLowerCase())
+                      "
+                      class="!children:w-full ant-dropdown-menu-item ant-dropdown-menu-item-only-child"
+                      @click="auditLogsQuery.user = coll.email"
+                    >
+                      <div class="w-full flex items-center justify-between gap-3">
+                        <div v-if="coll?.email" class="w-full flex gap-3 items-center max-w-[calc(100%_-_28px)]">
+                          <GeneralUserIcon :email="coll?.email" size="base" class="flex-none" />
+                          <div class="flex-1 flex flex-col max-w-[calc(100%_-_44px)]">
+                            <div class="w-full flex gap-3">
+                              <span class="text-sm text-gray-800 capitalize font-semibold truncate">
+                                {{ coll?.display_name || coll?.email?.slice(0, coll?.email.indexOf('@')) }}
+                              </span>
+                            </div>
+                            <span class="text-xs text-gray-600 truncate">
+                              {{ coll?.email }}
                             </span>
                           </div>
-                          <span class="text-xs text-gray-600 truncate">
-                            {{ coll?.email }}
-                          </span>
                         </div>
-                      </div>
-                      <template v-else>{{ coll.email }} </template>
+                        <template v-else>{{ coll.email }} </template>
 
-                      <GeneralIcon
-                        v-if="auditLogsQuery.user === coll.email"
-                        icon="check"
-                        class="flex-none text-primary w-4 h-4"
-                      />
-                    </div>
-                  </NcMenuItem>
-                </template>
-              </NcMenu>
-            </div>
-          </template>
-        </NcDropdown>
-
-        <NcDropdown
-          v-if="!baseId && basesList?.length"
-          v-model:visible="auditDropdowns.base"
-          overlay-class-name="overflow-hidden"
-          @update:visible="handleClearDropdownSearch($event, 'base')"
-        >
-          <NcButton type="secondary" size="small">
-            <div class="!w-[106px] flex items-center justify-between gap-2">
-              <div class="max-w-full truncate text-sm !leading-5 flex items-center gap-1">
-                Base:
-                <NcTooltip class="truncate !leading-5" :class="{ 'text-brand-500': auditLogsQuery.baseId }" show-on-truncate-only>
-                  <template #title>
-                    {{ (auditLogsQuery.baseId && bases.get(auditLogsQuery.baseId)?.title) || 'All' }}
-                  </template>
-                  {{ (auditLogsQuery.baseId && bases.get(auditLogsQuery.baseId)?.title) || 'All' }}
-                </NcTooltip>
-              </div>
-              <GeneralIcon icon="arrowDown" class="flex-none h-4 w-4" />
-            </div>
-          </NcButton>
-
-          <template #overlay>
-            <div
-              class="w-[256px]"
-              :class="{
-                'pt-2': basesList.length >= 6,
-                'pt-1.5': basesList.length < 6,
-              }"
-            >
-              <div v-if="basesList.length >= 6" class="px-2 pb-2" @click.stop>
-                <a-input
-                  :ref="focusBaseSearchRef"
-                  v-model:value="auditDropdownsSearch.base"
-                  type="text"
-                  autocomplete="off"
-                  class="nc-input-sm nc-input-shadow"
-                  placeholder="Search base"
-                  data-testid="nc-audit-dropdown-base-search-input"
-                >
-                  <template #prefix>
-                    <GeneralIcon icon="search" class="mr-1 h-4 w-4 text-gray-500 group-hover:text-black" />
-                  </template>
-                  <template #suffix>
-                    <GeneralIcon
-                      v-if="auditDropdownsSearch.user.length > 0"
-                      icon="close"
-                      class="ml-1 h-4 w-4 text-gray-500 group-hover:text-black"
-                      data-testid="nc-audit-logs-clear-search"
-                      @click="auditDropdownsSearch.user = ''"
-                    />
-                  </template>
-                </a-input>
-              </div>
-
-              <NcMenu class="w-full max-h-[360px] nc-scrollbar-thin" @click="handleCloseDropdown('base')">
-                <NcMenuItem
-                  class="!children:w-full ant-dropdown-menu-item ant-dropdown-menu-item-only-child"
-                  @click="handleUpdateBaseQuery()"
-                >
-                  <div class="w-full flex items-center justify-between gap-3">
-                    <span class="flex-1 text-gray-800"> All Bases </span>
-                    <GeneralIcon v-if="!auditLogsQuery.baseId" icon="check" class="flex-none text-primary w-4 h-4" />
-                  </div>
-                </NcMenuItem>
-                <NcDivider />
-                <template v-for="(base, index) of basesList" :key="index">
-                  <NcMenuItem
-                    v-if="
-                      base?.sources?.[0]?.enabled && base.title?.toLowerCase()?.includes(auditDropdownsSearch.base.toLowerCase())
-                    "
-                    class="!children:w-full ant-dropdown-menu-item ant-dropdown-menu-item-only-child"
-                    @click="handleUpdateBaseQuery(base.id, base?.sources?.[0]?.id)"
-                  >
-                    <div class="w-full flex items-center justify-between gap-3">
-                      <div class="flex-1 flex items-center gap-2 max-w-[calc(100%_-_28px)]">
-                        <GeneralProjectIcon
-                          :color="base?.meta?.iconColor"
-                          :type="base?.type || 'database'"
-                          class="nc-view-icon w-4 h-4 flex-none"
+                        <GeneralIcon
+                          v-if="auditLogsQuery.user === coll.email"
+                          icon="check"
+                          class="flex-none text-primary w-4 h-4"
                         />
-
-                        <NcTooltip class="max-w-full truncate text-gray-800" placement="top" show-on-truncate-only>
-                          <template #title> {{ base.title }}</template>
-                          {{ base.title }}
-                        </NcTooltip>
                       </div>
-
-                      <GeneralIcon v-if="auditLogsQuery.baseId === base.id" icon="check" class="flex-none text-primary w-4 h-4" />
-                    </div>
-                  </NcMenuItem>
-                </template>
-              </NcMenu>
-            </div>
-          </template>
-        </NcDropdown>
-        <NcDropdown
-          v-model:visible="auditDropdowns.type"
-          overlay-class-name="overflow-hidden"
-          @update:visible="handleClearDropdownSearch($event, 'type')"
-        >
-          <NcButton type="secondary" size="small">
-            <div class="!w-[106px] flex items-center justify-between gap-2">
-              <div class="max-w-full truncate text-sm !leading-5 flex items-center gap-1">
-                Type:
-                <NcTooltip class="truncate !leading-5" :class="{ 'text-brand-500': auditLogsQuery.type }" show-on-truncate-only>
-                  <template #title>
-                    {{ auditLogsQuery.type ? auditOperationTypeLabels[auditLogsQuery.type] : 'All' }}
+                    </NcMenuItem>
                   </template>
-                  {{ auditLogsQuery.type ? auditOperationTypeLabels[auditLogsQuery.type] : 'All' }}
-                </NcTooltip>
+                </NcMenu>
               </div>
-              <GeneralIcon icon="arrowDown" class="flex-none h-4 w-4" />
-            </div>
-          </NcButton>
+            </template>
+          </NcDropdown>
 
-          <template #overlay>
-            <div
-              class="w-[256px]"
-              :class="{
-                'pt-2': auditTypeOptions.length >= 6,
-                'pt-1.5': auditTypeOptions.length < 6,
-              }"
-            >
-              <div v-if="auditTypeOptions.length >= 6" class="px-2 pb-2" @click.stop>
-                <a-input
-                  :ref="focusTypeSearchRef"
-                  v-model:value="auditDropdownsSearch.type"
-                  type="text"
-                  autocomplete="off"
-                  class="nc-input-sm nc-input-shadow"
-                  placeholder="Search type"
-                  data-testid="nc-audit-dropdown-type-search-input"
-                >
-                  <template #prefix>
-                    <GeneralIcon icon="search" class="mr-1 h-4 w-4 text-gray-500 group-hover:text-black" />
-                  </template>
-                  <template #suffix>
-                    <GeneralIcon
-                      v-if="auditDropdownsSearch.type.length > 0"
-                      icon="close"
-                      class="ml-1 h-4 w-4 text-gray-500 group-hover:text-black"
-                      data-testid="nc-audit-logs-clear-search"
-                      @click="auditDropdownsSearch.type = ''"
-                    />
-                  </template>
-                </a-input>
-              </div>
-
-              <NcMenu class="w-full max-h-[360px] nc-scrollbar-thin" @click="handleCloseDropdown('type')">
-                <NcMenuItem
-                  class="!children:w-full ant-dropdown-menu-item ant-dropdown-menu-item-only-child"
-                  @click="auditLogsQuery.type = undefined"
-                >
-                  <div class="w-full flex items-center justify-between gap-3">
-                    <span class="flex-1 text-gray-800"> All Types </span>
-                    <GeneralIcon v-if="!auditLogsQuery.type" icon="check" class="flex-none text-primary w-4 h-4" />
-                  </div>
-                </NcMenuItem>
-                <NcDivider />
-                <template v-for="type of auditTypeOptions" :key="type.value">
-                  <NcMenuItem
-                    v-if="type.label.toLowerCase().includes(auditDropdownsSearch.type.toLowerCase())"
-                    class="!children:w-full ant-dropdown-menu-item ant-dropdown-menu-item-only-child"
-                    @click="auditLogsQuery.type = type.value"
+          <NcDropdown
+            v-if="!baseId && basesList?.length"
+            v-model:visible="auditDropdowns.base"
+            overlay-class-name="overflow-hidden"
+            @update:visible="handleClearDropdownSearch($event, 'base')"
+          >
+            <NcButton type="secondary" size="small">
+              <div class="!w-[106px] flex items-center justify-between gap-2">
+                <div class="max-w-full truncate text-sm !leading-5 flex items-center gap-1">
+                  {{ $t('objects.project') }}:
+                  <NcTooltip
+                    class="truncate !leading-5"
+                    :class="{ 'text-brand-500': auditLogsQuery.baseId }"
+                    show-on-truncate-only
                   >
-                    <div class="w-full flex items-center justify-between gap-3">
-                      <div class="flex-1 flex items-center gap-2 max-w-[calc(100%_-_28px)] text-gray-800">
-                        {{ type.label }}
-                      </div>
-
-                      <GeneralIcon
-                        v-if="auditLogsQuery.type === type.value"
-                        icon="check"
-                        class="flex-none text-primary w-4 h-4"
-                      />
-                    </div>
-                  </NcMenuItem>
-                </template>
-              </NcMenu>
-            </div>
-          </template>
-        </NcDropdown>
-        <NcDropdown v-model:visible="auditDropdowns.dateRange" overlay-class-name="overflow-hidden">
-          <NcButton type="secondary" size="small">
-            <div class="!w-[127px] flex items-center justify-between gap-2">
-              <div class="max-w-full truncate text-sm !leading-5 flex items-center gap-1">
-                Range:
-                <NcTooltip
-                  class="truncate !leading-5"
-                  :class="{ 'text-brand-500': auditLogsQuery.dateRange }"
-                  show-on-truncate-only
-                >
-                  <template #title>
-                    {{ auditLogsQuery.dateRange ? auditLogsQuery.dateRangeLabel : 'All Time' }}
-                  </template>
-                  {{ auditLogsQuery.dateRange ? auditLogsQuery.dateRangeLabel : 'All Time' }}
-                </NcTooltip>
+                    <template #title>
+                      {{ (auditLogsQuery.baseId && bases.get(auditLogsQuery.baseId)?.title) || 'All' }}
+                    </template>
+                    {{ (auditLogsQuery.baseId && bases.get(auditLogsQuery.baseId)?.title) || 'All' }}
+                  </NcTooltip>
+                </div>
+                <GeneralIcon icon="arrowDown" class="flex-none h-4 w-4" />
               </div>
-              <GeneralIcon icon="arrowDown" class="flex-none h-4 w-4" />
-            </div>
-          </NcButton>
+            </NcButton>
 
-          <template #overlay>
-            <div class="w-[256px] pt-1">
-              <NcMenu class="w-full max-h-[360px] nc-scrollbar-thin nc-audit-date-range-menu">
-                <NcMenuItem
-                  class="!children:w-full ant-dropdown-menu-item ant-dropdown-menu-item-only-child"
-                  @click="handleClearDateRange"
-                >
-                  <div class="w-full flex items-center justify-between gap-3">
-                    <span class="flex-1 text-gray-800"> All Time </span>
-                    <GeneralIcon v-if="!auditLogsQuery.dateRange" icon="check" class="flex-none text-primary w-4 h-4" />
-                  </div>
-                </NcMenuItem>
-                <NcDivider />
-                <template v-for="range of dateRangeOptions" :key="range.value">
-                  <NcMenuItem
-                    class="!children:w-full ant-dropdown-menu-item ant-dropdown-menu-item-only-child"
-                    @click="handleUpdateDateRange(range.value, range.label)"
-                  >
-                    <div class="w-full flex items-center justify-between gap-3">
-                      <div class="flex-1 flex items-center gap-2 max-w-[calc(100%_-_28px)] text-gray-800">
-                        {{ range.label }}
-                      </div>
-
-                      <GeneralIcon
-                        v-if="auditLogsQuery.dateRange === range.value"
-                        icon="check"
-                        class="flex-none text-primary w-4 h-4"
-                      />
-                    </div>
-                  </NcMenuItem>
-                </template>
-
-                <NcMenuItem
-                  class="!children:w-full ant-dropdown-menu-item ant-dropdown-menu-item-only-child"
-                  @click.stop="handleCustomDateRangeClick"
-                >
-                  <div class="w-full flex items-center justify-between gap-3">
-                    <div class="w-full flex items-center justify-between gap-2 text-gray-800">
-                      <GeneralIcon
-                        icon="chevronDown"
-                        class="flex-none w-4 h-4 transform"
-                        :class="{
-                          'rotate-270': auditLogsQuery.dateRange !== AuditLogsDateRange.Custom,
-                        }"
-                      />
-                      <span class="flex-1 text-gray-800"> Custom Date Range </span>
-                    </div>
-                    <GeneralIcon
-                      v-if="auditLogsQuery.dateRange === AuditLogsDateRange.Custom"
-                      icon="check"
-                      class="flex-none text-primary w-4 h-4"
-                    />
-                  </div>
-                </NcMenuItem>
-              </NcMenu>
+            <template #overlay>
               <div
-                v-if="auditLogsQuery.dateRange === AuditLogsDateRange.Custom"
-                class="w-full flex flex-col gap-2 px-2 pb-2.5"
-                @click.stop
+                class="w-[256px]"
+                :class="{
+                  'pt-2': basesList.length >= 6,
+                  'pt-1.5': basesList.length < 6,
+                }"
               >
-                <div class="nc-audit-custom-date-range-input">
-                  <LazyCellDatePicker
-                    :model-value="auditLogsQuery.startDate"
-                    placeholder="YYYY-MM-DD"
-                    @update:model-value="(value) => handleUpdateCustomDateRange(value, 'startDate')"
+                <div v-if="basesList.length >= 6" class="px-2 pb-2" @click.stop>
+                  <a-input
+                    :ref="focusBaseSearchRef"
+                    v-model:value="auditDropdownsSearch.base"
+                    type="text"
+                    autocomplete="off"
+                    class="nc-input-sm nc-input-shadow"
+                    placeholder="Search base"
+                    data-testid="nc-audit-dropdown-base-search-input"
                   >
-                  </LazyCellDatePicker>
+                    <template #prefix>
+                      <GeneralIcon icon="search" class="mr-1 h-4 w-4 text-gray-500 group-hover:text-black" />
+                    </template>
+                    <template #suffix>
+                      <GeneralIcon
+                        v-if="auditDropdownsSearch.user.length > 0"
+                        icon="close"
+                        class="ml-1 h-4 w-4 text-gray-500 group-hover:text-black"
+                        data-testid="nc-audit-logs-clear-search"
+                        @click="auditDropdownsSearch.user = ''"
+                      />
+                    </template>
+                  </a-input>
                 </div>
-                <div class="nc-audit-custom-date-range-input">
-                  <LazyCellDatePicker
-                    :model-value="auditLogsQuery.endDate"
-                    placeholder="YYYY-MM-DD-12"
-                    @update:model-value="(value) => handleUpdateCustomDateRange(value, 'endDate')"
+
+                <NcMenu class="w-full max-h-[360px] nc-scrollbar-thin" @click="handleCloseDropdown('base')">
+                  <NcMenuItem
+                    class="!children:w-full ant-dropdown-menu-item ant-dropdown-menu-item-only-child"
+                    @click="handleUpdateBaseQuery()"
                   >
-                  </LazyCellDatePicker>
+                    <div class="w-full flex items-center justify-between gap-3">
+                      <span class="flex-1 text-gray-800"> All Bases </span>
+                      <GeneralIcon v-if="!auditLogsQuery.baseId" icon="check" class="flex-none text-primary w-4 h-4" />
+                    </div>
+                  </NcMenuItem>
+                  <NcDivider />
+                  <template v-for="(base, index) of basesList" :key="index">
+                    <NcMenuItem
+                      v-if="
+                        base?.sources?.[0]?.enabled &&
+                        base.title?.toLowerCase()?.includes(auditDropdownsSearch.base.toLowerCase())
+                      "
+                      class="!children:w-full ant-dropdown-menu-item ant-dropdown-menu-item-only-child"
+                      @click="handleUpdateBaseQuery(base.id, base?.sources?.[0]?.id)"
+                    >
+                      <div class="w-full flex items-center justify-between gap-3">
+                        <div class="flex-1 flex items-center gap-2 max-w-[calc(100%_-_28px)]">
+                          <GeneralProjectIcon
+                            :color="base?.meta?.iconColor"
+                            :type="base?.type || 'database'"
+                            class="nc-view-icon w-4 h-4 flex-none"
+                          />
+
+                          <NcTooltip class="max-w-full truncate text-gray-800" placement="top" show-on-truncate-only>
+                            <template #title> {{ base.title }}</template>
+                            {{ base.title }}
+                          </NcTooltip>
+                        </div>
+
+                        <GeneralIcon
+                          v-if="auditLogsQuery.baseId === base.id"
+                          icon="check"
+                          class="flex-none text-primary w-4 h-4"
+                        />
+                      </div>
+                    </NcMenuItem>
+                  </template>
+                </NcMenu>
+              </div>
+            </template>
+          </NcDropdown>
+          <NcDropdown
+            v-model:visible="auditDropdowns.type"
+            overlay-class-name="overflow-hidden"
+            @update:visible="handleClearDropdownSearch($event, 'type')"
+          >
+            <NcButton type="secondary" size="small">
+              <div class="!w-[106px] flex items-center justify-between gap-2">
+                <div class="max-w-full truncate text-sm !leading-5 flex items-center gap-1">
+                  {{ $t('general.type') }}:
+                  <NcTooltip class="truncate !leading-5" :class="{ 'text-brand-500': auditLogsQuery.type }" show-on-truncate-only>
+                    <template #title>
+                      {{ auditLogsQuery.type ? auditOperationTypeLabels[auditLogsQuery.type] : 'All' }}
+                    </template>
+                    {{ auditLogsQuery.type ? auditOperationTypeLabels[auditLogsQuery.type] : 'All' }}
+                  </NcTooltip>
+                </div>
+                <GeneralIcon icon="arrowDown" class="flex-none h-4 w-4" />
+              </div>
+            </NcButton>
+
+            <template #overlay>
+              <div
+                class="w-[256px]"
+                :class="{
+                  'pt-2': auditTypeOptions.length >= 6,
+                  'pt-1.5': auditTypeOptions.length < 6,
+                }"
+              >
+                <div v-if="auditTypeOptions.length >= 6" class="px-2 pb-2" @click.stop>
+                  <a-input
+                    :ref="focusTypeSearchRef"
+                    v-model:value="auditDropdownsSearch.type"
+                    type="text"
+                    autocomplete="off"
+                    class="nc-input-sm nc-input-shadow"
+                    placeholder="Search type"
+                    data-testid="nc-audit-dropdown-type-search-input"
+                  >
+                    <template #prefix>
+                      <GeneralIcon icon="search" class="mr-1 h-4 w-4 text-gray-500 group-hover:text-black" />
+                    </template>
+                    <template #suffix>
+                      <GeneralIcon
+                        v-if="auditDropdownsSearch.type.length > 0"
+                        icon="close"
+                        class="ml-1 h-4 w-4 text-gray-500 group-hover:text-black"
+                        data-testid="nc-audit-logs-clear-search"
+                        @click="auditDropdownsSearch.type = ''"
+                      />
+                    </template>
+                  </a-input>
+                </div>
+
+                <NcMenu class="w-full max-h-[360px] nc-scrollbar-thin" @click="handleCloseDropdown('type')">
+                  <NcMenuItem
+                    class="!children:w-full ant-dropdown-menu-item ant-dropdown-menu-item-only-child"
+                    @click="auditLogsQuery.type = undefined"
+                  >
+                    <div class="w-full flex items-center justify-between gap-3">
+                      <span class="flex-1 text-gray-800"> All Types </span>
+                      <GeneralIcon v-if="!auditLogsQuery.type" icon="check" class="flex-none text-primary w-4 h-4" />
+                    </div>
+                  </NcMenuItem>
+                  <NcDivider />
+                  <template v-for="type of auditTypeOptions" :key="type.value">
+                    <NcMenuItem
+                      v-if="type.label.toLowerCase().includes(auditDropdownsSearch.type.toLowerCase())"
+                      class="!children:w-full ant-dropdown-menu-item ant-dropdown-menu-item-only-child"
+                      @click="auditLogsQuery.type = type.value"
+                    >
+                      <div class="w-full flex items-center justify-between gap-3">
+                        <div class="flex-1 flex items-center gap-2 max-w-[calc(100%_-_28px)] text-gray-800">
+                          {{ type.label }}
+                        </div>
+
+                        <GeneralIcon
+                          v-if="auditLogsQuery.type === type.value"
+                          icon="check"
+                          class="flex-none text-primary w-4 h-4"
+                        />
+                      </div>
+                    </NcMenuItem>
+                  </template>
+                </NcMenu>
+              </div>
+            </template>
+          </NcDropdown>
+          <NcDropdown v-model:visible="auditDropdowns.dateRange" overlay-class-name="overflow-hidden">
+            <NcButton type="secondary" size="small">
+              <div class="!w-[127px] flex items-center justify-between gap-2">
+                <div class="max-w-full truncate text-sm !leading-5 flex items-center gap-1">
+                  Range:
+                  <NcTooltip
+                    class="truncate !leading-5"
+                    :class="{ 'text-brand-500': auditLogsQuery.dateRange }"
+                    show-on-truncate-only
+                  >
+                    <template #title>
+                      {{ auditLogsQuery.dateRange ? auditLogsQuery.dateRangeLabel : 'All Time' }}
+                    </template>
+                    {{ auditLogsQuery.dateRange ? auditLogsQuery.dateRangeLabel : 'All Time' }}
+                  </NcTooltip>
+                </div>
+                <GeneralIcon icon="arrowDown" class="flex-none h-4 w-4" />
+              </div>
+            </NcButton>
+
+            <template #overlay>
+              <div class="w-[256px] pt-1">
+                <NcMenu class="w-full max-h-[360px] nc-scrollbar-thin nc-audit-date-range-menu">
+                  <NcMenuItem
+                    class="!children:w-full ant-dropdown-menu-item ant-dropdown-menu-item-only-child"
+                    @click="handleClearDateRange"
+                  >
+                    <div class="w-full flex items-center justify-between gap-3">
+                      <span class="flex-1 text-gray-800"> All Time </span>
+                      <GeneralIcon v-if="!auditLogsQuery.dateRange" icon="check" class="flex-none text-primary w-4 h-4" />
+                    </div>
+                  </NcMenuItem>
+                  <NcDivider />
+                  <template v-for="range of dateRangeOptions" :key="range.value">
+                    <NcMenuItem
+                      class="!children:w-full ant-dropdown-menu-item ant-dropdown-menu-item-only-child"
+                      @click="handleUpdateDateRange(range.value, range.label)"
+                    >
+                      <div class="w-full flex items-center justify-between gap-3">
+                        <div class="flex-1 flex items-center gap-2 max-w-[calc(100%_-_28px)] text-gray-800">
+                          {{ range.label }}
+                        </div>
+
+                        <GeneralIcon
+                          v-if="auditLogsQuery.dateRange === range.value"
+                          icon="check"
+                          class="flex-none text-primary w-4 h-4"
+                        />
+                      </div>
+                    </NcMenuItem>
+                  </template>
+
+                  <NcMenuItem
+                    class="!children:w-full ant-dropdown-menu-item ant-dropdown-menu-item-only-child"
+                    @click.stop="handleCustomDateRangeClick"
+                  >
+                    <div class="w-full flex items-center justify-between gap-3">
+                      <div class="w-full flex items-center justify-between gap-2 text-gray-800">
+                        <GeneralIcon
+                          icon="chevronDown"
+                          class="flex-none w-4 h-4 transform"
+                          :class="{
+                            'rotate-270': auditLogsQuery.dateRange !== AuditLogsDateRange.Custom,
+                          }"
+                        />
+                        <span class="flex-1 text-gray-800"> Custom Date Range </span>
+                      </div>
+                      <GeneralIcon
+                        v-if="auditLogsQuery.dateRange === AuditLogsDateRange.Custom"
+                        icon="check"
+                        class="flex-none text-primary w-4 h-4"
+                      />
+                    </div>
+                  </NcMenuItem>
+                </NcMenu>
+                <div
+                  v-if="auditLogsQuery.dateRange === AuditLogsDateRange.Custom"
+                  class="w-full flex flex-col gap-2 px-2 pb-2.5"
+                  @click.stop
+                >
+                  <div class="nc-audit-custom-date-range-input">
+                    <LazyCellDatePicker
+                      :model-value="auditLogsQuery.startDate"
+                      placeholder="YYYY-MM-DD"
+                      @update:model-value="(value) => handleUpdateCustomDateRange(value, 'startDate')"
+                    >
+                    </LazyCellDatePicker>
+                  </div>
+                  <div class="nc-audit-custom-date-range-input">
+                    <LazyCellDatePicker
+                      :model-value="auditLogsQuery.endDate"
+                      placeholder="YYYY-MM-DD-12"
+                      @update:model-value="(value) => handleUpdateCustomDateRange(value, 'endDate')"
+                    >
+                    </LazyCellDatePicker>
+                  </div>
                 </div>
               </div>
+            </template>
+          </NcDropdown>
+        </div>
+        <div class="flex items-center gap-3">
+          <NcButton type="text" size="small" :disabled="isLoading" @click="loadAudits()">
+            <!-- Refresh -->
+            <div class="flex items-center gap-2">
+              {{ $t('general.refresh') }}
+
+              <component :is="iconMap.refresh" class="h-3.5 w-3.5" :class="{ 'animate-infinite animate-spin': isLoading }" />
             </div>
-          </template>
-        </NcDropdown>
+          </NcButton>
+        </div>
       </div>
     </div>
     <template v-if="appInfo.auditEnabled">
@@ -779,7 +789,7 @@ useEventListener(tableWrapper, 'scroll', () => {
         class="table-container relative"
         :class="{
           'h-[calc(100%_-_92px)] ': baseId,
-          'h-[calc(100%_-_140px)]': !baseId,
+          'h-[calc(100%_-_56px)]': !baseId,
           'bordered': bordered,
         }"
       >
@@ -798,7 +808,7 @@ useEventListener(tableWrapper, 'scroll', () => {
                   @click="updateOrderBy('user')"
                 >
                   <div class="flex items-center gap-3">
-                    <div>User</div>
+                    <div>{{ $t('objects.user') }}</div>
                     <GeneralIcon
                       v-if="auditLogsQuery.orderBy?.user"
                       icon="chevronDown"
@@ -832,19 +842,19 @@ useEventListener(tableWrapper, 'scroll', () => {
                   </div>
                 </th>
                 <th class="cell-base">
-                  <div>Base</div>
+                  <div>{{ $t('objects.project') }}</div>
                 </th>
                 <th class="cell-type">
-                  <div>Type</div>
+                  <div>{{ $t('general.type') }}</div>
                 </th>
                 <th class="cell-sub-type">
-                  <div>Sub-type</div>
+                  <div>{{ $t('general.subType') }}</div>
                 </th>
                 <th class="cell-description">
-                  <div>Description</div>
+                  <div>{{ $t('labels.description') }}</div>
                 </th>
                 <th class="cell-ip">
-                  <div>IP Address</div>
+                  <div>{{ $t('general.ipAddress') }}</div>
                 </th>
               </tr>
             </thead>
@@ -1011,8 +1021,6 @@ useEventListener(tableWrapper, 'scroll', () => {
           <div class="flex items-center justify-between gap-x-2 w-full">
             <div class="flex-1 text-base font-weight-700 text-gray-900">Audit Details</div>
             <div class="flex items-center gap-2">
-              <span class="cell-header"> Time stamp </span>
-
               <NcTooltip placement="bottom" class="text-gray-600 text-small leading-[18px]">
                 <template #title> {{ parseStringDateTime(selectedAudit.created_at, 'D MMMM YYYY HH:mm') }}</template>
 
@@ -1022,69 +1030,71 @@ useEventListener(tableWrapper, 'scroll', () => {
           </div>
         </template>
         <div v-if="selectedAudit" class="flex flex-col gap-4">
-          <div class="bg-gray-50 rounded-lg border-1 border-gray-200 flex">
-            <div class="w-1/2 border-r border-gray-200 flex flex-col gap-2 px-4 py-3">
-              <div class="cell-header">Performed by</div>
-              <div
-                v-if="selectedAudit?.user && collaboratorsMap.get(selectedAudit.user)?.email"
-                class="w-full flex gap-3 items-center"
-              >
-                <GeneralUserIcon :email="collaboratorsMap.get(selectedAudit.user)?.email" size="base" class="flex-none" />
-                <div class="flex-1 flex flex-col">
-                  <div class="w-full flex gap-3">
-                    <span class="text-sm text-gray-800 capitalize font-semibold">
-                      {{
-                        collaboratorsMap.get(selectedAudit.user)?.display_name ||
-                        collaboratorsMap
-                          .get(selectedAudit.user)
-                          ?.email?.slice(0, collaboratorsMap.get(selectedAudit.user)?.email.indexOf('@'))
-                      }}
+          <div class="bg-gray-50 rounded-lg border-1 border-gray-200">
+            <div class="flex">
+              <div class="w-1/2 border-r border-gray-200 flex flex-col gap-2 px-4 py-3">
+                <div class="cell-header">Performed by</div>
+                <div
+                  v-if="selectedAudit?.user && collaboratorsMap.get(selectedAudit.user)?.email"
+                  class="w-full flex gap-3 items-center"
+                >
+                  <GeneralUserIcon :email="collaboratorsMap.get(selectedAudit.user)?.email" size="base" class="flex-none" />
+                  <div class="flex-1 flex flex-col">
+                    <div class="w-full flex gap-3">
+                      <span class="text-sm text-gray-800 capitalize font-semibold">
+                        {{
+                          collaboratorsMap.get(selectedAudit.user)?.display_name ||
+                          collaboratorsMap
+                            .get(selectedAudit.user)
+                            ?.email?.slice(0, collaboratorsMap.get(selectedAudit.user)?.email.indexOf('@'))
+                        }}
+                      </span>
+                    </div>
+                    <span class="text-xs text-gray-600">
+                      {{ collaboratorsMap.get(selectedAudit.user)?.email }}
                     </span>
                   </div>
-                  <span class="text-xs text-gray-600">
-                    {{ collaboratorsMap.get(selectedAudit.user)?.email }}
-                  </span>
                 </div>
-              </div>
 
-              <div v-else class="text-small leading-[18px] text-gray-600">{{ selectedAudit?.user }}</div>
-            </div>
-            <div class="w-1/2 flex flex-col gap-2 px-4 py-3">
-              <div class="cell-header">IP Address</div>
-              <div class="text-small leading-[18px] text-gray-600">{{ selectedAudit?.ip }}</div>
-            </div>
-          </div>
-          <div class="bg-gray-50 rounded-lg border-1 border-gray-200 flex">
-            <div class="w-1/2 border-r border-gray-200 flex flex-col gap-2 px-4 py-3">
-              <div class="cell-header">Base</div>
-              <div v-if="selectedAudit?.base_id && bases.get(selectedAudit?.base_id)" class="flex items-stretch gap-3">
-                <div class="flex items-center">
-                  <GeneralProjectIcon
-                    :color="bases.get(selectedAudit?.base_id)?.meta?.iconColor"
-                    :type="bases.get(selectedAudit?.base_id)?.type || 'database'"
-                    class="nc-view-icon w-5 h-5"
-                  />
-                </div>
-                <div>
-                  <div class="text-sm font-weight-500 text-gray-900">{{ bases.get(selectedAudit?.base_id)?.title }}</div>
-                  <div class="text-small leading-[18px] text-gray-600">{{ selectedAudit?.base_id }}</div>
-                </div>
+                <div v-else class="text-small leading-[18px] text-gray-600">{{ selectedAudit?.user }}</div>
               </div>
-              <template v-else>
-                {{ selectedAudit.base_id }}
-              </template>
-            </div>
-            <div class="w-1/2">
-              <div class="h-1/2 border-b border-gray-200 flex items-center gap-2 px-4 py-3">
-                <div class="cell-header">Type</div>
-                <div class="text-small leading-[18px] text-gray-600 bg-gray-200 px-1 rounded-md">
-                  {{ auditOperationTypeLabels[selectedAudit?.op_type] }}
-                </div>
+              <div class="w-1/2 flex flex-col gap-2 px-4 py-3">
+                <div class="cell-header">{{ $t('general.ipAddress') }}</div>
+                <div class="text-small leading-[18px] text-gray-600">{{ selectedAudit?.ip }}</div>
               </div>
-              <div class="h-1/2 flex items-center gap-2 px-4 py-3">
-                <div class="cell-header">Sub-type</div>
-                <div class="text-small leading-[18px] text-gray-600">
-                  {{ auditOperationSubTypeLabels[selectedAudit?.op_sub_type] }}
+            </div>
+            <div class="border-t-1 border-gray-200 flex">
+              <div class="w-1/2 border-r border-gray-200 flex flex-col gap-2 px-4 py-3">
+                <div class="cell-header">{{ $t('objects.project') }}</div>
+                <div v-if="selectedAudit?.base_id && bases.get(selectedAudit?.base_id)" class="flex items-stretch gap-3">
+                  <div class="flex items-center">
+                    <GeneralProjectIcon
+                      :color="bases.get(selectedAudit?.base_id)?.meta?.iconColor"
+                      :type="bases.get(selectedAudit?.base_id)?.type || 'database'"
+                      class="nc-view-icon w-5 h-5"
+                    />
+                  </div>
+                  <div>
+                    <div class="text-sm font-weight-500 text-gray-900">{{ bases.get(selectedAudit?.base_id)?.title }}</div>
+                    <div class="text-small leading-[18px] text-gray-600">{{ selectedAudit?.base_id }}</div>
+                  </div>
+                </div>
+                <template v-else>
+                  {{ selectedAudit.base_id }}
+                </template>
+              </div>
+              <div class="w-1/2">
+                <div class="h-1/2 border-b border-gray-200 flex items-center gap-2 px-4 py-3">
+                  <div class="cell-header">{{ $t('general.type') }}</div>
+                  <div class="text-small leading-[18px] text-gray-600 bg-gray-200 px-1 rounded-md">
+                    {{ auditOperationTypeLabels[selectedAudit?.op_type] }}
+                  </div>
+                </div>
+                <div class="h-1/2 flex items-center gap-2 px-4 py-3">
+                  <div class="cell-header">{{ $t('general.subType') }}</div>
+                  <div class="text-small leading-[18px] text-gray-600">
+                    {{ auditOperationSubTypeLabels[selectedAudit?.op_sub_type] }}
+                  </div>
                 </div>
               </div>
             </div>
@@ -1115,7 +1125,7 @@ useEventListener(tableWrapper, 'scroll', () => {
 
 .table-container {
   &.bordered {
-    @apply border-1 border-gray-200 rounded-xl overflow-hidden;
+    @apply border-1 border-gray-200 rounded-lg overflow-hidden;
   }
 }
 
@@ -1124,13 +1134,13 @@ useEventListener(tableWrapper, 'scroll', () => {
     th,
     td {
       &.cell-user {
-        box-shadow: 2px 0px 4px 0px rgba(0, 0, 0, 0.08);
+        @apply border-r-1 border-gray-200;
       }
     }
   }
   thead {
     th {
-      @apply bg-gray-50 text-sm text-gray-600;
+      @apply bg-gray-50 text-sm text-gray-500 font-weight-500;
 
       &.cell-user {
         @apply sticky left-0 z-4 bg-gray-50;
@@ -1196,7 +1206,7 @@ useEventListener(tableWrapper, 'scroll', () => {
 }
 
 .cell-header {
-  @apply uppercase text-tiny font-semibold text-gray-500;
+  @apply text-xs font-semibold text-gray-500;
 }
 :deep(.nc-button) {
   svg.sort-asc path.up {

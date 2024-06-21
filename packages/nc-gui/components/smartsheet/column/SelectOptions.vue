@@ -342,7 +342,7 @@ onMounted(() => {
   options.value = vModel.value.colOptions.options
 
   let indexCounter = 0
-  options.value.map((el) => {
+  options.value = options.value.map((el) => {
     el.index = indexCounter++
     return el
   })

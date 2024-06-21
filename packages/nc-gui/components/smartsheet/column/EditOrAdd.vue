@@ -400,7 +400,12 @@ const filterOption = (input: string, option: { value: UITypes }) => {
           <SmartsheetColumnUITypesOptionsWithSearch :options="uiTypesOptions" @selected="onSelectType" />
         </template>
 
-        <a-form-item v-else-if="!props.hideType" class="flex-1">
+        <a-form-item
+          v-else-if="!props.hideType"
+          class="flex-1"
+          @keydown.up.stop="handleResetHoverEffect"
+          @keydown.down.stop="handleResetHoverEffect"
+        >
           <a-select
             v-model:value="formState.uidt"
             show-search

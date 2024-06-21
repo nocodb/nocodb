@@ -7,9 +7,9 @@ export const getSourceIconColor = (source: SourceType) => {
     return '#df830f'
   }
   if (source.is_data_readonly) {
-    return '#004faa'
+    return '#278bff'
   }
-  return '#004faa'
+  return '#278bff'
 }
 
 // based on source restriction decide the tooltip message with docs link

@@ -249,9 +249,9 @@ watch(
           ghost-class="ghost"
           @change="onMove($event)"
         >
-          <template #item="{ element: base1 }">
+          <template #item="{ element: baseItem }">
             <div :key="base.id">
-              <ProjectWrapper :base-role="base1.project_role" :base="base1">
+              <ProjectWrapper :base-role="baseItem.project_role" :base="baseItem">
                 <DashboardTreeViewProjectNode />
               </ProjectWrapper>
             </div>

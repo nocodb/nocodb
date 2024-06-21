@@ -76,6 +76,11 @@ export class TablesService {
       return true;
     }
 
+    // allow user to only update meta json data when source is restricted changes to schema
+    if (source?.is_schema_readonly) {
+      NcError.sourceMetaReadOnly(source.alias);
+    }
+
     if (!param.table.table_name) {
       NcError.badRequest(
         'Missing table name `table_name` property in request body',

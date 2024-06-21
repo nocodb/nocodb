@@ -7,7 +7,6 @@ import {
   isSelfReferencingTableColumn,
   isSystemColumn,
   isVirtualCol,
-  partialUpdateAllowedTypes,
   readonlyMetaAllowedTypes,
 } from 'nocodb-sdk'
 import MdiPlusIcon from '~icons/mdi/plus-circle-outline'

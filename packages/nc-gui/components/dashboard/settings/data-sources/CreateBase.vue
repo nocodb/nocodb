@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import { Form, message } from 'ant-design-vue'
 import type { SelectHandler } from 'ant-design-vue/es/vc-select/Select'
-import { SourceRestriction } from 'nocodb-sdk'
 import {
   type CertTypes,
   ClientType,

@@ -55,9 +55,7 @@ const searchVal = ref<string | null>()
 
 const { $api } = useNuxtApp()
 
-const { getMeta } = useMetas()
-
-const { isUIAllowed } = useRoles()
+const { isUIAllowed, isMetaReadOnly } = useRoles()
 
 const { isPg, isMysql } = useBase()
 
@@ -522,7 +520,9 @@ const onFocus = () => {
         </a-select-option>
 
         <a-select-option
-          v-if="searchVal && isOptionMissing && !isPublic && !disableOptionCreation && isUIAllowed('fieldEdit')"
+          v-if="
+            !isMetaReadOnly && searchVal && isOptionMissing && !isPublic && !disableOptionCreation && isUIAllowed('fieldEdit')
+          "
           :key="searchVal"
           :value="searchVal"
         >

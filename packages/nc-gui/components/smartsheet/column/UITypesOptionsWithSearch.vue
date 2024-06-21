@@ -26,6 +26,10 @@ const inputRef = ref()
 
 const activeFieldIndex = ref(-1)
 
+const isDisabledUIType = (type: UITypes) => {
+  return isMetaReadOnly.value && !readonlyMetaAllowedTypes.includes(type)
+}
+
 const onClick = (uidt: UITypes) => {
   if (!uidt || isDisabledUIType(uidt)) return
 
@@ -64,10 +68,6 @@ onMounted(() => {
   searchQuery.value = ''
   activeFieldIndex.value = options.value.findIndex((o) => o.name === UITypes.SingleLineText)
 })
-
-const isDisabledUIType = (type: UITypes) => {
-  return isMetaReadOnly.value && !readonlyMetaAllowedTypes.includes(type)
-}
 </script>
 
 <template>

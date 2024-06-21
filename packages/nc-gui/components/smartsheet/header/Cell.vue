@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type ColumnReqType, type ColumnType, readonlyMetaAllowedTypes } from 'nocodb-sdk'
+import { type ColumnReqType, type ColumnType } from 'nocodb-sdk'
 import { UITypes, UITypesName } from 'nocodb-sdk'
 
 interface Props {
@@ -32,7 +32,7 @@ const isDropDownOpen = ref(false)
 
 const column = toRef(props, 'column')
 
-const { isUIAllowed, isMetaReadOnly } = useRoles()
+const { isUIAllowed } = useRoles()
 
 provide(ColumnInj, column)
 

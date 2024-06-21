@@ -457,7 +457,7 @@ export class ColumnsService {
 
         await this.updateRollupOrLookup(context, colBody, column);
       } else {
-        NcError.notImplemented(`Updating ${colBody.uidt} => ${colBody.uidt}`);
+        NcError.notImplemented(`Updating ${column.uidt} => ${colBody.uidt}`);
       }
     } else if (
       [

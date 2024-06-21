@@ -15,6 +15,7 @@ interface Props {
   overlayClassName?: string
   wrapChild?: keyof HTMLElementTagNameMap
   mouseLeaveDelay?: number
+  overlayInnerStyle?: object
 }
 
 const props = defineProps<Props>()
@@ -118,6 +119,7 @@ const onClick = () => {
     v-model:visible="showTooltip"
     :overlay-class-name="`nc-tooltip ${showTooltip ? 'visible' : 'hidden'} ${overlayClassName}`"
     :overlay-style="tooltipStyle"
+    :overlay-inner-style="overlayInnerStyle"
     arrow-point-at-center
     :trigger="[]"
     :placement="placement"

@@ -395,28 +395,33 @@ const isColumnEditAllowed = computed(() => {
           'min-w-[256px]': isExpandedForm,
         }"
       >
-        <NcMenuItem
-          v-if="isUIAllowed('fieldAlter')"
-          :disabled="column?.pk || isSystemColumn(column) || !isColumnEditAllowed"
-          @click="onEditPress"
-        >
-          <div class="nc-column-edit nc-header-menu-item">
-            <component :is="iconMap.ncEdit" class="text-gray-700" />
-            <!-- Edit -->
-            {{ $t('general.edit') }}
-          </div>
-        </NcMenuItem>
-        <NcMenuItem
-          v-if="isUIAllowed('duplicateColumn') && isExpandedForm && !column?.pk"
-          :disabled="!isDuplicateAllowed"
-          @click="openDuplicateDlg"
-        >
-          <div v-e="['a:field:duplicate']" class="nc-column-duplicate nc-header-menu-item">
-            <component :is="iconMap.duplicate" class="text-gray-700" />
-            <!-- Duplicate -->
-            {{ t('general.duplicate') }}
-          </div>
-        </NcMenuItem>
+        <GeneralSourceRestrictionTooltip message="Field properties cannot be edited." :enabled="!isColumnEditAllowed">
+          <NcMenuItem
+            v-if="isUIAllowed('fieldAlter')"
+            :disabled="column?.pk || isSystemColumn(column) || !isColumnEditAllowed"
+            @click="onEditPress"
+          >
+            <div class="nc-column-edit nc-header-menu-item">
+              <component :is="iconMap.ncEdit" class="text-gray-700" />
+              <!-- Edit -->
+              {{ $t('general.edit') }}
+            </div>
+          </NcMenuItem>
+        </GeneralSourceRestrictionTooltip>
+
+        <GeneralSourceRestrictionTooltip message="Field cannot be duplicated." :enabled="!isDuplicateAllowed">
+          <NcMenuItem
+            v-if="isUIAllowed('duplicateColumn') && isExpandedForm && !column?.pk"
+            :disabled="!isDuplicateAllowed"
+            @click="openDuplicateDlg"
+          >
+            <div v-e="['a:field:duplicate']" class="nc-column-duplicate nc-header-menu-item">
+              <component :is="iconMap.duplicate" class="text-gray-700" />
+              <!-- Duplicate -->
+              {{ t('general.duplicate') }}
+            </div>
+          </NcMenuItem>
+        </GeneralSourceRestrictionTooltip>
         <a-divider v-if="isUIAllowed('fieldAlter') && !column?.pv" class="!my-0" />
         <NcMenuItem v-if="!column?.pv" @click="hideOrShowField">
           <div v-e="['a:field:hide']" class="nc-column-insert-before nc-header-menu-item">
@@ -520,14 +525,15 @@ const isColumnEditAllowed = computed(() => {
           </NcTooltip>
 
           <a-divider class="!my-0" />
-
-          <NcMenuItem v-if="!column?.pk" :disabled="!isDuplicateAllowed" @click="openDuplicateDlg">
-            <div v-e="['a:field:duplicate']" class="nc-column-duplicate nc-header-menu-item">
-              <component :is="iconMap.duplicate" class="text-gray-700" />
-              <!-- Duplicate -->
-              {{ t('general.duplicate') }}
-            </div>
-          </NcMenuItem>
+          <GeneralSourceRestrictionTooltip message="Field cannot be duplicated." :enabled="!isDuplicateAllowed && isMetaReadOnly">
+            <NcMenuItem v-if="!column?.pk" :disabled="!isDuplicateAllowed" @click="openDuplicateDlg">
+              <div v-e="['a:field:duplicate']" class="nc-column-duplicate nc-header-menu-item">
+                <component :is="iconMap.duplicate" class="text-gray-700" />
+                <!-- Duplicate -->
+                {{ t('general.duplicate') }}
+              </div>
+            </NcMenuItem>
+          </GeneralSourceRestrictionTooltip>
           <NcMenuItem @click="onInsertAfter">
             <div v-e="['a:field:insert:after']" class="nc-column-insert-after nc-header-menu-item">
               <component :is="iconMap.colInsertAfter" class="text-gray-700 !w-4.5 !h-4.5" />
@@ -544,21 +550,23 @@ const isColumnEditAllowed = computed(() => {
           </NcMenuItem>
         </template>
         <a-divider v-if="!column?.pv" class="!my-0" />
-        <NcMenuItem
-          v-if="!column?.pv && isUIAllowed('fieldDelete')"
-          :disabled="!isDeleteAllowed || !isColumnUpdateAllowed"
-          class="!hover:bg-red-50"
-          @click="handleDelete"
-        >
-          <div
-            class="nc-column-delete nc-header-menu-item"
-            :class="{ ' text-red-600': isDeleteAllowed && isColumnUpdateAllowed }"
+        <GeneralSourceRestrictionTooltip message="Field cannot be deleted." :enabled="!isColumnUpdateAllowed">
+          <NcMenuItem
+            v-if="!column?.pv && isUIAllowed('fieldDelete')"
+            :disabled="!isDeleteAllowed || !isColumnUpdateAllowed"
+            class="!hover:bg-red-50"
+            @click="handleDelete"
           >
-            <component :is="iconMap.delete" />
-            <!-- Delete -->
-            {{ $t('general.delete') }}
-          </div>
-        </NcMenuItem>
+            <div
+              class="nc-column-delete nc-header-menu-item"
+              :class="{ ' text-red-600': isDeleteAllowed && isColumnUpdateAllowed }"
+            >
+              <component :is="iconMap.delete" />
+              <!-- Delete -->
+              {{ $t('general.delete') }}
+            </div>
+          </NcMenuItem>
+        </GeneralSourceRestrictionTooltip>
       </NcMenu>
     </template>
   </a-dropdown>

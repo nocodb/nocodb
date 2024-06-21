@@ -731,16 +731,15 @@ const getSource = (sourceId: string) => {
                             class="source-context flex flex-grow items-center gap-1.75 text-gray-800 min-w-1/20 max-w-full"
                             @contextmenu="setMenuContext('source', source)"
                           >
-                            <NcTooltip :mouse-leave-delay="0.5" :trigger="['click', 'hover']" placement="topLeft">
+                            <NcTooltip
+                              :tooltip-style="{ 'min-width': 'max-content' }"
+                              :overlay-inner-style="{ 'min-width': 'max-content' }"
+                              :mouse-leave-delay="0.5"
+                              placement="topLeft"
+                              trigger="hover"
+                            >
                               <template #title>
-                                {{ getSourceTooltip(source) }}
-                                <a
-                                  class="!text-current"
-                                  href="https://docs.nocodb.com/data-sources/connect-to-data-source#configuring-permissions"
-                                  target="_blank"
-                                >
-                                  Learn more
-                                </a>
+                                <component :is="getSourceTooltip(source)" />
                               </template>
                               <GeneralBaseLogo
                                 :color="getSourceIconColor(source)"
@@ -778,17 +777,6 @@ const getSource = (sourceId: string) => {
                                 {{ source.alias || '' }}
                               </span>
                             </NcTooltip>
-                            <NcTooltip class="xs:(hidden) flex items-center mr-1">
-                              <template #title>{{ $t('objects.externalDb') }}</template>
-
-                              <GeneralIcon
-                                icon="info"
-                                class="flex-none text-gray-400 hover:text-gray-700 nc-sidebar-node-btn"
-                                :class="{
-                                  '!hidden': !isBasesOptionsOpen[source!.id!],
-                                }"
-                              />
-                            </NcTooltip>
                           </div>
                           <div class="flex flex-row items-center gap-x-0.25">
                             <NcDropdown
@@ -804,7 +792,7 @@ const getSource = (sourceId: string) => {
                                 size="xxsmall"
                                 @click.stop="isBasesOptionsOpen[source!.id!] = !isBasesOptionsOpen[source!.id!]"
                               >
-                                <GeneralIcon icon="threeDotHorizontal" class="text-xl w-4.75" />
+                                <GeneralIcon icon="thr  eeDotHorizontal" class="text-xl w-4.75" />
                               </NcButton>
                               <template #overlay>
                                 <NcMenu

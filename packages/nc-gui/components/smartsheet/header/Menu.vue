@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type ColumnReqType, readonlyMetaAllowedTypes } from 'nocodb-sdk'
+import { type ColumnReqType, partialUpdateAllowedTypes, readonlyMetaAllowedTypes } from 'nocodb-sdk'
 import { PlanLimitTypes, RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 import { SmartsheetStoreEvents } from '#imports'
 
@@ -363,6 +363,16 @@ const isColumnUpdateAllowed = computed(() => {
   if (isMetaReadOnly.value && !readonlyMetaAllowedTypes.includes(column.value?.uidt)) return false
   return true
 })
+
+const isColumnEditAllowed = computed(() => {
+  if (
+    isMetaReadOnly.value &&
+    !readonlyMetaAllowedTypes.includes(column.value?.uidt) &&
+    !partialUpdateAllowedTypes.includes(column.value?.uidt)
+  )
+    return false
+  return true
+})
 </script>
 
 <template>
@@ -387,7 +397,7 @@ const isColumnUpdateAllowed = computed(() => {
       >
         <NcMenuItem
           v-if="isUIAllowed('fieldAlter')"
-          :disabled="column?.pk || isSystemColumn(column)"
+          :disabled="column?.pk || isSystemColumn(column) || !isColumnEditAllowed"
           @click="onEditPress"
         >
           <div class="nc-column-edit nc-header-menu-item">

@@ -200,7 +200,9 @@ export class ColumnsService {
       Source.get(context, table.source_id),
     );
 
-    const isMetaOnlyUpdateAllowed = source?.is_schema_readonly && partialUpdateAllowedTypes.includes(column.uidt as UITypes)
+    const isMetaOnlyUpdateAllowed =
+      source?.is_schema_readonly &&
+      partialUpdateAllowedTypes.includes(column.uidt as UITypes);
 
     // check if source is readonly and column type is not allowed
     if (
@@ -371,9 +373,10 @@ export class ColumnsService {
           }
           if (
             'meta' in colBody &&
-            [UITypes.CreatedTime, UITypes.LastModifiedTime].includes(
+            ([UITypes.CreatedTime, UITypes.LastModifiedTime].includes(
               column.uidt,
-            )
+            ) ||
+              isMetaOnlyUpdateAllowed)
           ) {
             await Column.updateMeta(context, {
               colId: param.columnId,

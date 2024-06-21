@@ -13,7 +13,9 @@ interface Props {
   bordered?: boolean
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  bordered: true,
+})
 
 const allowedAuditOperationTypes = [
   AuditOperationTypes.DATA,
@@ -774,7 +776,7 @@ useEventListener(tableWrapper, 'scroll', () => {
     </div>
     <template v-if="appInfo.auditEnabled">
       <div
-        class="table-container relative w-[fit-content]"
+        class="table-container relative"
         :class="{
           'h-[calc(100%_-_92px)] ': baseId,
           'h-[calc(100%_-_140px)]': !baseId,
@@ -783,7 +785,7 @@ useEventListener(tableWrapper, 'scroll', () => {
       >
         <div
           ref="tableWrapper"
-          class="nc-audit-logs-table h-full max-h-[calc(100%_-_40px)] nc-scrollbar-thin relative !overflow-auto"
+          class="nc-audit-logs-table h-full max-h-[calc(100%_-_40px)] relative nc-scrollbar-thin !overflow-auto"
         >
           <table class="!sticky top-0 z-10">
             <thead>

@@ -60,12 +60,7 @@ const closeAddColumnDropdown = () => {
 const openHeaderMenu = (e?: MouseEvent) => {
   if (isLocked.value || (isExpandedForm.value && e?.type === 'dblclick') || isExpandedBulkUpdateForm.value) return
 
-  if (
-    !isForm.value &&
-    isUIAllowed('fieldEdit') &&
-    !isMobileMode.value &&
-    (!isMetaReadOnly.value || readonlyMetaAllowedTypes.includes(column.value.uidt))
-  ) {
+  if (!isForm.value && isUIAllowed('fieldEdit') && !isMobileMode.value) {
     editColumnDropdown.value = true
   }
 }

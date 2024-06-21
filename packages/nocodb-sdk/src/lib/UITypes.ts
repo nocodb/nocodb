@@ -262,3 +262,24 @@ export const readonlyMetaAllowedTypes = [
   UITypes.Barcode,
   UITypes.QrCode,
 ];
+
+
+export const partialUpdateAllowedTypes = [
+  // UITypes.SingleSelect,
+  // UITypes.MultiSelect,
+  UITypes.Checkbox,
+  UITypes.Number,
+  UITypes.Decimal,
+  UITypes.Currency,
+  UITypes.Percent,
+  UITypes.Duration,
+  UITypes.Rating,
+  UITypes.DateTime,
+  UITypes.Date,
+  UITypes.Time,
+  UITypes.Year,
+  UITypes.CreatedTime,
+  UITypes.LastModifiedTime,
+  UITypes.LinkToAnotherRecord,
+  UITypes.Links,
+];

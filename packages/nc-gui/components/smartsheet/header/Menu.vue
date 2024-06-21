@@ -387,7 +387,7 @@ const isColumnUpdateAllowed = computed(() => {
       >
         <NcMenuItem
           v-if="isUIAllowed('fieldAlter')"
-          :disabled="column?.pk || isSystemColumn(column) || !isColumnUpdateAllowed"
+          :disabled="column?.pk || isSystemColumn(column)"
           @click="onEditPress"
         >
           <div class="nc-column-edit nc-header-menu-item">

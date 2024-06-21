@@ -23,7 +23,7 @@ defineProps<{
     trigger="hover"
   >
     <template #title>
-      Schema editing is disabled for this data source. <br />
+      {{ $t('tooltip.schemaChangeDisabled') }} <br />
       {{ message }}
       <br v-if="message" />
       <a

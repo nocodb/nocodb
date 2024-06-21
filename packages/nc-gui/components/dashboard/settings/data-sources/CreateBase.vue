@@ -436,7 +436,7 @@ const allowDataWrite = computed({
     :closable="!creatingSource"
     :keyboard="!creatingSource"
     :mask-closable="false"
-    size="medium"
+    :width="750"
     @update:visible="toggleModal"
   >
     <div class="py-6 px-8">
@@ -453,7 +453,7 @@ const allowDataWrite = computed({
           name="external-base-create-form"
           layout="horizontal"
           no-style
-          :label-col="{ span: 8 }"
+          :label-col="{ span: 5 }"
         >
           <div
             class="nc-scrollbar-md"
@@ -544,50 +544,10 @@ const allowDataWrite = computed({
                 <a-input v-model:value="formState.dataSource.searchPath[0]" />
               </a-form-item>
             </template>
-            <a-form-item>
-              <template #label>
-                <div class="flex gap-1 justify-end">
-                  <span>
-                    {{ $t('labels.allowMetaWrite') }}
-                  </span>
-                  <NcTooltip>
-                    <template #title>
-                      <span>{{ $t('tooltip.allowMetaWrite') }}</span>
-                    </template>
-                    <GeneralIcon class="text-gray-500" icon="info" />
-                  </NcTooltip>
-                </div>
-              </template>
-              <a-switch v-model:checked="allowMetaWrite" data-testid="nc-allow-meta-write" size="small"></a-switch>
-            </a-form-item>
-            <a-form-item>
-              <template #label>
-                <div class="flex gap-1 justify-end">
-                  <span>
-                    {{ $t('labels.allowDataWrite') }}
-                  </span>
-                  <NcTooltip>
-                    <template #title>
-                      <span>{{ $t('tooltip.allowDataWrite') }}</span>
-                    </template>
-                    <GeneralIcon class="text-gray-500" icon="info" />
-                  </NcTooltip>
-                </div>
-              </template>
-              <div class="flex justify-start">
-                <NcTooltip :disabled="!allowMetaWrite" placement="topLeft">
-                  <template #title>
-                    {{ $t('tooltip.dataWriteOptionDisabled') }}
-                  </template>
-                  <a-switch
-                    v-model:checked="allowDataWrite"
-                    :disabled="allowMetaWrite"
-                    data-testid="nc-allow-data-write"
-                    size="small"
-                  ></a-switch>
-                </NcTooltip>
-              </div>
-            </a-form-item>
+            <DashboardSettingsDataSourcesSourceRestrictions
+              v-model:allowMetaWrite="allowMetaWrite"
+              v-model:allowDataWrite="allowDataWrite"
+            />
             <template
               v-if="
                 formState.dataSource.client !== ClientType.SQLITE &&

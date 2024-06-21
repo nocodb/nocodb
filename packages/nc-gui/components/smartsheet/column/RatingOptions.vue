@@ -113,13 +113,13 @@ watch(
     </a-col>
     <a-col :span="8">
       <a-form-item :label="$t('labels.max')">
-        <a-select v-model:value="vModel.meta.max" class="w-52" dropdown-class-name="nc-dropdown-rating-color">
+        <a-select v-model:value="vModel.meta.max" data-testid="nc-dropdown-rating-max" class="w-52" dropdown-class-name="nc-dropdown-rating-color">
           <template #suffixIcon>
             <GeneralIcon icon="arrowDown" class="text-gray-700" />
           </template>
 
           <a-select-option v-for="(v, i) in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]" :key="i" :value="v">
-            <div class="flex gap-2 w-full justify-between items-center">
+            <div class="flex gap-2 w-full justify-between items-center nc-dropdown-rating-max-option">
               {{ v }}
               <component
                 :is="iconMap.check"

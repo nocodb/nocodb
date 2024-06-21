@@ -734,7 +734,7 @@ const getSource = (sourceId: string) => {
                             <NcTooltip
                               :tooltip-style="{ 'min-width': 'max-content' }"
                               :overlay-inner-style="{ 'min-width': 'max-content' }"
-                              :mouse-leave-delay="0.5"
+                              :mouse-leave-delay="0.3"
                               placement="topLeft"
                               trigger="hover"
                             >

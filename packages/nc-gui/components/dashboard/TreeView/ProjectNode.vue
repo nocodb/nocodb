@@ -731,9 +731,22 @@ const getSource = (sourceId: string) => {
                             class="source-context flex flex-grow items-center gap-1.75 text-gray-800 min-w-1/20 max-w-full"
                             @contextmenu="setMenuContext('source', source)"
                           >
-                            <GeneralBaseLogo
-                              class="flex-none min-w-4 !xs:(min-w-4.25 w-4.25 text-sm) !text-gray-600 !group-hover:text-gray-800"
-                            />
+                            <NcTooltip :mouse-leave-delay="0.5" :trigger="['click', 'hover']" placement="topLeft">
+                              <template #title>
+                                {{ getSourceTooltip(source) }}
+                                <a
+                                    class="!text-current"
+                                    href="https://docs.nocodb.com/data-sources/connect-to-data-source#configuring-permissions"
+                                    target="_blank"
+                                >
+                                  Learn more
+                                </a>
+                              </template>
+                              <GeneralBaseLogo
+                                  :color="getSourceIconColor(source)"
+                                  class="flex-none min-w-4 !xs:(min-w-4.25 w-4.25 text-sm)"
+                              />
+                            </NcTooltip>
                             <input
                               v-if="source.id && sourceRenameHelpers[source.id]?.editMode"
                               ref="input"

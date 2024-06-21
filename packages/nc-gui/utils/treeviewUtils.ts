@@ -50,7 +50,7 @@ export const getSourceTooltip = (source: SourceType) => {
       [
         dbLabel,
         h('br'),
-        'Data editing is allowed and Schema edit is not disabled.',
+        'Data editing is allowed and Schema edit is not allowed.',
         h('br'),
         'An ideal settings for administrative users who need to change data directly on database.',
         h('br'),

@@ -1387,6 +1387,26 @@ export default class Column<T = any> implements ColumnType {
     );
   }
 
+  static async updateValidation(
+    context: NcContext,
+    { colId, validate }: { colId: string; validate: any },
+    ncMeta = Noco.ncMeta,
+  ) {
+    // set meta
+    await ncMeta.metaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.COLUMNS,
+      prepareForDb({ validate }, 'validate'),
+      colId,
+    );
+
+    await NocoCache.update(
+      `${CacheScope.COLUMN}:${colId}`,
+      { validate }
+    );
+  }
+
   static async updateTargetView(
     context: NcContext,
     { colId, fk_target_view_id }: { colId: string; fk_target_view_id: string },

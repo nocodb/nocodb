@@ -383,6 +383,18 @@ export class ColumnsService {
               meta: colBody.meta,
             });
           }
+          if (
+            'validate' in colBody &&
+            ([UITypes.URL, UITypes.PhoneNumber, UITypes.Email].includes(
+              column.uidt,
+            ) ||
+              isMetaOnlyUpdateAllowed)
+          ) {
+            await Column.updateValidation(context, {
+              colId: param.columnId,
+              validate: colBody.validate,
+            });
+          }
 
           if (isLinksOrLTAR(column)) {
             if ('meta' in colBody) {

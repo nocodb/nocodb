@@ -241,6 +241,7 @@ export const getEquivalentUIType = ({
     case FormulaDataTypes.DATE:
       return UITypes.DateTime;
     case FormulaDataTypes.LOGICAL:
+    case FormulaDataTypes.COND_EXP:
     case FormulaDataTypes.BOOLEAN:
       return UITypes.Checkbox;
   }

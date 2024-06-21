@@ -656,7 +656,7 @@ const getSource = (sourceId: string) => {
               v-e="['c:base:expand']"
               type="text"
               size="xxsmall"
-              class="nc-sidebar-node-btn nc-sidebar-expand !xs:opacity-100"
+              class="nc-sidebar-node-btn nc-sidebar-expand !xs:opacity-100 !mr-0 mt-0.5"
               :class="{
                 '!opacity-100': isOptionsOpen,
               }"
@@ -705,7 +705,7 @@ const getSource = (sourceId: string) => {
                         v-e="['c:external:base:expand']"
                         type="text"
                         size="xxsmall"
-                        class="nc-sidebar-node-btn nc-sidebar-expand !xs:opacity-100"
+                        class="nc-sidebar-node-btn nc-sidebar-expand !xs:opacity-100 !mr-0 mt-0.5"
                         :class="{ '!opacity-100 !inline-block': isBasesOptionsOpen[source!.id!] }"
                       >
                         <GeneralIcon
@@ -792,7 +792,7 @@ const getSource = (sourceId: string) => {
                                 size="xxsmall"
                                 @click.stop="isBasesOptionsOpen[source!.id!] = !isBasesOptionsOpen[source!.id!]"
                               >
-                                <GeneralIcon icon="thr  eeDotHorizontal" class="text-xl w-4.75" />
+                                <GeneralIcon icon="threeDotHorizontal" class="text-xl w-4.75" />
                               </NcButton>
                               <template #overlay>
                                 <NcMenu

@@ -35,12 +35,12 @@ const metaWrite = useVModel(props, 'allowMetaWrite', emits)
   </a-form-item>
   <a-form-item>
     <template #help>
-      <div>
-        <span class="text-small font-weight-medium" :class="{ 'nc-allow-meta-write-help': metaWrite }">
+      <span class="text-small">
+        <span class="font-weight-medium" :class="{ 'nc-allow-meta-write-help': metaWrite }">
           {{ $t('labels.notRecommended') }}:
         </span>
         {{ $t('tooltip.allowMetaWrite') }}
-      </div>
+      </span>
     </template>
     <template #label>
       <div class="flex gap-1 justify-end">

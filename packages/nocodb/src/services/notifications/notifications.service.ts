@@ -36,7 +36,11 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
     this.connections.get(userId).push(res);
   };
 
-  removeConnection = (userId: string, res: Response & { resId: string }) => {
+  removeConnection = async (
+    userId: string,
+    res: Response & { resId: string },
+    unsubscribeCb: (keepRedisChannel?: boolean) => Promise<void> | null,
+  ) => {
     if (!this.connections.has(userId)) {
       return;
     }
@@ -51,8 +55,15 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
 
     if (userConnections.length === 0) {
       this.connections.delete(userId);
+      if (unsubscribeCb) {
+        await unsubscribeCb();
+      }
     } else {
       this.connections.set(userId, userConnections);
+      if (unsubscribeCb) {
+        // if there are still connections, keep the redis channel
+        await unsubscribeCb(true);
+      }
     }
   };
 

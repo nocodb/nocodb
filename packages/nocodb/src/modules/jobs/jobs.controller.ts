@@ -92,7 +92,7 @@ export class JobsController {
       };
       // subscribe to job events
       if (JobsRedis.available) {
-        await JobsRedis.subscribe(jobId, async (data) => {
+        const unsubscribeCallback = await JobsRedis.subscribe(jobId, async (data) => {
           if (this.jobRooms[jobId]) {
             this.jobRooms[jobId].listeners.forEach((res) => {
               if (!res.headersSent) {
@@ -110,7 +110,7 @@ export class JobsController {
               if (
                 [JobStatus.COMPLETED, JobStatus.FAILED].includes(data.status)
               ) {
-                await JobsRedis.unsubscribe(jobId);
+                await unsubscribeCallback();
                 delete this.jobRooms[jobId];
                 // close the job after 1 second (to allow the update of messages)
                 setTimeout(() => {

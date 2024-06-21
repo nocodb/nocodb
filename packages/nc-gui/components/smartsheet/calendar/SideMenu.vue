@@ -554,7 +554,7 @@ onClickOutside(searchRef, toggleSearch)
                 <template v-if="coverImageColumns" #image>
                   <a-carousel
                     v-if="attachments(record).length"
-                    class="gallery-carousel rounded-md !border-1 !border-gray-200"
+                    class="gallery-carousel rounded-md !border-1 !border-gray-200 w-10 h-10"
                     arrows
                   >
                     <template #customPaging>

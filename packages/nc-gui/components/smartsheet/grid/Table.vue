@@ -1882,6 +1882,15 @@ onKeyStroke('ArrowDown', onDown)
                     </a-dropdown>
                   </div>
                 </th>
+                <th
+                  v-if="isAddingColumnAllowed"
+                  class="!border-0 relative !xs:hidden"
+                  :style="{
+                    borderWidth: '0px !important',
+                  }"
+                >
+                  <div class="absolute left-[60px] top-0 w-[40px]">&nbsp;</div>
+                </th>
               </tr>
             </thead>
           </table>

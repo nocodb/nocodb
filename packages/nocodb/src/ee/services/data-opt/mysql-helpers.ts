@@ -820,6 +820,12 @@ export async function extractColumn({
     case UITypes.Barcode:
       {
         const barcodeCol = await column.getColOptions<BarcodeColumn>(context);
+
+        if (!barcodeCol.fk_barcode_value_column_id) {
+          qb.select(knex.raw(`? as ??`, ['ERR!', column.id]));
+          break;
+        }
+
         const barcodeValCol = await barcodeCol.getValueColumn(context);
 
         return extractColumn({
@@ -845,6 +851,12 @@ export async function extractColumn({
     case UITypes.QrCode:
       {
         const qrCol = await column.getColOptions<QrCodeColumn>(context);
+
+        if (!qrCol.fk_qr_value_column_id) {
+          qb.select(knex.raw(`? as ??`, ['ERR!', column.id]));
+          break;
+        }
+
         const qrValCol = await qrCol.getValueColumn(context);
 
         return extractColumn({

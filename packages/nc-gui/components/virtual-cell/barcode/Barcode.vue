@@ -29,7 +29,9 @@ const barcodeMeta = computed(() => {
 
 const handleModalOkClick = () => (modalVisible.value = false)
 
-const showBarcode = computed(() => barcodeValue?.value.length > 0 && !tooManyCharsForBarcode.value)
+const showBarcode = computed(
+  () => barcodeValue?.value.length > 0 && !tooManyCharsForBarcode.value && barcodeValue?.value !== 'ERR!',
+)
 
 const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning } = useShowNotEditableWarning()
 
@@ -89,6 +91,12 @@ const rowHeight = inject(RowHeightInj, ref(undefined))
         </div>
       </template>
     </JsBarcodeWrapper>
+    <a-tooltip v-else-if="!showBarcode && barcodeValue === 'ERR!'" placement="bottom" class="text-orange-700">
+      <template #title>
+        <span class="font-bold">Please select a target field!</span>
+      </template>
+      <span>ERR!</span>
+    </a-tooltip>
   </div>
 
   <div v-if="tooManyCharsForBarcode" class="nc-cell-field text-left text-wrap text-[#e65100] text-xs">

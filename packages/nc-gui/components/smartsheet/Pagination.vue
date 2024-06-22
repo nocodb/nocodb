@@ -11,6 +11,7 @@ interface Props {
   customLabel?: string
   fixedSize?: number
   extraStyle?: string
+  addRecordStyle?: string
   showApiTiming?: boolean
   alignLeft?: boolean
   showSizeChanger?: boolean
@@ -31,6 +32,8 @@ const { alignCountOnRight, customLabel, changePage } = props
 const fixedSize = toRef(props, 'fixedSize')
 
 const extraStyle = toRef(props, 'extraStyle')
+
+const addRecordStyle = toRef(props, 'addRecordStyle')
 
 const isGroupBy = inject(IsGroupByInj, ref(false))
 
@@ -93,13 +96,14 @@ const tempPageVal = ref(page.value)
     :class="{ 'border-t-1': !isGroupBy, 'h-13': isMobileMode, 'h-10': !isMobileMode }"
     :style="`${fixedSize ? `width: ${fixedSize}px;` : ''}${
       isGroupBy ? 'margin-top:1px; border-radius: 0 0 8px 8px !important;' : ''
-    }${extraStyle}`"
+    } ${extraStyle}`"
   >
     <div
       class="flex items-center"
       :class="{
         'flex-1': !alignLeft,
       }"
+      :style="addRecordStyle"
     >
       <slot name="add-record" />
       <span

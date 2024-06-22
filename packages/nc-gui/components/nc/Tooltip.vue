@@ -14,6 +14,8 @@ interface Props {
   hideOnClick?: boolean
   overlayClassName?: string
   wrapChild?: keyof HTMLElementTagNameMap
+  mouseLeaveDelay?: number
+  overlayInnerStyle?: object
 }
 
 const props = defineProps<Props>()
@@ -77,7 +79,7 @@ watch([isHovering, () => modifierKey.value, () => disabled.value], ([hovering, k
     }
   }
 
-  if (!hovering || isDisabled) {
+  if ((!hovering || isDisabled) && !props.mouseLeaveDelay) {
     showTooltip.value = false
     return
   }
@@ -117,9 +119,11 @@ const onClick = () => {
     v-model:visible="showTooltip"
     :overlay-class-name="`nc-tooltip ${showTooltip ? 'visible' : 'hidden'} ${overlayClassName}`"
     :overlay-style="tooltipStyle"
+    :overlay-inner-style="overlayInnerStyle"
     arrow-point-at-center
     :trigger="[]"
     :placement="placement"
+    :mouse-leave-delay="mouseLeaveDelay"
   >
     <template #title>
       <slot name="title" />

@@ -315,7 +315,7 @@ const openedTab = ref('erd')
             </template>
             <div class="p-6 mt-4 h-full overflow-auto">
               <LazyDashboardSettingsDataSourcesEditBase
-                class="w-600px"
+                class="w-760px pr-5"
                 :source-id="activeSource.id"
                 @source-updated="loadBases(true)"
                 @close="activeSource = null"

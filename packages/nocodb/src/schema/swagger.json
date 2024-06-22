@@ -18217,11 +18217,11 @@
           },
           "is_schema_readonly": {
             "$ref": "#/components/schemas/Bool",
-            "description": "Is the data source minimal db"
+            "description": "Is the data source schema readonly"
           },
           "is_data_readonly": {
             "$ref": "#/components/schemas/Bool",
-            "description": "Is the data source minimal db"
+            "description": "Is the data source data readonly"
           },
           "order": {
             "description": "The order of the list of sources",
@@ -18396,6 +18396,14 @@
           "is_local": {
             "description": "Is the data source minimal db",
             "type": "boolean"
+          },
+          "is_schema_readonly": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is the data source schema readonly"
+          },
+          "is_data_readonly": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is the data source data readonly"
           },
           "type": {
             "description": "DB Type",

@@ -26,6 +26,10 @@ const inputRef = ref()
 
 const activeFieldIndex = ref(-1)
 
+const isDisabledUIType = (type: UITypes) => {
+  return isMetaReadOnly.value && !readonlyMetaAllowedTypes.includes(type)
+}
+
 const onClick = (uidt: UITypes) => {
   if (!uidt || isDisabledUIType(uidt)) return
 
@@ -64,10 +68,6 @@ onMounted(() => {
   searchQuery.value = ''
   activeFieldIndex.value = options.value.findIndex((o) => o.name === UITypes.SingleLineText)
 })
-
-const isDisabledUIType = (type: UITypes) => {
-  return isMetaReadOnly.value && !readonlyMetaAllowedTypes.includes(type)
-}
 </script>
 
 <template>
@@ -100,16 +100,12 @@ const isDisabledUIType = (type: UITypes) => {
 
         {{ options.length ? $t('title.noResultsMatchedYourSearch') : 'The list is empty' }}
       </div>
-
-      <NcTooltip
+      <GeneralSourceRestrictionTooltip
         v-for="(option, index) in filteredOptions"
         :key="index"
-        :disabled="!isDisabledUIType(option.name)"
-        placement="left"
+        :message="$t('tooltip.typeNotAllowed')"
+        :enabled="isDisabledUIType(option.name)"
       >
-        <template #title>
-          {{ $t('tooltip.typeNotAllowed') }}
-        </template>
         <div
           class="flex w-full py-2 items-center justify-between px-2 rounded-md"
           :class="[
@@ -133,7 +129,7 @@ const isDisabledUIType = (type: UITypes) => {
             <span v-if="option.deprecated" class="!text-xs !text-gray-300">({{ $t('general.deprecated') }})</span>
           </div>
         </div>
-      </NcTooltip>
+      </GeneralSourceRestrictionTooltip>
     </div>
   </div>
 </template>

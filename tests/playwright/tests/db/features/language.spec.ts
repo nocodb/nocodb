@@ -19,6 +19,7 @@ const langMenu = [
   'he.json',
   'hi.json',
   'hr.json',
+  'hu.json',
   'id.json',
   'it.json',
   'ja.json',

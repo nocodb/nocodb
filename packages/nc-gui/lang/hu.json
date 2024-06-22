@@ -103,6 +103,7 @@
     "reload": "Újratöltés",
     "reset": "Visszaállítás",
     "install": "Telepítés",
+
     "show": "Show",
     "access": "Access",
     "visibility": "Visibility",
@@ -457,8 +458,8 @@
   },
   "labels": {
     "notRecommended": "Not recommended",
-    "allowMetaWrite": "Allow Schema Edit",
-    "allowDataWrite": "Allow Data Edit",
+    "allowMetaWrite" : "Allow Schema Edit",
+    "allowDataWrite" : "Allow Data Edit",
     "selectView": "Select a View",
     "connectionDetails": "Connection Details",
     "metaSync": "Meta Sync",
@@ -1042,10 +1043,10 @@
   },
   "tooltip": {
     "schemaChangeDisabled": "Schema editing is disabled for this data source.",
-    "typeNotAllowed": "This datatype is not allowed.",
+    "typeNotAllowed": "This datatype is not allowed due to restricted schema alterations for this source.",
     "dataWriteOptionDisabled": "Data editing can only be disabled when 'Schema editing' is also disabled.",
-    "allowMetaWrite": "This option allows modification of database schema, including adding, altering, or deleting tables and columns. Use with caution, as changes may impact the structural integrity of your database.",
-    "allowDataWrite": "This option allows create, update, or delete of records within database tables. Ideal for administrative users need to change data directly.",
+    "allowMetaWrite": "Enable this option to allow modifications to the database schema, including adding, altering, or deleting tables and columns. Use with caution, as changes may affect application functionality.",
+    "allowDataWrite": "Enable this option to allow updating, deleting, or inserting data within the database tables. Ideal for administrative users who need to manage data directly.",
     "reachedSourceLimit": "Limited to 10 data sources per base",
     "saveChanges": "Save changes",
     "xcDB": "Create a new base",

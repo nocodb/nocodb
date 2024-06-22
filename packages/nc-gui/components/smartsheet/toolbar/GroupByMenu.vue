@@ -214,12 +214,7 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number } }) 
         data-testid="nc-group-by-menu"
       >
         <div class="max-h-100" @click.stop>
-          <Draggable
-            :model-value="_groupBy"
-            item-key="fk_column_id"
-            ghost-class="bg-gray-50"
-            @change="onMove($event)"
-          >
+          <Draggable :model-value="_groupBy" item-key="fk_column_id" ghost-class="bg-gray-50" @change="onMove($event)">
             <template #item="{ element: group }">
               <div :key="group.fk_column_id" class="flex first:mb-0 !mb-1.5 !last:mb-0 items-center">
                 <NcButton type="secondary" size="small" class="!border-r-transparent !rounded-r-none">

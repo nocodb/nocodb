@@ -34,6 +34,8 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
     const { getMeta } = useMetas()
 
+    const { isMetaReadOnly } = useRoles()
+
     const { t } = useI18n()
 
     const { $e } = useNuxtApp()
@@ -71,11 +73,73 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       postSaveOrUpdateCbk = cbk
     }
 
+    const defaultType = isMetaReadOnly.value ? UITypes.Formula : UITypes.SingleLineText
     const formState = ref<Record<string, any>>({
       title: '',
-      uidt: fromTableExplorer?.value ? UITypes.SingleLineText : null,
+      uidt: fromTableExplorer?.value ? defaultType : null,
       ...clone(column.value || {}),
     })
+
+    const onUidtOrIdTypeChange = () => {
+      disableSubmitBtn.value = false
+
+      const newTitle = updateFieldName(false)
+
+      const colProp = sqlUi.value.getDataTypeForUiType(formState.value as { uidt: UITypes }, idType ?? undefined)
+      formState.value = {
+        ...(!isEdit.value && {
+          // only take title, column_name and uidt when creating a column
+          // to avoid the extra props from being taken (e.g. SingleLineText -> LTAR -> SingleLineText)
+          // to mess up the column creation
+          title: newTitle || formState.value.title,
+          column_name: newTitle || formState.value.column_name,
+          uidt: formState.value.uidt,
+          temp_id: formState.value.temp_id,
+          userHasChangedTitle: !!formState.value?.userHasChangedTitle,
+        }),
+        ...(isEdit.value && {
+          // take the existing formState.value when editing a column
+          // LTAR is not available in this case
+          ...formState.value,
+        }),
+        meta: {},
+        rqd: false,
+        pk: false,
+        ai: false,
+        cdf: null,
+        un: false,
+        dtx: 'specificType',
+        ...colProp,
+      }
+
+      formState.value.dtxp = sqlUi.value.getDefaultLengthForDatatype(formState.value.dt)
+      formState.value.dtxs = sqlUi.value.getDefaultScaleForDatatype(formState.value.dt)
+
+      const selectTypes = [UITypes.MultiSelect, UITypes.SingleSelect]
+      if (column && selectTypes.includes(formState.value.uidt) && selectTypes.includes(column.value?.uidt as UITypes)) {
+        formState.value.dtxp = column.value?.dtxp
+      }
+
+      if (columnToValidate.includes(formState.value.uidt)) {
+        formState.value.meta = {
+          validate: formState.value.meta && formState.value.meta.validate,
+        }
+      }
+
+      // keep length and scale for same datatype
+      if (column.value && formState.value.uidt === column.value?.uidt) {
+        formState.value.dtxp = column.value.dtxp
+        formState.value.dtxs = column.value.dtxs
+      } else {
+        // default length and scale for currency
+        if (formState.value?.uidt === UITypes.Currency) {
+          formState.value.dtxp = 19
+          formState.value.dtxs = 2
+        }
+      }
+
+      formState.value.altered = formState.value.altered || 2
+    }
 
     // actions
     const generateNewColumnMeta = (ignoreUidt = false) => {
@@ -87,6 +151,10 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       formState.value.title = ''
       formState.value.column_name = ''
 
+      if (isMetaReadOnly.value) {
+        formState.value.uidt = defaultType
+        onUidtOrIdTypeChange()
+      }
       if (ignoreUidt && !fromTableExplorer?.value) {
         formState.value.uidt = null
       }
@@ -149,67 +217,6 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     })
 
     const { resetFields, validate, validateInfos } = useForm(formState, validators)
-
-    const onUidtOrIdTypeChange = () => {
-      disableSubmitBtn.value = false
-
-      const newTitle = updateFieldName(false)
-
-      const colProp = sqlUi.value.getDataTypeForUiType(formState.value as { uidt: UITypes }, idType ?? undefined)
-      formState.value = {
-        ...(!isEdit.value && {
-          // only take title, column_name and uidt when creating a column
-          // to avoid the extra props from being taken (e.g. SingleLineText -> LTAR -> SingleLineText)
-          // to mess up the column creation
-          title: newTitle || formState.value.title,
-          column_name: newTitle || formState.value.column_name,
-          uidt: formState.value.uidt,
-          temp_id: formState.value.temp_id,
-          userHasChangedTitle: !!formState.value?.userHasChangedTitle,
-        }),
-        ...(isEdit.value && {
-          // take the existing formState.value when editing a column
-          // LTAR is not available in this case
-          ...formState.value,
-        }),
-        meta: {},
-        rqd: false,
-        pk: false,
-        ai: false,
-        cdf: null,
-        un: false,
-        dtx: 'specificType',
-        ...colProp,
-      }
-
-      formState.value.dtxp = sqlUi.value.getDefaultLengthForDatatype(formState.value.dt)
-      formState.value.dtxs = sqlUi.value.getDefaultScaleForDatatype(formState.value.dt)
-
-      const selectTypes = [UITypes.MultiSelect, UITypes.SingleSelect]
-      if (column && selectTypes.includes(formState.value.uidt) && selectTypes.includes(column.value?.uidt as UITypes)) {
-        formState.value.dtxp = column.value?.dtxp
-      }
-
-      if (columnToValidate.includes(formState.value.uidt)) {
-        formState.value.meta = {
-          validate: formState.value.meta && formState.value.meta.validate,
-        }
-      }
-
-      // keep length and scale for same datatype
-      if (column.value && formState.value.uidt === column.value?.uidt) {
-        formState.value.dtxp = column.value.dtxp
-        formState.value.dtxs = column.value.dtxs
-      } else {
-        // default length and scale for currency
-        if (formState.value?.uidt === UITypes.Currency) {
-          formState.value.dtxp = 19
-          formState.value.dtxs = 2
-        }
-      }
-
-      formState.value.altered = formState.value.altered || 2
-    }
 
     const onDataTypeChange = () => {
       formState.value.rqd = false

@@ -6,7 +6,7 @@ const maxNumberOfAllowedCharsForQrValue = 2000
 
 const cellValue = inject(CellValueInj)
 
-const qrValue = computed(() => String(cellValue?.value || ''))
+const qrValue = computed(() => String(cellValue?.value ?? ''))
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
 

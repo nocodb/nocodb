@@ -96,5 +96,4 @@ export class JobsRedis {
 
   static publish = PubSubRedis.publish;
   static subscribe = PubSubRedis.subscribe;
-  static unsubscribe = PubSubRedis.unsubscribe;
 }

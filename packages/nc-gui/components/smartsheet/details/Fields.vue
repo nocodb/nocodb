@@ -1,7 +1,14 @@
 <script setup lang="ts">
 import { diff } from 'deep-object-diff'
 import { message } from 'ant-design-vue'
-import { UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol, readonlyMetaAllowedTypes } from 'nocodb-sdk'
+import {
+  UITypes,
+  isLinksOrLTAR,
+  isSystemColumn,
+  isVirtualCol,
+  partialUpdateAllowedTypes,
+  readonlyMetaAllowedTypes,
+} from 'nocodb-sdk'
 import type { ColumnType, FilterType, SelectOptionsType } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 import { onKeyDown, useMagicKeys } from '@vueuse/core'
@@ -185,12 +192,17 @@ const setFieldMoveHook = (field: TableExplorerColumn, before = false) => {
 const { isMetaReadOnly } = useRoles()
 
 const isColumnUpdateAllowed = (column: ColumnType) => {
-  if (isMetaReadOnly.value && !readonlyMetaAllowedTypes.includes(column?.uidt)) return false
+  if (
+    isMetaReadOnly.value &&
+    !readonlyMetaAllowedTypes.includes(column?.uidt) &&
+    !partialUpdateAllowedTypes.includes(column?.uidt)
+  )
+    return false
   return true
 }
 
 const changeField = (field?: TableExplorerColumn, event?: MouseEvent) => {
-  if (!isColumnUpdateAllowed(field)) {
+  if (field?.id && field?.uidt && !isColumnUpdateAllowed(field)) {
     return message.info(t('msg.info.schemaReadOnly'))
   }
 

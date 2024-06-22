@@ -8,7 +8,7 @@ const cellValue = inject(CellValueInj)
 
 const column = inject(ColumnInj)
 
-const barcodeValue: ComputedRef<string> = computed(() => String(cellValue?.value || ''))
+const barcodeValue: ComputedRef<string> = computed(() => String(cellValue?.value ?? ''))
 
 const tooManyCharsForBarcode = computed(() => barcodeValue.value.length > maxNumberOfAllowedCharsForBarcodeValue)
 

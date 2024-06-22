@@ -84,8 +84,6 @@ const autocomplete = ref(false)
 
 const formulaRef = ref()
 
-const sugListRef = ref()
-
 const variableListRef = ref<(typeof AntListItem)[]>([])
 
 const sugOptionsRef = ref<(typeof AntListItem)[]>([])
@@ -288,28 +286,21 @@ const suggestionPreviewLeft = ref('-left-85')
 
 const suggestionPreviewPostion = ref({
   top: '0px',
-  left: '0px',
-})
-
-watch(sugListRef, () => {
-  nextTick(() => {
-    setTimeout(() => {
-      const fieldModal = document.querySelector('.nc-dropdown-edit-column.active') as HTMLDivElement
-      if (fieldModal && fieldModal.getBoundingClientRect().left < 364 && !fromTableExplorer?.value) {
-        suggestionPreviewLeft.value = '-right-85'
-      }
-    }, 500)
-  })
+  left: '-344px',
 })
 
 onMounted(() => {
   // wait until MFE field modal transition complete
   setTimeout(() => {
-    const textAreaPosition = formulaRef.value.$el?.getBoundingClientRect()
-    if (fromTableExplorer?.value && textAreaPosition) {
+    const textAreaPosition = formulaRef.value?.$el?.getBoundingClientRect()
+    if (!textAreaPosition) return
+
+    if (fromTableExplorer?.value) {
       suggestionPreviewPostion.value.left = `${textAreaPosition.left - 344}px`
       suggestionPreviewPostion.value.top = `${textAreaPosition.top}px`
-      suggestionPreviewLeft.value = `left-[${0}px] top-[${textAreaPosition.top}px]`
+    } else {
+      suggestionPreviewPostion.value.left = textAreaPosition.left < 352 ? '350px' : '-344px'
+      suggestionPreviewPostion.value.top = `0px`
     }
   }, 250)
 })
@@ -341,21 +332,14 @@ const handleKeydown = (e: KeyboardEvent) => {
     <div
       v-if="suggestionPreviewed && !suggestionPreviewed.unsupported && suggestionPreviewed.type === 'function'"
       class="w-84 bg-white z-10 pl-3 pt-3 border-1 shadow-md rounded-xl"
-      :class="[
-        suggestionPreviewLeft,
-        {
-          'fixed': fromTableExplorer,
-          'absolute top-0': !fromTableExplorer,
-        },
-      ]"
-      :style="
-        fromTableExplorer
-          ? {
-              left: suggestionPreviewPostion.left,
-              top: suggestionPreviewPostion.top,
-            }
-          : {}
-      "
+      :class="{
+        'fixed': fromTableExplorer,
+        'absolute top-0': !fromTableExplorer,
+      }"
+      :style="{
+        left: suggestionPreviewPostion.left,
+        top: suggestionPreviewPostion.top,
+      }"
     >
       <div class="pr-3">
         <div class="flex flex-row w-full justify-between pb-2 border-b-1">
@@ -414,7 +398,7 @@ const handleKeydown = (e: KeyboardEvent) => {
       />
     </a-form-item>
 
-    <div ref="sugListRef" class="h-[250px] overflow-auto nc-scrollbar-thin border-1 border-gray-200 rounded-lg mt-4">
+    <div class="h-[250px] overflow-auto nc-scrollbar-thin border-1 border-gray-200 rounded-lg mt-4">
       <template v-if="suggestedFormulas.length > 0">
         <div class="border-b-1 bg-gray-50 px-3 py-1 uppercase text-gray-600 text-xs font-semibold sticky top-0 z-10">
           Formulas

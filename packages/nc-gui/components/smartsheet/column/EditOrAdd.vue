@@ -360,8 +360,8 @@ const isFullUpdateAllowed = computed(() => {
     :class="{
       'bg-white': !props.fromTableExplorer,
       'w-[384px]': !props.embedMode,
-      'min-w-500px': formState.uidt === UITypes.LinkToAnotherRecord || formState.uidt === UITypes.Links,
-      '!w-116 overflow-visible': formState.uidt === UITypes.Formula && !props.embedMode,
+      'min-w-[500px]': formState.uidt === UITypes.LinkToAnotherRecord || formState.uidt === UITypes.Links,
+      'overflow-visible': formState.uidt === UITypes.Formula,
       '!w-[600px]': formState.uidt === UITypes.LinkToAnotherRecord || formState.uidt === UITypes.Links,
       'shadow-lg border-1 border-gray-200 shadow-gray-300 rounded-xl p-5': !embedMode,
     }"

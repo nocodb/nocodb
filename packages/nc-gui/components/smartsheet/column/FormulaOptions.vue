@@ -287,9 +287,8 @@ onMounted(() => {
 const suggestionPreviewLeft = ref('-left-85')
 
 const suggestionPreviewPostion = ref({
-  top: 0,
-  left: 0,
-  right: 0,
+  top: '0px',
+  left: '0px',
 })
 
 watch(sugListRef, () => {
@@ -304,13 +303,11 @@ watch(sugListRef, () => {
 })
 
 onMounted(() => {
-  console.log('formulaRef', formulaRef.value.$el.getBoundingClientRect())
   const textAreaPosition = formulaRef.value.$el?.getBoundingClientRect()
-
   if (fromTableExplorer?.value && textAreaPosition) {
-    const left = textAreaPosition.left - 364
-
-    suggestionPreviewLeft.value = `left-[${left}px] top-[${textAreaPosition.top}px]`
+    suggestionPreviewPostion.value.left = `${textAreaPosition.left - 364}px`
+    suggestionPreviewPostion.value.top = `${textAreaPosition.top}px`
+    suggestionPreviewLeft.value = `left-[${0}px] top-[${textAreaPosition.top}px]`
   }
 })
 
@@ -320,14 +317,17 @@ const handleKeydown = (e: KeyboardEvent) => {
     case 'ArrowUp': {
       e.preventDefault()
       suggestionListUp()
+      break
     }
     case 'ArrowDown': {
       e.preventDefault()
       suggestionListDown()
+      break
     }
     case 'Enter': {
       e.preventDefault()
       selectText()
+      break
     }
   }
 }
@@ -345,6 +345,14 @@ const handleKeydown = (e: KeyboardEvent) => {
           'absolute top-0': !fromTableExplorer,
         },
       ]"
+      :style="
+        fromTableExplorer
+          ? {
+              left: suggestionPreviewPostion.left,
+              top: suggestionPreviewPostion.top,
+            }
+          : {}
+      "
     >
       <div class="pr-3">
         <div class="flex flex-row w-full justify-between pb-2 border-b-1">

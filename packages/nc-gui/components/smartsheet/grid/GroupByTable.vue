@@ -118,34 +118,12 @@ reloadViewDataHook?.on(reloadTableData)
 
 provide(IsGroupByInj, ref(true))
 
-const scrollBump = computed<number>(() => {
-  let baseWidth = props.scrollLeft ?? 0
-
-  const depth = props.depth ?? 0
-
-  switch (depth) {
-    case 0:
-      baseWidth = baseWidth - 10
-      break
-    case 1:
-      baseWidth = baseWidth - 18
-      break
-
-    case 2:
-      baseWidth = baseWidth - 16
-      break
-  }
-
-  return Math.max(baseWidth, 0)
-})
-
 const pagination = computed(() => {
   return {
     fixedSize: props.paginationFixedSize ? props.paginationFixedSize - 2 : undefined,
     hideSidebars: props.paginationHideSidebars,
-    extraStyle: `margin-left: ${scrollBump.value}px;
-      background: transparent !important; border-top: 0px
-    }`,
+    extraStyle: 'background: transparent !important; border-top: 0px;',
+    addRecordStyle: 'position: sticky; left: 0;',
   }
 })
 

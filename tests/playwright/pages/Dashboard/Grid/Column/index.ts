@@ -224,7 +224,9 @@ export class ColumnPageObject extends BasePage {
     await this.save();
 
     const headersText = [];
-    const locator = this.grid.get().locator(`th`);
+    const locator = this.grid.get().locator('th.nc-grid-column-header');
+    await locator.first().waitFor({ state: 'visible' });
+
     const count = await locator.count();
     for (let i = 0; i < count; i++) {
       const header = locator.nth(i);

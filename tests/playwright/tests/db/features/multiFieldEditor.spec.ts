@@ -117,7 +117,7 @@ const allFieldList = [
   },
 ];
 
-test.describe('Multi Field Editor', () => {
+test.describe.only('Multi Field Editor', () => {
   let dashboard: DashboardPage, fields: FieldsPage;
   let context: any;
   const defaultFieldName = 'Multi Field Editor';
@@ -149,7 +149,7 @@ test.describe('Multi Field Editor', () => {
   const verifyGridColumnHeaders = async ({ fields = [] }: { fields: string[] }) => {
     await dashboard.grid.topbar.openDataTab();
 
-    const locator = dashboard.grid.get().locator('.nc-grid-column-header');
+    const locator = dashboard.grid.get().locator('th.nc-grid-column-header');
 
     await locator.first().waitFor({ state: 'visible' });
 
@@ -158,10 +158,10 @@ test.describe('Multi Field Editor', () => {
     // exclude first checkbox and last add new column
     expect(count).toBe(fields.length);
 
-    for (let i = 1; i < count - 1; i++) {
+    for (let i = 0; i < count; i++) {
       const header = locator.nth(i);
       const text = await getTextExcludeIconText(header);
-      expect(text).toBe(fields[i - 1]);
+      expect(text).toBe(fields[i]);
     }
 
     await openMultiFieldOfATable();

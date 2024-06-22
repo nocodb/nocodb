@@ -48,6 +48,8 @@ const { getMeta } = useMetas()
 
 const suggestionPreviewed = ref<Record<any, string> | undefined>()
 
+const showFunctionList = ref<boolean>(true)
+
 const validators = {
   formula_raw: [
     {
@@ -216,7 +218,11 @@ function handleInput() {
 
   if (!isCurlyBracketBalanced()) {
     suggestion.value = suggestion.value.filter((v) => v.type === 'column')
+    showFunctionList.value = false
+  } else if (!showFunctionList.value) {
+    showFunctionList.value = true
   }
+
   autocomplete.value = !!suggestion.value.length
 }
 
@@ -281,8 +287,6 @@ setAdditionalValidations({
 onMounted(() => {
   jsep.plugins.register(jsepCurlyHook)
 })
-
-const suggestionPreviewLeft = ref('-left-85')
 
 const suggestionPreviewPostion = ref({
   top: '0px',
@@ -399,7 +403,7 @@ const handleKeydown = (e: KeyboardEvent) => {
     </a-form-item>
 
     <div class="h-[250px] overflow-auto nc-scrollbar-thin border-1 border-gray-200 rounded-lg mt-4">
-      <template v-if="suggestedFormulas.length > 0">
+      <template v-if="suggestedFormulas && showFunctionList">
         <div class="border-b-1 bg-gray-50 px-3 py-1 uppercase text-gray-600 text-xs font-semibold sticky top-0 z-10">
           Formulas
         </div>
@@ -438,13 +442,13 @@ const handleKeydown = (e: KeyboardEvent) => {
         </a-list>
       </template>
 
-      <template v-if="variableList.length > 0">
+      <template v-if="variableList">
         <div class="border-b-1 bg-gray-50 px-3 py-1 uppercase text-gray-600 text-xs font-semibold sticky top-0 z-10">Fields</div>
 
         <a-list
           ref="variableListRef"
           :data-source="variableList"
-          :locale="{ emptyText: $t('msg.formula.noSuggestedFormulaFound') }"
+          :locale="{ emptyText: $t('msg.formula.noSuggestedFieldFound') }"
           class="!overflow-hidden"
         >
           <template #renderItem="{ item, index }">
@@ -483,9 +487,6 @@ const handleKeydown = (e: KeyboardEvent) => {
           </template>
         </a-list>
       </template>
-      <div v-if="suggestion.length === 0">
-        <span class="text-gray-500">Empty</span>
-      </div>
     </div>
   </div>
 </template>

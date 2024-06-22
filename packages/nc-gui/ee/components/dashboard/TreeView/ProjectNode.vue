@@ -822,10 +822,7 @@ const getSource = (sourceId: string) => {
                               v-if="source.id && sourceRenameHelpers[source.id]?.editMode"
                               ref="input"
                               v-model="sourceRenameHelpers[source.id].tempTitle"
-                              class="flex-grow leading-1 outline-0 ring-none capitalize !text-inherit !bg-transparent flex-1 mr-4"
-                              :class="
-                                activeProjectId === base.id && baseViewOpen ? '!text-brand-600 !font-semibold' : '!text-gray-700'
-                              "
+                              class="flex-grow leading-1 outline-0 ring-none capitalize !text-inherit !bg-transparent flex-1 mr-4 !text-gray-700"
                               :data-source-rename-input-id="source.id"
                               @click.stop
                               @keydown.enter.stop.prevent
@@ -835,13 +832,8 @@ const getSource = (sourceId: string) => {
                             />
                             <NcTooltip
                               v-else
-                              class="nc-sidebar-node-title capitalize text-ellipsis overflow-hidden select-none"
+                              class="nc-sidebar-node-title capitalize text-ellipsis overflow-hidden select-none text-gray-700"
                               :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
-                              :class="
-                                activeProjectId === base.id && baseViewOpen && !isMobileMode
-                                  ? 'text-black font-semibold'
-                                  : 'text-gray-700'
-                              "
                               show-on-truncate-only
                             >
                               <template #title> {{ source.alias || '' }}</template>

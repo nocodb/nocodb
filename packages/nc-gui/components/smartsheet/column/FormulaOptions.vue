@@ -22,7 +22,7 @@ const uiTypesNotSupportedInFormulas = [UITypes.QrCode, UITypes.Barcode]
 
 const vModel = useVModel(props, 'value', emit)
 
-const { setAdditionalValidations, validateInfos, sqlUi, column } = useColumnCreateStoreOrThrow()
+const { setAdditionalValidations, validateInfos, sqlUi, column, fromTableExplorer } = useColumnCreateStoreOrThrow()
 
 const { t } = useI18n()
 
@@ -286,25 +286,65 @@ onMounted(() => {
 
 const suggestionPreviewLeft = ref('-left-85')
 
+const suggestionPreviewPostion = ref({
+  top: 0,
+  left: 0,
+  right: 0,
+})
+
 watch(sugListRef, () => {
   nextTick(() => {
     setTimeout(() => {
       const fieldModal = document.querySelector('.nc-dropdown-edit-column.active') as HTMLDivElement
-
-      if (fieldModal && fieldModal.getBoundingClientRect().left < 364) {
+      if (fieldModal && fieldModal.getBoundingClientRect().left < 364 && !fromTableExplorer?.value) {
         suggestionPreviewLeft.value = '-right-85'
       }
     }, 500)
   })
 })
+
+onMounted(() => {
+  console.log('formulaRef', formulaRef.value.$el.getBoundingClientRect())
+  const textAreaPosition = formulaRef.value.$el?.getBoundingClientRect()
+
+  if (fromTableExplorer?.value && textAreaPosition) {
+    const left = textAreaPosition.left - 364
+
+    suggestionPreviewLeft.value = `left-[${left}px] top-[${textAreaPosition.top}px]`
+  }
+})
+
+const handleKeydown = (e: KeyboardEvent) => {
+  e.stopPropagation()
+  switch (e.key) {
+    case 'ArrowUp': {
+      e.preventDefault()
+      suggestionListUp()
+    }
+    case 'ArrowDown': {
+      e.preventDefault()
+      suggestionListDown()
+    }
+    case 'Enter': {
+      e.preventDefault()
+      selectText()
+    }
+  }
+}
 </script>
 
 <template>
   <div class="formula-wrapper relative">
     <div
       v-if="suggestionPreviewed && !suggestionPreviewed.unsupported && suggestionPreviewed.type === 'function'"
-      class="absolute w-84 top-0 bg-white z-10 pl-3 pt-3 border-1 shadow-md rounded-xl"
-      :class="suggestionPreviewLeft"
+      class="w-84 bg-white z-10 pl-3 pt-3 border-1 shadow-md rounded-xl"
+      :class="[
+        suggestionPreviewLeft,
+        {
+          'fixed': fromTableExplorer,
+          'absolute top-0': !fromTableExplorer,
+        },
+      ]"
     >
       <div class="pr-3">
         <div class="flex flex-row w-full justify-between pb-2 border-b-1">
@@ -358,9 +398,7 @@ watch(sugListRef, () => {
         ref="formulaRef"
         v-model:value="vModel.formula_raw"
         class="nc-formula-input !rounded-md"
-        @keydown.down.prevent="suggestionListDown"
-        @keydown.up.prevent="suggestionListUp"
-        @keydown.enter.prevent="selectText"
+        @keydown="handleKeydown"
         @change="handleInputDeb"
       />
     </a-form-item>

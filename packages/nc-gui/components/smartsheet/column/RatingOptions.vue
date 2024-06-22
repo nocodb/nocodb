@@ -113,7 +113,12 @@ watch(
     </a-col>
     <a-col :span="8">
       <a-form-item :label="$t('labels.max')">
-        <a-select v-model:value="vModel.meta.max" data-testid="nc-dropdown-rating-max" class="w-52" dropdown-class-name="nc-dropdown-rating-color">
+        <a-select
+          v-model:value="vModel.meta.max"
+          data-testid="nc-dropdown-rating-max"
+          class="w-52"
+          dropdown-class-name="nc-dropdown-rating-color"
+        >
           <template #suffixIcon>
             <GeneralIcon icon="arrowDown" class="text-gray-700" />
           </template>

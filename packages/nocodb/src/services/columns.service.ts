@@ -8,7 +8,6 @@ import {
   partialUpdateAllowedTypes,
   readonlyMetaAllowedTypes,
   RelationTypes,
-  SourceRestriction,
   substituteColumnAliasWithIdInFormula,
   substituteColumnIdWithAliasInFormula,
   UITypes,

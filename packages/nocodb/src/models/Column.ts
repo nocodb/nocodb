@@ -151,6 +151,7 @@ export default class Column<T = any> implements ColumnType {
       'source_id',
       'system',
       'meta',
+      'virtual',
     ]);
 
     if (!insertObj.column_name) {

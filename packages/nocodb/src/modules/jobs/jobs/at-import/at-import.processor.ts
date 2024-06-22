@@ -15,7 +15,7 @@ import FetchAT from './helpers/fetchAT';
 import { importData } from './helpers/readAndProcessData';
 import EntityMap from './helpers/EntityMap';
 import type { UserType } from 'nocodb-sdk';
-import { type Base, Source } from '~/models';
+import { type Base, Model, Source } from '~/models';
 import { sanitizeColumnName } from '~/helpers';
 import { AttachmentsService } from '~/services/attachments.service';
 import { ColumnsService } from '~/services/columns.service';
@@ -34,6 +34,7 @@ import { FormsService } from '~/services/forms.service';
 import { JOBS_QUEUE, JobTypes } from '~/interface/Jobs';
 import { GridColumnsService } from '~/services/grid-columns.service';
 import { TelemetryService } from '~/services/telemetry.service';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 const logger = new Logger('at-import');
 
@@ -2521,6 +2522,9 @@ export class AtImportProcessor {
 
           logBasic('Reading Records...');
 
+          const idMap = new Map();
+          const idCounter: Record<string, number> = {};
+
           for (let i = 0; i < ncTblList.list.length; i++) {
             // not a migrated table, skip
             if (
@@ -2552,10 +2556,52 @@ export class AtImportProcessor {
               insertedAssocRef,
               atNcAliasRef,
               ncLinkMappingTable,
+              idMap,
+              idCounter,
               logBasic,
               logDetailed,
               logWarning,
             });
+
+            if (source.type === 'pg') {
+              const baseModel = await Model.getBaseModelSQL(context, {
+                id: ncTblList.list[i].id,
+                viewId: null,
+                dbDriver: await NcConnectionMgrv2.get(source),
+              });
+              await baseModel.dbDriver.raw(
+                `SELECT setval(pg_get_serial_sequence('??', ?), ?);`,
+                [
+                  baseModel.getTnPath(ncTblList.list[i].table_name),
+                  'id',
+                  baseModel.dbDriver.raw(`(SELECT MAX(id) FROM ??)`, [
+                    baseModel.getTnPath(ncTblList.list[i].table_name),
+                  ]),
+                ],
+              );
+            } else if (source.type === 'mssql') {
+              const baseModel = await Model.getBaseModelSQL(context, {
+                id: ncTblList.list[i].id,
+                viewId: null,
+                dbDriver: await NcConnectionMgrv2.get(source),
+              });
+              const res = await baseModel.execAndGetRows(
+                baseModel.dbDriver
+                  .raw(`SELECT MAX(id) as mx FROM ??`, [
+                    baseModel.getTnPath(ncTblList.list[i].table_name),
+                  ])
+                  .toQuery(),
+              );
+
+              await baseModel.dbDriver.raw(
+                `DBCC CHECKIDENT ('??', RESEED, ?)`,
+                [
+                  baseModel.getTnPath(ncTblList.list[i].table_name),
+                  res?.[0]?.mx || 1,
+                ],
+              );
+            }
+
             rtc.data.records += importStats.importedCount;
             rtc.data.nestedLinks += importStats.nestedLinkCount;
 

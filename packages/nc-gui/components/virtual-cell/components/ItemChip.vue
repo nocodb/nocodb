@@ -54,7 +54,7 @@ export default {
 <template>
   <div
     v-e="['c:row-expand:open']"
-    class="chip group mr-1 my-1 flex items-center rounded-[2px] flex-row truncate"
+    class="chip group mr-1 my-0.5 flex items-center rounded-[2px] flex-row truncate"
     :class="{ active, 'border-1 py-1 px-2': isAttachment(column) }"
     @click="openExpandedForm"
   >

@@ -139,7 +139,7 @@ watch(
 <template>
   <div class="nc-cell-field flex w-full group items-center nc-links-wrapper py-1" @dblclick.stop="openChildList">
     <LazyVirtualCellComponentsLinkRecordDropdown v-model:is-open="isOpen">
-      <div class="flex w-full group items-center min-h-7.7">
+      <div class="flex w-full group items-center min-h-4">
         <div class="block flex-shrink truncate">
           <component
             :is="isUnderLookup ? 'span' : 'a'"

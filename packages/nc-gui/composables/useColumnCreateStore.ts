@@ -393,6 +393,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       disableSubmitBtn,
       setPostSaveOrUpdateCbk,
       updateFieldName,
+      fromTableExplorer,
     }
   },
 )

@@ -22,7 +22,7 @@ const uiTypesNotSupportedInFormulas = [UITypes.QrCode, UITypes.Barcode]
 
 const vModel = useVModel(props, 'value', emit)
 
-const { setAdditionalValidations, validateInfos, sqlUi, column } = useColumnCreateStoreOrThrow()
+const { setAdditionalValidations, validateInfos, sqlUi, column, fromTableExplorer } = useColumnCreateStoreOrThrow()
 
 const { t } = useI18n()
 
@@ -47,6 +47,8 @@ const supportedColumns = computed(
 const { getMeta } = useMetas()
 
 const suggestionPreviewed = ref<Record<any, string> | undefined>()
+
+const showFunctionList = ref<boolean>(true)
 
 const validators = {
   formula_raw: [
@@ -83,8 +85,6 @@ const availableBinOps = ['+', '-', '*', '/', '>', '<', '==', '<=', '>=', '!=', '
 const autocomplete = ref(false)
 
 const formulaRef = ref()
-
-const sugListRef = ref()
 
 const variableListRef = ref<(typeof AntListItem)[]>([])
 
@@ -124,7 +124,7 @@ const suggestionsList = computed(() => {
         .map((c: any) => ({
           text: c.title,
           type: 'column',
-          icon: getUIDTIcon(c.uidt),
+          icon: getUIDTIcon(c.uidt) ? markRaw(getUIDTIcon(c.uidt)!) : undefined,
           uidt: c.uidt,
         })),
       ...availableBinOps.map((op: string) => ({
@@ -218,7 +218,11 @@ function handleInput() {
 
   if (!isCurlyBracketBalanced()) {
     suggestion.value = suggestion.value.filter((v) => v.type === 'column')
+    showFunctionList.value = false
+  } else if (!showFunctionList.value) {
+    showFunctionList.value = true
   }
+
   autocomplete.value = !!suggestion.value.length
 }
 
@@ -284,27 +288,62 @@ onMounted(() => {
   jsep.plugins.register(jsepCurlyHook)
 })
 
-const suggestionPreviewLeft = ref('-left-85')
-
-watch(sugListRef, () => {
-  nextTick(() => {
-    setTimeout(() => {
-      const fieldModal = document.querySelector('.nc-dropdown-edit-column.active') as HTMLDivElement
-
-      if (fieldModal && fieldModal.getBoundingClientRect().left < 364) {
-        suggestionPreviewLeft.value = '-right-85'
-      }
-    }, 500)
-  })
+const suggestionPreviewPostion = ref({
+  top: '0px',
+  left: '-344px',
 })
+
+onMounted(() => {
+  // wait until MFE field modal transition complete
+  setTimeout(() => {
+    const textAreaPosition = formulaRef.value?.$el?.getBoundingClientRect()
+    if (!textAreaPosition) return
+
+    if (fromTableExplorer?.value) {
+      suggestionPreviewPostion.value.left = `${textAreaPosition.left - 344}px`
+      suggestionPreviewPostion.value.top = `${textAreaPosition.top}px`
+    } else {
+      suggestionPreviewPostion.value.left = textAreaPosition.left < 352 ? '350px' : '-344px'
+      suggestionPreviewPostion.value.top = `0px`
+    }
+  }, 250)
+})
+
+const handleKeydown = (e: KeyboardEvent) => {
+  e.stopPropagation()
+  switch (e.key) {
+    case 'ArrowUp': {
+      e.preventDefault()
+      suggestionListUp()
+      break
+    }
+    case 'ArrowDown': {
+      e.preventDefault()
+      suggestionListDown()
+      break
+    }
+    case 'Enter': {
+      e.preventDefault()
+      selectText()
+      break
+    }
+  }
+}
 </script>
 
 <template>
   <div class="formula-wrapper relative">
     <div
       v-if="suggestionPreviewed && !suggestionPreviewed.unsupported && suggestionPreviewed.type === 'function'"
-      class="absolute w-84 top-0 bg-white z-10 pl-3 pt-3 border-1 shadow-md rounded-xl"
-      :class="suggestionPreviewLeft"
+      class="w-84 bg-white z-10 pl-3 pt-3 border-1 shadow-md rounded-xl"
+      :class="{
+        'fixed': fromTableExplorer,
+        'absolute top-0': !fromTableExplorer,
+      }"
+      :style="{
+        left: suggestionPreviewPostion.left,
+        top: suggestionPreviewPostion.top,
+      }"
     >
       <div class="pr-3">
         <div class="flex flex-row w-full justify-between pb-2 border-b-1">
@@ -358,15 +397,13 @@ watch(sugListRef, () => {
         ref="formulaRef"
         v-model:value="vModel.formula_raw"
         class="nc-formula-input !rounded-md"
-        @keydown.down.prevent="suggestionListDown"
-        @keydown.up.prevent="suggestionListUp"
-        @keydown.enter.prevent="selectText"
+        @keydown="handleKeydown"
         @change="handleInputDeb"
       />
     </a-form-item>
 
-    <div ref="sugListRef" class="h-[250px] overflow-auto nc-scrollbar-thin border-1 border-gray-200 rounded-lg mt-4">
-      <template v-if="suggestedFormulas.length > 0">
+    <div class="h-[250px] overflow-auto nc-scrollbar-thin border-1 border-gray-200 rounded-lg mt-4">
+      <template v-if="suggestedFormulas && showFunctionList">
         <div class="border-b-1 bg-gray-50 px-3 py-1 uppercase text-gray-600 text-xs font-semibold sticky top-0 z-10">
           Formulas
         </div>
@@ -405,13 +442,13 @@ watch(sugListRef, () => {
         </a-list>
       </template>
 
-      <template v-if="variableList.length > 0">
+      <template v-if="variableList">
         <div class="border-b-1 bg-gray-50 px-3 py-1 uppercase text-gray-600 text-xs font-semibold sticky top-0 z-10">Fields</div>
 
         <a-list
           ref="variableListRef"
           :data-source="variableList"
-          :locale="{ emptyText: $t('msg.formula.noSuggestedFormulaFound') }"
+          :locale="{ emptyText: $t('msg.formula.noSuggestedFieldFound') }"
           class="!overflow-hidden"
         >
           <template #renderItem="{ item, index }">
@@ -450,9 +487,6 @@ watch(sugListRef, () => {
           </template>
         </a-list>
       </template>
-      <div v-if="suggestion.length === 0">
-        <span class="text-gray-500">Empty</span>
-      </div>
     </div>
   </div>
 </template>

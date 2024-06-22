@@ -2948,6 +2948,12 @@ class BaseModelSqlv2 {
           const qrCodeColumn = await column.getColOptions<QrCodeColumn>(
             this.context,
           );
+
+          if (!qrCodeColumn.fk_qr_value_column_id) {
+            qb.select(this.dbDriver.raw(`? as ??`, ['ERR!', column.id]));
+            break;
+          }
+
           const qrValueColumn = await Column.get(this.context, {
             colId: qrCodeColumn.fk_qr_value_column_id,
           });
@@ -2985,6 +2991,12 @@ class BaseModelSqlv2 {
           const barcodeColumn = await column.getColOptions<BarcodeColumn>(
             this.context,
           );
+
+          if (!barcodeColumn.fk_barcode_value_column_id) {
+            qb.select(this.dbDriver.raw(`? as ??`, ['ERR!', column.id]));
+            break;
+          }
+
           const barcodeValueColumn = await Column.get(this.context, {
             colId: barcodeColumn.fk_barcode_value_column_id,
           });

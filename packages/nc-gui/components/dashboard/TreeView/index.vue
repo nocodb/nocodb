@@ -250,7 +250,7 @@ watch(
           @change="onMove($event)"
         >
           <template #item="{ element: baseItem }">
-            <div :key="base.id">
+            <div :key="baseItem.id">
               <ProjectWrapper :base-role="baseItem.project_role" :base="baseItem">
                 <DashboardTreeViewProjectNode />
               </ProjectWrapper>

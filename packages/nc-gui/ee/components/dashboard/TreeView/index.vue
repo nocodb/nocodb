@@ -233,8 +233,8 @@ const onMove = async (
             @change="onMove($event, starredProjectList)"
           >
             <template #item="{ element: baseItem }">
-              <div :key="base.id">
-                <ProjectWrapper :base-role="baseItem.project_role || baseItem.workspace_role" :base="base1">
+              <div :key="baseItem.id">
+                <ProjectWrapper :base-role="baseItem.project_role || baseItem.workspace_role" :base="baseItem">
                   <DashboardTreeViewProjectNode />
                 </ProjectWrapper>
               </div>
@@ -255,7 +255,7 @@ const onMove = async (
           @change="onMove($event, nonStarredProjectList)"
         >
           <template #item="{ element: baseItem }">
-            <div :key="base.id">
+            <div :key="baseItem.id">
               <ProjectWrapper :base-role="baseItem.project_role || stringifyRolesObj(workspaceRoles)" :base="baseItem">
                 <DashboardTreeViewProjectNode />
               </ProjectWrapper>

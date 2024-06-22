@@ -87,7 +87,7 @@ watch(value, (next) => {
 <template>
   <div class="flex w-full chips-wrapper items-center" :class="{ active }">
     <LazyVirtualCellComponentsLinkRecordDropdown v-model:is-open="isOpen">
-      <div class="flex items-center w-full min-h-7.7">
+      <div class="flex items-center w-full">
         <div class="nc-cell-field chips flex items-center flex-1 max-w-[calc(100%_-_16px)]">
           <template v-if="value && (relatedTableDisplayValueProp || relatedTableDisplayValuePropId)">
             <VirtualCellComponentsItemChip

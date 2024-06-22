@@ -270,7 +270,7 @@ const handleFileDelete = (i: number) => {
           'py-1': rowHeight === 1 && !isForm && !isExpandedForm,
           'py-1.5': rowHeight !== 1 || isForm || isExpandedForm,
         }"
-        class="nc-attachment-wrapper flex cursor-pointer w-full items-center flex-wrap gap-2 scrollbar-thin-dull overflow-hidden mt-0 items-start"
+        class="nc-attachment-wrapper flex cursor-pointer w-full items-center flex-wrap gap-2 nc-scrollbar-thin mt-0 items-start px-[1px]"
         :style="{
           maxHeight: isForm || isExpandedForm ? undefined : `max(100%, ${isGrid ? '22px' : '32px'})`,
         }"
@@ -318,7 +318,7 @@ const handleFileDelete = (i: number) => {
               <IcOutlineInsertDriveFile v-else :class="{ 'h-13 w-13': isForm || isExpandedForm }" />
             </div>
 
-            <a-tooltip v-if="isForm || isExpandedForm">
+            <a-tooltip v-if="!isReadonly && (isForm || isExpandedForm)">
               <template #title> {{ $t('title.removeFile') }} </template>
               <component
                 :is="iconMap.closeCircle"

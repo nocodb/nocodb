@@ -90,11 +90,12 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
     class="nc-cell-field h-full w-full nc-lookup-cell"
     tabindex="-1"
     :style="{
-      height: isGroupByLabel
-        ? undefined
-        : rowHeight
-        ? `${rowHeight === 1 ? rowHeightInPx['1'] - 4 : rowHeightInPx[`${rowHeight}`] - 18}px`
-        : `2.85rem`,
+      height:
+        isGroupByLabel || (lookupColumn && isAttachment(lookupColumn))
+          ? undefined
+          : rowHeight
+          ? `${rowHeight === 1 ? rowHeightInPx['1'] - 4 : rowHeightInPx[`${rowHeight}`] - 18}px`
+          : `2.85rem`,
     }"
     @dblclick="activateShowEditNonEditableFieldWarning"
   >

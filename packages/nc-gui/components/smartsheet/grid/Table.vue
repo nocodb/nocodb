@@ -47,7 +47,6 @@ const props = defineProps<{
     fixedSize?: number
     hideSidebars?: boolean
     extraStyle?: string
-    addRecordStyle?: string
   }
   disableSkeleton?: boolean
   disableVirtualX?: boolean
@@ -1883,13 +1882,20 @@ onKeyStroke('ArrowDown', onDown)
                   </div>
                 </th>
                 <th
-                  v-if="isAddingColumnAllowed"
                   class="!border-0 relative !xs:hidden"
                   :style="{
                     borderWidth: '0px !important',
                   }"
                 >
-                  <div class="absolute left-[60px] top-0 w-[40px]">&nbsp;</div>
+                  <div
+                    class="absolute top-0 w-[40px]"
+                    :class="{
+                      'left-[60px]': isAddingColumnAllowed,
+                      'left-0': !isAddingColumnAllowed,
+                    }"
+                  >
+                    &nbsp;
+                  </div>
                 </th>
               </tr>
             </thead>
@@ -2343,12 +2349,10 @@ onKeyStroke('ArrowDown', onDown)
         :hide-sidebars="paginationStyleRef?.hideSidebars === true"
         :fixed-size="paginationStyleRef?.fixedSize"
         :extra-style="paginationStyleRef?.extraStyle"
-        :add-record-style="paginationStyleRef?.addRecordStyle"
         :show-size-changer="!isGroupBy"
-        class="sticky left-1"
       >
-        <template #add-record>
-          <div v-if="isAddingEmptyRowAllowed && !showSkeleton" class="flex ml-1">
+        <template v-if="isAddingEmptyRowAllowed && !showSkeleton" #add-record>
+          <div class="flex ml-1">
             <NcButton
               v-if="isMobileMode"
               v-e="[isAddNewRecordGridMode ? 'c:row:add:grid' : 'c:row:add:form']"

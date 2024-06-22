@@ -11,7 +11,6 @@ interface Props {
   customLabel?: string
   fixedSize?: number
   extraStyle?: string
-  addRecordStyle?: string
   showApiTiming?: boolean
   alignLeft?: boolean
   showSizeChanger?: boolean
@@ -32,8 +31,6 @@ const { alignCountOnRight, customLabel, changePage } = props
 const fixedSize = toRef(props, 'fixedSize')
 
 const extraStyle = toRef(props, 'extraStyle')
-
-const addRecordStyle = toRef(props, 'addRecordStyle')
 
 const isGroupBy = inject(IsGroupByInj, ref(false))
 
@@ -102,8 +99,8 @@ const tempPageVal = ref(page.value)
       class="flex items-center"
       :class="{
         'flex-1': !alignLeft,
+        'sticky left-0': isGroupBy,
       }"
-      :style="addRecordStyle"
     >
       <slot name="add-record" />
       <span
@@ -121,6 +118,9 @@ const tempPageVal = ref(page.value)
       :class="{
         '-ml-17': isLeftSidebarOpen && !alignLeft,
         'ml-8': alignLeft,
+        'sticky': isGroupBy,
+        'left-[159px]': isGroupBy && $slots['add-record'],
+        'left-[32px]': isGroupBy && !$slots['add-record'],
       }"
     >
       <div v-if="isViewDataLoading" class="nc-pagination-skeleton flex flex-row justify-center item-center min-h-10 min-w-42">

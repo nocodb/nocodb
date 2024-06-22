@@ -124,7 +124,7 @@ const suggestionsList = computed(() => {
         .map((c: any) => ({
           text: c.title,
           type: 'column',
-          icon: getUIDTIcon(c.uidt),
+          icon: getUIDTIcon(c.uidt) ? markRaw(getUIDTIcon(c.uidt)!) : undefined,
           uidt: c.uidt,
         })),
       ...availableBinOps.map((op: string) => ({
@@ -303,12 +303,15 @@ watch(sugListRef, () => {
 })
 
 onMounted(() => {
-  const textAreaPosition = formulaRef.value.$el?.getBoundingClientRect()
-  if (fromTableExplorer?.value && textAreaPosition) {
-    suggestionPreviewPostion.value.left = `${textAreaPosition.left - 364}px`
-    suggestionPreviewPostion.value.top = `${textAreaPosition.top}px`
-    suggestionPreviewLeft.value = `left-[${0}px] top-[${textAreaPosition.top}px]`
-  }
+  // wait until MFE field modal transition complete
+  setTimeout(() => {
+    const textAreaPosition = formulaRef.value.$el?.getBoundingClientRect()
+    if (fromTableExplorer?.value && textAreaPosition) {
+      suggestionPreviewPostion.value.left = `${textAreaPosition.left - 344}px`
+      suggestionPreviewPostion.value.top = `${textAreaPosition.top}px`
+      suggestionPreviewLeft.value = `left-[${0}px] top-[${textAreaPosition.top}px]`
+    }
+  }, 250)
 })
 
 const handleKeydown = (e: KeyboardEvent) => {

@@ -1165,6 +1165,7 @@
       "hintStart": "Wskazówka: Użyj {placeholder1} do odwołania się do pól, np.: {placeholder2}. Po więcej informacji zapoznaj się z",
       "hintEnd": "Formułami.",
       "noSuggestedFormulaFound": "Nie znaleziono sugerowanej formuły",
+      "noSuggestedFieldFound": "No suggested field found",
       "typeIsExpected": "{calleeName} wymaga {type} na pozycji {position}",
       "numericTypeIsExpected": "Oczekiwany jest typ numeryczny",
       "stringTypeIsExpected": "Oczekiwany jest typ tekstowy",

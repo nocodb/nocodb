@@ -306,7 +306,6 @@ const computedWidth = computed(() => {
 })
 
 const bgColor = computed(() => {
-  console.log(props.group.key, 'props.maxDepth', props.maxDepth, _depth)
   if (props.maxDepth === 3) {
     switch (_depth) {
       case 2:
@@ -362,9 +361,8 @@ const bgColor = computed(() => {
           <a-collapse-panel
             v-for="[i, grp] of Object.entries(vGroup?.children ?? [])"
             :key="`group-panel-${grp.key}`"
-            class="!border-1 border-gray-300 nc-group rounded-[8px]"
+            class="!border-1 border-gray-300 nc-group rounded-[8px] mb-2"
             :style="`background: ${bgColor};`"
-            :class="{ 'mb-2': vGroup.children && +i !== vGroup.children.length - 1 }"
             :show-arrow="false"
           >
             <template #header>

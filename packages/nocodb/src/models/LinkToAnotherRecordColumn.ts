@@ -30,7 +30,7 @@ export default class LinkToAnotherRecordColumn {
   fk_index_name?: string;
 
   type: 'hm' | 'bt' | 'mm' | 'oo';
-  virtual: BoolType = false;
+  virtual: BoolType;
 
   mmModel?: Model;
   relatedTable?: Model;
@@ -44,7 +44,10 @@ export default class LinkToAnotherRecordColumn {
   filter?: Filter;
 
   constructor(data: Partial<LinkToAnotherRecordColumn>) {
-    Object.assign(this, data);
+    Object.assign(this, {
+      virtual: false,
+      ...data,
+    });
   }
 
   public async getChildColumn(

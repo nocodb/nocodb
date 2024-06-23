@@ -26,7 +26,7 @@ export default class LinkToAnotherRecordColumn extends LinkToAnotherRecordColumn
   fk_index_name?: string;
 
   type: 'hm' | 'bt' | 'mm' | 'oo';
-  virtual: BoolType = false;
+  virtual: BoolType;
 
   mmModel?: Model;
   relatedTable?: Model;

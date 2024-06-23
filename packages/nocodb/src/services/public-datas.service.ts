@@ -1,11 +1,7 @@
 import path from 'path';
 import { Injectable } from '@nestjs/common';
 import { nanoid } from 'nanoid';
-import {
-  populateUniqueFileName,
-  UITypes,
-  ViewTypes,
-} from 'nocodb-sdk';
+import { populateUniqueFileName, UITypes, ViewTypes } from 'nocodb-sdk';
 import slash from 'slash';
 import { nocoExecute } from 'nc-help';
 

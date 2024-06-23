@@ -124,6 +124,8 @@ export async function importData(
     insertedAssocRef = {},
     atNcAliasRef,
     ncLinkMappingTable,
+    idMap,
+    idCounter,
   }: {
     baseName: string;
     table: { title?: string; id?: string };
@@ -145,6 +147,8 @@ export async function importData(
     // link related props end
     syncDB;
     services: AirtableImportContext;
+    idMap: Map<string, number>;
+    idCounter: Record<string, number>;
   },
 ): Promise<{
   nestedLinkCount: number;
@@ -188,6 +192,8 @@ export async function importData(
         source,
         services,
         queue,
+        idMap,
+        idCounter,
         logBasic,
         logDetailed,
         logWarning,
@@ -210,12 +216,23 @@ export async function importData(
           () =>
             new Promise(async (resolve) => {
               try {
+                if (idCounter[table.id] === undefined) {
+                  idCounter[table.id] = 1;
+                }
+
                 const { id: rid, ...fields } = record;
+                if (!idMap.has(rid)) {
+                  idMap.set(rid, idCounter[table.id]++);
+                }
                 const r = await nocoBaseDataProcessing_v2(syncDB, table, {
                   id: rid,
                   fields,
                 });
-                tempData.push(r);
+
+                tempData.push({
+                  ...r,
+                  id: idMap.get(rid),
+                });
                 tempCount++;
 
                 if (tempCount >= BULK_DATA_BATCH_COUNT) {
@@ -324,6 +341,8 @@ export async function importLTARData(
     source,
     services,
     queue,
+    idMap,
+    idCounter,
     logBasic = (_str) => {},
     logWarning = (_str) => {},
   }: {
@@ -341,6 +360,8 @@ export async function importLTARData(
     source: Source;
     services: AirtableImportContext;
     queue: PQueue;
+    idMap: Map<string, number>;
+    idCounter: Record<string, number>;
     logBasic: (string) => void;
     logDetailed: (string) => void;
     logWarning: (string) => void;
@@ -412,15 +433,31 @@ export async function importLTARData(
           () =>
             new Promise(async (resolve) => {
               try {
+                if (idCounter[assocMeta.modelMeta.id] === undefined) {
+                  idCounter[assocMeta.modelMeta.id] = 1;
+                }
+
+                if (idCounter[table.id] === undefined) {
+                  idCounter[table.id] = 1;
+                }
+
                 const { id: _atId, ...rec } = record;
+
+                if (!idMap.has(_atId)) {
+                  rec.id = idMap.set(_atId, idCounter[table.id]++);
+                }
 
                 // todo: use actual alias instead of sanitized
                 const links =
                   rec?.[atNcAliasRef[table.id][assocMeta.colMeta.title]] || [];
                 for (const id of links) {
+                  if (!idMap.has(id)) {
+                    idMap.set(id, idCounter[assocMeta.modelMeta.id]++);
+                  }
+
                   assocTableData[assocMeta.modelMeta.id].push({
-                    [assocMeta.curCol.title]: record.id,
-                    [assocMeta.refCol.title]: id,
+                    [assocMeta.curCol.title]: idMap.get(_atId),
+                    [assocMeta.refCol.title]: idMap.get(id),
                   });
 
                   // links can be [] & hence assocTableDta[assocMeta.modelMeta.id] can be [].

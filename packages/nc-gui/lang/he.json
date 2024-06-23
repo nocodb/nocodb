@@ -1165,6 +1165,7 @@
       "hintStart": "רמז: השתמש ב- {placeholder1} כדי להתייחס לשדות, לדוגמה: {placeholder2}. למידע נוסף, ראה את",
       "hintEnd": "Formulas.",
       "noSuggestedFormulaFound": "לא נמצאה פורמולה מומלצת",
+      "noSuggestedFieldFound": "No suggested field found",
       "typeIsExpected": "{calleeName} מחפש {type} במיקום {position}",
       "numericTypeIsExpected": "צפוי טיפוס מספרי",
       "stringTypeIsExpected": "צפוי טיפוס מחרוזת",

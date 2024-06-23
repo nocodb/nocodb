@@ -1165,6 +1165,7 @@
       "hintStart": "Hint: Use {placeholder1} to reference fields, e.g: {placeholder2}. For more, please check out",
       "hintEnd": "Formulas.",
       "noSuggestedFormulaFound": "No suggested formula found",
+      "noSuggestedFieldFound": "No suggested field found",
       "typeIsExpected": "{calleeName} requires a {type} at position {position}",
       "numericTypeIsExpected": "Ожидается числовой тип",
       "stringTypeIsExpected": "Ожидается строковый тип",

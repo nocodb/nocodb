@@ -1165,6 +1165,7 @@
       "hintStart": "Suggerimento: Usa {placeholder1} per i campi di riferimento, ad esempio: {placeholder2}. Per saperne di più, controlla",
       "hintEnd": "Formule.",
       "noSuggestedFormulaFound": "Non è stata trovata alcuna formula suggerita",
+      "noSuggestedFieldFound": "No suggested field found",
       "typeIsExpected": "{calleeName} richiede un {type} nella posizione {position}",
       "numericTypeIsExpected": "È atteso il tipo Numerico",
       "stringTypeIsExpected": "È atteso il tipo Stringa",

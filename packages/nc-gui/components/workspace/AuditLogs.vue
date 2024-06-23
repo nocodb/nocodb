@@ -23,7 +23,6 @@ const workspaceStore = useWorkspace()
 const { loadAudits: _loadAudits } = workspaceStore
 
 const {
-  collaborators,
   audits,
   auditLogsQuery,
   auditCurrentLimit: currentLimit,
@@ -35,12 +34,12 @@ const basesStore = useBases()
 
 const { getBaseUsers, loadProjects } = basesStore
 
-const { bases, basesList } = storeToRefs(basesStore)
+const { bases } = storeToRefs(basesStore)
 
 const localCollaborators = ref<User[] | UserType[]>([])
 
 const collaboratorsMap = computed<Map<string, (WorkspaceUserType & { id: string }) | User | UserType>>(() => {
-  const map = new Map<string, WorkspaceUserType & { id: string }>()
+  const map = new Map()
 
   localCollaborators.value?.forEach((coll) => {
     if (coll?.email) {
@@ -62,10 +61,7 @@ const tableWrapper = ref<HTMLDivElement>()
 
 async function loadAudits(page = currentPage.value, limit = currentLimit.value, updateCurrentPage = true) {
   try {
-    if (
-      (isEeUI && isUIAllowed('workspaceAuditList') && !props.workspaceId) ||
-      (!isUIAllowed('workspaceAuditList') && !props.baseId)
-    ) {
+    if ((!isUIAllowed('workspaceAuditList') && !props.baseId) || (!isUIAllowed('baseAuditList') && props.baseId)) {
       return
     }
 

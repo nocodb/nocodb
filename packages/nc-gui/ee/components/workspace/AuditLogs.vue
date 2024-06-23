@@ -17,16 +17,9 @@ const props = withDefaults(defineProps<Props>(), {
   bordered: true,
 })
 
-const allowedAuditOperationTypes = [
-  AuditOperationTypes.DATA,
-  AuditOperationTypes.TABLE,
-  AuditOperationTypes.TABLE_COLUMN,
-  ...(!isEeUI ? [AuditOperationTypes.AUTHENTICATION] : []),
-]
+const allowedAuditOperationTypes = [AuditOperationTypes.DATA, AuditOperationTypes.TABLE, AuditOperationTypes.TABLE_COLUMN]
 
 const { isUIAllowed } = useRoles()
-
-const { $api } = useNuxtApp()
 
 const workspaceStore = useWorkspace()
 
@@ -43,18 +36,18 @@ const {
 
 const basesStore = useBases()
 
-const { getBaseUsers, loadProjects } = basesStore
+const { getBaseUsers } = basesStore
 
 const { bases, basesList } = storeToRefs(basesStore)
 
 const localCollaborators = ref<User[] | UserType[]>([])
 
 const auditCollaborators = computed(() => {
-  return (auditLogsQuery.value.baseId || !isEeUI ? localCollaborators.value : collaborators.value) || []
+  return (auditLogsQuery.value.baseId ? localCollaborators.value : collaborators.value) || []
 })
 
 const collaboratorsMap = computed<Map<string, (WorkspaceUserType & { id: string }) | User | UserType>>(() => {
-  const map = new Map<string, WorkspaceUserType & { id: string }>()
+  const map = new Map()
 
   auditCollaborators.value?.forEach((coll) => {
     if (coll?.email) {
@@ -130,10 +123,7 @@ const dateRangeOptions = computed(() => {
 
 async function loadAudits(page = currentPage.value, limit = currentLimit.value, updateCurrentPage = true) {
   try {
-    if (
-      (isEeUI && isUIAllowed('workspaceAuditList') && !props.workspaceId) ||
-      (!isUIAllowed('workspaceAuditList') && !props.baseId)
-    ) {
+    if ((!isUIAllowed('workspaceAuditList') && !props.baseId) || (!isUIAllowed('baseAuditList') && props.baseId)) {
       return
     }
 
@@ -158,18 +148,6 @@ const loadCollaborators = async () => {
     })
 
     localCollaborators.value = users
-  } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
-  }
-}
-
-const loadOrgUsers = async () => {
-  try {
-    const response: any = await $api.orgUsers.list()
-
-    if (!response?.list) return
-
-    localCollaborators.value = response.list as UserType[]
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }

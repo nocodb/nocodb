@@ -196,7 +196,7 @@ useEventListener(tableWrapper, 'scroll', () => {
               <template #title>
                 {{ bases.get(baseId)?.title }}
               </template>
-              {{ bases.get(baseId)?.title }} Record with ID 12 has been updated in Table Features. Column "Title" got changed from
+              {{ bases.get(baseId)?.title }}
             </NcTooltip>
           </h6>
         </div>
@@ -231,7 +231,7 @@ useEventListener(tableWrapper, 'scroll', () => {
       <div
         class="table-container relative"
         :class="{
-          'h-[calc(100%_-_92px)] ': baseId,
+          'h-[calc(100%_-_48px)] ': baseId,
           'h-[calc(100%_-_56px)]': !baseId,
           'bordered': bordered,
         }"

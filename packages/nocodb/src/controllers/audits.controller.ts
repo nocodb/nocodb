@@ -74,9 +74,7 @@ export class AuditsController {
         query: req.query,
       }),
       {
-        count: await this.auditsService.projectAuditCount({
-          query: req.query,
-        }),
+        count: await this.auditsService.projectAuditCount(),
         ...req.query,
       },
     );

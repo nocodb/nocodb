@@ -123,7 +123,7 @@ const dateRangeOptions = computed(() => {
 
 async function loadAudits(page = currentPage.value, limit = currentLimit.value, updateCurrentPage = true) {
   try {
-    if ((!isUIAllowed('workspaceAuditList') && !props.baseId) || (!isUIAllowed('baseAuditList') && props.baseId)) {
+    if ((isUIAllowed('workspaceAuditList') && !props.workspaceId) || (!isUIAllowed('workspaceAuditList') && !props.baseId)) {
       return
     }
 
@@ -262,6 +262,8 @@ const handleCustomDateRangeClick = () => {
 }
 
 const handleUpdateCustomDateRange = (value: string | null, field: 'startDate' | 'endDate') => {
+  if (auditLogsQuery.value[field] && dayjs(auditLogsQuery.value[field]).format('YYYY-MM-DD') === value) return
+
   if (field === 'startDate') {
     auditLogsQuery.value[field] = value || undefined
   } else if (value) {
@@ -292,13 +294,14 @@ watch(
 onMounted(async () => {
   if (props.baseId) {
     auditLogsQuery.value.baseId = props.baseId
-  } else {
+  } else if (!isUIAllowed('workspaceAuditList')) {
     auditLogsQuery.value.baseId = undefined
-    auditLogsQuery.value.sourceId = undefined
   }
 
   if (props.sourceId) {
     auditLogsQuery.value.sourceId = props.sourceId
+  } else if (!isUIAllowed('workspaceAuditList')) {
+    auditLogsQuery.value.sourceId = undefined
   }
 
   if (appInfo.value.auditEnabled) {
@@ -737,7 +740,11 @@ useEventListener(tableWrapper, 'scroll', () => {
                   </div>
                   <div class="nc-audit-custom-date-range-input">
                     <LazyCellDatePicker
-                      :model-value="auditLogsQuery.endDate"
+                      :model-value="
+                        auditLogsQuery.endDate
+                          ? dayjs(auditLogsQuery.endDate).local().format('YYYY-MM-DD')
+                          : auditLogsQuery.endDate
+                      "
                       @update:model-value="(value) => handleUpdateCustomDateRange(value, 'endDate')"
                     >
                     </LazyCellDatePicker>

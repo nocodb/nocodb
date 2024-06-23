@@ -89,7 +89,7 @@ export class AuditsService {
     return await Audit.projectAuditList(param.query);
   }
 
-  async projectAuditCount(param: { query?: any }) {
-    return await Audit.projectAuditCount(param.query);
+  async projectAuditCount() {
+    return await Audit.projectAuditCount();
   }
 }

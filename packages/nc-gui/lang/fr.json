@@ -1165,6 +1165,7 @@
       "hintStart": "Astuce : Utilisez {placeholder1} pour référencer des champs, par exemple: {placeholder2}. Pour en savoir plus, veuillez vérifier",
       "hintEnd": "Expressions.",
       "noSuggestedFormulaFound": "Aucune formule suggérée trouvée",
+      "noSuggestedFieldFound": "No suggested field found",
       "typeIsExpected": "{calleeName} requires a {type} at position {position}",
       "numericTypeIsExpected": "Un type numérique est attendu",
       "stringTypeIsExpected": "Un type texte est attendu",

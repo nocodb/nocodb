@@ -103,7 +103,6 @@
     "reload": "Újratöltés",
     "reset": "Visszaállítás",
     "install": "Telepítés",
-
     "show": "Show",
     "access": "Access",
     "visibility": "Visibility",
@@ -243,7 +242,7 @@
     "viewType": {
       "grid": "Grid",
       "gallery": "Gallery",
-      "form": "Form",
+      "form": "Űrlap",
       "kanban": "Kanban",
       "calendar": "Calendar",
       "map": "Map"
@@ -383,7 +382,7 @@
     "newProj": "New Base",
     "createBase": "Create Base",
     "myProject": "My Bases",
-    "formTitle": "Form Title",
+    "formTitle": "Űrlap címe",
     "collaborative": "Collaborative",
     "locked": "Locked",
     "personal": "Personal",
@@ -458,8 +457,8 @@
   },
   "labels": {
     "notRecommended": "Not recommended",
-    "allowMetaWrite" : "Allow Schema Edit",
-    "allowDataWrite" : "Allow Data Edit",
+    "allowMetaWrite": "Allow Schema Edit",
+    "allowDataWrite": "Allow Data Edit",
     "selectView": "Select a View",
     "connectionDetails": "Connection Details",
     "metaSync": "Meta Sync",
@@ -818,7 +817,7 @@
     "attachFile": "Attach File",
     "viewAttachment": "View Attachments",
     "attachmentDrop": "Click or drop a file into cell",
-    "addFiles": "Add File(s)",
+    "addFiles": "Fájl(ok) hozzáadása",
     "hideInUI": "Hide in UI",
     "addBase": "Add Base",
     "addParameter": "Add Parameter",
@@ -1166,6 +1165,7 @@
       "hintStart": "Hint: Use {placeholder1} to reference fields, e.g: {placeholder2}. For more, please check out",
       "hintEnd": "Formulas.",
       "noSuggestedFormulaFound": "No suggested formula found",
+      "noSuggestedFieldFound": "No suggested field found",
       "typeIsExpected": "{calleeName} requires a {type} at position {position}",
       "numericTypeIsExpected": "Numeric type is expected",
       "stringTypeIsExpected": "String type is expected",

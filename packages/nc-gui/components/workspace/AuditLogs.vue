@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Empty } from 'ant-design-vue'
 import type { VNodeRef } from '@vue/runtime-core'
-import type { AuditType, WorkspaceUserType } from 'nocodb-sdk'
+import type { AuditType, UserType, WorkspaceUserType } from 'nocodb-sdk'
 import { AuditOperationTypes, auditOperationSubTypeLabels, auditOperationTypeLabels, timeAgo } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 import { AuditLogsDateRange } from '~/lib/enums'
@@ -18,6 +18,8 @@ const allowedAuditOperationTypes = [AuditOperationTypes.DATA, AuditOperationType
 
 const { isUIAllowed } = useRoles()
 
+const { $api } = useNuxtApp()
+
 const workspaceStore = useWorkspace()
 
 const { loadAudits: _loadAudits } = workspaceStore
@@ -33,17 +35,17 @@ const {
 
 const basesStore = useBases()
 
-const { getBaseUsers } = basesStore
+const { getBaseUsers, loadProjects } = basesStore
 
 const { bases, basesList } = storeToRefs(basesStore)
 
-const baseCollaborators = ref<User[]>([])
+const localCollaborators = ref<User[] | UserType[]>([])
 
 const auditCollaborators = computed(() => {
-  return (auditLogsQuery.value.baseId ? baseCollaborators.value : collaborators.value) || []
+  return (auditLogsQuery.value.baseId || !isEeUI ? localCollaborators.value : collaborators.value) || []
 })
 
-const collaboratorsMap = computed<Map<string, (WorkspaceUserType & { id: string }) | User>>(() => {
+const collaboratorsMap = computed<Map<string, (WorkspaceUserType & { id: string }) | User | UserType>>(() => {
   const map = new Map<string, WorkspaceUserType & { id: string }>()
 
   auditCollaborators.value?.forEach((coll) => {
@@ -118,7 +120,10 @@ const dateRangeOptions = computed(() => {
 
 async function loadAudits(page = currentPage.value, limit = currentLimit.value, updateCurrentPage = true) {
   try {
-    if ((isUIAllowed('workspaceAuditList') && !props.workspaceId) || (!isUIAllowed('workspaceAuditList') && !props.baseId)) {
+    if (
+      (isEeUI && isUIAllowed('workspaceAuditList') && !props.workspaceId) ||
+      (!isUIAllowed('workspaceAuditList') && !props.baseId)
+    ) {
       return
     }
 
@@ -142,7 +147,19 @@ const loadCollaborators = async () => {
       baseId: auditLogsQuery.value.baseId,
     })
 
-    baseCollaborators.value = users
+    localCollaborators.value = users
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
+
+const loadOrgUsers = async () => {
+  try {
+    const response: any = await $api.orgUsers.list()
+
+    if (!response?.list) return
+
+    localCollaborators.value = response.list as UserType[]
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -285,6 +302,9 @@ watch(
 onMounted(async () => {
   if (props.baseId) {
     auditLogsQuery.value.baseId = props.baseId
+  } else {
+    await loadProjects()
+    await loadOrgUsers()
   }
 
   if (props.sourceId) {
@@ -298,7 +318,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="h-full flex flex-col w-full" :class="{ 'pt-6 gap-6': !baseId, 'gap-4': baseId }">
+  <div class="h-full flex flex-col" :class="{ 'gap-6': !baseId, 'pt-6': !baseId && isEeUI, 'gap-4': baseId }">
     <div v-if="!appInfo.auditEnabled" class="text-red-500">Audit logs are currently disabled by administrators.</div>
 
     <div class="flex flex-col" :class="{ 'gap-6': !baseId, 'gap-4': baseId }">

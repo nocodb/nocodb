@@ -14217,7 +14217,7 @@
           "Utils"
         ]
       }
-    }
+    },
     "/api/v1/db/meta/projects/{baseId}/audits": {
       "parameters": [
         {

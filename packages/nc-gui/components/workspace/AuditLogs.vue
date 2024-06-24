@@ -1,12 +1,28 @@
 <script setup lang="ts">
 import { Empty } from 'ant-design-vue'
 import type { AuditType, WorkspaceUserType } from 'nocodb-sdk'
-import { timeAgo, AuditOperationTypes, AuditOperationSubTypes } from 'nocodb-sdk'
+import {
+  timeAgo,
+  AuditOperationTypes,
+  AuditOperationSubTypes,
+  auditOperationTypeLabels,
+  auditOperationSubTypeLabels,
+} from 'nocodb-sdk'
 
 interface Props {
   workspaceId?: string
 }
 
+const allowedAuditOperationTypes = [AuditOperationTypes.DATA, AuditOperationTypes.TABLE, AuditOperationTypes.TABLE_COLUMN]
+
+const allowedAuditOperationSubTypes = [
+  AuditOperationSubTypes.CREATE,
+  AuditOperationSubTypes.UPDATE,
+  AuditOperationSubTypes.DELETE,
+  AuditOperationSubTypes.INSERT,
+  AuditOperationSubTypes.LINK_RECORD,
+  AuditOperationSubTypes.UNLINK_RECORD,
+]
 const props = defineProps<Props>()
 
 const workspaceStore = useWorkspace()
@@ -50,6 +66,43 @@ const auditDropdowns = ref({
   subType: false,
   base: false,
   user: false,
+})
+
+const auditTypeOptions = computed(() => {
+  return Object.values(AuditOperationTypes)
+    .filter((type) => allowedAuditOperationTypes.includes(type as AuditOperationTypes))
+    .map((type) => ({
+      label: auditOperationTypeLabels[type],
+      value: type,
+    }))
+})
+
+const auditSubTypeOptions = computed(() => {
+  return Object.values(AuditOperationSubTypes)
+    .filter((subType) => {
+      if (
+        auditLogsQuery.value.type === AuditOperationTypes.TABLE ||
+        auditLogsQuery.value.type === AuditOperationTypes.TABLE_COLUMN
+      ) {
+        return [AuditOperationSubTypes.CREATE, AuditOperationSubTypes.UPDATE, AuditOperationSubTypes.DELETE].includes(subType)
+      }
+
+      if (auditLogsQuery.value.type === AuditOperationTypes.DATA) {
+        return [
+          AuditOperationSubTypes.UPDATE,
+          AuditOperationSubTypes.DELETE,
+          AuditOperationSubTypes.INSERT,
+          AuditOperationSubTypes.LINK_RECORD,
+          AuditOperationSubTypes.UNLINK_RECORD,
+        ].includes(subType)
+      }
+
+      return allowedAuditOperationSubTypes.includes(subType)
+    })
+    .map((subType) => ({
+      label: auditOperationSubTypeLabels[subType],
+      value: subType,
+    }))
 })
 
 async function loadAudits(page = currentPage.value, limit = currentLimit.value) {
@@ -124,11 +177,13 @@ onMounted(async () => {
             </template>
           </a-input>
         </form>
-        <div class="flex items-stretch border-1 border-gray-200 rounded-lg overflow-hidden">
+        <div class="flex items-stretch border-1 border-gray-200 rounded-lg overflow-hidden h-8">
           <NcDropdown v-model:visible="auditDropdowns.type">
             <NcButton type="secondary" size="small" class="!border-none !rounded-none">
               <div class="!w-[106px] flex items-center justify-between gap-2">
-                <div class="max-w-[120px] truncate text-sm !leading-5">Type: {{ auditLogsQuery.type || 'All' }}</div>
+                <div class="max-w-[120px] truncate text-sm !leading-5">
+                  Type: {{ auditOperationTypeLabels[auditLogsQuery.type] || 'All' }}
+                </div>
                 <GeneralIcon icon="arrowDown" class="flex-none h-4 w-4" />
               </div>
             </NcButton>
@@ -139,6 +194,7 @@ onMounted(async () => {
                 @click="
                   () => {
                     auditDropdowns.type = false
+
                     loadAudits()
                   }
                 "
@@ -151,17 +207,22 @@ onMounted(async () => {
                 </NcMenuItem>
                 <NcDivider />
                 <NcMenuItem
-                  v-for="type in AuditOperationTypes"
-                  :key="type"
+                  v-for="type in auditTypeOptions"
+                  :key="type.value"
                   class="!children:w-full"
-                  @click="auditLogsQuery.type = type"
+                  @click="
+                    () => {
+                      auditLogsQuery.type = type.value
+                      auditLogsQuery.subType = undefined
+                    }
+                  "
                 >
                   <div class="w-full flex items-center justify-between gap-3">
                     <div class="flex-1 flex items-center gap-2 max-w-[calc(100%_-_28px)]">
-                      {{ type }}
+                      {{ type.label }}
                     </div>
 
-                    <GeneralIcon v-if="auditLogsQuery.type === type" icon="check" class="flex-none text-primary w-4 h-4" />
+                    <GeneralIcon v-if="auditLogsQuery.type === type.value" icon="check" class="flex-none text-primary w-4 h-4" />
                   </div>
                 </NcMenuItem>
               </NcMenu>
@@ -170,7 +231,10 @@ onMounted(async () => {
           <NcDropdown v-model:visible="auditDropdowns.subType" placement="bottomRight">
             <NcButton type="secondary" size="small" class="!border-none !rounded-none">
               <div class="!w-[146px] flex items-center justify-between gap-2">
-                <div class="truncate text-sm !leading-5">Sub-Type: {{ auditLogsQuery.subType || 'All' }}</div>
+                <div class="truncate text-sm !leading-5">
+                  Sub-Type:
+                  {{ auditLogsQuery.subType ? auditOperationSubTypeLabels[auditLogsQuery.subType] : 'All' }}
+                </div>
                 <GeneralIcon icon="arrowDown" class="flex-none h-4 w-4" />
               </div>
             </NcButton>
@@ -193,17 +257,21 @@ onMounted(async () => {
                 </NcMenuItem>
                 <NcDivider />
                 <NcMenuItem
-                  v-for="subType in AuditOperationSubTypes"
-                  :key="subType"
+                  v-for="subType in auditSubTypeOptions"
+                  :key="subType.value"
                   class="!children:w-full"
-                  @click="auditLogsQuery.subType = subType"
+                  @click="auditLogsQuery.subType = subType.value"
                 >
                   <div class="w-full flex items-center justify-between gap-3">
                     <div class="flex-1 flex items-center gap-2 max-w-[calc(100%_-_28px)]">
-                      {{ subType }}
+                      {{ subType.label }}
                     </div>
 
-                    <GeneralIcon v-if="auditLogsQuery.subType === subType" icon="check" class="flex-none text-primary w-4 h-4" />
+                    <GeneralIcon
+                      v-if="auditLogsQuery.subType === subType.value"
+                      icon="check"
+                      class="flex-none text-primary w-4 h-4"
+                    />
                   </div>
                 </NcMenuItem>
               </NcMenu>
@@ -415,20 +483,20 @@ onMounted(async () => {
                     </template>
                   </div>
                   <div class="td cell-type">
-                    <div class="truncate">
+                    <div class="truncate bg-gray-200 px-3 py-1 rounded-lg">
                       <NcTooltip class="truncate" placement="bottom" show-on-truncate-only>
-                        <template #title> {{ audit.op_type }}</template>
+                        <template #title> {{ auditOperationTypeLabels[audit.op_type] }}</template>
 
-                        <span class="truncate"> {{ audit.op_type }} </span>
+                        <span class="truncate"> {{ auditOperationTypeLabels[audit.op_type] }} </span>
                       </NcTooltip>
                     </div>
                   </div>
                   <div class="td cell-sub-type">
                     <div class="truncate">
                       <NcTooltip class="truncate" placement="bottom" show-on-truncate-only>
-                        <template #title> {{ audit.op_sub_type }}</template>
+                        <template #title> {{ auditOperationSubTypeLabels[audit.op_sub_type] }}</template>
 
-                        <span class="truncate"> {{ audit.op_sub_type }} </span>
+                        <span class="truncate"> {{ auditOperationSubTypeLabels[audit.op_sub_type] }} </span>
                       </NcTooltip>
                     </div>
                   </div>

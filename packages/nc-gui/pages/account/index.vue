@@ -85,6 +85,20 @@ const logout = async () => {
                 </div>
               </NcMenuItem>
               <NcMenuItem
+                key="audit"
+                class="item"
+                :class="{
+                  active: $route.params.page === 'audit',
+                }"
+                @click="navigateTo('/account/audit')"
+              >
+                <div class="flex items-center space-x-2">
+                  <component :is="iconMap.audit" class="opacity-80" />
+
+                  <div class="select-none">{{ $t('title.auditLogs') }}</div>
+                </div>
+              </NcMenuItem>
+              <NcMenuItem
                 v-if="isUIAllowed('superAdminAppStore') && !isEeUI"
                 key="apps"
                 class="item"
@@ -143,7 +157,7 @@ const logout = async () => {
 
           <!-- Sub Tabs -->
 
-          <div class="flex flex-col w-full ml-65">
+          <div class="flex flex-col w-full pl-65">
             <div class="flex flex-row p-3 items-center h-14">
               <div class="flex-1" />
 

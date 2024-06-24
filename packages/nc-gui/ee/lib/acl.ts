@@ -97,6 +97,7 @@ const rolePermissions = {
       airtableImport: true,
       jsonImport: true,
       excelImport: true,
+      workspaceAuditList: true,
     },
   },
   [WorkspaceUserRoles.EDITOR]: {
@@ -148,6 +149,7 @@ const rolePermissions = {
       baseRename: true,
       baseDuplicate: true,
       sourceCreate: true,
+      baseAuditList: true,
     },
   },
   [ProjectRoles.EDITOR]: {

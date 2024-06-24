@@ -1,8 +1,9 @@
-import type { Api, BaseType, PlanLimitTypes, WorkspaceType, WorkspaceUserRoles, WorkspaceUserType } from 'nocodb-sdk'
+import type { Api, AuditType, BaseType, PlanLimitTypes, WorkspaceType, WorkspaceUserRoles, WorkspaceUserType } from 'nocodb-sdk'
 import { WorkspaceStatus } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { message } from 'ant-design-vue'
 import { isString } from '@vue/shared'
+import type { AuditLogsQuery } from '~/lib/types'
 
 interface NcWorkspace extends WorkspaceType {
   edit?: boolean
@@ -10,11 +11,25 @@ interface NcWorkspace extends WorkspaceType {
   roles?: string
 }
 
+const defaultAuditLogsQuery = {
+  type: undefined,
+  baseId: undefined,
+  sourceId: undefined,
+  user: undefined,
+  startDate: undefined,
+  endDate: undefined,
+  dateRangeLabel: undefined,
+  orderBy: {
+    created_at: 'desc',
+    user: undefined,
+  },
+} as AuditLogsQuery
+
 export const useWorkspace = defineStore('workspaceStore', () => {
   // todo: update type in swagger
   const basesStore = useBases()
 
-  const { loadRoles } = useRoles()
+  const { loadRoles, isUIAllowed } = useRoles()
 
   const collaborators = ref<WorkspaceUserType[] | null>()
 
@@ -418,18 +433,63 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     await ncNavigateTo({ workspaceId })
   }
 
-  const navigateToWorkspaceSettings = async (workspaceId?: string, cmdOrCtrl?: boolean) => {
+  const navigateToWorkspaceSettings = async (workspaceId?: string, cmdOrCtrl?: boolean, query: Record<string, string> = {}) => {
     workspaceId = workspaceId || activeWorkspaceId.value!
     if (!workspaceId) {
       throw new Error('Workspace not selected')
     }
 
     if (cmdOrCtrl) {
-      await navigateTo(router.resolve({ name: 'index-typeOrId-settings', params: { typeOrId: workspaceId } }).href, {
+      await navigateTo(router.resolve({ name: 'index-typeOrId-settings', params: { typeOrId: workspaceId }, query }).href, {
         open: navigateToBlankTargetOpenOption,
       })
     } else {
-      router.push({ name: 'index-typeOrId-settings', params: { typeOrId: workspaceId } })
+      router.push({ name: 'index-typeOrId-settings', params: { typeOrId: workspaceId }, query })
+    }
+  }
+
+  const auditLogsQuery = ref<AuditLogsQuery>(defaultAuditLogsQuery)
+
+  const audits = ref<null | Array<AuditType>>(null)
+
+  const auditTotalRows = ref(0)
+
+  const auditCurrentPage = ref(1)
+
+  const auditCurrentLimit = ref(25)
+
+  const loadAudits = async (
+    workspaceId?: string,
+    page: number = auditCurrentPage.value,
+    limit: number = auditCurrentLimit.value,
+  ) => {
+    try {
+      if (isUIAllowed('workspaceAuditList') && !workspaceId) return
+
+      if (limit * (page - 1) > auditTotalRows.value) {
+        auditCurrentPage.value = 1
+        page = 1
+      }
+
+      const { list, pageInfo } = isUIAllowed('workspaceAuditList')
+        ? await $api.workspace.auditList(workspaceId, {
+            offset: limit * (page - 1),
+            limit,
+            ...auditLogsQuery.value,
+          })
+        : await $api.base.auditList(auditLogsQuery.value.baseId, {
+            offset: limit * (page - 1),
+            limit,
+            ...auditLogsQuery.value,
+          })
+
+      audits.value = list
+      auditTotalRows.value = pageInfo.totalRows ?? 0
+    } catch (e) {
+      message.error(await extractSdkResponseErrorMsg(e))
+      audits.value = []
+      auditTotalRows.value = 0
+      auditCurrentPage.value = 1
     }
   }
 
@@ -444,6 +504,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   }
 
   watch(activeWorkspaceId, async () => {
+    auditLogsQuery.value = defaultAuditLogsQuery
     await loadRoles(undefined, {}, activeWorkspaceId.value)
   })
 
@@ -493,6 +554,12 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     workspaceUserCount,
     getPlanLimit,
     moveToOrg,
+    auditLogsQuery,
+    audits,
+    auditTotalRows,
+    auditCurrentPage,
+    auditCurrentLimit,
+    loadAudits,
   }
 })
 

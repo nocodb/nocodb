@@ -147,6 +147,11 @@ export class CellPageObject extends BasePage {
       await this.get({
         index,
         columnHeader,
+      }).waitFor({ state: 'visible' });
+
+      await this.get({
+        index,
+        columnHeader,
       }).scrollIntoViewIfNeeded();
       while (count < 5) {
         const innerTexts = await getTextExcludeIconText(this.get({ index, columnHeader }));

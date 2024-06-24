@@ -342,7 +342,6 @@ function handleSelectDate(value?: dayjs.Dayjs) {
           v-model:page-date="tempDate"
           :is-open="isOpen"
           :selected-date="localState"
-          :is-monday-first="false"
           type="date"
           size="medium"
           @update:selected-date="handleSelectDate"

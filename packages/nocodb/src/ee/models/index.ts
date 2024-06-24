@@ -20,3 +20,4 @@ export { default as Domain } from './Domain';
 export { default as Org } from './Org';
 export { default as OrgUser } from './OrgUser';
 export { default as LinkToAnotherRecordColumn } from './LinkToAnotherRecordColumn';
+export { default as Audit } from './Audit';

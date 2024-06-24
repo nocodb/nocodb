@@ -29,6 +29,8 @@ const { isMobileMode } = useGlobal()
 
 const { api } = useApi()
 
+const { auditLogsQuery, auditCurrentPage } = storeToRefs(useWorkspace())
+
 const { createProject: _createProject, updateProject, getProjectMetaInfo, loadProject } = basesStore
 
 const { bases } = storeToRefs(basesStore)
@@ -448,6 +450,36 @@ const onTableIdCopy = async () => {
 const getSource = (sourceId: string) => {
   return base.value.sources?.find((s) => s.id === sourceId)
 }
+
+async function openAudit(source: SourceType) {
+  $e('c:project:audit')
+
+  auditCurrentPage.value = 1
+
+  auditLogsQuery.value = {
+    ...auditLogsQuery.value,
+    orderBy: {
+      created_at: 'desc',
+      user: undefined,
+    },
+  }
+
+  const isOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('DlgProjectAudit'), {
+    'modelValue': isOpen,
+    'sourceId': source!.id,
+    'onUpdate:modelValue': () => closeDialog(),
+    'baseId': base.value!.id,
+    'bordered': true,
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+
+    close(1000)
+  }
+}
 </script>
 
 <template>
@@ -579,6 +611,17 @@ const getSource = (sourceId: string) => {
                         <GeneralIcon icon="erd" />
                         {{ $t('title.relations') }}
                       </div>
+                    </NcMenuItem>
+
+                    <!-- Audit -->
+                    <NcMenuItem
+                      v-if="isUIAllowed('baseAuditList') && base?.sources?.[0]?.enabled"
+                      key="audit"
+                      data-testid="nc-sidebar-base-audit"
+                      @click="openAudit(base?.sources?.[0])"
+                    >
+                      <GeneralIcon icon="audit" class="group-hover:text-black" />
+                      {{ $t('title.audit') }}
                     </NcMenuItem>
 
                     <!-- Swagger: Rest APIs -->

@@ -96,6 +96,12 @@ const isProjectDeleteDialogVisible = ref(false)
 
 const { refreshViewTabTitle } = useViewsStore()
 
+const workspaceStore = useWorkspace()
+
+const { navigateToWorkspaceSettings, loadAudits } = workspaceStore
+
+const { activeWorkspace, auditLogsQuery, auditCurrentPage } = storeToRefs(workspaceStore)
+
 // If only base is open, i.e in case of docs, base view is open and not the page view
 const baseViewOpen = computed(() => {
   const routeNameSplit = String(route.value?.name).split('baseId-index-index')
@@ -279,22 +285,54 @@ function openErdView(source: SourceType) {
   }
 }
 
-function openAudit(source: SourceType) {
+async function openAudit(source: SourceType) {
   $e('c:project:audit')
 
-  const isOpen = ref(true)
+  auditCurrentPage.value = 1
 
-  const { close } = useDialog(resolveComponent('DlgProjectAudit'), {
-    'modelValue': isOpen,
-    'sourceId': source!.id,
-    'onUpdate:modelValue': () => closeDialog(),
-    'baseId': base.value!.id,
-  })
+  if (isUIAllowed('workspaceAuditList') && activeWorkspace.value?.id) {
+    auditLogsQuery.value = {
+      ...auditLogsQuery.value,
+      baseId: base.value.id,
+      sourceId: source!.id,
+      user: undefined,
+    }
 
-  function closeDialog() {
-    isOpen.value = false
+    const cmdOrCtrl = isMac() ? metaKey.value : control.value
 
-    close(1000)
+    await navigateToWorkspaceSettings('', cmdOrCtrl, { tab: 'audit' })
+
+    await loadAudits(activeWorkspace.value?.id)
+  } else {
+    auditLogsQuery.value = {
+      ...auditLogsQuery.value,
+      user: undefined,
+      dateRange: undefined,
+      dateRangeLabel: undefined,
+      startDate: undefined,
+      endDate: undefined,
+      orderBy: {
+        created_at: 'desc',
+        user: undefined,
+      },
+    }
+
+    const isOpen = ref(true)
+
+    const { close } = useDialog(resolveComponent('DlgProjectAudit'), {
+      'modelValue': isOpen,
+      'workspaceId': activeWorkspace.value?.id,
+      'sourceId': source!.id,
+      'onUpdate:modelValue': () => closeDialog(),
+      'baseId': base.value!.id,
+      'bordered': true,
+    })
+
+    function closeDialog() {
+      isOpen.value = false
+
+      close(1000)
+    }
   }
 }
 
@@ -647,8 +685,8 @@ const getSource = (sourceId: string) => {
 
                   <!-- Audit -->
                   <NcMenuItem
-                    v-if="base?.sources?.[0]?.enabled"
-                    key="erd"
+                    v-if="isUIAllowed('baseAuditList') && base?.sources?.[0]?.enabled"
+                    key="audit"
                     data-testid="nc-sidebar-base-audit"
                     @click="openAudit(base?.sources?.[0])"
                   >

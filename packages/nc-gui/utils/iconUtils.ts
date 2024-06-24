@@ -114,6 +114,7 @@ import NcCommentHere from '~icons/nc-icons/comment-here'
 import NcAddDataSource from '~icons/nc-icons/add-data-source'
 import NcDatabaseIcon from '~icons/nc-icons/database'
 import NcChevronDown from '~icons/nc-icons/chevron-down'
+import NcChevronUpDown from '~icons/nc-icons/chevron-up-down'
 import NcTrash from '~icons/nc-icons/trash'
 import NcPencil from '~icons/nc-icons/pencil'
 import NcRename from '~icons/nc-icons/rename'
@@ -201,6 +202,7 @@ import NcMinimizeAll from '~icons/nc-icons/minimize-all'
 import NcMaximize from '~icons/nc-icons/maximize'
 import NcMaximizeAll from '~icons/nc-icons/maximize-all'
 import NcDrag from '~icons/nc-icons/drag'
+import NcRefresh from '~icons/nc-icons/refresh'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -632,6 +634,8 @@ export const iconMap = {
   maximize: NcMaximize,
   maximizeAll: NcMaximizeAll,
   ncDrag: NcDrag,
+  refresh: NcRefresh,
+  chevronUpDown: NcChevronUpDown,
 }
 
 export const getMdiIcon = (type: string): any => {

@@ -19,7 +19,7 @@ import { NcContext, NcRequest } from '~/interface/config';
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class AuditsController {
-  constructor(private readonly auditsService: AuditsService) {}
+  constructor(protected readonly auditsService: AuditsService) {}
 
   @Get(['/api/v1/db/meta/audits/', '/api/v2/meta/audits/'])
   @Acl('auditList')
@@ -58,7 +58,23 @@ export class AuditsController {
         baseId,
       }),
       {
-        count: await this.auditsService.auditCount({ baseId }),
+        count: await this.auditsService.auditCount({
+          query: req.query,
+          baseId,
+        }),
+        ...req.query,
+      },
+    );
+  }
+  @Get(['/api/v1/db/meta/projects/audits/', '/api/v2/meta/projects/audits/'])
+  @Acl('projectAuditList')
+  async projectAuditList(@Req() req: NcRequest) {
+    return new PagedResponseImpl(
+      await this.auditsService.projectAuditList({
+        query: req.query,
+      }),
+      {
+        count: await this.auditsService.projectAuditCount(),
         ...req.query,
       },
     );

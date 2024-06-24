@@ -141,10 +141,15 @@ export default class Audit implements AuditType {
       limit = 25,
       offset = 0,
       sourceId,
+      orderBy,
     }: {
       limit?: number;
       offset?: number;
       sourceId?: string;
+      orderBy?: {
+        created_at?: 'asc' | 'desc';
+        user?: 'asc' | 'desc';
+      };
     },
   ) {
     return await Noco.ncMeta.metaList2(
@@ -157,7 +162,12 @@ export default class Audit implements AuditType {
           ...(sourceId ? { source_id: sourceId } : {}),
         },
         orderBy: {
-          created_at: 'desc',
+          ...(orderBy?.created_at
+            ? { created_at: orderBy?.created_at }
+            : !orderBy?.user
+            ? { created_at: 'desc' }
+            : {}),
+          ...(orderBy?.user ? { user: orderBy?.user } : {}),
         },
         limit,
         offset,
@@ -167,18 +177,23 @@ export default class Audit implements AuditType {
 
   static async baseAuditCount(
     baseId: string,
-    sourceId?: string,
+    {
+      sourceId,
+    }: {
+      sourceId?: string;
+    },
   ): Promise<number> {
-    return (
-      await Noco.ncMeta
-        .knex(MetaTable.AUDIT)
-        .where({
+    return await Noco.ncMeta.metaCount(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.AUDIT,
+      {
+        condition: {
           base_id: baseId,
           ...(sourceId ? { source_id: sourceId } : {}),
-        })
-        .count('id', { as: 'count' })
-        .first()
-    )?.count;
+        },
+      },
+    );
   }
 
   static async sourceAuditList(sourceId: string, { limit = 25, offset = 0 }) {
@@ -205,5 +220,45 @@ export default class Audit implements AuditType {
         .count('id', { as: 'count' })
         .first()
     )?.count;
+  }
+
+  static async projectAuditList({
+    limit = 25,
+    offset = 0,
+    orderBy,
+  }: {
+    limit?: number;
+    offset?: number;
+    orderBy?: {
+      created_at?: 'asc' | 'desc';
+      user?: 'asc' | 'desc';
+    };
+  }) {
+    return await Noco.ncMeta.metaList2(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.AUDIT,
+      {
+        limit,
+        offset,
+        orderBy: {
+          ...(orderBy?.created_at
+            ? { created_at: orderBy?.created_at }
+            : !orderBy?.user
+            ? { created_at: 'desc' }
+            : {}),
+          ...(orderBy?.user ? { user: orderBy?.user } : {}),
+        },
+      },
+    );
+  }
+
+  static async projectAuditCount(): Promise<number> {
+    return await Noco.ncMeta.metaCount(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.AUDIT,
+      {},
+    );
   }
 }

@@ -39,6 +39,7 @@ const rolePermissions = {
       viewCreateOrEdit: true,
       baseReorder: true,
       orgAdminPanel: true,
+      workspaceAuditList: true,
     },
   },
   [OrgUserRoles.VIEWER]: {
@@ -84,6 +85,7 @@ const rolePermissions = {
       baseRename: true,
       baseDuplicate: true,
       sourceCreate: true,
+      baseAuditList: true,
     },
   },
   [ProjectRoles.EDITOR]: {

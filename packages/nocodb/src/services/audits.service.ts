@@ -74,14 +74,22 @@ export class AuditsService {
   }
 
   async auditCount(param: { query?: any; baseId: string }) {
-    return await Audit.baseAuditCount(param.baseId, param.query?.sourceId);
+    return await Audit.baseAuditCount(param.baseId, param.query);
   }
 
-  async baseAuditList(param: { query: any; sourceId: any }) {
-    return await Audit.baseAuditList(param.sourceId, param.query);
+  async sourceAuditList(param: { query: any; sourceId: any }) {
+    return await Audit.sourceAuditList(param.sourceId, param.query);
   }
 
-  async baseAuditCount(param: { sourceId: string }) {
-    return await Audit.baseAuditCount(param.sourceId);
+  async sourceAuditCount(param: { query: any; sourceId: string }) {
+    return await Audit.sourceAuditCount(param.sourceId);
+  }
+
+  async projectAuditList(param: { query: any }) {
+    return await Audit.projectAuditList(param.query);
+  }
+
+  async projectAuditCount() {
+    return await Audit.projectAuditCount();
   }
 }

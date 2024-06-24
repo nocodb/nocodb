@@ -8987,6 +8987,100 @@
         ]
       }
     },
+    "/api/v2/meta/projects/audits": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/xc-auth"
+        }
+      ],
+      "get": {
+        "summary": "List Audits in Project",
+        "operationId": "project-audit-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "list": {
+                      "type": "array",
+                      "uniqueItems": true,
+                      "items": {
+                        "$ref": "#/components/schemas/Audit"
+                      }
+                    },
+                    "pageInfo": {
+                      "$ref": "#/components/schemas/Paginated"
+                    }
+                  },
+                  "required": [
+                    "list",
+                    "pageInfo"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "description": "List all audit data in the given project",
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "in": "query",
+            "name": "offset"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "in": "query",
+            "name": "limit"
+          },
+          {
+            "schema": {
+              "properties": {
+                "created_at": {
+                  "type": "string",
+                  "description": "Sort direction",
+                  "enum": [
+                    "asc",
+                    "desc"
+                  ],
+                  "example": "desc"
+                },
+                "user": {
+                  "type": "string",
+                  "description": "Sort direction",
+                  "enum": [
+                    "asc",
+                    "desc"
+                  ],
+                  "example": "desc"
+                }
+              },
+              "type": "object"
+            },
+            "in": "query",
+            "name": "orderBy"
+          },
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ],
+        "tags": [
+          "Utils"
+        ]
+      }
+    },
     "/api/v2/meta/bases/{baseId}/audits": {
       "parameters": [
         {
@@ -9015,7 +9109,6 @@
                     "list": {
                       "type": "array",
                       "uniqueItems": true,
-                      "minItems": 1,
                       "items": {
                         "$ref": "#/components/schemas/Audit"
                       }
@@ -9049,7 +9142,7 @@
           {
             "schema": {
               "type": "integer",
-              "maximum": 1
+              "minimum": 1
             },
             "in": "query",
             "name": "limit"
@@ -9060,6 +9153,33 @@
             },
             "in": "query",
             "name": "sourceId"
+          },
+          {
+            "schema": {
+              "properties": {
+                "created_at": {
+                  "type": "string",
+                  "description": "Sort direction",
+                  "enum": [
+                    "asc",
+                    "desc"
+                  ],
+                  "example": "desc"
+                },
+                "user": {
+                  "type": "string",
+                  "description": "Sort direction",
+                  "enum": [
+                    "asc",
+                    "desc"
+                  ],
+                  "example": "desc"
+                }
+              },
+              "type": "object"
+            },
+            "in": "query",
+            "name": "orderBy"
           },
           {
             "$ref": "#/components/parameters/xc-auth"

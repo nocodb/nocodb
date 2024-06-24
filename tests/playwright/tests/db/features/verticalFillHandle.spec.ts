@@ -31,6 +31,8 @@ async function dragDrop({
 
   // drag and drop
   await src.dragTo(dst);
+
+  await params.dashboard.rootPage.waitForTimeout(250);
 }
 async function beforeEachInit({ page, tableType }: { page: any; tableType: string }) {
   const context = await setup({ page, isEmptyProject: true });

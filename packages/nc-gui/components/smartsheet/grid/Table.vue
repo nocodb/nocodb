@@ -2343,7 +2343,7 @@ onKeyStroke('ArrowDown', onDown)
 
     <div class="relative">
       <LazySmartsheetPagination
-        v-if="headerOnly !== true && paginationDataRef"
+        v-if="headerOnly !== true && paginationDataRef && isGroupBy"
         :key="`nc-pagination-${isMobileMode}`"
         v-model:pagination-data="paginationDataRef"
         :show-api-timing="!isGroupBy"
@@ -2422,28 +2422,29 @@ onKeyStroke('ArrowDown', onDown)
                           {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.form') }}
                         </div>
 
-                      <GeneralIcon v-if="!isAddNewRecordGridMode" icon="check" class="w-4 h-4 text-primary" />
-                    </div>
-                    <div class="flex flex-row text-xs text-gray-400 ml-7.05">
-                      {{ $t('labels.addRowForm') }}
+                        <GeneralIcon v-if="!isAddNewRecordGridMode" icon="check" class="w-4 h-4 text-primary" />
+                      </div>
+                      <div class="flex flex-row text-xs text-gray-400 ml-7.05">
+                        {{ $t('labels.addRowForm') }}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </template>
-            <template #icon>
-              <component :is="iconMap.arrowUp" class="text-gray-600 h-4 w-4" />
-            </template>
-          </a-dropdown-button>
-        </div>
-      </template>
-    </LazySmartsheetPagination>
-    <LazySmartsheetGridPaginationV2
-      v-else-if="paginationDataRef"
-      v-model:pagination-data="paginationDataRef"
-      :change-page="changePage"
-      :scroll-left="scrollLeft"
-    />
+              </template>
+              <template #icon>
+                <component :is="iconMap.arrowUp" class="text-gray-600 h-4 w-4" />
+              </template>
+            </a-dropdown-button>
+          </div>
+        </template>
+      </LazySmartsheetPagination>
+      <LazySmartsheetGridPaginationV2
+        v-else-if="paginationDataRef"
+        v-model:pagination-data="paginationDataRef"
+        :change-page="changePage"
+        :scroll-left="scrollLeft"
+      />
+    </div>
     <div v-if="headerOnly !== true && paginationDataRef && !isGroupBy" class="absolute bottom-12 left-2">
       <NcDropdown v-if="isAddingEmptyRowAllowed && !showSkeleton">
         <div class="flex">

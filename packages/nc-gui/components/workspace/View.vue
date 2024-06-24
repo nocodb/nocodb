@@ -120,6 +120,17 @@ onMounted(() => {
           <WorkspaceSettings :workspace-id="currentWorkspace.id" />
         </a-tab-pane>
       </template>
+      <template>
+        <a-tab-pane key="audit" class="w-full">
+          <template #tab>
+            <div class="flex flex-row items-center px-2 pb-1 gap-x-1.5">
+              <GeneralIcon icon="audit" class="!h-3.5 !w-3.5" />
+              Audit Logs
+            </div>
+          </template>
+          <WorkspaceAuditLogs :workspace-id="currentWorkspace.id" />
+        </a-tab-pane>
+      </template>
     </NcTabs>
   </div>
 </template>

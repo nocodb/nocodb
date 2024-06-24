@@ -1,4 +1,4 @@
-import { AuditOperationTypes, AuditOperationSubTypes } from 'nocodb-sdk';
+import { AuditOperationTypes } from 'nocodb-sdk';
 import type { AuditType } from 'nocodb-sdk';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';

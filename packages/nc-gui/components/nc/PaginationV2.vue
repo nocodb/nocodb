@@ -161,10 +161,10 @@ const pageSizeOptions = [
                 </NcMenuItem>
               </NcSubMenu>
 
-              <div :key="Math.random()" class="flex flex-col mt-1 max-h-48 overflow-hidden nc-scrollbar-md gap-1">
+              <div :key="localPageSize" class="flex flex-col mt-1 max-h-48 overflow-hidden nc-scrollbar-md gap-1">
                 <NcMenuItem
                   v-for="x in pagesList"
-                  :key="x.value"
+                  :key="`${localPageSize}${x.value}`"
                   @click.stop="
                     changePage({
                       set: x.value,

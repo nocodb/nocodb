@@ -981,6 +981,8 @@ const colPositions = computed(() => {
 
 const scrollWrapper = computed(() => scrollParent.value || gridWrapper.value)
 
+const scrollLeft = ref()
+
 function scrollToCell(row?: number | null, col?: number | null) {
   row = row ?? activeCell.row
   col = col ?? activeCell.col
@@ -1367,7 +1369,8 @@ async function reloadViewDataHandler(params: void | { shouldShowLoading?: boolea
 
 let frame: number | null = null
 
-useEventListener(scrollWrapper, 'scroll', () => {
+useEventListener(scrollWrapper, 'scroll', (e) => {
+  scrollLeft.value = e.target.scrollLeft
   if (frame) {
     cancelAnimationFrame(frame)
   }
@@ -2418,23 +2421,24 @@ onKeyStroke('ArrowDown', onDown)
                           {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.form') }}
                         </div>
 
-                        <GeneralIcon v-if="!isAddNewRecordGridMode" icon="check" class="w-4 h-4 text-primary" />
-                      </div>
-                      <div class="flex flex-row text-xs text-gray-400 ml-7.05">
-                        {{ $t('labels.addRowForm') }}
-                      </div>
+                      <GeneralIcon v-if="!isAddNewRecordGridMode" icon="check" class="w-4 h-4 text-primary" />
+                    </div>
+                    <div class="flex flex-row text-xs text-gray-400 ml-7.05">
+                      {{ $t('labels.addRowForm') }}
                     </div>
                   </div>
                 </div>
-              </template>
-              <template #icon>
-                <component :is="iconMap.arrowUp" class="text-gray-600 h-4 w-4" />
-              </template>
-            </a-dropdown-button>
-          </div>
-        </template>
-      </LazySmartsheetPagination>
-    </div>
+              </div>
+            </template>
+            <template #icon>
+              <component :is="iconMap.arrowUp" class="text-gray-600 h-4 w-4" />
+            </template>
+          </a-dropdown-button>
+        </div>
+      </template>
+    </LazySmartsheetPagination>
+
+    <LazySmartsheetGridPaginationV2 v-else :scroll-left="scrollLeft" />
   </div>
 </template>
 

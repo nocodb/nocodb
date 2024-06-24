@@ -15,6 +15,8 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
 
     const { gridViewCols, updateGridViewColumn } = useViewColumnsOrThrow()
 
+    const { nestedFilters } = useSmartsheetStoreOrThrow()
+
     const { fetchAggregatedData } = useSharedView()
 
     const aggregations = ref({}) as Ref<Record<string, any>>
@@ -87,6 +89,7 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
             })
           : await fetchAggregatedData({
               where: where?.value,
+              filtersArr: nestedFilters.value,
               ...(fields ? { aggregation: fields } : {}),
             })
 

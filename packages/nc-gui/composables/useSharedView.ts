@@ -214,6 +214,7 @@ export function useSharedView() {
       field: string
       type: string
     }>
+    filtersArr?: FilterType[]
     where?: string
   }) => {
     if (!sharedView.value) return {}
@@ -222,7 +223,7 @@ export function useSharedView() {
       sharedView.value.uuid!,
       {
         ...param,
-        filterArrJson: JSON.stringify(nestedFilters.value),
+        filterArrJson: JSON.stringify(param.filtersArr ?? nestedFilters.value),
       } as any,
       {
         headers: {

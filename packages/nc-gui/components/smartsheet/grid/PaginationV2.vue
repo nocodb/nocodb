@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import axios from 'axios'
-import type { PaginatedType } from 'nocodb-sdk'
+import { type PaginatedType, UITypes } from 'nocodb-sdk'
 
 const props = defineProps<{
   scrollLeft?: number
@@ -97,15 +97,20 @@ onMounted(() => {
       >
         <a-skeleton :active="true" :title="true" :paragraph="false" class="w-16 max-w-16" />
       </div>
-      <NcTooltip v-else class="min-w-16 max-w-16 flex items-center h-full" show-on-truncate-only>
+      <NcTooltip v-else class="flex items-center h-full">
         <template #title> {{ count }} {{ count !== 1 ? $t('objects.records') : $t('objects.record') }} </template>
-        <span data-testid="grid-pagination" class="text-gray-500 nc-grid-row-count caption ml-2 text-xs text-nowrap">
-          {{ count }} {{ count !== 1 ? $t('objects.records') : $t('objects.record') }}
+        <span
+          data-testid="grid-pagination"
+          class="text-gray-500 min-w-13 max-w-13 w-13 text-ellipsis overflow-hidden pl-1 truncate nc-grid-row-count caption text-xs text-nowrap"
+        >
+          {{ Intl.NumberFormat('en', { notation: 'compact' }).format(count) }}
+          {{ count !== 1 ? $t('objects.records') : $t('objects.record') }}
         </span>
       </NcTooltip>
 
       <NcDropdown
         v-if="displayFieldComputed.field && displayFieldComputed.column?.id"
+        :disabled="displayFieldComputed.column.uidt === UITypes.SpecificDBType"
         overlay-class-name="max-h-96 relative scroll-container nc-scrollbar-thin overflow-auto"
       >
         <div
@@ -116,42 +121,26 @@ onMounted(() => {
             'width': displayFieldComputed?.width,
           }"
         >
-          <div
-            v-if="!displayFieldComputed.field?.aggregation || displayFieldComputed.field?.aggregation === 'none'"
-            class="text-gray-500 opacity-0 transition group-hover:opacity-100"
-          >
-            <GeneralIcon class="text-gray-500" icon="arrowDown" />
-            <span class="text-[10px] font-semibold"> Summary </span>
-          </div>
-          <NcTooltip
-            v-else-if="displayFieldComputed.value !== undefined"
-            :style="{
-              maxWidth: `${displayFieldComputed?.width}`,
-            }"
-          >
-            <div class="flex gap-2 text-nowrap truncate overflow-hidden items-center">
-              <span class="text-gray-500 text-[12px] leading-4">
-                {{ $t(`aggregation.${displayFieldComputed.field.aggregation}`) }}
-              </span>
-
-              <span class="text-gray-600 text-[12px] font-semibold">
-                {{
-                  formatAggregation(
-                    displayFieldComputed.field.aggregation,
-                    displayFieldComputed.value,
-                    displayFieldComputed.column,
-                  )
-                }}
-              </span>
+          <template v-if="column?.uidt !== UITypes.SpecificDBType">
+            <div
+              v-if="!displayFieldComputed.field?.aggregation || displayFieldComputed.field?.aggregation === 'none'"
+              class="text-gray-500 opacity-0 transition group-hover:opacity-100"
+            >
+              <GeneralIcon class="text-gray-500" icon="arrowDown" />
+              <span class="text-[10px] font-semibold"> Summary </span>
             </div>
-
-            <template #title>
-              <div class="flex gap-2 text-nowrap overflow-hidden items-center">
-                <span class="text-[12px] leading-4">
+            <NcTooltip
+              v-else-if="displayFieldComputed.value !== undefined"
+              :style="{
+                maxWidth: `${displayFieldComputed?.width}`,
+              }"
+            >
+              <div class="flex gap-2 text-nowrap truncate overflow-hidden items-center">
+                <span class="text-gray-500 text-[12px] leading-4">
                   {{ $t(`aggregation.${displayFieldComputed.field.aggregation}`) }}
                 </span>
 
-                <span class="text-[12px] font-semibold">
+                <span class="text-gray-600 text-[12px] font-semibold">
                   {{
                     formatAggregation(
                       displayFieldComputed.field.aggregation,
@@ -161,8 +150,26 @@ onMounted(() => {
                   }}
                 </span>
               </div>
-            </template>
-          </NcTooltip>
+
+              <template #title>
+                <div class="flex gap-2 text-nowrap overflow-hidden items-center">
+                  <span class="text-[12px] leading-4">
+                    {{ $t(`aggregation.${displayFieldComputed.field.aggregation}`) }}
+                  </span>
+
+                  <span class="text-[12px] font-semibold">
+                    {{
+                      formatAggregation(
+                        displayFieldComputed.field.aggregation,
+                        displayFieldComputed.value,
+                        displayFieldComputed.column,
+                      )
+                    }}
+                  </span>
+                </div>
+              </template>
+            </NcTooltip>
+          </template>
         </div>
 
         <template #overlay>
@@ -186,6 +193,7 @@ onMounted(() => {
     <template v-for="({ field, width, column, value }, index) in visibleFieldsComputed" :key="index">
       <NcDropdown
         v-if="field && column?.id"
+        :disabled="column.uidt === UITypes.SpecificDBType"
         overlay-class-name="max-h-96 relative scroll-container nc-scrollbar-thin overflow-auto"
       >
         <div
@@ -196,42 +204,44 @@ onMounted(() => {
             'width': width,
           }"
         >
-          <div
-            v-if="field?.aggregation === 'none' || field?.aggregation === null"
-            class="text-gray-500 opacity-0 transition group-hover:opacity-100"
-          >
-            <GeneralIcon class="text-gray-500" icon="arrowDown" />
-            <span class="text-[10px] font-semibold"> Summary </span>
-          </div>
-
-          <NcTooltip
-            v-else-if="value !== undefined"
-            :style="{
-              maxWidth: `${field?.width}px`,
-            }"
-          >
-            <div class="flex gap-2 truncate text-nowrap overflow-hidden items-center">
-              <span class="text-gray-500 text-[12px] leading-4">
-                {{ $t(`aggregation.${field.aggregation}`).replace('Percent ', '') }}
-              </span>
-
-              <span class="text-gray-600 font-semibold text-[12px]">
-                {{ formatAggregation(field.aggregation, value, column) }}
-              </span>
+          <template v-if="column?.uidt !== UITypes.SpecificDBType">
+            <div
+              v-if="field?.aggregation === 'none' || field?.aggregation === null"
+              class="text-gray-500 opacity-0 transition group-hover:opacity-100"
+            >
+              <GeneralIcon class="text-gray-500" icon="arrowDown" />
+              <span class="text-[10px] font-semibold"> Summary </span>
             </div>
 
-            <template #title>
-              <div class="flex gap-2 text-nowrap overflow-hidden items-center">
-                <span class="text-[12px] leading-4">
+            <NcTooltip
+              v-else-if="value !== undefined"
+              :style="{
+                maxWidth: `${field?.width}px`,
+              }"
+            >
+              <div class="flex gap-2 truncate text-nowrap overflow-hidden items-center">
+                <span class="text-gray-500 text-[12px] leading-4">
                   {{ $t(`aggregation.${field.aggregation}`).replace('Percent ', '') }}
                 </span>
 
-                <span class="font-semibold text-[12px]">
+                <span class="text-gray-600 font-semibold text-[12px]">
                   {{ formatAggregation(field.aggregation, value, column) }}
                 </span>
               </div>
-            </template>
-          </NcTooltip>
+
+              <template #title>
+                <div class="flex gap-2 text-nowrap overflow-hidden items-center">
+                  <span class="text-[12px] leading-4">
+                    {{ $t(`aggregation.${field.aggregation}`).replace('Percent ', '') }}
+                  </span>
+
+                  <span class="font-semibold text-[12px]">
+                    {{ formatAggregation(field.aggregation, value, column) }}
+                  </span>
+                </div>
+              </template>
+            </NcTooltip>
+          </template>
         </div>
 
         <template #overlay>

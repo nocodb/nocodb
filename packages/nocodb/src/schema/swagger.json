@@ -16442,7 +16442,11 @@
         },
         {
           "schema": {
-            "type": "string"
+            "type": "array",
+            "description": "List of fields to be aggregated",
+            "items": {
+              "type": "object"
+            }
           },
           "in": "query",
           "name": "aggregation",

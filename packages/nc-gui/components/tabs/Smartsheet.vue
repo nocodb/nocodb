@@ -59,6 +59,8 @@ provide(OpenNewRecordFormHookInj, openNewRecordFormHook)
 provide(IsFormInj, isForm)
 provide(TabMetaInj, activeTab)
 provide(ActiveSourceInj, activeSource)
+provide(ReloadAggregateHookInj, createEventHook())
+
 provide(
   ReadonlyInj,
   computed(

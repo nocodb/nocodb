@@ -1,5 +1,5 @@
 import type { Ref } from 'vue'
-import { type TableType, type ViewType, getAvailableAggregations } from 'nocodb-sdk'
+import { CommonAggregations, type TableType, type ViewType, getAvailableAggregations } from 'nocodb-sdk'
 
 const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
   (
@@ -15,6 +15,8 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
     const { gridViewCols, updateGridViewColumn } = useViewColumnsOrThrow()
 
     const aggregations = ref({}) as Ref<Record<string, any>>
+
+    const reloadAggregate = inject(ReloadAggregateHookInj, createEventHook())
 
     const visibleFieldsComputed = computed(() => {
       const fie = fields.value.map((field, index) => ({ field, index })).filter((f) => f.index !== 0)
@@ -89,6 +91,28 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
         },
       ])
     }
+
+    reloadAggregate?.on(async (_fields) => {
+      if (!_fields || !_fields.field?.length) {
+        await loadViewAggregate()
+      }
+      if (_fields && _fields.field) {
+        const fieldAggregateMapping = _fields.field.reduce((acc, field) => {
+          const f = fields.value.find((f) => f.title === field)
+
+          acc[f.id] = gridViewCols.value[f.id].aggregation ?? CommonAggregations.None
+
+          return acc
+        }, {} as Record<string, string>)
+
+        await loadViewAggregate(
+          Object.entries(fieldAggregateMapping).map(([field, type]) => ({
+            field,
+            type,
+          })),
+        )
+      }
+    })
 
     return {
       loadViewAggregate,

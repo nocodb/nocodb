@@ -12,8 +12,6 @@ const emits = defineEmits(['update:paginationData'])
 
 const { isViewDataLoading, isPaginationLoading } = storeToRefs(useViewsStore())
 
-const { isXcdbBase } = useBase()
-
 const { changePage } = props
 
 const vPaginationData = useVModel(props, 'paginationData', emits)

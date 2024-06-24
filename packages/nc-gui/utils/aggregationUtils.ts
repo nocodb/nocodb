@@ -19,7 +19,7 @@ const getDateValue = (modelValue: string | null | number, col: ColumnType, isSys
   }
 }
 
-const roundTo = (num: unknown, precision: number) => {
+const roundTo = (num: unknown, precision = 1) => {
   if (!num || Number.isNaN(num)) return num
   const factor = 10 ** precision
   return Math.round(+num * factor) / factor
@@ -88,7 +88,7 @@ const formatAggregation = (aggregation: any, value: any, column: ColumnType) => 
       BooleanAggregations.PercentUnchecked,
     ].includes(aggregation)
   ) {
-    return `${roundTo(value, 2) ?? 0}%`
+    return `${roundTo(value, 1) ?? 0}%`
   }
 
   if ([DateAggregations.MonthRange, DateAggregations.DateRange].includes(aggregation)) {
@@ -115,14 +115,14 @@ const formatAggregation = (aggregation: any, value: any, column: ColumnType) => 
   }
 
   if (column.uidt === UITypes.Percent) {
-    return `${roundTo(value, 2)}%`
+    return `${roundTo(value, 1)}%`
   }
 
   if (column.uidt === UITypes.Duration) {
     return convertMS2Duration(value, parseProp(column.meta)?.duration || 0)
   }
 
-  return roundTo(value, 2) ?? '∞'
+  return roundTo(value, 1) ?? '∞'
 }
 
 export { formatAggregation }

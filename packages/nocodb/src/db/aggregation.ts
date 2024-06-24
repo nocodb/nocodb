@@ -400,12 +400,15 @@ export default async function applyAggregation({
       case NumericalAggregations.StandardDeviation:
         if (_column.uidt === UITypes.Rating) {
           aggregationSql = knex.raw(
-            `STDDEV((??)) FILTER (WHERE (??) != ??) AS ??`,
+            `stddev_pop((??)) FILTER (WHERE (??) != ??) AS ??`,
             [column, column, secondaryCondition, _column.id],
           );
           break;
         }
-        aggregationSql = knex.raw(`STDDEV((??)) AS ??`, [column, _column.id]);
+        aggregationSql = knex.raw(`stddev_pop((??)) AS ??`, [
+          column,
+          _column.id,
+        ]);
         break;
       case NumericalAggregations.Range:
         aggregationSql = knex.raw(`MAX((??)) - MIN((??)) AS ??`, [

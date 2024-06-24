@@ -184,10 +184,10 @@ export function replaceDynamicFieldWithValue(
  */
 class BaseModelSqlv2 {
   protected _dbDriver: XKnex;
-  protected model: Model;
   protected viewId: string;
   protected _proto: any;
   protected _columns = {};
+  public model: Model;
   public context: NcContext;
 
   public static config: any = defaultLimitConfig;
@@ -743,22 +743,27 @@ class BaseModelSqlv2 {
         qb,
       );
 
-      const selectors: Array<Knex.Raw> = [] as Array<Knex.Raw>;
+      const selectors: Array<Knex.Raw> = [];
 
-      for (const viewColumn of viewColumns) {
-        const col = columns.find((c) => c.id === viewColumn.fk_column_id);
-        if (!col) continue;
+      // Wait for all promises to resolve and filter out null values
+      await Promise.all(
+        viewColumns.map(async (viewColumn) => {
+          const col = columns.find((c) => c.id === viewColumn.fk_column_id);
+          if (!col) return null;
 
-        const aggSql = applyAggregation(this, qb, viewColumn.aggregation, col);
+          const aggSql = await applyAggregation(
+            this,
+            viewColumn.aggregation,
+            col,
+          );
 
-        if (aggSql) selectors.push(aggSql);
-      }
-
-      if (selectors.length === 0) {
-        NcError.badRequest('No valid aggregations found');
-      }
+          if (aggSql) selectors.push(this.dbDriver.raw(aggSql));
+        }),
+      );
 
       qb.select(...selectors);
+
+      console.log(qb.toQuery());
 
       const data = await this.execAndParse(qb, null, {
         first: true,
@@ -2478,7 +2483,7 @@ class BaseModelSqlv2 {
     if (sortObj) await sortV2(this, sortObj, qb);
   }
 
-  protected async getSelectQueryBuilderForFormula(
+  async getSelectQueryBuilderForFormula(
     column: Column<any>,
     tableAlias?: string,
     validateFormula = false,

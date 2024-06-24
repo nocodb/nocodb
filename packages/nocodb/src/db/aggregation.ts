@@ -5,11 +5,15 @@ import {
   DateAggregations,
   getAvailableAggregations,
   NumericalAggregations,
+  UITypes,
 } from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
-import type { Column } from '~/models';
+import type { BarcodeColumn, QrCodeColumn, RollupColumn } from '~/models';
+import { Column } from '~/models';
 import { NcError } from '~/helpers/catchError';
+import genRollupSelectv2 from '~/db/genRollupSelectv2';
+import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
 
 const validateColType = (column: Column, aggregation: string) => {
   const agg = getAvailableAggregations(column.uidt);
@@ -61,21 +65,22 @@ const validateColType = (column: Column, aggregation: string) => {
   return 'unknown';
 };
 
-export default function applyAggregation(
+export default async function applyAggregation(
   baseModelSqlv2: BaseModelSqlv2,
-  qb: Knex.QueryBuilder,
   aggregation: string,
-  column: Column,
-) {
+  _column: Column,
+): Promise<string | undefined> {
   if (!aggregation) {
     aggregation = CommonAggregations.None;
   }
 
-  if (!column) {
+  if (!_column) {
     NcError.badRequest('Invalid aggregation');
   }
 
-  const aggType = validateColType(column, aggregation);
+  const { context, dbDriver: knex, model } = baseModelSqlv2;
+
+  const aggType = validateColType(_column, aggregation);
 
   let aggregationSql: Knex.Raw | undefined;
 
@@ -83,42 +88,88 @@ export default function applyAggregation(
     NcError.notImplemented(`Aggregation ${aggregation} is not implemented yet`);
   }
 
+  let column = _column.column_name;
+
+  if (_column.uidt === UITypes.Barcode || _column.uidt === UITypes.QrCode) {
+    _column = new Column({
+      ...(await _column
+        .getColOptions<BarcodeColumn | QrCodeColumn>(context)
+        .then((col) => col.getValueColumn(context))),
+      title: _column.title,
+      id: _column.id,
+    });
+  }
+
+  switch (_column.uidt) {
+    case UITypes.Links:
+    case UITypes.Rollup:
+      column = (
+        await genRollupSelectv2({
+          baseModelSqlv2,
+          knex,
+          columnOptions: (await _column.getColOptions(context)) as RollupColumn,
+        })
+      ).builder;
+      break;
+
+    case UITypes.Formula:
+      column = (await baseModelSqlv2.getSelectQueryBuilderForFormula(_column))
+        .builder;
+      break;
+
+    case UITypes.LinkToAnotherRecord:
+    case UITypes.Lookup:
+      column = (
+        await generateLookupSelectQuery({
+          baseModelSqlv2,
+          column: _column,
+          alias: null,
+          model,
+        })
+      ).builder;
+      break;
+  }
+
   if (aggType === 'common') {
     switch (aggregation) {
+      case CommonAggregations.Count:
+        aggregationSql = knex.raw(`COUNT(*) AS ??`, [_column.id]);
+        break;
       case CommonAggregations.CountEmpty:
-        aggregationSql = baseModelSqlv2.dbDriver.raw(
-          `COUNT(*) FILTER (WHERE ?? IS NULL) AS ??`,
-          [column.column_name, column.id],
+        aggregationSql = knex.raw(
+          `COUNT(*) FILTER (WHERE (??) IS NULL) AS ??`,
+          [column, _column.id],
         );
+
         break;
       case CommonAggregations.CountFilled:
-        aggregationSql = baseModelSqlv2.dbDriver.raw(
-          `COUNT(*) FILTER (WHERE ?? IS NOT NULL) AS ??`,
-          [column.column_name, column.id],
+        aggregationSql = knex.raw(
+          `COUNT(*) FILTER (WHERE (??) IS NOT NULL) AS ??`,
+          [column, _column.id],
         );
         break;
       case CommonAggregations.CountUnique:
-        aggregationSql = baseModelSqlv2.dbDriver.raw(
-          `COUNT(DISTINCT ??) AS ??`,
-          [column.column_name, column.id],
-        );
+        aggregationSql = knex.raw(`COUNT(DISTINCT (??)) AS ??`, [
+          column,
+          _column.id,
+        ]);
         break;
       case CommonAggregations.PercentEmpty:
-        aggregationSql = baseModelSqlv2.dbDriver.raw(
-          `(COUNT(*) FILTER (WHERE ?? IS NULL) * 100.0 / COUNT(*)) AS ??`,
-          [column.column_name, column.id],
+        aggregationSql = knex.raw(
+          `(COUNT(*) FILTER (WHERE (??) IS NULL) * 100.0 / COUNT(*)) AS ??`,
+          [column, _column.id],
         );
         break;
       case CommonAggregations.PercentFilled:
-        aggregationSql = baseModelSqlv2.dbDriver.raw(
-          `(COUNT(*) FILTER (WHERE ?? IS NOT NULL) * 100.0 / COUNT(*)) AS ??`,
-          [column.column_name, column.id],
+        aggregationSql = knex.raw(
+          `(COUNT(*) FILTER (WHERE (??) IS NOT NULL) * 100.0 / COUNT(*)) AS ??`,
+          [column, _column.id],
         );
         break;
       case CommonAggregations.PercentUnique:
-        aggregationSql = baseModelSqlv2.dbDriver.raw(
-          `(COUNT(DISTINCT ?? ) * 100.0 / COUNT(*)) AS ??`,
-          [column.column_name, column.id],
+        aggregationSql = knex.raw(
+          `(COUNT(DISTINCT (??) ) * 100.0 / COUNT(*)) AS ??`,
+          [column, _column.id],
         );
         break;
       case CommonAggregations.None:
@@ -127,46 +178,32 @@ export default function applyAggregation(
   } else if (aggType === 'numerical') {
     switch (aggregation) {
       case NumericalAggregations.Avg:
-        aggregationSql = baseModelSqlv2.dbDriver.raw(`AVG(??) AS ??`, [
-          column.column_name,
-          column.id,
-        ]);
+        aggregationSql = knex.raw(`AVG((??)) AS ??`, [column, _column.id]);
         break;
       case NumericalAggregations.Max:
-        aggregationSql = baseModelSqlv2.dbDriver.raw(`MAX(??) AS ??`, [
-          column.column_name,
-          column.id,
-        ]);
+        aggregationSql = knex.raw(`MAX((??)) AS ??`, [column, _column.id]);
         break;
       case NumericalAggregations.Min:
-        aggregationSql = baseModelSqlv2.dbDriver.raw(`MIN(??) AS ??`, [
-          column.column_name,
-          column.id,
-        ]);
+        aggregationSql = knex.raw(`MIN((??)) AS ??`, [column, _column.id]);
         break;
       case NumericalAggregations.Sum:
-        aggregationSql = baseModelSqlv2.dbDriver.raw(`SUM(??) AS ??`, [
-          column.column_name,
-          column.id,
-        ]);
+        aggregationSql = knex.raw(`SUM((??)) AS ??`, [column, _column.id]);
         break;
       case NumericalAggregations.StandardDeviation:
-        aggregationSql = baseModelSqlv2.dbDriver.raw(`STDDEV(??) AS ??`, [
-          column.column_name,
-          column.id,
-        ]);
+        aggregationSql = knex.raw(`STDDEV((??)) AS ??`, [column, _column.id]);
         break;
       case NumericalAggregations.Range:
-        aggregationSql = baseModelSqlv2.dbDriver.raw(
-          `MAX(??) - MIN(??) AS ??`,
-          [column.column_name, column.column_name, column.id],
-        );
+        aggregationSql = knex.raw(`MAX((??)) - MIN((??)) AS ??`, [
+          column,
+          column,
+          _column.id,
+        ]);
         break;
 
       case NumericalAggregations.Median:
-        aggregationSql = baseModelSqlv2.dbDriver.raw(
-          `percentile_cont(0.5) within group (order by ??) AS ??`,
-          [column.column_name, column.id],
+        aggregationSql = knex.raw(
+          `percentile_cont(0.5) within group (order by (??)) AS ??`,
+          [column, _column.id],
         );
         break;
       default:
@@ -175,27 +212,27 @@ export default function applyAggregation(
   } else if (aggType === 'boolean') {
     switch (aggregation) {
       case BooleanAggregations.Checked:
-        aggregationSql = baseModelSqlv2.dbDriver.raw(
-          `COUNT(*) FILTER (WHERE ?? = true) AS ??`,
-          [column.column_name, column.id],
-        );
+        aggregationSql = knex.raw(`COUNT(*) FILTER (WHERE (??) = true) AS ??`, [
+          column,
+          _column.id,
+        ]);
         break;
       case BooleanAggregations.Unchecked:
-        aggregationSql = baseModelSqlv2.dbDriver.raw(
-          `COUNT(*) FILTER (WHERE ?? = false) AS ??`,
-          [column.column_name, column.id],
+        aggregationSql = knex.raw(
+          `COUNT(*) FILTER (WHERE (??) = false) AS ??`,
+          [column, _column.id],
         );
         break;
       case BooleanAggregations.PercentChecked:
-        aggregationSql = baseModelSqlv2.dbDriver.raw(
-          `(COUNT(*) FILTER (WHERE ?? = true) * 100.0 / COUNT(*)) AS ??`,
-          [column.column_name, column.id],
+        aggregationSql = knex.raw(
+          `(COUNT(*) FILTER (WHERE (??) = true) * 100.0 / COUNT(*)) AS ??`,
+          [column, _column.id],
         );
         break;
       case BooleanAggregations.PercentUnchecked:
-        aggregationSql = baseModelSqlv2.dbDriver.raw(
-          `(COUNT(*) FILTER (WHERE ?? = false) * 100.0 / COUNT(*)) AS ??`,
-          [column.column_name, column.id],
+        aggregationSql = knex.raw(
+          `(COUNT(*) FILTER (WHERE (??) = false) * 100.0 / COUNT(*)) AS ??`,
+          [column, _column.id],
         );
         break;
       default:
@@ -204,30 +241,25 @@ export default function applyAggregation(
   } else if (aggType === 'date') {
     switch (aggregation) {
       case DateAggregations.EarliestDate:
-        aggregationSql = baseModelSqlv2.dbDriver.raw(`MIN(??) AS ??`, [
-          column.column_name,
-          column.id,
-        ]);
+        aggregationSql = knex.raw(`MIN((??)) AS ??`, [column, _column.id]);
         break;
       case DateAggregations.LatestDate:
-        aggregationSql = baseModelSqlv2.dbDriver.raw(`MAX(??) AS ??`, [
-          column.column_name,
-          column.id,
-        ]);
+        aggregationSql = knex.raw(`MAX((??)) AS ??`, [column, _column.id]);
         break;
       // TODO: Not Working in some cases @DarkPhoenix2704
 
       case DateAggregations.DateRange:
-        aggregationSql = baseModelSqlv2.dbDriver.raw(
-          `MAX(??) - MIN(??) AS ??`,
-          [column.column_name, column.column_name, column.id],
-        );
+        aggregationSql = knex.raw(`MAX((??)) - MIN((??)) AS ??`, [
+          column,
+          column,
+          _column.id,
+        ]);
         break;
       // TODO: Not Working in some cases @DarkPhoenix2704
       case DateAggregations.MonthRange:
-        aggregationSql = baseModelSqlv2.dbDriver.raw(
-          `EXTRACT(MONTH FROM MAX(??)) - EXTRACT(MONTH FROM MIN(??)) AS ??`,
-          [column.column_name, column.column_name, column.id],
+        aggregationSql = knex.raw(
+          `EXTRACT(MONTH FROM MAX((??))) - EXTRACT(MONTH FROM MIN((??))) AS ??`,
+          [column, column, _column.id],
         );
         break;
       default:
@@ -237,13 +269,13 @@ export default function applyAggregation(
     // TODO: Verify Performance @DarkPhoenix2704
     switch (aggregation) {
       case AttachmentAggregations.AttachmentSize:
-        aggregationSql = baseModelSqlv2.dbDriver.raw(
-          `(SELECT SUM((json_object ->> 'size')::int) FROM ?? CROSS JOIN LATERAL jsonb_array_elements(??::jsonb) AS json_array(json_object)) AS ??`,
-          [baseModelSqlv2.tnPath, column.column_name, column.id],
+        aggregationSql = knex.raw(
+          `(SELECT SUM((json_object ->> 'size')::int) FROM (??) CROSS JOIN LATERAL jsonb_array_elements(??::jsonb) AS json_array(json_object)) AS ??`,
+          [baseModelSqlv2.tnPath, column, _column.id],
         );
         break;
     }
   }
 
-  return aggregationSql;
+  return aggregationSql?.toQuery();
 }

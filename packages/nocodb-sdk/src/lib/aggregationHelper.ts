@@ -2,7 +2,6 @@ import UITypes from './UITypes';
 
 enum NumericalAggregations {
   Sum = 'sum',
-  Count = 'count',
   Min = 'min',
   Max = 'max',
   Avg = 'avg',
@@ -13,6 +12,7 @@ enum NumericalAggregations {
 }
 
 enum CommonAggregations {
+  Count = 'count',
   CountEmpty = 'count_empty',
   CountFilled = 'count_filled',
   CountUnique = 'count_unique',
@@ -57,6 +57,7 @@ const getAvailableAggregations = (type: UITypes): string[] => {
     case UITypes.Duration:
     case UITypes.Rating:
     case UITypes.Rollup:
+    case UITypes.Links:
       return [
         ...Object.values(NumericalAggregations),
         ...Object.values(CommonAggregations),

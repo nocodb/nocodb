@@ -59,28 +59,35 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
       return agg
     }
 
-    const loadViewAggregate = async () => {
+    const loadViewAggregate = async (
+      fields?: Array<{
+        field: string
+        type: string
+      }>,
+    ) => {
       if (!meta.value?.id || !view.value?.id) return
 
       try {
-        const data = await api.dbDataTableAggregate.dbDataTableAggregate(
-          meta.value.id,
-          {
-            viewId: view.value.id,
-            where: where?.value,
-          },
-          {},
-        )
+        const data = await api.dbDataTableAggregate.dbDataTableAggregate(meta.value.id, {
+          viewId: view.value.id,
+          where: where?.value,
+          ...(fields ? { aggregation: fields } : {}),
+        })
 
-        aggregations.value = data
+        Object.assign(aggregations.value, data)
       } catch (error) {
-        console.log(error)
+        message.error(await extractSdkResponseErrorMsgv2(error as any))
       }
     }
 
     const updateAggregate = async (fieldId: string, agg: string) => {
       await updateGridViewColumn(fieldId, { aggregation: agg })
-      await loadViewAggregate()
+      await loadViewAggregate([
+        {
+          field: fieldId,
+          type: agg,
+        },
+      ])
     }
 
     return {

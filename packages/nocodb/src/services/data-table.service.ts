@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { isLinksOrLTAR, RelationTypes } from 'nocodb-sdk';
+import { isLinksOrLTAR, RelationTypes, ViewTypes } from 'nocodb-sdk';
 import { nocoExecute } from 'nc-help';
 import { validatePayload } from 'src/helpers';
 import type { LinkToAnotherRecordColumn } from '~/models';
@@ -84,10 +84,18 @@ export class DataTableService {
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
+    if (view.type !== ViewTypes.GRID) {
+      NcError.badRequest('Aggregation is only supported on grid views');
+    }
+
     const listArgs: any = { ...param.query };
 
     try {
       listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
+    } catch (e) {}
+
+    try {
+      listArgs.aggregation = JSON.parse(listArgs.aggregation);
     } catch (e) {}
 
     const data = await baseModel.aggregate(listArgs);

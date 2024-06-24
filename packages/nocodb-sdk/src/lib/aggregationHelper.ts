@@ -7,7 +7,7 @@ enum NumericalAggregations {
   Avg = 'avg',
   Median = 'median',
   StandardDeviation = 'std_dev',
-  Histogram = 'histogram',
+  //   Histogram = 'histogram',
   Range = 'range',
 }
 

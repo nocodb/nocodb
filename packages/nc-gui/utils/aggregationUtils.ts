@@ -1,5 +1,6 @@
 import {
   AttachmentAggregations,
+  BooleanAggregations,
   type ColumnType,
   CommonAggregations,
   DateAggregations,
@@ -73,7 +74,13 @@ const formatAggregation = (aggregation: any, value: any, column: ColumnType) => 
   }
 
   if (
-    [CommonAggregations.PercentEmpty, CommonAggregations.PercentFilled, CommonAggregations.PercentUnique].includes(aggregation)
+    [
+      CommonAggregations.PercentEmpty,
+      CommonAggregations.PercentFilled,
+      CommonAggregations.PercentUnique,
+      BooleanAggregations.PercentChecked,
+      BooleanAggregations.PercentUnchecked,
+    ].includes(aggregation)
   ) {
     return `${value ?? 0}%`
   }

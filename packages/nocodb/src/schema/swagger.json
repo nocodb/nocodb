@@ -16435,9 +16435,18 @@
           "schema": {
             "type": "string"
           },
+          "required": true,
           "name": "viewId",
           "in": "query",
-          "description": "View ID"
+          "description": "View ID is required"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "in": "query",
+          "name": "aggregation",
+          "description": "Used for selective aggregation"
         }
       ],
       "get": {

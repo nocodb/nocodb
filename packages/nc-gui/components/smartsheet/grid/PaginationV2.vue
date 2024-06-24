@@ -37,17 +37,17 @@ onMounted(() => {
   <div ref="containerElement" class="bg-gray-50 w-full pr-1 border-t-1 border-gray-200 overflow-x-hidden no-scrollbar flex h-9">
     <div class="sticky flex bg-gray-50 left-0">
       <div class="min-w-16 max-w-16 h-full left-0 flex items-center justify-center">
-        <NcTooltip>
+        <NcTooltip wrap-child="span">
           <template #title>
-            Aggregation bar : Configure summary statistics such as sum, average, count, and more for fields.</template
-          >
-          <GeneralIcon icon="info" />
+            Aggregation bar: Use to quickly calculate totals, averages, and other summary statistics over your field data.
+          </template>
+          <GeneralIcon class="text-gray-600" icon="info" />
         </NcTooltip>
       </div>
 
       <NcDropdown v-if="displayFieldComputed.field && displayFieldComputed.column?.id">
         <div
-          class="flex items-center hover:bg-gray-100 cursor-pointer text-gray-500 transition-all transition-linear px-3 py-2"
+          class="flex items-center hover:bg-gray-100 cursor-pointer text-gray-500 justify-end transition-all transition-linear px-3 py-2"
           :style="{
             'min-width': displayFieldComputed?.width,
             'max-width': displayFieldComputed?.width,
@@ -82,7 +82,7 @@ onMounted(() => {
               @click="updateAggregate(displayFieldComputed.column.id, agg)"
             >
               <div class="flex !w-full text-gray-800 items-center justify-between">
-                {{ $t(`aggregation.${agg}`) }}
+                {{ $t(`aggregation_type.${agg}`) }}
 
                 <GeneralIcon v-if="displayFieldComputed.field?.aggregation === agg" class="text-brand-500" icon="check" />
               </div>
@@ -112,7 +112,7 @@ onMounted(() => {
 
           <div v-else-if="value !== undefined" class="flex gap-2 text-nowrap overflow-hidden items-center">
             <span class="text-gray-500 text-[12px] font-semibold leading-4">
-              {{ $t(`aggregation.${field.aggregation}`) }}
+              {{ $t(`aggregation.${field.aggregation}`).replace('Percent ', '') }}
             </span>
 
             <span class="text-gray-600 text-[12px]">
@@ -129,7 +129,7 @@ onMounted(() => {
               @click="updateAggregate(column.id, agg)"
             >
               <div class="flex !w-full text-gray-800 items-center justify-between">
-                {{ $t(`aggregation.${agg}`) }}
+                {{ $t(`aggregation_type.${agg}`) }}
 
                 <GeneralIcon v-if="field?.aggregation === agg" class="text-brand-500" icon="check" />
               </div>

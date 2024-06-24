@@ -699,11 +699,24 @@ class BaseModelSqlv2 {
 
   async aggregate(args: { filterArr?: Filter[]; where?: string }) {
     try {
-      const { where } = this._getListArgs(args as any);
+      const { where, aggregation } = this._getListArgs(args as any);
 
-      const viewColumns = (
+      let viewColumns = (
         await GridViewColumn.list(this.context, this.viewId)
       ).filter((c) => c.show);
+
+      if (aggregation?.length) {
+        viewColumns = viewColumns
+          .map((c) => {
+            const agg = aggregation.find((a) => a.field === c.fk_column_id);
+            return new GridViewColumn({
+              ...c,
+              show: !!agg,
+              aggregation: agg ? agg.type : c.aggregation,
+            });
+          })
+          .filter((c) => c.show);
+      }
 
       const columns = await this.model.getColumns(this.context);
 
@@ -2885,6 +2898,7 @@ class BaseModelSqlv2 {
     obj.fields = args.fields || args.f;
     obj.sort = args.sort || args.s;
     obj.pks = args.pks;
+    obj.aggregation = args.aggregation || [];
     return obj;
   }
 

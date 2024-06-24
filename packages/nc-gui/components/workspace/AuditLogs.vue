@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Tooltip as ATooltip, Empty } from 'ant-design-vue'
 import type { AuditType, WorkspaceUserType } from 'nocodb-sdk'
-import { timeAgo } from 'nocodb-sdk'
+import { timeAgo, AuditOperationTypes, AuditOperationSubTypes } from 'nocodb-sdk'
 
 interface Props {
   workspaceId?: string
@@ -59,11 +59,13 @@ const auditLogsQuery = ref<{
   subType?: string
   base?: string
   user?: string
+  search?:string
 }>({
   type: undefined,
   subType: undefined,
   base: undefined,
   user: undefined,
+  search: undefined,
 })
 
 async function loadAudits(page = currentPage.value, limit = currentLimit.value) {
@@ -82,7 +84,6 @@ async function loadAudits(page = currentPage.value, limit = currentLimit.value) 
       limit,
       ...auditLogsQuery.value,
     })
-    
 
     audits.value = list
     totalRows.value = pageInfo.totalRows ?? 0
@@ -122,7 +123,116 @@ onMounted(async () => {
         <div class="text-sm text-gray-600">Track and monitor any changes made to any base in your workspace.</div>
       </div>
       <div class="px-6 flex items-center gap-3">
-        <NcDropdown v-if="basesList?.length" v-model:visible="auditDropdowns.base" @on-update:visible="loadAudits">
+        <!-- <a-input
+          key="nc-form-field-search-input"
+          v-model:value="searchQuery"
+          type="text"
+          autocomplete="off"
+          class="!h-9 !px-3 !py-1 !rounded-lg"
+          :placeholder="`${$t('placeholder.searchFields')}...`"
+          name="nc-form-field-search-input"
+          data-testid="nc-form-field-search-input"
+        >
+          <template #prefix>
+            <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-gray-500 group-hover:text-black" />
+          </template>
+          <template #suffix>
+            <GeneralIcon
+              v-if="searchQuery.length > 0"
+              icon="close"
+              class="ml-2 h-4 w-4 text-gray-500 group-hover:text-black"
+              data-testid="nc-form-field-clear-search"
+              @click="searchQuery = ''"
+            />
+          </template>
+        </a-input> -->
+        <div class="flex items-stretch border-1 border-gray-200 rounded-lg overflow-hidden">
+          <NcDropdown v-model:visible="auditDropdowns.type">
+            <NcButton type="secondary" size="small" class="!border-none !rounded-none">
+              <div class="flex items-center gap-2">
+                <div class="max-w-[120px] truncate text-sm !leading-5">Type: {{ auditLogsQuery.type || 'All' }}</div>
+                <GeneralIcon icon="arrowDown" class="h-4 w-4" />
+              </div>
+            </NcButton>
+
+            <template #overlay>
+              <NcMenu
+                class="w-[256px]"
+                @click="
+                  () => {
+                    auditDropdowns.type = false
+                    loadAudits()
+                  }
+                "
+              >
+                <NcMenuItem class="!children:w-full" @click="auditLogsQuery.type = undefined">
+                  <div class="w-full flex items-center justify-between gap-3">
+                    <span class="flex-1"> All Types </span>
+                    <GeneralIcon v-if="!auditLogsQuery.type" icon="check" class="flex-none text-primary w-4 h-4" />
+                  </div>
+                </NcMenuItem>
+                <NcDivider />
+                <NcMenuItem
+                  v-for="type in AuditOperationTypes"
+                  :key="type"
+                  class="!children:w-full"
+                  @click="auditLogsQuery.type = type"
+                >
+                  <div class="w-full flex items-center justify-between gap-3">
+                    <div class="flex-1 flex items-center gap-2 max-w-[calc(100%_-_28px)]">
+                      {{ type }}
+                    </div>
+
+                    <GeneralIcon v-if="auditLogsQuery.type === type" icon="check" class="flex-none text-primary w-4 h-4" />
+                  </div>
+                </NcMenuItem>
+              </NcMenu>
+            </template>
+          </NcDropdown>
+          <NcDropdown v-model:visible="auditDropdowns.subType" placement="bottomRight">
+            <NcButton type="secondary" size="small" class="!border-none !rounded-none">
+              <div class="flex items-center gap-2">
+                <div class="max-w-[120px] truncate text-sm !leading-5">SubType: {{ auditLogsQuery.subType || 'All' }}</div>
+                <GeneralIcon icon="arrowDown" class="h-4 w-4" />
+              </div>
+            </NcButton>
+
+            <template #overlay>
+              <NcMenu
+                class="w-[256px]"
+                @click="
+                  () => {
+                    auditDropdowns.subType = false
+                    loadAudits()
+                  }
+                "
+              >
+                <NcMenuItem class="!children:w-full" @click="auditLogsQuery.subType = undefined">
+                  <div class="w-full flex items-center justify-between gap-3">
+                    <span class="flex-1"> All SubTypes </span>
+                    <GeneralIcon v-if="!auditLogsQuery.subType" icon="check" class="flex-none text-primary w-4 h-4" />
+                  </div>
+                </NcMenuItem>
+                <NcDivider />
+                <NcMenuItem
+                  v-for="subType in AuditOperationSubTypes"
+                  :key="subType"
+                  class="!children:w-full"
+                  @click="auditLogsQuery.subType = subType"
+                >
+                  <div class="w-full flex items-center justify-between gap-3">
+                    <div class="flex-1 flex items-center gap-2 max-w-[calc(100%_-_28px)]">
+                      {{ subType }}
+                    </div>
+
+                    <GeneralIcon v-if="auditLogsQuery.base === subType" icon="check" class="flex-none text-primary w-4 h-4" />
+                  </div>
+                </NcMenuItem>
+              </NcMenu>
+            </template>
+          </NcDropdown>
+        </div>
+        <NcDropdown v-if="basesList?.length" v-model:visible="auditDropdowns.base">
           <NcButton type="secondary" size="small">
             <div class="flex items-center gap-2">
               <div class="max-w-[120px] truncate text-sm !leading-5">
@@ -133,7 +243,15 @@ onMounted(async () => {
           </NcButton>
 
           <template #overlay>
-            <NcMenu class="w-[256px]" @click="auditDropdowns.base = false">
+            <NcMenu
+              class="w-[256px]"
+              @click="
+                () => {
+                  auditDropdowns.base = false
+                  loadAudits()
+                }
+              "
+            >
               <NcMenuItem class="!children:w-full" @click="auditLogsQuery.base = undefined">
                 <div class="w-full flex items-center justify-between gap-3">
                   <span class="flex-1"> All Bases </span>
@@ -326,7 +444,6 @@ onMounted(async () => {
         </div>
       </div>
       <div
-        v-if="+totalRows > currentLimit"
         class="flex flex-row justify-center items-center bg-gray-50 min-h-10"
         :class="{
           'pointer-events-none': isLoading,
@@ -334,15 +451,17 @@ onMounted(async () => {
       >
         <div class="flex justify-between items-center w-full px-6">
           <div>&nbsp;</div>
-          <NcPagination
-            v-model:current="currentPage"
-            v-model:page-size="currentLimit"
-            :total="+totalRows"
-            show-size-changer
-            :use-stored-page-size="false"
-            @update:current="loadAudits"
-            @update:page-size="loadAudits(currentPage, $event)"
-          />
+          <template v-if="+totalRows > currentLimit">
+            <NcPagination
+              v-model:current="currentPage"
+              v-model:page-size="currentLimit"
+              :total="+totalRows"
+              show-size-changer
+              :use-stored-page-size="false"
+              @update:current="loadAudits"
+              @update:page-size="loadAudits(currentPage, $event)"
+            />
+          </template>
           <div class="text-gray-500 text-xs">{{ totalRows }} records</div>
         </div>
       </div>

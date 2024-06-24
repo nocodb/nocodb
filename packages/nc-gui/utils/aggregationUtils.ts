@@ -14,9 +14,8 @@ const getDateValue = (modelValue: string | null | number, col: ColumnType, isSys
   const dateFormat = !isSystemCol ? parseProp(col.meta)?.date_format ?? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:mm:ss'
   if (!modelValue || !dayjs(modelValue).isValid()) {
     return ''
-  } else {
-    return dayjs(/^\d+$/.test(String(modelValue)) ? +modelValue : modelValue).format(dateFormat)
   }
+  return dayjs(/^\d+$/.test(String(modelValue)) ? +modelValue : modelValue).format(dateFormat)
 }
 
 const roundTo = (num: unknown, precision = 1) => {

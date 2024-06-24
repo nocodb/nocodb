@@ -91,6 +91,7 @@ const permissionScopes = {
     'indexList',
     'list',
     'dataCount',
+    'dataAggregate',
     'swaggerJson',
     'commentList',
     'commentsCount',
@@ -198,6 +199,7 @@ const rolePermissions:
       indexList: true,
       list: true,
       dataCount: true,
+      dataAggregate: true,
       swaggerJson: true,
 
       nestedDataList: true,

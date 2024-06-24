@@ -12,6 +12,8 @@ const emits = defineEmits(['update:paginationData'])
 
 const { isViewDataLoading, isPaginationLoading } = storeToRefs(useViewsStore())
 
+const { isXcdbBase } = useBase()
+
 const { changePage } = props
 
 const vPaginationData = useVModel(props, 'paginationData', emits)
@@ -122,8 +124,8 @@ onMounted(() => {
             v-if="!displayFieldComputed.field?.aggregation || displayFieldComputed.field?.aggregation === 'none'"
             class="text-gray-500 opacity-0 transition group-hover:opacity-100"
           >
-            <GeneralIcon class="text-gray-500" icon="arrowUp" />
-            <span class="text-[10px] font-semibold"> -SET AGGREGATE- </span>
+            <GeneralIcon class="text-gray-500" icon="arrowDown" />
+            <span class="text-[10px] font-semibold"> Summary </span>
           </div>
           <div v-else-if="displayFieldComputed.value !== undefined" class="flex gap-2 text-nowrap overflow-hidden items-center">
             <span class="text-gray-500 text-[12px] leading-4">
@@ -145,7 +147,7 @@ onMounted(() => {
               :key="index"
               @click="updateAggregate(displayFieldComputed.column.id, agg)"
             >
-              <div class="flex !w-full text-gray-800 items-center justify-between">
+              <div class="flex !w-full text-[13px] text-gray-800 items-center justify-between">
                 {{ $t(`aggregation_type.${agg}`) }}
 
                 <GeneralIcon v-if="displayFieldComputed.field?.aggregation === agg" class="text-brand-500" icon="check" />
@@ -173,8 +175,8 @@ onMounted(() => {
             v-if="field?.aggregation === 'none' || field?.aggregation === null"
             class="text-gray-500 opacity-0 transition group-hover:opacity-100"
           >
-            <GeneralIcon class="text-gray-500" icon="arrowUp" />
-            <span class="text-[10px] font-semibold"> -SET AGGREGATE- </span>
+            <GeneralIcon class="text-gray-500" icon="arrowDown" />
+            <span class="text-[10px] font-semibold"> Summary </span>
           </div>
 
           <div v-else-if="value !== undefined" class="flex gap-2 text-nowrap overflow-hidden items-center">
@@ -191,7 +193,7 @@ onMounted(() => {
         <template #overlay>
           <NcMenu>
             <NcMenuItem v-for="(agg, index) in getAggregations(column)" :key="index" @click="updateAggregate(column.id, agg)">
-              <div class="flex !w-full text-gray-800 items-center justify-between">
+              <div class="flex !w-full text-[13px] text-gray-800 items-center justify-between">
                 {{ $t(`aggregation_type.${agg}`) }}
 
                 <GeneralIcon v-if="field?.aggregation === agg" class="text-brand-500" icon="check" />

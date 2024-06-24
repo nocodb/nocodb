@@ -785,6 +785,8 @@ class BaseModelSqlv2 {
 
       qb.select(...selectors);
 
+      console.log('\n\n', qb.toQuery(), '\n\n');
+
       // Some aggregation on Date, DateTime related columns may generate result other than Date, DateTime
       // So skip the date conversion
       const data = await this.execAndParse(qb, null, {

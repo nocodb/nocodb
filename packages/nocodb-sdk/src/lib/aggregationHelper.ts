@@ -13,7 +13,7 @@ enum NumericalAggregations {
 }
 
 enum CommonAggregations {
-  Count = 'count',
+  // Count = 'count',
   CountEmpty = 'count_empty',
   CountFilled = 'count_filled',
   CountUnique = 'count_unique',
@@ -97,6 +97,8 @@ const getAvailableAggregations = (type: string, parsed_tree?): string[] => {
         ...Object.values(DateAggregations),
         ...Object.values(CommonAggregations),
       ];
+    case UITypes.SpecificDBType:
+      return [];
   }
   return [...Object.values(CommonAggregations)];
 };

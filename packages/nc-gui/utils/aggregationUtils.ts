@@ -25,7 +25,7 @@ const roundTo = (num: unknown, precision = 1) => {
   return Math.round(+num * factor) / factor
 }
 
-const getDateTimeValue = (modelValue: string | null, col: ColumnType) => {
+const getDateTimeValue = (modelValue: string | null, col: ColumnType, isXcdbBase?: boolean) => {
   if (!modelValue || !dayjs(modelValue).isValid()) {
     return ''
   }
@@ -33,6 +33,10 @@ const getDateTimeValue = (modelValue: string | null, col: ColumnType) => {
   const dateFormat = parseProp(col?.meta)?.date_format ?? dateFormats[0]
   const timeFormat = parseProp(col?.meta)?.time_format ?? timeFormats[0]
   const dateTimeFormat = `${dateFormat} ${timeFormat}`
+
+  if (!isXcdbBase) {
+    return dayjs(/^\d+$/.test(modelValue) ? +modelValue : modelValue, dateTimeFormat).format(dateTimeFormat)
+  }
 
   return dayjs(modelValue).utc().local().format(dateTimeFormat)
 }

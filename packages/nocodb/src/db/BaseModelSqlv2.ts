@@ -697,13 +697,18 @@ class BaseModelSqlv2 {
     return await this.execAndParse(qb);
   }
 
-  async aggregate(args: { filterArr?: Filter[]; where?: string }) {
+  async aggregate(args: { filterArr?: Filter[]; where?: string }, view: View) {
     try {
       const { where, aggregation } = this._getListArgs(args as any);
 
+      const columns = await this.model.getColumns(this.context);
+
       let viewColumns = (
         await GridViewColumn.list(this.context, this.viewId)
-      ).filter((c) => c.show);
+      ).filter((c) => {
+        const col = columns.find((col) => col.id === c.fk_column_id);
+        return c.show && view.show_system_fields ? true : !isSystemColumn(col);
+      });
 
       // By default, the aggregation is done based on the columns configured in the view
       // If the aggregation parameter is provided, only the columns mentioned in the aggregation parameter are considered
@@ -720,8 +725,6 @@ class BaseModelSqlv2 {
           })
           .filter((c) => c.show);
       }
-
-      const columns = await this.model.getColumns(this.context);
 
       const aliasColObjMap = await this.model.getAliasColObjMap(
         this.context,

@@ -40,7 +40,7 @@ const { bases, basesList } = storeToRefs(basesStore)
 const baseCollaborators = ref<User[]>([])
 
 const auditCollaborators = computed(() => {
-  return (auditLogsQuery.value.base ? baseCollaborators.value : collaborators.value) || []
+  return (auditLogsQuery.value.baseId ? baseCollaborators.value : collaborators.value) || []
 })
 
 const collaboratorsMap = computed<Map<string, (WorkspaceUserType & { id: string }) | User>>(() => {
@@ -136,10 +136,10 @@ async function loadAudits(page = currentPage.value, limit = currentLimit.value, 
 
 const loadCollaborators = async () => {
   try {
-    if (!auditLogsQuery.value.base) return
+    if (!auditLogsQuery.value.baseId) return
 
     const { users } = await getBaseUsers({
-      baseId: auditLogsQuery.value.base,
+      baseId: auditLogsQuery.value.baseId,
     })
 
     baseCollaborators.value = users
@@ -154,7 +154,7 @@ const handleRowClick = (audit: AuditType) => {
 }
 
 const handleUpdateBaseQuery = (baseId?: string, sourceId?: string) => {
-  auditLogsQuery.value.base = baseId
+  auditLogsQuery.value.baseId = baseId
   auditLogsQuery.value.sourceId = sourceId
 }
 
@@ -271,9 +271,9 @@ const handleUpdateCustomDateRange = (value: string | null, field: 'startDate' | 
 }
 
 watch(
-  () => auditLogsQuery.value.base,
+  () => auditLogsQuery.value.baseId,
   () => {
-    if (!auditLogsQuery.value.base) return
+    if (!auditLogsQuery.value.baseId) return
 
     loadCollaborators()
   },
@@ -284,7 +284,7 @@ watch(
 
 onMounted(async () => {
   if (props.baseId) {
-    auditLogsQuery.value.base = props.baseId
+    auditLogsQuery.value.baseId = props.baseId
   }
 
   if (props.sourceId) {
@@ -435,8 +435,8 @@ onMounted(async () => {
             <div class="!w-[106px] flex items-center justify-between gap-2">
               <div class="max-w-full truncate text-sm !leading-5">
                 Base:
-                <span :class="{ 'text-brand-500': auditLogsQuery.base }">
-                  {{ (auditLogsQuery.base && bases.get(auditLogsQuery.base)?.title) || 'All' }}
+                <span :class="{ 'text-brand-500': auditLogsQuery.baseId }">
+                  {{ (auditLogsQuery.baseId && bases.get(auditLogsQuery.baseId)?.title) || 'All' }}
                 </span>
               </div>
               <GeneralIcon icon="arrowDown" class="flex-none h-4 w-4" />
@@ -483,7 +483,7 @@ onMounted(async () => {
                 >
                   <div class="w-full flex items-center justify-between gap-3">
                     <span class="flex-1 text-gray-800"> All Bases </span>
-                    <GeneralIcon v-if="!auditLogsQuery.base" icon="check" class="flex-none text-primary w-4 h-4" />
+                    <GeneralIcon v-if="!auditLogsQuery.baseId" icon="check" class="flex-none text-primary w-4 h-4" />
                   </div>
                 </NcMenuItem>
                 <NcDivider />
@@ -509,7 +509,7 @@ onMounted(async () => {
                         </NcTooltip>
                       </div>
 
-                      <GeneralIcon v-if="auditLogsQuery.base === base.id" icon="check" class="flex-none text-primary w-4 h-4" />
+                      <GeneralIcon v-if="auditLogsQuery.baseId === base.id" icon="check" class="flex-none text-primary w-4 h-4" />
                     </div>
                   </NcMenuItem>
                 </template>

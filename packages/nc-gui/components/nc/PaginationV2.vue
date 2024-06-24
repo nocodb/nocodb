@@ -135,7 +135,9 @@ const pageSizeOptions = [
         <NcDropdown overlay-class-name="overflow-hidden nc-scrollbar-thin overflow-y-auto !shadow-none min-h-48 max-h-54">
           <NcButton class="!border-0 nc-select-page" type="secondary" size="xsmall">
             <div class="flex gap-1 items-center px-2">
-              {{ current }}
+              <span class="nc-current-page">
+                {{ current }}
+              </span>
               <GeneralIcon icon="arrowDown" class="text-gray-800 mt-0.5 nc-select-expand-btn" />
             </div>
           </NcButton>

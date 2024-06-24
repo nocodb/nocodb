@@ -402,7 +402,7 @@ export class GridPage extends BasePage {
       return;
     }
 
-    await expect(this.get().locator(`.nc-pagination .ant-select-selection-item`).first()).toHaveText(pageNumber);
+    await expect(this.get().locator(`.nc-pagination .nc-current-page`).first()).toHaveText(pageNumber);
   }
 
   async waitLoading() {

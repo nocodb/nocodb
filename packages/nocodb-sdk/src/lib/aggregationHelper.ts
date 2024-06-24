@@ -115,7 +115,7 @@ const getAvailableAggregations = (type: string, parsed_tree?): string[] => {
       break;
     case UITypes.SpecificDBType:
     case UITypes.ForeignKey:
-      return [CommonAggregations.None];
+      returnAggregations = [CommonAggregations.None];
   }
 
   if (!returnAggregations.length) {

@@ -104,6 +104,8 @@ export default async function applyAggregation({
     NcError.notImplemented(`Aggregation ${aggregation} is not implemented yet`);
   }
 
+  console.log('before Barcode', column);
+
   // If the column is a barcode or qr code column, we fetch the column that the virtual column refers to.
   if (column.uidt === UITypes.Barcode || column.uidt === UITypes.QrCode) {
     column = new Column({
@@ -113,6 +115,7 @@ export default async function applyAggregation({
       id: column.id,
     });
   }
+  console.log('after Barcode', column);
 
   let column_name_query = column.column_name;
 

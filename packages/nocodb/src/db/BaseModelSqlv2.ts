@@ -768,6 +768,8 @@ class BaseModelSqlv2 {
           const col = columns.find((c) => c.id === viewColumn.fk_column_id);
           if (!col) return null;
 
+          if (!viewColumn.aggregation) return;
+
           const aggSql = await applyAggregation({
             baseModelSqlv2: this,
             aggregation: viewColumn.aggregation,

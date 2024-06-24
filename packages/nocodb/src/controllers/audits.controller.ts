@@ -66,4 +66,19 @@ export class AuditsController {
       },
     );
   }
+  @Get(['/api/v1/db/meta/projects/audits/', '/api/v2/meta/projects/audits/'])
+  @Acl('projectAuditList')
+  async projectAuditList(@Req() req: NcRequest) {
+    return new PagedResponseImpl(
+      await this.auditsService.projectAuditList({
+        query: req.query,
+      }),
+      {
+        count: await this.auditsService.projectAuditCount({
+          query: req.query,
+        }),
+        ...req.query,
+      },
+    );
+  }
 }

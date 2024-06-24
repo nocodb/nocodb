@@ -770,6 +770,9 @@ class BaseModelSqlv2 {
 
           if (!viewColumn.aggregation) return;
 
+          // Skip system LTAR columns
+          if (isLinksOrLTAR(col) && col.system) return;
+
           const aggSql = await applyAggregation({
             baseModelSqlv2: this,
             aggregation: viewColumn.aggregation,

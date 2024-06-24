@@ -2437,8 +2437,67 @@ onKeyStroke('ArrowDown', onDown)
         </div>
       </template>
     </LazySmartsheetPagination>
-
     <LazySmartsheetGridPaginationV2 v-else :scroll-left="scrollLeft" />
+    <div v-if="headerOnly !== true && paginationDataRef && !isGroupBy" class="absolute bottom-12 left-2">
+      <NcDropdown v-if="isAddingEmptyRowAllowed && !showSkeleton">
+        <div class="flex">
+          <NcButton
+            v-if="isMobileMode"
+            v-e="[isAddNewRecordGridMode ? 'c:row:add:grid' : 'c:row:add:form']"
+            :disabled="isPaginationLoading"
+            class="!rounded-r-none !border-r-0 nc-grid-add-new-row"
+            size="small"
+            type="secondary"
+            @click.stop="onNewRecordToFormClick()"
+          >
+            <div class="flex items-center gap-2">
+              <GeneralIcon icon="plus" />
+              New Record
+            </div>
+          </NcButton>
+          <NcButton
+            v-e="[isAddNewRecordGridMode ? 'c:row:add:grid' : 'c:row:add:form']"
+            :disabled="isPaginationLoading"
+            class="!rounded-r-none !border-r-0 nc-grid-add-new-row"
+            size="small"
+            type="secondary"
+            @click.stop="isAddNewRecordGridMode ? addEmptyRow() : onNewRecordToFormClick()"
+          >
+            <div data-testid="nc-pagination-add-record" class="flex items-center gap-2">
+              <GeneralIcon icon="plus" />
+              <template v-if="isAddNewRecordGridMode">
+                {{ $t('activity.newRecord') }}
+              </template>
+              <template v-else> {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.form') }} </template>
+            </div>
+          </NcButton>
+          <NcButton v-if="!isMobileMode" size="small" class="!rounded-l-none" type="secondary">
+            <GeneralIcon icon="arrowUp" />
+          </NcButton>
+        </div>
+
+        <template #overlay>
+          <NcMenu>
+            <NcMenuItem v-e="['c:row:add:grid']" class="nc-new-record-with-grid group" @click="onNewRecordToGridClick">
+              <div class="flex flex-row items-center justify-start gap-x-3">
+                <component :is="viewIcons[ViewTypes.GRID]?.icon" class="nc-view-icon text-inherit" />
+                {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.grid') }}
+              </div>
+
+              <GeneralIcon v-if="isAddNewRecordGridMode" icon="check" class="w-4 h-4 text-primary" />
+            </NcMenuItem>
+            <NcMenuItem v-e="['c:row:add:form']" class="nc-new-record-with-form group" @click="onNewRecordToFormClick">
+              <div class="flex flex-row items-center justify-start gap-x-3">
+                <GeneralIcon class="h-4.5 w-4.5" icon="article" />
+                {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.form') }}
+              </div>
+
+              <GeneralIcon v-if="!isAddNewRecordGridMode" icon="check" class="w-4 h-4 text-primary" />
+            </NcMenuItem>
+          </NcMenu>
+        </template>
+      </NcDropdown>
+    </div>
   </div>
 </template>
 

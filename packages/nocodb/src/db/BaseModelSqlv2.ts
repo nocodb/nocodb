@@ -751,11 +751,11 @@ class BaseModelSqlv2 {
           const col = columns.find((c) => c.id === viewColumn.fk_column_id);
           if (!col) return null;
 
-          const aggSql = await applyAggregation(
-            this,
-            viewColumn.aggregation,
-            col,
-          );
+          const aggSql = await applyAggregation({
+            baseModelSqlv2: this,
+            aggregation: viewColumn.aggregation,
+            column: col,
+          });
 
           if (aggSql) selectors.push(this.dbDriver.raw(aggSql));
         }),

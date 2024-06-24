@@ -158,34 +158,6 @@ export class DatasService {
     return await baseModel.delByPk(param.rowId, null, param.cookie);
   }
 
-  async dataAggregate(context: NcContext, param: PathParams & { query: any }) {
-    const { model, view } = await getViewAndModelByAliasOrId(context, param);
-
-    const source = await Source.get(context, model.source_id);
-
-    const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(source),
-    });
-
-    const { ast, dependencyFields } = await getAst(context, {
-      model,
-      query: param.query,
-      view: view,
-    });
-
-    const listArgs: any = dependencyFields;
-
-    try {
-      listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
-    } catch (e) {}
-
-    const data = await baseModel.aggregate(listArgs);
-
-    return data;
-  }
-
   async getDataList(
     context: NcContext,
     param: {

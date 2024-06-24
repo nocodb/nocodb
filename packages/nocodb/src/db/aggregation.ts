@@ -65,11 +65,15 @@ const validateColType = (column: Column, aggregation: string) => {
   return 'unknown';
 };
 
-export default async function applyAggregation(
-  baseModelSqlv2: BaseModelSqlv2,
-  aggregation: string,
-  _column: Column,
-): Promise<string | undefined> {
+export default async function applyAggregation({
+  baseModelSqlv2,
+  aggregation,
+  column: _column,
+}: {
+  baseModelSqlv2: BaseModelSqlv2;
+  aggregation: string;
+  column: Column;
+}): Promise<string | undefined> {
   if (!aggregation) {
     aggregation = CommonAggregations.None;
   }

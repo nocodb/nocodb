@@ -48,7 +48,7 @@ const AllAggregations = {
   ...DateAggregations,
 };
 
-const getAvailableAggregations = (type: UITypes): string[] => {
+const getAvailableAggregations = (type: string): string[] => {
   switch (type) {
     case UITypes.Number:
     case UITypes.Decimal:

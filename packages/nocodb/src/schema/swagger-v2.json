@@ -14345,7 +14345,8 @@
             "help": null,
             "group_by": 0,
             "group_by_order": null,
-            "group_by_sort": null
+            "group_by_sort": null,
+            "aggregation": "sum"
           }
         ],
         "title": "Grid Column Model",
@@ -14425,6 +14426,11 @@
             "$ref": "#/components/schemas/StringOrNull",
             "description": "Group By Sort",
             "example": "asc"
+          },
+          "aggregation": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Aggregation",
+            "example": "sum"
           }
         },
         "x-stoplight": {
@@ -14475,6 +14481,11 @@
             "$ref": "#/components/schemas/StringOrNull",
             "description": "Group By Sort",
             "example": "asc"
+          },
+          "aggregation": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Aggregation",
+            "example": "sum"
           }
         },
         "title": "Grid Column Request Model",

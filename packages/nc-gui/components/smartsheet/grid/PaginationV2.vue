@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { UITypes } from 'nocodb-sdk'
 import { getAvailableAggregations } from 'nocodb-sdk'
 
 const props = defineProps<{
@@ -14,8 +15,45 @@ const containerElement = ref()
 const fields = inject(FieldsInj, ref([]))
 
 const visibleFields = computed(() => {
-  return fields.value.map((field, index) => ({ field, index })).filter((f) => f.index !== 0)
+  const f = fields.value.map((field, index) => ({ field, index })).filter((f) => f.index !== 0)
+
+  return f.map((f) => {
+    const gridField = gridViewCols.value[f.field.id!]
+
+    if (!gridField) {
+      return { field: null, index: f.index }
+    }
+
+    return {
+      type: f.field.uidt,
+      field: gridField,
+      index: f.index,
+      width: `${Number(gridField.width.replace('px', ''))}px` || '180px',
+    }
+  })
 })
+
+const displayFieldComputed = computed(() => {
+  if (!fields.value?.length || !gridViewCols.value)
+    return {
+      field: null,
+      width: '180px',
+    }
+
+  return {
+    type: fields.value[0].uidt,
+    field: gridViewCols.value[fields.value[0].id!],
+    width: `${Number((gridViewCols.value[fields.value[0]!.id!].width ?? '').replace('px', ''))}px` || '180px',
+  }
+})
+
+const getAggregations = (type: string, hideNone?: boolean) => {
+  const agg = getAvailableAggregations(type)
+  if (hideNone) {
+    return agg.filter((x) => x !== 'none')
+  }
+  return agg
+}
 
 watch(scrollLeft, (value) => {
   if (containerElement.value) {
@@ -40,17 +78,17 @@ const updateAggregate = async (fieldId: string, agg: string) => {
         </NcTooltip>
       </div>
 
-      <NcDropdown>
+      <NcDropdown v-if="displayFieldComputed.field && displayFieldComputed.field.id">
         <div
           class="flex items-center hover:bg-gray-100 cursor-pointer text-gray-500 transition-all transition-linear px-3 py-2"
           :style="{
-            'min-width': `${Number(gridViewCols[fields[0]?.id]?.width.replace('px', ''))}px` || '180px',
-            'max-width': `${Number(gridViewCols[fields[0]?.id]?.width.replace('px', ''))}px` || '180px',
-            'width': `${Number(gridViewCols[fields[0]?.id]?.width.replace('px', ''))}px` || '180px',
+            'min-width': displayFieldComputed?.width,
+            'max-width': displayFieldComputed?.width,
+            'width': displayFieldComputed?.width,
           }"
         >
           <div
-            v-if="gridViewCols[fields[0]?.id]?.aggregation === 'none' || gridViewCols[fields[0]?.id]?.aggregation === null"
+            v-if="!displayFieldComputed.field?.aggregation || displayFieldComputed.field?.aggregation === 'none'"
             class="text-gray-500 opacity-0 transition group-hover:opacity-100"
           >
             <GeneralIcon class="text-gray-500" icon="arrowUp" />
@@ -61,14 +99,14 @@ const updateAggregate = async (fieldId: string, agg: string) => {
         <template #overlay>
           <NcMenu>
             <NcMenuItem
-              v-for="(agg, index) in getAvailableAggregations(fields[0]?.uidt).filter((x) => x !== 'none')"
+              v-for="(agg, index) in getAggregations(displayFieldComputed!.type, true)"
               :key="index"
-              @click="updateAggregate(fields[0].id, agg)"
+              @click="updateAggregate(displayFieldComputed.field.id, agg)"
             >
               <div class="flex !w-full text-gray-800 items-center justify-between">
                 {{ $t(`aggregation.${agg}`) }}
 
-                <GeneralIcon v-if="gridViewCols[fields[0]?.id]?.aggregation === agg" class="text-brand-500" icon="check" />
+                <GeneralIcon v-if="displayFieldComputed.field?.aggregation === agg" class="text-brand-500" icon="check" />
               </div>
             </NcMenuItem>
           </NcMenu>
@@ -76,40 +114,38 @@ const updateAggregate = async (fieldId: string, agg: string) => {
       </NcDropdown>
     </div>
 
-    <NcDropdown v-for="({ field }, index) in visibleFields" :key="index">
-      <div
-        class="flex items-center justify-end group hover:bg-gray-100 cursor-pointer text-gray-500 transition-all transition-linear px-3 py-2"
-        :style="{
-          'min-width': `${Number(gridViewCols[field.id]?.width.replace('px', ''))}px` || '180px',
-          'max-width': `${Number(gridViewCols[field.id]?.width.replace('px', ''))}px` || '180px',
-          'width': `${Number(gridViewCols[field.id]?.width.replace('px', ''))}px` || '180px',
-        }"
-      >
+    <template v-for="({ field, width, type }, index) in visibleFields" :key="index">
+      <NcDropdown v-if="field && field.id">
         <div
-          v-if="gridViewCols[field.id]?.aggregation === 'none' || gridViewCols[field.id]?.aggregation === null"
-          class="text-gray-500 opacity-0 transition group-hover:opacity-100"
+          class="flex items-center justify-end group hover:bg-gray-100 cursor-pointer text-gray-500 transition-all transition-linear px-3 py-2"
+          :style="{
+            'min-width': width,
+            'max-width': width,
+            'width': width,
+          }"
         >
-          <GeneralIcon class="text-gray-500" icon="arrowUp" />
-          <span class="text-[10px] font-semibold"> -SET AGGREGATE- </span>
-        </div>
-      </div>
-
-      <template #overlay>
-        <NcMenu>
-          <NcMenuItem
-            v-for="(agg, index) in getAvailableAggregations(field.uidt)"
-            :key="index"
-            @click="updateAggregate(field.id, agg)"
+          <div
+            v-if="field?.aggregation === 'none' || field?.aggregation === null"
+            class="text-gray-500 opacity-0 transition group-hover:opacity-100"
           >
-            <div class="flex !w-full text-gray-800 items-center justify-between">
-              {{ $t(`aggregation.${agg}`) }}
+            <GeneralIcon class="text-gray-500" icon="arrowUp" />
+            <span class="text-[10px] font-semibold"> -SET AGGREGATE- </span>
+          </div>
+        </div>
 
-              <GeneralIcon v-if="gridViewCols[field.id]?.aggregation === agg" class="text-brand-500" icon="check" />
-            </div>
-          </NcMenuItem>
-        </NcMenu>
-      </template>
-    </NcDropdown>
+        <template #overlay>
+          <NcMenu>
+            <NcMenuItem v-for="(agg, index) in getAggregations(type)" :key="index" @click="updateAggregate(field.id, agg)">
+              <div class="flex !w-full text-gray-800 items-center justify-between">
+                {{ $t(`aggregation.${agg}`) }}
+
+                <GeneralIcon v-if="field?.aggregation === agg" class="text-brand-500" icon="check" />
+              </div>
+            </NcMenuItem>
+          </NcMenu>
+        </template>
+      </NcDropdown>
+    </template>
 
     <div class="!px-8 !w-8 h-1">‎</div>
   </div>

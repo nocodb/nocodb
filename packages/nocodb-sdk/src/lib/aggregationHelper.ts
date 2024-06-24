@@ -71,6 +71,8 @@ const getAvailableAggregations = (type: string): string[] => {
       return [...Object.values(BooleanAggregations)];
     case UITypes.Date:
     case UITypes.DateTime:
+    case UITypes.LastModifiedTime:
+    case UITypes.CreatedTime:
       return [
         ...Object.values(DateAggregations),
         ...Object.values(CommonAggregations),

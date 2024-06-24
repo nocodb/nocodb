@@ -767,6 +767,7 @@ class BaseModelSqlv2 {
 
       const data = await this.execAndParse(qb, null, {
         first: true,
+        skipDateConversion: true,
       });
 
       return data;

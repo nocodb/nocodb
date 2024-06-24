@@ -107,6 +107,9 @@ export default async function applyAggregation({
 
   let column = _column.column_name;
 
+  if (_column.uidt === UITypes.CreatedTime) column = 'created_at';
+  if (_column.uidt === UITypes.LastModifiedTime) column = 'updated_at';
+
   // If the column is a barcode or qr code column, we fetch the column that the virtual column refers to.
   if (_column.uidt === UITypes.Barcode || _column.uidt === UITypes.QrCode) {
     _column = new Column({
@@ -158,45 +161,124 @@ export default async function applyAggregation({
   }
 
   if (aggType === 'common') {
+    let secondaryCondition = "''";
+
+    if (
+      [
+        UITypes.CreatedTime,
+        UITypes.LastModifiedTime,
+        UITypes.Date,
+        UITypes.DateTime,
+      ].includes(_column.uidt)
+    ) {
+      secondaryCondition = 'NULL';
+    }
+
     switch (aggregation) {
       case CommonAggregations.Count:
         aggregationSql = knex.raw(`COUNT(*) AS ??`, [_column.id]);
         break;
       case CommonAggregations.CountEmpty:
         aggregationSql = knex.raw(
-          `COUNT(*) FILTER (WHERE (??) IS NULL) AS ??`,
-          [column, _column.id],
+          `COUNT(*) FILTER (WHERE (??) IS NULL OR (??) = ${secondaryCondition}) AS ??`,
+          [column, column, _column.id],
         );
 
         break;
       case CommonAggregations.CountFilled:
+        // The condition IS NOT NULL AND (column) != 'NULL' is not same for the following column types:
+        // Hence we need to handle them separately.
+        if (
+          [
+            UITypes.CreatedTime,
+            UITypes.LastModifiedTime,
+            UITypes.Date,
+            UITypes.DateTime,
+          ].includes(_column.uidt)
+        ) {
+          aggregationSql = knex.raw(
+            `COUNT(*) FILTER (WHERE (??) IS NOT NULL) AS ??`,
+            [column, _column.id],
+          );
+          break;
+        }
+
+        // For other column types, the condition is IS NOT NULL AND (column) != 'NULL'
         aggregationSql = knex.raw(
-          `COUNT(*) FILTER (WHERE (??) IS NOT NULL) AS ??`,
-          [column, _column.id],
+          `COUNT(*) FILTER (WHERE (??) IS NOT NULL AND (??) != ${secondaryCondition}) AS ??`,
+          [column, column, _column.id],
         );
         break;
       case CommonAggregations.CountUnique:
-        aggregationSql = knex.raw(`COUNT(DISTINCT (??)) AS ??`, [
-          column,
-          _column.id,
-        ]);
+        // The condition IS NOT NULL AND (column) != 'NULL' is not same for the following column types:
+        // Hence we need to handle them separately.
+        if (
+          [
+            UITypes.CreatedTime,
+            UITypes.LastModifiedTime,
+            UITypes.Date,
+            UITypes.DateTime,
+          ].includes(_column.uidt)
+        ) {
+          aggregationSql = knex.raw(
+            `COUNT(DISTINCT (??)) FILTER (WHERE (??) IS NOT NULL) AS ??`,
+            [column, column, _column.id],
+          );
+          break;
+        }
+        aggregationSql = knex.raw(
+          `COUNT(DISTINCT (??)) FILTER (WHERE (??) IS NOT NULL AND (??) != ${secondaryCondition}) AS ??`,
+          [column, column, column, _column.id],
+        );
         break;
       case CommonAggregations.PercentEmpty:
         aggregationSql = knex.raw(
-          `(COUNT(*) FILTER (WHERE (??) IS NULL) * 100.0 / COUNT(*)) AS ??`,
-          [column, _column.id],
+          `(COUNT(*) FILTER (WHERE (??) IS NULL OR (??) = ${secondaryCondition}) * 100.0 / COUNT(*)) AS ??`,
+          [column, column, _column.id],
         );
         break;
       case CommonAggregations.PercentFilled:
+        // The condition IS NOT NULL AND (column) != 'NULL' is not same for the following column types:
+        // Hence we need to handle them separately.
+        if (
+          [
+            UITypes.CreatedTime,
+            UITypes.LastModifiedTime,
+            UITypes.Date,
+            UITypes.DateTime,
+          ].includes(_column.uidt)
+        ) {
+          aggregationSql = knex.raw(
+            `(COUNT(*) FILTER (WHERE (??) IS NOT NULL) * 100.0 / COUNT(*)) AS ??`,
+            [column, _column.id],
+          );
+          break;
+        }
         aggregationSql = knex.raw(
-          `(COUNT(*) FILTER (WHERE (??) IS NOT NULL) * 100.0 / COUNT(*)) AS ??`,
-          [column, _column.id],
+          `(COUNT(*) FILTER (WHERE (??) IS NOT NULL AND (??) != ${secondaryCondition}) * 100.0 / COUNT(*)) AS ??`,
+          [column, column, _column.id],
         );
         break;
       case CommonAggregations.PercentUnique:
+        // The condition IS NOT NULL AND (column) != 'NULL' is not same for the following column types:
+        // Hence we need to handle them separately.
+        if (
+          [
+            UITypes.CreatedTime,
+            UITypes.LastModifiedTime,
+            UITypes.Date,
+            UITypes.DateTime,
+          ].includes(_column.uidt)
+        ) {
+          aggregationSql = knex.raw(
+            `(COUNT(DISTINCT (??)) FILTER (WHERE (??) IS NOT NULL) * 100.0 / COUNT(*)) AS ??`,
+            [column, column, _column.id],
+          );
+          break;
+        }
         aggregationSql = knex.raw(
-          `(COUNT(DISTINCT (??) ) * 100.0 / COUNT(*)) AS ??`,
-          [column, _column.id],
+          `(COUNT(DISTINCT (??)) FILTER (WHERE (??) IS NOT NULL AND (??) != ${secondaryCondition}) * 100.0 / COUNT(*)) AS ??`,
+          [column, column, column, _column.id],
         );
         break;
       case CommonAggregations.None:
@@ -246,8 +328,8 @@ export default async function applyAggregation({
         break;
       case BooleanAggregations.Unchecked:
         aggregationSql = knex.raw(
-          `COUNT(*) FILTER (WHERE (??) = false) AS ??`,
-          [column, _column.id],
+          `COUNT(*) FILTER (WHERE (??) = false OR (??) = NULL) AS ??`,
+          [column, column, _column.id],
         );
         break;
       case BooleanAggregations.PercentChecked:
@@ -258,8 +340,8 @@ export default async function applyAggregation({
         break;
       case BooleanAggregations.PercentUnchecked:
         aggregationSql = knex.raw(
-          `(COUNT(*) FILTER (WHERE (??) = false) * 100.0 / COUNT(*)) AS ??`,
-          [column, _column.id],
+          `(COUNT(*) FILTER (WHERE (??) = false OR (??) = NULL) * 100.0 / COUNT(*)) AS ??`,
+          [column, column, _column.id],
         );
         break;
       default:
@@ -273,19 +355,19 @@ export default async function applyAggregation({
       case DateAggregations.LatestDate:
         aggregationSql = knex.raw(`MAX((??)) AS ??`, [column, _column.id]);
         break;
-      // TODO: Not Working in some cases @DarkPhoenix2704
 
+      // The Date, DateTime, CreatedTime, LastModifiedTime columns are casted as DATE in the database.
       case DateAggregations.DateRange:
-        aggregationSql = knex.raw(`MAX((??)) - MIN((??)) AS ??`, [
+        aggregationSql = knex.raw(`MAX((??)::date) - MIN((??)::date) AS ??`, [
           column,
           column,
           _column.id,
         ]);
         break;
-      // TODO: Not Working in some cases @DarkPhoenix2704
+      // The Date, DateTime, CreatedTime, LastModifiedTime columns are casted as DATE in the database.
       case DateAggregations.MonthRange:
         aggregationSql = knex.raw(
-          `EXTRACT(MONTH FROM MAX((??))) - EXTRACT(MONTH FROM MIN((??))) AS ??`,
+          `EXTRACT(MONTH FROM MAX((??)::date)) - EXTRACT(MONTH FROM MIN((??)::date)) AS ??`,
           [column, column, _column.id],
         );
         break;
@@ -293,7 +375,6 @@ export default async function applyAggregation({
         break;
     }
   } else if (aggType === 'attachment') {
-    // TODO: Verify Performance @DarkPhoenix2704
     switch (aggregation) {
       case AttachmentAggregations.AttachmentSize:
         aggregationSql = knex.raw(

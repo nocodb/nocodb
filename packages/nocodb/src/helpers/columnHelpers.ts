@@ -413,6 +413,7 @@ export const getRefColumnIfAlias = async (
   column: Column,
   columns?: Column[],
 ) => {
+  if (!column) return null;
   if (
     !(
       [

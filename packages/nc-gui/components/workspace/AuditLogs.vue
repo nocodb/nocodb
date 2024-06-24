@@ -198,6 +198,46 @@ const handleUpdateDateRange = (range?: AuditLogsDateRange, label?: string) => {
   loadAudits()
 }
 
+const isEditEnabled = computed(() => true)
+
+// provide the following to override the default behavior and enable input fields like in form
+provide(ActiveCellInj, ref(true))
+provide(EditModeInj, readonly(isEditEnabled))
+
+provide(IsFormInj, ref(true))
+
+const handleCustomDateRangeClick = () => {
+  if (auditLogsQuery.value.dateRange === AuditLogsDateRange.Custom) {
+    auditLogsQuery.value.dateRange = undefined
+    auditLogsQuery.value.dateRangeLabel = undefined
+    auditDropdowns.value.dateRange = false
+  } else {
+    auditLogsQuery.value.dateRange = AuditLogsDateRange.Custom
+    auditLogsQuery.value.dateRangeLabel = 'Custom Date Range'
+  }
+
+  auditLogsQuery.value.startDate = undefined
+  auditLogsQuery.value.endDate = undefined
+
+  loadAudits()
+}
+
+const handleUpdateCustomDateRange = (value: string | null, field: 'startDate' | 'endDate') => {
+  if (field === 'startDate') {
+    auditLogsQuery.value[field] = value || undefined
+  } else if (value) {
+    const currentTime = dayjs()
+
+    const now = dayjs(value, 'YYYY-MM-DD').hour(currentTime.hour()).minute(currentTime.minute())
+
+    auditLogsQuery.value[field] = now.utc().format('YYYY-MM-DD HH:mm:ssZ')
+  } else {
+    auditLogsQuery.value[field] = undefined
+  }
+
+  loadAudits()
+}
+
 onMounted(async () => {
   if (audits.value === null) {
     await loadAudits(currentPage.value, currentLimit.value)
@@ -221,7 +261,7 @@ onMounted(async () => {
         </div>
         <div class="text-sm text-gray-600">Track and monitor any changes made to any base in your workspace.</div>
       </div>
-      <div class="pr-6 pl-1 flex items-center gap-3">
+      <div class="px-1 flex items-center gap-3">
         <NcDropdown
           v-if="collaborators?.length"
           v-model:visible="auditDropdowns.user"
@@ -321,6 +361,7 @@ onMounted(async () => {
             </div>
           </template>
         </NcDropdown>
+
         <NcDropdown
           v-if="basesList?.length"
           v-model:visible="auditDropdowns.base"
@@ -494,8 +535,8 @@ onMounted(async () => {
           </NcButton>
 
           <template #overlay>
-            <div class="w-[256px]">
-              <NcMenu class="w-full max-h-[360px] nc-scrollbar-thin">
+            <div class="w-[256px] pt-1">
+              <NcMenu class="w-full max-h-[360px] nc-scrollbar-thin nc-audit-date-range-menu">
                 <NcMenuItem
                   class="!children:w-full ant-dropdown-menu-item ant-dropdown-menu-item-only-child"
                   @click="handleClearDateRange"
@@ -524,7 +565,52 @@ onMounted(async () => {
                     </div>
                   </NcMenuItem>
                 </template>
+
+                <NcMenuItem
+                  class="!children:w-full ant-dropdown-menu-item ant-dropdown-menu-item-only-child"
+                  @click.stop="handleCustomDateRangeClick"
+                >
+                  <div class="w-full flex items-center justify-between gap-3">
+                    <div class="w-full flex items-center justify-between gap-2 text-gray-800">
+                      <GeneralIcon
+                        icon="chevronDown"
+                        class="flex-none w-4 h-4 transform"
+                        :class="{
+                          'rotate-270': auditLogsQuery.dateRange !== AuditLogsDateRange.Custom,
+                        }"
+                      />
+                      <span class="flex-1 text-gray-800"> Custom Date Range </span>
+                    </div>
+                    <GeneralIcon
+                      v-if="auditLogsQuery.dateRange === AuditLogsDateRange.Custom"
+                      icon="check"
+                      class="flex-none text-primary w-4 h-4"
+                    />
+                  </div>
+                </NcMenuItem>
               </NcMenu>
+              <div
+                v-if="auditLogsQuery.dateRange === AuditLogsDateRange.Custom"
+                class="w-full flex flex-col gap-2 px-2 pb-2.5"
+                @click.stop
+              >
+                <div class="nc-audit-custom-date-range-input">
+                  <LazyCellDatePicker
+                    :model-value="auditLogsQuery.startDate"
+                    placeholder="YYYY-MM-DD"
+                    @update:model-value="(value) => handleUpdateCustomDateRange(value, 'startDate')"
+                  >
+                  </LazyCellDatePicker>
+                </div>
+                <div class="nc-audit-custom-date-range-input">
+                  <LazyCellDatePicker
+                    :model-value="auditLogsQuery.endDate"
+                    placeholder="YYYY-MM-DD-12"
+                    @update:model-value="(value) => handleUpdateCustomDateRange(value, 'endDate')"
+                  >
+                  </LazyCellDatePicker>
+                </div>
+              </div>
             </div>
           </template>
         </NcDropdown>
@@ -629,7 +715,7 @@ onMounted(async () => {
                     </template>
                   </div>
                   <div class="td cell-type">
-                    <div class="truncate bg-gray-200 px-3 py-1 rounded-lg">
+                    <div class="truncate bg-gray-200 px-2 py-1 rounded-lg">
                       <NcTooltip class="truncate" placement="bottom" show-on-truncate-only>
                         <template #title> {{ auditOperationTypeLabels[audit.op_type] }}</template>
 
@@ -694,9 +780,12 @@ onMounted(async () => {
           <div class="flex-1 text-base font-weight-700 text-gray-900">Audit Details</div>
           <div class="flex items-center gap-2">
             <span class="cell-header"> Time stamp </span>
-            <span class="text-gray-600 text-small leading-[18px]">{{
-              parseStringDateTime(selectedAudit.created_at, 'D MMMM YYYY HH:mm')
-            }}</span>
+
+            <NcTooltip placement="bottom" class="text-gray-600 text-small leading-[18px]">
+              <template #title> {{ parseStringDateTime(selectedAudit.created_at, 'D MMMM YYYY HH:mm') }}</template>
+
+              {{ timeAgo(selectedAudit.created_at) }}
+            </NcTooltip>
           </div>
         </div>
       </template>
@@ -756,7 +845,7 @@ onMounted(async () => {
           <div class="w-1/2">
             <div class="h-1/2 border-b border-gray-200 flex items-center gap-2 px-4 py-3">
               <div class="cell-header">Type</div>
-              <div class="text-small leading-[18px] text-gray-600 bg-gray-200 px-3 py-1 rounded-lg">
+              <div class="text-small leading-[18px] text-gray-600 bg-gray-200 px-1 rounded-md">
                 {{ auditOperationTypeLabels[selectedAudit?.op_type] }}
               </div>
             </div>
@@ -857,5 +946,18 @@ onMounted(async () => {
 }
 :deep(.ant-menu.nc-menu) {
   @apply !pt-0;
+  &.nc-audit-date-range-menu {
+    @apply !pb-0;
+  }
+}
+.nc-audit-custom-date-range-input {
+  @apply border-1 border-gray-200 rounded-lg pr-2 py-1 transition-all duration-0.3s shadow-default focus-within:(border-brand-500 shadow-selected);
+  &:hover:not(:focus-within) {
+    @apply shadow-hover;
+  }
+
+  :deep(.ant-picker-input > input) {
+    @apply !px-2;
+  }
 }
 </style>

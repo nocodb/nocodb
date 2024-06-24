@@ -354,7 +354,7 @@ export class GridPage extends BasePage {
     while (parseInt(recordCnt) !== count && i < 5) {
       await this.get().locator(`.nc-pagination-skeleton`).waitFor({ state: 'hidden' });
       records = await this.get().locator(`[data-testid="grid-pagination"]`).allInnerTexts();
-      recordCnt = records[0].split(' ')[0];
+      recordCnt = (records[0] ?? '').split(' ')[0];
 
       // to ensure page loading is complete
       i++;

@@ -191,7 +191,7 @@ useEventListener(tableWrapper, 'scroll', () => {
               'word-break': 'keep-all',
             }"
           >
-            <span class="keep-word min-w-[115px]"> Audit Logs : </span>
+            <span class="keep-word min-w-[115px]"> {{ $t('title.auditLogs') }} : </span>
             <NcTooltip class="max-w-[80%] truncate !leading-7" show-on-truncate-only placement="bottom">
               <template #title>
                 {{ bases.get(baseId)?.title }}

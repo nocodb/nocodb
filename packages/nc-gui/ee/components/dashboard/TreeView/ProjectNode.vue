@@ -310,7 +310,7 @@ async function openAudit(source: SourceType) {
       dateRange: undefined,
       dateRangeLabel: undefined,
       startDate: undefined,
-      endData: undefined,
+      endDate: undefined,
       orderBy: {
         created_at: 'desc',
         user: undefined,

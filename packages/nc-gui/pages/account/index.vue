@@ -95,7 +95,7 @@ const logout = async () => {
                 <div class="flex items-center space-x-2">
                   <component :is="iconMap.audit" class="opacity-80" />
 
-                  <div class="select-none">Audit Logs</div>
+                  <div class="select-none">{{ $t('title.auditLogs') }}</div>
                 </div>
               </NcMenuItem>
               <NcMenuItem

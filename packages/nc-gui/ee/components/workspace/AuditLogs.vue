@@ -166,13 +166,9 @@ const handleUpdateBaseQuery = (baseId?: string, sourceId?: string) => {
 const updateOrderBy = (field: 'created_at' | 'user') => {
   if (!audits.value?.length) return
 
-  if (auditLogsQuery.value.orderBy?.[field] === 'asc') {
-    auditLogsQuery.value.orderBy[field] = 'desc'
-  } else if (auditLogsQuery.value.orderBy?.[field] === 'desc') {
-    auditLogsQuery.value.orderBy[field] = undefined
-  } else {
-    auditLogsQuery.value.orderBy[field] = 'asc'
-  }
+  const orderCycle = { undefined: 'asc', asc: 'desc', desc: undefined }
+
+  auditLogsQuery.value.orderBy[field] = orderCycle[auditLogsQuery.value.orderBy[field] as 'asc' | 'desc' | 'undefined']
 
   loadAudits(undefined, undefined, false)
 }
@@ -331,7 +327,7 @@ useEventListener(tableWrapper, 'scroll', () => {
     <div class="flex flex-col" :class="{ 'gap-6': !baseId, 'gap-4': baseId }">
       <div v-if="baseId" class="flex flex-row items-center gap-3">
         <h6 class="text-xl font-semibold text-gray-900 !my-0">
-          Audit Logs
+          {{ $t('title.auditLogs') }}
           <span> : {{ bases.get(baseId)?.title }} </span>
         </h6>
       </div>

@@ -457,7 +457,7 @@
     "uiACL": "UI Access Control",
     "metaOperations": "Metadata Operations",
     "audit": "Audit",
-    "auditLogs": "Audit Log",
+    "auditLogs": "Audit Logs",
     "sqlMigrations": "SQL Migrations",
     "dbCredentials": "Database Credentials",
     "advancedParameters": "SSL & Advanced parameters",

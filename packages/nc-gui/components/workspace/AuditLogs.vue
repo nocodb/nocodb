@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Tooltip as ATooltip, Empty } from 'ant-design-vue'
+import { Empty } from 'ant-design-vue'
 import type { AuditType, WorkspaceUserType } from 'nocodb-sdk'
 import { timeAgo, AuditOperationTypes, AuditOperationSubTypes } from 'nocodb-sdk'
 
@@ -11,10 +11,24 @@ const props = defineProps<Props>()
 
 const workspaceStore = useWorkspace()
 
-const { collaborators } = storeToRefs(workspaceStore)
+const { loadAudits: _loadAudits } = workspaceStore
+
+const {
+  collaborators,
+  audits,
+  auditLogsQuery,
+  auditCurrentLimit: currentLimit,
+  auditCurrentPage: currentPage,
+  auditTotalRows: totalRows,
+} = storeToRefs(workspaceStore)
+
+const basesStore = useBases()
+
+const { bases, basesList } = storeToRefs(basesStore)
 
 const collaboratorsMap = computed<Map<string, WorkspaceUserType & { id: string }>>(() => {
   const map = new Map<string, WorkspaceUserType & { id: string }>()
+
   collaborators.value?.forEach((coll) => {
     if (coll?.email) {
       map.set(coll.email, coll)
@@ -23,25 +37,9 @@ const collaboratorsMap = computed<Map<string, WorkspaceUserType & { id: string }
   return map
 })
 
-const basesStore = useBases()
-
-const { bases, basesList } = storeToRefs(basesStore)
-
-const { $api } = useNuxtApp()
-
-const { t } = useI18n()
-
 const { appInfo } = useGlobal()
 
 const isLoading = ref(false)
-
-const audits = ref<null | Array<AuditType>>(null)
-
-const totalRows = ref(0)
-
-const currentPage = ref(1)
-
-const currentLimit = ref(25)
 
 const isRowExpanded = ref(false)
 
@@ -54,41 +52,13 @@ const auditDropdowns = ref({
   user: false,
 })
 
-const auditLogsQuery = ref<{
-  type?: string
-  subType?: string
-  base?: string
-  user?: string
-  search?: string
-}>({
-  type: undefined,
-  subType: undefined,
-  base: undefined,
-  user: undefined,
-  search: undefined,
-})
-
 async function loadAudits(page = currentPage.value, limit = currentLimit.value) {
   try {
     if (!props.workspaceId) return
 
     isLoading.value = true
-
-    if (limit * (page - 1) > totalRows.value) {
-      currentPage.value = 1
-      page = 1
-    }
-
-    const { list, pageInfo } = await $api.workspace.auditList(props.workspaceId, {
-      offset: limit * (page - 1),
-      limit,
-      ...auditLogsQuery.value,
-    })
-
-    audits.value = list
-    totalRows.value = pageInfo.totalRows ?? 0
-  } catch (e) {
-    console.error(e)
+    await _loadAudits(props.workspaceId, page, limit)
+  } catch {
   } finally {
     isLoading.value = false
   }
@@ -100,7 +70,6 @@ const handleRowClick = (audit: AuditType) => {
 }
 
 const handleSearchAuditLogs = useDebounceFn(() => {
-  console.log('searched', auditLogsQuery.value.search)
   loadAudits()
 }, 500)
 
@@ -134,7 +103,7 @@ onMounted(async () => {
             v-model:value="auditLogsQuery.search"
             type="text"
             autocomplete="off"
-            class="!h-9 !px-3 !py-1 !rounded-lg nc-input-sm nc-input-shadow"
+            class="nc-input-sm nc-input-shadow"
             placeholder="Search a record"
             name="nc-audit-logs-search-input"
             data-testid="nc-audit-logs-search-input"
@@ -160,7 +129,7 @@ onMounted(async () => {
             <NcButton type="secondary" size="small" class="!border-none !rounded-none">
               <div class="!w-[106px] flex items-center justify-between gap-2">
                 <div class="max-w-[120px] truncate text-sm !leading-5">Type: {{ auditLogsQuery.type || 'All' }}</div>
-                <GeneralIcon icon="arrowDown" class="h-4 w-4" />
+                <GeneralIcon icon="arrowDown" class="flex-none h-4 w-4" />
               </div>
             </NcButton>
 
@@ -247,7 +216,7 @@ onMounted(async () => {
               <div class="max-w-[120px] truncate text-sm !leading-5">
                 Base: {{ (auditLogsQuery.base && bases.get(auditLogsQuery.base)?.title) || 'All' }}
               </div>
-              <GeneralIcon icon="arrowDown" class="h-4 w-4" />
+              <GeneralIcon icon="arrowDown" class="flex-none h-4 w-4" />
             </div>
           </NcButton>
 
@@ -261,36 +230,50 @@ onMounted(async () => {
                 }
               "
             >
-              <NcMenuItem class="!children:w-full" @click="auditLogsQuery.base = undefined">
+              <NcMenuItem
+                class="!children:w-full"
+                @click="
+                  () => {
+                    auditLogsQuery.base = undefined
+                    auditLogsQuery.sourceId = undefined
+                  }
+                "
+              >
                 <div class="w-full flex items-center justify-between gap-3">
                   <span class="flex-1"> All Bases </span>
                   <GeneralIcon v-if="!auditLogsQuery.base" icon="check" class="flex-none text-primary w-4 h-4" />
                 </div>
               </NcMenuItem>
               <NcDivider />
-              <NcMenuItem
-                v-for="(base, index) of basesList"
-                :key="index"
-                class="!children:w-full"
-                @click="auditLogsQuery.base = base.id"
-              >
-                <div class="w-full flex items-center justify-between gap-3">
-                  <div class="flex-1 flex items-center gap-2 max-w-[calc(100%_-_28px)]">
-                    <GeneralProjectIcon
-                      :color="base?.meta?.iconColor"
-                      :type="base?.type || 'database'"
-                      class="nc-view-icon w-4 h-4 flex-none"
-                    />
+              <template v-for="(base, index) of basesList" :key="index">
+                <NcMenuItem
+                  v-if="base?.sources?.[0]?.enabled"
+                  class="!children:w-full"
+                  @click="
+                    () => {
+                      auditLogsQuery.base = base.id
+                      auditLogsQuery.sourceId = base?.sources?.[0]?.id
+                    }
+                  "
+                >
+                  <div class="w-full flex items-center justify-between gap-3">
+                    <div class="flex-1 flex items-center gap-2 max-w-[calc(100%_-_28px)]">
+                      <GeneralProjectIcon
+                        :color="base?.meta?.iconColor"
+                        :type="base?.type || 'database'"
+                        class="nc-view-icon w-4 h-4 flex-none"
+                      />
 
-                    <NcTooltip class="max-w-full truncate" placement="top">
-                      <template #title> {{ base.title }}</template>
-                      {{ base.title }}
-                    </NcTooltip>
+                      <NcTooltip class="max-w-full truncate" placement="top">
+                        <template #title> {{ base.title }}</template>
+                        {{ base.title }}
+                      </NcTooltip>
+                    </div>
+
+                    <GeneralIcon v-if="auditLogsQuery.base === base.id" icon="check" class="flex-none text-primary w-4 h-4" />
                   </div>
-
-                  <GeneralIcon v-if="auditLogsQuery.base === base.id" icon="check" class="flex-none text-primary w-4 h-4" />
-                </div>
-              </NcMenuItem>
+                </NcMenuItem>
+              </template>
             </NcMenu>
           </template>
         </NcDropdown>
@@ -308,7 +291,7 @@ onMounted(async () => {
                   'All'
                 }}
               </div>
-              <GeneralIcon icon="arrowDown" class="h-4 w-4" />
+              <GeneralIcon icon="arrowDown" class="flex-none h-4 w-4" />
             </div>
           </NcButton>
 

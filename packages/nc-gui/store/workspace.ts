@@ -3,6 +3,15 @@ import { acceptHMRUpdate, defineStore } from 'pinia'
 import { message } from 'ant-design-vue'
 import { isString } from '@vue/shared'
 
+const defaultAuditLogsQuery = {
+  type: undefined,
+  subType: undefined,
+  base: undefined,
+  user: undefined,
+  search: undefined,
+  sourceId: undefined,
+}
+
 export const useWorkspace = defineStore('workspaceStore', () => {
   const basesStore = useBases()
 
@@ -33,6 +42,15 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const isCollaboratorsLoading = ref(true)
   const isInvitingCollaborators = ref(false)
   const workspaceUserCount = ref<number | undefined>(undefined)
+
+  const auditLogsQuery = ref<{
+    type?: string
+    subType?: string
+    base?: string
+    user?: string
+    search?: string
+    sourceId?: string
+  }>(defaultAuditLogsQuery)
 
   const activePage = computed<'workspace' | 'recent' | 'shared' | 'starred'>(
     () => (route.value.query.page as 'workspace' | 'recent' | 'shared' | 'starred') ?? 'recent',
@@ -256,6 +274,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     getPlanLimit,
     workspaceRole,
     moveToOrg,
+    auditLogsQuery,
   }
 })
 

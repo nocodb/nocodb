@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { formatAggregation } from 'nc-gui/utils/aggregationUtils'
-
 const props = defineProps<{
   scrollLeft?: number
 }>()
@@ -14,11 +12,17 @@ const reloadViewDataHook = inject(ReloadViewDataHookInj)
 
 const containerElement = ref()
 
-watch(scrollLeft, (value) => {
-  if (containerElement.value) {
-    containerElement.value.scrollLeft = value
-  }
-})
+watch(
+  scrollLeft,
+  (value) => {
+    if (containerElement.value) {
+      containerElement.value.scrollLeft = value
+    }
+  },
+  {
+    immediate: true,
+  },
+)
 
 reloadViewDataHook?.on(async () => {
   await loadViewAggregate()

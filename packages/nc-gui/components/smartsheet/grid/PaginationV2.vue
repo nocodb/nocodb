@@ -84,10 +84,6 @@ const size = computed({
 const renderAltOrOptlKey = () => {
   return isMac() ? '⌥' : 'ALT'
 }
-
-onMounted(() => {
-  loadViewAggregate()
-})
 </script>
 
 <template>

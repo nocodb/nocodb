@@ -147,6 +147,8 @@ const { paste } = usePaste()
 
 const { addLTARRef, syncLTARRefs, clearLTARCell, cleaMMCell } = useSmartsheetLtarHelpersOrThrow()
 
+const { loadViewAggregate } = useViewAggregateOrThrow()
+
 // #Refs
 
 const smartTable = ref(null)
@@ -1522,7 +1524,9 @@ watch(
         }
         isViewDataLoading.value = true
         try {
+          await Promise.allSettled([loadData?.(), loadViewAggregate()])
           await loadData?.()
+          await loadViewAggregate()
           calculateSlices()
         } catch (e) {
           if (!axios.isCancel(e)) {

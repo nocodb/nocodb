@@ -707,7 +707,7 @@ class BaseModelSqlv2 {
         await GridViewColumn.list(this.context, this.viewId)
       ).filter((c) => {
         const col = columns.find((col) => col.id === c.fk_column_id);
-        return c.show && view.show_system_fields ? true : !isSystemColumn(col);
+        return c.show && (view.show_system_fields || !isSystemColumn(col));
       });
 
       // By default, the aggregation is done based on the columns configured in the view

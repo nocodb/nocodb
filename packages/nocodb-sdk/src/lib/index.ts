@@ -29,3 +29,4 @@ export * from '~/lib/passwordHelpers';
 export * from '~/lib/mergeSwaggerSchema';
 export * from '~/lib/dateTimeHelper';
 export * from '~/lib/form';
+export * from '~/lib/aggregationHelper';

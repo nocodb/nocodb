@@ -22,6 +22,8 @@ export default class GridViewColumn implements GridColumnType {
   group_by_order?: number;
   group_by_sort?: string;
 
+  aggregation?: string;
+
   constructor(data: GridViewColumn) {
     Object.assign(this, data);
   }
@@ -161,6 +163,7 @@ export default class GridViewColumn implements GridColumnType {
       'group_by',
       'group_by_order',
       'group_by_sort',
+      'aggregation',
     ]);
 
     // set meta

@@ -83,6 +83,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
               ...currentColumnField,
               show: currentColumnField.show || isColumnViewEssential(currentColumnField),
               order: currentColumnField.order || order++,
+              aggregation: currentColumnField.aggregation || null,
               system: isSystemColumn(metaColumnById?.value?.[currentColumnField.fk_column_id!]),
               isViewEssentialField: isColumnViewEssential(column),
             }

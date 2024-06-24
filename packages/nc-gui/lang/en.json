@@ -38,6 +38,24 @@
       "candlestick_chart": "Candlestick Chart"
     }
   },
+  "aggregation": {
+    "sum": "Sum",
+    "count": "Count",
+    "min": "Min",
+    "max": "Max",
+    "avg": "Average",
+    "median": "Median",
+    "stdDev": "Standard Deviation",
+    "histogram": "Histogram",
+    "range": "Range",
+    "percentEmpty": "Percent Empty",
+    "percentFilled": "Percent Filled",
+    "percentUnique": "Percent Unique",
+    "countUnique": "Count Unique",
+    "countEmpty": "Count Empty",
+    "countFilled": "Count Filled",
+    "none": "None"
+  },
   "general": {
     "role": "Role",
     "general": "General",

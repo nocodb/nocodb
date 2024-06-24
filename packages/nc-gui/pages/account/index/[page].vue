@@ -5,7 +5,7 @@ const { appInfo } = useGlobal()
 <template>
   <div>
     <AccountToken v-if="$route.params.page === 'tokens'" />
-    <div v-else-if="$route.params.page === 'audit'" class="h-[calc(100vh_-_4rem)] w-full">
+    <div v-else-if="$route.params.page === 'audit'" class="h-[calc(100vh_-_4rem)] w-full px-6">
       <WorkspaceAuditLogs />
     </div>
     <AccountProfile v-else-if="$route.params.page === 'profile'" />

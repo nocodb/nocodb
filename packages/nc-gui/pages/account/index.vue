@@ -157,7 +157,7 @@ const logout = async () => {
 
           <!-- Sub Tabs -->
 
-          <div class="flex flex-col w-full ml-65">
+          <div class="flex flex-col w-full pl-65">
             <div class="flex flex-row p-3 items-center h-14">
               <div class="flex-1" />
 

@@ -71,8 +71,11 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
         type: string
       }>,
     ) => {
+      // Wait for meta to be defined https://vueuse.org/shared/until/
       await until(meta)
-        .toBeTruthy((c) => !!c)
+        .toBeTruthy((c) => !!c, {
+          timeout: 10000,
+        })
         .then(async () => {
           try {
             const data = !isPublic.value

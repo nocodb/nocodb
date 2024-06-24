@@ -33,12 +33,7 @@ export class JobsService extends JobsServiceCE implements OnModuleInit {
     const sourceReleaseCmd = async (commaSeperatedSourceIds: string) => {
       const sourceIds = commaSeperatedSourceIds.split(',');
       for (const sourceId of sourceIds) {
-        const deleted = await NcConnectionMgrv2.deleteConnectionRef(sourceId);
-        if (deleted) {
-          this.logger.log(`Released connection for source ${sourceId}`);
-        } else {
-          this.logger.warn(`Connection not found for source ${sourceId}`);
-        }
+        await NcConnectionMgrv2.deleteConnectionRef(sourceId);
       }
     };
 

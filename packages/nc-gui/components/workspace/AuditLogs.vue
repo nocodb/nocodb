@@ -9,13 +9,9 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const { workspaceRoles } = useRoles()
-
 const workspaceStore = useWorkspace()
 
-const { removeCollaborator, updateCollaborator: _updateCollaborator, loadWorkspace } = workspaceStore
-
-const { collaborators, activeWorkspace, workspacesList } = storeToRefs(workspaceStore)
+const { collaborators } = storeToRefs(workspaceStore)
 
 const collaboratorsMap = computed<Map<string, WorkspaceUserType & { id: string }>>(() => {
   const map = new Map<string, WorkspaceUserType & { id: string }>()
@@ -35,6 +31,8 @@ const { $api } = useNuxtApp()
 
 const { t } = useI18n()
 
+const { appInfo } = useGlobal()
+
 const isLoading = ref(false)
 
 const audits = ref<null | Array<AuditType>>(null)
@@ -49,10 +47,23 @@ const isRowExpanded = ref(false)
 
 const selectedAudit = ref<null | AuditType>(null)
 
-const { appInfo } = useGlobal()
+const auditDropdowns = ref({
+  type: false,
+  subType: false,
+  base: false,
+  user: false,
+})
 
-watchEffect(() => {
-  console.log('bases', bases.value, collaborators.value, collaboratorsMap.value)
+const auditLogsQuery = ref<{
+  type?: string
+  subType?: string
+  base?: string
+  user?: string
+}>({
+  type: undefined,
+  subType: undefined,
+  base: undefined,
+  user: undefined,
 })
 
 async function loadAudits(page = currentPage.value, limit = currentLimit.value) {
@@ -69,7 +80,9 @@ async function loadAudits(page = currentPage.value, limit = currentLimit.value) 
     const { list, pageInfo } = await $api.workspace.auditList(props.workspaceId, {
       offset: limit * (page - 1),
       limit,
+      ...auditLogsQuery.value,
     })
+    
 
     audits.value = list
     totalRows.value = pageInfo.totalRows ?? 0
@@ -108,9 +121,118 @@ onMounted(async () => {
         </div>
         <div class="text-sm text-gray-600">Track and monitor any changes made to any base in your workspace.</div>
       </div>
-      <div></div>
+      <div class="px-6 flex items-center gap-3">
+        <NcDropdown v-if="basesList?.length" v-model:visible="auditDropdowns.base" @on-update:visible="loadAudits">
+          <NcButton type="secondary" size="small">
+            <div class="flex items-center gap-2">
+              <div class="max-w-[120px] truncate text-sm !leading-5">
+                Base: {{ (auditLogsQuery.base && bases.get(auditLogsQuery.base)?.title) || 'All' }}
+              </div>
+              <GeneralIcon icon="arrowDown" class="h-4 w-4" />
+            </div>
+          </NcButton>
+
+          <template #overlay>
+            <NcMenu class="w-[256px]" @click="auditDropdowns.base = false">
+              <NcMenuItem class="!children:w-full" @click="auditLogsQuery.base = undefined">
+                <div class="w-full flex items-center justify-between gap-3">
+                  <span class="flex-1"> All Bases </span>
+                  <GeneralIcon v-if="!auditLogsQuery.base" icon="check" class="flex-none text-primary w-4 h-4" />
+                </div>
+              </NcMenuItem>
+              <NcDivider />
+              <NcMenuItem
+                v-for="(base, index) of basesList"
+                :key="index"
+                class="!children:w-full"
+                @click="auditLogsQuery.base = base.id"
+              >
+                <div class="w-full flex items-center justify-between gap-3">
+                  <div class="flex-1 flex items-center gap-2 max-w-[calc(100%_-_28px)]">
+                    <GeneralProjectIcon
+                      :color="base?.meta?.iconColor"
+                      :type="base?.type || 'database'"
+                      class="nc-view-icon w-4 h-4 flex-none"
+                    />
+
+                    <NcTooltip class="max-w-full truncate" placement="top">
+                      <template #title> {{ base.title }}</template>
+                      {{ base.title }}
+                    </NcTooltip>
+                  </div>
+
+                  <GeneralIcon v-if="auditLogsQuery.base === base.id" icon="check" class="flex-none text-primary w-4 h-4" />
+                </div>
+              </NcMenuItem>
+            </NcMenu>
+          </template>
+        </NcDropdown>
+        <NcDropdown v-if="collaborators?.length" v-model:visible="auditDropdowns.user">
+          <NcButton type="secondary" size="small">
+            <div class="flex items-center gap-2">
+              <div class="max-w-[120px] truncate text-sm !leading-5">
+                User:
+                {{
+                  (auditLogsQuery.user &&
+                    (collaboratorsMap.get(auditLogsQuery.user)?.display_name ||
+                      collaboratorsMap
+                        .get(auditLogsQuery.user)
+                        ?.email?.slice(0, collaboratorsMap.get(auditLogsQuery.user)?.email.indexOf('@')))) ||
+                  'All'
+                }}
+              </div>
+              <GeneralIcon icon="arrowDown" class="h-4 w-4" />
+            </div>
+          </NcButton>
+
+          <template #overlay>
+            <NcMenu
+              class="w-[256px]"
+              @click="
+                () => {
+                  auditDropdowns.user = false
+                  loadAudits()
+                }
+              "
+            >
+              <NcMenuItem class="!children:w-full" @click="auditLogsQuery.user = undefined">
+                <div class="w-full flex items-center justify-between gap-3">
+                  <span class="flex-1"> All Users </span>
+                  <GeneralIcon v-if="!auditLogsQuery.user" icon="check" class="flex-none text-primary w-4 h-4" />
+                </div>
+              </NcMenuItem>
+              <NcDivider />
+              <NcMenuItem
+                v-for="(coll, index) of collaborators"
+                :key="index"
+                class="!children:w-full"
+                @click="auditLogsQuery.user = coll.email"
+              >
+                <div class="w-full flex items-center justify-between gap-3">
+                  <div v-if="coll?.email" class="w-full flex gap-3 items-center max-w-[calc(100%_-_28px)]">
+                    <GeneralUserIcon :email="coll?.email" size="base" class="flex-none" />
+                    <div class="flex-1 flex flex-col max-w-[calc(100%_-_44px)]">
+                      <div class="w-full flex gap-3">
+                        <span class="text-sm text-gray-800 capitalize font-semibold truncate">
+                          {{ coll?.display_name || coll?.email?.slice(0, coll?.email.indexOf('@')) }}
+                        </span>
+                      </div>
+                      <span class="text-xs text-gray-600 truncate">
+                        {{ coll?.email }}
+                      </span>
+                    </div>
+                  </div>
+                  <template v-else>{{ coll.email }} </template>
+
+                  <GeneralIcon v-if="auditLogsQuery.user === coll.email" icon="check" class="flex-none text-primary w-4 h-4" />
+                </div>
+              </NcMenuItem>
+            </NcMenu>
+          </template>
+        </NcDropdown>
+      </div>
     </div>
-    <div class="h-[calc(100%_-_102px)] relative">
+    <div class="h-[calc(100%_-_134px)] relative">
       <div class="table-wrapper h-[calc(100%_-_40px)] overflow-auto nc-scrollbar-thin">
         <div class="nc-audit-logs-table table h-full">
           <div class="thead sticky top-0">
@@ -155,7 +277,6 @@ onMounted(async () => {
                                 .get(audit.user)
                                 ?.email?.slice(0, collaboratorsMap.get(audit.user)?.email.indexOf('@'))
                             }}
-                            some of the things that i wanted to ask
                           </span>
                         </div>
                         <span class="text-xs text-gray-600 truncate">
@@ -283,7 +404,7 @@ onMounted(async () => {
                 />
               </div>
               <div>
-                <div class="text-sm">{{ bases.get(selectedAudit?.base_id)?.title }}</div>
+                <div class="text-sm font-weight-500 text-gray-900">{{ bases.get(selectedAudit?.base_id)?.title }}</div>
                 <div class="text-small leading-[18px] text-gray-600">{{ selectedAudit?.base_id }}</div>
               </div>
             </div>
@@ -319,6 +440,10 @@ onMounted(async () => {
   white-space: break-spaces;
   font-size: unset;
   font-family: unset;
+}
+
+:deep(.nc-menu-item-inner) {
+  @apply !w-full;
 }
 
 .nc-audit-logs-table {

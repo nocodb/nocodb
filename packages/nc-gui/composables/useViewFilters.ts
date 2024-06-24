@@ -506,7 +506,7 @@ export function useViewFilters(
 
             // find item index by using id and remove it from array since item index may change
             const itemIndex = filters.value.findIndex((f) => f.id === filter.id)
-            if (itemIndex > -1) filters.value.splice(itemIndex)
+            if (itemIndex > -1) filters.value.splice(itemIndex, 1)
           } catch (e: any) {
             console.log(e)
             message.error(await extractSdkResponseErrorMsg(e))

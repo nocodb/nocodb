@@ -6,13 +6,16 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
     view: Ref<ViewType | undefined>,
     meta: Ref<TableType | undefined> | ComputedRef<TableType | undefined>,
     where?: ComputedRef<string | undefined>,
-    isPublic = false,
   ) => {
     const { $api: api } = useNuxtApp()
 
     const fields = inject(FieldsInj, ref([]))
 
+    const isPublic = inject(IsPublicInj, ref(false))
+
     const { gridViewCols, updateGridViewColumn } = useViewColumnsOrThrow()
+
+    const { fetchAggregatedData } = useSharedView()
 
     const aggregations = ref({}) as Ref<Record<string, any>>
 
@@ -70,11 +73,16 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
       if (!meta.value?.id || !view.value?.id) return
 
       try {
-        const data = await api.dbDataTableAggregate.dbDataTableAggregate(meta.value.id, {
-          viewId: view.value.id,
-          where: where?.value,
-          ...(fields ? { aggregation: fields } : {}),
-        })
+        const data = !isPublic.value
+          ? await api.dbDataTableAggregate.dbDataTableAggregate(meta.value.id, {
+              viewId: view.value.id,
+              where: where?.value,
+              ...(fields ? { aggregation: fields } : {}),
+            })
+          : await fetchAggregatedData({
+              where: where?.value,
+              ...(fields ? { aggregation: fields } : {}),
+            })
 
         Object.assign(aggregations.value, data)
       } catch (error) {

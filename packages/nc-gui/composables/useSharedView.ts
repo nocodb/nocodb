@@ -209,6 +209,29 @@ export function useSharedView() {
     )
   }
 
+  const fetchAggregatedData = async (param: {
+    aggregation?: Array<{
+      field: string
+      type: string
+    }>
+    where?: string
+  }) => {
+    if (!sharedView.value) return {}
+
+    return await $api.public.dataTableAggregate(
+      sharedView.value.uuid!,
+      {
+        ...param,
+        filterArrJson: JSON.stringify(nestedFilters.value),
+      } as any,
+      {
+        headers: {
+          'xc-password': password.value,
+        },
+      },
+    )
+  }
+
   const fetchSharedViewActiveDate = async (param: {
     from_date: string
     to_date: string
@@ -293,6 +316,7 @@ export function useSharedView() {
     fetchSharedViewActiveDate,
     fetchSharedCalendarViewData,
     fetchSharedViewGroupedData,
+    fetchAggregatedData,
     paginationData,
     sorts,
     exportFile,

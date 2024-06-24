@@ -121,17 +121,19 @@ onMounted(() => {
         </a-tab-pane>
       </template>
 
-      <a-tab-pane key="audit" class="w-full">
-        <template #tab>
-          <div class="flex flex-row items-center px-2 pb-1 gap-x-1.5">
-            <GeneralIcon icon="audit" class="!h-3.5 !w-3.5" />
-            Audit Logs
+      <template v-if="isUIAllowed('workspaceAuditList')">
+        <a-tab-pane key="audit" class="w-full">
+          <template #tab>
+            <div class="flex flex-row items-center px-2 pb-1 gap-x-1.5">
+              <GeneralIcon icon="audit" class="!h-3.5 !w-3.5" />
+              Audit Logs
+            </div>
+          </template>
+          <div class="h-[calc(100vh-120px)]">
+            <WorkspaceAuditLogs :workspace-id="currentWorkspace.id" />
           </div>
-        </template>
-        <div class="h-[calc(100vh-120px)]">
-          <WorkspaceAuditLogs :workspace-id="currentWorkspace.id" />
-        </div>
-      </a-tab-pane>
+        </a-tab-pane>
+      </template>
     </NcTabs>
   </div>
 </template>

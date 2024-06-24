@@ -79,7 +79,7 @@ export default function applyAggregation(
 
   let aggregationSql: Knex.Raw | undefined;
 
-  if (aggType === 'unknown' || aggType === 'attachment') {
+  if (aggType === 'unknown') {
     NcError.notImplemented(`Aggregation ${aggregation} is not implemented yet`);
   }
 
@@ -228,6 +228,16 @@ export default function applyAggregation(
         );
         break;
       default:
+        break;
+    }
+  } else if (aggType === 'attachment') {
+    // TODO: Verify Performance
+    switch (aggregation) {
+      case AttachmentAggregations.AttachmentSize:
+        aggregationSql = baseModelSqlv2.dbDriver.raw(
+          `(SELECT SUM((json_object ->> 'size')::int) FROM ?? CROSS JOIN LATERAL jsonb_array_elements(??::jsonb) AS json_array(json_object)) AS ??`,
+          [baseModelSqlv2.tnPath, column.column_name, column.id],
+        );
         break;
     }
   }

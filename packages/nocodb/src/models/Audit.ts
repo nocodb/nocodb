@@ -141,10 +141,23 @@ export default class Audit implements AuditType {
       limit = 25,
       offset = 0,
       sourceId,
+      user,
+      type,
+      startDate,
+      endDate,
+      orderBy,
     }: {
       limit?: number;
       offset?: number;
       sourceId?: string;
+      user?: string;
+      type?: string;
+      startDate?: string;
+      endDate?: string;
+      orderBy?: {
+        created_at?: 'asc' | 'desc';
+        user?: 'asc' | 'desc';
+      };
     },
   ) {
     return await Noco.ncMeta.metaList2(
@@ -155,9 +168,22 @@ export default class Audit implements AuditType {
         condition: {
           base_id: baseId,
           ...(sourceId ? { source_id: sourceId } : {}),
+          ...(user ? { user: user } : {}),
+          ...(type ? { op_type: type } : {}),
         },
         orderBy: {
-          created_at: 'desc',
+          ...(orderBy?.created_at
+            ? { created_at: orderBy?.created_at }
+            : !orderBy?.user
+            ? { created_at: 'desc' }
+            : {}),
+          ...(orderBy?.user ? { user: orderBy?.user } : {}),
+        },
+        xcCondition: {
+          _and: [
+            ...(startDate ? [{ created_at: { ge: startDate } }] : []),
+            ...(endDate ? [{ created_at: { le: endDate } }] : []),
+          ],
         },
         limit,
         offset,
@@ -167,18 +193,39 @@ export default class Audit implements AuditType {
 
   static async baseAuditCount(
     baseId: string,
-    sourceId?: string,
+    {
+      sourceId,
+      user,
+      type,
+      startDate,
+      endDate,
+    }: {
+      sourceId?: string;
+      user?: string;
+      type?: string;
+      startDate?: string;
+      endDate?: string;
+    },
   ): Promise<number> {
-    return (
-      await Noco.ncMeta
-        .knex(MetaTable.AUDIT)
-        .where({
+    return await Noco.ncMeta.metaCount(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.AUDIT,
+      {
+        condition: {
           base_id: baseId,
+          ...(user ? { user: user } : {}),
           ...(sourceId ? { source_id: sourceId } : {}),
-        })
-        .count('id', { as: 'count' })
-        .first()
-    )?.count;
+          ...(type ? { op_type: type } : {}),
+        },
+        xcCondition: {
+          _and: [
+            ...(startDate ? [{ created_at: { ge: startDate } }] : []),
+            ...(endDate ? [{ created_at: { le: endDate } }] : []),
+          ],
+        },
+      },
+    );
   }
 
   static async sourceAuditList(sourceId: string, { limit = 25, offset = 0 }) {

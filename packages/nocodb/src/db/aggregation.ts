@@ -105,21 +105,26 @@ export default async function applyAggregation({
     NcError.notImplemented(`Aggregation ${aggregation} is not implemented yet`);
   }
 
-  let column = _column.column_name;
-
-  if (_column.uidt === UITypes.CreatedTime) column = 'created_at';
-  if (_column.uidt === UITypes.LastModifiedTime) column = 'updated_at';
-
   // If the column is a barcode or qr code column, we fetch the column that the virtual column refers to.
   if (_column.uidt === UITypes.Barcode || _column.uidt === UITypes.QrCode) {
     _column = new Column({
       ...(await _column
         .getColOptions<BarcodeColumn | QrCodeColumn>(context)
         .then((col) => col.getValueColumn(context))),
-      title: _column.title,
       id: _column.id,
     });
   }
+
+  let column = _column.column_name;
+
+  if (_column.uidt === UITypes.CreatedTime && !_column.column_name)
+    column = 'created_at';
+  if (_column.uidt === UITypes.LastModifiedTime && !_column.column_name)
+    column = 'updated_at';
+  if (_column.uidt === UITypes.CreatedBy && !_column.column_name)
+    column = 'created_by';
+  if (_column.uidt === UITypes.LastModifiedBy && !_column.column_name)
+    column = 'updated_by';
 
   /* The following column types require special handling for aggregation:
    * - Links
@@ -159,26 +164,41 @@ export default async function applyAggregation({
       ).builder;
       break;
   }
+  let secondaryCondition: any = "''";
+
+  if (
+    [
+      UITypes.CreatedTime,
+      UITypes.LastModifiedTime,
+      UITypes.Date,
+      UITypes.DateTime,
+      UITypes.Number,
+      UITypes.Decimal,
+      UITypes.Year,
+      UITypes.Currency,
+      UITypes.Duration,
+      UITypes.Time,
+      UITypes.Percent,
+    ].includes(_column.uidt)
+  ) {
+    secondaryCondition = 'NULL';
+  } else if ([UITypes.Rating].includes(_column.uidt)) {
+    secondaryCondition = 0;
+  }
 
   if (aggType === 'common') {
-    let secondaryCondition = "''";
-
-    if (
-      [
-        UITypes.CreatedTime,
-        UITypes.LastModifiedTime,
-        UITypes.Date,
-        UITypes.DateTime,
-      ].includes(_column.uidt)
-    ) {
-      secondaryCondition = 'NULL';
-    }
-
     switch (aggregation) {
       case CommonAggregations.Count:
         aggregationSql = knex.raw(`COUNT(*) AS ??`, [_column.id]);
         break;
       case CommonAggregations.CountEmpty:
+        if ([UITypes.JSON].includes(_column.uidt)) {
+          aggregationSql = knex.raw(
+            `COUNT(*) FILTER (WHERE (??) IS NULL) AS ??`,
+            [column, _column.id],
+          );
+          break;
+        }
         aggregationSql = knex.raw(
           `COUNT(*) FILTER (WHERE (??) IS NULL OR (??) = ${secondaryCondition}) AS ??`,
           [column, column, _column.id],
@@ -194,6 +214,14 @@ export default async function applyAggregation({
             UITypes.LastModifiedTime,
             UITypes.Date,
             UITypes.DateTime,
+            UITypes.Number,
+            UITypes.Decimal,
+            UITypes.Year,
+            UITypes.Currency,
+            UITypes.Duration,
+            UITypes.Percent,
+            UITypes.Time,
+            UITypes.JSON,
           ].includes(_column.uidt)
         ) {
           aggregationSql = knex.raw(
@@ -210,6 +238,14 @@ export default async function applyAggregation({
         );
         break;
       case CommonAggregations.CountUnique:
+        // JSON Does not support DISTINCT for json column type. Hence we need to cast the column to text.
+        if ([UITypes.JSON].includes(_column.uidt)) {
+          aggregationSql = knex.raw(
+            `COUNT(DISTINCT ((??)::text)) FILTER (WHERE (??) IS NOT NULL) AS ??`,
+            [column, column, _column.id],
+          );
+          break;
+        }
         // The condition IS NOT NULL AND (column) != 'NULL' is not same for the following column types:
         // Hence we need to handle them separately.
         if (
@@ -218,6 +254,13 @@ export default async function applyAggregation({
             UITypes.LastModifiedTime,
             UITypes.Date,
             UITypes.DateTime,
+            UITypes.Number,
+            UITypes.Decimal,
+            UITypes.Year,
+            UITypes.Currency,
+            UITypes.Time,
+            UITypes.Duration,
+            UITypes.Percent,
           ].includes(_column.uidt)
         ) {
           aggregationSql = knex.raw(
@@ -232,8 +275,15 @@ export default async function applyAggregation({
         );
         break;
       case CommonAggregations.PercentEmpty:
+        if ([UITypes.JSON].includes(_column.uidt)) {
+          aggregationSql = knex.raw(
+            `(COUNT(*) FILTER (WHERE (??) IS NULL) * 100.0 / NULLIF(COUNT(*), 0)) AS ??`,
+            [column, _column.id],
+          );
+          break;
+        }
         aggregationSql = knex.raw(
-          `(COUNT(*) FILTER (WHERE (??) IS NULL OR (??) = ${secondaryCondition}) * 100.0 / COUNT(*)) AS ??`,
+          `(COUNT(*) FILTER (WHERE (??) IS NULL OR (??) = ${secondaryCondition}) * 100.0 / NULLIF(COUNT(*), 0)) AS ??`,
           [column, column, _column.id],
         );
         break;
@@ -246,20 +296,36 @@ export default async function applyAggregation({
             UITypes.LastModifiedTime,
             UITypes.Date,
             UITypes.DateTime,
+            UITypes.Number,
+            UITypes.Time,
+            UITypes.Decimal,
+            UITypes.Year,
+            UITypes.Currency,
+            UITypes.Duration,
+            UITypes.Percent,
+            UITypes.JSON,
           ].includes(_column.uidt)
         ) {
           aggregationSql = knex.raw(
-            `(COUNT(*) FILTER (WHERE (??) IS NOT NULL) * 100.0 / COUNT(*)) AS ??`,
+            `(COUNT(*) FILTER (WHERE (??) IS NOT NULL) * 100.0 / NULLIF(COUNT(*), 0)) AS ??`,
             [column, _column.id],
           );
           break;
         }
         aggregationSql = knex.raw(
-          `(COUNT(*) FILTER (WHERE (??) IS NOT NULL AND (??) != ${secondaryCondition}) * 100.0 / COUNT(*)) AS ??`,
+          `(COUNT(*) FILTER (WHERE (??) IS NOT NULL AND (??) != ${secondaryCondition}) * 100.0 / NULLIF(COUNT(*), 0)) AS ??`,
           [column, column, _column.id],
         );
         break;
       case CommonAggregations.PercentUnique:
+        // JSON Does not support DISTINCT for json column type. Hence we need to cast the column to text.
+        if ([UITypes.JSON].includes(_column.uidt)) {
+          aggregationSql = knex.raw(
+            `(COUNT(DISTINCT ((??)::text)) FILTER (WHERE (??) IS NOT NULL) * 100.0 / NULLIF(COUNT(*), 0)) AS ??`,
+            [column, column, _column.id],
+          );
+          break;
+        }
         // The condition IS NOT NULL AND (column) != 'NULL' is not same for the following column types:
         // Hence we need to handle them separately.
         if (
@@ -268,16 +334,23 @@ export default async function applyAggregation({
             UITypes.LastModifiedTime,
             UITypes.Date,
             UITypes.DateTime,
+            UITypes.Number,
+            UITypes.Decimal,
+            UITypes.Year,
+            UITypes.Time,
+            UITypes.Currency,
+            UITypes.Duration,
+            UITypes.Percent,
           ].includes(_column.uidt)
         ) {
           aggregationSql = knex.raw(
-            `(COUNT(DISTINCT (??)) FILTER (WHERE (??) IS NOT NULL) * 100.0 / COUNT(*)) AS ??`,
+            `(COUNT(DISTINCT (??)) FILTER (WHERE (??) IS NOT NULL) * 100.0 / NULLIF(COUNT(*), 0)) AS ??`,
             [column, column, _column.id],
           );
           break;
         }
         aggregationSql = knex.raw(
-          `(COUNT(DISTINCT (??)) FILTER (WHERE (??) IS NOT NULL AND (??) != ${secondaryCondition}) * 100.0 / COUNT(*)) AS ??`,
+          `(COUNT(DISTINCT (??)) FILTER (WHERE (??) IS NOT NULL AND (??) != ${secondaryCondition}) * 100.0 / NULLIF(COUNT(*), 0)) AS ??`,
           [column, column, column, _column.id],
         );
         break;
@@ -287,18 +360,40 @@ export default async function applyAggregation({
   } else if (aggType === 'numerical') {
     switch (aggregation) {
       case NumericalAggregations.Avg:
+        if (_column.uidt === UITypes.Rating) {
+          aggregationSql = knex.raw(
+            `AVG((??)) FILTER (WHERE (??) != ??) AS ??`,
+            [column, column, secondaryCondition, _column.id],
+          );
+          break;
+        }
         aggregationSql = knex.raw(`AVG((??)) AS ??`, [column, _column.id]);
         break;
       case NumericalAggregations.Max:
         aggregationSql = knex.raw(`MAX((??)) AS ??`, [column, _column.id]);
         break;
       case NumericalAggregations.Min:
+        if (_column.uidt === UITypes.Rating) {
+          aggregationSql = knex.raw(
+            `MIN((??)) FILTER (WHERE (??) != ??) AS ??`,
+            [column, column, secondaryCondition, _column.id],
+          );
+          break;
+        }
+
         aggregationSql = knex.raw(`MIN((??)) AS ??`, [column, _column.id]);
         break;
       case NumericalAggregations.Sum:
         aggregationSql = knex.raw(`SUM((??)) AS ??`, [column, _column.id]);
         break;
       case NumericalAggregations.StandardDeviation:
+        if (_column.uidt === UITypes.Rating) {
+          aggregationSql = knex.raw(
+            `STDDEV((??)) FILTER (WHERE (??) != ??) AS ??`,
+            [column, column, secondaryCondition, _column.id],
+          );
+          break;
+        }
         aggregationSql = knex.raw(`STDDEV((??)) AS ??`, [column, _column.id]);
         break;
       case NumericalAggregations.Range:
@@ -334,13 +429,13 @@ export default async function applyAggregation({
         break;
       case BooleanAggregations.PercentChecked:
         aggregationSql = knex.raw(
-          `(COUNT(*) FILTER (WHERE (??) = true) * 100.0 / COUNT(*)) AS ??`,
+          `(COUNT(*) FILTER (WHERE (??) = true) * 100.0 / NULLIF(COUNT(*), 0)) AS ??`,
           [column, _column.id],
         );
         break;
       case BooleanAggregations.PercentUnchecked:
         aggregationSql = knex.raw(
-          `(COUNT(*) FILTER (WHERE (??) = false OR (??) = NULL) * 100.0 / COUNT(*)) AS ??`,
+          `(COUNT(*) FILTER (WHERE (??) = false OR (??) = NULL) * 100.0 / NULLIF(COUNT(*), 0)) AS ??`,
           [column, column, _column.id],
         );
         break;
@@ -378,7 +473,7 @@ export default async function applyAggregation({
     switch (aggregation) {
       case AttachmentAggregations.AttachmentSize:
         aggregationSql = knex.raw(
-          `(SELECT SUM((json_object ->> 'size')::int) FROM (??) CROSS JOIN LATERAL jsonb_array_elements(??::jsonb) AS json_array(json_object)) AS ??`,
+          `(SELECT SUM((json_object ->> 'size')::int) FROM ?? CROSS JOIN LATERAL jsonb_array_elements(??::jsonb) AS json_array(json_object)) AS ??`,
           [baseModelSqlv2.tnPath, column, _column.id],
         );
         break;

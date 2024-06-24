@@ -68,7 +68,7 @@ const getAvailableAggregations = (type: string): string[] => {
         ...Object.values(CommonAggregations),
       ];
     case UITypes.Checkbox:
-      return [...Object.values(BooleanAggregations)];
+      return [...Object.values(BooleanAggregations), CommonAggregations.None];
     case UITypes.Date:
     case UITypes.DateTime:
     case UITypes.LastModifiedTime:

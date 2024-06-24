@@ -1,58 +1,18 @@
 <script setup lang="ts">
-import { getAvailableAggregations } from 'nocodb-sdk'
+import { formatAggregation } from 'nc-gui/utils/aggregationUtils'
 
 const props = defineProps<{
   scrollLeft?: number
 }>()
 
-const { updateGridViewColumn, gridViewCols } = useViewColumnsOrThrow()
+const { loadViewAggregate, updateAggregate, getAggregations, visibleFieldsComputed, displayFieldComputed } =
+  useViewAggregateOrThrow()
 
 const scrollLeft = toRef(props, 'scrollLeft')
 
+const reloadViewDataHook = inject(ReloadViewDataHookInj)
+
 const containerElement = ref()
-
-const fields = inject(FieldsInj, ref([]))
-
-const visibleFields = computed(() => {
-  const f = fields.value.map((field, index) => ({ field, index })).filter((f) => f.index !== 0)
-
-  return f.map((f) => {
-    const gridField = gridViewCols.value[f.field.id!]
-
-    if (!gridField) {
-      return { field: null, index: f.index }
-    }
-
-    return {
-      field: gridField,
-      column: f.field,
-      index: f.index,
-      width: `${Number(gridField.width.replace('px', ''))}px` || '180px',
-    }
-  })
-})
-
-const displayFieldComputed = computed(() => {
-  if (!fields.value?.length || !gridViewCols.value)
-    return {
-      field: null,
-      width: '180px',
-    }
-
-  return {
-    column: fields.value[0],
-    field: gridViewCols.value[fields.value[0].id!],
-    width: `${Number((gridViewCols.value[fields.value[0]!.id!].width ?? '').replace('px', ''))}px` || '180px',
-  }
-})
-
-const getAggregations = (type: string, hideNone?: boolean) => {
-  const agg = getAvailableAggregations(type)
-  if (hideNone) {
-    return agg.filter((x) => x !== 'none')
-  }
-  return agg
-}
 
 watch(scrollLeft, (value) => {
   if (containerElement.value) {
@@ -60,9 +20,13 @@ watch(scrollLeft, (value) => {
   }
 })
 
-const updateAggregate = async (fieldId: string, agg: string) => {
-  await updateGridViewColumn(fieldId, { aggregation: agg })
-}
+reloadViewDataHook?.on(async () => {
+  await loadViewAggregate()
+})
+
+onMounted(() => {
+  loadViewAggregate()
+})
 </script>
 
 <template>
@@ -93,6 +57,17 @@ const updateAggregate = async (fieldId: string, agg: string) => {
             <GeneralIcon class="text-gray-500" icon="arrowUp" />
             <span class="text-[10px] font-semibold"> -SET AGGREGATE- </span>
           </div>
+          <div v-else-if="displayFieldComputed.value !== undefined" class="flex gap-2 text-nowrap overflow-hidden items-center">
+            <span class="text-gray-500 text-[12px] font-semibold leading-4">
+              {{ $t(`aggregation.${displayFieldComputed.field.aggregation}`) }}
+            </span>
+
+            <span class="text-gray-600 text-[12px]">
+              {{
+                formatAggregation(displayFieldComputed.field.aggregation, displayFieldComputed.value, displayFieldComputed.column)
+              }}
+            </span>
+          </div>
         </div>
 
         <template #overlay>
@@ -113,7 +88,7 @@ const updateAggregate = async (fieldId: string, agg: string) => {
       </NcDropdown>
     </div>
 
-    <template v-for="({ field, width, column }, index) in visibleFields" :key="index">
+    <template v-for="({ field, width, column, value }, index) in visibleFieldsComputed" :key="index">
       <NcDropdown v-if="field && column?.id">
         <div
           class="flex items-center justify-end group hover:bg-gray-100 cursor-pointer text-gray-500 transition-all transition-linear px-3 py-2"
@@ -129,6 +104,16 @@ const updateAggregate = async (fieldId: string, agg: string) => {
           >
             <GeneralIcon class="text-gray-500" icon="arrowUp" />
             <span class="text-[10px] font-semibold"> -SET AGGREGATE- </span>
+          </div>
+
+          <div v-else-if="value !== undefined" class="flex gap-2 text-nowrap overflow-hidden items-center">
+            <span class="text-gray-500 text-[12px] font-semibold leading-4">
+              {{ $t(`aggregation.${field.aggregation}`) }}
+            </span>
+
+            <span class="text-gray-600 text-[12px]">
+              {{ formatAggregation(field.aggregation, value, column) }}
+            </span>
           </div>
         </div>
 

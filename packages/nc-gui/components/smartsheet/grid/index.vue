@@ -79,6 +79,8 @@ provide(IsCalendarInj, ref(false))
 
 provide(RowHeightInj, rowHeight)
 
+useProvideViewAggregate(view, meta, xWhere)
+
 const isPublic = inject(IsPublicInj, ref(false))
 
 // reload table data reload hook as fallback to rowdatareload

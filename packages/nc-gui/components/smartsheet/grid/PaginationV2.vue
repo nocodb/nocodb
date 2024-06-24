@@ -109,7 +109,7 @@ onMounted(() => {
       </NcTooltip> -->
 
       <NcDropdown
-        :disabled="displayFieldComputed.column.uidt === UITypes.SpecificDBType"
+        :disabled="displayFieldComputed.column?.uidt === UITypes.SpecificDBType"
         overlay-class-name="max-h-96 relative scroll-container nc-scrollbar-thin overflow-auto"
       >
         <div
@@ -139,7 +139,7 @@ onMounted(() => {
               </span>
             </NcTooltip>
 
-            <template v-if="![UITypes.SpecificDBType, UITypes.ForeignKey].includes(displayFieldComputed.column.uidt!)">
+            <template v-if="![UITypes.SpecificDBType, UITypes.ForeignKey].includes(displayFieldComputed.column?.uidt!)">
               <div
                 v-if="!displayFieldComputed.field?.aggregation || displayFieldComputed.field?.aggregation === 'none'"
                 class="text-gray-500 opacity-0 transition group-hover:opacity-100"
@@ -211,7 +211,7 @@ onMounted(() => {
     <template v-for="({ field, width, column, value }, index) in visibleFieldsComputed" :key="index">
       <NcDropdown
         v-if="field && column?.id"
-        :disabled="column.uidt === UITypes.SpecificDBType"
+        :disabled="column?.uidt === UITypes.SpecificDBType"
         overlay-class-name="max-h-96 relative scroll-container nc-scrollbar-thin overflow-auto"
       >
         <div

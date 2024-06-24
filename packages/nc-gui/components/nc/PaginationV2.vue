@@ -132,7 +132,7 @@ const pageSizeOptions = [
       </component>
 
       <div v-if="!isMobileMode" class="text-gray-500">
-        <NcDropdown placement="top" overlay-class-name="overflow-hidden !shadow-none min-h-48 max-h-54">
+        <NcDropdown placement="top" overlay-class-name="overflow-hidden !shadow-none max-h-54">
           <NcButton class="!border-0 nc-select-page" type="secondary" size="xsmall">
             <div class="flex gap-1 items-center px-2">
               <span class="nc-current-page">
@@ -143,8 +143,8 @@ const pageSizeOptions = [
           </NcButton>
 
           <template #overlay>
-            <NcMenu class="nc-scrollbar-thin nc-pagination-menu !min-h-47 !h-47 overflow-y-auto">
-              <NcDropdown placement="left" trigger="hover">
+            <NcMenu class="nc-scrollbar-thin nc-pagination-menu !max-h-47 overflow-y-auto">
+              <NcDropdown placement="topLeft" :trigger="['hover']">
                 <div class="sticky bg-white z-90 top-0">
                   <NcMenuItem class="bg-gray-100">
                     <div class="rounded-lg text-[13px] font-medium w-full">{{ localPageSize }} / page</div>

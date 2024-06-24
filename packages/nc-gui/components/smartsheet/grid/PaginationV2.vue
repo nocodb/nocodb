@@ -113,7 +113,7 @@ onMounted(() => {
         overlay-class-name="max-h-96 relative scroll-container nc-scrollbar-thin overflow-auto"
       >
         <div
-          class="flex items-center hover:bg-gray-100 cursor-pointer text-gray-500 justify-end transition-all transition-linear px-3 py-2"
+          class="flex items-center overflow-x-hidden hover:bg-gray-100 cursor-pointer text-gray-500 justify-end transition-all transition-linear px-3 py-2"
           :style="{
             'min-width': displayFieldComputed?.width,
             'max-width': displayFieldComputed?.width,
@@ -127,17 +127,46 @@ onMounted(() => {
             <GeneralIcon class="text-gray-500" icon="arrowDown" />
             <span class="text-[10px] font-semibold"> Summary </span>
           </div>
-          <div v-else-if="displayFieldComputed.value !== undefined" class="flex gap-2 text-nowrap overflow-hidden items-center">
-            <span class="text-gray-500 text-[12px] leading-4">
-              {{ $t(`aggregation.${displayFieldComputed.field.aggregation}`) }}
-            </span>
+          <NcTooltip
+            v-else-if="displayFieldComputed.value !== undefined"
+            :style="{
+              maxWidth: `${displayFieldComputed?.width}`,
+            }"
+          >
+            <div class="flex gap-2 text-nowrap truncate overflow-hidden items-center">
+              <span class="text-gray-500 text-[12px] leading-4">
+                {{ $t(`aggregation.${displayFieldComputed.field.aggregation}`) }}
+              </span>
 
-            <span class="text-gray-600 text-[12px] font-semibold">
-              {{
-                formatAggregation(displayFieldComputed.field.aggregation, displayFieldComputed.value, displayFieldComputed.column)
-              }}
-            </span>
-          </div>
+              <span class="text-gray-600 text-[12px] font-semibold">
+                {{
+                  formatAggregation(
+                    displayFieldComputed.field.aggregation,
+                    displayFieldComputed.value,
+                    displayFieldComputed.column,
+                  )
+                }}
+              </span>
+            </div>
+
+            <template #title>
+              <div class="flex gap-2 text-nowrap overflow-hidden items-center">
+                <span class="text-[12px] leading-4">
+                  {{ $t(`aggregation.${displayFieldComputed.field.aggregation}`) }}
+                </span>
+
+                <span class="text-[12px] font-semibold">
+                  {{
+                    formatAggregation(
+                      displayFieldComputed.field.aggregation,
+                      displayFieldComputed.value,
+                      displayFieldComputed.column,
+                    )
+                  }}
+                </span>
+              </div>
+            </template>
+          </NcTooltip>
         </div>
 
         <template #overlay>
@@ -164,7 +193,7 @@ onMounted(() => {
         overlay-class-name="max-h-96 relative scroll-container nc-scrollbar-thin overflow-auto"
       >
         <div
-          class="flex items-center justify-end group hover:bg-gray-100 cursor-pointer text-gray-500 transition-all transition-linear px-3 py-2"
+          class="flex items-center overflow-x-hidden justify-end group hover:bg-gray-100 cursor-pointer text-gray-500 transition-all transition-linear px-3 py-2"
           :style="{
             'min-width': width,
             'max-width': width,
@@ -179,15 +208,34 @@ onMounted(() => {
             <span class="text-[10px] font-semibold"> Summary </span>
           </div>
 
-          <div v-else-if="value !== undefined" class="flex gap-2 text-nowrap overflow-hidden items-center">
-            <span class="text-gray-500 text-[12px] leading-4">
-              {{ $t(`aggregation.${field.aggregation}`).replace('Percent ', '') }}
-            </span>
+          <NcTooltip
+            v-else-if="value !== undefined"
+            :style="{
+              maxWidth: `${field?.width}px`,
+            }"
+          >
+            <div class="flex gap-2 truncate text-nowrap overflow-hidden items-center">
+              <span class="text-gray-500 text-[12px] leading-4">
+                {{ $t(`aggregation.${field.aggregation}`).replace('Percent ', '') }}
+              </span>
 
-            <span class="text-gray-600 font-semibold text-[12px]">
-              {{ formatAggregation(field.aggregation, value, column) }}
-            </span>
-          </div>
+              <span class="text-gray-600 font-semibold text-[12px]">
+                {{ formatAggregation(field.aggregation, value, column) }}
+              </span>
+            </div>
+
+            <template #title>
+              <div class="flex gap-2 text-nowrap overflow-hidden items-center">
+                <span class="text-[12px] leading-4">
+                  {{ $t(`aggregation.${field.aggregation}`).replace('Percent ', '') }}
+                </span>
+
+                <span class="font-semibold text-[12px]">
+                  {{ formatAggregation(field.aggregation, value, column) }}
+                </span>
+              </div>
+            </template>
+          </NcTooltip>
         </div>
 
         <template #overlay>

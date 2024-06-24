@@ -1855,7 +1855,7 @@ export default class View implements ViewType {
         let show = 'show' in column ? column.show : true;
 
         const aggregation = column.pv
-          ? CommonAggregations.Count
+          ? CommonAggregations.CountUnique
           : CommonAggregations.None;
 
         if (view.type === ViewTypes.GALLERY) {

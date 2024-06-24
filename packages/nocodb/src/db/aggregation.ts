@@ -165,6 +165,7 @@ export default async function applyAggregation({
           column: column,
           alias: null,
           model,
+          isAggregation: true,
         })
       ).builder;
       break;

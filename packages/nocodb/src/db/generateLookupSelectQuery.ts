@@ -41,12 +41,14 @@ export default async function generateLookupSelectQuery({
   alias,
   model: _model,
   getAlias = getAliasGenerator('__lk_slt_'),
+  isAggregation = false,
 }: {
   column: Column;
   baseModelSqlv2: BaseModelSqlv2;
   alias: string;
   model: Model;
   getAlias?: ReturnType<typeof getAliasGenerator>;
+  isAggregation?: boolean;
 }): Promise<any> {
   const knex = baseModelSqlv2.dbDriver;
 
@@ -298,11 +300,6 @@ export default async function generateLookupSelectQuery({
       });
 
       switch (lookupColumn.uidt) {
-        case UITypes.Attachment:
-          NcError.badRequest(
-            'Group by using attachment column is not supported',
-          );
-          break;
         case UITypes.Links:
         case UITypes.Rollup:
           {
@@ -349,6 +346,14 @@ export default async function generateLookupSelectQuery({
             });
           }
           break;
+        case UITypes.Attachment:
+          if (!isAggregation) {
+            NcError.badRequest(
+              'Group by using attachment column is not supported',
+            );
+            break;
+          }
+        // eslint-disable-next-line no-fallthrough
         default:
           {
             selectQb.select(

@@ -12,6 +12,8 @@ const emits = defineEmits(['update:paginationData'])
 
 const { isViewDataLoading, isPaginationLoading } = storeToRefs(useViewsStore())
 
+const isLocked = inject(IsLockedInj, ref(false))
+
 const { changePage } = props
 
 const vPaginationData = useVModel(props, 'paginationData', emits)
@@ -91,25 +93,8 @@ onMounted(() => {
 <template>
   <div ref="containerElement" class="bg-gray-50 w-full pr-1 border-t-1 border-gray-200 overflow-x-hidden no-scrollbar flex h-9">
     <div class="sticky flex items-center bg-gray-50 left-0">
-      <!--      <div
-        v-if="isViewDataLoading || isPaginationLoading"
-        class="nc-pagination-skeleton flex justify-center item-center min-h-10 min-w-16 w-16"
-      >
-        <a-skeleton :active="true" :title="true" :paragraph="false" class="w-16 max-w-16" />
-      </div>
-      <NcTooltip v-else class="flex items-center h-full">
-        <template #title> {{ count }} {{ count !== 1 ? $t('objects.records') : $t('objects.record') }} </template>
-        <span
-          data-testid="grid-pagination"
-          class="text-gray-500 min-w-13 max-w-13 w-13 text-ellipsis overflow-hidden pl-1 truncate nc-grid-row-count caption text-xs text-nowrap"
-        >
-          {{ Intl.NumberFormat('en', { notation: 'compact' }).format(count) }}
-          {{ count !== 1 ? $t('objects.records') : $t('objects.record') }}
-        </span>
-      </NcTooltip> -->
-
       <NcDropdown
-        :disabled="displayFieldComputed.column?.uidt === UITypes.SpecificDBType"
+        :disabled="[UITypes.SpecificDBType, UITypes.ForeignKey].includes(displayFieldComputed.column?.uidt!) || isLocked"
         overlay-class-name="max-h-96 relative scroll-container nc-scrollbar-thin overflow-auto"
       >
         <div
@@ -122,10 +107,7 @@ onMounted(() => {
           }"
         >
           <div class="flex relative justify-between gap-2 w-full">
-            <div
-              v-if="isViewDataLoading || isPaginationLoading"
-              class="nc-pagination-skeleton flex justify-center item-center min-h-10 min-w-16 w-16"
-            >
+            <div v-if="isViewDataLoading" class="nc-pagination-skeleton flex justify-center item-center min-h-10 min-w-16 w-16">
               <a-skeleton :active="true" :title="true" :paragraph="false" class="w-16 max-w-16" />
             </div>
             <NcTooltip v-else class="flex sticky items-center h-full">
@@ -211,7 +193,7 @@ onMounted(() => {
     <template v-for="({ field, width, column, value }, index) in visibleFieldsComputed" :key="index">
       <NcDropdown
         v-if="field && column?.id"
-        :disabled="column?.uidt === UITypes.SpecificDBType"
+        :disabled="[UITypes.SpecificDBType, UITypes.ForeignKey].includes(column?.uidt!) || isLocked"
         overlay-class-name="max-h-96 relative scroll-container nc-scrollbar-thin overflow-auto"
       >
         <div

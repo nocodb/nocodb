@@ -1,7 +1,20 @@
 <script setup lang="ts">
+import axios from 'axios'
+import type { PaginatedType } from 'nocodb-sdk'
+
 const props = defineProps<{
   scrollLeft?: number
+  paginationData: PaginatedType
+  changePage: (page: number) => void
 }>()
+
+const emits = defineEmits(['update:paginationData'])
+
+const { isPaginationLoading } = storeToRefs(useViewsStore())
+
+const { changePage } = props
+
+const vPaginationData = useVModel(props, 'paginationData', emits)
 
 const { loadViewAggregate, updateAggregate, getAggregations, visibleFieldsComputed, displayFieldComputed } =
   useViewAggregateOrThrow()
@@ -27,6 +40,48 @@ watch(
 reloadViewDataHook?.on(async () => {
   await loadViewAggregate()
 })
+
+const count = computed(() => vPaginationData.value?.totalRows ?? Infinity)
+
+const page = computed({
+  get: () => vPaginationData?.value?.page ?? 1,
+  set: async (p) => {
+    isPaginationLoading.value = true
+    try {
+      await changePage?.(p)
+      isPaginationLoading.value = false
+    } catch (e) {
+      if (axios.isCancel(e)) {
+        return
+      }
+      isPaginationLoading.value = false
+    }
+  },
+})
+
+const size = computed({
+  get: () => vPaginationData.value?.pageSize ?? 25,
+  set: (size: number) => {
+    if (vPaginationData.value) {
+      // if there is no change in size then return
+      if (vPaginationData.value?.pageSize && vPaginationData.value?.pageSize === size) {
+        return
+      }
+
+      vPaginationData.value.pageSize = size
+
+      if (vPaginationData.value.totalRows && page.value * size < vPaginationData.value.totalRows) {
+        changePage?.(page.value)
+      } else {
+        changePage?.(1)
+      }
+    }
+  },
+})
+
+const renderAltOrOptlKey = () => {
+  return isMac() ? '⌥' : 'ALT'
+}
 
 onMounted(() => {
   loadViewAggregate()
@@ -136,11 +191,63 @@ onMounted(() => {
     </template>
 
     <div class="!px-8 !w-8 h-1">‎</div>
+
+    <div class="fixed h-9 bg-white border-l-1 border-gray-200 px-1 flex items-center right-0">
+      <NcPagination
+        v-if="count !== Infinity"
+        v-model:current="page"
+        v-model:page-size="size"
+        class="xs:(mr-2)"
+        :total="+count"
+        entity-name="grid"
+        :prev-page-tooltip="`${renderAltOrOptlKey()}+←`"
+        :next-page-tooltip="`${renderAltOrOptlKey()}+→`"
+        :first-page-tooltip="`${renderAltOrOptlKey()}+↓`"
+        :last-page-tooltip="`${renderAltOrOptlKey()}+↑`"
+        :show-size-changer="true"
+      />
+    </div>
   </div>
 </template>
 
 <style scoped lang="scss">
 :deep(.nc-menu-item-inner) {
   @apply w-full;
+}
+
+.nc-grid-pagination-wrapper {
+  .ant-pagination-item-active {
+    a {
+      @apply text-sm !text-gray-700 !hover:text-gray-800;
+    }
+  }
+}
+</style>
+
+<style scoped>
+:deep(.ant-pagination-item a) {
+  @apply text-sm !leading-[21px] !no-underline;
+}
+
+:deep(.nc-pagination .ant-pagination-item) {
+  @apply !border-0 !pt-0.25;
+}
+
+:deep(.ant-pagination-item:not(.ant-pagination-item-active) a) {
+  line-height: 21px !important;
+  @apply text-sm !text-gray-400;
+}
+
+:deep(.ant-pagination-item-link) {
+  @apply text-gray-800 flex items-center justify-center;
+}
+
+:deep(.ant-pagination-item.ant-pagination-item-active) {
+  @apply !bg-transparent;
+}
+
+:deep(.rtl-pagination .ant-pagination-prev .ant-pagination-item-link),
+:deep(.rtl-pagination .ant-pagination-next .ant-pagination-item-link) {
+  @apply transform rotate-180;
 }
 </style>

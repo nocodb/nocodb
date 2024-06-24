@@ -2437,7 +2437,12 @@ onKeyStroke('ArrowDown', onDown)
         </div>
       </template>
     </LazySmartsheetPagination>
-    <LazySmartsheetGridPaginationV2 v-else :scroll-left="scrollLeft" />
+    <LazySmartsheetGridPaginationV2
+      v-else-if="paginationDataRef"
+      v-model:pagination-data="paginationDataRef"
+      :change-page="changePage"
+      :scroll-left="scrollLeft"
+    />
     <div v-if="headerOnly !== true && paginationDataRef && !isGroupBy" class="absolute bottom-12 left-2">
       <NcDropdown v-if="isAddingEmptyRowAllowed && !showSkeleton">
         <div class="flex">

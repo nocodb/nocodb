@@ -10,6 +10,7 @@ interface Props {
   workspaceId?: string
   baseId?: string
   sourceId?: string
+  bordered?: boolean
 }
 
 const props = defineProps<Props>()
@@ -189,7 +190,7 @@ const updateOrderBy = (field: 'created_at' | 'user') => {
     auditLogsQuery.value.orderBy[field] = 'asc'
   }
 
-  loadAudits()
+  loadAudits(undefined, undefined, false)
 }
 
 const handleCloseDropdown = (field: 'user' | 'base' | 'type' | 'dateRange') => {
@@ -724,18 +725,19 @@ onMounted(async () => {
     </div>
     <template v-if="appInfo.auditEnabled">
       <div
-        class="relative"
+        class="table-container relative"
         :class="{
           'h-[calc(100%_-_92px)] ': baseId,
           'h-[calc(100%_-_140px)]': !baseId,
+          'bordered': bordered,
         }"
       >
-        <div class="table-wrapper max-h-[calc(100%_-_40px)] overflow-auto nc-scrollbar-thin relative">
+        <div class="table-wrapper h-full max-h-[calc(100%_-_40px)] overflow-auto nc-scrollbar-thin relative">
           <div class="nc-audit-logs-table table h-full relative">
             <div class="thead sticky top-0">
               <div class="tr">
                 <div class="th cell-user !hover:bg-gray-100 select-none cursor-pointer" @click="updateOrderBy('user')">
-                  <div class="flex items-center gap-3">
+                  <div class="flex items-center gap-3 sticky left-0">
                     <div>User</div>
                     <GeneralIcon
                       v-if="auditLogsQuery.orderBy?.user"
@@ -874,17 +876,15 @@ onMounted(async () => {
         >
           <div class="flex justify-between items-center w-full px-6">
             <div>&nbsp;</div>
-            <template v-if="+totalRows > currentLimit">
-              <NcPagination
-                v-model:current="currentPage"
-                v-model:page-size="currentLimit"
-                :total="+totalRows"
-                show-size-changer
-                :use-stored-page-size="false"
-                @update:current="loadAudits(undefined, undefined, false)"
-                @update:page-size="loadAudits(currentPage, $event, false)"
-              />
-            </template>
+            <NcPagination
+              v-model:current="currentPage"
+              v-model:page-size="currentLimit"
+              :total="+totalRows"
+              show-size-changer
+              :use-stored-page-size="false"
+              @update:current="loadAudits(undefined, undefined, false)"
+              @update:page-size="loadAudits(currentPage, $event, false)"
+            />
             <div class="text-gray-500 text-xs">{{ totalRows }} {{ totalRows === 1 ? 'record' : 'records' }}</div>
           </div>
         </div>
@@ -994,6 +994,12 @@ onMounted(async () => {
 
 :deep(.nc-menu-item-inner) {
   @apply !w-full;
+}
+
+.table-container {
+  &.bordered {
+    @apply border-1 border-gray-200 rounded-xl overflow-hidden;
+  }
 }
 
 .nc-audit-logs-table {

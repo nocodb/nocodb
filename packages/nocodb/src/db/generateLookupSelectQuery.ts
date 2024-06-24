@@ -313,7 +313,9 @@ export default async function generateLookupSelectQuery({
                 alias: prevAlias,
               })
             ).builder;
-            selectQb.select(knex.raw(builder).wrap('(', ')'));
+            selectQb.select({
+              [lookupColumn.id]: knex.raw(builder).wrap('(', ')'),
+            });
           }
           break;
         case UITypes.Formula:

@@ -215,15 +215,18 @@ export default function applyAggregation(
           column.id,
         ]);
         break;
+      // TODO: Not Working in some cases @DarkPhoenix2704
+
       case DateAggregations.DateRange:
         aggregationSql = baseModelSqlv2.dbDriver.raw(
           `MAX(??) - MIN(??) AS ??`,
           [column.column_name, column.column_name, column.id],
         );
         break;
+      // TODO: Not Working in some cases @DarkPhoenix2704
       case DateAggregations.MonthRange:
         aggregationSql = baseModelSqlv2.dbDriver.raw(
-          `EXTRACT(MONTH FROM MAX(??::timestamptz)) - EXTRACT(MONTH FROM MIN(??::timestamptz)) AS ??`,
+          `EXTRACT(MONTH FROM MAX(??)) - EXTRACT(MONTH FROM MIN(??)) AS ??`,
           [column.column_name, column.column_name, column.id],
         );
         break;
@@ -231,7 +234,7 @@ export default function applyAggregation(
         break;
     }
   } else if (aggType === 'attachment') {
-    // TODO: Verify Performance
+    // TODO: Verify Performance @DarkPhoenix2704
     switch (aggregation) {
       case AttachmentAggregations.AttachmentSize:
         aggregationSql = baseModelSqlv2.dbDriver.raw(

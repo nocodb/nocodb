@@ -81,6 +81,26 @@ export class DataAliasController {
   }
 
   @Get([
+    '/api/v2/data/:orgs/:baseName/:tableName/aggregate',
+    '/api/v2/data/:orgs/:baseName/:tableName/views/:viewName/aggregate',
+  ])
+  @Acl('dataAggregate')
+  async dataAggregate(
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
+    @Param('baseName') baseName: string,
+    @Param('tableName') tableName: string,
+    @Param('viewName') viewName: string,
+  ) {
+    return await this.datasService.dataAggregate(context, {
+      query: req.query,
+      baseName: baseName,
+      tableName: tableName,
+      viewName: viewName,
+    });
+  }
+
+  @Get([
     '/api/v1/db/data/:orgs/:baseName/:tableName/groupby',
     '/api/v1/db/data/:orgs/:baseName/:tableName/views/:viewName/groupby',
   ])

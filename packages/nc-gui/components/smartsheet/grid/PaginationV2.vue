@@ -24,7 +24,7 @@ watch(scrollLeft, (value) => {
 })
 
 const updateAggregate = async (fieldId: string, agg: string) => {
-  await updateGridViewColumn(fieldId, { aggregate: agg })
+  await updateGridViewColumn(fieldId, { aggregation: agg })
 }
 </script>
 
@@ -50,7 +50,7 @@ const updateAggregate = async (fieldId: string, agg: string) => {
           }"
         >
           <div
-            v-if="gridViewCols[fields[0].id].aggregate === 'none' || gridViewCols[fields[0].id].aggregate === null"
+            v-if="gridViewCols[fields[0]?.id]?.aggregation === 'none' || gridViewCols[fields[0]?.id]?.aggregation === null"
             class="text-gray-500 opacity-0 transition group-hover:opacity-100"
           >
             <GeneralIcon class="text-gray-500" icon="arrowUp" />
@@ -60,8 +60,16 @@ const updateAggregate = async (fieldId: string, agg: string) => {
 
         <template #overlay>
           <NcMenu>
-            <NcMenuItem v-for="(agg, index) in getAvailableAggregations(fields[0].uidt).filter((x) => x !== 'none')" :key="index">
-              {{ $t(`aggregation.${agg}`) }}
+            <NcMenuItem
+              v-for="(agg, index) in getAvailableAggregations(fields[0]?.uidt).filter((x) => x !== 'none')"
+              :key="index"
+              @click="updateAggregate(fields[0].id, agg)"
+            >
+              <div class="flex !w-full text-gray-800 items-center justify-between">
+                {{ $t(`aggregation.${agg}`) }}
+
+                <GeneralIcon v-if="gridViewCols[fields[0]?.id]?.aggregation === agg" class="text-brand-500" icon="check" />
+              </div>
             </NcMenuItem>
           </NcMenu>
         </template>
@@ -78,7 +86,7 @@ const updateAggregate = async (fieldId: string, agg: string) => {
         }"
       >
         <div
-          v-if="gridViewCols[field.id].aggregate === 'none' || gridViewCols[field.id].aggregate === null"
+          v-if="gridViewCols[field.id]?.aggregation === 'none' || gridViewCols[field.id]?.aggregation === null"
           class="text-gray-500 opacity-0 transition group-hover:opacity-100"
         >
           <GeneralIcon class="text-gray-500" icon="arrowUp" />
@@ -96,7 +104,7 @@ const updateAggregate = async (fieldId: string, agg: string) => {
             <div class="flex !w-full text-gray-800 items-center justify-between">
               {{ $t(`aggregation.${agg}`) }}
 
-              <GeneralIcon v-if="gridViewCols[field.id].aggregate === agg" class="text-brand-500" icon="check" />
+              <GeneralIcon v-if="gridViewCols[field.id]?.aggregation === agg" class="text-brand-500" icon="check" />
             </div>
           </NcMenuItem>
         </NcMenu>

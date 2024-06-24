@@ -33,7 +33,6 @@ import type {
 import type {
   BarcodeColumn,
   FormulaColumn,
-  GridViewColumn,
   LinkToAnotherRecordColumn,
   QrCodeColumn,
   RollupColumn,
@@ -47,6 +46,7 @@ import {
   BaseUser,
   Column,
   Filter,
+  GridViewColumn,
   Model,
   PresignedUrl,
   Sort,
@@ -74,6 +74,7 @@ import { extractProps } from '~/helpers/extractProps';
 import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
 import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
 import { getAliasGenerator } from '~/utils';
+import applyAggregation from '~/db/aggregation';
 
 dayjs.extend(utc);
 
@@ -694,6 +695,80 @@ class BaseModelSqlv2 {
     }
     applyPaginate(qb, rest);
     return await this.execAndParse(qb);
+  }
+
+  async aggregate(args: { filterArr?: Filter[]; where?: string }) {
+    try {
+      const { where } = this._getListArgs(args as any);
+
+      const viewColumns = (
+        await GridViewColumn.list(this.context, this.viewId)
+      ).filter((c) => c.show);
+
+      const columns = await this.model.getColumns(this.context);
+
+      const aliasColObjMap = await this.model.getAliasColObjMap(
+        this.context,
+        columns,
+      );
+
+      const qb = this.dbDriver(this.tnPath);
+
+      const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
+      await conditionV2(
+        this,
+        [
+          ...(this.viewId
+            ? [
+                new Filter({
+                  children:
+                    (await Filter.rootFilterList(this.context, {
+                      viewId: this.viewId,
+                    })) || [],
+                  is_group: true,
+                }),
+              ]
+            : []),
+          new Filter({
+            children: args.filterArr || [],
+            is_group: true,
+            logical_op: 'and',
+          }),
+          new Filter({
+            children: filterObj,
+            is_group: true,
+            logical_op: 'and',
+          }),
+        ],
+        qb,
+      );
+
+      const selectors: Array<Knex.Raw> = [] as Array<Knex.Raw>;
+
+      for (const viewColumn of viewColumns) {
+        const col = columns.find((c) => c.id === viewColumn.fk_column_id);
+        if (!col) continue;
+
+        const aggSql = applyAggregation(this, qb, viewColumn.aggregation, col);
+
+        if (aggSql) selectors.push(aggSql);
+      }
+
+      if (selectors.length === 0) {
+        NcError.badRequest('No valid aggregations found');
+      }
+
+      qb.select(...selectors);
+
+      const data = await this.execAndParse(qb, null, {
+        first: true,
+      });
+
+      return data;
+    } catch (e) {
+      logger.log(e);
+      return null;
+    }
   }
 
   async groupBy(args: {

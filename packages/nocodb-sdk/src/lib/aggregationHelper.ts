@@ -7,22 +7,48 @@ enum NumericalAggregations {
   Max = 'max',
   Avg = 'avg',
   Median = 'median',
-  StandardDeviation = 'stdDev',
+  StandardDeviation = 'std_dev',
   Histogram = 'histogram',
   Range = 'range',
 }
 
 enum CommonAggregations {
-  PercentEmpty = 'percentEmpty',
-  PercentFilled = 'percentFilled',
-  PercentUnique = 'percentUnique',
-  CountUnique = 'countUnique',
-  CountEmpty = 'countEmpty',
-  CountFilled = 'countFilled',
+  CountEmpty = 'count_empty',
+  CountFilled = 'count_filled',
+  CountUnique = 'count_unique',
+  PercentEmpty = 'percent_empty',
+  PercentFilled = 'percent_filled',
+  PercentUnique = 'percent_unique',
   None = 'none',
 }
 
-const getAvailableAggregations = (type: UITypes) => {
+enum AttachmentAggregations {
+  AttachmentSize = 'attachment_size',
+}
+
+enum BooleanAggregations {
+  Checked = 'checked',
+  Unchecked = 'unchecked',
+  PercentChecked = 'percent_checked',
+  PercentUnchecked = 'percent_unchecked',
+}
+
+enum DateAggregations {
+  EarliestDate = 'earliest_date',
+  LatestDate = 'latest_date',
+  DateRange = 'date_range',
+  MonthRange = 'month_range',
+}
+
+const AllAggregations = {
+  ...CommonAggregations,
+  ...NumericalAggregations,
+  ...AttachmentAggregations,
+  ...BooleanAggregations,
+  ...DateAggregations,
+};
+
+const getAvailableAggregations = (type: UITypes): string[] => {
   switch (type) {
     case UITypes.Number:
     case UITypes.Decimal:
@@ -35,8 +61,29 @@ const getAvailableAggregations = (type: UITypes) => {
         ...Object.values(NumericalAggregations),
         ...Object.values(CommonAggregations),
       ];
+    case UITypes.Attachment:
+      return [
+        ...Object.values(AttachmentAggregations),
+        ...Object.values(CommonAggregations),
+      ];
+    case UITypes.Checkbox:
+      return [...Object.values(BooleanAggregations)];
+    case UITypes.Date:
+    case UITypes.DateTime:
+      return [
+        ...Object.values(DateAggregations),
+        ...Object.values(CommonAggregations),
+      ];
   }
-  return Object.values(CommonAggregations);
+  return [...Object.values(CommonAggregations)];
 };
 
-export { getAvailableAggregations, NumericalAggregations, CommonAggregations };
+export {
+  getAvailableAggregations,
+  NumericalAggregations,
+  CommonAggregations,
+  BooleanAggregations,
+  DateAggregations,
+  AttachmentAggregations,
+  AllAggregations,
+};

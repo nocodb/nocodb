@@ -179,6 +179,8 @@ export default async function applyAggregation({
       UITypes.Duration,
       UITypes.Time,
       UITypes.Percent,
+      UITypes.Rollup,
+      UITypes.Links,
     ].includes(_column.uidt)
   ) {
     secondaryCondition = 'NULL';
@@ -222,6 +224,8 @@ export default async function applyAggregation({
             UITypes.Percent,
             UITypes.Time,
             UITypes.JSON,
+            UITypes.Rollup,
+            UITypes.Links,
           ].includes(_column.uidt)
         ) {
           aggregationSql = knex.raw(
@@ -261,6 +265,8 @@ export default async function applyAggregation({
             UITypes.Time,
             UITypes.Duration,
             UITypes.Percent,
+            UITypes.Rollup,
+            UITypes.Links,
           ].includes(_column.uidt)
         ) {
           aggregationSql = knex.raw(
@@ -304,6 +310,8 @@ export default async function applyAggregation({
             UITypes.Duration,
             UITypes.Percent,
             UITypes.JSON,
+            UITypes.Rollup,
+            UITypes.Links,
           ].includes(_column.uidt)
         ) {
           aggregationSql = knex.raw(
@@ -341,6 +349,8 @@ export default async function applyAggregation({
             UITypes.Currency,
             UITypes.Duration,
             UITypes.Percent,
+            UITypes.Rollup,
+            UITypes.Links,
           ].includes(_column.uidt)
         ) {
           aggregationSql = knex.raw(

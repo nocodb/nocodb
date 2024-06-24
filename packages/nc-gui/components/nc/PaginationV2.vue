@@ -132,7 +132,7 @@ const pageSizeOptions = [
       </component>
 
       <div v-if="!isMobileMode" class="text-gray-500">
-        <NcDropdown placement="top" overlay-class-name="overflow-hidden !shadow-none max-h-54">
+        <NcDropdown placement="top" overlay-class-name="!shadow-none">
           <NcButton class="!border-0 nc-select-page" type="secondary" size="xsmall">
             <div class="flex gap-1 items-center px-2">
               <span class="nc-current-page">
@@ -143,49 +143,44 @@ const pageSizeOptions = [
           </NcButton>
 
           <template #overlay>
-            <NcMenu class="nc-scrollbar-thin nc-pagination-menu !max-h-47 overflow-y-auto">
-              <NcDropdown placement="topLeft" :trigger="['hover']">
-                <div class="sticky bg-white z-90 top-0">
-                  <NcMenuItem class="bg-gray-100">
-                    <div class="rounded-lg text-[13px] font-medium w-full">{{ localPageSize }} / page</div>
-                  </NcMenuItem>
-                  <NcDivider />
-                </div>
-
-                <template #overlay>
-                  <NcMenu class="!z-10">
-                    <NcMenuItem v-for="option in pageSizeOptions" :key="option.value" @click="localPageSize = option.value">
-                      <span
-                        class="text-[13px]"
-                        :class="{
-                          '!text-brand-500': option.value === localPageSize,
-                        }"
-                      >
-                        {{ option.value }} / page
-                      </span>
-                    </NcMenuItem>
-                  </NcMenu>
+            <NcMenu class="nc-scrollbar-thin nc-pagination-menu max-h-54 overflow-y-auto">
+              <NcSubMenu class="bg-gray-100 z-20 top-0 !sticky">
+                <template #title>
+                  <div class="rounded-lg text-[13px] font-medium w-full">{{ localPageSize }} / page</div>
                 </template>
-              </NcDropdown>
 
-              <NcMenuItem
-                v-for="x in pagesList"
-                :key="x.value"
-                @click.stop="
-                  changePage({
-                    set: x.value,
-                  })
-                "
-              >
-                <div
-                  :class="{
-                    'text-brand-500': x.value === current,
-                  }"
-                  class="flex text-[13px] !w-full text-gray-800 items-center justify-between"
+                <NcMenuItem v-for="option in pageSizeOptions" :key="option.value" @click="localPageSize = option.value">
+                  <span
+                    class="text-[13px]"
+                    :class="{
+                      '!text-brand-500': option.value === localPageSize,
+                    }"
+                  >
+                    {{ option.value }} / page
+                  </span>
+                </NcMenuItem>
+              </NcSubMenu>
+
+              <div class="flex flex-col mt-1 max-h-48 overflow-hidden nc-scrollbar-md gap-1">
+                <NcMenuItem
+                  v-for="x in pagesList"
+                  :key="x.value"
+                  @click.stop="
+                    changePage({
+                      set: x.value,
+                    })
+                  "
                 >
-                  {{ x.label }}
-                </div>
-              </NcMenuItem>
+                  <div
+                    :class="{
+                      'text-brand-500': x.value === current,
+                    }"
+                    class="flex text-[13px] !w-full text-gray-800 items-center justify-between"
+                  >
+                    {{ x.label }}
+                  </div>
+                </NcMenuItem>
+              </div>
             </NcMenu>
           </template>
         </NcDropdown>
@@ -242,3 +237,5 @@ const pageSizeOptions = [
   }
 }
 </style>
+
+<style lang="scss"></style>

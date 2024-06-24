@@ -126,6 +126,8 @@ const parseConditionV2 = async (
       });
     };
   } else {
+    if (!filter.fk_column_id) return;
+
     // handle group by filter separately,
     // `gb_eq` is equivalent to `eq` but for lookup it compares on aggregated value returns in group by api
     // aggregated value will be either json array or `___` separated string
@@ -169,15 +171,21 @@ const parseConditionV2 = async (
       }
     }
 
-    const column = await getRefColumnIfAlias(
-      context,
-      await filter.getColumn(context),
-    );
+    if (!filter.fk_column_id) {
+      return;
+    }
+
+    const filterColumn = await filter.getColumn(context);
+    if (!filterColumn) {
+      if (throwErrorIfInvalid) {
+        NcError.fieldNotFound(filter.fk_column_id);
+      }
+    }
+    const column = await getRefColumnIfAlias(context, filterColumn);
     if (!column) {
       if (throwErrorIfInvalid) {
         NcError.fieldNotFound(filter.fk_column_id);
       }
-      return;
     }
     if (column.uidt === UITypes.LinkToAnotherRecord) {
       const colOptions = (await column.getColOptions(

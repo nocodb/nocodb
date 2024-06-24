@@ -44,7 +44,7 @@ const getCurrencyValue = (modelValue: string | number | null | undefined, col: C
     ...parseProp(col.meta),
   }
   try {
-    if (modelValue === null || modelValue === undefined || isNaN(modelValue)) {
+    if (modelValue === null || modelValue === undefined || Number.isNaN(modelValue)) {
       return modelValue === null || modelValue === undefined ? '' : (modelValue as string)
     }
     return new Intl.NumberFormat(currencyMeta.currency_locale || 'en-US', {
@@ -74,9 +74,8 @@ const formatAggregation = (aggregation: any, value: any, column: ColumnType) => 
       return getDateTimeValue(value, column)
     } else if (column.uidt === UITypes.Date) {
       return getDateValue(value, column)
-    } else {
-      return getDateTimeValue(value, column)
     }
+    return getDateTimeValue(value, column)
   }
 
   if (

@@ -705,6 +705,9 @@ class BaseModelSqlv2 {
         await GridViewColumn.list(this.context, this.viewId)
       ).filter((c) => c.show);
 
+      // By default, the aggregation is done based on the columns configured in the view
+      // If the aggregation parameter is provided, only the columns mentioned in the aggregation parameter are considered
+      // Also the aggregation type from the parameter is given preference over the aggregation type configured in the view
       if (aggregation?.length) {
         viewColumns = viewColumns
           .map((c) => {
@@ -727,6 +730,7 @@ class BaseModelSqlv2 {
 
       const qb = this.dbDriver(this.tnPath);
 
+      // Apply filers from view configuration, filterArr and where parameter
       const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
       await conditionV2(
         this,
@@ -758,7 +762,7 @@ class BaseModelSqlv2 {
 
       const selectors: Array<Knex.Raw> = [];
 
-      // Wait for all promises to resolve and filter out null values
+      // Generating a knex raw aggregation query for each column in the view
       await Promise.all(
         viewColumns.map(async (viewColumn) => {
           const col = columns.find((c) => c.id === viewColumn.fk_column_id);
@@ -774,10 +778,15 @@ class BaseModelSqlv2 {
         }),
       );
 
+      // If no queries are generated, return empty object
+      if (!selectors.length) {
+        return {};
+      }
+
       qb.select(...selectors);
 
-      console.log(qb.toQuery());
-
+      // Some aggregation on Date, DateTime related columns may generate result other than Date, DateTime
+      // So skip the date conversion
       const data = await this.execAndParse(qb, null, {
         first: true,
         skipDateConversion: true,
@@ -786,7 +795,7 @@ class BaseModelSqlv2 {
       return data;
     } catch (e) {
       logger.log(e);
-      return null;
+      return {};
     }
   }
 

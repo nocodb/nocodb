@@ -92,6 +92,7 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
 
         Object.assign(aggregations.value, data)
       } catch (error) {
+        console.log(error)
         message.error(await extractSdkResponseErrorMsgv2(error as any))
       }
     }
@@ -110,7 +111,7 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
       if (!_fields || !_fields.field?.length) {
         await loadViewAggregate()
       }
-      if (_fields && _fields.field) {
+      if (_fields?.field) {
         const fieldAggregateMapping = _fields.field.reduce((acc, field) => {
           const f = fields.value.find((f) => f.title === field)
 

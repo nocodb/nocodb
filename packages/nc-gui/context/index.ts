@@ -31,7 +31,7 @@ export const ReloadViewDataHookInj: InjectionKey<EventHook<{ shouldShowLoading?:
 export const ReloadViewMetaHookInj: InjectionKey<EventHook<boolean | void>> = Symbol('reload-view-meta-injection')
 export const ReloadRowDataHookInj: InjectionKey<EventHook<{ shouldShowLoading?: boolean; offset?: number } | void>> =
   Symbol('reload-row-data-injection')
-export const ReloadAggregateHookInj: InjectionKey<EventHook<{ field: string[] } | void>> = Symbol(
+export const ReloadAggregateHookInj: InjectionKey<EventHook<{ field: string[] } | undefined>> = Symbol(
   'reload-aggregate-data-injection',
 )
 export const OpenNewRecordFormHookInj: InjectionKey<EventHook<void>> = Symbol('open-new-record-form-injection')

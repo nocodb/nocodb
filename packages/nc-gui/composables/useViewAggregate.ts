@@ -71,26 +71,29 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
         type: string
       }>,
     ) => {
-      if (!meta.value?.id || !view.value?.id) return
+      console.log(view.value, meta.value, '============================')
+      await until(meta)
+        .toBeTruthy((c) => !!c)
+        .then(async () => {
+          try {
+            const data = !isPublic.value
+              ? await api.dbDataTableAggregate.dbDataTableAggregate(meta.value.id, {
+                  viewId: view.value.id,
+                  where: where?.value,
+                  ...(fields ? { aggregation: fields } : {}),
+                })
+              : await fetchAggregatedData({
+                  where: where?.value,
+                  filtersArr: nestedFilters.value,
+                  ...(fields ? { aggregation: fields } : {}),
+                })
 
-      try {
-        const data = !isPublic.value
-          ? await api.dbDataTableAggregate.dbDataTableAggregate(meta.value.id, {
-              viewId: view.value.id,
-              where: where?.value,
-              ...(fields ? { aggregation: fields } : {}),
-            })
-          : await fetchAggregatedData({
-              where: where?.value,
-              filtersArr: nestedFilters.value,
-              ...(fields ? { aggregation: fields } : {}),
-            })
-
-        Object.assign(aggregations.value, data)
-      } catch (error) {
-        console.log(error)
-        message.error(await extractSdkResponseErrorMsgv2(error as any))
-      }
+            Object.assign(aggregations.value, data)
+          } catch (error) {
+            console.log(error)
+            message.error(await extractSdkResponseErrorMsgv2(error as any))
+          }
+        })
     }
 
     const updateAggregate = async (fieldId: string, agg: string) => {

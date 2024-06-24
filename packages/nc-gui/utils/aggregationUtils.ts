@@ -92,7 +92,7 @@ const formatAggregation = (aggregation: any, value: any, column: ColumnType) => 
   }
 
   if ([DateAggregations.MonthRange, DateAggregations.DateRange].includes(aggregation)) {
-    return aggregation === DateAggregations.DateRange ? `${value} days` : `${value} months`
+    return aggregation === DateAggregations.DateRange ? `${value ?? 0} days` : `${value ?? 0} months`
   }
 
   if (

@@ -465,7 +465,7 @@ export default async function applyAggregation({
         aggregationSql = knex.raw(`MAX((??)) AS ??`, [column, _column.id]);
         break;
 
-      // The Date, DateTime, CreatedTime, LastModifiedTime columns are casted as DATE in the database.
+      // The Date, DateTime, CreatedTime, LastModifiedTime columns are casted to DATE.
       case DateAggregations.DateRange:
         aggregationSql = knex.raw(`MAX((??)::date) - MIN((??)::date) AS ??`, [
           column,
@@ -473,12 +473,14 @@ export default async function applyAggregation({
           _column.id,
         ]);
         break;
-      // The Date, DateTime, CreatedTime, LastModifiedTime columns are casted as DATE in the database.
+      // The Date, DateTime, CreatedTime, LastModifiedTime columns are casted to DATE.
       case DateAggregations.MonthRange:
         aggregationSql = knex.raw(
-          `EXTRACT(MONTH FROM MAX((??)::date)) - EXTRACT(MONTH FROM MIN((??)::date)) AS ??`,
-          [column, column, _column.id],
+          `DATE_PART('year', AGE(MAX((??)::date), MIN((??)::date))) * 12 + 
+         DATE_PART('month', AGE(MAX((??)::date), MIN((??)::date))) AS ??`,
+          [column, column, column, column, _column.id],
         );
+
         break;
       default:
         break;

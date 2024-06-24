@@ -91,7 +91,7 @@ onMounted(() => {
 <template>
   <div ref="containerElement" class="bg-gray-50 w-full pr-1 border-t-1 border-gray-200 overflow-x-hidden no-scrollbar flex h-9">
     <div class="sticky flex items-center bg-gray-50 left-0">
-      <div
+      <!--      <div
         v-if="isViewDataLoading || isPaginationLoading"
         class="nc-pagination-skeleton flex justify-center item-center min-h-10 min-w-16 w-16"
       >
@@ -106,14 +106,14 @@ onMounted(() => {
           {{ Intl.NumberFormat('en', { notation: 'compact' }).format(count) }}
           {{ count !== 1 ? $t('objects.records') : $t('objects.record') }}
         </span>
-      </NcTooltip>
+      </NcTooltip> -->
 
       <NcDropdown
-        v-if="displayFieldComputed.field && displayFieldComputed.column?.id"
         :disabled="displayFieldComputed.column.uidt === UITypes.SpecificDBType"
         overlay-class-name="max-h-96 relative scroll-container nc-scrollbar-thin overflow-auto"
       >
         <div
+          v-if="displayFieldComputed.field && displayFieldComputed.column?.id"
           class="flex items-center overflow-x-hidden hover:bg-gray-100 cursor-pointer text-gray-500 justify-end transition-all transition-linear px-3 py-2"
           :style="{
             'min-width': displayFieldComputed?.width,
@@ -121,43 +121,40 @@ onMounted(() => {
             'width': displayFieldComputed?.width,
           }"
         >
-          <template v-if="![UITypes.SpecificDBType, UITypes.ForeignKey].includes(displayFieldComputed.column.uidt!)">
+          <div class="flex relative justify-between gap-2 w-full">
             <div
-              v-if="!displayFieldComputed.field?.aggregation || displayFieldComputed.field?.aggregation === 'none'"
-              class="text-gray-500 opacity-0 transition group-hover:opacity-100"
+              v-if="isViewDataLoading || isPaginationLoading"
+              class="nc-pagination-skeleton flex justify-center item-center min-h-10 min-w-16 w-16"
             >
-              <GeneralIcon class="text-gray-500" icon="arrowDown" />
-              <span class="text-[10px] font-semibold"> Summary </span>
+              <a-skeleton :active="true" :title="true" :paragraph="false" class="w-16 max-w-16" />
             </div>
-            <NcTooltip
-              v-else-if="displayFieldComputed.value !== undefined"
-              :style="{
-                maxWidth: `${displayFieldComputed?.width}`,
-              }"
-            >
-              <div class="flex gap-2 text-nowrap truncate overflow-hidden items-center">
-                <span class="text-gray-500 text-[12px] leading-4">
-                  {{ $t(`aggregation.${displayFieldComputed.field.aggregation}`) }}
-                </span>
+            <NcTooltip v-else class="flex sticky items-center h-full">
+              <template #title> {{ count }} {{ count !== 1 ? $t('objects.records') : $t('objects.record') }} </template>
+              <span
+                data-testid="grid-pagination"
+                class="text-gray-500 text-ellipsis overflow-hidden pl-1 truncate nc-grid-row-count caption text-xs text-nowrap"
+              >
+                {{ Intl.NumberFormat('en', { notation: 'compact' }).format(count) }}
+                {{ count !== 1 ? $t('objects.records') : $t('objects.record') }}
+              </span>
+            </NcTooltip>
 
-                <span class="text-gray-600 text-[12px] font-semibold">
-                  {{
-                    formatAggregation(
-                      displayFieldComputed.field.aggregation,
-                      displayFieldComputed.value,
-                      displayFieldComputed.column,
-                    )
-                  }}
-                </span>
+            <template v-if="![UITypes.SpecificDBType, UITypes.ForeignKey].includes(displayFieldComputed.column.uidt!)">
+              <div
+                v-if="!displayFieldComputed.field?.aggregation || displayFieldComputed.field?.aggregation === 'none'"
+                class="text-gray-500 opacity-0 transition group-hover:opacity-100"
+              >
+                <GeneralIcon class="text-gray-500" icon="arrowDown" />
+                <span class="text-[10px] font-semibold"> Summary </span>
               </div>
-
-              <template #title>
-                <div class="flex gap-2 text-nowrap overflow-hidden items-center">
-                  <span class="text-[12px] leading-4">
-                    {{ $t(`aggregation.${displayFieldComputed.field.aggregation}`) }}
-                  </span>
-
-                  <span class="text-[12px] font-semibold">
+              <NcTooltip
+                v-else-if="displayFieldComputed.value !== undefined"
+                :style="{
+                  maxWidth: `${displayFieldComputed?.width}`,
+                }"
+              >
+                <div style="direction: rtl" class="flex gap-2 text-nowrap truncate overflow-hidden items-center">
+                  <span class="text-gray-600 text-[12px] font-semibold">
                     {{
                       formatAggregation(
                         displayFieldComputed.field.aggregation,
@@ -166,14 +163,35 @@ onMounted(() => {
                       )
                     }}
                   </span>
+                  <span class="text-gray-500 text-[12px] leading-4">
+                    {{ $t(`aggregation.${displayFieldComputed.field.aggregation}`) }}
+                  </span>
                 </div>
-              </template>
-            </NcTooltip>
-          </template>
+
+                <template #title>
+                  <div class="flex gap-2 text-nowrap overflow-hidden items-center">
+                    <span class="text-[12px] leading-4">
+                      {{ $t(`aggregation.${displayFieldComputed.field.aggregation}`) }}
+                    </span>
+
+                    <span class="text-[12px] font-semibold">
+                      {{
+                        formatAggregation(
+                          displayFieldComputed.field.aggregation,
+                          displayFieldComputed.value,
+                          displayFieldComputed.column,
+                        )
+                      }}
+                    </span>
+                  </div>
+                </template>
+              </NcTooltip>
+            </template>
+          </div>
         </div>
 
         <template #overlay>
-          <NcMenu>
+          <NcMenu v-if="displayFieldComputed.field && displayFieldComputed.column?.id">
             <NcMenuItem
               v-for="(agg, index) in getAggregations(displayFieldComputed.column)"
               :key="index"

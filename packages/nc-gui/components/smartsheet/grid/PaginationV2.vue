@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { UITypes } from 'nocodb-sdk'
 import { getAvailableAggregations } from 'nocodb-sdk'
 
 const props = defineProps<{
@@ -25,8 +24,8 @@ const visibleFields = computed(() => {
     }
 
     return {
-      type: f.field.uidt,
       field: gridField,
+      column: f.field,
       index: f.index,
       width: `${Number(gridField.width.replace('px', ''))}px` || '180px',
     }
@@ -41,7 +40,7 @@ const displayFieldComputed = computed(() => {
     }
 
   return {
-    type: fields.value[0].uidt,
+    column: fields.value[0],
     field: gridViewCols.value[fields.value[0].id!],
     width: `${Number((gridViewCols.value[fields.value[0]!.id!].width ?? '').replace('px', ''))}px` || '180px',
   }
@@ -78,7 +77,7 @@ const updateAggregate = async (fieldId: string, agg: string) => {
         </NcTooltip>
       </div>
 
-      <NcDropdown v-if="displayFieldComputed.field && displayFieldComputed.field.id">
+      <NcDropdown v-if="displayFieldComputed.field && displayFieldComputed.column?.id">
         <div
           class="flex items-center hover:bg-gray-100 cursor-pointer text-gray-500 transition-all transition-linear px-3 py-2"
           :style="{
@@ -99,9 +98,9 @@ const updateAggregate = async (fieldId: string, agg: string) => {
         <template #overlay>
           <NcMenu>
             <NcMenuItem
-              v-for="(agg, index) in getAggregations(displayFieldComputed!.type, true)"
+              v-for="(agg, index) in getAggregations(displayFieldComputed.column.uidt, true)"
               :key="index"
-              @click="updateAggregate(displayFieldComputed.field.id, agg)"
+              @click="updateAggregate(displayFieldComputed.column.id, agg)"
             >
               <div class="flex !w-full text-gray-800 items-center justify-between">
                 {{ $t(`aggregation.${agg}`) }}
@@ -114,8 +113,8 @@ const updateAggregate = async (fieldId: string, agg: string) => {
       </NcDropdown>
     </div>
 
-    <template v-for="({ field, width, type }, index) in visibleFields" :key="index">
-      <NcDropdown v-if="field && field.id">
+    <template v-for="({ field, width, column }, index) in visibleFields" :key="index">
+      <NcDropdown v-if="field && column?.id">
         <div
           class="flex items-center justify-end group hover:bg-gray-100 cursor-pointer text-gray-500 transition-all transition-linear px-3 py-2"
           :style="{
@@ -135,7 +134,11 @@ const updateAggregate = async (fieldId: string, agg: string) => {
 
         <template #overlay>
           <NcMenu>
-            <NcMenuItem v-for="(agg, index) in getAggregations(type)" :key="index" @click="updateAggregate(field.id, agg)">
+            <NcMenuItem
+              v-for="(agg, index) in getAggregations(column.uidt)"
+              :key="index"
+              @click="updateAggregate(column.id, agg)"
+            >
               <div class="flex !w-full text-gray-800 items-center justify-between">
                 {{ $t(`aggregation.${agg}`) }}
 

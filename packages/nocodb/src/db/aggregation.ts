@@ -74,12 +74,8 @@ export default async function applyAggregation({
   aggregation: string;
   column: Column;
 }): Promise<string | undefined> {
-  if (!aggregation) {
-    aggregation = CommonAggregations.None;
-  }
-
-  if (!_column) {
-    NcError.badRequest('Invalid aggregation');
+  if (!aggregation || !_column) {
+    return;
   }
 
   const { context, dbDriver: knex, model } = baseModelSqlv2;
@@ -181,6 +177,7 @@ export default async function applyAggregation({
       UITypes.Percent,
       UITypes.Rollup,
       UITypes.Links,
+      UITypes.ID,
     ].includes(_column.uidt)
   ) {
     secondaryCondition = 'NULL';
@@ -226,6 +223,7 @@ export default async function applyAggregation({
             UITypes.JSON,
             UITypes.Rollup,
             UITypes.Links,
+            UITypes.ID,
           ].includes(_column.uidt)
         ) {
           aggregationSql = knex.raw(
@@ -267,6 +265,7 @@ export default async function applyAggregation({
             UITypes.Percent,
             UITypes.Rollup,
             UITypes.Links,
+            UITypes.ID,
           ].includes(_column.uidt)
         ) {
           aggregationSql = knex.raw(
@@ -312,6 +311,7 @@ export default async function applyAggregation({
             UITypes.JSON,
             UITypes.Rollup,
             UITypes.Links,
+            UITypes.ID,
           ].includes(_column.uidt)
         ) {
           aggregationSql = knex.raw(
@@ -351,6 +351,7 @@ export default async function applyAggregation({
             UITypes.Percent,
             UITypes.Rollup,
             UITypes.Links,
+            UITypes.ID,
           ].includes(_column.uidt)
         ) {
           aggregationSql = knex.raw(

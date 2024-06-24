@@ -458,11 +458,6 @@ async function openAudit(source: SourceType) {
 
   auditLogsQuery.value = {
     ...auditLogsQuery.value,
-    user: undefined,
-    dateRange: undefined,
-    dateRangeLabel: undefined,
-    startDate: undefined,
-    endData: undefined,
     orderBy: {
       created_at: 'desc',
       user: undefined,

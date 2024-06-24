@@ -99,14 +99,12 @@ onMounted(() => {
       >
         <a-skeleton :active="true" :title="true" :paragraph="false" class="w-16 max-w-16" />
       </div>
-      <div v-else class="min-w-16 max-w-16 h-full left-0 flex items-center justify-center">
-        <NcTooltip show-on-truncate-only>
-          <template #title> {{ count }} {{ count !== 1 ? $t('objects.records') : $t('objects.record') }} </template>
-          <span data-testid="grid-pagination" class="text-gray-500 nc-grid-row-count caption ml-2 text-xs w-15 text-nowrap">
-            {{ count }} {{ count !== 1 ? $t('objects.records') : $t('objects.record') }}
-          </span>
-        </NcTooltip>
-      </div>
+      <NcTooltip v-else class="min-w-16 max-w-16 flex items-center h-full" show-on-truncate-only>
+        <template #title> {{ count }} {{ count !== 1 ? $t('objects.records') : $t('objects.record') }} </template>
+        <span data-testid="grid-pagination" class="text-gray-500 nc-grid-row-count caption ml-2 text-xs text-nowrap">
+          {{ count }} {{ count !== 1 ? $t('objects.records') : $t('objects.record') }}
+        </span>
+      </NcTooltip>
 
       <NcDropdown
         v-if="displayFieldComputed.field && displayFieldComputed.column?.id"

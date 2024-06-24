@@ -97,7 +97,7 @@ const pageSizeOptions = [
 </script>
 
 <template>
-  <div class="nc-pagination flex flex-row items-center gap-x-1">
+  <div class="nc-pagination flex flex-row items-center gap-x-0.25">
     <template v-if="totalPages > 1">
       <component :is="props.firstPageTooltip && mode === 'full' ? NcTooltip : 'div'" v-if="mode === 'full'">
         <template v-if="props.firstPageTooltip" #title>
@@ -132,7 +132,7 @@ const pageSizeOptions = [
       </component>
 
       <div v-if="!isMobileMode" class="text-gray-500">
-        <NcDropdown overlay-class-name="overflow-hidden nc-scrollbar-thin overflow-y-auto !shadow-none min-h-48 max-h-54">
+        <NcDropdown placement="top" overlay-class-name="overflow-hidden !shadow-none min-h-48 max-h-54">
           <NcButton class="!border-0 nc-select-page" type="secondary" size="xsmall">
             <div class="flex gap-1 items-center px-2">
               <span class="nc-current-page">
@@ -143,14 +143,18 @@ const pageSizeOptions = [
           </NcButton>
 
           <template #overlay>
-            <NcMenu>
-              <div class="sticky z-20 bg-white top-0">
-                <NcSubMenu key="pageSize" class="bg-gray-100">
-                  <template #title>
+            <NcMenu class="nc-scrollbar-thin nc-pagination-menu !min-h-47 !h-47 overflow-y-auto">
+              <NcDropdown placement="left" trigger="hover">
+                <div class="sticky bg-white z-90 top-0">
+                  <NcMenuItem class="bg-gray-100">
                     <div class="rounded-lg text-[13px] font-medium w-full">{{ localPageSize }} / page</div>
-                  </template>
-                  <template v-for="option in pageSizeOptions" :key="option.value">
-                    <NcMenuItem @click="localPageSize = option.value">
+                  </NcMenuItem>
+                  <NcDivider />
+                </div>
+
+                <template #overlay>
+                  <NcMenu class="!z-10">
+                    <NcMenuItem v-for="option in pageSizeOptions" :key="option.value" @click="localPageSize = option.value">
                       <span
                         class="text-[13px]"
                         :class="{
@@ -160,10 +164,9 @@ const pageSizeOptions = [
                         {{ option.value }} / page
                       </span>
                     </NcMenuItem>
-                  </template>
-                </NcSubMenu>
-                <NcDivider />
-              </div>
+                  </NcMenu>
+                </template>
+              </NcDropdown>
 
               <NcMenuItem
                 v-for="x in pagesList"

@@ -183,24 +183,33 @@ useEventListener(tableWrapper, 'scroll', () => {
     <div v-if="!appInfo.auditEnabled" class="text-red-500">Audit logs are currently disabled by administrators.</div>
 
     <div class="flex flex-col" :class="{ 'gap-6': !baseId, 'gap-4': baseId }">
-      <div v-if="baseId" class="flex flex-row items-center justify-between gap-3">
-        <div class="flex-1 max-w-[75%]">
+      <div
+        class="flex flex-row items-center gap-3"
+        :class="{
+          'justify-between': baseId,
+        }"
+      >
+        <div
+          :class="{
+            'flex-1 max-w-[75%]': baseId,
+          }"
+        >
           <h6
             class="text-xl font-semibold text-gray-900 !my-0 flex items-center gap-1"
             :style="{
               'word-break': 'keep-all',
             }"
           >
-            <span class="keep-word min-w-[115px]"> {{ $t('title.auditLogs') }} : </span>
-            <NcTooltip class="max-w-[80%] truncate !leading-7" show-on-truncate-only placement="bottom">
+            <span class="keep-word min-w-[100px]"> {{ $t('title.auditLogs') }} </span>
+            <NcTooltip v-if="baseId" class="max-w-[80%] truncate !leading-7" show-on-truncate-only placement="bottom">
               <template #title>
                 {{ bases.get(baseId)?.title }}
               </template>
-              {{ bases.get(baseId)?.title }}
+              : {{ bases.get(baseId)?.title }}
             </NcTooltip>
           </h6>
         </div>
-        <div v-if="appInfo.auditEnabled && baseId" class="px-1 flex items-center gap-3 justify-end flex-wrap">
+        <div v-if="appInfo.auditEnabled" class="flex items-center gap-3 justify-end flex-wrap">
           <div class="flex items-center gap-3">
             <NcButton type="text" size="small" :disabled="isLoading" @click="loadAudits()">
               <!-- Refresh -->
@@ -211,19 +220,6 @@ useEventListener(tableWrapper, 'scroll', () => {
               </div>
             </NcButton>
           </div>
-        </div>
-      </div>
-
-      <div v-if="appInfo.auditEnabled && !baseId" class="px-1 flex items-center gap-3 justify-end flex-wrap">
-        <div class="flex items-center gap-3">
-          <NcButton type="text" size="small" :disabled="isLoading" @click="loadAudits()">
-            <!-- Refresh -->
-            <div class="flex items-center gap-2">
-              {{ $t('general.refresh') }}
-
-              <component :is="iconMap.refresh" class="h-3.5 w-3.5" :class="{ 'animate-infinite animate-spin': isLoading }" />
-            </div>
-          </NcButton>
         </div>
       </div>
     </div>

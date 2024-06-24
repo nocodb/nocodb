@@ -144,7 +144,7 @@ const pageSizeOptions = [
 
           <template #overlay>
             <NcMenu class="nc-scrollbar-thin nc-pagination-menu max-h-54 overflow-y-auto">
-              <NcSubMenu class="bg-gray-100 z-20 top-0 !sticky">
+              <NcSubMenu :key="`${localPageSize}page`" class="bg-gray-100 z-20 top-0 !sticky">
                 <template #title>
                   <div class="rounded-lg text-[13px] font-medium w-full">{{ localPageSize }} / page</div>
                 </template>
@@ -161,7 +161,7 @@ const pageSizeOptions = [
                 </NcMenuItem>
               </NcSubMenu>
 
-              <div class="flex flex-col mt-1 max-h-48 overflow-hidden nc-scrollbar-md gap-1">
+              <div :key="Math.random()" class="flex flex-col mt-1 max-h-48 overflow-hidden nc-scrollbar-md gap-1">
                 <NcMenuItem
                   v-for="x in pagesList"
                   :key="x.value"

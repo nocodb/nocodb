@@ -183,25 +183,33 @@ useEventListener(tableWrapper, 'scroll', () => {
     <div v-if="!appInfo.auditEnabled" class="text-red-500">Audit logs are currently disabled by administrators.</div>
 
     <div class="flex flex-col" :class="{ 'gap-6': !baseId, 'gap-4': baseId }">
-      <div
-        class="flex flex-row items-center gap-3"
-        :class="{
-          'justify-between': baseId,
-        }"
-      >
+      <div class="flex flex-row items-center gap-3 justify-between">
         <div
           :class="{
             'flex-1 max-w-[75%]': baseId,
           }"
         >
           <h6
-            class="text-xl font-semibold text-gray-900 !my-0 flex items-center gap-1"
+            class="font-semibold text-gray-900 !my-0 flex items-center gap-1"
             :style="{
               'word-break': 'keep-all',
             }"
+            :class="{
+              'text-xl': baseId,
+              'text-2xl': !baseId,
+            }"
           >
             <span class="keep-word min-w-[100px]"> {{ $t('title.auditLogs') }} </span>
-            <NcTooltip v-if="baseId" class="max-w-[80%] truncate !leading-7" show-on-truncate-only placement="bottom">
+            <NcTooltip
+              v-if="baseId"
+              class="max-w-[80%] truncate"
+              :class="{
+                '!leading-7': baseId,
+                '!leading-8': !baseId,
+              }"
+              show-on-truncate-only
+              placement="bottom"
+            >
               <template #title>
                 {{ bases.get(baseId)?.title }}
               </template>

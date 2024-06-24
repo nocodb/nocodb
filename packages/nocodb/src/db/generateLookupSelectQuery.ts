@@ -1,4 +1,4 @@
-import { RelationTypes, UITypes } from 'nocodb-sdk';
+import { isVirtualCol, RelationTypes, UITypes } from 'nocodb-sdk';
 import type LookupColumn from '../models/LookupColumn';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type {
@@ -27,7 +27,7 @@ export async function getDisplayValueOfRefTable(
     .getColOptions(context)
     .then((colOpt) => colOpt.getRelatedTable(context))
     .then((model) => model.getColumns(context))
-    .then((cols) => cols.find((col) => col.pv));
+    .then((cols) => cols.find((col) => col.pv) || cols[0]);
 }
 
 // this function will generate the query for lookup column

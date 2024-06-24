@@ -1525,8 +1525,6 @@ watch(
         isViewDataLoading.value = true
         try {
           await Promise.allSettled([loadData?.(), loadViewAggregate()])
-          await loadData?.()
-          await loadViewAggregate()
           calculateSlices()
         } catch (e) {
           if (!axios.isCancel(e)) {

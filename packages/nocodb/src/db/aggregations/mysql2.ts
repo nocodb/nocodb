@@ -304,7 +304,7 @@ export function genMysql2AggregatedQuery({
         ]);
         break;
       case NumericalAggregations.Median:
-        // Need to be fixed @DaarkPhoenix2704
+        // This is the sqlite3 port median query. Need to use native mysql median query
         aggregationSql = knex.raw(
           `
   (

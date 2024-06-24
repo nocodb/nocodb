@@ -93,7 +93,7 @@ const logout = async () => {
                 @click="navigateTo('/account/audit')"
               >
                 <div class="flex items-center space-x-2">
-                  <component :is="iconMap.audit" class="opacity-80"/>
+                  <component :is="iconMap.audit" class="opacity-80" />
 
                   <div class="select-none">Audit Logs</div>
                 </div>

@@ -369,8 +369,8 @@ useEventListener(tableWrapper, 'scroll', () => {
         <NcDropdown
           v-if="auditCollaborators?.length"
           v-model:visible="auditDropdowns.user"
-          @update:visible="handleClearDropdownSearch($event, 'user')"
           overlay-class-name="overflow-hidden"
+          @update:visible="handleClearDropdownSearch($event, 'user')"
         >
           <NcButton type="secondary" size="small">
             <div class="!w-[106px] flex items-center justify-between gap-2">
@@ -491,8 +491,8 @@ useEventListener(tableWrapper, 'scroll', () => {
         <NcDropdown
           v-if="!baseId && basesList?.length"
           v-model:visible="auditDropdowns.base"
-          @update:visible="handleClearDropdownSearch($event, 'base')"
           overlay-class-name="overflow-hidden"
+          @update:visible="handleClearDropdownSearch($event, 'base')"
         >
           <NcButton type="secondary" size="small">
             <div class="!w-[106px] flex items-center justify-between gap-2">
@@ -585,8 +585,8 @@ useEventListener(tableWrapper, 'scroll', () => {
         </NcDropdown>
         <NcDropdown
           v-model:visible="auditDropdowns.type"
-          @update:visible="handleClearDropdownSearch($event, 'type')"
           overlay-class-name="overflow-hidden"
+          @update:visible="handleClearDropdownSearch($event, 'type')"
         >
           <NcButton type="secondary" size="small">
             <div class="!w-[106px] flex items-center justify-between gap-2">
@@ -774,7 +774,7 @@ useEventListener(tableWrapper, 'scroll', () => {
     </div>
     <template v-if="appInfo.auditEnabled">
       <div
-        class="table-container relative"
+        class="table-container relative w-[fit-content]"
         :class="{
           'h-[calc(100%_-_92px)] ': baseId,
           'h-[calc(100%_-_140px)]': !baseId,

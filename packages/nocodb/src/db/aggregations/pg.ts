@@ -12,17 +12,17 @@ import type { Knex } from 'knex';
 import type { Column } from '~/models';
 
 export function genPgAggregateQuery({
-  _column,
+  column,
   baseModelSqlv2,
   aggregation,
-  column,
+  column_query,
   parsedFormulaType,
   aggType,
 }: {
-  _column: Column;
+  column: Column;
+  column_query: string;
   baseModelSqlv2: BaseModelSqlv2;
   aggregation: string;
-  column: string;
   parsedFormulaType?: FormulaDataTypes;
   aggType:
     | 'common'
@@ -53,37 +53,37 @@ export function genPgAggregateQuery({
       UITypes.Rollup,
       UITypes.Links,
       UITypes.ID,
-    ].includes(_column.uidt) ||
+    ].includes(column.uidt) ||
     [FormulaDataTypes.DATE, FormulaDataTypes.NUMERIC].includes(
       parsedFormulaType,
     )
   ) {
     secondaryCondition = 'NULL';
-  } else if ([UITypes.Rating].includes(_column.uidt)) {
+  } else if ([UITypes.Rating].includes(column.uidt)) {
     secondaryCondition = 0;
   }
 
   if (aggType === 'common') {
     switch (aggregation) {
       case CommonAggregations.Count:
-        aggregationSql = knex.raw(`COUNT(*) AS ??`, [_column.id]);
+        aggregationSql = knex.raw(`COUNT(*) AS ??`, [column.id]);
         break;
       case CommonAggregations.CountEmpty:
-        if ([UITypes.JSON].includes(_column.uidt)) {
+        if ([UITypes.JSON].includes(column.uidt)) {
           aggregationSql = knex.raw(
             `COUNT(*) FILTER (WHERE (??) IS NULL) AS ??`,
-            [column, _column.id],
+            [column_query, column.id],
           );
           break;
         }
         aggregationSql = knex.raw(
           `COUNT(*) FILTER (WHERE (??) IS NULL OR (??) = ${secondaryCondition}) AS ??`,
-          [column, column, _column.id],
+          [column_query, column_query, column.id],
         );
 
         break;
       case CommonAggregations.CountFilled:
-        // The condition IS NOT NULL AND (column) != 'NULL' is not same for the following column types:
+        // The condition IS NOT NULL AND (column_query) != 'NULL' is not same for the following column_query types:
         // Hence we need to handle them separately.
         if (
           [
@@ -104,34 +104,34 @@ export function genPgAggregateQuery({
             UITypes.ID,
             UITypes.LinkToAnotherRecord,
             UITypes.Lookup,
-          ].includes(_column.uidt) ||
+          ].includes(column.uidt) ||
           [FormulaDataTypes.DATE, FormulaDataTypes.NUMERIC].includes(
             parsedFormulaType,
           )
         ) {
           aggregationSql = knex.raw(
             `COUNT(*) FILTER (WHERE (??) IS NOT NULL) AS ??`,
-            [column, _column.id],
+            [column_query, column.id],
           );
           break;
         }
 
-        // For other column types, the condition is IS NOT NULL AND (column) != 'NULL'
+        // For other column_query types, the condition is IS NOT NULL AND (column_query) != 'NULL'
         aggregationSql = knex.raw(
           `COUNT(*) FILTER (WHERE (??) IS NOT NULL AND (??) != ${secondaryCondition}) AS ??`,
-          [column, column, _column.id],
+          [column_query, column_query, column.id],
         );
         break;
       case CommonAggregations.CountUnique:
-        // JSON Does not support DISTINCT for json column type. Hence we need to cast the column to text.
-        if ([UITypes.JSON].includes(_column.uidt)) {
+        // JSON Does not support DISTINCT for json column_query type. Hence we need to cast the column_query to text.
+        if ([UITypes.JSON].includes(column.uidt)) {
           aggregationSql = knex.raw(
             `COUNT(DISTINCT ((??)::text)) FILTER (WHERE (??) IS NOT NULL) AS ??`,
-            [column, column, _column.id],
+            [column_query, column_query, column.id],
           );
           break;
         }
-        // The condition IS NOT NULL AND (column) != 'NULL' is not same for the following column types:
+        // The condition IS NOT NULL AND (column_query) != 'NULL' is not same for the following column_query types:
         // Hence we need to handle them separately.
         if (
           [
@@ -151,37 +151,37 @@ export function genPgAggregateQuery({
             UITypes.ID,
             UITypes.LinkToAnotherRecord,
             UITypes.Lookup,
-          ].includes(_column.uidt) ||
+          ].includes(column.uidt) ||
           [FormulaDataTypes.DATE, FormulaDataTypes.NUMERIC].includes(
             parsedFormulaType,
           )
         ) {
           aggregationSql = knex.raw(
             `COUNT(DISTINCT (??)) FILTER (WHERE (??) IS NOT NULL) AS ??`,
-            [column, column, _column.id],
+            [column_query, column_query, column.id],
           );
           break;
         }
         aggregationSql = knex.raw(
           `COUNT(DISTINCT (??)) FILTER (WHERE (??) IS NOT NULL AND (??) != ${secondaryCondition}) AS ??`,
-          [column, column, column, _column.id],
+          [column_query, column_query, column_query, column.id],
         );
         break;
       case CommonAggregations.PercentEmpty:
-        if ([UITypes.JSON].includes(_column.uidt)) {
+        if ([UITypes.JSON].includes(column.uidt)) {
           aggregationSql = knex.raw(
             `(COUNT(*) FILTER (WHERE (??) IS NULL) * 100.0 / NULLIF(COUNT(*), 0)) AS ??`,
-            [column, _column.id],
+            [column_query, column.id],
           );
           break;
         }
         aggregationSql = knex.raw(
           `(COUNT(*) FILTER (WHERE (??) IS NULL OR (??) = ${secondaryCondition}) * 100.0 / NULLIF(COUNT(*), 0)) AS ??`,
-          [column, column, _column.id],
+          [column_query, column_query, column.id],
         );
         break;
       case CommonAggregations.PercentFilled:
-        // The condition IS NOT NULL AND (column) != 'NULL' is not same for the following column types:
+        // The condition IS NOT NULL AND (column_query) != 'NULL' is not same for the following column_query types:
         // Hence we need to handle them separately.
         if (
           [
@@ -202,32 +202,32 @@ export function genPgAggregateQuery({
             UITypes.ID,
             UITypes.LinkToAnotherRecord,
             UITypes.Lookup,
-          ].includes(_column.uidt) ||
+          ].includes(column.uidt) ||
           [FormulaDataTypes.DATE, FormulaDataTypes.NUMERIC].includes(
             parsedFormulaType,
           )
         ) {
           aggregationSql = knex.raw(
             `(COUNT(*) FILTER (WHERE (??) IS NOT NULL) * 100.0 / NULLIF(COUNT(*), 0)) AS ??`,
-            [column, _column.id],
+            [column_query, column.id],
           );
           break;
         }
         aggregationSql = knex.raw(
           `(COUNT(*) FILTER (WHERE (??) IS NOT NULL AND (??) != ${secondaryCondition}) * 100.0 / NULLIF(COUNT(*), 0)) AS ??`,
-          [column, column, _column.id],
+          [column_query, column_query, column.id],
         );
         break;
       case CommonAggregations.PercentUnique:
-        // JSON Does not support DISTINCT for json column type. Hence we need to cast the column to text.
-        if ([UITypes.JSON].includes(_column.uidt)) {
+        // JSON Does not support DISTINCT for json column_query type. Hence we need to cast the column_query to text.
+        if ([UITypes.JSON].includes(column.uidt)) {
           aggregationSql = knex.raw(
             `(COUNT(DISTINCT ((??)::text)) FILTER (WHERE (??) IS NOT NULL) * 100.0 / NULLIF(COUNT(*), 0)) AS ??`,
-            [column, column, _column.id],
+            [column_query, column_query, column.id],
           );
           break;
         }
-        // The condition IS NOT NULL AND (column) != 'NULL' is not same for the following column types:
+        // The condition IS NOT NULL AND (column_query) != 'NULL' is not same for the following column_query types:
         // Hence we need to handle them separately.
         if (
           [
@@ -247,20 +247,20 @@ export function genPgAggregateQuery({
             UITypes.ID,
             UITypes.LinkToAnotherRecord,
             UITypes.Lookup,
-          ].includes(_column.uidt) ||
+          ].includes(column.uidt) ||
           [FormulaDataTypes.DATE, FormulaDataTypes.NUMERIC].includes(
             parsedFormulaType,
           )
         ) {
           aggregationSql = knex.raw(
             `(COUNT(DISTINCT (??)) FILTER (WHERE (??) IS NOT NULL) * 100.0 / NULLIF(COUNT(*), 0)) AS ??`,
-            [column, column, _column.id],
+            [column_query, column_query, column.id],
           );
           break;
         }
         aggregationSql = knex.raw(
           `(COUNT(DISTINCT (??)) FILTER (WHERE (??) IS NOT NULL AND (??) != ${secondaryCondition}) * 100.0 / NULLIF(COUNT(*), 0)) AS ??`,
-          [column, column, column, _column.id],
+          [column_query, column_query, column_query, column.id],
         );
         break;
       case CommonAggregations.None:
@@ -269,57 +269,57 @@ export function genPgAggregateQuery({
   } else if (aggType === 'numerical') {
     switch (aggregation) {
       case NumericalAggregations.Avg:
-        if (_column.uidt === UITypes.Rating) {
+        if (column.uidt === UITypes.Rating) {
           aggregationSql = knex.raw(
             `AVG((??)) FILTER (WHERE (??) != ??) AS ??`,
-            [column, column, secondaryCondition, _column.id],
+            [column_query, column_query, secondaryCondition, column.id],
           );
           break;
         }
-        aggregationSql = knex.raw(`AVG((??)) AS ??`, [column, _column.id]);
+        aggregationSql = knex.raw(`AVG((??)) AS ??`, [column_query, column.id]);
         break;
       case NumericalAggregations.Max:
-        aggregationSql = knex.raw(`MAX((??)) AS ??`, [column, _column.id]);
+        aggregationSql = knex.raw(`MAX((??)) AS ??`, [column_query, column.id]);
         break;
       case NumericalAggregations.Min:
-        if (_column.uidt === UITypes.Rating) {
+        if (column.uidt === UITypes.Rating) {
           aggregationSql = knex.raw(
             `MIN((??)) FILTER (WHERE (??) != ??) AS ??`,
-            [column, column, secondaryCondition, _column.id],
+            [column_query, column_query, secondaryCondition, column.id],
           );
           break;
         }
 
-        aggregationSql = knex.raw(`MIN((??)) AS ??`, [column, _column.id]);
+        aggregationSql = knex.raw(`MIN((??)) AS ??`, [column_query, column.id]);
         break;
       case NumericalAggregations.Sum:
-        aggregationSql = knex.raw(`SUM((??)) AS ??`, [column, _column.id]);
+        aggregationSql = knex.raw(`SUM((??)) AS ??`, [column_query, column.id]);
         break;
       case NumericalAggregations.StandardDeviation:
-        if (_column.uidt === UITypes.Rating) {
+        if (column.uidt === UITypes.Rating) {
           aggregationSql = knex.raw(
             `stddev_pop((??)) FILTER (WHERE (??) != ??) AS ??`,
-            [column, column, secondaryCondition, _column.id],
+            [column_query, column_query, secondaryCondition, column.id],
           );
           break;
         }
         aggregationSql = knex.raw(`stddev_pop((??)) AS ??`, [
-          column,
-          _column.id,
+          column_query,
+          column.id,
         ]);
         break;
       case NumericalAggregations.Range:
         aggregationSql = knex.raw(`MAX((??)) - MIN((??)) AS ??`, [
-          column,
-          column,
-          _column.id,
+          column_query,
+          column_query,
+          column.id,
         ]);
         break;
 
       case NumericalAggregations.Median:
         aggregationSql = knex.raw(
           `percentile_cont(0.5) within group (order by (??)) AS ??`,
-          [column, _column.id],
+          [column_query, column.id],
         );
         break;
       default:
@@ -329,26 +329,26 @@ export function genPgAggregateQuery({
     switch (aggregation) {
       case BooleanAggregations.Checked:
         aggregationSql = knex.raw(`COUNT(*) FILTER (WHERE (??) = true) AS ??`, [
-          column,
-          _column.id,
+          column_query,
+          column.id,
         ]);
         break;
       case BooleanAggregations.Unchecked:
         aggregationSql = knex.raw(
           `COUNT(*) FILTER (WHERE (??) = false OR (??) = NULL) AS ??`,
-          [column, column, _column.id],
+          [column_query, column_query, column.id],
         );
         break;
       case BooleanAggregations.PercentChecked:
         aggregationSql = knex.raw(
           `(COUNT(*) FILTER (WHERE (??) = true) * 100.0 / NULLIF(COUNT(*), 0)) AS ??`,
-          [column, _column.id],
+          [column_query, column.id],
         );
         break;
       case BooleanAggregations.PercentUnchecked:
         aggregationSql = knex.raw(
           `(COUNT(*) FILTER (WHERE (??) = false OR (??) = NULL) * 100.0 / NULLIF(COUNT(*), 0)) AS ??`,
-          [column, column, _column.id],
+          [column_query, column_query, column.id],
         );
         break;
       default:
@@ -357,18 +357,18 @@ export function genPgAggregateQuery({
   } else if (aggType === 'date') {
     switch (aggregation) {
       case DateAggregations.EarliestDate:
-        aggregationSql = knex.raw(`MIN((??)) AS ??`, [column, _column.id]);
+        aggregationSql = knex.raw(`MIN((??)) AS ??`, [column_query, column.id]);
         break;
       case DateAggregations.LatestDate:
-        aggregationSql = knex.raw(`MAX((??)) AS ??`, [column, _column.id]);
+        aggregationSql = knex.raw(`MAX((??)) AS ??`, [column_query, column.id]);
         break;
 
       // The Date, DateTime, CreatedTime, LastModifiedTime columns are casted to DATE.
       case DateAggregations.DateRange:
         aggregationSql = knex.raw(`MAX((??)::date) - MIN((??)::date) AS ??`, [
-          column,
-          column,
-          _column.id,
+          column_query,
+          column_query,
+          column.id,
         ]);
         break;
       // The Date, DateTime, CreatedTime, LastModifiedTime columns are casted to DATE.
@@ -376,7 +376,7 @@ export function genPgAggregateQuery({
         aggregationSql = knex.raw(
           `DATE_PART('year', AGE(MAX((??)::date), MIN((??)::date))) * 12 + 
          DATE_PART('month', AGE(MAX((??)::date), MIN((??)::date))) AS ??`,
-          [column, column, column, column, _column.id],
+          [column_query, column_query, column_query, column_query, column.id],
         );
 
         break;
@@ -388,7 +388,7 @@ export function genPgAggregateQuery({
       case AttachmentAggregations.AttachmentSize:
         aggregationSql = knex.raw(
           `(SELECT SUM((json_object ->> 'size')::int) FROM ?? CROSS JOIN LATERAL jsonb_array_elements(??::jsonb) AS json_array(json_object)) AS ??`,
-          [baseModelSqlv2.tnPath, column, _column.id],
+          [baseModelSqlv2.tnPath, column_query, column.id],
         );
         break;
     }

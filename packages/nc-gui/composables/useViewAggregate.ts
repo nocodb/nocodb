@@ -58,18 +58,11 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
       }
     })
 
-    const getAggregations = (column: ColumnType, hideNone?: boolean) => {
-      let agg
+    const getAggregations = (column: ColumnType) => {
       if (column.uidt === UITypes.Formula && (column.colOptions as any)?.parsed_tree?.dataType) {
-        agg = getAvailableAggregations(column.uidt!, (column.colOptions as any).parsed_tree)
-      } else {
-        agg = getAvailableAggregations(column.uidt!)
+        return getAvailableAggregations(column.uidt!, (column.colOptions as any).parsed_tree)
       }
-
-      if (hideNone) {
-        return agg.filter((x) => x !== 'none')
-      }
-      return agg
+      return getAvailableAggregations(column.uidt!)
     }
 
     const loadViewAggregate = async (

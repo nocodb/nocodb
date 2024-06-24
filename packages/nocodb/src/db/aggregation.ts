@@ -73,13 +73,13 @@ const validateColType = (column: Column, aggregation: string) => {
 export default async function applyAggregation({
   baseModelSqlv2,
   aggregation,
-  column: _column,
+  column,
 }: {
   baseModelSqlv2: BaseModelSqlv2;
   aggregation: string;
   column: Column;
 }): Promise<string | undefined> {
-  if (!aggregation || !_column) {
+  if (!aggregation || !column) {
     return;
   }
 
@@ -97,7 +97,7 @@ export default async function applyAggregation({
   - attachment   - attachment aggregations like attachment size.
   - unknown      - if the aggregation is not supported yet
   */
-  const aggType = validateColType(_column, aggregation);
+  const aggType = validateColType(column, aggregation);
 
   // If the aggregation is not available for the column type, we throw an error.
   if (aggType === 'unknown') {
@@ -105,27 +105,27 @@ export default async function applyAggregation({
   }
 
   // If the column is a barcode or qr code column, we fetch the column that the virtual column refers to.
-  if (_column.uidt === UITypes.Barcode || _column.uidt === UITypes.QrCode) {
-    _column = new Column({
-      ...(await _column
+  if (column.uidt === UITypes.Barcode || column.uidt === UITypes.QrCode) {
+    column = new Column({
+      ...(await column
         .getColOptions<BarcodeColumn | QrCodeColumn>(context)
         .then((col) => col.getValueColumn(context))),
-      id: _column.id,
+      id: column.id,
     });
   }
 
-  let column = _column.column_name;
+  let column_name_query = column.column_name;
 
-  if (_column.uidt === UITypes.CreatedTime && !_column.column_name)
-    column = 'created_at';
-  if (_column.uidt === UITypes.LastModifiedTime && !_column.column_name)
-    column = 'updated_at';
-  if (_column.uidt === UITypes.CreatedBy && !_column.column_name)
-    column = 'created_by';
-  if (_column.uidt === UITypes.LastModifiedBy && !_column.column_name)
-    column = 'updated_by';
+  if (column.uidt === UITypes.CreatedTime && !column.column_name)
+    column_name_query = 'created_at';
+  if (column.uidt === UITypes.LastModifiedTime && !column.column_name)
+    column_name_query = 'updated_at';
+  if (column.uidt === UITypes.CreatedBy && !column.column_name)
+    column_name_query = 'created_by';
+  if (column.uidt === UITypes.LastModifiedBy && !column.column_name)
+    column_name_query = 'updated_by';
 
-  const parsedFormulaType = _column.colOptions?.parsed_tree?.dataType;
+  const parsedFormulaType = column.colOptions?.parsed_tree?.dataType;
 
   /* The following column types require special handling for aggregation:
    * - Links
@@ -136,29 +136,30 @@ export default async function applyAggregation({
    * These column types require special handling because they are virtual columns and do not have a direct column name.
    * We generate the select query for these columns and use the generated query for aggregation.
    * */
-  switch (_column.uidt) {
+  switch (column.uidt) {
     case UITypes.Links:
     case UITypes.Rollup:
-      column = (
+      column_name_query = (
         await genRollupSelectv2({
           baseModelSqlv2,
           knex,
-          columnOptions: (await _column.getColOptions(context)) as RollupColumn,
+          columnOptions: (await column.getColOptions(context)) as RollupColumn,
         })
       ).builder;
       break;
 
     case UITypes.Formula:
-      column = (await baseModelSqlv2.getSelectQueryBuilderForFormula(_column))
-        .builder;
+      column_name_query = (
+        await baseModelSqlv2.getSelectQueryBuilderForFormula(column)
+      ).builder;
       break;
 
     case UITypes.LinkToAnotherRecord:
     case UITypes.Lookup:
-      column = (
+      column_name_query = (
         await generateLookupSelectQuery({
           baseModelSqlv2,
-          column: _column,
+          column: column,
           alias: null,
           model,
         })
@@ -168,28 +169,28 @@ export default async function applyAggregation({
 
   if (knex.client.config.client === 'pg') {
     return genPgAggregateQuery({
-      _column,
+      column,
       baseModelSqlv2,
       aggregation,
-      column,
+      column_query: column_name_query,
       parsedFormulaType,
       aggType,
     });
   } else if (knex.client.config.client === 'mysql2') {
     return genMysql2AggregatedQuery({
-      _column,
+      column,
       baseModelSqlv2,
       aggregation,
-      column,
+      column_query: column_name_query,
       parsedFormulaType,
       aggType,
     });
   } else if (knex.client.config.client === 'sqlite3') {
     return genSqlite3AggregateQuery({
-      _column,
+      column,
       baseModelSqlv2,
       aggregation,
-      column,
+      column_query: column_name_query,
       parsedFormulaType,
       aggType,
     });

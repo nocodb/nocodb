@@ -13,7 +13,7 @@ enum NumericalAggregations {
 }
 
 enum CommonAggregations {
-  // Count = 'count',
+  Count = 'count',
   CountEmpty = 'count_empty',
   CountFilled = 'count_filled',
   CountUnique = 'count_unique',
@@ -50,22 +50,31 @@ const AllAggregations = {
 };
 
 const getAvailableAggregations = (type: string, parsed_tree?): string[] => {
+  let returnAggregations = [];
   if (type === UITypes.Formula && parsed_tree?.dataType) {
     switch (parsed_tree.dataType) {
       case FormulaDataTypes.BOOLEAN:
-        return [...Object.values(BooleanAggregations), CommonAggregations.None];
+        returnAggregations = [
+          ...Object.values(BooleanAggregations),
+          CommonAggregations.None,
+        ];
+        break;
       case FormulaDataTypes.DATE:
-        return [
+        returnAggregations = [
           ...Object.values(DateAggregations),
           ...Object.values(CommonAggregations),
         ];
+        break;
       case FormulaDataTypes.NUMERIC:
-        return [
+        returnAggregations = [
           ...Object.values(NumericalAggregations),
           ...Object.values(CommonAggregations),
         ];
+
+        break;
       default:
-        return [...Object.values(CommonAggregations)];
+        returnAggregations = [...Object.values(CommonAggregations)];
+        break;
     }
   }
 
@@ -78,29 +87,41 @@ const getAvailableAggregations = (type: string, parsed_tree?): string[] => {
     case UITypes.Rating:
     case UITypes.Rollup:
     case UITypes.Links:
-      return [
+      returnAggregations = [
         ...Object.values(NumericalAggregations),
         ...Object.values(CommonAggregations),
       ];
+      break;
     case UITypes.Attachment:
-      return [
+      returnAggregations = [
         ...Object.values(AttachmentAggregations),
         ...Object.values(CommonAggregations),
       ];
+      break;
     case UITypes.Checkbox:
-      return [...Object.values(BooleanAggregations), CommonAggregations.None];
+      returnAggregations = [
+        ...Object.values(BooleanAggregations),
+        CommonAggregations.None,
+      ];
+      break;
     case UITypes.Date:
     case UITypes.DateTime:
     case UITypes.LastModifiedTime:
     case UITypes.CreatedTime:
-      return [
+      returnAggregations = [
         ...Object.values(DateAggregations),
         ...Object.values(CommonAggregations),
       ];
+      break;
     case UITypes.SpecificDBType:
       return [];
   }
-  return [...Object.values(CommonAggregations)];
+
+  if (!returnAggregations.length) {
+    returnAggregations = [...Object.values(CommonAggregations)];
+  }
+
+  return returnAggregations.filter((item) => item !== CommonAggregations.Count);
 };
 
 export {

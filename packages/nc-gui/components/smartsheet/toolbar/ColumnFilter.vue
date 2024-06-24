@@ -84,7 +84,7 @@ const {
   computed(() => autoSave.value),
   () => reloadDataHook.trigger({ shouldShowLoading: showLoading.value, offset: 0 }),
   currentFilters,
-  props.nestedLevel < 1,
+  props.nestedLevel > 0,
   webHook.value,
   link.value,
   linkColId,

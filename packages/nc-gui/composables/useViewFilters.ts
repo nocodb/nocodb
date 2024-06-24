@@ -59,7 +59,7 @@ export function useViewFilters(
       if (nestedMode.value) {
         currentFilters.value = value
         if (!isLink && !isWebhook) {
-          if (isNestedRoot) {
+          if (!isNestedRoot) {
             nestedFilters.value = value
           }
           nestedFilters.value = [...nestedFilters.value]

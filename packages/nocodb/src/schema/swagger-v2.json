@@ -9047,48 +9047,6 @@
           },
           {
             "schema": {
-              "type": "string"
-            },
-            "in": "query",
-            "name": "user"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "query",
-            "name": "type"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "query",
-            "name": "baseId"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "query",
-            "name": "sourceId"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "query",
-            "name": "startDate"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "query",
-            "name": "endDate"
-          },
-          {
-            "schema": {
               "properties": {
                 "created_at": {
                   "type": "string",
@@ -9122,7 +9080,7 @@
           "Utils"
         ]
       }
-    }
+    },
     "/api/v2/meta/bases/{baseId}/audits": {
       "parameters": [
         {
@@ -9184,7 +9142,7 @@
           {
             "schema": {
               "type": "integer",
-              "maximum": 1
+              "minimum": 1
             },
             "in": "query",
             "name": "limit"
@@ -9195,34 +9153,6 @@
             },
             "in": "query",
             "name": "sourceId"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "query",
-            "name": "user"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "query",
-            "name": "type"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "query",
-            "name": "startDate"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "query",
-            "name": "endDate"
           },
           {
             "schema": {

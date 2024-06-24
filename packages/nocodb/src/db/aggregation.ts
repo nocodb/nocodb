@@ -84,16 +84,30 @@ export default async function applyAggregation({
 
   const { context, dbDriver: knex, model } = baseModelSqlv2;
 
+  /*
+  All aggregations are not available for all UITypes. We validate the column type
+  and the aggregation type to make sure that the aggregation is available for the column type.
+  We also return the type of aggregation that has to be applied on the column.
+  The return value can be one of the following:
+  - common       - common aggregations like count, count empty, count filled, count unique, etc.
+  - numerical    - numerical aggregations like sum, avg, min, max, etc.
+  - boolean      - boolean aggregations like checked, unchecked, percent checked, percent unchecked, etc.
+  - date         - date aggregations like earliest date, latest date, date range, month range, etc.
+  - attachment   - attachment aggregations like attachment size.
+  - unknown      - if the aggregation is not supported yet
+  */
   const aggType = validateColType(_column, aggregation);
 
   let aggregationSql: Knex.Raw | undefined;
 
+  // If the aggregation is not available for the column type, we throw an error.
   if (aggType === 'unknown') {
     NcError.notImplemented(`Aggregation ${aggregation} is not implemented yet`);
   }
 
   let column = _column.column_name;
 
+  // If the column is a barcode or qr code column, we fetch the column that the virtual column refers to.
   if (_column.uidt === UITypes.Barcode || _column.uidt === UITypes.QrCode) {
     _column = new Column({
       ...(await _column
@@ -104,6 +118,15 @@ export default async function applyAggregation({
     });
   }
 
+  /* The following column types require special handling for aggregation:
+   * - Links
+   * - Rollup
+   * - Formula
+   * - Lookup
+   * - LinkToAnotherRecord
+   * These column types require special handling because they are virtual columns and do not have a direct column name.
+   * We generate the select query for these columns and use the generated query for aggregation.
+   * */
   switch (_column.uidt) {
     case UITypes.Links:
     case UITypes.Rollup:

@@ -190,10 +190,10 @@ onMounted(() => {
       </NcDropdown>
     </template>
 
-    <div class="!px-8 !w-8 h-1">‎</div>
+    <div class="!pl-8 pr-60 !w-8 h-1">‎</div>
 
     <div class="fixed h-9 bg-white border-l-1 border-gray-200 px-1 flex items-center right-0">
-      <NcPagination
+      <NcPaginationV2
         v-if="count !== Infinity"
         v-model:current="page"
         v-model:page-size="size"
@@ -224,30 +224,4 @@ onMounted(() => {
 }
 </style>
 
-<style scoped>
-:deep(.ant-pagination-item a) {
-  @apply text-sm !leading-[21px] !no-underline;
-}
-
-:deep(.nc-pagination .ant-pagination-item) {
-  @apply !border-0 !pt-0.25;
-}
-
-:deep(.ant-pagination-item:not(.ant-pagination-item-active) a) {
-  line-height: 21px !important;
-  @apply text-sm !text-gray-400;
-}
-
-:deep(.ant-pagination-item-link) {
-  @apply text-gray-800 flex items-center justify-center;
-}
-
-:deep(.ant-pagination-item.ant-pagination-item-active) {
-  @apply !bg-transparent;
-}
-
-:deep(.rtl-pagination .ant-pagination-prev .ant-pagination-item-link),
-:deep(.rtl-pagination .ant-pagination-next .ant-pagination-item-link) {
-  @apply transform rotate-180;
-}
-</style>
+<style scoped></style>

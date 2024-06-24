@@ -1919,6 +1919,7 @@ onKeyStroke('ArrowDown', onDown)
                 'mobile': isMobileMode,
                 'desktop': !isMobileMode,
                 'w-full': dataRef.length === 0,
+                'pr-60 pb-12': !headerOnly && !isGroupBy,
               }"
               :style="{
                 transform: `translateY(${topOffset}px) translateX(${leftOffset}px)`,

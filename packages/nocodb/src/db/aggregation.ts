@@ -15,6 +15,7 @@ import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
 import { genPgAggregateQuery } from '~/db/aggregations/pg';
 import { genMysql2AggregatedQuery } from '~/db/aggregations/mysql2';
+import { genSqlite3AggregateQuery } from '~/db/aggregations/sqlite3';
 
 const validateColType = (column: Column, aggregation: string) => {
   const agg = getAvailableAggregations(
@@ -176,6 +177,15 @@ export default async function applyAggregation({
     });
   } else if (knex.client.config.client === 'mysql2') {
     return genMysql2AggregatedQuery({
+      _column,
+      baseModelSqlv2,
+      aggregation,
+      column,
+      parsedFormulaType,
+      aggType,
+    });
+  } else if (knex.client.config.client === 'sqlite3') {
+    return genSqlite3AggregateQuery({
       _column,
       baseModelSqlv2,
       aggregation,

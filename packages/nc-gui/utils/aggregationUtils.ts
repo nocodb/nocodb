@@ -124,8 +124,11 @@ const formatAggregation = (aggregation: any, value: any, column: ColumnType) => 
   if (column.uidt === UITypes.Duration) {
     return convertMS2Duration(value, parseProp(column.meta)?.duration || 0)
   }
+  if (typeof value === 'number') {
+    return roundTo(value, 1) ?? '∞'
+  }
 
-  return roundTo(value, 1) ?? '∞'
+  return value
 }
 
 export { formatAggregation }

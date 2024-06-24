@@ -71,7 +71,6 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
         type: string
       }>,
     ) => {
-      console.log(view.value, meta.value, '============================')
       await until(meta)
         .toBeTruthy((c) => !!c)
         .then(async () => {

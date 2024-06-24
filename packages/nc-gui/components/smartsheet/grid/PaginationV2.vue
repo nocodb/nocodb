@@ -121,7 +121,7 @@ onMounted(() => {
             'width': displayFieldComputed?.width,
           }"
         >
-          <template v-if="[UITypes.SpecificDBType, UITypes.ForeignKey].includes(displayFieldComputed.column.uidt!)">
+          <template v-if="![UITypes.SpecificDBType, UITypes.ForeignKey].includes(displayFieldComputed.column.uidt!)">
             <div
               v-if="!displayFieldComputed.field?.aggregation || displayFieldComputed.field?.aggregation === 'none'"
               class="text-gray-500 opacity-0 transition group-hover:opacity-100"
@@ -204,7 +204,7 @@ onMounted(() => {
             'width': width,
           }"
         >
-          <template v-if="[UITypes.SpecificDBType, UITypes.ForeignKey].includes(column?.uidt!)">
+          <template v-if="![UITypes.SpecificDBType, UITypes.ForeignKey].includes(column?.uidt!)">
             <div
               v-if="field?.aggregation === 'none' || field?.aggregation === null"
               class="text-gray-500 opacity-0 transition group-hover:opacity-100"

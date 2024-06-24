@@ -5,18 +5,13 @@ import { isString } from '@vue/shared'
 import type { AuditLogsQuery } from '~/lib/types'
 
 const defaultAuditLogsQuery = {
-  type: undefined,
   baseId: undefined,
   sourceId: undefined,
-  user: undefined,
-  startDate: undefined,
-  endData: undefined,
-  dateRangeLabel: undefined,
   orderBy: {
     created_at: 'desc',
     user: undefined,
   },
-} as AuditLogsQuery
+} as Partial<AuditLogsQuery>
 
 export const useWorkspace = defineStore('workspaceStore', () => {
   const basesStore = useBases()
@@ -228,7 +223,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     }
   }
 
-  const auditLogsQuery = ref<AuditLogsQuery>(defaultAuditLogsQuery)
+  const auditLogsQuery = ref<Partial<AuditLogsQuery>>(defaultAuditLogsQuery)
 
   const audits = ref<null | Array<AuditType>>(null)
 
@@ -239,7 +234,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const auditCurrentLimit = ref(25)
 
   const loadAudits = async (
-    workspaceId?: string,
+    _workspaceId?: string,
     page: number = auditCurrentPage.value,
     limit: number = auditCurrentLimit.value,
   ) => {

@@ -4,6 +4,7 @@ const props = withDefaults(
     trigger?: Array<'click' | 'hover' | 'contextmenu'>
     visible?: boolean | undefined
     overlayClassName?: string | undefined
+    disabled?: boolean
     placement?: 'bottom' | 'top' | 'bottomLeft' | 'bottomRight' | 'topLeft' | 'topRight' | 'topCenter' | 'bottomCenter'
     autoClose?: boolean
   }>(),
@@ -11,6 +12,7 @@ const props = withDefaults(
     trigger: () => ['click'],
     visible: undefined,
     placement: 'bottomLeft',
+    disabled: false,
     overlayClassName: undefined,
     autoClose: true,
   },
@@ -61,6 +63,7 @@ const onVisibleUpdate = (event: any) => {
 
 <template>
   <a-dropdown
+    :disabled="disabled"
     :visible="visible"
     :placement="placement"
     :trigger="trigger"

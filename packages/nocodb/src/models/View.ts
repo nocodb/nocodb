@@ -1,4 +1,9 @@
-import { isSystemColumn, UITypes, ViewTypes } from 'nocodb-sdk';
+import {
+  CommonAggregations,
+  isSystemColumn,
+  UITypes,
+  ViewTypes,
+} from 'nocodb-sdk';
 import type { BoolType, ColumnReqType, ViewType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import Model from '~/models/Model';
@@ -1775,7 +1780,13 @@ export default class View implements ViewType {
                   'enable_scanner',
                   'meta',
                 ]
-              : ['width', 'group_by', 'group_by_order', 'group_by_sort']),
+              : [
+                  'width',
+                  'group_by',
+                  'group_by_order',
+                  'group_by_sort',
+                  'aggregation',
+                ]),
           ]),
           fk_view_id: view.id,
           base_id: view.base_id,
@@ -1843,6 +1854,8 @@ export default class View implements ViewType {
 
         let show = 'show' in column ? column.show : true;
 
+        const aggregation = CommonAggregations.None;
+
         if (view.type === ViewTypes.GALLERY) {
           const galleryView = await GalleryView.get(context, view.id, ncMeta);
           if (
@@ -1900,6 +1913,11 @@ export default class View implements ViewType {
           fk_view_id: view.id,
           base_id: view.base_id,
           source_id: view.source_id,
+          ...(view.type === ViewTypes.GRID
+            ? {
+                aggregation,
+              }
+            : {}),
         });
       }
     }

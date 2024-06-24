@@ -59,7 +59,7 @@ const auditLogsQuery = ref<{
   subType?: string
   base?: string
   user?: string
-  search?:string
+  search?: string
 }>({
   type: undefined,
   subType: undefined,
@@ -99,6 +99,11 @@ const handleRowClick = (audit: AuditType) => {
   isRowExpanded.value = true
 }
 
+const handleSearchAuditLogs = useDebounceFn(() => {
+  console.log('searched', auditLogsQuery.value.search)
+  loadAudits()
+}, 500)
+
 onMounted(async () => {
   if (audits.value === null) {
     await loadAudits(currentPage.value, currentLimit.value)
@@ -122,34 +127,38 @@ onMounted(async () => {
         </div>
         <div class="text-sm text-gray-600">Track and monitor any changes made to any base in your workspace.</div>
       </div>
-      <div class="px-6 flex items-center gap-3">
-        <!-- <a-input
-          key="nc-form-field-search-input"
-          v-model:value="searchQuery"
-          type="text"
-          autocomplete="off"
-          class="!h-9 !px-3 !py-1 !rounded-lg"
-          :placeholder="`${$t('placeholder.searchFields')}...`"
-          name="nc-form-field-search-input"
-          data-testid="nc-form-field-search-input"
-        >
-          <template #prefix>
-            <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-gray-500 group-hover:text-black" />
-          </template>
-          <template #suffix>
-            <GeneralIcon
-              v-if="searchQuery.length > 0"
-              icon="close"
-              class="ml-2 h-4 w-4 text-gray-500 group-hover:text-black"
-              data-testid="nc-form-field-clear-search"
-              @click="searchQuery = ''"
-            />
-          </template>
-        </a-input> -->
+      <div class="pr-6 pl-1 flex items-center gap-3">
+        <form autocomplete="off" @submit.prevent>
+          <a-input
+            key="nc-audit-logs-search-input"
+            v-model:value="auditLogsQuery.search"
+            type="text"
+            autocomplete="off"
+            class="!h-9 !px-3 !py-1 !rounded-lg nc-input-sm nc-input-shadow"
+            placeholder="Search a record"
+            name="nc-audit-logs-search-input"
+            data-testid="nc-audit-logs-search-input"
+            @input="handleSearchAuditLogs"
+            @keydown.enter.exact="loadAudits"
+          >
+            <template #prefix>
+              <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-gray-500 group-hover:text-black" />
+            </template>
+            <template #suffix>
+              <GeneralIcon
+                v-if="auditLogsQuery.search && auditLogsQuery.search.length > 0"
+                icon="close"
+                class="ml-2 h-4 w-4 text-gray-500 group-hover:text-black"
+                data-testid="nc-audit-logs-clear-search"
+                @click="auditLogsQuery.search = undefined"
+              />
+            </template>
+          </a-input>
+        </form>
         <div class="flex items-stretch border-1 border-gray-200 rounded-lg overflow-hidden">
           <NcDropdown v-model:visible="auditDropdowns.type">
             <NcButton type="secondary" size="small" class="!border-none !rounded-none">
-              <div class="flex items-center gap-2">
+              <div class="!w-[106px] flex items-center justify-between gap-2">
                 <div class="max-w-[120px] truncate text-sm !leading-5">Type: {{ auditLogsQuery.type || 'All' }}</div>
                 <GeneralIcon icon="arrowDown" class="h-4 w-4" />
               </div>
@@ -191,9 +200,9 @@ onMounted(async () => {
           </NcDropdown>
           <NcDropdown v-model:visible="auditDropdowns.subType" placement="bottomRight">
             <NcButton type="secondary" size="small" class="!border-none !rounded-none">
-              <div class="flex items-center gap-2">
-                <div class="max-w-[120px] truncate text-sm !leading-5">SubType: {{ auditLogsQuery.subType || 'All' }}</div>
-                <GeneralIcon icon="arrowDown" class="h-4 w-4" />
+              <div class="!w-[146px] flex items-center justify-between gap-2">
+                <div class="truncate text-sm !leading-5">Sub-Type: {{ auditLogsQuery.subType || 'All' }}</div>
+                <GeneralIcon icon="arrowDown" class="flex-none h-4 w-4" />
               </div>
             </NcButton>
 
@@ -225,7 +234,7 @@ onMounted(async () => {
                       {{ subType }}
                     </div>
 
-                    <GeneralIcon v-if="auditLogsQuery.base === subType" icon="check" class="flex-none text-primary w-4 h-4" />
+                    <GeneralIcon v-if="auditLogsQuery.subType === subType" icon="check" class="flex-none text-primary w-4 h-4" />
                   </div>
                 </NcMenuItem>
               </NcMenu>
@@ -422,8 +431,24 @@ onMounted(async () => {
                       {{ audit.base_id }}
                     </template>
                   </div>
-                  <div class="td cell-type">{{ audit.op_type }}</div>
-                  <div class="td cell-sub-type">{{ audit.op_sub_type }}</div>
+                  <div class="td cell-type">
+                    <div class="truncate">
+                      <NcTooltip class="truncate" placement="bottom" show-on-truncate-only>
+                        <template #title> {{ audit.op_type }}</template>
+
+                        <span class="truncate"> {{ audit.op_type }} </span>
+                      </NcTooltip>
+                    </div>
+                  </div>
+                  <div class="td cell-sub-type">
+                    <div class="truncate">
+                      <NcTooltip class="truncate" placement="bottom" show-on-truncate-only>
+                        <template #title> {{ audit.op_sub_type }}</template>
+
+                        <span class="truncate"> {{ audit.op_sub_type }} </span>
+                      </NcTooltip>
+                    </div>
+                  </div>
                   <div class="td cell-description">
                     <div class="truncate">
                       {{ audit.description }}
@@ -462,7 +487,7 @@ onMounted(async () => {
               @update:page-size="loadAudits(currentPage, $event)"
             />
           </template>
-          <div class="text-gray-500 text-xs">{{ totalRows }} records</div>
+          <div class="text-gray-500 text-xs">{{ totalRows }} {{ totalRows === 1 ? 'record' : 'records' }}</div>
         </div>
       </div>
     </div>

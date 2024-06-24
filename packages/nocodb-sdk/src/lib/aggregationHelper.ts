@@ -1,4 +1,5 @@
 import UITypes from './UITypes';
+import { FormulaDataTypes } from '~/lib/formulaHelpers';
 
 enum NumericalAggregations {
   Sum = 'sum',
@@ -48,7 +49,26 @@ const AllAggregations = {
   ...DateAggregations,
 };
 
-const getAvailableAggregations = (type: string): string[] => {
+const getAvailableAggregations = (type: string, parsed_tree?): string[] => {
+  if (type === UITypes.Formula && parsed_tree?.dataType) {
+    switch (parsed_tree.dataType) {
+      case FormulaDataTypes.BOOLEAN:
+        return [...Object.values(BooleanAggregations), CommonAggregations.None];
+      case FormulaDataTypes.DATE:
+        return [
+          ...Object.values(DateAggregations),
+          ...Object.values(CommonAggregations),
+        ];
+      case FormulaDataTypes.NUMERIC:
+        return [
+          ...Object.values(NumericalAggregations),
+          ...Object.values(CommonAggregations),
+        ];
+      default:
+        return [...Object.values(CommonAggregations)];
+    }
+  }
+
   switch (type) {
     case UITypes.Number:
     case UITypes.Decimal:

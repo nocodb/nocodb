@@ -3,6 +3,7 @@ import {
   BooleanAggregations,
   CommonAggregations,
   DateAggregations,
+  FormulaDataTypes,
   getAvailableAggregations,
   NumericalAggregations,
   UITypes,
@@ -16,7 +17,10 @@ import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
 
 const validateColType = (column: Column, aggregation: string) => {
-  const agg = getAvailableAggregations(column.uidt);
+  const agg = getAvailableAggregations(
+    column.uidt,
+    column.colOptions?.parsed_tree,
+  );
 
   if (!agg.includes(aggregation)) {
     NcError.badRequest(
@@ -122,6 +126,8 @@ export default async function applyAggregation({
   if (_column.uidt === UITypes.LastModifiedBy && !_column.column_name)
     column = 'updated_by';
 
+  const parsedFormulaType = _column.colOptions?.parsed_tree?.dataType;
+
   /* The following column types require special handling for aggregation:
    * - Links
    * - Rollup
@@ -161,7 +167,6 @@ export default async function applyAggregation({
       break;
   }
   let secondaryCondition: any = "''";
-
   if (
     [
       UITypes.CreatedTime,
@@ -178,7 +183,10 @@ export default async function applyAggregation({
       UITypes.Rollup,
       UITypes.Links,
       UITypes.ID,
-    ].includes(_column.uidt)
+    ].includes(_column.uidt) ||
+    [FormulaDataTypes.DATE, FormulaDataTypes.NUMERIC].includes(
+      parsedFormulaType,
+    )
   ) {
     secondaryCondition = 'NULL';
   } else if ([UITypes.Rating].includes(_column.uidt)) {
@@ -224,7 +232,10 @@ export default async function applyAggregation({
             UITypes.Rollup,
             UITypes.Links,
             UITypes.ID,
-          ].includes(_column.uidt)
+          ].includes(_column.uidt) ||
+          [FormulaDataTypes.DATE, FormulaDataTypes.NUMERIC].includes(
+            parsedFormulaType,
+          )
         ) {
           aggregationSql = knex.raw(
             `COUNT(*) FILTER (WHERE (??) IS NOT NULL) AS ??`,
@@ -266,7 +277,10 @@ export default async function applyAggregation({
             UITypes.Rollup,
             UITypes.Links,
             UITypes.ID,
-          ].includes(_column.uidt)
+          ].includes(_column.uidt) ||
+          [FormulaDataTypes.DATE, FormulaDataTypes.NUMERIC].includes(
+            parsedFormulaType,
+          )
         ) {
           aggregationSql = knex.raw(
             `COUNT(DISTINCT (??)) FILTER (WHERE (??) IS NOT NULL) AS ??`,
@@ -312,7 +326,10 @@ export default async function applyAggregation({
             UITypes.Rollup,
             UITypes.Links,
             UITypes.ID,
-          ].includes(_column.uidt)
+          ].includes(_column.uidt) ||
+          [FormulaDataTypes.DATE, FormulaDataTypes.NUMERIC].includes(
+            parsedFormulaType,
+          )
         ) {
           aggregationSql = knex.raw(
             `(COUNT(*) FILTER (WHERE (??) IS NOT NULL) * 100.0 / NULLIF(COUNT(*), 0)) AS ??`,
@@ -352,7 +369,10 @@ export default async function applyAggregation({
             UITypes.Rollup,
             UITypes.Links,
             UITypes.ID,
-          ].includes(_column.uidt)
+          ].includes(_column.uidt) ||
+          [FormulaDataTypes.DATE, FormulaDataTypes.NUMERIC].includes(
+            parsedFormulaType,
+          )
         ) {
           aggregationSql = knex.raw(
             `(COUNT(DISTINCT (??)) FILTER (WHERE (??) IS NOT NULL) * 100.0 / NULLIF(COUNT(*), 0)) AS ??`,

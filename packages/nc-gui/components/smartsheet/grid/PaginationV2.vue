@@ -77,7 +77,7 @@ onMounted(() => {
         <template #overlay>
           <NcMenu>
             <NcMenuItem
-              v-for="(agg, index) in getAggregations(displayFieldComputed.column.uidt, true)"
+              v-for="(agg, index) in getAggregations(displayFieldComputed.column, true)"
               :key="index"
               @click="updateAggregate(displayFieldComputed.column.id, agg)"
             >
@@ -123,11 +123,7 @@ onMounted(() => {
 
         <template #overlay>
           <NcMenu>
-            <NcMenuItem
-              v-for="(agg, index) in getAggregations(column.uidt)"
-              :key="index"
-              @click="updateAggregate(column.id, agg)"
-            >
+            <NcMenuItem v-for="(agg, index) in getAggregations(column)" :key="index" @click="updateAggregate(column.id, agg)">
               <div class="flex !w-full text-gray-800 items-center justify-between">
                 {{ $t(`aggregation_type.${agg}`) }}
 

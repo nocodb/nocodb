@@ -1,5 +1,5 @@
 import type { Ref } from 'vue'
-import { CommonAggregations, type TableType, type ViewType, getAvailableAggregations } from 'nocodb-sdk'
+import { type ColumnType, CommonAggregations, type TableType, UITypes, type ViewType, getAvailableAggregations } from 'nocodb-sdk'
 
 const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
   (
@@ -56,8 +56,14 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
       }
     })
 
-    const getAggregations = (type: string, hideNone?: boolean) => {
-      const agg = getAvailableAggregations(type)
+    const getAggregations = (column: ColumnType, hideNone?: boolean) => {
+      let agg
+      if (column.uidt === UITypes.Formula && (column.colOptions as any)?.parsed_tree?.dataType) {
+        agg = getAvailableAggregations(column.uidt!, (column.colOptions as any).parsed_tree)
+      } else {
+        agg = getAvailableAggregations(column.uidt!)
+      }
+
       if (hideNone) {
         return agg.filter((x) => x !== 'none')
       }

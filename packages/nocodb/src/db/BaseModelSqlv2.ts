@@ -6025,29 +6025,19 @@ class BaseModelSqlv2 {
         if (alias) {
           if (btMap[key]) {
             if (value && typeof value === 'object') {
-              let tempObj: Record<string, any> | Record<string, any>[];
-
-              // if array of values then handle by using map, it will be an array when it's HM Lookup to a BT
-              if (Array.isArray(value)) {
-                tempObj = value.map((arrVal) => {
-                  const obj = {};
-                  Object.entries(arrVal).forEach(([k, val]) => {
-                    const btAlias = idToAliasMap[k];
-                    if (btAlias) {
-                      obj[btAlias] = val;
-                    }
-                  });
-                  return obj;
-                });
-              } else {
-                tempObj = {};
+              function transformObject(value, idToAliasMap) {
+                let result = {};
                 Object.entries(value).forEach(([k, v]) => {
                   const btAlias = idToAliasMap[k];
                   if (btAlias) {
-                    tempObj[btAlias] = v;
+                    result[btAlias] = v;
                   }
                 });
+                return result;
               }
+
+              let tempObj = Array.isArray(value) ? value.map(arrVal => transformObject(arrVal, idToAliasMap)) : transformObject(value, idToAliasMap);
+              item[alias] = tempObj;
               item[alias] = tempObj;
             } else {
               item[alias] = value;

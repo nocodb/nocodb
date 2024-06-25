@@ -278,6 +278,10 @@ export interface SourceType {
   is_meta?: BoolType;
   /** Is the data source minimal db */
   is_local?: BoolType;
+  /** Is the data source schema readonly */
+  is_schema_readonly?: BoolType;
+  /** Is the data source data readonly */
+  is_data_readonly?: BoolType;
   /**
    * The order of the list of sources
    * @example 1
@@ -335,6 +339,10 @@ export interface BaseReqType {
   is_meta?: boolean;
   /** Is the data source minimal db */
   is_local?: boolean;
+  /** Is the data source schema readonly */
+  is_schema_readonly?: BoolType;
+  /** Is the data source data readonly */
+  is_data_readonly?: BoolType;
   /** DB Type */
   type?:
     | 'mssql'
@@ -1190,6 +1198,11 @@ export interface GridColumnType {
    * @example asc
    */
   group_by_sort?: StringOrNullType;
+  /**
+   * Aggregation Type
+   * @example sum
+   */
+  aggregation?: StringOrNullType;
 }
 
 /**
@@ -1222,6 +1235,11 @@ export interface GridColumnReqType {
    * @example asc
    */
   group_by_sort?: StringOrNullType;
+  /**
+   * Aggregation
+   * @example sum
+   */
+  aggregation?: StringOrNullType;
 }
 
 /**
@@ -5426,9 +5444,21 @@ export class Api<
       query?: {
         /** @min 0 */
         offset?: number;
-        /** @max 1 */
+        /** @min 1 */
         limit?: number;
         sourceId?: string;
+        orderBy?: {
+          /**
+           * Sort direction
+           * @example desc
+           */
+          created_at?: 'asc' | 'desc';
+          /**
+           * Sort direction
+           * @example desc
+           */
+          user?: 'asc' | 'desc';
+        };
       },
       params: RequestParams = {}
     ) =>
@@ -9262,6 +9292,46 @@ export class Api<
       }),
 
     /**
+ * @description Read aggregated data from a given table
+ * 
+ * @tags Public
+ * @name DataTableAggregate
+ * @summary Read Shared View Aggregated Data
+ * @request GET:/api/v2/public/shared-view/{sharedViewUuid}/aggregate
+ * @response `200` `object` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    dataTableAggregate: (
+      sharedViewUuid: string,
+      query?: {
+        /** Extra filtering */
+        where?: string;
+        /** Used for multiple filter queries */
+        filterArrJson?: string;
+        /** List of fields to be aggregated */
+        aggregation?: object[];
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        object,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v2/public/shared-view/${sharedViewUuid}/aggregate`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
  * @description List Shared View Grouped Data
  * 
  * @tags Public
@@ -9968,6 +10038,64 @@ export class Api<
         }
       >({
         path: `/api/v1/db/meta/comments/count`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description List all audit data in the given project
+ * 
+ * @tags Utils
+ * @name ProjectAuditList
+ * @summary List Audits in Project
+ * @request GET:/api/v1/db/meta/projects/audits
+ * @response `200` `{
+  list: (AuditType)[],
+  \** Model for Paginated *\
+  pageInfo: PaginatedType,
+
+}` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    projectAuditList: (
+      query?: {
+        /** @min 0 */
+        offset?: number;
+        /** @min 1 */
+        limit?: number;
+        orderBy?: {
+          /**
+           * Sort direction
+           * @example desc
+           */
+          created_at?: 'asc' | 'desc';
+          /**
+           * Sort direction
+           * @example desc
+           */
+          user?: 'asc' | 'desc';
+        };
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        {
+          list: AuditType[];
+          /** Model for Paginated */
+          pageInfo: PaginatedType;
+        },
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/db/meta/projects/audits`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -11222,6 +11350,49 @@ export class Api<
       this.request<void, any>({
         path: `/api/v1/notifications/mark-all-read`,
         method: 'POST',
+        ...params,
+      }),
+  };
+  dbDataTableAggregate = {
+    /**
+ * @description Read aggregated data from a given table
+ * 
+ * @tags DB Data Table Aggregate
+ * @name DbDataTableAggregate
+ * @summary Read Aggregated Data
+ * @request GET:/api/v2/tables/{tableId}/aggregate
+ * @response `200` `object` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    dbDataTableAggregate: (
+      tableId: string,
+      query: {
+        /** View ID is required */
+        viewId: string;
+        /** List of fields to be aggregated */
+        aggregation?: object[];
+        /** Extra filtering */
+        where?: string;
+        /** Used for multiple filter queries */
+        filterArrJson?: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        object,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v2/tables/${tableId}/aggregate`,
+        method: 'GET',
+        query: query,
+        format: 'json',
         ...params,
       }),
   };

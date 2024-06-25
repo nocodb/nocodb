@@ -1,10 +1,11 @@
 <script lang="ts" setup>
-import type { ViewType } from 'nocodb-sdk'
+import { type ViewType } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
 
 const props = defineProps<{
   // Prop used to align the dropdown to the left in sidebar
   alignLeftLevel: number | undefined
+  source: Source
 }>()
 
 const { $e } = useNuxtApp()
@@ -37,6 +38,7 @@ async function onOpenModal({
   copyViewId,
   groupingFieldColumnId,
   calendarRange,
+  coverImageColumnId,
 }: {
   title?: string
   type: ViewTypes
@@ -46,6 +48,7 @@ async function onOpenModal({
     fk_from_column_id: string
     fk_to_column_id: string | null // for ee only
   }>
+  coverImageColumnId?: string
 }) {
   if (isViewListLoading.value) return
 
@@ -69,6 +72,7 @@ async function onOpenModal({
     'selectedViewId': copyViewId,
     calendarRange,
     groupingFieldColumnId,
+    coverImageColumnId,
     'onUpdate:modelValue': closeDialog,
     'onCreated': async (view: ViewType) => {
       closeDialog()
@@ -122,7 +126,7 @@ async function onOpenModal({
           </div>
         </NcMenuItem>
 
-        <NcMenuItem @click="onOpenModal({ type: ViewTypes.FORM })">
+        <NcMenuItem v-if="!source.is_schema_readonly" @click="onOpenModal({ type: ViewTypes.FORM })">
           <div class="item" data-testid="sidebar-view-create-form">
             <div class="item-inner">
               <GeneralViewIcon :meta="{ type: ViewTypes.FORM }" />

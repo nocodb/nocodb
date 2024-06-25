@@ -115,6 +115,7 @@ export default defineConfig({
         default: '0px 0px 4px 0px rgba(0, 0, 0, 0.08)',
         hover: '0px 0px 4px 0px rgba(0, 0, 0, 0.24)',
         selected: '0px 0px 0px 2px var(--ant-primary-color-outline)',
+        error: '0px 0px 0px 2px var(--ant-error-color-outline)',
       },
       colors: {
         ...windiColors,

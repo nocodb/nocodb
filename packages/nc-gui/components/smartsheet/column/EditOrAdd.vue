@@ -1,7 +1,14 @@
 <script lang="ts" setup>
-import type { ColumnReqType, ColumnType } from 'nocodb-sdk'
-import { UITypes, UITypesName, isLinksOrLTAR, isSelfReferencingTableColumn, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
-
+import { type ColumnReqType, type ColumnType } from 'nocodb-sdk'
+import {
+  UITypes,
+  UITypesName,
+  isLinksOrLTAR,
+  isSelfReferencingTableColumn,
+  isSystemColumn,
+  isVirtualCol,
+  readonlyMetaAllowedTypes,
+} from 'nocodb-sdk'
 import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
 import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
 import MdiIdentifierIcon from '~icons/mdi/identifier'
@@ -38,6 +45,8 @@ const {
 const { getMeta } = useMetas()
 
 const { t } = useI18n()
+
+const { isMetaReadOnly } = useRoles()
 
 const columnLabel = computed(() => props.columnLabel || t('objects.field'))
 
@@ -125,7 +134,7 @@ const uiFilters = (t: { name: UITypes; virtual?: number; deprecated?: boolean })
 }
 
 const uiTypesOptions = computed<typeof uiTypes>(() => {
-  return [
+  const types = [
     ...uiTypes.filter(uiFilters),
     ...(!isEdit.value && meta?.value?.columns?.every((c) => !c.pk)
       ? [
@@ -137,6 +146,21 @@ const uiTypesOptions = computed<typeof uiTypes>(() => {
         ]
       : []),
   ]
+
+  // if meta is readonly, move disabled types to the end
+  if (isMetaReadOnly.value) {
+    types.sort((a, b) => {
+      const aDisabled = readonlyMetaAllowedTypes.includes(a.name)
+      const bDisabled = readonlyMetaAllowedTypes.includes(b.name)
+
+      if (aDisabled && !bDisabled) return -1
+      if (!aDisabled && bDisabled) return 1
+
+      return 0
+    })
+  }
+
+  return types
 })
 
 const onSelectType = (uidt: UITypes) => {
@@ -319,6 +343,14 @@ const filterOption = (input: string, option: { value: UITypes }) => {
     (UITypesName[option.value] && UITypesName[option.value].toLowerCase().includes(input.toLowerCase()))
   )
 }
+
+const isFullUpdateAllowed = computed(() => {
+  if (isMetaReadOnly.value && !readonlyMetaAllowedTypes.includes(formState.value?.uidt) && !isVirtualCol(formState.value)) {
+    return false
+  }
+
+  return true
+})
 </script>
 
 <template>
@@ -328,8 +360,8 @@ const filterOption = (input: string, option: { value: UITypes }) => {
     :class="{
       'bg-white': !props.fromTableExplorer,
       'w-[384px]': !props.embedMode,
-      'min-w-500px': formState.uidt === UITypes.LinkToAnotherRecord || formState.uidt === UITypes.Links,
-      '!w-116 overflow-visible': formState.uidt === UITypes.Formula && !props.embedMode,
+      'min-w-[500px]': formState.uidt === UITypes.LinkToAnotherRecord || formState.uidt === UITypes.Links,
+      'overflow-visible': formState.uidt === UITypes.Formula,
       '!w-[600px]': formState.uidt === UITypes.LinkToAnotherRecord || formState.uidt === UITypes.Links,
       'shadow-lg border-1 border-gray-200 shadow-gray-300 rounded-xl p-5': !embedMode,
     }"
@@ -352,7 +384,7 @@ const filterOption = (input: string, option: { value: UITypes }) => {
           <input
             ref="antInput"
             v-model="formState.title"
-            :disabled="readOnly"
+            :disabled="readOnly || !isFullUpdateAllowed"
             :placeholder="`${$t('objects.field')} ${$t('general.name').toLowerCase()} ${isEdit ? '' : $t('labels.optional')}`"
             class="flex flex-grow nc-fields-input text-sm font-semibold outline-none bg-inherit min-h-6"
             :contenteditable="true"
@@ -366,7 +398,7 @@ const filterOption = (input: string, option: { value: UITypes }) => {
           v-model:value="formState.title"
           class="nc-column-name-input !rounded-lg"
           :placeholder="`${$t('objects.field')} ${$t('general.name').toLowerCase()} ${isEdit ? '' : $t('labels.optional')}`"
-          :disabled="isKanban || readOnly"
+          :disabled="isKanban || readOnly || !isFullUpdateAllowed"
           @input="onAlter(8)"
         />
       </a-form-item>
@@ -376,12 +408,23 @@ const filterOption = (input: string, option: { value: UITypes }) => {
           <SmartsheetColumnUITypesOptionsWithSearch :options="uiTypesOptions" @selected="onSelectType" />
         </template>
 
-        <a-form-item v-else-if="!props.hideType" class="flex-1">
+        <a-form-item
+          v-else-if="!props.hideType"
+          class="flex-1"
+          @keydown.up.stop="handleResetHoverEffect"
+          @keydown.down.stop="handleResetHoverEffect"
+        >
           <a-select
             v-model:value="formState.uidt"
             show-search
             class="nc-column-type-input !rounded-lg"
-            :disabled="isKanban || readOnly || (isEdit && !!onlyNameUpdateOnEditColumns.includes(column?.uidt))"
+            :disabled="
+              (isEdit && isMetaReadOnly && !readonlyMetaAllowedTypes.includes(formState.uidt)) ||
+              isKanban ||
+              readOnly ||
+              (isEdit && !!onlyNameUpdateOnEditColumns.includes(column?.uidt)) ||
+              (isEdit && !isFullUpdateAllowed)
+            "
             dropdown-class-name="nc-dropdown-column-type border-1 !rounded-lg border-gray-200"
             :filter-option="filterOption"
             @dropdown-visible-change="onDropdownChange"
@@ -395,6 +438,7 @@ const filterOption = (input: string, option: { value: UITypes }) => {
               v-for="opt of uiTypesOptions"
               :key="opt.name"
               :value="opt.name"
+              :disabled="isMetaReadOnly && !readonlyMetaAllowedTypes.includes(opt.name)"
               v-bind="validateInfos.uidt"
               :class="{
                 'ant-select-item-option-active-selected': showHoverEffectOnSelectedType && formState.uidt === opt.name,
@@ -403,7 +447,11 @@ const filterOption = (input: string, option: { value: UITypes }) => {
             >
               <div class="w-full flex gap-2 items-center justify-between" :data-testid="opt.name">
                 <div class="flex gap-2 items-center">
-                  <component :is="opt.icon" class="text-gray-700 w-4 h-4" />
+                  <component
+                    :is="opt.icon"
+                    class="w-4 h-4"
+                    :class="isMetaReadOnly && !readonlyMetaAllowedTypes.includes(opt.name) ? 'text-gray-300' : 'text-gray-700'"
+                  />
                   <div class="flex-1">{{ UITypesName[opt.name] }}</div>
                   <span v-if="opt.deprecated" class="!text-xs !text-gray-300">({{ $t('general.deprecated') }})</span>
                 </div>
@@ -472,7 +520,7 @@ const filterOption = (input: string, option: { value: UITypes }) => {
           </NcSwitch>
         </div>
 
-        <template v-if="!readOnly">
+        <template v-if="!readOnly && isFullUpdateAllowed">
           <div class="nc-column-options-wrapper flex flex-col gap-4">
             <!--
             Default Value for JSON & LongText is not supported in MySQL

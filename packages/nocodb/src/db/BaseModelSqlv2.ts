@@ -33,7 +33,6 @@ import type {
 import type {
   BarcodeColumn,
   FormulaColumn,
-  GridViewColumn,
   LinkToAnotherRecordColumn,
   QrCodeColumn,
   RollupColumn,
@@ -47,6 +46,7 @@ import {
   BaseUser,
   Column,
   Filter,
+  GridViewColumn,
   Model,
   PresignedUrl,
   Sort,
@@ -74,6 +74,7 @@ import { extractProps } from '~/helpers/extractProps';
 import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
 import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
 import { getAliasGenerator } from '~/utils';
+import applyAggregation from '~/db/aggregation';
 
 dayjs.extend(utc);
 
@@ -183,10 +184,10 @@ export function replaceDynamicFieldWithValue(
  */
 class BaseModelSqlv2 {
   protected _dbDriver: XKnex;
-  protected model: Model;
   protected viewId: string;
   protected _proto: any;
   protected _columns = {};
+  public model: Model;
   public context: NcContext;
 
   public static config: any = defaultLimitConfig;
@@ -694,6 +695,118 @@ class BaseModelSqlv2 {
     }
     applyPaginate(qb, rest);
     return await this.execAndParse(qb);
+  }
+
+  async aggregate(args: { filterArr?: Filter[]; where?: string }, view: View) {
+    try {
+      const { where, aggregation } = this._getListArgs(args as any);
+
+      const columns = await this.model.getColumns(this.context);
+
+      let viewColumns = (
+        await GridViewColumn.list(this.context, this.viewId)
+      ).filter((c) => {
+        const col = columns.find((col) => col.id === c.fk_column_id);
+        return c.show && (view.show_system_fields || !isSystemColumn(col));
+      });
+
+      // By default, the aggregation is done based on the columns configured in the view
+      // If the aggregation parameter is provided, only the columns mentioned in the aggregation parameter are considered
+      // Also the aggregation type from the parameter is given preference over the aggregation type configured in the view
+      if (aggregation?.length) {
+        viewColumns = viewColumns
+          .map((c) => {
+            const agg = aggregation.find((a) => a.field === c.fk_column_id);
+            return new GridViewColumn({
+              ...c,
+              show: !!agg,
+              aggregation: agg ? agg.type : c.aggregation,
+            });
+          })
+          .filter((c) => c.show);
+      }
+
+      const aliasColObjMap = await this.model.getAliasColObjMap(
+        this.context,
+        columns,
+      );
+
+      const qb = this.dbDriver(this.tnPath);
+
+      // Apply filers from view configuration, filterArr and where parameter
+      const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
+      await conditionV2(
+        this,
+        [
+          ...(this.viewId
+            ? [
+                new Filter({
+                  children:
+                    (await Filter.rootFilterList(this.context, {
+                      viewId: this.viewId,
+                    })) || [],
+                  is_group: true,
+                }),
+              ]
+            : []),
+          new Filter({
+            children: args.filterArr || [],
+            is_group: true,
+            logical_op: 'and',
+          }),
+          new Filter({
+            children: filterObj,
+            is_group: true,
+            logical_op: 'and',
+          }),
+        ],
+        qb,
+      );
+
+      const selectors: Array<Knex.Raw> = [];
+
+      // Generating a knex raw aggregation query for each column in the view
+      await Promise.all(
+        viewColumns.map(async (viewColumn) => {
+          const col = columns.find((c) => c.id === viewColumn.fk_column_id);
+          if (!col) return null;
+
+          if (!viewColumn.aggregation) return;
+
+          // Skip system LTAR columns
+          if (isLinksOrLTAR(col) && col.system) return;
+
+          const aggSql = await applyAggregation({
+            baseModelSqlv2: this,
+            aggregation: viewColumn.aggregation,
+            column: col,
+          });
+
+          if (aggSql) selectors.push(this.dbDriver.raw(aggSql));
+        }),
+      );
+
+      // If no queries are generated, return empty object
+      if (!selectors.length) {
+        return {};
+      }
+
+      qb.select(...selectors);
+
+      console.log('\n\n', qb.toQuery(), '\n\n');
+
+      // Some aggregation on Date, DateTime related columns may generate result other than Date, DateTime
+      // So skip the date conversion
+      const data = await this.execAndParse(qb, null, {
+        first: true,
+        skipDateConversion: true,
+      });
+
+      return data;
+    } catch (e) {
+      logger.log(e);
+      return {};
+    }
   }
 
   async groupBy(args: {
@@ -2403,7 +2516,7 @@ class BaseModelSqlv2 {
     if (sortObj) await sortV2(this, sortObj, qb);
   }
 
-  protected async getSelectQueryBuilderForFormula(
+  async getSelectQueryBuilderForFormula(
     column: Column<any>,
     tableAlias?: string,
     validateFormula = false,
@@ -2804,6 +2917,7 @@ class BaseModelSqlv2 {
     obj.fields = args.fields || args.f;
     obj.sort = args.sort || args.s;
     obj.pks = args.pks;
+    obj.aggregation = args.aggregation || [];
     return obj;
   }
 
@@ -2948,6 +3062,12 @@ class BaseModelSqlv2 {
           const qrCodeColumn = await column.getColOptions<QrCodeColumn>(
             this.context,
           );
+
+          if (!qrCodeColumn.fk_qr_value_column_id) {
+            qb.select(this.dbDriver.raw(`? as ??`, ['ERR!', column.id]));
+            break;
+          }
+
           const qrValueColumn = await Column.get(this.context, {
             colId: qrCodeColumn.fk_qr_value_column_id,
           });
@@ -2985,6 +3105,12 @@ class BaseModelSqlv2 {
           const barcodeColumn = await column.getColOptions<BarcodeColumn>(
             this.context,
           );
+
+          if (!barcodeColumn.fk_barcode_value_column_id) {
+            qb.select(this.dbDriver.raw(`? as ??`, ['ERR!', column.id]));
+            break;
+          }
+
           const barcodeValueColumn = await Column.get(this.context, {
             colId: barcodeColumn.fk_barcode_value_column_id,
           });

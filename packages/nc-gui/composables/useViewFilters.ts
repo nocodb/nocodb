@@ -22,6 +22,7 @@ export function useViewFilters(
   isWebhook?: boolean,
   isLink?: boolean,
   linkColId?: Ref<string>,
+  fieldsToFilter?: Ref<ColumnType[]>,
 ) {
   const savingStatus: Record<number, boolean> = {}
 
@@ -59,7 +60,7 @@ export function useViewFilters(
       if (nestedMode.value) {
         currentFilters.value = value
         if (!isLink && !isWebhook) {
-          if (isNestedRoot) {
+          if (!isNestedRoot) {
             nestedFilters.value = value
           }
           nestedFilters.value = [...nestedFilters.value]
@@ -191,7 +192,6 @@ export function useViewFilters(
 
   const placeholderFilter = (): ColumnFilterType => {
     const logicalOps = new Set(filters.value.slice(1).map((filter) => filter.logical_op))
-
     return {
       comparison_op: comparisonOpList(options.value?.[0].uidt as UITypes).filter((compOp) =>
         isComparisonOpAllowed({ fk_column_id: options.value?.[0].id }, compOp),
@@ -199,6 +199,11 @@ export function useViewFilters(
       value: null,
       status: 'create',
       logical_op: logicalOps.size === 1 ? logicalOps.values().next().value : 'and',
+      // set the default column to the first column in the list, excluding system columns
+      fk_column_id:
+        fieldsToFilter?.value?.filter((col) => {
+          return !isSystemColumn(col)
+        })?.[0]?.id ?? undefined,
     }
   }
 
@@ -502,9 +507,11 @@ export function useViewFilters(
         } else {
           try {
             await $api.dbTableFilter.delete(filter.id)
-
             if (!isWebhook && !isLink) reloadData?.()
-            filters.value.splice(i, 1)
+
+            // find item index by using id and remove it from array since item index may change
+            const itemIndex = filters.value.findIndex((f) => f.id === filter.id)
+            if (itemIndex > -1) filters.value.splice(itemIndex, 1)
           } catch (e: any) {
             console.log(e)
             message.error(await extractSdkResponseErrorMsg(e))

@@ -50,16 +50,6 @@ docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
   ```
 > Pour conserver les données, vous pouvez installer le volume dans `/usr/app/data/`.
 
-### NPX
-
-Vous pouvez exécuter la commande ci-dessous pour passer par la configuration interactive.
-
-```
-npx create-nocodb-app
-```
-
-<img src="https://user-images.githubusercontent.com/35857179/163672964-00ef5d62-0434-447d-ac01-3ebb780099b9.png" width="520px"/>
-
 ### En utilisant git
 ```
 git clone https://github.com/nocodb/nocodb-seed
@@ -147,13 +137,6 @@ NocoDB nécessite une base de données pour stocker les métadonnées des vues d
 
 ## Docker 
 
-#### Exemple MySQL
-```
-docker run -d -p 8080:8080 \
-    -e NC_DB="mysql2://host.docker.internal:3306?u=root&p=password&d=d1" \
-    -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
-    nocodb/nocodb:latest
-```
 
 #### Exemple Postgres
 ```
@@ -163,20 +146,13 @@ docker run -d -p 8080:8080 \
     nocodb/nocodb:latest
 ```
 
-#### Exemple SQL Server
-```
-docker run -d -p 8080:8080 \
-    -e NC_DB="mssql://host:port?u=user&p=password&d=database" \
-    -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
-    nocodb/nocodb:latest
-```
 
 ## Docker Compose
 ```
 git clone https://github.com/nocodb/nocodb
 cd nocodb
 cd docker-compose
-cd mysql or pg or mssql
+cd pg 
 docker-compose up -d
 ```
 

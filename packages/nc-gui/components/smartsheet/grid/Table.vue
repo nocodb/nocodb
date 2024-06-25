@@ -42,6 +42,7 @@ const props = defineProps<{
   ) => Promise<void>
   headerOnly?: boolean
   hideHeader?: boolean
+  hideCheckbox?: boolean
   pagination?: {
     fixedSize?: number
     hideSidebars?: boolean
@@ -146,6 +147,8 @@ const { paste } = usePaste()
 
 const { addLTARRef, syncLTARRefs, clearLTARCell, cleaMMCell } = useSmartsheetLtarHelpersOrThrow()
 
+const { loadViewAggregate } = useViewAggregateOrThrow()
+
 // #Refs
 
 const smartTable = ref(null)
@@ -165,7 +168,7 @@ const isViewColumnsLoading = computed(() => _isViewColumnsLoading.value || !meta
 const resizingColumn = ref(false)
 
 // #Permissions
-const { isUIAllowed } = useRoles()
+const { isUIAllowed, isDataReadOnly } = useRoles()
 const hasEditPermission = computed(() => isUIAllowed('dataEdit'))
 const isAddingColumnAllowed = computed(() => !readOnly.value && !isLocked.value && isUIAllowed('fieldAdd') && !isSqlView.value)
 
@@ -208,7 +211,10 @@ const isGridCellMouseDown = ref(false)
 // #Context Menu
 const _contextMenu = ref(false)
 const contextMenu = computed({
-  get: () => _contextMenu.value,
+  get: () => {
+    if (props.data?.some((r) => r.rowMeta.selected) && isDataReadOnly.value) return false
+    return _contextMenu.value
+  },
   set: (val) => {
     _contextMenu.value = val
   },
@@ -232,7 +238,13 @@ const isKeyDown = ref(false)
 // #Cell - 1
 
 async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = false) {
-  if (!ctx || !hasEditPermission.value || (!isLinksOrLTAR(fields.value[ctx.col]) && isVirtualCol(fields.value[ctx.col]))) return
+  if (
+    isDataReadOnly.value ||
+    !ctx ||
+    !hasEditPermission.value ||
+    (!isLinksOrLTAR(fields.value[ctx.col]) && isVirtualCol(fields.value[ctx.col]))
+  )
+    return
 
   // eslint-disable-next-line @typescript-eslint/no-use-before-define
   if (colMeta.value[ctx.col].isReadonly) return
@@ -915,7 +927,7 @@ const onNavigate = (dir: NavigateDir) => {
 // #Cell - 2
 
 async function clearSelectedRangeOfCells() {
-  if (!hasEditPermission.value) return
+  if (!hasEditPermission.value || isDataReadOnly.value) return
 
   const start = selectedRange.start
   const end = selectedRange.end
@@ -970,6 +982,8 @@ const colPositions = computed(() => {
 })
 
 const scrollWrapper = computed(() => scrollParent.value || gridWrapper.value)
+
+const scrollLeft = ref()
 
 function scrollToCell(row?: number | null, col?: number | null) {
   row = row ?? activeCell.row
@@ -1118,12 +1132,12 @@ const maxGridWidth = computed(() => {
   // 64 for the row number column
   // count first column twice because it's sticky
   // 100 for add new column
-  return colPositions.value[colPositions.value.length - 1] + colPositions.value[1] + 64 + 100
+  return colPositions.value[colPositions.value.length - 1] + 64
 })
 
 const maxGridHeight = computed(() => {
   // 2 extra rows for the add new row and the sticky header
-  return dataRef.value.length * rowHeightInPx[`${props.rowHeight}`] + 2 * rowHeightInPx[`${props.rowHeight}`]
+  return dataRef.value.length * rowHeightInPx[`${props.rowHeight}`]
 })
 
 const colSlice = ref({
@@ -1277,6 +1291,7 @@ const selectedReadonly = computed(
 
 const showFillHandle = computed(
   () =>
+    !isDataReadOnly.value &&
     !readOnly.value &&
     !editEnabled.value &&
     (!selectedRange.isEmpty() || (activeCell.row !== null && activeCell.col !== null)) &&
@@ -1356,7 +1371,8 @@ async function reloadViewDataHandler(params: void | { shouldShowLoading?: boolea
 
 let frame: number | null = null
 
-useEventListener(scrollWrapper, 'scroll', () => {
+useEventListener(scrollWrapper, 'scroll', (e) => {
+  scrollLeft.value = e.target.scrollLeft
   if (frame) {
     cancelAnimationFrame(frame)
   }
@@ -1508,7 +1524,7 @@ watch(
         }
         isViewDataLoading.value = true
         try {
-          await loadData?.()
+          await Promise.allSettled([loadData?.(), loadViewAggregate()])
           calculateSlices()
         } catch (e) {
           if (!axios.isCancel(e)) {
@@ -1606,9 +1622,9 @@ onKeyStroke('ArrowDown', onDown)
     <div ref="gridWrapper" class="nc-grid-wrapper min-h-0 flex-1 relative" :class="gridWrapperClass">
       <div
         v-show="isPaginationLoading && !headerOnly"
-        class="flex items-center justify-center absolute l-0 t-0 w-full h-full z-10 pb-10 pointer-events-none"
+        class="flex items-center justify-center bg-white/80 absolute l-0 t-0 w-full h-full z-10 pb-10 pointer-events-none"
       >
-        <div class="flex flex-col justify-center gap-2">
+        <div class="flex flex-col items-center justify-center gap-2">
           <GeneralLoader size="xlarge" />
           <span class="text-center" v-html="loaderText"></span>
         </div>
@@ -1658,7 +1674,7 @@ onKeyStroke('ArrowDown', onDown)
                   }"
                 >
                   <div class="w-full h-full flex pl-2 pr-1 items-center" data-testid="nc-check-all">
-                    <template v-if="!readOnly">
+                    <template v-if="!readOnly && !hideCheckbox">
                       <div class="nc-no-label text-gray-500" :class="{ hidden: vSelectedAllRecords }">#</div>
                       <div
                         :class="{
@@ -1870,10 +1886,27 @@ onKeyStroke('ArrowDown', onDown)
                     </a-dropdown>
                   </div>
                 </th>
+                <th
+                  class="!border-0 relative !xs:hidden"
+                  :style="{
+                    borderWidth: '0px !important',
+                  }"
+                >
+                  <div
+                    class="absolute top-0 w-[40px]"
+                    :class="{
+                      'left-[60px]': isAddingColumnAllowed,
+                      'left-0': !isAddingColumnAllowed,
+                    }"
+                  >
+                    &nbsp;
+                  </div>
+                </th>
               </tr>
             </thead>
           </table>
           <div
+            v-if="!showSkeleton"
             class="table-overlay"
             :class="{ 'nc-grid-skeleton-loader': showSkeleton }"
             :style="{
@@ -1887,8 +1920,8 @@ onKeyStroke('ArrowDown', onDown)
               :class="{
                 'mobile': isMobileMode,
                 'desktop': !isMobileMode,
-                'pr-60 pb-12': !headerOnly,
                 'w-full': dataRef.length === 0,
+                'pr-60 pb-12': !headerOnly && !isGroupBy,
               }"
               :style="{
                 transform: `translateY(${topOffset}px) translateX(${leftOffset}px)`,
@@ -1961,10 +1994,7 @@ onKeyStroke('ArrowDown', onDown)
                             <span
                               v-if="row.rowMeta?.commentCount && expandForm"
                               v-e="['c:expanded-form:open']"
-                              class="py-1 px-1 rounded-full text-xs cursor-pointer select-none transform hover:(scale-110)"
-                              :style="{
-                                backgroundColor: getEnumColorByIndex(row.rowMeta.commentCount || 0),
-                              }"
+                              class="px-1 rounded-md rounded-bl-none transition-all border-1 border-brand-200 text-xs cursor-pointer font-sembold select-none leading-5 text-brand-500 bg-brand-50"
                               @click="expandAndLooseFocus(row, state)"
                             >
                               {{ row.rowMeta.commentCount }}
@@ -2167,7 +2197,9 @@ onKeyStroke('ArrowDown', onDown)
         <template #overlay>
           <NcMenu class="!rounded !py-0" @click="contextMenu = false">
             <NcMenuItem
-              v-if="isEeUI && !contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected)"
+              v-if="
+                isEeUI && !contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected) && !isDataReadOnly
+              "
               @click="emits('bulkUpdateDlg')"
             >
               <div v-e="['a:row:update-bulk']" class="flex gap-2 items-center">
@@ -2177,7 +2209,7 @@ onKeyStroke('ArrowDown', onDown)
             </NcMenuItem>
 
             <NcMenuItem
-              v-if="!contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected)"
+              v-if="!contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected) && !isDataReadOnly"
               class="nc-base-menu-item !text-red-600 !hover:bg-red-50"
               data-testid="nc-delete-row"
               @click="deleteSelectedRows"
@@ -2224,7 +2256,7 @@ onKeyStroke('ArrowDown', onDown)
             </NcMenuItem>
 
             <NcMenuItem
-              v-if="contextMenuTarget && hasEditPermission"
+              v-if="contextMenuTarget && hasEditPermission && !isDataReadOnly"
               class="nc-base-menu-item"
               data-testid="context-menu-item-paste"
               :disabled="selectedReadonly"
@@ -2243,7 +2275,8 @@ onKeyStroke('ArrowDown', onDown)
                 contextMenuTarget &&
                 hasEditPermission &&
                 selectedRange.isSingleCell() &&
-                (isLinksOrLTAR(fields[contextMenuTarget.col]) || !cellMeta[0]?.[contextMenuTarget.col].isVirtualCol)
+                (isLinksOrLTAR(fields[contextMenuTarget.col]) || !cellMeta[0]?.[contextMenuTarget.col].isVirtualCol) &&
+                !isDataReadOnly
               "
               class="nc-base-menu-item"
               :disabled="selectedReadonly"
@@ -2258,7 +2291,7 @@ onKeyStroke('ArrowDown', onDown)
 
             <!-- Clear cell -->
             <NcMenuItem
-              v-else-if="contextMenuTarget && hasEditPermission"
+              v-else-if="contextMenuTarget && hasEditPermission && !isDataReadOnly"
               class="nc-base-menu-item"
               :disabled="selectedReadonly"
               data-testid="context-menu-item-clear"
@@ -2280,7 +2313,7 @@ onKeyStroke('ArrowDown', onDown)
               </NcMenuItem>
             </template>
 
-            <template v-if="hasEditPermission">
+            <template v-if="hasEditPermission && !isDataReadOnly">
               <NcDivider v-if="!(!contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected))" />
               <NcMenuItem
                 v-if="contextMenuTarget && (selectedRange.isSingleCell() || selectedRange.isSingleRow())"
@@ -2310,102 +2343,170 @@ onKeyStroke('ArrowDown', onDown)
       </NcDropdown>
     </div>
 
-    <LazySmartsheetPagination
-      v-if="headerOnly !== true && paginationDataRef"
-      :key="`nc-pagination-${isMobileMode}`"
-      v-model:pagination-data="paginationDataRef"
-      :show-api-timing="!isGroupBy"
-      align-count-on-right
-      :align-left="isGroupBy"
-      :change-page="changePage"
-      :hide-sidebars="paginationStyleRef?.hideSidebars === true"
-      :fixed-size="paginationStyleRef?.fixedSize"
-      :extra-style="paginationStyleRef?.extraStyle"
-      :show-size-changer="!isGroupBy"
-    >
-      <template #add-record>
-        <div v-if="isAddingEmptyRowAllowed && !showSkeleton" class="flex ml-1">
-          <NcButton
-            v-if="isMobileMode"
-            v-e="[isAddNewRecordGridMode ? 'c:row:add:grid' : 'c:row:add:form']"
-            class="nc-grid-add-new-row"
-            type="secondary"
-            :disabled="isPaginationLoading"
-            @click="onNewRecordToFormClick()"
-          >
-            {{ $t('activity.newRecord') }}
-          </NcButton>
-          <a-dropdown-button
-            v-else
-            v-e="[isAddNewRecordGridMode ? 'c:row:add:grid:toggle' : 'c:row:add:form:toggle']"
-            class="nc-grid-add-new-row"
-            placement="top"
-            :disabled="isPaginationLoading"
-            @click="isAddNewRecordGridMode ? addEmptyRow() : onNewRecordToFormClick()"
-          >
-            <div data-testid="nc-pagination-add-record" class="flex items-center px-2 text-gray-600 hover:text-black">
-              <span>
-                <template v-if="isAddNewRecordGridMode">
-                  {{ $t('activity.newRecord') }}
-                </template>
-                <template v-else> {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.form') }} </template>
-              </span>
-            </div>
+    <div class="relative">
+      <LazySmartsheetPagination
+        v-if="headerOnly !== true && paginationDataRef && isGroupBy"
+        :key="`nc-pagination-${isMobileMode}`"
+        v-model:pagination-data="paginationDataRef"
+        :show-api-timing="!isGroupBy"
+        align-count-on-right
+        :align-left="isGroupBy"
+        :change-page="changePage"
+        :hide-sidebars="paginationStyleRef?.hideSidebars === true"
+        :fixed-size="paginationStyleRef?.fixedSize"
+        :extra-style="paginationStyleRef?.extraStyle"
+        :show-size-changer="!isGroupBy"
+      >
+        <template v-if="isAddingEmptyRowAllowed && !showSkeleton" #add-record>
+          <div class="flex ml-1">
+            <NcButton
+              v-if="isMobileMode"
+              v-e="[isAddNewRecordGridMode ? 'c:row:add:grid' : 'c:row:add:form']"
+              class="nc-grid-add-new-row"
+              type="secondary"
+              :disabled="isPaginationLoading"
+              @click="onNewRecordToFormClick()"
+            >
+              {{ $t('activity.newRecord') }}
+            </NcButton>
+            <a-dropdown-button
+              v-else
+              v-e="[isAddNewRecordGridMode ? 'c:row:add:grid:toggle' : 'c:row:add:form:toggle']"
+              class="nc-grid-add-new-row"
+              placement="top"
+              :disabled="isPaginationLoading"
+              @click="isAddNewRecordGridMode ? addEmptyRow() : onNewRecordToFormClick()"
+            >
+              <div data-testid="nc-pagination-add-record" class="flex items-center px-2 text-gray-600 hover:text-black">
+                <span>
+                  <template v-if="isAddNewRecordGridMode">
+                    {{ $t('activity.newRecord') }}
+                  </template>
+                  <template v-else> {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.form') }} </template>
+                </span>
+              </div>
 
-            <template #overlay>
-              <div class="relative overflow-visible min-h-17 w-10">
-                <div
-                  class="absolute -top-21 flex flex-col min-h-34.5 w-70 p-1.5 bg-white rounded-lg border-1 border-gray-200 justify-start overflow-hidden"
-                  style="box-shadow: 0px 4px 6px -2px rgba(0, 0, 0, 0.06), 0px -12px 16px -4px rgba(0, 0, 0, 0.1)"
-                  :class="{
-                    '-left-32.5': !isAddNewRecordGridMode,
-                    '-left-21.5': isAddNewRecordGridMode,
-                  }"
-                >
+              <template #overlay>
+                <div class="relative overflow-visible min-h-17 w-10">
                   <div
-                    v-e="['c:row:add:grid']"
-                    class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer rounded-md hover:bg-gray-100 text-gray-600 nc-new-record-with-grid group"
-                    @click="onNewRecordToGridClick"
+                    class="absolute -top-21 flex flex-col min-h-34.5 w-70 p-1.5 bg-white rounded-lg border-1 border-gray-200 justify-start overflow-hidden"
+                    style="box-shadow: 0px 4px 6px -2px rgba(0, 0, 0, 0.06), 0px -12px 16px -4px rgba(0, 0, 0, 0.1)"
+                    :class="{
+                      '-left-32.5': !isAddNewRecordGridMode,
+                      '-left-21.5': isAddNewRecordGridMode,
+                    }"
                   >
-                    <div class="flex flex-row items-center justify-between w-full">
-                      <div class="flex flex-row items-center justify-start gap-x-3">
-                        <component :is="viewIcons[ViewTypes.GRID]?.icon" class="nc-view-icon text-inherit" />
-                        {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.grid') }}
-                      </div>
+                    <div
+                      v-e="['c:row:add:grid']"
+                      class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer rounded-md hover:bg-gray-100 text-gray-600 nc-new-record-with-grid group"
+                      @click="onNewRecordToGridClick"
+                    >
+                      <div class="flex flex-row items-center justify-between w-full">
+                        <div class="flex flex-row items-center justify-start gap-x-3">
+                          <component :is="viewIcons[ViewTypes.GRID]?.icon" class="nc-view-icon text-inherit" />
+                          {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.grid') }}
+                        </div>
 
-                      <GeneralIcon v-if="isAddNewRecordGridMode" icon="check" class="w-4 h-4 text-primary" />
-                    </div>
-                    <div class="flex flex-row text-xs text-gray-400 ml-7.25">
-                      {{ $t('labels.addRowGrid') }}
-                    </div>
-                  </div>
-                  <div
-                    v-e="['c:row:add:form']"
-                    class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer rounded-md hover:bg-gray-100 text-gray-600 nc-new-record-with-form group"
-                    @click="onNewRecordToFormClick"
-                  >
-                    <div class="flex flex-row items-center justify-between w-full">
-                      <div class="flex flex-row items-center justify-start gap-x-2.5">
-                        <GeneralIcon class="h-4.5 w-4.5" icon="article" />
-                        {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.form') }}
+                        <GeneralIcon v-if="isAddNewRecordGridMode" icon="check" class="w-4 h-4 text-primary" />
                       </div>
-
-                      <GeneralIcon v-if="!isAddNewRecordGridMode" icon="check" class="w-4 h-4 text-primary" />
+                      <div class="flex flex-row text-xs text-gray-400 ml-7.25">
+                        {{ $t('labels.addRowGrid') }}
+                      </div>
                     </div>
-                    <div class="flex flex-row text-xs text-gray-400 ml-7.05">
-                      {{ $t('labels.addRowForm') }}
+                    <div
+                      v-e="['c:row:add:form']"
+                      class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer rounded-md hover:bg-gray-100 text-gray-600 nc-new-record-with-form group"
+                      @click="onNewRecordToFormClick"
+                    >
+                      <div class="flex flex-row items-center justify-between w-full">
+                        <div class="flex flex-row items-center justify-start gap-x-2.5">
+                          <GeneralIcon class="h-4.5 w-4.5" icon="article" />
+                          {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.form') }}
+                        </div>
+
+                        <GeneralIcon v-if="!isAddNewRecordGridMode" icon="check" class="w-4 h-4 text-primary" />
+                      </div>
+                      <div class="flex flex-row text-xs text-gray-400 ml-7.05">
+                        {{ $t('labels.addRowForm') }}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </template>
-            <template #icon>
-              <component :is="iconMap.arrowUp" class="text-gray-600 h-4 w-4" />
-            </template>
-          </a-dropdown-button>
+              </template>
+              <template #icon>
+                <component :is="iconMap.arrowUp" class="text-gray-600 h-4 w-4" />
+              </template>
+            </a-dropdown-button>
+          </div>
+        </template>
+      </LazySmartsheetPagination>
+      <LazySmartsheetGridPaginationV2
+        v-else-if="paginationDataRef"
+        v-model:pagination-data="paginationDataRef"
+        :change-page="changePage"
+        :scroll-left="scrollLeft"
+      />
+    </div>
+    <div v-if="headerOnly !== true && paginationDataRef && !isGroupBy" class="absolute bottom-12 left-2">
+      <NcDropdown v-if="isAddingEmptyRowAllowed && !showSkeleton">
+        <div class="flex">
+          <NcButton
+            v-if="isMobileMode"
+            v-e="[isAddNewRecordGridMode ? 'c:row:add:grid' : 'c:row:add:form']"
+            :disabled="isPaginationLoading"
+            class="!rounded-r-none !border-r-0 nc-grid-add-new-row"
+            size="small"
+            type="secondary"
+            @click.stop="onNewRecordToFormClick()"
+          >
+            <div class="flex items-center gap-2">
+              <GeneralIcon icon="plus" />
+              New Record
+            </div>
+          </NcButton>
+          <NcButton
+            v-e="[isAddNewRecordGridMode ? 'c:row:add:grid' : 'c:row:add:form']"
+            :disabled="isPaginationLoading"
+            class="!rounded-r-none !border-r-0 nc-grid-add-new-row"
+            size="small"
+            type="secondary"
+            @click.stop="isAddNewRecordGridMode ? addEmptyRow() : onNewRecordToFormClick()"
+          >
+            <div data-testid="nc-pagination-add-record" class="flex items-center gap-2">
+              <GeneralIcon icon="plus" />
+              <template v-if="isAddNewRecordGridMode">
+                {{ $t('activity.newRecord') }}
+              </template>
+              <template v-else> {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.form') }} </template>
+            </div>
+          </NcButton>
+          <NcButton v-if="!isMobileMode" size="small" class="!rounded-l-none nc-add-record-more-info" type="secondary">
+            <GeneralIcon icon="arrowUp" />
+          </NcButton>
         </div>
-      </template>
-    </LazySmartsheetPagination>
+
+        <template #overlay>
+          <NcMenu>
+            <NcMenuItem v-e="['c:row:add:grid']" class="nc-new-record-with-grid group" @click="onNewRecordToGridClick">
+              <div class="flex flex-row items-center justify-start gap-x-3">
+                <component :is="viewIcons[ViewTypes.GRID]?.icon" class="nc-view-icon text-inherit" />
+                {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.grid') }}
+              </div>
+
+              <GeneralIcon v-if="isAddNewRecordGridMode" icon="check" class="w-4 h-4 text-primary" />
+            </NcMenuItem>
+            <NcMenuItem v-e="['c:row:add:form']" class="nc-new-record-with-form group" @click="onNewRecordToFormClick">
+              <div class="flex flex-row items-center justify-start gap-x-3">
+                <GeneralIcon class="h-4.5 w-4.5" icon="article" />
+                {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.form') }}
+              </div>
+
+              <GeneralIcon v-if="!isAddNewRecordGridMode" icon="check" class="w-4 h-4 text-primary" />
+            </NcMenuItem>
+          </NcMenu>
+        </template>
+      </NcDropdown>
+    </div>
   </div>
 </template>
 

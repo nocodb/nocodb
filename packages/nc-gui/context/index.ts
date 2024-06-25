@@ -1,4 +1,4 @@
-import type { ColumnType, FilterType, TableType, ViewType } from 'nocodb-sdk'
+import type { ColumnType, FilterType, SourceType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, InjectionKey, Ref } from 'vue'
 import type { EventHook } from '@vueuse/core'
 import type { PageSidebarNode } from '#imports'
@@ -31,6 +31,9 @@ export const ReloadViewDataHookInj: InjectionKey<EventHook<{ shouldShowLoading?:
 export const ReloadViewMetaHookInj: InjectionKey<EventHook<boolean | void>> = Symbol('reload-view-meta-injection')
 export const ReloadRowDataHookInj: InjectionKey<EventHook<{ shouldShowLoading?: boolean; offset?: number } | void>> =
   Symbol('reload-row-data-injection')
+export const ReloadAggregateHookInj: InjectionKey<EventHook<{ field: string[] } | undefined>> = Symbol(
+  'reload-aggregate-data-injection',
+)
 export const OpenNewRecordFormHookInj: InjectionKey<EventHook<void>> = Symbol('open-new-record-form-injection')
 export const FieldsInj: InjectionKey<Ref<ColumnType[]>> = Symbol('fields-injection')
 export const EditModeInj: InjectionKey<Ref<boolean>> = Symbol('edit-mode-injection')
@@ -60,3 +63,14 @@ export const JsonExpandInj: InjectionKey<Ref<boolean>> = Symbol('json-expand-inj
 export const AllFiltersInj: InjectionKey<Ref<Record<string, FilterType[]>>> = Symbol('all-filters-injection')
 
 export const IsAdminPanelInj: InjectionKey<Ref<boolean>> = Symbol('is-admin-panel-injection')
+/**
+ * `ActiveSourceInj` is an injection key for providing the active source context to Vue components.
+ * This is mainly used in useRoles composable to get source level restriction configuration in GUI.
+ */
+export const ActiveSourceInj: InjectionKey<
+  ComputedRef<
+    SourceType & {
+      meta?: Record<string, any>
+    }
+  >
+> = Symbol('active-source-injection')

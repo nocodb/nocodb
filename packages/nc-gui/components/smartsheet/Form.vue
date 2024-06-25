@@ -361,7 +361,7 @@ async function handleAddOrRemoveAllColumns<T>(value: T) {
 }
 
 async function checkSMTPStatus() {
-  if (emailMe.value) {
+  if (emailMe.value && !isEeUI) {
     const emailPluginActive = await $api.plugin.status('SMTP')
     if (!emailPluginActive) {
       emailMe.value = false

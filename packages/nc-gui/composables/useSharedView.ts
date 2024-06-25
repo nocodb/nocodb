@@ -15,7 +15,7 @@ import { UITypes, ViewTypes } from 'nocodb-sdk'
 export function useSharedView() {
   const nestedFilters = ref<(FilterType & { status?: 'update' | 'delete' | 'create'; parentId?: string })[]>([])
 
-  const { appInfo } = useGlobal()
+  const { appInfo, gridViewPageSize } = useGlobal()
 
   const baseStore = useBase()
 
@@ -25,7 +25,7 @@ export function useSharedView() {
 
   const { base } = storeToRefs(baseStore)
 
-  const appInfoDefaultLimit = appInfo.value.defaultLimit || 25
+  const appInfoDefaultLimit = gridViewPageSize.value || appInfo.value.defaultLimit || 25
 
   const paginationData = useState<PaginatedType>('paginationData', () => ({
     page: 1,
@@ -209,6 +209,30 @@ export function useSharedView() {
     )
   }
 
+  const fetchAggregatedData = async (param: {
+    aggregation?: Array<{
+      field: string
+      type: string
+    }>
+    filtersArr?: FilterType[]
+    where?: string
+  }) => {
+    if (!sharedView.value) return {}
+
+    return await $api.public.dataTableAggregate(
+      sharedView.value.uuid!,
+      {
+        ...param,
+        filterArrJson: JSON.stringify(param.filtersArr ?? nestedFilters.value),
+      } as any,
+      {
+        headers: {
+          'xc-password': password.value,
+        },
+      },
+    )
+  }
+
   const fetchSharedViewActiveDate = async (param: {
     from_date: string
     to_date: string
@@ -293,6 +317,7 @@ export function useSharedView() {
     fetchSharedViewActiveDate,
     fetchSharedCalendarViewData,
     fetchSharedViewGroupedData,
+    fetchAggregatedData,
     paginationData,
     sorts,
     exportFile,

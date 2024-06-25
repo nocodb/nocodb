@@ -31,6 +31,8 @@ const expandedFormRowState = ref<Record<string, any>>()
 
 const tableRef = ref<typeof Table>()
 
+useProvideViewAggregate(view, meta, xWhere)
+
 const {
   loadData,
   paginationData,
@@ -146,7 +148,9 @@ const toggleOptimisedQuery = () => {
 const { rootGroup, groupBy, isGroupBy, loadGroups, loadGroupData, loadGroupPage, groupWrapperChangePage, redistributeRows } =
   useViewGroupByOrThrow()
 
-const coreWrapperRef = ref<HTMLElement>()
+const sidebarStore = useSidebarStore()
+
+const { windowSize, leftSidebarWidth } = toRefs(sidebarStore)
 
 const viewWidth = ref(0)
 
@@ -154,17 +158,6 @@ eventBus.on((event) => {
   if (event === SmartsheetStoreEvents.GROUP_BY_RELOAD || event === SmartsheetStoreEvents.DATA_RELOAD) {
     reloadViewDataHook?.trigger()
   }
-})
-
-onMounted(() => {
-  until(coreWrapperRef)
-    .toBeTruthy()
-    .then(() => {
-      const resizeObserver = new ResizeObserver(() => {
-        viewWidth.value = coreWrapperRef.value?.clientWidth || 0
-      })
-      if (coreWrapperRef.value) resizeObserver.observe(coreWrapperRef.value)
-    })
 })
 
 const goToNextRow = () => {
@@ -190,14 +183,40 @@ const goToPreviousRow = () => {
 
   navigateToSiblingRow(NavigateDir.PREV)
 }
+
+const updateViewWidth = () => {
+  if (isPublic.value) {
+    viewWidth.value = windowSize.value
+    return
+  }
+  viewWidth.value = windowSize.value - leftSidebarWidth.value
+}
+
+const baseColor = computed(() => {
+  switch (groupBy.value.length) {
+    case 1:
+      return '#F9F9FA'
+    case 2:
+      return '#F4F4F5'
+    case 3:
+      return '#E7E7E9'
+    default:
+      return '#F9F9FA'
+  }
+})
+
+watch([windowSize, leftSidebarWidth], updateViewWidth)
+
+onMounted(() => {
+  updateViewWidth()
+})
 </script>
 
 <template>
   <div
-    ref="coreWrapperRef"
     class="relative flex flex-col h-full min-h-0 w-full nc-grid-wrapper"
     data-testid="nc-grid-wrapper"
-    style="background-color: var(--nc-grid-bg)"
+    :style="`width: ${viewWidth}px; background-color: ${isGroupBy ? `${baseColor}` : 'var(--nc-grid-bg)'};`"
   >
     <Table
       v-if="!isGroupBy"

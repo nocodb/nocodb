@@ -6,13 +6,13 @@ const maxNumberOfAllowedCharsForQrValue = 2000
 
 const cellValue = inject(CellValueInj)
 
-const qrValue = computed(() => String(cellValue?.value || ''))
+const qrValue = computed(() => String(cellValue?.value ?? ''))
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
 
 const tooManyCharsForQrCode = computed(() => qrValue?.value.length > maxNumberOfAllowedCharsForQrValue)
 
-const showQrCode = computed(() => qrValue?.value?.length > 0 && !tooManyCharsForQrCode.value)
+const showQrCode = computed(() => qrValue?.value?.length > 0 && !tooManyCharsForQrCode.value && qrValue?.value !== 'ERR!')
 
 const qrCodeOptions: QRCode.QRCodeToDataURLOptions = {
   errorCorrectionLevel: 'M',
@@ -102,4 +102,10 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning } = us
   <div v-if="showClearNonEditableFieldWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
     {{ $t('msg.warning.nonEditableFields.qrFieldsCannotBeDirectlyChanged') }}
   </div>
+  <a-tooltip v-else-if="!showQrCode && qrValue === 'ERR!'" placement="bottom" class="text-orange-700">
+    <template #title>
+      <span class="font-bold">Please select a target field!</span>
+    </template>
+    <span>ERR!</span>
+  </a-tooltip>
 </template>

@@ -217,7 +217,7 @@ const onFocusWrapper = () => {
 
 if (props.syncValueChange) {
   watch([vModel, editor], () => {
-    setEditorContent(vModel.value)
+    setEditorContent(isFormField.value ? (vModel.value || '')?.replace(/(<br \/>)+$/g, '') : vModel.value)
   })
 }
 

@@ -7,7 +7,7 @@ interface ProjectArgs {
   type?: string;
 }
 
-const sakilaProjectConfig = (context) => {
+const sakilaProjectConfig = (context, additionalConfig = {}) => {
   let source;
 
   if (
@@ -38,6 +38,7 @@ const sakilaProjectConfig = (context) => {
     ...source,
     inflection_column: 'camelize',
     inflection_table: 'camelize',
+    ...additionalConfig,
   };
 
   return {
@@ -67,11 +68,11 @@ const createSharedBase = async (app, token, base, sharedBaseArgs = {}) => {
     });
 };
 
-const createSakilaProject = async (context) => {
+const createSakilaProject = async (context, additionalConfig = {}) => {
   const response = await request(context.app)
     .post('/api/v1/db/meta/projects/')
     .set('xc-auth', context.token)
-    .send(sakilaProjectConfig(context));
+    .send(sakilaProjectConfig(context, additionalConfig));
 
   return (await Base.getByTitleOrId(
     {

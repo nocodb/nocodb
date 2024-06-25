@@ -146,9 +146,9 @@ const getIcon = (c: ColumnType) =>
               {{ $t('activity.kanban.stackedBy') }}
             </span>
             <div
-              class="flex items-center rounded-md transition-colors duration-0.3s bg-gray-100 group-hover:bg-gray-200 px-1 min-h-5 text-gray-600"
+              class="flex items-center rounded-md transition-colors duration-0.3s bg-gray-100 group-hover:bg-gray-200 px-1 min-h-5 text-gray-600 max-w-[108px]"
             >
-              <span class="font-weight-500 text-sm">{{ groupingField }}</span>
+              <span class="font-weight-500 text-sm truncate !leading-5">{{ groupingField }}</span>
             </div>
           </div>
         </div>
@@ -158,7 +158,7 @@ const getIcon = (c: ColumnType) =>
       <div v-if="open" class="p-4 w-90 bg-white nc-table-toolbar-menu rounded-lg flex flex-col gap-5" @click.stop>
         <div class="flex flex-col gap-2">
           <div>
-            {{ $t('general.groupingField').toLowerCase().replace(/^./, $t('general.groupingField').charAt(0).toUpperCase()) }}
+            {{ $t('general.groupingField') }}
           </div>
           <div class="nc-fields-list">
             <div class="grouping-field">
@@ -173,14 +173,19 @@ const getIcon = (c: ColumnType) =>
                 <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-gray-700" /></template>
                 <a-select-option v-for="option of singleSelectFieldOptions" :key="option.value" :value="option.value">
                   <div class="w-full flex gap-2 items-center justify-between" :title="option.label">
-                    <div class="flex items-center gap-1">
+                    <div class="flex items-center gap-1 max-w-[calc(100%_-_20px)]">
                       <component
                         :is="getIcon(metaColumnById[option.value])"
                         v-if="option.value"
                         class="!w-3.5 !h-3.5 !text-gray-700 !ml-0"
                       />
 
-                      <span> {{ option.label }} </span>
+                      <NcTooltip class="flex-1 max-w-[calc(100%_-_20px)] truncate" show-on-truncate-only>
+                        <template #title>
+                          {{ option.label }}
+                        </template>
+                        <template #default>{{ option.label }}</template>
+                      </NcTooltip>
                     </div>
                     <GeneralIcon
                       v-if="groupingFieldColumnId === option.value"

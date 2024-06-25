@@ -25,6 +25,8 @@ const active = inject(ActiveCellInj, ref(false))
 
 const isForm = inject(IsFormInj)!
 
+const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
+
 const { open } = useExpandedFormDetached()
 
 function openExpandedForm() {
@@ -52,7 +54,7 @@ export default {
 <template>
   <div
     v-e="['c:row-expand:open']"
-    class="chip group mr-1 my-1 flex items-center rounded-[2px] flex-row truncate"
+    class="chip group mr-1 my-0.5 flex items-center rounded-[2px] flex-row truncate"
     :class="{ active, 'border-1 py-1 px-2': isAttachment(column) }"
     @click="openExpandedForm"
   >
@@ -89,7 +91,7 @@ export default {
     </div>
 
     <div
-      v-show="active || isForm"
+      v-show="active || isForm || isExpandedForm"
       v-if="showUnlinkButton && !readOnly && isUIAllowed('dataEdit')"
       class="flex items-center cursor-pointer"
     >

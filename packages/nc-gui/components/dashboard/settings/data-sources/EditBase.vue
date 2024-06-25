@@ -45,9 +45,20 @@ const { t } = useI18n()
 
 const editingSource = ref(false)
 
+const easterEgg = ref(false)
+
+const easterEggCount = ref(0)
+
+const onEasterEgg = () => {
+  easterEggCount.value += 1
+  if (easterEggCount.value >= 2) {
+    easterEgg.value = true
+  }
+}
+
 const clientTypes = computed(() => {
   return _clientTypes.filter((type) => {
-    return ![ClientType.SNOWFLAKE, ClientType.DATABRICKS].includes(type.value)
+    return ![ClientType.SNOWFLAKE, ClientType.DATABRICKS, ...(easterEgg.value ? [] : [ClientType.MSSQL])].includes(type.value)
   })
 })
 
@@ -60,6 +71,8 @@ const formState = ref<ProjectCreateForm>({
   },
   sslUse: SSLUsage.No,
   extraParameters: [],
+  is_schema_readonly: true,
+  is_data_readonly: false,
 })
 
 const customFormState = ref<ProjectCreateForm>({
@@ -71,6 +84,8 @@ const customFormState = ref<ProjectCreateForm>({
   },
   sslUse: SSLUsage.No,
   extraParameters: [],
+  is_schema_readonly: true,
+  is_data_readonly: false,
 })
 
 const validators = computed(() => {
@@ -228,6 +243,8 @@ const editBase = async () => {
       config,
       inflection_column: formState.value.inflection.inflectionColumn,
       inflection_table: formState.value.inflection.inflectionTable,
+      is_schema_readonly: formState.value.is_schema_readonly,
+      is_data_readonly: formState.value.is_data_readonly,
     })
 
     $e('a:source:edit:extdb')
@@ -339,6 +356,8 @@ onMounted(async () => {
       },
       extraParameters: tempParameters,
       sslUse: SSLUsage.No,
+      is_schema_readonly: activeBase.is_schema_readonly,
+      is_data_readonly: activeBase.is_data_readonly,
     }
     updateSSLUse()
   }
@@ -356,13 +375,33 @@ watch(
     immediate: true,
   },
 )
+
+const allowMetaWrite = computed({
+  get: () => !formState.value.is_schema_readonly,
+  set: (v) => {
+    formState.value.is_schema_readonly = !v
+    // if schema write is allowed, data write should be allowed too
+    if (v) {
+      formState.value.is_data_readonly = false
+    }
+    $e('c:source:schema-write-toggle', { allowed: !v, edit: true })
+  },
+})
+
+const allowDataWrite = computed({
+  get: () => !formState.value.is_data_readonly,
+  set: (v) => {
+    formState.value.is_data_readonly = !v
+    $e('c:source:data-write-toggle', { allowed: !v, edit: true })
+  },
+})
 </script>
 
 <template>
   <div class="edit-source bg-white relative flex flex-col justify-start gap-2 w-full p-2">
     <h1 class="prose-2xl font-bold self-start">{{ $t('activity.editSource') }}</h1>
 
-    <a-form ref="form" :model="formState" name="external-base-create-form" layout="horizontal" no-style :label-col="{ span: 8 }">
+    <a-form ref="form" :model="formState" name="external-base-create-form" layout="horizontal" no-style :label-col="{ span: 5 }">
       <div
         class="nc-scrollbar-md"
         :style="{
@@ -372,7 +411,6 @@ watch(
         <a-form-item label="Source Name" v-bind="validateInfos.title">
           <a-input v-model:value="formState.title" class="nc-extdb-proj-name" />
         </a-form-item>
-
         <a-form-item :label="$t('labels.dbType')" v-bind="validateInfos['dataSource.client']">
           <a-select
             v-model:value="formState.dataSource.client"
@@ -524,6 +562,18 @@ watch(
           >
             <a-input v-model:value="formState.dataSource.searchPath[0]" />
           </a-form-item>
+        </template>
+        <DashboardSettingsDataSourcesSourceRestrictions
+          v-model:allowMetaWrite="allowMetaWrite"
+          v-model:allowDataWrite="allowDataWrite"
+        />
+        <template
+          v-if="
+            formState.dataSource.client !== ClientType.SQLITE &&
+            formState.dataSource.client !== ClientType.DATABRICKS &&
+            formState.dataSource.client !== ClientType.SNOWFLAKE
+          "
+        >
           <!--                Use Connection URL -->
           <div class="flex justify-end gap-2">
             <NcButton size="small" type="ghost" class="nc-extdb-btn-import-url !rounded-md" @click.stop="importURLDlg = true">
@@ -644,6 +694,7 @@ watch(
 
       <a-form-item class="flex justify-end !mt-5">
         <div class="flex justify-end gap-2">
+          <div class="w-[15px] h-[15px] cursor-pointer" @dblclick="onEasterEgg"></div>
           <NcButton
             :type="testSuccess ? 'ghost' : 'primary'"
             size="small"

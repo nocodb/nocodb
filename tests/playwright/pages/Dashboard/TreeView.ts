@@ -378,4 +378,13 @@ export class TreeViewPage extends BasePage {
 
     await this.rootPage.waitForTimeout(10000);
   }
+
+  async openProjectSourceSettings(param: { title: string; context: NcContext }) {
+    param.title = this.scopedProjectTitle({ title: param.title, context: param.context });
+
+    await this.openProjectContextMenu({ baseTitle: param.title });
+    const contextMenu = this.dashboard.get().locator('.ant-dropdown-menu.nc-scrollbar-md:visible');
+    await contextMenu.waitFor();
+    await contextMenu.locator(`.ant-dropdown-menu-item:has-text("Settings")`).click();
+  }
 }

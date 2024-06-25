@@ -222,7 +222,6 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
     async function loadGroups(params: any = {}, group?: Group) {
       try {
         group = group || rootGroup.value
-
         if (!base?.value?.id || !view.value?.id || !view.value?.fk_model_id || !group) return
 
         if (groupBy.value.length === 0) {
@@ -333,7 +332,6 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
           group.children.push(temp)
         }
 
-        // clear rest of the children
         group.children = group.children.filter((c) => tempList.find((t) => t.key === c.key))
 
         if (group.count <= (group.paginationData.pageSize ?? groupByGroupLimit.value)) {

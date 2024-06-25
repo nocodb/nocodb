@@ -1,4 +1,4 @@
-import { RelationTypes, UITypes } from 'nocodb-sdk';
+import { isVirtualCol, RelationTypes, UITypes } from 'nocodb-sdk';
 import type LookupColumn from '../models/LookupColumn';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type {
@@ -27,7 +27,7 @@ export async function getDisplayValueOfRefTable(
     .getColOptions(context)
     .then((colOpt) => colOpt.getRelatedTable(context))
     .then((model) => model.getColumns(context))
-    .then((cols) => cols.find((col) => col.pv));
+    .then((cols) => cols.find((col) => col.pv) || cols[0]);
 }
 
 // this function will generate the query for lookup column
@@ -41,12 +41,14 @@ export default async function generateLookupSelectQuery({
   alias,
   model: _model,
   getAlias = getAliasGenerator('__lk_slt_'),
+  isAggregation = false,
 }: {
   column: Column;
   baseModelSqlv2: BaseModelSqlv2;
   alias: string;
   model: Model;
   getAlias?: ReturnType<typeof getAliasGenerator>;
+  isAggregation?: boolean;
 }): Promise<any> {
   const knex = baseModelSqlv2.dbDriver;
 
@@ -298,11 +300,6 @@ export default async function generateLookupSelectQuery({
       });
 
       switch (lookupColumn.uidt) {
-        case UITypes.Attachment:
-          NcError.badRequest(
-            'Group by using attachment column is not supported',
-          );
-          break;
         case UITypes.Links:
         case UITypes.Rollup:
           {
@@ -316,7 +313,9 @@ export default async function generateLookupSelectQuery({
                 alias: prevAlias,
               })
             ).builder;
-            selectQb.select(knex.raw(builder).wrap('(', ')'));
+            selectQb.select({
+              [lookupColumn.id]: knex.raw(builder).wrap('(', ')'),
+            });
           }
           break;
         case UITypes.Formula:
@@ -349,6 +348,14 @@ export default async function generateLookupSelectQuery({
             });
           }
           break;
+        case UITypes.Attachment:
+          if (!isAggregation) {
+            NcError.badRequest(
+              'Group by using attachment column is not supported',
+            );
+            break;
+          }
+        // eslint-disable-next-line no-fallthrough
         default:
           {
             selectQb.select(

@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import NcModal from '../nc/Modal.vue'
 
+type ModelValueType = string | Record<string, any> | undefined | null
+
 interface Props {
-  modelValue: string | Record<string, any> | undefined
+  modelValue: ModelValueType
 }
 
 interface Emits {
-  (event: 'update:modelValue', model: string): void
+  (event: 'update:modelValue', model: string | null): void
 }
 
 const props = defineProps<Props>()
@@ -27,7 +29,7 @@ const readOnly = inject(ReadonlyInj, ref(false))
 
 const vModel = useVModel(props, 'modelValue', emits)
 
-const localValueState = ref<string | undefined>()
+const localValueState = ref<string | undefined | null>()
 
 const error = ref<string | undefined>()
 
@@ -37,13 +39,17 @@ const isExpanded = ref(false)
 
 const rowHeight = inject(RowHeightInj, ref(undefined))
 
-const localValue = computed<string | Record<string, any> | undefined>({
+const formatValue = (val: ModelValueType) => {
+  return !val || val === 'null' ? null : val
+}
+
+const localValue = computed<ModelValueType>({
   get: () => localValueState.value,
-  set: (val: undefined | string | Record<string, any>) => {
-    localValueState.value = typeof val === 'object' ? JSON.stringify(val, null, 2) : val
+  set: (val: ModelValueType) => {
+    localValueState.value = formatValue(val) === null ? null : typeof val === 'object' ? JSON.stringify(val, null, 2) : val
     /** if form and not expanded then sync directly */
     if (isForm.value && !isExpanded.value) {
-      vModel.value = val
+      vModel.value = formatValue(val) === null ? null : val
     }
   },
 })
@@ -72,14 +78,15 @@ const onSave = () => {
 
   editEnabled.value = false
 
-  vModel.value = localValue ? formatJson(localValue.value as string) : localValue
+  vModel.value = formatValue(localValue.value) === null ? null : formatJson(localValue.value as string)
 }
 
 const setLocalValue = (val: any) => {
   try {
-    localValue.value = typeof val === 'string' ? JSON.stringify(JSON.parse(val), null, 2) : val
+    localValue.value =
+      formatValue(localValue.value) === null ? null : typeof val === 'string' ? JSON.stringify(JSON.parse(val), null, 2) : val
   } catch (e) {
-    localValue.value = val
+    localValue.value = formatValue(localValue.value) === null ? null : val
   }
 }
 
@@ -97,7 +104,7 @@ watch([localValue, editEnabled], () => {
 
     error.value = undefined
   } catch (e: any) {
-    if (localValue.value === undefined) return
+    if (localValue.value === undefined || localValue.value === null) return
 
     error.value = e
   }

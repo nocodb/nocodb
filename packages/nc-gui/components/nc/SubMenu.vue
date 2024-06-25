@@ -1,5 +1,11 @@
+<script lang="ts" setup>
+const props = defineProps<{
+  popupOffset?: number[]
+}>()
+</script>
+
 <template>
-  <a-sub-menu class="nc-sub-menu" popup-class-name="nc-submenu-popup">
+  <a-sub-menu :popup-offset="props.popupOffset" class="nc-sub-menu" popup-class-name="nc-submenu-popup">
     <template #title>
       <div class="flex flex-row items-center gap-x-1.5 py-1.75 justify-between group hover:text-gray-800">
         <div class="flex flex-row items-center gap-x-2">

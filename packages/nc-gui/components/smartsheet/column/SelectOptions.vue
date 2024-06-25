@@ -342,7 +342,7 @@ onMounted(() => {
   options.value = vModel.value.colOptions.options
 
   let indexCounter = 0
-  options.value.map((el) => {
+  options.value = options.value.map((el) => {
     el.index = indexCounter++
     return el
   })
@@ -522,7 +522,10 @@ if (isKanbanStack.value) {
                       <LazyGeneralAdvanceColorPicker
                         v-model="element.color"
                         :is-open="colorMenus[index]"
-                        @input="(el:string) => (element.color = el)"
+                        @input="(el:string) => {
+                          element.color = el
+                          optionChanged(element)
+                        }"
                       ></LazyGeneralAdvanceColorPicker>
                     </div>
                   </template>

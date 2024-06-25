@@ -23,7 +23,7 @@ const baseCreateDlg = ref(false)
 
 const baseStore = useBase()
 
-const { isSharedBase } = storeToRefs(baseStore)
+const { isSharedBase, base } = storeToRefs(baseStore)
 
 const { activeTable: _activeTable } = storeToRefs(useTablesStore())
 
@@ -100,7 +100,8 @@ const duplicateTable = async (table: TableType) => {
 
 const isCreateTableAllowed = computed(
   () =>
-    isUIAllowed('tableCreate') &&
+    base.value?.sources?.[0] &&
+    isUIAllowed('tableCreate', { source: base.value?.sources?.[0] }) &&
     route.value.name !== 'index' &&
     route.value.name !== 'index-index' &&
     route.value.name !== 'index-index-create' &&
@@ -248,9 +249,9 @@ watch(
           ghost-class="ghost"
           @change="onMove($event)"
         >
-          <template #item="{ element: base }">
-            <div :key="base.id">
-              <ProjectWrapper :base-role="base.project_role" :base="base">
+          <template #item="{ element: baseItem }">
+            <div :key="baseItem.id">
+              <ProjectWrapper :base-role="baseItem.project_role" :base="baseItem">
                 <DashboardTreeViewProjectNode />
               </ProjectWrapper>
             </div>

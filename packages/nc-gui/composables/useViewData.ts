@@ -31,9 +31,9 @@ export function useViewData(
 
   const route = router.currentRoute
 
-  const { appInfo } = useGlobal()
+  const { appInfo, gridViewPageSize } = useGlobal()
 
-  const appInfoDefaultLimit = appInfo.value.defaultLimit || 25
+  const appInfoDefaultLimit = gridViewPageSize.value || appInfo.value.defaultLimit || 25
 
   const _paginationData = ref<PaginatedType>({ page: 1, pageSize: appInfoDefaultLimit })
 

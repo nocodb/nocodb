@@ -23,6 +23,7 @@ export enum Language {
   he = 'עִברִית',
   hi = 'हिन्दी',
   hr = 'Hrvatski',
+  hu = 'Magyar',
   id = 'Bahasa Indonesia',
   it = 'Italiano',
   ja = '日本語',
@@ -167,4 +168,12 @@ export enum RichTextBubbleMenuOptions {
 export enum CoverImageObjectFit {
   FIT = 'fit',
   COVER = 'cover',
+}
+
+export enum AuditLogsDateRange {
+  Last24H = 'last24H',
+  PastWeek = 'pastWeek',
+  PastMonth = 'pastMonth',
+  PastYear = 'pastYear',
+  Custom = 'custom',
 }

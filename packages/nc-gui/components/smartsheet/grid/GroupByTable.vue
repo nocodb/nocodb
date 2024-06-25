@@ -118,22 +118,11 @@ reloadViewDataHook?.on(reloadTableData)
 
 provide(IsGroupByInj, ref(true))
 
-const scrollBump = computed<number>(() => {
-  if (props.scrollLeft && props.viewWidth && props.scrollable) {
-    const scrollWidth = props.scrollable.scrollWidth
-    if (props.scrollLeft + props.viewWidth > scrollWidth) {
-      return scrollWidth - props.viewWidth
-    }
-    return Math.max(Math.min(scrollWidth - props.viewWidth, (props.scrollLeft ?? 0) - 24), 0)
-  }
-  return 0
-})
-
 const pagination = computed(() => {
   return {
     fixedSize: props.paginationFixedSize ? props.paginationFixedSize - 2 : undefined,
     hideSidebars: props.paginationHideSidebars,
-    extraStyle: `margin-left: ${scrollBump.value}px;`,
+    extraStyle: 'background: transparent !important; border-top: 0px;',
   }
 })
 

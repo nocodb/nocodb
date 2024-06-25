@@ -151,6 +151,7 @@ export default class Column<T = any> implements ColumnType {
       'source_id',
       'system',
       'meta',
+      'virtual',
     ]);
 
     if (!insertObj.column_name) {
@@ -1385,6 +1386,23 @@ export default class Column<T = any> implements ColumnType {
       `${CacheScope.COLUMN}:${colId}`,
       prepareForResponse({ meta }),
     );
+  }
+
+  static async updateValidation(
+    context: NcContext,
+    { colId, validate }: { colId: string; validate: any },
+    ncMeta = Noco.ncMeta,
+  ) {
+    // set meta
+    await ncMeta.metaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.COLUMNS,
+      prepareForDb({ validate }, 'validate'),
+      colId,
+    );
+
+    await NocoCache.update(`${CacheScope.COLUMN}:${colId}`, { validate });
   }
 
   static async updateTargetView(

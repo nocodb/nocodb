@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
+import Draggable from 'vuedraggable'
 
 const meta = inject(MetaInj, ref())
 const view = inject(ActiveViewInj, ref())
@@ -153,6 +154,22 @@ eventBus.on(async (event, column) => {
     await saveGroupBy()
   }
 })
+
+const onMove = async (event: { moved: { newIndex: number; oldIndex: number } }) => {
+  const { newIndex, oldIndex } = event.moved
+
+  const tempGroups = [..._groupBy.value]
+
+  const movedItem = tempGroups.splice(oldIndex, 1)[0]
+
+  tempGroups.splice(newIndex, 0, movedItem ?? [])
+
+  const updatedGroups = tempGroups.map((group, index) => ({ ...group, order: index + 1 }))
+
+  _groupBy.value = [...updatedGroups]
+
+  await saveGroupBy()
+}
 </script>
 
 <template>
@@ -193,59 +210,84 @@ eventBus.on(async (event, column) => {
       />
       <div
         v-else
-        class="flex flex-col bg-white overflow-auto nc-group-by-list menu-filter-dropdown max-h-[max(80vh,500px)] min-w-102 pt-2 pb-2 pl-4"
+        class="flex flex-col bg-white overflow-auto nc-group-by-list menu-filter-dropdown w-100 p-6"
         data-testid="nc-group-by-menu"
       >
-        <div class="group-by-grid max-h-100 nc-scrollbar-thing pr-4 py-2" @click.stop>
-          <template v-for="[i, group] of Object.entries(_groupBy)" :key="`grouped-by-${group.fk_column_id}`">
-            <LazySmartsheetToolbarFieldListAutoCompleteDropdown
-              v-model="group.fk_column_id"
-              class="caption nc-sort-field-select w-44 flex flex-grow"
-              :columns="fieldsToGroupBy"
-              :allow-empty="true"
-              :meta="meta"
-              @change="saveGroupBy"
-              @click.stop
-            />
-            <NcSelect
-              ref=""
-              v-model:value="group.sort"
-              class="shrink grow-0 nc-sort-dir-select"
-              :label="$t('labels.operation')"
-              dropdown-class-name="sort-dir-dropdown nc-dropdown-sort-dir"
-              :disabled="!group.fk_column_id"
-              @change="saveGroupBy"
-              @click.stop
-            >
-              <a-select-option
-                v-for="(option, j) of getSortDirectionOptions(getColumnUidtByID(group.fk_column_id), true)"
-                :key="j"
-                :value="option.value"
-              >
-                <div class="w-full flex items-center justify-between gap-2">
-                  <div class="truncate flex-1">{{ option.text }}</div>
-                  <component
-                    :is="iconMap.check"
-                    v-if="group.sort === option.value"
-                    id="nc-selected-item-icon"
-                    class="text-primary w-4 h-4"
-                  />
-                </div>
-              </a-select-option>
-            </NcSelect>
+        <div class="max-h-100" @click.stop>
+          <Draggable :model-value="_groupBy" item-key="fk_column_id" ghost-class="bg-gray-50" @change="onMove($event)">
+            <template #item="{ element: group }">
+              <div :key="group.fk_column_id" class="flex first:mb-0 !mb-1.5 !last:mb-0 items-center">
+                <NcButton type="secondary" size="small" class="!border-r-transparent !rounded-r-none">
+                  <component :is="iconMap.drag" />
+                </NcButton>
+                <LazySmartsheetToolbarFieldListAutoCompleteDropdown
+                  v-model="group.fk_column_id"
+                  class="caption nc-sort-field-select !w-36"
+                  :columns="fieldsToGroupBy"
+                  :allow-empty="true"
+                  :meta="meta"
+                  @change="saveGroupBy"
+                  @click.stop
+                />
+                <NcSelect
+                  ref=""
+                  v-model:value="group.sort"
+                  class="flex flex-grow-1 w-full nc-sort-dir-select"
+                  :label="$t('labels.operation')"
+                  dropdown-class-name="sort-dir-dropdown nc-dropdown-sort-dir"
+                  :disabled="!group.fk_column_id"
+                  @change="saveGroupBy"
+                  @click.stop
+                >
+                  <a-select-option
+                    v-for="(option, j) of getSortDirectionOptions(getColumnUidtByID(group.fk_column_id), true)"
+                    :key="j"
+                    :value="option.value"
+                  >
+                    <div class="w-full flex items-center justify-between gap-2">
+                      <div class="truncate flex-1">{{ option.text }}</div>
+                      <component
+                        :is="iconMap.check"
+                        v-if="group.sort === option.value"
+                        id="nc-selected-item-icon"
+                        class="text-primary w-4 h-4"
+                      />
+                    </div>
+                  </a-select-option>
+                </NcSelect>
 
-            <a-tooltip placement="right" title="Remove" class="flex-none min-w-40">
-              <NcButton
-                v-e="['c:group-by:remove']"
-                class="nc-group-by-item-remove-btn min-w-40"
-                size="small"
-                type="text"
-                @click.stop="removeFieldFromGroupBy(i)"
-              >
-                <component :is="iconMap.deleteListItem" />
-              </NcButton>
-            </a-tooltip>
-          </template>
+                <!--                <NcDropdown :disabled="!isColumnSupportsGroupBySettings(columnByID[group.fk_column_id])" :trigger="['click']">
+                  <NcButton
+                    :disabled="!isColumnSupportsGroupBySettings(columnByID[group.fk_column_id])"
+                    class="!rounded-none !border-gray-200 !border-l-transparent"
+                    type="secondary"
+                    size="small"
+                  >
+                    <GeneralIcon icon="ncSettings" />
+                  </NcButton>
+
+                  <template #overlay>
+                    <NcMenu>
+                      <NcMenuItem> Hide groups with no records </NcMenuItem>
+                      <NcMenuItem> Show groups with no records </NcMenuItem>
+                    </NcMenu>
+                  </template>
+                </NcDropdown> -->
+
+                <NcTooltip placement="top" title="Remove" class="flex-none">
+                  <NcButton
+                    v-e="['c:group-by:remove']"
+                    class="nc-group-by-item-remove-btn !border-l-transparent !rounded-l-none min-w-40"
+                    size="small"
+                    type="secondary"
+                    @click.stop="removeFieldFromGroupBy(i)"
+                  >
+                    <component :is="iconMap.deleteListItem" />
+                  </NcButton>
+                </NcTooltip>
+              </div>
+            </template>
+          </Draggable>
         </div>
         <NcDropdown
           v-if="availableColumns.length && fieldsToGroupBy.length > _groupBy.length && _groupBy.length < groupByLimit"
@@ -255,7 +297,7 @@ eventBus.on(async (event, column) => {
         >
           <NcButton
             v-e="['c:group-by:add']"
-            class="nc-add-group-by-btn !text-brand-500 mt-1 mb-2"
+            class="nc-add-group-by-btn mt-5"
             style="width: fit-content"
             size="small"
             type="text"
@@ -281,10 +323,28 @@ eventBus.on(async (event, column) => {
   </NcDropdown>
 </template>
 
-<style scoped>
-.group-by-grid {
-  display: grid;
-  grid-template-columns: auto 150px auto;
-  @apply gap-x-2 gap-y-3;
+<style scoped lang="scss">
+:deep(.nc-sort-field-select) {
+  @apply !w-36;
+  .ant-select-selector {
+    @apply !rounded-none !border-r-0 !border-gray-200 !shadow-none !w-36;
+
+    &.ant-select-focused:not(.ant-select-disabled) {
+      @apply !border-r-transparent;
+    }
+  }
+}
+
+:deep(.nc-select:hover) {
+  &,
+  .ant-select-selector {
+    @apply bg-gray-50;
+  }
+}
+
+:deep(.nc-sort-dir-select) {
+  .ant-select-selector {
+    @apply !rounded-none !border-gray-200 !shadow-none;
+  }
 }
 </style>

@@ -63,6 +63,15 @@ const { nestedFilters } = useSmartsheetStoreOrThrow()
 
 const currentFilters = modelValue.value || (!link.value && !webHook.value && nestedFilters.value) || []
 
+const columns = computed(() => meta.value?.columns)
+
+const fieldsToFilter = computed(() =>
+  (columns.value || []).filter((c) => {
+    if (link.value && isSystemColumn(c) && !c.pk && !isCreatedOrLastModifiedTimeCol(c)) return false
+    return !excludedFilterColUidt.includes(c.uidt as UITypes)
+  }),
+)
+
 const {
   filters,
   nonDeletedFilters,
@@ -88,6 +97,7 @@ const {
   webHook.value,
   link.value,
   linkColId,
+  fieldsToFilter,
 )
 
 const { getPlanLimit } = useWorkspace()
@@ -98,15 +108,6 @@ const wrapperDomRef = ref<HTMLElement>()
 const addFiltersRowDomRef = ref<HTMLElement>()
 
 const isMounted = ref(false)
-
-const columns = computed(() => meta.value?.columns)
-
-const fieldsToFilter = computed(() =>
-  (columns.value || []).filter((c) => {
-    if (link.value && isSystemColumn(c) && !c.pk && !isCreatedOrLastModifiedTimeCol(c)) return false
-    return !excludedFilterColUidt.includes(c.uidt as UITypes)
-  }),
-)
 
 const getColumn = (filter: Filter) => {
   // extract looked up column if available

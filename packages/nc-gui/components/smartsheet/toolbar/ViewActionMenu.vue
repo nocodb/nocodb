@@ -16,7 +16,7 @@ const props = withDefaults(
 
 const emits = defineEmits(['rename', 'closeModal', 'delete'])
 
-const { isUIAllowed } = useRoles()
+const { isUIAllowed, isDataReadOnly } = useRoles()
 
 const isPublicView = inject(IsPublicInj, ref(false))
 
@@ -103,6 +103,7 @@ function onDuplicate() {
     'groupingFieldColumnId': view.value!.view!.fk_grp_col_id,
     'views': views,
     'calendarRange': view.value!.view!.calendar_range,
+    'coverImageColumnId': view.value!.view!.fk_cover_image_col_id,
     'onUpdate:modelValue': closeDialog,
     'onCreated': async (view: ViewType) => {
       closeDialog()
@@ -192,7 +193,7 @@ const onDelete = async () => {
 
     <template v-if="view.type !== ViewTypes.FORM">
       <NcDivider />
-      <template v-if="isUIAllowed('csvTableImport') && !isPublicView">
+      <template v-if="isUIAllowed('csvTableImport') && !isPublicView && !isDataReadOnly">
         <NcSubMenu key="upload">
           <template #title>
             <div

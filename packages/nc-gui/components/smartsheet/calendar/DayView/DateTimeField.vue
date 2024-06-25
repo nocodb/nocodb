@@ -996,7 +996,7 @@ watch(
           </template>
         </NcDropdown>
         <NcButton
-          v-else-if="!isPublic"
+          v-else-if="!isPublic && isUIAllowed('dataEdit')"
           :class="{
             '!block': hour.isSame(selectedTime),
             '!hidden': !hour.isSame(selectedTime),

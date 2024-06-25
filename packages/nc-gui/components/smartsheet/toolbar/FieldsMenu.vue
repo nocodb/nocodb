@@ -422,27 +422,38 @@ useMenuCloseOnEsc(open)
           <div class="pl-2 flex text-sm select-none text-gray-600">{{ $t('labels.coverImageField') }}</div>
 
           <div
-            class="flex-1 nc-dropdown-cover-image-wrapper flex items-stretch border-1 border-gray-200 rounded-lg transition-all duration-0.3s"
+            class="flex-1 nc-dropdown-cover-image-wrapper flex items-stretch border-1 border-gray-200 rounded-lg transition-all duration-0.3s max-w-[206px]"
           >
             <a-select
               v-model:value="coverImageColumnId"
-              class="w-full"
-              dropdown-class-name="nc-dropdown-cover-image !rounded-lg"
+              class="flex-1 max-w-[calc(100%_-_33px)]"
+              dropdown-class-name="nc-dropdown-cover-image !rounded-lg "
               :bordered="false"
               @click.stop
             >
               <template #suffixIcon><GeneralIcon class="text-gray-700" icon="arrowDown" /></template>
 
               <a-select-option v-for="option of coverOptions" :key="option.value" :value="option.value">
-                <div class="w-full flex gap-2 items-center justify-between">
-                  <div class="flex items-center gap-1">
+                <div class="w-full flex gap-2 items-center justify-between max-w-[400px]">
+                  <div
+                    class="flex-1 flex items-center gap-1"
+                    :class="{
+                      'max-w-[calc(100%_-_20px)]': coverImageColumnId === option.value,
+                      'max-w-full': coverImageColumnId !== option.value,
+                    }"
+                  >
                     <component
                       :is="getIcon(metaColumnById[option.value])"
                       v-if="option.value"
                       class="!w-3.5 !h-3.5 !text-gray-700 !ml-0"
                     />
 
-                    <span> {{ option.label }} </span>
+                    <NcTooltip class="flex-1 max-w-[calc(100%_-_20px)] truncate" show-on-truncate-only>
+                      <template #title>
+                        {{ option.label }}
+                      </template>
+                      <template #default>{{ option.label }}</template>
+                    </NcTooltip>
                   </div>
                   <GeneralIcon
                     v-if="coverImageColumnId === option.value"

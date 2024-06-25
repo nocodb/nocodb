@@ -13,6 +13,7 @@ interface Emits {
       title?: string
       copyViewId?: string
       groupingFieldColumnId?: string
+      coverImageColumnId?: string
     },
   ): void
 
@@ -74,13 +75,14 @@ function markItem(id: string) {
   }, 300)
 }
 
+const source = computed(() => base.value?.sources?.find((b) => b.id === table.value.source_id))
+
 const isDefaultSource = computed(() => {
   if (base.value?.sources?.length === 1) return true
 
-  const source = base.value?.sources?.find((b) => b.id === table.value.source_id)
-  if (!source) return false
+  if (!source.value) return false
 
-  return isDefaultBase(source)
+  return isDefaultBase(source.value)
 })
 
 /** validate view title */
@@ -337,6 +339,7 @@ function onOpenModal({
   copyViewId,
   groupingFieldColumnId,
   calendarRange,
+  coverImageColumnId,
 }: {
   title?: string
   type: ViewTypes
@@ -346,6 +349,7 @@ function onOpenModal({
     fk_from_column_id: string
     fk_to_column_id: string | null // for ee only
   }>
+  coverImageColumnId?: string
 }) {
   const isOpen = ref(true)
 
@@ -358,6 +362,7 @@ function onOpenModal({
     groupingFieldColumnId,
     'views': views,
     calendarRange,
+    coverImageColumnId,
     'onUpdate:modelValue': closeDialog,
     'onCreated': async (view: ViewType) => {
       closeDialog()
@@ -402,6 +407,7 @@ function onOpenModal({
         '!pl-13.3 !xs:(pl-13.5)': isDefaultSource,
         '!pl-18.6 !xs:(pl-20)': !isDefaultSource,
       }"
+      :source="source"
     >
       <div
         :class="{

@@ -92,13 +92,14 @@ const tempPageVal = ref(page.value)
     class="flex items-center bg-white border-gray-200 nc-grid-pagination-wrapper"
     :class="{ 'border-t-1': !isGroupBy, 'h-13': isMobileMode, 'h-10': !isMobileMode }"
     :style="`${fixedSize ? `width: ${fixedSize}px;` : ''}${
-      isGroupBy ? 'margin-top:1px; border-radius: 0 0 12px 12px !important;' : ''
-    }${extraStyle}`"
+      isGroupBy ? 'margin-top:1px; border-radius: 0 0 8px 8px !important;' : ''
+    } ${extraStyle}`"
   >
     <div
       class="flex items-center"
       :class="{
         'flex-1': !alignLeft,
+        'sticky left-0': isGroupBy,
       }"
     >
       <slot name="add-record" />
@@ -117,6 +118,9 @@ const tempPageVal = ref(page.value)
       :class="{
         '-ml-17': isLeftSidebarOpen && !alignLeft,
         'ml-8': alignLeft,
+        'sticky': isGroupBy,
+        'left-[159px]': isGroupBy && $slots['add-record'],
+        'left-[32px]': isGroupBy && !$slots['add-record'],
       }"
     >
       <div v-if="isViewDataLoading" class="nc-pagination-skeleton flex flex-row justify-center item-center min-h-10 min-w-42">

@@ -1059,8 +1059,8 @@ export default {
     @apply !shadow-selected;
   }
 
-  &:has(.nc-virtual-cell-qrcode),
-  &:has(.nc-virtual-cell-barcode) {
+  &:has(.nc-virtual-cell-qrcode .nc-qrcode-container),
+  &:has(.nc-virtual-cell-barcode .nc-barcode-container) {
     @apply !border-none pl-0 !rounded-none;
     :deep(.nc-virtual-cell-qrcode),
     :deep(.nc-virtual-cell-barcode) {
@@ -1068,10 +1068,21 @@ export default {
       & > div {
         @apply !pl-0;
       }
+      .barcode-wrapper {
+        @apply ml-0;
+      }
     }
     :deep(.nc-virtual-cell-qrcode) {
       img {
-        @apply !h-[120px] border-1 border-solid rounded;
+        @apply !h-[84px] border-1 border-solid border-gray-200 rounded;
+      }
+    }
+    :deep(.nc-virtual-cell-barcode) {
+      .nc-barcode-container {
+        @apply border-1 rounded-lg border-gray-200 h-[64px] max-w-full p-2;
+        svg {
+          @apply !h-full;
+        }
       }
     }
   }

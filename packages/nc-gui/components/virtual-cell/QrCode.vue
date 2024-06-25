@@ -75,7 +75,7 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning } = us
   </a-modal>
   <div
     v-if="showQrCode"
-    class="w-full flex"
+    class="nc-qrcode-container w-full flex"
     :class="{
       'flex-start pl-2': isExpandedFormOpen,
       'justify-center': !isExpandedFormOpen,

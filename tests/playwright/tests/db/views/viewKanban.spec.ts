@@ -88,8 +88,8 @@ test.describe('View', () => {
     });
 
     // hide fields
-    await toolbar.fields.toggleShowAllFields();
-    await toolbar.fields.toggleShowAllFields();
+    await toolbar.fields.toggleShowAllFields({ isLocallySaved: false });
+    await toolbar.fields.toggleShowAllFields({ isLocallySaved: false });
     await toolbar.fields.toggle({ title: 'Title' });
     await kanban.verifyCardCount({
       count: [0, 25, 25, 25, 25, 25],

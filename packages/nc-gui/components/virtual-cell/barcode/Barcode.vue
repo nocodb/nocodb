@@ -70,6 +70,7 @@ const rowHeight = inject(RowHeightInj, ref(undefined))
       :custom-style="{
         height: rowHeight ? `${rowHeight === 1 ? rowHeightInPx['1'] - 4 : rowHeightInPx[`${rowHeight}`] - 20}px` : `1.8rem`,
       }"
+      class="nc-barcode-container"
       @on-click-barcode="showBarcodeModal"
     >
       <template #barcodeRenderError>
@@ -83,6 +84,7 @@ const rowHeight = inject(RowHeightInj, ref(undefined))
       tabindex="-1"
       :barcode-value="barcodeValue"
       :barcode-format="barcodeMeta.barcodeFormat"
+      class="nc-barcode-container"
       @on-click-barcode="showBarcodeModal"
     >
       <template #barcodeRenderError>

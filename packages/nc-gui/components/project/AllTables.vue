@@ -6,7 +6,7 @@ const { activeTables } = storeToRefs(useTablesStore())
 const { openTable } = useTablesStore()
 const { openedProject } = storeToRefs(useBases())
 
-const { base } = useBase()
+const { base } = storeToRefs(useBase())
 
 const { isUIAllowed } = useRoles()
 

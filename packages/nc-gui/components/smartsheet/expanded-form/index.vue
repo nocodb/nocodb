@@ -1058,6 +1058,18 @@ export default {
   &:focus-within:not(.nc-readonly-div-data-cell):not(.nc-system-field) {
     @apply !shadow-selected;
   }
+
+  &:has(.nc-virtual-cell-qrcode),
+  &:has(.nc-virtual-cell-barcode) {
+    @apply !border-none pl-0 !rounded-none;
+    :deep(.nc-virtual-cell-qrcode),
+    :deep(.nc-virtual-cell-barcode) {
+      @apply pl-0;
+      & > div {
+        @apply !pl-0;
+      }
+    }
+  }
 }
 .nc-data-cell:focus-within {
   @apply !border-1 !border-brand-500;

@@ -84,14 +84,18 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning } = us
     <img
       v-if="rowHeight"
       :style="{
-        height: rowHeight ? `${rowHeight === 1 ? rowHeightInPx['1'] - 4 : rowHeightInPx[`${rowHeight}`] - 20}px` : `1.8rem`,
+        height: isExpandedFormOpen
+          ? '120px'
+          : rowHeight
+          ? `${rowHeight === 1 ? rowHeightInPx['1'] - 4 : rowHeightInPx[`${rowHeight}`] - 20}px`
+          : `1.8rem`,
       }"
       :src="qrCode"
       :alt="$t('title.qrCode')"
       class="min-w-[1.4em]"
       @click="showQrModal"
     />
-    <img v-else class="mx-auto min-w-[1.4em]" :src="qrCode" :alt="$t('title.qrCode')" @click="showQrModal" />
+    <img v-else class="flex-none mx-auto min-w-[1.4em]" :src="qrCode" :alt="$t('title.qrCode')" @click="showQrModal" />
   </div>
   <div v-if="tooManyCharsForQrCode" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
     {{ $t('labels.qrCodeValueTooLong') }}

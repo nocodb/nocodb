@@ -1871,17 +1871,19 @@ onKeyStroke('ArrowDown', onDown)
                         </NcMenu>
                       </template>
                       <template v-else #overlay>
-                        <SmartsheetColumnEditOrAddProvider
-                          v-if="addColumnDropdown"
-                          :preload="preloadColumn"
-                          :column-position="columnOrder"
-                          :class="{ hidden: isJsonExpand }"
-                          @submit="closeAddColumnDropdown(true)"
-                          @cancel="closeAddColumnDropdown()"
-                          @click.stop
-                          @keydown.stop
-                          @mounted="preloadColumn = undefined"
-                        />
+                        <div class="overflow-auto max-h-[max(80vh,500px)] min-w-[384px]">
+                          <LazySmartsheetColumnEditOrAddProvider
+                            v-if="addColumnDropdown"
+                            :preload="preloadColumn"
+                            :column-position="columnOrder"
+                            :class="{ hidden: isJsonExpand }"
+                            @submit="closeAddColumnDropdown(true)"
+                            @cancel="closeAddColumnDropdown()"
+                            @click.stop
+                            @keydown.stop
+                            @mounted="preloadColumn = undefined"
+                          />
+                        </div>
                       </template>
                     </a-dropdown>
                   </div>

@@ -168,13 +168,15 @@ watch(cowriterFormView, async () => {
                   Add New Column
                 </div>
                 <template #overlay>
-                  <SmartsheetColumnEditOrAddProvider
-                    v-if="showColumnDropdown"
-                    @submit="submitCallback"
-                    @cancel="showColumnDropdown = false"
-                    @click.stop
-                    @keydown.stop
-                  />
+                  <div class="overflow-auto max-h-[max(80vh,500px)] min-w-[384px]">
+                    <LazySmartsheetColumnEditOrAddProvider
+                      v-if="showColumnDropdown"
+                      @submit="submitCallback"
+                      @cancel="showColumnDropdown = false"
+                      @click.stop
+                      @keydown.stop
+                    />
+                  </div>
                 </template>
               </a-dropdown>
             </a-menu-item>

@@ -33,7 +33,7 @@ onMounted(() => {
   // set default value
   vModel.value.fk_qr_value_column_id =
     (column?.value?.colOptions as Record<string, any>)?.fk_qr_value_column_id ||
-    (!isEdit ? columnsAllowedAsQrValue.value?.[0]?.id : null)
+    (!isEdit.value ? columnsAllowedAsQrValue.value?.[0]?.id : null)
 })
 
 setAdditionalValidations({

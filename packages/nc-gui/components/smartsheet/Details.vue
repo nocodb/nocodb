@@ -60,7 +60,7 @@ watch(openedSubTab, () => {
             <div>Fields</div>
           </div>
         </template>
-        <SmartsheetDetailsFields />
+        <LazySmartsheetDetailsFields />
       </a-tab-pane>
       <a-tab-pane key="relation">
         <template #tab>
@@ -69,7 +69,7 @@ watch(openedSubTab, () => {
             <div>{{ $t('title.relations') }}</div>
           </div>
         </template>
-        <SmartsheetDetailsErd />
+        <LazySmartsheetDetailsErd />
       </a-tab-pane>
 
       <a-tab-pane key="api">
@@ -79,7 +79,7 @@ watch(openedSubTab, () => {
             <div>{{ $t('labels.apiSnippet') }}</div>
           </div>
         </template>
-        <SmartsheetDetailsApi v-if="base && meta && view" />
+        <LazySmartsheetDetailsApi v-if="base && meta && view" />
         <div v-else class="h-full w-full flex flex-col justify-center items-center mt-28 mb-4">
           <a-spin size="large" :indicator="indicator" />
         </div>
@@ -92,7 +92,7 @@ watch(openedSubTab, () => {
             <div>{{ $t('objects.webhooks') }}</div>
           </div>
         </template>
-        <SmartsheetDetailsWebhooks />
+        <LazySmartsheetDetailsWebhooks />
       </a-tab-pane>
     </NcTabs>
   </div>

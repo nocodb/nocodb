@@ -82,11 +82,11 @@ const showHoverEffectOnSelectedType = ref(true)
 
 const isVisibleDefaultValueInput = computed({
   get: () => {
-    if (formState.value.cdf && !showDefaultValueInput.value) {
+    if (isValidValue(formState.value.cdf) && !showDefaultValueInput.value) {
       showDefaultValueInput.value = true
     }
 
-    return formState.value.cdf !== null || showDefaultValueInput.value
+    return isValidValue(formState.value.cdf) || showDefaultValueInput.value
   },
   set: (value: boolean) => {
     showDefaultValueInput.value = value

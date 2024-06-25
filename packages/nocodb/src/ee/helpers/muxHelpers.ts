@@ -14,15 +14,29 @@ export async function runExternal(
   const { dbMux, sourceId, ...rest } = config;
 
   try {
-    const { data } = await axios.post(`${dbMux}/query/${sourceId}`, {
-      query,
-      config: rest,
-      ...extraOptions,
-    });
+    const { data } = await axios.post(
+      `${dbMux}/query/${sourceId}`,
+      {
+        query,
+        config: rest,
+        ...extraOptions,
+      },
+      {
+        timeout: 45 * 1000,
+      },
+    );
     return data;
   } catch (e) {
     if (e.response?.data?.error) {
       throw new ExternalError(e.response.data.error);
+    }
+
+    if (e?.message.includes('timeout')) {
+      throw new ExternalError(
+        new Error(
+          'External source taking long to respond. Reconsider sorts/filters for this view and confirm if source is accessible.',
+        ),
+      );
     }
 
     logger.error({
@@ -33,7 +47,7 @@ export async function runExternal(
 
     throw new ExternalError(
       new Error(
-        'Error running external query, please confirm the source is working correctly.',
+        'Error running query on external source. Confirm if source is accessible.',
       ),
     );
   }

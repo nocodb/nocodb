@@ -84,10 +84,6 @@ const size = computed({
 const renderAltOrOptlKey = () => {
   return isMac() ? '⌥' : 'ALT'
 }
-
-onMounted(() => {
-  loadViewAggregate()
-})
 </script>
 
 <template>
@@ -95,7 +91,7 @@ onMounted(() => {
     <div class="sticky flex items-center bg-gray-50 left-0">
       <NcDropdown
         :disabled="[UITypes.SpecificDBType, UITypes.ForeignKey].includes(displayFieldComputed.column?.uidt!) || isLocked"
-        overlay-class-name="max-h-96 relative scroll-container nc-scrollbar-thin overflow-auto"
+        overlay-class-name="max-h-96 relative scroll-container nc-scrollbar-md overflow-auto"
       >
         <div
           v-if="displayFieldComputed.field && displayFieldComputed.column?.id"
@@ -194,7 +190,7 @@ onMounted(() => {
       <NcDropdown
         v-if="field && column?.id"
         :disabled="[UITypes.SpecificDBType, UITypes.ForeignKey].includes(column?.uidt!) || isLocked"
-        overlay-class-name="max-h-96 relative scroll-container nc-scrollbar-thin overflow-auto"
+        overlay-class-name="max-h-96 relative scroll-container nc-scrollbar-md overflow-auto"
       >
         <div
           class="flex items-center overflow-x-hidden justify-end group hover:bg-gray-100 cursor-pointer text-gray-500 transition-all transition-linear px-3 py-2"

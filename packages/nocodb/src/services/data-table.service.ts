@@ -98,7 +98,7 @@ export class DataTableService {
       listArgs.aggregation = JSON.parse(listArgs.aggregation);
     } catch (e) {}
 
-    const data = await baseModel.aggregate(listArgs);
+    const data = await baseModel.aggregate(listArgs, view);
 
     return data;
   }

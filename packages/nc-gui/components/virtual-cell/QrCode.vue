@@ -75,7 +75,7 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning } = us
   </a-modal>
   <div
     v-if="showQrCode"
-    class="w-full flex"
+    class="nc-qrcode-container w-full flex"
     :class="{
       'flex-start pl-2': isExpandedFormOpen,
       'justify-center': !isExpandedFormOpen,
@@ -91,7 +91,7 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning } = us
       class="min-w-[1.4em]"
       @click="showQrModal"
     />
-    <img v-else class="mx-auto min-w-[1.4em]" :src="qrCode" :alt="$t('title.qrCode')" @click="showQrModal" />
+    <img v-else class="flex-none mx-auto min-w-[1.4em]" :src="qrCode" :alt="$t('title.qrCode')" @click="showQrModal" />
   </div>
   <div v-if="tooManyCharsForQrCode" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
     {{ $t('labels.qrCodeValueTooLong') }}

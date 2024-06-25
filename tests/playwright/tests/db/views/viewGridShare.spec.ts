@@ -1,7 +1,7 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import setup from '../../../setup';
-import { isMysql, isPg, isSqlite } from '../../../setup/db';
+import { enableQuickRun, isMysql, isPg, isSqlite } from '../../../setup/db';
 
 test.describe('Shared view', () => {
   let dashboard: DashboardPage;
@@ -133,6 +133,8 @@ test.describe('Shared view', () => {
      * - copy link
      **/
 
+    if (enableQuickRun()) test.skip();
+
     // close 'Team & Auth' tab
     await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'Address' });
@@ -146,7 +148,7 @@ test.describe('Shared view', () => {
 
     // sort
     await dashboard.grid.toolbar.sort.add({
-      title: 'District',
+      title: 'PostalCode',
       ascending: false,
       locallySaved: false,
     });
@@ -353,12 +355,12 @@ const expectedRecords = [
 //   { index: 2, columnHeader: 'PostalCode', value: '61391' },
 // ];
 const sqliteExpectedRecords = [
-  { index: 0, columnHeader: 'Address', value: '217 Botshabelo Place' },
-  { index: 1, columnHeader: 'Address', value: '17 Kabul Boulevard' },
-  { index: 2, columnHeader: 'Address', value: '1888 Kabul Drive' },
-  { index: 0, columnHeader: 'PostalCode', value: '49521' },
-  { index: 1, columnHeader: 'PostalCode', value: '38594' },
-  { index: 2, columnHeader: 'PostalCode', value: '20936' },
+  { index: 0, columnHeader: 'Address', value: '1013 Tabuk Boulevard' },
+  { index: 1, columnHeader: 'Address', value: '669 Firozabad Loop' },
+  { index: 2, columnHeader: 'Address', value: '381 Kabul Way' },
+  { index: 0, columnHeader: 'PostalCode', value: '96203' },
+  { index: 1, columnHeader: 'PostalCode', value: '92265' },
+  { index: 2, columnHeader: 'PostalCode', value: '87272' },
 ];
 const expectedRecords2 = [
   { index: 0, columnHeader: 'Address', value: '1661 Abha Drive' },
@@ -394,6 +396,6 @@ const expectedVirtualRecords = [
 const sqliteExpectedVirtualRecords = [
   { index: 0, columnHeader: 'Customers', count: 1, type: 'hm' },
   { index: 1, columnHeader: 'Customers', count: 1, type: 'hm' },
-  { index: 0, columnHeader: 'City', count: 1, type: 'bt', value: ['Davao'] },
-  { index: 1, columnHeader: 'City', count: 1, type: 'bt', value: ['Nagareyama'] },
+  { index: 0, columnHeader: 'City', count: 1, type: 'bt', value: ['Kanchrapara'] },
+  { index: 1, columnHeader: 'City', count: 1, type: 'bt', value: ['al-Ayn'] },
 ];

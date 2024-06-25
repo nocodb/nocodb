@@ -780,6 +780,7 @@ async function openAudit(source: SourceType) {
                               :mouse-leave-delay="0.3"
                               placement="topLeft"
                               trigger="hover"
+                              class="flex items-center"
                             >
                               <template #title>
                                 <component :is="getSourceTooltip(source)" />
@@ -909,7 +910,7 @@ async function openAudit(source: SourceType) {
 
         <template v-else-if="contextMenuTarget.type === 'table'">
           <NcTooltip>
-            <template #title> {{ $t('labels.clickToCopyTableID') }} </template>
+            <template #title> {{ $t('labels.clickToCopyTableID') }}</template>
             <div
               class="flex items-center justify-between p-2 mx-1.5 rounded-md cursor-pointer hover:bg-gray-100 group"
               @click.stop="onTableIdCopy"

@@ -84,11 +84,7 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning } = us
     <img
       v-if="rowHeight"
       :style="{
-        height: isExpandedFormOpen
-          ? '120px'
-          : rowHeight
-          ? `${rowHeight === 1 ? rowHeightInPx['1'] - 4 : rowHeightInPx[`${rowHeight}`] - 20}px`
-          : `1.8rem`,
+        height: rowHeight ? `${rowHeight === 1 ? rowHeightInPx['1'] - 4 : rowHeightInPx[`${rowHeight}`] - 20}px` : `1.8rem`,
       }"
       :src="qrCode"
       :alt="$t('title.qrCode')"

@@ -1069,6 +1069,11 @@ export default {
         @apply !pl-0;
       }
     }
+    :deep(.nc-virtual-cell-qrcode) {
+      img {
+        @apply !h-[120px] border-1 border-solid rounded;
+      }
+    }
   }
 }
 .nc-data-cell:focus-within {

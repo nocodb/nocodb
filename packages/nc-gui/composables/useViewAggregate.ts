@@ -38,7 +38,7 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
           field: gridField,
           column: f.field,
           index: f.index,
-          width: `${Number(gridField.width.replace('px', ''))}px` || '180px',
+          width: `${Number((gridField.width ?? '').replace('px', ''))}px` || '180px',
         }
       })
     })
@@ -115,6 +115,8 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
       if (_fields?.field) {
         const fieldAggregateMapping = _fields.field.reduce((acc, field) => {
           const f = fields.value.find((f) => f.title === field)
+
+          if (!f?.id) return acc
 
           acc[f.id] = gridViewCols.value[f.id].aggregation ?? CommonAggregations.None
 

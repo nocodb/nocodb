@@ -5982,9 +5982,13 @@ class BaseModelSqlv2 {
               if (!btAlias) {
                 idToAliasPromiseMap[k] = Column.get(this.context, {
                   colId: k,
-                }).then((col) => {
-                  return col.title;
-                });
+                })
+                  .then((col) => {
+                    return col.title;
+                  })
+                  .catch((e) => {
+                    return Promise.resolve(e);
+                  });
               }
             }
           } else {
@@ -5993,9 +5997,13 @@ class BaseModelSqlv2 {
             if (!btAlias) {
               idToAliasPromiseMap[col.id] = Column.get(this.context, {
                 colId: col.id,
-              }).then((col) => {
-                return col.title;
-              });
+              })
+                .then((col) => {
+                  return col.title;
+                })
+                .catch((e) => {
+                  return Promise.resolve(e);
+                });
             }
           }
         }
@@ -6006,6 +6014,9 @@ class BaseModelSqlv2 {
 
     for (const k of Object.keys(idToAliasPromiseMap)) {
       idToAliasMap[k] = await idToAliasPromiseMap[k];
+      if ((idToAliasMap[k] as unknown) instanceof Error) {
+        throw idToAliasMap[k];
+      }
     }
 
     data.forEach((item) => {

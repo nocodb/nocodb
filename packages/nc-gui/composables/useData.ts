@@ -284,7 +284,7 @@ export function useData(args: {
                 col.uidt === UITypes.LastModifiedBy ||
                 col.uidt === UITypes.Lookup ||
                 col.au ||
-                (col.cdf && / on update /i.test(col.cdf)))
+                (isValidValue(col?.cdf) && / on update /i.test(col.cdf)))
             )
               acc[col.title!] = updatedRowData[col.title!]
             return acc

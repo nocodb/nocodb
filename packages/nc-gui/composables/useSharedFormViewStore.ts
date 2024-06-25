@@ -116,7 +116,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
             !isAttachment(c) &&
             c.uidt !== UITypes.SpecificDBType &&
             c?.title &&
-            c?.cdf &&
+            isValidValue(c?.cdf) &&
             !/^\w+\(\)|CURRENT_TIMESTAMP$/.test(c.cdf)
           ) {
             const defaultValue = typeof c.cdf === 'string' ? c.cdf.replace(/^'|'$/g, '') : c.cdf

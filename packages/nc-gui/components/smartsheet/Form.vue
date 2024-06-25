@@ -236,7 +236,7 @@ function isDbRequired(column: Record<string, any>) {
       // column required / not null
       column.rqd &&
       // column default value
-      !column.cdf &&
+      !isValidValue(column?.cdf) &&
       // confirm it's not foreign key
       !columns.value.some(
         (c: Record<string, any>) =>

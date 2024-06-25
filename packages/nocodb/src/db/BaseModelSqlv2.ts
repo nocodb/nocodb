@@ -5973,14 +5973,22 @@ class BaseModelSqlv2 {
         );
         if (btData) {
           if (typeof btData[col.id] === 'object') {
-            for (const k of Object.keys(btData[col.id])) {
+            for (const k of Object.keys(
+              Array.isArray(btData[col.id])
+                ? btData[col.id][0] || {}
+                : btData[col.id],
+            )) {
               const btAlias = idToAliasMap[k];
               if (!btAlias) {
                 idToAliasPromiseMap[k] = Column.get(this.context, {
                   colId: k,
-                }).then((col) => {
-                  return col.title;
-                });
+                })
+                  .then((col) => {
+                    return col.title;
+                  })
+                  .catch((e) => {
+                    return Promise.resolve(e);
+                  });
               }
             }
           } else {
@@ -5989,9 +5997,13 @@ class BaseModelSqlv2 {
             if (!btAlias) {
               idToAliasPromiseMap[col.id] = Column.get(this.context, {
                 colId: col.id,
-              }).then((col) => {
-                return col.title;
-              });
+              })
+                .then((col) => {
+                  return col.title;
+                })
+                .catch((e) => {
+                  return Promise.resolve(e);
+                });
             }
           }
         }
@@ -6002,6 +6014,9 @@ class BaseModelSqlv2 {
 
     for (const k of Object.keys(idToAliasPromiseMap)) {
       idToAliasMap[k] = await idToAliasPromiseMap[k];
+      if ((idToAliasMap[k] as unknown) instanceof Error) {
+        throw idToAliasMap[k];
+      }
     }
 
     data.forEach((item) => {
@@ -6010,13 +6025,29 @@ class BaseModelSqlv2 {
         if (alias) {
           if (btMap[key]) {
             if (value && typeof value === 'object') {
-              const tempObj = {};
-              Object.entries(value).forEach(([k, v]) => {
-                const btAlias = idToAliasMap[k];
-                if (btAlias) {
-                  tempObj[btAlias] = v;
-                }
-              });
+              let tempObj: Record<string, any> | Record<string, any>[];
+
+              // if array of values then handle by using map, it will be an array when it's HM Lookup to a BT
+              if (Array.isArray(value)) {
+                tempObj = value.map((arrVal) => {
+                  const obj = {};
+                  Object.entries(arrVal).forEach(([k, val]) => {
+                    const btAlias = idToAliasMap[k];
+                    if (btAlias) {
+                      obj[btAlias] = val;
+                    }
+                  });
+                  return obj;
+                });
+              } else {
+                tempObj = {};
+                Object.entries(value).forEach(([k, v]) => {
+                  const btAlias = idToAliasMap[k];
+                  if (btAlias) {
+                    tempObj[btAlias] = v;
+                  }
+                });
+              }
               item[alias] = tempObj;
             } else {
               item[alias] = value;

@@ -138,7 +138,7 @@ export class PublicDatasService {
       listArgs.aggregation = JSON.parse(listArgs.aggregation);
     } catch (e) {}
 
-    return await baseModel.aggregate(listArgs);
+    return await baseModel.aggregate(listArgs, view);
   }
 
   // todo: Handle the error case where view doesnt belong to model

@@ -143,7 +143,7 @@ const pageSizeOptions = [
           </NcButton>
 
           <template #overlay>
-            <NcMenu class="nc-scrollbar-thin nc-pagination-menu max-h-54 overflow-y-auto">
+            <NcMenu class="nc-scrollbar-md nc-pagination-menu max-h-54">
               <NcSubMenu :key="`${localPageSize}page`" class="bg-gray-100 z-20 top-0 !sticky">
                 <template #title>
                   <div class="rounded-lg text-[13px] font-medium w-full">{{ localPageSize }} / page</div>

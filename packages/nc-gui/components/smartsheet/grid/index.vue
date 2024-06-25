@@ -31,6 +31,8 @@ const expandedFormRowState = ref<Record<string, any>>()
 
 const tableRef = ref<typeof Table>()
 
+useProvideViewAggregate(view, meta, xWhere)
+
 const {
   loadData,
   paginationData,
@@ -78,8 +80,6 @@ provide(IsGridInj, ref(true))
 provide(IsCalendarInj, ref(false))
 
 provide(RowHeightInj, rowHeight)
-
-useProvideViewAggregate(view, meta, xWhere)
 
 const isPublic = inject(IsPublicInj, ref(false))
 

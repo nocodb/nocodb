@@ -288,37 +288,37 @@ onMounted(async () => {
         ]
         const lookupColumns = (meta.value.columns || [])?.filter((c) => c.uidt === UITypes.Lookup)
 
-        await Promise.allSettled(
-          lookupColumns.map(async (column) => {
-            const relationColumn = meta.value?.id
-              ? metas.value[meta.value?.id]?.columns?.find(
+        const attLookupColumnIds: Set<string> = new Set()
+
+        const loadLookupMeta = async (originalCol: ColumnType, column: ColumnType, metaId?: string): Promise<void> => {
+          const relationColumn =
+            metaId || meta.value?.id
+              ? metas.value[metaId || meta.value?.id]?.columns?.find(
                   (c: ColumnType) => c.id === (column?.colOptions as LookupType)?.fk_relation_column_id,
                 )
               : undefined
 
-            if (relationColumn && relationColumn.colOptions) {
-              await getMeta(relationColumn.colOptions.fk_related_model_id!)
+          if (relationColumn?.colOptions?.fk_related_model_id) {
+            await getMeta(relationColumn.colOptions.fk_related_model_id!)
+
+            const lookupColumn = metas.value[relationColumn.colOptions.fk_related_model_id]?.columns?.find(
+              (c: any) => c.id === (column?.colOptions as LookupType)?.fk_lookup_column_id,
+            ) as ColumnType | undefined
+
+            if (lookupColumn && lookupColumn?.uidt === UITypes.Lookup) {
+              return loadLookupMeta(originalCol, lookupColumn, relationColumn.colOptions.fk_related_model_id)
             }
-          }),
-        )
+
+            if (lookupColumn && isAttachment(lookupColumn)) {
+              attLookupColumnIds.add(originalCol.id)
+            }
+          }
+        }
+
+        await Promise.allSettled(lookupColumns.map((col) => loadLookupMeta(col, col)))
 
         const lookupAttColumns = lookupColumns
-          .filter((column) => {
-            const relationColumn = meta.value?.id
-              ? metas.value[meta.value?.id]?.columns?.find(
-                  (c: ColumnType) => c.id === (column?.colOptions as LookupType)?.fk_relation_column_id,
-                )
-              : undefined
-
-            if (relationColumn?.colOptions?.fk_related_model_id) {
-              const lookupColumn = metas.value[relationColumn.colOptions.fk_related_model_id]?.columns?.find(
-                (c: any) => c.id === (column?.colOptions as LookupType)?.fk_lookup_column_id,
-              ) as ColumnType | undefined
-
-              return lookupColumn && isAttachment(lookupColumn)
-            }
-            return false
-          })
+          .filter((column) => attLookupColumnIds.has(column?.id))
           .map((c) => {
             return {
               value: c.id,

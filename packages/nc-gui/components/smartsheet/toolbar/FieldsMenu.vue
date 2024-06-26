@@ -158,12 +158,10 @@ const updateCoverImage = async (val?: string | null) => {
 const coverImageColumnId = computed({
   get: () => {
     const fk_cover_image_col_id =
-      (activeView.value?.type === ViewTypes.GALLERY ||
-        activeView.value?.type === ViewTypes.KANBAN ||
-        activeView.value?.type === ViewTypes.CALENDAR) &&
-      activeView.value?.view
-        ? (activeView.value?.view as GalleryType).fk_cover_image_col_id
+      (activeView.value?.type === ViewTypes.GALLERY || activeView.value?.type === ViewTypes.KANBAN) && activeView.value?.view
+        ? (activeView.value?.view as GalleryType | KanbanType).fk_cover_image_col_id
         : undefined
+
     // check if `fk_cover_image_col_id` is in `coverOptions`
     // e.g. in share view, users may not share the cover image column
     if (coverOptions.value?.find((o) => o.value === fk_cover_image_col_id)) return fk_cover_image_col_id

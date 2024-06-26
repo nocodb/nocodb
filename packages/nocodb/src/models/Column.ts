@@ -17,7 +17,7 @@ import Sort from '~/models/Sort';
 import Filter from '~/models/Filter';
 import QrCodeColumn from '~/models/QrCodeColumn';
 import BarcodeColumn from '~/models/BarcodeColumn';
-import { LinksColumn } from '~/models';
+import { GalleryView, KanbanView, LinksColumn } from '~/models';
 import { extractProps } from '~/helpers/extractProps';
 import { NcError } from '~/helpers/catchError';
 import addFormulaErrorIfMissingColumn from '~/helpers/addFormulaErrorIfMissingColumn';
@@ -871,6 +871,52 @@ export default class Column<T = any> implements ColumnType {
         if (filter.fk_parent_id) continue;
         await Filter.delete(context, filter.id, ncMeta);
       }
+    }
+    // Set Gallery & Kanban view `fk_cover_image_col_id` value to null
+    {
+      const promises = [];
+
+      // Gallery views
+      const galleryViews: GalleryView[] = await ncMeta.metaList2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.GALLERY_VIEW,
+        {
+          condition: {
+            fk_cover_image_col_id: id,
+          },
+        },
+      );
+
+      for (const galleryView of galleryViews) {
+        promises.push(
+          GalleryView.update(context, galleryView.fk_view_id, {
+            fk_cover_image_col_id: null,
+          }),
+        );
+      }
+
+      // Kanban views
+      const kanbanViews: KanbanView[] = await ncMeta.metaList2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.GALLERY_VIEW,
+        {
+          condition: {
+            fk_cover_image_col_id: id,
+          },
+        },
+      );
+
+      for (const kanbanView of kanbanViews) {
+        promises.push(
+          KanbanView.update(context, kanbanView.fk_view_id, {
+            fk_cover_image_col_id: null,
+          }),
+        );
+      }
+
+      await Promise.all(promises);
     }
 
     // Delete from view columns

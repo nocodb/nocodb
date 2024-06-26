@@ -12,6 +12,7 @@ import {
   substituteColumnIdWithAliasInFormula,
   UITypes,
   validateFormulaAndExtractTreeWithType,
+  ViewTypes,
 } from 'nocodb-sdk';
 import { pluralize, singularize } from 'inflection';
 import hash from 'object-hash';
@@ -22,7 +23,7 @@ import type {
   UserType,
 } from 'nocodb-sdk';
 import type SqlMgrv2 from '~/db/sql-mgr/v2/SqlMgrv2';
-import type { Base, LinkToAnotherRecordColumn } from '~/models';
+import type { Base, GalleryView, LinkToAnotherRecordColumn } from '~/models';
 import type CustomKnex from '~/db/CustomKnex';
 import type SqlClient from '~/db/sql-client/lib/SqlClient';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
@@ -2374,6 +2375,18 @@ export class ColumnsService {
               (c as any).cn = c.column_name;
             }
             return c;
+          }),
+          views: table.views.map((view) => {
+            if (
+              [ViewTypes.GALLERY, ViewTypes.KANBAN].includes(view.type) &&
+              (view.view as KanbanView | GalleryView)?.fk_cover_image_col_id ===
+                param.columnId
+            ) {
+              (view.view as KanbanView | GalleryView).fk_cover_image_col_id =
+                null;
+            }
+
+            return view;
           }),
         };
 

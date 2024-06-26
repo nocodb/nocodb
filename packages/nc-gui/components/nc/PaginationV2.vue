@@ -162,7 +162,13 @@ const pageSizeOptions = [
                 </NcMenuItem>
               </NcSubMenu>
 
-              <UseVirtualList :key="localPageSize" :list="pagesList" height="200px" :options="{ itemHeight: 36 }" class="mt-1">
+              <UseVirtualList
+                :key="localPageSize"
+                :list="pagesList"
+                height="auto"
+                :options="{ itemHeight: 36 }"
+                class="mt-1 max-h-46"
+              >
                 <template #default="{ data: item }">
                   <NcMenuItem
                     :key="`${localPageSize}${item.value}`"

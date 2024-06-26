@@ -12,7 +12,6 @@ import {
   substituteColumnIdWithAliasInFormula,
   UITypes,
   validateFormulaAndExtractTreeWithType,
-  ViewTypes,
 } from 'nocodb-sdk';
 import { pluralize, singularize } from 'inflection';
 import hash from 'object-hash';
@@ -33,7 +32,6 @@ import {
   CalendarRange,
   Column,
   FormulaColumn,
-  GalleryView,
   KanbanView,
   Model,
   Source,
@@ -1460,23 +1458,6 @@ export class ColumnsService {
         ),
       };
 
-      if (column.uidt === UITypes.Attachment && column.uidt !== colBody.uidt) {
-        tableUpdateBody.views = [
-          ...(tableUpdateBody.views || []).map((view) => {
-            if (
-              [ViewTypes.GALLERY, ViewTypes.KANBAN].includes(view.type) &&
-              (view.view as KanbanView | GalleryView)?.fk_cover_image_col_id ===
-                param.columnId
-            ) {
-              (view.view as KanbanView | GalleryView).fk_cover_image_col_id =
-                null;
-            }
-
-            return view;
-          }),
-        ];
-      }
-
       const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
         ProjectMgrv2.getSqlMgr(context, { id: source.base_id }),
       );
@@ -2129,6 +2110,7 @@ export class ColumnsService {
      * providing a more controlled and predictable behavior in the switch statement.
      */
     switch (column.uidt) {
+      case UITypes.Lookup:
       case UITypes.Rollup:
       case UITypes.QrCode:
       case UITypes.Barcode:
@@ -2371,8 +2353,6 @@ export class ColumnsService {
         }
         /* falls through to default */
       }
-      /* Lookup columns is also used for cover image so we have to update views */
-      case UITypes.Lookup:
       default: {
         const tableUpdateBody = {
           ...table,
@@ -2394,18 +2374,6 @@ export class ColumnsService {
               (c as any).cn = c.column_name;
             }
             return c;
-          }),
-          views: table.views.map((view) => {
-            if (
-              [ViewTypes.GALLERY, ViewTypes.KANBAN].includes(view.type) &&
-              (view.view as KanbanView | GalleryView)?.fk_cover_image_col_id ===
-                param.columnId
-            ) {
-              (view.view as KanbanView | GalleryView).fk_cover_image_col_id =
-                null;
-            }
-
-            return view;
           }),
         };
 

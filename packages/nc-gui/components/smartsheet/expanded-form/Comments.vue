@@ -57,6 +57,8 @@ const isEditing = ref<boolean>(false)
 
 const isCommentMode = ref(false)
 
+const hoveredCommentId = ref<null | string>(null)
+
 async function onEditComment() {
   if (!isEditing.value || !editCommentValue.value?.comment) return
 
@@ -196,6 +198,10 @@ watch(commentsWrapperEl, () => {
           },
         })
         scrollToComment(commentId as string)
+
+        hoveredCommentId.value = commentId as string
+
+        onClickOutside(document.querySelector(`.${hoveredCommentId.value}`)! as HTMLDivElement, handleResetHoverEffect)
       } else {
         scrollComments()
       }
@@ -233,6 +239,12 @@ const editedAt = (comment: CommentType) => {
   }
   return ''
 }
+
+function handleResetHoverEffect() {
+  if (!hoveredCommentId.value) return
+
+  hoveredCommentId.value = null
+}
 </script>
 
 <template>
@@ -267,12 +279,19 @@ const editedAt = (comment: CommentType) => {
               https://stackoverflow.com/questions/36130760/use-justify-content-flex-end-and-to-have-vertical-scrollbar
               -->
               <div class="scroll-fix"></div>
-              <div v-for="comment of comments" :key="comment.id" :class="`${comment.id}`" class="nc-comment-item">
+              <div
+                v-for="comment of comments"
+                :key="comment.id"
+                :class="`${comment.id}`"
+                class="nc-comment-item"
+                @mouseover="handleResetHoverEffect"
+              >
                 <div
                   :class="{
-                  'hover:bg-gray-100': editCommentValue?.id !== comment!.id
+                  'hover:bg-gray-100': editCommentValue?.id !== comment!.id,
+                  'nc-hovered-comment bg-gray-100': hoveredCommentId === comment!.id
                 }"
-                  class="group gap-3 overflow-hidden px-3 py-2"
+                  class="group gap-3 overflow-hidden px-3 py-2 transition-colors"
                 >
                   <div class="flex items-start justify-between">
                     <div class="flex items-start gap-3">
@@ -322,7 +341,7 @@ const editedAt = (comment: CommentType) => {
                     <div class="flex items-center">
                       <NcDropdown
                         v-if="!editCommentValue"
-                        class="!hidden !group-hover:block"
+                        class="nc-comment-more-actions !hidden !group-hover:block"
                         overlay-class-name="!min-w-[160px]"
                         placement="bottomRight"
                       >
@@ -375,7 +394,7 @@ const editedAt = (comment: CommentType) => {
                       <div v-if="appInfo.ee">
                         <NcTooltip v-if="!comment.resolved_by">
                           <NcButton
-                            class="!w-7 !h-7 !bg-transparent !hover:bg-gray-200 !hidden !group-hover:block"
+                            class="nc-resolve-comment-btn !w-7 !h-7 !bg-transparent !hover:bg-gray-200 !hidden !group-hover:block"
                             size="xsmall"
                             type="text"
                             @click="resolveComment(comment.id!)"
@@ -594,5 +613,12 @@ const editedAt = (comment: CommentType) => {
 
 :deep(.expanded-form-comment-edit-input .nc-comment-rich-editor) {
   @apply bg-white;
+}
+
+.nc-hovered-comment {
+  .nc-expand-form-more-actions,
+  .nc-resolve-comment-btn {
+    @apply !block;
+  }
 }
 </style>

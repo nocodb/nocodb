@@ -176,6 +176,17 @@ export function replaceDynamicFieldWithValue(
   return replaceWithValue;
 }
 
+function transformObject(value, idToAliasMap) {
+  const result = {};
+  Object.entries(value).forEach(([k, v]) => {
+    const btAlias = idToAliasMap[k];
+    if (btAlias) {
+      result[btAlias] = v;
+    }
+  });
+  return result;
+}
+
 /**
  * Base class for models
  *
@@ -6025,18 +6036,9 @@ class BaseModelSqlv2 {
         if (alias) {
           if (btMap[key]) {
             if (value && typeof value === 'object') {
-              function transformObject(value, idToAliasMap) {
-                let result = {};
-                Object.entries(value).forEach(([k, v]) => {
-                  const btAlias = idToAliasMap[k];
-                  if (btAlias) {
-                    result[btAlias] = v;
-                  }
-                });
-                return result;
-              }
-
-              let tempObj = Array.isArray(value) ? value.map(arrVal => transformObject(arrVal, idToAliasMap)) : transformObject(value, idToAliasMap);
+              const tempObj = Array.isArray(value)
+                ? value.map((arrVal) => transformObject(arrVal, idToAliasMap))
+                : transformObject(value, idToAliasMap);
               item[alias] = tempObj;
               item[alias] = tempObj;
             } else {

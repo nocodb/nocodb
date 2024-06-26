@@ -1754,9 +1754,14 @@ export default class Column<T = any> implements ColumnType {
 
     for (const galleryView of galleryViews) {
       promises.push(
-        GalleryView.update(context, galleryView.fk_view_id, {
-          fk_cover_image_col_id: null,
-        }),
+        GalleryView.update(
+          context,
+          galleryView.fk_view_id,
+          {
+            fk_cover_image_col_id: null,
+          },
+          ncMeta,
+        ),
       );
     }
 
@@ -1774,9 +1779,14 @@ export default class Column<T = any> implements ColumnType {
 
     for (const kanbanView of kanbanViews) {
       promises.push(
-        KanbanView.update(context, kanbanView.fk_view_id, {
-          fk_cover_image_col_id: null,
-        }),
+        KanbanView.update(
+          context,
+          kanbanView.fk_view_id,
+          {
+            fk_cover_image_col_id: null,
+          },
+          ncMeta,
+        ),
       );
     }
 

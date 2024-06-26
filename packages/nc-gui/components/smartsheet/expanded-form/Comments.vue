@@ -559,7 +559,7 @@ const editedAt = (comment: CommentType) => {
                     </div>
                   </div>
                 </div>
-                <div v-dompurify-html="audit.details" class="!text-[13px] text-gray-500 !leading-5 pl-4"></div>
+                <div v-dompurify-html="audit.details" class="!text-[13px] text-gray-500 !leading-5 !pl-9"></div>
               </div>
             </div>
           </div>

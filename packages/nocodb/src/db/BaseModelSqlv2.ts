@@ -176,6 +176,17 @@ export function replaceDynamicFieldWithValue(
   return replaceWithValue;
 }
 
+function transformObject(value, idToAliasMap) {
+  const result = {};
+  Object.entries(value).forEach(([k, v]) => {
+    const btAlias = idToAliasMap[k];
+    if (btAlias) {
+      result[btAlias] = v;
+    }
+  });
+  return result;
+}
+
 /**
  * Base class for models
  *
@@ -5952,7 +5963,7 @@ class BaseModelSqlv2 {
 
     const idToAliasMap: Record<string, string> = {};
     const idToAliasPromiseMap: Record<string, Promise<string>> = {};
-    const btMap: Record<string, boolean> = {};
+    const ltarMap: Record<string, boolean> = {};
 
     modelColumns.forEach((col) => {
       if (aliasColumns && col.id in aliasColumns) {
@@ -5962,24 +5973,20 @@ class BaseModelSqlv2 {
       }
 
       idToAliasMap[col.id] = col.title;
-      if (
-        [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(
-          col.colOptions?.type,
-        )
-      ) {
-        btMap[col.id] = true;
-        const btData = Object.values(data).find(
+      if (col.uidt === UITypes.LinkToAnotherRecord) {
+        ltarMap[col.id] = true;
+        const linkData = Object.values(data).find(
           (d) => d[col.id] && Object.keys(d[col.id]),
         );
-        if (btData) {
-          if (typeof btData[col.id] === 'object') {
+        if (linkData) {
+          if (typeof linkData[col.id] === 'object') {
             for (const k of Object.keys(
-              Array.isArray(btData[col.id])
-                ? btData[col.id][0] || {}
-                : btData[col.id],
+              Array.isArray(linkData[col.id])
+                ? linkData[col.id][0] || {}
+                : linkData[col.id],
             )) {
-              const btAlias = idToAliasMap[k];
-              if (!btAlias) {
+              const linkAlias = idToAliasMap[k];
+              if (!linkAlias) {
                 idToAliasPromiseMap[k] = Column.get(this.context, {
                   colId: k,
                 })
@@ -5993,8 +6000,8 @@ class BaseModelSqlv2 {
             }
           } else {
             // Has Many BT
-            const btAlias = idToAliasMap[col.id];
-            if (!btAlias) {
+            const linkAlias = idToAliasMap[col.id];
+            if (!linkAlias) {
               idToAliasPromiseMap[col.id] = Column.get(this.context, {
                 colId: col.id,
               })
@@ -6008,7 +6015,7 @@ class BaseModelSqlv2 {
           }
         }
       } else {
-        btMap[col.id] = false;
+        ltarMap[col.id] = false;
       }
     });
 
@@ -6023,20 +6030,11 @@ class BaseModelSqlv2 {
       Object.entries(item).forEach(([key, value]) => {
         const alias = idToAliasMap[key];
         if (alias) {
-          if (btMap[key]) {
+          if (ltarMap[key]) {
             if (value && typeof value === 'object') {
-              function transformObject(value, idToAliasMap) {
-                let result = {};
-                Object.entries(value).forEach(([k, v]) => {
-                  const btAlias = idToAliasMap[k];
-                  if (btAlias) {
-                    result[btAlias] = v;
-                  }
-                });
-                return result;
-              }
-
-              let tempObj = Array.isArray(value) ? value.map(arrVal => transformObject(arrVal, idToAliasMap)) : transformObject(value, idToAliasMap);
+              const tempObj = Array.isArray(value)
+                ? value.map((arrVal) => transformObject(arrVal, idToAliasMap))
+                : transformObject(value, idToAliasMap);
               item[alias] = tempObj;
               item[alias] = tempObj;
             } else {

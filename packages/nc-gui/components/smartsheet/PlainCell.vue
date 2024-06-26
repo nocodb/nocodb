@@ -319,7 +319,7 @@ const parseValue = (value: any, col: ColumnType): string => {
   if (isRollup(col)) {
     return getRollupValue(value, col)
   }
-  if (isLookup(col)) {
+  if (isLookup(col) || isLTAR(col.uidt, col.colOptions)) {
     return getLookupValue(value, col)
   }
   if (isCreatedOrLastModifiedTimeCol(col)) {

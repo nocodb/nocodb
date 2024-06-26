@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { LinkToAnotherRecordType } from 'nocodb-sdk'
-import { RelationTypes, isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk'
+import { RelationTypes, ViewTypes, isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk'
 
 const props = defineProps<{
   visible: boolean
@@ -23,6 +23,8 @@ const { includeM2M } = useGlobal()
 
 const { loadTables } = useBase()
 
+const { viewsByTable } = storeToRefs(useViewsStore())
+
 const isLoading = ref(false)
 
 const onDelete = async () => {
@@ -31,6 +33,15 @@ const onDelete = async () => {
   isLoading.value = true
 
   try {
+    let isColumnUsedAsCoverImage = false
+
+    for (const view of viewsByTable.value.get(meta.value.id) || []) {
+      if ([ViewTypes.GALLERY, ViewTypes.KANBAN].includes(view.type) && view.view?.fk_cover_image_col_id === column?.value?.id) {
+        isColumnUsedAsCoverImage = true
+        break
+      }
+    }
+
     await $api.dbTableColumn.delete(column?.value?.id as string)
 
     await getMeta(meta?.value?.id as string, true)
@@ -43,6 +54,24 @@ const onDelete = async () => {
       if (includeM2M.value && (column.value?.colOptions as LinkToAnotherRecordType).type === RelationTypes.MANY_TO_MANY) {
         loadTables()
       }
+    }
+
+    // Update views if column is used as cover image
+    if (isColumnUsedAsCoverImage) {
+      viewsByTable.value.set(
+        meta.value.id,
+        (viewsByTable.value.get(meta.value.id) || [])
+          .map((view) => {
+            if (
+              [ViewTypes.GALLERY, ViewTypes.KANBAN].includes(view.type) &&
+              view.view?.fk_cover_image_col_id === column?.value?.id
+            ) {
+              view.view.fk_cover_image_col_id = null
+            }
+            return view
+          })
+          .sort((a, b) => a.order! - b.order!),
+      )
     }
 
     $e('a:column:delete')

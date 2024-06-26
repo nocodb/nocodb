@@ -3,6 +3,7 @@ import { diff } from 'deep-object-diff'
 import { message } from 'ant-design-vue'
 import {
   UITypes,
+  ViewTypes,
   isLinksOrLTAR,
   isSystemColumn,
   isVirtualCol,
@@ -51,7 +52,7 @@ const { meta, view } = useSmartsheetStoreOrThrow()
 
 const isLocked = inject(IsLockedInj, ref(false))
 
-const { openedViewsTab } = storeToRefs(useViewsStore())
+const { openedViewsTab, viewsByTable } = storeToRefs(useViewsStore())
 
 const localMetaColumns = ref<ColumnType[] | undefined>([])
 
@@ -691,12 +692,16 @@ const saveChanges = async () => {
       }
     }
 
+    const deletedColumnIds: Set<string> = new Set()
+
     for (const op of ops.value) {
       if (op.op === 'add') {
         if (activeField.value && compareCols(activeField.value, op.column)) {
           changeField()
         }
       } else if (op.op === 'delete') {
+        deletedColumnIds.add(op.column.id as string)
+
         if (activeField.value && compareCols(activeField.value, op.column)) {
           changeField()
         }
@@ -736,9 +741,43 @@ const saveChanges = async () => {
       moveOps.value = []
     }
 
+    for (const op of ops.value) {
+      // remove column id from deletedColumnIds if operation was failed
+      if (op.op === 'delete') {
+        deletedColumnIds.delete(op.column.id as string)
+      }
+    }
+
+    let isDeletedColumnUsedAsCoverImage = false
+
+    for (const view of viewsByTable.value.get(meta.value.id) || []) {
+      if ([ViewTypes.GALLERY, ViewTypes.KANBAN].includes(view.type) && deletedColumnIds.has(view.view?.fk_cover_image_col_id)) {
+        isDeletedColumnUsedAsCoverImage = true
+        break
+      }
+    }
+
     await getMeta(meta.value.id, true)
 
     metaToLocal()
+
+    // Update views if column is used as cover image
+    if (isDeletedColumnUsedAsCoverImage) {
+      viewsByTable.value.set(
+        meta.value.id,
+        (viewsByTable.value.get(meta.value.id) || [])
+          .map((view) => {
+            if (
+              [ViewTypes.GALLERY, ViewTypes.KANBAN].includes(view.type) &&
+              deletedColumnIds.has(view.view?.fk_cover_image_col_id)
+            ) {
+              view.view.fk_cover_image_col_id = null
+            }
+            return view
+          })
+          .sort((a, b) => a.order! - b.order!),
+      )
+    }
 
     columnsHash.value = (await $api.dbTableColumn.hash(meta.value?.id)).hash
 

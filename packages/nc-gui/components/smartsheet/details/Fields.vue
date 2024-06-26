@@ -3,7 +3,6 @@ import { diff } from 'deep-object-diff'
 import { message } from 'ant-design-vue'
 import {
   UITypes,
-  ViewTypes,
   isLinksOrLTAR,
   isSystemColumn,
   isVirtualCol,
@@ -52,7 +51,9 @@ const { meta, view } = useSmartsheetStoreOrThrow()
 
 const isLocked = inject(IsLockedInj, ref(false))
 
-const { openedViewsTab, viewsByTable } = storeToRefs(useViewsStore())
+const viewsStore = useViewsStore()
+
+const { openedViewsTab } = storeToRefs(viewsStore)
 
 const localMetaColumns = ref<ColumnType[] | undefined>([])
 
@@ -692,7 +693,7 @@ const saveChanges = async () => {
       }
     }
 
-    const deletedColumnIds: Set<string> = new Set()
+    const deletedOrUpdatedColumnIds: Set<string> = new Set()
 
     for (const op of ops.value) {
       if (op.op === 'add') {
@@ -700,10 +701,16 @@ const saveChanges = async () => {
           changeField()
         }
       } else if (op.op === 'delete') {
-        deletedColumnIds.add(op.column.id as string)
+        deletedOrUpdatedColumnIds.add(op.column.id as string)
 
         if (activeField.value && compareCols(activeField.value, op.column)) {
           changeField()
+        }
+      } else if (op.op === 'update') {
+        const originalColumn = meta.value?.columns?.find((c) => c.id === op.column.id) as ColumnType
+
+        if (originalColumn?.uidt === UITypes.Attachment && originalColumn?.uidt !== op.column.uidt) {
+          deletedOrUpdatedColumnIds.add(op.column.id as string)
         }
       }
     }
@@ -743,17 +750,8 @@ const saveChanges = async () => {
 
     for (const op of ops.value) {
       // remove column id from deletedColumnIds if operation was failed
-      if (op.op === 'delete') {
-        deletedColumnIds.delete(op.column.id as string)
-      }
-    }
-
-    let isDeletedColumnUsedAsCoverImage = false
-
-    for (const view of viewsByTable.value.get(meta.value.id) || []) {
-      if ([ViewTypes.GALLERY, ViewTypes.KANBAN].includes(view.type) && deletedColumnIds.has(view.view?.fk_cover_image_col_id)) {
-        isDeletedColumnUsedAsCoverImage = true
-        break
+      if (deletedOrUpdatedColumnIds.has(op.column.id as string) && (op.op === 'delete' || op.op === 'update')) {
+        deletedOrUpdatedColumnIds.delete(op.column.id as string)
       }
     }
 
@@ -762,22 +760,7 @@ const saveChanges = async () => {
     metaToLocal()
 
     // Update views if column is used as cover image
-    if (isDeletedColumnUsedAsCoverImage) {
-      viewsByTable.value.set(
-        meta.value.id,
-        (viewsByTable.value.get(meta.value.id) || [])
-          .map((view) => {
-            if (
-              [ViewTypes.GALLERY, ViewTypes.KANBAN].includes(view.type) &&
-              deletedColumnIds.has(view.view?.fk_cover_image_col_id)
-            ) {
-              view.view.fk_cover_image_col_id = null
-            }
-            return view
-          })
-          .sort((a, b) => a.order! - b.order!),
-      )
-    }
+    viewsStore.updateViewCoverImageColumnId({ metaId: meta.value.id as string, columnIds: deletedOrUpdatedColumnIds })
 
     columnsHash.value = (await $api.dbTableColumn.hash(meta.value?.id)).hash
 

@@ -514,8 +514,8 @@
   },
   "labels": {
     "notRecommended": "Not recommended",
-    "allowMetaWrite" : "Allow Schema Edit",
-    "allowDataWrite" : "Allow Data Edit",
+    "allowMetaWrite": "Allow Schema Edit",
+    "allowDataWrite": "Allow Data Edit",
     "selectView": "Select a View",
     "connectionDetails": "Connection Details",
     "metaSync": "Meta Sync",

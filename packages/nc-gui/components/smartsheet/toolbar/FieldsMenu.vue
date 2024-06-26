@@ -1,11 +1,13 @@
 <script lang="ts" setup>
-import type { CalendarType, ColumnType, GalleryType, KanbanType } from 'nocodb-sdk'
+import type { CalendarType, ColumnType, GalleryType, KanbanType, LookupType } from 'nocodb-sdk'
 import { UITypes, ViewTypes, isVirtualCol } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 
 import type { SelectProps } from 'ant-design-vue'
 
 const activeView = inject(ActiveViewInj, ref())
+
+const meta = inject(MetaInj, ref())
 
 const reloadViewMetaHook = inject(ReloadViewMetaHookInj, undefined)!
 
@@ -20,6 +22,8 @@ const isPublic = inject(IsPublicInj, ref(false))
 const { $api, $e } = useNuxtApp()
 
 const { t } = useI18n()
+
+const { metas, getMeta } = useMetas()
 
 const {
   showSystemFields,
@@ -113,18 +117,7 @@ const onMove = async (_event: { moved: { newIndex: number; oldIndex: number } },
   }
 }
 
-const coverOptions = computed<SelectProps['options']>(() => {
-  const filterFields =
-    fields.value
-      ?.filter((el) => el.fk_column_id && metaColumnById.value[el.fk_column_id].uidt === UITypes.Attachment)
-      .map((field) => {
-        return {
-          value: field.fk_column_id,
-          label: field.title,
-        }
-      }) ?? []
-  return [{ value: null, label: 'No Image' }, ...filterFields]
-})
+const coverOptions = ref<SelectProps['options']>([])
 
 const updateCoverImage = async (val?: string | null) => {
   if (
@@ -365,6 +358,73 @@ watch(open, (value) => {
   }, 100)
 })
 
+watch(
+  fields,
+  async (newValue) => {
+    if (!newValue || isPublic.value || ![ViewTypes.GALLERY, ViewTypes.KANBAN].includes(activeView.value?.type as ViewTypes))
+      return
+
+    const filterFields =
+      newValue
+        .filter((el) => el.fk_column_id && metaColumnById.value[el.fk_column_id].uidt === UITypes.Attachment)
+        .map((field) => {
+          return {
+            value: field.fk_column_id,
+            label: field.title,
+          }
+        }) ?? []
+
+    coverOptions.value = [{ value: null, label: 'No Image' }, ...filterFields]
+
+    const lookupColumns = newValue
+      .filter((f) => f.fk_column_id && metaColumnById.value[f.fk_column_id].uidt === UITypes.Lookup)
+      .map((f) => metaColumnById.value[f.fk_column_id!])
+
+    await Promise.all(
+      lookupColumns.map(async (column) => {
+        const relationColumn = meta.value?.id
+          ? metas.value[meta.value?.id]?.columns?.find(
+              (c: ColumnType) => c.id === (column?.colOptions as LookupType)?.fk_relation_column_id,
+            )
+          : undefined
+
+        if (relationColumn && relationColumn.colOptions) {
+          await getMeta(relationColumn.colOptions.fk_related_model_id!)
+        }
+      }),
+    )
+
+    const lookupAttColumns = lookupColumns
+      .filter((column) => {
+        const relationColumn = meta.value?.id
+          ? metas.value[meta.value?.id]?.columns?.find(
+              (c: ColumnType) => c.id === (column?.colOptions as LookupType)?.fk_relation_column_id,
+            )
+          : undefined
+
+        if (relationColumn?.colOptions?.fk_related_model_id) {
+          const lookupColumn = metas.value[relationColumn.colOptions.fk_related_model_id]?.columns?.find(
+            (c: any) => c.id === (column?.colOptions as LookupType)?.fk_lookup_column_id,
+          ) as ColumnType | undefined
+
+          return lookupColumn && isAttachment(lookupColumn)
+        }
+        return false
+      })
+      .map((c) => {
+        return {
+          value: c.id,
+          label: c.title,
+        }
+      })
+
+    coverOptions.value = [...coverOptions.value, ...lookupAttColumns]
+  },
+  {
+    immediate: true,
+  },
+)
+
 useMenuCloseOnEsc(open)
 </script>
 
@@ -426,7 +486,7 @@ useMenuCloseOnEsc(open)
           >
             <a-select
               v-model:value="coverImageColumnId"
-              class="flex-1 max-w-[calc(100%_-_33px)]"
+              class="flex-1 max-w-[138px]"
               dropdown-class-name="nc-dropdown-cover-image !rounded-lg "
               :bordered="false"
               @click.stop

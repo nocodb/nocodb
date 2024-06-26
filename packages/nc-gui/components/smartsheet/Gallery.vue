@@ -87,12 +87,22 @@ const showContextMenu = (e: MouseEvent, target?: { row: RowType; index: number }
 }
 
 const attachments = (record: any): Attachment[] => {
+  if (!coverImageColumn.value?.title || !record.row[coverImageColumn.value.title]) return []
+
   try {
-    if (coverImageColumn.value?.title && record.row[coverImageColumn.value.title]) {
-      return typeof record.row[coverImageColumn.value.title] === 'string'
+    const att =
+      typeof record.row[coverImageColumn.value.title] === 'string'
         ? JSON.parse(record.row[coverImageColumn.value.title])
         : record.row[coverImageColumn.value.title]
+
+    if (Array.isArray(att)) {
+      // Check if any element in the array is an array
+      const hasNestedArray = att.some((item) => Array.isArray(item))
+
+      // Flatten the array if it has nested arrays, otherwise return the original array
+      return hasNestedArray ? att.flat().filter((a) => a !== null) : att.filter((a) => a !== null)
     }
+
     return []
   } catch (e) {
     return []

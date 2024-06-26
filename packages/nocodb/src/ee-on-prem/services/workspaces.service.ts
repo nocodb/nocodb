@@ -3,7 +3,7 @@ import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { AppConfig, NcRequest } from '~/interface/config';
 import type { UserType, WorkspaceType } from 'nocodb-sdk';
-import { LicenseService } from '~/services/license/license.service';
+import { LicenseService } from '../services/license/license.service';
 import { TablesService } from '~/services/tables.service';
 import { BasesService } from '~/services/bases.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';

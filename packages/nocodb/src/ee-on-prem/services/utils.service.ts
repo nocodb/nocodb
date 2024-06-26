@@ -17,6 +17,7 @@ export class UtilsService extends UtilsServiceEE {
     const result: any = await super.appInfo(param);
 
     result.baseUrl = this.licenseService.getSiteUrl();
+    result.isOnPrem = true;
     result.licensedTo = this.licenseService.getSiteUrl();
     result.isTrial = this.licenseService.isTrial();
     result.isTrialExpired = this.licenseService.isExpired;

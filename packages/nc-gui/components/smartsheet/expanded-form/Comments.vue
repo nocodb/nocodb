@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type CommentType, ProjectRoles } from 'nocodb-sdk'
+import { type AuditType, type CommentType, ProjectRoles } from 'nocodb-sdk'
 
 const props = defineProps<{
   loading: boolean
@@ -214,6 +214,22 @@ const createdBy = (
     return comment.created_display_name || 'Shared source'
   } else if (comment.created_by_email) {
     return comment.created_by_email
+  } else {
+    return 'Shared source'
+  }
+}
+
+const createdByAudit = (
+  comment: AuditType & {
+    created_display_name?: string
+  },
+) => {
+  if (comment.user === user.value?.email) {
+    return 'You'
+  } else if (comment.created_display_name?.trim()) {
+    return comment.created_display_name || 'Shared source'
+  } else if (comment.user) {
+    return comment.user
   } else {
     return 'Shared source'
   }
@@ -482,7 +498,12 @@ const editedAt = (comment: CommentType) => {
             <GeneralLoader size="xlarge" />
           </div>
 
-          <div v-else ref="commentsWrapperEl" class="flex flex-col h-full py-1 nc-scrollbar-thin !overflow-y-auto">
+          <div v-else ref="commentsWrapperEl" class="flex flex-col h-full py-1 nc-scrollbar-thin">
+            <!-- The scrollbar doesn't work when flex-end is used. https://issues.chromium.org/issues/41130651
+             Hence using a div to fix the issue
+             https://stackoverflow.com/questions/36130760/use-justify-content-flex-end-and-to-have-vertical-scrollbar
+             -->
+            <div class="scroll-fix"></div>
             <template v-if="audits.length === 0">
               <div class="flex flex-col text-center justify-center h-full">
                 <div class="text-center text-3xl text-gray-600">
@@ -493,24 +514,52 @@ const editedAt = (comment: CommentType) => {
             </template>
 
             <div v-for="audit of audits" :key="audit.id" class="nc-audit-item">
-              <div class="group gap-3 overflow-hidden flex items-start p-3">
-                <GeneralUserIcon size="medium" :email="audit.user" :name="audit.display_name" />
-                <div class="flex-1 flex flex-col gap-1 max-w-[calc(100%_-_24px)]">
-                  <div class="flex flex-wrap items-center min-h-7">
-                    <NcTooltip class="truncate max-w-42 mr-2" show-on-truncate-only>
-                      <template #title>
-                        {{ audit.display_name?.trim() || audit.user || 'Shared source' }}
-                      </template>
-                      <span class="text-ellipsis break-keep inline whitespace-nowrap overflow-hidden font-bold text-gray-800">
-                        {{ audit.display_name?.trim() || audit.user || 'Shared source' }}
-                      </span>
-                    </NcTooltip>
-                    <div class="text-xs text-gray-400">
-                      {{ timeAgo(audit.created_at) }}
+              <div class="group gap-3 overflow-hidden px-3 py-2">
+                <div class="flex items-start justify-between">
+                  <div class="flex items-start gap-3">
+                    <GeneralUserIcon
+                      :email="audit.created_by_email"
+                      :name="audit.created_display_name"
+                      class="mt-0.5"
+                      size="medium"
+                    />
+                    <div class="flex h-[28px] items-center gap-3">
+                      <NcDropdown placement="topLeft" :trigger="['hover']">
+                        <span class="text-ellipsis text-gray-800 font-medium !text-[13px] max-w-42 overflow-hidden" :style="{}">
+                          {{ createdByAudit(audit) }}
+                        </span>
+
+                        <template #overlay>
+                          <div class="bg-white rounded-lg">
+                            <div class="flex items-center gap-4 py-3 px-2">
+                              <GeneralUserIcon
+                                class="!w-8 !h-8 border-1 border-gray-200 rounded-full"
+                                :name="audit.created_display_name"
+                                :email="audit.created_by_email"
+                              />
+                              <div class="flex flex-col">
+                                <div class="font-semibold text-gray-800">
+                                  {{ createdByAudit(audit) }}
+                                </div>
+                                <div class="text-xs text-gray-600">
+                                  {{ audit.created_by_email }}
+                                </div>
+                              </div>
+                            </div>
+                            <div class="px-3 rounded-b-lg !text-[13px] items-center text-gray-600 flex gap-1 bg-gray-100 py-1.5">
+                              Has <RolesBadge size="sm" :border="false" :role="getUserRole(audit.created_by_email!)" />
+                              role in base
+                            </div>
+                          </div>
+                        </template>
+                      </NcDropdown>
+                      <div class="text-xs text-gray-500">
+                        {{ timeAgo(audit.created_at!) }}
+                      </div>
                     </div>
                   </div>
-                  <div v-dompurify-html="audit.details" class="text-sm font-medium"></div>
                 </div>
+                <div v-dompurify-html="audit.details" class="!text-[13px] text-gray-500 !leading-5 pl-4"></div>
               </div>
             </div>
           </div>
@@ -530,11 +579,7 @@ const editedAt = (comment: CommentType) => {
 }
 
 .nc-audit-item {
-  @apply border-b-1 gap-3 border-gray-200;
-}
-
-.nc-audit-item:last-child {
-  @apply border-b-0;
+  @apply gap-3;
 }
 
 .tab .tab-title {

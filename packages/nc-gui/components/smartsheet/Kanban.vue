@@ -127,11 +127,10 @@ const attachments = (record: any): Attachment[] => {
         : record.row[coverImageColumn.value.title]
 
     if (Array.isArray(att)) {
-      // Check if any element in the array is an array
-      const hasNestedArray = att.some((item) => Array.isArray(item))
-
-      // Flatten the array if it has nested arrays, otherwise return the original array
-      return hasNestedArray ? att.flat().filter((a) => a !== null) : att.filter((a) => a !== null)
+      return att
+        .flat()
+        .map((a) => (typeof a === 'string' ? JSON.parse(a) : a))
+        .filter((a) => a && !Array.isArray(a) && typeof a === 'object' && Object.keys(a).length)
     }
 
     return []

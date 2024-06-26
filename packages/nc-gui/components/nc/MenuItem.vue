@@ -1,11 +1,17 @@
-<script>
-export default {
+<script setup lang="ts">
+import type { StyleValue } from '@vue/runtime-dom'
+
+defineProps<{
+  style?: StyleValue
+}>()
+
+defineOptions({
   inheritAttrs: false,
-}
+})
 </script>
 
 <template>
-  <div class="w-full">
+  <div class="w-full" :style="style">
     <a-menu-item v-bind="$attrs" class="nc-menu-item">
       <div class="nc-menu-item-inner">
         <slot />

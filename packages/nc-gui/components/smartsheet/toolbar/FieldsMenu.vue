@@ -380,7 +380,7 @@ watch(
       .filter((f) => f.fk_column_id && metaColumnById.value[f.fk_column_id].uidt === UITypes.Lookup)
       .map((f) => metaColumnById.value[f.fk_column_id!])
 
-    await Promise.all(
+    await Promise.allSettled(
       lookupColumns.map(async (column) => {
         const relationColumn = meta.value?.id
           ? metas.value[meta.value?.id]?.columns?.find(

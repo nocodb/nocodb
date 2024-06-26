@@ -166,6 +166,12 @@ export async function createOOColumn(
       await parent.getColumns(context),
       alias || child.title,
     );
+
+    // remove bt flag from meta as it have to be on child column
+    if (columnMeta?.bt) {
+      delete columnMeta.bt;
+    }
+
     const meta = {
       ...(columnMeta || {}),
       plural: columnMeta?.plural || pluralize(child.title),

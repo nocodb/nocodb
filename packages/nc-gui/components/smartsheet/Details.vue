@@ -85,7 +85,7 @@ watch(openedSubTab, () => {
         </div>
       </a-tab-pane>
 
-      <a-tab-pane v-if="isUIAllowed('hookList') && !isDataReadOnly" key="webhook">
+      <a-tab-pane v-if="isUIAllowed('hookList')" key="webhook">
         <template #tab>
           <div class="tab" data-testid="nc-webhooks-tab">
             <GeneralIcon icon="webhook" class="tab-icon" :class="{}" />

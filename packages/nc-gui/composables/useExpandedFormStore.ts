@@ -182,13 +182,22 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
     try {
       isAuditLoading.value = true
-      audits.value =
+      const res =
         (
           await $api.utils.auditList({
             row_id: rowId,
             fk_model_id: meta.value.id as string,
           })
         ).list?.reverse?.() || []
+
+      audits.value = res.map((audit) => {
+        const user = baseUsers.value.find((u) => u.email === audit.user)
+        return {
+          ...audit,
+          created_display_name: user?.display_name ?? (user?.email ?? '').split('@')[0],
+          created_by_email: user?.email,
+        }
+      })
     } catch (e: any) {
       message.error(
         await extractSdkResponseErrorMsg(

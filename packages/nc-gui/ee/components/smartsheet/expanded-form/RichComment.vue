@@ -230,6 +230,7 @@ useEventListener(
   (e: FocusEvent) => {
     const targetEl = e?.relatedTarget as HTMLElement
     if (
+      targetEl?.classList?.contains('tiptap') ||
       !targetEl?.closest(
         '.comment-bubble-menu, .nc-rich-text-comment, .tippy-box, .nc-comment-save-btn, .rich-text-bottom-bar, .mention, .nc-mention-list, .tippy-content, .nc-comment-rich-editor',
       )

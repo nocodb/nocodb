@@ -35,14 +35,21 @@ const meta = computed(() => {
 
 const _vModel = useVModel(props, 'modelValue', emits)
 
+function roundUpToPrecision(value: number, precision = 1) {
+  const factor = Math.pow(10, precision)
+  const roundedValue = Math.round(value * factor) / factor
+
+  return roundedValue.toFixed(precision)
+}
+
 const displayValue = computed(() => {
   if (_vModel.value === null) return null
 
   if (isNaN(Number(_vModel.value))) return null
 
-  if (meta.value.isLocaleString) return (+Number(_vModel.value).toFixed(meta.value.precision ?? 1)).toLocaleString()
+  if (meta.value.isLocaleString) return roundUpToPrecision(Number(_vModel.value), meta.value.precision ?? 1).toLocaleString()
 
-  return Number(_vModel.value).toFixed(meta.value.precision ?? 1)
+  return roundUpToPrecision(Number(_vModel.value), meta.value.precision ?? 1)
 })
 
 const vModel = computed({

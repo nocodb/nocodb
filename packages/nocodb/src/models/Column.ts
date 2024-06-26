@@ -1764,7 +1764,7 @@ export default class Column<T = any> implements ColumnType {
     const kanbanViews: KanbanView[] = await ncMeta.metaList2(
       context.workspace_id,
       context.base_id,
-      MetaTable.GALLERY_VIEW,
+      MetaTable.KANBAN_VIEW,
       {
         condition: {
           fk_cover_image_col_id: id,

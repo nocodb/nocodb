@@ -1648,12 +1648,16 @@ export class ColumnsService {
         break;
 
       case UITypes.QrCode:
+        validateParams(['fk_qr_value_column_id'], param.column);
+
         await Column.insert(context, {
           ...colBody,
           fk_model_id: table.id,
         });
         break;
       case UITypes.Barcode:
+        validateParams(['fk_barcode_value_column_id'], param.column);
+
         await Column.insert(context, {
           ...colBody,
           fk_model_id: table.id,

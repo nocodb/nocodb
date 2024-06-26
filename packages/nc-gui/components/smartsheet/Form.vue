@@ -1239,14 +1239,16 @@ useEventListener(
                           {{ $t('general.edit') }} {{ $t('objects.field') }}
                         </NcButton>
                         <template #overlay>
-                          <SmartsheetColumnEditOrAddProvider
-                            v-if="dropdownStates.showEditColumn"
-                            :column="activeColumn"
-                            @submit="editColumnCallback"
-                            @cancel="dropdownStates.showEditColumn = false"
-                            @click.stop
-                            @keydown.stop
-                          />
+                          <div class="overflow-auto max-h-[max(80vh,500px)] min-w-[384px]">
+                            <LazySmartsheetColumnEditOrAddProvider
+                              v-if="dropdownStates.showEditColumn"
+                              :column="activeColumn"
+                              @submit="editColumnCallback"
+                              @cancel="dropdownStates.showEditColumn = false"
+                              @click.stop
+                              @keydown.stop
+                            />
+                          </div>
                         </template>
                       </a-dropdown>
                       <SmartsheetFormFieldMenu
@@ -1325,13 +1327,15 @@ useEventListener(
                           </NcButton>
 
                           <template #overlay>
-                            <SmartsheetColumnEditOrAddProvider
-                              v-if="dropdownStates.showAddColumn"
-                              @submit="addColumnCallback"
-                              @cancel="dropdownStates.showAddColumn = false"
-                              @click.stop
-                              @keydown.stop
-                            />
+                            <div class="overflow-auto max-h-[max(80vh,500px)] min-w-[384px]">
+                              <LazySmartsheetColumnEditOrAddProvider
+                                v-if="dropdownStates.showAddColumn"
+                                @submit="addColumnCallback"
+                                @cancel="dropdownStates.showAddColumn = false"
+                                @click.stop
+                                @keydown.stop
+                              />
+                            </div>
                           </template>
                         </a-dropdown>
                       </div>

@@ -242,6 +242,7 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
   }
 
   onModuleInit() {
-    this.appHooks.onAll(this.hookHandler.bind(this));
+    this.appHooks.on(AppEvents.PROJECT_INVITE, this.hookHandler.bind(this));
+    this.appHooks.on(AppEvents.WELCOME, this.hookHandler.bind(this));
   }
 }

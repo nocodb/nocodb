@@ -87,12 +87,21 @@ const showContextMenu = (e: MouseEvent, target?: { row: RowType; index: number }
 }
 
 const attachments = (record: any): Attachment[] => {
+  if (!coverImageColumn.value?.title || !record.row[coverImageColumn.value.title]) return []
+
   try {
-    if (coverImageColumn.value?.title && record.row[coverImageColumn.value.title]) {
-      return typeof record.row[coverImageColumn.value.title] === 'string'
+    const att =
+      typeof record.row[coverImageColumn.value.title] === 'string'
         ? JSON.parse(record.row[coverImageColumn.value.title])
         : record.row[coverImageColumn.value.title]
+
+    if (Array.isArray(att)) {
+      return att
+        .flat()
+        .map((a) => (typeof a === 'string' ? JSON.parse(a) : a))
+        .filter((a) => a && !Array.isArray(a) && typeof a === 'object' && Object.keys(a).length)
     }
+
     return []
   } catch (e) {
     return []

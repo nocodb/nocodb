@@ -23,7 +23,7 @@ import type {
   UserType,
 } from 'nocodb-sdk';
 import type SqlMgrv2 from '~/db/sql-mgr/v2/SqlMgrv2';
-import type { Base, GalleryView, LinkToAnotherRecordColumn } from '~/models';
+import type { Base, LinkToAnotherRecordColumn } from '~/models';
 import type CustomKnex from '~/db/CustomKnex';
 import type SqlClient from '~/db/sql-client/lib/SqlClient';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
@@ -33,6 +33,7 @@ import {
   CalendarRange,
   Column,
   FormulaColumn,
+  GalleryView,
   KanbanView,
   Model,
   Source,

@@ -167,8 +167,8 @@ const coverImageColumnId = computed({
     // check if `fk_cover_image_col_id` is in `coverOptions`
     // e.g. in share view, users may not share the cover image column
     if (coverOptions.value?.find((o) => o.value === fk_cover_image_col_id)) return fk_cover_image_col_id
-    // set to `No Image`
-    return null
+    // set to `No Image` if fk_cover_image_col_id is null else undefiend (This will help to change value to no image for user)
+    return fk_cover_image_col_id === null ? null : undefined
   },
   set: async (val) => {
     if (val !== coverImageColumnId.value) {

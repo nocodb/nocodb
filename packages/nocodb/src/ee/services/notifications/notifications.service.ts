@@ -21,6 +21,13 @@ export class NotificationsService extends NotificationsServiceCE {
     super(appHooks);
   }
 
+  onModuleInit() {
+    super.onModuleInit();
+    this.appHooks.on(AppEvents.WORKSPACE_INVITE, this.hookHandler.bind(this));
+    this.appHooks.on(AppEvents.COMMENT_CREATE, this.hookHandler.bind(this));
+    this.appHooks.on(AppEvents.COMMENT_UPDATE, this.hookHandler.bind(this));
+  }
+
   protected async hookHandler({
     event,
     data,

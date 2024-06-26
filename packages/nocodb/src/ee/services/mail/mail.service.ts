@@ -31,7 +31,8 @@ export class MailService implements OnModuleInit, OnModuleDestroy {
   }
 
   onModuleInit() {
-    this.appHooks.onAll(this.hookHandler.bind(this));
+    this.appHooks.on(AppEvents.COMMENT_CREATE, this.hookHandler.bind(this));
+    this.appHooks.on(AppEvents.COMMENT_UPDATE, this.hookHandler.bind(this));
   }
 
   protected async hookHandler({

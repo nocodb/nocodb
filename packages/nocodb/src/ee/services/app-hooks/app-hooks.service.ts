@@ -126,14 +126,17 @@ export class AppHooksService extends ApppHookServiceCE {
       | AppEvents.WORKSPACE_CREATE,
     listener: (data: WorkspaceEvent) => void,
   ): () => void;
-
+  on(
+    event: AppEvents.WORKSPACE_INVITE,
+    listener: (data: WorkspaceInviteEvent) => void,
+  ): () => void;
   on(
     event:
       | AppEvents.COMMENT_CREATE
       | AppEvents.COMMENT_UPDATE
       | AppEvents.COMMENT_DELETE,
     listener: (data: RowCommentEvent) => void,
-  );
+  ): () => void;
   on(event, listener): () => void {
     return super.on(event, listener);
   }

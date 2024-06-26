@@ -236,4 +236,10 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
 .nc-lookup-cell .nc-text-area-clamped-text {
   @apply !mr-1;
 }
+
+.nc-lookup-cell {
+  &:has(.nc-cell-attachment) {
+    height: auto !important;
+  }
+}
 </style>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { StyleValue } from 'nuxt/dist/app/compat/capi'
+import type { StyleValue } from '@vue/runtime-dom'
 
 defineProps<{
   style?: StyleValue

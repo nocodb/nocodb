@@ -303,14 +303,14 @@ onMounted(() => {
         ref="editorDom"
         :editor="editor"
         :class="{
-          'px-2': !props.readOnly,
+          'p-1': !props.readOnly,
           'px-[0.25rem] py-1': props.readOnly,
         }"
         class="flex flex-col nc-comment-rich-editor w-full scrollbar-thin scrollbar-thumb-gray-200 nc-truncate scrollbar-track-transparent"
         @keydown.stop="handleKeyPress"
       />
 
-      <div v-if="!hideOptions" class="flex justify-between p-1 items-center">
+      <div v-if="!hideOptions" class="flex justify-between pt-1 rich-text-bottom-bar items-center">
         <LazySmartsheetExpandedFormRichTextOptions :editor="editor" class="!bg-transparent" />
         <NcButton
           v-e="['a:row-expand:comment:save']"

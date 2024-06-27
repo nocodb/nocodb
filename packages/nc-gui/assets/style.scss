@@ -912,3 +912,7 @@ svg.nc-virtual-cell-icon {
 .text-nowrap {
   text-wrap: nowrap;
 }
+
+.nc-edit-or-add-provider-wrapper {
+  @apply overflow-auto max-h-[max(80vh,500px)] min-w-[384px] rounded-xl shadow-lg shadow-gray-300;
+}

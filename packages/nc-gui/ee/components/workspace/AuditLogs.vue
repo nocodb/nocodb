@@ -275,6 +275,13 @@ const handleUpdateCustomDateRange = (value: string | null, field: 'startDate' | 
   loadAudits()
 }
 
+const handleRefresh = () => {
+  if (auditLogsQuery.value.endDate && auditLogsQuery.value.dateRange !== AuditLogsDateRange.Custom) {
+    auditLogsQuery.value.endDate = dayjs(new Date()).utc().format('YYYY-MM-DD HH:mm:ssZ')
+  }
+  loadAudits()
+}
+
 watch(
   () => auditLogsQuery.value.baseId,
   () => {
@@ -301,6 +308,9 @@ onMounted(async () => {
   }
 
   if (appInfo.value.auditEnabled) {
+    if (auditLogsQuery.value.endDate && auditLogsQuery.value.dateRange !== AuditLogsDateRange.Custom) {
+      auditLogsQuery.value.endDate = dayjs(new Date()).utc().format('YYYY-MM-DD HH:mm:ssZ')
+    }
     await loadAudits(currentPage.value, currentLimit.value, false)
   }
 })
@@ -751,7 +761,7 @@ useEventListener(tableWrapper, 'scroll', () => {
           </NcDropdown>
         </div>
         <div class="flex items-center gap-3">
-          <NcButton type="text" size="small" :disabled="isLoading" @click="loadAudits()">
+          <NcButton type="text" size="small" :disabled="isLoading" @click="handleRefresh">
             <!-- Refresh -->
             <div class="flex items-center gap-2">
               {{ $t('general.refresh') }}

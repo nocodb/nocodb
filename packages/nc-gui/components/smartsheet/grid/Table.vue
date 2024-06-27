@@ -463,7 +463,8 @@ const colMeta = computed(() => {
 // #Grid
 
 function openColumnCreate(data: any) {
-  tableHeadEl.value?.querySelector('th .nc-grid-add-edit-column')?.scrollIntoView({ behavior: 'smooth' })
+  scrollToAddNewColumnHeader('smooth')
+
   setTimeout(() => {
     addColumnDropdown.value = true
     preloadColumn.value = data
@@ -476,13 +477,7 @@ const closeAddColumnDropdown = (scrollToLastCol = false) => {
   preloadColumn.value = {}
   if (scrollToLastCol) {
     setTimeout(() => {
-      const lastAddNewRowHeader =
-        tableHeadEl.value?.querySelector('.nc-grid-add-edit-column') ??
-        tableHeadEl.value?.querySelector('th .nc-grid-add-edit-column')
-
-      if (lastAddNewRowHeader) {
-        lastAddNewRowHeader.scrollIntoView({ behavior: 'smooth' })
-      }
+      scrollToAddNewColumnHeader('smooth')
     }, 200)
   }
 }
@@ -738,7 +733,11 @@ const {
           // ALT + C
           if (isAddingColumnAllowed.value) {
             $e('c:shortcut', { key: 'ALT + C' })
-            addColumnDropdown.value = true
+            scrollToAddNewColumnHeader(undefined)
+
+            setTimeout(() => {
+              addColumnDropdown.value = true
+            }, 250)
           }
           break
         }
@@ -1593,6 +1592,16 @@ const loaderText = computed(() => {
     }
   }
 })
+
+function scrollToAddNewColumnHeader(behavior: ScrollOptions['behavior']) {
+  if (scrollWrapper.value) {
+    scrollWrapper.value?.scrollTo({
+      top: scrollWrapper.value.scrollTop,
+      left: scrollWrapper.value.scrollWidth,
+      behavior: behavior,
+    })
+  }
+}
 
 // Keyboard shortcuts for pagination
 onKeyStroke('ArrowLeft', onLeft)

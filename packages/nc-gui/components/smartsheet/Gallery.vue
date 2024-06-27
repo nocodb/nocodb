@@ -563,8 +563,20 @@ watch(
   }
   &.nc-virtual-cell-lookup {
     .nc-lookup-cell {
-      @apply !h-5.5;
+      &:has(.nc-attachment-wrapper) {
+        @apply !h-auto;
 
+        .nc-attachment-cell {
+          @apply !h-auto;
+
+          .nc-attachment-wrapper {
+            @apply py-0;
+          }
+        }
+      }
+      &:not(:has(.nc-attachment-wrapper)) {
+        @apply !h-5.5;
+      }
       .nc-cell-lookup-scroll {
         @apply py-0 h-auto;
       }

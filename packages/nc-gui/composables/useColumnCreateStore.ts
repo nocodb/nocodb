@@ -42,7 +42,9 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
     const sqlUi = ref(meta.value?.source_id ? sqlUis.value[meta.value?.source_id] : Object.values(sqlUis.value)[0])
 
-    const { activeView } = storeToRefs(useViewsStore())
+    const viewsStore = useViewsStore()
+
+    const { activeView } = storeToRefs(viewsStore)
 
     const disableSubmitBtn = ref(false)
 
@@ -291,6 +293,14 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
           await $api.dbTableColumn.update(column.value?.id as string, formState.value)
 
           await postSaveOrUpdateCbk?.({ update: true, colId: column.value?.id })
+
+          if (meta.value?.id && column.value.uidt === UITypes.Attachment && column.value.uidt !== formState.value.uidt) {
+            viewsStore.updateViewCoverImageColumnId({
+              metaId: meta.value.id as string,
+              columnIds: new Set([column.value.id as string]),
+            })
+          }
+
           // Column updated
           // message.success(t('msg.success.columnUpdated'))
         } else {

@@ -12,21 +12,16 @@ const { header, field, toggleSort } = defineProps<{
     <span>
       {{ header }}
     </span>
-    <div class="flex flex-col">
+    <div class="flex">
       <GeneralIcon
-        icon="arrowDropUp"
-        class="text-sm mb-[-10px] text-[16px]"
+        v-if="activeSort.field === field"
+        icon="chevronDown"
+        class="flex-none"
         :class="{
-          'text-primary': activeSort.field === field && activeSort.direction === 'asc',
+          'transform rotate-180': activeSort.direction === 'asc',
         }"
       />
-      <GeneralIcon
-        icon="arrowDropDown"
-        class="text-sm text-[16px]"
-        :class="{
-          'text-primary': activeSort.field === field && activeSort.direction === 'desc',
-        }"
-      />
+      <GeneralIcon v-else icon="chevronUpDown" class="flex-none" />
     </div>
   </div>
 </template>

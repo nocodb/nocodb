@@ -71,8 +71,8 @@ export class DatasService {
     const source = await Source.get(context, model.source_id);
 
     const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      viewId: view?.id,
+      model: model,
+      view: view,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
@@ -99,8 +99,8 @@ export class DatasService {
     const source = await Source.get(context, model.source_id);
 
     const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      viewId: view?.id,
+      model: model,
+      view: view,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
@@ -120,8 +120,8 @@ export class DatasService {
     const source = await Source.get(context, model.source_id);
 
     const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      viewId: view?.id,
+      model: model,
+      view: view,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
@@ -141,8 +141,8 @@ export class DatasService {
     const { model, view } = await getViewAndModelByAliasOrId(context, param);
     const source = await Source.get(context, model.source_id);
     const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      viewId: view?.id,
+      model: model,
+      view: view,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
@@ -184,8 +184,8 @@ export class DatasService {
     const baseModel =
       param.baseModel ||
       (await Model.getBaseModelSQL(context, {
-        id: model.id,
-        viewId: view?.id,
+        model: model,
+        view: view,
         dbDriver: await NcConnectionMgrv2.get(source),
       }));
 
@@ -248,8 +248,8 @@ export class DatasService {
     const source = await Source.get(context, model.source_id);
 
     const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      viewId: view?.id,
+      model: model,
+      view: view,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
@@ -280,8 +280,8 @@ export class DatasService {
     const source = await Source.get(context, model.source_id);
 
     const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      viewId: view?.id,
+      model: model,
+      view: view,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
@@ -317,8 +317,8 @@ export class DatasService {
     const source = await Source.get(context, model.source_id);
 
     const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      viewId: view?.id,
+      model: model,
+      view: view,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
     const row = await baseModel.readByPk(param.rowId, false, param.query, {
@@ -341,8 +341,8 @@ export class DatasService {
     const source = await Source.get(context, model.source_id);
 
     const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      viewId: view?.id,
+      model: model,
+      view: view,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
@@ -378,8 +378,8 @@ export class DatasService {
     const source = await Source.get(context, model.source_id);
 
     const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      viewId: view?.id,
+      model: model,
+      view: view,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
@@ -462,8 +462,8 @@ export class DatasService {
     const source = await Source.get(context, model.source_id);
 
     const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      viewId: view?.id,
+      model: model,
+      view: view,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
@@ -526,8 +526,8 @@ export class DatasService {
     const source = await Source.get(context, model.source_id);
 
     const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      viewId: view?.id,
+      model: model,
+      view: view,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
@@ -590,8 +590,8 @@ export class DatasService {
     const source = await Source.get(context, model.source_id);
 
     const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      viewId: view?.id,
+      model: model,
+      view: view,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
@@ -654,8 +654,8 @@ export class DatasService {
     const source = await Source.get(context, model.source_id);
 
     const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      viewId: view?.id,
+      model: model,
+      view: view,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
@@ -718,8 +718,8 @@ export class DatasService {
     const source = await Source.get(context, model.source_id);
 
     const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      viewId: view?.id,
+      model: model,
+      view: view,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
@@ -886,8 +886,8 @@ export class DatasService {
     const source = await Source.get(context, model.source_id);
 
     const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      viewId: view?.id,
+      model: model,
+      view: view,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
@@ -922,8 +922,8 @@ export class DatasService {
     const source = await Source.get(context, model.source_id);
 
     const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      viewId: view?.id,
+      model: model,
+      view: view,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
@@ -986,7 +986,7 @@ export class DatasService {
 
     const baseModel = await Model.getBaseModelSQL(context, {
       id: view.model.id,
-      viewId: view?.id,
+      view,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
@@ -1024,7 +1024,7 @@ export class DatasService {
 
     const baseModel = await Model.getBaseModelSQL(context, {
       id: view.model.id,
-      viewId: view?.id,
+      view,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 

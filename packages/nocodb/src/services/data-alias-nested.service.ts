@@ -29,8 +29,8 @@ export class DataAliasNestedService {
     const source = await Source.get(context, model.source_id);
 
     const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      viewId: view?.id,
+      model: model,
+      view: view,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
@@ -77,8 +77,8 @@ export class DataAliasNestedService {
     const source = await Source.get(context, model.source_id);
 
     const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      viewId: view?.id,
+      model: model,
+      view: view,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
     const column = await getColumnByIdOrName(context, param.columnName, model);
@@ -120,8 +120,8 @@ export class DataAliasNestedService {
     const source = await Source.get(context, model.source_id);
 
     const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      viewId: view?.id,
+      model: model,
+      view: view,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
@@ -163,8 +163,8 @@ export class DataAliasNestedService {
     const source = await Source.get(context, model.source_id);
 
     const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      viewId: view?.id,
+      model: model,
+      view: view,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
@@ -205,8 +205,8 @@ export class DataAliasNestedService {
     const source = await Source.get(context, model.source_id);
 
     const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      viewId: view?.id,
+      model: model,
+      view: view,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
@@ -250,8 +250,8 @@ export class DataAliasNestedService {
     const source = await Source.get(context, model.source_id);
 
     const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      viewId: view?.id,
+      model: model,
+      view: view,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
@@ -297,8 +297,8 @@ export class DataAliasNestedService {
     const source = await Source.get(context, model.source_id);
 
     const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      viewId: view?.id,
+      model: model,
+      view: view,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
@@ -330,8 +330,8 @@ export class DataAliasNestedService {
     const source = await Source.get(context, model.source_id);
 
     const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      viewId: view?.id,
+      model: model,
+      view: view,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 

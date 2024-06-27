@@ -195,11 +195,13 @@ function transformObject(value, idToAliasMap) {
  */
 class BaseModelSqlv2 {
   protected _dbDriver: XKnex;
-  protected viewId: string;
   protected _proto: any;
   protected _columns = {};
+  protected view: View;
   public model: Model;
   public context: NcContext;
+  // if no view is provided & fallback to default view, ignore view filter and sort
+  protected ignoreDefaultView: boolean;
 
   public static config: any = defaultLimitConfig;
 
@@ -207,19 +209,25 @@ class BaseModelSqlv2 {
     return this._dbDriver;
   }
 
+  protected get viewId() {
+    return this.ignoreDefaultView ? null : this.view.id;
+  }
+
   constructor({
     dbDriver,
     model,
-    viewId,
+    view,
     context,
+    ignoreDefaultView = false,
   }: {
     [key: string]: any;
     model: Model;
   }) {
     this._dbDriver = dbDriver;
     this.model = model;
-    this.viewId = viewId;
+    this.view = view;
     this.context = context;
+    this.ignoreDefaultView = ignoreDefaultView;
     autoBind(this);
   }
 
@@ -242,9 +250,7 @@ class BaseModelSqlv2 {
     const { ast, dependencyFields, parsedQuery } = await getAst(this.context, {
       query,
       model: this.model,
-      view: ignoreView
-        ? null
-        : this.viewId && (await View.get(this.context, this.viewId)),
+      view: ignoreView || this.ignoreDefaultView ? null : this.view,
       getHiddenColumn,
       throwErrorIfInvalidParams,
     });
@@ -1305,7 +1311,7 @@ class BaseModelSqlv2 {
       );
       const proto = await (
         await Model.getBaseModelSQL(this.context, {
-          id: childTable.id,
+          model: childTable,
           dbDriver: this.dbDriver,
         })
       ).getProto();
@@ -1525,7 +1531,7 @@ class BaseModelSqlv2 {
 
       const proto = await (
         await Model.getBaseModelSQL(this.context, {
-          id: childTable.id,
+          model: childTable,
           dbDriver: this.dbDriver,
         })
       ).getProto();
@@ -5038,7 +5044,7 @@ class BaseModelSqlv2 {
       prevData,
       newData,
       user: req?.user,
-      viewId: this.viewId,
+      viewId: this.view.id,
       modelId: this.model.id,
       tnPath: this.tnPath,
     });

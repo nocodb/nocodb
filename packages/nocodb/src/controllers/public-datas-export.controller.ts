@@ -183,8 +183,8 @@ export class PublicDatasExportController {
 
     const source = await Source.get(context, model.source_id);
     const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      viewId: view?.id,
+      model,
+      view,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 

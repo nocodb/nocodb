@@ -59,8 +59,8 @@ export class PublicDatasService {
     const source = await Source.get(context, model.source_id);
 
     const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      viewId: view?.id,
+      model: model,
+      view: view,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
@@ -123,8 +123,8 @@ export class PublicDatasService {
     const source = await Source.get(context, model.source_id);
 
     const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      viewId: view?.id,
+      model: model,
+      view: view,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
@@ -192,8 +192,8 @@ export class PublicDatasService {
     const source = await Source.get(context, param.model.source_id);
 
     const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      viewId: view?.id,
+      model: model,
+      view: view,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
@@ -287,8 +287,8 @@ export class PublicDatasService {
       const source = await Source.get(context, model.source_id);
 
       const baseModel = await Model.getBaseModelSQL(context, {
-        id: model.id,
-        viewId: view?.id,
+        model: model,
+        view: view,
         dbDriver: await NcConnectionMgrv2.get(source),
       });
 
@@ -346,8 +346,8 @@ export class PublicDatasService {
     const base = await source.getProject(context);
 
     const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      viewId: view?.id,
+      model: model,
+      view: view,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
@@ -531,7 +531,7 @@ export class PublicDatasService {
     const source = await Source.get(context, model.source_id);
 
     const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
+      model: model,
       viewId: colOptions.fk_target_view_id,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
@@ -620,7 +620,7 @@ export class PublicDatasService {
 
     const baseModel = await Model.getBaseModelSQL(context, {
       id: view.fk_model_id,
-      viewId: view?.id,
+      view,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
@@ -699,7 +699,7 @@ export class PublicDatasService {
 
     const baseModel = await Model.getBaseModelSQL(context, {
       id: view.fk_model_id,
-      viewId: view?.id,
+      view,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 

@@ -2566,7 +2566,6 @@ export class AtImportProcessor {
             if (source.type === 'pg') {
               const baseModel = await Model.getBaseModelSQL(context, {
                 id: ncTblList.list[i].id,
-                viewId: null,
                 dbDriver: await NcConnectionMgrv2.get(source),
               });
               await baseModel.dbDriver.raw(
@@ -2582,7 +2581,6 @@ export class AtImportProcessor {
             } else if (source.type === 'mssql') {
               const baseModel = await Model.getBaseModelSQL(context, {
                 id: ncTblList.list[i].id,
-                viewId: null,
                 dbDriver: await NcConnectionMgrv2.get(source),
               });
               const res = await baseModel.execAndGetRows(

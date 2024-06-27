@@ -49,8 +49,8 @@ export class DataTableService {
     const source = await Source.get(context, model.source_id);
 
     const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      viewId: view?.id,
+      model: model,
+      view: view,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
@@ -79,8 +79,8 @@ export class DataTableService {
     const source = await Source.get(context, model.source_id);
 
     const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      viewId: view?.id,
+      model: model,
+      view: view,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
@@ -117,8 +117,8 @@ export class DataTableService {
     const source = await Source.get(context, model.source_id);
 
     const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      viewId: view?.id,
+      model: model,
+      view: view,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
@@ -153,8 +153,8 @@ export class DataTableService {
     const source = await Source.get(context, model.source_id);
 
     const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      viewId: view?.id,
+      model: model,
+      view: view,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
@@ -187,8 +187,8 @@ export class DataTableService {
 
     const source = await Source.get(context, model.source_id);
     const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      viewId: view?.id,
+      model: model,
+      view: view,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
@@ -218,8 +218,8 @@ export class DataTableService {
     const source = await Source.get(context, model.source_id);
 
     const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      viewId: view?.id,
+      model: model,
+      view: view,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
@@ -341,8 +341,8 @@ export class DataTableService {
     const source = await Source.get(context, model.source_id);
 
     const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      viewId: view?.id,
+      model: model,
+      view: view,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
@@ -464,8 +464,8 @@ export class DataTableService {
     const source = await Source.get(context, model.source_id);
 
     const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      viewId: view?.id,
+      model: model,
+      view: view,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
@@ -503,8 +503,8 @@ export class DataTableService {
     const source = await Source.get(context, model.source_id);
 
     const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      viewId: view?.id,
+      model: model,
+      view: view,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
@@ -575,8 +575,8 @@ export class DataTableService {
     const source = await Source.get(context, model.source_id);
 
     const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      viewId: view?.id,
+      model: model,
+      view: view,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 

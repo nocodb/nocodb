@@ -11,7 +11,7 @@ import type Column from '../../../src/models/Column';
 import type Filter from '../../../src/models/Filter';
 import type Base from '~/models/Base';
 import type Sort from '../../../src/models/Sort';
-import {View} from "~/models";
+import type { View } from '~/models';
 
 const rowValue = (column: ColumnType, index: number) => {
   switch (column.uidt) {
@@ -240,7 +240,7 @@ const listRow = async ({
   const baseModel = await Model.getBaseModelSQL(ctx, {
     id: table.id,
     dbDriver: await NcConnectionMgrv2.get(sources[0]!),
-    viewId: view?.id,
+    view,
   });
 
   const ignorePagination = !options;

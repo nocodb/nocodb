@@ -218,8 +218,7 @@ export class ImportService {
             if (modelData.pgSerialLastVal) {
               if (col.ai) {
                 const baseModel = await Model.getBaseModelSQL(context, {
-                  id: table.id,
-                  viewId: null,
+                  model: table,
                   dbDriver: await NcConnectionMgrv2.get(source),
                 });
                 const sqlClient = await NcConnectionMgrv2.getSqlClient(source);

@@ -455,25 +455,32 @@ export default class Model implements TableType {
     context: NcContext,
     args: {
       id?: string;
-      viewId?: string;
       dbDriver: XKnex;
       model?: Model;
-      extractDefaultView?: boolean;
+      view?: View;
+      viewId?: string;
     },
     ncMeta = Noco.ncMeta,
   ): Promise<BaseModelSqlv2> {
+    let ignoreDefaultView = false;
+
     const model = args?.model || (await this.get(context, args.id, ncMeta));
 
-    if (!args?.viewId && args.extractDefaultView) {
-      const view = await View.getDefaultView(context, model.id, ncMeta);
-      args.viewId = view.id;
+    if (!args?.view) {
+      if (args.viewId) {
+        args.view = await View.get(context, args.viewId, ncMeta);
+      } else {
+        args.view = await View.getDefaultView(context, model.id, ncMeta);
+        ignoreDefaultView = true;
+      }
     }
 
     return new BaseModelSqlv2({
       context,
       dbDriver: args.dbDriver,
-      viewId: args.viewId,
+      view: args.view,
       model,
+      ignoreDefaultView,
     });
   }
 

@@ -6,10 +6,10 @@ import { createTable } from '../../factory/table';
 import { createRow, generateDefaultRowAttributes } from '../../factory/row';
 import { createLtarColumn } from '../../factory/column';
 import { isPg, isSqlite } from '../../init/db';
-import type View from '~/models/View';
 import type Base from '~/models/Base';
 import type Model from '~/models/Model';
 import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
+import View from '~/models/View';
 import { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import Filter from '~/models/Filter';
 import Audit from '~/models/Audit';
@@ -38,14 +38,15 @@ function baseModelSqlTests() {
     };
 
     table = await createTable(context, base);
-    view = await table.getViews(ctx)[0];
+    view = await View.getDefaultView(ctx, table.id);
 
     const source = await Source.get(ctx, table.source_id);
     baseModelSql = new BaseModelSqlv2({
       dbDriver: await NcConnectionMgrv2.get(source),
       model: table,
-      view,
       context: ctx,
+      view,
+      ignoreDefaultView: true,
     });
     console.timeEnd('#### baseModelSqlTests');
   });
@@ -432,6 +433,7 @@ function baseModelSqlTests() {
       model: childTable,
       view,
       context: ctx,
+      ignoreDefaultView: true,
     });
     const insertedChildRow = await childBaseModel.readByPk(childRow['Id']);
     expect(insertedChildRow[childCol.column_name]).to.equal(childRow['Id']);
@@ -499,6 +501,7 @@ function baseModelSqlTests() {
       model: childTable,
       view,
       context: ctx,
+      ignoreDefaultView: true,
     });
     const updatedChildRow = await childBaseModel.readByPk(
       insertedChildRow['Id'],
@@ -577,6 +580,7 @@ function baseModelSqlTests() {
       model: childTable,
       view,
       context: ctx,
+      ignoreDefaultView: true,
     });
     const updatedChildRow = await childBaseModel.readByPk(
       insertedChildRow['Id'],

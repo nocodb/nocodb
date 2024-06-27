@@ -69,7 +69,7 @@ export async function extractXlsxData(context: NcContext, view: View, req) {
 
   const baseModel = await Model.getBaseModelSQL(context, {
     id: view.model.id,
-    viewId: view?.id,
+    view: view,
     dbDriver: await NcConnectionMgrv2.get(source),
   });
 
@@ -104,7 +104,7 @@ export async function extractCsvData(context: NcContext, view: View, req) {
 
   const baseModel = await Model.getBaseModelSQL(context, {
     id: view.model.id,
-    viewId: view?.id,
+    view: view,
     dbDriver: await NcConnectionMgrv2.get(source),
   });
 

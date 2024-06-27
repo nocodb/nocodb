@@ -18,7 +18,7 @@ export class OldDatasService {
 
     const baseModel = await Model.getBaseModelSQL(context, {
       id: model.id,
-      viewId: view?.id,
+      view,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
@@ -47,8 +47,8 @@ export class OldDatasService {
     const source = await Source.get(context, model.source_id);
 
     const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      viewId: view?.id,
+      model,
+      view,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
@@ -72,8 +72,8 @@ export class OldDatasService {
     const source = await Source.get(context, model.source_id);
 
     const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      viewId: view?.id,
+      model,
+      view,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
@@ -92,8 +92,8 @@ export class OldDatasService {
     const source = await Source.get(context, model.source_id);
 
     const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      viewId: view?.id,
+      model,
+      view,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
@@ -122,8 +122,8 @@ export class OldDatasService {
     const source = await Source.get(context, model.source_id);
 
     const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      viewId: view.id,
+      model,
+      view,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
@@ -145,8 +145,8 @@ export class OldDatasService {
     );
     const source = await Source.get(context, model.source_id);
     const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      viewId: view.id,
+      model,
+      view,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 

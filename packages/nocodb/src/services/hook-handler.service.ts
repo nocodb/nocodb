@@ -103,7 +103,8 @@ export class HookHandlerService implements OnModuleInit, OnModuleDestroy {
           }
         } catch (e) {
           this.logger.error({
-            error: e,
+            error: e?.message || e,
+            stack: e?.stack,
             details: 'Error while sending form submission email',
             hookName,
           });
@@ -130,7 +131,8 @@ export class HookHandlerService implements OnModuleInit, OnModuleDestroy {
             });
           } catch (e) {
             this.logger.error({
-              error: e,
+              error: e?.message || e,
+              stack: e?.stack,
               details: 'Error while invoking webhook',
               hook: hook.id,
             });
@@ -139,7 +141,8 @@ export class HookHandlerService implements OnModuleInit, OnModuleDestroy {
       }
     } catch (e) {
       this.logger.error({
-        error: e,
+        error: e?.message || e,
+        stack: e?.stack,
         details: 'Error while handling hook',
         hookName,
       });

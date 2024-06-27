@@ -90,8 +90,7 @@ export class ExportService {
             if (column.ai) {
               try {
                 const baseModel = await Model.getBaseModelSQL(context, {
-                  id: model.id,
-                  viewId: null,
+                  model,
                   dbDriver: await NcConnectionMgrv2.get(source),
                 });
                 const sqlClient = await NcConnectionMgrv2.getSqlClient(source);
@@ -565,8 +564,8 @@ export class ExportService {
     };
 
     const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      viewId: view?.id,
+      model,
+      view,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
@@ -640,7 +639,7 @@ export class ExportService {
             : await Source.get(context, mmModel.source_id);
 
         const mmBaseModel = await Model.getBaseModelSQL(context, {
-          id: mmModel.id,
+          model: mmModel,
           dbDriver: await NcConnectionMgrv2.get(mmBase),
         });
 

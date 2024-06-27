@@ -31,8 +31,8 @@ export class BulkDataAliasService {
   ) {
     const { model, view, source } = await this.getModelViewBase(context, param);
     const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      viewId: view?.id,
+      model,
+      view,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
     return await baseModel[param.operation].apply(null, param.options);

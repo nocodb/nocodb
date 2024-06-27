@@ -337,7 +337,7 @@ export class ColumnsService {
           try {
             const baseModel = await reuseOrSave('baseModel', reuse, async () =>
               Model.getBaseModelSQL(context, {
-                id: table.id,
+                model: table,
                 dbDriver: await reuseOrSave('dbDriver', reuse, async () =>
                   NcConnectionMgrv2.get(source),
                 ),
@@ -490,7 +490,7 @@ export class ColumnsService {
 
       const baseModel = await reuseOrSave('baseModel', reuse, async () =>
         Model.getBaseModelSQL(context, {
-          id: table.id,
+          model: table,
           dbDriver: await reuseOrSave('dbDriver', reuse, async () =>
             NcConnectionMgrv2.get(source),
           ),
@@ -556,7 +556,7 @@ export class ColumnsService {
 
           const baseModel = await reuseOrSave('baseModel', reuse, async () =>
             Model.getBaseModelSQL(context, {
-              id: table.id,
+              model: table,
               dbDriver: dbDriver,
             }),
           );
@@ -1189,7 +1189,7 @@ export class ColumnsService {
         ) {
           const baseModel = await reuseOrSave('baseModel', reuse, async () =>
             Model.getBaseModelSQL(context, {
-              id: table.id,
+              model: table,
               dbDriver: await reuseOrSave('dbDriver', reuse, async () =>
                 NcConnectionMgrv2.get(source),
               ),
@@ -1289,7 +1289,7 @@ export class ColumnsService {
         // email/text to user
         const baseModel = await reuseOrSave('baseModel', reuse, async () =>
           Model.getBaseModelSQL(context, {
-            id: table.id,
+            model: table,
             dbDriver: await reuseOrSave('dbDriver', reuse, async () =>
               NcConnectionMgrv2.get(source),
             ),
@@ -1398,7 +1398,7 @@ export class ColumnsService {
       if (column.uidt === UITypes.User) {
         const baseModel = await reuseOrSave('baseModel', reuse, async () =>
           Model.getBaseModelSQL(context, {
-            id: table.id,
+            model: table,
             dbDriver: await reuseOrSave('dbDriver', reuse, async () =>
               NcConnectionMgrv2.get(source),
             ),
@@ -1688,7 +1688,7 @@ export class ColumnsService {
         try {
           const baseModel = await reuseOrSave('baseModel', reuse, async () =>
             Model.getBaseModelSQL(context, {
-              id: table.id,
+              model: table,
               dbDriver: await reuseOrSave('dbDriver', reuse, async () =>
                 NcConnectionMgrv2.get(source),
               ),
@@ -3291,7 +3291,7 @@ export class ColumnsService {
       id: source.base_id,
     });
     const baseModel = await Model.getBaseModelSQL(context, {
-      id: table.id,
+      model: table,
       dbDriver: dbDriver,
     });
 

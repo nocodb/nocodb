@@ -463,7 +463,7 @@ const colMeta = computed(() => {
 // #Grid
 
 function openColumnCreate(data: any) {
-  tableHeadEl.value?.querySelector('th:last-child')?.scrollIntoView({ behavior: 'smooth' })
+  tableHeadEl.value?.querySelector('th .nc-grid-add-edit-column')?.scrollIntoView({ behavior: 'smooth' })
   setTimeout(() => {
     addColumnDropdown.value = true
     preloadColumn.value = data
@@ -477,7 +477,9 @@ const closeAddColumnDropdown = (scrollToLastCol = false) => {
   if (scrollToLastCol) {
     setTimeout(() => {
       const lastAddNewRowHeader =
-        tableHeadEl.value?.querySelector('.nc-grid-add-edit-column') ?? tableHeadEl.value?.querySelector('th:last-child')
+        tableHeadEl.value?.querySelector('.nc-grid-add-edit-column') ??
+        tableHeadEl.value?.querySelector('th .nc-grid-add-edit-column')
+
       if (lastAddNewRowHeader) {
         lastAddNewRowHeader.scrollIntoView({ behavior: 'smooth' })
       }
@@ -1871,7 +1873,7 @@ onKeyStroke('ArrowDown', onDown)
                         </NcMenu>
                       </template>
                       <template v-else #overlay>
-                        <div class="overflow-auto max-h-[max(80vh,500px)] min-w-[384px]">
+                        <div class="overflow-auto max-h-[max(80vh,500px)] min-w-[384px] rounded-xl">
                           <LazySmartsheetColumnEditOrAddProvider
                             v-if="addColumnDropdown"
                             :preload="preloadColumn"

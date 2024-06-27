@@ -204,7 +204,7 @@ const onClick = (e: Event) => {
       <div v-else />
 
       <template #overlay>
-        <div class="overflow-auto max-h-[max(80vh,500px)] min-w-[384px]">
+        <div class="overflow-auto max-h-[max(80vh,500px)] min-w-[384px] rounded-xl">
           <LazySmartsheetColumnEditOrAddProvider
             v-if="editColumnDropdown"
             :column="columnOrder ? null : column"

@@ -1372,7 +1372,12 @@ watch(
             </Draggable>
           </div>
           <Transition name="slide-fade">
-            <div v-if="!changingField" class="border-gray-200 border-l-1 nc-scrollbar-md nc-fields-height !overflow-y-auto">
+            <div
+              v-if="!changingField"
+              class="border-gray-200 border-l-1 nc-scrollbar-md nc-fields-height !overflow-y-auto"
+              @keydown.up.stop
+              @keydown.down.stop
+            >
               <SmartsheetColumnEditOrAddProvider
                 v-if="activeField"
                 class="p-4 w-[25rem]"

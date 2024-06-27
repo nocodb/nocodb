@@ -272,7 +272,7 @@ export default class Source implements SourceType {
         CacheGetType.TYPE_OBJECT,
       ));
     if (!baseData) {
-      baseData = await ncMeta.metaGet(
+      baseData = await ncMeta.metaFirst(
         context.workspace_id,
         context.base_id,
         MetaTable.BASES,
@@ -310,7 +310,7 @@ export default class Source implements SourceType {
     uuid: string,
     ncMeta = Noco.ncMeta,
   ) {
-    const source = await ncMeta.metaGet(
+    const source = await ncMeta.metaFirst(
       context.workspace_id,
       context.base_id,
       MetaTable.BASES,

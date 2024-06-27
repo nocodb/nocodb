@@ -176,7 +176,8 @@ export default class LinkToAnotherRecordColumn {
         context.workspace_id,
         context.base_id,
         MetaTable.COL_RELATIONS,
-        { fk_column_id: columnId },
+        columnId,
+        'fk_column_id',
       );
       await NocoCache.set(`${CacheScope.COL_RELATION}:${columnId}`, colData);
     }

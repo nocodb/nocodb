@@ -41,9 +41,8 @@ export default class GridView implements GridType {
         context.workspace_id,
         context.base_id,
         MetaTable.GRID_VIEW,
-        {
-          fk_view_id: viewId,
-        },
+        viewId,
+        'fk_view_id',
       );
       await NocoCache.set(`${CacheScope.GRID_VIEW}:${viewId}`, view);
     }

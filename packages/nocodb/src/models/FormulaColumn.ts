@@ -61,7 +61,8 @@ export default class FormulaColumn {
         context.workspace_id,
         context.base_id,
         MetaTable.COL_FORMULA,
-        { fk_column_id: columnId },
+        columnId,
+        'fk_column_id',
       );
       if (column) {
         column.parsed_tree = parseMetaProp(column, 'parsed_tree');

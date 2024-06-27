@@ -384,7 +384,7 @@ export default class Model implements TableType {
         CacheGetType.TYPE_OBJECT,
       ));
     if (!modelData) {
-      modelData = await ncMeta.metaGet(
+      modelData = await ncMeta.metaFirst(
         context.workspace_id,
         context.base_id,
         MetaTable.MODELS,
@@ -424,9 +424,8 @@ export default class Model implements TableType {
         context.workspace_id,
         context.base_id,
         MetaTable.MODELS,
-        id || {
-          table_name,
-        },
+        id || table_name,
+        id ? 'id' : 'table_name',
       );
       if (modelData) {
         modelData.meta = parseMetaProp(modelData);
@@ -976,7 +975,7 @@ export default class Model implements TableType {
       (await NocoCache.get(cacheKey, CacheGetType.TYPE_STRING));
     if (!modelId) {
       const model = source_id
-        ? await ncMeta.metaGet(
+        ? await ncMeta.metaFirst(
             context.workspace_id,
             context.base_id,
             MetaTable.MODELS,
@@ -997,11 +996,11 @@ export default class Model implements TableType {
               ],
             },
           )
-        : await ncMeta.metaGet(
+        : await ncMeta.metaFirst(
             context.workspace_id,
             context.base_id,
             MetaTable.MODELS,
-            { base_id },
+            null,
             null,
             {
               _or: [
@@ -1032,7 +1031,7 @@ export default class Model implements TableType {
     { table_name, exclude_id }: { table_name; base_id; source_id; exclude_id? },
     ncMeta = Noco.ncMeta,
   ) {
-    return !(await ncMeta.metaGet(
+    return !(await ncMeta.metaFirst(
       context.workspace_id,
       context.base_id,
       MetaTable.MODELS,
@@ -1049,7 +1048,7 @@ export default class Model implements TableType {
     { title, exclude_id }: { title; base_id; source_id; exclude_id? },
     ncMeta = Noco.ncMeta,
   ) {
-    return !(await ncMeta.metaGet(
+    return !(await ncMeta.metaFirst(
       context.workspace_id,
       context.base_id,
       MetaTable.MODELS,

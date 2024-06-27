@@ -44,9 +44,8 @@ export default class Store {
       RootScopes.ROOT,
       RootScopes.ROOT,
       MetaTable.STORE,
-      {
-        key,
-      },
+      key,
+      'key',
     );
 
     if (lookInCache)

@@ -168,7 +168,7 @@ export default class SelectOption implements SelectOptionType {
     title: string,
     ncMeta = Noco.ncMeta,
   ): Promise<SelectOption> {
-    const data = await ncMeta.metaGet(
+    const data = await ncMeta.metaFirst(
       context.workspace_id,
       context.base_id,
       MetaTable.COL_SELECT_OPTIONS,

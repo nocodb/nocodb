@@ -150,9 +150,8 @@ export default class Noco {
             RootScopes.ROOT,
             RootScopes.ROOT,
             MetaTable.STORE,
-            {
-              key: 'nc_auth_jwt_secret',
-            },
+            'nc_auth_jwt_secret',
+            'key',
           )
         )?.value;
         if (!secret) {
@@ -181,9 +180,8 @@ export default class Noco {
         RootScopes.ROOT,
         RootScopes.ROOT,
         MetaTable.STORE,
-        {
-          key: 'nc_server_id',
-        },
+        'nc_server_id',
+        'key',
       )
     )?.value;
     if (!serverId) {

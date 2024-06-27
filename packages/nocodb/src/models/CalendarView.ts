@@ -51,9 +51,8 @@ export default class CalendarView implements CalendarType {
         context.workspace_id,
         context.base_id,
         MetaTable.CALENDAR_VIEW,
-        {
-          fk_view_id: viewId,
-        },
+        viewId,
+        'fk_view_id',
       );
       const calendarRange = await CalendarRange.read(context, viewId, ncMeta);
       if (view && calendarRange) {

@@ -91,7 +91,8 @@ export default class ApiToken implements ApiTokenType {
         RootScopes.ROOT,
         RootScopes.ROOT,
         MetaTable.API_TOKENS,
-        { token },
+        token,
+        'token',
       );
       await NocoCache.set(`${CacheScope.API_TOKEN}:${token}`, data);
     }

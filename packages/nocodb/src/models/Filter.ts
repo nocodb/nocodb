@@ -367,9 +367,7 @@ export default class Filter implements FilterType {
         context.workspace_id,
         context.base_id,
         MetaTable.FILTER_EXP,
-        {
-          id: this.fk_parent_id,
-        },
+        this.fk_parent_id,
       );
       await NocoCache.set(
         `${CacheScope.FILTER_EXP}:${this.fk_parent_id}`,
@@ -590,9 +588,7 @@ export default class Filter implements FilterType {
         context.workspace_id,
         context.base_id,
         MetaTable.FILTER_EXP,
-        {
-          id,
-        },
+        id,
       );
       await NocoCache.set(`${CacheScope.FILTER_EXP}:${id}`, filterObj);
     }

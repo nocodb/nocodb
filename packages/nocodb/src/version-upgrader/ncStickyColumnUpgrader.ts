@@ -47,9 +47,7 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
         workspace_id,
         base_id,
         MetaTable.COLUMNS,
-        {
-          id: col.fk_column_id,
-        },
+        col.fk_column_id,
       );
       view_columns_meta.push(col_meta);
     }

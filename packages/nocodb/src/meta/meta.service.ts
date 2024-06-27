@@ -71,29 +71,28 @@ export class MetaService {
   }
 
   /***
-   * Get single record from meta data
+   * Get meta data
    * @param workspace_id - Workspace id
-   * @param base_id - Base alias
+   * @param base_id - Base id
    * @param target - Table name
-   * @param idOrCondition - If string, will get the record with the given id. If object, will get the record with the given condition.
-   * @param fields - Fields to be selected
+   * @param idValue - ID of the record
+   * @param idField - Field name of the ID
    */
   public async metaGet(
     workspace_id: string,
     base_id: string,
     target: string,
-    idOrCondition: string | { [p: string]: any },
+    idValue: string,
+    idField = 'id',
     fields?: string[],
-    xcCondition?: Condition,
   ): Promise<any> {
     const query = this.knexConnection(target);
 
-    if (xcCondition) {
-      query.condition(xcCondition);
-    }
-
-    if (fields?.length) {
-      query.select(...fields);
+    if (!idValue || !idField) {
+      NcError.metaError({
+        message: 'ID is required for metaGet',
+        sql: '',
+      });
     }
 
     if (workspace_id === RootScopes.BYPASS && base_id === RootScopes.BYPASS) {
@@ -119,19 +118,86 @@ export class MetaService {
           sql: '',
         });
       }
-
-      this.contextCondition(query, workspace_id, base_id, target);
     }
 
-    if (!idOrCondition) {
-      return query.first();
+    if (fields?.length) {
+      query.select(...fields);
+    }
+
+    query.where(idField, idValue);
+
+    this.checkConditionPresent(query, 'read');
+
+    this.contextCondition(query, workspace_id, base_id, target);
+
+    return query.first();
+  }
+
+  /***
+   * Get meta data
+   * @param workspace_id - Workspace id
+   * @param base_id - Base id
+   * @param target - Table name
+   * @param idOrCondition - If string, will get the record with the given id. If object, will get the record with the given condition.
+   * @param fields - Fields to be selected
+   * @param xcCondition - Additional nested or complex condition to be added to the query.
+   */
+  public async metaFirst(
+    workspace_id: string,
+    base_id: string,
+    target: string,
+    idOrCondition: string | { [p: string]: any },
+    fields?: string[],
+    xcCondition?: Condition,
+    force = false,
+  ): Promise<any> {
+    const query = this.knexConnection(target);
+
+    if (fields?.length) {
+      query.select(...fields);
+    }
+
+    if (workspace_id === base_id) {
+      if (!Object.values(RootScopes).includes(workspace_id as RootScopes)) {
+        NcError.metaError({
+          message: 'Invalid scope',
+          sql: '',
+        });
+      }
+
+      if (!RootScopeTables[workspace_id].includes(target)) {
+        NcError.metaError({
+          message: 'Table not accessible from this scope',
+          sql: '',
+        });
+      }
+    } else {
+      if (!base_id) {
+        NcError.metaError({
+          message: 'Base ID is required',
+          sql: '',
+        });
+      }
+    }
+
+    if (xcCondition) {
+      query.condition(xcCondition);
     }
 
     if (typeof idOrCondition !== 'object') {
       query.where('id', idOrCondition);
-    } else {
+    } else if (idOrCondition) {
       query.where(idOrCondition);
     }
+
+    // Check if a condition is present in the query builder and throw an error if not.
+    if (!force) {
+      this.checkConditionPresent(query, 'read');
+    }
+
+    // Apply context condition
+    this.contextCondition(query, workspace_id, base_id, target);
+
     return query.first();
   }
 
@@ -725,7 +791,7 @@ export class MetaService {
    */
   protected checkConditionPresent(
     queryBuilder: Knex.QueryBuilder,
-    operation: 'delete' | 'update',
+    operation: 'read' | 'delete' | 'update',
   ) {
     // Convert the query builder to a SQL string to inspect the presence of a WHERE clause.
     const sql = queryBuilder.toString();

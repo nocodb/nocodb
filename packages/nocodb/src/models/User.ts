@@ -149,9 +149,8 @@ export default class User implements UserType {
         RootScopes.ROOT,
         RootScopes.ROOT,
         MetaTable.USERS,
-        {
-          email,
-        },
+        email,
+        'email',
       );
       await NocoCache.set(`${CacheScope.USER}:${email}`, user);
     }
@@ -159,11 +158,14 @@ export default class User implements UserType {
   }
 
   static async isFirst(ncMeta = Noco.ncMeta) {
-    return !(await ncMeta.metaGet(
+    return !(await ncMeta.metaFirst(
       RootScopes.ROOT,
       RootScopes.ROOT,
       MetaTable.USERS,
-      {},
+      null,
+      null,
+      null,
+      true,
     ));
   }
 

@@ -65,9 +65,7 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
       context.workspace_id,
       context.base_id,
       MetaTable.PROJECT,
-      {
-        id: source.base_id,
-      },
+      source.base_id,
     );
 
     // skip if the base is missing

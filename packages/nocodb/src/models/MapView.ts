@@ -46,9 +46,8 @@ export default class MapView implements MapType {
         context.workspace_id,
         context.base_id,
         MetaTable.MAP_VIEW,
-        {
-          fk_view_id: viewId,
-        },
+        viewId,
+        'fk_view_id',
       );
       await NocoCache.set(`${CacheScope.MAP_VIEW}:${viewId}`, view);
     }

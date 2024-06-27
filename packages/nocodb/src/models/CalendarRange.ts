@@ -103,9 +103,8 @@ export default class CalendarRange implements CalendarRangeType {
       context.workspace_id,
       context.base_id,
       MetaTable.CALENDAR_VIEW_RANGE,
-      {
-        fk_view_id,
-      },
+      fk_view_id,
+      'fk_view_id',
     );
 
     return data && new CalendarRange(data);

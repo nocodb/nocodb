@@ -61,9 +61,8 @@ export default class GalleryView implements GalleryType {
         context.workspace_id,
         context.base_id,
         MetaTable.GALLERY_VIEW,
-        {
-          fk_view_id: viewId,
-        },
+        viewId,
+        'fk_view_id',
       );
       await NocoCache.set(`${CacheScope.GALLERY_VIEW}:${viewId}`, view);
     }

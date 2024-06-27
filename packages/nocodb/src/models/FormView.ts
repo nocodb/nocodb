@@ -63,9 +63,8 @@ export default class FormView implements FormViewType {
         context.workspace_id,
         context.base_id,
         MetaTable.FORM_VIEW,
-        {
-          fk_view_id: viewId,
-        },
+        viewId,
+        'fk_view_id',
       );
 
       if (view) {

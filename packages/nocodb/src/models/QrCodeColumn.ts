@@ -63,7 +63,8 @@ export default class QrCodeColumn {
         context.workspace_id,
         context.base_id,
         MetaTable.COL_QRCODE,
-        { fk_column_id: columnId },
+        columnId,
+        'fk_column_id',
       );
       await NocoCache.set(`${CacheScope.COL_QRCODE}:${columnId}`, column);
     }

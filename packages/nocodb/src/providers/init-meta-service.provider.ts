@@ -47,9 +47,8 @@ export const InitMetaServiceProvider: FactoryProvider = {
           RootScopes.ROOT,
           RootScopes.ROOT,
           MetaTable.STORE,
-          {
-            key: 'NC_CONFIG_MAIN',
-          },
+          'NC_CONFIG_MAIN',
+          'key',
         )
       : null;
 

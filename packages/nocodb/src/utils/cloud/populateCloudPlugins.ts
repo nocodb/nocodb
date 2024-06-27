@@ -17,9 +17,8 @@ export const populatePluginsForCloud = async ({ ncMeta = Noco.ncMeta }) => {
     RootScopes.ROOT,
     RootScopes.ROOT,
     MetaTable.PLUGIN,
-    {
-      title: S3PluginConfig.title,
-    },
+    S3PluginConfig.title,
+    'title',
   );
 
   if (!s3PluginData) throw new Error('S3 plugin not found');
@@ -66,9 +65,8 @@ export const populatePluginsForCloud = async ({ ncMeta = Noco.ncMeta }) => {
     RootScopes.ROOT,
     RootScopes.ROOT,
     MetaTable.PLUGIN,
-    {
-      title: SESPluginConfig.title,
-    },
+    SESPluginConfig.title,
+    'title',
   );
 
   if (!sesPluginData) throw new Error('SES plugin not found');

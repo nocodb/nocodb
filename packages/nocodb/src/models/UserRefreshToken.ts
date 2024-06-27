@@ -118,9 +118,8 @@ export default class UserRefreshToken {
       RootScopes.ROOT,
       RootScopes.ROOT,
       MetaTable.USER_REFRESH_TOKENS,
-      {
-        token,
-      },
+      token,
+      'token',
     );
 
     if (!userToken) return null;

@@ -44,9 +44,8 @@ export default class NcUpgrader {
         RootScopes.ROOT,
         RootScopes.ROOT,
         MetaTable.STORE,
-        {
-          key: this.STORE_KEY,
-        },
+        this.STORE_KEY,
+        'key',
       );
 
       const NC_VERSIONS: any[] = this.getUpgraderList();

@@ -113,9 +113,8 @@ export default class Plugin implements PluginType {
         RootScopes.ROOT,
         RootScopes.ROOT,
         MetaTable.PLUGIN,
-        {
-          title,
-        },
+        title,
+        'title',
       );
       await NocoCache.set(`${CacheScope.PLUGIN}:${title}`, plugin);
     }

@@ -218,7 +218,7 @@ export class OrgUsersService {
       invite_token_expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
     });
 
-    const pluginData = await Noco.ncMeta.metaGet(
+    const pluginData = await Noco.ncMeta.metaFirst(
       RootScopes.ROOT,
       RootScopes.ROOT,
       MetaTable.PLUGIN,

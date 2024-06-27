@@ -53,9 +53,8 @@ export class UsersService {
       RootScopes.ROOT,
       RootScopes.ROOT,
       MetaTable.USERS,
-      {
-        email,
-      },
+      email,
+      'email',
     );
 
     return user;
@@ -277,9 +276,8 @@ export class UsersService {
       RootScopes.ROOT,
       RootScopes.ROOT,
       MetaTable.USERS,
-      {
-        reset_password_token: token,
-      },
+      token,
+      'reset_password_token',
     );
 
     if (!user || !user.email) {
@@ -308,9 +306,8 @@ export class UsersService {
       RootScopes.ROOT,
       RootScopes.ROOT,
       MetaTable.USERS,
-      {
-        reset_password_token: token,
-      },
+      token,
+      'reset_password_token',
     );
 
     if (!user) {
@@ -361,9 +358,8 @@ export class UsersService {
       RootScopes.ROOT,
       RootScopes.ROOT,
       MetaTable.USERS,
-      {
-        email_verification_token: token,
-      },
+      token,
+      'email_verification_token',
     );
 
     if (!user) {

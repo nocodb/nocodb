@@ -52,9 +52,8 @@ export default class KanbanView implements KanbanType {
         context.workspace_id,
         context.base_id,
         MetaTable.KANBAN_VIEW,
-        {
-          fk_view_id: viewId,
-        },
+        viewId,
+        'fk_view_id',
       );
 
       view = prepareForResponse(view);

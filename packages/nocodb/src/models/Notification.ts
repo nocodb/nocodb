@@ -47,7 +47,7 @@ export default class Notification {
   ) {
     const condition = extractProps(params, ['id', 'fk_user_id']);
 
-    return await ncMeta.metaGet(
+    return await ncMeta.metaFirst(
       RootScopes.ROOT,
       RootScopes.ROOT,
       MetaTable.NOTIFICATION,

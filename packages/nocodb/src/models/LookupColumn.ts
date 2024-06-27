@@ -80,7 +80,8 @@ export default class LookupColumn implements LookupType {
         context.workspace_id,
         context.base_id,
         MetaTable.COL_LOOKUP,
-        { fk_column_id: columnId },
+        columnId,
+        'fk_column_id',
       );
       await NocoCache.set(`${CacheScope.COL_LOOKUP}:${columnId}`, colData);
     }

@@ -96,7 +96,8 @@ export default class RollupColumn implements RollupType {
         context.workspace_id,
         context.base_id,
         MetaTable.COL_ROLLUP,
-        { fk_column_id: columnId },
+        columnId,
+        'fk_column_id',
       );
       await NocoCache.set(`${CacheScope.COL_ROLLUP}:${columnId}`, column);
     }

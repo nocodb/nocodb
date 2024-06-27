@@ -385,9 +385,7 @@ export default class Filter {
         context.workspace_id,
         context.base_id,
         MetaTable.FILTER_EXP,
-        {
-          id,
-        },
+        id,
       );
       await NocoCache.set(`${CacheScope.FILTER_EXP}:${id}`, filterObj);
     }

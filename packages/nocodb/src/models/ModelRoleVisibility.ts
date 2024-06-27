@@ -64,16 +64,10 @@ export default class ModelRoleVisibility implements ModelRoleVisibilityType {
         CacheGetType.TYPE_OBJECT,
       ));
     if (!data) {
-      data = await ncMeta.metaGet(
+      data = await ncMeta.metaFirst(
         context.workspace_id,
         context.base_id,
         MetaTable.MODEL_ROLE_VISIBILITY,
-        // args.fk_model_id
-        //   ? {
-        //       fk_model_id: args.fk_model_id,
-        //       role: args.role
-        //     }
-        //   :
         {
           fk_view_id: args.fk_view_id,
           role: args.role,

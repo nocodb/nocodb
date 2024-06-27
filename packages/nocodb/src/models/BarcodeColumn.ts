@@ -67,7 +67,8 @@ export default class BarcodeColumn {
         context.workspace_id,
         context.base_id,
         MetaTable.COL_BARCODE,
-        { fk_column_id: columnId },
+        columnId,
+        'fk_column_id',
       );
       await NocoCache.set(`${CacheScope.COL_BARCODE}:${columnId}`, column);
     }

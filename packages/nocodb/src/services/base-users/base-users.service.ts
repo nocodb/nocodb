@@ -333,7 +333,7 @@ export class BaseUsersService {
       invite_token_expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
     });
 
-    const pluginData = await Noco.ncMeta.metaGet(
+    const pluginData = await Noco.ncMeta.metaFirst(
       context.workspace_id,
       context.base_id,
       MetaTable.PLUGIN,

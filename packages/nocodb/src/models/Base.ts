@@ -175,7 +175,7 @@ export default class Base implements BaseType {
         CacheGetType.TYPE_OBJECT,
       ));
     if (!baseData) {
-      baseData = await ncMeta.metaGet(
+      baseData = await ncMeta.metaFirst(
         context.workspace_id,
         context.base_id,
         MetaTable.PROJECT,
@@ -219,7 +219,7 @@ export default class Base implements BaseType {
       ));
 
     if (!baseData) {
-      baseData = await ncMeta.metaGet(
+      baseData = await ncMeta.metaFirst(
         context.workspace_id,
         context.base_id,
         MetaTable.PROJECT,
@@ -431,12 +431,13 @@ export default class Base implements BaseType {
       ));
     let baseData = null;
     if (!baseId) {
-      baseData = await Noco.ncMeta.metaGet(
+      baseData = await Noco.ncMeta.metaFirst(
         context.workspace_id,
         context.base_id,
         MetaTable.PROJECT,
         {
           uuid,
+          deleted: false,
         },
       );
       if (baseData) {
@@ -478,7 +479,7 @@ export default class Base implements BaseType {
       ));
     let baseData = null;
     if (!baseId) {
-      baseData = await ncMeta.metaGet(
+      baseData = await ncMeta.metaFirst(
         context.workspace_id,
         context.base_id,
         MetaTable.PROJECT,
@@ -513,7 +514,7 @@ export default class Base implements BaseType {
       ));
     let baseData = null;
     if (!baseId) {
-      baseData = await ncMeta.metaGet(
+      baseData = await ncMeta.metaFirst(
         context.workspace_id,
         context.base_id,
         MetaTable.PROJECT,

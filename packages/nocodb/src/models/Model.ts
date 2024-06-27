@@ -348,7 +348,7 @@ export default class Model implements TableType {
         CacheGetType.TYPE_OBJECT,
       ));
     if (!modelData) {
-      modelData = await ncMeta.metaGet2(
+      modelData = await ncMeta.metaGet(
         context.workspace_id,
         context.base_id,
         MetaTable.MODELS,
@@ -384,7 +384,7 @@ export default class Model implements TableType {
         CacheGetType.TYPE_OBJECT,
       ));
     if (!modelData) {
-      modelData = await ncMeta.metaGet2(
+      modelData = await ncMeta.metaGet(
         context.workspace_id,
         context.base_id,
         MetaTable.MODELS,
@@ -420,7 +420,7 @@ export default class Model implements TableType {
         CacheGetType.TYPE_OBJECT,
       ));
     if (!modelData) {
-      modelData = await ncMeta.metaGet2(
+      modelData = await ncMeta.metaGet(
         context.workspace_id,
         context.base_id,
         MetaTable.MODELS,
@@ -976,7 +976,7 @@ export default class Model implements TableType {
       (await NocoCache.get(cacheKey, CacheGetType.TYPE_STRING));
     if (!modelId) {
       const model = source_id
-        ? await ncMeta.metaGet2(
+        ? await ncMeta.metaGet(
             context.workspace_id,
             context.base_id,
             MetaTable.MODELS,
@@ -997,7 +997,7 @@ export default class Model implements TableType {
               ],
             },
           )
-        : await ncMeta.metaGet2(
+        : await ncMeta.metaGet(
             context.workspace_id,
             context.base_id,
             MetaTable.MODELS,
@@ -1032,7 +1032,7 @@ export default class Model implements TableType {
     { table_name, exclude_id }: { table_name; base_id; source_id; exclude_id? },
     ncMeta = Noco.ncMeta,
   ) {
-    return !(await ncMeta.metaGet2(
+    return !(await ncMeta.metaGet(
       context.workspace_id,
       context.base_id,
       MetaTable.MODELS,
@@ -1049,7 +1049,7 @@ export default class Model implements TableType {
     { title, exclude_id }: { title; base_id; source_id; exclude_id? },
     ncMeta = Noco.ncMeta,
   ) {
-    return !(await ncMeta.metaGet2(
+    return !(await ncMeta.metaGet(
       context.workspace_id,
       context.base_id,
       MetaTable.MODELS,

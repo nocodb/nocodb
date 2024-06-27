@@ -111,7 +111,7 @@ export default class View implements ViewType {
         CacheGetType.TYPE_OBJECT,
       ));
     if (!view) {
-      view = await ncMeta.metaGet2(
+      view = await ncMeta.metaGet(
         context.workspace_id,
         context.base_id,
         MetaTable.VIEWS,
@@ -138,7 +138,7 @@ export default class View implements ViewType {
         CacheGetType.TYPE_STRING,
       ));
     if (!viewId) {
-      const view = await ncMeta.metaGet2(
+      const view = await ncMeta.metaGet(
         context.workspace_id,
         context.base_id,
         MetaTable.VIEWS,
@@ -189,7 +189,7 @@ export default class View implements ViewType {
         CacheGetType.TYPE_OBJECT,
       ));
     if (!view) {
-      view = await ncMeta.metaGet2(
+      view = await ncMeta.metaGet(
         context.workspace_id,
         context.base_id,
         MetaTable.VIEWS,
@@ -880,7 +880,7 @@ export default class View implements ViewType {
     const o = await NocoCache.get(key, CacheGetType.TYPE_STRING);
     if (o) return o;
 
-    const viewColumn = await ncMeta.metaGet2(
+    const viewColumn = await ncMeta.metaGet(
       context.workspace_id,
       context.base_id,
       tableName,
@@ -941,7 +941,7 @@ export default class View implements ViewType {
 
     // keep primary_value_column always visible and first in grid view
     if (view.type === ViewTypes.GRID) {
-      const primary_value_column_meta = await ncMeta.metaGet2(
+      const primary_value_column_meta = await ncMeta.metaGet(
         context.workspace_id,
         context.base_id,
         MetaTable.COLUMNS,
@@ -951,7 +951,7 @@ export default class View implements ViewType {
         },
       );
 
-      const primary_value_column = await ncMeta.metaGet2(
+      const primary_value_column = await ncMeta.metaGet(
         context.workspace_id,
         context.base_id,
         MetaTable.GRID_VIEW_COLUMNS,
@@ -1010,7 +1010,7 @@ export default class View implements ViewType {
     const view = await this.get(context, viewId, ncMeta);
     const table = this.extractViewColumnsTableName(view);
 
-    const existingCol = await ncMeta.metaGet2(
+    const existingCol = await ncMeta.metaGet(
       context.workspace_id,
       context.base_id,
       table,
@@ -1131,7 +1131,7 @@ export default class View implements ViewType {
     uuid: string,
     ncMeta = Noco.ncMeta,
   ) {
-    const view = await ncMeta.metaGet2(
+    const view = await ncMeta.metaGet(
       context.workspace_id,
       context.base_id,
       MetaTable.VIEWS,
@@ -1487,7 +1487,7 @@ export default class View implements ViewType {
     const scope = this.extractViewColumnsTableNameScope(view);
 
     if (view.type === ViewTypes.GRID) {
-      const primary_value_column = await ncMeta.metaGet2(
+      const primary_value_column = await ncMeta.metaGet(
         context.workspace_id,
         context.base_id,
         MetaTable.COLUMNS,
@@ -1604,7 +1604,7 @@ export default class View implements ViewType {
 
     // get column meta for each view column
     for (const col of view_columns) {
-      const col_meta = await ncMeta.metaGet2(
+      const col_meta = await ncMeta.metaGet(
         context.workspace_id,
         context.base_id,
         MetaTable.COLUMNS,

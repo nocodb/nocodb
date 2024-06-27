@@ -145,7 +145,7 @@ export default class User implements UserType {
         CacheGetType.TYPE_OBJECT,
       ));
     if (!user) {
-      user = await ncMeta.metaGet2(
+      user = await ncMeta.metaGet(
         RootScopes.ROOT,
         RootScopes.ROOT,
         MetaTable.USERS,
@@ -159,7 +159,7 @@ export default class User implements UserType {
   }
 
   static async isFirst(ncMeta = Noco.ncMeta) {
-    return !(await ncMeta.metaGet2(
+    return !(await ncMeta.metaGet(
       RootScopes.ROOT,
       RootScopes.ROOT,
       MetaTable.USERS,
@@ -192,7 +192,7 @@ export default class User implements UserType {
         CacheGetType.TYPE_OBJECT,
       ));
     if (!user) {
-      user = await ncMeta.metaGet2(
+      user = await ncMeta.metaGet(
         RootScopes.ROOT,
         RootScopes.ROOT,
         MetaTable.USERS,
@@ -213,7 +213,7 @@ export default class User implements UserType {
       return null;
     }
 
-    return await ncMeta.metaGet2(
+    return await ncMeta.metaGet(
       RootScopes.ROOT,
       RootScopes.ROOT,
       MetaTable.USERS,

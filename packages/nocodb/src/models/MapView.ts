@@ -42,7 +42,7 @@ export default class MapView implements MapType {
         CacheGetType.TYPE_OBJECT,
       ));
     if (!view) {
-      view = await ncMeta.metaGet2(
+      view = await ncMeta.metaGet(
         context.workspace_id,
         context.base_id,
         MetaTable.MAP_VIEW,

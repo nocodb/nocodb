@@ -635,7 +635,7 @@ export default class Column<T = any> implements ColumnType {
         CacheGetType.TYPE_OBJECT,
       ));
     if (!colData) {
-      colData = await ncMeta.metaGet2(
+      colData = await ncMeta.metaGet(
         context.workspace_id,
         context.base_id,
         MetaTable.COLUMNS,
@@ -1311,7 +1311,7 @@ export default class Column<T = any> implements ColumnType {
     }: { column_name; fk_model_id; exclude_id? },
     ncMeta = Noco.ncMeta,
   ) {
-    return !(await ncMeta.metaGet2(
+    return !(await ncMeta.metaGet(
       context.workspace_id,
       context.base_id,
       MetaTable.COLUMNS,
@@ -1329,7 +1329,7 @@ export default class Column<T = any> implements ColumnType {
     { title, fk_model_id, exclude_id }: { title; fk_model_id; exclude_id? },
     ncMeta = Noco.ncMeta,
   ) {
-    return !(await ncMeta.metaGet2(
+    return !(await ncMeta.metaGet(
       context.workspace_id,
       context.base_id,
       MetaTable.COLUMNS,

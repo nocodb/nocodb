@@ -55,7 +55,7 @@ export default class Hook implements HookType {
         CacheGetType.TYPE_OBJECT,
       ));
     if (!hook) {
-      hook = await ncMeta.metaGet2(
+      hook = await ncMeta.metaGet(
         context.workspace_id,
         context.base_id,
         MetaTable.HOOKS,

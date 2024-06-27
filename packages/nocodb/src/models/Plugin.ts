@@ -41,7 +41,7 @@ export default class Plugin implements PluginType {
         CacheGetType.TYPE_OBJECT,
       ));
     if (!plugin) {
-      plugin = await ncMeta.metaGet2(
+      plugin = await ncMeta.metaGet(
         RootScopes.ROOT,
         RootScopes.ROOT,
         MetaTable.PLUGIN,
@@ -109,7 +109,7 @@ export default class Plugin implements PluginType {
         CacheGetType.TYPE_OBJECT,
       ));
     if (!plugin) {
-      plugin = await ncMeta.metaGet2(
+      plugin = await ncMeta.metaGet(
         RootScopes.ROOT,
         RootScopes.ROOT,
         MetaTable.PLUGIN,

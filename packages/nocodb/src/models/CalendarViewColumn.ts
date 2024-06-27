@@ -37,7 +37,7 @@ export default class CalendarViewColumn {
         CacheGetType.TYPE_OBJECT,
       ));
     if (!viewColumn) {
-      viewColumn = await ncMeta.metaGet2(
+      viewColumn = await ncMeta.metaGet(
         context.workspace_id,
         context.base_id,
         MetaTable.CALENDAR_VIEW_COLUMNS,

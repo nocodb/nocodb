@@ -30,7 +30,7 @@ export default class SyncSource {
     syncSourceId: string,
     ncMeta = Noco.ncMeta,
   ) {
-    const syncSource = await ncMeta.metaGet2(
+    const syncSource = await ncMeta.metaGet(
       context.workspace_id,
       context.base_id,
       MetaTable.SYNC_SOURCE,

@@ -47,7 +47,7 @@ export default class CalendarView implements CalendarType {
         view.calendar_range = [];
       }
     } else {
-      view = await ncMeta.metaGet2(
+      view = await ncMeta.metaGet(
         context.workspace_id,
         context.base_id,
         MetaTable.CALENDAR_VIEW,

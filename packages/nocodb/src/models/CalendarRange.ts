@@ -99,7 +99,7 @@ export default class CalendarRange implements CalendarRangeType {
     fk_view_id: string,
     ncMeta = Noco.ncMeta,
   ): Promise<CalendarRange> {
-    const data = await ncMeta.metaGet2(
+    const data = await ncMeta.metaGet(
       context.workspace_id,
       context.base_id,
       MetaTable.CALENDAR_VIEW_RANGE,

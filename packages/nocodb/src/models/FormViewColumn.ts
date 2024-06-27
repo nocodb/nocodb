@@ -46,7 +46,7 @@ export default class FormViewColumn implements FormColumnType {
         CacheGetType.TYPE_OBJECT,
       ));
     if (!viewColumn) {
-      viewColumn = await ncMeta.metaGet2(
+      viewColumn = await ncMeta.metaGet(
         context.workspace_id,
         context.base_id,
         MetaTable.FORM_VIEW_COLUMNS,

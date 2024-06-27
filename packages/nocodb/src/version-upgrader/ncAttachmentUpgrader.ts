@@ -61,7 +61,7 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
       base_id: source.base_id,
     };
 
-    const base = await ncMeta.metaGet2(
+    const base = await ncMeta.metaGet(
       context.workspace_id,
       context.base_id,
       MetaTable.PROJECT,

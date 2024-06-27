@@ -65,7 +65,7 @@ export default class Audit implements AuditType {
   }
 
   public static async get(auditId: string) {
-    const audit = await Noco.ncMeta.metaGet2(
+    const audit = await Noco.ncMeta.metaGet(
       RootScopes.ROOT,
       RootScopes.ROOT,
       MetaTable.AUDIT,

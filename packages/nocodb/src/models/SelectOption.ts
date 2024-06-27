@@ -115,7 +115,7 @@ export default class SelectOption implements SelectOptionType {
         CacheGetType.TYPE_OBJECT,
       ));
     if (!data) {
-      data = await ncMeta.metaGet2(
+      data = await ncMeta.metaGet(
         context.workspace_id,
         context.base_id,
         MetaTable.COL_SELECT_OPTIONS,
@@ -168,7 +168,7 @@ export default class SelectOption implements SelectOptionType {
     title: string,
     ncMeta = Noco.ncMeta,
   ): Promise<SelectOption> {
-    const data = await ncMeta.metaGet2(
+    const data = await ncMeta.metaGet(
       context.workspace_id,
       context.base_id,
       MetaTable.COL_SELECT_OPTIONS,

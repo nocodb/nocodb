@@ -114,7 +114,7 @@ export default class Filter {
     let value = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
     if (!value) {
       /* get from db */
-      value = await ncMeta.metaGet2(
+      value = await ncMeta.metaGet(
         context.workspace_id,
         context.base_id,
         MetaTable.FILTER_EXP,
@@ -230,7 +230,7 @@ export default class Filter {
   //     2
   //   );
   //   if (!filterObj) {
-  //     filterObj = await ncMeta.metaGet2(context.workspace_id, context.base_id, MetaTable.FILTER_EXP, {
+  //     filterObj = await ncMeta.metaGet(context.workspace_id, context.base_id, MetaTable.FILTER_EXP, {
   //       id: this.fk_parent_id
   //     });
   //     await NocoCache.set(
@@ -277,7 +277,7 @@ export default class Filter {
   // }): Promise<Filter> {
   //   if (!viewId) return null;
   //
-  //   const filterObj = await ncMeta.metaGet2(
+  //   const filterObj = await ncMeta.metaGet(
   // context.workspace_id,
   // context.base_id,
   //     MetaTable.FILTER_EXP,
@@ -381,7 +381,7 @@ export default class Filter {
         CacheGetType.TYPE_OBJECT,
       ));
     if (!filterObj) {
-      filterObj = await ncMeta.metaGet2(
+      filterObj = await ncMeta.metaGet(
         context.workspace_id,
         context.base_id,
         MetaTable.FILTER_EXP,

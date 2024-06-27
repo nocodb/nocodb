@@ -63,7 +63,7 @@ export default class BarcodeColumn {
         CacheGetType.TYPE_OBJECT,
       ));
     if (!column) {
-      column = await ncMeta.metaGet2(
+      column = await ncMeta.metaGet(
         context.workspace_id,
         context.base_id,
         MetaTable.COL_BARCODE,

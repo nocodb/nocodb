@@ -36,7 +36,7 @@ export default class Extension {
     );
 
     if (!extension) {
-      extension = await ncMeta.metaGet2(
+      extension = await ncMeta.metaGet(
         context.workspace_id,
         context.base_id,
         MetaTable.EXTENSIONS,

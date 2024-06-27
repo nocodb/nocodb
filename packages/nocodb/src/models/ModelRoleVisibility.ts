@@ -64,7 +64,7 @@ export default class ModelRoleVisibility implements ModelRoleVisibilityType {
         CacheGetType.TYPE_OBJECT,
       ));
     if (!data) {
-      data = await ncMeta.metaGet2(
+      data = await ncMeta.metaGet(
         context.workspace_id,
         context.base_id,
         MetaTable.MODEL_ROLE_VISIBILITY,

@@ -31,7 +31,7 @@ export default class Comment implements CommentType {
     commentId: string,
     ncMeta = Noco.ncMeta,
   ) {
-    const comment = await ncMeta.metaGet2(
+    const comment = await ncMeta.metaGet(
       context.workspace_id,
       context.base_id,
       MetaTable.COMMENTS,

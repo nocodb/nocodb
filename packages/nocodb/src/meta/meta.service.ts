@@ -84,9 +84,55 @@ export class MetaService {
     target: string,
     idOrCondition: string | { [p: string]: any },
     fields?: string[],
-    // xcCondition?
+    xcCondition?: Condition,
   ): Promise<any> {
-    return this.metaGet2(workspace_id, base_id, target, idOrCondition, fields);
+    const query = this.knexConnection(target);
+
+    if (xcCondition) {
+      query.condition(xcCondition);
+    }
+
+    if (fields?.length) {
+      query.select(...fields);
+    }
+
+    if (workspace_id === RootScopes.BYPASS && base_id === RootScopes.BYPASS) {
+      // bypass
+    } else if (workspace_id === base_id) {
+      if (!Object.values(RootScopes).includes(workspace_id as RootScopes)) {
+        NcError.metaError({
+          message: 'Invalid scope',
+          sql: '',
+        });
+      }
+
+      if (!RootScopeTables[workspace_id].includes(target)) {
+        NcError.metaError({
+          message: 'Table not accessible from this scope',
+          sql: '',
+        });
+      }
+    } else {
+      if (!base_id) {
+        NcError.metaError({
+          message: 'Base ID is required',
+          sql: '',
+        });
+      }
+
+      this.contextCondition(query, workspace_id, base_id, target);
+    }
+
+    if (!idOrCondition) {
+      return query.first();
+    }
+
+    if (typeof idOrCondition !== 'object') {
+      query.where('id', idOrCondition);
+    } else {
+      query.where(idOrCondition);
+    }
+    return query.first();
   }
 
   /***
@@ -324,72 +370,6 @@ export class MetaService {
     this.contextCondition(query, workspace_id, base_id, target);
 
     return query.del();
-  }
-
-  /***
-   * Get meta data
-   * @param workspace_id - Workspace id
-   * @param base_id - Base id
-   * @param target - Table name
-   * @param idOrCondition - If string, will get the record with the given id. If object, will get the record with the given condition.
-   * @param fields - Fields to be selected
-   * @param xcCondition - Additional nested or complex condition to be added to the query.
-   */
-  public async metaGet2(
-    workspace_id: string,
-    base_id: string,
-    target: string,
-    idOrCondition: string | { [p: string]: any },
-    fields?: string[],
-    xcCondition?: Condition,
-  ): Promise<any> {
-    const query = this.knexConnection(target);
-
-    if (xcCondition) {
-      query.condition(xcCondition);
-    }
-
-    if (fields?.length) {
-      query.select(...fields);
-    }
-
-    if (workspace_id === RootScopes.BYPASS && base_id === RootScopes.BYPASS) {
-      // bypass
-    } else if (workspace_id === base_id) {
-      if (!Object.values(RootScopes).includes(workspace_id as RootScopes)) {
-        NcError.metaError({
-          message: 'Invalid scope',
-          sql: '',
-        });
-      }
-
-      if (!RootScopeTables[workspace_id].includes(target)) {
-        NcError.metaError({
-          message: 'Table not accessible from this scope',
-          sql: '',
-        });
-      }
-    } else {
-      if (!base_id) {
-        NcError.metaError({
-          message: 'Base ID is required',
-          sql: '',
-        });
-      }
-
-      this.contextCondition(query, workspace_id, base_id, target);
-    }
-
-    if (!idOrCondition) {
-      return query.first();
-    }
-
-    if (typeof idOrCondition !== 'object') {
-      query.where('id', idOrCondition);
-    } else {
-      query.where(idOrCondition);
-    }
-    return query.first();
   }
 
   /***

@@ -59,7 +59,7 @@ export default class FormView implements FormViewType {
         CacheGetType.TYPE_OBJECT,
       ));
     if (!view) {
-      view = await ncMeta.metaGet2(
+      view = await ncMeta.metaGet(
         context.workspace_id,
         context.base_id,
         MetaTable.FORM_VIEW,

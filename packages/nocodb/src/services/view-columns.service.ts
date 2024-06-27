@@ -141,7 +141,7 @@ export class ViewColumnsService {
         const columnId =
           typeof param.columns === 'object' ? indexOrId : column['id'];
 
-        const existingCol = await ncMeta.metaGet2(
+        const existingCol = await ncMeta.metaGet(
           context.workspace_id,
           context.base_id,
           table,

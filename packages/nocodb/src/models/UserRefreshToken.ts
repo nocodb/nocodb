@@ -114,7 +114,7 @@ export default class UserRefreshToken {
     token: string,
     ncMeta = Noco.ncMeta,
   ): Promise<UserRefreshToken> {
-    const userToken = await ncMeta.metaGet2(
+    const userToken = await ncMeta.metaGet(
       RootScopes.ROOT,
       RootScopes.ROOT,
       MetaTable.USER_REFRESH_TOKENS,

@@ -172,7 +172,7 @@ export default class LinkToAnotherRecordColumn {
         CacheGetType.TYPE_OBJECT,
       ));
     if (!colData) {
-      colData = await ncMeta.metaGet2(
+      colData = await ncMeta.metaGet(
         context.workspace_id,
         context.base_id,
         MetaTable.COL_RELATIONS,

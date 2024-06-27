@@ -271,7 +271,7 @@ export default class Sort {
         CacheGetType.TYPE_OBJECT,
       ));
     if (!sortData) {
-      sortData = await ncMeta.metaGet2(
+      sortData = await ncMeta.metaGet(
         context.workspace_id,
         context.base_id,
         MetaTable.SORT,

@@ -162,7 +162,7 @@ class NcPluginMgrv2 {
   public static async storageAdapter(
     ncMeta = Noco.ncMeta,
   ): Promise<IStorageAdapterV2> {
-    const pluginData = await ncMeta.metaGet2(
+    const pluginData = await ncMeta.metaGet(
       RootScopes.ROOT,
       RootScopes.ROOT,
       MetaTable.PLUGIN,
@@ -192,7 +192,7 @@ class NcPluginMgrv2 {
     isUserInvite = true,
     ncMeta = Noco.ncMeta,
   ): Promise<IEmailAdapter> {
-    const pluginData = await ncMeta.metaGet2(
+    const pluginData = await ncMeta.metaGet(
       RootScopes.ROOT,
       RootScopes.ROOT,
       MetaTable.PLUGIN,
@@ -227,7 +227,7 @@ class NcPluginMgrv2 {
     title: string,
     ncMeta = Noco.ncMeta,
   ): Promise<IWebhookNotificationAdapter> {
-    const pluginData = await ncMeta.metaGet2(
+    const pluginData = await ncMeta.metaGet(
       RootScopes.ROOT,
       RootScopes.ROOT,
       MetaTable.PLUGIN,

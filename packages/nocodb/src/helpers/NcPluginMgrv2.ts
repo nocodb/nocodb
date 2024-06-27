@@ -132,6 +132,7 @@ class NcPluginMgrv2 {
         input: JSON.stringify({
           bucket: process.env.NC_S3_BUCKET_NAME,
           region: process.env.NC_S3_REGION,
+          endpoint: process.env.NC_S3_ENDPOINT,
           access_key: process.env.NC_S3_ACCESS_KEY,
           access_secret: process.env.NC_S3_ACCESS_SECRET,
         }),

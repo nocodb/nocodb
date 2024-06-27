@@ -1882,7 +1882,7 @@ onKeyStroke('ArrowDown', onDown)
                         </NcMenu>
                       </template>
                       <template v-else #overlay>
-                        <div class="overflow-auto max-h-[max(80vh,500px)] min-w-[384px] rounded-xl">
+                        <div class="nc-edit-or-add-provider-wrapper">
                           <LazySmartsheetColumnEditOrAddProvider
                             v-if="addColumnDropdown"
                             :preload="preloadColumn"

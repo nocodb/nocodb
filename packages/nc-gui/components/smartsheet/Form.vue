@@ -1239,7 +1239,7 @@ useEventListener(
                           {{ $t('general.edit') }} {{ $t('objects.field') }}
                         </NcButton>
                         <template #overlay>
-                          <div class="overflow-auto max-h-[max(80vh,500px)] min-w-[384px] rounded-xl">
+                          <div class="nc-edit-or-add-provider-wrapper">
                             <LazySmartsheetColumnEditOrAddProvider
                               v-if="dropdownStates.showEditColumn"
                               :column="activeColumn"
@@ -1327,7 +1327,7 @@ useEventListener(
                           </NcButton>
 
                           <template #overlay>
-                            <div class="overflow-auto max-h-[max(80vh,500px)] min-w-[384px] rounded-xl">
+                            <div class="nc-edit-or-add-provider-wrapper">
                               <LazySmartsheetColumnEditOrAddProvider
                                 v-if="dropdownStates.showAddColumn"
                                 @submit="addColumnCallback"

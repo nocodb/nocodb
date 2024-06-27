@@ -55,7 +55,7 @@ const selectedView = inject(ActiveViewInj)
             <span v-else />
           </template>
         </div>
-        <div v-if="!hideTick" class="nc-subtitle max-w-120 text-sm text-gray-500 whitespace-normal ml-6">
+        <div v-if="!hideTick" class="nc-subtitle max-w-120 text-xs text-gray-500 whitespace-normal ml-6">
           {{ $t(types[type].subtitle) }}
         </div>
       </div>

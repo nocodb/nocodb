@@ -196,7 +196,7 @@ const onPaste = (e: ClipboardEvent) => {
                       v-model:value="usersData.role"
                       class="w-55 nc-user-roles"
                       :dropdown-match-select-width="false"
-                      dropdown-class-name="max-w-64"
+                      dropdown-class-name="nc-dropdown-user-role max-w-64"
                     >
                       <a-select-option
                         class="nc-role-option"

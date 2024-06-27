@@ -29,117 +29,125 @@ export class HookHandlerService implements OnModuleInit, OnModuleDestroy {
     context: NcContext,
     { hookName, prevData, newData, user, viewId, modelId, tnPath },
   ): Promise<void> {
-    const view = await View.get(context, viewId);
-    const model = await Model.get(context, modelId);
+    try {
+      const view = await View.get(context, viewId);
+      const model = await Model.get(context, modelId);
 
-    // handle form view data submission
-    if (
-      (hookName === 'after.insert' || hookName === 'after.bulkInsert') &&
-      view.type === ViewTypes.FORM
-    ) {
-      try {
-        const formView = await view.getView<FormView>(context);
-
-        const emails = Object.entries(JSON.parse(formView?.email) || {})
-          .filter((a) => a[1])
-          .map((a) => a[0]);
-
-        if (emails?.length) {
-          const { columns } = await FormView.getWithInfo(
-            context,
-            formView.fk_view_id,
-          );
-          const allColumns = await model.getColumns(context);
-          const fieldById = columns.reduce(
-            (o: Record<string, FormColumnType>, f: FormColumnType) => {
-              return Object.assign(o, { [f.fk_column_id]: f });
-            },
-            {},
-          );
-          let order = 1;
-          const filteredColumns = allColumns
-            ?.map((c: ColumnType) => {
-              return {
-                ...c,
-                fk_column_id: c.id,
-                fk_view_id: formView.fk_view_id,
-                ...(fieldById[c.id] ? fieldById[c.id] : {}),
-                order: (fieldById[c.id] && fieldById[c.id].order) || order++,
-                id: fieldById[c.id] && fieldById[c.id].id,
-              };
-            })
-            .sort((a: ColumnType, b: ColumnType) => a.order - b.order)
-            .filter(
-              (f: ColumnType & FormColumnType) =>
-                f.show &&
-                f.uidt !== UITypes.Rollup &&
-                f.uidt !== UITypes.Lookup &&
-                f.uidt !== UITypes.Formula &&
-                f.uidt !== UITypes.QrCode &&
-                f.uidt !== UITypes.Barcode &&
-                f.uidt !== UITypes.SpecificDBType,
-            )
-            .sort((a: ColumnType, b: ColumnType) => a.order - b.order)
-            .map((c: ColumnType & FormColumnType) => {
-              c.required = !!(c.required || 0);
-              return c;
-            });
-
-          const transformedData = _transformSubmittedFormDataForEmail(
-            newData,
-            formView,
-            filteredColumns,
-          );
-          (await NcPluginMgrv2.emailAdapter(false))?.mailSend({
-            to: emails.join(','),
-            subject: 'NocoDB Form',
-            html: ejs.render(formSubmissionEmailTemplate, {
-              data: transformedData,
-              tn: tnPath,
-              _tn: model.title,
-            }),
-          });
-        }
-      } catch (e) {
-        this.logger.error({
-          error: e,
-          details: 'Error while sending form submission email',
-          hookName,
-        });
-      }
-    }
-
-    const [event, operation] = hookName.split('.');
-    const hooks = await Hook.list(context, {
-      fk_model_id: modelId,
-      event: event as HookType['event'],
-      operation: operation as HookType['operation'],
-    });
-    for (const hook of hooks) {
-      if (hook.active) {
+      // handle form view data submission
+      if (
+        (hookName === 'after.insert' || hookName === 'after.bulkInsert') &&
+        view.type === ViewTypes.FORM
+      ) {
         try {
-          await this.jobsService.add(JobTypes.HandleWebhook, {
-            context,
-            hookId: hook.id,
-            modelId,
-            viewId,
-            prevData,
-            newData,
-            user,
-          });
+          const formView = await view.getView<FormView>(context);
+
+          const emails = Object.entries(JSON.parse(formView?.email) || {})
+            .filter((a) => a[1])
+            .map((a) => a[0]);
+
+          if (emails?.length) {
+            const { columns } = await FormView.getWithInfo(
+              context,
+              formView.fk_view_id,
+            );
+            const allColumns = await model.getColumns(context);
+            const fieldById = columns.reduce(
+              (o: Record<string, FormColumnType>, f: FormColumnType) => {
+                return Object.assign(o, { [f.fk_column_id]: f });
+              },
+              {},
+            );
+            let order = 1;
+            const filteredColumns = allColumns
+              ?.map((c: ColumnType) => {
+                return {
+                  ...c,
+                  fk_column_id: c.id,
+                  fk_view_id: formView.fk_view_id,
+                  ...(fieldById[c.id] ? fieldById[c.id] : {}),
+                  order: (fieldById[c.id] && fieldById[c.id].order) || order++,
+                  id: fieldById[c.id] && fieldById[c.id].id,
+                };
+              })
+              .sort((a: ColumnType, b: ColumnType) => a.order - b.order)
+              .filter(
+                (f: ColumnType & FormColumnType) =>
+                  f.show &&
+                  f.uidt !== UITypes.Rollup &&
+                  f.uidt !== UITypes.Lookup &&
+                  f.uidt !== UITypes.Formula &&
+                  f.uidt !== UITypes.QrCode &&
+                  f.uidt !== UITypes.Barcode &&
+                  f.uidt !== UITypes.SpecificDBType,
+              )
+              .sort((a: ColumnType, b: ColumnType) => a.order - b.order)
+              .map((c: ColumnType & FormColumnType) => {
+                c.required = !!(c.required || 0);
+                return c;
+              });
+
+            const transformedData = _transformSubmittedFormDataForEmail(
+              newData,
+              formView,
+              filteredColumns,
+            );
+            (await NcPluginMgrv2.emailAdapter(false))?.mailSend({
+              to: emails.join(','),
+              subject: 'NocoDB Form',
+              html: ejs.render(formSubmissionEmailTemplate, {
+                data: transformedData,
+                tn: tnPath,
+                _tn: model.title,
+              }),
+            });
+          }
         } catch (e) {
           this.logger.error({
             error: e,
-            details: 'Error while invoking webhook',
-            hook: hook.id,
+            details: 'Error while sending form submission email',
+            hookName,
           });
         }
       }
+
+      const [event, operation] = hookName.split('.');
+      const hooks = await Hook.list(context, {
+        fk_model_id: modelId,
+        event: event as HookType['event'],
+        operation: operation as HookType['operation'],
+      });
+      for (const hook of hooks) {
+        if (hook.active) {
+          try {
+            await this.jobsService.add(JobTypes.HandleWebhook, {
+              context,
+              hookId: hook.id,
+              modelId,
+              viewId,
+              prevData,
+              newData,
+              user,
+            });
+          } catch (e) {
+            this.logger.error({
+              error: e,
+              details: 'Error while invoking webhook',
+              hook: hook.id,
+            });
+          }
+        }
+      }
+    } catch (e) {
+      this.logger.error({
+        error: e,
+        details: 'Error while handling hook',
+        hookName,
+      });
     }
   }
 
   onModuleInit(): any {
-    this.unsubscribe = this.eventEmitter.on(HANDLE_WEBHOOK, async (arg) => {
+    this.unsubscribe = this.eventEmitter.on(HANDLE_WEBHOOK, (arg) => {
       const { context, ...rest } = arg;
       return this.handleHooks(context, rest);
     });

@@ -256,7 +256,7 @@ const renderAltOrOptlKey = () => {
 
     <div class="!pl-8 pr-60 !w-8 h-1">‎</div>
 
-    <div class="fixed h-9 bg-white border-l-1 border-gray-200 px-1 flex items-center right-0">
+    <div class="absolute h-9 bg-white border-l-1 border-gray-200 px-1 flex items-center right-0">
       <NcPaginationV2
         v-if="count !== Infinity"
         v-model:current="page"

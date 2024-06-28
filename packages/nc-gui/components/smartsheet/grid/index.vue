@@ -235,7 +235,7 @@ onMounted(() => {
   <div
     class="relative flex flex-col h-full min-h-0 w-full nc-grid-wrapper"
     data-testid="nc-grid-wrapper"
-    :style="`width: ${viewWidth}px; background-color: ${isGroupBy ? `${baseColor}` : 'var(--nc-grid-bg)'};`"
+    :style="`background-color: ${isGroupBy ? `${baseColor}` : 'var(--nc-grid-bg)'};`"
   >
     <Table
       v-if="!isGroupBy"

@@ -22,7 +22,5 @@ export class SourceDeleteProcessor {
     });
 
     this.debugLog(`job completed for ${job.id}`);
-
-    return true;
   }
 }

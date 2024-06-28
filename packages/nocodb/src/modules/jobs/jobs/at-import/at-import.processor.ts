@@ -31,7 +31,7 @@ import { TablesService } from '~/services/tables.service';
 import { ViewColumnsService } from '~/services/view-columns.service';
 import { ViewsService } from '~/services/views.service';
 import { FormsService } from '~/services/forms.service';
-import { JOBS_QUEUE, JobTypes } from '~/interface/Jobs';
+import { AtImportJobData, JOBS_QUEUE, JobTypes } from '~/interface/Jobs';
 import { GridColumnsService } from '~/services/grid-columns.service';
 import { TelemetryService } from '~/services/telemetry.service';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
@@ -112,7 +112,7 @@ export class AtImportProcessor {
   ) {}
 
   @Process(JobTypes.AtImport)
-  async job(job: Job) {
+  async job(job: Job<AtImportJobData>) {
     this.debugLog(`job started for ${job.id}`);
 
     const context = job.data.context;
@@ -2668,7 +2668,7 @@ export interface AirtableSyncConfig {
   apiKey: string;
   appId?: string;
   shareId: string;
-  user: UserType;
+  user: Partial<UserType>;
   options: {
     syncViews: boolean;
     syncData: boolean;

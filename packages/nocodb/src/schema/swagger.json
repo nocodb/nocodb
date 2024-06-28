@@ -17943,13 +17943,56 @@
         }
       ]
     },
-    "/jobs/status": {
+    "/api/v2/jobs/{baseId}": {
       "post": {
-        "summary": "Jobs Status",
-        "operationId": "jobs-status",
-        "description": "Get job status",
+        "summary": "Get Jobs",
+        "operationId": "jobs-list",
+        "description": "Get list of jobs for a given base for the user",
         "tags": [
           "Jobs"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "job": {
+                    "type": "string"
+                  },
+                  "status": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "parameters": [
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "p124dflkcvasewh",
+            "type": "string"
+          },
+          "name": "baseId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Base ID"
+        },
+        {
+          "$ref": "#/components/parameters/xc-auth"
+        }
+      ]
+    },
+    "/api/v2/export/{viewId}/{exportAs}": {
+      "post": {
+        "summary": "Trigger export as job",
+        "operationId": "export-data",
+        "description": "Trigger export as job",
+        "tags": [
+          "Export"
         ],
         "requestBody": {
           "content": {
@@ -17962,6 +18005,29 @@
         }
       },
       "parameters": [
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "vw124dflkcvasewh",
+            "type": "string"
+          },
+          "name": "viewId",
+          "in": "path",
+          "required": true,
+          "description": "Unique View ID"
+        },
+        {
+          "schema": {
+            "type": "string",
+            "enum": [
+              "csv"
+            ]
+          },
+          "name": "exportAs",
+          "in": "path",
+          "required": true,
+          "description": "Export as format"
+        },
         {
           "$ref": "#/components/parameters/xc-auth"
         }

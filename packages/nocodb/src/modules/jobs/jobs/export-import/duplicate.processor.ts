@@ -5,6 +5,11 @@ import papaparse from 'papaparse';
 import debug from 'debug';
 import { isLinksOrLTAR, isVirtualCol, RelationTypes } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
+import type {
+  DuplicateBaseJobData,
+  DuplicateColumnJobData,
+  DuplicateModelJobData,
+} from '~/interface/Jobs';
 import { Base, Column, Model, Source } from '~/models';
 import { BasesService } from '~/services/bases.service';
 import {
@@ -31,7 +36,7 @@ export class DuplicateProcessor {
   ) {}
 
   @Process(JobTypes.DuplicateBase)
-  async duplicateBase(job: Job) {
+  async duplicateBase(job: Job<DuplicateBaseJobData>) {
     this.debugLog(`job started for ${job.id} (${JobTypes.DuplicateBase})`);
 
     const hrTime = initTime();
@@ -131,10 +136,12 @@ export class DuplicateProcessor {
     }
 
     this.debugLog(`job completed for ${job.id} (${JobTypes.DuplicateBase})`);
+
+    return { id: dupProject.id };
   }
 
   @Process(JobTypes.DuplicateModel)
-  async duplicateModel(job: Job) {
+  async duplicateModel(job: Job<DuplicateModelJobData>) {
     this.debugLog(`job started for ${job.id} (${JobTypes.DuplicateModel})`);
 
     const hrTime = initTime();
@@ -241,11 +248,11 @@ export class DuplicateProcessor {
 
     this.debugLog(`job completed for ${job.id} (${JobTypes.DuplicateModel})`);
 
-    return await Model.get(context, findWithIdentifier(idMap, sourceModel.id));
+    return { id: findWithIdentifier(idMap, sourceModel.id) };
   }
 
   @Process(JobTypes.DuplicateColumn)
-  async duplicateColumn(job: Job) {
+  async duplicateColumn(job: Job<DuplicateColumnJobData>) {
     this.debugLog(`job started for ${job.id} (${JobTypes.DuplicateColumn})`);
 
     const hrTime = initTime();
@@ -398,10 +405,7 @@ export class DuplicateProcessor {
 
     this.debugLog(`job completed for ${job.id} (${JobTypes.DuplicateModel})`);
 
-    return await Column.get(context, {
-      source_id: base.id,
-      colId: findWithIdentifier(idMap, sourceColumn.id),
-    });
+    return { id: findWithIdentifier(idMap, sourceColumn.id) };
   }
 
   async importModelsData(

@@ -41,7 +41,11 @@ const childColumn = computed(() => {
 
 <template>
   <div class="nc-cell-field" @dblclick="activateShowEditNonEditableFieldWarning">
-    <div v-if="['count', 'avg', 'sum', 'countDistinct', 'sumDistinct', 'avgDistinct'].includes(colOptions.rollup_function)">
+    <div
+      v-if="
+        ['count', 'avg', 'sum', 'min', 'max', 'countDistinct', 'sumDistinct', 'avgDistinct'].includes(colOptions.rollup_function)
+      "
+    >
       {{ value }}
     </div>
     <LazySmartsheetCell v-else v-model="value" :column="childColumn" :edit-enabled="false" :read-only="true" />

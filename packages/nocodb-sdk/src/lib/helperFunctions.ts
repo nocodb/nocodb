@@ -59,7 +59,10 @@ const stringifyRolesObj = (roles?: RolesObj | null): string => {
 };
 
 const getAvailableRollupForUiType = (type: string) => {
-  if (isNumericCol(type as UITypes)) {
+  if ([UITypes.Year].includes(type as UITypes)) {
+    return ['count', 'min', 'max', 'countDistinct'];
+  } else if (isNumericCol(type as UITypes)) {
+    // Number, Currency, Percent, Duration, Rating, Decimal
     return [
       'sum',
       'count',
@@ -87,13 +90,18 @@ const getAvailableRollupForUiType = (type: string) => {
       UITypes.Email,
       UITypes.PhoneNumber,
       UITypes.URL,
-      UITypes.Checkbox,
       UITypes.JSON,
     ].includes(type as UITypes)
   ) {
-    return ['count'];
+    return ['count', 'countDistinct'];
+  } else if ([UITypes.Checkbox].includes(type as UITypes)) {
+    return ['count', 'sum'];
   } else if ([UITypes.Attachment].includes(type as UITypes)) {
     return [];
+  } else if (
+    [UITypes.SingleSelect, UITypes.MultiSelect].includes(type as UITypes)
+  ) {
+    return ['count', 'countDistinct'];
   } else {
     return [
       'sum',

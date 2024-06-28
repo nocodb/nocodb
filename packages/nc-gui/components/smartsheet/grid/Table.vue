@@ -1598,7 +1598,7 @@ function scrollToAddNewColumnHeader(behavior: ScrollOptions['behavior']) {
     scrollWrapper.value?.scrollTo({
       top: scrollWrapper.value.scrollTop,
       left: scrollWrapper.value.scrollWidth,
-      behavior: behavior,
+      behavior,
     })
   }
 }

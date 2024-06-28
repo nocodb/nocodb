@@ -56,7 +56,7 @@ export class JobsController {
     } else {
       messages = (
         await NocoCache.get(
-          `${CacheScope.JOBS}:${jobId}:messages`,
+          `${CacheScope.JOBS_POLLING}:${jobId}:messages`,
           CacheGetType.TYPE_OBJECT,
         )
       )?.messages;
@@ -92,38 +92,43 @@ export class JobsController {
       };
       // subscribe to job events
       if (JobsRedis.available) {
-        const unsubscribeCallback = await JobsRedis.subscribe(jobId, async (data) => {
-          if (this.jobRooms[jobId]) {
-            this.jobRooms[jobId].listeners.forEach((res) => {
-              if (!res.headersSent) {
-                res.send({
-                  status: 'refresh',
-                });
-              }
-            });
-          }
+        const unsubscribeCallback = await JobsRedis.subscribe(
+          jobId,
+          async (data) => {
+            if (this.jobRooms[jobId]) {
+              this.jobRooms[jobId].listeners.forEach((res) => {
+                if (!res.headersSent) {
+                  res.send({
+                    status: 'refresh',
+                  });
+                }
+              });
+            }
 
-          const cmd = data.cmd;
-          delete data.cmd;
-          switch (cmd) {
-            case JobEvents.STATUS:
-              if (
-                [JobStatus.COMPLETED, JobStatus.FAILED].includes(data.status)
-              ) {
-                await unsubscribeCallback();
-                delete this.jobRooms[jobId];
-                // close the job after 1 second (to allow the update of messages)
-                setTimeout(() => {
-                  this.closedJobs.push(jobId);
-                }, 1000);
-                // remove the job after polling interval * 2
-                setTimeout(() => {
-                  this.closedJobs = this.closedJobs.filter((j) => j !== jobId);
-                }, POLLING_INTERVAL * 2);
-              }
-              break;
-          }
-        });
+            const cmd = data.cmd;
+            delete data.cmd;
+            switch (cmd) {
+              case JobEvents.STATUS:
+                if (
+                  [JobStatus.COMPLETED, JobStatus.FAILED].includes(data.status)
+                ) {
+                  await unsubscribeCallback();
+                  delete this.jobRooms[jobId];
+                  // close the job after 1 second (to allow the update of messages)
+                  setTimeout(() => {
+                    this.closedJobs.push(jobId);
+                  }, 1000);
+                  // remove the job after polling interval * 2
+                  setTimeout(() => {
+                    this.closedJobs = this.closedJobs.filter(
+                      (j) => j !== jobId,
+                    );
+                  }, POLLING_INTERVAL * 2);
+                }
+                break;
+            }
+          },
+        );
       }
     }
 
@@ -193,7 +198,7 @@ export class JobsController {
         this.localJobs[jobId].messages.shift();
       }
 
-      await NocoCache.set(`${CacheScope.JOBS}:${jobId}:messages`, {
+      await NocoCache.set(`${CacheScope.JOBS_POLLING}:${jobId}:messages`, {
         messages: this.localJobs[jobId].messages,
       });
     } else {
@@ -208,7 +213,7 @@ export class JobsController {
         _mid: 1,
       };
 
-      await NocoCache.set(`${CacheScope.JOBS}:${jobId}:messages`, {
+      await NocoCache.set(`${CacheScope.JOBS_POLLING}:${jobId}:messages`, {
         messages: this.localJobs[jobId].messages,
       });
     }
@@ -237,7 +242,7 @@ export class JobsController {
       setTimeout(async () => {
         delete this.jobRooms[jobId];
         delete this.localJobs[jobId];
-        await NocoCache.del(`${CacheScope.JOBS}:${jobId}:messages`);
+        await NocoCache.del(`${CacheScope.JOBS_POLLING}:${jobId}:messages`);
       }, POLLING_INTERVAL * 2);
     }
   }
@@ -265,7 +270,7 @@ export class JobsController {
         this.localJobs[jobId].messages.shift();
       }
 
-      await NocoCache.set(`${CacheScope.JOBS}:${jobId}:messages`, {
+      await NocoCache.set(`${CacheScope.JOBS_POLLING}:${jobId}:messages`, {
         messages: this.localJobs[jobId].messages,
       });
     } else {
@@ -280,7 +285,7 @@ export class JobsController {
         _mid: 1,
       };
 
-      await NocoCache.set(`${CacheScope.JOBS}:${jobId}:messages`, {
+      await NocoCache.set(`${CacheScope.JOBS_POLLING}:${jobId}:messages`, {
         messages: this.localJobs[jobId].messages,
       });
     }

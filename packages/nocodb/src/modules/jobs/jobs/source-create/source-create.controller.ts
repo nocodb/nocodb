@@ -50,6 +50,7 @@ export class SourceCreateController {
 
     const job = await this.jobsService.add(JobTypes.SourceCreate, {
       context,
+      user: req.user,
       baseId,
       source: body,
       req: {

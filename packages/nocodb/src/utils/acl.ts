@@ -142,6 +142,9 @@ const permissionScopes = {
     'extensionCreate',
     'extensionUpdate',
     'extensionDelete',
+
+    // Jobs
+    'jobList',
   ],
 };
 
@@ -207,6 +210,8 @@ const rolePermissions:
 
       extensionList: true,
       extensionRead: true,
+
+      jobList: true,
     },
   },
   [ProjectRoles.COMMENTER]: {

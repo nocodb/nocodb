@@ -24,12 +24,11 @@ import { JobsLogService } from '~/modules/jobs/jobs/jobs-log.service';
 // import { JobsGateway } from '~/modules/jobs/jobs.gateway';
 import { JobsController } from '~/modules/jobs/jobs.controller';
 import { JobsService } from '~/modules/jobs/redis/jobs.service';
-import { JobsEventService } from '~/modules/jobs/redis/jobs-event.service';
+import { JobsEventService } from '~/modules/jobs/jobs-event.service';
 
 // Fallback
 import { JobsService as FallbackJobsService } from '~/modules/jobs/fallback/jobs.service';
 import { QueueService as FallbackQueueService } from '~/modules/jobs/fallback/fallback-queue.service';
-import { JobsEventService as FallbackJobsEventService } from '~/modules/jobs/fallback/jobs-event.service';
 import { JOBS_QUEUE } from '~/interface/Jobs';
 
 export const JobsModuleMetadata = {
@@ -61,9 +60,8 @@ export const JobsModuleMetadata = {
   ],
   providers: [
     ...(process.env.NC_WORKER_CONTAINER !== 'true' ? [] : []),
-    ...(process.env.NC_REDIS_JOB_URL
-      ? [JobsEventService]
-      : [FallbackQueueService, FallbackJobsEventService]),
+    JobsEventService,
+    ...(process.env.NC_REDIS_JOB_URL ? [] : [FallbackQueueService]),
     {
       provide: 'JobsService',
       useClass: process.env.NC_REDIS_JOB_URL

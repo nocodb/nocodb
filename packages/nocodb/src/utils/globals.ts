@@ -51,6 +51,7 @@ export enum MetaTable {
   COMMENTS = 'nc_comments',
   USER_COMMENTS_NOTIFICATIONS_PREFERENCE = 'nc_user_comment_notifications_preference',
   COMMENTS_REACTIONS = 'nc_comment_reactions',
+  JOBS = 'nc_jobs',
 }
 
 export enum MetaTableOldV2 {
@@ -171,6 +172,7 @@ export enum CacheScope {
   DASHBOARD_PROJECT_DB_PROJECT_LINKING = 'dashboardProjectDBProjectLinking',
   SINGLE_QUERY = 'singleQuery',
   JOBS = 'nc_jobs',
+  JOBS_POLLING = 'nc_jobs_polling',
   PRESIGNED_URL = 'presignedUrl',
   STORE = 'store',
   PROJECT_ALIAS = 'baseAlias',
@@ -281,6 +283,7 @@ export const RootScopeTables = {
     MetaTable.PLUGIN,
     MetaTable.STORE,
     MetaTable.NOTIFICATION,
+    MetaTable.JOBS,
     // Temporarily added need to be discussed within team
     MetaTable.AUDIT,
   ],

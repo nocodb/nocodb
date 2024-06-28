@@ -47,6 +47,7 @@ export class SourceDeleteController {
 
     const job = await this.jobsService.add(JobTypes.SourceDelete, {
       context,
+      user: req.user,
       sourceId,
       req: {
         user: req.user,

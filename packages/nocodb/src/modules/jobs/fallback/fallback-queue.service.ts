@@ -8,7 +8,7 @@ import { SourceCreateProcessor } from '~/modules/jobs/jobs/source-create/source-
 import { SourceDeleteProcessor } from '~/modules/jobs/jobs/source-delete/source-delete.processor';
 import { WebhookHandlerProcessor } from '~/modules/jobs/jobs/webhook-handler/webhook-handler.processor';
 import { DataExportProcessor } from '~/modules/jobs/jobs/data-export/data-export.processor';
-import { JobsEventService } from '~/modules/jobs/fallback/jobs-event.service';
+import { JobsEventService } from '~/modules/jobs/jobs-event.service';
 import { JobStatus, JobTypes } from '~/interface/Jobs';
 
 export interface Job {
@@ -135,8 +135,8 @@ export class QueueService {
     QueueService.queueIdCounter = index;
   }
 
-  add(name: string, data: any, _opts = {}) {
-    const id = `${this.queueIndex++}`;
+  add(name: string, data: any, opts?: { jobId?: string }) {
+    const id = opts?.jobId || `${this.queueIndex++}`;
     const job = { id: `${id}`, name, status: JobStatus.WAITING, data };
     this.queueMemory.push(job);
     this.queue.add(() => this.jobWrapper(job));

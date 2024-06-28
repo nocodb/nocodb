@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import type { OnModuleInit } from '@nestjs/common';
 import { QueueService } from '~/modules/jobs/fallback/fallback-queue.service';
 import { JobStatus } from '~/interface/Jobs';
+import { Job } from '~/models';
+import { RootScopes } from '~/utils/globals';
 
 @Injectable()
 export class JobsService implements OnModuleInit {
@@ -10,7 +12,19 @@ export class JobsService implements OnModuleInit {
   async onModuleInit() {}
 
   async add(name: string, data: any) {
-    return this.fallbackQueueService.add(name, data);
+    const context = {
+      workspace_id: RootScopes.ROOT,
+      base_id: RootScopes.ROOT,
+      ...(data?.context || {}),
+    };
+
+    const { id } = await Job.insert(context, {
+      job: name,
+      status: JobStatus.WAITING,
+      fk_user_id: data?.user?.id,
+    });
+
+    return this.fallbackQueueService.add(name, data, { jobId: id });
   }
 
   async jobStatus(jobId: string) {

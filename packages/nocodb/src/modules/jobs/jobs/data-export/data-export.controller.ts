@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   HttpCode,
   Inject,
@@ -7,6 +8,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
+import type { DataExportJobData } from '~/interface/Jobs';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { BasesService } from '~/services/bases.service';
@@ -35,6 +37,7 @@ export class DataExportController {
     @Req() req: NcRequest,
     @Param('viewId') viewId: string,
     @Param('exportAs') exportAs: 'csv' | 'json' | 'xlsx',
+    @Body() options: DataExportJobData['options'],
   ) {
     const view = await View.get(context, viewId);
 
@@ -42,6 +45,7 @@ export class DataExportController {
 
     const job = await this.jobsService.add(JobTypes.DataExport, {
       context,
+      options,
       modelId: view.fk_model_id,
       viewId,
       user: req.user,

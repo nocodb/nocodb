@@ -1,4 +1,5 @@
 import { Readable } from 'stream';
+import path from 'path';
 import { Process, Processor } from '@nestjs/bull';
 import { Logger } from '@nestjs/common';
 import { Job } from 'bull';
@@ -6,7 +7,7 @@ import moment from 'moment';
 import { type DataExportJobData, JOBS_QUEUE, JobTypes } from '~/interface/Jobs';
 import { elapsedTime, initTime } from '~/modules/jobs/helpers';
 import { ExportService } from '~/modules/jobs/jobs/export-import/export.service';
-import { Model, View } from '~/models';
+import { Model, PresignedUrl, View } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 
@@ -20,6 +21,7 @@ export class DataExportProcessor {
   async job(job: Job<DataExportJobData>) {
     const {
       context,
+      options,
       modelId,
       viewId,
       user: _user,
@@ -44,7 +46,11 @@ export class DataExportProcessor {
 
     const storageAdapter = await NcPluginMgrv2.storageAdapter();
 
-    const destPath = `nc/data-export/${dateFolder}/${modelId}/${model.title} (${view.title}).csv`;
+    const destPath = `nc/uploads/data-export/${dateFolder}/${modelId}/${
+      model.title
+    } (${view.title}) - ${Date.now()}.csv`;
+
+    let url = null;
 
     try {
       const dataStream = new Readable({
@@ -70,6 +76,7 @@ export class DataExportProcessor {
           modelId: model.id,
           viewId: view.id,
           ncSiteUrl: ncSiteUrl,
+          delimiter: options?.delimiter,
         })
         .catch((e) => {
           this.logger.debug(e);
@@ -77,7 +84,26 @@ export class DataExportProcessor {
           error = e;
         });
 
-      await uploadFilePromise;
+      url = await uploadFilePromise;
+
+      // if url is not defined, it is local attachment
+      if (!url) {
+        url = await PresignedUrl.getSignedUrl({
+          path: path.join(destPath.replace('nc/uploads/', '')),
+          filename: `${model.title} (${view.title}).csv`,
+          expireSeconds: 3 * 60 * 60, // 3 hours
+        });
+      } else {
+        if (url.includes('.amazonaws.com/')) {
+          const relativePath = decodeURI(url.split('.amazonaws.com/')[1]);
+          url = await PresignedUrl.getSignedUrl({
+            path: relativePath,
+            filename: `${model.title} (${view.title}).csv`,
+            s3: true,
+            expireSeconds: 3 * 60 * 60, // 3 hours
+          });
+        }
+      }
 
       if (error) {
         throw error;
@@ -93,7 +119,7 @@ export class DataExportProcessor {
     }
 
     return {
-      path: destPath,
+      url,
     };
   }
 }

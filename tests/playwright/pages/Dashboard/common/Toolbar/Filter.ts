@@ -135,7 +135,7 @@ export class ToolbarFilterPage extends BasePage {
 
     // TODO: Integrated the draft filter logic here as well, since when we add a filter its not saved till all
     // its values are filled
-    skipWaitingResponse = true;
+    // skipWaitingResponse = true;
 
     const selectedField = await getTextExcludeIconText(
       this.rootPage.locator('.nc-filter-field-select .ant-select-selection-item').first()

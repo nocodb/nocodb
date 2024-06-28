@@ -39,6 +39,7 @@ import * as nc_049_clear_notifications from '~/meta/migrations/v2/nc_049_clear_n
 import * as nc_050_tenant_isolation from '~/meta/migrations/v2/nc_050_tenant_isolation';
 import * as nc_051_source_readonly_columns from '~/meta/migrations/v2/nc_051_source_readonly_columns';
 import * as nc_052_field_aggregation from '~/meta/migrations/v2/nc_052_field_aggregation';
+import * as nc_053_jobs from '~/meta/migrations/v2/nc_053_jobs';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev2 {
@@ -89,6 +90,7 @@ export default class XcMigrationSourcev2 {
       'nc_050_tenant_isolation',
       'nc_051_source_readonly_columns',
       'nc_052_field_aggregation',
+      'nc_053_jobs',
     ]);
   }
 
@@ -180,6 +182,8 @@ export default class XcMigrationSourcev2 {
         return nc_051_source_readonly_columns;
       case 'nc_052_field_aggregation':
         return nc_052_field_aggregation;
+      case 'nc_053_jobs':
+        return nc_053_jobs;
     }
   }
 }

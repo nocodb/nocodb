@@ -251,6 +251,7 @@ export class MetaService {
       [MetaTable.COMMENTS]: 'com',
       [MetaTable.COMMENTS_REACTIONS]: 'cre',
       [MetaTable.USER_COMMENTS_NOTIFICATIONS_PREFERENCE]: 'cnp',
+      [MetaTable.JOBS]: 'job',
     };
 
     const prefix = prefixMap[target] || 'nc';
@@ -718,6 +719,16 @@ export class MetaService {
 
   public now(): any {
     return dayjs()
+      .utc()
+      .format(
+        this.isMySQL() || this.isMssql()
+          ? 'YYYY-MM-DD HH:mm:ss'
+          : 'YYYY-MM-DD HH:mm:ssZ',
+      );
+  }
+
+  public formatDateTime(date: string): string {
+    return dayjs(date)
       .utc()
       .format(
         this.isMySQL() || this.isMssql()

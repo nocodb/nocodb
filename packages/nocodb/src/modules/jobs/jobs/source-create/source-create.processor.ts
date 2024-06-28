@@ -46,7 +46,5 @@ export class SourceCreateProcessor {
     }
 
     this.debugLog(`job completed for ${job.id}`);
-
-    return createdSource;
   }
 }

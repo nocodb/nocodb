@@ -72,6 +72,7 @@ export class MetaService extends MetaServiceCE {
       [MetaTable.COMMENTS]: 'com',
       [MetaTable.COMMENTS_REACTIONS]: 'cre',
       [MetaTable.USER_COMMENTS_NOTIFICATIONS_PREFERENCE]: 'cnp',
+      [MetaTable.JOBS]: 'job',
     };
 
     const prefix = prefixMap[target] || 'nc';

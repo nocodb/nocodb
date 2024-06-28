@@ -7,8 +7,9 @@ import { SourceCreateProcessor } from '~/modules/jobs/jobs/source-create/source-
 import { SourceDeleteProcessor } from '~/modules/jobs/jobs/source-delete/source-delete.processor';
 import { UpdateStatsProcessor } from '~/modules/jobs/jobs/update-stats/update-stats.processor';
 import { WebhookHandlerProcessor } from '~/modules/jobs/jobs/webhook-handler/webhook-handler.processor';
+import { DataExportProcessor } from '~/modules/jobs/jobs/data-export/data-export.processor';
 import { CleanUpProcessor } from '~/modules/jobs/jobs/clean-up/clean-up.processor';
-import { JobsEventService } from '~/modules/jobs/fallback/jobs-event.service';
+import { JobsEventService } from '~/modules/jobs/jobs-event.service';
 import { JobTypes } from '~/interface/Jobs';
 
 export interface Job {
@@ -30,6 +31,7 @@ export class QueueService extends QueueServiceCE {
     protected readonly updateStatsProcessor: UpdateStatsProcessor,
     protected readonly webhookHandlerProcessor: WebhookHandlerProcessor,
     protected readonly cleanUpProcessor: CleanUpProcessor,
+    protected readonly dataExportProcessor: DataExportProcessor,
   ) {
     super(
       jobsEventService,
@@ -39,6 +41,7 @@ export class QueueService extends QueueServiceCE {
       sourceCreateProcessor,
       sourceDeleteProcessor,
       webhookHandlerProcessor,
+      dataExportProcessor,
     );
   }
 

@@ -8,10 +8,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import {
-  ProjectStatus,
-  readonlyMetaAllowedTypes,
-} from 'nocodb-sdk';
+import { ProjectStatus, readonlyMetaAllowedTypes } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { BasesService } from '~/services/bases.service';
@@ -95,6 +92,7 @@ export class DuplicateController {
         workspace_id: base.fk_workspace_id,
         base_id: base.id,
       },
+      user: req.user,
       baseId: base.id,
       sourceId: source.id,
       dupProjectId: dupProject.id,
@@ -168,6 +166,7 @@ export class DuplicateController {
 
     const job = await this.jobsService.add(JobTypes.DuplicateBase, {
       context,
+      user: req.user,
       baseId: base.id,
       sourceId: source.id,
       dupProjectId: dupProject.id,
@@ -233,6 +232,7 @@ export class DuplicateController {
 
     const job = await this.jobsService.add(JobTypes.DuplicateModel, {
       context,
+      user: req.user,
       baseId: base.id,
       sourceId: source.id,
       modelId: model.id,
@@ -302,6 +302,7 @@ export class DuplicateController {
 
     const job = await this.jobsService.add(JobTypes.DuplicateColumn, {
       context,
+      user: req.user,
       baseId: base.id,
       sourceId: column.source_id,
       modelId: model.id,

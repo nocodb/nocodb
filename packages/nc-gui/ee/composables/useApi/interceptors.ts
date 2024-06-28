@@ -13,7 +13,7 @@ export function addAxiosInterceptors(api: Api<any>) {
   addAxiosInterceptorsCE(api)
 
   api.instance.interceptors.request.use((config) => {
-    if (!config.url?.endsWith('/jobs/listen') && !config.url?.endsWith('/jobs/status')) {
+    if (!config.url?.endsWith('/jobs/listen')) {
       let typeOrWorkspaceId = router.currentRoute.value.params.typeOrId
 
       const reg = config.url?.match(/\/meta\/duplicate\/(\w+)\/shared/)

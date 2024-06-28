@@ -71,6 +71,7 @@ export enum MetaTable {
   COMMENTS = 'nc_comments',
   USER_COMMENTS_NOTIFICATIONS_PREFERENCE = 'nc_user_comment_notifications_preference',
   COMMENTS_REACTIONS = 'nc_comment_reactions',
+  JOBS = 'nc_jobs',
 }
 
 export const orderedMetaTables = [
@@ -177,6 +178,7 @@ export enum CacheScope {
   SINGLE_QUERY = 'singleQuery',
   PRESIGNED_URL = 'presignedUrl',
   JOBS = 'nc_jobs',
+  JOBS_POLLING = 'nc_jobs_polling',
   MODEL_STAT = 'nc_model_stat',
   BASE_TO_WORKSPACE = 'baseToWorkspace',
   WORKSPACE_CREATE_DELETE_COUNTER = 'workspace_cd_counter',
@@ -205,6 +207,7 @@ export const RootScopeTables = {
     MetaTable.DB_MUX,
     MetaTable.STORE,
     MetaTable.NOTIFICATION,
+    MetaTable.JOBS,
     // Temporarily added need to be discussed within team
     MetaTable.AUDIT,
   ],

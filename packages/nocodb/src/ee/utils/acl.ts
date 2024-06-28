@@ -218,6 +218,8 @@ const permissionScopes = {
     'widgetDelete',
     'widgetFilterList',
     'widgetFilterCreate',
+
+    'jobList',
   ],
 };
 
@@ -385,6 +387,7 @@ const rolePermissions:
 
       baseUserList: true,
 
+      jobList: true,
       commentList: true,
       commentsCount: true,
       auditListRow: true,

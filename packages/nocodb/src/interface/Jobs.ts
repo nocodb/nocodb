@@ -15,6 +15,7 @@ export enum JobTypes {
   HealthCheck = 'health-check',
   HandleWebhook = 'handle-webhook',
   CleanUp = 'clean-up',
+  DataExport = 'data-export',
 }
 
 export enum JobStatus {
@@ -52,4 +53,13 @@ export interface HandleWebhookJobData {
   prevData;
   newData;
   user;
+}
+
+export interface DataExportJobData {
+  context: NcContext;
+  modelId: string;
+  viewId: string;
+  user;
+  exportAs: 'csv' | 'json' | 'xlsx';
+  ncSiteUrl: string;
 }

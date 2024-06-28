@@ -307,26 +307,28 @@ function handleResetHoverEffect() {
                   class="group gap-3 overflow-hidden px-3 py-2 transition-colors"
                 >
                   <div class="flex items-start justify-between">
-                    <div class="flex items-start gap-3">
+                    <div
+                      class="flex items-start gap-3 flex-1"
+                      :class="{
+                        'w-[calc(100%)] group-hover:w-[calc(100%_-_50px)]': !appInfo.ee,
+                        'w-[calc(100%_-_44px)] group-hover:w-[calc(100%_-_72px)]': appInfo.ee && commentItem.resolved_by,
+                        'w-[calc(100%_-_16px)] group-hover:w-[calc(100%_-_72px)]':
+                          appInfo.ee && !commentItem.resolved_by && hasEditPermission,
+                        'w-[calc(100%_-_16px)] group-hover:w-[calc(100%_-_44px)]':
+                          appInfo.ee && !commentItem.resolved_by && !hasEditPermission,
+                      }"
+                    >
                       <GeneralUserIcon
                         :email="commentItem.created_by_email"
                         :name="commentItem.created_display_name"
                         class="mt-0.5"
                         size="medium"
                       />
-                      <div class="flex h-[28px] items-center gap-3">
-                        <NcDropdown placement="topLeft" :trigger="['hover']">
-                          <span
-                            class="text-ellipsis truncate text-gray-800 font-medium !text-small !leading-[18px] overflow-hidden"
-                            :class="{
-                              'max-w-42 group-hover:max-w-35': !appInfo.ee,
-                              'max-w-35 group-hover:max-w-28': appInfo.ee && commentItem.resolved_by,
-                              'max-w-42 group-hover:max-w-28': appInfo.ee && !commentItem.resolved_by && hasEditPermission,
-                              'max-w-42 group-hover:max-w-35': appInfo.ee && !commentItem.resolved_by && !hasEditPermission,
-                            }"
-                          >
+                      <div class="flex h-[28px] items-center gap-3 w-[calc(100%_-_40px)]">
+                        <NcDropdown placement="topLeft" :trigger="['hover']" class="flex-none max-w-[calc(100%_-_72px)]">
+                          <div class="truncate text-gray-800 font-medium !text-small !leading-[18px] overflow-hidden">
                             {{ createdBy(commentItem) }}
-                          </span>
+                          </div>
 
                           <template #overlay>
                             <div class="bg-white rounded-lg">
@@ -531,20 +533,18 @@ function handleResetHoverEffect() {
             <div v-for="audit of audits" :key="audit.id" class="nc-audit-item">
               <div class="group gap-3 overflow-hidden px-3 py-2 hover:bg-gray-100">
                 <div class="flex items-start justify-between">
-                  <div class="flex items-start gap-3">
+                  <div class="flex items-start gap-3 flex-1 w-full">
                     <GeneralUserIcon
                       :email="audit.created_by_email"
                       :name="audit.created_display_name"
                       class="mt-0.5"
                       size="medium"
                     />
-                    <div class="flex h-[28px] items-center gap-3">
-                      <NcDropdown placement="topLeft" :trigger="['hover']">
-                        <span
-                          class="text-ellipsis truncate text-gray-800 font-medium !text-small !leading-[18px] max-w-42 overflow-hidden"
-                        >
+                    <div class="flex h-[28px] items-center gap-3 w-[calc(100%_-_40px)]">
+                      <NcDropdown placement="topLeft" :trigger="['hover']" class="flex-none max-w-[calc(100%_-_72px)]">
+                        <div class="truncate text-gray-800 font-medium !text-small !leading-[18px] overflow-hidden">
                           {{ createdByAudit(audit) }}
-                        </span>
+                        </div>
 
                         <template #overlay>
                           <div class="bg-white rounded-lg">

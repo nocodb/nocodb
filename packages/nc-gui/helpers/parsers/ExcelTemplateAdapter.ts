@@ -38,7 +38,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
     this.base = {
       tables: [],
     }
-    this.xlsx = xlsx || ({} as any)
+    this.xlsx = xlsx
   }
 
   async init() {

@@ -98,15 +98,11 @@ export class DataExportProcessor {
           expireSeconds: 3 * 60 * 60, // 3 hours
         });
       } else {
-        if (url.includes('.amazonaws.com/')) {
-          const relativePath = decodeURI(url.split('.amazonaws.com/')[1]);
-          url = await PresignedUrl.getSignedUrl({
-            path: relativePath,
-            filename: `${model.title} (${getViewTitle(view)}).csv`,
-            s3: true,
-            expireSeconds: 3 * 60 * 60, // 3 hours
-          });
-        }
+        url = await PresignedUrl.getSignedUrl({
+          path: decodeURI(new URL(url).pathname),
+          filename: `${model.title} (${getViewTitle(view)}).csv`,
+          expireSeconds: 3 * 60 * 60, // 3 hours
+        });
       }
 
       if (error) {

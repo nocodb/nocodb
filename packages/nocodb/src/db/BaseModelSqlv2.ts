@@ -7202,7 +7202,7 @@ class BaseModelSqlv2 {
 
           if (
             typeof data[column.column_name] === 'string' &&
-            /^\s*[{[]$/.test(data[column.column_name])
+            /^\s*[{[]/.test(data[column.column_name])
           ) {
             try {
               data[column.column_name] = JSON.parse(data[column.column_name]);

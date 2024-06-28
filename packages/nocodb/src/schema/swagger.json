@@ -17943,30 +17943,6 @@
         }
       ]
     },
-    "/jobs/status": {
-      "post": {
-        "summary": "Jobs Status",
-        "operationId": "jobs-status",
-        "description": "Get job status",
-        "tags": [
-          "Jobs"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object"
-              }
-            }
-          }
-        }
-      },
-      "parameters": [
-        {
-          "$ref": "#/components/parameters/xc-auth"
-        }
-      ]
-    },
     "/api/v2/jobs/{baseId}": {
       "post": {
         "summary": "Get Jobs",

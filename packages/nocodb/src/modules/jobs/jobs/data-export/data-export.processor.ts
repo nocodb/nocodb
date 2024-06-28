@@ -11,6 +11,10 @@ import { Model, PresignedUrl, View } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 
+function getViewTitle(view: View) {
+  return view.is_default ? 'Default View' : view.title;
+}
+
 @Processor(JOBS_QUEUE)
 export class DataExportProcessor {
   private logger = new Logger(DataExportProcessor.name);
@@ -48,7 +52,7 @@ export class DataExportProcessor {
 
     const destPath = `nc/uploads/data-export/${dateFolder}/${modelId}/${
       model.title
-    } (${view.title}) - ${Date.now()}.csv`;
+    } (${getViewTitle(view)}) - ${Date.now()}.csv`;
 
     let url = null;
 
@@ -90,7 +94,7 @@ export class DataExportProcessor {
       if (!url) {
         url = await PresignedUrl.getSignedUrl({
           path: path.join(destPath.replace('nc/uploads/', '')),
-          filename: `${model.title} (${view.title}).csv`,
+          filename: `${model.title} (${getViewTitle(view)}).csv`,
           expireSeconds: 3 * 60 * 60, // 3 hours
         });
       } else {
@@ -98,7 +102,7 @@ export class DataExportProcessor {
           const relativePath = decodeURI(url.split('.amazonaws.com/')[1]);
           url = await PresignedUrl.getSignedUrl({
             path: relativePath,
-            filename: `${model.title} (${view.title}).csv`,
+            filename: `${model.title} (${getViewTitle(view)}).csv`,
             s3: true,
             expireSeconds: 3 * 60 * 60, // 3 hours
           });
@@ -119,6 +123,9 @@ export class DataExportProcessor {
     }
 
     return {
+      timestamp: new Date(),
+      type: exportAs,
+      title: `${model.title} (${getViewTitle(view)})`,
       url,
     };
   }

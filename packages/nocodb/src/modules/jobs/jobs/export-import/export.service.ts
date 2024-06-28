@@ -498,7 +498,7 @@ export class ExportService {
       }
     }
 
-    const fields = param._fieldIds
+    let fields = param._fieldIds
       ? model.columns
           .filter((c) => param._fieldIds?.includes(c.id))
           .map((c) => c.title)
@@ -507,6 +507,16 @@ export class ExportService {
           .filter((c) => !isLinksOrLTAR(c))
           .map((c) => c.title)
           .join(',');
+
+    if (dataExportMode) {
+      const viewCols = await view.getColumns(context);
+
+      fields = viewCols
+        .sort((a, b) => a.order - b.order)
+        .filter((c) => c.show)
+        .map((vc) => model.columns.find((c) => c.id === vc.fk_column_id).title)
+        .join(',');
+    }
 
     const mmColumns = param._fieldIds
       ? model.columns
@@ -611,6 +621,8 @@ export class ExportService {
         limit,
         fields,
         true,
+        param.delimiter,
+        dataExportMode,
       );
     } catch (e) {
       this.debugLog(e);
@@ -712,6 +724,7 @@ export class ExportService {
     fields: string,
     header = false,
     delimiter = ',',
+    dataExportMode = false,
   ): Promise<void> {
     return new Promise((resolve, reject) => {
       this.datasService
@@ -720,7 +733,7 @@ export class ExportService {
           view,
           query: { limit, offset, fields },
           baseModel,
-          ignoreViewFilterAndSort: true,
+          ignoreViewFilterAndSort: !dataExportMode,
           limitOverride: limit,
         })
         .then((result) => {
@@ -748,6 +761,9 @@ export class ExportService {
                     offset + limit,
                     limit,
                     fields,
+                    false,
+                    delimiter,
+                    dataExportMode,
                   )
                     .then(resolve)
                     .catch(reject);
@@ -769,6 +785,9 @@ export class ExportService {
                   offset + limit,
                   limit,
                   fields,
+                  false,
+                  delimiter,
+                  dataExportMode,
                 )
                   .then(resolve)
                   .catch(reject);

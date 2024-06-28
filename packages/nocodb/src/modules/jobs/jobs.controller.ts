@@ -149,32 +149,6 @@ export class JobsController {
     }, POLLING_INTERVAL);
   }
 
-  @Post('/jobs/status')
-  async status(@Body() data: { id: string } | any) {
-    let res: {
-      id?: string;
-      status?: JobStatus;
-    } | null = null;
-    if (Object.keys(data).every((k) => ['id'].includes(k)) && data?.id) {
-      const rooms = (await this.jobsService.jobList()).map(
-        (j) => `jobs-${j.id}`,
-      );
-      const room = rooms.find((r) => r === `jobs-${data.id}`);
-      if (room) {
-        res.id = data.id;
-      }
-    } else {
-      const job = await this.jobsService.getJobWithData(data);
-      if (job) {
-        res = {};
-        res.id = `${job.id}`;
-        res.status = await this.jobsService.jobStatus(data.id);
-      }
-    }
-
-    return res;
-  }
-
   @OnEvent(JobEvents.STATUS)
   async sendJobStatus(data: {
     id: string;

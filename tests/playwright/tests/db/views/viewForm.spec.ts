@@ -934,6 +934,9 @@ test.describe('Form view: field validation', () => {
       message: 'Thank you for submitting the form',
     });
 
+    // wait to ensure configured message is saved
+    await dashboard.rootPage.waitForTimeout(1000);
+
     await dashboard.rootPage.goto(surveyLink);
     // fix me! kludge@hub; page wasn't getting loaded from previous step
     await dashboard.rootPage.reload();

@@ -290,11 +290,6 @@ function handleResetHoverEffect() {
               <div class="font-medium text-center my-6 text-gray-500">{{ $t('activity.startCommenting') }}</div>
             </div>
             <div v-else ref="commentsWrapperEl" class="flex flex-col h-full py-1 nc-scrollbar-thin">
-              <!-- The scrollbar doesn't work when flex-end is used. https://issues.chromium.org/issues/41130651
-              Hence using a div to fix the issue
-              https://stackoverflow.com/questions/36130760/use-justify-content-flex-end-and-to-have-vertical-scrollbar
-              -->
-              <div class="scroll-fix"></div>
               <div
                 v-for="comment of comments"
                 :key="comment.id"
@@ -518,11 +513,6 @@ function handleResetHoverEffect() {
           </div>
 
           <div v-else ref="commentsWrapperEl" class="flex flex-col h-full py-1 nc-scrollbar-thin">
-            <!-- The scrollbar doesn't work when flex-end is used. https://issues.chromium.org/issues/41130651
-             Hence using a div to fix the issue
-             https://stackoverflow.com/questions/36130760/use-justify-content-flex-end-and-to-have-vertical-scrollbar
-             -->
-            <div class="scroll-fix"></div>
             <template v-if="audits.length === 0">
               <div class="flex flex-col text-center justify-center h-full">
                 <div class="text-center text-3xl text-gray-600">
@@ -591,10 +581,6 @@ function handleResetHoverEffect() {
 <style lang="scss" scoped>
 .tab {
   @apply max-w-1/2;
-}
-
-.scroll-fix {
-  flex: 1 1 auto;
 }
 
 .nc-audit-item {

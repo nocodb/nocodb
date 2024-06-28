@@ -174,7 +174,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
   }
 
   const loadAudits = async (_rowId?: string) => {
-    if (!row.value && !_rowId) return
+    if (!isUIAllowed('auditListRow') || (!row.value && !_rowId)) return
 
     const rowId = _rowId ?? extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
 

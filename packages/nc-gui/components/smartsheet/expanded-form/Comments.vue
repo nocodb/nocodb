@@ -33,8 +33,6 @@ const { dashboardUrl } = useDashboard()
 
 const { user, appInfo } = useGlobal()
 
-const { isUIAllowed } = useRoles()
-
 const basesStore = useBases()
 
 const { basesUser } = storeToRefs(basesStore)
@@ -45,11 +43,13 @@ const baseUsers = computed(() => (meta.value?.base_id ? basesUser.value.get(meta
 
 const isExpandedFormLoading = computed(() => props.loading)
 
-const tab = ref<'comments' | 'audits'>(isUIAllowed('commentList') ? 'comments' : 'audits')
+const tab = ref<'comments' | 'audits'>('comments')
 
 const router = useRouter()
 
 const hasEditPermission = computed(() => isUIAllowed('commentEdit'))
+
+const { isUIAllowed } = useRoles()
 
 const editCommentValue = ref<CommentType>()
 
@@ -266,7 +266,7 @@ function handleResetHoverEffect() {
 <template>
   <div class="flex flex-col bg-white !h-full w-full rounded-br-2xl">
     <NcTabs v-model:activeKey="tab" class="h-full">
-      <a-tab-pane v-if="isUIAllowed('commentList')" key="comments" class="w-full h-full">
+      <a-tab-pane key="comments" class="w-full h-full">
         <template #tab>
           <div v-e="['c:row-expand:comment']" class="flex items-center gap-2">
             <GeneralIcon icon="messageCircle" class="w-4 h-4" />
@@ -366,7 +366,7 @@ function handleResetHoverEffect() {
                         <template #overlay>
                           <NcMenu>
                             <NcMenuItem
-                              v-if="user && comment.created_by_email === user.email"
+                              v-if="user && comment.created_by_email === user.email && hasEditPermission"
                               v-e="['c:comment-expand:comment:edit']"
                               class="text-gray-700"
                               @click="editComment(comment)"
@@ -386,7 +386,7 @@ function handleResetHoverEffect() {
                                 {{ $t('general.copy') }} URL
                               </div>
                             </NcMenuItem>
-                            <template v-if="user && comment.created_by_email === user.email">
+                            <template v-if="user && comment.created_by_email === user.email && hasEditPermission">
                               <NcDivider />
                               <NcMenuItem
                                 v-e="['c:row-expand:comment:delete']"
@@ -403,7 +403,7 @@ function handleResetHoverEffect() {
                         </template>
                       </NcDropdown>
                       <div v-if="appInfo.ee">
-                        <NcTooltip v-if="!comment.resolved_by">
+                        <NcTooltip v-if="!comment.resolved_by && hasEditPermission">
                           <NcButton
                             class="nc-resolve-comment-btn !w-7 !h-7 !bg-transparent !hover:bg-gray-200 !hidden !group-hover:block"
                             size="xsmall"
@@ -416,7 +416,7 @@ function handleResetHoverEffect() {
                           <template #title>Click to resolve </template>
                         </NcTooltip>
 
-                        <NcTooltip v-else>
+                        <NcTooltip v-else-if="comment.resolved_by">
                           <template #title>{{ `Resolved by ${comment.resolved_display_name}` }}</template>
                           <NcButton
                             class="!h-7 !w-7 !bg-transparent !hover:bg-gray-200 text-semibold"
@@ -437,7 +437,7 @@ function handleResetHoverEffect() {
                     class="flex-1 flex flex-col gap-1 max-w-[calc(100%)]"
                   >
                     <SmartsheetExpandedFormRichComment
-                      v-if="comment.id === editCommentValue?.id"
+                      v-if="comment.id === editCommentValue?.id && hasEditPermission"
                       v-model:value="value"
                       autofocus
                       :hide-options="false"

@@ -93,7 +93,7 @@ export class ToolbarFieldsPage extends BasePage {
       uiAction: () => this.get().locator(`.nc-fields-show-all-fields`).click(),
       requestUrlPathToMatch: isLocallySaved ? '/api/v1/db/public/' : '/api/v1/db/data/noco/',
       httpMethodsToMatch: ['GET'],
-      timeout: 10000,
+      timeout: 30000, // for Kanban, show all fields can take a long time
     });
     await this.toolbar.clickFields();
   }

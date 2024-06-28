@@ -307,7 +307,6 @@ onMounted(async () => {
 
             if (lookupColumn && isAttachment(lookupColumn)) {
               attLookupColumnIds.add(originalCol.id)
-              return
             } else if (lookupColumn && lookupColumn?.uidt === UITypes.Lookup) {
               await loadLookupMeta(originalCol, lookupColumn, relationColumn.colOptions.fk_related_model_id)
             }

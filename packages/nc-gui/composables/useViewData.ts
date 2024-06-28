@@ -51,7 +51,7 @@ export function useViewData(
 
   const isPublic = inject(IsPublicInj, ref(false))
 
-  const { base, isSharedBase } = storeToRefs(useBase())
+  const { base } = storeToRefs(useBase())
 
   const { sharedView, fetchSharedViewData, paginationData: sharedPaginationData } = useSharedView()
 
@@ -133,7 +133,7 @@ export function useViewData(
   async function loadAggCommentsCount() {
     if (!isUIAllowed('commentCount')) return
 
-    if (isPublic.value || isSharedBase.value) return
+    if (isPublic.value) return
 
     const ids = formattedData.value
       ?.filter(({ rowMeta: { new: isNew } }) => !isNew)

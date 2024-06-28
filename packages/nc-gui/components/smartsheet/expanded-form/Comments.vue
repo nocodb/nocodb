@@ -287,7 +287,9 @@ function handleResetHoverEffect() {
               <div class="text-center text-3xl text-gray-700">
                 <GeneralIcon icon="commentHere" />
               </div>
-              <div class="font-medium text-center my-6 text-gray-500">{{ $t('activity.startCommenting') }}</div>
+              <div class="font-medium text-center my-6 text-gray-500">
+                {{ hasEditPermission ? $t('activity.startCommenting') : $t('activity.noCommentsYet') }}
+              </div>
             </div>
             <div v-else ref="commentsWrapperEl" class="flex flex-col h-full py-1 nc-scrollbar-thin">
               <div

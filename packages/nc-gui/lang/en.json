@@ -1084,6 +1084,7 @@
     },
     "toggleMobileMode": "Toggle Mobile Mode",
     "startCommenting": "Start commenting!",
+    "noCommentsYet": "No Comments Yet",
     "clearForm": "Clear Form",
     "addFieldFromFormView": "Add Field",
     "selectAllFields": "Select all fields",

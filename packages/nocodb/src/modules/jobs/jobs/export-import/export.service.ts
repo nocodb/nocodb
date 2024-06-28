@@ -451,6 +451,7 @@ export class ExportService {
       handledMmList?: string[];
       _fieldIds?: string[];
       ncSiteUrl?: string;
+      delimiter?: string;
     },
   ) {
     const { dataStream, linkStream, handledMmList } = param;
@@ -710,6 +711,7 @@ export class ExportService {
     limit: number,
     fields: string,
     header = false,
+    delimiter = ',',
   ): Promise<void> {
     return new Promise((resolve, reject) => {
       this.datasService
@@ -731,7 +733,7 @@ export class ExportService {
             const formatterPromise = formatter(result.list);
             if (formatterPromise instanceof Promise) {
               formatterPromise.then(({ data }) => {
-                stream.push(unparse(data, { header }));
+                stream.push(unparse(data, { header, delimiter }));
                 if (result.pageInfo.isLastPage) {
                   stream.push(null);
                   resolve();
@@ -752,9 +754,9 @@ export class ExportService {
                 }
               });
             } else {
-              if (formatterPromise)
-                stream.push(unparse(formatterPromise.data, { header }));
+              stream.push(unparse(formatterPromise.data, { header }));
               if (result.pageInfo.isLastPage) {
+                stream.push(null);
                 resolve();
               } else {
                 this.recursiveRead(

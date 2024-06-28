@@ -94,15 +94,15 @@ export class ColumnPageObject extends BasePage {
     ltarView?: string;
   }) {
     if (insertBeforeColumnTitle) {
+      await this.grid.get().locator(`th[data-title="${insertBeforeColumnTitle}"]`).scrollIntoViewIfNeeded();
       await this.grid.get().locator(`th[data-title="${insertBeforeColumnTitle}"] .nc-ui-dt-dropdown`).click();
-
       if (isDisplayValue) {
         await expect(this.rootPage.locator('li[role="menuitem"]:has-text("Insert Before")')).toHaveCount(0);
         return;
       }
-
       await this.rootPage.locator('li[role="menuitem"]:has-text("Insert Before"):visible').click();
     } else if (insertAfterColumnTitle) {
+      await this.grid.get().locator(`th[data-title="${insertAfterColumnTitle}"]`).scrollIntoViewIfNeeded();
       await this.grid.get().locator(`th[data-title="${insertAfterColumnTitle}"] .nc-ui-dt-dropdown`).click();
       await this.rootPage.locator('li[role="menuitem"]:has-text("Insert After"):visible').click();
     } else {

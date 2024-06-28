@@ -52,6 +52,7 @@ const {
   optimisedQuery,
   islastRow,
   isFirstRow,
+  aggCommentCount,
 } = useViewData(meta, view, xWhere)
 
 const rowHeight = computed(() => {
@@ -205,6 +206,24 @@ const baseColor = computed(() => {
   }
 })
 
+const updateRowCommentCount = (count: number) => {
+  if (!routeQuery.value.rowId) return
+
+  const aggCommentCountIndex = aggCommentCount.value.findIndex((row) => row.row_id === routeQuery.value.rowId)
+
+  const currentRowIndex = data.value.findIndex(
+    (row) => extractPkFromRow(row.row, meta.value?.columns as ColumnType[]) === routeQuery.value.rowId,
+  )
+
+  if (aggCommentCountIndex === -1 || currentRowIndex === -1) return
+
+  if (Number(aggCommentCount.value[aggCommentCountIndex].count) === count) return
+
+  aggCommentCount.value[aggCommentCountIndex].count = count
+
+  data.value[currentRowIndex].rowMeta.commentCount = count
+}
+
 watch([windowSize, leftSidebarWidth], updateViewWidth)
 
 onMounted(() => {
@@ -279,6 +298,7 @@ onMounted(() => {
       :expand-form="expandForm"
       @next="goToNextRow()"
       @prev="goToPreviousRow()"
+      @update-row-comment-count="updateRowCommentCount"
     />
 
     <Suspense>

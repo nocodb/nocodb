@@ -105,8 +105,6 @@ const rolePermissions = {
       commentDelete: true,
       commentResolve: true,
       commentEdit: true,
-      commentList: true,
-      commentCount: true,
     },
   },
   [ProjectRoles.VIEWER]: {
@@ -114,6 +112,10 @@ const rolePermissions = {
       baseSettings: true,
       expandedForm: true,
       apiDocs: true,
+
+      commentList: true,
+      commentCount: true,
+      auditListRow: true,
     },
   },
   [ProjectRoles.NO_ACCESS]: {

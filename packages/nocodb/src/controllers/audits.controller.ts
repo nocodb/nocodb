@@ -22,7 +22,7 @@ export class AuditsController {
   constructor(protected readonly auditsService: AuditsService) {}
 
   @Get(['/api/v1/db/meta/audits/', '/api/v2/meta/audits/'])
-  @Acl('auditList')
+  @Acl('auditListRow')
   async auditListRow(@Req() req: NcRequest) {
     return new PagedResponseImpl(
       await this.auditsService.auditOnlyList({ query: req.query as any }),
@@ -50,7 +50,7 @@ export class AuditsController {
     '/api/v1/db/meta/projects/:baseId/audits/',
     '/api/v2/meta/bases/:baseId/audits/',
   ])
-  @Acl('auditList')
+  @Acl('baseAuditList')
   async auditList(@Req() req: NcRequest, @Param('baseId') baseId: string) {
     return new PagedResponseImpl(
       await this.auditsService.auditList({

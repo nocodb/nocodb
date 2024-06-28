@@ -316,7 +316,15 @@ function handleResetHoverEffect() {
                       />
                       <div class="flex h-[28px] items-center gap-3">
                         <NcDropdown placement="topLeft" :trigger="['hover']">
-                          <span class="text-ellipsis text-gray-800 font-medium !text-[13px] max-w-42 overflow-hidden" :style="{}">
+                          <span
+                            class="text-ellipsis truncate text-gray-800 font-medium !text-small !leading-[18px] overflow-hidden"
+                            :class="{
+                              'max-w-42 group-hover:max-w-35': !appInfo.ee,
+                              'max-w-35 group-hover:max-w-28': appInfo.ee && commentItem.resolved_by,
+                              'max-w-42 group-hover:max-w-28': appInfo.ee && !commentItem.resolved_by && hasEditPermission,
+                              'max-w-42 group-hover:max-w-35': appInfo.ee && !commentItem.resolved_by && !hasEditPermission,
+                            }"
+                          >
                             {{ createdBy(commentItem) }}
                           </span>
 
@@ -532,7 +540,9 @@ function handleResetHoverEffect() {
                     />
                     <div class="flex h-[28px] items-center gap-3">
                       <NcDropdown placement="topLeft" :trigger="['hover']">
-                        <span class="text-ellipsis text-gray-800 font-medium !text-[13px] max-w-42 overflow-hidden" :style="{}">
+                        <span
+                          class="text-ellipsis truncate text-gray-800 font-medium !text-small !leading-[18px] max-w-42 overflow-hidden"
+                        >
                           {{ createdByAudit(audit) }}
                         </span>
 

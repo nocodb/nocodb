@@ -85,16 +85,9 @@ export class AttachmentsService {
               path: attachment.path.replace(/^download\//, ''),
             });
           } else {
-            if (attachment.url.includes('.amazonaws.com/')) {
-              const relativePath = decodeURI(
-                attachment.url.split('.amazonaws.com/')[1],
-              );
-
-              attachment.signedUrl = await PresignedUrl.getSignedUrl({
-                path: relativePath,
-                s3: true,
-              });
-            }
+            attachment.signedUrl = await PresignedUrl.getSignedUrl({
+              path: decodeURI(new URL(attachment.url).pathname),
+            });
           }
 
           attachments.push(attachment);

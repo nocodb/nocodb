@@ -525,7 +525,7 @@ function handleResetHoverEffect() {
             </template>
 
             <div v-for="audit of audits" :key="audit.id" class="nc-audit-item">
-              <div class="group gap-3 overflow-hidden px-3 py-2">
+              <div class="group gap-3 overflow-hidden px-3 py-2 hover:bg-gray-100">
                 <div class="flex items-start justify-between">
                   <div class="flex items-start gap-3">
                     <GeneralUserIcon

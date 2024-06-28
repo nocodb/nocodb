@@ -216,9 +216,9 @@ export class ExpandedFormPage extends BasePage {
     }
 
     if (role === 'viewer') {
-      await expect(this.get().locator('.nc-comments-drawer')).toHaveCount(0);
+      await expect(this.get().locator('.nc-comments-drawer .nc-comment-input')).toHaveCount(0);
     } else {
-      await expect(this.get().locator('.nc-comments-drawer')).toHaveCount(1);
+      await expect(this.get().locator('.nc-comments-drawer .nc-comment-input')).toHaveCount(1);
     }
 
     // press escape to close the expanded form

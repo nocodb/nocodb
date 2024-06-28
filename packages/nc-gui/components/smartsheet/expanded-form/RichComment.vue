@@ -133,7 +133,7 @@ const setEditorContent = (contentMd: any, focusEndOfDoc?: boolean) => {
   }, 100)
 }
 
-const onFocusWrapper = () => {
+function onFocusWrapper() {
   if (!props.readOnly && !keys.shift.value) {
     editor.value?.chain().focus().run()
     setEditorContent(vModel.value, true)
@@ -304,7 +304,7 @@ onMounted(() => {
         :editor="editor"
         :class="{
           'p-1': !props.readOnly,
-          'px-[0.25rem] py-1': props.readOnly,
+          'px-[0.25rem]': props.readOnly,
         }"
         class="flex flex-col nc-comment-rich-editor w-full scrollbar-thin scrollbar-thumb-gray-200 nc-truncate scrollbar-track-transparent"
         @keydown.stop="handleKeyPress"

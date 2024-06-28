@@ -161,6 +161,7 @@ const permissionScopes = {
     'commentUpdate',
     'hideAllColumns',
     'showAllColumns',
+    'auditListRow',
     'auditRowUpdate',
     'dataUpdate',
     'dataDelete',
@@ -383,13 +384,15 @@ const rolePermissions:
       widgetFilterList: true,
 
       baseUserList: true,
+
+      commentList: true,
+      commentsCount: true,
+      auditListRow: true,
     },
   },
   [ProjectRoles.COMMENTER]: {
     include: {
       commentRow: true,
-      commentList: true,
-      commentsCount: true,
       commentUpdate: true,
       commentDelete: true,
     },

@@ -242,7 +242,7 @@ const renderAltOrOptlKey = () => {
 
         <template #overlay>
           <NcMenu>
-            <NcMenuItem v-for="(agg, index) in getAggregations(column)" :key="index" @click="updateAggregate(column.id, agg)">
+            <NcMenuItem v-for="(agg, i) in getAggregations(column)" :key="i" @click="updateAggregate(column.id, agg)">
               <div class="flex !w-full text-[13px] text-gray-800 items-center justify-between">
                 {{ $t(`aggregation_type.${agg}`) }}
 

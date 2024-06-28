@@ -34,7 +34,7 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const emits = defineEmits(['update:modelValue', 'cancel', 'next', 'prev', 'createdRecord'])
+const emits = defineEmits(['update:modelValue', 'cancel', 'next', 'prev', 'createdRecord', 'updateRowCommentCount'])
 
 const { activeView } = storeToRefs(useViewsStore())
 
@@ -133,6 +133,7 @@ const {
   loadRow: _loadRow,
   primaryKey,
   row: _row,
+  comments,
   save: _save,
   loadComments,
   loadAudits,
@@ -551,6 +552,13 @@ const modalProps = computed(() => {
 const renderAltOrOptlKey = () => {
   return isMac() ? '⌥' : 'ALT'
 }
+
+watch(
+  () => comments.value.length,
+  (commentCount) => {
+    emits('updateRowCommentCount', commentCount)
+  },
+)
 </script>
 
 <script lang="ts">

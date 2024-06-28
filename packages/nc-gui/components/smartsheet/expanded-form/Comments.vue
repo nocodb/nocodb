@@ -264,7 +264,7 @@ function handleResetHoverEffect() {
 </script>
 
 <template>
-  <div class="flex flex-col bg-white !h-full w-full rounded-br-2xl">
+  <div class="flex flex-col bg-white !h-full w-full rounded-br-2xl overflow-hidden">
     <NcTabs v-model:activeKey="tab" class="h-full">
       <a-tab-pane key="comments" class="w-full h-full">
         <template #tab>
@@ -276,7 +276,7 @@ function handleResetHoverEffect() {
         <div
           class="h-full"
           :class="{
-            'pb-1': tab !== 'comments' && !appInfo.ee,
+            'pb-1': !hasEditPermission,
           }"
         >
           <div v-if="isExpandedFormLoading" class="flex flex-col items-center justify-center w-full h-full">
@@ -338,6 +338,7 @@ function handleResetHoverEffect() {
                                 </div>
                               </div>
                               <div
+                                v-if="isUIAllowed('dataEdit')"
                                 class="px-3 rounded-b-lg !text-[13px] items-center text-gray-600 flex gap-1 bg-gray-100 py-1.5"
                               >
                                 Has <RolesBadge size="sm" :border="false" :role="getUserRole(commentItem.created_by_email!)" />
@@ -504,12 +505,7 @@ function handleResetHoverEffect() {
             <span class="<lg:hidden"> Audits </span>
           </div>
         </template>
-        <div
-          class="h-full"
-          :class="{
-            'pb-1': !appInfo.ee,
-          }"
-        >
+        <div class="h-full pb-1">
           <div v-if="isExpandedFormLoading || isAuditLoading" class="flex flex-col items-center justify-center w-full h-full">
             <GeneralLoader size="xlarge" />
           </div>
@@ -557,7 +553,10 @@ function handleResetHoverEffect() {
                                 </div>
                               </div>
                             </div>
-                            <div class="px-3 rounded-b-lg !text-[13px] items-center text-gray-600 flex gap-1 bg-gray-100 py-1.5">
+                            <div
+                              v-if="isUIAllowed('dataEdit')"
+                              class="px-3 rounded-b-lg !text-[13px] items-center text-gray-600 flex gap-1 bg-gray-100 py-1.5"
+                            >
                               Has <RolesBadge size="sm" :border="false" :role="getUserRole(audit.created_by_email!)" />
                               role in base
                             </div>

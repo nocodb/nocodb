@@ -133,7 +133,7 @@ export function useViewData(
   async function loadAggCommentsCount() {
     if (!isUIAllowed('commentCount')) return
 
-    if (isPublic.value || isSharedBase.value) return
+    if (isPublic.value) return
 
     const ids = formattedData.value
       ?.filter(({ rowMeta: { new: isNew } }) => !isNew)

@@ -479,7 +479,7 @@ watch(rowId, async (nRow) => {
 })
 
 const showRightSections = computed(() => {
-  return !isNew.value && commentsDrawer.value && isUIAllowed('commentList')
+  return !isNew.value && commentsDrawer.value && ((isUIAllowed('commentList') && isEeUI) || !isEeUI)
 })
 
 const preventModalStatus = computed({
@@ -567,7 +567,7 @@ export default {
     :closable="false"
     :footer="null"
     :visible="isExpanded"
-    :width="commentsDrawer && isUIAllowed('commentList') ? 'min(80vw,1280px)' : 'min(70vw,768px)'"
+    :width="commentsDrawer && ((isUIAllowed('commentList') && isEeUI) || !isEeUI) ? 'min(80vw,1280px)' : 'min(70vw,768px)'"
     class="nc-drawer-expanded-form"
     :size="isMobileMode ? 'medium' : 'small'"
     v-bind="modalProps"

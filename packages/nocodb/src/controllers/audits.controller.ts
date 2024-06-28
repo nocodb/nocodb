@@ -22,7 +22,6 @@ export class AuditsController {
   constructor(protected readonly auditsService: AuditsService) {}
 
   @Get(['/api/v1/db/meta/audits/', '/api/v2/meta/audits/'])
-  @Acl('auditList')
   async auditListRow(@Req() req: NcRequest) {
     return new PagedResponseImpl(
       await this.auditsService.auditOnlyList({ query: req.query as any }),

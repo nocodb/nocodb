@@ -33,6 +33,8 @@ const { dashboardUrl } = useDashboard()
 
 const { user, appInfo } = useGlobal()
 
+const { isUIAllowed } = useRoles()
+
 const basesStore = useBases()
 
 const { basesUser } = storeToRefs(basesStore)
@@ -43,9 +45,7 @@ const baseUsers = computed(() => (meta.value?.base_id ? basesUser.value.get(meta
 
 const isExpandedFormLoading = computed(() => props.loading)
 
-const tab = ref<'comments' | 'audits'>('comments')
-
-const { isUIAllowed } = useRoles()
+const tab = ref<'comments' | 'audits'>(isUIAllowed('commentList') ? 'comments' : 'audits')
 
 const router = useRouter()
 
@@ -266,7 +266,7 @@ function handleResetHoverEffect() {
 <template>
   <div class="flex flex-col bg-white !h-full w-full rounded-br-2xl">
     <NcTabs v-model:activeKey="tab" class="h-full">
-      <a-tab-pane key="comments" class="w-full h-full">
+      <a-tab-pane v-if="isUIAllowed('commentList')" key="comments" class="w-full h-full">
         <template #tab>
           <div v-e="['c:row-expand:comment']" class="flex items-center gap-2">
             <GeneralIcon icon="messageCircle" class="w-4 h-4" />

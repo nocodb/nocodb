@@ -1084,6 +1084,7 @@
     },
     "toggleMobileMode": "Przełącz tryb mobilny",
     "startCommenting": "Rozpocznij komentowanie",
+    "noCommentsYet": "No comments yet!",
     "clearForm": "Wyczyść formularz",
     "addFieldFromFormView": "Dodaj pole",
     "selectAllFields": "Zaznacz wszystkie pola",

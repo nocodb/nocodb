@@ -133,7 +133,7 @@ const setEditorContent = (contentMd: any, focusEndOfDoc?: boolean) => {
   }, 100)
 }
 
-const onFocusWrapper = () => {
+function onFocusWrapper() {
   if (!props.readOnly && !keys.shift.value) {
     editor.value?.chain().focus().run()
     setEditorContent(vModel.value, true)

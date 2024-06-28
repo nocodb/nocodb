@@ -51,7 +51,7 @@ export function useViewData(
 
   const isPublic = inject(IsPublicInj, ref(false))
 
-  const { base, isSharedBase } = storeToRefs(useBase())
+  const { base } = storeToRefs(useBase())
 
   const { sharedView, fetchSharedViewData, paginationData: sharedPaginationData } = useSharedView()
 

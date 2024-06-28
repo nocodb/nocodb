@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { LinkToAnotherRecordType } from 'nocodb-sdk'
-import { RelationTypes, ViewTypes, isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk'
+import { RelationTypes, isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk'
 
 const props = defineProps<{
   visible: boolean

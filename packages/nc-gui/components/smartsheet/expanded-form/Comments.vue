@@ -45,11 +45,11 @@ const isExpandedFormLoading = computed(() => props.loading)
 
 const tab = ref<'comments' | 'audits'>('comments')
 
+const { isUIAllowed } = useRoles()
+
 const router = useRouter()
 
 const hasEditPermission = computed(() => isUIAllowed('commentEdit'))
-
-const { isUIAllowed } = useRoles()
 
 const editCommentValue = ref<CommentType>()
 
@@ -293,31 +293,31 @@ function handleResetHoverEffect() {
             </div>
             <div v-else ref="commentsWrapperEl" class="flex flex-col h-full py-1 nc-scrollbar-thin">
               <div
-                v-for="comment of comments"
-                :key="comment.id"
-                :class="`${comment.id}`"
+                v-for="commentItem of comments"
+                :key="commentItem.id"
+                :class="`${commentItem.id}`"
                 class="nc-comment-item"
                 @mouseover="handleResetHoverEffect"
               >
                 <div
                   :class="{
-                  'hover:bg-gray-100': editCommentValue?.id !== comment!.id,
-                  'nc-hovered-comment bg-gray-100': hoveredCommentId === comment!.id
+                  'hover:bg-gray-100': editCommentValue?.id !== commentItem!.id,
+                  'nc-hovered-comment bg-gray-100': hoveredCommentId === commentItem!.id
                 }"
                   class="group gap-3 overflow-hidden px-3 py-2 transition-colors"
                 >
                   <div class="flex items-start justify-between">
                     <div class="flex items-start gap-3">
                       <GeneralUserIcon
-                        :email="comment.created_by_email"
-                        :name="comment.created_display_name"
+                        :email="commentItem.created_by_email"
+                        :name="commentItem.created_display_name"
                         class="mt-0.5"
                         size="medium"
                       />
                       <div class="flex h-[28px] items-center gap-3">
                         <NcDropdown placement="topLeft" :trigger="['hover']">
                           <span class="text-ellipsis text-gray-800 font-medium !text-[13px] max-w-42 overflow-hidden" :style="{}">
-                            {{ createdBy(comment) }}
+                            {{ createdBy(commentItem) }}
                           </span>
 
                           <template #overlay>
@@ -325,29 +325,29 @@ function handleResetHoverEffect() {
                               <div class="flex items-center gap-4 py-3 px-2">
                                 <GeneralUserIcon
                                   class="!w-8 !h-8 border-1 border-gray-200 rounded-full"
-                                  :name="comment.created_display_name"
-                                  :email="comment.created_by_email"
+                                  :name="commentItem.created_display_name"
+                                  :email="commentItem.created_by_email"
                                 />
                                 <div class="flex flex-col">
                                   <div class="font-semibold text-gray-800">
-                                    {{ createdBy(comment) }}
+                                    {{ createdBy(commentItem) }}
                                   </div>
                                   <div class="text-xs text-gray-600">
-                                    {{ comment.created_by_email }}
+                                    {{ commentItem.created_by_email }}
                                   </div>
                                 </div>
                               </div>
                               <div
                                 class="px-3 rounded-b-lg !text-[13px] items-center text-gray-600 flex gap-1 bg-gray-100 py-1.5"
                               >
-                                Has <RolesBadge size="sm" :border="false" :role="getUserRole(comment.created_by_email!)" />
+                                Has <RolesBadge size="sm" :border="false" :role="getUserRole(commentItem.created_by_email!)" />
                                 role in base
                               </div>
                             </div>
                           </template>
                         </NcDropdown>
                         <div class="text-xs text-gray-500">
-                          {{ timeAgo(comment.created_at!) }}
+                          {{ timeAgo(commentItem.created_at!) }}
                         </div>
                       </div>
                     </div>
@@ -368,10 +368,10 @@ function handleResetHoverEffect() {
                         <template #overlay>
                           <NcMenu>
                             <NcMenuItem
-                              v-if="user && comment.created_by_email === user.email && hasEditPermission"
+                              v-if="user && commentItem.created_by_email === user.email && hasEditPermission"
                               v-e="['c:comment-expand:comment:edit']"
                               class="text-gray-700"
-                              @click="editComment(comment)"
+                              @click="editComment(commentItem)"
                             >
                               <div class="flex gap-2 items-center">
                                 <component :is="iconMap.rename" class="cursor-pointer" />
@@ -381,19 +381,19 @@ function handleResetHoverEffect() {
                             <NcMenuItem
                               v-e="['c:comment-expand:comment:copy']"
                               class="text-gray-700"
-                              @click="copyComment(comment)"
+                              @click="copyComment(commentItem)"
                             >
                               <div class="flex gap-2 items-center">
                                 <component :is="iconMap.copy" class="cursor-pointer" />
                                 {{ $t('general.copy') }} URL
                               </div>
                             </NcMenuItem>
-                            <template v-if="user && comment.created_by_email === user.email && hasEditPermission">
+                            <template v-if="user && commentItem.created_by_email === user.email && hasEditPermission">
                               <NcDivider />
                               <NcMenuItem
                                 v-e="['c:row-expand:comment:delete']"
                                 class="!text-red-500 !hover:bg-red-50"
-                                @click="deleteComment(comment.id!)"
+                                @click="deleteComment(commentItem.id!)"
                               >
                                 <div class="flex gap-2 items-center">
                                   <component :is="iconMap.delete" class="cursor-pointer" />
@@ -405,12 +405,12 @@ function handleResetHoverEffect() {
                         </template>
                       </NcDropdown>
                       <div v-if="appInfo.ee">
-                        <NcTooltip v-if="!comment.resolved_by && hasEditPermission">
+                        <NcTooltip v-if="!commentItem.resolved_by && hasEditPermission">
                           <NcButton
                             class="nc-resolve-comment-btn !w-7 !h-7 !bg-transparent !hover:bg-gray-200 !hidden !group-hover:block"
                             size="xsmall"
                             type="text"
-                            @click="resolveComment(comment.id!)"
+                            @click="resolveComment(commentItem.id!)"
                           >
                             <GeneralIcon class="text-md" icon="checkCircle" />
                           </NcButton>
@@ -418,13 +418,13 @@ function handleResetHoverEffect() {
                           <template #title>Click to resolve </template>
                         </NcTooltip>
 
-                        <NcTooltip v-else-if="comment.resolved_by">
-                          <template #title>{{ `Resolved by ${comment.resolved_display_name}` }}</template>
+                        <NcTooltip v-else-if="commentItem.resolved_by">
+                          <template #title>{{ `Resolved by ${commentItem.resolved_display_name}` }}</template>
                           <NcButton
                             class="!h-7 !w-7 !bg-transparent !hover:bg-gray-200 text-semibold"
                             size="xsmall"
                             type="text"
-                            @click="resolveComment(comment.id)"
+                            @click="resolveComment(commentItem.id!)"
                           >
                             <GeneralIcon class="text-md rounded-full bg-[#17803D] text-white" icon="checkFill" />
                           </NcButton>
@@ -434,12 +434,12 @@ function handleResetHoverEffect() {
                   </div>
                   <div
                     :class="{
-                      'mt-3': comment.id === editCommentValue?.id,
+                      'mt-3': commentItem.id === editCommentValue?.id,
                     }"
                     class="flex-1 flex flex-col gap-1 max-w-[calc(100%)]"
                   >
                     <SmartsheetExpandedFormRichComment
-                      v-if="comment.id === editCommentValue?.id && hasEditPermission"
+                      v-if="commentItem.id === editCommentValue?.id && hasEditPermission"
                       v-model:value="value"
                       autofocus
                       :hide-options="false"
@@ -459,7 +459,7 @@ function handleResetHoverEffect() {
 
                     <div v-else class="space-y-1 pl-9">
                       <SmartsheetExpandedFormRichComment
-                        :value="`${comment.comment}  ${editedAt(comment)}`"
+                        :value="`${commentItem.comment}  ${editedAt(commentItem)}`"
                         class="!text-small !leading-18px !text-gray-800 -ml-1"
                         read-only
                         sync-value-change

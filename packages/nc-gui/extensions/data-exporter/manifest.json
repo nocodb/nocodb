@@ -1,0 +1,11 @@
+{
+  "id": "nc-data-exporter",
+  "title": "Data Exporter",
+  "description": "Export any view in various formats",
+  "entry": "data-exporter",
+  "version": "0.1",
+  "iconUrl": "data-exporter/icon.png",
+  "publisherName": "NocoDB",
+  "publisherEmail": "contact@nocodb.com",
+  "publisherUrl": "https://www.nocodb.com"
+}

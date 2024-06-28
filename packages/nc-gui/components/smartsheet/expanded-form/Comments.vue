@@ -604,7 +604,7 @@ function handleResetHoverEffect() {
 }
 
 :deep(.green.lighten-4) {
-  @apply bg-green-100 rounded-md !mr-3 !leading-6;
+  @apply bg-green-100 rounded-md !mr-3;
 }
 
 :deep(.ant-tabs) {

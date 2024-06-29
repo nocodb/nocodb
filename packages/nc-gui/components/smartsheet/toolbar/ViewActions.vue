@@ -43,7 +43,9 @@ useBase()
 
 const meta = inject(MetaInj, ref())
 
-const currentBaseId = computed(() => meta.value?.source_id)
+const currentBaseId = computed(() => meta.value?.base_id)
+
+const currentSourceId = computed(() => meta.value?.source_id)
 
 /*
 const Icon = computed(() => {
@@ -172,13 +174,14 @@ useMenuCloseOnEsc(open)
       </template>
     </a-dropdown>
 
-    <template v-if="currentBaseId">
+    <template v-if="currentSourceId && currentBaseId">
       <LazyDlgQuickImport
         v-for="tp in quickImportDialogTypes"
         :key="tp"
         v-model="quickImportDialogs[tp].value"
         :import-type="tp"
-        :source-id="currentBaseId"
+        :base-id="currentBaseId"
+        :source-id="currentSourceId"
         :import-data-only="true"
       />
     </template>

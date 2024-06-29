@@ -9,11 +9,12 @@ import importWorkerUrl from '~/workers/importWorker?worker&url'
 interface Props {
   modelValue: boolean
   importType: 'csv' | 'json' | 'excel'
+  baseId: string
   sourceId: string
   importDataOnly?: boolean
 }
 
-const { importType, importDataOnly = false, sourceId, ...rest } = defineProps<Props>()
+const { importType, importDataOnly = false, baseId, sourceId, ...rest } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
@@ -532,6 +533,7 @@ const onChange = () => {
             :import-data-only="importDataOnly"
             :quick-import-type="importType"
             :max-rows-to-parse="importState.parserConfig.maxRowsToParse"
+            :base-id="baseId"
             :source-id="sourceId"
             :import-worker="importWorker"
             class="nc-quick-import-template-editor"

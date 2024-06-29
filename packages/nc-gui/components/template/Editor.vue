@@ -6,15 +6,6 @@ import { UITypes, getDateFormat, getDateTimeFormat, isSystemColumn, isVirtualCol
 import type { CheckboxChangeEvent } from 'ant-design-vue/es/checkbox/interface'
 import { srcDestMappingColumns, tableColumns } from './utils'
 
-const { quickImportType, baseTemplate, importData, importColumns, importDataOnly, maxRowsToParse, sourceId, importWorker } =
-  defineProps<Props>()
-
-const emit = defineEmits(['import', 'error', 'change'])
-
-dayjs.extend(utc)
-
-const { t } = useI18n()
-
 interface Props {
   quickImportType: 'csv' | 'excel' | 'json'
   baseTemplate: Record<string, any>
@@ -22,6 +13,7 @@ interface Props {
   importColumns: any[]
   importDataOnly: boolean
   maxRowsToParse: number
+  baseId: string
   sourceId: string
   importWorker: Worker
 }
@@ -30,6 +22,24 @@ interface Option {
   label: string
   value: string
 }
+
+const {
+  quickImportType,
+  baseTemplate,
+  importData,
+  importColumns,
+  importDataOnly,
+  maxRowsToParse,
+  baseId,
+  sourceId,
+  importWorker,
+} = defineProps<Props>()
+
+const emit = defineEmits(['import', 'error', 'change'])
+
+dayjs.extend(utc)
+
+const { t } = useI18n()
 
 const meta = inject(MetaInj, ref())
 
@@ -43,13 +53,19 @@ const { $api } = useNuxtApp()
 
 const { addTab } = useTabs()
 
+const basesStore = useBases()
+
+const { bases } = storeToRefs(basesStore)
+
 const baseStrore = useBase()
 const { loadTables } = baseStrore
-const { sqlUis, base } = storeToRefs(baseStrore)
+const { sqlUis, base: currentbase } = storeToRefs(baseStrore)
 const { openTable } = useTablesStore()
 const { baseTables } = storeToRefs(useTablesStore())
 
 const sqlUi = ref(sqlUis.value[sourceId] || Object.values(sqlUis.value)[0])
+
+const base = computed(() => bases.value.get(baseId) || currentbase.value)
 
 const hasSelectColumn = ref<boolean[]>([])
 

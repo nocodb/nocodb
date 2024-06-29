@@ -141,8 +141,6 @@ export class ToolbarFilterPage extends BasePage {
       this.rootPage.locator('.nc-filter-field-select .ant-select-selection-item').first()
     );
 
-    console.log('filterCount', filterCount);
-
     if (selectedField !== title) {
       await this.rootPage.locator('.nc-filter-field-select').last().click();
 

@@ -1,8 +1,16 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
-import type { ColumnType, TableType } from 'nocodb-sdk'
-import { UITypes, getDateFormat, getDateTimeFormat, isSystemColumn, isVirtualCol, parseStringDate } from 'nocodb-sdk'
+import type { ColumnType, OracleUi, TableType } from 'nocodb-sdk'
+import {
+  SqlUiFactory,
+  UITypes,
+  getDateFormat,
+  getDateTimeFormat,
+  isSystemColumn,
+  isVirtualCol,
+  parseStringDate,
+} from 'nocodb-sdk'
 import type { CheckboxChangeEvent } from 'ant-design-vue/es/checkbox/interface'
 import { srcDestMappingColumns, tableColumns } from './utils'
 
@@ -54,18 +62,32 @@ const { $api } = useNuxtApp()
 const { addTab } = useTabs()
 
 const basesStore = useBases()
-
 const { bases } = storeToRefs(basesStore)
 
-const baseStrore = useBase()
-const { loadTables } = baseStrore
-const { sqlUis, base: currentbase } = storeToRefs(baseStrore)
-const { openTable } = useTablesStore()
-const { baseTables } = storeToRefs(useTablesStore())
-
-const sqlUi = ref(sqlUis.value[sourceId] || Object.values(sqlUis.value)[0])
+const { base: currentbase } = storeToRefs(useBase())
 
 const base = computed(() => bases.value.get(baseId) || currentbase.value)
+
+const tablesStore = useTablesStore()
+const { openTable, loadProjectTables } = tablesStore
+const { baseTables } = storeToRefs(tablesStore)
+
+const sqlUis = computed(() => {
+  const temp: Record<string, any> = {}
+
+  for (const source of base.value.sources) {
+    if (source.id) {
+      temp[source.id] = SqlUiFactory.create({ client: source.type }) as Exclude<
+        ReturnType<(typeof SqlUiFactory)['create']>,
+        typeof OracleUi
+      >
+    }
+  }
+
+  return temp
+})
+
+const sqlUi = computed(() => sqlUis.value[sourceId] || Object.values(sqlUis.value)[0])
 
 const hasSelectColumn = ref<boolean[]>([])
 
@@ -576,7 +598,7 @@ async function importTemplate() {
         )
       }
       // reload table list
-      await loadTables()
+      await loadProjectTables(base.value.id, true)
 
       addTab({
         ...tab,

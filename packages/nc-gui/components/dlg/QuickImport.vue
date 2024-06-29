@@ -34,6 +34,10 @@ const progressMsg = ref('Parsing Data ...')
 
 const { tables } = storeToRefs(useBase())
 
+const tablesStore = useTablesStore()
+const { loadProjectTables } = tablesStore
+const { baseTables } = storeToRefs(tablesStore)
+
 const activeKey = ref('uploadTab')
 
 const jsonEditorRef = ref()
@@ -161,6 +165,10 @@ async function handlePreImport() {
   preImportLoading.value = true
   isParsingData.value = true
 
+  if (!baseTables.value.get(baseId)) {
+    await loadProjectTables(baseId)
+  }
+
   if (activeKey.value === 'uploadTab') {
     if (isImportTypeCsv.value || (isWorkerSupport && importWorker)) {
       await parseAndExtractData(importState.fileList as streamImportFileList)
@@ -249,7 +257,7 @@ function formatJson() {
 function populateUniqueTableName(tn: string) {
   let c = 1
   while (
-    tables.value.some((t: TableType) => {
+    baseTables.value.get(baseId)?.some((t: TableType) => {
       const s = t.table_name.split('___')
       let target = t.table_name
       if (s.length > 1) target = s[1]

@@ -1084,6 +1084,7 @@
     },
     "toggleMobileMode": "(Dés-)activer le mode Mobile",
     "startCommenting": "Commencez à commenter !",
+    "noCommentsYet": "No comments yet!",
     "clearForm": "Vider le formulaire",
     "addFieldFromFormView": "Ajouter un champ",
     "selectAllFields": "Sélectionner tous les champs",

@@ -1084,6 +1084,7 @@
     },
     "toggleMobileMode": "모바일 모드 전환",
     "startCommenting": "댓글 달기",
+    "noCommentsYet": "No comments yet!",
     "clearForm": "Clear Form",
     "addFieldFromFormView": "Add Field",
     "selectAllFields": "Select all fields",

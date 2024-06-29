@@ -1084,6 +1084,7 @@
     },
     "toggleMobileMode": "Mobil Modu Aç / Kapat",
     "startCommenting": "Yorum yapmaya başlayın!",
+    "noCommentsYet": "No comments yet!",
     "clearForm": "Formu Temizle",
     "addFieldFromFormView": "Sütun Ekle",
     "selectAllFields": "Tüm sütunları seç",

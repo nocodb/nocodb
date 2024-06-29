@@ -1084,6 +1084,7 @@
     },
     "toggleMobileMode": "切换移动模式",
     "startCommenting": "开始评论",
+    "noCommentsYet": "No comments yet!",
     "clearForm": "清除表单",
     "addFieldFromFormView": "添加字段",
     "selectAllFields": "选择所有字段",

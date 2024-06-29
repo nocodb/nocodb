@@ -1084,6 +1084,7 @@
     },
     "toggleMobileMode": "Toggle Mobile Mode",
     "startCommenting": "התחל להגיב!",
+    "noCommentsYet": "No comments yet!",
     "clearForm": "נקה את הטופס",
     "addFieldFromFormView": "הוסף שדה",
     "selectAllFields": "בחר את כל השדות",

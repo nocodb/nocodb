@@ -312,10 +312,22 @@ export class ToolbarFilterPage extends BasePage {
           // eslint-disable-next-line no-case-declarations
           const v = value.split(',');
           for (let i = 0; i < v.length; i++) {
-            await this.rootPage
-              .locator(`.nc-dropdown-multi-select-cell`)
-              .locator(`[data-testid="select-option-MultiSelect-filter"].nc-select-option-MultiSelect-${v[i]}`)
-              .click();
+            if (skipWaitingResponse) {
+              await this.rootPage
+                .locator(`.nc-dropdown-multi-select-cell`)
+                .locator(`[data-testid="select-option-MultiSelect-filter"].nc-select-option-MultiSelect-${v[i]}`)
+                .click();
+            } else {
+              await this.waitForResponse({
+                uiAction: async () =>
+                  await this.rootPage
+                    .locator(`.nc-dropdown-multi-select-cell`)
+                    .locator(`[data-testid="select-option-MultiSelect-filter"].nc-select-option-MultiSelect-${v[i]}`)
+                    .click(),
+                httpMethodsToMatch: ['GET'],
+                requestUrlPathToMatch: `/api/v1/db/data/noco/`,
+              });
+            }
           }
           break;
         case UITypes.SingleSelect:
@@ -330,16 +342,40 @@ export class ToolbarFilterPage extends BasePage {
           const val = value.split(',');
           if (val.length > 1) {
             for (let i = 0; i < val.length; i++) {
-              await this.rootPage
-                .locator(`.nc-dropdown-multi-select-cell`)
-                .locator(`.nc-select-option-SingleSelect-${val[i]}`)
-                .click();
+              if (skipWaitingResponse) {
+                await this.rootPage
+                  .locator(`.nc-dropdown-multi-select-cell`)
+                  .locator(`.nc-select-option-SingleSelect-${val[i]}`)
+                  .click();
+              } else {
+                await this.waitForResponse({
+                  uiAction: async () =>
+                    await this.rootPage
+                      .locator(`.nc-dropdown-multi-select-cell`)
+                      .locator(`.nc-select-option-SingleSelect-${val[i]}`)
+                      .click(),
+                  httpMethodsToMatch: ['GET'],
+                  requestUrlPathToMatch: `/api/v1/db/data/noco/`,
+                });
+              }
             }
           } else {
-            await this.rootPage
-              .locator(`.nc-dropdown-single-select-cell`)
-              .locator(`.nc-select-option-${title}-${value}`)
-              .click();
+            if (skipWaitingResponse) {
+              await this.rootPage
+                .locator(`.nc-dropdown-single-select-cell`)
+                .locator(`.nc-select-option-${title}-${value}`)
+                .click();
+            } else {
+              await this.waitForResponse({
+                uiAction: async () =>
+                  await this.rootPage
+                    .locator(`.nc-dropdown-single-select-cell`)
+                    .locator(`.nc-select-option-${title}-${value}`)
+                    .click(),
+                httpMethodsToMatch: ['GET'],
+                requestUrlPathToMatch: `/api/v1/db/data/noco/`,
+              });
+            }
           }
           break;
         case UITypes.User:

@@ -302,6 +302,16 @@ const openedTab = ref('erd')
               />
             </div>
           </a-tab-pane>
+          <a-tab-pane v-if="sources && activeSource === sources[0]" key="audit">
+            <template #tab>
+              <div class="tab" data-testid="nc-audit-tab">
+                <div>{{ $t('title.auditLogs') }}</div>
+              </div>
+            </template>
+            <div class="p-4 h-full">
+              <LazyDashboardSettingsBaseAudit :source-id="activeSource.id" />
+            </div>
+          </a-tab-pane>
           <a-tab-pane v-if="!activeSource.is_meta && !activeSource.is_local" key="edit">
             <template #tab>
               <div class="tab" data-testid="nc-connection-tab">

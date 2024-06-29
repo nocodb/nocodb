@@ -131,18 +131,22 @@ export class ToolbarFilterPage extends BasePage {
     openModal?: boolean;
     skipWaitingResponse?: boolean;
   }) {
-    const filterCount = await this.get().locator('.nc-filter-wrapper').count();
+    if (!openModal) {
+      await this.get().locator(`button:has-text("Add Filter")`).first().click();
+    }
 
-    if (!openModal) await this.get().locator(`button:has-text("Add Filter")`).first().click();
+    const filterCount = await this.get().locator('.nc-filter-wrapper').count();
 
     const selectedField = await getTextExcludeIconText(
       this.rootPage.locator('.nc-filter-field-select .ant-select-selection-item').first()
     );
 
+    console.log('filterCount', filterCount);
+
     if (selectedField !== title) {
       await this.rootPage.locator('.nc-filter-field-select').last().click();
 
-      if (skipWaitingResponse || filterCount === 0) {
+      if (skipWaitingResponse || filterCount === 1) {
         await this.rootPage
           .locator('div.ant-select-dropdown.nc-dropdown-toolbar-field-list')
           .locator(`div[label="${title}"]:visible`)
@@ -167,7 +171,7 @@ export class ToolbarFilterPage extends BasePage {
       await this.rootPage.locator('.nc-filter-operation-select').click();
       // first() : filter list has >, >=
 
-      if (skipWaitingResponse || filterCount === 0) {
+      if (skipWaitingResponse || filterCount === 1) {
         await this.rootPage
           .locator('.nc-dropdown-filter-comp-op')
           .locator(`.ant-select-item:has-text("${operation}")`)
@@ -196,7 +200,7 @@ export class ToolbarFilterPage extends BasePage {
         await this.rootPage.locator('.nc-filter-sub_operation-select').click();
         // first() : filter list has >, >=
 
-        if (skipWaitingResponse || filterCount === 0) {
+        if (skipWaitingResponse || filterCount === 1) {
           await this.rootPage
             .locator('.nc-dropdown-filter-comp-sub-op')
             .locator(`.ant-select-item:has-text("${subOperation}")`)

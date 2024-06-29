@@ -64,9 +64,9 @@ const { addTab } = useTabs()
 const basesStore = useBases()
 const { bases } = storeToRefs(basesStore)
 
-const { base: currentbase } = storeToRefs(useBase())
+const { base: activeBase } = storeToRefs(useBase())
 
-const base = computed(() => bases.value.get(baseId) || currentbase.value)
+const base = computed(() => bases.value.get(baseId) || activeBase.value)
 
 const tablesStore = useTablesStore()
 const { openTable, loadProjectTables } = tablesStore
@@ -75,7 +75,7 @@ const { baseTables } = storeToRefs(tablesStore)
 const sqlUis = computed(() => {
   const temp: Record<string, any> = {}
 
-  for (const source of base.value.sources) {
+  for (const source of base.value.sources ?? []) {
     if (source.id) {
       temp[source.id] = SqlUiFactory.create({ client: source.type }) as Exclude<
         ReturnType<(typeof SqlUiFactory)['create']>,

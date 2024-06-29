@@ -22,12 +22,18 @@ const props = defineProps({
   },
 })
 
-const { baseTables: _baseTables } = storeToRefs(useTablesStore())
-const { sources, base } = storeToRefs(useBase())
+const { bases } = storeToRefs(useBases())
 
-const baseId = computed(() => props.baseId ?? base.value!.id)
+const { base: activeBase } = storeToRefs(useBase())
+
+const baseId = computed(() => props.baseId ?? activeBase.value!.id!)
+
+const tablesStore = useTablesStore()
+const { baseTables: _baseTables } = storeToRefs(tablesStore)
 
 const baseTables = computed(() => _baseTables.value.get(baseId.value) ?? [])
+
+const sources = computed<SourceType[]>(() => bases.value.get(baseId.value)?.sources || [])
 
 const { metas, getMeta } = useMetas()
 
@@ -128,6 +134,14 @@ watch(
     config.showPkAndFk = config.showAllColumns
   },
 )
+
+onMounted(async () => {
+  if (!props.baseId) return
+
+  if (!_baseTables.value.get(props.baseId)) {
+    await tablesStore.loadProjectTables(props.baseId)
+  }
+})
 </script>
 
 <template>

@@ -1399,6 +1399,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
               },
               {
                 limitOverride: tempToRead.length,
+                ignoreViewFilterAndSort: true,
               },
             );
 
@@ -1576,6 +1577,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             },
             {
               limitOverride: tempToRead.length,
+              ignoreViewFilterAndSort: true,
             },
           );
 

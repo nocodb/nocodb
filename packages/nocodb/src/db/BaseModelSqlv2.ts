@@ -4348,6 +4348,7 @@ class BaseModelSqlv2 {
               },
               {
                 limitOverride: tempToRead.length,
+                ignoreViewFilterAndSort: true,
               },
             );
 
@@ -4576,6 +4577,7 @@ class BaseModelSqlv2 {
             },
             {
               limitOverride: tempToRead.length,
+              ignoreViewFilterAndSort: true,
             },
           );
 

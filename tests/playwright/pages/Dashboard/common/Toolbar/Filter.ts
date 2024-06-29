@@ -131,19 +131,20 @@ export class ToolbarFilterPage extends BasePage {
     openModal?: boolean;
     skipWaitingResponse?: boolean;
   }) {
-    if (!openModal) await this.get().locator(`button:has-text("Add Filter")`).first().click();
+    if (!openModal) {
+      await this.get().locator(`button:has-text("Add Filter")`).first().click();
+    }
 
-    // TODO: Integrated the draft filter logic here as well, since when we add a filter its not saved till all
-    // its values are filled
-    skipWaitingResponse = true;
+    const filterCount = await this.get().locator('.nc-filter-wrapper').count();
 
     const selectedField = await getTextExcludeIconText(
       this.rootPage.locator('.nc-filter-field-select .ant-select-selection-item').first()
     );
+
     if (selectedField !== title) {
       await this.rootPage.locator('.nc-filter-field-select').last().click();
 
-      if (skipWaitingResponse) {
+      if (skipWaitingResponse || filterCount === 1) {
         await this.rootPage
           .locator('div.ant-select-dropdown.nc-dropdown-toolbar-field-list')
           .locator(`div[label="${title}"]:visible`)
@@ -168,7 +169,7 @@ export class ToolbarFilterPage extends BasePage {
       await this.rootPage.locator('.nc-filter-operation-select').click();
       // first() : filter list has >, >=
 
-      if (skipWaitingResponse) {
+      if (skipWaitingResponse || filterCount === 1) {
         await this.rootPage
           .locator('.nc-dropdown-filter-comp-op')
           .locator(`.ant-select-item:has-text("${operation}")`)
@@ -197,7 +198,7 @@ export class ToolbarFilterPage extends BasePage {
         await this.rootPage.locator('.nc-filter-sub_operation-select').click();
         // first() : filter list has >, >=
 
-        if (skipWaitingResponse) {
+        if (skipWaitingResponse || filterCount === 1) {
           await this.rootPage
             .locator('.nc-dropdown-filter-comp-sub-op')
             .locator(`.ant-select-item:has-text("${subOperation}")`)
@@ -309,10 +310,22 @@ export class ToolbarFilterPage extends BasePage {
           // eslint-disable-next-line no-case-declarations
           const v = value.split(',');
           for (let i = 0; i < v.length; i++) {
-            await this.rootPage
-              .locator(`.nc-dropdown-multi-select-cell`)
-              .locator(`[data-testid="select-option-MultiSelect-filter"].nc-select-option-MultiSelect-${v[i]}`)
-              .click();
+            if (skipWaitingResponse) {
+              await this.rootPage
+                .locator(`.nc-dropdown-multi-select-cell`)
+                .locator(`[data-testid="select-option-MultiSelect-filter"].nc-select-option-MultiSelect-${v[i]}`)
+                .click();
+            } else {
+              await this.waitForResponse({
+                uiAction: async () =>
+                  await this.rootPage
+                    .locator(`.nc-dropdown-multi-select-cell`)
+                    .locator(`[data-testid="select-option-MultiSelect-filter"].nc-select-option-MultiSelect-${v[i]}`)
+                    .click(),
+                httpMethodsToMatch: ['GET'],
+                requestUrlPathToMatch: `/api/v1/db/data/noco/`,
+              });
+            }
           }
           break;
         case UITypes.SingleSelect:
@@ -327,16 +340,40 @@ export class ToolbarFilterPage extends BasePage {
           const val = value.split(',');
           if (val.length > 1) {
             for (let i = 0; i < val.length; i++) {
-              await this.rootPage
-                .locator(`.nc-dropdown-multi-select-cell`)
-                .locator(`.nc-select-option-SingleSelect-${val[i]}`)
-                .click();
+              if (skipWaitingResponse) {
+                await this.rootPage
+                  .locator(`.nc-dropdown-multi-select-cell`)
+                  .locator(`.nc-select-option-SingleSelect-${val[i]}`)
+                  .click();
+              } else {
+                await this.waitForResponse({
+                  uiAction: async () =>
+                    await this.rootPage
+                      .locator(`.nc-dropdown-multi-select-cell`)
+                      .locator(`.nc-select-option-SingleSelect-${val[i]}`)
+                      .click(),
+                  httpMethodsToMatch: ['GET'],
+                  requestUrlPathToMatch: `/api/v1/db/data/noco/`,
+                });
+              }
             }
           } else {
-            await this.rootPage
-              .locator(`.nc-dropdown-single-select-cell`)
-              .locator(`.nc-select-option-${title}-${value}`)
-              .click();
+            if (skipWaitingResponse) {
+              await this.rootPage
+                .locator(`.nc-dropdown-single-select-cell`)
+                .locator(`.nc-select-option-${title}-${value}`)
+                .click();
+            } else {
+              await this.waitForResponse({
+                uiAction: async () =>
+                  await this.rootPage
+                    .locator(`.nc-dropdown-single-select-cell`)
+                    .locator(`.nc-select-option-${title}-${value}`)
+                    .click(),
+                httpMethodsToMatch: ['GET'],
+                requestUrlPathToMatch: `/api/v1/db/data/noco/`,
+              });
+            }
           }
           break;
         case UITypes.User:

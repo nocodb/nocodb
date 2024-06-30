@@ -168,16 +168,16 @@ const up = async (knex: Knex) => {
 
   for (const table of tablesToAlterBaseId) {
     hrTime = process.hrtime();
-    await knex.schema.alterTable(table, (table) => {
-      table.string('base_id', 20).alter();
+    await knex.schema.alterTable(table, (tableQb) => {
+      tableQb.string('base_id', 20).alter();
     });
     logExecutionTime(`Altered ${table}.base_id to 20 characters`);
   }
 
   for (const table of tablesToAlterSourceId) {
     hrTime = process.hrtime();
-    await knex.schema.alterTable(table, (table) => {
-      table.string('source_id', 20).alter();
+    await knex.schema.alterTable(table, (tableQb) => {
+      tableQb.string('source_id', 20).alter();
     });
     logExecutionTime(`Altered ${table}.source_id to 20 characters`);
   }
@@ -185,14 +185,14 @@ const up = async (knex: Knex) => {
 
 const down = async (knex: Knex) => {
   for (const table of tablesToAlterBaseId) {
-    await knex.schema.alterTable(table, (table) => {
-      table.string('base_id', 128).alter();
+    await knex.schema.alterTable(table, (tableQb) => {
+      tableQb.string('base_id', 128).alter();
     });
   }
 
   for (const table of tablesToAlterSourceId) {
-    await knex.schema.alterTable(table, (table) => {
-      table.string('source_id', 128).alter();
+    await knex.schema.alterTable(table, (tableQb) => {
+      tableQb.string('source_id', 128).alter();
     });
   }
 };

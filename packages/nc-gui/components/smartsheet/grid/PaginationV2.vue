@@ -7,6 +7,7 @@ const props = defineProps<{
   paginationData: PaginatedType
   changePage: (page: number) => void
   showSizeChanger?: boolean
+  customLabel?: string
 }>()
 
 const emits = defineEmits(['update:paginationData'])
@@ -15,7 +16,7 @@ const { isViewDataLoading, isPaginationLoading } = storeToRefs(useViewsStore())
 
 const isLocked = inject(IsLockedInj, ref(false))
 
-const { changePage } = props
+const { changePage, customLabel } = props
 
 const showSizeChanger = toRef(props, 'showSizeChanger')
 
@@ -110,13 +111,15 @@ const renderAltOrOptlKey = () => {
               <a-skeleton :active="true" :title="true" :paragraph="false" class="w-16 max-w-16" />
             </div>
             <NcTooltip v-else class="flex sticky items-center h-full">
-              <template #title> {{ count }} {{ count !== 1 ? $t('objects.records') : $t('objects.record') }} </template>
+              <template #title>
+                {{ count }} {{ customLabel ? customLabel : count !== 1 ? $t('objects.records') : $t('objects.record') }}
+              </template>
               <span
                 data-testid="grid-pagination"
                 class="text-gray-500 text-ellipsis overflow-hidden pl-1 truncate nc-grid-row-count caption text-xs text-nowrap"
               >
                 {{ Intl.NumberFormat('en', { notation: 'compact' }).format(count) }}
-                {{ count !== 1 ? $t('objects.records') : $t('objects.record') }}
+                {{ customLabel ? customLabel : count !== 1 ? $t('objects.records') : $t('objects.record') }}
               </span>
             </NcTooltip>
 

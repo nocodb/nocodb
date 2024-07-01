@@ -645,15 +645,9 @@ const bgColor = computed(() => {
     v-if="vGroup.root"
     v-model:pagination-data="vGroup.paginationData"
     :scroll-left="_scrollLeft"
+    custom-label="groups"
     :change-page="(p: number) => groupWrapperChangePage(p, vGroup)"
   />
-
-  <!--  <LazySmartsheetPagination
-    align-count-on-right
-    custom-label="groups"
-    show-api-timing
-    :style="`${props.depth && props.depth > 0 ? 'border-radius: 0 0 8px 8px !important;' : ''}`"
-  ></LazySmartsheetPagination> -->
 
   <LazySmartsheetPagination
     v-else

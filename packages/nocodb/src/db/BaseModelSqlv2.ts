@@ -769,7 +769,7 @@ class BaseModelSqlv2 {
         )
           continue;
 
-        const aliasFieldName = col.title;
+        const aliasFieldName = col.id;
         const aggSql = await applyAggregation({
           baseModelSqlv2: this,
           aggregation: viewColumn.aggregation,
@@ -875,8 +875,8 @@ class BaseModelSqlv2 {
       qb.limit(1);
 
       const data = await this.execAndParse(qb, null, {
-        skipDateConversion: true,
         first: true,
+        bulkAggregate: true,
       });
 
       return data;
@@ -988,6 +988,8 @@ class BaseModelSqlv2 {
       const data = await this.execAndParse(qb, null, {
         first: true,
         skipDateConversion: true,
+        skipAttachmentConversion: true,
+        skipUserConversion: true,
       });
 
       return data;
@@ -6057,6 +6059,7 @@ class BaseModelSqlv2 {
       skipUserConversion?: boolean;
       raw?: boolean; // alias for skipDateConversion and skipAttachmentConversion
       first?: boolean;
+      bulkAggregate?: boolean;
     } = {
       skipDateConversion: false,
       skipAttachmentConversion: false,
@@ -6064,6 +6067,7 @@ class BaseModelSqlv2 {
       skipUserConversion: false,
       raw: false,
       first: false,
+      bulkAggregate: false,
     },
   ) {
     if (options.raw) {

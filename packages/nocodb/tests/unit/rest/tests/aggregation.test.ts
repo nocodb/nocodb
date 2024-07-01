@@ -102,22 +102,22 @@ const verificationData = {
     percent_filled: 100,
     percent_empty: 0,
     sum: {
-      sqlite: 5.8580000000000005,
+      sqlite3: 5.8580000000000005,
       pg: 5.858,
     },
     min: 2.718,
     max: 3.14,
     avg: {
-      sqlite: 2.9290000000000003,
+      sqlite3: 2.9290000000000003,
       pg: 2.929,
     },
     median: 2.9290000000000003,
     std_dev: {
-      sqlite: 0.21100000000000002,
+      sqlite3: 0.21100000000000002,
       pg: 0.211,
     },
     range: {
-      sqlite: 0.42200000000000015,
+      sqlite3: 0.42200000000000015,
       pg: 0.422,
     },
   },

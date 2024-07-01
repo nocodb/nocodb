@@ -12531,9 +12531,11 @@
             "description": "Used for selective aggregation"
           },
           {
+            "in": "query",
+            "name": "aggregateFilterList",
+            "description": "List of where filters and alias",
             "schema": {
               "type": "array",
-              "description": "List of where filters and alias",
               "items": {
                 "type": "object"
               }
@@ -16757,9 +16759,11 @@
           "description": "Used for selective aggregation"
         },
         {
+          "in": "query",
+          "name": "aggregateFilterList",
+          "description": "List of where filters and alias",
           "schema": {
             "type": "array",
-            "description": "List of where filters and alias",
             "items": {
               "type": "object"
             }

@@ -102,7 +102,7 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
       await reloadAggregate?.trigger({
         fields: [
           {
-            field: fields.value.find((f) => f.id === fieldId)?.title ?? '',
+            title: fields.value.find((f) => f.id === fieldId)?.title ?? '',
             aggregation: agg,
           },
         ],

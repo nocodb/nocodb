@@ -66,14 +66,17 @@ const viewDisplayField = computed(() => {
 const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 
 reloadAggregate?.on(async (_fields) => {
-  if (!_fields || !_fields.field?.length) {
+  if (!fields.value?.length) return
+  if (!_fields || !_fields?.fields.length) {
     await props.loadGroupAggregation(vGroup.value)
   }
-  if (_fields?.field) {
-    const fieldAggregateMapping = _fields.field.reduce((acc, field) => {
-      const f = fields.value.find((f) => f.title === field)
+  if (_fields?.fields) {
+    const fieldAggregateMapping = _fields.fields.reduce((acc, field) => {
+      const f = fields.value.find((f) => f.title === field.title)
 
-      acc[f.id] = gridViewCols.value[f.id].aggregation ?? CommonAggregations.None
+      if (!f?.id) return acc
+
+      acc[f.id] = field.aggregation ?? gridViewCols.value[f.id].aggregation ?? CommonAggregations.None
 
       return acc
     }, {} as Record<string, string>)
@@ -581,10 +584,10 @@ const bgColor = computed(() => {
                         <NcMenuItem
                           v-for="(agg, index) in getAggregations(column)"
                           :key="index"
-                          class="w-full nc-aggregation-menu"
+                          class="!w-full !flex-1 nc-aggregation-menu"
                           @click="updateAggregate(column.id, agg)"
                         >
-                          <div class="flex !w-full text-[13px] text-gray-800 items-center justify-between">
+                          <div class="flex !flex-grow-1 !w-full text-[13px] text-gray-800 items-center justify-between">
                             {{ $t(`aggregation_type.${agg}`) }}
 
                             <GeneralIcon v-if="field?.aggregation === agg" class="text-brand-500" icon="check" />
@@ -692,11 +695,8 @@ const bgColor = computed(() => {
 :deep(.ant-collapse-borderless > .ant-collapse-item:last-child) {
   border-radius: 8px !important;
 }
-</style>
 
-<style lang="scss">
 :deep(.nc-menu-item-inner) {
-  width: 100% !important;
-  @apply !pr-2;
+  @apply w-full pr-1 overflow-x-clip;
 }
 </style>

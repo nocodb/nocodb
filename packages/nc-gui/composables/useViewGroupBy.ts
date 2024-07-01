@@ -583,7 +583,11 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
               group.rows?.splice(group!.rows.indexOf(row), 1)
               modifyCount(group, -1)
             }
-            if (properGroup.group?.children) loadGroups({}, properGroup.group)
+            /* else {
+              rootGroup.value.rows?.splice(rootGroup.value.rows!.indexOf(row), 1)
+            }
+             if (properGroup.group?.children) loadGroups({}, properGroup.group)
+             */
           }
         })
       } else {

@@ -719,6 +719,10 @@ class BaseModelSqlv2 {
     view: View,
   ) {
     try {
+      if (!args.aggregateFilterList?.length) {
+        return NcError.badRequest('aggregateFilterList is required');
+      }
+
       const { where, aggregation } = this._getListArgs(args as any);
 
       const columns = await this.model.getColumns(this.context);
@@ -778,7 +782,7 @@ class BaseModelSqlv2 {
       }
 
       if (!Object.keys(aggregateExpressions).length) {
-        return [];
+        return {};
       }
 
       const viewFilterList = await Filter.rootFilterList(this.context, {

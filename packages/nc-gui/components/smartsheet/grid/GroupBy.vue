@@ -330,9 +330,7 @@ const computedWidth = computed(() => {
 
   if (_depth === 2) {
     if (tempScrollLeft <= 14) {
-      console.log(tempScrollLeft)
       // The equation is calculated on trial and error basis
-      // y = -0.00x^2 + 1.06x + 17.78
       return `${baseValue + tempScrollLeft - 18 - tempScrollLeft}px`
     }
     return getSubGroupWidth(maxDepth)

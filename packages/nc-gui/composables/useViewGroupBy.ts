@@ -300,7 +300,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
           }
           if (groupby.column.title && groupby.column.uidt) {
             acc.push({
-              key: valueToTitle(curr[groupby.column.title!], groupby.column).toString(),
+              key: valueToTitle(curr[groupby.column.title!], groupby.column),
               column: groupby.column,
               count: +curr.count,
               color: findKeyColor(curr[groupby.column.title!], groupby.column),
@@ -365,7 +365,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
 
         const aggregationParams = (group.children ?? []).map((child) => ({
           where: calculateNestedWhere(child.nestedIn, where?.value),
-          alias: child.key,
+          alias: child.key.toString(),
         }))
 
         const aggResponse = !isPublic
@@ -378,7 +378,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
             })
 
         Object.entries(aggResponse).forEach(([key, value]) => {
-          const child = (group?.children ?? []).find((c) => c.key === key)
+          const child = (group?.children ?? []).find((c) => c.key.toString() === key)
           if (child) {
             Object.assign(child.aggregations, value)
           }
@@ -548,11 +548,14 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       if (group.nested) {
         const child = group.children?.find((g) => {
           if (!groupBy.value[nestLevel].column.title) return undefined
+
           return (
             g.key ===
             valueToTitle(row.row[groupBy.value[nestLevel].column.title!], groupBy.value[nestLevel].column, group.displayValueProp)
           )
         })
+        console.log(child)
+
         if (child) {
           return findGroupForRow(row, child, nestLevel + 1)
         }
@@ -575,19 +578,20 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
               }
               if (group) {
                 group.rows?.splice(group!.rows.indexOf(row), 1)
+                console.log('removed Bunch')
                 modifyCount(group, -1)
               }
             }
           } else {
             if (group) {
               group.rows?.splice(group!.rows.indexOf(row), 1)
+              console.log('removed Bunch22')
+
               modifyCount(group, -1)
-            }
-            /* else {
+            } else {
               rootGroup.value.rows?.splice(rootGroup.value.rows!.indexOf(row), 1)
             }
-             if (properGroup.group?.children) loadGroups({}, properGroup.group)
-             */
+            // if (properGroup.group?.children) loadGroups({}, properGroup.group)
           }
         })
       } else {

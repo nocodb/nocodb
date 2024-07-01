@@ -941,7 +941,7 @@
     "addFilter": "Lisää suodatin",
     "share": "Jaa",
     "groupBy": "Group By",
-    "addSubGroup": "Add subgroup",
+    "addSubGroup": "New Subgroup",
     "shareBase": {
       "label": "Share Base",
       "disable": "Poista jaettu pohja",

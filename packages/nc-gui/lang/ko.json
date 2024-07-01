@@ -941,7 +941,7 @@
     "addFilter": "필터 추가",
     "share": "공유",
     "groupBy": "분류 기준",
-    "addSubGroup": "하위 그룹 추가",
+    "addSubGroup": "New Subgroup",
     "shareBase": {
       "label": "Share Base",
       "disable": "공유 베이스 비활성화",

@@ -941,7 +941,7 @@
     "addFilter": "เพิ่มตัวกรอง",
     "share": "แบ่งปัน",
     "groupBy": "Group By",
-    "addSubGroup": "Add subgroup",
+    "addSubGroup": "New Subgroup",
     "shareBase": {
       "label": "Share Base",
       "disable": "ปิดใช้งานฐานที่ใช้ร่วมกัน",

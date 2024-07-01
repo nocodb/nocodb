@@ -941,7 +941,7 @@
     "addFilter": "フィルターを追加",
     "share": "共有",
     "groupBy": "Group By",
-    "addSubGroup": "Add subgroup",
+    "addSubGroup": "New Subgroup",
     "shareBase": {
       "label": "Share Base",
       "disable": "テーブルの共有を無効にする",

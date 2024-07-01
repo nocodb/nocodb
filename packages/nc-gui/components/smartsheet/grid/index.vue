@@ -260,6 +260,7 @@ onMounted(() => {
       :delete-selected-rows="deleteSelectedRows"
       :delete-range-of-rows="deleteRangeOfRows"
       :bulk-update-rows="bulkUpdateRows"
+      :expand-form="expandForm"
       :remove-row-if-new="removeRowIfNew"
       :row-height="rowHeight"
       @toggle-optimised-query="toggleOptimisedQuery"

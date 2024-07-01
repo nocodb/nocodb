@@ -101,13 +101,25 @@ const verificationData = {
     percent_unique: 100,
     percent_filled: 100,
     percent_empty: 0,
-    sum: 5.8580000000000005,
+    sum: {
+      sqlite: 5.8580000000000005,
+      pg: 5.858,
+    },
     min: 2.718,
     max: 3.14,
-    avg: 2.9290000000000003,
+    avg: {
+      sqlite: 2.9290000000000003,
+      pg: 2.929,
+    },
     median: 2.9290000000000003,
-    std_dev: 0.21100000000000008,
-    range: 0.42200000000000015,
+    std_dev: {
+      sqlite: 0.21100000000000002,
+      pg: 0.211,
+    },
+    range: {
+      sqlite: 0.42200000000000015,
+      pg: 0.422,
+    },
   },
   Checkbox: {
     checked: 1,
@@ -320,6 +332,8 @@ function aggregationTests() {
   });
 
   it('should get aggregation data, async function', async () => {
+    const db = context.dbConfig.client;
+
     const aggregate = (
       await request(context.app)
         .get(`/api/v2/tables/${table.id}/aggregate`)
@@ -357,7 +371,7 @@ function aggregationTests() {
         ).body;
 
         expect(aggregate[colName]).to.equal(
-          y[1],
+          y[1] instanceof Object ? y[1][db] : y[1],
           `Failed for ${colName} ${y[0]}`,
         );
       }

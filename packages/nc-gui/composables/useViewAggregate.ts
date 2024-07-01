@@ -99,24 +99,28 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
     }
 
     const updateAggregate = async (fieldId: string, agg: string) => {
-      await updateGridViewColumn(fieldId, { aggregation: agg })
-
       await reloadAggregate?.trigger({
-        field: [fields.value.find((f) => f.id === fieldId)?.title ?? ''],
+        fields: [
+          {
+            field: fields.value.find((f) => f.id === fieldId)?.title ?? '',
+            aggregation: agg,
+          },
+        ],
       })
+      await updateGridViewColumn(fieldId, { aggregation: agg })
     }
 
     reloadAggregate?.on(async (_fields) => {
-      if (!_fields || !_fields.field?.length) {
+      if (!_fields || !_fields?.fields.length) {
         await loadViewAggregate()
       }
-      if (_fields?.field) {
-        const fieldAggregateMapping = _fields.field.reduce((acc, field) => {
-          const f = fields.value.find((f) => f.title === field)
+      if (_fields?.fields) {
+        const fieldAggregateMapping = _fields.fields.reduce((acc, field) => {
+          const f = fields.value.find((f) => f.title === field.title)
 
           if (!f?.id) return acc
 
-          acc[f.id] = gridViewCols.value[f.id].aggregation ?? CommonAggregations.None
+          acc[f.id] = field.aggregation ?? gridViewCols.value[f.id].aggregation ?? CommonAggregations.None
 
           return acc
         }, {} as Record<string, string>)

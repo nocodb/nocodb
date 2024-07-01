@@ -10,6 +10,7 @@ const {
   formattedData,
   formattedSideBarData,
   calendarRange,
+  selectedDate,
   displayField,
   viewMetaProperties,
   selectedTime,
@@ -1018,6 +1019,7 @@ watch(
           @dblclick="addRecord(hour)"
           @click="
             () => {
+              selectedDate = hour
               selectedTime = hour
               dragRecord = undefined
             }

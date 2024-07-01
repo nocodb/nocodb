@@ -188,6 +188,7 @@ interface Group {
   paginationData: PaginatedType
   nested: boolean
   children?: Group[]
+  aggregations: Record<string, any>
   rows?: Row[]
   root?: boolean
   displayValueProp?: string

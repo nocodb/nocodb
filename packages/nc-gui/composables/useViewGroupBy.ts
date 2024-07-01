@@ -2,6 +2,7 @@ import type { ColumnType, LinkToAnotherRecordType, LookupType, SelectOptionsType
 import { UITypes } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { message } from 'ant-design-vue'
+import type { Group } from '../lib/types'
 
 const excludedGroupingUidt = [UITypes.Attachment, UITypes.QrCode, UITypes.Barcode]
 
@@ -20,7 +21,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
 
     const { base } = storeToRefs(useBase())
 
-    const { sharedView, fetchSharedViewData } = useSharedView()
+    const { sharedView, fetchSharedViewData, fetchAggregatedData } = useSharedView()
 
     const { gridViewCols } = useViewColumnsOrThrow()
 
@@ -82,6 +83,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       count: 0,
       column: {} as any,
       nestedIn: [],
+      aggregations: {},
       paginationData: { page: 1, pageSize: groupByGroupLimit.value },
       nested: true,
       children: [],
@@ -303,6 +305,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
                   column_uidt: groupby.column.uidt,
                 },
               ],
+              aggregations: curr.aggregations ?? {},
               paginationData: {
                 page: 1,
                 pageSize: group!.nestedIn.length < groupBy.value.length - 1 ? groupByGroupLimit.value : groupByRecordLimit.value,
@@ -325,6 +328,9 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
               totalRows: temp.count,
             }
             temp.color = keyExists.color
+
+            temp.aggregations = await loadGroupAggregation(temp)
+
             // update group
             Object.assign(keyExists, temp)
             continue
@@ -385,6 +391,31 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
         group.count = response.pageInfo.totalRows ?? 0
         group.rows = formatData(response.list)
         group.paginationData = response.pageInfo
+      } catch (e) {
+        message.error(await extractSdkResponseErrorMsg(e))
+      }
+    }
+
+    async function loadGroupAggregation(group: Group, force = false) {
+      try {
+        if (!meta?.value?.id || !view.value?.id || !view.value?.fk_model_id) return
+
+        const nestedWhere = calculateNestedWhere(group.nestedIn, where?.value)
+
+        console.log('whereClause', nestedWhere)
+
+        const response = !isPublic
+          ? await api.dbDataTableAggregate.dbDataTableAggregate(meta.value.id, {
+              viewId: view.value.id,
+              where: `${nestedWhere}`,
+            })
+          : await fetchAggregatedData({
+              where: `${nestedWhere}`,
+            })
+
+        // Object.assign(group.aggregations, response)
+
+        return response
       } catch (e) {
         message.error(await extractSdkResponseErrorMsg(e))
       }
@@ -572,6 +603,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       loadGroups,
       loadGroupData,
       loadGroupPage,
+      loadGroupAggregation,
       groupWrapperChangePage,
       redistributeRows,
     }

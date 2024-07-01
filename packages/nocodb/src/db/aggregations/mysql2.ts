@@ -36,7 +36,7 @@ export function genMysql2AggregatedQuery({
 
   const { dbDriver: knex } = baseModelSqlv2;
 
-  let secondaryCondition: any = "''";
+  let condnValue: any = "''";
   if (
     [
       UITypes.CreatedTime,
@@ -58,9 +58,9 @@ export function genMysql2AggregatedQuery({
       parsedFormulaType,
     )
   ) {
-    secondaryCondition = 'NULL';
+    condnValue = 'NULL';
   } else if ([UITypes.Rating].includes(column.uidt)) {
-    secondaryCondition = 0;
+    condnValue = 0;
   }
 
   if (aggType === 'common') {
@@ -77,7 +77,7 @@ export function genMysql2AggregatedQuery({
           break;
         }
         aggregationSql = knex.raw(
-          `SUM(CASE WHEN (??) IS NULL OR (??) = ${secondaryCondition} THEN 1 ELSE 0 END) AS ??`,
+          `SUM(CASE WHEN (??) IS NULL OR (??) = ${condnValue} THEN 1 ELSE 0 END) AS ??`,
           [column_query, column_query, column.id],
         );
         break;
@@ -113,7 +113,7 @@ export function genMysql2AggregatedQuery({
           break;
         }
         aggregationSql = knex.raw(
-          `SUM(CASE WHEN (??) IS NOT NULL AND (??) != ${secondaryCondition} THEN 1 ELSE 0 END) AS ??`,
+          `SUM(CASE WHEN (??) IS NOT NULL AND (??) != ${condnValue} THEN 1 ELSE 0 END) AS ??`,
           [column_query, column_query, column.id],
         );
         break;
@@ -155,7 +155,7 @@ export function genMysql2AggregatedQuery({
           break;
         }
         aggregationSql = knex.raw(
-          `COUNT(DISTINCT CASE WHEN ?? IS NOT NULL AND ?? != ${secondaryCondition} THEN ?? END) AS ??`,
+          `COUNT(DISTINCT CASE WHEN ?? IS NOT NULL AND ?? != ${condnValue} THEN ?? END) AS ??`,
           [column_query, column_query, column_query, column.id],
         );
         break;
@@ -168,7 +168,7 @@ export function genMysql2AggregatedQuery({
           break;
         }
         aggregationSql = knex.raw(
-          `(SUM(CASE WHEN (??) IS NULL OR (??) = ${secondaryCondition} THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(*), 0)) AS ??`,
+          `(SUM(CASE WHEN (??) IS NULL OR (??) = ${condnValue} THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(*), 0)) AS ??`,
           [column_query, column_query, column.id],
         );
         break;
@@ -204,7 +204,7 @@ export function genMysql2AggregatedQuery({
           break;
         }
         aggregationSql = knex.raw(
-          `(SUM(CASE WHEN (??) IS NOT NULL AND (??) != ${secondaryCondition} THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(*), 0)) AS ??`,
+          `(SUM(CASE WHEN (??) IS NOT NULL AND (??) != ${condnValue} THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(*), 0)) AS ??`,
           [column_query, column_query, column.id],
         );
         break;
@@ -247,7 +247,7 @@ export function genMysql2AggregatedQuery({
           break;
         }
         aggregationSql = knex.raw(
-          `(COUNT(DISTINCT CASE WHEN ?? IS NOT NULL AND ?? != ${secondaryCondition} THEN ?? END) * 100.0 / NULLIF(COUNT(*), 0)) AS ??`,
+          `(COUNT(DISTINCT CASE WHEN ?? IS NOT NULL AND ?? != ${condnValue} THEN ?? END) * 100.0 / NULLIF(COUNT(*), 0)) AS ??`,
           [column_query, column_query, column_query, column.id],
         );
         break;
@@ -259,7 +259,7 @@ export function genMysql2AggregatedQuery({
       case NumericalAggregations.Avg:
         if (column.uidt === UITypes.Rating) {
           aggregationSql = knex.raw(
-            `AVG(CASE WHEN (??) != ${secondaryCondition} THEN (??) ELSE NULL END) AS ??`,
+            `AVG(CASE WHEN (??) != ${condnValue} THEN (??) ELSE NULL END) AS ??`,
             [column_query, column_query, column.id],
           );
           break;
@@ -272,7 +272,7 @@ export function genMysql2AggregatedQuery({
       case NumericalAggregations.Min:
         if (column.uidt === UITypes.Rating) {
           aggregationSql = knex.raw(
-            `MIN(CASE WHEN (??) != ${secondaryCondition} THEN (??) ELSE NULL END) AS ??`,
+            `MIN(CASE WHEN (??) != ${condnValue} THEN (??) ELSE NULL END) AS ??`,
             [column_query, column_query, column.id],
           );
           break;
@@ -298,7 +298,7 @@ export function genMysql2AggregatedQuery({
       case NumericalAggregations.Range:
         if (column.uidt === UITypes.Rating) {
           aggregationSql = knex.raw(
-            `(MAX((??)) - MIN(CASE WHEN (??) != ${secondaryCondition} THEN (??) ELSE NULL END)) AS ??`,
+            `(MAX((??)) - MIN(CASE WHEN (??) != ${condnValue} THEN (??) ELSE NULL END)) AS ??`,
             [column_query, column_query, column_query, column.id],
           );
           break;

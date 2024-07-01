@@ -13,7 +13,7 @@ const props = defineProps<{
   loadGroupData: (group: Group, force?: boolean, params?: any) => Promise<void>
   loadGroupPage: (group: Group, p: number) => Promise<void>
   groupWrapperChangePage: (page: number, groupWrapper?: Group) => Promise<void>
-
+  loadGroupAggregation: (group: Group) => Promise<void>
   redistributeRows?: (group?: Group) => void
 
   viewWidth?: number
@@ -42,6 +42,8 @@ const { gridViewCols } = useViewColumnsOrThrow()
 const displayField = computed(() => {
   return meta.value?.columns?.find((c) => c.pv)
 })
+
+const { visibleFieldsComputed, updateAggregate, getAggregations } = useViewAggregateOrThrow()
 
 const viewDisplayField = computed(() => {
   if (!displayField.value || !displayField.value.id)
@@ -109,10 +111,12 @@ const findAndLoadSubGroup = (key: any) => {
 const reloadViewDataHandler = (params: void | { shouldShowLoading?: boolean | undefined; offset?: number | undefined }) => {
   if (vGroup.value.nested) {
     props.loadGroups({ ...(params?.offset !== undefined ? { offset: params.offset } : {}) }, vGroup.value)
+    props.loadGroupAggregation(vGroup.value)
   } else {
     _loadGroupData(vGroup.value, true, {
       ...(params?.offset !== undefined ? { offset: params.offset } : {}),
     })
+    props.loadGroupAggregation(vGroup.value)
   }
 }
 
@@ -484,6 +488,77 @@ const bgColor = computed(() => {
                     </NcDropdown>
                   </div>
                 </div>
+                <template v-for="({ field, width, column, value }, index) in visibleFieldsComputed" :key="index">
+                  <NcDropdown
+                    v-if="field && column?.id"
+                    :disabled="column?.uidt === UITypes.SpecificDBType"
+                    overlay-class-name="max-h-96 relative scroll-container nc-scrollbar-thin overflow-auto"
+                  >
+                    <div
+                      class="flex items-center overflow-x-hidden justify-end group hover:bg-gray-100 cursor-pointer text-gray-500 transition-all transition-linear px-3 py-2"
+                      :style="{
+                        'min-width': width,
+                        'max-width': width,
+                        'width': width,
+                      }"
+                    >
+                      <template v-if="![UITypes.SpecificDBType, UITypes.ForeignKey].includes(column?.uidt!)">
+                        <div
+                          v-if="field?.aggregation === 'none' || field?.aggregation === null"
+                          class="text-gray-500 opacity-0 transition group-hover:opacity-100"
+                        >
+                          <GeneralIcon class="text-gray-500" icon="arrowDown" />
+                          <span class="text-[10px] font-semibold"> Summary </span>
+                        </div>
+
+                        <NcTooltip
+                          v-else-if="value !== undefined"
+                          :style="{
+                            maxWidth: `${field?.width}px`,
+                          }"
+                        >
+                          <div class="flex gap-2 truncate text-nowrap overflow-hidden items-center">
+                            <span class="text-gray-500 text-[12px] leading-4">
+                              {{ $t(`aggregation.${field.aggregation}`).replace('Percent ', '') }}
+                            </span>
+
+                            <span class="text-gray-600 font-semibold text-[12px]">
+                              {{ formatAggregation(field.aggregation, grp.aggregations[column.title], column) }}
+                            </span>
+                          </div>
+
+                          <template #title>
+                            <div class="flex gap-2 text-nowrap overflow-hidden items-center">
+                              <span class="text-[12px] leading-4">
+                                {{ $t(`aggregation.${field.aggregation}`).replace('Percent ', '') }}
+                              </span>
+
+                              <span class="font-semibold text-[12px]">
+                                {{ formatAggregation(field.aggregation, grp.aggregations[column.title], column) }}
+                              </span>
+                            </div>
+                          </template>
+                        </NcTooltip>
+                      </template>
+                    </div>
+
+                    <template #overlay>
+                      <NcMenu>
+                        <NcMenuItem
+                          v-for="(agg, index) in getAggregations(column)"
+                          :key="index"
+                          @click="updateAggregate(column.id, agg)"
+                        >
+                          <div class="flex !w-full text-[13px] text-gray-800 items-center justify-between">
+                            {{ $t(`aggregation_type.${agg}`) }}
+
+                            <GeneralIcon v-if="field?.aggregation === agg" class="text-brand-500" icon="check" />
+                          </div>
+                        </NcMenuItem>
+                      </NcMenu>
+                    </template>
+                  </NcDropdown>
+                </template>
               </div>
             </template>
             <GroupByTable
@@ -513,6 +588,7 @@ const bgColor = computed(() => {
               :load-group-page="loadGroupPage"
               :group-wrapper-change-page="groupWrapperChangePage"
               :row-height="rowHeight"
+              :load-group-aggregation="loadGroupAggregation"
               :redistribute-rows="redistributeRows"
               :expand-form="expandForm"
               :view-width="viewWidth"
@@ -526,15 +602,20 @@ const bgColor = computed(() => {
       </div>
     </div>
   </div>
-  <LazySmartsheetPagination
+
+  <LazySmartsheetGridPaginationV2
     v-if="vGroup.root"
     v-model:pagination-data="vGroup.paginationData"
+    :scroll-left="_scrollLeft"
+    :change-page="(p: number) => groupWrapperChangePage(p, vGroup)"
+  />
+
+  <!--  <LazySmartsheetPagination
     align-count-on-right
     custom-label="groups"
     show-api-timing
-    :change-page="(p: number) => groupWrapperChangePage(p, vGroup)"
     :style="`${props.depth && props.depth > 0 ? 'border-radius: 0 0 8px 8px !important;' : ''}`"
-  ></LazySmartsheetPagination>
+  ></LazySmartsheetPagination> -->
 
   <LazySmartsheetPagination
     v-else

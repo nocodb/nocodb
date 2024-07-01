@@ -146,8 +146,17 @@ const toggleOptimisedQuery = () => {
   }
 }
 
-const { rootGroup, groupBy, isGroupBy, loadGroups, loadGroupData, loadGroupPage, groupWrapperChangePage, redistributeRows } =
-  useViewGroupByOrThrow()
+const {
+  rootGroup,
+  groupBy,
+  isGroupBy,
+  loadGroups,
+  loadGroupData,
+  loadGroupPage,
+  groupWrapperChangePage,
+  redistributeRows,
+  loadGroupAggregation,
+} = useViewGroupByOrThrow()
 
 const sidebarStore = useSidebarStore()
 
@@ -266,6 +275,7 @@ onMounted(() => {
       :load-group-page="loadGroupPage"
       :group-wrapper-change-page="groupWrapperChangePage"
       :row-height="rowHeight"
+      :load-group-aggregation="loadGroupAggregation"
       :max-depth="groupBy.length"
       :redistribute-rows="redistributeRows"
       :expand-form="expandForm"

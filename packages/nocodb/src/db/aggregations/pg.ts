@@ -36,7 +36,7 @@ export function genPgAggregateQuery({
 
   const { dbDriver: knex } = baseModelSqlv2;
 
-  let secondaryCondition: any = "''";
+  let condnValue: any = "''";
   if (
     [
       UITypes.CreatedTime,
@@ -58,9 +58,9 @@ export function genPgAggregateQuery({
       parsedFormulaType,
     )
   ) {
-    secondaryCondition = 'NULL';
+    condnValue = 'NULL';
   } else if ([UITypes.Rating].includes(column.uidt)) {
-    secondaryCondition = 0;
+    condnValue = 0;
   }
 
   if (aggType === 'common') {
@@ -77,7 +77,7 @@ export function genPgAggregateQuery({
           break;
         }
         aggregationSql = knex.raw(
-          `COUNT(*) FILTER (WHERE (??) IS NULL OR (??) = ${secondaryCondition}) AS ??`,
+          `COUNT(*) FILTER (WHERE (??) IS NULL OR (??) = ${condnValue}) AS ??`,
           [column_query, column_query, column.id],
         );
 
@@ -118,7 +118,7 @@ export function genPgAggregateQuery({
 
         // For other column_query types, the condition is IS NOT NULL AND (column_query) != 'NULL'
         aggregationSql = knex.raw(
-          `COUNT(*) FILTER (WHERE (??) IS NOT NULL AND (??) != ${secondaryCondition}) AS ??`,
+          `COUNT(*) FILTER (WHERE (??) IS NOT NULL AND (??) != ${condnValue}) AS ??`,
           [column_query, column_query, column.id],
         );
         break;
@@ -163,7 +163,7 @@ export function genPgAggregateQuery({
           break;
         }
         aggregationSql = knex.raw(
-          `COUNT(DISTINCT (??)) FILTER (WHERE (??) IS NOT NULL AND (??) != ${secondaryCondition}) AS ??`,
+          `COUNT(DISTINCT (??)) FILTER (WHERE (??) IS NOT NULL AND (??) != ${condnValue}) AS ??`,
           [column_query, column_query, column_query, column.id],
         );
         break;
@@ -176,7 +176,7 @@ export function genPgAggregateQuery({
           break;
         }
         aggregationSql = knex.raw(
-          `(COUNT(*) FILTER (WHERE (??) IS NULL OR (??) = ${secondaryCondition}) * 100.0 / NULLIF(COUNT(*), 0)) AS ??`,
+          `(COUNT(*) FILTER (WHERE (??) IS NULL OR (??) = ${condnValue}) * 100.0 / NULLIF(COUNT(*), 0)) AS ??`,
           [column_query, column_query, column.id],
         );
         break;
@@ -214,7 +214,7 @@ export function genPgAggregateQuery({
           break;
         }
         aggregationSql = knex.raw(
-          `(COUNT(*) FILTER (WHERE (??) IS NOT NULL AND (??) != ${secondaryCondition}) * 100.0 / NULLIF(COUNT(*), 0)) AS ??`,
+          `(COUNT(*) FILTER (WHERE (??) IS NOT NULL AND (??) != ${condnValue}) * 100.0 / NULLIF(COUNT(*), 0)) AS ??`,
           [column_query, column_query, column.id],
         );
         break;
@@ -259,7 +259,7 @@ export function genPgAggregateQuery({
           break;
         }
         aggregationSql = knex.raw(
-          `(COUNT(DISTINCT (??)) FILTER (WHERE (??) IS NOT NULL AND (??) != ${secondaryCondition}) * 100.0 / NULLIF(COUNT(*), 0)) AS ??`,
+          `(COUNT(DISTINCT (??)) FILTER (WHERE (??) IS NOT NULL AND (??) != ${condnValue}) * 100.0 / NULLIF(COUNT(*), 0)) AS ??`,
           [column_query, column_query, column_query, column.id],
         );
         break;
@@ -272,7 +272,7 @@ export function genPgAggregateQuery({
         if (column.uidt === UITypes.Rating) {
           aggregationSql = knex.raw(
             `AVG((??)) FILTER (WHERE (??) != ??) AS ??`,
-            [column_query, column_query, secondaryCondition, column.id],
+            [column_query, column_query, condnValue, column.id],
           );
           break;
         }
@@ -285,7 +285,7 @@ export function genPgAggregateQuery({
         if (column.uidt === UITypes.Rating) {
           aggregationSql = knex.raw(
             `MIN((??)) FILTER (WHERE (??) != ??) AS ??`,
-            [column_query, column_query, secondaryCondition, column.id],
+            [column_query, column_query, condnValue, column.id],
           );
           break;
         }
@@ -299,7 +299,7 @@ export function genPgAggregateQuery({
         if (column.uidt === UITypes.Rating) {
           aggregationSql = knex.raw(
             `stddev_pop((??)) FILTER (WHERE (??) != ??) AS ??`,
-            [column_query, column_query, secondaryCondition, column.id],
+            [column_query, column_query, condnValue, column.id],
           );
           break;
         }

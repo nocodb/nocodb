@@ -97,6 +97,7 @@ const tempPageVal = ref(page.value)
       class="flex items-center"
       :class="{
         'flex-1': !alignLeft,
+        'left-0 sticky': alignLeft,
       }"
     >
       <slot name="add-record" />

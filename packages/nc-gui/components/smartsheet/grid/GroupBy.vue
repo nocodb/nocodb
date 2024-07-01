@@ -258,6 +258,7 @@ const shouldRenderCell = (column) =>
     UITypes.CreatedTime,
     UITypes.LastModifiedTime,
     UITypes.CreatedBy,
+    UITypes.LongText,
     UITypes.LastModifiedBy,
   ].includes(column?.uidt)
 
@@ -406,29 +407,26 @@ const bgColor = computed(() => {
             <template #header>
               <div
                 :class="{
-                  '!rounded-b-none': activeGroups.includes(grp.key),
-                  'border-b-1': _depth === (maxDepth ?? 1) - 1 && activeGroups.includes(grp.key),
+                  '!rounded-b-none': activeGroups.includes(grp.key.toString()),
+                  '!border-b-1': _depth === (maxDepth ?? 1) - 1 && activeGroups.includes(grp.key.toString()),
                 }"
-                class="flex !sticky w-full items-center rounded-b-lg group select-none transition-all !rounded-t-[8px] !h-10"
+                class="flex !sticky w-full items-center rounded-b-lg select-none transition-all !rounded-t-[8px] !h-10"
               >
                 <div
+                  :class="{
+                    '!rounded-bl-[8px]': !activeGroups.includes(grp.key.toString()),
+                  }"
                   :style="`width:${computedWidth};background: ${bgColor};`"
-                  class="!sticky flex justify-between !h-10 border-r-1 pr-2 border-gray-300 !rounded-l-[8px] overflow-clip items-center !left-0"
+                  class="!sticky flex justify-between !h-9.8 border-r-1 !rounded-tl-[8px] group pr-2 border-gray-300 overflow-clip items-center !left-0"
                 >
                   <div class="flex items-center">
-                    <NcButton
-                      :class="{
-                        'nc-group-expand': !activeGroups.includes(grp.key),
-                        'nc-group-minimize': activeGroups.includes(grp.key),
-                      }"
-                      class="!border-0 !shadow-none !bg-transparent !hover:bg-transparent"
-                      type="secondary"
-                      size="small"
-                    >
+                    <NcButton class="!border-0 !shadow-none !bg-transparent !hover:bg-transparent" type="secondary" size="small">
                       <GeneralIcon
                         icon="chevronDown"
                         class="transition-all"
-                        :style="`${activeGroups.includes(grp.key) ? 'transform: rotate(360deg)' : 'transform: rotate(270deg)'}`"
+                        :style="`${
+                          activeGroups.includes(grp.key.toString()) ? 'transform: rotate(360deg)' : 'transform: rotate(270deg)'
+                        }`"
                       />
                     </NcButton>
 
@@ -494,7 +492,10 @@ const bgColor = computed(() => {
                       </a-tag>
                     </div>
                   </div>
-                  <div class="flex items-center">
+                  <div
+                    :style="`background: linear-gradient(to right, hsla(0, 0%, 97%, 0), ${bgColor} 18%);`"
+                    class="flex !h-10 absolute right-0 pl-8 pr-2 items-center"
+                  >
                     <div class="text-xs group-hover:hidden text-gray-500 nc-group-row-count">
                       <span>
                         {{ $t('datatype.Count') }}
@@ -509,7 +510,7 @@ const bgColor = computed(() => {
 
                       <template #overlay>
                         <NcMenu>
-                          <NcMenuItem v-if="activeGroups.includes(grp.key)" @click="collapseGroup(grp.key)">
+                          <NcMenuItem v-if="activeGroups.includes(grp.key.toString())" @click="collapseGroup(grp.key)">
                             <GeneralIcon icon="minimize" />
                             Collapse group
                           </NcMenuItem>
@@ -530,7 +531,12 @@ const bgColor = computed(() => {
                     </NcDropdown>
                   </div>
                 </div>
-                <SmartsheetGridAggregation :group="grp" />
+                <SmartsheetGridAggregation
+                  :scroll-left="props.scrollLeft || _scrollLeft"
+                  :max-depth="maxDepth"
+                  :group="grp"
+                  :depth="_depth"
+                />
               </div>
             </template>
             <GroupByTable
@@ -577,6 +583,7 @@ const bgColor = computed(() => {
     v-model:pagination-data="vGroup.paginationData"
     :scroll-left="_scrollLeft"
     custom-label="groups"
+    :depth="maxDepth"
     :change-page="(p: number) => groupWrapperChangePage(p, vGroup)"
   />
 

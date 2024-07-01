@@ -8,6 +8,7 @@ const props = defineProps<{
   changePage: (page: number) => void
   showSizeChanger?: boolean
   customLabel?: string
+  depth?: number
 }>()
 
 const emits = defineEmits(['update:paginationData'])
@@ -85,6 +86,22 @@ const size = computed({
   },
 })
 
+const getAddnlMargin = (depth: number, ignoreCondition = false) => {
+  if (!ignoreCondition ? (scrollLeft.value ?? 0) < 30 : true) {
+    switch (depth) {
+      case 3:
+        return 26
+      case 2:
+        return 17
+      case 1:
+        return 8
+      default:
+        return 0
+    }
+  }
+  return 0
+}
+
 const renderAltOrOptlKey = () => {
   return isMac() ? '⌥' : 'ALT'
 }
@@ -104,6 +121,7 @@ const renderAltOrOptlKey = () => {
             'min-width': displayFieldComputed?.width,
             'max-width': displayFieldComputed?.width,
             'width': displayFieldComputed?.width,
+            'margin-left': `${getAddnlMargin(depth ?? 0)}px`,
           }"
         >
           <div class="flex relative justify-between gap-2 w-full">
@@ -193,6 +211,13 @@ const renderAltOrOptlKey = () => {
     </div>
 
     <template v-for="({ field, width, column, value }, index) in visibleFieldsComputed" :key="index">
+      <div
+        v-if="index === 0 && scrollLeft > 30"
+        :style="`width: ${getAddnlMargin(depth ?? 0, true)}px;min-width: ${getAddnlMargin(
+          depth ?? 0,
+          true,
+        )}px;max-width: ${getAddnlMargin(depth ?? 0, true)}px`"
+      ></div>
       <NcDropdown
         v-if="field && column?.id"
         :disabled="[UITypes.SpecificDBType, UITypes.ForeignKey].includes(column?.uidt!) || isLocked"

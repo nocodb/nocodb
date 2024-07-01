@@ -52,7 +52,7 @@ function openSchemaMagicDialog(sourceId?: string) {
 }
 
 function openQuickImportDialog(type: string, sourceId?: string) {
-  if (!sourceId) return
+  if (!sourceId || !base.value.id) return
 
   $e(`a:actions:import-${type}`)
 
@@ -61,6 +61,7 @@ function openQuickImportDialog(type: string, sourceId?: string) {
   const { close } = useDialog(resolveComponent('DlgQuickImport'), {
     'modelValue': isOpen,
     'importType': type,
+    'baseId': base.value.id,
     'sourceId': sourceId,
     'onUpdate:modelValue': closeDialog,
   })

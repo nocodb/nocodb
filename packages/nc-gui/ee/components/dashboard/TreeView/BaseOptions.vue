@@ -83,7 +83,7 @@ function openAirtableImportDialog(baseId?: string, sourceId?: string) {
 }
 
 function openQuickImportDialog(type: string) {
-  if (!source.value?.id) return
+  if (!source.value?.id || !base.value?.id) return
 
   $e(`a:actions:import-${type}`)
 
@@ -92,6 +92,7 @@ function openQuickImportDialog(type: string) {
   const { close } = useDialog(resolveComponent('DlgQuickImport'), {
     'modelValue': isOpen,
     'importType': type,
+    'baseId': base.value.id,
     'sourceId': source.value.id,
     'onUpdate:modelValue': closeDialog,
   })

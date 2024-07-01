@@ -984,7 +984,7 @@ async function openAudit(source: SourceType) {
   <DlgProjectDuplicate v-if="selectedProjectToDuplicate" v-model="isDuplicateDlgOpen" :base="selectedProjectToDuplicate" />
   <GeneralModal v-model:visible="isErdModalOpen" size="large">
     <div class="h-[80vh]">
-      <LazyDashboardSettingsErd :source-id="activeBaseId" />
+      <LazyDashboardSettingsErd :base-id="base?.id" :source-id="activeBaseId" />
     </div>
   </GeneralModal>
 </template>

@@ -11,10 +11,15 @@ const { t } = useI18n()
 
 const { $api, $e } = useNuxtApp()
 
-const { base } = storeToRefs(useBase())
+const { base: activeBase } = storeToRefs(useBase())
 
 const _projectId = inject(ProjectIdInj, ref())
-const baseId = computed(() => _projectId.value ?? base.value?.id)
+
+const baseId = computed(() => _projectId.value ?? activeBase.value?.id!)
+
+const { bases } = storeToRefs(useBases())
+
+const base = computed(() => bases.value.get(baseId.value) ?? {})
 
 const { includeM2M } = useGlobal()
 

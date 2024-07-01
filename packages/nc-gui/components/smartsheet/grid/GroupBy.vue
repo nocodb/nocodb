@@ -417,7 +417,7 @@ const bgColor = computed(() => {
                     '!rounded-bl-[8px]': !activeGroups.includes(grp.key.toString()),
                   }"
                   :style="`width:${computedWidth};background: ${bgColor};`"
-                  class="!sticky flex justify-between !h-9.8 border-r-1 !rounded-tl-[8px] group pr-2 border-gray-300 overflow-clip items-center !left-0"
+                  class="!sticky flex z-10 justify-between !h-9.8 border-r-1 !rounded-tl-[8px] group pr-2 border-gray-300 overflow-clip items-center !left-0"
                 >
                   <div class="flex items-center">
                     <NcButton class="!border-0 !shadow-none !bg-transparent !hover:bg-transparent" type="secondary" size="small">

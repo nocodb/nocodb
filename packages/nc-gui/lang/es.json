@@ -941,7 +941,7 @@
     "addFilter": "Añadir filtro",
     "share": "Compartir",
     "groupBy": "Agrupar por",
-    "addSubGroup": "Añadir subgrupo",
+    "addSubGroup": "New Subgroup",
     "shareBase": {
       "label": "Compartir base",
       "disable": "Deshabilitar la base compartida",

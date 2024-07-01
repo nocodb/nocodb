@@ -17,7 +17,7 @@ import { NcContext, NcRequest } from '~/interface/config';
 @UseGuards(PublicApiLimiterGuard)
 @Controller()
 export class PublicDatasController {
-  constructor(private readonly publicDatasService: PublicDatasService) {}
+  constructor(protected readonly publicDatasService: PublicDatasService) {}
 
   @Get([
     '/api/v1/db/public/shared-view/:sharedViewUuid/rows',

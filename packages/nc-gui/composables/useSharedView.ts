@@ -233,6 +233,35 @@ export function useSharedView() {
     )
   }
 
+  const fetchBulkAggregatedData = async (param: {
+    aggregation?: Array<{
+      field: string
+      type: string
+    }>
+    aggregateFilterList: Array<{
+      where: string
+      alias: string
+    }>
+    filtersArr?: FilterType[]
+    where?: string
+  }) => {
+    if (!sharedView.value) return {}
+
+    return await $api.public.dataTableBulkAggregate(
+      sharedView.value.uuid!,
+      {
+        ...param,
+        aggregateFilterList: JSON.stringify(param.aggregateFilterList),
+        filterArrJson: JSON.stringify(param.filtersArr ?? nestedFilters.value),
+      } as any,
+      {
+        headers: {
+          'xc-password': password.value,
+        },
+      },
+    )
+  }
+
   const fetchSharedViewActiveDate = async (param: {
     from_date: string
     to_date: string
@@ -318,6 +347,7 @@ export function useSharedView() {
     fetchSharedCalendarViewData,
     fetchSharedViewGroupedData,
     fetchAggregatedData,
+    fetchBulkAggregatedData,
     paginationData,
     sorts,
     exportFile,

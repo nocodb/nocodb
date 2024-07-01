@@ -18,6 +18,7 @@ export function genMysql2AggregatedQuery({
   column_query,
   parsedFormulaType,
   aggType,
+  alias,
 }: {
   column: Column;
   baseModelSqlv2: BaseModelSqlv2;
@@ -31,12 +32,13 @@ export function genMysql2AggregatedQuery({
     | 'date'
     | 'attachment'
     | 'unknown';
+  alias?: string;
 }) {
   let aggregationSql: Knex.Raw | undefined;
 
   const { dbDriver: knex } = baseModelSqlv2;
 
-  let secondaryCondition: any = "''";
+  let condnValue: any = "''";
   if (
     [
       UITypes.CreatedTime,
@@ -58,27 +60,27 @@ export function genMysql2AggregatedQuery({
       parsedFormulaType,
     )
   ) {
-    secondaryCondition = 'NULL';
+    condnValue = 'NULL';
   } else if ([UITypes.Rating].includes(column.uidt)) {
-    secondaryCondition = 0;
+    condnValue = 0;
   }
 
   if (aggType === 'common') {
     switch (aggregation) {
       case CommonAggregations.Count:
-        aggregationSql = knex.raw(`COUNT(*) AS ??`, [column.id]);
+        aggregationSql = knex.raw(`COUNT(*)`);
         break;
       case CommonAggregations.CountEmpty:
         if ([UITypes.JSON].includes(column.uidt)) {
           aggregationSql = knex.raw(
-            `SUM(CASE WHEN JSON_LENGTH(??) IS NULL THEN 1 ELSE 0 END) AS ??`,
-            [column_query, column.id],
+            `SUM(CASE WHEN JSON_LENGTH(??) IS NULL THEN 1 ELSE 0 END)`,
+            [column_query],
           );
           break;
         }
         aggregationSql = knex.raw(
-          `SUM(CASE WHEN (??) IS NULL OR (??) = ${secondaryCondition} THEN 1 ELSE 0 END) AS ??`,
-          [column_query, column_query, column.id],
+          `SUM(CASE WHEN (??) IS NULL OR (??) = ${condnValue} THEN 1 ELSE 0 END)`,
+          [column_query, column_query],
         );
         break;
       case CommonAggregations.CountFilled:
@@ -107,21 +109,21 @@ export function genMysql2AggregatedQuery({
           )
         ) {
           aggregationSql = knex.raw(
-            `SUM(CASE WHEN (??) IS NOT NULL THEN 1 ELSE 0 END) AS ??`,
-            [column_query, column.id],
+            `SUM(CASE WHEN (??) IS NOT NULL THEN 1 ELSE 0 END)`,
+            [column_query],
           );
           break;
         }
         aggregationSql = knex.raw(
-          `SUM(CASE WHEN (??) IS NOT NULL AND (??) != ${secondaryCondition} THEN 1 ELSE 0 END) AS ??`,
-          [column_query, column_query, column.id],
+          `SUM(CASE WHEN (??) IS NOT NULL AND (??) != ${condnValue} THEN 1 ELSE 0 END)`,
+          [column_query, column_query],
         );
         break;
       case CommonAggregations.CountUnique:
         if ([UITypes.JSON].includes(column.uidt)) {
           aggregationSql = knex.raw(
-            `COUNT(DISTINCT JSON_UNQUOTE(JSON_EXTRACT(??, '$'))) AS ??`,
-            [column_query, column.id],
+            `COUNT(DISTINCT JSON_UNQUOTE(JSON_EXTRACT(??, '$')))`,
+            [column_query],
           );
           break;
         }
@@ -149,27 +151,27 @@ export function genMysql2AggregatedQuery({
           )
         ) {
           aggregationSql = knex.raw(
-            `COUNT(DISTINCT CASE WHEN (??) IS NOT NULL THEN (??) END) AS ??`,
-            [column_query, column_query, column.id],
+            `COUNT(DISTINCT CASE WHEN (??) IS NOT NULL THEN (??) END)`,
+            [column_query, column_query],
           );
           break;
         }
         aggregationSql = knex.raw(
-          `COUNT(DISTINCT CASE WHEN ?? IS NOT NULL AND ?? != ${secondaryCondition} THEN ?? END) AS ??`,
-          [column_query, column_query, column_query, column.id],
+          `COUNT(DISTINCT CASE WHEN ?? IS NOT NULL AND ?? != ${condnValue} THEN ?? END)`,
+          [column_query, column_query, column_query],
         );
         break;
       case CommonAggregations.PercentEmpty:
         if ([UITypes.JSON].includes(column.uidt)) {
           aggregationSql = knex.raw(
-            `(SUM(CASE WHEN JSON_LENGTH(??) IS NULL THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(*), 0)) AS ??`,
-            [column_query, column.id],
+            `(SUM(CASE WHEN JSON_LENGTH(??) IS NULL THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(*), 0))`,
+            [column_query],
           );
           break;
         }
         aggregationSql = knex.raw(
-          `(SUM(CASE WHEN (??) IS NULL OR (??) = ${secondaryCondition} THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(*), 0)) AS ??`,
-          [column_query, column_query, column.id],
+          `(SUM(CASE WHEN (??) IS NULL OR (??) = ${condnValue} THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(*), 0))`,
+          [column_query, column_query],
         );
         break;
       case CommonAggregations.PercentFilled:
@@ -198,21 +200,21 @@ export function genMysql2AggregatedQuery({
           )
         ) {
           aggregationSql = knex.raw(
-            `(SUM(CASE WHEN (??) IS NOT NULL THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(*), 0)) AS ??`,
-            [column_query, column.id],
+            `(SUM(CASE WHEN (??) IS NOT NULL THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(*), 0))`,
+            [column_query],
           );
           break;
         }
         aggregationSql = knex.raw(
-          `(SUM(CASE WHEN (??) IS NOT NULL AND (??) != ${secondaryCondition} THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(*), 0)) AS ??`,
-          [column_query, column_query, column.id],
+          `(SUM(CASE WHEN (??) IS NOT NULL AND (??) != ${condnValue} THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(*), 0))`,
+          [column_query, column_query],
         );
         break;
       case CommonAggregations.PercentUnique:
         if ([UITypes.JSON].includes(column.uidt)) {
           aggregationSql = knex.raw(
-            `COUNT(DISTINCT JSON_UNQUOTE(JSON_EXTRACT((??), '$'))) * 100.0 / NULLIF(COUNT(*), 0) AS ??`,
-            [column_query, column.id],
+            `COUNT(DISTINCT JSON_UNQUOTE(JSON_EXTRACT((??), '$'))) * 100.0 / NULLIF(COUNT(*), 0)`,
+            [column_query],
           );
 
           break;
@@ -241,14 +243,14 @@ export function genMysql2AggregatedQuery({
           )
         ) {
           aggregationSql = knex.raw(
-            `(COUNT(DISTINCT CASE WHEN ?? IS NOT NULL THEN ?? END) * 100.0 / NULLIF(COUNT(*), 0)) AS ??`,
-            [column_query, column_query, column.id],
+            `(COUNT(DISTINCT CASE WHEN ?? IS NOT NULL THEN ?? END) * 100.0 / NULLIF(COUNT(*), 0))`,
+            [column_query, column_query],
           );
           break;
         }
         aggregationSql = knex.raw(
-          `(COUNT(DISTINCT CASE WHEN ?? IS NOT NULL AND ?? != ${secondaryCondition} THEN ?? END) * 100.0 / NULLIF(COUNT(*), 0)) AS ??`,
-          [column_query, column_query, column_query, column.id],
+          `(COUNT(DISTINCT CASE WHEN ?? IS NOT NULL AND ?? != ${condnValue} THEN ?? END) * 100.0 / NULLIF(COUNT(*), 0))`,
+          [column_query, column_query, column_query],
         );
         break;
       case CommonAggregations.None:
@@ -259,54 +261,47 @@ export function genMysql2AggregatedQuery({
       case NumericalAggregations.Avg:
         if (column.uidt === UITypes.Rating) {
           aggregationSql = knex.raw(
-            `AVG(CASE WHEN (??) != ${secondaryCondition} THEN (??) ELSE NULL END) AS ??`,
-            [column_query, column_query, column.id],
+            `AVG(CASE WHEN (??) != ${condnValue} THEN (??) ELSE NULL END)`,
+            [column_query, column_query],
           );
           break;
         }
-        aggregationSql = knex.raw(`AVG((??)) AS ??`, [column_query, column.id]);
+        aggregationSql = knex.raw(`AVG((??))`, [column_query]);
         break;
       case NumericalAggregations.Max:
-        aggregationSql = knex.raw(`MAX((??)) AS ??`, [column_query, column.id]);
+        aggregationSql = knex.raw(`MAX((??))`, [column_query]);
         break;
       case NumericalAggregations.Min:
         if (column.uidt === UITypes.Rating) {
           aggregationSql = knex.raw(
-            `MIN(CASE WHEN (??) != ${secondaryCondition} THEN (??) ELSE NULL END) AS ??`,
-            [column_query, column_query, column.id],
+            `MIN(CASE WHEN (??) != ${condnValue} THEN (??) ELSE NULL END)`,
+            [column_query, column_query],
           );
           break;
         }
-        aggregationSql = knex.raw(`MIN((??)) AS ??`, [column_query, column.id]);
+        aggregationSql = knex.raw(`MIN((??))`, [column_query]);
         break;
       case NumericalAggregations.Sum:
-        aggregationSql = knex.raw(`SUM((??)) AS ??`, [column_query, column.id]);
+        aggregationSql = knex.raw(`SUM((??)) `, [column_query]);
         break;
       case NumericalAggregations.StandardDeviation:
         if (column.uidt === UITypes.Rating) {
-          aggregationSql = knex.raw(`STDDEV((??)) AS ??`, [
-            column_query,
-            column.id,
-          ]);
+          aggregationSql = knex.raw(`STDDEV((??))`, [column_query]);
           break;
         }
-        aggregationSql = knex.raw(`STDDEV((??)) AS ??`, [
-          column_query,
-          column.id,
-        ]);
+        aggregationSql = knex.raw(`STDDEV((??))`, [column_query]);
         break;
       case NumericalAggregations.Range:
         if (column.uidt === UITypes.Rating) {
           aggregationSql = knex.raw(
-            `(MAX((??)) - MIN(CASE WHEN (??) != ${secondaryCondition} THEN (??) ELSE NULL END)) AS ??`,
-            [column_query, column_query, column_query, column.id],
+            `(MAX((??)) - MIN(CASE WHEN (??) != ${condnValue} THEN (??) ELSE NULL END))`,
+            [column_query, column_query, column_query],
           );
           break;
         }
-        aggregationSql = knex.raw(`(MAX((??)) - MIN((??))) AS ??`, [
+        aggregationSql = knex.raw(`(MAX((??)) - MIN((??)))`, [
           column_query,
           column_query,
-          column.id,
         ]);
         break;
       case NumericalAggregations.Median:
@@ -322,7 +317,7 @@ export function genMysql2AggregatedQuery({
       LIMIT 2 - (SELECT COUNT(*) FROM ??) % 2    -- Handle even/odd number of rows
       OFFSET (SELECT (COUNT(*) - 1) / 2 FROM ??) -- Calculate the median offset
     ) AS median_subquery
-  ) AS ??`,
+  )`,
           [
             column_query,
             column_query,
@@ -330,8 +325,6 @@ export function genMysql2AggregatedQuery({
             column_query,
             baseModelSqlv2.tnPath,
             baseModelSqlv2.tnPath,
-            column.id,
-            column.id,
           ],
         );
         break;
@@ -342,26 +335,26 @@ export function genMysql2AggregatedQuery({
     switch (aggregation) {
       case BooleanAggregations.Checked:
         aggregationSql = knex.raw(
-          `SUM(CASE WHEN ?? = true THEN 1 ELSE 0 END) AS ??`,
-          [column_query, column.id],
+          `SUM(CASE WHEN ?? = true THEN 1 ELSE 0 END)`,
+          [column_query],
         );
         break;
       case BooleanAggregations.Unchecked:
         aggregationSql = knex.raw(
-          `SUM(CASE WHEN ?? = false OR ?? IS NULL THEN 1 ELSE 0 END) AS ??`,
-          [column_query, column_query, column.id],
+          `SUM(CASE WHEN ?? = false OR ?? IS NULL THEN 1 ELSE 0 END)`,
+          [column_query, column_query],
         );
         break;
       case BooleanAggregations.PercentChecked:
         aggregationSql = knex.raw(
-          `(SUM(CASE WHEN ?? = true THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(*), 0)) AS ??`,
-          [column_query, column.id],
+          `(SUM(CASE WHEN ?? = true THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(*), 0))`,
+          [column_query],
         );
         break;
       case BooleanAggregations.PercentUnchecked:
         aggregationSql = knex.raw(
-          `(SUM(CASE WHEN ?? = false OR ?? IS NULL THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(*), 0)) AS ??`,
-          [column_query, column_query, column.id],
+          `(SUM(CASE WHEN ?? = false OR ?? IS NULL THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(*), 0))`,
+          [column_query, column_query],
         );
         break;
       default:
@@ -370,21 +363,21 @@ export function genMysql2AggregatedQuery({
   } else if (aggType === 'date') {
     switch (aggregation) {
       case DateAggregations.EarliestDate:
-        aggregationSql = knex.raw(`MIN(??) AS ??`, [column_query, column.id]);
+        aggregationSql = knex.raw(`MIN(??)`, [column_query]);
         break;
       case DateAggregations.LatestDate:
-        aggregationSql = knex.raw(`MAX(??) AS ??`, [column_query, column.id]);
+        aggregationSql = knex.raw(`MAX(??)`, [column_query]);
         break;
       case DateAggregations.DateRange:
-        aggregationSql = knex.raw(
-          `TIMESTAMPDIFF(DAY, MIN(??), MAX(??)) AS ??`,
-          [column_query, column_query, column.id],
-        );
+        aggregationSql = knex.raw(`TIMESTAMPDIFF(DAY, MIN(??), MAX(??))`, [
+          column_query,
+          column_query,
+        ]);
         break;
       case DateAggregations.MonthRange:
         aggregationSql = knex.raw(
-          `PERIOD_DIFF(DATE_FORMAT(MAX(??), '%Y%m'), DATE_FORMAT(MIN(??), '%Y%m')) AS ??`,
-          [column_query, column_query, column.id],
+          `PERIOD_DIFF(DATE_FORMAT(MAX(??), '%Y%m'), DATE_FORMAT(MIN(??), '%Y%m'))`,
+          [column_query, column_query],
         );
         break;
       default:
@@ -394,11 +387,15 @@ export function genMysql2AggregatedQuery({
     switch (aggregation) {
       case AttachmentAggregations.AttachmentSize:
         aggregationSql = knex.raw(
-          `(SELECT SUM(JSON_EXTRACT(json_object, '$.size')) FROM ?? CROSS JOIN JSON_TABLE(CAST(?? AS JSON), '$[*]' COLUMNS (json_object JSON PATH '$')) AS json_array) AS ??`,
-          [baseModelSqlv2.tnPath, column_query, column.id],
+          `(SELECT SUM(JSON_EXTRACT(json_object, '$.size')) FROM ?? CROSS JOIN JSON_TABLE(CAST(?? AS JSON), '$[*]' COLUMNS (json_object JSON PATH '$')) AS json_array)`,
+          [baseModelSqlv2.tnPath, column_query],
         );
         break;
     }
+  }
+
+  if (alias && aggregationSql) {
+    aggregationSql = knex.raw(`?? AS ??`, [aggregationSql, alias]);
   }
 
   return aggregationSql?.toQuery();

@@ -145,7 +145,7 @@ const pageSizeOptions = [
 
           <template #overlay>
             <NcMenu class="nc-pagination-menu overflow-hidden">
-              <NcSubMenu :key="`${localPageSize}page`" class="bg-gray-100 z-20 top-0 !sticky">
+              <NcSubMenu v-if="showSizeChanger" :key="`${localPageSize}page`" class="bg-gray-100 z-20 top-0 !sticky">
                 <template #title>
                   <div class="rounded-lg text-[13px] font-medium w-full">{{ localPageSize }} / page</div>
                 </template>

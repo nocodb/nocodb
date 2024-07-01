@@ -13,7 +13,7 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 @Injectable()
 export class DataTableService {
-  constructor(private datasService: DatasService) {}
+  constructor(protected datasService: DatasService) {}
 
   async dataList(
     context: NcContext,
@@ -233,7 +233,7 @@ export class DataTableService {
     return { count };
   }
 
-  private async getModelAndView(
+  protected async getModelAndView(
     context: NcContext,
     param: {
       baseId?: string;

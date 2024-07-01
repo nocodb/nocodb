@@ -146,8 +146,17 @@ const toggleOptimisedQuery = () => {
   }
 }
 
-const { rootGroup, groupBy, isGroupBy, loadGroups, loadGroupData, loadGroupPage, groupWrapperChangePage, redistributeRows } =
-  useViewGroupByOrThrow()
+const {
+  rootGroup,
+  groupBy,
+  isGroupBy,
+  loadGroups,
+  loadGroupData,
+  loadGroupPage,
+  groupWrapperChangePage,
+  redistributeRows,
+  loadGroupAggregation,
+} = useViewGroupByOrThrow()
 
 const sidebarStore = useSidebarStore()
 
@@ -251,8 +260,8 @@ onMounted(() => {
       :delete-selected-rows="deleteSelectedRows"
       :delete-range-of-rows="deleteRangeOfRows"
       :bulk-update-rows="bulkUpdateRows"
-      :remove-row-if-new="removeRowIfNew"
       :expand-form="expandForm"
+      :remove-row-if-new="removeRowIfNew"
       :row-height="rowHeight"
       @toggle-optimised-query="toggleOptimisedQuery"
       @bulk-update-dlg="bulkUpdateDlg = true"
@@ -266,12 +275,12 @@ onMounted(() => {
       :load-group-page="loadGroupPage"
       :group-wrapper-change-page="groupWrapperChangePage"
       :row-height="rowHeight"
+      :load-group-aggregation="loadGroupAggregation"
       :max-depth="groupBy.length"
       :redistribute-rows="redistributeRows"
-      :expand-form="expandForm"
       :view-width="viewWidth"
     />
-    <Suspense>
+    <Suspense v-if="!isGroupBy">
       <LazySmartsheetExpandedForm
         v-if="expandedFormRow && expandedFormDlg"
         v-model="expandedFormDlg"
@@ -284,7 +293,7 @@ onMounted(() => {
       />
     </Suspense>
     <SmartsheetExpandedForm
-      v-if="expandedFormOnRowIdDlg && meta?.id"
+      v-if="expandedFormOnRowIdDlg && meta?.id && !isGroupBy"
       v-model="expandedFormOnRowIdDlg"
       :row="expandedFormRow ?? { row: {}, oldRow: {}, rowMeta: {} }"
       :meta="meta"

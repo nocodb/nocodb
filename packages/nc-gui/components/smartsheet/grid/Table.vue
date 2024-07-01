@@ -1525,7 +1525,11 @@ watch(
         }
         isViewDataLoading.value = true
         try {
-          await Promise.allSettled([loadData?.(), loadViewAggregate()])
+          if (isGroupBy.value) {
+            await loadData?.()
+          } else {
+            await Promise.allSettled([loadData?.(), loadViewAggregate()])
+          }
           calculateSlices()
         } catch (e) {
           if (!axios.isCancel(e)) {
@@ -2457,6 +2461,7 @@ onKeyStroke('ArrowDown', onDown)
         v-else-if="paginationDataRef"
         v-model:pagination-data="paginationDataRef"
         :change-page="changePage"
+        :show-size-changer="!isGroupBy"
         :scroll-left="scrollLeft"
       />
     </div>

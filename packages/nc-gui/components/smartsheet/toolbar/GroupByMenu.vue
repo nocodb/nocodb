@@ -13,10 +13,16 @@ const { fieldsToGroupBy, groupByLimit } = useViewGroupByOrThrow()
 
 const { $e } = useNuxtApp()
 
-const _groupBy = ref<{ fk_column_id?: string; sort: string; order: number }[]>([])
+interface Group {
+  fk_column_id?: string
+  sort: string
+  order: number
+}
 
-const groupBy = computed<{ fk_column_id?: string; sort: string; order: number }[]>(() => {
-  const tempGroupBy: { fk_column_id?: string; sort: string; order: number }[] = []
+const _groupBy = ref<Group[]>([])
+
+const groupBy = computed<Group[]>(() => {
+  const tempGroupBy: Group[] = []
   Object.values(gridViewCols.value).forEach((col) => {
     if (col.group_by) {
       tempGroupBy.push({
@@ -124,11 +130,13 @@ const addFieldToGroupBy = (column: ColumnType) => {
   showCreateGroupBy.value = false
 }
 
-const removeFieldFromGroupBy = async (index: string | number) => {
+const removeFieldFromGroupBy = async (group: Group) => {
   if (groupedByColumnIds.value.length === 0) {
     open.value = false
     return
   }
+
+  const index = _groupBy.value.findIndex((g) => g.fk_column_id === group.fk_column_id)
   _groupBy.value.splice(+index, 1)
   await saveGroupBy()
 }
@@ -210,7 +218,7 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number } }) 
       />
       <div
         v-else
-        class="flex flex-col bg-white overflow-auto nc-group-by-list menu-filter-dropdown w-100 p-6"
+        class="flex flex-col bg-white overflow-auto nc-group-by-list menu-filter-dropdown w-100 p-4"
         data-testid="nc-group-by-menu"
       >
         <div class="max-h-100" @click.stop>
@@ -280,7 +288,7 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number } }) 
                     class="nc-group-by-item-remove-btn !border-l-transparent !rounded-l-none min-w-40"
                     size="small"
                     type="secondary"
-                    @click.stop="removeFieldFromGroupBy(i)"
+                    @click.stop="removeFieldFromGroupBy(group)"
                   >
                     <component :is="iconMap.deleteListItem" />
                   </NcButton>
@@ -297,17 +305,15 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number } }) 
         >
           <NcButton
             v-e="['c:group-by:add']"
-            class="nc-add-group-by-btn mt-5"
-            style="width: fit-content"
-            size="small"
             type="text"
+            size="small"
+            style="width: fit-content"
+            class="nc-add-group-by-btn mt-2 !text-brand-500"
             @click.stop="showCreateGroupBy = true"
           >
             <div class="flex gap-1 items-center">
-              <div class="flex">
-                {{ $t('activity.addSubGroup') }}
-              </div>
               <GeneralIcon icon="plus" />
+              {{ $t('activity.addSubGroup') }}
             </div>
           </NcButton>
           <template #overlay>

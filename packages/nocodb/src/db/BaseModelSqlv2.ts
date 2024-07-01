@@ -777,6 +777,10 @@ class BaseModelSqlv2 {
         }
       }
 
+      if (!Object.keys(aggregateExpressions).length) {
+        return [];
+      }
+
       const viewFilterList = await Filter.rootFilterList(this.context, {
         viewId: this.viewId,
       });
@@ -828,6 +832,7 @@ class BaseModelSqlv2 {
                 })
                 .join(', ')})`,
             );
+
             break;
           }
           case 'mysql2': {
@@ -845,9 +850,13 @@ class BaseModelSqlv2 {
                   .join(', ')})`);
             break;
           }
+          default:
+            NcError.notImplemented(
+              'This database is not supported for bulk aggregation',
+            );
         }
 
-        tQb.select(this.dbDriver.raw(jsonBuildObject));
+        tQb.select(jsonBuildObject);
 
         selectors.push(
           this.dbDriver.raw(`(??) as ??`, [

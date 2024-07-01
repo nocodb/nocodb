@@ -75,7 +75,6 @@ test.describe('Toolbar operations (GRID)', () => {
 
     // Update Sort and Verify
     await toolbar.sort.update({ index: 1, title: 'Title', ascending: true, locallySaved: false });
-    await dashboard.grid.groupPage.openGroup({ indexMap: [0] });
     await dashboard.grid.groupPage.validateFirstRow({
       indexMap: [0],
       rowIndex: 0,
@@ -121,7 +120,6 @@ test.describe('Toolbar operations (GRID)', () => {
 
     // Remove Sort and Verify
     await toolbar.sort.reset();
-    await dashboard.grid.groupPage.openGroup({ indexMap: [0] });
     await dashboard.grid.groupPage.validateFirstRow({
       indexMap: [0],
       rowIndex: 0,
@@ -256,7 +254,6 @@ test.describe('Toolbar operations (GRID)', () => {
 
     // Remove Sort and Verify
     await toolbar.sort.reset();
-    await dashboard.grid.groupPage.openGroup({ indexMap: [1, 0] });
     await dashboard.grid.groupPage.validateFirstRow({
       indexMap: [1, 0],
       rowIndex: 0,
@@ -403,6 +400,7 @@ test.describe('Toolbar operations (GRID)', () => {
 
     // Remove Sort and Verify
     await toolbar.sort.reset();
+    await toolbar.rootPage.reload();
     await dashboard.grid.groupPage.openGroup({ indexMap: [5, 0, 0] });
     await dashboard.grid.groupPage.validateFirstRow({
       indexMap: [5, 0, 0],
@@ -473,6 +471,7 @@ test.describe('Toolbar operations (GRID)', () => {
     });
 
     await toolbar.groupBy.update({ index: 1, title: 'Length', ascending: false });
+    await dashboard.grid.groupPage.openGroup({ indexMap: [0] });
     await dashboard.grid.groupPage.openGroup({ indexMap: [0, 5] });
 
     await dashboard.grid.groupPage.validateFirstRow({
@@ -545,13 +544,13 @@ test.describe('Toolbar operations (GRID)', () => {
 
     await toolbar.groupBy.remove({ index: 1 });
 
-    await dashboard.grid.groupPage.openGroup({ indexMap: [0] });
+    await dashboard.grid.groupPage.openGroup({ indexMap: [1] });
 
     await dashboard.grid.groupPage.validateFirstRow({
-      indexMap: [0],
+      indexMap: [1],
       rowIndex: 0,
       columnHeader: 'Title',
-      value: 'ADAPTATION HOLES',
+      value: 'CONSPIRACY SPIRIT',
     });
 
     await toolbar.groupBy.remove({ index: 0 });

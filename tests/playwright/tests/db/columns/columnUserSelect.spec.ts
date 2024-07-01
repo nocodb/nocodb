@@ -424,7 +424,7 @@ test.describe('User single select - filter, sort & GroupBy', () => {
     await toolbar.groupBy.update({ title: 'User', ascending: false, index: 0 });
 
     for (let i = 0; i <= 4; i++) {
-      await dashboard.grid.groupPage.openGroup({ indexMap: [i] });
+      // await dashboard.grid.groupPage.openGroup({ indexMap: [i] });
       await dashboard.grid.groupPage.validateFirstRow({
         indexMap: [i],
         rowIndex: 0,
@@ -814,7 +814,6 @@ test.describe('User multiple select - filter, sort & GroupBy', () => {
     await toolbar.groupBy.update({ title: 'User', ascending: false, index: 0 });
 
     for (let i = 0; i <= 4; i++) {
-      await dashboard.grid.groupPage.openGroup({ indexMap: [i] });
       await dashboard.grid.groupPage.validateFirstRow({
         indexMap: [i],
         rowIndex: 0,

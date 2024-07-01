@@ -33,8 +33,14 @@ export class GroupPageObject extends BasePage {
     let root = this.rootPage.locator('.nc-group');
 
     for (const n of indexMap) {
-      await root.nth(n).click();
+      await root.nth(n).click({
+        position: {
+          x: 10,
+          y: 5,
+        },
+      });
       root = root.nth(n).locator('.nc-group');
+      await this.rootPage.waitForTimeout(200);
     }
     await this.rootPage.waitForTimeout(500);
   }

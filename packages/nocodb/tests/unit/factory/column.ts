@@ -178,6 +178,129 @@ const customColumns = function (type: string, options: any = {}) {
           meta: { is_multi: true },
         },
       ];
+    case 'aggregationBased':
+      return [
+        {
+          column_name: 'Id',
+          title: 'Id',
+          uidt: UITypes.ID,
+          ai: 1,
+          pk: 1,
+        },
+        {
+          column_name: 'SingleLineText',
+          title: 'Title',
+          uidt: UITypes.SingleLineText,
+        },
+        {
+          column_name: 'Attachment',
+          title: 'Attachment',
+          uidt: UITypes.Attachment,
+        },
+        {
+          column_name: 'User',
+          title: 'User',
+          uidt: UITypes.User,
+        },
+        {
+          column_name: 'LongText',
+          title: 'LongText',
+          uidt: UITypes.LongText,
+        },
+        {
+          column_name: 'Number',
+          title: 'Number',
+          uidt: UITypes.Number,
+        },
+        {
+          column_name: 'Decimal',
+          title: 'Decimal',
+          uidt: UITypes.Decimal,
+        },
+        {
+          column_name: 'Checkbox',
+          title: 'Checkbox',
+          uidt: UITypes.Checkbox,
+        },
+        {
+          column_name: 'MultiSelect',
+          title: 'MultiSelect',
+          uidt: UITypes.MultiSelect,
+          dtxp: "'jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'",
+        },
+        {
+          column_name: 'SingleSelect',
+          title: 'SingleSelect',
+          uidt: UITypes.SingleSelect,
+          dtxp: "'jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'",
+        },
+        {
+          column_name: 'Date',
+          title: 'Date',
+          uidt: UITypes.Date,
+        },
+        {
+          column_name: 'DateTime',
+          title: 'DateTime',
+          uidt: UITypes.DateTime,
+        },
+        {
+          column_name: 'Year',
+          title: 'Year',
+          uidt: UITypes.Year,
+        },
+        {
+          column_name: 'Time',
+          title: 'Time',
+          uidt: UITypes.Time,
+        },
+        {
+          column_name: 'PhoneNumber',
+          title: 'PhoneNumber',
+          uidt: UITypes.PhoneNumber,
+        },
+        {
+          column_name: 'Email',
+          title: 'Email',
+          uidt: UITypes.Email,
+        },
+        {
+          column_name: 'Url',
+          title: 'Url',
+          uidt: UITypes.URL,
+        },
+        {
+          column_name: 'Currency',
+          title: 'Currency',
+          uidt: UITypes.Currency,
+        },
+        {
+          column_name: 'Percent',
+          title: 'Percent',
+          uidt: UITypes.Percent,
+        },
+        {
+          column_name: 'Duration',
+          title: 'Duration',
+          uidt: UITypes.Duration,
+        },
+        {
+          column_name: 'Rating',
+          title: 'Rating',
+          uidt: UITypes.Rating,
+        },
+        {
+          column_name: 'Geometry',
+          title: 'Geometry',
+          uidt: UITypes.Geometry,
+        },
+        {
+          column_name: 'JSON',
+          title: 'JSON',
+          uidt: UITypes.JSON,
+        },
+      ];
+
     case 'custom':
       return [{ title: 'Id', column_name: 'id', uidt: UITypes.ID }, ...options];
   }
@@ -412,6 +535,36 @@ const createLtarColumn = async (
   return ltarColumn;
 };
 
+const updateGridViewColumn = async (
+  context,
+  {
+    view,
+    column,
+    attr,
+  }: {
+    column: GridViewColumn;
+    view: View;
+    attr: any;
+  },
+) => {
+  const ctx = {
+    workspace_id: view.fk_workspace_id,
+    base_id: view.base_id,
+  };
+
+  const res = await request(context.app)
+    .patch(`/api/v1/db/meta/grid-columns/${column.id}`)
+    .set('xc-auth', context.token)
+    .expect(200)
+    .send(attr);
+
+  const updatedColumn = (await view.getColumns(ctx)).find(
+    (col) => col.id === column.id,
+  );
+
+  return updatedColumn;
+};
+
 const updateViewColumn = async (
   context,
   { view, column, attr }: { column: Column; view: View; attr: any },
@@ -477,6 +630,7 @@ export {
   createRollupColumn,
   createLookupColumn,
   createLtarColumn,
+  updateGridViewColumn,
   updateViewColumn,
   updateColumn,
   deleteColumn,

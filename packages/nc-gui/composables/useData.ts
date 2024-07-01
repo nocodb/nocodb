@@ -218,7 +218,7 @@ export function useData(args: {
         //   query: { ignoreWebhook: !saved }
         // }
       )
-      await reloadAggregate?.trigger({ field: [property] })
+      await reloadAggregate?.trigger({ fields: [{ title: property }] })
 
       if (!undo) {
         addUndo({
@@ -360,7 +360,7 @@ export function useData(args: {
     }
 
     await $api.dbTableRow.bulkUpdate(NOCO, metaValue?.base_id as string, metaValue?.id as string, updateArray)
-    await reloadAggregate?.trigger({ field: props })
+    await reloadAggregate?.trigger({ fields: props.map((p) => ({ title: p })) })
 
     if (!undo) {
       addUndo({

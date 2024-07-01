@@ -1,6 +1,7 @@
 <script lang="ts" setup>
-import { UITypes, isLinksOrLTAR } from 'nocodb-sdk'
+import { type ColumnType, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
 import Table from './Table.vue'
+import { NavigateDir } from '~/lib/enums'
 
 const props = defineProps<{
   group: Group
@@ -16,7 +17,6 @@ const props = defineProps<{
   maxDepth?: number
 
   rowHeight?: number
-  expandForm?: (row: Row, state?: Record<string, any>, fromToolbar?: boolean) => void
 
   paginationFixedSize?: number
   paginationHideSidebars?: boolean
@@ -30,11 +30,68 @@ const emits = defineEmits(['update:paginationData'])
 
 const vGroup = useVModel(props, 'group', emits)
 
+const { t } = useI18n()
+
+const router = useRouter()
+
 const meta = inject(MetaInj, ref())
 
 const view = inject(ActiveViewInj, ref())
 
+const isPublic = inject(IsPublicInj, ref(false))
+
+const skipRowRemovalOnCancel = ref(false)
+
 const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
+
+const { eventBus } = useSmartsheetStoreOrThrow()
+
+const routeQuery = computed(() => route.value.query as Record<string, string>)
+
+const route = router.currentRoute
+
+const expandedFormDlg = ref(false)
+const expandedFormRow = ref<Row>()
+const expandedFormRowState = ref<Record<string, any>>()
+
+const expandedFormOnRowIdDlg = computed({
+  get() {
+    return !!routeQuery.value.rowId
+  },
+  set(val) {
+    if (!val) {
+      router.push({
+        query: {
+          ...routeQuery.value,
+          rowId: undefined,
+        },
+      })
+      expandedFormRow.value = {}
+      expandedFormRowState.value = {}
+    }
+  },
+})
+
+function expandForm(row: Row, state?: Record<string, any>, fromToolbar = false) {
+  const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+  expandedFormRowState.value = state
+  if (rowId && !isPublic.value) {
+    router.push({
+      query: {
+        ...routeQuery.value,
+        rowId,
+      },
+    })
+  } else {
+    expandedFormRow.value = row
+    expandedFormDlg.value = true
+    skipRowRemovalOnCancel.value = !fromToolbar
+  }
+}
+
+const addRowExpandOnClose = (row: Row) => {
+  eventBus.emit(SmartsheetStoreEvents.CLEAR_NEW_ROW, row)
+}
 
 function addEmptyRow(group: Group, addAfter?: number, metaValue = meta.value) {
   if (group.nested || !group.rows) return
@@ -126,6 +183,91 @@ const pagination = computed(() => {
   }
 })
 
+// get current expanded row index
+function getExpandedRowIndex() {
+  return formattedData.value.findIndex(
+    (row: Row) => routeQuery.value.rowId === extractPkFromRow(row.row, meta.value?.columns as ColumnType[]),
+  )
+}
+
+const navigateToSiblingRow = async (dir: NavigateDir) => {
+  // debugger
+  const expandedRowIndex = getExpandedRowIndex()
+
+  // calculate next row index based on direction
+  let siblingRowIndex = expandedRowIndex + (dir === NavigateDir.NEXT ? 1 : -1)
+
+  // if unsaved row skip it
+  while (formattedData.value[siblingRowIndex]?.rowMeta?.new) {
+    siblingRowIndex = siblingRowIndex + (dir === NavigateDir.NEXT ? 1 : -1)
+  }
+
+  const currentPage = vGroup.value.paginationData?.page || 1
+
+  // if next row index is less than 0, go to previous page and point to last element
+  if (siblingRowIndex < 0) {
+    // if first page, do nothing
+    if (currentPage === 1) return message.info(t('msg.info.noMoreRecords'))
+
+    await props.loadGroupPage(vGroup.value, currentPage - 1)
+    siblingRowIndex = formattedData.value.length - 1
+
+    // if next row index is greater than total rows in current view
+    // then load next page of formattedData and set next row index to 0
+  } else if (siblingRowIndex >= formattedData.value.length) {
+    if (vGroup.value.paginationData?.isLastPage) return message.info(t('msg.info.noMoreRecords'))
+
+    await props.loadGroupPage(vGroup.value, currentPage + 1)
+
+    siblingRowIndex = 0
+  }
+
+  // extract the row id of the sibling row
+  const rowId = extractPkFromRow(formattedData.value[siblingRowIndex].row, meta.value?.columns as ColumnType[])
+  if (rowId) {
+    await router.push({
+      query: {
+        ...routeQuery.value,
+        rowId,
+      },
+    })
+  }
+}
+
+const goToNextRow = async () => {
+  const currentIndex = getExpandedRowIndex()
+  /* when last index of current page is reached we should move to next page */
+  if (!vGroup.value.paginationData?.isLastPage && currentIndex === vGroup.value.paginationData?.pageSize) {
+    const nextPage = vGroup.value.paginationData?.page ? vGroup.value.paginationData?.page + 1 : 1
+    await props.loadGroupPage(vGroup.value, nextPage)
+  }
+
+  navigateToSiblingRow(NavigateDir.NEXT)
+}
+
+const goToPreviousRow = async () => {
+  const currentIndex = getExpandedRowIndex()
+  /* when first index of current page is reached and then clicked back
+    previos page should be loaded
+  */
+  if (!vGroup.value.paginationData?.isFirstPage && currentIndex === 1) {
+    const nextPage = vGroup.value.paginationData?.page ? vGroup.value.paginationData?.page - 1 : 1
+    await props.loadGroupPage(vGroup.value, nextPage)
+  }
+
+  navigateToSiblingRow(NavigateDir.PREV)
+}
+
+const isLastRow = computed(() => {
+  const currentIndex = getExpandedRowIndex()
+  return vGroup.value.paginationData?.isLastPage && currentIndex === formattedData.value.length - 1
+})
+
+const isFirstRow = computed(() => {
+  const currentIndex = getExpandedRowIndex()
+  return vGroup.value.paginationData?.isFirstPage && currentIndex === 0
+})
+
 async function deleteSelectedRowsWrapper() {
   if (!deleteSelectedRows) return
 
@@ -133,6 +275,12 @@ async function deleteSelectedRowsWrapper() {
   // reload table data
   await reloadTableData({ shouldShowLoading: true })
 }
+
+eventBus.on((event) => {
+  if (event === SmartsheetStoreEvents.GROUP_BY_RELOAD || event === SmartsheetStoreEvents.DATA_RELOAD) {
+    reloadViewDataHook?.trigger()
+  }
+})
 </script>
 
 <template>
@@ -145,7 +293,7 @@ async function deleteSelectedRowsWrapper() {
     :load-data="async () => {}"
     :change-page="(p: number) => props.loadGroupPage(vGroup, p)"
     :call-add-empty-row="(addAfter?: number) => addEmptyRow(vGroup, addAfter)"
-    :expand-form="props.expandForm"
+    :expand-form="expandForm"
     :row-height="rowHeight"
     :delete-row="deleteRow"
     :delete-selected-rows="deleteSelectedRowsWrapper"
@@ -157,6 +305,35 @@ async function deleteSelectedRowsWrapper() {
     :pagination="pagination"
     :disable-skeleton="true"
     :disable-virtual-y="true"
+  />
+
+  <Suspense>
+    <LazySmartsheetExpandedForm
+      v-if="expandedFormRow && expandedFormDlg"
+      v-model="expandedFormDlg"
+      :load-row="!isPublic"
+      :row="expandedFormRow"
+      :state="expandedFormRowState"
+      :meta="meta"
+      :view="view"
+      @update:model-value="addRowExpandOnClose(expandedFormRow)"
+    />
+  </Suspense>
+  <SmartsheetExpandedForm
+    v-if="expandedFormOnRowIdDlg && meta?.id"
+    v-model="expandedFormOnRowIdDlg"
+    :row="expandedFormRow ?? { row: {}, oldRow: {}, rowMeta: {} }"
+    :meta="meta"
+    :load-row="!isPublic"
+    :state="expandedFormRowState"
+    :row-id="routeQuery.rowId"
+    :view="view"
+    show-next-prev-icons
+    :first-row="isFirstRow"
+    :last-row="isLastRow"
+    :expand-form="expandForm"
+    @next="goToNextRow"
+    @prev="goToPreviousRow"
   />
 </template>
 

@@ -15,6 +15,57 @@ export class PublicDatasService extends PublicDatasServiceCE {
     super();
   }
 
+  async bulkAggregate(
+    context: NcContext,
+    param: {
+      sharedViewUuid: string;
+      password?: string;
+      query: any;
+    },
+  ) {
+    const view = await View.getByUUID(context, param.sharedViewUuid);
+
+    if (!view) NcError.viewNotFound(param.sharedViewUuid);
+
+    if (view.type !== ViewTypes.GRID) {
+      NcError.notFound('Not found');
+    }
+
+    if (view.password && view.password !== param.password) {
+      return NcError.invalidSharedViewPassword();
+    }
+
+    const model = await Model.getByIdOrName(context, {
+      id: view?.fk_model_id,
+    });
+
+    const listArgs: any = { ...param.query };
+
+    try {
+      listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
+    } catch (e) {}
+
+    try {
+      listArgs.aggregation = JSON.parse(listArgs.aggregation);
+    } catch (e) {}
+
+    try {
+      listArgs.aggregateFilterList = JSON.parse(listArgs.aggregateFilterList);
+    } catch (e) {}
+
+    const source = await Source.get(context, model.source_id);
+
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+    });
+
+    const data = await baseModel.bulkAggregate(listArgs, view);
+
+    return data;
+  }
+
   async dataList(
     context: NcContext,
     param: {

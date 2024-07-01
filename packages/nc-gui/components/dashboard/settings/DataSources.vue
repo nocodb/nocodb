@@ -5,6 +5,7 @@ import { ClientType } from '#imports'
 
 interface Props {
   state: string
+  baseId: string
   reload?: boolean
 }
 
@@ -20,10 +21,9 @@ const { $api, $e } = useNuxtApp()
 
 const basesStore = useBases()
 const { loadProject } = basesStore
-const { isDataSourceLimitReached } = storeToRefs(basesStore)
+const { isDataSourceLimitReached, bases } = storeToRefs(basesStore)
 
-const baseStore = useBase()
-const { base } = storeToRefs(baseStore)
+const base = computed(() => bases.value.get(props.baseId) ?? {})
 
 const { isUIAllowed } = useRoles()
 
@@ -294,7 +294,12 @@ const openedTab = ref('erd')
               </div>
             </template>
             <div class="h-full pt-4">
-              <LazyDashboardSettingsErd class="h-full overflow-auto" :source-id="activeSource.id" :show-all-columns="false" />
+              <LazyDashboardSettingsErd
+                class="h-full overflow-auto"
+                :base-id="baseId"
+                :source-id="activeSource.id"
+                :show-all-columns="false"
+              />
             </div>
           </a-tab-pane>
           <a-tab-pane v-if="sources && activeSource === sources[0]" key="audit">

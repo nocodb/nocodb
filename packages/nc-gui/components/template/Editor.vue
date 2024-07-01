@@ -1,19 +1,18 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
-import type { ColumnType, TableType } from 'nocodb-sdk'
-import { UITypes, getDateFormat, getDateTimeFormat, isSystemColumn, isVirtualCol, parseStringDate } from 'nocodb-sdk'
+import type { ColumnType, OracleUi, TableType } from 'nocodb-sdk'
+import {
+  SqlUiFactory,
+  UITypes,
+  getDateFormat,
+  getDateTimeFormat,
+  isSystemColumn,
+  isVirtualCol,
+  parseStringDate,
+} from 'nocodb-sdk'
 import type { CheckboxChangeEvent } from 'ant-design-vue/es/checkbox/interface'
 import { srcDestMappingColumns, tableColumns } from './utils'
-
-const { quickImportType, baseTemplate, importData, importColumns, importDataOnly, maxRowsToParse, sourceId, importWorker } =
-  defineProps<Props>()
-
-const emit = defineEmits(['import', 'error', 'change'])
-
-dayjs.extend(utc)
-
-const { t } = useI18n()
 
 interface Props {
   quickImportType: 'csv' | 'excel' | 'json'
@@ -22,6 +21,7 @@ interface Props {
   importColumns: any[]
   importDataOnly: boolean
   maxRowsToParse: number
+  baseId: string
   sourceId: string
   importWorker: Worker
 }
@@ -30,6 +30,24 @@ interface Option {
   label: string
   value: string
 }
+
+const {
+  quickImportType,
+  baseTemplate,
+  importData,
+  importColumns,
+  importDataOnly,
+  maxRowsToParse,
+  baseId,
+  sourceId,
+  importWorker,
+} = defineProps<Props>()
+
+const emit = defineEmits(['import', 'error', 'change'])
+
+dayjs.extend(utc)
+
+const { t } = useI18n()
 
 const meta = inject(MetaInj, ref())
 
@@ -43,13 +61,33 @@ const { $api } = useNuxtApp()
 
 const { addTab } = useTabs()
 
-const baseStrore = useBase()
-const { loadTables } = baseStrore
-const { sqlUis, base } = storeToRefs(baseStrore)
-const { openTable } = useTablesStore()
-const { baseTables } = storeToRefs(useTablesStore())
+const basesStore = useBases()
+const { bases } = storeToRefs(basesStore)
 
-const sqlUi = ref(sqlUis.value[sourceId] || Object.values(sqlUis.value)[0])
+const { base: activeBase } = storeToRefs(useBase())
+
+const base = computed(() => bases.value.get(baseId) || activeBase.value)
+
+const tablesStore = useTablesStore()
+const { openTable, loadProjectTables } = tablesStore
+const { baseTables } = storeToRefs(tablesStore)
+
+const sqlUis = computed(() => {
+  const temp: Record<string, any> = {}
+
+  for (const source of base.value.sources ?? []) {
+    if (source.id) {
+      temp[source.id] = SqlUiFactory.create({ client: source.type }) as Exclude<
+        ReturnType<(typeof SqlUiFactory)['create']>,
+        typeof OracleUi
+      >
+    }
+  }
+
+  return temp
+})
+
+const sqlUi = computed(() => sqlUis.value[sourceId] || Object.values(sqlUis.value)[0])
 
 const hasSelectColumn = ref<boolean[]>([])
 
@@ -560,7 +598,7 @@ async function importTemplate() {
         )
       }
       // reload table list
-      await loadTables()
+      await loadProjectTables(base.value.id, true)
 
       addTab({
         ...tab,

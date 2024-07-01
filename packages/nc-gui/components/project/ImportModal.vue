@@ -36,7 +36,7 @@ function openAirtableImportDialog(baseId?: string, sourceId?: string) {
 }
 
 function openQuickImportDialog(type: 'csv' | 'excel' | 'json') {
-  if (!source.value.id) return
+  if (!source.value.id || !source.value.base_id) return
 
   $e(`a:actions:import-${type}`)
 
@@ -45,6 +45,7 @@ function openQuickImportDialog(type: 'csv' | 'excel' | 'json') {
   const { close } = useDialog(resolveComponent('DlgQuickImport'), {
     'modelValue': isOpen,
     'importType': type,
+    'baseId': source.value.base_id,
     'sourceId': source.value.id,
     'onUpdate:modelValue': closeDialog,
   })

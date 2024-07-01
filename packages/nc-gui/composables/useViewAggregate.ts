@@ -21,7 +21,7 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
 
     const aggregations = ref({}) as Ref<Record<string, any>>
 
-    const reloadAggregate = inject(ReloadAggregateHookInj, createEventHook())
+    const reloadAggregate = inject(ReloadAggregateHookInj)
 
     const visibleFieldsComputed = computed(() => {
       const fie = fields.value.map((field, index) => ({ field, index })).filter((f) => f.index !== 0)
@@ -101,7 +101,7 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
     const updateAggregate = async (fieldId: string, agg: string) => {
       await updateGridViewColumn(fieldId, { aggregation: agg })
 
-      await reloadAggregate.trigger({
+      await reloadAggregate?.trigger({
         field: [fields.value.find((f) => f.id === fieldId)?.title ?? ''],
       })
     }

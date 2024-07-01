@@ -21,6 +21,8 @@ provide(ActiveViewInj, sharedView)
 provide(IsPublicInj, ref(true))
 provide(IsLockedInj, isLocked)
 
+provide(ReloadAggregateHookInj, createEventHook())
+
 useProvideViewColumns(sharedView, meta, () => reloadEventHook?.trigger(), true)
 useProvideViewGroupBy(sharedView, meta, xWhere, true)
 

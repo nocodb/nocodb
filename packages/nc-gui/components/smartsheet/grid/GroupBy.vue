@@ -55,6 +55,10 @@ const viewDisplayField = computed(() => {
 
 const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 
+watch(visibleFieldsComputed, () => {
+  reloadViewDataHook?.trigger()
+})
+
 const _loadGroupData = async (group: Group, force?: boolean, params?: any) => {
   isViewDataLoading.value = true
   isPaginationLoading.value = true
@@ -493,6 +497,7 @@ const bgColor = computed(() => {
                     v-if="field && column?.id"
                     :disabled="column?.uidt === UITypes.SpecificDBType"
                     overlay-class-name="max-h-96 relative scroll-container nc-scrollbar-thin overflow-auto"
+                    @click.stop
                   >
                     <div
                       class="flex items-center overflow-x-hidden justify-end group hover:bg-gray-100 cursor-pointer text-gray-500 transition-all transition-linear px-3 py-2"
@@ -547,6 +552,7 @@ const bgColor = computed(() => {
                         <NcMenuItem
                           v-for="(agg, index) in getAggregations(column)"
                           :key="index"
+                          class="w-full nc-aggregation-menu"
                           @click="updateAggregate(column.id, agg)"
                         >
                           <div class="flex !w-full text-[13px] text-gray-800 items-center justify-between">
@@ -656,5 +662,12 @@ const bgColor = computed(() => {
 
 :deep(.ant-collapse-borderless > .ant-collapse-item:last-child) {
   border-radius: 8px !important;
+}
+</style>
+
+<style lang="scss">
+:deep(.nc-menu-item-inner) {
+  width: 100% !important;
+  @apply !pr-2;
 }
 </style>

@@ -6,6 +6,7 @@ const props = defineProps<{
   scrollLeft?: number
   paginationData: PaginatedType
   changePage: (page: number) => void
+  showSizeChanger?: boolean
 }>()
 
 const emits = defineEmits(['update:paginationData'])
@@ -15,6 +16,8 @@ const { isViewDataLoading, isPaginationLoading } = storeToRefs(useViewsStore())
 const isLocked = inject(IsLockedInj, ref(false))
 
 const { changePage } = props
+
+const showSizeChanger = toRef(props, 'showSizeChanger')
 
 const vPaginationData = useVModel(props, 'paginationData', emits)
 
@@ -261,6 +264,7 @@ const renderAltOrOptlKey = () => {
         v-if="count !== Infinity"
         v-model:current="page"
         v-model:page-size="size"
+        :show-size-changer="showSizeChanger"
         class="xs:(mr-2)"
         :total="+count"
         entity-name="grid"
@@ -268,7 +272,6 @@ const renderAltOrOptlKey = () => {
         :next-page-tooltip="`${renderAltOrOptlKey()}+→`"
         :first-page-tooltip="`${renderAltOrOptlKey()}+↓`"
         :last-page-tooltip="`${renderAltOrOptlKey()}+↑`"
-        :show-size-changer="true"
       />
     </div>
   </div>

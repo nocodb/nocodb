@@ -72,7 +72,7 @@
     "max": "Max",
     "avg": "Średni",
     "median": "Mediana",
-    "std_dev": "Standard Deviation",
+    "std_dev": "Odchylenie standardowe",
     "histogram": "Histogram",
     "range": "Zakres",
     "percent_empty": "Procent pustych",
@@ -84,12 +84,12 @@
     "earliest_date": "Najwcześniejsza data",
     "latest_date": "Ostatnia data",
     "date_range": "Zakres dat",
-    "month_range": "Month Range",
+    "month_range": "Zakres Miesięczny",
     "checked": "Zaznaczono",
     "unchecked": "Niezaznaczono",
-    "percent_checked": "Percent Checked",
-    "percent_unchecked": "Percent Unchecked",
-    "attachment_size": "Attachment Size",
+    "percent_checked": "Procent wybranych",
+    "percent_unchecked": "Procent niewybranych",
+    "attachment_size": "Rozmiar załącznika",
     "none": "Brak"
   },
   "general": {
@@ -268,7 +268,7 @@
     "colour": "Kolor",
     "use": "Użyj",
     "stack": "Stos",
-    "ipAddress": "IP Address"
+    "ipAddress": "Adres IP"
   },
   "objects": {
     "owner": "Właściciel",
@@ -514,7 +514,7 @@
   },
   "labels": {
     "notRecommended": "Nie zalecane",
-    "allowMetaWrite": "Allow Schema Edit",
+    "allowMetaWrite": "Zezwól na modyfikację schematu",
     "allowDataWrite": "Allow Data Edit",
     "selectView": "Wybierz widok",
     "connectionDetails": "Szczegóły połączenia",
@@ -840,7 +840,7 @@
     "relationType": "Typ relacji",
     "showThousandsSeparator": "Pokaż separator tysięcy",
     "signUpForFree": "Załóż darmowe konto",
-    "coverImageField": "Cover image field",
+    "coverImageField": "Obraz okładki",
     "fitImage": "Dopasuj zdjęcie",
     "coverImageArea": "Obraz okładki"
   },
@@ -941,7 +941,7 @@
     "addFilter": "Dodaj filtr",
     "share": "Udział",
     "groupBy": "Grupuj według",
-    "addSubGroup": "Dodaj podgrupę",
+    "addSubGroup": "New Subgroup",
     "shareBase": {
       "label": "Udostępnij bazę",
       "disable": "Wyłącz współdzielenie",
@@ -1084,7 +1084,7 @@
     },
     "toggleMobileMode": "Przełącz tryb mobilny",
     "startCommenting": "Rozpocznij komentowanie",
-    "noCommentsYet": "No comments yet!",
+    "noCommentsYet": "Na razie brak komentarzy!",
     "clearForm": "Wyczyść formularz",
     "addFieldFromFormView": "Dodaj pole",
     "selectAllFields": "Zaznacz wszystkie pola",
@@ -1099,9 +1099,9 @@
     "group": "Grupa"
   },
   "tooltip": {
-    "schemaChangeDisabled": "Schema editing is disabled for this data source.",
-    "typeNotAllowed": "This datatype is not allowed.",
-    "dataWriteOptionDisabled": "Data editing can only be disabled when 'Schema editing' is also disabled.",
+    "schemaChangeDisabled": "Modyfikacja schematu jest wyłączona dla tego źródła danych.",
+    "typeNotAllowed": "Ten typ danych jest niedozwolony.",
+    "dataWriteOptionDisabled": "Modyfikacja danych może być wyłączona tylko wtedy, gdy 'modyfikacja schematu' jest wyłączona",
     "allowMetaWrite": "This option allows modification of database schema, including adding, altering, or deleting tables and columns. Use with caution, as changes may impact the structural integrity of your database.",
     "allowDataWrite": "This option allows create, update, or delete of records within database tables. Ideal for administrative users need to change data directly.",
     "reachedSourceLimit": "Ograniczenie do jednego źródła danych w tej chwili",
@@ -1148,7 +1148,7 @@
     "projName": "Wprowadź nazwę projektu.",
     "selectGroupField": "Wybierz pole grupowania",
     "selectGroupFieldNotFound": "Nie można znaleźć pola jednokrotnego wyboru. Najpierw je utwórz.",
-    "selectCoverImageField": "Select a cover image field",
+    "selectCoverImageField": "Wybierz pole obrazu okładki",
     "selectGeoField": "Wybierz pole danych geograficznych",
     "notSelected": "-nie wybrano-",
     "selectGeoFieldNotFound": "Nie można znaleźć pola danych geograficznych. Najpierw je utwórz.",

@@ -113,7 +113,7 @@ const verificationData = {
     },
     median: 2.9290000000000003,
     std_dev: {
-      sqlite3: 0.21100000000000002,
+      sqlite3: 0.21100000000000008,
       pg: 0.211,
     },
     range: {

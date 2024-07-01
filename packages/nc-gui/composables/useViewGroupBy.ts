@@ -329,8 +329,6 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
             }
             temp.color = keyExists.color
 
-            temp.aggregations = await loadGroupAggregation(temp)
-
             // update group
             Object.assign(keyExists, temp)
             continue
@@ -356,6 +354,28 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
         if (expectedPage < group.paginationData.page!) {
           await groupWrapperChangePage(expectedPage, group)
         }
+
+        const promises: Array<Record<string, any>> = group.children.map(async (child) => {
+          const nestedWhere = calculateNestedWhere(child.nestedIn, where?.value)
+
+          const response = !isPublic
+            ? await api.dbDataTableAggregate.dbDataTableAggregate(meta.value!.id, {
+                viewId: view.value!.id,
+                where: `${nestedWhere}`,
+              })
+            : await fetchAggregatedData({
+                where: `${nestedWhere}`,
+              })
+          return response
+        })
+
+        const settledPromise = await Promise.allSettled(promises)
+
+        settledPromise.forEach((p, i) => {
+          if (p.status === 'fulfilled') {
+            group.children[i].aggregations = p.value
+          }
+        })
       } catch (e) {
         message.error(await extractSdkResponseErrorMsg(e))
       }
@@ -396,26 +416,39 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       }
     }
 
-    async function loadGroupAggregation(group: Group, force = false) {
+    async function loadGroupAggregation(
+      group: Group,
+      fields?: Array<{
+        field: string
+        type: string
+      }>,
+    ) {
       try {
         if (!meta?.value?.id || !view.value?.id || !view.value?.fk_model_id) return
 
-        const nestedWhere = calculateNestedWhere(group.nestedIn, where?.value)
+        const promises: Array<Record<string, any>> = (group.children ?? []).map(async (child) => {
+          const nestedWhere = calculateNestedWhere(child.nestedIn, where?.value)
 
-        console.log('whereClause', nestedWhere)
+          const response = !isPublic
+            ? await api.dbDataTableAggregate.dbDataTableAggregate(meta.value!.id, {
+                viewId: view.value!.id,
+                where: `${nestedWhere}`,
+                ...(fields ? { aggregation: fields } : {}),
+              })
+            : await fetchAggregatedData({
+                where: `${nestedWhere}`,
+                ...(fields ? { aggregation: fields } : {}),
+              })
+          return response
+        })
 
-        const response = !isPublic
-          ? await api.dbDataTableAggregate.dbDataTableAggregate(meta.value.id, {
-              viewId: view.value.id,
-              where: `${nestedWhere}`,
-            })
-          : await fetchAggregatedData({
-              where: `${nestedWhere}`,
-            })
+        const settledPromise = await Promise.allSettled(promises)
 
-        // Object.assign(group.aggregations, response)
-
-        return response
+        settledPromise.forEach((p, i) => {
+          if (p.status === 'fulfilled') {
+            ;(group.children ?? [])[i].aggregations = p.value
+          }
+        })
       } catch (e) {
         message.error(await extractSdkResponseErrorMsg(e))
       }

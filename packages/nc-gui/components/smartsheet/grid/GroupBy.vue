@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import tinycolor from 'tinycolor2'
-import { UITypes, dateFormats, parseStringDateTime, timeFormats } from 'nocodb-sdk'
+import { CommonAggregations, UITypes, dateFormats, parseStringDateTime, timeFormats } from 'nocodb-sdk'
 import Table from './Table.vue'
 import GroupBy from './GroupBy.vue'
 import GroupByTable from './GroupByTable.vue'
@@ -13,7 +13,13 @@ const props = defineProps<{
   loadGroupData: (group: Group, force?: boolean, params?: any) => Promise<void>
   loadGroupPage: (group: Group, p: number) => Promise<void>
   groupWrapperChangePage: (page: number, groupWrapper?: Group) => Promise<void>
-  loadGroupAggregation: (group: Group) => Promise<void>
+  loadGroupAggregation: (
+    group: Group,
+    fields?: Array<{
+      field: string
+      type: string
+    }>,
+  ) => Promise<void>
   redistributeRows?: (group?: Group) => void
 
   viewWidth?: number
@@ -33,11 +39,15 @@ const vGroup = useVModel(props, 'group', emits)
 
 const meta = inject(MetaInj, ref())
 
+const fields = inject(FieldsInj, ref())
+
 const scrollLeft = toRef(props, 'scrollLeft')
 
 const { isViewDataLoading, isPaginationLoading } = storeToRefs(useViewsStore())
 
 const { gridViewCols } = useViewColumnsOrThrow()
+
+const reloadAggregate = inject(ReloadAggregateHookInj, createEventHook())
 
 const displayField = computed(() => {
   return meta.value?.columns?.find((c) => c.pv)
@@ -55,8 +65,20 @@ const viewDisplayField = computed(() => {
 
 const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 
-watch(visibleFieldsComputed, () => {
-  reloadViewDataHook?.trigger()
+reloadAggregate?.on(async (_fields) => {
+  if (!_fields || !_fields.field?.length) {
+    await props.loadGroupAggregation(vGroup.value)
+  }
+  if (_fields?.field) {
+    const fieldAggregateMapping = _fields.field.reduce((acc, field) => {
+      const f = fields.value.find((f) => f.title === field)
+
+      acc[f.title] = gridViewCols.value[f.id].aggregation ?? CommonAggregations.None
+
+      return acc
+    }, {} as Record<string, string>)
+    await props.loadGroupAggregation(vGroup.value, fieldAggregateMapping)
+  }
 })
 
 const _loadGroupData = async (group: Group, force?: boolean, params?: any) => {
@@ -382,7 +404,7 @@ const bgColor = computed(() => {
                 class="flex !sticky w-full items-center rounded-b-lg group select-none transition-all !rounded-t-[8px] !h-10"
               >
                 <div
-                  :style="`width:${computedWidth};`"
+                  :style="`width:${computedWidth};background: ${bgColor};`"
                   class="!sticky flex justify-between !h-10 border-r-1 pr-2 border-gray-300 overflow-clip items-center !left-2"
                 >
                   <div class="flex items-center">

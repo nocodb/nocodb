@@ -587,7 +587,7 @@ const bgColor = computed(() => {
     :hide-sidebars="true"
     :style="`${
       props.depth && props.depth > 0
-        ? 'border-radius: 0 0 8px 8px !important; background: transparent; border-top: 0px; height: 24px'
+        ? 'border-radius: 0 0 8px 8px !important; background: transparent; border-top: 0px; height: 24px; padding-bottom: 8px;'
         : ''
     }`"
     :fixed-size="undefined"

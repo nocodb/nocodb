@@ -2461,6 +2461,7 @@ onKeyStroke('ArrowDown', onDown)
         v-else-if="paginationDataRef"
         v-model:pagination-data="paginationDataRef"
         :change-page="changePage"
+        :show-size-changer="!isGroupBy"
         :scroll-left="scrollLeft"
       />
     </div>

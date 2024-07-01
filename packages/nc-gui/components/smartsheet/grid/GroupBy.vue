@@ -303,11 +303,10 @@ const computedWidth = computed(() => {
   const getSubGroupWidth = (depth: number) => {
     switch (depth) {
       case 3:
-        return `${baseValue - 26}px`
+        return `${baseValue - 18}px`
       case 2:
-        return `${baseValue - 17}px`
+        return `${baseValue - 9}px`
       case 1:
-        return `${baseValue - 8}px`
       default:
         return `${baseValue}px`
     }
@@ -316,7 +315,7 @@ const computedWidth = computed(() => {
   if (_depth === 0) {
     if (tempScrollLeft < 29) {
       // The equation is calculated on trial and error basis
-      return `${baseValue + tempScrollLeft - (53 / 29) * tempScrollLeft}px`
+      return `${baseValue + tempScrollLeft - (0.02 * (tempScrollLeft * tempScrollLeft) + 1.07 * tempScrollLeft)}px`
     }
     return getSubGroupWidth(maxDepth)
   }
@@ -324,15 +323,17 @@ const computedWidth = computed(() => {
   if (_depth === 1) {
     if (tempScrollLeft < 30) {
       // The equation is calculated on trial and error basis
-      return `${baseValue + tempScrollLeft - 9 - (23 / 15) * tempScrollLeft}px`
+      return `${baseValue + tempScrollLeft - 9 - (23 / 20) * tempScrollLeft}px`
     }
     return getSubGroupWidth(maxDepth)
   }
 
   if (_depth === 2) {
-    if (tempScrollLeft < 15) {
+    if (tempScrollLeft <= 14) {
+      console.log(tempScrollLeft)
       // The equation is calculated on trial and error basis
-      return `${baseValue + tempScrollLeft - 18 - (19 / 15) * tempScrollLeft}px`
+      // y = -0.00x^2 + 1.06x + 17.78
+      return `${baseValue + tempScrollLeft - 18 - tempScrollLeft}px`
     }
     return getSubGroupWidth(maxDepth)
   }
@@ -415,7 +416,7 @@ const bgColor = computed(() => {
               >
                 <div
                   :style="`width:${computedWidth};background: ${bgColor};`"
-                  class="!sticky flex justify-between !h-10 border-r-1 pr-2 border-gray-300 !rounded-l-[8px] overflow-clip items-center !left-2"
+                  class="!sticky flex justify-between !h-10 border-r-1 pr-2 border-gray-300 !rounded-l-[8px] overflow-clip items-center !left-0"
                 >
                   <div class="flex items-center">
                     <NcButton class="!border-0 !shadow-none !bg-transparent !hover:bg-transparent" type="secondary" size="small">

@@ -40,6 +40,7 @@ export class GroupPageObject extends BasePage {
         },
       });
       root = root.nth(n).locator('.nc-group');
+      await this.rootPage.waitForTimeout(200);
     }
     await this.rootPage.waitForTimeout(500);
   }

@@ -37,24 +37,6 @@ export class PublicDatasController {
   }
 
   @Get([
-    '/api/v1/db/public/shared-view/:sharedViewUuid/bulkAggregate',
-    '/api/v2/public/shared-view/:sharedViewUuid/bulkAggregate',
-  ])
-  async bulkDataAggregate(
-    @TenantContext() context: NcContext,
-    @Req() req: NcRequest,
-    @Param('sharedViewUuid') sharedViewUuid: string,
-  ) {
-    const response = await this.publicDatasService.bulkAggregate(context, {
-      query: req.query,
-      password: req.headers?.['xc-password'] as string,
-      sharedViewUuid,
-    });
-
-    return response;
-  }
-
-  @Get([
     '/api/v1/db/public/shared-view/:sharedViewUuid/aggregate',
     '/api/v2/public/shared-view/:sharedViewUuid/aggregate',
   ])

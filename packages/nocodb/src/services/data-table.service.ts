@@ -13,7 +13,7 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 @Injectable()
 export class DataTableService {
-  constructor(private datasService: DatasService) {}
+  constructor(protected datasService: DatasService) {}
 
   async dataList(
     context: NcContext,
@@ -63,48 +63,6 @@ export class DataTableService {
     }
 
     return row;
-  }
-
-  async bulkAggregate(
-    context: NcContext,
-    param: {
-      baseId?: string;
-      modelId: string;
-      viewId?: string;
-      query: any;
-    },
-  ) {
-    const { model, view } = await this.getModelAndView(context, param);
-
-    const source = await Source.get(context, model.source_id);
-
-    const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(source),
-    });
-
-    if (view.type !== ViewTypes.GRID) {
-      NcError.badRequest('Aggregation is only supported on grid views');
-    }
-
-    const listArgs: any = { ...param.query };
-
-    try {
-      listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
-    } catch (e) {}
-
-    try {
-      listArgs.aggregation = JSON.parse(listArgs.aggregation);
-    } catch (e) {}
-
-    try {
-      listArgs.aggregateFilterList = JSON.parse(listArgs.aggregateFilterList);
-    } catch (e) {}
-
-    const data = await baseModel.bulkAggregate(listArgs, view);
-
-    return data;
   }
 
   async dataAggregate(
@@ -275,7 +233,7 @@ export class DataTableService {
     return { count };
   }
 
-  private async getModelAndView(
+  protected async getModelAndView(
     context: NcContext,
     param: {
       baseId?: string;

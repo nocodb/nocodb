@@ -95,6 +95,10 @@ export class DataTableService {
     } catch (e) {}
 
     try {
+      listArgs.aggregation = JSON.parse(listArgs.aggregation);
+    } catch (e) {}
+
+    try {
       listArgs.aggregateFilterList = JSON.parse(listArgs.aggregateFilterList);
     } catch (e) {}
 

@@ -12473,6 +12473,106 @@
         }
       }
     },
+    "/api/v2/public/shared-view/{sharedViewUuid}/bulkAggregate": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string",
+            "example": "24a6d0bb-e45d-4b1a-bfef-f492d870de9f"
+          },
+          "name": "sharedViewUuid",
+          "in": "path",
+          "required": true,
+          "description": "Shared View UUID"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "in": "header",
+          "name": "xc-password",
+          "description": "Shared view password"
+        }
+      ],
+      "get": {
+        "summary": "Read Shared View Bulk Aggregated Data",
+        "operationId": "public-data-table-bulk-aggregate",
+        "description": "Read bulk aggregated data from a given table with provided filters",
+        "tags": [
+          "Public"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where",
+            "description": "Extra filtering"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "filterArrJson",
+            "description": "Used for multiple filter queries"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "description": "List of fields to be aggregated",
+              "items": {
+                "type": "object"
+              }
+            },
+            "in": "query",
+            "name": "aggregation",
+            "description": "Used for selective aggregation"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "description": "List of where filters and alias",
+              "items": {
+                "type": "object"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "alias": {
+                        "Id": 1,
+                        "Title": "90",
+                        "SingleSelect": "50"
+                      },
+                      "alias2": {
+                        "Id": 2,
+                        "Title": "50",
+                        "SingleSelect": "30"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      }
+    },
     "/api/v1/db/public/shared-view/{sharedViewUuid}/group/{columnId}": {
       "parameters": [
         {
@@ -16622,6 +16722,109 @@
             "$ref": "#/components/parameters/xc-auth"
           }
         ]
+      }
+    },
+    "/api/v2/tables/{tableId}/bulkAggregate": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "path",
+          "required": true,
+          "description": "Table ID"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "required": true,
+          "name": "viewId",
+          "in": "query",
+          "description": "View ID is required"
+        },
+        {
+          "schema": {
+            "type": "array",
+            "description": "List of fields to be aggregated",
+            "items": {
+              "type": "object"
+            }
+          },
+          "in": "query",
+          "name": "aggregation",
+          "description": "Used for selective aggregation"
+        },
+        {
+          "schema": {
+            "type": "array",
+            "description": "List of where filters and alias",
+            "items": {
+              "type": "object"
+            }
+          }
+        }
+      ],
+      "get": {
+        "summary": "Read Bulk Aggregated Data",
+        "operationId": "db-data-table-bulk-aggregate",
+        "description": "Read bulk aggregated data from a given table with given filters",
+        "tags": [
+          "DB Data Table Bulk Aggregate"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where",
+            "description": "Extra filtering"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "filterArrJson",
+            "description": "Used for multiple filter queries"
+          },
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "alias": {
+                        "Id": 1,
+                        "Title": "90",
+                        "SingleSelect": "50"
+                      },
+                      "alias2": {
+                        "Id": 2,
+                        "Title": "50",
+                        "SingleSelect": "30"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
       }
     },
     "/api/v2/tables/{tableId}/aggregate": {

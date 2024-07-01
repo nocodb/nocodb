@@ -941,7 +941,7 @@
     "addFilter": "Filter hinzufügen",
     "share": "Teilen",
     "groupBy": "Gruppieren nach",
-    "addSubGroup": "New Subgroup",
+    "addSubGroup": "Untergruppe hinzufügen",
     "shareBase": {
       "label": "Share Base",
       "disable": "Freigegebene Datenbank deaktivieren",

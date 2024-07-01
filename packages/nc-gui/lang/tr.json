@@ -941,7 +941,7 @@
     "addFilter": "Filtre Ekle",
     "share": "Paylaş",
     "groupBy": "Grupla",
-    "addSubGroup": "New Subgroup",
+    "addSubGroup": "Alt grup ekle",
     "shareBase": {
       "label": "Projeyi Paylaş",
       "disable": "Paylaşılan bağlantıyı devre dışı bırak",

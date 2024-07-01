@@ -29,7 +29,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
 
     const { base } = storeToRefs(useBase())
 
-    const { sharedView, fetchSharedViewData, fetchAggregatedData } = useSharedView()
+    const { sharedView, fetchSharedViewData, fetchBulkAggregatedData } = useSharedView()
 
     const { gridViewCols } = useViewColumnsOrThrow()
 
@@ -363,25 +363,24 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
           await groupWrapperChangePage(expectedPage, group)
         }
 
-        const promises: Array<Record<string, any>> = group.children.map(async (child) => {
-          const nestedWhere = calculateNestedWhere(child.nestedIn, where?.value)
+        const aggregationParams = (group.children ?? []).map((child) => ({
+          where: calculateNestedWhere(child.nestedIn, where?.value),
+          alias: child.key,
+        }))
 
-          const response = !isPublic
-            ? await api.dbDataTableAggregate.dbDataTableAggregate(meta.value!.id, {
-                viewId: view.value!.id,
-                where: `${nestedWhere}`,
-              })
-            : await fetchAggregatedData({
-                where: `${nestedWhere}`,
-              })
-          return response
-        })
+        const aggResponse = !isPublic
+          ? await api.dbDataTableBulkAggregate.dbDataTableBulkAggregate(meta.value!.id, {
+              viewId: view.value!.id,
+              aggregateFilterList: aggregationParams,
+            })
+          : await fetchBulkAggregatedData({
+              aggregateFilterList: aggregationParams,
+            })
 
-        const settledPromise = await Promise.allSettled(promises)
-
-        settledPromise.forEach((p, i) => {
-          if (p.status === 'fulfilled') {
-            group.children[i].aggregations = p.value
+        Object.entries(aggResponse).forEach(([key, value]) => {
+          const child = (group?.children ?? []).find((c) => c.key === key)
+          if (child) {
+            Object.assign(child.aggregations, value)
           }
         })
       } catch (e) {
@@ -438,27 +437,26 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
 
         if (filteredFields && !filteredFields?.length) return
 
-        const promises: Array<Record<string, any>> = (group.children ?? []).map(async (child) => {
-          const nestedWhere = calculateNestedWhere(child.nestedIn, where?.value)
+        const aggregationParams = (group.children ?? []).map((child) => ({
+          where: calculateNestedWhere(child.nestedIn, where?.value),
+          alias: child.key,
+        }))
 
-          const response = !isPublic
-            ? await api.dbDataTableAggregate.dbDataTableAggregate(meta.value!.id, {
-                viewId: view.value!.id,
-                where: `${nestedWhere}`,
-                ...(filteredFields ? { aggregation: filteredFields } : {}),
-              })
-            : await fetchAggregatedData({
-                where: `${nestedWhere}`,
-                ...(filteredFields ? { aggregation: filteredFields } : {}),
-              })
-          return response
-        })
+        const response = !isPublic
+          ? await api.dbDataTableBulkAggregate.dbDataTableBulkAggregate(meta.value!.id, {
+              viewId: view.value!.id,
+              aggregateFilterList: aggregationParams,
+              ...(filteredFields ? { aggregation: filteredFields } : {}),
+            })
+          : await fetchBulkAggregatedData({
+              aggregateFilterList: aggregationParams,
+              ...(filteredFields ? { aggregation: filteredFields } : {}),
+            })
 
-        const settledPromise = await Promise.allSettled(promises)
-
-        settledPromise.forEach((p, i) => {
-          if (p.status === 'fulfilled') {
-            Object.assign((group.children ?? [])[i].aggregations, p.value)
+        Object.entries(response).forEach(([key, value]) => {
+          const child = (group.children ?? []).find((c) => c.key === key)
+          if (child) {
+            Object.assign(child.aggregations, value)
           }
         })
       } catch (e) {

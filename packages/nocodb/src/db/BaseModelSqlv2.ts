@@ -860,6 +860,7 @@ class BaseModelSqlv2 {
 
       const data = await this.execAndParse(qb, null, {
         skipDateConversion: true,
+        first: true,
       });
 
       return data;

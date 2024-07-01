@@ -261,7 +261,6 @@ onMounted(() => {
       :delete-range-of-rows="deleteRangeOfRows"
       :bulk-update-rows="bulkUpdateRows"
       :remove-row-if-new="removeRowIfNew"
-      :expand-form="expandForm"
       :row-height="rowHeight"
       @toggle-optimised-query="toggleOptimisedQuery"
       @bulk-update-dlg="bulkUpdateDlg = true"
@@ -278,10 +277,9 @@ onMounted(() => {
       :load-group-aggregation="loadGroupAggregation"
       :max-depth="groupBy.length"
       :redistribute-rows="redistributeRows"
-      :expand-form="expandForm"
       :view-width="viewWidth"
     />
-    <Suspense>
+    <Suspense v-if="!isGroupBy">
       <LazySmartsheetExpandedForm
         v-if="expandedFormRow && expandedFormDlg"
         v-model="expandedFormDlg"
@@ -294,7 +292,7 @@ onMounted(() => {
       />
     </Suspense>
     <SmartsheetExpandedForm
-      v-if="expandedFormOnRowIdDlg && meta?.id"
+      v-if="expandedFormOnRowIdDlg && meta?.id && !isGroupBy"
       v-model="expandedFormOnRowIdDlg"
       :row="expandedFormRow ?? { row: {}, oldRow: {}, rowMeta: {} }"
       :meta="meta"

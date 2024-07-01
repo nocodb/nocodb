@@ -537,13 +537,11 @@ const bgColor = computed(() => {
               :group-wrapper-change-page="groupWrapperChangePage"
               :row-height="rowHeight"
               :redistribute-rows="redistributeRows"
-              :expand-form="expandForm"
               :pagination-fixed-size="fullPage ? props.viewWidth : undefined"
               :pagination-hide-sidebars="true"
               :scroll-left="props.scrollLeft || _scrollLeft"
               :view-width="viewWidth"
               :scrollable="scrollable"
-              :full-page="fullPage"
             />
             <GroupBy
               v-else
@@ -555,7 +553,6 @@ const bgColor = computed(() => {
               :row-height="rowHeight"
               :load-group-aggregation="loadGroupAggregation"
               :redistribute-rows="redistributeRows"
-              :expand-form="expandForm"
               :view-width="viewWidth"
               :depth="_depth + 1"
               :max-depth="maxDepth"

@@ -708,6 +708,167 @@ class BaseModelSqlv2 {
     return await this.execAndParse(qb);
   }
 
+  async bulkAggregate(
+    args: {
+      aggregateFilterList: Array<{
+        alias: string;
+        where?: string;
+      }>;
+      filterArr?: Filter[];
+    },
+    view: View,
+  ) {
+    try {
+      const { where, aggregation } = this._getListArgs(args as any);
+
+      const columns = await this.model.getColumns(this.context);
+
+      let viewColumns = (
+        await GridViewColumn.list(this.context, this.viewId)
+      ).filter((c) => {
+        const col = columns.find((col) => col.id === c.fk_column_id);
+        return c.show && (view.show_system_fields || !isSystemColumn(col));
+      });
+
+      // By default, the aggregation is done based on the columns configured in the view
+      // If the aggregation parameter is provided, only the columns mentioned in the aggregation parameter are considered
+      // Also the aggregation type from the parameter is given preference over the aggregation type configured in the view
+      if (aggregation?.length) {
+        viewColumns = viewColumns
+          .map((c) => {
+            const agg = aggregation.find((a) => a.field === c.fk_column_id);
+            return new GridViewColumn({
+              ...c,
+              show: !!agg,
+              aggregation: agg ? agg.type : c.aggregation,
+            });
+          })
+          .filter((c) => c.show);
+      }
+
+      const aliasColObjMap = await this.model.getAliasColObjMap(
+        this.context,
+        columns,
+      );
+
+      const qb = this.dbDriver(this.tnPath);
+
+      const aggregateExpressions = {};
+
+      // Construct aggregate expressions for each view column
+      for (const viewColumn of viewColumns) {
+        const col = columns.find((c) => c.id === viewColumn.fk_column_id);
+        if (
+          !col ||
+          !viewColumn.aggregation ||
+          (isLinksOrLTAR(col) && col.system)
+        )
+          continue;
+
+        const aliasFieldName = col.title;
+        const aggSql = await applyAggregation({
+          baseModelSqlv2: this,
+          aggregation: viewColumn.aggregation,
+          column: col,
+        });
+
+        if (aggSql) {
+          aggregateExpressions[aliasFieldName] = aggSql;
+        }
+      }
+
+      const viewFilterList = await Filter.rootFilterList(this.context, {
+        viewId: this.viewId,
+      });
+
+      const selectors = [] as Array<Knex.Raw>;
+      // Generate a knex raw query for each filter in the aggregateFilterList
+      for (const f of args.aggregateFilterList) {
+        const tQb = this.dbDriver(this.tnPath);
+        const aggFilter = extractFilterFromXwhere(f.where, aliasColObjMap);
+
+        await conditionV2(
+          this,
+          [
+            ...(this.viewId
+              ? [
+                  new Filter({
+                    children: viewFilterList || [],
+                    is_group: true,
+                  }),
+                ]
+              : []),
+            new Filter({
+              children: args.filterArr || [],
+              is_group: true,
+              logical_op: 'and',
+            }),
+            new Filter({
+              children: extractFilterFromXwhere(where, aliasColObjMap),
+              is_group: true,
+              logical_op: 'and',
+            }),
+            new Filter({
+              children: aggFilter,
+              is_group: true,
+              logical_op: 'and',
+            }),
+          ],
+          tQb,
+        );
+
+        let jsonBuildObject;
+
+        switch (this.dbDriver.client.config.client) {
+          case 'pg': {
+            jsonBuildObject = this.dbDriver.raw(
+              `JSON_BUILD_OBJECT(${Object.keys(aggregateExpressions)
+                .map((key) => {
+                  return `'${key}', ${aggregateExpressions[key]}`;
+                })
+                .join(', ')})`,
+            );
+            break;
+          }
+          case 'mysql2': {
+            jsonBuildObject = this.dbDriver.raw(`JSON_OBJECT(
+              ${Object.keys(aggregateExpressions)
+                .map((key) => `'${key}', ${aggregateExpressions[key]}`)
+                .join(', ')})`);
+            break;
+          }
+
+          case 'sqlite3': {
+            jsonBuildObject = this.dbDriver.raw(`json_object(
+                ${Object.keys(aggregateExpressions)
+                  .map((key) => `'${key}', ${aggregateExpressions[key]}`)
+                  .join(', ')})`);
+            break;
+          }
+        }
+
+        tQb.select(this.dbDriver.raw(jsonBuildObject));
+
+        selectors.push(this.dbDriver.raw(`(??) as ??`, [tQb, f.alias]));
+      }
+
+      qb.select(...selectors);
+
+      qb.limit(1);
+
+      console.log('\n\n', qb.toQuery(), '\n\n');
+
+      const data = await this.execAndParse(qb, null, {
+        skipDateConversion: true,
+      });
+
+      return data;
+    } catch (err) {
+      console.log(err);
+      return [];
+    }
+  }
+
   async aggregate(args: { filterArr?: Filter[]; where?: string }, view: View) {
     try {
       const { where, aggregation } = this._getListArgs(args as any);
@@ -791,6 +952,7 @@ class BaseModelSqlv2 {
             baseModelSqlv2: this,
             aggregation: viewColumn.aggregation,
             column: col,
+            alias: col.id,
           });
 
           if (aggSql) selectors.push(this.dbDriver.raw(aggSql));

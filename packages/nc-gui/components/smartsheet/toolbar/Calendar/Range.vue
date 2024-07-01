@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type CalendarRangeType, UITypes, isSystemColumn } from 'nocodb-sdk'
+import { type CalendarRangeType, FormulaDataTypes, UITypes } from 'nocodb-sdk'
 import type { SelectProps } from 'ant-design-vue'
 
 const meta = inject(MetaInj, ref())
@@ -106,7 +106,11 @@ const saveCalendarRanges = async () => {
 const dateFieldOptions = computed<SelectProps['options']>(() => {
   return (
     meta.value?.columns
-      ?.filter((c) => [UITypes.DateTime, UITypes.Date, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(c.uidt))
+      ?.filter(
+        (c) =>
+          [UITypes.DateTime, UITypes.Date, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(c.uidt) ||
+          (c.uidt === UITypes.Formula && (c.colOptions as any)?.parsed_tree?.dataType === FormulaDataTypes.DATE),
+      )
       .map((c) => ({
         label: c.title,
         value: c.id,

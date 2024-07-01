@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import {
   AppEvents,
+  FormulaDataTypes,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
@@ -2114,12 +2115,44 @@ export class ColumnsService {
       case UITypes.Rollup:
       case UITypes.QrCode:
       case UITypes.Barcode:
+        await Column.delete(context, param.columnId, ncMeta);
+        break;
+
       case UITypes.Formula:
+        if (!column.colOptions) await column.getColOptions(context, ncMeta);
+        if (column.colOptions.parsed_tree?.dataType === FormulaDataTypes.DATE) {
+          if (
+            await CalendarRange.IsColumnBeingUsedAsRange(
+              context,
+              column.id,
+              ncMeta,
+            )
+          ) {
+            NcError.badRequest(
+              `The column '${column.column_name}' is being used in Calendar View. Please delete Calendar View first.`,
+            );
+          }
+        }
+
         await Column.delete(context, param.columnId, ncMeta);
         break;
       // on deleting created/last modified columns, keep the column in table and delete the column from meta
       case UITypes.CreatedTime:
       case UITypes.LastModifiedTime:
+        if (
+          [UITypes.DateTime, UITypes.Date].includes(column.uidt) &&
+          (await CalendarRange.IsColumnBeingUsedAsRange(
+            context,
+            column.id,
+            ncMeta,
+          ))
+        ) {
+          NcError.badRequest(
+            `The column '${column.column_name}' is being used in Calendar View. Please delete Calendar View first.`,
+          );
+        }
+        await Column.delete(context, param.columnId, ncMeta);
+        break;
       case UITypes.CreatedBy:
       case UITypes.LastModifiedBy: {
         await Column.delete(context, param.columnId, ncMeta);

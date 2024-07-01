@@ -8,6 +8,7 @@ import {
   type TableType,
   type ViewType,
   isSystemColumn,
+  isVirtualCol,
 } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import dayjs from 'dayjs'
@@ -464,7 +465,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
               id: range?.id,
               fk_from_col: fromCol,
               fk_to_col: toCol,
-              is_readonly: [fromCol, toCol].some((col) => isSystemColumn(col)),
+              is_readonly: [fromCol, toCol].some((col) => isSystemColumn(col) || isVirtualCol(col)),
             }
           },
         ) as any

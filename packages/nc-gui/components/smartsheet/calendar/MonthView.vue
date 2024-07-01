@@ -761,10 +761,9 @@ const addRecord = (date: dayjs.Dayjs) => {
             <div v-if="isUIAllowed('dataEdit')" class="flex justify-between p-1">
               <span
                 :class="{
-                  block: !isDateSelected(day),
-                  hidden: isDateSelected(day),
+                  'block group-hover:hidden': !isDateSelected(day) && [UITypes.DateTime, UITypes.Date].includes(calDataType),
+                  'hidden': isDateSelected(day) && [UITypes.DateTime, UITypes.Date].includes(calDataType),
                 }"
-                class="group-hover:hidden"
               ></span>
 
               <NcDropdown v-if="calendarRange.length > 1" auto-close>

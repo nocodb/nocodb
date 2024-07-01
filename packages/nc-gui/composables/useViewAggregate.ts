@@ -99,10 +99,11 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
     }
 
     const updateAggregate = async (fieldId: string, agg: string) => {
+      await updateGridViewColumn(fieldId, { aggregation: agg })
+
       await reloadAggregate.trigger({
         field: [fields.value.find((f) => f.id === fieldId)?.title ?? ''],
       })
-      //  loadViewAggregate()
     }
 
     reloadAggregate?.on(async (_fields) => {

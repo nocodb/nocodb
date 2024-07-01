@@ -1,4 +1,12 @@
-import type { ColumnType, LinkToAnotherRecordType, LookupType, SelectOptionsType, TableType, ViewType } from 'nocodb-sdk'
+import {
+  type ColumnType,
+  CommonAggregations,
+  type LinkToAnotherRecordType,
+  type LookupType,
+  type SelectOptionsType,
+  type TableType,
+  type ViewType,
+} from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { message } from 'ant-design-vue'
@@ -426,6 +434,10 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       try {
         if (!meta?.value?.id || !view.value?.id || !view.value?.fk_model_id) return
 
+        const filteredFields = fields?.filter((x) => x.type !== CommonAggregations.None)
+
+        if (filteredFields && !filteredFields?.length) return
+
         const promises: Array<Record<string, any>> = (group.children ?? []).map(async (child) => {
           const nestedWhere = calculateNestedWhere(child.nestedIn, where?.value)
 
@@ -433,11 +445,11 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
             ? await api.dbDataTableAggregate.dbDataTableAggregate(meta.value!.id, {
                 viewId: view.value!.id,
                 where: `${nestedWhere}`,
-                ...(fields ? { aggregation: fields } : {}),
+                ...(filteredFields ? { aggregation: filteredFields } : {}),
               })
             : await fetchAggregatedData({
                 where: `${nestedWhere}`,
-                ...(fields ? { aggregation: fields } : {}),
+                ...(filteredFields ? { aggregation: filteredFields } : {}),
               })
           return response
         })
@@ -446,7 +458,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
 
         settledPromise.forEach((p, i) => {
           if (p.status === 'fulfilled') {
-            ;(group.children ?? [])[i].aggregations = p.value
+            Object.assign((group.children ?? [])[i].aggregations, p.value)
           }
         })
       } catch (e) {

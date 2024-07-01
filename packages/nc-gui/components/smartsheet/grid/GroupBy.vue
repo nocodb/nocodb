@@ -73,11 +73,18 @@ reloadAggregate?.on(async (_fields) => {
     const fieldAggregateMapping = _fields.field.reduce((acc, field) => {
       const f = fields.value.find((f) => f.title === field)
 
-      acc[f.title] = gridViewCols.value[f.id].aggregation ?? CommonAggregations.None
+      acc[f.id] = gridViewCols.value[f.id].aggregation ?? CommonAggregations.None
 
       return acc
     }, {} as Record<string, string>)
-    await props.loadGroupAggregation(vGroup.value, fieldAggregateMapping)
+
+    await props.loadGroupAggregation(
+      vGroup.value,
+      Object.entries(fieldAggregateMapping).map(([field, type]) => ({
+        field,
+        type,
+      })),
+    )
   }
 })
 
@@ -405,7 +412,7 @@ const bgColor = computed(() => {
               >
                 <div
                   :style="`width:${computedWidth};background: ${bgColor};`"
-                  class="!sticky flex justify-between !h-10 border-r-1 pr-2 border-gray-300 overflow-clip items-center !left-2"
+                  class="!sticky flex justify-between !h-10 border-r-1 pr-2 border-gray-300 !rounded-l-[8px] overflow-clip items-center !left-2"
                 >
                   <div class="flex items-center">
                     <NcButton class="!border-0 !shadow-none !bg-transparent !hover:bg-transparent" type="secondary" size="small">

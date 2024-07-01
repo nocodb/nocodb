@@ -254,8 +254,6 @@ test.describe('Toolbar operations (GRID)', () => {
 
     // Remove Sort and Verify
     await toolbar.sort.reset();
-    await dashboard.grid.groupPage.openGroup({ indexMap: [1, 0] });
-    await dashboard.grid.groupPage.openGroup({ indexMap: [1, 0] });
     await dashboard.grid.groupPage.validateFirstRow({
       indexMap: [1, 0],
       rowIndex: 0,

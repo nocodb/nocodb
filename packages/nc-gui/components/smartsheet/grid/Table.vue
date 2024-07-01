@@ -1525,7 +1525,11 @@ watch(
         }
         isViewDataLoading.value = true
         try {
-          await Promise.allSettled([loadData?.(), loadViewAggregate()])
+          if (isGroupBy.value) {
+            await loadData?.()
+          } else {
+            await Promise.allSettled([loadData?.(), loadViewAggregate()])
+          }
           calculateSlices()
         } catch (e) {
           if (!axios.isCancel(e)) {

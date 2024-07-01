@@ -941,7 +941,7 @@
     "addFilter": "添加过滤器",
     "share": "分享",
     "groupBy": "分组",
-    "addSubGroup": "添加子分组",
+    "addSubGroup": "New Subgroup",
     "shareBase": {
       "label": "分享项目",
       "disable": "停止分享项目",

@@ -416,7 +416,15 @@ const bgColor = computed(() => {
                   class="!sticky flex justify-between !h-10 border-r-1 pr-2 border-gray-300 !rounded-l-[8px] overflow-clip items-center !left-0"
                 >
                   <div class="flex items-center">
-                    <NcButton class="!border-0 !shadow-none !bg-transparent !hover:bg-transparent" type="secondary" size="small">
+                    <NcButton
+                      :class="{
+                        'nc-group-expand': !activeGroups.includes(grp.key),
+                        'nc-group-minimize': activeGroups.includes(grp.key),
+                      }"
+                      class="!border-0 !shadow-none !bg-transparent !hover:bg-transparent"
+                      type="secondary"
+                      size="small"
+                    >
                       <GeneralIcon
                         icon="chevronDown"
                         class="transition-all"

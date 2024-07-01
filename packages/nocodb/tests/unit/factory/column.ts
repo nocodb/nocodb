@@ -559,7 +559,7 @@ const updateGridViewColumn = async (
     .send(attr);
 
   const updatedColumn = (await view.getColumns(ctx)).find(
-    (column) => column.id === column.id,
+    (col) => col.id === column.id,
   );
 
   return updatedColumn;

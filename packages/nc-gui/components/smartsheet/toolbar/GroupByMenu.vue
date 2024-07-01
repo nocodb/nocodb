@@ -13,10 +13,16 @@ const { fieldsToGroupBy, groupByLimit } = useViewGroupByOrThrow()
 
 const { $e } = useNuxtApp()
 
-const _groupBy = ref<{ fk_column_id?: string; sort: string; order: number }[]>([])
+interface Group {
+  fk_column_id?: string
+  sort: string
+  order: number
+}
 
-const groupBy = computed<{ fk_column_id?: string; sort: string; order: number }[]>(() => {
-  const tempGroupBy: { fk_column_id?: string; sort: string; order: number }[] = []
+const _groupBy = ref<Group[]>([])
+
+const groupBy = computed<Group[]>(() => {
+  const tempGroupBy: Group[] = []
   Object.values(gridViewCols.value).forEach((col) => {
     if (col.group_by) {
       tempGroupBy.push({
@@ -124,11 +130,13 @@ const addFieldToGroupBy = (column: ColumnType) => {
   showCreateGroupBy.value = false
 }
 
-const removeFieldFromGroupBy = async (index: string | number) => {
+const removeFieldFromGroupBy = async (group: Group) => {
   if (groupedByColumnIds.value.length === 0) {
     open.value = false
     return
   }
+
+  const index = _groupBy.value.findIndex((g) => g.fk_column_id === group.fk_column_id)
   _groupBy.value.splice(+index, 1)
   await saveGroupBy()
 }
@@ -280,7 +288,7 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number } }) 
                     class="nc-group-by-item-remove-btn !border-l-transparent !rounded-l-none min-w-40"
                     size="small"
                     type="secondary"
-                    @click.stop="removeFieldFromGroupBy(i)"
+                    @click.stop="removeFieldFromGroupBy(group)"
                   >
                     <component :is="iconMap.deleteListItem" />
                   </NcButton>

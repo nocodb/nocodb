@@ -941,7 +941,7 @@
     "addFilter": "Добавить фильтр",
     "share": "Поделиться",
     "groupBy": "Группировать по",
-    "addSubGroup": "Добавить подгруппу",
+    "addSubGroup": "New Subgroup",
     "shareBase": {
       "label": "Share Base",
       "disable": "Отключить общую базу",

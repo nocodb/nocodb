@@ -941,7 +941,7 @@
     "addFilter": "Voeg filter toe",
     "share": "Deel",
     "groupBy": "Group By",
-    "addSubGroup": "Add subgroup",
+    "addSubGroup": "New Subgroup",
     "shareBase": {
       "label": "Share Base",
       "disable": "Schakel de gedeelde database uit",

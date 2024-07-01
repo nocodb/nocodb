@@ -365,7 +365,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
 
         const aggregationParams = (group.children ?? []).map((child) => ({
           where: calculateNestedWhere(child.nestedIn, where?.value),
-          alias: child.key.toString(),
+          alias: child.key,
         }))
 
         const aggResponse = !isPublic
@@ -378,7 +378,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
             })
 
         Object.entries(aggResponse).forEach(([key, value]) => {
-          const child = (group?.children ?? []).find((c) => c.key.toString() === key)
+          const child = (group?.children ?? []).find((c) => c.key.toString() === key.toString())
           if (child) {
             Object.assign(child.aggregations, value)
           }
@@ -454,7 +454,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
             })
 
         Object.entries(response).forEach(([key, value]) => {
-          const child = (group.children ?? []).find((c) => c.key === key)
+          const child = (group.children ?? []).find((c) => c.key.toString() === key.toString())
           if (child) {
             Object.assign(child.aggregations, value)
           }

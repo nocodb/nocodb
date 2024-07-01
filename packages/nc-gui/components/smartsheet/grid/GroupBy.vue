@@ -5,6 +5,7 @@ import Table from './Table.vue'
 import GroupBy from './GroupBy.vue'
 import GroupByTable from './GroupByTable.vue'
 import GroupByLabel from './GroupByLabel.vue'
+import type { Group } from '~/lib/types'
 
 const props = defineProps<{
   group: Group
@@ -52,8 +53,6 @@ const reloadAggregate = inject(ReloadAggregateHookInj, createEventHook())
 const displayField = computed(() => {
   return meta.value?.columns?.find((c) => c.pv)
 })
-
-const { visibleFieldsComputed, updateAggregate, getAggregations } = useViewAggregateOrThrow()
 
 const viewDisplayField = computed(() => {
   if (!displayField.value || !displayField.value.id)
@@ -612,9 +611,5 @@ const bgColor = computed(() => {
 
 :deep(.ant-collapse-borderless > .ant-collapse-item:last-child) {
   border-radius: 8px !important;
-}
-
-:deep(.nc-menu-item-inner) {
-  @apply w-full pr-1 overflow-x-clip;
 }
 </style>

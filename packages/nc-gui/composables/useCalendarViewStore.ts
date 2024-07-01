@@ -1,5 +1,14 @@
 import type { ComputedRef, Ref } from 'vue'
-import type { Api, CalendarRangeType, CalendarType, ColumnType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
+import {
+  type Api,
+  type CalendarRangeType,
+  type CalendarType,
+  type ColumnType,
+  type PaginatedType,
+  type TableType,
+  type ViewType,
+  isSystemColumn,
+} from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 
@@ -108,6 +117,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         fk_from_col: ColumnType
         fk_to_col?: ColumnType | null
         id: string
+        is_readonly: boolean
       }>
     >([])
 
@@ -448,10 +458,13 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
               id?: string
             },
           ) => {
+            const fromCol = meta.value?.columns?.find((col) => col.id === range.fk_from_column_id)
+            const toCol = range.fk_to_column_id ? meta.value?.columns?.find((col) => col.id === range.fk_to_column_id) : null
             return {
               id: range?.id,
-              fk_from_col: meta.value?.columns?.find((col) => col.id === range.fk_from_column_id),
-              fk_to_col: range.fk_to_column_id ? meta.value?.columns?.find((col) => col.id === range.fk_to_column_id) : null,
+              fk_from_col: fromCol,
+              fk_to_col: toCol,
+              is_readonly: [fromCol, toCol].some((col) => isSystemColumn(col)),
             }
           },
         ) as any

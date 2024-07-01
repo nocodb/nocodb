@@ -605,6 +605,8 @@ const useDebouncedRowUpdate = useDebounceFn((row: Row, updateProperty: string[],
 const onResize = (event: MouseEvent) => {
   if (!isUIAllowed('dataEdit') || !container.value || !resizeRecord.value || !scrollContainer.value) return
 
+  if (resizeRecord.value.rowMeta.range?.is_readonly) return
+
   const { width, left, top, bottom } = container.value.getBoundingClientRect()
 
   const { scrollHeight } = container.value
@@ -693,6 +695,9 @@ const onResizeEnd = () => {
 
 const onResizeStart = (direction: 'right' | 'left', event: MouseEvent, record: Row) => {
   if (!isUIAllowed('dataEdit')) return
+
+  if (record.rowMeta.range?.is_readonly) return
+
   resizeInProgress.value = true
   resizeDirection.value = direction
   resizeRecord.value = record
@@ -836,6 +841,8 @@ const dragStart = (event: MouseEvent, record: Row) => {
 
   dragTimeout.value = setTimeout(() => {
     if (!isUIAllowed('dataEdit')) return
+    if (record.rowMeta.range?.is_readonly) return
+
     isDragging.value = true
     while (!target.classList.contains('draggable-record')) {
       target = target.parentElement as HTMLElement
@@ -878,6 +885,8 @@ const dropEvent = (event: DragEvent) => {
     }: {
       record: Row
     } = JSON.parse(data)
+
+    if (record.rowMeta.range?.is_readonly) return
 
     dragRecord.value = record
 

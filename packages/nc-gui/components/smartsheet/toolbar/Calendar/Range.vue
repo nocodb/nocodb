@@ -106,7 +106,7 @@ const saveCalendarRanges = async () => {
 const dateFieldOptions = computed<SelectProps['options']>(() => {
   return (
     meta.value?.columns
-      ?.filter((c) => c.uidt === UITypes.Date || (c.uidt === UITypes.DateTime && !isSystemColumn(c)))
+      ?.filter((c) => [UITypes.DateTime, UITypes.Date, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(c.uidt))
       .map((c) => ({
         label: c.title,
         value: c.id,

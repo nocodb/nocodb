@@ -370,7 +370,9 @@ onMounted(async () => {
 
       if (props.type === ViewTypes.CALENDAR) {
         viewSelectFieldOptions.value = meta
-          .value!.columns!.filter((el) => el.uidt === UITypes.Date || (el.uidt === UITypes.DateTime && !isSystemColumn(el)))
+          .value!.columns!.filter((el) =>
+            [UITypes.DateTime, UITypes.Date, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(el.uidt),
+          )
           .map((field) => {
             return {
               value: field.id,

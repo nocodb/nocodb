@@ -1,10 +1,11 @@
 <script lang="ts" setup>
 import dayjs from 'dayjs'
-import type { ColumnType } from 'nocodb-sdk'
+import { type ColumnType, UITypes } from 'nocodb-sdk'
 
 const emit = defineEmits(['expandRecord', 'newRecord'])
 
 const {
+  calDataType,
   selectedDate,
   selectedTime,
   formattedData,
@@ -577,6 +578,7 @@ const calculateNewRow = (event: MouseEvent, skipChangeCheck?: boolean) => {
 
 const onResize = (event: MouseEvent) => {
   if (!isUIAllowed('dataEdit') || !container.value || !resizeRecord.value) return
+  if (resizeRecord.value.rowMeta.range?.is_readonly) return
 
   const { top, bottom } = container.value.getBoundingClientRect()
   const { scrollHeight } = container.value
@@ -664,6 +666,8 @@ const onResizeEnd = () => {
 
 const onResizeStart = (direction: 'right' | 'left', _event: MouseEvent, record: Row) => {
   if (!isUIAllowed('dataEdit')) return
+  if (record.rowMeta.range?.is_readonly) return
+
   resizeDirection.value = direction
   resizeRecord.value = record
   document.addEventListener('mousemove', onResize)
@@ -722,6 +726,8 @@ const dragStart = (event: MouseEvent, record: Row) => {
   // We use a timeout to determine if the user is dragging or clicking on the record
   dragTimeout.value = setTimeout(() => {
     if (!isUIAllowed('dataEdit')) return
+    if (record.rowMeta.range?.is_readonly) return
+
     isDragging.value = true
     while (!target.classList.contains('draggable-record')) {
       target = target.parentElement as HTMLElement
@@ -770,6 +776,8 @@ const dropEvent = (event: DragEvent) => {
       initialClickOffsetX: number
       isWithoutDates: boolean
     } = JSON.parse(data)
+
+    if (record.rowMeta.range?.is_readonly) return
 
     const fromCol = record.rowMeta.range?.fk_from_col
     const toCol = record.rowMeta.range?.fk_to_col
@@ -964,11 +972,11 @@ watch(
           <template #overlay>
             <NcMenu class="w-64">
               <NcMenuItem> Select date field to add </NcMenuItem>
-              <NcMenuItem
-                v-for="(range, calIndex) in calendarRange"
-                :key="calIndex"
-                class="text-gray-800 font-semibold text-sm"
-                @click="
+              <template v-for="(range, calIndex) in calendarRange" :key="calIndex">
+                <NcMenuItem
+                  v-if="!range.is_readonly"
+                  class="text-gray-800 font-semibold text-sm"
+                  @click="
                 () => {
                   let record = {
                     row: {
@@ -986,17 +994,18 @@ watch(
                   emit('newRecord', record)
                 }
               "
-              >
-                <div class="flex items-center gap-1">
-                  <LazySmartsheetHeaderCellIcon :column-meta="range.fk_from_col" />
-                  <span class="ml-1">{{ range.fk_from_col!.title! }}</span>
-                </div>
-              </NcMenuItem>
+                >
+                  <div class="flex items-center gap-1">
+                    <LazySmartsheetHeaderCellIcon :column-meta="range.fk_from_col" />
+                    <span class="ml-1">{{ range.fk_from_col!.title! }}</span>
+                  </div>
+                </NcMenuItem>
+              </template>
             </NcMenu>
           </template>
         </NcDropdown>
         <NcButton
-          v-else-if="!isPublic && isUIAllowed('dataEdit')"
+          v-else-if="!isPublic && isUIAllowed('dataEdit') && [UITypes.DateTime, UITypes.Date].includes(calDataType)"
           :class="{
             '!block': hour.isSame(selectedTime),
             '!hidden': !hour.isSame(selectedTime),

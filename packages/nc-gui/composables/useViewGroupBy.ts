@@ -363,26 +363,28 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
           await groupWrapperChangePage(expectedPage, group)
         }
 
-        const aggregationParams = (group.children ?? []).map((child) => ({
-          where: calculateNestedWhere(child.nestedIn, where?.value),
-          alias: child.key,
-        }))
+        if (appInfo.value.ee) {
+          const aggregationParams = (group.children ?? []).map((child) => ({
+            where: calculateNestedWhere(child.nestedIn, where?.value),
+            alias: child.key,
+          }))
 
-        const aggResponse = !isPublic
-          ? await api.dbDataTableBulkAggregate.dbDataTableBulkAggregate(meta.value!.id, {
-              viewId: view.value!.id,
-              aggregateFilterList: aggregationParams,
-            })
-          : await fetchBulkAggregatedData({
-              aggregateFilterList: aggregationParams,
-            })
+          const aggResponse = !isPublic
+            ? await api.dbDataTableBulkAggregate.dbDataTableBulkAggregate(meta.value!.id, {
+                viewId: view.value!.id,
+                aggregateFilterList: aggregationParams,
+              })
+            : await fetchBulkAggregatedData({
+                aggregateFilterList: aggregationParams,
+              })
 
-        Object.entries(aggResponse).forEach(([key, value]) => {
-          const child = (group?.children ?? []).find((c) => c.key.toString() === key.toString())
-          if (child) {
-            Object.assign(child.aggregations, value)
-          }
-        })
+          Object.entries(aggResponse).forEach(([key, value]) => {
+            const child = (group?.children ?? []).find((c) => c.key.toString() === key.toString())
+            if (child) {
+              Object.assign(child.aggregations, value)
+            }
+          })
+        }
       } catch (e) {
         message.error(await extractSdkResponseErrorMsg(e))
       }
@@ -431,7 +433,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       }>,
     ) {
       try {
-        if (!meta?.value?.id || !view.value?.id || !view.value?.fk_model_id) return
+        if (!meta?.value?.id || !view.value?.id || !view.value?.fk_model_id || !appInfo.value.ee) return
 
         const filteredFields = fields?.filter((x) => x.type !== CommonAggregations.None)
 

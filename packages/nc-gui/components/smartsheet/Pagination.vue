@@ -38,8 +38,6 @@ const alignLeft = computed(() => props.alignLeft ?? false)
 
 const { isViewDataLoading, isPaginationLoading } = storeToRefs(useViewsStore())
 
-const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
-
 const count = computed(() => vPaginationData.value?.totalRows ?? Infinity)
 
 const page = computed({
@@ -99,7 +97,6 @@ const tempPageVal = ref(page.value)
       class="flex items-center"
       :class="{
         'flex-1': !alignLeft,
-        'sticky left-0': isGroupBy,
       }"
     >
       <slot name="add-record" />

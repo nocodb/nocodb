@@ -585,6 +585,7 @@ const bgColor = computed(() => {
     v-model:pagination-data="vGroup.paginationData"
     align-count-on-right
     custom-label="groups"
+    align-left
     show-api-timing
     :change-page="(p: number) => groupWrapperChangePage(p, vGroup)"
     :hide-sidebars="true"

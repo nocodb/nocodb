@@ -941,7 +941,7 @@
     "addFilter": "添加過濾器",
     "share": "分享",
     "groupBy": "Group By",
-    "addSubGroup": "Add subgroup",
+    "addSubGroup": "New Subgroup",
     "shareBase": {
       "label": "Share Base",
       "disable": "停用共享資料庫",

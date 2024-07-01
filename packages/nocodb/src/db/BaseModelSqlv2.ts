@@ -849,14 +849,17 @@ class BaseModelSqlv2 {
 
         tQb.select(this.dbDriver.raw(jsonBuildObject));
 
-        selectors.push(this.dbDriver.raw(`(??) as ??`, [tQb, f.alias]));
+        selectors.push(
+          this.dbDriver.raw(`(??) as ??`, [
+            tQb,
+            this.dbDriver.raw(`"${f.alias}"`),
+          ]),
+        );
       }
 
       qb.select(...selectors);
 
       qb.limit(1);
-
-      console.log('\n\n', qb.toQuery(), '\n\n');
 
       const data = await this.execAndParse(qb, null, {
         skipDateConversion: true,
@@ -865,7 +868,7 @@ class BaseModelSqlv2 {
 
       return data;
     } catch (err) {
-      console.log(err);
+      logger.log(err);
       return [];
     }
   }
@@ -966,8 +969,6 @@ class BaseModelSqlv2 {
       }
 
       qb.select(...selectors);
-
-      console.log('\n\n', qb.toQuery(), '\n\n');
 
       // Some aggregation on Date, DateTime related columns may generate result other than Date, DateTime
       // So skip the date conversion

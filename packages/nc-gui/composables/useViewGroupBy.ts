@@ -300,7 +300,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
           }
           if (groupby.column.title && groupby.column.uidt) {
             acc.push({
-              key: valueToTitle(curr[groupby.column.title!], groupby.column),
+              key: valueToTitle(curr[groupby.column.title!], groupby.column).toString(),
               column: groupby.column,
               count: +curr.count,
               color: findKeyColor(curr[groupby.column.title!], groupby.column),

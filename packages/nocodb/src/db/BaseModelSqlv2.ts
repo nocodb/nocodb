@@ -5507,6 +5507,24 @@ class BaseModelSqlv2 {
       parentColTitle: string;
     };
 
+    const triggerAfterRemoveChild = async () => {
+      await Promise.allSettled(
+        auditUpdateObj
+          .filter((a) => a.op_sub_type === AuditOperationSubTypes.UNLINK_RECORD)
+          .map((updateObj) => {
+            this.afterRemoveChild(
+              updateObj.columnTitle,
+              updateObj.rowId,
+              updateObj.childId,
+              cookie,
+              updateObj.model,
+              updateObj.childModel,
+              updateObj.pkValue,
+            );
+          }),
+      );
+    };
+
     switch (colOptions.type) {
       case RelationTypes.MANY_TO_MANY:
         {
@@ -5652,6 +5670,7 @@ class BaseModelSqlv2 {
             null,
             { raw: true },
           );
+          await triggerAfterRemoveChild();
 
           await this.updateLastModified({
             model: parentTable,
@@ -5712,6 +5731,7 @@ class BaseModelSqlv2 {
                 });
               }
             }
+            await triggerAfterRemoveChild();
           } else {
             const linkedHmRowObj = await this.execAndParse(
               this.dbDriver(childTn)
@@ -5795,6 +5815,8 @@ class BaseModelSqlv2 {
               { raw: true },
             );
 
+            await triggerAfterRemoveChild();
+
             await this.updateLastModified({
               model: parentTable,
               rowIds: [childId],
@@ -5829,10 +5851,10 @@ class BaseModelSqlv2 {
               const [parentRelatedPkValue, childRelatedPkValue] =
                 await Promise.all([
                   await this.readByPkFromModel(
-                    childTable,
+                    parentTable,
                     undefined,
                     true,
-                    rowId,
+                    oldChildRowId,
                     false,
                     {},
                     {
@@ -5842,10 +5864,10 @@ class BaseModelSqlv2 {
                     },
                   ),
                   await this.readByPkFromModel(
-                    parentTable,
+                    childTable,
                     undefined,
                     true,
-                    oldChildRowId,
+                    rowId,
                     false,
                     {},
                     {
@@ -6120,6 +6142,8 @@ class BaseModelSqlv2 {
             { raw: true },
           );
 
+          await triggerAfterRemoveChild();
+
           await this.execAndParse(
             this.dbDriver(childTn)
               .update({
@@ -6166,22 +6190,6 @@ class BaseModelSqlv2 {
         columnTitle: auditConfig.childColTitle,
       });
     }
-
-    await Promise.allSettled(
-      auditUpdateObj
-        .filter((a) => a.op_sub_type === AuditOperationSubTypes.UNLINK_RECORD)
-        .map((updateObj) => {
-          this.afterRemoveChild(
-            updateObj.columnTitle,
-            updateObj.rowId,
-            updateObj.childId,
-            cookie,
-            updateObj.model,
-            updateObj.childModel,
-            updateObj.pkValue,
-          );
-        }),
-    );
 
     await Promise.allSettled(
       auditUpdateObj
@@ -6481,7 +6489,7 @@ class BaseModelSqlv2 {
       ),
       details: DOMPurify.sanitize(`<span class="">${columnTitle}</span>
         : <span class="text-decoration-line-through red px-2 lighten-4 black--text">${
-          typeof pkValue === 'object'
+          pkValue && typeof pkValue === 'object'
             ? Object.values(pkValue)[0]
             : pkValue ?? null
         }</span>`),

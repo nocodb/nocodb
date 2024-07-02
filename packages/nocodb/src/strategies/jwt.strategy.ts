@@ -14,7 +14,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(req, jwtPayload) {
-    if (!jwtPayload?.email) {
+    if (!jwtPayload?.email || jwtPayload?.is_api_token) {
       return jwtPayload;
     }
 

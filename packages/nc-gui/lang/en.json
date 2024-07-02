@@ -268,7 +268,8 @@
     "colour": "Colour",
     "use": "Use",
     "stack": "Stack",
-    "ipAddress": "IP Address"
+    "ipAddress": "IP Address",
+    "integration": "Integration"
   },
   "objects": {
     "owner": "Owner",
@@ -513,6 +514,7 @@
     "looksLikeThisStackIsEmpty": "Looks like this stack does not have any records"
   },
   "labels": {
+    "integration": "Integration",
     "notRecommended": "Not recommended",
     "allowMetaWrite": "Allow Schema Change",
     "allowDataWrite": "Allow Data Write/Edit",
@@ -1099,6 +1101,9 @@
     "group": "Group"
   },
   "tooltip": {
+    "allowIntegrationAccess": "Allow other users from same workspace to access this integration",
+    "optionalDatabaseName": "Database name is optional. If left blank, it will use the default database('{database}') from integration settings.",
+    "optionalSchemaName": "Schema name is optional. If left blank, it will use the default schema('{schema}') from integration settings.",
     "schemaChangeDisabled": "Schema editing is disabled for this data source.",
     "typeNotAllowed": "This datatype is not allowed.",
     "dataWriteOptionDisabled": "Data editing can disable only when ‘Schema edit’ is disabled and becomes enabled otherwise",

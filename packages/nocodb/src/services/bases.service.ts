@@ -51,8 +51,12 @@ export class BasesService {
     return bases;
   }
 
-  async getProjectWithInfo(context: NcContext, param: { baseId: string }) {
-    const base = await Base.getWithInfo(context, param.baseId);
+  async getProjectWithInfo(
+    context: NcContext,
+    param: { baseId: string; includeConfig?: boolean },
+  ) {
+    const { includeConfig = true } = param;
+    const base = await Base.getWithInfo(context, param.baseId, includeConfig);
     return base;
   }
 
@@ -242,7 +246,7 @@ export class BasesService {
           req: param.req,
         });
 
-        delete source.config;
+        source.config = undefined;
       }
     }
 

@@ -9934,7 +9934,7 @@
         }
       }
     },
-    "/api/v1/db/calendar-data/{orgs}/{baseName}/{tableName}/views/{viewName}/countByDate/" : {
+    "/api/v1/db/calendar-data/{orgs}/{baseName}/{tableName}/views/{viewName}/countByDate/": {
       "parameters": [
         {
           "schema": {
@@ -18032,6 +18032,153 @@
           "$ref": "#/components/parameters/xc-auth"
         }
       ]
+    },
+
+
+
+
+    "/api/v2/meta/integrations": {
+      "get": {
+        "summary": "List integrations",
+        "operationId": "integration-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntegrationList"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Integration"
+        ],
+        "description": "List integrations",
+        "parameters": [
+          {
+            "schema": {
+              "$ref": "#/components/schemas/Integrations"
+            },
+            "name": "type",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "boolean"
+            },
+            "name": "includeDatabaseInfo",
+            "in": "query"
+          }
+        ]
+      },
+      "post": {
+        "summary": "Create itegration",
+        "operationId": "integration-create",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Integration"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IntegrationReq"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Integration"
+        ],
+        "description": "Create integration"
+      }
+    },
+    "/api/v2/meta/integrations/{integrationId}": {
+      "get": {
+        "summary": "Read integration",
+        "operationId": "integration-read",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Integration"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Integration"
+        ],
+        "description": "Read integration",
+        "parameters": [
+          {
+            "schema": {
+              "type": "boolean"
+            },
+            "name": "includeConfig",
+            "in": "query"
+          }
+        ]
+      },
+      "patch": {
+        "summary": "Update integration",
+        "operationId": "integration-update",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Integration"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IntegrationReq"
+              }
+            }
+          }
+        },
+        "description": "Update integration"
+      },
+      "delete": {
+        "summary": "Delete integration",
+        "operationId": "integration-delete",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Integration"
+        ],
+        "description": "Delete integration"
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "integrationId",
+          "in": "path",
+          "required": true
+        }
+      ]
     }
   },
   "components": {
@@ -18262,7 +18409,7 @@
                 "path": "download/noco/pm0umqsip16i1u5/m8yn03dncqal6ri//iDL5ednaHz2j2Sa3Cl.jpg",
                 "signedPath": "dltemp/lNoLbqB62Jdo5Rmp/1709308800000/noco/pm0umqsip16i1u5/m8yn03dncqal6ri//iDL5ednaHz2j2Sa3Cl.jpg"
               },
-              "Example 2" :{
+              "Example 2": {
                 "mimetype": "image/jpeg",
                 "size": 146143,
                 "title": "2 be loved.jpeg",
@@ -18609,6 +18756,71 @@
           "id": "qyzsky82ovjiv"
         }
       },
+      "Integration": {
+        "description": "Model for Integration",
+        "examples": [
+          {
+            "alias": null,
+            "config": "<ENCRYPTED>",
+            "enabled": 1,
+            "id": "ds_krsappzu9f8vmo",
+            "meta": null,
+            "order": 1,
+            "type": "mysql2"
+          }
+        ],
+        "title": "Source Model",
+        "type": "object",
+        "properties": {
+          "title": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Source Name - Default BASE will be null by default"
+          },
+          "config": {
+            "description": "Source Configuration"
+          },
+          "enabled": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is this Intgration enabled"
+          },
+          "id": {
+            "description": "Unique Integration ID",
+            "type": "string"
+          },
+          "fk_workspace_id": {
+            "description": "Unique Workspace ID",
+            "type": "string"
+          },
+          "order": {
+            "description": "The order of the list of sources",
+            "example": 1,
+            "type": "number"
+          },
+          "base_id": {
+            "description": "The base ID that this source belongs to",
+            "type": "string"
+          },
+          "is_private": {
+            "$ref": "#/components/schemas/Bool"
+          },
+          "type": {
+            "$ref": "#/components/schemas/Integrations"
+          },
+          "sub_type": {
+            "description": "DB Type",
+            "example": "mysql2",
+            "type": "string"
+          },
+          "created_by": {
+            "description": "DB Type",
+            "example": "mysql2",
+            "type": "string"
+          }
+        },
+        "x-stoplight": {
+          "id": "qyzsky82ovjiv"
+        }
+      },
       "BaseList": {
         "description": "Model for Source List",
         "examples": [
@@ -18782,6 +18994,54 @@
         "x-stoplight": {
           "id": "ky2ak9xsyl3b5"
         }
+      },
+      "Integrations": {
+        "type": "string",
+        "description": "Integration Type",
+        "enum": [
+          "database"
+        ]
+      },
+      "IntegrationReq": {
+        "description": "Model for Integration Request",
+        "examples": [
+          {
+            "title": "My Source",
+            "config": {},
+            "type": "db"
+          }
+        ],
+        "properties": {
+          "title": {
+            "description": "Integration Name - Default BASE will be null by default",
+            "example": "Integration",
+            "maxLength": 128,
+            "type": "string"
+          },
+          "config": {
+            "description": "Source Configuration"
+          },
+          "meta": {
+            "description": "Integration metas"
+          },
+          "type": {
+            "$ref": "#/components/schemas/Integrations"
+          },
+          "sub_type": {
+            "description": "Sub Type",
+            "type": "string"
+          }
+        },
+        "title": "Source Request",
+        "type": "object",
+        "x-stoplight": {
+          "id": "ky2ak9xsyl3b5"
+        },
+        "required": [
+          "title",
+          "config",
+          "type"
+        ]
       },
       "Bool": {
         "description": "Model for Bool",
@@ -19365,10 +19625,10 @@
             "maxLength": 3000
           },
           "fk_model_id": {
-              "type": "string",
-              "description": "Foreign Key to Model",
-              "example": "md_ehn5izr99m7d45"
-            }
+            "type": "string",
+            "description": "Foreign Key to Model",
+            "example": "md_ehn5izr99m7d45"
+          }
         }
       },
       "Filter": {
@@ -20042,7 +20302,7 @@
                 "$ref": "#/components/schemas/AttachmentReq"
               },
               {
-                "type" : "null"
+                "type": "null"
               }
             ],
             "description": "Banner Image URL"
@@ -20063,7 +20323,7 @@
                 "$ref": "#/components/schemas/AttachmentReq"
               },
               {
-                "type" : "null"
+                "type": "null"
               }
             ],
             "description": "Logo URL"
@@ -24141,7 +24401,8 @@
         "examples": [
           "string"
         ],
-        "oneOf": [{
+        "oneOf": [
+          {
             "$ref": "#/components/schemas/Id"
           },
           {
@@ -26036,9 +26297,9 @@
             "description": "Created At"
           },
           "updated_at": {
-              "type": "string",
-              "example": "2020-05-20T12:00:00.000000Z",
-              "description": "Updated At"
+            "type": "string",
+            "example": "2020-05-20T12:00:00.000000Z",
+            "description": "Updated At"
           },
           "is_deleted": {
             "type": "boolean",
@@ -26047,7 +26308,7 @@
         }
       },
       "UserCommentNotificationPreference": {
-        "description" : "Model for User Comment Notification Preference",
+        "description": "Model for User Comment Notification Preference",
         "type": "object",
         "properties": {
           "id": {
@@ -26143,7 +26404,6 @@
             "description": "Updated At"
           }
         }
-
       },
       "Extension": {
         "type": "object",

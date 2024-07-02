@@ -73,6 +73,7 @@ export class BasesController {
   ) {
     const base = await this.projectsService.getProjectWithInfo(context, {
       baseId: baseId,
+      includeConfig: false,
     });
 
     this.projectsService.sanitizeProject(base);

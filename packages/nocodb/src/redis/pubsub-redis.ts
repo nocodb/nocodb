@@ -42,9 +42,9 @@ export class PubSubRedis {
   }
 
   /**
-   * 
-   * @param channel 
-   * @param callback 
+   *
+   * @param channel
+   * @param callback
    * @returns Returns a callback to unsubscribe
    */
   static async subscribe(
@@ -74,7 +74,8 @@ export class PubSubRedis {
     PubSubRedis.redisSubscriber.on('message', onMessage);
     return async (keepRedisChannel = false) => {
       // keepRedisChannel is used to keep the channel open for other subscribers
-      if (!keepRedisChannel) await PubSubRedis.redisSubscriber.unsubscribe(channel);
+      if (!keepRedisChannel)
+        await PubSubRedis.redisSubscriber.unsubscribe(channel);
       PubSubRedis.redisSubscriber.off('message', onMessage);
     };
   }

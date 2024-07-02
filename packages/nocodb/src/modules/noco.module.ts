@@ -122,6 +122,8 @@ import { PublicDatasExportService } from '~/services/public-datas-export.service
 import { PublicDatasService } from '~/services/public-datas.service';
 import { CalendarDatasController } from '~/controllers/calendars-datas.controller';
 import { CalendarDatasService } from '~/services/calendar-datas.service';
+import { IntegrationsController } from '~/controllers/integrations.controller';
+import { IntegrationsService } from '~/services/integrations.service';
 
 export const nocoModuleMetadata = {
   imports: [
@@ -181,6 +183,7 @@ export const nocoModuleMetadata = {
           CommandPaletteController,
           ExtensionsController,
           JobsMetaController,
+          IntegrationsController,
 
           /* Datas */
           DataTableController,
@@ -250,6 +253,7 @@ export const nocoModuleMetadata = {
     CommandPaletteService,
     ExtensionsService,
     JobsMetaService,
+    IntegrationsService,
 
     /* Datas */
     DataTableService,

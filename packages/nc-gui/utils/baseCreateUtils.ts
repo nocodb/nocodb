@@ -1,3 +1,4 @@
+import { getTestDatabaseName } from 'nocodb-sdk'
 import { ClientType } from '~/lib/enums'
 
 // todo: move to noco-sdk
@@ -57,19 +58,7 @@ interface DatabricksConnection {
 
 const defaultHost = 'localhost'
 
-const testDataBaseNames = {
-  [ClientType.MYSQL]: null,
-  mysql: null,
-  [ClientType.PG]: 'postgres',
-  oracledb: 'xe',
-  [ClientType.MSSQL]: undefined,
-  [ClientType.SQLITE]: 'a.sqlite',
-}
-
-export const getTestDatabaseName = (db: { client: ClientType; connection?: { database?: string } }) => {
-  if (db.client === ClientType.PG || db.client === ClientType.SNOWFLAKE) return db.connection?.database
-  return testDataBaseNames[db.client as keyof typeof testDataBaseNames]
-}
+export { getTestDatabaseName } from 'nocodb-sdk'
 
 export const clientTypes = [
   {

@@ -108,8 +108,15 @@ const renderAltOrOptlKey = () => {
 </script>
 
 <template>
-  <div ref="containerElement" class="bg-gray-50 w-full pr-1 border-t-1 border-gray-200 overflow-x-hidden no-scrollbar flex h-9">
-    <div class="sticky flex items-center bg-gray-50 left-0">
+  <div
+    ref="containerElement"
+    data-testid="nc-aggregation-bar"
+    class="bg-gray-50 w-full pr-1 border-t-1 border-gray-200 overflow-x-hidden no-scrollbar flex h-9"
+  >
+    <div
+      :data-testid="`nc-aggregation-column-${displayFieldComputed.column?.title}`"
+      class="sticky flex items-center bg-gray-50 left-0"
+    >
       <NcDropdown
         :disabled="[UITypes.SpecificDBType, UITypes.ForeignKey].includes(displayFieldComputed.column?.uidt!) || isLocked"
         overlay-class-name="max-h-96 relative scroll-container nc-scrollbar-md overflow-auto"
@@ -156,7 +163,7 @@ const renderAltOrOptlKey = () => {
                 }"
               >
                 <div style="direction: rtl" class="flex gap-2 text-nowrap truncate overflow-hidden items-center">
-                  <span class="text-gray-600 text-[12px] font-semibold">
+                  <span data-testid="aggregation-value" class="text-gray-600 text-[12px] font-semibold">
                     {{
                       formatAggregation(
                         displayFieldComputed.field.aggregation,
@@ -193,10 +200,14 @@ const renderAltOrOptlKey = () => {
         </div>
 
         <template #overlay>
-          <NcMenu v-if="displayFieldComputed.field && displayFieldComputed.column?.id">
+          <NcMenu
+            v-if="displayFieldComputed.field && displayFieldComputed.column?.id"
+            :class="`nc-aggregation-${displayFieldComputed.column.title}-overlay`"
+          >
             <NcMenuItem
               v-for="(agg, index) in getAggregations(displayFieldComputed.column)"
               :key="index"
+              :data-testid="`nc-aggregation-${agg}`"
               @click="updateAggregate(displayFieldComputed.column.id, agg)"
             >
               <div class="flex !w-full text-[13px] text-gray-800 items-center justify-between">
@@ -224,6 +235,7 @@ const renderAltOrOptlKey = () => {
         overlay-class-name="max-h-96 relative scroll-container nc-scrollbar-md overflow-auto"
       >
         <div
+          :data-testid="`nc-aggregation-column-${column?.title}`"
           class="flex items-center overflow-x-hidden justify-end group hover:bg-gray-100 cursor-pointer text-gray-500 transition-all transition-linear px-3 py-2"
           :style="{
             'min-width': width,
@@ -251,7 +263,7 @@ const renderAltOrOptlKey = () => {
                   {{ $t(`aggregation.${field.aggregation}`).replace('Percent ', '') }}
                 </span>
 
-                <span class="text-gray-600 font-semibold text-[12px]">
+                <span data-testid="aggregation-value" class="text-gray-600 font-semibold text-[12px]">
                   {{ formatAggregation(field.aggregation, value, column) }}
                 </span>
               </div>
@@ -272,8 +284,13 @@ const renderAltOrOptlKey = () => {
         </div>
 
         <template #overlay>
-          <NcMenu>
-            <NcMenuItem v-for="(agg, i) in getAggregations(column)" :key="i" @click="updateAggregate(column.id, agg)">
+          <NcMenu :class="`nc-aggregation-${column.title}-overlay`">
+            <NcMenuItem
+              v-for="(agg, index) in getAggregations(column)"
+              :key="index"
+              :data-testid="`nc-aggregation-${agg}`"
+              @click="updateAggregate(column.id, agg)"
+            >
               <div class="flex !w-full text-[13px] text-gray-800 items-center justify-between">
                 {{ $t(`aggregation_type.${agg}`) }}
 

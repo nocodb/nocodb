@@ -5141,18 +5141,11 @@ class BaseModelSqlv2 {
     _trx: any,
     req,
     updateObj?: Record<string, any>,
-    isLinksUpdate?: boolean,
   ): Promise<void> {
     const id = this._extractPksValues(newData);
     let desc = `Record with ID ${id} has been updated in Table ${this.model.title}.`;
     let details = '';
-    if (isLinksUpdate) {
-      const key = Object.keys(updateObj)[0];
-
-      details = DOMPurify.sanitize(`<span class="">${key}</span>
-        : <span class="text-decoration-line-through red px-2 lighten-4 black--text">${prevData[key]}</span>
-        <span class="black--text green lighten-4 px-2">${newData[key]}</span>`);
-    } else if (updateObj) {
+    if (updateObj) {
       updateObj = await this.model.mapColumnToAlias(this.context, updateObj);
 
       for (const k of Object.keys(updateObj)) {
@@ -5582,6 +5575,49 @@ class BaseModelSqlv2 {
         break;
       case RelationTypes.BELONGS_TO:
         {
+          const linkedHmRowObj = await this.dbDriver(childTn)
+            .select(childColumn.column_name)
+            .where(_wherePk(childTable.primaryKeys, rowId))
+            .first();
+
+          const oldRowID = Object.values(linkedHmRowObj)?.[0];
+
+          if (oldRowID) {
+            const [parentRelatedPkValue, childRelatedPkValue] =
+              await Promise.all([
+                await this.dbDriver(childTn)
+                  .select(childTable.displayValue.title)
+                  .where(_wherePk(childTable.primaryKeys, rowId))
+                  .first(),
+                await this.dbDriver(parentTn)
+                  .select(parentTable.displayValue.title)
+                  .where(_wherePk(parentTable.primaryKeys, oldRowID))
+                  .first(),
+              ]);
+
+            auditUpdateObj.push({
+              model: auditConfig.parentModel,
+              childModel: auditConfig.childModel,
+              rowId: oldRowID as string,
+              childId: rowId,
+              op_sub_type: AuditOperationSubTypes.UNLINK_RECORD,
+              columnTitle: auditConfig.parentColTitle,
+              pkValue: parentRelatedPkValue,
+            });
+
+            if (parentTable.id !== childTable.id) {
+              auditUpdateObj.push({
+                model: auditConfig.childModel,
+                childModel: auditConfig.parentModel,
+                rowId: rowId,
+                childId: oldRowID as string,
+                op_sub_type: AuditOperationSubTypes.UNLINK_RECORD,
+                columnTitle: auditConfig.childColTitle,
+                pkValue: childRelatedPkValue,
+              });
+            }
+          }
+
           await this.execAndParse(
             this.dbDriver(childTn)
               .update({
@@ -5603,11 +5639,15 @@ class BaseModelSqlv2 {
             rowIds: [childId],
             cookie,
           });
+
+          auditConfig.parentModel = childTable;
+          auditConfig.childModel = parentTable;
         }
         break;
       case RelationTypes.ONE_TO_ONE:
         {
           const isBt = column.meta?.bt;
+
           // todo: unlink if it's already mapped
           // unlink already mapped record if any
           await this.execAndParse(
@@ -5886,6 +5926,9 @@ class BaseModelSqlv2 {
             rowIds: [childId],
             cookie,
           });
+
+          auditConfig.parentModel = childTable;
+          auditConfig.childModel = parentTable;
         }
         break;
       case RelationTypes.ONE_TO_ONE:

@@ -7155,7 +7155,6 @@ class BaseModelSqlv2 {
     colId: string;
     rowId: string;
   }) {
-    console.log('links');
     const columns = await this.model.getColumns(this.context);
     const column = columns.find((c) => c.id === colId);
 

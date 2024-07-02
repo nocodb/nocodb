@@ -5554,11 +5554,15 @@ class BaseModelSqlv2 {
             const [parentRelatedPkValue, childRelatedPkValue] =
               await Promise.all([
                 await this.dbDriver(childTn)
-                  .select(childTable.displayValue.title)
+                  .select(
+                    `${childTable.table_name}.${childTable.displayValue.column_name}`,
+                  )
                   .where(_wherePk(childTable.primaryKeys, childId))
                   .first(),
                 await this.dbDriver(parentTn)
-                  .select(parentTable.displayValue.title)
+                  .select(
+                    `${parentTable.table_name}.${parentTable.displayValue.column_name}`,
+                  )
                   .where(_wherePk(parentTable.primaryKeys, oldRowId))
                   .first(),
               ]);
@@ -5638,7 +5642,9 @@ class BaseModelSqlv2 {
               });
 
               const childRelatedPkValue = await this.dbDriver(childTn)
-                .select(childTable.displayValue.title)
+                .select(
+                  `${childTable.table_name}.${childTable.displayValue.column_name}`,
+                )
                 .where(_wherePk(childTable.primaryKeys, rowId))
                 .first();
 
@@ -5668,11 +5674,15 @@ class BaseModelSqlv2 {
               const [parentRelatedPkValue, childRelatedPkValue] =
                 await Promise.all([
                   await this.dbDriver(parentTn)
-                    .select(parentTable.displayValue.title)
+                    .select(
+                      `${parentTable.table_name}.${parentTable.displayValue.column_name}`,
+                    )
                     .where(_wherePk(parentTable.primaryKeys, oldChildRowId))
                     .first(),
                   await this.dbDriver(childTn)
-                    .select(childTable.displayValue.title)
+                    .select(
+                      `${childTable.table_name}.${childTable.displayValue.column_name}`,
+                    )
                     .where(_wherePk(childTable.primaryKeys, rowId))
                     .first(),
                 ]);
@@ -5747,11 +5757,15 @@ class BaseModelSqlv2 {
               const [parentRelatedPkValue, childRelatedPkValue] =
                 await Promise.all([
                   await this.dbDriver(childTn)
-                    .select(childTable.displayValue.title)
+                    .select(
+                      `${childTable.table_name}.${childTable.displayValue.column_name}`,
+                    )
                     .where(_wherePk(childTable.primaryKeys, rowId))
                     .first(),
                   await this.dbDriver(parentTn)
-                    .select(parentTable.displayValue.title)
+                    .select(
+                      `${parentTable.table_name}.${parentTable.displayValue.column_name}`,
+                    )
                     .where(_wherePk(parentTable.primaryKeys, oldChildRowId))
                     .first(),
                 ]);
@@ -5804,11 +5818,15 @@ class BaseModelSqlv2 {
                 const [parentRelatedPkValue, childRelatedPkValue] =
                   await Promise.all([
                     await this.dbDriver(parentTn)
-                      .select(parentTable.displayValue.title)
+                      .select(
+                        `${parentTable.table_name}.${parentTable.displayValue.column_name}`,
+                      )
                       .where(_wherePk(parentTable.primaryKeys, childId))
                       .first(),
                     await this.dbDriver(childTn)
-                      .select(childTable.displayValue.title)
+                      .select(
+                        `${childTable.table_name}.${childTable.displayValue.column_name}`,
+                      )
                       .where(_wherePk(childTable.primaryKeys, oldRowId))
                       .first(),
                   ]);
@@ -5860,11 +5878,15 @@ class BaseModelSqlv2 {
                 const [parentRelatedPkValue, childRelatedPkValue] =
                   await Promise.all([
                     await this.dbDriver(childTn)
-                      .select(childTable.displayValue.title)
+                      .select(
+                        `${childTable.table_name}.${childTable.displayValue.column_name}`,
+                      )
                       .where(_wherePk(childTable.primaryKeys, oldChildRowId))
                       .first(),
                     await this.dbDriver(parentTn)
-                      .select(parentTable.displayValue.title)
+                      .select(
+                        `${parentTable.table_name}.${parentTable.displayValue.column_name}`,
+                      )
                       .where(_wherePk(parentTable.primaryKeys, rowId))
                       .first(),
                   ]);
@@ -5905,11 +5927,15 @@ class BaseModelSqlv2 {
               const [parentRelatedPkValue, childRelatedPkValue] =
                 await Promise.all([
                   await this.dbDriver(childTn)
-                    .select(childTable.displayValue.title)
+                    .select(
+                      `${childTable.table_name}.${childTable.displayValue.column_name}`,
+                    )
                     .where(_wherePk(childTable.primaryKeys, childId))
                     .first(),
                   await this.dbDriver(parentTn)
-                    .select(parentTable.displayValue.title)
+                    .select(
+                      `${parentTable.table_name}.${parentTable.displayValue.column_name}`,
+                    )
                     .where(_wherePk(parentTable.primaryKeys, oldRowId))
                     .first(),
                 ]);
@@ -6049,7 +6075,9 @@ class BaseModelSqlv2 {
   ): Promise<void> {
     if (!pkValue) {
       pkValue = await this.dbDriver(this.getTnPath(childModel))
-        .select(childModel.displayValue.title)
+        .select(
+          `${childModel.table_name}.${childModel.displayValue.column_name}`,
+        )
         .where(_wherePk(childModel.primaryKeys, childId))
         .first();
     }
@@ -6290,7 +6318,9 @@ class BaseModelSqlv2 {
   ): Promise<void> {
     if (!pkValue) {
       pkValue = await this.dbDriver(this.getTnPath(childModel))
-        .select(childModel.displayValue.title)
+        .select(
+          `${childModel.table_name}.${childModel.displayValue.column_name}`,
+        )
         .where(_wherePk(childModel.primaryKeys, childId))
         .first();
     }

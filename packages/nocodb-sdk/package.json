@@ -59,7 +59,7 @@
     "rimraf": "^5.0.7",
     "tsc-alias": "^1.8.10",
     "typescript": "^5.3.3",
-    "ts-jest": "^29.1.2"
+    "ts-jest": "^29.1.5"
   },
   "files": [
     "build/main",

@@ -6233,7 +6233,9 @@ class BaseModelSqlv2 {
         `Record [id:${childId}] has been linked with record [id:${rowId}] in ${model.title}`,
       ),
       details: DOMPurify.sanitize(`<span class="">${columnTitle}</span>
-      : <span class="black--text green lighten-4 px-2">${pkValue ?? null}</span>`),
+      : <span class="black--text green lighten-4 px-2">${
+        pkValue ?? null
+      }</span>`),
       ip: req?.clientIp,
       user: req?.user?.email,
     });
@@ -6455,12 +6457,15 @@ class BaseModelSqlv2 {
     pkValue = undefined,
   ): Promise<void> {
     if (!pkValue) {
-      pkValue = await this.dbDriver(this.getTnPath(childModel))
-        .select(
-          `${childModel.table_name}.${childModel.displayValue.column_name}`,
-        )
-        .where(_wherePk(childModel.primaryKeys, childId))
-        .first();
+      pkValue = await this.readByPkFromModel(
+        childModel,
+        undefined,
+        true,
+        childId,
+        false,
+        {},
+        { ignoreView: true, getHiddenColumn: true, extractOnlyPrimaries: true },
+      );
     }
 
     await Audit.insert({
@@ -6476,7 +6481,9 @@ class BaseModelSqlv2 {
       ),
       details: DOMPurify.sanitize(`<span class="">${columnTitle}</span>
         : <span class="text-decoration-line-through red px-2 lighten-4 black--text">${
-          Object.values(pkValue)[0]
+          typeof pkValue === 'object'
+            ? Object.values(pkValue)[0]
+            : pkValue ?? null
         }</span>`),
       ip: req?.clientIp,
       user: req?.user?.email,

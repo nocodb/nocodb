@@ -90,18 +90,13 @@ export default class PresignedUrl {
     param: {
       path: string;
       expireSeconds?: number;
-      s3?: boolean;
       filename?: string;
     },
     ncMeta = Noco.ncMeta,
   ) {
     let { path } = param;
 
-    const {
-      expireSeconds = DEFAULT_EXPIRE_SECONDS,
-      s3 = false,
-      filename,
-    } = param;
+    const { expireSeconds = DEFAULT_EXPIRE_SECONDS, filename } = param;
 
     const expireAt = roundExpiry(
       new Date(new Date().getTime() + expireSeconds * 1000),
@@ -130,12 +125,11 @@ export default class PresignedUrl {
       }
     }
 
-    if (s3) {
-      // if not present, create a new url
-      const storageAdapter = await NcPluginMgrv2.storageAdapter(ncMeta);
+    const storageAdapter = await NcPluginMgrv2.storageAdapter(ncMeta);
 
+    if (typeof (storageAdapter as any).getSignedUrl === 'function') {
       tempUrl = await (storageAdapter as any).getSignedUrl(
-        path,
+        path.replace(/^\/+/, ''),
         expiresInSeconds,
         filename,
       );

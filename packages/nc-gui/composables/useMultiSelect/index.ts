@@ -1172,7 +1172,7 @@ export function useMultiSelect(
 
             for (const col of cols) {
               if (!col.title || !isPasteable(row, col)) {
-                if ((isBt(col) || isOo(pasteCol) || isMm(col)) && !isInfoShown) {
+                if ((isBt(col) || isOo(col) || isMm(col)) && !isInfoShown) {
                   message.info(t('msg.info.groupPasteIsNotSupportedOnLinksColumn'))
                   isInfoShown = true
                 }

@@ -147,7 +147,10 @@ reloadViewDataHook?.on(async (params: void | { shouldShowLoading?: boolean }) =>
               @new-record="newRecord"
             />
             <LazySmartsheetCalendarWeekViewDateTimeField
-              v-else-if="activeCalendarView === 'week' && calDataType === UITypes.DateTime"
+              v-else-if="
+                activeCalendarView === 'week' &&
+                [UITypes.DateTime, UITypes.LastModifiedTime, UITypes.CreatedTime, UITypes.Formula].includes(calDataType)
+              "
               @expand-record="expandRecord"
               @new-record="newRecord"
             />
@@ -157,7 +160,10 @@ reloadViewDataHook?.on(async (params: void | { shouldShowLoading?: boolean }) =>
               @new-record="newRecord"
             />
             <LazySmartsheetCalendarDayViewDateTimeField
-              v-else-if="activeCalendarView === 'day' && calDataType === UITypes.DateTime"
+              v-else-if="
+                activeCalendarView === 'day' &&
+                [UITypes.DateTime, UITypes.LastModifiedTime, UITypes.CreatedTime, UITypes.Formula].includes(calDataType)
+              "
               @expand-record="expandRecord"
               @new-record="newRecord"
             />

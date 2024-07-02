@@ -2,18 +2,19 @@
 import type { ComponentPublicInstance } from '@vue/runtime-core'
 import { capitalize } from '@vue/runtime-core'
 import type { Form as AntForm, SelectProps } from 'ant-design-vue'
-import type {
-  CalendarType,
-  ColumnType,
-  FormType,
-  GalleryType,
-  GridType,
-  KanbanType,
-  LookupType,
-  MapType,
-  TableType,
+import {
+  type CalendarType,
+  type ColumnType,
+  type FormType,
+  FormulaDataTypes,
+  type GalleryType,
+  type GridType,
+  type KanbanType,
+  type LookupType,
+  type MapType,
+  type TableType,
 } from 'nocodb-sdk'
-import { UITypes, ViewTypes, isSystemColumn } from 'nocodb-sdk'
+import { UITypes, ViewTypes } from 'nocodb-sdk'
 
 interface Props {
   modelValue: boolean
@@ -370,13 +371,28 @@ onMounted(async () => {
 
       if (props.type === ViewTypes.CALENDAR) {
         viewSelectFieldOptions.value = meta
-          .value!.columns!.filter((el) => el.uidt === UITypes.Date || (el.uidt === UITypes.DateTime && !isSystemColumn(el)))
+          .value!.columns!.filter(
+            (el) =>
+              [UITypes.DateTime, UITypes.Date, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(el.uidt) ||
+              (el.uidt === UITypes.Formula && (el.colOptions as any)?.parsed_tree?.dataType === FormulaDataTypes.DATE),
+          )
           .map((field) => {
             return {
               value: field.id,
               label: field.title,
               uidt: field.uidt,
             }
+          })
+          .sort((a, b) => {
+            const priority = {
+              [UITypes.DateTime]: 1,
+              [UITypes.Date]: 2,
+              [UITypes.Formula]: 3,
+              [UITypes.CreatedTime]: 4,
+              [UITypes.LastModifiedTime]: 5,
+            }
+
+            return (priority[a.uidt] || 6) - (priority[b.uidt] || 6)
           })
 
         if (viewSelectFieldOptions.value?.length) {

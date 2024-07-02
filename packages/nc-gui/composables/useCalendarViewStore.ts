@@ -1,5 +1,16 @@
 import type { ComputedRef, Ref } from 'vue'
-import type { Api, CalendarRangeType, CalendarType, ColumnType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
+import {
+  type Api,
+  type CalendarRangeType,
+  type CalendarType,
+  type ColumnType,
+  FormulaDataTypes,
+  type PaginatedType,
+  type TableType,
+  type ViewType,
+  isSystemColumn,
+  isVirtualCol,
+} from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 
@@ -108,6 +119,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         fk_from_col: ColumnType
         fk_to_col?: ColumnType | null
         id: string
+        is_readonly: boolean
       }>
     >([])
 
@@ -442,19 +454,46 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         const calMeta = typeof res.meta === 'string' ? JSON.parse(res.meta) : res.meta
         activeCalendarView.value = calMeta?.active_view
         if (!activeCalendarView.value) activeCalendarView.value = 'month'
-        calendarRange.value = res?.calendar_range?.map(
-          (
-            range: CalendarRangeType & {
-              id?: string
+        calendarRange.value = res?.calendar_range
+          ?.map(
+            (
+              range: CalendarRangeType & {
+                id?: string
+              },
+            ) => {
+              const fromCol = meta.value?.columns?.find((col) => col.id === range.fk_from_column_id)
+              const toCol = range.fk_to_column_id ? meta.value?.columns?.find((col) => col.id === range.fk_to_column_id) : null
+
+              if (fromCol?.uidt === UITypes.Formula || toCol?.uidt === UITypes.Formula) {
+                // Check if fromCol Formula return type is Date
+                const isFromColDate =
+                  fromCol?.uidt === UITypes.Formula &&
+                  (fromCol?.colOptions as any)?.parsed_tree?.dataType === FormulaDataTypes.DATE
+                // Check if toCol Formula return type is Date
+
+                const isToColDate =
+                  toCol?.uidt === UITypes.Formula && (toCol?.colOptions as any)?.parsed_tree?.dataType === FormulaDataTypes.DATE
+
+                if (!isFromColDate) {
+                  message.error(`Please update the Formula column ${fromCol?.title} to return a date`)
+                  return null
+                }
+
+                if (toCol && !isToColDate) {
+                  message.error(`Please update the Formula column ${toCol?.title} to return a date`)
+                  return null
+                }
+              }
+
+              return {
+                id: range?.id,
+                fk_from_col: fromCol,
+                fk_to_col: toCol,
+                is_readonly: [fromCol, toCol].some((col) => isSystemColumn(col) || isVirtualCol(col)),
+              }
             },
-          ) => {
-            return {
-              id: range?.id,
-              fk_from_col: meta.value?.columns?.find((col) => col.id === range.fk_from_column_id),
-              fk_to_col: range.fk_to_column_id ? meta.value?.columns?.find((col) => col.id === range.fk_to_column_id) : null,
-            }
-          },
-        ) as any
+          )
+          .filter(Boolean) as any
       } catch (e: unknown) {
         message.error(
           `Error loading calendar meta ${await extractSdkResponseErrorMsg(

@@ -17,7 +17,7 @@ services:
         limits:
           memory: 500M
   mssql:
-    image: "mcr.microsoft.com/mssql/server:2017-latest"
+    image: "mcr.microsoft.com/mssql/server:2022-latest"
     environment:
       ACCEPT_EULA: "Y"
       SA_PASSWORD: Password123.

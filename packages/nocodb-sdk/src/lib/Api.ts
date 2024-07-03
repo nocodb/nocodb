@@ -11982,16 +11982,46 @@ export class Api<
       }),
 
     /**
-     * @description Get job status
+     * @description Get list of jobs for a given base for the user
      *
      * @tags Jobs
-     * @name Status
-     * @summary Jobs Status
-     * @request POST:/jobs/status
+     * @name List
+     * @summary Get Jobs
+     * @request POST:/api/v2/jobs/{baseId}
      */
-    status: (data: object, params: RequestParams = {}) =>
+    list: (
+      baseId: IdType,
+      data: {
+        job?: string;
+        status?: string;
+      },
+      params: RequestParams = {}
+    ) =>
       this.request<any, any>({
-        path: `/jobs/status`,
+        path: `/api/v2/jobs/${baseId}`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+  };
+  export = {
+    /**
+     * @description Trigger export as job
+     *
+     * @tags Export
+     * @name Data
+     * @summary Trigger export as job
+     * @request POST:/api/v2/export/{viewId}/{exportAs}
+     */
+    data: (
+      viewId: IdType,
+      exportAs: 'csv',
+      data: object,
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v2/export/${viewId}/${exportAs}`,
         method: 'POST',
         body: data,
         type: ContentType.Json,

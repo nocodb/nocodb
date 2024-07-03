@@ -227,14 +227,14 @@ const toggleSelectAll = (role: Role) => {
 
             <div v-for="role in roles" :key="role">
               <div v-if="column.name === role">
-                <a-tooltip>
+                <NcTooltip>
                   <template #title>
                     <span v-if="record.disabled[role]">
                       {{ $t('labels.clickToMake') }} '{{ record.title }}' {{ $t('labels.visibleForRole') }} {{ role }}
                       {{ $t('labels.inUI') }} dashboard</span
                     >
                     <span v-else
-                      >{{ $t('labels.clickToHide') }}'{{ record.title }}' {{ $t('labels.forRole') }}:{{ role }}
+                      >{{ $t('labels.clickToHide') }} '{{ record.title }}' {{ $t('labels.forRole') }}:{{ role }}
                       {{ $t('labels.inUI') }}</span
                     >
                   </template>
@@ -244,7 +244,7 @@ const toggleSelectAll = (role: Role) => {
                     :class="`nc-acl-${record.title}-${role}-chkbox !ml-0.25`"
                     @change="onRoleCheck(record, role as Role)"
                   />
-                </a-tooltip>
+                </NcTooltip>
               </div>
             </div>
           </template>

@@ -187,7 +187,7 @@ export default class ModelRoleVisibility implements ModelRoleVisibilityType {
       const key = `${CacheScope.MODEL_ROLE_VISIBILITY}:${body.fk_view_id}:${body.role}`;
       await NocoCache.appendToList(
         CacheScope.MODEL_ROLE_VISIBILITY,
-        [insertObj.base_id],
+        [context.base_id],
         key,
       );
       return modelRoleVisibility;

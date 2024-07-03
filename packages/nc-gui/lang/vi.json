@@ -941,7 +941,7 @@
     "addFilter": "Thêm bộ lọc",
     "share": "Chia sẻ",
     "groupBy": "Group By",
-    "addSubGroup": "Add subgroup",
+    "addSubGroup": "New Subgroup",
     "shareBase": {
       "label": "Share Base",
       "disable": "Vô hiệu hóa cơ sở chia sẻ",
@@ -1084,6 +1084,7 @@
     },
     "toggleMobileMode": "Toggle Mobile Mode",
     "startCommenting": "Start commenting!",
+    "noCommentsYet": "No comments yet!",
     "clearForm": "Clear Form",
     "addFieldFromFormView": "Add Field",
     "selectAllFields": "Select all fields",

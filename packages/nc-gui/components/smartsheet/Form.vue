@@ -236,7 +236,7 @@ function isDbRequired(column: Record<string, any>) {
       // column required / not null
       column.rqd &&
       // column default value
-      !column.cdf &&
+      !isValidValue(column?.cdf) &&
       // confirm it's not foreign key
       !columns.value.some(
         (c: Record<string, any>) =>
@@ -1239,14 +1239,16 @@ useEventListener(
                           {{ $t('general.edit') }} {{ $t('objects.field') }}
                         </NcButton>
                         <template #overlay>
-                          <SmartsheetColumnEditOrAddProvider
-                            v-if="dropdownStates.showEditColumn"
-                            :column="activeColumn"
-                            @submit="editColumnCallback"
-                            @cancel="dropdownStates.showEditColumn = false"
-                            @click.stop
-                            @keydown.stop
-                          />
+                          <div class="nc-edit-or-add-provider-wrapper">
+                            <LazySmartsheetColumnEditOrAddProvider
+                              v-if="dropdownStates.showEditColumn"
+                              :column="activeColumn"
+                              @submit="editColumnCallback"
+                              @cancel="dropdownStates.showEditColumn = false"
+                              @click.stop
+                              @keydown.stop
+                            />
+                          </div>
                         </template>
                       </a-dropdown>
                       <SmartsheetFormFieldMenu
@@ -1325,13 +1327,15 @@ useEventListener(
                           </NcButton>
 
                           <template #overlay>
-                            <SmartsheetColumnEditOrAddProvider
-                              v-if="dropdownStates.showAddColumn"
-                              @submit="addColumnCallback"
-                              @cancel="dropdownStates.showAddColumn = false"
-                              @click.stop
-                              @keydown.stop
-                            />
+                            <div class="nc-edit-or-add-provider-wrapper">
+                              <LazySmartsheetColumnEditOrAddProvider
+                                v-if="dropdownStates.showAddColumn"
+                                @submit="addColumnCallback"
+                                @cancel="dropdownStates.showAddColumn = false"
+                                @click.stop
+                                @keydown.stop
+                              />
+                            </div>
                           </template>
                         </a-dropdown>
                       </div>

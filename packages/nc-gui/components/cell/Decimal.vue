@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { VNodeRef } from '@vue/runtime-core'
+import { roundUpToPrecision } from 'nocodb-sdk'
 
 interface Props {
   // when we set a number, then it is number type
@@ -40,9 +41,9 @@ const displayValue = computed(() => {
 
   if (isNaN(Number(_vModel.value))) return null
 
-  if (meta.value.isLocaleString) return (+Number(_vModel.value).toFixed(meta.value.precision ?? 1)).toLocaleString()
+  if (meta.value.isLocaleString) return roundUpToPrecision(Number(_vModel.value), meta.value.precision ?? 1).toLocaleString()
 
-  return Number(_vModel.value).toFixed(meta.value.precision ?? 1)
+  return roundUpToPrecision(Number(_vModel.value), meta.value.precision ?? 1)
 })
 
 const vModel = computed({

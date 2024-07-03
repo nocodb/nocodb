@@ -74,10 +74,12 @@ export default async function applyAggregation({
   baseModelSqlv2,
   aggregation,
   column,
+  alias,
 }: {
   baseModelSqlv2: BaseModelSqlv2;
   aggregation: string;
   column: Column;
+  alias?: string;
 }): Promise<string | undefined> {
   if (!aggregation || !column) {
     return;
@@ -176,6 +178,7 @@ export default async function applyAggregation({
       column_query: column_name_query,
       parsedFormulaType,
       aggType,
+      alias: alias,
     });
   } else if (knex.client.config.client === 'mysql2') {
     return genMysql2AggregatedQuery({
@@ -185,6 +188,7 @@ export default async function applyAggregation({
       column_query: column_name_query,
       parsedFormulaType,
       aggType,
+      alias: alias,
     });
   } else if (knex.client.config.client === 'sqlite3') {
     return genSqlite3AggregateQuery({
@@ -194,6 +198,7 @@ export default async function applyAggregation({
       column_query: column_name_query,
       parsedFormulaType,
       aggType,
+      alias: alias,
     });
   } else {
     NcError.notImplemented(

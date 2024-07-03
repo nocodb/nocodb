@@ -249,7 +249,7 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
     !isGrid.value ||
     isExpandedForm.value ||
     isEditColumn.value ||
-    isExpandedFormOpen()
+    isExpandedFormOpenExist()
   ) {
     return
   }

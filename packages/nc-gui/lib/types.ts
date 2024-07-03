@@ -85,6 +85,7 @@ interface Row {
     range?: {
       fk_from_col: ColumnType
       fk_to_col: ColumnType | null
+      is_readonly?: boolean
     }
     id?: string
     position?: string
@@ -188,6 +189,7 @@ interface Group {
   paginationData: PaginatedType
   nested: boolean
   children?: Group[]
+  aggregations: Record<string, any>
   rows?: Row[]
   root?: boolean
   displayValueProp?: string

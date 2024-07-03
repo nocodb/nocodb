@@ -237,16 +237,18 @@ const onClick = (e: Event) => {
       <div v-if="isExpandedForm && !isExpandedBulkUpdateForm" class="h-[1px]" @dblclick.stop>&nbsp;</div>
       <div v-else />
       <template #overlay>
-        <SmartsheetColumnEditOrAddProvider
-          v-if="editColumnDropdown"
-          :column="columnOrder ? null : column"
-          :column-position="columnOrder"
-          class="w-full"
-          @submit="closeAddColumnDropdown"
-          @cancel="closeAddColumnDropdown"
-          @click.stop
-          @keydown.stop
-        />
+        <div class="nc-edit-or-add-provider-wrapper">
+          <LazySmartsheetColumnEditOrAddProvider
+            v-if="editColumnDropdown"
+            :column="columnOrder ? null : column"
+            :column-position="columnOrder"
+            class="w-full"
+            @submit="closeAddColumnDropdown"
+            @cancel="closeAddColumnDropdown"
+            @click.stop
+            @keydown.stop
+          />
+        </div>
       </template>
     </a-dropdown>
   </div>

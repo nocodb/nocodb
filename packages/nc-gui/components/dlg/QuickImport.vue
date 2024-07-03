@@ -9,11 +9,12 @@ import importWorkerUrl from '~/workers/importWorker?worker&url'
 interface Props {
   modelValue: boolean
   importType: 'csv' | 'json' | 'excel'
+  baseId: string
   sourceId: string
   importDataOnly?: boolean
 }
 
-const { importType, importDataOnly = false, sourceId, ...rest } = defineProps<Props>()
+const { importType, importDataOnly = false, baseId, sourceId, ...rest } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
@@ -32,6 +33,10 @@ const { t } = useI18n()
 const progressMsg = ref('Parsing Data ...')
 
 const { tables } = storeToRefs(useBase())
+
+const tablesStore = useTablesStore()
+const { loadProjectTables } = tablesStore
+const { baseTables } = storeToRefs(tablesStore)
 
 const activeKey = ref('uploadTab')
 
@@ -160,6 +165,10 @@ async function handlePreImport() {
   preImportLoading.value = true
   isParsingData.value = true
 
+  if (!baseTables.value.get(baseId)) {
+    await loadProjectTables(baseId)
+  }
+
   if (activeKey.value === 'uploadTab') {
     if (isImportTypeCsv.value || (isWorkerSupport && importWorker)) {
       await parseAndExtractData(importState.fileList as streamImportFileList)
@@ -248,7 +257,7 @@ function formatJson() {
 function populateUniqueTableName(tn: string) {
   let c = 1
   while (
-    tables.value.some((t: TableType) => {
+    baseTables.value.get(baseId)?.some((t: TableType) => {
       const s = t.table_name.split('___')
       let target = t.table_name
       if (s.length > 1) target = s[1]
@@ -532,6 +541,7 @@ const onChange = () => {
             :import-data-only="importDataOnly"
             :quick-import-type="importType"
             :max-rows-to-parse="importState.parserConfig.maxRowsToParse"
+            :base-id="baseId"
             :source-id="sourceId"
             :import-worker="importWorker"
             class="nc-quick-import-template-editor"

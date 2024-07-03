@@ -174,7 +174,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
   }
 
   const loadAudits = async (_rowId?: string) => {
-    if (!isUIAllowed('auditList') || (!row.value && !_rowId)) return
+    if (!isUIAllowed('auditListRow') || isEeUI || (!row.value && !_rowId)) return
 
     const rowId = _rowId ?? extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
 
@@ -182,13 +182,22 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
     try {
       isAuditLoading.value = true
-      audits.value =
+      const res =
         (
           await $api.utils.auditList({
             row_id: rowId,
             fk_model_id: meta.value.id as string,
           })
         ).list?.reverse?.() || []
+
+      audits.value = res.map((audit) => {
+        const user = baseUsers.value.find((u) => u.email === audit.user)
+        return {
+          ...audit,
+          created_display_name: user?.display_name ?? (user?.email ?? '').split('@')[0],
+          created_by_email: user?.email,
+        }
+      })
     } catch (e: any) {
       message.error(
         await extractSdkResponseErrorMsg(
@@ -276,7 +285,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
       // reloadTrigger?.trigger()
 
-      await Promise.all([loadComments(), loadAudits()])
+      await loadComments()
     } catch (e: any) {
       comments.value = comments.value.filter((c) => !(c.id ?? '').startsWith('temp-'))
       message.error(

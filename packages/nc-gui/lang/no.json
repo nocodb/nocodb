@@ -941,7 +941,7 @@
     "addFilter": "Legg til filter",
     "share": "Dele",
     "groupBy": "Group By",
-    "addSubGroup": "Add subgroup",
+    "addSubGroup": "New Subgroup",
     "shareBase": {
       "label": "Share Base",
       "disable": "Deaktiver delt base",
@@ -1084,6 +1084,7 @@
     },
     "toggleMobileMode": "Toggle Mobile Mode",
     "startCommenting": "Start commenting!",
+    "noCommentsYet": "No comments yet!",
     "clearForm": "Clear Form",
     "addFieldFromFormView": "Add Field",
     "selectAllFields": "Select all fields",

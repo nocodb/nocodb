@@ -3,13 +3,11 @@ import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
 import type { SourceType } from 'nocodb-sdk'
 
 const baseStore = useBase()
-const { base } = storeToRefs(baseStore)
+const { base, sources } = storeToRefs(baseStore)
 
 const { isMobileMode } = useGlobal()
 
 const { files, reset } = useFileDialog()
-
-const { sources } = storeToRefs(baseStore)
 
 const { $e } = useNuxtApp()
 
@@ -78,6 +76,8 @@ function onDrop(droppedFiles: File[] | null) {
 }
 
 function openQuickImportDialog(type: QuickImportTypes, file: File) {
+  if (!base.value?.id) return
+
   $e(`a:actions:import-${type}`)
 
   const isOpen = ref(true)
@@ -86,6 +86,7 @@ function openQuickImportDialog(type: QuickImportTypes, file: File) {
     'modelValue': isOpen,
     'importType': type,
     'onUpdate:modelValue': closeDialog,
+    'baseId': base.value.id,
     'sourceId': sources.value?.filter((source: SourceType) => source.enabled)[0].id,
   })
 

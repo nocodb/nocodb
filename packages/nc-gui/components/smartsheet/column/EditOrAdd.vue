@@ -82,11 +82,11 @@ const showHoverEffectOnSelectedType = ref(true)
 
 const isVisibleDefaultValueInput = computed({
   get: () => {
-    if (formState.value.cdf && !showDefaultValueInput.value) {
+    if (isValidValue(formState.value.cdf) && !showDefaultValueInput.value) {
       showDefaultValueInput.value = true
     }
 
-    return formState.value.cdf !== null || showDefaultValueInput.value
+    return isValidValue(formState.value.cdf) || showDefaultValueInput.value
   },
   set: (value: boolean) => {
     showDefaultValueInput.value = value
@@ -363,7 +363,7 @@ const isFullUpdateAllowed = computed(() => {
       'min-w-[500px]': formState.uidt === UITypes.LinkToAnotherRecord || formState.uidt === UITypes.Links,
       'overflow-visible': formState.uidt === UITypes.Formula,
       '!w-[600px]': formState.uidt === UITypes.LinkToAnotherRecord || formState.uidt === UITypes.Links,
-      'shadow-lg border-1 border-gray-200 shadow-gray-300 rounded-xl p-5': !embedMode,
+      'shadow-lg shadow-gray-300 border-1 border-gray-200 rounded-xl p-5': !embedMode,
     }"
     @keydown="handleEscape"
     @click.stop
@@ -471,33 +471,33 @@ const isFullUpdateAllowed = computed(() => {
       </div>
 
       <template v-if="!readOnly && formState.uidt">
-        <LazySmartsheetColumnFormulaOptions v-if="formState.uidt === UITypes.Formula" v-model:value="formState" />
-        <LazySmartsheetColumnQrCodeOptions v-if="formState.uidt === UITypes.QrCode" v-model="formState" />
-        <LazySmartsheetColumnBarcodeOptions v-if="formState.uidt === UITypes.Barcode" v-model="formState" />
-        <LazySmartsheetColumnCurrencyOptions v-if="formState.uidt === UITypes.Currency" v-model:value="formState" />
-        <LazySmartsheetColumnLongTextOptions v-if="formState.uidt === UITypes.LongText" v-model:value="formState" />
-        <LazySmartsheetColumnDurationOptions v-if="formState.uidt === UITypes.Duration" v-model:value="formState" />
-        <LazySmartsheetColumnRatingOptions v-if="formState.uidt === UITypes.Rating" v-model:value="formState" />
-        <LazySmartsheetColumnCheckboxOptions v-if="formState.uidt === UITypes.Checkbox" v-model:value="formState" />
-        <LazySmartsheetColumnLookupOptions v-if="formState.uidt === UITypes.Lookup" v-model:value="formState" />
-        <LazySmartsheetColumnDateOptions v-if="formState.uidt === UITypes.Date" v-model:value="formState" />
-        <LazySmartsheetColumnTimeOptions v-if="formState.uidt === UITypes.Time" v-model:value="formState" />
-        <LazySmartsheetColumnNumberOptions v-if="formState.uidt === UITypes.Number" v-model:value="formState" />
-        <LazySmartsheetColumnDecimalOptions v-if="formState.uidt === UITypes.Decimal" v-model:value="formState" />
-        <LazySmartsheetColumnDateTimeOptions
+        <SmartsheetColumnFormulaOptions v-if="formState.uidt === UITypes.Formula" v-model:value="formState" />
+        <SmartsheetColumnQrCodeOptions v-if="formState.uidt === UITypes.QrCode" v-model="formState" />
+        <SmartsheetColumnBarcodeOptions v-if="formState.uidt === UITypes.Barcode" v-model="formState" />
+        <SmartsheetColumnCurrencyOptions v-if="formState.uidt === UITypes.Currency" v-model:value="formState" />
+        <SmartsheetColumnLongTextOptions v-if="formState.uidt === UITypes.LongText" v-model:value="formState" />
+        <SmartsheetColumnDurationOptions v-if="formState.uidt === UITypes.Duration" v-model:value="formState" />
+        <SmartsheetColumnRatingOptions v-if="formState.uidt === UITypes.Rating" v-model:value="formState" />
+        <SmartsheetColumnCheckboxOptions v-if="formState.uidt === UITypes.Checkbox" v-model:value="formState" />
+        <SmartsheetColumnLookupOptions v-if="formState.uidt === UITypes.Lookup" v-model:value="formState" />
+        <SmartsheetColumnDateOptions v-if="formState.uidt === UITypes.Date" v-model:value="formState" />
+        <SmartsheetColumnTimeOptions v-if="formState.uidt === UITypes.Time" v-model:value="formState" />
+        <SmartsheetColumnNumberOptions v-if="formState.uidt === UITypes.Number" v-model:value="formState" />
+        <SmartsheetColumnDecimalOptions v-if="formState.uidt === UITypes.Decimal" v-model:value="formState" />
+        <SmartsheetColumnDateTimeOptions
           v-if="[UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(formState.uidt)"
           v-model:value="formState"
         />
-        <LazySmartsheetColumnRollupOptions v-if="formState.uidt === UITypes.Rollup" v-model:value="formState" />
-        <LazySmartsheetColumnLinkedToAnotherRecordOptions
+        <SmartsheetColumnRollupOptions v-if="formState.uidt === UITypes.Rollup" v-model:value="formState" />
+        <SmartsheetColumnLinkedToAnotherRecordOptions
           v-if="formState.uidt === UITypes.LinkToAnotherRecord || formState.uidt === UITypes.Links"
           :key="`${formState.uidt}-${formState.id || formState.title}`"
           v-model:value="formState"
           :is-edit="isEdit"
         />
-        <LazySmartsheetColumnPercentOptions v-if="formState.uidt === UITypes.Percent" v-model:value="formState" />
-        <LazySmartsheetColumnSpecificDBTypeOptions v-if="formState.uidt === UITypes.SpecificDBType" />
-        <LazySmartsheetColumnUserOptions v-if="formState.uidt === UITypes.User" v-model:value="formState" :is-edit="isEdit" />
+        <SmartsheetColumnPercentOptions v-if="formState.uidt === UITypes.Percent" v-model:value="formState" />
+        <SmartsheetColumnSpecificDBTypeOptions v-if="formState.uidt === UITypes.SpecificDBType" />
+        <SmartsheetColumnUserOptions v-if="formState.uidt === UITypes.User" v-model:value="formState" :is-edit="isEdit" />
         <SmartsheetColumnSelectOptions
           v-if="formState.uidt === UITypes.SingleSelect || formState.uidt === UITypes.MultiSelect"
           v-model:value="formState"

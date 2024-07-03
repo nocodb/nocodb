@@ -34,7 +34,7 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const emits = defineEmits(['update:modelValue', 'cancel', 'next', 'prev', 'createdRecord'])
+const emits = defineEmits(['update:modelValue', 'cancel', 'next', 'prev', 'createdRecord', 'updateRowCommentCount'])
 
 const { activeView } = storeToRefs(useViewsStore())
 
@@ -133,6 +133,7 @@ const {
   loadRow: _loadRow,
   primaryKey,
   row: _row,
+  comments,
   save: _save,
   loadComments,
   loadAudits,
@@ -551,6 +552,13 @@ const modalProps = computed(() => {
 const renderAltOrOptlKey = () => {
   return isMac() ? '⌥' : 'ALT'
 }
+
+watch(
+  () => comments.value.length,
+  (commentCount) => {
+    emits('updateRowCommentCount', commentCount)
+  },
+)
 </script>
 
 <script lang="ts">
@@ -738,7 +746,7 @@ export default {
         >
           <div
             ref="expandedFormScrollWrapper"
-            class="flex flex-col flex-grow gap-4 h-full max-h-full nc-scrollbar-thin items-center w-full p-4 xs:(px-4 pt-4 pb-2 gap-6) children:max-w-[588px] <lg:(children:max-w-[450px])"
+            class="flex flex-col flex-grow gap-6 h-full max-h-full nc-scrollbar-thin items-center w-full p-4 xs:(px-4 pt-4 pb-2 gap-6) children:max-w-[588px] <lg:(children:max-w-[450px])"
           >
             <div
               v-for="(col, i) of fields"
@@ -1057,6 +1065,34 @@ export default {
 
   &:focus-within:not(.nc-readonly-div-data-cell):not(.nc-system-field) {
     @apply !shadow-selected;
+  }
+
+  &:has(.nc-virtual-cell-qrcode .nc-qrcode-container),
+  &:has(.nc-virtual-cell-barcode .nc-barcode-container) {
+    @apply !border-none px-0 !rounded-none;
+    :deep(.nc-virtual-cell-qrcode),
+    :deep(.nc-virtual-cell-barcode) {
+      @apply px-0;
+      & > div {
+        @apply !px-0;
+      }
+      .barcode-wrapper {
+        @apply ml-0;
+      }
+    }
+    :deep(.nc-virtual-cell-qrcode) {
+      img {
+        @apply !h-[84px] border-1 border-solid border-gray-200 rounded;
+      }
+    }
+    :deep(.nc-virtual-cell-barcode) {
+      .nc-barcode-container {
+        @apply border-1 rounded-lg border-gray-200 h-[64px] max-w-full p-2;
+        svg {
+          @apply !h-full;
+        }
+      }
+    }
   }
 }
 .nc-data-cell:focus-within {

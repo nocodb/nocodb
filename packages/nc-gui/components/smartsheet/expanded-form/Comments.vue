@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type CommentType, ProjectRoles } from 'nocodb-sdk'
+import { type AuditType, type CommentType, ProjectRoles } from 'nocodb-sdk'
 
 const props = defineProps<{
   loading: boolean
@@ -56,6 +56,8 @@ const editCommentValue = ref<CommentType>()
 const isEditing = ref<boolean>(false)
 
 const isCommentMode = ref(false)
+
+const hoveredCommentId = ref<null | string>(null)
 
 async function onEditComment() {
   if (!isEditing.value || !editCommentValue.value?.comment) return
@@ -196,6 +198,10 @@ watch(commentsWrapperEl, () => {
           },
         })
         scrollToComment(commentId as string)
+
+        hoveredCommentId.value = commentId as string
+
+        onClickOutside(document.querySelector(`.${hoveredCommentId.value}`)! as HTMLDivElement, handleResetHoverEffect)
       } else {
         scrollComments()
       }
@@ -219,6 +225,22 @@ const createdBy = (
   }
 }
 
+const createdByAudit = (
+  comment: AuditType & {
+    created_display_name?: string
+  },
+) => {
+  if (comment.user === user.value?.email) {
+    return 'You'
+  } else if (comment.created_display_name?.trim()) {
+    return comment.created_display_name || 'Shared source'
+  } else if (comment.user) {
+    return comment.user
+  } else {
+    return 'Shared source'
+  }
+}
+
 const getUserRole = (email: string) => {
   const user = baseUsers.value.find((user) => user.email === email)
   if (!user) return ProjectRoles.NO_ACCESS
@@ -233,10 +255,16 @@ const editedAt = (comment: CommentType) => {
   }
   return ''
 }
+
+function handleResetHoverEffect() {
+  if (!hoveredCommentId.value) return
+
+  hoveredCommentId.value = null
+}
 </script>
 
 <template>
-  <div class="flex flex-col bg-white !h-full w-full rounded-br-2xl">
+  <div class="flex flex-col bg-white !h-full w-full rounded-br-2xl overflow-hidden">
     <NcTabs v-model:activeKey="tab" class="h-full">
       <a-tab-pane key="comments" class="w-full h-full">
         <template #tab>
@@ -248,7 +276,7 @@ const editedAt = (comment: CommentType) => {
         <div
           class="h-full"
           :class="{
-            'pb-1': tab !== 'comments' && !appInfo.ee,
+            'pb-1': !hasEditPermission,
           }"
         >
           <div v-if="isExpandedFormLoading" class="flex flex-col items-center justify-center w-full h-full">
@@ -259,70 +287,85 @@ const editedAt = (comment: CommentType) => {
               <div class="text-center text-3xl text-gray-700">
                 <GeneralIcon icon="commentHere" />
               </div>
-              <div class="font-medium text-center my-6 text-gray-500">{{ $t('activity.startCommenting') }}</div>
+              <div class="font-medium text-center my-6 text-gray-500">
+                {{ hasEditPermission ? $t('activity.startCommenting') : $t('activity.noCommentsYet') }}
+              </div>
             </div>
             <div v-else ref="commentsWrapperEl" class="flex flex-col h-full py-1 nc-scrollbar-thin">
-              <!-- The scrollbar doesn't work when flex-end is used. https://issues.chromium.org/issues/41130651
-              Hence using a div to fix the issue
-              https://stackoverflow.com/questions/36130760/use-justify-content-flex-end-and-to-have-vertical-scrollbar
-              -->
-              <div class="scroll-fix"></div>
-              <div v-for="comment of comments" :key="comment.id" :class="`${comment.id}`" class="nc-comment-item">
+              <div
+                v-for="commentItem of comments"
+                :key="commentItem.id"
+                :class="`${commentItem.id}`"
+                class="nc-comment-item"
+                @mouseover="handleResetHoverEffect"
+              >
                 <div
                   :class="{
-                  'hover:bg-gray-100': editCommentValue?.id !== comment!.id
+                  'hover:bg-gray-100': editCommentValue?.id !== commentItem!.id,
+                  'nc-hovered-comment bg-gray-100': hoveredCommentId === commentItem!.id
                 }"
-                  class="group gap-3 overflow-hidden px-3 py-2"
+                  class="group gap-3 overflow-hidden px-3 py-2 transition-colors"
                 >
                   <div class="flex items-start justify-between">
-                    <div class="flex items-start gap-3">
+                    <div
+                      class="flex items-start gap-3 flex-1"
+                      :class="{
+                        'w-[calc(100%)] group-hover:w-[calc(100%_-_50px)]': !appInfo.ee,
+                        'w-[calc(100%_-_44px)] group-hover:w-[calc(100%_-_72px)]': appInfo.ee && commentItem.resolved_by,
+                        'w-[calc(100%_-_16px)] group-hover:w-[calc(100%_-_72px)]':
+                          appInfo.ee && !commentItem.resolved_by && hasEditPermission,
+                        'w-[calc(100%_-_16px)] group-hover:w-[calc(100%_-_44px)]':
+                          appInfo.ee && !commentItem.resolved_by && !hasEditPermission,
+                      }"
+                    >
                       <GeneralUserIcon
-                        :email="comment.created_by_email"
-                        :name="comment.created_display_name"
+                        :email="commentItem.created_by_email"
+                        :name="commentItem.created_display_name"
                         class="mt-0.5"
                         size="medium"
                       />
-                      <div class="flex h-[28px] items-center gap-3">
-                        <NcDropdown placement="topLeft" :trigger="['hover']">
-                          <span class="text-ellipsis text-gray-800 font-medium !text-[13px] max-w-42 overflow-hidden" :style="{}">
-                            {{ createdBy(comment) }}
-                          </span>
+                      <div class="flex h-[28px] items-center gap-3 w-[calc(100%_-_40px)]">
+                        <NcDropdown placement="topLeft" :trigger="['hover']" class="flex-none max-w-[calc(100%_-_72px)]">
+                          <div class="truncate text-gray-800 font-medium !text-small !leading-[18px] overflow-hidden">
+                            {{ createdBy(commentItem) }}
+                          </div>
 
                           <template #overlay>
                             <div class="bg-white rounded-lg">
                               <div class="flex items-center gap-4 py-3 px-2">
                                 <GeneralUserIcon
                                   class="!w-8 !h-8 border-1 border-gray-200 rounded-full"
-                                  :name="comment.created_display_name"
-                                  :email="comment.created_by_email"
+                                  :name="commentItem.created_display_name"
+                                  :email="commentItem.created_by_email"
                                 />
                                 <div class="flex flex-col">
                                   <div class="font-semibold text-gray-800">
-                                    {{ createdBy(comment) }}
+                                    {{ createdBy(commentItem) }}
                                   </div>
                                   <div class="text-xs text-gray-600">
-                                    {{ comment.created_by_email }}
+                                    {{ commentItem.created_by_email }}
                                   </div>
                                 </div>
                               </div>
                               <div
+                                v-if="isUIAllowed('dataEdit')"
                                 class="px-3 rounded-b-lg !text-[13px] items-center text-gray-600 flex gap-1 bg-gray-100 py-1.5"
                               >
-                                Has <RolesBadge size="sm" :border="false" :role="getUserRole(comment.created_by_email!)" />
+                                Has <RolesBadge size="sm" :border="false" :role="getUserRole(commentItem.created_by_email!)" />
                                 role in base
                               </div>
                             </div>
                           </template>
                         </NcDropdown>
                         <div class="text-xs text-gray-500">
-                          {{ timeAgo(comment.created_at!) }}
+                          {{ timeAgo(commentItem.created_at!) }}
                         </div>
                       </div>
                     </div>
                     <div class="flex items-center">
                       <NcDropdown
                         v-if="!editCommentValue"
-                        class="!hidden !group-hover:block"
+                        class="nc-comment-more-actions !hidden !group-hover:block"
                         overlay-class-name="!min-w-[160px]"
                         placement="bottomRight"
                       >
@@ -336,10 +379,10 @@ const editedAt = (comment: CommentType) => {
                         <template #overlay>
                           <NcMenu>
                             <NcMenuItem
-                              v-if="user && comment.created_by_email === user.email"
+                              v-if="user && commentItem.created_by_email === user.email && hasEditPermission"
                               v-e="['c:comment-expand:comment:edit']"
                               class="text-gray-700"
-                              @click="editComment(comment)"
+                              @click="editComment(commentItem)"
                             >
                               <div class="flex gap-2 items-center">
                                 <component :is="iconMap.rename" class="cursor-pointer" />
@@ -349,19 +392,19 @@ const editedAt = (comment: CommentType) => {
                             <NcMenuItem
                               v-e="['c:comment-expand:comment:copy']"
                               class="text-gray-700"
-                              @click="copyComment(comment)"
+                              @click="copyComment(commentItem)"
                             >
                               <div class="flex gap-2 items-center">
                                 <component :is="iconMap.copy" class="cursor-pointer" />
                                 {{ $t('general.copy') }} URL
                               </div>
                             </NcMenuItem>
-                            <template v-if="user && comment.created_by_email === user.email">
+                            <template v-if="user && commentItem.created_by_email === user.email && hasEditPermission">
                               <NcDivider />
                               <NcMenuItem
                                 v-e="['c:row-expand:comment:delete']"
                                 class="!text-red-500 !hover:bg-red-50"
-                                @click="deleteComment(comment.id!)"
+                                @click="deleteComment(commentItem.id!)"
                               >
                                 <div class="flex gap-2 items-center">
                                   <component :is="iconMap.delete" class="cursor-pointer" />
@@ -373,12 +416,12 @@ const editedAt = (comment: CommentType) => {
                         </template>
                       </NcDropdown>
                       <div v-if="appInfo.ee">
-                        <NcTooltip v-if="!comment.resolved_by">
+                        <NcTooltip v-if="!commentItem.resolved_by && hasEditPermission">
                           <NcButton
-                            class="!w-7 !h-7 !bg-transparent !hover:bg-gray-200 !hidden !group-hover:block"
+                            class="nc-resolve-comment-btn !w-7 !h-7 !bg-transparent !hover:bg-gray-200 !hidden !group-hover:block"
                             size="xsmall"
                             type="text"
-                            @click="resolveComment(comment.id!)"
+                            @click="resolveComment(commentItem.id!)"
                           >
                             <GeneralIcon class="text-md" icon="checkCircle" />
                           </NcButton>
@@ -386,13 +429,13 @@ const editedAt = (comment: CommentType) => {
                           <template #title>Click to resolve </template>
                         </NcTooltip>
 
-                        <NcTooltip v-else>
-                          <template #title>{{ `Resolved by ${comment.resolved_display_name}` }}</template>
+                        <NcTooltip v-else-if="commentItem.resolved_by">
+                          <template #title>{{ `Resolved by ${commentItem.resolved_display_name}` }}</template>
                           <NcButton
                             class="!h-7 !w-7 !bg-transparent !hover:bg-gray-200 text-semibold"
                             size="xsmall"
                             type="text"
-                            @click="resolveComment(comment.id)"
+                            @click="resolveComment(commentItem.id!)"
                           >
                             <GeneralIcon class="text-md rounded-full bg-[#17803D] text-white" icon="checkFill" />
                           </NcButton>
@@ -402,12 +445,12 @@ const editedAt = (comment: CommentType) => {
                   </div>
                   <div
                     :class="{
-                      'mt-3': comment.id === editCommentValue?.id,
+                      'mt-3': commentItem.id === editCommentValue?.id,
                     }"
                     class="flex-1 flex flex-col gap-1 max-w-[calc(100%)]"
                   >
                     <SmartsheetExpandedFormRichComment
-                      v-if="comment.id === editCommentValue?.id"
+                      v-if="commentItem.id === editCommentValue?.id && hasEditPermission"
                       v-model:value="value"
                       autofocus
                       :hide-options="false"
@@ -427,7 +470,7 @@ const editedAt = (comment: CommentType) => {
 
                     <div v-else class="space-y-1 pl-9">
                       <SmartsheetExpandedFormRichComment
-                        :value="`${comment.comment}  ${editedAt(comment)}`"
+                        :value="`${commentItem.comment}  ${editedAt(commentItem)}`"
                         class="!text-small !leading-18px !text-gray-800 -ml-1"
                         read-only
                         sync-value-change
@@ -472,17 +515,12 @@ const editedAt = (comment: CommentType) => {
             <span class="<lg:hidden"> Audits </span>
           </div>
         </template>
-        <div
-          class="h-full"
-          :class="{
-            'pb-1': !appInfo.ee,
-          }"
-        >
+        <div class="h-full pb-1">
           <div v-if="isExpandedFormLoading || isAuditLoading" class="flex flex-col items-center justify-center w-full h-full">
             <GeneralLoader size="xlarge" />
           </div>
 
-          <div v-else ref="commentsWrapperEl" class="flex flex-col h-full py-1 nc-scrollbar-thin !overflow-y-auto">
+          <div v-else ref="commentsWrapperEl" class="flex flex-col h-full py-1 nc-scrollbar-thin">
             <template v-if="audits.length === 0">
               <div class="flex flex-col text-center justify-center h-full">
                 <div class="text-center text-3xl text-gray-600">
@@ -493,24 +531,55 @@ const editedAt = (comment: CommentType) => {
             </template>
 
             <div v-for="audit of audits" :key="audit.id" class="nc-audit-item">
-              <div class="group gap-3 overflow-hidden flex items-start p-3">
-                <GeneralUserIcon size="medium" :email="audit.user" :name="audit.display_name" />
-                <div class="flex-1 flex flex-col gap-1 max-w-[calc(100%_-_24px)]">
-                  <div class="flex flex-wrap items-center min-h-7">
-                    <NcTooltip class="truncate max-w-42 mr-2" show-on-truncate-only>
-                      <template #title>
-                        {{ audit.display_name?.trim() || audit.user || 'Shared source' }}
-                      </template>
-                      <span class="text-ellipsis break-keep inline whitespace-nowrap overflow-hidden font-bold text-gray-800">
-                        {{ audit.display_name?.trim() || audit.user || 'Shared source' }}
-                      </span>
-                    </NcTooltip>
-                    <div class="text-xs text-gray-400">
-                      {{ timeAgo(audit.created_at) }}
+              <div class="group gap-3 overflow-hidden px-3 py-2 hover:bg-gray-100">
+                <div class="flex items-start justify-between">
+                  <div class="flex items-start gap-3 flex-1 w-full">
+                    <GeneralUserIcon
+                      :email="audit.created_by_email"
+                      :name="audit.created_display_name"
+                      class="mt-0.5"
+                      size="medium"
+                    />
+                    <div class="flex h-[28px] items-center gap-3 w-[calc(100%_-_40px)]">
+                      <NcDropdown placement="topLeft" :trigger="['hover']" class="flex-none max-w-[calc(100%_-_72px)]">
+                        <div class="truncate text-gray-800 font-medium !text-small !leading-[18px] overflow-hidden">
+                          {{ createdByAudit(audit) }}
+                        </div>
+
+                        <template #overlay>
+                          <div class="bg-white rounded-lg">
+                            <div class="flex items-center gap-4 py-3 px-2">
+                              <GeneralUserIcon
+                                class="!w-8 !h-8 border-1 border-gray-200 rounded-full"
+                                :name="audit.created_display_name"
+                                :email="audit.created_by_email"
+                              />
+                              <div class="flex flex-col">
+                                <div class="font-semibold text-gray-800">
+                                  {{ createdByAudit(audit) }}
+                                </div>
+                                <div class="text-xs text-gray-600">
+                                  {{ audit.created_by_email }}
+                                </div>
+                              </div>
+                            </div>
+                            <div
+                              v-if="isUIAllowed('dataEdit')"
+                              class="px-3 rounded-b-lg !text-[13px] items-center text-gray-600 flex gap-1 bg-gray-100 py-1.5"
+                            >
+                              Has <RolesBadge size="sm" :border="false" :role="getUserRole(audit.created_by_email!)" />
+                              role in base
+                            </div>
+                          </div>
+                        </template>
+                      </NcDropdown>
+                      <div class="text-xs text-gray-500">
+                        {{ timeAgo(audit.created_at!) }}
+                      </div>
                     </div>
                   </div>
-                  <div v-dompurify-html="audit.details" class="text-sm font-medium"></div>
                 </div>
+                <div v-dompurify-html="audit.details" class="!text-[13px] text-gray-500 !leading-5 !pl-9"></div>
               </div>
             </div>
           </div>
@@ -525,16 +594,8 @@ const editedAt = (comment: CommentType) => {
   @apply max-w-1/2;
 }
 
-.scroll-fix {
-  flex: 1 1 auto;
-}
-
 .nc-audit-item {
-  @apply border-b-1 gap-3 border-gray-200;
-}
-
-.nc-audit-item:last-child {
-  @apply border-b-0;
+  @apply gap-3;
 }
 
 .tab .tab-title {
@@ -553,7 +614,7 @@ const editedAt = (comment: CommentType) => {
 }
 
 :deep(.green.lighten-4) {
-  @apply bg-green-100 rounded-md !mr-3 !leading-6;
+  @apply bg-green-100 rounded-md !mr-3;
 }
 
 :deep(.ant-tabs) {
@@ -594,5 +655,12 @@ const editedAt = (comment: CommentType) => {
 
 :deep(.expanded-form-comment-edit-input .nc-comment-rich-editor) {
   @apply bg-white;
+}
+
+.nc-hovered-comment {
+  .nc-expand-form-more-actions,
+  .nc-resolve-comment-btn {
+    @apply !block;
+  }
 }
 </style>

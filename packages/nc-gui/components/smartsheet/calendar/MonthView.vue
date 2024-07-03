@@ -151,7 +151,6 @@ const recordsToDisplay = computed<{
       overflowCount: number
     }
   } = {}
-
   if (!calendarRange.value) return []
 
   const recordsToDisplay: Array<Row> = []
@@ -555,6 +554,8 @@ const onResizeEnd = () => {
 const onResizeStart = (direction: 'right' | 'left', event: MouseEvent, record: Row) => {
   if (!isUIAllowed('dataEdit') || draggingId.value) return
 
+  if (record.rowMeta.range?.is_readonly) return
+
   // selectedDate.value = null
   resizeInProgress.value = true
   resizeDirection.value = direction
@@ -567,6 +568,7 @@ const onResizeStart = (direction: 'right' | 'left', event: MouseEvent, record: R
 const stopDrag = (event: MouseEvent) => {
   clearTimeout(dragTimeout.value)
   if (!isUIAllowed('dataEdit') || !dragRecord.value || !isDragging.value) return
+  if (dragRecord.value.rowMeta.range?.is_readonly) return
 
   event.preventDefault()
   dragElement.value!.style.boxShadow = 'none'
@@ -603,6 +605,7 @@ const dragStart = (event: MouseEvent, record: Row) => {
 
   dragTimeout.value = setTimeout(() => {
     if (!isUIAllowed('dataEdit')) return
+    if (record.rowMeta.range?.is_readonly) return
     isDragging.value = true
 
     while (!target.classList.contains('draggable-record')) {
@@ -650,6 +653,8 @@ const dropEvent = (event: DragEvent) => {
       record: Row
       isWithoutDates: boolean
     } = JSON.parse(data)
+
+    if (record.rowMeta.range?.is_readonly) return
 
     dragRecord.value = record
 
@@ -756,10 +761,9 @@ const addRecord = (date: dayjs.Dayjs) => {
             <div v-if="isUIAllowed('dataEdit')" class="flex justify-between p-1">
               <span
                 :class="{
-                  block: !isDateSelected(day),
-                  hidden: isDateSelected(day),
+                  'block group-hover:hidden': !isDateSelected(day) && [UITypes.DateTime, UITypes.Date].includes(calDataType),
+                  'hidden': isDateSelected(day) && [UITypes.DateTime, UITypes.Date].includes(calDataType),
                 }"
-                class="group-hover:hidden"
               ></span>
 
               <NcDropdown v-if="calendarRange.length > 1" auto-close>
@@ -801,7 +805,7 @@ const addRecord = (date: dayjs.Dayjs) => {
                 </template>
               </NcDropdown>
               <NcButton
-                v-else
+                v-else-if="[UITypes.DateTime, UITypes.Date].includes(calDataType)"
                 :class="{
                   '!block': isDateSelected(day),
                   '!hidden': !isDateSelected(day),
@@ -875,7 +879,7 @@ const addRecord = (date: dayjs.Dayjs) => {
               :selected="dragRecord?.rowMeta?.id === record.rowMeta.id || resizeRecord?.rowMeta?.id === record.rowMeta.id"
               @resize-start="onResizeStart"
             >
-              <template v-if="calDataType === UITypes.DateTime" #time>
+              <template v-if="[UITypes.DateTime, UITypes.LastModifiedTime, UITypes.CreatedTime].includes(calDataType)" #time>
                 <span class="text-xs font-medium text-gray-400">
                   {{ dayjs(record.row[record.rowMeta.range?.fk_from_col!.title!]).format('h:mma').slice(0, -1) }}
                 </span>

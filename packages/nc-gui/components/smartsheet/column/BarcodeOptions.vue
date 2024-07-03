@@ -37,7 +37,7 @@ onMounted(() => {
   }
   vModel.value.fk_barcode_value_column_id =
     (column?.value?.colOptions as Record<string, any>)?.fk_barcode_value_column_id ||
-    (!isEdit ? columnsAllowedAsBarcodeValue.value?.[0]?.id : null)
+    (!isEdit.value ? columnsAllowedAsBarcodeValue.value?.[0]?.id : null)
 })
 
 watch(columnsAllowedAsBarcodeValue, (newColumnsAllowedAsBarcodeValue) => {

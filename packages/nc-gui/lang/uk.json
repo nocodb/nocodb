@@ -941,7 +941,7 @@
     "addFilter": "Додати фільтр",
     "share": "Поділитись",
     "groupBy": "Group By",
-    "addSubGroup": "Add subgroup",
+    "addSubGroup": "New Subgroup",
     "shareBase": {
       "label": "Share Base",
       "disable": "Вимкнути спільну базу",
@@ -1084,6 +1084,7 @@
     },
     "toggleMobileMode": "Ввімкнути мобільний режим",
     "startCommenting": "Start commenting!",
+    "noCommentsYet": "No comments yet!",
     "clearForm": "Clear Form",
     "addFieldFromFormView": "Add Field",
     "selectAllFields": "Select all fields",

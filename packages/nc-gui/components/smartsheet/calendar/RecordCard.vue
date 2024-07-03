@@ -74,19 +74,19 @@ const emit = defineEmits(['resize-start'])
     <div class="overflow-hidden items-center justify-center gap-2 flex w-full">
       <span v-if="position === 'rightRounded' || position === 'none'" class="ml-2"> .... </span>
       <slot name="time" />
-      <span
+      <div
         :class="{
           'pr-7': position === 'leftRounded',
         }"
-        class="text-sm mb-0.5 break-word whitespace-nowrap overflow-hidden text-ellipsis w-full truncate text-gray-800"
+        class="flex mb-0.5 overflow-x-hidden break-word whitespace-nowrap overflow-hidden text-ellipsis w-full truncate text-ellipsis flex-col gap-1"
       >
         <NcTooltip :disabled="selected" class="inline-block" show-on-truncate-only wrap-child="span">
-          <slot />
+          <slot class="text-sm text-nowrap text-gray-800 leading-7" />
           <template #title>
             <slot />
           </template>
         </NcTooltip>
-      </span>
+      </div>
       <span v-if="position === 'leftRounded' || position === 'none'" class="absolute my-0 right-5"> .... </span>
     </div>
 

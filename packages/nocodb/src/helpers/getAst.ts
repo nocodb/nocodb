@@ -226,6 +226,7 @@ const getAst = async (
         (!isSystemColumn(col) ||
           (!view && isCreatedOrLastModifiedTimeCol(col)) ||
           view.show_system_fields ||
+          (dependencyFieldsForCalenderView ?? []).includes(col.id) ||
           col.pv) &&
         (!fields?.length || fields.includes(col.title)) &&
         value;

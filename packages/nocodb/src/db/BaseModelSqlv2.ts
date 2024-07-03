@@ -176,6 +176,17 @@ export function replaceDynamicFieldWithValue(
   return replaceWithValue;
 }
 
+function transformObject(value, idToAliasMap) {
+  const result = {};
+  Object.entries(value).forEach(([k, v]) => {
+    const btAlias = idToAliasMap[k];
+    if (btAlias) {
+      result[btAlias] = v;
+    }
+  });
+  return result;
+}
+
 /**
  * Base class for models
  *
@@ -697,6 +708,184 @@ class BaseModelSqlv2 {
     return await this.execAndParse(qb);
   }
 
+  async bulkAggregate(
+    args: {
+      aggregateFilterList: Array<{
+        alias: string;
+        where?: string;
+      }>;
+      filterArr?: Filter[];
+    },
+    view: View,
+  ) {
+    try {
+      if (!args.aggregateFilterList?.length) {
+        return NcError.badRequest('aggregateFilterList is required');
+      }
+
+      const { where, aggregation } = this._getListArgs(args as any);
+
+      const columns = await this.model.getColumns(this.context);
+
+      let viewColumns = (
+        await GridViewColumn.list(this.context, this.viewId)
+      ).filter((c) => {
+        const col = columns.find((col) => col.id === c.fk_column_id);
+        return c.show && (view.show_system_fields || !isSystemColumn(col));
+      });
+
+      // By default, the aggregation is done based on the columns configured in the view
+      // If the aggregation parameter is provided, only the columns mentioned in the aggregation parameter are considered
+      // Also the aggregation type from the parameter is given preference over the aggregation type configured in the view
+      if (aggregation?.length) {
+        viewColumns = viewColumns
+          .map((c) => {
+            const agg = aggregation.find((a) => a.field === c.fk_column_id);
+            return new GridViewColumn({
+              ...c,
+              show: !!agg,
+              aggregation: agg ? agg.type : c.aggregation,
+            });
+          })
+          .filter((c) => c.show);
+      }
+
+      const aliasColObjMap = await this.model.getAliasColObjMap(
+        this.context,
+        columns,
+      );
+
+      const qb = this.dbDriver(this.tnPath);
+
+      const aggregateExpressions = {};
+
+      // Construct aggregate expressions for each view column
+      for (const viewColumn of viewColumns) {
+        const col = columns.find((c) => c.id === viewColumn.fk_column_id);
+        if (
+          !col ||
+          !viewColumn.aggregation ||
+          (isLinksOrLTAR(col) && col.system)
+        )
+          continue;
+
+        const aliasFieldName = col.id;
+        const aggSql = await applyAggregation({
+          baseModelSqlv2: this,
+          aggregation: viewColumn.aggregation,
+          column: col,
+        });
+
+        if (aggSql) {
+          aggregateExpressions[aliasFieldName] = aggSql;
+        }
+      }
+
+      if (!Object.keys(aggregateExpressions).length) {
+        return {};
+      }
+
+      const viewFilterList = await Filter.rootFilterList(this.context, {
+        viewId: this.viewId,
+      });
+
+      const selectors = [] as Array<Knex.Raw>;
+      // Generate a knex raw query for each filter in the aggregateFilterList
+      for (const f of args.aggregateFilterList) {
+        const tQb = this.dbDriver(this.tnPath);
+        const aggFilter = extractFilterFromXwhere(f.where, aliasColObjMap);
+
+        await conditionV2(
+          this,
+          [
+            ...(this.viewId
+              ? [
+                  new Filter({
+                    children: viewFilterList || [],
+                    is_group: true,
+                  }),
+                ]
+              : []),
+            new Filter({
+              children: args.filterArr || [],
+              is_group: true,
+              logical_op: 'and',
+            }),
+            new Filter({
+              children: extractFilterFromXwhere(where, aliasColObjMap),
+              is_group: true,
+              logical_op: 'and',
+            }),
+            new Filter({
+              children: aggFilter,
+              is_group: true,
+              logical_op: 'and',
+            }),
+          ],
+          tQb,
+        );
+
+        let jsonBuildObject;
+
+        switch (this.dbDriver.client.config.client) {
+          case 'pg': {
+            jsonBuildObject = this.dbDriver.raw(
+              `JSON_BUILD_OBJECT(${Object.keys(aggregateExpressions)
+                .map((key) => {
+                  return `'${key}', ${aggregateExpressions[key]}`;
+                })
+                .join(', ')})`,
+            );
+
+            break;
+          }
+          case 'mysql2': {
+            jsonBuildObject = this.dbDriver.raw(`JSON_OBJECT(
+              ${Object.keys(aggregateExpressions)
+                .map((key) => `'${key}', ${aggregateExpressions[key]}`)
+                .join(', ')})`);
+            break;
+          }
+
+          case 'sqlite3': {
+            jsonBuildObject = this.dbDriver.raw(`json_object(
+                ${Object.keys(aggregateExpressions)
+                  .map((key) => `'${key}', ${aggregateExpressions[key]}`)
+                  .join(', ')})`);
+            break;
+          }
+          default:
+            NcError.notImplemented(
+              'This database is not supported for bulk aggregation',
+            );
+        }
+
+        tQb.select(jsonBuildObject);
+
+        selectors.push(
+          this.dbDriver.raw(`(??) as ??`, [
+            tQb,
+            this.dbDriver.raw(`"${f.alias}"`),
+          ]),
+        );
+      }
+
+      qb.select(...selectors);
+
+      qb.limit(1);
+
+      const data = await this.execAndParse(qb, null, {
+        first: true,
+        bulkAggregate: true,
+      });
+
+      return data;
+    } catch (err) {
+      logger.log(err);
+      return [];
+    }
+  }
+
   async aggregate(args: { filterArr?: Filter[]; where?: string }, view: View) {
     try {
       const { where, aggregation } = this._getListArgs(args as any);
@@ -780,6 +969,7 @@ class BaseModelSqlv2 {
             baseModelSqlv2: this,
             aggregation: viewColumn.aggregation,
             column: col,
+            alias: col.id,
           });
 
           if (aggSql) selectors.push(this.dbDriver.raw(aggSql));
@@ -793,13 +983,13 @@ class BaseModelSqlv2 {
 
       qb.select(...selectors);
 
-      console.log('\n\n', qb.toQuery(), '\n\n');
-
       // Some aggregation on Date, DateTime related columns may generate result other than Date, DateTime
       // So skip the date conversion
       const data = await this.execAndParse(qb, null, {
         first: true,
         skipDateConversion: true,
+        skipAttachmentConversion: true,
+        skipUserConversion: true,
       });
 
       return data;
@@ -4337,6 +4527,7 @@ class BaseModelSqlv2 {
               },
               {
                 limitOverride: tempToRead.length,
+                ignoreViewFilterAndSort: true,
               },
             );
 
@@ -4565,6 +4756,7 @@ class BaseModelSqlv2 {
             },
             {
               limitOverride: tempToRead.length,
+              ignoreViewFilterAndSort: true,
             },
           );
 
@@ -5867,6 +6059,7 @@ class BaseModelSqlv2 {
       skipUserConversion?: boolean;
       raw?: boolean; // alias for skipDateConversion and skipAttachmentConversion
       first?: boolean;
+      bulkAggregate?: boolean;
     } = {
       skipDateConversion: false,
       skipAttachmentConversion: false,
@@ -5874,6 +6067,7 @@ class BaseModelSqlv2 {
       skipUserConversion: false,
       raw: false,
       first: false,
+      bulkAggregate: false,
     },
   ) {
     if (options.raw) {
@@ -5952,7 +6146,7 @@ class BaseModelSqlv2 {
 
     const idToAliasMap: Record<string, string> = {};
     const idToAliasPromiseMap: Record<string, Promise<string>> = {};
-    const btMap: Record<string, boolean> = {};
+    const ltarMap: Record<string, boolean> = {};
 
     modelColumns.forEach((col) => {
       if (aliasColumns && col.id in aliasColumns) {
@@ -5962,61 +6156,69 @@ class BaseModelSqlv2 {
       }
 
       idToAliasMap[col.id] = col.title;
-      if (
-        [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(
-          col.colOptions?.type,
-        )
-      ) {
-        btMap[col.id] = true;
-        const btData = Object.values(data).find(
+      if (col.uidt === UITypes.LinkToAnotherRecord) {
+        ltarMap[col.id] = true;
+        const linkData = Object.values(data).find(
           (d) => d[col.id] && Object.keys(d[col.id]),
         );
-        if (btData) {
-          if (typeof btData[col.id] === 'object') {
-            for (const k of Object.keys(btData[col.id])) {
-              const btAlias = idToAliasMap[k];
-              if (!btAlias) {
+        if (linkData) {
+          if (typeof linkData[col.id] === 'object') {
+            for (const k of Object.keys(
+              Array.isArray(linkData[col.id])
+                ? linkData[col.id][0] || {}
+                : linkData[col.id],
+            )) {
+              const linkAlias = idToAliasMap[k];
+              if (!linkAlias) {
                 idToAliasPromiseMap[k] = Column.get(this.context, {
                   colId: k,
-                }).then((col) => {
-                  return col.title;
-                });
+                })
+                  .then((col) => {
+                    return col.title;
+                  })
+                  .catch((e) => {
+                    return Promise.resolve(e);
+                  });
               }
             }
           } else {
             // Has Many BT
-            const btAlias = idToAliasMap[col.id];
-            if (!btAlias) {
+            const linkAlias = idToAliasMap[col.id];
+            if (!linkAlias) {
               idToAliasPromiseMap[col.id] = Column.get(this.context, {
                 colId: col.id,
-              }).then((col) => {
-                return col.title;
-              });
+              })
+                .then((col) => {
+                  return col.title;
+                })
+                .catch((e) => {
+                  return Promise.resolve(e);
+                });
             }
           }
         }
       } else {
-        btMap[col.id] = false;
+        ltarMap[col.id] = false;
       }
     });
 
     for (const k of Object.keys(idToAliasPromiseMap)) {
       idToAliasMap[k] = await idToAliasPromiseMap[k];
+      if ((idToAliasMap[k] as unknown) instanceof Error) {
+        throw idToAliasMap[k];
+      }
     }
 
     data.forEach((item) => {
       Object.entries(item).forEach(([key, value]) => {
         const alias = idToAliasMap[key];
         if (alias) {
-          if (btMap[key]) {
+          if (ltarMap[key]) {
             if (value && typeof value === 'object') {
-              const tempObj = {};
-              Object.entries(value).forEach(([k, v]) => {
-                const btAlias = idToAliasMap[k];
-                if (btAlias) {
-                  tempObj[btAlias] = v;
-                }
-              });
+              const tempObj = Array.isArray(value)
+                ? value.map((arrVal) => transformObject(arrVal, idToAliasMap))
+                : transformObject(value, idToAliasMap);
+              item[alias] = tempObj;
               item[alias] = tempObj;
             } else {
               item[alias] = value;
@@ -7183,7 +7385,7 @@ class BaseModelSqlv2 {
 
           if (
             typeof data[column.column_name] === 'string' &&
-            /^\s*[{[]$/.test(data[column.column_name])
+            /^\s*[{[]/.test(data[column.column_name])
           ) {
             try {
               data[column.column_name] = JSON.parse(data[column.column_name]);

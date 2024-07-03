@@ -24,7 +24,7 @@ import { NcContext, NcRequest } from '~/interface/config';
 @Controller()
 @UseGuards(DataApiLimiterGuard, GlobalGuard)
 export class DataTableController {
-  constructor(private readonly dataTableService: DataTableService) {}
+  constructor(protected readonly dataTableService: DataTableService) {}
 
   // todo: Handle the error case where view doesnt belong to model
   @Get('/api/v2/tables/:modelId/records')

@@ -941,7 +941,7 @@
     "addFilter": "افزودن فیلتر",
     "share": "اشتراک گذاری",
     "groupBy": "Group By",
-    "addSubGroup": "Add subgroup",
+    "addSubGroup": "New Subgroup",
     "shareBase": {
       "label": "Share Base",
       "disable": "غیرفعال کردن پایگاه مشترک",
@@ -1084,6 +1084,7 @@
     },
     "toggleMobileMode": "تغییر وضعیت حالت موبایل",
     "startCommenting": "Start commenting!",
+    "noCommentsYet": "No comments yet!",
     "clearForm": "Clear Form",
     "addFieldFromFormView": "Add Field",
     "selectAllFields": "Select all fields",

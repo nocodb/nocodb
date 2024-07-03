@@ -222,6 +222,13 @@ export async function serializeCellValue(
           .join(', ');
       }
       break;
+    case UITypes.Decimal:
+      {
+        if (isNaN(Number(value))) return null;
+
+        return Number(value).toFixed(column.meta?.precision ?? 1);
+      }
+      break;
     default:
       if (value && typeof value === 'object') {
         return JSON.stringify(value);

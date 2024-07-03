@@ -1084,6 +1084,7 @@
     },
     "toggleMobileMode": "Přepnout Mobilní režim",
     "startCommenting": "Start commenting!",
+    "noCommentsYet": "No comments yet!",
     "clearForm": "Clear Form",
     "addFieldFromFormView": "Add Field",
     "selectAllFields": "Select all fields",

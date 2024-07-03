@@ -7535,6 +7535,108 @@
         "description": "List all shared view rows"
       }
     },
+    "/api/v2/public/shared-view/{sharedViewUuid}/bulkAggregate": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string",
+            "example": "24a6d0bb-e45d-4b1a-bfef-f492d870de9f"
+          },
+          "name": "sharedViewUuid",
+          "in": "path",
+          "required": true,
+          "description": "Shared View UUID"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "in": "header",
+          "name": "xc-password",
+          "description": "Shared view password"
+        }
+      ],
+      "get": {
+        "summary": "Read Shared View Bulk Aggregated Data",
+        "operationId": "public-data-table-bulk-aggregate",
+        "description": "Read bulk aggregated data from a given table with provided filters",
+        "tags": [
+          "Public"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where",
+            "description": "Extra filtering"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "filterArrJson",
+            "description": "Used for multiple filter queries"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "description": "List of fields to be aggregated",
+              "items": {
+                "type": "object"
+              }
+            },
+            "in": "query",
+            "name": "aggregation",
+            "description": "Used for selective aggregation"
+          },
+          {
+            "in": "query",
+            "name": "aggregateFilterList",
+            "description": "List of where filters and alias",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "alias": {
+                        "Id": 1,
+                        "Title": "90",
+                        "SingleSelect": "50"
+                      },
+                      "alias2": {
+                        "Id": 2,
+                        "Title": "50",
+                        "SingleSelect": "30"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      }
+    },
     "/api/v2/public/shared-view/{sharedViewUuid}/rows": {
       "parameters": [
         {
@@ -11817,6 +11919,96 @@
           }
         ]
       }
+    },
+    "/api/v2/jobs/{baseId}": {
+      "post": {
+        "summary": "Get Jobs",
+        "operationId": "jobs-list",
+        "description": "Get list of jobs for a given base for the user",
+        "tags": [
+          "Jobs"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "job": {
+                    "type": "string"
+                  },
+                  "status": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "parameters": [
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "p124dflkcvasewh",
+            "type": "string"
+          },
+          "name": "baseId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Base ID"
+        },
+        {
+          "$ref": "#/components/parameters/xc-auth"
+        }
+      ]
+    },
+    "/api/v2/export/{viewId}/{exportAs}": {
+      "post": {
+        "summary": "Trigger export as job",
+        "operationId": "export-data",
+        "description": "Trigger export as job",
+        "tags": [
+          "Export"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      },
+      "parameters": [
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "vw124dflkcvasewh",
+            "type": "string"
+          },
+          "name": "viewId",
+          "in": "path",
+          "required": true,
+          "description": "Unique View ID"
+        },
+        {
+          "schema": {
+            "type": "string",
+            "enum": [
+              "csv"
+            ]
+          },
+          "name": "exportAs",
+          "in": "path",
+          "required": true,
+          "description": "Export as format"
+        },
+        {
+          "$ref": "#/components/parameters/xc-auth"
+        }
+      ]
     }
   },
   "components": {

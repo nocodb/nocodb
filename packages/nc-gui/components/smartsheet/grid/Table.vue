@@ -463,7 +463,8 @@ const colMeta = computed(() => {
 // #Grid
 
 function openColumnCreate(data: any) {
-  tableHeadEl.value?.querySelector('th:last-child')?.scrollIntoView({ behavior: 'smooth' })
+  scrollToAddNewColumnHeader('smooth')
+
   setTimeout(() => {
     addColumnDropdown.value = true
     preloadColumn.value = data
@@ -476,11 +477,7 @@ const closeAddColumnDropdown = (scrollToLastCol = false) => {
   preloadColumn.value = {}
   if (scrollToLastCol) {
     setTimeout(() => {
-      const lastAddNewRowHeader =
-        tableHeadEl.value?.querySelector('.nc-grid-add-edit-column') ?? tableHeadEl.value?.querySelector('th:last-child')
-      if (lastAddNewRowHeader) {
-        lastAddNewRowHeader.scrollIntoView({ behavior: 'smooth' })
-      }
+      scrollToAddNewColumnHeader('smooth')
     }, 200)
   }
 }
@@ -736,7 +733,11 @@ const {
           // ALT + C
           if (isAddingColumnAllowed.value) {
             $e('c:shortcut', { key: 'ALT + C' })
-            addColumnDropdown.value = true
+            scrollToAddNewColumnHeader(undefined)
+
+            setTimeout(() => {
+              addColumnDropdown.value = true
+            }, 250)
           }
           break
         }
@@ -1524,7 +1525,11 @@ watch(
         }
         isViewDataLoading.value = true
         try {
-          await Promise.allSettled([loadData?.(), loadViewAggregate()])
+          if (isGroupBy.value) {
+            await loadData?.()
+          } else {
+            await Promise.allSettled([loadData?.(), loadViewAggregate()])
+          }
           calculateSlices()
         } catch (e) {
           if (!axios.isCancel(e)) {
@@ -1591,6 +1596,16 @@ const loaderText = computed(() => {
     }
   }
 })
+
+function scrollToAddNewColumnHeader(behavior: ScrollOptions['behavior']) {
+  if (scrollWrapper.value) {
+    scrollWrapper.value?.scrollTo({
+      top: scrollWrapper.value.scrollTop,
+      left: scrollWrapper.value.scrollWidth,
+      behavior,
+    })
+  }
+}
 
 // Keyboard shortcuts for pagination
 onKeyStroke('ArrowLeft', onLeft)
@@ -1871,17 +1886,19 @@ onKeyStroke('ArrowDown', onDown)
                         </NcMenu>
                       </template>
                       <template v-else #overlay>
-                        <SmartsheetColumnEditOrAddProvider
-                          v-if="addColumnDropdown"
-                          :preload="preloadColumn"
-                          :column-position="columnOrder"
-                          :class="{ hidden: isJsonExpand }"
-                          @submit="closeAddColumnDropdown(true)"
-                          @cancel="closeAddColumnDropdown()"
-                          @click.stop
-                          @keydown.stop
-                          @mounted="preloadColumn = undefined"
-                        />
+                        <div class="nc-edit-or-add-provider-wrapper">
+                          <LazySmartsheetColumnEditOrAddProvider
+                            v-if="addColumnDropdown"
+                            :preload="preloadColumn"
+                            :column-position="columnOrder"
+                            :class="{ hidden: isJsonExpand }"
+                            @submit="closeAddColumnDropdown(true)"
+                            @cancel="closeAddColumnDropdown()"
+                            @click.stop
+                            @keydown.stop
+                            @mounted="preloadColumn = undefined"
+                          />
+                        </div>
                       </template>
                     </a-dropdown>
                   </div>
@@ -2444,6 +2461,7 @@ onKeyStroke('ArrowDown', onDown)
         v-else-if="paginationDataRef"
         v-model:pagination-data="paginationDataRef"
         :change-page="changePage"
+        :show-size-changer="!isGroupBy"
         :scroll-left="scrollLeft"
       />
     </div>

@@ -941,7 +941,7 @@
     "addFilter": "Add Filter",
     "share": "Share",
     "groupBy": "Group By",
-    "addSubGroup": "Add subgroup",
+    "addSubGroup": "New Subgroup",
     "shareBase": {
       "label": "Share Base",
       "disable": "Disable shared base",
@@ -1084,6 +1084,7 @@
     },
     "toggleMobileMode": "Toggle Mobile Mode",
     "startCommenting": "Start commenting!",
+    "noCommentsYet": "No comments yet!",
     "clearForm": "Clear Form",
     "addFieldFromFormView": "Add Field",
     "selectAllFields": "Select all fields",

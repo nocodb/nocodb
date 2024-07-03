@@ -42,14 +42,16 @@ provide(IsKanbanInj, ref(true))
       </a-button>
     </div>
     <template #overlay>
-      <LazySmartsheetColumnEditOrAddProvider
-        v-if="open"
-        :column="groupingFieldColumn"
-        @submit="handleSubmit"
-        @cancel="open = false"
-        @click.stop
-        @keydown.stop
-      />
+      <div class="nc-edit-or-add-provider-wrapper">
+        <LazySmartsheetColumnEditOrAddProvider
+          v-if="open"
+          :column="groupingFieldColumn"
+          @submit="handleSubmit"
+          @cancel="open = false"
+          @click.stop
+          @keydown.stop
+        />
+      </div>
     </template>
   </a-dropdown>
 </template>

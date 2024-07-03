@@ -22,6 +22,8 @@ const { refreshCommandPalette } = useCommandPalette()
 
 const { loadTables } = baseStore
 
+const { getJobsForBase, loadJobsForBase } = useJobs()
+
 const showGoToDashboardButton = ref(false)
 
 const step = ref(1)
@@ -141,7 +143,13 @@ async function listenForUpdates(id?: string) {
 
   listeningForUpdates.value = true
 
-  const job = id ? { id } : await $api.jobs.status({ syncId: syncSource.value.id })
+  await loadJobsForBase(baseId)
+
+  const jobs = await getJobsForBase(baseId)
+
+  const job = id
+    ? { id }
+    : jobs.find((j) => j.base_id === baseId && j.status !== JobStatus.COMPLETED && j.status !== JobStatus.FAILED)
 
   if (!job) {
     listeningForUpdates.value = false

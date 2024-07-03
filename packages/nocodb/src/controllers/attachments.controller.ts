@@ -63,16 +63,26 @@ export class AttachmentsController {
   // , getCacheMiddleware(), catchError(fileRead));
   @Get('/download/:filename(*)')
   // This route will match any URL that starts with
-  async fileRead(@Param('filename') filename: string, @Res() res: Response) {
+  async fileRead(
+    @Param('filename') filename: string,
+    @Res() res: Response,
+    @Query('filename') queryFilename?: string,
+  ) {
     try {
       const file = await this.attachmentsService.getFile({
         path: path.join('nc', 'uploads', filename),
       });
 
       if (this.attachmentsService.previewAvailable(file.type)) {
+        if (queryFilename) {
+          res.setHeader(
+            'Content-Disposition',
+            `attachment; filename=${queryFilename}`,
+          );
+        }
         res.sendFile(file.path);
       } else {
-        res.download(file.path);
+        res.download(file.path, queryFilename);
       }
     } catch (e) {
       res.status(404).send('Not found');
@@ -87,6 +97,7 @@ export class AttachmentsController {
     @Param('param2') param2: string,
     @Param('filename') filename: string,
     @Res() res: Response,
+    @Query('filename') queryFilename?: string,
   ) {
     try {
       const file = await this.attachmentsService.getFile({
@@ -100,9 +111,15 @@ export class AttachmentsController {
       });
 
       if (this.attachmentsService.previewAvailable(file.type)) {
+        if (queryFilename) {
+          res.setHeader(
+            'Content-Disposition',
+            `attachment; filename=${queryFilename}`,
+          );
+        }
         res.sendFile(file.path);
       } else {
-        res.download(file.path);
+        res.download(file.path, queryFilename);
       }
     } catch (e) {
       res.status(404).send('Not found');
@@ -112,16 +129,33 @@ export class AttachmentsController {
   @Get('/dltemp/:param(*)')
   async fileReadv3(@Param('param') param: string, @Res() res: Response) {
     try {
-      const fpath = await PresignedUrl.getPath(`dltemp/${param}`);
+      const fullPath = await PresignedUrl.getPath(`dltemp/${param}`);
+
+      const queryHelper = fullPath.split('?');
+
+      const fpath = queryHelper[0];
+
+      let queryFilename = null;
+
+      if (queryHelper.length > 1) {
+        const query = new URLSearchParams(queryHelper[1]);
+        queryFilename = query.get('filename');
+      }
 
       const file = await this.attachmentsService.getFile({
         path: path.join('nc', 'uploads', fpath),
       });
 
       if (this.attachmentsService.previewAvailable(file.type)) {
+        if (queryFilename) {
+          res.setHeader(
+            'Content-Disposition',
+            `attachment; filename=${queryFilename}`,
+          );
+        }
         res.sendFile(file.path);
       } else {
-        res.download(file.path);
+        res.download(file.path, queryFilename);
       }
     } catch (e) {
       res.status(404).send('Not found');

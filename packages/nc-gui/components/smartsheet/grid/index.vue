@@ -52,6 +52,7 @@ const {
   optimisedQuery,
   islastRow,
   isFirstRow,
+  aggCommentCount,
 } = useViewData(meta, view, xWhere)
 
 const rowHeight = computed(() => {
@@ -145,8 +146,17 @@ const toggleOptimisedQuery = () => {
   }
 }
 
-const { rootGroup, groupBy, isGroupBy, loadGroups, loadGroupData, loadGroupPage, groupWrapperChangePage, redistributeRows } =
-  useViewGroupByOrThrow()
+const {
+  rootGroup,
+  groupBy,
+  isGroupBy,
+  loadGroups,
+  loadGroupData,
+  loadGroupPage,
+  groupWrapperChangePage,
+  redistributeRows,
+  loadGroupAggregation,
+} = useViewGroupByOrThrow()
 
 const sidebarStore = useSidebarStore()
 
@@ -205,6 +215,24 @@ const baseColor = computed(() => {
   }
 })
 
+const updateRowCommentCount = (count: number) => {
+  if (!routeQuery.value.rowId) return
+
+  const aggCommentCountIndex = aggCommentCount.value.findIndex((row) => row.row_id === routeQuery.value.rowId)
+
+  const currentRowIndex = data.value.findIndex(
+    (row) => extractPkFromRow(row.row, meta.value?.columns as ColumnType[]) === routeQuery.value.rowId,
+  )
+
+  if (aggCommentCountIndex === -1 || currentRowIndex === -1) return
+
+  if (Number(aggCommentCount.value[aggCommentCountIndex].count) === count) return
+
+  aggCommentCount.value[aggCommentCountIndex].count = count
+
+  data.value[currentRowIndex].rowMeta.commentCount = count
+}
+
 watch([windowSize, leftSidebarWidth], updateViewWidth)
 
 onMounted(() => {
@@ -216,7 +244,7 @@ onMounted(() => {
   <div
     class="relative flex flex-col h-full min-h-0 w-full nc-grid-wrapper"
     data-testid="nc-grid-wrapper"
-    :style="`width: ${viewWidth}px; background-color: ${isGroupBy ? `${baseColor}` : 'var(--nc-grid-bg)'};`"
+    :style="`background-color: ${isGroupBy ? `${baseColor}` : 'var(--nc-grid-bg)'};`"
   >
     <Table
       v-if="!isGroupBy"
@@ -232,8 +260,8 @@ onMounted(() => {
       :delete-selected-rows="deleteSelectedRows"
       :delete-range-of-rows="deleteRangeOfRows"
       :bulk-update-rows="bulkUpdateRows"
-      :remove-row-if-new="removeRowIfNew"
       :expand-form="expandForm"
+      :remove-row-if-new="removeRowIfNew"
       :row-height="rowHeight"
       @toggle-optimised-query="toggleOptimisedQuery"
       @bulk-update-dlg="bulkUpdateDlg = true"
@@ -247,12 +275,12 @@ onMounted(() => {
       :load-group-page="loadGroupPage"
       :group-wrapper-change-page="groupWrapperChangePage"
       :row-height="rowHeight"
+      :load-group-aggregation="loadGroupAggregation"
       :max-depth="groupBy.length"
       :redistribute-rows="redistributeRows"
-      :expand-form="expandForm"
       :view-width="viewWidth"
     />
-    <Suspense>
+    <Suspense v-if="!isGroupBy">
       <LazySmartsheetExpandedForm
         v-if="expandedFormRow && expandedFormDlg"
         v-model="expandedFormDlg"
@@ -265,7 +293,7 @@ onMounted(() => {
       />
     </Suspense>
     <SmartsheetExpandedForm
-      v-if="expandedFormOnRowIdDlg && meta?.id"
+      v-if="expandedFormOnRowIdDlg && meta?.id && !isGroupBy"
       v-model="expandedFormOnRowIdDlg"
       :row="expandedFormRow ?? { row: {}, oldRow: {}, rowMeta: {} }"
       :meta="meta"
@@ -279,6 +307,7 @@ onMounted(() => {
       :expand-form="expandForm"
       @next="goToNextRow()"
       @prev="goToPreviousRow()"
+      @update-row-comment-count="updateRowCommentCount"
     />
 
     <Suspense>

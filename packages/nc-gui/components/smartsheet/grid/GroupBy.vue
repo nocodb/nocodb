@@ -1,10 +1,11 @@
 <script lang="ts" setup>
 import tinycolor from 'tinycolor2'
-import { UITypes, dateFormats, parseStringDateTime, timeFormats } from 'nocodb-sdk'
+import { CommonAggregations, UITypes, dateFormats, parseStringDateTime, timeFormats } from 'nocodb-sdk'
 import Table from './Table.vue'
 import GroupBy from './GroupBy.vue'
 import GroupByTable from './GroupByTable.vue'
 import GroupByLabel from './GroupByLabel.vue'
+import type { Group } from '~/lib/types'
 
 const props = defineProps<{
   group: Group
@@ -13,7 +14,13 @@ const props = defineProps<{
   loadGroupData: (group: Group, force?: boolean, params?: any) => Promise<void>
   loadGroupPage: (group: Group, p: number) => Promise<void>
   groupWrapperChangePage: (page: number, groupWrapper?: Group) => Promise<void>
-
+  loadGroupAggregation: (
+    group: Group,
+    fields?: Array<{
+      field: string
+      type: string
+    }>,
+  ) => Promise<void>
   redistributeRows?: (group?: Group) => void
 
   viewWidth?: number
@@ -33,11 +40,15 @@ const vGroup = useVModel(props, 'group', emits)
 
 const meta = inject(MetaInj, ref())
 
+const fields = inject(FieldsInj, ref())
+
 const scrollLeft = toRef(props, 'scrollLeft')
 
 const { isViewDataLoading, isPaginationLoading } = storeToRefs(useViewsStore())
 
 const { gridViewCols } = useViewColumnsOrThrow()
+
+const reloadAggregate = inject(ReloadAggregateHookInj, createEventHook())
 
 const displayField = computed(() => {
   return meta.value?.columns?.find((c) => c.pv)
@@ -52,6 +63,32 @@ const viewDisplayField = computed(() => {
 })
 
 const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
+
+reloadAggregate?.on(async (_fields) => {
+  if (!fields.value?.length) return
+  if (!_fields || !_fields?.fields.length) {
+    await props.loadGroupAggregation(vGroup.value)
+  }
+  if (_fields?.fields) {
+    const fieldAggregateMapping = _fields.fields.reduce((acc, field) => {
+      const f = fields.value.find((f) => f.title === field.title)
+
+      if (!f?.id) return acc
+
+      acc[f.id] = field.aggregation ?? gridViewCols.value[f.id].aggregation ?? CommonAggregations.None
+
+      return acc
+    }, {} as Record<string, string>)
+
+    await props.loadGroupAggregation(
+      vGroup.value,
+      Object.entries(fieldAggregateMapping).map(([field, type]) => ({
+        field,
+        type,
+      })),
+    )
+  }
+})
 
 const _loadGroupData = async (group: Group, force?: boolean, params?: any) => {
   isViewDataLoading.value = true
@@ -109,10 +146,12 @@ const findAndLoadSubGroup = (key: any) => {
 const reloadViewDataHandler = (params: void | { shouldShowLoading?: boolean | undefined; offset?: number | undefined }) => {
   if (vGroup.value.nested) {
     props.loadGroups({ ...(params?.offset !== undefined ? { offset: params.offset } : {}) }, vGroup.value)
+    props.loadGroupAggregation(vGroup.value)
   } else {
     _loadGroupData(vGroup.value, true, {
       ...(params?.offset !== undefined ? { offset: params.offset } : {}),
     })
+    props.loadGroupAggregation(vGroup.value)
   }
 }
 
@@ -219,6 +258,7 @@ const shouldRenderCell = (column) =>
     UITypes.CreatedTime,
     UITypes.LastModifiedTime,
     UITypes.CreatedBy,
+    UITypes.LongText,
     UITypes.LastModifiedBy,
   ].includes(column?.uidt)
 
@@ -263,11 +303,10 @@ const computedWidth = computed(() => {
   const getSubGroupWidth = (depth: number) => {
     switch (depth) {
       case 3:
-        return `${baseValue - 26}px`
+        return `${baseValue - 18}px`
       case 2:
-        return `${baseValue - 17}px`
+        return `${baseValue - 9}px`
       case 1:
-        return `${baseValue - 8}px`
       default:
         return `${baseValue}px`
     }
@@ -276,7 +315,7 @@ const computedWidth = computed(() => {
   if (_depth === 0) {
     if (tempScrollLeft < 29) {
       // The equation is calculated on trial and error basis
-      return `${baseValue + tempScrollLeft - (53 / 29) * tempScrollLeft}px`
+      return `${baseValue + tempScrollLeft - (0.02 * (tempScrollLeft * tempScrollLeft) + 1.07 * tempScrollLeft)}px`
     }
     return getSubGroupWidth(maxDepth)
   }
@@ -284,15 +323,15 @@ const computedWidth = computed(() => {
   if (_depth === 1) {
     if (tempScrollLeft < 30) {
       // The equation is calculated on trial and error basis
-      return `${baseValue + tempScrollLeft - 9 - (23 / 15) * tempScrollLeft}px`
+      return `${baseValue + tempScrollLeft - 9 - (23 / 20) * tempScrollLeft}px`
     }
     return getSubGroupWidth(maxDepth)
   }
 
   if (_depth === 2) {
-    if (tempScrollLeft < 15) {
+    if (tempScrollLeft <= 14) {
       // The equation is calculated on trial and error basis
-      return `${baseValue + tempScrollLeft - 18 - (19 / 15) * tempScrollLeft}px`
+      return `${baseValue + tempScrollLeft - 18 - tempScrollLeft}px`
     }
     return getSubGroupWidth(maxDepth)
   }
@@ -368,21 +407,26 @@ const bgColor = computed(() => {
             <template #header>
               <div
                 :class="{
-                  '!rounded-b-none': activeGroups.includes(grp.key),
-                  'border-b-1': _depth === (maxDepth ?? 1) - 1 && activeGroups.includes(grp.key),
+                  '!rounded-b-none': activeGroups.includes(grp.key.toString()),
+                  '!border-b-1': _depth === (maxDepth ?? 1) - 1 && activeGroups.includes(grp.key.toString()),
                 }"
-                class="flex !sticky w-full items-center rounded-b-lg group select-none transition-all !rounded-t-[8px] !h-10"
+                class="flex !sticky w-full items-center rounded-b-lg select-none transition-all !rounded-t-[8px] !h-10"
               >
                 <div
-                  :style="`width:${computedWidth};`"
-                  class="!sticky flex justify-between !h-10 border-r-1 pr-2 border-gray-300 overflow-clip items-center !left-2"
+                  :class="{
+                    '!rounded-bl-[8px]': !activeGroups.includes(grp.key.toString()),
+                  }"
+                  :style="`width:${computedWidth};background: ${bgColor};`"
+                  class="!sticky flex z-10 justify-between !h-9.8 border-r-1 !rounded-tl-[8px] group pr-2 border-gray-300 overflow-clip items-center !left-0"
                 >
                   <div class="flex items-center">
                     <NcButton class="!border-0 !shadow-none !bg-transparent !hover:bg-transparent" type="secondary" size="small">
                       <GeneralIcon
                         icon="chevronDown"
                         class="transition-all"
-                        :style="`${activeGroups.includes(grp.key) ? 'transform: rotate(360deg)' : 'transform: rotate(270deg)'}`"
+                        :style="`${
+                          activeGroups.includes(grp.key.toString()) ? 'transform: rotate(360deg)' : 'transform: rotate(270deg)'
+                        }`"
                       />
                     </NcButton>
 
@@ -448,7 +492,10 @@ const bgColor = computed(() => {
                       </a-tag>
                     </div>
                   </div>
-                  <div class="flex items-center">
+                  <div
+                    :style="`background: linear-gradient(to right, hsla(0, 0%, 97%, 0), ${bgColor} 18%);`"
+                    class="flex !h-10 absolute right-0 pl-8 pr-2 items-center"
+                  >
                     <div class="text-xs group-hover:hidden text-gray-500 nc-group-row-count">
                       <span>
                         {{ $t('datatype.Count') }}
@@ -463,7 +510,7 @@ const bgColor = computed(() => {
 
                       <template #overlay>
                         <NcMenu>
-                          <NcMenuItem v-if="activeGroups.includes(grp.key)" @click="collapseGroup(grp.key)">
+                          <NcMenuItem v-if="activeGroups.includes(grp.key.toString())" @click="collapseGroup(grp.key)">
                             <GeneralIcon icon="minimize" />
                             Collapse group
                           </NcMenuItem>
@@ -484,6 +531,12 @@ const bgColor = computed(() => {
                     </NcDropdown>
                   </div>
                 </div>
+                <SmartsheetGridAggregation
+                  :scroll-left="props.scrollLeft || _scrollLeft"
+                  :max-depth="maxDepth"
+                  :group="grp"
+                  :depth="_depth"
+                />
               </div>
             </template>
             <GroupByTable
@@ -497,13 +550,11 @@ const bgColor = computed(() => {
               :group-wrapper-change-page="groupWrapperChangePage"
               :row-height="rowHeight"
               :redistribute-rows="redistributeRows"
-              :expand-form="expandForm"
               :pagination-fixed-size="fullPage ? props.viewWidth : undefined"
               :pagination-hide-sidebars="true"
               :scroll-left="props.scrollLeft || _scrollLeft"
               :view-width="viewWidth"
               :scrollable="scrollable"
-              :full-page="fullPage"
             />
             <GroupBy
               v-else
@@ -513,8 +564,8 @@ const bgColor = computed(() => {
               :load-group-page="loadGroupPage"
               :group-wrapper-change-page="groupWrapperChangePage"
               :row-height="rowHeight"
+              :load-group-aggregation="loadGroupAggregation"
               :redistribute-rows="redistributeRows"
-              :expand-form="expandForm"
               :view-width="viewWidth"
               :depth="_depth + 1"
               :max-depth="maxDepth"
@@ -526,27 +577,28 @@ const bgColor = computed(() => {
       </div>
     </div>
   </div>
-  <LazySmartsheetPagination
+
+  <LazySmartsheetGridPaginationV2
     v-if="vGroup.root"
     v-model:pagination-data="vGroup.paginationData"
-    align-count-on-right
+    :scroll-left="_scrollLeft"
     custom-label="groups"
-    show-api-timing
+    :depth="maxDepth"
     :change-page="(p: number) => groupWrapperChangePage(p, vGroup)"
-    :style="`${props.depth && props.depth > 0 ? 'border-radius: 0 0 8px 8px !important;' : ''}`"
-  ></LazySmartsheetPagination>
+  />
 
   <LazySmartsheetPagination
     v-else
     v-model:pagination-data="vGroup.paginationData"
     align-count-on-right
     custom-label="groups"
+    align-left
     show-api-timing
     :change-page="(p: number) => groupWrapperChangePage(p, vGroup)"
     :hide-sidebars="true"
     :style="`${
       props.depth && props.depth > 0
-        ? 'border-radius: 0 0 8px 8px !important; background: transparent; border-top: 0px; height: 24px'
+        ? 'border-radius: 0 0 8px 8px !important; background: transparent; border-top: 0px; height: 24px; padding-bottom: 8px;'
         : ''
     }`"
     :fixed-size="undefined"

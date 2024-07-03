@@ -2,8 +2,19 @@
 import type { ComponentPublicInstance } from '@vue/runtime-core'
 import { capitalize } from '@vue/runtime-core'
 import type { Form as AntForm, SelectProps } from 'ant-design-vue'
-import type { CalendarType, FormType, GalleryType, GridType, KanbanType, MapType, TableType } from 'nocodb-sdk'
-import { UITypes, ViewTypes, isSystemColumn } from 'nocodb-sdk'
+import {
+  type CalendarType,
+  type ColumnType,
+  type FormType,
+  FormulaDataTypes,
+  type GalleryType,
+  type GridType,
+  type KanbanType,
+  type LookupType,
+  type MapType,
+  type TableType,
+} from 'nocodb-sdk'
+import { UITypes, ViewTypes } from 'nocodb-sdk'
 
 interface Props {
   modelValue: boolean
@@ -52,7 +63,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emits = defineEmits<Emits>()
 
-const { getMeta } = useMetas()
+const { metas, getMeta } = useMetas()
 
 const { viewsByTable } = storeToRefs(useViewsStore())
 
@@ -266,8 +277,8 @@ onMounted(async () => {
       if (props.type === ViewTypes.GALLERY) {
         viewSelectFieldOptions.value = [
           { value: null, label: 'No Image' },
-          ...meta.value
-            .columns!.filter((el) => el.uidt === UITypes.Attachment)
+          ...(meta.value.columns || [])
+            .filter((el) => el.uidt === UITypes.Attachment)
             .map((field) => {
               return {
                 value: field.id,
@@ -276,6 +287,46 @@ onMounted(async () => {
               }
             }),
         ]
+        const lookupColumns = (meta.value.columns || [])?.filter((c) => c.uidt === UITypes.Lookup)
+
+        const attLookupColumnIds: Set<string> = new Set()
+
+        const loadLookupMeta = async (originalCol: ColumnType, column: ColumnType, metaId?: string): Promise<void> => {
+          const relationColumn =
+            metaId || meta.value?.id
+              ? metas.value[metaId || meta.value?.id]?.columns?.find(
+                  (c: ColumnType) => c.id === (column?.colOptions as LookupType)?.fk_relation_column_id,
+                )
+              : undefined
+
+          if (relationColumn?.colOptions?.fk_related_model_id) {
+            await getMeta(relationColumn.colOptions.fk_related_model_id!)
+
+            const lookupColumn = metas.value[relationColumn.colOptions.fk_related_model_id]?.columns?.find(
+              (c: any) => c.id === (column?.colOptions as LookupType)?.fk_lookup_column_id,
+            ) as ColumnType | undefined
+
+            if (lookupColumn && isAttachment(lookupColumn)) {
+              attLookupColumnIds.add(originalCol.id)
+            } else if (lookupColumn && lookupColumn?.uidt === UITypes.Lookup) {
+              await loadLookupMeta(originalCol, lookupColumn, relationColumn.colOptions.fk_related_model_id)
+            }
+          }
+        }
+
+        await Promise.allSettled(lookupColumns.map((col) => loadLookupMeta(col, col)))
+
+        const lookupAttColumns = lookupColumns
+          .filter((column) => attLookupColumnIds.has(column?.id))
+          .map((c) => {
+            return {
+              value: c.id,
+              label: c.title,
+              uidt: c.uidt,
+            }
+          })
+
+        viewSelectFieldOptions.value = [...viewSelectFieldOptions.value, ...lookupAttColumns]
 
         if (coverImageColumnId.value) {
           form.fk_cover_image_col_id = coverImageColumnId.value
@@ -320,13 +371,28 @@ onMounted(async () => {
 
       if (props.type === ViewTypes.CALENDAR) {
         viewSelectFieldOptions.value = meta
-          .value!.columns!.filter((el) => el.uidt === UITypes.Date || (el.uidt === UITypes.DateTime && !isSystemColumn(el)))
+          .value!.columns!.filter(
+            (el) =>
+              [UITypes.DateTime, UITypes.Date, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(el.uidt) ||
+              (el.uidt === UITypes.Formula && (el.colOptions as any)?.parsed_tree?.dataType === FormulaDataTypes.DATE),
+          )
           .map((field) => {
             return {
               value: field.id,
               label: field.title,
               uidt: field.uidt,
             }
+          })
+          .sort((a, b) => {
+            const priority = {
+              [UITypes.DateTime]: 1,
+              [UITypes.Date]: 2,
+              [UITypes.Formula]: 3,
+              [UITypes.CreatedTime]: 4,
+              [UITypes.LastModifiedTime]: 5,
+            }
+
+            return (priority[a.uidt] || 6) - (priority[b.uidt] || 6)
           })
 
         if (viewSelectFieldOptions.value?.length) {

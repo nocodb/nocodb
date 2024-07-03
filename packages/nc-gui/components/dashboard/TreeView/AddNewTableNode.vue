@@ -94,7 +94,7 @@ function openAirtableImportDialog(baseId?: string, sourceId?: string) {
 }
 
 function openTableCreateMagicDialog(sourceId?: string) {
-  if (!sourceId) return
+  if (!sourceId || !base.value?.id) return
 
   $e('c:table:create:navdraw')
 
@@ -102,6 +102,7 @@ function openTableCreateMagicDialog(sourceId?: string) {
 
   const { close } = useDialog(resolveComponent('DlgTableMagic'), {
     'modelValue': isOpen,
+    'baseId': base.value.id,
     'sourceId': sourceId,
     'onUpdate:modelValue': closeDialog,
   })

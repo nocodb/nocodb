@@ -23,6 +23,8 @@ const { includeM2M } = useGlobal()
 
 const { loadTables } = useBase()
 
+const viewsStore = useViewsStore()
+
 const isLoading = ref(false)
 
 const onDelete = async () => {
@@ -44,6 +46,13 @@ const onDelete = async () => {
         loadTables()
       }
     }
+
+    // Update views if column is used as cover image
+
+    viewsStore.updateViewCoverImageColumnId({
+      metaId: meta.value?.id as string,
+      columnIds: new Set([column?.value?.id as string]),
+    })
 
     $e('a:column:delete')
     visible.value = false

@@ -3,7 +3,7 @@ import { AccountPage } from '../../../pages/Account';
 import { AccountTokenPage } from '../../../pages/Account/Token';
 import setup, { unsetup } from '../../../setup';
 
-test.describe('User roles', () => {
+test.describe('Token Management', () => {
   let accountTokenPage: AccountTokenPage;
   let accountPage: AccountPage;
   // @ts-ignore

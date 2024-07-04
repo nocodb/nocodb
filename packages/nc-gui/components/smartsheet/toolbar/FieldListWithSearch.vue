@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { ColumnType } from 'nocodb-sdk'
+import { isSystemColumn, type ColumnType } from 'nocodb-sdk'
 
 const props = defineProps<{
   // As we need to focus search box when the parent is opened
@@ -13,9 +13,38 @@ const props = defineProps<{
 
 const emits = defineEmits<{ selected: [ColumnType] }>()
 
-const { isParentOpen, toolbarMenu, searchInputPlaceholder, selectedOptionId, options, showSelectedOption } = toRefs(props)
+const {
+  isParentOpen,
+  toolbarMenu,
+  searchInputPlaceholder,
+  selectedOptionId,
+  options: _options,
+  showSelectedOption,
+} = toRefs(props)
 
 const searchQuery = ref('')
+
+const options = computed(() =>
+  (_options.value || []).sort((field1, field2) => {
+    // sort and keep system columns at the end
+    let orderVal1 = 0
+    let orderVal2 = 0
+    let sortByOrder = 0
+
+    if (isSystemColumn(field1)) {
+      orderVal1 = 1
+    }
+    if (isSystemColumn(field2)) {
+      orderVal2 = 1
+    }
+
+    if (field1?.order !== undefined && field2?.order !== undefined) {
+      sortByOrder = field1.order - field2.order
+    }
+
+    return orderVal1 - orderVal2 || sortByOrder
+  }),
+)
 
 const filteredOptions = computed(
   () => options.value?.filter((c: ColumnType) => c.title?.toLowerCase().includes(searchQuery.value.toLowerCase())) ?? [],

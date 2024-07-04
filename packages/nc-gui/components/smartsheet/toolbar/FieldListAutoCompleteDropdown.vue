@@ -69,6 +69,7 @@ const options = computed<SelectProps['options']>(() =>
     ?.sort((field1, field2) => {
       let orderVal1 = 0
       let orderVal2 = 0
+      let sortByOrder = 0
 
       if (isSystemColumn(field1)) {
         orderVal1 = 1
@@ -77,7 +78,11 @@ const options = computed<SelectProps['options']>(() =>
         orderVal2 = 1
       }
 
-      return orderVal1 - orderVal2
+      if (field1?.order !== undefined && field2?.order !== undefined) {
+        sortByOrder = field1.order - field2.order
+      }
+
+      return orderVal1 - orderVal2 || sortByOrder
     })
     ?.map((c: ColumnType) => ({
       value: c.id,

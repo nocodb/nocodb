@@ -40,7 +40,8 @@ export class DataSourcesPage extends BasePage {
   }
 
   async openAcl({ dataSourceName = defaultBaseName }: { dataSourceName?: string } = {}) {
-    await this.get().locator('.ds-table-row', { hasText: dataSourceName }).locator('button:has-text("UI ACL")').click();
+    await this.get().locator('.ds-table-row', { hasText: dataSourceName }).click();
+    await this.get().locator('[data-testid="nc-acl-tab"]').click();
   }
 
   async openMetaSync({ rowIndex }: { rowIndex: number }) {

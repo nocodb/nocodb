@@ -569,7 +569,7 @@ export default {
 
 <template>
   <component
-    :is="isMobileMode ? Drawer : NcModal"
+    :is="Drawer"
     :body-style="{ padding: 0 }"
     :class="{ active: isExpanded }"
     :closable="false"
@@ -1002,6 +1002,7 @@ export default {
 
   .ant-drawer-content-wrapper {
     @apply !h-[90vh];
+    width: min(30vw, 1280px);
     .ant-drawer-content {
       @apply rounded-t-2xl;
     }
@@ -1110,5 +1111,8 @@ export default {
 }
 :deep(.nc-data-cell .nc-cell-field.nc-lookup-cell .nc-cell-field) {
   @apply px-0;
+}
+.ant-drawer {
+  z-index: 0 !important;
 }
 </style>

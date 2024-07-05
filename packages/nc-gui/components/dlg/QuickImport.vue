@@ -257,9 +257,10 @@ function formatJson() {
   jsonEditorRef.value?.format()
 }
 
-function populateUniqueTableName(tn: string) {
+function populateUniqueTableName(tn: string, draftTn: string[] = []) {
   let c = 1
   while (
+    draftTn.includes(tn) ||
     baseTables.value.get(baseId)?.some((t: TableType) => {
       const s = t.table_name.split('___')
       let target = t.table_name
@@ -495,10 +496,13 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
       if (importDataOnly) importColumns.value = templateGenerator!.getColumns()
       else {
         // ensure the target table name not exist in current table list
-        templateData.value.tables = templateData.value.tables.map((table: Record<string, any>) => ({
-          ...table,
-          table_name: populateUniqueTableName(table.table_name),
-        }))
+        const draftTableNames = [] as string[]
+
+        templateData.value.tables = templateData.value.tables.map((table: Record<string, any>) => {
+          const table_name = populateUniqueTableName(table.table_name, draftTableNames)
+          draftTableNames.push(table_name)
+          return { ...table, table_name }
+        })
       }
       importData.value = templateGenerator!.getData()
     }

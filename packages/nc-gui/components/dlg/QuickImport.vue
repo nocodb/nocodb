@@ -524,10 +524,7 @@ const onChange = () => {
 
 onMounted(() => {
   importState.parserConfig.importDataOnly = importDataOnly
-
-  if (!importDataOnly) {
-    importState.parserConfig.autoSelectFieldTypes = false
-  }
+  importState.parserConfig.autoSelectFieldTypes = importDataOnly
 })
 </script>
 
@@ -641,17 +638,6 @@ onMounted(() => {
           <div class="mb-4">
             <!-- Advanced Settings -->
             <span class="prose-lg">{{ $t('title.advancedSettings') }}</span>
-
-            <a-form-item v-if="!importDataOnly" class="!my-2">
-              <NcTooltip align="left" class="inline-block">
-                <template #title>
-                  {{ $t('title.comingSoon') }}
-                </template>
-                <a-checkbox v-model:checked="importState.parserConfig.autoSelectFieldTypes" :disabled="true">
-                  <span class="caption">{{ $t('labels.autoSelectFieldTypes') }} </span>
-                </a-checkbox>
-              </NcTooltip>
-            </a-form-item>
 
             <a-form-item v-if="isImportTypeCsv || IsImportTypeExcel" class="!my-2">
               <a-checkbox v-model:checked="importState.parserConfig.firstRowAsHeaders">

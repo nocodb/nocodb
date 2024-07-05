@@ -1,5 +1,5 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
-import { MAX_WIDTH_FOR_MOBILE_MODE } from '~/lib/constants'
+import { MAX_WIDTH_FOR_MOBILE_MODE, INITIAL_LEFT_SIDEBAR_WIDTH } from '~/lib/constants'
 
 export const useSidebarStore = defineStore('sidebarStore', () => {
   const { width } = useWindowSize()
@@ -22,8 +22,8 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
   const isRightSidebarOpen = ref(true)
 
   const leftSideBarSize = ref({
-    old: _leftSidebarSize.value ?? 288,
-    current: isViewPortMobile() ? 0 : _leftSidebarSize.value ?? 288,
+    old: _leftSidebarSize.value ?? INITIAL_LEFT_SIDEBAR_WIDTH,
+    current: isViewPortMobile() ? 0 : _leftSidebarSize.value ?? INITIAL_LEFT_SIDEBAR_WIDTH,
   })
 
   const leftSidebarWidthPercent = ref((leftSideBarSize.value.current / width.value) * 100)

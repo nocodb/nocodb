@@ -192,7 +192,6 @@ export default defineNuxtConfig({
       'process.env.DEBUG': 'false',
       'process.nextTick': 'globalThis.setImmediate',
       'process.env.ANT_MESSAGE_DURATION': process.env.ANT_MESSAGE_DURATION,
-      'process.env.NUXT_PAGE_TRANSITION_DISABLE': process.env.NUXT_PAGE_TRANSITION_DISABLE,
     },
     server: {
       watch: {

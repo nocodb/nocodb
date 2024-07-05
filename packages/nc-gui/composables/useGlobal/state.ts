@@ -1,6 +1,7 @@
 import { useStorage } from '@vueuse/core'
 import type { JwtPayload } from 'jwt-decode'
 import type { AppInfo, State, StoredState } from './types'
+import { INITIAL_LEFT_SIDEBAR_WIDTH } from '~/lib/constants'
 
 export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
   /** get the preferred languages of a user, according to browser settings */
@@ -57,7 +58,7 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     isMobileMode: null,
     lastOpenedWorkspaceId: null,
     gridViewPageSize: 25,
-    leftSidebarSize: process.env.NUXT_PAGE_TRANSITION_DISABLE ? 256 : 288,
+    leftSidebarSize: INITIAL_LEFT_SIDEBAR_WIDTH,
   }
 
   /** saves a reactive state, any change to these values will write/delete to localStorage */

@@ -1067,12 +1067,12 @@
       "showJunctionTableNames": "Namen der Kreuzungstabellen anzeigen"
     },
     "kanban": {
-      "collapseStack": "Collapse stack",
+      "collapseStack": "Stapel einklappen",
       "collapseAll": "Collapse all",
       "expandAll": "Expand all",
       "renameStack": "Rename stack",
-      "deleteStack": "Delete stack",
-      "stackedBy": "Stacked by",
+      "deleteStack": "Stapel löschen",
+      "stackedBy": "Gestapelt von",
       "chooseGroupingField": "Wählen Sie ein Gruppierungsfeld",
       "addOrEditStack": "Stapel hinzufügen / bearbeiten"
     },

@@ -13,6 +13,8 @@ const closeMenu = () => {
   emits('update:visible', false)
 }
 
+const inputRef = ref<HTMLInputElement | null>(null)
+
 const tempAttachments = ref<
   {
     url?: string
@@ -24,7 +26,7 @@ const tempAttachments = ref<
 >([])
 
 const onSave = async () => {
-  await updateModelValue(tempAttachments.value)
+  updateModelValue(tempAttachments.value)
   closeMenu()
 }
 
@@ -55,6 +57,7 @@ const uploadAndParseUrl = async () => {
     }
   } finally {
     isParsing.value = false
+    inputRef.value?.focus()
   }
 }
 </script>
@@ -73,10 +76,11 @@ const uploadAndParseUrl = async () => {
       </NcTooltip>
     </div>
 
-    <div class="flex-grow">
+    <div class="flex-grow bg-white">
       <h1 class="text-gray-800 font-semibold">Add files from URL</h1>
-      <div class="flex gap-2">
+      <div class="flex pb-2 bg-white gap-2">
         <a-input
+          ref="inputRef"
           v-model:value="url"
           type="url"
           :disabled="isParsing"
@@ -89,37 +93,41 @@ const uploadAndParseUrl = async () => {
           Upload
         </NcButton>
       </div>
-      <span v-if="url.length > 0 && !isValidUrl" class="text-red-500"> Enter a valid URL to upload files </span>
-      <div v-if="tempAttachments.length > 0" class="overflow-y-auto mt-2">
-        <h1 class="font-semibold text-gray-800">Files</h1>
+      <span v-if="url.length > 0 && !isValidUrl" class="text-red-500 text-[13px]"> Enter a valid URL to upload files </span>
+      <template v-if="tempAttachments.length > 0">
+        <div :style="`height: ${!isValidUrl ? '232px' : '250px'}`" class="overflow-y-auto bg-white !max-h-[265px]">
+          <h1 class="font-semibold sticky top-0 bg-white text-gray-800">Files</h1>
 
-        <div
-          v-for="(file, index) in tempAttachments"
-          :key="index"
-          class="flex w-full items-center mt-2 h-10 px-2 py-1 border-1 rounded-md"
-        >
-          <div class="flex w-full items-center gap-2">
-            <GeneralIcon icon="file" />
+          <div
+            v-for="(file, index) in tempAttachments"
+            :key="index"
+            class="flex w-full items-center mt-2 h-10 px-2 py-1 border-1 rounded-md"
+          >
+            <div class="flex w-full items-center gap-2">
+              <GeneralIcon icon="file" />
+
+              {{ file.title }}
+              <NcTooltip class="hover:underline">
+                <NuxtLink class="flex items-center" target="_blank" @click="openAttachment(file)">
+                  <component :is="iconMap.externalLink" class="w-3.5 h-3.5 text-gray-500" />
+                </NuxtLink>
+
+                <template #title> Open file </template>
+              </NcTooltip>
+            </div>
+
+            <div class="flex-grow-1"></div>
+
             <NcTooltip>
-              <NuxtLink target="_blank" @click="openAttachment(file)">
-                {{ file.title }}
-              </NuxtLink>
+              <template #title> Remove file </template>
 
-              <template #title> Open file </template>
+              <NcButton type="text" size="xsmall" @click="deleteAttachment(index)">
+                <GeneralIcon icon="close" />
+              </NcButton>
             </NcTooltip>
           </div>
-
-          <div class="flex-grow-1"></div>
-
-          <NcTooltip>
-            <template #title> Remove file </template>
-
-            <NcButton type="text" size="xsmall" @click="deleteAttachment(index)">
-              <GeneralIcon icon="close" />
-            </NcButton>
-          </NcTooltip>
         </div>
-      </div>
+      </template>
     </div>
 
     <div class="flex gap-2 items-center justify-end">

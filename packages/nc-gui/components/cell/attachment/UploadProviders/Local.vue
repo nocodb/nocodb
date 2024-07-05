@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { useAttachmentCell } from '../utils'
+import { createThumbnail } from '~/utils/attachmentUtils'
+
 const emits = defineEmits<{
   'update:visible': [value: boolean]
   'upload': [fileList: File[]]
@@ -7,6 +10,8 @@ const emits = defineEmits<{
 const dropZoneRef = ref<HTMLDivElement>()
 
 const tempFiles = ref<File[]>([])
+
+const { isLoading } = useAttachmentCell()!
 
 const { files, open: _open } = useFileDialog({
   reset: true,
@@ -25,6 +30,19 @@ const onDrop = (files: File[], event: DragEvent) => {
   event.stopPropagation()
 }
 
+const thumbnails = computedAsync(async () => {
+  const map = new Map()
+  await Promise.all(
+    tempFiles.value.map(async (file) => {
+      const thumbnail = await createThumbnail(file)
+      if (thumbnail) {
+        map.set(file, thumbnail)
+      }
+    }),
+  )
+  return map
+})
+
 const onRemoveFileClick = (file: File) => {
   tempFiles.value = tempFiles.value.filter((f) => f !== file)
 }
@@ -38,6 +56,10 @@ const clearAll = () => {
 const open = () => {
   _open()
 }
+
+onBeforeUnmount(() => {
+  tempFiles.value = []
+})
 </script>
 
 <template>
@@ -70,7 +92,7 @@ const open = () => {
       <div v-if="!tempFiles.length" class="flex cursor-pointer items-center justify-center flex-col gap-2">
         <template v-if="!isOverDropZone">
           <component :is="iconMap.upload" class="w-5 h-5" />
-          <h1>Drop files here to upload</h1>
+          <h1>Click to browser files OR drag files here to upload</h1>
         </template>
         <template v-if="isOverDropZone">
           <component :is="iconMap.upload" class="w-5 text-brand-500 h-5" />
@@ -79,13 +101,24 @@ const open = () => {
       </div>
       <template v-else>
         <div class="grid overflow-y-auto grid-cols-4 w-full h-full items-start p-4 justify-center gap-4">
-          <div v-for="file in tempFiles" :key="file.name" class="flex gap-2 group pt-2 min-w-34 max-w-28 pb-4 flex-col relative">
-            <component :is="iconMap.file" class="w-16 h-16" />
+          <div v-for="file in tempFiles" :key="file.name" class="flex gap-1.5 group min-w-34 max-w-28 pb-4 flex-col relative">
+            <div
+              v-if="!thumbnails.get(file)"
+              style="height: 140px"
+              class="flex items-center justify-center rounded-md bg-gray-300"
+            >
+              <component :is="iconMap.file" class="w-16 h-16" />
+            </div>
+            <img v-else :src="thumbnails.get(file)" style="height: 140px" alt="thumbnail" class="rounded-md object-cover" />
 
             <div class="relative text-[12px] font-semibold text-gray-800 flex">
-              <div class="flex-auto truncate line-height-4">
-                {{ file.name }}
-              </div>
+              <NcTooltip class="flex-auto truncate" placement="bottom">
+                <template #title> {{ file.name }} </template>
+                <div class="flex-auto truncate line-height-4">
+                  {{ file.name }}
+                </div>
+              </NcTooltip>
+
               <div class="flex-none hide-ui transition-all transition-ease-in-out !h-4 flex items-center bg-white">
                 <NcTooltip placement="bottom">
                   <template #title> {{ $t('title.removeFile') }} </template>
@@ -101,10 +134,11 @@ const open = () => {
       </template>
     </div>
     <div v-if="tempFiles.length" class="flex gap-2 pr-2 bg-white w-full items-center justify-end">
-      <NcButton type="secondary" size="small" @click="emits('update:visible', false)"> Cancel </NcButton>
+      <NcButton :disabled="isLoading" type="secondary" size="small" @click="emits('update:visible', false)"> Cancel </NcButton>
 
-      <NcButton data-testid="nc-upload-file" size="small" @click="emits('upload', tempFiles)">
-        Upload {{ tempFiles.length }} files
+      <NcButton :loading="isLoading" data-testid="nc-upload-file" size="small" @click="emits('upload', tempFiles)">
+        <template v-if="isLoading"> Uploading </template>
+        <template v-else> Upload {{ tempFiles.length }} files </template>
       </NcButton>
     </div>
   </div>

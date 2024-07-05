@@ -1,4 +1,5 @@
 import path from 'path';
+import Url from 'url';
 import { AppEvents } from 'nocodb-sdk';
 import { Injectable, Logger } from '@nestjs/common';
 import { nanoid } from 'nanoid';
@@ -125,7 +126,6 @@ export class AttachmentsService {
     urls: AttachmentReqType[];
     req: NcRequest;
   }) {
-    // TODO: add getAjvValidatorMw
     const filePath = this.sanitizeUrlPath(
       param?.path?.toString()?.split('/') || [''],
     );
@@ -147,36 +147,36 @@ export class AttachmentsService {
       param.urls?.map?.((urlMeta) => async () => {
         try {
           const { url, fileName: _fileName } = urlMeta;
-          const fileNameWithExt = _fileName || url.split('/').pop();
+          const response = await axios.head(url, { maxRedirects: 5 });
+          const finalUrl = response.request.res.responseUrl || url;
+
+          const parsedUrl = Url.parse(finalUrl, true);
+          const decodedPath = decodeURIComponent(parsedUrl.pathname);
+          const fileNameWithExt = _fileName || path.basename(decodedPath);
 
           const fileName = `${path.parse(fileNameWithExt).name}_${nanoid(
             5,
           )}${path.extname(fileNameWithExt)}`;
 
-          const attachmentUrl: string | null =
-            await storageAdapter.fileCreateByUrl(
-              slash(path.join(destPath, fileName)),
-              url,
-            );
-
-          let attachmentPath: string | undefined;
-
+          const attachmentUrl = await storageAdapter.fileCreateByUrl(
+            slash(path.join(destPath, fileName)),
+            finalUrl,
+          );
           // if `attachmentUrl` is null, then it is local attachment
-          if (!attachmentUrl) {
-            // then store the attachment path only
-            // url will be constructed in `useAttachmentCell`
-            attachmentPath = `download/${filePath.join('/')}/${fileName}`;
-          }
+          // then store the attachment path only
+          // url will be constructed in `useAttachmentCell`
+          const attachmentPath = !attachmentUrl
+            ? `download/${filePath.join('/')}/${fileName}`
+            : undefined;
 
-          const response = await axios.head(url);
           const mimeType = response.headers['content-type']?.split(';')[0];
           const size = response.headers['content-length'];
 
           attachments.push({
-            ...(attachmentUrl ? { url: attachmentUrl } : {}),
+            ...(attachmentUrl ? { url: finalUrl } : {}),
             ...(attachmentPath ? { path: attachmentPath } : {}),
             title: fileNameWithExt,
-            mimetype: mimeType ?? urlMeta.mimetype,
+            mimetype: mimeType || urlMeta.mimetype,
             size: size ? parseInt(size) : urlMeta.size,
             icon:
               mimeIcons[path.extname(fileNameWithExt).slice(1)] || undefined,
@@ -190,9 +190,7 @@ export class AttachmentsService {
     await queue.onIdle();
 
     if (errors.length) {
-      for (const error of errors) {
-        this.logger.error(error);
-      }
+      errors.forEach((error) => this.logger.error(error));
       throw errors[0];
     }
 
@@ -200,6 +198,7 @@ export class AttachmentsService {
       type: 'url',
       req: param.req,
     });
+
     return attachments;
   }
 

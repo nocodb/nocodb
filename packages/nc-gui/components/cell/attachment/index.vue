@@ -213,7 +213,7 @@ const handleFileDelete = (i: number) => {
               isGrid ? '22px' : '32px'
             })`,
     }"
-    class="nc-attachment-cell relative flex color-transition flex items-center w-full xs:(min-h-12 max-h-32)"
+    class="nc-attachment-cell relative flex color-transition gap-2 flex items-center w-full xs:(min-h-12 max-h-32)"
     :class="{ 'justify-center': !active, 'justify-between': active, 'px-2': isExpandedForm }"
   >
     <LazyCellAttachmentCarousel />
@@ -272,9 +272,9 @@ const handleFileDelete = (i: number) => {
         :class="{
           'justify-center': !isExpandedForm && !isGallery && !isKanban,
           'py-1': rowHeight === 1 && !isForm && !isExpandedForm,
-          'py-1.5': rowHeight !== 1 || isForm || isExpandedForm,
+          'py-1.5 !gap-4 ': rowHeight !== 1 || isForm || isExpandedForm,
         }"
-        class="nc-attachment-wrapper flex cursor-pointer w-full items-center flex-wrap gap-1 nc-scrollbar-thin mt-0 items-start px-[1px]"
+        class="nc-attachment-wrapper flex cursor-pointer w-full items-center flex-wrap gap-3 nc-scrollbar-thin mt-0 items-start px-[1px]"
         :style="{
           maxHeight: isForm || isExpandedForm ? undefined : `max(100%, ${isGrid ? '22px' : '32px'})`,
         }"

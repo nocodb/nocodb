@@ -19,8 +19,8 @@ const closeModal = (value: boolean) => {
   dialogShow.value = value
 }
 
-const saveAttachments = (files: File[]) => {
-  saveAttachment(files, {} as any)
+const saveAttachments = async (files: File[]) => {
+  await saveAttachment(files, {} as any)
   dialogShow.value = false
 }
 </script>
@@ -45,7 +45,10 @@ const saveAttachments = (files: File[]) => {
             }"
             @click="selectMenu('local')"
           >
-            Local Files
+            <div class="flex gap-2 items-center">
+              <GeneralIcon icon="upload" />
+              Local Files
+            </div>
           </NcMenuItem>
           <NcMenuItem
             key="url"
@@ -54,7 +57,10 @@ const saveAttachments = (files: File[]) => {
             }"
             @click="selectMenu('url')"
           >
-            Upload via URL
+            <div class="flex gap-2 items-center">
+              <GeneralIcon icon="link" />
+              Upload via URL
+            </div>
           </NcMenuItem>
           <NcMenuItem
             key="webcam"
@@ -63,7 +69,10 @@ const saveAttachments = (files: File[]) => {
             }"
             @click="selectMenu('webcam')"
           >
-            Webcam
+            <div class="flex gap-2 items-center">
+              <GeneralIcon icon="camera" />
+              Webcam
+            </div>
           </NcMenuItem>
         </NcMenu>
       </div>
@@ -98,8 +107,10 @@ const saveAttachments = (files: File[]) => {
   }
 }
 
-.nc-modal {
-  @apply !p-0;
+.nc-modal-attachment-create {
+  .nc-modal {
+    @apply !p-0;
+  }
 }
 </style>
 

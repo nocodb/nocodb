@@ -1,8 +1,12 @@
 <script setup lang="ts">
+import { useAttachmentCell } from '../utils'
+
 const emits = defineEmits<{
   'update:visible': [value: boolean]
   'upload': [fileList: File[]]
 }>()
+
+const { isLoading } = useAttachmentCell()!
 
 const permissionGranted = ref(false)
 const capturedImage = ref<null | File>(null)
@@ -101,17 +105,24 @@ onBeforeUnmount(() => {
         <h1 class="text-gray-800 font-semibold text-center text-xl">Please allow access to your camera</h1>
       </div>
     </div>
-    <div v-else class="w-full gap-3 h-full flex-col flex items-center justify-between py-2">
-      <template v-if="!capturedImage">
-        <video ref="videoRef" class="pt-4" style="width: 400px" autoplay></video>
+    <div
+      v-else
+      :class="{
+        'py-8': !capturedImage,
+        'pt-8 pb-2': capturedImage,
+      }"
+      class="w-full gap-3 h-full flex-col flex items-center justify-between"
+    >
+      <div v-if="!capturedImage" class="w-full gap-3 h-full flex-col flex items-center justify-between">
+        <video ref="videoRef" style="width: 400px" autoplay></video>
 
         <NcButton class="!rounded-full !px-0" @click="captureImage">
           <mdi-camera class="text-xl" />
         </NcButton>
-      </template>
+      </div>
 
       <div v-show="capturedImage" class="flex group flex-col gap-1">
-        <canvas ref="canvasRef" class="pt-4" style="width: 400px; display: none"></canvas>
+        <canvas ref="canvasRef" style="width: 400px; display: none"></canvas>
 
         <div class="relative text-[12px] font-semibold text-gray-800 flex">
           <div class="flex-auto truncate line-height-4">
@@ -128,10 +139,14 @@ onBeforeUnmount(() => {
           {{ formatBytes(capturedImage?.size, 2) }}
         </div>
       </div>
-      <div v-show="capturedImage" class="flex gap-2 pr-2 w-full items-center justify-end">
-        <NcButton type="secondary" size="small" @click="emits('update:visible', false)"> Cancel </NcButton>
+      <div v-show="capturedImage" class="flex gap-2 pr-2 sticky bottom-0 w-full items-center justify-end">
+        <NcButton :disabled="isLoading" type="secondary" size="small" @click="emits('update:visible', false)"> Cancel </NcButton>
 
-        <NcButton size="small" @click="emits('upload', [capturedImage] as File[])"> Upload image </NcButton>
+        <NcButton :loading="isLoading" size="small" @click="emits('upload', [capturedImage] as File[])">
+          <template v-if="!isLoading"> Upload image </template>
+
+          <template v-else> Uploading </template>
+        </NcButton>
       </div>
     </div>
   </div>

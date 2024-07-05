@@ -310,6 +310,28 @@ class BaseModelSqlv2 {
     return data;
   }
 
+  public async readOnlyPrimariesByPkFromModel(
+    props: { model: Model; id: any; extractDisplayValueData?: boolean }[],
+  ): Promise<any[]> {
+    return await Promise.all(
+      props.map(({ model, id, extractDisplayValueData = true }) =>
+        this.readByPkFromModel(
+          model,
+          undefined,
+          extractDisplayValueData,
+          id,
+          false,
+          {},
+          {
+            ignoreView: true,
+            getHiddenColumn: true,
+            extractOnlyPrimaries: true,
+          },
+        ),
+      ),
+    );
+  }
+
   public async exist(id?: any): Promise<any> {
     const qb = this.dbDriver(this.tnPath);
     await this.model.getColumns(this.context);
@@ -5631,33 +5653,9 @@ class BaseModelSqlv2 {
 
           if (oldRowId) {
             const [parentRelatedPkValue, childRelatedPkValue] =
-              await Promise.all([
-                await this.readByPkFromModel(
-                  childTable,
-                  undefined,
-                  true,
-                  childId,
-                  false,
-                  {},
-                  {
-                    ignoreView: true,
-                    getHiddenColumn: true,
-                    extractOnlyPrimaries: true,
-                  },
-                ),
-                await this.readByPkFromModel(
-                  parentTable,
-                  undefined,
-                  true,
-                  oldRowId,
-                  false,
-                  {},
-                  {
-                    ignoreView: true,
-                    getHiddenColumn: true,
-                    extractOnlyPrimaries: true,
-                  },
-                ),
+              await this.readOnlyPrimariesByPkFromModel([
+                { model: childTable, id: childId },
+                { model: parentTable, id: oldRowId },
               ]);
 
             auditUpdateObj.push({
@@ -5733,19 +5731,10 @@ class BaseModelSqlv2 {
                   null,
               });
 
-              const childRelatedPkValue = await this.readByPkFromModel(
-                childTable,
-                undefined,
-                true,
-                rowId,
-                false,
-                {},
-                {
-                  ignoreView: true,
-                  getHiddenColumn: true,
-                  extractOnlyPrimaries: true,
-                },
-              );
+              const [childRelatedPkValue] =
+                await this.readOnlyPrimariesByPkFromModel([
+                  { model: childTable, id: rowId },
+                ]);
 
               if (parentTable.id !== childTable.id) {
                 auditUpdateObj.push({
@@ -5775,33 +5764,9 @@ class BaseModelSqlv2 {
 
             if (oldChildRowId) {
               const [parentRelatedPkValue, childRelatedPkValue] =
-                await Promise.all([
-                  await this.readByPkFromModel(
-                    parentTable,
-                    undefined,
-                    true,
-                    oldChildRowId,
-                    false,
-                    {},
-                    {
-                      ignoreView: true,
-                      getHiddenColumn: true,
-                      extractOnlyPrimaries: true,
-                    },
-                  ),
-                  await this.readByPkFromModel(
-                    childTable,
-                    undefined,
-                    true,
-                    rowId,
-                    false,
-                    {},
-                    {
-                      ignoreView: true,
-                      getHiddenColumn: true,
-                      extractOnlyPrimaries: true,
-                    },
-                  ),
+                await this.readOnlyPrimariesByPkFromModel([
+                  { model: parentTable, id: oldChildRowId },
+                  { model: childTable, id: rowId },
                 ]);
 
               auditUpdateObj.push({
@@ -5877,33 +5842,9 @@ class BaseModelSqlv2 {
 
             if (oldChildRowId) {
               const [parentRelatedPkValue, childRelatedPkValue] =
-                await Promise.all([
-                  await this.readByPkFromModel(
-                    parentTable,
-                    undefined,
-                    true,
-                    oldChildRowId,
-                    false,
-                    {},
-                    {
-                      ignoreView: true,
-                      getHiddenColumn: true,
-                      extractOnlyPrimaries: true,
-                    },
-                  ),
-                  await this.readByPkFromModel(
-                    childTable,
-                    undefined,
-                    true,
-                    rowId,
-                    false,
-                    {},
-                    {
-                      ignoreView: true,
-                      getHiddenColumn: true,
-                      extractOnlyPrimaries: true,
-                    },
-                  ),
+                await this.readOnlyPrimariesByPkFromModel([
+                  { model: parentTable, id: oldChildRowId },
+                  { model: childTable, id: rowId },
                 ]);
 
               auditUpdateObj.push({
@@ -5954,33 +5895,9 @@ class BaseModelSqlv2 {
 
               if (oldRowId) {
                 const [parentRelatedPkValue, childRelatedPkValue] =
-                  await Promise.all([
-                    await this.readByPkFromModel(
-                      parentTable,
-                      undefined,
-                      true,
-                      childId,
-                      false,
-                      {},
-                      {
-                        ignoreView: true,
-                        getHiddenColumn: true,
-                        extractOnlyPrimaries: true,
-                      },
-                    ),
-                    await this.readByPkFromModel(
-                      childTable,
-                      undefined,
-                      true,
-                      oldRowId,
-                      false,
-                      {},
-                      {
-                        ignoreView: true,
-                        getHiddenColumn: true,
-                        extractOnlyPrimaries: true,
-                      },
-                    ),
+                  await this.readOnlyPrimariesByPkFromModel([
+                    { model: parentTable, id: childId },
+                    { model: childTable, id: oldRowId },
                   ]);
 
                 auditUpdateObj.push({
@@ -6030,33 +5947,9 @@ class BaseModelSqlv2 {
 
               if (oldChildRowId) {
                 const [parentRelatedPkValue, childRelatedPkValue] =
-                  await Promise.all([
-                    await this.readByPkFromModel(
-                      childTable,
-                      undefined,
-                      true,
-                      oldChildRowId,
-                      false,
-                      {},
-                      {
-                        ignoreView: true,
-                        getHiddenColumn: true,
-                        extractOnlyPrimaries: true,
-                      },
-                    ),
-                    await this.readByPkFromModel(
-                      parentTable,
-                      undefined,
-                      true,
-                      rowId,
-                      false,
-                      {},
-                      {
-                        ignoreView: true,
-                        getHiddenColumn: true,
-                        extractOnlyPrimaries: true,
-                      },
-                    ),
+                  await this.readOnlyPrimariesByPkFromModel([
+                    { model: childTable, id: oldChildRowId },
+                    { model: parentTable, id: rowId },
                   ]);
 
                 auditUpdateObj.push({
@@ -6097,33 +5990,9 @@ class BaseModelSqlv2 {
               : null;
             if (oldRowId) {
               const [parentRelatedPkValue, childRelatedPkValue] =
-                await Promise.all([
-                  await this.readByPkFromModel(
-                    childTable,
-                    undefined,
-                    true,
-                    childId,
-                    false,
-                    {},
-                    {
-                      ignoreView: true,
-                      getHiddenColumn: true,
-                      extractOnlyPrimaries: true,
-                    },
-                  ),
-                  await this.readByPkFromModel(
-                    parentTable,
-                    undefined,
-                    true,
-                    oldRowId,
-                    false,
-                    {},
-                    {
-                      ignoreView: true,
-                      getHiddenColumn: true,
-                      extractOnlyPrimaries: true,
-                    },
-                  ),
+                await this.readOnlyPrimariesByPkFromModel([
+                  { model: childTable, id: childId },
+                  { model: parentTable, id: oldRowId },
                 ]);
 
               auditUpdateObj.push({

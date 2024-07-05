@@ -29,10 +29,11 @@ const stopCamera = () => {
   if (videoRef.value && videoRef.value.srcObject) {
     const stream = videoRef.value.srcObject as MediaStream
     const tracks = stream.getTracks()
-    tracks.forEach((track) => {
+
+    for (const track of tracks) {
       track.stop()
-    })
-    videoRef.value.srcObject = null
+    }
+    videoRef.value.src = null
   }
 }
 
@@ -87,6 +88,10 @@ const captureImage = () => {
 
 onMounted(() => {
   checkPermission()
+})
+
+onBeforeUnmount(() => {
+  stopCamera()
 })
 </script>
 

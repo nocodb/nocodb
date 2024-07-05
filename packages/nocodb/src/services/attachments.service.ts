@@ -4,6 +4,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { nanoid } from 'nanoid';
 import slash from 'slash';
 import PQueue from 'p-queue';
+import axios from 'axios';
 import type { AttachmentReqType, FileType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -167,13 +168,18 @@ export class AttachmentsService {
             attachmentPath = `download/${filePath.join('/')}/${fileName}`;
           }
 
+          const response = await axios.head(url);
+          const mimeType = response.headers['content-type']?.split(';')[0];
+          const size = response.headers['content-length'];
+
           attachments.push({
             ...(attachmentUrl ? { url: attachmentUrl } : {}),
             ...(attachmentPath ? { path: attachmentPath } : {}),
             title: fileNameWithExt,
-            mimetype: urlMeta.mimetype,
-            size: urlMeta.size,
-            icon: mimeIcons[path.extname(fileName).slice(1)] || undefined,
+            mimetype: mimeType ?? urlMeta.mimetype,
+            size: size ? parseInt(size) : urlMeta.size,
+            icon:
+              mimeIcons[path.extname(fileNameWithExt).slice(1)] || undefined,
           });
         } catch (e) {
           errors.push(e);
@@ -207,7 +213,7 @@ export class AttachmentsService {
       mimetypes[path.extname(param.path).split('/').pop().slice(1)] ||
       'text/plain';
 
-    const filePath = await storageAdapter.validateAndNormalisePath(
+    const filePath = storageAdapter.validateAndNormalisePath(
       slash(param.path),
       true,
     );

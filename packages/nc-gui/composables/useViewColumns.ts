@@ -21,6 +21,15 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
 
     const fields = ref<Field[]>()
 
+    const fieldsMap = computed(() =>
+      (fields.value || []).reduce<Record<string, any>>((acc, curr) => {
+        if (curr.fk_column_id) {
+          acc[curr.fk_column_id] = curr
+        }
+        return acc
+      }, {}),
+    )
+
     const filterQuery = ref('')
 
     const { $api, $e } = useNuxtApp()
@@ -420,6 +429,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
 
     return {
       fields,
+      fieldsMap,
       loadViewColumns,
       filteredFieldList,
       filterQuery,

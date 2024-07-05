@@ -82,7 +82,6 @@ const quickVerify = async ({
   // Verify cells
   // normal cells
   for (const [index, [key, value]] of Object.entries(recordCells).entries()) {
-    console.log('verify cell', index, key, value);
     if (index === 0) {
       await dashboard.grid.cell.get({ index: index, columnHeader: key }).click();
     }

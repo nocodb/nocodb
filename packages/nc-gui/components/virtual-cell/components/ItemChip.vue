@@ -27,6 +27,8 @@ const isForm = inject(IsFormInj)!
 
 const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 
+const isPublic = inject(IsPublicInj, ref(false))
+
 const { open } = useExpandedFormDetached()
 
 function openExpandedForm() {
@@ -40,6 +42,7 @@ function openExpandedForm() {
       meta: relatedTableMeta.value,
       rowId,
       useMetaFields: true,
+      loadRow: !isPublic.value,
     })
   }
 }

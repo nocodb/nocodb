@@ -1067,12 +1067,12 @@
       "showJunctionTableNames": "Tampilkan Nama Tabel Persimpangan"
     },
     "kanban": {
-      "collapseStack": "Collapse stack",
+      "collapseStack": "Tumpukan Runtuh",
       "collapseAll": "Collapse all",
       "expandAll": "Expand all",
       "renameStack": "Rename stack",
-      "deleteStack": "Delete stack",
-      "stackedBy": "Stacked by",
+      "deleteStack": "Hapus Tumpukan",
+      "stackedBy": "Ditumpuk oleh",
       "chooseGroupingField": "Pilih Bidang Pengelompokan",
       "addOrEditStack": "Tambah / Edit Tumpukan"
     },

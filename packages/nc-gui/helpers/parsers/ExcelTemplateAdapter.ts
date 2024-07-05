@@ -259,7 +259,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
 
                       const cellObj = ws[cellId]
                       rowData[table.columns[i].column_name] =
-                        (cellObj && cellObj.w && cellObj.w.replace(/[^\d.]+/g, '')) || row[i]
+                        (cellObj && typeof cellObj?.w === 'string' && cellObj.w.replace(/[^\d.]+/g, '')) || row[i]
                     } else if (table.columns[i].uidt === UITypes.SingleSelect || table.columns[i].uidt === UITypes.MultiSelect) {
                       rowData[table.columns[i].column_name] = (row[i] || '').toString().trim() || null
                     } else if (table.columns[i].uidt === UITypes.Date) {

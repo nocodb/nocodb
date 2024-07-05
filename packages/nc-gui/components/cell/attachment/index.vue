@@ -49,7 +49,6 @@ const {
   visibleItems,
   onDrop,
   isLoading,
-  open: _open,
   FileIcon,
   selectedImage,
   isReadonly,
@@ -143,8 +142,6 @@ const open = (e: Event) => {
   e.stopPropagation()
 
   openAttachmentModal()
-  /*
-    _open() */
 }
 
 const openAttachment = (item: any) => {
@@ -237,7 +234,7 @@ const handleFileDelete = (i: number) => {
     <div
       v-if="!isReadonly"
       :class="{ 'sm:(mx-auto px-4) xs:(w-full min-w-8)': !visibleItems.length }"
-      class="group cursor-pointer py-1 flex gap-1 items-center active:(ring ring-accent ring-opacity-100) rounded border-none shadow-sm hover:(bg-primary bg-opacity-10) dark:(!bg-slate-500)"
+      class="group cursor-pointer py-1 flex gap-1 items-center rounded border-none shadow-sm hover:(bg-primary bg-opacity-10)"
       data-testid="attachment-cell-file-picker-button"
       tabindex="0"
       @click="open"
@@ -255,7 +252,7 @@ const handleFileDelete = (i: number) => {
           v-if="active || !visibleItems.length || (isForm && visibleItems.length)"
           class="flex items-center gap-1 xs:(w-full min-w-12 h-7 justify-center)"
         >
-          <MaterialSymbolsAttachFile class="transform dark:(!text-white) text-gray-500 text-tiny" />
+          <MaterialSymbolsAttachFile class="text-gray-500 text-tiny" />
           <div
             v-if="!visibleItems.length"
             data-rec="true"

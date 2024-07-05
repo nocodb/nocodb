@@ -36,13 +36,20 @@ const deleteAttachment = (index: number) => {
   tempAttachments.value.splice(index, 1)
 }
 
+const isValidUrl = computed(() => isValidURL(url.value))
+
 const uploadAndParseUrl = async () => {
+  if (!isValidUrl.value) {
+    return
+  }
+
   try {
     isParsing.value = true
     const data = await uploadViaUrl({ url: url.value })
 
     if (data?.length) {
       tempAttachments.value.push(...data)
+      url.value = ''
     } else {
       console.error('Error uploading via URL')
     }
@@ -57,18 +64,32 @@ const uploadAndParseUrl = async () => {
     <div class="flex w-full bg-white border-b-1 py-1 justify-between">
       <h1>Link (URL)</h1>
 
-      <NcButton type="secondary" class="!border-0" size="xsmall" @click="closeMenu">
-        <GeneralIcon icon="close" />
-      </NcButton>
+      <NcTooltip>
+        <NcButton type="secondary" class="!border-0" size="xsmall" @click="closeMenu">
+          <GeneralIcon icon="close" />
+        </NcButton>
+
+        <template #title> Close </template>
+      </NcTooltip>
     </div>
 
     <div class="flex-grow">
       <h1 class="text-gray-800 font-semibold">Add files from URL</h1>
       <div class="flex gap-2">
-        <a-input v-model:value="url" :disabled="isParsing" class="flex-grow" placeholder="www.google.com/hello.png" />
+        <a-input
+          v-model:value="url"
+          type="url"
+          :disabled="isParsing"
+          class="flex-grow"
+          placeholder="www.google.com/hello.png"
+          @keydown.enter="uploadAndParseUrl"
+        />
 
-        <NcButton :loading="isParsing" size="small" class="!h-10 !px-4" @click="uploadAndParseUrl"> Upload </NcButton>
+        <NcButton :disabled="!isValidUrl" :loading="isParsing" size="small" class="!h-10 !px-4" @click="uploadAndParseUrl">
+          Upload
+        </NcButton>
       </div>
+      <span v-if="url.length > 0 && !isValidUrl" class="text-red-500"> Enter a valid URL to upload files </span>
       <div v-if="tempAttachments.length > 0" class="overflow-y-auto mt-2">
         <h1 class="font-semibold text-gray-800">Files</h1>
 
@@ -79,10 +100,13 @@ const uploadAndParseUrl = async () => {
         >
           <div class="flex w-full items-center gap-2">
             <GeneralIcon icon="file" />
+            <NcTooltip>
+              <NuxtLink target="_blank" @click="openAttachment(file)">
+                {{ file.title }}
+              </NuxtLink>
 
-            <NuxtLink target="_blank" @click="openAttachment(file)">
-              {{ file.title }}
-            </NuxtLink>
+              <template #title> Open file </template>
+            </NcTooltip>
           </div>
 
           <div class="flex-grow-1"></div>

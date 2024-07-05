@@ -462,7 +462,7 @@ const colMeta = computed(() => {
   })
 })
 
-const isXcdbBase = computed(() => !isXcdbBaseFun(meta.value?.source_id))
+const isXcdbBase = computed(() => !isXcdbBaseFun(meta.value?.source_id, true))
 
 // #Grid
 

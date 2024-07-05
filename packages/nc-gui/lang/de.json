@@ -605,7 +605,7 @@
     "headerName": "Header Name",
     "icon": "Icon",
     "max": "Max",
-    "enableRichText": "Enable rich text",
+    "enableRichText": "Rich-Text-Format aktivieren",
     "idColon": "ID:",
     "copiedRecordURL": "Copied Record URL",
     "copyRecordURL": "Copy Record URL",

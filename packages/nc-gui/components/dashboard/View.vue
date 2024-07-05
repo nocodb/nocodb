@@ -101,6 +101,7 @@ function handleMouseMove(e: MouseEvent) {
 
 function onWindowResize(e?: any): void {
   viewportWidth.value = window.innerWidth
+
   leftSidebarWidthPercent.value = (currentSidebarSize.value / viewportWidth.value) * 100
 
   // if sidebar width is greater than normalized width update left sidebar width

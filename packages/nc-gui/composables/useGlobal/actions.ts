@@ -160,6 +160,10 @@ export function useGlobalActions(state: State): Actions {
     state.gridViewPageSize.value = pageSize
   }
 
+  const setLeftSidebarSize = (size: number) => {
+    state.leftSidebarSize.value = size
+  }
+
   return {
     signIn,
     signOut,
@@ -171,5 +175,6 @@ export function useGlobalActions(state: State): Actions {
     ncNavigateTo,
     getMainUrl,
     setGridViewPageSize,
+    setLeftSidebarSize,
   }
 }

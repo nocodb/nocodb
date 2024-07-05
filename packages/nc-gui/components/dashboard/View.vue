@@ -5,6 +5,8 @@ import 'splitpanes/dist/splitpanes.css'
 const router = useRouter()
 const route = router.currentRoute
 
+const { setLeftSidebarSize } = useGlobal()
+
 const { isMobileMode } = storeToRefs(useConfigStore())
 
 const {
@@ -30,22 +32,32 @@ const currentSidebarSize = computed({
 
 const { handleSidebarOpenOnMobileForNonViews } = useConfigStore()
 
-const contentSize = computed(() => 100 - sideBarSize.value.current)
-
 const mobileNormalizedContentSize = computed(() => {
   if (isMobileMode.value) {
     return isLeftSidebarOpen.value ? 0 : 100
   }
 
-  return contentSize.value
+  return 100 - leftSidebarWidthPercent.value
 })
 
-const sidebarWidth = computed(() =>
-  isMobileMode.value ? viewportWidth.value : (sideBarSize.value.old * viewportWidth.value) / 100,
-)
-
 watch(currentSidebarSize, () => {
-  leftSidebarWidthPercent.value = currentSidebarSize.value
+  leftSidebarWidthPercent.value = (currentSidebarSize.value / viewportWidth.value) * 100
+  setLeftSidebarSize(currentSidebarSize.value)
+})
+
+const sidebarWidth = computed(() => (isMobileMode.value ? viewportWidth.value : sideBarSize.value.old))
+
+const normalizedWidth = computed(() => {
+  const maxSize = remToPx(viewportWidth.value <= 1560 ? 20 : 35)
+  const minSize = remToPx(16)
+
+  if (sidebarWidth.value > maxSize) {
+    return maxSize
+  } else if (sidebarWidth.value < minSize) {
+    return minSize
+  } else {
+    return sidebarWidth.value
+  }
 })
 
 watch(isLeftSidebarOpen, () => {
@@ -87,10 +99,15 @@ function handleMouseMove(e: MouseEvent) {
   }
 }
 
-function onWindowResize() {
+function onWindowResize(e?: any): void {
   viewportWidth.value = window.innerWidth
 
-  onResize(currentSidebarSize.value)
+  leftSidebarWidthPercent.value = (currentSidebarSize.value / viewportWidth.value) * 100
+
+  // if sidebar width is greater than normalized width and this function is called from window resize event (not from template) update left sidebar width
+  if (e && normalizedWidth.value < sidebarWidth.value) {
+    onResize(leftSidebarWidthPercent.value)
+  }
 }
 
 onMounted(() => {
@@ -138,10 +155,9 @@ function onResize(widthPercent: any) {
   const fontSize = parseFloat(getComputedStyle(document.documentElement).fontSize)
 
   // If the viewport width is less than 1560px, the max sidebar width should be 20rem
-
   if (viewportWidth.value <= 1560) {
     if (width > remToPx(20)) {
-      sideBarSize.value.old = ((20 * fontSize) / viewportWidth.value) * 100
+      sideBarSize.value.old = 20 * fontSize
       if (isLeftSidebarOpen.value) sideBarSize.value.current = sideBarSize.value.old
       return
     }
@@ -150,31 +166,19 @@ function onResize(widthPercent: any) {
   const widthRem = width / fontSize
 
   if (widthRem < 16) {
-    sideBarSize.value.old = ((16 * fontSize) / viewportWidth.value) * 100
+    sideBarSize.value.old = 16 * fontSize
     if (isLeftSidebarOpen.value) sideBarSize.value.current = sideBarSize.value.old
     return
   } else if (widthRem > 35) {
-    sideBarSize.value.old = ((35 * fontSize) / viewportWidth.value) * 100
+    sideBarSize.value.old = 35 * fontSize
     if (isLeftSidebarOpen.value) sideBarSize.value.current = sideBarSize.value.old
 
     return
   }
 
-  sideBarSize.value.old = widthPercent
+  sideBarSize.value.old = width
   sideBarSize.value.current = sideBarSize.value.old
 }
-
-const normalizedWidth = computed(() => {
-  const maxSize = remToPx(35)
-  const minSize = remToPx(16)
-  if (sidebarWidth.value > maxSize) {
-    return maxSize
-  } else if (sidebarWidth.value < minSize) {
-    return minSize
-  } else {
-    return sidebarWidth.value
-  }
-})
 </script>
 
 <template>
@@ -192,7 +196,8 @@ const normalizedWidth = computed(() => {
       max-size="60%"
       class="nc-sidebar-splitpane !sm:max-w-140 relative !overflow-visible flex"
       :style="{
-        width: `${mobileNormalizedSidebarSize}%`,
+        'width': `${mobileNormalizedSidebarSize}%`,
+        'min-width': `${mobileNormalizedSidebarSize}%`,
       }"
     >
       <div
@@ -215,7 +220,7 @@ const normalizedWidth = computed(() => {
       :size="mobileNormalizedContentSize"
       class="flex-grow"
       :style="{
-        'min-width': `${100 - mobileNormalizedSidebarSize}%`,
+        'min-width': `${mobileNormalizedContentSize}%`,
       }"
     >
       <slot name="content" />

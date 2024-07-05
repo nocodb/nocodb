@@ -1067,12 +1067,12 @@
       "showJunctionTableNames": "Näytä liitäntätaulukon nimet"
     },
     "kanban": {
-      "collapseStack": "Collapse stack",
+      "collapseStack": "Pinoaminen Pinoaminen",
       "collapseAll": "Collapse all",
       "expandAll": "Expand all",
       "renameStack": "Rename stack",
-      "deleteStack": "Delete stack",
-      "stackedBy": "Stacked by",
+      "deleteStack": "Poista pino",
+      "stackedBy": "Pinottu by",
       "chooseGroupingField": "Valitse ryhmittelykenttä",
       "addOrEditStack": "Lisää / Muokkaa pinoa"
     },

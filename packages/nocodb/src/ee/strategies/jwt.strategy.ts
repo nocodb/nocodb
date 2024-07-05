@@ -15,7 +15,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(req, jwtPayload) {
-    if (!jwtPayload?.email) return jwtPayload;
+    if (!jwtPayload?.email || jwtPayload?.is_api_token) return jwtPayload;
 
     const user = await User.getByEmail(jwtPayload?.email);
 

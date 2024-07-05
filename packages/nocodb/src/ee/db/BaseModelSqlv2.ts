@@ -498,6 +498,19 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
       await this.prepareNocoData(updateObj, false, cookie);
 
+      const btForeignKeyColumn = columns.find(
+        (c) =>
+          c.uidt === UITypes.ForeignKey && data[c.column_name] !== undefined,
+      );
+
+      const btColumn = btForeignKeyColumn
+        ? columns.find(
+            (c) =>
+              c.uidt === UITypes.LinkToAnotherRecord &&
+              c.colOptions?.fk_child_column_id === btForeignKeyColumn.id,
+          )
+        : null;
+
       const source = await Source.get(this.context, this.model.source_id);
       const prevData = (await canUseOptimisedQuery(this.context, {
         source,
@@ -550,7 +563,18 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             {},
             { ignoreView: true, getHiddenColumn: true },
           );
-      await this.afterUpdate(prevData, newData, trx, cookie, updateObj);
+      if (btColumn && Object.keys(data || {}).length === 1) {
+        await this.addChild({
+          colId: btColumn.id,
+          rowId: id,
+          childId: updateObj[btForeignKeyColumn.title],
+          cookie,
+          onlyUpdateAuditLogs: true,
+          prevData,
+        });
+      } else {
+        await this.afterUpdate(prevData, newData, trx, cookie, updateObj);
+      }
       return newData;
     } catch (e) {
       console.log(e);

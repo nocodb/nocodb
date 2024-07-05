@@ -1017,7 +1017,7 @@ useEventListener(tableWrapper, 'scroll', () => {
             </div>
           </div>
         </template>
-        <div v-if="selectedAudit" class="flex flex-col gap-4">
+        <div v-if="selectedAudit" class="nc-expanded-audit flex flex-col gap-4">
           <div class="bg-gray-50 rounded-lg border-1 border-gray-200">
             <div class="flex">
               <div class="w-1/2 border-r border-gray-200 flex flex-col gap-2 px-4 py-3">
@@ -1098,13 +1098,9 @@ useEventListener(tableWrapper, 'scroll', () => {
 </template>
 
 <style lang="scss" scoped>
-.nc-audit-table pre {
-  display: table;
-  table-layout: fixed;
-  width: 100%;
-  white-space: break-spaces;
-  font-size: unset;
-  font-family: unset;
+.nc-expanded-audit pre {
+  font-family: Manrope, 'Inter', 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    sans-serif;
 }
 
 :deep(.nc-menu-item-inner) {

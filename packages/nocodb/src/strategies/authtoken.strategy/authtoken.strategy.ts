@@ -44,6 +44,8 @@ export class AuthTokenStrategy extends PassportStrategy(Strategy, 'authtoken') {
 
         Object.assign(user, {
           id: dbUser.id,
+          email: dbUser.email,
+          display_name: dbUser.display_name,
           roles: extractRolesObj(dbUser.roles),
           base_roles: extractRolesObj(dbUser.base_roles),
           ...(dbUser.workspace_roles

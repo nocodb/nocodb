@@ -615,9 +615,9 @@ const onChange = () => {
               </template>
 
               <div class="pr-10 pt-5">
-                <a-form :model="importState" name="quick-import-url-form" layout="vertical" class="mb-0">
+                <a-form :model="importState" name="quick-import-url-form" layout="vertical" class="mb-0 !ml-0.5">
                   <a-form-item :label="importMeta.urlInputLabel" v-bind="validateInfos.url">
-                    <a-input v-model:value="importState.url" size="large" />
+                    <a-input v-model:value="importState.url" size="large" class="!rounded-md" />
                   </a-form-item>
                 </a-form>
               </div>
@@ -641,7 +641,8 @@ const onChange = () => {
                 <template #title>
                   {{ $t('title.comingSoon') }}
                 </template>
-                <a-checkbox v-model:checked="importState.parserConfig.autoSelectFieldTypes" :disabled="true">
+                <!-- Todo: use `v-model:checked="importState.parserConfig.autoSelectFieldTypes"` when we enable this field/(add support to auto detect field type) -->
+                <a-checkbox :checked="false" :disabled="true">
                   <span class="caption">{{ $t('labels.autoSelectFieldTypes') }} </span>
                 </a-checkbox>
               </NcTooltip>

@@ -24,10 +24,16 @@ export class AttachmentCellPageObject extends BasePage {
   async addFile({ index, columnHeader, filePath }: { index?: number; columnHeader: string; filePath: string[] }) {
     await this.get({ index, columnHeader }).scrollIntoViewIfNeeded();
     await this.get({ index, columnHeader }).click({ position: { x: 1, y: 1 } });
-    const attachFileAction = this.get({ index, columnHeader })
-      .locator('[data-testid="attachment-cell-file-picker-button"]')
-      .click();
+
+    await this.get({ index, columnHeader }).locator('[data-testid="attachment-cell-file-picker-button"]').click();
+
+    await this.rootPage.locator('.nc-modal-attachment-create').waitFor({ state: 'visible' });
+
+    const attachFileAction = this.rootPage.getByTestId('attachment-drop-zone').click({ force: true });
+
     await this.attachFile({ filePickUIAction: attachFileAction, filePath });
+
+    await this.rootPage.getByTestId('nc-upload-file').click();
 
     // wait for file to be uploaded
     await this.rootPage.waitForTimeout(750);

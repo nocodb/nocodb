@@ -135,6 +135,7 @@ import NcNotification from '~icons/nc-icons/bell'
 import NcCheckCircle from '~icons/nc-icons/check-circle'
 import NcCheckFill from '~icons/nc-icons/checkFill'
 import NcExternalLink from '~icons/nc-icons/external-link'
+import NcCamera from '~icons/nc-icons/camera'
 
 // import NcProjectGray from '~icons/nc-icons/project-gray'
 import NcPhoneCall from '~icons/nc-icons/phone-call'
@@ -391,6 +392,7 @@ export const iconMap = {
   cellSystemUser: NcCellSystemUser,
   cellSystemText: NcCellSystemText,
   cellAttachment: NcCellAttachment,
+  camera: NcCamera,
 
   office: NcOffice,
   sort: Sort,

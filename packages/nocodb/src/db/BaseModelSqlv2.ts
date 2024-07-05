@@ -5078,6 +5078,34 @@ class BaseModelSqlv2 {
   public async afterInsert(data: any, _trx: any, req): Promise<void> {
     await this.handleHooks('after.insert', null, data, req);
     const id = this._extractPksValues(data);
+
+    let details = '';
+
+    if (data && typeof data === 'object') {
+      const updateObj = await this.model.mapColumnToAlias(
+        this.context,
+        data,
+        this.model.columns?.filter((c) => !c.pk && !isSystemColumn(c)),
+      );
+
+      for (const k of Object.keys(updateObj)) {
+        if (
+          updateObj[k] === null ||
+          updateObj[k] == null ||
+          (typeof updateObj[k] === 'string' && updateObj[k] === '')
+        ) {
+          continue;
+        }
+
+        const newValue =
+          typeof updateObj[k] === 'object'
+            ? JSON.stringify(updateObj[k])
+            : updateObj[k];
+        details += DOMPurify.sanitize(`<span class="">${k}</span>
+          : <span class="black--text green lighten-4 px-2">${newValue}</span>`);
+      }
+    }
+
     await Audit.insert({
       fk_workspace_id: this.model.fk_workspace_id,
       base_id: this.model.base_id,
@@ -5089,7 +5117,7 @@ class BaseModelSqlv2 {
       description: DOMPurify.sanitize(
         `Record with ID ${id} has been inserted into Table ${this.model.title}`,
       ),
-      // details: JSON.stringify(data),
+      details,
       ip: req?.clientIp,
       user: req?.user?.email,
     });

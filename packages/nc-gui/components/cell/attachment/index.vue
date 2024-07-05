@@ -118,8 +118,11 @@ watch(
   },
 )
 
+const isNewAttachmentModalOpen = ref(false)
+
 useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e) => {
   if (e.key === 'Enter' && !isReadonly.value) {
+    if (isNewAttachmentModalOpen.value) return
     e.stopPropagation()
     if (!modalVisible.value && !isMobileMode.value) {
       modalVisible.value = true
@@ -131,8 +134,6 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e) => {
 })
 
 const rowHeight = inject(RowHeightInj, ref())
-
-const isNewAttachmentModalOpen = ref(false)
 
 const openAttachmentModal = () => {
   isNewAttachmentModalOpen.value = true
@@ -376,7 +377,7 @@ const handleFileDelete = (i: number) => {
       </template>
     </LazyGeneralDeleteModal>
   </div>
-  <LazyCellAttachmentAttachFile v-model:value="isNewAttachmentModalOpen" />
+  <LazyCellAttachmentAttachFile v-if="isNewAttachmentModalOpen" v-model:value="isNewAttachmentModalOpen" />
 </template>
 
 <style lang="scss">

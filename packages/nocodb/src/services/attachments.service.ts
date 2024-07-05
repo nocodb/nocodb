@@ -170,7 +170,7 @@ export class AttachmentsService {
           attachments.push({
             ...(attachmentUrl ? { url: attachmentUrl } : {}),
             ...(attachmentPath ? { path: attachmentPath } : {}),
-            title: _fileName,
+            title: fileNameWithExt,
             mimetype: urlMeta.mimetype,
             size: urlMeta.size,
             icon: mimeIcons[path.extname(fileName).slice(1)] || undefined,

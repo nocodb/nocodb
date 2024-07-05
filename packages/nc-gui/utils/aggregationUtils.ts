@@ -59,7 +59,7 @@ const getCurrencyValue = (modelValue: string | number | null | undefined, col: C
   }
 }
 
-function formatBytes(bytes, decimals = 2) {
+export function formatBytes(bytes, decimals = 2) {
   if (!+bytes) return '0 Bytes'
 
   const k = 1024

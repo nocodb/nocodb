@@ -214,20 +214,28 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
           message.error(e.message || t('msg.error.internalError'))
         }
       } else if (imageUrls.length) {
-        try {
-          const data = await api.storage.uploadByUrl(
-            {
-              path: [NOCO, base.value.id, meta.value?.id, column.value?.id].join('/'),
-            },
-            imageUrls,
-          )
-          newAttachments.push(...data)
-        } catch (e: any) {
-          message.error(e.message || t('msg.error.internalError'))
-        }
+        const data = uploadViaUrl(imageUrls)
+        if (!data) return
+        newAttachments.push(...data)
       }
-
       updateModelValue(JSON.stringify([...attachments.value, ...newAttachments]))
+    }
+
+    async function uploadViaUrl(url: { url: string } | { url: string }[]) {
+      const imageUrl = Array.isArray(url) ? url : [url]
+      try {
+        const data = await api.storage.uploadByUrl(
+          {
+            path: [NOCO, base.value.id, meta.value?.id, column.value?.id].join('/'),
+          },
+          imageUrl,
+        )
+        return data
+      } catch (e: any) {
+        console.log(e)
+        message.error(e.message || t('msg.error.internalError'))
+        return null
+      }
     }
 
     async function renameFile(attachment: AttachmentType, idx: number) {
@@ -360,6 +368,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       downloadFile,
       updateModelValue,
       selectedImage,
+      uploadViaUrl,
       selectedVisibleItems,
       storedFiles,
       bulkDownloadFiles,

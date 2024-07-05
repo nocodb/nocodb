@@ -231,10 +231,12 @@ class BaseModelSqlv2 {
       ignoreView = false,
       getHiddenColumn = false,
       throwErrorIfInvalidParams = false,
+      extractOnlyPrimaries = false,
     }: {
       ignoreView?: boolean;
       getHiddenColumn?: boolean;
       throwErrorIfInvalidParams?: boolean;
+      extractOnlyPrimaries?: boolean;
     } = {},
   ): Promise<any> {
     const qb = this.dbDriver(this.tnPath);
@@ -247,6 +249,7 @@ class BaseModelSqlv2 {
         : this.viewId && (await View.get(this.context, this.viewId)),
       getHiddenColumn,
       throwErrorIfInvalidParams,
+      extractOnlyPrimaries,
     });
 
     await this.selectObject({
@@ -279,6 +282,32 @@ class BaseModelSqlv2 {
     }
 
     return data ? await nocoExecute(ast, data, {}, parsedQuery) : null;
+  }
+
+  public async readByPkFromModel(
+    model = this.model,
+    viewId?: string,
+    extractDisplayValueData?: boolean,
+    ...rest: Parameters<BaseModelSqlv2['readByPk']>
+  ): Promise<any> {
+    let data;
+    if (this.model.id === model.id) {
+      data = await this.readByPk(...rest);
+    } else {
+      const baseModel = await Model.getBaseModelSQL(this.context, {
+        id: model.id,
+        viewId: viewId,
+        dbDriver: this.dbDriver,
+      });
+
+      data = await baseModel.readByPk(...rest);
+    }
+
+    if (extractDisplayValueData) {
+      return data ? data[model.displayValue.title] ?? null : '';
+    }
+
+    return data;
   }
 
   public async exist(id?: any): Promise<any> {
@@ -5542,10 +5571,13 @@ class BaseModelSqlv2 {
         break;
       case RelationTypes.HAS_MANY:
         {
-          const linkedHmRowObj = await this.dbDriver(childTn)
-            .select(childColumn.column_name)
-            .where(_wherePk(childTable.primaryKeys, childId))
-            .first();
+          const linkedHmRowObj = await this.execAndParse(
+            this.dbDriver(childTn)
+              .select(`${childTable.table_name}.${childColumn.column_name}`)
+              .where(_wherePk(childTable.primaryKeys, childId)),
+            null,
+            { raw: true, first: true },
+          );
 
           const oldRowId = linkedHmRowObj
             ? Object.values(linkedHmRowObj)?.[0]
@@ -5554,18 +5586,32 @@ class BaseModelSqlv2 {
           if (oldRowId) {
             const [parentRelatedPkValue, childRelatedPkValue] =
               await Promise.all([
-                await this.dbDriver(childTn)
-                  .select(
-                    `${childTable.table_name}.${childTable.displayValue.column_name}`,
-                  )
-                  .where(_wherePk(childTable.primaryKeys, childId))
-                  .first(),
-                await this.dbDriver(parentTn)
-                  .select(
-                    `${parentTable.table_name}.${parentTable.displayValue.column_name}`,
-                  )
-                  .where(_wherePk(parentTable.primaryKeys, oldRowId))
-                  .first(),
+                await this.readByPkFromModel(
+                  childTable,
+                  undefined,
+                  true,
+                  childId,
+                  false,
+                  {},
+                  {
+                    ignoreView: true,
+                    getHiddenColumn: true,
+                    extractOnlyPrimaries: true,
+                  },
+                ),
+                await this.readByPkFromModel(
+                  parentTable,
+                  undefined,
+                  true,
+                  oldRowId,
+                  false,
+                  {},
+                  {
+                    ignoreView: true,
+                    getHiddenColumn: true,
+                    extractOnlyPrimaries: true,
+                  },
+                ),
               ]);
 
             auditUpdateObj.push({
@@ -5635,19 +5681,24 @@ class BaseModelSqlv2 {
                 childId: oldChildRowId as string,
                 op_sub_type: AuditOperationSubTypes.UNLINK_RECORD,
                 columnTitle: auditConfig.parentColTitle,
-                pkValue: {
-                  [parentTable.displayValue.title]:
-                    prevData[column.title]?.[parentTable.displayValue.title] ??
-                    null,
-                },
+                pkValue:
+                  prevData[column.title]?.[parentTable.displayValue.title] ??
+                  null,
               });
 
-              const childRelatedPkValue = await this.dbDriver(childTn)
-                .select(
-                  `${childTable.table_name}.${childTable.displayValue.column_name}`,
-                )
-                .where(_wherePk(childTable.primaryKeys, rowId))
-                .first();
+              const childRelatedPkValue = await this.readByPkFromModel(
+                childTable,
+                undefined,
+                true,
+                rowId,
+                false,
+                {},
+                {
+                  ignoreView: true,
+                  getHiddenColumn: true,
+                  extractOnlyPrimaries: true,
+                },
+              );
 
               if (parentTable.id !== childTable.id) {
                 auditUpdateObj.push({
@@ -5662,10 +5713,13 @@ class BaseModelSqlv2 {
               }
             }
           } else {
-            const linkedHmRowObj = await this.dbDriver(childTn)
-              .select(childColumn.column_name)
-              .where(_wherePk(childTable.primaryKeys, rowId))
-              .first();
+            const linkedHmRowObj = await this.execAndParse(
+              this.dbDriver(childTn)
+                .select(childColumn.column_name)
+                .where(_wherePk(childTable.primaryKeys, rowId)),
+              null,
+              { raw: true, first: true },
+            );
 
             const oldChildRowId = linkedHmRowObj
               ? Object.values(linkedHmRowObj)?.[0]
@@ -5674,18 +5728,32 @@ class BaseModelSqlv2 {
             if (oldChildRowId) {
               const [parentRelatedPkValue, childRelatedPkValue] =
                 await Promise.all([
-                  await this.dbDriver(parentTn)
-                    .select(
-                      `${parentTable.table_name}.${parentTable.displayValue.column_name}`,
-                    )
-                    .where(_wherePk(parentTable.primaryKeys, oldChildRowId))
-                    .first(),
-                  await this.dbDriver(childTn)
-                    .select(
-                      `${childTable.table_name}.${childTable.displayValue.column_name}`,
-                    )
-                    .where(_wherePk(childTable.primaryKeys, rowId))
-                    .first(),
+                  await this.readByPkFromModel(
+                    parentTable,
+                    undefined,
+                    true,
+                    oldChildRowId,
+                    false,
+                    {},
+                    {
+                      ignoreView: true,
+                      getHiddenColumn: true,
+                      extractOnlyPrimaries: true,
+                    },
+                  ),
+                  await this.readByPkFromModel(
+                    childTable,
+                    undefined,
+                    true,
+                    rowId,
+                    false,
+                    {},
+                    {
+                      ignoreView: true,
+                      getHiddenColumn: true,
+                      extractOnlyPrimaries: true,
+                    },
+                  ),
                 ]);
 
               auditUpdateObj.push({
@@ -5745,10 +5813,13 @@ class BaseModelSqlv2 {
           let linkedCurrentOoRowObj;
           if (isBt) {
             // 1. check current row is linked with another child
-            linkedCurrentOoRowObj = await this.dbDriver(childTn)
-              .select(childColumn.column_name)
-              .where(_wherePk(childTable.primaryKeys, rowId))
-              .first();
+            linkedCurrentOoRowObj = await this.execAndParse(
+              this.dbDriver(childTn)
+                .select(childColumn.column_name)
+                .where(_wherePk(childTable.primaryKeys, rowId)),
+              null,
+              { raw: true, first: true },
+            );
 
             const oldChildRowId = linkedCurrentOoRowObj
               ? Object.values(linkedCurrentOoRowObj)?.[0]
@@ -5757,18 +5828,32 @@ class BaseModelSqlv2 {
             if (oldChildRowId) {
               const [parentRelatedPkValue, childRelatedPkValue] =
                 await Promise.all([
-                  await this.dbDriver(childTn)
-                    .select(
-                      `${childTable.table_name}.${childTable.displayValue.column_name}`,
-                    )
-                    .where(_wherePk(childTable.primaryKeys, rowId))
-                    .first(),
-                  await this.dbDriver(parentTn)
-                    .select(
-                      `${parentTable.table_name}.${parentTable.displayValue.column_name}`,
-                    )
-                    .where(_wherePk(parentTable.primaryKeys, oldChildRowId))
-                    .first(),
+                  await this.readByPkFromModel(
+                    childTable,
+                    undefined,
+                    true,
+                    rowId,
+                    false,
+                    {},
+                    {
+                      ignoreView: true,
+                      getHiddenColumn: true,
+                      extractOnlyPrimaries: true,
+                    },
+                  ),
+                  await this.readByPkFromModel(
+                    parentTable,
+                    undefined,
+                    true,
+                    oldChildRowId,
+                    false,
+                    {},
+                    {
+                      ignoreView: true,
+                      getHiddenColumn: true,
+                      extractOnlyPrimaries: true,
+                    },
+                  ),
                 ]);
 
               auditUpdateObj.push({
@@ -5795,8 +5880,8 @@ class BaseModelSqlv2 {
             }
 
             // 2. check current child is linked with another row cell
-            linkedOoRowObj = await this.dbDriver(childTn)
-              .where({
+            linkedOoRowObj = await this.execAndParse(
+              this.dbDriver(childTn).where({
                 [childColumn.column_name]: this.dbDriver.from(
                   this.dbDriver(parentTn)
                     .select(parentColumn.column_name)
@@ -5806,8 +5891,10 @@ class BaseModelSqlv2 {
                     .first()
                     .as('___cn_alias'),
                 ),
-              })
-              .first();
+              }),
+              null,
+              { raw: true, first: true },
+            );
 
             if (linkedOoRowObj) {
               const oldRowId = getCompositePkValue(
@@ -5818,18 +5905,32 @@ class BaseModelSqlv2 {
               if (oldRowId) {
                 const [parentRelatedPkValue, childRelatedPkValue] =
                   await Promise.all([
-                    await this.dbDriver(parentTn)
-                      .select(
-                        `${parentTable.table_name}.${parentTable.displayValue.column_name}`,
-                      )
-                      .where(_wherePk(parentTable.primaryKeys, childId))
-                      .first(),
-                    await this.dbDriver(childTn)
-                      .select(
-                        `${childTable.table_name}.${childTable.displayValue.column_name}`,
-                      )
-                      .where(_wherePk(childTable.primaryKeys, oldRowId))
-                      .first(),
+                    await this.readByPkFromModel(
+                      parentTable,
+                      undefined,
+                      true,
+                      childId,
+                      false,
+                      {},
+                      {
+                        ignoreView: true,
+                        getHiddenColumn: true,
+                        extractOnlyPrimaries: true,
+                      },
+                    ),
+                    await this.readByPkFromModel(
+                      childTable,
+                      undefined,
+                      true,
+                      oldRowId,
+                      false,
+                      {},
+                      {
+                        ignoreView: true,
+                        getHiddenColumn: true,
+                        extractOnlyPrimaries: true,
+                      },
+                    ),
                   ]);
 
                 auditUpdateObj.push({
@@ -5857,8 +5958,8 @@ class BaseModelSqlv2 {
             }
           } else {
             // 1. check current row is linked with another child
-            linkedCurrentOoRowObj = await this.dbDriver(childTn)
-              .where({
+            linkedCurrentOoRowObj = await this.execAndParse(
+              this.dbDriver(childTn).where({
                 [childColumn.column_name]: this.dbDriver.from(
                   this.dbDriver(parentTn)
                     .select(parentColumn.column_name)
@@ -5866,8 +5967,10 @@ class BaseModelSqlv2 {
                     .first()
                     .as('___cn_alias'),
                 ),
-              })
-              .first();
+              }),
+              null,
+              { raw: true, first: true },
+            );
 
             if (linkedCurrentOoRowObj) {
               const oldChildRowId = getCompositePkValue(
@@ -5878,18 +5981,32 @@ class BaseModelSqlv2 {
               if (oldChildRowId) {
                 const [parentRelatedPkValue, childRelatedPkValue] =
                   await Promise.all([
-                    await this.dbDriver(childTn)
-                      .select(
-                        `${childTable.table_name}.${childTable.displayValue.column_name}`,
-                      )
-                      .where(_wherePk(childTable.primaryKeys, oldChildRowId))
-                      .first(),
-                    await this.dbDriver(parentTn)
-                      .select(
-                        `${parentTable.table_name}.${parentTable.displayValue.column_name}`,
-                      )
-                      .where(_wherePk(parentTable.primaryKeys, rowId))
-                      .first(),
+                    await this.readByPkFromModel(
+                      childTable,
+                      undefined,
+                      true,
+                      oldChildRowId,
+                      false,
+                      {},
+                      {
+                        ignoreView: true,
+                        getHiddenColumn: true,
+                        extractOnlyPrimaries: true,
+                      },
+                    ),
+                    await this.readByPkFromModel(
+                      parentTable,
+                      undefined,
+                      true,
+                      rowId,
+                      false,
+                      {},
+                      {
+                        ignoreView: true,
+                        getHiddenColumn: true,
+                        extractOnlyPrimaries: true,
+                      },
+                    ),
                   ]);
 
                 auditUpdateObj.push({
@@ -5917,28 +6034,46 @@ class BaseModelSqlv2 {
             }
 
             // 2. check current child is linked with another row cell
-            linkedOoRowObj = await this.dbDriver(childTn)
-              .select(childColumn.column_name)
-              .where(_wherePk(childTable.primaryKeys, childId))
-              .first();
+            linkedOoRowObj = await this.execAndParse(
+              this.dbDriver(childTn)
+                .select(childColumn.column_name)
+                .where(_wherePk(childTable.primaryKeys, childId)),
+              null,
+              { raw: true, first: true },
+            );
+
             const oldRowId = linkedOoRowObj
               ? Object.values(linkedOoRowObj)?.[0]
               : null;
             if (oldRowId) {
               const [parentRelatedPkValue, childRelatedPkValue] =
                 await Promise.all([
-                  await this.dbDriver(childTn)
-                    .select(
-                      `${childTable.table_name}.${childTable.displayValue.column_name}`,
-                    )
-                    .where(_wherePk(childTable.primaryKeys, childId))
-                    .first(),
-                  await this.dbDriver(parentTn)
-                    .select(
-                      `${parentTable.table_name}.${parentTable.displayValue.column_name}`,
-                    )
-                    .where(_wherePk(parentTable.primaryKeys, oldRowId))
-                    .first(),
+                  await this.readByPkFromModel(
+                    childTable,
+                    undefined,
+                    true,
+                    childId,
+                    false,
+                    {},
+                    {
+                      ignoreView: true,
+                      getHiddenColumn: true,
+                      extractOnlyPrimaries: true,
+                    },
+                  ),
+                  await this.readByPkFromModel(
+                    parentTable,
+                    undefined,
+                    true,
+                    oldRowId,
+                    false,
+                    {},
+                    {
+                      ignoreView: true,
+                      getHiddenColumn: true,
+                      extractOnlyPrimaries: true,
+                    },
+                  ),
                 ]);
 
               auditUpdateObj.push({
@@ -6075,12 +6210,15 @@ class BaseModelSqlv2 {
     pkValue = undefined,
   ): Promise<void> {
     if (!pkValue) {
-      pkValue = await this.dbDriver(this.getTnPath(childModel))
-        .select(
-          `${childModel.table_name}.${childModel.displayValue.column_name}`,
-        )
-        .where(_wherePk(childModel.primaryKeys, childId))
-        .first();
+      pkValue = await this.readByPkFromModel(
+        childModel,
+        undefined,
+        true,
+        childId,
+        false,
+        {},
+        { ignoreView: true, getHiddenColumn: true, extractOnlyPrimaries: true },
+      );
     }
 
     await Audit.insert({
@@ -6095,9 +6233,7 @@ class BaseModelSqlv2 {
         `Record [id:${childId}] has been linked with record [id:${rowId}] in ${model.title}`,
       ),
       details: DOMPurify.sanitize(`<span class="">${columnTitle}</span>
-      : <span class="black--text green lighten-4 px-2">${
-        Object.values(pkValue)[0]
-      }</span>`),
+      : <span class="black--text green lighten-4 px-2">${pkValue ?? null}</span>`),
       ip: req?.clientIp,
       user: req?.user?.email,
     });
@@ -6229,6 +6365,9 @@ class BaseModelSqlv2 {
         break;
       case RelationTypes.BELONGS_TO:
         {
+          auditConfig.parentModel = childTable;
+          auditConfig.childModel = parentTable;
+
           await this.execAndParse(
             this.dbDriver(childTn)
               // .where({
@@ -6248,14 +6387,15 @@ class BaseModelSqlv2 {
             rowIds: [childId],
             cookie,
           });
-
-          auditConfig.parentModel = childTable;
-          auditConfig.childModel = parentTable;
         }
         break;
       case RelationTypes.ONE_TO_ONE:
         {
           const isBt = column.meta?.bt;
+
+          auditConfig.parentModel = isBt ? childTable : parentTable;
+          auditConfig.childModel = isBt ? parentTable : childTable;
+
           await this.execAndParse(
             this.dbDriver(childTn)
               .where(_wherePk(childTable.primaryKeys, isBt ? rowId : childId))
@@ -6269,9 +6409,6 @@ class BaseModelSqlv2 {
             rowIds: [childId],
             cookie,
           });
-
-          auditConfig.parentModel = isBt ? childTable : parentTable;
-          auditConfig.childModel = isBt ? parentTable : childTable;
         }
         break;
     }
@@ -7463,6 +7600,9 @@ class BaseModelSqlv2 {
         break;
       case RelationTypes.BELONGS_TO:
         {
+          auditConfig.parentModel = childTable;
+          auditConfig.childModel = parentTable;
+
           // validate Ids
           {
             const childRowsQb = this.dbDriver(parentTn)
@@ -7804,6 +7944,9 @@ class BaseModelSqlv2 {
         break;
       case RelationTypes.BELONGS_TO:
         {
+          auditConfig.parentModel = childTable;
+          auditConfig.childModel = parentTable;
+
           // validate Ids
           {
             if (childIds.length > 1)

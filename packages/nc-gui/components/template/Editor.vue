@@ -266,8 +266,7 @@ function deleteTableColumn(tableIdx: number, columnKey: number) {
   data.tables[tableIdx].columns.splice(columnIdx, 1)
   let key = 0
 
-  data.tables[tableIdx].columns.forEach((c, i) => {
-    data.tables[tableIdx].columns[i].key
+  data.tables[tableIdx].columns.forEach((_c: ColumnType & { key: number }, i: number) => {
     if (data.tables[tableIdx].columns[i].key !== undefined) {
       data.tables[tableIdx].columns[i].key = key
       key++
@@ -975,8 +974,8 @@ watch(modelRef, async () => {
                     <NcButton
                       type="text"
                       size="small"
-                      @click="deleteTableColumn(tableIdx, record.key)"
                       :disabled="table.columns.length === 1"
+                      @click="deleteTableColumn(tableIdx, record.key)"
                     >
                       <component :is="iconMap.deleteListItem" />
                     </NcButton>

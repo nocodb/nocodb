@@ -152,10 +152,6 @@ const disableImportButton = computed(() => !templateEditorRef.value?.isValid || 
 const disableFormatJsonButton = computed(() => !jsonEditorRef.value?.isValid)
 
 const modalWidth = computed(() => {
-  if (importType === 'excel' && templateEditorModal.value) {
-    return 'max(90vw, 600px)'
-  }
-
   return 'max(60vw, 600px)'
 })
 
@@ -711,7 +707,7 @@ onMounted(() => {
 :deep(.ant-upload-list-item-thumbnail) {
   line-height: 48px;
 }
-:deep(.ant-upload-list-item-card-actions-btn.ant-btn-icon-only){
+:deep(.ant-upload-list-item-card-actions-btn.ant-btn-icon-only) {
   @apply !h-6;
 }
 </style>

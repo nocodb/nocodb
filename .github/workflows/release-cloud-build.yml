@@ -111,6 +111,7 @@ jobs:
         env:
           NC_CDN_URL: "${{ secrets.CDN_URL }}/${{ steps.vars.outputs.release_version }}"
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          NUXT_NC_CONFIG_ENDPOINT: ${{ secrets.NUXT_NC_CONFIG_ENDPOINT }}
         run: |
           export NODE_OPTIONS="--max_old_space_size=16384"
           # generate static build of nc-gui

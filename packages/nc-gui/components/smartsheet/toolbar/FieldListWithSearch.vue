@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { isSystemColumn, type ColumnType } from 'nocodb-sdk'
+import { type ColumnType, isSystemColumn } from 'nocodb-sdk'
 
 const props = defineProps<{
   // As we need to focus search box when the parent is opened
@@ -13,21 +13,14 @@ const props = defineProps<{
 
 const emits = defineEmits<{ selected: [ColumnType] }>()
 
-const {
-  isParentOpen,
-  toolbarMenu,
-  searchInputPlaceholder,
-  selectedOptionId,
-  options: _options,
-  showSelectedOption,
-} = toRefs(props)
+const { isParentOpen, toolbarMenu, searchInputPlaceholder, selectedOptionId, showSelectedOption } = toRefs(props)
 
 const { fieldsMap } = useViewColumnsOrThrow()
 
 const searchQuery = ref('')
 
 const options = computed(() =>
-  (_options.value || [])
+  (props.options || [])
     .map((c) => c)
     .sort((field1, field2) => {
       // sort by view column order and keep system columns at the end

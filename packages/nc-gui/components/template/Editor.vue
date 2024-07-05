@@ -763,7 +763,7 @@ watch(modelRef, async () => {
           </template>
 
           <template #extra>
-            <NcTooltip bottom>
+            <NcTooltip bottom class="inline-block">
               <template #title>
                 <span>{{ $t('activity.deleteTable') }}</span>
               </template>
@@ -801,10 +801,10 @@ watch(modelRef, async () => {
 
             <template #bodyCell="{ column, record }">
               <template v-if="column.key === 'source_column'">
-                <NcTooltip class="truncate"
-                  ><template #title>{{ record.srcCn }}</template
-                  >{{ record.srcCn }}</NcTooltip
-                >
+                <NcTooltip class="truncate inline-block">
+                  <template #title>{{ record.srcCn }}</template>
+                  {{ record.srcCn }}
+                </NcTooltip>
               </template>
 
               <template v-else-if="column.key === 'destination_column'">
@@ -852,7 +852,7 @@ watch(modelRef, async () => {
           <a-collapse-panel v-for="(table, tableIdx) of data.tables" :key="tableIdx">
             <template #header>
               <a-form-item v-bind="validateInfos[`tables.${tableIdx}.table_name`]" no-style>
-                <div class="flex flex-col w-full">
+                <div class="flex flex-col w-full mr-2">
                   <a-input
                     v-model:value="table.table_name"
                     class="font-weight-bold text-lg !rounded-md"
@@ -872,14 +872,14 @@ watch(modelRef, async () => {
             </template>
 
             <template #extra>
-              <NcTooltip bottom>
+              <NcTooltip bottom class="inline-block mr-8">
                 <template #title>
                   <span>{{ $t('activity.deleteTable') }}</span>
                 </template>
                 <component
                   :is="iconMap.delete"
                   v-if="data.tables.length > 1"
-                  class="text-lg mr-8"
+                  class="text-lg"
                   @click.stop="deleteTable(tableIdx)"
                 />
               </NcTooltip>
@@ -929,7 +929,7 @@ watch(modelRef, async () => {
 
                 <template v-else-if="column.key === 'uidt'">
                   <a-form-item v-bind="validateInfos[`tables.${tableIdx}.columns.${record.key}.${column.key}`]">
-                    <NcTooltip :disabled="importDataOnly">
+                    <NcTooltip :disabled="importDataOnly" >
                       <template #title>
                         {{ $t('tooltip.useFieldEditMenuToConfigFieldType') }}
                       </template>
@@ -973,17 +973,17 @@ watch(modelRef, async () => {
                 </template>
 
                 <template v-if="column.key === 'action'">
-                  <NcTooltip v-if="record.key === 0">
+                  <NcTooltip v-if="record.key === 0" class="inline-block mr-4">
                     <template #title>
                       <span>{{ $t('general.primaryValue') }}</span>
                     </template>
 
-                    <div class="flex items-center float-right mr-4">
+                    <div class="flex items-center float-right">
                       <mdi-key-star class="text-lg" />
                     </div>
                   </NcTooltip>
 
-                  <NcTooltip v-else>
+                  <NcTooltip v-else class="inline-block">
                     <template #title>
                       <span>{{ $t('activity.column.delete') }}</span>
                     </template>

@@ -104,7 +104,7 @@ function onWindowResize(e?: any): void {
 
   leftSidebarWidthPercent.value = (currentSidebarSize.value / viewportWidth.value) * 100
 
-  // if sidebar width is greater than normalized width update left sidebar width
+  // if sidebar width is greater than normalized width and this function is called from window resize event (not from template) update left sidebar width
   if (e && normalizedWidth.value < sidebarWidth.value) {
     onResize(leftSidebarWidthPercent.value)
   }

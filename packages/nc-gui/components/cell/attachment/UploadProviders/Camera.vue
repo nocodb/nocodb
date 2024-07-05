@@ -77,6 +77,8 @@ const captureImage = () => {
 
   if (context) {
     canvas.style.display = 'block'
+    context.translate(canvas.width, 0)
+    context.scale(-1, 1)
     context.drawImage(video, 0, 0, canvas.width, canvas.height)
     canvas.toBlob((blob) => {
       if (!blob) return
@@ -155,4 +157,9 @@ onBeforeUnmount(() => {
   </div>
 </template>
 
-<style scoped lang="scss"></style>
+<style scoped lang="scss">
+video {
+  -webkit-transform: scaleX(-1);
+  transform: scaleX(-1);
+}
+</style>

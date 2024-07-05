@@ -101,7 +101,7 @@ const isImporting = ref(false)
 
 const importingTips = ref<Record<string, string>>({})
 
-const checkAllRecord = ref<boolean[]>([])
+const checkAllRecord = ref<Record<string, boolean>>({})
 
 const formError = ref()
 
@@ -168,13 +168,19 @@ watch(
     let res = true
     if (importDataOnly) {
       for (const tn of Object.keys(srcDestMapping.value)) {
+        let flag = false
         if (!atLeastOneEnabledValidation(tn)) {
           res = false
         }
         for (const record of srcDestMapping.value[tn]) {
           if (!fieldsValidation(record, tn)) {
-            return false
+            res = false
+            flag = true
+            break
           }
+        }
+        if (flag) {
+          break
         }
       }
     } else {
@@ -258,6 +264,15 @@ function deleteTable(tableIdx: number) {
 function deleteTableColumn(tableIdx: number, columnKey: number) {
   const columnIdx = data.tables[tableIdx].columns.findIndex((c: ColumnType & { key: number }) => c.key === columnKey)
   data.tables[tableIdx].columns.splice(columnIdx, 1)
+  let key = 0
+
+  data.tables[tableIdx].columns.forEach((c, i) => {
+    data.tables[tableIdx].columns[i].key
+    if (data.tables[tableIdx].columns[i].key !== undefined) {
+      data.tables[tableIdx].columns[i].key = key
+      key++
+    }
+  })
 }
 
 function setEditableTn(tableIdx: number, val: boolean) {
@@ -862,7 +877,7 @@ watch(modelRef, async () => {
                   <span>{{ $t('activity.deleteTable') }}</span>
                 </template>
                 <component
-                  :is="iconMap.delete"
+                  :is="iconMap.deleteListItem"
                   v-if="data.tables.length > 1"
                   class="text-lg"
                   @click.stop="deleteTable(tableIdx)"
@@ -951,33 +966,20 @@ watch(modelRef, async () => {
                   </a-form-item>
                 </template>
 
-                <template v-else-if="column.key === 'dtxp'">
-                  <a-form-item v-if="isSelect(record)">
-                    <a-input v-model:value="record.dtxp" class="!rounded-md" />
-                  </a-form-item>
-                </template>
-
                 <template v-if="column.key === 'action'">
-                  <NcTooltip v-if="record.key === 0" class="inline-block mr-4">
-                    <template #title>
-                      <span>{{ $t('general.primaryValue') }}</span>
-                    </template>
-
-                    <div class="flex items-center float-right">
-                      <mdi-key-star class="text-lg" />
-                    </div>
-                  </NcTooltip>
-
-                  <NcTooltip v-else class="inline-block">
+                  <NcTooltip class="inline-block">
                     <template #title>
                       <span>{{ $t('activity.column.delete') }}</span>
                     </template>
 
-                    <a-button type="text" @click="deleteTableColumn(tableIdx, record.key)">
-                      <div class="flex items-center">
-                        <component :is="iconMap.delete" class="text-lg" />
-                      </div>
-                    </a-button>
+                    <NcButton
+                      type="text"
+                      size="small"
+                      @click="deleteTableColumn(tableIdx, record.key)"
+                      :disabled="table.columns.length === 1"
+                    >
+                      <component :is="iconMap.deleteListItem" />
+                    </NcButton>
                   </NcTooltip>
                 </template>
               </template>

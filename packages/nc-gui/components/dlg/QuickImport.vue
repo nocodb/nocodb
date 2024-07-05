@@ -596,6 +596,9 @@ onMounted(() => {
                   <p class="ant-upload-hint">
                     {{ importMeta.uploadHint }}
                   </p>
+                  <template #removeIcon>
+                    <component :is="iconMap.deleteListItem" />
+                  </template>
                 </a-upload-dragger>
               </div>
             </a-tab-pane>
@@ -703,3 +706,12 @@ onMounted(() => {
     </template>
   </a-modal>
 </template>
+
+<style lang="scss" scoped>
+:deep(.ant-upload-list-item-thumbnail) {
+  line-height: 48px;
+}
+:deep(.ant-upload-list-item-card-actions-btn.ant-btn-icon-only){
+  @apply !h-6;
+}
+</style>

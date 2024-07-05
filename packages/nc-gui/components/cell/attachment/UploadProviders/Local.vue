@@ -92,7 +92,7 @@ onBeforeUnmount(() => {
       <div v-if="!tempFiles.length" class="flex cursor-pointer items-center justify-center flex-col gap-2">
         <template v-if="!isOverDropZone">
           <component :is="iconMap.upload" class="w-5 h-5" />
-          <h1>Click to browser files OR drag files here to upload</h1>
+          <h1>Click to browse files OR drag files here to upload</h1>
         </template>
         <template v-if="isOverDropZone">
           <component :is="iconMap.upload" class="w-5 text-brand-500 h-5" />

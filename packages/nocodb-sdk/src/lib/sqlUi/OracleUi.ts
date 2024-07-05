@@ -31,9 +31,9 @@ export class OracleUi {
       {
         column_name: 'title',
         title: 'Title',
-        dt: 'varchar',
+        dt: 'TEXT',
         dtx: 'specificType',
-        ct: 'varchar(45)',
+        ct: null,
         nrqd: true,
         rqd: false,
         ck: false,
@@ -41,7 +41,7 @@ export class OracleUi {
         un: false,
         ai: false,
         cdf: null,
-        clen: 45,
+        clen: null,
         np: null,
         ns: null,
         dtxp: '45',
@@ -817,7 +817,7 @@ export class OracleUi {
         colProp.dt = 'varchar';
         break;
       case 'SingleLineText':
-        colProp.dt = 'varchar';
+        colProp.dt = 'clob';
         break;
       case 'LongText':
         colProp.dt = 'clob';
@@ -869,7 +869,7 @@ export class OracleUi {
         };
         break;
       case 'URL':
-        colProp.dt = 'varchar';
+        colProp.dt = 'clob';
         colProp.validate = {
           func: ['isURL'],
           args: [''],

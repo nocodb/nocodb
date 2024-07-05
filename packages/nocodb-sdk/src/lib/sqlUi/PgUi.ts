@@ -131,9 +131,9 @@ export class PgUi {
       {
         column_name: 'title',
         title: 'Title',
-        dt: 'character varying',
+        dt: 'TEXT',
         dtx: 'specificType',
-        ct: 'varchar(45)',
+        ct: null,
         nrqd: true,
         rqd: false,
         ck: false,
@@ -141,10 +141,10 @@ export class PgUi {
         un: false,
         ai: false,
         cdf: null,
-        clen: 45,
+        clen: null,
         np: null,
         ns: null,
-        dtxp: '45',
+        dtxp: '',
         dtxs: '',
         altered: 1,
         uidt: 'SingleLineText',
@@ -249,9 +249,9 @@ export class PgUi {
   static getNewColumn(suffix) {
     return {
       column_name: 'title' + suffix,
-      dt: 'character varying',
+      dt: 'TEXT',
       dtx: 'specificType',
-      ct: 'varchar(45)',
+      ct: null,
       nrqd: true,
       rqd: false,
       ck: false,
@@ -259,10 +259,10 @@ export class PgUi {
       un: false,
       ai: false,
       cdf: null,
-      clen: 45,
+      clen: null,
       np: null,
       ns: null,
-      dtxp: '45',
+      dtxp: '',
       dtxs: '',
       altered: 1,
       uidt: 'SingleLineText',
@@ -1632,7 +1632,7 @@ export class PgUi {
         colProp.dt = 'character varying';
         break;
       case 'SingleLineText':
-        colProp.dt = 'character varying';
+        colProp.dt = 'text';
         break;
       case 'LongText':
         colProp.dt = 'text';
@@ -1683,7 +1683,7 @@ export class PgUi {
         };
         break;
       case 'URL':
-        colProp.dt = 'character varying';
+        colProp.dt = 'text';
         colProp.validate = {
           func: ['isURL'],
           args: [''],
@@ -1784,10 +1784,10 @@ export class PgUi {
       case 'LongText':
       case 'Collaborator':
       case 'GeoData':
-        return ['char', 'character', 'character varying', 'text'];
+        return ['text',  'character varying', 'char', 'character'];
 
       case 'Attachment':
-        return ['json', 'char', 'character', 'character varying', 'text'];
+        return ['json', 'text', 'char', 'character', 'character varying'];
 
       case 'JSON':
         return ['json', 'jsonb', 'text'];
@@ -1838,7 +1838,7 @@ export class PgUi {
         return ['character varying'];
 
       case 'URL':
-        return ['character varying', 'text'];
+        return ['text', 'character varying'];
 
       case 'Number':
         return [

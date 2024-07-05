@@ -96,13 +96,17 @@ const saveAttachments = (files: File[]) => {
   .active-menu {
     @apply !bg-gray-100 font-sembold text-brand-500 rounded-md;
   }
-
-  :deep(.ant-menu-vertical-left) {
-    border-right: none !important;
-  }
 }
 
 .nc-modal {
   @apply !p-0;
+}
+</style>
+
+<style scoped lang="scss">
+:deep(.ant-menu-inline),
+:deep(.ant-menu-vertical),
+:deep(.ant-menu-vertical-left) {
+  border-right: none !important;
 }
 </style>

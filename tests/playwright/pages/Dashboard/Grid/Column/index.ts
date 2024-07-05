@@ -461,9 +461,12 @@ export class ColumnPageObject extends BasePage {
     await this.rootPage.waitForTimeout(200);
   }
 
-  async verify({ title, isVisible = true }: { title: string; isVisible?: boolean }) {
+  async verify({ title, isVisible = true, scroll = false }: { title: string; isVisible?: boolean; scroll?: boolean }) {
     if (!isVisible) {
       return await expect(this.getColumnHeader(title)).not.toBeVisible();
+    }
+    if (scroll) {
+      await this.getColumnHeader(title).scrollIntoViewIfNeeded();
     }
     await expect(this.getColumnHeader(title)).toContainText(title);
   }

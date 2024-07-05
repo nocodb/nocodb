@@ -1067,12 +1067,12 @@
       "showJunctionTableNames": "Toon de namen van knooppunttabellen"
     },
     "kanban": {
-      "collapseStack": "Collapse stack",
+      "collapseStack": "Stapel samenvouwen",
       "collapseAll": "Collapse all",
       "expandAll": "Expand all",
       "renameStack": "Rename stack",
-      "deleteStack": "Delete stack",
-      "stackedBy": "Stacked by",
+      "deleteStack": "Stapel verwijderen",
+      "stackedBy": "Gestapeld door",
       "chooseGroupingField": "Kies een groepeerveld",
       "addOrEditStack": "Stapel toevoegen / bewerken"
     },

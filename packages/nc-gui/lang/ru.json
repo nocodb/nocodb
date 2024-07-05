@@ -605,7 +605,7 @@
     "headerName": "Название заголовка",
     "icon": "Иконка",
     "max": "Макс",
-    "enableRichText": "Enable rich text",
+    "enableRichText": "Включить насыщенный текст",
     "idColon": "Id:",
     "copiedRecordURL": "URL скопированной записи",
     "copyRecordURL": "Копировать URL записи",
@@ -1067,12 +1067,12 @@
       "showJunctionTableNames": "Показать имена таблиц переходов"
     },
     "kanban": {
-      "collapseStack": "Collapse stack",
+      "collapseStack": "Свернуть стек",
       "collapseAll": "Collapse all",
       "expandAll": "Expand all",
       "renameStack": "Rename stack",
-      "deleteStack": "Delete stack",
-      "stackedBy": "Stacked by",
+      "deleteStack": "Удалить стек",
+      "stackedBy": "Группировка по",
       "chooseGroupingField": "Выберите поле группировки",
       "addOrEditStack": "Добавление / редактирование стека"
     },

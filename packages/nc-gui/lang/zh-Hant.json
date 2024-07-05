@@ -1067,12 +1067,12 @@
       "showJunctionTableNames": "顯示連接表名稱"
     },
     "kanban": {
-      "collapseStack": "Collapse stack",
+      "collapseStack": "摺疊此類別",
       "collapseAll": "Collapse all",
       "expandAll": "Expand all",
       "renameStack": "Rename stack",
-      "deleteStack": "Delete stack",
-      "stackedBy": "Stacked by",
+      "deleteStack": "刪除此類別",
+      "stackedBy": "分類依據",
       "chooseGroupingField": "選擇一個分組欄位",
       "addOrEditStack": "新增/編輯類別"
     },

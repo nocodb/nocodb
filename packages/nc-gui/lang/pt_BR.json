@@ -1067,12 +1067,12 @@
       "showJunctionTableNames": "Mostrar nomes das tabelas associativas"
     },
     "kanban": {
-      "collapseStack": "Collapse stack",
+      "collapseStack": "Recolher pilha",
       "collapseAll": "Collapse all",
       "expandAll": "Expand all",
       "renameStack": "Rename stack",
-      "deleteStack": "Delete stack",
-      "stackedBy": "Stacked by",
+      "deleteStack": "Apagar pilha",
+      "stackedBy": "Empilhado por",
       "chooseGroupingField": "Escolha um Campo de Agrupamento",
       "addOrEditStack": "Adicionar / Editar Pilha"
     },

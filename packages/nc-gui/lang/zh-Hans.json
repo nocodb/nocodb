@@ -605,7 +605,7 @@
     "headerName": "标题名称",
     "icon": "图标",
     "max": "最大",
-    "enableRichText": "Enable rich text",
+    "enableRichText": "启用富文本",
     "idColon": "Id:",
     "copiedRecordURL": "复制的记录 URL",
     "copyRecordURL": "复制该记录卡片的 URL",
@@ -1067,12 +1067,12 @@
       "showJunctionTableNames": "显示关联表名称"
     },
     "kanban": {
-      "collapseStack": "Collapse stack",
+      "collapseStack": "折叠此类别",
       "collapseAll": "Collapse all",
       "expandAll": "Expand all",
       "renameStack": "Rename stack",
-      "deleteStack": "Delete stack",
-      "stackedBy": "Stacked by",
+      "deleteStack": "删除此类别",
+      "stackedBy": "分类依据为",
       "chooseGroupingField": "选择分组字段",
       "addOrEditStack": "添加/编辑分类标签"
     },

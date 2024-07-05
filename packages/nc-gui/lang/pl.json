@@ -605,7 +605,7 @@
     "headerName": "Nazwa nagłówka",
     "icon": "Ikona",
     "max": "Maks",
-    "enableRichText": "Enable rich text",
+    "enableRichText": "Włącz Edytor Tekstu",
     "idColon": "Id:",
     "copiedRecordURL": "Skopiowano URL rekordu",
     "copyRecordURL": "Kopiuj URL rekordu",
@@ -1067,12 +1067,12 @@
       "showJunctionTableNames": "Pokaż nazwy tabel łącznikowych"
     },
     "kanban": {
-      "collapseStack": "Collapse stack",
+      "collapseStack": "Zwiń stos",
       "collapseAll": "Zwiń wszystkie",
       "expandAll": "Rozwiń wszystko",
       "renameStack": "Zmień nazwę stosu",
-      "deleteStack": "Delete stack",
-      "stackedBy": "Stacked by",
+      "deleteStack": "Usuń stos",
+      "stackedBy": "Ułożone według",
       "chooseGroupingField": "Wybierz pole grupowania",
       "addOrEditStack": "Dodaj / Edytuj stos"
     },

@@ -1067,12 +1067,12 @@
       "showJunctionTableNames": "Visa namnen på korsningstabellerna"
     },
     "kanban": {
-      "collapseStack": "Collapse stack",
+      "collapseStack": "Kollaps av stapeln",
       "collapseAll": "Collapse all",
       "expandAll": "Expand all",
       "renameStack": "Rename stack",
-      "deleteStack": "Delete stack",
-      "stackedBy": "Stacked by",
+      "deleteStack": "Ta bort stacken",
+      "stackedBy": "Staplade av",
       "chooseGroupingField": "Välj ett grupperingsfält",
       "addOrEditStack": "Lägg till/redigera stacken"
     },

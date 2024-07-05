@@ -1067,12 +1067,12 @@
       "showJunctionTableNames": "Показати імʼя таблиці для зʼєднання"
     },
     "kanban": {
-      "collapseStack": "Collapse stack",
+      "collapseStack": "Згорнути стек",
       "collapseAll": "Collapse all",
       "expandAll": "Expand all",
       "renameStack": "Rename stack",
-      "deleteStack": "Delete stack",
-      "stackedBy": "Stacked by",
+      "deleteStack": "Видалити стек",
+      "stackedBy": "Групувати по",
       "chooseGroupingField": "Виберіть поле групування",
       "addOrEditStack": "Додати/Редагувати табличку"
     },

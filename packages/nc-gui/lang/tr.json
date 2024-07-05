@@ -605,7 +605,7 @@
     "headerName": "Başlık Adı",
     "icon": "Simge",
     "max": "Max",
-    "enableRichText": "Enable rich text",
+    "enableRichText": "Zengin Metni Etkinleştir",
     "idColon": "Id:",
     "copiedRecordURL": "Kayıt URL'si Kopyalandı",
     "copyRecordURL": "Kayıt URL'sini Kopyala",
@@ -1067,12 +1067,12 @@
       "showJunctionTableNames": "Bağlantı Tablosu Adlarını Göster"
     },
     "kanban": {
-      "collapseStack": "Collapse stack",
+      "collapseStack": "Yığını Daralt",
       "collapseAll": "Collapse all",
       "expandAll": "Expand all",
       "renameStack": "Rename stack",
-      "deleteStack": "Delete stack",
-      "stackedBy": "Stacked by",
+      "deleteStack": "Yığını Sil",
+      "stackedBy": "Tarafından Yığılmış",
       "chooseGroupingField": "Bir Gruplama Alanı Seçin",
       "addOrEditStack": "Yığın Ekle / Düzenle"
     },

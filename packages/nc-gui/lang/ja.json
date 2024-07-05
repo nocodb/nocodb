@@ -1067,12 +1067,12 @@
       "showJunctionTableNames": "ジャンクションテーブルの名称を表示する"
     },
     "kanban": {
-      "collapseStack": "Collapse stack",
+      "collapseStack": "スタックを折りたたむ",
       "collapseAll": "Collapse all",
       "expandAll": "Expand all",
       "renameStack": "Rename stack",
-      "deleteStack": "Delete stack",
-      "stackedBy": "Stacked by",
+      "deleteStack": "スタックを削除",
+      "stackedBy": "スタック",
       "chooseGroupingField": "グループ化するフィールドを選択",
       "addOrEditStack": "スタックの追加/編集"
     },

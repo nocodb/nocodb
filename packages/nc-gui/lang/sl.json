@@ -1067,12 +1067,12 @@
       "showJunctionTableNames": "Prikaži imena tabel za stičišča"
     },
     "kanban": {
-      "collapseStack": "Collapse stack",
+      "collapseStack": "Zbijanje kupa",
       "collapseAll": "Collapse all",
       "expandAll": "Expand all",
       "renameStack": "Rename stack",
-      "deleteStack": "Delete stack",
-      "stackedBy": "Stacked by",
+      "deleteStack": "Brisanje sklada",
+      "stackedBy": "Zloženo po",
       "chooseGroupingField": "Izberite polje za združevanje",
       "addOrEditStack": "Dodajanje / urejanje sklada"
     },

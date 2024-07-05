@@ -605,7 +605,7 @@
     "headerName": "Virsraksta nosaukums",
     "icon": "Ikons",
     "max": "Maksimums",
-    "enableRichText": "Enable rich text",
+    "enableRichText": "Ieslēgt bagātīgu tekstu",
     "idColon": "Id:",
     "copiedRecordURL": "Kopēts ieraksta URL",
     "copyRecordURL": "Kopēt ieraksta URL",
@@ -1067,12 +1067,12 @@
       "showJunctionTableNames": "Rādīt krustojuma tabulu nosaukumus"
     },
     "kanban": {
-      "collapseStack": "Collapse stack",
+      "collapseStack": "Salocīt kaudze",
       "collapseAll": "Collapse all",
       "expandAll": "Expand all",
       "renameStack": "Rename stack",
-      "deleteStack": "Delete stack",
-      "stackedBy": "Stacked by",
+      "deleteStack": "Izdzēst kaudze",
+      "stackedBy": "Sakrautas ar",
       "chooseGroupingField": "Izvēlieties grupēšanas lauku",
       "addOrEditStack": "Pievienot / rediģēt kaudzi"
     },

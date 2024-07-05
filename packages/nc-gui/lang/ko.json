@@ -1067,12 +1067,12 @@
       "showJunctionTableNames": "중간 테이블 이름 표시"
     },
     "kanban": {
-      "collapseStack": "Collapse stack",
+      "collapseStack": "스택 축소",
       "collapseAll": "Collapse all",
       "expandAll": "Expand all",
       "renameStack": "Rename stack",
-      "deleteStack": "Delete stack",
-      "stackedBy": "Stacked by",
+      "deleteStack": "스택 삭제",
+      "stackedBy": "스택 기준",
       "chooseGroupingField": "그룹화 필드 선택",
       "addOrEditStack": "스택 추가 또는 편집"
     },

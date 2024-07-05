@@ -55,6 +55,10 @@ const captureImage = () => {
   }
 }
 
+const closeMenu = () => {
+  emits('update:visible', false)
+}
+
 onMounted(() => {
   startCamera()
 })
@@ -65,7 +69,14 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="w-full h-full">
+  <div class="w-full relative h-full">
+    <NcTooltip class="absolute top-3 right-2">
+      <NcButton type="text" class="!border-0" size="xsmall" @click="closeMenu">
+        <GeneralIcon icon="close" />
+      </NcButton>
+
+      <template #title> {{ $t('general.close') }} </template>
+    </NcTooltip>
     <div v-if="!permissionGranted" class="w-full h-full flex bg-gray-50 items-center justify-center">
       <div
         class="flex flex-col hover:bg-white p-2 cursor-pointer rounded-md !transition-all transition-ease-in-out duration-300 gap-2 items-center justify-center"
@@ -114,7 +125,7 @@ onBeforeUnmount(() => {
         </div>
       </div>
       <div v-show="capturedImage" class="flex gap-2 pr-2 bottom-1 relative w-full items-center justify-end">
-        <NcButton :disabled="isLoading" type="secondary" size="small" @click="emits('update:visible', false)">
+        <NcButton :disabled="isLoading" type="secondary" size="small" @click="closeMenu">
           {{ $t('labels.cancel') }}
         </NcButton>
 

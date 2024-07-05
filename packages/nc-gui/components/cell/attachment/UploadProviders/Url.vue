@@ -54,7 +54,7 @@ const uploadAndParseUrl = async () => {
     const data = await uploadViaUrl({ url: url.value }, true)
 
     if (typeof data !== 'string' && data?.length) {
-      tempAttachments.value.push(...data)
+      tempAttachments.value = [...data, ...tempAttachments.value]
       url.value = ''
     } else {
       isValidUrl.value = false
@@ -94,7 +94,7 @@ watch(url, () => {
       <h1 class="text-gray-800 font-semibold">
         {{ $t('labels.addFilesFromUrl') }}
       </h1>
-      <div class="flex pb-2 bg-white gap-2">
+      <div class="flex bg-white gap-2">
         <a-input
           ref="inputRef"
           v-model:value="url"
@@ -113,7 +113,7 @@ watch(url, () => {
         {{ errorMessage.length > 0 ? errorMessage : $t('labels.enterValidUrl') }}
       </span>
       <template v-if="tempAttachments.length > 0">
-        <div :style="`height: ${!isValidUrl ? '208px' : '230px'}`" class="overflow-y-auto bg-white !max-h-[250px]">
+        <div :style="`height: ${!isValidUrl ? '208px' : '230px'}`" class="overflow-y-auto bg-white mt-1 !max-h-[250px]">
           <h1 class="font-semibold capitalize sticky top-0 bg-white text-gray-800">
             {{ $t('objects.files') }}
           </h1>

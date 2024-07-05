@@ -56,6 +56,10 @@ const open = () => {
   _open()
 }
 
+const closeMenu = () => {
+  emits('update:visible', false)
+}
+
 onBeforeUnmount(() => {
   tempFiles.value = []
 })
@@ -63,13 +67,20 @@ onBeforeUnmount(() => {
 
 <template>
   <div
-    :style="`height: ${tempFiles.length > 0 ? 'calc(100% - 92px)' : '100%'};`"
     :class="{
-      'flex flex-col justify-center items-center': !tempFiles.length,
+      'flex flex-col relative justify-center items-center': !tempFiles.length,
     }"
-    class="w-full space-y-2"
+    class="w-full p-2 h-full"
   >
-    <div v-if="tempFiles.length > 0" class="flex w-full border-b-1 items-center py-1 justify-between top-0">
+    <NcTooltip v-if="tempFiles.length === 0" class="absolute top-3 right-3">
+      <NcButton type="text" class="!border-0" size="xsmall" @click="closeMenu">
+        <GeneralIcon icon="close" />
+      </NcButton>
+
+      <template #title> {{ $t('general.close') }} </template>
+    </NcTooltip>
+
+    <div v-if="tempFiles.length > 0" class="flex w-full border-b-1 py-1 h-9.5 items-center justify-between top-0">
       <NcButton type="text" size="small" @click="clearAll">
         {{ $t('labels.clearAllFiles') }}
       </NcButton>
@@ -95,11 +106,11 @@ onBeforeUnmount(() => {
       ref="dropZoneRef"
       :class="{
         'border-brand-500': isOverDropZone,
-        'border-dashed border-1 h-1/2': !tempFiles.length,
-        'h-full': tempFiles.length,
+        'border-dashed border-1': !tempFiles.length,
       }"
       data-testid="attachment-drop-zone"
-      class="flex flex-col items-center justify-center w-full flex-grow-1 rounded-lg"
+      :style="`height: ${tempFiles.length > 0 ? '324px' : '100%'}`"
+      class="flex flex-col items-center justify-center h-full w-full flex-grow-1 rounded-lg"
       @click="tempFiles.length > 0 ? () => {} : open()"
     >
       <div v-if="!tempFiles.length" class="flex cursor-pointer items-center justify-center flex-col gap-2">
@@ -115,7 +126,9 @@ onBeforeUnmount(() => {
         </template>
       </div>
       <template v-else>
-        <div class="grid overflow-y-auto nc-scrollbar-md grid-cols-4 w-full h-full items-start p-4 justify-center gap-4">
+        <div
+          class="grid overflow-y-auto flex-grow-1 nc-scrollbar-md grid-cols-4 w-full h-full items-start py-2 justify-center gap-4"
+        >
           <div v-for="file in tempFiles" :key="file.name" class="flex gap-1.5 group min-w-34 max-w-28 pb-4 flex-col relative">
             <div
               v-if="!thumbnails.get(file)"
@@ -146,8 +159,8 @@ onBeforeUnmount(() => {
         </div>
       </template>
     </div>
-    <div v-if="tempFiles.length" class="flex gap-2 pr-2 bg-white w-full items-center justify-end">
-      <NcButton :disabled="isLoading" type="secondary" size="small" @click="emits('update:visible', false)">
+    <div v-if="tempFiles.length" class="flex gap-2 pt-1 bg-white w-full items-center justify-end">
+      <NcButton :disabled="isLoading" type="secondary" size="small" @click="closeMenu">
         {{ $t('labels.cancel') }}
       </NcButton>
 
@@ -164,8 +177,6 @@ onBeforeUnmount(() => {
 <style lang="scss">
 .hide-ui {
   @apply h-0 w-0 overflow-hidden whitespace-nowrap;
-
-  // When the parent with class 'group' is hovered
   .group:hover & {
     @apply h-auto w-auto overflow-visible whitespace-normal;
   }

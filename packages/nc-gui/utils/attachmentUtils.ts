@@ -1,4 +1,5 @@
 export const createThumbnail = async (file: File): Promise<string | null> => {
+  if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) return null
   return new Promise<string | null>((resolve, reject) => {
     const reader = new FileReader()
     reader.onload = function (event) {

@@ -85,7 +85,6 @@ const IsImportTypeExcel = computed(() => importType === 'excel')
 
 const validators = computed(() => ({
   url: [fieldRequiredValidator(), importUrlValidator, isImportTypeCsv.value ? importCsvUrlValidator : importExcelUrlValidator],
-  maxRowsToParse: [fieldRequiredValidator()],
 }))
 
 const { validate, validateInfos } = useForm(importState, validators)
@@ -524,6 +523,12 @@ const onError = () => {
 const onChange = () => {
   isError.value = false
 }
+
+onMounted(() => {
+  if (!importDataOnly) {
+    importState.parserConfig.autoSelectFieldTypes = false
+  }
+})
 </script>
 
 <template>
@@ -538,7 +543,12 @@ const onChange = () => {
       <div class="px-5">
         <div class="prose-xl font-weight-bold my-5">{{ importMeta.header }}</div>
 
-        <div class="mt-5">
+        <div
+          class="mt-5"
+          :class="{
+            'mb-4': templateEditorModal,
+          }"
+        >
           <LazyTemplateEditor
             v-if="templateEditorModal"
             ref="templateEditorRef"
@@ -632,17 +642,12 @@ const onChange = () => {
             <!-- Advanced Settings -->
             <span class="prose-lg">{{ $t('title.advancedSettings') }}</span>
 
-            <a-form-item class="!my-2" :label="t('msg.info.footMsg')" v-bind="validateInfos.maxRowsToParse">
-              <a-input-number v-model:value="importState.parserConfig.maxRowsToParse" :min="1" :max="50000" />
-            </a-form-item>
-
             <a-form-item v-if="!importDataOnly" class="!my-2">
               <NcTooltip align="left" class="inline-block">
                 <template #title>
                   {{ $t('title.comingSoon') }}
                 </template>
-                <!-- Todo: use `v-model:checked="importState.parserConfig.autoSelectFieldTypes"` when we enable this field/(add support to auto detect field type) -->
-                <a-checkbox :checked="false" :disabled="true">
+                <a-checkbox v-model:checked="importState.parserConfig.autoSelectFieldTypes" :disabled="true">
                   <span class="caption">{{ $t('labels.autoSelectFieldTypes') }} </span>
                 </a-checkbox>
               </NcTooltip>

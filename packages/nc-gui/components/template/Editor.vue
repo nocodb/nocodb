@@ -929,7 +929,7 @@ watch(modelRef, async () => {
 
                 <template v-else-if="column.key === 'uidt'">
                   <a-form-item v-bind="validateInfos[`tables.${tableIdx}.columns.${record.key}.${column.key}`]">
-                    <NcTooltip :disabled="importDataOnly" >
+                    <NcTooltip :disabled="importDataOnly">
                       <template #title>
                         {{ $t('tooltip.useFieldEditMenuToConfigFieldType') }}
                       </template>
@@ -968,7 +968,7 @@ watch(modelRef, async () => {
 
                 <template v-else-if="column.key === 'dtxp'">
                   <a-form-item v-if="isSelect(record)">
-                    <a-input v-model:value="record.dtxp" />
+                    <a-input v-model:value="record.dtxp" class="!rounded-md" />
                   </a-form-item>
                 </template>
 

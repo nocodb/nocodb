@@ -43,7 +43,7 @@ export class AttachmentsController {
 
   @Post(['/api/v1/db/storage/upload-by-url', '/api/v2/storage/upload-by-url'])
   @HttpCode(200)
-  // @UseInterceptors(UploadAllowedInterceptor)
+  @UseInterceptors(UploadAllowedInterceptor)
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
   async uploadViaURL(
     @Body() body: Array<AttachmentReqType>,

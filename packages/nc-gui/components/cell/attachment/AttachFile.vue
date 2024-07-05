@@ -7,7 +7,7 @@ const props = defineProps<{
 
 const dialogShow = useVModel(props, 'value')
 
-const { onDrop: saveAttachment } = useAttachmentCell()!
+const { onDrop: saveAttachment, isPublic } = useAttachmentCell()!
 
 const activeMenu = ref('local')
 
@@ -51,6 +51,7 @@ const saveAttachments = async (files: File[]) => {
             </div>
           </NcMenuItem>
           <NcMenuItem
+            v-if="!isPublic"
             key="url"
             :class="{
               'active-menu': activeMenu === 'url',

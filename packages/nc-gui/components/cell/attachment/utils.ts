@@ -221,7 +221,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       updateModelValue(JSON.stringify([...attachments.value, ...newAttachments]))
     }
 
-    async function uploadViaUrl(url: { url: string } | { url: string }[]) {
+    async function uploadViaUrl(url: AttachmentReqType | AttachmentReqType[]) {
       const imageUrl = Array.isArray(url) ? url : [url]
       try {
         const data = await api.storage.uploadByUrl(

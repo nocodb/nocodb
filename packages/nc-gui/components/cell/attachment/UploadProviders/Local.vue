@@ -63,7 +63,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div :style="`height: ${tempFiles.length > 0 ? 'calc(100% - 88px)' : '100%'};`" class="w-full p-1 space-y-2">
+  <div :style="`height: ${tempFiles.length > 0 ? 'calc(100% - 88px)' : '100%'};`" class="w-full space-y-2">
     <div v-if="tempFiles.length > 0" class="flex w-full items-center pt-1 justify-between top-0">
       <NcButton type="text" class="!hover:bg-transparent" size="small" @click="clearAll"> Clear all files </NcButton>
 
@@ -83,10 +83,10 @@ onBeforeUnmount(() => {
       ref="dropZoneRef"
       :class="{
         'border-brand-500': isOverDropZone,
-        'border-dashed': !tempFiles.length,
+        'border-dashed border-1 ': !tempFiles.length,
       }"
       data-testid="attachment-drop-zone"
-      class="flex flex-col items-center justify-center bg-gray-50 w-full h-full flex-grow-1 border-1 rounded-lg"
+      class="flex flex-col items-center justify-center w-full h-full flex-grow-1 rounded-lg"
       @click="tempFiles.length > 0 ? () => {} : open()"
     >
       <div v-if="!tempFiles.length" class="flex cursor-pointer items-center justify-center flex-col gap-2">

@@ -144,7 +144,7 @@ onBeforeUnmount(() => {
           {{ formatBytes(capturedImage?.size, 2) }}
         </div>
       </div>
-      <div v-show="capturedImage" class="flex gap-2 pr-2 sticky bottom-0 w-full items-center justify-end">
+      <div v-show="capturedImage" class="flex gap-2 pr-2 bottom-1 relative w-full items-center justify-end">
         <NcButton :disabled="isLoading" type="secondary" size="small" @click="emits('update:visible', false)"> Cancel </NcButton>
 
         <NcButton :loading="isLoading" size="small" @click="emits('upload', [capturedImage] as File[])">

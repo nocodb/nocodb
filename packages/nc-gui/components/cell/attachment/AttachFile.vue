@@ -36,8 +36,8 @@ const saveAttachments = async (files: File[]) => {
     @keydown.esc="dialogShow = false"
   >
     <div class="flex h-full flex-row">
-      <div class="px-2 h-full">
-        <NcMenu class="!h-full">
+      <div style="border-top-left-radius: 1rem; border-bottom-left-radius: 1rem" class="px-2 !-full flex-grow bg-gray-100">
+        <NcMenu class="!h-full !bg-gray-100">
           <NcMenuItem
             key="local"
             :class="{
@@ -77,7 +77,7 @@ const saveAttachments = async (files: File[]) => {
         </NcMenu>
       </div>
 
-      <div style="height: 425px" class="w-full">
+      <div style="height: 425px" class="w-full p-2">
         <LazyCellAttachmentUploadProvidersLocal
           v-show="activeMenu === 'local'"
           @update:visible="closeModal"
@@ -103,7 +103,7 @@ const saveAttachments = async (files: File[]) => {
 <style lang="scss">
 .nc-modal-attachment-create {
   .active-menu {
-    @apply !bg-gray-100 font-sembold text-brand-500 rounded-md;
+    @apply !bg-gray-200 font-sembold text-brand-500 rounded-md;
   }
 }
 

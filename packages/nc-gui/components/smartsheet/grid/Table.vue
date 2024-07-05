@@ -115,6 +115,8 @@ const scrollParent = inject(ScrollParentInj, ref<undefined>())
 
 const { isPkAvail, isSqlView, eventBus } = useSmartsheetStoreOrThrow()
 
+const { isXcdbBase: _isXcdbBase } = useBase()
+
 const { isViewDataLoading, isPaginationLoading } = storeToRefs(useViewsStore())
 
 const { $e } = useNuxtApp()
@@ -458,6 +460,15 @@ const colMeta = computed(() => {
       isReadonly: isReadonly(col),
     }
   })
+})
+
+const isXcdbBase = computed(() => {
+  if (_isXcdbBase(meta.value?.source_id)) {
+    isAddNewRecordGridMode.value = true
+    return false
+  }
+  isAddNewRecordGridMode.value = false
+  return true
 })
 
 // #Grid
@@ -2173,7 +2184,7 @@ onKeyStroke('ArrowDown', onDown)
                     '!border-r-2 !border-r-gray-100': visibleColLength === 1,
                   }"
                   @mouseup.stop
-                  @click="addEmptyRow()"
+                  @click="isXcdbBase ? onNewRecordToFormClick() : addEmptyRow()"
                 >
                   <div
                     class="h-8 border-b-1 border-gray-100 bg-white group-hover:bg-gray-50 absolute left-0 bottom-0 px-2 sticky z-40 w-full flex items-center text-gray-500"
@@ -2406,14 +2417,17 @@ onKeyStroke('ArrowDown', onDown)
               <template #overlay>
                 <div class="relative overflow-visible min-h-17 w-10">
                   <div
-                    class="absolute -top-21 flex flex-col min-h-34.5 w-70 p-1.5 bg-white rounded-lg border-1 border-gray-200 justify-start overflow-hidden"
+                    class="absolute flex flex-col w-70 p-1.5 bg-white rounded-lg border-1 border-gray-200 justify-start overflow-hidden"
                     style="box-shadow: 0px 4px 6px -2px rgba(0, 0, 0, 0.06), 0px -12px 16px -4px rgba(0, 0, 0, 0.1)"
                     :class="{
                       '-left-32.5': !isAddNewRecordGridMode,
                       '-left-21.5': isAddNewRecordGridMode,
+                      '-top-21 min-h-34.5': !isXcdbBase,
+                      '-top-3.5': isXcdbBase,
                     }"
                   >
                     <div
+                      v-if="!isXcdbBase"
                       v-e="['c:row:add:grid']"
                       class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer rounded-md hover:bg-gray-100 text-gray-600 nc-new-record-with-grid group"
                       @click="onNewRecordToGridClick"
@@ -2505,7 +2519,12 @@ onKeyStroke('ArrowDown', onDown)
 
         <template #overlay>
           <NcMenu>
-            <NcMenuItem v-e="['c:row:add:grid']" class="nc-new-record-with-grid group" @click="onNewRecordToGridClick">
+            <NcMenuItem
+              v-if="!isXcdbBase"
+              v-e="['c:row:add:grid']"
+              class="nc-new-record-with-grid group"
+              @click="onNewRecordToGridClick"
+            >
               <div class="flex flex-row items-center justify-start gap-x-3">
                 <component :is="viewIcons[ViewTypes.GRID]?.icon" class="nc-view-icon text-inherit" />
                 {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.grid') }}

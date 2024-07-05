@@ -295,7 +295,7 @@ class BaseModelSqlv2 {
       data = await this.readByPk(...rest);
     } else {
       const baseModel = await Model.getBaseModelSQL(this.context, {
-        id: model.id,
+        model,
         viewId: viewId,
         dbDriver: this.dbDriver,
       });

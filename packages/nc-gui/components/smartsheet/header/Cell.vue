@@ -110,8 +110,8 @@ const onClick = (e: Event) => {
       'h-full': column,
       'flex-col !items-start justify-center pt-0.5': isExpandedForm && !isMobileMode && !isExpandedBulkUpdateForm,
       'nc-cell-expanded-form-header cursor-pointer hover:bg-gray-100':
-        isExpandedForm && !isMobileMode && isUIAllowed('fieldEdit') && !isExpandedBulkUpdateForm,
-      'bg-gray-100': isExpandedForm && !isExpandedBulkUpdateForm ? editColumnDropdown || isDropDownOpen : false,
+        isExpandedForm && !isMobileMode && isUIAllowed('fieldEdit') && !isExpandedBulkUpdateForm && !isLocked,
+      'bg-gray-100': isExpandedForm && !isExpandedBulkUpdateForm && !isLocked ? editColumnDropdown || isDropDownOpen : false,
     }"
     @dblclick="openHeaderMenu"
     @click.right="openDropDown"
@@ -172,7 +172,7 @@ const onClick = (e: Event) => {
       <span v-if="(column.rqd && !column.cdf) || required" class="text-red-500">&nbsp;*</span>
 
       <GeneralIcon
-        v-if="isExpandedForm && !isExpandedBulkUpdateForm && !isMobileMode && isUIAllowed('fieldEdit')"
+        v-if="isExpandedForm && !isExpandedBulkUpdateForm && !isMobileMode && isUIAllowed('fieldEdit') && !isLocked"
         icon="arrowDown"
         class="flex-none cursor-pointer ml-1 group-hover:visible w-4 h-4"
         :class="{

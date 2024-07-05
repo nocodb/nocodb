@@ -66,6 +66,8 @@ const route = useRoute()
 
 const isPublic = inject(IsPublicInj, ref(false))
 
+const isLocked = inject(IsLockedInj, ref(false))
+
 // to check if a expanded form which is not yet saved exist or not
 const isUnsavedFormExist = ref(false)
 
@@ -112,6 +114,8 @@ const hiddenFields = computed(() => {
 const showHiddenFields = ref(false)
 
 const toggleHiddenFields = () => {
+  if (isLocked.value) return
+
   showHiddenFields.value = !showHiddenFields.value
 }
 
@@ -817,6 +821,7 @@ export default {
                 :size="isMobileMode ? 'medium' : 'small'"
                 class="flex-shrink !text-sm overflow-hidden !text-gray-500 !font-weight-500"
                 type="secondary"
+                :disabled="isLocked"
                 @click="toggleHiddenFields"
               >
                 {{ showHiddenFields ? `Hide ${hiddenFields.length} hidden` : `Show ${hiddenFields.length} hidden` }}

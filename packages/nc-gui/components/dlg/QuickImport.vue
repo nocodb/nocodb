@@ -165,8 +165,6 @@ async function handlePreImport() {
   preImportLoading.value = true
   isParsingData.value = true
 
-  importState.parserConfig.importDataOnly = importDataOnly
-
   if (!baseTables.value.get(baseId)) {
     await loadProjectTables(baseId)
   }
@@ -525,6 +523,8 @@ const onChange = () => {
 }
 
 onMounted(() => {
+  importState.parserConfig.importDataOnly = importDataOnly
+
   if (!importDataOnly) {
     importState.parserConfig.autoSelectFieldTypes = false
   }

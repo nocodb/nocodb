@@ -1211,7 +1211,7 @@
     "optimizedQueryEnabled": "Optimized query is enabled",
     "lookupNonBtWarning": "Le champ de type Lookup n'est pas supporté pour les relations de non appartenance",
     "invalidTime": "Invalid Time",
-    "linkColumnClearNotSupportedYet": "You don't have any supported links for {type}",
+    "linkColumnClearNotSupportedYet": "Vous n'avez aucun lien défini pour ajouter un champ {type}",
     "recordCouldNotBeFound": "L'enregistrement n'a pas pu être trouvé",
     "invalidPhoneNumber": "Numéro de téléphone invalide",
     "pageSizeChanged": "Taille de la page modifiée",

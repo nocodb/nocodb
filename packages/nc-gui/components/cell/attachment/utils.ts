@@ -221,7 +221,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       updateModelValue(JSON.stringify([...attachments.value, ...newAttachments]))
     }
 
-    async function uploadViaUrl(url: AttachmentReqType | AttachmentReqType[]) {
+    async function uploadViaUrl(url: AttachmentReqType | AttachmentReqType[], returnError = false) {
       const imageUrl = Array.isArray(url) ? url : [url]
       try {
         const data = await api.storage.uploadByUrl(
@@ -233,6 +233,9 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
         return data
       } catch (e: any) {
         console.log(e)
+        if (returnError) {
+          return "File couldn't be uploaded. Verify URL & try again."
+        }
         message.error("File couldn't be uploaded. Verify URL & try again.")
         return null
       }

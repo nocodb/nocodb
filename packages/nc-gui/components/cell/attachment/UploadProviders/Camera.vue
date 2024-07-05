@@ -16,8 +16,6 @@ const videoStream = ref<MediaStream | null>(null)
 
 const startCamera = async () => {
   try {
-    videoStream.value = await navigator.mediaDevices.getUserMedia({ video: true })
-    permissionGranted.value = true
     if (videoRef.value) {
       videoRef.value.srcObject = videoStream.value
     }
@@ -32,23 +30,21 @@ const retakeImage = () => {
 }
 
 const stopCamera = () => {
-  if (videoStream.value) {
-    const tracks = videoStream.value?.getTracks()
+  const tracks = videoStream.value?.getTracks()
 
-    for (const track of tracks ?? []) {
-      track.stop()
-    }
+  for (const track of tracks ?? []) {
+    track.stop()
+  }
+  if (videoRef.value) {
     videoRef.value.srcObject = null
   }
 }
 
 const checkPermission = async () => {
   try {
-    navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
-      stream.getTracks().forEach((track) => track.stop())
-      permissionGranted.value = true
-      startCamera()
-    })
+    videoStream.value = await navigator.mediaDevices.getUserMedia({ video: true })
+    permissionGranted.value = true
+    await startCamera()
   } catch (error) {
     console.error('Error checking camera permission:', error)
   }

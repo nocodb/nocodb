@@ -40,6 +40,8 @@ const deleteAttachment = (index: number) => {
 
 const isValidUrl = ref(true)
 
+const errorMessage = ref('')
+
 const uploadAndParseUrl = async () => {
   if (!isValidURL(url.value)) {
     isValidUrl.value = false
@@ -49,13 +51,14 @@ const uploadAndParseUrl = async () => {
 
   try {
     isParsing.value = true
-    const data = await uploadViaUrl({ url: url.value })
+    const data = await uploadViaUrl({ url: url.value }, true)
 
-    if (data?.length) {
+    if (typeof data !== 'string' && data?.length) {
       tempAttachments.value.push(...data)
       url.value = ''
     } else {
-      console.error('Error uploading via URL')
+      isValidUrl.value = false
+      errorMessage.value = data
     }
   } finally {
     isParsing.value = false
@@ -107,10 +110,10 @@ watch(url, () => {
         </NcButton>
       </div>
       <span v-if="url.length > 0 && !isValidUrl" class="text-red-500 text-[13px]">
-        {{ $t('labels.enterValidUrl') }}
+        {{ errorMessage.length > 0 ? errorMessage : $t('labels.enterValidUrl') }}
       </span>
       <template v-if="tempAttachments.length > 0">
-        <div :style="`height: ${!isValidUrl ? '232px' : '250px'}`" class="overflow-y-auto bg-white !max-h-[265px]">
+        <div :style="`height: ${!isValidUrl ? '208px' : '230px'}`" class="overflow-y-auto bg-white !max-h-[250px]">
           <h1 class="font-semibold capitalize sticky top-0 bg-white text-gray-800">
             {{ $t('objects.files') }}
           </h1>

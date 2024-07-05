@@ -1067,12 +1067,12 @@
       "showJunctionTableNames": "Prikaži Nazive Tablica za Spoj"
     },
     "kanban": {
-      "collapseStack": "Collapse stack",
+      "collapseStack": "Sakrij hrpu (stack)",
       "collapseAll": "Collapse all",
       "expandAll": "Expand all",
       "renameStack": "Rename stack",
-      "deleteStack": "Delete stack",
-      "stackedBy": "Stacked by",
+      "deleteStack": "Izbriši hrpu (stack)",
+      "stackedBy": "Spojeno prema",
       "chooseGroupingField": "Odaberite polje za grupiranje",
       "addOrEditStack": "Dodaj / Uredi hrpu (stack)"
     },

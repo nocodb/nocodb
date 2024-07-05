@@ -9,9 +9,12 @@ const capturedImage = ref<null | File>(null)
 const videoRef = ref<HTMLVideoElement | undefined>()
 const canvasRef = ref<HTMLCanvasElement | undefined>()
 
+const permStream = ref<MediaStream | null>(null)
+
 const startCamera = async () => {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ video: true })
+    permissionGranted.value = true
     if (videoRef.value) {
       videoRef.value.srcObject = stream
     }
@@ -26,39 +29,29 @@ const retakeImage = () => {
 }
 
 const stopCamera = () => {
-  if (videoRef.value && videoRef.value.srcObject) {
+  if (videoRef.value) {
     const stream = videoRef.value.srcObject as MediaStream
+
     const tracks = stream.getTracks()
 
     for (const track of tracks) {
       track.stop()
     }
     videoRef.value.src = null
+    videoRef.value.srcObject = null
   }
-}
 
-const requestPermission = async () => {
-  try {
-    await navigator.mediaDevices.getUserMedia({ video: true })
-    permissionGranted.value = true
-    await startCamera()
-  } catch (error) {
-    console.error('Error requesting camera permission:', error)
+  for (const track of permStream.value?.getTracks() || []) {
+    track.stop()
   }
 }
 
 const checkPermission = async () => {
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: true })
-    if (stream.getVideoTracks().length > 0) {
+    permStream.value = await navigator.mediaDevices.getUserMedia({ video: true })
+    if (permStream.value.getVideoTracks().length > 0) {
       permissionGranted.value = true
       await startCamera()
-    } else {
-      await requestPermission()
-    }
-    stream.onaddtrack = () => {
-      permissionGranted.value = true
-      startCamera()
     }
   } catch (error) {
     console.error('Error checking camera permission:', error)

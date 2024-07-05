@@ -41,12 +41,15 @@ const stopCamera = () => {
     for (const track of tracks ?? []) {
       track.stop()
     }
-    videoRef.value.src = null
     videoRef.value.srcObject = null
   }
 
-  for (const track of permStream.value?.getTracks() || []) {
-    track.stop()
+  if (permStream.value) {
+    const permTracks = permStream.value.getTracks()
+    for (const track of permTracks) {
+      track.stop()
+    }
+    permStream.value = null
   }
 }
 

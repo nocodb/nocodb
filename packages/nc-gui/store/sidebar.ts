@@ -22,7 +22,7 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
   const isRightSidebarOpen = ref(true)
 
   const leftSideBarSize = ref({
-    old: _leftSidebarSize.value,
+    old: _leftSidebarSize.value ?? 288,
     current: isViewPortMobile() ? 0 : _leftSidebarSize.value ?? 288,
   })
 
@@ -40,7 +40,13 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
     return leftSidebarWidthPercent.value
   })
 
-  const leftSidebarWidth = computed(() => leftSideBarSize.value.current)
+  const leftSidebarWidth = computed(() => {
+    if (isMobileMode.value) {
+      return isLeftSidebarOpen.value ? width.value : 0
+    }
+
+    return leftSideBarSize.value.current
+  })
 
   const nonHiddenMobileSidebarSize = computed(() => {
     if (isMobileMode.value) {

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useAttachmentCell } from '../utils'
+
 const emits = defineEmits<{
   'update:visible': [value: boolean]
 }>()

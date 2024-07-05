@@ -271,6 +271,7 @@
     "ipAddress": "Adres IP"
   },
   "objects": {
+    "files": "files",
     "owner": "Właściciel",
     "member": "Członek",
     "day": "Dzień",
@@ -384,6 +385,9 @@
     "isNotNull": "Nie jest null"
   },
   "title": {
+    "webcam": "Webcam",
+    "uploadViaUrl": "Upload via URL",
+    "localFiles": "Local Files",
     "renameBase": "Zmień nazwę tabeli",
     "renameWorkspace": "Zmień nazwę przestrzeni roboczej",
     "renamingWorkspace": "Zmiana nazwy przestrzeni roboczej",
@@ -513,6 +517,18 @@
     "looksLikeThisStackIsEmpty": "Wygląda na to, że ten stos nie ma żadnych rekordów"
   },
   "labels": {
+    "toUpload": "to upload",
+    "dragFilesHere": "drag files here",
+    "browseFiles": "browse files",
+    "clickTo": "Click to",
+    "allowAccessToYourCamera": "Please allow access to your camera",
+    "openFile": "Open file",
+    "enterValidUrl": "Enter a valid URL to upload files",
+    "addFilesFromUrl": "Add files from URL",
+    "uploading": "Uploading",
+    "dropHere": "Upuść tutaj",
+    "addMore": "Add more",
+    "clearAllFiles": "Clear all files",
     "notRecommended": "Nie zalecane",
     "allowMetaWrite": "Zezwól na modyfikację schematu",
     "allowDataWrite": "Allow Data Edit",
@@ -648,7 +664,6 @@
     "createdBy": "Stworzony przez",
     "viewingAttachmentsOf": "Przeglądanie załączników",
     "readOnly": "Tylko do odczytu",
-    "dropHere": "Upuść tutaj",
     "createdOn": "Utworzony",
     "notifyVia": "Powiadom przez",
     "projName": "Nazwa projektu",

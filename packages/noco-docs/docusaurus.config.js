@@ -206,7 +206,7 @@ const config = {
         },
       },
     }),
-  clientModules: [require.resolve("./src/modules/tele.js")],
+  clientModules: [require.resolve("./src/modules/tele.js"), require.resolve("./src/modules/maintenance.js")],
 };
 
 module.exports = config;

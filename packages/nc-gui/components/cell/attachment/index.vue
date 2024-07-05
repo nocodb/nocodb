@@ -132,10 +132,18 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e) => {
 
 const rowHeight = inject(RowHeightInj, ref())
 
+const isNewAttachmentModalOpen = ref(false)
+
+const openAttachmentModal = () => {
+  isNewAttachmentModalOpen.value = true
+}
+
 const open = (e: Event) => {
   e.stopPropagation()
 
-  _open()
+  openAttachmentModal()
+  /*
+    _open() */
 }
 
 const openAttachment = (item: any) => {
@@ -246,9 +254,7 @@ const handleFileDelete = (i: number) => {
           v-if="active || !visibleItems.length || (isForm && visibleItems.length)"
           class="flex items-center gap-1 xs:(w-full min-w-12 h-7 justify-center)"
         >
-          <MaterialSymbolsAttachFile
-            class="transform dark:(!text-white) group-hover:(!text-accent scale-120) text-gray-500 text-tiny"
-          />
+          <MaterialSymbolsAttachFile class="transform dark:(!text-white) text-gray-500 text-tiny" />
           <div
             v-if="!visibleItems.length"
             data-rec="true"
@@ -270,7 +276,7 @@ const handleFileDelete = (i: number) => {
           'py-1': rowHeight === 1 && !isForm && !isExpandedForm,
           'py-1.5': rowHeight !== 1 || isForm || isExpandedForm,
         }"
-        class="nc-attachment-wrapper flex cursor-pointer w-full items-center flex-wrap gap-2 nc-scrollbar-thin mt-0 items-start px-[1px]"
+        class="nc-attachment-wrapper flex cursor-pointer w-full items-center flex-wrap gap-1 nc-scrollbar-thin mt-0 items-start px-[1px]"
         :style="{
           maxHeight: isForm || isExpandedForm ? undefined : `max(100%, ${isGrid ? '22px' : '32px'})`,
         }"
@@ -283,7 +289,7 @@ const handleFileDelete = (i: number) => {
             <div v-if="isImage(item.title, item.mimetype ?? item.type)">
               <div
                 class="nc-attachment flex items-center flex-col flex-wrap justify-center flex-auto"
-                :class="{ 'ml-2': active, '!w-30': isForm || isExpandedForm }"
+                :class="{ '!w-30': isForm || isExpandedForm }"
                 @click="() => onImageClick(item)"
               >
                 <LazyCellAttachmentImage
@@ -333,18 +339,16 @@ const handleFileDelete = (i: number) => {
 
       <div
         v-if="active || (isForm && visibleItems.length)"
-        class="xs:hidden h-6 w-5.5 group cursor-pointer flex gap-1 items-center active:(ring ring-accent ring-opacity-100) rounded border-none p-1 hover:(bg-primary bg-opacity-10) dark:(!bg-slate-500)"
+        class="xs:hidden group cursor-pointer flex gap-1 items-center rounded border-none p-1"
       >
         <component :is="iconMap.reload" v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />
 
         <NcTooltip v-else placement="bottom" class="flex">
           <template #title> {{ $t('activity.viewAttachment') }}</template>
 
-          <component
-            :is="iconMap.expand"
-            class="flex-none transform dark:(!text-white) group-hover:(!text-grey-800 scale-120) text-gray-500 text-sm"
-            @click.stop="onExpand"
-          />
+          <NcButton type="text" size="xsmall" @click.stop="onExpand">
+            <component :is="iconMap.expand" />
+          </NcButton>
         </NcTooltip>
       </div>
     </template>
@@ -372,6 +376,7 @@ const handleFileDelete = (i: number) => {
       </template>
     </LazyGeneralDeleteModal>
   </div>
+  <LazyCellAttachmentAttachFile v-model:value="isNewAttachmentModalOpen" />
 </template>
 
 <style lang="scss">

@@ -32,9 +32,9 @@ const stopCamera = () => {
   if (videoRef.value) {
     const stream = videoRef.value.srcObject as MediaStream
 
-    const tracks = stream.getTracks()
+    const tracks = stream?.getTracks()
 
-    for (const track of tracks) {
+    for (const track of tracks ?? []) {
       track.stop()
     }
     videoRef.value.src = null

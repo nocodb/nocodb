@@ -115,7 +115,7 @@ const scrollParent = inject(ScrollParentInj, ref<undefined>())
 
 const { isPkAvail, isSqlView, eventBus } = useSmartsheetStoreOrThrow()
 
-const { isXcdbBase: _isXcdbBase } = useBase()
+const { isXcdbBase: isXcdbBaseFun } = useBase()
 
 const { isViewDataLoading, isPaginationLoading } = storeToRefs(useViewsStore())
 
@@ -462,14 +462,7 @@ const colMeta = computed(() => {
   })
 })
 
-const isXcdbBase = computed(() => {
-  if (_isXcdbBase(meta.value?.source_id)) {
-    isAddNewRecordGridMode.value = true
-    return false
-  }
-  isAddNewRecordGridMode.value = false
-  return true
-})
+const isXcdbBase = computed(() => !isXcdbBaseFun(meta.value?.source_id))
 
 // #Grid
 
@@ -1562,6 +1555,14 @@ watch(
 
 watch([() => fields.value.length, () => dataRef.value.length], () => {
   calculateSlices()
+})
+
+watchEffect(() => {
+  if (isXcdbBase.value) {
+    isAddNewRecordGridMode.value = false
+  } else if (!isAddNewRecordGridMode.value) {
+    isAddNewRecordGridMode.value = true
+  }
 })
 
 // #Providers

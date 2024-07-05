@@ -231,10 +231,12 @@ class BaseModelSqlv2 {
       ignoreView = false,
       getHiddenColumn = false,
       throwErrorIfInvalidParams = false,
+      extractOnlyPrimaries = false,
     }: {
       ignoreView?: boolean;
       getHiddenColumn?: boolean;
       throwErrorIfInvalidParams?: boolean;
+      extractOnlyPrimaries?: boolean;
     } = {},
   ): Promise<any> {
     const qb = this.dbDriver(this.tnPath);
@@ -247,6 +249,7 @@ class BaseModelSqlv2 {
         : this.viewId && (await View.get(this.context, this.viewId)),
       getHiddenColumn,
       throwErrorIfInvalidParams,
+      extractOnlyPrimaries,
     });
 
     await this.selectObject({
@@ -279,6 +282,54 @@ class BaseModelSqlv2 {
     }
 
     return data ? await nocoExecute(ast, data, {}, parsedQuery) : null;
+  }
+
+  public async readByPkFromModel(
+    model = this.model,
+    viewId?: string,
+    extractDisplayValueData?: boolean,
+    ...rest: Parameters<BaseModelSqlv2['readByPk']>
+  ): Promise<any> {
+    let data;
+    if (this.model.id === model.id) {
+      data = await this.readByPk(...rest);
+    } else {
+      const baseModel = await Model.getBaseModelSQL(this.context, {
+        model,
+        viewId: viewId,
+        dbDriver: this.dbDriver,
+      });
+
+      data = await baseModel.readByPk(...rest);
+    }
+
+    if (extractDisplayValueData) {
+      return data ? data[model.displayValue.title] ?? null : '';
+    }
+
+    return data;
+  }
+
+  public async readOnlyPrimariesByPkFromModel(
+    props: { model: Model; id: any; extractDisplayValueData?: boolean }[],
+  ): Promise<any[]> {
+    return await Promise.all(
+      props.map(({ model, id, extractDisplayValueData = true }) =>
+        this.readByPkFromModel(
+          model,
+          undefined,
+          extractDisplayValueData,
+          id,
+          false,
+          {},
+          {
+            ignoreView: true,
+            getHiddenColumn: true,
+            extractOnlyPrimaries: true,
+          },
+        ),
+      ),
+    );
   }
 
   public async exist(id?: any): Promise<any> {
@@ -3703,6 +3754,19 @@ class BaseModelSqlv2 {
 
       await this.prepareNocoData(updateObj, false, cookie);
 
+      const btForeignKeyColumn = columns.find(
+        (c) =>
+          c.uidt === UITypes.ForeignKey && data[c.column_name] !== undefined,
+      );
+
+      const btColumn = btForeignKeyColumn
+        ? columns.find(
+            (c) =>
+              c.uidt === UITypes.LinkToAnotherRecord &&
+              c.colOptions?.fk_child_column_id === btForeignKeyColumn.id,
+          )
+        : null;
+
       const prevData = await this.readByPk(
         id,
         false,
@@ -3730,7 +3794,19 @@ class BaseModelSqlv2 {
         {},
         { ignoreView: true, getHiddenColumn: true },
       );
-      await this.afterUpdate(prevData, newData, trx, cookie, updateObj);
+
+      if (btColumn && Object.keys(data || {}).length === 1) {
+        await this.addChild({
+          colId: btColumn.id,
+          rowId: id,
+          childId: updateObj[btForeignKeyColumn.title],
+          cookie,
+          onlyUpdateAuditLogs: true,
+          prevData,
+        });
+      } else {
+        await this.afterUpdate(prevData, newData, trx, cookie, updateObj);
+      }
       return newData;
     } catch (e) {
       await this.errorUpdate(e, data, trx, cookie);
@@ -5024,6 +5100,34 @@ class BaseModelSqlv2 {
   public async afterInsert(data: any, _trx: any, req): Promise<void> {
     await this.handleHooks('after.insert', null, data, req);
     const id = this._extractPksValues(data);
+
+    let details = '';
+
+    if (data && typeof data === 'object') {
+      const updateObj = await this.model.mapColumnToAlias(
+        this.context,
+        data,
+        this.model.columns?.filter((c) => !c.pk && !isSystemColumn(c)),
+      );
+
+      for (const k of Object.keys(updateObj)) {
+        if (
+          updateObj[k] === null ||
+          updateObj[k] === undefined ||
+          (typeof updateObj[k] === 'string' && updateObj[k] === '')
+        ) {
+          continue;
+        }
+
+        const newValue =
+          typeof updateObj[k] === 'object'
+            ? JSON.stringify(updateObj[k])
+            : updateObj[k];
+        details += DOMPurify.sanitize(`<span class="">${k}</span>
+          : <span class="black--text green lighten-4 px-2">${newValue}</span>`);
+      }
+    }
+
     await Audit.insert({
       fk_workspace_id: this.model.fk_workspace_id,
       base_id: this.model.base_id,
@@ -5035,7 +5139,7 @@ class BaseModelSqlv2 {
       description: DOMPurify.sanitize(
         `Record with ID ${id} has been inserted into Table ${this.model.title}`,
       ),
-      // details: JSON.stringify(data),
+      details: details || null,
       ip: req?.clientIp,
       user: req?.user?.email,
     });
@@ -5147,6 +5251,7 @@ class BaseModelSqlv2 {
     let details = '';
     if (updateObj) {
       updateObj = await this.model.mapColumnToAlias(this.context, updateObj);
+
       for (const k of Object.keys(updateObj)) {
         const prevValue =
           typeof prevData[k] === 'object'
@@ -5385,11 +5490,15 @@ class BaseModelSqlv2 {
     rowId,
     childId,
     cookie,
+    onlyUpdateAuditLogs,
+    prevData,
   }: {
     colId: string;
     rowId: string;
     childId: string;
     cookie?: any;
+    onlyUpdateAuditLogs?: boolean;
+    prevData?: Record<string, any>;
   }) {
     const columns = await this.model.getColumns(this.context);
     const column = columns.find((c) => c.id === colId);
@@ -5404,6 +5513,11 @@ class BaseModelSqlv2 {
       this.context,
     );
 
+    // return if onlyUpdateAuditLogs is true and is not bt column
+    if (onlyUpdateAuditLogs && colOptions.type !== RelationTypes.BELONGS_TO) {
+      return;
+    }
+
     const childColumn = await colOptions.getChildColumn(this.context);
     const parentColumn = await colOptions.getParentColumn(this.context);
     const parentTable = await parentColumn.getModel(this.context);
@@ -5413,12 +5527,53 @@ class BaseModelSqlv2 {
 
     const childTn = this.getTnPath(childTable);
     const parentTn = this.getTnPath(parentTable);
-    const prevData = await this.readByPk(
-      rowId,
-      false,
-      {},
-      { ignoreView: true, getHiddenColumn: true },
+
+    const relatedChildCol = getRelatedLinksColumn(
+      column,
+      this.model.id === parentTable.id ? childTable : parentTable,
     );
+
+    const auditUpdateObj = [] as {
+      rowId: string;
+      childId: string;
+      model: Model;
+      childModel: Model;
+      op_sub_type:
+        | AuditOperationSubTypes.LINK_RECORD
+        | AuditOperationSubTypes.UNLINK_RECORD;
+      columnTitle: string;
+      pkValue?: Record<string, any>;
+    }[];
+
+    const auditConfig = {
+      childModel: childTable,
+      parentModel: parentTable,
+      childColTitle: relatedChildCol?.title || '',
+      parentColTitle: column.title,
+    } as {
+      childModel: Model;
+      parentModel: Model;
+      childColTitle: string;
+      parentColTitle: string;
+    };
+
+    const triggerAfterRemoveChild = async () => {
+      await Promise.allSettled(
+        auditUpdateObj
+          .filter((a) => a.op_sub_type === AuditOperationSubTypes.UNLINK_RECORD)
+          .map((updateObj) => {
+            this.afterRemoveChild(
+              updateObj.columnTitle,
+              updateObj.rowId,
+              updateObj.childId,
+              cookie,
+              updateObj.model,
+              updateObj.childModel,
+              updateObj.pkValue,
+            );
+          }),
+      );
+    };
 
     switch (colOptions.type) {
       case RelationTypes.MANY_TO_MANY:
@@ -5475,10 +5630,57 @@ class BaseModelSqlv2 {
             rowIds: [rowId],
             cookie,
           });
+
+          auditConfig.parentModel =
+            this.model.id === parentTable.id ? parentTable : childTable;
+          auditConfig.childModel =
+            this.model.id === parentTable.id ? childTable : parentTable;
         }
         break;
       case RelationTypes.HAS_MANY:
         {
+          const linkedHmRowObj = await this.execAndParse(
+            this.dbDriver(childTn)
+              .select(`${childTable.table_name}.${childColumn.column_name}`)
+              .where(_wherePk(childTable.primaryKeys, childId)),
+            null,
+            { raw: true, first: true },
+          );
+
+          const oldRowId = linkedHmRowObj
+            ? Object.values(linkedHmRowObj)?.[0]
+            : null;
+
+          if (oldRowId) {
+            const [parentRelatedPkValue, childRelatedPkValue] =
+              await this.readOnlyPrimariesByPkFromModel([
+                { model: childTable, id: childId },
+                { model: parentTable, id: oldRowId },
+              ]);
+
+            auditUpdateObj.push({
+              model: auditConfig.parentModel,
+              childModel: auditConfig.childModel,
+              rowId: oldRowId as string,
+              childId,
+              op_sub_type: AuditOperationSubTypes.UNLINK_RECORD,
+              columnTitle: auditConfig.parentColTitle,
+              pkValue: parentRelatedPkValue,
+            });
+
+            if (parentTable.id !== childTable.id) {
+              auditUpdateObj.push({
+                model: auditConfig.childModel,
+                childModel: auditConfig.parentModel,
+                rowId: childId,
+                childId: oldRowId as string,
+                op_sub_type: AuditOperationSubTypes.UNLINK_RECORD,
+                columnTitle: auditConfig.childColTitle,
+                pkValue: childRelatedPkValue,
+              });
+            }
+          }
+
           await this.execAndParse(
             this.dbDriver(childTn)
               .update({
@@ -5494,6 +5696,7 @@ class BaseModelSqlv2 {
             null,
             { raw: true },
           );
+          await triggerAfterRemoveChild();
 
           await this.updateLastModified({
             model: parentTable,
@@ -5504,32 +5707,318 @@ class BaseModelSqlv2 {
         break;
       case RelationTypes.BELONGS_TO:
         {
-          await this.execAndParse(
-            this.dbDriver(childTn)
-              .update({
-                [childColumn.column_name]: this.dbDriver.from(
-                  this.dbDriver(parentTn)
-                    .select(parentColumn.column_name)
-                    .where(_wherePk(parentTable.primaryKeys, childId))
-                    .first()
-                    .as('___cn_alias'),
-                ),
-              })
-              .where(_wherePk(childTable.primaryKeys, rowId)),
-            null,
-            { raw: true },
-          );
+          auditConfig.parentModel = childTable;
+          auditConfig.childModel = parentTable;
 
-          await this.updateLastModified({
-            model: parentTable,
-            rowIds: [childId],
-            cookie,
-          });
+          if (onlyUpdateAuditLogs) {
+            const oldChildRowId = prevData[column.title]
+              ? getCompositePkValue(
+                  parentTable.primaryKeys,
+                  this._extractPksValues(prevData[column.title]),
+                )
+              : null;
+
+            if (oldChildRowId) {
+              auditUpdateObj.push({
+                model: auditConfig.parentModel,
+                childModel: auditConfig.childModel,
+                rowId,
+                childId: oldChildRowId as string,
+                op_sub_type: AuditOperationSubTypes.UNLINK_RECORD,
+                columnTitle: auditConfig.parentColTitle,
+                pkValue:
+                  prevData[column.title]?.[parentTable.displayValue.title] ??
+                  null,
+              });
+
+              const [childRelatedPkValue] =
+                await this.readOnlyPrimariesByPkFromModel([
+                  { model: childTable, id: rowId },
+                ]);
+
+              if (parentTable.id !== childTable.id) {
+                auditUpdateObj.push({
+                  model: auditConfig.childModel,
+                  childModel: auditConfig.parentModel,
+                  rowId: oldChildRowId as string,
+                  childId: rowId,
+                  op_sub_type: AuditOperationSubTypes.UNLINK_RECORD,
+                  columnTitle: auditConfig.childColTitle,
+                  pkValue: childRelatedPkValue,
+                });
+              }
+            }
+            await triggerAfterRemoveChild();
+          } else {
+            const linkedHmRowObj = await this.execAndParse(
+              this.dbDriver(childTn)
+                .select(childColumn.column_name)
+                .where(_wherePk(childTable.primaryKeys, rowId)),
+              null,
+              { raw: true, first: true },
+            );
+
+            const oldChildRowId = linkedHmRowObj
+              ? Object.values(linkedHmRowObj)?.[0]
+              : null;
+
+            if (oldChildRowId) {
+              const [parentRelatedPkValue, childRelatedPkValue] =
+                await this.readOnlyPrimariesByPkFromModel([
+                  { model: parentTable, id: oldChildRowId },
+                  { model: childTable, id: rowId },
+                ]);
+
+              auditUpdateObj.push({
+                model: auditConfig.parentModel,
+                childModel: auditConfig.childModel,
+                rowId,
+                childId: oldChildRowId as string,
+                op_sub_type: AuditOperationSubTypes.UNLINK_RECORD,
+                columnTitle: auditConfig.parentColTitle,
+                pkValue: parentRelatedPkValue,
+              });
+
+              if (parentTable.id !== childTable.id) {
+                auditUpdateObj.push({
+                  model: auditConfig.childModel,
+                  childModel: auditConfig.parentModel,
+                  rowId: oldChildRowId as string,
+                  childId: rowId,
+                  op_sub_type: AuditOperationSubTypes.UNLINK_RECORD,
+                  columnTitle: auditConfig.childColTitle,
+                  pkValue: childRelatedPkValue,
+                });
+              }
+            }
+
+            await this.execAndParse(
+              this.dbDriver(childTn)
+                .update({
+                  [childColumn.column_name]: this.dbDriver.from(
+                    this.dbDriver(parentTn)
+                      .select(parentColumn.column_name)
+                      .where(_wherePk(parentTable.primaryKeys, childId))
+                      .first()
+                      .as('___cn_alias'),
+                  ),
+                })
+                .where(_wherePk(childTable.primaryKeys, rowId)),
+              null,
+              { raw: true },
+            );
+
+            await triggerAfterRemoveChild();
+
+            await this.updateLastModified({
+              model: parentTable,
+              rowIds: [childId],
+              cookie,
+            });
+          }
         }
         break;
       case RelationTypes.ONE_TO_ONE:
         {
           const isBt = column.meta?.bt;
+          auditConfig.parentModel = isBt ? childTable : parentTable;
+          auditConfig.childModel = isBt ? parentTable : childTable;
+
+          let linkedOoRowObj;
+          let linkedCurrentOoRowObj;
+          if (isBt) {
+            // 1. check current row is linked with another child
+            linkedCurrentOoRowObj = await this.execAndParse(
+              this.dbDriver(childTn)
+                .select(childColumn.column_name)
+                .where(_wherePk(childTable.primaryKeys, rowId)),
+              null,
+              { raw: true, first: true },
+            );
+
+            const oldChildRowId = linkedCurrentOoRowObj
+              ? Object.values(linkedCurrentOoRowObj)?.[0]
+              : null;
+
+            if (oldChildRowId) {
+              const [parentRelatedPkValue, childRelatedPkValue] =
+                await this.readOnlyPrimariesByPkFromModel([
+                  { model: parentTable, id: oldChildRowId },
+                  { model: childTable, id: rowId },
+                ]);
+
+              auditUpdateObj.push({
+                model: auditConfig.parentModel,
+                childModel: auditConfig.childModel,
+                rowId,
+                childId: oldChildRowId as string,
+                op_sub_type: AuditOperationSubTypes.UNLINK_RECORD,
+                columnTitle: auditConfig.parentColTitle,
+                pkValue: parentRelatedPkValue,
+              });
+
+              if (parentTable.id !== childTable.id) {
+                auditUpdateObj.push({
+                  model: auditConfig.childModel,
+                  childModel: auditConfig.parentModel,
+                  rowId: oldChildRowId as string,
+                  childId: rowId,
+                  op_sub_type: AuditOperationSubTypes.UNLINK_RECORD,
+                  columnTitle: auditConfig.childColTitle,
+                  pkValue: childRelatedPkValue,
+                });
+              }
+            }
+
+            // 2. check current child is linked with another row cell
+            linkedOoRowObj = await this.execAndParse(
+              this.dbDriver(childTn).where({
+                [childColumn.column_name]: this.dbDriver.from(
+                  this.dbDriver(parentTn)
+                    .select(parentColumn.column_name)
+                    .where(
+                      _wherePk(parentTable.primaryKeys, isBt ? childId : rowId),
+                    )
+                    .first()
+                    .as('___cn_alias'),
+                ),
+              }),
+              null,
+              { raw: true, first: true },
+            );
+
+            if (linkedOoRowObj) {
+              const oldRowId = getCompositePkValue(
+                childTable.primaryKeys,
+                this._extractPksValues(linkedOoRowObj),
+              );
+
+              if (oldRowId) {
+                const [parentRelatedPkValue, childRelatedPkValue] =
+                  await this.readOnlyPrimariesByPkFromModel([
+                    { model: parentTable, id: childId },
+                    { model: childTable, id: oldRowId },
+                  ]);
+
+                auditUpdateObj.push({
+                  model: auditConfig.parentModel,
+                  childModel: auditConfig.childModel,
+                  rowId: oldRowId as string,
+                  childId: childId,
+                  op_sub_type: AuditOperationSubTypes.UNLINK_RECORD,
+                  columnTitle: auditConfig.parentColTitle,
+                  pkValue: parentRelatedPkValue,
+                });
+
+                if (parentTable.id !== childTable.id) {
+                  auditUpdateObj.push({
+                    model: auditConfig.childModel,
+                    childModel: auditConfig.parentModel,
+                    rowId: childId,
+                    childId: oldRowId as string,
+                    op_sub_type: AuditOperationSubTypes.UNLINK_RECORD,
+                    columnTitle: auditConfig.childColTitle,
+                    pkValue: childRelatedPkValue,
+                  });
+                }
+              }
+            }
+          } else {
+            // 1. check current row is linked with another child
+            linkedCurrentOoRowObj = await this.execAndParse(
+              this.dbDriver(childTn).where({
+                [childColumn.column_name]: this.dbDriver.from(
+                  this.dbDriver(parentTn)
+                    .select(parentColumn.column_name)
+                    .where(_wherePk(parentTable.primaryKeys, rowId))
+                    .first()
+                    .as('___cn_alias'),
+                ),
+              }),
+              null,
+              { raw: true, first: true },
+            );
+
+            if (linkedCurrentOoRowObj) {
+              const oldChildRowId = getCompositePkValue(
+                childTable.primaryKeys,
+                this._extractPksValues(linkedCurrentOoRowObj),
+              );
+
+              if (oldChildRowId) {
+                const [parentRelatedPkValue, childRelatedPkValue] =
+                  await this.readOnlyPrimariesByPkFromModel([
+                    { model: childTable, id: oldChildRowId },
+                    { model: parentTable, id: rowId },
+                  ]);
+
+                auditUpdateObj.push({
+                  model: auditConfig.parentModel,
+                  childModel: auditConfig.childModel,
+                  rowId,
+                  childId: oldChildRowId as string,
+                  op_sub_type: AuditOperationSubTypes.UNLINK_RECORD,
+                  columnTitle: auditConfig.parentColTitle,
+                  pkValue: parentRelatedPkValue,
+                });
+
+                if (parentTable.id !== childTable.id) {
+                  auditUpdateObj.push({
+                    model: auditConfig.childModel,
+                    childModel: auditConfig.parentModel,
+                    rowId: oldChildRowId as string,
+                    childId: rowId,
+                    op_sub_type: AuditOperationSubTypes.UNLINK_RECORD,
+                    columnTitle: auditConfig.childColTitle,
+                    pkValue: childRelatedPkValue,
+                  });
+                }
+              }
+            }
+
+            // 2. check current child is linked with another row cell
+            linkedOoRowObj = await this.execAndParse(
+              this.dbDriver(childTn)
+                .select(childColumn.column_name)
+                .where(_wherePk(childTable.primaryKeys, childId)),
+              null,
+              { raw: true, first: true },
+            );
+
+            const oldRowId = linkedOoRowObj
+              ? Object.values(linkedOoRowObj)?.[0]
+              : null;
+            if (oldRowId) {
+              const [parentRelatedPkValue, childRelatedPkValue] =
+                await this.readOnlyPrimariesByPkFromModel([
+                  { model: childTable, id: childId },
+                  { model: parentTable, id: oldRowId },
+                ]);
+
+              auditUpdateObj.push({
+                model: auditConfig.parentModel,
+                childModel: auditConfig.childModel,
+                rowId: oldRowId as string,
+                childId: childId,
+                op_sub_type: AuditOperationSubTypes.UNLINK_RECORD,
+                columnTitle: auditConfig.parentColTitle,
+                pkValue: parentRelatedPkValue,
+              });
+
+              if (parentTable.id !== childTable.id) {
+                auditUpdateObj.push({
+                  model: auditConfig.childModel,
+                  childModel: auditConfig.parentModel,
+                  rowId: childId,
+                  childId: oldRowId as string,
+                  op_sub_type: AuditOperationSubTypes.UNLINK_RECORD,
+                  columnTitle: auditConfig.childColTitle,
+                  pkValue: childRelatedPkValue,
+                });
+              }
+            }
+          }
+
           // todo: unlink if it's already mapped
           // unlink already mapped record if any
           await this.execAndParse(
@@ -5549,6 +6038,8 @@ class BaseModelSqlv2 {
             null,
             { raw: true },
           );
+
+          await triggerAfterRemoveChild();
 
           await this.execAndParse(
             this.dbDriver(childTn)
@@ -5577,29 +6068,79 @@ class BaseModelSqlv2 {
         break;
     }
 
-    const response = await this.readByPk(
+    auditUpdateObj.push({
+      model: auditConfig.parentModel,
+      childModel: auditConfig.childModel,
       rowId,
-      false,
-      {},
-      { ignoreView: true, getHiddenColumn: true },
+      childId,
+      op_sub_type: AuditOperationSubTypes.LINK_RECORD,
+      columnTitle: auditConfig.parentColTitle,
+    });
+
+    if (parentTable.id !== childTable.id) {
+      auditUpdateObj.push({
+        model: auditConfig.childModel,
+        childModel: auditConfig.parentModel,
+        rowId: childId,
+        childId: rowId,
+        op_sub_type: AuditOperationSubTypes.LINK_RECORD,
+        columnTitle: auditConfig.childColTitle,
+      });
+    }
+
+    await Promise.allSettled(
+      auditUpdateObj
+        .filter((a) => a.op_sub_type === AuditOperationSubTypes.LINK_RECORD)
+        .map((updateObj) => {
+          this.afterAddChild(
+            updateObj.columnTitle,
+            updateObj.rowId,
+            updateObj.childId,
+            cookie,
+            updateObj.model,
+            updateObj.childModel,
+            updateObj.pkValue,
+          );
+        }),
     );
-    await this.afterUpdate(prevData, response, this.dbDriver, cookie);
-    await this.afterAddChild(rowId, childId, cookie);
   }
 
-  public async afterAddChild(rowId, childId, req): Promise<void> {
+  public async afterAddChild(
+    columnTitle,
+    rowId,
+    childId,
+    req,
+    model = this.model,
+    childModel = this.model,
+    pkValue = undefined,
+  ): Promise<void> {
+    if (!pkValue) {
+      pkValue = await this.readByPkFromModel(
+        childModel,
+        undefined,
+        true,
+        childId,
+        false,
+        {},
+        { ignoreView: true, getHiddenColumn: true, extractOnlyPrimaries: true },
+      );
+    }
+
     await Audit.insert({
-      fk_workspace_id: this.model.fk_workspace_id,
-      base_id: this.model.base_id,
-      source_id: this.model.source_id,
-      fk_model_id: this.model.id,
+      fk_workspace_id: model.fk_workspace_id,
+      base_id: model.base_id,
+      source_id: model.source_id,
+      fk_model_id: model.id,
       op_type: AuditOperationTypes.DATA,
       op_sub_type: AuditOperationSubTypes.LINK_RECORD,
       row_id: rowId,
       description: DOMPurify.sanitize(
-        `Record [id:${childId}] has been linked with record [id:${rowId}] in ${this.model.title}`,
+        `Record [id:${childId}] has been linked with record [id:${rowId}] in ${model.title}`,
       ),
-      // details: JSON.stringify(data),
+      details: DOMPurify.sanitize(`<span class="">${columnTitle}</span>
+      : <span class="black--text green lighten-4 px-2">${
+        pkValue ?? null
+      }</span>`),
       ip: req?.clientIp,
       user: req?.user?.email,
     });
@@ -5618,7 +6159,6 @@ class BaseModelSqlv2 {
   }) {
     const columns = await this.model.getColumns(this.context);
     const column = columns.find((c) => c.id === colId);
-
     if (
       !column ||
       ![UITypes.LinkToAnotherRecord, UITypes.Links].includes(column.uidt)
@@ -5639,12 +6179,30 @@ class BaseModelSqlv2 {
     const childTn = this.getTnPath(childTable);
     const parentTn = this.getTnPath(parentTable);
 
-    const prevData = await this.readByPk(
-      rowId,
-      false,
-      {},
-      { ignoreView: true, getHiddenColumn: true },
+    const relatedChildCol = getRelatedLinksColumn(
+      column,
+      this.model.id === parentTable.id ? childTable : parentTable,
     );
+
+    const auditUpdateObj = [] as {
+      rowId: string;
+      childId: string;
+      model: Model;
+      childModel: Model;
+      columnTitle: string;
+    }[];
+
+    const auditConfig = {
+      childModel: childTable,
+      parentModel: parentTable,
+      childColTitle: relatedChildCol?.title || '',
+      parentColTitle: column.title,
+    } as {
+      childModel: Model;
+      parentModel: Model;
+      childColTitle: string;
+      parentColTitle: string;
+    };
 
     switch (colOptions.type) {
       case RelationTypes.MANY_TO_MANY:
@@ -5682,6 +6240,11 @@ class BaseModelSqlv2 {
             rowIds: [rowId],
             cookie,
           });
+
+          auditConfig.parentModel =
+            this.model.id === parentTable.id ? parentTable : childTable;
+          auditConfig.childModel =
+            this.model.id === parentTable.id ? childTable : parentTable;
         }
         break;
       case RelationTypes.HAS_MANY:
@@ -5709,6 +6272,9 @@ class BaseModelSqlv2 {
         break;
       case RelationTypes.BELONGS_TO:
         {
+          auditConfig.parentModel = childTable;
+          auditConfig.childModel = parentTable;
+
           await this.execAndParse(
             this.dbDriver(childTn)
               // .where({
@@ -5733,6 +6299,10 @@ class BaseModelSqlv2 {
       case RelationTypes.ONE_TO_ONE:
         {
           const isBt = column.meta?.bt;
+
+          auditConfig.parentModel = isBt ? childTable : parentTable;
+          auditConfig.childModel = isBt ? parentTable : childTable;
+
           await this.execAndParse(
             this.dbDriver(childTn)
               .where(_wherePk(childTable.primaryKeys, isBt ? rowId : childId))
@@ -5750,29 +6320,76 @@ class BaseModelSqlv2 {
         break;
     }
 
-    const newData = await this.readByPk(
+    auditUpdateObj.push({
+      model: auditConfig.parentModel,
+      childModel: auditConfig.childModel,
       rowId,
-      false,
-      {},
-      { ignoreView: true, getHiddenColumn: true },
+      childId,
+      columnTitle: auditConfig.parentColTitle,
+    });
+
+    if (parentTable.id !== childTable.id) {
+      auditUpdateObj.push({
+        model: auditConfig.childModel,
+        childModel: auditConfig.parentModel,
+        rowId: childId,
+        childId: rowId,
+        columnTitle: auditConfig.childColTitle,
+      });
+    }
+
+    await Promise.allSettled(
+      auditUpdateObj.map(async (updateObj) => {
+        await this.afterRemoveChild(
+          updateObj.columnTitle,
+          updateObj.rowId,
+          updateObj.childId,
+          cookie,
+          updateObj.model,
+          updateObj.childModel,
+        );
+      }),
     );
-    await this.afterUpdate(prevData, newData, this.dbDriver, cookie);
-    await this.afterRemoveChild(rowId, childId, cookie);
   }
 
-  public async afterRemoveChild(rowId, childId, req): Promise<void> {
+  public async afterRemoveChild(
+    columnTitle,
+    rowId,
+    childId,
+    req,
+    model = this.model,
+    childModel = this.model,
+    pkValue = undefined,
+  ): Promise<void> {
+    if (!pkValue) {
+      pkValue = await this.readByPkFromModel(
+        childModel,
+        undefined,
+        true,
+        childId,
+        false,
+        {},
+        { ignoreView: true, getHiddenColumn: true, extractOnlyPrimaries: true },
+      );
+    }
+
     await Audit.insert({
-      fk_workspace_id: this.model.fk_workspace_id,
-      base_id: this.model.base_id,
-      source_id: this.model.source_id,
-      fk_model_id: this.model.id,
+      fk_workspace_id: model.fk_workspace_id,
+      base_id: model.base_id,
+      source_id: model.source_id,
+      fk_model_id: model.id,
       op_type: AuditOperationTypes.DATA,
       op_sub_type: AuditOperationSubTypes.UNLINK_RECORD,
       row_id: rowId,
       description: DOMPurify.sanitize(
-        `Record [id:${childId}] has been unlinked with record [id:${rowId}] in ${this.model.title}`,
+        `Record [id:${childId}] has been unlinked with record [id:${rowId}] in ${model.title}`,
       ),
-      // details: JSON.stringify(data),
+      details: DOMPurify.sanitize(`<span class="">${columnTitle}</span>
+        : <span class="text-decoration-line-through red px-2 lighten-4 black--text">${
+          pkValue && typeof pkValue === 'object'
+            ? Object.values(pkValue)[0]
+            : pkValue ?? null
+        }</span>`),
       ip: req?.clientIp,
       user: req?.user?.email,
     });
@@ -6654,6 +7271,34 @@ class BaseModelSqlv2 {
     let relationType = colOptions.type;
     let childIds = _childIds;
 
+    const relatedChildCol = getRelatedLinksColumn(
+      column,
+      this.model.id === parentTable.id ? childTable : parentTable,
+    );
+
+    const auditUpdateObj = [] as {
+      rowId: string | number;
+      childId: string | number;
+      model: Model;
+      childModel: Model;
+      op_sub_type:
+        | AuditOperationSubTypes.LINK_RECORD
+        | AuditOperationSubTypes.UNLINK_RECORD;
+      columnTitle: string;
+    }[];
+
+    const auditConfig = {
+      childModel: childTable,
+      parentModel: parentTable,
+      childColTitle: relatedChildCol?.title || '',
+      parentColTitle: column.title,
+    } as {
+      childModel: Model;
+      parentModel: Model;
+      childColTitle: string;
+      parentColTitle: string;
+    };
+
     if (relationType === RelationTypes.ONE_TO_ONE) {
       relationType = column.meta?.bt
         ? RelationTypes.BELONGS_TO
@@ -6681,6 +7326,9 @@ class BaseModelSqlv2 {
         null,
         { raw: true },
       );
+
+      auditConfig.parentModel = column.meta?.bt ? childTable : parentTable;
+      auditConfig.childModel = column.meta?.bt ? parentTable : childTable;
     }
 
     switch (relationType) {
@@ -6779,6 +7427,11 @@ class BaseModelSqlv2 {
             rowIds: [rowId],
             cookie,
           });
+
+          auditConfig.parentModel =
+            this.model.id === parentTable.id ? parentTable : childTable;
+          auditConfig.childModel =
+            this.model.id === parentTable.id ? childTable : parentTable;
         }
         break;
       case RelationTypes.HAS_MANY:
@@ -6859,6 +7512,9 @@ class BaseModelSqlv2 {
         break;
       case RelationTypes.BELONGS_TO:
         {
+          auditConfig.parentModel = childTable;
+          auditConfig.childModel = parentTable;
+
           // validate Ids
           {
             const childRowsQb = this.dbDriver(parentTn)
@@ -6902,16 +7558,45 @@ class BaseModelSqlv2 {
         break;
     }
 
-    const updatedRow = await this.readByPk(
-      rowId,
-      false,
-      {},
-      { ignoreView: true, getHiddenColumn: true },
-    );
-    await this.afterUpdate(row, updatedRow, this.dbDriver, cookie);
     for (const childId of childIds) {
-      await this.afterAddChild(rowId, childId, cookie);
+      const _childId =
+        typeof childId === 'object'
+          ? Object.values(childId).join('_')
+          : childId;
+
+      auditUpdateObj.push({
+        model: auditConfig.parentModel,
+        childModel: auditConfig.childModel,
+        rowId,
+        childId: _childId,
+        op_sub_type: AuditOperationSubTypes.LINK_RECORD,
+        columnTitle: auditConfig.parentColTitle,
+      });
+
+      if (parentTable.id !== childTable.id) {
+        auditUpdateObj.push({
+          model: auditConfig.childModel,
+          childModel: auditConfig.parentModel,
+          rowId: _childId,
+          childId: rowId,
+          op_sub_type: AuditOperationSubTypes.LINK_RECORD,
+          columnTitle: auditConfig.childColTitle,
+        });
+      }
     }
+
+    await Promise.allSettled(
+      auditUpdateObj.map(async (updateObj) => {
+        await this.afterAddChild(
+          updateObj.columnTitle,
+          updateObj.rowId,
+          updateObj.childId,
+          cookie,
+          updateObj.model,
+          updateObj.childModel,
+        );
+      }),
+    );
   }
 
   async removeLinks({
@@ -6957,6 +7642,34 @@ class BaseModelSqlv2 {
 
     const childTn = this.getTnPath(childTable);
     const parentTn = this.getTnPath(parentTable);
+
+    const relatedChildCol = getRelatedLinksColumn(
+      column,
+      this.model.id === parentTable.id ? childTable : parentTable,
+    );
+
+    const auditUpdateObj = [] as {
+      rowId: string | number;
+      childId: string | number;
+      model: Model;
+      childModel: Model;
+      op_sub_type:
+        | AuditOperationSubTypes.LINK_RECORD
+        | AuditOperationSubTypes.UNLINK_RECORD;
+      columnTitle: string;
+    }[];
+
+    const auditConfig = {
+      childModel: childTable,
+      parentModel: parentTable,
+      childColTitle: relatedChildCol?.title || '',
+      parentColTitle: column.title,
+    } as {
+      childModel: Model;
+      parentModel: Model;
+      childColTitle: string;
+      parentColTitle: string;
+    };
 
     switch (colOptions.type) {
       case RelationTypes.MANY_TO_MANY:
@@ -7052,6 +7765,11 @@ class BaseModelSqlv2 {
             rowIds: [rowId],
             cookie,
           });
+
+          auditConfig.parentModel =
+            this.model.id === parentTable.id ? parentTable : childTable;
+          auditConfig.childModel =
+            this.model.id === parentTable.id ? childTable : parentTable;
         }
         break;
       case RelationTypes.HAS_MANY:
@@ -7138,6 +7856,9 @@ class BaseModelSqlv2 {
         break;
       case RelationTypes.BELONGS_TO:
         {
+          auditConfig.parentModel = childTable;
+          auditConfig.childModel = parentTable;
+
           // validate Ids
           {
             if (childIds.length > 1)
@@ -7184,16 +7905,45 @@ class BaseModelSqlv2 {
         break;
     }
 
-    const updatedRow = await this.readByPk(
-      rowId,
-      false,
-      {},
-      { ignoreView: true, getHiddenColumn: true },
-    );
-    await this.afterUpdate(row, updatedRow, this.dbDriver, cookie);
     for (const childId of childIds) {
-      await this.afterRemoveChild(rowId, childId, cookie);
+      const _childId =
+        typeof childId === 'object'
+          ? Object.values(childId).join('_')
+          : childId;
+
+      auditUpdateObj.push({
+        model: auditConfig.parentModel,
+        childModel: auditConfig.childModel,
+        rowId,
+        childId: _childId,
+        op_sub_type: AuditOperationSubTypes.LINK_RECORD,
+        columnTitle: auditConfig.parentColTitle,
+      });
+
+      if (parentTable.id !== childTable.id) {
+        auditUpdateObj.push({
+          model: auditConfig.childModel,
+          childModel: auditConfig.parentModel,
+          rowId: _childId,
+          childId: rowId,
+          op_sub_type: AuditOperationSubTypes.LINK_RECORD,
+          columnTitle: auditConfig.childColTitle,
+        });
+      }
     }
+
+    await Promise.allSettled(
+      auditUpdateObj.map(async (updateObj) => {
+        await this.afterRemoveChild(
+          updateObj.columnTitle,
+          updateObj.rowId,
+          updateObj.childId,
+          cookie,
+          updateObj.model,
+          updateObj.childModel,
+        );
+      }),
+    );
   }
 
   async btRead(
@@ -7912,6 +8662,29 @@ function extractIds(
   return (isBt ? childIds.slice(0, 1) : childIds).map((r) =>
     typeof r === 'object' ? JSON.stringify(r) : `${r}`,
   );
+}
+
+function getRelatedLinksColumn(
+  column: Column<LinkToAnotherRecordColumn>,
+  relatedModel: Model,
+) {
+  return relatedModel.columns.find((c: Column) => {
+    if (column.colOptions?.type === RelationTypes.MANY_TO_MANY) {
+      return (
+        column.colOptions.fk_mm_child_column_id ===
+          c.colOptions?.fk_mm_parent_column_id &&
+        column.colOptions.fk_mm_parent_column_id ===
+          c.colOptions?.fk_mm_child_column_id
+      );
+    } else {
+      return (
+        column.colOptions.fk_child_column_id ===
+          c.colOptions?.fk_child_column_id &&
+        column.colOptions.fk_parent_column_id ===
+          c.colOptions?.fk_parent_column_id
+      );
+    }
+  });
 }
 
 export { BaseModelSqlv2 };

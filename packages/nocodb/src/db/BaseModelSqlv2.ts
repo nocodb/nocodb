@@ -5139,7 +5139,7 @@ class BaseModelSqlv2 {
       description: DOMPurify.sanitize(
         `Record with ID ${id} has been inserted into Table ${this.model.title}`,
       ),
-      details,
+      details: details || null,
       ip: req?.clientIp,
       user: req?.user?.email,
     });

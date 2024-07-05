@@ -1798,30 +1798,9 @@ export default class View implements ViewType {
         columns = await Column.list(context, { fk_model_id: view.fk_model_id });
       }
 
-      // todo: avoid duplicate code
-      if (view.type === ViewTypes.KANBAN && !copyFromView) {
-        // sort by display value & attachment first, then by singleLineText & Number
-        // so that later we can handle control `show` easily
-        columns.sort((a, b) => {
-          const displayValueOrder = +b.pv - +a.pv;
-          const attachmentOrder =
-            +(b.uidt === UITypes.Attachment) - +(a.uidt === UITypes.Attachment);
-          const singleLineTextOrder =
-            +(b.uidt === UITypes.SingleLineText) -
-            +(a.uidt === UITypes.SingleLineText);
-          const numberOrder =
-            +(b.uidt === UITypes.Number) - +(a.uidt === UITypes.Number);
-          const defaultOrder = b.order - a.order;
-          return (
-            displayValueOrder ||
-            attachmentOrder ||
-            singleLineTextOrder ||
-            numberOrder ||
-            defaultOrder
-          );
-        });
-      } else if (!copyFromView) {
+      if (!copyFromView) {
         // sort by display value first, then other columns
+        // so that later we can handle control `show` easily
         columns.sort((a, b) => {
           return +b.pv - +a.pv;
         });

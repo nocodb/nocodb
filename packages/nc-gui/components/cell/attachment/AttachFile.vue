@@ -46,8 +46,8 @@ const saveAttachments = async (files: File[]) => {
             @click="selectMenu('local')"
           >
             <div class="flex gap-2 items-center">
-              <GeneralIcon icon="upload" />
-              Local Files
+              <GeneralIcon icon="file" />
+              {{ $t('title.localFiles') }}
             </div>
           </NcMenuItem>
           <NcMenuItem
@@ -59,8 +59,8 @@ const saveAttachments = async (files: File[]) => {
             @click="selectMenu('url')"
           >
             <div class="flex gap-2 items-center">
-              <GeneralIcon icon="link" />
-              Upload via URL
+              <GeneralIcon icon="link2" />
+              {{ $t('title.uploadViaUrl') }}
             </div>
           </NcMenuItem>
           <NcMenuItem
@@ -72,7 +72,7 @@ const saveAttachments = async (files: File[]) => {
           >
             <div class="flex gap-2 items-center">
               <GeneralIcon icon="camera" />
-              Webcam
+              {{ $t('title.webcam') }}
             </div>
           </NcMenuItem>
         </NcMenu>

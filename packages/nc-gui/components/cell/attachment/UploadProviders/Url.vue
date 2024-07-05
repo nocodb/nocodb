@@ -38,12 +38,14 @@ const deleteAttachment = (index: number) => {
   tempAttachments.value.splice(index, 1)
 }
 
-const isValidUrl = computed(() => isValidURL(url.value))
+const isValidUrl = ref(true)
 
 const uploadAndParseUrl = async () => {
-  if (!isValidUrl.value) {
+  if (!isValidURL(url.value)) {
+    isValidUrl.value = false
     return
   }
+  isValidUrl.value = true
 
   try {
     isParsing.value = true
@@ -57,27 +59,38 @@ const uploadAndParseUrl = async () => {
     }
   } finally {
     isParsing.value = false
-    inputRef.value?.focus()
   }
+
+  await nextTick(() => {
+    inputRef.value?.focus()
+  })
 }
+
+watch(url, () => {
+  isValidUrl.value = true
+})
 </script>
 
 <template>
-  <div class="py-2 pr-2 h-full flex gap-2 flex-col">
+  <div class="py-2 px-2 h-full flex gap-2 flex-col">
     <div class="flex w-full bg-white border-b-1 py-1 justify-between">
-      <h1>Link (URL)</h1>
+      <h1 class="font-semibold">
+        {{ $t('title.uploadViaUrl') }}
+      </h1>
 
       <NcTooltip>
         <NcButton type="secondary" class="!border-0" size="xsmall" @click="closeMenu">
           <GeneralIcon icon="close" />
         </NcButton>
 
-        <template #title> Close </template>
+        <template #title> {{ $t('general.close') }} </template>
       </NcTooltip>
     </div>
 
     <div class="flex-grow bg-white">
-      <h1 class="text-gray-800 font-semibold">Add files from URL</h1>
+      <h1 class="text-gray-800 font-semibold">
+        {{ $t('labels.addFilesFromUrl') }}
+      </h1>
       <div class="flex pb-2 bg-white gap-2">
         <a-input
           ref="inputRef"
@@ -90,13 +103,17 @@ const uploadAndParseUrl = async () => {
         />
 
         <NcButton :disabled="!isValidUrl" :loading="isParsing" size="small" class="!h-10 !px-4" @click="uploadAndParseUrl">
-          Upload
+          {{ $t('general.upload') }}
         </NcButton>
       </div>
-      <span v-if="url.length > 0 && !isValidUrl" class="text-red-500 text-[13px]"> Enter a valid URL to upload files </span>
+      <span v-if="url.length > 0 && !isValidUrl" class="text-red-500 text-[13px]">
+        {{ $t('labels.enterValidUrl') }}
+      </span>
       <template v-if="tempAttachments.length > 0">
         <div :style="`height: ${!isValidUrl ? '232px' : '250px'}`" class="overflow-y-auto bg-white !max-h-[265px]">
-          <h1 class="font-semibold sticky top-0 bg-white text-gray-800">Files</h1>
+          <h1 class="font-semibold capitalize sticky top-0 bg-white text-gray-800">
+            {{ $t('objects.files') }}
+          </h1>
 
           <div
             v-for="(file, index) in tempAttachments"
@@ -112,14 +129,14 @@ const uploadAndParseUrl = async () => {
                   <component :is="iconMap.externalLink" class="w-3.5 h-3.5 text-gray-500" />
                 </NuxtLink>
 
-                <template #title> Open file </template>
+                <template #title> {{ $t('labels.openFile') }} </template>
               </NcTooltip>
             </div>
 
             <div class="flex-grow-1"></div>
 
             <NcTooltip>
-              <template #title> Remove file </template>
+              <template #title> {{ $t('title.removeFile') }} </template>
 
               <NcButton type="text" size="xsmall" @click="deleteAttachment(index)">
                 <GeneralIcon icon="close" />
@@ -131,8 +148,10 @@ const uploadAndParseUrl = async () => {
     </div>
 
     <div class="flex gap-2 items-center justify-end">
-      <NcButton :disabled="isParsing" type="secondary" size="small" @click="closeMenu"> Cancel </NcButton>
-      <NcButton :disabled="isParsing || tempAttachments.length === 0" size="small" @click="onSave"> Add files </NcButton>
+      <NcButton :disabled="isParsing" type="secondary" size="small" @click="closeMenu"> {{ $t('labels.cancel') }} </NcButton>
+      <NcButton :disabled="isParsing || tempAttachments.length === 0" size="small" @click="onSave">
+        {{ $t('activity.addFiles') }}</NcButton
+      >
     </div>
   </div>
 </template>

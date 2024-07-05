@@ -63,44 +63,60 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div :style="`height: ${tempFiles.length > 0 ? 'calc(100% - 88px)' : '100%'};`" class="w-full space-y-2">
-    <div v-if="tempFiles.length > 0" class="flex w-full items-center pt-1 justify-between top-0">
-      <NcButton type="text" class="!hover:bg-transparent" size="small" @click="clearAll"> Clear all files </NcButton>
+  <div
+    :style="`height: ${tempFiles.length > 0 ? 'calc(100% - 92px)' : '100%'};`"
+    :class="{
+      'flex flex-col justify-center items-center': !tempFiles.length,
+    }"
+    class="w-full space-y-2"
+  >
+    <div v-if="tempFiles.length > 0" class="flex w-full border-b-1 items-center py-1 justify-between top-0">
+      <NcButton type="text" size="small" @click="clearAll">
+        {{ $t('labels.clearAllFiles') }}
+      </NcButton>
 
       <span class="text-xs">
         {{ tempFiles.length }} files, total size:
         {{
           formatBytes(
             tempFiles.reduce((acc, file) => acc + file.size, 0),
-            2,
+            0,
           )
         }}
       </span>
 
-      <NcButton type="text" class="!hover:bg-transparent" size="small" @click="open"> Add more </NcButton>
+      <NcButton type="text" size="small" @click="open">
+        <div class="flex gap-1 items-center">
+          <component :is="iconMap.plus" />
+          {{ $t('labels.addMore') }}
+        </div>
+      </NcButton>
     </div>
     <div
       ref="dropZoneRef"
       :class="{
         'border-brand-500': isOverDropZone,
-        'border-dashed border-1 ': !tempFiles.length,
+        'border-dashed border-1 h-1/2': !tempFiles.length,
+        'h-full': tempFiles.length,
       }"
       data-testid="attachment-drop-zone"
-      class="flex flex-col items-center justify-center w-full h-full flex-grow-1 rounded-lg"
+      class="flex flex-col items-center justify-center w-full flex-grow-1 rounded-lg"
       @click="tempFiles.length > 0 ? () => {} : open()"
     >
       <div v-if="!tempFiles.length" class="flex cursor-pointer items-center justify-center flex-col gap-2">
         <template v-if="!isOverDropZone">
           <component :is="iconMap.upload" class="w-5 h-5" />
-          <h1>Click to browse files OR drag files here to upload</h1>
+          <h1>
+            {{ $t('labels.browserOrDrag') }}
+          </h1>
         </template>
         <template v-if="isOverDropZone">
           <component :is="iconMap.upload" class="w-5 text-brand-500 h-5" />
-          <h1 class="text-brand-500 font-bold">Drop here</h1>
+          <h1 class="text-brand-500 font-bold">{{ $t('labels.dropHere') }}</h1>
         </template>
       </div>
       <template v-else>
-        <div class="grid overflow-y-auto grid-cols-4 w-full h-full items-start p-4 justify-center gap-4">
+        <div class="grid overflow-y-auto nc-scrollbar-md grid-cols-4 w-full h-full items-start p-4 justify-center gap-4">
           <div v-for="file in tempFiles" :key="file.name" class="flex gap-1.5 group min-w-34 max-w-28 pb-4 flex-col relative">
             <div
               v-if="!thumbnails.get(file)"
@@ -111,34 +127,36 @@ onBeforeUnmount(() => {
             </div>
             <img v-else :src="thumbnails.get(file)" style="height: 140px" alt="thumbnail" class="rounded-md object-cover" />
 
-            <div class="relative text-[12px] font-semibold text-gray-800 flex">
+            <div class="relative text-[12px] font-semibold items-center text-gray-800 flex">
               <NcTooltip class="flex-auto truncate" placement="bottom">
                 <template #title> {{ file.name }} </template>
-                <div class="flex-auto truncate line-height-4">
-                  {{ file.name }}
-                </div>
+                {{ file.name }}
               </NcTooltip>
 
               <div class="flex-none hide-ui transition-all transition-ease-in-out !h-4 flex items-center bg-white">
                 <NcTooltip placement="bottom">
                   <template #title> {{ $t('title.removeFile') }} </template>
-                  <component :is="iconMap.delete" class="!text-red-500 cursor-pointer" @click="onRemoveFileClick(file)" />
+                  <component :is="iconMap.delete" class="!text-red-500 w-3 h-3 cursor-pointer" @click="onRemoveFileClick(file)" />
                 </NcTooltip>
               </div>
             </div>
             <div class="flex-none text-[10px] font-semibold text-gray-500">
-              {{ formatBytes(file.size, 2) }}
+              {{ formatBytes(file.size, 0) }}
             </div>
           </div>
         </div>
       </template>
     </div>
     <div v-if="tempFiles.length" class="flex gap-2 pr-2 bg-white w-full items-center justify-end">
-      <NcButton :disabled="isLoading" type="secondary" size="small" @click="emits('update:visible', false)"> Cancel </NcButton>
+      <NcButton :disabled="isLoading" type="secondary" size="small" @click="emits('update:visible', false)">
+        {{ $t('labels.cancel') }}
+      </NcButton>
 
       <NcButton :loading="isLoading" data-testid="nc-upload-file" size="small" @click="emits('upload', tempFiles)">
-        <template v-if="isLoading"> Uploading </template>
-        <template v-else> Upload {{ tempFiles.length }} files </template>
+        <template v-if="isLoading">
+          {{ $t('labels.uploading') }}
+        </template>
+        <template v-else> {{ $t('general.upload') }} {{ tempFiles.length }} {{ $t('objects.files') }} </template>
       </NcButton>
     </div>
   </div>

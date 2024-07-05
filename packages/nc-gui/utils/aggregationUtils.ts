@@ -64,10 +64,7 @@ export function formatBytes(bytes, decimals = 2, base = 1000) {
 
   const k = base
   const dm = Math.max(0, decimals)
-  const sizes =
-    base === 1024
-      ? ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
-      : ['Bytes', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
   const i = Math.floor(Math.log(bytes) / Math.log(k))
 
   return `${(bytes / k ** i).toFixed(dm)} ${sizes[i]}`

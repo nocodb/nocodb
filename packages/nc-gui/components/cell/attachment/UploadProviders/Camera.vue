@@ -12,15 +12,14 @@ const permissionGranted = ref(false)
 const capturedImage = ref<null | File>(null)
 const videoRef = ref<HTMLVideoElement | undefined>()
 const canvasRef = ref<HTMLCanvasElement | undefined>()
-
-const permStream = ref<MediaStream | null>(null)
+const videoStream = ref<MediaStream | null>(null)
 
 const startCamera = async () => {
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: true })
+    videoStream.value = await navigator.mediaDevices.getUserMedia({ video: true })
     permissionGranted.value = true
     if (videoRef.value) {
-      videoRef.value.srcObject = stream
+      videoRef.value.srcObject = videoStream.value
     }
   } catch (error) {
     console.error('Error starting camera:', error)
@@ -33,33 +32,23 @@ const retakeImage = () => {
 }
 
 const stopCamera = () => {
-  if (videoRef.value) {
-    const stream = videoRef.value.srcObject as MediaStream
-
-    const tracks = stream?.getTracks()
+  if (videoStream.value) {
+    const tracks = videoStream.value?.getTracks()
 
     for (const track of tracks ?? []) {
       track.stop()
     }
     videoRef.value.srcObject = null
   }
-
-  if (permStream.value) {
-    const permTracks = permStream.value.getTracks()
-    for (const track of permTracks) {
-      track.stop()
-    }
-    permStream.value = null
-  }
 }
 
 const checkPermission = async () => {
   try {
-    permStream.value = await navigator.mediaDevices.getUserMedia({ video: true })
-    if (permStream.value.getVideoTracks().length > 0) {
+    navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
+      stream.getTracks().forEach((track) => track.stop())
       permissionGranted.value = true
-      await startCamera()
-    }
+      startCamera()
+    })
   } catch (error) {
     console.error('Error checking camera permission:', error)
   }
@@ -92,7 +81,7 @@ onMounted(() => {
   checkPermission()
 })
 
-onBeforeUnmount(() => {
+onBeforeUnmount(async () => {
   stopCamera()
 })
 </script>
@@ -107,7 +96,9 @@ onBeforeUnmount(() => {
         <div class="p-5 bg-white rounded-md shadow-sm">
           <mdi-camera class="text-4xl text-gray-800" />
         </div>
-        <h1 class="text-gray-800 font-semibold text-center text-xl">Please allow access to your camera</h1>
+        <h1 class="text-gray-800 font-semibold text-center text-xl">
+          {{ $t('labels.allowAccessToYourCamera') }}
+        </h1>
       </div>
     </div>
     <div
@@ -118,8 +109,8 @@ onBeforeUnmount(() => {
       }"
       class="w-full gap-3 h-full flex-col flex items-center justify-between"
     >
-      <div v-if="!capturedImage" class="w-full gap-3 h-full flex-col flex items-center justify-between">
-        <video ref="videoRef" style="width: 400px" autoplay></video>
+      <div v-show="!capturedImage" class="w-full gap-3 h-full flex-col flex items-center justify-between">
+        <video ref="videoRef" class="rounded-md" style="width: 400px" autoplay></video>
 
         <NcButton class="!rounded-full !px-0" @click="captureImage">
           <mdi-camera class="text-xl" />
@@ -127,7 +118,7 @@ onBeforeUnmount(() => {
       </div>
 
       <div v-show="capturedImage" class="flex group flex-col gap-1">
-        <canvas ref="canvasRef" style="width: 400px; display: none"></canvas>
+        <canvas ref="canvasRef" class="rounded-md" style="width: 400px; display: none"></canvas>
 
         <div class="relative text-[12px] font-semibold text-gray-800 flex">
           <div class="flex-auto truncate line-height-4">
@@ -141,16 +132,18 @@ onBeforeUnmount(() => {
           </div>
         </div>
         <div class="flex-none text-[10px] font-semibold text-gray-500">
-          {{ formatBytes(capturedImage?.size, 2) }}
+          {{ formatBytes(capturedImage?.size, 0) }}
         </div>
       </div>
       <div v-show="capturedImage" class="flex gap-2 pr-2 bottom-1 relative w-full items-center justify-end">
-        <NcButton :disabled="isLoading" type="secondary" size="small" @click="emits('update:visible', false)"> Cancel </NcButton>
+        <NcButton :disabled="isLoading" type="secondary" size="small" @click="emits('update:visible', false)">
+          {{ $t('labels.cancel') }}
+        </NcButton>
 
         <NcButton :loading="isLoading" size="small" @click="emits('upload', [capturedImage] as File[])">
-          <template v-if="!isLoading"> Upload image </template>
+          <template v-if="!isLoading"> {{ $t('labels.uploadImage') }} </template>
 
-          <template v-else> Uploading </template>
+          <template v-else> {{ $t('labels.uploading') }} </template>
         </NcButton>
       </div>
     </div>

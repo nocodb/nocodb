@@ -233,7 +233,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
         return data
       } catch (e: any) {
         console.log(e)
-        message.error(e.message || t('msg.error.internalError'))
+        message.error("File couldn't be uploaded. Verify URL & try again.")
         return null
       }
     }

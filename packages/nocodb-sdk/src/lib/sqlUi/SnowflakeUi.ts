@@ -67,9 +67,9 @@ export class SnowflakeUi {
       {
         column_name: 'title',
         title: 'Title',
-        dt: 'varchar',
+        dt: 'TEXT',
         dtx: 'specificType',
-        ct: 'varchar(45)',
+        ct: null,
         nrqd: true,
         rqd: false,
         ck: false,
@@ -77,10 +77,10 @@ export class SnowflakeUi {
         un: false,
         ai: false,
         cdf: null,
-        clen: 45,
+        clen: null,
         np: null,
         ns: null,
-        dtxp: '45',
+        dtxp: '',
         dtxs: '',
         altered: 1,
         uidt: 'SingleLineText',
@@ -185,9 +185,9 @@ export class SnowflakeUi {
   static getNewColumn(suffix) {
     return {
       column_name: 'title' + suffix,
-      dt: 'varchar',
+      dt: 'TEXT',
       dtx: 'specificType',
-      ct: 'varchar(45)',
+      ct: null,
       nrqd: true,
       rqd: false,
       ck: false,
@@ -195,10 +195,10 @@ export class SnowflakeUi {
       un: false,
       ai: false,
       cdf: null,
-      clen: 45,
+      clen: null,
       np: null,
       ns: null,
-      dtxp: '45',
+      dtxp: '',
       dtxs: '',
       altered: 1,
       uidt: 'SingleLineText',
@@ -726,7 +726,7 @@ export class SnowflakeUi {
         colProp.dt = 'VARCHAR';
         break;
       case 'SingleLineText':
-        colProp.dt = 'VARCHAR';
+        colProp.dt = 'TEXT';
         break;
       case 'LongText':
         colProp.dt = 'TEXT';
@@ -776,7 +776,7 @@ export class SnowflakeUi {
         };
         break;
       case 'URL':
-        colProp.dt = 'VARCHAR';
+        colProp.dt = 'TEXT';
         colProp.validate = {
           func: ['isURL'],
           args: [''],
@@ -864,10 +864,10 @@ export class SnowflakeUi {
       case 'LongText':
       case 'Collaborator':
       case 'GeoData':
-        return ['CHAR', 'CHARACTER', 'VARCHAR', 'TEXT'];
+        return ['TEXT', 'VARCHAR', 'CHARACTER', 'CHAR'];
 
       case 'Attachment':
-        return ['TEXT', 'CHAR', 'CHARACTER', 'VARCHAR', 'text'];
+        return ['TEXT', 'CHAR', 'CHARACTER', 'VARCHAR'];
 
       case 'JSON':
         return ['TEXT'];
@@ -891,7 +891,7 @@ export class SnowflakeUi {
         return ['VARCHAR'];
 
       case 'URL':
-        return ['VARCHAR', 'TEXT'];
+        return ['TEXT', 'VARCHAR'];
 
       case 'Number':
         return [

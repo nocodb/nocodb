@@ -186,6 +186,18 @@ function scrollToComment(commentId: string) {
   }
 }
 
+function scrollToAudit(auditId?: string) {
+  if (!auditId) return
+
+  const auditEl = commentsWrapperEl.value?.querySelector(`.nc-audit-item.${auditId}`)
+  if (auditEl) {
+    auditEl.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center',
+    })
+  }
+}
+
 watch(commentsWrapperEl, () => {
   setTimeout(() => {
     nextTick(() => {
@@ -261,6 +273,17 @@ function handleResetHoverEffect() {
 
   hoveredCommentId.value = null
 }
+
+watch(
+  () => audits.value.length,
+  (auditCount) => {
+    nextTick(() => {
+      setTimeout(() => {
+        scrollToAudit(audits.value[auditCount - 1]?.id)
+      }, 100)
+    })
+  },
+)
 </script>
 
 <template>
@@ -530,7 +553,7 @@ function handleResetHoverEffect() {
               </div>
             </template>
 
-            <div v-for="audit of audits" :key="audit.id" class="nc-audit-item">
+            <div v-for="audit of audits" :key="audit.id" :class="`${audit.id}`" class="nc-audit-item">
               <div class="group gap-3 overflow-hidden px-3 py-2 hover:bg-gray-100">
                 <div class="flex items-start justify-between">
                   <div class="flex items-start gap-3 flex-1 w-full">

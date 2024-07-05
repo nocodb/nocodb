@@ -173,7 +173,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     }
   }
 
-  const loadAudits = async (_rowId?: string) => {
+  const loadAudits = async (_rowId?: string, showLoading: boolean = true) => {
     if (!isUIAllowed('auditListRow') || isEeUI || (!row.value && !_rowId)) return
 
     const rowId = _rowId ?? extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
@@ -181,7 +181,9 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     if (!rowId) return
 
     try {
-      isAuditLoading.value = true
+      if (showLoading) {
+        isAuditLoading.value = true
+      }
       const res =
         (
           await $api.utils.auditList({

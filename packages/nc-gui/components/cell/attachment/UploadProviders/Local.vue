@@ -63,6 +63,7 @@ const open = () => {
         'border-brand-500': isOverDropZone,
         'border-dashed': !tempFiles.length,
       }"
+      data-testid="attachment-drop-zone"
       class="flex flex-col items-center justify-center bg-gray-50 w-full h-full flex-grow-1 border-1 rounded-lg"
       @click="tempFiles.length > 0 ? () => {} : open()"
     >
@@ -102,7 +103,9 @@ const open = () => {
     <div v-if="tempFiles.length" class="flex gap-2 pr-2 bg-white w-full items-center justify-end">
       <NcButton type="secondary" size="small" @click="emits('update:visible', false)"> Cancel </NcButton>
 
-      <NcButton size="small" @click="emits('upload', tempFiles)"> Upload {{ tempFiles.length }} files </NcButton>
+      <NcButton data-testid="nc-upload-file" size="small" @click="emits('upload', tempFiles)">
+        Upload {{ tempFiles.length }} files
+      </NcButton>
     </div>
   </div>
 </template>

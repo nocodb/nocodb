@@ -7,7 +7,7 @@ const props = defineProps<{
 
 const dialogShow = useVModel(props, 'value')
 
-const { onDrop: saveAttachment, isPublic } = useAttachmentCell()!
+const { onDrop: saveAttachment, isPublic, stopCamera } = useAttachmentCell()!
 
 const activeMenu = ref('local')
 
@@ -23,6 +23,17 @@ const saveAttachments = async (files: File[]) => {
   await saveAttachment(files, {} as any)
   dialogShow.value = false
 }
+
+watch(activeMenu, (newVal, oldValue) => {
+  // Stop camera when switching to another menu
+  if (oldValue === 'webcam' && newVal !== 'webcam') {
+    // When the menu is switched when the startCamera function is called, the videoStream might not have initialized yet
+    // So, we need to wait for a while before stopping the camera
+    setTimeout(() => {
+      stopCamera()
+    }, 1000)
+  }
+})
 </script>
 
 <template>

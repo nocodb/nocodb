@@ -6,48 +6,30 @@ const emits = defineEmits<{
   'upload': [fileList: File[]]
 }>()
 
-const { isLoading } = useAttachmentCell()!
+const { isLoading, startCamera: _startCamera, stopCamera: _stopCamera, videoStream, permissionGranted } = useAttachmentCell()!
 
-const permissionGranted = ref(false)
 const capturedImage = ref<null | File>(null)
 const videoRef = ref<HTMLVideoElement | undefined>()
 const canvasRef = ref<HTMLCanvasElement | undefined>()
-const videoStream = ref<MediaStream | null>(null)
 
 const startCamera = async () => {
   try {
-    if (videoRef.value) {
-      videoRef.value.srcObject = videoStream.value
-    }
-  } catch (error) {
-    console.error('Error starting camera:', error)
+    await _startCamera()
+    if (!videoRef.value || !videoStream.value) return
+    videoRef.value.srcObject = videoStream.value
+  } catch (error) {}
+}
+
+const stopCamera = () => {
+  _stopCamera()
+  if (videoRef.value) {
+    videoRef.value.srcObject = null
   }
 }
 
 const retakeImage = () => {
   capturedImage.value = null
   startCamera()
-}
-
-const stopCamera = () => {
-  const tracks = videoStream.value?.getTracks()
-
-  for (const track of tracks ?? []) {
-    track.stop()
-  }
-  if (videoRef.value) {
-    videoRef.value.srcObject = null
-  }
-}
-
-const checkPermission = async () => {
-  try {
-    videoStream.value = await navigator.mediaDevices.getUserMedia({ video: true })
-    permissionGranted.value = true
-    await startCamera()
-  } catch (error) {
-    console.error('Error checking camera permission:', error)
-  }
 }
 
 const captureImage = () => {
@@ -74,10 +56,10 @@ const captureImage = () => {
 }
 
 onMounted(() => {
-  checkPermission()
+  startCamera()
 })
 
-onBeforeUnmount(async () => {
+onBeforeUnmount(() => {
   stopCamera()
 })
 </script>
@@ -87,7 +69,7 @@ onBeforeUnmount(async () => {
     <div v-if="!permissionGranted" class="w-full h-full flex bg-gray-50 items-center justify-center">
       <div
         class="flex flex-col hover:bg-white p-2 cursor-pointer rounded-md !transition-all transition-ease-in-out duration-300 gap-2 items-center justify-center"
-        @click="checkPermission"
+        @click="startCamera"
       >
         <div class="p-5 bg-white rounded-md shadow-sm">
           <mdi-camera class="text-4xl text-gray-800" />

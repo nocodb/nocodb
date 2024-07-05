@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { useAttachmentCell } from '../utils'
-import { createThumbnail } from '~/utils/attachmentUtils'
 
 const emits = defineEmits<{
   'update:visible': [value: boolean]

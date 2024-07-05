@@ -35,6 +35,10 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
     /** for image carousel */
     const selectedImage = ref()
 
+    const videoStream = ref<MediaStream | null>(null)
+
+    const permissionGranted = ref(false)
+
     const { base } = storeToRefs(useBase())
 
     const { api, isLoading } = useApi()
@@ -55,6 +59,18 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
         maxAttachmentSize: Math.max(1, +appInfo.value.ncAttachmentFieldSize || 20) || 20,
         supportedAttachmentMimeTypes: ['*'],
       }),
+    }
+
+    const startCamera = async () => {
+      if (!videoStream.value) {
+        videoStream.value = await navigator.mediaDevices.getUserMedia({ video: true })
+      }
+      permissionGranted.value = true
+    }
+
+    const stopCamera = () => {
+      videoStream.value?.getTracks().forEach((track) => track.stop())
+      videoStream.value = null
     }
 
     /** our currently visible items, either the locally stored or the ones from db, depending on isPublic & isForm status */
@@ -376,6 +392,10 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       storedFiles,
       bulkDownloadFiles,
       defaultAttachmentMeta,
+      startCamera,
+      stopCamera,
+      videoStream,
+      permissionGranted,
     }
   },
   'useAttachmentCell',

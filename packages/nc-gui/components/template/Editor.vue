@@ -260,21 +260,6 @@ function deleteTableColumn(tableIdx: number, columnKey: number) {
   data.tables[tableIdx].columns.splice(columnIdx, 1)
 }
 
-function addNewColumnRow(tableIdx: number, uidt: string) {
-  data.tables[tableIdx].columns.push({
-    key: data.tables[tableIdx].columns.length,
-    title: `title${data.tables[tableIdx].columns.length + 1}`,
-    column_name: `title${data.tables[tableIdx].columns.length + 1}`,
-    uidt,
-  })
-
-  nextTick(() => {
-    const input = inputRefs.value[data.tables[tableIdx].columns.length - 1]
-    input.focus()
-    input.select()
-  })
-}
-
 function setEditableTn(tableIdx: number, val: boolean) {
   editableTn.value[tableIdx] = val
 }
@@ -939,8 +924,8 @@ watch(modelRef, async () => {
                         show-search
                         :filter-option="filterOption"
                         dropdown-class-name="nc-dropdown-template-uidt"
-                        @change="handleUIDTChange(record, table)"
                         :disabled="!importDataOnly"
+                        @change="handleUIDTChange(record, table)"
                       >
                         <template #suffixIcon>
                           <GeneralIcon icon="arrowDown" class="text-current" />

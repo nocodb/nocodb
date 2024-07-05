@@ -605,7 +605,7 @@
     "headerName": "Nombre del encabezado",
     "icon": "Icono",
     "max": "Máximo",
-    "enableRichText": "Enable rich text",
+    "enableRichText": "Activar Texto Enriquecido",
     "idColon": "Id:",
     "copiedRecordURL": "URL del registro copiado",
     "copyRecordURL": "Copiar URL de registro",
@@ -1067,12 +1067,12 @@
       "showJunctionTableNames": "Mostrar nombres de tablas de unión"
     },
     "kanban": {
-      "collapseStack": "Collapse stack",
+      "collapseStack": "Colapsar pila",
       "collapseAll": "Collapse all",
       "expandAll": "Expand all",
       "renameStack": "Rename stack",
-      "deleteStack": "Delete stack",
-      "stackedBy": "Stacked by",
+      "deleteStack": "Borrar pila",
+      "stackedBy": "Apilado por",
       "chooseGroupingField": "Elija un campo de agrupación",
       "addOrEditStack": "Añadir / Editar pila"
     },

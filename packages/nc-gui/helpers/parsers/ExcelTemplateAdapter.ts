@@ -9,14 +9,14 @@ import {
   isUrlType,
 } from './parserHelpers'
 
-const excelTypeToUidt: Record<string, UITypes> = {
-  d: UITypes.DateTime,
-  b: UITypes.Checkbox,
-  n: UITypes.Number,
-  s: UITypes.SingleLineText,
-}
-
 export default class ExcelTemplateAdapter extends TemplateGenerator {
+  excelTypeToUidt: Record<string, UITypes> = {
+    d: UITypes.DateTime,
+    b: UITypes.Checkbox,
+    n: UITypes.Number,
+    s: UITypes.SingleLineText,
+  }
+
   config: Record<string, any>
 
   excelData: any
@@ -54,6 +54,13 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
       type: 'array',
       ...options,
     })
+
+    this.excelTypeToUidt = this.config.importDataOnly
+      ? this.excelTypeToUidt
+      : {
+          n: UITypes.Number,
+          s: UITypes.SingleLineText,
+        }
   }
 
   async parse() {
@@ -142,7 +149,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
                   r: +this.config.firstRowAsHeaders,
                 })
                 const cellProps = ws[cellId] || {}
-                column.uidt = excelTypeToUidt[cellProps.t] || UITypes.SingleLineText
+                column.uidt = this.excelTypeToUidt[cellProps.t] || UITypes.SingleLineText
 
                 if (column.uidt === UITypes.SingleLineText) {
                   // check for long text

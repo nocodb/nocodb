@@ -85,8 +85,8 @@ export default class CSVTemplateAdapter {
 
   detectInitialUidt(v: string) {
     if (!isNaN(Number(v)) && !isNaN(parseFloat(v))) return UITypes.Number
-    if (validateDateWithUnknownFormat(v)) return UITypes.DateTime
-    if (isCheckboxType(v)) return UITypes.Checkbox
+    if (this.config.importDataOnly && validateDateWithUnknownFormat(v)) return UITypes.DateTime
+    if (this.config.importDataOnly && isCheckboxType(v)) return UITypes.Checkbox
     return UITypes.SingleLineText
   }
 
@@ -100,23 +100,25 @@ export default class CSVTemplateAdapter {
       if (isMultiLineTextType(colData)) {
         colProps.uidt = UITypes.LongText
       } else if (colProps.uidt === UITypes.SingleLineText) {
-        if (isEmailType(colData)) {
-          colProps.uidt = UITypes.Email
-        } else if (isUrlType(colData)) {
-          colProps.uidt = UITypes.URL
-        } else if (isCheckboxType(colData)) {
-          colProps.uidt = UITypes.Checkbox
-        } else {
-          if (data[columnIdx] && columnIdx < this.config.maxRowsToParse) {
-            this.columnValues[columnIdx].push(data[columnIdx])
-            colProps.uidt = UITypes.SingleSelect
+        if (this.config.importDataOnly) {
+          if (isEmailType(colData)) {
+            colProps.uidt = UITypes.Email
+          } else if (isUrlType(colData)) {
+            colProps.uidt = UITypes.URL
+          } else if (isCheckboxType(colData)) {
+            colProps.uidt = UITypes.Checkbox
+          } else {
+            if (data[columnIdx] && columnIdx < this.config.maxRowsToParse) {
+              this.columnValues[columnIdx].push(data[columnIdx])
+              colProps.uidt = UITypes.SingleSelect
+            }
           }
         }
       } else if (colProps.uidt === UITypes.Number) {
         if (isDecimalType(colData)) {
           colProps.uidt = UITypes.Decimal
         }
-      } else if (colProps.uidt === UITypes.DateTime) {
+      } else if (this.config.importDataOnly && colProps.uidt === UITypes.DateTime) {
         if (data[columnIdx] && columnIdx < this.config.maxRowsToParse) {
           this.columnValues[columnIdx].push(data[columnIdx])
         }

@@ -70,6 +70,7 @@ const defaultImportState = {
     autoSelectFieldTypes: true,
     firstRowAsHeaders: true,
     shouldImportData: true,
+    importDataOnly: true,
   },
 }
 const importState = reactive(defaultImportState)
@@ -164,6 +165,8 @@ let templateGenerator: CSVTemplateAdapter | JSONTemplateAdapter | ExcelTemplateA
 async function handlePreImport() {
   preImportLoading.value = true
   isParsingData.value = true
+
+  importState.parserConfig.importDataOnly = importDataOnly
 
   if (!baseTables.value.get(baseId)) {
     await loadProjectTables(baseId)
@@ -630,9 +633,14 @@ const onChange = () => {
             </a-form-item>
 
             <a-form-item v-if="!importDataOnly" class="!my-2">
-              <a-checkbox v-model:checked="importState.parserConfig.autoSelectFieldTypes">
-                <span class="caption">{{ $t('labels.autoSelectFieldTypes') }}</span>
-              </a-checkbox>
+              <NcTooltip align="left" class="inline-block">
+                <template #title>
+                  {{ $t('title.comingSoon') }}
+                </template>
+                <a-checkbox v-model:checked="importState.parserConfig.autoSelectFieldTypes" :disabled="true">
+                  <span class="caption">{{ $t('labels.autoSelectFieldTypes') }} </span>
+                </a-checkbox>
+              </NcTooltip>
             </a-form-item>
 
             <a-form-item v-if="isImportTypeCsv || IsImportTypeExcel" class="!my-2">

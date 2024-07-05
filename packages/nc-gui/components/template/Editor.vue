@@ -763,7 +763,7 @@ watch(modelRef, async () => {
           </template>
 
           <template #extra>
-            <a-tooltip bottom>
+            <NcTooltip bottom>
               <template #title>
                 <span>{{ $t('activity.deleteTable') }}</span>
               </template>
@@ -773,7 +773,7 @@ watch(modelRef, async () => {
                 class="text-lg mr-8"
                 @click.stop="deleteTable(tableIdx)"
               />
-            </a-tooltip>
+            </NcTooltip>
           </template>
 
           <a-table
@@ -815,10 +815,13 @@ watch(modelRef, async () => {
                   :filter-option="filterOption"
                   dropdown-class-name="nc-dropdown-filter-field"
                 >
+                  <template #suffixIcon>
+                    <GeneralIcon icon="arrowDown" class="text-current" />
+                  </template>
                   <a-select-option v-for="(col, i) of columns" :key="i" :value="col.title">
-                    <div class="flex items-center">
-                      <component :is="getUIDTIcon(col.uidt)" />
-                      <span class="ml-2">{{ col.title }}</span>
+                    <div class="flex items-center gap-2">
+                      <component :is="getUIDTIcon(col.uidt)" class="w-3.5 h-3.5" />
+                      <span>{{ col.title }}</span>
                     </div>
                   </a-select-option>
                 </a-select>
@@ -852,10 +855,10 @@ watch(modelRef, async () => {
                 <div class="flex flex-col w-full">
                   <a-input
                     v-model:value="table.table_name"
-                    class="font-weight-bold text-lg"
+                    class="font-weight-bold text-lg !rounded-md"
                     size="large"
                     hide-details
-                    :bordered="false"
+                    :bordered="true"
                     @click.stop
                     @blur="handleEditableTnChange(tableIdx)"
                     @keydown.enter="handleEditableTnChange(tableIdx)"
@@ -869,7 +872,7 @@ watch(modelRef, async () => {
             </template>
 
             <template #extra>
-              <a-tooltip bottom>
+              <NcTooltip bottom>
                 <template #title>
                   <span>{{ $t('activity.deleteTable') }}</span>
                 </template>
@@ -879,7 +882,7 @@ watch(modelRef, async () => {
                   class="text-lg mr-8"
                   @click.stop="deleteTable(tableIdx)"
                 />
-              </a-tooltip>
+              </NcTooltip>
             </template>
             <a-table
               v-if="table.columns && table.columns.length"
@@ -916,33 +919,50 @@ watch(modelRef, async () => {
               <template #bodyCell="{ column, record }">
                 <template v-if="column.key === 'column_name'">
                   <a-form-item v-bind="validateInfos[`tables.${tableIdx}.columns.${record.key}.${column.key}`]">
-                    <a-input :ref="(el: HTMLInputElement) => (inputRefs[record.key] = el)" v-model:value="record.title" />
+                    <a-input
+                      :ref="(el: HTMLInputElement) => (inputRefs[record.key] = el)"
+                      v-model:value="record.title"
+                      class="!rounded-md"
+                    />
                   </a-form-item>
                 </template>
 
                 <template v-else-if="column.key === 'uidt'">
                   <a-form-item v-bind="validateInfos[`tables.${tableIdx}.columns.${record.key}.${column.key}`]">
-                    <a-select
-                      v-model:value="record.uidt"
-                      class="w-52"
-                      show-search
-                      :filter-option="filterOption"
-                      dropdown-class-name="nc-dropdown-template-uidt"
-                      @change="handleUIDTChange(record, table)"
-                    >
-                      <a-select-option v-for="(option, i) of uiTypeOptions" :key="i" :value="option.value">
-                        <a-tooltip placement="right">
-                          <template v-if="isSelectDisabled(option.label, table.columns[record.key]?._disableSelect)" #title>
-                            {{
-                              $t('msg.tooLargeFieldEntity', {
-                                entity: option.label,
-                              })
-                            }}
-                          </template>
-                          {{ option.label }}
-                        </a-tooltip>
-                      </a-select-option>
-                    </a-select>
+                    <NcTooltip :disabled="importDataOnly">
+                      <template #title>
+                        {{ $t('tooltip.useFieldEditMenuToConfigFieldType') }}
+                      </template>
+                      <a-select
+                        v-model:value="record.uidt"
+                        class="w-52"
+                        show-search
+                        :filter-option="filterOption"
+                        dropdown-class-name="nc-dropdown-template-uidt"
+                        @change="handleUIDTChange(record, table)"
+                        :disabled="!importDataOnly"
+                      >
+                        <template #suffixIcon>
+                          <GeneralIcon icon="arrowDown" class="text-current" />
+                        </template>
+
+                        <a-select-option v-for="(option, i) of uiTypeOptions" :key="i" :value="option.value">
+                          <div class="flex items-center gap-2">
+                            <component :is="getUIDTIcon(UITypes[option.value])" class="h-3.5 w-3.5" />
+                            <NcTooltip placement="right" :disabled="!importDataOnly" show-on-truncate-only>
+                              <template v-if="isSelectDisabled(option.label, table.columns[record.key]?._disableSelect)" #title>
+                                {{
+                                  $t('msg.tooLargeFieldEntity', {
+                                    entity: option.label,
+                                  })
+                                }}
+                              </template>
+                              {{ option.label }}
+                            </NcTooltip>
+                          </div>
+                        </a-select-option>
+                      </a-select>
+                    </NcTooltip>
                   </a-form-item>
                 </template>
 
@@ -953,7 +973,7 @@ watch(modelRef, async () => {
                 </template>
 
                 <template v-if="column.key === 'action'">
-                  <a-tooltip v-if="record.key === 0">
+                  <NcTooltip v-if="record.key === 0">
                     <template #title>
                       <span>{{ $t('general.primaryValue') }}</span>
                     </template>
@@ -961,9 +981,9 @@ watch(modelRef, async () => {
                     <div class="flex items-center float-right mr-4">
                       <mdi-key-star class="text-lg" />
                     </div>
-                  </a-tooltip>
+                  </NcTooltip>
 
-                  <a-tooltip v-else>
+                  <NcTooltip v-else>
                     <template #title>
                       <span>{{ $t('activity.column.delete') }}</span>
                     </template>
@@ -973,60 +993,10 @@ watch(modelRef, async () => {
                         <component :is="iconMap.delete" class="text-lg" />
                       </div>
                     </a-button>
-                  </a-tooltip>
+                  </NcTooltip>
                 </template>
               </template>
             </a-table>
-
-            <div class="mt-5 flex gap-2 justify-center">
-              <a-tooltip bottom>
-                <template #title>
-                  <span>{{ $t('activity.column.addNumber') }}</span>
-                </template>
-
-                <a-button class="group" @click="addNewColumnRow(tableIdx, 'Number')">
-                  <div class="flex items-center">
-                    <component :is="iconMap.number" class="group-hover:!text-accent flex text-lg" />
-                  </div>
-                </a-button>
-              </a-tooltip>
-
-              <a-tooltip bottom>
-                <template #title>
-                  <span>{{ $t('activity.column.addSingleLineText') }}</span>
-                </template>
-
-                <a-button class="group" @click="addNewColumnRow(tableIdx, 'SingleLineText')">
-                  <div class="flex items-center">
-                    <component :is="iconMap.text" class="group-hover:!text-accent text-lg" />
-                  </div>
-                </a-button>
-              </a-tooltip>
-
-              <a-tooltip bottom>
-                <template #title>
-                  <span>{{ $t('activity.column.addLongText') }}</span>
-                </template>
-
-                <a-button class="group" @click="addNewColumnRow(tableIdx, 'LongText')">
-                  <div class="flex items-center">
-                    <component :is="iconMap.longText" class="group-hover:!text-accent text-lg" />
-                  </div>
-                </a-button>
-              </a-tooltip>
-
-              <a-tooltip bottom>
-                <template #title>
-                  <span>{{ $t('activity.column.addOther') }}</span>
-                </template>
-
-                <a-button class="group" @click="addNewColumnRow(tableIdx, 'SingleLineText')">
-                  <div class="flex items-center gap-1">
-                    <component :is="iconMap.plus" class="group-hover:!text-accent text-lg" />
-                  </div>
-                </a-button>
-              </a-tooltip>
-            </div>
           </a-collapse-panel>
         </a-collapse>
       </a-form>
@@ -1049,6 +1019,13 @@ watch(modelRef, async () => {
     .ant-form-item {
       @apply mb-0;
     }
+  }
+}
+
+:deep(.ant-collapse-header) {
+  @apply !items-center;
+  & > div {
+    @apply flex;
   }
 }
 </style>

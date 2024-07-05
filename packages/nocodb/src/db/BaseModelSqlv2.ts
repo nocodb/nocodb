@@ -5091,7 +5091,7 @@ class BaseModelSqlv2 {
       for (const k of Object.keys(updateObj)) {
         if (
           updateObj[k] === null ||
-          updateObj[k] == null ||
+          updateObj[k] === undefined ||
           (typeof updateObj[k] === 'string' && updateObj[k] === '')
         ) {
           continue;

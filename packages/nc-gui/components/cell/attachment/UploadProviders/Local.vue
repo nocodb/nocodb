@@ -117,7 +117,13 @@ onBeforeUnmount(() => {
         <template v-if="!isOverDropZone">
           <component :is="iconMap.upload" class="w-5 h-5" />
           <h1>
-            {{ $t('labels.browserOrDrag') }}
+            {{ $t('labels.clickTo') }}
+
+            <span class="font-semibold"> {{ $t('labels.browseFiles') }} </span>
+            {{ $t('general.or') }}
+            <span class="font-semibold"> {{ $t('labels.dragFilesHere') }} </span>
+
+            {{ $t('labels.toUpload') }}
           </h1>
         </template>
         <template v-if="isOverDropZone">

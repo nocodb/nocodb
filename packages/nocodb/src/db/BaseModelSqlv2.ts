@@ -5436,6 +5436,7 @@ class BaseModelSqlv2 {
         | AuditOperationSubTypes.LINK_RECORD
         | AuditOperationSubTypes.UNLINK_RECORD;
       columnTitle: string;
+      pkValue?: Record<string, any>;
     }[];
 
     const auditConfig = {
@@ -5514,6 +5515,48 @@ class BaseModelSqlv2 {
         break;
       case RelationTypes.HAS_MANY:
         {
+          const linkedHmRowObj = await this.dbDriver(childTn)
+            .select(childColumn.column_name)
+            .where(_wherePk(childTable.primaryKeys, childId))
+            .first();
+
+          const oldRowID = Object.values(linkedHmRowObj)?.[0];
+          if (oldRowID) {
+            const [parentRelatedPkValue, childRelatedPkValue] =
+              await Promise.all([
+                await this.dbDriver(childTn)
+                  .select(childTable.displayValue.title)
+                  .where(_wherePk(childTable.primaryKeys, childId))
+                  .first(),
+                await this.dbDriver(parentTn)
+                  .select(parentTable.displayValue.title)
+                  .where(_wherePk(parentTable.primaryKeys, oldRowID))
+                  .first(),
+              ]);
+
+            auditUpdateObj.push({
+              model: auditConfig.parentModel,
+              childModel: auditConfig.childModel,
+              rowId: oldRowID as string,
+              childId,
+              op_sub_type: AuditOperationSubTypes.UNLINK_RECORD,
+              columnTitle: auditConfig.parentColTitle,
+              pkValue: parentRelatedPkValue,
+            });
+
+            if (parentTable.id !== childTable.id) {
+              auditUpdateObj.push({
+                model: auditConfig.childModel,
+                childModel: auditConfig.parentModel,
+                rowId: childId,
+                childId: oldRowID as string,
+                op_sub_type: AuditOperationSubTypes.UNLINK_RECORD,
+                columnTitle: auditConfig.childColTitle,
+                pkValue: childRelatedPkValue,
+              });
+            }
+          }
+
           await this.execAndParse(
             this.dbDriver(childTn)
               .update({
@@ -5637,14 +5680,27 @@ class BaseModelSqlv2 {
 
     await Promise.allSettled(
       auditUpdateObj.map(async (updateObj) => {
-        await this.afterAddChild(
-          updateObj.columnTitle,
-          updateObj.rowId,
-          updateObj.childId,
-          cookie,
-          updateObj.model,
-          updateObj.childModel,
-        );
+        if (updateObj.op_sub_type === AuditOperationSubTypes.LINK_RECORD) {
+          await this.afterAddChild(
+            updateObj.columnTitle,
+            updateObj.rowId,
+            updateObj.childId,
+            cookie,
+            updateObj.model,
+            updateObj.childModel,
+            updateObj.pkValue,
+          );
+        } else {
+          await this.afterRemoveChild(
+            updateObj.columnTitle,
+            updateObj.rowId,
+            updateObj.childId,
+            cookie,
+            updateObj.model,
+            updateObj.childModel,
+            updateObj.pkValue,
+          );
+        }
       }),
     );
   }
@@ -5656,11 +5712,14 @@ class BaseModelSqlv2 {
     req,
     model = this.model,
     childModel = this.model,
+    pkValue = undefined,
   ): Promise<void> {
-    const pkValue = await this.dbDriver(this.getTnPath(childModel))
-      .select(childModel.displayValue.title)
-      .where(_wherePk(childModel.primaryKeys, childId))
-      .first();
+    if (!pkValue) {
+      pkValue = await this.dbDriver(this.getTnPath(childModel))
+        .select(childModel.displayValue.title)
+        .where(_wherePk(childModel.primaryKeys, childId))
+        .first();
+    }
 
     await Audit.insert({
       fk_workspace_id: model.fk_workspace_id,
@@ -5891,11 +5950,14 @@ class BaseModelSqlv2 {
     req,
     model = this.model,
     childModel = this.model,
+    pkValue = undefined,
   ): Promise<void> {
-    const pkValue = await this.dbDriver(this.getTnPath(childModel))
-      .select(childModel.displayValue.title)
-      .where(_wherePk(childModel.primaryKeys, childId))
-      .first();
+    if (!pkValue) {
+      pkValue = await this.dbDriver(this.getTnPath(childModel))
+        .select(childModel.displayValue.title)
+        .where(_wherePk(childModel.primaryKeys, childId))
+        .first();
+    }
 
     await Audit.insert({
       fk_workspace_id: model.fk_workspace_id,

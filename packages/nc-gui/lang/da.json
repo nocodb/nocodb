@@ -1067,12 +1067,12 @@
       "showJunctionTableNames": "Vis navne på krydsningstabeller"
     },
     "kanban": {
-      "collapseStack": "Collapse stack",
+      "collapseStack": "Kollaps af stak",
       "collapseAll": "Collapse all",
       "expandAll": "Expand all",
       "renameStack": "Rename stack",
-      "deleteStack": "Delete stack",
-      "stackedBy": "Stacked by",
+      "deleteStack": "Slet stak",
+      "stackedBy": "Stablet af",
       "chooseGroupingField": "Vælg et grupperingsfelt",
       "addOrEditStack": "Tilføj / Rediger stak"
     },

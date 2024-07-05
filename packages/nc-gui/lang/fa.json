@@ -1067,12 +1067,12 @@
       "showJunctionTableNames": "نمایش نام جدول های اتصال"
     },
     "kanban": {
-      "collapseStack": "Collapse stack",
+      "collapseStack": "جمع کردن دسته",
       "collapseAll": "Collapse all",
       "expandAll": "Expand all",
       "renameStack": "Rename stack",
-      "deleteStack": "Delete stack",
-      "stackedBy": "Stacked by",
+      "deleteStack": "حذف دسته",
+      "stackedBy": "دسته‌بندی با",
       "chooseGroupingField": "انتخاب فیلد گروه‌بندی",
       "addOrEditStack": "اضافه/ویرایش دسته"
     },

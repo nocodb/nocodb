@@ -201,17 +201,15 @@ export default class BaseUser {
           `${MetaTable.PROJECT_USERS}.roles as roles`,
         );
 
-      queryBuilder.leftJoin(MetaTable.PROJECT_USERS, function () {
+      queryBuilder
+      .leftJoin(MetaTable.PROJECT_USERS, function () {
         this.on(
           `${MetaTable.PROJECT_USERS}.fk_user_id`,
           '=',
           `${MetaTable.USERS}.id`,
-        ).andOn(
-          `${MetaTable.PROJECT_USERS}.base_id`,
-          '=',
-          ncMeta.knex.raw('?', [base_id]),
         );
-      });
+      })
+      .where('base_id', base_id);
 
       baseUsers = await queryBuilder;
 

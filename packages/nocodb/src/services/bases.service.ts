@@ -44,9 +44,11 @@ export class BasesService {
       query?: any;
     },
   ) {
-    const bases = extractRolesObj(param.user?.roles)[OrgUserRoles.SUPER_ADMIN]
-      ? await Base.list()
-      : await BaseUser.getProjectsList(param.user.id, param.query);
+    const bases = 
+    // extractRolesObj(param.user?.roles)[OrgUserRoles.SUPER_ADMIN]
+    //   ? await Base.list()
+    //   : 
+      await BaseUser.getProjectsList(param.user.id, param.query);
 
     return bases;
   }

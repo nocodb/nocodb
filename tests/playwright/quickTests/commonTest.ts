@@ -76,12 +76,16 @@ const quickVerify = async ({
     columnCount -= 3;
   }
   for (let i = 0; i < columnCount; i++) {
-    await dashboard.grid.column.verify({ title: cn[i] });
+    await dashboard.grid.column.verify({ title: cn[i], scroll: true });
   }
 
   // Verify cells
   // normal cells
-  for (const [key, value] of Object.entries(recordCells)) {
+  for (const [index, [key, value]] of Object.entries(recordCells).entries()) {
+    if (index === 0) {
+      await dashboard.grid.cell.get({ index: index, columnHeader: key }).click();
+    }
+
     await dashboard.grid.cell.verify({ index: cellIndex, columnHeader: key, value });
   }
 

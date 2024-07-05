@@ -143,11 +143,16 @@ export class BulkUpdatePage extends BasePage {
           await field.locator('.nc-checkbox').click();
         }
         break;
-      case 'attachment':
-        // eslint-disable-next-line no-case-declarations
-        const attachFileAction = field.locator('[data-testid="attachment-cell-file-picker-button"]').click();
+      case 'attachment': {
+        await field.locator('[data-testid="attachment-cell-file-picker-button"]').click();
+
+        await this.rootPage.locator('.nc-modal-attachment-create').waitFor({ state: 'visible' });
+        const attachFileAction = this.rootPage.getByTestId('attachment-drop-zone').click({ force: true });
         await this.attachFile({ filePickUIAction: attachFileAction, filePath: [value] });
+        await this.rootPage.getByTestId('nc-upload-file').click();
+
         break;
+      }
       case 'date':
         {
           await field.locator('input').click();

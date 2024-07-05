@@ -3703,9 +3703,10 @@ class BaseModelSqlv2 {
 
       await this.prepareNocoData(updateObj, false, cookie);
 
-      const btForeignKeyColumn = columns
-        .filter((c) => c.uidt === UITypes.ForeignKey)
-        .find((c) => data[c.column_name] !== undefined);
+      const btForeignKeyColumn = columns.find(
+        (c) =>
+          c.uidt === UITypes.ForeignKey && data[c.column_name] !== undefined,
+      );
 
       const btColumn = btForeignKeyColumn
         ? columns.find(
@@ -5468,7 +5469,7 @@ class BaseModelSqlv2 {
     const auditConfig = {
       childModel: childTable,
       parentModel: parentTable,
-      childColTitle: relatedChildCol.title || '',
+      childColTitle: relatedChildCol?.title || '',
       parentColTitle: column.title,
     } as {
       childModel: Model;
@@ -6151,7 +6152,7 @@ class BaseModelSqlv2 {
     const auditConfig = {
       childModel: childTable,
       parentModel: parentTable,
-      childColTitle: relatedChildCol.title || '',
+      childColTitle: relatedChildCol?.title || '',
       parentColTitle: column.title,
     } as {
       childModel: Model;
@@ -7240,7 +7241,7 @@ class BaseModelSqlv2 {
     const auditConfig = {
       childModel: childTable,
       parentModel: parentTable,
-      childColTitle: relatedChildCol.title || '',
+      childColTitle: relatedChildCol?.title || '',
       parentColTitle: column.title,
     } as {
       childModel: Model;
@@ -7609,7 +7610,7 @@ class BaseModelSqlv2 {
     const auditConfig = {
       childModel: childTable,
       parentModel: parentTable,
-      childColTitle: relatedChildCol.title || '',
+      childColTitle: relatedChildCol?.title || '',
       parentColTitle: column.title,
     } as {
       childModel: Model;
@@ -8613,7 +8614,7 @@ function getRelatedLinksColumn(
   relatedModel: Model,
 ) {
   return relatedModel.columns.find((c: Column) => {
-    if (column.colOptions.type === RelationTypes.MANY_TO_MANY) {
+    if (column.colOptions?.type === RelationTypes.MANY_TO_MANY) {
       return (
         column.colOptions.fk_mm_child_column_id ===
           c.colOptions?.fk_mm_parent_column_id &&

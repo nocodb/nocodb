@@ -1067,12 +1067,12 @@
       "showJunctionTableNames": "הצג את שמות טבלאות החיבור"
     },
     "kanban": {
-      "collapseStack": "Collapse stack",
+      "collapseStack": "כווץ מחסנית",
       "collapseAll": "Collapse all",
       "expandAll": "Expand all",
       "renameStack": "Rename stack",
-      "deleteStack": "Delete stack",
-      "stackedBy": "Stacked by",
+      "deleteStack": "מחק מחסנית",
+      "stackedBy": "מחוסנית על ידי",
       "chooseGroupingField": "בחר שדה לקיבוץ",
       "addOrEditStack": "הוסף / ערוך מחסנית"
     },

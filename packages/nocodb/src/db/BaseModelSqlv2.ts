@@ -5141,12 +5141,20 @@ class BaseModelSqlv2 {
     _trx: any,
     req,
     updateObj?: Record<string, any>,
+    isLinksUpdate?: boolean,
   ): Promise<void> {
     const id = this._extractPksValues(newData);
     let desc = `Record with ID ${id} has been updated in Table ${this.model.title}.`;
     let details = '';
-    if (updateObj) {
+    if (isLinksUpdate) {
+      const key = Object.keys(updateObj)[0];
+
+      details = DOMPurify.sanitize(`<span class="">${key}</span>
+        : <span class="text-decoration-line-through red px-2 lighten-4 black--text">${prevData[key]}</span>
+        <span class="black--text green lighten-4 px-2">${newData[key]}</span>`);
+    } else if (updateObj) {
       updateObj = await this.model.mapColumnToAlias(this.context, updateObj);
+
       for (const k of Object.keys(updateObj)) {
         const prevValue =
           typeof prevData[k] === 'object'
@@ -5420,6 +5428,8 @@ class BaseModelSqlv2 {
       { ignoreView: true, getHiddenColumn: true },
     );
 
+    let childPvTitle = childTable.displayValue.title;
+
     switch (colOptions.type) {
       case RelationTypes.MANY_TO_MANY:
         {
@@ -5525,6 +5535,8 @@ class BaseModelSqlv2 {
             rowIds: [childId],
             cookie,
           });
+
+          childPvTitle = parentTable.displayValue.title;
         }
         break;
       case RelationTypes.ONE_TO_ONE:
@@ -5573,6 +5585,10 @@ class BaseModelSqlv2 {
             rowIds: [childId],
             cookie,
           });
+
+          childPvTitle = isBt
+            ? parentTable.displayValue.title
+            : childTable.displayValue.title;
         }
         break;
     }
@@ -5583,7 +5599,22 @@ class BaseModelSqlv2 {
       {},
       { ignoreView: true, getHiddenColumn: true },
     );
-    await this.afterUpdate(prevData, response, this.dbDriver, cookie);
+
+    const [_prevData, _newData, updateObj] = extractLinksAfterUpdateObj(
+      prevData,
+      response,
+      column.title,
+      colOptions.type as RelationTypes,
+      childPvTitle,
+    );
+    await this.afterUpdate(
+      _prevData,
+      _newData,
+      this.dbDriver,
+      cookie,
+      updateObj,
+      true,
+    );
     await this.afterAddChild(rowId, childId, cookie);
   }
 
@@ -5645,6 +5676,8 @@ class BaseModelSqlv2 {
       {},
       { ignoreView: true, getHiddenColumn: true },
     );
+
+    let childPvTitle = childTable.displayValue.title;
 
     switch (colOptions.type) {
       case RelationTypes.MANY_TO_MANY:
@@ -5728,6 +5761,8 @@ class BaseModelSqlv2 {
             rowIds: [childId],
             cookie,
           });
+
+          childPvTitle = parentTable.displayValue.title;
         }
         break;
       case RelationTypes.ONE_TO_ONE:
@@ -5746,6 +5781,10 @@ class BaseModelSqlv2 {
             rowIds: [childId],
             cookie,
           });
+
+          childPvTitle = isBt
+            ? parentTable.displayValue.title
+            : childTable.displayValue.title;
         }
         break;
     }
@@ -5756,7 +5795,23 @@ class BaseModelSqlv2 {
       {},
       { ignoreView: true, getHiddenColumn: true },
     );
-    await this.afterUpdate(prevData, newData, this.dbDriver, cookie);
+
+    const [_prevData, _newData, updateObj] = extractLinksAfterUpdateObj(
+      prevData,
+      newData,
+      column.title,
+      colOptions.type as RelationTypes,
+      childPvTitle,
+    );
+
+    await this.afterUpdate(
+      _prevData,
+      _newData,
+      this.dbDriver,
+      cookie,
+      updateObj,
+      true,
+    );
     await this.afterRemoveChild(rowId, childId, cookie);
   }
 
@@ -7912,6 +7967,35 @@ function extractIds(
   return (isBt ? childIds.slice(0, 1) : childIds).map((r) =>
     typeof r === 'object' ? JSON.stringify(r) : `${r}`,
   );
+}
+
+function extractLinksAfterUpdateObj(
+  prevData: any = {},
+  newData: any = {},
+  columnTitle: string,
+  relationType: RelationTypes,
+  childPvTitle: string,
+) {
+  const updateData = (data) => {
+    if (data[columnTitle] && typeof data[columnTitle] === 'object') {
+      data[columnTitle] = data[columnTitle][childPvTitle] ?? '';
+    }
+  };
+
+  if (
+    [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(relationType)
+  ) {
+    updateData(prevData);
+    updateData(newData);
+  }
+
+  return [
+    prevData,
+    newData,
+    {
+      [columnTitle]: newData[columnTitle],
+    },
+  ];
 }
 
 export { BaseModelSqlv2 };

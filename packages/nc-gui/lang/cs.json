@@ -1067,12 +1067,12 @@
       "showJunctionTableNames": "Zobrazit názvy tabulek Junction"
     },
     "kanban": {
-      "collapseStack": "Collapse stack",
+      "collapseStack": "Sbalit zásobník",
       "collapseAll": "Collapse all",
       "expandAll": "Expand all",
       "renameStack": "Rename stack",
-      "deleteStack": "Delete stack",
-      "stackedBy": "Stacked by",
+      "deleteStack": "Odstranit zásobník",
+      "stackedBy": "Seskupeno dle",
       "chooseGroupingField": "Výběr pole pro seskupení",
       "addOrEditStack": "Přidat / upravit zásobník"
     },

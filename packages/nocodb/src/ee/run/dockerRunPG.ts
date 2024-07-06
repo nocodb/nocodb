@@ -15,10 +15,15 @@ server.use(
 server.set('view engine', 'ejs');
 
 const date = new Date();
-const metaDb = `meta_v2_${date.getFullYear()}_${(date.getMonth() + 1)
+const dbSuffix = `${date.getFullYear()}_${(date.getMonth() + 1)
   .toString()
   .padStart(2, '0')}_${date.getDate().toString().padStart(2, '0')}`;
-process.env[`NC_DB`] = `pg://localhost:5432?u=postgres&p=password&d=${metaDb}`;
+process.env[
+  `NC_DB`
+] = `pg://localhost:5432?u=postgres&p=password&d=meta_${dbSuffix}`;
+process.env[
+  `NC_DATA_DB`
+] = `pg://localhost:5432?u=postgres&p=password&d=data_${dbSuffix}`;
 // process.env[`NC_DATA_DB`] = `pg://localhost:5432?u=postgres&p=password&d=${metaDb}_data`;
 // process.env[`NC_MINIMAL_DBS`] = `true`;
 // process.env[`NC_TRY`] = 'true';

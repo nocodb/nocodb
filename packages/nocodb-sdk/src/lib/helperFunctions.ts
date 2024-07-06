@@ -61,7 +61,8 @@ const stringifyRolesObj = (roles?: RolesObj | null): string => {
 const getAvailableRollupForUiType = (type: string) => {
   if ([UITypes.Year].includes(type as UITypes)) {
     return ['count', 'min', 'max', 'countDistinct'];
-  } else if (isNumericCol(type as UITypes)) {
+  }
+  if (isNumericCol(type as UITypes)) {
     // Number, Currency, Percent, Duration, Rating, Decimal
     return [
       'sum',
@@ -73,7 +74,8 @@ const getAvailableRollupForUiType = (type: string) => {
       'sumDistinct',
       'avgDistinct',
     ];
-  } else if (
+  }
+  if (
     [
       UITypes.Date,
       UITypes.DateTime,
@@ -82,7 +84,8 @@ const getAvailableRollupForUiType = (type: string) => {
     ].includes(type as UITypes)
   ) {
     return ['count', 'min', 'max', 'countDistinct'];
-  } else if (
+  }
+  if (
     [
       UITypes.SingleLineText,
       UITypes.LongText,
@@ -94,26 +97,26 @@ const getAvailableRollupForUiType = (type: string) => {
     ].includes(type as UITypes)
   ) {
     return ['count', 'countDistinct'];
-  } else if ([UITypes.Checkbox].includes(type as UITypes)) {
-    return ['count', 'sum'];
-  } else if ([UITypes.Attachment].includes(type as UITypes)) {
-    return [];
-  } else if (
-    [UITypes.SingleSelect, UITypes.MultiSelect].includes(type as UITypes)
-  ) {
-    return ['count', 'countDistinct'];
-  } else {
-    return [
-      'sum',
-      'count',
-      'min',
-      'max',
-      'avg',
-      'countDistinct',
-      'sumDistinct',
-      'avgDistinct',
-    ];
   }
+  if ([UITypes.Checkbox].includes(type as UITypes)) {
+    return ['count', 'sum'];
+  }
+  if ([UITypes.Attachment].includes(type as UITypes)) {
+    return [];
+  }
+  if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(type as UITypes)) {
+    return ['count', 'countDistinct'];
+  }
+  return [
+    'sum',
+    'count',
+    'min',
+    'max',
+    'avg',
+    'countDistinct',
+    'sumDistinct',
+    'avgDistinct',
+  ];
 };
 
 const getFileName = ({ name, count, ext }) =>

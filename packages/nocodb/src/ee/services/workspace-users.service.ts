@@ -281,7 +281,8 @@ export class WorkspaceUsersService {
       workspaceId,
     );
 
-    if (usersInWorkspace >= userLimitForWorkspace) {
+    // check if user limit is reached or going to be exceeded
+    if (usersInWorkspace + emails.length > userLimitForWorkspace) {
       NcError.badRequest(
         `Only ${userLimitForWorkspace} users are allowed, for more please upgrade your plan`,
       );

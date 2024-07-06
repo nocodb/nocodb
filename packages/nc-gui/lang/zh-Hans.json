@@ -1149,7 +1149,8 @@
     "clientCA": "选择 CA 文件",
     "changeIconColour": "更改图标颜色",
     "preFillFormInfo": "要获取预填的链接，请确保您已填写表单视图生成器中的必填字段。",
-    "surveyFormInfo": "单页单表单字段模式"
+    "surveyFormInfo": "单页单表单字段模式",
+    "useFieldEditMenuToConfigFieldType": "Use field edit menu for type conversions after file is imported"
   },
   "placeholder": {
     "selectSlackChannels": "选择 Slack 频道",

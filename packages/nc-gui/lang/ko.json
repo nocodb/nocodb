@@ -1149,7 +1149,8 @@
     "clientCA": "CA 파일을 선택하십시오",
     "changeIconColour": "Change icon colour",
     "preFillFormInfo": "Generate share form URL with pre-filled field data. To get a pre-filled link, make sure you’ve filled the necessary fields in the form view builder.",
-    "surveyFormInfo": "Form mode with one field per page"
+    "surveyFormInfo": "Form mode with one field per page",
+    "useFieldEditMenuToConfigFieldType": "Use field edit menu for type conversions after file is imported"
   },
   "placeholder": {
     "selectSlackChannels": "슬랙 채널 선택",

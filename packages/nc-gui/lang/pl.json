@@ -1149,7 +1149,8 @@
     "clientCA": "Wybierz plik CA.",
     "changeIconColour": "Zmiana koloru ikony",
     "preFillFormInfo": "Generuj URL formularza udostępniania z wstępnie wypełnionymi danymi pola. Aby uzyskać link z wstępnie wypełnionymi danymi, upewnij się, że wypełniłeś wymagane pola w kreatorze widoku formularza.",
-    "surveyFormInfo": "Tryb formularza z jednym polem na stronę"
+    "surveyFormInfo": "Tryb formularza z jednym polem na stronę",
+    "useFieldEditMenuToConfigFieldType": "Use field edit menu for type conversions after file is imported"
   },
   "placeholder": {
     "selectSlackChannels": "Wybierz kanały Slack",

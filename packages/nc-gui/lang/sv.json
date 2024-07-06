@@ -483,7 +483,7 @@
     "quickImportExcel": "Quick Import - Excel",
     "quickImportJSON": "Quick Import - JSON",
     "jsonEditor": "JSON Editor",
-    "comingSoon": "Coming Soon",
+    "comingSoon": "Coming soon",
     "advancedSettings": "Avancerade inställningar",
     "codeSnippet": "Kodutdrag",
     "keyboardShortcut": "Tangentbordsgenvägar",
@@ -1149,7 +1149,8 @@
     "clientCA": "Välj CA-fil",
     "changeIconColour": "Change icon colour",
     "preFillFormInfo": "Generate share form URL with pre-filled field data. To get a pre-filled link, make sure you’ve filled the necessary fields in the form view builder.",
-    "surveyFormInfo": "Form mode with one field per page"
+    "surveyFormInfo": "Form mode with one field per page",
+    "useFieldEditMenuToConfigFieldType": "Use field edit menu for type conversions after file is imported"
   },
   "placeholder": {
     "selectSlackChannels": "Select Slack channels",

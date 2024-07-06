@@ -271,6 +271,7 @@
     "ipAddress": "IP cím"
   },
   "objects": {
+    "files": "files",
     "owner": "Tulajdonos",
     "member": "Tag",
     "day": "Nap",
@@ -384,6 +385,9 @@
     "isNotNull": "nem null"
   },
   "title": {
+    "webcam": "Webcam",
+    "uploadViaUrl": "Upload via URL",
+    "localFiles": "Local Files",
     "renameBase": "Bázis átnevezése",
     "renameWorkspace": "Munkaterület átnevezése",
     "renamingWorkspace": "Munkaterület átnevezése",
@@ -513,6 +517,18 @@
     "looksLikeThisStackIsEmpty": "Looks like this stack does not have any records"
   },
   "labels": {
+    "toUpload": "to upload",
+    "dragFilesHere": "drag files here",
+    "browseFiles": "browse files",
+    "clickTo": "Click to",
+    "allowAccessToYourCamera": "Please allow access to your camera",
+    "openFile": "Open file",
+    "enterValidUrl": "Enter a valid URL to upload files",
+    "addFilesFromUrl": "Add files from URL",
+    "uploading": "Uploading",
+    "dropHere": "Drop here",
+    "addMore": "Add more",
+    "clearAllFiles": "Clear all files",
     "notRecommended": "Not recommended",
     "allowMetaWrite": "Allow Schema Edit",
     "allowDataWrite": "Allow Data Edit",
@@ -605,7 +621,7 @@
     "headerName": "Header Name",
     "icon": "Icon",
     "max": "Max",
-    "enableRichText": "Enable rich text",
+    "enableRichText": "Enable Rich Text",
     "idColon": "Id:",
     "copiedRecordURL": "Rekord URL másolva",
     "copyRecordURL": "Rekord URL másolása",
@@ -648,7 +664,6 @@
     "createdBy": "Created By",
     "viewingAttachmentsOf": "Viewing Attachments of",
     "readOnly": "Readonly",
-    "dropHere": "Drop here",
     "createdOn": "Created On",
     "notifyVia": "Notify Via",
     "projName": "Bázis neve",
@@ -1067,12 +1082,12 @@
       "showJunctionTableNames": "Show Junction Table Names"
     },
     "kanban": {
-      "collapseStack": "Collapse stack",
+      "collapseStack": "Collapse Stack",
       "collapseAll": "Collapse all",
       "expandAll": "Expand all",
       "renameStack": "Rename stack",
-      "deleteStack": "Delete stack",
-      "stackedBy": "Stacked by",
+      "deleteStack": "Delete Stack",
+      "stackedBy": "Stacked By",
       "chooseGroupingField": "Choose a Grouping Field",
       "addOrEditStack": "Add / Edit Stack"
     },
@@ -1211,7 +1226,7 @@
     "optimizedQueryEnabled": "Optimized query is enabled",
     "lookupNonBtWarning": "Lookup field is not supported for non-Belongs to relation",
     "invalidTime": "Invalid Time",
-    "linkColumnClearNotSupportedYet": "You don't have any supported links for {type}",
+    "linkColumnClearNotSupportedYet": "You don't have any supported links for Lookup",
     "recordCouldNotBeFound": "Rekord nem található",
     "invalidPhoneNumber": "Invalid phone number",
     "pageSizeChanged": "Page size changed",
@@ -1285,7 +1300,7 @@
     "noRecordsLinked": "No records linked",
     "noLinkedRecords": "Nincsenek hivatkozott rekordok",
     "recordsLinked": "hivatkozott rekordok",
-    "acceptOnlyValid": "Accept only valid {type}",
+    "acceptOnlyValid": "Accepts only",
     "apiTokenCreate": "Create personal API tokens to use in automation or external apps.",
     "selectFieldToSort": "Select Field to Sort",
     "selectFieldToGroup": "Select Field to Group",

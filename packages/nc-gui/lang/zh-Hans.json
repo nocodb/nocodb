@@ -271,6 +271,7 @@
     "ipAddress": "IP Address"
   },
   "objects": {
+    "files": "files",
     "owner": "所有者",
     "member": "成员",
     "day": "日",
@@ -384,6 +385,9 @@
     "isNotNull": "不为空（Not Null）"
   },
   "title": {
+    "webcam": "Webcam",
+    "uploadViaUrl": "Upload via URL",
+    "localFiles": "Local Files",
     "renameBase": "重命名项目",
     "renameWorkspace": "重命名工作区",
     "renamingWorkspace": "工作区重命名中",
@@ -513,6 +517,18 @@
     "looksLikeThisStackIsEmpty": "Looks like this stack does not have any records"
   },
   "labels": {
+    "toUpload": "to upload",
+    "dragFilesHere": "drag files here",
+    "browseFiles": "browse files",
+    "clickTo": "Click to",
+    "allowAccessToYourCamera": "Please allow access to your camera",
+    "openFile": "Open file",
+    "enterValidUrl": "Enter a valid URL to upload files",
+    "addFilesFromUrl": "Add files from URL",
+    "uploading": "Uploading",
+    "dropHere": "拖放到此处",
+    "addMore": "Add more",
+    "clearAllFiles": "Clear all files",
     "notRecommended": "Not recommended",
     "allowMetaWrite": "Allow Schema Edit",
     "allowDataWrite": "Allow Data Edit",
@@ -648,7 +664,6 @@
     "createdBy": "创建自",
     "viewingAttachmentsOf": "查看附件",
     "readOnly": "只读",
-    "dropHere": "拖放到此处",
     "createdOn": "创建于",
     "notifyVia": "通知方式",
     "projName": "项目名",
@@ -1211,7 +1226,7 @@
     "optimizedQueryEnabled": "已启用优化查询",
     "lookupNonBtWarning": "非 \"所属关系 \"不支持查找字段",
     "invalidTime": "无效时间",
-    "linkColumnClearNotSupportedYet": "You don't have any supported links for {type}",
+    "linkColumnClearNotSupportedYet": "您没有任何支持查找的链接",
     "recordCouldNotBeFound": "找不到记录",
     "invalidPhoneNumber": "无效电话号码",
     "pageSizeChanged": "页面大小已更改",
@@ -1285,7 +1300,7 @@
     "noRecordsLinked": "没有链接记录",
     "noLinkedRecords": "暂无引用数据",
     "recordsLinked": "链接的记录",
-    "acceptOnlyValid": "Accept only valid {type}",
+    "acceptOnlyValid": "仅接受",
     "apiTokenCreate": "创建个人 API tokens，以便在自动化或外部应用程序中使用。",
     "selectFieldToSort": "选择要排序的字段",
     "selectFieldToGroup": "选择要分组的字段",

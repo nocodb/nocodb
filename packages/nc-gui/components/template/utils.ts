@@ -13,14 +13,15 @@ export const tableColumns: (Omit<ColumnGroupType<any>, 'children'> & { dataIndex
     key: 'uidt',
     width: 250,
   },
-  {
-    name: 'Select Option',
-    key: 'dtxp',
-  },
+  // {
+  //   name: 'Select Option',
+  //   key: 'dtxp',
+  // },
   {
     name: 'Action',
     key: 'action',
-    align: 'right',
+    align: 'center',
+    width: 40,
   },
 ]
 

@@ -271,6 +271,7 @@
     "ipAddress": "IP Address"
   },
   "objects": {
+    "files": "files",
     "owner": "Owner",
     "member": "Member",
     "day": "Day",
@@ -384,6 +385,9 @@
     "isNotNull": "ni null"
   },
   "title": {
+    "webcam": "Webcam",
+    "uploadViaUrl": "Upload via URL",
+    "localFiles": "Local Files",
     "renameBase": "Rename Base",
     "renameWorkspace": "Rename Workspace",
     "renamingWorkspace": "Renaming Workspace",
@@ -513,6 +517,18 @@
     "looksLikeThisStackIsEmpty": "Looks like this stack does not have any records"
   },
   "labels": {
+    "toUpload": "to upload",
+    "dragFilesHere": "drag files here",
+    "browseFiles": "browse files",
+    "clickTo": "Click to",
+    "allowAccessToYourCamera": "Please allow access to your camera",
+    "openFile": "Open file",
+    "enterValidUrl": "Enter a valid URL to upload files",
+    "addFilesFromUrl": "Add files from URL",
+    "uploading": "Uploading",
+    "dropHere": "Drop here",
+    "addMore": "Add more",
+    "clearAllFiles": "Clear all files",
     "notRecommended": "Not recommended",
     "allowMetaWrite": "Allow Schema Edit",
     "allowDataWrite": "Allow Data Edit",
@@ -648,7 +664,6 @@
     "createdBy": "Ustvaril je",
     "viewingAttachmentsOf": "Viewing Attachments of",
     "readOnly": "Readonly",
-    "dropHere": "Drop here",
     "createdOn": "Created On",
     "notifyVia": "Obvestite VIO.",
     "projName": "Ime Projekta",

@@ -151,16 +151,9 @@ export default class DbMux {
   }
 
   public async getSources(ncMeta = Noco.ncMeta) {
-    return await ncMeta.metaList2(
-      RootScopes.ROOT,
-      RootScopes.ROOT,
-      MetaTable.BASES,
-      {
-        condition: {
-          fk_sql_executor_id: this.id,
-        },
-      },
-    );
+    return await ncMeta.knexConnection(MetaTable.BASES).where({
+      fk_sql_executor_id: this.id,
+    });
   }
 
   public async update(

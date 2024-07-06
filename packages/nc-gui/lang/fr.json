@@ -1149,7 +1149,8 @@
     "clientCA": "Selectionner un fichier d'authentification",
     "changeIconColour": "Changer la couleur de l'icône",
     "preFillFormInfo": "Generate share form URL with pre-filled field data. To get a pre-filled link, make sure you’ve filled the necessary fields in the form view builder.",
-    "surveyFormInfo": "Mode formulaire avec un champ par page (enquête)"
+    "surveyFormInfo": "Mode formulaire avec un champ par page (enquête)",
+    "useFieldEditMenuToConfigFieldType": "Use field edit menu for type conversions after file is imported"
   },
   "placeholder": {
     "selectSlackChannels": "Sélectionnez les canaux Slack",

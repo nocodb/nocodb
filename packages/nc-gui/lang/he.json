@@ -1149,7 +1149,8 @@
     "clientCA": "בחר קובץ CA.",
     "changeIconColour": "שנה צבע אייקון",
     "preFillFormInfo": "צור URL לשיתוף טופס עם נתונים מראש. כדי לקבל קישור מוכן מראש, ודא שמילאת את השדות הנדרשים בבונה התצוגה של הטופס.",
-    "surveyFormInfo": "מצב טופס עם שדה אחד בכל דף"
+    "surveyFormInfo": "מצב טופס עם שדה אחד בכל דף",
+    "useFieldEditMenuToConfigFieldType": "Use field edit menu for type conversions after file is imported"
   },
   "placeholder": {
     "selectSlackChannels": "בחר ערוצי Slack",

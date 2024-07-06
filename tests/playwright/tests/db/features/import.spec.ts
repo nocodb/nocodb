@@ -37,9 +37,10 @@ test.describe('Import', () => {
   });
 
   test('Excel', async () => {
+    // Everything will be mapped with `SingleLineText` as we disabled auto column mapping
     const col = [
-      { type: 'Number', name: 'number' },
-      { type: 'Decimal', name: 'float' },
+      { type: 'SingleLineText', name: 'number' },
+      { type: 'SingleLineText', name: 'float' },
       { type: 'SingleLineText', name: 'text' },
     ];
     const expected = [

@@ -483,7 +483,7 @@
     "quickImportExcel": "Quick Import - Excel",
     "quickImportJSON": "Quick Import - JSON",
     "jsonEditor": "JSON Editor",
-    "comingSoon": "Coming Soon",
+    "comingSoon": "Coming soon",
     "advancedSettings": "Advanced Settings",
     "codeSnippet": "Code Snippet",
     "keyboardShortcut": "Keyboard Shortcuts",
@@ -1149,7 +1149,8 @@
     "clientCA": "Select CA file",
     "changeIconColour": "Change icon colour",
     "preFillFormInfo": "To get a prefilled link, make sure you’ve filled the necessary fields in the form view builder.",
-    "surveyFormInfo": "Form mode with one field per page"
+    "surveyFormInfo": "Form mode with one field per page",
+    "useFieldEditMenuToConfigFieldType": "Use field edit menu for type conversions after file is imported"
   },
   "placeholder": {
     "selectSlackChannels": "Select Slack channels",

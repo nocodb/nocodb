@@ -111,7 +111,6 @@ export default class Source implements SourceType {
     context: NcContext,
     sourceId: string,
     source: SourceType & {
-      baseId: string;
       meta?: any;
       deleted?: boolean;
       fk_sql_executor_id?: string;
@@ -157,7 +156,7 @@ export default class Source implements SourceType {
     // if order is missing (possible in old versions), get next order
     if (!oldSource.order && !updateObj.order) {
       updateObj.order = await ncMeta.metaGetNextOrder(MetaTable.BASES, {
-        base_id: source.baseId,
+        base_id: oldSource.base_id,
       });
 
       if (updateObj.order <= 1 && !oldSource.isMeta()) {
@@ -179,7 +178,7 @@ export default class Source implements SourceType {
       // if order is 1 for non-default source, move it to last
       if (oldSource.order <= 1 && !updateObj.order) {
         updateObj.order = await ncMeta.metaGetNextOrder(MetaTable.BASES, {
-          base_id: source.baseId,
+          base_id: oldSource.base_id,
         });
       }
     }
@@ -202,10 +201,7 @@ export default class Source implements SourceType {
       await JobsRedis.emitPrimaryCommand(InstanceCommands.RELEASE, sourceId);
     }
 
-    // call before reorder to update cache
-    const returnBase = await this.get(context, oldSource.id, false, ncMeta);
-
-    return returnBase;
+    return await this.get(context, oldSource.id, false, ncMeta);
   }
 
   static async list(
@@ -397,7 +393,7 @@ export default class Source implements SourceType {
       ncMeta,
     );
 
-    if (sources[0].id === this.id && !force) {
+    if ((sources[0].id === this.id || this.isMeta()) && !force) {
       NcError.badRequest('Cannot delete first source');
     }
 
@@ -498,20 +494,21 @@ export default class Source implements SourceType {
     ncMeta = Noco.ncMeta,
     { force }: { force?: boolean } = {},
   ) {
-    const sources = await Source.list(context, { baseId: this.id }, ncMeta);
+    const sources = await Source.list(
+      context,
+      { baseId: this.base_id },
+      ncMeta,
+    );
 
-    if (sources[0].id === this.id && !force) {
+    if ((sources[0].id === this.id || this.isMeta()) && !force) {
       NcError.badRequest('Cannot delete first base');
     }
 
-    await ncMeta.metaUpdate(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.BASES,
-      {
-        deleted: true,
-      },
+    await Source.updateBase(
+      context,
       this.id,
+      { deleted: true, fk_sql_executor_id: null },
+      ncMeta,
     );
 
     await NocoCache.deepDel(

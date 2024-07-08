@@ -191,7 +191,6 @@ export default class DbMux {
             },
             source.id,
             {
-              baseId: source.base_id,
               fk_sql_executor_id: null,
             },
             ncMeta,
@@ -226,7 +225,6 @@ export default class DbMux {
         },
         source.id,
         {
-          baseId: source.base_id,
           fk_sql_executor_id: null,
         },
         ncMeta,
@@ -261,7 +259,6 @@ export default class DbMux {
       context,
       sourceId,
       {
-        baseId: source.base_id,
         fk_sql_executor_id: this.id,
       },
       ncMeta,

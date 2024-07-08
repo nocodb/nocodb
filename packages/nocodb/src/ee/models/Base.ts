@@ -17,6 +17,7 @@ import { BaseUser, ModelStat, Source } from '~/models';
 import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
 import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 export default class Base extends BaseCE {
   public type?: 'database' | 'documentation' | 'dashboard';
@@ -360,6 +361,25 @@ export default class Base extends BaseCE {
       { deleted: true },
       baseId,
     );
+  }
+
+  static async clearConnectionPool(
+    context: NcContext,
+    baseId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const base = await this.get(context, baseId, ncMeta);
+    if (base) {
+      const sources = await base.getSources(ncMeta);
+      for (const source of sources) {
+        // clear connection pool for this instance
+        await NcConnectionMgrv2.deleteAwait(source);
+        // remove sql executor binding & clear connection pool for other instances
+        await Source.updateBase(context, source.id, {
+          fk_sql_executor_id: null,
+        });
+      }
+    }
   }
 
   // EXTRA METHODS

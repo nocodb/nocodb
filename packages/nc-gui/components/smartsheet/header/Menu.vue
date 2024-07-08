@@ -404,7 +404,7 @@ const isColumnEditAllowed = computed(() => {
             <div class="nc-column-edit nc-header-menu-item">
               <component :is="iconMap.ncEdit" class="text-gray-700" />
               <!-- Edit -->
-              {{ $t('general.edit') }}
+              {{ $t('general.edit') }} {{ $t('objects.field').toLowerCase() }}
             </div>
           </NcMenuItem>
         </GeneralSourceRestrictionTooltip>
@@ -418,7 +418,7 @@ const isColumnEditAllowed = computed(() => {
             <div v-e="['a:field:duplicate']" class="nc-column-duplicate nc-header-menu-item">
               <component :is="iconMap.duplicate" class="text-gray-700" />
               <!-- Duplicate -->
-              {{ t('general.duplicate') }}
+              {{ t('general.duplicate') }} {{ $t('objects.field').toLowerCase() }}
             </div>
           </NcMenuItem>
         </GeneralSourceRestrictionTooltip>
@@ -530,7 +530,7 @@ const isColumnEditAllowed = computed(() => {
               <div v-e="['a:field:duplicate']" class="nc-column-duplicate nc-header-menu-item">
                 <component :is="iconMap.duplicate" class="text-gray-700" />
                 <!-- Duplicate -->
-                {{ t('general.duplicate') }}
+                {{ t('general.duplicate') }} {{ $t('objects.field').toLowerCase() }}
               </div>
             </NcMenuItem>
           </GeneralSourceRestrictionTooltip>
@@ -563,7 +563,7 @@ const isColumnEditAllowed = computed(() => {
             >
               <component :is="iconMap.delete" />
               <!-- Delete -->
-              {{ $t('general.delete') }}
+              {{ $t('general.delete') }} {{ $t('objects.field').toLowerCase() }}
             </div>
           </NcMenuItem>
         </GeneralSourceRestrictionTooltip>

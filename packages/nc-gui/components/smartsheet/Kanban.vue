@@ -1112,7 +1112,11 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
               <div v-e="['a:kanban:delete-record']" class="flex items-center gap-2 nc-kanban-context-menu-item">
                 <component :is="iconMap.delete" class="flex" />
                 <!-- Delete Record -->
-                {{ $t('activity.deleteRecord') }}
+                {{
+                  $t('general.deleteEntity', {
+                    entity: $t('objects.record').toLowerCase(),
+                  })
+                }}
               </div>
             </NcMenuItem>
           </NcMenu>

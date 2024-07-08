@@ -924,7 +924,7 @@
     "apiKey": "API kulcs",
     "personalAccessToken": "Personal Access Token",
     "sharedBaseUrl": "Shared Base URL",
-    "importData": "Adat importálása",
+    "importData": "Import data",
     "importSecondaryViews": "Import Secondary Views",
     "importRollupColumns": "Import Rollup Fields",
     "importLookupColumns": "Import Lookup Fields",

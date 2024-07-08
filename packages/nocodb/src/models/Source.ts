@@ -111,7 +111,6 @@ export default class Source implements SourceType {
     context: NcContext,
     sourceId: string,
     source: SourceType & {
-      baseId: string;
       meta?: any;
       deleted?: boolean;
       fk_sql_executor_id?: string;
@@ -202,10 +201,7 @@ export default class Source implements SourceType {
       await JobsRedis.emitPrimaryCommand(InstanceCommands.RELEASE, sourceId);
     }
 
-    // call before reorder to update cache
-    const returnBase = await this.get(context, oldSource.id, false, ncMeta);
-
-    return returnBase;
+    return await this.get(context, oldSource.id, false, ncMeta);
   }
 
   static async list(
@@ -397,7 +393,7 @@ export default class Source implements SourceType {
       ncMeta,
     );
 
-    if (sources[0].id === this.id && !force) {
+    if ((sources[0].id === this.id || this.isMeta()) && !force) {
       NcError.badRequest('Cannot delete first source');
     }
 
@@ -511,7 +507,7 @@ export default class Source implements SourceType {
     await Source.updateBase(
       context,
       this.id,
-      { baseId: this.base_id, deleted: true, fk_sql_executor_id: null },
+      { deleted: true, fk_sql_executor_id: null },
       ncMeta,
     );
 

@@ -2268,7 +2268,7 @@ onKeyStroke('ArrowDown', onDown)
               <div v-e="['a:row:copy']" class="flex gap-2 items-center">
                 <GeneralIcon icon="copy" />
                 <!-- Copy -->
-                {{ $t('general.copy') }}
+                {{ $t('general.copy') }} {{ $t('objects.cell').toLowerCase() }}
               </div>
             </NcMenuItem>
 
@@ -2282,7 +2282,7 @@ onKeyStroke('ArrowDown', onDown)
               <div v-e="['a:row:paste']" class="flex gap-2 items-center">
                 <GeneralIcon icon="paste" />
                 <!-- Paste -->
-                {{ $t('general.paste') }}
+                {{ $t('general.paste') }} {{ $t('objects.cell').toLowerCase() }}
               </div>
             </NcMenuItem>
 
@@ -2302,7 +2302,7 @@ onKeyStroke('ArrowDown', onDown)
             >
               <div v-e="['a:row:clear']" class="flex gap-2 items-center">
                 <GeneralIcon icon="close" />
-                {{ $t('general.clear') }}
+                {{ $t('general.clear') }} {{ $t('objects.cell').toLowerCase() }}
               </div>
             </NcMenuItem>
 
@@ -2316,7 +2316,7 @@ onKeyStroke('ArrowDown', onDown)
             >
               <div v-e="['a:row:clear-range']" class="flex gap-2 items-center">
                 <GeneralIcon icon="closeBox" class="text-gray-500" />
-                {{ $t('general.clear') }}
+                {{ $t('general.clear') }} {{ $t('objects.cell').toLowerCase() }}
               </div>
             </NcMenuItem>
 
@@ -2325,7 +2325,7 @@ onKeyStroke('ArrowDown', onDown)
               <NcMenuItem class="nc-base-menu-item" @click="commentRow(contextMenuTarget.row)">
                 <div v-e="['a:row:comment']" class="flex gap-2 items-center">
                   <MdiMessageOutline class="h-4 w-4" />
-                  {{ $t('general.comment') }}
+                  {{ $t('general.add') }} {{ $t('general.comment').toLowerCase() }}
                 </div>
               </NcMenuItem>
             </template>

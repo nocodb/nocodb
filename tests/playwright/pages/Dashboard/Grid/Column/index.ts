@@ -97,14 +97,14 @@ export class ColumnPageObject extends BasePage {
       await this.grid.get().locator(`th[data-title="${insertBeforeColumnTitle}"]`).scrollIntoViewIfNeeded();
       await this.grid.get().locator(`th[data-title="${insertBeforeColumnTitle}"] .nc-ui-dt-dropdown`).click();
       if (isDisplayValue) {
-        await expect(this.rootPage.locator('li[role="menuitem"]:has-text("Insert Before")')).toHaveCount(0);
+        await expect(this.rootPage.locator('li[role="menuitem"]:has-text("Insert left")')).toHaveCount(0);
         return;
       }
-      await this.rootPage.locator('li[role="menuitem"]:has-text("Insert Before"):visible').click();
+      await this.rootPage.locator('li[role="menuitem"]:has-text("Insert left"):visible').click();
     } else if (insertAfterColumnTitle) {
       await this.grid.get().locator(`th[data-title="${insertAfterColumnTitle}"]`).scrollIntoViewIfNeeded();
       await this.grid.get().locator(`th[data-title="${insertAfterColumnTitle}"] .nc-ui-dt-dropdown`).click();
-      await this.rootPage.locator('li[role="menuitem"]:has-text("Insert After"):visible').click();
+      await this.rootPage.locator('li[role="menuitem"]:has-text("Insert right"):visible').click();
     } else {
       await this.grid.get().locator('.nc-column-add').click();
     }

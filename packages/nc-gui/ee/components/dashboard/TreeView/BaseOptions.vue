@@ -156,7 +156,7 @@ function openQuickImportDialog(type: string) {
       @click="openAirtableImportDialog(source.base_id, source.id)"
     >
       <GeneralIcon icon="airtable" class="max-w-3.75 group-hover:text-black" />
-      <div class="ml-0.5">Airtable</div>
+      <div class="ml-0.5">Airtable base</div>
     </NcMenuItem>
 
     <NcMenuItem

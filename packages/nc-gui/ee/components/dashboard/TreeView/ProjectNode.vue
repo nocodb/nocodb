@@ -648,13 +648,13 @@ const getSource = (sourceId: string) => {
                 >
                   <NcMenuItem v-if="isUIAllowed('baseRename')" data-testid="nc-sidebar-base-rename" @click="enableEditMode">
                     <GeneralIcon icon="rename" class="group-hover:text-black" />
-                    {{ $t('general.rename') }}
+                    {{ $t('general.rename') }} {{ $t('objects.project').toLowerCase() }}
                   </NcMenuItem>
                   <NcMenuItem data-testid="nc-sidebar-base-starred" @click="() => toggleStarred(base.id)">
                     <GeneralIcon v-if="base.starred" icon="unStar" class="group-hover:text-black" />
                     <GeneralIcon v-else icon="star" class="group-hover:text-black" />
                     <div class="ml-0.25">
-                      {{ base.starred ? 'Remove from starred' : 'Add to Starred' }}
+                      {{ base.starred ? 'Remove from starred' : 'Add to starred' }}
                     </div>
                   </NcMenuItem>
 
@@ -667,7 +667,7 @@ const getSource = (sourceId: string) => {
                     @click="duplicateProject(base)"
                   >
                     <GeneralIcon icon="duplicate" class="text-gray-700" />
-                    {{ $t('general.duplicate') }}
+                    {{ $t('general.duplicate') }} {{ $t('objects.project').toLowerCase() }}
                   </NcMenuItem>
 
                   <NcDivider />
@@ -691,7 +691,7 @@ const getSource = (sourceId: string) => {
                     @click="openAudit(base?.sources?.[0])"
                   >
                     <GeneralIcon icon="audit" class="group-hover:text-black" />
-                    {{ $t('title.audit') }}
+                    {{ $t('title.audit') }} {{ $t('general.logs').toLowerCase() }}
                   </NcMenuItem>
 
                   <!-- Swagger: Rest APIs -->
@@ -733,9 +733,7 @@ const getSource = (sourceId: string) => {
                     @click="isProjectDeleteDialogVisible = true"
                   >
                     <GeneralIcon icon="delete" class="w-4" />
-                    <div>
-                      {{ $t('general.delete') }}
-                    </div>
+                    <div>{{ $t('general.delete') }} {{ $t('objects.project').toLowerCase() }}</div>
                   </NcMenuItem>
                 </NcMenu>
               </template>

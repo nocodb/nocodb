@@ -687,7 +687,7 @@ export default {
                 <NcMenuItem class="text-gray-700" @click="_loadRow()">
                   <div v-e="['c:row-expand:reload']" class="flex gap-2 items-center" data-testid="nc-expanded-form-reload">
                     <component :is="iconMap.reload" class="cursor-pointer" />
-                    {{ $t('general.reload') }}
+                    {{ $t('general.reload') }} {{ $t('objects.record') }}
                   </div>
                 </NcMenuItem>
                 <NcMenuItem
@@ -719,7 +719,11 @@ export default {
                   <div v-e="['c:row-expand:delete']" class="flex gap-2 items-center" data-testid="nc-expanded-form-delete">
                     <component :is="iconMap.delete" class="cursor-pointer nc-delete-row" />
                     <span class="-ml-0.25">
-                      {{ $t('activity.deleteRecord') }}
+                      {{
+                        $t('general.deleteEntity', {
+                          entity: $t('objects.record').toLowerCase(),
+                        })
+                      }}
                     </span>
                   </div>
                 </NcMenuItem>

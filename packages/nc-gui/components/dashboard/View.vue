@@ -42,7 +42,7 @@ const mobileNormalizedContentSize = computed(() => {
 
 watch(currentSidebarSize, () => {
   leftSidebarWidthPercent.value = (currentSidebarSize.value / viewportWidth.value) * 100
-  setLeftSidebarSize(currentSidebarSize.value)
+  setLeftSidebarSize({ current: currentSidebarSize.value, old: sideBarSize.value.old })
 })
 
 const sidebarWidth = computed(() => (isMobileMode.value ? viewportWidth.value : sideBarSize.value.old))
@@ -101,6 +101,11 @@ function handleMouseMove(e: MouseEvent) {
 
 function onWindowResize(e?: any): void {
   viewportWidth.value = window.innerWidth
+
+  // if user hide sidebar and refresh the page then sidebar will be visible again so we have to set sidebar width
+  if (!e && isLeftSidebarOpen.value && !sideBarSize.value.current && !isMobileMode.value) {
+    currentSidebarSize.value = sideBarSize.value.old
+  }
 
   leftSidebarWidthPercent.value = (currentSidebarSize.value / viewportWidth.value) * 100
 

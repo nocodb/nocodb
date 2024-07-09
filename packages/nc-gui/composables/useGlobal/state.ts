@@ -58,7 +58,10 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     isMobileMode: null,
     lastOpenedWorkspaceId: null,
     gridViewPageSize: 25,
-    leftSidebarSize: INITIAL_LEFT_SIDEBAR_WIDTH,
+    leftSidebarSize: {
+      old: INITIAL_LEFT_SIDEBAR_WIDTH,
+      current: INITIAL_LEFT_SIDEBAR_WIDTH,
+    },
   }
 
   /** saves a reactive state, any change to these values will write/delete to localStorage */

@@ -452,6 +452,16 @@ const up = async (knex: Knex) => {
     for (const index of indexes) {
       log(`Dropping index ${index} on ${table}.base_id`);
 
+      /*
+        Skip primary key indexes
+          This is only required on EE migration
+          This is required because v3 migrations run after v2 migrations
+          So even if we add (base_id, fk_user_id) composite primary key in a migration newer than this, it would still try to drop it for fresh migrations
+      */
+      if (index.endsWith('_pkey')) {
+        continue;
+      }
+
       await knex.schema.alterTable(table, (table) => {
         table.dropIndex('base_id', index);
       });

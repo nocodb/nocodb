@@ -258,8 +258,11 @@ export function useGlobalActions(state: State): Actions & ActionsEE {
     state.gridViewPageSize.value = pageSize
   }
 
-  const setLeftSidebarSize = (size: number) => {
-    state.leftSidebarSize.value = size
+  const setLeftSidebarSize = ({ old, current }: { old?: number; current?: number }) => {
+    state.leftSidebarSize.value = {
+      old: old ?? state.leftSidebarSize.value.old,
+      current: current ?? state.leftSidebarSize.value.current,
+    }
   }
 
   return {

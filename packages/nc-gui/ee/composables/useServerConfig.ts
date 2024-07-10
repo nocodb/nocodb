@@ -11,6 +11,9 @@ const useServerConfig = createSharedComposable(() => {
     if (!force && config.has(key)) {
       return config.get(key)
     }
+
+    if (process.env.NODE_ENV !== 'production') return {}
+
     try {
       const response = await fetch(`${runtimeConfig.public.configServerUrl}/api/v1/config?get=${key}`, {
         method: 'GET',

@@ -368,7 +368,8 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       [() => view?.value?.id, () => meta.value?.columns],
       async ([newViewId]) => {
         // reload only if view belongs to current table
-        if (newViewId && view.value?.fk_model_id === meta.value?.id) {
+        // in localMode reload only if viewColumns already not loaded
+        if (newViewId && view.value?.fk_model_id === meta.value?.id && (isLocalMode.value ? !fields.value?.length : true)) {
           isViewColumnsLoading.value = true
           try {
             await loadViewColumns()

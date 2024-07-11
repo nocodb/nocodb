@@ -1,0 +1,928 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "The template used to create an ECS Cluster from the ECS Console.",
+    "Parameters": {
+        "ECSClusterName": {
+            "Type": "String",
+            "Description": "Specifies the ECS Cluster Name with which the resources would be associated",
+            "Default": "nocodb-alpha"
+        },
+        "VpcId": {
+            "Type": "String",
+            "Description": "ID of an existing VPC in which to launch your container instances.",
+            "Default": "vpc-84a5b0ec",
+            "AllowedPattern": "^(?:vpc-[0-9a-f]{8,17}|)$",
+            "ConstraintDescription": "VPC Id must begin with 'vpc-' and have a valid uuid"
+        },
+        "SubnetIds": {
+            "Type": "CommaDelimitedList",
+            "Description": "Optional - Specifies the Comma separated list of existing VPC Subnet Ids where ECS instances will run",
+            "Default": "subnet-d697a5be,subnet-c1a7c48d"
+        },
+        "ECSServiceName": {
+            "Type": "String",
+            "Default": "nocodb-main"
+        },
+        "LoadBalancerName": {
+            "Type": "String",
+            "Default": "nocodb-001"
+        },
+        "MetaDBPassword": {
+            "Type": "String",
+            "Default": "aefghijklmpqrstuvwxyz",
+            "NoEcho": true,
+            "MinLength": 8,
+            "MaxLength": 26
+        },
+        "NCCLOUDS3ACCESSKEY": {
+            "Type": "String",
+            "Default": "AKIATUJCOBWTKOMQ5JMU",
+            "Description": "NC_CLOUD_S3_ACCESS_KEY"
+        },
+        "NCCLOUDS3ACCESSSECRET": {
+            "Type": "String",
+            "Default": "8g8DdBss3jLTHi3L0XArmeB2wcOOqCuBYTCXiTTg",
+            "Description": "NC_CLOUD_S3_ACCESS_SECRET"
+        },
+        "NCCLOUDS3BUCKETNAME": {
+            "Type": "String",
+            "Default": "nocohub-001-app-attachments",
+            "Description": "NC_CLOUD_S3_BUCKET_NAME"
+        },
+        "NCCLOUDSESFROM": {
+            "Type": "String",
+            "Default": "admin@nocodb.com",
+            "Description": "NC_CLOUD_SES_FROM"
+        },
+        "LatestECSOptimizedAMI": {
+            "Description": "AMI ID",
+            "Type": "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>",
+            "Default": "/aws/service/ecs/optimized-ami/amazon-linux-2/recommended/image_id"
+        }
+    },
+    "Resources": {
+        "DefaultSecurityGroup": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "GroupDescription": "created by nocodb cfn template",
+                "GroupName": "nocodb-default-sg",
+                "VpcId": {
+                    "Ref": "VpcId"
+                },
+                "SecurityGroupEgress": [
+                    {
+                        "CidrIp": "0.0.0.0/0",
+                        "IpProtocol": "-1"
+                    }
+                ]
+            }
+        },
+        "DefaultSecurityGroupIngress": {
+            "Type": "AWS::EC2::SecurityGroupIngress",
+            "Properties": {
+                "GroupName": "nocodb-default-sg",
+                "SourceSecurityGroupId": {
+                    "Ref": "DefaultSecurityGroup"
+                },
+                "SourceSecurityGroupOwnerId": {
+                    "Ref": "AWS::AccountId"
+                },
+                "FromPort": 0,
+                "IpProtocol": "tcp",
+                "ToPort": 65535
+            }
+        },
+        "EC2SecurityGroup": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "GroupDescription": "created by nocodb cfn template",
+                "GroupName": "nocodb-ec2-sg",
+                "VpcId": {
+                    "Ref": "VpcId"
+                },
+                "SecurityGroupIngress": [
+                    {
+                        "SourceSecurityGroupId": {
+                            "Ref": "DefaultSecurityGroup"
+                        },
+                        "SourceSecurityGroupOwnerId": {
+                            "Ref": "AWS::AccountId"
+                        },
+                        "FromPort": 0,
+                        "IpProtocol": "tcp",
+                        "ToPort": 65535
+                    },
+                    {
+                        "SourceSecurityGroupId": {
+                            "Ref": "LBSecurityGroup"
+                        },
+                        "SourceSecurityGroupOwnerId": {
+                            "Ref": "AWS::AccountId"
+                        },
+                        "FromPort": 0,
+                        "IpProtocol": "tcp",
+                        "ToPort": 65535
+                    }
+                ],
+                "SecurityGroupEgress": [
+                    {
+                        "CidrIp": "0.0.0.0/0",
+                        "IpProtocol": "-1"
+                    }
+                ]
+            }
+        },
+        "nocodbSshKey": {
+            "Type": "AWS::EC2::KeyPair",
+            "Properties": {
+                "KeyName": "nocodb-key",
+                "KeyType": "rsa"
+            }
+        },
+        "ECSLaunchTemplate": {
+            "Type": "AWS::EC2::LaunchTemplate",
+            "DependsOn": "ECSCluster",
+            "Properties": {
+                "LaunchTemplateData": {
+                    "ImageId": {
+                        "Ref": "LatestECSOptimizedAMI"
+                    },
+                    "SecurityGroupIds": [
+                        {
+                            "Ref": "EC2SecurityGroup"
+                        }
+                    ],
+                    "InstanceType": "t2.micro",
+                    "KeyName": {
+                        "Ref": "nocodbSshKey"
+                    },
+                    "IamInstanceProfile": {
+                        "Arn": {
+                            "Fn::Sub": "arn:aws:iam::${AWS::AccountId}:instance-profile/ecsInstanceRole"
+                        }
+                    },
+                    "UserData": {
+                        "Fn::Base64": {
+                            "Fn::Sub": [
+                                "#!/bin/bash \necho ECS_CLUSTER=${ClusterName} >> /etc/ecs/ecs.config;",
+                                {
+                                    "ClusterName": {
+                                        "Ref": "ECSClusterName"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "ECSAutoScalingGroup": {
+            "Type": "AWS::AutoScaling::AutoScalingGroup",
+            "DependsOn": "ECSCluster",
+            "Properties": {
+                "MinSize": "2",
+                "MaxSize": "8",
+                "DesiredCapacity": "2",
+                "LaunchTemplate": {
+                    "LaunchTemplateId": {
+                        "Ref": "ECSLaunchTemplate"
+                    },
+                    "Version": {
+                        "Fn::GetAtt": [
+                            "ECSLaunchTemplate",
+                            "LatestVersionNumber"
+                        ]
+                    }
+                },
+                "VPCZoneIdentifier": {
+                    "Ref": "SubnetIds"
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "PropagateAtLaunch": true,
+                        "Value": {
+                            "Fn::Join": [
+                                " - ",
+                                [
+                                    "ECS Instance",
+                                    {
+                                        "Ref": "ECSClusterName"
+                                    }
+                                ]
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        "ECSCluster": {
+            "Type": "AWS::ECS::Cluster",
+            "Properties": {
+                "ClusterName": {
+                    "Ref": "ECSClusterName"
+                },
+                "ClusterSettings": [
+                    {
+                        "Name": "containerInsights",
+                        "Value": "enabled"
+                    }
+                ],
+                "Configuration": {
+                    "ExecuteCommandConfiguration": {
+                        "Logging": "DEFAULT"
+                    }
+                },
+                "ServiceConnectDefaults": {
+                    "Namespace": "nocodb-alpha"
+                },
+                "Tags": [
+                    {
+                        "Key": "nocodb-001",
+                        "Value": "true"
+                    }
+                ]
+            }
+        },
+        "EC2CapacityProvider": {
+            "Type": "AWS::ECS::CapacityProvider",
+            "Properties": {
+                "AutoScalingGroupProvider": {
+                    "AutoScalingGroupArn": {
+                        "Ref": "ECSAutoScalingGroup"
+                    },
+                    "ManagedScaling": {
+                        "Status": "ENABLED",
+                        "TargetCapacity": 100
+                    },
+                    "ManagedTerminationProtection": "DISABLED"
+                }
+            }
+        },
+        "ClusterCPAssociation": {
+            "Type": "AWS::ECS::ClusterCapacityProviderAssociations",
+            "DependsOn": "ECSCluster",
+            "Properties": {
+                "Cluster": {
+                    "Ref": "ECSClusterName"
+                },
+                "CapacityProviders": [
+                    "FARGATE",
+                    "FARGATE_SPOT",
+                    {
+                        "Ref": "EC2CapacityProvider"
+                    }
+                ],
+                "DefaultCapacityProviderStrategy": [
+                    {
+                        "CapacityProvider": {
+                            "Ref": "EC2CapacityProvider"
+                        }
+                    }
+                ]
+            }
+        },
+        "NocodbMainServiceLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+                "LogGroupName": "/ecs/nocodb-001-prod",
+                "RetentionInDays": 60,
+                "Tags": [
+                    {
+                        "Key": "nocodb-001",
+                        "Value": "true"
+                    }
+                ]
+            }
+        },
+        "NocodbSecrets": {
+            "Type": "AWS::SecretsManager::Secret",
+            "Properties": {
+                "Description": "nocodb secrets",
+                "GenerateSecretString": {
+                    "SecretStringTemplate": {
+                        "Fn::Sub": "{ \"NC_CLOUD_SES_ACCESS_KEY\":\"${NCCLOUDS3ACCESSKEY}\",\"NC_CLOUD_SES_ACCESS_SECRET\":\"${NCCLOUDS3ACCESSSECRET}\", \"NC_CLOUD_S3_ACCESS_KEY\":\"${NCCLOUDS3ACCESSKEY}\",\"NC_CLOUD_S3_ACCESS_SECRET\":\"${NCCLOUDS3ACCESSSECRET}\", \"NC_DB\": \"pg://${RDSDBInstance.Endpoint.Address}:5432?u=postgres&password=${MetaDBPassword}&d=nocodb_meta\"}"
+                    },
+                    "GenerateStringKey": "password",
+                    "PasswordLength": 16,
+                    "ExcludePunctuation": true
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "MySecret"
+                    }
+                ]
+            }
+        },
+        "NocodbMainServiceTaskDefinition": {
+            "Type": "AWS::ECS::TaskDefinition",
+            "Properties": {
+                "ContainerDefinitions": [
+                    {
+                        "Name": "nocohub",
+                        "Image": "249717198246.dkr.ecr.us-east-2.amazonaws.com/nocohub:cfn",
+                        "Cpu": 0,
+                        "Memory": 918,
+                        "PortMappings": [
+                            {
+                                "Name": "nocohub-8080-tcp",
+                                "ContainerPort": 8080,
+                                "HostPort": 80,
+                                "Protocol": "tcp"
+                            }
+                        ],
+                        "Essential": true,
+                        "Environment": [
+                            {
+                                "Name": "NC_CLOUD",
+                                "Value": true
+                            },
+                            {
+                                "Name": "NC_REDIS_URL",
+                                "Value": {
+                                    "Fn::Sub": "redis://${ElastiCacheCacheCluster.RedisEndpoint.Address}:6379/4"
+                                }
+                            },
+                            {
+                                "Name": "NC_CLOUD_S3_BUCKET_NAME",
+                                "Value": {
+                                    "Ref": "NCCLOUDS3BUCKETNAME"
+                                }
+                            },
+                            {
+                                "Name": "NC_CLOUD_S3_REGION",
+                                "Value": {
+                                    "Fn::Sub": "${AWS::Region}"
+                                }
+                            },
+                            {
+                                "Name": "NC_CLOUD_SES_REGION",
+                                "Value": {
+                                    "Fn::Sub": "${AWS::Region}"
+                                }
+                            },
+                            {
+                                "Name": "NC_CLOUD_SES_FROM",
+                                "Value": {
+                                    "Ref": "NCCLOUDSESFROM"
+                                }
+                            },
+                            {
+                                "Name": "NC_CLOUD_SES_ACCESS_KEY",
+                                "Value": {
+                                    "Ref": "NCCLOUDS3ACCESSKEY"
+                                }
+                            },
+                            {
+                                "Name": "NC_CLOUD_SES_ACCESS_SECRET",
+                                "Value": {
+                                    "Ref": "NCCLOUDS3ACCESSSECRET"
+                                }
+                            }
+                        ],
+                        "Secrets": [
+                            {
+                                "Name": "NC_PROPERTIES_JSON",
+                                "ValueFrom": {
+                                    "Ref": "NocodbSecrets"
+                                }
+                            }
+                        ],
+                        "VolumesFrom": [],
+                        "DockerLabels": {},
+                        "LogConfiguration": {
+                            "LogDriver": "awslogs",
+                            "Options": {
+                                "awslogs-group": {
+                                    "Ref": "NocodbMainServiceLogGroup"
+                                },
+                                "awslogs-region": {
+                                    "Fn::Sub": "${AWS::Region}"
+                                },
+                                "awslogs-stream-prefix": "ecs"
+                            }
+                        }
+                    }
+                ],
+                "Family": "nocodb-001-task-definition",
+                "TaskRoleArn": {
+                    "Fn::Sub": "arn:aws:iam::${AWS::AccountId}:role/ecsTaskExecutionRole"
+                },
+                "ExecutionRoleArn": {
+                    "Fn::Sub": "arn:aws:iam::${AWS::AccountId}:role/ecsTaskExecutionRole"
+                },
+                "NetworkMode": "bridge",
+                "Cpu": "1024",
+                "Memory": "922",
+                "Tags": [
+                    {
+                        "Key": "nocodb-001",
+                        "Value": "true"
+                    }
+                ]
+            }
+        },
+        "LBSecurityGroup": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "GroupDescription": "created by nocodb cfn template",
+                "GroupName": "nocodb-lb-sg",
+                "VpcId": {
+                    "Ref": "VpcId"
+                },
+                "SecurityGroupIngress": [
+                    {
+                        "SourceSecurityGroupId": {
+                            "Ref": "DefaultSecurityGroup"
+                        },
+                        "SourceSecurityGroupOwnerId": {
+                            "Ref": "AWS::AccountId"
+                        },
+                        "FromPort": 0,
+                        "IpProtocol": "tcp",
+                        "ToPort": 65535
+                    },
+                    {
+                        "CidrIp": "0.0.0.0/0",
+                        "Description": "used only for redirection",
+                        "FromPort": 80,
+                        "IpProtocol": "tcp",
+                        "ToPort": 80
+                    },
+                    {
+                        "CidrIp": "0.0.0.0/0",
+                        "Description": "ssl",
+                        "FromPort": 8443,
+                        "IpProtocol": "tcp",
+                        "ToPort": 8443
+                    }
+                ],
+                "SecurityGroupEgress": [
+                    {
+                        "CidrIp": "0.0.0.0/0",
+                        "IpProtocol": "-1"
+                    }
+                ]
+            }
+        },
+        "NocodbMainServiceTargetGroup": {
+            "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
+            "Properties": {
+                "HealthCheckPath": "/",
+                "Name": "nocodb-tg",
+                "Port": 80,
+                "Protocol": "HTTP",
+                "TargetType": "instance",
+                "HealthCheckProtocol": "HTTP",
+                "VpcId": {
+                    "Ref": "VpcId"
+                }
+            }
+        },
+        "ElasticLoadBalancingV2LoadBalancer": {
+            "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
+            "Properties": {
+                "Name": "nocodb-001",
+                "Scheme": "internet-facing",
+                "Type": "application",
+                "Subnets": {
+                    "Ref": "SubnetIds"
+                },
+                "SecurityGroups": [
+                    {
+                        "Ref": "LBSecurityGroup"
+                    }
+                ],
+                "IpAddressType": "ipv4",
+                "LoadBalancerAttributes": [
+                    {
+                        "Key": "idle_timeout.timeout_seconds",
+                        "Value": "60"
+                    },
+                    {
+                        "Key": "deletion_protection.enabled",
+                        "Value": "false"
+                    },
+                    {
+                        "Key": "routing.http2.enabled",
+                        "Value": "true"
+                    },
+                    {
+                        "Key": "routing.http.drop_invalid_header_fields.enabled",
+                        "Value": "false"
+                    },
+                    {
+                        "Key": "routing.http.xff_client_port.enabled",
+                        "Value": "false"
+                    },
+                    {
+                        "Key": "routing.http.preserve_host_header.enabled",
+                        "Value": "false"
+                    },
+                    {
+                        "Key": "routing.http.xff_header_processing.mode",
+                        "Value": "append"
+                    },
+                    {
+                        "Key": "load_balancing.cross_zone.enabled",
+                        "Value": "true"
+                    },
+                    {
+                        "Key": "routing.http.desync_mitigation_mode",
+                        "Value": "defensive"
+                    },
+                    {
+                        "Key": "waf.fail_open.enabled",
+                        "Value": "false"
+                    },
+                    {
+                        "Key": "routing.http.x_amzn_tls_version_and_cipher_suite.enabled",
+                        "Value": "false"
+                    }
+                ]
+            }
+        },
+        "ElasticLoadBalancingV2Listener80": {
+            "Type": "AWS::ElasticLoadBalancingV2::Listener",
+            "Properties": {
+                "LoadBalancerArn": {
+                    "Ref": "ElasticLoadBalancingV2LoadBalancer"
+                },
+                "Port": 80,
+                "Protocol": "HTTP",
+                "DefaultActions": [
+                    {
+                        "Order": 1,
+                        "RedirectConfig": {
+                            "Protocol": "HTTPS",
+                            "Port": "443",
+                            "Host": "#{host}",
+                            "Path": "/#{path}",
+                            "Query": "#{query}",
+                            "StatusCode": "HTTP_301"
+                        },
+                        "Type": "redirect"
+                    }
+                ]
+            }
+        },
+        "ElasticLoadBalancingV2Listener443": {
+            "Type": "AWS::ElasticLoadBalancingV2::Listener",
+            "Properties": {
+                "LoadBalancerArn": {
+                    "Ref": "ElasticLoadBalancingV2LoadBalancer"
+                },
+                "Port": 8443,
+                "Protocol": "HTTP",
+                "DefaultActions": [
+                    {
+                        "Type": "forward",
+                        "TargetGroupArn": {
+                            "Ref": "NocodbMainServiceTargetGroup"
+                        }
+                    }
+                ]
+            }
+        },
+        "AutoScalingTarget": {
+            "Type": "AWS::ApplicationAutoScaling::ScalableTarget",
+            "Properties": {
+                "MaxCapacity": "8",
+                "MinCapacity": "2",
+                "ResourceId": {
+                    "Fn::Sub": "service/${ECSClusterName}/${ECSServiceName}"
+                },
+                "RoleARN": {
+                    "Fn::Sub": "arn:aws:iam::${AWS::AccountId}:role/aws-service-role/ecs.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_ECSService"
+                },
+                "ScalableDimension": "ecs:service:DesiredCount",
+                "ServiceNamespace": "ecs"
+            },
+            "DependsOn": [
+                "NocodbMainService"
+            ]
+        },
+        "AutoScalingPolicy": {
+            "Type": "AWS::ApplicationAutoScaling::ScalingPolicy",
+            "Properties": {
+                "PolicyName": "cpu",
+                "PolicyType": "TargetTrackingScaling",
+                "ResourceId": {
+                    "Fn::Sub": "service/${ECSClusterName}/${ECSServiceName}"
+                },
+                "ScalingTargetId": {
+                    "Ref": "AutoScalingTarget"
+                },
+                "TargetTrackingScalingPolicyConfiguration": {
+                    "DisableScaleIn": false,
+                    "ScaleInCooldown": "100",
+                    "ScaleOutCooldown": "100",
+                    "TargetValue": "60",
+                    "PredefinedMetricSpecification": {
+                        "PredefinedMetricType": "ECSServiceAverageCPUUtilization"
+                    }
+                }
+            }
+        },
+        "NocodbMainService": {
+            "Type": "AWS::ECS::Service",
+            "Properties": {
+                "Cluster": {
+                    "Ref": "ECSCluster"
+                },
+                "CapacityProviderStrategy": [
+                    {
+                        "CapacityProvider": {
+                            "Ref": "EC2CapacityProvider"
+                        },
+                        "Base": 0,
+                        "Weight": 1
+                    }
+                ],
+                "TaskDefinition": {
+                    "Ref": "NocodbMainServiceTaskDefinition"
+                },
+                "ServiceName": {
+                    "Ref": "ECSServiceName"
+                },
+                "SchedulingStrategy": "REPLICA",
+                "DesiredCount": 2,
+                "LoadBalancers": [
+                    {
+                        "ContainerName": "nocohub",
+                        "ContainerPort": 8080,
+                        "TargetGroupArn": {
+                            "Ref": "NocodbMainServiceTargetGroup"
+                        }
+                    }
+                ],
+                "DeploymentConfiguration": {
+                    "MaximumPercent": 200,
+                    "MinimumHealthyPercent": 100,
+                    "DeploymentCircuitBreaker": {
+                        "Enable": true,
+                        "Rollback": true
+                    }
+                },
+                "DeploymentController": {
+                    "Type": "ECS"
+                },
+                "ServiceConnectConfiguration": {
+                    "Enabled": false
+                },
+                "PlacementStrategies": [
+                    {
+                        "Field": "attribute:ecs.availability-zone",
+                        "Type": "spread"
+                    },
+                    {
+                        "Field": "instanceId",
+                        "Type": "spread"
+                    }
+                ],
+                "PlacementConstraints": [],
+                "PropagateTags": "SERVICE",
+                "EnableECSManagedTags": true,
+                "Tags": [
+                    {
+                        "Key": "nocodb-001",
+                        "Value": "true"
+                    }
+                ]
+            },
+            "DependsOn": [
+                "ElasticLoadBalancingV2Listener443",
+                "RDSDBCluster",
+                "ElastiCacheCacheCluster"
+            ]
+        },
+        "RDSSecurityGroup": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "GroupDescription": "created by nocodb cfn template",
+                "GroupName": "nocodb-rds-sg",
+                "VpcId": {
+                    "Ref": "VpcId"
+                },
+                "SecurityGroupIngress": [
+                    {
+                        "SourceSecurityGroupId": {
+                            "Ref": "DefaultSecurityGroup"
+                        },
+                        "SourceSecurityGroupOwnerId": {
+                            "Ref": "AWS::AccountId"
+                        },
+                        "FromPort": 0,
+                        "IpProtocol": "tcp",
+                        "ToPort": 65535
+                    },
+                    {
+                        "SourceSecurityGroupId": {
+                            "Ref": "EC2SecurityGroup"
+                        },
+                        "SourceSecurityGroupOwnerId": {
+                            "Ref": "AWS::AccountId"
+                        },
+                        "FromPort": 5432,
+                        "IpProtocol": "tcp",
+                        "ToPort": 5432
+                    }
+                ],
+                "SecurityGroupEgress": [
+                    {
+                        "CidrIp": "0.0.0.0/0",
+                        "IpProtocol": "-1"
+                    }
+                ]
+            }
+        },
+        "RDSDBSubnetGroup": {
+            "Type": "AWS::RDS::DBSubnetGroup",
+            "Properties": {
+                "DBSubnetGroupDescription": "Created from the RDS Management Console",
+                "DBSubnetGroupName": "nocodb-rds-subnet",
+                "SubnetIds": {
+                    "Ref": "SubnetIds"
+                }
+            }
+        },
+        "RDSDBCluster": {
+            "DeletionPolicy": "Delete",
+            "Type": "AWS::RDS::DBCluster",
+            "Properties": {
+                "AvailabilityZones": [
+                    {
+                        "Fn::Sub": "${AWS::Region}a"
+                    },
+                    {
+                        "Fn::Sub": "${AWS::Region}b"
+                    }
+                ],
+                "BackupRetentionPeriod": 7,
+                "DBClusterIdentifier": "nocodb-001",
+                "DBClusterParameterGroupName": "default.aurora-postgresql15",
+                "DBSubnetGroupName": {
+                    "Ref": "RDSDBSubnetGroup"
+                },
+                "Engine": "aurora-postgresql",
+                "Port": 5432,
+                "MasterUsername": "postgres",
+                "MasterUserPassword": {
+                    "Ref": "MetaDBPassword"
+                },
+                "PreferredBackupWindow": "09:56-10:26",
+                "PreferredMaintenanceWindow": "wed:00:10-wed:00:40",
+                "VpcSecurityGroupIds": [
+                    {
+                        "Ref": "DefaultSecurityGroup"
+                    },
+                    {
+                        "Ref": "RDSSecurityGroup"
+                    }
+                ],
+                "StorageEncrypted": true,
+                "EngineVersion": "15.4",
+                "EnableIAMDatabaseAuthentication": false,
+                "EngineMode": "provisioned",
+                "DeletionProtection": false,
+                "EnableHttpEndpoint": false,
+                "ServerlessV2ScalingConfiguration": {
+                    "MaxCapacity": 16,
+                    "MinCapacity": 2
+                },
+                "Tags": [
+                    {
+                        "Key": "env",
+                        "Value": "prod"
+                    }
+                ]
+            }
+        },
+        "RDSDBInstance": {
+            "Type": "AWS::RDS::DBInstance",
+            "Properties": {
+                "DBInstanceIdentifier": "nocodb-001-instance",
+                "DBInstanceClass": "db.serverless",
+                "Engine": "aurora-postgresql",
+                "AvailabilityZone": "ap-south-1b",
+                "MultiAZ": false,
+                "EngineVersion": "15.4",
+                "AutoMinorVersionUpgrade": true,
+                "LicenseModel": "postgresql-license",
+                "PubliclyAccessible": true,
+                "StorageType": "aurora",
+                "DBClusterIdentifier": {
+                    "Ref": "RDSDBCluster"
+                },
+                "MonitoringInterval": 60,
+                "PromotionTier": 1,
+                "EnablePerformanceInsights": true,
+                "PerformanceInsightsRetentionPeriod": 7,
+                "DBSubnetGroupName": {
+                    "Ref": "RDSDBSubnetGroup"
+                },
+                "DBParameterGroupName": "default.aurora-postgresql15",
+                "OptionGroupName": "default:aurora-postgresql-15",
+                "MonitoringRoleArn": {
+                    "Fn::Sub": "arn:aws:iam::${AWS::AccountId}:role/rds-monitoring-role"
+                },
+                "CACertificateIdentifier": "rds-ca-rsa2048-g1"
+            }
+        },
+        "RedisSecurityGroup": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "GroupDescription": "security group for redis",
+                "GroupName": "nocodb-redis-sg",
+                "VpcId": {
+                    "Ref": "VpcId"
+                },
+                "SecurityGroupIngress": [
+                    {
+                        "SourceSecurityGroupId": {
+                            "Ref": "DefaultSecurityGroup"
+                        },
+                        "SourceSecurityGroupOwnerId": {
+                            "Ref": "AWS::AccountId"
+                        },
+                        "Description": "allow everything within vpc.",
+                        "FromPort": 6379,
+                        "IpProtocol": "tcp",
+                        "ToPort": 6379
+                    },
+                    {
+                        "SourceSecurityGroupId": {
+                            "Ref": "EC2SecurityGroup"
+                        },
+                        "SourceSecurityGroupOwnerId": {
+                            "Ref": "AWS::AccountId"
+                        },
+                        "FromPort": 6379,
+                        "IpProtocol": "tcp",
+                        "ToPort": 6379
+                    }
+                ],
+                "SecurityGroupEgress": [
+                    {
+                        "CidrIp": "0.0.0.0/0",
+                        "IpProtocol": "-1"
+                    }
+                ]
+            }
+        },
+        "RedisSubnetGroup": {
+            "Type": "AWS::ElastiCache::SubnetGroup",
+            "Properties": {
+                "Description": "Created from the RDS Management Console",
+                "CacheSubnetGroupName": "nocodb-redis-subnet",
+                "SubnetIds": {
+                    "Ref": "SubnetIds"
+                }
+            }
+        },
+        "ElastiCacheCacheCluster": {
+            "Type": "AWS::ElastiCache::CacheCluster",
+            "Properties": {
+                "CacheNodeType": "cache.t4g.small",
+                "Engine": "redis",
+                "EngineVersion": "7.0",
+                "NumCacheNodes": 1,
+                "PreferredAvailabilityZone": "ap-south-1b",
+                "PreferredMaintenanceWindow": "tue:00:10-tue:01:40",
+                "CacheSubnetGroupName": {
+                    "Ref": "RedisSubnetGroup"
+                },
+                "AutoMinorVersionUpgrade": true,
+                "VpcSecurityGroupIds": [
+                    {
+                        "Ref": "RedisSecurityGroup"
+                    }
+                ],
+                "SnapshotRetentionLimit": 0,
+                "SnapshotWindow": "03:00-04:00",
+                "ClusterName": "nocodb-001"
+            }
+        }
+    },
+    "Outputs": {
+        "ECSCluster": {
+            "Description": "The created cluster.",
+            "Value": {
+                "Ref": "ECSCluster"
+            }
+        },
+        "NocodbMainServiceTaskDefinition": {
+            "Description": "The created Task Definition.",
+            "Value": {
+                "Ref": "NocodbMainServiceTaskDefinition"
+            }
+        },
+        "nocodbSshKey": {
+            "Description": "key pair for ec2 instances",
+            "Value": {
+                "Ref": "nocodbSshKey"
+            }
+        }
+    }
+}

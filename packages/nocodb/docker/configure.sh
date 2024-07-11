@@ -13,6 +13,19 @@ do_source(){
   fi
 }
 
+source_from_json(){
+  # Assume NC_PROPERTIES_JSON contains your JSON map
+  local NC_PROPERTIES_JSON="${1}"
+  echo "splitting NC_PROPERTIES_JSON into env variables"
+  # Iterate over the JSON map and set each key-value pair as environment variable
+  for key in $(echo $NC_PROPERTIES_JSON | jq -r 'to_entries[] | "\(.key)"' ) 
+  do 
+    local value=""
+    value=$(echo $NC_PROPERTIES_JSON | jq -r .${key})
+    export "$key"="$value"
+  done
+}
+
 # find the workspace name with an assumption that 
 # workspace is running in ECS service where
 # ECS service name is workspace name. 
@@ -30,3 +43,7 @@ get_ws_name(){
 CONFIG_DIR=${CONFIG_DIR:-/mnt/efs}
 do_source ${CONFIG_DIR}/master_config.env
 do_source ${CONFIG_DIR}/$(get_ws_name)/cluster.env
+
+# Assume NC_PROPERTIES_JSON contains your JSON map
+source_from_json "${NC_PROPERTIES_JSON}"
+echo "completed configure"

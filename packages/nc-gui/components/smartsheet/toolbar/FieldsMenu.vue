@@ -29,6 +29,7 @@ const {
   showSystemFields,
   fields,
   filteredFieldList,
+  numberOfHiddenFields,
   filterQuery,
   showAll,
   hideAll,
@@ -37,6 +38,7 @@ const {
   loadViewColumns,
   toggleFieldStyles,
   toggleFieldVisibility,
+  isLocalMode,
 } = useViewColumnsOrThrow()
 
 const { eventBus, isDefaultView } = useSmartsheetStoreOrThrow()
@@ -50,8 +52,6 @@ eventBus.on((event) => {
     loadViewColumns()
   }
 })
-
-const numberOfHiddenFields = computed(() => filteredFieldList.value?.filter((field) => !field.show)?.length)
 
 const gridDisplayValueField = computed(() => {
   if (activeView.value?.type !== ViewTypes.GRID && activeView.value?.type !== ViewTypes.CALENDAR) return null
@@ -608,7 +608,7 @@ useMenuCloseOnEsc(open)
                   <component :is="iconMap.drag" class="cursor-move !h-3.75 text-gray-600 mr-1" />
                   <div
                     v-e="['a:fields:show-hide']"
-                    class="flex flex-row items-center w-full truncate cursor-pointer ml-1 py-[5px] pr-2"
+                    class="flex flex-row items-center w-full cursor-pointer truncate ml-1 py-[5px] pr-2"
                     @click="
                       () => {
                         field.show = !field.show
@@ -662,7 +662,7 @@ useMenuCloseOnEsc(open)
                       :checked="field.show"
                       :disabled="field.isViewEssentialField"
                       size="xsmall"
-                      @change="$t('a:fields:show-hide')"
+                      @change="$e('a:fields:show-hide')"
                     />
                   </div>
 
@@ -677,7 +677,7 @@ useMenuCloseOnEsc(open)
             {{ showAllColumns ? $t('general.hideAll') : $t('general.showAll') }} {{ $t('objects.fields').toLowerCase() }}
           </NcButton>
           <NcButton
-            v-if="!isPublic"
+            v-if="!isLocalMode"
             class="nc-fields-show-system-fields"
             size="small"
             type="ghost"

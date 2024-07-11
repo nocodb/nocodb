@@ -101,7 +101,10 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
               aggregation: currentColumnField?.aggregation ?? CommonAggregations.None,
               system: isSystemColumn(metaColumnById?.value?.[currentColumnField.fk_column_id!]),
               isViewEssentialField: isColumnViewEssential(column),
-              initialShow: currentColumnField.show || isColumnViewEssential(currentColumnField),
+              initialShow:
+                currentColumnField.show ||
+                isColumnViewEssential(currentColumnField) ||
+                (currentColumnField as GridColumnType)?.group_by,
             }
           })
           .sort((a: Field, b: Field) => a.order - b.order)

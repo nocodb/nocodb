@@ -44,6 +44,8 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
 
     const isLocalMode = computed(() => isPublic || !isUIAllowed('viewFieldEdit') || isSharedBase.value)
 
+    const loadViewColumnsInLocalMode = ref(true)
+
     const localChanges = ref<Field[]>([])
 
     const isColumnViewEssential = (column: ColumnType) => {
@@ -69,6 +71,10 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
 
     const loadViewColumns = async () => {
       if (!meta || !view) return
+      if (isLocalMode.value && !loadViewColumnsInLocalMode.value) {
+        loadViewColumnsInLocalMode.value = true
+      }
+
       let order = 1
 
       if (view.value?.id) {
@@ -133,6 +139,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
 
     const showAll = async (ignoreIds?: any) => {
       if (isLocalMode.value) {
+        loadViewColumnsInLocalMode.value = false
         const fieldById = (fields.value || []).reduce<Record<string, any>>((acc, curr) => {
           if (curr.fk_column_id) {
             curr.show = curr.initialShow ? true : false
@@ -177,6 +184,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
     }
     const hideAll = async (ignoreIds?: any) => {
       if (isLocalMode.value) {
+        loadViewColumnsInLocalMode.value = false
         const fieldById = (fields.value || []).reduce<Record<string, any>>((acc, curr) => {
           if (curr.fk_column_id) {
             curr.show = !!curr.isViewEssentialField
@@ -368,8 +376,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       [() => view?.value?.id, () => meta.value?.columns],
       async ([newViewId]) => {
         // reload only if view belongs to current table
-        // in localMode reload only if viewColumns already not loaded
-        if (newViewId && view.value?.fk_model_id === meta.value?.id && (isLocalMode.value ? !fields.value?.length : true)) {
+        if (newViewId && view.value?.fk_model_id === meta.value?.id) {
           isViewColumnsLoading.value = true
           try {
             await loadViewColumns()

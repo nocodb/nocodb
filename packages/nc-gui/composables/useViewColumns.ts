@@ -44,9 +44,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
 
     const isLocalMode = computed(() => isPublic || !isUIAllowed('viewFieldEdit') || isSharedBase.value)
 
-    const loadViewColumnsInLocalMode = ref(true)
-
-    const localChanges = ref<Field[]>([])
+    const localChanges = ref<Record<string, Field>>({})
 
     const isColumnViewEssential = (column: ColumnType) => {
       // TODO: consider at some point ti delegate this via a cleaner design pattern to view specific check logic
@@ -71,9 +69,6 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
 
     const loadViewColumns = async () => {
       if (!meta || !view) return
-      if (isLocalMode.value && !loadViewColumnsInLocalMode.value) {
-        loadViewColumnsInLocalMode.value = true
-      }
 
       let order = 1
 
@@ -116,10 +111,10 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
           .sort((a: Field, b: Field) => a.order - b.order)
 
         if (isLocalMode.value && fields.value) {
-          for (const field of localChanges.value) {
-            const fieldIndex = fields.value.findIndex((f) => f.fk_column_id === field.fk_column_id)
+          for (const key in localChanges.value) {
+            const fieldIndex = fields.value.findIndex((f) => f.fk_column_id === key)
             if (fieldIndex !== undefined && fieldIndex > -1) {
-              fields.value[fieldIndex] = field
+              fields.value[fieldIndex] = localChanges.value[key]
               fields.value = fields.value.sort((a: Field, b: Field) => a.order - b.order)
             }
           }
@@ -139,7 +134,6 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
 
     const showAll = async (ignoreIds?: any) => {
       if (isLocalMode.value) {
-        loadViewColumnsInLocalMode.value = false
         const fieldById = (fields.value || []).reduce<Record<string, any>>((acc, curr) => {
           if (curr.fk_column_id) {
             curr.show = curr.initialShow ? true : false
@@ -148,10 +142,14 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
           return acc
         }, {})
 
-        fields.value = fields.value?.map((field: Field) => ({
-          ...field,
-          show: fieldById[field.fk_column_id!]?.show,
-        }))
+        fields.value = (fields.value || [])?.map((field: Field) => {
+          const updateField = {
+            ...field,
+            show: fieldById[field.fk_column_id!]?.show,
+          }
+          localChanges.value[field.fk_column_id!] = field
+          return updateField
+        })
 
         meta.value!.columns = meta.value!.columns?.map((column: ColumnType) => {
           if (fieldById[column.id!]) {
@@ -184,19 +182,22 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
     }
     const hideAll = async (ignoreIds?: any) => {
       if (isLocalMode.value) {
-        loadViewColumnsInLocalMode.value = false
         const fieldById = (fields.value || []).reduce<Record<string, any>>((acc, curr) => {
           if (curr.fk_column_id) {
-            curr.show = !!curr.isViewEssentialField
+            curr.show = !!metaColumnById?.value?.[curr.fk_column_id!]?.pv || !!curr.isViewEssentialField
             acc[curr.fk_column_id] = curr
           }
           return acc
         }, {})
 
-        fields.value = fields.value?.map((field: Field) => ({
-          ...field,
-          show: fieldById[field.fk_column_id!]?.show,
-        }))
+        fields.value = (fields.value || [])?.map((field: Field) => {
+          const updateField = {
+            ...field,
+            show: fieldById[field.fk_column_id!]?.show,
+          }
+          localChanges.value[field.fk_column_id!] = field
+          return updateField
+        })
 
         meta.value!.columns = meta.value!.columns?.map((column: ColumnType) => {
           if (fieldById[column.id!]) {
@@ -247,7 +248,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
           return column
         })
 
-        localChanges.value.push(field)
+        localChanges.value[field.fk_column_id] = field
       }
 
       if (isUIAllowed('viewFieldEdit')) {
@@ -317,6 +318,27 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
           }
         }) || []
       )
+    })
+
+    const numberOfHiddenFields = computed(() => {
+      return (fields.value || [])
+        ?.filter((field: Field) => {
+          if (!field.initialShow && isLocalMode.value) {
+            return false
+          }
+
+          if (metaColumnById?.value?.[field.fk_column_id!]?.pv) {
+            return true
+          }
+
+          // hide system columns if not enabled
+          if (!showSystemFields.value && isSystemColumn(metaColumnById?.value?.[field.fk_column_id!])) {
+            return false
+          }
+
+          return true
+        })
+        .filter((field) => !field.show)?.length
     })
 
     const sortedAndFilteredFields = computed<ColumnType[]>(() => {
@@ -446,6 +468,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       fieldsMap,
       loadViewColumns,
       filteredFieldList,
+      numberOfHiddenFields,
       filterQuery,
       showAll,
       hideAll,

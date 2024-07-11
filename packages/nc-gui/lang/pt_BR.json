@@ -518,7 +518,7 @@
     "noOptionsFound": "No options found",
     "surveyFormSubmitConfirmMsg": "Are you sure you want to submit this form?",
     "noResultsMatchedYourSearch": "Your search did not yield any matching results.",
-    "looksLikeThisStackIsEmpty": "Looks like this stack does not have any records"
+    "looksLikeThisStackIsEmpty": "Parece que essa pilha não tem nenhum registro"
   },
   "labels": {
     "toUpload": "to upload",
@@ -1205,7 +1205,7 @@
     "createTable": "Create your First Table!",
     "createTableLabel": "Create your first table effortlessly, from scratch, or by importing/connecting to an external database.",
     "noTokenCreated": "No API Tokens created",
-    "noTokenCreatedLabel": "Begin by creating API tokens to unlock advanced functionalities.",
+    "noTokenCreatedLabel": "Parece que você ainda não gerou nenhum token de API.",
     "inviteYourTeam": "Invite your team",
     "inviteYourTeamLabel": "Streamline collaboration and productivity with your team – start by inviting them to join your workspace.",
     "searchOptions": "Search options"
@@ -1301,7 +1301,7 @@
       "tooltip_desc": "A single record from table ",
       "tooltip_desc2": " can be linked with a single record from table "
     },
-    "clickLinkRecordsToAddLinkFromTable": "Looks like no records have been linked yet.",
+    "clickLinkRecordsToAddLinkFromTable": "Parece que nenhum registro foi vinculado ainda.",
     "noRecordsLinked": "No records linked",
     "noLinkedRecords": "No linked records",
     "recordsLinked": "records linked",
@@ -1389,7 +1389,7 @@
       "deleteProject": "Você quer excluir o projeto?",
       "shareBasePrivate": "Gerar base readonly compartilhável publicamente",
       "shareBasePublic": "Qualquer pessoa na internet com este link pode ver",
-      "userInviteNoSMTP": "Parece que você ainda não configurou o mailer! por favor copie o link acima do convite e envie-o para",
+      "userInviteNoSMTP": "Parece que você ainda não configurou o mailer, Por favor copie o link acima do convite e envie-o para",
       "dragDropHide": "Arraste e solte os campos aqui para se esconder",
       "formInput": "Digite a etiqueta de entrada do formulário",
       "formHelpText": "Adicione um texto de ajuda",

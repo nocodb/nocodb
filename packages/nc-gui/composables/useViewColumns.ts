@@ -42,9 +42,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
 
     const { addUndo, defineViewScope } = useUndoRedo()
 
-    const isLocalMode = computed(
-      () => isPublic || !isUIAllowed('viewFieldEdit') || !isUIAllowed('viewFieldEdit') || isSharedBase.value,
-    )
+    const isLocalMode = computed(() => isPublic || !isUIAllowed('viewFieldEdit') || isSharedBase.value)
 
     const localChanges = ref<Field[]>([])
 
@@ -103,7 +101,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
               aggregation: currentColumnField?.aggregation ?? CommonAggregations.None,
               system: isSystemColumn(metaColumnById?.value?.[currentColumnField.fk_column_id!]),
               isViewEssentialField: isColumnViewEssential(column),
-              initialShow: currentColumnField.show,
+              initialShow: currentColumnField.show || isColumnViewEssential(currentColumnField),
             }
           })
           .sort((a: Field, b: Field) => a.order - b.order)
@@ -134,7 +132,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       if (isLocalMode.value) {
         const fieldById = (fields.value || []).reduce<Record<string, any>>((acc, curr) => {
           if (curr.fk_column_id) {
-            curr.show = true
+            curr.show = curr.initialShow ? true : false
             acc[curr.fk_column_id] = curr
           }
           return acc
@@ -285,6 +283,10 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
     const filteredFieldList = computed(() => {
       return (
         fields.value?.filter((field: Field) => {
+          if (!field.initialShow && isLocalMode.value) {
+            return false
+          }
+
           if (
             metaColumnById?.value?.[field.fk_column_id!]?.pv &&
             (!filterQuery.value || field.title.toLowerCase().includes(filterQuery.value.toLowerCase()))
@@ -446,6 +448,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       updateGridViewColumn,
       gridViewCols,
       resizingColOldWith,
+      isLocalMode,
     }
   },
   'useViewColumnsOrThrow',

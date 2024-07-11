@@ -15,8 +15,6 @@ const reloadViewDataHook = inject(ReloadViewDataHookInj, undefined)!
 
 const { isMobileMode } = useGlobal()
 
-const { isUIAllowed } = useRoles()
-
 const isLocked = inject(IsLockedInj, ref(false))
 
 const isPublic = inject(IsPublicInj, ref(false))
@@ -39,6 +37,7 @@ const {
   loadViewColumns,
   toggleFieldStyles,
   toggleFieldVisibility,
+  isLocalMode,
 } = useViewColumnsOrThrow()
 
 const { eventBus, isDefaultView } = useSmartsheetStoreOrThrow()
@@ -610,12 +609,9 @@ useMenuCloseOnEsc(open)
                   <component :is="iconMap.drag" class="cursor-move !h-3.75 text-gray-600 mr-1" />
                   <div
                     v-e="['a:fields:show-hide']"
-                    class="flex flex-row items-center w-full truncate ml-1 py-[5px] pr-2"
-                    :class="!field.initialShow && !isUIAllowed('viewFieldEdit') ? 'cursor-not-allowed' : 'cursor-pointer'"
+                    class="flex flex-row items-center w-full cursor-pointer truncate ml-1 py-[5px] pr-2"
                     @click="
                       () => {
-                        if (!field.initialShow && !isUIAllowed('viewFieldEdit')) return
-
                         field.show = !field.show
                         toggleFieldVisibility(field.show, field)
                       }
@@ -665,7 +661,7 @@ useMenuCloseOnEsc(open)
                     </div>
                     <NcSwitch
                       :checked="field.show"
-                      :disabled="field.isViewEssentialField || (!field.initialShow && !isUIAllowed('viewFieldEdit'))"
+                      :disabled="field.isViewEssentialField"
                       size="xsmall"
                       @change="$t('a:fields:show-hide')"
                     />
@@ -678,21 +674,14 @@ useMenuCloseOnEsc(open)
           </div>
         </div>
         <div v-if="!filterQuery" class="flex px-2 gap-2 py-2">
-          <NcButton
-            class="nc-fields-show-all-fields"
-            size="small"
-            type="ghost"
-            :disabled="!isUIAllowed('viewFieldEdit')"
-            @click="showAllColumns = !showAllColumns"
-          >
+          <NcButton class="nc-fields-show-all-fields" size="small" type="ghost" @click="showAllColumns = !showAllColumns">
             {{ showAllColumns ? $t('general.hideAll') : $t('general.showAll') }} {{ $t('objects.fields').toLowerCase() }}
           </NcButton>
           <NcButton
-            v-if="!isPublic"
+            v-if="!isLocalMode"
             class="nc-fields-show-system-fields"
             size="small"
             type="ghost"
-            :disabled="!isUIAllowed('viewFieldEdit')"
             @click="showSystemField = !showSystemField"
           >
             {{ showSystemField ? $t('title.hideSystemFields') : $t('activity.showSystemFields') }}

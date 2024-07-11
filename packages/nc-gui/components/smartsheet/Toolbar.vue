@@ -6,6 +6,8 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 const { isViewsLoading } = storeToRefs(useViewsStore())
 
+const { isLocalMode } = useViewColumnsOrThrow()
+
 const containerRef = ref<HTMLElement>()
 
 const { width } = useElementSize(containerRef)
@@ -49,7 +51,7 @@ const isTab = computed(() => {
 
         <LazySmartsheetToolbarColumnFilterMenu v-if="isGrid || isGallery || isKanban || isMap" />
 
-        <LazySmartsheetToolbarGroupByMenu v-if="isGrid" />
+        <LazySmartsheetToolbarGroupByMenu v-if="isGrid && !isLocalMode" />
 
         <LazySmartsheetToolbarSortListMenu v-if="isGrid || isGallery || isKanban" />
       </div>

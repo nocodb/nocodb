@@ -99,136 +99,135 @@ const pageSizeOptions = [
 
 <template>
   <div class="nc-pagination flex flex-row items-center gap-x-0.25">
-    <template v-if="totalPages > 1">
-      <component :is="props.firstPageTooltip && mode === 'full' ? NcTooltip : 'div'" v-if="mode === 'full'">
-        <template v-if="props.firstPageTooltip" #title>
-          {{ props.firstPageTooltip }}
-        </template>
-        <NcButton
-          v-e="[`a:pagination:${entityName}:first-page`]"
-          class="first-page !border-0"
-          type="text"
-          size="xsmall"
-          :disabled="current === 1"
-          @click="goToFirstPage"
-        >
-          <GeneralIcon icon="doubleLeftArrow" class="nc-pagination-icon" />
+    <component :is="props.firstPageTooltip && mode === 'full' ? NcTooltip : 'div'" v-if="mode === 'full'">
+      <template v-if="props.firstPageTooltip" #title>
+        {{ props.firstPageTooltip }}
+      </template>
+      <NcButton
+        v-e="[`a:pagination:${entityName}:first-page`]"
+        class="first-page !border-0"
+        type="text"
+        size="xsmall"
+        :disabled="current === 1"
+        @click="goToFirstPage"
+      >
+        <GeneralIcon icon="doubleLeftArrow" class="nc-pagination-icon" />
+      </NcButton>
+    </component>
+
+    <component :is="props.prevPageTooltip && mode === 'full' ? NcTooltip : 'div'">
+      <template v-if="props.prevPageTooltip" #title>
+        {{ props.prevPageTooltip }}
+      </template>
+      <NcButton
+        v-e="[`a:pagination:${entityName}:prev-page`]"
+        class="prev-page !border-0"
+        type="secondary"
+        size="xsmall"
+        :disabled="current === 1"
+        @click="changePage({ increase: false })"
+      >
+        <GeneralIcon icon="arrowLeft" class="nc-pagination-icon" />
+      </NcButton>
+    </component>
+
+    <div v-if="!isMobileMode" class="text-gray-500">
+      <NcDropdown placement="top" overlay-class-name="!shadow-none">
+        <NcButton class="!border-0 nc-select-page" type="secondary" size="xsmall">
+          <div class="flex gap-1 items-center px-2">
+            <span class="nc-current-page">
+              {{ current }}
+            </span>
+            <GeneralIcon icon="arrowDown" class="text-gray-800 mt-0.5 nc-select-expand-btn" />
+          </div>
         </NcButton>
-      </component>
 
-      <component :is="props.prevPageTooltip && mode === 'full' ? NcTooltip : 'div'">
-        <template v-if="props.prevPageTooltip" #title>
-          {{ props.prevPageTooltip }}
-        </template>
-        <NcButton
-          v-e="[`a:pagination:${entityName}:prev-page`]"
-          class="prev-page !border-0"
-          type="secondary"
-          size="xsmall"
-          :disabled="current === 1"
-          @click="changePage({ increase: false })"
-        >
-          <GeneralIcon icon="arrowLeft" class="nc-pagination-icon" />
-        </NcButton>
-      </component>
+        <template #overlay>
+          <NcMenu class="nc-pagination-menu overflow-hidden">
+            <NcSubMenu v-if="showSizeChanger" :key="`${localPageSize}page`" class="bg-gray-100 z-20 top-0 !sticky">
+              <template #title>
+                <div class="rounded-lg text-[13px] font-medium w-full">{{ localPageSize }} / page</div>
+              </template>
 
-      <div v-if="!isMobileMode" class="text-gray-500">
-        <NcDropdown placement="top" overlay-class-name="!shadow-none">
-          <NcButton class="!border-0 nc-select-page" type="secondary" size="xsmall">
-            <div class="flex gap-1 items-center px-2">
-              <span class="nc-current-page">
-                {{ current }}
-              </span>
-              <GeneralIcon icon="arrowDown" class="text-gray-800 mt-0.5 nc-select-expand-btn" />
-            </div>
-          </NcButton>
+              <NcMenuItem v-for="option in pageSizeOptions" :key="option.value" @click="localPageSize = option.value">
+                <span
+                  class="text-[13px]"
+                  :class="{
+                    '!text-brand-500': option.value === localPageSize,
+                  }"
+                >
+                  {{ option.value }} / page
+                </span>
+              </NcMenuItem>
+            </NcSubMenu>
 
-          <template #overlay>
-            <NcMenu class="nc-pagination-menu overflow-hidden">
-              <NcSubMenu v-if="showSizeChanger" :key="`${localPageSize}page`" class="bg-gray-100 z-20 top-0 !sticky">
-                <template #title>
-                  <div class="rounded-lg text-[13px] font-medium w-full">{{ localPageSize }} / page</div>
-                </template>
-
-                <NcMenuItem v-for="option in pageSizeOptions" :key="option.value" @click="localPageSize = option.value">
-                  <span
-                    class="text-[13px]"
+            <UseVirtualList
+              :key="localPageSize"
+              :list="pagesList"
+              height="auto"
+              :options="{ itemHeight: 36 }"
+              class="mt-1 max-h-46"
+            >
+              <template #default="{ data: item }">
+                <NcMenuItem
+                  :key="`${localPageSize}${item.value}`"
+                  :style="{
+                    height: '36px',
+                  }"
+                  @click.stop="
+                    changePage({
+                      set: item.value,
+                    })
+                  "
+                >
+                  <div
                     :class="{
-                      '!text-brand-500': option.value === localPageSize,
+                      'text-brand-500': item.value === current,
                     }"
+                    class="flex text-[13px] !w-full text-gray-800 items-center justify-between"
                   >
-                    {{ option.value }} / page
-                  </span>
+                    {{ item.label }}
+                  </div>
                 </NcMenuItem>
-              </NcSubMenu>
-
-              <UseVirtualList
-                :key="localPageSize"
-                :list="pagesList"
-                height="auto"
-                :options="{ itemHeight: 36 }"
-                class="mt-1 max-h-46"
-              >
-                <template #default="{ data: item }">
-                  <NcMenuItem
-                    :key="`${localPageSize}${item.value}`"
-                    :style="{
-                      height: '36px',
-                    }"
-                    @click.stop="
-                      changePage({
-                        set: item.value,
-                      })
-                    "
-                  >
-                    <div
-                      :class="{
-                        'text-brand-500': item.value === current,
-                      }"
-                      class="flex text-[13px] !w-full text-gray-800 items-center justify-between"
-                    >
-                      {{ item.label }}
-                    </div>
-                  </NcMenuItem>
-                </template>
-              </UseVirtualList>
-            </NcMenu>
-          </template>
-        </NcDropdown>
-      </div>
-
-      <component :is="props.nextPageTooltip && mode === 'full' ? NcTooltip : 'div'">
-        <template v-if="props.nextPageTooltip" #title>
-          {{ props.nextPageTooltip }}
+              </template>
+            </UseVirtualList>
+          </NcMenu>
         </template>
-        <NcButton
-          v-e="[`a:pagination:${entityName}:next-page`]"
-          class="next-page !border-0"
-          type="secondary"
-          size="xsmall"
-          :disabled="current === totalPages"
-          @click="changePage({ increase: true })"
-        >
-          <GeneralIcon icon="arrowRight" class="nc-pagination-icon" />
-        </NcButton>
-      </component>
+      </NcDropdown>
+    </div>
 
-      <component :is="props.lastPageTooltip && mode === 'full' ? NcTooltip : 'div'" v-if="mode === 'full'">
-        <template v-if="props.lastPageTooltip" #title>
-          {{ props.lastPageTooltip }}
-        </template>
-        <NcButton
-          v-e="[`a:pagination:${entityName}:last-page`]"
-          class="last-page !border-0"
-          type="secondary"
-          size="xsmall"
-          :disabled="current === totalPages"
-          @click="goToLastPage"
-        >
-          <GeneralIcon icon="doubleRightArrow" class="nc-pagination-icon" />
-        </NcButton>
-      </component>
-    </template>
+    <component :is="props.nextPageTooltip && mode === 'full' ? NcTooltip : 'div'">
+      <template v-if="props.nextPageTooltip" #title>
+        {{ props.nextPageTooltip }}
+      </template>
+      <NcButton
+        v-e="[`a:pagination:${entityName}:next-page`]"
+        class="next-page !border-0"
+        type="secondary"
+        size="xsmall"
+        :disabled="current === totalPages"
+        @click="changePage({ increase: true })"
+      >
+        <GeneralIcon icon="arrowRight" class="nc-pagination-icon" />
+      </NcButton>
+    </component>
+
+    <component :is="props.lastPageTooltip && mode === 'full' ? NcTooltip : 'div'" v-if="mode === 'full'">
+      <template v-if="props.lastPageTooltip" #title>
+        {{ props.lastPageTooltip }}
+      </template>
+      <NcButton
+        v-e="[`a:pagination:${entityName}:last-page`]"
+        class="last-page !border-0"
+        type="secondary"
+        size="xsmall"
+        :disabled="current === totalPages"
+        @click="goToLastPage"
+      >
+        <GeneralIcon icon="doubleRightArrow" class="nc-pagination-icon" />
+      </NcButton>
+    </component>
+
     <div v-if="showSizeChanger && !isMobileMode" class="text-gray-500"></div>
   </div>
 </template>

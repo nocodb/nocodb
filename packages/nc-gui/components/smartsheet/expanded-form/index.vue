@@ -48,6 +48,8 @@ const { copy } = useClipboard()
 
 const { isMobileMode } = useGlobal()
 
+const { fieldsMap, isLocalMode } = useViewColumnsOrThrow()
+
 const { t } = useI18n()
 
 const rowId = toRef(props, 'rowId')
@@ -102,11 +104,19 @@ const fields = computedInject(FieldsInj, (_fields) => {
   return _fields?.value ?? []
 })
 
-const displayField = computed(() => meta.value?.columns?.find((c) => c.pv && fields.value.includes(c)) ?? null)
+const displayField = computed(() => meta.value?.columns?.find((c) => c.pv && fields.value?.includes(c)) ?? null)
 
 const hiddenFields = computed(() => {
   // todo: figure out when meta.value is undefined
-  return (meta.value?.columns ?? []).filter((col) => !fields.value?.includes(col)).filter((col) => !isSystemColumn(col))
+  return (meta.value?.columns ?? [])
+    .filter(
+      (col) =>
+        !fields.value?.includes(col) &&
+        (isLocalMode.value && col?.id && fieldsMap.value[col.id] 
+          ? fieldsMap.value[col.id]?.initialShow
+          : true),
+    )
+    .filter((col) => !isSystemColumn(col))
 })
 
 const showHiddenFields = ref(false)

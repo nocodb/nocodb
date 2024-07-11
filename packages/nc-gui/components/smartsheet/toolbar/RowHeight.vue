@@ -72,8 +72,8 @@ const updateRowHeight = async (rh: number, undo = false) => {
       ;(view.value.view as GridType).row_height = rh
 
       open.value = false
-    } catch (e) {
-      message.error('There was an error while updating view!')
+    } catch (e: any) {
+      message.error((await extractSdkResponseErrorMsg(e)) || 'There was an error while updating view!')
     }
   }
 }

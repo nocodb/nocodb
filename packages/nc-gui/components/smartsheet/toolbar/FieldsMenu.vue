@@ -663,7 +663,7 @@ useMenuCloseOnEsc(open)
                       :checked="field.show"
                       :disabled="field.isViewEssentialField"
                       size="xsmall"
-                      @change="$t('a:fields:show-hide')"
+                      @change="$e('a:fields:show-hide')"
                     />
                   </div>
 

@@ -2543,7 +2543,8 @@ export class ColumnsService {
     // delete virtual columns
     await Column.delete(context, relationColOpt.fk_column_id, ncMeta);
 
-    if (!ignoreFkDelete && !custom) {
+    if (custom) return;
+    if (!ignoreFkDelete) {
       const cTable = await Model.getWithInfo(
         context,
         {
@@ -2597,9 +2598,9 @@ export class ColumnsService {
       };
 
       await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
-      // delete foreign key column
-      await Column.delete(context, childColumn.id, ncMeta);
     }
+    // delete foreign key column
+    await Column.delete(childColumn.id, ncMeta);
   };
 
   deleteOoRelation = async (
@@ -2700,7 +2701,9 @@ export class ColumnsService {
     // delete virtual columns
     await Column.delete(context, relationColOpt.fk_column_id, ncMeta);
 
-    if (!ignoreFkDelete && !custom) {
+    if (custom) return;
+
+    if (!ignoreFkDelete) {
       const cTable = await Model.getWithInfo(
         context,
         {
@@ -2754,7 +2757,6 @@ export class ColumnsService {
       };
 
       await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
-
       // delete foreign key column
       await Column.delete(context, childColumn.id, ncMeta);
     }

@@ -23,7 +23,7 @@ function columnTests() {
     },
   ];
 
-  describe('Advance Column', () => {
+  describe('Advanced Column', () => {
     beforeEach(async function () {
       console.time('#### columnTypeSpecificTests');
       context = await init(true);

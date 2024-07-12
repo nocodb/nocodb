@@ -216,6 +216,7 @@ watch(pkColumn, () => {
             disabled
             :bordered="false"
             dropdown-class-name="nc-relation-settings-select nc-dropdown-ltar-source-base"
+            data-testid="custom-link-source-base-id"
           >
             <a-select-option v-for="base of basesList" :key="base.title" :value="base.id">
               <div class="flex w-full items-center gap-2">
@@ -240,6 +241,7 @@ watch(pkColumn, () => {
             disabled
             :bordered="false"
             dropdown-class-name="nc-relation-settings-select nc-dropdown-ltar-source-table"
+            data-testid="custom-link-source-table-id"
           >
             <a-select-option v-for="table of sourceTables" :key="table.title" :value="table.id">
               <div class="flex w-full items-center gap-2">
@@ -264,6 +266,7 @@ watch(pkColumn, () => {
             :bordered="false"
             dropdown-class-name="nc-relation-settings-select nc-dropdown-ltar-source-column"
             @change="onSourceColumnChange"
+            data-testid="custom-link-source-column-id"
           >
             <a-select-option v-for="column of columns" :key="column.title" :value="column.id">
               <div class="flex w-full items-center gap-2">
@@ -301,6 +304,8 @@ watch(pkColumn, () => {
               :bordered="false"
               dropdown-class-name="nc-relation-settings-select nc-dropdown-ltar-junction-base !rounded-md"
               @change="onBaseChange(vModel.custom.junc_base_id, true)"
+              data-testid="custom-link-junction-base-id"
+
             >
               <a-select-option v-for="base of basesList" :key="base.title" :value="base.id">
                 <div class="flex w-full items-center gap-2">
@@ -328,6 +333,7 @@ watch(pkColumn, () => {
               :filter-option="filterOption"
               dropdown-class-name="nc-relation-settings-select nc-dropdown-ltar-junction-table"
               @change="onModelIdChange(vModel.custom.junc_model_id, true)"
+              data-testid="custom-link-junction-table-id"
             >
               <a-select-option v-for="table of junctionTables" :key="table.title" :value="table.id">
                 <div class="flex w-full items-center gap-2">
@@ -356,6 +362,7 @@ watch(pkColumn, () => {
               :filter-option="filterOption"
               dropdown-class-name="nc-relation-settings-select nc-dropdown-ltar-source-junction-column"
               @change="onDataTypeChange"
+              data-testid="custom-link-junction-source-column-id"
             >
               <a-select-option
                 v-for="column of juncTableColumns"
@@ -400,6 +407,7 @@ watch(pkColumn, () => {
               :filter-option="filterOption"
               dropdown-class-name="nc-relation-settings-select nc-dropdown-ltar-child-junction-column"
               @change="onDataTypeChange"
+              data-testid="custom-link-junction-target-column-id"
             >
               <a-select-option
                 v-for="column of juncTableColumns"
@@ -456,6 +464,7 @@ watch(pkColumn, () => {
             :bordered="false"
             dropdown-class-name="nc-relation-settings-select nc-dropdown-ltar-child-base"
             @change="onBaseChange(vModel.custom.base_id)"
+            data-testid="custom-link-target-base-id"
           >
             <a-select-option v-for="base of basesList" :key="base.title" :value="base.id">
               <div class="flex w-full items-center gap-2">
@@ -481,6 +490,7 @@ watch(pkColumn, () => {
             :bordered="false"
             dropdown-class-name="nc-relation-settings-select nc-dropdown-ltar-child-table"
             @change="onModelIdChange(vModel.custom.ref_model_id)"
+            data-testid="custom-link-target-table-id"
           >
             <a-select-option v-for="table of refTables" :key="table.title" :value="table.id">
               <div class="flex w-full items-center gap-2">
@@ -504,6 +514,7 @@ watch(pkColumn, () => {
             :filter-option="filterOption"
             :bordered="false"
             dropdown-class-name="nc-relation-settings-select nc-dropdown-ltar-child-column"
+            data-testid="custom-link-target-column-id"
             @change="onDataTypeChange"
           >
             <a-select-option

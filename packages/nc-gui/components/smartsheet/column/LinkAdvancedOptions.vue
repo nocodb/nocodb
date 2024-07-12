@@ -219,7 +219,7 @@ watch(pkColumn, () => {
           >
             <a-select-option v-for="base of basesList" :key="base.title" :value="base.id">
               <div class="flex w-full items-center gap-2">
-                <div class="min-w-5 flex items-center justify-center">
+                <div class="flex items-center justify-center">
                   <GeneralProjectIcon class="nc-project-icon" />
                 </div>
                 <NcTooltip class="flex-1 truncate" show-on-truncate-only>
@@ -243,7 +243,7 @@ watch(pkColumn, () => {
           >
             <a-select-option v-for="table of sourceTables" :key="table.title" :value="table.id">
               <div class="flex w-full items-center gap-2">
-                <div class="min-w-5 flex items-center justify-center">
+                <div class="flex items-center justify-center">
                   <GeneralTableIcon :meta="table" class="nc-table-icon" />
                 </div>
                 <NcTooltip class="flex-1 truncate" show-on-truncate-only>
@@ -262,17 +262,18 @@ watch(pkColumn, () => {
             placeholder="-select field-"
             :filter-option="filterOption"
             :bordered="false"
-            dropdown-class-name="nc-relation-settings-select nc-dropdown-ltar-source-column !text-xs"
+            dropdown-class-name="nc-relation-settings-select nc-dropdown-ltar-source-column"
             @change="onSourceColumnChange"
           >
             <a-select-option v-for="column of columns" :key="column.title" :value="column.id">
               <div class="flex w-full items-center gap-2">
-                <div class="min-w-5 flex items-center justify-center">
+                <div class="min-w-4 flex items-center justify-center">
                   <SmartsheetHeaderVirtualCellIcon
                     v-if="isVirtualCol(column)"
                     :column-meta="column"
+                    class="nc-cell-icon"
                   ></SmartsheetHeaderVirtualCellIcon>
-                  <SmartsheetHeaderCellIcon v-else :column-meta="column"></SmartsheetHeaderCellIcon>
+                  <SmartsheetHeaderCellIcon v-else :column-meta="column" class="nc-cell-icon"></SmartsheetHeaderCellIcon>
                 </div>
                 <NcTooltip class="flex-1 truncate" show-on-truncate-only>
                   <template #title>{{ column.title }}</template>
@@ -303,7 +304,7 @@ watch(pkColumn, () => {
             >
               <a-select-option v-for="base of basesList" :key="base.title" :value="base.id">
                 <div class="flex w-full items-center gap-2">
-                  <div class="min-w-5 flex items-center justify-center">
+                  <div class="flex items-center justify-center">
                     <GeneralProjectIcon :color="getBaseIconColor(base, vModel.custom.junc_base_id)" class="nc-project-icon" />
                   </div>
                   <NcTooltip class="flex-1 truncate" show-on-truncate-only>
@@ -330,7 +331,7 @@ watch(pkColumn, () => {
             >
               <a-select-option v-for="table of junctionTables" :key="table.title" :value="table.id">
                 <div class="flex w-full items-center gap-2">
-                  <div class="min-w-5 flex items-center justify-center">
+                  <div class="flex items-center justify-center">
                     <GeneralTableIcon :meta="table" class="nc-table-icon" />
                   </div>
                   <NcTooltip class="flex-1 truncate" show-on-truncate-only>
@@ -360,15 +361,16 @@ watch(pkColumn, () => {
                 v-for="column of juncTableColumns"
                 :key="column.title"
                 :value="column.id"
-                :disabled="sourceColumn?.dt !== column.dt"
+                :disabled="sourceColumn?.dt !== column.dt || vModel.custom.column_id === column.id"
               >
                 <div class="flex w-full items-center gap-2">
-                  <div class="min-w-5 flex items-center justify-center">
+                  <div class="min-w-4 flex items-center justify-center">
                     <SmartsheetHeaderVirtualCellIcon
                       v-if="isVirtualCol(column)"
                       :column-meta="column"
+                      class="nc-cell-icon"
                     ></SmartsheetHeaderVirtualCellIcon>
-                    <SmartsheetHeaderCellIcon v-else :column-meta="column"></SmartsheetHeaderCellIcon>
+                    <SmartsheetHeaderCellIcon v-else :column-meta="column" class="nc-cell-icon"></SmartsheetHeaderCellIcon>
                   </div>
                   <NcTooltip class="flex-1 truncate" :show-on-truncate-only="sourceColumn?.dt === column.dt">
                     <template #title>{{
@@ -403,15 +405,16 @@ watch(pkColumn, () => {
                 v-for="column of juncTableColumns"
                 :key="column.title"
                 :value="column.id"
-                :disabled="sourceColumn?.dt !== column.dt"
+                :disabled="sourceColumn?.dt !== column.dt || vModel.custom.column_id === column.id"
               >
                 <div class="flex w-full items-center gap-2">
-                  <div class="min-w-5 flex items-center justify-center">
+                  <div class="min-w-4 flex items-center justify-center">
                     <SmartsheetHeaderVirtualCellIcon
                       v-if="isVirtualCol(column)"
                       :column-meta="column"
+                      class="nc-cell-icon"
                     ></SmartsheetHeaderVirtualCellIcon>
-                    <SmartsheetHeaderCellIcon v-else :column-meta="column"></SmartsheetHeaderCellIcon>
+                    <SmartsheetHeaderCellIcon v-else :column-meta="column" class="nc-cell-icon"></SmartsheetHeaderCellIcon>
                   </div>
                   <NcTooltip class="flex-1 truncate" :show-on-truncate-only="sourceColumn?.dt === column.dt">
                     <template #title>{{
@@ -456,7 +459,7 @@ watch(pkColumn, () => {
           >
             <a-select-option v-for="base of basesList" :key="base.title" :value="base.id">
               <div class="flex w-full items-center gap-2">
-                <div class="min-w-5 flex items-center justify-center">
+                <div class="flex items-center justify-center">
                   <GeneralProjectIcon :color="getBaseIconColor(base, vModel.custom.base_id)" class="nc-project-icon" />
                 </div>
                 <NcTooltip class="flex-1 truncate" show-on-truncate-only>
@@ -481,7 +484,7 @@ watch(pkColumn, () => {
           >
             <a-select-option v-for="table of refTables" :key="table.title" :value="table.id">
               <div class="flex w-full items-center gap-2">
-                <div class="min-w-5 flex items-center justify-center">
+                <div class="flex items-center justify-center">
                   <GeneralTableIcon :meta="table" class="nc-table-icon" />
                 </div>
                 <NcTooltip class="flex-1 truncate" show-on-truncate-only>
@@ -500,22 +503,23 @@ watch(pkColumn, () => {
             placeholder="-select field-"
             :filter-option="filterOption"
             :bordered="false"
-            dropdown-class-name="nc-relation-settings-select nc-dropdown-ltar-child-column !text-xs"
+            dropdown-class-name="nc-relation-settings-select nc-dropdown-ltar-child-column"
             @change="onDataTypeChange"
           >
             <a-select-option
               v-for="column of refTableColumns"
               :key="column.title"
               :value="column.id"
-              :disabled="sourceColumn?.dt !== column.dt"
+              :disabled="sourceColumn?.dt !== column.dt || vModel.custom.column_id === column.id"
             >
               <div class="flex w-full items-center gap-2">
-                <div class="min-w-5 flex items-center justify-center">
+                <div class="min-w-4 flex items-center justify-center">
                   <SmartsheetHeaderVirtualCellIcon
                     v-if="isVirtualCol(column)"
                     :column-meta="column"
+                    class="nc-cell-icon"
                   ></SmartsheetHeaderVirtualCellIcon>
-                  <SmartsheetHeaderCellIcon v-else :column-meta="column"></SmartsheetHeaderCellIcon>
+                  <SmartsheetHeaderCellIcon v-else :column-meta="column" class="nc-cell-icon"></SmartsheetHeaderCellIcon>
                 </div>
                 <NcTooltip class="flex-1 truncate" :show-on-truncate-only="sourceColumn?.dt === column.dt">
                   <template #title>{{
@@ -558,7 +562,7 @@ watch(pkColumn, () => {
       @apply px-4 text-xs;
 
       .ant-select-selection-search-input {
-        @apply pl-2;
+        @apply pl-1;
       }
     }
     :deep(.ant-select-arrow) {
@@ -570,7 +574,7 @@ watch(pkColumn, () => {
     // }
 
     .nc-project-icon {
-      @apply !grayscale;
+      @apply !grayscale flex-none;
       filter: grayscale(100%) brightness(115%) !important;
     }
 
@@ -617,13 +621,25 @@ watch(pkColumn, () => {
 <style lang="scss">
 .nc-relation-settings-table {
   .nc-table-icon {
+    @apply flex-none !w-4 !mx-0;
     path,
     rect {
       stroke: currentColor !important;
     }
   }
+  .nc-cell-icon {
+    @apply !mx-0 flex-none;
+  }
 }
 .nc-relation-settings-select.ant-select-dropdown.nc-select-dropdown {
   @apply !rounded-md;
+
+  .ant-select-item {
+    @apply text-xs;
+
+    .nc-cell-icon {
+      @apply !mx-0 flex-none;
+    }
+  }
 }
 </style>

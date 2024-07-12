@@ -43,6 +43,8 @@ export async function createHmAndBtColumn(
   columnMeta = null,
   isLinks = false,
   colExtra?: any,
+  parentColumn?: Column,
+  isCustom = false,
 ) {
   // save bt column
   {
@@ -60,7 +62,7 @@ export async function createHmAndBtColumn(
       // db_type:
 
       fk_child_column_id: childColumn.id,
-      fk_parent_column_id: parent.primaryKey.id,
+      fk_parent_column_id: parentColumn?.id || parent.primaryKey.id,
       fk_related_model_id: parent.id,
       virtual,
       // if self referencing treat it as system field to hide from ui
@@ -68,6 +70,10 @@ export async function createHmAndBtColumn(
       fk_col_name: fkColName,
       fk_index_name: fkColName,
       ...(type === 'bt' ? colExtra : {}),
+      meta: {
+        ...(colExtra?.meta || {}),
+        custom: isCustom,
+      },
     });
   }
   // save hm column
@@ -80,6 +86,7 @@ export async function createHmAndBtColumn(
       ...(columnMeta || {}),
       plural: columnMeta?.plural || pluralize(child.title),
       singular: columnMeta?.singular || singularize(child.title),
+      custom: isCustom,
     };
 
     await Column.insert(context, {
@@ -89,7 +96,7 @@ export async function createHmAndBtColumn(
       type: 'hm',
       fk_target_view_id: childView?.id,
       fk_child_column_id: childColumn.id,
-      fk_parent_column_id: parent.primaryKey.id,
+      fk_parent_column_id: parentColumn?.id || parent.primaryKey.id,
       fk_related_model_id: child.id,
       virtual,
       system: isSystemCol,
@@ -128,6 +135,8 @@ export async function createOOColumn(
   isSystemCol = false,
   columnMeta = null,
   colExtra?: any,
+  parentColumn?: Column,
+  isCustom = false,
 ) {
   // save bt column
   {
@@ -144,7 +153,7 @@ export async function createOOColumn(
       // Child View ID is given for relation from parent to child. not for child to parent
       fk_target_view_id: null,
       fk_child_column_id: childColumn.id,
-      fk_parent_column_id: parent.primaryKey.id,
+      fk_parent_column_id: parentColumn?.id || parent.primaryKey.id,
       fk_related_model_id: parent.id,
       virtual,
       // if self referencing treat it as system field to hide from ui
@@ -157,6 +166,7 @@ export async function createOOColumn(
         // one-to-one relation is combination of both hm and bt to identify table which have
         // foreign key column(similar to bt) we are adding a boolean flag `bt` under meta
         bt: true,
+        custom: isCustom,
       },
     });
   }
@@ -176,6 +186,7 @@ export async function createOOColumn(
       ...(columnMeta || {}),
       plural: columnMeta?.plural || pluralize(child.title),
       singular: columnMeta?.singular || singularize(child.title),
+      custom: isCustom,
     };
 
     await Column.insert(context, {
@@ -185,7 +196,7 @@ export async function createOOColumn(
       type: 'oo',
       fk_target_view_id: childView?.id,
       fk_child_column_id: childColumn.id,
-      fk_parent_column_id: parent.primaryKey.id,
+      fk_parent_column_id: parentColumn?.id || parent.primaryKey.id,
       fk_related_model_id: child.id,
       virtual,
       system: isSystemCol,

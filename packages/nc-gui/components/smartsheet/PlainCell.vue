@@ -37,7 +37,11 @@ const { basesUser } = storeToRefs(basesStore)
 
 const { isXcdbBase, isMssql, isMysql } = useBase()
 
-const sqlUi = ref(column.value?.source_id ? sqlUis.value[column.value?.source_id] : Object.values(sqlUis.value)[0])
+const sqlUi = ref(
+  column.value?.source_id && sqlUis.value[column.value?.source_id]
+    ? sqlUis.value[column.value?.source_id]
+    : Object.values(sqlUis.value)[0],
+)
 
 const abstractType = computed(() => column.value && sqlUi.value.getAbstractType(column.value))
 

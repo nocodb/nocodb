@@ -562,6 +562,10 @@ const errorHelpers: {
     message: 'Column is associated with a link, please remove the link first',
     code: 400,
   },
+  [NcErrorType.TABLE_ASSOCIATED_WITH_LINK]: {
+    message: 'Table is associated with a link, please remove the link first',
+    code: 400,
+  },
 };
 
 function generateError(
@@ -634,8 +638,13 @@ export class NcError {
       ...args,
     });
   }
+
   static columnAssociatedWithLink(_id: string, args: NcErrorArgs) {
     throw new NcBaseErrorv2(NcErrorType.COLUMN_ASSOCIATED_WITH_LINK, args);
+  }
+
+  static tableAssociatedWithLink(_id: string, args: NcErrorArgs) {
+    throw new NcBaseErrorv2(NcErrorType.TABLE_ASSOCIATED_WITH_LINK, args);
   }
 
   static baseNotFound(id: string, args?: NcErrorArgs) {

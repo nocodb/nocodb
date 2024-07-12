@@ -1910,7 +1910,7 @@ onKeyStroke('ArrowDown', onDown)
                   }"
                 >
                   <div
-                    class="absolute top-0 w-[40px]"
+                    class="absolute top-0 w-45"
                     :class="{
                       'left-[60px]': isAddingColumnAllowed,
                       'left-0': !isAddingColumnAllowed,
@@ -1938,7 +1938,7 @@ onKeyStroke('ArrowDown', onDown)
                 'mobile': isMobileMode,
                 'desktop': !isMobileMode,
                 'w-full': dataRef.length === 0,
-                'pr-60 pb-12': !headerOnly && !isGroupBy,
+                'pb-12': !headerOnly && !isGroupBy,
               }"
               :style="{
                 transform: `translateY(${topOffset}px) translateX(${leftOffset}px)`,

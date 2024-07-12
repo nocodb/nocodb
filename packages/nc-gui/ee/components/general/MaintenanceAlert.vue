@@ -17,7 +17,7 @@ onMounted(async () => {
     .then((res) => {
       maintenance.value = res
     })
-    .catch((e) => {})
+    .catch((_e) => {})
 })
 
 function renderEjsTemplate(template: string, data: Record<string, string>) {

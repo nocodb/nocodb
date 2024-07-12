@@ -2476,12 +2476,7 @@ class BaseModelSqlv2 {
       dbDriver: this.dbDriver,
       model: childTable,
     });
-    const childBaseModel = await Model.getBaseModelSQL(this.context, {
-      dbDriver: this.dbDriver,
-      model: childTable,
-    });
 
-    const childTn = childBaseModel.getTnPath(childTable);
     const childView = await relColOptions.getChildView(this.context);
     let listArgs: any = {};
     if (childView) {

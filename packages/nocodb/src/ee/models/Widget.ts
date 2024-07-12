@@ -6,8 +6,6 @@ import type {
   WidgetType,
   WidgetTypeType,
 } from 'nocodb-sdk';
-import { extractProps } from '~/helpers/extractProps';
-import { MetaTable } from '~/utils/globals';
 import Noco from '~/Noco';
 
 export type JSONStringOrObject = string | Record<string, unknown> | any;
@@ -25,7 +23,7 @@ export default class Widget implements WidgetType {
     Object.assign(this, widget);
   }
 
-  public static async get(widgetId: string, ncMeta = Noco.ncMeta) {
+  public static async get(widgetId: string, _ncMeta = Noco.ncMeta) {
     throw new Error('Not implemented');
 
     /* let widget;
@@ -65,7 +63,7 @@ export default class Widget implements WidgetType {
     return this.get(id, ncMeta); */
   }
 
-  static async delete(layoutId: string, ncMeta = Noco.ncMeta) {
+  static async delete(layoutId: string, _ncMeta = Noco.ncMeta) {
     throw new Error('Not implemented');
 
     /* await ncMeta.metaDelete(context.workspace_id, context.base_id, layoutId);
@@ -76,7 +74,7 @@ export default class Widget implements WidgetType {
     param: {
       layout_id: string;
     },
-    ncMeta = Noco.ncMeta,
+    _ncMeta = Noco.ncMeta,
   ) {
     throw new Error('Not implemented');
 
@@ -97,7 +95,7 @@ export default class Widget implements WidgetType {
   public static async update(
     widgetId: string,
     widget: Partial<Widget>,
-    ncMeta = Noco.ncMeta,
+    _ncMeta = Noco.ncMeta,
   ) {
     throw new Error('Not implemented');
 

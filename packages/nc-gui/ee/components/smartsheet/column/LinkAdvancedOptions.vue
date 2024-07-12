@@ -180,14 +180,14 @@ const onSourceColumnChange = async () => {
   resetSelectedColumns(true, true)
   resetSelectedColumns(false, true)
 }
-
+/*
 const getBaseIconColor = (base, selectedBaseId) => {
   if (base.id === selectedBaseId) {
     return undefined
   } else {
     return parseProp(base.meta).iconColor
   }
-}
+} */
 watch(pkColumn, () => {
   if (pkColumn.value?.id && !vModel.value.custom?.column_id) {
     vModel.value.custom = {

@@ -7,7 +7,6 @@ import type { XKnex } from '~/db/CustomKnex';
 import type {
   BarcodeColumn,
   FormulaColumn,
-  LinksColumn,
   LinkToAnotherRecordColumn,
   LookupColumn,
   QrCodeColumn,

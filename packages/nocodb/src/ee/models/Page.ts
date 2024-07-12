@@ -1,8 +1,4 @@
-import Base from './Base';
 import Noco from '~/Noco';
-import { MetaTable } from '~/utils/globals';
-
-const { v4: uuidv4 } = require('uuid');
 
 // todo: Remove this as Page DAO exists. Exists due to dependent logic in Workspace model
 export default class Page {
@@ -18,13 +14,7 @@ export default class Page {
     Object.assign(this, attr);
   }
 
-  public static async tableName({
-    baseId,
-    workspaceId,
-  }: {
-    baseId: string;
-    workspaceId?: string;
-  }) {
+  public static async tableName(_: { baseId: string; workspaceId?: string }) {
     throw new Error('Not implemented.');
     /* const prefix = 'nc_d_page_';
     if (workspaceId) return `${prefix}${workspaceId}`;
@@ -34,8 +24,8 @@ export default class Page {
   }
 
   static async createPageTable(
-    { baseId, workspaceId }: { baseId: string; workspaceId?: string },
-    ncMeta = Noco.ncMeta,
+    _: { baseId: string; workspaceId?: string },
+    _ncMeta = Noco.ncMeta,
   ) {
     throw new Error('Not implemented.');
     /* const knex = ncMeta.knex;

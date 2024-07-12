@@ -1,8 +1,5 @@
 import type { LayoutReqType, LayoutType } from 'nocodb-sdk';
-import { extractProps } from '~/helpers/extractProps';
-import { MetaTable } from '~/utils/globals';
 import Noco from '~/Noco';
-import Widget from '~/models/Widget';
 
 export default class Layout implements LayoutType {
   id?: string;
@@ -16,7 +13,7 @@ export default class Layout implements LayoutType {
     Object.assign(this, layout);
   }
 
-  public static async delete(layoutId: string, ncMeta = Noco.ncMeta) {
+  public static async delete(layoutId: string, _ncMeta = Noco.ncMeta) {
     throw new Error('Not implemented');
 
     /* const layout = await this.get(layoutId, ncMeta);
@@ -36,7 +33,7 @@ export default class Layout implements LayoutType {
     return layout; */
   }
 
-  public static async get(layoutId: string, ncMeta = Noco.ncMeta) {
+  public static async get(layoutId: string, _ncMeta = Noco.ncMeta) {
     throw new Error('Not implemented');
     // TODO: Caching
     /* const layout = await ncMeta.metaGet2(
@@ -63,7 +60,7 @@ export default class Layout implements LayoutType {
     param: {
       dashboard_id: string;
     },
-    ncMeta = Noco.ncMeta,
+    _ncMeta = Noco.ncMeta,
   ) {
     throw new Error('Not implemented');
     // TODO: Caching
@@ -81,7 +78,7 @@ export default class Layout implements LayoutType {
     return layouts?.map((h) => new Layout(h)); */
   }
 
-  public static async insert(layout: Partial<Layout>, ncMeta = Noco.ncMeta) {
+  public static async insert(layout: Partial<Layout>, _ncMeta = Noco.ncMeta) {
     throw new Error('Not implemented');
 
     /* const insertObj = extractProps(layout, [
@@ -107,7 +104,7 @@ export default class Layout implements LayoutType {
   public static async update(
     layoutId: string,
     layout: Partial<Layout>,
-    ncMeta = Noco.ncMeta,
+    _ncMeta = Noco.ncMeta,
   ) {
     throw new Error('Not implemented');
 

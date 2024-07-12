@@ -1,19 +1,11 @@
 import 'mocha';
 import request from 'supertest';
 import { UITypes } from 'nocodb-sdk';
-import { expect } from 'chai';
 import init from '../../init';
-import { createProject, createSakilaProject } from '../../factory/base';
-import {
-  createColumn,
-  createQrCodeColumn,
-  deleteColumn,
-} from '../../factory/column';
-import { createTable, getColumnsByAPI, getTable } from '../../factory/table';
-import { createBulkRows, listRow, rowMixedValue } from '../../factory/row';
+import { createProject } from '../../factory/base';
+import { createTable } from '../../factory/table';
 import type Model from '../../../../src/models/Model';
 import type Base from '~/models/Base';
-import type Column from '../../../../src/models/Column';
 
 // Test case list
 // 1. Advanced link creation
@@ -68,24 +60,26 @@ function columnTests() {
       console.timeEnd('#### columnTypeSpecificTests');
     });
 
-    it.only('Create HM relation', async () => {
-      let table1: Model;
-      let table2: Model;
-
-      table1 = await createTable(context, base.id, {
+    it('Create HM relation', async () => {
+      const country = await createTable(context, base.id, {
         title: 'Country',
         columns: defaultTableColumns,
       });
-      table2 = await createTable(context, base.id, {
+      const city = await createTable(context, base.id, {
         title: 'City',
         columns: [
           ...defaultTableColumns,
           {
-            title: 'Table1Id',
+            title: 'CountryId',
             uidt: UITypes.Number,
           },
         ],
       });
+
+      const pkColumn = (await country.getColumns()).find((column) => column.pk);
+      const fkColumn = (await city.getColumns()).find(
+        (column) => column.title === 'CountryId',
+      );
 
       const response = await request(context.app)
         .post(`/api/v1/db/meta/projects/${base.id}/columns`)
@@ -94,16 +88,16 @@ function columnTests() {
           title: 'Country',
           uidt: UITypes.Links,
           custom: {
-            base_id: meta.value?.base_id,
-            column_id: pkColumn.value?.id,
-            junc_base_id: meta.value?.base_id,
+            base_id: base.id,
+            column_id: pkColumn?.id,
+            ref_model_id: city.id,
+            ref_column_id: fkColumn?.id,
           },
         });
-    });
-    it.only('Create MM relation', async () => {
-      let table1: Model;
-      let table2: Model;
 
+      console.log(response.body);
+    });
+    it('Create MM relation', async () => {
       const film = await createTable(context, base.id, {
         title: 'Film',
         columns: defaultTableColumns,
@@ -132,6 +126,16 @@ function columnTests() {
           },
         ],
       });
+
+      const pkColumn = (await actor.getColumns()).find((column) => column.pk);
+      const refPkColumn = (await film.getColumns()).find((column) => column.pk);
+      const junColId = (await filmActor.getColumns()).find(
+        (column) => column.title === 'ActorId',
+      );
+      const juRefColId = (await filmActor.getColumns()).find(
+        (column) => column.title === 'FilmId',
+      );
+
       const response = await request(context.app)
         .post(`/api/v1/db/meta/projects/${base.id}/columns`)
         .set('xc-auth', context.token)
@@ -139,11 +143,18 @@ function columnTests() {
           title: 'Actor',
           uidt: UITypes.Links,
           custom: {
-            base_id: meta.value?.base_id,
-            column_id: pkColumn.value?.id,
-            junc_base_id: meta.value?.base_id,
+            base_id: base.id,
+            junc_base_id: base.id,
+            column_id: pkColumn?.id,
+            junc_model_id: filmActor.id,
+            junc_column_id: junColId?.id,
+            junc_ref_column_id: juRefColId?.id,
+            ref_model_id: film.id,
+            ref_column_id: refPkColumn?.id,
           },
         });
+
+      console.log(response.body);
     });
   });
 }

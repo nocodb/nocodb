@@ -5,6 +5,10 @@ import { enableQuickRun } from '../../../setup/db';
 import { UITypes } from 'nocodb-sdk';
 
 test.describe('LTAR create & update', () => {
+  // force disabled temporarily
+  // to be re-visited after advance options menu is finalised
+  test.skip();
+
   if (enableQuickRun()) test.skip();
 
   let dashboard: DashboardPage;

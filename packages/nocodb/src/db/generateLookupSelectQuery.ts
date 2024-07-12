@@ -1,4 +1,4 @@
-import { isVirtualCol, RelationTypes, UITypes } from 'nocodb-sdk';
+import { RelationTypes, UITypes } from 'nocodb-sdk';
 import type LookupColumn from '../models/LookupColumn';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type {

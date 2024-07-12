@@ -328,8 +328,8 @@ const isDuplicateAllowed = computed(() => {
   return (
     column?.value &&
     !column.value.system &&
-    ((!isMetaReadOnly.value && !isDataReadOnly.value) || readonlyMetaAllowedTypes.includes(column.value?.uidt))
-    && !column.value.meta?.custom
+    ((!isMetaReadOnly.value && !isDataReadOnly.value) || readonlyMetaAllowedTypes.includes(column.value?.uidt)) &&
+    !column.value.meta?.custom
   )
 })
 const isFilterSupported = computed(

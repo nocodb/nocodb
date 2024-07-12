@@ -2015,7 +2015,7 @@ class BaseModelSqlv2 {
         ).orWhereNull(rcn);
       });
 
-     const aliasColObjMap = await childTable.getAliasColObjMap(this.context);
+    const aliasColObjMap = await childTable.getAliasColObjMap(this.context);
     const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
 
     await this.getCustomConditionsAndApply({
@@ -2199,8 +2199,12 @@ class BaseModelSqlv2 {
     const rcn = (await relColOptions.getParentColumn(this.context)).column_name;
     const cn = (await relColOptions.getChildColumn(this.context)).column_name;
 
-    const childTable = await (await relColOptions.getParentColumn(this.cotext)).getModel(this.cotext);
-    const parentTable = await (await relColOptions.getChildColumn(this.cotext)).getModel(this.cotext);
+    const childTable = await (
+      await relColOptions.getParentColumn(this.cotext)
+    ).getModel(this.cotext);
+    const parentTable = await (
+      await relColOptions.getChildColumn(this.cotext)
+    ).getModel(this.cotext);
     await parentTable.getColumns();
     const parentBaseModel = await Model.getBaseModelSQL({
       id: parentTable.id,
@@ -5881,7 +5885,7 @@ class BaseModelSqlv2 {
             await triggerAfterRemoveChild();
 
             await this.updateLastModified({
-            baseModel: parentBaseModel,
+              baseModel: parentBaseModel,
               model: parentTable,
               rowIds: [childId],
               cookie,

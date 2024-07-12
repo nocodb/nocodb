@@ -2190,7 +2190,7 @@ class BaseModelSqlv2 {
     )) as LinkToAnotherRecordColumn;
 
     const mmTable = await relColOptions.getMMModel(this.context);
-    const assocBaseModel = await Model.getBaseModelSQL(this.context,{
+    const assocBaseModel = await Model.getBaseModelSQL(this.context, {
       id: mmTable.id,
       dbDriver: this.dbDriver,
     });
@@ -2407,7 +2407,7 @@ class BaseModelSqlv2 {
 
     const childView = await relColOptions.getChildView(this.context);
 
-    const childBaseModel = await Model.getBaseModelSQL(this.context,{
+    const childBaseModel = await Model.getBaseModelSQL(this.context, {
       dbDriver: this.dbDriver,
       model: childTable,
     });
@@ -2476,7 +2476,7 @@ class BaseModelSqlv2 {
       dbDriver: this.dbDriver,
       model: childTable,
     });
-    const childBaseModel = await Model.getBaseModelSQL(this.context,{
+    const childBaseModel = await Model.getBaseModelSQL(this.context, {
       dbDriver: this.dbDriver,
       model: childTable,
     });
@@ -2580,7 +2580,7 @@ class BaseModelSqlv2 {
       await relColOptions.getChildColumn(this.context)
     ).getModel(this.context);
 
-    const parentBaseModel = await Model.getBaseModelSQL(this.context,{
+    const parentBaseModel = await Model.getBaseModelSQL(this.context, {
       dbDriver: this.dbDriver,
       model: parentTable,
     });
@@ -2646,11 +2646,11 @@ class BaseModelSqlv2 {
     ).getModel(this.context);
 
     const childView = await relColOptions.getChildView(this.context);
-    const parentBaseModel = await Model.getBaseModelSQL(this.context,{
+    const parentBaseModel = await Model.getBaseModelSQL(this.context, {
       dbDriver: this.dbDriver,
       model: parentTable,
     });
-    const childBaseModel = await Model.getBaseModelSQL(this.context,{
+    const childBaseModel = await Model.getBaseModelSQL(this.context, {
       dbDriver: this.dbDriver,
       model: childTable,
     });
@@ -5587,12 +5587,12 @@ class BaseModelSqlv2 {
     await childTable.getColumns(this.context);
     await parentTable.getColumns(this.context);
 
-    const parentBaseModel = await Model.getBaseModelSQL(this.context,{
+    const parentBaseModel = await Model.getBaseModelSQL(this.context, {
       model: parentTable,
       dbDriver: this.dbDriver,
     });
 
-    const childBaseModel = await Model.getBaseModelSQL(this.context,{
+    const childBaseModel = await Model.getBaseModelSQL(this.context, {
       dbDriver: this.dbDriver,
       model: childTable,
     });
@@ -5654,7 +5654,7 @@ class BaseModelSqlv2 {
           const vParentCol = await colOptions.getMMParentColumn(this.context);
           const vTable = await colOptions.getMMModel(this.context);
 
-          const assocBaseModel = await Model.getBaseModelSQL(this.context,{
+          const assocBaseModel = await Model.getBaseModelSQL(this.context, {
             model: vTable,
             dbDriver: this.dbDriver,
           });
@@ -5722,6 +5722,7 @@ class BaseModelSqlv2 {
         {
           const linkedHmRowObj = await this.execAndParse(
             this.dbDriver(childTn)
+              .select(childTable.primaryKeys.map((pk) => pk.column_name))
               .select(`${childTable.table_name}.${childColumn.column_name}`)
               .where(_wherePk(childTable.primaryKeys, childId)),
             null,
@@ -5729,7 +5730,7 @@ class BaseModelSqlv2 {
           );
 
           const oldRowId = linkedHmRowObj
-            ? Object.values(linkedHmRowObj)?.[0]
+            ? linkedHmRowObj?.[childTable.primaryKey?.column_name]
             : null;
 
           if (oldRowId) {
@@ -5834,6 +5835,7 @@ class BaseModelSqlv2 {
           } else {
             const linkedHmRowObj = await this.execAndParse(
               this.dbDriver(childTn)
+                .select(childTable.primaryKeys.map((pk) => pk.column_name))
                 .select(childColumn.column_name)
                 .where(_wherePk(childTable.primaryKeys, rowId)),
               null,
@@ -5841,7 +5843,7 @@ class BaseModelSqlv2 {
             );
 
             const oldChildRowId = linkedHmRowObj
-              ? Object.values(linkedHmRowObj)?.[0]
+              ? linkedHmRowObj[childTable.primaryKeys[0]?.column_name]
               : null;
 
             if (oldChildRowId) {
@@ -5913,6 +5915,7 @@ class BaseModelSqlv2 {
             // 1. check current row is linked with another child
             linkedCurrentOoRowObj = await this.execAndParse(
               this.dbDriver(childTn)
+                .select(childTable.primaryKeys.map((pk) => pk.column_name))
                 .select(childColumn.column_name)
                 .where(_wherePk(childTable.primaryKeys, rowId)),
               null,
@@ -5920,7 +5923,7 @@ class BaseModelSqlv2 {
             );
 
             const oldChildRowId = linkedCurrentOoRowObj
-              ? Object.values(linkedCurrentOoRowObj)?.[0]
+              ? linkedCurrentOoRowObj[childTable.primaryKeys[0]?.column_name]
               : null;
 
             if (oldChildRowId) {
@@ -6062,6 +6065,7 @@ class BaseModelSqlv2 {
             // 2. check current child is linked with another row cell
             linkedOoRowObj = await this.execAndParse(
               this.dbDriver(childTn)
+                .select(childColumn.column_name)
                 .select(childColumn.column_name)
                 .where(_wherePk(childTable.primaryKeys, childId)),
               null,
@@ -6260,12 +6264,12 @@ class BaseModelSqlv2 {
     await childTable.getColumns(this.context);
     await parentTable.getColumns(this.context);
 
-    const parentBaseModel = await Model.getBaseModelSQL(this.context,{
+    const parentBaseModel = await Model.getBaseModelSQL(this.context, {
       model: parentTable,
       dbDriver: this.dbDriver,
     });
 
-    const childBaseModel = await Model.getBaseModelSQL(this.context,{
+    const childBaseModel = await Model.getBaseModelSQL(this.context, {
       dbDriver: this.dbDriver,
       model: childTable,
     });
@@ -6304,7 +6308,7 @@ class BaseModelSqlv2 {
           const vChildCol = await colOptions.getMMChildColumn(this.context);
           const vParentCol = await colOptions.getMMParentColumn(this.context);
           const vTable = await colOptions.getMMModel(this.context);
-          const assocBaseModel = await Model.getBaseModelSQL(this.context,{
+          const assocBaseModel = await Model.getBaseModelSQL(this.context, {
             model: vTable,
             dbDriver: this.dbDriver,
           });
@@ -7367,12 +7371,12 @@ class BaseModelSqlv2 {
     await childTable.getColumns(this.context);
     await parentTable.getColumns(this.context);
 
-    const childBaseModel = await Model.getBaseModelSQL(this.context,{
+    const childBaseModel = await Model.getBaseModelSQL(this.context, {
       model: childTable,
       dbDriver: this.dbDriver,
     });
 
-    const parentBaseModel = await Model.getBaseModelSQL(this.context,{
+    const parentBaseModel = await Model.getBaseModelSQL(this.context, {
       model: childTable,
       dbDriver: this.dbDriver,
     });
@@ -7757,7 +7761,7 @@ class BaseModelSqlv2 {
     await childTable.getColumns(this.context);
     await parentTable.getColumns(this.context);
 
-    const childBaseModel = await Model.getBaseModelSQL(this.context,{
+    const childBaseModel = await Model.getBaseModelSQL(this.context, {
       model: childTable,
       dbDriver: this.dbDriver,
     });

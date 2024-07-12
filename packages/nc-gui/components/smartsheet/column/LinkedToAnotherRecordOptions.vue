@@ -157,7 +157,6 @@ const handleUpdateRefTable = () => {
     updateFieldName()
   })
 }
-const oneToOneEnabled = ref(false)
 
 const isAdvancedOptionsShownEasterEgg = ref(false)
 
@@ -196,9 +195,7 @@ const handleShowAdvanceOptions = () => {
 </script>
 
 <template>
-  <div class="w-full flex flex-col mb-2 mt-1">
-    <div class="mb-2">Relation Type <span class="text-red-500">*</span></div>
-    <div class="border-2 p-6">
+  <div class="w-full flex flex-col gap-4">
     <div class="flex flex-col gap-4">
       <a-form-item :label="$t('labels.relationType')" v-bind="validateInfos.type" class="nc-ltar-relation-type">
         <a-radio-group v-model:value="linkType" name="type" v-bind="validateInfos.type" :disabled="isEdit">
@@ -214,7 +211,7 @@ const handleShowAdvanceOptions = () => {
             </span>
             {{ $t('title.hasMany') }}
           </a-radio>
-          <a-radio value="oo" data-testid="One to One">
+          <a-radio value="oo" data-testid="One to One" @dblclick="handleShowAdvanceOptions">
             <span class="nc-ltar-icon nc-oo-icon">
               <GeneralIcon icon="oneToOneSolid" />
             </span>
@@ -223,117 +220,109 @@ const handleShowAdvanceOptions = () => {
         </a-radio-group>
       </a-form-item>
     </div>
-    <div v-if="isAdvancedOptionsShownEasterEgg && isEeUI" class="mt-4">
+    <div v-if="isAdvancedOptionsShownEasterEgg && isEeUI">
       <a-switch v-model:checked="vModel.is_custom_link" size="small" name="Custom" @change="onCustomSwitchToggle" />
       <span class="ml-3">Advanced Link</span>
     </div>
-    <div
-      :class="{
-        'mt-3': isAdvancedOptionsShownEasterEgg,
-        'mt-4': !isAdvancedOptionsShownEasterEgg,
-      }"
-    >
-      <LazySmartsheetColumnLinkAdvancedOptions v-if="isEeUI && vModel.is_custom_link" v-model:value="vModel" />
-      <template v-else>
-        <a-form-item class="flex w-full pb-2 nc-ltar-child-table" v-bind="validateInfos.childId">
-          <a-select
+    <div v-if="isEeUI && vModel.is_custom_link" :class="{}">
+      <LazySmartsheetColumnLinkAdvancedOptions v-model:value="vModel" :meta="meta" />
+    </div>
+    <template v-else>
+      <a-form-item class="flex w-full pb-2 nc-ltar-child-table" v-bind="validateInfos.childId">
+        <a-select
           v-model:value="referenceTableChildId"
-            show-search
+          show-search
           :disabled="isEdit"
-            :filter-option="filterOption"
+          :filter-option="filterOption"
           placeholder="select table to link"
-            dropdown-class-name="nc-dropdown-ltar-child-table"
+          dropdown-class-name="nc-dropdown-ltar-child-table"
           @change="handleUpdateRefTable"
-          >
+        >
           <template #suffixIcon>
             <GeneralIcon icon="arrowDown" class="text-gray-700" />
           </template>
-            <a-select-option v-for="table of refTables" :key="table.title" :value="table.id">
-              <div class="flex w-full items-center gap-2">
-                <div class="min-w-5 flex items-center justify-center">
-                  <GeneralTableIcon :meta="table" class="text-gray-500" />
-                </div>
-                <NcTooltip class="flex-1 truncate" show-on-truncate-only>
-                  <template #title>{{ table.title }}</template>
-                  <span>{{ table.title }}</span>
-                </NcTooltip>
+          <a-select-option v-for="table of refTables" :key="table.title" :value="table.id">
+            <div class="flex w-full items-center gap-2">
+              <div class="min-w-5 flex items-center justify-center">
+                <GeneralTableIcon :meta="table" class="text-gray-500" />
               </div>
-            </a-select-option>
-            <template #suffixIcon>
-              <GeneralIcon class="" icon="chevronDown" />
-            </template>
-          </a-select>
-        </a-form-item>
-      </template>
+              <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                <template #title>{{ table.title }}</template>
+                <span>{{ table.title }}</span>
+              </NcTooltip>
+            </div>
+          </a-select-option>
+        </a-select>
+      </a-form-item>
+    </template>
 
-      <div v-if="isEeUI" class="w-full flex-col">
-        <div class="flex gap-2 items-center" :class="{ 'mb-2': limitRecToView }">
-          <a-switch
-            v-model:checked="limitRecToView"
-            v-e="['c:link:limit-record-by-view', { status: limitRecToView }]"
-            size="small"
-            :disabled="!vModel.childId"
-            @change="onLimitRecToViewChange"
-          ></a-switch>
-          <span
-            v-e="['c:link:limit-record-by-view', { status: limitRecToView }]"
-            class="text-s"
-            data-testid="nc-limit-record-view"
-            @click="limitRecToView = !!vModel.childId && !limitRecToView"
-            >Limit record selection to a view</span
-          >
-        </div>
-        <a-form-item v-if="limitRecToView" class="!pl-8 flex w-full pb-2 mt-4 space-y-2 nc-ltar-child-view">
-          <NcSelect
-            v-model:value="vModel.childViewId"
-            :placeholder="$t('labels.selectView')"
-            show-search
-            :filter-option="filterOption"
-            dropdown-class-name="nc-dropdown-ltar-child-view"
-          >
-            <a-select-option v-for="view of refViews" :key="view.title" :value="view.id">
-              <div class="flex w-full items-center gap-2">
-                <div class="min-w-5 flex items-center justify-center">
-                  <GeneralViewIcon :meta="view" class="text-gray-500" />
-                </div>
-                <NcTooltip class="flex-1 truncate" show-on-truncate-only>
-                  <template #title>{{ view.title }}</template>
-                  <span>{{ view.title }}</span>
-                </NcTooltip>
-              </div>
-            </a-select-option>
-          </NcSelect>
-        </a-form-item>
-
-        <div class="mt-4 flex gap-2 items-center" :class="{ 'mb-2': limitRecToCond }">
-          <a-switch
-            v-model:checked="limitRecToCond"
-            v-e="['c:link:limit-record-by-filter', { status: limitRecToCond }]"
-            :disabled="!vModel.childId"
-            size="small"
-          ></a-switch>
-          <span
-            v-e="['c:link:limit-record-by-filter', { status: limitRecToCond }]"
-            data-testid="nc-limit-record-filters"
-            @click="limitRecToCond = !!vModel.childId && !limitRecToCond"
-          >
-            Limit record selection to filters
-          </span>
-        </div>
-        <div v-if="limitRecToCond" class="overflow-auto">
-          <LazySmartsheetToolbarColumnFilter
-            ref="filterRef"
-            v-model="vModel.filters"
-            class="!pl-8 !p-0 max-w-620px"
-            :auto-save="false"
-            :show-loading="false"
-            :link="true"
-            :root-meta="meta"
-            :link-col-id="vModel.id"
-          />
-        </div>
+    <template v-if="isEeUI">
+      <div class="flex gap-2 items-center" :class="{ 'mb-2': limitRecToView }">
+        <a-switch
+          v-model:checked="limitRecToView"
+          v-e="['c:link:limit-record-by-view', { status: limitRecToView }]"
+          size="small"
+          :disabled="!vModel.childId"
+          @change="onLimitRecToViewChange"
+        ></a-switch>
+        <span
+          v-e="['c:link:limit-record-by-view', { status: limitRecToView }]"
+          class="text-s"
+          data-testid="nc-limit-record-view"
+          @click="limitRecToView = !!vModel.childId && !limitRecToView"
+          >Limit record selection to a view</span
+        >
       </div>
-    </div>
+      <a-form-item v-if="limitRecToView" class="!pl-8 flex w-full pb-2 mt-4 space-y-2 nc-ltar-child-view">
+        <NcSelect
+          v-model:value="vModel.childViewId"
+          :placeholder="$t('labels.selectView')"
+          show-search
+          :filter-option="filterOption"
+          dropdown-class-name="nc-dropdown-ltar-child-view"
+        >
+          <a-select-option v-for="view of refViews" :key="view.title" :value="view.id">
+            <div class="flex w-full items-center gap-2">
+              <div class="min-w-5 flex items-center justify-center">
+                <GeneralViewIcon :meta="view" class="text-gray-500" />
+              </div>
+              <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                <template #title>{{ view.title }}</template>
+                <span>{{ view.title }}</span>
+              </NcTooltip>
+            </div>
+          </a-select-option>
+        </NcSelect>
+      </a-form-item>
+
+      <div class="flex gap-2 items-center" :class="{ 'mb-2': limitRecToCond }">
+        <a-switch
+          v-model:checked="limitRecToCond"
+          v-e="['c:link:limit-record-by-filter', { status: limitRecToCond }]"
+          :disabled="!vModel.childId"
+          size="small"
+        ></a-switch>
+        <span
+          v-e="['c:link:limit-record-by-filter', { status: limitRecToCond }]"
+          data-testid="nc-limit-record-filters"
+          @click="limitRecToCond = !!vModel.childId && !limitRecToCond"
+        >
+          Limit record selection to filters
+        </span>
+      </div>
+      <div v-if="limitRecToCond" class="overflow-auto">
+        <LazySmartsheetToolbarColumnFilter
+          ref="filterRef"
+          v-model="vModel.filters"
+          class="!pl-8 !p-0 max-w-620px"
+          :auto-save="false"
+          :show-loading="false"
+          :link="true"
+          :root-meta="meta"
+          :link-col-id="vModel.id"
+        />
+      </div>
+    </template>
     <template v-if="(!isXcdbBase && !isEdit) || isLinks">
       <div>
         <NcButton
@@ -349,8 +338,7 @@ const handleShowAdvanceOptions = () => {
 
             <GeneralIcon :icon="advancedOptions ? 'arrowUp' : 'arrowDown'" class="h-4 w-4" />
           </div>
-
-    </NcButton>
+        </NcButton>
       </div>
 
       <div v-if="advancedOptions" class="flex flex-col gap-4">

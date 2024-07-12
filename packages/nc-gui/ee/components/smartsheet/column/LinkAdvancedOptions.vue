@@ -16,7 +16,6 @@ import {
   useBase,
   useBases,
   useColumnCreateStoreOrThrow,
-  useI18n,
   useMetas,
   useTablesStore,
   useVModel,
@@ -24,13 +23,12 @@ import {
 
 const props = defineProps<{
   value: any
+  meta: TableType
 }>()
 
 const emit = defineEmits(['update:value'])
 
-const { t } = useI18n()
-
-const meta = inject(MetaInj, ref({} as TableType))
+const meta = toRef(props, 'meta')
 
 const vModel = useVModel(props, 'value', emit)
 
@@ -90,7 +88,7 @@ const columns = computed(() => {
   }
 
   return meta.value.columns?.filter(
-    (c) => !isCreatedOrLastModifiedByCol(c) && !isCreatedOrLastModifiedTimeCol(c) && !isVirtualCol(c) && !c.system,
+    (c) => !isCreatedOrLastModifiedByCol(c) && !isCreatedOrLastModifiedTimeCol(c) && !isVirtualCol(c) && !c.system
   )
 })
 
@@ -207,7 +205,9 @@ const sqlUi = computed(() => (meta.value?.source_id ? sqlUis.value[meta.value?.s
       <div class="nc-relation-settings-table flex flex-col">
         <div class="nc-relation-settings-table-header">Source</div>
 
-        <a-form-item class="nc-relation-settings-table-row disabled nc-ltar-source-base">
+        <!--
+       Disabled inter-base link at the moment
+          <a-form-item class="nc-relation-settings-table-row disabled nc-ltar-source-base">
           <NcSelect
             suffix-icon="chevronDown"
             :value="meta.base_id"
@@ -230,7 +230,7 @@ const sqlUi = computed(() => (meta.value?.source_id ? sqlUis.value[meta.value?.s
               </div>
             </a-select-option>
           </NcSelect>
-        </a-form-item>
+        </a-form-item> -->
 
         <a-form-item class="nc-relation-settings-table-row disabled nc-ltar-source-table">
           <NcSelect
@@ -295,7 +295,9 @@ const sqlUi = computed(() => (meta.value?.source_id ? sqlUis.value[meta.value?.s
       <template v-if="isMm">
         <div class="nc-relation-settings-table flex flex-col">
           <div class="nc-relation-settings-table-header">Junction</div>
-          <a-form-item class="nc-relation-settings-table-row nc-ltar-junction-base">
+          <!--
+       Disabled inter-base link at the moment
+       <a-form-item class="nc-relation-settings-table-row nc-ltar-junction-base">
             <NcSelect
               v-model:value="vModel.custom.junc_base_id"
               suffix-icon="chevronDown"
@@ -318,7 +320,7 @@ const sqlUi = computed(() => (meta.value?.source_id ? sqlUis.value[meta.value?.s
                 </div>
               </a-select-option>
             </NcSelect>
-          </a-form-item>
+          </a-form-item> -->
           <a-form-item
             class="nc-relation-settings-table-row nc-ltar-junction-table"
             v-bind="validateInfos['custom.junc_model_id']"
@@ -459,7 +461,8 @@ const sqlUi = computed(() => (meta.value?.source_id ? sqlUis.value[meta.value?.s
 
       <div class="nc-relation-settings-table flex flex-col">
         <div class="nc-relation-settings-table-header">Child</div>
-
+        <!--
+       Disabled inter-base link at the moment
         <a-form-item class="nc-relation-settings-table-row nc-ltar-child-base">
           <NcSelect
             v-model:value="vModel.custom.base_id"
@@ -483,7 +486,7 @@ const sqlUi = computed(() => (meta.value?.source_id ? sqlUis.value[meta.value?.s
               </div>
             </a-select-option>
           </NcSelect>
-        </a-form-item>
+        </a-form-item> -->
 
         <a-form-item class="nc-relation-settings-table-row nc-ltar-child-table" v-bind="validateInfos['custom.ref_model_id']">
           <NcSelect

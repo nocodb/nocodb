@@ -220,7 +220,7 @@ const onCustomSwitchToggle = () => {
     <div class="mt-3">
       <LazySmartsheetColumnLinkAdvancedOptions v-if="vModel.is_custom_link" v-model:value="vModel" />
       <template v-else>
-        <a-form-item class="flex w-full pb-2 nc-ltar-child-table" v-bind="validateInfos.childId">
+        <a-form-item class="flex w-full pb-2 nc-ltar-child-table" v-bind="validateInfos['childId']">
           <a-select
           v-model:value="referenceTableChildId"
             show-search
@@ -244,6 +244,9 @@ const onCustomSwitchToggle = () => {
                 </NcTooltip>
               </div>
             </a-select-option>
+            <template #suffixIcon>
+              <GeneralIcon class="" icon="chevronDown" />
+            </template>
           </a-select>
         </a-form-item>
       </template>

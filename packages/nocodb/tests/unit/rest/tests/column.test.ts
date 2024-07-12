@@ -6,12 +6,14 @@ import init from '../../init';
 import { createProject } from '../../factory/base';
 import { createTable } from '../../factory/table';
 import { createBulkRows, createChildRow, listRow } from '../../factory/row';
+import type { NcContext } from '../../../../src/interface/config';
 import type Base from '~/models/Base';
 
 // Test case list
 // 1. Advanced link creation
 function columnTests() {
   let context;
+  let ctx: NcContext;
   let base: Base;
 
   const defaultTableColumns = [
@@ -29,6 +31,11 @@ function columnTests() {
       context = await init(true);
 
       base = await createProject(context);
+
+      ctx = {
+        workspace_id: base.fk_workspace_id,
+        base_id: base.id,
+      };
 
       console.timeEnd('#### columnTypeSpecificTests');
     });
@@ -52,10 +59,10 @@ function columnTests() {
         ],
       });
 
-      const pkColumn = (await country.getColumns(context)).find(
+      const pkColumn = (await country.getColumns(ctx)).find(
         (column) => column.pk,
       );
-      const fkColumn = (await city.getColumns(context)).find(
+      const fkColumn = (await city.getColumns(ctx)).find(
         (column) => column.title === 'CountryId',
       );
 
@@ -177,16 +184,16 @@ function columnTests() {
         ],
       });
 
-      const pkColumn = (await actor.getColumns(context)).find(
+      const pkColumn = (await actor.getColumns(ctx)).find(
         (column) => column.pk,
       );
-      const refPkColumn = (await film.getColumns(context)).find(
+      const refPkColumn = (await film.getColumns(ctx)).find(
         (column) => column.pk,
       );
-      const junColId = (await filmActor.getColumns(context)).find(
+      const junColId = (await filmActor.getColumns(ctx)).find(
         (column) => column.title === 'ActorId',
       );
-      const juRefColId = (await filmActor.getColumns(context)).find(
+      const juRefColId = (await filmActor.getColumns(ctx)).find(
         (column) => column.title === 'FilmId',
       );
 

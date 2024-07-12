@@ -186,11 +186,8 @@ const onCustomSwitchToggle = () => {
 </script>
 
 <template>
-  <div class="w-full flex flex-col mb-2 mt-4">
-    <div class="mb-2">
-      Relation Type <span class="text-red-500">*</span>
-      <a-switch v-model:checked="vModel.is_custom_link" size="small" name="Custom" @change="onCustomSwitchToggle" /> Custom
-    </div>
+  <div class="w-full flex flex-col mb-2 mt-2">
+    <div class="mb-2">Relation Type <span class="text-red-500">*</span></div>
     <div class="border-2 p-6">
     <div class="flex flex-col gap-4">
       <a-form-item :label="$t('labels.relationType')" v-bind="validateInfos.type" class="nc-ltar-relation-type">
@@ -216,7 +213,11 @@ const onCustomSwitchToggle = () => {
         </a-radio-group>
       </a-form-item>
     </div>
-    <div class="mt-6">
+    <div class="mt-4">
+      <a-switch v-model:checked="vModel.is_custom_link" size="small" name="Custom" @change="onCustomSwitchToggle" />
+      <span class="ml-3">Advanced Link</span>
+    </div>
+    <div class="mt-3">
       <LazySmartsheetColumnLinkAdvancedOptions v-if="vModel.is_custom_link" v-model:value="vModel" />
       <template v-else>
         <a-form-item class="flex w-full pb-2 nc-ltar-child-table" v-bind="validateInfos.childId">

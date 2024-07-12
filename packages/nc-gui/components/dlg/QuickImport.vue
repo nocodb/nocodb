@@ -493,7 +493,6 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
 
         templateData.value.tables = templateData.value.tables.map((table: Record<string, any>) => {
           const table_name = populateUniqueTableName(table.table_name, draftTableNames)
-          console.log('table_name', table.table_name, table_name)
           draftTableNames.push(table_name)
           return { ...table, table_name }
         })

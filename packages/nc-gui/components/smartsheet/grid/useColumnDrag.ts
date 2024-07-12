@@ -109,7 +109,7 @@ export const useColumnDrag = ({
   const handleReorderColumn = async () => {
     isProcessing.value = true
     try {
-    if (!dragColPlaceholderDomRef.value) return
+      if (!dragColPlaceholderDomRef.value) return
 
       dragColPlaceholderDomRef.value!.style.left = '0px'
       dragColPlaceholderDomRef.value!.style.height = '0px'

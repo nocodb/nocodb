@@ -112,9 +112,7 @@ const hiddenFields = computed(() => {
     .filter(
       (col) =>
         !fields.value?.includes(col) &&
-        (isLocalMode.value && col?.id && fieldsMap.value[col.id] 
-          ? fieldsMap.value[col.id]?.initialShow
-          : true),
+        (isLocalMode.value && col?.id && fieldsMap.value[col.id] ? fieldsMap.value[col.id]?.initialShow : true),
     )
     .filter((col) => !isSystemColumn(col))
 })

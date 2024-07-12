@@ -47,7 +47,7 @@ export default async function ({
     case RelationTypes.HAS_MANY: {
       const queryBuilder: any = knex(
         knex.raw(`?? as ??`, [
-            childBaseModel.getTnPath(childModel),
+          childBaseModel.getTnPath(childModel),
           refTableAlias,
         ]),
       )
@@ -56,7 +56,7 @@ export default async function ({
         )
         .where(
           knex.ref(
-              `${alias || parentBaseModel.getTnPath(parentModel.table_name)}.${
+            `${alias || parentBaseModel.getTnPath(parentModel.table_name)}.${
               parentCol.column_name
             }`,
           ),
@@ -72,7 +72,7 @@ export default async function ({
     case RelationTypes.ONE_TO_ONE: {
       const qb = knex(
         knex.raw(`?? as ??`, [
-            childBaseModel.getTnPath(childModel?.table_name),
+          childBaseModel.getTnPath(childModel?.table_name),
           refTableAlias,
         ]),
       )
@@ -81,7 +81,7 @@ export default async function ({
         )
         .where(
           knex.ref(
-              `${alias || parentBaseModel.getTnPath(parentModel.table_name)}.${
+            `${alias || parentBaseModel.getTnPath(parentModel.table_name)}.${
               parentCol.column_name
             }`,
           ),
@@ -110,7 +110,7 @@ export default async function ({
 
       const qb = knex(
         knex.raw(`?? as ??`, [
-            parentBaseModel.getTnPath(parentModel?.table_name),
+          parentBaseModel.getTnPath(parentModel?.table_name),
           refTableAlias,
         ]),
       )
@@ -118,9 +118,9 @@ export default async function ({
           knex.ref(`${refTableAlias}.${rollupColumn.column_name}`),
         )
         .innerJoin(
-            assocBaseModel.getTnPath(mmModel.table_name),
+          assocBaseModel.getTnPath(mmModel.table_name),
           knex.ref(
-              `${assocBaseModel.getTnPath(mmModel.table_name)}.${
+            `${assocBaseModel.getTnPath(mmModel.table_name)}.${
               mmParentCol.column_name
             }`,
           ),
@@ -129,13 +129,13 @@ export default async function ({
         )
         .where(
           knex.ref(
-              `${assocBaseModel.getTnPath(mmModel.table_name)}.${
+            `${assocBaseModel.getTnPath(mmModel.table_name)}.${
               mmChildCol.column_name
             }`,
           ),
           '=',
           knex.ref(
-              `${alias || childBaseModel.getTnPath(childModel.table_name)}.${
+            `${alias || childBaseModel.getTnPath(childModel.table_name)}.${
               childCol.column_name
             }`,
           ),

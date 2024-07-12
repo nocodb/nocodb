@@ -157,10 +157,53 @@ const handleUpdateRefTable = () => {
     updateFieldName()
   })
 }
+const oneToOneEnabled = ref(false)
+
+
+const cusValidators = {
+  'custom.column_id': [
+    { required: true, message: t('general.required') }
+  ],
+  'custom.ref_model_id': [
+    { required: true, message: t('general.required') }
+  ],
+  'custom.ref_column_id': [
+    { required: true, message: t('general.required') }
+  ],
+}
+
+const cusJuncTableValidations = {
+  'custom.junc_model_id': [
+    { required: true, message: t('general.required') }
+  ],
+  'custom.junc_column_id': [
+    { required: true, message: t('general.required') }
+  ],
+  'custom.junc_ref_column_id': [
+    { required: true, message: t('general.required') }
+  ],
+}
+
+const onCustomSwitchToggle = () =>{
+  if(vModel.value?.is_custom_ltar)
+    setAdditionalValidations({
+      childId: [],
+      ...cusValidators,
+      ...(vModel.value.type === RelationTypes.MANY_TO_MANY ? cusJuncTableValidations : {})
+    })
+  else
+    setAdditionalValidations({
+      childId: [{ required: true, message: t('general.required') }],
+    })
+}
 </script>
 
 <template>
-  <div class="w-full flex flex-col gap-4">
+  <div class="w-full flex flex-col mb-2 mt-4">
+    <div class="pb-2">
+      <a-switch v-model:checked="vModel.is_custom_ltar" size="small" name="Custom" @change="onCustomSwitchToggle"/> Custom
+    </div>
+    <div class="border-2 p-6">
     <div class="flex flex-col gap-4">
       <a-form-item :label="$t('labels.relationType')" v-bind="validateInfos.type" class="nc-ltar-relation-type">
         <a-radio-group v-model:value="linkType" name="type" v-bind="validateInfos.type" :disabled="isEdit">
@@ -186,6 +229,13 @@ const handleUpdateRefTable = () => {
       </a-form-item>
 
       <a-form-item class="flex w-full nc-ltar-child-table" v-bind="validateInfos.childId">
+      <LazySmartsheetColumnLinkAdvancedOptions v-if="vModel.is_custom_ltar" v-model:value="vModel" class="mt-2" />
+      <template v-else>
+      <a-form-item
+        class="flex w-full pb-2 mt-4 nc-ltar-child-table"
+        :label="$t('labels.childTable')"
+        v-bind="validateInfos.childId"
+      >
         <a-select
           v-model:value="referenceTableChildId"
           show-search
@@ -211,6 +261,7 @@ const handleUpdateRefTable = () => {
           </a-select-option>
         </a-select>
       </a-form-item>
+      </template>
 
       <div v-if="isEeUI" class="w-full flex-col">
         <div class="flex gap-2 items-center" :class="{ 'mb-2': limitRecToView }">

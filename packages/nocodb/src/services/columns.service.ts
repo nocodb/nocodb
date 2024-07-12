@@ -2101,7 +2101,7 @@ export class ColumnsService {
 
     // check column association with any custom links or LTAR
     if (!isVirtualCol(column)) {
-      const columns = await table.getColumns(ncMeta);
+      const columns = await table.getColumns(context, ncMeta);
 
       let link = columns.find((c) => {
         return (
@@ -2115,7 +2115,7 @@ export class ColumnsService {
             (c.colOptions as LinkToAnotherRecordColumn)
               ?.fk_mm_parent_column_id === param.columnId)
         );
-      });
+      })?.colOptions as LinkToAnotherRecordColumn;
       if (!link) {
         link = await ncMeta.metaGet2(
           null,
@@ -2136,8 +2136,12 @@ export class ColumnsService {
 
       // if relation found then throw error
       if (link) {
-        const linkCol = await Column.get({ colId: link.fk_column_id }, ncMeta);
-        const table = await linkCol.getModel(ncMeta);
+        const linkCol = await Column.get(
+          context,
+          { colId: link.fk_column_id },
+          ncMeta,
+        );
+        const table = await linkCol.getModel(context, ncMeta);
         NcError.columnAssociatedWithLink(column.id, {
           customMessage: `Column is associated with Link column '${
             linkCol.title || linkCol.column_name
@@ -2648,7 +2652,7 @@ export class ColumnsService {
 
       await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
       // delete foreign key column
-      await Column.delete(childColumn.id, ncMeta);
+      await Column.delete(context, childColumn.id, ncMeta);
     }
   };
 

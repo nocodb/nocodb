@@ -239,8 +239,8 @@ export class TablesService {
       );
 
       if (relations.length) {
-        const relCol = await Column.get({ colId: relations[0].fk_column_id });
-        const relTable = await Model.get(relCol.fk_model_id);
+        const relCol = await Column.get(context, { colId: relations[0].fk_column_id });
+        const relTable = await Model.get(context,relCol.fk_model_id);
         NcError.tableAssociatedWithLink(table.id, {
           customMessage: `This is a many to many table for '${relTable?.title}' (${relTable?.title}), please delete the column before deleting the table.`,
         });

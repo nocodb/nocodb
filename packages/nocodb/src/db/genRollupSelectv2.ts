@@ -34,11 +34,11 @@ export default async function ({
   const parentModel = await parentCol?.getModel(context);
   const refTableAlias = `__nc_rollup`;
 
-  const parentBaseModel = await Model.getBaseModelSQL({
+  const parentBaseModel = await Model.getBaseModelSQL(this.context, {
     model: parentModel,
     dbDriver: knex,
   });
-  const childBaseModel = await Model.getBaseModelSQL({
+  const childBaseModel = await Model.getBaseModelSQL(this.context, {
     model: childModel,
     dbDriver: knex,
   });
@@ -98,7 +98,7 @@ export default async function ({
       const mmModel = await relationColumnOption.getMMModel(context);
       const mmChildCol = await relationColumnOption.getMMChildColumn(context);
       const mmParentCol = await relationColumnOption.getMMParentColumn(context);
-      const assocBaseModel = await Model.getBaseModelSQL({
+      const assocBaseModel = await Model.getBaseModelSQL(this.context, {
         id: mmModel.id,
         dbDriver: knex,
       });

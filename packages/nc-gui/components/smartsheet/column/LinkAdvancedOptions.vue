@@ -198,7 +198,6 @@ watch(pkColumn, () => {
 const { sqlUis } = storeToRefs(useBase())
 
 const sqlUi = computed(() => (meta.value?.source_id ? sqlUis.value[meta.value?.source_id] : Object.values(sqlUis.value)[0]))
-
 </script>
 
 <template>
@@ -381,7 +380,9 @@ const sqlUi = computed(() => (meta.value?.source_id ? sqlUis.value[meta.value?.s
                   </div>
                   <NcTooltip class="flex-1 truncate" :show-on-truncate-only="sqlUi.isEqual(sourceColumn?.dt, column.dt)">
                     <template #title>{{
-                      sqlUi.isEqual(sourceColumn?.dt, column.dt) ? column.title : `Incompatible with column '${sourceColumn?.title}'`
+                      sqlUi.isEqual(sourceColumn?.dt, column.dt)
+                        ? column.title
+                        : `Incompatible with column '${sourceColumn?.title}'`
                     }}</template>
                     <span>{{ column.title }}</span>
                   </NcTooltip>
@@ -426,12 +427,12 @@ const sqlUi = computed(() => (meta.value?.source_id ? sqlUis.value[meta.value?.s
                   </div>
                   <NcTooltip class="flex-1 truncate" :show-on-truncate-only="sqlUi.isEqual(sourceColumn?.dt, column.dt)">
                     <template #title>{{
-                      !sqlUi.isEqual(sourceColumn?.dt, column.dt) ? column.title : `Incompatible with column '${sourceColumn?.title}'`
+                      !sqlUi.isEqual(sourceColumn?.dt, column.dt)
+                        ? column.title
+                        : `Incompatible with column '${sourceColumn?.title}'`
                     }}</template>
-                    <span
-                      >{{ column.title }}
-
-                      {{ sourceColumn?.dt }} !== {{ column.dt }}
+                    <span>
+                      {{ column.title }}
                     </span>
                   </NcTooltip>
                 </div>
@@ -538,7 +539,9 @@ const sqlUi = computed(() => (meta.value?.source_id ? sqlUis.value[meta.value?.s
                 </div>
                 <NcTooltip class="flex-1 truncate" :show-on-truncate-only="sqlUi.isEqual(sourceColumn?.dt, column.dt)">
                   <template #title>{{
-                    sqlUi.isEqual(sourceColumn?.dt, column.dt) ? column.title : `Incompatible with column '${sourceColumn?.title}'`
+                    sqlUi.isEqual(sourceColumn?.dt, column.dt)
+                      ? column.title
+                      : `Incompatible with column '${sourceColumn?.title}'`
                   }}</template>
                   <span>{{ column.title }} </span>
                 </NcTooltip>

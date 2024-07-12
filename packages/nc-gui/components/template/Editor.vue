@@ -237,7 +237,7 @@ function parseTemplate({ tables = [], ...rest }: Props['baseTemplate']) {
       ...rest,
       columns: [
         ...columns.map((c: any, idx: number) => {
-          if (!importDataOnly && c.column_name?.toLowerCase() === 'id') {
+          if (!importDataOnly && (c.column_name?.toLowerCase() === 'id' || c.title?.toLowerCase() === 'id')) {
             const cn = populateUniqueColumnName('id', [], columns)
             c.title = cn
             c.column_name = cn

@@ -208,13 +208,14 @@ watch(pkColumn, () => {
         <div class="nc-relation-settings-table-header">Source</div>
 
         <a-form-item class="nc-relation-settings-table-row disabled nc-ltar-source-base">
-          <a-select
+          <NcSelect
+            suffixIcon="chevronDown"
             :value="meta.base_id"
             show-search
             :filter-option="filterOption"
             disabled
             :bordered="false"
-            dropdown-class-name="nc-dropdown-ltar-source-base"
+            dropdown-class-name="nc-relation-settings-select nc-dropdown-ltar-source-base"
           >
             <a-select-option v-for="base of basesList" :key="base.title" :value="base.id">
               <div class="flex w-full items-center gap-2">
@@ -230,17 +231,18 @@ watch(pkColumn, () => {
             <template #suffixIcon>
               <GeneralIcon class="" icon="chevronDown" />
             </template>
-          </a-select>
+          </NcSelect>
         </a-form-item>
 
         <a-form-item class="nc-relation-settings-table-row disabled nc-ltar-source-table">
-          <a-select
+          <NcSelect
+            suffixIcon="chevronDown"
             :value="activeTable?.id"
             show-search
             :filter-option="filterOption"
             disabled
             :bordered="false"
-            dropdown-class-name="nc-dropdown-ltar-source-table"
+            dropdown-class-name="nc-relation-settings-select nc-dropdown-ltar-source-table"
           >
             <a-select-option v-for="table of sourceTables" :key="table.title" :value="table.id">
               <div class="flex w-full items-center gap-2">
@@ -256,16 +258,17 @@ watch(pkColumn, () => {
             <template #suffixIcon>
               <GeneralIcon class="" icon="chevronDown" />
             </template>
-          </a-select>
+          </NcSelect>
         </a-form-item>
         <a-form-item class="nc-relation-settings-table-row nc-ltar-source-column" v-bind="validateInfos['custom.column_id']">
-          <a-select
+          <NcSelect
+            suffixIcon="chevronDown"
             v-model:value="vModel.custom.column_id"
             show-search
             placeholder="-select field-"
             :filter-option="filterOption"
             :bordered="false"
-            dropdown-class-name="nc-dropdown-ltar-source-column !text-xs"
+            dropdown-class-name="nc-relation-settings-select nc-dropdown-ltar-source-column !text-xs"
             @change="onSourceColumnChange"
           >
             <a-select-option v-for="column of columns" :key="column.title" :value="column.id">
@@ -286,7 +289,7 @@ watch(pkColumn, () => {
             <template #suffixIcon>
               <GeneralIcon class="" icon="chevronDown" />
             </template>
-          </a-select>
+          </NcSelect>
           <div class="nc-relation-settings-table-connector-point nc-right" :class="`column-type-${vModel.type}`"></div>
         </a-form-item>
       </div>
@@ -295,12 +298,13 @@ watch(pkColumn, () => {
         <div class="nc-relation-settings-table flex flex-col">
           <div class="nc-relation-settings-table-header">Junction</div>
           <a-form-item class="nc-relation-settings-table-row nc-ltar-junction-base">
-            <a-select
+            <NcSelect
+              suffixIcon="chevronDown"
               v-model:value="vModel.custom.junc_base_id"
               show-search
               :filter-option="filterOption"
               :bordered="false"
-              dropdown-class-name="nc-dropdown-ltar-junction-base"
+              dropdown-class-name="nc-relation-settings-select nc-dropdown-ltar-junction-base !rounded-md"
               @change="onBaseChange(vModel.custom.junc_base_id, true)"
             >
               <a-select-option v-for="base of basesList" :key="base.title" :value="base.id">
@@ -314,22 +318,20 @@ watch(pkColumn, () => {
                   </NcTooltip>
                 </div>
               </a-select-option>
-              <template #suffixIcon>
-                <GeneralIcon class="" icon="chevronDown" />
-              </template>
-            </a-select>
+            </NcSelect>
           </a-form-item>
           <a-form-item
             class="nc-relation-settings-table-row nc-ltar-junction-table"
             v-bind="validateInfos['custom.junc_model_id']"
           >
-            <a-select
+            <NcSelect
+              suffixIcon="chevronDown"
               v-model:value="vModel.custom.junc_model_id"
               show-search
               placeholder="-select table-"
               :bordered="false"
               :filter-option="filterOption"
-              dropdown-class-name="nc-dropdown-ltar-junction-table"
+              dropdown-class-name="nc-relation-settings-select nc-dropdown-ltar-junction-table"
               @change="onModelIdChange(vModel.custom.junc_model_id, true)"
             >
               <a-select-option v-for="table of junctionTables" :key="table.title" :value="table.id">
@@ -346,20 +348,21 @@ watch(pkColumn, () => {
               <template #suffixIcon>
                 <GeneralIcon class="" icon="chevronDown" />
               </template>
-            </a-select>
+            </NcSelect>
           </a-form-item>
 
           <a-form-item
             class="nc-relation-settings-table-row nc-ltar-source-junction-column"
             v-bind="validateInfos['custom.junc_column_id']"
           >
-            <a-select
+            <NcSelect
+              suffixIcon="chevronDown"
               v-model:value="vModel.custom.junc_column_id"
               show-search
               placeholder="-select field-"
               :bordered="false"
               :filter-option="filterOption"
-              dropdown-class-name="nc-dropdown-ltar-source-junction-column"
+              dropdown-class-name="nc-relation-settings-select nc-dropdown-ltar-source-junction-column"
               @change="onDataTypeChange"
             >
               <a-select-option
@@ -387,7 +390,7 @@ watch(pkColumn, () => {
               <template #suffixIcon>
                 <GeneralIcon class="" icon="chevronDown" />
               </template>
-            </a-select>
+            </NcSelect>
             <div class="nc-relation-settings-table-connector-point nc-left" :class="`column-type-${vModel.type}`"></div>
           </a-form-item>
 
@@ -395,13 +398,14 @@ watch(pkColumn, () => {
             class="nc-relation-settings-table-row nc-ltar-child-junction-column"
             v-bind="validateInfos['custom.junc_ref_column_id']"
           >
-            <a-select
+            <NcSelect
+              suffixIcon="chevronDown"
               v-model:value="vModel.custom.junc_ref_column_id"
               show-search
               placeholder="-select field-"
               :bordered="false"
               :filter-option="filterOption"
-              dropdown-class-name="nc-dropdown-ltar-child-junction-column"
+              dropdown-class-name="nc-relation-settings-select nc-dropdown-ltar-child-junction-column"
               @change="onDataTypeChange"
             >
               <a-select-option
@@ -429,21 +433,23 @@ watch(pkColumn, () => {
               <template #suffixIcon>
                 <GeneralIcon class="" icon="chevronDown" />
               </template>
-            </a-select>
+            </NcSelect>
             <div class="nc-relation-settings-table-connector-point nc-right" :class="`column-type-${vModel.type}`"></div>
           </a-form-item>
         </div>
       </template>
+
       <div class="nc-relation-settings-table flex flex-col">
         <div class="nc-relation-settings-table-header">Child</div>
 
         <a-form-item class="nc-relation-settings-table-row nc-ltar-child-base">
-          <a-select
+          <NcSelect
+            suffixIcon="chevronDown"
             v-model:value="vModel.custom.base_id"
             show-search
             :filter-option="filterOption"
             :bordered="false"
-            dropdown-class-name="nc-dropdown-ltar-child-base"
+            dropdown-class-name="nc-relation-settings-select nc-dropdown-ltar-child-base"
             @change="onBaseChange(vModel.custom.base_id)"
           >
             <a-select-option v-for="base of basesList" :key="base.title" :value="base.id">
@@ -460,17 +466,18 @@ watch(pkColumn, () => {
             <template #suffixIcon>
               <GeneralIcon class="" icon="chevronDown" />
             </template>
-          </a-select>
+          </NcSelect>
         </a-form-item>
 
         <a-form-item class="nc-relation-settings-table-row nc-ltar-child-table" v-bind="validateInfos['custom.ref_model_id']">
-          <a-select
+          <NcSelect
+            suffixIcon="chevronDown"
             v-model:value="vModel.custom.ref_model_id"
             show-search
             placeholder="-select table-"
             :filter-option="filterOption"
             :bordered="false"
-            dropdown-class-name="nc-dropdown-ltar-child-table"
+            dropdown-class-name="nc-relation-settings-select nc-dropdown-ltar-child-table"
             @change="onModelIdChange(vModel.custom.ref_model_id)"
           >
             <a-select-option v-for="table of refTables" :key="table.title" :value="table.id">
@@ -487,16 +494,17 @@ watch(pkColumn, () => {
             <template #suffixIcon>
               <GeneralIcon class="" icon="chevronDown" />
             </template>
-          </a-select>
+          </NcSelect>
         </a-form-item>
         <a-form-item class="nc-relation-settings-table-row nc-ltar-child-column" v-bind="validateInfos['custom.ref_column_id']">
-          <a-select
+          <NcSelect
+            suffixIcon="chevronDown"
             v-model:value="vModel.custom.ref_column_id"
             show-search
             placeholder="-select field-"
             :filter-option="filterOption"
             :bordered="false"
-            dropdown-class-name="nc-dropdown-ltar-child-column !text-xs"
+            dropdown-class-name="nc-relation-settings-select nc-dropdown-ltar-child-column !text-xs"
             @change="onDataTypeChange"
           >
             <a-select-option
@@ -524,7 +532,7 @@ watch(pkColumn, () => {
             <template #suffixIcon>
               <GeneralIcon class="" icon="chevronDown" />
             </template>
-          </a-select>
+          </NcSelect>
           <div class="nc-relation-settings-table-connector-point nc-left" :class="`column-type-${vModel.type}`"></div>
         </a-form-item>
       </div>
@@ -561,13 +569,13 @@ watch(pkColumn, () => {
       @apply mr-2;
     }
 
+    // :deep(.nc-select-expand-btn) {
+    //   @apply text-gray-500;
+    // }
+
     .nc-project-icon {
       @apply !grayscale;
       filter: grayscale(100%) brightness(115%) !important;
-    }
-
-    .nc-table-icon {
-      @apply text-gray-500;
     }
 
     .nc-relation-settings-table-connector-point {
@@ -592,5 +600,19 @@ watch(pkColumn, () => {
       @apply bg-purple-500;
     }
   }
+}
+</style>
+
+<style lang="scss">
+.nc-relation-settings-table {
+  .nc-table-icon {
+    path,
+    rect {
+      stroke: currentColor !important;
+    }
+  }
+}
+.nc-relation-settings-select.ant-select-dropdown.nc-select-dropdown {
+  @apply !rounded-md;
 }
 </style>

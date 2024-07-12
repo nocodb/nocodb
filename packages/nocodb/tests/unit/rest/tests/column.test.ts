@@ -175,12 +175,12 @@ function columnTests() {
         ],
       });
 
-      const pkColumn = (await actor.getColumns()).find((column) => column.pk);
-      const refPkColumn = (await film.getColumns()).find((column) => column.pk);
-      const junColId = (await filmActor.getColumns()).find(
+      const pkColumn = (await actor.getColumns(context)).find((column) => column.pk);
+      const refPkColumn = (await film.getColumns(context)).find((column) => column.pk);
+      const junColId = (await filmActor.getColumns(context)).find(
         (column) => column.title === 'ActorId',
       );
-      const juRefColId = (await filmActor.getColumns()).find(
+      const juRefColId = (await filmActor.getColumns(context)).find(
         (column) => column.title === 'FilmId',
       );
 

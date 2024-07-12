@@ -286,6 +286,9 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
       try {
         formState.value.table_name = meta.value?.table_name
+
+        const refModelId = formState.value.custom?.ref_model_id
+
         // formState.value.title = formState.value.column_name
         if (column.value) {
           // reset column validation if column is not to be validated
@@ -339,8 +342,8 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
           /** if LTAR column then force reload related table meta */
           if (isLinksOrLTAR(formState.value) && meta.value?.id !== formState.value.childId) {
-            if (formState.value.is_custom_link) {
-              getMeta(formState.value.custom?.ref_model_id, true).then(() => {})
+            if (refModelId) {
+              getMeta(refModelId, true).then(() => {})
             } else {
               getMeta(formState.value.childId, true).then(() => {})
             }

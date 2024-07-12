@@ -52,7 +52,9 @@ function columnTests() {
         ],
       });
 
-      const pkColumn = (await country.getColumns(context)).find((column) => column.pk);
+      const pkColumn = (await country.getColumns(context)).find(
+        (column) => column.pk,
+      );
       const fkColumn = (await city.getColumns(context)).find(
         (column) => column.title === 'CountryId',
       );
@@ -175,8 +177,12 @@ function columnTests() {
         ],
       });
 
-      const pkColumn = (await actor.getColumns(context)).find((column) => column.pk);
-      const refPkColumn = (await film.getColumns(context)).find((column) => column.pk);
+      const pkColumn = (await actor.getColumns(context)).find(
+        (column) => column.pk,
+      );
+      const refPkColumn = (await film.getColumns(context)).find(
+        (column) => column.pk,
+      );
       const junColId = (await filmActor.getColumns(context)).find(
         (column) => column.title === 'ActorId',
       );

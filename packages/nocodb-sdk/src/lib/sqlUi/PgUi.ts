@@ -2033,7 +2033,7 @@ export class PgUi {
   }
 
   static isEqual(dataType1: string, dataType2: string) {
-    if (dataType1 === dataType2) return true;
+    if (dataType1?.toLowerCase() === dataType2?.toLowerCase()) return true;
 
     const abstractType1 = this.getAbstractType({ dt: dataType1 });
     const abstractType2 = this.getAbstractType({ dt: dataType2 });

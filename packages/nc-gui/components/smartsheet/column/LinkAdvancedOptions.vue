@@ -178,7 +178,7 @@ const onModelIdChange =async  (modelId:string) =>{
             show-search
             :filter-option="filterOption"
             dropdown-class-name="nc-dropdown-ltar-child-table"
-            @change="onModelIdChange(vModel.custom.ref_model_id)"
+            @change="onModelIdChange(vModel.custom.junc_model_id)"
         >
           <a-select-option v-for="table of tables" :key="table.title" :value="table.id">
             <div class="flex w-full items-center gap-2">

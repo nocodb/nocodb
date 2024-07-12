@@ -337,7 +337,13 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
           /** if LTAR column then force reload related table meta */
           if (isLinksOrLTAR(formState.value) && meta.value?.id !== formState.value.childId) {
-            getMeta(formState.value.childId, true).then(() => {})
+            if(formState.value.is_custom_link) {
+              getMeta(formState.value.custom?.ref_model_id, true).then(() => {
+              })
+            }else {
+              getMeta(formState.value.childId, true).then(() => {
+              })
+            }
           }
 
           // Column created

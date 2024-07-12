@@ -13,15 +13,12 @@ import type { NcContext, NcRequest } from '~/interface/config';
 import type { Source } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { MetaService } from '~/meta/meta.service';
-import { validatePayload } from '~/helpers';
-import { Base, Filter, Model } from '~/models';
 import {
   createHmAndBtColumn,
   createOOColumn,
   validatePayload,
 } from '~/helpers';
-import { Base, Column, Model } from '~/models';
-import getWorkspaceForBase from '~/utils/getWorkspaceForBase';
+import { Base, Column, Filter, Model, View } from '~/models';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
 import { getLimit, PlanLimitTypes } from '~/plan-limits';
@@ -165,14 +162,17 @@ export class ColumnsService extends ColumnsServiceCE {
     }
   }
 
-  async createLTARColumn(param: {
-    tableId: string;
-    column: ColumnReqType;
-    source: Source;
-    base: Base;
-    reuse?: ReusableParams;
-    colExtra?: any;
-  }) {
+  async createLTARColumn(
+    context: NcContext,
+    param: {
+      tableId: string;
+      column: ColumnReqType;
+      source: Source;
+      base: Base;
+      reuse?: ReusableParams;
+      colExtra?: any;
+    },
+  ) {
     if ((param.column as any).is_custom_link) {
       validateParams(['custom'], param.column as any);
       validateParams(
@@ -189,24 +189,35 @@ export class ColumnsService extends ColumnsServiceCE {
         junc_ref_column_id: string;
       } = (param.column as any).custom;
 
-      const child = await Model.get(ltarCustomPRops.ref_model_id);
-      const parent = await Model.get(param.tableId);
+      const child = await Model.get(context, ltarCustomPRops.ref_model_id);
+      const parent = await Model.get(context, param.tableId);
 
-      const childColumn = await Column.get({
+      const childColumn = await Column.get(context, {
         colId: ltarCustomPRops.ref_column_id,
       });
-      const parentColumn = await Column.get({
+      const parentColumn = await Column.get(context, {
         colId: ltarCustomPRops.column_id,
       });
+
+      const childView: View | null = (
+        param.column as LinkToAnotherColumnReqType
+      )?.childViewId
+        ? await View.getByTitleOrId(context, {
+            fk_model_id: child.id,
+            titleOrId: (param.column as LinkToAnotherColumnReqType).childViewId,
+          })
+        : null;
 
       if (
         (param.column as LinkToAnotherColumnReqType).type === 'hm' ||
         (param.column as LinkToAnotherColumnReqType).type === 'bt'
       ) {
         await createHmAndBtColumn(
+          context,
           child,
           parent,
           childColumn,
+          childView,
           (param.column as LinkToAnotherColumnReqType).type as RelationTypes,
           (param.column as LinkToAnotherColumnReqType).title,
           null,
@@ -220,9 +231,11 @@ export class ColumnsService extends ColumnsServiceCE {
         );
       } else if ((param.column as LinkToAnotherColumnReqType).type === 'oo') {
         await createOOColumn(
+          context,
           child,
           parent,
           childColumn,
+          childView,
           (param.column as LinkToAnotherColumnReqType).type as RelationTypes,
           (param.column as LinkToAnotherColumnReqType).title,
           null,
@@ -234,9 +247,9 @@ export class ColumnsService extends ColumnsServiceCE {
           true,
         );
       } else if ((param.column as LinkToAnotherColumnReqType).type === 'mm') {
-        await Column.insert({
+        await Column.insert(context, {
           title: getUniqueColumnAliasName(
-            await child.getColumns(),
+            await child.getColumns(context),
             pluralize(parent.title),
           ),
           uidt: param.column.uidt,
@@ -262,9 +275,9 @@ export class ColumnsService extends ColumnsServiceCE {
           // if self referencing treat it as system field to hide from ui
           system: parent.id === child.id,
         });
-        await Column.insert({
+        await Column.insert(context, {
           title: getUniqueColumnAliasName(
-            await parent.getColumns(),
+            await parent.getColumns(context),
             param.column.title ?? pluralize(child.title),
           ),
 
@@ -297,7 +310,7 @@ export class ColumnsService extends ColumnsServiceCE {
       return;
     }
 
-    return super.createLTARColumn(param);
+    return super.createLTARColumn(context, param);
   }
 }
 

@@ -238,12 +238,12 @@ export async function extractColumn({
                 column.colOptions as LinkToAnotherRecordColumn
               ).getParentColumn(context);
 
-              const assocBaseModel = await Model.getBaseModelSQL({
+              const assocBaseModel = await Model.getBaseModelSQL(context, {
                 id: assocModel.id,
                 dbDriver: knex,
               });
 
-              const parentBaseModel = await Model.getBaseModelSQL({
+              const parentBaseModel = await Model.getBaseModelSQL(context, {
                 id: parentColumn.fk_model_id,
                 dbDriver: knex,
               });
@@ -341,7 +341,7 @@ export async function extractColumn({
                 column.colOptions as LinkToAnotherRecordColumn
               ).getParentColumn(context);
 
-              const parentBaseModel = await Model.getBaseModelSQL({
+              const parentBaseModel = await Model.getBaseModelSQL(context, {
                 model: parentModel,
                 dbDriver: knex,
               });
@@ -413,7 +413,7 @@ export async function extractColumn({
               ).getParentColumn(context);
 
               if (isBt) {
-                const parentBaseModel = await Model.getBaseModelSQL({
+                const parentBaseModel = await Model.getBaseModelSQL(context, {
                   model: parentModel,
                   dbDriver: knex,
                 });
@@ -465,7 +465,7 @@ export async function extractColumn({
 
                 qb.select(knex.raw('??.??', [alias1, column.id]));
               } else {
-                const parentBaseModel = await Model.getBaseModelSQL({
+                const parentBaseModel = await Model.getBaseModelSQL(context, {
                   model: parentModel,
                   dbDriver: knex,
                 });
@@ -534,7 +534,7 @@ export async function extractColumn({
                 column.colOptions as LinkToAnotherRecordColumn
               ).getParentColumn(context);
 
-              const childBaseModel = await Model.getBaseModelSQL({
+              const childBaseModel = await Model.getBaseModelSQL(context, {
                 dbDriver: knex,
                 model: childModel,
               });
@@ -629,11 +629,11 @@ export async function extractColumn({
                 context,
               );
 
-              const assocBaseModel = await Model.getBaseModelSQL({
+              const assocBaseModel = await Model.getBaseModelSQL(context, {
                 model: assocModel,
                 dbDriver: knex,
               });
-              const parentBaseModel = await Model.getBaseModelSQL({
+              const parentBaseModel = await Model.getBaseModelSQL(context, {
                 model: parentModel,
                 dbDriver: knex,
               });
@@ -685,7 +685,7 @@ export async function extractColumn({
                 context,
               );
 
-              const parentBaseModel = await Model.getBaseModelSQL({
+              const parentBaseModel = await Model.getBaseModelSQL(context, {
                 model: parentModel,
                 dbDriver: knex,
               });
@@ -716,7 +716,7 @@ export async function extractColumn({
                 const parentColumn = await relationColOpts.getParentColumn(
                   context,
                 );
-                const parentBaseModel = await Model.getBaseModelSQL({
+                const parentBaseModel = await Model.getBaseModelSQL(context, {
                   model: parentModel,
                   dbDriver: knex,
                 });
@@ -742,7 +742,7 @@ export async function extractColumn({
                 const parentColumn = await relationColOpts.getParentColumn(
                   context,
                 );
-                const childBaseModel = await Model.getBaseModelSQL({
+                const childBaseModel = await Model.getBaseModelSQL(context, {
                   model: childModel,
                   dbDriver: knex,
                 });
@@ -769,7 +769,7 @@ export async function extractColumn({
               const parentColumn = await relationColOpts.getParentColumn(
                 context,
               );
-              const childBaseModel = await Model.getBaseModelSQL({
+              const childBaseModel = await Model.getBaseModelSQL(context, {
                 model: childModel,
                 dbDriver: knex,
               });

@@ -258,7 +258,7 @@ function populateUniqueTableName(tn: string, draftTn: string[] = []) {
       const s = t.table_name.split('___')
       let target = t.table_name
       if (s.length > 1) target = s[1]
-      return target === `${tn}`
+      return target === `${tn}` || t.table_name === `${tn}`
     })
   ) {
     tn = `${tn}_${c++}`
@@ -493,6 +493,7 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
 
         templateData.value.tables = templateData.value.tables.map((table: Record<string, any>) => {
           const table_name = populateUniqueTableName(table.table_name, draftTableNames)
+          console.log('table_name', table.table_name, table_name)
           draftTableNames.push(table_name)
           return { ...table, table_name }
         })

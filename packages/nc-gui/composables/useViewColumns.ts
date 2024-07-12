@@ -136,7 +136,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       if (isLocalMode.value) {
         const fieldById = (fields.value || []).reduce<Record<string, any>>((acc, curr) => {
           if (curr.fk_column_id) {
-            curr.show = curr.initialShow ? true : false
+            curr.show = !!curr.initialShow
             acc[curr.fk_column_id] = curr
           }
           return acc

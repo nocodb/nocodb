@@ -37,6 +37,7 @@ import {
   getUniqueColumnAliasName,
   getUniqueColumnName,
 } from '~/helpers/getUniqueName';
+import { MetaTable } from '~/utils/globals';
 
 @Injectable()
 export class TablesService {
@@ -224,6 +225,28 @@ export class TablesService {
       NcError.badRequest(
         `This is a many to many table for ${tables[0]?.title} (${relColumns[0]?.title}) & ${tables[1]?.title} (${relColumns[1]?.title}). You can disable "Show M2M tables" in base settings to avoid seeing this.`,
       );
+    } else {
+      // if table is using in custom relation as junction table then delete all the relation
+      const relations = await Noco.ncMeta.metaList2(
+        table.fk_workspace_id,
+        table.base_id,
+        MetaTable.COL_RELATIONS,
+        {
+          condition: {
+            fk_mm_model_id: table.id,
+          },
+        },
+      );
+
+      if (relations.length) {
+        const relCol = await Column.get(context, {
+          colId: relations[0].fk_column_id,
+        });
+        const relTable = await Model.get(context, relCol.fk_model_id);
+        NcError.tableAssociatedWithLink(table.id, {
+          customMessage: `This is a many to many table for '${relTable?.title}' (${relTable?.title}), please delete the column before deleting the table.`,
+        });
+      }
     }
 
     const base = await Base.getWithInfo(context, table.base_id);

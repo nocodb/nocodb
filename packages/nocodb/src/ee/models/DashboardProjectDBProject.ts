@@ -1,8 +1,5 @@
-import { ProjectTypes } from 'nocodb-sdk';
 import type { BaseType } from 'nocodb-sdk';
-import { MetaTable } from '~/utils/globals';
 import Noco from '~/Noco';
-import { extractProps } from '~/helpers/extractProps';
 
 export default class DashboardProjectDBProject {
   dashboard_project_id: string;
@@ -14,7 +11,7 @@ export default class DashboardProjectDBProject {
 
   public static async insert(
     dashboardProjectDBProject: Partial<DashboardProjectDBProject>,
-    ncMeta = Noco.ncMeta,
+    _ncMeta = Noco.ncMeta,
   ) {
     throw new Error('Not implemented');
     /*
@@ -63,7 +60,7 @@ export default class DashboardProjectDBProject {
   static async get(
     dashboardProjectId: string,
     dbProjectId: string,
-    ncMeta = Noco.ncMeta,
+    _ncMeta = Noco.ncMeta,
   ) {
     throw new Error('Not implemented');
     /* // TODO: add cache logic
@@ -80,16 +77,12 @@ export default class DashboardProjectDBProject {
   }
 
   public static async getDbProjectsList(
-    {
-      dashboard_project_id,
-      limit = 25,
-      offset = 0,
-    }: {
+    _: {
       dashboard_project_id: string;
       limit?: number;
       offset?: number;
     },
-    ncMeta = Noco.ncMeta,
+    _ncMeta = Noco.ncMeta,
   ) {
     throw new Error('Not implemented');
     /* // TODO: consider to also do checks here that the bases are actually of type Dashboard and DB
@@ -124,7 +117,7 @@ export default class DashboardProjectDBProject {
   static async delete(
     dashboardProjectId: string,
     dbProjectId: string,
-    ncMeta = Noco.ncMeta,
+    _ncMeta = Noco.ncMeta,
   ) {
     throw new Error('Not implemented');
     /* // TODO: cache cleanup
@@ -141,7 +134,7 @@ export default class DashboardProjectDBProject {
 
   static async getDashboardProjectsIdList(
     dbProjectId: string,
-    ncMeta = Noco.ncMeta,
+    _ncMeta = Noco.ncMeta,
   ): Promise<DashboardProjectDBProject[]> {
     throw new Error('Not implemented');
     /* return await ncMeta.metaList2(
@@ -157,7 +150,7 @@ export default class DashboardProjectDBProject {
   static async getDashboardProjectsList(
     dbProjectId: string,
     _params?: any,
-    ncMeta = Noco.ncMeta,
+    _ncMeta = Noco.ncMeta,
   ): Promise<BaseType[]> {
     throw new Error('Not implemented');
     /* const dashboardProjectList = await ncMeta

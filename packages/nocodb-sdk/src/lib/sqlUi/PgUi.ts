@@ -1613,7 +1613,7 @@ export class PgUi {
     }
   }
 
-  static getDataTypeForUiType(col: { uidt: UITypes; }, idType?: IDType) {
+  static getDataTypeForUiType(col: { uidt: UITypes }, idType?: IDType) {
     const colProp: any = {};
     switch (col.uidt) {
       case 'ID':
@@ -1754,7 +1754,7 @@ export class PgUi {
     return colProp;
   }
 
-  static getDataTypeListForUiType(col: { uidt?: UITypes; }, idType: IDType) {
+  static getDataTypeListForUiType(col: { uidt?: UITypes }, idType: IDType) {
     switch (col.uidt) {
       case 'ID':
         if (idType === 'AG') {
@@ -2030,6 +2030,22 @@ export class PgUi {
 
   static getUnsupportedFnList() {
     return [];
+  }
+
+  static isEqual(dataType1: string, dataType2: string) {
+    if (dataType1?.toLowerCase() === dataType2?.toLowerCase()) return true;
+
+    const abstractType1 = this.getAbstractType({ dt: dataType1 });
+    const abstractType2 = this.getAbstractType({ dt: dataType2 });
+
+    if (
+      abstractType1 &&
+      abstractType1 === abstractType2 &&
+      ['integer', 'float'].includes(abstractType1)
+    )
+      return true;
+
+    return false;
   }
 }
 

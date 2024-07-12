@@ -237,6 +237,16 @@ export async function extractColumn({
                 column.colOptions as LinkToAnotherRecordColumn
               ).getParentColumn(context);
 
+              const assocBaseModel = await Model.getBaseModelSQL(context, {
+                id: assocModel.id,
+                dbDriver: knex,
+              });
+
+              const parentBaseModel = await Model.getBaseModelSQL(context, {
+                id: parentColumn.fk_model_id,
+                dbDriver: knex,
+              });
+
               // if mm table is not present then return
               if (!assocModel) {
                 return qb.select(
@@ -248,7 +258,10 @@ export async function extractColumn({
               }
 
               const assocQb = knex(
-                knex.raw('?? as ??', [baseModel.getTnPath(assocModel), alias1]),
+                knex.raw('?? as ??', [
+                  assocBaseModel.getTnPath(assocModel),
+                  alias1,
+                ]),
               ).whereRaw(`??.?? = ??.??`, [
                 alias1,
                 sanitize(mmChildColumn.column_name),
@@ -259,7 +272,7 @@ export async function extractColumn({
               const mmQb = knex(assocQb.as(alias4))
                 .leftJoin(
                   knex.raw(`?? as ?? on ??.?? = ??.??`, [
-                    baseModel.getTnPath(parentModel),
+                    parentBaseModel.getTnPath(parentModel),
                     alias2,
                     alias2,
                     sanitize(parentColumn.column_name),
@@ -326,7 +339,13 @@ export async function extractColumn({
               const parentColumn = await (
                 column.colOptions as LinkToAnotherRecordColumn
               ).getParentColumn(context);
-              const btQb = knex(baseModel.getTnPath(parentModel))
+
+              const parentBaseModel = await Model.getBaseModelSQL(context, {
+                model: parentModel,
+                dbDriver: knex,
+              });
+
+              const btQb = knex(parentBaseModel.getTnPath(parentModel))
                 .select('*')
                 .where(
                   parentColumn.column_name,
@@ -334,7 +353,8 @@ export async function extractColumn({
                     rootAlias,
                     sanitize(childColumn.column_name),
                   ]),
-                );
+                )
+                .first();
 
               // apply filters on nested query
               await conditionV2(baseModel, queryFilterObj, btQb);
@@ -392,7 +412,12 @@ export async function extractColumn({
               ).getParentColumn(context);
 
               if (isBt) {
-                const btQb = knex(baseModel.getTnPath(parentModel))
+                const parentBaseModel = await Model.getBaseModelSQL(context, {
+                  model: parentModel,
+                  dbDriver: knex,
+                });
+
+                const btQb = knex(parentBaseModel.getTnPath(parentModel))
                   .select('*')
                   .where(
                     parentColumn.column_name,
@@ -400,7 +425,8 @@ export async function extractColumn({
                       rootAlias,
                       sanitize(childColumn.column_name),
                     ]),
-                  );
+                  )
+                  .first();
 
                 // apply filters on nested query
                 await conditionV2(baseModel, queryFilterObj, btQb);
@@ -438,7 +464,11 @@ export async function extractColumn({
 
                 qb.select(knex.raw('??.??', [alias1, column.id]));
               } else {
-                const hmQb = knex(baseModel.getTnPath(parentModel))
+                const parentBaseModel = await Model.getBaseModelSQL(context, {
+                  model: parentModel,
+                  dbDriver: knex,
+                });
+                const hmQb = knex(parentBaseModel.getTnPath(parentModel))
                   .select('*')
                   .where(
                     childColumn.column_name,
@@ -503,7 +533,12 @@ export async function extractColumn({
                 column.colOptions as LinkToAnotherRecordColumn
               ).getParentColumn(context);
 
-              const hmQb = knex(baseModel.getTnPath(childModel))
+              const childBaseModel = await Model.getBaseModelSQL(context, {
+                dbDriver: knex,
+                model: childModel,
+              });
+
+              const hmQb = knex(childBaseModel.getTnPath(childModel))
                 .select('*')
                 .where(
                   childColumn.column_name,
@@ -593,6 +628,15 @@ export async function extractColumn({
                 context,
               );
 
+              const assocBaseModel = await Model.getBaseModelSQL(context, {
+                model: assocModel,
+                dbDriver: knex,
+              });
+              const parentBaseModel = await Model.getBaseModelSQL(context, {
+                model: parentModel,
+                dbDriver: knex,
+              });
+
               // if mm table is not present then return
               if (!assocModel) {
                 return qb.select(
@@ -604,7 +648,10 @@ export async function extractColumn({
               }
 
               const assocQb = knex(
-                knex.raw('?? as ??', [baseModel.getTnPath(assocModel), alias1]),
+                knex.raw('?? as ??', [
+                  assocBaseModel.getTnPath(assocModel),
+                  alias1,
+                ]),
               ).whereRaw(`??.?? = ??.??`, [
                 alias1,
                 sanitize(mmChildColumn.column_name),
@@ -614,7 +661,7 @@ export async function extractColumn({
 
               relQb = knex(assocQb.as(alias4)).leftJoin(
                 knex.raw(`?? as ?? on ??.?? = ??.??`, [
-                  baseModel.getTnPath(parentModel),
+                  parentBaseModel.getTnPath(parentModel),
                   relTableAlias,
                   relTableAlias,
                   sanitize(parentColumn.column_name),
@@ -636,9 +683,14 @@ export async function extractColumn({
               const parentColumn = await relationColOpts.getParentColumn(
                 context,
               );
+
+              const parentBaseModel = await Model.getBaseModelSQL(context, {
+                model: parentModel,
+                dbDriver: knex,
+              });
               relQb = knex(
                 knex.raw('?? as ??', [
-                  baseModel.getTnPath(parentModel),
+                  parentBaseModel.getTnPath(parentModel),
                   relTableAlias,
                 ]),
               ).where(
@@ -663,9 +715,13 @@ export async function extractColumn({
                 const parentColumn = await relationColOpts.getParentColumn(
                   context,
                 );
+                const parentBaseModel = await Model.getBaseModelSQL(context, {
+                  model: parentModel,
+                  dbDriver: knex,
+                });
                 relQb = knex(
                   knex.raw('?? as ??', [
-                    baseModel.getTnPath(parentModel),
+                    parentBaseModel.getTnPath(parentModel),
                     relTableAlias,
                   ]),
                 ).where(
@@ -685,9 +741,13 @@ export async function extractColumn({
                 const parentColumn = await relationColOpts.getParentColumn(
                   context,
                 );
+                const childBaseModel = await Model.getBaseModelSQL(context, {
+                  model: childModel,
+                  dbDriver: knex,
+                });
                 relQb = knex(
                   knex.raw('?? as ??', [
-                    baseModel.getTnPath(childModel),
+                    childBaseModel.getTnPath(childModel),
                     relTableAlias,
                   ]),
                 ).where(
@@ -708,9 +768,13 @@ export async function extractColumn({
               const parentColumn = await relationColOpts.getParentColumn(
                 context,
               );
+              const childBaseModel = await Model.getBaseModelSQL(context, {
+                model: childModel,
+                dbDriver: knex,
+              });
               relQb = knex(
                 knex.raw('?? as ??', [
-                  baseModel.getTnPath(childModel),
+                  childBaseModel.getTnPath(childModel),
                   relTableAlias,
                 ]),
               ).where(

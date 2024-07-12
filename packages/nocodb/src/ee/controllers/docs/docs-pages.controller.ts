@@ -17,8 +17,6 @@ import { DocsPageHistoryService } from '~/services/docs/history/docs-page-histor
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { DocsPagesService } from '~/services/docs/docs-pages.service';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
-import { TenantContext } from '~/decorators/tenant-context.decorator';
-import { NcContext, NcRequest } from '~/interface/config';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, AuthGuard('jwt'))

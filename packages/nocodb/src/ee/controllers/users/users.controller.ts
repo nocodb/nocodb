@@ -4,8 +4,6 @@ import { UsersController as UsersControllerCE } from 'src/controllers/users/user
 import type { AppConfig } from '~/interface/config';
 import { UsersService } from '~/services/users/users.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
-import { TenantContext } from '~/decorators/tenant-context.decorator';
-import { NcContext, NcRequest } from '~/interface/config';
 
 @Controller()
 export class UsersController extends UsersControllerCE {

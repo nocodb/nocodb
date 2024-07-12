@@ -1,16 +1,30 @@
 import { Injectable } from '@nestjs/common';
 import { ColumnsService as ColumnsServiceCE } from 'src/services/columns.service';
 import { isLinksOrLTAR } from 'nocodb-sdk';
-import type { ColumnReqType, UserType } from 'nocodb-sdk';
+import { pluralize, singularize } from 'inflection';
+import type { ReusableParams } from 'src/services/columns.service';
+import type { RelationTypes } from 'nocodb-sdk';
+import type {
+  ColumnReqType,
+  LinkToAnotherColumnReqType,
+  UserType,
+} from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
+import type { Source } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { MetaService } from '~/meta/meta.service';
-import { validatePayload } from '~/helpers';
-import { Base, Filter, Model } from '~/models';
+import {
+  createHmAndBtColumn,
+  createOOColumn,
+  validatePayload,
+} from '~/helpers';
+import { Base, Column, Filter, Model, View } from '~/models';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
 import { getLimit, PlanLimitTypes } from '~/plan-limits';
 import { NcError } from '~/helpers/catchError';
+import validateParams from '~/helpers/validateParams';
+import { getUniqueColumnAliasName } from '~/helpers/getUniqueName';
 
 @Injectable()
 export class ColumnsService extends ColumnsServiceCE {
@@ -146,6 +160,157 @@ export class ColumnsService extends ColumnsServiceCE {
 
       await applyFilterCrud((columnBody as any).filters);
     }
+  }
+
+  async createLTARColumn(
+    context: NcContext,
+    param: {
+      tableId: string;
+      column: ColumnReqType;
+      source: Source;
+      base: Base;
+      reuse?: ReusableParams;
+      colExtra?: any;
+    },
+  ) {
+    if ((param.column as any).is_custom_link) {
+      validateParams(['custom'], param.column as any);
+      validateParams(
+        ['column_id', 'ref_model_id', 'ref_column_id'],
+        (param.column as any).custom,
+      );
+
+      const ltarCustomPRops: {
+        column_id: string;
+        ref_model_id: string;
+        ref_column_id: string;
+        junc_model_id: string;
+        junc_column_id: string;
+        junc_ref_column_id: string;
+      } = (param.column as any).custom;
+
+      const child = await Model.get(context, ltarCustomPRops.ref_model_id);
+      const parent = await Model.get(context, param.tableId);
+
+      const childColumn = await Column.get(context, {
+        colId: ltarCustomPRops.ref_column_id,
+      });
+      const parentColumn = await Column.get(context, {
+        colId: ltarCustomPRops.column_id,
+      });
+
+      const childView: View | null = (
+        param.column as LinkToAnotherColumnReqType
+      )?.childViewId
+        ? await View.getByTitleOrId(context, {
+            fk_model_id: child.id,
+            titleOrId: (param.column as LinkToAnotherColumnReqType).childViewId,
+          })
+        : null;
+
+      if (
+        (param.column as LinkToAnotherColumnReqType).type === 'hm' ||
+        (param.column as LinkToAnotherColumnReqType).type === 'bt'
+      ) {
+        await createHmAndBtColumn(
+          context,
+          child,
+          parent,
+          childColumn,
+          childView,
+          (param.column as LinkToAnotherColumnReqType).type as RelationTypes,
+          (param.column as LinkToAnotherColumnReqType).title,
+          null,
+          (param.column as LinkToAnotherColumnReqType).virtual,
+          null,
+          param.column['meta'],
+          true,
+          param.colExtra,
+          parentColumn,
+          true,
+        );
+      } else if ((param.column as LinkToAnotherColumnReqType).type === 'oo') {
+        await createOOColumn(
+          context,
+          child,
+          parent,
+          childColumn,
+          childView,
+          (param.column as LinkToAnotherColumnReqType).type as RelationTypes,
+          (param.column as LinkToAnotherColumnReqType).title,
+          null,
+          (param.column as LinkToAnotherColumnReqType).virtual,
+          null,
+          param.column['meta'],
+          param.colExtra,
+          parentColumn,
+          true,
+        );
+      } else if ((param.column as LinkToAnotherColumnReqType).type === 'mm') {
+        await Column.insert(context, {
+          title: getUniqueColumnAliasName(
+            await child.getColumns(context),
+            pluralize(parent.title),
+          ),
+          uidt: param.column.uidt,
+          type: 'mm',
+
+          // ref_db_alias
+          fk_model_id: child.id,
+          // db_type:
+
+          fk_child_column_id: childColumn.id,
+          fk_parent_column_id: parentColumn.id,
+
+          fk_mm_model_id: ltarCustomPRops.junc_model_id,
+          fk_mm_child_column_id: ltarCustomPRops.junc_ref_column_id,
+          fk_mm_parent_column_id: ltarCustomPRops.junc_column_id,
+          fk_related_model_id: parent.id,
+          virtual: (param.column as LinkToAnotherColumnReqType).virtual,
+          meta: {
+            plural: pluralize(parent.title),
+            singular: singularize(parent.title),
+            custom: true,
+          },
+          // if self referencing treat it as system field to hide from ui
+          system: parent.id === child.id,
+        });
+        await Column.insert(context, {
+          title: getUniqueColumnAliasName(
+            await parent.getColumns(context),
+            param.column.title ?? pluralize(child.title),
+          ),
+
+          uidt: param.column.uidt,
+          type: 'mm',
+
+          fk_model_id: parent.id,
+
+          fk_mm_model_id: ltarCustomPRops.junc_model_id,
+          fk_mm_child_column_id: ltarCustomPRops.junc_column_id,
+          fk_mm_parent_column_id: ltarCustomPRops.junc_ref_column_id,
+
+          fk_child_column_id: parentColumn.id,
+          fk_parent_column_id: childColumn.id,
+
+          fk_related_model_id: child.id,
+          virtual: (param.column as LinkToAnotherColumnReqType).virtual,
+          meta: {
+            plural: param.column['meta']?.plural || pluralize(child.title),
+            singular:
+              param.column['meta']?.singular || singularize(child.title),
+            custom: true,
+          },
+
+          // column_order and view_id if provided
+          ...param.colExtra,
+        });
+      }
+
+      return;
+    }
+
+    return super.createLTARColumn(context, param);
   }
 }
 

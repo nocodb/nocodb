@@ -14,7 +14,8 @@ const createTable = async (context, base, args = {}) => {
   const response = await request(context.app)
     .post(`/api/v1/db/meta/projects/${base.id}/tables`)
     .set('xc-auth', context.token)
-    .send({ ...defaultValue, ...args });
+    .send({ ...defaultValue, ...args })
+    .expect(200);
 
   const table: Model = await Model.get(
     {

@@ -107,8 +107,8 @@ const { visibleFieldsComputed, updateAggregate, getAggregations } = useViewAggre
       <template #overlay>
         <NcMenu>
           <NcMenuItem
-            v-for="(agg, index) in getAggregations(column)"
-            :key="index"
+            v-for="(agg, i) in getAggregations(column)"
+            :key="i"
             class="!flex-1 nc-aggregation-menu"
             @click="updateAggregate(column.id, agg)"
           >

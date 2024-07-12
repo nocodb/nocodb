@@ -331,7 +331,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
       if (missingRequiredColumns.size) return
 
-      data = await $api.dbTableRow.create('noco', base.value.id as string, meta.value.id, {
+      data = await $api.dbTableRow.create('noco', meta.value.base_id, meta.value.id, {
         ...insertObj,
         ...(ltarState || {}),
       })

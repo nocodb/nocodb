@@ -635,7 +635,7 @@ function mapDefaultColumns() {
   srcDestMapping.value = {}
   for (let i = 0; i < data.tables.length; i++) {
     for (const col of importColumns[i]) {
-      const o = { srcCn: col.column_name, destCn: '', enabled: true }
+      const o = { srcCn: col.column_name, srcTitle: col.title, destCn: '', enabled: true }
       if (columns.value) {
         const tableColumn = columns.value.find((c) => c.column_name === col.column_name)
         if (tableColumn) {
@@ -827,8 +827,8 @@ watch(modelRef, async () => {
             <template #bodyCell="{ column, record }">
               <template v-if="column.key === 'source_column'">
                 <NcTooltip class="truncate inline-block">
-                  <template #title>{{ record.srcCn }}</template>
-                  {{ record.srcCn }}
+                  <template #title>{{ record.srcTitle }}</template>
+                  {{ record.srcTitle }}
                 </NcTooltip>
               </template>
 
@@ -953,11 +953,11 @@ watch(modelRef, async () => {
                       class="!rounded-md"
                     >
                       <template #suffix>
-                        <NcTooltip v-if="formError?.[`tables.${tableIdx}.columns.${record.key}.title`]">
+                        <NcTooltip v-if="formError?.[`tables.${tableIdx}.columns.${record.key}.title`]" class="flex">
                           <template #title
                             >{{ formError?.[`tables.${tableIdx}.columns.${record.key}.title`].join('\n') }}
                           </template>
-                          <GeneralIcon icon="info" class="h-4 w-4 text-red-500" />
+                          <GeneralIcon icon="info" class="h-4 w-4 text-red-500 flex-none" />
                         </NcTooltip>
                       </template>
                     </a-input>

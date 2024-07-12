@@ -65,7 +65,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
           this.progress(`Parsing sheet ${sheetName}`)
 
           await new Promise((resolve) => {
-            const columnNamePrefixRef: Record<string, any> = { id: 0 }
+            const columnNamePrefixRef: Record<string, any> = { id: 0, Id: 0 }
             let tn: string = (sheet || 'table').replace(/[` ~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/g, '_').trim()
 
             while (tn in tableNamePrefixRef) {
@@ -122,19 +122,14 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
               )
                 .replace(/[` ~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/g, '_')
                 .trim()
-              const originalCn = cn.toLowerCase()
 
-              while (cn.toLowerCase() === 'id' || cn in columnNamePrefixRef) {
-                if (cn.toLowerCase() === 'id') {
-                  cn = `${cn}${++columnNamePrefixRef[cn.toLowerCase()]}`
-                } else {
-                  cn = `${cn}${++columnNamePrefixRef[cn]}`
-                }
+              while (cn in columnNamePrefixRef) {
+                cn = `${cn}${++columnNamePrefixRef[cn]}`
               }
               columnNamePrefixRef[cn] = 0
 
               const column: Record<string, any> = {
-                title: originalCn == 'id' ? cn : title,
+                title,
                 column_name: cn,
                 ref_column_name: cn,
                 meta: {},

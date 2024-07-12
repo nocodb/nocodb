@@ -145,7 +145,11 @@ const validators = computed(() =>
     hasSelectColumn.value[tableIdx] = false
 
     table.columns?.forEach((column, columnIdx) => {
-      acc[`tables.${tableIdx}.columns.${columnIdx}.title`] = [fieldRequiredValidator(), fieldLengthValidator()]
+      acc[`tables.${tableIdx}.columns.${columnIdx}.title`] = [
+        fieldRequiredValidator(),
+        fieldLengthValidator(),
+        reservedFieldNameValidator(),
+      ]
       acc[`tables.${tableIdx}.columns.${columnIdx}.uidt`] = [fieldRequiredValidator()]
       if (isSelect(column)) {
         hasSelectColumn.value[tableIdx] = true
@@ -237,9 +241,8 @@ function parseTemplate({ tables = [], ...rest }: Props['baseTemplate']) {
       ...rest,
       columns: [
         ...columns.map((c: any, idx: number) => {
-          if (!importDataOnly && (c.column_name?.toLowerCase() === 'id' || c.title?.toLowerCase() === 'id')) {
+          if (!importDataOnly && c.column_name?.toLowerCase() === 'id') {
             const cn = populateUniqueColumnName('id', [], columns)
-            c.title = cn
             c.column_name = cn
           }
           c.key = idx
@@ -940,17 +943,29 @@ watch(modelRef, async () => {
 
               <template #bodyCell="{ column, record }">
                 <template v-if="column.key === 'column_name'">
-                  <a-form-item v-bind="validateInfos[`tables.${tableIdx}.columns.${record.key}.${column.key}`]">
+                  <a-form-item
+                    v-bind="validateInfos[`tables.${tableIdx}.columns.${record.key}.title`]"
+                    class="nc-table-field-name"
+                  >
                     <a-input
                       :ref="(el: HTMLInputElement) => (inputRefs[record.key] = el)"
                       v-model:value="record.title"
                       class="!rounded-md"
-                    />
+                    >
+                      <template #suffix>
+                        <NcTooltip v-if="formError?.[`tables.${tableIdx}.columns.${record.key}.title`]">
+                          <template #title
+                            >{{ formError?.[`tables.${tableIdx}.columns.${record.key}.title`].join('\n') }}
+                          </template>
+                          <GeneralIcon icon="info" class="h-4 w-4 text-red-500" />
+                        </NcTooltip>
+                      </template>
+                    </a-input>
                   </a-form-item>
                 </template>
 
                 <template v-else-if="column.key === 'uidt'">
-                  <a-form-item v-bind="validateInfos[`tables.${tableIdx}.columns.${record.key}.${column.key}`]">
+                  <a-form-item v-bind="validateInfos[`tables.${tableIdx}.columns.${record.key}.uidt`]">
                     <NcTooltip :disabled="importDataOnly">
                       <template #title>
                         {{ $t('tooltip.useFieldEditMenuToConfigFieldType') }}
@@ -1035,6 +1050,11 @@ watch(modelRef, async () => {
   @apply !items-center;
   & > div {
     @apply flex;
+  }
+}
+.nc-table-field-name {
+  :deep(.ant-form-item-explain) {
+    @apply hidden;
   }
 }
 </style>

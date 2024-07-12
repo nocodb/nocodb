@@ -45,7 +45,7 @@ export default class CSVTemplateAdapter {
 
   initTemplate(tableIdx: number, tn: string, columnNames: string[]) {
     const columnNameRowExist = +columnNames.every((v: any) => v === null || typeof v === 'string')
-    const columnNamePrefixRef: Record<string, any> = { id: 0 }
+    const columnNamePrefixRef: Record<string, any> = { id: 0, Id: 0 }
 
     const tableObj: Record<string, any> = {
       table_name: tn,
@@ -62,14 +62,8 @@ export default class CSVTemplateAdapter {
         .replace(/[` ~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/g, '_')
         .trim()
 
-      const originalCn = cn.toLowerCase()
-
-      while (cn.toLowerCase() === 'id' || cn in columnNamePrefixRef) {
-        if (cn.toLowerCase() === 'id') {
-          cn = `${cn}${++columnNamePrefixRef[cn.toLowerCase()]}`
-        } else {
-          cn = `${cn}${++columnNamePrefixRef[cn]}`
-        }
+      while (cn in columnNamePrefixRef) {
+        cn = `${cn}${++columnNamePrefixRef[cn]}`
       }
 
       columnNamePrefixRef[cn] = 0
@@ -78,7 +72,7 @@ export default class CSVTemplateAdapter {
       this.distinctValues[columnIdx] = new Set<string>()
       this.columnValues[columnIdx] = []
       tableObj.columns.push({
-        title: originalCn == 'id' ? cn : title,
+        title,
         column_name: cn,
         ref_column_name: cn,
         meta: {},

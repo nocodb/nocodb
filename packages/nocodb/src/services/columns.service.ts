@@ -2118,8 +2118,8 @@ export class ColumnsService {
       })?.colOptions as LinkToAnotherRecordColumn;
       if (!link) {
         link = await ncMeta.metaGet2(
-          null,
-          null,
+          table.fk_workspace_id,
+          table.base_id,
           MetaTable.COL_RELATIONS,
           {},
           null,

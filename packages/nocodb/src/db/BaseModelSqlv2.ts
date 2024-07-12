@@ -1713,13 +1713,14 @@ class BaseModelSqlv2 {
         )) as LinkToAnotherRecordColumn
       ).getParentColumn(this.context);
       const parentTable = await parentCol.getModel(this.context);
-      const childModel = await Model.getBaseModelSQL(this.context, {
+      const childBaseModel = await Model.getBaseModelSQL(this.context, {
         model: childTable,
         dbDriver: this.dbDriver,
       });
       await parentTable.getColumns(this.context);
 
-      const childTn = this.getTnPath(childTable);
+
+      const childTn = childBaseModel.getTnPath(childTable);
       const parentTn = this.getTnPath(parentTable);
 
       const qb = this.dbDriver(childTn);
@@ -1736,7 +1737,7 @@ class BaseModelSqlv2 {
       qb.limit(+rest?.limit || 25);
       qb.offset(+rest?.offset || 0);
 
-      await childModel.selectObject({
+      await childBaseModel.selectObject({
         qb,
         fieldsSet: args.fieldSet,
       });
@@ -1790,7 +1791,11 @@ class BaseModelSqlv2 {
       const parentTable = await parentCol.getModel(this.context);
       await parentTable.getColumns(this.context);
 
-      const childTn = this.getTnPath(childTable);
+      const childBaseModel = await Model.getBaseModelSQL({
+        dbDriver: this.dbDriver,
+        model: childTable,
+      });
+      const childTn = childBaseModel.getTnPath(childTable);
       const parentTn = this.getTnPath(parentTable);
 
       const query = this.dbDriver(childTn)
@@ -1945,7 +1950,12 @@ class BaseModelSqlv2 {
     )) as LinkToAnotherRecordColumn;
 
     const mmTable = await relColOptions.getMMModel(this.context);
-    const vtn = this.getTnPath(mmTable);
+    const assocBaseModel = await Model.getBaseModelSQL({
+      id: mmTable.id,
+      dbDriver: this.dbDriver,
+    });
+
+    const vtn = assocBaseModel.getTnPath(mmTable);
     const vcn = (await relColOptions.getMMChildColumn(this.context))
       .column_name;
     const vrcn = (await relColOptions.getMMParentColumn(this.context))
@@ -1980,8 +1990,12 @@ class BaseModelSqlv2 {
     ).getModel(this.context);
     await parentTable.getColumns(this.context);
 
-    const childTn = this.getTnPath(childTable);
-    const parentTn = this.getTnPath(parentTable);
+    const parentBaseModel = await Model.getBaseModelSQL({
+      id: parentTable.id,
+      dbDriver: this.dbDriver,
+    });
+    const childTn = childBaseModel.getTnPath(childTable);
+    const parentTn = parentBaseModel.getTnPath(parentTable);
 
     const rtn = childTn;
     const qb = this.dbDriver(rtn)
@@ -2002,7 +2016,7 @@ class BaseModelSqlv2 {
         ).orWhereNull(rcn);
       });
 
-    const aliasColObjMap = await childTable.getAliasColObjMap(this.context);
+     const aliasColObjMap = await childTable.getAliasColObjMap(this.context);
     const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
 
     await this.getCustomConditionsAndApply({
@@ -2096,7 +2110,13 @@ class BaseModelSqlv2 {
     )) as LinkToAnotherRecordColumn;
 
     const mmTable = await relColOptions.getMMModel(this.context);
-    const vtn = this.getTnPath(mmTable);
+
+    const assocBaseModel = await Model.getBaseModelSQL({
+      model: mmTable,
+      dbDriver: this.dbDriver,
+    });
+
+    const vtn = assocBaseModel.getTnPath(mmTable);
     const vcn = (await relColOptions.getMMChildColumn(this.context))
       .column_name;
     const vrcn = (await relColOptions.getMMParentColumn(this.context))
@@ -2112,7 +2132,12 @@ class BaseModelSqlv2 {
     ).getModel(this.context);
     await parentTable.getColumns(this.context);
 
-    const childTn = this.getTnPath(childTable);
+    const childBaseModel = await Model.getBaseModelSQL({
+      dbDriver: this.dbDriver,
+      model: childTable,
+    });
+
+    const childTn = childBaseModel.getTnPath(childTable);
     const parentTn = this.getTnPath(parentTable);
 
     const rtn = childTn;
@@ -2162,20 +2187,33 @@ class BaseModelSqlv2 {
     )) as LinkToAnotherRecordColumn;
 
     const mmTable = await relColOptions.getMMModel(this.context);
-    const vtn = this.getTnPath(mmTable);
+    const assocBaseModel = await Model.getBaseModelSQL({
+      id: mmTable.id,
+      dbDriver: this.dbDriver,
+    });
+
+    const vtn = assocBaseModel.getTnPath(mmTable);
     const vcn = (await relColOptions.getMMChildColumn(this.context))
       .column_name;
     const vrcn = (await relColOptions.getMMParentColumn(this.context))
       .column_name;
     const rcn = (await relColOptions.getParentColumn(this.context)).column_name;
     const cn = (await relColOptions.getChildColumn(this.context)).column_name;
-    const childTable = await (
-      await relColOptions.getParentColumn(this.context)
-    ).getModel(this.context);
-    const childModel = await Model.getBaseModelSQL(this.context, {
+
+    const childTable = await (await relColOptions.getParentColumn(this.cotext)).getModel(this.cotext);
+    const parentTable = await (await relColOptions.getChildColumn(this.cotext)).getModel(this.cotext);
+    await parentTable.getColumns();
+    const parentBaseModel = await Model.getBaseModelSQL({
+      id: parentTable.id,
       dbDriver: this.dbDriver,
-      model: childTable,
     });
+    const childBaseModel = await Model.getBaseModelSQL({
+      dbDriver: this.dbDriver,
+      id: childTable.id,
+    });
+    const childTn = childBaseModel.getTnPath(childTable);
+    const parentTn = parentBaseModel.getTnPath(parentTable);
+
     const childView = await relColOptions.getChildView(this.context);
     let listArgs: any = {};
     if (childView) {
@@ -2187,14 +2225,6 @@ class BaseModelSqlv2 {
       });
       listArgs = dependencyFields;
     }
-
-    const parentTable = await (
-      await relColOptions.getChildColumn(this.context)
-    ).getModel(this.context);
-    await parentTable.getColumns(this.context);
-
-    const childTn = this.getTnPath(childTable);
-    const parentTn = this.getTnPath(parentTable);
 
     const rtn = childTn;
 
@@ -2288,8 +2318,8 @@ class BaseModelSqlv2 {
 
     const childView = await relColOptions.getChildView(this.context);
 
-    const childTn = this.getTnPath(childTable);
-    const parentTn = this.getTnPath(parentTable);
+    const childTn = childBaseModel.getTnPath(childTable);
+    const parentTn = parentBaseModel.getTnPath(parentTable);
 
     const tn = childTn;
     const rtn = parentTn;
@@ -2308,7 +2338,7 @@ class BaseModelSqlv2 {
       await this.shuffle({ qb });
     }
 
-    await childModel.selectObject({ qb });
+    await childBaseModel.selectObject({ qb });
 
     const aliasColObjMap = await childTable.getAliasColObjMap(this.context);
     const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
@@ -2330,12 +2360,11 @@ class BaseModelSqlv2 {
 
     applyPaginate(qb, rest);
 
-    const proto = await childModel.getProto();
+    const proto = await childBaseModel.getProto();
     const data = await this.execAndParse(
       qb,
       await childTable.getColumns(this.context),
     );
-
     return data.map((c) => {
       c.__proto__ = proto;
       return c;
@@ -2367,7 +2396,12 @@ class BaseModelSqlv2 {
 
     const childView = await relColOptions.getChildView(this.context);
 
-    const childTn = this.getTnPath(childTable);
+    const childBaseModel = await Model.getBaseModelSQL({
+      dbDriver: this.dbDriver,
+      model: childTable,
+    });
+
+    const childTn = childBaseModel.getTnPath(childTable);
     const parentTn = this.getTnPath(parentTable);
 
     const tn = childTn;
@@ -2431,7 +2465,12 @@ class BaseModelSqlv2 {
       dbDriver: this.dbDriver,
       model: childTable,
     });
+    const childBaseModel = await Model.getBaseModelSQL({
+      dbDriver: this.dbDriver,
+      model: childTable,
+    });
 
+    const childTn = childBaseModel.getTnPath(childTable);
     const childView = await relColOptions.getChildView(this.context);
     let listArgs: any = {};
     if (childView) {
@@ -2530,8 +2569,13 @@ class BaseModelSqlv2 {
       await relColOptions.getChildColumn(this.context)
     ).getModel(this.context);
 
+    const parentBaseModel = await Model.getBaseModelSQL({
+      dbDriver: this.dbDriver,
+      model: parentTable,
+    });
+
     const childTn = this.getTnPath(childTable);
-    const parentTn = this.getTnPath(parentTable);
+    const parentTn = parentBaseModel.getTnPath(parentTable);
 
     const rtn = parentTn;
     const tn = childTn;
@@ -2652,13 +2696,13 @@ class BaseModelSqlv2 {
     const childTable = await (
       await relColOptions.getChildColumn(this.context)
     ).getModel(this.context);
-    const parentModel = await Model.getBaseModelSQL(this.context, {
+    const parentBaseModel = await Model.getBaseModelSQL(this.context, {
       dbDriver: this.dbDriver,
       model: parentTable,
     });
 
     const childTn = this.getTnPath(childTable);
-    const parentTn = this.getTnPath(parentTable);
+    const parentTn = parentBaseModel.getTnPath(parentTable);
 
     const rtn = parentTn;
     const tn = childTn;
@@ -2679,7 +2723,7 @@ class BaseModelSqlv2 {
       await this.shuffle({ qb });
     }
 
-    await parentModel.selectObject({ qb });
+    await parentBaseModel.selectObject({ qb });
 
     const aliasColObjMap = await parentTable.getAliasColObjMap(this.context);
     const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
@@ -2706,7 +2750,7 @@ class BaseModelSqlv2 {
 
     applyPaginate(qb, rest);
 
-    const proto = await parentModel.getProto();
+    const proto = await parentBaseModel.getProto();
     const data = await this.execAndParse(
       qb,
       await parentTable.getColumns(this.context),
@@ -5525,8 +5569,19 @@ class BaseModelSqlv2 {
     await childTable.getColumns(this.context);
     await parentTable.getColumns(this.context);
 
-    const childTn = this.getTnPath(childTable);
-    const parentTn = this.getTnPath(parentTable);
+    const parentBaseModel = await Model.getBaseModelSQL({
+      model: parentTable,
+      dbDriver: this.dbDriver,
+    });
+
+
+    const childBaseModel = await Model.getBaseModelSQL({
+      dbDriver: this.dbDriver,
+      model: childTable,
+    });
+
+    const childTn = childBaseModel.getTnPath(childTable);
+    const parentTn = parentBaseModel.getTnPath(parentTable);
 
     const relatedChildCol = getRelatedLinksColumn(
       column,
@@ -5582,15 +5637,20 @@ class BaseModelSqlv2 {
           const vParentCol = await colOptions.getMMParentColumn(this.context);
           const vTable = await colOptions.getMMModel(this.context);
 
-          const vTn = this.getTnPath(vTable);
+          const assocBaseModel = await Model.getBaseModelSQL({
+            model: vTable,
+            dbDriver: this.dbDriver,
+          });
+
+          const vTn = assocBaseModel.getTnPath(vTable);
 
           if (this.isSnowflake || this.isDatabricks) {
-            const parentPK = this.dbDriver(parentTn)
+            const parentPK = parentBaseModel.dbDriver(parentTn)
               .select(parentColumn.column_name)
               .where(_wherePk(parentTable.primaryKeys, childId))
               .first();
 
-            const childPK = this.dbDriver(childTn)
+            const childPK = childBaseModel.dbDriver(childTn)
               .select(childColumn.column_name)
               .where(_wherePk(childTable.primaryKeys, rowId))
               .first();
@@ -5621,11 +5681,13 @@ class BaseModelSqlv2 {
           }
 
           await this.updateLastModified({
+            baseModel: parentBaseModel,
             model: parentTable,
             rowIds: [childId],
             cookie,
           });
           await this.updateLastModified({
+            baseModel: childBaseModel,
             model: childTable,
             rowIds: [rowId],
             cookie,
@@ -5699,6 +5761,7 @@ class BaseModelSqlv2 {
           await triggerAfterRemoveChild();
 
           await this.updateLastModified({
+            baseModel: parentBaseModel,
             model: parentTable,
             rowIds: [rowId],
             cookie,
@@ -5811,6 +5874,7 @@ class BaseModelSqlv2 {
             await triggerAfterRemoveChild();
 
             await this.updateLastModified({
+            baseModel: parentBaseModel,
               model: parentTable,
               rowIds: [childId],
               cookie,
@@ -6060,6 +6124,7 @@ class BaseModelSqlv2 {
           );
 
           await this.updateLastModified({
+            baseModel: parentBaseModel,
             model: parentTable,
             rowIds: [childId],
             cookie,
@@ -6176,8 +6241,18 @@ class BaseModelSqlv2 {
     await childTable.getColumns(this.context);
     await parentTable.getColumns(this.context);
 
-    const childTn = this.getTnPath(childTable);
-    const parentTn = this.getTnPath(parentTable);
+    const parentBaseModel = await Model.getBaseModelSQL({
+      model: parentTable,
+      dbDriver: this.dbDriver,
+    });
+
+    const childBaseModel = await Model.getBaseModelSQL({
+      dbDriver: this.dbDriver,
+      model: childTable,
+    });
+
+    const childTn = childBaseModel.getTnPath(childTable);
+    const parentTn = parentBaseModel.getTnPath(parentTable);
 
     const relatedChildCol = getRelatedLinksColumn(
       column,
@@ -6210,8 +6285,11 @@ class BaseModelSqlv2 {
           const vChildCol = await colOptions.getMMChildColumn(this.context);
           const vParentCol = await colOptions.getMMParentColumn(this.context);
           const vTable = await colOptions.getMMModel(this.context);
-
-          const vTn = this.getTnPath(vTable);
+          const assocBaseModel = await Model.getBaseModelSQL({
+            model: vTable,
+            dbDriver: this.dbDriver,
+          });
+          const vTn = assocBaseModel.getTnPath(vTable);
 
           await this.execAndParse(
             this.dbDriver(vTn)
@@ -6231,11 +6309,13 @@ class BaseModelSqlv2 {
           );
 
           await this.updateLastModified({
+            baseModel: parentBaseModel,
             model: parentTable,
             rowIds: [childId],
             cookie,
           });
           await this.updateLastModified({
+            baseModel: childBaseModel,
             model: childTable,
             rowIds: [rowId],
             cookie,
@@ -6264,6 +6344,7 @@ class BaseModelSqlv2 {
           );
 
           await this.updateLastModified({
+            baseModel: parentBaseModel,
             model: parentTable,
             rowIds: [rowId],
             cookie,
@@ -6290,6 +6371,7 @@ class BaseModelSqlv2 {
           );
 
           await this.updateLastModified({
+            baseModel: parentBaseModel,
             model: parentTable,
             rowIds: [childId],
             cookie,
@@ -6312,6 +6394,7 @@ class BaseModelSqlv2 {
           );
 
           await this.updateLastModified({
+            baseModel: parentBaseModel,
             model: parentTable,
             rowIds: [childId],
             cookie,
@@ -8027,11 +8110,13 @@ class BaseModelSqlv2 {
     cookie,
     model = this.model,
     knex = this.dbDriver,
+    baseModel = this,
   }: {
     rowIds: any | any[];
     cookie?: { user?: any };
     model?: Model;
     knex?: XKnex;
+    baseModel?: BaseModelSqlv2
   }) {
     const columns = await model.getColumns(this.context);
 
@@ -8055,7 +8140,7 @@ class BaseModelSqlv2 {
 
     if (Object.keys(updateObject).length === 0) return;
 
-    const qb = knex(this.getTnPath(model.table_name)).update(updateObject);
+    const qb = knex(baseModel.getTnPath(model.table_name)).update(updateObject);
 
     for (const rowId of Array.isArray(rowIds) ? rowIds : [rowIds]) {
       qb.orWhere(_wherePk(model.primaryKeys, rowId));

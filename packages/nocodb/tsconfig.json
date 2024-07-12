@@ -41,5 +41,4 @@
     ]
   },
   "include": ["src/**/*"],
-  "exclude": ["src/ee", "src/ee-on-prem"]
 }

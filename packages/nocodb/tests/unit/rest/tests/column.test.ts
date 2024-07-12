@@ -52,8 +52,8 @@ function columnTests() {
         ],
       });
 
-      const pkColumn = (await country.getColumns()).find((column) => column.pk);
-      const fkColumn = (await city.getColumns()).find(
+      const pkColumn = (await country.getColumns(context)).find((column) => column.pk);
+      const fkColumn = (await city.getColumns(context)).find(
         (column) => column.title === 'CountryId',
       );
 

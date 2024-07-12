@@ -287,6 +287,9 @@ function remapColNames(batchData: any[], columns: ColumnType[]) {
   const dateFormatMap: Record<number, string> = {}
   return batchData.map((data) =>
     (columns || []).reduce((aggObj, col: Record<string, any>) => {
+      // we renaming existing id column and using our own auto increment id
+      if (col.uidt === UITypes.ID) return aggObj
+
       // for excel & json, if the column name is changed in TemplateEditor,
       // then only col.column_name exists in data, else col.ref_column_name
       // for csv, col.column_name always exists in data
@@ -576,7 +579,6 @@ async function importTemplate() {
         }
       }
 
-      console.log('after column insert')
       // bulk insert data
       if (importData) {
         const offset = maxRowsToParse
@@ -594,7 +596,6 @@ async function importTemplate() {
                 for (let i = 0; i < data.length; i += offset) {
                   updateImportTips(baseName, tableMeta.title, progress, total)
                   const batchData = remapColNames(data.slice(i, i + offset), tableMeta.columns)
-
                   await $api.dbTableRow.bulkCreate('noco', base.value.id, tableMeta.id, batchData)
                   progress += batchData.length
                 }

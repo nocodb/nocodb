@@ -1,6 +1,13 @@
 <script setup lang="ts">
 import { useColumnCreateStoreOrThrow, useVModel, computed, inject, MetaInj, ref, useI18n,useBase, storeToRefs, useMetas } from '#imports'
-import {isVirtualCol, ModelTypes, RelationTypes, UITypes} from "nocodb-sdk";
+import {
+  isCreatedOrLastModifiedByCol,
+  isCreatedOrLastModifiedTimeCol,
+  isVirtualCol,
+  ModelTypes,
+  RelationTypes,
+  UITypes
+} from "nocodb-sdk";
 import type {ColumnType} from "nocodb-sdk";
 
 const props = defineProps<{
@@ -46,7 +53,7 @@ const columns = computed(() => {
     return []
   }
 
-  return meta.value.columns;
+  return meta.value.columns?.filter(c => !isCreatedOrLastModifiedByCol(c) && !isCreatedOrLastModifiedTimeCol(c) && !isVirtualCol(c));
 })
 
 const refTableColumns = computed(() => {
@@ -55,9 +62,7 @@ const refTableColumns = computed(() => {
   }
 
 
-  return metas.value[vModel.value.custom?.ref_model_id]?.columns.filter(
-      (c: ColumnType) => !isVirtualCol(c.uidt as UITypes),
-  )
+  return metas.value[vModel.value.custom?.ref_model_id]?.columns?.filter(c => !isCreatedOrLastModifiedByCol(c) && !isCreatedOrLastModifiedTimeCol(c) && !isVirtualCol(c))
 })
 
 const juncTableColumns = computed(() => {
@@ -66,9 +71,7 @@ const juncTableColumns = computed(() => {
   }
 
 
-  return metas.value[vModel.value.custom?.junc_model_id]?.columns.filter(
-      (c: ColumnType) => !isVirtualCol(c.uidt as UITypes),
-  )
+  return metas.value[vModel.value.custom?.junc_model_id]?.columns?.filter(c => !isCreatedOrLastModifiedByCol(c) && !isCreatedOrLastModifiedTimeCol(c) && !isVirtualCol(c))
 })
 
 

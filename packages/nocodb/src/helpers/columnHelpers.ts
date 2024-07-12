@@ -44,7 +44,7 @@ export async function createHmAndBtColumn(
   isLinks = false,
   colExtra?: any,
   parentColumn?: Column,
-  isCustom = false
+  isCustom = false,
 ) {
   // save bt column
   {
@@ -72,8 +72,8 @@ export async function createHmAndBtColumn(
       ...(type === 'bt' ? colExtra : {}),
       meta: {
         ...(colExtra?.meta || {}),
-        custom: isCustom
-      }
+        custom: isCustom,
+      },
     });
   }
   // save hm column
@@ -86,7 +86,7 @@ export async function createHmAndBtColumn(
       ...(columnMeta || {}),
       plural: columnMeta?.plural || pluralize(child.title),
       singular: columnMeta?.singular || singularize(child.title),
-      custom: isCustom
+      custom: isCustom,
     };
 
     await Column.insert(context, {
@@ -136,7 +136,7 @@ export async function createOOColumn(
   columnMeta = null,
   colExtra?: any,
   parentColumn?: Column,
-  isCustom = false
+  isCustom = false,
 ) {
   // save bt column
   {
@@ -166,7 +166,7 @@ export async function createOOColumn(
         // one-to-one relation is combination of both hm and bt to identify table which have
         // foreign key column(similar to bt) we are adding a boolean flag `bt` under meta
         bt: true,
-        custom: isCustom
+        custom: isCustom,
       },
     });
   }
@@ -186,7 +186,7 @@ export async function createOOColumn(
       ...(columnMeta || {}),
       plural: columnMeta?.plural || pluralize(child.title),
       singular: columnMeta?.singular || singularize(child.title),
-      custom: isCustom
+      custom: isCustom,
     };
 
     await Column.insert(context, {

@@ -61,16 +61,24 @@ export default class CSVTemplateAdapter {
       let cn: string = ((columnNameRowExist && columnName.toString().trim()) || `field_${columnIdx + 1}`)
         .replace(/[` ~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/g, '_')
         .trim()
-      while (cn in columnNamePrefixRef) {
-        cn = `${cn}${++columnNamePrefixRef[cn]}`
+
+      const originalCn = cn.toLowerCase()
+
+      while (cn.toLowerCase() === 'id' || cn in columnNamePrefixRef) {
+        if (cn.toLowerCase() === 'id') {
+          cn = `${cn}${++columnNamePrefixRef[cn.toLowerCase()]}`
+        } else {
+          cn = `${cn}${++columnNamePrefixRef[cn]}`
+        }
       }
+
       columnNamePrefixRef[cn] = 0
 
       this.detectedColumnTypes[columnIdx] = {}
       this.distinctValues[columnIdx] = new Set<string>()
       this.columnValues[columnIdx] = []
       tableObj.columns.push({
-        title,
+        title: originalCn == 'id' ? cn : title,
         column_name: cn,
         ref_column_name: cn,
         meta: {},

@@ -723,14 +723,14 @@ const setErrorState = (errorsFields: any[]) => {
 
 function populateUniqueColumnName(cn: string, draftCn: string[] = [], columns: ColumnType[]) {
   let c = 2
-  let columnName = `${cn}_${1}`
+  let columnName = `${cn}${1}`
   while (
     draftCn.includes(columnName) ||
     columns?.some((c) => {
       return c.column_name === columnName || c.title === columnName
     })
   ) {
-    columnName = `${cn}_${c++}`
+    columnName = `${cn}${c++}`
   }
   return columnName
 }

@@ -122,14 +122,19 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
               )
                 .replace(/[` ~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/g, '_')
                 .trim()
+              const originalCn = cn.toLowerCase()
 
-              while (cn in columnNamePrefixRef) {
-                cn = `${cn}${++columnNamePrefixRef[cn]}`
+              while (cn.toLowerCase() === 'id' || cn in columnNamePrefixRef) {
+                if (cn.toLowerCase() === 'id') {
+                  cn = `${cn}${++columnNamePrefixRef[cn.toLowerCase()]}`
+                } else {
+                  cn = `${cn}${++columnNamePrefixRef[cn]}`
+                }
               }
               columnNamePrefixRef[cn] = 0
 
               const column: Record<string, any> = {
-                title,
+                title: originalCn == 'id' ? cn : title,
                 column_name: cn,
                 ref_column_name: cn,
                 meta: {},

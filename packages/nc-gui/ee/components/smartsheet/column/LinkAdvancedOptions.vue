@@ -3,15 +3,13 @@ import {
   ModelTypes,
   RelationTypes,
   type TableType,
+  UITypes,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   isVirtualCol,
 } from 'nocodb-sdk'
 import {
-  MetaInj,
   computed,
-  inject,
-  ref,
   storeToRefs,
   useBase,
   useBases,
@@ -24,6 +22,7 @@ import {
 const props = defineProps<{
   value: any
   meta: TableType
+  isEdit: boolean
 }>()
 
 const emit = defineEmits(['update:value'])
@@ -47,6 +46,7 @@ vModel.value.custom = {
   base_id: meta.value?.base_id,
   column_id: pkColumn.value?.id,
   junc_base_id: meta.value?.base_id,
+  ...(vModel.value?.custom || {}),
 }
 
 const { basesList, bases } = storeToRefs(useBases())
@@ -82,14 +82,22 @@ const junctionTables = computed(() => {
   return [...baseTables.value.get(vModel.value.custom.junc_base_id).filter((t) => t.type === ModelTypes.TABLE)]
 })
 
+function filterSupportedColumns(columns: ColumnType[]) {
+  return columns?.filter(
+    (c) =>
+      !isCreatedOrLastModifiedByCol(c) &&
+      !isCreatedOrLastModifiedTimeCol(c) &&
+      !isVirtualCol(c) &&
+      ![UITypes.Attachment, UITypes.MultiSelect, UITypes.JSON].includes(c.uidt) &&
+      !c.system,
+  )
+}
+
 const columns = computed(() => {
   if (!meta.value?.columns) {
     return []
   }
-
-  return meta.value.columns?.filter(
-    (c) => !isCreatedOrLastModifiedByCol(c) && !isCreatedOrLastModifiedTimeCol(c) && !isVirtualCol(c) && !c.system
-  )
+  return filterSupportedColumns(meta.value.columns)
 })
 
 const refTableColumns = computed(() => {
@@ -97,9 +105,7 @@ const refTableColumns = computed(() => {
     return []
   }
 
-  return metas.value[vModel.value.custom?.ref_model_id]?.columns?.filter(
-    (c) => !isCreatedOrLastModifiedByCol(c) && !isCreatedOrLastModifiedTimeCol(c) && !isVirtualCol(c) && !c.system,
-  )
+  return filterSupportedColumns(metas.value[vModel.value.custom?.ref_model_id]?.columns)
 })
 
 const juncTableColumns = computed(() => {
@@ -107,9 +113,7 @@ const juncTableColumns = computed(() => {
     return []
   }
 
-  return metas.value[vModel.value.custom?.junc_model_id]?.columns?.filter(
-    (c) => !isCreatedOrLastModifiedByCol(c) && !isCreatedOrLastModifiedTimeCol(c) && !isVirtualCol(c) && !c.system,
-  )
+  return filterSupportedColumns(metas.value[vModel.value.custom?.junc_model_id]?.columns)
 })
 
 const filterOption = (value: string, option: { key: string }) => option.key.toLowerCase().includes(value.toLowerCase())
@@ -259,6 +263,7 @@ const sqlUi = computed(() => (meta.value?.source_id ? sqlUis.value[meta.value?.s
         <a-form-item class="nc-relation-settings-table-row nc-ltar-source-column" v-bind="validateInfos['custom.column_id']">
           <NcSelect
             v-model:value="vModel.custom.column_id"
+            :disabled="isEdit"
             suffix-icon="chevronDown"
             show-search
             placeholder="-select field-"
@@ -327,6 +332,7 @@ const sqlUi = computed(() => (meta.value?.source_id ? sqlUis.value[meta.value?.s
           >
             <NcSelect
               v-model:value="vModel.custom.junc_model_id"
+              :disabled="isEdit"
               suffix-icon="chevronDown"
               show-search
               placeholder="-select table-"
@@ -356,6 +362,7 @@ const sqlUi = computed(() => (meta.value?.source_id ? sqlUis.value[meta.value?.s
           >
             <NcSelect
               v-model:value="vModel.custom.junc_column_id"
+              :disabled="isEdit"
               suffix-icon="chevronDown"
               show-search
               placeholder="-select field-"
@@ -403,6 +410,7 @@ const sqlUi = computed(() => (meta.value?.source_id ? sqlUis.value[meta.value?.s
           >
             <NcSelect
               v-model:value="vModel.custom.junc_ref_column_id"
+              :disabled="isEdit"
               suffix-icon="chevronDown"
               show-search
               placeholder="-select field-"
@@ -491,6 +499,7 @@ const sqlUi = computed(() => (meta.value?.source_id ? sqlUis.value[meta.value?.s
         <a-form-item class="nc-relation-settings-table-row nc-ltar-child-table" v-bind="validateInfos['custom.ref_model_id']">
           <NcSelect
             v-model:value="vModel.custom.ref_model_id"
+            :disabled="isEdit"
             suffix-icon="chevronDown"
             show-search
             placeholder="-select table-"
@@ -516,6 +525,7 @@ const sqlUi = computed(() => (meta.value?.source_id ? sqlUis.value[meta.value?.s
         <a-form-item class="nc-relation-settings-table-row nc-ltar-child-column" v-bind="validateInfos['custom.ref_column_id']">
           <NcSelect
             v-model:value="vModel.custom.ref_column_id"
+            :disabled="isEdit"
             suffix-icon="chevronDown"
             show-search
             placeholder="-select field-"

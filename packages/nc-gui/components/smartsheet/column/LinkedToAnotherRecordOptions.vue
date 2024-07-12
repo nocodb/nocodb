@@ -47,9 +47,18 @@ if (!isEdit.value) {
   if (!vModel.value.onDelete) vModel.value.onDelete = onUpdateDeleteOptions[0]
   if (!vModel.value.virtual) vModel.value.virtual = sqlUi === SqliteUi // appInfo.isCloud || sqlUi === SqliteUi
   if (!vModel.value.alias) vModel.value.alias = vModel.value.column_name
+} else {
+  if (!vModel.value.childId)
+    vModel.custom = {
+      ref_model_id: vModel.value?.colOptions?.fk_related_model_id,
+      base_id: meta.value?.base_id,
+      junc_base_id: meta.value?.base_id,
+    }
+  if (!vModel.value.childViewId) vModel.value.childViewId = vModel.value?.colOptions?.fk_target_view_id || null
 }
 if (!vModel.value.childId) vModel.value.childId = vModel.value?.colOptions?.fk_related_model_id || null
 if (!vModel.value.childViewId) vModel.value.childViewId = vModel.value?.colOptions?.fk_target_view_id || null
+if (!vModel.value.type) vModel.value.type = vModel.value?.colOptions?.type || 'mm'
 
 const advancedOptions = ref(false)
 
@@ -221,11 +230,18 @@ const handleShowAdvanceOptions = () => {
       </a-form-item>
     </div>
     <div v-if="isAdvancedOptionsShownEasterEgg && isEeUI">
-      <a-switch v-model:checked="vModel.is_custom_link" size="small" name="Custom" @change="onCustomSwitchToggle" />
+      <a-switch
+        v-model:checked="vModel.is_custom_link"
+        :disabled="isEdit"
+        :is-edit="isEdit"
+        size="small"
+        name="Custom"
+        @change="onCustomSwitchToggle"
+      />
       <span class="ml-3">Advanced Link</span>
     </div>
-    <div v-if="isEeUI && vModel.is_custom_link" :class="{}">
-      <LazySmartsheetColumnLinkAdvancedOptions v-model:value="vModel" :meta="meta" />
+    <div v-if="isEeUI && vModel.is_custom_link">
+      <LazySmartsheetColumnLinkAdvancedOptions v-model:value="vModel" :is-edit="isEdit" :meta="meta" />
     </div>
     <template v-else>
       <a-form-item class="flex w-full pb-2 nc-ltar-child-table" v-bind="validateInfos.childId">

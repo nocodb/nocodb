@@ -634,8 +634,8 @@ export class NcError {
       ...args,
     });
   }
-  static columnAssociatedWithLink(id: string) {
-    throw new NcBaseErrorv2(NcErrorType.COLUMN_ASSOCIATED_WITH_LINK);
+  static columnAssociatedWithLink(_id: string, args: NcErrorArgs) {
+    throw new NcBaseErrorv2(NcErrorType.COLUMN_ASSOCIATED_WITH_LINK, args);
   }
 
   static baseNotFound(id: string, args?: NcErrorArgs) {

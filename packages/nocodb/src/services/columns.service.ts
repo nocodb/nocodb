@@ -64,7 +64,6 @@ import Noco from '~/Noco';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { MetaTable } from '~/utils/globals';
 import { MetaService } from '~/meta/meta.service';
-import { parseMetaProp } from '~/utils/modelUtils';
 
 // todo: move
 export enum Altered {

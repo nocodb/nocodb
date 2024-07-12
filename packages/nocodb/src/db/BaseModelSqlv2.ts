@@ -6080,15 +6080,20 @@ class BaseModelSqlv2 {
             // 2. check current child is linked with another row cell
             linkedOoRowObj = await this.execAndParse(
               this.dbDriver(childTn)
-                .select(childColumn.column_name)
-                .select(childColumn.column_name)
+                .select(
+                  ...new Set(
+                    [childColumn, ...childTable.primaryKeys].map(
+                      (col) => `${childTable.table_name}.${col.column_name}`,
+                    ),
+                  ),
+                )
                 .where(_wherePk(childTable.primaryKeys, childId)),
               null,
               { raw: true, first: true },
             );
 
             const oldRowId = linkedOoRowObj
-              ? Object.values(linkedOoRowObj)?.[0]
+              ? linkedOoRowObj[childTable.primaryKeys[0]?.column_name]
               : null;
             if (oldRowId) {
               const [parentRelatedPkValue, childRelatedPkValue] =
@@ -7392,7 +7397,7 @@ class BaseModelSqlv2 {
     });
 
     const parentBaseModel = await Model.getBaseModelSQL(this.context, {
-      model: childTable,
+      model: parentTable,
       dbDriver: this.dbDriver,
     });
 
@@ -7782,7 +7787,7 @@ class BaseModelSqlv2 {
     });
 
     const parentBaseModel = await Model.getBaseModelSQL(this.context, {
-      model: childTable,
+      model: parentTable,
       dbDriver: this.dbDriver,
     });
 

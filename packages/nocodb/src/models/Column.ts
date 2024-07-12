@@ -1,6 +1,7 @@
 import {
   AllowedColumnTypesForQrAndBarcodes,
   isLinksOrLTAR,
+  isVirtualCol,
   UITypes,
 } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
@@ -672,6 +673,28 @@ export default class Column<T = any> implements ColumnType {
     // if column is not found, return
     if (!col) {
       return;
+    }
+
+    // check column association with any custom links or LTAR
+    if (!isVirtualCol(col)) {
+      const links = await ncMeta.metaList2(
+        null,
+        null,
+        MetaTable.COL_RELATIONS,
+        {
+          xcCondition: {
+            _or: [
+              { fk_child_column_id: { eq: id } },
+              { fk_parent_column_id: { eq: id } },
+              { fk_mm_child_column_id: { eq: id } },
+              { fk_mm_parent_column_id: { eq: id } },
+            ],
+          },
+        },
+      );
+      if (links.length) {
+        NcError.columnAssociatedWithLink(id);
+      }
     }
 
     // todo: or instead of delete reset related foreign key value to null and handle in BaseModel

@@ -558,6 +558,10 @@ const errorHelpers: {
     message: 'Invalid JSON in request body',
     code: 400,
   },
+  [NcErrorType.COLUMN_ASSOCIATED_WITH_LINK]: {
+    message: 'Column is associated with a link, please remove the link first',
+    code: 400,
+  },
 };
 
 function generateError(
@@ -629,6 +633,9 @@ export class NcError {
       params: id,
       ...args,
     });
+  }
+  static columnAssociatedWithLink(id: string) {
+    throw new NcBaseErrorv2(NcErrorType.COLUMN_ASSOCIATED_WITH_LINK);
   }
 
   static baseNotFound(id: string, args?: NcErrorArgs) {

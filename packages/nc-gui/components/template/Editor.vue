@@ -237,6 +237,11 @@ function parseTemplate({ tables = [], ...rest }: Props['baseTemplate']) {
       ...rest,
       columns: [
         ...columns.map((c: any, idx: number) => {
+          if (!importDataOnly && c.column_name?.toLowerCase() === 'id') {
+            const cn = populateUniqueColumnName('id', [], columns)
+            c.title = cn
+            c.column_name = cn
+          }
           c.key = idx
           return c
         }),
@@ -570,6 +575,8 @@ async function importTemplate() {
           await $api.dbTableColumn.primaryColumnSet(createdTable.columns[0].id as string)
         }
       }
+
+      console.log('after column insert')
       // bulk insert data
       if (importData) {
         const offset = maxRowsToParse
@@ -587,6 +594,7 @@ async function importTemplate() {
                 for (let i = 0; i < data.length; i += offset) {
                   updateImportTips(baseName, tableMeta.title, progress, total)
                   const batchData = remapColNames(data.slice(i, i + offset), tableMeta.columns)
+
                   await $api.dbTableRow.bulkCreate('noco', base.value.id, tableMeta.id, batchData)
                   progress += batchData.length
                 }
@@ -710,6 +718,20 @@ const setErrorState = (errorsFields: any[]) => {
   }
 
   formError.value = errorMap
+}
+
+function populateUniqueColumnName(cn: string, draftCn: string[] = [], columns: ColumnType[]) {
+  let c = 2
+  let columnName = `${cn}_${1}`
+  while (
+    draftCn.includes(columnName) ||
+    columns?.some((c) => {
+      return c.column_name === columnName || c.title === columnName
+    })
+  ) {
+    columnName = `${cn}_${c++}`
+  }
+  return columnName
 }
 
 watch(formRef, () => {

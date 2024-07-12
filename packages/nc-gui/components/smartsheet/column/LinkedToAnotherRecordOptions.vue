@@ -223,7 +223,7 @@ const handleShowAdvanceOptions = () => {
         </a-radio-group>
       </a-form-item>
     </div>
-    <div v-if="isAdvancedOptionsShownEasterEgg" class="mt-4">
+    <div v-if="isAdvancedOptionsShownEasterEgg && isEeUI" class="mt-4">
       <a-switch v-model:checked="vModel.is_custom_link" size="small" name="Custom" @change="onCustomSwitchToggle" />
       <span class="ml-3">Advanced Link</span>
     </div>
@@ -233,9 +233,9 @@ const handleShowAdvanceOptions = () => {
         'mt-4': !isAdvancedOptionsShownEasterEgg,
       }"
     >
-      <LazySmartsheetColumnLinkAdvancedOptions v-if="vModel.is_custom_link" v-model:value="vModel" />
+      <LazySmartsheetColumnLinkAdvancedOptions v-if="isEeUI && vModel.is_custom_link" v-model:value="vModel" />
       <template v-else>
-        <a-form-item class="flex w-full pb-2 nc-ltar-child-table" v-bind="validateInfos['childId']">
+        <a-form-item class="flex w-full pb-2 nc-ltar-child-table" v-bind="validateInfos.childId">
           <a-select
           v-model:value="referenceTableChildId"
             show-search

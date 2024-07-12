@@ -2101,7 +2101,7 @@ export class ColumnsService {
     );
 
     // check column association with any custom links or LTAR
-    if (!isVirtualCol(col)) {
+    if (!isVirtualCol(column)) {
       const links = await ncMeta.metaList2(
         null,
         null,
@@ -2109,10 +2109,10 @@ export class ColumnsService {
         {
           xcCondition: {
             _or: [
-              { fk_child_column_id: { eq: id } },
-              { fk_parent_column_id: { eq: id } },
-              { fk_mm_child_column_id: { eq: id } },
-              { fk_mm_parent_column_id: { eq: id } },
+              { fk_child_column_id: { eq: param.columnId } },
+              { fk_parent_column_id: { eq: param.columnId } },
+              { fk_mm_child_column_id: { eq: param.columnId } },
+              { fk_mm_parent_column_id: { eq: param.columnId } },
             ],
           },
         },

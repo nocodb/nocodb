@@ -5722,8 +5722,13 @@ class BaseModelSqlv2 {
         {
           const linkedHmRowObj = await this.execAndParse(
             this.dbDriver(childTn)
-              .select(childTable.primaryKeys.map((pk) => pk.column_name))
-              .select(`${childTable.table_name}.${childColumn.column_name}`)
+              .select(
+                ...new Set(
+                  [childColumn, ...childTable.primaryKeys].map(
+                    (col) => `${childTable.table_name}.${col.column_name}`,
+                  ),
+                ),
+              )
               .where(_wherePk(childTable.primaryKeys, childId)),
             null,
             { raw: true, first: true },
@@ -5835,8 +5840,13 @@ class BaseModelSqlv2 {
           } else {
             const linkedHmRowObj = await this.execAndParse(
               this.dbDriver(childTn)
-                .select(childTable.primaryKeys.map((pk) => pk.column_name))
-                .select(childColumn.column_name)
+                .select(
+                  ...new Set(
+                    [childColumn, ...childTable.primaryKeys].map(
+                      (col) => col.column_name,
+                    ),
+                  ),
+                )
                 .where(_wherePk(childTable.primaryKeys, rowId)),
               null,
               { raw: true, first: true },
@@ -5915,8 +5925,13 @@ class BaseModelSqlv2 {
             // 1. check current row is linked with another child
             linkedCurrentOoRowObj = await this.execAndParse(
               this.dbDriver(childTn)
-                .select(childTable.primaryKeys.map((pk) => pk.column_name))
-                .select(childColumn.column_name)
+                .select(
+                  ...new Set(
+                    [childColumn, ...childTable.primaryKeys].map(
+                      (col) => col.column_name,
+                    ),
+                  ),
+                )
                 .where(_wherePk(childTable.primaryKeys, rowId)),
               null,
               { raw: true, first: true },

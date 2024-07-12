@@ -238,7 +238,7 @@ export class TablesService {
         },
       );
 
-      if (relations.leghth) {
+      if (relations.length) {
         const relCol = await Column.get(relations[0].fk_column_id);
         const relTable = await Model.get(relCol.fk_model_id);
         NcError.badRequest(

@@ -62,6 +62,7 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
       old: INITIAL_LEFT_SIDEBAR_WIDTH,
       current: INITIAL_LEFT_SIDEBAR_WIDTH,
     },
+    isAddNewRecordGridMode: true,
   }
 
   /** saves a reactive state, any change to these values will write/delete to localStorage */

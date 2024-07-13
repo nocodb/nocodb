@@ -2597,7 +2597,7 @@ export class ColumnsService {
     await Column.delete(context, relationColOpt.fk_column_id, ncMeta);
 
     if (custom) return;
-    if (!ignoreFkDelete) {
+    if (!ignoreFkDelete && childColumn.uidt === UITypes.ForeignKey) {
       const cTable = await Model.getWithInfo(
         context,
         {
@@ -2758,7 +2758,7 @@ export class ColumnsService {
 
     if (custom) return;
 
-    if (!ignoreFkDelete) {
+    if (!ignoreFkDelete && childColumn.uidt === UITypes.ForeignKey) {
       const cTable = await Model.getWithInfo(
         context,
         {

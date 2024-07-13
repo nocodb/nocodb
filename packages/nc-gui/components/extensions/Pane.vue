@@ -5,6 +5,12 @@ import 'splitpanes/dist/splitpanes.css'
 const { extensionList, isPanelExpanded, isDetailsVisible, detailsExtensionId, detailsFrom, isMarketVisible, extensionPanelSize } =
   useExtensions()
 
+const searchQuery = ref<string>('')
+
+const filteredExtensionList = computed(() =>
+  (extensionList.value || []).filter((ext) => ext.title.toLowerCase().includes(searchQuery.value.toLowerCase())),
+)
+
 const toggleMarket = () => {
   isMarketVisible.value = !isMarketVisible.value
 }
@@ -37,7 +43,13 @@ const toggleMarket = () => {
     <template v-else>
       <div class="flex w-full items-center justify-between px-4">
         <div class="flex flex-grow items-center mr-2">
-          <a-input type="text" class="!h-8 !px-3 !py-1 !rounded-lg" placeholder="Search Extension">
+          <a-input
+            v-model:value="searchQuery"
+            type="text"
+            class="!h-8 !px-3 !py-1 !rounded-lg"
+            placeholder="Search Extension"
+            allow-clear
+          >
             <template #prefix>
               <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-gray-500 group-hover:text-black" />
             </template>
@@ -50,8 +62,28 @@ const toggleMarket = () => {
           </div>
         </NcButton>
       </div>
-      <div class="nc-extension-list-wrapper flex items-center flex-col gap-3 w-full nc-scrollbar-md">
-        <ExtensionsWrapper v-for="ext in extensionList" :key="ext.id" :extension-id="ext.id" />
+      <div
+        class="nc-extension-list-wrapper flex items-center flex-col gap-3 w-full nc-scrollbar-md"
+        :class="{
+          'h-full': searchQuery && !filteredExtensionList.length && extensionList.length,
+        }"
+      >
+        <ExtensionsWrapper v-for="ext in filteredExtensionList" :key="ext.id" :extension-id="ext.id" />
+
+        <div
+          v-if="searchQuery && !filteredExtensionList.length && extensionList.length"
+          class="w-full h-full flex-1 flex items-center justify-center"
+        >
+          <div class="pb-6 text-gray-500 flex flex-col items-center gap-6">
+            <img
+              src="~assets/img/placeholder/no-search-result-found.png"
+              class="!w-[164px] flex-none"
+              alt="No search results found"
+            />
+
+            {{ $t('title.noResultsMatchedYourSearch') }}
+          </div>
+        </div>
       </div>
     </template>
     <ExtensionsMarket v-if="isMarketVisible" v-model="isMarketVisible" />

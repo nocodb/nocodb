@@ -67,7 +67,7 @@ const onAddExtension = (ext: any) => {
         <div
           class="flex flex-wrap gap-3"
           :class="{
-            'h-full': searchQuery && !filteredAvailableExtensions.length,
+            'h-full': searchQuery && !filteredAvailableExtensions.length && availableExtensions.length,
           }"
         >
           <template v-for="ext of filteredAvailableExtensions" :key="ext.id">
@@ -89,7 +89,10 @@ const onAddExtension = (ext: any) => {
               </div>
             </div>
           </template>
-          <div v-if="searchQuery && !filteredAvailableExtensions.length" class="w-full h-full flex items-center justify-center">
+          <div
+            v-if="searchQuery && !filteredAvailableExtensions.length && availableExtensions.length"
+            class="w-full h-full flex items-center justify-center"
+          >
             <div class="pb-6 text-gray-500 flex flex-col items-center gap-6">
               <img
                 src="~assets/img/placeholder/no-search-result-found.png"

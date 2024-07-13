@@ -92,7 +92,7 @@ const closeFullscreen = (e: MouseEvent) => {
       <div class="extension-header" :class="{ 'mb-2': !collapsed }">
         <div class="extension-header-left">
           <GeneralIcon icon="ncDrag" class="flex-none" />
-          <img v-if="extensionManifest" :src="getExtensionIcon(extensionManifest.iconUrl)" alt="icon" class="h-6" />
+          <img v-if="extensionManifest" :src="getExtensionIcon(extensionManifest.iconUrl)" alt="icon" class="h-6 w-6 object-contain" />
           <input
             v-if="titleEditMode"
             ref="titleInput"

@@ -360,6 +360,11 @@ onMounted(() => {
             </template>
           </div>
         </template>
+        <div v-else class="px-6 lg:px-12">
+          <h1 class="text-2xl font-bold text-gray-900 line-clamp-2 text-center mb-2rem md:mb-4rem">
+            {{ sharedFormView.heading }}
+          </h1>
+        </div>
         <template v-if="isStarted && !submitted">
           <Transition :name="`slide-${transitionName}`" :duration="transitionDuration" mode="out-in">
             <a-form :model="formState">

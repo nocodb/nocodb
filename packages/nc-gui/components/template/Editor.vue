@@ -145,7 +145,11 @@ const validators = computed(() =>
     hasSelectColumn.value[tableIdx] = false
 
     table.columns?.forEach((column, columnIdx) => {
-      acc[`tables.${tableIdx}.columns.${columnIdx}.title`] = [fieldRequiredValidator(), fieldLengthValidator()]
+      acc[`tables.${tableIdx}.columns.${columnIdx}.title`] = [
+        fieldRequiredValidator(),
+        fieldLengthValidator(),
+        reservedFieldNameValidator(),
+      ]
       acc[`tables.${tableIdx}.columns.${columnIdx}.uidt`] = [fieldRequiredValidator()]
       if (isSelect(column)) {
         hasSelectColumn.value[tableIdx] = true
@@ -237,6 +241,10 @@ function parseTemplate({ tables = [], ...rest }: Props['baseTemplate']) {
       ...rest,
       columns: [
         ...columns.map((c: any, idx: number) => {
+          if (!importDataOnly && c.column_name?.toLowerCase() === 'id') {
+            const cn = populateUniqueColumnName('id', [], columns)
+            c.column_name = cn
+          }
           c.key = idx
           return c
         }),
@@ -282,6 +290,9 @@ function remapColNames(batchData: any[], columns: ColumnType[]) {
   const dateFormatMap: Record<number, string> = {}
   return batchData.map((data) =>
     (columns || []).reduce((aggObj, col: Record<string, any>) => {
+      // we renaming existing id column and using our own auto increment id
+      if (col.uidt === UITypes.ID) return aggObj
+
       // for excel & json, if the column name is changed in TemplateEditor,
       // then only col.column_name exists in data, else col.ref_column_name
       // for csv, col.column_name always exists in data
@@ -570,6 +581,7 @@ async function importTemplate() {
           await $api.dbTableColumn.primaryColumnSet(createdTable.columns[0].id as string)
         }
       }
+
       // bulk insert data
       if (importData) {
         const offset = maxRowsToParse
@@ -623,7 +635,7 @@ function mapDefaultColumns() {
   srcDestMapping.value = {}
   for (let i = 0; i < data.tables.length; i++) {
     for (const col of importColumns[i]) {
-      const o = { srcCn: col.column_name, destCn: '', enabled: true }
+      const o = { srcCn: col.column_name, srcTitle: col.title, destCn: '', enabled: true }
       if (columns.value) {
         const tableColumn = columns.value.find((c) => c.column_name === col.column_name)
         if (tableColumn) {
@@ -710,6 +722,20 @@ const setErrorState = (errorsFields: any[]) => {
   }
 
   formError.value = errorMap
+}
+
+function populateUniqueColumnName(cn: string, draftCn: string[] = [], columns: ColumnType[]) {
+  let c = 2
+  let columnName = `${cn}${1}`
+  while (
+    draftCn.includes(columnName) ||
+    columns?.some((c) => {
+      return c.column_name === columnName || c.title === columnName
+    })
+  ) {
+    columnName = `${cn}${c++}`
+  }
+  return columnName
 }
 
 watch(formRef, () => {
@@ -801,8 +827,8 @@ watch(modelRef, async () => {
             <template #bodyCell="{ column, record }">
               <template v-if="column.key === 'source_column'">
                 <NcTooltip class="truncate inline-block">
-                  <template #title>{{ record.srcCn }}</template>
-                  {{ record.srcCn }}
+                  <template #title>{{ record.srcTitle }}</template>
+                  {{ record.srcTitle }}
                 </NcTooltip>
               </template>
 
@@ -917,17 +943,29 @@ watch(modelRef, async () => {
 
               <template #bodyCell="{ column, record }">
                 <template v-if="column.key === 'column_name'">
-                  <a-form-item v-bind="validateInfos[`tables.${tableIdx}.columns.${record.key}.${column.key}`]">
+                  <a-form-item
+                    v-bind="validateInfos[`tables.${tableIdx}.columns.${record.key}.title`]"
+                    class="nc-table-field-name"
+                  >
                     <a-input
                       :ref="(el: HTMLInputElement) => (inputRefs[record.key] = el)"
                       v-model:value="record.title"
                       class="!rounded-md"
-                    />
+                    >
+                      <template #suffix>
+                        <NcTooltip v-if="formError?.[`tables.${tableIdx}.columns.${record.key}.title`]" class="flex">
+                          <template #title
+                            >{{ formError?.[`tables.${tableIdx}.columns.${record.key}.title`].join('\n') }}
+                          </template>
+                          <GeneralIcon icon="info" class="h-4 w-4 text-red-500 flex-none" />
+                        </NcTooltip>
+                      </template>
+                    </a-input>
                   </a-form-item>
                 </template>
 
                 <template v-else-if="column.key === 'uidt'">
-                  <a-form-item v-bind="validateInfos[`tables.${tableIdx}.columns.${record.key}.${column.key}`]">
+                  <a-form-item v-bind="validateInfos[`tables.${tableIdx}.columns.${record.key}.uidt`]">
                     <NcTooltip :disabled="importDataOnly">
                       <template #title>
                         {{ $t('tooltip.useFieldEditMenuToConfigFieldType') }}
@@ -1012,6 +1050,11 @@ watch(modelRef, async () => {
   @apply !items-center;
   & > div {
     @apply flex;
+  }
+}
+.nc-table-field-name {
+  :deep(.ant-form-item-explain) {
+    @apply hidden;
   }
 }
 </style>

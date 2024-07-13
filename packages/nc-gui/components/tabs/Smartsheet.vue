@@ -159,7 +159,7 @@ watch([activeViewTitleOrId, activeTableId], () => {
   handleSidebarOpenOnMobileForNonViews()
 })
 
-const { extensionPanelSize } = useExtensions()
+const { isPanelExpanded, extensionPanelSize } = useExtensions()
 
 const onResize = (sizes: { min: number; max: number; size: number }[]) => {
   if (sizes.length === 2) {
@@ -174,7 +174,10 @@ const onResize = (sizes: { min: number; max: number; size: number }[]) => {
     <LazySmartsheetTopbar />
     <div style="height: calc(100% - var(--topbar-height))">
       <Splitpanes v-if="openedViewsTab === 'view'" class="nc-extensions-content-resizable-wrapper" @resized="onResize">
-        <Pane class="flex flex-col h-full flex-1 min-w-0" size="60">
+        <Pane
+          class="flex flex-col h-full  min-w-0"
+          :size="isPanelExpanded && extensionPanelSize ? 100 - extensionPanelSize : 100"
+        >
           <LazySmartsheetToolbar v-if="!isForm" />
           <div
             :style="{ height: isForm || isMobileMode ? '100%' : 'calc(100% - var(--toolbar-height))' }"

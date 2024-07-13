@@ -55,10 +55,13 @@ const toggleMarket = () => {
             </template>
           </a-input>
         </div>
-        <NcButton type="ghost" size="small" class="!text-primary !bg-white" @click="toggleMarket">
-          <div class="flex items-center gap-1 px-1 text-xs">
+        <NcButton type="ghost" size="small" class="!text-primary !bg-white children:children:max-w-full" @click="toggleMarket">
+          <div class="flex items-center gap-1 text-xs max-w-full">
             <GeneralIcon icon="plus" />
-            Add Extension
+            <NcTooltip class="max-w-[calc(100%_-_16px)] truncate" show-on-truncate-only>
+              <template #title> Add Extension </template>
+              Add Extension
+            </NcTooltip>
           </div>
         </NcButton>
       </div>

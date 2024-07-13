@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ModelTypes, MssqlUi, RelationTypes, SqliteUi, UITypes, ViewTypes } from 'nocodb-sdk'
+import { type LinkToAnotherRecordType, ModelTypes, MssqlUi, RelationTypes, SqliteUi, UITypes, ViewTypes } from 'nocodb-sdk'
 
 const props = defineProps<{
   value: any
@@ -48,12 +48,33 @@ if (!isEdit.value) {
   if (!vModel.value.virtual) vModel.value.virtual = sqlUi === SqliteUi // appInfo.isCloud || sqlUi === SqliteUi
   if (!vModel.value.alias) vModel.value.alias = vModel.value.column_name
 } else {
-  if (!vModel.value.childId)
-    vModel.custom = {
-      ref_model_id: vModel.value?.colOptions?.fk_related_model_id,
+  const colOptions = vModel.value?.colOptions as LinkToAnotherRecordType
+  if (vModel.value?.meta?.custom && isEeUI) {
+    let ref_column_id = colOptions.fk_child_column_id
+    let column_id = colOptions.fk_parent_column_id
+
+    // extract ref column id from colOptions
+    if (
+      colOptions.type === RelationTypes.MANY_TO_MANY ||
+      colOptions.type === RelationTypes.BELONGS_TO ||
+      vModel?.value?.meta?.bt
+    ) {
+      ref_column_id = colOptions.fk_parent_column_id
+      column_id = colOptions.fk_child_column_id
+    }
+    vModel.value.custom = {
+      ref_model_id: colOptions?.fk_related_model_id,
       base_id: meta.value?.base_id,
       junc_base_id: meta.value?.base_id,
+      junc_model_id: colOptions?.fk_mm_model_id,
+      junc_ref_column_id: colOptions?.fk_mm_parent_column_id,
+      junc_column_id: colOptions?.fk_mm_child_column_id,
+      ref_column_id,
+      column_id,
     }
+  }
+  vModel.value.is_custom_link = vModel.value?.meta?.custom
+
   if (!vModel.value.childViewId) vModel.value.childViewId = vModel.value?.colOptions?.fk_target_view_id || null
 }
 if (!vModel.value.childId) vModel.value.childId = vModel.value?.colOptions?.fk_related_model_id || null

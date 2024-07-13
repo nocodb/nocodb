@@ -65,6 +65,9 @@ export const useExtensions = createSharedComposable(() => {
   const toggleExtensionPanel = () => {
     if (activeBaseExtensions.value) {
       activeBaseExtensions.value.expanded = !activeBaseExtensions.value.expanded
+    } else {
+      // temp added to test in staging
+      console.log('No active base extensions found', base.value?.id, baseExtensions.value[base.value?.id])
     }
   }
 

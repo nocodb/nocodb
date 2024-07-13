@@ -87,7 +87,7 @@ const closeFullscreen = (e: MouseEvent) => {
 </script>
 
 <template>
-  <div class="w-full p-2">
+  <div class="w-full px-4">
     <div class="extension-wrapper">
       <div class="extension-header">
         <div class="extension-header-left">

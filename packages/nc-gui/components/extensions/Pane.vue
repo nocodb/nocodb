@@ -11,10 +11,12 @@ const toggleMarket = () => {
 </script>
 
 <template>
-  <Pane v-if="isPanelExpanded" :size="extensionPanelSize" min-size="20%" max-size="50%" class="flex flex-col bg-orange-50">
-    <div class="flex items-center pl-3 pt-3 font-weight-800 text-orange-500">Extensions</div>
+  <Pane v-if="isPanelExpanded" :size="extensionPanelSize" min-size="20%" max-size="50%" class="flex flex-col gap-3 bg-[#F0F3FF]">
+    <div class="flex items-center gap-3 px-4 pt-3 font-weight-700 text-brand-500 text-base">
+      <GeneralIcon icon="puzzle" class="h-6 w-6" /> Extensions
+    </div>
     <template v-if="extensionList.length === 0">
-      <div class="flex items-center flex-col gap-2 w-full nc-scrollbar-md">
+      <div class="flex items-center flex-col gap-2 w-full nc-scrollbar-md text-center px-4">
         <div class="w-[100px] h-[100px] bg-gray-200 rounded-lg mt-[100px]"></div>
         <div class="font-weight-700">No extensions added</div>
         <div>Add Extensions from the community extensions marketplace</div>
@@ -27,7 +29,7 @@ const toggleMarket = () => {
       </div>
     </template>
     <template v-else>
-      <div class="flex w-full items-center justify-between py-2 px-2 bg-orange-50">
+      <div class="flex w-full items-center justify-between px-4">
         <div class="flex flex-grow items-center mr-2">
           <a-input type="text" class="!h-8 !px-3 !py-1 !rounded-lg" placeholder="Search Extension">
             <template #prefix>
@@ -42,7 +44,7 @@ const toggleMarket = () => {
           </div>
         </NcButton>
       </div>
-      <div class="flex items-center flex-col w-full nc-scrollbar-md">
+      <div class="nc-extension-list-wrapper flex items-center flex-col gap-3 w-full nc-scrollbar-md">
         <ExtensionsWrapper v-for="ext in extensionList" :key="ext.id" :extension-id="ext.id" />
       </div>
     </template>
@@ -56,4 +58,10 @@ const toggleMarket = () => {
   </Pane>
 </template>
 
-<style lang="scss"></style>
+<style lang="scss" scoped>
+.nc-extension-list-wrapper {
+  &:last-child {
+    @apply pb-3;
+  }
+}
+</style>

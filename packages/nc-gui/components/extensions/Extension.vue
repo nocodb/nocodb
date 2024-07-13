@@ -103,7 +103,12 @@ const closeFullscreen = (e: MouseEvent) => {
             @keyup.esc="updateExtensionTitle"
             @blur="updateExtensionTitle"
           />
-          <div v-else class="extension-title" @dblclick="enableEditMode">{{ extension.title }}</div>
+          <NcTooltip v-else show-on-truncate-only class="truncate">
+            <template #title>
+              {{ extension.title }}
+            </template>
+            <div class="extension-title truncate" @dblclick="enableEditMode">{{ extension.title }}</div>
+          </NcTooltip>
         </div>
         <div class="extension-header-right">
           <NcButton v-if="!activeError && !collapsed" type="text" size="xxsmall" @click="fullscreen = true">

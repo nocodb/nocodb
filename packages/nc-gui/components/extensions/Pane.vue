@@ -32,7 +32,7 @@ const toggleMarket = () => {
     max-size="60%"
     class="flex flex-col gap-3 bg-[#F0F3FF] max-w-[60%] min-w-[300px]"
   >
-    <div class="flex justify-between items-center pl-4 pr-3 pt-3">
+    <div class="flex justify-between items-center px-4 pt-3">
       <div class="flex items-center gap-3 font-weight-700 text-brand-500 text-base">
         <GeneralIcon icon="puzzle" class="h-5 w-5" /> Extensions
       </div>

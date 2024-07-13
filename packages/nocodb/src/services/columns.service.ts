@@ -2396,7 +2396,8 @@ export class ColumnsService {
                     }
                   }
 
-                  if (mmTable) {
+                  // delete m2m table if it is made for mm relation
+                  if (mmTable?.mm) {
                     // retrieve columns in m2m table again
                     await mmTable.getColumns(context, ncMeta);
 
@@ -2597,7 +2598,7 @@ export class ColumnsService {
     await Column.delete(context, relationColOpt.fk_column_id, ncMeta);
 
     if (custom) return;
-    if (!ignoreFkDelete) {
+    if (!ignoreFkDelete && childColumn.uidt === UITypes.ForeignKey) {
       const cTable = await Model.getWithInfo(
         context,
         {
@@ -2758,7 +2759,7 @@ export class ColumnsService {
 
     if (custom) return;
 
-    if (!ignoreFkDelete) {
+    if (!ignoreFkDelete && childColumn.uidt === UITypes.ForeignKey) {
       const cTable = await Model.getWithInfo(
         context,
         {

@@ -201,6 +201,15 @@ watch(pkColumn, () => {
 const { sqlUis } = storeToRefs(useBase())
 
 const sqlUi = computed(() => (meta.value?.source_id ? sqlUis.value[meta.value?.source_id] : Object.values(sqlUis.value)[0]))
+
+onMounted(async () => {
+  if (vModel.value?.custom?.junc_model_id) {
+    await getMeta(vModel.value.custom.junc_model_id)
+  }
+  if (vModel.value?.custom?.ref_model_id) {
+    await getMeta(vModel.value.custom.ref_model_id)
+  }
+})
 </script>
 
 <template>

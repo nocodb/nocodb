@@ -167,6 +167,10 @@ export function useGlobalActions(state: State): Actions {
     }
   }
 
+  const setAddNewRecordGridMode = (isGridMode: boolean) => {
+    state.isAddNewRecordGridMode.value = isGridMode
+  }
+
   return {
     signIn,
     signOut,
@@ -179,5 +183,6 @@ export function useGlobalActions(state: State): Actions {
     getMainUrl,
     setGridViewPageSize,
     setLeftSidebarSize,
+    setAddNewRecordGridMode,
   }
 }

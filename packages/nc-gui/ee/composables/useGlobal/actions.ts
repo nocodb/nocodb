@@ -265,6 +265,10 @@ export function useGlobalActions(state: State): Actions & ActionsEE {
     }
   }
 
+  const setAddNewRecordGridMode = (isGridMode: boolean) => {
+    state.isAddNewRecordGridMode.value = isGridMode
+  }
+
   return {
     signIn,
     signOut,
@@ -278,5 +282,6 @@ export function useGlobalActions(state: State): Actions & ActionsEE {
     checkForCognitoToken,
     setGridViewPageSize,
     setLeftSidebarSize,
+    setAddNewRecordGridMode,
   }
 }

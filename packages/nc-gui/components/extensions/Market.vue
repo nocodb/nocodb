@@ -49,8 +49,8 @@ const onAddExtension = (ext: any) => {
         <div class="font-weight-700 text-base">Extensions Marketplace</div>
       </div>
     </template>
-    <div class="flex flex-col h-full">
-      <div class="flex flex-col gap-4 flex-1 pt-2">
+    <div class="flex flex-col h-[calc(100%_-_41px)]">
+      <div class="h-full flex flex-col gap-4 flex-1 pt-2">
         <div class="flex flex max-w-[470px]">
           <a-input
             v-model:value="searchQuery"
@@ -65,7 +65,7 @@ const onAddExtension = (ext: any) => {
           </a-input>
         </div>
         <div
-          class="flex flex-wrap gap-3"
+          class="max-h-[calc(100%_-_40px)] flex flex-wrap gap-3 nc-scrollbar-thin"
           :class="{
             'h-full': searchQuery && !filteredAvailableExtensions.length && availableExtensions.length,
           }"

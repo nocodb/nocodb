@@ -49,7 +49,7 @@ const activeExtension = computed(() => {
       <div v-else class="h-8"></div>
 
       <div class="extension-details">
-        <div class="extension-details-left">
+        <div class="extension-details-left nc-scrollbar-thin">
           <div class="flex gap-6">
             <img :src="getExtensionIcon(activeExtension.iconUrl)" alt="icon" class="h-[80px] w-[80px] object-contain" />
             <div class="flex flex-col gap-3">
@@ -63,28 +63,31 @@ const activeExtension = computed(() => {
           <NcButton class="w-full" @click="onAddExtension(activeExtension)">
             <div class="flex items-center justify-center">Add Extension</div>
           </NcButton>
-          <div class="flex flex-col gap-1">
-            <div class="extension-details-right-title">Version</div>
-            <div class="extension-details-right-subtitle">{{ activeExtension.version }}</div>
-          </div>
-          <div class="flex flex-col gap-1">
-            <div v-if="activeExtension.publisherName" class="extension-details-right-title">Publisher</div>
-            <div class="extension-details-right-subtitle">{{ activeExtension.publisherName }}</div>
-          </div>
-          <div v-if="activeExtension.publisherEmail" class="flex flex-col gap-1">
-            <div class="extension-details-right-title">Publisher Email</div>
-            <div class="extension-details-right-subtitle">
-              <a :href="`mailto:${activeExtension.publisherEmail}`" target="_blank" rel="noopener noreferrer">
-                {{ activeExtension.publisherEmail }}
-              </a>
+
+          <div class="flex flex-col gap-4 nc-scrollbar-thin">
+            <div class="flex flex-col gap-1">
+              <div class="extension-details-right-title">Version</div>
+              <div class="extension-details-right-subtitle">{{ activeExtension.version }}</div>
             </div>
-          </div>
-          <div v-if="activeExtension.publisherUrl" class="flex flex-col gap-1">
-            <div class="extension-details-right-title">Publisher Website</div>
-            <div class="extension-details-right-subtitle">
-              <a :href="activeExtension.publisherUrl" target="_blank" rel="noopener noreferrer">
-                {{ activeExtension.publisherUrl }}
-              </a>
+            <div class="flex flex-col gap-1">
+              <div v-if="activeExtension.publisherName" class="extension-details-right-title">Publisher</div>
+              <div class="extension-details-right-subtitle">{{ activeExtension.publisherName }}</div>
+            </div>
+            <div v-if="activeExtension.publisherEmail" class="flex flex-col gap-1">
+              <div class="extension-details-right-title">Publisher Email</div>
+              <div class="extension-details-right-subtitle">
+                <a :href="`mailto:${activeExtension.publisherEmail}`" target="_blank" rel="noopener noreferrer">
+                  {{ activeExtension.publisherEmail }}
+                </a>
+              </div>
+            </div>
+            <div v-if="activeExtension.publisherUrl" class="flex flex-col gap-1">
+              <div class="extension-details-right-title">Publisher Website</div>
+              <div class="extension-details-right-subtitle">
+                <a :href="activeExtension.publisherUrl" target="_blank" rel="noopener noreferrer">
+                  {{ activeExtension.publisherUrl }}
+                </a>
+              </div>
             </div>
           </div>
         </div>

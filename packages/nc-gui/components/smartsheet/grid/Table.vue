@@ -109,7 +109,7 @@ const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 
 const openNewRecordFormHook = inject(OpenNewRecordFormHookInj, createEventHook())
 
-const { isMobileMode } = useGlobal()
+const { isMobileMode, isAddNewRecordGridMode, setAddNewRecordGridMode } = useGlobal()
 
 const scrollParent = inject(ScrollParentInj, ref<undefined>())
 
@@ -195,8 +195,6 @@ const disableUrlOverlay = ref(false)
 const preloadColumn = ref<any>()
 
 const scrolling = ref(false)
-
-const isAddNewRecordGridMode = ref(true)
 
 const switchingTab = ref(false)
 
@@ -493,12 +491,12 @@ const onDraftRecordClick = () => {
 }
 
 const onNewRecordToGridClick = () => {
-  isAddNewRecordGridMode.value = true
+  setAddNewRecordGridMode(true)
   addEmptyRow()
 }
 
 const onNewRecordToFormClick = () => {
-  isAddNewRecordGridMode.value = false
+  setAddNewRecordGridMode(false)
   onDraftRecordClick()
 }
 

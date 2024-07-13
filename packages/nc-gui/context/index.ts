@@ -82,3 +82,5 @@ export const ActiveSourceInj: InjectionKey<
     }
   >
 > = Symbol('active-source-injection')
+
+export const IsToolbarIconMode: InjectionKey<ComputedRef<boolean>> = Symbol('toolbar-icon-mode-injection')

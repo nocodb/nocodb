@@ -38,14 +38,19 @@ const isSharedBase = computed(() => route.value.params.typeOrId === 'base')
 
       <div
         v-if="extensionsEgg"
-        class="flex items-center px-2 py-1 gap-2 border-1 rounded-lg h-8 xs:(h-10 ml-0) ml-1 border-gray-200 cursor-pointer font-weight-600"
-        :class="{ 'bg-orange-50': isPanelExpanded, 'text-orange-500': isPanelExpanded }"
+        class="flex items-center px-2 py-1 border-1 rounded-lg h-8 xs:(h-10 ml-0) ml-1 border-gray-200 cursor-pointer font-weight-600 text-sm select-none"
+        :class="{ 'bg-brand-50 text-brand-500': isPanelExpanded }"
         @click="toggleExtensionPanel"
       >
-        <GeneralIcon icon="puzzle" :class="{ 'border-l-1 border-white': isPanelExpanded }" />
-        Extensions
+        <GeneralIcon icon="puzzle" class="w-4 h-4" :class="{ 'border-l-1 border-transparent': isPanelExpanded }" />
+        <span
+          class="overflow-hidden trasition-all duration-200"
+          :class="{ 'w-[0px] invisible': isPanelExpanded, 'ml-2 w-[74px]': !isPanelExpanded }"
+        >
+          Extensions
+        </span>
       </div>
-      <div v-else class="w-[15px] h-[15px] cursor-pointer" @dblclick="onEggClick" />
+      <div v-else-if="!extensionsEgg" class="w-[15px] h-[15px] cursor-pointer" @dblclick="onEggClick" />
 
       <LazyGeneralShareProject
         v-if="(isForm || isGrid || isKanban || isGallery || isMap || isCalendar) && !isPublic && !isMobileMode"

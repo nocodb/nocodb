@@ -19,6 +19,11 @@ const isLocked = inject(IsLockedInj, ref(false))
 
 const isPublic = inject(IsPublicInj, ref(false))
 
+const isToolbarIconMode = inject(
+  IsToolbarIconMode,
+  computed(() => false),
+)
+
 const { $api, $e } = useNuxtApp()
 
 const { t } = useI18n()
@@ -449,7 +454,7 @@ useMenuCloseOnEsc(open)
             <component :is="iconMap.fields" v-else class="h-4 w-4" />
 
             <!-- Fields -->
-            <span v-if="!isMobileMode" class="text-capitalize !text-[13px] font-medium">
+            <span v-if="!isMobileMode && !isToolbarIconMode" class="text-capitalize !text-[13px] font-medium">
               <template v-if="activeView?.type === ViewTypes.KANBAN || activeView?.type === ViewTypes.GALLERY">
                 {{ $t('title.editCards') }}
               </template>

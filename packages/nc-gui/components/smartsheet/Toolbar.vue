@@ -16,6 +16,15 @@ const isTab = computed(() => {
   if (!isCalendar.value) return false
   return width.value > 1200
 })
+
+const isToolbarIconMode = computed(() => {
+  if (width.value < 768) {
+    return true
+  }
+  return false
+})
+
+provide(IsToolbarIconMode, isToolbarIconMode)
 </script>
 
 <template>

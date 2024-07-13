@@ -40,51 +40,54 @@ const activeExtension = computed(() => {
     wrap-class-name="nc-modal-extension-market"
   >
     <div v-if="activeExtension" class="flex flex-col w-full h-full">
-      <div v-if="from === 'market'" class="h-[40px] flex items-start">
-        <div class="flex items-center gap-2 pr-2 pb-2 cursor-pointer hover:text-primary" @click="onBack">
+      <div v-if="from === 'market'" class="flex-none h-8 flex items-center mb-4">
+        <div class="flex items-center gap-2 pr-2 cursor-pointer hover:text-primary" @click="onBack">
           <GeneralIcon icon="ncArrowLeft" />
           <span>Back</span>
         </div>
       </div>
-      <div v-else class="h-[40px]"></div>
+      <div v-else class="h-8"></div>
+
       <div class="extension-details">
-        <div class="extension-details-left">
-          <div class="flex">
-            <img :src="getExtensionIcon(activeExtension.iconUrl)" alt="icon" class="h-[90px]" />
-            <div class="flex flex-col p-4">
+        <div class="extension-details-left nc-scrollbar-thin">
+          <div class="flex gap-6">
+            <img :src="getExtensionIcon(activeExtension.iconUrl)" alt="icon" class="h-[80px] w-[80px] object-contain" />
+            <div class="flex flex-col gap-3">
               <div class="font-weight-700 text-2xl">{{ activeExtension.title }}</div>
             </div>
           </div>
-          <div class="p-4">
-            <div class="whitespace-pre-line">{{ activeExtension.description }}</div>
-          </div>
+
+          <div class="whitespace-pre-line text-base text-gray-600">{{ activeExtension.description }}</div>
         </div>
         <div class="extension-details-right">
           <NcButton class="w-full" @click="onAddExtension(activeExtension)">
             <div class="flex items-center justify-center">Add Extension</div>
           </NcButton>
-          <div class="flex flex-col gap-1">
-            <div class="text-md font-weight-600">Version</div>
-            <div>{{ activeExtension.version }}</div>
-          </div>
-          <div class="flex flex-col gap-1">
-            <div v-if="activeExtension.publisherName" class="text-md font-weight-600">Publisher</div>
-            <div>{{ activeExtension.publisherName }}</div>
-          </div>
-          <div v-if="activeExtension.publisherEmail" class="flex flex-col gap-1">
-            <div class="text-md font-weight-600">Publisher Email</div>
-            <div>
-              <a :href="`mailto:${activeExtension.publisherEmail}`" target="_blank" rel="noopener noreferrer">
-                {{ activeExtension.publisherEmail }}
-              </a>
+
+          <div class="flex flex-col gap-4 nc-scrollbar-thin">
+            <div class="flex flex-col gap-1">
+              <div class="extension-details-right-title">Version</div>
+              <div class="extension-details-right-subtitle">{{ activeExtension.version }}</div>
             </div>
-          </div>
-          <div v-if="activeExtension.publisherUrl" class="flex flex-col gap-1">
-            <div class="text-md font-weight-600">Publisher Website</div>
-            <div>
-              <a :href="activeExtension.publisherUrl" target="_blank" rel="noopener noreferrer">
-                {{ activeExtension.publisherUrl }}
-              </a>
+            <div class="flex flex-col gap-1">
+              <div v-if="activeExtension.publisherName" class="extension-details-right-title">Publisher</div>
+              <div class="extension-details-right-subtitle">{{ activeExtension.publisherName }}</div>
+            </div>
+            <div v-if="activeExtension.publisherEmail" class="flex flex-col gap-1">
+              <div class="extension-details-right-title">Publisher Email</div>
+              <div class="extension-details-right-subtitle">
+                <a :href="`mailto:${activeExtension.publisherEmail}`" target="_blank" rel="noopener noreferrer">
+                  {{ activeExtension.publisherEmail }}
+                </a>
+              </div>
+            </div>
+            <div v-if="activeExtension.publisherUrl" class="flex flex-col gap-1">
+              <div class="extension-details-right-title">Publisher Website</div>
+              <div class="extension-details-right-subtitle">
+                <a :href="activeExtension.publisherUrl" target="_blank" rel="noopener noreferrer">
+                  {{ activeExtension.publisherUrl }}
+                </a>
+              </div>
             </div>
           </div>
         </div>
@@ -95,14 +98,21 @@ const activeExtension = computed(() => {
 
 <style lang="scss" scoped>
 .extension-details {
-  @apply flex w-full h-full;
+  @apply flex w-full h-full gap-6;
 
   .extension-details-left {
-    @apply flex flex-col w-3/4 p-2;
+    @apply flex flex-col gap-6 w-3/4;
   }
 
   .extension-details-right {
-    @apply w-1/4 p-2 flex flex-col gap-4;
+    @apply w-1/4 flex flex-col gap-4;
+
+    .extension-details-right-title {
+      @apply text-base font-weight-700 text-gray-800;
+    }
+    .extension-details-right-subtitle {
+      @apply text-sm font-weight-500 text-gray-600;
+    }
   }
 }
 </style>

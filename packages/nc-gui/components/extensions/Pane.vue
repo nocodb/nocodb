@@ -13,14 +13,14 @@ const toggleMarket = () => {
 <template>
   <Pane v-if="isPanelExpanded" :size="extensionPanelSize" min-size="20%" max-size="50%" class="flex flex-col gap-3 bg-[#F0F3FF]">
     <div class="flex items-center gap-3 px-4 pt-3 font-weight-700 text-brand-500 text-base">
-      <GeneralIcon icon="puzzle" class="h-6 w-6" /> Extensions
+      <GeneralIcon icon="puzzle" class="h-5 w-5" /> Extensions
     </div>
     <template v-if="extensionList.length === 0">
-      <div class="flex items-center flex-col gap-2 w-full nc-scrollbar-md text-center px-4">
+      <div class="flex items-center flex-col gap-4 w-full nc-scrollbar-md text-center px-4">
         <div class="w-[100px] h-[100px] bg-gray-200 rounded-lg mt-[100px]"></div>
         <div class="font-weight-700">No extensions added</div>
         <div>Add Extensions from the community extensions marketplace</div>
-        <NcButton @click="toggleMarket">
+        <NcButton @click="toggleMarket" size="small">
           <div class="flex items-center gap-2 font-weight-600">
             <GeneralIcon icon="plus" />
             Add Extension

@@ -89,9 +89,9 @@ const closeFullscreen = (e: MouseEvent) => {
 <template>
   <div class="w-full px-4">
     <div class="extension-wrapper">
-      <div class="extension-header">
+      <div class="extension-header" :class="{ 'mb-2': !collapsed }">
         <div class="extension-header-left">
-          <GeneralIcon icon="drag" />
+          <GeneralIcon icon="ncDrag" class="flex-none" />
           <img v-if="extensionManifest" :src="getExtensionIcon(extensionManifest.iconUrl)" alt="icon" class="h-6" />
           <input
             v-if="titleEditMode"
@@ -106,9 +106,14 @@ const closeFullscreen = (e: MouseEvent) => {
           <div v-else class="extension-title" @dblclick="enableEditMode">{{ extension.title }}</div>
         </div>
         <div class="extension-header-right">
-          <GeneralIcon v-if="!activeError" icon="expand" @click="fullscreen = true" />
-          <NcDropdown :trigger="['click']">
-            <GeneralIcon icon="threeDotVertical" />
+          <NcButton v-if="!activeError && !collapsed" type="text" size="xxsmall" @click="fullscreen = true">
+            <GeneralIcon icon="expand" />
+          </NcButton>
+
+          <NcDropdown v-if="!collapsed" :trigger="['click']">
+            <NcButton type="text" size="xxsmall">
+              <GeneralIcon icon="threeDotVertical" />
+            </NcButton>
 
             <template #overlay>
               <NcMenu>
@@ -142,8 +147,8 @@ const closeFullscreen = (e: MouseEvent) => {
               </NcMenu>
             </template>
           </NcDropdown>
-          <GeneralIcon v-if="collapsed" icon="arrowUp" @click="collapsed = !collapsed" />
-          <GeneralIcon v-else icon="arrowDown" @click="collapsed = !collapsed" />
+          <GeneralIcon v-if="collapsed" icon="arrowUp" @click="collapsed = !collapsed" class="cursor-pointer" />
+          <GeneralIcon v-else icon="arrowDown" @click="collapsed = !collapsed" class="cursor-pointer" />
         </div>
       </div>
       <template v-if="activeError">
@@ -198,18 +203,18 @@ const closeFullscreen = (e: MouseEvent) => {
 
 <style scoped lang="scss">
 .extension-wrapper {
-  @apply bg-white rounded-lg p-2 w-full border-1;
+  @apply bg-white rounded-xl px-3 py-[11px] w-full border-1;
 }
 
 .extension-header {
-  @apply flex justify-between mb-2;
+  @apply flex justify-between;
 
   .extension-header-left {
     @apply flex items-center gap-2;
   }
 
   .extension-header-right {
-    @apply flex items-center gap-4;
+    @apply flex items-center gap-3;
   }
 
   .extension-title {

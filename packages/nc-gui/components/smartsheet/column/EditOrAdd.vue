@@ -492,7 +492,7 @@ const isFullUpdateAllowed = computed(() => {
         <SmartsheetColumnRollupOptions v-if="formState.uidt === UITypes.Rollup" v-model:value="formState" />
         <SmartsheetColumnLinkedToAnotherRecordOptions
           v-if="formState.uidt === UITypes.LinkToAnotherRecord || formState.uidt === UITypes.Links"
-          :key="`${formState.uidt}-${formState.id || formState.title}`"
+          :key="`${formState.uidt}-${formState.id || 'new'}`"
           v-model:value="formState"
           :is-edit="isEdit"
         />

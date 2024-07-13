@@ -188,9 +188,8 @@ const onCustomSwitchToggle = () => {
       ...cusValidators,
       ...(vModel.value.type === RelationTypes.MANY_TO_MANY ? cusJuncTableValidations : {}),
     })
-    vModel.value.virtual = true;
-  }
-  else
+    vModel.value.virtual = true
+  } else
     setAdditionalValidations({
       childId: [{ required: true, message: t('general.required') }],
     })

@@ -13,6 +13,8 @@ const {
   toggleExtensionPanel,
 } = useExtensions()
 
+const isReady = ref(false)
+
 const searchQuery = ref<string>('')
 
 const filteredExtensionList = computed(() =>
@@ -22,15 +24,37 @@ const filteredExtensionList = computed(() =>
 const toggleMarket = () => {
   isMarketVisible.value = !isMarketVisible.value
 }
+
+const normalizePaneMaxWidth = computed(() => {
+  if (isReady.value) {
+    return 60
+  } else {
+    return extensionPanelSize.value
+  }
+})
+
+defineExpose({
+  onReady: () => {
+    isReady.value = true
+  },
+})
 </script>
 
 <template>
   <Pane
+    @ready="
+      () => {
+        console.log('ready pan', isReady)
+      }
+    "
     v-if="isPanelExpanded"
     :size="extensionPanelSize"
     min-size="10%"
     max-size="60%"
-    class="flex flex-col gap-3 bg-[#F0F3FF] max-w-[60%] min-w-[300px]"
+    class="flex flex-col gap-3 bg-[#F0F3FF] min-w-[300px]"
+    :style="{
+      maxWidth: `${normalizePaneMaxWidth}%`,
+    }"
   >
     <div class="flex justify-between items-center px-4 pt-3">
       <div class="flex items-center gap-3 font-weight-700 text-brand-500 text-base">

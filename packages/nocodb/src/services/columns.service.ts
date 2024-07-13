@@ -2396,7 +2396,8 @@ export class ColumnsService {
                     }
                   }
 
-                  if (mmTable) {
+                  // delete m2m table if it is made for mm relation
+                  if (mmTable?.mm) {
                     // retrieve columns in m2m table again
                     await mmTable.getColumns(context, ncMeta);
 

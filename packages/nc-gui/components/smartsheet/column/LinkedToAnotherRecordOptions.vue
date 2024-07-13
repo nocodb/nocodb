@@ -182,12 +182,14 @@ const cusJuncTableValidations = {
 }
 
 const onCustomSwitchToggle = () => {
-  if (vModel.value?.is_custom_link)
+  if (vModel.value?.is_custom_link) {
     setAdditionalValidations({
       childId: [],
       ...cusValidators,
       ...(vModel.value.type === RelationTypes.MANY_TO_MANY ? cusJuncTableValidations : {}),
     })
+    vModel.value.virtual = true;
+  }
   else
     setAdditionalValidations({
       childId: [{ required: true, message: t('general.required') }],
@@ -413,7 +415,7 @@ const handleShowAdvanceOptions = () => {
           <div class="flex flex-row">
             <a-form-item>
               <div class="flex items-center gap-1">
-                <NcSwitch v-model:checked="vModel.virtual" @change="onDataTypeChange">
+                <NcSwitch v-model:checked="vModel.virtual" :disabled="vModel.is_custom_link" @change="onDataTypeChange">
                   <div class="text-sm text-gray-800 select-none">
                     {{ $t('title.virtualRelation') }}
                   </div>

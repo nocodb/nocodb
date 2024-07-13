@@ -38,21 +38,25 @@ defineExpose({
     isReady.value = true
   },
 })
+
+watch(isPanelExpanded, (newValue) => {
+  if (newValue && !isReady.value) {
+    setTimeout(() => {
+      isReady.value = true
+    }, 300)
+  }
+})
 </script>
 
 <template>
   <Pane
-    @ready="
-      () => {
-        console.log('ready pan', isReady)
-      }
-    "
     v-if="isPanelExpanded"
     :size="extensionPanelSize"
     min-size="10%"
     max-size="60%"
-    class="flex flex-col gap-3 bg-[#F0F3FF] min-w-[300px]"
+    class="flex flex-col gap-3 bg-[#F0F3FF]"
     :style="{
+      minWidth: isReady ? '300px' : `${normalizePaneMaxWidth}%`,
       maxWidth: `${normalizePaneMaxWidth}%`,
     }"
   >
@@ -105,7 +109,12 @@ defineExpose({
         <NcButton type="ghost" size="small" class="!text-primary !bg-white children:children:max-w-full" @click="toggleMarket">
           <div class="flex items-center gap-1 text-xs max-w-full">
             <GeneralIcon icon="plus" />
-            <NcTooltip class="max-w-[calc(100%_-_16px)] truncate" show-on-truncate-only>
+            <NcTooltip
+              class="max-w-[calc(100%_-_16px)] truncate"
+              show-on-truncate-only
+              overlayClassName="children:-ml-2"
+              modifierKey=""
+            >
               <template #title> Add Extension </template>
               Add Extension
             </NcTooltip>

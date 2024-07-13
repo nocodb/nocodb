@@ -17,13 +17,13 @@ const toggleMarket = () => {
     </div>
     <template v-if="extensionList.length === 0">
       <div class="flex items-center flex-col gap-4 w-full nc-scrollbar-md text-center px-4">
-        <div class="w-[100px] h-[100px] bg-gray-200 rounded-lg mt-[100px]"></div>
-        <div class="font-weight-700">No extensions added</div>
+        <div class="w-[180px] h-[180px] bg-[#d9d9d9] rounded-3xl mt-[100px]"></div>
+        <div class="font-weight-700 text-base">No extensions added</div>
         <div>Add Extensions from the community extensions marketplace</div>
         <NcButton @click="toggleMarket" size="small">
           <div class="flex items-center gap-2 font-weight-600">
-            <GeneralIcon icon="plus" />
             Add Extension
+            <GeneralIcon icon="plus" />
           </div>
         </NcButton>
       </div>

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import {
+  type ColumnType,
   ModelTypes,
   RelationTypes,
   type TableType,
@@ -200,6 +201,15 @@ watch(pkColumn, () => {
 const { sqlUis } = storeToRefs(useBase())
 
 const sqlUi = computed(() => (meta.value?.source_id ? sqlUis.value[meta.value?.source_id] : Object.values(sqlUis.value)[0]))
+
+onMounted(async () => {
+  if (vModel.value?.custom?.junc_model_id) {
+    await getMeta(vModel.value.custom.junc_model_id)
+  }
+  if (vModel.value?.custom?.ref_model_id) {
+    await getMeta(vModel.value.custom.ref_model_id)
+  }
+})
 </script>
 
 <template>
@@ -388,11 +398,13 @@ const sqlUi = computed(() => (meta.value?.source_id ? sqlUis.value[meta.value?.s
                     <SmartsheetHeaderCellIcon v-else :column-meta="column" class="nc-cell-icon"></SmartsheetHeaderCellIcon>
                   </div>
                   <NcTooltip class="flex-1 truncate" :show-on-truncate-only="sqlUi.isEqual(sourceColumn?.dt, column.dt)">
-                    <template #title>{{
-                      sqlUi.isEqual(sourceColumn?.dt, column.dt)
-                        ? column.title
-                        : `Incompatible with column '${sourceColumn?.title}'`
-                    }}</template>
+                    <template #title
+                      >{{
+                        sqlUi.isEqual(sourceColumn?.dt, column.dt)
+                          ? column.title
+                          : `Incompatible with column '${sourceColumn?.title}'`
+                      }}
+                    </template>
                     <span>{{ column.title }}</span>
                   </NcTooltip>
                 </div>
@@ -436,11 +448,13 @@ const sqlUi = computed(() => (meta.value?.source_id ? sqlUis.value[meta.value?.s
                     <SmartsheetHeaderCellIcon v-else :column-meta="column" class="nc-cell-icon"></SmartsheetHeaderCellIcon>
                   </div>
                   <NcTooltip class="flex-1 truncate" :show-on-truncate-only="sqlUi.isEqual(sourceColumn?.dt, column.dt)">
-                    <template #title>{{
-                      !sqlUi.isEqual(sourceColumn?.dt, column.dt)
-                        ? column.title
-                        : `Incompatible with column '${sourceColumn?.title}'`
-                    }}</template>
+                    <template #title
+                      >{{
+                        !sqlUi.isEqual(sourceColumn?.dt, column.dt)
+                          ? column.title
+                          : `Incompatible with column '${sourceColumn?.title}'`
+                      }}
+                    </template>
                     <span>
                       {{ column.title }}
                     </span>
@@ -551,11 +565,13 @@ const sqlUi = computed(() => (meta.value?.source_id ? sqlUis.value[meta.value?.s
                   <SmartsheetHeaderCellIcon v-else :column-meta="column" class="nc-cell-icon"></SmartsheetHeaderCellIcon>
                 </div>
                 <NcTooltip class="flex-1 truncate" :show-on-truncate-only="sqlUi.isEqual(sourceColumn?.dt, column.dt)">
-                  <template #title>{{
-                    sqlUi.isEqual(sourceColumn?.dt, column.dt)
-                      ? column.title
-                      : `Incompatible with column '${sourceColumn?.title}'`
-                  }}</template>
+                  <template #title
+                    >{{
+                      sqlUi.isEqual(sourceColumn?.dt, column.dt)
+                        ? column.title
+                        : `Incompatible with column '${sourceColumn?.title}'`
+                    }}
+                  </template>
                   <span>{{ column.title }} </span>
                 </NcTooltip>
               </div>
@@ -589,6 +605,7 @@ const sqlUi = computed(() => (meta.value?.source_id ? sqlUis.value[meta.value?.s
     &.disabled {
       @apply bg-gray-50 text-gray-400;
     }
+
     :deep(.ant-select-selector) {
       @apply px-4 text-xs;
 
@@ -596,6 +613,7 @@ const sqlUi = computed(() => (meta.value?.source_id ? sqlUis.value[meta.value?.s
         @apply pl-1;
       }
     }
+
     :deep(.ant-select-arrow) {
       @apply mr-2;
     }
@@ -617,28 +635,35 @@ const sqlUi = computed(() => (meta.value?.source_id ? sqlUis.value[meta.value?.s
       &.nc-left {
         @apply -left-[4px];
       }
+
       &.nc-relation-settings-table-connector-line {
         &.nc-right::after {
           @apply content-[''] block h-[1px] bg-current absolute top-[50%];
           transform: translateY(-50%);
         }
+
         &.nc-right.nc-source::after {
           @apply w-3 -right-2;
         }
       }
     }
+
     .nc-relation-settings-table-connector-line-junciton-to-child {
       @apply absolute bottom-[15px] -right-2.8 !text-opacity-90;
     }
+
     .column-type-mm {
       @apply bg-pink-500 text-pink-500;
     }
+
     .column-type-hm {
       @apply bg-orange-500 text-orange-500;
     }
+
     .column-type-oo {
       @apply bg-purple-500 text-purple-500;
     }
+
     :deep(.ant-form-item-explain) {
       @apply hidden;
     }
@@ -660,10 +685,12 @@ const sqlUi = computed(() => (meta.value?.source_id ? sqlUis.value[meta.value?.s
       stroke: currentColor !important;
     }
   }
+
   .nc-cell-icon {
     @apply !mx-0 flex-none w-3.5 h-3.5;
   }
 }
+
 .nc-relation-settings-select.ant-select-dropdown.nc-select-dropdown {
   @apply !rounded-md max-w-[180px];
 

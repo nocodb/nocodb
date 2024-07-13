@@ -11,7 +11,13 @@ const toggleMarket = () => {
 </script>
 
 <template>
-  <Pane v-if="isPanelExpanded" :size="extensionPanelSize" min-size="20%" max-size="50%" class="flex flex-col gap-3 bg-[#F0F3FF]">
+  <Pane
+    v-if="isPanelExpanded"
+    :size="extensionPanelSize"
+    min-size="20%"
+    max-size="50%"
+    class="flex flex-col gap-3 bg-[#F0F3FF] max-w-[50%]"
+  >
     <div class="flex items-center gap-3 px-4 pt-3 font-weight-700 text-brand-500 text-base">
       <GeneralIcon icon="puzzle" class="h-5 w-5" /> Extensions
     </div>

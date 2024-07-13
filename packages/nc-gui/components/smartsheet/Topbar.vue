@@ -36,17 +36,18 @@ const isSharedBase = computed(() => route.value.params.typeOrId === 'base')
 
       <GeneralApiLoader v-if="!isMobileMode" />
 
-      <div
-        v-if="extensionsEgg"
-        class="flex items-center px-2 py-1 gap-2 border-1 rounded-lg h-8 xs:(h-10 ml-0) ml-1 border-gray-200 cursor-pointer font-weight-600 text-sm select-none"
-        :class="{ 'bg-brand-50': isPanelExpanded, 'text-brand-500': isPanelExpanded }"
-        @click="toggleExtensionPanel"
-      >
-        <GeneralIcon icon="puzzle" class="w-4 h-4" :class="{ 'border-l-1 border-transparent': isPanelExpanded }" />
-        Extensions
+      <div>
+        <div
+          v-if="extensionsEgg && !isPanelExpanded"
+          class="flex items-center px-2 py-1 gap-2 border-1 rounded-lg h-8 xs:(h-10 ml-0) ml-1 border-gray-200 cursor-pointer font-weight-600 text-sm select-none"
+          :class="{ 'bg-brand-50': isPanelExpanded, 'text-brand-500': isPanelExpanded }"
+          @click="toggleExtensionPanel"
+        >
+          <GeneralIcon icon="puzzle" class="w-4 h-4" :class="{ 'border-l-1 border-transparent': isPanelExpanded }" />
+          Extensions
+        </div>
+        <div v-else-if="!extensionsEgg" class="w-[15px] h-[15px] cursor-pointer" @dblclick="onEggClick" />
       </div>
-      <div v-else class="w-[15px] h-[15px] cursor-pointer" @dblclick="onEggClick" />
-
       <LazyGeneralShareProject
         v-if="(isForm || isGrid || isKanban || isGallery || isMap || isCalendar) && !isPublic && !isMobileMode"
         is-view-toolbar

@@ -2,8 +2,16 @@
 import { Pane } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
 
-const { extensionList, isPanelExpanded, isDetailsVisible, detailsExtensionId, detailsFrom, isMarketVisible, extensionPanelSize } =
-  useExtensions()
+const {
+  extensionList,
+  isPanelExpanded,
+  isDetailsVisible,
+  detailsExtensionId,
+  detailsFrom,
+  isMarketVisible,
+  extensionPanelSize,
+  toggleExtensionPanel,
+} = useExtensions()
 
 const searchQuery = ref<string>('')
 
@@ -24,8 +32,23 @@ const toggleMarket = () => {
     max-size="60%"
     class="flex flex-col gap-3 bg-[#F0F3FF] max-w-[60%] min-w-[300px]"
   >
-    <div class="flex items-center gap-3 px-4 pt-3 font-weight-700 text-brand-500 text-base">
-      <GeneralIcon icon="puzzle" class="h-5 w-5" /> Extensions
+    <div class="flex justify-between items-center pl-4 pr-3 pt-3">
+      <div class="flex items-center gap-3 font-weight-700 text-brand-500 text-base">
+        <GeneralIcon icon="puzzle" class="h-5 w-5" /> Extensions
+      </div>
+      <NcTooltip class="flex" hide-on-click placement="topRight">
+        <template #title> Hide extensions </template>
+        <NcButton
+          @click="toggleExtensionPanel"
+          size="xxsmall"
+          type="text"
+          class="!text-gray-700 !hover:text-gray-800 !hover:bg-gray-200"
+        >
+          <div class="flex items-center justify-center">
+            <GeneralIcon icon="doubleRightArrow" class="flex-none !text-gray-500/75" />
+          </div>
+        </NcButton>
+      </NcTooltip>
     </div>
     <template v-if="extensionList.length === 0">
       <div class="flex items-center flex-col gap-4 w-full nc-scrollbar-md text-center px-4">
@@ -34,8 +57,8 @@ const toggleMarket = () => {
         <div>Add Extensions from the community extensions marketplace</div>
         <NcButton @click="toggleMarket" size="small">
           <div class="flex items-center gap-2 font-weight-600">
-            Add Extension
             <GeneralIcon icon="plus" />
+            Add Extension
           </div>
         </NcButton>
       </div>

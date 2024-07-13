@@ -80,8 +80,8 @@ const onAddExtension = (ext: any) => {
                   <div class="font-weight-600">{{ ext.title }}</div>
                   <NcButton size="xsmall" type="secondary" @click.stop="onAddExtension(ext)">
                     <div class="flex items-center gap-2 mx-1">
-                      Add
                       <GeneralIcon icon="plus" />
+                      Add
                     </div>
                   </NcButton>
                 </div>

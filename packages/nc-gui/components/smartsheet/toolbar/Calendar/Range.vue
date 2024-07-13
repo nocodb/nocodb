@@ -12,6 +12,11 @@ const isLocked = inject(IsLockedInj, ref(false))
 
 const IsPublic = inject(IsPublicInj, ref(false))
 
+const isToolbarIconMode = inject(
+  IsToolbarIconMode,
+  computed(() => false),
+)
+
 const { loadViewColumns } = useViewColumnsOrThrow()
 
 const { loadCalendarMeta, loadCalendarData, loadSidebarData, fetchActiveDates, updateCalendarMeta, viewMetaProperties } =
@@ -154,7 +159,7 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
       >
         <div class="flex items-center gap-2">
           <component :is="iconMap.calendar" class="h-4 w-4 transition-all group-hover:text-brand-500" />
-          <span class="text-capitalize !group-hover:text-brand-500 !text-[13px] font-medium">
+          <span v-if="!isToolbarIconMode" class="text-capitalize !group-hover:text-brand-500 !text-[13px] font-medium">
             {{ $t('activity.settings') }}
           </span>
         </div>

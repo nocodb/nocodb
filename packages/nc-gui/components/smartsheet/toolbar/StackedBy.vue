@@ -13,6 +13,11 @@ const IsPublic = inject(IsPublicInj, ref(false))
 
 const isLocked = inject(IsLockedInj, ref(false))
 
+const isToolbarIconMode = inject(
+  IsToolbarIconMode,
+  computed(() => false),
+)
+
 const { fields, loadViewColumns, metaColumnById } = useViewColumnsOrThrow(activeView, meta)
 
 const { kanbanMetaData, loadKanbanMeta, loadKanbanData, updateKanbanMeta, groupingField } = useKanbanViewStoreOrThrow()
@@ -141,7 +146,7 @@ const getIcon = (c: ColumnType) =>
       >
         <div class="flex items-center gap-2">
           <GeneralIcon icon="settings" class="h-4 w-4" />
-          <div class="flex items-center gap-0.5">
+          <div v-if="!isToolbarIconMode" class="flex items-center gap-0.5">
             <span class="text-capitalize !text-sm flex items-center gap-1 text-gray-700">
               {{ $t('activity.kanban.stackedBy') }}
             </span>

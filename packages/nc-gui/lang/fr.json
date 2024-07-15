@@ -142,6 +142,7 @@
     "code": "Code",
     "duplicate": "Dupliquer",
     "duplicating": "Dupliquer",
+    "duplicateEntity": "Duplicate {entity}",
     "activate": "Activer",
     "action": "Action",
     "insert": "Insérer",
@@ -154,6 +155,7 @@
     "update": "Mettre à jour",
     "updating": "Updating",
     "rename": "Renommer",
+    "renameEntity": "Rename {entity}",
     "reload": "Recharger",
     "refresh": "Refresh",
     "reset": "Réinitialiser",
@@ -213,8 +215,8 @@
     "moreInfo": "Plus d'informations peuvent être trouvées ici",
     "logs": "Journaux",
     "groupingField": "Stack by field",
-    "insertAfter": "Insérer après",
-    "insertBefore": "Insérer avant",
+    "insertAfter": "Insert right",
+    "insertBefore": "Insert left",
     "insertAbove": "Insérer au-dessus",
     "insertBelow": "Insérer en-dessous",
     "hideField": "Masquer le champ",
@@ -271,6 +273,7 @@
     "ipAddress": "IP Address"
   },
   "objects": {
+    "files": "files",
     "owner": "Propriétaire",
     "member": "Membre",
     "day": "Jour",
@@ -287,6 +290,8 @@
     "fields": "Champs",
     "column": "Colonne",
     "columns": "Colonnes",
+    "cell": "Cell",
+    "cells": "Cells",
     "page": "Page",
     "pages": "Pages",
     "record": "Ligne",
@@ -384,6 +389,9 @@
     "isNotNull": "est non null"
   },
   "title": {
+    "webcam": "Webcam",
+    "uploadViaUrl": "Upload via URL",
+    "localFiles": "Local Files",
     "renameBase": "Renommer la Base",
     "renameWorkspace": "Renommer l'espace de travail",
     "renamingWorkspace": "Renommer l'espace de travail",
@@ -513,6 +521,18 @@
     "looksLikeThisStackIsEmpty": "Looks like this stack does not have any records"
   },
   "labels": {
+    "toUpload": "to upload",
+    "dragFilesHere": "drag files here",
+    "browseFiles": "browse files",
+    "clickTo": "Click to",
+    "allowAccessToYourCamera": "Please allow access to your camera",
+    "openFile": "Open file",
+    "enterValidUrl": "Enter a valid URL to upload files",
+    "addFilesFromUrl": "Add files from URL",
+    "uploading": "Uploading",
+    "dropHere": "Déposer ici",
+    "addMore": "Add more",
+    "clearAllFiles": "Clear all files",
     "notRecommended": "Not recommended",
     "allowMetaWrite": "Allow Schema Edit",
     "allowDataWrite": "Allow Data Edit",
@@ -648,7 +668,6 @@
     "createdBy": "Créé par",
     "viewingAttachmentsOf": "Visualisation des pièces jointes de",
     "readOnly": "Lecture seule",
-    "dropHere": "Déposer ici",
     "createdOn": "Créé le",
     "notifyVia": "Notifier via",
     "projName": "Nom du projet",
@@ -1134,7 +1153,8 @@
     "clientCA": "Selectionner un fichier d'authentification",
     "changeIconColour": "Changer la couleur de l'icône",
     "preFillFormInfo": "Generate share form URL with pre-filled field data. To get a pre-filled link, make sure you’ve filled the necessary fields in the form view builder.",
-    "surveyFormInfo": "Mode formulaire avec un champ par page (enquête)"
+    "surveyFormInfo": "Mode formulaire avec un champ par page (enquête)",
+    "useFieldEditMenuToConfigFieldType": "Use field edit menu for type conversions after file is imported"
   },
   "placeholder": {
     "selectSlackChannels": "Sélectionnez les canaux Slack",

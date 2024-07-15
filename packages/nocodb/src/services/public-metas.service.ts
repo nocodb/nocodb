@@ -12,7 +12,15 @@ import type {
   LookupColumn,
 } from '~/models';
 import type { NcContext } from '~/interface/config';
-import { Base, BaseUser, Column, Model, Source, View } from '~/models';
+import {
+  Base,
+  BaseUser,
+  Column,
+  GridViewColumn,
+  Model,
+  Source,
+  View,
+} from '~/models';
 import { NcError } from '~/helpers/catchError';
 
 @Injectable()
@@ -71,6 +79,7 @@ export class PublicMetasService {
         if (!column) return false;
 
         return (
+          (c instanceof GridViewColumn && c.group_by) ||
           c.show ||
           (column.rqd && !column.cdf && !column.ai) ||
           column.pk ||

@@ -142,6 +142,7 @@
     "code": "קוד",
     "duplicate": "שכפל",
     "duplicating": "משכפל",
+    "duplicateEntity": "Duplicate {entity}",
     "activate": "הפעל",
     "action": "פעולה",
     "insert": "הכנס",
@@ -154,6 +155,7 @@
     "update": "עדכן",
     "updating": "מעודכן",
     "rename": "שנה שם",
+    "renameEntity": "Rename {entity}",
     "reload": "טען מחדש",
     "refresh": "Refresh",
     "reset": "אתחל",
@@ -213,8 +215,8 @@
     "moreInfo": "מידע נוסף ניתן למצוא כאן",
     "logs": "רשומות יומן",
     "groupingField": "Stack by field",
-    "insertAfter": "הזנה אחרי",
-    "insertBefore": "הכהזנהנס לפני",
+    "insertAfter": "Insert right",
+    "insertBefore": "Insert left",
     "insertAbove": "הזנה מעל",
     "insertBelow": "הזנה מתחת",
     "hideField": "הסתר שדה",
@@ -271,6 +273,7 @@
     "ipAddress": "IP Address"
   },
   "objects": {
+    "files": "files",
     "owner": "בעלים",
     "member": "חבר",
     "day": "יום",
@@ -287,6 +290,8 @@
     "fields": "שדות",
     "column": "עמודה",
     "columns": "עמודות",
+    "cell": "Cell",
+    "cells": "Cells",
     "page": "דף",
     "pages": "דפים",
     "record": "רשומה",
@@ -384,6 +389,9 @@
     "isNotNull": "לא NULL"
   },
   "title": {
+    "webcam": "Webcam",
+    "uploadViaUrl": "Upload via URL",
+    "localFiles": "Local Files",
     "renameBase": "שינוי שם בסיס",
     "renameWorkspace": "שינוי שם סביבת עבודה",
     "renamingWorkspace": "משנים שם סביבת עבודה",
@@ -513,6 +521,18 @@
     "looksLikeThisStackIsEmpty": "Looks like this stack does not have any records"
   },
   "labels": {
+    "toUpload": "to upload",
+    "dragFilesHere": "drag files here",
+    "browseFiles": "browse files",
+    "clickTo": "Click to",
+    "allowAccessToYourCamera": "Please allow access to your camera",
+    "openFile": "Open file",
+    "enterValidUrl": "Enter a valid URL to upload files",
+    "addFilesFromUrl": "Add files from URL",
+    "uploading": "Uploading",
+    "dropHere": "שחרר כאן",
+    "addMore": "Add more",
+    "clearAllFiles": "Clear all files",
     "notRecommended": "Not recommended",
     "allowMetaWrite": "Allow Schema Edit",
     "allowDataWrite": "Allow Data Edit",
@@ -648,7 +668,6 @@
     "createdBy": "נוצר על ידי",
     "viewingAttachmentsOf": "צפייה בקבצים מצורפים של",
     "readOnly": "קריאה בלבד",
-    "dropHere": "שחרר כאן",
     "createdOn": "נוצר בתאריך",
     "notifyVia": "הודע דרך",
     "projName": "שם הפרוייקט",
@@ -1134,7 +1153,8 @@
     "clientCA": "בחר קובץ CA.",
     "changeIconColour": "שנה צבע אייקון",
     "preFillFormInfo": "צור URL לשיתוף טופס עם נתונים מראש. כדי לקבל קישור מוכן מראש, ודא שמילאת את השדות הנדרשים בבונה התצוגה של הטופס.",
-    "surveyFormInfo": "מצב טופס עם שדה אחד בכל דף"
+    "surveyFormInfo": "מצב טופס עם שדה אחד בכל דף",
+    "useFieldEditMenuToConfigFieldType": "Use field edit menu for type conversions after file is imported"
   },
   "placeholder": {
     "selectSlackChannels": "בחר ערוצי Slack",

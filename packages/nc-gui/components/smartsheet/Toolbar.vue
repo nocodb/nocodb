@@ -6,6 +6,8 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 const { isViewsLoading } = storeToRefs(useViewsStore())
 
+const { isLocalMode } = useViewColumnsOrThrow()
+
 const containerRef = ref<HTMLElement>()
 
 const { width } = useElementSize(containerRef)
@@ -14,6 +16,15 @@ const isTab = computed(() => {
   if (!isCalendar.value) return false
   return width.value > 1200
 })
+
+const isToolbarIconMode = computed(() => {
+  if (width.value < 768) {
+    return true
+  }
+  return false
+})
+
+provide(IsToolbarIconMode, isToolbarIconMode)
 </script>
 
 <template>
@@ -49,7 +60,7 @@ const isTab = computed(() => {
 
         <LazySmartsheetToolbarColumnFilterMenu v-if="isGrid || isGallery || isKanban || isMap" />
 
-        <LazySmartsheetToolbarGroupByMenu v-if="isGrid" />
+        <LazySmartsheetToolbarGroupByMenu v-if="isGrid && !isLocalMode" />
 
         <LazySmartsheetToolbarSortListMenu v-if="isGrid || isGallery || isKanban" />
       </div>

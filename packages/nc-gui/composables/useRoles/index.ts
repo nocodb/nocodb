@@ -190,7 +190,7 @@ export const useRoles = () => {
   })
 
   const isDataReadOnly = computed(() => {
-    return currentSource.value?.is_schema_readonly || false
+    return currentSource.value?.is_data_readonly || false
   })
 
   return {

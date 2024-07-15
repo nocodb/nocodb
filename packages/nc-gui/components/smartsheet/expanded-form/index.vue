@@ -48,6 +48,8 @@ const { copy } = useClipboard()
 
 const { isMobileMode } = useGlobal()
 
+const { fieldsMap, isLocalMode } = useViewColumnsOrThrow()
+
 const { t } = useI18n()
 
 const rowId = toRef(props, 'rowId')
@@ -102,11 +104,17 @@ const fields = computedInject(FieldsInj, (_fields) => {
   return _fields?.value ?? []
 })
 
-const displayField = computed(() => meta.value?.columns?.find((c) => c.pv && fields.value.includes(c)) ?? null)
+const displayField = computed(() => meta.value?.columns?.find((c) => c.pv && fields.value?.includes(c)) ?? null)
 
 const hiddenFields = computed(() => {
   // todo: figure out when meta.value is undefined
-  return (meta.value?.columns ?? []).filter((col) => !fields.value?.includes(col)).filter((col) => !isSystemColumn(col))
+  return (meta.value?.columns ?? [])
+    .filter(
+      (col) =>
+        !fields.value?.includes(col) &&
+        (isLocalMode.value && col?.id && fieldsMap.value[col.id] ? fieldsMap.value[col.id]?.initialShow : true),
+    )
+    .filter((col) => !isSystemColumn(col))
 })
 
 const showHiddenFields = ref(false)
@@ -687,7 +695,7 @@ export default {
                 <NcMenuItem class="text-gray-700" @click="_loadRow()">
                   <div v-e="['c:row-expand:reload']" class="flex gap-2 items-center" data-testid="nc-expanded-form-reload">
                     <component :is="iconMap.reload" class="cursor-pointer" />
-                    {{ $t('general.reload') }}
+                    {{ $t('general.reload') }} {{ $t('objects.record') }}
                   </div>
                 </NcMenuItem>
                 <NcMenuItem
@@ -719,7 +727,11 @@ export default {
                   <div v-e="['c:row-expand:delete']" class="flex gap-2 items-center" data-testid="nc-expanded-form-delete">
                     <component :is="iconMap.delete" class="cursor-pointer nc-delete-row" />
                     <span class="-ml-0.25">
-                      {{ $t('activity.deleteRecord') }}
+                      {{
+                        $t('general.deleteEntity', {
+                          entity: $t('objects.record').toLowerCase(),
+                        })
+                      }}
                     </span>
                   </div>
                 </NcMenuItem>

@@ -5,6 +5,11 @@ const isLocked = inject(IsLockedInj, ref(false))
 
 const activeView = inject(ActiveViewInj, ref())
 
+const isToolbarIconMode = inject(
+  IsToolbarIconMode,
+  computed(() => false),
+)
+
 const { isMobileMode } = useGlobal()
 
 const filterComp = ref<typeof ColumnFilter>()
@@ -76,7 +81,9 @@ eventBus.on(async (event, column: ColumnType) => {
         <div class="flex items-center gap-2">
           <component :is="iconMap.filter" class="h-4 w-4" />
           <!-- Filter -->
-          <span v-if="!isMobileMode" class="text-capitalize !text-[13px] font-medium">{{ $t('activity.filter') }}</span>
+          <span v-if="!isMobileMode && !isToolbarIconMode" class="text-capitalize !text-[13px] font-medium">{{
+            $t('activity.filter')
+          }}</span>
         </div>
         <span v-if="filtersLength" class="bg-brand-50 text-brand-500 py-1 px-2 text-md rounded-md">{{ filtersLength }}</span>
       </div>

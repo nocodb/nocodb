@@ -15,12 +15,13 @@ const emits = defineEmits<{ selected: [ColumnType] }>()
 
 const { isParentOpen, toolbarMenu, searchInputPlaceholder, selectedOptionId, showSelectedOption } = toRefs(props)
 
-const { fieldsMap } = useViewColumnsOrThrow()
+const { fieldsMap, isLocalMode } = useViewColumnsOrThrow()
 
 const searchQuery = ref('')
 
 const options = computed(() =>
   (props.options || [])
+    .filter((c) => (isLocalMode.value && c?.id && fieldsMap.value[c.id] ? fieldsMap.value[c.id]?.initialShow : true))
     .map((c) => c)
     .sort((field1, field2) => {
       // sort by view column order and keep system columns at the end

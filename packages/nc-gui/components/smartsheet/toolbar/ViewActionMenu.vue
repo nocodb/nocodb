@@ -176,18 +176,30 @@ const onDelete = async () => {
       <NcDivider />
       <NcMenuItem v-if="lockType !== LockType.Locked" @click="onRenameMenuClick">
         <GeneralIcon icon="rename" />
-        {{ $t('activity.renameView') }}
+        {{
+          $t('general.renameEntity', {
+            entity: view.type !== ViewTypes.FORM ? $t('objects.view').toLowerCase() : $t('objects.viewType.form').toLowerCase(),
+          })
+        }}
       </NcMenuItem>
       <NcTooltip v-else>
         <template #title> {{ $t('msg.info.disabledAsViewLocked') }} </template>
         <NcMenuItem class="!cursor-not-allowed !text-gray-400">
           <GeneralIcon icon="rename" />
-          {{ $t('activity.renameView') }}
+          {{
+            $t('general.renameEntity', {
+              entity: view.type !== ViewTypes.FORM ? $t('objects.view').toLowerCase() : $t('objects.viewType.form').toLowerCase(),
+            })
+          }}
         </NcMenuItem>
       </NcTooltip>
       <NcMenuItem @click="onDuplicate">
         <GeneralIcon class="nc-view-copy-icon" icon="duplicate" />
-        {{ $t('labels.duplicateView') }}
+        {{
+          $t('general.duplicateEntity', {
+            entity: view.type !== ViewTypes.FORM ? $t('objects.view').toLowerCase() : $t('objects.viewType.form').toLowerCase(),
+          })
+        }}
       </NcMenuItem>
     </template>
 
@@ -302,7 +314,7 @@ const onDelete = async () => {
           <GeneralIcon class="nc-view-delete-icon" icon="delete" />
           {{
             $t('general.deleteEntity', {
-              entity: $t('objects.view'),
+              entity: view.type !== ViewTypes.FORM ? $t('objects.view').toLowerCase() : $t('objects.viewType.form').toLowerCase(),
             })
           }}
         </NcMenuItem>
@@ -311,7 +323,7 @@ const onDelete = async () => {
         <GeneralIcon class="nc-view-delete-icon" icon="delete" />
         {{
           $t('general.deleteEntity', {
-            entity: $t('objects.view'),
+            entity: view.type !== ViewTypes.FORM ? $t('objects.view').toLowerCase() : $t('objects.viewType.form').toLowerCase(),
           })
         }}
       </NcMenuItem>

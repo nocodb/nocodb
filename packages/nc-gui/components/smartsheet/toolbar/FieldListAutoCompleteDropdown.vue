@@ -24,11 +24,20 @@ const localValue = computed({
   set: (val) => emit('update:modelValue', val),
 })
 
-const { showSystemFields, metaColumnById, fieldsMap } = useViewColumnsOrThrow()
+const { showSystemFields, metaColumnById, fieldsMap, isLocalMode } = useViewColumnsOrThrow()
 
 const options = computed<SelectProps['options']>(() =>
   (
     customColumns.value?.filter((c: ColumnType) => {
+      if (
+        isLocalMode.value &&
+        c?.id &&
+        fieldsMap.value[c.id] &&
+        (!fieldsMap.value[c.id]?.initialShow || (!showSystemFields.value && isSystemColumn(metaColumnById?.value?.[c.id!])))
+      ) {
+        return false
+      }
+
       if (isSystemColumn(metaColumnById?.value?.[c.id!])) {
         if (isHiddenCol(c)) {
           /** ignore mm relation column, created by and last modified by system field */
@@ -38,6 +47,15 @@ const options = computed<SelectProps['options']>(() =>
       return true
     }) ||
     meta.value?.columns?.filter((c: ColumnType) => {
+      if (
+        isLocalMode.value &&
+        c?.id &&
+        fieldsMap.value[c.id] &&
+        (!fieldsMap.value[c.id]?.initialShow || (!showSystemFields.value && isSystemColumn(metaColumnById?.value?.[c.id!])))
+      ) {
+        return false
+      }
+
       if (c.uidt === UITypes.Links) {
         return true
       }

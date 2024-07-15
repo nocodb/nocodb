@@ -1264,6 +1264,42 @@ export default class Column<T = any> implements ColumnType {
           logger.error(err);
         });
     }
+
+    // clear any related table cache if updating a FK column
+    {
+      // Get LTAR columns in which current column is referenced as foreign key
+      const ltarColumns = await ncMeta.metaList2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.COL_RELATIONS,
+        {
+          xcCondition: {
+            _and: [
+              {
+                _or: [
+                  { fk_child_column_id: { eq: colId } },
+                  { fk_parent_column_id: { eq: colId } },
+                  { fk_mm_child_column_id: { eq: colId } },
+                  { fk_mm_parent_column_id: { eq: colId } },
+                ],
+              },
+              {
+                fk_related_model_id: { neq: oldCol.fk_model_id },
+              },
+            ],
+          },
+        },
+      );
+
+      for (const linkCol of ltarColumns) {
+        await View.clearSingleQueryCache(
+          context,
+          (linkCol.colOptions as LinksColumn).fk_related_model_id,
+          null,
+          ncMeta,
+        );
+      }
+    }
   }
 
   static async updateAlias(

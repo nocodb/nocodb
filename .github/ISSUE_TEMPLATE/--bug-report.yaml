@@ -6,7 +6,7 @@ body:
 - type: markdown
   attributes:
     value: |
-      Thank you for taking the time to fill out this feature request report! ❤️
+      Thank you for taking the time to fill out this bug report! ❤️
 
 - type: checkboxes
   attributes:

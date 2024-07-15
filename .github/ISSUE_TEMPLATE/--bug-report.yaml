@@ -55,6 +55,6 @@ body:
     label: Attachments
     description: Add relevant attachments here.
     placeholder: |
-      Drag & drop relevant images or videos.
+      Drag & drop relevant images or videos here.
   validations:
     required: false

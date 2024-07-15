@@ -364,10 +364,29 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
         }
 
         if (appInfo.value.ee) {
-          const aggregationParams = (group.children ?? []).map((child) => ({
-            where: calculateNestedWhere(child.nestedIn, where?.value),
-            alias: child.key,
-          }))
+          const aggregationMap = new Map<string, string>()
+
+          const aggregationParams = (group.children ?? []).map((child) => {
+            let key = child.key
+
+            try {
+              key = JSON.parse(key)
+
+              if (typeof key === 'object') {
+                const newKey = Math.random().toString(36).substring(7)
+                aggregationMap.set(newKey, child.key)
+                return {
+                  where: calculateNestedWhere(child.nestedIn, where?.value),
+                  alias: newKey,
+                }
+              }
+            } catch (e) {}
+
+            return {
+              where: calculateNestedWhere(child.nestedIn, where?.value),
+              alias: child.key,
+            }
+          })
 
           const aggResponse = !isPublic
             ? await api.dbDataTableBulkAggregate.dbDataTableBulkAggregate(meta.value!.id, {
@@ -382,6 +401,14 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
             const child = (group?.children ?? []).find((c) => c.key.toString() === key.toString())
             if (child) {
               Object.assign(child.aggregations, value)
+            } else {
+              const originalKey = aggregationMap.get(key)
+              if (originalKey) {
+                const child = (group?.children ?? []).find((c) => c.key.toString() === originalKey.toString())
+                if (child) {
+                  Object.assign(child.aggregations, value)
+                }
+              }
             }
           })
         }
@@ -439,10 +466,29 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
 
         if (filteredFields && !filteredFields?.length) return
 
-        const aggregationParams = (group.children ?? []).map((child) => ({
-          where: calculateNestedWhere(child.nestedIn, where?.value),
-          alias: child.key,
-        }))
+        const aggregationMap = new Map<string, string>()
+
+        const aggregationParams = (group.children ?? []).map((child) => {
+          let key = child.key
+
+          try {
+            key = JSON.parse(key)
+
+            if (typeof key === 'object') {
+              const newKey = Math.random().toString(36).substring(7)
+              aggregationMap.set(newKey, child.key)
+              return {
+                where: calculateNestedWhere(child.nestedIn, where?.value),
+                alias: newKey,
+              }
+            }
+          } catch (e) {}
+
+          return {
+            where: calculateNestedWhere(child.nestedIn, where?.value),
+            alias: child.key,
+          }
+        })
 
         const response = !isPublic
           ? await api.dbDataTableBulkAggregate.dbDataTableBulkAggregate(meta.value!.id, {
@@ -459,6 +505,14 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
           const child = (group.children ?? []).find((c) => c.key.toString() === key.toString())
           if (child) {
             Object.assign(child.aggregations, value)
+          } else {
+            const originalKey = aggregationMap.get(key)
+            if (originalKey) {
+              const child = (group.children ?? []).find((c) => c.key.toString() === originalKey.toString())
+              if (child) {
+                Object.assign(child.aggregations, value)
+              }
+            }
           }
         })
       } catch (e) {

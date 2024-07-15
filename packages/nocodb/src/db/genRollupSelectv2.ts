@@ -72,7 +72,7 @@ export default async function ({
         ]),
       ).where(
         knex.ref(
-            `${alias || parentBaseModel.getTnPath(parentModel.table_name)}.${
+          `${alias || parentBaseModel.getTnPath(parentModel.table_name)}.${
             parentCol.column_name
           }`,
         ),
@@ -94,7 +94,7 @@ export default async function ({
         ]),
       ).where(
         knex.ref(
-            `${alias || parentBaseModel.getTnPath(parentModel.table_name)}.${
+          `${alias || parentBaseModel.getTnPath(parentModel.table_name)}.${
             parentCol.column_name
           }`,
         ),

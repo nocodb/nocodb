@@ -25,31 +25,10 @@ export default class S3 implements IStorageAdapterV2 {
   }
 
   async fileCreate(key: string, file: XcFile): Promise<any> {
-    const uploadParams: any = {
-      ...this.defaultParams,
-      // ContentType: file.mimetype,
-    };
-    return new Promise((resolve, reject) => {
-      // Configure the file stream and obtain the upload parameters
-      const fileStream = fs.createReadStream(file.path);
-      fileStream.on('error', (err) => {
-        console.log('File Error', err);
-        reject(err);
-      });
-
-      uploadParams.Body = fileStream;
-      uploadParams.Key = key;
-
-      // call S3 to retrieve upload file to specified bucket
-      // call S3 to retrieve upload file to specified bucket
-      this.upload(uploadParams)
-        .then((data) => {
-          resolve(data);
-        })
-        .catch((err) => {
-          reject(err);
-        });
-    });
+    // create file stream
+    const fileStream = fs.createReadStream(file.path);
+    // upload using stream
+    return this.fileCreateByStream(key, fileStream);
   }
 
   async fileCreateByUrl(key: string, url: string): Promise<any> {
@@ -75,9 +54,28 @@ export default class S3 implements IStorageAdapterV2 {
     }
   }
 
-  // TODO - implement
-  fileCreateByStream(_key: string, _stream: Readable): Promise<void> {
-    return Promise.resolve(undefined);
+  fileCreateByStream(key: string, stream: Readable): Promise<void> {
+    const uploadParams: any = {
+      ...this.defaultParams,
+    };
+    return new Promise((resolve, reject) => {
+      stream.on('error', (err) => {
+        console.log('File Error', err);
+        reject(err);
+      });
+
+      uploadParams.Body = stream;
+      uploadParams.Key = key;
+
+      // call S3 to upload file to specified bucket
+      this.upload(uploadParams)
+        .then((data) => {
+          resolve(data);
+        })
+        .catch((err) => {
+          reject(err);
+        });
+    });
   }
 
   // TODO - implement

@@ -367,10 +367,8 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
           const aggregationMap = new Map<string, string>()
 
           const aggregationParams = (group.children ?? []).map((child) => {
-            let key = child.key
-
             try {
-              key = JSON.parse(key)
+              const key = JSON.parse(child.key)
 
               if (typeof key === 'object') {
                 const newKey = Math.random().toString(36).substring(7)
@@ -469,11 +467,8 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
         const aggregationMap = new Map<string, string>()
 
         const aggregationParams = (group.children ?? []).map((child) => {
-          let key = child.key
-
           try {
-            key = JSON.parse(key)
-
+            const key = JSON.parse(child.key)
             if (typeof key === 'object') {
               const newKey = Math.random().toString(36).substring(7)
               aggregationMap.set(newKey, child.key)

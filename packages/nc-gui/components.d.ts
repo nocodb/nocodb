@@ -108,6 +108,7 @@ declare module 'vue' {
     MdiArrowULeftBottom: typeof import('~icons/mdi/arrow-u-left-bottom')['default']
     MdiBookOpenBlankVariant: typeof import('~icons/mdi/book-open-blank-variant')['default']
     MdiCalculatorVariant: typeof import('~icons/mdi/calculator-variant')['default']
+    MdiCamera: typeof import('~icons/mdi/camera')['default']
     MdiCardsHeart: typeof import('~icons/mdi/cards-heart')['default']
     MdiCellphoneMessage: typeof import('~icons/mdi/cellphone-message')['default']
     MdiChat: typeof import('~icons/mdi/chat')['default']

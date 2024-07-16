@@ -197,23 +197,22 @@ export default class BaseUser {
           `${MetaTable.USERS}.invite_token`,
           `${MetaTable.USERS}.roles as main_roles`,
           `${MetaTable.USERS}.created_at as created_at`,
-          `${MetaTable.PROJECT_USERS}.base_id`,
-          `${MetaTable.PROJECT_USERS}.roles as roles`,
-        );
-
-      queryBuilder
-      .leftJoin(MetaTable.PROJECT_USERS, function () {
-        this.on(
-          `${MetaTable.PROJECT_USERS}.fk_user_id`,
-          '=',
-          `${MetaTable.USERS}.id`,
-        );
-      })
-      .where('base_id', base_id);
+          `${MetaTable.AUDIT}.base_id as base_id`,
+        )
+        .leftJoin(MetaTable.AUDIT, function () {
+          this.on(
+            ncMeta.knex.raw(
+              `substring(${MetaTable.AUDIT}.description from '\\S+\\s+(\\S+)')`,
+            ),
+            '=',
+            `${MetaTable.USERS}.email`,
+          );
+        })
+        .where(`${MetaTable.AUDIT}.base_id`, base_id)
+        .andWhere(`${MetaTable.AUDIT}.op_sub_type`, 'INVITE');
 
       baseUsers = await queryBuilder;
-
-      baseUsers = baseUsers.map((baseUser) => {
+      baseUsers = baseUsers?.map((baseUser) => {
         baseUser.base_id = base_id;
         return this.castType(baseUser);
       });

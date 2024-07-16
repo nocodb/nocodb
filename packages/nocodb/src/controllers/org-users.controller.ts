@@ -33,7 +33,8 @@ export class OrgUsersController {
   async userList(@Req() req: NcRequest) {
     return new PagedResponseImpl(
       await this.orgUsersService.userList({
-        query: req.query,
+        query: typeof req?.query === 'string' ? req?.query : '',
+        email: req?.user?.email || '',
       }),
       {
         ...req.query,

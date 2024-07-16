@@ -19,7 +19,6 @@ export default class User implements UserType {
 
   /** @format email */
   email: string;
-
   password?: string;
   salt?: string;
   invite_token?: string;
@@ -226,10 +225,12 @@ export default class User implements UserType {
       limit,
       offset,
       query = '',
+      email = ''
     }: {
       limit?: number | undefined;
       offset?: number | undefined;
       query?: string;
+      email?: string;
     } = {},
     ncMeta = Noco.ncMeta,
   ) {
@@ -258,7 +259,18 @@ export default class User implements UserType {
             `${MetaTable.USERS}.id = ${MetaTable.PROJECT_USERS}.fk_user_id`,
           )
           .as('projectsCount'),
-      );
+      )
+      .leftJoin(MetaTable.AUDIT, function () {
+        this.on(
+          ncMeta.knex.raw(
+            `substring(${MetaTable.AUDIT}.description from '\\S+\\s+(\\S+)')`,
+          ),
+          '=',
+          `${MetaTable.USERS}.email`,
+        );
+      })
+      .where(`${MetaTable.AUDIT}.user`, email)
+      .andWhere(`${MetaTable.AUDIT}.op_sub_type`, 'INVITE');
     if (query) {
       queryBuilder.where(function () {
         this.where(function () {

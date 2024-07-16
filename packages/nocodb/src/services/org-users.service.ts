@@ -29,10 +29,10 @@ export class OrgUsersService {
   ) {}
 
   async userList(param: {
-    // todo: add better typing
-    query: Record<string, any>;
+    query: string;
+    email: string;
   }) {
-    return await User.list(param.query);
+    return await User.list(param);
   }
 
   async userUpdate(param: {

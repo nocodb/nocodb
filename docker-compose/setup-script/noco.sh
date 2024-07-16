@@ -603,7 +603,21 @@ if [ "$SSL_ENABLED" = 'y' ] || [ "$SSL_ENABLED" = 'Y' ]; then
       - ./letsencrypt:/etc/letsencrypt
       - letsencrypt-lib:/var/lib/letsencrypt
       - webroot:/var/www/certbot
-    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait \$\${!}; done;'"
+      - /var/run/docker.sock:/var/run/docker.sock  # Mount Docker socket
+    entrypoint: |
+      /bin/sh -c 'trap exit TERM;
+      while :; do
+        output=$(certbot renew 2>&1);
+        echo "$output";
+        if echo "$output" | grep -q "No renewals were attempted"; then
+          echo "No certificates were renewed.";
+        else
+          echo "Certificates renewed. Reloading nginx...";
+          sleep 5;
+          docker compose exec nginx nginx -s reload;
+        fi;
+        sleep 12h & wait $${!};
+      done;'
     depends_on:
       - nginx
     restart: unless-stopped

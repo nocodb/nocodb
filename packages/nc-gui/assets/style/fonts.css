@@ -6,7 +6,42 @@
   src: url('./manrope/Manrope-VariableFont_wght.ttf') format('truetype')
 }
 
-
+/* SofiaPro */
+@font-face {
+  font-family: 'SofiaPro';
+  font-display: swap;
+  src: url('../font/SofiaProRegular.otf') format('truetype');
+}
+@font-face {
+  font-family: 'SofiaPro';
+  font-style: normal;
+  font-weight: 300;
+  src: url('../font/SofiaProLight.otf') format('truetype');
+}
+@font-face {
+  font-family: 'SofiaPro';
+  font-style: normal;
+  font-weight: 400;
+  src: url('../font/SofiaProRegular.otf') format('truetype');
+}
+@font-face {
+  font-family: 'SofiaPro';
+  font-style: normal;
+  font-weight: 500;
+  src: url('../font/SofiaProMedium.otf') format('truetype');
+}
+@font-face {
+  font-family: 'SofiaPro';
+  font-style: normal;
+  font-weight: 700;
+  src: url('../font/SofiaProBold.otf') format('truetype');
+}
+@font-face {
+  font-family: 'SofiaPro';
+  font-style: normal;
+  font-weight: 900;
+  src: url('../font/SofiaProBlack.otf') format('truetype');
+}
 /*  //   href: 'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,200,0,-25',
 */
 @font-face {

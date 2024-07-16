@@ -614,12 +614,12 @@ const parseConditionV2 = async (
             UITypes.LastModifiedTime,
           ].includes(column.uidt)
         ) {
-          let now = dayjs(new Date());
+          let now = dayjs(new Date()).utc();
           const dateFormatFromMeta = column?.meta?.date_format;
           if (dateFormatFromMeta && isDateMonthFormat(dateFormatFromMeta)) {
             // reset to 1st
-            now = dayjs(now).date(1);
-            if (val) genVal = dayjs(val).date(1);
+            now = dayjs(now).utc().date(1);
+            if (val) genVal = dayjs(val).utc().date(1);
           }
           // handle sub operation
           switch (filter.comparison_sub_op) {
@@ -685,6 +685,20 @@ const parseConditionV2 = async (
           }
 
           if (dayjs.isDayjs(genVal)) {
+            /**
+             * When you want to compare time, you need to choose whether to measure from the beginning or end of a day.
+             * example
+             * expression: dateTime is after today. value is 'YYYY-MM-DD 23:59:59'.
+             * expression: dateTime is before today. value is 'YYYY-MM-DD 00:00:00'.
+             */
+            if (['gt', 'ge', 'gte'].includes(filter.comparison_op)) {
+              genVal = genVal.endOf('d');
+            }
+            if (
+              ['eq', 'neq', 'lt', 'lt', 'lte'].includes(filter.comparison_op)
+            ) {
+              genVal = genVal.startOf('d');
+            }
             // turn `val` in dayjs object format to string
             genVal = genVal.format(dateFormat).toString();
             // keep YYYY-MM-DD only for date
@@ -730,6 +744,11 @@ const parseConditionV2 = async (
                 (column.uidt === UITypes.Formula &&
                   getEquivalentUIType({ formulaColumn: column }) ==
                     UITypes.DateTime) ||
+                [
+                  UITypes.DateTime,
+                  UITypes.CreatedTime,
+                  UITypes.LastModifiedTime,
+                ].includes(column.uidt) ||
                 column.ct === 'timestamp' ||
                 column.ct === 'date' ||
                 column.ct === 'datetime'
@@ -756,6 +775,10 @@ const parseConditionV2 = async (
                   //   qb = qb.where(knex.raw('??::timestamp = ?', [field, val]));
                   // else
                   qb = qb.where(knex.raw('??::date = ?', [field, val]));
+                } else if (qb.client.config.client === 'sqlite3') {
+                  qb = qb.where(
+                    knex.raw("DATE(??, 'localtime') = DATE(?)", [field, val]),
+                  );
                 } else {
                   qb = qb.where(knex.raw('DATE(??) = DATE(?)', [field, val]));
                 }

@@ -15,6 +15,7 @@ export const ROLLUP_FUNCTIONS = <const>[
   'countDistinct',
   'sumDistinct',
   'avgDistinct',
+  'sum',
 ];
 
 export default class RollupColumn implements RollupType {

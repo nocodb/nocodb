@@ -43,6 +43,26 @@ export default async function ({
     dbDriver: knex,
   });
 
+  const applyFunction = (qb: any) => {
+    // if postgres and rollup function is sum/sumDistinct/avgDistinct/avg, then cast the column to integer when type is boolean
+    if (
+      baseModelSqlv2.isPg &&
+      ['sum', 'sumDistinct', 'avgDistinct', 'avg'].includes(
+        columnOptions.rollup_function,
+      ) &&
+      ['bool', 'boolean'].includes(rollupColumn.dt)
+    ) {
+      qb[columnOptions.rollup_function as string]?.(
+        knex.raw('??.??::integer', [refTableAlias, rollupColumn.column_name]),
+      );
+      return;
+    }
+
+    qb[columnOptions.rollup_function as string]?.(
+      knex.ref(`${refTableAlias}.${rollupColumn.column_name}`),
+    );
+  };
+
   switch (relationColumnOption.type) {
     case RelationTypes.HAS_MANY: {
       const queryBuilder: any = knex(
@@ -50,19 +70,16 @@ export default async function ({
           childBaseModel.getTnPath(childModel),
           refTableAlias,
         ]),
-      )
-        [columnOptions.rollup_function as string]?.(
-          knex.ref(`${refTableAlias}.${rollupColumn.column_name}`),
-        )
-        .where(
-          knex.ref(
-            `${alias || parentBaseModel.getTnPath(parentModel.table_name)}.${
-              parentCol.column_name
-            }`,
-          ),
-          '=',
-          knex.ref(`${refTableAlias}.${childCol.column_name}`),
-        );
+      ).where(
+        knex.ref(
+          `${alias || parentBaseModel.getTnPath(parentModel.table_name)}.${
+            parentCol.column_name
+          }`,
+        ),
+        '=',
+        knex.ref(`${refTableAlias}.${childCol.column_name}`),
+      );
+      applyFunction(queryBuilder);
 
       return {
         builder: queryBuilder,
@@ -75,20 +92,17 @@ export default async function ({
           childBaseModel.getTnPath(childModel?.table_name),
           refTableAlias,
         ]),
-      )
-        [columnOptions.rollup_function as string]?.(
-          knex.ref(`${refTableAlias}.${rollupColumn.column_name}`),
-        )
-        .where(
-          knex.ref(
-            `${alias || parentBaseModel.getTnPath(parentModel.table_name)}.${
-              parentCol.column_name
-            }`,
-          ),
-          '=',
-          knex.ref(`${refTableAlias}.${childCol.column_name}`),
-        );
+      ).where(
+        knex.ref(
+          `${alias || parentBaseModel.getTnPath(parentModel.table_name)}.${
+            parentCol.column_name
+          }`,
+        ),
+        '=',
+        knex.ref(`${refTableAlias}.${childCol.column_name}`),
+      );
 
+      applyFunction(qb);
       return {
         builder: qb,
       };
@@ -114,18 +128,15 @@ export default async function ({
           refTableAlias,
         ]),
       )
-        [columnOptions.rollup_function as string]?.(
-          knex.ref(`${refTableAlias}.${rollupColumn.column_name}`),
-        )
         .innerJoin(
-          assocBaseModel.getTnPath(mmModel.table_name),
+          assocBaseModel.getTnPath(mmModel.table_name) as any,
           knex.ref(
             `${assocBaseModel.getTnPath(mmModel.table_name)}.${
               mmParentCol.column_name
             }`,
-          ),
+          ) as any,
           '=',
-          knex.ref(`${refTableAlias}.${parentCol.column_name}`),
+          knex.ref(`${refTableAlias}.${parentCol.column_name}`) as any,
         )
         .where(
           knex.ref(
@@ -140,6 +151,8 @@ export default async function ({
             }`,
           ),
         );
+
+      applyFunction(qb);
 
       return {
         builder: qb,

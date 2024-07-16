@@ -165,6 +165,11 @@ export async function serializeCellValue(
         if (typeof value === 'string') {
           data = JSON.parse(value);
         }
+
+        if(!Array.isArray(data)) {
+          data = undefined;
+        }
+
       } catch {
         data = undefined;
       }

@@ -68,6 +68,17 @@ export const useExtensions = createSharedComposable(() => {
     return activeBaseExtensions.value ? activeBaseExtensions.value.extensions : []
   })
 
+  const extensionCountById = computed(() =>
+    extensionList.value.reduce((acc, extension) => {
+      if (acc[extension.extensionId]) {
+        acc[extension.extensionId] = acc[extension.extensionId] + 1
+      } else {
+        acc[extension.extensionId] = 1
+      }
+      return acc
+    }, {} as Record<string, number>),
+  )
+
   const toggleExtensionPanel = () => {
     if (activeBaseExtensions.value) {
       activeBaseExtensions.value.expanded = !activeBaseExtensions.value.expanded
@@ -374,6 +385,7 @@ export const useExtensions = createSharedComposable(() => {
     extensionsLoaded,
     availableExtensions,
     extensionList,
+    extensionCountById,
     isPanelExpanded,
     toggleExtensionPanel,
     addExtension,

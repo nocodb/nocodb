@@ -9,7 +9,7 @@ const emit = defineEmits(['update:modelValue'])
 
 const vModel = useVModel(props, 'modelValue', emit)
 
-const { availableExtensions, addExtension, getExtensionIcon, showExtensionDetails } = useExtensions()
+const { availableExtensions, extensionCountById, addExtension, getExtensionIcon, showExtensionDetails } = useExtensions()
 
 const searchQuery = ref<string>('')
 
@@ -78,7 +78,18 @@ const onAddExtension = (ext: any) => {
               <div class="flex flex-grow flex-col gap-2 ml-3">
                 <div class="flex justify-between gap-1">
                   <div class="font-weight-600">{{ ext.title }}</div>
-                  <NcButton size="xsmall" type="secondary" @click.stop="onAddExtension(ext)">
+                  <NcButton
+                    v-if="ext.id === 'nc-data-exporter' && !!extensionCountById[ext.id]"
+                    disabled
+                    size="xsmall"
+                    type="secondary"
+                  >
+                    <div class="flex items-center gap-2 mx-1">
+                      <GeneralIcon icon="check" />
+                      Added
+                    </div>
+                  </NcButton>
+                  <NcButton v-else size="xsmall" type="secondary" @click.stop="onAddExtension(ext)">
                     <div class="flex items-center gap-2 mx-1">
                       <GeneralIcon icon="plus" />
                       Add

@@ -11,7 +11,7 @@ const emit = defineEmits(['update:modelValue'])
 
 const vModel = useVModel(props, 'modelValue', emit)
 
-const { availableExtensions, addExtension, getExtensionIcon, isMarketVisible } = useExtensions()
+const { availableExtensions, extensionCountById, addExtension, getExtensionIcon, isMarketVisible } = useExtensions()
 
 const onBack = () => {
   vModel.value = false
@@ -62,7 +62,14 @@ const activeExtension = computed(() => {
           <div class="whitespace-pre-line text-base text-gray-600">{{ activeExtension.description }}</div>
         </div>
         <div class="extension-details-right">
-          <NcButton class="w-full" @click="onAddExtension(activeExtension)">
+          <NcButton
+            v-if="activeExtension.id === 'nc-data-exporter' && !!extensionCountById[activeExtension.id]"
+            disabled
+            class="w-full"
+          >
+            <div class="flex items-center justify-center">Added Extension</div>
+          </NcButton>
+          <NcButton v-else class="w-full" @click="onAddExtension(activeExtension)">
             <div class="flex items-center justify-center">Add Extension</div>
           </NcButton>
 

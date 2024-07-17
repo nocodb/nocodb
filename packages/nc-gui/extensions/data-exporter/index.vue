@@ -239,8 +239,8 @@ watch(
               <GeneralLoader size="regular" class="flex-none" />
             </div>
 
-            <div class="flex-1 max-w-[calc(100%_-_28px)] flex flex-col gap-1 text-sm text-gray-700">
-              <div class="inline-flex gap-1">
+            <div class="flex-1 max-w-[calc(100%_-_28px)] flex flex-col gap-1">
+              <div class="inline-flex gap-1 text-sm text-gray-800">
                 <span class="inline-flex items-center h-5">
                   <GeneralIcon icon="file" class="flex-none" />
                 </span>

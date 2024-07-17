@@ -132,7 +132,12 @@ const closeFullscreen = (e: MouseEvent) => {
                     <GeneralIcon icon="edit" />
                     Rename
                   </NcMenuItem>
-                  <NcMenuItem data-rec="true" class="!hover:text-primary" @click="duplicateExtension(extension.id)">
+                  <NcMenuItem
+                    v-if="extension.extensionId !== 'nc-data-exporter'"
+                    data-rec="true"
+                    class="!hover:text-primary"
+                    @click="duplicateExtension(extension.id)"
+                  >
                     <GeneralIcon icon="duplicate" />
                     Duplicate
                   </NcMenuItem>

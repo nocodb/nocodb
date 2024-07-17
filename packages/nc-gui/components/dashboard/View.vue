@@ -147,7 +147,7 @@ onMounted(() => {
   handleSidebarOpenOnMobileForNonViews()
 })
 
-const remToPx = (rem: number) => {
+function remToPx(rem: number) {
   const fontSize = parseFloat(getComputedStyle(document.documentElement).fontSize)
   return rem * fontSize
 }

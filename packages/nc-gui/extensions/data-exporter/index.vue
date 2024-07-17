@@ -235,7 +235,7 @@ watch(
       </div>
       <div class="data-exporter-header">Recent Exports</div>
       <div v-if="exportedFiles.length" class="flex flex-col max-h-[232px] nc-scrollbar-thin">
-        <template v-for="(exp, i) in exportedFiles">
+        <template v-for="exp of exportedFiles">
           <div
             v-if="exp.status === JobStatus.COMPLETED ? exp.result : true"
             :key="exp.id"
@@ -248,7 +248,7 @@ watch(
             <div class="flex-1 flex items-center gap-3 max-w-[calc(100%_-_114px)]">
               <NcTooltip v-if="[JobStatus.COMPLETED, JobStatus.FAILED].includes(exp.status)" class="flex">
                 <template #title>
-                  {{ expiredExportedFiles[exp.id] ? jobStatusTooltip['expired'] : jobStatusTooltip[exp.status] }}
+                  {{ expiredExportedFiles[exp.id] ? jobStatusTooltip.expired : jobStatusTooltip[exp.status] }}
                 </template>
                 <GeneralIcon
                   :icon="exp.status === JobStatus.COMPLETED ? 'circleCheck2' : 'alertTriangle'"

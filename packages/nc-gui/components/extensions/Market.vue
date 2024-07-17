@@ -9,7 +9,7 @@ const emit = defineEmits(['update:modelValue'])
 
 const vModel = useVModel(props, 'modelValue', emit)
 
-const { availableExtensions, extensionCountById, addExtension, getExtensionIcon, showExtensionDetails } = useExtensions()
+const { availableExtensions, addExtension, getExtensionIcon, showExtensionDetails } = useExtensions()
 
 const searchQuery = ref<string>('')
 

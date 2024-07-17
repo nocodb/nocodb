@@ -157,8 +157,8 @@ const closeFullscreen = (e: MouseEvent) => {
               </NcMenu>
             </template>
           </NcDropdown>
-          <GeneralIcon v-if="collapsed" icon="arrowUp" @click="collapsed = !collapsed" class="cursor-pointer" />
-          <GeneralIcon v-else icon="arrowDown" @click="collapsed = !collapsed" class="cursor-pointer" />
+          <GeneralIcon v-if="collapsed" icon="arrowUp" class="cursor-pointer" @click="collapsed = !collapsed" />
+          <GeneralIcon v-else icon="arrowDown" class="cursor-pointer" @click="collapsed = !collapsed" />
         </div>
       </div>
       <template v-if="activeError">

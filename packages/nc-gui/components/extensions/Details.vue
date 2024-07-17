@@ -41,7 +41,7 @@ const activeExtension = computed(() => {
   >
     <div v-if="activeExtension" class="flex flex-col w-full h-full">
       <div v-if="from === 'market'" class="flex-none h-8 flex items-center mb-4">
-        <NcButton size="xsmall" type="text" @click="onBack" class="!bg-gray-200/75 !hover:bg-gray-200 !rounded-full">
+        <NcButton size="xsmall" type="text" class="!bg-gray-200/75 !hover:bg-gray-200 !rounded-full" @click="onBack">
           <div class="flex items-center gap-2 px-2">
             <GeneralIcon icon="ncArrowLeft" />
             <span>Back</span>

@@ -238,7 +238,7 @@ const closeFullscreen = (e: MouseEvent) => {
   @apply absolute top-0 left-0 z-50 w-full h-full bg-black bg-opacity-50;
 
   .extension-modal-content {
-    @apply bg-white rounded-2xl w-[90%] h-[90vh] mt-[5vh] mx-auto p-6 flex flex-col gap-3;
+    @apply bg-white rounded-2xl w-[90%] max-w-[1154px] h-[90vh] mt-[5vh] mx-auto p-6 flex flex-col gap-3;
   }
 }
 </style>

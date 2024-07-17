@@ -39,7 +39,7 @@ const onAddExtension = (ext: any) => {
     :class="{ active: vModel }"
     :closable="true"
     :footer="null"
-    :width="1280"
+    :width="1154"
     size="medium"
     wrap-class-name="nc-modal-extension-market"
   >

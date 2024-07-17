@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { ButtonType } from 'ant-design-vue/lib/button'
 import dayjs from 'dayjs'
 import { type ViewType, ViewTypes } from 'nocodb-sdk'
 
@@ -17,8 +16,6 @@ const { extension, tables, fullscreen, getViewsForTable } = useExtensionHelperOr
 const { jobList, loadJobsForBase } = useJobs()
 
 const views = ref<ViewType[]>([])
-
-const exportBtnType = ref<'secondary' | undefined>(undefined)
 
 const deletedExports = ref<string[]>([])
 
@@ -74,25 +71,16 @@ const reloadViews = async () => {
   }
 }
 
-const resetExportBtnType = () => {
-  if (exportBtnType.value) {
-    exportBtnType.value = undefined
-  }
-}
-
 const onTableSelect = async (tableId: string) => {
   exportPayload.value.tableId = tableId
   await reloadViews()
   exportPayload.value.viewId = views.value.find((view) => view.is_default)?.id
   await extension.value.kvStore.set('exportPayload', exportPayload.value)
-
-  resetExportBtnType()
 }
 
 const onViewSelect = async (viewId: string) => {
   exportPayload.value.viewId = viewId
   await extension.value.kvStore.set('exportPayload', exportPayload.value)
-  resetExportBtnType()
 }
 
 const isExporting = ref(false)
@@ -155,8 +143,6 @@ async function exportDataAsync() {
     )
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
-    exportBtnType.value = 'secondary'
   }
 }
 
@@ -179,6 +165,10 @@ const onRemoveExportedFile = async (exportId: string) => {
   deletedExports.value.push(exportId)
 
   await extension.value.kvStore.set('deletedExports', deletedExports.value)
+}
+
+const filterOption = (input: string, option: { key: string }) => {
+  return option.key?.toLowerCase()?.includes(input?.toLowerCase())
 }
 
 onMounted(() => {
@@ -208,10 +198,13 @@ onMounted(() => {
             'min-w-[240px] max-w-[240px]': fullscreen,
             'min-w-1/2 max-w-[132px]': !fullscreen,
           }"
+          :filter-option="filterOption"
+          dropdown-class-name="w-[250px]"
+          show-search
           @change="onTableSelect"
         >
           <a-select-option v-for="table of tableList" :key="table.label" :value="table.value">
-            <div class="flex w-full items-center gap-2 max-w-[250px]">
+            <div class="w-full flex items-center gap-2">
               <div class="min-w-5 flex items-center justify-center">
                 <GeneralTableIcon :meta="{ meta: table.meta }" class="text-gray-500" />
               </div>
@@ -219,6 +212,12 @@ onMounted(() => {
                 <template #title>{{ table.label }}</template>
                 <span>{{ table.label }}</span>
               </NcTooltip>
+              <component
+                :is="iconMap.check"
+                v-if="exportPayload.tableId === table.value"
+                id="nc-selected-item-icon"
+                class="flex-none text-primary w-4 h-4"
+              />
             </div>
           </a-select-option>
         </NcSelect>
@@ -232,10 +231,13 @@ onMounted(() => {
             'min-w-[240px] max-w-[240px]': fullscreen,
             'min-w-1/2 max-w-[132px]': !fullscreen,
           }"
+          dropdown-class-name="w-[250px]"
+          :filter-option="filterOption"
+          show-search
           @change="onViewSelect"
         >
           <a-select-option v-for="view of viewList" :key="view.label" :value="view.value">
-            <div class="flex w-full items-center gap-2 max-w-[250px]">
+            <div class="w-full flex items-center gap-2">
               <div class="min-w-5 flex items-center justify-center">
                 <GeneralViewIcon :meta="{ meta: view.meta, type: view.type }" class="flex-none text-gray-500" />
               </div>
@@ -243,19 +245,22 @@ onMounted(() => {
                 <template #title>{{ view.label }}</template>
                 <span>{{ view.label }}</span>
               </NcTooltip>
-            </div>
-          </a-select-option></NcSelect
-        >
+              <component
+                :is="iconMap.check"
+                v-if="exportPayload.viewId === view.value"
+                id="nc-selected-item-icon"
+                class="flex-none text-primary w-4 h-4"
+              />
+            </div> </a-select-option
+        ></NcSelect>
       </div>
       <div class="flex-none flex justify-end">
-        <NcButton
-          :disabled="!exportPayload?.viewId"
-          :loading="isExporting"
-          :type="exportBtnType"
-          size="xs"
-          @click="exportDataAsync"
-          >{{ isExporting ? 'Generating' : 'Export' }}</NcButton
-        >
+        <NcTooltip class="flex" placement="topRight" :disabled="!isExporting">
+          <template #title> The CSV file is being prepared in the background. You'll be notified once it's ready. </template>
+          <NcButton :disabled="!exportPayload?.viewId" :loading="isExporting" size="xs" @click="exportDataAsync">{{
+            isExporting ? 'Generating' : 'Export'
+          }}</NcButton>
+        </NcTooltip>
       </div>
     </div>
     <div class="data-exporter-body h-full">

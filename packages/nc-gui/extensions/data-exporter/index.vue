@@ -20,7 +20,7 @@ const views = ref<ViewType[]>([])
 
 const exportedFiles = computed(() => {
   return jobList.value
-    .filter((job) => job.job === 'data-export' && job.extension_id === extension.value.id)
+    .filter((job) => job.job === 'data-export' && job.result?.extension_id === extension.value.id)
     .map((job) => {
       return {
         ...job,

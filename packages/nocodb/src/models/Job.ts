@@ -21,7 +21,6 @@ export default class Job {
   base_id: string;
   created_at: Date;
   updated_at: Date;
-  extension_id: string;
 
   constructor(data: Partial<Job>) {
     Object.assign(this, data);
@@ -37,7 +36,6 @@ export default class Job {
       'status',
       'result',
       'fk_user_id',
-      'extension_id',
     ]);
 
     const { id } = await ncMeta.metaInsert2(

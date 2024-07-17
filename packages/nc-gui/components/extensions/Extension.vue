@@ -90,7 +90,13 @@ const closeFullscreen = (e: MouseEvent) => {
   <div class="w-full px-4">
     <div class="extension-wrapper">
       <div class="extension-header" :class="{ 'mb-2': !collapsed }">
-        <div class="extension-header-left">
+        <div
+          class="extension-header-left"
+          :class="{
+            'max-w-[calc(100%_-_28px)]': collapsed,
+            'max-w-[calc(100%_-_96px)]': !collapsed,
+          }"
+        >
           <GeneralIcon icon="ncDrag" class="flex-none" />
           <img
             v-if="extensionManifest"
@@ -99,7 +105,7 @@ const closeFullscreen = (e: MouseEvent) => {
             class="h-6 w-6 object-contain"
           />
           <input
-            v-if="titleEditMode"
+            v-if="titleEditMode && !fullscreen"
             ref="titleInput"
             v-model="tempTitle"
             class="flex-grow leading-1 outline-0 ring-none capitalize !text-inherit !bg-transparent w-4/5"
@@ -108,55 +114,28 @@ const closeFullscreen = (e: MouseEvent) => {
             @keyup.esc="updateExtensionTitle"
             @blur="updateExtensionTitle"
           />
-          <NcTooltip v-else show-on-truncate-only class="truncate">
+          <NcTooltip v-else show-on-truncate-only class="extension-title truncate">
             <template #title>
               {{ extension.title }}
             </template>
-            <div class="extension-title truncate" @dblclick="enableEditMode">{{ extension.title }}</div>
+            <span @dblclick="enableEditMode">
+              {{ extension.title }}
+            </span>
           </NcTooltip>
         </div>
         <div class="extension-header-right">
           <NcButton v-if="!activeError && !collapsed" type="text" size="xxsmall" @click="fullscreen = true">
             <GeneralIcon icon="expand" />
           </NcButton>
-
-          <NcDropdown v-if="!collapsed" :trigger="['click']">
-            <NcButton type="text" size="xxsmall">
-              <GeneralIcon icon="threeDotVertical" />
-            </NcButton>
-
-            <template #overlay>
-              <NcMenu>
-                <template v-if="!activeError">
-                  <NcMenuItem data-rec="true" class="!hover:text-primary" @click="enableEditMode">
-                    <GeneralIcon icon="edit" />
-                    Rename
-                  </NcMenuItem>
-                  <NcMenuItem data-rec="true" class="!hover:text-primary" @click="duplicateExtension(extension.id)">
-                    <GeneralIcon icon="duplicate" />
-                    Duplicate
-                  </NcMenuItem>
-                  <NcMenuItem
-                    data-rec="true"
-                    class="!hover:text-primary"
-                    @click="showExtensionDetails(extension.extensionId, 'extension')"
-                  >
-                    <GeneralIcon icon="info" />
-                    Details
-                  </NcMenuItem>
-                  <NcDivider />
-                </template>
-                <NcMenuItem data-rec="true" class="!text-red-500 !hover:bg-red-50" @click="extension.clear()">
-                  <GeneralIcon icon="reload" />
-                  Clear Data
-                </NcMenuItem>
-                <NcMenuItem data-rec="true" class="!text-red-500 !hover:bg-red-50" @click="extension.delete()">
-                  <GeneralIcon icon="delete" />
-                  Delete
-                </NcMenuItem>
-              </NcMenu>
-            </template>
-          </NcDropdown>
+          <ExtensionsExtensionMenu
+            v-if="!collapsed"
+            :active-error="activeError"
+            @rename="enableEditMode"
+            @duplicate="duplicateExtension(extension.id)"
+            @show-details="showExtensionDetails(extension.extensionId, 'extension')"
+            @clear-data="extension.clear()"
+            @delete="extension.delete()"
+          />
           <GeneralIcon v-if="collapsed" icon="arrowUp" class="cursor-pointer" @click="collapsed = !collapsed" />
           <GeneralIcon v-else icon="arrowDown" class="cursor-pointer" @click="collapsed = !collapsed" />
         </div>
@@ -187,16 +166,46 @@ const closeFullscreen = (e: MouseEvent) => {
           <div ref="extensionModalRef" :class="{ 'extension-modal': fullscreen }" @click="closeFullscreen">
             <div :class="{ 'extension-modal-content': fullscreen }">
               <div v-if="fullscreen" class="flex items-center justify-between cursor-default">
-                <div class="flex items-center gap-2 text-gray-800 font-weight-600">
+                <div class="flex-1 max-w-[calc(100%_-_96px)] flex items-center gap-2 text-gray-800 font-weight-600">
                   <img
                     v-if="extensionManifest"
                     :src="getExtensionIcon(extensionManifest.iconUrl)"
                     alt="icon"
                     class="flex-none w-6 h-6"
                   />
-                  <div class="text-xl">{{ extension.title }}</div>
+                  <input
+                    v-if="titleEditMode"
+                    ref="titleInput"
+                    v-model="tempTitle"
+                    class="flex-grow leading-1 outline-0 ring-none capitalize !text-xl !bg-transparent !font-weight-600"
+                    @click.stop
+                    @keyup.enter="updateExtensionTitle"
+                    @keyup.esc="updateExtensionTitle"
+                    @blur="updateExtensionTitle"
+                  />
+                  <NcTooltip v-else show-on-truncate-only class="extension-title truncate text-xl">
+                    <template #title>
+                      {{ extension.title }}
+                    </template>
+                    <span @dblclick="enableEditMode">
+                      {{ extension.title }}
+                    </span>
+                  </NcTooltip>
                 </div>
-                <GeneralIcon class="cursor-pointer" icon="close" @click="fullscreen = false" />
+                <div class="flex items-center gap-4">
+                  <ExtensionsExtensionMenu
+                    :active-error="activeError"
+                    :fullscreen="fullscreen"
+                    @rename="enableEditMode"
+                    @duplicate="duplicateExtension(extension.id, true)"
+                    @show-details="showExtensionDetails(extension.extensionId, 'extension')"
+                    @clear-data="extension.clear()"
+                    @delete="extension.delete()"
+                  />
+                  <NcButton size="small" type="text" class="flex-none" @click="fullscreen = false">
+                    <GeneralIcon icon="close" />
+                  </NcButton>
+                </div>
               </div>
               <div v-show="fullscreen || !collapsed" class="extension-content" :class="{ 'h-[calc(100%-40px)]': fullscreen }">
                 <component :is="component" :key="extension.uiKey" />
@@ -218,7 +227,7 @@ const closeFullscreen = (e: MouseEvent) => {
   @apply flex justify-between;
 
   .extension-header-left {
-    @apply flex items-center gap-2;
+    @apply flex-1 flex items-center gap-2;
   }
 
   .extension-header-right {

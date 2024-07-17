@@ -6,7 +6,6 @@ import { type ViewType, ViewTypes } from 'nocodb-sdk'
 const jobStatusTooltip = {
   [JobStatus.COMPLETED]: 'Export successful',
   [JobStatus.FAILED]: 'Export failed',
-  expired: 'Expired export',
 } as Record<string, string>
 
 const { $api, $poller } = useNuxtApp()
@@ -37,8 +36,6 @@ const exportedFiles = computed(() => {
     })
     .sort((a, b) => dayjs(b.created_at).unix() - dayjs(a.created_at).unix())
 })
-
-const expiredExportedFiles = ref<Record<string, boolean>>({})
 
 const exportPayload = ref<{
   tableId?: string
@@ -190,30 +187,6 @@ onMounted(() => {
   reloadViews()
   loadJobsForBase()
 })
-
-// watch(
-//   exportedFiles,
-//   async () => {
-//     const results = await Promise.all(
-//       exportedFiles.value.map(async (exp) => {
-//         if (exp.status === JobStatus.COMPLETED && (await isLinkExpired(exp.result?.url || ''))) {
-//           return { id: exp.id, expired: true }
-//         }
-//         return { id: exp.id, expired: false }
-//       }),
-//     )
-
-//     expiredExportedFiles.value = results.reduce((acc, { id, expired }) => {
-//       if (expired) {
-//         acc[id] = true
-//       }
-//       return acc
-//     }, {} as Record<string, boolean>)
-//   },
-//   {
-//     immediate: true,
-//   },
-// )
 </script>
 
 <template>
@@ -314,15 +287,14 @@ onMounted(() => {
             >
               <NcTooltip v-if="[JobStatus.COMPLETED, JobStatus.FAILED].includes(exp.status)" class="flex">
                 <template #title>
-                  {{ expiredExportedFiles[exp.id] ? jobStatusTooltip.expired : jobStatusTooltip[exp.status] }}
+                  {{ jobStatusTooltip[exp.status] }}
                 </template>
                 <GeneralIcon
                   :icon="exp.status === JobStatus.COMPLETED ? 'circleCheck2' : 'alertTriangle'"
                   class="flex-none h-4 w-4"
                   :class="{
-                    '!text-green-500': exp.status === JobStatus.COMPLETED && !expiredExportedFiles[exp.id],
+                    '!text-green-500': exp.status === JobStatus.COMPLETED,
                     '!text-red-500': exp.status === JobStatus.FAILED,
-                    '!text-orange-500': expiredExportedFiles[exp.id],
                   }"
                 />
               </NcTooltip>
@@ -353,7 +325,7 @@ onMounted(() => {
               </div>
             </div>
 
-            <div v-if="exp.status === JobStatus.COMPLETED && !expiredExportedFiles[exp.id]" class="flex items-center">
+            <div v-if="exp.status === JobStatus.COMPLETED" class="flex items-center">
               <a :href="urlHelper(exp.result.url)" target="_blank">
                 <NcButton type="secondary" size="xs" class="!px-[5px]">
                   <div class="flex items-center gap-2">

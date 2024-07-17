@@ -148,33 +148,70 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex flex-col gap-2 p-2">
-    <NcSelect v-model:value="exportPayload.tableId" :options="tableList" @disabled="isExporting" @change="onTableSelect" />
-    <NcSelect v-model:value="exportPayload.viewId" :options="viewList" @disabled="isExporting" @change="onViewSelect" />
-    <NcButton @loading="isExporting" @click="exportDataAsync">Export</NcButton>
-    <div
-      class="flex flex-col"
-      :class="{
-        'max-h-[60px] overflow-auto': !fullscreen,
-      }"
-    >
-      <div v-for="exp in exportedFiles" :key="exp.id" class="flex items-center gap-1">
-        <template v-if="exp.status === JobStatus.COMPLETED && exp.result">
-          <GeneralIcon icon="file" />
-          <div>{{ exp.result.title }}</div>
-          <a :href="urlHelper(exp.result.url)" target="_blank">Download</a>
-        </template>
-        <template v-else-if="exp.status === JobStatus.FAILED">
-          <GeneralIcon icon="error" class="text-red-500" />
-          <div>{{ exp.result.title }}</div>
-        </template>
-        <template v-else>
-          <GeneralLoader size="small" />
-          <div>{{ titleHelper() }}</div>
-        </template>
+  <div class="data-exporter">
+    <div class="data-exporter-header">Recent Exports</div>
+    <div class="data-exporter-body">
+      <div v-if="!exportedFiles.length" class="min-h-[222px] h-full flex items-center justify-center">
+        <NcButton type="link" size="small" class="!border-none">
+          <div class="flex items-center gap-2 font-weight-600">
+            <GeneralIcon icon="plus" />
+            New download
+          </div>
+        </NcButton>
       </div>
     </div>
+    <div class="data-exporter-footer">
+      <NcButton type="text">
+        <div class="flex items-center gap-2 font-weight-600">
+          <GeneralIcon icon="plus" />
+          New download
+        </div>
+      </NcButton>
+    </div>
+
+    <template v-if="exportedFiles.length">
+      <NcSelect v-model:value="exportPayload.tableId" :options="tableList" @disabled="isExporting" @change="onTableSelect" />
+      <NcSelect v-model:value="exportPayload.viewId" :options="viewList" @disabled="isExporting" @change="onViewSelect" />
+      <NcButton @loading="isExporting" @click="exportDataAsync">Export</NcButton>
+      <div
+        class="flex flex-col"
+        :class="{
+          'max-h-[60px] overflow-auto': !fullscreen,
+        }"
+      >
+        <div v-for="exp in exportedFiles" :key="exp.id" class="flex items-center gap-1">
+          <template v-if="exp.status === JobStatus.COMPLETED && exp.result">
+            <GeneralIcon icon="file" />
+            <div>{{ exp.result.title }}</div>
+            <a :href="urlHelper(exp.result.url)" target="_blank">Download</a>
+          </template>
+          <template v-else-if="exp.status === JobStatus.FAILED">
+            <GeneralIcon icon="error" class="text-red-500" />
+            <div>{{ exp.result.title }}</div>
+          </template>
+          <template v-else>
+            <GeneralLoader size="small" />
+            <div>{{ titleHelper() }}</div>
+          </template>
+        </div>
+      </div>
+    </template>
   </div>
 </template>
 
-<style lang="scss"></style>
+<style lang="scss" scoped>
+.data-exporter {
+  @apply flex flex-col rounded-lg border-1 overflow-hidden h-full;
+  .data-exporter-header {
+    @apply px-3 py-1 uppercase bg-gray-100 text-[11px] leading-4 text-gray-600;
+  }
+
+  .data-exporter-body {
+    @apply px-2 flex-1;
+  }
+
+  .data-exporter-footer {
+    @apply flex items-center justify-end bg-gray-100;
+  }
+}
+</style>

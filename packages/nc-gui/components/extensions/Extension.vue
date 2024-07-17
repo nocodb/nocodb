@@ -92,7 +92,12 @@ const closeFullscreen = (e: MouseEvent) => {
       <div class="extension-header" :class="{ 'mb-2': !collapsed }">
         <div class="extension-header-left">
           <GeneralIcon icon="ncDrag" class="flex-none" />
-          <img v-if="extensionManifest" :src="getExtensionIcon(extensionManifest.iconUrl)" alt="icon" class="h-6 w-6 object-contain" />
+          <img
+            v-if="extensionManifest"
+            :src="getExtensionIcon(extensionManifest.iconUrl)"
+            alt="icon"
+            class="h-6 w-6 object-contain"
+          />
           <input
             v-if="titleEditMode"
             ref="titleInput"
@@ -181,21 +186,19 @@ const closeFullscreen = (e: MouseEvent) => {
         <Teleport to="body" :disabled="!fullscreen">
           <div ref="extensionModalRef" :class="{ 'extension-modal': fullscreen }" @click="closeFullscreen">
             <div :class="{ 'extension-modal-content': fullscreen }">
-              <div
-                v-if="fullscreen"
-                class="flex items-center justify-between p-2 bg-gray-100 rounded-t-lg cursor-default h-[40px]"
-              >
-                <div class="flex items-center gap-2 text-gray-500 font-weight-600">
-                  <img v-if="extensionManifest" :src="getExtensionIcon(extensionManifest.iconUrl)" alt="icon" class="w-6 h-6" />
-                  <div class="text-sm">{{ extension.title }}</div>
+              <div v-if="fullscreen" class="flex items-center justify-between cursor-default">
+                <div class="flex items-center gap-2 text-gray-800 font-weight-600">
+                  <img
+                    v-if="extensionManifest"
+                    :src="getExtensionIcon(extensionManifest.iconUrl)"
+                    alt="icon"
+                    class="flex-none w-6 h-6"
+                  />
+                  <div class="text-xl">{{ extension.title }}</div>
                 </div>
                 <GeneralIcon class="cursor-pointer" icon="close" @click="fullscreen = false" />
               </div>
-              <div
-                v-show="fullscreen || !collapsed"
-                class="extension-content"
-                :class="{ 'border-1': !fullscreen, 'h-[calc(100%-40px)]': fullscreen }"
-              >
+              <div v-show="fullscreen || !collapsed" class="extension-content" :class="{ 'h-[calc(100%-40px)]': fullscreen }">
                 <component :is="component" :key="extension.uiKey" />
               </div>
             </div>
@@ -235,7 +238,7 @@ const closeFullscreen = (e: MouseEvent) => {
   @apply absolute top-0 left-0 z-50 w-full h-full bg-black bg-opacity-50;
 
   .extension-modal-content {
-    @apply bg-white rounded-lg w-[90%] h-[90vh] mt-[5vh] mx-auto;
+    @apply bg-white rounded-2xl w-[90%] h-[90vh] mt-[5vh] mx-auto p-6 flex flex-col gap-3;
   }
 }
 </style>

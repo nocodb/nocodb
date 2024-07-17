@@ -2,6 +2,12 @@
 import dayjs from 'dayjs'
 import { type ViewType, ViewTypes } from 'nocodb-sdk'
 
+const jobStatusTooltip = {
+  [JobStatus.COMPLETED]: 'Export successful',
+  [JobStatus.FAILED]: 'Export failed',
+  expired: 'Expired export',
+} as Record<string, string>
+
 const { $api, $poller } = useNuxtApp()
 
 const { appInfo } = useGlobal()
@@ -11,8 +17,6 @@ const { extension, tables, fullscreen, getViewsForTable } = useExtensionHelperOr
 const { jobList, loadJobsForBase } = useJobs()
 
 const views = ref<ViewType[]>([])
-
-const showExportConfig = ref(false)
 
 const exportedFiles = computed(() => {
   return jobList.value
@@ -25,6 +29,8 @@ const exportedFiles = computed(() => {
     })
     .sort((a, b) => dayjs(b.created_at).unix() - dayjs(a.created_at).unix())
 })
+
+const expiredExportedFiles = ref<Record<string, boolean>>({})
 
 const exportPayload = ref<{
   tableId?: string
@@ -158,11 +164,23 @@ onMounted(() => {
 })
 
 watch(
-  [() => jobList.value?.length, () => exportPayload.value],
-  () => {
-    if (jobList.value?.length || Object.keys(exportPayload.value || {}).length) {
-      showExportConfig.value = true
-    }
+  exportedFiles,
+  async () => {
+    const results = await Promise.all(
+      exportedFiles.value.map(async (exp) => {
+        if (exp.status === JobStatus.COMPLETED && (await isLinkExpired(exp.result?.url || ''))) {
+          return { id: exp.id, expired: true }
+        }
+        return { id: exp.id, expired: false }
+      }),
+    )
+
+    expiredExportedFiles.value = results.reduce((acc, { id, expired }) => {
+      if (expired) {
+        acc[id] = true
+      }
+      return acc
+    }, {} as Record<string, boolean>)
   },
   {
     immediate: true,
@@ -172,21 +190,14 @@ watch(
 
 <template>
   <div class="data-exporter">
-    <div class="data-exporter-header">Recent Exports</div>
     <div class="data-exporter-body">
-      <div v-if="!exportedFiles.length && !showExportConfig" class="min-h-[222px] h-full flex items-center justify-center">
-        <NcButton type="link" size="small" class="!border-none" @click="showExportConfig = true">
-          <div class="flex items-center gap-2 font-weight-600">
-            <GeneralIcon icon="plus" />
-            New download
-          </div>
-        </NcButton>
-      </div>
+      <div class="data-exporter-header">Export config</div>
       <div
-        v-if="showExportConfig && exportPayload"
         class="px-3 py-2 flex items-center justify-between gap-2.5 flex-wrap"
         :class="{
           'border-b-1': exportedFiles.length || fullscreen,
+          'px-4 py-3': fullscreen,
+          'px-3 py-2': !fullscreen,
         }"
       >
         <div class="flex flex-col gap-1">
@@ -196,7 +207,10 @@ watch(
               :options="tableList"
               placeholder="-select table-"
               :disabled="isExporting"
-              class="min-w-[118px] max-w-[132px]"
+              :class="{
+                'min-w-[240px] max-w-[240px]': fullscreen,
+                'min-w-[132px] max-w-[132px]': !fullscreen,
+              }"
               @change="onTableSelect"
             />
             <span>/</span>
@@ -205,39 +219,47 @@ watch(
               :options="viewList"
               placeholder="-select view-"
               :disabled="isExporting"
-              class="min-w-[118px] max-w-[132px]"
+              :class="{
+                'min-w-[240px] max-w-[240px]': fullscreen,
+                'min-w-[132px] max-w-[132px]': !fullscreen,
+              }"
               @change="onViewSelect"
             />
           </div>
-          <!-- <div>Timestamp</div> -->
         </div>
         <div class="flex-none flex-1 flex justify-end">
-          <NcButton :disabled="!exportPayload?.viewId" :loading="isExporting" size="xs" type="text" @click="exportDataAsync">{{
+          <NcButton :disabled="!exportPayload?.viewId" :loading="isExporting" size="xs" @click="exportDataAsync">{{
             isExporting ? 'Generating' : 'Export'
           }}</NcButton>
         </div>
       </div>
-      <template v-if="exportedFiles.length">
-        <template v-for="exp in exportedFiles">
+      <div class="data-exporter-header">Recent Exports</div>
+      <div v-if="exportedFiles.length" class="flex flex-col max-h-[232px] nc-scrollbar-thin">
+        <template v-for="(exp, i) in exportedFiles">
           <div
             v-if="exp.status === JobStatus.COMPLETED ? exp.result : true"
             :key="exp.id"
             class="px-3 py-2 flex gap-2.5 justify-between border-b-1"
             :class="{
-              'last:border-b-0': !fullscreen,
+              'px-4 py-3': fullscreen,
+              'last:border-b-0 px-3 py-2': !fullscreen,
             }"
           >
-            <div class="flex-1 flex gap-3 max-w-[calc(100%_-_114px)]">
-              <div v-if="[JobStatus.COMPLETED, JobStatus.FAILED].includes(exp.status)" class="flex">
+            <div class="flex-1 flex items-center gap-3 max-w-[calc(100%_-_114px)]">
+              <NcTooltip v-if="[JobStatus.COMPLETED, JobStatus.FAILED].includes(exp.status)" class="flex">
+                <template #title>
+                  {{ expiredExportedFiles[exp.id] ? jobStatusTooltip['expired'] : jobStatusTooltip[exp.status] }}
+                </template>
                 <GeneralIcon
                   :icon="exp.status === JobStatus.COMPLETED ? 'circleCheck2' : 'alertTriangle'"
                   class="flex-none h-4 w-4"
                   :class="{
-                    '!text-green-500': exp.status === JobStatus.COMPLETED,
+                    '!text-green-500': exp.status === JobStatus.COMPLETED && !expiredExportedFiles[exp.id],
                     '!text-red-500': exp.status === JobStatus.FAILED,
+                    '!text-orange-500': expiredExportedFiles[exp.id],
                   }"
                 />
-              </div>
+              </NcTooltip>
               <div v-else class="h-5 flex items-center">
                 <GeneralLoader size="regular" class="flex-none" />
               </div>
@@ -264,9 +286,9 @@ watch(
                 </div>
               </div>
             </div>
-            <div if="exp.status === JobStatus.COMPLETED">
+            <div v-if="exp.status === JobStatus.COMPLETED && !expiredExportedFiles[exp.id]" class="flex items-center">
               <a :href="urlHelper(exp.result.url)" target="_blank">
-                <NcButton type="secondary" size="xs">
+                <NcButton type="text" size="xs">
                   <div class="flex items-center gap-2">
                     <GeneralIcon icon="download" />
                     <span>
@@ -278,7 +300,8 @@ watch(
             </div>
           </div>
         </template>
-      </template>
+      </div>
+      <div v-else class="px-3 py-2 text-center">No data found</div>
     </div>
   </div>
 </template>

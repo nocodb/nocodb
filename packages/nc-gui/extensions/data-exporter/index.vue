@@ -2,6 +2,11 @@
 import dayjs from 'dayjs'
 import { type ViewType, ViewTypes } from 'nocodb-sdk'
 
+const jobStatusTooltip = {
+  [JobStatus.COMPLETED]: 'Export successful',
+  [JobStatus.FAILED]: 'Export failed',
+} as Record<string, string>
+
 const { $api, $poller } = useNuxtApp()
 
 const { appInfo } = useGlobal()
@@ -12,9 +17,18 @@ const { jobList, loadJobsForBase } = useJobs()
 
 const views = ref<ViewType[]>([])
 
+const deletedExports = ref<string[]>([])
+
+const dataExporterRef = ref<HTMLDivElement>()
+
+const { width } = useElementSize(dataExporterRef)
+
 const exportedFiles = computed(() => {
   return jobList.value
-    .filter((job) => job.job === 'data-export')
+    .filter(
+      (job) =>
+        job.job === 'data-export' && job.result?.extension_id === extension.value.id && !deletedExports.value.includes(job.id),
+    )
     .map((job) => {
       return {
         ...job,
@@ -34,6 +48,7 @@ const tableList = computed(() => {
     return {
       label: table.title,
       value: table.id,
+      meta: table.meta,
     }
   })
 })
@@ -47,6 +62,8 @@ const viewList = computed(() => {
         return {
           label: view.is_default ? `Default View` : view.title,
           value: view.id,
+          meta: view.meta,
+          type: view.type,
         }
       }) || []
   )
@@ -78,8 +95,7 @@ async function exportDataAsync() {
 
     isExporting.value = true
 
-    const jobData = await $api.export.data(exportPayload.value.viewId, 'csv', {})
-
+    const jobData = await $api.export.data(exportPayload.value.viewId, 'csv', { extension_id: extension.value.id })
     jobList.value.unshift(jobData)
 
     $poller.subscribe(
@@ -113,6 +129,15 @@ async function exportDataAsync() {
             const job = jobList.value.find((j) => j.id === data.id)
             if (job) {
               job.status = JobStatus.FAILED
+              job.result = data.data?.result
+
+              // Add title if not present in response
+              if (!job.result?.title) {
+                job.result = {
+                  ...(job.result || {}),
+                  title: titleHelper(),
+                }
+              }
             }
 
             isExporting.value = false
@@ -133,48 +158,236 @@ const urlHelper = (url: string) => {
   }
 }
 
-const titleHelper = () => {
+function titleHelper() {
   const table = tables.value.find((t) => t.id === exportPayload.value.tableId)
   const view = views.value.find((v) => v.id === exportPayload.value.viewId)
 
   return `${table?.title} (${view?.is_default ? 'Default View' : view?.title})`
 }
 
+const onRemoveExportedFile = async (exportId: string) => {
+  deletedExports.value.push(exportId)
+
+  await extension.value.kvStore.set('deletedExports', deletedExports.value)
+}
+
+const filterOption = (input: string, option: { key: string }) => {
+  return option.key?.toLowerCase()?.includes(input?.toLowerCase())
+}
+
 onMounted(() => {
   exportPayload.value = extension.value.kvStore.get('exportPayload') || {}
+  deletedExports.value = extension.value.kvStore.get('deletedExports') || []
   reloadViews()
   loadJobsForBase()
 })
 </script>
 
 <template>
-  <div class="flex flex-col gap-2 p-2">
-    <NcSelect v-model:value="exportPayload.tableId" :options="tableList" @disabled="isExporting" @change="onTableSelect" />
-    <NcSelect v-model:value="exportPayload.viewId" :options="viewList" @disabled="isExporting" @change="onViewSelect" />
-    <NcButton @loading="isExporting" @click="exportDataAsync">Export</NcButton>
-    <div
-      class="flex flex-col"
-      :class="{
-        'max-h-[60px] overflow-auto': !fullscreen,
-      }"
-    >
-      <div v-for="exp in exportedFiles" :key="exp.id" class="flex items-center gap-1">
-        <template v-if="exp.status === JobStatus.COMPLETED && exp.result">
-          <GeneralIcon icon="file" />
-          <div>{{ exp.result.title }}</div>
-          <a :href="urlHelper(exp.result.url)" target="_blank">Download</a>
-        </template>
-        <template v-else-if="exp.status === JobStatus.FAILED">
-          <GeneralIcon icon="error" class="text-red-500" />
-          <div>{{ exp.result.title }}</div>
-        </template>
-        <template v-else>
-          <GeneralLoader size="small" />
-          <div>{{ titleHelper() }}</div>
+  <div ref="dataExporterRef" class="data-exporter">
+    <div class="pb-3 pt-1 flex items-center justify-between gap-2.5 flex-wrap">
+      <div
+        class="flex-1 flex items-center"
+        :class="{
+          'max-w-[min(350px,calc(100%-124px))]': isExporting && !fullscreen && width > 325,
+          'max-w-[min(350px,calc(100%_-_84px))]': !isExporting && !fullscreen && width > 325,
+          'max-w-full': width <= 325,
+          'max-w-[900px]': fullscreen,
+        }"
+      >
+        <NcSelect
+          v-model:value="exportPayload.tableId"
+          placeholder="-select table-"
+          :disabled="isExporting"
+          class="nc-data-exporter-table-select"
+          :class="{
+            'flex-1 max-w-[240px]': fullscreen,
+            'min-w-1/2 max-w-[175px]': !fullscreen,
+          }"
+          :filter-option="filterOption"
+          dropdown-class-name="w-[250px]"
+          show-search
+          @change="onTableSelect"
+        >
+          <a-select-option v-for="table of tableList" :key="table.label" :value="table.value">
+            <div class="w-full flex items-center gap-2">
+              <div class="min-w-5 flex items-center justify-center">
+                <GeneralTableIcon :meta="{ meta: table.meta }" class="text-gray-500" />
+              </div>
+              <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                <template #title>{{ table.label }}</template>
+                <span>{{ table.label }}</span>
+              </NcTooltip>
+              <component
+                :is="iconMap.check"
+                v-if="exportPayload.tableId === table.value"
+                id="nc-selected-item-icon"
+                class="flex-none text-primary w-4 h-4"
+              />
+            </div>
+          </a-select-option>
+        </NcSelect>
+
+        <NcSelect
+          v-model:value="exportPayload.viewId"
+          placeholder="-select view-"
+          :disabled="isExporting"
+          class="nc-data-exporter-view-select"
+          :class="{
+            'flex-1 max-w-[240px]': fullscreen,
+            'min-w-1/2 max-w-[175px]': !fullscreen,
+          }"
+          dropdown-class-name="w-[250px]"
+          :filter-option="filterOption"
+          show-search
+          @change="onViewSelect"
+        >
+          <a-select-option v-for="view of viewList" :key="view.label" :value="view.value">
+            <div class="w-full flex items-center gap-2">
+              <div class="min-w-5 flex items-center justify-center">
+                <GeneralViewIcon :meta="{ meta: view.meta, type: view.type }" class="flex-none text-gray-500" />
+              </div>
+              <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                <template #title>{{ view.label }}</template>
+                <span>{{ view.label }}</span>
+              </NcTooltip>
+              <component
+                :is="iconMap.check"
+                v-if="exportPayload.viewId === view.value"
+                id="nc-selected-item-icon"
+                class="flex-none text-primary w-4 h-4"
+              />
+            </div> </a-select-option
+        ></NcSelect>
+      </div>
+      <div class="flex-none flex justify-end">
+        <NcTooltip class="flex" placement="topRight" :disabled="!isExporting">
+          <template #title> The CSV file is being prepared in the background. You'll be notified once it's ready. </template>
+          <NcButton :disabled="!exportPayload?.viewId" :loading="isExporting" size="xs" @click="exportDataAsync">{{
+            isExporting ? 'Generating' : 'Export'
+          }}</NcButton>
+        </NcTooltip>
+      </div>
+    </div>
+    <div class="data-exporter-body flex-1 flex flex-col">
+      <div class="data-exporter-header">Recent Exports</div>
+      <div v-if="exportedFiles.length" class="flex-1 flex flex-col nc-scrollbar-thin max-h-[calc(100%_-_25px)]">
+        <template v-for="exp of exportedFiles">
+          <div
+            v-if="exp.status === JobStatus.COMPLETED ? exp.result : true"
+            :key="exp.id"
+            class="px-3 py-2 flex gap-2 justify-between border-b-1 hover:bg-gray-50"
+            :class="{
+              'px-4 py-3': fullscreen,
+              'px-3 py-2': !fullscreen,
+            }"
+          >
+            <div
+              class="flex-1 flex items-center gap-3"
+              :class="{
+                'max-w-[calc(100%_-_74px)]': exp.status === JobStatus.COMPLETED,
+                'max-w-[calc(100%_-_38px)]': exp.status !== JobStatus.COMPLETED,
+              }"
+            >
+              <NcTooltip v-if="[JobStatus.COMPLETED, JobStatus.FAILED].includes(exp.status)" class="flex">
+                <template #title>
+                  {{ jobStatusTooltip[exp.status] }}
+                </template>
+                <GeneralIcon
+                  :icon="exp.status === JobStatus.COMPLETED ? 'circleCheck2' : 'alertTriangle'"
+                  class="flex-none h-4 w-4"
+                  :class="{
+                    '!text-green-500': exp.status === JobStatus.COMPLETED,
+                    '!text-red-500': exp.status === JobStatus.FAILED,
+                  }"
+                />
+              </NcTooltip>
+              <div v-else class="h-5 flex items-center">
+                <GeneralLoader size="regular" class="flex-none" />
+              </div>
+
+              <div class="flex-1 max-w-[calc(100%_-_28px)] flex flex-col gap-1">
+                <div class="inline-flex gap-1 text-sm text-gray-800">
+                  <span class="inline-flex items-center h-5">
+                    <GeneralIcon icon="file" class="flex-none text-gray-600/80 h-3.5 w-3.5" />
+                  </span>
+                  <NcTooltip class="truncate max-w-[calc(100%_-_20px)]" show-on-truncate-only>
+                    <template #title>
+                      {{ exp.result.title || titleHelper() }}
+                    </template>
+                    {{ exp.result.title || titleHelper() }}
+                  </NcTooltip>
+                </div>
+                <div v-if="exp.result.timestamp" class="text-[10px] leading-4 text-gray-600">
+                  <NcTooltip class="truncate" show-on-truncate-only>
+                    <template #title>
+                      {{ dayjs(exp.result.timestamp).format('MM/DD/YYYY [at] hh:mm A') }}
+                    </template>
+                    {{ dayjs(exp.result.timestamp).format('MM/DD/YYYY [at] hh:mm A') }}
+                  </NcTooltip>
+                </div>
+              </div>
+            </div>
+
+            <div v-if="exp.status === JobStatus.COMPLETED" class="flex items-center">
+              <a :href="urlHelper(exp.result.url)" target="_blank">
+                <NcTooltip class="flex items-center">
+                  <template #title>
+                    {{ $t('general.download') }}
+                  </template>
+
+                  <NcButton type="secondary" size="xs" class="!px-[5px]">
+                    <div class="flex items-center gap-2">
+                      <GeneralIcon icon="download" />
+                    </div>
+                  </NcButton>
+                </NcTooltip>
+              </a>
+            </div>
+
+            <div class="flex items-center">
+              <NcTooltip class="flex">
+                <template #title>
+                  {{ $t('general.remove') }}
+                </template>
+
+                <NcButton type="text" size="xs" class="!px-[5px]" @click="onRemoveExportedFile(exp.id)">
+                  <GeneralIcon icon="close" />
+                </NcButton>
+              </NcTooltip>
+            </div>
+          </div>
         </template>
       </div>
+      <div v-else class="px-3 py-2 flex-1 flex items-center justify-center text-gray-600">No exports</div>
     </div>
   </div>
 </template>
 
-<style lang="scss"></style>
+<style lang="scss" scoped>
+.data-exporter {
+  @apply flex flex-col  overflow-hidden h-full;
+  .data-exporter-header {
+    @apply px-3 py-1 bg-gray-100 text-[11px] leading-4 text-gray-600 border-b-1;
+  }
+
+  .nc-data-exporter-table-select {
+    :deep(.ant-select-selector) {
+      @apply !border-r-[0.5px] rounded-lg !rounded-r-none shadow-none;
+    }
+  }
+  .nc-data-exporter-view-select {
+    :deep(.ant-select-selector) {
+      @apply !border-l-[0.5px] rounded-lg !rounded-l-none shadow-none;
+    }
+  }
+
+  .data-exporter-body {
+    @apply flex-1 rounded-lg border-1 overflow-hidden;
+  }
+
+  .data-exporter-footer {
+    @apply flex items-center justify-end bg-gray-100;
+  }
+}
+</style>

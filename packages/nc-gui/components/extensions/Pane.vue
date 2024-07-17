@@ -67,10 +67,10 @@ watch(isPanelExpanded, (newValue) => {
       <NcTooltip class="flex" hide-on-click placement="topRight">
         <template #title> Hide extensions </template>
         <NcButton
-          @click="toggleExtensionPanel"
           size="xxsmall"
           type="text"
           class="!text-gray-700 !hover:text-gray-800 !hover:bg-gray-200"
+          @click="toggleExtensionPanel"
         >
           <div class="flex items-center justify-center">
             <GeneralIcon icon="doubleRightArrow" class="flex-none !text-gray-500/75" />
@@ -83,7 +83,7 @@ watch(isPanelExpanded, (newValue) => {
         <div class="w-[180px] h-[180px] bg-[#d9d9d9] rounded-3xl mt-[100px]"></div>
         <div class="font-weight-700 text-base">No extensions added</div>
         <div>Add Extensions from the community extensions marketplace</div>
-        <NcButton @click="toggleMarket" size="small">
+        <NcButton size="small" @click="toggleMarket">
           <div class="flex items-center gap-2 font-weight-600">
             <GeneralIcon icon="plus" />
             Add Extension
@@ -112,8 +112,8 @@ watch(isPanelExpanded, (newValue) => {
             <NcTooltip
               class="max-w-[calc(100%_-_16px)] truncate"
               show-on-truncate-only
-              overlayClassName="children:-ml-2"
-              modifierKey=""
+              overlay-class-name="children:-ml-2"
+              modifier-key=""
             >
               <template #title> Add Extension </template>
               Add Extension
@@ -133,7 +133,7 @@ watch(isPanelExpanded, (newValue) => {
           v-if="searchQuery && !filteredExtensionList.length && extensionList.length"
           class="w-full h-full flex-1 flex items-center justify-center"
         >
-          <div class="pb-6 text-gray-500 flex flex-col items-center gap-6">
+          <div class="pb-6 text-gray-500 flex flex-col items-center gap-6 text-center">
             <img
               src="~assets/img/placeholder/no-search-result-found.png"
               class="!w-[164px] flex-none"

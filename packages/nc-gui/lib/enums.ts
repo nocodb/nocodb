@@ -177,3 +177,7 @@ export enum AuditLogsDateRange {
   PastYear = 'pastYear',
   Custom = 'custom',
 }
+
+export enum ExtensionsEvents {
+  DUPLICATE = 'duplicate',
+}

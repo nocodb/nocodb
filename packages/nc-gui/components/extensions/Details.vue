@@ -35,16 +35,18 @@ const activeExtension = computed(() => {
     :class="{ active: vModel }"
     :closable="from === 'extension'"
     :footer="null"
-    :width="1280"
+    :width="1154"
     size="medium"
     wrap-class-name="nc-modal-extension-market"
   >
     <div v-if="activeExtension" class="flex flex-col w-full h-full">
       <div v-if="from === 'market'" class="flex-none h-8 flex items-center mb-4">
-        <div class="flex items-center gap-2 pr-2 cursor-pointer hover:text-primary" @click="onBack">
-          <GeneralIcon icon="ncArrowLeft" />
-          <span>Back</span>
-        </div>
+        <NcButton size="xsmall" type="text" class="!bg-gray-200/75 !hover:bg-gray-200 !rounded-full" @click="onBack">
+          <div class="flex items-center gap-2 px-2">
+            <GeneralIcon icon="ncArrowLeft" />
+            <span>Back</span>
+          </div>
+        </NcButton>
       </div>
       <div v-else class="h-8"></div>
 
@@ -98,7 +100,7 @@ const activeExtension = computed(() => {
 
 <style lang="scss" scoped>
 .extension-details {
-  @apply flex w-full h-full gap-6;
+  @apply flex w-full h-full gap-8 px-3;
 
   .extension-details-left {
     @apply flex flex-col gap-6 w-3/4;

@@ -90,8 +90,8 @@ async function exportDataAsync() {
 
     jobList.value.unshift(jobData)
 
-    await extension.value.kvStore.set('exportPayload', null)
-    exportPayload.value = null
+    await extension.value.kvStore.set('exportPayload', {})
+    exportPayload.value = {}
 
     $poller.subscribe(
       { id: jobData.id },
@@ -157,16 +157,29 @@ const addDraftExportPayload = () => {
 
 onMounted(() => {
   exportPayload.value = extension.value.kvStore.get('exportPayload') || null
+
   reloadViews()
   loadJobsForBase()
 })
+
+watch(
+  [() => jobList.value?.length, () => exportPayload.value],
+  () => {
+    if (jobList.value?.length && !exportPayload.value) {
+      exportPayload.value = {}
+    }
+  },
+  {
+    immediate: true,
+  },
+)
 </script>
 
 <template>
   <div class="data-exporter">
     <div class="data-exporter-header">Recent Exports</div>
     <div class="data-exporter-body">
-      <div v-if="!exportedFiles.length" class="min-h-[222px] h-full flex items-center justify-center">
+      <div v-if="!exportedFiles.length && !exportPayload" class="min-h-[222px] h-full flex items-center justify-center">
         <NcButton type="link" size="small" class="!border-none" @click="addDraftExportPayload">
           <div class="flex items-center gap-2 font-weight-600">
             <GeneralIcon icon="plus" />
@@ -174,7 +187,13 @@ onMounted(() => {
           </div>
         </NcButton>
       </div>
-      <div v-if="exportPayload" class="px-3 py-2 flex items-center justify-between gap-2.5 border-b-1 flex-wrap">
+      <div
+        v-if="exportPayload"
+        class="px-3 py-2 flex items-center justify-between gap-2.5 flex-wrap"
+        :class="{
+          'border-b-1': exportedFiles.length || fullscreen,
+        }"
+      >
         <div class="flex flex-col gap-1">
           <div class="flex items-center gap-1">
             <NcSelect
@@ -182,7 +201,7 @@ onMounted(() => {
               :options="tableList"
               placeholder="-select table-"
               @disabled="isExporting"
-              class="min-w-[118px] max-w-[118px]"
+              class="min-w-[118px] max-w-[132px]"
               @change="onTableSelect"
             />
             <span>/</span>
@@ -191,34 +210,54 @@ onMounted(() => {
               :options="viewList"
               placeholder="-select view-"
               @disabled="isExporting"
-              class="min-w-[118px] max-w-[118px]"
+              class="min-w-[118px] max-w-[132px]"
               @change="onViewSelect"
             />
           </div>
           <!-- <div>Timestamp</div> -->
         </div>
         <div class="flex-none flex-1 flex justify-end">
-          <NcButton @loading="isExporting" size="xs" type="text" @click="exportDataAsync">Export</NcButton>
+          <NcButton :disabled="!exportPayload?.viewId" @loading="isExporting" size="xs" type="text" @click="exportDataAsync"
+            >Export</NcButton
+          >
         </div>
       </div>
       <template v-if="exportedFiles.length">
-        <div v-for="exp in exportedFiles" :key="exp.id" class="px-3 py-2 flex gap-1 justify-between border-b-1">
-          <div class="flex gap-1">
-            <div v-if="exp.status === JobStatus.COMPLETED" class="flex flex-col">
-              <GeneralIcon icon="circleCheck2" class="flex-none h-4 w-4 !text-green-500" />
+        <div v-for="exp in exportedFiles" :key="exp.id" class="px-3 py-2 flex gap-2.5 justify-between border-b-1 last:border-b-0">
+          <div class="flex-1 flex gap-3 max-w-[calc(100%_-_114px)]">
+            <div v-if="[JobStatus.COMPLETED, JobStatus.FAILED].includes(exp.status)" class="flex">
+              <GeneralIcon
+                :icon="exp.status === JobStatus.COMPLETED ? 'circleCheck2' : 'alertTriangle'"
+                class="flex-none h-4 w-4"
+                :class="{
+                  '!text-green-500': exp.status === JobStatus.COMPLETED,
+                  '!text-red-500': exp.status === JobStatus.FAILED,
+                }"
+              />
             </div>
-            <div v-else-if="exp.status === JobStatus.FAILED" class="flex flex-col">
-              <GeneralIcon icon="alertTriangle" class="flex-none h-4 w-4 !text-red-500" />
+            <div v-else class="h-5 flex items-center">
+              <GeneralLoader size="regular" class="flex-none" />
             </div>
-            <div class="flex flex-col gap-1">
+
+            <div class="flex-1 max-w-[calc(100%_-_28px)] flex flex-col gap-1 text-sm text-gray-700">
               <div class="inline-flex gap-1">
                 <span class="inline-flex items-center h-5">
                   <GeneralIcon icon="file" class="flex-none" />
                 </span>
-                {{ exp.result.title }}
+                <NcTooltip class="truncate max-w-[calc(100%_-_20px)]" show-on-truncate-only>
+                  <template #title>
+                    {{ exp.result.title }}
+                  </template>
+                  {{ exp.result.title }}
+                </NcTooltip>
               </div>
-              <div>
-                {{ exp.result.timestamp }}
+              <div v-if="exp.result.timestamp" class="text-[10px] leading-4 text-gray-600">
+                <NcTooltip class="truncate" show-on-truncate-only>
+                  <template #title>
+                    {{ dayjs(exp.result.timestamp).format('MM/DD/YYYY [at] hh:mm A') }}
+                  </template>
+                  {{ dayjs(exp.result.timestamp).format('MM/DD/YYYY [at] hh:mm A') }}
+                </NcTooltip>
               </div>
               <!-- <template v-if="exp.status === JobStatus.COMPLETED && exp.result">
               <GeneralIcon icon="file" />
@@ -249,14 +288,6 @@ onMounted(() => {
           </div>
         </div>
       </template>
-    </div>
-    <div v-if="exportedFiles.length" class="data-exporter-footer">
-      <NcButton :disabled="!!exportPayload" type="text" :size="fullscreen ? 'medium' : 'xs'" @click="addDraftExportPayload">
-        <div class="flex items-center gap-2 font-weight-600">
-          <GeneralIcon icon="plus" />
-          New download
-        </div>
-      </NcButton>
     </div>
   </div>
 </template>

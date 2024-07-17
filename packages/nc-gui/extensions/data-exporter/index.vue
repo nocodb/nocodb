@@ -223,43 +223,51 @@ watch(
         </div>
       </div>
       <template v-if="exportedFiles.length">
-        <div v-for="exp in exportedFiles" :key="exp.id" class="px-3 py-2 flex gap-2.5 justify-between border-b-1 last:border-b-0">
-          <div class="flex-1 flex gap-3 max-w-[calc(100%_-_114px)]">
-            <div v-if="[JobStatus.COMPLETED, JobStatus.FAILED].includes(exp.status)" class="flex">
-              <GeneralIcon
-                :icon="exp.status === JobStatus.COMPLETED ? 'circleCheck2' : 'alertTriangle'"
-                class="flex-none h-4 w-4"
-                :class="{
-                  '!text-green-500': exp.status === JobStatus.COMPLETED,
-                  '!text-red-500': exp.status === JobStatus.FAILED,
-                }"
-              />
-            </div>
-            <div v-else class="h-5 flex items-center">
-              <GeneralLoader size="regular" class="flex-none" />
-            </div>
+        <template v-for="exp in exportedFiles">
+          <div
+            v-if="exp.status === JobStatus.COMPLETED ? exp.result : true"
+            :key="exp.id"
+            class="px-3 py-2 flex gap-2.5 justify-between border-b-1"
+            :class="{
+              'last:border-b-0': !fullscreen,
+            }"
+          >
+            <div class="flex-1 flex gap-3 max-w-[calc(100%_-_114px)]">
+              <div v-if="[JobStatus.COMPLETED, JobStatus.FAILED].includes(exp.status)" class="flex">
+                <GeneralIcon
+                  :icon="exp.status === JobStatus.COMPLETED ? 'circleCheck2' : 'alertTriangle'"
+                  class="flex-none h-4 w-4"
+                  :class="{
+                    '!text-green-500': exp.status === JobStatus.COMPLETED,
+                    '!text-red-500': exp.status === JobStatus.FAILED,
+                  }"
+                />
+              </div>
+              <div v-else class="h-5 flex items-center">
+                <GeneralLoader size="regular" class="flex-none" />
+              </div>
 
-            <div class="flex-1 max-w-[calc(100%_-_28px)] flex flex-col gap-1">
-              <div class="inline-flex gap-1 text-sm text-gray-800">
-                <span class="inline-flex items-center h-5">
-                  <GeneralIcon icon="file" class="flex-none" />
-                </span>
-                <NcTooltip class="truncate max-w-[calc(100%_-_20px)]" show-on-truncate-only>
-                  <template #title>
+              <div class="flex-1 max-w-[calc(100%_-_28px)] flex flex-col gap-1">
+                <div class="inline-flex gap-1 text-sm text-gray-800">
+                  <span class="inline-flex items-center h-5">
+                    <GeneralIcon icon="file" class="flex-none" />
+                  </span>
+                  <NcTooltip class="truncate max-w-[calc(100%_-_20px)]" show-on-truncate-only>
+                    <template #title>
+                      {{ exp.result.title }}
+                    </template>
                     {{ exp.result.title }}
-                  </template>
-                  {{ exp.result.title }}
-                </NcTooltip>
-              </div>
-              <div v-if="exp.result.timestamp" class="text-[10px] leading-4 text-gray-600">
-                <NcTooltip class="truncate" show-on-truncate-only>
-                  <template #title>
+                  </NcTooltip>
+                </div>
+                <div v-if="exp.result.timestamp" class="text-[10px] leading-4 text-gray-600">
+                  <NcTooltip class="truncate" show-on-truncate-only>
+                    <template #title>
+                      {{ dayjs(exp.result.timestamp).format('MM/DD/YYYY [at] hh:mm A') }}
+                    </template>
                     {{ dayjs(exp.result.timestamp).format('MM/DD/YYYY [at] hh:mm A') }}
-                  </template>
-                  {{ dayjs(exp.result.timestamp).format('MM/DD/YYYY [at] hh:mm A') }}
-                </NcTooltip>
-              </div>
-              <!-- <template v-if="exp.status === JobStatus.COMPLETED && exp.result">
+                  </NcTooltip>
+                </div>
+                <!-- <template v-if="exp.status === JobStatus.COMPLETED && exp.result">
               <GeneralIcon icon="file" />
               <div>{{ exp.result.title }}</div>
               <a :href="urlHelper(exp.result.url)" target="_blank">Download</a>
@@ -272,21 +280,22 @@ watch(
               <GeneralLoader size="small" />
               <div>{{ titleHelper() }}</div>
             </template> -->
+              </div>
+            </div>
+            <div if="exp.status === JobStatus.COMPLETED">
+              <a :href="urlHelper(exp.result.url)" target="_blank">
+                <NcButton type="secondary" size="xs">
+                  <div class="flex items-center gap-2">
+                    <GeneralIcon icon="download" />
+                    <span>
+                      {{ $t('general.download') }}
+                    </span>
+                  </div>
+                </NcButton></a
+              >
             </div>
           </div>
-          <div if="exp.status === JobStatus.COMPLETED">
-            <a :href="urlHelper(exp.result.url)" target="_blank">
-              <NcButton type="secondary" size="xs">
-                <div class="flex items-center gap-2">
-                  <GeneralIcon icon="download" />
-                  <span>
-                    {{ $t('general.download') }}
-                  </span>
-                </div>
-              </NcButton></a
-            >
-          </div>
-        </div>
+        </template>
       </template>
     </div>
   </div>

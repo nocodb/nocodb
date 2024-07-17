@@ -327,18 +327,30 @@ onMounted(() => {
 
             <div v-if="exp.status === JobStatus.COMPLETED" class="flex items-center">
               <a :href="urlHelper(exp.result.url)" target="_blank">
-                <NcButton type="secondary" size="xs" class="!px-[5px]">
-                  <div class="flex items-center gap-2">
-                    <GeneralIcon icon="download" />
-                  </div>
-                </NcButton>
+                <NcTooltip class="flex items-center">
+                  <template #title>
+                    {{ $t('general.download') }}
+                  </template>
+
+                  <NcButton type="secondary" size="xs" class="!px-[5px]">
+                    <div class="flex items-center gap-2">
+                      <GeneralIcon icon="download" />
+                    </div>
+                  </NcButton>
+                </NcTooltip>
               </a>
             </div>
 
             <div class="flex items-center">
-              <NcButton type="text" size="xs" class="!px-[5px]" @click="onRemoveExportedFile(exp.id)">
-                <GeneralIcon icon="close" />
-              </NcButton>
+              <NcTooltip class="flex">
+                <template #title>
+                  {{ $t('general.delete') }}
+                </template>
+
+                <NcButton type="text" size="xs" class="!px-[5px]" @click="onRemoveExportedFile(exp.id)">
+                  <GeneralIcon icon="close" />
+                </NcButton>
+              </NcTooltip>
             </div>
           </div>
         </template>
@@ -352,7 +364,7 @@ onMounted(() => {
 .data-exporter {
   @apply flex flex-col  overflow-hidden h-full;
   .data-exporter-header {
-    @apply px-3 py-1 uppercase bg-gray-100 text-[11px] leading-4 text-gray-600 border-b-1;
+    @apply px-3 py-1 bg-gray-100 text-[11px] leading-4 text-gray-600 border-b-1;
   }
 
   .nc-data-exporter-table-select {

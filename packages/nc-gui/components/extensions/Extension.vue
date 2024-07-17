@@ -6,10 +6,19 @@ interface Prop {
 
 const { extensionId, error } = defineProps<Prop>()
 
-const { extensionList, extensionsLoaded, availableExtensions, getExtensionIcon, duplicateExtension, showExtensionDetails } =
-  useExtensions()
+const {
+  extensionList,
+  extensionsLoaded,
+  availableExtensions,
+  eventBus,
+  getExtensionIcon,
+  duplicateExtension,
+  showExtensionDetails,
+} = useExtensions()
 
 const activeError = ref(error)
+
+const extensionRef = ref<HTMLElement>()
 
 const extensionModalRef = ref<HTMLElement>()
 
@@ -83,10 +92,30 @@ const closeFullscreen = (e: MouseEvent) => {
     fullscreen.value = false
   }
 }
+
+const handleDuplicateExtension = async (id: string, open: boolean = false) => {
+  const duplicatedExt = await duplicateExtension(id)
+
+  if (duplicatedExt?.id && open) {
+    fullscreen.value = false
+    eventBus.emit(ExtensionsEvents.DUPLICATE, duplicatedExt.id)
+  }
+}
+
+// #Listeners
+eventBus.on((event, payload) => {
+  if (event === ExtensionsEvents.DUPLICATE && extension.value.id === payload) {
+    setTimeout(() => {
+      nextTick(() => {
+        extensionRef.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      })
+    }, 500)
+  }
+})
 </script>
 
 <template>
-  <div class="w-full px-4">
+  <div ref="extensionRef" class="w-full px-4" :data-testid="extension.id">
     <div class="extension-wrapper">
       <div class="extension-header" :class="{ 'mb-2': !collapsed }">
         <div
@@ -107,7 +136,7 @@ const closeFullscreen = (e: MouseEvent) => {
             v-if="titleEditMode && !fullscreen"
             ref="titleInput"
             v-model="tempTitle"
-            class="flex-grow leading-1 outline-0 ring-none capitalize !text-inherit !bg-transparent w-4/5"
+            class="flex-grow leading-1 outline-0 ring-none !text-inherit !bg-transparent w-4/5"
             @click.stop
             @keyup.enter="updateExtensionTitle"
             @keyup.esc="updateExtensionTitle"
@@ -130,7 +159,7 @@ const closeFullscreen = (e: MouseEvent) => {
             v-if="!collapsed"
             :active-error="activeError"
             @rename="enableEditMode"
-            @duplicate="duplicateExtension(extension.id)"
+            @duplicate="handleDuplicateExtension(extension.id)"
             @show-details="showExtensionDetails(extension.extensionId, 'extension')"
             @clear-data="extension.clear()"
             @delete="extension.delete()"
@@ -176,7 +205,7 @@ const closeFullscreen = (e: MouseEvent) => {
                     v-if="titleEditMode"
                     ref="titleInput"
                     v-model="tempTitle"
-                    class="flex-grow leading-1 outline-0 ring-none capitalize !text-xl !bg-transparent !font-weight-600"
+                    class="flex-grow leading-1 outline-0 ring-none !text-xl !bg-transparent !font-weight-600"
                     @click.stop
                     @keyup.enter="updateExtensionTitle"
                     @keyup.esc="updateExtensionTitle"
@@ -196,7 +225,7 @@ const closeFullscreen = (e: MouseEvent) => {
                     :active-error="activeError"
                     :fullscreen="fullscreen"
                     @rename="enableEditMode"
-                    @duplicate="duplicateExtension(extension.id, true)"
+                    @duplicate="handleDuplicateExtension(extension.id, true)"
                     @show-details="showExtensionDetails(extension.extensionId, 'extension')"
                     @clear-data="extension.clear()"
                     @delete="extension.delete()"

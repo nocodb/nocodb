@@ -190,7 +190,7 @@ watch(
 
 <template>
   <div class="data-exporter">
-    <div class="data-exporter-body">
+    <div class="data-exporter-body h-full">
       <div class="data-exporter-header">Export config</div>
       <div
         class="px-3 py-2 flex items-center justify-between gap-2.5 flex-wrap"
@@ -234,7 +234,14 @@ watch(
         </div>
       </div>
       <div class="data-exporter-header">Recent Exports</div>
-      <div v-if="exportedFiles.length" class="flex flex-col max-h-[232px] nc-scrollbar-thin">
+      <div
+        v-if="exportedFiles.length"
+        class="flex flex-col nc-scrollbar-thin"
+        :class="{
+          'max-h-[232px]': !fullscreen,
+          'max-h-[calc(100%_-_105px)]': fullscreen,
+        }"
+      >
         <template v-for="exp of exportedFiles">
           <div
             v-if="exp.status === JobStatus.COMPLETED ? exp.result : true"

@@ -56,7 +56,7 @@ watch(isPanelExpanded, (newValue) => {
     max-size="60%"
     class="flex flex-col gap-3 bg-[#F0F3FF]"
     :style="{
-      minWidth: isReady ? '300px' : `${normalizePaneMaxWidth}%`,
+      minWidth: isReady ? '400px' : `${normalizePaneMaxWidth}%`,
       maxWidth: `${normalizePaneMaxWidth}%`,
     }"
   >

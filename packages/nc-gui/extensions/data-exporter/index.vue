@@ -12,6 +12,8 @@ const { jobList, loadJobsForBase } = useJobs()
 
 const views = ref<ViewType[]>([])
 
+const showExportConfig = ref(false)
+
 const exportedFiles = computed(() => {
   return jobList.value
     .filter((job) => job.job === 'data-export')
@@ -27,7 +29,7 @@ const exportedFiles = computed(() => {
 const exportPayload = ref<{
   tableId?: string
   viewId?: string
-} | null>(null)
+}>({})
 
 const tableList = computed(() => {
   return tables.value.map((table) => {
@@ -39,7 +41,7 @@ const tableList = computed(() => {
 })
 
 const viewList = computed(() => {
-  if (!exportPayload.value?.tableId) return []
+  if (!exportPayload.value.tableId) return []
   return (
     views.value
       .filter((view) => view.type === ViewTypes.GRID)
@@ -53,16 +55,12 @@ const viewList = computed(() => {
 })
 
 const reloadViews = async () => {
-  if (exportPayload.value?.tableId) {
+  if (exportPayload.value.tableId) {
     views.value = await getViewsForTable(exportPayload.value.tableId)
   }
 }
 
 const onTableSelect = async (tableId: string) => {
-  if (!exportPayload.value) {
-    exportPayload.value = {}
-  }
-
   exportPayload.value.tableId = tableId
   await reloadViews()
   exportPayload.value.viewId = views.value.find((view) => view.is_default)?.id
@@ -70,10 +68,6 @@ const onTableSelect = async (tableId: string) => {
 }
 
 const onViewSelect = async (viewId: string) => {
-  if (!exportPayload.value) {
-    exportPayload.value = {}
-  }
-
   exportPayload.value.viewId = viewId
   await extension.value.kvStore.set('exportPayload', exportPayload.value)
 }
@@ -82,16 +76,13 @@ const isExporting = ref(false)
 
 async function exportDataAsync() {
   try {
-    if (isExporting.value || !exportPayload.value?.viewId) return
+    if (isExporting.value || !exportPayload.value.viewId) return
 
     isExporting.value = true
 
     const jobData = await $api.export.data(exportPayload.value.viewId, 'csv', {})
 
     jobList.value.unshift(jobData)
-
-    await extension.value.kvStore.set('exportPayload', {})
-    exportPayload.value = {}
 
     $poller.subscribe(
       { id: jobData.id },
@@ -124,6 +115,15 @@ async function exportDataAsync() {
             const job = jobList.value.find((j) => j.id === data.id)
             if (job) {
               job.status = JobStatus.FAILED
+              job.result = data.data?.result
+
+              // Add title if not present in response
+              if (!job.result?.title) {
+                job.result = {
+                  ...(job.result || {}),
+                  title: titleHelper(),
+                }
+              }
             }
 
             isExporting.value = false
@@ -144,19 +144,15 @@ const urlHelper = (url: string) => {
   }
 }
 
-const titleHelper = () => {
-  const table = tables.value.find((t) => t.id === exportPayload.value?.tableId)
-  const view = views.value.find((v) => v.id === exportPayload.value?.viewId)
+function titleHelper() {
+  const table = tables.value.find((t) => t.id === exportPayload.value.tableId)
+  const view = views.value.find((v) => v.id === exportPayload.value.viewId)
 
   return `${table?.title} (${view?.is_default ? 'Default View' : view?.title})`
 }
 
-const addDraftExportPayload = () => {
-  exportPayload.value = {}
-}
-
 onMounted(() => {
-  exportPayload.value = extension.value.kvStore.get('exportPayload') || null
+  exportPayload.value = extension.value.kvStore.get('exportPayload') || {}
 
   reloadViews()
   loadJobsForBase()
@@ -165,8 +161,8 @@ onMounted(() => {
 watch(
   [() => jobList.value?.length, () => exportPayload.value],
   () => {
-    if (jobList.value?.length && !exportPayload.value) {
-      exportPayload.value = {}
+    if (jobList.value?.length || Object.keys(exportPayload.value || {}).length) {
+      showExportConfig.value = true
     }
   },
   {
@@ -179,8 +175,8 @@ watch(
   <div class="data-exporter">
     <div class="data-exporter-header">Recent Exports</div>
     <div class="data-exporter-body">
-      <div v-if="!exportedFiles.length && !exportPayload" class="min-h-[222px] h-full flex items-center justify-center">
-        <NcButton type="link" size="small" class="!border-none" @click="addDraftExportPayload">
+      <div v-if="!exportedFiles.length && !showExportConfig" class="min-h-[222px] h-full flex items-center justify-center">
+        <NcButton type="link" size="small" class="!border-none" @click="showExportConfig = true">
           <div class="flex items-center gap-2 font-weight-600">
             <GeneralIcon icon="plus" />
             New download
@@ -188,7 +184,7 @@ watch(
         </NcButton>
       </div>
       <div
-        v-if="exportPayload"
+        v-if="showExportConfig && exportPayload"
         class="px-3 py-2 flex items-center justify-between gap-2.5 flex-wrap"
         :class="{
           'border-b-1': exportedFiles.length || fullscreen,
@@ -200,7 +196,7 @@ watch(
               v-model:value="exportPayload.tableId"
               :options="tableList"
               placeholder="-select table-"
-              @disabled="isExporting"
+              :disabled="isExporting"
               class="min-w-[118px] max-w-[132px]"
               @change="onTableSelect"
             />
@@ -209,7 +205,7 @@ watch(
               v-model:value="exportPayload.viewId"
               :options="viewList"
               placeholder="-select view-"
-              @disabled="isExporting"
+              :disabled="isExporting"
               class="min-w-[118px] max-w-[132px]"
               @change="onViewSelect"
             />
@@ -217,7 +213,7 @@ watch(
           <!-- <div>Timestamp</div> -->
         </div>
         <div class="flex-none flex-1 flex justify-end">
-          <NcButton :disabled="!exportPayload?.viewId" @loading="isExporting" size="xs" type="text" @click="exportDataAsync"
+          <NcButton :disabled="!exportPayload?.viewId" :loading="isExporting" size="xs" type="text" @click="exportDataAsync"
             >Export</NcButton
           >
         </div>
@@ -254,9 +250,9 @@ watch(
                   </span>
                   <NcTooltip class="truncate max-w-[calc(100%_-_20px)]" show-on-truncate-only>
                     <template #title>
-                      {{ exp.result.title }}
+                      {{ exp.result.title || titleHelper() }}
                     </template>
-                    {{ exp.result.title }}
+                    {{ exp.result.title || titleHelper() }}
                   </NcTooltip>
                 </div>
                 <div v-if="exp.result.timestamp" class="text-[10px] leading-4 text-gray-600">

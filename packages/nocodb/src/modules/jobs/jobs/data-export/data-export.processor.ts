@@ -12,7 +12,7 @@ import { NcError } from '~/helpers/catchError';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 
 function getViewTitle(view: View) {
-  return view.is_default ? 'Default View' : view.title;
+  return view?.is_default ? 'Default View' : view?.title;
 }
 
 @Processor(JOBS_QUEUE)
@@ -119,11 +119,18 @@ export class DataExportProcessor {
         'exportData',
       );
     } catch (e) {
-      throw NcError.badRequest(e);
+      throw {
+        data: {
+          extension_id: options?.extension_id,
+          title: `${model.title} (${getViewTitle(view)})`,
+        },
+        message: e.message,
+      };
     }
 
     return {
       timestamp: new Date(),
+      extension_id: options?.extension_id,
       type: exportAs,
       title: `${model.title} (${getViewTitle(view)})`,
       url,

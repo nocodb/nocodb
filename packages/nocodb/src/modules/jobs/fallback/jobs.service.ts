@@ -22,7 +22,6 @@ export class JobsService implements OnModuleInit {
       job: name,
       status: JobStatus.WAITING,
       fk_user_id: data?.user?.id,
-      extension_id: data?.options?.extension_id,
     });
 
     this.fallbackQueueService.add(name, data, { jobId: jobData.id });

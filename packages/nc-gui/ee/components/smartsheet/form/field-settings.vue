@@ -132,9 +132,7 @@ const columnSupportsScanning = (elementType: UITypes) =>
           v-else-if="[UITypes.Email, UITypes.PhoneNumber, UITypes.URL].includes(activeField.uidt)"
         />
         <LazySmartsheetFormAttachmentValidation v-else-if="activeField.uidt === UITypes.Attachment" />
-        <LazySmartsheetFormNumericTypeValidation
-          v-else-if="!isRating(activeField) && isNumericFieldType(activeField, abstractType)"
-        />
+        <LazySmartsheetFormNumericTypeValidation v-else-if="isNumericFieldType(activeField, abstractType)" />
         <LazySmartsheetFormMultiselectTypeValidation
           v-else-if="isMultiSelect(activeField) || (isUser(activeField) && activeField.meta?.is_multi) || isLink(activeField)"
         />

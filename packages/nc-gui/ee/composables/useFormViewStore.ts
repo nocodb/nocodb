@@ -87,6 +87,10 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
                   ) {
                     return reject(t('msg.error.fieldRequired'))
                   }
+
+                  if (column.uidt === UITypes.Rating && (!value || Number(value) < 1)) {
+                    return reject(t('msg.error.fieldRequired'))
+                  }
                 }
 
                 return resolve()
@@ -132,6 +136,10 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
       }
 
       return index !== undefined ? validators[index] || null : validators.find((v) => v.type === type) || null
+    }
+
+    const getColumnMetaValue = (id: string, key: string) => {
+      return (visibleColumnsMap.value[id]?.meta || {})[key] ?? null
     }
 
     const isValidNumber = (type: Validation['type'], value: any) => {
@@ -274,6 +282,64 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
                       }
                     })
                   }
+
+                  if (validator.type === NumberValidationType.Max && col.uidt === UITypes.Rating) {
+                    vAcc[`${validatorKey}_max_rating`] = helpers.withMessage(
+                      `The maximum value must be less than or equal to max rating value`,
+                      (value) => {
+                        const currVal = getValidator(value, validator.type, i)
+
+                        if (currVal && currVal.value !== null && Number(currVal.value) > getColumnMetaValue(col.id, 'max')) {
+                          return false
+                        } else {
+                          return true
+                        }
+                      },
+                    )
+                  }
+                  break
+                }
+                case NumberValidationType.Min: {
+                  if (col.uidt === UITypes.Rating) {
+                    vAcc[`${validatorKey}_min_rating_m`] = helpers.withMessage(
+                      `The minimum value must be less than or equal to max rating value`,
+                      (value) => {
+                        const currVal = getValidator(value, validator.type, i)
+
+                        if (currVal && currVal.value !== null && Number(currVal.value) > getColumnMetaValue(col.id, 'max')) {
+                          return false
+                        } else {
+                          return true
+                        }
+                      },
+                    )
+
+                    vAcc[`${validatorKey}_min_rating_required`] = helpers.withMessage(
+                      'The minimum value should be non zero positive integer',
+                      (value) => {
+                        const currVal = getValidator(value, validator.type, i)
+
+                        if (currVal && currVal.value !== null && isRequired(col, col.required) && Number(currVal.value) < 1) {
+                          return false
+                        } else {
+                          return true
+                        }
+                      },
+                    )
+                    vAcc[`${validatorKey}_min_rating_non_required`] = helpers.withMessage(
+                      'The minimum value must be greater than or equal to zero',
+                      (value) => {
+                        const currVal = getValidator(value, validator.type, i)
+
+                        if (currVal && currVal.value !== null && !isRequired(col, col.required) && Number(currVal.value) < 0) {
+                          return false
+                        } else {
+                          return true
+                        }
+                      },
+                    )
+                  }
+
                   break
                 }
 

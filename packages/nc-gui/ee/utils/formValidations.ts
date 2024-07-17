@@ -420,6 +420,11 @@ function getDefaultMessage(value: any, col: ColumnType, val?: Validation) {
         ? `Input a number equal to or greater than ${value}`
         : `Input a number equal to or less than ${value}`
     }
+    case UITypes.Rating: {
+      return val?.type === NumberValidationType.Min
+        ? `Rating should be equal to or greater than ${value}`
+        : `Rating should be equal to or less than ${value}`
+    }
 
     case UITypes.MultiSelect:
     case UITypes.User: {

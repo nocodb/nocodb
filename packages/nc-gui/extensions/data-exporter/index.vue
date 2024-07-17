@@ -80,8 +80,7 @@ async function exportDataAsync() {
 
     isExporting.value = true
 
-    const jobData = await $api.export.data(exportPayload.value.viewId, 'csv', {})
-
+    const jobData = await $api.export.data(exportPayload.value.viewId, 'csv', { extension_id: extension.value.id })
     jobList.value.unshift(jobData)
 
     $poller.subscribe(
@@ -213,9 +212,9 @@ watch(
           <!-- <div>Timestamp</div> -->
         </div>
         <div class="flex-none flex-1 flex justify-end">
-          <NcButton :disabled="!exportPayload?.viewId" :loading="isExporting" size="xs" type="text" @click="exportDataAsync"
-            >Export</NcButton
-          >
+          <NcButton :disabled="!exportPayload?.viewId" :loading="isExporting" size="xs" type="text" @click="exportDataAsync">{{
+            isExporting ? 'Generating' : 'Export'
+          }}</NcButton>
         </div>
       </div>
       <template v-if="exportedFiles.length">
@@ -263,19 +262,6 @@ watch(
                     {{ dayjs(exp.result.timestamp).format('MM/DD/YYYY [at] hh:mm A') }}
                   </NcTooltip>
                 </div>
-                <!-- <template v-if="exp.status === JobStatus.COMPLETED && exp.result">
-              <GeneralIcon icon="file" />
-              <div>{{ exp.result.title }}</div>
-              <a :href="urlHelper(exp.result.url)" target="_blank">Download</a>
-            </template>
-            <template v-else-if="exp.status === JobStatus.FAILED">
-              <GeneralIcon icon="error" class="text-red-500" />
-              <div>{{ exp.result.title }}</div>
-            </template>
-            <template v-else>
-              <GeneralLoader size="small" />
-              <div>{{ titleHelper() }}</div>
-            </template> -->
               </div>
             </div>
             <div if="exp.status === JobStatus.COMPLETED">

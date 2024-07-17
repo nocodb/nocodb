@@ -19,6 +19,10 @@ const views = ref<ViewType[]>([])
 
 const deletedExports = ref<string[]>([])
 
+const dataExporterRef = ref<HTMLDivElement>()
+
+const { width } = useElementSize(dataExporterRef)
+
 const exportedFiles = computed(() => {
   return jobList.value
     .filter(
@@ -180,13 +184,15 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="data-exporter">
-    <div class="pb-3 pt-1 flex items-center justify-between gap-2.5">
+  <div ref="dataExporterRef" class="data-exporter">
+    <div class="pb-3 pt-1 flex items-center justify-between gap-2.5 flex-wrap">
       <div
         class="flex-1 flex items-center"
         :class="{
-          'max-w-[min(350px,calc(100%-124px))]': isExporting && !fullscreen,
-          'max-w-[min(350px,calc(100%_-_84px))]': !isExporting && !fullscreen,
+          'max-w-[min(350px,calc(100%-124px))]': isExporting && !fullscreen && width > 325,
+          'max-w-[min(350px,calc(100%_-_84px))]': !isExporting && !fullscreen && width > 325,
+          'max-w-full': width <= 325,
+          'max-w-[900px]': fullscreen,
         }"
       >
         <NcSelect
@@ -195,8 +201,8 @@ onMounted(() => {
           :disabled="isExporting"
           class="nc-data-exporter-table-select"
           :class="{
-            'min-w-[240px] max-w-[240px]': fullscreen,
-            'min-w-1/2 max-w-[132px]': !fullscreen,
+            'flex-1 max-w-[240px]': fullscreen,
+            'min-w-1/2 max-w-[175px]': !fullscreen,
           }"
           :filter-option="filterOption"
           dropdown-class-name="w-[250px]"
@@ -228,8 +234,8 @@ onMounted(() => {
           :disabled="isExporting"
           class="nc-data-exporter-view-select"
           :class="{
-            'min-w-[240px] max-w-[240px]': fullscreen,
-            'min-w-1/2 max-w-[132px]': !fullscreen,
+            'flex-1 max-w-[240px]': fullscreen,
+            'min-w-1/2 max-w-[175px]': !fullscreen,
           }"
           dropdown-class-name="w-[250px]"
           :filter-option="filterOption"

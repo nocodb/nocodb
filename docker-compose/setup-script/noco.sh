@@ -620,7 +620,7 @@ if [ "$SSL_ENABLED" = 'y' ] || [ "$SSL_ENABLED" = 'Y' ]; then
           echo "Certificates renewed. Reloading nginx...";
           sleep 5;
           CONTAINER_NAME=\$\$(docker ps --format "{{.Names}}" | grep "nginx")
-          docker compose exec $CONTAINER_NAME nginx -s reload;
+          docker exec \$\$CONTAINER_NAME nginx -s reload;
         fi;
         sleep 12h & wait \$\${!};
       done;'

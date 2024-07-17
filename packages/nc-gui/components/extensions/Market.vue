@@ -39,13 +39,13 @@ const onAddExtension = (ext: any) => {
     :class="{ active: vModel }"
     :closable="true"
     :footer="null"
-    :width="1280"
+    :width="1154"
     size="medium"
     wrap-class-name="nc-modal-extension-market"
   >
     <template #header>
       <div class="flex items-center gap-2 pb-2">
-        <GeneralIcon icon="puzzle" class="h-5 w-5" />
+        <GeneralIcon icon="puzzle" class="h-5 w-5 flex-none" />
         <div class="font-weight-700 text-base">Extensions Marketplace</div>
       </div>
     </template>
@@ -93,7 +93,7 @@ const onAddExtension = (ext: any) => {
             v-if="searchQuery && !filteredAvailableExtensions.length && availableExtensions.length"
             class="w-full h-full flex items-center justify-center"
           >
-            <div class="pb-6 text-gray-500 flex flex-col items-center gap-6">
+            <div class="pb-6 text-gray-500 flex flex-col items-center gap-6 text-center">
               <img
                 src="~assets/img/placeholder/no-search-result-found.png"
                 class="!w-[164px] flex-none"

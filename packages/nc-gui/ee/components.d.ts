@@ -63,6 +63,7 @@ declare module 'vue' {
     ASkeleton: typeof import('ant-design-vue/es')['Skeleton']
     ASkeletonImage: typeof import('ant-design-vue/es')['SkeletonImage']
     ASkeletonInput: typeof import('ant-design-vue/es')['SkeletonInput']
+    ASpace: typeof import('ant-design-vue/es')['Space']
     ASpin: typeof import('ant-design-vue/es')['Spin']
     AStep: typeof import('ant-design-vue/es')['Step']
     ASteps: typeof import('ant-design-vue/es')['Steps']

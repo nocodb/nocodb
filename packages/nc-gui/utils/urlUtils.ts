@@ -43,3 +43,17 @@ export const navigateToBlankTargetOpenOption = {
     noreferrer: true,
   },
 }
+
+export const isLinkExpired = async (url: string) => {
+  try {
+    // test if the url is accessible or not
+    const res = await fetch(url, { method: 'HEAD' })
+    if (res.ok) {
+      return false
+    }
+  } catch {
+    return true
+  }
+
+  return true
+}

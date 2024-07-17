@@ -13,6 +13,7 @@ interface JobType {
   base_id: string
   created_at: Date
   updated_at: Date
+  extension_id: string
 }
 
 export const useJobs = createSharedComposable(() => {

@@ -92,9 +92,9 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex flex-col gap-2 p-2">
-    <NcSelect v-model:value="exportPayload.tableId" :options="tableList" @change="onTableSelect" />
-    <NcSelect v-model:value="exportPayload.viewId" :options="viewList" @change="onViewSelect" />
+  <div class="flex flex-col gap-2 p-2 border-1 rounded-lg">
+    <NcSelect v-model:value="exportPayload.tableId" :options="tableList" placeholder="-select table-" @change="onTableSelect" />
+    <NcSelect v-model:value="exportPayload.viewId" :options="viewList" placeholder="-select view-" @change="onViewSelect" />
     <NcButton @click="exportJson">Export</NcButton>
   </div>
 </template>

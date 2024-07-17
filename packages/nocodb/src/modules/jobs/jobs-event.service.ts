@@ -43,7 +43,7 @@ export class JobsEventService {
   }
 
   @OnQueueFailed()
-  onFailed(job: BullJob, error: Error) {
+  onFailed(job: BullJob, error: Error & { data: any }) {
     this.logger.error(
       `---- !! JOB FAILED !! ----\nid:${job.id}\nerror:${error.name} (${error.message})\n\nstack: ${error.stack}`,
     );
@@ -56,6 +56,7 @@ export class JobsEventService {
       job.id.toString(),
       {
         status: JobStatus.FAILED,
+        result: error?.data,
       },
     )
       .then(() => {
@@ -67,6 +68,7 @@ export class JobsEventService {
             error: {
               message: error?.message,
             },
+            result: error?.data,
           },
         });
       })

@@ -1,3 +1,5 @@
+import type { ExtensionsEvents } from '#imports'
+
 const extensionsState = createGlobalState(() => {
   const baseExtensions = ref<Record<string, any>>({})
 
@@ -46,6 +48,8 @@ export const useExtensions = createSharedComposable(() => {
   const { $api } = useNuxtApp()
 
   const { base } = storeToRefs(useBase())
+
+  const eventBus = useEventBus<ExtensionsEvents>(Symbol('useExtensions'))
 
   const extensionsLoaded = ref(false)
 
@@ -391,5 +395,6 @@ export const useExtensions = createSharedComposable(() => {
     onEggClick,
     extensionsEgg,
     extensionPanelSize,
+    eventBus,
   }
 })

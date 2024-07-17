@@ -300,7 +300,7 @@ eventBus.on((event, payload) => {
   }
 
   .extension-header-right {
-    @apply flex items-center gap-3;
+    @apply flex items-center gap-2;
   }
 
   .extension-title {

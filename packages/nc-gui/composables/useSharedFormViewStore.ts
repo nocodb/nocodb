@@ -217,6 +217,10 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
                 ) {
                   return reject(t('msg.error.fieldRequired'))
                 }
+
+                if (column.uidt === UITypes.Rating && (!value || Number(value) < 1)) {
+                  return reject(t('msg.error.fieldRequired'))
+                }
               }
 
               return resolve()

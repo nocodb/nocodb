@@ -68,6 +68,7 @@ export class JobsEventService {
             error: {
               message: error?.message,
             },
+            result: error?.data,
           },
         });
       })

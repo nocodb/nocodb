@@ -263,21 +263,14 @@ onMounted(() => {
         </NcTooltip>
       </div>
     </div>
-    <div class="data-exporter-body h-full">
+    <div class="data-exporter-body flex-1 flex flex-col">
       <div class="data-exporter-header">Recent Exports</div>
-      <div
-        v-if="exportedFiles.length"
-        class="flex flex-col nc-scrollbar-thin min-h-[118px]"
-        :class="{
-          'max-h-[232px]': !fullscreen,
-          'max-h-[calc(100%_-_105px)]': fullscreen,
-        }"
-      >
+      <div v-if="exportedFiles.length" class="flex-1 flex flex-col nc-scrollbar-thin max-h-[calc(100%_-_25px)]">
         <template v-for="exp of exportedFiles">
           <div
             v-if="exp.status === JobStatus.COMPLETED ? exp.result : true"
             :key="exp.id"
-            class="px-3 py-2 flex gap-2 justify-between border-b-1"
+            class="px-3 py-2 flex gap-2 justify-between border-b-1 hover:bg-gray-50"
             :class="{
               'px-4 py-3': fullscreen,
               'px-3 py-2': !fullscreen,
@@ -349,7 +342,7 @@ onMounted(() => {
             <div class="flex items-center">
               <NcTooltip class="flex">
                 <template #title>
-                  {{ $t('general.delete') }}
+                  {{ $t('general.remove') }}
                 </template>
 
                 <NcButton type="text" size="xs" class="!px-[5px]" @click="onRemoveExportedFile(exp.id)">
@@ -360,7 +353,7 @@ onMounted(() => {
           </div>
         </template>
       </div>
-      <div v-else class="px-3 py-2 flex items-center justify-center min-h-[118px] text-gray-600">No exports</div>
+      <div v-else class="px-3 py-2 flex-1 flex items-center justify-center text-gray-600">No exports</div>
     </div>
   </div>
 </template>

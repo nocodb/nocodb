@@ -22,6 +22,8 @@ const extensionRef = ref<HTMLElement>()
 
 const extensionModalRef = ref<HTMLElement>()
 
+const isMouseDown = ref(false)
+
 const extension = computed(() => {
   const ext = extensionList.value.find((ext) => ext.id === extensionId)
   if (!ext) {
@@ -55,6 +57,17 @@ const { fullscreen, collapsed } = useProvideExtensionHelper(extension)
 const component = ref<any>(null)
 
 const extensionManifest = ref<any>(null)
+
+const extensionMinHeight = computed(() => {
+  switch (extension.value.extensionId) {
+    case 'nc-data-exporter':
+      return 'min-h-[300px]'
+    case 'nc-json-exporter':
+      return 'min-h-[194px]'
+    case 'nc-csv-import':
+      return 'min-h-[180px]'
+  }
+})
 
 onMounted(() => {
   until(extensionsLoaded)
@@ -116,16 +129,27 @@ eventBus.on((event, payload) => {
 
 <template>
   <div ref="extensionRef" class="w-full px-4" :data-testid="extension.id">
-    <div class="extension-wrapper">
+    <div
+      class="extension-wrapper"
+      :class="[
+        `${!collapsed ? extensionMinHeight : ''}`,
+        {
+          '!h-auto': collapsed,
+          'isOpen  h-auto': !collapsed,
+          'mousedown': isMouseDown,
+        },
+      ]"
+      @mousedown="isMouseDown = true"
+      @mouseup="isMouseDown = false"
+    >
       <div class="extension-header" :class="{ 'mb-2': !collapsed }">
-        <div
-          class="extension-header-left"
-          :class="{
-            'max-w-[calc(100%_-_28px)]': collapsed,
-            'max-w-[calc(100%_-_96px)]': !collapsed,
-          }"
-        >
-          <GeneralIcon icon="ncDrag" class="flex-none" />
+        <div class="extension-header-left max-w-[calc(100%_-_100px)]">
+          <!-- Todo: enable later when we support extension reordering -->
+          <!-- eslint-disable vue/no-constant-condition -->
+          <NcButton v-if="false" size="xxsmall" type="text">
+            <GeneralIcon icon="ncDrag" class="flex-none text-gray-500" />
+          </NcButton>
+
           <img
             v-if="extensionManifest"
             :src="getExtensionIcon(extensionManifest.iconUrl)"
@@ -136,36 +160,36 @@ eventBus.on((event, payload) => {
             v-if="titleEditMode && !fullscreen"
             ref="titleInput"
             v-model="tempTitle"
-            class="flex-grow leading-1 outline-0 ring-none !text-inherit !bg-transparent w-4/5"
+            class="flex-grow leading-1 outline-0 ring-none !text-inherit !bg-transparent w-4/5 extension-title"
             @click.stop
             @keyup.enter="updateExtensionTitle"
             @keyup.esc="updateExtensionTitle"
             @blur="updateExtensionTitle"
           />
-          <NcTooltip v-else show-on-truncate-only class="extension-title truncate">
+          <NcTooltip v-else show-on-truncate-only class="truncate">
             <template #title>
               {{ extension.title }}
             </template>
-            <span @dblclick="enableEditMode">
+            <span class="extension-title" @dblclick="enableEditMode">
               {{ extension.title }}
             </span>
           </NcTooltip>
         </div>
         <div class="extension-header-right">
-          <NcButton v-if="!activeError && !collapsed" type="text" size="xxsmall" @click="fullscreen = true">
+          <NcButton v-if="!activeError" type="text" size="xxsmall" @click="fullscreen = true">
             <GeneralIcon icon="expand" />
           </NcButton>
           <ExtensionsExtensionMenu
-            v-if="!collapsed"
             :active-error="activeError"
             @rename="enableEditMode"
-            @duplicate="handleDuplicateExtension(extension.id)"
+            @duplicate="handleDuplicateExtension(extension.id, true)"
             @show-details="showExtensionDetails(extension.extensionId, 'extension')"
             @clear-data="extension.clear()"
             @delete="extension.delete()"
           />
-          <GeneralIcon v-if="collapsed" icon="arrowUp" class="cursor-pointer" @click="collapsed = !collapsed" />
-          <GeneralIcon v-else icon="arrowDown" class="cursor-pointer" @click="collapsed = !collapsed" />
+          <NcButton size="xxsmall" type="text" @click="collapsed = !collapsed">
+            <GeneralIcon :icon="collapsed ? 'arrowUp' : 'arrowDown'" class="flex-none" />
+          </NcButton>
         </div>
       </div>
       <template v-if="activeError">
@@ -191,8 +215,12 @@ eventBus.on((event, payload) => {
       </template>
       <template v-else>
         <Teleport to="body" :disabled="!fullscreen">
-          <div ref="extensionModalRef" :class="{ 'extension-modal': fullscreen }" @click="closeFullscreen">
-            <div :class="{ 'extension-modal-content': fullscreen }">
+          <div
+            ref="extensionModalRef"
+            :class="{ 'extension-modal': fullscreen, 'h-[calc(100%_-_32px)]': !fullscreen }"
+            @click="closeFullscreen"
+          >
+            <div :class="{ 'extension-modal-content': fullscreen, 'h-full': !fullscreen }">
               <div v-if="fullscreen" class="flex items-center justify-between cursor-default">
                 <div class="flex-1 max-w-[calc(100%_-_96px)] flex items-center gap-2 text-gray-800 font-weight-600">
                   <img
@@ -235,8 +263,12 @@ eventBus.on((event, payload) => {
                   </NcButton>
                 </div>
               </div>
-              <div v-show="fullscreen || !collapsed" class="extension-content" :class="{ 'h-[calc(100%-40px)]': fullscreen }">
-                <component :is="component" :key="extension.uiKey" />
+              <div
+                v-show="fullscreen || !collapsed"
+                class="extension-content"
+                :class="{ 'h-[calc(100%-40px)]': fullscreen, 'h-full': !fullscreen }"
+              >
+                <component :is="component" :key="extension.uiKey" class="h-full" />
               </div>
             </div>
           </div>
@@ -248,7 +280,16 @@ eventBus.on((event, payload) => {
 
 <style scoped lang="scss">
 .extension-wrapper {
-  @apply bg-white rounded-xl px-3 py-[11px] w-full border-1;
+  @apply bg-white rounded-xl px-3 py-[11px] w-full border-1 relative;
+
+  &.isOpen {
+    resize: vertical;
+
+    &:hover,
+    &.mousedown {
+      overflow-y: auto;
+    }
+  }
 }
 
 .extension-header {
@@ -272,7 +313,7 @@ eventBus.on((event, payload) => {
 }
 
 .extension-modal {
-  @apply absolute top-0 left-0 z-50 w-full h-full bg-black bg-opacity-50;
+  @apply absolute top-0 left-0 z-1000 w-full h-full bg-black bg-opacity-50;
 
   .extension-modal-content {
     @apply bg-white rounded-2xl w-[90%] max-w-[1154px] h-[90vh] mt-[5vh] mx-auto p-6 flex flex-col gap-3;

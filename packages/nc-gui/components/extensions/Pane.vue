@@ -133,7 +133,7 @@ watch(isPanelExpanded, (newValue) => {
           v-if="searchQuery && !filteredExtensionList.length && extensionList.length"
           class="w-full h-full flex-1 flex items-center justify-center"
         >
-          <div class="pb-6 text-gray-500 flex flex-col items-center gap-6">
+          <div class="pb-6 text-gray-500 flex flex-col items-center gap-6 text-center">
             <img
               src="~assets/img/placeholder/no-search-result-found.png"
               class="!w-[164px] flex-none"

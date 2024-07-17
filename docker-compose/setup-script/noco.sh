@@ -15,6 +15,8 @@ BOLD='\033[1m'
 NC='\033[0m'
 
 NOCO_HOME="./nocodb"
+# Get the current working directory
+CURRENT_PATH=$(pwd)
 
 # *****************    GLOBAL VARIABLES END  ***********************************
 # ******************************************************************************
@@ -359,6 +361,7 @@ if [ "$NOCO_FOUND" = true ]; then
         cd /tmp || exit 1
         rm -rf "$NOCO_HOME"
 
+        cd "$CURRENT_PATH"
         mkdir -p "$NOCO_HOME"
         cd "$NOCO_HOME" || exit 1
     fi
@@ -605,18 +608,21 @@ if [ "$SSL_ENABLED" = 'y' ] || [ "$SSL_ENABLED" = 'Y' ]; then
       - webroot:/var/www/certbot
       - /var/run/docker.sock:/var/run/docker.sock  # Mount Docker socket
     entrypoint: |
-      /bin/sh -c 'trap exit TERM;
+      /bin/sh -c '
+      apk add docker-cli;
+      trap exit TERM;
       while :; do
-        output=$(certbot renew 2>&1);
-        echo "$output";
-        if echo "$output" | grep -q "No renewals were attempted"; then
+        output=\$\$(certbot renew 2>&1);
+        echo "\$\$output";
+        if echo "\$\$output" | grep -q "No renewals were attempted"; then
           echo "No certificates were renewed.";
         else
           echo "Certificates renewed. Reloading nginx...";
           sleep 5;
-          docker compose exec nginx nginx -s reload;
+          CONTAINER_NAME=\$\$(docker ps --format "{{.Names}}" | grep "nginx")
+          docker compose exec $CONTAINER_NAME nginx -s reload;
         fi;
-        sleep 12h & wait $${!};
+        sleep 12h & wait \$\${!};
       done;'
     depends_on:
       - nginx

@@ -61,11 +61,11 @@ const extensionManifest = ref<any>(null)
 const extensionMinHeight = computed(() => {
   switch (extension.value.extensionId) {
     case 'nc-data-exporter':
-      return 'min-h-[300px]'
+      return 'min-h-[300px] h-[300px]'
     case 'nc-json-exporter':
-      return 'min-h-[194px]'
+      return 'min-h-[194px] h-[194px]'
     case 'nc-csv-import':
-      return 'min-h-[180px]'
+      return 'min-h-[180px] h-[180px]'
   }
 })
 
@@ -135,7 +135,7 @@ eventBus.on((event, payload) => {
         `${!collapsed ? extensionMinHeight : ''}`,
         {
           '!h-auto': collapsed,
-          'isOpen  h-auto': !collapsed,
+          'isOpen': !collapsed,
           'mousedown': isMouseDown,
         },
       ]"

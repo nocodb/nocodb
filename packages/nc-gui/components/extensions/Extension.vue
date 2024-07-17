@@ -33,7 +33,6 @@ const enableEditMode = () => {
   nextTick(() => {
     titleInput.value?.focus()
     titleInput.value?.select()
-    titleInput.value?.scrollIntoView()
   })
 }
 

@@ -21,9 +21,14 @@ const views = ref<ViewType[]>([])
 
 const exportBtnType = ref<'secondary' | undefined>(undefined)
 
+const deletedExports = ref<string[]>([])
+
 const exportedFiles = computed(() => {
   return jobList.value
-    .filter((job) => job.job === 'data-export' && job.result?.extension_id === extension.value.id)
+    .filter(
+      (job) =>
+        job.job === 'data-export' && job.result?.extension_id === extension.value.id && !deletedExports.value.includes(job.id),
+    )
     .map((job) => {
       return {
         ...job,
@@ -173,9 +178,15 @@ function titleHelper() {
   return `${table?.title} (${view?.is_default ? 'Default View' : view?.title})`
 }
 
+const onRemoveExportedFile = async (exportId: string) => {
+  deletedExports.value.push(exportId)
+
+  await extension.value.kvStore.set('deletedExports', deletedExports.value)
+}
+
 onMounted(() => {
   exportPayload.value = extension.value.kvStore.get('exportPayload') || {}
-
+  deletedExports.value = extension.value.kvStore.get('deletedExports') || []
   reloadViews()
   loadJobsForBase()
 })
@@ -288,7 +299,7 @@ onMounted(() => {
           <div
             v-if="exp.status === JobStatus.COMPLETED ? exp.result : true"
             :key="exp.id"
-            class="px-3 py-2 flex gap-2.5 justify-between border-b-1"
+            class="px-3 py-2 flex gap-2 justify-between border-b-1"
             :class="{
               'px-4 py-3': fullscreen,
               'px-3 py-2': !fullscreen,
@@ -297,8 +308,8 @@ onMounted(() => {
             <div
               class="flex-1 flex items-center gap-3"
               :class="{
-                'max-w-[calc(100%_-_50px)]': exp.status === JobStatus.COMPLETED,
-                'max-w-full': exp.status !== JobStatus.COMPLETED,
+                'max-w-[calc(100%_-_74px)]': exp.status === JobStatus.COMPLETED,
+                'max-w-[calc(100%_-_38px)]': exp.status !== JobStatus.COMPLETED,
               }"
             >
               <NcTooltip v-if="[JobStatus.COMPLETED, JobStatus.FAILED].includes(exp.status)" class="flex">
@@ -341,14 +352,21 @@ onMounted(() => {
                 </div>
               </div>
             </div>
+
             <div v-if="exp.status === JobStatus.COMPLETED && !expiredExportedFiles[exp.id]" class="flex items-center">
               <a :href="urlHelper(exp.result.url)" target="_blank">
-                <NcButton type="secondary" size="xs">
+                <NcButton type="secondary" size="xs" class="!px-[5px]">
                   <div class="flex items-center gap-2">
                     <GeneralIcon icon="download" />
                   </div>
                 </NcButton>
               </a>
+            </div>
+
+            <div class="flex items-center">
+              <NcButton type="text" size="xs" class="!px-[5px]" @click="onRemoveExportedFile(exp.id)">
+                <GeneralIcon icon="close" />
+              </NcButton>
             </div>
           </div>
         </template>

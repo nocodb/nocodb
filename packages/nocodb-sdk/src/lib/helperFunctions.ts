@@ -59,7 +59,16 @@ const stringifyRolesObj = (roles?: RolesObj | null): string => {
 };
 
 const getAvailableRollupForUiType = (type: string) => {
-  if ([UITypes.Year].includes(type as UITypes)) {
+  if (
+    [
+      UITypes.Year,
+      UITypes.Time,
+      UITypes.Date,
+      UITypes.DateTime,
+      UITypes.CreatedTime,
+      UITypes.LastModifiedTime,
+    ].includes(type as UITypes)
+  ) {
     return ['count', 'min', 'max', 'countDistinct'];
   }
   if (isNumericCol(type as UITypes)) {
@@ -75,16 +84,7 @@ const getAvailableRollupForUiType = (type: string) => {
       'avgDistinct',
     ];
   }
-  if (
-    [
-      UITypes.Date,
-      UITypes.DateTime,
-      UITypes.CreatedTime,
-      UITypes.LastModifiedTime,
-    ].includes(type as UITypes)
-  ) {
-    return ['count', 'min', 'max', 'countDistinct'];
-  }
+
   if (
     [
       UITypes.SingleLineText,
@@ -113,6 +113,35 @@ const getAvailableRollupForUiType = (type: string) => {
     'min',
     'max',
     'avg',
+    'countDistinct',
+    'sumDistinct',
+    'avgDistinct',
+  ];
+};
+
+const getRenderAsTextFunForUiType = (type: UITypes) => {
+  if (
+    [
+      UITypes.Year,
+      UITypes.Time,
+      UITypes.Date,
+      UITypes.DateTime,
+      UITypes.CreatedTime,
+      UITypes.LastModifiedTime,
+      UITypes.Decimal,
+      UITypes.Currency,
+      UITypes.Duration,
+    ].includes(type)
+  ) {
+    return ['count', 'countDistinct'];
+  }
+
+  return [
+    'sum',
+    'count',
+    'avg',
+    'min',
+    'max',
     'countDistinct',
     'sumDistinct',
     'avgDistinct',
@@ -170,6 +199,7 @@ export {
   extractRolesObj,
   stringifyRolesObj,
   getAvailableRollupForUiType,
+  getRenderAsTextFunForUiType,
   populateUniqueFileName,
   roundUpToPrecision,
 };

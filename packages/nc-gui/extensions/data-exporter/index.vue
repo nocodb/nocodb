@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { ButtonType } from 'ant-design-vue/lib/button'
 import dayjs from 'dayjs'
 import { type ViewType, ViewTypes } from 'nocodb-sdk'
 
@@ -17,6 +18,8 @@ const { extension, tables, fullscreen, getViewsForTable } = useExtensionHelperOr
 const { jobList, loadJobsForBase } = useJobs()
 
 const views = ref<ViewType[]>([])
+
+const exportBtnType = ref<'secondary' | undefined>(undefined)
 
 const exportedFiles = computed(() => {
   return jobList.value
@@ -42,6 +45,7 @@ const tableList = computed(() => {
     return {
       label: table.title,
       value: table.id,
+      meta: table.meta,
     }
   })
 })
@@ -55,6 +59,8 @@ const viewList = computed(() => {
         return {
           label: view.is_default ? `Default View` : view.title,
           value: view.id,
+          meta: view.meta,
+          type: view.type,
         }
       }) || []
   )
@@ -66,16 +72,25 @@ const reloadViews = async () => {
   }
 }
 
+const resetExportBtnType = () => {
+  if (exportBtnType.value) {
+    exportBtnType.value = undefined
+  }
+}
+
 const onTableSelect = async (tableId: string) => {
   exportPayload.value.tableId = tableId
   await reloadViews()
   exportPayload.value.viewId = views.value.find((view) => view.is_default)?.id
   await extension.value.kvStore.set('exportPayload', exportPayload.value)
+
+  resetExportBtnType()
 }
 
 const onViewSelect = async (viewId: string) => {
   exportPayload.value.viewId = viewId
   await extension.value.kvStore.set('exportPayload', exportPayload.value)
+  resetExportBtnType()
 }
 
 const isExporting = ref(false)
@@ -138,6 +153,8 @@ async function exportDataAsync() {
     )
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    exportBtnType.value = 'secondary'
   }
 }
 
@@ -163,80 +180,105 @@ onMounted(() => {
   loadJobsForBase()
 })
 
-watch(
-  exportedFiles,
-  async () => {
-    const results = await Promise.all(
-      exportedFiles.value.map(async (exp) => {
-        if (exp.status === JobStatus.COMPLETED && (await isLinkExpired(exp.result?.url || ''))) {
-          return { id: exp.id, expired: true }
-        }
-        return { id: exp.id, expired: false }
-      }),
-    )
+// watch(
+//   exportedFiles,
+//   async () => {
+//     const results = await Promise.all(
+//       exportedFiles.value.map(async (exp) => {
+//         if (exp.status === JobStatus.COMPLETED && (await isLinkExpired(exp.result?.url || ''))) {
+//           return { id: exp.id, expired: true }
+//         }
+//         return { id: exp.id, expired: false }
+//       }),
+//     )
 
-    expiredExportedFiles.value = results.reduce((acc, { id, expired }) => {
-      if (expired) {
-        acc[id] = true
-      }
-      return acc
-    }, {} as Record<string, boolean>)
-  },
-  {
-    immediate: true,
-  },
-)
+//     expiredExportedFiles.value = results.reduce((acc, { id, expired }) => {
+//       if (expired) {
+//         acc[id] = true
+//       }
+//       return acc
+//     }, {} as Record<string, boolean>)
+//   },
+//   {
+//     immediate: true,
+//   },
+// )
 </script>
 
 <template>
   <div class="data-exporter">
-    <div class="data-exporter-body h-full">
-      <div class="data-exporter-header">Export config</div>
+    <div class="pb-3 pt-1 flex items-center justify-between gap-2.5">
       <div
-        class="px-3 py-2 flex items-center justify-between gap-2.5 flex-wrap"
+        class="flex-1 flex items-center"
         :class="{
-          'border-b-1': exportedFiles.length || fullscreen,
-          'px-4 py-3': fullscreen,
-          'px-3 py-2': !fullscreen,
+          'max-w-[min(350px,calc(100%-124px))]': isExporting && !fullscreen,
+          'max-w-[min(350px,calc(100%_-_84px))]': !isExporting && !fullscreen,
         }"
       >
-        <div class="flex flex-col gap-1">
-          <div class="flex items-center gap-1">
-            <NcSelect
-              v-model:value="exportPayload.tableId"
-              :options="tableList"
-              placeholder="-select table-"
-              :disabled="isExporting"
-              :class="{
-                'min-w-[240px] max-w-[240px]': fullscreen,
-                'min-w-[132px] max-w-[132px]': !fullscreen,
-              }"
-              @change="onTableSelect"
-            />
-            <span>/</span>
-            <NcSelect
-              v-model:value="exportPayload.viewId"
-              :options="viewList"
-              placeholder="-select view-"
-              :disabled="isExporting"
-              :class="{
-                'min-w-[240px] max-w-[240px]': fullscreen,
-                'min-w-[132px] max-w-[132px]': !fullscreen,
-              }"
-              @change="onViewSelect"
-            />
-          </div>
-        </div>
-        <div class="flex-none flex-1 flex justify-end">
-          <NcButton :disabled="!exportPayload?.viewId" :loading="isExporting" size="xs" @click="exportDataAsync">{{
-            isExporting ? 'Generating' : 'Export'
-          }}</NcButton>
-        </div>
+        <NcSelect
+          v-model:value="exportPayload.tableId"
+          placeholder="-select table-"
+          :disabled="isExporting"
+          class="nc-data-exporter-table-select"
+          :class="{
+            'min-w-[240px] max-w-[240px]': fullscreen,
+            'min-w-1/2 max-w-[132px]': !fullscreen,
+          }"
+          @change="onTableSelect"
+        >
+          <a-select-option v-for="table of tableList" :key="table.label" :value="table.value">
+            <div class="flex w-full items-center gap-2 max-w-[250px]">
+              <div class="min-w-5 flex items-center justify-center">
+                <GeneralTableIcon :meta="{ meta: table.meta }" class="text-gray-500" />
+              </div>
+              <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                <template #title>{{ table.label }}</template>
+                <span>{{ table.label }}</span>
+              </NcTooltip>
+            </div>
+          </a-select-option>
+        </NcSelect>
+
+        <NcSelect
+          v-model:value="exportPayload.viewId"
+          placeholder="-select view-"
+          :disabled="isExporting"
+          class="nc-data-exporter-view-select"
+          :class="{
+            'min-w-[240px] max-w-[240px]': fullscreen,
+            'min-w-1/2 max-w-[132px]': !fullscreen,
+          }"
+          @change="onViewSelect"
+        >
+          <a-select-option v-for="view of viewList" :key="view.label" :value="view.value">
+            <div class="flex w-full items-center gap-2 max-w-[250px]">
+              <div class="min-w-5 flex items-center justify-center">
+                <GeneralViewIcon :meta="{ meta: view.meta, type: view.type }" class="flex-none text-gray-500" />
+              </div>
+              <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                <template #title>{{ view.label }}</template>
+                <span>{{ view.label }}</span>
+              </NcTooltip>
+            </div>
+          </a-select-option></NcSelect
+        >
       </div>
+      <div class="flex-none flex justify-end">
+        <NcButton
+          :disabled="!exportPayload?.viewId"
+          :loading="isExporting"
+          :type="exportBtnType"
+          size="xs"
+          @click="exportDataAsync"
+          >{{ isExporting ? 'Generating' : 'Export' }}</NcButton
+        >
+      </div>
+    </div>
+    <div class="data-exporter-body h-full">
       <div class="data-exporter-header">Recent Exports</div>
       <div
         v-if="exportedFiles.length"
-        class="flex flex-col nc-scrollbar-thin"
+        class="flex flex-col nc-scrollbar-thin min-h-[118px]"
         :class="{
           'max-h-[232px]': !fullscreen,
           'max-h-[calc(100%_-_105px)]': fullscreen,
@@ -249,10 +291,16 @@ watch(
             class="px-3 py-2 flex gap-2.5 justify-between border-b-1"
             :class="{
               'px-4 py-3': fullscreen,
-              'last:border-b-0 px-3 py-2': !fullscreen,
+              'px-3 py-2': !fullscreen,
             }"
           >
-            <div class="flex-1 flex items-center gap-3 max-w-[calc(100%_-_114px)]">
+            <div
+              class="flex-1 flex items-center gap-3"
+              :class="{
+                'max-w-[calc(100%_-_50px)]': exp.status === JobStatus.COMPLETED,
+                'max-w-full': exp.status !== JobStatus.COMPLETED,
+              }"
+            >
               <NcTooltip v-if="[JobStatus.COMPLETED, JobStatus.FAILED].includes(exp.status)" class="flex">
                 <template #title>
                   {{ expiredExportedFiles[exp.id] ? jobStatusTooltip.expired : jobStatusTooltip[exp.status] }}
@@ -274,7 +322,7 @@ watch(
               <div class="flex-1 max-w-[calc(100%_-_28px)] flex flex-col gap-1">
                 <div class="inline-flex gap-1 text-sm text-gray-800">
                   <span class="inline-flex items-center h-5">
-                    <GeneralIcon icon="file" class="flex-none" />
+                    <GeneralIcon icon="file" class="flex-none text-gray-600/80 h-3.5 w-3.5" />
                   </span>
                   <NcTooltip class="truncate max-w-[calc(100%_-_20px)]" show-on-truncate-only>
                     <template #title>
@@ -295,33 +343,41 @@ watch(
             </div>
             <div v-if="exp.status === JobStatus.COMPLETED && !expiredExportedFiles[exp.id]" class="flex items-center">
               <a :href="urlHelper(exp.result.url)" target="_blank">
-                <NcButton type="text" size="xs">
+                <NcButton type="secondary" size="xs">
                   <div class="flex items-center gap-2">
                     <GeneralIcon icon="download" />
-                    <span>
-                      {{ $t('general.download') }}
-                    </span>
                   </div>
-                </NcButton></a
-              >
+                </NcButton>
+              </a>
             </div>
           </div>
         </template>
       </div>
-      <div v-else class="px-3 py-2 text-center">No data found</div>
+      <div v-else class="px-3 py-2 flex items-center justify-center min-h-[118px] text-gray-600">No exports</div>
     </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
 .data-exporter {
-  @apply flex flex-col rounded-lg border-1 overflow-hidden h-full;
+  @apply flex flex-col  overflow-hidden h-full;
   .data-exporter-header {
-    @apply px-3 py-1 uppercase bg-gray-100 text-[11px] leading-4 text-gray-600;
+    @apply px-3 py-1 uppercase bg-gray-100 text-[11px] leading-4 text-gray-600 border-b-1;
+  }
+
+  .nc-data-exporter-table-select {
+    :deep(.ant-select-selector) {
+      @apply !border-r-[0.5px] rounded-lg !rounded-r-none shadow-none;
+    }
+  }
+  .nc-data-exporter-view-select {
+    :deep(.ant-select-selector) {
+      @apply !border-l-[0.5px] rounded-lg !rounded-l-none shadow-none;
+    }
   }
 
   .data-exporter-body {
-    @apply flex-1;
+    @apply flex-1 rounded-lg border-1 overflow-hidden;
   }
 
   .data-exporter-footer {

@@ -1,5 +1,13 @@
 import type { Ref } from 'vue'
-import { type ColumnType, CommonAggregations, type TableType, UITypes, type ViewType, getAvailableAggregations } from 'nocodb-sdk'
+import {
+  type ColumnType,
+  CommonAggregations,
+  type TableType,
+  UITypes,
+  type ViewType,
+  ViewTypes,
+  getAvailableAggregations,
+} from 'nocodb-sdk'
 
 const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
   (
@@ -77,6 +85,8 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
           timeout: 10000,
         })
         .then(async () => {
+          if (!view.value?.type || view.value?.type !== ViewTypes.GRID) return
+
           try {
             const data = !isPublic.value
               ? await api.dbDataTableAggregate.dbDataTableAggregate(meta.value.id, {

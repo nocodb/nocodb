@@ -1,10 +1,8 @@
 import isURL from 'validator/lib/isURL'
-
 export const replaceUrlsWithLink = (text: string): boolean | string => {
   if (!text) {
     return false
   }
-
   const rawText = text.toString()
 
   // create a temporary element to sanitise the string
@@ -14,11 +12,12 @@ export const replaceUrlsWithLink = (text: string): boolean | string => {
   const sanitisedText = tempEl.innerHTML
 
   let found = false
-  const out = sanitisedText.replace(/URI::\((.*?)\)/g, (_, url) => {
+  const out = sanitisedText.replace(/URI::\(([^)]+)\)(?: LABEL::\(([^)]*)\))?/g, (_, url, label) => {
     found = true
     const a = document.createElement('a')
-    a.textContent = url
+    a.textContent = label || url // Use the label if it exists and is not empty, otherwise use the URL
     a.setAttribute('href', url)
+    a.setAttribute('class', ' nc-cell-field-link')
     a.setAttribute('target', '_blank')
     a.setAttribute('rel', 'noopener,noreferrer')
     return a.outerHTML

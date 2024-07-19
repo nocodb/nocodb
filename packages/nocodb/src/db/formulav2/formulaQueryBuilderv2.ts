@@ -912,6 +912,21 @@ async function _formulaQueryBuilder(params: {
                   value: ')',
                   raw: '")"',
                 },
+                ...(pt.arguments[1]
+                  ? [
+                      {
+                        type: 'Literal',
+                        value: ' LABEL::(',
+                        raw: ' LABEL::(',
+                      },
+                      pt.arguments[1],
+                      {
+                        type: 'Literal',
+                        value: ')',
+                        raw: ')',
+                      },
+                    ]
+                  : []),
               ],
               callee: {
                 type: 'Identifier',

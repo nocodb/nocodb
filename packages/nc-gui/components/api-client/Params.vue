@@ -21,6 +21,7 @@ const deleteParamRow = (i: number) => {
     <table class="w-full nc-webhooks-params">
       <thead class="h-8">
         <tr>
+          <th class="w-8"></th>
           <th>
             <div class="text-left font-normal ml-2" data-rec="true">{{ $t('title.parameterName') }}</div>
           </th>
@@ -28,15 +29,17 @@ const deleteParamRow = (i: number) => {
           <th>
             <div class="text-left font-normal ml-2" data-rec="true">{{ $t('placeholder.value') }}</div>
           </th>
-
-          <th class="w-8">
-            <!-- Intended to be empty - For delete button -->
-          </th>
+          <th class="w-8"></th>
         </tr>
       </thead>
 
       <tbody>
         <tr v-for="(paramRow, idx) in vModel" :key="idx" class="!h-2 overflow-hidden">
+          <td class="px-2">
+            <a-form-item class="form-item">
+              <a-checkbox v-model:checked="paramRow.enabled" />
+            </a-form-item>
+          </td>
           <td class="px-2">
             <a-form-item class="form-item">
               <a-input v-model:value="paramRow.name" :placeholder="$t('placeholder.key')" class="!rounded-lg" />

@@ -608,10 +608,9 @@ if [ "$SSL_ENABLED" = 'y' ] || [ "$SSL_ENABLED" = 'Y' ]; then
       - ./letsencrypt:/etc/letsencrypt
       - letsencrypt-lib:/var/lib/letsencrypt
       - webroot:/var/www/certbot
-      - /var/run/docker.sock:/var/run/docker.sock
     entrypoint: |
       /bin/sh -c '
-      apk add docker-cli;
+      apk add docker-cli || { echo "Failed to install Docker CLI"; exit 1; };
       trap exit TERM;
       while :; do
         output=\$\$(certbot renew 2>&1);
@@ -621,8 +620,8 @@ if [ "$SSL_ENABLED" = 'y' ] || [ "$SSL_ENABLED" = 'Y' ]; then
         else
           echo "Certificates renewed. Reloading nginx...";
           sleep 5;
-          CONTAINER_NAME=\$\$(docker ps --format "{{.Names}}" --filter "com.nocodb.service=nginx" | grep "nginx")
-          docker exec \$\$CONTAINER_NAME nginx -s reload;
+          CONTAINER_NAME=\$\$(docker ps --format "{{.Names}}" --filter "com.nocodb.service=nginx" | grep "nginx") || { echo "Failed to find nginx container"; exit 1; };
+          docker exec \$\$CONTAINER_NAME nginx -s reload || { echo "Failed to reload nginx"; exit 1; };
         fi;
         sleep 12h & wait \$\${!};
       done;'

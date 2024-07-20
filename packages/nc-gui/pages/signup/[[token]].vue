@@ -37,7 +37,7 @@ const formRules = {
     {
       validator: (_: unknown, v: string) => {
         return new Promise((resolve, reject) => {
-          if (!v?.length || validateEmail(v)) return resolve()
+          if (!v?.length || validateEmail(v.trim())) return resolve()
 
           reject(new Error(t('msg.error.signUpRules.emailInvalid')))
         })

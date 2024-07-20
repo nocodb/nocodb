@@ -149,7 +149,10 @@ async function listenForUpdates(id?: string) {
 
   const job = id
     ? { id }
-    : jobs.find((j) => j.base_id === baseId && j.status !== JobStatus.COMPLETED && j.status !== JobStatus.FAILED)
+    : jobs
+        // sort by created_at desc (latest first)
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .find((j) => j.base_id === baseId && j.status !== JobStatus.COMPLETED && j.status !== JobStatus.FAILED)
 
   if (!job) {
     listeningForUpdates.value = false

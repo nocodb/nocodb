@@ -576,6 +576,8 @@ services:
 
   nginx:
     image: nginx:latest
+    labels:
+      com.nocodb.service: "nginx"
     volumes:
       - ./nginx:/etc/nginx/conf.d
 EOF
@@ -606,7 +608,7 @@ if [ "$SSL_ENABLED" = 'y' ] || [ "$SSL_ENABLED" = 'Y' ]; then
       - ./letsencrypt:/etc/letsencrypt
       - letsencrypt-lib:/var/lib/letsencrypt
       - webroot:/var/www/certbot
-      - /var/run/docker.sock:/var/run/docker.sock  # Mount Docker socket
+      - /var/run/docker.sock:/var/run/docker.sock
     entrypoint: |
       /bin/sh -c '
       apk add docker-cli;
@@ -619,7 +621,7 @@ if [ "$SSL_ENABLED" = 'y' ] || [ "$SSL_ENABLED" = 'Y' ]; then
         else
           echo "Certificates renewed. Reloading nginx...";
           sleep 5;
-          CONTAINER_NAME=\$\$(docker ps --format "{{.Names}}" | grep "nginx")
+          CONTAINER_NAME=\$\$(docker ps --format "{{.Names}}" --filter "com.nocodb.service=nginx" | grep "nginx")
           docker exec \$\$CONTAINER_NAME nginx -s reload;
         fi;
         sleep 12h & wait \$\${!};

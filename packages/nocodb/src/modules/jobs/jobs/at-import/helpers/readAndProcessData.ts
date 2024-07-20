@@ -62,7 +62,7 @@ async function readAllData({
           let tempCounter = 0;
           for (const record of records) {
             dataStream.push(
-              JSON.stringify({ id: record.id, ...record.fields }),
+              JSON.stringify({ _atId: record.id, ...record.fields }),
             );
             counter.streamingCounter++;
             recordCounter++;
@@ -220,7 +220,7 @@ export async function importData(
                   idCounter[table.id] = 1;
                 }
 
-                const { id: rid, ...fields } = record;
+                const { _atId: rid, ...fields } = record;
                 if (!idMap.has(rid)) {
                   idMap.set(rid, idCounter[table.id]++);
                 }
@@ -447,7 +447,7 @@ export async function importLTARData(
                   idCounter[table.id] = 1;
                 }
 
-                const { id: _atId, ...rec } = record;
+                const { _atId, ...rec } = record;
 
                 if (!idMap.has(_atId)) {
                   rec.id = idMap.set(_atId, idCounter[table.id]++);

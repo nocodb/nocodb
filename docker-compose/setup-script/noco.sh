@@ -613,9 +613,9 @@ if [ "$SSL_ENABLED" = 'y' ] || [ "$SSL_ENABLED" = 'Y' ]; then
       apk add docker-cli || { echo "Failed to install Docker CLI"; exit 1; };
       trap exit TERM;
       while :; do
-        output=\$\$(certbot renew 2>&1);
-        echo "\$\$output";
-        if echo "\$\$output" | grep -q "No renewals were attempted"; then
+        OUTPUT=\$\$(certbot renew 2>&1);
+        echo "\$\$OUTPUT";
+        if echo "\$\$OUTPUT" | grep -q "No renewals were attempted"; then
           echo "No certificates were renewed.";
         else
           echo "Certificates renewed. Reloading nginx...";

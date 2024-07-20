@@ -361,7 +361,7 @@ if [ "$NOCO_FOUND" = true ]; then
         cd /tmp || exit 1
         rm -rf "$NOCO_HOME"
 
-        cd "$CURRENT_PATH"
+        cd "$CURRENT_PATH" || exit 1
         mkdir -p "$NOCO_HOME"
         cd "$NOCO_HOME" || exit 1
     fi

@@ -180,6 +180,7 @@ const onPaste = (e: ClipboardEvent) => {
                       :ref="emailInput"
                       v-model:value="usersData.emails"
                       size="middle"
+                      class="nc-input-sm"
                       validate-trigger="onBlur"
                       :placeholder="$t('labels.email')"
                       @paste.prevent="onPaste"
@@ -191,10 +192,11 @@ const onPaste = (e: ClipboardEvent) => {
                   <a-form-item name="role" :rules="[{ required: true, message: $t('msg.roleRequired') }]">
                     <div class="ml-1 mb-1 text-xs text-gray-500">{{ $t('labels.selectUserRole') }}</div>
 
-                    <a-select
+                    <NcSelect
                       v-model:value="usersData.role"
-                      class="nc-user-roles"
-                      dropdown-class-name="nc-dropdown-user-role !px-2"
+                      class="w-55 nc-user-roles"
+                      :dropdown-match-select-width="false"
+                      dropdown-class-name="nc-dropdown-user-role max-w-64"
                     >
                       <a-select-option
                         class="nc-role-option"
@@ -211,9 +213,9 @@ const onPaste = (e: ClipboardEvent) => {
                           />
                         </div>
 
-                        <span class="text-gray-500 text-xs whitespace-normal" data-rec="true">
+                        <div class="text-gray-500 text-xs whitespace-normal" data-rec="true">
                           {{ $t('msg.info.roles.orgCreator') }}
-                        </span>
+                        </div>
                       </a-select-option>
 
                       <a-select-option
@@ -230,11 +232,11 @@ const onPaste = (e: ClipboardEvent) => {
                             class="w-4 h-4 text-primary"
                           />
                         </div>
-                        <span class="text-gray-500 text-xs whitespace-normal" data-rec="true">
+                        <div class="text-gray-500 text-xs whitespace-normal" data-rec="true">
                           {{ $t('msg.info.roles.orgViewer') }}
-                        </span>
+                        </div>
                       </a-select-option>
-                    </a-select>
+                    </NcSelect>
                   </a-form-item>
                 </div>
               </div>
@@ -254,3 +256,9 @@ const onPaste = (e: ClipboardEvent) => {
     </div>
   </a-modal>
 </template>
+
+<style lang="scss" scoped>
+.nc-input-sm {
+  @apply !rounded-md;
+}
+</style>

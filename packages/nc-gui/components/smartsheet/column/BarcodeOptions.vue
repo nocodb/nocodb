@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ColumnType, UITypes } from 'nocodb-sdk'
+import { type ColumnType, UITypes } from 'nocodb-sdk'
 import { AllowedColumnTypesForQrAndBarcodes, isVirtualCol } from 'nocodb-sdk'
 
 const props = defineProps<{
@@ -12,7 +12,7 @@ const { fields, metaColumnById } = useViewColumnsOrThrow()
 
 const vModel = useVModel(props, 'modelValue', emit)
 
-const { setAdditionalValidations, validateInfos, column } = useColumnCreateStoreOrThrow()
+const { setAdditionalValidations, validateInfos, column, isEdit } = useColumnCreateStoreOrThrow()
 
 const { t } = useI18n()
 
@@ -29,28 +29,15 @@ const columnsAllowedAsBarcodeValue = computed<ColumnType[]>(() => {
   )
 })
 
-const supportedBarcodeFormats = [
-  { value: 'CODE128', label: 'CODE128' },
-  { value: 'upc', label: 'UPC' },
-  { value: 'EAN13', label: 'EAN-13' },
-  { value: 'EAN8', label: 'EAN-8' },
-  { value: 'EAN5', label: 'EAN-5' },
-  { value: 'EAN2', label: 'EAN-2' },
-  { value: 'CODE39', label: 'CODE39' },
-  { value: 'ITF14', label: 'ITF-14' },
-  { value: 'MSI', label: 'MSI' },
-  { value: 'PHARMACODE', label: 'PHARMACODE' },
-  { value: 'CODABAR', label: 'CODABAR' },
-]
-
 onMounted(() => {
   // set default value
   vModel.value.meta = {
-    barcodeFormat: supportedBarcodeFormats[0].value,
-    ...vModel.value.meta,
+    ...columnDefaultMeta[UITypes.Barcode],
+    ...(vModel.value.meta || {}),
   }
   vModel.value.fk_barcode_value_column_id =
-    (column?.value?.colOptions as Record<string, any>)?.fk_barcode_value_column_id || columnsAllowedAsBarcodeValue.value?.[0]?.id
+    (column?.value?.colOptions as Record<string, any>)?.fk_barcode_value_column_id ||
+    (!isEdit.value ? columnsAllowedAsBarcodeValue.value?.[0]?.id : null)
 })
 
 watch(columnsAllowedAsBarcodeValue, (newColumnsAllowedAsBarcodeValue) => {

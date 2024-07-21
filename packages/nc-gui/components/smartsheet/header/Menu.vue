@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { ColumnReqType } from 'nocodb-sdk'
+import { type ColumnReqType, partialUpdateAllowedTypes, readonlyMetaAllowedTypes } from 'nocodb-sdk'
 import { PlanLimitTypes, RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 import { SmartsheetStoreEvents } from '#imports'
 
@@ -42,6 +42,8 @@ const showDeleteColumnModal = ref(false)
 const { gridViewCols } = useViewColumnsOrThrow()
 
 const { fieldsToGroupBy, groupByLimit } = useViewGroupByOrThrow(view)
+
+const { isUIAllowed, isMetaReadOnly, isDataReadOnly } = useRoles()
 
 const isLoading = ref<'' | 'hideOrShow' | 'setDisplay'>('')
 
@@ -323,7 +325,12 @@ const isDeleteAllowed = computed(() => {
   return column?.value && !column.value.system
 })
 const isDuplicateAllowed = computed(() => {
-  return column?.value && !column.value.system
+  return (
+    column?.value &&
+    !column.value.system &&
+    ((!isMetaReadOnly.value && !isDataReadOnly.value) || readonlyMetaAllowedTypes.includes(column.value?.uidt)) &&
+    !column.value.meta?.custom
+  )
 })
 const isFilterSupported = computed(
   () =>
@@ -352,6 +359,28 @@ const filterOrGroupByThisField = (event: SmartsheetStoreEvents) => {
   }
   isOpen.value = false
 }
+
+const isColumnUpdateAllowed = computed(() => {
+  if (isMetaReadOnly.value && !readonlyMetaAllowedTypes.includes(column.value?.uidt)) return false
+  return true
+})
+
+const isColumnEditAllowed = computed(() => {
+  if (
+    isMetaReadOnly.value &&
+    !readonlyMetaAllowedTypes.includes(column.value?.uidt) &&
+    !partialUpdateAllowedTypes.includes(column.value?.uidt)
+  )
+    return false
+  return true
+})
+
+// check if the column is associated as foreign key in any of the link column
+const linksAssociated = computed(() => {
+  return meta.value?.columns?.filter(
+    (c) => isLinksOrLTAR(c) && [c.colOptions?.fk_child_column_id, c.colOptions?.fk_parent_column_id].includes(column?.value?.id),
+  )
+})
 </script>
 
 <template>
@@ -374,25 +403,38 @@ const filterOrGroupByThisField = (event: SmartsheetStoreEvents) => {
           'min-w-[256px]': isExpandedForm,
         }"
       >
-        <NcMenuItem :disabled="column?.pk || isSystemColumn(column)" @click="onEditPress">
-          <div class="nc-column-edit nc-header-menu-item">
-            <component :is="iconMap.ncEdit" class="text-gray-700" />
-            <!-- Edit -->
-            {{ $t('general.edit') }}
-          </div>
-        </NcMenuItem>
-        <NcMenuItem v-if="isExpandedForm && !column?.pk" :disabled="!isDuplicateAllowed" @click="openDuplicateDlg">
-          <div v-e="['a:field:duplicate']" class="nc-column-duplicate nc-header-menu-item">
-            <component :is="iconMap.duplicate" class="text-gray-700" />
-            <!-- Duplicate -->
-            {{ t('general.duplicate') }}
-          </div>
-        </NcMenuItem>
-        <a-divider v-if="!column?.pv" class="!my-0" />
+        <GeneralSourceRestrictionTooltip message="Field properties cannot be edited." :enabled="!isColumnEditAllowed">
+          <NcMenuItem
+            v-if="isUIAllowed('fieldAlter')"
+            :disabled="column?.pk || isSystemColumn(column) || !isColumnEditAllowed || linksAssociated.length"
+            :title="linksAssociated.length ? 'Field is associated with a link column' : undefined"
+            @click="onEditPress"
+          >
+            <div class="nc-column-edit nc-header-menu-item">
+              <component :is="iconMap.ncEdit" class="text-gray-700" />
+              <!-- Edit -->
+              {{ $t('general.edit') }} {{ $t('objects.field').toLowerCase() }}
+            </div>
+          </NcMenuItem>
+        </GeneralSourceRestrictionTooltip>
+        <GeneralSourceRestrictionTooltip message="Field cannot be duplicated." :enabled="!isDuplicateAllowed">
+          <NcMenuItem
+            v-if="isUIAllowed('duplicateColumn') && isExpandedForm && !column?.pk"
+            :disabled="!isDuplicateAllowed"
+            @click="openDuplicateDlg"
+          >
+            <div v-e="['a:field:duplicate']" class="nc-column-duplicate nc-header-menu-item">
+              <component :is="iconMap.duplicate" class="text-gray-700" />
+              <!-- Duplicate -->
+              {{ t('general.duplicate') }} {{ $t('objects.field').toLowerCase() }}
+            </div>
+          </NcMenuItem>
+        </GeneralSourceRestrictionTooltip>
+        <a-divider v-if="isUIAllowed('fieldAlter') && !column?.pv" class="!my-0" />
         <NcMenuItem v-if="!column?.pv" @click="hideOrShowField">
           <div v-e="['a:field:hide']" class="nc-column-insert-before nc-header-menu-item">
             <GeneralLoader v-if="isLoading === 'hideOrShow'" size="regular" />
-            <component v-else :is="isHiddenCol ? iconMap.eye : iconMap.eyeSlash" class="text-gray-700 !w-4 !h-4" />
+            <component :is="isHiddenCol ? iconMap.eye : iconMap.eyeSlash" v-else class="text-gray-700 !w-4 !h-4" />
             <!-- Hide Field -->
             {{ isHiddenCol ? $t('general.showField') : $t('general.hideField') }}
           </div>
@@ -465,13 +507,15 @@ const filterOrGroupByThisField = (event: SmartsheetStoreEvents) => {
           <NcTooltip
             :disabled="(isGroupBySupported && !isGroupByLimitExceeded) || isGroupedByThisField || !(isEeUI && !isPublic)"
           >
-            <template #title>{{
-              !isGroupBySupported
-                ? "This field type doesn't support grouping"
-                : isGroupByLimitExceeded
-                ? 'Group by limit exceeded'
-                : ''
-            }}</template>
+            <template #title
+              >{{
+                !isGroupBySupported
+                  ? "This field type doesn't support grouping"
+                  : isGroupByLimitExceeded
+                  ? 'Group by limit exceeded'
+                  : ''
+              }}
+            </template>
             <NcMenuItem
               :disabled="isEeUI && !isPublic && (!isGroupBySupported || isGroupByLimitExceeded) && !isGroupedByThisField"
               @click="
@@ -489,14 +533,15 @@ const filterOrGroupByThisField = (event: SmartsheetStoreEvents) => {
           </NcTooltip>
 
           <a-divider class="!my-0" />
-
-          <NcMenuItem v-if="!column?.pk" :disabled="!isDuplicateAllowed" @click="openDuplicateDlg">
-            <div v-e="['a:field:duplicate']" class="nc-column-duplicate nc-header-menu-item">
-              <component :is="iconMap.duplicate" class="text-gray-700" />
-              <!-- Duplicate -->
-              {{ t('general.duplicate') }}
-            </div>
-          </NcMenuItem>
+          <GeneralSourceRestrictionTooltip message="Field cannot be duplicated." :enabled="!isDuplicateAllowed && isMetaReadOnly">
+            <NcMenuItem v-if="!column?.pk" :disabled="!isDuplicateAllowed" @click="openDuplicateDlg">
+              <div v-e="['a:field:duplicate']" class="nc-column-duplicate nc-header-menu-item">
+                <component :is="iconMap.duplicate" class="text-gray-700" />
+                <!-- Duplicate -->
+                {{ t('general.duplicate') }} {{ $t('objects.field').toLowerCase() }}
+              </div>
+            </NcMenuItem>
+          </GeneralSourceRestrictionTooltip>
           <NcMenuItem @click="onInsertAfter">
             <div v-e="['a:field:insert:after']" class="nc-column-insert-after nc-header-menu-item">
               <component :is="iconMap.colInsertAfter" class="text-gray-700 !w-4.5 !h-4.5" />
@@ -513,14 +558,24 @@ const filterOrGroupByThisField = (event: SmartsheetStoreEvents) => {
           </NcMenuItem>
         </template>
         <a-divider v-if="!column?.pv" class="!my-0" />
-
-        <NcMenuItem v-if="!column?.pv" :disabled="!isDeleteAllowed" class="!hover:bg-red-50" @click="handleDelete">
-          <div class="nc-column-delete nc-header-menu-item text-red-600">
-            <component :is="iconMap.delete" />
-            <!-- Delete -->
-            {{ $t('general.delete') }}
-          </div>
-        </NcMenuItem>
+        <GeneralSourceRestrictionTooltip message="Field cannot be deleted." :enabled="!isColumnUpdateAllowed">
+          <NcMenuItem
+            v-if="!column?.pv && isUIAllowed('fieldDelete')"
+            :disabled="!isDeleteAllowed || !isColumnUpdateAllowed || linksAssociated.length"
+            class="!hover:bg-red-50"
+            :title="linksAssociated ? 'Field is associated with a link column' : undefined"
+            @click="handleDelete"
+          >
+            <div
+              class="nc-column-delete nc-header-menu-item"
+              :class="{ ' text-red-600': isDeleteAllowed && isColumnUpdateAllowed }"
+            >
+              <component :is="iconMap.delete" />
+              <!-- Delete -->
+              {{ $t('general.delete') }} {{ $t('objects.field').toLowerCase() }}
+            </div>
+          </NcMenuItem>
+        </GeneralSourceRestrictionTooltip>
       </NcMenu>
     </template>
   </a-dropdown>
@@ -548,6 +603,7 @@ const filterOrGroupByThisField = (event: SmartsheetStoreEvents) => {
 :deep(.ant-dropdown-menu-item:not(.ant-dropdown-menu-item-disabled)) {
   @apply !hover:text-black text-gray-700;
 }
+
 :deep(.ant-dropdown-menu-item.ant-dropdown-menu-item-disabled .nc-icon) {
   @apply text-current;
 }

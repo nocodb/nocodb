@@ -126,7 +126,7 @@ watch(
 
 <template>
   <LazyVirtualCellComponentsLinkRecordDropdown v-model:is-open="isOpen">
-    <div class="flex items-center gap-1 w-full chips-wrapper min-h-7.7">
+    <div class="nc-cell-field flex items-center gap-1 w-full chips-wrapper min-h-4">
       <div class="chips flex items-center img-container flex-1 hm-items flex-nowrap min-w-0 overflow-hidden">
         <template v-if="cells">
           <VirtualCellComponentsItemChip
@@ -143,7 +143,7 @@ watch(
         </template>
       </div>
 
-      <div v-if="!isUnderLookup || isForm" class="flex justify-end gap-1 min-h-[30px] items-center">
+      <div v-if="!isUnderLookup || isForm" class="flex justify-end gap-1 min-h-4 items-center">
         <GeneralIcon
           icon="expand"
           class="text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 nc-arrow-expand"

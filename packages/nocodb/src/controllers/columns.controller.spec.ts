@@ -1,7 +1,7 @@
 import { Test } from '@nestjs/testing';
-import { ColumnsService } from '../services/columns.service';
 import { ColumnsController } from './columns.controller';
 import type { TestingModule } from '@nestjs/testing';
+import { ColumnsService } from '~/services/columns.service';
 
 describe('ColumnsController', () => {
   let controller: ColumnsController;

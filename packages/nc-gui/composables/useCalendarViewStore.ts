@@ -1,5 +1,16 @@
 import type { ComputedRef, Ref } from 'vue'
-import type { Api, CalendarRangeType, CalendarType, ColumnType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
+import {
+  type Api,
+  type CalendarRangeType,
+  type CalendarType,
+  type ColumnType,
+  FormulaDataTypes,
+  type PaginatedType,
+  type TableType,
+  type ViewType,
+  isSystemColumn,
+  isVirtualCol,
+} from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 
@@ -108,12 +119,31 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         fk_from_col: ColumnType
         fk_to_col?: ColumnType | null
         id: string
+        is_readonly: boolean
       }>
     >([])
 
     const calDataType = computed(() => {
       if (!calendarRange.value || !calendarRange.value[0]) return null
       return calendarRange.value[0]?.fk_from_col?.uidt
+    })
+
+    const viewMetaProperties = computed<{
+      active_view: string
+      hide_weekend: boolean
+    }>(() => {
+      let meta = calendarMetaData.value?.meta ?? {}
+
+      if (typeof meta === 'string') {
+        try {
+          meta = JSON.parse(meta)
+        } catch (e) {}
+      }
+
+      return meta as {
+        active_view: string
+        hide_weekend: boolean
+      }
     })
 
     const sideBarFilter = computed(() => {
@@ -424,19 +454,46 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         const calMeta = typeof res.meta === 'string' ? JSON.parse(res.meta) : res.meta
         activeCalendarView.value = calMeta?.active_view
         if (!activeCalendarView.value) activeCalendarView.value = 'month'
-        calendarRange.value = res?.calendar_range?.map(
-          (
-            range: CalendarRangeType & {
-              id?: string
+        calendarRange.value = res?.calendar_range
+          ?.map(
+            (
+              range: CalendarRangeType & {
+                id?: string
+              },
+            ) => {
+              const fromCol = meta.value?.columns?.find((col) => col.id === range.fk_from_column_id)
+              const toCol = range.fk_to_column_id ? meta.value?.columns?.find((col) => col.id === range.fk_to_column_id) : null
+
+              if (fromCol?.uidt === UITypes.Formula || toCol?.uidt === UITypes.Formula) {
+                // Check if fromCol Formula return type is Date
+                const isFromColDate =
+                  fromCol?.uidt === UITypes.Formula &&
+                  (fromCol?.colOptions as any)?.parsed_tree?.dataType === FormulaDataTypes.DATE
+                // Check if toCol Formula return type is Date
+
+                const isToColDate =
+                  toCol?.uidt === UITypes.Formula && (toCol?.colOptions as any)?.parsed_tree?.dataType === FormulaDataTypes.DATE
+
+                if (!isFromColDate) {
+                  message.error(`Please update the Formula column ${fromCol?.title} to return a date`)
+                  return null
+                }
+
+                if (toCol && !isToColDate) {
+                  message.error(`Please update the Formula column ${toCol?.title} to return a date`)
+                  return null
+                }
+              }
+
+              return {
+                id: range?.id,
+                fk_from_col: fromCol,
+                fk_to_col: toCol,
+                is_readonly: [fromCol, toCol].some((col) => isSystemColumn(col) || isVirtualCol(col)),
+              }
             },
-          ) => {
-            return {
-              id: range?.id,
-              fk_from_col: meta.value?.columns?.find((col) => col.id === range.fk_from_column_id),
-              fk_to_col: range.fk_to_column_id ? meta.value?.columns?.find((col) => col.id === range.fk_to_column_id) : null,
-            }
-          },
-        ) as any
+          )
+          .filter(Boolean) as any
       } catch (e: unknown) {
         message.error(
           `Error loading calendar meta ${await extractSdkResponseErrorMsg(
@@ -467,8 +524,15 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         case 'week':
           fromDate = selectedDateRange.value.start.startOf('day')
           toDate = selectedDateRange.value.end.endOf('day')
+
           prevDate = selectedDateRange.value.start.subtract(1, 'day').endOf('day')
           nextDate = selectedDateRange.value.end.add(1, 'day').startOf('day')
+
+          // Hide weekends
+          if (viewMetaProperties.value?.hide_weekend) {
+            toDate = toDate.subtract(2, 'day')
+            nextDate = nextDate.subtract(2, 'day')
+          }
           break
         case 'month': {
           const startOfMonth = selectedMonth.value.startOf('month')
@@ -533,7 +597,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     }
 
     async function updateCalendarMeta(updateObj: Partial<CalendarType>) {
-      if (!viewMeta?.value?.id || !isUIAllowed('dataEdit') || isPublic.value) return
+      if (!viewMeta?.value?.id || !isUIAllowed('dataEdit', { skipSourceCheck: true }) || isPublic.value) return
 
       const updateValue = {
         ...(typeof calendarMetaData.value.meta === 'string'
@@ -809,10 +873,20 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       await fetchActiveDates()
     })
 
+    watch(
+      () => viewMetaProperties.value.hide_weekend,
+      async () => {
+        if (activeCalendarView.value === 'week') {
+          await loadCalendarData()
+        }
+      },
+    )
+
     return {
       fetchActiveDates,
       formattedSideBarData,
       loadMoreSidebarData,
+      updateCalendarMeta,
       loadSidebarData,
       displayField,
       sideBarFilterOption,
@@ -838,6 +912,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       selectedMonth,
       selectedDateRange,
       paginateCalendarView,
+      viewMetaProperties,
     }
   },
 )

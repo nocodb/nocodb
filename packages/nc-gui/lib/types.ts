@@ -1,8 +1,19 @@
-import type { BaseType, ColumnType, FilterType, MetaType, PaginatedType, Roles, RolesObj, TableType, ViewTypes } from 'nocodb-sdk'
+import type {
+  AuditOperationTypes,
+  BaseType,
+  ColumnType,
+  FilterType,
+  MetaType,
+  PaginatedType,
+  Roles,
+  RolesObj,
+  TableType,
+  ViewTypes,
+} from 'nocodb-sdk'
 import type { I18n } from 'vue-i18n'
 import type { Theme as AntTheme } from 'ant-design-vue/es/config-provider'
 import type { UploadFile } from 'ant-design-vue'
-import type { ImportSource, ImportType, PreFilledMode, TabType } from './enums'
+import type { AuditLogsDateRange, ImportSource, ImportType, PreFilledMode, TabType } from './enums'
 import type { rolePermissions } from './acl'
 
 interface User {
@@ -40,6 +51,7 @@ interface Field {
   fk_column_id?: string
   system?: boolean
   isViewEssentialField?: boolean
+  initialShow?: boolean
 }
 
 type Filter = FilterType & {
@@ -74,6 +86,7 @@ interface Row {
     range?: {
       fk_from_col: ColumnType
       fk_to_col: ColumnType | null
+      is_readonly?: boolean
     }
     id?: string
     position?: string
@@ -177,6 +190,7 @@ interface Group {
   paginationData: PaginatedType
   nested: boolean
   children?: Group[]
+  aggregations: Record<string, any>
   rows?: Row[]
   root?: boolean
   displayValueProp?: string
@@ -226,6 +240,21 @@ interface ImageCropperConfig {
   imageRestriction?: 'fill-area' | 'fit-area' | 'stencil' | 'none'
 }
 
+interface AuditLogsQuery {
+  type?: AuditOperationTypes
+  baseId?: string
+  sourceId?: string
+  user?: string
+  startDate?: string
+  endDate?: string
+  dateRange?: AuditLogsDateRange
+  dateRangeLabel?: string
+  orderBy: {
+    created_at?: 'asc' | 'desc'
+    user?: 'asc' | 'desc'
+  }
+}
+
 export type {
   User,
   ProjectMetaInfo,
@@ -256,4 +285,5 @@ export type {
   CalendarRangeType,
   FormFieldsLimitOptionsType,
   ImageCropperConfig,
+  AuditLogsQuery,
 }

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { ColumnType } from 'nocodb-sdk'
+import { type ColumnType, isSystemColumn } from 'nocodb-sdk'
 
 const props = defineProps<{
   // As we need to focus search box when the parent is opened
@@ -13,9 +13,41 @@ const props = defineProps<{
 
 const emits = defineEmits<{ selected: [ColumnType] }>()
 
-const { isParentOpen, toolbarMenu, searchInputPlaceholder, selectedOptionId, options, showSelectedOption } = toRefs(props)
+const { isParentOpen, toolbarMenu, searchInputPlaceholder, selectedOptionId, showSelectedOption } = toRefs(props)
+
+const { fieldsMap, isLocalMode } = useViewColumnsOrThrow()
 
 const searchQuery = ref('')
+
+const options = computed(() =>
+  (props.options || [])
+    .filter((c) => (isLocalMode.value && c?.id && fieldsMap.value[c.id] ? fieldsMap.value[c.id]?.initialShow : true))
+    .map((c) => c)
+    .sort((field1, field2) => {
+      // sort by view column order and keep system columns at the end
+      let orderVal1 = 0
+      let orderVal2 = 0
+      let sortByOrder = 0
+
+      if (isSystemColumn(field1)) {
+        orderVal1 = 1
+      }
+      if (isSystemColumn(field2)) {
+        orderVal2 = 1
+      }
+
+      if (
+        field1?.id &&
+        field2?.id &&
+        fieldsMap.value[field1.id]?.order !== undefined &&
+        fieldsMap.value[field2.id]?.order !== undefined
+      ) {
+        sortByOrder = fieldsMap.value[field1.id].order - fieldsMap.value[field2.id].order
+      }
+
+      return orderVal1 - orderVal2 || sortByOrder
+    }),
+)
 
 const filteredOptions = computed(
   () => options.value?.filter((c: ColumnType) => c.title?.toLowerCase().includes(searchQuery.value.toLowerCase())) ?? [],

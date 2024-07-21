@@ -278,6 +278,10 @@ export interface SourceType {
   is_meta?: BoolType;
   /** Is the data source minimal db */
   is_local?: BoolType;
+  /** Is the data source schema readonly */
+  is_schema_readonly?: BoolType;
+  /** Is the data source data readonly */
+  is_data_readonly?: BoolType;
   /**
    * The order of the list of sources
    * @example 1
@@ -335,6 +339,10 @@ export interface BaseReqType {
   is_meta?: boolean;
   /** Is the data source minimal db */
   is_local?: boolean;
+  /** Is the data source schema readonly */
+  is_schema_readonly?: BoolType;
+  /** Is the data source data readonly */
+  is_data_readonly?: BoolType;
   /** DB Type */
   type?:
     | 'mssql'
@@ -691,6 +699,10 @@ export interface FilterType {
   fk_parent_id?: StringOrNullType;
   /** Foreign Key to View */
   fk_view_id?: StringOrNullType;
+  /** Foreign Key to dynamic value Column */
+  fk_value_col_id?: StringOrNullType;
+  /** Foreign Key to Link Column */
+  fk_link_col_id?: StringOrNullType;
   /** Unique ID */
   id?: IdType;
   /** Is this filter grouped? */
@@ -1186,6 +1198,11 @@ export interface GridColumnType {
    * @example asc
    */
   group_by_sort?: StringOrNullType;
+  /**
+   * Aggregation Type
+   * @example sum
+   */
+  aggregation?: StringOrNullType;
 }
 
 /**
@@ -1218,6 +1235,11 @@ export interface GridColumnReqType {
    * @example asc
    */
   group_by_sort?: StringOrNullType;
+  /**
+   * Aggregation
+   * @example sum
+   */
+  aggregation?: StringOrNullType;
 }
 
 /**
@@ -1637,6 +1659,8 @@ export interface LicenseReqType {
  * Model for LinkToAnotherColumn Request
  */
 export interface LinkToAnotherColumnReqType {
+  /** Foreign Key to child view */
+  childViewId?: IdOrNullType;
   /** Foreign Key to chhild column */
   childId: IdType;
   /** Foreign Key to parent column */
@@ -1661,6 +1685,7 @@ export interface LinkToAnotherRecordType {
   /** Foreign Key to Column */
   fk_column_id?: IdType;
   fk_index_name?: string;
+  fk_relation_view_id?: string;
   fk_mm_child_column_id?: string;
   fk_mm_model_id?: string;
   fk_mm_parent_column_id?: string;
@@ -2093,6 +2118,11 @@ export interface BaseType {
    * @example p_124hhlkbeasewh
    */
   id?: string;
+  /**
+   * Workspace ID
+   * @example ws_123456
+   */
+  fk_workspace_id?: string;
   /** Model for Bool */
   is_meta?: BoolType;
   /** Meta Info such as theme colors */
@@ -2459,6 +2489,11 @@ export type StringOrNullOrBooleanOrNumberType =
   | number;
 
 /**
+ * Model for IdOrNull
+ */
+export type IdOrNullType = IdType | null;
+
+/**
  * Model for Table
  */
 export interface TableType {
@@ -2769,27 +2804,22 @@ export interface ProjectInviteEventType {
   type: string;
   body: {
     /** The ID of the base being invited to */
-    id: string;
-    /** The title of the base being invited to */
-    title: string;
-    /** The type of the base being invited to */
-    type: string;
-    /** The email address of the user who invited the recipient */
-    invited_by: string;
-  };
-}
-
-export interface ProjectEventType {
-  /** The ID of the user */
-  fk_user_id: string;
-  type: string;
-  body: {
-    /** The ID of the base */
-    id: string;
-    /** The title of the base */
-    title: string;
-    /** The type of the base */
-    type: string;
+    base: {
+      /** The ID of the base being invited to */
+      id: string;
+      /** The title of the base being invited to */
+      title: string;
+      /** The type of the base being invited to */
+      type: string;
+    };
+    user: {
+      /** The ID of the user who invited to the base */
+      id: string;
+      /** The email address of the user who invited to the base */
+      email: string;
+      /** The display name of the user who invited to the base */
+      display_name?: string;
+    };
   };
 }
 
@@ -2800,75 +2830,6 @@ export interface WelcomeEventType {
   type: string;
   /** An empty object */
   body: object;
-}
-
-export interface SortEventType {
-  /** The ID of the user who created sort */
-  fk_user_id: string;
-  type: string;
-  body: object;
-}
-
-export interface FilterEventType {
-  /** The ID of the user who created filter */
-  fk_user_id: string;
-  type: string;
-  body: object;
-}
-
-export interface TableEventType {
-  /** The ID of the user who triggered the event */
-  fk_user_id: string;
-  /** The type of the event */
-  type: string;
-  body: {
-    /** The title of the table associated with the event */
-    title: string;
-    /** The ID of the base that the table belongs to */
-    base_id: string;
-    /** The ID of the source that the table belongs to */
-    source_id: string;
-    /** The ID of the table associated with the event */
-    id: string;
-  };
-}
-
-export interface ViewEventType {
-  /** The ID of the user who triggered the event */
-  fk_user_id: string;
-  /** The type of the event */
-  type: string;
-  body: {
-    /** The title of the view associated with the event */
-    title: string;
-    /** The ID of the base that the view belongs to */
-    base_id: string;
-    /** The ID of the source that the view belongs to */
-    source_id: string;
-    /** The ID of the view associated with the event */
-    id: string;
-    /** The ID of the model that the view is based on */
-    fk_model_id: string;
-  };
-}
-
-export interface ColumnEventType {
-  /** The ID of the user who triggered the event */
-  fk_user_id: string;
-  /** The type of the event */
-  type: string;
-  body: {
-    /** The title of the column associated with the event */
-    title: string;
-    /** The ID of the base that the column belongs to */
-    base_id: string;
-    /** The ID of the source that the column belongs to */
-    source_id: string;
-    /** The ID of the column associated with the event */
-    id: string;
-    /** The ID of the model that the column belongs to */
-    fk_model_id: string;
-  };
 }
 
 export type NotificationType = {
@@ -2882,16 +2843,7 @@ export type NotificationType = {
   type?: string;
   updated_at?: any;
   created_at?: any;
-} & (
-  | ProjectInviteEventType
-  | ProjectEventType
-  | TableEventType
-  | ViewEventType
-  | ColumnEventType
-  | WelcomeEventType
-  | SortEventType
-  | FilterEventType
-);
+} & (ProjectInviteEventType | WelcomeEventType);
 
 /**
  * Model for Notification List
@@ -5492,9 +5444,21 @@ export class Api<
       query?: {
         /** @min 0 */
         offset?: number;
-        /** @max 1 */
+        /** @min 1 */
         limit?: number;
         sourceId?: string;
+        orderBy?: {
+          /**
+           * Sort direction
+           * @example desc
+           */
+          created_at?: 'asc' | 'desc';
+          /**
+           * Sort direction
+           * @example desc
+           */
+          user?: 'asc' | 'desc';
+        };
       },
       params: RequestParams = {}
     ) =>
@@ -9328,6 +9292,46 @@ export class Api<
       }),
 
     /**
+ * @description Read aggregated data from a given table
+ * 
+ * @tags Public
+ * @name DataTableAggregate
+ * @summary Read Shared View Aggregated Data
+ * @request GET:/api/v2/public/shared-view/{sharedViewUuid}/aggregate
+ * @response `200` `object` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    dataTableAggregate: (
+      sharedViewUuid: string,
+      query?: {
+        /** Extra filtering */
+        where?: string;
+        /** Used for multiple filter queries */
+        filterArrJson?: string;
+        /** List of fields to be aggregated */
+        aggregation?: object[];
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        object,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v2/public/shared-view/${sharedViewUuid}/aggregate`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
  * @description List Shared View Grouped Data
  * 
  * @tags Public
@@ -10034,6 +10038,64 @@ export class Api<
         }
       >({
         path: `/api/v1/db/meta/comments/count`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description List all audit data in the given project
+ * 
+ * @tags Utils
+ * @name ProjectAuditList
+ * @summary List Audits in Project
+ * @request GET:/api/v1/db/meta/projects/audits
+ * @response `200` `{
+  list: (AuditType)[],
+  \** Model for Paginated *\
+  pageInfo: PaginatedType,
+
+}` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    projectAuditList: (
+      query?: {
+        /** @min 0 */
+        offset?: number;
+        /** @min 1 */
+        limit?: number;
+        orderBy?: {
+          /**
+           * Sort direction
+           * @example desc
+           */
+          created_at?: 'asc' | 'desc';
+          /**
+           * Sort direction
+           * @example desc
+           */
+          user?: 'asc' | 'desc';
+        };
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        {
+          list: AuditType[];
+          /** Model for Paginated */
+          pageInfo: PaginatedType;
+        },
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/db/meta/projects/audits`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -11196,6 +11258,23 @@ export class Api<
   };
   notification = {
     /**
+     * @description Poll notifications
+     *
+     * @tags Notification
+     * @name Poll
+     * @summary Notification Poll
+     * @request GET:/api/v1/notifications/poll
+     * @response `200` `object` OK
+     */
+    poll: (params: RequestParams = {}) =>
+      this.request<object, any>({
+        path: `/api/v1/notifications/poll`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
      * @description List notifications
      *
      * @tags Notification
@@ -11271,6 +11350,49 @@ export class Api<
       this.request<void, any>({
         path: `/api/v1/notifications/mark-all-read`,
         method: 'POST',
+        ...params,
+      }),
+  };
+  dbDataTableAggregate = {
+    /**
+ * @description Read aggregated data from a given table
+ * 
+ * @tags DB Data Table Aggregate
+ * @name DbDataTableAggregate
+ * @summary Read Aggregated Data
+ * @request GET:/api/v2/tables/{tableId}/aggregate
+ * @response `200` `object` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    dbDataTableAggregate: (
+      tableId: string,
+      query: {
+        /** View ID is required */
+        viewId: string;
+        /** List of fields to be aggregated */
+        aggregation?: object[];
+        /** Extra filtering */
+        where?: string;
+        /** Used for multiple filter queries */
+        filterArrJson?: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        object,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v2/tables/${tableId}/aggregate`,
+        method: 'GET',
+        query: query,
+        format: 'json',
         ...params,
       }),
   };
@@ -11860,16 +11982,46 @@ export class Api<
       }),
 
     /**
-     * @description Get job status
+     * @description Get list of jobs for a given base for the user
      *
      * @tags Jobs
-     * @name Status
-     * @summary Jobs Status
-     * @request POST:/jobs/status
+     * @name List
+     * @summary Get Jobs
+     * @request POST:/api/v2/jobs/{baseId}
      */
-    status: (data: object, params: RequestParams = {}) =>
+    list: (
+      baseId: IdType,
+      data: {
+        job?: string;
+        status?: string;
+      },
+      params: RequestParams = {}
+    ) =>
       this.request<any, any>({
-        path: `/jobs/status`,
+        path: `/api/v2/jobs/${baseId}`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+  };
+  export = {
+    /**
+     * @description Trigger export as job
+     *
+     * @tags Export
+     * @name Data
+     * @summary Trigger export as job
+     * @request POST:/api/v2/export/{viewId}/{exportAs}
+     */
+    data: (
+      viewId: IdType,
+      exportAs: 'csv',
+      data: object,
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v2/export/${viewId}/${exportAs}`,
         method: 'POST',
         body: data,
         type: ContentType.Json,

@@ -85,6 +85,7 @@ const {
   validateInfos,
   validate,
   clearValidate,
+  fieldMappings,
 } = useProvideFormViewStore(meta, view, formViewData, updateFormView, isEditable)
 
 const { preFillFormSearchParams } = storeToRefs(useViewsStore())
@@ -198,9 +199,9 @@ async function submitForm() {
   }
 
   try {
-    await validate([...Object.keys(formState.value)])
+    await validate(Object.keys(formState.value).map((title) => fieldMappings.value[title]))
   } catch (e: any) {
-    if (e.errorFields.length) {
+    if (e?.errorFields?.length) {
       message.error(t('msg.error.someOfTheRequiredFieldsAreEmpty'))
       return
     }
@@ -235,7 +236,7 @@ function isDbRequired(column: Record<string, any>) {
       // column required / not null
       column.rqd &&
       // column default value
-      !column.cdf &&
+      !isValidValue(column?.cdf) &&
       // confirm it's not foreign key
       !columns.value.some(
         (c: Record<string, any>) =>
@@ -360,7 +361,7 @@ async function handleAddOrRemoveAllColumns<T>(value: T) {
 }
 
 async function checkSMTPStatus() {
-  if (emailMe.value) {
+  if (emailMe.value && !isEeUI) {
     const emailPluginActive = await $api.plugin.status('SMTP')
     if (!emailPluginActive) {
       emailMe.value = false
@@ -586,7 +587,7 @@ watch(
     updatePreFillFormSearchParams()
 
     try {
-      await validate([...Object.keys(formState.value)])
+      await validate(Object.keys(formState.value).map((title) => fieldMappings.value[title]))
     } catch {}
   },
   {
@@ -968,7 +969,7 @@ useEventListener(
                               :bordered="false"
                               :data-testid="NcForm.heading"
                               :data-title="NcForm.heading"
-                              @update:value="updateView"
+                              @input="updateView"
                               @focus="activeRow = NcForm.heading"
                               @blur="activeRow = ''"
                             />
@@ -1103,9 +1104,10 @@ useEventListener(
                             <div class="nc-form-field-body">
                               <div class="mt-2">
                                 <a-form-item
-                                  :name="element.title"
+                                  v-if="fieldMappings[element.title]"
+                                  :name="fieldMappings[element.title]"
                                   class="!my-0 nc-input-required-error nc-form-input-item"
-                                  v-bind="validateInfos[element.title]"
+                                  v-bind="validateInfos[fieldMappings[element.title]]"
                                 >
                                   <LazySmartsheetDivDataCell class="relative" @click.stop>
                                     <LazySmartsheetVirtualCell
@@ -1237,14 +1239,16 @@ useEventListener(
                           {{ $t('general.edit') }} {{ $t('objects.field') }}
                         </NcButton>
                         <template #overlay>
-                          <SmartsheetColumnEditOrAddProvider
-                            v-if="dropdownStates.showEditColumn"
-                            :column="activeColumn"
-                            @submit="editColumnCallback"
-                            @cancel="dropdownStates.showEditColumn = false"
-                            @click.stop
-                            @keydown.stop
-                          />
+                          <div class="nc-edit-or-add-provider-wrapper">
+                            <LazySmartsheetColumnEditOrAddProvider
+                              v-if="dropdownStates.showEditColumn"
+                              :column="activeColumn"
+                              @submit="editColumnCallback"
+                              @cancel="dropdownStates.showEditColumn = false"
+                              @click.stop
+                              @keydown.stop
+                            />
+                          </div>
                         </template>
                       </a-dropdown>
                       <SmartsheetFormFieldMenu
@@ -1278,7 +1282,7 @@ useEventListener(
                       :placeholder="$t('msg.info.formInput')"
                       @focus="onFocusActiveFieldLabel"
                       @keydown.enter.prevent
-                      @update:value="updateFieldTitle"
+                      @input="updateFieldTitle($event.target.value)"
                       @change="updateColMeta(activeField)"
                     />
 
@@ -1323,13 +1327,15 @@ useEventListener(
                           </NcButton>
 
                           <template #overlay>
-                            <SmartsheetColumnEditOrAddProvider
-                              v-if="dropdownStates.showAddColumn"
-                              @submit="addColumnCallback"
-                              @cancel="dropdownStates.showAddColumn = false"
-                              @click.stop
-                              @keydown.stop
-                            />
+                            <div class="nc-edit-or-add-provider-wrapper">
+                              <LazySmartsheetColumnEditOrAddProvider
+                                v-if="dropdownStates.showAddColumn"
+                                @submit="addColumnCallback"
+                                @cancel="dropdownStates.showAddColumn = false"
+                                @click.stop
+                                @keydown.stop
+                              />
+                            </div>
                           </template>
                         </a-dropdown>
                       </div>

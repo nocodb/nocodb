@@ -62,7 +62,7 @@ const filterOption = (input: string, option: Option) => option.value.toUpperCase
     <table class="w-full nc-webhooks-params">
       <thead class="h-8">
         <tr>
-          <th></th>
+          <th class="w-8"></th>
           <th>
             <div class="text-left font-normal ml-2" data-rec="true">{{ $t('labels.headerName') }}</div>
           </th>

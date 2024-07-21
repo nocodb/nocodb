@@ -18,7 +18,7 @@ export class SourceCreateProcessor {
   async job(job: Job) {
     this.debugLog(`job started for ${job.id}`);
 
-    const { baseId, source, req } = job.data;
+    const { context, baseId, source, req } = job.data;
 
     const logBasic = (log) => {
       this.jobsLogService.sendLog(job, { message: log });
@@ -26,7 +26,7 @@ export class SourceCreateProcessor {
     };
 
     const { source: createdSource, error } =
-      await this.sourcesService.baseCreate({
+      await this.sourcesService.baseCreate(context, {
         baseId,
         source,
         logger: logBasic,
@@ -34,7 +34,7 @@ export class SourceCreateProcessor {
       });
 
     if (error) {
-      await this.sourcesService.baseDelete({
+      await this.sourcesService.baseDelete(context, {
         sourceId: createdSource.id,
         req: {},
       });
@@ -46,7 +46,5 @@ export class SourceCreateProcessor {
     }
 
     this.debugLog(`job completed for ${job.id}`);
-
-    return createdSource;
   }
 }

@@ -1,15 +1,12 @@
 <script lang="ts" setup>
 import type { SourceType, TableType } from 'nocodb-sdk'
 import dayjs from 'dayjs'
-import NcTooltip from '~/components/nc/Tooltip.vue'
 
 const { activeTables } = storeToRefs(useTablesStore())
 const { openTable } = useTablesStore()
-const { openedProject, isDataSourceLimitReached } = storeToRefs(useBases())
+const { openedProject } = storeToRefs(useBases())
 
-const { base } = useBase()
-
-const isNewBaseModalOpen = ref(false)
+const { base } = storeToRefs(useBase())
 
 const { isUIAllowed } = useRoles()
 
@@ -68,12 +65,6 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
     close(1000)
   }
 }
-
-const onCreateBaseClick = () => {
-  if (isDataSourceLimitReached.value) return
-
-  isNewBaseModalOpen.value = true
-}
 </script>
 
 <template>
@@ -85,7 +76,7 @@ const onCreateBaseClick = () => {
       }"
     >
       <div
-        v-if="isUIAllowed('tableCreate')"
+        v-if="isUIAllowed('tableCreate', { source: base?.sources?.[0] })"
         role="button"
         class="nc-base-view-all-table-btn"
         data-testid="proj-view-btn__add-new-table"
@@ -95,7 +86,7 @@ const onCreateBaseClick = () => {
         <div class="label">{{ $t('general.new') }} {{ $t('objects.table') }}</div>
       </div>
       <div
-        v-if="isUIAllowed('tableCreate')"
+        v-if="isUIAllowed('tableCreate', { source: base?.sources?.[0] })"
         v-e="['c:table:import']"
         role="button"
         class="nc-base-view-all-table-btn"

@@ -1,4 +1,4 @@
-import { OrgUserRoles, ProjectRoles } from 'nocodb-sdk';
+import { OrgUserRoles, ProjectRoles, SourceRestriction } from 'nocodb-sdk';
 
 const roleScopes = {
   org: [OrgUserRoles.VIEWER, OrgUserRoles.CREATOR],
@@ -51,6 +51,8 @@ const permissionScopes = {
     // TODO: add ACL with base scope
     'upload',
     'uploadViaURL',
+
+    'notification',
   ],
   base: [
     'formViewGet',
@@ -89,6 +91,7 @@ const permissionScopes = {
     'indexList',
     'list',
     'dataCount',
+    'dataAggregate',
     'swaggerJson',
     'commentList',
     'commentsCount',
@@ -96,6 +99,7 @@ const permissionScopes = {
     'commentUpdate',
     'hideAllColumns',
     'showAllColumns',
+    'auditListRow',
     'auditRowUpdate',
     'dataUpdate',
     'dataDelete',
@@ -139,6 +143,9 @@ const permissionScopes = {
     'extensionCreate',
     'extensionUpdate',
     'extensionDelete',
+
+    // Jobs
+    'jobList',
   ],
 };
 
@@ -196,6 +203,7 @@ const rolePermissions:
       indexList: true,
       list: true,
       dataCount: true,
+      dataAggregate: true,
       swaggerJson: true,
 
       nestedDataList: true,
@@ -203,12 +211,15 @@ const rolePermissions:
 
       extensionList: true,
       extensionRead: true,
+
+      jobList: true,
+      commentList: true,
+      commentsCount: true,
+      auditListRow: true,
     },
   },
   [ProjectRoles.COMMENTER]: {
     include: {
-      commentList: true,
-      commentsCount: true,
       commentRow: true,
       commentUpdate: true,
       commentDelete: true,
@@ -279,6 +290,7 @@ const rolePermissions:
       testConnection: true,
       isPluginActive: true,
       commandPalette: true,
+      notification: true,
     },
   },
   [OrgUserRoles.CREATOR]: {
@@ -446,5 +458,29 @@ Object.values(rolePermissions).forEach((role) => {
     );
   }
 });
+
+// Excluded permissions for source restrictions
+// `true` means permission is restricted and `false`/missing means permission is allowed
+export const sourceRestrictions = {
+  [SourceRestriction.SCHEMA_READONLY]: {
+    tableCreate: true,
+    tableDelete: true,
+  },
+  [SourceRestriction.DATA_READONLY]: {
+    dataUpdate: true,
+    dataDelete: true,
+    dataInsert: true,
+    bulkDataInsert: true,
+    bulkDataUpdate: true,
+    bulkDataUpdateAll: true,
+    bulkDataDelete: true,
+    bulkDataDeleteAll: true,
+    relationDataRemove: true,
+    relationDataAdd: true,
+    nestedDataListCopyPasteOrDeleteAll: true,
+    nestedDataUnlink: true,
+    nestedDataLink: true,
+  },
+};
 
 export default rolePermissions;

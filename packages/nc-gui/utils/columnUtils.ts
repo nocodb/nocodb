@@ -177,7 +177,7 @@ const getUIDTIcon = (uidt: UITypes | string) => {
 // 1. column not having default value
 // 2. column is not auto increment
 // 3. column is not auto generated
-const isColumnRequired = (col?: ColumnType) => col && col.rqd && !col.cdf && !col.ai && !col.meta?.ag
+const isColumnRequired = (col?: ColumnType) => col && col.rqd && !isValidValue(col?.cdf) && !col.ai && !col.meta?.ag
 
 const isVirtualColRequired = (col: ColumnType, columns: ColumnType[]) =>
   col.uidt === UITypes.LinkToAnotherRecord &&
@@ -222,9 +222,21 @@ const isTypableInputColumn = (colOrUidt: ColumnType | UITypes) => {
   ].includes(uidt)
 }
 
+const isColumnSupportsGroupBySettings = (colOrUidt: ColumnType) => {
+  let uidt: UITypes
+  if (typeof colOrUidt === 'object') {
+    uidt = colOrUidt.uidt as UITypes
+  } else {
+    uidt = colOrUidt
+  }
+
+  return [UITypes.SingleSelect, UITypes.User, UITypes.CreatedBy, UITypes.Checkbox, UITypes.Rating].includes(uidt)
+}
+
 export {
   uiTypes,
   isTypableInputColumn,
+  isColumnSupportsGroupBySettings,
   getUIDTIcon,
   getUniqueColumnName,
   isColumnRequiredAndNull,

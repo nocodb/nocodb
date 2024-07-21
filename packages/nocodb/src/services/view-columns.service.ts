@@ -14,7 +14,7 @@ import type {
   ViewColumnReqType,
   ViewColumnUpdateReqType,
 } from 'nocodb-sdk';
-import type { NcRequest } from '~/interface/config';
+import type { NcContext, NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { CalendarViewColumn, View } from '~/models';
@@ -25,21 +25,25 @@ import Noco from '~/Noco';
 export class ViewColumnsService {
   constructor(private appHooksService: AppHooksService) {}
 
-  async columnList(param: { viewId: string }) {
-    return await View.getColumns(param.viewId, undefined);
+  async columnList(context: NcContext, param: { viewId: string }) {
+    return await View.getColumns(context, param.viewId, undefined);
   }
 
-  async columnAdd(param: {
-    viewId: string;
-    column: ViewColumnReqType;
-    req: NcRequest;
-  }) {
+  async columnAdd(
+    context: NcContext,
+    param: {
+      viewId: string;
+      column: ViewColumnReqType;
+      req: NcRequest;
+    },
+  ) {
     validatePayload(
       'swagger.json#/components/schemas/ViewColumnReq',
       param.column,
     );
 
     const viewColumn = await View.insertOrUpdateColumn(
+      context,
       param.viewId,
       param.column.fk_column_id,
       {
@@ -55,18 +59,22 @@ export class ViewColumnsService {
     return viewColumn;
   }
 
-  async columnUpdate(param: {
-    viewId: string;
-    columnId: string;
-    column: ViewColumnUpdateReqType;
-    req: NcRequest;
-  }) {
+  async columnUpdate(
+    context: NcContext,
+    param: {
+      viewId: string;
+      columnId: string;
+      column: ViewColumnUpdateReqType;
+      req: NcRequest;
+    },
+  ) {
     validatePayload(
       'swagger.json#/components/schemas/ViewColumnUpdateReq',
       param.column,
     );
 
     const result = await View.updateColumn(
+      context,
       param.viewId,
       param.columnId,
       param.column,
@@ -80,27 +88,30 @@ export class ViewColumnsService {
     return result;
   }
 
-  async columnsUpdate(param: {
-    viewId: string;
-    columns:
-      | GridColumnReqType
-      | GalleryColumnReqType
-      | KanbanColumnReqType
-      | FormColumnReqType
-      | CalendarColumnReqType[]
-      | Record<
-          APIContext.VIEW_COLUMNS,
-          Record<
-            string,
-            | GridColumnReqType
-            | GalleryColumnReqType
-            | KanbanColumnReqType
-            | FormColumnReqType
-            | CalendarColumnReqType
-          >
-        >;
-    req: any;
-  }) {
+  async columnsUpdate(
+    context: NcContext,
+    param: {
+      viewId: string;
+      columns:
+        | GridColumnReqType
+        | GalleryColumnReqType
+        | KanbanColumnReqType
+        | FormColumnReqType
+        | CalendarColumnReqType[]
+        | Record<
+            APIContext.VIEW_COLUMNS,
+            Record<
+              string,
+              | GridColumnReqType
+              | GalleryColumnReqType
+              | KanbanColumnReqType
+              | FormColumnReqType
+              | CalendarColumnReqType
+            >
+          >;
+      req: any;
+    },
+  ) {
     const { viewId } = param;
 
     const columns = Array.isArray(param.columns)
@@ -111,7 +122,7 @@ export class ViewColumnsService {
       NcError.badRequest('Invalid request - fields not found');
     }
 
-    const view = await View.get(viewId);
+    const view = await View.get(context, viewId);
 
     const updateOrInsertOptions: Promise<any>[] = [];
 
@@ -130,10 +141,15 @@ export class ViewColumnsService {
         const columnId =
           typeof param.columns === 'object' ? indexOrId : column['id'];
 
-        const existingCol = await ncMeta.metaGet2(null, null, table, {
-          fk_view_id: viewId,
-          fk_column_id: columnId,
-        });
+        const existingCol = await ncMeta.metaGet2(
+          context.workspace_id,
+          context.base_id,
+          table,
+          {
+            fk_view_id: viewId,
+            fk_column_id: columnId,
+          },
+        );
 
         switch (view.type) {
           case ViewTypes.GRID:
@@ -143,11 +159,12 @@ export class ViewColumnsService {
             );
             if (existingCol) {
               updateOrInsertOptions.push(
-                GridViewColumn.update(existingCol.id, column, ncMeta),
+                GridViewColumn.update(context, existingCol.id, column, ncMeta),
               );
             } else {
               updateOrInsertOptions.push(
                 GridViewColumn.insert(
+                  context,
                   {
                     ...(column as GridColumnReqType),
                     fk_view_id: viewId,
@@ -165,11 +182,17 @@ export class ViewColumnsService {
             );
             if (existingCol) {
               updateOrInsertOptions.push(
-                GalleryViewColumn.update(existingCol.id, column, ncMeta),
+                GalleryViewColumn.update(
+                  context,
+                  existingCol.id,
+                  column,
+                  ncMeta,
+                ),
               );
             } else {
               updateOrInsertOptions.push(
                 GalleryViewColumn.insert(
+                  context,
                   {
                     ...(column as GalleryColumnReqType),
                     fk_view_id: viewId,
@@ -187,11 +210,17 @@ export class ViewColumnsService {
             );
             if (existingCol) {
               updateOrInsertOptions.push(
-                KanbanViewColumn.update(existingCol.id, column, ncMeta),
+                KanbanViewColumn.update(
+                  context,
+                  existingCol.id,
+                  column,
+                  ncMeta,
+                ),
               );
             } else {
               updateOrInsertOptions.push(
                 KanbanViewColumn.insert(
+                  context,
                   {
                     ...(column as KanbanColumnReqType),
                     fk_view_id: viewId,
@@ -209,11 +238,12 @@ export class ViewColumnsService {
             );
             if (existingCol) {
               updateOrInsertOptions.push(
-                MapViewColumn.update(existingCol.id, column, ncMeta),
+                MapViewColumn.update(context, existingCol.id, column, ncMeta),
               );
             } else {
               updateOrInsertOptions.push(
                 MapViewColumn.insert(
+                  context,
                   {
                     ...(column as MapViewColumn),
                     fk_view_id: viewId,
@@ -231,11 +261,12 @@ export class ViewColumnsService {
             );
             if (existingCol) {
               updateOrInsertOptions.push(
-                FormViewColumn.update(existingCol.id, column, ncMeta),
+                FormViewColumn.update(context, existingCol.id, column, ncMeta),
               );
             } else {
               updateOrInsertOptions.push(
                 FormViewColumn.insert(
+                  context,
                   {
                     ...(column as FormColumnReqType),
                     fk_view_id: viewId,
@@ -253,11 +284,17 @@ export class ViewColumnsService {
             );
             if (existingCol) {
               updateOrInsertOptions.push(
-                CalendarViewColumn.update(existingCol.id, column, ncMeta),
+                CalendarViewColumn.update(
+                  context,
+                  existingCol.id,
+                  column,
+                  ncMeta,
+                ),
               );
             } else {
               updateOrInsertOptions.push(
                 CalendarViewColumn.insert(
+                  context,
                   {
                     ...(column as CalendarColumnReqType),
                     fk_view_id: viewId,
@@ -275,7 +312,7 @@ export class ViewColumnsService {
 
       await ncMeta.commit();
 
-      await View.clearSingleQueryCache(view.fk_model_id, [view]);
+      await View.clearSingleQueryCache(context, view.fk_model_id, [view]);
 
       return result;
     } catch (e) {
@@ -284,8 +321,11 @@ export class ViewColumnsService {
     }
   }
 
-  async viewColumnList(param: { viewId: string; req: any }) {
-    const columnList = await View.getColumns(param.viewId, undefined);
+  async viewColumnList(
+    context: NcContext,
+    param: { viewId: string; req: any },
+  ) {
+    const columnList = await View.getColumns(context, param.viewId, undefined);
 
     // generate key-value pair of column id and column
     const columnMap = columnList.reduce((acc, column) => {

@@ -303,7 +303,7 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
     !isGrid.value ||
     isExpandedForm.value ||
     isEditColumn.value ||
-    isExpandedFormOpen()
+    isExpandedFormOpenExist()
   ) {
     return
   }
@@ -428,7 +428,7 @@ const cellValue = computed(
 </script>
 
 <template>
-  <div class="nc-cell-field relative">
+  <div v-bind="$attrs" class="nc-cell-field relative">
     <NcDropdown
       :visible="isOpen"
       :placement="isDatePicker ? 'bottomLeft' : 'bottomRight'"
@@ -440,14 +440,18 @@ const cellValue = computed(
     >
       <div
         :title="localState?.format(dateTimeFormat)"
-        class="nc-date-picker ant-picker-input flex justify-between gap-2 relative !w-auto"
+        class="nc-date-picker ant-picker-input flex relative !w-auto gap-2"
+        :class="{
+          'justify-between': !isColDisabled,
+        }"
       >
         <div
-          class="flex-none hover:bg-gray-100 px-1 rounded-md box-border w-[60%] max-w-[110px]"
+          class="flex-none rounded-md box-border w-[60%] max-w-[110px]"
           :class="{
             'py-0': isForm,
-            'py-0.5': !isForm,
+            'py-0.5': !isForm && !isColDisabled,
             'bg-gray-100': isDatePicker && isOpen,
+            'hover:bg-gray-100 px-1': !isColDisabled,
           }"
         >
           <input
@@ -465,13 +469,14 @@ const cellValue = computed(
           />
         </div>
         <div
-          class="flex-none hover:bg-gray-100 px-1 rounded-md box-border flex-1"
+          class="flex-none rounded-md box-border flex-1"
           :class="[
             `${timeCellMaxWidth}`,
             {
               'py-0': isForm,
-              'py-0.5': !isForm,
+              'py-0.5': !isForm && !isColDisabled,
               'bg-gray-100': !isDatePicker && isOpen,
+              'hover:bg-gray-100 px-1': !isColDisabled,
             },
           ]"
         >

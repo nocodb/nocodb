@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents } from 'nocodb-sdk';
 import type { BaseReqType } from 'nocodb-sdk';
-import type { NcRequest } from '~/interface/config';
+import type { NcContext, NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { populateMeta, validatePayload } from '~/helpers';
 import { populateRollupColumnAndHideLTAR } from '~/helpers/populateMeta';
@@ -13,28 +13,29 @@ import { NcError } from '~/helpers/catchError';
 export class SourcesService {
   constructor(protected readonly appHooksService: AppHooksService) {}
 
-  async baseGetWithConfig(param: { sourceId: any }) {
-    const source = await Source.get(param.sourceId);
+  async baseGetWithConfig(context: NcContext, param: { sourceId: any }) {
+    const source = await Source.get(context, param.sourceId);
 
     source.config = await source.getConnectionConfig();
 
     return source;
   }
 
-  async baseUpdate(param: {
-    sourceId: string;
-    source: BaseReqType;
-    baseId: string;
-    req: NcRequest;
-  }) {
+  async baseUpdate(
+    context: NcContext,
+    param: {
+      sourceId: string;
+      source: BaseReqType;
+      baseId: string;
+      req: NcRequest;
+    },
+  ) {
     validatePayload('swagger.json#/components/schemas/BaseReq', param.source);
 
     const baseBody = param.source;
-    const base = await Base.getWithInfo(param.baseId);
-    const source = await Source.updateBase(param.sourceId, {
+    const source = await Source.updateBase(context, param.sourceId, {
       ...baseBody,
       type: baseBody.config?.client,
-      baseId: base.id,
       id: param.sourceId,
     });
 
@@ -48,16 +49,16 @@ export class SourcesService {
     return source;
   }
 
-  async baseList(param: { baseId: string }) {
-    const sources = await Source.list({ baseId: param.baseId });
+  async baseList(context: NcContext, param: { baseId: string }) {
+    const sources = await Source.list(context, { baseId: param.baseId });
 
     return sources;
   }
 
-  async baseDelete(param: { sourceId: string; req: NcRequest }) {
+  async baseDelete(context: NcContext, param: { sourceId: string; req: any }) {
     try {
-      const source = await Source.get(param.sourceId, true);
-      await source.delete();
+      const source = await Source.get(context, param.sourceId, true);
+      await source.delete(context);
       this.appHooksService.emit(AppEvents.BASE_DELETE, {
         source,
         req: param.req,
@@ -68,22 +69,25 @@ export class SourcesService {
     return true;
   }
 
-  async baseSoftDelete(param: { sourceId: string }) {
+  async baseSoftDelete(context: NcContext, param: { sourceId: string }) {
     try {
-      const source = await Source.get(param.sourceId);
-      await source.softDelete();
+      const source = await Source.get(context, param.sourceId);
+      await source.softDelete(context);
     } catch (e) {
       NcError.badRequest(e);
     }
     return true;
   }
 
-  async baseCreate(param: {
-    baseId: string;
-    source: BaseReqType;
-    logger?: (message: string) => void;
-    req: NcRequest;
-  }): Promise<{
+  async baseCreate(
+    context: NcContext,
+    param: {
+      baseId: string;
+      source: BaseReqType;
+      logger?: (message: string) => void;
+      req: any;
+    },
+  ): Promise<{
     source: Source;
     error?: any;
   }> {
@@ -91,13 +95,13 @@ export class SourcesService {
 
     // type | base | baseId
     const baseBody = param.source;
-    const base = await Base.getWithInfo(param.baseId);
+    const base = await Base.getWithInfo(context, param.baseId);
 
     let error;
 
     param.logger?.('Creating the source');
 
-    const source = await Source.createBase({
+    const source = await Source.createBase(context, {
       ...baseBody,
       type: baseBody.config?.client,
       baseId: base.id,
@@ -108,9 +112,9 @@ export class SourcesService {
 
       param.logger?.('Populating meta');
 
-      const info = await populateMeta(source, base, param.logger);
+      const info = await populateMeta(context, source, base, param.logger);
 
-      await populateRollupColumnAndHideLTAR(source, base);
+      await populateRollupColumnAndHideLTAR(context, source, base);
 
       this.appHooksService.emit(AppEvents.APIS_CREATED, {
         info,

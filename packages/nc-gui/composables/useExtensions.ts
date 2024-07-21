@@ -1,6 +1,14 @@
+import type { ExtensionsEvents } from '#imports'
+
 const extensionsState = createGlobalState(() => {
   const baseExtensions = ref<Record<string, any>>({})
-  return { baseExtensions }
+
+  // Egg
+  const extensionsEgg = ref(false)
+
+  const extensionsEggCounter = ref(0)
+
+  return { baseExtensions, extensionsEgg, extensionsEggCounter }
 })
 
 interface ExtensionManifest {
@@ -35,11 +43,13 @@ abstract class ExtensionType {
 export { ExtensionType }
 
 export const useExtensions = createSharedComposable(() => {
-  const { baseExtensions } = extensionsState()
+  const { baseExtensions, extensionsEgg, extensionsEggCounter } = extensionsState()
 
   const { $api } = useNuxtApp()
 
   const { base } = storeToRefs(useBase())
+
+  const eventBus = useEventBus<ExtensionsEvents>(Symbol('useExtensions'))
 
   const extensionsLoaded = ref(false)
 
@@ -329,19 +339,19 @@ export const useExtensions = createSharedComposable(() => {
         }
       })
     }
-
-    until(base)
-      .toMatch((v) => !!v)
-      .then(() => {
-        if (!base.value || !base.value.id) {
-          return
-        }
-
-        if (!baseExtensions.value[base.value.id]) {
-          loadExtensionsForBase(base.value.id)
-        }
-      })
   })
+
+  watch(
+    () => base.value?.id,
+    (baseId) => {
+      if (baseId && !baseExtensions.value[baseId]) {
+        loadExtensionsForBase(baseId)
+      }
+    },
+    {
+      immediate: true,
+    },
+  )
 
   // Extension details modal
   const isDetailsVisible = ref(false)
@@ -356,11 +366,6 @@ export const useExtensions = createSharedComposable(() => {
 
   // Extension market modal
   const isMarketVisible = ref(false)
-
-  // Egg
-  const extensionsEgg = ref(false)
-
-  const extensionsEggCounter = ref(0)
 
   const onEggClick = () => {
     extensionsEggCounter.value++
@@ -390,5 +395,6 @@ export const useExtensions = createSharedComposable(() => {
     onEggClick,
     extensionsEgg,
     extensionPanelSize,
+    eventBus,
   }
 })

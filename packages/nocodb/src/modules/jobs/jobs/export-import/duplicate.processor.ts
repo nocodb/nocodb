@@ -4,6 +4,12 @@ import { Job } from 'bull';
 import papaparse from 'papaparse';
 import debug from 'debug';
 import { isLinksOrLTAR, isVirtualCol, RelationTypes } from 'nocodb-sdk';
+import type { NcContext } from '~/interface/config';
+import type {
+  DuplicateBaseJobData,
+  DuplicateColumnJobData,
+  DuplicateModelJobData,
+} from '~/interface/Jobs';
 import { Base, Column, Model, Source } from '~/models';
 import { BasesService } from '~/services/bases.service';
 import {
@@ -30,20 +36,27 @@ export class DuplicateProcessor {
   ) {}
 
   @Process(JobTypes.DuplicateBase)
-  async duplicateBase(job: Job) {
+  async duplicateBase(job: Job<DuplicateBaseJobData>) {
     this.debugLog(`job started for ${job.id} (${JobTypes.DuplicateBase})`);
 
     const hrTime = initTime();
 
-    const { baseId, sourceId, dupProjectId, req, options } = job.data;
+    const { context, sourceId, dupProjectId, req, options } = job.data;
+
+    const baseId = context.base_id;
 
     const excludeData = options?.excludeData || false;
     const excludeHooks = options?.excludeHooks || false;
     const excludeViews = options?.excludeViews || false;
 
-    const base = await Base.get(baseId);
-    const dupProject = await Base.get(dupProjectId);
-    const source = await Source.get(sourceId);
+    const base = await Base.get(context, baseId);
+    const dupProject = await Base.get(context, dupProjectId);
+    const source = await Source.get(context, sourceId);
+
+    const targetContext = {
+      workspace_id: dupProject.fk_workspace_id,
+      base_id: dupProject.id,
+    };
 
     try {
       if (!base || !dupProject || !source) {
@@ -52,12 +65,12 @@ export class DuplicateProcessor {
 
       const user = (req as any).user;
 
-      const models = (await source.getModels()).filter(
+      const models = (await source.getModels(context)).filter(
         // TODO revert this when issue with cache is fixed
         (m) => m.source_id === source.id && !m.mm && m.type === 'table',
       );
 
-      const exportedModels = await this.exportService.serializeModels({
+      const exportedModels = await this.exportService.serializeModels(context, {
         modelIds: models.map((m) => m.id),
         excludeViews,
         excludeHooks,
@@ -78,7 +91,7 @@ export class DuplicateProcessor {
 
       const dupBase = dupProject.sources[0];
 
-      const idMap = await this.importService.importModels({
+      const idMap = await this.importService.importModels(targetContext, {
         user,
         baseId: dupProject.id,
         sourceId: dupBase.id,
@@ -93,7 +106,7 @@ export class DuplicateProcessor {
       }
 
       if (!excludeData) {
-        await this.importModelsData({
+        await this.importModelsData(targetContext, context, {
           idMap,
           sourceProject: base,
           sourceModels: models,
@@ -103,7 +116,7 @@ export class DuplicateProcessor {
         });
       }
 
-      await this.projectsService.baseUpdate({
+      await this.projectsService.baseUpdate(targetContext, {
         baseId: dupProject.id,
         base: {
           status: null,
@@ -113,7 +126,7 @@ export class DuplicateProcessor {
       });
     } catch (e) {
       if (dupProject?.id) {
-        await this.projectsService.baseSoftDelete({
+        await this.projectsService.baseSoftDelete(targetContext, {
           baseId: dupProject.id,
           user: req.user,
           req,
@@ -123,32 +136,36 @@ export class DuplicateProcessor {
     }
 
     this.debugLog(`job completed for ${job.id} (${JobTypes.DuplicateBase})`);
+
+    return { id: dupProject.id };
   }
 
   @Process(JobTypes.DuplicateModel)
-  async duplicateModel(job: Job) {
+  async duplicateModel(job: Job<DuplicateModelJobData>) {
     this.debugLog(`job started for ${job.id} (${JobTypes.DuplicateModel})`);
 
     const hrTime = initTime();
 
-    const { baseId, sourceId, modelId, title, req, options } = job.data;
+    const { context, sourceId, modelId, title, req, options } = job.data;
+
+    const baseId = context.base_id;
 
     const excludeData = options?.excludeData || false;
     const excludeHooks = options?.excludeHooks || false;
     const excludeViews = options?.excludeViews || false;
 
-    const base = await Base.get(baseId);
-    const source = await Source.get(sourceId);
+    const base = await Base.get(context, baseId);
+    const source = await Source.get(context, sourceId);
 
     const user = (req as any).user;
 
-    const models = (await source.getModels()).filter(
+    const models = (await source.getModels(context)).filter(
       (m) => !m.mm && m.type === 'table',
     );
 
     const sourceModel = models.find((m) => m.id === modelId);
 
-    await sourceModel.getColumns();
+    await sourceModel.getColumns(context);
 
     const relatedModelIds = sourceModel.columns
       .filter((col) => isLinksOrLTAR(col))
@@ -158,7 +175,7 @@ export class DuplicateProcessor {
     const relatedModels = models.filter((m) => relatedModelIds.includes(m.id));
 
     const exportedModel = (
-      await this.exportService.serializeModels({
+      await this.exportService.serializeModels(context, {
         modelIds: [modelId],
         excludeViews,
         excludeHooks,
@@ -179,7 +196,7 @@ export class DuplicateProcessor {
     exportedModel.model.title = title;
     exportedModel.model.table_name = title.toLowerCase().replace(/ /g, '_');
 
-    const idMap = await this.importService.importModels({
+    const idMap = await this.importService.importModels(context, {
       baseId,
       sourceId,
       data: [exportedModel],
@@ -215,7 +232,7 @@ export class DuplicateProcessor {
         }
       }
 
-      await this.importModelsData({
+      await this.importModelsData(context, context, {
         idMap,
         sourceProject: base,
         sourceModels: [sourceModel],
@@ -231,37 +248,39 @@ export class DuplicateProcessor {
 
     this.debugLog(`job completed for ${job.id} (${JobTypes.DuplicateModel})`);
 
-    return await Model.get(findWithIdentifier(idMap, sourceModel.id));
+    return { id: findWithIdentifier(idMap, sourceModel.id) };
   }
 
   @Process(JobTypes.DuplicateColumn)
-  async duplicateColumn(job: Job) {
+  async duplicateColumn(job: Job<DuplicateColumnJobData>) {
     this.debugLog(`job started for ${job.id} (${JobTypes.DuplicateColumn})`);
 
     const hrTime = initTime();
 
-    const { baseId, sourceId, columnId, extra, req, options } = job.data;
+    const { context, sourceId, columnId, extra, req, options } = job.data;
+
+    const baseId = context.base_id;
 
     const excludeData = options?.excludeData || false;
 
-    const base = await Base.get(baseId);
+    const base = await Base.get(context, baseId);
 
-    const sourceColumn = await Column.get({
+    const sourceColumn = await Column.get(context, {
       source_id: sourceId,
       colId: columnId,
     });
 
     const user = (req as any).user;
 
-    const source = await Source.get(sourceColumn.source_id);
+    const source = await Source.get(context, sourceColumn.source_id);
 
-    const models = (await source.getModels()).filter(
+    const models = (await source.getModels(context)).filter(
       (m) => !m.mm && m.type === 'table',
     );
 
     const sourceModel = models.find((m) => m.id === sourceColumn.fk_model_id);
 
-    const columns = await sourceModel.getColumns();
+    const columns = await sourceModel.getColumns(context);
 
     const title = generateUniqueName(
       `${sourceColumn.title} copy`,
@@ -276,8 +295,8 @@ export class DuplicateProcessor {
     const relatedModels = models.filter((m) => relatedModelIds.includes(m.id));
 
     const exportedModel = (
-      await this.exportService.serializeModels({
-        modelIds: [sourceModel.id],
+      await this.exportService.serializeModels(context, {
+        modelIds: [sourceModel.id, ...relatedModelIds],
         excludeData,
         excludeHooks: true,
         excludeViews: true,
@@ -309,7 +328,7 @@ export class DuplicateProcessor {
 
     Object.assign(replacedColumn, extra);
 
-    const idMap = await this.importService.importModels({
+    const idMap = await this.importService.importModels(context, {
       baseId,
       sourceId: source.id,
       data: [exportedModel],
@@ -350,7 +369,7 @@ export class DuplicateProcessor {
         }
       }
 
-      await this.importModelsData({
+      await this.importModelsData(context, context, {
         idMap,
         sourceProject: base,
         sourceModels: [],
@@ -367,14 +386,14 @@ export class DuplicateProcessor {
       elapsedTime(hrTime, 'import model data', 'duplicateColumn');
     }
 
-    const destColumn = await Column.get({
+    const destColumn = await Column.get(context, {
       source_id: base.id,
       colId: findWithIdentifier(idMap, sourceColumn.id),
     });
 
     // update cdf
     if (!isVirtualCol(destColumn)) {
-      await this.columnsService.columnUpdate({
+      await this.columnsService.columnUpdate(context, {
         columnId: findWithIdentifier(idMap, sourceColumn.id),
         column: {
           ...destColumn,
@@ -386,22 +405,23 @@ export class DuplicateProcessor {
 
     this.debugLog(`job completed for ${job.id} (${JobTypes.DuplicateModel})`);
 
-    return await Column.get({
-      source_id: base.id,
-      colId: findWithIdentifier(idMap, sourceColumn.id),
-    });
+    return { id: findWithIdentifier(idMap, sourceColumn.id) };
   }
 
-  async importModelsData(param: {
-    idMap: Map<string, string>;
-    sourceProject: Base;
-    sourceModels: Model[];
-    destProject: Base;
-    destBase: Source;
-    hrTime: { hrTime: [number, number] };
-    modelFieldIds?: Record<string, string[]>;
-    externalModels?: Model[];
-  }) {
+  async importModelsData(
+    targetContext: NcContext,
+    sourceContext: NcContext,
+    param: {
+      idMap: Map<string, string>;
+      sourceProject: Base;
+      sourceModels: Model[];
+      destProject: Base;
+      destBase: Source;
+      hrTime: { hrTime: [number, number] };
+      modelFieldIds?: Record<string, string[]>;
+      externalModels?: Model[];
+    },
+  ) {
     const {
       idMap,
       sourceProject,
@@ -429,7 +449,7 @@ export class DuplicateProcessor {
       });
 
       this.exportService
-        .streamModelDataAsCsv({
+        .streamModelDataAsCsv(sourceContext, {
           dataStream,
           linkStream,
           baseId: sourceProject.id,
@@ -443,9 +463,12 @@ export class DuplicateProcessor {
           error = e;
         });
 
-      const model = await Model.get(findWithIdentifier(idMap, sourceModel.id));
+      const model = await Model.get(
+        targetContext,
+        findWithIdentifier(idMap, sourceModel.id),
+      );
 
-      await this.importService.importDataFromCsvStream({
+      await this.importService.importDataFromCsvStream(targetContext, {
         idMap,
         dataStream,
         destProject,
@@ -453,13 +476,16 @@ export class DuplicateProcessor {
         destModel: model,
       });
 
-      handledLinks = await this.importService.importLinkFromCsvStream({
-        idMap,
-        linkStream,
-        destProject,
-        destBase,
-        handledLinks,
-      });
+      handledLinks = await this.importService.importLinkFromCsvStream(
+        targetContext,
+        {
+          idMap,
+          linkStream,
+          destProject,
+          destBase,
+          handledLinks,
+        },
+      );
 
       elapsedTime(
         hrTime,
@@ -488,7 +514,7 @@ export class DuplicateProcessor {
         let error = null;
 
         this.exportService
-          .streamModelDataAsCsv({
+          .streamModelDataAsCsv(targetContext, {
             dataStream,
             linkStream,
             baseId: sourceProject.id,
@@ -506,7 +532,7 @@ export class DuplicateProcessor {
         const headers: string[] = [];
         let chunk = [];
 
-        const model = await Model.get(sourceModel.id);
+        const model = await Model.get(targetContext, sourceModel.id);
 
         await new Promise((resolve) => {
           papaparse.parse(dataStream, {
@@ -517,7 +543,7 @@ export class DuplicateProcessor {
                 for (const header of results.data as any) {
                   const id = idMap.get(header);
                   if (id) {
-                    const col = await Column.get({
+                    const col = await Column.get(targetContext, {
                       source_id: destBase.id,
                       colId: id,
                     });
@@ -527,7 +553,7 @@ export class DuplicateProcessor {
                         (col.colOptions?.type === RelationTypes.ONE_TO_ONE &&
                           col.meta?.bt)
                       ) {
-                        const childCol = await Column.get({
+                        const childCol = await Column.get(targetContext, {
                           source_id: destBase.id,
                           colId: col.colOptions.fk_child_column_id,
                         });
@@ -567,13 +593,16 @@ export class DuplicateProcessor {
                       // remove empty rows (only pk is present)
                       chunk = chunk.filter((r) => Object.keys(r).length > 1);
                       if (chunk.length > 0) {
-                        await this.bulkDataService.bulkDataUpdate({
-                          baseName: destProject.id,
-                          tableName: model.id,
-                          body: chunk,
-                          cookie: null,
-                          raw: true,
-                        });
+                        await this.bulkDataService.bulkDataUpdate(
+                          targetContext,
+                          {
+                            baseName: destProject.id,
+                            tableName: model.id,
+                            body: chunk,
+                            cookie: null,
+                            raw: true,
+                          },
+                        );
                       }
                     } catch (e) {
                       this.debugLog(e);
@@ -590,7 +619,7 @@ export class DuplicateProcessor {
                   // remove empty rows (only pk is present)
                   chunk = chunk.filter((r) => Object.keys(r).length > 1);
                   if (chunk.length > 0) {
-                    await this.bulkDataService.bulkDataUpdate({
+                    await this.bulkDataService.bulkDataUpdate(targetContext, {
                       baseName: destProject.id,
                       tableName: model.id,
                       body: chunk,
@@ -610,13 +639,16 @@ export class DuplicateProcessor {
 
         if (error) throw error;
 
-        handledLinks = await this.importService.importLinkFromCsvStream({
-          idMap,
-          linkStream,
-          destProject,
-          destBase,
-          handledLinks,
-        });
+        handledLinks = await this.importService.importLinkFromCsvStream(
+          targetContext,
+          {
+            idMap,
+            linkStream,
+            destProject,
+            destBase,
+            handledLinks,
+          },
+        );
 
         elapsedTime(
           hrTime,

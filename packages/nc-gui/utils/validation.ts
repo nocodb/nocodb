@@ -123,6 +123,20 @@ export const fieldLengthValidator = () => {
     },
   }
 }
+export const reservedFieldNameValidator = () => {
+  return {
+    validator: (rule: any, value: any) => {
+      const { t } = getI18n().global
+
+      return new Promise((resolve, reject) => {
+        if (value?.toLowerCase() === 'id') {
+          reject(new Error(t('msg.error.duplicateSystemColumnName')))
+        }
+        resolve(true)
+      })
+    },
+  }
+}
 
 export const importUrlValidator = {
   validator: (rule: any, value: any) => {

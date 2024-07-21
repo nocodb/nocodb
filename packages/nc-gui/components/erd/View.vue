@@ -22,12 +22,18 @@ const props = defineProps({
   },
 })
 
-const { baseTables: _baseTables } = storeToRefs(useTablesStore())
-const { sources, base } = storeToRefs(useBase())
+const { bases } = storeToRefs(useBases())
 
-const baseId = computed(() => props.baseId ?? base.value!.id)
+const { base: activeBase } = storeToRefs(useBase())
+
+const baseId = computed(() => props.baseId ?? activeBase.value!.id!)
+
+const tablesStore = useTablesStore()
+const { baseTables: _baseTables } = storeToRefs(tablesStore)
 
 const baseTables = computed(() => _baseTables.value.get(baseId.value) ?? [])
+
+const sources = computed<SourceType[]>(() => bases.value.get(baseId.value)?.sources || [])
 
 const { metas, getMeta } = useMetas()
 
@@ -45,14 +51,26 @@ const config = reactive<ERDConfig>({
   isFullScreen: false,
 })
 
-const loadMetaOfTablesNotInMetas = async (localTables: TableType[]) => {
-  await Promise.all(
-    localTables
-      .filter((table) => !metas.value[table.id!])
-      .map(async (table) => {
+const fetchMissingTableMetas = async (localTables: TableType[]) => {
+  const chunkSize = 5
+
+  // Function to process a chunk of tables
+  const processChunk = async (chunk: TableType[]) => {
+    await Promise.all(
+      chunk.map(async (table) => {
         await getMeta(table.id!)
       }),
-  )
+    )
+  }
+
+  // filter out tables that are already loaded and are not from the same source
+  const filteredTables = localTables.filter((t) => !metas.value[t.id!] && t.source_id === props.sourceId)
+
+  // Split the tables into chunks and process each chunk sequentially to avoid hitting throttling limits
+  for (let i = 0; i < filteredTables.length; i += chunkSize) {
+    const chunk = filteredTables.slice(i, i + chunkSize)
+    await processChunk(chunk)
+  }
 }
 
 const populateTables = async () => {
@@ -73,7 +91,7 @@ const populateTables = async () => {
     localTables = baseTables.value
   }
 
-  await loadMetaOfTablesNotInMetas(localTables)
+  await fetchMissingTableMetas(localTables)
 
   tables.value = localTables
     .filter(
@@ -116,6 +134,14 @@ watch(
     config.showPkAndFk = config.showAllColumns
   },
 )
+
+onMounted(async () => {
+  if (!props.baseId) return
+
+  if (!_baseTables.value.get(props.baseId)) {
+    await tablesStore.loadProjectTables(props.baseId)
+  }
+})
 </script>
 
 <template>

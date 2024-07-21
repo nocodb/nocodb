@@ -44,13 +44,6 @@ const focus: VNodeRef = (el: typeof InputPassword) => {
   return el && el?.focus?.()
 }
 
-watch(
-  () => formState.value.password,
-  () => {
-    passwordError.value = null
-  },
-)
-
 const bgImageName = computed(() => {
   switch (props.viewType) {
     case ViewTypes.GRID:
@@ -97,6 +90,7 @@ const bgImageName = computed(() => {
             class="!rounded-lg !text-small"
             hide-details
             :placeholder="$t('msg.enterPassword')"
+            @input="passwordError = null"
           />
           <Transition name="layout">
             <div v-if="passwordError" class="mb-2 text-sm text-red-500">{{ passwordError }}</div>

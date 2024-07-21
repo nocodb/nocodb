@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { UITypes } from 'nocodb-sdk'
+
 const props = defineProps<{
   value: any
   isEdit: boolean
@@ -14,7 +16,7 @@ const initialIsMulti = ref()
 
 const validators = {}
 
-const { setAdditionalValidations } = useColumnCreateStoreOrThrow()
+const { setAdditionalValidations, updateFieldName } = useColumnCreateStoreOrThrow()
 
 setAdditionalValidations({
   ...validators,
@@ -22,9 +24,8 @@ setAdditionalValidations({
 
 // set default value
 vModel.value.meta = {
-  is_multi: false,
-  notify: false,
-  ...vModel.value.meta,
+  ...columnDefaultMeta[UITypes.User],
+  ...(vModel.value.meta || {}),
 }
 
 onMounted(() => {
@@ -36,6 +37,7 @@ const updateIsMulti = (isChecked: boolean) => {
   if (!vModel.value.meta.is_multi) {
     vModel.value.cdf = vModel.value.cdf?.split(',')[0] || null
   }
+  updateFieldName()
 }
 </script>
 
@@ -50,7 +52,7 @@ const updateIsMulti = (isChecked: boolean) => {
     </a-form-item>
     <a-form-item v-if="future">
       <div v-if="vModel.meta" class="flex items-center gap-1">
-        <NcSwitch v-model:checked="vModel.meta.notify" data-testid="user-column-notify-user" @change="updateIsMulti">
+        <NcSwitch v-model:checked="vModel.meta.notify" data-testid="user-column-notify-user">
           <div class="text-sm text-gray-800 select-none">Notify users with base access when they're added</div>
         </NcSwitch>
       </div>

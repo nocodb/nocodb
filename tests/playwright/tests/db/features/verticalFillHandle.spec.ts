@@ -31,6 +31,8 @@ async function dragDrop({
 
   // drag and drop
   await src.dragTo(dst);
+
+  await params.dashboard.rootPage.waitForTimeout(250);
 }
 async function beforeEachInit({ page, tableType }: { page: any; tableType: string }) {
   const context = await setup({ page, isEmptyProject: true });
@@ -113,7 +115,7 @@ test.describe('Fill Handle', () => {
     await p.dashboard.grid.cell.time.set({ index: 0, columnHeader: 'Time', value: '02:02' });
 
     // set rating for first record
-    await p.dashboard.grid.cell.rating.select({ index: 0, columnHeader: 'Rating', rating: 2 });
+    await p.dashboard.grid.cell.rating.select({ index: 0, columnHeader: 'Rating', rating: 3 });
 
     await dragDrop({ firstColumn: 'Number', lastColumn: 'Time', params: p });
 

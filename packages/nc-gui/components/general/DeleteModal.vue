@@ -45,9 +45,7 @@ onKeyStroke('Enter', () => {
 <template>
   <GeneralModal v-model:visible="visible" size="small" centered>
     <div class="flex flex-col p-6">
-      <div class="flex flex-row pb-2 mb-4 font-medium text-lg border-b-1 border-gray-50 text-gray-800">
-        {{ deleteLabel }} {{ props.entityName }}
-      </div>
+      <div class="flex flex-row pb-2 mb-3 font-medium text-lg text-gray-800">{{ deleteLabel }} {{ props.entityName }}</div>
 
       <div class="mb-3 text-gray-800">
         {{
@@ -58,15 +56,22 @@ onKeyStroke('Enter', () => {
       </div>
 
       <slot name="entity-preview"></slot>
-
+      <template v-if="$slots.warning">
+        <a-alert type="warning" show-icon>
+          <template #message>
+            <slot name="warning"></slot>
+          </template>
+        </a-alert>
+      </template>
       <div class="flex flex-row gap-x-2 mt-2.5 pt-2.5 justify-end">
-        <NcButton type="secondary" @click="visible = false">
+        <NcButton type="secondary" size="small" @click="visible = false">
           {{ $t('general.cancel') }}
         </NcButton>
 
         <NcButton
           key="submit"
           type="danger"
+          size="small"
           html-type="submit"
           :loading="isLoading"
           data-testid="nc-delete-modal-delete-btn"

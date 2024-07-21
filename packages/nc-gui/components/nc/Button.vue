@@ -186,7 +186,7 @@ useEventListener(NcButton, 'mousedown', () => {
 .nc-button.ant-btn[disabled],
 .ant-btn-text.nc-button.ant-btn[disabled] {
   box-shadow: none !important;
-  @apply bg-gray-50 border-0 text-gray-300 cursor-not-allowed md:(hover:bg-gray-50);
+  @apply bg-gray-50 border-0 text-gray-300 !cursor-not-allowed md:(hover:bg-gray-50);
 }
 
 .nc-button.ant-btn-text.ant-btn[disabled] {

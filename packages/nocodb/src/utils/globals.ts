@@ -51,6 +51,7 @@ export enum MetaTable {
   COMMENTS = 'nc_comments',
   USER_COMMENTS_NOTIFICATIONS_PREFERENCE = 'nc_user_comment_notifications_preference',
   COMMENTS_REACTIONS = 'nc_comment_reactions',
+  JOBS = 'nc_jobs',
 }
 
 export enum MetaTableOldV2 {
@@ -171,6 +172,7 @@ export enum CacheScope {
   DASHBOARD_PROJECT_DB_PROJECT_LINKING = 'dashboardProjectDBProjectLinking',
   SINGLE_QUERY = 'singleQuery',
   JOBS = 'nc_jobs',
+  JOBS_POLLING = 'nc_jobs_polling',
   PRESIGNED_URL = 'presignedUrl',
   STORE = 'store',
   PROJECT_ALIAS = 'baseAlias',
@@ -263,3 +265,27 @@ export const DB_TYPES = <const>[
   'pg',
   'databricks',
 ];
+
+export enum RootScopes {
+  ROOT = 'root',
+  ORG = 'org',
+  WORKSPACE = 'workspace',
+  BASE = 'base',
+  // This scope only used for extract-ids middleware to get initial entity
+  BYPASS = 'bypass',
+}
+
+export const RootScopeTables = {
+  [RootScopes.ROOT]: [
+    MetaTable.USERS,
+    MetaTable.USER_REFRESH_TOKENS,
+    MetaTable.API_TOKENS,
+    MetaTable.PLUGIN,
+    MetaTable.STORE,
+    MetaTable.NOTIFICATION,
+    MetaTable.JOBS,
+    // Temporarily added need to be discussed within team
+    MetaTable.AUDIT,
+  ],
+  [RootScopes.BASE]: [MetaTable.PROJECT],
+};

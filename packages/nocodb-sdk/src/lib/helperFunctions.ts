@@ -59,19 +59,10 @@ const stringifyRolesObj = (roles?: RolesObj | null): string => {
 };
 
 const getAvailableRollupForUiType = (type: string) => {
-  if (isNumericCol(type as UITypes)) {
-    return [
-      'sum',
-      'count',
-      'min',
-      'max',
-      'avg',
-      'countDistinct',
-      'sumDistinct',
-      'avgDistinct',
-    ];
-  } else if (
+  if (
     [
+      UITypes.Year,
+      UITypes.Time,
       UITypes.Date,
       UITypes.DateTime,
       UITypes.CreatedTime,
@@ -79,22 +70,9 @@ const getAvailableRollupForUiType = (type: string) => {
     ].includes(type as UITypes)
   ) {
     return ['count', 'min', 'max', 'countDistinct'];
-  } else if (
-    [
-      UITypes.SingleLineText,
-      UITypes.LongText,
-      UITypes.User,
-      UITypes.Email,
-      UITypes.PhoneNumber,
-      UITypes.URL,
-      UITypes.Checkbox,
-      UITypes.JSON,
-    ].includes(type as UITypes)
-  ) {
-    return ['count'];
-  } else if ([UITypes.Attachment].includes(type as UITypes)) {
-    return [];
-  } else {
+  }
+  if (isNumericCol(type as UITypes)) {
+    // Number, Currency, Percent, Duration, Rating, Decimal
     return [
       'sum',
       'count',
@@ -106,33 +84,110 @@ const getAvailableRollupForUiType = (type: string) => {
       'avgDistinct',
     ];
   }
+
+  if (
+    [
+      UITypes.SingleLineText,
+      UITypes.LongText,
+      UITypes.User,
+      UITypes.Email,
+      UITypes.PhoneNumber,
+      UITypes.URL,
+      UITypes.JSON,
+    ].includes(type as UITypes)
+  ) {
+    return ['count', 'countDistinct'];
+  }
+  if ([UITypes.Checkbox].includes(type as UITypes)) {
+    return ['count', 'sum'];
+  }
+  if ([UITypes.Attachment].includes(type as UITypes)) {
+    return [];
+  }
+  if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(type as UITypes)) {
+    return ['count', 'countDistinct'];
+  }
+  return [
+    'sum',
+    'count',
+    'min',
+    'max',
+    'avg',
+    'countDistinct',
+    'sumDistinct',
+    'avgDistinct',
+  ];
 };
 
-const getFileName = ({
-  name,
-  count,
-  ext
-}) => `${name}${count ? `(${count})` : ''}${ext? `${ext}` : ''}`
+const getRenderAsTextFunForUiType = (type: UITypes) => {
+  if (
+    [
+      UITypes.Year,
+      UITypes.Time,
+      UITypes.Date,
+      UITypes.DateTime,
+      UITypes.CreatedTime,
+      UITypes.LastModifiedTime,
+      UITypes.Decimal,
+      UITypes.Currency,
+      UITypes.Duration,
+    ].includes(type)
+  ) {
+    return ['count', 'countDistinct'];
+  }
+
+  return [
+    'sum',
+    'count',
+    'avg',
+    'min',
+    'max',
+    'countDistinct',
+    'sumDistinct',
+    'avgDistinct',
+  ];
+};
+
+const getFileName = ({ name, count, ext }) =>
+  `${name}${count ? `(${count})` : ''}${ext ? `${ext}` : ''}`;
 
 // add count before extension if duplicate name found
-function populateUniqueFileName(
-  fileName: string,
-  attachments: string[]
-) {
-  return fileName.replace(/^(.+?)(?:\((\d+)\))?(\.(?:tar|min)\.(?:\w{2,4})|\.\w+)$/, (fileName,name, count, ext) =>{
-    let genFileName = fileName;
-    let c = count || 1;
+function populateUniqueFileName(fileName: string, attachments: string[]) {
+  return fileName.replace(
+    /^(.+?)(?:\((\d+)\))?(\.(?:tar|min)\.(?:\w{2,4})|\.\w+)$/,
+    (fileName, name, count, ext) => {
+      let genFileName = fileName;
+      let c = count || 1;
 
-    // iterate until a unique name
-    while (attachments.some((fn) => fn === genFileName)) {
-      genFileName = getFileName({
-        name,
-        ext,
-        count: c++
-      });
+      // iterate until a unique name
+      while (attachments.some((fn) => fn === genFileName)) {
+        genFileName = getFileName({
+          name,
+          ext,
+          count: c++,
+        });
+      }
+      return genFileName;
     }
-    return genFileName;
-  });
+  );
+}
+
+function roundUpToPrecision(number: number, precision: number = 0) {
+  precision =
+    precision == null
+      ? 0
+      : precision >= 0
+      ? Math.min(precision, 292)
+      : Math.max(precision, -292);
+  if (precision) {
+    // Shift with exponential notation to avoid floating-point issues.
+    // See [MDN](https://mdn.io/round#Examples) for more details.
+    let pair = `${number}e`.split('e');
+    const value = Math.round(Number(`${pair[0]}e${+pair[1] + precision}`));
+    pair = `${value}e`.split('e');
+    return +`${pair[0]}e${+pair[1] - precision}`;
+  }
+  return Math.round(number);
 }
 
 export {
@@ -144,5 +199,7 @@ export {
   extractRolesObj,
   stringifyRolesObj,
   getAvailableRollupForUiType,
+  getRenderAsTextFunForUiType,
   populateUniqueFileName,
+  roundUpToPrecision,
 };

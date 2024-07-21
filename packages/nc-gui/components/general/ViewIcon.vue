@@ -1,9 +1,8 @@
 <script lang="ts" setup>
-import { Icon as IcIcon } from '@iconify/vue'
-import type { TableType } from 'nocodb-sdk'
+import type { ViewType } from 'nocodb-sdk'
 
 const props = defineProps<{
-  meta: TableType
+  meta: ViewType
   ignoreColor?: boolean
 }>()
 
@@ -11,11 +10,12 @@ const viewMeta = toRef(props, 'meta')
 </script>
 
 <template>
-  <IcIcon
+  <LazyGeneralEmojiPicker
     v-if="viewMeta?.meta?.icon"
-    :data-testid="`nc-icon-${viewMeta?.meta?.icon}`"
-    class="text-[16px]"
-    :icon="viewMeta?.meta?.icon"
+    :data-testid="`nc-emoji-${viewMeta.meta?.icon}`"
+    size="xsmall"
+    :emoji="viewMeta.meta?.icon"
+    readonly
   />
   <component
     :is="viewIcons[viewMeta.type]?.icon"

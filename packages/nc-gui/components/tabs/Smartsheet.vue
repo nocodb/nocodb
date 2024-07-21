@@ -14,6 +14,8 @@ const { metas, getMeta } = useMetas()
 
 useSidebar('nc-right-sidebar')
 
+const { isMobileMode } = useGlobal()
+
 const activeTab = toRef(props, 'activeTab')
 
 const route = useRoute()
@@ -37,6 +39,12 @@ const reloadViewMetaEventHook = createEventHook<void | boolean>()
 
 const openNewRecordFormHook = createEventHook<void>()
 
+const { base } = storeToRefs(useBase())
+
+const activeSource = computed(() => {
+  return meta.value?.source_id && base.value && base.value.sources?.find((source) => source.id === meta.value?.source_id)
+})
+
 useProvideKanbanViewStore(meta, activeView)
 useProvideMapViewStore(meta, activeView)
 useProvideCalendarViewStore(meta, activeView)
@@ -50,9 +58,17 @@ provide(ReloadViewMetaHookInj, reloadViewMetaEventHook)
 provide(OpenNewRecordFormHookInj, openNewRecordFormHook)
 provide(IsFormInj, isForm)
 provide(TabMetaInj, activeTab)
+provide(ActiveSourceInj, activeSource)
+provide(ReloadAggregateHookInj, createEventHook())
+
 provide(
   ReadonlyInj,
-  computed(() => !isUIAllowed('dataEdit')),
+  computed(
+    () =>
+      !isUIAllowed('dataEdit', {
+        skipSourceCheck: true,
+      }),
+  ),
 )
 useExpandedFormDetachedProvider()
 
@@ -63,6 +79,8 @@ useProvideViewGroupBy(activeView, meta, xWhere)
 useProvideSmartsheetLtarHelpers(meta)
 
 const grid = ref()
+
+const extensionPaneRef = ref()
 
 const onDrop = async (event: DragEvent) => {
   event.preventDefault()
@@ -143,12 +161,21 @@ watch([activeViewTitleOrId, activeTableId], () => {
   handleSidebarOpenOnMobileForNonViews()
 })
 
-const { extensionPanelSize } = useExtensions()
+const { isPanelExpanded, extensionPanelSize } = useExtensions()
 
 const onResize = (sizes: { min: number; max: number; size: number }[]) => {
   if (sizes.length === 2) {
     if (!sizes[1].size) return
     extensionPanelSize.value = sizes[1].size
+  }
+}
+
+const onReady = () => {
+  if (isPanelExpanded.value && extensionPaneRef.value) {
+    // wait until extension pane animation complete
+    setTimeout(() => {
+      extensionPaneRef.value?.onReady()
+    }, 300)
   }
 }
 </script>
@@ -157,10 +184,18 @@ const onResize = (sizes: { min: number; max: number; size: number }[]) => {
   <div class="nc-container flex flex-col h-full" @drop="onDrop" @dragover.prevent>
     <LazySmartsheetTopbar />
     <div style="height: calc(100% - var(--topbar-height))">
-      <Splitpanes v-if="openedViewsTab === 'view'" class="nc-extensions-content-resizable-wrapper" @resized="onResize">
-        <Pane class="flex flex-col h-full flex-1 min-w-0" size="60">
+      <Splitpanes
+        v-if="openedViewsTab === 'view'"
+        class="nc-extensions-content-resizable-wrapper"
+        @ready="onReady"
+        @resized="onResize"
+      >
+        <Pane class="flex flex-col h-full min-w-0" :size="isPanelExpanded && extensionPanelSize ? 100 - extensionPanelSize : 100">
           <LazySmartsheetToolbar v-if="!isForm" />
-          <div :style="{ height: isForm ? '100%' : 'calc(100% - var(--toolbar-height))' }" class="flex flex-row w-full">
+          <div
+            :style="{ height: isForm || isMobileMode ? '100%' : 'calc(100% - var(--toolbar-height))' }"
+            class="flex flex-row w-full"
+          >
             <Transition name="layout" mode="out-in">
               <div v-if="openedViewsTab === 'view'" class="flex flex-1 min-h-0 w-3/4">
                 <div class="h-full flex-1 min-w-0 min-h-0 bg-white">
@@ -182,7 +217,7 @@ const onResize = (sizes: { min: number; max: number; size: number }[]) => {
             </Transition>
           </div>
         </Pane>
-        <ExtensionsPane />
+        <ExtensionsPane ref="extensionPaneRef" />
       </Splitpanes>
       <SmartsheetDetails v-else />
     </div>

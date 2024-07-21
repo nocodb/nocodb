@@ -3,6 +3,26 @@ import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { isColumnRequiredAndNull } from './columnUtils'
 import type { Row } from '~/lib/types'
 
+export const isValidValue = (val: unknown) => {
+  if (val === null || val === undefined) {
+    return false
+  }
+
+  if (typeof val === 'string' && val === '') {
+    return false
+  }
+
+  if (Array.isArray(val) && val.length === 0) {
+    return false
+  }
+
+  if (typeof val === 'object' && !Array.isArray(val) && Object.keys(val).length === 0) {
+    return false
+  }
+
+  return true
+}
+
 export const extractPkFromRow = (row: Record<string, any>, columns: ColumnType[]) => {
   if (!row || !columns) return null
 
@@ -105,7 +125,7 @@ export const rowDefaultData = (columns: ColumnType[] = []) => {
       !isSystemColumn(col) &&
       !isVirtualCol(col) &&
       ![UITypes.Rollup, UITypes.Lookup, UITypes.Formula, UITypes.Barcode, UITypes.QrCode].includes(col.uidt) &&
-      col?.cdf &&
+      isValidValue(col?.cdf) &&
       !/^\w+\(\)|CURRENT_TIMESTAMP$/.test(col.cdf)
     ) {
       const defaultValue = col.cdf
@@ -119,8 +139,9 @@ export const rowDefaultData = (columns: ColumnType[] = []) => {
 
 export const isRowEmpty = (record: any, col: any) => {
   if (!record || !col) return true
+
   const val = record.row[col.title]
-  if (!val) return true
+  if (val === null || val === undefined || val === '') return true
 
   return Array.isArray(val) && val.length === 0
 }

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type CalendarRangeType, UITypes, ViewTypes, isSystemColumn } from 'nocodb-sdk'
+import { type CalendarRangeType, FormulaDataTypes, UITypes } from 'nocodb-sdk'
 import type { SelectProps } from 'ant-design-vue'
 
 const meta = inject(MetaInj, ref())
@@ -12,11 +12,54 @@ const isLocked = inject(IsLockedInj, ref(false))
 
 const IsPublic = inject(IsPublicInj, ref(false))
 
+const isToolbarIconMode = inject(
+  IsToolbarIconMode,
+  computed(() => false),
+)
+
 const { loadViewColumns } = useViewColumnsOrThrow()
 
-const { loadCalendarMeta, loadCalendarData, loadSidebarData, fetchActiveDates } = useCalendarViewStoreOrThrow()
+const { loadCalendarMeta, loadCalendarData, loadSidebarData, fetchActiveDates, updateCalendarMeta, viewMetaProperties } =
+  useCalendarViewStoreOrThrow()
 
 const calendarRangeDropdown = ref(false)
+
+const hideWeekends = computed({
+  get: () => viewMetaProperties.value?.hide_weekend ?? false,
+  set: (newValue) => {
+    updateCalendarMeta({
+      meta: {
+        hide_weekend: newValue,
+      },
+    })
+  },
+})
+
+const dateFieldOptions = computed<SelectProps['options']>(() => {
+  return (
+    meta.value?.columns
+      ?.filter(
+        (c) =>
+          [UITypes.DateTime, UITypes.Date, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(c.uidt) ||
+          (c.uidt === UITypes.Formula && (c.colOptions as any)?.parsed_tree?.dataType === FormulaDataTypes.DATE),
+      )
+      .map((c) => ({
+        label: c.title,
+        value: c.id,
+        uidt: c.uidt,
+      })) ?? []
+  ).sort((a, b) => {
+    const priority = {
+      [UITypes.DateTime]: 1,
+      [UITypes.Date]: 2,
+      [UITypes.Formula]: 3,
+      [UITypes.CreatedTime]: 4,
+      [UITypes.LastModifiedTime]: 5,
+    }
+
+    return (priority[a.uidt] || 6) - (priority[b.uidt] || 6)
+  })
+})
 
 watch(
   () => activeView.value?.id,
@@ -91,17 +134,6 @@ const saveCalendarRanges = async () => {
   }
 }
 
-const dateFieldOptions = computed<SelectProps['options']>(() => {
-  return (
-    meta.value?.columns
-      ?.filter((c) => c.uidt === UITypes.Date || (c.uidt === UITypes.DateTime && !isSystemColumn(c)))
-      .map((c) => ({
-        label: c.title,
-        value: c.id,
-        uidt: c.uidt,
-      })) ?? []
-  )
-})
 /*
 const removeRange = async (id: number) => {
   _calendar_ranges.value = _calendar_ranges.value.filter((_, i) => i !== id)
@@ -127,7 +159,7 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
       >
         <div class="flex items-center gap-2">
           <component :is="iconMap.calendar" class="h-4 w-4 transition-all group-hover:text-brand-500" />
-          <span class="text-capitalize !group-hover:text-brand-500 !text-[13px] font-medium">
+          <span v-if="!isToolbarIconMode" class="text-capitalize !group-hover:text-brand-500 !text-[13px] font-medium">
             {{ $t('activity.settings') }}
           </span>
         </div>
@@ -135,29 +167,6 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
     </div>
     <template #overlay>
       <div v-if="calendarRangeDropdown" class="w-98 space-y-6 rounded-2xl p-6" data-testid="nc-calendar-range-menu" @click.stop>
-        <div>
-          <div class="flex mb-3 justify-between">
-            <div class="flex items-center gap-3">
-              <GeneralViewIcon
-                :meta="{
-                  type: ViewTypes.CALENDAR,
-                }"
-                class="w-6 h-6"
-              />
-              <span class="font-bold text-base"> {{ `${$t('activity.calendar')} ${$t('activity.viewSettings')}` }}</span>
-            </div>
-
-            <a
-              class="text-sm !text-gray-600 !font-default !hover:text-gray-600"
-              href="`https://docs.nocodb.com/views/view-types/calendar`"
-              target="_blank"
-            >
-              Go to Docs
-            </a>
-          </div>
-          <NcDivider divider-class="!border-gray-200" />
-        </div>
-
         <div
           v-for="(range, id) in _calendar_ranges"
           :key="id"
@@ -252,9 +261,18 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
           </NcButton>
             -->
         </div>
+
         <div v-if="!isSetup" class="flex items-center gap-2 !mt-2">
           <GeneralIcon icon="warning" class="text-sm mt-0.5 text-orange-500" />
           <span class="text-sm text-gray-500"> Date field is required! </span>
+        </div>
+
+        <div>
+          <NcSwitch v-model:checked="hideWeekends">
+            <span class="text-gray-800">
+              {{ $t('activity.hideWeekends') }}
+            </span>
+          </NcSwitch>
         </div>
 
         <!--

@@ -215,6 +215,11 @@ function tableTest() {
   });
 
   it('Update table', async function () {
+    const ctx = {
+      workspace_id: base.fk_workspace_id,
+      base_id: base.id,
+    };
+
     const response = await request(context.app)
       .patch(`/api/v1/db/meta/tables/${table.id}`)
       .set('xc-auth', context.token)
@@ -223,7 +228,7 @@ function tableTest() {
         table_name: 'new_title',
       })
       .expect(200);
-    const updatedTable = await Model.get(table.id);
+    const updatedTable = await Model.get(ctx, table.id);
 
     if (!updatedTable.table_name.endsWith('new_title')) {
       return new Error('Table was not updated');

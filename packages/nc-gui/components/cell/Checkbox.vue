@@ -25,6 +25,8 @@ const isEditColumnMenu = inject(EditColumnInj, ref(false))
 
 const isGallery = inject(IsGalleryInj, ref(false))
 
+const isKanban = inject(IsKanbanInj, ref(false))
+
 const readOnly = inject(ReadonlyInj)
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
@@ -110,11 +112,11 @@ useSelectedCellKeyupListener(active, (e) => {
     <div
       class="flex items-center"
       :class="{
-        'w-full justify-start': isEditColumnMenu || isGallery || isForm,
-        'justify-center': !isEditColumnMenu && !isGallery && !isForm,
+        'w-full justify-start': isEditColumnMenu || isGallery || isKanban || isForm,
+        'justify-center': !isEditColumnMenu && !isGallery && !isKanban && !isForm,
         'py-2': isEditColumnMenu,
       }"
-      @click="onClick(true)"
+      @click.stop="onClick(true)"
     >
       <Transition name="layout" mode="out-in" :duration="100">
         <component

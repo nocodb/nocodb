@@ -46,8 +46,8 @@ export class ExpandedFormPage extends BasePage {
   }
 
   async clickDeleteRow() {
-    await this.click3DotsMenu('Delete Record');
-    await this.rootPage.locator('.ant-btn-danger:has-text("Delete Record")').click();
+    await this.click3DotsMenu('Delete record');
+    await this.rootPage.locator('.ant-btn-danger:has-text("Delete record")').click();
   }
 
   async isDisabledDuplicateRow() {
@@ -67,7 +67,17 @@ export class ExpandedFormPage extends BasePage {
     await this.dashboard.waitForLoaderToDisappear();
   }
 
-  async fillField({ columnTitle, value, type = 'text' }: { columnTitle: string; value: string; type?: string }) {
+  async fillField({
+    columnTitle,
+    value,
+    type = 'text',
+    ltarCount,
+  }: {
+    columnTitle: string;
+    value: string;
+    type?: string;
+    ltarCount?: number;
+  }) {
     const field = this.get().getByTestId(`nc-expand-col-${columnTitle}`);
     switch (type) {
       case 'text':
@@ -84,12 +94,18 @@ export class ExpandedFormPage extends BasePage {
       case 'belongsTo':
         await field.locator('.nc-virtual-cell').hover();
         await field.locator('.nc-action-icon').click();
+        if (ltarCount !== undefined && ltarCount !== null) {
+          await this.dashboard.linkRecord.verifyCount(ltarCount);
+        }
         await this.dashboard.linkRecord.select(value, false);
         break;
       case 'hasMany':
       case 'manyToMany':
         await field.locator('.nc-virtual-cell').hover();
         await field.locator('.nc-action-icon').click();
+        if (ltarCount !== undefined && ltarCount !== null) {
+          await this.dashboard.linkRecord.verifyCount(ltarCount);
+        }
         await this.dashboard.linkRecord.select(value);
         break;
       case 'dateTime':
@@ -200,9 +216,9 @@ export class ExpandedFormPage extends BasePage {
     }
 
     if (role === 'viewer') {
-      await expect(this.get().locator('.nc-comments-drawer')).toHaveCount(0);
+      await expect(this.get().locator('.nc-comments-drawer .nc-comment-input')).toHaveCount(0);
     } else {
-      await expect(this.get().locator('.nc-comments-drawer')).toHaveCount(1);
+      await expect(this.get().locator('.nc-comments-drawer .nc-comment-input')).toHaveCount(1);
     }
 
     // press escape to close the expanded form

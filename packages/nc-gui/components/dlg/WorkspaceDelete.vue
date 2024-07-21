@@ -50,7 +50,7 @@ const onDelete = async () => {
 <template>
   <GeneralDeleteModal v-model:visible="visible" :entity-name="$t('objects.workspace')" :on-delete="onDelete">
     <template #entity-preview>
-      <div v-if="workspace" class="flex flex-row items-center py-2.25 px-2.75 bg-gray-50 rounded-lg text-gray-700 mb-4">
+      <div v-if="workspace" class="flex flex-row items-center py-2.25 px-2.75 bg-gray-50 rounded-lg text-gray-700">
         <GeneralIcon icon="workspace" />
         <div
           class="capitalize text-ellipsis overflow-hidden select-none w-full pl-2.25"

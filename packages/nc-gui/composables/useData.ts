@@ -30,6 +30,8 @@ export function useData(args: {
 
   const { isPaginationLoading } = storeToRefs(useViewsStore())
 
+  const reloadAggregate = inject(ReloadAggregateHookInj)
+
   const selectedAllRecords = computed({
     get() {
       return !!formattedData.value.length && formattedData.value.every((row: Row) => row.rowMeta.selected)
@@ -75,6 +77,8 @@ export function useData(args: {
         viewMetaValue?.id as string,
         { ...insertObj, ...(ltarState || {}) },
       )
+
+      await reloadAggregate?.trigger()
 
       if (!undo) {
         Object.assign(currentRow, {
@@ -214,6 +218,7 @@ export function useData(args: {
         //   query: { ignoreWebhook: !saved }
         // }
       )
+      await reloadAggregate?.trigger({ fields: [{ title: property }] })
 
       if (!undo) {
         addUndo({
@@ -279,7 +284,7 @@ export function useData(args: {
                 col.uidt === UITypes.LastModifiedBy ||
                 col.uidt === UITypes.Lookup ||
                 col.au ||
-                (col.cdf && / on update /i.test(col.cdf)))
+                (isValidValue(col?.cdf) && / on update /i.test(col.cdf)))
             )
               acc[col.title!] = updatedRowData[col.title!]
             return acc
@@ -355,6 +360,7 @@ export function useData(args: {
     }
 
     await $api.dbTableRow.bulkUpdate(NOCO, metaValue?.base_id as string, metaValue?.id as string, updateArray)
+    await reloadAggregate?.trigger({ fields: props.map((p) => ({ title: p })) })
 
     if (!undo) {
       addUndo({
@@ -446,6 +452,8 @@ export function useData(args: {
       viewId: viewMetaValue.id,
     })
 
+    await reloadAggregate?.trigger()
+
     await callbacks?.loadData?.()
     await callbacks?.globalCallback?.()
   }
@@ -521,6 +529,8 @@ export function useData(args: {
       viewMetaValue?.id as string,
       encodeURIComponent(id),
     )
+
+    await reloadAggregate?.trigger()
 
     if (res.message) {
       message.info(
@@ -877,6 +887,7 @@ export function useData(args: {
       const bulkDeletedRowsData = await $api.dbDataTableRow.delete(metaValue?.id as string, rows.length === 1 ? rows[0] : rows, {
         viewId: viewMetaValue?.id as string,
       })
+      await reloadAggregate?.trigger()
 
       return rows.length === 1 && bulkDeletedRowsData ? [bulkDeletedRowsData] : bulkDeletedRowsData
     } catch (error: any) {

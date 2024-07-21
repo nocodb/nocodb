@@ -31,6 +31,8 @@ const expandedFormRowState = ref<Record<string, any>>()
 
 const tableRef = ref<typeof Table>()
 
+useProvideViewAggregate(view, meta, xWhere)
+
 const {
   loadData,
   paginationData,
@@ -50,6 +52,7 @@ const {
   optimisedQuery,
   islastRow,
   isFirstRow,
+  aggCommentCount,
 } = useViewData(meta, view, xWhere)
 
 const rowHeight = computed(() => {
@@ -88,7 +91,6 @@ const skipRowRemovalOnCancel = ref(false)
 
 function expandForm(row: Row, state?: Record<string, any>, fromToolbar = false) {
   const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
-  expandedFormRow.value = row
   expandedFormRowState.value = state
   if (rowId && !isPublic.value) {
     router.push({
@@ -98,6 +100,7 @@ function expandForm(row: Row, state?: Record<string, any>, fromToolbar = false) 
       },
     })
   } else {
+    expandedFormRow.value = row
     expandedFormDlg.value = true
     skipRowRemovalOnCancel.value = !fromToolbar
   }
@@ -143,10 +146,21 @@ const toggleOptimisedQuery = () => {
   }
 }
 
-const { rootGroup, groupBy, isGroupBy, loadGroups, loadGroupData, loadGroupPage, groupWrapperChangePage, redistributeRows } =
-  useViewGroupByOrThrow()
+const {
+  rootGroup,
+  groupBy,
+  isGroupBy,
+  loadGroups,
+  loadGroupData,
+  loadGroupPage,
+  groupWrapperChangePage,
+  redistributeRows,
+  loadGroupAggregation,
+} = useViewGroupByOrThrow()
 
-const coreWrapperRef = ref<HTMLElement>()
+const sidebarStore = useSidebarStore()
+
+const { windowSize, leftSidebarWidth } = toRefs(sidebarStore)
 
 const viewWidth = ref(0)
 
@@ -154,17 +168,6 @@ eventBus.on((event) => {
   if (event === SmartsheetStoreEvents.GROUP_BY_RELOAD || event === SmartsheetStoreEvents.DATA_RELOAD) {
     reloadViewDataHook?.trigger()
   }
-})
-
-onMounted(() => {
-  until(coreWrapperRef)
-    .toBeTruthy()
-    .then(() => {
-      const resizeObserver = new ResizeObserver(() => {
-        viewWidth.value = coreWrapperRef.value?.clientWidth || 0
-      })
-      if (coreWrapperRef.value) resizeObserver.observe(coreWrapperRef.value)
-    })
 })
 
 const goToNextRow = () => {
@@ -190,14 +193,58 @@ const goToPreviousRow = () => {
 
   navigateToSiblingRow(NavigateDir.PREV)
 }
+
+const updateViewWidth = () => {
+  if (isPublic.value) {
+    viewWidth.value = windowSize.value
+    return
+  }
+  viewWidth.value = windowSize.value - leftSidebarWidth.value
+}
+
+const baseColor = computed(() => {
+  switch (groupBy.value.length) {
+    case 1:
+      return '#F9F9FA'
+    case 2:
+      return '#F4F4F5'
+    case 3:
+      return '#E7E7E9'
+    default:
+      return '#F9F9FA'
+  }
+})
+
+const updateRowCommentCount = (count: number) => {
+  if (!routeQuery.value.rowId) return
+
+  const aggCommentCountIndex = aggCommentCount.value.findIndex((row) => row.row_id === routeQuery.value.rowId)
+
+  const currentRowIndex = data.value.findIndex(
+    (row) => extractPkFromRow(row.row, meta.value?.columns as ColumnType[]) === routeQuery.value.rowId,
+  )
+
+  if (aggCommentCountIndex === -1 || currentRowIndex === -1) return
+
+  if (Number(aggCommentCount.value[aggCommentCountIndex].count) === count) return
+
+  aggCommentCount.value[aggCommentCountIndex].count = count
+
+  data.value[currentRowIndex].rowMeta.commentCount = count
+}
+
+watch([windowSize, leftSidebarWidth], updateViewWidth)
+
+onMounted(() => {
+  updateViewWidth()
+})
 </script>
 
 <template>
   <div
-    ref="coreWrapperRef"
     class="relative flex flex-col h-full min-h-0 w-full nc-grid-wrapper"
     data-testid="nc-grid-wrapper"
-    style="background-color: var(--nc-grid-bg)"
+    :style="`background-color: ${isGroupBy ? `${baseColor}` : 'var(--nc-grid-bg)'};`"
   >
     <Table
       v-if="!isGroupBy"
@@ -213,8 +260,8 @@ const goToPreviousRow = () => {
       :delete-selected-rows="deleteSelectedRows"
       :delete-range-of-rows="deleteRangeOfRows"
       :bulk-update-rows="bulkUpdateRows"
-      :remove-row-if-new="removeRowIfNew"
       :expand-form="expandForm"
+      :remove-row-if-new="removeRowIfNew"
       :row-height="rowHeight"
       @toggle-optimised-query="toggleOptimisedQuery"
       @bulk-update-dlg="bulkUpdateDlg = true"
@@ -228,12 +275,12 @@ const goToPreviousRow = () => {
       :load-group-page="loadGroupPage"
       :group-wrapper-change-page="groupWrapperChangePage"
       :row-height="rowHeight"
+      :load-group-aggregation="loadGroupAggregation"
       :max-depth="groupBy.length"
       :redistribute-rows="redistributeRows"
-      :expand-form="expandForm"
       :view-width="viewWidth"
     />
-    <Suspense>
+    <Suspense v-if="!isGroupBy">
       <LazySmartsheetExpandedForm
         v-if="expandedFormRow && expandedFormDlg"
         v-model="expandedFormDlg"
@@ -246,7 +293,7 @@ const goToPreviousRow = () => {
       />
     </Suspense>
     <SmartsheetExpandedForm
-      v-if="expandedFormOnRowIdDlg && meta?.id"
+      v-if="expandedFormOnRowIdDlg && meta?.id && !isGroupBy"
       v-model="expandedFormOnRowIdDlg"
       :row="expandedFormRow ?? { row: {}, oldRow: {}, rowMeta: {} }"
       :meta="meta"
@@ -257,8 +304,10 @@ const goToPreviousRow = () => {
       show-next-prev-icons
       :first-row="isFirstRow"
       :last-row="islastRow"
+      :expand-form="expandForm"
       @next="goToNextRow()"
       @prev="goToPreviousRow()"
+      @update-row-comment-count="updateRowCommentCount"
     />
 
     <Suspense>

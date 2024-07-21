@@ -3,6 +3,7 @@ import type {
   ApiTokenReqType,
   BaseType,
   ColumnType,
+  CommentType,
   FilterType,
   HookType,
   PluginTestReqType,
@@ -33,7 +34,7 @@ export interface RowCommentEvent extends NcBaseEvent {
   user: UserType;
   model: TableType;
   rowId: string;
-  comment: string;
+  comment: CommentType;
   ip?: string;
 }
 
@@ -126,6 +127,7 @@ export interface FilterEvent extends NcBaseEvent {
   ip?: string;
   hook?: HookType;
   view?: ViewType;
+  column?: ColumnType;
 }
 
 export interface ColumnEvent extends NcBaseEvent {

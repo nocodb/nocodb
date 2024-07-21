@@ -64,6 +64,7 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
           const param = data as ProjectUserUpdateEvent;
 
           await this.auditInsert({
+            base_id: param.base.id,
             op_type: AuditOperationTypes.AUTHENTICATION,
             op_sub_type: AuditOperationSubTypes.ROLES_MANAGEMENT,
             user: param.updatedBy.email,

@@ -90,6 +90,50 @@ export const UITypesName = {
   [UITypes.LastModifiedBy]: 'Last modified by',
 };
 
+export const FieldNameFromUITypes = {
+  [UITypes.ID]: 'ID',
+  [UITypes.LinkToAnotherRecord]: '{TableName}',
+  [UITypes.ForeignKey]: 'Foreign key',
+  [UITypes.Lookup]: '{FieldName} (from {TableName})',
+  [UITypes.SingleLineText]: 'Text',
+  [UITypes.LongText]: 'Notes',
+  [UITypes.Attachment]: 'Attachment',
+  [UITypes.Checkbox]: 'Done',
+  [UITypes.MultiSelect]: 'Tags',
+  [UITypes.SingleSelect]: 'Status',
+  [UITypes.Collaborator]: 'User',
+  [UITypes.Date]: 'Date',
+  [UITypes.Year]: 'Year',
+  [UITypes.Time]: 'Time',
+  [UITypes.PhoneNumber]: 'Phone',
+  [UITypes.GeoData]: 'Geo data',
+  [UITypes.Email]: 'Email',
+  [UITypes.URL]: 'URL',
+  [UITypes.Number]: 'Number',
+  [UITypes.Decimal]: 'Decimal',
+  [UITypes.Currency]: 'Currency',
+  [UITypes.Percent]: 'Percent',
+  [UITypes.Duration]: 'Duration',
+  [UITypes.Rating]: 'Rating',
+  [UITypes.Formula]: 'Formula',
+  [UITypes.Rollup]: '{RollupFunction}({FieldName}) from {TableName}',
+  [UITypes.Count]: 'Count',
+  [UITypes.DateTime]: 'Date time',
+  [UITypes.CreatedTime]: 'Created time',
+  [UITypes.LastModifiedTime]: 'Last modified time',
+  [UITypes.AutoNumber]: 'Auto number',
+  [UITypes.Geometry]: 'Geometry',
+  [UITypes.JSON]: 'JSON',
+  [UITypes.SpecificDBType]: 'Specific DB type',
+  [UITypes.Barcode]: 'Barcode',
+  [UITypes.QrCode]: 'Qr code',
+  [UITypes.Button]: 'Button',
+  [UITypes.Links]: '{TableName}',
+  [UITypes.User]: 'User',
+  [UITypes.CreatedBy]: 'Created by',
+  [UITypes.LastModifiedBy]: 'Last modified by',
+};
+
 export const numericUITypes = [
   UITypes.Duration,
   UITypes.Currency,
@@ -197,6 +241,7 @@ export const getEquivalentUIType = ({
     case FormulaDataTypes.DATE:
       return UITypes.DateTime;
     case FormulaDataTypes.LOGICAL:
+    case FormulaDataTypes.COND_EXP:
     case FormulaDataTypes.BOOLEAN:
       return UITypes.Checkbox;
   }
@@ -210,3 +255,34 @@ export const isSelectTypeCol = (
   );
 };
 export default UITypes;
+
+export const readonlyMetaAllowedTypes = [
+  UITypes.Lookup,
+  UITypes.Rollup,
+  UITypes.Formula,
+  UITypes.Barcode,
+  UITypes.QrCode,
+];
+
+export const partialUpdateAllowedTypes = [
+  // Single/Multi select is disabled for now since it involves updating type in some cases
+  // UITypes.SingleSelect,
+  // UITypes.MultiSelect,
+  UITypes.Checkbox,
+  UITypes.Number,
+  UITypes.Decimal,
+  UITypes.Currency,
+  UITypes.Percent,
+  UITypes.Duration,
+  UITypes.Rating,
+  UITypes.DateTime,
+  UITypes.Date,
+  UITypes.Time,
+  UITypes.CreatedTime,
+  UITypes.LastModifiedTime,
+  UITypes.LinkToAnotherRecord,
+  UITypes.Links,
+  UITypes.PhoneNumber,
+  UITypes.Email,
+  UITypes.URL,
+];

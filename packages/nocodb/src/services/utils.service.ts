@@ -12,7 +12,7 @@ import { NcError } from '~/helpers/catchError';
 import { Base, Store, User } from '~/models';
 import Noco from '~/Noco';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
-import { MetaTable } from '~/utils/globals';
+import { MetaTable, RootScopes } from '~/utils/globals';
 import { jdbcToXcConfig } from '~/utils/nc-config/helpers';
 import { packageVersion } from '~/utils/packageVersion';
 import {
@@ -212,9 +212,10 @@ export class UtilsService {
   }
 
   async aggregatedMetaInfo() {
+    // TODO: fix or deprecate for EE
     const [bases, userCount] = await Promise.all([
-      Base.list({}),
-      Noco.ncMeta.metaCount(null, null, MetaTable.USERS),
+      Base.list(),
+      Noco.ncMeta.metaCount(RootScopes.ROOT, RootScopes.ROOT, MetaTable.USERS),
     ]);
 
     const result: AllMeta = {
@@ -241,22 +242,32 @@ export class UtilsService {
             ] = this.extractResultOrNull(
               await Promise.allSettled([
                 // db tables  count
-                Noco.ncMeta.metaCount(base.id, null, MetaTable.MODELS, {
-                  condition: {
-                    type: 'table',
+                Noco.ncMeta.metaCount(
+                  base.fk_workspace_id,
+                  base.id,
+                  MetaTable.MODELS,
+                  {
+                    condition: {
+                      type: 'table',
+                    },
                   },
-                }),
+                ),
                 // db views count
-                Noco.ncMeta.metaCount(base.id, null, MetaTable.MODELS, {
-                  condition: {
-                    type: 'view',
+                Noco.ncMeta.metaCount(
+                  base.fk_workspace_id,
+                  base.id,
+                  MetaTable.MODELS,
+                  {
+                    condition: {
+                      type: 'view',
+                    },
                   },
-                }),
+                ),
                 // views count
                 (async () => {
                   const views = await Noco.ncMeta.metaList2(
+                    base.fk_workspace_id,
                     base.id,
-                    null,
                     MetaTable.VIEWS,
                   );
                   // grid, form, gallery, kanban and shared count
@@ -305,11 +316,23 @@ export class UtilsService {
                   );
                 })(),
                 // webhooks count
-                Noco.ncMeta.metaCount(base.id, null, MetaTable.HOOKS),
+                Noco.ncMeta.metaCount(
+                  base.fk_workspace_id,
+                  base.id,
+                  MetaTable.HOOKS,
+                ),
                 // filters count
-                Noco.ncMeta.metaCount(base.id, null, MetaTable.FILTER_EXP),
+                Noco.ncMeta.metaCount(
+                  base.fk_workspace_id,
+                  base.id,
+                  MetaTable.FILTER_EXP,
+                ),
                 // sorts count
-                Noco.ncMeta.metaCount(base.id, null, MetaTable.SORT),
+                Noco.ncMeta.metaCount(
+                  base.fk_workspace_id,
+                  base.id,
+                  MetaTable.SORT,
+                ),
                 // row count per base
                 base.getSources().then(async (sources) => {
                   return this.extractResultOrNull(
@@ -323,12 +346,17 @@ export class UtilsService {
                   );
                 }),
                 // base users count
-                Noco.ncMeta.metaCount(null, null, MetaTable.PROJECT_USERS, {
-                  condition: {
-                    base_id: base.id,
+                Noco.ncMeta.metaCount(
+                  base.fk_workspace_id,
+                  base.id,
+                  MetaTable.PROJECT_USERS,
+                  {
+                    condition: {
+                      base_id: base.id,
+                    },
+                    aggField: '*',
                   },
-                  aggField: '*',
-                }),
+                ),
               ]),
             );
 

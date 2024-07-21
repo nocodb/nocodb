@@ -3,6 +3,7 @@ import CryptoJS from 'crypto-js';
 import { v4 as uuidv4 } from 'uuid';
 import type { DriverClient } from '~/utils/nc-config';
 import type { BoolType, SourceType } from 'nocodb-sdk';
+import type { NcContext } from '~/interface/config';
 import { Base, Model, SyncSource } from '~/models';
 import NocoCache from '~/cache/NocoCache';
 import {
@@ -27,10 +28,13 @@ import { InstanceCommands } from '~/interface/Jobs';
 // todo: hide credentials
 export default class Source implements SourceType {
   id?: string;
+  fk_workspace_id?: string;
   base_id?: string;
   alias?: string;
   type?: DriverClient;
   is_meta?: BoolType;
+  is_schema_readonly?: BoolType;
+  is_data_readonly?: BoolType;
   config?: string;
   inflection_column?: string;
   inflection_table?: string;
@@ -48,6 +52,7 @@ export default class Source implements SourceType {
   }
 
   public static async createBase(
+    context: NcContext,
     source: SourceType & {
       baseId: string;
       created_at?;
@@ -67,6 +72,8 @@ export default class Source implements SourceType {
       'order',
       'enabled',
       'meta',
+      'is_schema_readonly',
+      'is_data_readonly',
     ]);
 
     insertObj.config = CryptoJS.AES.encrypt(
@@ -83,14 +90,13 @@ export default class Source implements SourceType {
     });
 
     const { id } = await ncMeta.metaInsert2(
-      source.baseId,
-      null,
+      context.workspace_id,
+      context.base_id,
       MetaTable.BASES,
       insertObj,
     );
 
-    // call before reorder to update cache
-    const returnBase = await this.get(id, false, ncMeta);
+    const returnBase = await this.get(context, id, false, ncMeta);
 
     await NocoCache.appendToList(
       CacheScope.BASE,
@@ -102,18 +108,18 @@ export default class Source implements SourceType {
   }
 
   public static async updateBase(
+    context: NcContext,
     sourceId: string,
     source: SourceType & {
-      baseId: string;
       meta?: any;
       deleted?: boolean;
       fk_sql_executor_id?: string;
     },
     ncMeta = Noco.ncMeta,
   ) {
-    const oldBase = await Source.get(sourceId, false, ncMeta);
+    const oldSource = await Source.get(context, sourceId, false, ncMeta);
 
-    if (!oldBase) NcError.sourceNotFound(sourceId);
+    if (!oldSource) NcError.sourceNotFound(sourceId);
 
     const updateObj = extractProps(source, [
       'alias',
@@ -127,6 +133,8 @@ export default class Source implements SourceType {
       'meta',
       'deleted',
       'fk_sql_executor_id',
+      'is_schema_readonly',
+      'is_data_readonly',
     ]);
 
     if (updateObj.config) {
@@ -138,45 +146,49 @@ export default class Source implements SourceType {
 
     // type property is undefined even if not provided
     if (!updateObj.type) {
-      updateObj.type = oldBase.type;
+      updateObj.type = oldSource.type;
+    }
+
+    if ('meta' in updateObj) {
+      updateObj.meta = stringifyMetaProp(updateObj);
     }
 
     // if order is missing (possible in old versions), get next order
-    if (!oldBase.order && !updateObj.order) {
+    if (!oldSource.order && !updateObj.order) {
       updateObj.order = await ncMeta.metaGetNextOrder(MetaTable.BASES, {
-        base_id: source.baseId,
+        base_id: oldSource.base_id,
       });
 
-      if (updateObj.order <= 1 && !oldBase.isMeta()) {
+      if (updateObj.order <= 1 && !oldSource.isMeta()) {
         updateObj.order = 2;
       }
     }
 
     // keep order 1 for default source
-    if (oldBase.isMeta()) {
+    if (oldSource.isMeta()) {
       updateObj.order = 1;
     }
 
     // keep order 1 for default source
-    if (!oldBase.isMeta()) {
+    if (!oldSource.isMeta()) {
       if (updateObj.order <= 1) {
         NcError.badRequest('Cannot change order to 1 or less');
       }
 
       // if order is 1 for non-default source, move it to last
-      if (oldBase.order <= 1 && !updateObj.order) {
+      if (oldSource.order <= 1 && !updateObj.order) {
         updateObj.order = await ncMeta.metaGetNextOrder(MetaTable.BASES, {
-          base_id: source.baseId,
+          base_id: oldSource.base_id,
         });
       }
     }
 
     await ncMeta.metaUpdate(
-      source.baseId,
-      null,
+      context.workspace_id,
+      context.base_id,
       MetaTable.BASES,
       prepareForDb(updateObj),
-      oldBase.id,
+      oldSource.id,
     );
 
     await NocoCache.update(
@@ -189,13 +201,11 @@ export default class Source implements SourceType {
       await JobsRedis.emitPrimaryCommand(InstanceCommands.RELEASE, sourceId);
     }
 
-    // call before reorder to update cache
-    const returnBase = await this.get(oldBase.id, false, ncMeta);
-
-    return returnBase;
+    return await this.get(context, oldSource.id, false, ncMeta);
   }
 
   static async list(
+    context: NcContext,
     args: { baseId: string },
     ncMeta = Noco.ncMeta,
   ): Promise<Source[]> {
@@ -204,8 +214,8 @@ export default class Source implements SourceType {
     const { isNoneList } = cachedList;
     if (!isNoneList && !baseDataList.length) {
       baseDataList = await ncMeta.metaList2(
-        args.baseId,
-        null,
+        context.workspace_id,
+        context.base_id,
         MetaTable.BASES,
         {
           xcCondition: {
@@ -246,6 +256,7 @@ export default class Source implements SourceType {
   }
 
   static async get(
+    context: NcContext,
     id: string,
     force = false,
     ncMeta = Noco.ncMeta,
@@ -258,8 +269,8 @@ export default class Source implements SourceType {
       ));
     if (!baseData) {
       baseData = await ncMeta.metaGet2(
-        null,
-        null,
+        context.workspace_id,
+        context.base_id,
         MetaTable.BASES,
         id,
         null,
@@ -290,10 +301,14 @@ export default class Source implements SourceType {
     return this.castType(baseData);
   }
 
-  static async getByUUID(uuid: string, ncMeta = Noco.ncMeta) {
+  static async getByUUID(
+    context: NcContext,
+    uuid: string,
+    ncMeta = Noco.ncMeta,
+  ) {
     const source = await ncMeta.metaGet2(
-      null,
-      null,
+      context.workspace_id,
+      context.base_id,
       MetaTable.BASES,
       {
         erd_uuid: uuid,
@@ -354,8 +369,8 @@ export default class Source implements SourceType {
     return config;
   }
 
-  getProject(ncMeta = Noco.ncMeta): Promise<Base> {
-    return Base.get(this.base_id, ncMeta);
+  getProject(context: NcContext, ncMeta = Noco.ncMeta): Promise<Base> {
+    return Base.get(context, this.base_id, ncMeta);
   }
 
   async sourceCleanup(_ncMeta = Noco.ncMeta) {
@@ -367,14 +382,23 @@ export default class Source implements SourceType {
     }
   }
 
-  async delete(ncMeta = Noco.ncMeta, { force }: { force?: boolean } = {}) {
-    const sources = await Source.list({ baseId: this.base_id }, ncMeta);
+  async delete(
+    context: NcContext,
+    ncMeta = Noco.ncMeta,
+    { force }: { force?: boolean } = {},
+  ) {
+    const sources = await Source.list(
+      context,
+      { baseId: this.base_id },
+      ncMeta,
+    );
 
-    if (sources[0].id === this.id && !force) {
+    if ((sources[0].id === this.id || this.isMeta()) && !force) {
       NcError.badRequest('Cannot delete first source');
     }
 
     const models = await Model.list(
+      context,
       {
         source_id: this.id,
         base_id: this.base_id,
@@ -391,7 +415,7 @@ export default class Source implements SourceType {
     };
 
     for (const model of models) {
-      for (const col of await model.getColumns(ncMeta)) {
+      for (const col of await model.getColumns(context, ncMeta)) {
         let colOptionTableName = null;
         let cacheScopeName = null;
         switch (col.uidt) {
@@ -420,9 +444,14 @@ export default class Source implements SourceType {
     });
 
     for (const relCol of relColumns) {
-      await ncMeta.metaDelete(null, null, relCol.colOptionTableName, {
-        fk_column_id: relCol.col.id,
-      });
+      await ncMeta.metaDelete(
+        context.workspace_id,
+        context.base_id,
+        relCol.colOptionTableName,
+        {
+          fk_column_id: relCol.col.id,
+        },
+      );
       await NocoCache.deepDel(
         `${relCol.cacheScopeName}:${relCol.col.id}`,
         CacheDelDirection.CHILD_TO_PARENT,
@@ -430,17 +459,27 @@ export default class Source implements SourceType {
     }
 
     for (const model of models) {
-      await model.delete(ncMeta, true);
+      await model.delete(context, ncMeta, true);
     }
 
-    const syncSources = await SyncSource.list(this.base_id, this.id, ncMeta);
+    const syncSources = await SyncSource.list(
+      context,
+      this.base_id,
+      this.id,
+      ncMeta,
+    );
     for (const syncSource of syncSources) {
-      await SyncSource.delete(syncSource.id, ncMeta);
+      await SyncSource.delete(context, syncSource.id, ncMeta);
     }
 
     await this.sourceCleanup(ncMeta);
 
-    const res = await ncMeta.metaDelete(null, null, MetaTable.BASES, this.id);
+    const res = await ncMeta.metaDelete(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.BASES,
+      this.id,
+    );
 
     await NocoCache.deepDel(
       `${CacheScope.BASE}:${this.id}`,
@@ -450,21 +489,26 @@ export default class Source implements SourceType {
     return res;
   }
 
-  async softDelete(ncMeta = Noco.ncMeta, { force }: { force?: boolean } = {}) {
-    const bases = await Base.list({ baseId: this.base_id }, ncMeta);
+  async softDelete(
+    context: NcContext,
+    ncMeta = Noco.ncMeta,
+    { force }: { force?: boolean } = {},
+  ) {
+    const sources = await Source.list(
+      context,
+      { baseId: this.base_id },
+      ncMeta,
+    );
 
-    if (bases[0].id === this.id && !force) {
+    if ((sources[0].id === this.id || this.isMeta()) && !force) {
       NcError.badRequest('Cannot delete first base');
     }
 
-    await ncMeta.metaUpdate(
-      this.base_id,
-      null,
-      MetaTable.BASES,
-      {
-        deleted: true,
-      },
+    await Source.updateBase(
+      context,
       this.id,
+      { deleted: true, fk_sql_executor_id: null },
+      ncMeta,
     );
 
     await NocoCache.deepDel(
@@ -473,22 +517,23 @@ export default class Source implements SourceType {
     );
   }
 
-  async getModels(ncMeta = Noco.ncMeta) {
+  async getModels(context: NcContext, ncMeta = Noco.ncMeta) {
     return await Model.list(
+      context,
       { base_id: this.base_id, source_id: this.id },
       ncMeta,
     );
   }
 
-  async shareErd(ncMeta = Noco.ncMeta) {
+  async shareErd(context: NcContext, ncMeta = Noco.ncMeta) {
     if (!this.erd_uuid) {
       const uuid = uuidv4();
       this.erd_uuid = uuid;
 
       // set meta
       await ncMeta.metaUpdate(
-        null,
-        null,
+        context.workspace_id,
+        context.base_id,
         MetaTable.BASES,
         {
           erd_uuid: this.erd_uuid,
@@ -503,14 +548,14 @@ export default class Source implements SourceType {
     return this;
   }
 
-  async disableShareErd(ncMeta = Noco.ncMeta) {
+  async disableShareErd(context: NcContext, ncMeta = Noco.ncMeta) {
     if (this.erd_uuid) {
       this.erd_uuid = null;
 
       // set meta
       await ncMeta.metaUpdate(
-        null,
-        null,
+        context.workspace_id,
+        context.base_id,
         MetaTable.BASES,
         {
           erd_uuid: this.erd_uuid,

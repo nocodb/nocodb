@@ -6,6 +6,7 @@ import { marked } from 'marked'
 import { generateJSON } from '@tiptap/html'
 import Underline from '@tiptap/extension-underline'
 import Placeholder from '@tiptap/extension-placeholder'
+import tippy from 'tippy.js'
 import { Link } from '~/helpers/dbTiptapExtensions/links'
 
 const props = withDefaults(
@@ -60,6 +61,8 @@ const vModel = useVModel(props, 'value', emits, { defaultValue: '' })
 const tiptapExtensions = [
   StarterKit.configure({
     heading: false,
+    codeBlock: false,
+    code: false,
   }),
   Underline,
   Link,
@@ -72,20 +75,31 @@ const tiptapExtensions = [
 const editor = useEditor({
   extensions: tiptapExtensions,
   onUpdate: ({ editor }) => {
-    const markdown = turndownService
-      .turndown(editor.getHTML().replaceAll(/<p><\/p>/g, '<br />'))
-      .replaceAll(/\n\n<br \/>\n\n/g, '<br>\n\n')
-    vModel.value = markdown === '<br />' ? '' : markdown
+    let markdown = turndownService.turndown(editor.getHTML().replaceAll(/<p><\/p>/g, '<br />'))
+
+    const isListsActive = editor?.isActive('bulletList') || editor?.isActive('orderedList') || editor?.isActive('blockquote')
+    if (isListsActive) {
+      if (markdown.endsWith('<br />')) markdown = markdown.slice(0, -6)
+    }
+
+    markdown = markdown.replaceAll(/\n\n<br \/>\n\n/g, '<br>\n\n')
+
+    vModel.value = markdown === '<br />' ? '' : `${markdown}`
   },
   editable: !props.readOnly,
   autofocus: props.autofocus,
   onFocus: () => {
     isFocused.value = true
     emits('focus')
+    onFocusWrapper()
   },
   onBlur: (e) => {
+    const targetEl = e?.event.relatedTarget as HTMLElement
+
     if (
-      !(e?.event?.relatedTarget as HTMLElement)?.closest('.comment-bubble-menu, .nc-comment-rich-editor, .nc-rich-text-comment')
+      !targetEl?.closest(
+        '.comment-bubble-menu, .nc-rich-text-comment, .tippy-box, .nc-comment-save-btn, .rich-text-bottom-bar, .mention, .nc-mention-list, .tippy-content, .nc-comment-rich-editor',
+      )
     ) {
       isFocused.value = false
       emits('blur')
@@ -119,9 +133,10 @@ const setEditorContent = (contentMd: any, focusEndOfDoc?: boolean) => {
   }, 100)
 }
 
-const onFocusWrapper = () => {
+function onFocusWrapper() {
   if (!props.readOnly && !keys.shift.value) {
     editor.value?.chain().focus().run()
+    setEditorContent(vModel.value, true)
   }
 }
 
@@ -138,7 +153,9 @@ useEventListener(
     const targetEl = e?.relatedTarget as HTMLElement
     if (
       targetEl?.classList?.contains('tiptap') ||
-      !targetEl?.closest('.comment-bubble-menu, .tippy-content, .nc-comment-rich-editor')
+      !targetEl?.closest(
+        '.comment-bubble-menu, .nc-rich-text-comment, .tippy-box, .nc-comment-save-btn, .rich-text-bottom-bar, .mention, .nc-mention-list, .tippy-content, .nc-comment-rich-editor',
+      )
     ) {
       isFocused.value = false
       emits('blur')
@@ -151,10 +168,21 @@ useEventListener(
   'focusout',
   (e: FocusEvent) => {
     const targetEl = e?.relatedTarget as HTMLElement
-    if (!targetEl && (e.target as HTMLElement)?.closest('.comment-bubble-menu, .tippy-content, .nc-comment-rich-editor')) return
+    if (
+      !targetEl &&
+      (e.target as HTMLElement)?.closest(
+        '.comment-bubble-menu, .nc-comment-save-btn, .nc-mention-list, .mention, .rich-text-bottom-bar, .tippy-content, .nc-comment-rich-editor',
+      )
+    )
+      return
 
-    if (!targetEl?.closest('.comment-bubble-menu, .tippy-content, .nc-comment-rich-editor')) {
+    if (
+      !targetEl?.closest(
+        '.comment-bubble-menu, .nc-comment-save-btn, .rich-text-bottom-bar, .mention, .tippy-content, .nc-mention-list, .nc-comment-rich-editor',
+      )
+    ) {
       isFocused.value = false
+
       emits('blur')
     }
   },
@@ -165,7 +193,11 @@ onClickOutside(editorDom, (e) => {
 
   const targetEl = e?.target as HTMLElement
 
-  if (!targetEl?.closest('.tippy-content, .comment-bubble-menu, .nc-comment-rich-editor')) {
+  if (
+    !targetEl?.closest(
+      '.tippy-content, .nc-rich-text-comment, .nc-comment-save-btn, .nc-mention-list, .rich-text-bottom-bar, .mention, .comment-bubble-menu, .nc-comment-rich-editor',
+    )
+  ) {
     isFocused.value = false
     emits('blur')
   }
@@ -179,7 +211,7 @@ const emitSave = (event: KeyboardEvent) => {
       // If Enter was pressed in the list, do not emit save
       triggerSaveFromList.value = false
     } else {
-      if (editor.value.isActive('bulletList') || editor.value.isActive('orderedList')) {
+      if (editor.value.isActive('bulletList') || editor.value.isActive('orderedList') || editor.value.isActive('blockquote')) {
         event.stopPropagation()
       } else {
         emits('save')
@@ -189,7 +221,8 @@ const emitSave = (event: KeyboardEvent) => {
 }
 
 const handleEnterDown = (event: KeyboardEvent) => {
-  const isListsActive = editor.value?.isActive('bulletList') || editor.value?.isActive('orderedList')
+  const isListsActive =
+    editor.value?.isActive('bulletList') || editor.value?.isActive('orderedList') || editor.value?.isActive('blockquote')
   if (isListsActive) {
     triggerSaveFromList.value = true
     setTimeout(() => {
@@ -213,8 +246,33 @@ const handleKeyPress = (event: KeyboardEvent) => {
   }
 }
 
+const saveComment = (e) => {
+  e.preventDefault()
+  e.stopPropagation()
+  emits('save')
+}
+
 defineExpose({
   setEditorContent,
+})
+
+onMounted(() => {
+  if (!props.readOnly) return
+
+  setTimeout(() => {
+    document.querySelectorAll('.nc-rich-link-tooltip').forEach((el) => {
+      const tooltip = Object.values(el.attributes).find((attr) => attr.name === 'data-tooltip')
+      if (!tooltip) return
+      tippy(el, {
+        content: `<span class="tooltip">${tooltip.value}</span>`,
+        placement: 'top',
+        allowHTML: true,
+        arrow: true,
+        animation: 'fade',
+        duration: 0,
+      })
+    })
+  }, 1000)
 })
 </script>
 
@@ -236,6 +294,7 @@ defineExpose({
         v-if="editor"
         ref="richTextLinkOptionRef"
         :editor="editor"
+        :is-comment="true"
         :is-form-field="true"
         @blur="isFocused = false"
       />
@@ -243,18 +302,22 @@ defineExpose({
       <EditorContent
         ref="editorDom"
         :editor="editor"
-        class="flex flex-col nc-comment-rich-editor px-1.5 w-full scrollbar-thin scrollbar-thumb-gray-200 nc-truncate scrollbar-track-transparent"
+        :class="{
+          'p-1': !props.readOnly,
+          'px-[0.25rem]': props.readOnly,
+        }"
+        class="flex flex-col nc-comment-rich-editor w-full scrollbar-thin scrollbar-thumb-gray-200 nc-truncate scrollbar-track-transparent"
         @keydown.stop="handleKeyPress"
       />
 
-      <div v-if="!hideOptions" class="flex justify-between px-2 py-2 items-center">
+      <div v-if="!hideOptions" class="flex justify-between pt-1 rich-text-bottom-bar items-center">
         <LazySmartsheetExpandedFormRichTextOptions :editor="editor" class="!bg-transparent" />
         <NcButton
           v-e="['a:row-expand:comment:save']"
           :disabled="!vModel?.length"
-          class="!disabled:bg-gray-100 !h-7 !w-7 !shadow-none"
+          class="!disabled:bg-gray-100 nc-comment-save-btn !h-7 !w-7 !shadow-none"
           size="xsmall"
-          @click="emits('save')"
+          @click="saveComment"
         >
           <GeneralIcon icon="send" />
         </NcButton>
@@ -264,6 +327,10 @@ defineExpose({
 </template>
 
 <style lang="scss">
+.tooltip {
+  @apply text-xs bg-gray-800 text-white px-2 py-1 rounded-lg;
+}
+
 .nc-rich-text-comment {
   .readonly {
     .nc-comment-rich-editor {
@@ -273,6 +340,11 @@ defineExpose({
       }
     }
   }
+
+  .nc-rich-link-tooltip {
+    @apply text-gray-500;
+  }
+
   .nc-comment-rich-editor {
     &.nc-truncate {
       .tiptap.ProseMirror {
@@ -296,7 +368,7 @@ defineExpose({
       }
     }
     .tiptap p.is-editor-empty:first-child::before {
-      color: #9aa2af;
+      @apply text-gray-500;
       content: attr(data-placeholder);
       float: left;
       height: 0;
@@ -309,7 +381,7 @@ defineExpose({
     }
 
     p {
-      @apply !m-0;
+      @apply !m-0 !leading-5;
     }
 
     .ProseMirror-focused {

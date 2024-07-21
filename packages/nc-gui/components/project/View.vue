@@ -10,7 +10,7 @@ const basesStore = useBases()
 
 const { openedProject, activeProjectId, basesUser, bases } = storeToRefs(basesStore)
 const { activeTables, activeTable } = storeToRefs(useTablesStore())
-const { activeWorkspace, workspaceUserCount } = storeToRefs(useWorkspace())
+const { activeWorkspace } = storeToRefs(useWorkspace())
 
 const { navigateToProjectPage } = useBase()
 
@@ -35,16 +35,12 @@ const currentBase = computedAsync(async () => {
 
 const { isUIAllowed, baseRoles } = useRoles()
 
-const { base } = storeToRefs(useBase())
-
 const { projectPageTab } = storeToRefs(useConfigStore())
 
 const { isMobileMode } = useGlobal()
 
-const baseSettingsState = ref('')
-
 const userCount = computed(() =>
-  isEeUI ? workspaceUserCount : activeProjectId.value ? basesUser.value.get(activeProjectId.value)?.length : 0,
+  activeProjectId.value ? basesUser.value.get(activeProjectId.value)?.filter((user) => !user?.deleted)?.length : 0,
 )
 
 watch(

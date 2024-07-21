@@ -1,6 +1,5 @@
 <script lang="ts" setup>
-import type { UITypes } from 'nocodb-sdk'
-import { UITypesName } from 'nocodb-sdk'
+import { UITypes, UITypesName, readonlyMetaAllowedTypes } from 'nocodb-sdk'
 
 const props = defineProps<{
   options: typeof uiTypes
@@ -12,22 +11,33 @@ const { options } = toRefs(props)
 
 const searchQuery = ref('')
 
+const { isMetaReadOnly } = useRoles()
+
 const filteredOptions = computed(
-  () => options.value?.filter((c) => c.name.toLowerCase().includes(searchQuery.value.toLowerCase())) ?? [],
+  () =>
+    options.value?.filter(
+      (c) =>
+        c.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+        (UITypesName[c.name] && UITypesName[c.name].toLowerCase().includes(searchQuery.value.toLowerCase())),
+    ) ?? [],
 )
 
 const inputRef = ref()
 
 const activeFieldIndex = ref(-1)
 
+const isDisabledUIType = (type: UITypes) => {
+  return isMetaReadOnly.value && !readonlyMetaAllowedTypes.includes(type)
+}
+
 const onClick = (uidt: UITypes) => {
-  if (!uidt) return
+  if (!uidt || isDisabledUIType(uidt)) return
 
   emits('selected', uidt)
 }
 
 const handleAutoScrollOption = () => {
-  const option = document.querySelector('.nc-field-list-option-active')
+  const option = document.querySelector('.nc-column-list-option-active')
 
   if (option) {
     setTimeout(() => {
@@ -56,7 +66,7 @@ const handleKeydownEnter = () => {
 
 onMounted(() => {
   searchQuery.value = ''
-  activeFieldIndex.value = -1
+  activeFieldIndex.value = options.value.findIndex((o) => o.name === UITypes.SingleLineText)
 })
 </script>
 
@@ -90,26 +100,36 @@ onMounted(() => {
 
         {{ options.length ? $t('title.noResultsMatchedYourSearch') : 'The list is empty' }}
       </div>
-
-      <div
+      <GeneralSourceRestrictionTooltip
         v-for="(option, index) in filteredOptions"
         :key="index"
-        class="flex w-full py-2 items-center justify-between px-2 hover:bg-gray-100 cursor-pointer rounded-md"
-        :class="[
-          `nc-column-list-option-${index}`,
-          {
-            'bg-gray-100 nc-column-list-option-active': activeFieldIndex === index,
-          },
-        ]"
-        :data-testid="option.name"
-        @click="onClick(option.name)"
+        :message="$t('tooltip.typeNotAllowed')"
+        :enabled="isDisabledUIType(option.name)"
       >
-        <div class="flex gap-2 items-center">
-          <component :is="option.icon" class="text-gray-700 w-4 h-4" />
-          <div class="flex-1 text-sm">{{ UITypesName[option.name] }}</div>
-          <span v-if="option.deprecated" class="!text-xs !text-gray-300">({{ $t('general.deprecated') }})</span>
+        <div
+          class="flex w-full py-2 items-center justify-between px-2 rounded-md"
+          :class="[
+            `nc-column-list-option-${index}`,
+            {
+              'hover:bg-gray-100 cursor-pointer': !isDisabledUIType(option.name),
+              'bg-gray-100 nc-column-list-option-active': activeFieldIndex === index && !isDisabledUIType(option.name),
+              '!text-gray-400 cursor-not-allowed': isDisabledUIType(option.name),
+            },
+          ]"
+          :data-testid="option.name"
+          @click="onClick(option.name)"
+        >
+          <div class="flex gap-2 items-center">
+            <component
+              :is="option.icon"
+              class="w-4 h-4"
+              :class="isDisabledUIType(option.name) ? '!text-gray-400' : 'text-gray-700'"
+            />
+            <div class="flex-1 text-sm">{{ UITypesName[option.name] }}</div>
+            <span v-if="option.deprecated" class="!text-xs !text-gray-300">({{ $t('general.deprecated') }})</span>
+          </div>
         </div>
-      </div>
+      </GeneralSourceRestrictionTooltip>
     </div>
   </div>
 </template>

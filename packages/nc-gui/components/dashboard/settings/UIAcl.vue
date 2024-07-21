@@ -11,10 +11,15 @@ const { t } = useI18n()
 
 const { $api, $e } = useNuxtApp()
 
-const { base } = storeToRefs(useBase())
+const { base: activeBase } = storeToRefs(useBase())
 
 const _projectId = inject(ProjectIdInj, ref())
-const baseId = computed(() => _projectId.value ?? base.value?.id)
+
+const baseId = computed(() => _projectId.value ?? activeBase.value?.id!)
+
+const { bases } = storeToRefs(useBases())
+
+const base = computed(() => bases.value.get(baseId.value) ?? {})
 
 const { includeM2M } = useGlobal()
 
@@ -222,14 +227,14 @@ const toggleSelectAll = (role: Role) => {
 
             <div v-for="role in roles" :key="role">
               <div v-if="column.name === role">
-                <a-tooltip>
+                <NcTooltip>
                   <template #title>
                     <span v-if="record.disabled[role]">
                       {{ $t('labels.clickToMake') }} '{{ record.title }}' {{ $t('labels.visibleForRole') }} {{ role }}
                       {{ $t('labels.inUI') }} dashboard</span
                     >
                     <span v-else
-                      >{{ $t('labels.clickToHide') }}'{{ record.title }}' {{ $t('labels.forRole') }}:{{ role }}
+                      >{{ $t('labels.clickToHide') }} '{{ record.title }}' {{ $t('labels.forRole') }}:{{ role }}
                       {{ $t('labels.inUI') }}</span
                     >
                   </template>
@@ -239,7 +244,7 @@ const toggleSelectAll = (role: Role) => {
                     :class="`nc-acl-${record.title}-${role}-chkbox !ml-0.25`"
                     @change="onRoleCheck(record, role as Role)"
                   />
-                </a-tooltip>
+                </NcTooltip>
               </div>
             </div>
           </template>

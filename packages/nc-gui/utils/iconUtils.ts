@@ -110,11 +110,11 @@ import NcIconsRowHeightShort from '~icons/nc-icons/row-height-short'
 import NcIconsRowHeightTall from '~icons/nc-icons/row-height-tall'
 import NcIconsRowHeightExtraTall from '~icons/nc-icons/row-height-extra-tall'
 import NcArticle from '~icons/nc-icons/article'
-import NcNotification from '~icons/material-symbols/notifications-outline'
 import NcCommentHere from '~icons/nc-icons/comment-here'
 import NcAddDataSource from '~icons/nc-icons/add-data-source'
 import NcDatabaseIcon from '~icons/nc-icons/database'
 import NcChevronDown from '~icons/nc-icons/chevron-down'
+import NcChevronUpDown from '~icons/nc-icons/chevron-up-down'
 import NcTrash from '~icons/nc-icons/trash'
 import NcPencil from '~icons/nc-icons/pencil'
 import NcRename from '~icons/nc-icons/rename'
@@ -131,6 +131,12 @@ import NcDownload from '~icons/nc-icons/download'
 import NcOffice from '~icons/nc-icons/office'
 import NcArrowUpRight from '~icons/nc-icons/arrow-up-right'
 import NcSlash from '~icons/nc-icons/slash'
+import NcNotification from '~icons/nc-icons/bell'
+import NcCheckCircle from '~icons/nc-icons/check-circle'
+import NcCheckFill from '~icons/nc-icons/checkFill'
+import NcExternalLink from '~icons/nc-icons/external-link'
+import NcCamera from '~icons/nc-icons/camera'
+
 // import NcProjectGray from '~icons/nc-icons/project-gray'
 import NcPhoneCall from '~icons/nc-icons/phone-call'
 import NcItalic from '~icons/nc-icons/italic'
@@ -191,6 +197,13 @@ import NcAlertTriangle from '~icons/nc-icons/alert-triangle'
 import NcAudit from '~icons/nc-icons/audit'
 import NcMessageCircle from '~icons/nc-icons/message-circle'
 import NcKey from '~icons/nc-icons/key'
+
+import NcMinimize from '~icons/nc-icons/minimize'
+import NcMinimizeAll from '~icons/nc-icons/minimize-all'
+import NcMaximize from '~icons/nc-icons/maximize'
+import NcMaximizeAll from '~icons/nc-icons/maximize-all'
+import NcDrag from '~icons/nc-icons/drag'
+import NcRefresh from '~icons/nc-icons/refresh'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -379,6 +392,7 @@ export const iconMap = {
   cellSystemUser: NcCellSystemUser,
   cellSystemText: NcCellSystemText,
   cellAttachment: NcCellAttachment,
+  camera: NcCamera,
 
   office: NcOffice,
   sort: Sort,
@@ -396,6 +410,9 @@ export const iconMap = {
   project: Project,
   search: NcSearch,
   calendar: Calendar,
+  checkCircle: NcCheckCircle,
+  checkFill: NcCheckFill,
+  externalLink: NcExternalLink,
   error: h('span', { class: 'material-symbols' }, 'error'),
   info: h(MsInfo, {}, () => 'info'),
   inbox: h('span', { class: 'material-symbols' }, 'inbox'),
@@ -614,6 +631,13 @@ export const iconMap = {
   audit: NcAudit,
   messageCircle: NcMessageCircle,
   ncKey: NcKey,
+  minimize: NcMinimize,
+  minimizeAll: NcMinimizeAll,
+  maximize: NcMaximize,
+  maximizeAll: NcMaximizeAll,
+  ncDrag: NcDrag,
+  refresh: NcRefresh,
+  chevronUpDown: NcChevronUpDown,
 }
 
 export const getMdiIcon = (type: string): any => {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { dateFormats, timeFormats } from 'nocodb-sdk'
+import { UITypes, dateFormats, timeFormats } from 'nocodb-sdk'
 
 const props = defineProps<{
   value: any
@@ -9,18 +9,10 @@ const emit = defineEmits(['update:value'])
 
 const vModel = useVModel(props, 'value', emit)
 
-if (!vModel.value.meta?.date_format) {
-  if (!vModel.value.meta) vModel.value.meta = {}
-  vModel.value.meta.date_format = dateFormats[0]
-}
-
-if (!vModel.value.meta?.time_format) {
-  if (!vModel.value.meta) vModel.value.meta = {}
-  vModel.value.meta.time_format = timeFormats[0]
-}
-if (vModel.value.meta?.is12hrFormat === undefined) {
-  if (!vModel.value.meta) vModel.value.meta = {}
-  vModel.value.meta.is12hrFormat = false
+// set default value
+vModel.value.meta = {
+  ...columnDefaultMeta[UITypes.DateTime],
+  ...(vModel.value.meta || {}),
 }
 </script>
 
@@ -77,7 +69,7 @@ if (vModel.value.meta?.is12hrFormat === undefined) {
 
 <style lang="scss" scoped>
 :deep(.nc-time-form-layout) {
-  @apply flex justify-between gap-2 children:(flex-1 m-0 px-2 py-1 border-1 border-gray-200 rounded-lg);
+  @apply flex justify-between gap-2 children:(flex-1 m-0 px-2 py-1 border-1 border-gray-300 rounded-lg);
 
   .ant-radio-wrapper {
     @apply transition-all;

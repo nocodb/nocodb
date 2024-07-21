@@ -8,21 +8,22 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { Request } from 'express';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { AuditsService } from '~/services/audits.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
+import { TenantContext } from '~/decorators/tenant-context.decorator';
+import { NcContext, NcRequest } from '~/interface/config';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class AuditsController {
-  constructor(private readonly auditsService: AuditsService) {}
+  constructor(protected readonly auditsService: AuditsService) {}
 
   @Get(['/api/v1/db/meta/audits/', '/api/v2/meta/audits/'])
-  @Acl('auditList')
-  async auditListRow(@Req() req: Request) {
+  @Acl('auditListRow')
+  async auditListRow(@Req() req: NcRequest) {
     return new PagedResponseImpl(
       await this.auditsService.auditOnlyList({ query: req.query as any }),
     );
@@ -34,8 +35,12 @@ export class AuditsController {
   ])
   @HttpCode(200)
   @Acl('auditRowUpdate')
-  async auditRowUpdate(@Param('rowId') rowId: string, @Body() body: any) {
-    return await this.auditsService.auditRowUpdate({
+  async auditRowUpdate(
+    @TenantContext() context: NcContext,
+    @Param('rowId') rowId: string,
+    @Body() body: any,
+  ) {
+    return await this.auditsService.auditRowUpdate(context, {
       rowId,
       body,
     });
@@ -45,15 +50,31 @@ export class AuditsController {
     '/api/v1/db/meta/projects/:baseId/audits/',
     '/api/v2/meta/bases/:baseId/audits/',
   ])
-  @Acl('auditList')
-  async auditList(@Req() req: Request, @Param('baseId') baseId: string) {
+  @Acl('baseAuditList')
+  async auditList(@Req() req: NcRequest, @Param('baseId') baseId: string) {
     return new PagedResponseImpl(
       await this.auditsService.auditList({
         query: req.query,
         baseId,
       }),
       {
-        count: await this.auditsService.auditCount({ baseId }),
+        count: await this.auditsService.auditCount({
+          query: req.query,
+          baseId,
+        }),
+        ...req.query,
+      },
+    );
+  }
+  @Get(['/api/v1/db/meta/projects/audits/', '/api/v2/meta/projects/audits/'])
+  @Acl('projectAuditList')
+  async projectAuditList(@Req() req: NcRequest) {
+    return new PagedResponseImpl(
+      await this.auditsService.projectAuditList({
+        query: req.query,
+      }),
+      {
+        count: await this.auditsService.projectAuditCount(),
         ...req.query,
       },
     );

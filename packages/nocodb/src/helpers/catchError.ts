@@ -498,6 +498,14 @@ const errorHelpers: {
     },
     code: 404,
   },
+  [NcErrorType.GENERIC_NOT_FOUND]: {
+    message: (resource: string, id: string) => `${resource} '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.REQUIRED_FIELD_MISSING]: {
+    message: (field: string) => `Field '${field}' is required`,
+    code: 422,
+  },
   [NcErrorType.ERROR_DUPLICATE_RECORD]: {
     message: (...ids: string[]) => {
       const isMultiple = Array.isArray(ids) && ids.length > 1;
@@ -518,6 +526,11 @@ const errorHelpers: {
   },
   [NcErrorType.INVALID_OFFSET_VALUE]: {
     message: (offset: string) => `Offset value '${offset}' is invalid`,
+    code: 422,
+  },
+  [NcErrorType.INVALID_PK_VALUE]: {
+    message: (value: any, pkColumn: string) =>
+      `Primary key value '${value}' is invalid for column '${pkColumn}'`,
     code: 422,
   },
   [NcErrorType.INVALID_LIMIT_VALUE]: {
@@ -543,6 +556,14 @@ const errorHelpers: {
   },
   [NcErrorType.BAD_JSON]: {
     message: 'Invalid JSON in request body',
+    code: 400,
+  },
+  [NcErrorType.COLUMN_ASSOCIATED_WITH_LINK]: {
+    message: 'Column is associated with a link, please remove the link first',
+    code: 400,
+  },
+  [NcErrorType.TABLE_ASSOCIATED_WITH_LINK]: {
+    message: 'Table is associated with a link, please remove the link first',
     code: 400,
   },
 };
@@ -618,6 +639,14 @@ export class NcError {
     });
   }
 
+  static columnAssociatedWithLink(_id: string, args: NcErrorArgs) {
+    throw new NcBaseErrorv2(NcErrorType.COLUMN_ASSOCIATED_WITH_LINK, args);
+  }
+
+  static tableAssociatedWithLink(_id: string, args: NcErrorArgs) {
+    throw new NcBaseErrorv2(NcErrorType.TABLE_ASSOCIATED_WITH_LINK, args);
+  }
+
   static baseNotFound(id: string, args?: NcErrorArgs) {
     throw new NcBaseErrorv2(NcErrorType.BASE_NOT_FOUND, {
       params: id,
@@ -653,9 +682,40 @@ export class NcError {
     });
   }
 
-  static recordNotFound(id: string | string[], args?: NcErrorArgs) {
+  static recordNotFound(
+    id: string | string[] | Record<string, string> | Record<string, string>[],
+    args?: NcErrorArgs,
+  ) {
+    if (!id) {
+      id = 'unknown';
+    } else if (typeof id === 'string') {
+      id = [id];
+    } else if (Array.isArray(id)) {
+      if (id.every((i) => typeof i === 'string')) {
+        id = id as string[];
+      } else {
+        id = id.map((i) => Object.values(i).join('___'));
+      }
+    } else {
+      id = Object.values(id).join('___');
+    }
+
     throw new NcBaseErrorv2(NcErrorType.RECORD_NOT_FOUND, {
       params: id,
+      ...args,
+    });
+  }
+
+  static genericNotFound(resource: string, id: string, args?: NcErrorArgs) {
+    throw new NcBaseErrorv2(NcErrorType.GENERIC_NOT_FOUND, {
+      params: [resource, id],
+      ...args,
+    });
+  }
+
+  static requiredFieldMissing(field: string, args?: NcErrorArgs) {
+    throw new NcBaseErrorv2(NcErrorType.REQUIRED_FIELD_MISSING, {
+      params: field,
       ...args,
     });
   }
@@ -677,6 +737,13 @@ export class NcError {
   static invalidOffsetValue(offset: string | number, args?: NcErrorArgs) {
     throw new NcBaseErrorv2(NcErrorType.INVALID_OFFSET_VALUE, {
       params: `${offset}`,
+      ...args,
+    });
+  }
+
+  static invalidPrimaryKey(value: any, pkColumn: string, args?: NcErrorArgs) {
+    throw new NcBaseErrorv2(NcErrorType.INVALID_PK_VALUE, {
+      params: [value, pkColumn],
       ...args,
     });
   }
@@ -757,5 +824,13 @@ export class NcError {
 
   static metaError(param: { message: string; sql: string }) {
     throw new MetaError(param);
+  }
+
+  static sourceDataReadOnly(name: string) {
+    NcError.forbidden(`Source '${name}' is read-only`);
+  }
+
+  static sourceMetaReadOnly(name: string) {
+    NcError.forbidden(`Source '${name}' schema is read-only`);
   }
 }

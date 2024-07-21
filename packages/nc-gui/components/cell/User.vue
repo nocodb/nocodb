@@ -122,8 +122,20 @@ const editAllowed = computed(() => (hasEditRoles.value || isForm.value) && activ
 const vModel = computed({
   get: () => {
     let selected: { label: string; value: string }[] = []
-    if (typeof modelValue === 'string') {
-      const idsOrMails = modelValue.split(',').map((idOrMail) => idOrMail.trim())
+
+    let localModelValue = modelValue
+
+    // if stringified json
+    if (typeof localModelValue === 'string' && /^\s*[{[]/.test(localModelValue)) {
+      try {
+        localModelValue = JSON.parse(localModelValue)
+      } catch (e) {
+        // do nothing
+      }
+    }
+
+    if (typeof localModelValue === 'string') {
+      const idsOrMails = localModelValue.split(',').map((idOrMail) => idOrMail.trim())
       selected = idsOrMails.reduce((acc, idOrMail) => {
         const user = options.value.find((u) => u.id === idOrMail || u.email === idOrMail)
         if (user) {
@@ -135,8 +147,8 @@ const vModel = computed({
         return acc
       }, [] as { label: string; value: string }[])
     } else {
-      selected = modelValue
-        ? (Array.isArray(modelValue) ? modelValue : [modelValue]).reduce((acc, item) => {
+      selected = localModelValue
+        ? (Array.isArray(localModelValue) ? localModelValue : [localModelValue]).reduce((acc, item) => {
             const label = item?.display_name || item?.email
             if (label) {
               acc.push({

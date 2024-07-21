@@ -91,7 +91,7 @@ export class ToolbarGroupByPage extends BasePage {
     }
 
     if (isGroupByListOpen) {
-      await this.get().locator('button:has-text("Add subgroup")').click();
+      await this.get().locator('button:has-text("New Subgroup")').click();
     }
 
     const regexTitle = new RegExp(`^${title}`);

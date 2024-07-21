@@ -4,6 +4,8 @@ import { Queue } from 'bull';
 import type { OnModuleInit } from '@nestjs/common';
 import { InstanceCommands, JOBS_QUEUE, JobStatus } from '~/interface/Jobs';
 import { JobsRedis } from '~/modules/jobs/redis/jobs-redis';
+import { Job } from '~/models';
+import { RootScopes } from '~/utils/globals';
 
 @Injectable()
 export class JobsService implements OnModuleInit {
@@ -51,11 +53,24 @@ export class JobsService implements OnModuleInit {
   async add(name: string, data: any) {
     await this.toggleQueue();
 
-    const job = await this.jobsQueue.add(name, data, {
+    const context = {
+      workspace_id: RootScopes.ROOT,
+      base_id: RootScopes.ROOT,
+      ...(data?.context || {}),
+    };
+
+    const jobData = await Job.insert(context, {
+      job: name,
+      status: JobStatus.WAITING,
+      fk_user_id: data?.user?.id,
+    });
+
+    await this.jobsQueue.add(name, data, {
+      jobId: jobData.id,
       removeOnComplete: true,
     });
 
-    return job;
+    return jobData;
   }
 
   async jobStatus(jobId: string) {
@@ -72,30 +87,6 @@ export class JobsService implements OnModuleInit {
       JobStatus.DELAYED,
       JobStatus.PAUSED,
     ]);
-  }
-
-  async getJobWithData(data: any) {
-    const jobs = await this.jobsQueue.getJobs([
-      // 'completed',
-      JobStatus.WAITING,
-      JobStatus.ACTIVE,
-      JobStatus.DELAYED,
-      // 'failed',
-      JobStatus.PAUSED,
-    ]);
-
-    const job = jobs.find((j) => {
-      for (const key in data) {
-        if (j.data[key]) {
-          if (j.data[key] !== data[key]) return false;
-        } else {
-          return false;
-        }
-      }
-      return true;
-    });
-
-    return job;
   }
 
   async resumeQueue() {

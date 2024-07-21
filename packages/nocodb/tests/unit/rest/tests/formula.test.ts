@@ -10,6 +10,10 @@ import type Model from '../../../../src/models/Model';
 import type Base from '~/models/Base';
 
 let context;
+let ctx: {
+  workspace_id: string;
+  base_id: string;
+};
 let base: Base;
 let table: Model;
 let columns: any[];
@@ -20,6 +24,12 @@ function formulaRegExpBased() {
   beforeEach(async function () {
     context = await init();
     base = await createProject(context);
+
+    ctx = {
+      workspace_id: base.fk_workspace_id,
+      base_id: base.id,
+    };
+
     table = await createTable(context, base, {
       table_name: 'sampleTable',
       title: 'sampleTable',
@@ -43,7 +53,7 @@ function formulaRegExpBased() {
       ],
     });
 
-    columns = await table.getColumns();
+    columns = await table.getColumns(ctx);
 
     const rowAttributes = [];
     for (let i = 0; i < 100; i++) {

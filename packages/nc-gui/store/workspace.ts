@@ -1,10 +1,22 @@
-import type { BaseType } from 'nocodb-sdk'
+import type { AuditType, BaseType } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { message } from 'ant-design-vue'
 import { isString } from '@vue/shared'
+import type { AuditLogsQuery } from '~/lib/types'
+
+const defaultAuditLogsQuery = {
+  baseId: undefined,
+  sourceId: undefined,
+  orderBy: {
+    created_at: 'desc',
+    user: undefined,
+  },
+} as Partial<AuditLogsQuery>
 
 export const useWorkspace = defineStore('workspaceStore', () => {
   const basesStore = useBases()
+
+  const { isUIAllowed } = useRoles()
 
   const collaborators = ref<any[] | null>()
 
@@ -211,6 +223,49 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     }
   }
 
+  const auditLogsQuery = ref<Partial<AuditLogsQuery>>(defaultAuditLogsQuery)
+
+  const audits = ref<null | Array<AuditType>>(null)
+
+  const auditTotalRows = ref(0)
+
+  const auditCurrentPage = ref(1)
+
+  const auditCurrentLimit = ref(25)
+
+  const loadAudits = async (
+    _workspaceId?: string,
+    page: number = auditCurrentPage.value,
+    limit: number = auditCurrentLimit.value,
+  ) => {
+    try {
+      if (limit * (page - 1) > auditTotalRows.value) {
+        auditCurrentPage.value = 1
+        page = 1
+      }
+
+      const { list, pageInfo } = isUIAllowed('workspaceAuditList')
+        ? await $api.utils.projectAuditList({
+            offset: limit * (page - 1),
+            limit,
+            ...auditLogsQuery.value,
+          })
+        : await $api.base.auditList(auditLogsQuery.value.baseId, {
+            offset: limit * (page - 1),
+            limit,
+            ...auditLogsQuery.value,
+          })
+
+      audits.value = list
+      auditTotalRows.value = pageInfo.totalRows ?? 0
+    } catch (e) {
+      message.error(await extractSdkResponseErrorMsg(e))
+      audits.value = []
+      auditTotalRows.value = 0
+      auditCurrentPage.value = 1
+    }
+  }
+
   function setLoadingState(isLoading = false) {
     isWorkspaceLoading.value = isLoading
   }
@@ -256,6 +311,12 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     getPlanLimit,
     workspaceRole,
     moveToOrg,
+    auditLogsQuery,
+    audits,
+    auditTotalRows,
+    auditCurrentPage,
+    auditCurrentLimit,
+    loadAudits,
   }
 })
 

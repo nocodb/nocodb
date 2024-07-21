@@ -15,6 +15,8 @@ BOLD='\033[1m'
 NC='\033[0m'
 
 NOCO_HOME="./nocodb"
+# Get the current working directory
+CURRENT_PATH=$(pwd)
 
 # *****************    GLOBAL VARIABLES END  ***********************************
 # ******************************************************************************
@@ -359,6 +361,7 @@ if [ "$NOCO_FOUND" = true ]; then
         cd /tmp || exit 1
         rm -rf "$NOCO_HOME"
 
+        cd "$CURRENT_PATH" || exit 1
         mkdir -p "$NOCO_HOME"
         cd "$NOCO_HOME" || exit 1
     fi
@@ -573,6 +576,8 @@ services:
 
   nginx:
     image: nginx:latest
+    labels:
+      com.nocodb.service: "nginx"
     volumes:
       - ./nginx:/etc/nginx/conf.d
 EOF
@@ -603,7 +608,23 @@ if [ "$SSL_ENABLED" = 'y' ] || [ "$SSL_ENABLED" = 'Y' ]; then
       - ./letsencrypt:/etc/letsencrypt
       - letsencrypt-lib:/var/lib/letsencrypt
       - webroot:/var/www/certbot
-    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait \$\${!}; done;'"
+    entrypoint: |
+      /bin/sh -c '
+      apk add docker-cli || { echo "Failed to install Docker CLI"; exit 1; };
+      trap exit TERM;
+      while :; do
+        OUTPUT=\$\$(certbot renew 2>&1);
+        echo "\$\$OUTPUT";
+        if echo "\$\$OUTPUT" | grep -q "No renewals were attempted"; then
+          echo "No certificates were renewed.";
+        else
+          echo "Certificates renewed. Reloading nginx...";
+          sleep 5;
+          CONTAINER_NAME=\$\$(docker ps --format "{{.Names}}" --filter "com.nocodb.service=nginx" | grep "nginx") || { echo "Failed to find nginx container"; exit 1; };
+          docker exec \$\$CONTAINER_NAME nginx -s reload || { echo "Failed to reload nginx"; exit 1; };
+        fi;
+        sleep 12h & wait \$\${!};
+      done;'
     depends_on:
       - nginx
     restart: unless-stopped

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useColumnCreateStoreOrThrow, useVModel } from '#imports'
+
 const props = defineProps<{
   value: any
 }>()
@@ -42,7 +44,7 @@ setAdditionalValidations({
 vModel.value.meta = {
   singular: '',
   plural: '',
-  ...vModel.value.meta,
+  ...(vModel.value.meta || {}),
 }
 </script>
 

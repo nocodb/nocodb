@@ -18,6 +18,7 @@ export const useColumnDrag = ({
   const { leftSidebarWidth } = storeToRefs(useSidebarStore())
   const { width } = useWindowSize()
 
+  const isProcessing = ref<boolean>(false)
   const draggedCol = ref<ColumnType | null>(null)
   const dragColPlaceholderDomRef = ref<HTMLElement | null>(null)
   const toBeDroppedColId = ref<string | null>(null)
@@ -57,7 +58,7 @@ export const useColumnDrag = ({
     const lastViewCol = gridViewCols.value[lastCol.id!]
 
     // if nextToViewCol/toViewCol is null, return
-    if (nextToViewCol === null || lastViewCol === null) return
+    if (nextToViewCol === null && lastViewCol === null) return
 
     const newOrder = nextToViewCol ? toViewCol.order! + (nextToViewCol.order! - toViewCol.order!) / 2 : lastViewCol.order! + 1
     const oldOrder = toBeReorderedViewCol.order
@@ -106,9 +107,18 @@ export const useColumnDrag = ({
   }
 
   const handleReorderColumn = async () => {
-    dragColPlaceholderDomRef.value!.style.left = '0px'
-    dragColPlaceholderDomRef.value!.style.height = '0px'
-    await reorderColumn(draggedCol.value!.id!, toBeDroppedColId.value!)
+    isProcessing.value = true
+    try {
+      if (!dragColPlaceholderDomRef.value) return
+
+      dragColPlaceholderDomRef.value!.style.left = '0px'
+      dragColPlaceholderDomRef.value!.style.height = '0px'
+      await reorderColumn(draggedCol.value!.id!, toBeDroppedColId.value!)
+    } catch (error) {
+      console.error('Failed to reorder column: ', error)
+    } finally {
+      isProcessing.value = false
+    }
     draggedCol.value = null
     toBeDroppedColId.value = null
   }
@@ -117,6 +127,8 @@ export const useColumnDrag = ({
     if (!e.dataTransfer) return
 
     const dom = document.querySelector('[data-testid="drag-icon-placeholder"]')
+
+    if (!dom || !dragColPlaceholderDomRef.value) return
 
     e.dataTransfer.dropEffect = 'none'
     e.dataTransfer.effectAllowed = 'none'
@@ -180,8 +192,10 @@ export const useColumnDrag = ({
   }
 
   // fallback for safari browser
-  const onDragEnd = (e: DragEvent) => {
+  const onDragEnd = async (e: DragEvent) => {
     e.preventDefault()
+
+    await until(() => !isProcessing.value).toBeTruthy()
 
     if (!e.dataTransfer || !draggedCol.value || !toBeDroppedColId.value) return
 

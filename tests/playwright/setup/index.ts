@@ -465,7 +465,11 @@ const setup = async ({
     baseUrl = url ? url : `/#/nc/${base.id}`;
   }
 
-  await page.goto(baseUrl, { waitUntil: 'networkidle' });
+  await page.addInitScript(() => (window.isPlaywright = true));
+
+  await page.goto(baseUrl, {
+    waitUntil: 'networkidle',
+  });
 
   console.timeEnd('Setup');
 

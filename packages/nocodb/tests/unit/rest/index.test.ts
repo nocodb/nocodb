@@ -11,14 +11,21 @@ import filterTest from './tests/filter.test';
 import newDataApisTest from './tests/newDataApis.test';
 import groupByTest from './tests/groupby.test';
 import formulaTests from './tests/formula.test';
+import typeCastsTest from './tests/typeCasts.test';
+import readOnlyTest from './tests/readOnlySource.test';
+import aggregationTest from './tests/aggregation.test';
 
 let workspaceTest = () => {};
 let ssoTest = () => {};
 let cloudOrgTest = () => {};
+let bulkAggregationTest = () => {};
+let columnTest = () => {};
 if (process.env.EE === 'true') {
   workspaceTest = require('./tests/ee/workspace.test').default;
   ssoTest = require('./tests/ee/sso.test').default;
   cloudOrgTest = require('./tests/ee/cloud-org.test').default;
+  bulkAggregationTest = require('./tests/ee/bulkAggregation.test').default;
+  columnTest = require('./tests/ee/column.test').default;
 }
 // import layoutTests from './tests/layout.test';
 // import widgetTest from './tests/widget.test';
@@ -39,6 +46,11 @@ function restTests() {
   formulaTests();
   ssoTest();
   cloudOrgTest();
+  typeCastsTest();
+  readOnlyTest();
+  aggregationTest();
+  bulkAggregationTest();
+  columnTest();
 
   // Enable for dashboard feature
   // widgetTest();

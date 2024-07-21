@@ -14,15 +14,13 @@ export class SourceDeleteProcessor {
   async job(job: Job) {
     this.debugLog(`job started for ${job.id}`);
 
-    const { sourceId, req } = job.data;
+    const { context, sourceId, req } = job.data;
 
-    await this.sourcesService.baseDelete({
+    await this.sourcesService.baseDelete(context, {
       sourceId,
       req,
     });
 
     this.debugLog(`job completed for ${job.id}`);
-
-    return true;
   }
 }

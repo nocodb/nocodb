@@ -1,9 +1,8 @@
 import { AuditOperationTypes } from 'nocodb-sdk';
 import type { AuditType } from 'nocodb-sdk';
-import Model from '~/models/Model';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
-import { MetaTable } from '~/utils/globals';
+import { MetaTable, RootScopes } from '~/utils/globals';
 
 const opTypes = <const>[
   'COMMENT',
@@ -51,6 +50,7 @@ export default class Audit implements AuditType {
   user?: string;
   ip?: string;
   source_id?: string;
+  fk_workspace_id?: string;
   base_id?: string;
   fk_model_id?: string;
   row_id?: string;
@@ -66,8 +66,8 @@ export default class Audit implements AuditType {
 
   public static async get(auditId: string) {
     const audit = await Noco.ncMeta.metaGet2(
-      null,
-      null,
+      RootScopes.ROOT,
+      RootScopes.ROOT,
       MetaTable.AUDIT,
       auditId,
     );
@@ -90,6 +90,7 @@ export default class Audit implements AuditType {
         'user',
         'ip',
         'source_id',
+        'fk_workspace_id',
         'base_id',
         'row_id',
         'fk_model_id',
@@ -99,20 +100,13 @@ export default class Audit implements AuditType {
         'description',
         'details',
       ]);
-      if (
-        (!insertObj.base_id || !insertObj.source_id) &&
-        insertObj.fk_model_id
-      ) {
-        const model = await Model.getByIdOrName(
-          { id: insertObj.fk_model_id },
-          ncMeta,
-        );
 
-        insertObj.base_id = model.base_id;
-        insertObj.source_id = model.source_id;
-      }
-
-      return await ncMeta.metaInsert2(null, null, MetaTable.AUDIT, insertObj);
+      return await ncMeta.metaInsert2(
+        RootScopes.ROOT,
+        RootScopes.ROOT,
+        MetaTable.AUDIT,
+        insertObj,
+      );
     };
 
     if (forceAwait) {
@@ -147,50 +141,75 @@ export default class Audit implements AuditType {
       limit = 25,
       offset = 0,
       sourceId,
+      orderBy,
     }: {
       limit?: number;
       offset?: number;
       sourceId?: string;
+      orderBy?: {
+        created_at?: 'asc' | 'desc';
+        user?: 'asc' | 'desc';
+      };
     },
   ) {
-    return await Noco.ncMeta.metaList2(null, null, MetaTable.AUDIT, {
-      condition: {
-        base_id: baseId,
-        ...(sourceId ? { source_id: sourceId } : {}),
+    return await Noco.ncMeta.metaList2(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.AUDIT,
+      {
+        condition: {
+          base_id: baseId,
+          ...(sourceId ? { source_id: sourceId } : {}),
+        },
+        orderBy: {
+          ...(orderBy?.created_at
+            ? { created_at: orderBy?.created_at }
+            : !orderBy?.user
+            ? { created_at: 'desc' }
+            : {}),
+          ...(orderBy?.user ? { user: orderBy?.user } : {}),
+        },
+        limit,
+        offset,
       },
-      orderBy: {
-        created_at: 'desc',
-      },
-      limit,
-      offset,
-    });
+    );
   }
 
   static async baseAuditCount(
     baseId: string,
-    sourceId?: string,
+    {
+      sourceId,
+    }: {
+      sourceId?: string;
+    },
   ): Promise<number> {
-    return (
-      await Noco.ncMeta
-        .knex(MetaTable.AUDIT)
-        .where({
+    return await Noco.ncMeta.metaCount(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.AUDIT,
+      {
+        condition: {
           base_id: baseId,
           ...(sourceId ? { source_id: sourceId } : {}),
-        })
-        .count('id', { as: 'count' })
-        .first()
-    )?.count;
+        },
+      },
+    );
   }
 
   static async sourceAuditList(sourceId: string, { limit = 25, offset = 0 }) {
-    return await Noco.ncMeta.metaList2(null, null, MetaTable.AUDIT, {
-      condition: { source_id: sourceId },
-      orderBy: {
-        created_at: 'desc',
+    return await Noco.ncMeta.metaList2(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.AUDIT,
+      {
+        condition: { source_id: sourceId },
+        orderBy: {
+          created_at: 'desc',
+        },
+        limit,
+        offset,
       },
-      limit,
-      offset,
-    });
+    );
   }
 
   static async sourceAuditCount(sourceId: string) {
@@ -201,5 +220,45 @@ export default class Audit implements AuditType {
         .count('id', { as: 'count' })
         .first()
     )?.count;
+  }
+
+  static async projectAuditList({
+    limit = 25,
+    offset = 0,
+    orderBy,
+  }: {
+    limit?: number;
+    offset?: number;
+    orderBy?: {
+      created_at?: 'asc' | 'desc';
+      user?: 'asc' | 'desc';
+    };
+  }) {
+    return await Noco.ncMeta.metaList2(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.AUDIT,
+      {
+        limit,
+        offset,
+        orderBy: {
+          ...(orderBy?.created_at
+            ? { created_at: orderBy?.created_at }
+            : !orderBy?.user
+            ? { created_at: 'desc' }
+            : {}),
+          ...(orderBy?.user ? { user: orderBy?.user } : {}),
+        },
+      },
+    );
+  }
+
+  static async projectAuditCount(): Promise<number> {
+    return await Noco.ncMeta.metaCount(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.AUDIT,
+      {},
+    );
   }
 }

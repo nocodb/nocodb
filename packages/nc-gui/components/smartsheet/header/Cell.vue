@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ColumnReqType, ColumnType } from 'nocodb-sdk'
+import { type ColumnReqType, type ColumnType, partialUpdateAllowedTypes, readonlyMetaAllowedTypes } from 'nocodb-sdk'
 import { UITypes, UITypesName } from 'nocodb-sdk'
 
 interface Props {
@@ -30,11 +30,9 @@ const isExpandedBulkUpdateForm = inject(IsExpandedBulkUpdateFormOpenInj, ref(fal
 
 const isDropDownOpen = ref(false)
 
-const isKanban = inject(IsKanbanInj, ref(false))
-
 const column = toRef(props, 'column')
 
-const { isUIAllowed } = useRoles()
+const { isUIAllowed, isMetaReadOnly } = useRoles()
 
 provide(ColumnInj, column)
 
@@ -59,10 +57,20 @@ const closeAddColumnDropdown = () => {
   editColumnDropdown.value = false
 }
 
+const isColumnEditAllowed = computed(() => {
+  if (
+    isMetaReadOnly.value &&
+    !readonlyMetaAllowedTypes.includes(column.value?.uidt) &&
+    !partialUpdateAllowedTypes.includes(column.value?.uidt)
+  )
+    return false
+  return true
+})
+
 const openHeaderMenu = (e?: MouseEvent) => {
   if (isLocked.value || (isExpandedForm.value && e?.type === 'dblclick') || isExpandedBulkUpdateForm.value) return
 
-  if (!isForm.value && isUIAllowed('fieldEdit') && !isMobileMode.value) {
+  if (!isForm.value && isUIAllowed('fieldEdit') && !isMobileMode.value && isColumnEditAllowed.value) {
     editColumnDropdown.value = true
   }
 }
@@ -100,7 +108,6 @@ const onClick = (e: Event) => {
     class="flex items-center w-full text-xs text-gray-500 font-weight-medium group"
     :class="{
       'h-full': column,
-      '!text-gray-400': isKanban,
       'flex-col !items-start justify-center pt-0.5': isExpandedForm && !isMobileMode && !isExpandedBulkUpdateForm,
       'nc-cell-expanded-form-header cursor-pointer hover:bg-gray-100':
         isExpandedForm && !isMobileMode && isUIAllowed('fieldEdit') && !isExpandedBulkUpdateForm,
@@ -197,16 +204,18 @@ const onClick = (e: Event) => {
       <div v-else />
 
       <template #overlay>
-        <SmartsheetColumnEditOrAddProvider
-          v-if="editColumnDropdown"
-          :column="columnOrder ? null : column"
-          :column-position="columnOrder"
-          class="w-full"
-          @submit="closeAddColumnDropdown"
-          @cancel="closeAddColumnDropdown"
-          @click.stop
-          @keydown.stop
-        />
+        <div class="nc-edit-or-add-provider-wrapper">
+          <LazySmartsheetColumnEditOrAddProvider
+            v-if="editColumnDropdown"
+            :column="columnOrder ? null : column"
+            :column-position="columnOrder"
+            class="w-full"
+            @submit="closeAddColumnDropdown"
+            @cancel="closeAddColumnDropdown"
+            @click.stop
+            @keydown.stop
+          />
+        </div>
       </template>
     </a-dropdown>
   </div>

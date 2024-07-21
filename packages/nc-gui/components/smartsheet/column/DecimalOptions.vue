@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { UITypes } from 'nocodb-sdk'
+
 const props = defineProps<{
   value: any
 }>()
@@ -24,8 +26,7 @@ const vModel = useVModel(props, 'value', emit)
 
 // set default value
 vModel.value.meta = {
-  precision: precisionFormats[0],
-  isLocaleString: false,
+  ...columnDefaultMeta[UITypes.Decimal],
   ...(vModel.value.meta || {}),
 }
 
@@ -35,6 +36,8 @@ vModel.value.meta = {
 const onPrecisionChange = (value: number) => {
   vModel.value.dtxs = Math.max(value, vModel.value.dtxs)
 }
+
+const { isMetaReadOnly } = useRoles()
 </script>
 
 <template>
@@ -42,6 +45,7 @@ const onPrecisionChange = (value: number) => {
     <a-select
       v-if="vModel.meta?.precision"
       v-model:value="vModel.meta.precision"
+      :disabled="isMetaReadOnly"
       dropdown-class-name="nc-dropdown-decimal-format"
       @change="onPrecisionChange"
     >

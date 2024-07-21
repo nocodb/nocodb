@@ -7,7 +7,6 @@ export interface IJobsService {
   add(name: string, data: any): Promise<Bull.Job<any>>;
   jobStatus(jobId: string): Promise<JobStatus>;
   jobList(): Promise<Bull.Job<any>[]>;
-  getJobWithData(data: any): Promise<Bull.Job<any>>;
   resumeQueue(): Promise<void>;
   pauseQueue(): Promise<void>;
 }

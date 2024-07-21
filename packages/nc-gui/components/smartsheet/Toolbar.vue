@@ -1,12 +1,12 @@
 <script lang="ts" setup>
 const { isGrid, isGallery, isKanban, isMap, isCalendar } = useSmartsheetStoreOrThrow()
 
-const isPublic = inject(IsPublicInj, ref(false))
-
 const { isMobileMode } = useGlobal()
 const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 const { isViewsLoading } = storeToRefs(useViewsStore())
+
+const { isLocalMode } = useViewColumnsOrThrow()
 
 const containerRef = ref<HTMLElement>()
 
@@ -17,12 +17,19 @@ const isTab = computed(() => {
   return width.value > 1200
 })
 
-const { allowCSVDownload } = useSharedView()
+const isToolbarIconMode = computed(() => {
+  if (width.value < 768) {
+    return true
+  }
+  return false
+})
+
+provide(IsToolbarIconMode, isToolbarIconMode)
 </script>
 
 <template>
   <div
-    v-if="!isMobileMode || isCalendar"
+    v-if="!isMobileMode"
     ref="containerRef"
     :class="{
       'px-4': isMobileMode,
@@ -47,13 +54,13 @@ const { allowCSVDownload } = useSharedView()
 
         <LazySmartsheetToolbarCalendarRange v-if="isCalendar" />
 
-        <LazySmartsheetToolbarFieldsMenu v-if="isGrid || isGallery || isKanban || isMap" :show-system-fields="false" />
-
         <LazySmartsheetToolbarStackedBy v-if="isKanban" />
+
+        <LazySmartsheetToolbarFieldsMenu v-if="isGrid || isGallery || isKanban || isMap" :show-system-fields="false" />
 
         <LazySmartsheetToolbarColumnFilterMenu v-if="isGrid || isGallery || isKanban || isMap" />
 
-        <LazySmartsheetToolbarGroupByMenu v-if="isGrid" />
+        <LazySmartsheetToolbarGroupByMenu v-if="isGrid && !isLocalMode" />
 
         <LazySmartsheetToolbarSortListMenu v-if="isGrid || isGallery || isKanban" />
       </div>

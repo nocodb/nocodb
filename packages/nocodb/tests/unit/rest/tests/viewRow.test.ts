@@ -41,6 +41,14 @@ const isColumnsCorrectInResponse = (row, columns: ColumnType[]) => {
 };
 
 let context;
+let sakilaCtx: {
+  workspace_id: string;
+  base_id: string;
+};
+let ctx: {
+  workspace_id: string;
+  base_id: string;
+};
 // bases
 let base: Base;
 let sakilaProject: Base;
@@ -126,11 +134,19 @@ function viewRowStaticTests() {
     context = await init();
     sakilaProject = await createSakilaProject(context);
     base = await createProject(context);
+    ctx = {
+      workspace_id: base.fk_workspace_id,
+      base_id: base.id,
+    };
+    sakilaCtx = {
+      workspace_id: sakilaProject.fk_workspace_id,
+      base_id: sakilaProject.id,
+    };
     customerTable = await getTable({
       base: sakilaProject,
       name: 'customer',
     });
-    customerColumns = await customerTable.getColumns();
+    customerColumns = await customerTable.getColumns(sakilaCtx);
     customerGridView = await createView(context, {
       title: 'Customer Gallery',
       table: customerTable,
@@ -151,7 +167,7 @@ function viewRowStaticTests() {
       base: sakilaProject,
       name: 'film',
     });
-    filmColumns = await filmTable.getColumns();
+    filmColumns = await filmTable.getColumns(sakilaCtx);
     filmKanbanView = await createView(context, {
       title: 'Film Kanban',
       table: filmTable,
@@ -163,7 +179,7 @@ function viewRowStaticTests() {
       name: 'rental',
     });
 
-    rentalColumns = await rentalTable.getColumns();
+    rentalColumns = await rentalTable.getColumns(sakilaCtx);
 
     rentalCalendarView = await createView(context, {
       title: 'Rental Calendar',
@@ -262,7 +278,7 @@ function viewRowStaticTests() {
       Object.keys(response.body.find((e) => e.key === 'NC-17').value.list[0])
         .sort()
         .join(','),
-    ).to.equal('FilmId,Title');
+    ).to.equal('Description,FilmId,Title');
   };
   it('Get grouped view data list with required columns kanban', async () => {
     await testGetGroupedViewDataListWithRequiredColumns(filmKanbanView);
@@ -473,11 +489,19 @@ function viewRowTests() {
     context = await init();
     sakilaProject = await createSakilaProject(context);
     base = await createProject(context);
+    ctx = {
+      workspace_id: base.fk_workspace_id,
+      base_id: base.id,
+    };
+    sakilaCtx = {
+      workspace_id: sakilaProject.fk_workspace_id,
+      base_id: sakilaProject.id,
+    };
     customerTable = await getTable({
       base: sakilaProject,
       name: 'customer',
     });
-    customerColumns = await customerTable.getColumns();
+    customerColumns = await customerTable.getColumns(sakilaCtx);
     customerGridView = await createView(context, {
       title: 'Customer Gallery',
       table: customerTable,
@@ -498,7 +522,7 @@ function viewRowTests() {
       base: sakilaProject,
       name: 'film',
     });
-    filmColumns = await filmTable.getColumns();
+    filmColumns = await filmTable.getColumns(sakilaCtx);
     filmKanbanView = await createView(context, {
       title: 'Film Kanban',
       table: filmTable,
@@ -510,7 +534,7 @@ function viewRowTests() {
       name: 'rental',
     });
 
-    rentalColumns = await rentalTable.getColumns();
+    rentalColumns = await rentalTable.getColumns(sakilaCtx);
 
     rentalCalendarView = await createView(context, {
       title: 'Rental Calendar',
@@ -640,7 +664,7 @@ function viewRowTests() {
       relatedTableColumnTitle: 'RentalDate',
     });
 
-    const activeColumn = (await customerTable.getColumns()).find(
+    const activeColumn = (await customerTable.getColumns(sakilaCtx)).find(
       (c) => c.title === 'Active',
     );
 
@@ -899,7 +923,7 @@ function viewRowTests() {
       attr: { show: true },
     });
 
-    const activeColumn = (await customerTable.getColumns()).find(
+    const activeColumn = (await customerTable.getColumns(sakilaCtx)).find(
       (c) => c.title === 'Active',
     );
 
@@ -1715,7 +1739,7 @@ function viewRowTests() {
       name: 'Film',
     });
 
-    const columns = await table.getColumns();
+    const columns = await table.getColumns(sakilaCtx);
 
     // get rows
     const rows = await listRow({

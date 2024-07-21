@@ -17,14 +17,18 @@ import {
 } from './params';
 import { csvExportResponseHeader } from './headers';
 import type { SwaggerColumn } from '../getSwaggerColumnMetas';
+import type { NcContext } from '~/interface/config';
 
-export const getModelPaths = async (ctx: {
-  tableName: string;
-  orgs: string;
-  type: ModelTypes;
-  columns: SwaggerColumn[];
-  baseName: string;
-}): Promise<{ [path: string]: any }> => ({
+export const getModelPaths = async (
+  context: NcContext,
+  ctx: {
+    tableName: string;
+    orgs: string;
+    type: ModelTypes;
+    columns: SwaggerColumn[];
+    baseName: string;
+  },
+): Promise<{ [path: string]: any }> => ({
   [`/api/v1/db/data/${ctx.orgs}/${ctx.baseName}/${ctx.tableName}`]: {
     get: {
       summary: `${ctx.tableName} list`,
@@ -38,7 +42,7 @@ export const getModelPaths = async (ctx: {
         limitParam,
         shuffleParam,
         offsetParam,
-        ...(await getNestedParams(ctx.columns)),
+        ...(await getNestedParams(context, ctx.columns)),
       ],
       responses: {
         '200': {
@@ -471,14 +475,17 @@ export const getModelPaths = async (ctx: {
     },
 });
 
-export const getViewPaths = async (ctx: {
-  tableName: string;
-  viewName: string;
-  type: ModelTypes;
-  orgs: string;
-  baseName: string;
-  columns: SwaggerColumn[];
-}): Promise<any> => ({
+export const getViewPaths = async (
+  context: NcContext,
+  ctx: {
+    tableName: string;
+    viewName: string;
+    type: ModelTypes;
+    orgs: string;
+    baseName: string;
+    columns: SwaggerColumn[];
+  },
+): Promise<any> => ({
   [`/api/v1/db/data/${ctx.orgs}/${ctx.baseName}/${ctx.tableName}/views/${ctx.viewName}`]:
     {
       get: {
@@ -490,7 +497,7 @@ export const getViewPaths = async (ctx: {
           fieldsParam,
           sortParam,
           whereParam,
-          ...(await getNestedParams(ctx.columns)),
+          ...(await getNestedParams(context, ctx.columns)),
         ],
         responses: {
           '200': {

@@ -31,9 +31,9 @@ export function useViewData(
 
   const route = router.currentRoute
 
-  const { appInfo } = useGlobal()
+  const { appInfo, gridViewPageSize } = useGlobal()
 
-  const appInfoDefaultLimit = appInfo.value.defaultLimit || 25
+  const appInfoDefaultLimit = gridViewPageSize.value || appInfo.value.defaultLimit || 25
 
   const _paginationData = ref<PaginatedType>({ page: 1, pageSize: appInfoDefaultLimit })
 
@@ -51,7 +51,7 @@ export function useViewData(
 
   const isPublic = inject(IsPublicInj, ref(false))
 
-  const { base, isSharedBase } = storeToRefs(useBase())
+  const { base } = storeToRefs(useBase())
 
   const { sharedView, fetchSharedViewData, paginationData: sharedPaginationData } = useSharedView()
 
@@ -133,7 +133,7 @@ export function useViewData(
   async function loadAggCommentsCount() {
     if (!isUIAllowed('commentCount')) return
 
-    if (isPublic.value || isSharedBase.value) return
+    if (isPublic.value) return
 
     const ids = formattedData.value
       ?.filter(({ rowMeta: { new: isNew } }) => !isNew)
@@ -347,9 +347,8 @@ export function useViewData(
 
     // extract the row id of the sibling row
     const rowId = extractPkFromRow(formattedData.value[siblingRowIndex].row, meta.value?.columns as ColumnType[])
-
     if (rowId) {
-      router.push({
+      await router.push({
         query: {
           ...routeQuery.value,
           rowId,

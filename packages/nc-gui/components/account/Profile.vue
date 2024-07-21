@@ -32,7 +32,7 @@ const onSubmit = async () => {
   isErrored.value = false
 
   try {
-    await updateUserProfile({ attrs: { display_name: form.value.title } })
+    await updateUserProfile({ attrs: { display_name: form.value?.title } })
   } catch (e: any) {
     console.error(e)
   } finally {
@@ -102,7 +102,7 @@ const onValidate = async (_: any, valid: boolean) => {
               <NcButton
                 type="primary"
                 html-type="submit"
-                :disabled="isErrored || (form.title && form.title === user?.display_name)"
+                :disabled="isErrored || (form?.title && form?.title === user?.display_name)"
                 :loading="isTitleUpdating"
                 data-testid="nc-account-settings-save"
                 @click="onSubmit"

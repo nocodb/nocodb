@@ -49,7 +49,7 @@ test.describe('View', () => {
         });
         count = count + 1;
       }
-      await dashboard.grid.column.save();
+      await dashboard.grid.column.save({ typeChange: true });
     }
   });
 
@@ -88,8 +88,8 @@ test.describe('View', () => {
     });
 
     // hide fields
-    await toolbar.fields.toggleShowAllFields();
-    await toolbar.fields.toggleShowAllFields();
+    await toolbar.fields.toggleShowAllFields({ isLocallySaved: false });
+    await toolbar.fields.toggleShowAllFields({ isLocallySaved: false });
     await toolbar.fields.toggle({ title: 'Title' });
     await kanban.verifyCardCount({
       count: [0, 25, 25, 25, 25, 25],
@@ -103,11 +103,12 @@ test.describe('View', () => {
       ['AIRPORT POLLOCK', 'ALONE TRIP', 'AMELIE HELLFIGHTERS'],
       ['ADAPTATION HOLES', 'ALADDIN CALENDAR', 'ALICE FANTASIA'],
     ];
-    for (let i = 1; i <= order.length; i++)
+    for (let i = 1; i <= order.length; i++) {
       await kanban.verifyCardOrder({
         stackIndex: i,
         order: order[i - 1],
       });
+    }
 
     // // verify inter stack drag-drop
     // await kanban.dragDropCard({

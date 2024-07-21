@@ -167,7 +167,7 @@ test.describe('User single select', () => {
     // Convert User field column to SingleLineText
     await grid.column.openEdit({ title: 'User copy' });
     await grid.column.selectType({ type: 'SingleLineText' });
-    await grid.column.save({ isUpdated: true });
+    await grid.column.save({ isUpdated: true, typeChange: true });
 
     // Verify converted column content
     for (let i = 0; i <= 4; i++) {
@@ -424,7 +424,7 @@ test.describe('User single select - filter, sort & GroupBy', () => {
     await toolbar.groupBy.update({ title: 'User', ascending: false, index: 0 });
 
     for (let i = 0; i <= 4; i++) {
-      await dashboard.grid.groupPage.openGroup({ indexMap: [i] });
+      // await dashboard.grid.groupPage.openGroup({ indexMap: [i] });
       await dashboard.grid.groupPage.validateFirstRow({
         indexMap: [i],
         rowIndex: 0,
@@ -541,7 +541,7 @@ test.describe('User multiple select', () => {
     // Convert User field column to SingleLineText
     await grid.column.openEdit({ title: 'User copy' });
     await grid.column.selectType({ type: 'SingleLineText' });
-    await grid.column.save({ isUpdated: true });
+    await grid.column.save({ isUpdated: true, typeChange: true });
 
     // Verify converted column content
     counter = 1;
@@ -814,7 +814,6 @@ test.describe('User multiple select - filter, sort & GroupBy', () => {
     await toolbar.groupBy.update({ title: 'User', ascending: false, index: 0 });
 
     for (let i = 0; i <= 4; i++) {
-      await dashboard.grid.groupPage.openGroup({ indexMap: [i] });
       await dashboard.grid.groupPage.validateFirstRow({
         indexMap: [i],
         rowIndex: 0,

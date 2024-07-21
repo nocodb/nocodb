@@ -29,11 +29,12 @@ interface Props {
   newRecordHeader?: string
   skipReload?: boolean
   newRecordSubmitBtnText?: string
+  expandForm?: (row: Row) => void
 }
 
 const props = defineProps<Props>()
 
-const emits = defineEmits(['update:modelValue', 'cancel', 'next', 'prev', 'createdRecord'])
+const emits = defineEmits(['update:modelValue', 'cancel', 'next', 'prev', 'createdRecord', 'updateRowCommentCount'])
 
 const { activeView } = storeToRefs(useViewsStore())
 
@@ -46,6 +47,8 @@ const { dashboardUrl } = useDashboard()
 const { copy } = useClipboard()
 
 const { isMobileMode } = useGlobal()
+
+const { fieldsMap, isLocalMode } = useViewColumnsOrThrow()
 
 const { t } = useI18n()
 
@@ -67,6 +70,8 @@ const isPublic = inject(IsPublicInj, ref(false))
 
 // to check if a expanded form which is not yet saved exist or not
 const isUnsavedFormExist = ref(false)
+
+const isUnsavedDuplicatedRecordExist = ref(false)
 
 const isRecordLinkCopied = ref(false)
 
@@ -99,11 +104,17 @@ const fields = computedInject(FieldsInj, (_fields) => {
   return _fields?.value ?? []
 })
 
-const displayField = computed(() => meta.value?.columns?.find((c) => c.pv && fields.value.includes(c)) ?? null)
+const displayField = computed(() => meta.value?.columns?.find((c) => c.pv && fields.value?.includes(c)) ?? null)
 
 const hiddenFields = computed(() => {
   // todo: figure out when meta.value is undefined
-  return (meta.value?.columns ?? []).filter((col) => !fields.value?.includes(col)).filter((col) => !isSystemColumn(col))
+  return (meta.value?.columns ?? [])
+    .filter(
+      (col) =>
+        !fields.value?.includes(col) &&
+        (isLocalMode.value && col?.id && fieldsMap.value[col.id] ? fieldsMap.value[col.id]?.initialShow : true),
+    )
+    .filter((col) => !isSystemColumn(col))
 })
 
 const showHiddenFields = ref(false)
@@ -130,6 +141,7 @@ const {
   loadRow: _loadRow,
   primaryKey,
   row: _row,
+  comments,
   save: _save,
   loadComments,
   loadAudits,
@@ -176,6 +188,7 @@ const onClose = () => {
 const onDuplicateRow = () => {
   duplicatingRowInProgress.value = true
   isUnsavedFormExist.value = true
+  isUnsavedDuplicatedRecordExist.value = true
   const oldRow = { ..._row.value.row }
   delete oldRow.ncRecordId
   const newRow = Object.assign(
@@ -224,6 +237,17 @@ const save = async () => {
 
     if (props.closeAfterSave) {
       isExpanded.value = false
+    } else {
+      if (isUnsavedDuplicatedRecordExist.value) {
+        const newRowId = extractPkFromRow(_row.value.row, meta.value.columns as ColumnType[])
+        if (newRowId !== rowId.value) {
+          props?.expandForm?.(_row.value)
+        }
+
+        setTimeout(() => {
+          isUnsavedDuplicatedRecordExist.value = false
+        }, 500)
+      }
     }
 
     emits('createdRecord', _row.value.row)
@@ -299,7 +323,9 @@ const reloadHook = createEventHook()
 reloadHook.on(() => {
   reloadParentRowHook?.trigger({ shouldShowLoading: false })
   if (isNew.value) return
-  _loadRow(null, true)
+
+  _loadRow(undefined, true)
+  loadAudits(rowId.value, false)
 })
 provide(ReloadRowDataHookInj, reloadHook)
 
@@ -316,7 +342,7 @@ if (isKanban.value) {
 provide(IsExpandedFormOpenInj, isExpanded)
 
 const triggerRowLoad = async (rowId?: string) => {
-  await Promise.allSettled([loadComments(), loadAudits(), _loadRow(rowId)])
+  await Promise.allSettled([loadComments(rowId), loadAudits(rowId), _loadRow(rowId)])
   isLoading.value = false
 }
 
@@ -484,6 +510,9 @@ const onIsExpandedUpdate = (v: boolean) => {
 
   if (changedColumns.value.size === 0 && !isUnsavedFormExist.value) {
     isExpanded.value = v
+    if (isKanban.value) {
+      emits('cancel')
+    }
   } else if (!v && isUIAllowed('dataEdit')) {
     preventModalStatus.value = true
   } else {
@@ -533,6 +562,13 @@ const modalProps = computed(() => {
 const renderAltOrOptlKey = () => {
   return isMac() ? '⌥' : 'ALT'
 }
+
+watch(
+  () => comments.value.length,
+  (commentCount) => {
+    emits('updateRowCommentCount', commentCount)
+  },
+)
 </script>
 
 <script lang="ts">
@@ -549,7 +585,7 @@ export default {
     :closable="false"
     :footer="null"
     :visible="isExpanded"
-    :width="showRightSections ? 'min(80vw,1280px)' : 'min(70vw,768px)'"
+    :width="commentsDrawer && isUIAllowed('commentList') ? 'min(80vw,1280px)' : 'min(70vw,768px)'"
     class="nc-drawer-expanded-form"
     :size="isMobileMode ? 'medium' : 'small'"
     v-bind="modalProps"
@@ -659,7 +695,7 @@ export default {
                 <NcMenuItem class="text-gray-700" @click="_loadRow()">
                   <div v-e="['c:row-expand:reload']" class="flex gap-2 items-center" data-testid="nc-expanded-form-reload">
                     <component :is="iconMap.reload" class="cursor-pointer" />
-                    {{ $t('general.reload') }}
+                    {{ $t('general.reload') }} {{ $t('objects.record') }}
                   </div>
                 </NcMenuItem>
                 <NcMenuItem
@@ -691,7 +727,11 @@ export default {
                   <div v-e="['c:row-expand:delete']" class="flex gap-2 items-center" data-testid="nc-expanded-form-delete">
                     <component :is="iconMap.delete" class="cursor-pointer nc-delete-row" />
                     <span class="-ml-0.25">
-                      {{ $t('activity.deleteRecord') }}
+                      {{
+                        $t('general.deleteEntity', {
+                          entity: $t('objects.record').toLowerCase(),
+                        })
+                      }}
                     </span>
                   </div>
                 </NcMenuItem>
@@ -720,7 +760,7 @@ export default {
         >
           <div
             ref="expandedFormScrollWrapper"
-            class="flex flex-col flex-grow gap-4 h-full max-h-full nc-scrollbar-thin items-center w-full p-4 xs:(px-4 pt-4 pb-2 gap-6) children:max-w-[588px] <lg:(children:max-w-[450px])"
+            class="flex flex-col flex-grow gap-6 h-full max-h-full nc-scrollbar-thin items-center w-full p-4 xs:(px-4 pt-4 pb-2 gap-6) children:max-w-[588px] <lg:(children:max-w-[450px])"
           >
             <div
               v-for="(col, i) of fields"
@@ -906,7 +946,7 @@ export default {
                 </template>
               </NcDropdown>
             </div>
-
+            <div v-if="isNew && isMobileMode"></div>
             <div v-if="isMobileMode" class="p-2">
               <NcButton
                 v-e="['c:row-expand:save']"
@@ -928,11 +968,11 @@ export default {
           <div v-else class="p-2"></div>
         </div>
         <div
-          v-if="showRightSections"
+          v-if="showRightSections && !isUnsavedDuplicatedRecordExist"
           :class="{ active: commentsDrawer && isUIAllowed('commentList') }"
           class="nc-comments-drawer border-l-1 relative border-gray-200 bg-gray-50 w-1/3 max-w-[340px] min-w-0 h-full xs:hidden rounded-br-2xl"
         >
-          <SmartsheetExpandedFormComments :loading="isLoading" />
+          <SmartsheetExpandedFormComments :primary-key="primaryKey" :loading="isLoading" />
         </div>
       </div>
     </div>
@@ -941,7 +981,7 @@ export default {
   <GeneralDeleteModal v-model:visible="showDeleteRowModal" entity-name="Record" :on-delete="() => onConfirmDeleteRowClick()">
     <template #entity-preview>
       <span>
-        <div class="flex flex-row items-center py-2.25 px-2.5 bg-gray-50 rounded-lg text-gray-700 mb-4">
+        <div class="flex flex-row items-center py-2.25 px-2.5 bg-gray-50 rounded-lg text-gray-700">
           <div class="text-ellipsis overflow-hidden select-none w-full pl-1.75 break-keep whitespace-nowrap">
             <LazySmartsheetPlainCell v-model="displayValue" :column="displayField" />
           </div>
@@ -960,9 +1000,9 @@ export default {
         {{ $t('activity.doYouWantToSaveTheChanges') }}
       </div>
       <div class="flex flex-row justify-end gap-x-2 mt-5">
-        <NcButton type="secondary" @click="discardPreventModal">{{ $t('labels.discard') }}</NcButton>
+        <NcButton type="secondary" size="small" @click="discardPreventModal">{{ $t('labels.discard') }}</NcButton>
 
-        <NcButton key="submit" type="primary" :loading="isSaving" @click="saveChanges">
+        <NcButton key="submit" type="primary" size="small" :loading="isSaving" @click="saveChanges">
           {{ $t('tooltip.saveChanges') }}
         </NcButton>
       </div>
@@ -1011,14 +1051,10 @@ export default {
   @apply !xs:(h-full);
 }
 
-:deep(.ant-select-selection-item) {
-  @apply !xs:(mt-1.75 ml-1);
-}
-
 .nc-data-cell {
   @apply !rounded-lg;
   transition: all 0.3s;
-  
+
   &:not(.nc-readonly-div-data-cell):not(.nc-system-field) {
     box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
   }
@@ -1043,6 +1079,34 @@ export default {
 
   &:focus-within:not(.nc-readonly-div-data-cell):not(.nc-system-field) {
     @apply !shadow-selected;
+  }
+
+  &:has(.nc-virtual-cell-qrcode .nc-qrcode-container),
+  &:has(.nc-virtual-cell-barcode .nc-barcode-container) {
+    @apply !border-none px-0 !rounded-none;
+    :deep(.nc-virtual-cell-qrcode),
+    :deep(.nc-virtual-cell-barcode) {
+      @apply px-0;
+      & > div {
+        @apply !px-0;
+      }
+      .barcode-wrapper {
+        @apply ml-0;
+      }
+    }
+    :deep(.nc-virtual-cell-qrcode) {
+      img {
+        @apply !h-[84px] border-1 border-solid border-gray-200 rounded;
+      }
+    }
+    :deep(.nc-virtual-cell-barcode) {
+      .nc-barcode-container {
+        @apply border-1 rounded-lg border-gray-200 h-[64px] max-w-full p-2;
+        svg {
+          @apply !h-full;
+        }
+      }
+    }
   }
 }
 .nc-data-cell:focus-within {

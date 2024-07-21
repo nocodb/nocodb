@@ -12389,6 +12389,90 @@
         "description": "Get the table rows but exculding the current record's children and parent"
       }
     },
+    "/api/v2/public/shared-view/{sharedViewUuid}/aggregate": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string",
+            "example": "24a6d0bb-e45d-4b1a-bfef-f492d870de9f"
+          },
+          "name": "sharedViewUuid",
+          "in": "path",
+          "required": true,
+          "description": "Shared View UUID"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "in": "header",
+          "name": "xc-password",
+          "description": "Shared view password"
+        }
+      ],
+      "get": {
+        "summary": "Read Shared View Aggregated Data",
+        "operationId": "public-data-table-aggregate",
+        "description": "Read aggregated data from a given table",
+        "tags": [
+          "Public"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where",
+            "description": "Extra filtering"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "filterArrJson",
+            "description": "Used for multiple filter queries"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "description": "List of fields to be aggregated",
+              "items": {
+                "type": "object"
+              }
+            },
+            "in": "query",
+            "name": "aggregation",
+            "description": "Used for selective aggregation"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "Id": 1,
+                      "Title": "90",
+                      "SingleSelect": "50"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      }
+    },
     "/api/v1/db/public/shared-view/{sharedViewUuid}/group/{columnId}": {
       "parameters": [
         {
@@ -13998,6 +14082,100 @@
         ]
       }
     },
+    "/api/v1/db/meta/projects/audits": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/xc-auth"
+        }
+      ],
+      "get": {
+        "summary": "List Audits in Project",
+        "operationId": "project-audit-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "list": {
+                      "type": "array",
+                      "uniqueItems": true,
+                      "items": {
+                        "$ref": "#/components/schemas/Audit"
+                      }
+                    },
+                    "pageInfo": {
+                      "$ref": "#/components/schemas/Paginated"
+                    }
+                  },
+                  "required": [
+                    "list",
+                    "pageInfo"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "description": "List all audit data in the given project",
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "in": "query",
+            "name": "offset"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "in": "query",
+            "name": "limit"
+          },
+          {
+            "schema": {
+              "properties": {
+                "created_at": {
+                  "type": "string",
+                  "description": "Sort direction",
+                  "enum": [
+                    "asc",
+                    "desc"
+                  ],
+                  "example": "desc"
+                },
+                "user": {
+                  "type": "string",
+                  "description": "Sort direction",
+                  "enum": [
+                    "asc",
+                    "desc"
+                  ],
+                  "example": "desc"
+                }
+              },
+              "type": "object"
+            },
+            "in": "query",
+            "name": "orderBy"
+          },
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ],
+        "tags": [
+          "Utils"
+        ]
+      }
+    },
     "/api/v1/db/meta/projects/{baseId}/audits": {
       "parameters": [
         {
@@ -14026,7 +14204,6 @@
                     "list": {
                       "type": "array",
                       "uniqueItems": true,
-                      "minItems": 1,
                       "items": {
                         "$ref": "#/components/schemas/Audit"
                       }
@@ -14060,7 +14237,7 @@
           {
             "schema": {
               "type": "integer",
-              "maximum": 1
+              "minimum": 1
             },
             "in": "query",
             "name": "limit"
@@ -14071,6 +14248,33 @@
             },
             "in": "query",
             "name": "sourceId"
+          },
+          {
+            "schema": {
+              "properties": {
+                "created_at": {
+                  "type": "string",
+                  "description": "Sort direction",
+                  "enum": [
+                    "asc",
+                    "desc"
+                  ],
+                  "example": "desc"
+                },
+                "user": {
+                  "type": "string",
+                  "description": "Sort direction",
+                  "enum": [
+                    "asc",
+                    "desc"
+                  ],
+                  "example": "desc"
+                }
+              },
+              "type": "object"
+            },
+            "in": "query",
+            "name": "orderBy"
           },
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -16142,6 +16346,28 @@
         ]
       }
     },
+    "/api/v1/notifications/poll": {
+      "get": {
+        "summary": "Notification Poll",
+        "operationId": "notification-poll",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Notification"
+        ],
+        "description": "Poll notifications"
+      }
+    },
     "/api/v1/notifications": {
       "get": {
         "summary": "Notification list",
@@ -16396,6 +16622,93 @@
             "$ref": "#/components/parameters/xc-auth"
           }
         ]
+      }
+    },
+    "/api/v2/tables/{tableId}/aggregate": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "path",
+          "required": true,
+          "description": "Table ID"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "required": true,
+          "name": "viewId",
+          "in": "query",
+          "description": "View ID is required"
+        },
+        {
+          "schema": {
+            "type": "array",
+            "description": "List of fields to be aggregated",
+            "items": {
+              "type": "object"
+            }
+          },
+          "in": "query",
+          "name": "aggregation",
+          "description": "Used for selective aggregation"
+        }
+      ],
+      "get": {
+        "summary": "Read Aggregated Data",
+        "operationId": "db-data-table-aggregate",
+        "description": "Read aggregated data from a given table",
+        "tags": [
+          "DB Data Table Aggregate"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where",
+            "description": "Extra filtering"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "filterArrJson",
+            "description": "Used for multiple filter queries"
+          },
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "Id": 1,
+                      "Title": "90",
+                      "SingleSelect": "50"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
       }
     },
     "/api/v2/tables/{tableId}/records": {
@@ -17630,13 +17943,56 @@
         }
       ]
     },
-    "/jobs/status": {
+    "/api/v2/jobs/{baseId}": {
       "post": {
-        "summary": "Jobs Status",
-        "operationId": "jobs-status",
-        "description": "Get job status",
+        "summary": "Get Jobs",
+        "operationId": "jobs-list",
+        "description": "Get list of jobs for a given base for the user",
         "tags": [
           "Jobs"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "job": {
+                    "type": "string"
+                  },
+                  "status": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "parameters": [
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "p124dflkcvasewh",
+            "type": "string"
+          },
+          "name": "baseId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Base ID"
+        },
+        {
+          "$ref": "#/components/parameters/xc-auth"
+        }
+      ]
+    },
+    "/api/v2/export/{viewId}/{exportAs}": {
+      "post": {
+        "summary": "Trigger export as job",
+        "operationId": "export-data",
+        "description": "Trigger export as job",
+        "tags": [
+          "Export"
         ],
         "requestBody": {
           "content": {
@@ -17649,6 +18005,29 @@
         }
       },
       "parameters": [
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "vw124dflkcvasewh",
+            "type": "string"
+          },
+          "name": "viewId",
+          "in": "path",
+          "required": true,
+          "description": "Unique View ID"
+        },
+        {
+          "schema": {
+            "type": "string",
+            "enum": [
+              "csv"
+            ]
+          },
+          "name": "exportAs",
+          "in": "path",
+          "required": true,
+          "description": "Export as format"
+        },
         {
           "$ref": "#/components/parameters/xc-auth"
         }
@@ -18193,6 +18572,14 @@
             "$ref": "#/components/schemas/Bool",
             "description": "Is the data source minimal db"
           },
+          "is_schema_readonly": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is the data source schema readonly"
+          },
+          "is_data_readonly": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is the data source data readonly"
+          },
           "order": {
             "description": "The order of the list of sources",
             "example": 1,
@@ -18366,6 +18753,14 @@
           "is_local": {
             "description": "Is the data source minimal db",
             "type": "boolean"
+          },
+          "is_schema_readonly": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is the data source schema readonly"
+          },
+          "is_data_readonly": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is the data source data readonly"
           },
           "type": {
             "description": "DB Type",
@@ -19102,6 +19497,14 @@
           "fk_view_id": {
             "$ref": "#/components/schemas/StringOrNull",
             "description": "Foreign Key to View"
+          },
+          "fk_value_col_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Foreign Key to dynamic value Column"
+          },
+          "fk_link_col_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Foreign Key to Link Column"
           },
           "id": {
             "$ref": "#/components/schemas/Id",
@@ -20367,7 +20770,8 @@
             "help": null,
             "group_by": 0,
             "group_by_order": null,
-            "group_by_sort": null
+            "group_by_sort": null,
+            "aggregation": null
           }
         ],
         "title": "Grid Column Model",
@@ -20447,6 +20851,11 @@
             "$ref": "#/components/schemas/StringOrNull",
             "description": "Group By Sort",
             "example": "asc"
+          },
+          "aggregation": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Aggregation Type",
+            "example": "sum"
           }
         },
         "x-stoplight": {
@@ -20497,6 +20906,11 @@
             "$ref": "#/components/schemas/StringOrNull",
             "description": "Group By Sort",
             "example": "asc"
+          },
+          "aggregation": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Aggregation",
+            "example": "sum"
           }
         },
         "title": "Grid Column Request Model",
@@ -21619,6 +22033,10 @@
           }
         ],
         "properties": {
+          "childViewId": {
+            "$ref": "#/components/schemas/IdOrNull",
+            "description": "Foreign Key to child view"
+          },
           "childId": {
             "$ref": "#/components/schemas/Id",
             "description": "Foreign Key to chhild column"
@@ -21705,6 +22123,9 @@
             "description": "Foreign Key to Column"
           },
           "fk_index_name": {
+            "type": "string"
+          },
+          "fk_relation_view_id": {
             "type": "string"
           },
           "fk_mm_child_column_id": {
@@ -22655,6 +23076,11 @@
             "example": "p_124hhlkbeasewh",
             "type": "string"
           },
+          "fk_workspace_id": {
+            "description": "Workspace ID",
+            "example": "ws_123456",
+            "type": "string"
+          },
           "is_meta": {
             "$ref": "#/components/schemas/Bool"
           },
@@ -23035,6 +23461,7 @@
               "min",
               "max",
               "avg",
+              "sum",
               "countDistinct",
               "sumDistinct",
               "avgDistinct"
@@ -23709,6 +24136,20 @@
           }
         ],
         "title": "StringOrNullOrBooleanOrNumber Model"
+      },
+      "IdOrNull": {
+        "description": "Model for IdOrNull",
+        "examples": [
+          "string"
+        ],
+        "oneOf": [{
+            "$ref": "#/components/schemas/Id"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "IdOrNull Model"
       },
       "Table": {
         "description": "Model for Table",
@@ -25203,67 +25644,54 @@
           "body": {
             "type": "object",
             "properties": {
-              "id": {
-                "type": "string",
+              "base": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "The ID of the base being invited to"
+                  },
+                  "title": {
+                    "type": "string",
+                    "description": "The title of the base being invited to"
+                  },
+                  "type": {
+                    "type": "string",
+                    "description": "The type of the base being invited to"
+                  }
+                },
+                "required": [
+                  "id",
+                  "title",
+                  "type"
+                ],
                 "description": "The ID of the base being invited to"
               },
-              "title": {
-                "type": "string",
-                "description": "The title of the base being invited to"
-              },
-              "type": {
-                "type": "string",
-                "description": "The type of the base being invited to"
-              },
-              "invited_by": {
-                "type": "string",
-                "description": "The email address of the user who invited the recipient"
+              "user": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "The ID of the user who invited to the base"
+                  },
+                  "email": {
+                    "type": "string",
+                    "description": "The email address of the user who invited to the base"
+                  },
+                  "display_name": {
+                    "type": "string",
+                    "description": "The display name of the user who invited to the base"
+                  }
+                },
+                "required": [
+                  "id",
+                  "email"
+                ]
               }
             },
             "required": [
-              "id",
-              "title",
-              "type",
-              "invited_by"
-            ]
-          }
-        },
-        "required": [
-          "fk_user_id",
-          "type",
-          "body"
-        ]
-      },
-      "ProjectEvent": {
-        "type": "object",
-        "properties": {
-          "fk_user_id": {
-            "type": "string",
-            "description": "The ID of the user"
-          },
-          "type": {
-            "type": "string"
-          },
-          "body": {
-            "type": "object",
-            "properties": {
-              "id": {
-                "type": "string",
-                "description": "The ID of the base"
-              },
-              "title": {
-                "type": "string",
-                "description": "The title of the base"
-              },
-              "type": {
-                "type": "string",
-                "description": "The type of the base"
-              }
-            },
-            "required": [
-              "id",
-              "title",
-              "type"
+              "base",
+              "user"
             ]
           }
         },
@@ -25287,191 +25715,6 @@
           "body": {
             "type": "object",
             "description": "An empty object"
-          }
-        },
-        "required": [
-          "fk_user_id",
-          "type",
-          "body"
-        ]
-      },
-      "SortEvent": {
-        "type": "object",
-        "properties": {
-          "fk_user_id": {
-            "type": "string",
-            "description": "The ID of the user who created sort"
-          },
-          "type": {
-            "type": "string"
-          },
-          "body": {
-            "type": "object"
-          }
-        },
-        "required": [
-          "fk_user_id",
-          "type",
-          "body"
-        ]
-      },
-      "FilterEvent": {
-        "type": "object",
-        "properties": {
-          "fk_user_id": {
-            "type": "string",
-            "description": "The ID of the user who created filter"
-          },
-          "type": {
-            "type": "string"
-          },
-          "body": {
-            "type": "object"
-          }
-        },
-        "required": [
-          "fk_user_id",
-          "type",
-          "body"
-        ]
-      },
-      "TableEvent": {
-        "type": "object",
-        "properties": {
-          "fk_user_id": {
-            "type": "string",
-            "description": "The ID of the user who triggered the event"
-          },
-          "type": {
-            "type": "string",
-            "description": "The type of the event"
-          },
-          "body": {
-            "type": "object",
-            "properties": {
-              "title": {
-                "type": "string",
-                "description": "The title of the table associated with the event"
-              },
-              "base_id": {
-                "type": "string",
-                "description": "The ID of the base that the table belongs to"
-              },
-              "source_id": {
-                "type": "string",
-                "description": "The ID of the source that the table belongs to"
-              },
-              "id": {
-                "type": "string",
-                "description": "The ID of the table associated with the event"
-              }
-            },
-            "required": [
-              "title",
-              "base_id",
-              "source_id",
-              "id"
-            ]
-          }
-        },
-        "required": [
-          "fk_user_id",
-          "type",
-          "body"
-        ]
-      },
-      "ViewEvent": {
-        "type": "object",
-        "properties": {
-          "fk_user_id": {
-            "type": "string",
-            "description": "The ID of the user who triggered the event"
-          },
-          "type": {
-            "type": "string",
-            "description": "The type of the event"
-          },
-          "body": {
-            "type": "object",
-            "properties": {
-              "title": {
-                "type": "string",
-                "description": "The title of the view associated with the event"
-              },
-              "base_id": {
-                "type": "string",
-                "description": "The ID of the base that the view belongs to"
-              },
-              "source_id": {
-                "type": "string",
-                "description": "The ID of the source that the view belongs to"
-              },
-              "id": {
-                "type": "string",
-                "description": "The ID of the view associated with the event"
-              },
-              "fk_model_id": {
-                "type": "string",
-                "description": "The ID of the model that the view is based on"
-              }
-            },
-            "required": [
-              "title",
-              "base_id",
-              "source_id",
-              "id",
-              "fk_model_id"
-            ]
-          }
-        },
-        "required": [
-          "fk_user_id",
-          "type",
-          "body"
-        ]
-      },
-      "ColumnEvent": {
-        "type": "object",
-        "properties": {
-          "fk_user_id": {
-            "type": "string",
-            "description": "The ID of the user who triggered the event"
-          },
-          "type": {
-            "type": "string",
-            "description": "The type of the event"
-          },
-          "body": {
-            "type": "object",
-            "properties": {
-              "title": {
-                "type": "string",
-                "description": "The title of the column associated with the event"
-              },
-              "base_id": {
-                "type": "string",
-                "description": "The ID of the base that the column belongs to"
-              },
-              "source_id": {
-                "type": "string",
-                "description": "The ID of the source that the column belongs to"
-              },
-              "id": {
-                "type": "string",
-                "description": "The ID of the column associated with the event"
-              },
-              "fk_model_id": {
-                "type": "string",
-                "description": "The ID of the model that the column belongs to"
-              }
-            },
-            "required": [
-              "title",
-              "base_id",
-              "source_id",
-              "id",
-              "fk_model_id"
-            ]
           }
         },
         "required": [
@@ -25513,25 +25756,7 @@
                 "$ref": "#/components/schemas/ProjectInviteEvent"
               },
               {
-                "$ref": "#/components/schemas/ProjectEvent"
-              },
-              {
-                "$ref": "#/components/schemas/TableEvent"
-              },
-              {
-                "$ref": "#/components/schemas/ViewEvent"
-              },
-              {
-                "$ref": "#/components/schemas/ColumnEvent"
-              },
-              {
                 "$ref": "#/components/schemas/WelcomeEvent"
-              },
-              {
-                "$ref": "#/components/schemas/SortEvent"
-              },
-              {
-                "$ref": "#/components/schemas/FilterEvent"
               }
             ]
           }

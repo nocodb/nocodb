@@ -11,6 +11,7 @@ const emits = defineEmits(['blur'])
 interface Props {
   editor: Editor
   isFormField?: boolean
+  isComment?: boolean
 }
 
 const { editor, isFormField } = toRefs(props)
@@ -164,6 +165,9 @@ const openLink = () => {
 
 const onMountLinkOptions = (e) => {
   if (e?.popper?.style) {
+    if (props.isComment) {
+      e.popper.style.left = '-10%'
+    }
     e.popper.style.width = '95%'
   }
 }
@@ -186,12 +190,12 @@ const tabIndex = computed(() => {
     <div
       v-if="!justDeleted"
       ref="wrapperRef"
-      class="relative bubble-menu nc-text-area-rich-link-options flex flex-col bg-gray-50 py-1 px-1 rounded-lg w-full"
+      class="relative bubble-menu nc-text-area-rich-link-options bg-white flex flex-col border-1 border-gray-200 py-1 px-1 rounded-lg w-full"
       data-testid="nc-text-area-rich-link-options"
       @keydown.stop="handleKeyDown"
     >
       <div class="flex items-center gap-x-1">
-        <div class="!border-1 !border-gray-200 !py-0.5 bg-gray-100 rounded-md !z-10 flex-1">
+        <div class="!py-0.5 bg-white rounded-md !z-10 flex-1">
           <a-input
             ref="inputRef"
             v-model:value="href"
@@ -212,12 +216,12 @@ const tabIndex = computed(() => {
             :class="{
               '!text-gray-300 cursor-not-allowed': href.length === 0,
             }"
-            data-testid="nc-text-area-rich-link-options-open-link"
+            data-testid="text-gray-700 nc-text-area-rich-link-options-open-link"
             size="small"
             type="text"
             @click="openLink"
           >
-            <IcBaselineArrowOutward />
+            <GeneralIcon icon="externalLink" />
           </NcButton>
         </NcTooltip>
         <NcTooltip overlay-class-name="nc-text-area-rich-link-options">
@@ -230,17 +234,9 @@ const tabIndex = computed(() => {
             type="text"
             @click="onDelete"
           >
-            <MdiDeleteOutline />
+            <GeneralIcon icon="delete" />
           </NcButton>
         </NcTooltip>
-        <div class="absolute -bottom-1.5 left-0 right-0 w-full flex flex-row justify-center">
-          <div
-            class="flex h-2.5 w-2.5 bg-white border-gray-200 border-r-1 border-b-1 transform rotate-45"
-            :style="{
-              boxShadow: '1px 1px 3px rgba(231, 231, 233, 1)',
-            }"
-          ></div>
-        </div>
       </div>
     </div>
   </BubbleMenu>
@@ -250,6 +246,10 @@ const tabIndex = computed(() => {
 .bubble-menu {
   // shadow
   @apply shadow-gray-200 shadow-sm;
+}
+
+.nc-text-area-rich-link-option-input {
+  @apply !placeholder:text-gray-500 text-gray-800;
 }
 
 .nc-text-area-rich-link-options {

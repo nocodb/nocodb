@@ -94,13 +94,14 @@ import { ViewsService } from '~/services/views.service';
 import { ApiDocsService } from '~/services/api-docs/api-docs.service';
 import { BaseUsersController } from '~/controllers/base-users.controller';
 import { BaseUsersService } from '~/services/base-users/base-users.service';
-import { NotificationsService } from '~/services/notifications.service';
+import { NotificationsService } from '~/services/notifications/notifications.service';
 import { NotificationsController } from '~/controllers/notifications.controller';
-import { NotificationsGateway } from '~/gateways/notifications/notifications.gateway';
 import { CommandPaletteService } from '~/services/command-palette.service';
 import { CommandPaletteController } from '~/controllers/command-palette.controller';
 import { ExtensionsService } from '~/services/extensions.service';
 import { ExtensionsController } from '~/controllers/extensions.controller';
+import { JobsMetaService } from '~/services/jobs-meta.service';
+import { JobsMetaController } from '~/controllers/jobs-meta.controller';
 
 /* Datas */
 import { DataTableController } from '~/controllers/data-table.controller';
@@ -179,6 +180,7 @@ export const nocoModuleMetadata = {
           NotificationsController,
           CommandPaletteController,
           ExtensionsController,
+          JobsMetaController,
 
           /* Datas */
           DataTableController,
@@ -245,9 +247,9 @@ export const nocoModuleMetadata = {
     SortsService,
     SharedBasesService,
     NotificationsService,
-    NotificationsGateway,
     CommandPaletteService,
     ExtensionsService,
+    JobsMetaService,
 
     /* Datas */
     DataTableService,

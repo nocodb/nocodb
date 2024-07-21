@@ -11,7 +11,7 @@ import XcMigrationSource from '~/meta/migrations/XcMigrationSource';
 import XcMigrationSourcev2 from '~/meta/migrations/XcMigrationSourcev2';
 import { XKnex } from '~/db/CustomKnex';
 import { NcConfig } from '~/utils/nc-config';
-import { MetaTable } from '~/utils/globals';
+import { MetaTable, RootScopes, RootScopeTables } from '~/utils/globals';
 import { NcError } from '~/helpers/catchError';
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -53,65 +53,53 @@ export class MetaService {
     return this.knexConnection;
   }
 
+  public contextCondition(
+    query: Knex.QueryBuilder,
+    workspace_id: string,
+    base_id: string,
+    target: string,
+  ) {
+    if (workspace_id === base_id) {
+      return;
+    }
+
+    if (target !== MetaTable.PROJECT) {
+      query.where('base_id', base_id);
+    } else {
+      query.where('id', base_id);
+    }
+  }
+
   /***
    * Get single record from meta data
-   * @param base_id - Base id
-   * @param dbAlias - Database alias
+   * @param workspace_id - Workspace id
+   * @param base_id - Base alias
    * @param target - Table name
    * @param idOrCondition - If string, will get the record with the given id. If object, will get the record with the given condition.
    * @param fields - Fields to be selected
    */
   public async metaGet(
+    workspace_id: string,
     base_id: string,
-    dbAlias: string,
     target: string,
     idOrCondition: string | { [p: string]: any },
     fields?: string[],
     // xcCondition?
   ): Promise<any> {
-    const query = this.connection(target);
-
-    // if (xcCondition) {
-    //   query.condition(xcCondition);
-    // }
-
-    if (fields?.length) {
-      query.select(...fields);
-    }
-
-    if (base_id !== null && base_id !== undefined) {
-      query.where('base_id', base_id);
-    }
-    if (dbAlias !== null && dbAlias !== undefined) {
-      query.where('db_alias', dbAlias);
-    }
-
-    if (!idOrCondition) {
-      return query.first();
-    }
-
-    if (typeof idOrCondition !== 'object') {
-      query.where('id', idOrCondition);
-    } else {
-      query.where(idOrCondition);
-    }
-
-    // console.log(query.toQuery())
-
-    return query.first();
+    return this.metaGet2(workspace_id, base_id, target, idOrCondition, fields);
   }
 
   /***
    * Insert record into meta data
-   * @param base_id - Base id
+   * @param fk_workspace_id - Base id
    * @param dbAlias - Database alias
    * @param target - Table name
    * @param data - Data to be inserted
    * @param ignoreIdGeneration - If true, will not generate id for the record
    */
   public async metaInsert2(
+    workspace_id: string,
     base_id: string,
-    source_id: string,
     target: string,
     data: any,
     ignoreIdGeneration?: boolean,
@@ -122,8 +110,31 @@ export class MetaService {
         ? {}
         : { id: data?.id || (await this.genNanoid(target)) }),
     };
-    if (source_id !== null) insertObj.source_id = source_id;
-    if (base_id !== null) insertObj.base_id = base_id;
+
+    if (workspace_id === base_id) {
+      if (!Object.values(RootScopes).includes(workspace_id as RootScopes)) {
+        NcError.metaError({
+          message: 'Invalid scope',
+          sql: '',
+        });
+      }
+
+      if (!RootScopeTables[workspace_id].includes(target)) {
+        NcError.metaError({
+          message: 'Table not accessible from this scope',
+          sql: '',
+        });
+      }
+    } else {
+      if (!base_id) {
+        NcError.metaError({
+          message: 'Base ID is required',
+          sql: '',
+        });
+      }
+
+      insertObj.base_id = base_id;
+    }
 
     await this.knexConnection(target).insert({
       ...insertObj,
@@ -135,15 +146,15 @@ export class MetaService {
 
   /***
    * Insert multiple records into meta data
-   * @param base_id - Base id
-   * @param source_id - Source id
+   * @param workspace_id - Workspace id
+   * @param base_id - Source id
    * @param target - Table name
    * @param data - Data to be inserted
    * @param ignoreIdGeneration - If true, will not generate id for the record
    */
   public async bulkMetaInsert(
+    workspace_id: string,
     base_id: string,
-    source_id: string,
     target: string,
     data: any | any[],
     ignoreIdGeneration?: boolean,
@@ -160,8 +171,29 @@ export class MetaService {
       updated_at: at,
     };
 
-    if (source_id !== null) commonProps.source_id = source_id;
-    if (base_id !== null) commonProps.base_id = base_id;
+    if (workspace_id === base_id) {
+      if (!Object.values(RootScopes).includes(workspace_id as RootScopes)) {
+        NcError.metaError({
+          message: 'Invalid scope',
+          sql: '',
+        });
+      }
+
+      if (!RootScopeTables[workspace_id].includes(target)) {
+        NcError.metaError({
+          message: 'Table not accessible from this scope',
+          sql: '',
+        });
+      }
+    } else {
+      if (!base_id) {
+        NcError.metaError({
+          message: 'Base ID is required',
+          sql: '',
+        });
+      }
+      commonProps.base_id = base_id;
+    }
 
     for (const d of Array.isArray(data) ? data : [data]) {
       const id = d?.id || (await this.genNanoid(target));
@@ -219,77 +251,13 @@ export class MetaService {
       [MetaTable.COMMENTS]: 'com',
       [MetaTable.COMMENTS_REACTIONS]: 'cre',
       [MetaTable.USER_COMMENTS_NOTIFICATIONS_PREFERENCE]: 'cnp',
+      [MetaTable.JOBS]: 'job',
     };
 
     const prefix = prefixMap[target] || 'nc';
 
     // using nanoid to avoid collision with existing ids when duplicating
     return `${prefix}${nanoidv2()}`;
-  }
-  /***
-   * Get paginated list of meta data
-   * @param baseId - Base id
-   * @param dbAlias - Database alias
-   * @param target - Table name
-   * @param args.condition - Condition to be applied
-   * @param args.limit - Limit of records
-   * @param args.offset - Offset of records
-   * @param args.xcCondition - Additional nested or complex condition to be added to the query.
-   * @param args.fields - Fields to be selected
-   * @param args.sort - Sort field and direction
-   * @returns {Promise<{list: any[]; count: number}>} - List of records and count
-   * */
-  public async metaPaginatedList(
-    baseId: string,
-    dbAlias: string,
-    target: string,
-    args?: {
-      condition?: { [key: string]: any };
-      limit?: number;
-      offset?: number;
-      xcCondition?: Condition;
-      fields?: string[];
-      sort?: { field: string; desc?: boolean };
-    },
-  ): Promise<{ list: any[]; count: number }> {
-    const query = this.knexConnection(target);
-    const countQuery = this.knexConnection(target);
-    if (baseId !== null && baseId !== undefined) {
-      query.where('base_id', baseId);
-      countQuery.where('base_id', baseId);
-    }
-    if (dbAlias !== null && dbAlias !== undefined) {
-      query.where('db_alias', dbAlias);
-      countQuery.where('db_alias', dbAlias);
-    }
-
-    if (args?.condition) {
-      query.where(args.condition);
-      countQuery.where(args.condition);
-    }
-    if (args?.limit) {
-      query.limit(args.limit);
-    }
-    if (args?.sort) {
-      query.orderBy(args.sort.field, args.sort.desc ? 'desc' : 'asc');
-    }
-    if (args?.offset) {
-      query.offset(args.offset);
-    }
-    if (args?.xcCondition) {
-      (query as any)
-        .condition(args.xcCondition)(countQuery as any)
-        .condition(args.xcCondition);
-    }
-
-    if (args?.fields?.length) {
-      query.select(...args.fields);
-    }
-
-    return {
-      list: await query,
-      count: Object.values(await countQuery.count().first())?.[0] as any,
-    };
   }
 
   // private connection: XKnex;
@@ -298,16 +266,16 @@ export class MetaService {
 
   /***
    * Delete meta data
+   * @param workspace_id - Workspace id
    * @param base_id - Base id
-   * @param dbAlias - Database alias
    * @param target - Table name
    * @param idOrCondition - If string, will delete the record with the given id. If object, will delete the record with the given condition.
    * @param xcCondition - Additional nested or complex condition to be added to the query.
    * @param force - If true, will not check if a condition is present in the query builder and will execute the query as is.
    */
   public async metaDelete(
+    workspace_id: string,
     base_id: string,
-    dbAlias: string,
     target: string,
     idOrCondition: string | { [p: string]: any },
     xcCondition?: Condition,
@@ -315,11 +283,27 @@ export class MetaService {
   ): Promise<void> {
     const query = this.knexConnection(target);
 
-    if (base_id !== null && base_id !== undefined) {
-      query.where('base_id', base_id);
-    }
-    if (dbAlias !== null && dbAlias !== undefined) {
-      query.where('db_alias', dbAlias);
+    if (workspace_id === base_id) {
+      if (!Object.values(RootScopes).includes(workspace_id as RootScopes)) {
+        NcError.metaError({
+          message: 'Invalid scope',
+          sql: '',
+        });
+      }
+
+      if (!RootScopeTables[workspace_id].includes(target)) {
+        NcError.metaError({
+          message: 'Table not accessible from this scope',
+          sql: '',
+        });
+      }
+    } else {
+      if (!base_id) {
+        NcError.metaError({
+          message: 'Base ID is required',
+          sql: '',
+        });
+      }
     }
 
     if (typeof idOrCondition !== 'object') {
@@ -337,21 +321,24 @@ export class MetaService {
       this.checkConditionPresent(query, 'delete');
     }
 
+    // Apply context condition
+    this.contextCondition(query, workspace_id, base_id, target);
+
     return query.del();
   }
 
   /***
    * Get meta data
+   * @param workspace_id - Workspace id
    * @param base_id - Base id
-   * @param sourceId - Source id
    * @param target - Table name
    * @param idOrCondition - If string, will get the record with the given id. If object, will get the record with the given condition.
    * @param fields - Fields to be selected
    * @param xcCondition - Additional nested or complex condition to be added to the query.
    */
   public async metaGet2(
+    workspace_id: string,
     base_id: string,
-    sourceId: string,
     target: string,
     idOrCondition: string | { [p: string]: any },
     fields?: string[],
@@ -367,11 +354,31 @@ export class MetaService {
       query.select(...fields);
     }
 
-    if (base_id !== null && base_id !== undefined) {
-      query.where('base_id', base_id);
-    }
-    if (sourceId !== null && sourceId !== undefined) {
-      query.where('source_id', sourceId);
+    if (workspace_id === RootScopes.BYPASS && base_id === RootScopes.BYPASS) {
+      // bypass
+    } else if (workspace_id === base_id) {
+      if (!Object.values(RootScopes).includes(workspace_id as RootScopes)) {
+        NcError.metaError({
+          message: 'Invalid scope',
+          sql: '',
+        });
+      }
+
+      if (!RootScopeTables[workspace_id].includes(target)) {
+        NcError.metaError({
+          message: 'Table not accessible from this scope',
+          sql: '',
+        });
+      }
+    } else {
+      if (!base_id) {
+        NcError.metaError({
+          message: 'Base ID is required',
+          sql: '',
+        });
+      }
+
+      this.contextCondition(query, workspace_id, base_id, target);
     }
 
     if (!idOrCondition) {
@@ -404,72 +411,10 @@ export class MetaService {
     return (+(await query.first())?.order || 0) + 1;
   }
 
-  public async metaInsert(
-    base_id: string,
-    dbAlias: string,
-    target: string,
-    data: any,
-  ): Promise<any> {
-    return this.knexConnection(target).insert({
-      db_alias: dbAlias,
-      base_id,
-      ...data,
-      created_at: this.now(),
-      updated_at: this.now(),
-    });
-  }
-
-  public async metaList(
-    base_id: string,
-    _dbAlias: string,
-    target: string,
-    args?: {
-      condition?: { [p: string]: any };
-      limit?: number;
-      offset?: number;
-      xcCondition?: Condition;
-      fields?: string[];
-      orderBy?: { [key: string]: 'asc' | 'desc' };
-    },
-  ): Promise<any[]> {
-    const query = this.knexConnection(target);
-
-    if (base_id !== null && base_id !== undefined) {
-      query.where('base_id', base_id);
-    }
-    /*    if (dbAlias !== null && dbAlias !== undefined) {
-      query.where('db_alias', dbAlias);
-    }*/
-
-    if (args?.condition) {
-      query.where(args.condition);
-    }
-    if (args?.limit) {
-      query.limit(args.limit);
-    }
-    if (args?.offset) {
-      query.offset(args.offset);
-    }
-    if (args?.xcCondition) {
-      (query as any).condition(args.xcCondition);
-    }
-
-    if (args?.orderBy) {
-      for (const [col, dir] of Object.entries(args.orderBy)) {
-        query.orderBy(col, dir);
-      }
-    }
-    if (args?.fields?.length) {
-      query.select(...args.fields);
-    }
-
-    return query;
-  }
-
   /***
    * Get list of meta data
+   * @param workspace_id - Workspace id
    * @param base_id - Base id
-   * @param dbAlias - Database alias
    * @param target - Table name
    * @param args.condition - Condition to be applied
    * @param args.limit - Limit of records
@@ -480,8 +425,8 @@ export class MetaService {
    * @returns {Promise<any[]>} - List of records
    * */
   public async metaList2(
+    workspace_id: string,
     base_id: string,
-    dbAlias: string,
     target: string,
     args?: {
       condition?: { [p: string]: any };
@@ -494,11 +439,29 @@ export class MetaService {
   ): Promise<any[]> {
     const query = this.knexConnection(target);
 
-    if (base_id !== null && base_id !== undefined) {
-      query.where('base_id', base_id);
-    }
-    if (dbAlias !== null && dbAlias !== undefined) {
-      query.where('source_id', dbAlias);
+    if (workspace_id === base_id) {
+      if (!Object.values(RootScopes).includes(workspace_id as RootScopes)) {
+        NcError.metaError({
+          message: 'Invalid scope',
+          sql: '',
+        });
+      }
+
+      if (!RootScopeTables[workspace_id].includes(target)) {
+        NcError.metaError({
+          message: 'Table not accessible from this scope',
+          sql: '',
+        });
+      }
+    } else {
+      if (!base_id) {
+        NcError.metaError({
+          message: 'Base ID is required',
+          sql: '',
+        });
+      }
+
+      this.contextCondition(query, workspace_id, base_id, target);
     }
 
     if (args?.condition) {
@@ -528,8 +491,8 @@ export class MetaService {
 
   /***
    * Get count of meta data
+   * @param workspace_id - Workspace id
    * @param base_id - Base id
-   * @param dbAlias - Database alias
    * @param target - Table name
    * @param args.condition - Condition to be applied
    * @param args.xcCondition - Additional nested or complex condition to be added to the query.
@@ -537,8 +500,8 @@ export class MetaService {
    * @returns {Promise<number>} - Count of records
    * */
   public async metaCount(
+    workspace_id: string,
     base_id: string,
-    dbAlias: string,
     target: string,
     args?: {
       condition?: { [p: string]: any };
@@ -548,11 +511,31 @@ export class MetaService {
   ): Promise<number> {
     const query = this.knexConnection(target);
 
-    if (base_id !== null && base_id !== undefined) {
-      query.where('base_id', base_id);
-    }
-    if (dbAlias !== null && dbAlias !== undefined) {
-      query.where('source_id', dbAlias);
+    if (workspace_id === RootScopes.BYPASS && base_id === RootScopes.BYPASS) {
+      // bypass
+    } else if (workspace_id === base_id) {
+      if (!Object.values(RootScopes).includes(workspace_id as RootScopes)) {
+        NcError.metaError({
+          message: 'Invalid scope',
+          sql: '',
+        });
+      }
+
+      if (!RootScopeTables[workspace_id].includes(target)) {
+        NcError.metaError({
+          message: 'Table not accessible from this scope',
+          sql: '',
+        });
+      }
+    } else {
+      if (!base_id) {
+        NcError.metaError({
+          message: 'Base ID is required',
+          sql: '',
+        });
+      }
+
+      this.contextCondition(query, workspace_id, base_id, target);
     }
 
     if (args?.condition) {
@@ -570,34 +553,56 @@ export class MetaService {
 
   /***
    * Update meta data
+   * @param workspace_id - Workspace id
    * @param base_id - Base id
-   * @param dbAlias - Database alias
    * @param target - Table name
    * @param data - Data to be updated
    * @param idOrCondition - If string, will update the record with the given id. If object, will update the record with the given condition.
    * @param xcCondition - Additional nested or complex condition to be added to the query.
+   * @param skipUpdatedAt - If true, will not update the updated_at field
    * @param force - If true, will not check if a condition is present in the query builder and will execute the query as is.
    */
   public async metaUpdate(
+    workspace_id: string,
     base_id: string,
-    dbAlias: string,
     target: string,
     data: any,
     idOrCondition?: string | { [p: string]: any },
     xcCondition?: Condition,
+    skipUpdatedAt = false,
     force = false,
   ): Promise<any> {
     const query = this.knexConnection(target);
-    if (base_id !== null && base_id !== undefined) {
-      query.where('base_id', base_id);
-    }
-    if (dbAlias !== null && dbAlias !== undefined) {
-      query.where('db_alias', dbAlias);
+
+    if (workspace_id === base_id) {
+      if (!Object.values(RootScopes).includes(workspace_id as RootScopes)) {
+        NcError.metaError({
+          message: 'Invalid scope',
+          sql: '',
+        });
+      }
+
+      if (!RootScopeTables[workspace_id].includes(target)) {
+        NcError.metaError({
+          message: 'Table not accessible from this scope',
+          sql: '',
+        });
+      }
+    } else {
+      if (!base_id) {
+        NcError.metaError({
+          message: 'Base ID is required',
+          sql: '',
+        });
+      }
     }
 
     delete data.created_at;
 
-    query.update({ ...data, updated_at: this.now() });
+    if (!skipUpdatedAt) {
+      data.updated_at = this.now();
+    }
+    query.update({ ...data });
     if (typeof idOrCondition !== 'object') {
       query.where('id', idOrCondition);
     } else if (idOrCondition) {
@@ -611,6 +616,9 @@ export class MetaService {
     if (!force) {
       this.checkConditionPresent(query, 'update');
     }
+
+    // Apply context condition
+    this.contextCondition(query, workspace_id, base_id, target);
 
     return await query;
   }
@@ -676,6 +684,15 @@ export class MetaService {
    * @returns {Promise<any[]>} - List of bases
    * */
   public async baseList(): Promise<any[]> {
+    // check if table exists
+    const tableExists = await this.knexConnection.schema.hasTable(
+      'nc_projects',
+    );
+
+    if (!tableExists) {
+      return [];
+    }
+
     return (await this.knexConnection('nc_projects').select()).map((p) => {
       p.config = CryptoJS.AES.decrypt(
         p.config,
@@ -696,10 +713,28 @@ export class MetaService {
     );
   }
 
+  private isMssql(): boolean {
+    return this.connection.clientType() === 'mssql';
+  }
+
   public now(): any {
     return dayjs()
       .utc()
-      .format(this.isMySQL() ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ');
+      .format(
+        this.isMySQL() || this.isMssql()
+          ? 'YYYY-MM-DD HH:mm:ss'
+          : 'YYYY-MM-DD HH:mm:ssZ',
+      );
+  }
+
+  public formatDateTime(date: string): string {
+    return dayjs(date)
+      .utc()
+      .format(
+        this.isMySQL() || this.isMssql()
+          ? 'YYYY-MM-DD HH:mm:ss'
+          : 'YYYY-MM-DD HH:mm:ssZ',
+      );
   }
 
   public async init(): Promise<boolean> {
@@ -719,7 +754,7 @@ export class MetaService {
    *
    * @param queryBuilder - The Knex QueryBuilder instance to check.
    */
-  private checkConditionPresent(
+  protected checkConditionPresent(
     queryBuilder: Knex.QueryBuilder,
     operation: 'delete' | 'update',
   ) {

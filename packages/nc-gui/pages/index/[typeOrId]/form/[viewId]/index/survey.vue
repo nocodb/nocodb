@@ -31,6 +31,7 @@ const {
   clearValidate,
   isRequired,
   handleAddMissingRequiredFieldDefaultState,
+  fieldMappings,
 } = useSharedFormStoreOrThrow()
 
 const { isMobileMode } = storeToRefs(useConfigStore())
@@ -77,7 +78,7 @@ const field = computed(() => formColumns.value?.[index.value])
 
 const fieldHasError = computed(() => {
   if (field.value?.title) {
-    return validateInfos[field.value.title].validateStatus === 'error'
+    return validateInfos[fieldMappings.value[field.value.title]]?.validateStatus === 'error'
   }
 
   return false
@@ -111,7 +112,7 @@ function animate(target: AnimationTarget) {
 
 const validateField = async (title: string) => {
   try {
-    await validate(title)
+    await validate(fieldMappings.value[title])
 
     return true
   } catch (_e: any) {
@@ -359,6 +360,11 @@ onMounted(() => {
             </template>
           </div>
         </template>
+        <div v-else class="px-6 lg:px-12">
+          <h1 class="text-2xl font-bold text-gray-900 line-clamp-2 text-center mb-2rem md:mb-4rem">
+            {{ sharedFormView.heading }}
+          </h1>
+        </div>
         <template v-if="isStarted && !submitted">
           <Transition :name="`slide-${transitionName}`" :duration="transitionDuration" mode="out-in">
             <a-form :model="formState">
@@ -394,8 +400,13 @@ onMounted(() => {
 
                   <NcTooltip :disabled="!field?.read_only">
                     <template #title> {{ $t('activity.preFilledFields.lockedFieldTooltip') }} </template>
-                    <a-form-item :name="field.title" class="!my-0 nc-input-required-error" v-bind="validateInfos[field.title]">
-                      <SmartsheetDivDataCell v-if="field.title" class="relative nc-form-data-cell" @click.stop="handleFocus">
+                    <a-form-item
+                      v-if="field.title && fieldMappings[field.title]"
+                      :name="fieldMappings[field.title]"
+                      class="!my-0 nc-input-required-error"
+                      v-bind="validateInfos[fieldMappings[field.title]]"
+                    >
+                      <SmartsheetDivDataCell class="relative nc-form-data-cell" @click.stop="handleFocus">
                         <LazySmartsheetVirtualCell
                           v-if="isVirtualCol(field)"
                           v-model="formState[field.title]"
@@ -564,7 +575,6 @@ onMounted(() => {
     }
   }
 }
-
 :deep(.ant-form-item-has-error .ant-select:not(.ant-select-disabled) .ant-select-selector) {
   border: none !important;
 }

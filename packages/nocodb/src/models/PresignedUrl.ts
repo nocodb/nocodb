@@ -91,10 +91,18 @@ export default class PresignedUrl {
       path: string;
       expireSeconds?: number;
       s3?: boolean;
+      filename?: string;
     },
-    _ncMeta = Noco.ncMeta,
+    ncMeta = Noco.ncMeta,
   ) {
-    const { path, expireSeconds = DEFAULT_EXPIRE_SECONDS, s3 = false } = param;
+    let { path } = param;
+
+    const {
+      expireSeconds = DEFAULT_EXPIRE_SECONDS,
+      s3 = false,
+      filename,
+    } = param;
+
     const expireAt = roundExpiry(
       new Date(new Date().getTime() + expireSeconds * 1000),
     ); // at least expireSeconds from now
@@ -124,11 +132,12 @@ export default class PresignedUrl {
 
     if (s3) {
       // if not present, create a new url
-      const storageAdapter = await NcPluginMgrv2.storageAdapter();
+      const storageAdapter = await NcPluginMgrv2.storageAdapter(ncMeta);
 
       tempUrl = await (storageAdapter as any).getSignedUrl(
         path,
         expiresInSeconds,
+        filename,
       );
       await this.add({
         path: path,
@@ -139,6 +148,12 @@ export default class PresignedUrl {
     } else {
       // if not present, create a new url
       tempUrl = `dltemp/${nanoid(16)}/${expireAt.getTime()}/${path}`;
+
+      // if filename is present, add it to the destination
+      if (filename) {
+        path = `${path}?filename=${encodeURIComponent(filename)}`;
+      }
+
       await this.add({
         path: path,
         url: tempUrl,

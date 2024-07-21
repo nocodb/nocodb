@@ -106,9 +106,14 @@ function columnTypeSpecificTests() {
     });
 
     it('gets deleted if the referenced column gets deleted', async () => {
+      const ctx = {
+        workspace_id: sakilaProject.fk_workspace_id,
+        base_id: sakilaProject.id,
+      };
+
       // delete referenced value column
       const columnsBeforeReferencedColumnDeleted =
-        await customerTable.getColumns();
+        await customerTable.getColumns(ctx);
 
       expect(
         columnsBeforeReferencedColumnDeleted.some(
@@ -122,7 +127,7 @@ function columnTypeSpecificTests() {
         .send({});
 
       const columnsAfterReferencedColumnDeleted =
-        await customerTable.getColumns();
+        await customerTable.getColumns(ctx);
       expect(
         columnsAfterReferencedColumnDeleted.some(
           (col) => col['title'] === qrCodeReferenceColumnTitle,
@@ -158,7 +163,12 @@ function columnTypeSpecificTests() {
         ],
       });
 
-      columns = await table.getColumns();
+      const ctx = {
+        workspace_id: base.fk_workspace_id,
+        base_id: base.id,
+      };
+
+      columns = await table.getColumns(ctx);
 
       const rowAttributes: any = [];
       for (let i = 0; i < 100; i++) {

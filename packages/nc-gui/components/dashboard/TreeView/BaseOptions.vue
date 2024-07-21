@@ -8,9 +8,11 @@ const props = defineProps<{
 
 const source = toRef(props, 'source')
 
+const base = toRef(props, 'base')
+
 const { isUIAllowed } = useRoles()
 
-const baseRole = inject(ProjectRoleInj)
+const baseRole = computed(() => base.value.project_role || base.value.workspace_role)
 
 const { $e } = useNuxtApp()
 
@@ -36,7 +38,7 @@ function openAirtableImportDialog(baseId?: string, sourceId?: string) {
 }
 
 function openQuickImportDialog(type: string) {
-  if (!source.value?.id) return
+  if (!source.value?.id || !source.value.base_id) return
 
   $e(`a:actions:import-${type}`)
 
@@ -45,6 +47,7 @@ function openQuickImportDialog(type: string) {
   const { close } = useDialog(resolveComponent('DlgQuickImport'), {
     'modelValue': isOpen,
     'importType': type,
+    'baseId': source.value.base_id,
     'sourceId': source.value.id,
     'onUpdate:modelValue': closeDialog,
   })
@@ -68,7 +71,7 @@ function openQuickImportDialog(type: string) {
     <template #expandIcon></template>
 
     <NcMenuItem
-      v-if="isUIAllowed('airtableImport', { roles: baseRole })"
+      v-if="isUIAllowed('airtableImport', { roles: baseRole, source })"
       key="quick-import-airtable"
       @click="openAirtableImportDialog(source.base_id, source.id)"
     >
@@ -78,7 +81,11 @@ function openQuickImportDialog(type: string) {
       </div>
     </NcMenuItem>
 
-    <NcMenuItem v-if="isUIAllowed('csvImport', { roles: baseRole })" key="quick-import-csv" @click="openQuickImportDialog('csv')">
+    <NcMenuItem
+      v-if="isUIAllowed('csvImport', { roles: baseRole, source })"
+      key="quick-import-csv"
+      @click="openQuickImportDialog('csv')"
+    >
       <div v-e="['c:import:csv']" class="flex gap-2 items-center">
         <GeneralIcon icon="csv" class="w-4 group-hover:text-black" />
         {{ $t('labels.csvFile') }}
@@ -86,7 +93,7 @@ function openQuickImportDialog(type: string) {
     </NcMenuItem>
 
     <NcMenuItem
-      v-if="isUIAllowed('jsonImport', { roles: baseRole })"
+      v-if="isUIAllowed('jsonImport', { roles: baseRole, source })"
       key="quick-import-json"
       @click="openQuickImportDialog('json')"
     >
@@ -97,7 +104,7 @@ function openQuickImportDialog(type: string) {
     </NcMenuItem>
 
     <NcMenuItem
-      v-if="isUIAllowed('excelImport', { roles: baseRole })"
+      v-if="isUIAllowed('excelImport', { roles: baseRole, source })"
       key="quick-import-excel"
       @click="openQuickImportDialog('excel')"
     >

@@ -9,12 +9,13 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { Request } from 'express';
 import { GalleryUpdateReqType, ViewCreateReqType } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { GalleriesService } from '~/services/galleries.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
+import { TenantContext } from '~/decorators/tenant-context.decorator';
+import { NcContext, NcRequest } from '~/interface/config';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -26,8 +27,11 @@ export class GalleriesController {
     '/api/v2/meta/galleries/:galleryViewId',
   ])
   @Acl('galleryViewGet')
-  async galleryViewGet(@Param('galleryViewId') galleryViewId: string) {
-    return await this.galleriesService.galleryViewGet({
+  async galleryViewGet(
+    @TenantContext() context: NcContext,
+    @Param('galleryViewId') galleryViewId: string,
+  ) {
+    return await this.galleriesService.galleryViewGet(context, {
       galleryViewId,
     });
   }
@@ -39,11 +43,12 @@ export class GalleriesController {
   @HttpCode(200)
   @Acl('galleryViewCreate')
   async galleryViewCreate(
+    @TenantContext() context: NcContext,
     @Param('tableId') tableId: string,
     @Body() body: ViewCreateReqType,
-    @Req() req: Request,
+    @Req() req: NcRequest,
   ) {
-    return await this.galleriesService.galleryViewCreate({
+    return await this.galleriesService.galleryViewCreate(context, {
       gallery: body,
       // todo: sanitize
       tableId,
@@ -58,12 +63,13 @@ export class GalleriesController {
   ])
   @Acl('galleryViewUpdate')
   async galleryViewUpdate(
+    @TenantContext() context: NcContext,
     @Param('galleryViewId') galleryViewId: string,
     @Body() body: GalleryUpdateReqType,
 
-    @Req() req: Request,
+    @Req() req: NcRequest,
   ) {
-    return await this.galleriesService.galleryViewUpdate({
+    return await this.galleriesService.galleryViewUpdate(context, {
       galleryViewId,
       gallery: body,
       req,

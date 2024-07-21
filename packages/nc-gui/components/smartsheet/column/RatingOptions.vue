@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { UITypes } from 'nocodb-sdk'
+
 const props = defineProps<{
   value: any
 }>()
@@ -6,30 +8,6 @@ const props = defineProps<{
 const emit = defineEmits(['update:value'])
 
 const vModel = useVModel(props, 'value', emit)
-
-// cater existing v1 cases
-const iconList = [
-  {
-    full: 'mdi-star',
-    empty: 'mdi-star-outline',
-  },
-  {
-    full: 'mdi-heart',
-    empty: 'mdi-heart-outline',
-  },
-  {
-    full: 'mdi-moon-full',
-    empty: 'mdi-moon-new',
-  },
-  {
-    full: 'mdi-thumb-up',
-    empty: 'mdi-thumb-up-outline',
-  },
-  {
-    full: 'mdi-flag',
-    empty: 'mdi-flag-outline',
-  },
-]
 
 const picked = computed({
   get: () => vModel.value.meta.color,
@@ -42,14 +20,8 @@ const isOpenColorPicker = ref(false)
 
 // set default value
 vModel.value.meta = {
-  iconIdx: 0,
-  icon: {
-    full: 'mdi-star',
-    empty: 'mdi-star-outline',
-  },
-  color: '#fcb401',
-  max: 5,
-  ...vModel.value.meta,
+  ...columnDefaultMeta[UITypes.Rating],
+  ...(vModel.value.meta || {}),
 }
 
 // antdv doesn't support object as value
@@ -141,13 +113,18 @@ watch(
     </a-col>
     <a-col :span="8">
       <a-form-item :label="$t('labels.max')">
-        <a-select v-model:value="vModel.meta.max" class="w-52" dropdown-class-name="nc-dropdown-rating-color">
+        <a-select
+          v-model:value="vModel.meta.max"
+          data-testid="nc-dropdown-rating-max"
+          class="w-52"
+          dropdown-class-name="nc-dropdown-rating-color"
+        >
           <template #suffixIcon>
             <GeneralIcon icon="arrowDown" class="text-gray-700" />
           </template>
 
           <a-select-option v-for="(v, i) in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]" :key="i" :value="v">
-            <div class="flex gap-2 w-full justify-between items-center">
+            <div class="flex gap-2 w-full justify-between items-center nc-dropdown-rating-max-option">
               {{ v }}
               <component
                 :is="iconMap.check"

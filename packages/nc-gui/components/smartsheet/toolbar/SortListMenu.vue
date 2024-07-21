@@ -22,6 +22,11 @@ const { getPlanLimit } = useWorkspace()
 
 const isCalendar = inject(IsCalendarInj, ref(false))
 
+const isToolbarIconMode = inject(
+  IsToolbarIconMode,
+  computed(() => false),
+)
+
 eventBus.on((event) => {
   if (event === SmartsheetStoreEvents.SORT_RELOAD) {
     loadSorts()
@@ -115,7 +120,7 @@ onMounted(() => {
       <NcButton
         v-e="['c:sort']"
         :class="{
-          '!border-1 !rounded-lg': isCalendar,
+          '!border-1 !rounded-md': isCalendar,
           '!border-0': !isCalendar,
         }"
         :disabled="isLocked"
@@ -128,7 +133,9 @@ onMounted(() => {
             <component :is="iconMap.sort" class="h-4 w-4 text-inherit" />
 
             <!-- Sort -->
-            <span v-if="!isMobileMode" class="text-capitalize !text-[13px] font-medium">{{ $t('activity.sort') }}</span>
+            <span v-if="!isMobileMode && !isToolbarIconMode" class="text-capitalize !text-[13px] font-medium">{{
+              $t('activity.sort')
+            }}</span>
           </div>
           <span v-if="sorts?.length" class="bg-brand-50 text-brand-500 py-1 px-2 text-md rounded-md">{{ sorts.length }}</span>
         </div>
@@ -144,6 +151,7 @@ onMounted(() => {
               class="flex caption nc-sort-field-select w-44 flex-grow"
               :columns="columns"
               is-sort
+              :meta="meta"
               @click.stop
               @update:model-value="saveOrUpdate(sort, i)"
             />

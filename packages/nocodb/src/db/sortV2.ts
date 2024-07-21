@@ -19,6 +19,8 @@ export default async function sortV2(
 ) {
   const knex = baseModelSqlv2.dbDriver;
 
+  const context = baseModelSqlv2.context;
+
   if (!sortList?.length) {
     return;
   }
@@ -30,14 +32,17 @@ export default async function sortV2(
     } else {
       sort = new Sort(_sort);
     }
-    const column = await getRefColumnIfAlias(await sort.getColumn());
+    const column = await getRefColumnIfAlias(
+      context,
+      await sort.getColumn(context),
+    );
     if (!column) {
       if (throwErrorIfInvalid) {
         NcError.fieldNotFound(sort.fk_column_id);
       }
       continue;
     }
-    const model = await column.getModel();
+    const model = await column.getModel(context);
 
     const nulls = sort.direction === 'desc' ? 'LAST' : 'FIRST';
 
@@ -49,7 +54,9 @@ export default async function sortV2(
             await genRollupSelectv2({
               baseModelSqlv2,
               knex,
-              columnOptions: (await column.getColOptions()) as RollupColumn,
+              columnOptions: (await column.getColOptions(
+                context,
+              )) as RollupColumn,
               alias,
             })
           ).builder;
@@ -63,7 +70,7 @@ export default async function sortV2(
             await formulaQueryBuilderv2(
               baseModelSqlv2,
               (
-                await column.getColOptions<FormulaColumn>()
+                await column.getColOptions<FormulaColumn>(context)
               ).formula,
               null,
               model,
@@ -144,8 +151,8 @@ export default async function sortV2(
       case UITypes.User:
       case UITypes.CreatedBy:
       case UITypes.LastModifiedBy: {
-        const base = await Base.get(model.base_id);
-        const baseUsers = await BaseUser.getUsersList({
+        const base = await Base.get(context, model.base_id);
+        const baseUsers = await BaseUser.getUsersList(context, {
           base_id: base.id,
         });
 

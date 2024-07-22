@@ -5,6 +5,7 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { Upload } from '@aws-sdk/lib-storage';
 import axios from 'axios';
 import { useAgent } from 'request-filtering-agent';
+import type { S3ClientConfig } from '@aws-sdk/client-s3';
 import type { IStorageAdapterV2, XcFile } from 'nc-plugin';
 import type { Readable } from 'stream';
 import { generateTempFilePath, waitForStreamClose } from '~/utils/pluginUtils';
@@ -128,13 +129,17 @@ export default class S3 implements IStorageAdapterV2 {
     // s3Options.accessKeyId = process.env.NC_S3_KEY;
     // s3Options.secretAccessKey = process.env.NC_S3_SECRET;
 
-    const s3Options = {
+    const s3Options: S3ClientConfig = {
       region: this.input.region,
       credentials: {
         accessKeyId: this.input.access_key,
         secretAccessKey: this.input.access_secret,
       },
     };
+
+    if (this.input.endpoint) {
+      s3Options.endpoint = this.input.endpoint;
+    }
 
     this.s3Client = new S3Client(s3Options);
   }
@@ -168,7 +173,10 @@ export default class S3 implements IStorageAdapterV2 {
       const data = await upload.done();
 
       if (data) {
-        return `https://${this.input.bucket}.s3.${this.input.region}.amazonaws.com/${uploadParams.Key}`;
+        const endpoint = this.input.endpoint
+          ? new URL(this.input.endpoint).host
+          : `s3.${this.input.region}.amazonaws.com`;
+        return `https://${this.input.bucket}.${endpoint}/${uploadParams.Key}`;
       } else {
         throw new Error('Upload failed or no data returned.');
       }

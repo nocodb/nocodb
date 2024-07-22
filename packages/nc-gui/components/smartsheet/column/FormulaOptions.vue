@@ -37,7 +37,7 @@ const supportedColumns = computed(
         return false
       }
 
-      if (isHiddenCol(col)) {
+      if (isHiddenCol(col, meta.value)) {
         return false
       }
 

@@ -233,6 +233,18 @@ const onCustomSwitchLabelClick = () => {
   vModel.value.is_custom_link = !vModel.value.is_custom_link
   onCustomSwitchToggle()
 }
+
+const onViewLabelClick = () => {
+  if (!vModel.value.childId && !(vModel.value.is_custom_link && vModel.value.custom?.ref_model_id)) return
+
+  limitRecToView.value = !limitRecToView.value
+  onLimitRecToViewChange()
+}
+const onFilterLabelClick = () => {
+  if (!vModel.value.childId && !(vModel.value.is_custom_link && vModel.value.custom?.ref_model_id)) return
+
+  limitRecToCond.value = !limitRecToCond.value
+}
 </script>
 
 <template>
@@ -317,7 +329,7 @@ const onCustomSwitchLabelClick = () => {
           v-e="['c:link:limit-record-by-view', { status: limitRecToView }]"
           class="text-s"
           data-testid="nc-limit-record-view"
-          @click="limitRecToView = !!vModel.childId && !limitRecToView"
+          @click="onViewLabelClick"
           >Limit record selection to a view</span
         >
       </div>
@@ -353,7 +365,7 @@ const onCustomSwitchLabelClick = () => {
         <span
           v-e="['c:link:limit-record-by-filter', { status: limitRecToCond }]"
           data-testid="nc-limit-record-filters"
-          @click="limitRecToCond = !!vModel.childId && !limitRecToCond"
+          @click="onFilterLabelClick"
         >
           Limit record selection to filters
         </span>

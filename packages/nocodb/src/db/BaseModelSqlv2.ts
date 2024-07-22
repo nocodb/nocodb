@@ -4320,10 +4320,25 @@ class BaseModelSqlv2 {
                 );
                 insertObj[childCol.column_name] = nestedData?.[parentCol.title];
               } else {
+                const parentCol = await colOptions.getParentColumn(
+                  this.context,
+                );
+                const parentModel = await parentCol.getModel(this.context);
+                await parentModel.getColumns(this.context);
+
                 postInsertOps.push(async (rowId) => {
+                  let refId = rowId;
+                  if (parentModel.primaryKey.id !== parentCol.id) {
+                    refId = this.dbDriver(
+                      this.getTnPath(parentModel.table_name),
+                    )
+                      .select(parentCol.column_name)
+                      .where(parentModel.primaryKey.column_name, rowId)
+                      .first();
+                  }
                   return this.dbDriver(this.getTnPath(childModel.table_name))
                     .update({
-                      [childCol.column_name]: rowId,
+                      [childCol.column_name]: refId,
                     })
                     .where(
                       childModel.primaryKey.column_name,
@@ -4338,13 +4353,23 @@ class BaseModelSqlv2 {
             {
               if (!Array.isArray(nestedData)) continue;
               const childCol = await colOptions.getChildColumn(this.context);
+              const parentCol = await colOptions.getParentColumn(this.context);
               const childModel = await childCol.getModel(this.context);
+              const parentModel = await parentCol.getModel(this.context);
               await childModel.getColumns(this.context);
+              await parentModel.getColumns(this.context);
 
               postInsertOps.push(async (rowId) => {
+                let refId = rowId;
+                if (parentModel.primaryKey.id !== parentCol.id) {
+                  refId = this.dbDriver(this.getTnPath(parentModel.table_name))
+                    .select(parentCol.column_name)
+                    .where(parentModel.primaryKey.column_name, rowId)
+                    .first();
+                }
                 return this.dbDriver(this.getTnPath(childModel.table_name))
                   .update({
-                    [childCol.column_name]: rowId,
+                    [childCol.column_name]: refId,
                   })
                   .whereIn(
                     childModel.primaryKey.column_name,

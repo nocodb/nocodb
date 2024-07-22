@@ -223,6 +223,11 @@ const handleShowAdvanceOptions = () => {
     vModel.value.is_custom_link = false
   }
 }
+
+const onCustomSwitchLabelClick = () => {
+  vModel.value.is_custom_link = !vModel.value.is_custom_link
+  onCustomSwitchToggle()
+}
 </script>
 
 <template>
@@ -260,7 +265,7 @@ const handleShowAdvanceOptions = () => {
         name="Custom"
         @change="onCustomSwitchToggle"
       />
-      <span class="ml-3">Advanced Link</span>
+      <span class="ml-3 cursor-pointer" @click="onCustomSwitchLabelClick">Advanced Link</span>
     </div>
     <div v-if="isEeUI && vModel.is_custom_link">
       <LazySmartsheetColumnLinkAdvancedOptions v-model:value="vModel" :is-edit="isEdit" :meta="meta" />

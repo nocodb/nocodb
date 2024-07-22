@@ -76,7 +76,7 @@ const parseConditionV2 = async (
 
   const context = baseModelSqlv2.context;
 
-  let filter: Filter;
+  let filter: Filter & { groupby?: boolean };
   if (!Array.isArray(_filter)) {
     if (!(_filter instanceof Filter)) filter = new Filter(_filter as Filter);
     else filter = _filter;
@@ -136,7 +136,7 @@ const parseConditionV2 = async (
       (filter.comparison_op as any) === 'gb_eq' ||
       (filter.comparison_op as any) === 'gb_null'
     ) {
-      (filter as any).groupby = true;
+      filter.groupby = true;
 
       const column = await getRefColumnIfAlias(
         context,
@@ -751,13 +751,16 @@ const parseConditionV2 = async (
                 ].includes(column.uidt)
               ) {
                 if (qb.client.config.client === 'pg') {
-                  //  todo: enable back if group by date required custom implementation
-                  // if ((filter as any).groupby)
-                  //   qb = qb.where(knex.raw('??::timestamp = ?', [field, val]));
-                  // else
-                  qb = qb.where(knex.raw('??::date = ?', [field, val]));
+                  if (filter.groupby)
+                    qb = qb.where(knex.raw('?? = ?', [field, val]));
+                  else qb = qb.where(knex.raw('??::date = ?', [field, val]));
                 } else {
-                  qb = qb.where(knex.raw('DATE(??) = DATE(?)', [field, val]));
+                  if (filter.groupby)
+                    qb = qb.where(
+                      knex.raw('DATETIME(??) = DATETIME(?)', [field, val]),
+                    );
+                  else
+                    qb = qb.where(knex.raw('DATE(??) = DATE(?)', [field, val]));
                 }
               } else {
                 qb = qb.where(field, val);

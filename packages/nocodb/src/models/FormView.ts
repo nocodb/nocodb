@@ -248,20 +248,12 @@ export default class FormView implements FormViewType {
               ).then((r) => (formAttachments[key].signedPath = r)),
             );
           } else if (formAttachments[key]?.url) {
-            if (formAttachments[key].url.includes('.amazonaws.com/')) {
-              const relativePath = decodeURI(
-                formAttachments[key].url.split('.amazonaws.com/')[1],
-              );
-              promises.push(
-                PresignedUrl.getSignedUrl(
-                  {
-                    path: relativePath,
-                    s3: true,
-                  },
-                  ncMeta,
-                ).then((r) => (formAttachments[key].signedUrl = r)),
-              );
-            }
+            promises.push(
+              PresignedUrl.getSignedUrl(
+                { path: decodeURI(new URL(formAttachments[key].url).pathname) },
+                ncMeta,
+              ).then((r) => (formAttachments[key].signedUrl = r)),
+            );
           }
         }
         await Promise.all(promises);

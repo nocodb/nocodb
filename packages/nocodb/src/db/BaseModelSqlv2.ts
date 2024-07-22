@@ -7100,17 +7100,13 @@ class BaseModelSqlv2 {
                       }).then((r) => (lookedUpAttachment.signedPath = r)),
                     );
                   } else if (lookedUpAttachment?.url) {
-                    if (lookedUpAttachment.url.includes('.amazonaws.com/')) {
-                      const relativePath = decodeURI(
-                        lookedUpAttachment.url.split('.amazonaws.com/')[1],
-                      );
-                      promises.push(
-                        PresignedUrl.getSignedUrl({
-                          path: relativePath,
-                          s3: true,
-                        }).then((r) => (lookedUpAttachment.signedUrl = r)),
-                      );
-                    }
+                    promises.push(
+                      PresignedUrl.getSignedUrl({
+                        path: decodeURI(
+                          new URL(lookedUpAttachment.url).pathname,
+                        ),
+                      }).then((r) => (lookedUpAttachment.signedUrl = r)),
+                    );
                   }
                 }
               } else {
@@ -7121,17 +7117,11 @@ class BaseModelSqlv2 {
                     }).then((r) => (attachment.signedPath = r)),
                   );
                 } else if (attachment?.url) {
-                  if (attachment.url.includes('.amazonaws.com/')) {
-                    const relativePath = decodeURI(
-                      attachment.url.split('.amazonaws.com/')[1],
-                    );
-                    promises.push(
-                      PresignedUrl.getSignedUrl({
-                        path: relativePath,
-                        s3: true,
-                      }).then((r) => (attachment.signedUrl = r)),
-                    );
-                  }
+                  promises.push(
+                    PresignedUrl.getSignedUrl({
+                      path: decodeURI(new URL(attachment.url).pathname),
+                    }).then((r) => (attachment.signedUrl = r)),
+                  );
                 }
               }
             }

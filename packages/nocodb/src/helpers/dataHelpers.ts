@@ -166,10 +166,9 @@ export async function serializeCellValue(
           data = JSON.parse(value);
         }
 
-        if(!Array.isArray(data)) {
+        if (!Array.isArray(data)) {
           data = undefined;
         }
-
       } catch {
         data = undefined;
       }

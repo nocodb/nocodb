@@ -21,7 +21,11 @@ const globalSearchWrapperRef = ref<HTMLInputElement>()
 const { isMobileMode } = useGlobal()
 
 const columns = computed(
-  () => (meta.value as TableType)?.columns?.filter((column) => !isSystemColumn(column) && column?.uidt !== UITypes.Links) ?? [],
+  () =>
+    (meta.value as TableType)?.columns?.filter(
+      (column) =>
+        !isSystemColumn(column) && ![UITypes.Links, UITypes.Rollup, UITypes.DateTime, UITypes.Date].includes(column?.uidt),
+    ) ?? [],
 )
 
 watch(

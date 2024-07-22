@@ -32,7 +32,7 @@ const options = computed<ColumnType[]>(
             return false
           }
 
-          if (isHiddenCol(c)) {
+          if (isHiddenCol(c, meta.value)) {
             /** ignore mm relation column, created by and last modified by system field */
             return false
           }

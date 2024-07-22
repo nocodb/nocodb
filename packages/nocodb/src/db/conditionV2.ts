@@ -712,7 +712,10 @@ const parseConditionV2 = async (
 
         switch (filter.comparison_op) {
           case 'eq':
-            if (qb?.client?.config?.client === 'mysql2') {
+            if (
+              qb?.client?.config?.client === 'mysql2' ||
+              qb?.client?.config?.client === 'mysql'
+            ) {
               if (
                 [
                   UITypes.Duration,
@@ -734,7 +737,12 @@ const parseConditionV2 = async (
                 column.ct === 'date' ||
                 column.ct === 'datetime'
               ) {
-                qb = qb.where(knex.raw('DATE(??) = DATE(?)', [field, val]));
+                if (filter.groupby && column.ct !== 'date')
+                  qb = qb.where(
+                    knex.raw('?? = ?', [field, val.replace(/\+\d+:\d+$/, '')]),
+                  );
+                else
+                  qb = qb.where(knex.raw('DATE(??) = DATE(?)', [field, val]));
               } else {
                 // mysql is case-insensitive for strings, turn to case-sensitive
                 qb = qb.where(knex.raw('BINARY ?? = ?', [field, val]));
@@ -756,9 +764,7 @@ const parseConditionV2 = async (
                   else qb = qb.where(knex.raw('??::date = ?', [field, val]));
                 } else {
                   if (filter.groupby)
-                    qb = qb.where(
-                      knex.raw('DATETIME(??) = DATETIME(?)', [field, val]),
-                    );
+                    qb = qb.where(knex.raw('?? = ?', [field, val]));
                   else
                     qb = qb.where(knex.raw('DATE(??) = DATE(?)', [field, val]));
                 }

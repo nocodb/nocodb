@@ -18,6 +18,6 @@ CLUSTER="executors-prod"
 ASG_NAME=executor-services-prod
 ECR_REPO_NAME="nc-sql-executor"
 
-prewarm_asg
+# prewarm_asg
 # function call in rollout_util.sh file
 perform_rollout "${PROMOTE_IMAGE_BEFORE_ROLLOUT}"

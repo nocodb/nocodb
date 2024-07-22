@@ -18,7 +18,7 @@ CLUSTER="executors-staging"
 REPO_NAME="nc-sql-executor"
 ASG_NAME=executor-services-staging
 
-prewarm_asg
+# prewarm_asg
 
 # function call in rollout_util.sh file
 perform_rollout "${PROMOTE_IMAGE_BEFORE_ROLLOUT}"

@@ -1154,6 +1154,27 @@ class BaseModelSqlv2 {
               groupBySelectors.push(column.id);
             }
             break;
+          case UITypes.CreatedTime:
+          case UITypes.LastModifiedTime:
+          case UITypes.DateTime:
+            {
+              const columnName = await getColumnName(
+                this.context,
+                column,
+                columns,
+              );
+              if (this.dbDriver.clientType() === 'pg') {
+                selectors.push(
+                  this.dbDriver.raw('??::date as ??', [columnName, column.id]),
+                );
+              } else {
+                selectors.push(
+                  this.dbDriver.raw('DATE(??) as ??', [columnName, column.id]),
+                );
+              }
+              groupBySelectors.push(column.id);
+            }
+            break;
           default:
             {
               const columnName = await getColumnName(
@@ -1393,6 +1414,27 @@ class BaseModelSqlv2 {
               ]);
 
               selectors.push(selectQb);
+              groupBySelectors.push(column.id);
+            }
+            break;
+          case UITypes.CreatedTime:
+          case UITypes.LastModifiedTime:
+          case UITypes.DateTime:
+            {
+              const columnName = await getColumnName(
+                this.context,
+                column,
+                columns,
+              );
+              if (this.dbDriver.clientType() === 'pg') {
+                selectors.push(
+                  this.dbDriver.raw('??::date as ??', [columnName, column.id]),
+                );
+              } else {
+                selectors.push(
+                  this.dbDriver.raw('DATE(??) as ??', [columnName, column.id]),
+                );
+              }
               groupBySelectors.push(column.id);
             }
             break;

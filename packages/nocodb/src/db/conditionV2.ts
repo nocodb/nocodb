@@ -737,12 +737,7 @@ const parseConditionV2 = async (
                 column.ct === 'date' ||
                 column.ct === 'datetime'
               ) {
-                if (filter.groupby && column.ct !== 'date')
-                  qb = qb.where(
-                    knex.raw('?? = ?', [field, val.replace(/\+\d+:\d+$/, '')]),
-                  );
-                else
-                  qb = qb.where(knex.raw('DATE(??) = DATE(?)', [field, val]));
+                qb = qb.where(knex.raw('DATE(??) = DATE(?)', [field, val]));
               } else {
                 // mysql is case-insensitive for strings, turn to case-sensitive
                 qb = qb.where(knex.raw('BINARY ?? = ?', [field, val]));
@@ -759,14 +754,9 @@ const parseConditionV2 = async (
                 ].includes(column.uidt)
               ) {
                 if (qb.client.config.client === 'pg') {
-                  if (filter.groupby)
-                    qb = qb.where(knex.raw('?? = ?', [field, val]));
-                  else qb = qb.where(knex.raw('??::date = ?', [field, val]));
+                  qb = qb.where(knex.raw('??::date = ?', [field, val]));
                 } else {
-                  if (filter.groupby)
-                    qb = qb.where(knex.raw('?? = ?', [field, val]));
-                  else
-                    qb = qb.where(knex.raw('DATE(??) = DATE(?)', [field, val]));
+                  qb = qb.where(knex.raw('DATE(??) = DATE(?)', [field, val]));
                 }
               } else {
                 qb = qb.where(field, val);

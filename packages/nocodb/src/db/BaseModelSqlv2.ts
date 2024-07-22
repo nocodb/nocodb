@@ -1163,9 +1163,46 @@ class BaseModelSqlv2 {
                 column,
                 columns,
               );
+              // ignore seconds part in datetime and group
               if (this.dbDriver.clientType() === 'pg') {
                 selectors.push(
-                  this.dbDriver.raw('??::date as ??', [columnName, column.id]),
+                  this.dbDriver.raw(
+                    "date_trunc('minute', ??) + interval '0 seconds' as ??",
+                    [columnName, column.id],
+                  ),
+                );
+              } else if (
+                this.dbDriver.clientType() === 'mysql' ||
+                this.dbDriver.clientType() === 'mysql2'
+              ) {
+                selectors.push(
+                  // this.dbDriver.raw('??::date as ??', [columnName, column.id]),
+                  this.dbDriver.raw(
+                    "DATE_SUB(CONVERT_TZ(??, @@GLOBAL.time_zone, '+00:00'), INTERVAL SECOND(??) SECOND) as ??",
+                    [columnName, columnName, column.id],
+                  ),
+                );
+              } else if (this.dbDriver.clientType() === 'sqlite3') {
+                selectors.push(
+                  this.dbDriver.raw(
+                    `strftime ('%Y-%m-%d %H:%M:00',:column:) ||
+  (
+   CASE WHEN substr(:column:, 20, 1) = '+' THEN
+    printf ('+%s:',
+     substr(:column:, 21, 2)) || printf ('%s',
+     substr(:column:, 24, 2))
+   WHEN substr(:column:, 20, 1) = '-' THEN
+    printf ('-%s:',
+     substr(:column:, 21, 2)) || printf ('%s',
+     substr(:column:, 24, 2))
+   ELSE
+    '+00:00'
+   END) AS :id:`,
+                    {
+                      column: columnName,
+                      id: column.id,
+                    },
+                  ),
                 );
               } else {
                 selectors.push(
@@ -1426,9 +1463,45 @@ class BaseModelSqlv2 {
                 column,
                 columns,
               );
+              // ignore seconds part in datetime and group
               if (this.dbDriver.clientType() === 'pg') {
                 selectors.push(
-                  this.dbDriver.raw('??::date as ??', [columnName, column.id]),
+                  this.dbDriver.raw(
+                    "date_trunc('minute', ??) + interval '0 seconds' as ??",
+                    [columnName, column.id],
+                  ),
+                );
+              } else if (
+                this.dbDriver.clientType() === 'mysql' ||
+                this.dbDriver.clientType() === 'mysql2'
+              ) {
+                selectors.push(
+                  this.dbDriver.raw(
+                    "CONVERT_TZ(DATE_SUB(??, INTERVAL SECOND(??) SECOND), @@GLOBAL.time_zone, '+00:00') as ??",
+                    [columnName, columnName, column.id],
+                  ),
+                );
+              } else if (this.dbDriver.clientType() === 'sqlite3') {
+                selectors.push(
+                  this.dbDriver.raw(
+                    `strftime ('%Y-%m-%d %H:%M:00',:column:) ||
+  (
+   CASE WHEN substr(:column:, 20, 1) = '+' THEN
+    printf ('+%s:',
+     substr(:column:, 21, 2)) || printf ('%s',
+     substr(:column:, 24, 2))
+   WHEN substr(:column:, 20, 1) = '-' THEN
+    printf ('-%s:',
+     substr(:column:, 21, 2)) || printf ('%s',
+     substr(:column:, 24, 2))
+   ELSE
+    '+00:00'
+   END) as :id:`,
+                    {
+                      column: columnName,
+                      id: column.id,
+                    },
+                  ),
                 );
               } else {
                 selectors.push(

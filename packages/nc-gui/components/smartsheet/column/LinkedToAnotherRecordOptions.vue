@@ -92,8 +92,10 @@ const refTables = computed(() => {
 })
 
 const refViews = computed(() => {
-  if (!vModel.value.childId) return []
-  const views = viewsByTable.value.get(vModel.value.childId)
+  const childId = vModel.value?.is_custom_link ? vModel.value?.custom?.ref_model_id : vModel.value?.childId
+
+  if (!childId) return []
+  const views = viewsByTable.value.get(childId)
 
   return (views || []).filter((v) => v.type !== ViewTypes.FORM)
 })
@@ -105,7 +107,7 @@ const isLinks = computed(() => vModel.value.uidt === UITypes.Links && vModel.val
 const { metas, getMeta } = useMetas()
 
 watch(
-  () => vModel.value.childId,
+  () => (vModel.value?.is_custom_link ? vModel.value?.custom?.ref_model_id : vModel.value?.childId),
   async (tableId) => {
     if (tableId) {
       getMeta(tableId).catch(() => {
@@ -146,7 +148,10 @@ const onLimitRecToViewChange = (value: boolean) => {
 
 provide(
   MetaInj,
-  computed(() => metas.value[vModel.value.childId] || {}),
+  computed(() => {
+    const childId = vModel.value?.is_custom_link ? vModel.value?.custom?.ref_model_id : vModel.value?.childId
+    return metas.value[childId] || {}
+  }),
 )
 
 onMounted(() => {
@@ -305,7 +310,7 @@ const onCustomSwitchLabelClick = () => {
           v-model:checked="limitRecToView"
           v-e="['c:link:limit-record-by-view', { status: limitRecToView }]"
           size="small"
-          :disabled="!vModel.childId"
+          :disabled="!vModel.childId && !(vModel.is_custom_link && vModel.custom?.ref_model_id)"
           @change="onLimitRecToViewChange"
         ></a-switch>
         <span
@@ -342,7 +347,7 @@ const onCustomSwitchLabelClick = () => {
         <a-switch
           v-model:checked="limitRecToCond"
           v-e="['c:link:limit-record-by-filter', { status: limitRecToCond }]"
-          :disabled="!vModel.childId"
+          :disabled="!vModel.childId && !(vModel.is_custom_link && vModel.custom?.ref_model_id)"
           size="small"
         ></a-switch>
         <span

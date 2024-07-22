@@ -264,6 +264,14 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
           });
         }
         break;
+      case AppEvents.ATTACHMENT_UPLOAD:
+        {
+          this.telemetryService.sendEvent({
+            evt_type: 'image:uploaded',
+            type: data?.type,
+          });
+        }
+        break;
     }
   }
 

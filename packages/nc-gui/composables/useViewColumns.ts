@@ -87,7 +87,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
         fields.value = meta.value?.columns
           ?.filter((column: ColumnType) => {
             // filter created by and last modified by system columns
-            if (isHiddenCol(column)) return false
+            if (isHiddenCol(column, meta.value)) return false
             return true
           })
           .map((column: ColumnType) => {

@@ -76,7 +76,7 @@ const parseConditionV2 = async (
 
   const context = baseModelSqlv2.context;
 
-  let filter: Filter;
+  let filter: Filter & { groupby?: boolean };
   if (!Array.isArray(_filter)) {
     if (!(_filter instanceof Filter)) filter = new Filter(_filter as Filter);
     else filter = _filter;
@@ -136,7 +136,7 @@ const parseConditionV2 = async (
       (filter.comparison_op as any) === 'gb_eq' ||
       (filter.comparison_op as any) === 'gb_null'
     ) {
-      (filter as any).groupby = true;
+      filter.groupby = true;
 
       const column = await getRefColumnIfAlias(
         context,
@@ -539,7 +539,7 @@ const parseConditionV2 = async (
             (val + '').startsWith('%') || (val + '').endsWith('%')
               ? val
               : `%${val}%`;
-          if (qb?.client?.config?.client === 'pg') {
+          if (knex.clientType() === 'pg') {
             qb = qb.where(knex.raw(`(${finalStatement}) ilike ?`, [val]));
           } else {
             qb = qb.where(knex.raw(`(${finalStatement}) like ?`, [val]));
@@ -553,7 +553,7 @@ const parseConditionV2 = async (
             val = val.startsWith('%') || val.endsWith('%') ? val : `%${val}%`;
 
             qb.where((nestedQb) => {
-              if (qb?.client?.config?.client === 'pg') {
+              if (knex.clientType() === 'pg') {
                 nestedQb.whereNot(
                   knex.raw(`(${finalStatement}) ilike ?`, [val]),
                 );
@@ -599,7 +599,7 @@ const parseConditionV2 = async (
         // todo: refactor this to use a better approach to make it more readable and clean
         let genVal = customWhereClause ? field : val;
         const dateFormat =
-          qb?.client?.config?.client === 'mysql2'
+          knex.clientType() === 'mysql2'
             ? 'YYYY-MM-DD HH:mm:ss'
             : 'YYYY-MM-DD HH:mm:ssZ';
 
@@ -712,7 +712,10 @@ const parseConditionV2 = async (
 
         switch (filter.comparison_op) {
           case 'eq':
-            if (qb?.client?.config?.client === 'mysql2') {
+            if (
+              knex.clientType() === 'mysql2' ||
+              knex.clientType() === 'mysql'
+            ) {
               if (
                 [
                   UITypes.Duration,
@@ -734,7 +737,17 @@ const parseConditionV2 = async (
                 column.ct === 'date' ||
                 column.ct === 'datetime'
               ) {
-                qb = qb.where(knex.raw('DATE(??) = DATE(?)', [field, val]));
+                // ignore seconds part in datetime and filter when using it for group by
+                if (filter.groupby && column.ct !== 'date') {
+                  const valWithoutTz = val.replace(/[+-]\d+:\d+$/, '');
+                  qb = qb.where(
+                    knex.raw(
+                      "CONVERT_TZ(DATE_SUB(??, INTERVAL SECOND(??) SECOND), @@GLOBAL.time_zone, '+00:00') = DATE_SUB(?, INTERVAL SECOND(?) SECOND)",
+                      [field, field, valWithoutTz, valWithoutTz],
+                    ),
+                  );
+                } else
+                  qb = qb.where(knex.raw('DATE(??) = DATE(?)', [field, val]));
               } else {
                 // mysql is case-insensitive for strings, turn to case-sensitive
                 qb = qb.where(knex.raw('BINARY ?? = ?', [field, val]));
@@ -751,13 +764,40 @@ const parseConditionV2 = async (
                 ].includes(column.uidt)
               ) {
                 if (qb.client.config.client === 'pg') {
-                  //  todo: enable back if group by date required custom implementation
-                  // if ((filter as any).groupby)
-                  //   qb = qb.where(knex.raw('??::timestamp = ?', [field, val]));
-                  // else
-                  qb = qb.where(knex.raw('??::date = ?', [field, val]));
+                  // ignore seconds part in datetime and filter when using it for group by
+                  if (filter.groupby)
+                    qb = qb.where(
+                      knex.raw(
+                        "date_trunc('minute', ??) + interval '0 seconds' = ?",
+                        [field, val],
+                      ),
+                    );
+                  else qb = qb.where(knex.raw('??::date = ?', [field, val]));
                 } else {
-                  qb = qb.where(knex.raw('DATE(??) = DATE(?)', [field, val]));
+                  // ignore seconds part in datetime and filter when using it for group by
+                  if (filter.groupby) {
+                    if (knex.clientType() === 'sqlite3')
+                      qb = qb.where(
+                        knex.raw(
+                          `Datetime(strftime ('%Y-%m-%d %H:%M:00',:column:) ||
+  (
+   CASE WHEN substr(:column:, 20, 1) = '+' THEN
+    printf ('+%s:',
+     substr(:column:, 21, 2)) || printf ('%s',
+     substr(:column:, 24, 2))
+   WHEN substr(:column:, 20, 1) = '-' THEN
+    printf ('-%s:',
+     substr(:column:, 21, 2)) || printf ('%s',
+     substr(:column:, 24, 2))
+   ELSE
+    '+00:00'
+   END)) = Datetime(:val)`,
+                          { column: field, val },
+                        ),
+                      );
+                    else qb = qb.where(knex.raw('?? = ?', [field, val]));
+                  } else
+                    qb = qb.where(knex.raw('DATE(??) = DATE(?)', [field, val]));
                 }
               } else {
                 qb = qb.where(field, val);
@@ -770,7 +810,7 @@ const parseConditionV2 = async (
             break;
           case 'neq':
           case 'not':
-            if (qb?.client?.config?.client === 'mysql2') {
+            if (knex.clientType() === 'mysql2') {
               if (
                 [
                   UITypes.Duration,
@@ -835,7 +875,7 @@ const parseConditionV2 = async (
                     ? val
                     : `%${val}%`;
               }
-              if (qb?.client?.config?.client === 'pg') {
+              if (knex.clientType() === 'pg') {
                 qb = qb.where(knex.raw('??::text ilike ?', [field, val]));
               } else {
                 qb = qb.where(field, 'like', val);
@@ -862,7 +902,7 @@ const parseConditionV2 = async (
                   val.startsWith('%') || val.endsWith('%') ? val : `%${val}%`;
               }
               qb.where((nestedQb) => {
-                if (qb?.client?.config?.client === 'pg') {
+                if (knex.clientType() === 'pg') {
                   nestedQb.where(
                     knex.raw('??::text not ilike ?', [field, val]),
                   );
@@ -891,9 +931,9 @@ const parseConditionV2 = async (
                 for (let i = 0; i < items?.length; i++) {
                   let sql;
                   const bindings = [field, `%,${items[i]},%`];
-                  if (qb?.client?.config?.client === 'pg') {
+                  if (knex.clientType() === 'pg') {
                     sql = "(',' || ??::text || ',') ilike ?";
-                  } else if (qb?.client?.config?.client === 'sqlite3') {
+                  } else if (knex.clientType() === 'sqlite3') {
                     sql = "(',' || ?? || ',') like ?";
                   } else {
                     sql = "CONCAT(',', ??, ',') like ?";

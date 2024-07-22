@@ -200,7 +200,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
         } else if (
           [UITypes.Date, UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(curr.column_uidt as UITypes)
         ) {
-          acc += `${acc.length ? '~and' : ''}(${curr.title},eq,exactDate,${curr.key})`
+          acc += `${acc.length ? '~and' : ''}(${curr.title},gb_eq,exactDate,${curr.key})`
         } else if ([UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(curr.column_uidt as UITypes)) {
           try {
             const value = JSON.parse(curr.key)

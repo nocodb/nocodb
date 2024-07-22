@@ -39,7 +39,7 @@ const options = computed<SelectProps['options']>(() =>
       }
 
       if (isSystemColumn(metaColumnById?.value?.[c.id!])) {
-        if (isHiddenCol(c,meta.value)) {
+        if (isHiddenCol(c, meta.value)) {
           /** ignore mm relation column, created by and last modified by system field */
           return false
         }

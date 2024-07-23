@@ -664,6 +664,10 @@ onMounted(async () => {
       @apply bg-purple-500 text-purple-500;
     }
 
+    .column-type-bt {
+      @apply bg-blue-400 text-blue-400;
+    }
+
     :deep(.ant-form-item-explain) {
       @apply hidden;
     }

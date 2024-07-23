@@ -3,6 +3,7 @@ import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { CacheGetType, CacheScope } from '~/utils/globals';
+import { isPreviewAllowed } from '~/helpers/attachmentHelpers';
 
 function roundExpiry(date) {
   const msInHour = 10 * 60 * 1000;
@@ -91,6 +92,8 @@ export default class PresignedUrl {
       pathOrUrl: string;
       expireSeconds?: number;
       filename?: string;
+      preview?: boolean;
+      mimetype?: string;
     },
     ncMeta = Noco.ncMeta,
   ) {
@@ -100,7 +103,15 @@ export default class PresignedUrl {
       ? decodeURI(new URL(param.pathOrUrl).pathname)
       : param.pathOrUrl.replace(/^\/+/, '');
 
-    const { expireSeconds = DEFAULT_EXPIRE_SECONDS, filename } = param;
+    const {
+      expireSeconds = DEFAULT_EXPIRE_SECONDS,
+      filename,
+      mimetype,
+    } = param;
+
+    const preview = param.preview
+      ? isPreviewAllowed({ path, mimetype })
+      : false;
 
     const expireAt = roundExpiry(
       new Date(new Date().getTime() + expireSeconds * 1000),
@@ -135,7 +146,11 @@ export default class PresignedUrl {
       tempUrl = await (storageAdapter as any).getSignedUrl(
         path,
         expiresInSeconds,
-        filename,
+        {
+          filename,
+          preview,
+          mimetype,
+        },
       );
       await this.add({
         path: path,
@@ -149,10 +164,29 @@ export default class PresignedUrl {
         ? param.pathOrUrl
         : `dltemp/${nanoid(16)}/${expireAt.getTime()}/${path}`;
 
-      // if filename is present, add it to the destination
-      if (filename) {
-        path = `${path}?filename=${encodeURIComponent(filename)}`;
+      const pathParameters: {
+        [key: string]: string;
+      } = {};
+
+      if (preview) {
+        pathParameters.ResponseContentDisposition = `inline;`;
+
+        if (filename) {
+          pathParameters.ResponseContentDisposition += ` filename="${filename}"`;
+        }
+      } else {
+        pathParameters.ResponseContentDisposition = `attachment;`;
+
+        if (filename) {
+          pathParameters.ResponseContentDisposition += ` filename="${filename}"`;
+        }
       }
+
+      if (mimetype) {
+        pathParameters.ResponseContentType = mimetype;
+      }
+
+      path = `${path}?${new URLSearchParams(pathParameters).toString()}`;
 
       await this.add({
         path: path,

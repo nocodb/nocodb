@@ -75,28 +75,30 @@ export class AttachmentsSecureController {
 
       const fpath = queryHelper[0];
 
-      let queryFilename = null;
+      let queryResponseContentType = null;
+      let queryResponseContentDisposition = null;
 
       if (queryHelper.length > 1) {
         const query = new URLSearchParams(queryHelper[1]);
-        queryFilename = query.get('filename');
+        queryResponseContentType = query.get('response-content-type');
+        queryResponseContentDisposition = query.get(
+          'response-content-disposition',
+        );
       }
 
       const file = await this.attachmentsService.getFile({
         path: path.join('nc', 'uploads', fpath),
       });
 
-      if (this.attachmentsService.previewAvailable(file.type)) {
-        if (queryFilename) {
-          res.setHeader(
-            'Content-Disposition',
-            `attachment; filename=${queryFilename}`,
-          );
-        }
-        res.sendFile(file.path);
-      } else {
-        res.download(file.path, queryFilename);
+      if (queryResponseContentType) {
+        res.setHeader('Content-Type', queryResponseContentType);
       }
+
+      if (queryResponseContentDisposition) {
+        res.setHeader('Content-Disposition', queryResponseContentDisposition);
+      }
+
+      res.sendFile(file.path);
     } catch (e) {
       res.status(404).send('Not found');
     }

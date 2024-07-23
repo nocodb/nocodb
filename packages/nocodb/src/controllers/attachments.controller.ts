@@ -22,6 +22,7 @@ import { AttachmentsService } from '~/services/attachments.service';
 import { PresignedUrl } from '~/models';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { NcRequest } from '~/interface/config';
+import { isPreviewAllowed } from '~/helpers/attachmentHelpers';
 
 @Controller()
 export class AttachmentsController {
@@ -73,7 +74,7 @@ export class AttachmentsController {
         path: path.join('nc', 'uploads', filename),
       });
 
-      if (this.attachmentsService.previewAvailable(file.type)) {
+      if (isPreviewAllowed({ mimetype: file.type, path: file.path })) {
         if (queryFilename) {
           res.setHeader(
             'Content-Disposition',
@@ -110,7 +111,7 @@ export class AttachmentsController {
         ),
       });
 
-      if (this.attachmentsService.previewAvailable(file.type)) {
+      if (isPreviewAllowed({ mimetype: file.type, path: file.path })) {
         if (queryFilename) {
           res.setHeader(
             'Content-Disposition',
@@ -135,28 +136,30 @@ export class AttachmentsController {
 
       const fpath = queryHelper[0];
 
-      let queryFilename = null;
+      let queryResponseContentType = null;
+      let queryResponseContentDisposition = null;
 
       if (queryHelper.length > 1) {
         const query = new URLSearchParams(queryHelper[1]);
-        queryFilename = query.get('filename');
+        queryResponseContentType = query.get('ResponseContentType');
+        queryResponseContentDisposition = query.get(
+          'ResponseContentDisposition',
+        );
       }
 
       const file = await this.attachmentsService.getFile({
         path: path.join('nc', 'uploads', fpath),
       });
 
-      if (this.attachmentsService.previewAvailable(file.type)) {
-        if (queryFilename) {
-          res.setHeader(
-            'Content-Disposition',
-            `attachment; filename=${queryFilename}`,
-          );
-        }
-        res.sendFile(file.path);
-      } else {
-        res.download(file.path, queryFilename);
+      if (queryResponseContentType) {
+        res.setHeader('Content-Type', queryResponseContentType);
       }
+
+      if (queryResponseContentDisposition) {
+        res.setHeader('Content-Disposition', queryResponseContentDisposition);
+      }
+
+      res.sendFile(file.path);
     } catch (e) {
       res.status(404).send('Not found');
     }

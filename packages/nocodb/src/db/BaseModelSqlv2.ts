@@ -7237,12 +7237,18 @@ class BaseModelSqlv2 {
                           /^download\//,
                           '',
                         ),
+                        preview: true,
+                        mimetype: lookedUpAttachment.mimetype,
+                        filename: lookedUpAttachment.title,
                       }).then((r) => (lookedUpAttachment.signedPath = r)),
                     );
                   } else if (lookedUpAttachment?.url) {
                     promises.push(
                       PresignedUrl.getSignedUrl({
                         pathOrUrl: lookedUpAttachment.url,
+                        preview: true,
+                        mimetype: lookedUpAttachment.mimetype,
+                        filename: lookedUpAttachment.title,
                       }).then((r) => (lookedUpAttachment.signedUrl = r)),
                     );
                   }
@@ -7252,12 +7258,18 @@ class BaseModelSqlv2 {
                   promises.push(
                     PresignedUrl.getSignedUrl({
                       pathOrUrl: attachment.path.replace(/^download\//, ''),
+                      preview: true,
+                      mimetype: attachment.mimetype,
+                      filename: attachment.title,
                     }).then((r) => (attachment.signedPath = r)),
                   );
                 } else if (attachment?.url) {
                   promises.push(
                     PresignedUrl.getSignedUrl({
                       pathOrUrl: attachment.url,
+                      preview: true,
+                      mimetype: attachment.mimetype,
+                      filename: attachment.title,
                     }).then((r) => (attachment.signedUrl = r)),
                   );
                 }

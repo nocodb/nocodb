@@ -83,10 +83,14 @@ export class AttachmentsService {
 
             attachment.signedPath = await PresignedUrl.getSignedUrl({
               pathOrUrl: attachment.path.replace(/^download\//, ''),
+              preview: true,
+              mimetype: attachment.mimetype,
             });
           } else {
             attachment.signedUrl = await PresignedUrl.getSignedUrl({
               pathOrUrl: attachment.url,
+              preview: true,
+              mimetype: attachment.mimetype,
             });
           }
 
@@ -210,14 +214,6 @@ export class AttachmentsService {
       true,
     );
     return { path: filePath, type };
-  }
-
-  previewAvailable(mimetype: string) {
-    const available = ['image', 'pdf', 'text/plain'];
-    if (available.some((type) => mimetype.includes(type))) {
-      return true;
-    }
-    return false;
   }
 
   sanitizeUrlPath(paths) {

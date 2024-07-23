@@ -188,17 +188,22 @@ export const useExtensions = createSharedComposable(() => {
       return
     }
 
-    const { list } = await $api.extensions.list(baseId)
+    try {
+      const { list } = await $api.extensions.list(baseId)
 
-    const extensions = list?.map((ext: any) => new Extension(ext))
+      const extensions = list?.map((ext: any) => new Extension(ext))
 
-    if (baseExtensions.value[baseId]) {
-      baseExtensions.value[baseId].extensions = extensions || baseExtensions.value[baseId].extensions
-    } else {
-      baseExtensions.value[baseId] = {
-        extensions: extensions || [],
-        expanded: false,
+      if (baseExtensions.value[baseId]) {
+        baseExtensions.value[baseId].extensions = extensions || baseExtensions.value[baseId].extensions
+      } else {
+        baseExtensions.value[baseId] = {
+          extensions: extensions || [],
+          expanded: false,
+        }
       }
+    } catch (e) {
+      console.log(e)
+      // TODO: Handle error
     }
   }
 

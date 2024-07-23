@@ -1,4 +1,4 @@
-const MONTHS = [
+/*const MONTHS = [
   'January',
   'February',
   'March',
@@ -17,16 +17,16 @@ const MONTHS_SHORT_LOWER = MONTHS_SHORT.map((m) => m.toLowerCase());
 const MONTHS_SHORT_UPPER = MONTHS_SHORT.map((m) => m.toUpperCase());
 
 const MONTHS_LOWER = MONTHS.map((m) => m.toLowerCase());
-const MONTHS_UPPER = MONTHS.map((m) => m.toUpperCase());
+const MONTHS_UPPER = MONTHS.map((m) => m.toUpperCase());*/
 
 const MONTH_FORMATS = {
-  MM: '[0-9]{1,2}',
+  MM: '[0-9]{1,2}' /*
   Mon: '(' + MONTHS_SHORT.join('|') + ')',
   MON: '(' + MONTHS_SHORT_UPPER.join('|') + ')',
   mon: '(' + MONTHS_SHORT_LOWER.join('|') + ')',
   Month: '(' + MONTHS.join('|') + ')',
   MONTH: '(' + MONTHS_UPPER.join('|') + ')',
-  month: '(' + MONTHS_LOWER.join('|') + ')',
+  month: '(' + MONTHS_LOWER.join('|') + ')',*/,
 };
 /*
  * Map of date formats to their respective regex patterns.

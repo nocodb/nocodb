@@ -16,6 +16,8 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
     const { row } = useSmartsheetRowStoreOrThrow()
 
+    const { sharedView } = useSharedView()
+
     const isReadonly = inject(ReadonlyInj, ref(false))
 
     const { t } = useI18n()
@@ -333,10 +335,15 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       const rowId = extractPkFromRow(unref(row).row, meta.value.columns!)
       const src = item.url || item.path
       if (modelId && columnId && rowId && src) {
-        await $fetch<{ path?: string, url?: string }>(`/downloadAttachment/${modelId}/${columnId}/${rowId}?urlOrPath=${src}`, {
+        const apiUrl = isPublic.value
+          ? `/api/v2/public/shared-view/${sharedView.value?.uuid}/downloadAttachment/${columnId}/${rowId}`
+          : `/api/v2/downloadAttachment/${modelId}/${columnId}/${rowId}`
+
+        await $fetch<{ path?: string; url?: string }>(apiUrl, {
           baseURL,
           method: 'GET',
           headers: { 'xc-auth': $state.token.value as string },
+          query: { urlOrPath: src },
         }).then((res) => {
           if (res?.path) {
             window.open(`${baseURL}/${res.path}`, '_blank')

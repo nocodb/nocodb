@@ -216,6 +216,50 @@ export class AttachmentsService {
     return { path: filePath, type };
   }
 
+  async getAttachmentFromRecord(param: {
+    record: any;
+    column: { title: string };
+    urlOrPath: string;
+  }) {
+    const { record, column, urlOrPath } = param;
+
+    const attachment = record[column.title];
+
+    if (!attachment || !attachment.length) {
+      NcError.genericNotFound('Attachment', urlOrPath);
+    }
+
+    const fileObject = attachment.find(
+      (a) => a.url === urlOrPath || a.path === urlOrPath,
+    );
+
+    if (!fileObject) {
+      NcError.genericNotFound('Attachment', urlOrPath);
+    }
+
+    if (fileObject?.path) {
+      const signedPath = await PresignedUrl.getSignedUrl({
+        path: fileObject.path.replace(/^download\//, ''),
+        preview: false,
+        filename: fileObject.title,
+        mimetype: fileObject.mimetype,
+        expireSeconds: 5 * 60,
+      });
+
+      return { path: signedPath };
+    } else if (fileObject?.url) {
+      const signedUrl = await PresignedUrl.getSignedUrl({
+        path: decodeURI(new URL(fileObject.url).pathname),
+        preview: false,
+        filename: fileObject.title,
+        mimetype: fileObject.mimetype,
+        expireSeconds: 5 * 60,
+      });
+
+      return { url: signedUrl };
+    }
+  }
+
   sanitizeUrlPath(paths) {
     return paths.map((url) => url.replace(/[/.?#]+/g, '_'));
   }

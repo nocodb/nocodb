@@ -115,7 +115,7 @@ export class AttachmentsSecureController {
   }
 
   @UseGuards(DataApiLimiterGuard, GlobalGuard)
-  @Get('/downloadAttachment/:modelId/:columnId/:rowId')
+  @Get('/api/v2/downloadAttachment/:modelId/:columnId/:rowId')
   @Acl('dataRead')
   async downloadAttachment(
     @TenantContext() context: NcContext,
@@ -123,7 +123,6 @@ export class AttachmentsSecureController {
     @Param('columnId') columnId: string,
     @Param('rowId') rowId: string,
     @Query('urlOrPath') urlOrPath: string,
-    @Res() res: Response,
   ) {
     const column = await Column.get(context, {
       colId: columnId,
@@ -146,38 +145,10 @@ export class AttachmentsSecureController {
       NcError.recordNotFound(rowId);
     }
 
-    const attachment = record[column.title];
-
-    if (!attachment || !attachment.length) {
-      NcError.genericNotFound('Attachment', urlOrPath);
-    }
-
-    const fileObject = attachment.find(
-      (a) => a.url === urlOrPath || a.path === urlOrPath,
-    );
-
-    if (!fileObject) {
-      NcError.genericNotFound('Attachment', urlOrPath);
-    }
-
-    if (fileObject?.path) {
-      const signedPath = await PresignedUrl.getSignedUrl({
-        path: fileObject.path.replace(/^download\//, ''),
-        preview: false,
-        filename: fileObject.title,
-        mimetype: fileObject.mimetype,
-      });
-
-      res.send({ path: signedPath });
-    } else if (fileObject?.url) {
-      const signedUrl = await PresignedUrl.getSignedUrl({
-        path: decodeURI(new URL(fileObject.url).pathname),
-        preview: false,
-        filename: fileObject.title,
-        mimetype: fileObject.mimetype,
-      });
-
-      res.send({ url: signedUrl });
-    }
+    return this.attachmentsService.getAttachmentFromRecord({
+      record,
+      column,
+      urlOrPath,
+    });
   }
 }

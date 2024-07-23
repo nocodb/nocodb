@@ -10,7 +10,7 @@ import IcOutlineInsertDriveFile from '~icons/ic/outline-insert-drive-file'
 
 export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
   (updateModelValue: (data: string | Record<string, any>[]) => void) => {
-    const { $api } = useNuxtApp()
+    const { $api, $state } = useNuxtApp()
 
     const baseURL = $api.instance.defaults.baseURL
 
@@ -336,7 +336,19 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       const rowId = extractPkFromRow(unref(row).row, meta.value.columns!)
       const src = item.url || item.path
       if (modelId && columnId && rowId && src) {
-        window.open(`${baseURL}/downloadAttachment/${modelId}/${columnId}/${rowId}?urlOrPath=${src}`, '_blank')
+        await $fetch<{ path?: string, url?: string }>(`/downloadAttachment/${modelId}/${columnId}/${rowId}?urlOrPath=${src}`, {
+          baseURL,
+          method: 'GET',
+          headers: { 'xc-auth': $state.token.value as string },
+        }).then((res) => {
+          if (res?.path) {
+            window.open(`${baseURL}/${res.path}`, '_blank')
+          } else if (res?.url) {
+            window.open(res.url, '_blank')
+          } else {
+            message.error('Failed to download file')
+          }
+        })
       } else {
         message.error('Failed to download file')
       }

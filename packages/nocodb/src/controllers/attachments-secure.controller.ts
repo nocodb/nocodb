@@ -168,7 +168,7 @@ export class AttachmentsSecureController {
         mimetype: fileObject.mimetype,
       });
 
-      res.redirect(`/${signedPath.replace(/^\//, '')}`);
+      res.send({ path: signedPath });
     } else if (fileObject?.url) {
       const signedUrl = await PresignedUrl.getSignedUrl({
         path: decodeURI(new URL(fileObject.url).pathname),
@@ -177,7 +177,7 @@ export class AttachmentsSecureController {
         mimetype: fileObject.mimetype,
       });
 
-      res.redirect(signedUrl);
+      res.send({ url: signedUrl });
     }
   }
 }

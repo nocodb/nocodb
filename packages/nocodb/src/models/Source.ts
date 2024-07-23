@@ -117,7 +117,7 @@ export default class Source implements SourceType {
     },
     ncMeta = Noco.ncMeta,
   ) {
-    const oldSource = await Source.get(context, sourceId, false, ncMeta);
+    const oldSource = await this.get(context, sourceId, false, ncMeta);
 
     if (!oldSource) NcError.sourceNotFound(sourceId);
 

@@ -1061,7 +1061,7 @@ export const formulas: Record<string, FormulaMeta> = {
     },
     description:
       'Verify and convert to a hyperlink if the input is a valid URL.',
-    syntax: 'URL(str, optionalLabel)',
+    syntax: 'URL(string, [label])',
     examples: [
       'URL("https://github.com/nocodb/nocodb")',
       'URL({column1})',

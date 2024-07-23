@@ -2272,6 +2272,7 @@ export interface RollupType {
     | 'min'
     | 'max'
     | 'avg'
+    | 'sum'
     | 'countDistinct'
     | 'sumDistinct'
     | 'avgDistinct';

@@ -19,7 +19,7 @@
     "fs": "0.0.1-security",
     "lerna": "^7.4.2",
     "husky": "^8.0.3",
-    "xlsx": "https://cdn.sheetjs.com/xlsx-0.19.3/xlsx-0.19.3.tgz"
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
   },
   "husky": {
     "hooks": {

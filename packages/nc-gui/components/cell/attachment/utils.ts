@@ -35,6 +35,10 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
     /** for image carousel */
     const selectedImage = ref()
 
+    const videoStream = ref<MediaStream | null>(null)
+
+    const permissionGranted = ref(false)
+
     const { base } = storeToRefs(useBase())
 
     const { api, isLoading } = useApi()
@@ -55,6 +59,18 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
         maxAttachmentSize: Math.max(1, +appInfo.value.ncAttachmentFieldSize || 20) || 20,
         supportedAttachmentMimeTypes: ['*'],
       }),
+    }
+
+    const startCamera = async () => {
+      if (!videoStream.value) {
+        videoStream.value = await navigator.mediaDevices.getUserMedia({ video: true })
+      }
+      permissionGranted.value = true
+    }
+
+    const stopCamera = () => {
+      videoStream.value?.getTracks().forEach((track) => track.stop())
+      videoStream.value = null
     }
 
     /** our currently visible items, either the locally stored or the ones from db, depending on isPublic & isForm status */
@@ -214,20 +230,31 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
           message.error(e.message || t('msg.error.internalError'))
         }
       } else if (imageUrls.length) {
-        try {
-          const data = await api.storage.uploadByUrl(
-            {
-              path: [NOCO, base.value.id, meta.value?.id, column.value?.id].join('/'),
-            },
-            imageUrls,
-          )
-          newAttachments.push(...data)
-        } catch (e: any) {
-          message.error(e.message || t('msg.error.internalError'))
-        }
+        const data = uploadViaUrl(imageUrls)
+        if (!data) return
+        newAttachments.push(...data)
       }
-
       updateModelValue(JSON.stringify([...attachments.value, ...newAttachments]))
+    }
+
+    async function uploadViaUrl(url: AttachmentReqType | AttachmentReqType[], returnError = false) {
+      const imageUrl = Array.isArray(url) ? url : [url]
+      try {
+        const data = await api.storage.uploadByUrl(
+          {
+            path: [NOCO, base.value.id, meta.value?.id, column.value?.id].join('/'),
+          },
+          imageUrl,
+        )
+        return data
+      } catch (e: any) {
+        console.log(e)
+        if (returnError) {
+          return "File couldn't be uploaded. Verify URL & try again."
+        }
+        message.error("File couldn't be uploaded. Verify URL & try again.")
+        return null
+      }
     }
 
     async function renameFile(attachment: AttachmentType, idx: number) {
@@ -360,10 +387,15 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       downloadFile,
       updateModelValue,
       selectedImage,
+      uploadViaUrl,
       selectedVisibleItems,
       storedFiles,
       bulkDownloadFiles,
       defaultAttachmentMeta,
+      startCamera,
+      stopCamera,
+      videoStream,
+      permissionGranted,
     }
   },
   'useAttachmentCell',

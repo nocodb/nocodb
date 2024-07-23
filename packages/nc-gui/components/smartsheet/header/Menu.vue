@@ -328,7 +328,8 @@ const isDuplicateAllowed = computed(() => {
   return (
     column?.value &&
     !column.value.system &&
-    ((!isMetaReadOnly.value && !isDataReadOnly.value) || readonlyMetaAllowedTypes.includes(column.value?.uidt))
+    ((!isMetaReadOnly.value && !isDataReadOnly.value) || readonlyMetaAllowedTypes.includes(column.value?.uidt)) &&
+    !column.value.meta?.custom
   )
 })
 const isFilterSupported = computed(
@@ -373,6 +374,13 @@ const isColumnEditAllowed = computed(() => {
     return false
   return true
 })
+
+// check if the column is associated as foreign key in any of the link column
+const linksAssociated = computed(() => {
+  return meta.value?.columns?.filter(
+    (c) => isLinksOrLTAR(c) && [c.colOptions?.fk_child_column_id, c.colOptions?.fk_parent_column_id].includes(column?.value?.id),
+  )
+})
 </script>
 
 <template>
@@ -398,17 +406,17 @@ const isColumnEditAllowed = computed(() => {
         <GeneralSourceRestrictionTooltip message="Field properties cannot be edited." :enabled="!isColumnEditAllowed">
           <NcMenuItem
             v-if="isUIAllowed('fieldAlter')"
-            :disabled="column?.pk || isSystemColumn(column) || !isColumnEditAllowed"
+            :disabled="column?.pk || isSystemColumn(column) || !isColumnEditAllowed || linksAssociated.length"
+            :title="linksAssociated.length ? 'Field is associated with a link column' : undefined"
             @click="onEditPress"
           >
             <div class="nc-column-edit nc-header-menu-item">
               <component :is="iconMap.ncEdit" class="text-gray-700" />
               <!-- Edit -->
-              {{ $t('general.edit') }}
+              {{ $t('general.edit') }} {{ $t('objects.field').toLowerCase() }}
             </div>
           </NcMenuItem>
         </GeneralSourceRestrictionTooltip>
-
         <GeneralSourceRestrictionTooltip message="Field cannot be duplicated." :enabled="!isDuplicateAllowed">
           <NcMenuItem
             v-if="isUIAllowed('duplicateColumn') && isExpandedForm && !column?.pk"
@@ -418,7 +426,7 @@ const isColumnEditAllowed = computed(() => {
             <div v-e="['a:field:duplicate']" class="nc-column-duplicate nc-header-menu-item">
               <component :is="iconMap.duplicate" class="text-gray-700" />
               <!-- Duplicate -->
-              {{ t('general.duplicate') }}
+              {{ t('general.duplicate') }} {{ $t('objects.field').toLowerCase() }}
             </div>
           </NcMenuItem>
         </GeneralSourceRestrictionTooltip>
@@ -530,7 +538,7 @@ const isColumnEditAllowed = computed(() => {
               <div v-e="['a:field:duplicate']" class="nc-column-duplicate nc-header-menu-item">
                 <component :is="iconMap.duplicate" class="text-gray-700" />
                 <!-- Duplicate -->
-                {{ t('general.duplicate') }}
+                {{ t('general.duplicate') }} {{ $t('objects.field').toLowerCase() }}
               </div>
             </NcMenuItem>
           </GeneralSourceRestrictionTooltip>
@@ -553,8 +561,9 @@ const isColumnEditAllowed = computed(() => {
         <GeneralSourceRestrictionTooltip message="Field cannot be deleted." :enabled="!isColumnUpdateAllowed">
           <NcMenuItem
             v-if="!column?.pv && isUIAllowed('fieldDelete')"
-            :disabled="!isDeleteAllowed || !isColumnUpdateAllowed"
+            :disabled="!isDeleteAllowed || !isColumnUpdateAllowed || linksAssociated.length"
             class="!hover:bg-red-50"
+            :title="linksAssociated ? 'Field is associated with a link column' : undefined"
             @click="handleDelete"
           >
             <div
@@ -563,7 +572,7 @@ const isColumnEditAllowed = computed(() => {
             >
               <component :is="iconMap.delete" />
               <!-- Delete -->
-              {{ $t('general.delete') }}
+              {{ $t('general.delete') }} {{ $t('objects.field').toLowerCase() }}
             </div>
           </NcMenuItem>
         </GeneralSourceRestrictionTooltip>

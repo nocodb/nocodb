@@ -46,7 +46,7 @@ jobs:
       working-directory: ./packages/nocodb
     steps:
       - name: Setup pnpm
-        uses: pnpm/action-setup@v2
+        uses: pnpm/action-setup@v4
         with:
           version: 8
       - name: Get Docker Repository

@@ -57,6 +57,13 @@ async function updateIfSourceOrderIsNullOrDuplicate() {
 
   if (!hasNullOrDuplicates) return
 
+  // make sure default source is always first
+  sources.value = sources.value.sort((a, b) => {
+    if (a.is_local || a.is_meta) return -1
+    if (b.is_local || b.is_meta) return 1
+    return (a.order ?? 0) - (b.order ?? 0)
+  })
+
   // update the local state
   sources.value = sources.value.map((source, i) => {
     return {
@@ -75,6 +82,7 @@ async function updateIfSourceOrderIsNullOrDuplicate() {
         })
       }),
     )
+    await loadProject(base.value.id as string, true)
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }

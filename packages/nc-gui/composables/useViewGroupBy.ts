@@ -200,7 +200,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
         } else if (
           [UITypes.Date, UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(curr.column_uidt as UITypes)
         ) {
-          acc += `${acc.length ? '~and' : ''}(${curr.title},eq,exactDate,${curr.key})`
+          acc += `${acc.length ? '~and' : ''}(${curr.title},gb_eq,exactDate,${curr.key})`
         } else if ([UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(curr.column_uidt as UITypes)) {
           try {
             const value = JSON.parse(curr.key)
@@ -364,10 +364,27 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
         }
 
         if (appInfo.value.ee) {
-          const aggregationParams = (group.children ?? []).map((child) => ({
-            where: calculateNestedWhere(child.nestedIn, where?.value),
-            alias: child.key,
-          }))
+          const aggregationMap = new Map<string, string>()
+
+          const aggregationParams = (group.children ?? []).map((child) => {
+            try {
+              const key = JSON.parse(child.key)
+
+              if (typeof key === 'object') {
+                const newKey = Math.random().toString(36).substring(7)
+                aggregationMap.set(newKey, child.key)
+                return {
+                  where: calculateNestedWhere(child.nestedIn, where?.value),
+                  alias: newKey,
+                }
+              }
+            } catch (e) {}
+
+            return {
+              where: calculateNestedWhere(child.nestedIn, where?.value),
+              alias: child.key,
+            }
+          })
 
           const aggResponse = !isPublic
             ? await api.dbDataTableBulkAggregate.dbDataTableBulkAggregate(meta.value!.id, {
@@ -382,6 +399,14 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
             const child = (group?.children ?? []).find((c) => c.key.toString() === key.toString())
             if (child) {
               Object.assign(child.aggregations, value)
+            } else {
+              const originalKey = aggregationMap.get(key)
+              if (originalKey) {
+                const child = (group?.children ?? []).find((c) => c.key.toString() === originalKey.toString())
+                if (child) {
+                  Object.assign(child.aggregations, value)
+                }
+              }
             }
           })
         }
@@ -439,10 +464,26 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
 
         if (filteredFields && !filteredFields?.length) return
 
-        const aggregationParams = (group.children ?? []).map((child) => ({
-          where: calculateNestedWhere(child.nestedIn, where?.value),
-          alias: child.key,
-        }))
+        const aggregationMap = new Map<string, string>()
+
+        const aggregationParams = (group.children ?? []).map((child) => {
+          try {
+            const key = JSON.parse(child.key)
+            if (typeof key === 'object') {
+              const newKey = Math.random().toString(36).substring(7)
+              aggregationMap.set(newKey, child.key)
+              return {
+                where: calculateNestedWhere(child.nestedIn, where?.value),
+                alias: newKey,
+              }
+            }
+          } catch (e) {}
+
+          return {
+            where: calculateNestedWhere(child.nestedIn, where?.value),
+            alias: child.key,
+          }
+        })
 
         const response = !isPublic
           ? await api.dbDataTableBulkAggregate.dbDataTableBulkAggregate(meta.value!.id, {
@@ -459,6 +500,14 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
           const child = (group.children ?? []).find((c) => c.key.toString() === key.toString())
           if (child) {
             Object.assign(child.aggregations, value)
+          } else {
+            const originalKey = aggregationMap.get(key)
+            if (originalKey) {
+              const child = (group.children ?? []).find((c) => c.key.toString() === originalKey.toString())
+              if (child) {
+                Object.assign(child.aggregations, value)
+              }
+            }
           }
         })
       } catch (e) {

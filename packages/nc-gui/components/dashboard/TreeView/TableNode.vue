@@ -348,7 +348,7 @@ const source = computed(() => {
                 >
                   <div v-e="['c:table:rename']" class="flex gap-2 items-center">
                     <GeneralIcon icon="rename" class="text-gray-700" />
-                    {{ $t('general.rename') }} {{ $t('objects.table') }}
+                    {{ $t('general.rename') }} {{ $t('objects.table').toLowerCase() }}
                   </div>
                 </NcMenuItem>
 
@@ -365,7 +365,7 @@ const source = computed(() => {
                 >
                   <div v-e="['c:table:duplicate']" class="flex gap-2 items-center">
                     <GeneralIcon icon="duplicate" class="text-gray-700" />
-                    {{ $t('general.duplicate') }} {{ $t('objects.table') }}
+                    {{ $t('general.duplicate') }} {{ $t('objects.table').toLowerCase() }}
                   </div>
                 </NcMenuItem>
 
@@ -378,7 +378,7 @@ const source = computed(() => {
                 >
                   <div v-e="['c:table:delete']" class="flex gap-2 items-center">
                     <GeneralIcon icon="delete" />
-                    {{ $t('general.delete') }} {{ $t('objects.table') }}
+                    {{ $t('general.delete') }} {{ $t('objects.table').toLowerCase() }}
                   </div>
                 </NcMenuItem>
               </template>

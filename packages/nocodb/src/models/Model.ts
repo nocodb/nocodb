@@ -1029,7 +1029,11 @@ export default class Model implements TableType {
 
   static async checkTitleAvailable(
     context: NcContext,
-    { table_name, exclude_id }: { table_name; base_id; source_id; exclude_id? },
+    {
+      table_name,
+      source_id,
+      exclude_id,
+    }: { table_name; base_id; source_id; exclude_id? },
     ncMeta = Noco.ncMeta,
   ) {
     return !(await ncMeta.metaGet2(
@@ -1038,6 +1042,7 @@ export default class Model implements TableType {
       MetaTable.MODELS,
       {
         table_name,
+        ...(source_id ? { source_id } : {}),
       },
       null,
       exclude_id && { id: { neq: exclude_id } },
@@ -1046,7 +1051,11 @@ export default class Model implements TableType {
 
   static async checkAliasAvailable(
     context: NcContext,
-    { title, exclude_id }: { title; base_id; source_id; exclude_id? },
+    {
+      title,
+      source_id,
+      exclude_id,
+    }: { title; base_id; source_id; exclude_id? },
     ncMeta = Noco.ncMeta,
   ) {
     return !(await ncMeta.metaGet2(
@@ -1055,6 +1064,7 @@ export default class Model implements TableType {
       MetaTable.MODELS,
       {
         title,
+        ...(source_id ? { source_id } : {}),
       },
       null,
       exclude_id && { id: { neq: exclude_id } },

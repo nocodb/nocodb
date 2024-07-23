@@ -627,7 +627,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                               >
                                 <div class="flex gap-2 items-center">
                                   <component :is="iconMap.plus" class="flex-none w-4 h-4" />
-                                  {{ $t('activity.addNewRecord') }}
+                                  {{ $t('activity.newRecord') }}
                                 </div>
                               </NcMenuItem>
                               <NcMenuItem
@@ -1112,7 +1112,11 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
               <div v-e="['a:kanban:delete-record']" class="flex items-center gap-2 nc-kanban-context-menu-item">
                 <component :is="iconMap.delete" class="flex" />
                 <!-- Delete Record -->
-                {{ $t('activity.deleteRecord') }}
+                {{
+                  $t('general.deleteEntity', {
+                    entity: $t('objects.record').toLowerCase(),
+                  })
+                }}
               </div>
             </NcMenuItem>
           </NcMenu>

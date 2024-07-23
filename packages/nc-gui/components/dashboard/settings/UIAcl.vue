@@ -31,12 +31,6 @@ const tables = ref<any[]>([])
 
 const searchInput = ref('')
 
-const selectAll = ref({
-  editor: false,
-  commenter: false,
-  viewer: false,
-})
-
 const filteredTables = computed(() =>
   tables.value.filter(
     (el) =>
@@ -45,6 +39,24 @@ const filteredTables = computed(() =>
         (typeof el?.title === 'string' && el.title.toLowerCase().includes(searchInput.value.toLowerCase()))),
   ),
 )
+
+const allSelected = computed(() => {
+  return roles.value.reduce((acc, role) => {
+    return {
+      ...acc,
+      [role]: tables.value.filter((t) => t.disabled[role]).length === 0,
+    }
+  }, {} as Record<Role, boolean>)
+})
+
+const toggleSelectAll = (role: Role) => {
+  const newValue = !allSelected.value[role]
+
+  tables.value.forEach((t) => {
+    t.disabled[role] = newValue
+    t.edited = true
+  })
+}
 
 async function loadTableList() {
   try {
@@ -81,62 +93,44 @@ async function saveUIAcl() {
 const onRoleCheck = (record: any, role: Role) => {
   record.disabled[role] = !record.disabled[role]
   record.edited = true
-
-  selectAll.value[role as Role] = filteredTables.value.every((t) => !t.disabled[role])
 }
 
 onMounted(async () => {
   if (tables.value.length === 0) {
     await loadTableList()
   }
-
-  for (const role of roles.value) {
-    selectAll.value[role as Role] = filteredTables.value.every((t) => !t.disabled[role])
-  }
 })
-
-const tableHeaderRenderer = (label: string) => () => h('div', { class: 'text-gray-500' }, label)
 
 const columns = [
   {
-    title: tableHeaderRenderer(t('labels.tableName')),
+    title: t('labels.tableName'),
     name: 'Table Name',
   },
   {
-    title: tableHeaderRenderer(t('labels.viewName')),
+    title: t('labels.viewName'),
     name: 'View Name',
   },
   {
-    title: tableHeaderRenderer(t('objects.roleType.editor')),
+    title: t('objects.roleType.editor'),
     name: 'editor',
     width: 120,
   },
   {
-    title: tableHeaderRenderer(t('objects.roleType.commenter')),
+    title: t('objects.roleType.commenter'),
     name: 'commenter',
     width: 120,
   },
   {
-    title: tableHeaderRenderer(t('objects.roleType.viewer')),
+    title: t('objects.roleType.viewer'),
     name: 'viewer',
     width: 120,
   },
 ]
-
-const toggleSelectAll = (role: Role) => {
-  selectAll.value[role] = !selectAll.value[role]
-  const enabled = selectAll.value[role]
-
-  filteredTables.value.forEach((t) => {
-    t.disabled[role] = !enabled
-    t.edited = true
-  })
-}
 </script>
 
 <template>
   <div class="h-full flex flex-row w-full items-center justify-center">
-    <div class="h-full flex flex-col">
+    <div class="w-full h-full flex flex-col">
       <NcTooltip class="mb-4 first-letter:capital font-bold max-w-100 truncate" show-on-truncate-only>
         <template #title>{{ base.title }}</template>
         <span> UI ACL : {{ base.title }} </span>
@@ -165,91 +159,121 @@ const toggleSelectAll = (role: Role) => {
       </div>
 
       <div class="h-auto max-h-[calc(100%_-_102px)] overflow-y-auto nc-scrollbar-thin">
-        <a-table
-          class="w-full"
-          size="small"
-          :data-source="filteredTables"
-          :columns="columns"
-          :pagination="false"
-          :loading="isLoading"
-          sticky
-          bordered
-          :custom-row="
-            (record) => ({
-              class: `nc-acl-table-row nc-acl-table-row-${record.title}`,
-            })
-          "
-        >
-          <template #headerCell="{ column }">
-            <template v-if="['editor', 'commenter', 'viewer'].includes(column.name)">
-              <div class="flex flex-row gap-x-1">
-                <NcCheckbox :checked="selectAll[column.name as Role]" @change="() => toggleSelectAll(column.name)" />
-                <div class="flex capitalize">
-                  {{ column.name }}
+        <div class="w-full" size="small">
+          <div class="table-header">
+            <template v-for="column in columns" :key="column.name">
+              <template v-if="['editor', 'commenter', 'viewer'].includes(column.name)">
+                <div class="table-header-col" :style="`width: ${column.width}px`">
+                  <div class="flex flex-row gap-x-1">
+                    <NcCheckbox
+                      v-model:checked="allSelected[column.name as Role]"
+                      @change="toggleSelectAll(column.name as Role)"
+                    />
+                    <div class="flex capitalize">
+                      {{ column.name }}
+                    </div>
+                  </div>
                 </div>
-              </div>
+              </template>
+              <template v-else>
+                <div class="table-header-col flex-1">
+                  <div class="flex capitalize">{{ column.title }}</div>
+                </div>
+              </template>
             </template>
-            <template v-else>{{ column.name }}</template>
-          </template>
-          <template #emptyText>
+          </div>
+
+          <template v-if="filteredTables.length === 0">
             <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
           </template>
 
-          <template #bodyCell="{ record, column }">
-            <div v-if="column.name === 'Table Name'">
-              <div class="flex items-center gap-1">
-                <div class="min-w-5 flex items-center justify-center">
-                  <GeneralTableIcon :meta="{ meta: record.table_meta, type: record.ptype }" class="text-gray-500" />
-                </div>
-                <NcTooltip class="overflow-ellipsis min-w-0 shrink-1 truncate" show-on-truncate-only>
-                  <template #title>{{ record._ptn }}</template>
-                  <span>{{ record._ptn }}</span>
-                </NcTooltip>
-              </div>
-            </div>
+          <template v-else>
+            <div
+              v-for="record in filteredTables"
+              :key="record.id"
+              :class="`table-body-row nc-acl-table-row nc-acl-table-row-${record.title}`"
+            >
+              <template v-for="column in columns" :key="column.name">
+                <template v-if="column.name === 'Table Name'">
+                  <div class="table-body-row-col flex-1">
+                    <div class="min-w-5 flex items-center justify-center">
+                      <GeneralTableIcon :meta="{ meta: record.table_meta, type: record.ptype }" class="text-gray-500" />
+                    </div>
+                    <NcTooltip class="overflow-ellipsis min-w-0 shrink-1 truncate" show-on-truncate-only>
+                      <template #title>{{ record._ptn }}</template>
+                      <span>{{ record._ptn }}</span>
+                    </NcTooltip>
+                  </div>
+                </template>
+                <template v-else-if="column.name === 'View Name'">
+                  <div class="table-body-row-col flex-1">
+                    <div class="min-w-5 flex items-center justify-center">
+                      <GeneralTableIcon
+                        v-if="record?.meta?.icon"
+                        :meta="{ meta: record.meta, type: 'view' }"
+                        class="text-gray-500 !text-sm children:(!w-5 !h-5)"
+                      />
+                      <GeneralViewIcon v-else :meta="record" class="text-gray-500"></GeneralViewIcon>
+                    </div>
+                    <NcTooltip class="overflow-ellipsis min-w-0 shrink-1 truncate" show-on-truncate-only>
+                      <template #title>{{ record.is_default ? $t('title.defaultView') : record.title }}</template>
+                      <span>{{ record.is_default ? $t('title.defaultView') : record.title }}</span>
+                    </NcTooltip>
+                  </div>
+                </template>
+                <template v-else>
+                  <div class="table-body-row-col" :style="`width: ${column.width}px`">
+                    <NcTooltip>
+                      <template #title>
+                        <span v-if="record.disabled[column.name]">
+                          {{ $t('labels.clickToMake') }} '{{ record.title }}' {{ $t('labels.visibleForRole') }} {{ column.name }}
+                          {{ $t('labels.inUI') }} dashboard</span
+                        >
+                        <span v-else
+                          >{{ $t('labels.clickToHide') }} '{{ record.title }}' {{ $t('labels.forRole') }}:{{ column.name }}
+                          {{ $t('labels.inUI') }}</span
+                        >
+                      </template>
 
-            <div v-if="column.name === 'View Name'">
-              <div class="flex items-center gap-1">
-                <div class="min-w-5 flex items-center justify-center">
-                  <GeneralTableIcon
-                    v-if="record?.meta?.icon"
-                    :meta="{ meta: record.meta, type: 'view' }"
-                    class="text-gray-500 !text-sm children:(!w-5 !h-5)"
-                  />
-                  <GeneralViewIcon v-else :meta="record" class="text-gray-500"></GeneralViewIcon>
-                </div>
-                <NcTooltip class="overflow-ellipsis min-w-0 shrink-1 truncate" show-on-truncate-only>
-                  <template #title>{{ record.is_default ? $t('title.defaultView') : record.title }}</template>
-                  <span>{{ record.is_default ? $t('title.defaultView') : record.title }}</span>
-                </NcTooltip>
-              </div>
-            </div>
-
-            <div v-for="role in roles" :key="role">
-              <div v-if="column.name === role">
-                <NcTooltip>
-                  <template #title>
-                    <span v-if="record.disabled[role]">
-                      {{ $t('labels.clickToMake') }} '{{ record.title }}' {{ $t('labels.visibleForRole') }} {{ role }}
-                      {{ $t('labels.inUI') }} dashboard</span
-                    >
-                    <span v-else
-                      >{{ $t('labels.clickToHide') }} '{{ record.title }}' {{ $t('labels.forRole') }}:{{ role }}
-                      {{ $t('labels.inUI') }}</span
-                    >
-                  </template>
-
-                  <NcCheckbox
-                    :checked="!record.disabled[role]"
-                    :class="`nc-acl-${record.title}-${role}-chkbox !ml-0.25`"
-                    @change="onRoleCheck(record, role as Role)"
-                  />
-                </NcTooltip>
-              </div>
+                      <NcCheckbox
+                        :checked="!record.disabled[column.name]"
+                        :class="`nc-acl-${record.title}-${column.name}-chkbox !ml-0.25`"
+                        @change="onRoleCheck(record, column.name as Role)"
+                      />
+                    </NcTooltip>
+                  </div>
+                </template>
+              </template>
             </div>
           </template>
-        </a-table>
+        </div>
       </div>
     </div>
   </div>
 </template>
+
+<style scoped lang="scss">
+.table-header {
+  @apply flex items-center bg-gray-100 border-1 border-gray-200;
+}
+
+.table-header-col {
+  @apply flex items-center p-2 border-r-1 border-gray-200;
+}
+
+.table-header-col:last-child {
+  @apply border-r-0;
+}
+
+.table-body-row {
+  @apply flex items-center bg-white border-r-1 border-l-1 border-b-1 border-gray-200;
+}
+
+.table-body-row-col {
+  @apply flex items-center p-2 border-r-1 border-gray-200;
+}
+
+.table-body-row-col:last-child {
+  @apply border-r-0;
+}
+</style>

@@ -70,6 +70,7 @@ const defaultImportState = {
     autoSelectFieldTypes: true,
     firstRowAsHeaders: true,
     shouldImportData: true,
+    importDataOnly: true,
   },
 }
 const importState = reactive(defaultImportState)
@@ -84,7 +85,6 @@ const IsImportTypeExcel = computed(() => importType === 'excel')
 
 const validators = computed(() => ({
   url: [fieldRequiredValidator(), importUrlValidator, isImportTypeCsv.value ? importCsvUrlValidator : importExcelUrlValidator],
-  maxRowsToParse: [fieldRequiredValidator()],
 }))
 
 const { validate, validateInfos } = useForm(importState, validators)
@@ -152,10 +152,6 @@ const disableImportButton = computed(() => !templateEditorRef.value?.isValid || 
 const disableFormatJsonButton = computed(() => !jsonEditorRef.value?.isValid)
 
 const modalWidth = computed(() => {
-  if (importType === 'excel' && templateEditorModal.value) {
-    return 'max(90vw, 600px)'
-  }
-
   return 'max(60vw, 600px)'
 })
 
@@ -254,14 +250,15 @@ function formatJson() {
   jsonEditorRef.value?.format()
 }
 
-function populateUniqueTableName(tn: string) {
+function populateUniqueTableName(tn: string, draftTn: string[] = []) {
   let c = 1
   while (
+    draftTn.includes(tn) ||
     baseTables.value.get(baseId)?.some((t: TableType) => {
       const s = t.table_name.split('___')
       let target = t.table_name
       if (s.length > 1) target = s[1]
-      return target === `${tn}`
+      return target === `${tn}` || t.table_name === `${tn}`
     })
   ) {
     tn = `${tn}_${c++}`
@@ -492,10 +489,13 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
       if (importDataOnly) importColumns.value = templateGenerator!.getColumns()
       else {
         // ensure the target table name not exist in current table list
-        templateData.value.tables = templateData.value.tables.map((table: Record<string, any>) => ({
-          ...table,
-          table_name: populateUniqueTableName(table.table_name),
-        }))
+        const draftTableNames = [] as string[]
+
+        templateData.value.tables = templateData.value.tables.map((table: Record<string, any>) => {
+          const table_name = populateUniqueTableName(table.table_name, draftTableNames)
+          draftTableNames.push(table_name)
+          return { ...table, table_name }
+        })
       }
       importData.value = templateGenerator!.getData()
     }
@@ -517,6 +517,11 @@ const onError = () => {
 const onChange = () => {
   isError.value = false
 }
+
+onMounted(() => {
+  importState.parserConfig.importDataOnly = importDataOnly
+  importState.parserConfig.autoSelectFieldTypes = importDataOnly
+})
 </script>
 
 <template>
@@ -531,7 +536,12 @@ const onChange = () => {
       <div class="px-5">
         <div class="prose-xl font-weight-bold my-5">{{ importMeta.header }}</div>
 
-        <div class="mt-5">
+        <div
+          class="mt-5"
+          :class="{
+            'mb-4': templateEditorModal,
+          }"
+        >
           <LazyTemplateEditor
             v-if="templateEditorModal"
             ref="templateEditorRef"
@@ -582,6 +592,9 @@ const onChange = () => {
                   <p class="ant-upload-hint">
                     {{ importMeta.uploadHint }}
                   </p>
+                  <template #removeIcon>
+                    <component :is="iconMap.deleteListItem" />
+                  </template>
                 </a-upload-dragger>
               </div>
             </a-tab-pane>
@@ -608,9 +621,9 @@ const onChange = () => {
               </template>
 
               <div class="pr-10 pt-5">
-                <a-form :model="importState" name="quick-import-url-form" layout="vertical" class="mb-0">
+                <a-form :model="importState" name="quick-import-url-form" layout="vertical" class="mb-0 !ml-0.5">
                   <a-form-item :label="importMeta.urlInputLabel" v-bind="validateInfos.url">
-                    <a-input v-model:value="importState.url" size="large" />
+                    <a-input v-model:value="importState.url" size="large" class="!rounded-md" />
                   </a-form-item>
                 </a-form>
               </div>
@@ -624,16 +637,6 @@ const onChange = () => {
           <div class="mb-4">
             <!-- Advanced Settings -->
             <span class="prose-lg">{{ $t('title.advancedSettings') }}</span>
-
-            <a-form-item class="!my-2" :label="t('msg.info.footMsg')" v-bind="validateInfos.maxRowsToParse">
-              <a-input-number v-model:value="importState.parserConfig.maxRowsToParse" :min="1" :max="50000" />
-            </a-form-item>
-
-            <a-form-item v-if="!importDataOnly" class="!my-2">
-              <a-checkbox v-model:checked="importState.parserConfig.autoSelectFieldTypes">
-                <span class="caption">{{ $t('labels.autoSelectFieldTypes') }}</span>
-              </a-checkbox>
-            </a-form-item>
 
             <a-form-item v-if="isImportTypeCsv || IsImportTypeExcel" class="!my-2">
               <a-checkbox v-model:checked="importState.parserConfig.firstRowAsHeaders">
@@ -699,3 +702,12 @@ const onChange = () => {
     </template>
   </a-modal>
 </template>
+
+<style lang="scss" scoped>
+:deep(.ant-upload-list-item-thumbnail) {
+  line-height: 48px;
+}
+:deep(.ant-upload-list-item-card-actions-btn.ant-btn-icon-only) {
+  @apply !h-6;
+}
+</style>

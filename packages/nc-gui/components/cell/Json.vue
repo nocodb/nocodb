@@ -54,16 +54,6 @@ const localValue = computed<ModelValueType>({
   },
 })
 
-const clear = () => {
-  error.value = undefined
-
-  isExpanded.value = false
-
-  editEnabled.value = false
-
-  localValue.value = vModel.value
-}
-
 const formatJson = (json: string) => {
   try {
     return JSON.stringify(JSON.parse(json))
@@ -73,21 +63,30 @@ const formatJson = (json: string) => {
   }
 }
 
+function setLocalValue(val: any) {
+  try {
+    localValue.value = formatValue(val) === null ? null : typeof val === 'string' ? JSON.stringify(JSON.parse(val), null, 2) : val
+  } catch (e) {
+    localValue.value = formatValue(val) === null ? null : val
+  }
+}
+
+const clear = () => {
+  error.value = undefined
+
+  isExpanded.value = false
+
+  editEnabled.value = false
+
+  setLocalValue(vModel.value)
+}
+
 const onSave = () => {
   isExpanded.value = false
 
   editEnabled.value = false
 
   vModel.value = formatValue(localValue.value) === null ? null : formatJson(localValue.value as string)
-}
-
-const setLocalValue = (val: any) => {
-  try {
-    localValue.value =
-      formatValue(localValue.value) === null ? null : typeof val === 'string' ? JSON.stringify(JSON.parse(val), null, 2) : val
-  } catch (e) {
-    localValue.value = formatValue(localValue.value) === null ? null : val
-  }
 }
 
 watch(

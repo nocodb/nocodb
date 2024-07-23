@@ -46,9 +46,9 @@ const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 
 const { eventBus } = useSmartsheetStoreOrThrow()
 
-const routeQuery = computed(() => route.value.query as Record<string, string>)
-
 const route = router.currentRoute
+
+const routeQuery = computed(() => route.value.query as Record<string, string>)
 
 const expandedFormDlg = ref(false)
 const expandedFormRow = ref<Row>()

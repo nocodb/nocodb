@@ -4,8 +4,15 @@ import { RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sd
 import Draggable from 'vuedraggable'
 
 const meta = inject(MetaInj, ref())
+
 const view = inject(ActiveViewInj, ref())
+
 const isLocked = inject(IsLockedInj, ref(false))
+
+const isToolbarIconMode = inject(
+  IsToolbarIconMode,
+  computed(() => false),
+)
 
 const { gridViewCols, updateGridViewColumn, metaColumnById, showSystemFields } = useViewColumnsOrThrow()
 
@@ -201,7 +208,9 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number } }) 
             <component :is="iconMap.group" class="h-4 w-4" />
 
             <!-- Group By -->
-            <span v-if="!isMobileMode" class="text-capitalize !text-[13px] font-medium">{{ $t('activity.group') }}</span>
+            <span v-if="!isMobileMode && !isToolbarIconMode" class="text-capitalize !text-[13px] font-medium">{{
+              $t('activity.group')
+            }}</span>
           </div>
           <span v-if="groupedByColumnIds?.length" class="bg-brand-50 text-brand-500 py-1 px-2 text-md rounded-md">{{
             groupedByColumnIds.length

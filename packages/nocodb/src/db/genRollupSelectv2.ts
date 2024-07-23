@@ -7,6 +7,7 @@ import type {
 } from '~/models';
 import type { XKnex } from '~/db/CustomKnex';
 import type { Knex } from 'knex';
+import { Model } from '~/models';
 
 export default async function ({
   baseModelSqlv2,
@@ -33,26 +34,52 @@ export default async function ({
   const parentModel = await parentCol?.getModel(context);
   const refTableAlias = `__nc_rollup`;
 
+  const parentBaseModel = await Model.getBaseModelSQL(context, {
+    model: parentModel,
+    dbDriver: knex,
+  });
+  const childBaseModel = await Model.getBaseModelSQL(context, {
+    model: childModel,
+    dbDriver: knex,
+  });
+
+  const applyFunction = (qb: any) => {
+    // if postgres and rollup function is sum/sumDistinct/avgDistinct/avg, then cast the column to integer when type is boolean
+    if (
+      baseModelSqlv2.isPg &&
+      ['sum', 'sumDistinct', 'avgDistinct', 'avg'].includes(
+        columnOptions.rollup_function,
+      ) &&
+      ['bool', 'boolean'].includes(rollupColumn.dt)
+    ) {
+      qb[columnOptions.rollup_function as string]?.(
+        knex.raw('??.??::integer', [refTableAlias, rollupColumn.column_name]),
+      );
+      return;
+    }
+
+    qb[columnOptions.rollup_function as string]?.(
+      knex.ref(`${refTableAlias}.${rollupColumn.column_name}`),
+    );
+  };
+
   switch (relationColumnOption.type) {
     case RelationTypes.HAS_MANY: {
       const queryBuilder: any = knex(
         knex.raw(`?? as ??`, [
-          baseModelSqlv2.getTnPath(childModel?.table_name),
+          childBaseModel.getTnPath(childModel),
           refTableAlias,
         ]),
-      )
-        [columnOptions.rollup_function as string]?.(
-          knex.ref(`${refTableAlias}.${rollupColumn.column_name}`),
-        )
-        .where(
-          knex.ref(
-            `${alias || baseModelSqlv2.getTnPath(parentModel.table_name)}.${
-              parentCol.column_name
-            }`,
-          ),
-          '=',
-          knex.ref(`${refTableAlias}.${childCol.column_name}`),
-        );
+      ).where(
+        knex.ref(
+          `${alias || parentBaseModel.getTnPath(parentModel.table_name)}.${
+            parentCol.column_name
+          }`,
+        ),
+        '=',
+        knex.ref(`${refTableAlias}.${childCol.column_name}`),
+      );
+      applyFunction(queryBuilder);
 
       return {
         builder: queryBuilder,
@@ -62,23 +89,20 @@ export default async function ({
     case RelationTypes.ONE_TO_ONE: {
       const qb = knex(
         knex.raw(`?? as ??`, [
-          baseModelSqlv2.getTnPath(childModel?.table_name),
+          childBaseModel.getTnPath(childModel?.table_name),
           refTableAlias,
         ]),
-      )
-        [columnOptions.rollup_function as string]?.(
-          knex.ref(`${refTableAlias}.${rollupColumn.column_name}`),
-        )
-        .where(
-          knex.ref(
-            `${alias || baseModelSqlv2.getTnPath(parentModel.table_name)}.${
-              parentCol.column_name
-            }`,
-          ),
-          '=',
-          knex.ref(`${refTableAlias}.${childCol.column_name}`),
-        );
+      ).where(
+        knex.ref(
+          `${alias || parentBaseModel.getTnPath(parentModel.table_name)}.${
+            parentCol.column_name
+          }`,
+        ),
+        '=',
+        knex.ref(`${refTableAlias}.${childCol.column_name}`),
+      );
 
+      applyFunction(qb);
       return {
         builder: qb,
       };
@@ -88,7 +112,10 @@ export default async function ({
       const mmModel = await relationColumnOption.getMMModel(context);
       const mmChildCol = await relationColumnOption.getMMChildColumn(context);
       const mmParentCol = await relationColumnOption.getMMParentColumn(context);
-
+      const assocBaseModel = await Model.getBaseModelSQL(context, {
+        id: mmModel.id,
+        dbDriver: knex,
+      });
       if (!mmModel) {
         return this.dbDriver.raw(`?`, [
           NcDataErrorCodes.NC_ERR_MM_MODEL_NOT_FOUND,
@@ -97,36 +124,35 @@ export default async function ({
 
       const qb = knex(
         knex.raw(`?? as ??`, [
-          baseModelSqlv2.getTnPath(parentModel?.table_name),
+          parentBaseModel.getTnPath(parentModel?.table_name),
           refTableAlias,
         ]),
       )
-        [columnOptions.rollup_function as string]?.(
-          knex.ref(`${refTableAlias}.${rollupColumn.column_name}`),
-        )
         .innerJoin(
-          baseModelSqlv2.getTnPath(mmModel.table_name),
+          assocBaseModel.getTnPath(mmModel.table_name) as any,
           knex.ref(
-            `${baseModelSqlv2.getTnPath(mmModel.table_name)}.${
+            `${assocBaseModel.getTnPath(mmModel.table_name)}.${
               mmParentCol.column_name
             }`,
-          ),
+          ) as any,
           '=',
-          knex.ref(`${refTableAlias}.${parentCol.column_name}`),
+          knex.ref(`${refTableAlias}.${parentCol.column_name}`) as any,
         )
         .where(
           knex.ref(
-            `${baseModelSqlv2.getTnPath(mmModel.table_name)}.${
+            `${assocBaseModel.getTnPath(mmModel.table_name)}.${
               mmChildCol.column_name
             }`,
           ),
           '=',
           knex.ref(
-            `${alias || baseModelSqlv2.getTnPath(childModel.table_name)}.${
+            `${alias || childBaseModel.getTnPath(childModel.table_name)}.${
               childCol.column_name
             }`,
           ),
         );
+
+      applyFunction(qb);
 
       return {
         builder: qb,

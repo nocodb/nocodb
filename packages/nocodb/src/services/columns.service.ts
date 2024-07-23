@@ -72,7 +72,7 @@ export enum Altered {
   UPDATE_COLUMN = 8,
 }
 
-interface ReusableParams {
+export interface ReusableParams {
   table?: Model;
   source?: Source;
   base?: Base;
@@ -2099,6 +2099,59 @@ export class ColumnsService {
       ProjectMgrv2.getSqlMgr(context, { id: source.base_id }, ncMeta),
     );
 
+    // check column association with any custom links or LTAR
+    if (!isVirtualCol(column)) {
+      const columns = await table.getColumns(context, ncMeta);
+
+      let link = columns.find((c) => {
+        return (
+          isLinksOrLTAR(c.uidt) &&
+          ((c.colOptions as LinkToAnotherRecordColumn)?.fk_child_column_id ===
+            param.columnId ||
+            (c.colOptions as LinkToAnotherRecordColumn)?.fk_parent_column_id ===
+              param.columnId ||
+            (c.colOptions as LinkToAnotherRecordColumn)
+              ?.fk_mm_child_column_id === param.columnId ||
+            (c.colOptions as LinkToAnotherRecordColumn)
+              ?.fk_mm_parent_column_id === param.columnId)
+        );
+      })?.colOptions as LinkToAnotherRecordColumn;
+      if (!link) {
+        link = await ncMeta.metaGet2(
+          table.fk_workspace_id,
+          table.base_id,
+          MetaTable.COL_RELATIONS,
+          {},
+          null,
+          {
+            _or: [
+              { fk_child_column_id: { eq: param.columnId } },
+              { fk_parent_column_id: { eq: param.columnId } },
+              { fk_mm_child_column_id: { eq: param.columnId } },
+              { fk_mm_parent_column_id: { eq: param.columnId } },
+            ],
+          },
+        );
+      }
+
+      // if relation found then throw error
+      if (link) {
+        const linkCol = await Column.get(
+          context,
+          { colId: link.fk_column_id },
+          ncMeta,
+        );
+        const table = await linkCol.getModel(context, ncMeta);
+        NcError.columnAssociatedWithLink(column.id, {
+          customMessage: `Column is associated with Link column '${
+            linkCol.title || linkCol.column_name
+          }' (${
+            table.title || table.table_name
+          }). Please delete the link column first.`,
+        });
+      }
+    }
+
     /**
      * @Note: When using 'falls through to default' cases in a switch statement,
      * it is crucial to place them after cases with break statements.
@@ -2178,6 +2231,7 @@ export class ColumnsService {
             ncMeta,
           );
           const parentTable = await parentColumn.getModel(context, ncMeta);
+          const custom = column.meta?.custom;
 
           switch (relationColOpt.type) {
             case 'bt':
@@ -2192,6 +2246,7 @@ export class ColumnsService {
                   parentTable,
                   sqlMgr,
                   ncMeta,
+                  custom,
                 });
               }
               break;
@@ -2206,6 +2261,7 @@ export class ColumnsService {
                   parentTable,
                   sqlMgr,
                   ncMeta,
+                  custom,
                 });
               }
               break;
@@ -2224,37 +2280,39 @@ export class ColumnsService {
                   ncMeta,
                 );
 
-                await this.deleteHmOrBtRelation(
-                  context,
-                  {
-                    relationColOpt: null,
-                    parentColumn: parentColumn,
-                    childTable: mmTable,
-                    sqlMgr,
-                    parentTable: parentTable,
-                    childColumn: mmParentCol,
-                    source,
-                    ncMeta,
-                    virtual: !!relationColOpt.virtual,
-                  },
-                  true,
-                );
+                if (!custom) {
+                  await this.deleteHmOrBtRelation(
+                    context,
+                    {
+                      relationColOpt: null,
+                      parentColumn: parentColumn,
+                      childTable: mmTable,
+                      sqlMgr,
+                      parentTable: parentTable,
+                      childColumn: mmParentCol,
+                      source,
+                      ncMeta,
+                      virtual: !!relationColOpt.virtual,
+                    },
+                    true,
+                  );
 
-                await this.deleteHmOrBtRelation(
-                  context,
-                  {
-                    relationColOpt: null,
-                    parentColumn: childColumn,
-                    childTable: mmTable,
-                    sqlMgr,
-                    parentTable: childTable,
-                    childColumn: mmChildCol,
-                    source,
-                    ncMeta,
-                    virtual: !!relationColOpt.virtual,
-                  },
-                  true,
-                );
+                  await this.deleteHmOrBtRelation(
+                    context,
+                    {
+                      relationColOpt: null,
+                      parentColumn: childColumn,
+                      childTable: mmTable,
+                      sqlMgr,
+                      parentTable: childTable,
+                      childColumn: mmChildCol,
+                      source,
+                      ncMeta,
+                      virtual: !!relationColOpt.virtual,
+                    },
+                    true,
+                  );
+                }
                 const columnsInRelatedTable: Column[] = await relationColOpt
                   .getRelatedTable(context, ncMeta)
                   .then((m) => m.getColumns(context, ncMeta));
@@ -2287,64 +2345,69 @@ export class ColumnsService {
                   ncMeta,
                 );
 
-                if (mmTable) {
-                  // delete bt columns in m2m table
-                  await mmTable.getColumns(context, ncMeta);
-                  for (const c of mmTable.columns) {
+                if (!custom) {
+                  if (mmTable) {
+                    // delete bt columns in m2m table
+                    await mmTable.getColumns(context, ncMeta);
+                    for (const c of mmTable.columns) {
+                      if (!isLinksOrLTAR(c.uidt)) continue;
+                      const colOpt =
+                        await c.getColOptions<LinkToAnotherRecordColumn>(
+                          context,
+                          ncMeta,
+                        );
+                      if (colOpt.type === 'bt') {
+                        await Column.delete(context, c.id, ncMeta);
+                      }
+                    }
+                  }
+
+                  // delete hm columns in parent table
+                  await parentTable.getColumns(context, ncMeta);
+                  for (const c of parentTable.columns) {
                     if (!isLinksOrLTAR(c.uidt)) continue;
                     const colOpt =
                       await c.getColOptions<LinkToAnotherRecordColumn>(
                         context,
                         ncMeta,
                       );
-                    if (colOpt.type === 'bt') {
+                    if (
+                      colOpt.fk_related_model_id ===
+                      relationColOpt.fk_mm_model_id
+                    ) {
                       await Column.delete(context, c.id, ncMeta);
                     }
                   }
-                }
 
-                // delete hm columns in parent table
-                await parentTable.getColumns(context, ncMeta);
-                for (const c of parentTable.columns) {
-                  if (!isLinksOrLTAR(c.uidt)) continue;
-                  const colOpt =
-                    await c.getColOptions<LinkToAnotherRecordColumn>(
-                      context,
-                      ncMeta,
-                    );
-                  if (
-                    colOpt.fk_related_model_id === relationColOpt.fk_mm_model_id
-                  ) {
-                    await Column.delete(context, c.id, ncMeta);
+                  // delete hm columns in child table
+                  await childTable.getColumns(context, ncMeta);
+                  for (const c of childTable.columns) {
+                    if (!isLinksOrLTAR(c.uidt)) continue;
+                    const colOpt =
+                      await c.getColOptions<LinkToAnotherRecordColumn>(
+                        context,
+                        ncMeta,
+                      );
+                    if (
+                      colOpt.fk_related_model_id ===
+                      relationColOpt.fk_mm_model_id
+                    ) {
+                      await Column.delete(context, c.id, ncMeta);
+                    }
                   }
-                }
 
-                // delete hm columns in child table
-                await childTable.getColumns(context, ncMeta);
-                for (const c of childTable.columns) {
-                  if (!isLinksOrLTAR(c.uidt)) continue;
-                  const colOpt =
-                    await c.getColOptions<LinkToAnotherRecordColumn>(
-                      context,
-                      ncMeta,
-                    );
-                  if (
-                    colOpt.fk_related_model_id === relationColOpt.fk_mm_model_id
-                  ) {
-                    await Column.delete(context, c.id, ncMeta);
-                  }
-                }
+                  // delete m2m table if it is made for mm relation
+                  if (mmTable?.mm) {
+                    // retrieve columns in m2m table again
+                    await mmTable.getColumns(context, ncMeta);
 
-                if (mmTable) {
-                  // retrieve columns in m2m table again
-                  await mmTable.getColumns(context, ncMeta);
-
-                  // ignore deleting table if it has more than 2 columns
-                  // the expected 2 columns would be table1_id & table2_id
-                  if (mmTable.columns.length === 2) {
-                    (mmTable as any).tn = mmTable.table_name;
-                    await sqlMgr.sqlOpPlus(source, 'tableDelete', mmTable);
-                    await mmTable.delete(context, ncMeta);
+                    // ignore deleting table if it has more than 2 columns
+                    // the expected 2 columns would be table1_id & table2_id
+                    if (mmTable.columns.length === 2) {
+                      (mmTable as any).tn = mmTable.table_name;
+                      await sqlMgr.sqlOpPlus(source, 'tableDelete', mmTable);
+                      await mmTable.delete(context, ncMeta);
+                    }
                   }
                 }
               }
@@ -2450,6 +2513,7 @@ export class ColumnsService {
       sqlMgr,
       ncMeta = Noco.ncMeta,
       virtual,
+      custom = false,
     }: {
       relationColOpt: LinkToAnotherRecordColumn;
       source: Source;
@@ -2460,10 +2524,11 @@ export class ColumnsService {
       sqlMgr: SqlMgrv2;
       ncMeta?: MetaService;
       virtual?: boolean;
+      custom?: boolean;
     },
     ignoreFkDelete = false,
   ) => {
-    if (childTable) {
+    if (childTable && !custom) {
       let foreignKeyName;
 
       // if relationColOpt is not provided, extract it from child table
@@ -2514,7 +2579,7 @@ export class ColumnsService {
       .then((m) => m.getColumns(context, ncMeta));
     const relType = relationColOpt.type === 'bt' ? 'hm' : 'bt';
     for (const c of columnsInRelatedTable) {
-      if (c.uidt !== UITypes.LinkToAnotherRecord) continue;
+      if (!isLinksOrLTAR(c.uidt)) continue;
       const colOpt = await c.getColOptions<LinkToAnotherRecordColumn>(
         context,
         ncMeta,
@@ -2532,7 +2597,8 @@ export class ColumnsService {
     // delete virtual columns
     await Column.delete(context, relationColOpt.fk_column_id, ncMeta);
 
-    if (!ignoreFkDelete) {
+    if (custom) return;
+    if (!ignoreFkDelete && childColumn.uidt === UITypes.ForeignKey) {
       const cTable = await Model.getWithInfo(
         context,
         {
@@ -2603,6 +2669,7 @@ export class ColumnsService {
       sqlMgr,
       ncMeta = Noco.ncMeta,
       virtual,
+      custom = false,
     }: {
       relationColOpt: LinkToAnotherRecordColumn;
       source: Source;
@@ -2613,50 +2680,55 @@ export class ColumnsService {
       sqlMgr: SqlMgrv2;
       ncMeta?: MetaService;
       virtual?: boolean;
+      custom?: boolean;
     },
     ignoreFkDelete = false,
   ) => {
     if (childTable) {
-      let foreignKeyName;
+      if (!custom) {
+        let foreignKeyName;
 
-      // if relationColOpt is not provided, extract it from child table
-      // and get the foreign key name for dropping the foreign key
-      if (!relationColOpt) {
-        foreignKeyName = (
-          (
-            await childTable.getColumns(context, ncMeta).then(async (cols) => {
-              for (const col of cols) {
-                if (col.uidt === UITypes.LinkToAnotherRecord) {
-                  const colOptions =
-                    await col.getColOptions<LinkToAnotherRecordColumn>(
-                      context,
-                      ncMeta,
-                    );
-                  if (colOptions.fk_related_model_id === parentTable.id) {
-                    return { colOptions };
+        // if relationColOpt is not provided, extract it from child table
+        // and get the foreign key name for dropping the foreign key
+        if (!relationColOpt) {
+          foreignKeyName = (
+            (
+              await childTable
+                .getColumns(context, ncMeta)
+                .then(async (cols) => {
+                  for (const col of cols) {
+                    if (col.uidt === UITypes.LinkToAnotherRecord) {
+                      const colOptions =
+                        await col.getColOptions<LinkToAnotherRecordColumn>(
+                          context,
+                          ncMeta,
+                        );
+                      if (colOptions.fk_related_model_id === parentTable.id) {
+                        return { colOptions };
+                      }
+                    }
                   }
-                }
-              }
-            })
-          )?.colOptions as LinkToAnotherRecordType
-        ).fk_index_name;
-      } else {
-        foreignKeyName = relationColOpt.fk_index_name;
-      }
+                })
+            )?.colOptions as LinkToAnotherRecordType
+          ).fk_index_name;
+        } else {
+          foreignKeyName = relationColOpt.fk_index_name;
+        }
 
-      if (!relationColOpt?.virtual && !virtual) {
-        // Ensure relation deletion is not attempted for virtual relations
-        try {
-          // Attempt to delete the foreign key constraint from the database
-          await sqlMgr.sqlOpPlus(source, 'relationDelete', {
-            childColumn: childColumn.column_name,
-            childTable: childTable.table_name,
-            parentTable: parentTable.table_name,
-            parentColumn: parentColumn.column_name,
-            foreignKeyName,
-          });
-        } catch (e) {
-          console.log(e.message);
+        if (!relationColOpt?.virtual && !virtual) {
+          // Ensure relation deletion is not attempted for virtual relations
+          try {
+            // Attempt to delete the foreign key constraint from the database
+            await sqlMgr.sqlOpPlus(source, 'relationDelete', {
+              childColumn: childColumn.column_name,
+              childTable: childTable.table_name,
+              parentTable: parentTable.table_name,
+              parentColumn: parentColumn.column_name,
+              foreignKeyName,
+            });
+          } catch (e) {
+            console.log(e.message);
+          }
         }
       }
     }
@@ -2685,7 +2757,9 @@ export class ColumnsService {
     // delete virtual columns
     await Column.delete(context, relationColOpt.fk_column_id, ncMeta);
 
-    if (!ignoreFkDelete) {
+    if (custom) return;
+
+    if (!ignoreFkDelete && childColumn.uidt === UITypes.ForeignKey) {
       const cTable = await Model.getWithInfo(
         context,
         {
@@ -2739,7 +2813,6 @@ export class ColumnsService {
       };
 
       await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
-
       // delete foreign key column
       await Column.delete(context, childColumn.id, ncMeta);
     }

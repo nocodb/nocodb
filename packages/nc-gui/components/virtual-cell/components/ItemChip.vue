@@ -27,6 +27,8 @@ const isForm = inject(IsFormInj)!
 
 const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 
+const isPublic = inject(IsPublicInj, ref(false))
+
 const { open } = useExpandedFormDetached()
 
 function openExpandedForm() {
@@ -40,6 +42,7 @@ function openExpandedForm() {
       meta: relatedTableMeta.value,
       rowId,
       useMetaFields: true,
+      loadRow: !isPublic.value,
     })
   }
 }
@@ -58,7 +61,7 @@ export default {
     :class="{ active, 'border-1 py-1 px-2': isAttachment(column) }"
     @click="openExpandedForm"
   >
-    <div class="text-ellipsis overflow-hidden">
+    <div class="text-ellipsis overflow-hidden pointer-events-none">
       <span class="name">
         <!-- Render virtual cell -->
         <div v-if="isVirtualCol(column)">
@@ -111,6 +114,50 @@ export default {
   .name {
     white-space: nowrap;
     word-break: keep-all;
+  }
+  :deep(.nc-action-icon) {
+    @apply invisible;
+  }
+
+  :deep(.nc-cell) {
+    &.nc-cell-longtext {
+      .long-text-wrapper {
+        @apply min-h-1;
+        .nc-readonly-rich-text-wrapper {
+          @apply !min-h-1;
+        }
+        .nc-rich-text {
+          @apply pl-0;
+          .tiptap.ProseMirror {
+            @apply -ml-1 min-h-1;
+          }
+        }
+      }
+    }
+    &.nc-cell-checkbox {
+      @apply children:pl-0;
+      & > div {
+        @apply !h-auto;
+      }
+    }
+    &.nc-cell-singleselect .nc-cell-field > div {
+      @apply flex items-center;
+    }
+    &.nc-cell-multiselect .nc-cell-field > div {
+      @apply h-5;
+    }
+    &.nc-cell-email,
+    &.nc-cell-phonenumber {
+      @apply flex items-center;
+    }
+
+    &.nc-cell-email,
+    &.nc-cell-phonenumber,
+    &.nc-cell-url {
+      .nc-cell-field-link {
+        @apply py-0;
+      }
+    }
   }
 }
 </style>

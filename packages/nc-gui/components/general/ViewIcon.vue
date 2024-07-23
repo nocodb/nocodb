@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-import type { TableType } from 'nocodb-sdk'
+import type { ViewType } from 'nocodb-sdk'
 
 const props = defineProps<{
-  meta: TableType
+  meta: ViewType
   ignoreColor?: boolean
 }>()
 

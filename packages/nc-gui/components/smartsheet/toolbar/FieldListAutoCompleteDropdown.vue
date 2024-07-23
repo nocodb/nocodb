@@ -24,13 +24,22 @@ const localValue = computed({
   set: (val) => emit('update:modelValue', val),
 })
 
-const { showSystemFields, metaColumnById } = useViewColumnsOrThrow()
+const { showSystemFields, metaColumnById, fieldsMap, isLocalMode } = useViewColumnsOrThrow()
 
 const options = computed<SelectProps['options']>(() =>
   (
     customColumns.value?.filter((c: ColumnType) => {
+      if (
+        isLocalMode.value &&
+        c?.id &&
+        fieldsMap.value[c.id] &&
+        (!fieldsMap.value[c.id]?.initialShow || (!showSystemFields.value && isSystemColumn(metaColumnById?.value?.[c.id!])))
+      ) {
+        return false
+      }
+
       if (isSystemColumn(metaColumnById?.value?.[c.id!])) {
-        if (isHiddenCol(c)) {
+        if (isHiddenCol(c, meta.value)) {
           /** ignore mm relation column, created by and last modified by system field */
           return false
         }
@@ -38,11 +47,20 @@ const options = computed<SelectProps['options']>(() =>
       return true
     }) ||
     meta.value?.columns?.filter((c: ColumnType) => {
+      if (
+        isLocalMode.value &&
+        c?.id &&
+        fieldsMap.value[c.id] &&
+        (!fieldsMap.value[c.id]?.initialShow || (!showSystemFields.value && isSystemColumn(metaColumnById?.value?.[c.id!])))
+      ) {
+        return false
+      }
+
       if (c.uidt === UITypes.Links) {
         return true
       }
       if (isSystemColumn(metaColumnById?.value?.[c.id!])) {
-        if (isHiddenCol(c)) {
+        if (isHiddenCol(c, meta.value)) {
           /** ignore mm relation column, created by and last modified by system field */
           return false
         }
@@ -65,10 +83,11 @@ const options = computed<SelectProps['options']>(() =>
       }
     })
   )
-    // sort and keep system columns at the end
+    // sort by view column order and keep system columns at the end
     ?.sort((field1, field2) => {
       let orderVal1 = 0
       let orderVal2 = 0
+      let sortByOrder = 0
 
       if (isSystemColumn(field1)) {
         orderVal1 = 1
@@ -77,7 +96,16 @@ const options = computed<SelectProps['options']>(() =>
         orderVal2 = 1
       }
 
-      return orderVal1 - orderVal2
+      if (
+        field1?.id &&
+        field2?.id &&
+        fieldsMap.value[field1.id]?.order !== undefined &&
+        fieldsMap.value[field2.id]?.order !== undefined
+      ) {
+        sortByOrder = fieldsMap.value[field1.id].order - fieldsMap.value[field2.id].order
+      }
+
+      return orderVal1 - orderVal2 || sortByOrder
     })
     ?.map((c: ColumnType) => ({
       value: c.id,

@@ -4,6 +4,7 @@ import setup, { unsetup } from '../../../setup';
 import { FieldsPage } from '../../../pages/Dashboard/Details/FieldsPage';
 import { getTextExcludeIconText } from '../../utils/general';
 import { UITypes } from 'nocodb-sdk';
+import { enableQuickRun } from '../../../setup/db';
 
 const allFieldList = [
   {
@@ -235,6 +236,7 @@ test.describe('Multi Field Editor', () => {
   });
 
   test('Field operations: CopyId, Duplicate, InsertAbove, InsertBelow, Delete, Hide', async () => {
+    if (enableQuickRun()) test.skip();
     // Add New Field
     await fields.createOrUpdate({ title: defaultFieldName });
 

@@ -514,7 +514,10 @@ const isColumnValid = (column: TableExplorerColumn) => {
     return false
   }
   if ((column.uidt === UITypes.Links || column.uidt === UITypes.LinkToAnotherRecord) && isNew) {
-    if (!column.childColumn || !column.childTable || !column.childId) {
+    if (
+      (!column.childColumn || !column.childTable || !column.childId) &&
+      (!column.custom?.ref_model_id || !column.custom?.ref_column_id)
+    ) {
       return false
     }
   }
@@ -1208,7 +1211,7 @@ watch(
                               @click="duplicateField(field)"
                             >
                               <GeneralIcon icon="duplicate" class="text-gray-800" />
-                              <span>{{ $t('general.duplicate') }}</span>
+                              <span>{{ $t('general.duplicate') }} {{ $t('objects.field').toLowerCase() }}</span>
                             </NcMenuItem>
                             <NcMenuItem
                               v-if="!field.pv"
@@ -1238,7 +1241,7 @@ watch(
                             >
                               <div class="text-red-500">
                                 <GeneralIcon icon="delete" class="group-hover:text-accent -ml-0.25 -mt-0.75 mr-0.5" />
-                                {{ $t('general.delete') }}
+                                {{ $t('general.delete') }} {{ $t('objects.field').toLowerCase() }}
                               </div>
                             </NcMenuItem>
                           </template>

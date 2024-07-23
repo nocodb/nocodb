@@ -278,7 +278,7 @@ function viewRowStaticTests() {
       Object.keys(response.body.find((e) => e.key === 'NC-17').value.list[0])
         .sort()
         .join(','),
-    ).to.equal('FilmId,Title');
+    ).to.equal('Description,FilmId,Title');
   };
   it('Get grouped view data list with required columns kanban', async () => {
     await testGetGroupedViewDataListWithRequiredColumns(filmKanbanView);

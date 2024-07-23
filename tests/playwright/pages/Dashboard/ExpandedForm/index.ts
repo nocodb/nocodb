@@ -46,8 +46,8 @@ export class ExpandedFormPage extends BasePage {
   }
 
   async clickDeleteRow() {
-    await this.click3DotsMenu('Delete Record');
-    await this.rootPage.locator('.ant-btn-danger:has-text("Delete Record")').click();
+    await this.click3DotsMenu('Delete record');
+    await this.rootPage.locator('.ant-btn-danger:has-text("Delete record")').click();
   }
 
   async isDisabledDuplicateRow() {

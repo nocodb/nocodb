@@ -76,7 +76,7 @@
     "marked": "^4.3.0",
     "monaco-editor": "^0.45.0",
     "monaco-sql-languages": "^0.11.0",
-    "nocodb-sdk": "0.251.1",
+    "nocodb-sdk": "workspace:^",
     "papaparse": "^5.4.1",
     "parse-github-url": "^1.0.2",
     "pinia": "^2.1.7",
@@ -103,7 +103,7 @@
     "vue3-grid-layout-next": "^1.0.7",
     "vue3-text-clamp": "^0.1.2",
     "vuedraggable": "^4.1.0",
-    "xlsx": "https://cdn.sheetjs.com/xlsx-0.19.3/xlsx-0.19.3.tgz"
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^0.26.3",

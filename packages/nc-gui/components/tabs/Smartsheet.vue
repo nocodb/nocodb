@@ -80,6 +80,8 @@ useProvideSmartsheetLtarHelpers(meta)
 
 const grid = ref()
 
+const extensionPaneRef = ref()
+
 const onDrop = async (event: DragEvent) => {
   event.preventDefault()
   try {
@@ -159,12 +161,21 @@ watch([activeViewTitleOrId, activeTableId], () => {
   handleSidebarOpenOnMobileForNonViews()
 })
 
-const { extensionPanelSize } = useExtensions()
+const { isPanelExpanded, extensionPanelSize } = useExtensions()
 
 const onResize = (sizes: { min: number; max: number; size: number }[]) => {
   if (sizes.length === 2) {
     if (!sizes[1].size) return
     extensionPanelSize.value = sizes[1].size
+  }
+}
+
+const onReady = () => {
+  if (isPanelExpanded.value && extensionPaneRef.value) {
+    // wait until extension pane animation complete
+    setTimeout(() => {
+      extensionPaneRef.value?.onReady()
+    }, 300)
   }
 }
 </script>
@@ -173,8 +184,13 @@ const onResize = (sizes: { min: number; max: number; size: number }[]) => {
   <div class="nc-container flex flex-col h-full" @drop="onDrop" @dragover.prevent>
     <LazySmartsheetTopbar />
     <div style="height: calc(100% - var(--topbar-height))">
-      <Splitpanes v-if="openedViewsTab === 'view'" class="nc-extensions-content-resizable-wrapper" @resized="onResize">
-        <Pane class="flex flex-col h-full flex-1 min-w-0" size="60">
+      <Splitpanes
+        v-if="openedViewsTab === 'view'"
+        class="nc-extensions-content-resizable-wrapper"
+        @ready="onReady"
+        @resized="onResize"
+      >
+        <Pane class="flex flex-col h-full min-w-0" :size="isPanelExpanded && extensionPanelSize ? 100 - extensionPanelSize : 100">
           <LazySmartsheetToolbar v-if="!isForm" />
           <div
             :style="{ height: isForm || isMobileMode ? '100%' : 'calc(100% - var(--toolbar-height))' }"
@@ -201,7 +217,7 @@ const onResize = (sizes: { min: number; max: number; size: number }[]) => {
             </Transition>
           </div>
         </Pane>
-        <ExtensionsPane />
+        <ExtensionsPane ref="extensionPaneRef" />
       </Splitpanes>
       <SmartsheetDetails v-else />
     </div>

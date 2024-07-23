@@ -12,7 +12,7 @@ import { NcError } from '~/helpers/catchError';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 
 function getViewTitle(view: View) {
-  return view.is_default ? 'Default View' : view.title;
+  return view?.is_default ? 'Default View' : view?.title;
 }
 
 @Processor(JOBS_QUEUE)
@@ -98,15 +98,11 @@ export class DataExportProcessor {
           expireSeconds: 3 * 60 * 60, // 3 hours
         });
       } else {
-        if (url.includes('.amazonaws.com/')) {
-          const relativePath = decodeURI(url.split('.amazonaws.com/')[1]);
-          url = await PresignedUrl.getSignedUrl({
-            path: relativePath,
-            filename: `${model.title} (${getViewTitle(view)}).csv`,
-            s3: true,
-            expireSeconds: 3 * 60 * 60, // 3 hours
-          });
-        }
+        url = await PresignedUrl.getSignedUrl({
+          path: decodeURI(new URL(url).pathname),
+          filename: `${model.title} (${getViewTitle(view)}).csv`,
+          expireSeconds: 3 * 60 * 60, // 3 hours
+        });
       }
 
       if (error) {
@@ -119,11 +115,18 @@ export class DataExportProcessor {
         'exportData',
       );
     } catch (e) {
-      throw NcError.badRequest(e);
+      throw {
+        data: {
+          extension_id: options?.extension_id,
+          title: `${model.title} (${getViewTitle(view)})`,
+        },
+        message: e.message,
+      };
     }
 
     return {
       timestamp: new Date(),
+      extension_id: options?.extension_id,
       type: exportAs,
       title: `${model.title} (${getViewTitle(view)})`,
       url,

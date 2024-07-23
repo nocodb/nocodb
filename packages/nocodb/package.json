@@ -137,7 +137,7 @@
     "ncp": "^2.0.0",
     "nestjs-kafka": "^1.0.6",
     "nestjs-throttler-storage-redis": "^0.4.4",
-    "nocodb-sdk": "0.251.1",
+    "nocodb-sdk": "workspace:^",
     "nodemailer": "^6.9.13",
     "object-hash": "^3.0.0",
     "object-sizeof": "^2.6.4",
@@ -172,7 +172,7 @@
     "uuid": "^9.0.1",
     "validator": "^13.11.0",
     "xc-core-ts": "^0.1.0",
-    "xlsx": "https://cdn.sheetjs.com/xlsx-0.19.3/xlsx-0.19.3.tgz"
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.3.2",

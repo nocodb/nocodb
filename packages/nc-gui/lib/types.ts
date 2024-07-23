@@ -51,6 +51,7 @@ interface Field {
   fk_column_id?: string
   system?: boolean
   isViewEssentialField?: boolean
+  initialShow?: boolean
 }
 
 type Filter = FilterType & {

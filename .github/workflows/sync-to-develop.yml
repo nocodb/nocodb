@@ -14,7 +14,7 @@ jobs:
         with:
           node-version: 18.19.1
       - name: Setup pnpm
-        uses: pnpm/action-setup@v2
+        uses: pnpm/action-setup@v4
         with:
           version: 8
       - name: Checkout

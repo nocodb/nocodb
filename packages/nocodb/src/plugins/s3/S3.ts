@@ -110,23 +110,12 @@ export default class S3 implements IStorageAdapterV2 {
   public async getSignedUrl(
     key,
     expiresInSeconds = 7200,
-    options?: {
-      filename?: string;
-      preview?: boolean;
-      mimetype?: string;
-    },
+    pathParameters?: { [key: string]: string },
   ) {
-    const { filename, preview, mimetype } = options || {};
-
     const command = new GetObjectCommand({
       Key: key,
       Bucket: this.input.bucket,
-      ...(filename && {
-        ResponseContentDisposition: `${preview ? 'inline' : 'attachment'};${
-          filename && ` filename="${filename}"`
-        }`,
-      }),
-      ...(mimetype && { ResponseContentType: mimetype }),
+      ...pathParameters,
     });
     return getSignedUrl(this.s3Client, command, {
       expiresIn: expiresInSeconds,

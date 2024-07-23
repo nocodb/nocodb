@@ -124,8 +124,35 @@ export default class PresignedUrl {
 
     let tempUrl;
 
+    const pathParameters: {
+      [key: string]: string;
+    } = {};
+
+    if (preview) {
+      pathParameters.ResponseContentDisposition = `inline;`;
+
+      if (filename) {
+        pathParameters.ResponseContentDisposition += ` filename="${filename}"`;
+      }
+    } else {
+      pathParameters.ResponseContentDisposition = `attachment;`;
+
+      if (filename) {
+        pathParameters.ResponseContentDisposition += ` filename="${filename}"`;
+      }
+    }
+
+    if (mimetype) {
+      pathParameters.ResponseContentType = mimetype;
+    }
+
+    // append query params to the cache path
+    const cachePath = `${path}?${new URLSearchParams(
+      pathParameters,
+    ).toString()}`;
+
     const url = await NocoCache.get(
-      `${CacheScope.PRESIGNED_URL}:path:${path}`,
+      `${CacheScope.PRESIGNED_URL}:path:${cachePath}`,
       CacheGetType.TYPE_OBJECT,
     );
 
@@ -146,14 +173,10 @@ export default class PresignedUrl {
       tempUrl = await (storageAdapter as any).getSignedUrl(
         path,
         expiresInSeconds,
-        {
-          filename,
-          preview,
-          mimetype,
-        },
+        pathParameters,
       );
       await this.add({
-        path: path,
+        path: cachePath,
         url: tempUrl,
         expires_at: expireAt,
         expiresInSeconds,
@@ -163,28 +186,6 @@ export default class PresignedUrl {
       tempUrl = isUrl
         ? param.pathOrUrl
         : `dltemp/${nanoid(16)}/${expireAt.getTime()}/${path}`;
-
-      const pathParameters: {
-        [key: string]: string;
-      } = {};
-
-      if (preview) {
-        pathParameters.ResponseContentDisposition = `inline;`;
-
-        if (filename) {
-          pathParameters.ResponseContentDisposition += ` filename="${filename}"`;
-        }
-      } else {
-        pathParameters.ResponseContentDisposition = `attachment;`;
-
-        if (filename) {
-          pathParameters.ResponseContentDisposition += ` filename="${filename}"`;
-        }
-      }
-
-      if (mimetype) {
-        pathParameters.ResponseContentType = mimetype;
-      }
 
       path = `${path}?${new URLSearchParams(pathParameters).toString()}`;
 

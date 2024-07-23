@@ -9,8 +9,12 @@ export function isPreviewAllowed(args: { mimetype?: string; path?: string }) {
     return previewableMimeTypes.some((type) => mimetype.includes(type));
   } else if (path) {
     const ext = path.split('.').pop();
-    if (ext) {
-      const mimeType = mime.getType(ext);
+
+    // clear query params
+    const extWithoutQuery = ext?.split('?')[0];
+
+    if (extWithoutQuery) {
+      const mimeType = mime.getType(extWithoutQuery);
       return previewableMimeTypes.some((type) => mimeType?.includes(type));
     }
   }

@@ -12473,6 +12473,91 @@
         }
       }
     },
+    "/api/v2/public/shared-view/{sharedViewUuid}/downloadAttachment/{columnId}/{rowId}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string",
+            "example": "24a6d0bb-e45d-4b1a-bfef-f492d870de9f"
+          },
+          "name": "sharedViewUuid",
+          "in": "path",
+          "required": true,
+          "description": "Shared View UUID"
+        },
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "cl_8iw2o4ejzvdyna",
+            "type": "string"
+          },
+          "name": "columnId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Column ID"
+        },
+        {
+          "schema": {
+            "example": "1"
+          },
+          "name": "rowId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Row ID"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "in": "header",
+          "name": "xc-password",
+          "description": "Shared view password"
+        }
+      ],
+      "get": {
+        "summary": "Get Shared View Attachment",
+        "operationId": "public-data-attachment-download",
+        "description": "Download attachment from a shared view",
+        "tags": [
+          "Public"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "urlOrPath",
+            "description": "URL or Path of the attachment"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "url": {
+                      "type": "string",
+                      "description": "URL to download the attachment"
+                    },
+                    "path": {
+                      "type": "string",
+                      "description": "Path to download the attachment"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      }
+    },
     "/api/v1/db/public/shared-view/{sharedViewUuid}/group/{columnId}": {
       "parameters": [
         {
@@ -17598,6 +17683,80 @@
           }
         },
         "description": "Create a new row in a given table and base.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      }
+    },
+    "/api/v2/downloadAttachment/{modelId}/{columnId}/{rowId}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "modelId",
+          "in": "path",
+          "required": true,
+          "description": "Model ID"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "columnId",
+          "in": "path",
+          "required": true,
+          "description": "Column ID"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "rowId",
+          "in": "path",
+          "required": true,
+          "description": "Row ID"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "urlOrPath",
+          "in": "query",
+          "description": "URL or Path of the attachment"
+        }
+      ],
+      "get": {
+        "summary": "Download Attachment",
+        "operationId": "db-data-table-row-attachment-download",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "url": {
+                      "type": "string",
+                      "description": "URL to download attachment"
+                    },
+                    "path": {
+                      "type": "string",
+                      "description": "Path to download attachment"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "DB Data Table Row"
+        ],
+        "description": "Download attachment from a given row",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"

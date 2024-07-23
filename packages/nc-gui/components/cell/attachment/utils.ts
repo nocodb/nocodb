@@ -10,13 +10,13 @@ import IcOutlineInsertDriveFile from '~icons/ic/outline-insert-drive-file'
 
 export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
   (updateModelValue: (data: string | Record<string, any>[]) => void) => {
-    const { $api, $state } = useNuxtApp()
+    const { $api } = useNuxtApp()
 
     const baseURL = $api.instance.defaults.baseURL
 
     const { row } = useSmartsheetRowStoreOrThrow()
 
-    const { sharedView } = useSharedView()
+    const { fetchSharedViewAttachment } = useSharedView()
 
     const isReadonly = inject(ReadonlyInj, ref(false))
 
@@ -335,16 +335,14 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       const rowId = extractPkFromRow(unref(row).row, meta.value.columns!)
       const src = item.url || item.path
       if (modelId && columnId && rowId && src) {
-        const apiUrl = isPublic.value
-          ? `/api/v2/public/shared-view/${sharedView.value?.uuid}/downloadAttachment/${columnId}/${rowId}`
-          : `/api/v2/downloadAttachment/${modelId}/${columnId}/${rowId}`
+        const apiPromise = isPublic.value
+          ? () => fetchSharedViewAttachment(columnId, rowId, src)
+          : () =>
+              $api.dbDataTableRow.attachmentDownload(modelId, columnId, rowId, {
+                urlOrPath: src,
+              })
 
-        await $fetch<{ path?: string; url?: string }>(apiUrl, {
-          baseURL,
-          method: 'GET',
-          headers: { 'xc-auth': $state.token.value as string },
-          query: { urlOrPath: src },
-        }).then((res) => {
+        await apiPromise().then((res) => {
           if (res?.path) {
             window.open(`${baseURL}/${res.path}`, '_blank')
           } else if (res?.url) {

@@ -318,16 +318,13 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       }
     }
 
-    const downloadFile = async (_item: AttachmentType) => {}
-
     /** bulk download selected files */
     async function bulkDownloadAttachments() {
-      await Promise.all(selectedVisibleItems.value.map(async (v, i) => v && (await downloadFile(visibleItems.value[i]))))
+      await Promise.all(selectedVisibleItems.value.map(async (v, i) => v && (await downloadAttachment(visibleItems.value[i]))))
       selectedVisibleItems.value = Array.from({ length: visibleItems.value.length }, () => false)
     }
 
     /** download a file */
-    // http://localhost:8080/downloadAttachment/mutr191tt2ydien/cfmp980n4hhxn9c/1?urlOrPath=https://nocohub-001-app-attachments.s3.us-east-2.amazonaws.com/nc/uploads/noco/p22defzyus3cjn4/mutr191tt2ydien/cfmp980n4hhxn9c/af (1)_rb2xj.png
     async function downloadAttachment(item: AttachmentType) {
       if (!meta.value || !column.value) return
 

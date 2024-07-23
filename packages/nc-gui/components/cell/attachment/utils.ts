@@ -30,6 +30,8 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
     const attachments = ref<AttachmentType[]>([])
 
+    const modalRendered = ref(false)
+
     const modalVisible = ref(false)
 
     /** for image carousel */
@@ -380,6 +382,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       api,
       open: () => open(),
       onDrop,
+      modalRendered,
       modalVisible,
       FileIcon,
       removeFile,

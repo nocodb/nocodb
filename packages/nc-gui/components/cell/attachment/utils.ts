@@ -1,7 +1,6 @@
 import type { AttachmentReqType, AttachmentType } from 'nocodb-sdk'
 import { populateUniqueFileName } from 'nocodb-sdk'
 import DOMPurify from 'isomorphic-dompurify'
-import { saveAs } from 'file-saver'
 import RenameFile from './RenameFile.vue'
 import MdiPdfBox from '~icons/mdi/pdf-box'
 import MdiFileWordOutline from '~icons/mdi/file-word-outline'
@@ -11,6 +10,12 @@ import IcOutlineInsertDriveFile from '~icons/ic/outline-insert-drive-file'
 
 export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
   (updateModelValue: (data: string | Record<string, any>[]) => void) => {
+    const { $api } = useNuxtApp()
+
+    const baseURL = $api.instance.defaults.baseURL
+
+    const { row } = useSmartsheetRowStoreOrThrow()
+
     const isReadonly = inject(ReadonlyInj, ref(false))
 
     const { t } = useI18n()
@@ -50,8 +55,6 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
     })
 
     const { appInfo } = useGlobal()
-
-    const { getAttachmentSrc } = useAttachment()
 
     const defaultAttachmentMeta = {
       ...(appInfo.value.ee && {
@@ -315,17 +318,25 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       }
     }
 
+    const downloadFile = async (_item: AttachmentType) => {}
+
     /** bulk download selected files */
-    async function bulkDownloadFiles() {
+    async function bulkDownloadAttachments() {
       await Promise.all(selectedVisibleItems.value.map(async (v, i) => v && (await downloadFile(visibleItems.value[i]))))
       selectedVisibleItems.value = Array.from({ length: visibleItems.value.length }, () => false)
     }
 
     /** download a file */
-    async function downloadFile(item: AttachmentType) {
-      const src = await getAttachmentSrc(item)
-      if (src) {
-        saveAs(src, item.title)
+    // http://localhost:8080/downloadAttachment/mutr191tt2ydien/cfmp980n4hhxn9c/1?urlOrPath=https://nocohub-001-app-attachments.s3.us-east-2.amazonaws.com/nc/uploads/noco/p22defzyus3cjn4/mutr191tt2ydien/cfmp980n4hhxn9c/af (1)_rb2xj.png
+    async function downloadAttachment(item: AttachmentType) {
+      if (!meta.value || !column.value) return
+
+      const modelId = meta.value.id
+      const columnId = column.value.id
+      const rowId = extractPkFromRow(unref(row).row, meta.value.columns!)
+      const src = item.url || item.path
+      if (modelId && columnId && rowId && src) {
+        window.open(`${baseURL}/downloadAttachment/${modelId}/${columnId}/${rowId}?urlOrPath=${src}`, '_blank')
       } else {
         message.error('Failed to download file')
       }
@@ -387,13 +398,13 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       FileIcon,
       removeFile,
       renameFile,
-      downloadFile,
+      downloadAttachment,
       updateModelValue,
       selectedImage,
       uploadViaUrl,
       selectedVisibleItems,
       storedFiles,
-      bulkDownloadFiles,
+      bulkDownloadAttachments,
       defaultAttachmentMeta,
       startCamera,
       stopCamera,

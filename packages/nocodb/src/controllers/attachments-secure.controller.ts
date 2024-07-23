@@ -6,6 +6,7 @@ import {
   HttpCode,
   Param,
   Post,
+  Query,
   Req,
   Res,
   UploadedFiles,
@@ -18,15 +19,24 @@ import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 import type { AttachmentReqType, FileType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
+import { NcContext } from '~/interface/config';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { AttachmentsService } from '~/services/attachments.service';
-import { PresignedUrl } from '~/models';
+import { Column, PresignedUrl } from '~/models';
 import { UploadAllowedInterceptor } from '~/interceptors/is-upload-allowed/is-upload-allowed.interceptor';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
+import { DataTableService } from '~/services/data-table.service';
+import { DataApiLimiterGuard } from '~/guards/data-api-limiter.guard';
+import { TenantContext } from '~/decorators/tenant-context.decorator';
+import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { NcError } from '~/helpers/catchError';
 
 @Controller()
 export class AttachmentsSecureController {
-  constructor(private readonly attachmentsService: AttachmentsService) {}
+  constructor(
+    private readonly attachmentsService: AttachmentsService,
+    private readonly dataTableService: DataTableService,
+  ) {}
 
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
   @Post(['/api/v1/db/storage/upload', '/api/v2/storage/upload'])
@@ -101,6 +111,73 @@ export class AttachmentsSecureController {
       res.sendFile(file.path);
     } catch (e) {
       res.status(404).send('Not found');
+    }
+  }
+
+  @UseGuards(DataApiLimiterGuard, GlobalGuard)
+  @Get('/downloadAttachment/:modelId/:columnId/:rowId')
+  @Acl('dataRead')
+  async downloadAttachment(
+    @TenantContext() context: NcContext,
+    @Param('modelId') modelId: string,
+    @Param('columnId') columnId: string,
+    @Param('rowId') rowId: string,
+    @Query('urlOrPath') urlOrPath: string,
+    @Res() res: Response,
+  ) {
+    const column = await Column.get(context, {
+      colId: columnId,
+    });
+
+    if (!column) {
+      NcError.fieldNotFound(columnId);
+    }
+
+    const record = await this.dataTableService.dataRead(context, {
+      baseId: context.base_id,
+      modelId,
+      rowId,
+      query: {
+        fields: column.title,
+      },
+    });
+
+    if (!record) {
+      NcError.recordNotFound(rowId);
+    }
+
+    const attachment = record[column.title];
+
+    if (!attachment || !attachment.length) {
+      NcError.genericNotFound('Attachment', urlOrPath);
+    }
+
+    const fileObject = attachment.find(
+      (a) => a.url === urlOrPath || a.path === urlOrPath,
+    );
+
+    if (!fileObject) {
+      NcError.genericNotFound('Attachment', urlOrPath);
+    }
+
+    if (fileObject?.path) {
+      const signedPath = await PresignedUrl.getSignedUrl({
+        path: fileObject.path.replace(/^download\//, ''),
+        preview: false,
+        filename: fileObject.title,
+        mimetype: fileObject.mimetype,
+      });
+
+      res.redirect(`/${signedPath.replace(/^\//, '')}`);
+    } else if (fileObject?.url) {
+      const signedUrl = await PresignedUrl.getSignedUrl({
+        path: decodeURI(new URL(fileObject.url).pathname),
+        preview: false,
+        filename: fileObject.title,
+        mimetype: fileObject.mimetype,
+      });
+
+      res.redirect(signedUrl);
     }
   }
 }

@@ -397,6 +397,12 @@ watch(
     immediate: true,
   },
 )
+
+watch(parsedTree, () => {
+  if (parsedTree.value?.dataType) {
+    vModel.value.meta.display_type = null
+  }
+})
 </script>
 
 <template>
@@ -457,9 +463,15 @@ watch(
         class="text-orange-400 cursor-pointer absolute right-1 top-1 z-10"
         @click="predictFunction()"
       /> -->
+
+      <!--
+      TODO: Remove the trim once the issue is resolved
+      The trailing whitespace in the vModel.formula_raw causing component to break.
+      As a temporary fix add trim with v-model:value
+      -->
       <a-textarea
         ref="formulaRef"
-        v-model:value="vModel.formula_raw"
+        v-model:value.trim="vModel.formula_raw"
         class="nc-formula-input !rounded-md"
         @keydown="handleKeydown"
         @change="handleInputDeb"

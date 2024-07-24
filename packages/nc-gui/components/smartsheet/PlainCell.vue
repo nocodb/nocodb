@@ -339,6 +339,13 @@ const parseValue = (value: any, col: ColumnType): string => {
     return getLinksValue(value, col)
   }
 
+  if (isFormula(col) && col?.meta?.display_type) {
+    return parseValue(value, {
+      uidt: col?.meta?.display_type,
+      ...col?.meta?.display_column_meta,
+    })
+  }
+
   return value as unknown as string
 }
 </script>

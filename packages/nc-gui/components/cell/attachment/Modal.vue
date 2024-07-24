@@ -144,7 +144,7 @@ const handleFileDelete = (i: number) => {
               :class="[dragging ? 'cursor-move' : 'cursor-pointer']"
               class="nc-attachment h-full w-full flex items-center justify-center overflow-hidden"
             >
-              <LazyCellAttachmentImage
+              <LazyCellAttachmentPreviewImage
                 v-if="isImage(item.title, item.mimetype)"
                 :srcs="getPossibleAttachmentSrc(item)"
                 class="max-h-full h-64 m-auto justify-center"

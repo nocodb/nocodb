@@ -872,7 +872,7 @@ useEventListener(
                             "
                             style="transition: all 0.3s ease-in"
                           >
-                            <LazyCellAttachmentImage
+                            <LazyCellAttachmentPreviewImage
                               v-if="formViewData.logo_url"
                               :key="formViewData.logo_url?.path"
                               :srcs="getFormLogoSrc"

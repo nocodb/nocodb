@@ -89,7 +89,7 @@ watchOnce(emblaMainApi, async (emblaMainApi) => {
           <NcCarouselContent>
             <NcCarouselItem v-for="(item, index) in visibleItems" :key="index">
               <div class="w-full flex items-center">
-                <LazyCellAttachmentImage
+                <LazyCellAttachmentPreviewImage
                   v-if="isImage(item.title, item.mimeType)"
                   class="nc-attachment-img-wrapper"
                   object-fit="contain"
@@ -97,7 +97,7 @@ watchOnce(emblaMainApi, async (emblaMainApi) => {
                   :srcs="getPossibleAttachmentSrc(item)"
                 />
 
-                <LazyCellAttachmentVideo
+                <LazyCellAttachmentPreviewVideo
                   v-else-if="isVideo(item.title, item.mimeType)"
                   class="!h-full"
                   :src="getPossibleAttachmentSrc(item)[0]"
@@ -112,20 +112,25 @@ watchOnce(emblaMainApi, async (emblaMainApi) => {
           </NcCarouselContent>
         </NcCarousel>
 
-        <div class="absolute w-full !bottom-5 max-h-18 z-30 flex items-center justify-center">
+        <div class="absolute w-full !bottom-3 max-h-18 z-30 flex items-center justify-center">
           <NcCarousel class="absolute max-w-sm" @init-api="(val) => (emblaThumbnailApi = val)">
             <NcCarouselContent class="!flex !gap-2 ml-0">
               <NcCarouselItem
                 v-for="(item, index) in visibleItems"
                 :key="index"
                 :class="{
-                  ' opacity-100': index === selectedIndex,
+                  'opacity-100': index === selectedIndex,
+                  '!basis-1/2': visibleItems.length === 2,
+                  '!basis-1/3': visibleItems.length === 3,
+                  '!basis-1': visibleItems.length === 1,
+                  '!basis-1/4': visibleItems.length === 4,
+                  '!basis-1/8': visibleItems.length > 4,
                 }"
-                class="px-2 keep-open opacity-50 !basis-1/8 cursor-pointer"
+                class="px-2 keep-open opacity-50 cursor-pointer"
                 @click="onThumbClick(index)"
               >
                 <div class="flex items-center justify-center">
-                  <LazyCellAttachmentImage
+                  <LazyCellAttachmentPreviewImage
                     v-if="isImage(item.title, item.mimeType)"
                     class="nc-attachment-img-wrapper h-12"
                     object-fit="contain"

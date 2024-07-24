@@ -68,6 +68,10 @@ const officeExt = [
   'csv',
 ]
 
+const isAudio = (name: string, mimetype?: string) => {
+  return name?.toLowerCase().endsWith('.mp3') || mimetype?.startsWith('audio/')
+}
+
 const isVideo = (name: string, mimetype?: string) => {
   return videoExt.some((e) => name?.toLowerCase().endsWith(`.${e}`)) || mimetype?.startsWith('video/')
 }
@@ -84,7 +88,7 @@ const isOffice = (name: string, mimetype?: string) => {
   return officeExt.some((e) => name?.toLowerCase().endsWith(`.${e}`))
 }
 
-export { isImage, imageExt, isVideo, isPdf, isOffice }
+export { isImage, imageExt, isVideo, isPdf, isOffice, isAudio }
 // Ref : https://stackoverflow.com/a/12002275
 
 // Tested in Mozilla Firefox browser, Chrome

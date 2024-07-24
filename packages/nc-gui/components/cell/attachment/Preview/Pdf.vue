@@ -1,10 +1,20 @@
 <script setup lang="ts">
 interface Props {
-  src: string
+  src: string[]
   class?: string
 }
 
 const props = defineProps<Props>()
+
+const currentIndex = ref(0)
+
+const handleError = () => {
+  if (currentIndex.value < props.src.length - 1) {
+    currentIndex.value = currentIndex.value + 1
+  } else {
+    currentIndex.value = -1
+  }
+}
 
 const openMethod = ref<'browser' | 'google' | undefined>()
 </script>
@@ -30,14 +40,22 @@ const openMethod = ref<'browser' | 'google' | undefined>()
     </div>
   </div>
 
-  <iframe v-if="openMethod === 'browser'" :class="props.class" :src="props.src" width="100%" height="100%"></iframe>
+  <iframe
+    v-if="openMethod === 'browser'"
+    :class="props.class"
+    :src="src[currentIndex]"
+    width="100%"
+    height="100%"
+    @error="handleError"
+  ></iframe>
   <iframe
     v-else-if="openMethod === 'google'"
     :class="props.class"
-    :src="`https://docs.google.com/viewer?url=${encodeURIComponent(src)}&embedded=true`"
+    :src="`https://docs.google.com/viewer?url=${encodeURIComponent(src[currentIndex])}&embedded=true`"
     width="100%"
     height="100%"
     frameborder="0"
+    @error="handleError"
   ></iframe>
 </template>
 

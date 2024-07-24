@@ -6,6 +6,7 @@ interface Props {
   src?: string[]
   mimeType?: string
   class?: string
+  title?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -24,7 +25,9 @@ const player = ref()
 
 onMounted(() => {
   if (!videoPlayer.value) return
-  player.value = new Plyr(videoPlayer.value)
+  player.value = new Plyr(videoPlayer.value, {
+    previewThumbnails: {},
+  })
   emit('init', player.value)
 })
 
@@ -42,9 +45,10 @@ onBeforeUnmount(() => {
     crossorigin
     playsinline
     :class="{
+      '!w-128 !h-72': isAudio(title ?? '', mimeType),
       [props.class]: props.class,
     }"
-    class="videoplayer h-auto w-full"
+    class="videoplayer w-full"
   >
     <source v-for="(src, id) in props.src" :key="id" :src="src" :type="mimeType" />
   </video>

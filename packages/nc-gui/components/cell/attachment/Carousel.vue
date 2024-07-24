@@ -145,17 +145,18 @@ watchOnce(emblaMainApi, async (emblaMainApi) => {
                 v-else-if="isVideo(item.title, item.mimeType)"
                 class="flex items-center w-full"
                 :mime-type="item.mimeType"
+                :title="item.title"
                 :src="getPossibleAttachmentSrc(item)"
               />
               <LazyCellAttachmentPreviewPdf
                 v-else-if="isPdf(item.title, item.mimeType)"
                 class="keep-open"
-                :src="getPossibleAttachmentSrc(item)[0]"
+                :src="getPossibleAttachmentSrc(item)"
               />
               <LazyCellAttachmentPreviewMiscOffice
                 v-else-if="isOffice(item.title, item.mimeType)"
                 class="keep-open"
-                :src="getPossibleAttachmentSrc(item)[0]"
+                :src="getPossibleAttachmentSrc(item)"
               />
               <div v-else class="bg-white h-full flex flex-col justify-center rounded-md gap-1 items-center w-full">
                 <component :is="iconMap.file" class="text-gray-600 w-20 h-20" />
@@ -292,10 +293,4 @@ watchOnce(emblaMainApi, async (emblaMainApi) => {
     @apply items-center h-full w-full;
   }
 }
-
-/*.vjs-fluid {
-  &:not(.vjs-audio-only-mode) {
-    padding-top: 49.25% !important;
-  }
-}*/
 </style>

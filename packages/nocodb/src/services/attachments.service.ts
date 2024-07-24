@@ -169,15 +169,46 @@ export class AttachmentsService {
           const mimeType = response.headers['content-type']?.split(';')[0];
           const size = response.headers['content-length'];
 
-          attachments.push({
-            ...(attachmentUrl ? { url: finalUrl } : {}),
+          const attachment: {
+            url?: string;
+            path?: string;
+            title: string;
+            mimetype: string;
+            size: number;
+            icon?: string;
+            signedPath?: string;
+            signedUrl?: string;
+          } = {
+            ...(attachmentUrl ? { url: attachmentUrl } : {}),
             ...(attachmentPath ? { path: attachmentPath } : {}),
             title: fileNameWithExt,
             mimetype: mimeType || urlMeta.mimetype,
             size: size ? parseInt(size) : urlMeta.size,
             icon:
               mimeIcons[path.extname(fileNameWithExt).slice(1)] || undefined,
-          });
+          };
+
+          if (!attachment?.url) {
+            attachment.path = path.join(
+              'download',
+              filePath.join('/'),
+              fileName,
+            );
+
+            attachment.signedPath = await PresignedUrl.getSignedUrl({
+              pathOrUrl: attachment.path.replace(/^download\//, ''),
+              preview: true,
+              mimetype: attachment.mimetype,
+            });
+          } else {
+            attachment.signedUrl = await PresignedUrl.getSignedUrl({
+              pathOrUrl: attachment.url,
+              preview: true,
+              mimetype: attachment.mimetype,
+            });
+          }
+
+          attachments.push(attachment);
         } catch (e) {
           errors.push(e);
         }

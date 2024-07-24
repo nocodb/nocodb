@@ -421,8 +421,11 @@ export const useViewsStore = defineStore('viewsStore', () => {
   watch(
     () => [activeView.value?.title, activeView.value?.id],
     () => {
-      refreshViewTabTitle.trigger()
+      updateTabTitle()
     },
+    {
+      flush:'post'
+    }
   )
 
   return {

@@ -256,7 +256,12 @@ const handleFileDelete = (i: number) => {
 
             <NcTooltip v-if="!isReadonly" placement="bottom">
               <template #title> {{ $t('title.removeFile') }} </template>
-              <NcButton class="!text-red-500" size="xsmall" type="text" @click.stop="onRemoveFileClick(item.title, i)">
+              <NcButton
+                class="!text-red-500 nc-attachment-remove"
+                size="xsmall"
+                type="text"
+                @click.stop="onRemoveFileClick(item.title, i)"
+              >
                 <component :is="iconMap.delete" v-if="isSharedForm || (isUIAllowed('dataEdit') && !isPublic)" />
               </NcButton>
             </NcTooltip>

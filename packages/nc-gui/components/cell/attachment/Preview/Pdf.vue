@@ -40,17 +40,18 @@ const openMethod = ref<'browser' | 'google' | undefined>()
     </div>
   </div>
 
-  <iframe
+  <pdf-object
     v-if="openMethod === 'browser'"
     :class="props.class"
-    :src="src[currentIndex]"
-    width="100%"
-    height="100%"
+    :url="src[currentIndex]"
+    class="w-full h-full"
     @error="handleError"
-  ></iframe>
+  />
+
   <iframe
     v-else-if="openMethod === 'google'"
     :class="props.class"
+    type="application/pdf"
     :src="`https://docs.google.com/viewer?url=${encodeURIComponent(src[currentIndex])}&embedded=true`"
     width="100%"
     height="100%"

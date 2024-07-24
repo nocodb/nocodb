@@ -205,7 +205,7 @@ const handleFileDelete = (i: number) => {
 
 <template>
   <div v-if="isExpandedForm || isForm" class="form-attachment-cell">
-    <NcButton type="secondary" size="small" @click="open">
+    <NcButton data-testid="attachment-cell-file-picker-button" type="secondary" size="small" @click="open">
       <div class="flex items-center !text-xs gap-1 justify-center">
         <MaterialSymbolsAttachFile class="text-gray-500 text-tiny" />
         <span class="text-[10px]">
@@ -295,7 +295,6 @@ const handleFileDelete = (i: number) => {
       v-if="!isReadonly && active && !visibleItems.length"
       :class="{ 'sm:(mx-auto px-4) xs:(w-full min-w-8)': !visibleItems.length }"
       class="group cursor-pointer py-1 flex gap-1 items-center rounded border-none"
-      data-testid="attachment-cell-file-picker-button"
       tabindex="0"
       @keydown.enter="keydownEnter"
       @keydown.space="keydownSpace"

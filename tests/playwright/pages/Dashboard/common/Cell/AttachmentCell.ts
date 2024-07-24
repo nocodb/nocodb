@@ -21,9 +21,22 @@ export class AttachmentCellPageObject extends BasePage {
   // filePath: to attach multiple files, pass an array of file paths
   // e.g. ['path/to/file1', 'path/to/file2']
   //
-  async addFile({ index, columnHeader, filePath }: { index?: number; columnHeader: string; filePath: string[] }) {
+  async addFile({
+    index,
+    columnHeader,
+    filePath,
+    skipElemClick,
+  }: {
+    index?: number;
+    columnHeader: string;
+    filePath: string[];
+    skipElemClick?: boolean;
+  }) {
     await this.get({ index, columnHeader }).scrollIntoViewIfNeeded();
-    await this.get({ index, columnHeader }).click({ position: { x: 1, y: 1 } });
+
+    if (!skipElemClick) {
+      await this.get({ index, columnHeader }).click({ position: { x: 1, y: 1 } });
+    }
 
     await this.get({ index, columnHeader }).locator('[data-testid="attachment-cell-file-picker-button"]').click();
 

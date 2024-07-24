@@ -226,6 +226,7 @@ test.describe('Form view', () => {
     await sharedForm.cell.attachment.addFile({
       columnHeader: 'Attachment',
       filePath: [`${process.cwd()}/fixtures/sampleFiles/sampleImage.jpeg`],
+      skipElemClick: true,
     });
     await sharedForm.cell.fillText({
       columnHeader: 'Title',
@@ -1355,6 +1356,7 @@ test.describe('Form view: field validation', () => {
     await sharedForm.cell.attachment.addFile({
       columnHeader: 'Attachment',
       filePath: [`${process.cwd()}/fixtures/sampleFiles/sampleImage.jpeg`],
+      skipElemClick: true,
     });
 
     const attError = await sharedForm.getFormFieldErrors({ title: 'Attachment' });
@@ -1369,6 +1371,7 @@ test.describe('Form view: field validation', () => {
     await sharedForm.cell.attachment.addFile({
       columnHeader: 'Attachment',
       filePath: [`${process.cwd()}/fixtures/sampleFiles/Image/2.png`],
+      skipElemClick: true,
     });
     await attError.verify({ hasError: false });
 
@@ -1401,6 +1404,7 @@ test.describe('Form view: field validation', () => {
     await surveyForm.cell.attachment.addFile({
       columnHeader: 'Attachment',
       filePath: [`${process.cwd()}/fixtures/sampleFiles/sampleImage.jpeg`],
+      skipElemClick: true,
     });
 
     const surveryAttError = await surveyForm.getFormFieldErrors();
@@ -1415,6 +1419,7 @@ test.describe('Form view: field validation', () => {
     await surveyForm.cell.attachment.addFile({
       columnHeader: 'Attachment',
       filePath: [`${process.cwd()}/fixtures/sampleFiles/Image/2.png`],
+      skipElemClick: true,
     });
     await surveryAttError.verify({ hasError: false });
 

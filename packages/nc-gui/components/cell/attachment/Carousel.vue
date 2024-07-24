@@ -299,7 +299,12 @@ const initEmblaApi = (val: any) => {
 
           <NcTooltip v-if="!isReadonly" color="light" placement="bottom">
             <template #title> {{ $t('title.downloadFile') }} </template>
-            <NcButton class="!hover:bg-transparent !text-white" size="xsmall" type="text" @click="downloadFile(selectedFile)">
+            <NcButton
+              class="!hover:bg-transparent !text-white"
+              size="xsmall"
+              type="text"
+              @click="downloadAttachment(selectedFile)"
+            >
               <component :is="iconMap.download" class="!hover:text-gray-400" />
             </NcButton>
           </NcTooltip>

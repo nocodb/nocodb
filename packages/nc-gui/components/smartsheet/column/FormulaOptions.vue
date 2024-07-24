@@ -33,7 +33,7 @@ const { predictFunction: _predictFunction } = useNocoEe()
 
 const meta = inject(MetaInj, ref())
 
-const base = inject(ProjectInj, ref())!
+const base = inject(ProjectInj, ref())
 
 const supportedColumns = computed(
   () =>
@@ -288,7 +288,6 @@ const source = computed(() => base.value?.sources?.find((b) => b.id === meta.val
 
 const parsedTree = computedAsync(async () => {
   const column = meta.value?.columns?.find((c) => c.id === vModel.value.id)
-
   try {
     const parsed = await validateFormulaAndExtractTreeWithType({
       formula: vModel.value.formula || vModel.value.formula_raw,
@@ -551,14 +550,9 @@ watch(
       </template>
     </div>
 
-    <div v-if="supportedFormulaAlias.length && parsedTree?.dataType" class="mt-2 gap-2 flex flex-col">
+    <div v-if="supportedFormulaAlias?.length && parsedTree?.dataType" class="mt-2 gap-2 flex flex-col">
       Format type
-      <NcSelect
-        v-model:value="vModel.meta.display_type"
-        class="w-full"
-        placeholder="- -Select a formt type (optional)- -"
-        @change="(val) => (vModel.meta.display_type = val)"
-      >
+      <NcSelect v-model:value="vModel.meta.display_type" class="w-full" placeholder="- -Select a formt type (optional)- -">
         <a-select-option v-for="option in supportedFormulaAlias" :key="option.value" :value="option.value">
           <div class="flex w-full items-center gap-2 justify-between">
             <div class="w-full">
@@ -567,7 +561,7 @@ watch(
             </div>
             <component
               :is="iconMap.check"
-              v-if="option.value === vModel.meta.display_type"
+              v-if="option.value === vModel.meta?.display_type"
               id="nc-selected-item-icon"
               class="text-primary w-4 h-4"
             />

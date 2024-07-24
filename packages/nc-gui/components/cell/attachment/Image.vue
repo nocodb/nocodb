@@ -20,6 +20,7 @@ const onError = () => index.value++
     }"
     class="m-auto h-full max-h-full w-auto object-cover nc-attachment-image"
     :src="props.srcs[index]"
+    loading="lazy"
     :alt="props?.alt || ''"
     placeholder
     quality="75"

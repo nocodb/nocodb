@@ -13,7 +13,7 @@ const { getPossibleAttachmentSrc } = useAttachment()
 
 useEventListener(container, 'click', (e) => {
   const target = e.target as HTMLElement
-  if (!target.closest('.keep-open') && !target.closest('img')) {
+  if (!target.closest('.keep-open') && (!target.closest('img') || !target.closest('video'))) {
     selectedFile.value = false
   }
 })
@@ -82,23 +82,32 @@ watchOnce(emblaMainApi, async (emblaMainApi) => {
           </h3>
         </div>
 
-        <NcCarousel class="relative p-22 keep-open" @init-api="(val) => (emblaMainApi = val)">
+        <NcCarousel
+          class="!absolute inset-16 keep-open flex justify-center items-center"
+          @init-api="(val) => (emblaMainApi = val)"
+        >
           <NcCarouselContent>
             <NcCarouselItem v-for="(item, index) in visibleItems" :key="index">
-              <LazyCellAttachmentImage
-                v-if="isImage(item.title, item.mimeType)"
-                class="nc-attachment-img-wrapper !h-[60%]"
-                object-fit="contain"
-                :alt="item.title"
-                :srcs="getPossibleAttachmentSrc(item)"
-              />
+              <div class="w-full flex items-center">
+                <LazyCellAttachmentImage
+                  v-if="isImage(item.title, item.mimeType)"
+                  class="nc-attachment-img-wrapper"
+                  object-fit="contain"
+                  :alt="item.title"
+                  :srcs="getPossibleAttachmentSrc(item)"
+                />
 
-              <LazyCellAttachmentVideo
-                v-else-if="isVideo(item.title, item.mimeType)"
-                class="!h-[60%]"
-                :alt="item.title"
-                :srcs="getPossibleAttachmentSrc(item)"
-              />
+                <LazyCellAttachmentVideo
+                  v-else-if="isVideo(item.title, item.mimeType)"
+                  class="!h-full"
+                  :src="getPossibleAttachmentSrc(item)[0]"
+                  :sources="getPossibleAttachmentSrc(item).map((src) => ({ src, type: item.mimeType }))"
+                />
+                <div v-else class="bg-white h-full flex flex-col justify-center rounded-md gap-1 items-center w-full">
+                  <component :is="iconMap.file" class="text-gray-600 w-20 h-20" />
+                  <div class="text-gray-800 text-sm">{{ item.title }}</div>
+                </div>
+              </div>
             </NcCarouselItem>
           </NcCarouselContent>
         </NcCarousel>
@@ -129,6 +138,9 @@ watchOnce(emblaMainApi, async (emblaMainApi) => {
                   >
                     <GeneralIcon class="text-white" icon="play" />
                   </div>
+                  <div v-else class="h-full flex items-center h-6 justify-center rounded-md px-2 py-1 border-1 border-gray-200">
+                    <GeneralIcon class="text-white" icon="file" />
+                  </div>
                 </div>
               </NcCarouselItem>
             </NcCarouselContent>
@@ -140,7 +152,17 @@ watchOnce(emblaMainApi, async (emblaMainApi) => {
 </template>
 
 <style lang="scss">
-.nc-attachment-img-wrapper {
-  width: fit-content !important;
+.nc-attachment-carousel {
+  width: max-content;
+}
+
+.carousel-container {
+  @apply !w-full;
+}
+
+.vjs-fluid {
+  &:not(.vjs-audio-only-mode) {
+    padding-top: 49.25% !important;
+  }
 }
 </style>

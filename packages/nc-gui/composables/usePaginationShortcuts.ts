@@ -4,11 +4,12 @@ import type { PaginatedType } from 'nocodb-sdk'
 const usePaginationShortcuts = ({
   changePage,
   paginationDataRef,
+  isViewDataLoading
 }: {
   changePage: (page: number) => Promise<void> | undefined
   paginationDataRef: Ref<PaginatedType | undefined>
+  isViewDataLoading: Ref<boolean>
 }) => {
-  const { isViewDataLoading } = storeToRefs(useViewsStore())
   const getTotalPages = () => {
     return Math.ceil(paginationDataRef.value!.totalRows! / paginationDataRef.value!.pageSize!)
   }

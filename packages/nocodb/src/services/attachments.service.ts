@@ -82,13 +82,13 @@ export class AttachmentsService {
             );
 
             attachment.signedPath = await PresignedUrl.getSignedUrl({
-              path: attachment.path.replace(/^download\//, ''),
+              pathOrUrl: attachment.path.replace(/^download\//, ''),
               preview: true,
               mimetype: attachment.mimetype,
             });
           } else {
             attachment.signedUrl = await PresignedUrl.getSignedUrl({
-              path: decodeURI(new URL(attachment.url).pathname),
+              pathOrUrl: attachment.url,
               preview: true,
               mimetype: attachment.mimetype,
             });
@@ -239,7 +239,7 @@ export class AttachmentsService {
 
     if (fileObject?.path) {
       const signedPath = await PresignedUrl.getSignedUrl({
-        path: fileObject.path.replace(/^download\//, ''),
+        pathOrUrl: fileObject.path.replace(/^download\//, ''),
         preview: false,
         filename: fileObject.title,
         mimetype: fileObject.mimetype,
@@ -249,7 +249,7 @@ export class AttachmentsService {
       return { path: signedPath };
     } else if (fileObject?.url) {
       const signedUrl = await PresignedUrl.getSignedUrl({
-        path: decodeURI(new URL(fileObject.url).pathname),
+        pathOrUrl: fileObject.url,
         preview: false,
         filename: fileObject.title,
         mimetype: fileObject.mimetype,

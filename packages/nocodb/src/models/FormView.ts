@@ -242,7 +242,10 @@ export default class FormView implements FormViewType {
             promises.push(
               PresignedUrl.getSignedUrl(
                 {
-                  path: formAttachments[key].path.replace(/^download\//, ''),
+                  pathOrUrl: formAttachments[key].path.replace(
+                    /^download\//,
+                    '',
+                  ),
                 },
                 ncMeta,
               ).then((r) => (formAttachments[key].signedPath = r)),
@@ -250,7 +253,7 @@ export default class FormView implements FormViewType {
           } else if (formAttachments[key]?.url) {
             promises.push(
               PresignedUrl.getSignedUrl(
-                { path: decodeURI(new URL(formAttachments[key].url).pathname) },
+                { pathOrUrl: formAttachments[key].url },
                 ncMeta,
               ).then((r) => (formAttachments[key].signedUrl = r)),
             );

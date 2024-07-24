@@ -91,8 +91,8 @@ const handleFileDelete = (i: number) => {
     :class="{ active: modalVisible }"
     width="80%"
   >
-    <div class="flex justify-between pb-2 gap-4">
-      <div class="font-semibold underline">{{ column?.title }}</div>
+    <div class="flex justify-between pb-6 gap-4">
+      <div class="font-semibold text-xl">{{ column?.title }}</div>
 
       <div class="flex items-center gap-2">
         <NcButton v-if="selectedVisibleItems.length > 0" size="small" @click="bulkDownloadAttachments">
@@ -173,7 +173,7 @@ const handleFileDelete = (i: number) => {
             />
           </div>
 
-          <div class="relative px-1 flex" :title="item.title">
+          <div class="relative px-4 pb-2 flex text-gray-500 text-sm" :title="item.title">
             <div class="flex-auto truncate line-height-4">
               {{ item.title }}
             </div>
@@ -181,21 +181,25 @@ const handleFileDelete = (i: number) => {
               <NcTooltip placement="bottom">
                 <template #title> {{ $t('title.downloadFile') }} </template>
                 <NcButton class="!text-gray-500" size="xsmall" type="text" @click="downloadAttachment(item)">
-                  <component :is="iconMap.download" />
+                  <component :is="iconMap.download" class="h-[14px] w-[14px]" />
                 </NcButton>
               </NcTooltip>
 
               <NcTooltip v-if="!isSharedForm || (!readOnly && isUIAllowed('dataEdit') && !isPublic)" placement="bottom">
                 <template #title> {{ $t('title.renameFile') }} </template>
                 <NcButton size="xsmall" class="nc-attachment-rename !text-gray-500" type="text" @click="renameFile(item, i)">
-                  <component :is="iconMap.rename" />
+                  <component :is="iconMap.rename" class="h-[14px] w-[14px]" />
                 </NcButton>
               </NcTooltip>
 
               <NcTooltip v-if="!readOnly" placement="bottom">
                 <template #title> {{ $t('title.removeFile') }} </template>
                 <NcButton class="!text-red-500" size="xsmall" type="text" @click="onRemoveFileClick(item.title, i)">
-                  <component :is="iconMap.delete" v-if="isSharedForm || (isUIAllowed('dataEdit') && !isPublic)" />
+                  <component
+                    :is="iconMap.delete"
+                    v-if="isSharedForm || (isUIAllowed('dataEdit') && !isPublic)"
+                    class="h-[14px] w-[14px]"
+                  />
                 </NcButton>
               </NcTooltip>
             </div>

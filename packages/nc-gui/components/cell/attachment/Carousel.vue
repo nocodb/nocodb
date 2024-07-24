@@ -84,6 +84,8 @@ const goNext = () => {
 watchOnce(emblaMainApi, async (emblaMainApi) => {
   if (!emblaMainApi) return
 
+  container.value?.focus()
+
   emblaThumbnailApi.value?.on('reInit', onSelect)
 
   emblaMainApi.on('select', onSelect)
@@ -290,18 +292,18 @@ onMounted(() => {
             <template #title> {{ $t('title.renameFile') }} </template>
             <NcButton
               size="xsmall"
-              class="nc-attachment-rename !hover:bg-transparent !text-white"
+              class="nc-attachment-rename !hover:text-gray-400 !hover:bg-transparent !text-white"
               type="text"
               @click="renameFile(selectedFile, selectedIndex, true)"
             >
-              <component :is="iconMap.rename" />
+              <component :is="iconMap.rename" class="!hover:text-gray-400" />
             </NcButton>
           </NcTooltip>
 
           <NcTooltip v-if="!isReadonly" color="light" placement="bottom">
             <template #title> {{ $t('title.downloadFile') }} </template>
             <NcButton class="!hover:bg-transparent !text-white" size="xsmall" type="text" @click="downloadFile(selectedFile)">
-              <component :is="iconMap.download" />
+              <component :is="iconMap.download" class="!hover:text-gray-400" />
             </NcButton>
           </NcTooltip>
 
@@ -313,7 +315,11 @@ onMounted(() => {
               type="text"
               @click="onRemoveFileClick(selectedFile.title, selectedIndex)"
             >
-              <component :is="iconMap.delete" v-if="isSharedForm || (isUIAllowed('dataEdit') && !isPublic)" />
+              <component
+                :is="iconMap.delete"
+                v-if="isSharedForm || (isUIAllowed('dataEdit') && !isPublic)"
+                class="!hover:text-gray-400"
+              />
             </NcButton>
           </NcTooltip>
         </div>

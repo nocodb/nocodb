@@ -129,7 +129,7 @@ watch(
 const isNewAttachmentModalOpen = ref(false)
 
 useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e) => {
-  if (e.key === 'Enter' && !isReadonly.value) {
+  if (e.key === 'Enter' && !isReadonly.value && !selectedFile.value) {
     if (isNewAttachmentModalOpen.value) return
     e.stopPropagation()
     if (!modalVisible.value && !isMobileMode.value) {
@@ -214,11 +214,11 @@ const handleFileDelete = (i: number) => {
       </div>
     </NcButton>
 
-    <div v-if="visibleItems.length > 0" class="grid mt-2 gap-2 grid-cols-3">
+    <div v-if="visibleItems.length > 0" class="grid mt-2 gap-2 grid-cols-2">
       <div
         v-for="(item, i) in visibleItems"
         :key="`${item?.title}-${i}`"
-        class="nc-attachment-item group pt-2 gap-2 flex border-1 rounded-md border-gray-200 flex-col relative"
+        class="nc-attachment-item group gap-2 flex border-1 rounded-md border-gray-200 flex-col relative"
       >
         <div
           :class="[dragging ? 'cursor-move' : 'cursor-pointer']"
@@ -227,40 +227,52 @@ const handleFileDelete = (i: number) => {
           <LazyCellAttachmentPreviewImage
             v-if="isImage(item.title, item.mimetype)"
             :srcs="getPossibleAttachmentSrc(item)"
-            class="max-h-full h-32 m-auto rounded-md justify-center"
+            object-fit="cover"
+            class="!w-full h-42 object-cover !m-0 rounded-t-[5px] justify-center"
+            @click="selectedFile = item"
           />
 
-          <component :is="FileIcon(item.icon)" v-else-if="item.icon" :height="45" :width="45" />
+          <component :is="FileIcon(item.icon)" v-else-if="item.icon" :height="45" :width="45" @click="selectedFile = item" />
 
-          <IcOutlineInsertDriveFile v-else :height="45" :width="45" />
+          <IcOutlineInsertDriveFile v-else :height="45" :width="45" @click="selectedFile = item" />
         </div>
 
         <div class="relative px-1 flex" :title="item.title">
-          <div class="flex-auto truncate text-sm line-height-4">
+          <div class="flex-auto text-[13px] items-center truncate text-sm line-height-4">
             {{ item.title }}
           </div>
-          <div class="flex-none hide-ui transition-all transition-ease-in-out !h-6 flex items-center bg-white">
+          <div class="flex-none hide-ui transition-all transition-ease-in-out !h-5 gap-0.5 pb-2 flex items-center bg-white">
             <NcTooltip placement="bottom">
               <template #title> {{ $t('title.downloadFile') }} </template>
-              <NcButton class="!text-gray-500" size="xsmall" type="text" @click="downloadAttachment(item)">
-                <component :is="iconMap.download" />
+              <NcButton
+                class="!p-0 !w-5 !h-5 text-gray-500 !min-w-[fit-content]"
+                size="xsmall"
+                type="text"
+                @click="downloadAttachment(item)"
+              >
+                <component :is="iconMap.download" class="!text-xs" />
               </NcButton>
             </NcTooltip>
 
             <NcTooltip v-if="!isSharedForm || (!isReadonly && isUIAllowed('dataEdit') && !isPublic)" placement="bottom">
               <template #title> {{ $t('title.renameFile') }} </template>
-              <NcButton size="xsmall" class="nc-attachment-rename !text-gray-500" type="text" @click="renameFile(item, i)">
-                <component :is="iconMap.rename" />
+              <NcButton
+                size="xsmall"
+                class="!p-0 nc-attachment-rename !h-5 !w-5 !text-gray-500 !min-w-[fit-content]"
+                type="text"
+                @click="renameFile(item, i)"
+              >
+                <component :is="iconMap.rename" class="text-xs" />
               </NcButton>
             </NcTooltip>
 
             <NcTooltip v-if="!isReadonly" placement="bottom">
               <template #title> {{ $t('title.removeFile') }} </template>
               <NcButton
-                class="!text-red-500 nc-attachment-remove"
+                class="!p-0 !h-5 !w-5 !text-red-500 nc-attachment-remove !min-w-[fit-content]"
                 size="xsmall"
                 type="text"
-                @click.stop="onRemoveFileClick(item.title, i)"
+                @click="onRemoveFileClick(item.title, i)"
               >
                 <component :is="iconMap.delete" v-if="isSharedForm || (isUIAllowed('dataEdit') && !isPublic)" />
               </NcButton>
@@ -485,15 +497,6 @@ const handleFileDelete = (i: number) => {
   }
   .nc-attachment-item {
     @apply relative;
-
-    .nc-attachment-remove {
-      @apply absolute right-0.8 top-0.8 rounded hidden p-0.5 bg-white text-lg leading-none;
-      box-shadow: 0px 0px 4px #bbb;
-    }
-
-    &:hover .nc-attachment-remove {
-      @apply block;
-    }
   }
 }
 </style>

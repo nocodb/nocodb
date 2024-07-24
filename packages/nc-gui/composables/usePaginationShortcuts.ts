@@ -57,6 +57,8 @@ const usePaginationShortcuts = ({
     if (!e.altKey) return
     e.preventDefault()
 
+    if (paginationDataRef.value!.page! === getTotalPages()) return
+
     await changePageWithLoading(getTotalPages())
   }
 
@@ -65,6 +67,8 @@ const usePaginationShortcuts = ({
 
     if (!e.altKey) return
     e.preventDefault()
+
+    if (paginationDataRef.value!.page! === 1) return
 
     await changePageWithLoading(1)
   }

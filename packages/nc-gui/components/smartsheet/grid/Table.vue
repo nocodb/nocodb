@@ -183,10 +183,6 @@ const { onLeft, onRight, onUp, onDown } = usePaginationShortcuts({
   isViewDataLoading
 })
 
-watchEffect(()=>{
-  console.log('isViewDataLoading', isViewDataLoading.value)
-})
-
 // #Variables
 const addColumnDropdown = ref(false)
 

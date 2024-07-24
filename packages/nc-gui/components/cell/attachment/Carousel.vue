@@ -13,7 +13,7 @@ const { getPossibleAttachmentSrc } = useAttachment()
 
 useEventListener(container, 'click', (e) => {
   const target = e.target as HTMLElement
-  if (!target.closest('.keep-open') && (!target.closest('img') || !target.closest('video'))) {
+  if (!target.closest('.keep-open') || !target.closest('.nc-button')) {
     selectedFile.value = false
   }
 })
@@ -105,6 +105,7 @@ watchOnce(emblaMainApi, async (emblaMainApi) => {
                 />
                 <LazyCellAttachmentPreviewPdf
                   v-else-if="isPdf(item.title, item.mimeType)"
+                  class="keep-open"
                   :src="getPossibleAttachmentSrc(item)[0]"
                 />
                 <div v-else class="bg-white h-full flex flex-col justify-center rounded-md gap-1 items-center w-full">

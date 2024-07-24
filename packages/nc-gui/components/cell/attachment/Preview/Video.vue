@@ -42,7 +42,6 @@ onBeforeUnmount(() => {
   <video
     ref="videoPlayer"
     controls
-    crossorigin
     playsinline
     :class="{
       '!w-128 !h-72': isAudio(title ?? '', mimeType),

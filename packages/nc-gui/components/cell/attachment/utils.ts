@@ -56,6 +56,8 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       reset: true,
     })
 
+    const isRenameModalOpen = ref(false)
+
     const { appInfo } = useGlobal()
 
     const defaultAttachmentMeta = {
@@ -266,6 +268,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
     async function renameFile(attachment: AttachmentType, idx: number, updateSelectedFile?: boolean) {
       return new Promise<boolean>((resolve) => {
+        isRenameModalOpen.value = true
         const { close } = useDialog(RenameFile, {
           title: attachment.title,
           onRename: (newTitle: string) => {
@@ -277,10 +280,12 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
               selectedFile.value = { ...attachment, title: newTitle }
             }
 
+            isRenameModalOpen.value = false
             resolve(true)
           },
           onCancel: () => {
             close()
+            isRenameModalOpen.value = false
             resolve(true)
           },
         })
@@ -429,6 +434,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       stopCamera,
       videoStream,
       permissionGranted,
+      isRenameModalOpen,
     }
   },
   'useAttachmentCell',

@@ -3,13 +3,16 @@ import type { CarouselApi } from '../../nc/Carousel/interface'
 import { useAttachmentCell } from './utils'
 import { isOffice } from '~/utils/fileUtils'
 
-const { selectedFile, visibleItems, downloadAttachment, removeFile, renameFile, isPublic, isReadonly } = useAttachmentCell()!
+const { selectedFile, visibleItems, downloadAttachment, removeFile, renameFile, isPublic, isReadonly, isRenameModalOpen } =
+  useAttachmentCell()!
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
 
 const { isSharedForm } = useSmartsheetStoreOrThrow()
 
+/*
 const openComments = ref(false)
+*/
 
 const { isUIAllowed } = useRoles()
 
@@ -99,9 +102,34 @@ watchOnce(emblaMainApi, async (emblaMainApi) => {
   })
 })
 
-const toggleComment = () => {
-  openComments.value = !openComments.value
+onMounted(() => {
+  document.addEventListener('keydown', onKeyDown)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', onKeyDown)
+})
+
+function onKeyDown(event: KeyboardEvent) {
+  if (isRenameModalOpen.value) return
+  const prevKey = ['ArrowLeft', 'Left', 'a', 'A']
+  const nextKey = ['ArrowRight', 'Right', 'd', 'D']
+
+  if (prevKey.includes(event.key)) {
+    event.preventDefault()
+    emblaMainApi.value?.scrollPrev()
+    return
+  }
+
+  if (nextKey.includes(event.key)) {
+    event.preventDefault()
+    emblaMainApi.value?.scrollNext()
+  }
 }
+
+/* const toggleComment = () => {
+  openComments.value = !openComments.value
+} */
 
 onMounted(() => {
   if (!isPublic.value && !isExpandedFormOpen.value && isUIAllowed('commentList')) {

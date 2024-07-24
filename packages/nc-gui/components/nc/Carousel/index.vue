@@ -10,30 +10,6 @@ const emits = defineEmits<CarouselEmits>()
 
 const carouselArgs = useProvideCarousel(props, emits)
 
-onMounted(() => {
-  document.addEventListener('keydown', onKeyDown)
-})
-
-onUnmounted(() => {
-  document.removeEventListener('keydown', onKeyDown)
-})
-
-function onKeyDown(event: KeyboardEvent) {
-  const prevKey = props.orientation === 'vertical' ? ['ArrowUp', 'Up', 'w', 'W'] : ['ArrowLeft', 'Left', 'a', 'A']
-  const nextKey = props.orientation === 'vertical' ? ['ArrowDown', 'Down', 's', 'S'] : ['ArrowRight', 'Right', 'd', 'D']
-
-  if (prevKey.includes(event.key)) {
-    event.preventDefault()
-    carouselArgs.scrollPrev()
-    return
-  }
-
-  if (nextKey.includes(event.key)) {
-    event.preventDefault()
-    carouselArgs.scrollNext()
-  }
-}
-
 defineExpose(carouselArgs)
 </script>
 

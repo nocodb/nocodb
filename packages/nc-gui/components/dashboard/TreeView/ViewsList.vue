@@ -32,6 +32,8 @@ const { isUIAllowed } = useRoles()
 
 const { isMobileMode } = useGlobal()
 
+const { isSharedBase } = storeToRefs(useBase())
+
 const { $e } = useNuxtApp()
 
 const { t } = useI18n()
@@ -400,6 +402,7 @@ function onOpenModal({
     :selected-keys="selected"
     class="nc-views-menu flex flex-col w-full !border-r-0 !bg-inherit"
   >
+  <template v-if="!isSharedBase">
     <DashboardTreeViewCreateViewBtn
       v-if="isUIAllowed('viewCreateOrEdit')"
       :align-left-level="isDefaultSource ? 1 : 2"
@@ -429,7 +432,7 @@ function onOpenModal({
         </div>
       </div>
     </DashboardTreeViewCreateViewBtn>
-
+  </template>
     <template v-if="views.length">
       <DashboardTreeViewViewsNode
         v-for="view of views"

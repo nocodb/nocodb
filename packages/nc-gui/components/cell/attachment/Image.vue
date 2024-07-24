@@ -2,6 +2,7 @@
 interface Props {
   srcs: string[]
   alt?: string
+  objectFit?: string
 }
 
 const props = defineProps<Props>()
@@ -14,7 +15,10 @@ const onError = () => index.value++
 <template>
   <LazyNuxtImg
     v-if="index < props.srcs.length"
-    class="m-auto h-full max-h-full w-auto nc-attachment-image object-cover"
+    :class="{
+      '!object-contain': props.objectFit === 'contain',
+    }"
+    class="m-auto h-full max-h-full w-auto object-cover nc-attachment-image"
     :src="props.srcs[index]"
     :alt="props?.alt || ''"
     placeholder

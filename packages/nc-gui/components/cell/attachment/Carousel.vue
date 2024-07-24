@@ -1,156 +1,116 @@
 <script lang="ts" setup>
-import { onKeyDown } from '@vueuse/core'
+import type { CarouselApi } from '../../nc/Carousel/interface'
 import { useAttachmentCell } from './utils'
 
 const { selectedImage, visibleItems, downloadAttachment } = useAttachmentCell()!
 
-const carouselRef = ref()
-
 const container = ref()
 
-const imageItems = computed(() => visibleItems.value.filter((item) => isImage(item.title, item.mimetype)))
-
+const emblaMainApi: CarouselApi = ref()
+const emblaThumbnailApi: CarouselApi = ref()
+const selectedIndex = ref(0)
 const { getPossibleAttachmentSrc } = useAttachment()
 
-/** navigate to previous image on button click */
-onKeyDown(
-  (e) => ['Left', 'ArrowLeft', 'A'].includes(e.key),
-  () => {
-    if (carouselRef.value) carouselRef.value.prev()
-  },
-)
-
-/** navigate to next image on button click */
-onKeyDown(
-  (e) => ['Right', 'ArrowRight', 'D'].includes(e.key),
-  () => {
-    if (carouselRef.value) carouselRef.value.next()
-  },
-)
-
-/** set our selected image when slide changes */
-function onSlideChange(index: number) {
-  selectedImage.value = imageItems.value[index]
-}
-
-/** set our carousel ref and move to initial slide  */
-const setCarouselRef = (el: Element) => {
-  carouselRef.value = el
-
-  carouselRef.value?.goTo(
-    imageItems.value.findIndex((item) => item === selectedImage.value),
-    true,
-  )
-}
-
-/** close overlay view when clicking outside of image */
 useEventListener(container, 'click', (e) => {
   if (!(e.target as HTMLElement)?.closest('.keep-open') && !(e.target as HTMLElement)?.closest('img')) {
     selectedImage.value = false
   }
 })
+
+function onThumbClick(index: number) {
+  if (!emblaMainApi.value || !emblaThumbnailApi.value) return
+  emblaMainApi.value.scrollTo(index)
+}
+
+function onSelect() {
+  if (!emblaMainApi.value || !emblaThumbnailApi.value) return
+  selectedIndex.value = emblaMainApi.value?.selectedScrollSnap()
+  selectedImage.value = visibleItems.value[emblaMainApi.value?.selectedScrollSnap()]
+  emblaThumbnailApi.value.scrollTo(emblaMainApi.value.selectedScrollSnap())
+}
+
+watchOnce(emblaMainApi, (emblaMainApi) => {
+  if (!emblaMainApi) return
+
+  onSelect()
+  emblaMainApi.on('select', onSelect)
+  emblaThumbnailApi.value?.on('reInit', onSelect)
+})
 </script>
 
 <template>
-  <GeneralOverlay v-model="selectedImage" :z-index="1001" class="bg-gray-500 bg-opacity-50">
-    <template v-if="selectedImage">
-      <div ref="container" class="overflow-hidden p-12 text-center relative xs:h-screen">
-        <div class="text-white group absolute top-5 right-5">
-          <component
-            :is="iconMap.closeCircle"
-            class="group-hover:text-red-500 cursor-pointer text-4xl"
-            @click.stop="selectedImage = false"
-          />
-        </div>
+  <GeneralOverlay v-model="selectedImage" transition :z-index="1001" class="bg-black bg-opacity-90">
+    <div v-if="selectedImage" class="flex">
+      <div ref="container" class="overflow-hidden text-center relative h-screen">
+        <NcButton
+          class="top-5 !absolute cursor-pointer !hover:bg-transparent left-5"
+          size="xsmall"
+          type="text"
+          @click.stop="selectedImage = false"
+        >
+          <component :is="iconMap.close" class="text-white" />
+        </NcButton>
 
         <div
-          class="keep-open select-none group hover:(ring-1 ring-accent) ring-opacity-100 cursor-pointer leading-8 inline-block px-3 py-1 bg-gray-300 text-white mb-4 text-center rounded shadow"
-          @click.stop="downloadAttachment(selectedImage)"
+          class="keep-open select-none absolute top-5 pointer-events-none inset-x-0 mx-auto group flex items-center justify-center leading-8 inline-block text-center rounded shadow"
         >
-          <h3 class="group-hover:text-primary">{{ selectedImage && selectedImage.title }}</h3>
+          <h3
+            style="width: max-content"
+            class="hover:underline pointer-events-auto font-semibold cursor-pointer text-white"
+            @click.stop="downloadAttachment(selectedImage)"
+          >
+            {{ selectedImage && selectedImage.title }}
+          </h3>
         </div>
 
-        <a-carousel
-          v-if="!!selectedImage"
-          :ref="setCarouselRef"
-          dots-class="slick-dots slick-thumb"
-          :after-change="onSlideChange"
-          arrows
-        >
-          <template #prevArrow>
-            <div class="custom-slick-arrow left-2 z-1 keep-open">
-              <MaterialSymbolsArrowCircleLeftRounded class="rounded-full" />
-            </div>
-          </template>
-
-          <template #nextArrow>
-            <div class="custom-slick-arrow !right-2 z-1 keep-open">
-              <MaterialSymbolsArrowCircleRightRounded class="rounded-full" />
-            </div>
-          </template>
-
-          <template #customPaging="props">
-            <div class="cursor-pointer h-full nc-attachment-img-wrapper">
+        <NcCarousel class="relative p-22 keep-open" @init-api="(val) => (emblaMainApi = val)">
+          <NcCarouselContent>
+            <NcCarouselItem v-for="(item, index) in visibleItems" :key="index">
               <LazyCellAttachmentImage
-                class="!block m-auto h-full w-full"
-                :alt="imageItems[props.i].title || `#${props.i}`"
-                :srcs="getPossibleAttachmentSrc(imageItems[props.i])"
+                class="nc-attachment-img-wrapper !h-[80%]"
+                object-fit="contain"
+                :alt="item.title"
+                :srcs="getPossibleAttachmentSrc(item)"
               />
-            </div>
-          </template>
-          <div v-for="(item, idx) of imageItems" :key="idx">
-            <LazyCellAttachmentImage :srcs="getPossibleAttachmentSrc(item)" class="max-w-70vw max-h-70vh" />
-          </div>
-        </a-carousel>
+            </NcCarouselItem>
+          </NcCarouselContent>
+          <NcCarouselPrevious size="small" class="!top-5/12 z-20 !left-8 !absolute" />
+          <NcCarouselNext size="small" class="!top-5/12 z-20 !right-8 !absolute" />
+        </NcCarousel>
+
+        <div class="absolute !w-screen !bottom-5 max-h-18 z-30 flex items-center justify-center inset-x-0">
+          <NcCarousel class="absolute max-w-sm" @init-api="(val) => (emblaThumbnailApi = val)">
+            <NcCarouselContent class="!flex !gap-3 ml-0">
+              <NcCarouselItem
+                v-for="(item, index) in visibleItems"
+                :key="index"
+                :class="{
+                  'nc-active-attachment': index === selectedIndex,
+                }"
+                class="pl-0 opacity-50 !basis-1/4 cursor-pointer"
+                @click="onThumbClick(index)"
+              >
+                <LazyCellAttachmentImage
+                  class="nc-attachment-img-wrapper"
+                  object-fit="contain"
+                  :alt="item.title"
+                  :srcs="getPossibleAttachmentSrc(item)"
+                />
+              </NcCarouselItem>
+            </NcCarouselContent>
+          </NcCarousel>
+        </div>
       </div>
-    </template>
+    </div>
   </GeneralOverlay>
 </template>
 
-<style scoped>
-.ant-carousel :deep(.custom-slick-arrow .nc-icon):hover {
-  @apply !bg-white;
-}
-.ant-carousel :deep(.slick-dots) {
-  @apply relative mt-4;
-}
-
-.ant-carousel :deep(.slick-slide) {
-  @apply w-full;
-}
-
-.ant-carousel :deep(.slick-slide img) {
-  @apply border-1 m-auto;
-}
-
-.ant-carousel :deep(.slick-thumb) {
-  @apply bottom-2;
-}
-
-.ant-carousel :deep(.slick-thumb li) {
-  @apply w-[60px] h-[45px];
-}
-
-.ant-carousel :deep(.slick-thumb li img) {
-  @apply w-full h-full block;
-  filter: grayscale(100%);
-}
-
-.ant-carousel :deep(.slick-thumb li.slick-active img) {
-  filter: grayscale(0%);
-}
-
-.ant-carousel :deep(.slick-arrow.custom-slick-arrow) {
-  @apply text-4xl text-white hover:text-primary active:text-accent opacity-100 cursor-pointer z-1;
-}
-.ant-carousel :deep(.custom-slick-arrow:before) {
-  display: none;
-}
-.ant-carousel :deep(.custom-slick-arrow:hover) {
-  opacity: 0.5;
-}
-
+<style lang="scss">
 .nc-attachment-img-wrapper {
   width: fit-content !important;
+}
+
+.nc-active-attachment {
+  @apply transform opacity-100 scale-110 transition-transform;
 }
 </style>

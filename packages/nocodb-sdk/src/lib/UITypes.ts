@@ -310,6 +310,7 @@ export const getUITypesForFormulaDataType = (
     case FormulaDataTypes.DATE:
       return [UITypes.DateTime, UITypes.Date, UITypes.Time];
     case FormulaDataTypes.BOOLEAN:
+    case FormulaDataTypes.COND_EXP:
       return [UITypes.Checkbox];
     case FormulaDataTypes.STRING:
       return [UITypes.Email, UITypes.URL, UITypes.PhoneNumber];

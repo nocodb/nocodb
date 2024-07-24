@@ -284,7 +284,7 @@ if ((column.value?.colOptions as any)?.formula_raw) {
     ) || ''
 }
 
-const source = computed(() => activeBase.value?.sources?.find((b) => b.id === meta.value?.source_id))
+const source = computed(() => activeBase.value?.sources?.find((s) => s.id === meta.value?.source_id))
 
 const parsedTree = computedAsync(async () => {
   try {
@@ -293,11 +293,7 @@ const parsedTree = computedAsync(async () => {
       columns: meta.value?.columns || [],
       column: column.value ?? undefined,
       clientOrSqlUi: source.value?.type as any,
-      getMeta: async (modelId) => {
-        const meta = await getMeta(modelId)
-
-        return meta
-      },
+      getMeta: async (modelId) => await getMeta(modelId),
     })
     return parsed
   } catch (e) {
@@ -366,15 +362,15 @@ const activeKey = ref('formula')
 const supportedFormulaAlias = computed(() => {
   if (!parsedTree.value?.dataType) return []
   try {
-    return getUITypesForFormulaDataType(parsedTree.value?.dataType as FormulaDataTypes).map((x) => {
+    return getUITypesForFormulaDataType(parsedTree.value?.dataType as FormulaDataTypes).map((uidt) => {
       return {
-        value: x,
-        label: t(`datatype.${x}`),
+        value: uidt,
+        label: t(`datatype.${uidt}`),
         icon: h(
-          isVirtualCol(x) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'),
+          isVirtualCol(uidt) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'),
           {
             columnMeta: {
-              uidt: x,
+              uidt,
             },
           },
         ),
@@ -605,9 +601,13 @@ watch(parsedTree, (value, oldValue) => {
 
           <template
             v-if="
-              [FormulaDataTypes.NUMERIC, FormulaDataTypes.DATE, FormulaDataTypes.BOOLEAN, FormulaDataTypes.STRING].includes(
-                parsedTree?.dataType,
-              )
+              [
+                FormulaDataTypes.NUMERIC,
+                FormulaDataTypes.DATE,
+                FormulaDataTypes.BOOLEAN,
+                FormulaDataTypes.STRING,
+                FormulaDataTypes.COND_EXP,
+              ].includes(parsedTree?.dataType)
             "
           >
             <SmartsheetColumnCurrencyOptions

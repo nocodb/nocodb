@@ -94,7 +94,7 @@ export default class PresignedUrl {
     },
     ncMeta = Noco.ncMeta,
   ) {
-    const isUrl = param.pathOrUrl.startsWith('http');
+    const isUrl = /^https?:\/\//i.test(param.pathOrUrl);
 
     let path = isUrl
       ? decodeURI(new URL(param.pathOrUrl).pathname)

@@ -302,12 +302,17 @@ export const getUITypesForFormulaDataType = (
   switch (dataType) {
     case FormulaDataTypes.NUMERIC:
       return [
-        UITypes.Number,
         UITypes.Decimal,
         UITypes.Currency,
         UITypes.Percent,
         UITypes.Rating,
       ];
+    case FormulaDataTypes.DATE:
+      return [UITypes.DateTime, UITypes.Date, UITypes.Time];
+    case FormulaDataTypes.BOOLEAN:
+      return [UITypes.Checkbox];
+    case FormulaDataTypes.STRING:
+      return [UITypes.Email, UITypes.URL, UITypes.PhoneNumber];
     default:
       return [];
   }

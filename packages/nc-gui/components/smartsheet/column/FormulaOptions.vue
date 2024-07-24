@@ -383,10 +383,12 @@ const supportedFormulaAlias = computed(() => {
 
 watch(
   () => vModel.value.meta?.display_type,
-  () => {
-    vModel.value.meta.display_column_meta = {
-      meta: {},
-      custom: {},
+  (value, oldValue) => {
+    if (oldValue === undefined && !value) {
+      vModel.value.meta.display_column_meta = {
+        meta: {},
+        custom: {},
+      }
     }
   },
   {
@@ -549,7 +551,7 @@ watch(
       </template>
     </div>
 
-    <div v-if="supportedFormulaAlias.length && parsedTree" class="mt-2 gap-2 flex flex-col">
+    <div v-if="supportedFormulaAlias.length && parsedTree?.dataType" class="mt-2 gap-2 flex flex-col">
       Format type
       <NcSelect
         v-model:value="vModel.meta.display_type"
@@ -558,31 +560,59 @@ watch(
         @change="(val) => (vModel.meta.display_type = val)"
       >
         <a-select-option v-for="option in supportedFormulaAlias" :key="option.value" :value="option.value">
-          <component :is="option.icon" class="w-4 h-4 !text-gray-600" />
-          {{ option.label }}
+          <div class="flex w-full items-center gap-2 justify-between">
+            <div class="w-full">
+              <component :is="option.icon" class="w-4 h-4 !text-gray-600" />
+              {{ option.label }}
+            </div>
+            <component
+              :is="iconMap.check"
+              v-if="option.value === vModel.meta.display_type"
+              id="nc-selected-item-icon"
+              class="text-primary w-4 h-4"
+            />
+          </div>
         </a-select-option>
       </NcSelect>
 
-      <div v-if="parsedTree?.dataType === FormulaDataTypes.NUMERIC">
+      <div
+        v-if="
+          [FormulaDataTypes.NUMERIC, FormulaDataTypes.DATE, FormulaDataTypes.BOOLEAN, FormulaDataTypes.STRING].includes(
+            parsedTree?.dataType,
+          )
+        "
+      >
         <SmartsheetColumnCurrencyOptions
           v-if="vModel.meta.display_type === UITypes.Currency"
-          v-model:value="vModel.meta.display_column_meta"
+          :value="vModel.meta.display_column_meta"
         />
         <SmartsheetColumnNumberOptions
-          v-if="vModel.meta.display_type === UITypes.Number"
-          v-model:value="vModel.meta.display_column_meta"
-        />
-        <SmartsheetColumnNumberOptions
-          v-if="vModel.meta.display_type === UITypes.Decimal"
-          v-model:value="vModel.meta.display_column_meta"
+          v-else-if="vModel.meta.display_type === UITypes.Number"
+          :value="vModel.meta.display_column_meta"
         />
         <SmartsheetColumnPercentOptions
-          v-if="vModel.meta.display_type === UITypes.Percent"
-          v-model:value="vModel.meta.display_column_meta"
+          v-else-if="vModel.meta.display_type === UITypes.Percent"
+          :value="vModel.meta.display_column_meta"
         />
         <SmartsheetColumnRatingOptions
-          v-if="vModel.meta.display_type === UITypes.Rating"
-          v-model:value="vModel.meta.display_column_meta"
+          v-else-if="vModel.meta.display_type === UITypes.Rating"
+          :value="vModel.meta.display_column_meta"
+        />
+        <SmartsheetColumnTimeOptions
+          v-else-if="vModel.meta.display_type === UITypes.Time"
+          :value="vModel.meta.display_column_meta"
+        />
+        <SmartsheetColumnDateTimeOptions
+          v-else-if="vModel.meta.display_type === UITypes.DateTime"
+          :value="vModel.meta.display_column_meta"
+        />
+        <SmartsheetColumnDateOptions
+          v-else-if="vModel.meta.display_type === UITypes.Date"
+          :value="vModel.meta.display_column_meta"
+        />
+        <SmartsheetColumnCheckboxOptions
+          v-else-if="vModel.meta.display_type === UITypes.Checkbox"
+          :value="vModel.meta.display_column_meta"
         />
       </div>
     </div>

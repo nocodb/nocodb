@@ -45,7 +45,7 @@ const { getPossibleAttachmentSrc } = useAttachment()
 
 useEventListener(container, 'click', (e) => {
   const target = e.target as HTMLElement
-  if (!target.closest('.keep-open') && !target.closest('.nc-button') && !target?.closest('img') && !target?.closest('video')) {
+  if (!target.closest('.keep-open') && !target.closest('.nc-button') && !target.closest('img') && !target.closest('video')) {
     selectedFile.value = false
   }
 })
@@ -81,9 +81,12 @@ const goNext = () => {
   emblaThumbnailApi.value.scrollNext()
 }
 
+// When the carousel is initialized, we set the selected index to the index of the selected file
+// and scroll to that index. We only need to do this once, so we use watchOnce.
 watchOnce(emblaMainApi, async (emblaMainApi) => {
   if (!emblaMainApi) return
 
+  // The focus is set to the container so that the keyboard navigation works
   container.value?.focus()
 
   emblaThumbnailApi.value?.on('reInit', onSelect)
@@ -131,7 +134,7 @@ function onKeyDown(event: KeyboardEvent) {
 
 /* const toggleComment = () => {
   openComments.value = !openComments.value
-} */
+}
 
 onMounted(() => {
   if (!isPublic.value && !isExpandedFormOpen.value && isUIAllowed('commentList')) {
@@ -139,6 +142,11 @@ onMounted(() => {
     loadComments()
   }
 })
+*/
+
+const initEmblaApi = (val: any) => {
+  emblaMainApi.value = val
+}
 </script>
 
 <template>
@@ -170,10 +178,7 @@ onMounted(() => {
           </h3>
         </div>
 
-        <NcCarousel
-          class="!absolute inset-y-16 inset-x-24 keep-open flex justify-center items-center"
-          @init-api="(val) => (emblaMainApi = val)"
-        >
+        <NcCarousel class="!absolute inset-y-16 inset-x-24 keep-open flex justify-center items-center" @init-api="initEmblaApi">
           <NcCarouselContent>
             <NcCarouselItem v-for="(item, index) in visibleItems" :key="index">
               <div v-if="selectedIndex === index" class="justify-center w-full h-full flex items-center">
@@ -211,18 +216,10 @@ onMounted(() => {
           </NcCarouselContent>
         </NcCarousel>
 
-        <div
-          v-if="emblaMainApi?.canScrollPrev()"
-          class="absolute keep-open text-gray-400 hover:text-white cursor-pointer text-white left-2 h-full flex items-center inset-y-0 my-0"
-          @click="goPrev"
-        >
+        <div v-if="emblaMainApi?.canScrollPrev()" class="left-2 carousel-navigation" @click="goPrev">
           <component :is="iconMap.arrowLeft" class="text-7xl" />
         </div>
-        <div
-          v-if="emblaMainApi?.canScrollNext()"
-          class="absolute keep-open text-gray-400 hover:text-white cursor-pointer text-white right-2 h-full flex items-center inset-y-0 my-0"
-          @click="goNext"
-        >
+        <div v-if="emblaMainApi?.canScrollNext()" class="right-2 carousel-navigation" @click="goNext">
           <component :is="iconMap.arrowRight" class="text-7xl" />
         </div>
 
@@ -346,9 +343,15 @@ onMounted(() => {
   </GeneralOverlay>
 </template>
 
+<style scoped lang="scss">
+.carousel-navigation {
+  @apply absolute keep-open text-gray-400 hover:text-white cursor-pointer text-white h-full flex items-center inset-y-0 my-0;
+}
+</style>
+
 <style lang="scss">
 .nc-attachment-carousel {
-  width: max-content;
+  @apply w-max;
 }
 
 .carousel-container {

@@ -229,7 +229,7 @@ const handleFileDelete = (i: number) => {
             v-if="isImage(item.title, item.mimetype)"
             :srcs="getPossibleAttachmentSrc(item)"
             object-fit="cover"
-            class="!w-full h-42 object-cover !m-0 rounded-t-[5px] justify-center"
+            class="!w-full !h-42 object-cover !m-0 rounded-t-[5px] justify-center"
             @click="selectedFile = item"
           />
 

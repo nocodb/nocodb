@@ -82,11 +82,11 @@ export class AttachmentsService {
             );
 
             attachment.signedPath = await PresignedUrl.getSignedUrl({
-              path: attachment.path.replace(/^download\//, ''),
+              pathOrUrl: attachment.path.replace(/^download\//, ''),
             });
           } else {
             attachment.signedUrl = await PresignedUrl.getSignedUrl({
-              path: decodeURI(new URL(attachment.url).pathname),
+              pathOrUrl: attachment.url,
             });
           }
 

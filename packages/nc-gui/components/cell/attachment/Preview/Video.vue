@@ -44,10 +44,9 @@ onBeforeUnmount(() => {
     controls
     playsinline
     :class="{
-      '!w-128 !h-72': isAudio(title ?? '', mimeType),
       [props.class]: props.class,
     }"
-    class="videoplayer w-full"
+    class="videoplayer !min-w-128 !min-h-72 w-full"
   >
     <source v-for="(source, id) in props.src" :key="id" :src="source" :type="mimeType" />
   </video>

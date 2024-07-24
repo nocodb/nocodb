@@ -158,15 +158,9 @@ const handleFileDelete = (i: number) => {
               @click.stop="onClick(item)"
             />
 
-            <component
-              :is="FileIcon(item.icon)"
-              v-else-if="item.icon"
-              :height="45"
-              :width="45"
-              @click.stop="openAttachment(item)"
-            />
+            <component :is="FileIcon(item.icon)" v-else-if="item.icon" :height="45" :width="45" @click.stop="onClick(item)" />
 
-            <IcOutlineInsertDriveFile v-else :height="45" :width="45" @click.stop="openAttachment(item)" />
+            <IcOutlineInsertDriveFile v-else :height="45" :width="45" @click.stop="onClick(item)" />
           </div>
 
           <div class="relative px-1 pb-1 items-center flex" :title="item.title">

@@ -52,9 +52,22 @@ export class AttachmentCellPageObject extends BasePage {
     await this.rootPage.waitForTimeout(750);
   }
 
-  async removeFile({ attIndex, index, columnHeader }: { attIndex: number; index?: number; columnHeader: string }) {
+  async removeFile({
+    attIndex,
+    index,
+    columnHeader,
+    skipElemClick,
+  }: {
+    attIndex: number;
+    index?: number;
+    columnHeader: string;
+    skipElemClick?: boolean;
+  }) {
     await this.get({ index, columnHeader }).scrollIntoViewIfNeeded();
-    await this.get({ index, columnHeader }).click({ position: { x: 1, y: 1 } });
+
+    if (!skipElemClick) {
+      await this.get({ index, columnHeader }).click({ position: { x: 1, y: 1 } });
+    }
 
     await this.get({ index, columnHeader }).locator('.nc-attachment-item').nth(attIndex).hover();
     await this.get({ index, columnHeader })

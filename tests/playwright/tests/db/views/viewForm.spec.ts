@@ -1366,6 +1366,7 @@ test.describe('Form view: field validation', () => {
     await sharedForm.cell.attachment.removeFile({
       columnHeader: 'Attachment',
       attIndex: 0,
+      skipElemClick: true,
     });
 
     await sharedForm.cell.attachment.addFile({
@@ -1414,6 +1415,7 @@ test.describe('Form view: field validation', () => {
     await surveyForm.cell.attachment.removeFile({
       columnHeader: 'Attachment',
       attIndex: 0,
+      skipElemClick: true,
     });
 
     await surveyForm.cell.attachment.addFile({

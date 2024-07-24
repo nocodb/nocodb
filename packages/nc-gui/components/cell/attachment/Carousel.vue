@@ -216,10 +216,20 @@ const initEmblaApi = (val: any) => {
           </NcCarouselContent>
         </NcCarousel>
 
-        <div v-if="emblaMainApi?.canScrollPrev()" class="left-2 carousel-navigation" @click="goPrev">
+        <div
+          v-if="emblaMainApi?.canScrollPrev()"
+          :key="selectedIndex"
+          class="left-2 carousel-navigation keep-open"
+          @click="goPrev"
+        >
           <component :is="iconMap.arrowLeft" class="text-7xl" />
         </div>
-        <div v-if="emblaMainApi?.canScrollNext()" class="right-2 carousel-navigation" @click="goNext">
+        <div
+          v-if="emblaMainApi?.canScrollNext()"
+          :key="selectedIndex"
+          class="right-2 carousel-navigation keep-open"
+          @click="goNext"
+        >
           <component :is="iconMap.arrowRight" class="text-7xl" />
         </div>
 
@@ -350,7 +360,7 @@ const initEmblaApi = (val: any) => {
 
 <style scoped lang="scss">
 .carousel-navigation {
-  @apply absolute keep-open text-gray-400 hover:text-white cursor-pointer text-white h-full flex items-center inset-y-0 my-0;
+  @apply absolute text-gray-400 hover:text-white  cursor-pointer text-white h-full flex items-center inset-y-0 my-0;
 }
 </style>
 

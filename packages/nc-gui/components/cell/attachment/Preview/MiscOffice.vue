@@ -27,7 +27,7 @@ const openMethod = ref<'google' | undefined>()
   <iframe
     v-else-if="openMethod === 'google'"
     :class="props.class"
-    :src="`https://docs.google.com/viewer?url=${src}&embedded=true`"
+    :src="`https://docs.google.com/viewer?url=${encodeURIComponent(src)}&embedded=true`"
     width="100%"
     height="100%"
     frameborder="0"

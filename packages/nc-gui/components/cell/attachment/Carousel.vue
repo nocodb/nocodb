@@ -215,8 +215,9 @@ onMounted(() => {
                 :key="index"
                 :class="{
                   '!opacity-100': index === selectedIndex,
-                  '!basis-1/8': visibleItems.length >= 4,
-                  '!basis-1/3': visibleItems.length >= 1,
+                  '!basis-1/4': visibleItems.length >= 4,
+                  '!basis-1/3': visibleItems.length === 3,
+                  '!basis-1/2': visibleItems.length === 2,
                 }"
                 class="px-2 keep-open opacity-50 cursor-pointer"
                 @click="onThumbClick(index)"

@@ -24,13 +24,13 @@ const openMethod = ref<'browser' | 'google' | undefined>()
     <GeneralIcon class="w-28 h-28" icon="pdfFile" />
 
     <div class="flex items-center justify-center gap-2">
-      <NcButton type="secondary" @click="openMethod = 'browser'">
+      <NcButton class="!w-52" type="secondary" @click="openMethod = 'browser'">
         <div class="flex items-center gap-1">
           <GeneralIcon icon="globe" />
           Open in browser
         </div>
       </NcButton>
-      <NcButton type="secondary" @click="openMethod = 'google'">
+      <NcButton type="secondary" class="!w-52" @click="openMethod = 'google'">
         <div class="flex items-center gap-1">
           <GeneralIcon class="w-4 h-4" icon="googleDocs" />
 

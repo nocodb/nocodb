@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type { CarouselApi } from '../../nc/Carousel/interface'
 import { useAttachmentCell } from './utils'
+import { isOffice } from '~/utils/fileUtils'
 
 const { selectedFile, visibleItems, downloadAttachment, removeFile, renameFile, isPublic, isReadonly } = useAttachmentCell()!
 
@@ -132,6 +133,11 @@ watchOnce(emblaMainApi, async (emblaMainApi) => {
                 class="keep-open"
                 :src="getPossibleAttachmentSrc(item)[0]"
               />
+              <LazyCellAttachmentPreviewMiscOffice
+                v-else-if="isOffice(item.title, item.mimeType)"
+                class="keep-open"
+                :src="getPossibleAttachmentSrc(item)[0]"
+              />
               <div v-else class="bg-white h-full flex flex-col justify-center rounded-md gap-1 items-center w-full">
                 <component :is="iconMap.file" class="text-gray-600 w-20 h-20" />
                 <div class="text-gray-800 text-sm">{{ item.title }}</div>
@@ -171,6 +177,13 @@ watchOnce(emblaMainApi, async (emblaMainApi) => {
                   class="h-full flex items-center h-6 justify-center rounded-md px-2 py-1 border-1 border-gray-200"
                 >
                   <GeneralIcon class="text-white" icon="play" />
+                </div>
+
+                <div
+                  v-else-if="isPdf(item.title, item.mimeType)"
+                  class="h-full flex items-center h-6 justify-center rounded-md px-2 py-1 border-1 border-gray-200"
+                >
+                  <GeneralIcon class="text-white" icon="pdfFile" />
                 </div>
 
                 <div v-else class="h-full flex items-center h-6 justify-center rounded-md px-2 py-1 border-1 border-gray-200">

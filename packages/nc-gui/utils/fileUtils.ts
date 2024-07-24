@@ -36,6 +36,37 @@ const videoExt = [
   'ts',
 ]
 
+const officeExt = [
+  'txt',
+  'css',
+  'html',
+  'php',
+  'c',
+  'cpp',
+  'h',
+  'hpp',
+  'js',
+  'doc',
+  'docx',
+  'xls',
+  'xlsx',
+  'ppt',
+  'pptx',
+  'pdf',
+  'pages',
+  'ai',
+  'psd',
+  'tiff',
+  'dxf',
+  'svg',
+  'eps',
+  'ps',
+  'ttf',
+  'xps',
+  'zip',
+  'rar',
+]
+
 const isVideo = (name: string, mimetype?: string) => {
   return videoExt.some((e) => name?.toLowerCase().endsWith(`.${e}`)) || mimetype?.startsWith('video/')
 }
@@ -48,7 +79,11 @@ const isPdf = (name: string, mimetype?: string) => {
   return name?.toLowerCase().endsWith('.pdf') || mimetype?.startsWith('application/pdf')
 }
 
-export { isImage, imageExt, isVideo, isPdf }
+const isOffice = (name: string, mimetype?: string) => {
+  return officeExt.some((e) => name?.toLowerCase().endsWith(`.${e}`))
+}
+
+export { isImage, imageExt, isVideo, isPdf, isOffice }
 // Ref : https://stackoverflow.com/a/12002275
 
 // Tested in Mozilla Firefox browser, Chrome

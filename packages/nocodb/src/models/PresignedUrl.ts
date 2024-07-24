@@ -99,9 +99,9 @@ export default class PresignedUrl {
   ) {
     const isUrl = /^https?:\/\//i.test(param.pathOrUrl);
 
-    let path = isUrl
-      ? decodeURI(new URL(param.pathOrUrl).pathname)
-      : param.pathOrUrl.replace(/^\/+/, '');
+    let path = (
+      isUrl ? decodeURI(new URL(param.pathOrUrl).pathname) : param.pathOrUrl
+    ).replace(/^\/+/, '');
 
     const {
       expireSeconds = DEFAULT_EXPIRE_SECONDS,

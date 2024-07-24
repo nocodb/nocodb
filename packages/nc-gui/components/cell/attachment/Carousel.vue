@@ -37,7 +37,7 @@ const { getPossibleAttachmentSrc } = useAttachment()
 
 useEventListener(container, 'click', (e) => {
   const target = e.target as HTMLElement
-  if (!target.closest('.keep-open') || !target.closest('.nc-button') || !target?.closest('img') || !target?.closest('video')) {
+  if (!target.closest('.keep-open') && !target.closest('.nc-button') && !target?.closest('img') && !target?.closest('video')) {
     selectedFile.value = false
   }
 })

@@ -3,9 +3,12 @@ import type { Ref } from 'vue'
 import type { ListItem as AntListItem } from 'ant-design-vue'
 import jsep from 'jsep'
 import {
+  FormulaDataTypes,
   FormulaError,
   UITypes,
+  getUITypesForFormulaDataType,
   isHiddenCol,
+  isVirtualCol,
   jsepCurlyHook,
   substituteColumnIdWithAliasInFormula,
   validateFormulaAndExtractTreeWithType,
@@ -29,6 +32,8 @@ const { t } = useI18n()
 const { predictFunction: _predictFunction } = useNocoEe()
 
 const meta = inject(MetaInj, ref())
+
+const { base: activeBase } = storeToRefs(useBase())
 
 const supportedColumns = computed(
   () =>
@@ -279,6 +284,25 @@ if ((column.value?.colOptions as any)?.formula_raw) {
     ) || ''
 }
 
+const source = computed(() => activeBase.value?.sources?.find((s) => s.id === meta.value?.source_id))
+
+const parsedTree = computedAsync(async () => {
+  try {
+    const parsed = await validateFormulaAndExtractTreeWithType({
+      formula: vModel.value.formula || vModel.value.formula_raw,
+      columns: meta.value?.columns || [],
+      column: column.value ?? undefined,
+      clientOrSqlUi: source.value?.type as any,
+      getMeta: async (modelId) => await getMeta(modelId),
+    })
+    return parsed
+  } catch (e) {
+    return {
+      dataType: FormulaDataTypes.UNKNOWN,
+    }
+  }
+})
+
 // set additional validations
 setAdditionalValidations({
   ...validators,
@@ -332,12 +356,65 @@ const handleKeydown = (e: KeyboardEvent) => {
     }
   }
 }
+
+const activeKey = ref('formula')
+
+const supportedFormulaAlias = computed(() => {
+  if (!parsedTree.value?.dataType) return []
+  try {
+    return getUITypesForFormulaDataType(parsedTree.value?.dataType as FormulaDataTypes).map((uidt) => {
+      return {
+        value: uidt,
+        label: t(`datatype.${uidt}`),
+        icon: h(
+          isVirtualCol(uidt) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'),
+          {
+            columnMeta: {
+              uidt,
+            },
+          },
+        ),
+      }
+    })
+  } catch (e) {
+    return []
+  }
+})
+
+watch(
+  () => vModel.value.meta?.display_type,
+  (value, oldValue) => {
+    if (oldValue === undefined && !value) {
+      vModel.value.meta.display_column_meta = {
+        meta: {},
+        custom: {},
+      }
+    }
+  },
+  {
+    immediate: true,
+  },
+)
+
+watch(parsedTree, (value, oldValue) => {
+  if (oldValue === undefined && value) {
+    return
+  }
+  if (value?.dataType !== oldValue?.dataType) {
+    vModel.value.meta.display_type = null
+  }
+})
 </script>
 
 <template>
   <div class="formula-wrapper relative">
     <div
-      v-if="suggestionPreviewed && !suggestionPreviewed.unsupported && suggestionPreviewed.type === 'function'"
+      v-if="
+        suggestionPreviewed &&
+        !suggestionPreviewed.unsupported &&
+        suggestionPreviewed.type === 'function' &&
+        activeKey === 'formula'
+      "
       class="w-84 fixed bg-white z-10 pl-3 pt-3 border-1 shadow-md rounded-xl"
       :style="{
         left: suggestionPreviewPostion.left,
@@ -384,109 +461,191 @@ const handleKeydown = (e: KeyboardEvent) => {
         </a>
       </div>
     </div>
-    <a-form-item v-bind="validateInfos.formula_raw" :label="$t('datatype.Formula')">
-      <!-- <GeneralIcon
-        v-if="isEeUI"
-        icon="magic"
-        :class="{ 'nc-animation-pulse': loadMagic }"
-        class="text-orange-400 cursor-pointer absolute right-1 top-1 z-10"
-        @click="predictFunction()"
-      /> -->
-      <a-textarea
-        ref="formulaRef"
-        v-model:value="vModel.formula_raw"
-        class="nc-formula-input !rounded-md"
-        @keydown="handleKeydown"
-        @change="handleInputDeb"
-      />
-    </a-form-item>
 
-    <div class="h-[250px] overflow-auto nc-scrollbar-thin border-1 border-gray-200 rounded-lg mt-4">
-      <template v-if="suggestedFormulas && showFunctionList">
-        <div class="border-b-1 bg-gray-50 px-3 py-1 uppercase text-gray-600 text-xs font-semibold sticky top-0 z-10">
-          Formulas
+    <NcTabs v-model:activeKey="activeKey">
+      <a-tab-pane key="formula">
+        <template #tab>
+          <div class="tab">
+            <div>{{ $t('datatype.Formula') }}</div>
+          </div>
+        </template>
+        <div class="px-0.5">
+          <a-form-item class="mt-4" v-bind="validateInfos.formula_raw">
+            <a-textarea
+              ref="formulaRef"
+              v-model:value="vModel.formula_raw"
+              class="nc-formula-input !rounded-md"
+              @keydown="handleKeydown"
+              @change="handleInputDeb"
+            />
+          </a-form-item>
+
+          <div class="h-[250px] overflow-auto nc-scrollbar-thin border-1 border-gray-200 rounded-lg mt-4">
+            <template v-if="suggestedFormulas && showFunctionList">
+              <div class="border-b-1 bg-gray-50 px-3 py-1 uppercase text-gray-600 text-xs font-semibold sticky top-0 z-10">
+                Formulas
+              </div>
+
+              <a-list :data-source="suggestedFormulas" :locale="{ emptyText: $t('msg.formula.noSuggestedFormulaFound') }">
+                <template #renderItem="{ item, index }">
+                  <a-list-item
+                    :ref="
+                      (el) => {
+                        sugOptionsRef[index] = el
+                      }
+                    "
+                    class="cursor-pointer !overflow-hidden hover:bg-gray-50"
+                    :class="{
+                      '!bg-gray-100': selected === index,
+                      'cursor-not-allowed': item.unsupported,
+                    }"
+                    @click.prevent.stop="!item.unsupported && appendText(item)"
+                    @mouseenter="suggestionPreviewed = item"
+                  >
+                    <a-list-item-meta>
+                      <template #title>
+                        <div class="flex items-center gap-x-1" :class="{ 'text-gray-400': item.unsupported }">
+                          <component :is="iconMap.function" v-if="item.type === 'function'" class="w-4 h-4 !text-gray-600" />
+
+                          <component :is="iconMap.calculator" v-if="item.type === 'op'" class="w-4 h-4 !text-gray-600" />
+
+                          <component :is="item.icon" v-if="item.type === 'column'" class="w-4 h-4 !text-gray-600" />
+                          <span class="text-small leading-[18px]" :class="{ 'text-gray-800': !item.unsupported }">{{
+                            item.text
+                          }}</span>
+                        </div>
+                        <div v-if="item.unsupported" class="ml-5 text-gray-400 text-xs">{{ $t('msg.formulaNotSupported') }}</div>
+                      </template>
+                    </a-list-item-meta>
+                  </a-list-item>
+                </template>
+              </a-list>
+            </template>
+
+            <template v-if="variableList">
+              <div class="border-b-1 bg-gray-50 px-3 py-1 uppercase text-gray-600 text-xs font-semibold sticky top-0 z-10">
+                Fields
+              </div>
+
+              <a-list
+                ref="variableListRef"
+                :data-source="variableList"
+                :locale="{ emptyText: $t('msg.formula.noSuggestedFieldFound') }"
+                class="!overflow-hidden"
+              >
+                <template #renderItem="{ item, index }">
+                  <a-list-item
+                    :ref="
+                      (el) => {
+                        sugOptionsRef[index + suggestedFormulas.length] = el
+                      }
+                    "
+                    :class="{
+                      '!bg-gray-100': selected === index + suggestedFormulas.length,
+                    }"
+                    class="cursor-pointer hover:bg-gray-50"
+                    @click.prevent.stop="appendText(item)"
+                  >
+                    <a-list-item-meta class="nc-variable-list-item">
+                      <template #title>
+                        <div class="flex items-center gap-x-1 justify-between">
+                          <div class="flex items-center gap-x-1 rounded-md bg-gray-200 px-1 h-5">
+                            <component :is="item.icon" class="w-4 h-4 !text-gray-600" />
+
+                            <span class="text-small leading-[18px] text-gray-800 font-weight-500">{{ item.text }}</span>
+                          </div>
+
+                          <NcButton
+                            size="small"
+                            type="text"
+                            class="nc-variable-list-item-use-field-btn !h-7 px-3 !text-small invisible"
+                          >
+                            {{ $t('general.use') }} {{ $t('objects.field').toLowerCase() }}
+                          </NcButton>
+                        </div>
+                      </template>
+                    </a-list-item-meta>
+                  </a-list-item>
+                </template>
+              </a-list>
+            </template>
+          </div>
         </div>
+      </a-tab-pane>
 
-        <a-list :data-source="suggestedFormulas" :locale="{ emptyText: $t('msg.formula.noSuggestedFormulaFound') }">
-          <template #renderItem="{ item, index }">
-            <a-list-item
-              :ref="
-                (el) => {
-                  sugOptionsRef[index] = el
-                }
-              "
-              class="cursor-pointer !overflow-hidden hover:bg-gray-50"
-              :class="{
-                '!bg-gray-100': selected === index,
-                'cursor-not-allowed': item.unsupported,
-              }"
-              @click.prevent.stop="!item.unsupported && appendText(item)"
-              @mouseenter="suggestionPreviewed = item"
-            >
-              <a-list-item-meta>
-                <template #title>
-                  <div class="flex items-center gap-x-1" :class="{ 'text-gray-400': item.unsupported }">
-                    <component :is="iconMap.function" v-if="item.type === 'function'" class="w-4 h-4 !text-gray-600" />
-
-                    <component :is="iconMap.calculator" v-if="item.type === 'op'" class="w-4 h-4 !text-gray-600" />
-
-                    <component :is="item.icon" v-if="item.type === 'column'" class="w-4 h-4 !text-gray-600" />
-                    <span class="text-small leading-[18px]" :class="{ 'text-gray-800': !item.unsupported }">{{ item.text }}</span>
+      <a-tab-pane key="format" :disabled="!supportedFormulaAlias?.length || !parsedTree?.dataType">
+        <template #tab>
+          <div class="tab">
+            <div>{{ $t('labels.formatting') }}</div>
+          </div>
+        </template>
+        <div class="flex flex-col px-0.5 gap-4">
+          <a-form-item class="mt-4" :label="$t('general.format')">
+            <a-select v-model:value="vModel.meta.display_type" class="w-full" :placeholder="$t('labels.selectAFormatType')">
+              <a-select-option v-for="option in supportedFormulaAlias" :key="option.value" :value="option.value">
+                <div class="flex w-full items-center gap-2 justify-between">
+                  <div class="w-full">
+                    <component :is="option.icon" class="w-4 h-4 !text-gray-600" />
+                    {{ option.label }}
                   </div>
-                  <div v-if="item.unsupported" class="ml-5 text-gray-400 text-xs">{{ $t('msg.formulaNotSupported') }}</div>
-                </template>
-              </a-list-item-meta>
-            </a-list-item>
+                  <component
+                    :is="iconMap.check"
+                    v-if="option.value === vModel.meta?.display_type"
+                    id="nc-selected-item-icon"
+                    class="text-primary w-4 h-4"
+                  />
+                </div>
+              </a-select-option>
+            </a-select>
+          </a-form-item>
+
+          <template
+            v-if="
+              [
+                FormulaDataTypes.NUMERIC,
+                FormulaDataTypes.DATE,
+                FormulaDataTypes.BOOLEAN,
+                FormulaDataTypes.STRING,
+                FormulaDataTypes.COND_EXP,
+              ].includes(parsedTree?.dataType)
+            "
+          >
+            <SmartsheetColumnCurrencyOptions
+              v-if="vModel.meta.display_type === UITypes.Currency"
+              :value="vModel.meta.display_column_meta"
+            />
+            <SmartsheetColumnDecimalOptions
+              v-else-if="vModel.meta.display_type === UITypes.Decimal"
+              :value="vModel.meta.display_column_meta"
+            />
+            <SmartsheetColumnPercentOptions
+              v-else-if="vModel.meta.display_type === UITypes.Percent"
+              :value="vModel.meta.display_column_meta"
+            />
+            <SmartsheetColumnRatingOptions
+              v-else-if="vModel.meta.display_type === UITypes.Rating"
+              :value="vModel.meta.display_column_meta"
+            />
+            <SmartsheetColumnTimeOptions
+              v-else-if="vModel.meta.display_type === UITypes.Time"
+              :value="vModel.meta.display_column_meta"
+            />
+            <SmartsheetColumnDateTimeOptions
+              v-else-if="vModel.meta.display_type === UITypes.DateTime"
+              :value="vModel.meta.display_column_meta"
+            />
+            <SmartsheetColumnDateOptions
+              v-else-if="vModel.meta.display_type === UITypes.Date"
+              :value="vModel.meta.display_column_meta"
+            />
+            <SmartsheetColumnCheckboxOptions
+              v-else-if="vModel.meta.display_type === UITypes.Checkbox"
+              :value="vModel.meta.display_column_meta"
+            />
           </template>
-        </a-list>
-      </template>
-
-      <template v-if="variableList">
-        <div class="border-b-1 bg-gray-50 px-3 py-1 uppercase text-gray-600 text-xs font-semibold sticky top-0 z-10">Fields</div>
-
-        <a-list
-          ref="variableListRef"
-          :data-source="variableList"
-          :locale="{ emptyText: $t('msg.formula.noSuggestedFieldFound') }"
-          class="!overflow-hidden"
-        >
-          <template #renderItem="{ item, index }">
-            <a-list-item
-              :ref="
-                (el) => {
-                  sugOptionsRef[index + suggestedFormulas.length] = el
-                }
-              "
-              :class="{
-                '!bg-gray-100': selected === index + suggestedFormulas.length,
-              }"
-              class="cursor-pointer hover:bg-gray-50"
-              @click.prevent.stop="appendText(item)"
-            >
-              <a-list-item-meta class="nc-variable-list-item">
-                <template #title>
-                  <div class="flex items-center gap-x-1 justify-between">
-                    <div class="flex items-center gap-x-1 rounded-md bg-gray-200 px-1 h-5">
-                      <component :is="item.icon" class="w-4 h-4 !text-gray-600" />
-
-                      <span class="text-small leading-[18px] text-gray-800 font-weight-500">{{ item.text }}</span>
-                    </div>
-
-                    <NcButton
-                      size="small"
-                      type="text"
-                      class="nc-variable-list-item-use-field-btn !h-7 px-3 !text-small invisible"
-                    >
-                      {{ $t('general.use') }} {{ $t('objects.field').toLowerCase() }}
-                    </NcButton>
-                  </div>
-                </template>
-              </a-list-item-meta>
-            </a-list-item>
-          </template>
-        </a-list>
-      </template>
-    </div>
+        </div>
+      </a-tab-pane>
+    </NcTabs>
   </div>
 </template>
 
@@ -510,5 +669,25 @@ const handleKeydown = (e: KeyboardEvent) => {
   &:hover .nc-variable-list-item-use-field-btn {
     @apply visible;
   }
+}
+
+:deep(.ant-tabs-nav-wrap) {
+  @apply !pl-0;
+}
+
+:deep(.ant-tabs-content-holder) {
+  @apply mt-4;
+}
+
+:deep(.ant-tabs-tab) {
+  @apply !pb-0 pt-1;
+}
+
+:deep(.ant-tabs-nav) {
+  @apply !mb-0 !pl-0;
+}
+
+:deep(.ant-tabs-tab-btn) {
+  @apply !mb-1;
 }
 </style>

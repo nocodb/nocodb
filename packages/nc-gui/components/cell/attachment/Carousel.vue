@@ -5,6 +5,8 @@ import { isOffice } from '~/utils/fileUtils'
 
 const { selectedFile, visibleItems, downloadAttachment, removeFile, renameFile, isPublic, isReadonly } = useAttachmentCell()!
 
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
+
 const { isSharedForm } = useSmartsheetStoreOrThrow()
 
 const { isUIAllowed } = useRoles()
@@ -83,7 +85,7 @@ watchOnce(emblaMainApi, async (emblaMainApi) => {
 </script>
 
 <template>
-  <GeneralOverlay v-model="selectedFile" transition :z-index="50" class="bg-black bg-opacity-90">
+  <GeneralOverlay v-model="selectedFile" transition :z-index="isExpandedFormOpen ? 1000 : 50" class="bg-black bg-opacity-90">
     <div
       v-if="selectedFile"
       ref="container"

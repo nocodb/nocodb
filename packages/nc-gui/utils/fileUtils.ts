@@ -84,7 +84,7 @@ const isPdf = (name: string, mimetype?: string) => {
   return name?.toLowerCase().endsWith('.pdf') || mimetype?.startsWith('application/pdf')
 }
 
-const isOffice = (name: string, mimetype?: string) => {
+const isOffice = (name: string, _mimetype?: string) => {
   return officeExt.some((e) => name?.toLowerCase().endsWith(`.${e}`))
 }
 

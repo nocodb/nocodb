@@ -38,7 +38,7 @@ const { isSharedForm } = useSmartsheetStoreOrThrow()!
 
 const { isMobileMode } = useGlobal()
 
-const { getPossibleAttachmentSrc, openAttachment: _openAttachment } = useAttachment()
+const { getPossibleAttachmentSrc } = useAttachment()
 
 const {
   isPublic,
@@ -150,16 +150,6 @@ const open = (e: Event) => {
   e.stopPropagation()
 
   openAttachmentModal()
-}
-
-const openAttachment = (item: any) => {
-  if (isMobileMode.value && !isExpandedForm.value) {
-    isExpandedForm.value = true
-
-    return
-  }
-
-  _openAttachment(item)
 }
 
 const onExpand = () => {

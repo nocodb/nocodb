@@ -50,7 +50,7 @@ onBeforeUnmount(() => {
     }"
     class="videoplayer w-full"
   >
-    <source v-for="(src, id) in props.src" :key="id" :src="src" :type="mimeType" />
+    <source v-for="(source, id) in props.src" :key="id" :src="source" :type="mimeType" />
   </video>
 </template>
 

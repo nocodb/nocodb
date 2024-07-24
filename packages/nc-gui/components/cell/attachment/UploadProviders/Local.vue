@@ -165,7 +165,7 @@ onBeforeUnmount(() => {
         </div>
       </template>
     </div>
-    <div v-if="tempFiles.length" class="flex gap-2 pt-1 bg-white w-full items-center justify-end">
+    <div v-if="tempFiles.length" class="flex gap-2 pt-2 bg-white w-full items-center justify-end">
       <NcButton :disabled="isLoading" type="secondary" size="small" @click="closeMenu">
         {{ $t('labels.cancel') }}
       </NcButton>

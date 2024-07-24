@@ -189,7 +189,7 @@ const handleFileDelete = (i: number) => {
                   type="text"
                   @click="downloadAttachment(item)"
                 >
-                  <component :is="iconMap.download" class="!text-xs" />
+                  <component :is="iconMap.download" class="!text-xs h-13px w-13px" />
                 </NcButton>
               </NcTooltip>
 
@@ -197,11 +197,11 @@ const handleFileDelete = (i: number) => {
                 <template #title> {{ $t('title.renameFile') }} </template>
                 <NcButton
                   size="xsmall"
-                  class="!p-0 nc-attachment-rename !h-5 !w-5 !text-gray-500 !min-w-[fit-content]"
+                  class="!p-0 nc-attachment-rename !h-5 !w-5 !text-gray-500 !min-w-[fit-content] gap-2"
                   type="text"
                   @click="renameFile(item, i)"
                 >
-                  <component :is="iconMap.rename" class="text-xs" />
+                  <component :is="iconMap.rename" class="text-xs h-13px w-13px" />
                 </NcButton>
               </NcTooltip>
 
@@ -213,7 +213,7 @@ const handleFileDelete = (i: number) => {
                   type="text"
                   @click="onRemoveFileClick(item.title, i)"
                 >
-                  <component :is="iconMap.delete" />
+                  <component :is="iconMap.delete" class="text-xs h-13px w-13px" />
                 </NcButton>
               </NcTooltip>
             </div>

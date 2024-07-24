@@ -1,13 +1,37 @@
 <script lang="ts" setup>
 import type { CarouselApi } from '../../nc/Carousel/interface'
 import { useAttachmentCell } from './utils'
-const { selectedImage, visibleItems, downloadAttachment } = useAttachmentCell()!
+
+const { selectedFile, visibleItems, downloadAttachment, removeFile, renameFile, isPublic, isReadonly } = useAttachmentCell()!
+
+const { isSharedForm } = useSmartsheetStoreOrThrow()
+
+const { isUIAllowed } = useRoles()
 
 const container = ref<HTMLElement | null>(null)
 
 const emblaMainApi: CarouselApi = ref()
 const emblaThumbnailApi: CarouselApi = ref()
 const selectedIndex = ref()
+
+const filetoDelete = reactive({
+  title: '',
+  i: 0,
+})
+const isModalOpen = ref(false)
+
+function onRemoveFileClick(title: any, i: number) {
+  isModalOpen.value = true
+  filetoDelete.title = title
+  filetoDelete.i = i
+}
+
+const handleFileDelete = (i: number) => {
+  removeFile(i)
+  isModalOpen.value = false
+  filetoDelete.i = 0
+  filetoDelete.title = ''
+}
 
 const { getPossibleAttachmentSrc } = useAttachment()
 
@@ -58,7 +82,7 @@ watchOnce(emblaMainApi, async (emblaMainApi) => {
 </script>
 
 <template>
-  <GeneralOverlay v-model="selectedFile" transition :z-index="1001" class="bg-black bg-opacity-90">
+  <GeneralOverlay v-model="selectedFile" transition :z-index="50" class="bg-black bg-opacity-90">
     <div v-if="selectedFile" class="flex w-full justify-center items-center">
       <div ref="container" class="overflow-hidden w-full flex items-center justify-center text-center relative h-screen">
         <NcButton
@@ -157,6 +181,54 @@ watchOnce(emblaMainApi, async (emblaMainApi) => {
             </NcCarouselContent>
           </NcCarousel>
         </div>
+
+        <div class="absolute keep-open right-2 z-30 bottom-3 transition-all gap-3 transition-ease-in-out !h-6 flex items-center">
+          <NcTooltip v-if="!isReadonly" placement="bottom">
+            <template #title> {{ $t('title.removeFile') }} </template>
+            <NcButton
+              class="!text-red-500 !hover:bg-transparent"
+              size="xsmall"
+              type="text"
+              @click="onRemoveFileClick(selectedFile.title, selectedIndex)"
+            >
+              <component :is="iconMap.delete" v-if="isSharedForm || (isUIAllowed('dataEdit') && !isPublic)" />
+            </NcButton>
+          </NcTooltip>
+
+          <NcTooltip v-if="!isSharedForm || (!isReadonly && isUIAllowed('dataEdit') && !isPublic)" placement="bottom">
+            <template #title> {{ $t('title.renameFile') }} </template>
+            <NcButton
+              size="xsmall"
+              class="nc-attachment-rename !hover:bg-transparent !text-white"
+              type="text"
+              @click="renameFile(selectedFile, selectedIndex, true)"
+            >
+              <component :is="iconMap.rename" />
+            </NcButton>
+          </NcTooltip>
+
+          <NcButton size="small" @click="downloadFile(selectedFile)">
+            <div class="flex items-center gap-2 justify-center">
+              <component :is="iconMap.download" />
+              {{ $t('title.downloadFile') }}
+            </div>
+          </NcButton>
+        </div>
+        <GeneralDeleteModal v-model:visible="isModalOpen" entity-name="File" :on-delete="() => handleFileDelete(filetoDelete.i)">
+          <template #entity-preview>
+            <span>
+              <div class="flex flex-row items-center py-2.25 px-2.5 bg-gray-50 rounded-lg text-gray-700 mb-4">
+                <GeneralIcon icon="file" class="nc-view-icon"></GeneralIcon>
+                <div
+                  class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1.75"
+                  :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
+                >
+                  {{ filetoDelete.title }}
+                </div>
+              </div>
+            </span>
+          </template>
+        </GeneralDeleteModal>
       </div>
     </div>
   </GeneralOverlay>

@@ -19,16 +19,16 @@ onUnmounted(() => {
 })
 
 function onKeyDown(event: KeyboardEvent) {
-  const prevKey = props.orientation === 'vertical' ? 'ArrowUp' : 'ArrowLeft'
-  const nextKey = props.orientation === 'vertical' ? 'ArrowDown' : 'ArrowRight'
+  const prevKey = props.orientation === 'vertical' ? ['ArrowUp', 'Up', 'w', 'W'] : ['ArrowLeft', 'Left', 'a', 'A']
+  const nextKey = props.orientation === 'vertical' ? ['ArrowDown', 'Down', 's', 'S'] : ['ArrowRight', 'Right', 'd', 'D']
 
-  if (event.key === prevKey) {
+  if (prevKey.includes(event.key)) {
     event.preventDefault()
     carouselArgs.scrollPrev()
     return
   }
 
-  if (event.key === nextKey) {
+  if (nextKey.includes(event.key)) {
     event.preventDefault()
     carouselArgs.scrollNext()
   }

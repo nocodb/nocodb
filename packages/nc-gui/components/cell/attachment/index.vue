@@ -61,7 +61,13 @@ const { dragging } = useSortable(sortableRef, visibleItems, updateModelValue, is
 
 const active = inject(ActiveCellInj, ref(false))
 
-const { state: rowState } = useSmartsheetRowStoreOrThrow()
+const { state: rowState, row } = useSmartsheetRowStoreOrThrow()
+
+const meta = inject(MetaInj, ref())
+
+if (!isPublic.value && !isForm.value && meta.value) {
+  useProvideRowComments(meta, row)
+}
 
 const { isOverDropZone } = useDropZone(currentCellRef as any, onDrop)
 

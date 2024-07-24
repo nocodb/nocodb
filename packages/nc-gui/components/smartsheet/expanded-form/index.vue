@@ -342,7 +342,7 @@ if (isKanban.value) {
 provide(IsExpandedFormOpenInj, isExpanded)
 
 const triggerRowLoad = async (rowId?: string) => {
-  await Promise.allSettled([loadComments(rowId), loadAudits(rowId), _loadRow(rowId)])
+  await Promise.allSettled([loadComments(rowId, false), loadAudits(rowId), _loadRow(rowId)])
   isLoading.value = false
 }
 
@@ -972,7 +972,7 @@ export default {
           :class="{ active: commentsDrawer && isUIAllowed('commentList') }"
           class="nc-comments-drawer border-l-1 relative border-gray-200 bg-gray-50 w-1/3 max-w-[340px] min-w-0 h-full xs:hidden rounded-br-2xl"
         >
-          <SmartsheetExpandedFormComments :primary-key="primaryKey" :loading="isLoading" />
+          <SmartsheetExpandedFormSidebar />
         </div>
       </div>
     </div>

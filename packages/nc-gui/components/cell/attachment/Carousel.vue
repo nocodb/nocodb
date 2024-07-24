@@ -132,7 +132,7 @@ watchOnce(emblaMainApi, async (emblaMainApi) => {
       >
         <NcCarouselContent>
           <NcCarouselItem v-for="(item, index) in visibleItems" :key="index">
-            <div class="justify-center w-full h-full flex items-center">
+            <div v-if="selectedIndex === index" class="justify-center w-full h-full flex items-center">
               <LazyCellAttachmentPreviewImage
                 v-if="isImage(item.title, item.mimeType)"
                 class="nc-attachment-img-wrapper"
@@ -189,11 +189,7 @@ watchOnce(emblaMainApi, async (emblaMainApi) => {
               v-for="(item, index) in visibleItems"
               :key="index"
               :class="{
-                'opacity-100': index === selectedIndex,
-                '!basis-1/2': visibleItems.length === 2,
-                '!basis-1/3': visibleItems.length === 3,
-                '!basis-1': visibleItems.length === 1,
-                '!basis-1/4': visibleItems.length === 4,
+                '!opacity-100': index === selectedIndex,
                 '!basis-1/8': visibleItems.length > 4,
               }"
               class="px-2 keep-open opacity-50 cursor-pointer"

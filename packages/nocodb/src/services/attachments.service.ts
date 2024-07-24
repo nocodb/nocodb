@@ -239,7 +239,7 @@ export class AttachmentsService {
 
     if (fileObject?.path) {
       const signedPath = await PresignedUrl.getSignedUrl({
-        path: fileObject.path.replace(/^download\//, ''),
+        pathOrUrl: fileObject.path.replace(/^download\//, ''),
         preview: false,
         filename: fileObject.title,
         mimetype: fileObject.mimetype,
@@ -249,7 +249,7 @@ export class AttachmentsService {
       return { path: signedPath };
     } else if (fileObject?.url) {
       const signedUrl = await PresignedUrl.getSignedUrl({
-        path: decodeURI(new URL(fileObject.url).pathname),
+        pathOrUrl: fileObject.url,
         preview: false,
         filename: fileObject.title,
         mimetype: fileObject.mimetype,

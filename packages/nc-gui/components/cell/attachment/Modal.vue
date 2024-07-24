@@ -136,7 +136,7 @@ const handleFileDelete = (i: number) => {
         <div
           v-for="(item, i) in visibleItems"
           :key="`${item?.title}-${i}`"
-          class="nc-attachment-item group gap-2 flex border-1 rounded-md border-gray-200 flex-col relative"
+          class="nc-attachment-item group gap-1 flex border-1 rounded-md border-gray-200 flex-col relative"
         >
           <NcCheckbox
             v-model:checked="selectedVisibleItems[i]"
@@ -147,15 +147,14 @@ const handleFileDelete = (i: number) => {
             :class="{
               'cursor-move': dragging,
               'cursor-pointer': !dragging,
-              'h-full': !isImage(item.title, item.mimetype),
             }"
-            class="nc-attachment flex justify-center items-center overflow-hidden"
+            class="nc-attachment h-full flex justify-center items-center overflow-hidden"
           >
             <LazyCellAttachmentPreviewImage
               v-if="isImage(item.title, item.mimetype)"
               :srcs="getPossibleAttachmentSrc(item)"
               object-fit="cover"
-              class="!w-full h-42 object-cover !m-0 rounded-t-[5px] justify-center"
+              class="!w-full object-cover !m-0 rounded-t-[5px] justify-center"
               @click.stop="onClick(item)"
             />
 
@@ -170,7 +169,7 @@ const handleFileDelete = (i: number) => {
             <IcOutlineInsertDriveFile v-else :height="45" :width="45" @click.stop="openAttachment(item)" />
           </div>
 
-          <div class="relative px-1 items-center flex" :title="item.title">
+          <div class="relative px-1 pb-1 items-center flex" :title="item.title">
             <NcTooltip
               show-on-truncate-only
               class="flex-auto truncate w-full text-[12px] items-center text-gray-700 text-sm line-height-4"

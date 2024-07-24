@@ -521,6 +521,7 @@
     "looksLikeThisStackIsEmpty": "Looks like this stack does not have any records"
   },
   "labels": {
+    "formatting": "Formatting",
     "selectAFormatType": "- -Select a formt type (optional)- -",
     "formatType": "Format type",
     "toUpload": "to upload",

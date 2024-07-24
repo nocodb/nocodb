@@ -13,12 +13,10 @@ const openMethod = ref<'browser' | 'google' | undefined>()
   <div v-if="!openMethod" :class="props.class" class="flex flex-col text-white gap-2 items-center justify-center">
     <GeneralIcon class="w-28 h-28" icon="pdfFile" />
 
-    <h1 class="font-bold text-white text-center text-lg">Opening your file in external service exposes your data</h1>
-
     <div class="flex items-center justify-center gap-2">
-      <NcButton @click="openMethod = 'browser'">
+      <NcButton type="secondary" @click="openMethod = 'browser'">
         <div class="flex items-center gap-1">
-          <GeneralIcon icon="lock" />
+          <GeneralIcon icon="globe" />
           Open in browser
         </div>
       </NcButton>

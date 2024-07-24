@@ -19,6 +19,7 @@ const videoExt = [
   'webm',
   'mpg',
   'mp2',
+  'mp3',
   'mpeg',
   'ogg',
   'mp4',
@@ -32,7 +33,6 @@ const videoExt = [
   '3gp',
   '3g2',
   'vob',
-  'ts',
   'ts',
 ]
 
@@ -65,6 +65,7 @@ const officeExt = [
   'xps',
   'zip',
   'rar',
+  'csv',
 ]
 
 const isVideo = (name: string, mimetype?: string) => {

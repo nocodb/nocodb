@@ -57,7 +57,6 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   preload: 'metadata',
-  aspectRatio: '16:9',
   controls: true,
   audioOnlyMode: false,
   audioPosterMode: false,
@@ -66,18 +65,13 @@ const props = withDefaults(defineProps<Props>(), {
   enableDocumentPictireInPicture: false,
   enableSmoothSeeking: true,
   fluid: true,
-  fullScreen: {
-    options: {
-      navigationUI: 'hide',
-      id: undefined,
-    },
-  },
   language: 'en',
-  liveui: false,
+  liveui: true,
   playsinline: true,
   preferFullWindow: false,
-  responsive: false,
+  responsive: true,
   restoreEl: false,
+  class: '',
 })
 
 const emit = defineEmits<Emits>()
@@ -104,14 +98,13 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div
-    class="w-full"
+  <video
+    ref="videoPlayer"
     :class="{
       [props.class]: props.class,
     }"
-  >
-    <video ref="videoPlayer" class="video-js h-full w-full"></video>
-  </div>
+    class="video-js h-auto w-full"
+  ></video>
 </template>
 
 <style scoped lang="scss"></style>

@@ -62,6 +62,20 @@ const onSelect = () => {
   emblaThumbnailApi.value.scrollTo(newSnap)
 }
 
+const goPrev = () => {
+  if (!emblaMainApi.value || !emblaThumbnailApi.value) return
+
+  emblaMainApi.value.scrollPrev()
+  emblaThumbnailApi.value.scrollPrev()
+}
+
+const goNext = () => {
+  if (!emblaMainApi.value || !emblaThumbnailApi.value) return
+
+  emblaMainApi.value.scrollNext()
+  emblaThumbnailApi.value.scrollNext()
+}
+
 watchOnce(emblaMainApi, async (emblaMainApi) => {
   if (!emblaMainApi) return
 
@@ -112,10 +126,13 @@ watchOnce(emblaMainApi, async (emblaMainApi) => {
         </h3>
       </div>
 
-      <NcCarousel class="!absolute inset-16 keep-open flex justify-center items-center" @init-api="(val) => (emblaMainApi = val)">
+      <NcCarousel
+        class="!absolute inset-y-16 inset-x-24 keep-open flex justify-center items-center"
+        @init-api="(val) => (emblaMainApi = val)"
+      >
         <NcCarouselContent>
           <NcCarouselItem v-for="(item, index) in visibleItems" :key="index">
-            <div class="w-full h-full justify-center flex items-center">
+            <div class="justify-center w-full h-full flex items-center">
               <LazyCellAttachmentPreviewImage
                 v-if="isImage(item.title, item.mimeType)"
                 class="nc-attachment-img-wrapper"
@@ -126,7 +143,7 @@ watchOnce(emblaMainApi, async (emblaMainApi) => {
 
               <LazyCellAttachmentPreviewVideo
                 v-else-if="isVideo(item.title, item.mimeType)"
-                class="!h-full flex items-center"
+                class="flex items-center w-full"
                 :src="getPossibleAttachmentSrc(item)[0]"
                 :sources="getPossibleAttachmentSrc(item).map((src) => ({ src, type: item.mimeType }))"
               />
@@ -149,9 +166,24 @@ watchOnce(emblaMainApi, async (emblaMainApi) => {
         </NcCarouselContent>
       </NcCarousel>
 
-      <div class="absolute w-full !bottom-3 max-h-18 z-30 flex items-center justify-center">
+      <div
+        v-if="emblaMainApi?.canScrollPrev()"
+        class="absolute keep-open text-gray-400 hover:text-white cursor-pointer text-white left-2 h-full flex items-center inset-y-0 my-0"
+        @click="goPrev"
+      >
+        <component :is="iconMap.arrowLeft" class="text-7xl" />
+      </div>
+      <div
+        v-if="emblaMainApi?.canScrollNext()"
+        class="absolute keep-open text-gray-400 hover:text-white cursor-pointer text-white right-2 h-full flex items-center inset-y-0 my-0"
+        @click="goNext"
+      >
+        <component :is="iconMap.arrowRight" class="text-7xl" />
+      </div>
+
+      <div class="absolute w-full !bottom-2 max-h-18 z-30 flex items-center justify-center">
         <NcCarousel class="absolute max-w-sm" @init-api="(val) => (emblaThumbnailApi = val)">
-          <NcCarouselContent class="!flex !gap-2 ml-0">
+          <NcCarouselContent class="!flex !gap-2">
             <NcCarouselItem
               v-for="(item, index) in visibleItems"
               :key="index"
@@ -198,18 +230,6 @@ watchOnce(emblaMainApi, async (emblaMainApi) => {
       </div>
 
       <div class="absolute keep-open right-2 z-30 bottom-3 transition-all gap-3 transition-ease-in-out !h-6 flex items-center">
-        <NcTooltip v-if="!isReadonly" placement="bottom">
-          <template #title> {{ $t('title.removeFile') }} </template>
-          <NcButton
-            class="!text-red-500 !hover:bg-transparent"
-            size="xsmall"
-            type="text"
-            @click="onRemoveFileClick(selectedFile.title, selectedIndex)"
-          >
-            <component :is="iconMap.delete" v-if="isSharedForm || (isUIAllowed('dataEdit') && !isPublic)" />
-          </NcButton>
-        </NcTooltip>
-
         <NcTooltip v-if="!isSharedForm || (!isReadonly && isUIAllowed('dataEdit') && !isPublic)" placement="bottom">
           <template #title> {{ $t('title.renameFile') }} </template>
           <NcButton
@@ -222,12 +242,24 @@ watchOnce(emblaMainApi, async (emblaMainApi) => {
           </NcButton>
         </NcTooltip>
 
-        <NcButton size="small" @click="downloadFile(selectedFile)">
-          <div class="flex items-center gap-2 justify-center">
+        <NcTooltip v-if="!isReadonly" placement="bottom">
+          <template #title> {{ $t('title.downloadFile') }} </template>
+          <NcButton class="!hover:bg-transparent !text-white" size="xsmall" type="text" @click="downloadFile(selectedFile)">
             <component :is="iconMap.download" />
-            {{ $t('title.downloadFile') }}
-          </div>
-        </NcButton>
+          </NcButton>
+        </NcTooltip>
+
+        <NcTooltip v-if="!isReadonly" placement="bottom">
+          <template #title> {{ $t('title.removeFile') }} </template>
+          <NcButton
+            class="!hover:bg-transparent !text-white"
+            size="xsmall"
+            type="text"
+            @click="onRemoveFileClick(selectedFile.title, selectedIndex)"
+          >
+            <component :is="iconMap.delete" v-if="isSharedForm || (isUIAllowed('dataEdit') && !isPublic)" />
+          </NcButton>
+        </NcTooltip>
       </div>
       <GeneralDeleteModal v-model:visible="isModalOpen" entity-name="File" :on-delete="() => handleFileDelete(filetoDelete.i)">
         <template #entity-preview>
@@ -261,9 +293,9 @@ watchOnce(emblaMainApi, async (emblaMainApi) => {
   }
 }
 
-.vjs-fluid {
+/*.vjs-fluid {
   &:not(.vjs-audio-only-mode) {
     padding-top: 49.25% !important;
   }
-}
+}*/
 </style>

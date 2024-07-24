@@ -3,9 +3,12 @@ import type { Ref } from 'vue'
 import type { ListItem as AntListItem } from 'ant-design-vue'
 import jsep from 'jsep'
 import {
+  FormulaDataTypes,
   FormulaError,
   UITypes,
+  getUITypesForFormulaDataType,
   isHiddenCol,
+  isVirtualCol,
   jsepCurlyHook,
   substituteColumnIdWithAliasInFormula,
   validateFormulaAndExtractTreeWithType,
@@ -29,6 +32,8 @@ const { t } = useI18n()
 const { predictFunction: _predictFunction } = useNocoEe()
 
 const meta = inject(MetaInj, ref())
+
+const base = inject(ProjectInj, ref())!
 
 const supportedColumns = computed(
   () =>
@@ -279,6 +284,31 @@ if ((column.value?.colOptions as any)?.formula_raw) {
     ) || ''
 }
 
+const source = computed(() => base.value?.sources?.find((b) => b.id === meta.value?.source_id))
+
+const parsedTree = computedAsync(async () => {
+  const column = meta.value?.columns?.find((c) => c.id === vModel.value.id)
+
+  try {
+    const parsed = await validateFormulaAndExtractTreeWithType({
+      formula: vModel.value.formula || vModel.value.formula_raw,
+      columns: meta.value?.columns || [],
+      column: column!,
+      clientOrSqlUi: source.value?.type as any,
+      getMeta: async (modelId) => {
+        const meta = await getMeta(modelId)
+
+        return meta
+      },
+    })
+    return parsed
+  } catch (e) {
+    return {
+      dataType: FormulaDataTypes.UNKNOWN,
+    }
+  }
+})
+
 // set additional validations
 setAdditionalValidations({
   ...validators,
@@ -332,6 +362,37 @@ const handleKeydown = (e: KeyboardEvent) => {
     }
   }
 }
+
+const supportedFormulaAlias = computed(() => {
+  if (!parsedTree.value?.dataType) return []
+  return getUITypesForFormulaDataType(parsedTree.value?.dataType as FormulaDataTypes).map((x) => {
+    return {
+      value: x,
+      label: t(`datatype.${x}`),
+      icon: h(
+        isVirtualCol(x) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'),
+        {
+          columnMeta: {
+            uidt: x,
+          },
+        },
+      ),
+    }
+  })
+})
+
+watch(
+  () => vModel.value.meta?.display_type,
+  () => {
+    vModel.value.meta.display_column_meta = {
+      meta: {},
+      custom: {},
+    }
+  },
+  {
+    immediate: true,
+  },
+)
 </script>
 
 <template>
@@ -486,6 +547,44 @@ const handleKeydown = (e: KeyboardEvent) => {
           </template>
         </a-list>
       </template>
+    </div>
+
+    <div v-if="supportedFormulaAlias.length && parsedTree" class="mt-2 gap-2 flex flex-col">
+      Format type
+      <NcSelect
+        v-model:value="vModel.meta.display_type"
+        class="w-full"
+        placeholder="- -Select a formt type (optional)- -"
+        @change="(val) => (vModel.meta.display_type = val)"
+      >
+        <a-select-option v-for="option in supportedFormulaAlias" :key="option.value" :value="option.value">
+          <component :is="option.icon" class="w-4 h-4 !text-gray-600" />
+          {{ option.label }}
+        </a-select-option>
+      </NcSelect>
+
+      <div v-if="parsedTree?.dataType === FormulaDataTypes.NUMERIC">
+        <SmartsheetColumnCurrencyOptions
+          v-if="vModel.meta.display_type === UITypes.Currency"
+          v-model:value="vModel.meta.display_column_meta"
+        />
+        <SmartsheetColumnNumberOptions
+          v-if="vModel.meta.display_type === UITypes.Number"
+          v-model:value="vModel.meta.display_column_meta"
+        />
+        <SmartsheetColumnNumberOptions
+          v-if="vModel.meta.display_type === UITypes.Decimal"
+          v-model:value="vModel.meta.display_column_meta"
+        />
+        <SmartsheetColumnPercentOptions
+          v-if="vModel.meta.display_type === UITypes.Percent"
+          v-model:value="vModel.meta.display_column_meta"
+        />
+        <SmartsheetColumnRatingOptions
+          v-if="vModel.meta.display_type === UITypes.Rating"
+          v-model:value="vModel.meta.display_column_meta"
+        />
+      </div>
     </div>
   </div>
 </template>

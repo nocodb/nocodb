@@ -27,7 +27,16 @@ const isGrid = inject(IsGridInj, ref(false))
 </script>
 
 <template>
-  <div class="w-full" :class="{ 'text-right': isNumber && isGrid && !isExpandedFormOpen }">
+  <LazySmartsheetFormulaWrapperCell
+    v-if="column.meta?.display_type"
+    v-model="cellValue"
+    :column="{
+      uidt: column.meta?.display_type,
+      ...column.meta?.display_column_meta,
+    }"
+  />
+
+  <div v-else class="w-full" :class="{ 'text-right': isNumber && isGrid && !isExpandedFormOpen }">
     <a-tooltip v-if="column && column.colOptions && column.colOptions.error" placement="bottom" class="text-orange-700">
       <template #title>
         <span class="font-bold">{{ column.colOptions.error }}</span>

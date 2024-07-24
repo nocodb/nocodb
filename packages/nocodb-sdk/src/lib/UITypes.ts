@@ -295,3 +295,20 @@ export const partialUpdateAllowedTypes = [
   UITypes.Email,
   UITypes.URL,
 ];
+
+export const getUITypesForFormulaDataType = (
+  dataType: FormulaDataTypes
+): UITypes[] => {
+  switch (dataType) {
+    case FormulaDataTypes.NUMERIC:
+      return [
+        UITypes.Number,
+        UITypes.Decimal,
+        UITypes.Currency,
+        UITypes.Percent,
+        UITypes.Rating,
+      ];
+    default:
+      return [];
+  }
+};

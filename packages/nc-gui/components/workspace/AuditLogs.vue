@@ -176,6 +176,10 @@ useEventListener(tableWrapper, 'scroll', () => {
     tableWrapper.value?.classList.remove('sticky-shadow')
   }
 })
+
+const renderAltOrOptlKey = () => {
+  return isMac() ? '⌥' : 'ALT'
+}
 </script>
 
 <template>
@@ -458,6 +462,10 @@ useEventListener(tableWrapper, 'scroll', () => {
               :use-stored-page-size="false"
               @update:current="loadAudits(undefined, undefined, false)"
               @update:page-size="loadAudits(currentPage, $event, false)"
+              :prev-page-tooltip="`${renderAltOrOptlKey()}+←`"
+              :next-page-tooltip="`${renderAltOrOptlKey()}+→`"
+              :first-page-tooltip="`${renderAltOrOptlKey()}+↓`"
+              :last-page-tooltip="`${renderAltOrOptlKey()}+↑`"
             />
             <div class="text-gray-500 text-xs">{{ totalRows }} {{ totalRows === 1 ? 'record' : 'records' }}</div>
           </div>

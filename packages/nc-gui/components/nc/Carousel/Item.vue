@@ -11,7 +11,7 @@ const props = defineProps<WithClassAsProps>()
     :class="{
       [props.class]: props.class,
     }"
-    class="min-w-0 shrink-0 flex justify-center items-center embla__slide grow-0 basis-full"
+    class="min-w-0 shrink-0 flex justify-center items-center embla__slide h-full grow-0 basis-full"
   >
     <slot />
   </div>

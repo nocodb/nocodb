@@ -88,7 +88,7 @@ watchOnce(emblaMainApi, async (emblaMainApi) => {
         >
           <NcCarouselContent>
             <NcCarouselItem v-for="(item, index) in visibleItems" :key="index">
-              <div class="w-full flex items-center">
+              <div class="w-full h-full justify-center flex items-center">
                 <LazyCellAttachmentPreviewImage
                   v-if="isImage(item.title, item.mimeType)"
                   class="nc-attachment-img-wrapper"
@@ -99,9 +99,13 @@ watchOnce(emblaMainApi, async (emblaMainApi) => {
 
                 <LazyCellAttachmentPreviewVideo
                   v-else-if="isVideo(item.title, item.mimeType)"
-                  class="!h-full"
+                  class="!h-full flex items-center"
                   :src="getPossibleAttachmentSrc(item)[0]"
                   :sources="getPossibleAttachmentSrc(item).map((src) => ({ src, type: item.mimeType }))"
+                />
+                <LazyCellAttachmentPreviewPdf
+                  v-else-if="isPdf(item.title, item.mimeType)"
+                  :src="getPossibleAttachmentSrc(item)[0]"
                 />
                 <div v-else class="bg-white h-full flex flex-col justify-center rounded-md gap-1 items-center w-full">
                   <component :is="iconMap.file" class="text-gray-600 w-20 h-20" />
@@ -143,6 +147,7 @@ watchOnce(emblaMainApi, async (emblaMainApi) => {
                   >
                     <GeneralIcon class="text-white" icon="play" />
                   </div>
+
                   <div v-else class="h-full flex items-center h-6 justify-center rounded-md px-2 py-1 border-1 border-gray-200">
                     <GeneralIcon class="text-white" icon="file" />
                   </div>
@@ -162,7 +167,11 @@ watchOnce(emblaMainApi, async (emblaMainApi) => {
 }
 
 .carousel-container {
-  @apply !w-full;
+  @apply !w-full flex items-center h-full;
+
+  .embla__container {
+    @apply items-center h-full w-full;
+  }
 }
 
 .vjs-fluid {

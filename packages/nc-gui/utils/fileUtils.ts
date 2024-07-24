@@ -44,7 +44,11 @@ const isImage = (name: string, mimetype?: string) => {
   return imageExt.some((e) => name?.toLowerCase().endsWith(`.${e}`)) || mimetype?.startsWith('image/')
 }
 
-export { isImage, imageExt, isVideo }
+const isPdf = (name: string, mimetype?: string) => {
+  return name?.toLowerCase().endsWith('.pdf') || mimetype?.startsWith('application/pdf')
+}
+
+export { isImage, imageExt, isVideo, isPdf }
 // Ref : https://stackoverflow.com/a/12002275
 
 // Tested in Mozilla Firefox browser, Chrome

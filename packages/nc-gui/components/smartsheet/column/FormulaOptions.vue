@@ -33,7 +33,7 @@ const { predictFunction: _predictFunction } = useNocoEe()
 
 const meta = inject(MetaInj, ref())
 
-const base = inject(ProjectInj, ref())
+const { base: activeBase } = storeToRefs(useBase())
 
 const supportedColumns = computed(
   () =>
@@ -284,15 +284,14 @@ if ((column.value?.colOptions as any)?.formula_raw) {
     ) || ''
 }
 
-const source = computed(() => base.value?.sources?.find((b) => b.id === meta.value?.source_id))
+const source = computed(() => activeBase.value?.sources?.find((b) => b.id === meta.value?.source_id))
 
 const parsedTree = computedAsync(async () => {
-  const column = meta.value?.columns?.find((c) => c.id === vModel.value.id)
   try {
     const parsed = await validateFormulaAndExtractTreeWithType({
       formula: vModel.value.formula || vModel.value.formula_raw,
       columns: meta.value?.columns || [],
-      column: column!,
+      column: column.value ?? undefined,
       clientOrSqlUi: source.value?.type as any,
       getMeta: async (modelId) => {
         const meta = await getMeta(modelId)
@@ -364,20 +363,24 @@ const handleKeydown = (e: KeyboardEvent) => {
 
 const supportedFormulaAlias = computed(() => {
   if (!parsedTree.value?.dataType) return []
-  return getUITypesForFormulaDataType(parsedTree.value?.dataType as FormulaDataTypes).map((x) => {
-    return {
-      value: x,
-      label: t(`datatype.${x}`),
-      icon: h(
-        isVirtualCol(x) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'),
-        {
-          columnMeta: {
-            uidt: x,
+  try {
+    return getUITypesForFormulaDataType(parsedTree.value?.dataType as FormulaDataTypes).map((x) => {
+      return {
+        value: x,
+        label: t(`datatype.${x}`),
+        icon: h(
+          isVirtualCol(x) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'),
+          {
+            columnMeta: {
+              uidt: x,
+            },
           },
-        },
-      ),
-    }
-  })
+        ),
+      }
+    })
+  } catch (e) {
+    return []
+  }
 })
 
 watch(
@@ -551,8 +554,8 @@ watch(
     </div>
 
     <div v-if="supportedFormulaAlias?.length && parsedTree?.dataType" class="mt-2 gap-2 flex flex-col">
-      Format type
-      <NcSelect v-model:value="vModel.meta.display_type" class="w-full" placeholder="- -Select a formt type (optional)- -">
+      {{ $t('labels.formatType') }}
+      <NcSelect v-model:value="vModel.meta.display_type" class="w-full" :placeholder="$t('labels.formatType')">
         <a-select-option v-for="option in supportedFormulaAlias" :key="option.value" :value="option.value">
           <div class="flex w-full items-center gap-2 justify-between">
             <div class="w-full">
@@ -569,7 +572,7 @@ watch(
         </a-select-option>
       </NcSelect>
 
-      <div
+      <template
         v-if="
           [FormulaDataTypes.NUMERIC, FormulaDataTypes.DATE, FormulaDataTypes.BOOLEAN, FormulaDataTypes.STRING].includes(
             parsedTree?.dataType,
@@ -608,7 +611,7 @@ watch(
           v-else-if="vModel.meta.display_type === UITypes.Checkbox"
           :value="vModel.meta.display_column_meta"
         />
-      </div>
+      </template>
     </div>
   </div>
 </template>

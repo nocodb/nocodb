@@ -170,15 +170,18 @@ const handleFileDelete = (i: number) => {
             <IcOutlineInsertDriveFile v-else :height="45" :width="45" @click.stop="openAttachment(item)" />
           </div>
 
-          <div class="relative px-1 flex" :title="item.title">
-            <NcTooltip show-on-truncate-only class="flex-auto truncate w-full text-[13px] items-center text-sm line-height-4">
+          <div class="relative px-1 items-center flex" :title="item.title">
+            <NcTooltip
+              show-on-truncate-only
+              class="flex-auto truncate w-full text-[12px] items-center text-gray-700 text-sm line-height-4"
+            >
               {{ item.title }}
 
               <template #title>
                 {{ item.title }}
               </template>
             </NcTooltip>
-            <div class="flex-none hide-ui transition-all transition-ease-in-out !h-5 gap-0.5 pb-2 flex items-center bg-white">
+            <div class="flex-none hide-ui transition-all transition-ease-in-out !h-5 gap-0.5 flex items-center bg-white">
               <NcTooltip placement="bottom">
                 <template #title> {{ $t('title.downloadFile') }} </template>
                 <NcButton
@@ -248,7 +251,7 @@ const handleFileDelete = (i: number) => {
 
 <style lang="scss">
 .hide-ui {
-  @apply h-0 w-0 overflow-hidden whitespace-nowrap;
+  @apply h-0 w-0 overflow-x-hidden whitespace-nowrap;
   .group:hover & {
     @apply h-auto w-auto overflow-visible whitespace-normal;
   }

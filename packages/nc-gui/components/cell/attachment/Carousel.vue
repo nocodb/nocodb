@@ -120,7 +120,7 @@ onMounted(() => {
         class="flex w-full overflow-hidden justify-center text-center relative h-screen items-center"
       >
         <NcButton
-          class="top-5 !absolute cursor-pointer !hover:bg-transparent left-5"
+          class="top-5 !absolute cursor-pointer !z-30 !hover:bg-transparent left-5"
           size="xsmall"
           type="text"
           @click.stop="selectedFile = false"
@@ -200,7 +200,7 @@ onMounted(() => {
           <NcButton class="!hover:bg-transparent" type="text" size="small" @click="toggleComment">
             <div class="flex gap-1 text-white justify-center items-center">
               Comments
-              <GeneralIcon icon="comment" />
+              <GeneralIcon icon="messageCircle" />
             </div>
           </NcButton>
         </div>
@@ -215,7 +215,8 @@ onMounted(() => {
                 :key="index"
                 :class="{
                   '!opacity-100': index === selectedIndex,
-                  '!basis-1/8': visibleItems.length > 4,
+                  '!basis-1/8': visibleItems.length >= 4,
+                  '!basis-1/3': visibleItems.length >= 1,
                 }"
                 class="px-2 keep-open opacity-50 cursor-pointer"
                 @click="onThumbClick(index)"

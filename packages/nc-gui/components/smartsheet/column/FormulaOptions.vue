@@ -398,7 +398,10 @@ watch(
   },
 )
 
-watch(parsedTree, () => {
+watch(parsedTree, (value, oldValue) => {
+  if (oldValue === undefined && value) {
+    return
+  }
   if (parsedTree.value?.dataType) {
     vModel.value.meta.display_type = null
   }

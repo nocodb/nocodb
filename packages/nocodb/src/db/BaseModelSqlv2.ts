@@ -7233,7 +7233,7 @@ class BaseModelSqlv2 {
                   if (lookedUpAttachment?.path) {
                     promises.push(
                       PresignedUrl.getSignedUrl({
-                        path: lookedUpAttachment.path.replace(
+                        pathOrUrl: lookedUpAttachment.path.replace(
                           /^download\//,
                           '',
                         ),
@@ -7242,9 +7242,7 @@ class BaseModelSqlv2 {
                   } else if (lookedUpAttachment?.url) {
                     promises.push(
                       PresignedUrl.getSignedUrl({
-                        path: decodeURI(
-                          new URL(lookedUpAttachment.url).pathname,
-                        ),
+                        pathOrUrl: lookedUpAttachment.url,
                       }).then((r) => (lookedUpAttachment.signedUrl = r)),
                     );
                   }
@@ -7253,13 +7251,13 @@ class BaseModelSqlv2 {
                 if (attachment?.path) {
                   promises.push(
                     PresignedUrl.getSignedUrl({
-                      path: attachment.path.replace(/^download\//, ''),
+                      pathOrUrl: attachment.path.replace(/^download\//, ''),
                     }).then((r) => (attachment.signedPath = r)),
                   );
                 } else if (attachment?.url) {
                   promises.push(
                     PresignedUrl.getSignedUrl({
-                      path: decodeURI(new URL(attachment.url).pathname),
+                      pathOrUrl: attachment.url,
                     }).then((r) => (attachment.signedUrl = r)),
                   );
                 }

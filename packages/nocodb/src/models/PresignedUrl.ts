@@ -88,13 +88,17 @@ export default class PresignedUrl {
 
   public static async getSignedUrl(
     param: {
-      path: string;
+      pathOrUrl: string;
       expireSeconds?: number;
       filename?: string;
     },
     ncMeta = Noco.ncMeta,
   ) {
-    let path = param.path.replace(/^\/+/, '');
+    const isUrl = param.pathOrUrl.startsWith('http');
+
+    let path = isUrl
+      ? decodeURI(new URL(param.pathOrUrl).pathname)
+      : param.pathOrUrl.replace(/^\/+/, '');
 
     const { expireSeconds = DEFAULT_EXPIRE_SECONDS, filename } = param;
 
@@ -140,8 +144,10 @@ export default class PresignedUrl {
         expiresInSeconds,
       });
     } else {
-      // if not present, create a new url
-      tempUrl = `dltemp/${nanoid(16)}/${expireAt.getTime()}/${path}`;
+      // if not present, use url or generate url for local storage
+      tempUrl = isUrl
+        ? param.pathOrUrl
+        : `dltemp/${nanoid(16)}/${expireAt.getTime()}/${path}`;
 
       // if filename is present, add it to the destination
       if (filename) {

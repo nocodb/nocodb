@@ -16,11 +16,11 @@ const {
   FileIcon,
   removeFile,
   onDrop,
-  downloadFile,
+  downloadAttachment,
   updateModelValue,
   selectedImage,
   selectedVisibleItems,
-  bulkDownloadFiles,
+  bulkDownloadAttachments,
   renameFile,
 } = useAttachmentCell()!
 
@@ -113,7 +113,7 @@ const handleFileDelete = (i: number) => {
           v-if="selectedVisibleItems.includes(true) && selectedVisibleItems.length > 1"
           class="flex flex-1 items-center gap-3 justify-end mr-[30px]"
         >
-          <NcButton type="primary" class="nc-attachment-download-all" @click="bulkDownloadFiles">
+          <NcButton type="primary" class="nc-attachment-download-all" @click="bulkDownloadAttachments">
             {{ $t('activity.bulkDownload') }}
           </NcButton>
         </div>
@@ -169,7 +169,7 @@ const handleFileDelete = (i: number) => {
             <div class="flex-none hide-ui transition-all transition-ease-in-out !h-6 flex items-center bg-white">
               <NcTooltip placement="bottom">
                 <template #title> {{ $t('title.downloadFile') }} </template>
-                <NcButton class="!text-gray-500" size="xsmall" type="text" @click="downloadFile(item)">
+                <NcButton class="!text-gray-500" size="xsmall" type="text" @click="downloadAttachment(item)">
                   <component :is="iconMap.download" />
                 </NcButton>
               </NcTooltip>

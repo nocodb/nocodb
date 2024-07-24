@@ -737,4 +737,52 @@ export class PublicDatasService {
 
     return new PagedResponseImpl(data, { ...param.query, count });
   }
+
+  async dataRead(
+    context: NcContext,
+    param: {
+      sharedViewUuid: string;
+      rowId: string;
+      password?: string;
+      query: any;
+    },
+  ) {
+    const { sharedViewUuid, rowId, password, query = {} } = param;
+    const view = await View.getByUUID(context, sharedViewUuid);
+
+    if (!view) NcError.viewNotFound(sharedViewUuid);
+    if (
+      view.type !== ViewTypes.GRID &&
+      view.type !== ViewTypes.KANBAN &&
+      view.type !== ViewTypes.GALLERY &&
+      view.type !== ViewTypes.MAP &&
+      view.type !== ViewTypes.CALENDAR
+    ) {
+      NcError.notFound('Not found');
+    }
+
+    if (view.password && view.password !== password) {
+      return NcError.invalidSharedViewPassword();
+    }
+
+    const model = await Model.getByIdOrName(context, {
+      id: view?.fk_model_id,
+    });
+
+    const source = await Source.get(context, model.source_id);
+
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+    });
+
+    const row = await baseModel.readByPk(rowId, false, query);
+
+    if (!row) {
+      NcError.recordNotFound(param.rowId);
+    }
+
+    return row;
+  }
 }

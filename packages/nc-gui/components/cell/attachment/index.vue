@@ -44,6 +44,7 @@ const {
   isPublic,
   isForm,
   column,
+  modalRendered,
   modalVisible,
   attachments,
   visibleItems,
@@ -124,6 +125,7 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e) => {
     if (isNewAttachmentModalOpen.value) return
     e.stopPropagation()
     if (!modalVisible.value && !isMobileMode.value) {
+      modalRendered.value = true
       modalVisible.value = true
     } else {
       // click Attach File button
@@ -157,6 +159,7 @@ const openAttachment = (item: any) => {
 const onExpand = () => {
   if (isMobileMode.value) return
 
+  modalRendered.value = true
   modalVisible.value = true
 }
 
@@ -351,7 +354,7 @@ const handleFileDelete = (i: number) => {
       </div>
     </template>
 
-    <LazyCellAttachmentModal />
+    <LazyCellAttachmentModal v-if="modalRendered" />
 
     <LazyGeneralDeleteModal
       v-if="isForm || isExpandedForm"

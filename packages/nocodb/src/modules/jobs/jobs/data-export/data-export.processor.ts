@@ -96,12 +96,16 @@ export class DataExportProcessor {
           pathOrUrl: path.join(destPath.replace('nc/uploads/', '')),
           filename: `${model.title} (${getViewTitle(view)}).csv`,
           expireSeconds: 3 * 60 * 60, // 3 hours
+          preview: false,
+          mimetype: 'text/csv',
         });
       } else {
         url = await PresignedUrl.getSignedUrl({
           pathOrUrl: url,
           filename: `${model.title} (${getViewTitle(view)}).csv`,
           expireSeconds: 3 * 60 * 60, // 3 hours
+          preview: false,
+          mimetype: 'text/csv',
         });
       }
 

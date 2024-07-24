@@ -20,7 +20,7 @@ const useAttachment = () => {
     for (const source of sources) {
       try {
         // test if the source is accessible or not
-        const res = await fetch(source, { method: 'HEAD' })
+        const res = await fetch(source, { method: 'HEAD', mode: 'no-cors' })
         if (res.ok) {
           return source
         }

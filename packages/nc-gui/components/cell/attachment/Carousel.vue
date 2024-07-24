@@ -2,7 +2,7 @@
 import { onKeyDown } from '@vueuse/core'
 import { useAttachmentCell } from './utils'
 
-const { selectedImage, visibleItems, downloadFile } = useAttachmentCell()!
+const { selectedImage, visibleItems, downloadAttachment } = useAttachmentCell()!
 
 const carouselRef = ref()
 
@@ -65,7 +65,7 @@ useEventListener(container, 'click', (e) => {
 
         <div
           class="keep-open select-none group hover:(ring-1 ring-accent) ring-opacity-100 cursor-pointer leading-8 inline-block px-3 py-1 bg-gray-300 text-white mb-4 text-center rounded shadow"
-          @click.stop="downloadFile(selectedImage)"
+          @click.stop="downloadAttachment(selectedImage)"
         >
           <h3 class="group-hover:text-primary">{{ selectedImage && selectedImage.title }}</h3>
         </div>

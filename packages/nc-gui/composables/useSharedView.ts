@@ -316,6 +316,24 @@ export function useSharedView() {
     )
   }
 
+  const fetchSharedViewAttachment = async (columnId: string, rowId: string, urlOrPath: string) => {
+    if (!sharedView.value) return
+
+    return await $api.public.dataAttachmentDownload(
+      sharedView.value.uuid!,
+      columnId,
+      rowId,
+      {
+        urlOrPath,
+      } as any,
+      {
+        headers: {
+          'xc-password': password.value,
+        },
+      },
+    )
+  }
+
   const exportFile = async (
     fields: any[],
     offset: number,
@@ -348,6 +366,7 @@ export function useSharedView() {
     fetchSharedViewGroupedData,
     fetchAggregatedData,
     fetchBulkAggregatedData,
+    fetchSharedViewAttachment,
     paginationData,
     sorts,
     exportFile,

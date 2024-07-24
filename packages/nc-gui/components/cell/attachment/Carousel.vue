@@ -144,8 +144,8 @@ watchOnce(emblaMainApi, async (emblaMainApi) => {
               <LazyCellAttachmentPreviewVideo
                 v-else-if="isVideo(item.title, item.mimeType)"
                 class="flex items-center w-full"
-                :src="getPossibleAttachmentSrc(item)[0]"
-                :sources="getPossibleAttachmentSrc(item).map((src) => ({ src, type: item.mimeType }))"
+                :mime-type="item.mimeType"
+                :src="getPossibleAttachmentSrc(item)"
               />
               <LazyCellAttachmentPreviewPdf
                 v-else-if="isPdf(item.title, item.mimeType)"

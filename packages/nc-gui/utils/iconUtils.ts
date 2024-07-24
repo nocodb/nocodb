@@ -204,6 +204,7 @@ import NcMaximize from '~icons/nc-icons/maximize'
 import NcMaximizeAll from '~icons/nc-icons/maximize-all'
 import NcDrag from '~icons/nc-icons/drag'
 import NcRefresh from '~icons/nc-icons/refresh'
+import NcPlay from '~icons/nc-icons/play'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -638,6 +639,7 @@ export const iconMap = {
   ncDrag: NcDrag,
   refresh: NcRefresh,
   chevronUpDown: NcChevronUpDown,
+  play: NcPlay,
 }
 
 export const getMdiIcon = (type: string): any => {

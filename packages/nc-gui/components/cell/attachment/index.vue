@@ -51,7 +51,7 @@ const {
   onDrop,
   isLoading,
   FileIcon,
-  selectedImage,
+  selectedFile,
   isReadonly,
   storedFiles,
   removeFile,
@@ -163,12 +163,12 @@ const onExpand = () => {
   modalVisible.value = true
 }
 
-const onImageClick = (item: any) => {
+const onFileClick = (item: any) => {
   if (isMobileMode.value && !isExpandedForm.value) return
 
   if (!isMobileMode.value && (isGallery.value || isKanban.value) && !isExpandedForm.value) return
 
-  selectedImage.value = item
+  selectedFile.value = item
 }
 
 const keydownEnter = (e: KeyboardEvent) => {
@@ -219,7 +219,7 @@ const handleFileDelete = (i: number) => {
     class="nc-attachment-cell relative flex color-transition gap-2 flex items-center w-full xs:(min-h-12 max-h-32)"
     :class="{ 'justify-center': !active, 'justify-between': active, 'px-2': isExpandedForm }"
   >
-    <LazyCellAttachmentCarousel />
+    <LazyCellAttachmentCarousel v-if="selectedFile" />
 
     <template v-if="isSharedForm || (!isReadonly && !dragging && !!currentCellRef)">
       <general-overlay
@@ -291,7 +291,7 @@ const handleFileDelete = (i: number) => {
               <div
                 class="nc-attachment flex items-center flex-col flex-wrap justify-center flex-auto"
                 :class="{ '!w-30': isForm || isExpandedForm }"
-                @click="() => onImageClick(item)"
+                @click="() => onFileClick(item)"
               >
                 <LazyCellAttachmentImage
                   :alt="item.title || `#${i}`"
@@ -318,7 +318,7 @@ const handleFileDelete = (i: number) => {
                 'h-20.8 !w-30': rowHeight === 6 || isForm || isExpandedForm,
                 'ml-2': active,
               }"
-              @click="openAttachment(item)"
+              @click="onFileClick(item)"
             >
               <component :is="FileIcon(item.icon)" v-if="item.icon" :class="{ 'h-13 w-13': isForm || isExpandedForm }" />
 

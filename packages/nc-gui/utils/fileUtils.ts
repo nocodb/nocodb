@@ -15,11 +15,36 @@ const imageExt = [
   'heic-sequence',
 ]
 
+const videoExt = [
+  'webm',
+  'mpg',
+  'mp2',
+  'mpeg',
+  'ogg',
+  'mp4',
+  'm4v',
+  'avi',
+  'wmv',
+  'mov',
+  'qt',
+  'flv',
+  'mkv',
+  '3gp',
+  '3g2',
+  'vob',
+  'ts',
+  'ts',
+]
+
+const isVideo = (name: string, mimetype?: string) => {
+  return videoExt.some((e) => name?.toLowerCase().endsWith(`.${e}`)) || mimetype?.startsWith('video/')
+}
+
 const isImage = (name: string, mimetype?: string) => {
   return imageExt.some((e) => name?.toLowerCase().endsWith(`.${e}`)) || mimetype?.startsWith('image/')
 }
 
-export { isImage, imageExt }
+export { isImage, imageExt, isVideo }
 // Ref : https://stackoverflow.com/a/12002275
 
 // Tested in Mozilla Firefox browser, Chrome

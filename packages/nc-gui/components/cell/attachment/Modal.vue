@@ -18,7 +18,7 @@ const {
   onDrop,
   downloadAttachment,
   updateModelValue,
-  selectedImage,
+  selectedFile,
   selectedVisibleItems,
   bulkDownloadAttachments,
   renameFile,
@@ -42,10 +42,10 @@ onKeyDown('Escape', () => {
 })
 
 function onClick(item: Record<string, any>) {
-  selectedImage.value = item
+  selectedFile.value = item
   modalVisible.value = false
 
-  const stopHandle = watch(selectedImage, (nextImage) => {
+  const stopHandle = watch(selectedFile, (nextImage) => {
     if (!nextImage) {
       setTimeout(() => {
         modalVisible.value = true

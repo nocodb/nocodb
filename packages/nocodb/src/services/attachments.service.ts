@@ -252,14 +252,14 @@ export class AttachmentsService {
     const { attachment, preview = true, ...extra } = param;
 
     if (attachment?.path) {
-      return await PresignedUrl.getSignedUrl({
+      attachment.signedPath = await PresignedUrl.getSignedUrl({
         pathOrUrl: attachment.path.replace(/^download\//, ''),
         preview,
         mimetype: attachment.mimetype,
         ...(extra ? { ...extra } : {}),
       });
     } else if (attachment?.url) {
-      return await PresignedUrl.getSignedUrl({
+      attachment.signedUrl = await PresignedUrl.getSignedUrl({
         pathOrUrl: attachment.url,
         preview,
         mimetype: attachment.mimetype,

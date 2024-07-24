@@ -47,8 +47,8 @@ watch(activeMenu, (newVal, oldValue) => {
     @keydown.esc="dialogShow = false"
   >
     <div class="flex h-full flex-row">
-      <div style="border-top-left-radius: 1rem; border-bottom-left-radius: 1rem" class="px-2 !-full flex-grow bg-gray-100">
-        <NcMenu class="!h-full !bg-gray-100">
+      <div style="border-top-left-radius: 1rem; border-bottom-left-radius: 1rem" class="px-2 !-full flex-grow bg-gray-50">
+        <NcMenu class="!h-full !bg-gray-50">
           <NcMenuItem
             key="local"
             :class="{

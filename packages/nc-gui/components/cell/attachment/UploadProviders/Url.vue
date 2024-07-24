@@ -38,7 +38,7 @@ const deleteAttachment = (index: number) => {
   tempAttachments.value.splice(index, 1)
 }
 
-const isValidUrl = ref(true)
+const isValidUrl = ref(false)
 
 const errorMessage = ref('')
 

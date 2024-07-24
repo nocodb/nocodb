@@ -28,8 +28,6 @@ const dropZoneRef = ref<HTMLDivElement>()
 
 const sortableRef = ref<HTMLDivElement>()
 
-const { isMobileMode } = useGlobal()
-
 const { dragging } = useSortable(sortableRef, visibleItems, updateModelValue, readOnly)
 
 const { isOverDropZone } = useDropZone(dropZoneRef, onDrop)
@@ -136,70 +134,84 @@ const handleFileDelete = (i: number) => {
         class="grid max-h-140 overflow-auto nc-scrollbar-md md:grid-cols-3 xl:grid-cols-5 gap-y-8 gap-x-4 relative"
       >
         <div
-          v-for="(item, i) of visibleItems"
-          :key="`${item.title}-${i}`"
-          class="nc-attachment-item group flex border-1 gap-2 rounded-md border-gray-200 flex-col relative"
+          v-for="(item, i) in visibleItems"
+          :key="`${item?.title}-${i}`"
+          class="nc-attachment-item group gap-2 flex border-1 rounded-md border-gray-200 flex-col relative"
         >
           <NcCheckbox
             v-model:checked="selectedVisibleItems[i]"
             class="nc-attachment-checkbox absolute top-2 left-2 group-hover:(opacity-100)"
             :class="{ '!opacity-100': selectedVisibleItems[i] }"
           />
-
           <div
-            :class="[dragging ? 'cursor-move' : 'cursor-pointer']"
-            class="nc-attachment h-full flex justify-center items-center overflow-hidden"
+            :class="{
+              'cursor-move': dragging,
+              'cursor-pointer': !dragging,
+              'h-full': !isImage(item.title, item.mimetype),
+            }"
+            class="nc-attachment flex justify-center items-center overflow-hidden"
           >
             <LazyCellAttachmentPreviewImage
               v-if="isImage(item.title, item.mimetype)"
               :srcs="getPossibleAttachmentSrc(item)"
-              class="max-h-full h-64 m-auto rounded-md justify-center"
+              object-fit="cover"
+              class="!w-full h-42 object-cover !m-0 rounded-t-[5px] justify-center"
               @click.stop="onClick(item)"
             />
 
             <component
               :is="FileIcon(item.icon)"
               v-else-if="item.icon"
-              :height="isMobileMode ? 45 : 150"
-              :width="isMobileMode ? 45 : 150"
+              :height="45"
+              :width="45"
               @click.stop="openAttachment(item)"
             />
 
-            <IcOutlineInsertDriveFile
-              v-else
-              :height="isMobileMode ? 45 : 150"
-              :width="isMobileMode ? 45 : 150"
-              @click.stop="openAttachment(item)"
-            />
+            <IcOutlineInsertDriveFile v-else :height="45" :width="45" @click.stop="openAttachment(item)" />
           </div>
 
-          <div class="relative px-4 pb-2 flex text-gray-500 text-sm" :title="item.title">
-            <div class="flex-auto truncate line-height-4">
+          <div class="relative px-1 flex" :title="item.title">
+            <NcTooltip show-on-truncate-only class="flex-auto truncate w-full text-[13px] items-center text-sm line-height-4">
               {{ item.title }}
-            </div>
-            <div class="flex-none hide-ui transition-all transition-ease-in-out !h-6 flex items-center bg-white">
+
+              <template #title>
+                {{ item.title }}
+              </template>
+            </NcTooltip>
+            <div class="flex-none hide-ui transition-all transition-ease-in-out !h-5 gap-0.5 pb-2 flex items-center bg-white">
               <NcTooltip placement="bottom">
                 <template #title> {{ $t('title.downloadFile') }} </template>
-                <NcButton class="!text-gray-500" size="xsmall" type="text" @click="downloadAttachment(item)">
-                  <component :is="iconMap.download" class="h-[14px] w-[14px]" />
+                <NcButton
+                  class="!p-0 !w-5 !h-5 text-gray-500 !min-w-[fit-content]"
+                  size="xsmall"
+                  type="text"
+                  @click="downloadAttachment(item)"
+                >
+                  <component :is="iconMap.download" class="!text-xs" />
                 </NcButton>
               </NcTooltip>
 
               <NcTooltip v-if="!isSharedForm || (!readOnly && isUIAllowed('dataEdit') && !isPublic)" placement="bottom">
                 <template #title> {{ $t('title.renameFile') }} </template>
-                <NcButton size="xsmall" class="nc-attachment-rename !text-gray-500" type="text" @click="renameFile(item, i)">
-                  <component :is="iconMap.rename" class="h-[14px] w-[14px]" />
+                <NcButton
+                  size="xsmall"
+                  class="!p-0 nc-attachment-rename !h-5 !w-5 !text-gray-500 !min-w-[fit-content]"
+                  type="text"
+                  @click="renameFile(item, i)"
+                >
+                  <component :is="iconMap.rename" class="text-xs" />
                 </NcButton>
               </NcTooltip>
 
-              <NcTooltip v-if="!readOnly" placement="bottom">
+              <NcTooltip v-if="isSharedForm || (!readOnly && isUIAllowed('dataEdit') && !isPublic)" placement="bottom">
                 <template #title> {{ $t('title.removeFile') }} </template>
-                <NcButton class="!text-red-500" size="xsmall" type="text" @click="onRemoveFileClick(item.title, i)">
-                  <component
-                    :is="iconMap.delete"
-                    v-if="isSharedForm || (isUIAllowed('dataEdit') && !isPublic)"
-                    class="h-[14px] w-[14px]"
-                  />
+                <NcButton
+                  class="!p-0 !h-4 !w-4 !text-red-500 nc-attachment-remove !min-w-[fit-content]"
+                  size="xsmall"
+                  type="text"
+                  @click="onRemoveFileClick(item.title, i)"
+                >
+                  <component :is="iconMap.delete" />
                 </NcButton>
               </NcTooltip>
             </div>
@@ -250,6 +262,10 @@ const handleFileDelete = (i: number) => {
     .nc-attachment-item {
       @apply !pointer-events-none;
     }
+  }
+
+  .nc-checkbox > .ant-checkbox {
+    box-shadow: none !important;
   }
 }
 </style>

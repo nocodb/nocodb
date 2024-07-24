@@ -129,6 +129,7 @@ watch(
 const isNewAttachmentModalOpen = ref(false)
 
 useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e) => {
+  if (modalVisible.value) return
   if (e.key === 'Enter' && !isReadonly.value && !selectedFile.value) {
     if (isNewAttachmentModalOpen.value) return
     e.stopPropagation()
@@ -238,9 +239,13 @@ const handleFileDelete = (i: number) => {
         </div>
 
         <div class="relative px-1 flex" :title="item.title">
-          <div class="flex-auto text-[13px] items-center truncate text-sm line-height-4">
+          <NcTooltip show-on-truncate-only class="flex-auto truncate w-full text-[13px] items-center text-sm line-height-4">
             {{ item.title }}
-          </div>
+
+            <template #title>
+              {{ item.title }}
+            </template>
+          </NcTooltip>
           <div class="flex-none hide-ui transition-all transition-ease-in-out !h-5 gap-0.5 pb-2 flex items-center bg-white">
             <NcTooltip placement="bottom">
               <template #title> {{ $t('title.downloadFile') }} </template>

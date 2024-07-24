@@ -106,7 +106,7 @@ onBeforeUnmount(() => {
       ref="dropZoneRef"
       :class="{
         'border-brand-500': isOverDropZone,
-        'border-dashed border-1': !tempFiles.length,
+        'border-dashed border-2': !tempFiles.length,
       }"
       data-testid="attachment-drop-zone"
       :style="`height: ${tempFiles.length > 0 ? '324px' : '100%'}`"
@@ -115,11 +115,11 @@ onBeforeUnmount(() => {
     >
       <div v-if="!tempFiles.length" class="flex cursor-pointer items-center justify-center flex-col gap-2">
         <template v-if="!isOverDropZone">
-          <component :is="iconMap.upload" class="w-5 h-5" />
+          <component :is="iconMap.upload" class="w-6 h-6" />
           <h1>
             {{ $t('labels.clickTo') }}
 
-            <span class="font-semibold"> {{ $t('labels.browseFiles') }} </span>
+            <span class="font-semibold text-brand-500"> {{ $t('labels.browseFiles') }} </span>
             {{ $t('general.or') }}
             <span class="font-semibold"> {{ $t('labels.dragFilesHere') }} </span>
 

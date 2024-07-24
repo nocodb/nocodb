@@ -83,10 +83,14 @@ export class AttachmentsService {
 
             attachment.signedPath = await PresignedUrl.getSignedUrl({
               path: attachment.path.replace(/^download\//, ''),
+              preview: true,
+              mimetype: attachment.mimetype,
             });
           } else {
             attachment.signedUrl = await PresignedUrl.getSignedUrl({
               path: decodeURI(new URL(attachment.url).pathname),
+              preview: true,
+              mimetype: attachment.mimetype,
             });
           }
 
@@ -212,12 +216,48 @@ export class AttachmentsService {
     return { path: filePath, type };
   }
 
-  previewAvailable(mimetype: string) {
-    const available = ['image', 'pdf', 'text/plain'];
-    if (available.some((type) => mimetype.includes(type))) {
-      return true;
+  async getAttachmentFromRecord(param: {
+    record: any;
+    column: { title: string };
+    urlOrPath: string;
+  }) {
+    const { record, column, urlOrPath } = param;
+
+    const attachment = record[column.title];
+
+    if (!attachment || !attachment.length) {
+      NcError.genericNotFound('Attachment', urlOrPath);
     }
-    return false;
+
+    const fileObject = attachment.find(
+      (a) => a.url === urlOrPath || a.path === urlOrPath,
+    );
+
+    if (!fileObject) {
+      NcError.genericNotFound('Attachment', urlOrPath);
+    }
+
+    if (fileObject?.path) {
+      const signedPath = await PresignedUrl.getSignedUrl({
+        path: fileObject.path.replace(/^download\//, ''),
+        preview: false,
+        filename: fileObject.title,
+        mimetype: fileObject.mimetype,
+        expireSeconds: 5 * 60,
+      });
+
+      return { path: signedPath };
+    } else if (fileObject?.url) {
+      const signedUrl = await PresignedUrl.getSignedUrl({
+        path: decodeURI(new URL(fileObject.url).pathname),
+        preview: false,
+        filename: fileObject.title,
+        mimetype: fileObject.mimetype,
+        expireSeconds: 5 * 60,
+      });
+
+      return { url: signedUrl };
+    }
   }
 
   sanitizeUrlPath(paths) {

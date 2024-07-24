@@ -37,7 +37,7 @@ const { getPossibleAttachmentSrc } = useAttachment()
 
 useEventListener(container, 'click', (e) => {
   const target = e.target as HTMLElement
-  if (!target.closest('.keep-open') || !target.closest('.nc-button')) {
+  if (!target.closest('.keep-open') || !target.closest('.nc-button') || !target?.closest('img') || !target?.closest('video')) {
     selectedFile.value = false
   }
 })
@@ -83,153 +83,152 @@ watchOnce(emblaMainApi, async (emblaMainApi) => {
 
 <template>
   <GeneralOverlay v-model="selectedFile" transition :z-index="50" class="bg-black bg-opacity-90">
-    <div v-if="selectedFile" class="flex w-full justify-center items-center">
-      <div ref="container" class="overflow-hidden w-full flex items-center justify-center text-center relative h-screen">
-        <NcButton
-          class="top-5 !absolute cursor-pointer !hover:bg-transparent left-5"
-          size="xsmall"
-          type="text"
-          @click.stop="selectedFile = false"
-        >
-          <component :is="iconMap.close" class="text-white" />
-        </NcButton>
+    <div
+      v-if="selectedFile"
+      ref="container"
+      class="flex w-full overflow-hidden justify-center text-center relative h-screen items-center"
+    >
+      <NcButton
+        class="top-5 !absolute cursor-pointer !hover:bg-transparent left-5"
+        size="xsmall"
+        type="text"
+        @click.stop="selectedFile = false"
+      >
+        <component :is="iconMap.close" class="text-white" />
+      </NcButton>
 
-        <div
-          class="keep-open select-none absolute top-5 pointer-events-none inset-x-0 mx-auto group flex items-center justify-center leading-8 inline-block text-center rounded shadow"
+      <div
+        class="keep-open select-none absolute top-5 pointer-events-none inset-x-0 mx-auto group flex items-center justify-center leading-8 inline-block text-center rounded shadow"
+      >
+        <h3
+          style="width: max-content"
+          class="hover:underline pointer-events-auto font-semibold cursor-pointer text-white"
+          @click.stop="downloadAttachment(selectedFile)"
         >
-          <h3
-            style="width: max-content"
-            class="hover:underline pointer-events-auto font-semibold cursor-pointer text-white"
-            @click.stop="downloadAttachment(selectedImage)"
-          >
-            {{ selectedFile && selectedFile.title }}
-          </h3>
-        </div>
+          {{ selectedFile && selectedFile.title }}
+        </h3>
+      </div>
 
-        <NcCarousel
-          class="!absolute inset-16 keep-open flex justify-center items-center"
-          @init-api="(val) => (emblaMainApi = val)"
-        >
-          <NcCarouselContent>
-            <NcCarouselItem v-for="(item, index) in visibleItems" :key="index">
-              <div class="w-full h-full justify-center flex items-center">
+      <NcCarousel class="!absolute inset-16 keep-open flex justify-center items-center" @init-api="(val) => (emblaMainApi = val)">
+        <NcCarouselContent>
+          <NcCarouselItem v-for="(item, index) in visibleItems" :key="index">
+            <div class="w-full h-full justify-center flex items-center">
+              <LazyCellAttachmentPreviewImage
+                v-if="isImage(item.title, item.mimeType)"
+                class="nc-attachment-img-wrapper"
+                object-fit="contain"
+                :alt="item.title"
+                :srcs="getPossibleAttachmentSrc(item)"
+              />
+
+              <LazyCellAttachmentPreviewVideo
+                v-else-if="isVideo(item.title, item.mimeType)"
+                class="!h-full flex items-center"
+                :src="getPossibleAttachmentSrc(item)[0]"
+                :sources="getPossibleAttachmentSrc(item).map((src) => ({ src, type: item.mimeType }))"
+              />
+              <LazyCellAttachmentPreviewPdf
+                v-else-if="isPdf(item.title, item.mimeType)"
+                class="keep-open"
+                :src="getPossibleAttachmentSrc(item)[0]"
+              />
+              <div v-else class="bg-white h-full flex flex-col justify-center rounded-md gap-1 items-center w-full">
+                <component :is="iconMap.file" class="text-gray-600 w-20 h-20" />
+                <div class="text-gray-800 text-sm">{{ item.title }}</div>
+              </div>
+            </div>
+          </NcCarouselItem>
+        </NcCarouselContent>
+      </NcCarousel>
+
+      <div class="absolute w-full !bottom-3 max-h-18 z-30 flex items-center justify-center">
+        <NcCarousel class="absolute max-w-sm" @init-api="(val) => (emblaThumbnailApi = val)">
+          <NcCarouselContent class="!flex !gap-2 ml-0">
+            <NcCarouselItem
+              v-for="(item, index) in visibleItems"
+              :key="index"
+              :class="{
+                'opacity-100': index === selectedIndex,
+                '!basis-1/2': visibleItems.length === 2,
+                '!basis-1/3': visibleItems.length === 3,
+                '!basis-1': visibleItems.length === 1,
+                '!basis-1/4': visibleItems.length === 4,
+                '!basis-1/8': visibleItems.length > 4,
+              }"
+              class="px-2 keep-open opacity-50 cursor-pointer"
+              @click="onThumbClick(index)"
+            >
+              <div class="flex items-center justify-center">
                 <LazyCellAttachmentPreviewImage
                   v-if="isImage(item.title, item.mimeType)"
-                  class="nc-attachment-img-wrapper"
+                  class="nc-attachment-img-wrapper h-12"
                   object-fit="contain"
                   :alt="item.title"
                   :srcs="getPossibleAttachmentSrc(item)"
                 />
-
-                <LazyCellAttachmentPreviewVideo
+                <div
                   v-else-if="isVideo(item.title, item.mimeType)"
-                  class="!h-full flex items-center"
-                  :src="getPossibleAttachmentSrc(item)[0]"
-                  :sources="getPossibleAttachmentSrc(item).map((src) => ({ src, type: item.mimeType }))"
-                />
-                <LazyCellAttachmentPreviewPdf
-                  v-else-if="isPdf(item.title, item.mimeType)"
-                  class="keep-open"
-                  :src="getPossibleAttachmentSrc(item)[0]"
-                />
-                <div v-else class="bg-white h-full flex flex-col justify-center rounded-md gap-1 items-center w-full">
-                  <component :is="iconMap.file" class="text-gray-600 w-20 h-20" />
-                  <div class="text-gray-800 text-sm">{{ item.title }}</div>
+                  class="h-full flex items-center h-6 justify-center rounded-md px-2 py-1 border-1 border-gray-200"
+                >
+                  <GeneralIcon class="text-white" icon="play" />
+                </div>
+
+                <div v-else class="h-full flex items-center h-6 justify-center rounded-md px-2 py-1 border-1 border-gray-200">
+                  <GeneralIcon class="text-white" icon="file" />
                 </div>
               </div>
             </NcCarouselItem>
           </NcCarouselContent>
         </NcCarousel>
-
-        <div class="absolute w-full !bottom-3 max-h-18 z-30 flex items-center justify-center">
-          <NcCarousel class="absolute max-w-sm" @init-api="(val) => (emblaThumbnailApi = val)">
-            <NcCarouselContent class="!flex !gap-2 ml-0">
-              <NcCarouselItem
-                v-for="(item, index) in visibleItems"
-                :key="index"
-                :class="{
-                  'opacity-100': index === selectedIndex,
-                  '!basis-1/2': visibleItems.length === 2,
-                  '!basis-1/3': visibleItems.length === 3,
-                  '!basis-1': visibleItems.length === 1,
-                  '!basis-1/4': visibleItems.length === 4,
-                  '!basis-1/8': visibleItems.length > 4,
-                }"
-                class="px-2 keep-open opacity-50 cursor-pointer"
-                @click="onThumbClick(index)"
-              >
-                <div class="flex items-center justify-center">
-                  <LazyCellAttachmentPreviewImage
-                    v-if="isImage(item.title, item.mimeType)"
-                    class="nc-attachment-img-wrapper h-12"
-                    object-fit="contain"
-                    :alt="item.title"
-                    :srcs="getPossibleAttachmentSrc(item)"
-                  />
-                  <div
-                    v-else-if="isVideo(item.title, item.mimeType)"
-                    class="h-full flex items-center h-6 justify-center rounded-md px-2 py-1 border-1 border-gray-200"
-                  >
-                    <GeneralIcon class="text-white" icon="play" />
-                  </div>
-
-                  <div v-else class="h-full flex items-center h-6 justify-center rounded-md px-2 py-1 border-1 border-gray-200">
-                    <GeneralIcon class="text-white" icon="file" />
-                  </div>
-                </div>
-              </NcCarouselItem>
-            </NcCarouselContent>
-          </NcCarousel>
-        </div>
-
-        <div class="absolute keep-open right-2 z-30 bottom-3 transition-all gap-3 transition-ease-in-out !h-6 flex items-center">
-          <NcTooltip v-if="!isReadonly" placement="bottom">
-            <template #title> {{ $t('title.removeFile') }} </template>
-            <NcButton
-              class="!text-red-500 !hover:bg-transparent"
-              size="xsmall"
-              type="text"
-              @click="onRemoveFileClick(selectedFile.title, selectedIndex)"
-            >
-              <component :is="iconMap.delete" v-if="isSharedForm || (isUIAllowed('dataEdit') && !isPublic)" />
-            </NcButton>
-          </NcTooltip>
-
-          <NcTooltip v-if="!isSharedForm || (!isReadonly && isUIAllowed('dataEdit') && !isPublic)" placement="bottom">
-            <template #title> {{ $t('title.renameFile') }} </template>
-            <NcButton
-              size="xsmall"
-              class="nc-attachment-rename !hover:bg-transparent !text-white"
-              type="text"
-              @click="renameFile(selectedFile, selectedIndex, true)"
-            >
-              <component :is="iconMap.rename" />
-            </NcButton>
-          </NcTooltip>
-
-          <NcButton size="small" @click="downloadFile(selectedFile)">
-            <div class="flex items-center gap-2 justify-center">
-              <component :is="iconMap.download" />
-              {{ $t('title.downloadFile') }}
-            </div>
-          </NcButton>
-        </div>
-        <GeneralDeleteModal v-model:visible="isModalOpen" entity-name="File" :on-delete="() => handleFileDelete(filetoDelete.i)">
-          <template #entity-preview>
-            <span>
-              <div class="flex flex-row items-center py-2.25 px-2.5 bg-gray-50 rounded-lg text-gray-700 mb-4">
-                <GeneralIcon icon="file" class="nc-view-icon"></GeneralIcon>
-                <div
-                  class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1.75"
-                  :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
-                >
-                  {{ filetoDelete.title }}
-                </div>
-              </div>
-            </span>
-          </template>
-        </GeneralDeleteModal>
       </div>
+
+      <div class="absolute keep-open right-2 z-30 bottom-3 transition-all gap-3 transition-ease-in-out !h-6 flex items-center">
+        <NcTooltip v-if="!isReadonly" placement="bottom">
+          <template #title> {{ $t('title.removeFile') }} </template>
+          <NcButton
+            class="!text-red-500 !hover:bg-transparent"
+            size="xsmall"
+            type="text"
+            @click="onRemoveFileClick(selectedFile.title, selectedIndex)"
+          >
+            <component :is="iconMap.delete" v-if="isSharedForm || (isUIAllowed('dataEdit') && !isPublic)" />
+          </NcButton>
+        </NcTooltip>
+
+        <NcTooltip v-if="!isSharedForm || (!isReadonly && isUIAllowed('dataEdit') && !isPublic)" placement="bottom">
+          <template #title> {{ $t('title.renameFile') }} </template>
+          <NcButton
+            size="xsmall"
+            class="nc-attachment-rename !hover:bg-transparent !text-white"
+            type="text"
+            @click="renameFile(selectedFile, selectedIndex, true)"
+          >
+            <component :is="iconMap.rename" />
+          </NcButton>
+        </NcTooltip>
+
+        <NcButton size="small" @click="downloadFile(selectedFile)">
+          <div class="flex items-center gap-2 justify-center">
+            <component :is="iconMap.download" />
+            {{ $t('title.downloadFile') }}
+          </div>
+        </NcButton>
+      </div>
+      <GeneralDeleteModal v-model:visible="isModalOpen" entity-name="File" :on-delete="() => handleFileDelete(filetoDelete.i)">
+        <template #entity-preview>
+          <span>
+            <div class="flex flex-row items-center py-2.25 px-2.5 bg-gray-50 rounded-lg text-gray-700 mb-4">
+              <GeneralIcon icon="file" class="nc-view-icon"></GeneralIcon>
+              <div
+                class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1.75"
+                :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
+              >
+                {{ filetoDelete.title }}
+              </div>
+            </div>
+          </span>
+        </template>
+      </GeneralDeleteModal>
     </div>
   </GeneralOverlay>
 </template>

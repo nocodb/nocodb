@@ -28,6 +28,8 @@ const dropZoneRef = ref<HTMLDivElement>()
 
 const sortableRef = ref<HTMLDivElement>()
 
+const { isMobileMode } = useGlobal()
+
 const { dragging } = useSortable(sortableRef, visibleItems, updateModelValue, readOnly)
 
 const { isOverDropZone } = useDropZone(dropZoneRef, onDrop)
@@ -82,19 +84,28 @@ const handleFileDelete = (i: number) => {
 </script>
 
 <template>
-  <a-modal
+  <NcModal
     v-model:visible="modalVisible"
+    wrap-class-name="nc-modal-attachment-expand-cell"
     class="nc-attachment-modal"
     :class="{ active: modalVisible }"
     width="80%"
-    :footer="null"
-    wrap-class-name="nc-modal-attachment-expand-cell"
   >
-    <template #title>
-      <div class="flex gap-4">
+    <div class="flex justify-between pb-2 gap-4">
+      <div class="font-semibold underline">{{ column?.title }}</div>
+
+      <div class="flex items-center gap-2">
+        <NcButton v-if="selectedVisibleItems.length > 0" size="small" @click="bulkDownloadAttachments">
+          <div class="flex gap-2 items-center">
+            <GeneralIcon icon="download" />
+            {{ $t('activity.bulkDownload') }}
+          </div>
+        </NcButton>
+
         <NcButton
           v-if="isSharedForm || (!readOnly && isUIAllowed('dataEdit') && !isPublic)"
           class="nc-attach-file group"
+          size="small"
           data-testid="attachment-expand-file-picker-button"
           @click="open"
         >
@@ -104,65 +115,65 @@ const handleFileDelete = (i: number) => {
           </div>
         </NcButton>
 
-        <div class="flex items-center gap-2">
-          {{ $t('labels.viewingAttachmentsOf') }}
-          <div class="font-semibold underline">{{ column?.title }}</div>
-        </div>
-
-        <div
-          v-if="selectedVisibleItems.includes(true) && selectedVisibleItems.length > 1"
-          class="flex flex-1 items-center gap-3 justify-end mr-[30px]"
-        >
-          <NcButton type="primary" class="nc-attachment-download-all" @click="bulkDownloadAttachments">
-            {{ $t('activity.bulkDownload') }}
-          </NcButton>
-        </div>
+        <NcButton type="secondary" size="small" @click="modalVisible = false">
+          <GeneralIcon icon="close" />
+        </NcButton>
       </div>
-    </template>
-    <div ref="dropZoneRef" tabindex="0">
-      <template v-if="isSharedForm || (!readOnly && !dragging)">
-        <general-overlay
-          v-model="isOverDropZone"
-          inline
-          class="text-white ring ring-accent ring-opacity-100 bg-gray-700/75 flex items-center justify-center gap-2 backdrop-blur-xl"
-        >
-          <MaterialSymbolsFileCopyOutline class="text-accent" height="35" width="35" />
-          <div class="text-white text-3xl">{{ $t('labels.dropHere') }}</div>
-        </general-overlay>
-      </template>
+    </div>
 
-      <div ref="sortableRef" :class="{ dragging }" class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 relative p-6">
-        <div v-for="(item, i) of visibleItems" :key="`${item.title}-${i}`" class="flex flex-col group gap-1">
-          <a-card class="nc-attachment-item group">
-            <NcCheckbox
-              v-model:checked="selectedVisibleItems[i]"
-              class="nc-attachment-checkbox absolute top-2 left-2 group-hover:(opacity-100)"
-              :class="{ '!opacity-100': selectedVisibleItems[i] }"
+    <div ref="dropZoneRef" tabindex="0" class="relative">
+      <div
+        v-if="isSharedForm || (!readOnly && !dragging && isOverDropZone)"
+        class="text-white absolute inset-0 bg-white flex flex-col items-center justify-center gap-2 border-dashed border-1 border-gray-700"
+      >
+        <MaterialSymbolsFileCopyOutline class="text-accent" height="35" width="35" />
+        <div class="text-gray-800 text-3xl">{{ $t('labels.dropHere') }}</div>
+      </div>
+
+      <div
+        ref="sortableRef"
+        :class="{ dragging }"
+        class="grid max-h-140 overflow-auto nc-scrollbar-md md:grid-cols-3 xl:grid-cols-5 gap-y-8 gap-x-4 relative"
+      >
+        <div
+          v-for="(item, i) of visibleItems"
+          :key="`${item.title}-${i}`"
+          class="nc-attachment-item group flex border-1 gap-2 rounded-md border-gray-200 flex-col relative"
+        >
+          <NcCheckbox
+            v-model:checked="selectedVisibleItems[i]"
+            class="nc-attachment-checkbox absolute top-2 left-2 group-hover:(opacity-100)"
+            :class="{ '!opacity-100': selectedVisibleItems[i] }"
+          />
+
+          <div
+            :class="[dragging ? 'cursor-move' : 'cursor-pointer']"
+            class="nc-attachment h-full flex justify-center items-center overflow-hidden"
+          >
+            <LazyCellAttachmentPreviewImage
+              v-if="isImage(item.title, item.mimetype)"
+              :srcs="getPossibleAttachmentSrc(item)"
+              class="max-h-full h-64 m-auto rounded-md justify-center"
+              @click.stop="onClick(item)"
             />
 
-            <div
-              :class="[dragging ? 'cursor-move' : 'cursor-pointer']"
-              class="nc-attachment h-full w-full flex items-center justify-center overflow-hidden"
-            >
-              <LazyCellAttachmentPreviewImage
-                v-if="isImage(item.title, item.mimetype)"
-                :srcs="getPossibleAttachmentSrc(item)"
-                class="max-h-full h-64 m-auto justify-center"
-                @click.stop="onClick(item)"
-              />
+            <component
+              :is="FileIcon(item.icon)"
+              v-else-if="item.icon"
+              :height="isMobileMode ? 45 : 150"
+              :width="isMobileMode ? 45 : 150"
+              @click.stop="openAttachment(item)"
+            />
 
-              <component
-                :is="FileIcon(item.icon)"
-                v-else-if="item.icon"
-                height="150"
-                width="150"
-                @click.stop="openAttachment(item)"
-              />
+            <IcOutlineInsertDriveFile
+              v-else
+              :height="isMobileMode ? 45 : 150"
+              :width="isMobileMode ? 45 : 150"
+              @click.stop="openAttachment(item)"
+            />
+          </div>
 
-              <IcOutlineInsertDriveFile v-else height="150" width="150" @click.stop="openAttachment(item)" />
-            </div>
-          </a-card>
-          <div class="relative flex" :title="item.title">
+          <div class="relative px-1 flex" :title="item.title">
             <div class="flex-auto truncate line-height-4">
               {{ item.title }}
             </div>
@@ -200,6 +211,7 @@ const handleFileDelete = (i: number) => {
         </div>
       </div>
     </div>
+
     <GeneralDeleteModal v-model:visible="isModalOpen" entity-name="File" :on-delete="() => handleFileDelete(filetoDelete.i)">
       <template #entity-preview>
         <span>
@@ -215,48 +227,19 @@ const handleFileDelete = (i: number) => {
         </span>
       </template>
     </GeneralDeleteModal>
-  </a-modal>
+  </NcModal>
 </template>
 
 <style lang="scss">
 .hide-ui {
   @apply h-0 w-0 overflow-hidden whitespace-nowrap;
-
-  // When the parent with class 'group' is hovered
   .group:hover & {
     @apply h-auto w-auto overflow-visible whitespace-normal;
   }
 }
 .nc-attachment-modal {
   .nc-attachment-item {
-    @apply !h-2/3 !min-h-[200px] flex items-center justify-center relative;
-
-    @supports (-moz-appearance: none) {
-      @apply hover:border-0;
-    }
-
-    &::after {
-      @apply pointer-events-none rounded absolute top-0 left-0 right-0 bottom-0 transition-all duration-150 ease-in-out;
-      content: '';
-    }
-
-    @supports (-moz-appearance: none) {
-      &:hover::after {
-        @apply ring shadow;
-      }
-
-      &:active::after {
-        @apply ring ring-accent ring-opacity-100 shadow;
-      }
-    }
-  }
-
-  .ant-card-body {
-    @apply !p-2 w-full h-full;
-  }
-
-  .ant-modal-body {
-    @apply !p-0;
+    @apply h-[200px] max-h-[200px] flex relative;
   }
 
   .dragging {

@@ -196,14 +196,14 @@ onMounted(() => {
           <component :is="iconMap.arrowRight" class="text-7xl" />
         </div>
 
-        <div v-if="isUIAllowed('commentList') && !isExpandedFormOpen" class="absolute top-2 right-2">
+        <!--        <div v-if="isUIAllowed('commentList') && !isExpandedFormOpen" class="absolute top-2 right-2">
           <NcButton class="!hover:bg-transparent" type="text" size="small" @click="toggleComment">
             <div class="flex gap-1 text-white justify-center items-center">
               Comments
               <GeneralIcon icon="messageCircle" />
             </div>
           </NcButton>
-        </div>
+        </div> -->
 
         <div class="text-white absolute right-2 top-2 cursor-pointer"></div>
 
@@ -253,7 +253,11 @@ onMounted(() => {
         </div>
 
         <div class="absolute keep-open right-2 z-30 bottom-3 transition-all gap-3 transition-ease-in-out !h-6 flex items-center">
-          <NcTooltip v-if="!isSharedForm || (!isReadonly && isUIAllowed('dataEdit') && !isPublic)" placement="bottom">
+          <NcTooltip
+            v-if="!isSharedForm || (!isReadonly && isUIAllowed('dataEdit') && !isPublic)"
+            color="light"
+            placement="bottom"
+          >
             <template #title> {{ $t('title.renameFile') }} </template>
             <NcButton
               size="xsmall"
@@ -265,14 +269,14 @@ onMounted(() => {
             </NcButton>
           </NcTooltip>
 
-          <NcTooltip v-if="!isReadonly" placement="bottom">
+          <NcTooltip v-if="!isReadonly" color="light" placement="bottom">
             <template #title> {{ $t('title.downloadFile') }} </template>
             <NcButton class="!hover:bg-transparent !text-white" size="xsmall" type="text" @click="downloadFile(selectedFile)">
               <component :is="iconMap.download" />
             </NcButton>
           </NcTooltip>
 
-          <NcTooltip v-if="!isReadonly" placement="bottom">
+          <NcTooltip v-if="!isReadonly" color="light" placement="bottom">
             <template #title> {{ $t('title.removeFile') }} </template>
             <NcButton
               class="!hover:bg-transparent !text-white"
@@ -300,9 +304,9 @@ onMounted(() => {
           </template>
         </GeneralDeleteModal>
       </div>
-      <div v-if="openComments && isUIAllowed('commentList') && !isExpandedFormOpen" class="bg-white w-88 min-w-88 max-w-88">
+      <!--      <div v-if="openComments && isUIAllowed('commentList') && !isExpandedFormOpen" class="bg-white w-88 min-w-88 max-w-88">
         <LazySmartsheetExpandedFormSidebarComments />
-      </div>
+      </div> -->
     </div>
   </GeneralOverlay>
 </template>

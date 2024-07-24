@@ -231,41 +231,41 @@ const handleFileDelete = (i: number) => {
     </template>
 
     <div
-      v-if="!isReadonly"
+      v-if="!isReadonly && active && !visibleItems.length"
       :class="{ 'sm:(mx-auto px-4) xs:(w-full min-w-8)': !visibleItems.length }"
-      class="group cursor-pointer py-1 flex gap-1 items-center rounded border-none shadow-sm hover:(bg-primary bg-opacity-10)"
+      class="group cursor-pointer py-1 flex gap-1 items-center rounded border-none"
       data-testid="attachment-cell-file-picker-button"
       tabindex="0"
-      @click="open"
       @keydown.enter="keydownEnter"
       @keydown.space="keydownSpace"
     >
       <component :is="iconMap.reload" v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />
 
       <NcTooltip placement="bottom" class="xs:w-full">
-        <template #title
-          ><span data-rec="true">{{ $t('activity.attachmentDrop') }} </span></template
-        >
+        <template #title>
+          <span data-rec="true">{{ $t('activity.attachmentDrop') }} </span>
+        </template>
 
-        <div
-          v-if="active || !visibleItems.length || (isForm && visibleItems.length)"
-          class="flex items-center gap-1 xs:(w-full min-w-12 h-7 justify-center)"
+        <NcButton
+          type="secondary"
+          size="xsmall"
+          data-testid="attachment-cell-file-picker-button"
+          class="!px-2 !h-5.5 !min-w-[fit-content]"
+          @click.stop="open"
         >
-          <MaterialSymbolsAttachFile class="text-gray-500 text-tiny" />
-          <div
-            v-if="!visibleItems.length"
-            data-rec="true"
-            class="group-hover:text-primary text-gray-500 dark:text-gray-200 dark:group-hover:!text-white text-tiny xs:(justify-center rounded-lg text-sm)"
-          >
-            {{ $t('activity.addFiles') }}
+          <div class="flex items-center !text-xs gap-1 justify-center">
+            <MaterialSymbolsAttachFile class="text-gray-500 text-tiny" />
+            <span class="text-[10px]">
+              {{ $t('activity.addFiles') }}
+            </span>
           </div>
-        </div>
+        </NcButton>
       </NcTooltip>
     </div>
 
     <div v-else class="flex" />
 
-    <template v-if="visibleItems.length">
+    <template v-if="visibleItems.length > 0">
       <div
         ref="sortableRef"
         :class="{
@@ -312,7 +312,6 @@ const handleFileDelete = (i: number) => {
                 'h-8': rowHeight === 2,
                 'h-16.8': rowHeight === 4,
                 'h-20.8 !w-30': rowHeight === 6 || isForm || isExpandedForm,
-                'ml-2': active,
               }"
               @click="onFileClick(item)"
             >
@@ -334,20 +333,49 @@ const handleFileDelete = (i: number) => {
         </template>
       </div>
 
-      <div
-        v-if="active || (isForm && visibleItems.length)"
-        class="xs:hidden group cursor-pointer flex gap-1 items-center rounded border-none p-1"
+      <NcTooltip
+        placement="bottom"
+        class="nc-action-icon !absolute !hidden right-0 nc-text-area-expand-btn group-hover:block z-3"
+        :class="{
+          'top-0': isGrid && !isForm && !(!rowHeight || rowHeight === 1),
+          'top-1': !(isGrid && !isForm),
+        }"
+        :style="isGrid && !isForm && (!rowHeight || rowHeight === 1) ? { top: '50%', transform: 'translateY(-50%)' } : undefined"
       >
-        <component :is="iconMap.reload" v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />
+        <template #title>{{ $t('activity.viewAttachment') }}</template>
+        <NcButton
+          type="secondary"
+          size="xsmall"
+          data-testid="attachment-cell-file-picker-button"
+          class="!p-0 !w-5 !h-5 !min-w-[fit-content]"
+          @click.stop="onExpand"
+        >
+          <component :is="iconMap.reload" v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />
 
-        <NcTooltip v-else placement="bottom" class="flex">
-          <template #title> {{ $t('activity.viewAttachment') }}</template>
+          <component :is="iconMap.expand" v-else class="transform group-hover:(!text-grey-800) text-gray-700 text-xs" />
+        </NcButton>
+      </NcTooltip>
 
-          <NcButton type="text" size="xsmall" @click.stop="onExpand">
-            <component :is="iconMap.expand" />
-          </NcButton>
-        </NcTooltip>
-      </div>
+      <NcTooltip
+        placement="bottom"
+        class="nc-action-icon !absolute !hidden left-0 nc-text-area-expand-btn group-hover:block z-3"
+        :class="{
+          'top-0': isGrid && !isForm && !(!rowHeight || rowHeight === 1),
+          'top-1': !(isGrid && !isForm),
+        }"
+        :style="isGrid && !isForm && (!rowHeight || rowHeight === 1) ? { top: '50%', transform: 'translateY(-50%)' } : undefined"
+      >
+        <template #title>{{ $t('activity.addFiles') }}</template>
+        <NcButton
+          type="secondary"
+          size="xsmall"
+          data-testid="attachment-cell-file-picker-button"
+          class="!p-0 !w-5 !h-5 !min-w-[fit-content]"
+          @click.stop="open"
+        >
+          <MaterialSymbolsAttachFile class="text-gray-500 text-tiny group-hover:(!text-grey-800) text-gray-700" />
+        </NcButton>
+      </NcTooltip>
     </template>
 
     <LazyCellAttachmentModal v-if="modalRendered" />

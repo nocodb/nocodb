@@ -16,6 +16,17 @@ import { PresignedUrl } from '~/models';
 import { utf8ify } from '~/helpers/stringHelpers';
 import { NcError } from '~/helpers/catchError';
 
+interface AttachmentObject {
+  url?: string;
+  path?: string;
+  title: string;
+  mimetype: string;
+  size: number;
+  icon?: string;
+  signedPath?: string;
+  signedUrl?: string;
+}
+
 @Injectable()
 export class AttachmentsService {
   protected logger = new Logger(AttachmentsService.name);
@@ -54,45 +65,19 @@ export class AttachmentsService {
             file,
           );
 
-          const attachment: {
-            url?: string;
-            path?: string;
-            title: string;
-            mimetype: string;
-            size: number;
-            icon?: string;
-            signedPath?: string;
-            signedUrl?: string;
-          } = {
-            ...(url ? { url } : {}),
+          const attachment: AttachmentObject = {
+            ...(url
+              ? { url }
+              : {
+                  path: path.join('download', filePath.join('/'), fileName),
+                }),
             title: originalName,
             mimetype: file.mimetype,
             size: file.size,
             icon: mimeIcons[path.extname(originalName).slice(1)] || undefined,
           };
 
-          // if `url` is null, then it is local attachment
-          if (!url) {
-            // then store the attachment path only
-            // url will be constructed in `useAttachmentCell`
-            attachment.path = path.join(
-              'download',
-              filePath.join('/'),
-              fileName,
-            );
-
-            attachment.signedPath = await PresignedUrl.getSignedUrl({
-              pathOrUrl: attachment.path.replace(/^download\//, ''),
-              preview: true,
-              mimetype: attachment.mimetype,
-            });
-          } else {
-            attachment.signedUrl = await PresignedUrl.getSignedUrl({
-              pathOrUrl: attachment.url,
-              preview: true,
-              mimetype: attachment.mimetype,
-            });
-          }
+          await this.signAttachment({ attachment });
 
           attachments.push(attachment);
         } catch (e) {
@@ -159,28 +144,20 @@ export class AttachmentsService {
             slash(path.join(destPath, fileName)),
             finalUrl,
           );
-          // if `attachmentUrl` is null, then it is local attachment
-          // then store the attachment path only
-          // url will be constructed in `useAttachmentCell`
-          const attachmentPath = !attachmentUrl
-            ? `download/${filePath.join('/')}/${fileName}`
-            : undefined;
 
-          const mimeType = response.headers['content-type']?.split(';')[0];
+          let mimeType = response.headers['content-type']?.split(';')[0];
           const size = response.headers['content-length'];
 
-          const attachment: {
-            url?: string;
-            path?: string;
-            title: string;
-            mimetype: string;
-            size: number;
-            icon?: string;
-            signedPath?: string;
-            signedUrl?: string;
-          } = {
-            ...(attachmentUrl ? { url: attachmentUrl } : {}),
-            ...(attachmentPath ? { path: attachmentPath } : {}),
+          if (!mimeType) {
+            mimeType = mimetypes[path.extname(fileNameWithExt).slice(1)];
+          }
+
+          const attachment: AttachmentObject = {
+            ...(attachmentUrl
+              ? { url: attachmentUrl }
+              : {
+                  path: path.join('download', filePath.join('/'), fileName),
+                }),
             title: fileNameWithExt,
             mimetype: mimeType || urlMeta.mimetype,
             size: size ? parseInt(size) : urlMeta.size,
@@ -188,25 +165,7 @@ export class AttachmentsService {
               mimeIcons[path.extname(fileNameWithExt).slice(1)] || undefined,
           };
 
-          if (!attachment?.url) {
-            attachment.path = path.join(
-              'download',
-              filePath.join('/'),
-              fileName,
-            );
-
-            attachment.signedPath = await PresignedUrl.getSignedUrl({
-              pathOrUrl: attachment.path.replace(/^download\//, ''),
-              preview: true,
-              mimetype: attachment.mimetype,
-            });
-          } else {
-            attachment.signedUrl = await PresignedUrl.getSignedUrl({
-              pathOrUrl: attachment.url,
-              preview: true,
-              mimetype: attachment.mimetype,
-            });
-          }
+          await this.signAttachment({ attachment });
 
           attachments.push(attachment);
         } catch (e) {
@@ -268,26 +227,44 @@ export class AttachmentsService {
       NcError.genericNotFound('Attachment', urlOrPath);
     }
 
-    if (fileObject?.path) {
-      const signedPath = await PresignedUrl.getSignedUrl({
-        pathOrUrl: fileObject.path.replace(/^download\//, ''),
-        preview: false,
-        filename: fileObject.title,
-        mimetype: fileObject.mimetype,
-        expireSeconds: 5 * 60,
-      });
+    await this.signAttachment({
+      attachment: fileObject,
+      preview: false,
+      filename: fileObject.title,
+      expireSeconds: 5 * 60,
+    });
 
-      return { path: signedPath };
-    } else if (fileObject?.url) {
-      const signedUrl = await PresignedUrl.getSignedUrl({
-        pathOrUrl: fileObject.url,
-        preview: false,
-        filename: fileObject.title,
-        mimetype: fileObject.mimetype,
-        expireSeconds: 5 * 60,
-      });
+    return {
+      ...(fileObject?.path
+        ? { path: fileObject.signedPath }
+        : {
+            url: fileObject.signedUrl,
+          }),
+    };
+  }
 
-      return { url: signedUrl };
+  async signAttachment(param: {
+    attachment: AttachmentObject;
+    preview?: boolean;
+    filename?: string;
+    expireSeconds?: number;
+  }) {
+    const { attachment, preview = true, ...extra } = param;
+
+    if (attachment?.path) {
+      return await PresignedUrl.getSignedUrl({
+        pathOrUrl: attachment.path.replace(/^download\//, ''),
+        preview,
+        mimetype: attachment.mimetype,
+        ...(extra ? { ...extra } : {}),
+      });
+    } else if (attachment?.url) {
+      return await PresignedUrl.getSignedUrl({
+        pathOrUrl: attachment.url,
+        preview,
+        mimetype: attachment.mimetype,
+        ...(extra ? { ...extra } : {}),
+      });
     }
   }
 

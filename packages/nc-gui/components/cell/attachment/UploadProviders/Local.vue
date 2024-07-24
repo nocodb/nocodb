@@ -113,9 +113,9 @@ onBeforeUnmount(() => {
       class="flex flex-col items-center justify-center h-full w-full flex-grow-1 rounded-lg"
       @click="tempFiles.length > 0 ? () => {} : open()"
     >
-      <div v-if="!tempFiles.length" class="flex cursor-pointer items-center justify-center flex-col gap-2">
+      <div v-if="!tempFiles.length" class="flex cursor-pointer items-center justify-center flex-col gap-4">
         <template v-if="!isOverDropZone">
-          <component :is="iconMap.upload" class="w-6 h-6" />
+          <component :is="iconMap.upload" class="w-8 h-8 text-gray-500" />
           <h1>
             {{ $t('labels.clickTo') }}
 
@@ -127,7 +127,7 @@ onBeforeUnmount(() => {
           </h1>
         </template>
         <template v-if="isOverDropZone">
-          <component :is="iconMap.upload" class="w-5 text-brand-500 h-5" />
+          <component :is="iconMap.upload" class="w-8 text-brand-500 h-8" />
           <h1 class="text-brand-500 font-bold">{{ $t('labels.dropHere') }}</h1>
         </template>
       </div>

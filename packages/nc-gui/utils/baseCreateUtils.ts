@@ -1,3 +1,4 @@
+import { SSLUsage } from 'nocodb-sdk'
 import { ClientType } from '~/lib/enums'
 
 // todo: move to noco-sdk
@@ -217,15 +218,6 @@ export const getDefaultConnectionConfig = (client: ClientType): ProjectCreateFor
         : ['dbo']
       : undefined,
   }
-}
-
-enum SSLUsage {
-  No = 'No',
-  Allowed = 'Allowed',
-  Preferred = 'Preferred',
-  Required = 'Required',
-  RequiredWithCa = 'Required-CA',
-  RequiredWithIdentity = 'Required-Identity',
 }
 
 enum CertTypes {

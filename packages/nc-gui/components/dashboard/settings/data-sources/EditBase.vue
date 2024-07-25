@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { SourceType } from 'nocodb-sdk'
+import { type SourceType, validateAndExtractSSLProp } from 'nocodb-sdk'
 import { Form, message } from 'ant-design-vue'
 import type { SelectHandler } from 'ant-design-vue/es/vc-select/Select'
 import {
@@ -202,18 +202,8 @@ function getConnectionConfig() {
     ...extraParameters,
   }
 
-  if ('ssl' in connection && connection.ssl) {
-    if (
-      formState.value.sslUse === SSLUsage.No ||
-      (typeof connection.ssl === 'object' && Object.values(connection.ssl).every((v) => v === null || v === undefined))
-    ) {
-      connection.ssl = undefined
-    } else if(['true', 'false'].includes(connection.ssl)){
-      connection.ssl = connection.ssl === 'true';
-    } else if (!['boolean', 'object'].includes(typeof connection.ssl)) {
-      connection.ssl = undefined
-    }
-  }
+  connection.ssl = validateAndExtractSSLProp(connection, formState.value.sslUse, formState.value.dataSource.client)
+
   return connection
 }
 

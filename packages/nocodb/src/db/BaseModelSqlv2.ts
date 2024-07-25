@@ -761,7 +761,7 @@ class BaseModelSqlv2 {
 
   async bulkGroupBy(
     args: {
-      groupFilterList: Array<{
+      bulkFilterList: Array<{
         alias: string;
         where?: string;
         sort: string;
@@ -788,11 +788,11 @@ class BaseModelSqlv2 {
     });
 
     try {
-      if (!args.groupFilterList?.length) {
-        return NcError.badRequest('groupFilterList is required');
+      if (!args.bulkFilterList?.length) {
+        return NcError.badRequest('bulkFilterList is required');
       }
 
-      for (const f of args.groupFilterList) {
+      for (const f of args.bulkFilterList) {
         const { where, ...rest } = this._getListArgs(f);
         const groupBySelectors = [];
         const groupByColumns: Record<string, Column> = {};
@@ -1023,12 +1023,12 @@ class BaseModelSqlv2 {
               .select(
                 this.dbDriver.raw(
                   `json_agg(json_build_object('count', "count", '${rest.column_name}', "${colIds}")) as ??`,
-                  [f.alias],
+                  [getAlias()],
                 ),
               )
               .from(tQb.as(getAlias()));
             selectors.push(
-              this.dbDriver.raw(`(??) as ??`, [subQuery, getAlias()]),
+              this.dbDriver.raw(`(??) as ??`, [subQuery, f.alias]),
             );
             break;
           case 'mysql2':
@@ -1068,6 +1068,7 @@ class BaseModelSqlv2 {
 
       const data = await this.execAndParse(qb, null, {
         raw: true,
+        first: true,
       });
       return data;
     } catch (err) {

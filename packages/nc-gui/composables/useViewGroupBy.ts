@@ -410,6 +410,116 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
             }
           })
         }
+
+        if (group?.children) {
+          const aliasMap = new Map<string, string>()
+
+          const childViewFilters = group?.children?.map((childGroup) => {
+            try {
+              const key = JSON.parse(childGroup.key)
+
+              if (typeof key === 'object') {
+                const newKey = Math.random().toString(36).substring(7)
+                aliasMap.set(newKey, childGroup.key)
+                return {
+                  alias: newKey,
+                  where: calculateNestedWhere(childGroup.nestedIn, where?.value),
+                  offset:
+                    ((childGroup.paginationData.page ?? 0) - 1) *
+                    (childGroup.paginationData.pageSize ?? groupByRecordLimit.value),
+                  limit: childGroup.paginationData.pageSize ?? groupByRecordLimit.value,
+                  ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
+                  ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+                }
+              }
+            } catch (e) {}
+
+            return {
+              alias: childGroup.key,
+              where: calculateNestedWhere(childGroup.nestedIn, where?.value),
+              offset:
+                ((childGroup.paginationData.page ?? 0) - 1) * (childGroup.paginationData.pageSize ?? groupByRecordLimit.value),
+              limit: childGroup.paginationData.pageSize ?? groupByRecordLimit.value,
+              ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
+              ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+            }
+          })
+
+          const childGroupFilters = group?.children?.map((childGroup) => {
+            try {
+              const key = JSON.parse(childGroup.key)
+
+              if (typeof key === 'object') {
+                const newKey = Math.random().toString(36).substring(7)
+                aliasMap.set(newKey, childGroup.key)
+                return {
+                  alias: newKey,
+                  offset:
+                    ((childGroup.paginationData.page ?? 0) - 1) * (childGroup.paginationData.pageSize ?? groupByGroupLimit.value),
+                  limit: childGroup.paginationData.pageSize ?? groupByGroupLimit.value,
+                  ...params,
+                  ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
+                  ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+                  where: `${nestedWhere}`,
+                  sort: `${getSortParams(groupby.sort)}${groupby.column.title}`,
+                  column_name: groupby.column.title,
+                }
+              }
+            } catch (e) {}
+
+            return {
+              alias: childGroup.key,
+              offset:
+                ((childGroup.paginationData.page ?? 0) - 1) * (childGroup.paginationData.pageSize ?? groupByGroupLimit.value),
+              limit: childGroup.paginationData.pageSize ?? groupByGroupLimit.value,
+              ...params,
+              ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
+              ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+              where: `${nestedWhere}`,
+              sort: `${getSortParams(groupby.sort)}${groupby.column.title}`,
+              column_name: groupby.column.title,
+            }
+          })
+
+          const bulkData = await api.dbDataTableBulkList.dbDataTableBulkList(meta.value.id, {
+            viewId: view.value.id,
+            bulkFilterList: childViewFilters,
+          })
+
+          Object.entries(bulkData).forEach(([key, value]: { key: string; value: any }) => {
+            const child = (group?.children ?? []).find((c) => c.key.toString() === key.toString())
+            if (child) {
+              child.count = value.pageInfo.totalRows ?? 0
+              child.rows = formatData(value.list)
+              child.paginationData = value.pageInfo
+            } else {
+              const originalKey = aliasMap.get(key)
+              if (originalKey) {
+                const child = (group?.children ?? []).find((c) => c.key.toString() === originalKey.toString())
+                if (child) {
+                  child.count = value.pageInfo.totalRows ?? 0
+                  child.rows = formatData(value.list)
+                  child.paginationData = value.pageInfo
+                }
+              }
+            }
+          })
+
+          const bulkGroupData = await api.dbDataTableBulkGroupList.dbDataTableBulkGroupList(meta.value.id, {
+            viewId: view.value.id,
+            bulkFilterList: childGroupFilters,
+          })
+
+          console.log(bulkGroupData)
+
+          /*      Object.entries(bulkGroupData).forEach(([key, value]: { key: string; value: any }) => {
+          }) */
+
+          console.log(bulkData)
+
+          console.log(childViewFilters)
+          // Load Data inside all groups
+        }
       } catch (e) {
         message.error(await extractSdkResponseErrorMsg(e))
       }

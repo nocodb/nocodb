@@ -770,18 +770,10 @@ export class DataTableService {
     const listArgs: any = { ...param.query };
 
     try {
-      listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
+      listArgs.bulkFilterList = JSON.parse(listArgs.bulkFilterList);
     } catch (e) {}
 
-    try {
-      listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
-    } catch (e) {}
-
-    try {
-      listArgs.dataFilterList = JSON.parse(listArgs.dataFilterList);
-    } catch (e) {}
-
-    const dataListResults = await listArgs.dataFilterList.reduce(
+    const dataListResults = await listArgs.bulkFilterList.reduce(
       async (accPromise, dF) => {
         const acc = await accPromise;
         const result = await this.datasService.dataList(context, {
@@ -823,15 +815,7 @@ export class DataTableService {
     const listArgs: any = { ...param.query };
 
     try {
-      listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
-    } catch (e) {}
-
-    try {
-      listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
-    } catch (e) {}
-
-    try {
-      listArgs.groupFilterList = JSON.parse(listArgs.groupFilterList);
+      listArgs.bulkFilterList = JSON.parse(listArgs.bulkFilterList);
     } catch (e) {}
 
     const data = await baseModel.bulkGroupBy(listArgs, view);

@@ -787,11 +787,11 @@ class BaseModelSqlv2 {
       viewId: this.viewId,
     });
 
-    if (!args.bulkFilterList?.length) {
+    if (!Object.values(args.bulkFilterList)?.length) {
       return NcError.badRequest('bulkFilterList is required');
     }
 
-    for (const f of args.bulkFilterList) {
+    for (const f of Object.values(args.bulkFilterList)) {
       const { where, ...rest } = this._getListArgs(f);
       const groupBySelectors = [];
       const groupByColumns: Record<string, Column> = {};
@@ -1023,11 +1023,11 @@ class BaseModelSqlv2 {
     });
 
     try {
-      if (!args.bulkFilterList?.length) {
+      if (!Object.values(args.bulkFilterList)?.length) {
         return NcError.badRequest('bulkFilterList is required');
       }
 
-      for (const f of args.bulkFilterList) {
+      for (const f of Object.values(args.bulkFilterList)) {
         const { where, ...rest } = this._getListArgs(f);
         const groupBySelectors = [];
         const groupByColumns: Record<string, Column> = {};

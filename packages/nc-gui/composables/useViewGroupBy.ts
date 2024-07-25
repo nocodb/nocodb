@@ -394,22 +394,28 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
           const aggregationMap = new Map<string, string>()
 
           const aggregationParams = (group.children ?? []).map((child) => {
-            try {
-              const key = JSON.parse(child.key)
+            let key = child.key
 
+            if (!key?.length) {
+              key = Math.random().toString(36).substring(7)
+              aggregationMap.set(key, child.key)
+            }
+
+            try {
+              key = JSON.parse(key)
               if (typeof key === 'object') {
-                const newKey = Math.random().toString(36).substring(7)
-                aggregationMap.set(newKey, child.key)
+                key = Math.random().toString(36).substring(7)
+                aggregationMap.set(key, child.key)
                 return {
                   where: calculateNestedWhere(child.nestedIn, where?.value),
-                  alias: newKey,
+                  alias: key,
                 }
               }
             } catch (e) {}
 
             return {
               where: calculateNestedWhere(child.nestedIn, where?.value),
-              alias: child.key,
+              alias: key,
             }
           })
 
@@ -428,11 +434,9 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
               Object.assign(child.aggregations, value)
             } else {
               const originalKey = aggregationMap.get(key)
-              if (originalKey) {
-                const child = (group?.children ?? []).find((c) => c.key.toString() === originalKey.toString())
-                if (child) {
-                  Object.assign(child.aggregations, value)
-                }
+              const child = (group?.children ?? []).find((c) => c.key.toString() === originalKey.toString())
+              if (child) {
+                Object.assign(child.aggregations, value)
               }
             }
           })
@@ -442,27 +446,24 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
           const aliasMap = new Map<string, string>()
 
           const childViewFilters = group?.children?.map((childGroup) => {
+            let key = childGroup.key
+
+            if (!key?.length) {
+              key = Math.random().toString(36).substring(7)
+              aliasMap.set(key, childGroup.key)
+            }
+
             try {
-              const key = JSON.parse(childGroup.key)
+              key = JSON.parse(key)
 
               if (typeof key === 'object') {
-                const newKey = Math.random().toString(36).substring(7)
-                aliasMap.set(newKey, childGroup.key)
-                return {
-                  alias: newKey,
-                  where: calculateNestedWhere(childGroup.nestedIn, where?.value),
-                  offset:
-                    ((childGroup.paginationData.page ?? 0) - 1) *
-                    (childGroup.paginationData.pageSize ?? groupByRecordLimit.value),
-                  limit: childGroup.paginationData.pageSize ?? groupByRecordLimit.value,
-                  ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
-                  ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
-                }
+                key = Math.random().toString(36).substring(7)
+                aliasMap.set(key, childGroup.key)
               }
             } catch (e) {}
 
             return {
-              alias: childGroup.key,
+              alias: key,
               where: calculateNestedWhere(childGroup.nestedIn, where?.value),
               offset:
                 ((childGroup.paginationData.page ?? 0) - 1) * (childGroup.paginationData.pageSize ?? groupByRecordLimit.value),
@@ -490,13 +491,11 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
                 child.paginationData = value.pageInfo
               } else {
                 const originalKey = aliasMap.get(key)
-                if (originalKey) {
-                  const child = (group?.children ?? []).find((c) => c.key.toString() === originalKey.toString())
-                  if (child) {
-                    child.count = value.pageInfo.totalRows ?? 0
-                    child.rows = formatData(value.list)
-                    child.paginationData = value.pageInfo
-                  }
+                const child = (group?.children ?? []).find((c) => c.key.toString() === originalKey.toString())
+                if (child) {
+                  child.count = value.pageInfo.totalRows ?? 0
+                  child.rows = formatData(value.list)
+                  child.paginationData = value.pageInfo
                 }
               }
             })
@@ -510,29 +509,23 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
             const childGroupBy = groupBy.value[childGroup.nestedIn.length]
             const childNestedWhere = calculateNestedWhere(childGroup.nestedIn, where?.value)
 
-            try {
-              const key = JSON.parse(childGroup.key)
+            let key = childGroup.key
 
+            if (!key?.length) {
+              key = Math.random().toString(36).substring(7)
+              aliasMap.set(key, childGroup.key)
+            }
+
+            try {
+              key = JSON.parse(key)
               if (typeof key === 'object') {
-                const newKey = Math.random().toString(36).substring(7)
-                aliasMap.set(newKey, childGroup.key)
-                return {
-                  alias: newKey,
-                  offset:
-                    ((childGroup.paginationData.page ?? 0) - 1) * (childGroup.paginationData.pageSize ?? groupByGroupLimit.value),
-                  limit: childGroup.paginationData.pageSize ?? groupByGroupLimit.value,
-                  ...params,
-                  ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
-                  ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
-                  where: `${childNestedWhere}`,
-                  sort: `${getSortParams(childGroupBy.sort)}${childGroupBy.column.title}`,
-                  column_name: childGroupBy.column.title,
-                }
+                key = Math.random().toString(36).substring(7)
+                aliasMap.set(key, childGroup.key)
               }
             } catch (e) {}
 
             return {
-              alias: childGroup.key,
+              alias: key,
               offset:
                 ((childGroup.paginationData.page ?? 0) - 1) * (childGroup.paginationData.pageSize ?? groupByGroupLimit.value),
               limit: childGroup.paginationData.pageSize ?? groupByGroupLimit.value,
@@ -623,21 +616,24 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
         const aggregationMap = new Map<string, string>()
 
         const aggregationParams = (group.children ?? []).map((child) => {
+          let key = child.key
+
+          if (!key?.length) {
+            key = Math.random().toString(36).substring(7)
+            aggregationMap.set(key, child.key)
+          }
+
           try {
-            const key = JSON.parse(child.key)
+            key = JSON.parse(child.key)
             if (typeof key === 'object') {
-              const newKey = Math.random().toString(36).substring(7)
-              aggregationMap.set(newKey, child.key)
-              return {
-                where: calculateNestedWhere(child.nestedIn, where?.value),
-                alias: newKey,
-              }
+              key = Math.random().toString(36).substring(7)
+              aggregationMap.set(key, child.key)
             }
           } catch (e) {}
 
           return {
             where: calculateNestedWhere(child.nestedIn, where?.value),
-            alias: child.key,
+            alias: key,
           }
         })
 

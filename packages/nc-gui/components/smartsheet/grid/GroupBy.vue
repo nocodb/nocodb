@@ -145,7 +145,7 @@ const findAndLoadSubGroup = (key: any) => {
             })
           }
         } else {
-          if (!grp.rows?.length || grp.count !== grp.rows?.length) _loadGroupData(grp)
+          if (!grp.rows?.length) _loadGroupData(grp)
         }
       }
     }

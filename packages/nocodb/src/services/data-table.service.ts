@@ -817,11 +817,7 @@ export class DataTableService {
 
     const listArgs: any = { ...param.query };
     try {
-      listArgs.bulkFilterList = Object.values(listArgs.bulkFilterList);
-    } catch (e) {}
-
-    try {
-      listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
+      listArgs.bulkFilterList = JSON.parse(listArgs.bulkFilterList);
     } catch (e) {}
 
     try {

@@ -103,8 +103,6 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
 
       if (!groupWrapper) return
 
-      if (groupWrapper.paginationData.page === page) return
-
       groupWrapper.paginationData.page = page
       await loadGroups(
         {

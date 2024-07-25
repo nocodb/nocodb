@@ -48,6 +48,8 @@ const meta = inject(MetaInj, ref())
 
 const fields = inject(FieldsInj, ref())
 
+const { gridViewPageSize } = useGlobal()
+
 const scrollLeft = toRef(props, 'scrollLeft')
 
 const { isViewDataLoading, isPaginationLoading } = storeToRefs(useViewsStore())
@@ -184,7 +186,12 @@ watch([() => vGroup.value.key], async (n, o) => {
 
 onMounted(async () => {
   if (vGroup.value.root === true && !vGroup.value?.children?.length) {
-    await props.loadGroups({}, vGroup.value)
+    await props.loadGroups(
+      {
+        limit: gridViewPageSize.value,
+      },
+      vGroup.value,
+    )
   }
 })
 

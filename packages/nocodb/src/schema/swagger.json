@@ -11382,7 +11382,7 @@
         },
         {
           "in": "query",
-          "name": "dataFilterList",
+          "name": "bulkFilterList",
           "description": "List of where filters, sorts and alias",
           "schema": {
             "type": "array",
@@ -11456,17 +11456,6 @@
           "name": "viewId",
           "in": "query",
           "description": "View ID is required"
-        },
-        {
-          "in": "query",
-          "name": "groupFilterList",
-          "description": "List of where filters, sorts and alias",
-          "schema": {
-            "type": "array",
-            "items": {
-              "type": "object"
-            }
-          }
         }
       ],
       "get": {
@@ -11490,7 +11479,7 @@
               "type": "string"
             },
             "in": "query",
-            "name": "groupFilterList",
+            "name": "bulkFilterList",
             "description": "Used for multiple filter queries"
           },
           {
@@ -12541,6 +12530,154 @@
           }
         ],
         "description": "Get the table rows but exculding the current record's children and parent"
+      }
+    },
+    "/api/v2/public/shared-view/{sharedViewUuid}/bulk/dataList": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string",
+            "example": "24a6d0bb-e45d-4b1a-bfef-f492d870de9f"
+          },
+          "name": "sharedViewUuid",
+          "in": "path",
+          "required": true,
+          "description": "Shared View UUID"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "in": "header",
+          "name": "xc-password",
+          "description": "Shared view password"
+        }
+      ],
+      "get": {
+        "summary": "Read Shared View Bulk Data List",
+        "operationId": "public-data-table-bulk-data-list",
+        "description": "Read bulk data from a given table with provided filters",
+        "tags": [
+          "Public"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "bulkFilterList",
+            "description": "List of where filters and alias",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "alias": {
+                        "Id": 1,
+                        "Title": "90",
+                        "SingleSelect": "50"
+                      },
+                      "alias2": {
+                        "Id": 2,
+                        "Title": "50",
+                        "SingleSelect": "30"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      }
+    },
+    "/api/v2/public/shared-view/{sharedViewUuid}/bulk/group": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string",
+            "example": "24a6d0bb-e45d-4b1a-bfef-f492d870de9f"
+          },
+          "name": "sharedViewUuid",
+          "in": "path",
+          "required": true,
+          "description": "Shared View UUID"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "in": "header",
+          "name": "xc-password",
+          "description": "Shared view password"
+        }
+      ],
+      "get": {
+        "summary": "Read Shared View Bulk Group Data",
+        "operationId": "public-data-table-bulk-group",
+        "description": "Read bulk group data from a given table with provided filters",
+        "tags": [
+          "Public"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "bulkFilterList",
+            "description": "List of where filters and alias",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "alias": {
+                        "Id": 1,
+                        "Title": "90",
+                        "SingleSelect": "50"
+                      },
+                      "alias2": {
+                        "Id": 2,
+                        "Title": "50",
+                        "SingleSelect": "30"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
       }
     },
     "/api/v2/public/shared-view/{sharedViewUuid}/aggregate": {

@@ -1079,7 +1079,7 @@ class BaseModelSqlv2 {
 
   async bulkAggregate(
     args: {
-      aggregateFilterList: Array<{
+      bulkFilterList: Array<{
         alias: string;
         where?: string;
       }>;
@@ -1088,8 +1088,8 @@ class BaseModelSqlv2 {
     view: View,
   ) {
     try {
-      if (!args.aggregateFilterList?.length) {
-        return NcError.badRequest('aggregateFilterList is required');
+      if (!args.bulkFilterList?.length) {
+        return NcError.badRequest('bulkFilterList is required');
       }
 
       const { where, aggregation } = this._getListArgs(args as any);
@@ -1159,8 +1159,8 @@ class BaseModelSqlv2 {
       });
 
       const selectors = [] as Array<Knex.Raw>;
-      // Generate a knex raw query for each filter in the aggregateFilterList
-      for (const f of args.aggregateFilterList) {
+      // Generate a knex raw query for each filter in the bulkFilterList
+      for (const f of args.bulkFilterList) {
         const tQb = this.dbDriver(this.tnPath);
         const aggFilter = extractFilterFromXwhere(f.where, aliasColObjMap);
 

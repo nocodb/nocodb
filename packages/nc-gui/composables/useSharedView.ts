@@ -238,7 +238,7 @@ export function useSharedView() {
       field: string
       type: string
     }>
-    aggregateFilterList: Array<{
+    bulkFilterList: Array<{
       where: string
       alias: string
     }>
@@ -251,7 +251,7 @@ export function useSharedView() {
       sharedView.value.uuid!,
       {
         ...param,
-        aggregateFilterList: JSON.stringify(param.aggregateFilterList),
+        bulkFilterList: JSON.stringify(param.bulkFilterList),
         filterArrJson: JSON.stringify(param.filtersArr ?? nestedFilters.value),
       } as any,
       {

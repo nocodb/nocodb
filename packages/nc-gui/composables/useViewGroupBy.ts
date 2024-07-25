@@ -64,7 +64,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
     const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 
     const groupByGroupLimit = computed(() => {
-      return appInfo.value.defaultGroupByLimit?.limitGroup || 10
+      return appInfo.value.defaultGroupByLimit?.limitGroup || 25
     })
 
     const groupByRecordLimit = computed(() => {
@@ -408,10 +408,10 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
           const aggResponse = !isPublic
             ? await api.dbDataTableBulkAggregate.dbDataTableBulkAggregate(meta.value!.id, {
                 viewId: view.value!.id,
-                aggregateFilterList: aggregationParams,
+                bulkFilterList: aggregationParams,
               })
             : await fetchBulkAggregatedData({
-                aggregateFilterList: aggregationParams,
+                bulkFilterList: aggregationParams,
               })
 
           Object.entries(aggResponse).forEach(([key, value]) => {
@@ -464,29 +464,31 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
             }
           })
 
-          const bulkData = await api.dbDataTableBulkList.dbDataTableBulkList(meta.value.id, {
-            viewId: view.value.id,
-            bulkFilterList: childViewFilters,
-          })
+          if (childViewFilters.length > 0) {
+            const bulkData = await api.dbDataTableBulkList.dbDataTableBulkList(meta.value.id, {
+              viewId: view.value.id,
+              bulkFilterList: childViewFilters,
+            })
 
-          Object.entries(bulkData).forEach(([key, value]: { key: string; value: any }) => {
-            const child = (group?.children ?? []).find((c) => c.key.toString() === key.toString())
-            if (child) {
-              child.count = value.pageInfo.totalRows ?? 0
-              child.rows = formatData(value.list)
-              child.paginationData = value.pageInfo
-            } else {
-              const originalKey = aliasMap.get(key)
-              if (originalKey) {
-                const child = (group?.children ?? []).find((c) => c.key.toString() === originalKey.toString())
-                if (child) {
-                  child.count = value.pageInfo.totalRows ?? 0
-                  child.rows = formatData(value.list)
-                  child.paginationData = value.pageInfo
+            Object.entries(bulkData).forEach(([key, value]: { key: string; value: any }) => {
+              const child = (group?.children ?? []).find((c) => c.key.toString() === key.toString())
+              if (child) {
+                child.count = value.pageInfo.totalRows ?? 0
+                child.rows = formatData(value.list)
+                child.paginationData = value.pageInfo
+              } else {
+                const originalKey = aliasMap.get(key)
+                if (originalKey) {
+                  const child = (group?.children ?? []).find((c) => c.key.toString() === originalKey.toString())
+                  if (child) {
+                    child.count = value.pageInfo.totalRows ?? 0
+                    child.rows = formatData(value.list)
+                    child.paginationData = value.pageInfo
+                  }
                 }
               }
-            }
-          })
+            })
+          }
         }
 
         if (group?.children && group.nestedIn.length < groupBy.value.length - 1) {
@@ -528,22 +530,19 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
             }
           })
 
-          const bulkGroupData = await api.dbDataTableBulkGroupList.dbDataTableBulkGroupList(meta.value.id, {
-            viewId: view.value.id,
-            bulkFilterList: childGroupFilters,
-          })
+          if (childGroupFilters.length > 0) {
+            const bulkGroupData = await api.dbDataTableBulkGroupList.dbDataTableBulkGroupList(meta.value.id, {
+              viewId: view.value.id,
+              bulkFilterList: childGroupFilters,
+            })
 
-          for (const [key, value] of Object.entries(bulkGroupData)) {
-            let child = (group?.children ?? []).find((c) => c.key.toString() === key.toString())
-
-            if (child) {
-              child = await processGroupData(value, child)
-            } else {
-              const originalKey = aliasMap.get(key)
-              if (originalKey) {
+            for (const [key, value] of Object.entries(bulkGroupData)) {
+              let child = (group?.children ?? []).find((c) => c.key.toString() === key.toString())
+              if (!child) {
+                const originalKey = aliasMap.get(key)
                 child = (group?.children ?? []).find((c) => c.key.toString() === originalKey.toString())!
-                child = await processGroupData(value, child)
               }
+              Object.assign(child, await processGroupData(value, child))
             }
           }
         }
@@ -626,11 +625,11 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
         const response = !isPublic
           ? await api.dbDataTableBulkAggregate.dbDataTableBulkAggregate(meta.value!.id, {
               viewId: view.value!.id,
-              aggregateFilterList: aggregationParams,
+              bulkFilterList: aggregationParams,
               ...(filteredFields ? { aggregation: filteredFields } : {}),
             })
           : await fetchBulkAggregatedData({
-              aggregateFilterList: aggregationParams,
+              bulkFilterList: aggregationParams,
               ...(filteredFields ? { aggregation: filteredFields } : {}),
             })
 

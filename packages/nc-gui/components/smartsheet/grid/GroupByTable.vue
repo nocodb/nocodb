@@ -42,8 +42,6 @@ const isPublic = inject(IsPublicInj, ref(false))
 
 const skipRowRemovalOnCancel = ref(false)
 
-const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
-
 const { eventBus } = useSmartsheetStoreOrThrow()
 
 const route = router.currentRoute
@@ -166,13 +164,6 @@ const reloadTableData = async (params: void | { shouldShowLoading?: boolean | un
   })
 }
 
-onBeforeUnmount(async () => {
-  // reset hooks
-  reloadViewDataHook?.off(reloadTableData)
-})
-
-reloadViewDataHook?.on(reloadTableData)
-
 provide(IsGroupByInj, ref(true))
 
 const pagination = computed(() => {
@@ -275,12 +266,6 @@ async function deleteSelectedRowsWrapper() {
   // reload table data
   await reloadTableData({ shouldShowLoading: false })
 }
-
-eventBus.on((event) => {
-  if (event === SmartsheetStoreEvents.GROUP_BY_RELOAD || event === SmartsheetStoreEvents.DATA_RELOAD) {
-    reloadViewDataHook?.trigger()
-  }
-})
 </script>
 
 <template>

@@ -7949,7 +7949,8 @@ class BaseModelSqlv2 {
                         mimetype: 'image/jpeg',
                         filename: lookedUpAttachment.title,
                       }).then(
-                        (r) => (lookedUpAttachment.thumbnails.tiny.path = r),
+                        (r) =>
+                          (lookedUpAttachment.thumbnails.tiny.signedPath = r),
                       ),
                     );
                     promises.push(
@@ -7959,7 +7960,8 @@ class BaseModelSqlv2 {
                         mimetype: 'image/jpeg',
                         filename: lookedUpAttachment.title,
                       }).then(
-                        (r) => (lookedUpAttachment.thumbnails.small.path = r),
+                        (r) =>
+                          (lookedUpAttachment.thumbnails.small.signedPath = r),
                       ),
                     );
                     promises.push(
@@ -7970,7 +7972,8 @@ class BaseModelSqlv2 {
                         filename: lookedUpAttachment.title,
                       }).then(
                         (r) =>
-                          (lookedUpAttachment.thumbnails.card_cover.path = r),
+                          (lookedUpAttachment.thumbnails.card_cover.signedPath =
+                            r),
                       ),
                     );
                   } else if (lookedUpAttachment?.url) {
@@ -8065,7 +8068,7 @@ class BaseModelSqlv2 {
                       preview: true,
                       mimetype: 'image/jpeg',
                       filename: attachment.title,
-                    }).then((r) => (attachment.thumbnails.tiny.path = r)),
+                    }).then((r) => (attachment.thumbnails.tiny.signedPath = r)),
                   );
                   promises.push(
                     PresignedUrl.getSignedUrl({
@@ -8073,7 +8076,9 @@ class BaseModelSqlv2 {
                       preview: true,
                       mimetype: 'image/jpeg',
                       filename: attachment.title,
-                    }).then((r) => (attachment.thumbnails.small.path = r)),
+                    }).then(
+                      (r) => (attachment.thumbnails.small.signedPath = r),
+                    ),
                   );
                   promises.push(
                     PresignedUrl.getSignedUrl({
@@ -8081,7 +8086,9 @@ class BaseModelSqlv2 {
                       preview: true,
                       mimetype: 'image/jpeg',
                       filename: attachment.title,
-                    }).then((r) => (attachment.thumbnails.card_cover.path = r)),
+                    }).then(
+                      (r) => (attachment.thumbnails.card_cover.signedPath = r),
+                    ),
                   );
                 } else if (attachment?.url) {
                   let relativePath = attachment.url

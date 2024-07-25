@@ -1037,6 +1037,9 @@ class BaseModelSqlv2 {
                 ]),
               )
               .from(count.as(getAlias()));
+            selectors.push(
+              this.dbDriver.raw(`(??) as ??`, [subQuery, `${f.alias}`]),
+            );
             break;
           default:
             NcError.notImplemented(
@@ -1420,6 +1423,9 @@ class BaseModelSqlv2 {
                 ),
               )
               .from(tQb.as(getAlias()));
+            selectors.push(
+              this.dbDriver.raw(`(??) as ??`, [subQuery, f.alias]),
+            );
             break;
           default:
             NcError.notImplemented(

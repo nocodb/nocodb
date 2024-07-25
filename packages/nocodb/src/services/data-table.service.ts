@@ -834,9 +834,22 @@ export class DataTableService {
     ]);
 
     Object.values(listArgs.bulkFilterList).forEach((dF: any) => {
-      data[dF.alias] = new PagedResponseImpl(data[dF.alias], {
+      // sqlite3 returns data as string. Hence needs to be converted to json object
+      let parsedData = data[dF.alias];
+
+      if (typeof parsedData === 'string') {
+        parsedData = JSON.parse(parsedData);
+      }
+
+      let parsedCount = count[dF.alias];
+
+      if (typeof parsedCount === 'string') {
+        parsedCount = JSON.parse(parsedCount);
+      }
+
+      data[dF.alias] = new PagedResponseImpl(parsedData, {
         ...dF,
-        count: count[dF.alias]?.count,
+        count: parsedCount?.count,
       });
     });
 

@@ -840,7 +840,7 @@ export class DataTableService {
     Object.values(listArgs.bulkFilterList).forEach((dF: any) => {
       data[dF.alias] = new PagedResponseImpl(data[dF.alias], {
         ...dF,
-        count: count[dF.alias].count,
+        count: count[dF.alias]?.count,
       });
     });
 

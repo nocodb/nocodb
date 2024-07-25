@@ -42,7 +42,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
     const modalVisible = ref(false)
 
     /** for image carousel */
-    const selectedImage = ref()
+    const selectedFile = ref()
 
     const videoStream = ref<MediaStream | null>(null)
 
@@ -55,6 +55,8 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
     const { files, open } = useFileDialog({
       reset: true,
     })
+
+    const isRenameModalOpen = ref(false)
 
     const { appInfo } = useGlobal()
 
@@ -264,18 +266,26 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       }
     }
 
-    async function renameFile(attachment: AttachmentType, idx: number) {
+    async function renameFile(attachment: AttachmentType, idx: number, updateSelectedFile?: boolean) {
       return new Promise<boolean>((resolve) => {
+        isRenameModalOpen.value = true
         const { close } = useDialog(RenameFile, {
           title: attachment.title,
           onRename: (newTitle: string) => {
             attachments.value[idx].title = newTitle
             updateModelValue(JSON.stringify(attachments.value))
             close()
+
+            if (updateSelectedFile) {
+              selectedFile.value = { ...attachment, title: newTitle }
+            }
+
+            isRenameModalOpen.value = false
             resolve(true)
           },
           onCancel: () => {
             close()
+            isRenameModalOpen.value = false
             resolve(true)
           },
         })
@@ -414,7 +424,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       renameFile,
       downloadAttachment,
       updateModelValue,
-      selectedImage,
+      selectedFile,
       uploadViaUrl,
       selectedVisibleItems,
       storedFiles,
@@ -424,6 +434,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       stopCamera,
       videoStream,
       permissionGranted,
+      isRenameModalOpen,
     }
   },
   'useAttachmentCell',

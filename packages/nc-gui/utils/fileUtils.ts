@@ -15,11 +15,80 @@ const imageExt = [
   'heic-sequence',
 ]
 
+const videoExt = [
+  'webm',
+  'mpg',
+  'mp2',
+  'mp3',
+  'mpeg',
+  'ogg',
+  'mp4',
+  'm4v',
+  'avi',
+  'wmv',
+  'mov',
+  'qt',
+  'flv',
+  'mkv',
+  '3gp',
+  '3g2',
+  'vob',
+  'ts',
+]
+
+const officeExt = [
+  'txt',
+  'css',
+  'html',
+  'php',
+  'c',
+  'cpp',
+  'h',
+  'hpp',
+  'js',
+  'doc',
+  'docx',
+  'xls',
+  'xlsx',
+  'ppt',
+  'pptx',
+  'pdf',
+  'pages',
+  'ai',
+  'psd',
+  'tiff',
+  'dxf',
+  'svg',
+  'eps',
+  'ps',
+  'ttf',
+  'xps',
+  'zip',
+  'rar',
+  'csv',
+]
+
+const isAudio = (name: string, mimetype?: string) => {
+  return name?.toLowerCase().endsWith('.mp3') || mimetype?.startsWith('audio/')
+}
+
+const isVideo = (name: string, mimetype?: string) => {
+  return videoExt.some((e) => name?.toLowerCase().endsWith(`.${e}`)) || mimetype?.startsWith('video/')
+}
+
 const isImage = (name: string, mimetype?: string) => {
   return imageExt.some((e) => name?.toLowerCase().endsWith(`.${e}`)) || mimetype?.startsWith('image/')
 }
 
-export { isImage, imageExt }
+const isPdf = (name: string, mimetype?: string) => {
+  return name?.toLowerCase().endsWith('.pdf') || mimetype?.startsWith('application/pdf')
+}
+
+const isOffice = (name: string, _mimetype?: string) => {
+  return officeExt.some((e) => name?.toLowerCase().endsWith(`.${e}`))
+}
+
+export { isImage, imageExt, isVideo, isPdf, isOffice, isAudio }
 // Ref : https://stackoverflow.com/a/12002275
 
 // Tested in Mozilla Firefox browser, Chrome

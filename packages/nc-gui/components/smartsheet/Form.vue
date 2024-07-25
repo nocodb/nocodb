@@ -872,7 +872,7 @@ useEventListener(
                             "
                             style="transition: all 0.3s ease-in"
                           >
-                            <LazyCellAttachmentImage
+                            <LazyCellAttachmentPreviewImage
                               v-if="formViewData.logo_url"
                               :key="formViewData.logo_url?.path"
                               :srcs="getFormLogoSrc"
@@ -1687,7 +1687,9 @@ useEventListener(
 .nc-input {
   @apply appearance-none w-full;
   &:not(.layout-list) {
-    @apply !bg-white rounded-lg border-solid border-1 border-gray-200 !focus-within:border-brand-500;
+    &:not(.nc-cell-attachment) {
+      @apply !bg-white rounded-lg border-solid border-1 border-gray-200 !focus-within:border-brand-500;
+    }
   }
   &.layout-list {
     @apply h-auto !pl-0 !py-1;

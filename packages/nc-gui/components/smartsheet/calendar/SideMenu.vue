@@ -582,7 +582,7 @@ onClickOutside(searchRef, toggleSearch)
                     </template>
 
                     <template v-for="(attachment, index) in attachments(record)">
-                      <LazyCellAttachmentImage
+                      <LazyCellAttachmentPreviewImage
                         v-if="isImage(attachment.title, attachment.mimetype ?? attachment.type)"
                         :key="`carousel-${record.row.id}-${index}`"
                         class="h-10 !w-10 !object-contain"

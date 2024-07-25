@@ -40,6 +40,7 @@ import Phishing from '~icons/material-symbols/phishing-outline-rounded'
 import MdiAccountGroup from '~icons/mdi/account-group'
 import MdiDotsVertical from '~icons/mdi/dots-vertical'
 import MdiDotsHorizontal from '~icons/mdi/dots-horizontal'
+import MdiPdf from '~icons/mdi/file-pdf'
 import PhExcelThin from '~icons/ph/microsoft-excel-logo-light'
 import VscodeIconsExcelColored from '~icons/vscode-icons/file-type-excel'
 import PhCsvThin from '~icons/ph/file-csv'
@@ -204,6 +205,9 @@ import NcMaximize from '~icons/nc-icons/maximize'
 import NcMaximizeAll from '~icons/nc-icons/maximize-all'
 import NcDrag from '~icons/nc-icons/drag'
 import NcRefresh from '~icons/nc-icons/refresh'
+import NcPlay from '~icons/nc-icons/play'
+import GoogleDocs from '~icons/nc-icons/google-docs'
+import NcGlobe from '~icons/nc-icons/globe'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -638,6 +642,10 @@ export const iconMap = {
   ncDrag: NcDrag,
   refresh: NcRefresh,
   chevronUpDown: NcChevronUpDown,
+  play: NcPlay,
+  googleDocs: GoogleDocs,
+  pdfFile: MdiPdf,
+  globe: NcGlobe,
 }
 
 export const getMdiIcon = (type: string): any => {

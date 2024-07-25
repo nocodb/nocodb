@@ -8,6 +8,7 @@ interface Props {
   modifierKey?: string
   tooltipStyle?: CSSProperties
   // force disable tooltip
+  color?: 'dark' | 'light'
   disabled?: boolean
   placement?: TooltipPlacement | undefined
   showOnTruncateOnly?: boolean
@@ -27,6 +28,8 @@ const showOnTruncateOnly = computed(() => props.showOnTruncateOnly)
 const hideOnClick = computed(() => props.hideOnClick)
 const placement = computed(() => props.placement ?? 'top')
 const wrapChild = computed(() => props.wrapChild ?? 'div')
+
+const color = computed(() => (props.color ? props.color : 'dark'))
 
 const el = ref()
 
@@ -117,7 +120,7 @@ const onClick = () => {
 <template>
   <a-tooltip
     v-model:visible="showTooltip"
-    :overlay-class-name="`nc-tooltip ${showTooltip ? 'visible' : 'hidden'} ${overlayClassName}`"
+    :overlay-class-name="`nc-tooltip-${color} ${showTooltip ? 'visible' : 'hidden'} ${overlayClassName}`"
     :overlay-style="tooltipStyle"
     :overlay-inner-style="overlayInnerStyle"
     arrow-point-at-center
@@ -139,12 +142,21 @@ const onClick = () => {
 .nc-tooltip.hidden {
   @apply invisible;
 }
-.nc-tooltip {
+.nc-tooltip-dark {
   .ant-tooltip-inner {
     @apply !px-2 !py-1 !rounded-lg !bg-gray-800;
   }
   .ant-tooltip-arrow-content {
     @apply !bg-gray-800;
+  }
+}
+
+.nc-tooltip-light {
+  .ant-tooltip-inner {
+    @apply !px-2 !py-1 !text-gray-800 !rounded-lg !bg-gray-200;
+  }
+  .ant-tooltip-arrow-content {
+    @apply !bg-gray-200;
   }
 }
 </style>

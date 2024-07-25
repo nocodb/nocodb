@@ -233,25 +233,27 @@ export function useSharedView() {
     )
   }
 
-  const fetchBulkAggregatedData = async (param: {
-    aggregation?: Array<{
-      field: string
-      type: string
-    }>
+  const fetchBulkAggregatedData = async (
+    param: {
+      aggregation?: Array<{
+        field: string
+        type: string
+      }>
+      filtersArr?: FilterType[]
+      where?: string
+    },
     bulkFilterList: Array<{
       where: string
       alias: string
-    }>
-    filtersArr?: FilterType[]
-    where?: string
-  }) => {
+    }>,
+  ) => {
     if (!sharedView.value) return {}
 
     return await $api.public.dataTableBulkAggregate(
       sharedView.value.uuid!,
+      bulkFilterList,
       {
         ...param,
-        bulkFilterList: JSON.stringify(param.bulkFilterList),
         filterArrJson: JSON.stringify(param.filtersArr ?? nestedFilters.value),
       } as any,
       {
@@ -262,44 +264,39 @@ export function useSharedView() {
     )
   }
 
-  const fetchBulkListData = async (param: {
+  const fetchBulkListData = async (
+    param: {
+      where?: string
+    },
     bulkFilterList: Array<{
       where: string
       alias: string
-    }>
-    where?: string
-  }) => {
+    }>,
+  ) => {
     if (!sharedView.value) return {}
 
-    return await $api.public.dataTableBulkDataList(
-      sharedView.value.uuid!,
-      {
-        ...param,
-        bulkFilterList: JSON.stringify(param.bulkFilterList),
-      } as any,
-      {
-        headers: {
-          'xc-password': password.value,
-        },
-      },
-    )
+    return await $api.public.dataTableBulkDataList(sharedView.value.uuid!, bulkFilterList, {
+      ...param,
+    } as any)
   }
 
-  const fetchBulkGroupData = async (param: {
+  const fetchBulkGroupData = async (
+    param: {
+      filtersArr?: FilterType[]
+      where?: string
+    },
     bulkFilterList: Array<{
       where: string
       alias: string
-    }>
-    filtersArr?: FilterType[]
-    where?: string
-  }) => {
+    }>,
+  ) => {
     if (!sharedView.value) return {}
 
     return await $api.public.dataTableBulkGroup(
       sharedView.value.uuid!,
+      bulkFilterList,
       {
         ...param,
-        bulkFilterList: JSON.stringify(param.bulkFilterList),
         filterArrJson: JSON.stringify(param.filtersArr ?? nestedFilters.value),
       } as any,
       {

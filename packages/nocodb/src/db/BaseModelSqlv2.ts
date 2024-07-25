@@ -761,19 +761,15 @@ class BaseModelSqlv2 {
 
   async bulkGroupByCount(
     args: {
-      bulkFilterList: Array<{
-        alias: string;
-        where?: string;
-        sort: string;
-        column_name: string;
-      }>;
-      column_name: string;
-      limit?;
-      offset?;
-      sort?: string | string[];
       filterArr?: Filter[];
-      sortArr?: Sort[];
     },
+    bulkFilterList: {
+      alias: string;
+      where?: string;
+      sort: string;
+      column_name: string;
+      filterArr?: Filter[];
+    }[],
     view: View,
   ) {
     try {
@@ -788,11 +784,11 @@ class BaseModelSqlv2 {
         viewId: this.viewId,
       });
 
-      if (!Object.values(args.bulkFilterList)?.length) {
+      if (!bulkFilterList?.length) {
         return NcError.badRequest('bulkFilterList is required');
       }
 
-      for (const f of Object.values(args.bulkFilterList)) {
+      for (const f of bulkFilterList) {
         const { where, ...rest } = this._getListArgs(f);
         const groupBySelectors = [];
         const groupByColumns: Record<string, Column> = {};
@@ -1064,19 +1060,18 @@ class BaseModelSqlv2 {
 
   async bulkGroupBy(
     args: {
-      bulkFilterList: Array<{
-        alias: string;
-        where?: string;
-        sort: string;
-        column_name: string;
-      }>;
+      filterArr?: Filter[];
+    },
+    bulkFilterList: {
+      alias: string;
+      where?: string;
       column_name: string;
       limit?;
       offset?;
-      sort?: string | string[];
+      sort?: string;
       filterArr?: Filter[];
       sortArr?: Sort[];
-    },
+    }[],
     view: View,
   ) {
     const columns = await this.model.getColumns(this.context);
@@ -1091,17 +1086,17 @@ class BaseModelSqlv2 {
     });
 
     try {
-      if (!Object.values(args.bulkFilterList)?.length) {
+      if (!bulkFilterList?.length) {
         return NcError.badRequest('bulkFilterList is required');
       }
 
-      for (const f of Object.values(args.bulkFilterList)) {
+      for (const f of bulkFilterList) {
         const { where, ...rest } = this._getListArgs(f);
         const groupBySelectors = [];
         const groupByColumns: Record<string, Column> = {};
 
         const getAlias = getAliasGenerator('__nc_gb');
-        const groupFilter = extractFilterFromXwhere(f.where, aliasColObjMap);
+        const groupFilter = extractFilterFromXwhere(f?.where, aliasColObjMap);
         let groupSort = extractSortsObject(rest?.sort, aliasColObjMap);
 
         const tQb = this.dbDriver(this.tnPath);
@@ -1450,16 +1445,16 @@ class BaseModelSqlv2 {
 
   async bulkAggregate(
     args: {
-      bulkFilterList: Array<{
-        alias: string;
-        where?: string;
-      }>;
       filterArr?: Filter[];
     },
+    bulkFilterList: Array<{
+      alias: string;
+      where?: string;
+    }>,
     view: View,
   ) {
     try {
-      if (!Object.values(args.bulkFilterList)?.length) {
+      if (!bulkFilterList?.length) {
         return NcError.badRequest('bulkFilterList is required');
       }
 
@@ -1531,7 +1526,7 @@ class BaseModelSqlv2 {
 
       const selectors = [] as Array<Knex.Raw>;
       // Generate a knex raw query for each filter in the bulkFilterList
-      for (const f of Object.values(args.bulkFilterList)) {
+      for (const f of bulkFilterList) {
         const tQb = this.dbDriver(this.tnPath);
         const aggFilter = extractFilterFromXwhere(f.where, aliasColObjMap);
 

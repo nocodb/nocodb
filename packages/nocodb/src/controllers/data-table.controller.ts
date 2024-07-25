@@ -132,7 +132,7 @@ export class DataTableController {
     });
   }
 
-  @Get(['/api/v2/tables/:modelId/bulk/group'])
+  @Post(['/api/v2/tables/:modelId/bulk/group'])
   @Acl('dataGroupBy')
   async bulkGroupBy(
     @TenantContext() context: NcContext,
@@ -144,10 +144,11 @@ export class DataTableController {
       query: req.query,
       modelId,
       viewId,
+      body: req.body,
     });
   }
 
-  @Get(['/api/v2/tables/:modelId/bulk/datalist'])
+  @Post(['/api/v2/tables/:modelId/bulk/datalist'])
   @Acl('dataList')
   async bulkDataList(
     @TenantContext() context: NcContext,
@@ -159,6 +160,7 @@ export class DataTableController {
       query: req.query,
       modelId,
       viewId,
+      body: req.body,
     });
   }
 

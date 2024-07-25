@@ -794,6 +794,7 @@ export class PublicDatasService {
       sharedViewUuid: string;
       password?: string;
       query: any;
+      body?: any;
     },
   ) {
     const view = await View.getByUUID(context, param.sharedViewUuid);
@@ -814,8 +815,10 @@ export class PublicDatasService {
 
     const listArgs: any = { ...param.query };
 
+    let bulkFilterList = param.body;
+
     try {
-      listArgs.bulkFilterList = JSON.parse(listArgs.bulkFilterList);
+      bulkFilterList = JSON.parse(bulkFilterList);
     } catch (e) {}
 
     try {
@@ -826,11 +829,11 @@ export class PublicDatasService {
       listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
     } catch (e) {}
 
-    if (!listArgs.bulkFilterList) {
+    if (!bulkFilterList?.length) {
       NcError.badRequest('Invalid bulkFilterList');
     }
 
-    const dataListResults = await Object.values(listArgs.bulkFilterList).reduce(
+    const dataListResults = await bulkFilterList.reduce(
       async (accPromise, dF: any) => {
         const acc = await accPromise;
         const result = await this.datasService.dataList(context, {
@@ -855,6 +858,7 @@ export class PublicDatasService {
       sharedViewUuid: string;
       password?: string;
       query: any;
+      body: any;
     },
   ) {
     const view = await View.getByUUID(context, param.sharedViewUuid);
@@ -879,27 +883,42 @@ export class PublicDatasService {
 
     const listArgs: any = { ...param.query };
 
+    let bulkFilterList = param.body;
+
     try {
-      listArgs.bulkFilterList = JSON.parse(listArgs.bulkFilterList);
+      bulkFilterList = JSON.parse(bulkFilterList);
     } catch (e) {}
 
     try {
       listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
     } catch (e) {}
 
-    if (!listArgs.bulkFilterList) {
+    if (!bulkFilterList?.length) {
       NcError.badRequest('Invalid bulkFilterList');
     }
 
     const [data, count] = await Promise.all([
-      baseModel.bulkGroupBy(listArgs, view),
-      baseModel.bulkGroupByCount(listArgs, view),
+      baseModel.bulkGroupBy(listArgs, bulkFilterList, view),
+      baseModel.bulkGroupByCount(listArgs, bulkFilterList, view),
     ]);
 
-    Object.values(listArgs.bulkFilterList).forEach((dF: any) => {
-      data[dF.alias] = new PagedResponseImpl(data[dF.alias], {
+    bulkFilterList.forEach((dF: any) => {
+      // sqlite3 returns data as string. Hence needs to be converted to json object
+      let parsedData = data[dF.alias];
+
+      if (typeof parsedData === 'string') {
+        parsedData = JSON.parse(parsedData);
+      }
+
+      let parsedCount = count[dF.alias];
+
+      if (typeof parsedCount === 'string') {
+        parsedCount = JSON.parse(parsedCount);
+      }
+
+      data[dF.alias] = new PagedResponseImpl(parsedData, {
         ...dF,
-        count: count[dF.alias].count,
+        count: parsedCount?.count,
       });
     });
 

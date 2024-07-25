@@ -763,21 +763,22 @@ export class DataTableService {
       modelId: string;
       viewId?: string;
       query: any;
+      body: any;
     },
   ) {
     const { model, view } = await this.getModelAndView(context, param);
 
-    const listArgs: any = { ...param.query };
+    let bulkFilterList = param.body;
 
     try {
-      listArgs.bulkFilterList = JSON.parse(listArgs.bulkFilterList);
+      bulkFilterList = JSON.parse(bulkFilterList);
     } catch (e) {}
 
-    if (!listArgs.bulkFilterList) {
+    if (!bulkFilterList?.length) {
       NcError.badRequest('Invalid bulkFilterList');
     }
 
-    const dataListResults = await Object.values(listArgs.bulkFilterList).reduce(
+    const dataListResults = await bulkFilterList.reduce(
       async (accPromise, dF: any) => {
         const acc = await accPromise;
         const result = await this.datasService.dataList(context, {
@@ -803,6 +804,7 @@ export class DataTableService {
       modelId: string;
       viewId?: string;
       query: any;
+      body: any;
     },
   ) {
     const { model, view } = await this.getModelAndView(context, param);
@@ -815,25 +817,27 @@ export class DataTableService {
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
+    let bulkFilterList = param.body;
+
     const listArgs: any = { ...param.query };
     try {
-      listArgs.bulkFilterList = JSON.parse(listArgs.bulkFilterList);
+      bulkFilterList = JSON.parse(bulkFilterList);
     } catch (e) {}
 
     try {
       listArgs.filterArr = JSON.parse(listArgs.filterArrJSON);
     } catch (e) {}
 
-    if (!listArgs.bulkFilterList) {
+    if (!bulkFilterList?.length) {
       NcError.badRequest('Invalid bulkFilterList');
     }
 
     const [data, count] = await Promise.all([
-      baseModel.bulkGroupBy(listArgs, view),
-      baseModel.bulkGroupByCount(listArgs, view),
+      baseModel.bulkGroupBy(listArgs, bulkFilterList, view),
+      baseModel.bulkGroupByCount(listArgs, bulkFilterList, view),
     ]);
 
-    Object.values(listArgs.bulkFilterList).forEach((dF: any) => {
+    bulkFilterList.forEach((dF: any) => {
       // sqlite3 returns data as string. Hence needs to be converted to json object
       let parsedData = data[dF.alias];
 

@@ -422,13 +422,14 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
           })
 
           const aggResponse = !isPublic
-            ? await api.dbDataTableBulkAggregate.dbDataTableBulkAggregate(meta.value!.id, {
-                viewId: view.value!.id,
-                bulkFilterList: aggregationParams,
-              })
-            : await fetchBulkAggregatedData({
-                bulkFilterList: aggregationParams,
-              })
+            ? await api.dbDataTableBulkAggregate.dbDataTableBulkAggregate(
+                meta.value!.id,
+                {
+                  viewId: view.value!.id,
+                },
+                aggregationParams,
+              )
+            : await fetchBulkAggregatedData({}, aggregationParams)
 
           Object.entries(aggResponse).forEach(([key, value]) => {
             const child = (group?.children ?? []).find((c) => c.key.toString() === key.toString())
@@ -477,13 +478,15 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
 
           if (childViewFilters.length > 0) {
             const bulkData = !isPublic
-              ? await api.dbDataTableBulkList.dbDataTableBulkList(meta.value.id, {
-                  viewId: view.value.id,
-                  bulkFilterList: childViewFilters,
-                })
-              : await fetchBulkListData({
-                  bulkFilterList: childViewFilters,
-                })
+              ? await api.dbDataTableBulkList.dbDataTableBulkList(
+                  meta.value.id,
+                  {
+                    viewId: view.value.id,
+                  },
+                  childViewFilters,
+                  {},
+                )
+              : await fetchBulkListData({}, childViewFilters)
 
             Object.entries(bulkData).forEach(([key, value]: { key: string; value: any }) => {
               const child = (group?.children ?? []).find((c) => c.key.toString() === key.toString())
@@ -541,13 +544,14 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
 
           if (childGroupFilters.length > 0) {
             const bulkGroupData = !isPublic
-              ? await api.dbDataTableBulkGroupList.dbDataTableBulkGroupList(meta.value.id, {
-                  viewId: view.value.id,
-                  bulkFilterList: childGroupFilters,
-                })
-              : await fetchBulkGroupData({
-                  bulkFilterList: childGroupFilters,
-                })
+              ? await api.dbDataTableBulkGroupList.dbDataTableBulkGroupList(
+                  meta.value.id,
+                  {
+                    viewId: view.value.id,
+                  },
+                  childGroupFilters,
+                )
+              : await fetchBulkGroupData({}, childGroupFilters)
 
             for (const [key, value] of Object.entries(bulkGroupData)) {
               let child = (group?.children ?? []).find((c) => c.key.toString() === key.toString())
@@ -641,13 +645,15 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
         const response = !isPublic
           ? await api.dbDataTableBulkAggregate.dbDataTableBulkAggregate(meta.value!.id, {
               viewId: view.value!.id,
-              bulkFilterList: aggregationParams,
               ...(filteredFields ? { aggregation: filteredFields } : {}),
+              aggregationParams,
             })
-          : await fetchBulkAggregatedData({
-              bulkFilterList: aggregationParams,
-              ...(filteredFields ? { aggregation: filteredFields } : {}),
-            })
+          : await fetchBulkAggregatedData(
+              {
+                ...(filteredFields ? { aggregation: filteredFields } : {}),
+              },
+              aggregationParams,
+            )
 
         Object.entries(response).forEach(([key, value]) => {
           const child = (group.children ?? []).find((c) => c.key.toString() === key.toString())

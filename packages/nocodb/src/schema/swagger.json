@@ -11379,20 +11379,9 @@
           "name": "viewId",
           "in": "query",
           "description": "View ID is required"
-        },
-        {
-          "in": "query",
-          "name": "bulkFilterList",
-          "description": "List of where filters, sorts and alias",
-          "schema": {
-            "type": "array",
-            "items": {
-              "type": "object"
-            }
-          }
         }
       ],
-      "get": {
+      "post": {
         "summary": "Read Bulk Data",
         "operationId": "db-data-table-bulk-list",
         "description": "Read bulk data from a given table with given filters",
@@ -11402,6 +11391,14 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where",
+            "description": "Extra filtering"
           }
         ],
         "responses": {
@@ -11417,6 +11414,18 @@
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "object"
+                }
+              }
+            }
           }
         }
       }
@@ -11442,25 +11451,12 @@
           "description": "View ID is required"
         }
       ],
-      "get": {
+      "post": {
         "summary": "Read Bulk Group Data",
         "operationId": "db-data-table-bulk-group-list",
         "description": "Read bulk group data from a given table with given filters",
         "tags": [
           "DB Data Table Bulk Group List"
-        ],
-        "parameters": [
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "query",
-            "name": "bulkFilterList",
-            "description": "Used for multiple filter queries"
-          },
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
         ],
         "responses": {
           "200": {
@@ -11475,6 +11471,18 @@
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "object"
+                }
+              }
+            }
           }
         }
       }
@@ -12529,7 +12537,7 @@
           "description": "Shared view password"
         }
       ],
-      "get": {
+      "post": {
         "summary": "Read Shared View Bulk Data List",
         "operationId": "public-data-table-bulk-data-list",
         "description": "Read bulk data from a given table with provided filters",
@@ -12538,17 +12546,26 @@
         ],
         "parameters": [
           {
-            "in": "query",
-            "name": "bulkFilterList",
-            "description": "List of where filters and alias",
             "schema": {
-              "type": "array",
-              "items": {
-                "type": "object"
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where",
+            "description": "Extra filtering"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "object"
+                }
               }
             }
           }
-        ],
+        },
         "responses": {
           "200": {
             "description": "OK",
@@ -12603,7 +12620,7 @@
           "description": "Shared view password"
         }
       ],
-      "get": {
+      "post": {
         "summary": "Read Shared View Bulk Group Data",
         "operationId": "public-data-table-bulk-group",
         "description": "Read bulk group data from a given table with provided filters",
@@ -12612,17 +12629,26 @@
         ],
         "parameters": [
           {
-            "in": "query",
-            "name": "bulkFilterList",
-            "description": "List of where filters and alias",
             "schema": {
-              "type": "array",
-              "items": {
-                "type": "object"
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where",
+            "description": "Extra filtering"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "object"
+                }
               }
             }
           }
-        ],
+        },
         "responses": {
           "200": {
             "description": "OK",

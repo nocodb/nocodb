@@ -15,6 +15,7 @@ export class DataTableService extends DataTableServiceCE {
       modelId: string;
       viewId?: string;
       query: any;
+      body: any;
     },
   ) {
     const { model, view } = await this.getModelAndView(context, param);
@@ -33,6 +34,8 @@ export class DataTableService extends DataTableServiceCE {
 
     const listArgs: any = { ...param.query };
 
+    let bulkFilterList = param.body;
+
     try {
       listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
     } catch (e) {}
@@ -42,10 +45,10 @@ export class DataTableService extends DataTableServiceCE {
     } catch (e) {}
 
     try {
-      listArgs.aggregateFilterList = JSON.parse(listArgs.aggregateFilterList);
+      bulkFilterList = JSON.parse(bulkFilterList);
     } catch (e) {}
 
-    const data = await baseModel.bulkAggregate(listArgs, view);
+    const data = await baseModel.bulkAggregate(listArgs, bulkFilterList, view);
 
     return data;
   }

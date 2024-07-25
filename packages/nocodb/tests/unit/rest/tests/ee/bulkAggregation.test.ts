@@ -67,7 +67,7 @@ function bulkAggregationTestsEE() {
       },
     ]);
 
-    const aggFilter = JSON.stringify([
+    const aggFilter = [
       {
         where: '(Payments,gb_eq,12)',
         alias: '12',
@@ -80,16 +80,16 @@ function bulkAggregationTestsEE() {
         where: '(Payments,gb_eq,15)',
         alias: '15',
       },
-    ]);
+    ];
 
     const bulkAggregate = await request(context.app)
-      .get(`/api/v2/tables/${customerTable.id}/bulkAggregate`)
+      .post(`/api/v2/tables/${customerTable.id}/bulk/aggregate`)
       .set('xc-auth', context.token)
       .query({
         viewId: customerView.id,
-        aggregateFilterList: aggFilter,
         aggregation: aggregate,
-      });
+      })
+      .send(aggFilter);
 
     expect(bulkAggregate.body).to.deep.equal({
       12: {

@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query, Req, UseGuards } from '@nestjs/common';
+import { Controller, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { DataTableController as DataTableControllerCE } from 'src/controllers/data-table.controller';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
@@ -9,7 +9,7 @@ import { GlobalGuard } from '~/guards/global/global.guard';
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class DataTableController extends DataTableControllerCE {
-  @Get(['/api/v2/tables/:modelId/bulkAggregate'])
+  @Post(['/api/v2/tables/:modelId/bulk/aggregate'])
   @Acl('dataAggregate')
   async bulkAggregate(
     @TenantContext() context: NcContext,
@@ -21,6 +21,7 @@ export class DataTableController extends DataTableControllerCE {
       query: req.query,
       modelId,
       viewId,
+      body: req.body,
     });
   }
 }

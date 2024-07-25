@@ -233,25 +233,70 @@ export function useSharedView() {
     )
   }
 
-  const fetchBulkAggregatedData = async (param: {
-    aggregation?: Array<{
-      field: string
-      type: string
-    }>
-    aggregateFilterList: Array<{
+  const fetchBulkAggregatedData = async (
+    param: {
+      aggregation?: Array<{
+        field: string
+        type: string
+      }>
+      filtersArr?: FilterType[]
+      where?: string
+    },
+    bulkFilterList: Array<{
       where: string
       alias: string
-    }>
-    filtersArr?: FilterType[]
-    where?: string
-  }) => {
+    }>,
+  ) => {
     if (!sharedView.value) return {}
 
     return await $api.public.dataTableBulkAggregate(
       sharedView.value.uuid!,
+      bulkFilterList,
       {
         ...param,
-        aggregateFilterList: JSON.stringify(param.aggregateFilterList),
+        filterArrJson: JSON.stringify(param.filtersArr ?? nestedFilters.value),
+      } as any,
+      {
+        headers: {
+          'xc-password': password.value,
+        },
+      },
+    )
+  }
+
+  const fetchBulkListData = async (
+    param: {
+      where?: string
+    },
+    bulkFilterList: Array<{
+      where: string
+      alias: string
+    }>,
+  ) => {
+    if (!sharedView.value) return {}
+
+    return await $api.public.dataTableBulkDataList(sharedView.value.uuid!, bulkFilterList, {
+      ...param,
+    } as any)
+  }
+
+  const fetchBulkGroupData = async (
+    param: {
+      filtersArr?: FilterType[]
+      where?: string
+    },
+    bulkFilterList: Array<{
+      where: string
+      alias: string
+    }>,
+  ) => {
+    if (!sharedView.value) return {}
+
+    return await $api.public.dataTableBulkGroup(
+      sharedView.value.uuid!,
+      bulkFilterList,
+      {
+        ...param,
         filterArrJson: JSON.stringify(param.filtersArr ?? nestedFilters.value),
       } as any,
       {
@@ -367,6 +412,8 @@ export function useSharedView() {
     fetchAggregatedData,
     fetchBulkAggregatedData,
     fetchSharedViewAttachment,
+    fetchBulkGroupData,
+    fetchBulkListData,
     paginationData,
     sorts,
     exportFile,

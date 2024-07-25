@@ -18,6 +18,7 @@ import { mimeIcons } from '~/utils/mimeTypes';
 import { utf8ify } from '~/helpers/stringHelpers';
 import { replaceDynamicFieldWithValue } from '~/db/BaseModelSqlv2';
 import { Filter } from '~/models';
+import { DatasService } from '~/services/datas.service';
 
 // todo: move to utils
 export function sanitizeUrlPath(paths) {
@@ -26,6 +27,7 @@ export function sanitizeUrlPath(paths) {
 
 @Injectable()
 export class PublicDatasService {
+  constructor(protected datasService: DatasService) {}
   async dataList(
     context: NcContext,
     param: {
@@ -784,5 +786,142 @@ export class PublicDatasService {
     }
 
     return row;
+  }
+
+  async bulkDataList(
+    context: NcContext,
+    param: {
+      sharedViewUuid: string;
+      password?: string;
+      query: any;
+      body?: any;
+    },
+  ) {
+    const view = await View.getByUUID(context, param.sharedViewUuid);
+
+    if (!view) NcError.viewNotFound(param.sharedViewUuid);
+
+    if (view.type !== ViewTypes.GRID) {
+      NcError.notFound('Not found');
+    }
+
+    if (view.password && view.password !== param.password) {
+      return NcError.invalidSharedViewPassword();
+    }
+
+    const model = await Model.getByIdOrName(context, {
+      id: view?.fk_model_id,
+    });
+
+    const listArgs: any = { ...param.query };
+
+    let bulkFilterList = param.body;
+
+    try {
+      bulkFilterList = JSON.parse(bulkFilterList);
+    } catch (e) {}
+
+    try {
+      listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
+    } catch (e) {}
+
+    try {
+      listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
+    } catch (e) {}
+
+    if (!bulkFilterList?.length) {
+      NcError.badRequest('Invalid bulkFilterList');
+    }
+
+    const dataListResults = await bulkFilterList.reduce(
+      async (accPromise, dF: any) => {
+        const acc = await accPromise;
+        const result = await this.datasService.dataList(context, {
+          query: {
+            ...dF,
+          },
+          model,
+          view,
+        });
+        acc[dF.alias] = result;
+        return acc;
+      },
+      Promise.resolve({}),
+    );
+
+    return dataListResults;
+  }
+
+  async bulkGroupBy(
+    context: NcContext,
+    param: {
+      sharedViewUuid: string;
+      password?: string;
+      query: any;
+      body: any;
+    },
+  ) {
+    const view = await View.getByUUID(context, param.sharedViewUuid);
+
+    if (!view) NcError.viewNotFound(param.sharedViewUuid);
+
+    if (view.password && view.password !== param.password) {
+      return NcError.invalidSharedViewPassword();
+    }
+
+    const model = await Model.getByIdOrName(context, {
+      id: view?.fk_model_id,
+    });
+
+    const source = await Source.get(context, model.source_id);
+
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+    });
+
+    const listArgs: any = { ...param.query };
+
+    let bulkFilterList = param.body;
+
+    try {
+      bulkFilterList = JSON.parse(bulkFilterList);
+    } catch (e) {}
+
+    try {
+      listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
+    } catch (e) {}
+
+    if (!bulkFilterList?.length) {
+      NcError.badRequest('Invalid bulkFilterList');
+    }
+
+    const [data, count] = await Promise.all([
+      baseModel.bulkGroupBy(listArgs, bulkFilterList, view),
+      baseModel.bulkGroupByCount(listArgs, bulkFilterList, view),
+    ]);
+
+    bulkFilterList.forEach((dF: any) => {
+      // sqlite3 returns data as string. Hence needs to be converted to json object
+      let parsedData = data[dF.alias];
+
+      if (typeof parsedData === 'string') {
+        parsedData = JSON.parse(parsedData);
+      }
+
+      let parsedCount = count[dF.alias];
+
+      if (typeof parsedCount === 'string') {
+        parsedCount = JSON.parse(parsedCount);
+      }
+
+      data[dF.alias] = new PagedResponseImpl(parsedData, {
+        ...dF,
+        count: parsedCount?.count,
+      });
+    });
+
+    return data;
   }
 }

@@ -8,11 +8,15 @@ import { NcError } from '~/helpers/catchError';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { isMysqlVersionSupported } from '~/services/data-opt/mysql-helpers';
 import { DataOptService } from '~/services/data-opt/data-opt.service';
+import { DatasService } from '~/services/datas.service';
 
 @Injectable()
 export class PublicDatasService extends PublicDatasServiceCE {
-  constructor(private dataOptService: DataOptService) {
-    super();
+  constructor(
+    protected dataService: DatasService,
+    private dataOptService: DataOptService,
+  ) {
+    super(dataService);
   }
 
   async bulkAggregate(
@@ -21,6 +25,7 @@ export class PublicDatasService extends PublicDatasServiceCE {
       sharedViewUuid: string;
       password?: string;
       query: any;
+      body: any;
     },
   ) {
     const view = await View.getByUUID(context, param.sharedViewUuid);
@@ -39,6 +44,8 @@ export class PublicDatasService extends PublicDatasServiceCE {
       id: view?.fk_model_id,
     });
 
+    let bulkFilterList = param.body;
+
     const listArgs: any = { ...param.query };
 
     try {
@@ -50,7 +57,7 @@ export class PublicDatasService extends PublicDatasServiceCE {
     } catch (e) {}
 
     try {
-      listArgs.aggregateFilterList = JSON.parse(listArgs.aggregateFilterList);
+      bulkFilterList = JSON.parse(bulkFilterList);
     } catch (e) {}
 
     const source = await Source.get(context, model.source_id);
@@ -61,7 +68,7 @@ export class PublicDatasService extends PublicDatasServiceCE {
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
-    const data = await baseModel.bulkAggregate(listArgs, view);
+    const data = await baseModel.bulkAggregate(listArgs, bulkFilterList, view);
 
     return data;
   }

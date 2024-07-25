@@ -695,7 +695,7 @@
       },
       "parameters": []
     },
-    "/api/v2/tables/{tableId}/bulkAggregate": {
+    "/api/v2/tables/{tableId}/bulk/aggregate": {
       "parameters": [
         {
           "schema": {
@@ -726,20 +726,9 @@
           "in": "query",
           "name": "aggregation",
           "description": "Used for selective aggregation"
-        },
-        {
-          "in": "query",
-          "name": "aggregateFilterList",
-          "description": "List of where filters and alias",
-          "schema": {
-            "type": "array",
-            "items": {
-              "type": "object"
-            }
-          }
         }
       ],
-      "get": {
+      "post": {
         "summary": "Read Bulk Aggregated Data",
         "operationId": "db-data-table-bulk-aggregate",
         "description": "Read bulk aggregated data from a given table with given filters",
@@ -767,6 +756,18 @@
             "$ref": "#/components/parameters/xc-auth"
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "OK",
@@ -800,7 +801,7 @@
         }
       }
     },
-    "/api/v2/public/shared-view/{sharedViewUuid}/bulkAggregate": {
+    "/api/v2/public/shared-view/{sharedViewUuid}/bulk/aggregate": {
       "parameters": [
         {
           "schema": {
@@ -821,7 +822,7 @@
           "description": "Shared view password"
         }
       ],
-      "get": {
+      "post": {
         "summary": "Read Shared View Bulk Aggregated Data",
         "operationId": "public-data-table-bulk-aggregate",
         "description": "Read bulk aggregated data from a given table with provided filters",
@@ -856,19 +857,20 @@
             "in": "query",
             "name": "aggregation",
             "description": "Used for selective aggregation"
-          },
-          {
-            "in": "query",
-            "name": "aggregateFilterList",
-            "description": "List of where filters and alias",
-            "schema": {
-              "type": "array",
-              "items": {
-                "type": "object"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "object"
+                }
               }
             }
           }
-        ],
+        },
         "responses": {
           "200": {
             "description": "OK",

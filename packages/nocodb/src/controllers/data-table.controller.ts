@@ -132,6 +132,38 @@ export class DataTableController {
     });
   }
 
+  @Post(['/api/v2/tables/:modelId/bulk/group'])
+  @Acl('dataGroupBy')
+  async bulkGroupBy(
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
+    @Param('modelId') modelId: string,
+    @Query('viewId') viewId: string,
+  ) {
+    return await this.dataTableService.bulkGroupBy(context, {
+      query: req.query,
+      modelId,
+      viewId,
+      body: req.body,
+    });
+  }
+
+  @Post(['/api/v2/tables/:modelId/bulk/datalist'])
+  @Acl('dataList')
+  async bulkDataList(
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
+    @Param('modelId') modelId: string,
+    @Query('viewId') viewId: string,
+  ) {
+    return await this.dataTableService.bulkDataList(context, {
+      query: req.query,
+      modelId,
+      viewId,
+      body: req.body,
+    });
+  }
+
   @Get(['/api/v2/tables/:modelId/records/:rowId'])
   @Acl('dataRead')
   async dataRead(

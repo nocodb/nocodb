@@ -202,6 +202,25 @@ const handleFileDelete = (i: number) => {
   filetoDelete.i = 0
   filetoDelete.title = ''
 }
+
+const attachmentSize = computed(() => {
+  if (isForm.value || isExpandedForm.value) {
+    return 'small'
+  }
+
+  switch (rowHeight.value) {
+    case 1:
+      return 'tiny'
+    case 2:
+      return 'tiny'
+    case 4:
+      return 'small'
+    case 6:
+      return 'small'
+    default:
+      return 'tiny'
+  }
+})
 </script>
 
 <template>
@@ -382,7 +401,7 @@ const handleFileDelete = (i: number) => {
                     'h-16.8': rowHeight === 4,
                     'h-20.8': rowHeight === 6,
                   }"
-                  :srcs="getPossibleAttachmentSrc(item)"
+                  :srcs="getPossibleAttachmentSrc(item, attachmentSize)"
                 />
               </div>
             </div>

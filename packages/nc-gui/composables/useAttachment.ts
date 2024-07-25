@@ -1,8 +1,12 @@
 const useAttachment = () => {
   const { appInfo } = useGlobal()
 
-  const getPossibleAttachmentSrc = (item: Record<string, any>) => {
+  const getPossibleAttachmentSrc = (item: Record<string, any>, thumbnail?: 'card_cover' | 'tiny' | 'small') => {
     const res: string[] = []
+
+    if (thumbnail && item?.thumbnails && item.thumbnails[thumbnail]) {
+      res.push(getPossibleAttachmentSrc(item.thumbnails[thumbnail])[0])
+    }
     if (item?.data) res.push(item.data)
     if (item?.file) res.push(window.URL.createObjectURL(item.file))
     if (item?.signedPath) res.push(`${appInfo.value.ncSiteUrl}/${encodeURI(item.signedPath)}`)

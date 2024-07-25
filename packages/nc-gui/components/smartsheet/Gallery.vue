@@ -304,7 +304,7 @@ watch(
                       :key="`carousel-${record.row.id}-${index}`"
                       class="h-52"
                       :class="[`${coverImageObjectFitClass}`]"
-                      :srcs="getPossibleAttachmentSrc(attachment)"
+                      :srcs="getPossibleAttachmentSrc(attachment, 'card_cover')"
                       @click="expandFormClick($event, record)"
                     />
                   </template>

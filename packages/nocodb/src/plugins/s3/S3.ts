@@ -29,7 +29,9 @@ export default class S3 implements IStorageAdapterV2 {
     // create file stream
     const fileStream = fs.createReadStream(file.path);
     // upload using stream
-    return this.fileCreateByStream(key, fileStream);
+    return this.fileCreateByStream(key, fileStream, {
+      mimetype: file?.mimetype,
+    });
   }
 
   async fileCreateByUrl(key: string, url: string): Promise<any> {
@@ -49,13 +51,22 @@ export default class S3 implements IStorageAdapterV2 {
       uploadParams.ContentType = response.headers['content-type'];
 
       const data = await this.upload(uploadParams);
-      return data;
+      return {
+        url: data,
+        data: response.data,
+      };
     } catch (error) {
       throw error;
     }
   }
 
-  fileCreateByStream(key: string, stream: Readable): Promise<void> {
+  fileCreateByStream(
+    key: string,
+    stream: Readable,
+    options?: {
+      mimetype?: string;
+    },
+  ): Promise<void> {
     const uploadParams: any = {
       ...this.defaultParams,
     };
@@ -67,6 +78,8 @@ export default class S3 implements IStorageAdapterV2 {
 
       uploadParams.Body = stream;
       uploadParams.Key = key;
+      uploadParams.ContentType =
+        options?.mimetype || 'application/octet-stream';
 
       // call S3 to upload file to specified bucket
       this.upload(uploadParams)

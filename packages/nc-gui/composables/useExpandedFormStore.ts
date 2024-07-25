@@ -1,4 +1,4 @@
-import type { AuditType, ColumnType, CommentType, TableType } from 'nocodb-sdk'
+import type { AuditType, ColumnType, TableType } from 'nocodb-sdk'
 import { UITypes, ViewTypes, isVirtualCol } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import dayjs from 'dayjs'
@@ -10,18 +10,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
   const isPublic = inject(IsPublicInj, ref(false))
 
-  const comments = ref<
-    Array<
-      CommentType & {
-        created_display_name: string
-        resolved_display_name?: string
-      }
-    >
-  >([])
-
   const audits = ref<Array<AuditType>>([])
-
-  const isCommentsLoading = ref(false)
 
   const isAuditLoading = ref(false)
 
@@ -60,6 +49,9 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
   const { addUndo, clone, defineViewScope } = useUndoRedo()
 
   const reloadTrigger = inject(ReloadRowDataHookInj, createEventHook())
+
+  const { comments, resolveComment, loadComments, updateComment, deleteComment, saveComment, isCommentsLoading } =
+    useProvideRowComments(meta, row)
 
   const { isUIAllowed } = useRoles()
 
@@ -100,78 +92,6 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
   const primaryKey = computed(() => {
     return extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
   })
-
-  const loadComments = async (_rowId?: string) => {
-    if (!isUIAllowed('commentList') || (!row.value && !_rowId)) return
-
-    const rowId = _rowId ?? extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
-
-    if (!rowId) return
-
-    try {
-      isCommentsLoading.value = true
-
-      const res = ((
-        await $api.utils.commentList({
-          row_id: rowId,
-          fk_model_id: meta.value.id as string,
-        })
-      ).list || []) as Array<
-        CommentType & {
-          created_display_name: string
-        }
-      >
-
-      comments.value = res.map((comment) => {
-        const user = baseUsers.value.find((u) => u.id === comment.created_by)
-        const resolvedUser = comment.resolved_by ? baseUsers.value.find((u) => u.id === comment.resolved_by) : null
-        return {
-          ...comment,
-          created_display_name: user?.display_name ?? (user?.email ?? '').split('@')[0],
-          resolved_display_name: resolvedUser ? resolvedUser.display_name ?? resolvedUser.email.split('@')[0] : null,
-        }
-      })
-    } catch (e: unknown) {
-      message.error(
-        await extractSdkResponseErrorMsg(
-          e as Error & {
-            response: any
-          },
-        ),
-      )
-    } finally {
-      isCommentsLoading.value = false
-    }
-  }
-
-  const deleteComment = async (commentId: string) => {
-    if (!isUIAllowed('commentDelete')) return
-    const tempC = comments.value.find((c) => c.id === commentId)
-
-    try {
-      comments.value = comments.value.filter((c) => c.id !== commentId)
-
-      await $api.utils.commentDelete(commentId)
-
-      // update comment count in rowMeta
-      Object.assign(row.value, {
-        ...row.value,
-        rowMeta: {
-          ...row.value.rowMeta,
-          commentCount: (row.value.rowMeta.commentCount ?? 1) - 1,
-        },
-      })
-    } catch (e: unknown) {
-      message.error(
-        await extractSdkResponseErrorMsg(
-          e as Error & {
-            response: any
-          },
-        ),
-      )
-      comments.value = [...comments.value, tempC]
-    }
-  }
 
   const loadAudits = async (_rowId?: string, showLoading: boolean = true) => {
     if (!isUIAllowed('auditListRow') || isEeUI || (!row.value && !_rowId)) return
@@ -222,84 +142,6 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
       const { loadKanbanData: _loadKanbanData } = useKanbanViewStoreOrThrow()
       await _loadKanbanData()
     }
-  }
-
-  const resolveComment = async (commentId: string) => {
-    if (!isUIAllowed('commentResolve')) return
-    const tempC = comments.value.find((c) => c.id === commentId)
-
-    try {
-      comments.value = comments.value.map((c) => {
-        if (c.id === commentId) {
-          return {
-            ...c,
-            resolved_by: tempC.resolved_by ? null : $state.user?.value?.id,
-            resolved_by_email: tempC.resolved_by ? null : $state.user?.value?.email,
-            resolved_display_name: tempC.resolved_by
-              ? null
-              : $state.user?.value?.display_name ?? $state.user?.value?.email.split('@')[0],
-          }
-        }
-        return c
-      })
-      await $api.utils.commentResolve(commentId)
-    } catch (e: unknown) {
-      comments.value = comments.value.map((c) => {
-        if (c.id === commentId) {
-          return tempC
-        }
-        return c
-      })
-      message.error(
-        await extractSdkResponseErrorMsg(
-          e as Error & {
-            response: any
-          },
-        ),
-      )
-    }
-  }
-
-  const saveComment = async (comment: string) => {
-    try {
-      if (!row.value || !comment) {
-        comments.value = comments.value.filter((c) => !c.id?.startsWith('temp-'))
-        return
-      }
-
-      const rowId = extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
-
-      if (!rowId) return
-
-      await $api.utils.commentRow({
-        fk_model_id: meta.value?.id as string,
-        row_id: rowId,
-        comment: `${comment}`.replace(/(<br \/>)+$/g, ''),
-      })
-
-      // Increase Comment Count in rowMeta
-      Object.assign(row.value, {
-        rowMeta: {
-          ...row.value.rowMeta,
-          commentCount: (row.value.rowMeta.commentCount ?? 0) + 1,
-        },
-      })
-
-      // reloadTrigger?.trigger()
-
-      await loadComments()
-    } catch (e: any) {
-      comments.value = comments.value.filter((c) => !(c.id ?? '').startsWith('temp-'))
-      message.error(
-        await extractSdkResponseErrorMsg(
-          e as Error & {
-            response: any
-          },
-        ),
-      )
-    }
-
-    $e('a:row-expand:comment')
   }
 
   const save = async (
@@ -533,37 +375,6 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
       }
     } catch (e: any) {
       message.error(`${t('msg.error.deleteFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
-    }
-  }
-
-  const updateComment = async (commentId: string, comment: Partial<CommentType>) => {
-    const tempEdit = comments.value.find((c) => c.id === commentId)
-    try {
-      comments.value = comments.value.map((c) => {
-        if (c.id === commentId) {
-          return {
-            ...c,
-            ...comment,
-            updated_at: new Date().toISOString(),
-          }
-        }
-        return c
-      })
-      await $api.utils.commentUpdate(commentId, comment)
-    } catch (e: any) {
-      comments.value = comments.value.map((c) => {
-        if (c.id === commentId) {
-          return tempEdit
-        }
-        return c
-      })
-      message.error(
-        await extractSdkResponseErrorMsg(
-          e as Error & {
-            response: any
-          },
-        ),
-      )
     }
   }
 

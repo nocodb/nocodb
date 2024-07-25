@@ -785,7 +785,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                                         </template>
 
                                         <template v-for="attachment in attachments(record)">
-                                          <LazyCellAttachmentImage
+                                          <LazyCellAttachmentPreviewImage
                                             v-if="isImage(attachment.title, attachment.mimetype ?? attachment.type)"
                                             :key="attachment.path"
                                             class="h-52"

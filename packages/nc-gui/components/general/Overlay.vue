@@ -46,13 +46,7 @@ export default {
 <template>
   <teleport :disabled="teleportDisabled || (inline && !target)" :to="target || 'body'">
     <Transition :name="transition ? 'fade' : undefined" mode="out-in">
-      <div
-        v-show="!!vModel"
-        v-bind="$attrs"
-        :style="{ zIndex }"
-        :class="[inline ? 'absolute' : 'fixed']"
-        class="top-0 left-0 bottom-0 right-0"
-      >
+      <div v-show="!!vModel" v-bind="$attrs" :style="{ zIndex }" :class="[inline ? 'absolute' : 'fixed']" class="inset-0">
         <slot :is-open="vModel" />
       </div>
     </Transition>
@@ -62,7 +56,7 @@ export default {
 <style scoped>
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.3s;
+  transition: opacity 0.8s;
 }
 
 .fade-enter,

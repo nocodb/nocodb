@@ -396,7 +396,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
           const aggregationParams = (group.children ?? []).map((child) => {
             let key = child.key
 
-            if (!key?.length) {
+            if (!key?.length || key.startsWith(' ') || key.endsWith(' ')) {
               key = Math.random().toString(36).substring(7)
               aggregationMap.set(key, child.key)
             }
@@ -448,7 +448,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
           const childViewFilters = group?.children?.map((childGroup) => {
             let key = childGroup.key
 
-            if (!key?.length) {
+            if (!key?.length || key.startsWith(' ') || key.endsWith(' ')) {
               key = Math.random().toString(36).substring(7)
               aliasMap.set(key, childGroup.key)
             }
@@ -511,7 +511,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
 
             let key = childGroup.key
 
-            if (!key?.length) {
+            if (!key?.length || key.startsWith(' ') || key.endsWith(' ')) {
               key = Math.random().toString(36).substring(7)
               aliasMap.set(key, childGroup.key)
             }
@@ -618,7 +618,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
         const aggregationParams = (group.children ?? []).map((child) => {
           let key = child.key
 
-          if (!key?.length) {
+          if (!key?.length || key.startsWith(' ') || key.endsWith(' ')) {
             key = Math.random().toString(36).substring(7)
             aggregationMap.set(key, child.key)
           }

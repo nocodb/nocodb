@@ -776,139 +776,140 @@ class BaseModelSqlv2 {
     },
     view: View,
   ) {
-    const columns = await this.model.getColumns(this.context);
-    const aliasColObjMap = await this.model.getAliasColObjMap(
-      this.context,
-      columns,
-    );
-    const selectors = [] as Array<Knex.Raw>;
+    try {
+      const columns = await this.model.getColumns(this.context);
+      const aliasColObjMap = await this.model.getAliasColObjMap(
+        this.context,
+        columns,
+      );
+      const selectors = [] as Array<Knex.Raw>;
 
-    const viewFilterList = await Filter.rootFilterList(this.context, {
-      viewId: this.viewId,
-    });
+      const viewFilterList = await Filter.rootFilterList(this.context, {
+        viewId: this.viewId,
+      });
 
-    if (!Object.values(args.bulkFilterList)?.length) {
-      return NcError.badRequest('bulkFilterList is required');
-    }
+      if (!Object.values(args.bulkFilterList)?.length) {
+        return NcError.badRequest('bulkFilterList is required');
+      }
 
-    for (const f of Object.values(args.bulkFilterList)) {
-      const { where, ...rest } = this._getListArgs(f);
-      const groupBySelectors = [];
-      const groupByColumns: Record<string, Column> = {};
+      for (const f of Object.values(args.bulkFilterList)) {
+        const { where, ...rest } = this._getListArgs(f);
+        const groupBySelectors = [];
+        const groupByColumns: Record<string, Column> = {};
 
-      const getAlias = getAliasGenerator('__nc_gb');
-      const groupFilter = extractFilterFromXwhere(f.where, aliasColObjMap);
+        const getAlias = getAliasGenerator('__nc_gb');
+        const groupFilter = extractFilterFromXwhere(f.where, aliasColObjMap);
 
-      const tQb = this.dbDriver(this.tnPath);
-      const colSelectors = [];
+        const tQb = this.dbDriver(this.tnPath);
+        const colSelectors = [];
 
-      await Promise.all(
-        rest.column_name.split(',').map(async (col) => {
-          let column = columns.find(
-            (c) => c.column_name === col || c.title === col,
-          );
+        await Promise.all(
+          rest.column_name.split(',').map(async (col) => {
+            let column = columns.find(
+              (c) => c.column_name === col || c.title === col,
+            );
 
-          // if qrCode or Barcode replace it with value column nd keep the alias
-          if ([UITypes.QrCode, UITypes.Barcode].includes(column.uidt)) {
-            column = new Column({
-              ...(await column
-                .getColOptions<BarcodeColumn | QrCodeColumn>(this.context)
-                .then((col) => col.getValueColumn(this.context))),
-              title: column.title,
-              id: column.id,
-            });
-          }
+            // if qrCode or Barcode replace it with value column nd keep the alias
+            if ([UITypes.QrCode, UITypes.Barcode].includes(column.uidt)) {
+              column = new Column({
+                ...(await column
+                  .getColOptions<BarcodeColumn | QrCodeColumn>(this.context)
+                  .then((col) => col.getValueColumn(this.context))),
+                title: column.title,
+                id: column.id,
+              });
+            }
 
-          groupByColumns[column.id] = column;
+            groupByColumns[column.id] = column;
 
-          switch (column.uidt) {
-            case UITypes.Attachment:
-              throw NcError.badRequest(
-                'Group by using attachment column is not supported',
-              );
-            case UITypes.Links:
-            case UITypes.Rollup:
-              colSelectors.push(
-                (
-                  await genRollupSelectv2({
-                    baseModelSqlv2: this,
-                    knex: this.dbDriver,
-                    columnOptions: (await column.getColOptions(
-                      this.context,
-                    )) as RollupColumn,
-                  })
-                ).builder.as(column.id),
-              );
-              groupBySelectors.push(column.id);
-              break;
-            case UITypes.Formula: {
-              let selectQb;
-              try {
-                const _selectQb = await this.getSelectQueryBuilderForFormula(
-                  column,
+            switch (column.uidt) {
+              case UITypes.Attachment:
+                throw NcError.badRequest(
+                  'Group by using attachment column is not supported',
                 );
-                selectQb = this.dbDriver.raw(`?? as ??`, [
-                  _selectQb.builder,
+              case UITypes.Links:
+              case UITypes.Rollup:
+                colSelectors.push(
+                  (
+                    await genRollupSelectv2({
+                      baseModelSqlv2: this,
+                      knex: this.dbDriver,
+                      columnOptions: (await column.getColOptions(
+                        this.context,
+                      )) as RollupColumn,
+                    })
+                  ).builder.as(column.id),
+                );
+                groupBySelectors.push(column.id);
+                break;
+              case UITypes.Formula: {
+                let selectQb;
+                try {
+                  const _selectQb = await this.getSelectQueryBuilderForFormula(
+                    column,
+                  );
+                  selectQb = this.dbDriver.raw(`?? as ??`, [
+                    _selectQb.builder,
+                    column.id,
+                  ]);
+                } catch (e) {
+                  console.log(e);
+                  selectQb = this.dbDriver.raw(`'ERR' as ??`, [column.id]);
+                }
+                colSelectors.push(selectQb);
+                groupBySelectors.push(column.id);
+                break;
+              }
+
+              case UITypes.Lookup:
+              case UITypes.LinkToAnotherRecord: {
+                const _selectQb = await generateLookupSelectQuery({
+                  baseModelSqlv2: this,
+                  column,
+                  alias: null,
+                  model: this.model,
+                  getAlias,
+                });
+                const selectQb = this.dbDriver.raw(`?? as ??`, [
+                  this.dbDriver.raw(_selectQb.builder).wrap('(', ')'),
                   column.id,
                 ]);
-              } catch (e) {
-                console.log(e);
-                selectQb = this.dbDriver.raw(`'ERR' as ??`, [column.id]);
+                colSelectors.push(selectQb);
+                groupBySelectors.push(column.id);
+                break;
               }
-              colSelectors.push(selectQb);
-              groupBySelectors.push(column.id);
-              break;
-            }
-
-            case UITypes.Lookup:
-            case UITypes.LinkToAnotherRecord: {
-              const _selectQb = await generateLookupSelectQuery({
-                baseModelSqlv2: this,
-                column,
-                alias: null,
-                model: this.model,
-                getAlias,
-              });
-              const selectQb = this.dbDriver.raw(`?? as ??`, [
-                this.dbDriver.raw(_selectQb.builder).wrap('(', ')'),
-                column.id,
-              ]);
-              colSelectors.push(selectQb);
-              groupBySelectors.push(column.id);
-              break;
-            }
-            case UITypes.DateTime:
-            case UITypes.CreatedTime:
-            case UITypes.LastModifiedTime:
-              {
-                const columnName = await getColumnName(
-                  this.context,
-                  column,
-                  columns,
-                );
-                // ignore seconds part in datetime and group
-                if (this.dbDriver.clientType() === 'pg') {
-                  colSelectors.push(
-                    this.dbDriver.raw(
-                      "date_trunc('minute', ??) + interval '0 seconds' as ??",
-                      [columnName, column.id],
-                    ),
+              case UITypes.DateTime:
+              case UITypes.CreatedTime:
+              case UITypes.LastModifiedTime:
+                {
+                  const columnName = await getColumnName(
+                    this.context,
+                    column,
+                    columns,
                   );
-                } else if (
-                  this.dbDriver.clientType() === 'mysql' ||
-                  this.dbDriver.clientType() === 'mysql2'
-                ) {
-                  colSelectors.push(
-                    // this.dbDriver.raw('??::date as ??', [columnName, column.id]),
-                    this.dbDriver.raw(
-                      "DATE_SUB(CONVERT_TZ(??, @@GLOBAL.time_zone, '+00:00'), INTERVAL SECOND(??) SECOND) as ??",
-                      [columnName, columnName, column.id],
-                    ),
-                  );
-                } else if (this.dbDriver.clientType() === 'sqlite3') {
-                  colSelectors.push(
-                    this.dbDriver.raw(
-                      `strftime ('%Y-%m-%d %H:%M:00',:column:) ||
+                  // ignore seconds part in datetime and group
+                  if (this.dbDriver.clientType() === 'pg') {
+                    colSelectors.push(
+                      this.dbDriver.raw(
+                        "date_trunc('minute', ??) + interval '0 seconds' as ??",
+                        [columnName, column.id],
+                      ),
+                    );
+                  } else if (
+                    this.dbDriver.clientType() === 'mysql' ||
+                    this.dbDriver.clientType() === 'mysql2'
+                  ) {
+                    colSelectors.push(
+                      // this.dbDriver.raw('??::date as ??', [columnName, column.id]),
+                      this.dbDriver.raw(
+                        "DATE_SUB(CONVERT_TZ(??, @@GLOBAL.time_zone, '+00:00'), INTERVAL SECOND(??) SECOND) as ??",
+                        [columnName, columnName, column.id],
+                      ),
+                    );
+                  } else if (this.dbDriver.clientType() === 'sqlite3') {
+                    colSelectors.push(
+                      this.dbDriver.raw(
+                        `strftime ('%Y-%m-%d %H:%M:00',:column:) ||
   (
    CASE WHEN substr(:column:, 20, 1) = '+' THEN
     printf ('+%s:',
@@ -921,137 +922,141 @@ class BaseModelSqlv2 {
    ELSE
     '+00:00'
    END) AS :id:`,
-                      {
-                        column: columnName,
-                        id: column.id,
-                      },
-                    ),
-                  );
-                } else {
-                  colSelectors.push(
-                    this.dbDriver.raw('DATE(??) as ??', [
-                      columnName,
-                      column.id,
-                    ]),
-                  );
+                        {
+                          column: columnName,
+                          id: column.id,
+                        },
+                      ),
+                    );
+                  } else {
+                    colSelectors.push(
+                      this.dbDriver.raw('DATE(??) as ??', [
+                        columnName,
+                        column.id,
+                      ]),
+                    );
+                  }
+                  groupBySelectors.push(column.id);
                 }
+                break;
+              default: {
+                const columnName = await getColumnName(
+                  this.context,
+                  column,
+                  columns,
+                );
+                colSelectors.push(
+                  this.dbDriver.raw('?? as ??', [columnName, column.id]),
+                );
                 groupBySelectors.push(column.id);
+                break;
               }
-              break;
-            default: {
-              const columnName = await getColumnName(
-                this.context,
-                column,
-                columns,
-              );
-              colSelectors.push(
-                this.dbDriver.raw('?? as ??', [columnName, column.id]),
-              );
-              groupBySelectors.push(column.id);
-              break;
             }
-          }
-        }),
-      );
+          }),
+        );
 
-      // get aggregated count of each group
-      tQb.count(`${this.model.primaryKey?.column_name || '*'} as count`);
-      tQb.select(...colSelectors);
+        // get aggregated count of each group
+        tQb.count(`${this.model.primaryKey?.column_name || '*'} as count`);
+        tQb.select(...colSelectors);
 
-      if (+rest?.shuffle) {
-        await this.shuffle({ qb: tQb });
+        if (+rest?.shuffle) {
+          await this.shuffle({ qb: tQb });
+        }
+
+        await conditionV2(
+          this,
+          [
+            ...(this.viewId
+              ? [
+                  new Filter({
+                    children: viewFilterList || [],
+                    is_group: true,
+                  }),
+                ]
+              : []),
+            new Filter({
+              children: rest.filterArr || [],
+              is_group: true,
+              logical_op: 'and',
+            }),
+            new Filter({
+              children: extractFilterFromXwhere(where, aliasColObjMap),
+              is_group: true,
+              logical_op: 'and',
+            }),
+            new Filter({
+              children: groupFilter,
+              is_group: true,
+              logical_op: 'and',
+            }),
+            new Filter({
+              children: args.filterArr || [],
+              is_group: true,
+              logical_op: 'and',
+            }),
+          ],
+          tQb,
+        );
+
+        tQb.groupBy(...groupBySelectors);
+
+        const count = this.dbDriver
+          .count('*', { as: 'count' })
+          .from(tQb.as('groupby'));
+
+        let subQuery;
+        switch (this.dbDriver.client.config.client) {
+          case 'pg':
+            subQuery = this.dbDriver
+              .select(
+                this.dbDriver.raw(`json_build_object('count', "count") as ??`, [
+                  getAlias(),
+                ]),
+              )
+              .from(count.as(getAlias()));
+            selectors.push(
+              this.dbDriver.raw(`(??) as "??"`, [
+                subQuery,
+                this.dbDriver.raw(f.alias),
+              ]),
+            );
+            break;
+          case 'mysql2':
+            subQuery = this.dbDriver
+              .select(this.dbDriver.raw(`JSON_OBJECT('count', \`count\`)`))
+              .from(count.as(getAlias()));
+            selectors.push(
+              this.dbDriver.raw(`(??) as ??`, [subQuery, `${f.alias}`]),
+            );
+            break;
+          case 'sqlite3':
+            subQuery = this.dbDriver
+              .select(
+                this.dbDriver.raw(`json_object('count', "count") as ??`, [
+                  f.alias,
+                ]),
+              )
+              .from(count.as(getAlias()));
+            break;
+          default:
+            NcError.notImplemented(
+              'This database does not support bulk groupBy count',
+            );
+        }
       }
 
-      await conditionV2(
-        this,
-        [
-          ...(this.viewId
-            ? [
-                new Filter({
-                  children: viewFilterList || [],
-                  is_group: true,
-                }),
-              ]
-            : []),
-          new Filter({
-            children: rest.filterArr || [],
-            is_group: true,
-            logical_op: 'and',
-          }),
-          new Filter({
-            children: extractFilterFromXwhere(where, aliasColObjMap),
-            is_group: true,
-            logical_op: 'and',
-          }),
-          new Filter({
-            children: groupFilter,
-            is_group: true,
-            logical_op: 'and',
-          }),
-          new Filter({
-            children: args.filterArr || [],
-            is_group: true,
-            logical_op: 'and',
-          }),
-        ],
-        tQb,
-      );
+      const qb = this.dbDriver(this.tnPath);
+      qb.select(...selectors).limit(1);
 
-      tQb.groupBy(...groupBySelectors);
+      const data = await this.execAndParse(qb, null, {
+        raw: true,
+        first: true,
+      });
 
-      const count = this.dbDriver
-        .count('*', { as: 'count' })
-        .from(tQb.as('groupby'));
-
-      let subQuery;
-      switch (this.dbDriver.client.config.client) {
-        case 'pg':
-          subQuery = this.dbDriver
-            .select(
-              this.dbDriver.raw(`json_build_object('count', "count") as ??`, [
-                getAlias(),
-              ]),
-            )
-            .from(count.as(getAlias()));
-          selectors.push(
-            this.dbDriver.raw(`(??) as "??"`, [
-              subQuery,
-              this.dbDriver.raw(f.alias),
-            ]),
-          );
-          break;
-        case 'mysql2':
-          subQuery = this.dbDriver
-            .select(this.dbDriver.raw(`JSON_OBJECT('count', \`count\`)`))
-            .from(this.dbDriver.raw(`(??) as ??`, [tQb, getAlias()]));
-          selectors.push(this.dbDriver.raw(`(??) as ??`, [subQuery, f.alias]));
-          break;
-        case 'sqlite3':
-          // TODO: @DarkPhoenix2704@. Test on pr creation
-          subQuery = this.dbDriver
-            .select(
-              this.dbDriver.raw(`json_object('count', "count") as ??`, [
-                f.alias,
-              ]),
-            )
-            .from(tQb.as(getAlias()));
-          break;
-        default:
-          NcError.notImplemented(
-            'This database does not support bulk groupBy count',
-          );
-      }
+      return data;
+    } catch (e) {
+      console.log(e);
     }
-
-    const qb = this.dbDriver(this.tnPath);
-    qb.select(...selectors).limit(1);
-
-    const data = await this.execAndParse(qb, null, {
-      raw: true,
-      first: true,
-    });
-
-    return data;
   }
 
   async bulkGroupBy(
@@ -1407,7 +1412,6 @@ class BaseModelSqlv2 {
             );
             break;
           case 'sqlite3':
-            // TODO: @DarkPhoenix2704@. Test on pr creation
             subQuery = this.dbDriver
               .select(
                 this.dbDriver.raw(
@@ -1433,7 +1437,7 @@ class BaseModelSqlv2 {
       });
       return data;
     } catch (err) {
-      console.log(err);
+      logger.log(err);
       return [];
     }
   }

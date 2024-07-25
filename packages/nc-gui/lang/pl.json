@@ -521,6 +521,9 @@
     "looksLikeThisStackIsEmpty": "Wygląda na to, że ten stos nie ma żadnych rekordów"
   },
   "labels": {
+    "formatting": "Formatting",
+    "selectAFormatType": "- -Select a formt type (optional)- -",
+    "formatType": "Format type",
     "toUpload": "to upload",
     "dragFilesHere": "drag files here",
     "browseFiles": "browse files",

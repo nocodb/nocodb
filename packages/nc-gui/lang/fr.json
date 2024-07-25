@@ -521,6 +521,9 @@
     "looksLikeThisStackIsEmpty": "Il semble que ce groupe n'a pas d'enregistrements"
   },
   "labels": {
+    "formatting": "Formatting",
+    "selectAFormatType": "- -Select a formt type (optional)- -",
+    "formatType": "Format type",
     "toUpload": "à téléverser",
     "dragFilesHere": "glisser les fichiers ici",
     "browseFiles": "parcourir les fichiers",

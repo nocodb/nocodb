@@ -183,7 +183,7 @@ watch([() => vGroup.value.key], async (n, o) => {
 })
 
 onMounted(async () => {
-  if (vGroup.value.root === true) {
+  if (vGroup.value.root === true && !vGroup.value?.children?.length) {
     await props.loadGroups({}, vGroup.value)
   }
 })

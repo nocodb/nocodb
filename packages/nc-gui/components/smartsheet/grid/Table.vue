@@ -181,7 +181,7 @@ const { onDrag, onDragStart, onDragEnd, draggedCol, dragColPlaceholderDomRef, to
 const { onLeft, onRight, onUp, onDown } = usePaginationShortcuts({
   paginationDataRef,
   changePage: changePage as any,
-  isViewDataLoading
+  isViewDataLoading,
 })
 
 // #Variables

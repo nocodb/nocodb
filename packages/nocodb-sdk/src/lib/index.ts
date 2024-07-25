@@ -31,3 +31,4 @@ export * from '~/lib/mergeSwaggerSchema';
 export * from '~/lib/dateTimeHelper';
 export * from '~/lib/form';
 export * from '~/lib/aggregationHelper';
+export * from '~/lib/connectionConfigUtils';

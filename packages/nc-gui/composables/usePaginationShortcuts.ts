@@ -4,7 +4,7 @@ import type { PaginatedType } from 'nocodb-sdk'
 const usePaginationShortcuts = ({
   changePage,
   paginationDataRef,
-  isViewDataLoading
+  isViewDataLoading,
 }: {
   changePage: (page: number) => Promise<void> | undefined
   paginationDataRef: Ref<PaginatedType | undefined>

@@ -884,10 +884,6 @@ export class PublicDatasService {
     } catch (e) {}
 
     try {
-      listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
-    } catch (e) {}
-
-    try {
       listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
     } catch (e) {}
 

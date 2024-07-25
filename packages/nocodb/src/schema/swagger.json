@@ -11401,22 +11401,6 @@
         ],
         "parameters": [
           {
-            "schema": {
-              "type": "string"
-            },
-            "in": "query",
-            "name": "where",
-            "description": "Extra filtering"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "query",
-            "name": "filterArrJson",
-            "description": "Used for multiple filter queries"
-          },
-          {
             "$ref": "#/components/parameters/xc-auth"
           }
         ],
@@ -11466,14 +11450,6 @@
           "DB Data Table Bulk Group List"
         ],
         "parameters": [
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "query",
-            "name": "where",
-            "description": "Extra filtering"
-          },
           {
             "schema": {
               "type": "string"

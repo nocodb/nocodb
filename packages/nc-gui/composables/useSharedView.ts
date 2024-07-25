@@ -267,7 +267,6 @@ export function useSharedView() {
       where: string
       alias: string
     }>
-    filtersArr?: FilterType[]
     where?: string
   }) => {
     if (!sharedView.value) return {}
@@ -277,7 +276,6 @@ export function useSharedView() {
       {
         ...param,
         bulkFilterList: JSON.stringify(param.bulkFilterList),
-        filterArrJson: JSON.stringify(param.filtersArr ?? nestedFilters.value),
       } as any,
       {
         headers: {

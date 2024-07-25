@@ -756,6 +756,51 @@ export class DataTableService {
       );
   }
 
+  async bulkDataList(
+    context: NcContext,
+    param: {
+      baseId?: string;
+      modelId: string;
+      viewId?: string;
+      query: any;
+    },
+  ) {
+    const { model, view } = await this.getModelAndView(context, param);
+
+    const listArgs: any = { ...param.query };
+
+    try {
+      listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
+    } catch (e) {}
+
+    try {
+      listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
+    } catch (e) {}
+
+    try {
+      listArgs.dataFilterList = JSON.parse(listArgs.dataFilterList);
+    } catch (e) {}
+
+    const dataListResults = await listArgs.dataFilterList.reduce(
+      async (accPromise, dF) => {
+        const acc = await accPromise;
+        const result = await this.datasService.dataList(context, {
+          query: {
+            ...dF,
+            ...listArgs,
+          },
+          model,
+          view,
+        });
+        acc[dF.alias] = result;
+        return acc;
+      },
+      Promise.resolve({}),
+    );
+
+    return dataListResults;
+  }
+
   async bulkGroupBy(
     context: NcContext,
     param: {

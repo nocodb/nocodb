@@ -130,7 +130,8 @@ export class ThumbnailGeneratorProcessor {
       relativePath = fpath;
       file = tempPath.path;
     } else if (attachment.url) {
-      relativePath = attachment.url;
+      relativePath = decodeURI(new URL(attachment.url).pathname);
+
       signedUrl = await PresignedUrl.getSignedUrl({
         pathOrUrl: relativePath,
         preview: false,

@@ -1531,7 +1531,7 @@ class BaseModelSqlv2 {
 
       const selectors = [] as Array<Knex.Raw>;
       // Generate a knex raw query for each filter in the bulkFilterList
-      for (const f of args.bulkFilterList) {
+      for (const f of Object.values(args.bulkFilterList)) {
         const tQb = this.dbDriver(this.tnPath);
         const aggFilter = extractFilterFromXwhere(f.where, aliasColObjMap);
 

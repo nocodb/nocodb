@@ -100,7 +100,7 @@ const workspaceStore = useWorkspace()
 
 const { navigateToWorkspaceSettings, loadAudits } = workspaceStore
 
-const { activeWorkspace, auditLogsQuery, auditCurrentPage } = storeToRefs(workspaceStore)
+const { activeWorkspace, auditLogsQuery, auditPaginationData } = storeToRefs(workspaceStore)
 
 // If only base is open, i.e in case of docs, base view is open and not the page view
 const baseViewOpen = computed(() => {
@@ -288,7 +288,7 @@ function openErdView(source: SourceType) {
 async function openAudit(source: SourceType) {
   $e('c:project:audit')
 
-  auditCurrentPage.value = 1
+  auditPaginationData.value.page = 1
 
   if (isUIAllowed('workspaceAuditList') && activeWorkspace.value?.id) {
     auditLogsQuery.value = {

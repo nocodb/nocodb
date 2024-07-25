@@ -22,13 +22,7 @@ const workspaceStore = useWorkspace()
 
 const { loadAudits: _loadAudits } = workspaceStore
 
-const {
-  audits,
-  auditLogsQuery,
-  auditCurrentLimit: currentLimit,
-  auditCurrentPage: currentPage,
-  auditTotalRows: totalRows,
-} = storeToRefs(workspaceStore)
+const { audits, auditLogsQuery, auditPaginationData } = storeToRefs(workspaceStore)
 
 const basesStore = useBases()
 
@@ -59,14 +53,18 @@ const selectedAudit = ref<null | AuditType>(null)
 
 const tableWrapper = ref<HTMLDivElement>()
 
-async function loadAudits(page = currentPage.value, limit = currentLimit.value, updateCurrentPage = true) {
+async function loadAudits(
+  page = auditPaginationData.value.page,
+  limit = auditPaginationData.value.pageSize,
+  updateCurrentPage = true,
+) {
   try {
     if ((!isUIAllowed('workspaceAuditList') && !props.baseId) || (!isUIAllowed('baseAuditList') && props.baseId)) {
       return
     }
 
     if (updateCurrentPage) {
-      currentPage.value = 1
+      auditPaginationData.value.page = 1
     }
 
     isLoading.value = true
@@ -76,6 +74,17 @@ async function loadAudits(page = currentPage.value, limit = currentLimit.value, 
     isLoading.value = false
   }
 }
+
+const handleChangePage = async (page: number) => {
+  auditPaginationData.value.page = page
+  await loadAudits(undefined, undefined, false)
+}
+
+const { onLeft, onRight, onUp, onDown } = usePaginationShortcuts({
+  paginationDataRef: auditPaginationData,
+  changePage: handleChangePage,
+  isViewDataLoading: isLoading,
+})
 
 const loadCollaborators = async () => {
   try {
@@ -159,7 +168,7 @@ onMounted(async () => {
   }
 
   if (appInfo.value.auditEnabled) {
-    await loadAudits(currentPage.value, currentLimit.value, false)
+    await loadAudits(auditPaginationData.value.page, auditPaginationData.value.pageSize, false)
   }
 })
 
@@ -176,6 +185,16 @@ useEventListener(tableWrapper, 'scroll', () => {
     tableWrapper.value?.classList.remove('sticky-shadow')
   }
 })
+
+const renderAltOrOptlKey = () => {
+  return isMac() ? '⌥' : 'ALT'
+}
+
+// Keyboard shortcuts for pagination
+onKeyStroke('ArrowLeft', onLeft)
+onKeyStroke('ArrowRight', onRight)
+onKeyStroke('ArrowUp', onUp)
+onKeyStroke('ArrowDown', onDown)
 </script>
 
 <template>
@@ -442,7 +461,7 @@ useEventListener(tableWrapper, 'scroll', () => {
           <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" class="!my-0" />
         </div>
         <div
-          v-if="totalRows"
+          v-if="auditPaginationData.totalRows"
           class="flex flex-row justify-center items-center bg-gray-50 min-h-10"
           :class="{
             'pointer-events-none': isLoading,
@@ -451,15 +470,21 @@ useEventListener(tableWrapper, 'scroll', () => {
           <div class="flex justify-between items-center w-full px-6">
             <div>&nbsp;</div>
             <NcPagination
-              v-model:current="currentPage"
-              v-model:page-size="currentLimit"
-              :total="+totalRows"
+              v-model:current="auditPaginationData.page"
+              v-model:page-size="auditPaginationData.pageSize"
+              :total="+auditPaginationData.totalRows"
               show-size-changer
               :use-stored-page-size="false"
               @update:current="loadAudits(undefined, undefined, false)"
               @update:page-size="loadAudits(currentPage, $event, false)"
+              :prev-page-tooltip="`${renderAltOrOptlKey()}+←`"
+              :next-page-tooltip="`${renderAltOrOptlKey()}+→`"
+              :first-page-tooltip="`${renderAltOrOptlKey()}+↓`"
+              :last-page-tooltip="`${renderAltOrOptlKey()}+↑`"
             />
-            <div class="text-gray-500 text-xs">{{ totalRows }} {{ totalRows === 1 ? 'record' : 'records' }}</div>
+            <div class="text-gray-500 text-xs">
+              {{ auditPaginationData.totalRows }} {{ auditPaginationData.totalRows === 1 ? 'record' : 'records' }}
+            </div>
           </div>
         </div>
       </div>

@@ -481,64 +481,64 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
             }
           })
 
-          // if (group !== rootGroup.value) {
-          const childGroupFilters = group?.children?.map((childGroup) => {
-            try {
-              const key = JSON.parse(childGroup.key)
+          if (group !== rootGroup.value) {
+            const childGroupFilters = group?.children?.map((childGroup) => {
+              try {
+                const key = JSON.parse(childGroup.key)
 
-              if (typeof key === 'object') {
-                const newKey = Math.random().toString(36).substring(7)
-                aliasMap.set(newKey, childGroup.key)
-                return {
-                  alias: newKey,
-                  offset:
-                    ((childGroup.paginationData.page ?? 0) - 1) * (childGroup.paginationData.pageSize ?? groupByGroupLimit.value),
-                  limit: childGroup.paginationData.pageSize ?? groupByGroupLimit.value,
-                  ...params,
-                  ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
-                  ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
-                  where: `${nestedWhere}`,
-                  sort: `${getSortParams(groupby.sort)}${groupby.column.title}`,
-                  column_name: groupby.column.title,
+                if (typeof key === 'object') {
+                  const newKey = Math.random().toString(36).substring(7)
+                  aliasMap.set(newKey, childGroup.key)
+                  return {
+                    alias: newKey,
+                    offset:
+                      ((childGroup.paginationData.page ?? 0) - 1) *
+                      (childGroup.paginationData.pageSize ?? groupByGroupLimit.value),
+                    limit: childGroup.paginationData.pageSize ?? groupByGroupLimit.value,
+                    ...params,
+                    ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
+                    ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+                    where: `${nestedWhere}`,
+                    sort: `${getSortParams(groupby.sort)}${groupby.column.title}`,
+                    column_name: groupby.column.title,
+                  }
                 }
+              } catch (e) {}
+
+              return {
+                alias: childGroup.key,
+                offset:
+                  ((childGroup.paginationData.page ?? 0) - 1) * (childGroup.paginationData.pageSize ?? groupByGroupLimit.value),
+                limit: childGroup.paginationData.pageSize ?? groupByGroupLimit.value,
+                ...params,
+                ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
+                ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+                where: `${nestedWhere}`,
+                sort: `${getSortParams(groupby.sort)}${groupby.column.title}`,
+                column_name: groupby.column.title,
               }
-            } catch (e) {}
+            })
 
-            return {
-              alias: childGroup.key,
-              offset:
-                ((childGroup.paginationData.page ?? 0) - 1) * (childGroup.paginationData.pageSize ?? groupByGroupLimit.value),
-              limit: childGroup.paginationData.pageSize ?? groupByGroupLimit.value,
-              ...params,
-              ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
-              ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
-              where: `${nestedWhere}`,
-              sort: `${getSortParams(groupby.sort)}${groupby.column.title}`,
-              column_name: groupby.column.title,
-            }
-          })
+            const bulkGroupData = await api.dbDataTableBulkGroupList.dbDataTableBulkGroupList(meta.value.id, {
+              viewId: view.value.id,
+              bulkFilterList: childGroupFilters,
+            })
 
-          const bulkGroupData = await api.dbDataTableBulkGroupList.dbDataTableBulkGroupList(meta.value.id, {
-            viewId: view.value.id,
-            bulkFilterList: childGroupFilters,
-          })
+            for (const [key, value] of Object.entries(bulkGroupData)) {
+              let child = (group?.children ?? []).find((c) => c.key.toString() === key.toString())
 
-          for (const [key, value] of Object.entries(bulkGroupData)) {
-            let child = (group?.children ?? []).find((c) => c.key.toString() === key.toString())
-
-            if (child) {
-              child = await processGroupData(value, child)
-            } else {
-              const originalKey = aliasMap.get(key)
-              if (originalKey) {
-                child = (group?.children ?? []).find((c) => c.key.toString() === originalKey.toString())!
+              if (child) {
                 child = await processGroupData(value, child)
+              } else {
+                const originalKey = aliasMap.get(key)
+                if (originalKey) {
+                  child = (group?.children ?? []).find((c) => c.key.toString() === originalKey.toString())!
+                  child = await processGroupData(value, child)
+                }
               }
             }
           }
         }
-
-        // }
       } catch (e) {
         console.log(e)
         message.error(await extractSdkResponseErrorMsg(e))

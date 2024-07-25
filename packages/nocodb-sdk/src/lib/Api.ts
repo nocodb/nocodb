@@ -9333,6 +9333,55 @@ export class Api<
       }),
 
     /**
+ * @description Download attachment from a shared view
+ * 
+ * @tags Public
+ * @name DataAttachmentDownload
+ * @summary Get Shared View Attachment
+ * @request GET:/api/v2/public/shared-view/{sharedViewUuid}/downloadAttachment/{columnId}/{rowId}
+ * @response `200` `{
+  \** URL to download the attachment *\
+  url?: string,
+  \** Path to download the attachment *\
+  path?: string,
+
+}` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    dataAttachmentDownload: (
+      sharedViewUuid: string,
+      columnId: IdType,
+      rowId: any,
+      query?: {
+        /** URL or Path of the attachment */
+        urlOrPath?: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        {
+          /** URL to download the attachment */
+          url?: string;
+          /** Path to download the attachment */
+          path?: string;
+        },
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v2/public/shared-view/${sharedViewUuid}/downloadAttachment/${columnId}/${rowId}`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
  * @description List Shared View Grouped Data
  * 
  * @tags Public
@@ -11822,6 +11871,47 @@ export class Api<
         query: query,
         body: data,
         type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description Download attachment from a given row
+ * 
+ * @tags DB Data Table Row
+ * @name AttachmentDownload
+ * @summary Download Attachment
+ * @request GET:/api/v2/downloadAttachment/{modelId}/{columnId}/{rowId}
+ * @response `200` `{
+  \** URL to download attachment *\
+  url?: string,
+  \** Path to download attachment *\
+  path?: string,
+
+}` OK
+ */
+    attachmentDownload: (
+      modelId: string,
+      columnId: string,
+      rowId: string,
+      query?: {
+        /** URL or Path of the attachment */
+        urlOrPath?: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        {
+          /** URL to download attachment */
+          url?: string;
+          /** Path to download attachment */
+          path?: string;
+        },
+        any
+      >({
+        path: `/api/v2/downloadAttachment/${modelId}/${columnId}/${rowId}`,
+        method: 'GET',
+        query: query,
         format: 'json',
         ...params,
       }),

@@ -242,7 +242,11 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
         )
         if (keyExists) {
           keyExists.count += +curr.count
-          keyExists.paginationData = { page: 1, pageSize: groupByGroupLimit.value, totalRows: keyExists.count }
+          keyExists.paginationData = {
+            page: 1,
+            pageSize: group.paginationData.pageSize || groupByGroupLimit.value,
+            totalRows: keyExists.count,
+          }
           return acc
         }
         if (groupby.column.title && groupby.column.uidt) {
@@ -263,7 +267,10 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
             aggregations: curr.aggregations ?? {},
             paginationData: {
               page: 1,
-              pageSize: group!.nestedIn.length < groupBy.value.length - 1 ? groupByGroupLimit.value : groupByRecordLimit.value,
+              pageSize:
+                group!.nestedIn.length < groupBy.value.length - 1
+                  ? group.paginationData.pageSize || groupByGroupLimit.value
+                  : groupByRecordLimit.value,
               totalRows: +curr.count,
             },
             nested: group!.nestedIn.length < groupBy.value.length - 1,
@@ -302,6 +309,13 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       }
 
       group.paginationData = response.pageInfo
+
+      // to cater the case like when querying with a non-zero offset
+      // the result page may point to the target page where the actual returned data don't display on
+      const expectedPage = Math.max(1, Math.ceil(group.paginationData.totalRows! / group.paginationData.pageSize!))
+      if (expectedPage < group.paginationData.page!) {
+        await groupWrapperChangePage(expectedPage, group)
+      }
 
       return group
     }
@@ -368,13 +382,6 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
 
         group = await processGroupData(response, group)
 
-        // to cater the case like when querying with a non-zero offset
-        // the result page may point to the target page where the actual returned data don't display on
-        const expectedPage = Math.max(1, Math.ceil(group.paginationData.totalRows! / group.paginationData.pageSize!))
-        if (expectedPage < group.paginationData.page!) {
-          await groupWrapperChangePage(expectedPage, group)
-        }
-
         if (appInfo.value.ee) {
           const aggregationMap = new Map<string, string>()
 
@@ -423,7 +430,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
           })
         }
 
-        if (group?.children) {
+        if (group?.children && group.nestedIn.length === groupBy.value.length - 1) {
           const aliasMap = new Map<string, string>()
 
           const childViewFilters = group?.children?.map((childGroup) => {
@@ -480,61 +487,62 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
               }
             }
           })
+        }
 
-          if (group !== rootGroup.value) {
-            const childGroupFilters = group?.children?.map((childGroup) => {
-              try {
-                const key = JSON.parse(childGroup.key)
+        if (group?.children && group.nestedIn.length < groupBy.value.length - 1) {
+          const aliasMap = new Map<string, string>()
 
-                if (typeof key === 'object') {
-                  const newKey = Math.random().toString(36).substring(7)
-                  aliasMap.set(newKey, childGroup.key)
-                  return {
-                    alias: newKey,
-                    offset:
-                      ((childGroup.paginationData.page ?? 0) - 1) *
-                      (childGroup.paginationData.pageSize ?? groupByGroupLimit.value),
-                    limit: childGroup.paginationData.pageSize ?? groupByGroupLimit.value,
-                    ...params,
-                    ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
-                    ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
-                    where: `${nestedWhere}`,
-                    sort: `${getSortParams(groupby.sort)}${groupby.column.title}`,
-                    column_name: groupby.column.title,
-                  }
+          const childGroupFilters = group?.children?.map((childGroup) => {
+            try {
+              const key = JSON.parse(childGroup.key)
+
+              if (typeof key === 'object') {
+                const newKey = Math.random().toString(36).substring(7)
+                aliasMap.set(newKey, childGroup.key)
+                return {
+                  alias: newKey,
+                  offset:
+                    ((childGroup.paginationData.page ?? 0) - 1) * (childGroup.paginationData.pageSize ?? groupByGroupLimit.value),
+                  limit: childGroup.paginationData.pageSize ?? groupByGroupLimit.value,
+                  ...params,
+                  ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
+                  ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+                  where: `${nestedWhere}`,
+                  sort: `${getSortParams(groupby.sort)}${groupby.column.title}`,
+                  column_name: groupby.column.title,
                 }
-              } catch (e) {}
-
-              return {
-                alias: childGroup.key,
-                offset:
-                  ((childGroup.paginationData.page ?? 0) - 1) * (childGroup.paginationData.pageSize ?? groupByGroupLimit.value),
-                limit: childGroup.paginationData.pageSize ?? groupByGroupLimit.value,
-                ...params,
-                ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
-                ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
-                where: `${nestedWhere}`,
-                sort: `${getSortParams(groupby.sort)}${groupby.column.title}`,
-                column_name: groupby.column.title,
               }
-            })
+            } catch (e) {}
 
-            const bulkGroupData = await api.dbDataTableBulkGroupList.dbDataTableBulkGroupList(meta.value.id, {
-              viewId: view.value.id,
-              bulkFilterList: childGroupFilters,
-            })
+            return {
+              alias: childGroup.key,
+              offset:
+                ((childGroup.paginationData.page ?? 0) - 1) * (childGroup.paginationData.pageSize ?? groupByGroupLimit.value),
+              limit: childGroup.paginationData.pageSize ?? groupByGroupLimit.value,
+              ...params,
+              ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
+              ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+              where: `${nestedWhere}`,
+              sort: `${getSortParams(groupby.sort)}${groupby.column.title}`,
+              column_name: groupby.column.title,
+            }
+          })
 
-            for (const [key, value] of Object.entries(bulkGroupData)) {
-              let child = (group?.children ?? []).find((c) => c.key.toString() === key.toString())
+          const bulkGroupData = await api.dbDataTableBulkGroupList.dbDataTableBulkGroupList(meta.value.id, {
+            viewId: view.value.id,
+            bulkFilterList: childGroupFilters,
+          })
 
-              if (child) {
+          for (const [key, value] of Object.entries(bulkGroupData)) {
+            let child = (group?.children ?? []).find((c) => c.key.toString() === key.toString())
+
+            if (child) {
+              child = await processGroupData(value, child)
+            } else {
+              const originalKey = aliasMap.get(key)
+              if (originalKey) {
+                child = (group?.children ?? []).find((c) => c.key.toString() === originalKey.toString())!
                 child = await processGroupData(value, child)
-              } else {
-                const originalKey = aliasMap.get(key)
-                if (originalKey) {
-                  child = (group?.children ?? []).find((c) => c.key.toString() === originalKey.toString())!
-                  child = await processGroupData(value, child)
-                }
               }
             }
           }

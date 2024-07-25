@@ -581,6 +581,7 @@ const bgColor = computed(() => {
   <LazySmartsheetGridPaginationV2
     v-if="vGroup.root"
     v-model:pagination-data="vGroup.paginationData"
+    :show-size-changer="true"
     :scroll-left="_scrollLeft"
     custom-label="groups"
     :depth="maxDepth"

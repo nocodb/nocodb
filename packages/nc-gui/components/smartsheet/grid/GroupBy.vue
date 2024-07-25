@@ -10,7 +10,13 @@ import type { Group } from '~/lib/types'
 const props = defineProps<{
   group: Group
 
-  loadGroups: (params?: any, group?: Group) => Promise<void>
+  loadGroups: (
+    params?: any,
+    group?: Group,
+    options?: {
+      triggerChildOnly?: boolean
+    },
+  ) => Promise<void>
   loadGroupData: (group: Group, force?: boolean, params?: any) => Promise<void>
   loadGroupPage: (group: Group, p: number) => Promise<void>
   groupWrapperChangePage: (page: number, groupWrapper?: Group) => Promise<void>
@@ -41,6 +47,8 @@ const vGroup = useVModel(props, 'group', emits)
 const meta = inject(MetaInj, ref())
 
 const fields = inject(FieldsInj, ref())
+
+const { gridViewPageSize } = useGlobal()
 
 const scrollLeft = toRef(props, 'scrollLeft')
 
@@ -133,9 +141,13 @@ const findAndLoadSubGroup = (key: any) => {
       const grp = vGroup.value.children.find((g) => `${g.key}` === k)
       if (grp) {
         if (grp.nested) {
-          if (!grp.children?.length) props.loadGroups({}, grp)
+          if (!grp.children[0].children?.length) {
+            props.loadGroups({}, grp, {
+              triggerChildOnly: true,
+            })
+          }
         } else {
-          if (!grp.rows?.length || grp.count !== grp.rows?.length) _loadGroupData(grp)
+          if (!grp.rows?.length) _loadGroupData(grp)
         }
       }
     }
@@ -146,7 +158,6 @@ const findAndLoadSubGroup = (key: any) => {
 const reloadViewDataHandler = (params: void | { shouldShowLoading?: boolean | undefined; offset?: number | undefined }) => {
   if (vGroup.value.nested) {
     props.loadGroups({ ...(params?.offset !== undefined ? { offset: params.offset } : {}) }, vGroup.value)
-    props.loadGroupAggregation(vGroup.value)
   } else {
     _loadGroupData(vGroup.value, true, {
       ...(params?.offset !== undefined ? { offset: params.offset } : {}),
@@ -174,8 +185,13 @@ watch([() => vGroup.value.key], async (n, o) => {
 })
 
 onMounted(async () => {
-  if (vGroup.value.root === true) {
-    await props.loadGroups({}, vGroup.value)
+  if (vGroup.value.root === true && !vGroup.value?.children?.length) {
+    await props.loadGroups(
+      {
+        limit: gridViewPageSize.value,
+      },
+      vGroup.value,
+    )
   }
 })
 
@@ -581,6 +597,7 @@ const bgColor = computed(() => {
   <LazySmartsheetGridPaginationV2
     v-if="vGroup.root"
     v-model:pagination-data="vGroup.paginationData"
+    :show-size-changer="true"
     :scroll-left="_scrollLeft"
     custom-label="groups"
     :depth="maxDepth"

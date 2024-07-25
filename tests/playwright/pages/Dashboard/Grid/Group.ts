@@ -137,7 +137,7 @@ export class GroupPageObject extends BasePage {
 
     await this._fillRow({ indexMap, index, columnHeader, value: rowValue });
 
-    await this.dashboard.waitForLoaderToDisappear();
+    // await this.dashboard.waitForLoaderToDisappear();
   }
 
   async deleteRow({ title, indexMap, rowIndex = 0 }: { title: string; indexMap: number[]; rowIndex?: number }) {
@@ -153,7 +153,7 @@ export class GroupPageObject extends BasePage {
       .waitFor({ state: 'hidden' });
 
     await this.rootPage.waitForTimeout(300);
-    await this.dashboard.waitForLoaderToDisappear();
+    // await this.dashboard.waitForLoaderToDisappear();
   }
 
   async editRow({
@@ -169,7 +169,7 @@ export class GroupPageObject extends BasePage {
   }) {
     await this._fillRow({ indexMap, index: rowIndex, columnHeader, value });
 
-    await this.dashboard.waitForLoaderToDisappear();
+    // await this.dashboard.waitForLoaderToDisappear();
   }
 
   private async _fillRow({

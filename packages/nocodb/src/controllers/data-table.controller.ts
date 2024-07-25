@@ -132,6 +132,21 @@ export class DataTableController {
     });
   }
 
+  @Get(['/api/v2/tables/:modelId/bulkGroup'])
+  @Acl('dataGroupBy')
+  async bulkGroupBy(
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
+    @Param('modelId') modelId: string,
+    @Query('viewId') viewId: string,
+  ) {
+    return await this.dataTableService.bulkGroupBy(context, {
+      query: req.query,
+      modelId,
+      viewId,
+    });
+  }
+
   @Get(['/api/v2/tables/:modelId/records/:rowId'])
   @Acl('dataRead')
   async dataRead(

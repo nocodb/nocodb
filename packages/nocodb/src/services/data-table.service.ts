@@ -755,4 +755,42 @@ export class DataTableService {
         }, {} as Record<string, any>),
       );
   }
+
+  async bulkGroupBy(
+    context: NcContext,
+    param: {
+      baseId?: string;
+      modelId: string;
+      viewId?: string;
+      query: any;
+    },
+  ) {
+    const { model, view } = await this.getModelAndView(context, param);
+
+    const source = await Source.get(context, model.source_id);
+
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+    });
+
+    const listArgs: any = { ...param.query };
+
+    try {
+      listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
+    } catch (e) {}
+
+    try {
+      listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
+    } catch (e) {}
+
+    try {
+      listArgs.groupFilterList = JSON.parse(listArgs.groupFilterList);
+    } catch (e) {}
+
+    const data = await baseModel.bulkGroupBy(listArgs, view);
+
+    return data;
+  }
 }

@@ -769,21 +769,13 @@ export class DataTableService {
 
     const listArgs: any = { ...param.query };
 
-    if (!listArgs.bulkFilterList) {
-      NcError.badRequest('Invalid bulkFilterList');
-    }
-
-    try {
-      listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
-    } catch (e) {}
-
-    try {
-      listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
-    } catch (e) {}
-
     try {
       listArgs.bulkFilterList = JSON.parse(listArgs.bulkFilterList);
     } catch (e) {}
+
+    if (!listArgs.bulkFilterList) {
+      NcError.badRequest('Invalid bulkFilterList');
+    }
 
     const dataListResults = await Object.values(listArgs.bulkFilterList).reduce(
       async (accPromise, dF: any) => {
@@ -791,7 +783,6 @@ export class DataTableService {
         const result = await this.datasService.dataList(context, {
           query: {
             ...dF,
-            ...listArgs,
           },
           model,
           view,
@@ -841,13 +832,15 @@ export class DataTableService {
       NcError.badRequest('Invalid bulkFilterList');
     }
 
-    const data = await baseModel.bulkGroupBy(listArgs, view);
-    const count = await baseModel.bulkGroupByCount(listArgs, view);
+    const [data, count] = await Promise.all([
+      baseModel.bulkGroupBy(listArgs, view),
+      baseModel.bulkGroupByCount(listArgs, view),
+    ]);
 
     Object.values(listArgs.bulkFilterList).forEach((dF: any) => {
       data[dF.alias] = new PagedResponseImpl(data[dF.alias], {
         ...dF,
-        count: count[dF.alias],
+        count: count[dF.alias].count,
       });
     });
 

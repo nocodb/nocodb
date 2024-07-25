@@ -320,7 +320,13 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       return group
     }
 
-    async function loadGroups(params: any = {}, group?: Group) {
+    async function loadGroups(
+      params: any = {},
+      group?: Group,
+      options?: {
+        triggerChildOnly: boolean
+      },
+    ) {
       try {
         group = group || rootGroup.value
         if (!base?.value?.id || !view.value?.id || !view.value?.fk_model_id || !group) return
@@ -350,37 +356,39 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
           group.displayValueProp = (relatedTableMeta.columns?.find((c) => c.pv) || relatedTableMeta.columns?.[0])?.title || ''
         }
 
-        const response = !isPublic
-          ? await api.dbViewRow.groupBy('noco', base.value.id, view.value.fk_model_id, view.value.id, {
-              offset: ((group.paginationData.page ?? 0) - 1) * (group.paginationData.pageSize ?? groupByGroupLimit.value),
-              limit: group.paginationData.pageSize ?? groupByGroupLimit.value,
-              ...params,
-              ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
-              ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
-              where: `${nestedWhere}`,
-              sort: `${getSortParams(groupby.sort)}${groupby.column.title}`,
-              column_name: groupby.column.title,
-            } as any)
-          : await api.public.dataGroupBy(
-              sharedView.value!.uuid!,
-              {
+        if (!options?.triggerChildOnly) {
+          const response = !isPublic
+            ? await api.dbViewRow.groupBy('noco', base.value.id, view.value.fk_model_id, view.value.id, {
                 offset: ((group.paginationData.page ?? 0) - 1) * (group.paginationData.pageSize ?? groupByGroupLimit.value),
                 limit: group.paginationData.pageSize ?? groupByGroupLimit.value,
                 ...params,
-                where: nestedWhere,
+                ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
+                ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+                where: `${nestedWhere}`,
                 sort: `${getSortParams(groupby.sort)}${groupby.column.title}`,
                 column_name: groupby.column.title,
-                sortsArr: sorts.value,
-                filtersArr: nestedFilters.value,
-              },
-              {
-                headers: {
-                  'xc-password': sharedViewPassword.value,
+              } as any)
+            : await api.public.dataGroupBy(
+                sharedView.value!.uuid!,
+                {
+                  offset: ((group.paginationData.page ?? 0) - 1) * (group.paginationData.pageSize ?? groupByGroupLimit.value),
+                  limit: group.paginationData.pageSize ?? groupByGroupLimit.value,
+                  ...params,
+                  where: nestedWhere,
+                  sort: `${getSortParams(groupby.sort)}${groupby.column.title}`,
+                  column_name: groupby.column.title,
+                  sortsArr: sorts.value,
+                  filtersArr: nestedFilters.value,
                 },
-              },
-            )
+                {
+                  headers: {
+                    'xc-password': sharedViewPassword.value,
+                  },
+                },
+              )
 
-        group = await processGroupData(response, group)
+          group = await processGroupData(response, group)
+        }
 
         if (appInfo.value.ee) {
           const aggregationMap = new Map<string, string>()
@@ -499,6 +507,9 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
           const aliasMap = new Map<string, string>()
 
           const childGroupFilters = group?.children?.map((childGroup) => {
+            const childGroupBy = groupBy.value[childGroup.nestedIn.length]
+            const childNestedWhere = calculateNestedWhere(childGroup.nestedIn, where?.value)
+
             try {
               const key = JSON.parse(childGroup.key)
 
@@ -513,9 +524,9 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
                   ...params,
                   ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
                   ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
-                  where: `${nestedWhere}`,
-                  sort: `${getSortParams(groupby.sort)}${groupby.column.title}`,
-                  column_name: groupby.column.title,
+                  where: `${childNestedWhere}`,
+                  sort: `${getSortParams(childGroupBy.sort)}${childGroupBy.column.title}`,
+                  column_name: childGroupBy.column.title,
                 }
               }
             } catch (e) {}
@@ -528,9 +539,9 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
               ...params,
               ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
               ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
-              where: `${nestedWhere}`,
-              sort: `${getSortParams(groupby.sort)}${groupby.column.title}`,
-              column_name: groupby.column.title,
+              where: `${childNestedWhere}`,
+              sort: `${getSortParams(childGroupBy.sort)}${childGroupBy.column.title}`,
+              column_name: childGroupBy.column.title,
             }
           })
 

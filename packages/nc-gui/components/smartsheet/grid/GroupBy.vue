@@ -10,7 +10,13 @@ import type { Group } from '~/lib/types'
 const props = defineProps<{
   group: Group
 
-  loadGroups: (params?: any, group?: Group) => Promise<void>
+  loadGroups: (
+    params?: any,
+    group?: Group,
+    options?: {
+      triggerChildOnly?: boolean
+    },
+  ) => Promise<void>
   loadGroupData: (group: Group, force?: boolean, params?: any) => Promise<void>
   loadGroupPage: (group: Group, p: number) => Promise<void>
   groupWrapperChangePage: (page: number, groupWrapper?: Group) => Promise<void>
@@ -133,7 +139,11 @@ const findAndLoadSubGroup = (key: any) => {
       const grp = vGroup.value.children.find((g) => `${g.key}` === k)
       if (grp) {
         if (grp.nested) {
-          if (!grp.children?.length) props.loadGroups({}, grp)
+          if (!grp.children[0].children?.length) {
+            props.loadGroups({}, grp, {
+              triggerChildOnly: true,
+            })
+          }
         } else {
           if (!grp.rows?.length || grp.count !== grp.rows?.length) _loadGroupData(grp)
         }

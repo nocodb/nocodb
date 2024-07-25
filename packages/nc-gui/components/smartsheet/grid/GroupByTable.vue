@@ -6,7 +6,7 @@ import { NavigateDir } from '~/lib/enums'
 const props = defineProps<{
   group: Group
 
-  loadGroups: (params?: any, group?: Group) => Promise<void>
+  loadGroups: (params?: any, group?: Group, options?: { triggerChildOnly: boolean }) => Promise<void>
   loadGroupData: (group: Group, force?: boolean, params?: any) => Promise<void>
   loadGroupPage: (group: Group, p: number) => Promise<void>
   groupWrapperChangePage: (page: number, groupWrapper?: Group) => Promise<void>

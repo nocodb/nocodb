@@ -34,7 +34,7 @@ const { isOverDropZone } = useDropZone(dropZoneRef, onDrop)
 
 const { isSharedForm } = useSmartsheetStoreOrThrow()
 
-const { getPossibleAttachmentSrc, openAttachment } = useAttachment()
+const { getPossibleAttachmentSrc } = useAttachment()
 
 onKeyDown('Escape', () => {
   modalVisible.value = false

@@ -529,7 +529,6 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
               offset:
                 ((childGroup.paginationData.page ?? 0) - 1) * (childGroup.paginationData.pageSize ?? groupByGroupLimit.value),
               limit: childGroup.paginationData.pageSize ?? groupByGroupLimit.value,
-              ...params,
               ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
               ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
               where: `${childNestedWhere}`,

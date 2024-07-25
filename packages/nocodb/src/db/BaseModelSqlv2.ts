@@ -1459,7 +1459,7 @@ class BaseModelSqlv2 {
     view: View,
   ) {
     try {
-      if (!args.bulkFilterList?.length) {
+      if (!Object.values(args.bulkFilterList)?.length) {
         return NcError.badRequest('bulkFilterList is required');
       }
 

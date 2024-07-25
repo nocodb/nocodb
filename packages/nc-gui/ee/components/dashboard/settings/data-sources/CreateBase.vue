@@ -2,7 +2,7 @@
 import { Form, message } from 'ant-design-vue'
 import type { SelectHandler } from 'ant-design-vue/es/vc-select/Select'
 import type { Card as AntCard } from 'ant-design-vue'
-import { WorkspaceStatus } from 'nocodb-sdk'
+import { WorkspaceStatus, validateAndExtractSSLProp } from 'nocodb-sdk'
 import {
   type CertTypes,
   ClientType,
@@ -265,18 +265,8 @@ function getConnectionConfig() {
     ...extraParameters,
   }
 
-  if ('ssl' in connection && connection.ssl) {
-    if (
-      formState.value.sslUse === SSLUsage.No ||
-      (typeof connection.ssl === 'object' && Object.values(connection.ssl).every((v) => v === null || v === undefined))
-    ) {
-      connection.ssl = undefined
-    } else if(['true', 'false'].includes(connection.ssl)){
-      connection.ssl = connection.ssl === 'true';
-    } else if (!['boolean', 'object'].includes(typeof connection.ssl)) {
-      connection.ssl = undefined
-    }
-  }
+  connection.ssl = validateAndExtractSSLProp(connection, formState.value.sslUse, formState.value.dataSource.client)
+
   return connection
 }
 

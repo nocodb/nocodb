@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents } from 'nocodb-sdk';
+import { AppEvents, validateAndExtractSSLProp } from 'nocodb-sdk';
 import type { BaseReqType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -100,6 +100,15 @@ export class SourcesService {
     let error;
 
     param.logger?.('Creating the source');
+
+    // update invalid ssl config value if found
+    if (baseBody.config?.connection?.ssl) {
+      baseBody.config.connection.ssl = validateAndExtractSSLProp(
+        baseBody.config.connection,
+        baseBody.config.sslUse,
+        baseBody.config.client,
+      );
+    }
 
     const source = await Source.createBase(context, {
       ...baseBody,

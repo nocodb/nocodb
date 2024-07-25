@@ -424,8 +424,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
       updateTabTitle()
     },
     {
-      flush:'post'
-    }
+      flush: 'post',
+    },
   )
 
   return {

@@ -327,10 +327,16 @@ export enum APIContext {
   SORTS = 'sorts',
 }
 
-
 export enum SourceRestriction {
   SCHEMA_READONLY = 'is_schema_readonly',
   DATA_READONLY = 'is_data_readonly',
 }
 
-
+export enum SSLUsage {
+  No = 'No',
+  Allowed = 'Allowed',
+  Preferred = 'Preferred',
+  Required = 'Required',
+  RequiredWithCa = 'Required-CA',
+  RequiredWithIdentity = 'Required-Identity',
+}

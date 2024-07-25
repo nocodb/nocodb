@@ -10,6 +10,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { UtilsController as UtilsControllerCE } from 'src/controllers/utils.controller';
+import { validateAndExtractSSLProp } from 'nocodb-sdk';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { UtilsService } from '~/services/utils.service';
@@ -71,6 +72,12 @@ export class UtilsController extends UtilsControllerCE {
         }
       }
     }
+
+    body.connection.ssl = validateAndExtractSSLProp(
+      body.connection,
+      body.sslUse,
+      body.client,
+    );
 
     body.pool = {
       min: 0,

@@ -273,7 +273,7 @@ async function deleteSelectedRowsWrapper() {
 
   await deleteSelectedRows()
   // reload table data
-  await reloadTableData({ shouldShowLoading: true })
+  await reloadTableData({ shouldShowLoading: false })
 }
 
 eventBus.on((event) => {

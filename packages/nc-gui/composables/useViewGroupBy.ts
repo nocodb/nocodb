@@ -229,6 +229,83 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       }
     }
 
+    const processGroupData = async (response: any, group?: Group) => {
+      group = group || rootGroup.value
+
+      const groupby = groupBy.value[group.nestedIn.length]
+
+      if (!groupby) return group
+
+      const tempList: Group[] = response.list.reduce((acc: Group[], curr: Record<string, any>) => {
+        const keyExists = acc.find(
+          (a) => a.key === valueToTitle(curr[groupby.column.column_name!] ?? curr[groupby.column.title!], groupby.column),
+        )
+        if (keyExists) {
+          keyExists.count += +curr.count
+          keyExists.paginationData = { page: 1, pageSize: groupByGroupLimit.value, totalRows: keyExists.count }
+          return acc
+        }
+        if (groupby.column.title && groupby.column.uidt) {
+          acc.push({
+            key: valueToTitle(curr[groupby.column.title!], groupby.column),
+            column: groupby.column,
+            count: +curr.count,
+            color: findKeyColor(curr[groupby.column.title!], groupby.column),
+            nestedIn: [
+              ...group!.nestedIn,
+              {
+                title: groupby.column.title,
+                column_name: groupby.column.title!,
+                key: valueToTitle(curr[groupby.column.title!], groupby.column),
+                column_uidt: groupby.column.uidt,
+              },
+            ],
+            aggregations: curr.aggregations ?? {},
+            paginationData: {
+              page: 1,
+              pageSize: group!.nestedIn.length < groupBy.value.length - 1 ? groupByGroupLimit.value : groupByRecordLimit.value,
+              totalRows: +curr.count,
+            },
+            nested: group!.nestedIn.length < groupBy.value.length - 1,
+          })
+        }
+        return acc
+      }, [])
+
+      if (!group.children) group.children = []
+
+      for (const temp of tempList) {
+        const keyExists = group.children?.find((a) => a.key === temp.key)
+        if (keyExists) {
+          temp.paginationData = {
+            page: keyExists.paginationData.page || temp.paginationData.page,
+            pageSize: keyExists.paginationData.pageSize || temp.paginationData.pageSize,
+            totalRows: temp.count,
+          }
+          temp.color = keyExists.color
+
+          // update group
+          Object.assign(keyExists, temp)
+          continue
+        }
+        group.children.push(temp)
+      }
+
+      group.children = group.children.filter((c) => tempList.find((t) => t.key === c.key))
+
+      if (group.count <= (group.paginationData.pageSize ?? groupByGroupLimit.value)) {
+        group.children.sort((a, b) => {
+          const orderA = tempList.findIndex((t) => t.key === a.key)
+          const orderB = tempList.findIndex((t) => t.key === b.key)
+          return orderA - orderB
+        })
+      }
+
+      group.paginationData = response.pageInfo
+
+      return group
+    }
+
     async function loadGroups(params: any = {}, group?: Group) {
       try {
         group = group || rootGroup.value
@@ -289,72 +366,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
               },
             )
 
-        const tempList: Group[] = response.list.reduce((acc: Group[], curr: Record<string, any>) => {
-          const keyExists = acc.find(
-            (a) => a.key === valueToTitle(curr[groupby.column.column_name!] ?? curr[groupby.column.title!], groupby.column),
-          )
-          if (keyExists) {
-            keyExists.count += +curr.count
-            keyExists.paginationData = { page: 1, pageSize: groupByGroupLimit.value, totalRows: keyExists.count }
-            return acc
-          }
-          if (groupby.column.title && groupby.column.uidt) {
-            acc.push({
-              key: valueToTitle(curr[groupby.column.title!], groupby.column),
-              column: groupby.column,
-              count: +curr.count,
-              color: findKeyColor(curr[groupby.column.title!], groupby.column),
-              nestedIn: [
-                ...group!.nestedIn,
-                {
-                  title: groupby.column.title,
-                  column_name: groupby.column.title!,
-                  key: valueToTitle(curr[groupby.column.title!], groupby.column),
-                  column_uidt: groupby.column.uidt,
-                },
-              ],
-              aggregations: curr.aggregations ?? {},
-              paginationData: {
-                page: 1,
-                pageSize: group!.nestedIn.length < groupBy.value.length - 1 ? groupByGroupLimit.value : groupByRecordLimit.value,
-                totalRows: +curr.count,
-              },
-              nested: group!.nestedIn.length < groupBy.value.length - 1,
-            })
-          }
-          return acc
-        }, [])
-
-        if (!group.children) group.children = []
-
-        for (const temp of tempList) {
-          const keyExists = group.children?.find((a) => a.key === temp.key)
-          if (keyExists) {
-            temp.paginationData = {
-              page: keyExists.paginationData.page || temp.paginationData.page,
-              pageSize: keyExists.paginationData.pageSize || temp.paginationData.pageSize,
-              totalRows: temp.count,
-            }
-            temp.color = keyExists.color
-
-            // update group
-            Object.assign(keyExists, temp)
-            continue
-          }
-          group.children.push(temp)
-        }
-
-        group.children = group.children.filter((c) => tempList.find((t) => t.key === c.key))
-
-        if (group.count <= (group.paginationData.pageSize ?? groupByGroupLimit.value)) {
-          group.children.sort((a, b) => {
-            const orderA = tempList.findIndex((t) => t.key === a.key)
-            const orderB = tempList.findIndex((t) => t.key === b.key)
-            return orderA - orderB
-          })
-        }
-
-        group.paginationData = response.pageInfo
+        group = await processGroupData(response, group)
 
         // to cater the case like when querying with a non-zero offset
         // the result page may point to the target page where the actual returned data don't display on
@@ -445,6 +457,31 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
             }
           })
 
+          const bulkData = await api.dbDataTableBulkList.dbDataTableBulkList(meta.value.id, {
+            viewId: view.value.id,
+            bulkFilterList: childViewFilters,
+          })
+
+          Object.entries(bulkData).forEach(([key, value]: { key: string; value: any }) => {
+            const child = (group?.children ?? []).find((c) => c.key.toString() === key.toString())
+            if (child) {
+              child.count = value.pageInfo.totalRows ?? 0
+              child.rows = formatData(value.list)
+              child.paginationData = value.pageInfo
+            } else {
+              const originalKey = aliasMap.get(key)
+              if (originalKey) {
+                const child = (group?.children ?? []).find((c) => c.key.toString() === originalKey.toString())
+                if (child) {
+                  child.count = value.pageInfo.totalRows ?? 0
+                  child.rows = formatData(value.list)
+                  child.paginationData = value.pageInfo
+                }
+              }
+            }
+          })
+
+          // if (group !== rootGroup.value) {
           const childGroupFilters = group?.children?.map((childGroup) => {
             try {
               const key = JSON.parse(childGroup.key)
@@ -481,46 +518,29 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
             }
           })
 
-          const bulkData = await api.dbDataTableBulkList.dbDataTableBulkList(meta.value.id, {
-            viewId: view.value.id,
-            bulkFilterList: childViewFilters,
-          })
-
-          Object.entries(bulkData).forEach(([key, value]: { key: string; value: any }) => {
-            const child = (group?.children ?? []).find((c) => c.key.toString() === key.toString())
-            if (child) {
-              child.count = value.pageInfo.totalRows ?? 0
-              child.rows = formatData(value.list)
-              child.paginationData = value.pageInfo
-            } else {
-              const originalKey = aliasMap.get(key)
-              if (originalKey) {
-                const child = (group?.children ?? []).find((c) => c.key.toString() === originalKey.toString())
-                if (child) {
-                  child.count = value.pageInfo.totalRows ?? 0
-                  child.rows = formatData(value.list)
-                  child.paginationData = value.pageInfo
-                }
-              }
-            }
-          })
-
           const bulkGroupData = await api.dbDataTableBulkGroupList.dbDataTableBulkGroupList(meta.value.id, {
             viewId: view.value.id,
             bulkFilterList: childGroupFilters,
           })
 
-          console.log(bulkGroupData)
+          for (const [key, value] of Object.entries(bulkGroupData)) {
+            let child = (group?.children ?? []).find((c) => c.key.toString() === key.toString())
 
-          /*      Object.entries(bulkGroupData).forEach(([key, value]: { key: string; value: any }) => {
-          }) */
-
-          console.log(bulkData)
-
-          console.log(childViewFilters)
-          // Load Data inside all groups
+            if (child) {
+              child = await processGroupData(value, child)
+            } else {
+              const originalKey = aliasMap.get(key)
+              if (originalKey) {
+                child = (group?.children ?? []).find((c) => c.key.toString() === originalKey.toString())!
+                child = await processGroupData(value, child)
+              }
+            }
+          }
         }
+
+        // }
       } catch (e) {
+        console.log(e)
         message.error(await extractSdkResponseErrorMsg(e))
       }
     }

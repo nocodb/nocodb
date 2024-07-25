@@ -819,6 +819,11 @@ export class DataTableService {
     } catch (e) {}
 
     const data = await baseModel.bulkGroupBy(listArgs, view);
+    listArgs.bulkFilterList.forEach((dF) => {
+      data[dF.alias] = new PagedResponseImpl(data[dF.alias], {
+        ...dF,
+      });
+    });
 
     return data;
   }

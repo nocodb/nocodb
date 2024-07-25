@@ -154,9 +154,11 @@ const findAndLoadSubGroup = (key: any) => {
 }
 
 const reloadViewDataHandler = (params: void | { shouldShowLoading?: boolean | undefined; offset?: number | undefined }) => {
-  if (vGroup.value.nested) {
+  if (vGroup.value.root) {
     props.loadGroups({ ...(params?.offset !== undefined ? { offset: params.offset } : {}) }, vGroup.value)
-  } else {
+  }
+
+  if (!vGroup.value.nested) {
     _loadGroupData(vGroup.value, true, {
       ...(params?.offset !== undefined ? { offset: params.offset } : {}),
     })

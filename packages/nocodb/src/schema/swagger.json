@@ -11360,6 +11360,160 @@
         ]
       }
     },
+    "/api/v2/tables/{tableId}/bulk/dataList": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "path",
+          "required": true,
+          "description": "Table ID"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "required": true,
+          "name": "viewId",
+          "in": "query",
+          "description": "View ID is required"
+        },
+        {
+          "in": "query",
+          "name": "dataFilterList",
+          "description": "List of where filters, sorts and alias",
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          }
+        }
+      ],
+      "get": {
+        "summary": "Read Bulk Data",
+        "operationId": "db-data-table-bulk-list",
+        "description": "Read bulk data from a given table with given filters",
+        "tags": [
+          "DB Data Table Bulk List"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where",
+            "description": "Extra filtering"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "filterArrJson",
+            "description": "Used for multiple filter queries"
+          },
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      }
+    },
+    "/api/v2/tables/{tableId}/bulk/group": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "path",
+          "required": true,
+          "description": "Table ID"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "required": true,
+          "name": "viewId",
+          "in": "query",
+          "description": "View ID is required"
+        },
+        {
+          "in": "query",
+          "name": "groupFilterList",
+          "description": "List of where filters, sorts and alias",
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          }
+        }
+      ],
+      "get": {
+        "summary": "Read Bulk Group Data",
+        "operationId": "db-data-table-bulk-group-list",
+        "description": "Read bulk group data from a given table with given filters",
+        "tags": [
+          "DB Data Table Bulk Group List"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where",
+            "description": "Extra filtering"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "groupFilterList",
+            "description": "Used for multiple filter queries"
+          },
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      }
+    },
     "/api/v1/db/data/bulk/{orgs}/{baseName}/{tableName}": {
       "parameters": [
         {

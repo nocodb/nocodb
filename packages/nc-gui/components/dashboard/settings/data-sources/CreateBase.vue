@@ -148,7 +148,7 @@ const onSSLModeChange = ((mode: SSLUsage) => {
     const connection = formState.value.dataSource.connection as DefaultConnection
     switch (mode) {
       case SSLUsage.No:
-        delete connection.ssl
+        connection.ssl = undefined
         break
       case SSLUsage.Allowed:
         connection.ssl = 'true'
@@ -222,7 +222,11 @@ function getConnectionConfig() {
       formState.value.sslUse === SSLUsage.No ||
       (typeof connection.ssl === 'object' && Object.values(connection.ssl).every((v) => v === null || v === undefined))
     ) {
-      delete connection.ssl
+      connection.ssl = undefined
+    } else if (['true', 'false'].includes(connection.ssl)) {
+      connection.ssl = connection.ssl === 'true'
+    } else if (!['boolean', 'object'].includes(typeof connection.ssl)) {
+      connection.ssl = undefined
     }
   }
   return connection

@@ -29,7 +29,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
 
     const { base } = storeToRefs(useBase())
 
-    const { sharedView, fetchSharedViewData, fetchBulkAggregatedData } = useSharedView()
+    const { sharedView, fetchSharedViewData, fetchBulkAggregatedData, fetchBulkListData, fetchBulkGroupData } = useSharedView()
 
     const { gridViewCols } = useViewColumnsOrThrow()
 
@@ -465,10 +465,14 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
           })
 
           if (childViewFilters.length > 0) {
-            const bulkData = await api.dbDataTableBulkList.dbDataTableBulkList(meta.value.id, {
-              viewId: view.value.id,
-              bulkFilterList: childViewFilters,
-            })
+            const bulkData = !isPublic
+              ? await api.dbDataTableBulkList.dbDataTableBulkList(meta.value.id, {
+                  viewId: view.value.id,
+                  bulkFilterList: childViewFilters,
+                })
+              : await fetchBulkListData({
+                  bulkFilterList: childViewFilters,
+                })
 
             Object.entries(bulkData).forEach(([key, value]: { key: string; value: any }) => {
               const child = (group?.children ?? []).find((c) => c.key.toString() === key.toString())
@@ -531,10 +535,14 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
           })
 
           if (childGroupFilters.length > 0) {
-            const bulkGroupData = await api.dbDataTableBulkGroupList.dbDataTableBulkGroupList(meta.value.id, {
-              viewId: view.value.id,
-              bulkFilterList: childGroupFilters,
-            })
+            const bulkGroupData = !isPublic
+              ? await api.dbDataTableBulkGroupList.dbDataTableBulkGroupList(meta.value.id, {
+                  viewId: view.value.id,
+                  bulkFilterList: childGroupFilters,
+                })
+              : await fetchBulkGroupData({
+                  bulkFilterList: childGroupFilters,
+                })
 
             for (const [key, value] of Object.entries(bulkGroupData)) {
               let child = (group?.children ?? []).find((c) => c.key.toString() === key.toString())

@@ -262,6 +262,56 @@ export function useSharedView() {
     )
   }
 
+  const fetchBulkListData = async (param: {
+    bulkFilterList: Array<{
+      where: string
+      alias: string
+    }>
+    filtersArr?: FilterType[]
+    where?: string
+  }) => {
+    if (!sharedView.value) return {}
+
+    return await $api.public.dataTableBulkDataList(
+      sharedView.value.uuid!,
+      {
+        ...param,
+        bulkFilterList: JSON.stringify(param.bulkFilterList),
+        filterArrJson: JSON.stringify(param.filtersArr ?? nestedFilters.value),
+      } as any,
+      {
+        headers: {
+          'xc-password': password.value,
+        },
+      },
+    )
+  }
+
+  const fetchBulkGroupData = async (param: {
+    bulkFilterList: Array<{
+      where: string
+      alias: string
+    }>
+    filtersArr?: FilterType[]
+    where?: string
+  }) => {
+    if (!sharedView.value) return {}
+
+    return await $api.public.dataTableBulkGroup(
+      sharedView.value.uuid!,
+      {
+        ...param,
+        bulkFilterList: JSON.stringify(param.bulkFilterList),
+        filterArrJson: JSON.stringify(param.filtersArr ?? nestedFilters.value),
+      } as any,
+      {
+        headers: {
+          'xc-password': password.value,
+        },
+      },
+    )
+  }
+
   const fetchSharedViewActiveDate = async (param: {
     from_date: string
     to_date: string
@@ -367,6 +417,8 @@ export function useSharedView() {
     fetchAggregatedData,
     fetchBulkAggregatedData,
     fetchSharedViewAttachment,
+    fetchBulkGroupData,
+    fetchBulkListData,
     paginationData,
     sorts,
     exportFile,

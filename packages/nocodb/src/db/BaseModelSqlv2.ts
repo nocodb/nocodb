@@ -759,6 +759,256 @@ class BaseModelSqlv2 {
     return await this.execAndParse(qb);
   }
 
+  async bulkGroupByCount(
+    args: {
+      bulkFilterList: Array<{
+        alias: string;
+        where?: string;
+        sort: string;
+        column_name: string;
+      }>;
+      column_name: string;
+      limit?;
+      offset?;
+      sort?: string | string[];
+      filterArr?: Filter[];
+      sortArr?: Sort[];
+    },
+    view: View,
+  ) {
+    const columns = await this.model.getColumns(this.context);
+    const aliasColObjMap = await this.model.getAliasColObjMap(
+      this.context,
+      columns,
+    );
+    const selectors = [] as Array<Knex.Raw>;
+
+    const viewFilterList = await Filter.rootFilterList(this.context, {
+      viewId: this.viewId,
+    });
+
+    try {
+      if (!args.bulkFilterList?.length) {
+        return NcError.badRequest('bulkFilterList is required');
+      }
+
+      for (const f of args.bulkFilterList) {
+        const { where, ...rest } = this._getListArgs(f);
+        const groupBySelectors = [];
+        const groupByColumns: Record<string, Column> = {};
+
+        const getAlias = getAliasGenerator('__nc_gb');
+        const groupFilter = extractFilterFromXwhere(f.where, aliasColObjMap);
+
+        const tQb = this.dbDriver(this.tnPath);
+        const colSelectors = [];
+        const colIds = rest.column_name
+          .split(',')
+          .map((col) => {
+            const column = columns.find(
+              (c) => c.column_name === col || c.title === col,
+            );
+            if (!column) {
+              throw NcError.fieldNotFound(col);
+            }
+            return column?.id;
+          })
+          .join('_');
+
+        await Promise.all(
+          rest.column_name.split(',').map(async (col) => {
+            let column = columns.find(
+              (c) => c.column_name === col || c.title === col,
+            );
+
+            // if qrCode or Barcode replace it with value column nd keep the alias
+            if ([UITypes.QrCode, UITypes.Barcode].includes(column.uidt)) {
+              column = new Column({
+                ...(await column
+                  .getColOptions<BarcodeColumn | QrCodeColumn>(this.context)
+                  .then((col) => col.getValueColumn(this.context))),
+                title: column.title,
+                id: column.id,
+              });
+            }
+
+            groupByColumns[column.id] = column;
+
+            switch (column.uidt) {
+              case UITypes.Attachment:
+                throw NcError.badRequest(
+                  'Group by using attachment column is not supported',
+                );
+              case UITypes.Links:
+              case UITypes.Rollup:
+                colSelectors.push(
+                  (
+                    await genRollupSelectv2({
+                      baseModelSqlv2: this,
+                      knex: this.dbDriver,
+                      columnOptions: (await column.getColOptions(
+                        this.context,
+                      )) as RollupColumn,
+                    })
+                  ).builder.as(column.id),
+                );
+                groupBySelectors.push(column.id);
+                break;
+              case UITypes.Formula: {
+                let selectQb;
+                try {
+                  const _selectQb = await this.getSelectQueryBuilderForFormula(
+                    column,
+                  );
+                  selectQb = this.dbDriver.raw(`?? as ??`, [
+                    _selectQb.builder,
+                    column.id,
+                  ]);
+                } catch (e) {
+                  console.log(e);
+                  selectQb = this.dbDriver.raw(`'ERR' as ??`, [column.id]);
+                }
+                colSelectors.push(selectQb);
+                groupBySelectors.push(column.id);
+                break;
+              }
+
+              case UITypes.Lookup:
+              case UITypes.LinkToAnotherRecord: {
+                const _selectQb = await generateLookupSelectQuery({
+                  baseModelSqlv2: this,
+                  column,
+                  alias: null,
+                  model: this.model,
+                  getAlias,
+                });
+                const selectQb = this.dbDriver.raw(`?? as ??`, [
+                  this.dbDriver.raw(_selectQb.builder).wrap('(', ')'),
+                  column.id,
+                ]);
+                colSelectors.push(selectQb);
+                groupBySelectors.push(column.id);
+                break;
+              }
+
+              default: {
+                const columnName = await getColumnName(
+                  this.context,
+                  column,
+                  columns,
+                );
+                colSelectors.push(
+                  this.dbDriver.raw('?? as ??', [columnName, column.id]),
+                );
+                groupBySelectors.push(column.id);
+                break;
+              }
+            }
+          }),
+        );
+
+        // get aggregated count of each group
+        tQb.count(`${this.model.primaryKey?.column_name || '*'} as count`);
+        tQb.select(...colSelectors);
+
+        if (+rest?.shuffle) {
+          await this.shuffle({ qb: tQb });
+        }
+
+        await conditionV2(
+          this,
+          [
+            ...(this.viewId
+              ? [
+                  new Filter({
+                    children: viewFilterList || [],
+                    is_group: true,
+                  }),
+                ]
+              : []),
+            new Filter({
+              children: rest.filterArr || [],
+              is_group: true,
+              logical_op: 'and',
+            }),
+            new Filter({
+              children: extractFilterFromXwhere(where, aliasColObjMap),
+              is_group: true,
+              logical_op: 'and',
+            }),
+            new Filter({
+              children: groupFilter,
+              is_group: true,
+              logical_op: 'and',
+            }),
+            new Filter({
+              children: args.filterArr || [],
+              is_group: true,
+              logical_op: 'and',
+            }),
+          ],
+          tQb,
+        );
+
+        tQb.groupBy(...groupBySelectors);
+
+        const count = this.dbDriver
+          .count('*', { as: 'count' })
+          .from(tQb.as('groupby'));
+
+        let subQuery;
+        switch (this.dbDriver.client.config.client) {
+          case 'pg':
+            subQuery = this.dbDriver
+              .select(
+                this.dbDriver.raw(`json_build_object('count', "count") as ??`, [
+                  getAlias(),
+                ]),
+              )
+              .from(count.as(getAlias()));
+            selectors.push(
+              this.dbDriver.raw(`(??) as ??`, [subQuery, f.alias]),
+            );
+            break;
+          case 'mysql2':
+            subQuery = this.dbDriver
+              .select(this.dbDriver.raw(`JSON_OBJECT('count', \`count\`)`))
+              .from(this.dbDriver.raw(`(??) as ??`, [tQb, getAlias()]));
+            selectors.push(
+              this.dbDriver.raw(`(??) as ??`, [subQuery, f.alias]),
+            );
+            break;
+          case 'sqlite3':
+            // TODO: @DarkPhoenix2704@. Test on pr creation
+            subQuery = this.dbDriver
+              .select(
+                this.dbDriver.raw(`json_object('count', "count") as ??`, [
+                  f.alias,
+                ]),
+              )
+              .from(tQb.as(getAlias()));
+            break;
+          default:
+            NcError.notImplemented(
+              'This database does not support bulk groupBy',
+            );
+        }
+      }
+
+      const qb = this.dbDriver(this.tnPath);
+      qb.select(...selectors).limit(1);
+
+      const data = await this.execAndParse(qb, null, {
+        raw: true,
+        first: true,
+      });
+      return data;
+    } catch (e) {
+      logger.log(e);
+      return [];
+    }
+  }
+
   async bulkGroupBy(
     args: {
       bulkFilterList: Array<{
@@ -942,6 +1192,11 @@ class BaseModelSqlv2 {
               is_group: true,
               logical_op: 'and',
             }),
+            new Filter({
+              children: args.filterArr || [],
+              is_group: true,
+              logical_op: 'and',
+            }),
           ],
           tQb,
         );
@@ -1063,8 +1318,6 @@ class BaseModelSqlv2 {
 
       const qb = this.dbDriver(this.tnPath);
       qb.select(...selectors).limit(1);
-
-      console.log(qb.toQuery());
 
       const data = await this.execAndParse(qb, null, {
         raw: true,

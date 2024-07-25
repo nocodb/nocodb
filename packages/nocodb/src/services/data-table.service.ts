@@ -826,7 +826,7 @@ export class DataTableService {
 
     const listArgs: any = { ...param.query };
     try {
-      listArgs.bulkFilterList = JSON.parse(listArgs.bulkFilterList);
+      listArgs.bulkFilterList = Object.values(listArgs.bulkFilterList);
     } catch (e) {}
 
     try {
@@ -842,10 +842,12 @@ export class DataTableService {
     }
 
     const data = await baseModel.bulkGroupBy(listArgs, view);
+    const count = await baseModel.bulkGroupByCount(listArgs, view);
 
     Object.values(listArgs.bulkFilterList).forEach((dF: any) => {
       data[dF.alias] = new PagedResponseImpl(data[dF.alias], {
         ...dF,
+        count: count[dF.alias],
       });
     });
 

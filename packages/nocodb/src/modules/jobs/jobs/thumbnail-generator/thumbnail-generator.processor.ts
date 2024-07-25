@@ -115,16 +115,13 @@ export class ThumbnailGeneratorProcessor {
 
     if (attachment.path) {
       relativePath = attachment.path.replace(/^download\//, '');
-      url = await PresignedUrl.getSignedUrl({ pathOrUrl: relativePath });
-    } else if (attachment.url) {
-      relativePath = attachment.url;
-      signedUrl = await PresignedUrl.getSignedUrl({ pathOrUrl: relativePath });
+      url = await PresignedUrl.getSignedUrl({
+        pathOrUrl: relativePath,
+        preview: false,
+        filename: attachment.title,
+        mimetype: attachment.mimetype,
+      });
 
-      file = (await axios({ url: signedUrl, responseType: 'arraybuffer' }))
-        .data as Buffer;
-    }
-
-    if (url && !signedUrl) {
       const fullPath = await PresignedUrl.getPath(`${url}`);
       const [fpath] = fullPath.split('?');
       const tempPath = await this.attachmentsService.getFile({
@@ -132,6 +129,17 @@ export class ThumbnailGeneratorProcessor {
       });
       relativePath = fpath;
       file = tempPath.path;
+    } else if (attachment.url) {
+      relativePath = attachment.url;
+      signedUrl = await PresignedUrl.getSignedUrl({
+        pathOrUrl: relativePath,
+        preview: false,
+        filename: attachment.title,
+        mimetype: attachment.mimetype,
+      });
+
+      file = (await axios({ url: signedUrl, responseType: 'arraybuffer' }))
+        .data as Buffer;
     }
 
     if (relativePath.startsWith('/nc/uploads/')) {

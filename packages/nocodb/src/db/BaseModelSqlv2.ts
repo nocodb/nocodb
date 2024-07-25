@@ -7977,7 +7977,7 @@ class BaseModelSqlv2 {
                       ),
                     );
                   } else if (lookedUpAttachment?.url) {
-                    let relativePath = lookedUpAttachment.url
+                    let relativePath = lookedUpAttachment.url;
                     promises.push(
                       PresignedUrl.getSignedUrl({
                         pathOrUrl: relativePath,
@@ -8091,7 +8091,7 @@ class BaseModelSqlv2 {
                     ),
                   );
                 } else if (attachment?.url) {
-                  let relativePath = attachment.url
+                  let relativePath = attachment.url;
 
                   promises.push(
                     PresignedUrl.getSignedUrl({
@@ -8106,7 +8106,6 @@ class BaseModelSqlv2 {
                     'nc/uploads',
                     'nc/thumbnails',
                   );
-
                   attachment.thumbnails = {
                     tiny: {},
                     small: {},

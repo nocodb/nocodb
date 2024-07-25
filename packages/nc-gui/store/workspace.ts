@@ -1,4 +1,4 @@
-import type { AuditType, BaseType } from 'nocodb-sdk'
+import type { AuditType, BaseType, PaginatedType } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { message } from 'ant-design-vue'
 import { isString } from '@vue/shared'
@@ -227,20 +227,16 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const audits = ref<null | Array<AuditType>>(null)
 
-  const auditTotalRows = ref(0)
-
-  const auditCurrentPage = ref(1)
-
-  const auditCurrentLimit = ref(25)
+  const auditPaginationData = ref<PaginatedType>({ page: 1, pageSize: 25, totalRows: 0 })
 
   const loadAudits = async (
     _workspaceId?: string,
-    page: number = auditCurrentPage.value,
-    limit: number = auditCurrentLimit.value,
+    page: number = auditPaginationData.value.page!,
+    limit: number = auditPaginationData.value.pageSize!,
   ) => {
     try {
-      if (limit * (page - 1) > auditTotalRows.value) {
-        auditCurrentPage.value = 1
+      if (limit * (page - 1) > auditPaginationData.value.totalRows!) {
+        auditPaginationData.value.page = 1
         page = 1
       }
 
@@ -257,12 +253,12 @@ export const useWorkspace = defineStore('workspaceStore', () => {
           })
 
       audits.value = list
-      auditTotalRows.value = pageInfo.totalRows ?? 0
+      auditPaginationData.value.totalRows = pageInfo.totalRows ?? 0
     } catch (e) {
       message.error(await extractSdkResponseErrorMsg(e))
       audits.value = []
-      auditTotalRows.value = 0
-      auditCurrentPage.value = 1
+      auditPaginationData.value.totalRows = 0
+      auditPaginationData.value.page = 1
     }
   }
 
@@ -313,9 +309,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     moveToOrg,
     auditLogsQuery,
     audits,
-    auditTotalRows,
-    auditCurrentPage,
-    auditCurrentLimit,
+    auditPaginationData,
+
     loadAudits,
   }
 })

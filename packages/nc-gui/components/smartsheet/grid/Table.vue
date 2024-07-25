@@ -12,7 +12,6 @@ import {
   isVirtualCol,
 } from 'nocodb-sdk'
 import { useColumnDrag } from './useColumnDrag'
-import usePaginationShortcuts from './usePaginationShortcuts'
 import { type CellRange, NavigateDir } from '#imports'
 
 const props = defineProps<{
@@ -181,6 +180,7 @@ const { onDrag, onDragStart, onDragEnd, draggedCol, dragColPlaceholderDomRef, to
 const { onLeft, onRight, onUp, onDown } = usePaginationShortcuts({
   paginationDataRef,
   changePage: changePage as any,
+  isViewDataLoading
 })
 
 // #Variables

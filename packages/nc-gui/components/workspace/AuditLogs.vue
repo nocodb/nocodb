@@ -475,12 +475,12 @@ onKeyStroke('ArrowDown', onDown)
               :total="+auditPaginationData.totalRows"
               show-size-changer
               :use-stored-page-size="false"
-              @update:current="loadAudits(undefined, undefined, false)"
-              @update:page-size="loadAudits(currentPage, $event, false)"
               :prev-page-tooltip="`${renderAltOrOptlKey()}+←`"
               :next-page-tooltip="`${renderAltOrOptlKey()}+→`"
               :first-page-tooltip="`${renderAltOrOptlKey()}+↓`"
               :last-page-tooltip="`${renderAltOrOptlKey()}+↑`"
+              @update:current="loadAudits(undefined, undefined, false)"
+              @update:page-size="loadAudits(currentPage, $event, false)"
             />
             <div class="text-gray-500 text-xs">
               {{ auditPaginationData.totalRows }} {{ auditPaginationData.totalRows === 1 ? 'record' : 'records' }}

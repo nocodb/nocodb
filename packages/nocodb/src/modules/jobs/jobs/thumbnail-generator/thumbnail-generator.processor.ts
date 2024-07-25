@@ -115,10 +115,10 @@ export class ThumbnailGeneratorProcessor {
 
     if (attachment.path) {
       relativePath = attachment.path.replace(/^download\//, '');
-      url = await PresignedUrl.getSignedUrl({ path: relativePath });
+      url = await PresignedUrl.getSignedUrl({ pathOrUrl: relativePath });
     } else if (attachment.url) {
-      relativePath = decodeURI(new URL(attachment.url).pathname);
-      signedUrl = await PresignedUrl.getSignedUrl({ path: relativePath });
+      relativePath = attachment.url;
+      signedUrl = await PresignedUrl.getSignedUrl({ pathOrUrl: relativePath });
 
       file = (await axios({ url: signedUrl, responseType: 'arraybuffer' }))
         .data as Buffer;

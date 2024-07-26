@@ -47,6 +47,11 @@ watch(currentSidebarSize, () => {
 
 const sidebarWidth = computed(() => (isMobileMode.value ? viewportWidth.value : sideBarSize.value.old))
 
+const remToPx = (rem: number) => {
+  const fontSize = parseFloat(getComputedStyle(document.documentElement).fontSize)
+  return rem * fontSize
+}
+
 const normalizedWidth = computed(() => {
   const maxSize = remToPx(viewportWidth.value <= 1560 ? 20 : 35)
   const minSize = remToPx(16)
@@ -146,11 +151,6 @@ watch(sidebarState, () => {
 onMounted(() => {
   handleSidebarOpenOnMobileForNonViews()
 })
-
-function remToPx(rem: number) {
-  const fontSize = parseFloat(getComputedStyle(document.documentElement).fontSize)
-  return rem * fontSize
-}
 
 function onResize(widthPercent: any) {
   if (isMobileMode.value) return

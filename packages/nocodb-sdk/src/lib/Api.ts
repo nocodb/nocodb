@@ -9293,6 +9293,84 @@ export class Api<
       }),
 
     /**
+ * @description Read bulk data from a given table with provided filters
+ * 
+ * @tags Public
+ * @name DataTableBulkDataList
+ * @summary Read Shared View Bulk Data List
+ * @request POST:/api/v2/public/shared-view/{sharedViewUuid}/bulk/dataList
+ * @response `200` `object` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    dataTableBulkDataList: (
+      sharedViewUuid: string,
+      data: object[],
+      query?: {
+        /** Extra filtering */
+        where?: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        object,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v2/public/shared-view/${sharedViewUuid}/bulk/dataList`,
+        method: 'POST',
+        query: query,
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description Read bulk group data from a given table with provided filters
+ * 
+ * @tags Public
+ * @name DataTableBulkGroup
+ * @summary Read Shared View Bulk Group Data
+ * @request POST:/api/v2/public/shared-view/{sharedViewUuid}/bulk/group
+ * @response `200` `object` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    dataTableBulkGroup: (
+      sharedViewUuid: string,
+      data: object[],
+      query?: {
+        /** Extra filtering */
+        where?: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        object,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v2/public/shared-view/${sharedViewUuid}/bulk/group`,
+        method: 'POST',
+        query: query,
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
  * @description Read aggregated data from a given table
  * 
  * @tags Public
@@ -9326,6 +9404,55 @@ export class Api<
         }
       >({
         path: `/api/v2/public/shared-view/${sharedViewUuid}/aggregate`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description Download attachment from a shared view
+ * 
+ * @tags Public
+ * @name DataAttachmentDownload
+ * @summary Get Shared View Attachment
+ * @request GET:/api/v2/public/shared-view/{sharedViewUuid}/downloadAttachment/{columnId}/{rowId}
+ * @response `200` `{
+  \** URL to download the attachment *\
+  url?: string,
+  \** Path to download the attachment *\
+  path?: string,
+
+}` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    dataAttachmentDownload: (
+      sharedViewUuid: string,
+      columnId: IdType,
+      rowId: any,
+      query?: {
+        /** URL or Path of the attachment */
+        urlOrPath?: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        {
+          /** URL to download the attachment */
+          url?: string;
+          /** Path to download the attachment */
+          path?: string;
+        },
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v2/public/shared-view/${sharedViewUuid}/downloadAttachment/${columnId}/${rowId}`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -9814,6 +9941,88 @@ export class Api<
       this.request<any, any>({
         path: `/api/v1/db/public/shared-erd/${sharedErdUuid}/meta`,
         method: 'GET',
+        ...params,
+      }),
+  };
+  dbDataTableBulkList = {
+    /**
+ * @description Read bulk data from a given table with given filters
+ * 
+ * @tags DB Data Table Bulk List
+ * @name DbDataTableBulkList
+ * @summary Read Bulk Data
+ * @request POST:/api/v2/tables/{tableId}/bulk/dataList
+ * @response `200` `object` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    dbDataTableBulkList: (
+      tableId: string,
+      query: {
+        /** View ID is required */
+        viewId: string;
+        /** Extra filtering */
+        where?: string;
+      },
+      data: object[],
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        object,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v2/tables/${tableId}/bulk/dataList`,
+        method: 'POST',
+        query: query,
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+  };
+  dbDataTableBulkGroupList = {
+    /**
+ * @description Read bulk group data from a given table with given filters
+ * 
+ * @tags DB Data Table Bulk Group List
+ * @name DbDataTableBulkGroupList
+ * @summary Read Bulk Group Data
+ * @request POST:/api/v2/tables/{tableId}/bulk/group
+ * @response `200` `object` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    dbDataTableBulkGroupList: (
+      tableId: string,
+      query: {
+        /** View ID is required */
+        viewId: string;
+      },
+      data: object[],
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        object,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v2/tables/${tableId}/bulk/group`,
+        method: 'POST',
+        query: query,
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
         ...params,
       }),
   };
@@ -11822,6 +12031,47 @@ export class Api<
         query: query,
         body: data,
         type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description Download attachment from a given row
+ * 
+ * @tags DB Data Table Row
+ * @name AttachmentDownload
+ * @summary Download Attachment
+ * @request GET:/api/v2/downloadAttachment/{modelId}/{columnId}/{rowId}
+ * @response `200` `{
+  \** URL to download attachment *\
+  url?: string,
+  \** Path to download attachment *\
+  path?: string,
+
+}` OK
+ */
+    attachmentDownload: (
+      modelId: string,
+      columnId: string,
+      rowId: string,
+      query?: {
+        /** URL or Path of the attachment */
+        urlOrPath?: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        {
+          /** URL to download attachment */
+          url?: string;
+          /** Path to download attachment */
+          path?: string;
+        },
+        any
+      >({
+        path: `/api/v2/downloadAttachment/${modelId}/${columnId}/${rowId}`,
+        method: 'GET',
+        query: query,
         format: 'json',
         ...params,
       }),

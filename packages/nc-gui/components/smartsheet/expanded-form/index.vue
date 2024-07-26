@@ -342,7 +342,7 @@ if (isKanban.value) {
 provide(IsExpandedFormOpenInj, isExpanded)
 
 const triggerRowLoad = async (rowId?: string) => {
-  await Promise.allSettled([loadComments(rowId), loadAudits(rowId), _loadRow(rowId)])
+  await Promise.allSettled([loadComments(rowId, false), loadAudits(rowId), _loadRow(rowId)])
   isLoading.value = false
 }
 
@@ -795,7 +795,7 @@ export default {
                     :ref="i ? null : (el: any) => (cellWrapperEl = el)"
                     class="bg-white flex-1 <lg:w-full px-1 min-h-[37px] flex items-center relative"
                     :class="{
-                      ' !select-text nc-system-field': isReadOnlyVirtualCell(col),
+                      '!select-text nc-system-field': isReadOnlyVirtualCell(col),
                       '!select-text nc-readonly-div-data-cell': readOnly,
                     }"
                   >
@@ -972,7 +972,7 @@ export default {
           :class="{ active: commentsDrawer && isUIAllowed('commentList') }"
           class="nc-comments-drawer border-l-1 relative border-gray-200 bg-gray-50 w-1/3 max-w-[340px] min-w-0 h-full xs:hidden rounded-br-2xl"
         >
-          <SmartsheetExpandedFormComments :primary-key="primaryKey" :loading="isLoading" />
+          <SmartsheetExpandedFormSidebar />
         </div>
       </div>
     </div>
@@ -1055,12 +1055,14 @@ export default {
   @apply !rounded-lg;
   transition: all 0.3s;
 
-  &:not(.nc-readonly-div-data-cell):not(.nc-system-field) {
+  &:not(.nc-readonly-div-data-cell):not(.nc-system-field):not(.nc-attachment-cell) {
     box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
   }
   &:not(:focus-within):hover:not(.nc-readonly-div-data-cell):not(.nc-system-field) {
     @apply !border-1;
-    box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.24);
+    &:not(.nc-attachment-cell) {
+      box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.24);
+    }
   }
 
   &.nc-readonly-div-data-cell,

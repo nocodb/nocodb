@@ -299,12 +299,12 @@ watch(
                   </template>
 
                   <template v-for="(attachment, index) in attachments(record)">
-                    <LazyCellAttachmentImage
+                    <LazyCellAttachmentPreviewImage
                       v-if="isImage(attachment.title, attachment.mimetype ?? attachment.type)"
                       :key="`carousel-${record.row.id}-${index}`"
                       class="h-52"
                       :class="[`${coverImageObjectFitClass}`]"
-                      :srcs="getPossibleAttachmentSrc(attachment)"
+                      :srcs="getPossibleAttachmentSrc(attachment, 'card_cover')"
                       @click="expandFormClick($event, record)"
                     />
                   </template>

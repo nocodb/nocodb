@@ -120,7 +120,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
   const isActiveViewLocked = computed(() => activeView.value?.lock_type === 'locked')
 
   // Used for Grid View Pagination
-  const isPaginationLoading = ref(true)
+  // TODO: Disable by default when group by is enabled
+  const isPaginationLoading = ref(false)
 
   const preFillFormSearchParams = ref('')
 
@@ -421,7 +422,10 @@ export const useViewsStore = defineStore('viewsStore', () => {
   watch(
     () => [activeView.value?.title, activeView.value?.id],
     () => {
-      refreshViewTabTitle.trigger()
+      updateTabTitle()
+    },
+    {
+      flush: 'post',
     },
   )
 

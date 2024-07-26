@@ -1,11 +1,12 @@
 import path from 'path';
 import Url from 'url';
 import { AppEvents } from 'nocodb-sdk';
-import { Injectable, Logger } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import { nanoid } from 'nanoid';
 import slash from 'slash';
 import PQueue from 'p-queue';
 import axios from 'axios';
+import sharp from 'sharp';
 import type { AttachmentReqType, FileType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -15,12 +16,30 @@ import mimetypes, { mimeIcons } from '~/utils/mimeTypes';
 import { PresignedUrl } from '~/models';
 import { utf8ify } from '~/helpers/stringHelpers';
 import { NcError } from '~/helpers/catchError';
+import { IJobsService } from '~/modules/jobs/jobs-service.interface';
+import { JobTypes } from '~/interface/Jobs';
+import { RootScopes } from '~/utils/globals';
+
+interface AttachmentObject {
+  url?: string;
+  path?: string;
+  title: string;
+  mimetype: string;
+  size: number;
+  icon?: string;
+  signedPath?: string;
+  signedUrl?: string;
+}
 
 @Injectable()
 export class AttachmentsService {
   protected logger = new Logger(AttachmentsService.name);
 
-  constructor(private readonly appHooksService: AppHooksService) {}
+  constructor(
+    private readonly appHooksService: AppHooksService,
+    @Inject(forwardRef(() => 'JobsService'))
+    private readonly jobsService: IJobsService,
+  ) {}
 
   async upload(param: { path?: string; files: FileType[]; req: NcRequest }) {
     // TODO: add getAjvValidatorMw
@@ -49,46 +68,45 @@ export class AttachmentsService {
             5,
           )}${path.extname(originalName)}`;
 
+          const tempMetadata: {
+            width?: number;
+            height?: number;
+          } = {};
+
+          if (file.mimetype.includes('image')) {
+            try {
+              const metadata = await sharp(file.path, {
+                limitInputPixels: false,
+              }).metadata();
+
+              if (metadata.width && metadata.height) {
+                tempMetadata.width = metadata.width;
+                tempMetadata.height = metadata.height;
+              }
+            } catch (e) {
+              // Might be invalid image - ignore
+            }
+          }
+
           const url = await storageAdapter.fileCreate(
             slash(path.join(destPath, fileName)),
             file,
           );
 
-          const attachment: {
-            url?: string;
-            path?: string;
-            title: string;
-            mimetype: string;
-            size: number;
-            icon?: string;
-            signedPath?: string;
-            signedUrl?: string;
-          } = {
-            ...(url ? { url } : {}),
+          const attachment: AttachmentObject = {
+            ...(url
+              ? { url }
+              : {
+                  path: path.join('download', filePath.join('/'), fileName),
+                }),
             title: originalName,
             mimetype: file.mimetype,
             size: file.size,
             icon: mimeIcons[path.extname(originalName).slice(1)] || undefined,
+            ...tempMetadata,
           };
 
-          // if `url` is null, then it is local attachment
-          if (!url) {
-            // then store the attachment path only
-            // url will be constructed in `useAttachmentCell`
-            attachment.path = path.join(
-              'download',
-              filePath.join('/'),
-              fileName,
-            );
-
-            attachment.signedPath = await PresignedUrl.getSignedUrl({
-              path: attachment.path.replace(/^download\//, ''),
-            });
-          } else {
-            attachment.signedUrl = await PresignedUrl.getSignedUrl({
-              path: decodeURI(new URL(attachment.url).pathname),
-            });
-          }
+          await this.signAttachment({ attachment });
 
           attachments.push(attachment);
         } catch (e) {
@@ -105,6 +123,14 @@ export class AttachmentsService {
       }
       throw errors[0];
     }
+
+    await this.jobsService.add(JobTypes.ThumbnailGenerator, {
+      context: {
+        base_id: RootScopes.ROOT,
+        workspace_id: RootScopes.ROOT,
+      },
+      attachments,
+    });
 
     this.appHooksService.emit(AppEvents.ATTACHMENT_UPLOAD, {
       type: 'file',
@@ -151,29 +177,54 @@ export class AttachmentsService {
             5,
           )}${path.extname(fileNameWithExt)}`;
 
-          const attachmentUrl = await storageAdapter.fileCreateByUrl(
-            slash(path.join(destPath, fileName)),
-            finalUrl,
-          );
-          // if `attachmentUrl` is null, then it is local attachment
-          // then store the attachment path only
-          // url will be constructed in `useAttachmentCell`
-          const attachmentPath = !attachmentUrl
-            ? `download/${filePath.join('/')}/${fileName}`
-            : undefined;
+          const { url: attachmentUrl, data: file } =
+            await storageAdapter.fileCreateByUrl(
+              slash(path.join(destPath, fileName)),
+              finalUrl,
+            );
 
-          const mimeType = response.headers['content-type']?.split(';')[0];
+          const tempMetadata: {
+            width?: number;
+            height?: number;
+          } = {};
+
+          try {
+            const metadata = await sharp(file, {
+              limitInputPixels: true,
+            }).metadata();
+
+            if (metadata.width && metadata.height) {
+              tempMetadata.width = metadata.width;
+              tempMetadata.height = metadata.height;
+            }
+          } catch (e) {
+            // Might be invalid image - ignore
+          }
+
+          let mimeType = response.headers['content-type']?.split(';')[0];
           const size = response.headers['content-length'];
 
-          attachments.push({
-            ...(attachmentUrl ? { url: finalUrl } : {}),
-            ...(attachmentPath ? { path: attachmentPath } : {}),
+          if (!mimeType) {
+            mimeType = mimetypes[path.extname(fileNameWithExt).slice(1)];
+          }
+
+          const attachment: AttachmentObject = {
+            ...(attachmentUrl
+              ? { url: attachmentUrl }
+              : {
+                  path: path.join('download', filePath.join('/'), fileName),
+                }),
             title: fileNameWithExt,
             mimetype: mimeType || urlMeta.mimetype,
             size: size ? parseInt(size) : urlMeta.size,
             icon:
               mimeIcons[path.extname(fileNameWithExt).slice(1)] || undefined,
-          });
+            ...tempMetadata,
+          };
+
+          await this.signAttachment({ attachment });
+
+          attachments.push(attachment);
         } catch (e) {
           errors.push(e);
         }
@@ -186,6 +237,14 @@ export class AttachmentsService {
       errors.forEach((error) => this.logger.error(error));
       throw errors[0];
     }
+
+    await this.jobsService.add(JobTypes.ThumbnailGenerator, {
+      context: {
+        base_id: RootScopes.ROOT,
+        workspace_id: RootScopes.ROOT,
+      },
+      attachments,
+    });
 
     this.appHooksService.emit(AppEvents.ATTACHMENT_UPLOAD, {
       type: 'url',
@@ -212,12 +271,66 @@ export class AttachmentsService {
     return { path: filePath, type };
   }
 
-  previewAvailable(mimetype: string) {
-    const available = ['image', 'pdf', 'text/plain'];
-    if (available.some((type) => mimetype.includes(type))) {
-      return true;
+  async getAttachmentFromRecord(param: {
+    record: any;
+    column: { title: string };
+    urlOrPath: string;
+  }) {
+    const { record, column, urlOrPath } = param;
+
+    const attachment = record[column.title];
+
+    if (!attachment || !attachment.length) {
+      NcError.genericNotFound('Attachment', urlOrPath);
     }
-    return false;
+
+    const fileObject = attachment.find(
+      (a) => a.url === urlOrPath || a.path === urlOrPath,
+    );
+
+    if (!fileObject) {
+      NcError.genericNotFound('Attachment', urlOrPath);
+    }
+
+    await this.signAttachment({
+      attachment: fileObject,
+      preview: false,
+      filename: fileObject.title,
+      expireSeconds: 5 * 60,
+    });
+
+    return {
+      ...(fileObject?.path
+        ? { path: fileObject.signedPath }
+        : {
+            url: fileObject.signedUrl,
+          }),
+    };
+  }
+
+  async signAttachment(param: {
+    attachment: AttachmentObject;
+    preview?: boolean;
+    filename?: string;
+    expireSeconds?: number;
+  }) {
+    const { attachment, preview = true, ...extra } = param;
+
+    if (attachment?.path) {
+      attachment.signedPath = await PresignedUrl.getSignedUrl({
+        pathOrUrl: attachment.path.replace(/^download\//, ''),
+        preview,
+        mimetype: attachment.mimetype,
+        ...(extra ? { ...extra } : {}),
+      });
+    } else if (attachment?.url) {
+      attachment.signedUrl = await PresignedUrl.getSignedUrl({
+        pathOrUrl: attachment.url,
+        preview,
+        mimetype: attachment.mimetype,
+        ...(extra ? { ...extra } : {}),
+      });
+    }
   }
 
   sanitizeUrlPath(paths) {

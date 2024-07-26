@@ -12,7 +12,6 @@ import {
   isVirtualCol,
 } from 'nocodb-sdk'
 import { useColumnDrag } from './useColumnDrag'
-import usePaginationShortcuts from './usePaginationShortcuts'
 import { type CellRange, NavigateDir } from '#imports'
 
 const props = defineProps<{
@@ -129,6 +128,7 @@ const {
   isViewColumnsLoading: _isViewColumnsLoading,
   updateGridViewColumn,
   gridViewCols,
+  metaColumnById,
   resizingColOldWith,
 } = useViewColumnsOrThrow()
 
@@ -181,6 +181,7 @@ const { onDrag, onDragStart, onDragEnd, draggedCol, dragColPlaceholderDomRef, to
 const { onLeft, onRight, onUp, onDown } = usePaginationShortcuts({
   paginationDataRef,
   changePage: changePage as any,
+  isViewDataLoading,
 })
 
 // #Variables
@@ -1102,12 +1103,33 @@ const saveOrUpdateRecords = async (
 // #Grid Resize
 const onresize = (colID: string | undefined, event: any) => {
   if (!colID) return
-  updateGridViewColumn(colID, { width: event.detail })
+
+  // Set 80px minimum width for attachment cells
+  if (metaColumnById.value[colID].uidt === UITypes.Attachment) {
+    const size = event.detail.split('px')[0]
+    if (+size < 80) {
+      updateGridViewColumn(colID, { width: '80px' })
+    } else {
+      updateGridViewColumn(colID, { width: event.detail })
+    }
+  } else {
+    updateGridViewColumn(colID, { width: event.detail })
+  }
 }
 
 const onXcResizing = (cn: string | undefined, event: any) => {
   if (!cn) return
-  gridViewCols.value[cn].width = `${event.detail}`
+  // Set 80px minimum width for attachment cells
+  if (metaColumnById.value[cn].uidt === UITypes.Attachment) {
+    const size = event.detail.split('px')[0]
+    if (+size < 80) {
+      gridViewCols.value[cn].width = '80px'
+    } else {
+      gridViewCols.value[cn].width = `${event.detail}`
+    }
+  } else {
+    gridViewCols.value[cn].width = `${event.detail}`
+  }
 }
 
 const onXcStartResizing = (cn: string | undefined, event: any) => {

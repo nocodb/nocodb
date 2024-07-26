@@ -32,6 +32,8 @@ const { isUIAllowed } = useRoles()
 
 const { isMobileMode } = useGlobal()
 
+const { isSharedBase } = storeToRefs(useBase())
+
 const { $e } = useNuxtApp()
 
 const { t } = useI18n()
@@ -400,36 +402,37 @@ function onOpenModal({
     :selected-keys="selected"
     class="nc-views-menu flex flex-col w-full !border-r-0 !bg-inherit"
   >
-    <DashboardTreeViewCreateViewBtn
-      v-if="isUIAllowed('viewCreateOrEdit')"
-      :align-left-level="isDefaultSource ? 1 : 2"
-      :class="{
-        '!pl-13.3 !xs:(pl-13.5)': isDefaultSource,
-        '!pl-18.6 !xs:(pl-20)': !isDefaultSource,
-      }"
-      :source="source"
-    >
-      <div
+    <template v-if="!isSharedBase">
+      <DashboardTreeViewCreateViewBtn
+        v-if="isUIAllowed('viewCreateOrEdit')"
+        :align-left-level="isDefaultSource ? 1 : 2"
         :class="{
-          'text-brand-500 hover:text-brand-600': activeTableId === table.id,
-          'text-gray-500 hover:text-brand-500': activeTableId !== table.id,
+          '!pl-13.3 !xs:(pl-13.5)': isDefaultSource,
+          '!pl-18.6 !xs:(pl-20)': !isDefaultSource,
         }"
-        class="nc-create-view-btn flex flex-row items-center cursor-pointer rounded-md w-full"
-        role="button"
+        :source="source"
       >
-        <div class="flex flex-row items-center pl-1.25 !py-1.5 text-inherit">
-          <GeneralIcon icon="plus" />
-          <div class="pl-1.75">
-            {{
-              $t('general.createEntity', {
-                entity: $t('objects.view'),
-              })
-            }}
+        <div
+          :class="{
+            'text-brand-500 hover:text-brand-600': activeTableId === table.id,
+            'text-gray-500 hover:text-brand-500': activeTableId !== table.id,
+          }"
+          class="nc-create-view-btn flex flex-row items-center cursor-pointer rounded-md w-full"
+          role="button"
+        >
+          <div class="flex flex-row items-center pl-1.25 !py-1.5 text-inherit">
+            <GeneralIcon icon="plus" />
+            <div class="pl-1.75">
+              {{
+                $t('general.createEntity', {
+                  entity: $t('objects.view'),
+                })
+              }}
+            </div>
           </div>
         </div>
-      </div>
-    </DashboardTreeViewCreateViewBtn>
-
+      </DashboardTreeViewCreateViewBtn>
+    </template>
     <template v-if="views.length">
       <DashboardTreeViewViewsNode
         v-for="view of views"

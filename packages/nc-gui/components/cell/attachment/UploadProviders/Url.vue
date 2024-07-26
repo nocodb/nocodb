@@ -7,7 +7,7 @@ const emits = defineEmits<{
 
 const { openAttachment } = useAttachment()
 
-const { uploadViaUrl, updateModelValue } = useAttachmentCell()!
+const { uploadViaUrl, updateModelValue, attachments } = useAttachmentCell()!
 
 const closeMenu = () => {
   emits('update:visible', false)
@@ -26,7 +26,7 @@ const tempAttachments = ref<
 >([])
 
 const onSave = async () => {
-  updateModelValue(tempAttachments.value)
+  updateModelValue([...attachments.value, ...tempAttachments.value])
   closeMenu()
 }
 
@@ -38,7 +38,7 @@ const deleteAttachment = (index: number) => {
   tempAttachments.value.splice(index, 1)
 }
 
-const isValidUrl = ref(true)
+const isValidUrl = ref(false)
 
 const errorMessage = ref('')
 

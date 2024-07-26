@@ -6,7 +6,7 @@ import { NavigateDir } from '~/lib/enums'
 const props = defineProps<{
   group: Group
 
-  loadGroups: (params?: any, group?: Group) => Promise<void>
+  loadGroups: (params?: any, group?: Group, options?: { triggerChildOnly: boolean }) => Promise<void>
   loadGroupData: (group: Group, force?: boolean, params?: any) => Promise<void>
   loadGroupPage: (group: Group, p: number) => Promise<void>
   groupWrapperChangePage: (page: number, groupWrapper?: Group) => Promise<void>
@@ -41,8 +41,6 @@ const view = inject(ActiveViewInj, ref())
 const isPublic = inject(IsPublicInj, ref(false))
 
 const skipRowRemovalOnCancel = ref(false)
-
-const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 
 const { eventBus } = useSmartsheetStoreOrThrow()
 
@@ -166,13 +164,6 @@ const reloadTableData = async (params: void | { shouldShowLoading?: boolean | un
   })
 }
 
-onBeforeUnmount(async () => {
-  // reset hooks
-  reloadViewDataHook?.off(reloadTableData)
-})
-
-reloadViewDataHook?.on(reloadTableData)
-
 provide(IsGroupByInj, ref(true))
 
 const pagination = computed(() => {
@@ -273,14 +264,8 @@ async function deleteSelectedRowsWrapper() {
 
   await deleteSelectedRows()
   // reload table data
-  await reloadTableData({ shouldShowLoading: true })
+  await reloadTableData({ shouldShowLoading: false })
 }
-
-eventBus.on((event) => {
-  if (event === SmartsheetStoreEvents.GROUP_BY_RELOAD || event === SmartsheetStoreEvents.DATA_RELOAD) {
-    reloadViewDataHook?.trigger()
-  }
-})
 </script>
 
 <template>

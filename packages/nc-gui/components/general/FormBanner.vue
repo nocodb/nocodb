@@ -19,7 +19,11 @@ const getBannerImageSrc = computed(() => {
     :class="!bannerImageUrl ? 'shadow-sm' : ''"
     :style="{ aspectRatio: 4 / 1 }"
   >
-    <LazyCellAttachmentImage v-if="bannerImageUrl" :srcs="getBannerImageSrc" class="nc-form-banner-image object-cover w-full" />
+    <LazyCellAttachmentPreviewImage
+      v-if="bannerImageUrl"
+      :srcs="getBannerImageSrc"
+      class="nc-form-banner-image object-cover w-full"
+    />
     <div v-else class="h-full flex items-stretch justify-between bg-white">
       <div class="flex -mt-1">
         <img src="~assets/img/form-banner-left.png" alt="form-banner-left'" />

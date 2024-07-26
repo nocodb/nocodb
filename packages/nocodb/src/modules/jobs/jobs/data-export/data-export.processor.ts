@@ -93,15 +93,19 @@ export class DataExportProcessor {
       // if url is not defined, it is local attachment
       if (!url) {
         url = await PresignedUrl.getSignedUrl({
-          path: path.join(destPath.replace('nc/uploads/', '')),
+          pathOrUrl: path.join(destPath.replace('nc/uploads/', '')),
           filename: `${model.title} (${getViewTitle(view)}).csv`,
           expireSeconds: 3 * 60 * 60, // 3 hours
+          preview: false,
+          mimetype: 'text/csv',
         });
       } else {
         url = await PresignedUrl.getSignedUrl({
-          path: decodeURI(new URL(url).pathname),
+          pathOrUrl: url,
           filename: `${model.title} (${getViewTitle(view)}).csv`,
           expireSeconds: 3 * 60 * 60, // 3 hours
+          preview: false,
+          mimetype: 'text/csv',
         });
       }
 

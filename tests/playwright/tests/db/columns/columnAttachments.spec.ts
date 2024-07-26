@@ -78,6 +78,7 @@ test.describe('Attachment column', () => {
     await sharedForm.cell.attachment.addFile({
       columnHeader: 'testAttach',
       filePath: [`${process.cwd()}/fixtures/sampleFiles/1.json`],
+      skipElemClick: true,
     });
 
     await sharedForm.rootPage.waitForTimeout(1000);

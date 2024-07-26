@@ -26,7 +26,7 @@ function remove_image() {
 function install_dependencies() {
     # Install all dependencies
     cd ${SCRIPT_DIR}
-    pnpm i || ERROR="install_dependencies failed"
+    pnpm bootstrap || ERROR="install_dependencies failed"
 }
 
 function build_gui() {

@@ -92,8 +92,10 @@ const refTables = computed(() => {
 })
 
 const refViews = computed(() => {
-  if (!vModel.value.childId) return []
-  const views = viewsByTable.value.get(vModel.value.childId)
+  const childId = vModel.value?.is_custom_link ? vModel.value?.custom?.ref_model_id : vModel.value?.childId
+
+  if (!childId) return []
+  const views = viewsByTable.value.get(childId)
 
   return (views || []).filter((v) => v.type !== ViewTypes.FORM)
 })
@@ -105,7 +107,7 @@ const isLinks = computed(() => vModel.value.uidt === UITypes.Links && vModel.val
 const { metas, getMeta } = useMetas()
 
 watch(
-  () => vModel.value.childId,
+  () => (vModel.value?.is_custom_link ? vModel.value?.custom?.ref_model_id : vModel.value?.childId),
   async (tableId) => {
     if (tableId) {
       getMeta(tableId).catch(() => {
@@ -146,7 +148,10 @@ const onLimitRecToViewChange = (value: boolean) => {
 
 provide(
   MetaInj,
-  computed(() => metas.value[vModel.value.childId] || {}),
+  computed(() => {
+    const childId = vModel.value?.is_custom_link ? vModel.value?.custom?.ref_model_id : vModel.value?.childId
+    return metas.value[childId] || {}
+  }),
 )
 
 onMounted(() => {
@@ -223,6 +228,23 @@ const handleShowAdvanceOptions = () => {
     vModel.value.is_custom_link = false
   }
 }
+
+const onCustomSwitchLabelClick = () => {
+  vModel.value.is_custom_link = !vModel.value.is_custom_link
+  onCustomSwitchToggle()
+}
+
+const onViewLabelClick = () => {
+  if (!vModel.value.childId && !(vModel.value.is_custom_link && vModel.value.custom?.ref_model_id)) return
+
+  limitRecToView.value = !limitRecToView.value
+  onLimitRecToViewChange()
+}
+const onFilterLabelClick = () => {
+  if (!vModel.value.childId && !(vModel.value.is_custom_link && vModel.value.custom?.ref_model_id)) return
+
+  limitRecToCond.value = !limitRecToCond.value
+}
 </script>
 
 <template>
@@ -260,7 +282,7 @@ const handleShowAdvanceOptions = () => {
         name="Custom"
         @change="onCustomSwitchToggle"
       />
-      <span class="ml-3">Advanced Link</span>
+      <span class="ml-3 cursor-pointer" @click="onCustomSwitchLabelClick">Advanced Link</span>
     </div>
     <div v-if="isEeUI && vModel.is_custom_link">
       <LazySmartsheetColumnLinkAdvancedOptions v-model:value="vModel" :is-edit="isEdit" :meta="meta" />
@@ -300,14 +322,14 @@ const handleShowAdvanceOptions = () => {
           v-model:checked="limitRecToView"
           v-e="['c:link:limit-record-by-view', { status: limitRecToView }]"
           size="small"
-          :disabled="!vModel.childId"
+          :disabled="!vModel.childId && !(vModel.is_custom_link && vModel.custom?.ref_model_id)"
           @change="onLimitRecToViewChange"
         ></a-switch>
         <span
           v-e="['c:link:limit-record-by-view', { status: limitRecToView }]"
           class="text-s"
           data-testid="nc-limit-record-view"
-          @click="limitRecToView = !!vModel.childId && !limitRecToView"
+          @click="onViewLabelClick"
           >Limit record selection to a view</span
         >
       </div>
@@ -337,13 +359,13 @@ const handleShowAdvanceOptions = () => {
         <a-switch
           v-model:checked="limitRecToCond"
           v-e="['c:link:limit-record-by-filter', { status: limitRecToCond }]"
-          :disabled="!vModel.childId"
+          :disabled="!vModel.childId && !(vModel.is_custom_link && vModel.custom?.ref_model_id)"
           size="small"
         ></a-switch>
         <span
           v-e="['c:link:limit-record-by-filter', { status: limitRecToCond }]"
           data-testid="nc-limit-record-filters"
-          @click="limitRecToCond = !!vModel.childId && !limitRecToCond"
+          @click="onFilterLabelClick"
         >
           Limit record selection to filters
         </span>

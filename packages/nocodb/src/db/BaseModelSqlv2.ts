@@ -759,19 +759,703 @@ class BaseModelSqlv2 {
     return await this.execAndParse(qb);
   }
 
-  async bulkAggregate(
+  async bulkGroupByCount(
     args: {
-      aggregateFilterList: Array<{
-        alias: string;
-        where?: string;
-      }>;
       filterArr?: Filter[];
     },
+    bulkFilterList: {
+      alias: string;
+      where?: string;
+      sort: string;
+      column_name: string;
+      filterArr?: Filter[];
+    }[],
     view: View,
   ) {
     try {
-      if (!args.aggregateFilterList?.length) {
-        return NcError.badRequest('aggregateFilterList is required');
+      const columns = await this.model.getColumns(this.context);
+      const aliasColObjMap = await this.model.getAliasColObjMap(
+        this.context,
+        columns,
+      );
+      const selectors = [] as Array<Knex.Raw>;
+
+      const viewFilterList = await Filter.rootFilterList(this.context, {
+        viewId: this.viewId,
+      });
+
+      if (!bulkFilterList?.length) {
+        return NcError.badRequest('bulkFilterList is required');
+      }
+
+      for (const f of bulkFilterList) {
+        const { where, ...rest } = this._getListArgs(f);
+        const groupBySelectors = [];
+        const groupByColumns: Record<string, Column> = {};
+
+        const getAlias = getAliasGenerator('__nc_gb');
+        const groupFilter = extractFilterFromXwhere(f.where, aliasColObjMap);
+
+        const tQb = this.dbDriver(this.tnPath);
+        const colSelectors = [];
+
+        await Promise.all(
+          rest.column_name.split(',').map(async (col) => {
+            let column = columns.find(
+              (c) => c.column_name === col || c.title === col,
+            );
+
+            // if qrCode or Barcode replace it with value column nd keep the alias
+            if ([UITypes.QrCode, UITypes.Barcode].includes(column.uidt)) {
+              column = new Column({
+                ...(await column
+                  .getColOptions<BarcodeColumn | QrCodeColumn>(this.context)
+                  .then((col) => col.getValueColumn(this.context))),
+                title: column.title,
+                id: column.id,
+              });
+            }
+
+            groupByColumns[column.id] = column;
+
+            switch (column.uidt) {
+              case UITypes.Attachment:
+                throw NcError.badRequest(
+                  'Group by using attachment column is not supported',
+                );
+              case UITypes.Links:
+              case UITypes.Rollup:
+                colSelectors.push(
+                  (
+                    await genRollupSelectv2({
+                      baseModelSqlv2: this,
+                      knex: this.dbDriver,
+                      columnOptions: (await column.getColOptions(
+                        this.context,
+                      )) as RollupColumn,
+                    })
+                  ).builder.as(column.id),
+                );
+                groupBySelectors.push(column.id);
+                break;
+              case UITypes.Formula: {
+                let selectQb;
+                try {
+                  const _selectQb = await this.getSelectQueryBuilderForFormula(
+                    column,
+                  );
+                  selectQb = this.dbDriver.raw(`?? as ??`, [
+                    _selectQb.builder,
+                    column.id,
+                  ]);
+                } catch (e) {
+                  console.log(e);
+                  selectQb = this.dbDriver.raw(`'ERR' as ??`, [column.id]);
+                }
+                colSelectors.push(selectQb);
+                groupBySelectors.push(column.id);
+                break;
+              }
+
+              case UITypes.Lookup:
+              case UITypes.LinkToAnotherRecord: {
+                const _selectQb = await generateLookupSelectQuery({
+                  baseModelSqlv2: this,
+                  column,
+                  alias: null,
+                  model: this.model,
+                  getAlias,
+                });
+                const selectQb = this.dbDriver.raw(`?? as ??`, [
+                  this.dbDriver.raw(_selectQb.builder).wrap('(', ')'),
+                  column.id,
+                ]);
+                colSelectors.push(selectQb);
+                groupBySelectors.push(column.id);
+                break;
+              }
+              case UITypes.DateTime:
+              case UITypes.CreatedTime:
+              case UITypes.LastModifiedTime:
+                {
+                  const columnName = await getColumnName(
+                    this.context,
+                    column,
+                    columns,
+                  );
+                  // ignore seconds part in datetime and group
+                  if (this.dbDriver.clientType() === 'pg') {
+                    colSelectors.push(
+                      this.dbDriver.raw(
+                        "date_trunc('minute', ??) + interval '0 seconds' as ??",
+                        [columnName, column.id],
+                      ),
+                    );
+                  } else if (
+                    this.dbDriver.clientType() === 'mysql' ||
+                    this.dbDriver.clientType() === 'mysql2'
+                  ) {
+                    colSelectors.push(
+                      // this.dbDriver.raw('??::date as ??', [columnName, column.id]),
+                      this.dbDriver.raw(
+                        "DATE_SUB(CONVERT_TZ(??, @@GLOBAL.time_zone, '+00:00'), INTERVAL SECOND(??) SECOND) as ??",
+                        [columnName, columnName, column.id],
+                      ),
+                    );
+                  } else if (this.dbDriver.clientType() === 'sqlite3') {
+                    colSelectors.push(
+                      this.dbDriver.raw(
+                        `strftime ('%Y-%m-%d %H:%M:00',:column:) ||
+  (
+   CASE WHEN substr(:column:, 20, 1) = '+' THEN
+    printf ('+%s:',
+     substr(:column:, 21, 2)) || printf ('%s',
+     substr(:column:, 24, 2))
+   WHEN substr(:column:, 20, 1) = '-' THEN
+    printf ('-%s:',
+     substr(:column:, 21, 2)) || printf ('%s',
+     substr(:column:, 24, 2))
+   ELSE
+    '+00:00'
+   END) AS :id:`,
+                        {
+                          column: columnName,
+                          id: column.id,
+                        },
+                      ),
+                    );
+                  } else {
+                    colSelectors.push(
+                      this.dbDriver.raw('DATE(??) as ??', [
+                        columnName,
+                        column.id,
+                      ]),
+                    );
+                  }
+                  groupBySelectors.push(column.id);
+                }
+                break;
+              default: {
+                const columnName = await getColumnName(
+                  this.context,
+                  column,
+                  columns,
+                );
+                colSelectors.push(
+                  this.dbDriver.raw('?? as ??', [columnName, column.id]),
+                );
+                groupBySelectors.push(column.id);
+                break;
+              }
+            }
+          }),
+        );
+
+        // get aggregated count of each group
+        tQb.count(`${this.model.primaryKey?.column_name || '*'} as count`);
+        tQb.select(...colSelectors);
+
+        if (+rest?.shuffle) {
+          await this.shuffle({ qb: tQb });
+        }
+
+        await conditionV2(
+          this,
+          [
+            ...(this.viewId
+              ? [
+                  new Filter({
+                    children: viewFilterList || [],
+                    is_group: true,
+                  }),
+                ]
+              : []),
+            new Filter({
+              children: rest.filterArr || [],
+              is_group: true,
+              logical_op: 'and',
+            }),
+            new Filter({
+              children: extractFilterFromXwhere(where, aliasColObjMap),
+              is_group: true,
+              logical_op: 'and',
+            }),
+            new Filter({
+              children: groupFilter,
+              is_group: true,
+              logical_op: 'and',
+            }),
+            new Filter({
+              children: args.filterArr || [],
+              is_group: true,
+              logical_op: 'and',
+            }),
+          ],
+          tQb,
+        );
+
+        tQb.groupBy(...groupBySelectors);
+
+        const count = this.dbDriver
+          .count('*', { as: 'count' })
+          .from(tQb.as('groupby'));
+
+        let subQuery;
+        switch (this.dbDriver.client.config.client) {
+          case 'pg':
+            subQuery = this.dbDriver
+              .select(
+                this.dbDriver.raw(`json_build_object('count', "count") as ??`, [
+                  getAlias(),
+                ]),
+              )
+              .from(count.as(getAlias()));
+            selectors.push(
+              this.dbDriver.raw(`(??) as "??"`, [
+                subQuery,
+                this.dbDriver.raw(f.alias),
+              ]),
+            );
+            break;
+          case 'mysql2':
+            subQuery = this.dbDriver
+              .select(this.dbDriver.raw(`JSON_OBJECT('count', \`count\`)`))
+              .from(count.as(getAlias()));
+            selectors.push(
+              this.dbDriver.raw(`(??) as ??`, [subQuery, `${f.alias}`]),
+            );
+            break;
+          case 'sqlite3':
+            subQuery = this.dbDriver
+              .select(
+                this.dbDriver.raw(`json_object('count', "count") as ??`, [
+                  f.alias,
+                ]),
+              )
+              .from(count.as(getAlias()));
+            selectors.push(
+              this.dbDriver.raw(`(??) as ??`, [subQuery, `${f.alias}`]),
+            );
+            break;
+          default:
+            NcError.notImplemented(
+              'This database does not support bulk groupBy count',
+            );
+        }
+      }
+
+      const qb = this.dbDriver(this.tnPath);
+      qb.select(...selectors).limit(1);
+
+      const data = await this.execAndParse(qb, null, {
+        raw: true,
+        first: true,
+      });
+
+      return data;
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
+  async bulkGroupBy(
+    args: {
+      filterArr?: Filter[];
+    },
+    bulkFilterList: {
+      alias: string;
+      where?: string;
+      column_name: string;
+      limit?;
+      offset?;
+      sort?: string;
+      filterArr?: Filter[];
+      sortArr?: Sort[];
+    }[],
+    view: View,
+  ) {
+    const columns = await this.model.getColumns(this.context);
+    const aliasColObjMap = await this.model.getAliasColObjMap(
+      this.context,
+      columns,
+    );
+    const selectors = [] as Array<Knex.Raw>;
+
+    const viewFilterList = await Filter.rootFilterList(this.context, {
+      viewId: this.viewId,
+    });
+
+    try {
+      if (!bulkFilterList?.length) {
+        return NcError.badRequest('bulkFilterList is required');
+      }
+
+      for (const f of bulkFilterList) {
+        const { where, ...rest } = this._getListArgs(f);
+        const groupBySelectors = [];
+        const groupByColumns: Record<string, Column> = {};
+
+        const getAlias = getAliasGenerator('__nc_gb');
+        const groupFilter = extractFilterFromXwhere(f?.where, aliasColObjMap);
+        let groupSort = extractSortsObject(rest?.sort, aliasColObjMap);
+
+        const tQb = this.dbDriver(this.tnPath);
+        const colSelectors = [];
+        const colIds = rest.column_name
+          .split(',')
+          .map((col) => {
+            const column = columns.find(
+              (c) => c.column_name === col || c.title === col,
+            );
+            if (!column) {
+              throw NcError.fieldNotFound(col);
+            }
+            return column?.id;
+          })
+          .join('_');
+
+        await Promise.all(
+          rest.column_name.split(',').map(async (col) => {
+            let column = columns.find(
+              (c) => c.column_name === col || c.title === col,
+            );
+
+            // if qrCode or Barcode replace it with value column nd keep the alias
+            if ([UITypes.QrCode, UITypes.Barcode].includes(column.uidt)) {
+              column = new Column({
+                ...(await column
+                  .getColOptions<BarcodeColumn | QrCodeColumn>(this.context)
+                  .then((col) => col.getValueColumn(this.context))),
+                title: column.title,
+                id: column.id,
+              });
+            }
+
+            groupByColumns[column.id] = column;
+
+            switch (column.uidt) {
+              case UITypes.Attachment:
+                throw NcError.badRequest(
+                  'Group by using attachment column is not supported',
+                );
+              case UITypes.Links:
+              case UITypes.Rollup:
+                colSelectors.push(
+                  (
+                    await genRollupSelectv2({
+                      baseModelSqlv2: this,
+                      knex: this.dbDriver,
+                      columnOptions: (await column.getColOptions(
+                        this.context,
+                      )) as RollupColumn,
+                    })
+                  ).builder.as(column.id),
+                );
+                groupBySelectors.push(column.id);
+                break;
+              case UITypes.Formula: {
+                let selectQb;
+                try {
+                  const _selectQb = await this.getSelectQueryBuilderForFormula(
+                    column,
+                  );
+                  selectQb = this.dbDriver.raw(`?? as ??`, [
+                    _selectQb.builder,
+                    column.id,
+                  ]);
+                } catch (e) {
+                  console.log(e);
+                  selectQb = this.dbDriver.raw(`'ERR' as ??`, [column.id]);
+                }
+                colSelectors.push(selectQb);
+                groupBySelectors.push(column.id);
+                break;
+              }
+
+              case UITypes.Lookup:
+              case UITypes.LinkToAnotherRecord: {
+                const _selectQb = await generateLookupSelectQuery({
+                  baseModelSqlv2: this,
+                  column,
+                  alias: null,
+                  model: this.model,
+                  getAlias,
+                });
+                const selectQb = this.dbDriver.raw(`?? as ??`, [
+                  this.dbDriver.raw(_selectQb.builder).wrap('(', ')'),
+                  column.id,
+                ]);
+                colSelectors.push(selectQb);
+                groupBySelectors.push(column.id);
+                break;
+              }
+              case UITypes.DateTime:
+              case UITypes.CreatedTime:
+              case UITypes.LastModifiedTime:
+                {
+                  const columnName = await getColumnName(
+                    this.context,
+                    column,
+                    columns,
+                  );
+                  // ignore seconds part in datetime and group
+                  if (this.dbDriver.clientType() === 'pg') {
+                    colSelectors.push(
+                      this.dbDriver.raw(
+                        "date_trunc('minute', ??) + interval '0 seconds' as ??",
+                        [columnName, column.id],
+                      ),
+                    );
+                  } else if (
+                    this.dbDriver.clientType() === 'mysql' ||
+                    this.dbDriver.clientType() === 'mysql2'
+                  ) {
+                    colSelectors.push(
+                      // this.dbDriver.raw('??::date as ??', [columnName, column.id]),
+                      this.dbDriver.raw(
+                        "DATE_SUB(CONVERT_TZ(??, @@GLOBAL.time_zone, '+00:00'), INTERVAL SECOND(??) SECOND) as ??",
+                        [columnName, columnName, column.id],
+                      ),
+                    );
+                  } else if (this.dbDriver.clientType() === 'sqlite3') {
+                    colSelectors.push(
+                      this.dbDriver.raw(
+                        `strftime ('%Y-%m-%d %H:%M:00',:column:) ||
+  (
+   CASE WHEN substr(:column:, 20, 1) = '+' THEN
+    printf ('+%s:',
+     substr(:column:, 21, 2)) || printf ('%s',
+     substr(:column:, 24, 2))
+   WHEN substr(:column:, 20, 1) = '-' THEN
+    printf ('-%s:',
+     substr(:column:, 21, 2)) || printf ('%s',
+     substr(:column:, 24, 2))
+   ELSE
+    '+00:00'
+   END) AS :id:`,
+                        {
+                          column: columnName,
+                          id: column.id,
+                        },
+                      ),
+                    );
+                  } else {
+                    colSelectors.push(
+                      this.dbDriver.raw('DATE(??) as ??', [
+                        columnName,
+                        column.id,
+                      ]),
+                    );
+                  }
+                  groupBySelectors.push(column.id);
+                }
+                break;
+              default: {
+                const columnName = await getColumnName(
+                  this.context,
+                  column,
+                  columns,
+                );
+                colSelectors.push(
+                  this.dbDriver.raw('?? as ??', [columnName, column.id]),
+                );
+                groupBySelectors.push(column.id);
+                break;
+              }
+            }
+          }),
+        );
+
+        // get aggregated count of each group
+        tQb.count(`${this.model.primaryKey?.column_name || '*'} as count`);
+        tQb.select(...colSelectors);
+
+        if (+rest?.shuffle) {
+          await this.shuffle({ qb: tQb });
+        }
+
+        await conditionV2(
+          this,
+          [
+            ...(this.viewId
+              ? [
+                  new Filter({
+                    children: viewFilterList || [],
+                    is_group: true,
+                  }),
+                ]
+              : []),
+            new Filter({
+              children: rest.filterArr || [],
+              is_group: true,
+              logical_op: 'and',
+            }),
+            new Filter({
+              children: extractFilterFromXwhere(where, aliasColObjMap),
+              is_group: true,
+              logical_op: 'and',
+            }),
+            new Filter({
+              children: groupFilter,
+              is_group: true,
+              logical_op: 'and',
+            }),
+            new Filter({
+              children: args.filterArr || [],
+              is_group: true,
+              logical_op: 'and',
+            }),
+          ],
+          tQb,
+        );
+
+        if (!groupSort) {
+          if (rest.sortArr?.length) {
+            groupSort = rest.sortArr;
+          } else if (this.viewId) {
+            groupSort = await Sort.list(this.context, { viewId: this.viewId });
+          }
+        }
+
+        for (const sort of groupSort || []) {
+          if (!groupByColumns[sort.fk_column_id]) {
+            continue;
+          }
+
+          const column = groupByColumns[sort.fk_column_id];
+
+          if (
+            [UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(
+              column.uidt as UITypes,
+            )
+          ) {
+            const columnName = await getColumnName(
+              this.context,
+              column,
+              columns,
+            );
+            const baseUsers = await BaseUser.getUsersList(this.context, {
+              base_id: column.base_id,
+            });
+
+            // create nested replace statement for each user
+            const finalStatement = baseUsers.reduce((acc, user) => {
+              const qb = this.dbDriver.raw(`REPLACE(${acc}, ?, ?)`, [
+                user.id,
+                user.display_name || user.email,
+              ]);
+              return qb.toQuery();
+            }, this.dbDriver.raw(`??`, [columnName]).toQuery());
+
+            if (!['asc', 'desc'].includes(sort.direction)) {
+              tQb.orderBy(
+                'count',
+                sort.direction === 'count-desc' ? 'desc' : 'asc',
+                sort.direction === 'count-desc' ? 'LAST' : 'FIRST',
+              );
+            } else {
+              tQb.orderBy(
+                sanitize(this.dbDriver.raw(finalStatement)),
+                sort.direction,
+                sort.direction === 'desc' ? 'LAST' : 'FIRST',
+              );
+            }
+          } else {
+            if (!['asc', 'desc'].includes(sort.direction)) {
+              tQb.orderBy(
+                'count',
+                sort.direction === 'count-desc' ? 'desc' : 'asc',
+                sort.direction === 'count-desc' ? 'LAST' : 'FIRST',
+              );
+            } else {
+              tQb.orderBy(
+                column.id,
+                sort.direction,
+                sort.direction === 'desc' ? 'LAST' : 'FIRST',
+              );
+            }
+          }
+          tQb.groupBy(...groupBySelectors);
+          applyPaginate(tQb, rest);
+        }
+
+        let subQuery;
+        switch (this.dbDriver.client.config.client) {
+          case 'pg':
+            subQuery = this.dbDriver
+              .select(
+                this.dbDriver.raw(
+                  `json_agg(json_build_object('count', "count", '${rest.column_name}', "${colIds}")) as ??`,
+                  [getAlias()],
+                ),
+              )
+              .from(tQb.as(getAlias()));
+            selectors.push(
+              this.dbDriver.raw(`(??) as "??"`, [
+                subQuery,
+                this.dbDriver.raw(f.alias),
+              ]),
+            );
+            break;
+          case 'mysql2':
+            subQuery = this.dbDriver
+              .select(
+                this.dbDriver.raw(
+                  `JSON_ARRAYAGG(JSON_OBJECT('count', \`count\`, '${rest.column_name}', \`${colIds}\`))`,
+                ),
+              )
+              .from(this.dbDriver.raw(`(??) as ??`, [tQb, getAlias()]));
+            selectors.push(
+              this.dbDriver.raw(`(??) as ??`, [subQuery, f.alias]),
+            );
+            break;
+          case 'sqlite3':
+            subQuery = this.dbDriver
+              .select(
+                this.dbDriver.raw(
+                  `json_group_array(json_object('count', "count", '${rest.column_name}', "${colIds}")) as ??`,
+                  [f.alias],
+                ),
+              )
+              .from(tQb.as(getAlias()));
+            selectors.push(
+              this.dbDriver.raw(`(??) as ??`, [subQuery, f.alias]),
+            );
+            break;
+          default:
+            NcError.notImplemented(
+              'This database does not support bulk groupBy',
+            );
+        }
+      }
+
+      const qb = this.dbDriver(this.tnPath);
+      qb.select(...selectors).limit(1);
+
+      const data = await this.execAndParse(qb, null, {
+        raw: true,
+        first: true,
+      });
+      return data;
+    } catch (err) {
+      logger.log(err);
+      return [];
+    }
+  }
+
+  async bulkAggregate(
+    args: {
+      filterArr?: Filter[];
+    },
+    bulkFilterList: Array<{
+      alias: string;
+      where?: string;
+    }>,
+    view: View,
+  ) {
+    try {
+      if (!bulkFilterList?.length) {
+        return NcError.badRequest('bulkFilterList is required');
       }
 
       const { where, aggregation } = this._getListArgs(args as any);
@@ -841,8 +1525,8 @@ class BaseModelSqlv2 {
       });
 
       const selectors = [] as Array<Knex.Raw>;
-      // Generate a knex raw query for each filter in the aggregateFilterList
-      for (const f of args.aggregateFilterList) {
+      // Generate a knex raw query for each filter in the bulkFilterList
+      for (const f of bulkFilterList) {
         const tQb = this.dbDriver(this.tnPath);
         const aggFilter = extractFilterFromXwhere(f.where, aliasColObjMap);
 
@@ -3331,6 +4015,7 @@ class BaseModelSqlv2 {
     obj.sort = args.sort || args.s;
     obj.pks = args.pks;
     obj.aggregation = args.aggregation || [];
+    obj.column_name = args.column_name;
     return obj;
   }
 
@@ -4320,10 +5005,25 @@ class BaseModelSqlv2 {
                 );
                 insertObj[childCol.column_name] = nestedData?.[parentCol.title];
               } else {
+                const parentCol = await colOptions.getParentColumn(
+                  this.context,
+                );
+                const parentModel = await parentCol.getModel(this.context);
+                await parentModel.getColumns(this.context);
+
                 postInsertOps.push(async (rowId) => {
+                  let refId = rowId;
+                  if (parentModel.primaryKey.id !== parentCol.id) {
+                    refId = this.dbDriver(
+                      this.getTnPath(parentModel.table_name),
+                    )
+                      .select(parentCol.column_name)
+                      .where(parentModel.primaryKey.column_name, rowId)
+                      .first();
+                  }
                   return this.dbDriver(this.getTnPath(childModel.table_name))
                     .update({
-                      [childCol.column_name]: rowId,
+                      [childCol.column_name]: refId,
                     })
                     .where(
                       childModel.primaryKey.column_name,
@@ -4338,13 +5038,23 @@ class BaseModelSqlv2 {
             {
               if (!Array.isArray(nestedData)) continue;
               const childCol = await colOptions.getChildColumn(this.context);
+              const parentCol = await colOptions.getParentColumn(this.context);
               const childModel = await childCol.getModel(this.context);
+              const parentModel = await parentCol.getModel(this.context);
               await childModel.getColumns(this.context);
+              await parentModel.getColumns(this.context);
 
               postInsertOps.push(async (rowId) => {
+                let refId = rowId;
+                if (parentModel.primaryKey.id !== parentCol.id) {
+                  refId = this.dbDriver(this.getTnPath(parentModel.table_name))
+                    .select(parentCol.column_name)
+                    .where(parentModel.primaryKey.column_name, rowId)
+                    .first();
+                }
                 return this.dbDriver(this.getTnPath(childModel.table_name))
                   .update({
-                    [childCol.column_name]: rowId,
+                    [childCol.column_name]: refId,
                   })
                   .whereIn(
                     childModel.primaryKey.column_name,
@@ -7206,36 +7916,227 @@ class BaseModelSqlv2 {
               if (Array.isArray(attachment)) {
                 for (const lookedUpAttachment of attachment) {
                   if (lookedUpAttachment?.path) {
+                    let relativePath = lookedUpAttachment.path.replace(
+                      /^download\//,
+                      '',
+                    );
+
                     promises.push(
                       PresignedUrl.getSignedUrl({
-                        path: lookedUpAttachment.path.replace(
-                          /^download\//,
-                          '',
-                        ),
+                        pathOrUrl: relativePath,
+                        preview: true,
+                        mimetype: lookedUpAttachment.mimetype,
+                        filename: lookedUpAttachment.title,
                       }).then((r) => (lookedUpAttachment.signedPath = r)),
                     );
-                  } else if (lookedUpAttachment?.url) {
+
+                    if (!lookedUpAttachment.mimetype?.startsWith('image/')) {
+                      continue;
+                    }
+
+                    lookedUpAttachment.thumbnails = {
+                      tiny: {},
+                      small: {},
+                      card_cover: {},
+                    };
+
+                    relativePath = `thumbnails/${relativePath}`;
+
                     promises.push(
                       PresignedUrl.getSignedUrl({
-                        path: decodeURI(
-                          new URL(lookedUpAttachment.url).pathname,
-                        ),
+                        pathOrUrl: `${relativePath}/tiny.jpg`,
+                        preview: true,
+                        mimetype: 'image/jpeg',
+                        filename: lookedUpAttachment.title,
+                      }).then(
+                        (r) =>
+                          (lookedUpAttachment.thumbnails.tiny.signedPath = r),
+                      ),
+                    );
+                    promises.push(
+                      PresignedUrl.getSignedUrl({
+                        pathOrUrl: `${relativePath}/small.jpg`,
+                        preview: true,
+                        mimetype: 'image/jpeg',
+                        filename: lookedUpAttachment.title,
+                      }).then(
+                        (r) =>
+                          (lookedUpAttachment.thumbnails.small.signedPath = r),
+                      ),
+                    );
+                    promises.push(
+                      PresignedUrl.getSignedUrl({
+                        pathOrUrl: `${relativePath}/card_cover.jpg`,
+                        preview: true,
+                        mimetype: 'image/jpeg',
+                        filename: lookedUpAttachment.title,
+                      }).then(
+                        (r) =>
+                          (lookedUpAttachment.thumbnails.card_cover.signedPath =
+                            r),
+                      ),
+                    );
+                  } else if (lookedUpAttachment?.url) {
+                    let relativePath = lookedUpAttachment.url;
+                    promises.push(
+                      PresignedUrl.getSignedUrl({
+                        pathOrUrl: relativePath,
+                        preview: true,
+                        mimetype: lookedUpAttachment.mimetype,
+                        filename: lookedUpAttachment.title,
                       }).then((r) => (lookedUpAttachment.signedUrl = r)),
+                    );
+
+                    if (!lookedUpAttachment.mimetype?.startsWith('image/')) {
+                      continue;
+                    }
+
+                    relativePath = relativePath.replace(
+                      'nc/uploads',
+                      'nc/thumbnails',
+                    );
+
+                    lookedUpAttachment.thumbnails = {
+                      tiny: {},
+                      small: {},
+                      card_cover: {},
+                    };
+
+                    promises.push(
+                      PresignedUrl.getSignedUrl({
+                        pathOrUrl: `${relativePath}/tiny.jpg`,
+                        preview: true,
+                        mimetype: 'image/jpeg',
+                        filename: lookedUpAttachment.title,
+                      }).then(
+                        (r) =>
+                          (lookedUpAttachment.thumbnails.tiny.signedUrl = r),
+                      ),
+                    );
+                    promises.push(
+                      PresignedUrl.getSignedUrl({
+                        pathOrUrl: `${relativePath}/small.jpg`,
+                        preview: true,
+                        mimetype: 'image/jpeg',
+                        filename: lookedUpAttachment.title,
+                      }).then(
+                        (r) =>
+                          (lookedUpAttachment.thumbnails.small.signedUrl = r),
+                      ),
+                    );
+                    promises.push(
+                      PresignedUrl.getSignedUrl({
+                        pathOrUrl: `${relativePath}/card_cover.jpg`,
+                        preview: true,
+                        mimetype: 'image/jpeg',
+                        filename: lookedUpAttachment.title,
+                      }).then(
+                        (r) =>
+                          (lookedUpAttachment.thumbnails.card_cover.signedUrl =
+                            r),
+                      ),
                     );
                   }
                 }
               } else {
                 if (attachment?.path) {
+                  let relativePath = attachment.path.replace(/^download\//, '');
+
                   promises.push(
                     PresignedUrl.getSignedUrl({
-                      path: attachment.path.replace(/^download\//, ''),
+                      pathOrUrl: relativePath,
+                      preview: true,
+                      mimetype: attachment.mimetype,
+                      filename: attachment.title,
                     }).then((r) => (attachment.signedPath = r)),
                   );
-                } else if (attachment?.url) {
+                  if (!attachment.mimetype?.startsWith('image/')) {
+                    continue;
+                  }
+
+                  relativePath = `thumbnails/${relativePath}`;
+
+                  attachment.thumbnails = {
+                    tiny: {},
+                    small: {},
+                    card_cover: {},
+                  };
+
                   promises.push(
                     PresignedUrl.getSignedUrl({
-                      path: decodeURI(new URL(attachment.url).pathname),
+                      pathOrUrl: `${relativePath}/tiny.jpg`,
+                      preview: true,
+                      mimetype: 'image/jpeg',
+                      filename: attachment.title,
+                    }).then((r) => (attachment.thumbnails.tiny.signedPath = r)),
+                  );
+                  promises.push(
+                    PresignedUrl.getSignedUrl({
+                      pathOrUrl: `${relativePath}/small.jpg`,
+                      preview: true,
+                      mimetype: 'image/jpeg',
+                      filename: attachment.title,
+                    }).then(
+                      (r) => (attachment.thumbnails.small.signedPath = r),
+                    ),
+                  );
+                  promises.push(
+                    PresignedUrl.getSignedUrl({
+                      pathOrUrl: `${relativePath}/card_cover.jpg`,
+                      preview: true,
+                      mimetype: 'image/jpeg',
+                      filename: attachment.title,
+                    }).then(
+                      (r) => (attachment.thumbnails.card_cover.signedPath = r),
+                    ),
+                  );
+                } else if (attachment?.url) {
+                  let relativePath = attachment.url;
+
+                  promises.push(
+                    PresignedUrl.getSignedUrl({
+                      pathOrUrl: relativePath,
+                      preview: true,
+                      mimetype: attachment.mimetype,
+                      filename: attachment.title,
                     }).then((r) => (attachment.signedUrl = r)),
+                  );
+
+                  relativePath = relativePath.replace(
+                    'nc/uploads',
+                    'nc/thumbnails',
+                  );
+                  attachment.thumbnails = {
+                    tiny: {},
+                    small: {},
+                    card_cover: {},
+                  };
+
+                  promises.push(
+                    PresignedUrl.getSignedUrl({
+                      pathOrUrl: `${relativePath}/tiny.jpg`,
+                      preview: true,
+                      mimetype: 'image/jpeg',
+                      filename: attachment.title,
+                    }).then((r) => (attachment.thumbnails.tiny.signedUrl = r)),
+                  );
+                  promises.push(
+                    PresignedUrl.getSignedUrl({
+                      pathOrUrl: `${relativePath}/small.jpg`,
+                      preview: true,
+                      mimetype: 'image/jpeg',
+                      filename: attachment.title,
+                    }).then((r) => (attachment.thumbnails.small.signedUrl = r)),
+                  );
+                  promises.push(
+                    PresignedUrl.getSignedUrl({
+                      pathOrUrl: `${relativePath}/card_cover.jpg`,
+                      preview: true,
+                      mimetype: 'image/jpeg',
+                      filename: attachment.title,
+                    }).then(
+                      (r) => (attachment.thumbnails.card_cover.signedUrl = r),
+                    ),
                   );
                 }
               }
@@ -8377,6 +9278,8 @@ class BaseModelSqlv2 {
                   'mimetype',
                   'size',
                   'icon',
+                  'width',
+                  'height',
                 ]),
               );
             }

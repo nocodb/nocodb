@@ -907,8 +907,8 @@ export function useMultiSelect(
           const rowObj = unref(data)[activeCell.row]
           const columnObj = unref(fields)[activeCell.col]
 
-          // handle belongs to column
-          if (isBt(columnObj)) {
+          // handle belongs to column, skip custom links
+          if (isBt(columnObj) && !columnObj.meta?.custom) {
             const pasteVal = convertCellData(
               {
                 value: clipboardData,

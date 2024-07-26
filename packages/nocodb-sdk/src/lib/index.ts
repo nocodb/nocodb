@@ -20,8 +20,9 @@ export {
   isHiddenCol,
   getEquivalentUIType,
   isSelectTypeCol,
+  getUITypesForFormulaDataType,
   readonlyMetaAllowedTypes,
-  partialUpdateAllowedTypes
+  partialUpdateAllowedTypes,
 } from '~/lib/UITypes';
 export { default as CustomAPI, FileType } from '~/lib/CustomAPI';
 export { default as TemplateGenerator } from '~/lib/TemplateGenerator';
@@ -30,3 +31,4 @@ export * from '~/lib/mergeSwaggerSchema';
 export * from '~/lib/dateTimeHelper';
 export * from '~/lib/form';
 export * from '~/lib/aggregationHelper';
+export * from '~/lib/connectionConfigUtils';

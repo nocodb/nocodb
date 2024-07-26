@@ -521,10 +521,13 @@
     "looksLikeThisStackIsEmpty": "Wygląda na to, że ten stos nie ma żadnych rekordów"
   },
   "labels": {
+    "formatting": "Formatting",
+    "selectAFormatType": "-Wybierz typ formularza (opcjonalnie)- -",
+    "formatType": "Format type",
     "toUpload": "to upload",
     "dragFilesHere": "drag files here",
-    "browseFiles": "browse files",
-    "clickTo": "Click to",
+    "browseFiles": "przeglądaj pliki",
+    "clickTo": "Kliknij aby",
     "allowAccessToYourCamera": "Please allow access to your camera",
     "openFile": "Open file",
     "enterValidUrl": "Enter a valid URL to upload files",
@@ -1243,7 +1246,7 @@
       "hintStart": "Wskazówka: Użyj {placeholder1} do odwołania się do pól, np.: {placeholder2}. Po więcej informacji zapoznaj się z",
       "hintEnd": "Formułami.",
       "noSuggestedFormulaFound": "Nie znaleziono sugerowanej formuły",
-      "noSuggestedFieldFound": "No suggested field found",
+      "noSuggestedFieldFound": "Nie znaleziono sugerowanego pola",
       "typeIsExpected": "{calleeName} wymaga {type} na pozycji {position}",
       "numericTypeIsExpected": "Oczekiwany jest typ numeryczny",
       "stringTypeIsExpected": "Oczekiwany jest typ tekstowy",
@@ -1347,7 +1350,7 @@
       }
     },
     "info": {
-      "schemaReadOnly": "Schema alterations are disabled for this source",
+      "schemaReadOnly": "Zmiany schematu są wyłączone dla tego źródła",
       "enterWorkspaceName": "Wprowadź nazwę projektu",
       "enterBaseName": "Wpisz nazwę tabeli",
       "idpPaste": "Proszę wkleić ten adres URL w konsoli dostawcy tożsamości",

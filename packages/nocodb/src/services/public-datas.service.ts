@@ -1,10 +1,11 @@
 import path from 'path';
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { nanoid } from 'nanoid';
 import { populateUniqueFileName, UITypes, ViewTypes } from 'nocodb-sdk';
 import slash from 'slash';
 import { nocoExecute } from 'nc-help';
 
+import sharp from 'sharp';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
 import { Column, Model, Source, View } from '~/models';
@@ -18,6 +19,10 @@ import { mimeIcons } from '~/utils/mimeTypes';
 import { utf8ify } from '~/helpers/stringHelpers';
 import { replaceDynamicFieldWithValue } from '~/db/BaseModelSqlv2';
 import { Filter } from '~/models';
+import { IJobsService } from '~/modules/jobs/jobs-service.interface';
+import { JobTypes } from '~/interface/Jobs';
+import { RootScopes } from '~/utils/globals';
+import { DatasService } from '~/services/datas.service';
 
 // todo: move to utils
 export function sanitizeUrlPath(paths) {
@@ -26,6 +31,12 @@ export function sanitizeUrlPath(paths) {
 
 @Injectable()
 export class PublicDatasService {
+  constructor(
+    protected datasService: DatasService,
+    @Inject(forwardRef(() => 'JobsService'))
+    protected readonly jobsService: IJobsService,
+  ) {}
+
   async dataList(
     context: NcContext,
     param: {
@@ -405,6 +416,23 @@ export class PublicDatasService {
           attachments[fieldName].map((att) => att?.title),
         );
 
+        const tempMeta: {
+          width?: number;
+          height?: number;
+        } = {};
+
+        if (file.mimetype.startsWith('image')) {
+          try {
+            const meta = await sharp(file.path, {
+              limitInputPixels: false,
+            }).metadata();
+            tempMeta.width = meta.width;
+            tempMeta.height = meta.height;
+          } catch (e) {
+            // Ignore-if file is not image
+          }
+        }
+
         const fileName = `${nanoid(18)}${path.extname(originalName)}`;
 
         const url = await storageAdapter.fileCreate(
@@ -427,6 +455,7 @@ export class PublicDatasService {
           mimetype: file.mimetype,
           size: file.size,
           icon: mimeIcons[path.extname(originalName).slice(1)] || undefined,
+          ...tempMeta,
         });
       }
     }
@@ -461,15 +490,33 @@ export class PublicDatasService {
         file?.fileName || file.url.split('/').pop(),
       )}`;
 
-      const attachmentUrl: string | null = await storageAdapter.fileCreateByUrl(
+      const { url, data } = await storageAdapter.fileCreateByUrl(
         slash(path.join('nc', 'uploads', ...filePath, fileName)),
         file.url,
       );
 
+      const tempMetadata: {
+        width?: number;
+        height?: number;
+      } = {};
+
+      try {
+        const metadata = await sharp(data, {
+          limitInputPixels: true,
+        }).metadata();
+
+        if (metadata.width && metadata.height) {
+          tempMetadata.width = metadata.width;
+          tempMetadata.height = metadata.height;
+        }
+      } catch (e) {
+        // Might be invalid image - ignore
+      }
+
       let attachmentPath: string | undefined;
 
       // if `attachmentUrl` is null, then it is local attachment
-      if (!attachmentUrl) {
+      if (!url) {
         // then store the attachment path only
         // url will be constructed in `useAttachmentCell`
         attachmentPath = `download/${filePath.join('/')}/${fileName}`;
@@ -480,18 +527,27 @@ export class PublicDatasService {
         file.uploadIndex ?? attachments[file.fieldName].length,
         0,
         {
-          ...(attachmentUrl ? { url: attachmentUrl } : {}),
+          ...(url ? { url: url } : {}),
           ...(attachmentPath ? { path: attachmentPath } : {}),
           title: file.fileName,
           mimetype: file.mimetype,
           size: file.size,
           icon: mimeIcons[path.extname(fileName).slice(1)] || undefined,
+          ...tempMetadata,
         },
       );
     }
 
     for (const [column, data] of Object.entries(attachments)) {
       insertObject[column] = JSON.stringify(data);
+
+      await this.jobsService.add(JobTypes.ThumbnailGenerator, {
+        attachments: data,
+        context: {
+          base_id: RootScopes.ROOT,
+          workspace_id: RootScopes.ROOT,
+        },
+      });
     }
 
     return await baseModel.nestedInsert(insertObject, null);
@@ -736,5 +792,190 @@ export class PublicDatasService {
     );
 
     return new PagedResponseImpl(data, { ...param.query, count });
+  }
+
+  async dataRead(
+    context: NcContext,
+    param: {
+      sharedViewUuid: string;
+      rowId: string;
+      password?: string;
+      query: any;
+    },
+  ) {
+    const { sharedViewUuid, rowId, password, query = {} } = param;
+    const view = await View.getByUUID(context, sharedViewUuid);
+
+    if (!view) NcError.viewNotFound(sharedViewUuid);
+    if (
+      view.type !== ViewTypes.GRID &&
+      view.type !== ViewTypes.KANBAN &&
+      view.type !== ViewTypes.GALLERY &&
+      view.type !== ViewTypes.MAP &&
+      view.type !== ViewTypes.CALENDAR
+    ) {
+      NcError.notFound('Not found');
+    }
+
+    if (view.password && view.password !== password) {
+      return NcError.invalidSharedViewPassword();
+    }
+
+    const model = await Model.getByIdOrName(context, {
+      id: view?.fk_model_id,
+    });
+
+    const source = await Source.get(context, model.source_id);
+
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+    });
+
+    const row = await baseModel.readByPk(rowId, false, query);
+
+    if (!row) {
+      NcError.recordNotFound(param.rowId);
+    }
+
+    return row;
+  }
+
+  async bulkDataList(
+    context: NcContext,
+    param: {
+      sharedViewUuid: string;
+      password?: string;
+      query: any;
+      body?: any;
+    },
+  ) {
+    const view = await View.getByUUID(context, param.sharedViewUuid);
+
+    if (!view) NcError.viewNotFound(param.sharedViewUuid);
+
+    if (view.type !== ViewTypes.GRID) {
+      NcError.notFound('Not found');
+    }
+
+    if (view.password && view.password !== param.password) {
+      return NcError.invalidSharedViewPassword();
+    }
+
+    const model = await Model.getByIdOrName(context, {
+      id: view?.fk_model_id,
+    });
+
+    const listArgs: any = { ...param.query };
+
+    let bulkFilterList = param.body;
+
+    try {
+      bulkFilterList = JSON.parse(bulkFilterList);
+    } catch (e) {}
+
+    try {
+      listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
+    } catch (e) {}
+
+    try {
+      listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
+    } catch (e) {}
+
+    if (!bulkFilterList?.length) {
+      NcError.badRequest('Invalid bulkFilterList');
+    }
+
+    const dataListResults = await bulkFilterList.reduce(
+      async (accPromise, dF: any) => {
+        const acc = await accPromise;
+        const result = await this.datasService.dataList(context, {
+          query: {
+            ...dF,
+          },
+          model,
+          view,
+        });
+        acc[dF.alias] = result;
+        return acc;
+      },
+      Promise.resolve({}),
+    );
+
+    return dataListResults;
+  }
+
+  async bulkGroupBy(
+    context: NcContext,
+    param: {
+      sharedViewUuid: string;
+      password?: string;
+      query: any;
+      body: any;
+    },
+  ) {
+    const view = await View.getByUUID(context, param.sharedViewUuid);
+
+    if (!view) NcError.viewNotFound(param.sharedViewUuid);
+
+    if (view.password && view.password !== param.password) {
+      return NcError.invalidSharedViewPassword();
+    }
+
+    const model = await Model.getByIdOrName(context, {
+      id: view?.fk_model_id,
+    });
+
+    const source = await Source.get(context, model.source_id);
+
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+    });
+
+    const listArgs: any = { ...param.query };
+
+    let bulkFilterList = param.body;
+
+    try {
+      bulkFilterList = JSON.parse(bulkFilterList);
+    } catch (e) {}
+
+    try {
+      listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
+    } catch (e) {}
+
+    if (!bulkFilterList?.length) {
+      NcError.badRequest('Invalid bulkFilterList');
+    }
+
+    const [data, count] = await Promise.all([
+      baseModel.bulkGroupBy(listArgs, bulkFilterList, view),
+      baseModel.bulkGroupByCount(listArgs, bulkFilterList, view),
+    ]);
+
+    bulkFilterList.forEach((dF: any) => {
+      // sqlite3 returns data as string. Hence needs to be converted to json object
+      let parsedData = data[dF.alias];
+
+      if (typeof parsedData === 'string') {
+        parsedData = JSON.parse(parsedData);
+      }
+
+      let parsedCount = count[dF.alias];
+
+      if (typeof parsedCount === 'string') {
+        parsedCount = JSON.parse(parsedCount);
+      }
+
+      data[dF.alias] = new PagedResponseImpl(parsedData, {
+        ...dF,
+        count: parsedCount?.count,
+      });
+    });
+
+    return data;
   }
 }

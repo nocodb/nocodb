@@ -391,7 +391,7 @@
   "title": {
     "webcam": "Webcam",
     "uploadViaUrl": "Upload via URL",
-    "localFiles": "Local Files",
+    "localFiles": "Local files",
     "renameBase": "Rename Base",
     "renameWorkspace": "Rename Workspace",
     "renamingWorkspace": "Renaming Workspace",
@@ -521,6 +521,9 @@
     "looksLikeThisStackIsEmpty": "Looks like this stack does not have any records"
   },
   "labels": {
+    "formatting": "Formatting",
+    "selectAFormatType": "- -Select a formt type (optional)- -",
+    "formatType": "Format type",
     "toUpload": "to upload",
     "dragFilesHere": "drag files here",
     "browseFiles": "browse files",

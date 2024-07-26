@@ -3,6 +3,7 @@ import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { CacheGetType, CacheScope } from '~/utils/globals';
+import { isPreviewAllowed } from '~/helpers/attachmentHelpers';
 
 function roundExpiry(date) {
   const msInHour = 10 * 60 * 1000;
@@ -88,15 +89,29 @@ export default class PresignedUrl {
 
   public static async getSignedUrl(
     param: {
-      path: string;
+      pathOrUrl: string;
       expireSeconds?: number;
       filename?: string;
+      preview?: boolean;
+      mimetype?: string;
     },
     ncMeta = Noco.ncMeta,
   ) {
-    let path = param.path.replace(/^\/+/, '');
+    const isUrl = /^https?:\/\//i.test(param.pathOrUrl);
 
-    const { expireSeconds = DEFAULT_EXPIRE_SECONDS, filename } = param;
+    let path = (
+      isUrl ? decodeURI(new URL(param.pathOrUrl).pathname) : param.pathOrUrl
+    ).replace(/^\/+/, '');
+
+    const {
+      expireSeconds = DEFAULT_EXPIRE_SECONDS,
+      filename,
+      mimetype,
+    } = param;
+
+    const preview = param.preview
+      ? isPreviewAllowed({ path, mimetype })
+      : false;
 
     const expireAt = roundExpiry(
       new Date(new Date().getTime() + expireSeconds * 1000),
@@ -109,8 +124,35 @@ export default class PresignedUrl {
 
     let tempUrl;
 
+    const pathParameters: {
+      [key: string]: string;
+    } = {};
+
+    if (preview) {
+      pathParameters.ResponseContentDisposition = `inline;`;
+
+      if (filename) {
+        pathParameters.ResponseContentDisposition += ` filename="${filename}"`;
+      }
+    } else {
+      pathParameters.ResponseContentDisposition = `attachment;`;
+
+      if (filename) {
+        pathParameters.ResponseContentDisposition += ` filename="${filename}"`;
+      }
+    }
+
+    if (mimetype) {
+      pathParameters.ResponseContentType = mimetype;
+    }
+
+    // append query params to the cache path
+    const cachePath = `${path}?${new URLSearchParams(
+      pathParameters,
+    ).toString()}`;
+
     const url = await NocoCache.get(
-      `${CacheScope.PRESIGNED_URL}:path:${path}`,
+      `${CacheScope.PRESIGNED_URL}:path:${cachePath}`,
       CacheGetType.TYPE_OBJECT,
     );
 
@@ -131,22 +173,21 @@ export default class PresignedUrl {
       tempUrl = await (storageAdapter as any).getSignedUrl(
         path,
         expiresInSeconds,
-        filename,
+        pathParameters,
       );
       await this.add({
-        path: path,
+        path: cachePath,
         url: tempUrl,
         expires_at: expireAt,
         expiresInSeconds,
       });
     } else {
-      // if not present, create a new url
-      tempUrl = `dltemp/${nanoid(16)}/${expireAt.getTime()}/${path}`;
+      // if not present, use url or generate url for local storage
+      tempUrl = isUrl
+        ? param.pathOrUrl
+        : `dltemp/${nanoid(16)}/${expireAt.getTime()}/${path}`;
 
-      // if filename is present, add it to the destination
-      if (filename) {
-        path = `${path}?filename=${encodeURIComponent(filename)}`;
-      }
+      path = `${path}?${new URLSearchParams(pathParameters).toString()}`;
 
       await this.add({
         path: path,

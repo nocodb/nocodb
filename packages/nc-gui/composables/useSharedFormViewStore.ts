@@ -528,13 +528,12 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       }
       case UITypes.LinkToAnotherRecord:
       case UITypes.Links: {
-        const refTableMeta = await getMeta((c.colOptions as LinkToAnotherRecordType)?.fk_related_model_id)
-        const pkCol = refTableMeta?.columns?.find((col) => col.pk)
-        preFillValue = (Array.isArray(value) ? value : [value]).map((id) => ({
-          [pkCol?.title as string]: id,
-        }))
+        const values = Array.isArray(value) ? value : value.split(',')
+        const rows = await loadLinkedRecords(c, values)
+
+        preFillValue = rows
         // if bt/oo then extract object from array
-        if(c.colOptions?.type === RelationTypes.BELONGS_TO || c.colOptions?.type === RelationTypes.ONE_TO_ONE) {
+        if (c.colOptions?.type === RelationTypes.BELONGS_TO || c.colOptions?.type === RelationTypes.ONE_TO_ONE) {
           preFillValue = preFillValue[0]
         }
         // Todo: create an api which will fetch query params records and then autofill records
@@ -552,6 +551,30 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       }
     }
     return preFillValue
+  }
+
+  async function loadLinkedRecords(column: ColumnType, ids: string[]) {
+    const relatedMeta = await getMeta((column.colOptions as LinkToAnotherRecordType)?.fk_related_model_id)
+    const pkCol = relatedMeta?.columns?.find((col) => col.pk)
+    const pvCol = relatedMeta?.columns?.find((col) => col.pv)
+
+    return (
+      await api.public.dataRelationList(
+        route.params.viewId as string,
+        column.id,
+        {},
+        {
+          headers: {
+            'xc-password': '', // sharedViewPassword.value,
+          },
+          query: {
+            limit: Math.max(25, ids.length),
+            where: `(${pkCol.title},in,${ids.join(',')})`,
+            fields: [pkCol.title, pvCol.title],
+          },
+        },
+      )
+    )?.list
   }
 
   let intvl: NodeJS.Timeout

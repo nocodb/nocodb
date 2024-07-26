@@ -143,9 +143,7 @@ export class ThumbnailGeneratorProcessor {
         .data as Buffer;
     }
 
-    if (relativePath.startsWith('/nc/uploads/')) {
-      relativePath = relativePath.replace('/nc/uploads/', '');
-    }
+    relativePath = relativePath.replace(/^.*(?=\/noco)/, '');
 
     return { file, relativePath };
   }

@@ -166,7 +166,6 @@ const onFileClick = (item: any) => {
   if (isMobileMode.value && !isExpandedForm.value) return
 
   if (!isMobileMode.value && (isGallery.value || isKanban.value) && !isExpandedForm.value) return
-
   selectedFile.value = item
 }
 
@@ -202,6 +201,25 @@ const handleFileDelete = (i: number) => {
   filetoDelete.i = 0
   filetoDelete.title = ''
 }
+
+const attachmentSize = computed(() => {
+  if (isForm.value || isExpandedForm.value) {
+    return 'small'
+  }
+
+  switch (rowHeight.value) {
+    case 1:
+      return 'tiny'
+    case 2:
+      return 'tiny'
+    case 4:
+      return 'small'
+    case 6:
+      return 'small'
+    default:
+      return 'tiny'
+  }
+})
 </script>
 
 <template>
@@ -214,6 +232,7 @@ const handleFileDelete = (i: number) => {
         </span>
       </div>
     </NcButton>
+    <LazyCellAttachmentCarousel v-if="selectedFile" />
 
     <div v-if="visibleItems.length > 0" class="grid mt-2 gap-2 grid-cols-2">
       <div
@@ -227,10 +246,10 @@ const handleFileDelete = (i: number) => {
         >
           <LazyCellAttachmentPreviewImage
             v-if="isImage(item.title, item.mimetype)"
-            :srcs="getPossibleAttachmentSrc(item)"
+            :srcs="getPossibleAttachmentSrc(item, 'small')"
             object-fit="cover"
             class="!w-full !h-42 object-cover !m-0 rounded-t-[5px] justify-center"
-            @click="selectedFile = item"
+            @click="onFileClick(item)"
           />
 
           <component :is="FileIcon(item.icon)" v-else-if="item.icon" :height="45" :width="45" @click="selectedFile = item" />
@@ -382,7 +401,7 @@ const handleFileDelete = (i: number) => {
                     'h-16.8': rowHeight === 4,
                     'h-20.8': rowHeight === 6,
                   }"
-                  :srcs="getPossibleAttachmentSrc(item)"
+                  :srcs="getPossibleAttachmentSrc(item, attachmentSize)"
                 />
               </div>
             </div>

@@ -7916,46 +7916,227 @@ class BaseModelSqlv2 {
               if (Array.isArray(attachment)) {
                 for (const lookedUpAttachment of attachment) {
                   if (lookedUpAttachment?.path) {
+                    let relativePath = lookedUpAttachment.path.replace(
+                      /^download\//,
+                      '',
+                    );
+
                     promises.push(
                       PresignedUrl.getSignedUrl({
-                        pathOrUrl: lookedUpAttachment.path.replace(
-                          /^download\//,
-                          '',
-                        ),
+                        pathOrUrl: relativePath,
                         preview: true,
                         mimetype: lookedUpAttachment.mimetype,
                         filename: lookedUpAttachment.title,
                       }).then((r) => (lookedUpAttachment.signedPath = r)),
                     );
-                  } else if (lookedUpAttachment?.url) {
+
+                    if (!lookedUpAttachment.mimetype?.startsWith('image/')) {
+                      continue;
+                    }
+
+                    lookedUpAttachment.thumbnails = {
+                      tiny: {},
+                      small: {},
+                      card_cover: {},
+                    };
+
+                    relativePath = `thumbnails/${relativePath}`;
+
                     promises.push(
                       PresignedUrl.getSignedUrl({
-                        pathOrUrl: lookedUpAttachment.url,
+                        pathOrUrl: `${relativePath}/tiny.jpg`,
+                        preview: true,
+                        mimetype: 'image/jpeg',
+                        filename: lookedUpAttachment.title,
+                      }).then(
+                        (r) =>
+                          (lookedUpAttachment.thumbnails.tiny.signedPath = r),
+                      ),
+                    );
+                    promises.push(
+                      PresignedUrl.getSignedUrl({
+                        pathOrUrl: `${relativePath}/small.jpg`,
+                        preview: true,
+                        mimetype: 'image/jpeg',
+                        filename: lookedUpAttachment.title,
+                      }).then(
+                        (r) =>
+                          (lookedUpAttachment.thumbnails.small.signedPath = r),
+                      ),
+                    );
+                    promises.push(
+                      PresignedUrl.getSignedUrl({
+                        pathOrUrl: `${relativePath}/card_cover.jpg`,
+                        preview: true,
+                        mimetype: 'image/jpeg',
+                        filename: lookedUpAttachment.title,
+                      }).then(
+                        (r) =>
+                          (lookedUpAttachment.thumbnails.card_cover.signedPath =
+                            r),
+                      ),
+                    );
+                  } else if (lookedUpAttachment?.url) {
+                    let relativePath = lookedUpAttachment.url;
+                    promises.push(
+                      PresignedUrl.getSignedUrl({
+                        pathOrUrl: relativePath,
                         preview: true,
                         mimetype: lookedUpAttachment.mimetype,
                         filename: lookedUpAttachment.title,
                       }).then((r) => (lookedUpAttachment.signedUrl = r)),
                     );
+
+                    if (!lookedUpAttachment.mimetype?.startsWith('image/')) {
+                      continue;
+                    }
+
+                    relativePath = relativePath.replace(
+                      'nc/uploads',
+                      'nc/thumbnails',
+                    );
+
+                    lookedUpAttachment.thumbnails = {
+                      tiny: {},
+                      small: {},
+                      card_cover: {},
+                    };
+
+                    promises.push(
+                      PresignedUrl.getSignedUrl({
+                        pathOrUrl: `${relativePath}/tiny.jpg`,
+                        preview: true,
+                        mimetype: 'image/jpeg',
+                        filename: lookedUpAttachment.title,
+                      }).then(
+                        (r) =>
+                          (lookedUpAttachment.thumbnails.tiny.signedUrl = r),
+                      ),
+                    );
+                    promises.push(
+                      PresignedUrl.getSignedUrl({
+                        pathOrUrl: `${relativePath}/small.jpg`,
+                        preview: true,
+                        mimetype: 'image/jpeg',
+                        filename: lookedUpAttachment.title,
+                      }).then(
+                        (r) =>
+                          (lookedUpAttachment.thumbnails.small.signedUrl = r),
+                      ),
+                    );
+                    promises.push(
+                      PresignedUrl.getSignedUrl({
+                        pathOrUrl: `${relativePath}/card_cover.jpg`,
+                        preview: true,
+                        mimetype: 'image/jpeg',
+                        filename: lookedUpAttachment.title,
+                      }).then(
+                        (r) =>
+                          (lookedUpAttachment.thumbnails.card_cover.signedUrl =
+                            r),
+                      ),
+                    );
                   }
                 }
               } else {
                 if (attachment?.path) {
+                  let relativePath = attachment.path.replace(/^download\//, '');
+
                   promises.push(
                     PresignedUrl.getSignedUrl({
-                      pathOrUrl: attachment.path.replace(/^download\//, ''),
+                      pathOrUrl: relativePath,
                       preview: true,
                       mimetype: attachment.mimetype,
                       filename: attachment.title,
                     }).then((r) => (attachment.signedPath = r)),
                   );
-                } else if (attachment?.url) {
+                  if (!attachment.mimetype?.startsWith('image/')) {
+                    continue;
+                  }
+
+                  relativePath = `thumbnails/${relativePath}`;
+
+                  attachment.thumbnails = {
+                    tiny: {},
+                    small: {},
+                    card_cover: {},
+                  };
+
                   promises.push(
                     PresignedUrl.getSignedUrl({
-                      pathOrUrl: attachment.url,
+                      pathOrUrl: `${relativePath}/tiny.jpg`,
+                      preview: true,
+                      mimetype: 'image/jpeg',
+                      filename: attachment.title,
+                    }).then((r) => (attachment.thumbnails.tiny.signedPath = r)),
+                  );
+                  promises.push(
+                    PresignedUrl.getSignedUrl({
+                      pathOrUrl: `${relativePath}/small.jpg`,
+                      preview: true,
+                      mimetype: 'image/jpeg',
+                      filename: attachment.title,
+                    }).then(
+                      (r) => (attachment.thumbnails.small.signedPath = r),
+                    ),
+                  );
+                  promises.push(
+                    PresignedUrl.getSignedUrl({
+                      pathOrUrl: `${relativePath}/card_cover.jpg`,
+                      preview: true,
+                      mimetype: 'image/jpeg',
+                      filename: attachment.title,
+                    }).then(
+                      (r) => (attachment.thumbnails.card_cover.signedPath = r),
+                    ),
+                  );
+                } else if (attachment?.url) {
+                  let relativePath = attachment.url;
+
+                  promises.push(
+                    PresignedUrl.getSignedUrl({
+                      pathOrUrl: relativePath,
                       preview: true,
                       mimetype: attachment.mimetype,
                       filename: attachment.title,
                     }).then((r) => (attachment.signedUrl = r)),
+                  );
+
+                  relativePath = relativePath.replace(
+                    'nc/uploads',
+                    'nc/thumbnails',
+                  );
+                  attachment.thumbnails = {
+                    tiny: {},
+                    small: {},
+                    card_cover: {},
+                  };
+
+                  promises.push(
+                    PresignedUrl.getSignedUrl({
+                      pathOrUrl: `${relativePath}/tiny.jpg`,
+                      preview: true,
+                      mimetype: 'image/jpeg',
+                      filename: attachment.title,
+                    }).then((r) => (attachment.thumbnails.tiny.signedUrl = r)),
+                  );
+                  promises.push(
+                    PresignedUrl.getSignedUrl({
+                      pathOrUrl: `${relativePath}/small.jpg`,
+                      preview: true,
+                      mimetype: 'image/jpeg',
+                      filename: attachment.title,
+                    }).then((r) => (attachment.thumbnails.small.signedUrl = r)),
+                  );
+                  promises.push(
+                    PresignedUrl.getSignedUrl({
+                      pathOrUrl: `${relativePath}/card_cover.jpg`,
+                      preview: true,
+                      mimetype: 'image/jpeg',
+                      filename: attachment.title,
+                    }).then(
+                      (r) => (attachment.thumbnails.card_cover.signedUrl = r),
+                    ),
                   );
                 }
               }
@@ -9097,6 +9278,8 @@ class BaseModelSqlv2 {
                   'mimetype',
                   'size',
                   'icon',
+                  'width',
+                  'height',
                 ]),
               );
             }

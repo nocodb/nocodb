@@ -265,7 +265,7 @@ const initEmblaApi = (val: any) => {
                     class="nc-attachment-img-wrapper h-12"
                     object-fit="contain"
                     :alt="item.title"
-                    :srcs="getPossibleAttachmentSrc(item)"
+                    :srcs="getPossibleAttachmentSrc(item, 'tiny')"
                   />
                   <div
                     v-else-if="isVideo(item.title, item.mimeType)"

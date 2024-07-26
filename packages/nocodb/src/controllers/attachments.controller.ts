@@ -1,4 +1,5 @@
 import path from 'path';
+import fs from 'fs';
 import {
   Body,
   Controller,
@@ -83,6 +84,10 @@ export class AttachmentsController {
         path: path.join('nc', 'uploads', filename),
       });
 
+      if (!fs.existsSync(file.path)) {
+        return res.status(404).send('File not found');
+      }
+
       if (isPreviewAllowed({ mimetype: file.type, path: file.path })) {
         if (queryFilename) {
           res.setHeader(
@@ -120,6 +125,10 @@ export class AttachmentsController {
         ),
       });
 
+      if (!fs.existsSync(file.path)) {
+        return res.status(404).send('File not found');
+      }
+
       if (isPreviewAllowed({ mimetype: file.type, path: file.path })) {
         if (queryFilename) {
           res.setHeader(
@@ -156,9 +165,15 @@ export class AttachmentsController {
         );
       }
 
+      const filePath = param.split('/')[2] === 'thumbnails' ? '' : 'uploads';
+
       const file = await this.attachmentsService.getFile({
-        path: path.join('nc', 'uploads', fpath),
+        path: path.join('nc', filePath, fpath),
       });
+
+      if (!fs.existsSync(file.path)) {
+        return res.status(404).send('File not found');
+      }
 
       if (queryResponseContentType) {
         res.setHeader('Content-Type', queryResponseContentType);

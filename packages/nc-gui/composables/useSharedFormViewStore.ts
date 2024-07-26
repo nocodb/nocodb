@@ -46,7 +46,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   const { api, isLoading } = useApi()
 
-  const { metas, setMeta } = useMetas()
+  const { metas, setMeta, getMeta } = useMetas()
 
   const baseStore = useBase()
   const { base, sqlUis } = storeToRefs(baseStore)
@@ -168,7 +168,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         basesUser.value.set(viewMeta.base_id, viewMeta.users)
       }
 
-      handlePreFillForm()
+      await handlePreFillForm()
     } catch (e: any) {
       const error = await extractSdkResponseErrorMsgv2(e)
 
@@ -343,43 +343,56 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     clearValidate()
   }
 
-  function handlePreFillForm() {
+  async function handlePreFillForm() {
     if (Object.keys(route.query || {}).length && sharedViewMeta.value.preFillEnabled) {
-      columns.value = (columns.value || []).map((c) => {
-        const queryParam = route.query[c.title as string] || route.query[encodeURIComponent(c.title as string)]
-        if (
-          !c.title ||
-          !queryParam ||
-          isSystemColumn(c) ||
-          isVirtualCol(c) ||
-          isAttachment(c) ||
-          c.uidt === UITypes.SpecificDBType
-        ) {
-          return c
-        }
+      columns.value = await Promise.all(
+        (columns.value || []).map(async (c) => {
+          const queryParam = route.query[c.title as string] || route.query[encodeURIComponent(c.title as string)]
 
-        const preFillValue = getPreFillValue(c, decodeURIComponent(queryParam as string).trim())
-        if (preFillValue !== undefined) {
-          // Prefill form state
-          formState.value[c.title] = preFillValue
-          // preFilledformState will be used in clear form to fill the prefilled data
-          preFilledformState.value[c.title] = preFillValue
+          if (
+            !c.title ||
+            !queryParam ||
+            isSystemColumn(c) ||
+            (isVirtualCol(c) && !isLinksOrLTAR(c)) ||
+            isAttachment(c) ||
+            c.uidt === UITypes.SpecificDBType
+          ) {
+            return c
+          }
+          const decodedQueryParam = Array.isArray(queryParam)
+            ? queryParam.map((qp) => decodeURIComponent(qp as string).trim())
+            : decodeURIComponent(queryParam as string).trim()
 
-          // Update column
-          switch (sharedViewMeta.value.preFilledMode) {
-            case PreFilledMode.Hidden: {
-              c.show = false
-              break
+          const preFillValue = await getPreFillValue(c, decodedQueryParam)
+          if (preFillValue !== undefined) {
+            debugger
+            if (isLinksOrLTAR(c)) {
+              // Prefill Link to another record / Links form state
+              additionalState.value[c.title] = preFillValue
+            } else {
+              // Prefill form state
+              formState.value[c.title] = preFillValue
             }
-            case PreFilledMode.Locked: {
-              c.read_only = true
-              break
+
+            // preFilledformState will be used in clear form to fill the prefilled data
+            preFilledformState.value[c.title] = preFillValue
+
+            // Update column
+            switch (sharedViewMeta.value.preFilledMode) {
+              case PreFilledMode.Hidden: {
+                c.show = false
+                break
+              }
+              case PreFilledMode.Locked: {
+                c.read_only = true
+                break
+              }
             }
           }
-        }
 
-        return c
-      })
+          return c
+        }),
+      )
     }
   }
 
@@ -387,7 +400,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     return (c?.source_id ? sqlUis.value[c?.source_id] : Object.values(sqlUis.value)[0])?.getAbstractType(c)
   }
 
-  function getPreFillValue(c: ColumnType, value: string) {
+  async function getPreFillValue(c: ColumnType, value: string) {
     let preFillValue: any
     switch (c.uidt) {
       case UITypes.SingleSelect:
@@ -515,6 +528,15 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       }
       case UITypes.LinkToAnotherRecord:
       case UITypes.Links: {
+        const refTableMeta = await getMeta((c.colOptions as LinkToAnotherRecordType)?.fk_related_model_id)
+        const pkCol = refTableMeta?.columns?.find((col) => col.pk)
+        preFillValue = (Array.isArray(value) ? value : [value]).map((id) => ({
+          [pkCol?.title as string]: id,
+        }))
+        // if bt/oo then extract object from array
+        if(c.colOptions?.type === RelationTypes.BELONGS_TO || c.colOptions?.type === RelationTypes.ONE_TO_ONE) {
+          preFillValue = preFillValue[0]
+        }
         // Todo: create an api which will fetch query params records and then autofill records
         break
       }

@@ -365,7 +365,6 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
           const preFillValue = await getPreFillValue(c, decodedQueryParam)
           if (preFillValue !== undefined) {
-            debugger
             if (isLinksOrLTAR(c)) {
               // Prefill Link to another record / Links form state
               additionalState.value[c.title] = preFillValue

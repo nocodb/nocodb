@@ -565,7 +565,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         {},
         {
           headers: {
-            'xc-password': '', // sharedViewPassword.value,
+            'xc-password': password.value,
           },
           query: {
             limit: Math.max(25, ids.length),

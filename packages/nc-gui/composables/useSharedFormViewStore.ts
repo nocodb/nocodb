@@ -528,12 +528,13 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       }
       case UITypes.LinkToAnotherRecord:
       case UITypes.Links: {
-        const values = Array.isArray(value) ? value : value.split(',')
-        const rows = await loadLinkedRecords(c, values)
-
-        preFillValue = rows
+        const refTableMeta = await getMeta((c.colOptions as LinkToAnotherRecordType)?.fk_related_model_id)
+        const pkCol = refTableMeta?.columns?.find((col) => col.pk)
+        preFillValue = (Array.isArray(value) ? value : [value]).map((id) => ({
+          [pkCol?.title as string]: id,
+        }))
         // if bt/oo then extract object from array
-        if (c.colOptions?.type === RelationTypes.BELONGS_TO || c.colOptions?.type === RelationTypes.ONE_TO_ONE) {
+        if(c.colOptions?.type === RelationTypes.BELONGS_TO || c.colOptions?.type === RelationTypes.ONE_TO_ONE) {
           preFillValue = preFillValue[0]
         }
         // Todo: create an api which will fetch query params records and then autofill records

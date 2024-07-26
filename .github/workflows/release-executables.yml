@@ -75,6 +75,7 @@ jobs:
 
           # Install nocodb version based on provided tag name
           npm i -E nocodb@${{ github.event.inputs.tag || inputs.tag }}
+          
 
           # install npm dependendencies
           npm i
@@ -91,16 +92,47 @@ jobs:
 
           # clean up code to optimize size
           npx modclean --patterns="default:*" --ignore="nc-lib-gui/**,nocodb/**,dayjs/**,express-status-monitor/**,sqlite3/**" --run
-
-          # build executables
-          npm run build
-
-          ls ./dist
-
-          # Move macOS executables for signing
+          
           mkdir ./mac-dist
-          mv ./dist/Noco-macos-arm64 ./mac-dist/
-          mv ./dist/Noco-macos-x64 ./mac-dist/
+          mkdir ./dist
+                
+          # build darwin x64 executable
+          npm uninstall sharp
+          npm install --cpu=x64 --os=darwin sharp
+          npx --yes pkg@5.8.1 . --compress GZip -t node18-macos-x64 -o Noco-macos-x64
+          mv ./Noco-macos-x64 ./mac-dist/
+        
+          # build darwin arm64 executable
+          npm uninstall sharp
+          npm install --cpu=arm64 --os=darwin sharp
+          npx --yes pkg@5.8.1 . --compress GZip -t node18-macos-arm64 -o Noco-macos-arm64
+          mv ./Noco-macos-arm64 ./mac-dist/
+          
+        
+          # build linux x64 executable
+          npm uninstall sharp
+          npm install --cpu=x64 --os=linux sharp
+          npx --yes pkg@5.8.1 . --compress GZip -t node18-linux-x64 -o Noco-linux-x64
+          mv ./Noco-linux-x64 ./dist/
+
+          # build linux arm64 executable
+          npm uninstall sharp
+          npm install --cpu=arm64 --os=linux sharp
+          npx --yes pkg@5.8.1 . --compress GZip -t node18-linux-arm64 -o Noco-linux-arm64
+          mv ./Noco-linux-arm64 ./dist/
+
+
+          # build windows x64 executable
+          npm uninstall sharp
+          npm install --cpu=x64 --os=win32 sharp
+          npx --yes pkg@5.8.1 . --compress GZip -t node18-win-x64 -o Noco-win-x64.exe
+          mv ./Noco-win-x64.exe ./dist/
+
+          # build windows arm64 executable
+          npm uninstall sharp
+          npm install --cpu=arm64 --os=win32 sharp
+          npx --yes pkg@5.8.1 . --compress GZip -t node18-win-arm64 -o Noco-win-arm64.exe
+          mv ./Noco-win-arm64.exe ./dist/
 
       - name: Upload executables to asset
         id: upload-release-asset

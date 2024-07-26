@@ -143,7 +143,7 @@ export class ThumbnailGeneratorProcessor {
         .data as Buffer;
     }
 
-    relativePath = relativePath.replace(/^.*(?=\/noco)/, '');
+    relativePath = relativePath.replace(/^.*?(?=\/noco)/, '');
 
     return { file, relativePath };
   }

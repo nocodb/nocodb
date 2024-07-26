@@ -1,4 +1,4 @@
-import type { UserType } from 'nocodb-sdk';
+import type { AttachmentResType, UserType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 export const JOBS_QUEUE = 'jobs';
 
@@ -17,6 +17,7 @@ export enum JobTypes {
   HandleWebhook = 'handle-webhook',
   CleanUp = 'clean-up',
   DataExport = 'data-export',
+  ThumbnailGenerator = 'thumbnail-generator',
 }
 
 export enum JobStatus {
@@ -120,4 +121,8 @@ export interface DataExportJobData extends JobData {
   viewId: string;
   exportAs: 'csv' | 'json' | 'xlsx';
   ncSiteUrl: string;
+}
+
+export interface ThumbnailGeneratorJobData extends JobData {
+  attachments: AttachmentResType[];
 }

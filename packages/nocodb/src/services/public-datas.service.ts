@@ -1,10 +1,11 @@
 import path from 'path';
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { nanoid } from 'nanoid';
 import { populateUniqueFileName, UITypes, ViewTypes } from 'nocodb-sdk';
 import slash from 'slash';
 import { nocoExecute } from 'nc-help';
 
+import sharp from 'sharp';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
 import { Column, Model, Source, View } from '~/models';
@@ -18,6 +19,9 @@ import { mimeIcons } from '~/utils/mimeTypes';
 import { utf8ify } from '~/helpers/stringHelpers';
 import { replaceDynamicFieldWithValue } from '~/db/BaseModelSqlv2';
 import { Filter } from '~/models';
+import { IJobsService } from '~/modules/jobs/jobs-service.interface';
+import { JobTypes } from '~/interface/Jobs';
+import { RootScopes } from '~/utils/globals';
 import { DatasService } from '~/services/datas.service';
 
 // todo: move to utils
@@ -27,7 +31,12 @@ export function sanitizeUrlPath(paths) {
 
 @Injectable()
 export class PublicDatasService {
-  constructor(protected datasService: DatasService) {}
+  constructor(
+    protected datasService: DatasService,
+    @Inject(forwardRef(() => 'JobsService'))
+    protected readonly jobsService: IJobsService,
+  ) {}
+
   async dataList(
     context: NcContext,
     param: {
@@ -407,6 +416,23 @@ export class PublicDatasService {
           attachments[fieldName].map((att) => att?.title),
         );
 
+        const tempMeta: {
+          width?: number;
+          height?: number;
+        } = {};
+
+        if (file.mimetype.startsWith('image')) {
+          try {
+            const meta = await sharp(file.path, {
+              limitInputPixels: false,
+            }).metadata();
+            tempMeta.width = meta.width;
+            tempMeta.height = meta.height;
+          } catch (e) {
+            // Ignore-if file is not image
+          }
+        }
+
         const fileName = `${nanoid(18)}${path.extname(originalName)}`;
 
         const url = await storageAdapter.fileCreate(
@@ -429,6 +455,7 @@ export class PublicDatasService {
           mimetype: file.mimetype,
           size: file.size,
           icon: mimeIcons[path.extname(originalName).slice(1)] || undefined,
+          ...tempMeta,
         });
       }
     }
@@ -463,15 +490,33 @@ export class PublicDatasService {
         file?.fileName || file.url.split('/').pop(),
       )}`;
 
-      const attachmentUrl: string | null = await storageAdapter.fileCreateByUrl(
+      const { url, data } = await storageAdapter.fileCreateByUrl(
         slash(path.join('nc', 'uploads', ...filePath, fileName)),
         file.url,
       );
 
+      const tempMetadata: {
+        width?: number;
+        height?: number;
+      } = {};
+
+      try {
+        const metadata = await sharp(data, {
+          limitInputPixels: true,
+        }).metadata();
+
+        if (metadata.width && metadata.height) {
+          tempMetadata.width = metadata.width;
+          tempMetadata.height = metadata.height;
+        }
+      } catch (e) {
+        // Might be invalid image - ignore
+      }
+
       let attachmentPath: string | undefined;
 
       // if `attachmentUrl` is null, then it is local attachment
-      if (!attachmentUrl) {
+      if (!url) {
         // then store the attachment path only
         // url will be constructed in `useAttachmentCell`
         attachmentPath = `download/${filePath.join('/')}/${fileName}`;
@@ -482,18 +527,27 @@ export class PublicDatasService {
         file.uploadIndex ?? attachments[file.fieldName].length,
         0,
         {
-          ...(attachmentUrl ? { url: attachmentUrl } : {}),
+          ...(url ? { url: url } : {}),
           ...(attachmentPath ? { path: attachmentPath } : {}),
           title: file.fileName,
           mimetype: file.mimetype,
           size: file.size,
           icon: mimeIcons[path.extname(fileName).slice(1)] || undefined,
+          ...tempMetadata,
         },
       );
     }
 
     for (const [column, data] of Object.entries(attachments)) {
       insertObject[column] = JSON.stringify(data);
+
+      await this.jobsService.add(JobTypes.ThumbnailGenerator, {
+        attachments: data,
+        context: {
+          base_id: RootScopes.ROOT,
+          workspace_id: RootScopes.ROOT,
+        },
+      });
     }
 
     return await baseModel.nestedInsert(insertObject, null);

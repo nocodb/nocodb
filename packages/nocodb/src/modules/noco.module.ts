@@ -1,8 +1,8 @@
-import multer from 'multer';
 import { Module } from '@nestjs/common';
-import { MulterModule } from '@nestjs/platform-express';
 
 /* Modules */
+import { MulterModule } from '@nestjs/platform-express';
+import multer from 'multer';
 import { EventEmitterModule } from '~/modules/event-emitter/event-emitter.module';
 import { JobsModule } from '~/modules/jobs/jobs.module';
 
@@ -181,7 +181,6 @@ export const nocoModuleMetadata = {
           CommandPaletteController,
           ExtensionsController,
           JobsMetaController,
-
           /* Datas */
           DataTableController,
           DatasController,

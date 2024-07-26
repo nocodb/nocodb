@@ -30,7 +30,7 @@ export default class Local implements IStorageAdapterV2 {
     return new Promise((resolve, reject) => {
       axios
         .get(url, {
-          responseType: 'stream',
+          responseType: 'arraybuffer',
           headers: {
             accept:
               'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
@@ -46,23 +46,16 @@ export default class Local implements IStorageAdapterV2 {
         })
         .then(async (response) => {
           await mkdirp(path.dirname(destPath));
-          const file = fs.createWriteStream(destPath);
-          // close() is async, call cb after close completes
-          file.on('finish', () => {
-            file.close((err) => {
-              if (err) {
-                return reject(err);
-              }
-              resolve(null);
+
+          fs.writeFile(destPath, response.data, (err) => {
+            if (err) {
+              return reject(err);
+            }
+            resolve({
+              url: null,
+              data: response.data,
             });
           });
-
-          file.on('error', (err) => {
-            // Handle errors
-            fs.unlink(destPath, () => reject(err.message)); // delete the (partial) file and then return the error
-          });
-
-          response.data.pipe(file);
         })
         .catch((err) => {
           reject(err.message);

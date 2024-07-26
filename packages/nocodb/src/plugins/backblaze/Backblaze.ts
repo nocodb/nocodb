@@ -16,31 +16,10 @@ export default class Backblaze implements IStorageAdapterV2 {
   }
 
   async fileCreate(key: string, file: XcFile): Promise<any> {
-    const uploadParams: any = {
-      ACL: 'public-read',
-      ContentType: file.mimetype,
-    };
-    return new Promise((resolve, reject) => {
-      // Configure the file stream and obtain the upload parameters
-      const fileStream = fs.createReadStream(file.path);
-      fileStream.on('error', (err) => {
-        console.log('File Error', err);
-        reject(err);
-      });
+    const fileStream = fs.createReadStream(file.path);
 
-      uploadParams.Body = fileStream;
-      uploadParams.Key = key;
-
-      // call S3 to retrieve upload file to specified bucket
-      this.s3Client.upload(uploadParams, (err, data) => {
-        if (err) {
-          console.log('Error', err);
-          reject(err);
-        }
-        if (data) {
-          resolve(data.Location);
-        }
-      });
+    return this.fileCreateByStream(key, fileStream, {
+      mimetype: file?.mimetype,
     });
   }
 
@@ -69,7 +48,10 @@ export default class Backblaze implements IStorageAdapterV2 {
               reject(err1);
             }
             if (data) {
-              resolve(data.Location);
+              resolve({
+                url: data.Location,
+                data: response.data,
+              });
             }
           });
         })
@@ -79,9 +61,31 @@ export default class Backblaze implements IStorageAdapterV2 {
     });
   }
 
-  // TODO - implement
-  fileCreateByStream(_key: string, _stream: Readable): Promise<void> {
-    return Promise.resolve(undefined);
+  async fileCreateByStream(
+    key: string,
+    stream: Readable,
+    options?: {
+      mimetype?: string;
+    },
+  ): Promise<void> {
+    const uploadParams: any = {
+      ACL: 'public-read',
+      Body: stream,
+      Key: key,
+      ContentType: options?.mimetype || 'application/octet-stream',
+    };
+    return new Promise((resolve, reject) => {
+      // call S3 to retrieve upload file to specified bucket
+      this.s3Client.upload(uploadParams, (err, data) => {
+        if (err) {
+          console.log('Error', err);
+          reject(err);
+        }
+        if (data) {
+          resolve(data.Location);
+        }
+      });
+    });
   }
 
   // TODO - implement

@@ -790,7 +790,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                                             :key="attachment.path"
                                             class="h-52"
                                             :class="[`${coverImageObjectFitClass}`]"
-                                            :srcs="getPossibleAttachmentSrc(attachment)"
+                                            :srcs="getPossibleAttachmentSrc(attachment, 'card_cover')"
                                           />
                                         </template>
                                       </a-carousel>

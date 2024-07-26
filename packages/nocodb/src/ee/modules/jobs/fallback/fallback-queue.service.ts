@@ -11,6 +11,7 @@ import { DataExportProcessor } from '~/modules/jobs/jobs/data-export/data-export
 import { CleanUpProcessor } from '~/modules/jobs/jobs/clean-up/clean-up.processor';
 import { JobsEventService } from '~/modules/jobs/jobs-event.service';
 import { JobTypes } from '~/interface/Jobs';
+import { ThumbnailGeneratorProcessor } from '~/modules/jobs/jobs/thumbnail-generator/thumbnail-generator.processor';
 
 export interface Job {
   id: string;
@@ -32,6 +33,7 @@ export class QueueService extends QueueServiceCE {
     protected readonly webhookHandlerProcessor: WebhookHandlerProcessor,
     protected readonly cleanUpProcessor: CleanUpProcessor,
     protected readonly dataExportProcessor: DataExportProcessor,
+    protected readonly thumbnailGeneratorProcessor: ThumbnailGeneratorProcessor,
   ) {
     super(
       jobsEventService,
@@ -42,6 +44,7 @@ export class QueueService extends QueueServiceCE {
       sourceDeleteProcessor,
       webhookHandlerProcessor,
       dataExportProcessor,
+      thumbnailGeneratorProcessor,
     );
   }
 

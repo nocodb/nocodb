@@ -81,8 +81,6 @@ declare module 'vue' {
     IcRoundKeyboardArrowDown: typeof import('~icons/ic/round-keyboard-arrow-down')['default']
     IcRoundSearch: typeof import('~icons/ic/round-search')['default']
     LogosGoogleGmail: typeof import('~icons/logos/google-gmail')['default']
-    MaterialSymbolsArrowCircleLeftRounded: typeof import('~icons/material-symbols/arrow-circle-left-rounded')['default']
-    MaterialSymbolsArrowCircleRightRounded: typeof import('~icons/material-symbols/arrow-circle-right-rounded')['default']
     MaterialSymbolsAttachFile: typeof import('~icons/material-symbols/attach-file')['default']
     MaterialSymbolsChevronRightRounded: typeof import('~icons/material-symbols/chevron-right-rounded')['default']
     MaterialSymbolsCloseRounded: typeof import('~icons/material-symbols/close-rounded')['default']

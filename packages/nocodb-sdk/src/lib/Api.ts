@@ -9293,6 +9293,84 @@ export class Api<
       }),
 
     /**
+ * @description Read bulk data from a given table with provided filters
+ * 
+ * @tags Public
+ * @name DataTableBulkDataList
+ * @summary Read Shared View Bulk Data List
+ * @request POST:/api/v2/public/shared-view/{sharedViewUuid}/bulk/dataList
+ * @response `200` `object` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    dataTableBulkDataList: (
+      sharedViewUuid: string,
+      data: object[],
+      query?: {
+        /** Extra filtering */
+        where?: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        object,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v2/public/shared-view/${sharedViewUuid}/bulk/dataList`,
+        method: 'POST',
+        query: query,
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description Read bulk group data from a given table with provided filters
+ * 
+ * @tags Public
+ * @name DataTableBulkGroup
+ * @summary Read Shared View Bulk Group Data
+ * @request POST:/api/v2/public/shared-view/{sharedViewUuid}/bulk/group
+ * @response `200` `object` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    dataTableBulkGroup: (
+      sharedViewUuid: string,
+      data: object[],
+      query?: {
+        /** Extra filtering */
+        where?: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        object,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v2/public/shared-view/${sharedViewUuid}/bulk/group`,
+        method: 'POST',
+        query: query,
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
  * @description Read aggregated data from a given table
  * 
  * @tags Public
@@ -9863,6 +9941,88 @@ export class Api<
       this.request<any, any>({
         path: `/api/v1/db/public/shared-erd/${sharedErdUuid}/meta`,
         method: 'GET',
+        ...params,
+      }),
+  };
+  dbDataTableBulkList = {
+    /**
+ * @description Read bulk data from a given table with given filters
+ * 
+ * @tags DB Data Table Bulk List
+ * @name DbDataTableBulkList
+ * @summary Read Bulk Data
+ * @request POST:/api/v2/tables/{tableId}/bulk/dataList
+ * @response `200` `object` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    dbDataTableBulkList: (
+      tableId: string,
+      query: {
+        /** View ID is required */
+        viewId: string;
+        /** Extra filtering */
+        where?: string;
+      },
+      data: object[],
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        object,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v2/tables/${tableId}/bulk/dataList`,
+        method: 'POST',
+        query: query,
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+  };
+  dbDataTableBulkGroupList = {
+    /**
+ * @description Read bulk group data from a given table with given filters
+ * 
+ * @tags DB Data Table Bulk Group List
+ * @name DbDataTableBulkGroupList
+ * @summary Read Bulk Group Data
+ * @request POST:/api/v2/tables/{tableId}/bulk/group
+ * @response `200` `object` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    dbDataTableBulkGroupList: (
+      tableId: string,
+      query: {
+        /** View ID is required */
+        viewId: string;
+      },
+      data: object[],
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        object,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v2/tables/${tableId}/bulk/group`,
+        method: 'POST',
+        query: query,
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
         ...params,
       }),
   };

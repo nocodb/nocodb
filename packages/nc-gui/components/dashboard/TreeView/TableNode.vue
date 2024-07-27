@@ -418,7 +418,7 @@ const source = computed(() => {
                 </NcMenuItem>
                 <NcDivider />
 
-                <NcMenuItem @click="onDuplicate">
+                <NcMenuItem class="!text-gray-700" @click="onDuplicate">
                   <GeneralIcon class="nc-view-copy-icon" icon="duplicate" />
                   {{
                     $t('general.duplicateEntity', {

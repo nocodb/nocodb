@@ -523,7 +523,7 @@
   },
   "labels": {
     "clearAll": "Clear all",
-    "addNewLookupHelperText": "Lookup fields show data from linked records. Select specific fields from {table1} to add them as Lookup fields in this table.",
+    "addNewLookupHelperText": "Lookup fields show data from linked records. Select specific fields from {table} table to add them as Lookup fields in this table.",
     "formatting": "Formatting",
     "selectAFormatType": "- -Select a formt type (optional)- -",
     "formatType": "Format type",

@@ -154,7 +154,11 @@ onMounted(async () => {
     <div class="flex flex-col gap-3">
       <h1 class="text-base text-gray-800 font-semibold">{{ $t('general.addLookupField') }}</h1>
       <div class="text-gray-900">
-        {{ $t('labels.addNewLookupHelperText') }}
+        {{
+          $t('labels.addNewLookupHelperText', {
+            table: relatedModel?.title,
+          })
+        }}
       </div>
 
       <div class="flex w-full gap-2 justify-between items-center">

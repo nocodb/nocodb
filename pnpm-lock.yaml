@@ -588,6 +588,9 @@ importers:
       compare-versions:
         specifier: ^6.1.0
         version: 6.1.0
+      content-disposition:
+        specifier: ^0.5.4
+        version: 0.5.4
       cookie-parser:
         specifier: ^1.4.6
         version: 1.4.6
@@ -862,6 +865,9 @@ importers:
       '@nestjsplus/dyn-schematics':
         specifier: ^1.0.12
         version: 1.0.12
+      '@types/content-disposition':
+        specifier: ^0.5.8
+        version: 0.5.8
       '@types/ejs':
         specifier: ^3.1.5
         version: 3.1.5
@@ -9594,6 +9600,10 @@ packages:
     resolution: {integrity: sha512-cdeYyv4KWoEgpBISTxWvqYsVy444DOqehiF3fM3ne10AmJ62RSyNkUnxMJXHQWRQQX2eR94m5y1IZyDwBjV9FQ==}
     dependencies:
       '@types/node': 20.11.30
+    dev: true
+
+  /@types/content-disposition@0.5.8:
+    resolution: {integrity: sha512-QVSSvno3dE0MgO76pJhmv4Qyi/j0Yk9pBp0Y7TJ2Tlj+KCgJWY6qX7nnxCOLkZ3VYRSIk1WTxCvwUSdx6CCLdg==}
     dev: true
 
   /@types/cookie@0.4.1:
@@ -25915,6 +25925,9 @@ packages:
   /sqlite3@5.1.6:
     resolution: {integrity: sha512-olYkWoKFVNSSSQNvxVUfjiVbz3YtBwTJj+mfV5zpHmqW3sELx2Cf4QCdirMelhM5Zh+KDVaKgQHqCxrqiWHybw==}
     requiresBuild: true
+    peerDependenciesMeta:
+      node-gyp:
+        optional: true
     dependencies:
       '@mapbox/node-pre-gyp': 1.0.11
       node-addon-api: 4.3.0
@@ -25929,6 +25942,9 @@ packages:
   /sqlite3@5.1.7:
     resolution: {integrity: sha512-GGIyOiFaG+TUra3JIfkI/zGP8yZYLPQ0pl1bH+ODjiX57sPhrLU5sQJn1y9bDKZUFYkX1crlrPfSYt0BKKdkog==}
     requiresBuild: true
+    peerDependenciesMeta:
+      node-gyp:
+        optional: true
     dependencies:
       bindings: 1.5.0
       node-addon-api: 7.0.0

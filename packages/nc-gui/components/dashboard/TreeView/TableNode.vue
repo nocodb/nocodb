@@ -51,8 +51,6 @@ const { loadViews: _loadViews, navigateToView } = useViewsStore()
 const { activeView, activeViewTitleOrId, viewsByTable } = storeToRefs(useViewsStore())
 const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
-const views = computed(() => viewsByTable.value.get(table.value.id!))
-
 const { refreshCommandPalette } = useCommandPalette()
 
 // todo: temp
@@ -214,18 +212,21 @@ const deleteTable = () => {
 function onDuplicate() {
   isOptionsOpen.value = false
 
+  const views = viewsByTable.value.get(table.value.id as string)
+  const defaultView = views?.find((v) => v.is_default) || views?.[0]
+
   const isOpen = ref(true)
 
   const { close } = useDialog(resolveComponent('DlgViewCreate'), {
     'modelValue': isOpen,
-    'title': activeView.value!.title,
-    'type': activeView.value!.type as ViewTypes,
+    'title': defaultView!.title,
+    'type': defaultView!.type as ViewTypes,
     'tableId': table.value!.id,
-    'selectedViewId': activeView.value!.id,
-    'groupingFieldColumnId': activeView.value!.view!.fk_grp_col_id,
+    'selectedViewId': defaultView!.id,
+    'groupingFieldColumnId': defaultView!.view!.fk_grp_col_id,
     'views': views,
-    'calendarRange': activeView.value!.view!.calendar_range,
-    'coverImageColumnId': activeView.value!.view!.fk_cover_image_col_id,
+    'calendarRange': defaultView!.view!.calendar_range,
+    'coverImageColumnId': defaultView!.view!.fk_cover_image_col_id,
     'onUpdate:modelValue': closeDialog,
     'onCreated': async (view: ViewType) => {
       closeDialog()

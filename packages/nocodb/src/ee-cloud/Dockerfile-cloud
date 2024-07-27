@@ -32,7 +32,7 @@ RUN pnpm install --prod --shamefully-hoist \
     && rm -rf ./node_modules/sqlite3/deps \
     && chmod +x /usr/src/appEntry/start.sh
 
-RUN pnpm uninstall sharp && pnpm install sharp
+RUN pnpm uninstall sharp && pnpm install sharp@0.32.6
 
 
 ##########

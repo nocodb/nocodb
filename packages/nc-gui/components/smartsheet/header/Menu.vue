@@ -392,7 +392,8 @@ const openLookupMenuDialog = () => {
 const changeTitleFieldMenu = ref(false)
 
 const changeTitleField = () => {
-  changeTitleFieldMenu.value = false
+  isOpen.value = false
+  changeTitleFieldMenu.value = true
 }
 </script>
 
@@ -614,6 +615,7 @@ const changeTitleField = () => {
   />
 
   <LazySmartsheetHeaderAddLookups v-if="addLookupMenu" v-model:value="addLookupMenu" :column="column" />
+  <LazySmartsheetHeaderUpdateDisplayValue v-if="changeTitleFieldMenu" v-model:value="changeTitleFieldMenu" :column="column" />
 </template>
 
 <style scoped>

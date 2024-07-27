@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type ColumnType, UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { type ColumnType, UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 import { generateUniqueColumnName } from '~/helpers/parsers/parserHelpers'
 
@@ -10,34 +10,44 @@ interface Props {
 
 const props = defineProps<Props>()
 
+const { $api } = useNuxtApp()
+
 const baseStore = useBase()
 
-const { loadTables } = baseStore
+const { getMeta, metas } = useMetas()
 
 const meta = inject(MetaInj, ref())
 
 const activeView = inject(ActiveViewInj, ref())
 
-const columnsHash = ref()
+const { loadTables } = baseStore
 
 const { tables } = toRefs(baseStore)
 
-const { getMeta } = useMetas()
-
-const { $api } = useNuxtApp()
-
-const { metas } = useMetas()
-
 const column = toRef(props, 'column')
+
+const value = useVModel(props, 'value')
+
+const columnsHash = ref()
+
+const isLoading = ref(false)
+
+const searchField = ref('')
+
+const filteredColumns = ref<
+  {
+    column: ColumnType
+    show: boolean
+    id: string
+  }[]
+>([])
+
+const selectedFields = ref<Record<string, boolean>>({})
 
 const getIcon = (c: ColumnType) =>
   h(isVirtualCol(c) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'), {
     columnMeta: c,
   })
-
-const value = useVModel(props, 'value')
-
-const searchField = ref('')
 
 const relatedModel = computedAsync(async () => {
   const fkRelatedModelId = (column.value.colOptions as any)?.fk_related_model_id
@@ -54,25 +64,6 @@ const relatedModel = computedAsync(async () => {
   return null
 })
 
-const filteredColumns = ref<
-  {
-    column: ColumnType
-    show: boolean
-    id: string
-  }[]
->([])
-
-const selectedFields = ref<Record<string, boolean>>({})
-
-watch([relatedModel, searchField], async () => {
-  if (relatedModel.value) {
-    const columns = metas.value[relatedModel.value.id].columns
-    filteredColumns.value = columns
-      .filter((c) => !isSystemColumn(c))
-      .filter((c) => c?.title?.toLowerCase().startsWith(searchField.value?.toLowerCase()))
-  }
-})
-
 const clearAll = () => {
   Object.keys(selectedFields.value).forEach((k) => (selectedFields.value[k] = false))
 }
@@ -80,8 +71,6 @@ const clearAll = () => {
 const selectAll = () => {
   filteredColumns.value.forEach((c) => (selectedFields.value[c.id] = true))
 }
-
-const isLoading = ref(false)
 
 const createLookups = async () => {
   try {
@@ -144,6 +133,15 @@ const createLookups = async () => {
   }
 }
 
+watch([relatedModel, searchField], async () => {
+  if (relatedModel.value) {
+    const columns = metas.value[relatedModel.value.id].columns
+    filteredColumns.value = columns
+      .filter((c) => !isSystemColumn(c) && !isLinksOrLTAR(c))
+      .filter((c) => c?.title?.toLowerCase().startsWith(searchField.value?.toLowerCase()))
+  }
+})
+
 onMounted(async () => {
   columnsHash.value = (await $api.dbTableColumn.hash(meta.value?.id)).hash
 })
@@ -152,15 +150,18 @@ onMounted(async () => {
 <template>
   <NcModal v-model:visible="value" size="small">
     <div class="flex flex-col gap-3">
-      <h1 class="text-base text-gray-800 font-semibold">
-        <component :is="iconMap.cellLookup" class="text-gray-500 pb-1" /> {{ $t('general.addLookupField') }}
-      </h1>
-      <div class="text-gray-500">
-        {{
-          $t('labels.addNewLookupHelperText', {
-            table: relatedModel?.title,
-          })
-        }}
+      <div>
+        <h1 class="text-base text-gray-800 font-semibold">
+          <component :is="iconMap.cellLookup" class="text-gray-500 pb-1" /> {{ $t('general.addLookupField') }}
+        </h1>
+        <div class="text-gray-500 text-[13px] leading-5">
+          {{ $t('labels.addNewLookupHelperText1') }}
+
+          <span class="font-semibold">
+            {{ relatedModel?.title ?? relatedModel?.table_name }}
+          </span>
+          {{ $t('labels.addNewLookupHelperText2') }}
+        </div>
       </div>
 
       <div class="flex w-full gap-2 justify-between items-center">
@@ -175,7 +176,7 @@ onMounted(async () => {
         </div>
       </div>
 
-      <div class="border-1 rounded-md h-[250px] nc-scrollbar-md border-gray-200">
+      <div class="border-1 rounded-md h-[300px] nc-scrollbar-md border-gray-200">
         <Draggable v-model="filteredColumns" item-key="id" ghost-class="nc-lookup-menu-items-ghost">
           <template #item="{ element: field }">
             <div
@@ -204,7 +205,7 @@ onMounted(async () => {
       </div>
 
       <div class="flex w-full gap-2 justify-end">
-        <NcButton type="secondary" size="small">
+        <NcButton type="secondary" size="small" @click="value = false">
           {{ $t('general.cancel') }}
         </NcButton>
 

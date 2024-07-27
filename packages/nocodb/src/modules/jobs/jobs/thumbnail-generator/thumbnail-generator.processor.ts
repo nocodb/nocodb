@@ -133,7 +133,7 @@ export class ThumbnailGeneratorProcessor {
       relativePath = decodeURI(new URL(attachment.url).pathname);
 
       signedUrl = await PresignedUrl.getSignedUrl({
-        pathOrUrl: relativePath,
+        pathOrUrl: attachment.url,
         preview: false,
         filename: attachment.title,
         mimetype: attachment.mimetype,
@@ -143,9 +143,7 @@ export class ThumbnailGeneratorProcessor {
         .data as Buffer;
     }
 
-    if (relativePath.startsWith('/nc/uploads/')) {
-      relativePath = relativePath.replace('/nc/uploads/', '');
-    }
+    relativePath = relativePath.replace(/^.*?(?=\/noco)/, '');
 
     return { file, relativePath };
   }

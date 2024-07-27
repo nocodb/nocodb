@@ -1,4 +1,5 @@
 import { nanoid } from 'nanoid';
+import contentDisposition from 'content-disposition';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
@@ -132,13 +133,19 @@ export default class PresignedUrl {
       pathParameters.ResponseContentDisposition = `inline;`;
 
       if (filename) {
-        pathParameters.ResponseContentDisposition += ` filename="${filename}"`;
+        pathParameters.ResponseContentDisposition = contentDisposition(
+          filename,
+          { type: 'inline' },
+        );
       }
     } else {
       pathParameters.ResponseContentDisposition = `attachment;`;
 
       if (filename) {
-        pathParameters.ResponseContentDisposition += ` filename="${filename}"`;
+        pathParameters.ResponseContentDisposition = contentDisposition(
+          filename,
+          { type: 'attachment' },
+        );
       }
     }
 

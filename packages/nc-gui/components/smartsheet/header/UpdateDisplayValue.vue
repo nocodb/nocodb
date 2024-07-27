@@ -69,10 +69,10 @@ onMounted(() => {
     <div class="flex flex-col gap-3">
       <div>
         <h1 class="text-base text-gray-800 font-semibold">{{ $t('labels.searchDisplayValue') }}</h1>
-        <div class="text-gray-900 flex items-center gap-1">
+        <div class="text-gray-600 flex items-center gap-1">
           {{ $t('labels.selectYourNewTitleFor') }}
 
-          <span class="bg-gray-200 inline-flex items-center gap-1 px-1 rounded-md">
+          <span class="bg-gray-100 inline-flex items-center gap-1 px-1 rounded-md">
             <component :is="iconMap.table" />
             {{ meta?.title ?? meta?.table_name }}
           </span>

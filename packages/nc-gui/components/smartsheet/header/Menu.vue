@@ -431,10 +431,14 @@ const changeTitleField = () => {
             </div>
           </NcMenuItem>
         </GeneralSourceRestrictionTooltip>
-        <NcMenuItem v-if="isUIAllowed('fieldAlter') && !!column?.pv" title="Change title field" @click="changeTitleField">
+        <NcMenuItem
+          v-if="isUIAllowed('fieldAlter') && !!column?.pv"
+          title="Select a new field as display value"
+          @click="changeTitleField"
+        >
           <div class="nc-column-edit nc-header-menu-item">
-            <component :is="iconMap.cellText" class="text-gray-700 !w-4 !h-4" />
-            {{ $t('labels.changeTitleField') }}
+            <GeneralIcon icon="star" class="text-gray-500 !w-4.25 !h-4.25" />
+            {{ $t('labels.changeDisplayValueField') }}
           </div>
         </NcMenuItem>
         <NcMenuItem v-if="[UITypes.LinkToAnotherRecord, UITypes.Links].includes(column.uidt)" @click="openLookupMenuDialog">

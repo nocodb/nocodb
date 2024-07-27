@@ -523,7 +523,7 @@
   },
   "labels": {
     "changeDisplayValueField": "Change display value field",
-    "selectYourNewTitleFor": "Select your new title field for ",
+    "selectYourNewTitleFor": "Select your new display value field for ",
     "searchDisplayValue": "Select display value field",
     "changeTitleField": "Change title field",
     "clearAll": "Clear all",

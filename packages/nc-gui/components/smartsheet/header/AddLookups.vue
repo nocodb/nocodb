@@ -152,8 +152,10 @@ onMounted(async () => {
 <template>
   <NcModal v-model:visible="value" size="small">
     <div class="flex flex-col gap-3">
-      <h1 class="text-base text-gray-800 font-semibold">{{ $t('general.addLookupField') }}</h1>
-      <div class="text-gray-900">
+      <h1 class="text-base text-gray-800 font-semibold">
+        <component :is="iconMap.cellLookup" class="text-gray-500 pb-1" /> {{ $t('general.addLookupField') }}
+      </h1>
+      <div class="text-gray-500">
         {{
           $t('labels.addNewLookupHelperText', {
             table: relatedModel?.title,
@@ -168,8 +170,8 @@ onMounted(async () => {
           </template>
         </a-input>
         <div class="flex items-center gap-2">
-          <NcButton size="small" type="text" @click="clearAll"> {{ $t('labels.clearAll') }} </NcButton>
-          <NcButton size="small" type="text" @click="selectAll"> {{ $t('general.addAll') }} </NcButton>
+          <NcButton size="small" type="text" class="!text-xs" @click="clearAll"> {{ $t('labels.clearAll') }} </NcButton>
+          <NcButton size="small" type="text" class="!text-xs" @click="selectAll"> {{ $t('general.addAll') }} </NcButton>
         </div>
       </div>
 

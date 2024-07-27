@@ -418,7 +418,7 @@ const openLookupMenuDialog = () => {
             @click="onEditPress"
           >
             <div class="nc-column-edit nc-header-menu-item">
-              <component :is="iconMap.ncEdit" class="text-gray-700" />
+              <component :is="iconMap.ncEdit" class="text-gray-500" />
               <!-- Edit -->
               {{ $t('general.edit') }} {{ $t('objects.field').toLowerCase() }}
             </div>
@@ -426,7 +426,7 @@ const openLookupMenuDialog = () => {
         </GeneralSourceRestrictionTooltip>
         <NcMenuItem v-if="[UITypes.LinkToAnotherRecord, UITypes.Links].includes(column.uidt)" @click="openLookupMenuDialog">
           <div v-e="['a:field:lookup:create']" class="nc-column-lookup-create nc-header-menu-item">
-            <component :is="iconMap.cellLookup" class="text-pink-500 !w-4.5 !h-4.5" />
+            <component :is="iconMap.cellLookup" class="text-gray-500 !w-4.5 !h-4.5" />
             {{ t('general.addLookupField') }}
           </div>
         </NcMenuItem>
@@ -437,7 +437,7 @@ const openLookupMenuDialog = () => {
             @click="openDuplicateDlg"
           >
             <div v-e="['a:field:duplicate']" class="nc-column-duplicate nc-header-menu-item">
-              <component :is="iconMap.duplicate" class="text-gray-700" />
+              <component :is="iconMap.duplicate" class="text-gray-500" />
               <!-- Duplicate -->
               {{ t('general.duplicate') }} {{ $t('objects.field').toLowerCase() }}
             </div>
@@ -447,7 +447,7 @@ const openLookupMenuDialog = () => {
         <NcMenuItem v-if="!column?.pv" @click="hideOrShowField">
           <div v-e="['a:field:hide']" class="nc-column-insert-before nc-header-menu-item">
             <GeneralLoader v-if="isLoading === 'hideOrShow'" size="regular" />
-            <component :is="isHiddenCol ? iconMap.eye : iconMap.eyeSlash" v-else class="text-gray-700 !w-4 !h-4" />
+            <component :is="isHiddenCol ? iconMap.eye : iconMap.eyeSlash" v-else class="text-gray-500 !w-4 !h-4" />
             <!-- Hide Field -->
             {{ isHiddenCol ? $t('general.showField') : $t('general.hideField') }}
           </div>
@@ -458,7 +458,7 @@ const openLookupMenuDialog = () => {
         >
           <div class="nc-column-set-primary nc-header-menu-item item">
             <GeneralLoader v-if="isLoading === 'setDisplay'" size="regular" />
-            <GeneralIcon v-else icon="star" class="text-gray-700 !w-4.25 !h-4.25" />
+            <GeneralIcon v-else icon="star" class="text-gray-500 !w-4.25 !h-4.25" />
 
             <!--       todo : tooltip -->
             <!-- Set as Display value -->
@@ -474,7 +474,7 @@ const openLookupMenuDialog = () => {
               <div v-e="['a:field:sort', { dir: 'asc' }]" class="nc-column-insert-after nc-header-menu-item">
                 <component
                   :is="iconMap.sortDesc"
-                  class="text-gray-700 !rotate-180 !w-4.25 !h-4.25"
+                  class="text-gray-500 !rotate-180 !w-4.25 !h-4.25"
                   :style="{
                     transform: 'rotate(180deg)',
                   }"
@@ -487,7 +487,7 @@ const openLookupMenuDialog = () => {
             <NcMenuItem @click="sortByColumn('desc')">
               <div v-e="['a:field:sort', { dir: 'desc' }]" class="nc-column-insert-before nc-header-menu-item">
                 <!-- Sort Descending -->
-                <component :is="iconMap.sortDesc" class="text-gray-700 !w-4.25 !h-4.25" />
+                <component :is="iconMap.sortDesc" class="text-gray-500 !w-4.25 !h-4.25" />
                 {{ $t('general.sortDesc').trim() }}
               </div>
             </NcMenuItem>
@@ -510,7 +510,7 @@ const openLookupMenuDialog = () => {
               @click="filterOrGroupByThisField(SmartsheetStoreEvents.FILTER_ADD)"
             >
               <div v-e="['a:field:add:filter']" class="nc-column-filter nc-header-menu-item">
-                <component :is="iconMap.filter" class="text-gray-700" />
+                <component :is="iconMap.filter" class="text-gray-500" />
                 <!-- Filter by this field -->
                 Filter by this field
               </div>
@@ -538,7 +538,7 @@ const openLookupMenuDialog = () => {
               "
             >
               <div v-e="['a:field:add:groupby']" class="nc-column-groupby nc-header-menu-item">
-                <component :is="iconMap.group" class="text-gray-700" />
+                <component :is="iconMap.group" class="text-gray-500" />
                 <!-- Group by this field -->
                 {{ isGroupedByThisField ? "Don't group by this field" : 'Group by this field' }}
               </div>
@@ -549,7 +549,7 @@ const openLookupMenuDialog = () => {
           <GeneralSourceRestrictionTooltip message="Field cannot be duplicated." :enabled="!isDuplicateAllowed && isMetaReadOnly">
             <NcMenuItem v-if="!column?.pk" :disabled="!isDuplicateAllowed" @click="openDuplicateDlg">
               <div v-e="['a:field:duplicate']" class="nc-column-duplicate nc-header-menu-item">
-                <component :is="iconMap.duplicate" class="text-gray-700" />
+                <component :is="iconMap.duplicate" class="text-gray-500" />
                 <!-- Duplicate -->
                 {{ t('general.duplicate') }} {{ $t('objects.field').toLowerCase() }}
               </div>
@@ -557,14 +557,14 @@ const openLookupMenuDialog = () => {
           </GeneralSourceRestrictionTooltip>
           <NcMenuItem @click="onInsertAfter">
             <div v-e="['a:field:insert:after']" class="nc-column-insert-after nc-header-menu-item">
-              <component :is="iconMap.colInsertAfter" class="text-gray-700 !w-4.5 !h-4.5" />
+              <component :is="iconMap.colInsertAfter" class="text-gray-500 !w-4.5 !h-4.5" />
               <!-- Insert After -->
               {{ t('general.insertAfter') }}
             </div>
           </NcMenuItem>
           <NcMenuItem v-if="!column?.pv" @click="onInsertBefore">
             <div v-e="['a:field:insert:before']" class="nc-column-insert-before nc-header-menu-item">
-              <component :is="iconMap.colInsertBefore" class="text-gray-600 !w-4.5 !h-4.5" />
+              <component :is="iconMap.colInsertBefore" class="text-gray-500 !w-4.5 !h-4.5" />
               <!-- Insert Before -->
               {{ t('general.insertBefore') }}
             </div>

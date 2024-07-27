@@ -381,6 +381,13 @@ const linksAssociated = computed(() => {
     (c) => isLinksOrLTAR(c) && [c.colOptions?.fk_child_column_id, c.colOptions?.fk_parent_column_id].includes(column?.value?.id),
   )
 })
+
+const addLookupMenu = ref(false)
+
+const openLookupMenuDialog = () => {
+  isOpen.value = false
+  addLookupMenu.value = true
+}
 </script>
 
 <template>
@@ -417,6 +424,12 @@ const linksAssociated = computed(() => {
             </div>
           </NcMenuItem>
         </GeneralSourceRestrictionTooltip>
+        <NcMenuItem v-if="[UITypes.LinkToAnotherRecord, UITypes.Links].includes(column.uidt)" @click="openLookupMenuDialog">
+          <div v-e="['a:field:lookup:create']" class="nc-column-lookup-create nc-header-menu-item">
+            <component :is="iconMap.cellLookup" class="text-pink-500 !w-4.5 !h-4.5" />
+            {{ t('general.addLookupField') }}
+          </div>
+        </NcMenuItem>
         <GeneralSourceRestrictionTooltip message="Field cannot be duplicated." :enabled="!isDuplicateAllowed">
           <NcMenuItem
             v-if="isUIAllowed('duplicateColumn') && isExpandedForm && !column?.pk"
@@ -587,6 +600,8 @@ const linksAssociated = computed(() => {
     :column="column"
     :extra="selectedColumnExtra"
   />
+
+  <LazySmartsheetHeaderAddLookups v-if="addLookupMenu" v-model:value="addLookupMenu" :column="column" />
 </template>
 
 <style scoped>

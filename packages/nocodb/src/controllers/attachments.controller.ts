@@ -16,6 +16,7 @@ import {
 } from '@nestjs/common';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
+import contentDisposition from 'content-disposition';
 import type { AttachmentReqType, FileType } from 'nocodb-sdk';
 import { UploadAllowedInterceptor } from '~/interceptors/is-upload-allowed/is-upload-allowed.interceptor';
 import { GlobalGuard } from '~/guards/global/global.guard';
@@ -92,7 +93,7 @@ export class AttachmentsController {
         if (queryFilename) {
           res.setHeader(
             'Content-Disposition',
-            `attachment; filename=${queryFilename}`,
+            contentDisposition(queryFilename, { type: 'attachment' }),
           );
         }
         res.sendFile(file.path);
@@ -133,7 +134,7 @@ export class AttachmentsController {
         if (queryFilename) {
           res.setHeader(
             'Content-Disposition',
-            `attachment; filename=${queryFilename}`,
+            contentDisposition(queryFilename, { type: 'attachment' }),
           );
         }
         res.sendFile(file.path);

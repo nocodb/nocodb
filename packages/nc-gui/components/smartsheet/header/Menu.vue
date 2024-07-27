@@ -388,6 +388,12 @@ const openLookupMenuDialog = () => {
   isOpen.value = false
   addLookupMenu.value = true
 }
+
+const changeTitleFieldMenu = ref(false)
+
+const changeTitleField = () => {
+  changeTitleFieldMenu.value = false
+}
 </script>
 
 <template>
@@ -424,6 +430,12 @@ const openLookupMenuDialog = () => {
             </div>
           </NcMenuItem>
         </GeneralSourceRestrictionTooltip>
+        <NcMenuItem v-if="isUIAllowed('fieldAlter') && !!column?.pv" title="Change title field" @click="changeTitleField">
+          <div class="nc-column-edit nc-header-menu-item">
+            <component :is="iconMap.cellText" class="text-gray-700 !w-4 !h-4" />
+            {{ $t('labels.changeTitleField') }}
+          </div>
+        </NcMenuItem>
         <NcMenuItem v-if="[UITypes.LinkToAnotherRecord, UITypes.Links].includes(column.uidt)" @click="openLookupMenuDialog">
           <div v-e="['a:field:lookup:create']" class="nc-column-lookup-create nc-header-menu-item">
             <component :is="iconMap.cellLookup" class="text-gray-500 !w-4.5 !h-4.5" />

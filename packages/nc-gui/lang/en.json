@@ -522,6 +522,9 @@
     "looksLikeThisStackIsEmpty": "Looks like this stack does not have any records"
   },
   "labels": {
+    "selectYourNewTitleFor": "Select your new title field for ",
+    "searchDisplayValue": "Select display value field",
+    "changeTitleField": "Change title field",
     "clearAll": "Clear all",
     "addNewLookupHelperText": "Lookup fields show data from linked records. Select specific fields from {table} table to add them as Lookup fields in this table.",
     "formatting": "Formatting",

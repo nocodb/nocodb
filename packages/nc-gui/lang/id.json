@@ -93,6 +93,7 @@
     "none": "None"
   },
   "general": {
+    "addLookupField": "Add {count} lookup fields",
     "role": "Role",
     "general": "General",
     "quit": "Keluar",
@@ -521,6 +522,13 @@
     "looksLikeThisStackIsEmpty": "Looks like this stack does not have any records"
   },
   "labels": {
+    "changeDisplayValueField": "Change display value field",
+    "selectYourNewTitleFor": "Select your new display value field for ",
+    "searchDisplayValue": "Select display value field",
+    "changeTitleField": "Change title field",
+    "clearAll": "Clear all",
+    "addNewLookupHelperText1": "Lookup fields show data from linked records. Select specific fields from ",
+    "addNewLookupHelperText2": " table to add them as Lookup fields in this table.",
     "formatting": "Formatting",
     "selectAFormatType": "- -Select a formt type (optional)- -",
     "formatType": "Format type",

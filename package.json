@@ -63,6 +63,20 @@
       "xml2js@<0.5.0": ">=0.5.0",
       "ufo": ">=1.5.3",
       "ws@<8.17.1": ">=8.17.1"
+    },
+    "supportedArchitectures": {
+      "os": [
+        "current",
+        "linux"
+      ],
+      "cpu": [
+        "x64",
+        "arm64"
+      ],
+      "libc": [
+        "musl",
+        "glibc"
+      ]
     }
   }
 }

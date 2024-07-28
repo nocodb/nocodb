@@ -184,7 +184,7 @@
     "request-ip": "^3.3.0",
     "rmdir": "^1.2.0",
     "rxjs": "^7.8.1",
-    "sharp": "^0.33.4",
+    "sharp": "0.32.6",
     "slash": "^3.0.0",
     "slug": "^8.2.3",
     "snowflake-sdk": "^1.6.11",
@@ -257,5 +257,21 @@
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
+  },
+  "pnpm": {
+    "supportedArchitectures": {
+      "os": [
+        "linux",
+        "current"
+      ],
+      "cpu": [
+        "x64",
+        "arm64"
+      ],
+      "libc": [
+        "musl",
+        "glibc"
+      ]
+    }
   }
 }

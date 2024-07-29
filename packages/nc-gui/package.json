@@ -1,11 +1,12 @@
 {
   "name": "nc-gui",
-  "description": "NocoDB Frontend",
   "private": true,
+  "description": "NocoDB Frontend",
   "author": {
     "name": "NocoDB",
     "url": "https://nocodb.com/"
   },
+  "license": "AGPL-3.0-or-later",
   "homepage": "https://github.com/nocodb/nocodb",
   "repository": {
     "type": "git",
@@ -17,7 +18,6 @@
   "engines": {
     "node": ">=18"
   },
-  "license": "AGPL-3.0-or-later",
   "web-types": "web-types.json",
   "scripts": {
     "build": "nuxt build",
@@ -43,7 +43,6 @@
   "dependencies": {
     "@aws-amplify/core": "^5.8.5",
     "@aws-amplify/ui-vue": "^3.1.29",
-    "@braks/revue-draggable": "^0.4.3",
     "@ckpack/vue-color": "^1.5.0",
     "@iconify/vue": "^4.1.2",
     "@pinia/nuxt": "^0.5.1",
@@ -98,8 +97,8 @@
     "dagre": "^0.8.5",
     "dayjs": "^1.11.11",
     "deep-object-diff": "^1.1.9",
-    "emoji-mart-vue-fast": "^15.0.2",
     "embla-carousel-vue": "^8.1.6",
+    "emoji-mart-vue-fast": "^15.0.2",
     "file-saver": "^2.0.5",
     "fuse.js": "^6.6.2",
     "httpsnippet": "^2.0.0",

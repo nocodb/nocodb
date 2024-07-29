@@ -107,15 +107,28 @@ export default class S3 implements IStorageAdapterV2 {
   }
 
   public async fileRead(key: string): Promise<any> {
+    const command = new GetObjectCommand({
+      Key: key,
+      Bucket: this.input.bucket,
+    });
+
+    const { Body } = await this.s3Client.send(command);
+
+    const fileStream = Body as Readable;
+
     return new Promise((resolve, reject) => {
-      this.s3Client.getObject({ Key: key } as any, (err, data) => {
-        if (err) {
-          return reject(err);
-        }
-        if (!data?.Body) {
-          return reject(data);
-        }
-        return resolve(data.Body);
+      const chunks: any[] = [];
+      fileStream.on('data', (chunk) => {
+        chunks.push(chunk);
+      });
+
+      fileStream.on('end', () => {
+        const buffer = Buffer.concat(chunks);
+        resolve(buffer);
+      });
+
+      fileStream.on('error', (err) => {
+        reject(err);
       });
     });
   }

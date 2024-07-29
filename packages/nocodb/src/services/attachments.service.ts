@@ -33,6 +33,8 @@ interface AttachmentObject {
   signedUrl?: string;
 }
 
+const thumbnailMimes = ['image/'];
+
 @Injectable()
 export class AttachmentsService {
   protected logger = new Logger(AttachmentsService.name);
@@ -91,7 +93,7 @@ export class AttachmentsService {
                 tempMetadata.height = metadata.height;
               }
             } catch (e) {
-              // Might be invalid image - ignore
+              this.logger.error(`${file.path} is not an image file`);
             }
           }
 
@@ -131,13 +133,19 @@ export class AttachmentsService {
       throw errors[0];
     }
 
-    await this.jobsService.add(JobTypes.ThumbnailGenerator, {
-      context: {
-        base_id: RootScopes.ROOT,
-        workspace_id: RootScopes.ROOT,
-      },
-      attachments,
-    });
+    const generateThumbnail = attachments.filter((attachment) =>
+      thumbnailMimes.some((type) => attachment.mimetype.startsWith(type)),
+    );
+
+    if (generateThumbnail.length) {
+      await this.jobsService.add(JobTypes.ThumbnailGenerator, {
+        context: {
+          base_id: RootScopes.ROOT,
+          workspace_id: RootScopes.ROOT,
+        },
+        attachments: generateThumbnail,
+      });
+    }
 
     this.appHooksService.emit(AppEvents.ATTACHMENT_UPLOAD, {
       type: 'file',
@@ -189,6 +197,13 @@ export class AttachmentsService {
             5,
           )}${path.extname(fileNameWithExt)}`;
 
+          let mimeType = response.headers['content-type']?.split(';')[0];
+          const size = response.headers['content-length'];
+
+          if (!mimeType) {
+            mimeType = mimetypes[path.extname(fileNameWithExt).slice(1)];
+          }
+
           const { url: attachmentUrl, data: file } =
             await storageAdapter.fileCreateByUrl(
               slash(path.join(destPath, fileName)),
@@ -200,24 +215,19 @@ export class AttachmentsService {
             height?: number;
           } = {};
 
-          try {
-            const metadata = await sharp(file, {
-              limitInputPixels: true,
-            }).metadata();
+          if (mimeType.includes('image')) {
+            try {
+              const metadata = await sharp(file, {
+                limitInputPixels: true,
+              }).metadata();
 
-            if (metadata.width && metadata.height) {
-              tempMetadata.width = metadata.width;
-              tempMetadata.height = metadata.height;
+              if (metadata.width && metadata.height) {
+                tempMetadata.width = metadata.width;
+                tempMetadata.height = metadata.height;
+              }
+            } catch (e) {
+              this.logger.error(`${file.path} is not an image file`);
             }
-          } catch (e) {
-            // Might be invalid image - ignore
-          }
-
-          let mimeType = response.headers['content-type']?.split(';')[0];
-          const size = response.headers['content-length'];
-
-          if (!mimeType) {
-            mimeType = mimetypes[path.extname(fileNameWithExt).slice(1)];
           }
 
           const attachment: AttachmentObject = {
@@ -250,13 +260,19 @@ export class AttachmentsService {
       throw errors[0];
     }
 
-    await this.jobsService.add(JobTypes.ThumbnailGenerator, {
-      context: {
-        base_id: RootScopes.ROOT,
-        workspace_id: RootScopes.ROOT,
-      },
-      attachments,
-    });
+    const generateThumbnail = attachments.filter((attachment) =>
+      thumbnailMimes.some((type) => attachment.mimetype.startsWith(type)),
+    );
+
+    if (generateThumbnail.length) {
+      await this.jobsService.add(JobTypes.ThumbnailGenerator, {
+        context: {
+          base_id: RootScopes.ROOT,
+          workspace_id: RootScopes.ROOT,
+        },
+        attachments: generateThumbnail,
+      });
+    }
 
     this.appHooksService.emit(AppEvents.ATTACHMENT_UPLOAD, {
       type: 'url',

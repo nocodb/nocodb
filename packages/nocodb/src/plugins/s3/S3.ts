@@ -43,7 +43,8 @@ export default class S3 implements IStorageAdapterV2 {
       const response = await axios.get(url, {
         httpAgent: useAgent(url, { stopPortScanningByUrlRedirection: true }),
         httpsAgent: useAgent(url, { stopPortScanningByUrlRedirection: true }),
-        responseType: 'stream',
+        // TODO add an extra options argument to pass responseType & use stream for non-image files
+        responseType: 'arraybuffer',
       });
 
       uploadParams.Body = response.data;

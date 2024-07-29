@@ -9,13 +9,10 @@ import type { AttachmentResType } from 'nocodb-sdk';
 import type { ThumbnailGeneratorJobData } from '~/interface/Jobs';
 import { JOBS_QUEUE, JobTypes } from '~/interface/Jobs';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
-import { AttachmentsService } from '~/services/attachments.service';
-
-const attachmentPreviews = ['image/'];
 
 @Processor(JOBS_QUEUE)
 export class ThumbnailGeneratorProcessor {
-  constructor(private readonly attachmentsService: AttachmentsService) {}
+  constructor() {}
 
   private logger = new Logger(ThumbnailGeneratorProcessor.name);
 
@@ -24,21 +21,15 @@ export class ThumbnailGeneratorProcessor {
     try {
       const { attachments } = job.data;
 
-      const thumbnailPromises = attachments
-        .filter((attachment) =>
-          attachmentPreviews.some((type) =>
-            attachment.mimetype.startsWith(type),
-          ),
-        )
-        .map(async (attachment) => {
-          const thumbnail = await this.generateThumbnail(attachment);
-          return {
-            path: attachment.path ?? attachment.url,
-            card_cover: thumbnail?.card_cover,
-            small: thumbnail?.small,
-            tiny: thumbnail?.tiny,
-          };
-        });
+      const thumbnailPromises = attachments.map(async (attachment) => {
+        const thumbnail = await this.generateThumbnail(attachment);
+        return {
+          path: attachment.path ?? attachment.url,
+          card_cover: thumbnail?.card_cover,
+          small: thumbnail?.small,
+          tiny: thumbnail?.tiny,
+        };
+      });
 
       return await Promise.all(thumbnailPromises);
     } catch (error) {
@@ -137,8 +128,8 @@ export class ThumbnailGeneratorProcessor {
 
     const file = await storageAdapter.fileRead(relativePath);
 
-    // remove /nc/uploads/ or nc/uploads/ from the path
-    relativePath = relativePath.replace(/^\/?nc\/uploads\//, '');
+    // remove everything before 'nc/uploads/' (including nc/uploads/) in relativePath
+    relativePath = relativePath.replace(/.*?nc\/uploads\//, '');
 
     return { file, relativePath };
   }

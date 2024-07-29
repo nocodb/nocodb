@@ -426,6 +426,10 @@ export class PublicDatasService {
       );
     }
 
+    for (const [column, data] of Object.entries(attachments)) {
+      insertObject[column] = JSON.stringify(data);
+    }
+
     return await baseModel.nestedInsert(insertObject, null);
   }
 

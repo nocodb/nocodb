@@ -267,7 +267,6 @@ const onDecode = async (scannedCodeValue: string) => {
                   </NcButton>
 
                   <NcButton
-                    html-type="submit"
                     :disabled="progress"
                     type="primary"
                     :size="isMobileMode ? 'medium' : 'small'"

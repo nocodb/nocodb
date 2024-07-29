@@ -42,7 +42,7 @@ export class ThumbnailGeneratorProcessor {
 
       return await Promise.all(thumbnailPromises);
     } catch (error) {
-      this.logger.error('Failed to generate thumbnails', error);
+      this.logger.error('Failed to generate thumbnails', error.stack as string);
     }
   }
 
@@ -108,8 +108,10 @@ export class ThumbnailGeneratorProcessor {
       return thumbnailPaths;
     } catch (error) {
       this.logger.error(
-        `Failed to generate thumbnails for ${attachment.path}`,
-        error,
+        `Failed to generate thumbnails for ${
+          attachment.path ?? attachment.url
+        }`,
+        error.stack as string,
       );
     }
   }
@@ -127,7 +129,10 @@ export class ThumbnailGeneratorProcessor {
         attachment.path.replace(/^download\//, ''),
       );
     } else if (attachment.url) {
-      relativePath = decodeURI(new URL(attachment.url).pathname);
+      relativePath = decodeURI(new URL(attachment.url).pathname).replace(
+        /^\/+/,
+        '',
+      );
     }
 
     const file = await storageAdapter.fileRead(relativePath);

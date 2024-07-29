@@ -14,8 +14,6 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import hash from 'object-hash';
-import moment from 'moment';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 import type { AttachmentReqType, FileType } from 'nocodb-sdk';
@@ -47,11 +45,8 @@ export class AttachmentsSecureController {
     @UploadedFiles() files: Array<FileType>,
     @Req() req: NcRequest & { user: { id: string } },
   ) {
-    const path = `${moment().format('YYYY/MM/DD')}/${hash(req.user.id)}`;
-
     const attachments = await this.attachmentsService.upload({
       files: files,
-      path: path,
       req,
     });
 
@@ -66,11 +61,8 @@ export class AttachmentsSecureController {
     @Body() body: Array<AttachmentReqType>,
     @Req() req: NcRequest & { user: { id: string } },
   ) {
-    const path = `${moment().format('YYYY/MM/DD')}/${hash(req.user.id)}`;
-
     const attachments = await this.attachmentsService.uploadViaURL({
       urls: body,
-      path,
       req,
     });
 

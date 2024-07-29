@@ -1,6 +1,5 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { ViewTypes } from 'nocodb-sdk';
-
 import { PublicDatasService as PublicDatasServiceCE } from 'src/services/public-datas.service';
 import type { NcContext } from '~/interface/config';
 import { Model, Source, View } from '~/models';
@@ -10,6 +9,7 @@ import { isMysqlVersionSupported } from '~/services/data-opt/mysql-helpers';
 import { DataOptService } from '~/services/data-opt/data-opt.service';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { DatasService } from '~/services/datas.service';
+import { AttachmentsService } from '~/services/attachments.service';
 
 @Injectable()
 export class PublicDatasService extends PublicDatasServiceCE {
@@ -18,8 +18,9 @@ export class PublicDatasService extends PublicDatasServiceCE {
     @Inject(forwardRef(() => 'JobsService'))
     protected readonly jobsService: IJobsService,
     private readonly dataOptService: DataOptService,
+    protected readonly attachmentsService: AttachmentsService,
   ) {
-    super(dataService, jobsService);
+    super(dataService, jobsService, attachmentsService);
   }
 
   async bulkAggregate(

@@ -207,4 +207,62 @@ export default class PresignedUrl {
     // return the url
     return tempUrl;
   }
+
+  public static async signAttachment(
+    param: {
+      attachment: {
+        url?: string;
+        path?: string;
+        mimetype: string;
+        signedPath?: string;
+        signedUrl?: string;
+      };
+      preview?: boolean;
+      mimetype?: string;
+      filename?: string;
+      expireSeconds?: number;
+      // allow writing to nested property instead of root (used for thumbnails)
+      nestedKeys?: string[];
+    },
+    ncMeta = Noco.ncMeta,
+  ) {
+    const {
+      nestedKeys = [],
+      attachment,
+      preview = true,
+      mimetype,
+      ...extra
+    } = param;
+
+    const nestedObj = nestedKeys.reduce((acc, key) => {
+      if (acc[key]) {
+        return acc[key];
+      }
+
+      acc[key] = {};
+      return acc[key];
+    }, attachment);
+
+    if (attachment?.path) {
+      nestedObj.signedPath = await PresignedUrl.getSignedUrl(
+        {
+          pathOrUrl: attachment.path.replace(/^download\//, ''),
+          preview,
+          mimetype: mimetype || attachment.mimetype,
+          ...(extra ? { ...extra } : {}),
+        },
+        ncMeta,
+      );
+    } else if (attachment?.url) {
+      nestedObj.signedUrl = await PresignedUrl.getSignedUrl(
+        {
+          pathOrUrl: attachment.url,
+          preview,
+          mimetype: mimetype || attachment.mimetype,
+          ...(extra ? { ...extra } : {}),
+        },
+        ncMeta,
+      );
+    }
+  }
 }

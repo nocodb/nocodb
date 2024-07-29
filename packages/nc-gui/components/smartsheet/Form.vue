@@ -1164,7 +1164,6 @@ useEventListener(
                         </NcButton>
 
                         <NcButton
-                          html-type="submit"
                           type="primary"
                           size="small"
                           :disabled="!isUIAllowed('dataInsert') || !visibleColumns.length"

@@ -286,10 +286,10 @@ onMounted(async () => {
       }
 
       const findEnclosingFunction = (text: string, offset: number) => {
-        const formulaRegex = /\b(?<!['"])(\w+)\s*\(/g
-        const quoteRegex = /"/g
+        const formulaRegex = /\b(?<!['"])(\w+)\s*\(/g // Regular expression to match function names
+        const quoteRegex = /"/g // Regular expression to match quotes
 
-        const stack = []
+        const functionStack = [] // Stack to keep track of functions
         let inQuote = false
 
         let match
@@ -297,24 +297,63 @@ onMounted(async () => {
           if (match.index > offset) break
 
           if (!inQuote) {
-            const formulaData = {
-              formulaName: match[1],
+            const functionData = {
+              name: match[1],
               start: match.index,
               end: formulaRegex.lastIndex,
             }
 
             let parenBalance = 1
-            for (let i = formulaRegex.lastIndex; i < text.length && parenBalance > 0; i++) {
+            let childValueStart = -1
+            let childValueEnd = -1
+            for (let i = formulaRegex.lastIndex; i < text.length; i++) {
               if (text[i] === '(') {
                 parenBalance++
               } else if (text[i] === ')') {
                 parenBalance--
+                if (parenBalance === 0) {
+                  functionData.end = i + 1
+                  break
+                }
               }
-              formulaData.end = i + 1
-              if (i >= offset && parenBalance === 0) break
+
+              // Child value handling
+              if (childValueStart === -1 && ['(', ',', '{'].includes(text[i])) {
+                childValueStart = i
+              } else if (childValueStart !== -1 && ['(', ',', '{'].includes(text[i])) {
+                childValueStart = i
+              } else if (childValueStart !== -1 && ['}', ',', ')'].includes(text[i])) {
+                childValueEnd = i
+                childValueStart = -1
+              }
+
+              if (i >= offset) {
+                // If we've reached the offset and parentheses are still open, consider the current position as the end of the function
+                if (parenBalance > 0) {
+                  functionData.end = i + 1
+                  break
+                }
+
+                // Check for nested functions
+                const nestedFunction = findEnclosingFunction(
+                  text.substring(functionData.start + match[1].length + 1, i),
+                  offset - functionData.start - match[1].length - 1,
+                )
+                if (nestedFunction) {
+                  return nestedFunction
+                } else {
+                  functionStack.push(functionData)
+                  break
+                }
+              }
             }
 
-            stack.push(formulaData)
+            // If child value ended before offset, use child value end as function end
+            if (childValueEnd !== -1 && childValueEnd < offset) {
+              functionData.end = childValueEnd + 1
+            }
+
+            functionStack.push(functionData)
           }
 
           // Check for quotes
@@ -324,10 +363,9 @@ onMounted(async () => {
           }
         }
 
-        const enclosingFunctions = stack.filter((func) => func.start <= offset && func.end >= offset)
-        return enclosingFunctions.length > 0 ? enclosingFunctions[enclosingFunctions.length - 1].formulaName : null
+        const enclosingFunctions = functionStack.filter((func) => func.start <= offset && func.end >= offset)
+        return enclosingFunctions.length > 0 ? enclosingFunctions[enclosingFunctions.length - 1].name : null
       }
-
       const lastFunction = findEnclosingFunction(text, offset)
 
       suggestionPreviewed.value =

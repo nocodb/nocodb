@@ -203,7 +203,6 @@ export const useExtensions = createSharedComposable(() => {
       }
     } catch (e) {
       console.log(e)
-      // TODO: Handle error
     }
   }
 

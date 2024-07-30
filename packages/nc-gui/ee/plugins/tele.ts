@@ -90,10 +90,15 @@ class EventBatcher {
     }
 
     if (!this.nuxtApp.$state.signedIn.value) return
-    await this.nuxtApp.$api.instance.post('/api/v1/tele', {
-      events,
-      clientId,
-    })
+
+    try {
+      await this.nuxtApp.$api.instance.post('/api/v1/tele', {
+        events,
+        clientId,
+      })
+    } catch {
+      // ignore error
+    }
   }
 }
 

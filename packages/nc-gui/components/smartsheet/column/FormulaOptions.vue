@@ -6,7 +6,7 @@ import jsep from 'jsep'
 import EditorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker&inline'
 import JsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker&inline'
 import type { editor as MonacoEditor } from 'monaco-editor'
-import { KeyCode, Position, Range } from 'monaco-editor'
+import { KeyCode, Position, Range, languages, editor as monacoEditor } from 'monaco-editor'
 
 import {
   FormulaDataTypes,
@@ -215,8 +215,6 @@ const handleInputDeb = useDebounceFn(function () {
 }, 250)
 
 onMounted(async () => {
-  const { editor: monacoEditor, languages } = await import('monaco-editor')
-
   if (monacoRoot.value) {
     const model = monacoEditor.createModel(vModel.value.formula_raw, 'formula')
 

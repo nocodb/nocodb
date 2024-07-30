@@ -232,6 +232,7 @@ onMounted(async () => {
       'glyphMargin': false,
       'folding': false,
       'wordWrap': 'on',
+      'wrappingStrategy': 'advanced',
       // This seems to be a bug in the monoco.
       // https://github.com/microsoft/monaco-editor/issues/4535#issuecomment-2234042290
       'bracketPairColorization.enabled': false,
@@ -242,6 +243,7 @@ onMounted(async () => {
       'lineDecorationsWidth': 8,
       'lineNumbersMinChars': 0,
       'renderLineHighlight': 'none',
+      'renderIndentGuides': false,
       'scrollbar': {
         horizontal: 'hidden',
       },
@@ -257,8 +259,8 @@ onMounted(async () => {
     })
 
     editor.layout({
-      width: 368,
-      height: 150,
+      width: 339,
+      height: 120,
     })
 
     editor.onDidChangeModelContent(async () => {
@@ -339,7 +341,7 @@ useResizeObserver(monacoRoot, (entries) => {
   const entry = entries[0]
   const { height } = entry.contentRect
   editor.layout({
-    width: 368,
+    width: 339,
     height,
   })
 })
@@ -974,6 +976,7 @@ watch(parsedTree, (value, oldValue) => {
 .formula-monaco {
   @apply rounded-md nc-scrollbar-md border-gray-200 border-1 overflow-y-auto overflow-x-hidden resize-y;
   min-height: 100px;
+  height: 120px;
   max-height: 250px;
 
   &:focus-within:not(.formula-error) {
@@ -982,6 +985,9 @@ watch(parsedTree, (value, oldValue) => {
 
   &:focus-within:not(.formula-success) {
     box-shadow: 0 0 0 2px var(--ant-error-color-outline);
+  }
+  .view-line {
+    width: auto !important;
   }
 }
 

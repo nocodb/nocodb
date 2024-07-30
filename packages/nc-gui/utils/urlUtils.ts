@@ -8,6 +8,7 @@ export const replaceUrlsWithLink = (text: string): boolean | string => {
   const rawText = text.toString()
 
   const protocolRegex = /^(https?|ftp|mailto|file):\/\//
+  let isUrl
 
   const out = rawText.replace(/URI::\(([^)]*)\)(?: LABEL::\(([^)]*)\))?/g, (_, url, label) => {
     if (!url.trim() && !label) {
@@ -15,6 +16,9 @@ export const replaceUrlsWithLink = (text: string): boolean | string => {
     }
 
     const fullUrl = protocolRegex.test(url) ? url : url.trim() ? `http://${url}` : ''
+
+    isUrl = isURL(fullUrl)
+
     const anchorLabel = label || url || ''
 
     const a = document.createElement('a')
@@ -26,7 +30,7 @@ export const replaceUrlsWithLink = (text: string): boolean | string => {
     return a.outerHTML
   })
 
-  return out
+  return isUrl ? out : false
 }
 
 export const isValidURL = (str: string, extraProps?) => {

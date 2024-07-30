@@ -6,6 +6,7 @@ import jsep from 'jsep'
 import EditorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker&inline'
 import JsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker&inline'
 import type { editor as MonacoEditor } from 'monaco-editor'
+import { KeyCode, Position, Range } from 'monaco-editor'
 
 import {
   FormulaDataTypes,
@@ -24,14 +25,13 @@ import formulaLanguage from '../../monaco/formula'
 const props = defineProps<{
   value: any
 }>()
-
 const emit = defineEmits(['update:value'])
 
 const uiTypesNotSupportedInFormulas = [UITypes.QrCode, UITypes.Barcode]
 
 const vModel = useVModel(props, 'value', emit)
 
-const { setAdditionalValidations, validateInfos, sqlUi, column, fromTableExplorer } = useColumnCreateStoreOrThrow()
+const { setAdditionalValidations, sqlUi, column, fromTableExplorer } = useColumnCreateStoreOrThrow()
 
 const { t } = useI18n()
 
@@ -58,6 +58,9 @@ const supportedColumns = computed(
 const { getMeta } = useMetas()
 
 const suggestionPreviewed = ref<Record<any, string> | undefined>()
+
+// If -1 Show Fields first, if 1 show Formulas first
+const priority = ref(0)
 
 const showFunctionList = ref<boolean>(true)
 
@@ -175,31 +178,156 @@ const variableList = computed(() => {
   return suggestion.value.filter((s) => s && s.type === 'column')
 })
 
-function isCurlyBracketBalanced() {
-  // count number of opening curly brackets and closing curly brackets
-  const cntCurlyBrackets = (formulaRef.value.$el.value.match(/\{|}/g) || []).reduce(
-    (acc: Record<number, number>, cur: number) => {
-      acc[cur] = (acc[cur] || 0) + 1
-      return acc
+/**
+ * Adding monaco editor to Vite
+ *
+ * @ts-expect-error */
+self.MonacoEnvironment = window.MonacoEnvironment = {
+  async getWorker(_: any, label: string) {
+    switch (label) {
+      case 'json': {
+        const workerBlob = new Blob([JsonWorker], { type: 'text/javascript' })
+        return await initWorker(URL.createObjectURL(workerBlob))
+      }
+      default: {
+        const workerBlob = new Blob([EditorWorker], { type: 'text/javascript' })
+        return await initWorker(URL.createObjectURL(workerBlob))
+      }
+    }
+  },
+}
+
+const monacoRoot = ref<HTMLDivElement>()
+let editor: MonacoEditor.IStandaloneCodeEditor
+
+function getCurrentKeyword() {
+  const model = editor.getModel()
+  const position = editor.getPosition()
+  if (!model || !position) {
+    return null
+  }
+
+  const word = model.getWordAtPosition(position)
+
+  return word?.word
+}
+
+onMounted(async () => {
+  const { editor: monacoEditor, languages } = await import('monaco-editor')
+
+  if (monacoRoot.value) {
+    const model = monacoEditor.createModel(vModel.value.formula_raw, 'formula')
+
+    languages.register({
+      id: formulaLanguage.name,
+    })
+
+    monacoEditor.defineTheme(formulaLanguage.name, formulaLanguage.theme)
+
+    languages.setMonarchTokensProvider(
+      formulaLanguage.name,
+      formulaLanguage.generateLanguageDefinition(supportedColumns.value.map((c) => c.title!)),
+    )
+
+    languages.setLanguageConfiguration(formulaLanguage.name, formulaLanguage.languageConfiguration)
+
+    monacoEditor.addKeybindingRules([
+      {
+        keybinding: KeyCode.DownArrow,
+        when: 'editorTextFocus',
+      },
+      {
+        keybinding: KeyCode.UpArrow,
+        when: 'editorTextFocus',
+      },
+    ])
+
+    editor = monacoEditor.create(monacoRoot.value, {
+      model,
+      contextmenu: false,
+      theme: 'formula',
+      foldingStrategy: 'indentation',
+      selectOnLineNumbers: true,
+      language: 'formula',
+      roundedSelection: false,
+      scrollBeyondLastLine: false,
+      lineNumbers: 'off',
+      glyphMargin: false,
+      folding: false,
+      padding: {
+        top: 2,
+        bottom: 2,
+      },
+      lineDecorationsWidth: 2,
+      lineNumbersMinChars: 0,
+      renderLineHighlight: 'none',
+      scrollbar: {
+        verticalScrollbarSize: 1,
+        horizontalScrollbarSize: 1,
+      },
+      tabSize: 2,
+      automaticLayout: true,
+      bracketPairColorization: {
+        enabled: true,
+        independentColorPoolPerBracketType: true,
+      },
+      minimap: {
+        enabled: false,
+      },
+    })
+
+    editor.onDidChangeModelContent(async () => {
+      vModel.value.formula_raw = editor.getValue()
+    })
+
+    editor.focus()
+  }
+})
+
+function insertStringAtPosition(editor: MonacoEditor.IStandaloneCodeEditor, text: string, skipCursorMove = false) {
+  const position = editor.getPosition()
+
+  if (!position) {
+    return
+  }
+  const range = new Range(position.lineNumber, position.column, position.lineNumber, position.column)
+
+  editor.executeEdits('', [
+    {
+      range,
+      text,
+      forceMoveMarkers: true,
     },
-    {},
-  )
-  return (cntCurlyBrackets['{'] || 0) === (cntCurlyBrackets['}'] || 0)
+  ])
+
+  // Move the cursor to the end of the inserted text
+  if (!skipCursorMove) {
+    const newPosition = new Position(position.lineNumber, position.column + text.length - 1)
+    editor.setPosition(newPosition)
+  }
+
+  editor.focus()
 }
 
 function appendText(item: Record<string, any>) {
-  const text = item.text
   const len = wordToComplete.value?.length || 0
+  const text = item.text
+
+  // Remove the first len characters from the text
+  for (let i = 0; i < len; i++) {
+    editor.trigger('keyboard', 'deleteLeft', null)
+  }
 
   if (item.type === 'function') {
-    vModel.value.formula_raw = insertAtCursor(formulaRef.value.$el, text, len, 1)
+    insertStringAtPosition(editor, `${text}`)
   } else if (item.type === 'column') {
-    vModel.value.formula_raw = insertAtCursor(formulaRef.value.$el, `{${text}}`, len + +!isCurlyBracketBalanced())
+    insertStringAtPosition(editor, `{${text}}`)
   } else {
-    vModel.value.formula_raw = insertAtCursor(formulaRef.value.$el, text, len)
+    insertStringAtPosition(editor, text, true)
   }
   autocomplete.value = false
   wordToComplete.value = ''
+
   if (item.type === 'function' || item.type === 'op') {
     // if function / operator is chosen, display columns only
     suggestion.value = suggestionsList.value.filter((f) => f.type === 'column')
@@ -213,10 +341,31 @@ const handleInputDeb = useDebounceFn(function () {
   handleInput()
 }, 250)
 
+function isCursorBetweenParenthesis() {
+  const cursorPosition = editor.getPosition()
+
+  if (!cursorPosition) return false
+
+  const line = editor.getModel()?.getLineContent(cursorPosition.lineNumber)
+
+  if (!line) {
+    return false
+  }
+
+  const cursorLine = line.substring(0, cursorPosition.column - 1)
+
+  const openParenthesis = (cursorLine.match(/\(/g) || []).length
+
+  const closeParenthesis = (cursorLine.match(/\)/g) || []).length
+
+  return openParenthesis > closeParenthesis
+}
+
 function handleInput() {
+  priority.value = 1
   selected.value = 0
   suggestion.value = []
-  const query = getWordUntilCaret(formulaRef.value.$el)
+  const query = getCurrentKeyword() ?? ''
   const parts = query.split(/\W+/)
   wordToComplete.value = parts.pop() || ''
   suggestion.value = acTree.value
@@ -227,15 +376,28 @@ function handleInput() {
     suggestionPreviewed.value = suggestion.value[0]
   }
 
-  if (!isCurlyBracketBalanced()) {
-    suggestion.value = suggestion.value.filter((v) => v.type === 'column')
-    showFunctionList.value = false
+  if (isCursorBetweenParenthesis()) {
+    // Show columns at top
+    suggestion.value = suggestion.value.sort((a, b) => {
+      if (a.type === 'column') return -1
+      if (b.type === 'column') return 1
+      return 0
+    })
+    selected.value = 0
+    priority.value = -1
   } else if (!showFunctionList.value) {
     showFunctionList.value = true
   }
 
   autocomplete.value = !!suggestion.value.length
 }
+
+watch(
+  () => vModel.value.formula_raw,
+  () => {
+    handleInputDeb()
+  },
+)
 
 function selectText() {
   if (suggestion.value && selected.value > -1 && selected.value < suggestionsList.value.length) {
@@ -410,102 +572,6 @@ watch(parsedTree, (value, oldValue) => {
     vModel.value.meta.display_type = null
   }
 })
-
-/**
- * Adding monaco editor to Vite
- *
- * @ts-expect-error */
-self.MonacoEnvironment = window.MonacoEnvironment = {
-  async getWorker(_: any, label: string) {
-    switch (label) {
-      case 'json': {
-        const workerBlob = new Blob([JsonWorker], { type: 'text/javascript' })
-        return await initWorker(URL.createObjectURL(workerBlob))
-      }
-      default: {
-        const workerBlob = new Blob([EditorWorker], { type: 'text/javascript' })
-        return await initWorker(URL.createObjectURL(workerBlob))
-      }
-    }
-  },
-}
-
-const monacoRoot = ref<HTMLDivElement>()
-let editor: MonacoEditor.IStandaloneCodeEditor
-
-onMounted(async () => {
-  const { editor: monacoEditor, languages, KeyCode } = await import('monaco-editor')
-
-  if (monacoRoot.value) {
-    const model = monacoEditor.createModel(vModel.value.formula_raw, 'formula')
-
-    languages.register({
-      id: formulaLanguage.name,
-    })
-
-    monacoEditor.defineTheme(formulaLanguage.name, formulaLanguage.theme)
-
-    languages.setMonarchTokensProvider(
-      formulaLanguage.name,
-      formulaLanguage.generateLanguageDefinition(supportedColumns.value.map((c) => c.title!)),
-    )
-
-    languages.setLanguageConfiguration(formulaLanguage.name, formulaLanguage.languageConfiguration)
-
-    monacoEditor.addKeybindingRules([
-      {
-        keybinding: KeyCode.DownArrow,
-        command: 'none',
-        when: 'editorTextFocus',
-      },
-      {
-        keybinding: KeyCode.UpArrow,
-        command: 'none',
-        when: 'editorTextFocus',
-      },
-    ])
-
-    editor = monacoEditor.create(monacoRoot.value, {
-      model,
-      contextmenu: false,
-      theme: 'formula',
-      foldingStrategy: 'indentation',
-      selectOnLineNumbers: true,
-      language: 'formula',
-      roundedSelection: false,
-      scrollBeyondLastLine: false,
-      lineNumbers: 'off',
-      glyphMargin: false,
-      folding: false,
-      padding: {
-        top: 2,
-        bottom: 2,
-      },
-      lineDecorationsWidth: 2,
-      lineNumbersMinChars: 0,
-      renderLineHighlight: 'none',
-      scrollbar: {
-        verticalScrollbarSize: 1,
-        horizontalScrollbarSize: 1,
-      },
-      tabSize: 2,
-      automaticLayout: true,
-      bracketPairColorization: {
-        enabled: true,
-        independentColorPoolPerBracketType: true,
-      },
-      minimap: {
-        enabled: false,
-      },
-    })
-
-    editor.onDidChangeModelContent(async () => {
-      vModel.value.formula_raw = editor.getValue()
-    })
-
-    editor.focus()
-  }
-})
 </script>
 
 <template>
@@ -574,20 +640,14 @@ onMounted(async () => {
         <div class="px-0.5">
           <div ref="monacoRoot" class="formula-monaco" @keydown.stop="handleKeydown"></div>
 
-          <!--          <a-form-item class="mt-4 h-full nc-formula-wrapper" v-bind="validateInfos.formula_raw">
-            &lt;!&ndash;            <a-textarea
-                          ref="formulaRef"
-
-              v-model:value="vModel.formula_raw"
-              class="nc-formula-input !rounded-md"
-              @keydown="handleKeydown"
-              @change="handleInputDeb"
-            /> &ndash;&gt;
-
-          </a-form-item> -->
-
-          <div class="h-[250px] overflow-auto nc-scrollbar-thin border-1 border-gray-200 rounded-lg mt-4">
-            <template v-if="suggestedFormulas && showFunctionList">
+          <div
+            :class="{
+              'flex-col': priority === 1,
+              'flex-col-reverse': priority === -1,
+            }"
+            class="h-[250px] overflow-auto flex flex-col nc-scrollbar-thin border-1 border-gray-200 rounded-lg mt-4"
+          >
+            <div v-if="suggestedFormulas && showFunctionList" style="height: -webkit-fill-available">
               <div class="border-b-1 bg-gray-50 px-3 py-1 uppercase text-gray-600 text-xs font-semibold sticky top-0 z-10">
                 Formulas
               </div>
@@ -626,9 +686,9 @@ onMounted(async () => {
                   </a-list-item>
                 </template>
               </a-list>
-            </template>
+            </div>
 
-            <template v-if="variableList">
+            <div v-if="variableList" style="height: -webkit-fill-available">
               <div class="border-b-1 bg-gray-50 px-3 py-1 uppercase text-gray-600 text-xs font-semibold sticky top-0 z-10">
                 Fields
               </div>
@@ -674,7 +734,7 @@ onMounted(async () => {
                   </a-list-item>
                 </template>
               </a-list>
-            </template>
+            </div>
           </div>
         </div>
       </a-tab-pane>

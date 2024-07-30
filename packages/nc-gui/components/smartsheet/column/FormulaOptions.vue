@@ -272,9 +272,10 @@ onMounted(async () => {
       hideCursorInOverviewRuler: true,
       overviewRulerBorder: false,
       bracketPairColorization: {
-        enabled: true,
-        independentColorPoolPerBracketType: true,
+        enabled: false,
+        independentColorPoolPerBracketType: false,
       },
+      matchBrackets: 'never',
       minimap: {
         enabled: false,
       },
@@ -670,7 +671,7 @@ watch(parsedTree, (value, oldValue) => {
     >
       <div class="pr-3">
         <div class="flex flex-row w-full justify-between pb-2 border-b-1">
-          <div class="flex items-center gap-x-1 font-semibold text-base text-gray-600">
+          <div class="flex items-center gap-x-1 font-semibold text-lg text-gray-600">
             <component :is="iconMap.function" class="text-lg" />
             {{ suggestionPreviewed.text }}
           </div>
@@ -680,17 +681,17 @@ watch(parsedTree, (value, oldValue) => {
         </div>
       </div>
       <div class="flex flex-col max-h-120 nc-scrollbar-thin pr-2">
-        <div class="flex mt-3 text-sm">{{ suggestionPreviewed.description }}</div>
+        <div class="flex mt-3 text-[13px] leading-6">{{ suggestionPreviewed.description }}</div>
 
-        <div class="text-gray-500 uppercase text-xs mt-3 mb-2">Syntax</div>
-        <div class="bg-white rounded-md py-1 px-2 border-1">{{ suggestionPreviewed.syntax }}</div>
-        <div class="text-gray-500 uppercase text-xs mt-3 mb-2">Examples</div>
+        <div class="text-gray-500 uppercase text-[11px] mt-3 mb-2">Syntax</div>
+        <div class="bg-white rounded-md py-1 text-[13px] mono-font leading-6 px-2 border-1">{{ suggestionPreviewed.syntax }}</div>
+        <div class="text-gray-500 uppercase text-[11px] mt-3 mb-2">Examples</div>
         <div
           v-for="(example, index) of suggestionPreviewed.examples"
           :key="example"
-          class="bg-gray-100 py-1 px-2"
+          class="bg-gray-100 mono-font text-[13px] leading-6 py-1 px-2"
           :class="{
-            'border-t-1 border-gray-200': index !== 0,
+            'border-t-1  border-gray-200': index !== 0,
             'rounded-b-md': index === suggestionPreviewed.examples.length - 1 && suggestionPreviewed.examples.length !== 1,
             'rounded-t-md': index === 0 && suggestionPreviewed.examples.length !== 1,
             'rounded-md': suggestionPreviewed.examples.length === 1,
@@ -797,7 +798,7 @@ watch(parsedTree, (value, oldValue) => {
                     <a-list-item-meta class="nc-variable-list-item">
                       <template #title>
                         <div class="flex items-center gap-x-1 justify-between">
-                          <div class="flex items-center gap-x-1 rounded-md bg-gray-200 px-1 h-5">
+                          <div class="flex items-center gap-x-1 rounded-md px-1 h-5">
                             <component :is="item.icon" class="w-4 h-4 !text-gray-600" />
 
                             <span class="text-small leading-[18px] text-gray-800 font-weight-500">{{ item.text }}</span>
@@ -958,5 +959,20 @@ watch(parsedTree, (value, oldValue) => {
   &:focus-within:not(.formula-success) {
     box-shadow: 0 0 0 2px var(--ant-error-color-outline);
   }
+
+  :deep(.monaco-editor) {
+    .bracket-highlighting-0,
+    .bracket-highlighting-1,
+    .bracket-highlighting-2,
+    .bracket-highlighting-3 {
+      &:not(.mtk4) {
+        color: #8541f9;
+      }
+    }
+  }
+}
+
+.mono-font {
+  font-family: 'JetBrainsMono', monospace;
 }
 </style>

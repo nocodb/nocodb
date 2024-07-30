@@ -14,7 +14,7 @@ const theme: editor.IStandaloneThemeData = {
     { token: 'identifier', foreground: '#8541f9', fontStyle: 'bold' },
     { token: 'string', foreground: '#007b77', fontStyle: 'bold' },
     { token: 'delimiter.parenthesis', foreground: '#333333', fontStyle: 'bold' },
-    { token: 'delimiter.brace', foreground: '#8541f9' },
+    { token: 'delimiter.brace', foreground: '#8541f9', fontStyle: 'bold' },
     { token: 'invalid', foreground: '#000000' },
   ],
 

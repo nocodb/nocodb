@@ -1,22 +1,13 @@
-import {ViewTypes} from 'nocodb-sdk'
+import { ViewTypes } from 'nocodb-sdk'
 import axios from 'axios'
-import type {
-  Api,
-  ColumnType,
-  FormColumnType,
-  FormType,
-  GalleryType,
-  PaginatedType,
-  TableType,
-  ViewType
-} from 'nocodb-sdk'
-import type {ComputedRef, Ref} from 'vue'
-import {NavigateDir} from '#imports'
+import type { Api, ColumnType, FormColumnType, FormType, GalleryType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
+import type { ComputedRef, Ref } from 'vue'
+import { NavigateDir } from '#imports'
 
 const formatData = (list: Record<string, any>[]) =>
   list.map((row) => ({
-    row: {...row},
-    oldRow: {...row},
+    row: { ...row },
+    oldRow: { ...row },
     rowMeta: {},
   }))
 
@@ -25,26 +16,26 @@ export function useViewData(
   viewMeta: Ref<ViewType | undefined> | ComputedRef<(ViewType & { id: string }) | undefined>,
   where?: ComputedRef<string | undefined>,
 ) {
-  const {activeTableId, activeTable} = storeToRefs(useTablesStore())
+  const { activeTableId, activeTable } = storeToRefs(useTablesStore())
 
   const meta = computed(() => _meta.value || activeTable.value)
   const metaId = computed(() => _meta.value?.id || activeTableId.value)
 
-  const {t} = useI18n()
+  const { t } = useI18n()
 
   const optimisedQuery = useState('optimisedQuery', () => true)
 
-  const {api, isLoading, error} = useApi()
+  const { api, isLoading, error } = useApi()
 
   const router = useRouter()
 
   const route = router.currentRoute
 
-  const {appInfo, gridViewPageSize} = useGlobal()
+  const { appInfo, gridViewPageSize } = useGlobal()
 
   const appInfoDefaultLimit = gridViewPageSize.value || appInfo.value.defaultLimit || 25
 
-  const _paginationData = ref<PaginatedType>({page: 1, pageSize: appInfoDefaultLimit})
+  const _paginationData = ref<PaginatedType>({ page: 1, pageSize: appInfoDefaultLimit })
 
   const aggCommentCount = ref<{ row_id: string; count: string }[]>([])
 
@@ -60,19 +51,19 @@ export function useViewData(
 
   const isPublic = inject(IsPublicInj, ref(false))
 
-  const {base} = storeToRefs(useBase())
+  const { base } = storeToRefs(useBase())
 
-  const {sharedView, fetchSharedViewData, paginationData: sharedPaginationData} = useSharedView()
+  const { sharedView, fetchSharedViewData, paginationData: sharedPaginationData } = useSharedView()
 
-  const {$api} = useNuxtApp()
+  const { $api } = useNuxtApp()
 
-  const {sorts, nestedFilters} = useSmartsheetStoreOrThrow()
+  const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
 
-  const {isUIAllowed} = useRoles()
+  const { isUIAllowed } = useRoles()
 
   const routeQuery = computed(() => route.value.query as Record<string, string>)
 
-  const {isPaginationLoading} = storeToRefs(useViewsStore())
+  const { isPaginationLoading } = storeToRefs(useViewsStore())
 
   const paginationData = computed({
     get: () => (isPublic.value ? sharedPaginationData.value : _paginationData.value),
@@ -102,7 +93,7 @@ export function useViewData(
   }))
 
   async function syncCount() {
-    const {count} = await $api.dbViewRow.count(
+    const { count } = await $api.dbViewRow.count(
       NOCO,
       base?.value?.id as string,
       metaId.value as string,
@@ -145,8 +136,8 @@ export function useViewData(
     if (isPublic.value) return
 
     const ids = formattedData.value
-      ?.filter(({rowMeta: {new: isNew}}) => !isNew)
-      ?.map(({row}) => {
+      ?.filter(({ rowMeta: { new: isNew } }) => !isNew)
+      ?.map(({ row }) => {
         return extractPkFromRow(row, meta?.value?.columns as ColumnType[])
       })
 
@@ -186,23 +177,23 @@ export function useViewData(
     try {
       response = !isPublic.value
         ? await api.dbViewRow.list(
-          'noco',
-          base.value.id!,
-          metaId.value!,
-          viewMeta.value!.id!,
-          {
-            ...queryParams.value,
-            ...params,
-            ...(isUIAllowed('sortSync') ? {} : {sortArrJson: JSON.stringify(sorts.value)}),
-            ...(isUIAllowed('filterSync') ? {} : {filterArrJson: JSON.stringify(nestedFilters.value)}),
-            where: where?.value,
-            ...(excludePageInfo.value ? {excludeCount: 'true'} : {}),
-          } as any,
-          {
-            cancelToken: controller.value.token,
-          },
-        )
-        : await fetchSharedViewData({sortsArr: sorts.value, filtersArr: nestedFilters.value, where: where?.value})
+            'noco',
+            base.value.id!,
+            metaId.value!,
+            viewMeta.value!.id!,
+            {
+              ...queryParams.value,
+              ...params,
+              ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
+              ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+              where: where?.value,
+              ...(excludePageInfo.value ? { excludeCount: 'true' } : {}),
+            } as any,
+            {
+              cancelToken: controller.value.token,
+            },
+          )
+        : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value, where: where?.value })
     } catch (error) {
       // if the request is canceled, then do nothing
       if (error.code === 'ERR_CANCELED') {
@@ -282,7 +273,7 @@ export function useViewData(
   async function loadFormView() {
     if (!viewMeta?.value?.id) return
     try {
-      const {columns, ...view} = await $api.dbView.formRead(viewMeta.value.id)
+      const { columns, ...view } = await $api.dbView.formRead(viewMeta.value.id)
       let order = 1
       const fieldById = (columns || []).reduce((o: Record<string, any>, f: Record<string, any>) => {
         if (order < f.order) {
@@ -302,7 +293,7 @@ export function useViewData(
           fk_column_id: c.id,
           fk_view_id: viewMeta.value?.id,
           ...(fieldById[c.id!] ? fieldById[c.id!] : {}),
-          meta: {validators: [], ...parseProp(fieldById[c.id!]?.meta), ...parseProp(c.meta)},
+          meta: { validators: [], ...parseProp(fieldById[c.id!]?.meta), ...parseProp(c.meta) },
           order: (fieldById[c.id!] && fieldById[c.id!].order) || order++,
           id: fieldById[c.id!] && fieldById[c.id!].id,
         }))

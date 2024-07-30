@@ -174,7 +174,7 @@ const editor = useEditor({
   onBlur: (e) => {
     const targetEl = e?.event.relatedTarget as HTMLElement
 
-    if (!targetEl) return;
+    if (!targetEl) return
 
     if (
       !targetEl.closest(

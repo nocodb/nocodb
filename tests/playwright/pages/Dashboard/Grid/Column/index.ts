@@ -386,12 +386,18 @@ export class ColumnPageObject extends BasePage {
     await this.defaultValueBtn().click();
 
     switch (type) {
-      case 'Formula':
-        await this.rootPage.waitForTimeout(500);
-        await this.get().locator('.inputarea').clear();
-        await this.rootPage.waitForTimeout(500);
-        await this.get().locator('.inputarea').fill(formula);
+      case 'Formula': {
+        const element = this.get().locator('.inputarea');
+        await element.focus();
+
+        await this.rootPage.keyboard.press('Control+A');
+        await this.rootPage.waitForTimeout(200);
+
+        await this.rootPage.keyboard.press('Backspace');
+        await this.rootPage.waitForTimeout(200);
+        await element.fill(formula);
         break;
+      }
       case 'Duration':
         await this.get().locator('.ant-select-single').nth(1).click();
         await this.rootPage.locator(`.ant-select-item`).getByTestId(format).click();

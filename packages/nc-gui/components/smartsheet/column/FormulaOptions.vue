@@ -98,8 +98,6 @@ const availableBinOps = ['+', '-', '*', '/', '>', '<', '==', '<=', '>=', '!=', '
 
 const autocomplete = ref(false)
 
-const formulaRef = ref()
-
 const variableListRef = ref<(typeof AntListItem)[]>([])
 
 const sugOptionsRef = ref<(typeof AntListItem)[]>([])
@@ -212,6 +210,10 @@ function getCurrentKeyword() {
   return word?.word
 }
 
+const handleInputDeb = useDebounceFn(function () {
+  handleInput()
+}, 250)
+
 onMounted(async () => {
   const { editor: monacoEditor, languages } = await import('monaco-editor')
 
@@ -280,6 +282,56 @@ onMounted(async () => {
       vModel.value.formula_raw = editor.getValue()
     })
 
+    editor.onDidChangeCursorPosition(() => {
+      const position = editor.getPosition()
+      const model = editor.getModel()
+
+      if (!position || !model) return
+
+      const text = model.getValue()
+      const offset = model.getOffsetAt(position)
+
+      const formulaRegex = /\b(\w+)\s*\(/g
+
+      const stack = []
+
+      let match
+
+      // eslint-disable-next-line no-cond-assign
+      while ((match = formulaRegex.exec(text)) !== null) {
+        if (match.index > offset) break
+
+        const formulaData = {
+          formulaName: match[1],
+          start: match.index,
+          end: formulaRegex.lastIndex,
+        }
+
+        let parenBalance = 1
+
+        for (let i = formulaRegex.lastIndex; i < text.length && parenBalance > 0; i++) {
+          if (text[i] === '(') {
+            parenBalance++
+          } else if (text[i] === ')') {
+            parenBalance--
+          }
+
+          formulaData.end = i + 1
+
+          if (i >= offset && parenBalance === 0) break
+        }
+
+        stack.push(formulaData)
+      }
+
+      // Filter stack to include only the function ranges that enclose the cursor position
+      const enclosingFunctions = stack.filter((func) => func.start <= offset && func.end >= offset)
+
+      // Return the innermost function in which the cursor is currently positioned
+      const lastFunction = enclosingFunctions.length > 0 ? enclosingFunctions[enclosingFunctions.length - 1].formulaName : null
+
+      suggestionPreviewed.value = suggestionsList.value.find((s) => s.text === `${lastFunction}()`) || undefined
+    })
     editor.focus()
   }
 })
@@ -311,12 +363,27 @@ function insertStringAtPosition(editor: MonacoEditor.IStandaloneCodeEditor, text
 
 function appendText(item: Record<string, any>) {
   const len = wordToComplete.value?.length || 0
+
+  if (!item?.text) return
   const text = item.text
 
-  // Remove the first len characters from the text
-  for (let i = 0; i < len; i++) {
-    editor.trigger('keyboard', 'deleteLeft', null)
+  const position = editor.getPosition()
+
+  if (!position) {
+    return // No cursor position available
   }
+
+  const newColumn = Math.max(1, position.column - len)
+
+  const range = new Range(position.lineNumber, newColumn, position.lineNumber, position.column)
+
+  editor.executeEdits('', [
+    {
+      range,
+      text: '',
+      forceMoveMarkers: true,
+    },
+  ])
 
   if (item.type === 'function') {
     insertStringAtPosition(editor, `${text}`)
@@ -337,14 +404,10 @@ function appendText(item: Record<string, any>) {
   }
 }
 
-const handleInputDeb = useDebounceFn(function () {
-  handleInput()
-}, 250)
-
 function isCursorBetweenParenthesis() {
-  const cursorPosition = editor.getPosition()
+  const cursorPosition = editor?.getPosition()
 
-  if (!cursorPosition) return false
+  if (!cursorPosition || !editor) return false
 
   const line = editor.getModel()?.getLineContent(cursorPosition.lineNumber)
 
@@ -362,7 +425,9 @@ function isCursorBetweenParenthesis() {
 }
 
 function handleInput() {
-  priority.value = 1
+  if (!editor) return
+  if (!isCursorBetweenParenthesis()) priority.value = 1
+
   selected.value = 0
   suggestion.value = []
   const query = getCurrentKeyword() ?? ''
@@ -372,9 +437,7 @@ function handleInput() {
     .complete(wordToComplete.value)
     ?.sort((x: Record<string, any>, y: Record<string, any>) => sortOrder[x.type] - sortOrder[y.type])
 
-  if (suggestion.value.length > 0 && suggestion.value[0].type !== 'column') {
-    suggestionPreviewed.value = suggestion.value[0]
-  }
+  // suggestionPreviewed.value = suggestion.value[0]
 
   if (isCursorBetweenParenthesis()) {
     // Show columns at top
@@ -486,19 +549,19 @@ const suggestionPreviewPostion = ref({
 })
 
 onMounted(() => {
-  until(() => formulaRef.value?.$el as Ref<HTMLTextAreaElement>)
+  until(() => monacoRoot.value as HTMLDivElement)
     .toBeTruthy()
     .then(() => {
       setTimeout(() => {
-        const textAreaPosition = formulaRef.value?.$el?.getBoundingClientRect()
-        if (!textAreaPosition) return
+        const monacoDivPosition = monacoRoot.value?.getBoundingClientRect()
+        if (!monacoDivPosition) return
 
-        suggestionPreviewPostion.value.top = `${textAreaPosition.top}px`
+        suggestionPreviewPostion.value.top = `${monacoDivPosition.top}px`
 
-        if (fromTableExplorer?.value || textAreaPosition.left > 352) {
-          suggestionPreviewPostion.value.left = `${textAreaPosition.left - 344}px`
+        if (fromTableExplorer?.value || monacoDivPosition.left > 352) {
+          suggestionPreviewPostion.value.left = `${monacoDivPosition.left - 344}px`
         } else {
-          suggestionPreviewPostion.value.left = `${textAreaPosition.right + 8}px`
+          suggestionPreviewPostion.value.left = `${monacoDivPosition.right + 8}px`
         }
       }, 250)
     })
@@ -581,7 +644,7 @@ watch(parsedTree, (value, oldValue) => {
         suggestionPreviewed &&
         !suggestionPreviewed.unsupported &&
         suggestionPreviewed.type === 'function' &&
-        activeKey === 'fomat'
+        activeKey === 'formula'
       "
       class="w-84 fixed bg-white z-10 pl-3 pt-3 border-1 shadow-md rounded-xl"
       :style="{
@@ -640,14 +703,8 @@ watch(parsedTree, (value, oldValue) => {
         <div class="px-0.5">
           <div ref="monacoRoot" class="formula-monaco" @keydown.stop="handleKeydown"></div>
 
-          <div
-            :class="{
-              'flex-col': priority === 1,
-              'flex-col-reverse': priority === -1,
-            }"
-            class="h-[250px] overflow-auto flex flex-col nc-scrollbar-thin border-1 border-gray-200 rounded-lg mt-4"
-          >
-            <div v-if="suggestedFormulas && showFunctionList" style="height: -webkit-fill-available">
+          <div class="h-[250px] overflow-auto flex flex-col nc-scrollbar-thin border-1 border-gray-200 rounded-lg mt-4">
+            <div v-if="suggestedFormulas && showFunctionList" :style="{ order: priority === -1 ? 2 : 1 }">
               <div class="border-b-1 bg-gray-50 px-3 py-1 uppercase text-gray-600 text-xs font-semibold sticky top-0 z-10">
                 Formulas
               </div>
@@ -688,7 +745,7 @@ watch(parsedTree, (value, oldValue) => {
               </a-list>
             </div>
 
-            <div v-if="variableList" style="height: -webkit-fill-available">
+            <div v-if="variableList" :style="{ order: priority === 1 ? 2 : 1 }">
               <div class="border-b-1 bg-gray-50 px-3 py-1 uppercase text-gray-600 text-xs font-semibold sticky top-0 z-10">
                 Fields
               </div>

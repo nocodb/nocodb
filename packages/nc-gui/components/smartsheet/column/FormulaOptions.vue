@@ -31,7 +31,7 @@ const uiTypesNotSupportedInFormulas = [UITypes.QrCode, UITypes.Barcode]
 
 const vModel = useVModel(props, 'value', emit)
 
-const { setAdditionalValidations, sqlUi, column, fromTableExplorer } = useColumnCreateStoreOrThrow()
+const { setAdditionalValidations, sqlUi, column, validateInfos, fromTableExplorer } = useColumnCreateStoreOrThrow()
 
 const { t } = useI18n()
 
@@ -264,11 +264,14 @@ onMounted(async () => {
       lineNumbersMinChars: 0,
       renderLineHighlight: 'none',
       scrollbar: {
-        verticalScrollbarSize: 1,
+        vertical: 'hidden',
         horizontalScrollbarSize: 1,
       },
       tabSize: 2,
       automaticLayout: true,
+      overviewRulerLanes: 0,
+      hideCursorInOverviewRuler: true,
+      overviewRulerBorder: false,
       bracketPairColorization: {
         enabled: true,
         independentColorPoolPerBracketType: true,
@@ -701,8 +704,17 @@ watch(parsedTree, (value, oldValue) => {
           </div>
         </template>
         <div class="px-0.5">
-          <div ref="monacoRoot" class="formula-monaco" @keydown.stop="handleKeydown"></div>
-
+          <a-form-item class="mt-4" v-bind="validateInfos.formula_raw">
+            <div
+              ref="monacoRoot"
+              :class="{
+                '!border-red-500 formula-error': validateInfos.formula_raw?.validateStatus === 'error',
+                '!focus-within:border-brand-500 formula-success': validateInfos.formula_raw?.validateStatus !== 'error',
+              }"
+              class="formula-monaco"
+              @keydown.stop="handleKeydown"
+            ></div>
+          </a-form-item>
           <div class="h-[250px] overflow-auto flex flex-col nc-scrollbar-thin border-1 border-gray-200 rounded-lg mt-4">
             <div v-if="suggestedFormulas && showFunctionList" :style="{ order: priority === -1 ? 2 : 1 }">
               <div class="border-b-1 bg-gray-50 px-3 py-1 uppercase text-gray-600 text-xs font-semibold sticky top-0 z-10">
@@ -919,11 +931,19 @@ watch(parsedTree, (value, oldValue) => {
 }
 
 .formula-monaco {
-  @apply rounded-md focus-within:border-brand-500 nc-scrollbar-md  border-gray-100 border-2;
+  @apply rounded-md nc-scrollbar-md border-gray-200 border-1;
   overflow-y: auto;
   overflow-x: hidden;
   resize: vertical;
   min-height: 50px;
   max-height: 200px;
+
+  &:focus-within:not(.formula-error) {
+    box-shadow: 0 0 0 2px var(--ant-primary-color-outline);
+  }
+
+  &:focus-within:not(.formula-success) {
+    box-shadow: 0 0 0 2px var(--ant-error-color-outline);
+  }
 }
 </style>

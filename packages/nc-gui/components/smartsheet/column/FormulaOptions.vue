@@ -254,11 +254,12 @@ onMounted(async () => {
       lineNumbers: 'off',
       glyphMargin: false,
       folding: false,
+      wordWrap: 'on',
       padding: {
-        top: 2,
-        bottom: 2,
+        top: 8,
+        bottom: 8,
       },
-      lineDecorationsWidth: 2,
+      lineDecorationsWidth: 8,
       lineNumbersMinChars: 0,
       renderLineHighlight: 'none',
       scrollbar: {
@@ -933,8 +934,8 @@ watch(parsedTree, (value, oldValue) => {
   overflow-y: auto;
   overflow-x: hidden;
   resize: vertical;
-  min-height: 50px;
-  max-height: 200px;
+  min-height: 100px;
+  max-height: 250px;
 
   &:focus-within:not(.formula-error) {
     box-shadow: 0 0 0 2px var(--ant-primary-color-outline);

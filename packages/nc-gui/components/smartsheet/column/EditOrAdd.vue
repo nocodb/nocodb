@@ -361,7 +361,6 @@ const isFullUpdateAllowed = computed(() => {
       'bg-white': !props.fromTableExplorer,
       'w-[384px]': !props.embedMode,
       'min-w-[500px]': formState.uidt === UITypes.LinkToAnotherRecord || formState.uidt === UITypes.Links,
-      'overflow-visible': formState.uidt === UITypes.Formula,
       '!w-[600px]': formState.uidt === UITypes.LinkToAnotherRecord || formState.uidt === UITypes.Links,
       'min-w-[422px] !w-full': isLinksOrLTAR(formState.uidt),
       'shadow-lg shadow-gray-300 border-1 border-gray-200 rounded-xl p-5': !embedMode,

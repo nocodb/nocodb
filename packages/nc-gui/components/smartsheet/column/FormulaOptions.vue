@@ -263,6 +263,7 @@ onMounted(async () => {
 
     editor.onDidChangeModelContent(async () => {
       vModel.value.formula_raw = editor.getValue()
+      await handleInputDeb()
     })
 
     editor.onDidChangeCursorPosition(() => {
@@ -274,44 +275,58 @@ onMounted(async () => {
       const text = model.getValue()
       const offset = model.getOffsetAt(position)
 
-      const formulaRegex = /\b(\w+)\s*\(/g
-
-      const stack = []
-
-      let match
-
-      // eslint-disable-next-line no-cond-assign
-      while ((match = formulaRegex.exec(text)) !== null) {
-        if (match.index > offset) break
-
-        const formulaData = {
-          formulaName: match[1],
-          start: match.index,
-          end: formulaRegex.lastIndex,
-        }
-
-        let parenBalance = 1
-
-        for (let i = formulaRegex.lastIndex; i < text.length && parenBalance > 0; i++) {
-          if (text[i] === '(') {
-            parenBalance++
-          } else if (text[i] === ')') {
-            parenBalance--
-          }
-
-          formulaData.end = i + 1
-
-          if (i >= offset && parenBalance === 0) break
-        }
-
-        stack.push(formulaData)
+      // IF cursor is inside string, don't show any suggestions
+      if (isCursorInsideString(text, offset)) {
+        autocomplete.value = false
+        suggestion.value = []
+      } else {
+        handleInput()
       }
 
-      // Filter stack to include only the function ranges that enclose the cursor position
-      const enclosingFunctions = stack.filter((func) => func.start <= offset && func.end >= offset)
+      const findEnclosingFunction = (text: string, offset: number) => {
+        const formulaRegex = /\b(?<!['"])(\w+)\s*\(/g
+        const quoteRegex = /"/g
 
-      // Return the innermost function in which the cursor is currently positioned
-      const lastFunction = enclosingFunctions.length > 0 ? enclosingFunctions[enclosingFunctions.length - 1].formulaName : null
+        const stack = []
+        let inQuote = false
+
+        let match
+        while ((match = formulaRegex.exec(text)) !== null) {
+          if (match.index > offset) break
+
+          if (!inQuote) {
+            const formulaData = {
+              formulaName: match[1],
+              start: match.index,
+              end: formulaRegex.lastIndex,
+            }
+
+            let parenBalance = 1
+            for (let i = formulaRegex.lastIndex; i < text.length && parenBalance > 0; i++) {
+              if (text[i] === '(') {
+                parenBalance++
+              } else if (text[i] === ')') {
+                parenBalance--
+              }
+              formulaData.end = i + 1
+              if (i >= offset && parenBalance === 0) break
+            }
+
+            stack.push(formulaData)
+          }
+
+          // Check for quotes
+          let quoteMatch
+          while ((quoteMatch = quoteRegex.exec(text)) !== null && quoteMatch.index < match.index) {
+            inQuote = !inQuote
+          }
+        }
+
+        const enclosingFunctions = stack.filter((func) => func.start <= offset && func.end >= offset)
+        return enclosingFunctions.length > 0 ? enclosingFunctions[enclosingFunctions.length - 1].formulaName : null
+      }
+
+      const lastFunction = findEnclosingFunction(text, offset)
 
       suggestionPreviewed.value =
         (suggestionsList.value.find((s) => s.text === `${lastFunction}()`) as Record<any, string>) || undefined
@@ -417,8 +432,53 @@ function isCursorBetweenParenthesis() {
   return openParenthesis > closeParenthesis
 }
 
+// Function to check if cursor is inside Strings
+function isCursorInsideString(text: string, offset: number) {
+  let inSingleQuoteString = false
+  let inDoubleQuoteString = false
+  let escapeNextChar = false
+
+  for (let i = 0; i < offset; i++) {
+    const char = text[i]
+
+    if (escapeNextChar) {
+      escapeNextChar = false
+      continue
+    }
+
+    if (char === '\\') {
+      escapeNextChar = true
+      continue
+    }
+
+    if (char === "'" && !inDoubleQuoteString) {
+      inSingleQuoteString = !inSingleQuoteString
+    } else if (char === '"' && !inSingleQuoteString) {
+      inDoubleQuoteString = !inDoubleQuoteString
+    }
+  }
+
+  return inDoubleQuoteString || inSingleQuoteString
+}
+
 function handleInput() {
   if (!editor) return
+
+  const model = editor.getModel()
+  const position = editor.getPosition()
+
+  if (!model || !position) return
+
+  const text = model.getValue()
+  const offset = model.getOffsetAt(position)
+
+  // IF cursor is inside string, don't show any suggestions
+  if (isCursorInsideString(text, offset)) {
+    autocomplete.value = false
+    suggestion.value = []
+    return
+  }
+
   if (!isCursorBetweenParenthesis()) priority.value = 1
 
   selected.value = 0
@@ -445,13 +505,6 @@ function handleInput() {
 
   autocomplete.value = !!suggestion.value.length
 }
-
-watch(
-  () => vModel.value.formula_raw,
-  () => {
-    handleInputDeb()
-  },
-)
 
 function selectText() {
   if (suggestion.value && selected.value > -1 && selected.value < suggestionsList.value.length) {

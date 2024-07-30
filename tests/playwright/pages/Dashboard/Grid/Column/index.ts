@@ -387,8 +387,9 @@ export class ColumnPageObject extends BasePage {
 
     switch (type) {
       case 'Formula':
+        await this.rootPage.waitForTimeout(500);
         await this.get().locator('.inputarea').clear();
-        await this.rootPage.waitForTimeout(400);
+        await this.rootPage.waitForTimeout(500);
         await this.get().locator('.inputarea').fill(formula);
         break;
       case 'Duration':

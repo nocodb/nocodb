@@ -356,7 +356,7 @@ const isFullUpdateAllowed = computed(() => {
 <template>
   <div
     v-if="!warningVisible"
-    class="overflow-auto max-h-[max(80vh,500px)]"
+    class="overflow-auto nc-scrollbar-md max-h-[max(80vh,500px)]"
     :class="{
       'bg-white': !props.fromTableExplorer,
       'w-[384px]': !props.embedMode,

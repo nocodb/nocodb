@@ -246,8 +246,7 @@ onMounted(async () => {
       model,
       'contextmenu': false,
       'theme': 'formula',
-      'foldingStrategy': 'indentation',
-      'selectOnLineNumbers': true,
+      'selectOnLineNumbers': false,
       'language': 'formula',
       'roundedSelection': false,
       'scrollBeyondLastLine': false,
@@ -266,11 +265,10 @@ onMounted(async () => {
       'lineNumbersMinChars': 0,
       'renderLineHighlight': 'none',
       'scrollbar': {
-        vertical: 'hidden',
-        horizontalScrollbarSize: 1,
+        horizontal: 'hidden',
       },
       'tabSize': 2,
-      'automaticLayout': true,
+      'automaticLayout': false,
       'overviewRulerLanes': 0,
       'hideCursorInOverviewRuler': true,
       'overviewRulerBorder': false,
@@ -280,21 +278,13 @@ onMounted(async () => {
       },
     })
 
+    editor.layout({
+      width: 368,
+      height: 150,
+    })
+
     editor.onDidChangeModelContent(async () => {
       vModel.value.formula_raw = editor.getValue()
-
-      const model = editor.getModel()
-      if (!model) return
-      const lines = model.getLinesContent()
-      const MAX_CHARS_PER_LINE = 100
-
-      lines.forEach((line, index) => {
-        if (line.length > MAX_CHARS_PER_LINE) {
-          const truncatedLine = line.substring(0, MAX_CHARS_PER_LINE)
-          const range = new Range(index + 1, 1, index + 1, line.length + 1)
-          model.pushEditOperations([], [{ range, text: truncatedLine }], () => null)
-        }
-      })
     })
 
     editor.onDidChangeCursorPosition(() => {
@@ -350,6 +340,15 @@ onMounted(async () => {
     })
     editor.focus()
   }
+})
+
+useResizeObserver(monacoRoot, (entries) => {
+  const entry = entries[0]
+  const { height } = entry.contentRect
+  editor.layout({
+    width: 368,
+    height,
+  })
 })
 
 function insertStringAtPosition(editor: MonacoEditor.IStandaloneCodeEditor, text: string, skipCursorMove = false) {

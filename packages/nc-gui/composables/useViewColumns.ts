@@ -434,23 +434,27 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
           scope: defineViewScope({ view: view.value }),
         })
       }
+try {
+  // sync with server if allowed
+  if (!isPublic.value && isUIAllowed('viewFieldEdit') && gridViewCols.value[id]?.id) {
+    await $api.dbView.gridColumnUpdate(gridViewCols.value[id].id as string, {
+      ...props,
+    })
+  }
 
-      // sync with server if allowed
-      if (!isPublic.value && isUIAllowed('viewFieldEdit') && gridViewCols.value[id]?.id) {
-        await $api.dbView.gridColumnUpdate(gridViewCols.value[id].id as string, {
-          ...props,
-        })
-      }
+  if (gridViewCols.value?.[id]) {
+    Object.assign(gridViewCols.value[id], {
+      ...gridViewCols.value[id],
+      ...props,
+    })
+  } else {
+    // fallback to reload
+    await loadViewColumns()
+  }
+}catch (e) {
 
-      if (gridViewCols.value?.[id]) {
-        Object.assign(gridViewCols.value[id], {
-          ...gridViewCols.value[id],
-          ...props,
-        })
-      } else {
-        // fallback to reload
-        await loadViewColumns()
-      }
+}
+
     }
 
     watch(

@@ -87,74 +87,78 @@ export const useRolesShared = createSharedComposable(() => {
     options: { isSharedBase?: boolean; sharedBaseId?: string; isSharedErd?: boolean; sharedErdId?: string } = {},
     workspaceId?: string,
   ) {
-    const wsId = {
-      workspace_id: workspaceId || route.value.params.typeOrId,
-    }
+    try {
+      const wsId = {
+        workspace_id: workspaceId || route.value.params.typeOrId,
+      }
 
-    if (options?.isSharedBase) {
-      const res = await api.auth.me(
-        {
-          base_id: baseId,
-        },
-        {
-          headers: {
-            'xc-shared-base-id': options?.sharedBaseId,
+      if (options?.isSharedBase) {
+        const res = await api.auth.me(
+          {
+            base_id: baseId,
           },
-        },
-      )
-
-      user.value = {
-        ...user.value,
-        roles: res.roles,
-        base_roles: res.base_roles,
-        workspace_roles: res.workspace_roles,
-        org_roles: res.org_roles,
-        featureFlags: res.featureFlags,
-      } as User
-    } else if (options?.isSharedErd) {
-      const res = await api.auth.me(
-        {
-          base_id: baseId,
-        },
-        {
-          headers: {
-            'xc-shared-erd-id': options?.sharedErdId,
+          {
+            headers: {
+              'xc-shared-base-id': options?.sharedBaseId,
+            },
           },
-        },
-      )
+        )
 
-      user.value = {
-        ...user.value,
-        roles: res.roles,
-        base_roles: res.base_roles,
-        workspace_roles: res.workspace_roles,
-        org_roles: res.org_roles,
-        featureFlags: res.featureFlags,
-      } as User
-    } else if (baseId) {
-      const res = await api.auth.me({ base_id: baseId, ...wsId })
+        user.value = {
+          ...user.value,
+          roles: res.roles,
+          base_roles: res.base_roles,
+          workspace_roles: res.workspace_roles,
+          org_roles: res.org_roles,
+          featureFlags: res.featureFlags,
+        } as User
+      } else if (options?.isSharedErd) {
+        const res = await api.auth.me(
+          {
+            base_id: baseId,
+          },
+          {
+            headers: {
+              'xc-shared-erd-id': options?.sharedErdId,
+            },
+          },
+        )
 
-      user.value = {
-        ...user.value,
-        roles: res.roles,
-        base_roles: res.base_roles,
-        workspace_roles: res.workspace_roles,
-        display_name: res.display_name,
-        org_roles: res.org_roles,
-        featureFlags: res.featureFlags,
-      } as User
-    } else {
-      const res = await api.auth.me({ ...wsId } as any)
+        user.value = {
+          ...user.value,
+          roles: res.roles,
+          base_roles: res.base_roles,
+          workspace_roles: res.workspace_roles,
+          org_roles: res.org_roles,
+          featureFlags: res.featureFlags,
+        } as User
+      } else if (baseId) {
+        const res = await api.auth.me({base_id: baseId, ...wsId})
 
-      user.value = {
-        ...user.value,
-        roles: res.roles,
-        base_roles: res.base_roles,
-        workspace_roles: res.workspace_roles,
-        display_name: res.display_name,
-        org_roles: res.org_roles,
-        featureFlags: res.featureFlags,
-      } as User
+        user.value = {
+          ...user.value,
+          roles: res.roles,
+          base_roles: res.base_roles,
+          workspace_roles: res.workspace_roles,
+          display_name: res.display_name,
+          org_roles: res.org_roles,
+          featureFlags: res.featureFlags,
+        } as User
+      } else {
+        const res = await api.auth.me({...wsId} as any)
+
+        user.value = {
+          ...user.value,
+          roles: res.roles,
+          base_roles: res.base_roles,
+          workspace_roles: res.workspace_roles,
+          display_name: res.display_name,
+          org_roles: res.org_roles,
+          featureFlags: res.featureFlags,
+        } as User
+      }
+    } catch (e) {
+      console.log('User role loading failed', e)
     }
   }
 

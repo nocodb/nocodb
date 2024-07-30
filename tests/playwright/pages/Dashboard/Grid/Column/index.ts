@@ -143,7 +143,7 @@ export class ColumnPageObject extends BasePage {
         await this.rootPage.locator('.ant-select-item').locator(`text="${timeFormat}"`).click();
         break;
       case 'Formula':
-        await this.get().locator('.nc-formula-input').fill(formula);
+        await this.get().locator('.inputarea').fill(formula);
         break;
       case 'QrCode':
         await this.get().locator('.ant-select-single').nth(1).click();
@@ -221,7 +221,6 @@ export class ColumnPageObject extends BasePage {
         if (ltarFilters) {
           await this.ltarOption.addFilters(ltarFilters);
         }
-
 
         if (custom) {
           // enable advance options
@@ -388,7 +387,9 @@ export class ColumnPageObject extends BasePage {
 
     switch (type) {
       case 'Formula':
-        await this.get().locator('.nc-formula-input').fill(formula);
+        await this.get().locator('.inputarea').clear();
+        await this.rootPage.waitForTimeout(400);
+        await this.get().locator('.inputarea').fill(formula);
         break;
       case 'Duration':
         await this.get().locator('.ant-select-single').nth(1).click();

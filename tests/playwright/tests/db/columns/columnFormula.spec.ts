@@ -145,13 +145,7 @@ const formulaDataByDbType = (context: NcContext, index: number) => {
       },
       {
         formula: 'URLENCODE({City})',
-        result: [
-          'A%20Corua%20(La%20Corua)',
-          'Abha',
-          'Abu%20Dhabi',
-          'Acua',
-          'Adana',
-        ],
+        result: ['A%20Corua%20(La%20Corua)', 'Abha', 'Abu%20Dhabi', 'Acua', 'Adana'],
       },
     ];
   else

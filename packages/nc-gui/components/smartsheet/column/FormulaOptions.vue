@@ -958,17 +958,6 @@ watch(parsedTree, (value, oldValue) => {
   &:focus-within:not(.formula-success) {
     box-shadow: 0 0 0 2px var(--ant-error-color-outline);
   }
-
-  :deep(.monaco-editor) {
-    .bracket-highlighting-0,
-    .bracket-highlighting-1,
-    .bracket-highlighting-2,
-    .bracket-highlighting-3 {
-      &:not(.mtk4) {
-        color: #8541f9;
-      }
-    }
-  }
 }
 
 .mono-font {

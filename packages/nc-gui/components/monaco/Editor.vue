@@ -101,13 +101,19 @@ onMounted(async () => {
       theme: 'vs',
       foldingStrategy: 'indentation',
       selectOnLineNumbers: true,
+      language: props.lang,
       scrollbar: {
         verticalScrollbarSize: 1,
         horizontalScrollbarSize: 1,
       },
+      lineNumbers: 'off',
       tabSize: 2,
       automaticLayout: true,
       readOnly,
+      bracketPairColorization: {
+        enabled: true,
+        independentColorPoolPerBracketType: true,
+      },
       minimap: {
         enabled: !hideMinimap,
       },
@@ -163,3 +169,16 @@ watch(
 <template>
   <div ref="root"></div>
 </template>
+
+<style scoped lang="scss">
+:deep(.margin-view-overlays) {
+  @apply !w-0;
+}
+:deep(.margin) {
+  @apply !w-0;
+}
+
+:deep(.monaco-scrollable-element) {
+  @apply !left-0;
+}
+</style>

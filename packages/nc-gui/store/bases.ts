@@ -182,29 +182,33 @@ export const useBases = defineStore('basesStore', () => {
 
   // actions
   const loadProject = async (baseId: string, force = false) => {
-    if (!force && isProjectPopulated(baseId)) return bases.value.get(baseId)
+    try {
+      if (!force && isProjectPopulated(baseId)) return bases.value.get(baseId)
 
-    const _project = await api.base.read(baseId)
+      const _project = await api.base.read(baseId)
 
-    if (!_project) {
-      await navigateTo(`/`)
-      return
+      if (!_project) {
+        await navigateTo(`/`)
+        return
+      }
+
+      _project.meta = _project?.meta && typeof _project.meta === 'string' ? JSON.parse(_project.meta) : {}
+
+      const existingProject = bases.value.get(baseId) ?? ({} as any)
+
+      const base = {
+        ...existingProject,
+        ..._project,
+        isExpanded: route.value.params.baseId === baseId || existingProject.isExpanded,
+        // isLoading is managed by Sidebar
+        isLoading: existingProject.isLoading,
+        meta: { ...parseProp(existingProject.meta), ...parseProp(_project.meta) },
+      }
+
+      bases.value.set(baseId, base)
+    } catch (e: any) {
+      await message.error(await extractSdkResponseErrorMsg(e))
     }
-
-    _project.meta = _project?.meta && typeof _project.meta === 'string' ? JSON.parse(_project.meta) : {}
-
-    const existingProject = bases.value.get(baseId) ?? ({} as any)
-
-    const base = {
-      ...existingProject,
-      ..._project,
-      isExpanded: route.value.params.baseId === baseId || existingProject.isExpanded,
-      // isLoading is managed by Sidebar
-      isLoading: existingProject.isLoading,
-      meta: { ...parseProp(existingProject.meta), ...parseProp(_project.meta) },
-    }
-
-    bases.value.set(baseId, base)
   }
 
   const getSqlUi = async (baseId: string, sourceId: string) => {

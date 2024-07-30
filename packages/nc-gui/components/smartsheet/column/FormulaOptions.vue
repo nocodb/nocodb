@@ -2,9 +2,6 @@
 import type { Ref } from 'vue'
 import type { ListItem as AntListItem } from 'ant-design-vue'
 import jsep from 'jsep'
-
-import EditorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker&inline'
-import JsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker&inline'
 import type { editor as MonacoEditor } from 'monaco-editor'
 import { KeyCode, Position, Range, languages, editor as monacoEditor } from 'monaco-editor'
 
@@ -175,25 +172,6 @@ const suggestedFormulas = computed(() => {
 const variableList = computed(() => {
   return suggestion.value.filter((s) => s && s.type === 'column')
 })
-
-/**
- * Adding monaco editor to Vite
- *
- * @ts-expect-error */
-self.MonacoEnvironment = window.MonacoEnvironment = {
-  async getWorker(_: any, label: string) {
-    switch (label) {
-      case 'json': {
-        const workerBlob = new Blob([JsonWorker], { type: 'text/javascript' })
-        return await initWorker(URL.createObjectURL(workerBlob))
-      }
-      default: {
-        const workerBlob = new Blob([EditorWorker], { type: 'text/javascript' })
-        return await initWorker(URL.createObjectURL(workerBlob))
-      }
-    }
-  },
-}
 
 const monacoRoot = ref<HTMLDivElement>()
 let editor: MonacoEditor.IStandaloneCodeEditor
@@ -401,7 +379,7 @@ function appendText(item: Record<string, any>) {
   ])
 
   if (item.type === 'function') {
-    insertStringAtPosition(editor, `${text}`)
+    insertStringAtPosition(editor, text)
   } else if (item.type === 'column') {
     insertStringAtPosition(editor, `{${text}}`, true)
   } else {
@@ -451,8 +429,6 @@ function handleInput() {
   suggestion.value = acTree.value
     .complete(wordToComplete.value)
     ?.sort((x: Record<string, any>, y: Record<string, any>) => sortOrder[x.type] - sortOrder[y.type])
-
-  // suggestionPreviewed.value = suggestion.value[0]
 
   if (isCursorBetweenParenthesis()) {
     // Show columns at top
@@ -857,35 +833,35 @@ watch(parsedTree, (value, oldValue) => {
               ].includes(parsedTree?.dataType)
             "
           >
-            <LazySmartsheetColumnCurrencyOptions
+            <SmartsheetColumnCurrencyOptions
               v-if="vModel.meta.display_type === UITypes.Currency"
               :value="vModel.meta.display_column_meta"
             />
-            <LazySmartsheetColumnDecimalOptions
+            <SmartsheetColumnDecimalOptions
               v-else-if="vModel.meta.display_type === UITypes.Decimal"
               :value="vModel.meta.display_column_meta"
             />
-            <LazySmartsheetColumnPercentOptions
+            <SmartsheetColumnPercentOptions
               v-else-if="vModel.meta.display_type === UITypes.Percent"
               :value="vModel.meta.display_column_meta"
             />
-            <LazySmartsheetColumnRatingOptions
+            <SmartsheetColumnRatingOptions
               v-else-if="vModel.meta.display_type === UITypes.Rating"
               :value="vModel.meta.display_column_meta"
             />
-            <LazySmartsheetColumnTimeOptions
+            <SmartsheetColumnTimeOptions
               v-else-if="vModel.meta.display_type === UITypes.Time"
               :value="vModel.meta.display_column_meta"
             />
-            <LazySmartsheetColumnDateTimeOptions
+            <SmartsheetColumnDateTimeOptions
               v-else-if="vModel.meta.display_type === UITypes.DateTime"
               :value="vModel.meta.display_column_meta"
             />
-            <LazySmartsheetColumnDateOptions
+            <SmartsheetColumnDateOptions
               v-else-if="vModel.meta.display_type === UITypes.Date"
               :value="vModel.meta.display_column_meta"
             />
-            <LazySmartsheetColumnCheckboxOptions
+            <SmartsheetColumnCheckboxOptions
               v-else-if="vModel.meta.display_type === UITypes.Checkbox"
               :value="vModel.meta.display_column_meta"
             />
@@ -943,10 +919,7 @@ watch(parsedTree, (value, oldValue) => {
 }
 
 .formula-monaco {
-  @apply rounded-md nc-scrollbar-md border-gray-200 border-1;
-  overflow-y: auto;
-  overflow-x: hidden;
-  resize: vertical;
+  @apply rounded-md nc-scrollbar-md border-gray-200 border-1 overflow-y-auto overflow-x-hidden resize-y;
   min-height: 100px;
   max-height: 250px;
 

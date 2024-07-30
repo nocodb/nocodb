@@ -8,11 +8,11 @@ const theme: editor.IStandaloneThemeData = {
   base: 'vs',
   inherit: true,
   rules: [
+    { token: 'string', foreground: '#007b77', fontStyle: 'bold' },
     { token: 'keyword', foreground: '#00921d', fontStyle: 'bold' },
     { token: 'number', foreground: '#9c6200', fontStyle: 'bold' },
     { token: 'operator', foreground: '#000000' },
     { token: 'identifier', foreground: '#8541f9', fontStyle: 'bold' },
-    { token: 'string', foreground: '#007b77', fontStyle: 'bold' },
     { token: 'delimiter.parenthesis', foreground: '#333333', fontStyle: 'bold' },
     { token: 'delimiter.brace', foreground: '#8541f9', fontStyle: 'bold' },
     { token: 'invalid', foreground: '#000000' },
@@ -40,6 +40,8 @@ const generateLanguageDefinition = (identifiers: string[]) => {
     ],
     tokenizer: {
       root: [
+        [/"/, { token: 'string.quote', bracket: '@open', next: '@dblString' }],
+        [/'/, { token: 'string.quote', bracket: '@open', next: '@sglString' }],
         [
           new RegExp(`\\{(${identifiers.join('|').replace(/[{}]/g, '')})\\}`),
           {
@@ -62,13 +64,18 @@ const generateLanguageDefinition = (identifiers: string[]) => {
         [/[-+/*=<>!]+/, 'operator'],
         [/[{}()\[\]]/, '@brackets'],
         [/[ \t\r\n]+/, 'white'],
-        [/"/, { token: 'string.quote', bracket: '@open', next: '@string' }],
       ],
 
-      string: [
+      dblString: [
         [/[^\\"]+/, 'string'],
         [/\\./, 'string.escape'],
         [/"/, { token: 'string.quote', bracket: '@close', next: '@pop' }],
+      ],
+
+      sglString: [
+        [/[^\\']+/, 'string'],
+        [/\\./, 'string.escape'],
+        [/'/, { token: 'string.quote', bracket: '@close', next: '@pop' }],
       ],
     },
   }
@@ -87,6 +94,7 @@ const languageConfiguration: languages.LanguageConfiguration = {
     { open: '[', close: ']' },
     { open: '(', close: ')' },
     { open: '"', close: '"' },
+    { open: "'", close: "'" },
   ],
 }
 

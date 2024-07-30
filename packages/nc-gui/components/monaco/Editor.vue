@@ -51,25 +51,6 @@ const vModel = computed<string>({
 
 const isValid = ref(true)
 
-/**
- * Adding monaco editor to Vite
- *
- * @ts-expect-error */
-self.MonacoEnvironment = window.MonacoEnvironment = {
-  async getWorker(_: any, label: string) {
-    switch (label) {
-      case 'json': {
-        const workerBlob = new Blob([JsonWorker], { type: 'text/javascript' })
-        return await initWorker(URL.createObjectURL(workerBlob))
-      }
-      default: {
-        const workerBlob = new Blob([EditorWorker], { type: 'text/javascript' })
-        return await initWorker(URL.createObjectURL(workerBlob))
-      }
-    }
-  },
-}
-
 const root = ref<HTMLDivElement>()
 
 let editor: MonacoEditor.IStandaloneCodeEditor

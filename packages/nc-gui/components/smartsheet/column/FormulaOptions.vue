@@ -244,39 +244,38 @@ onMounted(async () => {
 
     editor = monacoEditor.create(monacoRoot.value, {
       model,
-      contextmenu: false,
-      theme: 'formula',
-      foldingStrategy: 'indentation',
-      selectOnLineNumbers: true,
-      language: 'formula',
-      roundedSelection: false,
-      scrollBeyondLastLine: false,
-      lineNumbers: 'off',
-      glyphMargin: false,
-      folding: false,
-      wordWrap: 'on',
-      padding: {
+      'contextmenu': false,
+      'theme': 'formula',
+      'foldingStrategy': 'indentation',
+      'selectOnLineNumbers': true,
+      'language': 'formula',
+      'roundedSelection': false,
+      'scrollBeyondLastLine': false,
+      'lineNumbers': 'off',
+      'glyphMargin': false,
+      'folding': false,
+      'wordWrap': 'on',
+      // This seems to be a bug in the monoco.
+      // https://github.com/microsoft/monaco-editor/issues/4535#issuecomment-2234042290
+      'bracketPairColorization.enabled': false,
+      'padding': {
         top: 8,
         bottom: 8,
       },
-      lineDecorationsWidth: 8,
-      lineNumbersMinChars: 0,
-      renderLineHighlight: 'none',
-      scrollbar: {
+      'lineDecorationsWidth': 8,
+      'lineNumbersMinChars': 0,
+      'renderLineHighlight': 'none',
+      'scrollbar': {
         vertical: 'hidden',
         horizontalScrollbarSize: 1,
       },
-      tabSize: 2,
-      automaticLayout: true,
-      overviewRulerLanes: 0,
-      hideCursorInOverviewRuler: true,
-      overviewRulerBorder: false,
-      bracketPairColorization: {
-        enabled: false,
-        independentColorPoolPerBracketType: false,
-      },
-      matchBrackets: 'never',
-      minimap: {
+      'tabSize': 2,
+      'automaticLayout': true,
+      'overviewRulerLanes': 0,
+      'hideCursorInOverviewRuler': true,
+      'overviewRulerBorder': false,
+      'matchBrackets': 'never',
+      'minimap': {
         enabled: false,
       },
     })

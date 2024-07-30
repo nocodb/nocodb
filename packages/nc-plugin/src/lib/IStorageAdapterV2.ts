@@ -17,7 +17,9 @@ export default interface IStorageAdapterV2 extends IStorageAdapter {
   fileCreateByUrl(
     destPath: string,
     url: string,
-    fileMeta?: FileMeta
+    fileMeta?: FileMeta,
+    fetchOptions?: any
+
   ): Promise<any>;
   fileCreateByStream(destPath: string, readStream: Readable): Promise<void>;
   fileReadByStream(key: string): Promise<Readable>;

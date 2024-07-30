@@ -12,7 +12,7 @@ const theme: editor.IStandaloneThemeData = {
     { token: 'number', foreground: '#9c6200', fontStyle: 'bold' },
     { token: 'operator', foreground: '#000000' },
     { token: 'identifier', foreground: '#8541f9', fontStyle: 'bold' },
-    { token: 'string', foreground: '#007b77' },
+    { token: 'string', foreground: '#007b77', fontStyle: 'bold' },
     { token: 'delimiter.parenthesis', foreground: '#333333', fontStyle: 'bold' },
     { token: 'delimiter.brace', foreground: '#8541f9' },
     { token: 'invalid', foreground: '#000000' },

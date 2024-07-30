@@ -282,6 +282,19 @@ onMounted(async () => {
 
     editor.onDidChangeModelContent(async () => {
       vModel.value.formula_raw = editor.getValue()
+
+      const model = editor.getModel()
+      if (!model) return
+      const lines = model.getLinesContent()
+      const MAX_CHARS_PER_LINE = 100
+
+      lines.forEach((line, index) => {
+        if (line.length > MAX_CHARS_PER_LINE) {
+          const truncatedLine = line.substring(0, MAX_CHARS_PER_LINE)
+          const range = new Range(index + 1, 1, index + 1, line.length + 1)
+          model.pushEditOperations([], [{ range, text: truncatedLine }], () => null)
+        }
+      })
     })
 
     editor.onDidChangeCursorPosition(() => {
@@ -332,7 +345,8 @@ onMounted(async () => {
       // Return the innermost function in which the cursor is currently positioned
       const lastFunction = enclosingFunctions.length > 0 ? enclosingFunctions[enclosingFunctions.length - 1].formulaName : null
 
-      suggestionPreviewed.value = suggestionsList.value.find((s) => s.text === `${lastFunction}()`) || undefined
+      suggestionPreviewed.value =
+        (suggestionsList.value.find((s) => s.text === `${lastFunction}()`) as Record<any, string>) || undefined
     })
     editor.focus()
   }
@@ -390,7 +404,7 @@ function appendText(item: Record<string, any>) {
   if (item.type === 'function') {
     insertStringAtPosition(editor, `${text}`)
   } else if (item.type === 'column') {
-    insertStringAtPosition(editor, `{${text}}`)
+    insertStringAtPosition(editor, `{${text}}`, true)
   } else {
     insertStringAtPosition(editor, text, true)
   }

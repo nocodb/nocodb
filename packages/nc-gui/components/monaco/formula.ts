@@ -8,13 +8,14 @@ const theme: editor.IStandaloneThemeData = {
   base: 'vs',
   inherit: true,
   rules: [
-    { token: 'keyword', foreground: '#00921d' },
-    { token: 'number', foreground: '#9c6200' },
+    { token: 'keyword', foreground: '#00921d', fontStyle: 'bold' },
+    { token: 'number', foreground: '#9c6200', fontStyle: 'bold' },
     { token: 'operator', foreground: '#000000' },
-    { token: 'identifier', foreground: '#8541f9' },
+    { token: 'identifier', foreground: '#8541f9', fontStyle: 'bold' },
     { token: 'string', foreground: '#007b77' },
-    { token: 'delimiter.bracket', foreground: '#333333' },
-    { token: 'delimiter.parenthesis', foreground: '#8541f9' },
+    { token: 'delimiter.parenthesis', foreground: '#333333', fontStyle: 'bold' },
+    { token: 'delimiter.brace', foreground: '#8541f9' },
+    { token: 'invalid', foreground: '#000000' },
   ],
 
   colors: {
@@ -22,42 +23,76 @@ const theme: editor.IStandaloneThemeData = {
     'editor.background': '#FFFFFF',
     'editorCursor.foreground': '#3366FF',
     'editor.selectionBackground': '#3366FF50',
+    'focusBorder': '#ffffff',
   },
 }
 
-const languageDefinition: languages.IMonarchLanguage | Thenable<languages.IMonarchLanguage> = {
-  defaultToken: 'invalid',
-  keywords: formulaKeyWords,
-  brackets: [
-    { open: '(', close: ')', token: 'delimiter.parenthesis' },
-    { open: '{', close: '}', token: 'delimiter.brace' },
-  ],
-  tokenizer: {
-    root: [
-      [
-        /[a-zA-Z_]\w*/,
-        {
-          cases: {
-            '@keywords': 'keyword',
-            '@default': 'identifier',
+const generateLanguageDefinition = (identifiers: string[]) => {
+  identifiers = identifiers.map((identifier) => `{${identifier}}`)
+
+  const languageDefinition: languages.IMonarchLanguage | Thenable<languages.IMonarchLanguage> = {
+    defaultToken: 'invalid',
+    keywords: formulaKeyWords,
+    identifiers,
+    brackets: [
+      { open: '(', close: ')', token: 'delimiter.parenthesis' },
+      { open: '{', close: '}', token: 'delimiter.brace' },
+    ],
+    tokenizer: {
+      root: [
+        [
+          new RegExp(`\\{(${identifiers.join('|').replace(/[{}]/g, '')})\\}`),
+          {
+            cases: {
+              '@identifiers': 'identifier',
+              '@default': 'invalid',
+            },
           },
-        },
+        ],
+        [
+          /[a-zA-Z_]\w*/,
+          {
+            cases: {
+              '@keywords': 'keyword',
+              '@default': 'invalid',
+            },
+          },
+        ],
+        [/\d+/, 'number'],
+        [/[-+/*=<>!]+/, 'operator'],
+        [/[{}()\[\]]/, '@brackets'],
+        [/[ \t\r\n]+/, 'white'],
+        [/"/, { token: 'string.quote', bracket: '@open', next: '@string' }],
       ],
 
-      [/\d+/, 'number'],
+      string: [
+        [/[^\\"]+/, 'string'],
+        [/\\./, 'string.escape'],
+        [/"/, { token: 'string.quote', bracket: '@close', next: '@pop' }],
+      ],
+    },
+  }
 
-      [/[-+/*=<>!]+/, 'operator'],
+  return languageDefinition
+}
 
-      [/[{}()\[\]]/, '@brackets'],
-      [/[ \t\r\n]+/, 'white'],
+const languageConfiguration: languages.LanguageConfiguration = {
+  brackets: [
+    ['{', '}'],
+    ['[', ']'],
+    ['(', ')'],
+  ],
+  autoClosingPairs: [
+    { open: '{', close: '}' },
+    { open: '[', close: ']' },
+    { open: '(', close: ')' },
+    { open: '"', close: '"' },
+  ],
+}
 
-      [/"/, { token: 'string.quote', bracket: '@open', next: '@string' }],
-    ],
-
-    string: [
-      [/[^\\"]+/, 'string'],
-      [/\\./, 'string.escape'],
-      [/"/, { token: 'string.quote', bracket: '@close', next: '@pop' }],
-    ],
-  },
+export default {
+  name: 'formula',
+  theme,
+  generateLanguageDefinition,
+  languageConfiguration,
 }

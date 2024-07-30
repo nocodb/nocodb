@@ -2,6 +2,11 @@
 import type { Ref } from 'vue'
 import type { ListItem as AntListItem } from 'ant-design-vue'
 import jsep from 'jsep'
+
+import EditorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker&inline'
+import JsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker&inline'
+import type { editor as MonacoEditor } from 'monaco-editor'
+
 import {
   FormulaDataTypes,
   FormulaError,
@@ -14,6 +19,7 @@ import {
   validateFormulaAndExtractTreeWithType,
 } from 'nocodb-sdk'
 import type { ColumnType, FormulaType } from 'nocodb-sdk'
+import formulaLanguage from '../../monaco/formula'
 
 const props = defineProps<{
   value: any
@@ -404,6 +410,102 @@ watch(parsedTree, (value, oldValue) => {
     vModel.value.meta.display_type = null
   }
 })
+
+/**
+ * Adding monaco editor to Vite
+ *
+ * @ts-expect-error */
+self.MonacoEnvironment = window.MonacoEnvironment = {
+  async getWorker(_: any, label: string) {
+    switch (label) {
+      case 'json': {
+        const workerBlob = new Blob([JsonWorker], { type: 'text/javascript' })
+        return await initWorker(URL.createObjectURL(workerBlob))
+      }
+      default: {
+        const workerBlob = new Blob([EditorWorker], { type: 'text/javascript' })
+        return await initWorker(URL.createObjectURL(workerBlob))
+      }
+    }
+  },
+}
+
+const monacoRoot = ref<HTMLDivElement>()
+let editor: MonacoEditor.IStandaloneCodeEditor
+
+onMounted(async () => {
+  const { editor: monacoEditor, languages, KeyCode } = await import('monaco-editor')
+
+  if (monacoRoot.value) {
+    const model = monacoEditor.createModel(vModel.value.formula_raw, 'formula')
+
+    languages.register({
+      id: formulaLanguage.name,
+    })
+
+    monacoEditor.defineTheme(formulaLanguage.name, formulaLanguage.theme)
+
+    languages.setMonarchTokensProvider(
+      formulaLanguage.name,
+      formulaLanguage.generateLanguageDefinition(supportedColumns.value.map((c) => c.title!)),
+    )
+
+    languages.setLanguageConfiguration(formulaLanguage.name, formulaLanguage.languageConfiguration)
+
+    monacoEditor.addKeybindingRules([
+      {
+        keybinding: KeyCode.DownArrow,
+        command: 'none',
+        when: 'editorTextFocus',
+      },
+      {
+        keybinding: KeyCode.UpArrow,
+        command: 'none',
+        when: 'editorTextFocus',
+      },
+    ])
+
+    editor = monacoEditor.create(monacoRoot.value, {
+      model,
+      contextmenu: false,
+      theme: 'formula',
+      foldingStrategy: 'indentation',
+      selectOnLineNumbers: true,
+      language: 'formula',
+      roundedSelection: false,
+      scrollBeyondLastLine: false,
+      lineNumbers: 'off',
+      glyphMargin: false,
+      folding: false,
+      padding: {
+        top: 2,
+        bottom: 2,
+      },
+      lineDecorationsWidth: 2,
+      lineNumbersMinChars: 0,
+      renderLineHighlight: 'none',
+      scrollbar: {
+        verticalScrollbarSize: 1,
+        horizontalScrollbarSize: 1,
+      },
+      tabSize: 2,
+      automaticLayout: true,
+      bracketPairColorization: {
+        enabled: true,
+        independentColorPoolPerBracketType: true,
+      },
+      minimap: {
+        enabled: false,
+      },
+    })
+
+    editor.onDidChangeModelContent(async () => {
+      vModel.value.formula_raw = editor.getValue()
+    })
+
+    editor.focus()
+  }
+})
 </script>
 
 <template>
@@ -413,7 +515,7 @@ watch(parsedTree, (value, oldValue) => {
         suggestionPreviewed &&
         !suggestionPreviewed.unsupported &&
         suggestionPreviewed.type === 'function' &&
-        activeKey === 'formula'
+        activeKey === 'fomat'
       "
       class="w-84 fixed bg-white z-10 pl-3 pt-3 border-1 shadow-md rounded-xl"
       :style="{
@@ -470,15 +572,19 @@ watch(parsedTree, (value, oldValue) => {
           </div>
         </template>
         <div class="px-0.5">
-          <a-form-item class="mt-4" v-bind="validateInfos.formula_raw">
-            <a-textarea
-              ref="formulaRef"
+          <div ref="monacoRoot" class="formula-monaco" @keydown.stop="handleKeydown"></div>
+
+          <!--          <a-form-item class="mt-4 h-full nc-formula-wrapper" v-bind="validateInfos.formula_raw">
+            &lt;!&ndash;            <a-textarea
+                          ref="formulaRef"
+
               v-model:value="vModel.formula_raw"
               class="nc-formula-input !rounded-md"
               @keydown="handleKeydown"
               @change="handleInputDeb"
-            />
-          </a-form-item>
+            /> &ndash;&gt;
+
+          </a-form-item> -->
 
           <div class="h-[250px] overflow-auto nc-scrollbar-thin border-1 border-gray-200 rounded-lg mt-4">
             <template v-if="suggestedFormulas && showFunctionList">
@@ -610,35 +716,35 @@ watch(parsedTree, (value, oldValue) => {
               ].includes(parsedTree?.dataType)
             "
           >
-            <SmartsheetColumnCurrencyOptions
+            <LazySmartsheetColumnCurrencyOptions
               v-if="vModel.meta.display_type === UITypes.Currency"
               :value="vModel.meta.display_column_meta"
             />
-            <SmartsheetColumnDecimalOptions
+            <LazySmartsheetColumnDecimalOptions
               v-else-if="vModel.meta.display_type === UITypes.Decimal"
               :value="vModel.meta.display_column_meta"
             />
-            <SmartsheetColumnPercentOptions
+            <LazySmartsheetColumnPercentOptions
               v-else-if="vModel.meta.display_type === UITypes.Percent"
               :value="vModel.meta.display_column_meta"
             />
-            <SmartsheetColumnRatingOptions
+            <LazySmartsheetColumnRatingOptions
               v-else-if="vModel.meta.display_type === UITypes.Rating"
               :value="vModel.meta.display_column_meta"
             />
-            <SmartsheetColumnTimeOptions
+            <LazySmartsheetColumnTimeOptions
               v-else-if="vModel.meta.display_type === UITypes.Time"
               :value="vModel.meta.display_column_meta"
             />
-            <SmartsheetColumnDateTimeOptions
+            <LazySmartsheetColumnDateTimeOptions
               v-else-if="vModel.meta.display_type === UITypes.DateTime"
               :value="vModel.meta.display_column_meta"
             />
-            <SmartsheetColumnDateOptions
+            <LazySmartsheetColumnDateOptions
               v-else-if="vModel.meta.display_type === UITypes.Date"
               :value="vModel.meta.display_column_meta"
             />
-            <SmartsheetColumnCheckboxOptions
+            <LazySmartsheetColumnCheckboxOptions
               v-else-if="vModel.meta.display_type === UITypes.Checkbox"
               :value="vModel.meta.display_column_meta"
             />
@@ -675,6 +781,10 @@ watch(parsedTree, (value, oldValue) => {
   @apply !pl-0;
 }
 
+:deep(.ant-form-item-control-input) {
+  @apply h-full;
+}
+
 :deep(.ant-tabs-content-holder) {
   @apply mt-4;
 }
@@ -689,5 +799,14 @@ watch(parsedTree, (value, oldValue) => {
 
 :deep(.ant-tabs-tab-btn) {
   @apply !mb-1;
+}
+
+.formula-monaco {
+  @apply rounded-md focus-within:border-brand-500 nc-scrollbar-md  border-gray-100 border-2;
+  overflow-y: auto;
+  overflow-x: hidden;
+  resize: vertical;
+  min-height: 50px;
+  max-height: 200px;
 }
 </style>

@@ -98,6 +98,7 @@ onMounted(async () => {
 
     editor = monacoEditor.create(root.value, {
       model,
+      contextmenu: false,
       theme: 'vs',
       foldingStrategy: 'indentation',
       selectOnLineNumbers: true,
@@ -170,15 +171,4 @@ watch(
   <div ref="root"></div>
 </template>
 
-<style scoped lang="scss">
-:deep(.margin-view-overlays) {
-  @apply !w-0;
-}
-:deep(.margin) {
-  @apply !w-0;
-}
-
-:deep(.monaco-scrollable-element) {
-  @apply !left-0;
-}
-</style>
+<style scoped lang="scss"></style>

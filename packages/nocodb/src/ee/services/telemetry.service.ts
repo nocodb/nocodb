@@ -1,7 +1,7 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { packageInfo } from 'nc-help';
 import { PostHog } from 'posthog-node';
-import AWS from 'aws-sdk';
+import { PublishCommand, SNSClient } from '@aws-sdk/client-sns';
 import { ConfigService } from '@nestjs/config';
 import { Producer } from './producer/producer';
 import type { AppConfig, NcRequest } from '~/interface/config';
@@ -157,29 +157,24 @@ export class TelemetryService {
       return;
     }
 
-    // Create publish parameters
     const params = {
+      TopicArn: systemEventsSnsTopic,
       Message: JSON.stringify({
         event_type,
         ...payload,
       }),
-      TopicArn: systemEventsSnsTopic,
     };
 
-    // Create promise and SNS service object
-    const publishTextPromise = new AWS.SNS({
-      apiVersion: snsConfig.apiVersion,
+    const snsClient = new SNSClient({
       region: snsConfig.region,
       credentials: {
         accessKeyId: snsConfig.credentials.accessKeyId,
         secretAccessKey: snsConfig.credentials.secretAccessKey,
       },
-    })
-      .publish(params)
-      .promise();
+    });
 
     try {
-      await publishTextPromise;
+      await snsClient.send(new PublishCommand(params));
     } catch (err) {
       this.logger.error(err, 'Error publishing to SNS');
     }

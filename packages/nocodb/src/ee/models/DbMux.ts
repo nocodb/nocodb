@@ -1,4 +1,4 @@
-import AWS from 'aws-sdk';
+import { PublishCommand, SNSClient } from '@aws-sdk/client-sns';
 import axios from 'axios';
 import type { NcContext } from '~/interface/config';
 import { extractProps } from '~/helpers/extractProps';
@@ -388,27 +388,22 @@ export default class DbMux {
 
     const serviceName = dbMux.domain.replace(/https?:\/\//, '');
 
-    // Create publish parameters
     const params = {
+      TopicArn: dbMuxSnsTopic,
       Message: JSON.stringify({
         operation: 'activate',
         serviceName,
         dbMuxId: dbMux.id,
-      }) /* required */,
-      TopicArn: dbMuxSnsTopic,
+      }),
     };
 
-    // Create promise and SNS service object
-    const publishTextPromise = new AWS.SNS({
-      apiVersion: snsConfig.apiVersion,
+    const snsClient = new SNSClient({
       region: snsConfig.region,
       credentials: {
         accessKeyId: snsConfig.credentials.accessKeyId,
         secretAccessKey: snsConfig.credentials.secretAccessKey,
       },
-    })
-      .publish(params)
-      .promise();
+    });
 
     await dbMux.update({
       status: DbMuxStatus.DEPLOYING,
@@ -416,7 +411,7 @@ export default class DbMux {
 
     try {
       // Handle promise's fulfilled/rejected states
-      const data = await publishTextPromise;
+      const data = await snsClient.send(new PublishCommand(params));
       console.log(
         `Message ${params.Message} sent to the topic ${params.TopicArn}`,
       );

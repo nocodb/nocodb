@@ -8,8 +8,8 @@ import {
   WorkspaceStatus,
   WorkspaceUserRoles,
 } from 'nocodb-sdk';
-import AWS from 'aws-sdk';
 import { ConfigService } from '@nestjs/config';
+import { PublishCommand, SNSClient } from '@aws-sdk/client-sns';
 import type { OnApplicationBootstrap } from '@nestjs/common';
 import type { BaseType, UserType, WorkspaceType } from 'nocodb-sdk';
 import type { AppConfig, NcRequest } from '~/interface/config';
@@ -616,7 +616,6 @@ export class WorkspacesService implements OnApplicationBootstrap {
       );
     }
 
-    // Create publish parameters
     const params = {
       Message: JSON.stringify({
         WS_NAME: param.titleOrId,
@@ -625,20 +624,17 @@ export class WorkspacesService implements OnApplicationBootstrap {
       TopicArn: workspaceSnsTopic,
     };
 
-    // Create promise and SNS service object
-    const publishTextPromise = new AWS.SNS({
-      apiVersion: snsConfig.apiVersion,
+    const snsClient = new SNSClient({
       region: snsConfig.region,
       credentials: {
         accessKeyId: snsConfig.credentials.accessKeyId,
         secretAccessKey: snsConfig.credentials.secretAccessKey,
       },
-    })
-      .publish(params)
-      .promise();
+    });
+
     try {
       // Handle promise's fulfilled/rejected states
-      const data = await publishTextPromise;
+      const data = await snsClient.send(new PublishCommand(params));
       this.logger.log(
         `Message ${params.Message} sent to the topic ${params.TopicArn}`,
       );

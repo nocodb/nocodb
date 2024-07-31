@@ -5,49 +5,36 @@ import axios from 'axios';
 import { useAgent } from 'request-filtering-agent';
 import type { IStorageAdapterV2, XcFile } from 'nc-plugin';
 import type { Readable } from 'stream';
+
 import { generateTempFilePath, waitForStreamClose } from '~/utils/pluginUtils';
+
+interface MinioObjectStorageInput {
+  bucket: string;
+  access_key: string;
+  access_secret: string;
+  useSSL?: boolean;
+  endPoint: string;
+  port: number;
+}
 
 export default class Minio implements IStorageAdapterV2 {
   private minioClient: MinioClient;
-  private input: any;
+  private input: MinioObjectStorageInput;
 
-  constructor(input: any) {
-    this.input = input;
-  }
-
-  async fileCreate(key: string, file: XcFile): Promise<any> {
-    const fileStream = fs.createReadStream(file.path);
-    return this.fileCreateByStream(key, fileStream, {
-      mimetype: file?.mimetype,
-    });
-  }
-
-  public async fileDelete(_path: string): Promise<any> {
-    return Promise.resolve(undefined);
-  }
-
-  public async fileRead(key: string): Promise<any> {
-    return new Promise((resolve, reject) => {
-      this.minioClient.getObject(this.input.bucket, key, (err, data) => {
-        if (err) {
-          return reject(err);
-        }
-        if (!data) {
-          return reject(data);
-        }
-        return resolve(data);
-      });
-    });
+  constructor(input: unknown) {
+    this.input = input as MinioObjectStorageInput;
   }
 
   public async init(): Promise<any> {
-    // todo:  update in ui(checkbox and number field)
-    this.input.port = +this.input.port || 9000;
-    this.input.useSSL = this.input.useSSL === true;
-    this.input.accessKey = this.input.access_key;
-    this.input.secretKey = this.input.access_secret;
+    const minioOptions = {
+      port: +this.input.port || 9000,
+      endPoint: this.input.endPoint,
+      useSSL: this.input.useSSL === true,
+      accessKey: this.input.access_key,
+      secretKey: this.input.access_secret,
+    };
 
-    this.minioClient = new MinioClient(this.input);
+    this.minioClient = new MinioClient(minioOptions);
   }
 
   public async test(): Promise<boolean> {
@@ -68,44 +55,22 @@ export default class Minio implements IStorageAdapterV2 {
     }
   }
 
-  async fileCreateByUrl(key: string, url: string): Promise<any> {
-    const uploadParams: any = {
-      ACL: 'public-read',
-    };
-    return new Promise((resolve, reject) => {
-      axios
-        .get(url, {
-          httpAgent: useAgent(url, { stopPortScanningByUrlRedirection: true }),
-          httpsAgent: useAgent(url, { stopPortScanningByUrlRedirection: true }),
-          // TODO - use stream instead of buffer
-          responseType: 'arraybuffer',
-        })
-        .then((response) => {
-          uploadParams.Body = response.data;
-          uploadParams.Key = key;
-          uploadParams.ContentType = response.headers['content-type'];
+  public async fileRead(key: string): Promise<any> {
+    try {
+      const data = await this.minioClient.getObject(this.input.bucket, key);
+      if (!data) {
+        throw new Error('No data found in Minio');
+      }
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
 
-          const metaData = {
-            // 'Content-Type': file.mimetype
-            // 'X-Amz-Meta-Testing': 1234,
-            // 'run': 5678
-          };
-          // call S3 to retrieve upload file to specified bucket
-          this.minioClient
-            .putObject(this.input?.bucket, key, response.data, metaData)
-            .then(() => {
-              resolve({
-                url: `http${this.input.useSSL ? 's' : ''}://${
-                  this.input.endPoint
-                }:${this.input.port}/${this.input.bucket}/${key}`,
-                data: response.data,
-              });
-            })
-            .catch(reject);
-        })
-        .catch((error) => {
-          reject(error);
-        });
+  async fileCreate(key: string, file: XcFile): Promise<any> {
+    const fileStream = fs.createReadStream(file.path);
+    return this.fileCreateByStream(key, fileStream, {
+      mimetype: file?.mimetype,
     });
   }
 
@@ -114,28 +79,81 @@ export default class Minio implements IStorageAdapterV2 {
     stream: Readable,
     options?: {
       mimetype?: string;
+      size?: number;
     },
   ): Promise<any> {
-    return new Promise((resolve, reject) => {
-      // uploadParams.Body = fileStream;
-      // uploadParams.Key = key;
-      const metaData = {
-        'Content-Type': options?.mimetype,
-        // 'X-Amz-Meta-Testing': 1234,
-        // 'run': 5678
-      };
-      // call S3 to retrieve upload file to specified bucket
-      this.minioClient
-        .putObject(this.input?.bucket, key, stream, metaData)
-        .then(() => {
-          resolve(
-            `http${this.input.useSSL ? 's' : ''}://${this.input.endPoint}:${
-              this.input.port
-            }/${this.input.bucket}/${key}`,
-          );
-        })
-        .catch(reject);
+    const uploadParams = {
+      Key: key,
+      Body: stream,
+      metaData: {
+        ContentType: options?.mimetype,
+      },
+    };
+
+    return this.upload(uploadParams);
+  }
+
+  async fileCreateByUrl(key: string, url: string): Promise<any> {
+    const response = await axios.get(url, {
+      httpAgent: useAgent(url, { stopPortScanningByUrlRedirection: true }),
+      httpsAgent: useAgent(url, { stopPortScanningByUrlRedirection: true }),
+      responseType: 'stream',
     });
+
+    const uploadParams = {
+      ACL: 'public-read',
+      Key: key,
+      Body: response.data,
+      metaData: {
+        ContentType: response.headers['content-type'],
+      },
+    };
+
+    const responseUrl = this.upload(uploadParams);
+
+    return {
+      url: responseUrl,
+      data: response.data,
+    };
+  }
+
+  private async upload(uploadParams: {
+    Key: string;
+    Body: Readable;
+    metaData: { [key: string]: string };
+  }): Promise<any> {
+    try {
+      const data = await this.minioClient.putObject(
+        this.input.bucket,
+        uploadParams.Key,
+        uploadParams.Body,
+        uploadParams.metaData,
+      );
+
+      if (!data) {
+        throw new Error('No data found in Minio');
+      }
+
+      return `http${this.input.useSSL ? 's' : ''}://${this.input.endPoint}:${
+        this.input.port
+      }/${this.input.bucket}/${uploadParams.Key}`;
+    } catch (error) {
+      console.error('Error uploading file', error);
+      throw error;
+    }
+  }
+
+  public async getSignedUrl(
+    key,
+    expiresInSeconds = 7200,
+    pathParameters?: { [key: string]: string },
+  ) {
+    return this.minioClient.presignedGetObject(
+      this.input.bucket,
+      key,
+      expiresInSeconds,
+      pathParameters,
+    );
   }
 
   // TODO - implement
@@ -145,6 +163,10 @@ export default class Minio implements IStorageAdapterV2 {
 
   // TODO - implement
   getDirectoryList(_path: string): Promise<string[]> {
+    return Promise.resolve(undefined);
+  }
+
+  public async fileDelete(_path: string): Promise<any> {
     return Promise.resolve(undefined);
   }
 }

@@ -42,20 +42,6 @@ export default class S3 extends GenericS3 implements IStorageAdapterV2 {
     this.s3Client = new S3Client(s3Options);
   }
 
-  public async fileRead(key: string): Promise<any> {
-    return new Promise((resolve, reject) => {
-      this.s3Client.getObject({ Key: key } as any, (err, data) => {
-        if (err) {
-          return reject(err);
-        }
-        if (!data?.Body) {
-          return reject(data);
-        }
-        return resolve(data.Body);
-      });
-    });
-  }
-
   protected async upload(uploadParams): Promise<any> {
     try {
       const upload = new Upload({

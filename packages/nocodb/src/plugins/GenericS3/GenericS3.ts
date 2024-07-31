@@ -63,18 +63,30 @@ export default class GenericS3 implements IStorageAdapterV2 {
   }
 
   public async fileRead(key: string): Promise<any> {
-    const readParams: GetObjectCommandInput = {
+    const command = new GetObjectCommand({
       Key: key,
       Bucket: this.input.bucket,
-    };
+    });
 
-    const data: GetObjectCommandOutput = await this.s3Client.getObject(
-      readParams,
-    );
-    if (!data.Body) {
-      throw new Error('No data found in S3 object');
-    }
-    return data.Body;
+    const { Body } = await this.s3Client.send(command);
+
+    const fileStream = Body as Readable;
+
+    return new Promise((resolve, reject) => {
+      const chunks: any[] = [];
+      fileStream.on('data', (chunk) => {
+        chunks.push(chunk);
+      });
+
+      fileStream.on('end', () => {
+        const buffer = Buffer.concat(chunks);
+        resolve(buffer);
+      });
+
+      fileStream.on('error', (err) => {
+        reject(err);
+      });
+    });
   }
 
   async fileCreate(key: string, file: XcFile): Promise<any> {

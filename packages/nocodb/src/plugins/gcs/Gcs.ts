@@ -123,8 +123,7 @@ export default class Gcs implements IStorageAdapterV2 {
   async fileCreateByUrl(
     destPath: string,
     url: string,
-    _fileMeta,
-    { buffer = false },
+    { fetchOptions: { buffer } = { buffer: false } },
   ): Promise<any> {
     return new Promise((resolve, reject) => {
       axios

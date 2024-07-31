@@ -27,8 +27,7 @@ export default class Local implements IStorageAdapterV2 {
   async fileCreateByUrl(
     key: string,
     url: string,
-    _fileMeta,
-    { buffer = false },
+    { fetchOptions: { buffer } = { buffer: false } },
   ): Promise<any> {
     const destPath = validateAndNormaliseLocalPath(key);
     return new Promise((resolve, reject) => {

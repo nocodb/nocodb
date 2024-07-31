@@ -124,8 +124,7 @@ export default class GenericS3 implements IStorageAdapterV2 {
   async fileCreateByUrl(
     key: string,
     url: string,
-    _fileMetadata,
-    { buffer = false },
+    { fetchOptions: { buffer } = { buffer: false } },
   ): Promise<any> {
     try {
       const response = await axios.get(url, {

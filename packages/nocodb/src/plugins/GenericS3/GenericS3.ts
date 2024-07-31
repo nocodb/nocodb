@@ -16,7 +16,7 @@ import { generateTempFilePath, waitForStreamClose } from '~/utils/pluginUtils';
 
 interface GenerocObjectStorageInput {
   bucket: string;
-  region: string;
+  region?: string;
   access_key: string;
   access_secret: string;
 }
@@ -165,8 +165,8 @@ export default class GenericS3 implements IStorageAdapterV2 {
       const upload = new Upload({
         client: this.s3Client,
         params: {
-          ...uploadParams,
           ACL: 'public-read',
+          ...uploadParams,
         },
       });
 

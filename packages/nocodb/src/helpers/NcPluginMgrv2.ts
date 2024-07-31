@@ -28,6 +28,7 @@ import TwilioWhatsappPluginConfig from '~/plugins/twilioWhatsapp';
 import UpcloudPluginConfig from '~/plugins/upcloud';
 import VultrPluginConfig from '~/plugins/vultr';
 import SESPluginConfig from '~/plugins/ses';
+import R2PluginConfig from '~/plugins/r2';
 import Noco from '~/Noco';
 import Local from '~/plugins/storage/Local';
 import { MetaTable, RootScopes } from '~/utils/globals';
@@ -53,6 +54,7 @@ const defaultPlugins = [
   MailerSendConfig,
   ScalewayPluginConfig,
   SESPluginConfig,
+  R2PluginConfig,
 ];
 
 class NcPluginMgrv2 {

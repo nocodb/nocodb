@@ -9,12 +9,7 @@ import {
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 import { Upload } from '@aws-sdk/lib-storage';
-import type {
-  GetObjectCommandInput,
-  GetObjectCommandOutput,
-  PutObjectRequest,
-  S3 as S3Client,
-} from '@aws-sdk/client-s3';
+import type { PutObjectRequest, S3 as S3Client } from '@aws-sdk/client-s3';
 import type { IStorageAdapterV2, XcFile } from 'nc-plugin';
 import type { Readable } from 'stream';
 import { generateTempFilePath, waitForStreamClose } from '~/utils/pluginUtils';

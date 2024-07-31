@@ -29,7 +29,7 @@ export default class GenericS3 implements IStorageAdapterV2 {
     this.input = input as GenerocObjectStorageInput;
   }
 
-  get defaultParams() {
+  protected get defaultParams() {
     return {
       Bucket: this.input.bucket,
     };

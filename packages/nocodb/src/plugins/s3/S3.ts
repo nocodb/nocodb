@@ -10,6 +10,7 @@ interface S3Input {
   access_key: string;
   access_secret: string;
   endpoint?: string;
+  acl?: string;
 }
 
 export default class S3 extends GenericS3 implements IStorageAdapterV2 {
@@ -21,7 +22,7 @@ export default class S3 extends GenericS3 implements IStorageAdapterV2 {
 
   get defaultParams() {
     return {
-      ACL: 'private',
+      ACL: this.input.acl || 'private',
       Bucket: this.input.bucket,
     };
   }

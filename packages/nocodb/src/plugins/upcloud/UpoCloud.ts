@@ -9,6 +9,7 @@ interface UpoCloudStorgeInput {
   access_key: string;
   access_secret: string;
   endpoint: string;
+  acl?: string;
 }
 
 export default class UpoCloud extends GenericS3 implements IStorageAdapterV2 {
@@ -16,6 +17,13 @@ export default class UpoCloud extends GenericS3 implements IStorageAdapterV2 {
 
   constructor(input: unknown) {
     super(input as UpoCloudStorgeInput);
+  }
+
+  protected get defaultParams() {
+    return {
+      Bucket: this.input.bucket,
+      ACL: this.input?.acl || 'public-read',
+    };
   }
 
   public async init(): Promise<any> {

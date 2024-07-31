@@ -8,14 +8,23 @@ interface LinodeObjectStorageInput {
   region: string;
   access_key: string;
   access_secret: string;
+  acl?: string;
 }
 
 export default class LinodeObjectStorage
   extends GenericS3
   implements IStorageAdapterV2
 {
+  protected input: LinodeObjectStorageInput;
   constructor(input: unknown) {
     super(input as LinodeObjectStorageInput);
+  }
+
+  protected get defaultParams() {
+    return {
+      Bucket: this.input.bucket,
+      ACL: this.input?.acl || 'public-read',
+    };
   }
 
   public async init(): Promise<any> {

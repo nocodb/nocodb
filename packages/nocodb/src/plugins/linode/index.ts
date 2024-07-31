@@ -5,7 +5,7 @@ import type { XcPluginConfig } from 'nc-plugin';
 const config: XcPluginConfig = {
   builder: LinodeObjectStoragePlugin,
   title: 'Linode Object Storage',
-  version: '0.0.1',
+  version: '0.0.2',
   logo: 'plugins/linode.svg',
   tags: 'Storage',
   description:
@@ -40,6 +40,13 @@ const config: XcPluginConfig = {
         placeholder: 'Access Secret',
         type: XcType.Password,
         required: true,
+      },
+      {
+        key: 'acl',
+        label: 'Access Control Lists (ACL)',
+        placeholder: 'Default set to public-read',
+        type: XcType.SingleLineText,
+        required: false,
       },
     ],
     actions: [

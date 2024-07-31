@@ -9,6 +9,7 @@ interface VultrObjectStorageInput {
   access_key: string;
   hostname: string;
   access_secret: string;
+  acl?: string;
 }
 
 export default class Vultr extends GenericS3 implements IStorageAdapterV2 {
@@ -16,6 +17,13 @@ export default class Vultr extends GenericS3 implements IStorageAdapterV2 {
 
   constructor(input: unknown) {
     super(input as VultrObjectStorageInput);
+  }
+
+  protected get defaultParams() {
+    return {
+      Bucket: this.input.bucket,
+      ACL: this.input?.acl || 'public-read',
+    };
   }
 
   public async init(): Promise<any> {

@@ -8,6 +8,7 @@ interface SpacesObjectStorageInput {
   region: string;
   access_key: string;
   access_secret: string;
+  acl?: string;
 }
 
 export default class Spaces extends GenericS3 implements IStorageAdapterV2 {
@@ -15,6 +16,13 @@ export default class Spaces extends GenericS3 implements IStorageAdapterV2 {
 
   constructor(input: unknown) {
     super(input as SpacesObjectStorageInput);
+  }
+
+  protected get defaultParams() {
+    return {
+      Bucket: this.input.bucket,
+      ACL: this.input?.acl || 'public-read',
+    };
   }
 
   public async init(): Promise<any> {

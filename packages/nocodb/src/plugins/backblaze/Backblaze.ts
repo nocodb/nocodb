@@ -10,6 +10,7 @@ interface BackblazeObjectStorageInput {
   region: string;
   access_key: string;
   access_secret: string;
+  acl?: string;
 }
 
 export default class Backblaze extends GenericS3 implements IStorageAdapterV2 {
@@ -17,6 +18,13 @@ export default class Backblaze extends GenericS3 implements IStorageAdapterV2 {
 
   constructor(input: unknown) {
     super(input as BackblazeObjectStorageInput);
+  }
+
+  protected get defaultParams() {
+    return {
+      Bucket: this.input.bucket,
+      ACL: this.input?.acl || 'public-read',
+    };
   }
 
   public async init(): Promise<any> {
@@ -40,16 +48,12 @@ export default class Backblaze extends GenericS3 implements IStorageAdapterV2 {
     pathParameters?: { [key: string]: string },
   ) {
     let tempKey = key;
-    console.log(tempKey, 'before');
-
     if (
       tempKey.startsWith(`${this.input.bucket}/nc/uploads`) ||
       tempKey.startsWith(`${this.input.bucket}/nc/thumbnails`)
     ) {
       tempKey = tempKey.replace(`${this.input.bucket}/`, '');
     }
-
-    console.log(tempKey, 'after');
 
     const command = new GetObjectCommand({
       Key: tempKey,

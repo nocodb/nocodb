@@ -9,6 +9,7 @@ interface ScalewayObjectStorageInput {
   region: string;
   access_key: string;
   access_secret: string;
+  acl?: string;
 }
 
 export default class ScalewayObjectStorage
@@ -19,6 +20,13 @@ export default class ScalewayObjectStorage
 
   constructor(input: unknown) {
     super(input as ScalewayObjectStorageInput);
+  }
+
+  protected get defaultParams() {
+    return {
+      Bucket: this.input.bucket,
+      ACL: this.input?.acl || 'public-read',
+    };
   }
 
   public async init(): Promise<any> {

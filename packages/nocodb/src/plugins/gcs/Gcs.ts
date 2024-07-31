@@ -3,10 +3,9 @@ import { promisify } from 'util';
 import { Storage } from '@google-cloud/storage';
 import axios from 'axios';
 import { useAgent } from 'request-filtering-agent';
-import type { GetSignedUrlConfig } from '@google-cloud/storage';
+import type { GetSignedUrlConfig, StorageOptions } from '@google-cloud/storage';
 import type { IStorageAdapterV2, XcFile } from 'nc-plugin';
 import type { Readable } from 'stream';
-import type { StorageOptions } from '@google-cloud/storage';
 import { generateTempFilePath, waitForStreamClose } from '~/utils/pluginUtils';
 
 interface GoogleCloudStorageInput {

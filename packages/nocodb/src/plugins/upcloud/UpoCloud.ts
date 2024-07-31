@@ -27,13 +27,17 @@ export default class UpoCloud extends GenericS3 implements IStorageAdapterV2 {
   }
 
   public async init(): Promise<any> {
+    const updatedEndpoint = this.input.endpoint.startsWith('http')
+      ? this.input.endpoint
+      : `https://${this.input.endpoint}`;
+
     const s3Options: S3ClientConfig = {
       region: this.input.region,
       credentials: {
         accessKeyId: this.input.access_key,
         secretAccessKey: this.input.access_secret,
       },
-      endpoint: this.input.endpoint,
+      endpoint: updatedEndpoint,
     };
 
     this.s3Client = new S3Client(s3Options);

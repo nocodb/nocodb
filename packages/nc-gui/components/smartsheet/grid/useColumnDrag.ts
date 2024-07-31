@@ -28,16 +28,19 @@ export const useColumnDrag = ({
 
     const colIndex = meta.value.columns.findIndex((c) => c.id === columnId)
     if (colIndex !== -1) {
-      meta.value.columns[colIndex].meta = { ...(meta.value.columns[colIndex].meta || {}), defaultViewColOrder: order }
-      meta.value.columns = (meta.value.columns || []).map((c) => {
+      meta.value.columns[colIndex].meta = {
+        ...parseProp((meta.value.columns[colIndex] as ColumnType)?.meta || {}),
+        defaultViewColOrder: order,
+      }
+      meta.value.columns = (meta.value.columns || []).map((c: ColumnType) => {
         if (c.id !== columnId) return c
 
-        c.meta = { ...(c.meta || {}), defaultViewColOrder: order }
+        c.meta = { ...parseProp(c.meta || {}), defaultViewColOrder: order }
         return c
       })
     }
-    if (meta.value.columnsById[columnId]) {
-      meta.value.columnsById[columnId].meta = { ...(meta.value.columnsById[columnId] || {}), defaultViewColOrder: order }
+    if (meta.value?.columnsById?.[columnId]) {
+      meta.value.columnsById[columnId].meta = { ...parseProp(meta.value.columns[colIndex]?.meta), defaultViewColOrder: order }
     }
   }
 

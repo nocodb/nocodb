@@ -180,6 +180,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       reloadData?.()
       $e('a:fields:show-all')
     }
+
     const hideAll = async (ignoreIds?: any) => {
       if (isLocalMode.value) {
         const fieldById = (fields.value || []).reduce<Record<string, any>>((acc, curr) => {
@@ -228,11 +229,32 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       $e('a:fields:show-all')
     }
 
+    const updateDefaultViewColumnOrder = (columnId: string, order: number) => {
+      if (!meta.value?.columns) return
+
+      const colIndex = meta.value.columns.findIndex((c) => c.id === columnId)
+      if (colIndex !== -1) {
+        meta.value.columns[colIndex].meta = {
+          ...parseProp((meta.value.columns[colIndex] as ColumnType)?.meta || {}),
+          defaultViewColOrder: order,
+        }
+        meta.value.columns = (meta.value.columns || []).map((c: ColumnType) => {
+          if (c.id !== columnId) return c
+
+          c.meta = { ...parseProp(c.meta || {}), defaultViewColOrder: order }
+          return c
+        })
+      }
+      if (meta.value?.columnsById?.[columnId]) {
+        meta.value.columnsById[columnId].meta = { ...parseProp(meta.value.columns[colIndex]?.meta), defaultViewColOrder: order }
+      }
+    }
+
     const saveOrUpdate = async (
       field: any,
       index: number,
       disableDataReload: boolean = false,
-      updateDefaultViewColumnOrder: boolean = false,
+      updateDefaultViewColOrder: boolean = false,
     ) => {
       if (isLocalMode.value && fields.value) {
         fields.value[index] = field
@@ -242,13 +264,16 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
               ...column,
               ...field,
               id: field.fk_column_id,
-              ...(updateDefaultViewColumnOrder ? { meta: { ...parseProp(column.meta), defaultViewColOrder: field.order } } : {}),
             }
           }
           return column
         })
 
         localChanges.value[field.fk_column_id] = field
+      }
+
+      if (updateDefaultViewColOrder && field?.fk_column_id) {
+        updateDefaultViewColumnOrder(field.fk_column_id, field.order)
       }
 
       if (isUIAllowed('viewFieldEdit')) {

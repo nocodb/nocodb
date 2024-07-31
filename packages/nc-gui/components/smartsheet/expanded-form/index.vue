@@ -30,6 +30,7 @@ interface Props {
   skipReload?: boolean
   newRecordSubmitBtnText?: string
   expandForm?: (row: Row) => void
+  maintainDefaultViewOrder?: boolean
 }
 
 const props = defineProps<Props>()
@@ -63,6 +64,8 @@ const meta = toRef(props, 'meta')
 const islastRow = toRef(props, 'lastRow')
 
 const isFirstRow = toRef(props, 'firstRow')
+
+const maintainDefaultViewOrder = toRef(props, 'maintainDefaultViewOrder')
 
 const route = useRoute()
 
@@ -99,6 +102,14 @@ const loadingEmit = (event: 'update:modelValue' | 'cancel' | 'next' | 'prev' | '
 
 const fields = computedInject(FieldsInj, (_fields) => {
   if (props.useMetaFields) {
+    if (maintainDefaultViewOrder.value) {
+      return (meta.value.columns ?? [])
+        .filter((col) => !isSystemColumn(col))
+        .sort((a, b) => {
+          return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
+        })
+    }
+
     return (meta.value.columns ?? []).filter((col) => !isSystemColumn(col))
   }
   return _fields?.value ?? []

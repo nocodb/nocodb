@@ -245,7 +245,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
           return c
         })
       }
-      if (meta.value?.columnsById && meta.value.columnsById[columnId]) {
+      if (meta.value?.columnsById?.[columnId]) {
         meta.value.columnsById[columnId].meta = { ...parseProp(meta.value.columns[colIndex]?.meta), defaultViewColOrder: order }
       }
     }

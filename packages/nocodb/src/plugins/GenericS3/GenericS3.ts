@@ -93,9 +93,10 @@ export default class GenericS3 implements IStorageAdapterV2 {
     },
   ): Promise<void> {
     try {
-      stream.on('error', (err) => {
-        console.log('File Error', err);
-        throw err;
+      const streamError = new Promise<void>((_, reject) => {
+        stream.on('error', (err) => {
+          reject(err);
+        });
       });
 
       const uploadParams = {
@@ -105,7 +106,9 @@ export default class GenericS3 implements IStorageAdapterV2 {
         ContentType: options?.mimetype || 'application/octet-stream',
       };
 
-      return await this.upload(uploadParams);
+      const upload = this.upload(uploadParams);
+
+      return await Promise.race([upload, streamError]);
     } catch (error) {
       throw error;
     }

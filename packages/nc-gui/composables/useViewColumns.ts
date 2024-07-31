@@ -434,22 +434,27 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
           scope: defineViewScope({ view: view.value }),
         })
       }
+      try {
+        // sync with server if allowed
+        if (!isPublic.value && isUIAllowed('viewFieldEdit') && gridViewCols.value[id]?.id) {
+          await $api.dbView.gridColumnUpdate(gridViewCols.value[id].id as string, {
+            ...props,
+          })
+        }
 
-      // sync with server if allowed
-      if (!isPublic.value && isUIAllowed('viewFieldEdit') && gridViewCols.value[id]?.id) {
-        await $api.dbView.gridColumnUpdate(gridViewCols.value[id].id as string, {
-          ...props,
-        })
-      }
-
-      if (gridViewCols.value?.[id]) {
-        Object.assign(gridViewCols.value[id], {
-          ...gridViewCols.value[id],
-          ...props,
-        })
-      } else {
-        // fallback to reload
-        await loadViewColumns()
+        if (gridViewCols.value?.[id]) {
+          Object.assign(gridViewCols.value[id], {
+            ...gridViewCols.value[id],
+            ...props,
+          })
+        } else {
+          // fallback to reload
+          await loadViewColumns()
+        }
+      } catch (e) {
+        // this could happen if user doesn't have permission to update view columns
+        // todo: find out root cause and handle with isUIAllowed
+        console.error(e)
       }
     }
 

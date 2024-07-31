@@ -278,6 +278,8 @@ async function onMove(event: any, stackKey: string) {
 }
 
 const kanbanListScrollHandler = useDebounceFn(async (e: any) => {
+  if (!e.target) return
+
   if (e.target.scrollTop + e.target.clientHeight + INFINITY_SCROLL_THRESHOLD >= e.target.scrollHeight) {
     const stackTitle = e.target.getAttribute('data-stack-title')
     const pageSize = appInfo.value.defaultLimit || 25

@@ -46,7 +46,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       if (!col) return
 
       if (!search.value.query.trim()) return
-      if (['text', 'string'].includes(sqlUi.value.getAbstractType(col)) && col.dt !== 'bigint') {
+      if (sqlUi.value && ['text', 'string'].includes(sqlUi.value.getAbstractType(col)) && col.dt !== 'bigint') {
         where = `(${col.title},like,%${search.value.query.trim()}%)`
       } else {
         where = `(${col.title},eq,${search.value.query.trim()})`

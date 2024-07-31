@@ -40,7 +40,7 @@ export function addAxiosInterceptors(api: Api<any>) {
   api.instance.interceptors.response.use(
     (response) => {
       // calculate the latency for data list api
-      if (response.config[reqLatencyKey] && response.data?.stats) {
+      if (response && response.config[reqLatencyKey] && response.data?.stats) {
         const totalTime = Date.now() - response.config[reqLatencyKey]
         const db = Math.round(response.data.stats.dbQueryTime)
         const cpu = Math.round(response.data.stats.apiHandlingTime - db)

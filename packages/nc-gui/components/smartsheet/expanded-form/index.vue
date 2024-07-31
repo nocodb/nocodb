@@ -106,10 +106,7 @@ const fields = computedInject(FieldsInj, (_fields) => {
       return (meta.value.columns ?? [])
         .filter((col) => !isSystemColumn(col))
         .sort((a, b) => {
-          if (a.meta?.defaultViewColOrder !== undefined && b.meta?.defaultViewColOrder !== undefined) {
-            return a.meta.defaultViewColOrder - b.meta.defaultViewColOrder
-          }
-          return 0
+          return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
         })
     }
 

@@ -467,6 +467,7 @@ const onFilterChange = () => {
         :row-id="extractPkFromRow(expandedFormRow, relatedTableMeta.columns as ColumnType[])"
         :state="newRowState"
         use-meta-fields
+        maintain-default-view-order
         :skip-reload="true"
         new-record-submit-btn-text="Create & Link"
         @created-record="onCreatedRecord"

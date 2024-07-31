@@ -133,16 +133,12 @@ export default class Minio implements IStorageAdapterV2 {
     metaData: { [key: string]: string | number };
   }): Promise<any> {
     try {
-      const data = await this.minioClient.putObject(
+      this.minioClient.putObject(
         this.input.bucket,
         uploadParams.Key,
         uploadParams.Body,
         uploadParams.metaData as any,
       );
-
-      if (!data) {
-        throw new Error('No data found in Minio');
-      }
 
       if (this.input.useSSL && this.input.port === 443) {
         return `https://${this.input.endPoint}/${uploadParams.Key}`;

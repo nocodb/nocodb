@@ -16,22 +16,19 @@ import type { IStorageAdapterV2, XcFile } from 'nc-plugin';
 import type { Readable } from 'stream';
 import { generateTempFilePath, waitForStreamClose } from '~/utils/pluginUtils';
 
+interface BackblazeObjectStorageInput {
+  bucket: string;
+  region: string;
+  access_key: string;
+  access_secret: string;
+}
+
 export default class Backblaze implements IStorageAdapterV2 {
   private s3Client: S3Client;
-  private input: {
-    bucket: string;
-    region: string;
-    access_key: string;
-    access_secret: string;
-  };
+  private input: BackblazeObjectStorageInput;
 
   constructor(input: unknown) {
-    this.input = input as {
-      bucket: string;
-      region: string;
-      access_key: string;
-      access_secret: string;
-    };
+    this.input = input as BackblazeObjectStorageInput;
   }
 
   get defaultParams() {
@@ -40,36 +37,64 @@ export default class Backblaze implements IStorageAdapterV2 {
     };
   }
 
+  public async init(): Promise<any> {
+    const s3Options: S3ClientConfig = {
+      region: this.patchRegion(this.input.region),
+      credentials: {
+        accessKeyId: this.input.access_key,
+        secretAccessKey: this.input.access_secret,
+      },
+      endpoint: `https://s3.${this.patchRegion(
+        this.input.region,
+      )}.backblazeb2.com`,
+    };
+
+    this.s3Client = new S3Client(s3Options);
+  }
+
+  public async test(): Promise<boolean> {
+    try {
+      const tempFile = generateTempFilePath();
+      const createStream = fs.createWriteStream(tempFile);
+      await waitForStreamClose(createStream);
+      await this.fileCreate('nc-test-file.txt', {
+        path: tempFile,
+        mimetype: 'text/plain',
+        originalname: 'temp.txt',
+        size: '',
+      });
+      await promisify(fs.unlink)(tempFile);
+      return true;
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  public async fileRead(key: string): Promise<any> {
+    const readParams: GetObjectCommandInput = {
+      Key: key,
+      Bucket: this.input.bucket,
+    };
+
+    try {
+      const data: GetObjectCommandOutput = await this.s3Client.getObject(
+        readParams,
+      );
+      if (!data.Body) {
+        throw new Error('No data found in S3 object');
+      }
+      return data.Body;
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async fileCreate(key: string, file: XcFile): Promise<any> {
     const fileStream = fs.createReadStream(file.path);
 
     return this.fileCreateByStream(key, fileStream, {
       mimetype: file?.mimetype,
     });
-  }
-
-  async fileCreateByUrl(key: string, url: string): Promise<any> {
-    try {
-      const response = await axios.get(url, {
-        httpAgent: useAgent(url, { stopPortScanningByUrlRedirection: true }),
-        httpsAgent: useAgent(url, { stopPortScanningByUrlRedirection: true }),
-        responseType: 'stream',
-      });
-      const uploadParams: PutObjectRequest = {
-        ...this.defaultParams,
-        Body: response.data,
-        Key: key,
-        ContentType: response.headers['content-type'],
-      };
-
-      const data = await this.upload(uploadParams);
-      return {
-        url: data,
-        data: response.data,
-      };
-    } catch (error) {
-      throw error;
-    }
   }
 
   async fileCreateByStream(
@@ -98,92 +123,27 @@ export default class Backblaze implements IStorageAdapterV2 {
     }
   }
 
-  // TODO - implement
-  fileReadByStream(_key: string): Promise<Readable> {
-    return Promise.resolve(undefined);
-  }
-
-  // TODO - implement
-  getDirectoryList(_path: string): Promise<string[]> {
-    return Promise.resolve(undefined);
-  }
-
-  patchRegion(region: string): string {
-    // in v0.0.1, we constructed the endpoint with `region = s3.us-west-001`
-    // in v0.0.2, `region` would be `us-west-001`
-    // as backblaze states Region is the 2nd part of your S3 Endpoint in documentation
-    if (region.startsWith('s3.')) {
-      region = region.slice(3);
-    }
-    return region;
-  }
-
-  public async fileDelete(_path: string): Promise<any> {
-    return Promise.resolve(undefined);
-  }
-
-  public async fileRead(key: string): Promise<any> {
-    const readParams: GetObjectCommandInput = {
-      Key: key,
-      Bucket: this.input.bucket,
-    };
-
+  async fileCreateByUrl(key: string, url: string): Promise<any> {
     try {
-      const data: GetObjectCommandOutput = await this.s3Client.getObject(
-        readParams,
-      );
-      if (!data.Body) {
-        throw new Error('No data found in S3 object');
-      }
-      return data.Body;
+      const response = await axios.get(url, {
+        httpAgent: useAgent(url, { stopPortScanningByUrlRedirection: true }),
+        httpsAgent: useAgent(url, { stopPortScanningByUrlRedirection: true }),
+        responseType: 'stream',
+      });
+      const uploadParams: PutObjectRequest = {
+        ...this.defaultParams,
+        Body: response.data,
+        Key: key,
+        ContentType: response.headers['content-type'],
+      };
+
+      const data = await this.upload(uploadParams);
+      return {
+        url: data,
+        data: response.data,
+      };
     } catch (error) {
       throw error;
-    }
-  }
-
-  public async getSignedUrl(
-    key,
-    expiresInSeconds = 7200,
-    pathParameters?: { [key: string]: string },
-  ) {
-    const command = new GetObjectCommand({
-      Key: key,
-      Bucket: this.input.bucket,
-      ...pathParameters,
-    });
-    return getSignedUrl(this.s3Client, command, {
-      expiresIn: expiresInSeconds,
-    });
-  }
-
-  public async init(): Promise<any> {
-    const s3Options: S3ClientConfig = {
-      region: this.patchRegion(this.input.region),
-      credentials: {
-        accessKeyId: this.input.access_key,
-        secretAccessKey: this.input.access_secret,
-      },
-    };
-
-    s3Options.endpoint = `https://s3.${s3Options.region}.backblazeb2.com`;
-    this.s3Client = new S3Client(s3Options);
-  }
-
-  public async test(): Promise<boolean> {
-    try {
-      const tempFile = generateTempFilePath();
-      const createStream = fs.createWriteStream(tempFile);
-      await waitForStreamClose(createStream);
-      await this.fileCreate('nc-test-file.txt', {
-        path: tempFile,
-        mimetype: 'text/plain',
-        originalname: 'temp.txt',
-        size: '',
-      });
-      await promisify(fs.unlink)(tempFile);
-      return true;
-    } catch (e) {
-      throw e;
     }
   }
 
@@ -203,5 +163,44 @@ export default class Backblaze implements IStorageAdapterV2 {
       console.error('Error uploading file', error);
       throw error;
     }
+  }
+
+  public async getSignedUrl(
+    key,
+    expiresInSeconds = 7200,
+    pathParameters?: { [key: string]: string },
+  ) {
+    const command = new GetObjectCommand({
+      Key: key,
+      Bucket: this.input.bucket,
+      ...pathParameters,
+    });
+    return getSignedUrl(this.s3Client, command, {
+      expiresIn: expiresInSeconds,
+    });
+  }
+
+  // TODO - implement
+  fileReadByStream(_key: string): Promise<Readable> {
+    return Promise.resolve(undefined);
+  }
+
+  // TODO - implement
+  getDirectoryList(_path: string): Promise<string[]> {
+    return Promise.resolve(undefined);
+  }
+
+  public async fileDelete(_path: string): Promise<any> {
+    return Promise.resolve(undefined);
+  }
+
+  patchRegion(region: string): string {
+    // in v0.0.1, we constructed the endpoint with `region = s3.us-west-001`
+    // in v0.0.2, `region` would be `us-west-001`
+    // as backblaze states Region is the 2nd part of your S3 Endpoint in documentation
+    if (region.startsWith('s3.')) {
+      region = region.slice(3);
+    }
+    return region;
   }
 }

@@ -885,8 +885,8 @@ importers:
         specifier: 0.251.1
         version: 0.251.1
       nc-plugin:
-        specifier: ^0.1.3
-        version: 0.1.3
+        specifier: ^0.1.5
+        version: 0.1.5
       nestjs-pino:
         specifier: ^3.5.0
         version: 3.5.0(@nestjs/common@10.3.10)(pino-http@8.5.0)
@@ -7167,11 +7167,6 @@ packages:
   /@bcoe/v8-coverage@0.2.3:
     resolution: {integrity: sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==}
     dev: true
-
-  /@bitauth/libauth@1.19.1:
-    resolution: {integrity: sha512-R524tD5VwOt3QRHr7N518nqTVR/HKgfWL4LypekcGuNQN8R4PWScvuRcRzrY39A28kLztMv+TJdiKuMNbkU1ug==}
-    engines: {node: '>=8.9'}
-    dev: false
 
   /@ckpack/vue-color@1.5.0(vue@3.4.34):
     resolution: {integrity: sha512-dj1zXVyay2m4LdlLJCQSdIS2FYwUl77BZqyKmUXiehyqjCP0bGYnPcL38lrShzYUc2FdkYQX8ANZZjRahd4PQw==}
@@ -27162,11 +27157,10 @@ packages:
       - supports-color
     dev: false
 
-  /nc-plugin@0.1.3:
-    resolution: {integrity: sha512-QosW02G6fk/32wc7jKqxCy0sm43cS2cvfkedP2fa8VVeLP6Q6tvhpm/k1boxbCRaLNbQx59F/PNBhogXFRO23g==}
+  /nc-plugin@0.1.5:
+    resolution: {integrity: sha512-luHWO7uc1UMU8PzPHivFtqgKQkeJ1o8BYO7rn39j8Pyq+wsBJwd+efFsH7vyXdlL5XM12CmvKZl64Bzi+1emBw==}
     engines: {node: '>=10'}
     dependencies:
-      '@bitauth/libauth': 1.19.1
       nc-common: 0.0.6
     dev: false
 

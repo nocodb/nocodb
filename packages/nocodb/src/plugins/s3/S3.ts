@@ -150,14 +150,6 @@ export default class S3 implements IStorageAdapterV2 {
   }
 
   public async init(): Promise<any> {
-    // const s3Options: any = {
-    //   params: {Bucket: process.env.NC_S3_BUCKET},
-    //   region: process.env.NC_S3_REGION
-    // };
-    //
-    // s3Options.accessKeyId = process.env.NC_S3_KEY;
-    // s3Options.secretAccessKey = process.env.NC_S3_SECRET;
-
     const s3Options: S3ClientConfig = {
       region: this.input.region,
       credentials: {

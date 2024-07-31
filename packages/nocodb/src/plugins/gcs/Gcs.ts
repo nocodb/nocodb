@@ -120,14 +120,18 @@ export default class Gcs implements IStorageAdapterV2 {
     return uploadResponse[0].publicUrl();
   }
 
-  async fileCreateByUrl(destPath: string, url: string): Promise<any> {
+  async fileCreateByUrl(
+    destPath: string,
+    url: string,
+    _fileMeta,
+    { buffer = false },
+  ): Promise<any> {
     return new Promise((resolve, reject) => {
       axios
         .get(url, {
           httpAgent: useAgent(url, { stopPortScanningByUrlRedirection: true }),
           httpsAgent: useAgent(url, { stopPortScanningByUrlRedirection: true }),
-          // TODO - use stream instead of buffer
-          responseType: 'arraybuffer',
+          responseType: buffer ? 'arraybuffer' : 'stream',
         })
         .then((response) => {
           this.storageClient

@@ -103,11 +103,20 @@ export default class Minio implements IStorageAdapterV2 {
     }
   }
 
-  async fileCreateByUrl(key: string, url: string): Promise<any> {
+  async fileCreateByUrl(
+    key: string,
+    url: string,
+    _fileMeta,
+    {
+      buffer,
+    }: {
+      buffer?: boolean;
+    },
+  ): Promise<any> {
     const response = await axios.get(url, {
       httpAgent: useAgent(url, { stopPortScanningByUrlRedirection: true }),
       httpsAgent: useAgent(url, { stopPortScanningByUrlRedirection: true }),
-      responseType: 'stream',
+      responseType: buffer ? 'arraybuffer' : 'stream',
     });
 
     const uploadParams = {

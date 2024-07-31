@@ -208,6 +208,9 @@ export class AttachmentsService {
             await storageAdapter.fileCreateByUrl(
               slash(path.join(destPath, fileName)),
               finalUrl,
+              {},
+              // The sharp requires image to be passed as buffer.
+              { buffer: mimeType.includes('image') },
             );
 
           const tempMetadata: {

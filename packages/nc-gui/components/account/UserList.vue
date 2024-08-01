@@ -169,6 +169,12 @@ const orderBy = computed<Record<string, SordDirectionType>>({
     return sortDirection.value
   },
   set: (value: Record<string, SordDirectionType>) => {
+    // Check if value is an empty object
+    if (Object.keys(value).length === 0) {
+      saveOrUpdateUserSort({})
+      return
+    }
+
     const [field, direction] = Object.entries(value)[0]
 
     saveOrUpdateUserSort({

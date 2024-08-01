@@ -76,9 +76,9 @@ export class AccountUsersPage extends BasePage {
     // ensure page is loaded
     email = this.prefixEmail(email);
 
-    await this.get().locator('.nc-table-row').waitFor({ state: 'visible' });
+    await this.get().locator('.nc-table-row').first().waitFor({ state: 'visible' });
 
-    return this.get().locator(`.nc-table-row:has-text("${email}")`);
+    return this.get().locator(`.nc-table-row:has-text("${email}")`).first();
   }
 
   async updateRole({ email, role }: { email: string; role: string }) {

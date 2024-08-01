@@ -11,7 +11,7 @@ const workspaceStore = useWorkspace()
 
 const { removeCollaborator, updateCollaborator: _updateCollaborator, loadWorkspace } = workspaceStore
 
-const { collaborators, activeWorkspace, workspacesList } = storeToRefs(workspaceStore)
+const { collaborators, activeWorkspace, workspacesList, isCollaboratorsLoading } = storeToRefs(workspaceStore)
 
 const currentWorkspace = computedAsync(async () => {
   if (props.workspaceId) {
@@ -25,13 +25,7 @@ const currentWorkspace = computedAsync(async () => {
   return activeWorkspace.value ?? workspacesList.value[0]
 })
 
-const {
-  sorts,
-  sortDirection,
-  loadSorts,
-  handleGetSortedData,
-  saveOrUpdate: saveOrUpdateUserSort,
-} = useUserSorts('Workspace')
+const { sorts, sortDirection, loadSorts, handleGetSortedData, saveOrUpdate: saveOrUpdateUserSort } = useUserSorts('Workspace')
 
 const userSearchText = ref('')
 
@@ -161,12 +155,12 @@ const columns = [
 </script>
 
 <template>
-  <DlgInviteDlg v-if="currentWorkspace" v-model:model-value="inviteDlg" :workspace-id="currentWorkspace?.id" type="workspace" />
-  <div class="nc-collaborator-table-container mt-4 h-[calc(100vh-10rem)] max-w-350 px-1">
-    <div class="w-full flex justify-between mt-6.5 mb-2">
+  <div class="nc-collaborator-table-container py-6 h-[calc(100vh-10rem)] max-w-350 px-1 flex flex-col gap-6">
+    <div class="w-full flex items-center justify-between gap-3">
       <a-input
         v-model:value="userSearchText"
         allow-clear
+        :disabled="isCollaboratorsLoading"
         class="nc-collaborator-list-search-input !max-w-90 !h-8 !px-3 !py-1 !rounded-lg"
         placeholder="Search members"
       >
@@ -174,7 +168,7 @@ const columns = [
           <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-gray-500 group-hover:text-black" />
         </template>
       </a-input>
-      <NcButton size="small" data-testid="nc-add-member-btn" @click="inviteDlg = true">
+      <NcButton size="small" :disabled="isCollaboratorsLoading" data-testid="nc-add-member-btn" @click="inviteDlg = true">
         <div class="flex items-center gap-2">
           <component :is="iconMap.plus" class="!h-4 !w-4" />
           {{ $t('labels.addMember') }}
@@ -185,6 +179,7 @@ const columns = [
       <NcTable
         :columns="columns"
         :data="sortedCollaborators"
+        :is-data-loading="isCollaboratorsLoading"
         :custom-row="
           (_record, recordIndex) => {
             return {
@@ -201,7 +196,7 @@ const columns = [
 
         <template #headerCell="{ column }">
           <template v-if="column.key === 'select'">
-            <NcCheckbox v-model:checked="selectAll" :disabled="!sortedCollaborators.length"/>
+            <NcCheckbox v-model:checked="selectAll" :disabled="!sortedCollaborators.length" />
           </template>
           <template v-else>
             {{ column.title }}
@@ -293,8 +288,7 @@ const columns = [
         </template>
       </NcTable>
     </div>
-  
-   
+    <DlgInviteDlg v-if="currentWorkspace" v-model:model-value="inviteDlg" :workspace-id="currentWorkspace?.id" type="workspace" />
   </div>
 </template>
 
@@ -303,14 +297,13 @@ const columns = [
   @apply text-gray-500;
 }
 
-
-.badge-text {
-  @apply text-[14px] pt-1 text-center;
-}
-
 :deep(.ant-input-affix-wrapper.nc-collaborator-list-search-input) {
   &:not(:has(.ant-input-clear-icon-hidden)):has(.ant-input-clear-icon) {
     @apply border-[var(--ant-primary-5)];
   }
+}
+
+.badge-text {
+  @apply text-[14px] pt-1 text-center;
 }
 </style>

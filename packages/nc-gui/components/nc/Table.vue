@@ -254,7 +254,7 @@ useEventListener(tableWrapper, 'scroll', () => {
     </div>
     <div
       v-show="isDataLoading"
-      class="flex items-center justify-center absolute left-0 top-0 w-full h-full z-10 pb-10 pointer-events-none"
+      class="flex items-center justify-center absolute left-0 top-0 w-full h-full z-10 pointer-events-none"
     >
       <div class="flex flex-col justify-center items-center gap-2">
         <GeneralLoader size="xlarge" />

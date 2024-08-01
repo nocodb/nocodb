@@ -403,11 +403,16 @@ export default class WorkspaceUser {
   }
 
   static async softDelete(workspaceId: any, userId: any, ncMeta = Noco.ncMeta) {
-    const res = await this.update(workspaceId, userId, {
-      roles: null,
-      deleted: true,
-      deleted_at: ncMeta.now(),
-    });
+    const res = await this.update(
+      workspaceId,
+      userId,
+      {
+        roles: null,
+        deleted: true,
+        deleted_at: ncMeta.now(),
+      },
+      ncMeta,
+    );
 
     await NocoCache.del(`${CacheScope.WORKSPACE}:${workspaceId}:userCount`);
 

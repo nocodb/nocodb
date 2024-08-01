@@ -257,28 +257,4 @@ const columns = [
   </div>
 </template>
 
-<style scoped lang="scss">
-.table-header {
-  @apply flex items-center bg-gray-100 border-1 border-gray-200;
-}
-
-.table-header-col {
-  @apply flex items-center p-2 border-r-1 border-gray-200;
-}
-
-.table-header-col:last-child {
-  @apply border-r-0;
-}
-
-.table-body-row {
-  @apply flex items-center bg-white border-r-1 border-l-1 border-b-1 border-gray-200;
-}
-
-.table-body-row-col {
-  @apply flex items-center p-2 border-r-1 border-gray-200;
-}
-
-.table-body-row-col:last-child {
-  @apply border-r-0;
-}
-</style>
+<style scoped lang="scss"></style>

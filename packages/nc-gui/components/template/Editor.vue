@@ -801,62 +801,60 @@ watch(modelRef, async () => {
             </NcTooltip>
           </template>
 
-          <a-table
-            v-if="srcDestMapping"
-            class="template-form"
-            row-class-name="template-form-row"
-            :data-source="srcDestMapping[table.table_name]"
-            :columns="srcDestMappingColumns"
-            :pagination="false"
-          >
-            <template #emptyText>
-              <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
-            </template>
-            <template #headerCell="{ column }">
-              <span v-if="column.key === 'source_column' || column.key === 'destination_column'">
-                {{ column.name }}
-              </span>
-              <span v-if="column.key === 'action'">
-                <a-checkbox
-                  v-model:checked="checkAllRecord[table.table_name]"
-                  @change="handleCheckAllRecord($event, table.table_name)"
-                />
-              </span>
-            </template>
-
-            <template #bodyCell="{ column, record }">
-              <template v-if="column.key === 'source_column'">
-                <NcTooltip class="truncate inline-block">
-                  <template #title>{{ record.srcTitle }}</template>
-                  {{ record.srcTitle }}
-                </NcTooltip>
+          <div v-if="srcDestMapping" class="nc-table template-form">
+            <div class="nc-table-head">
+              <div class="nc-table-row">
+                <div class="nc-table-col nc-table-source">Source column</div>
+                <div class="nc-table-col nc-table-dest">Destination column</div>
+                <div class="nc-table-col nc-table-action">
+                  <a-checkbox
+                    v-model:checked="checkAllRecord[table.table_name]"
+                    @change="handleCheckAllRecord($event, table.table_name)"
+                  />
+                </div>
+              </div>
+            </div>
+            <div class="nc-table-body">
+              <template v-if="!srcDestMapping[table.table_name]?.length">
+                <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
               </template>
-
-              <template v-else-if="column.key === 'destination_column'">
-                <a-select
-                  v-model:value="record.destCn"
-                  class="w-52"
-                  show-search
-                  :filter-option="filterOption"
-                  dropdown-class-name="nc-dropdown-filter-field"
-                >
-                  <template #suffixIcon>
-                    <GeneralIcon icon="arrowDown" class="text-current" />
-                  </template>
-                  <a-select-option v-for="(col, i) of columns" :key="i" :value="col.title">
-                    <div class="flex items-center gap-2">
-                      <component :is="getUIDTIcon(col.uidt)" class="w-3.5 h-3.5" />
-                      <span>{{ col.title }}</span>
-                    </div>
-                  </a-select-option>
-                </a-select>
-              </template>
-
-              <template v-if="column.key === 'action'">
-                <a-checkbox v-model:checked="record.enabled" />
-              </template>
-            </template>
-          </a-table>
+              <div
+                v-for="record of srcDestMapping[table.table_name]"
+                v-else
+                :key="record.srcTitle"
+                class="nc-table-row template-form-row"
+              >
+                <div class="nc-table-col nc-table-source">
+                  <NcTooltip class="truncate inline-block">
+                    <template #title>{{ record.srcTitle }}</template>
+                    {{ record.srcTitle }}
+                  </NcTooltip>
+                </div>
+                <div class="nc-table-col nc-table-dest">
+                  <a-select
+                    v-model:value="record.destCn"
+                    class="w-52"
+                    show-search
+                    :filter-option="filterOption"
+                    dropdown-class-name="nc-dropdown-filter-field"
+                  >
+                    <template #suffixIcon>
+                      <GeneralIcon icon="arrowDown" class="text-current" />
+                    </template>
+                    <a-select-option v-for="(col, i) of columns" :key="i" :value="col.title">
+                      <div class="flex items-center gap-2">
+                        <component :is="getUIDTIcon(col.uidt)" class="w-3.5 h-3.5" />
+                        <span>{{ col.title }}</span>
+                      </div>
+                    </a-select-option>
+                  </a-select>
+                </div>
+                <div class="nc-table-col nc-table-action">
+                  <a-checkbox v-model:checked="record.enabled" />
+                </div>
+              </div>
+            </div>
+          </div>
         </a-collapse-panel>
       </a-collapse>
     </a-card>
@@ -1033,19 +1031,6 @@ watch(modelRef, async () => {
   @apply bg-white;
 }
 
-.template-form {
-  :deep(.ant-table-thead) > tr > th {
-    @apply bg-white;
-  }
-
-  :deep(.template-form-row) > td {
-    @apply p-1 mb-0 truncate max-w-50;
-    .ant-form-item {
-      @apply mb-0;
-    }
-  }
-}
-
 :deep(.ant-collapse-header) {
   @apply !items-center;
   & > div {
@@ -1055,6 +1040,38 @@ watch(modelRef, async () => {
 .nc-table-field-name {
   :deep(.ant-form-item-explain) {
     @apply hidden;
+  }
+}
+
+.nc-table {
+  @apply w-full;
+
+  .nc-table-head {
+    @apply flex items-center border-0 text-gray-500;
+  }
+
+  .nc-table-body {
+    @apply flex flex-col;
+  }
+
+  .nc-table-row {
+    @apply grid grid-cols-18 border-b border-gray-100 w-full h-full;
+  }
+
+  .nc-table-col {
+    @apply flex items-start py-3 mr-2;
+  }
+
+  .nc-table-source {
+    @apply col-span-7 flex justify-center items-center;
+  }
+
+  .nc-table-dest {
+    @apply col-span-7 items-center capitalize;
+  }
+
+  .nc-table-actions {
+    @apply col-span-4 flex w-full justify-center items-center;
   }
 }
 </style>

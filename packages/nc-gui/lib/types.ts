@@ -1,3 +1,5 @@
+import type { CSSProperties } from '@vue/runtime-dom'
+
 import type {
   AuditOperationTypes,
   BaseType,
@@ -255,6 +257,22 @@ interface AuditLogsQuery {
   }
 }
 
+interface NcTableColumnProps {
+  key: 'name' | 'action'
+  title: string
+  // minWidth is required to fix overflow col issue
+  minWidth: number
+  // provide width if we want col to be fixed width or provide basis value
+  width?: number
+  basis?: CSSProperties['flex-basis']
+  padding?: CSSProperties['padding']
+  align?: 'items-center' | 'items-start' | 'items-end'
+  justify?: 'justify-center' | 'justify-start' | 'justify-end'
+  showOrderBy?: boolean
+  dataIndex?: string
+  [key: string]: any
+}
+
 export type {
   User,
   ProjectMetaInfo,
@@ -286,4 +304,5 @@ export type {
   FormFieldsLimitOptionsType,
   ImageCropperConfig,
   AuditLogsQuery,
+  NcTableColumnProps,
 }

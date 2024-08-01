@@ -187,6 +187,7 @@ const columns = [
             }
           }
         "
+        :bordered="false"
         v-model:order-by="orderBy"
         class="flex-1 nc-collaborators-list"
       >
@@ -227,7 +228,7 @@ const columns = [
               </NcTooltip>
             </div>
           </div>
-          <div v-if="column.key === 'role'" class="w-full">
+          <div v-if="column.key === 'role'">
             <template v-if="accessibleRoles.includes(record.roles as WorkspaceUserRoles)">
               <RolesSelector
                 :description="false"

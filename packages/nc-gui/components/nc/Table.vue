@@ -347,10 +347,10 @@ useEventListener(tableWrapper, 'scroll', () => {
       @apply flex border-b-1 border-gray-200 w-full max-w-full;
 
       &.selected td {
-        @apply !bg-gray-50;
+        @apply !bg-[#F0F3FF];
       }
 
-      &:hover td {
+      &:not(.selected):hover td {
         @apply !bg-gray-50;
       }
 

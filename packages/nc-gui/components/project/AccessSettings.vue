@@ -230,8 +230,8 @@ const columns = [
   {
     key: 'role',
     title: t('general.role'),
-    basis: '25%',
-    minWidth: 252,
+    basis: '30%',
+    minWidth: 272,
     dataIndex: 'roles',
     showOrderBy: true,
   },
@@ -345,7 +345,7 @@ const columns = [
               </NcTooltip>
             </div>
           </div>
-          <div v-if="column.key === 'role'" class="w-full">
+          <div v-if="column.key === 'role'">
             <template v-if="accessibleRoles.includes(record.roles)">
               <RolesSelector
                 :role="record.roles"

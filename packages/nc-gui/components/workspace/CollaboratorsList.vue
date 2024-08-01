@@ -177,6 +177,7 @@ const columns = [
     </div>
     <div class="flex h-[calc(100%-4rem)]">
       <NcTable
+        v-model:order-by="orderBy"
         :columns="columns"
         :data="sortedCollaborators"
         :is-data-loading="isCollaboratorsLoading"
@@ -188,7 +189,6 @@ const columns = [
           }
         "
         :bordered="false"
-        v-model:order-by="orderBy"
         class="flex-1 nc-collaborators-list"
       >
         <template #emptyText>

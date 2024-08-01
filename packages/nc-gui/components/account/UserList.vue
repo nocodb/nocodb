@@ -17,13 +17,7 @@ const { user: loggedInUser } = useGlobal()
 
 const { copy } = useCopy()
 
-const {
-  sorts,
-  sortDirection,
-  loadSorts,
-  handleGetSortedData,
-  saveOrUpdate: saveOrUpdateUserSort,
-} = useUserSorts('Org')
+const { sorts, sortDirection, loadSorts, handleGetSortedData, saveOrUpdate: saveOrUpdateUserSort } = useUserSorts('Org')
 
 const users = ref<UserType[]>([])
 
@@ -236,10 +230,10 @@ const columns = [
         </div>
       </div>
       <NcTable
+        v-model:order-by="orderBy"
         :columns="columns"
         :data="sortedUsers"
         :is-data-loading="isLoading"
-        v-model:order-by="orderBy"
         class="h-[calc(100%-140px)] max-w-250 mt-4"
       >
         <template #bodyCell="{ column, record: el }">
@@ -360,7 +354,10 @@ const columns = [
           </div>
         </template>
         <template #extraRow>
-          <div v-if="pagination.total === 1 && sortedUsers.length === 1" class="w-full pt-12 pb-4 px-2 flex flex-col items-center gap-6 text-center">
+          <div
+            v-if="pagination.total === 1 && sortedUsers.length === 1"
+            class="w-full pt-12 pb-4 px-2 flex flex-col items-center gap-6 text-center"
+          >
             <div class="text-2xl text-gray-800 font-bold">
               {{ $t('placeholder.inviteYourTeam') }}
             </div>

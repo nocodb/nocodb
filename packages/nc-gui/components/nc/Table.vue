@@ -54,6 +54,10 @@ const orderBy = useVModel(props, 'orderBy', emit)
 
 const { columns, data, isDataLoading, customHeaderRow, customRow } = toRefs(props)
 
+const headerRowClassName = computed(() => `nc-table-header-row ${props.headerRowClassName}`)
+
+const bodyRowClassName = computed(() => `nc-table-row ${props.headerRowClassName}`)
+
 const slots = useSlots()
 
 const headerCellWidth = ref<(number | undefined)[]>([])
@@ -146,7 +150,7 @@ useEventListener(tableWrapper, 'scroll', () => {
             :style="{
               height: headerRowHeight,
             }"
-            :class="[`nc-table-header-row`, `${headerRowClassName}`]"
+            :class="[`${headerRowClassName}`]"
             v-bind="customHeaderRow ? customHeaderRow(columns) : {}"
           >
             <th
@@ -217,7 +221,7 @@ useEventListener(tableWrapper, 'scroll', () => {
               :style="{
                 height: rowHeight,
               }"
-              :class="[`nc-table-row`, `${bodyRowClassName}`, `nc-table-row-${recordIndex}`]"
+              :class="[`${bodyRowClassName}`, `nc-table-row-${recordIndex}`]"
               v-bind="customRow ? customRow(record, recordIndex) : {}"
             >
               <td

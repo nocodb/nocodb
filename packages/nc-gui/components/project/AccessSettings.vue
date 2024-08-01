@@ -56,7 +56,6 @@ const totalCollaborators = ref(0)
 const userSearchText = ref('')
 
 const isLoading = ref(false)
-const isSearching = ref(false)
 const accessibleRoles = ref<(typeof ProjectRoles)[keyof typeof ProjectRoles][]>([])
 
 const filteredCollaborators = computed(() =>
@@ -293,6 +292,7 @@ const columns = [
     </div>
 
     <NcTable
+      v-model:order-by="orderBy"
       :is-data-loading="isLoading"
       :columns="columns"
       :data="sortedCollaborators"
@@ -304,7 +304,6 @@ const columns = [
           }
         }
       "
-      v-model:order-by="orderBy"
       class="flex-1 nc-collaborators-list max-w-350"
     >
       <template #emptyText>

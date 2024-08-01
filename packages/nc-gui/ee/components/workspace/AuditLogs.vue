@@ -349,7 +349,7 @@ onKeyStroke('ArrowDown', onDown)
 </script>
 
 <template>
-  <div class="h-full flex flex-col" :class="{ 'gap-6 py-6': !baseId, 'gap-4': baseId }">
+  <div class="h-full flex flex-col px-1" :class="{ 'gap-6 py-6': !baseId, 'gap-4': baseId }">
     <div v-if="!appInfo.auditEnabled" class="text-red-500">Audit logs are currently disabled by administrators.</div>
 
     <div class="flex flex-col" :class="{ 'gap-6': !baseId, 'gap-4': baseId }">
@@ -360,7 +360,7 @@ onKeyStroke('ArrowDown', onDown)
         </h6>
       </div>
 
-      <div v-if="appInfo.auditEnabled" class="px-1 flex items-center gap-3 justify-between flex-wrap">
+      <div v-if="appInfo.auditEnabled" class="flex items-center gap-3 justify-between flex-wrap">
         <div class="flex items-center gap-3">
           <NcDropdown
             v-if="auditCollaborators?.length"

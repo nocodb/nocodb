@@ -12,6 +12,8 @@ const { isUIAllowed } = useRoles()
 
 const { $e } = useNuxtApp()
 
+const { t } = useI18n()
+
 const isImportModalOpen = ref(false)
 
 const defaultBase = computed(() => {
@@ -65,6 +67,38 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
     close(1000)
   }
 }
+
+const columns = [
+  {
+    key: 'tableName',
+    title: t('objects.table'),
+    name: 'Table Name',
+    basis: '40%',
+    minWidth: 220,
+    padding: '0px 12px',
+  },
+  {
+    key: 'sourceName',
+    title: t('general.source'),
+    name: 'View Name',
+    basis: '25%',
+    minWidth: 220,
+    padding: '0px 12px',
+  },
+  {
+    key: 'created_at',
+    title: t('labels.createdOn'),
+    name: 'editor',
+    minWidth: 120,
+    padding: '0px 12px',
+  },
+] as NcTableColumnProps[]
+
+const customRow = (record: Record<string, any>) => ({
+  onclick: () => {
+    openTable(record as TableType)
+  },
+})
 </script>
 
 <template>
@@ -121,7 +155,7 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
       v-if="base?.isLoading"
       class="flex items-center justify-center text-center"
       :style="{
-        height: 'calc(100vh - var(--topbar-height) - 18rem)',
+        height: 'calc(100vh - var(--topbar-height) - 15.2rem)',
       }"
     >
       <div>
@@ -131,46 +165,68 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
         </div>
       </div>
     </div>
-    <template v-else-if="activeTables.length">
-      <div class="flex flex-row w-full text-gray-400 border-b-1 border-gray-50 py-3 px-2.5">
-        <div class="w-2/5">{{ $t('objects.table') }}</div>
-        <div class="w-1/5">{{ $t('general.source') }}</div>
-        <div class="w-1/5">{{ $t('labels.createdOn') }}</div>
-      </div>
-      <div
-        class="nc-base-view-all-table-list nc-scrollbar-md"
-        :style="{
-          height: 'calc(100vh - var(--topbar-height) - 18rem)',
-        }"
-      >
-        <div
-          v-for="table in [...activeTables].sort(
+
+    <div
+      v-else-if="activeTables.length"
+      class="flex mt-2"
+      :style="{
+        height: 'calc(100vh - var(--topbar-height) - 15.2rem)',
+      }"
+    >
+      <NcTable
+        :is-data-loading="base?.isLoading"
+        :columns="columns"
+        sticky-first-column
+        :data="[...activeTables].sort(
           (a, b) => a.source_id!.localeCompare(b.source_id!) * 20
         )"
-          :key="table.id"
-          class="py-4 flex flex-row w-full cursor-pointer hover:bg-gray-100 border-b-1 border-gray-100 px-2.25"
-          data-testid="proj-view-list__item"
-          @click="openTable(table)"
-        >
-          <div class="flex flex-row w-2/5 items-center gap-x-2" data-testid="proj-view-list__item-title">
+        :custom-row="customRow"
+        :bordered="false"
+        class="nc-base-view-all-table-list flex-1"
+      >
+        <template #bodyCell="{ column, record }">
+          <div
+            v-if="column.key === 'tableName'"
+            class="w-full flex items-center gap-3 max-w-full text-gray-800 font-semibold"
+            data-testid="proj-view-list__item-title"
+          >
             <div class="min-w-5 flex items-center justify-center">
-              <GeneralTableIcon :meta="table" class="text-gray-500" />
+              <GeneralTableIcon :meta="record" class="flex-none text-gray-600" />
             </div>
-            {{ table?.title }}
+            <NcTooltip class="truncate max-w-[calc(100%_-_28px)]" show-on-truncate-only>
+              <template #title>
+                {{ record?.title }}
+              </template>
+              {{ record?.title }}
+            </NcTooltip>
           </div>
-          <div class="w-1/5 text-gray-600" data-testid="proj-view-list__item-type">
-            <div v-if="table.source_id === defaultBase?.id" class="ml-0.75">-</div>
-            <div v-else class="capitalize flex flex-row items-center gap-x-0.5">
-              <GeneralBaseLogo class="w-4 mr-1" />
-              {{ sources.get(table.source_id!)?.alias }}
-            </div>
+          <div
+            v-if="column.key === 'sourceName'"
+            class="capitalize w-full flex items-center gap-3 max-w-full"
+            data-testid="proj-view-list__item-type"
+          >
+            <div v-if="record.source_id === defaultBase?.id" class="ml-0.75">-</div>
+            <template v-else>
+              <GeneralBaseLogo class="flex-none w-4" />
+
+              <NcTooltip class="truncate max-w-[calc(100%_-_28px)]" show-on-truncate-only>
+                <template #title>
+                  {{ sources.get(record.source_id!)?.alias }}
+                </template>
+                {{ sources.get(record.source_id!)?.alias }}
+              </NcTooltip>
+            </template>
           </div>
-          <div class="w-1/5 text-gray-400 ml-0.25" data-testid="proj-view-list__item-created-at">
-            {{ dayjs(table?.created_at).fromNow() }}
+          <div
+            v-if="column.key === 'created_at'"
+            class="capitalize flex items-center gap-2 max-w-full"
+            data-testid="proj-view-list__item-created-at"
+          >
+            {{ dayjs(record?.created_at).fromNow() }}
           </div>
-        </div>
-      </div>
-    </template>
+        </template>
+      </NcTable>
+    </div>
     <div v-else class="py-3 flex items-center gap-6 <lg:flex-col">
       <img src="~assets/img/placeholder/table.png" class="!w-[23rem] flex-none" />
       <div class="text-center lg:text-left">

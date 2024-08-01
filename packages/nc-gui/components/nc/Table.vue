@@ -160,7 +160,7 @@ useEventListener(tableWrapper, 'scroll', () => {
               :style="{
                 width: col.width,
                 flexBasis: !col.width ? col.basis : undefined,
-                maxWidth: col.basis ? col.basis : col.width,
+                maxWidth: col.width ? col.width : undefined,
               }"
               :data-test-id="`nc-table-header-cell-${col.name}`"
               @click="col.showOrderBy && col.key === 'name' && col?.dataIndex ? updateOrderBy(col.dataIndex) : undefined"
@@ -228,7 +228,7 @@ useEventListener(tableWrapper, 'scroll', () => {
                 :style="{
                   width: col.width,
                   flexBasis: !col.width ? col.basis : undefined,
-                  maxWidth: col.basis ? col.basis : col.width,
+                  maxWidth: col.width ? col.width : undefined,
                 }"
                 :data-test-id="`nc-table-body-cell-${col.name}`"
               >

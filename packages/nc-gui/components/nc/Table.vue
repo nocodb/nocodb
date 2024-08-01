@@ -8,7 +8,7 @@ interface Props {
   data: Record<string, any>[]
   headerRowHeight?: CSSProperties['height']
   rowHeight?: CSSProperties['height']
-  orderBy?: Record<string, OrderBy>
+  orderBy?: Record<string, SordDirectionType>
   multiFieldOrderBy?: boolean
   bordered?: boolean
   isDataLoading?: boolean
@@ -27,7 +27,7 @@ const props = withDefaults(defineProps<Props>(), {
   data: () => [] as Record<string, any>[],
   headerRowHeight: '54px',
   rowHeight: '54px',
-  orderBy: () => ({} as Record<string, OrderBy>),
+  orderBy: () => ({} as Record<string, SordDirectionType>),
   multiFieldOrderBy: false,
   bordered: true,
   isDataLoading: false,
@@ -50,7 +50,7 @@ const { height: tableHeadHeight, width: tableHeadWidth } = useElementBounding(ta
 
 const orderBy = useVModel(props, 'orderBy', emit)
 
-const { columns, data, isDataLoading } = toRefs(props)
+const { columns, data, isDataLoading, customHeaderRow, customRow } = toRefs(props)
 
 const slots = useSlots()
 
@@ -62,9 +62,9 @@ const updateOrderBy = (field: string) => {
   const orderCycle = { undefined: 'asc', asc: 'desc', desc: undefined }
 
   if (props.multiFieldOrderBy) {
-    orderBy.value[field] = orderCycle[`${orderBy.value[field]}`] as OrderBy
+    orderBy.value[field] = orderCycle[`${orderBy.value[field]}`] as SordDirectionType
   } else {
-    orderBy.value = { [field]: orderCycle[`${orderBy.value[field]}`] as OrderBy }
+    orderBy.value = { [field]: orderCycle[`${orderBy.value[field]}`] as SordDirectionType }
   }
 }
 
@@ -153,7 +153,7 @@ useEventListener(tableWrapper, 'scroll', () => {
                 {
                   '!hover:bg-gray-100 select-none cursor-pointer': col.showOrderBy,
                   'cursor-not-allowed': col.showOrderBy && !data?.length,
-                  '!text-gray-700': col.showOrderBy && col.key === 'name' && col?.dataIndex && orderBy[col.dataIndex],
+                  '!text-gray-700': col.showOrderBy && col?.dataIndex && orderBy[col.dataIndex],
                   'flex-1': !col.width && !col.basis,
                 },
               ]"
@@ -162,8 +162,8 @@ useEventListener(tableWrapper, 'scroll', () => {
                 flexBasis: !col.width ? col.basis : undefined,
                 maxWidth: col.width ? col.width : undefined,
               }"
-              :data-test-id="`nc-table-header-cell-${col.name}`"
-              @click="col.showOrderBy && col.key === 'name' && col?.dataIndex ? updateOrderBy(col.dataIndex) : undefined"
+              :data-test-id="`nc-table-header-cell-${col.name || col.key}`"
+              @click="col.showOrderBy && col?.dataIndex ? updateOrderBy(col.dataIndex) : undefined"
             >
               <div
                 class="gap-3"
@@ -180,7 +180,7 @@ useEventListener(tableWrapper, 'scroll', () => {
                   <div>{{ col.title || col.name || '' }}</div>
                 </template>
 
-                <template v-if="col.key === 'name' && col.showOrderBy && col?.dataIndex">
+                <template v-if="col.showOrderBy && col?.dataIndex">
                   <GeneralIcon
                     v-if="orderBy[col.dataIndex]"
                     icon="chevronDown"
@@ -230,7 +230,7 @@ useEventListener(tableWrapper, 'scroll', () => {
                   flexBasis: !col.width ? col.basis : undefined,
                   maxWidth: col.width ? col.width : undefined,
                 }"
-                :data-test-id="`nc-table-body-cell-${col.name}`"
+                :data-test-id="`nc-table-body-cell-${col.name || col.key}`"
               >
                 <div
                   :class="[`${col.align || 'items-center'} ${col.justify || ''}`]"
@@ -271,7 +271,10 @@ useEventListener(tableWrapper, 'scroll', () => {
       }"
     >
       <div class="flex-none text-center flex flex-col items-center gap-3">
-        <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" class="!my-0" />
+        <template v-if="slots.emptyText">
+          <slot name="emptyText"/>
+        </template>
+        <a-empty v-else :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" class="!my-0" />
       </div>
     </div>
     <!-- Not scrollable footer  -->
@@ -344,6 +347,10 @@ useEventListener(tableWrapper, 'scroll', () => {
     }
     tr {
       @apply flex border-b-1 border-gray-200 w-full max-w-full;
+
+      &.selected td {
+        @apply !bg-gray-50;
+      }
 
       &:hover td {
         @apply !bg-gray-50;

@@ -277,6 +277,9 @@ interface NcTableColumnProps {
   [key: string]: any
 }
 
+type SordDirectionType = 'asc' | 'desc' | undefined
+
+
 export type {
   User,
   ProjectMetaInfo,
@@ -309,4 +312,5 @@ export type {
   ImageCropperConfig,
   AuditLogsQuery,
   NcTableColumnProps,
+  SordDirectionType
 }

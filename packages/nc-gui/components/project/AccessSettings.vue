@@ -12,7 +12,13 @@ const { activeProjectId, bases, basesUser } = storeToRefs(basesStore)
 
 const { orgRoles, baseRoles, loadRoles } = useRoles()
 
-const { sorts, loadSorts, handleGetSortedData, toggleSort } = useUserSorts('Project')
+const {
+  sorts,
+  sortDirection,
+  loadSorts,
+  handleGetSortedData,
+  saveOrUpdate: saveOrUpdateUserSort,
+} = useUserSorts('Project')
 
 const isSuper = computed(() => orgRoles.value?.[OrgUserRoles.SUPER_ADMIN])
 
@@ -22,6 +28,8 @@ const { orgId } = storeToRefs(orgStore)
 const isAdminPanel = inject(IsAdminPanelInj, ref(false))
 
 const { $api } = useNuxtApp()
+
+const { t } = useI18n()
 
 const currentBase = computedAsync(async () => {
   let base
@@ -196,6 +204,50 @@ watch(isInviteModalVisible, () => {
 watch(currentBase, () => {
   loadCollaborators()
 })
+
+const orderBy = computed<Record<string, SordDirectionType>>({
+  get: () => {
+    return sortDirection.value
+  },
+  set: (value: Record<string, SordDirectionType>) => {
+    const [field, direction] = Object.entries(value)[0]
+
+    saveOrUpdateUserSort({
+      field,
+      direction,
+    })
+  },
+})
+
+const columns = [
+  {
+    key: 'action',
+    title: '',
+    width: 70,
+    minWidth: 70,
+  },
+  {
+    key: 'email',
+    title: t('objects.users'),
+    minWidth: 220,
+    dataIndex: 'email',
+    showOrderBy: true,
+  },
+  {
+    key: 'role',
+    title: t('general.role'),
+    basis: '25%',
+    minWidth: 252,
+    dataIndex: 'roles',
+    showOrderBy: true,
+  },
+  {
+    key: 'created_at',
+    title: t('title.dateJoined'),
+    basis: '25%',
+    minWidth: 200,
+  },
+] as NcTableColumnProps[]
 </script>
 
 <template>
@@ -243,96 +295,100 @@ watch(currentBase, () => {
         </NcButton>
       </div>
 
-      <div v-if="isSearching" class="nc-collaborators-list items-center justify-center">
+      <!-- <div v-if="isSearching" class="nc-collaborators-list items-center justify-center">
         <GeneralLoader size="xlarge" />
-      </div>
+      </div> -->
 
-      <div
+      <!-- <div
         v-else-if="!filteredCollaborators?.length"
         class="nc-collaborators-list w-full h-full flex flex-col items-center justify-center"
       >
         <a-empty :description="$t('title.noMembersFound')" />
-      </div>
-      <div v-else class="nc-collaborators-list mt-6 h-full">
-        <div class="flex flex-col overflow-hidden max-w-350 max-h-[calc(100%-8rem)]">
-          <div class="flex flex-row bg-gray-50 min-h-12 items-center border-b-1">
-            <div class="py-3 px-6"><NcCheckbox v-model:checked="selectAll" /></div>
+      </div> -->
 
-            <LazyAccountHeaderWithSorter
-              class="users-email-grid"
-              :header="$t('objects.users')"
-              :active-sort="sorts"
-              field="email"
-              :toggle-sort="toggleSort"
-            />
+      <div class="flex h-full max-w-350">
+        <NcTable
+          :is-data-loading="isSearching"
+          :columns="columns"
+          :data="sortedCollaborators"
+          :bordered="false"
+          :custom-row="
+            (record) => {
+              return {
+                class: `${selected[record.id] ? 'selected' : ''}`,
+              }
+            }
+          "
+          v-model:order-by="orderBy"
+          class="flex-1 nc-collaborators-list"
+        >
+          <template #emptyText>
+            <a-empty :description="$t('title.noMembersFound')" />
+          </template>
 
-            <LazyAccountHeaderWithSorter
-              class="user-access-grid"
-              :header="$t('general.role')"
-              :active-sort="sorts"
-              field="roles"
-              :toggle-sort="toggleSort"
-            />
+          <template #headerCell="{ column }">
+            <template v-if="column.key === 'action'">
+              <NcCheckbox v-model:checked="selectAll" />
+            </template>
+            <template v-else>
+              {{ column.title }}
+            </template>
+          </template>
 
-            <div class="text-gray-700 date-joined-grid">{{ $t('title.dateJoined') }}</div>
-          </div>
+          <template #bodyCell="{ column, record }">
+            <template v-if="column.key === 'action'">
+              <NcCheckbox v-model:checked="selected[record.id]" />
+            </template>
 
-          <div class="flex flex-col nc-scrollbar-md">
-            <div
-              v-for="(collab, i) of sortedCollaborators"
-              :key="i"
-              :class="{
-                'bg-[#F0F3FF]': selected[collab.id],
-              }"
-              class="user-row flex hover:bg-[#F0F3FF] flex-row border-b-1 py-1 min-h-14 items-center"
-            >
-              <div class="py-3 px-6">
-                <NcCheckbox v-model:checked="selected[collab.id]" />
-              </div>
-              <div class="flex gap-3 items-center users-email-grid">
-                <GeneralUserIcon size="base" :email="collab.email" />
-                <div class="flex flex-col">
-                  <div class="flex gap-3">
-                    <span class="text-gray-800 capitalize font-semibold">
-                      {{ collab.display_name || collab.email.slice(0, collab.email.indexOf('@')) }}
-                    </span>
-                  </div>
-                  <span class="text-xs text-gray-600">
-                    {{ collab.email }}
-                  </span>
+            <div v-if="column.key === 'email'" class="w-full flex gap-3 items-center">
+              <GeneralUserIcon size="base" :email="record.email" class="flex-none" />
+              <div class="flex flex-col flex-1 max-w-[calc(100%_-_44px)]">
+                <div class="flex gap-3">
+                  <NcTooltip class="truncate max-w-full text-gray-800 capitalize font-semibold" show-on-truncate-only>
+                    <template #title>
+                      {{ record.display_name || record.email.slice(0, record.email.indexOf('@')) }}
+                    </template>
+                    {{ record.display_name || record.email.slice(0, record.email.indexOf('@')) }}
+                  </NcTooltip>
                 </div>
-              </div>
-              <div class="user-access-grid">
-                <template v-if="accessibleRoles.includes(collab.roles)">
-                  <RolesSelector
-                    :role="collab.roles"
-                    :roles="accessibleRoles"
-                    :inherit="
-                      isEeUI && collab.workspace_roles && WorkspaceRolesToProjectRoles[collab.workspace_roles]
-                        ? WorkspaceRolesToProjectRoles[collab.workspace_roles]
-                        : null
-                    "
-                    :description="false"
-                    :on-role-change="(role) => updateCollaborator(collab, role as ProjectRoles)"
-                  />
-                </template>
-                <template v-else>
-                  <RolesBadge :border="false" :role="collab.roles" />
-                </template>
-              </div>
-              <div class="date-joined-grid">
-                <NcTooltip class="max-w-full">
+                <NcTooltip class="truncate max-w-full text-xs text-gray-600" show-on-truncate-only>
                   <template #title>
-                    {{ parseStringDateTime(collab.created_at) }}
+                    {{ record.email }}
                   </template>
-                  <span>
-                    {{ timeAgo(collab.created_at) }}
-                  </span>
+                  {{ record.email }}
                 </NcTooltip>
               </div>
             </div>
-          </div>
-        </div>
+            <div v-if="column.key === 'role'" class="w-full">
+              <template v-if="accessibleRoles.includes(record.roles)">
+                <RolesSelector
+                  :role="record.roles"
+                  :roles="accessibleRoles"
+                  :inherit="
+                    isEeUI && record.workspace_roles && WorkspaceRolesToProjectRoles[record.workspace_roles]
+                      ? WorkspaceRolesToProjectRoles[record.workspace_roles]
+                      : null
+                  "
+                  :description="false"
+                  :on-role-change="(role) => updateCollaborator(record, role as ProjectRoles)"
+                />
+              </template>
+              <template v-else>
+                <RolesBadge :border="false" :role="record.roles" />
+              </template>
+            </div>
+            <div v-if="column.key === 'created_at'">
+              <NcTooltip class="max-w-full">
+                <template #title>
+                  {{ parseStringDateTime(record.created_at) }}
+                </template>
+                <span>
+                  {{ timeAgo(record.created_at) }}
+                </span>
+              </NcTooltip>
+            </div>
+          </template>
+        </NcTable>
       </div>
     </template>
   </div>

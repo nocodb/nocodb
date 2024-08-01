@@ -190,11 +190,11 @@ const columns = [
         <template #bodyCell="{ column, record }">
           <div
             v-if="column.key === 'tableName'"
-            class="w-full flex items-center gap-2 max-w-full"
+            class="w-full flex items-center gap-3 max-w-full text-gray-800 font-semibold"
             data-testid="proj-view-list__item-title"
           >
-            <div class="min-w-5 flex items-center justify-center mr-2">
-              <GeneralTableIcon :meta="record" class="flex-none text-gray-500" />
+            <div class="min-w-5 flex items-center justify-center">
+              <GeneralTableIcon :meta="record" class="flex-none text-gray-600" />
             </div>
             <NcTooltip class="truncate max-w-[calc(100%_-_28px)]" show-on-truncate-only>
               <template #title>
@@ -205,7 +205,7 @@ const columns = [
           </div>
           <div
             v-if="column.key === 'sourceName'"
-            class="capitalize w-full flex items-center gap-2 max-w-full"
+            class="capitalize w-full flex items-center gap-3 max-w-full"
             data-testid="proj-view-list__item-type"
           >
             <div v-if="record.source_id === defaultBase?.id" class="ml-0.75">-</div>

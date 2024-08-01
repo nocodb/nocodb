@@ -155,7 +155,7 @@ const columns = [
 </script>
 
 <template>
-  <div class="nc-collaborator-table-container py-6 h-[calc(100vh-10rem)] max-w-350 px-1 flex flex-col gap-6">
+  <div class="nc-collaborator-table-container py-6 h-[calc(100vh-92px)] max-w-350 px-1 flex flex-col gap-6">
     <div class="w-full flex items-center justify-between gap-3">
       <a-input
         v-model:value="userSearchText"

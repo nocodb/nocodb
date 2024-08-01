@@ -76,7 +76,8 @@ export class AccountUsersPage extends BasePage {
     // ensure page is loaded
     email = this.prefixEmail(email);
 
-    await this.get().waitFor();
+    await this.get().locator('.nc-table-row').waitFor({ state: 'visible' });
+
     return this.get().locator(`.nc-table-row:has-text("${email}")`);
   }
 

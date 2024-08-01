@@ -247,6 +247,10 @@ const columns = [
     minWidth: 200,
   },
 ] as NcTableColumnProps[]
+
+const customRow = (record: Record<string, any>) => ({
+  class: `${selected[record.id] ? 'selected' : ''} user-row`,
+})
 </script>
 
 <template>
@@ -303,13 +307,7 @@ const columns = [
       :columns="columns"
       :data="sortedCollaborators"
       :bordered="false"
-      :custom-row="
-        (record) => {
-          return {
-            class: `${selected[record.id] ? 'selected' : ''} user-row`,
-          }
-        }
-      "
+      :custom-row="customRow"
       class="flex-1 nc-collaborators-list max-w-350"
     >
       <template #emptyText>

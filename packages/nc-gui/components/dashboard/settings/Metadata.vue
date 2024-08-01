@@ -105,6 +105,10 @@ const columns = [
     padding: '0px 12px',
   },
 ]
+
+const customRow = (record: Record<string, any>) => ({
+  class: `nc-metasync-row nc-metasync-row-${record.table_name}`,
+})
 </script>
 
 <template>
@@ -146,11 +150,7 @@ const columns = [
         row-height="44px"
         header-row-height="44px"
         :is-data-loading="isLoading"
-        :custom-row="
-          (record) => ({
-            class: `nc-metasync-row nc-metasync-row-${record.table_name}`,
-          })
-        "
+        :custom-row="customRow"
         class="nc-metasync-table h-[calc(100%_-_72px)] w-full"
       >
         <template #bodyCell="{ column, record }">

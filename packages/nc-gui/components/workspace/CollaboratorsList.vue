@@ -158,6 +158,10 @@ const columns = [
     justify: 'justify-end',
   },
 ] as NcTableColumnProps[]
+
+const customRow = (_record: Record<string, any>, recordIndex: number) => ({
+  class: `${selected[recordIndex] ? 'selected' : ''} last:!border-b-0`,
+})
 </script>
 
 <template>
@@ -187,13 +191,7 @@ const columns = [
         :columns="columns"
         :data="sortedCollaborators"
         :is-data-loading="isCollaboratorsLoading"
-        :custom-row="
-          (_record, recordIndex) => {
-            return {
-              class: `${selected[recordIndex] ? 'selected' : ''} last:!border-b-0`,
-            }
-          }
-        "
+        :custom-row="customRow"
         :bordered="false"
         class="flex-1 nc-collaborators-list"
       >

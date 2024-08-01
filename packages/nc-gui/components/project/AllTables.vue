@@ -93,6 +93,12 @@ const columns = [
     padding: '0px 12px',
   },
 ] as NcTableColumnProps[]
+
+const customRow = (record: Record<string, any>) => ({
+  onclick: () => {
+    openTable(record as TableType)
+  },
+})
 </script>
 
 <template>
@@ -174,13 +180,7 @@ const columns = [
         :data="[...activeTables].sort(
           (a, b) => a.source_id!.localeCompare(b.source_id!) * 20
         )"
-        :custom-row="
-          (record) => ({
-            onclick: ()=>{
-              openTable(record as TableType)
-            }
-          })
-        "
+        :custom-row="customRow"
         :bordered="false"
         class="nc-base-view-all-table-list flex-1"
       >

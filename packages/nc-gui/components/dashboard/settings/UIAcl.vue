@@ -190,6 +190,7 @@ const columns = [
             <div class="flex flex-row gap-x-2">
               <NcCheckbox
                 v-model:checked="allSelected[column.name as Role]"
+                :disabled="!filteredTables.length"
                 class="!m-0 !top-0"
                 @change="toggleSelectAll(column.name as Role)"
               />

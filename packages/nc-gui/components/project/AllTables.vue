@@ -76,7 +76,6 @@ const columns = [
     basis: '40%',
     minWidth: 220,
     padding: '0px 12px',
-    dataIndex: 'title',
   },
   {
     key: 'sourceName',
@@ -85,7 +84,6 @@ const columns = [
     basis: '25%',
     minWidth: 220,
     padding: '0px 12px',
-    dataIndex: 'title',
   },
   {
     key: 'created_at',
@@ -93,7 +91,6 @@ const columns = [
     name: 'editor',
     minWidth: 120,
     padding: '0px 12px',
-    dataIndex: 'created_at',
   },
 ] as NcTableColumnProps[]
 </script>

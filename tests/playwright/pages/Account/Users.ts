@@ -77,7 +77,7 @@ export class AccountUsersPage extends BasePage {
     email = this.prefixEmail(email);
 
     await this.get().waitFor();
-    return this.get().locator(`[data-testid="nc-token-list"]:has-text("${email}")`);
+    return this.get().locator(`.nc-table-row:has-text("${email}")`);
   }
 
   async updateRole({ email, role }: { email: string; role: string }) {

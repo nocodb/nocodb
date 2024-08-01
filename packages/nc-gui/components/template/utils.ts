@@ -24,7 +24,7 @@ export const tableColumns: NcTableColumnProps[] = [
     name: 'Action',
     key: 'action',
     width: 60,
-    minWidth: 58,
+    minWidth: 60,
     padding: '0px 12px',
   },
 ]
@@ -49,7 +49,7 @@ export const srcDestMappingColumns: NcTableColumnProps[] = [
     key: 'action',
     justify: 'justify-center',
     width: 60,
-    minWidth: 58,
+    minWidth: 60,
     padding: '0px 12px',
   },
 ]

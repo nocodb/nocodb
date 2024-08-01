@@ -117,7 +117,7 @@ useEventListener(tableWrapper, 'scroll', () => {
   <div
     class="nc-table-container relative"
     :class="{
-      bordered: bordered,
+      bordered,
     }"
   >
     <div
@@ -167,6 +167,7 @@ useEventListener(tableWrapper, 'scroll', () => {
             >
               <div
                 class="gap-3"
+                :class="[`${col.justify || ''}`]"
                 :style="{
                   padding: col.padding || '0px 24px',
                   minWidth: `calc(${col.minWidth}px - 2px)`,

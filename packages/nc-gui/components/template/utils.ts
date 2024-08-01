@@ -1,5 +1,3 @@
-import type { ColumnGroupType } from 'ant-design-vue/es/table'
-
 export const tableColumns: NcTableColumnProps[] = [
   {
     title: 'Column Name',

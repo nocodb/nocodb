@@ -843,7 +843,7 @@ watch(modelRef, async () => {
                     <a-select-option v-for="(col, i) of columns" :key="i" :value="col.title">
                       <div class="flex items-center gap-2 w-full">
                         <component :is="getUIDTIcon(col.uidt)" class="flex-none w-3.5 h-3.5" />
-                        <NcTooltip class="truncate flex-1">
+                        <NcTooltip class="truncate flex-1" show-on-truncate-only>
                           <template #title>
                             {{ col.title }}
                           </template>

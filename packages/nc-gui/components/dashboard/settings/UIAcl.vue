@@ -15,7 +15,7 @@ const { base: activeBase } = storeToRefs(useBase())
 
 const _projectId = inject(ProjectIdInj, ref())
 
-const baseId = computed(() => _projectId.value ?? activeBase.value?.id!)
+const baseId = computed(() => _projectId.value ?? (activeBase.value?.id as string))
 
 const { bases } = storeToRefs(useBases())
 

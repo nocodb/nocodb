@@ -250,7 +250,7 @@ const columns = [
       'px-6': isAdminPanel,
       'px-1': !isAdminPanel,
     }"
-    class="nc-collaborator-table-container py-6 nc-access-settings-view h-[calc(100vh-8rem)] flex flex-col gap-6"
+    class="nc-collaborator-table-container pt-6 nc-access-settings-view h-[calc(100vh-8rem)] flex flex-col gap-6"
   >
     <div v-if="isAdminPanel" class="font-bold w-full text-2xl" data-rec="true">
       <div class="flex items-center gap-3">
@@ -292,90 +292,88 @@ const columns = [
       </NcButton>
     </div>
 
-    <div class="flex h-full max-w-350">
-      <NcTable
-        :is-data-loading="isLoading"
-        :columns="columns"
-        :data="sortedCollaborators"
-        :bordered="false"
-        :custom-row="
-          (record) => {
-            return {
-              class: `${selected[record.id] ? 'selected' : ''}`,
-            }
+    <NcTable
+      :is-data-loading="isLoading"
+      :columns="columns"
+      :data="sortedCollaborators"
+      :bordered="false"
+      :custom-row="
+        (record) => {
+          return {
+            class: `${selected[record.id] ? 'selected' : ''}`,
           }
-        "
-        v-model:order-by="orderBy"
-        class="flex-1 nc-collaborators-list"
-      >
-        <template #emptyText>
-          <a-empty :description="$t('title.noMembersFound')" />
+        }
+      "
+      v-model:order-by="orderBy"
+      class="flex-1 nc-collaborators-list max-w-350"
+    >
+      <template #emptyText>
+        <a-empty :description="$t('title.noMembersFound')" />
+      </template>
+
+      <template #headerCell="{ column }">
+        <template v-if="column.key === 'select'">
+          <NcCheckbox v-model:checked="selectAll" :disabled="!sortedCollaborators.length" />
+        </template>
+        <template v-else>
+          {{ column.title }}
+        </template>
+      </template>
+
+      <template #bodyCell="{ column, record }">
+        <template v-if="column.key === 'select'">
+          <NcCheckbox v-model:checked="selected[record.id]" />
         </template>
 
-        <template #headerCell="{ column }">
-          <template v-if="column.key === 'select'">
-            <NcCheckbox v-model:checked="selectAll" :disabled="!sortedCollaborators.length" />
-          </template>
-          <template v-else>
-            {{ column.title }}
-          </template>
-        </template>
-
-        <template #bodyCell="{ column, record }">
-          <template v-if="column.key === 'select'">
-            <NcCheckbox v-model:checked="selected[record.id]" />
-          </template>
-
-          <div v-if="column.key === 'email'" class="w-full flex gap-3 items-center">
-            <GeneralUserIcon size="base" :email="record.email" class="flex-none" />
-            <div class="flex flex-col flex-1 max-w-[calc(100%_-_44px)]">
-              <div class="flex gap-3">
-                <NcTooltip class="truncate max-w-full text-gray-800 capitalize font-semibold" show-on-truncate-only>
-                  <template #title>
-                    {{ record.display_name || record.email.slice(0, record.email.indexOf('@')) }}
-                  </template>
-                  {{ record.display_name || record.email.slice(0, record.email.indexOf('@')) }}
-                </NcTooltip>
-              </div>
-              <NcTooltip class="truncate max-w-full text-xs text-gray-600" show-on-truncate-only>
+        <div v-if="column.key === 'email'" class="w-full flex gap-3 items-center">
+          <GeneralUserIcon size="base" :email="record.email" class="flex-none" />
+          <div class="flex flex-col flex-1 max-w-[calc(100%_-_44px)]">
+            <div class="flex gap-3">
+              <NcTooltip class="truncate max-w-full text-gray-800 capitalize font-semibold" show-on-truncate-only>
                 <template #title>
-                  {{ record.email }}
+                  {{ record.display_name || record.email.slice(0, record.email.indexOf('@')) }}
                 </template>
-                {{ record.email }}
+                {{ record.display_name || record.email.slice(0, record.email.indexOf('@')) }}
               </NcTooltip>
             </div>
-          </div>
-          <div v-if="column.key === 'role'">
-            <template v-if="accessibleRoles.includes(record.roles)">
-              <RolesSelector
-                :role="record.roles"
-                :roles="accessibleRoles"
-                :inherit="
-                  isEeUI && record.workspace_roles && WorkspaceRolesToProjectRoles[record.workspace_roles]
-                    ? WorkspaceRolesToProjectRoles[record.workspace_roles]
-                    : null
-                "
-                :description="false"
-                :on-role-change="(role) => updateCollaborator(record, role as ProjectRoles)"
-              />
-            </template>
-            <template v-else>
-              <RolesBadge :border="false" :role="record.roles" />
-            </template>
-          </div>
-          <div v-if="column.key === 'created_at'">
-            <NcTooltip class="max-w-full">
+            <NcTooltip class="truncate max-w-full text-xs text-gray-600" show-on-truncate-only>
               <template #title>
-                {{ parseStringDateTime(record.created_at) }}
+                {{ record.email }}
               </template>
-              <span>
-                {{ timeAgo(record.created_at) }}
-              </span>
+              {{ record.email }}
             </NcTooltip>
           </div>
-        </template>
-      </NcTable>
-    </div>
+        </div>
+        <div v-if="column.key === 'role'">
+          <template v-if="accessibleRoles.includes(record.roles)">
+            <RolesSelector
+              :role="record.roles"
+              :roles="accessibleRoles"
+              :inherit="
+                isEeUI && record.workspace_roles && WorkspaceRolesToProjectRoles[record.workspace_roles]
+                  ? WorkspaceRolesToProjectRoles[record.workspace_roles]
+                  : null
+              "
+              :description="false"
+              :on-role-change="(role) => updateCollaborator(record, role as ProjectRoles)"
+            />
+          </template>
+          <template v-else>
+            <RolesBadge :border="false" :role="record.roles" />
+          </template>
+        </div>
+        <div v-if="column.key === 'created_at'">
+          <NcTooltip class="max-w-full">
+            <template #title>
+              {{ parseStringDateTime(record.created_at) }}
+            </template>
+            <span>
+              {{ timeAgo(record.created_at) }}
+            </span>
+          </NcTooltip>
+        </div>
+      </template>
+    </NcTable>
 
     <LazyDlgInviteDlg v-model:model-value="isInviteModalVisible" :base-id="currentBase?.id" type="base" />
   </div>
@@ -399,5 +397,4 @@ const columns = [
 :deep(.nc-collaborator-role-select .ant-select-selector) {
   @apply !rounded;
 }
-
 </style>

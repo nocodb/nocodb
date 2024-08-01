@@ -175,7 +175,7 @@ const columns = [
         </div>
       </NcButton>
     </div>
-    <div class="flex max-h-[calc(100%-4rem)]">
+    <div class="flex h-[calc(100%-4rem)]">
       <NcTable
         :columns="columns"
         :data="sortedCollaborators"

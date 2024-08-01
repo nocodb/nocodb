@@ -152,7 +152,7 @@ const columns = [
       v-if="base?.isLoading"
       class="flex items-center justify-center text-center"
       :style="{
-        height: 'calc(100vh - var(--topbar-height) - 18rem)',
+        height: 'calc(100vh - var(--topbar-height) - 15.2rem)',
       }"
     >
       <div>
@@ -167,7 +167,7 @@ const columns = [
       v-else-if="activeTables.length"
       class="flex mt-2"
       :style="{
-        height: 'calc(100vh - var(--topbar-height) - 18rem)',
+        height: 'calc(100vh - var(--topbar-height) - 15.2rem)',
       }"
     >
       <NcTable

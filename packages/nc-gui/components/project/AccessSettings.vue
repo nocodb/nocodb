@@ -300,7 +300,7 @@ const columns = [
       :custom-row="
         (record) => {
           return {
-            class: `${selected[record.id] ? 'selected' : ''}`,
+            class: `${selected[record.id] ? 'selected' : ''} user-row`,
           }
         }
       "
@@ -325,7 +325,7 @@ const columns = [
           <NcCheckbox v-model:checked="selected[record.id]" />
         </template>
 
-        <div v-if="column.key === 'email'" class="w-full flex gap-3 items-center">
+        <div v-if="column.key === 'email'" class="w-full flex gap-3 items-center users-email-grid">
           <GeneralUserIcon size="base" :email="record.email" class="flex-none" />
           <div class="flex flex-col flex-1 max-w-[calc(100%_-_44px)]">
             <div class="flex gap-3">

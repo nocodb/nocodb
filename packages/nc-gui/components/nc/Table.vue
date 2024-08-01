@@ -146,7 +146,7 @@ useEventListener(tableWrapper, 'scroll', () => {
             :style="{
               height: headerRowHeight,
             }"
-            :class="[`${headerRowClassName}`]"
+            :class="[`nc-table-header-row`, `${headerRowClassName}`]"
             v-bind="customHeaderRow ? customHeaderRow(columns) : {}"
           >
             <th
@@ -217,16 +217,16 @@ useEventListener(tableWrapper, 'scroll', () => {
               :style="{
                 height: rowHeight,
               }"
-              :class="[`${bodyRowClassName}`, `nc-table-row-${recordIndex}`]"
+              :class="[`nc-table-row`, `${bodyRowClassName}`, `nc-table-row-${recordIndex}`]"
               v-bind="customRow ? customRow(record, recordIndex) : {}"
             >
               <td
                 v-for="(col, colIndex) of columns"
                 :key="colIndex"
-                class="nc-table-body-cell"
+                class="nc-table-cell"
                 :class="[
                   `${bodyCellClassName}`,
-                  `nc-table-body-cell-${recordIndex}`,
+                  `nc-table-cell-${recordIndex}`,
                   {
                     'flex-1': !col.width && !col.basis,
                   },
@@ -236,7 +236,7 @@ useEventListener(tableWrapper, 'scroll', () => {
                   flexBasis: !col.width ? col.basis : undefined,
                   maxWidth: col.width ? col.width : undefined,
                 }"
-                :data-test-id="`nc-table-body-cell-${col.name || col.key}`"
+                :data-test-id="`nc-table-cell-${col.name || col.key}`"
               >
                 <div
                   :class="[`${col.align || 'items-center'} ${col.justify || ''}`]"
@@ -364,7 +364,7 @@ useEventListener(tableWrapper, 'scroll', () => {
     }
     tr {
       @apply flex w-full max-w-full;
-      
+
       &:not(.nc-table-extra-row) {
         @apply border-b-1 border-gray-200;
       }

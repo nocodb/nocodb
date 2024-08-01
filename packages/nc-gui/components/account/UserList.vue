@@ -372,7 +372,7 @@ const columns = [
         </template>
 
         <template #tableFooter>
-          <div v-if="pagination.total > 5" class="px-4 py-2 flex items-center justify-center">
+          <div v-if="pagination.total > 10" class="px-4 py-2 flex items-center justify-center">
             <a-pagination
               v-model:current="currentPage"
               :total="pagination.total"

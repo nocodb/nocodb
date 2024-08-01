@@ -94,7 +94,7 @@ const columns = [
     key: 'table_name',
     name: 'table_name',
     minWidth: 200,
-    padding: '0px 12px'
+    padding: '0px 12px',
   },
   {
     // Sync state
@@ -102,7 +102,7 @@ const columns = [
     dataIndex: 'syncState',
     key: 'syncState',
     minWidth: 200,
-     padding: '0px 12px'
+    padding: '0px 12px',
   },
 ]
 </script>
@@ -153,11 +153,6 @@ const columns = [
         "
         class="nc-metasync-table h-[calc(100%_-_72px)] w-full"
       >
-        <template #headerCell="{ column }">
-          <div class="text-gray-800">
-            {{ column.title }}
-          </div>
-        </template>
         <template #bodyCell="{ column, record }">
           <template v-if="column.key === 'table_name'">
             <div class="flex items-center gap-2 max-w-full">
@@ -178,6 +173,7 @@ const columns = [
                 <span
                   :class="{
                     'text-red-500': record?.syncState,
+                    'text-gray-500': !record?.syncState,
                   }"
                 >
                   {{ record?.syncState || $t('msg.info.metaNoChange') }}

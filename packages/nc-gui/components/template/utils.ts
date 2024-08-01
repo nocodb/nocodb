@@ -1,27 +1,33 @@
 import type { ColumnGroupType } from 'ant-design-vue/es/table'
 
-export const tableColumns: (Omit<ColumnGroupType<any>, 'children'> & { dataIndex?: string; name: string })[] = [
+export const tableColumns:  NcTableColumnProps[] = [
   {
+    title: 'Column Name',
     name: 'Column Name',
     dataIndex: 'column_name',
     key: 'column_name',
-    width: 250,
+    minWidth: 200,
+    padding: '0px 12px',
   },
   {
+    title: 'Column Type',
     name: 'Column Type',
     dataIndex: 'column_type',
     key: 'uidt',
-    width: 250,
+    minWidth: 200,
+    padding: '0px 12px',
   },
   // {
   //   name: 'Select Option',
   //   key: 'dtxp',
   // },
   {
+    title: '',
     name: 'Action',
     key: 'action',
-    align: 'center',
-    width: 40,
+    width: 60,
+    minWidth: 58,
+    padding: '0px 12px',
   },
 ]
 

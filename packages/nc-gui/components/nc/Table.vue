@@ -14,6 +14,11 @@ interface Props {
   isDataLoading?: boolean
   stickyHeader?: boolean
   stickyFirstColumn?: boolean
+  headerRowClassName?: string
+  bodyRowClassName?: string
+  headerCellClassName?: string
+  bodyCellClassName?: string
+  customHeaderRow?: (columns: NcTableColumnProps[]) => Record<string, any>
   customRow?: (record: Record<string, any>, recordIndex: number) => Record<string, any>
 }
 
@@ -27,6 +32,11 @@ const props = withDefaults(defineProps<Props>(), {
   bordered: true,
   isDataLoading: false,
   stickyHeader: true,
+  headerRowClassName: '',
+  bodyRowClassName: '',
+  headerCellClassName: '',
+  bodyCellClassName: '',
+  customHeaderRow: () => ({}),
   customRow: () => ({}),
 })
 
@@ -105,7 +115,7 @@ useEventListener(tableWrapper, 'scroll', () => {
 
 <template>
   <div
-    class="nc-table-container relative flex-1"
+    class="nc-table-container relative"
     :class="{
       bordered: bordered,
     }"
@@ -130,12 +140,15 @@ useEventListener(tableWrapper, 'scroll', () => {
             :style="{
               height: headerRowHeight,
             }"
+            :class="[`${headerRowClassName}`]"
+            v-bind="customHeaderRow ? customHeaderRow(columns) : {}"
           >
             <th
               v-for="(col, index) in columns"
               :key="index"
               class="nc-table-header-cell"
               :class="[
+                `${headerCellClassName}`,
                 `nc-table-header-cell-${index}`,
                 {
                   '!hover:bg-gray-100 select-none cursor-pointer': col.showOrderBy,
@@ -197,7 +210,7 @@ useEventListener(tableWrapper, 'scroll', () => {
               :style="{
                 height: rowHeight,
               }"
-              :class="[`nc-table-row-${recordIndex}`]"
+              :class="[`${bodyRowClassName}`, `nc-table-row-${recordIndex}`]"
               v-bind="customRow ? customRow(record, recordIndex) : {}"
             >
               <td
@@ -205,6 +218,7 @@ useEventListener(tableWrapper, 'scroll', () => {
                 :key="colIndex"
                 class="nc-table-body-cell"
                 :class="[
+                  `${bodyCellClassName}`,
                   `nc-table-body-cell-${recordIndex}`,
                   {
                     'flex-1': !col.width && !col.basis,

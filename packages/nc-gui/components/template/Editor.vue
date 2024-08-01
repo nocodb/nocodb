@@ -907,118 +907,117 @@ watch(modelRef, async () => {
                 />
               </NcTooltip>
             </template>
-            <a-table
-              v-if="table.columns && table.columns.length"
-              class="template-form"
-              row-class-name="template-form-row"
-              :data-source="table.columns"
-              :columns="tableColumns"
-              :pagination="table.columns.length > 50 ? { defaultPageSize: 50, position: ['bottomCenter'] } : false"
-            >
-              <template #emptyText>
-                <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
-              </template>
+            <div class="flex w-full max-h-[calc(80vh_-_200px)]">
+              <NcTable
+                v-if="table.columns && table.columns.length"
+                class="template-form flex-1"
+                body-row-class-name="template-form-row"
+                :data="table.columns"
+                :columns="tableColumns"
+                :bordered="false"
+                :pagination="table.columns.length > 50 ? { defaultPageSize: 50, position: ['bottomCenter'] } : false"
+              >
+                <template #headerCell="{ column }">
+                  <template v-if="column.key === 'column_name'">
+                    <span>
+                      {{ $t('labels.columnName') }}
+                    </span>
+                  </template>
 
-              <template #headerCell="{ column }">
-                <template v-if="column.key === 'column_name'">
-                  <span>
-                    {{ $t('labels.columnName') }}
-                  </span>
+                  <template v-else-if="column.key === 'uidt'">
+                    <span>
+                      {{ $t('labels.columnType') }}
+                    </span>
+                  </template>
+
+                  <template v-else-if="column.key === 'dtxp' && hasSelectColumn[tableIdx]">
+                    <span>
+                      {{ $t('general.options') }}
+                    </span>
+                  </template>
                 </template>
 
-                <template v-else-if="column.key === 'uidt'">
-                  <span>
-                    {{ $t('labels.columnType') }}
-                  </span>
-                </template>
-
-                <template v-else-if="column.key === 'dtxp' && hasSelectColumn[tableIdx]">
-                  <span>
-                    {{ $t('general.options') }}
-                  </span>
-                </template>
-              </template>
-
-              <template #bodyCell="{ column, record }">
-                <template v-if="column.key === 'column_name'">
-                  <a-form-item
-                    v-bind="validateInfos[`tables.${tableIdx}.columns.${record.key}.title`]"
-                    class="nc-table-field-name"
-                  >
-                    <a-input
-                      :ref="(el: HTMLInputElement) => (inputRefs[record.key] = el)"
-                      v-model:value="record.title"
-                      class="!rounded-md"
+                <template #bodyCell="{ column, record }">
+                  <template v-if="column.key === 'column_name'">
+                    <a-form-item
+                      v-bind="validateInfos[`tables.${tableIdx}.columns.${record.key}.title`]"
+                      class="nc-table-field-name !mb-0 w-full"
                     >
-                      <template #suffix>
-                        <NcTooltip v-if="formError?.[`tables.${tableIdx}.columns.${record.key}.title`]" class="flex">
-                          <template #title
-                            >{{ formError?.[`tables.${tableIdx}.columns.${record.key}.title`].join('\n') }}
-                          </template>
-                          <GeneralIcon icon="info" class="h-4 w-4 text-red-500 flex-none" />
-                        </NcTooltip>
-                      </template>
-                    </a-input>
-                  </a-form-item>
-                </template>
-
-                <template v-else-if="column.key === 'uidt'">
-                  <a-form-item v-bind="validateInfos[`tables.${tableIdx}.columns.${record.key}.uidt`]">
-                    <NcTooltip :disabled="importDataOnly">
-                      <template #title>
-                        {{ $t('tooltip.useFieldEditMenuToConfigFieldType') }}
-                      </template>
-                      <a-select
-                        v-model:value="record.uidt"
-                        class="w-52"
-                        show-search
-                        :filter-option="filterOption"
-                        dropdown-class-name="nc-dropdown-template-uidt"
-                        :disabled="!importDataOnly"
-                        @change="handleUIDTChange(record, table)"
+                      <a-input
+                        :ref="(el: HTMLInputElement) => (inputRefs[record.key] = el)"
+                        v-model:value="record.title"
+                        class="!rounded-md"
                       >
-                        <template #suffixIcon>
-                          <GeneralIcon icon="arrowDown" class="text-current" />
+                        <template #suffix>
+                          <NcTooltip v-if="formError?.[`tables.${tableIdx}.columns.${record.key}.title`]" class="flex">
+                            <template #title
+                              >{{ formError?.[`tables.${tableIdx}.columns.${record.key}.title`].join('\n') }}
+                            </template>
+                            <GeneralIcon icon="info" class="h-4 w-4 text-red-500 flex-none" />
+                          </NcTooltip>
                         </template>
+                      </a-input>
+                    </a-form-item>
+                  </template>
 
-                        <a-select-option v-for="(option, i) of uiTypeOptions" :key="i" :value="option.value">
-                          <div class="flex items-center gap-2">
-                            <component :is="getUIDTIcon(UITypes[option.value])" class="h-3.5 w-3.5" />
-                            <NcTooltip placement="right" :disabled="!importDataOnly" show-on-truncate-only>
-                              <template v-if="isSelectDisabled(option.label, table.columns[record.key]?._disableSelect)" #title>
-                                {{
-                                  $t('msg.tooLargeFieldEntity', {
-                                    entity: option.label,
-                                  })
-                                }}
-                              </template>
-                              {{ option.label }}
-                            </NcTooltip>
-                          </div>
-                        </a-select-option>
-                      </a-select>
+                  <template v-else-if="column.key === 'uidt'">
+                    <a-form-item v-bind="validateInfos[`tables.${tableIdx}.columns.${record.key}.uidt`]" class="!mb-0 w-full">
+                      <NcTooltip :disabled="importDataOnly">
+                        <template #title>
+                          {{ $t('tooltip.useFieldEditMenuToConfigFieldType') }}
+                        </template>
+                        <a-select
+                          v-model:value="record.uidt"
+                          class="w-52"
+                          show-search
+                          :filter-option="filterOption"
+                          dropdown-class-name="nc-dropdown-template-uidt"
+                          :disabled="!importDataOnly"
+                          @change="handleUIDTChange(record, table)"
+                        >
+                          <template #suffixIcon>
+                            <GeneralIcon icon="arrowDown" class="text-current" />
+                          </template>
+
+                          <a-select-option v-for="(option, i) of uiTypeOptions" :key="i" :value="option.value">
+                            <div class="flex items-center gap-2">
+                              <component :is="getUIDTIcon(UITypes[option.value])" class="h-3.5 w-3.5" />
+                              <NcTooltip placement="right" :disabled="!importDataOnly" show-on-truncate-only>
+                                <template v-if="isSelectDisabled(option.label, table.columns[record.key]?._disableSelect)" #title>
+                                  {{
+                                    $t('msg.tooLargeFieldEntity', {
+                                      entity: option.label,
+                                    })
+                                  }}
+                                </template>
+                                {{ option.label }}
+                              </NcTooltip>
+                            </div>
+                          </a-select-option>
+                        </a-select>
+                      </NcTooltip>
+                    </a-form-item>
+                  </template>
+
+                  <template v-if="column.key === 'action'">
+                    <NcTooltip class="inline-block">
+                      <template #title>
+                        <span>{{ $t('activity.column.delete') }}</span>
+                      </template>
+
+                      <NcButton
+                        type="text"
+                        size="small"
+                        :disabled="table.columns.length === 1"
+                        @click="deleteTableColumn(tableIdx, record.key)"
+                      >
+                        <component :is="iconMap.deleteListItem" />
+                      </NcButton>
                     </NcTooltip>
-                  </a-form-item>
+                  </template>
                 </template>
-
-                <template v-if="column.key === 'action'">
-                  <NcTooltip class="inline-block">
-                    <template #title>
-                      <span>{{ $t('activity.column.delete') }}</span>
-                    </template>
-
-                    <NcButton
-                      type="text"
-                      size="small"
-                      :disabled="table.columns.length === 1"
-                      @click="deleteTableColumn(tableIdx, record.key)"
-                    >
-                      <component :is="iconMap.deleteListItem" />
-                    </NcButton>
-                  </NcTooltip>
-                </template>
-              </template>
-            </a-table>
+              </NcTable>
+            </div>
           </a-collapse-panel>
         </a-collapse>
       </a-form>

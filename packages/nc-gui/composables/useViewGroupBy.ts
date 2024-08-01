@@ -641,11 +641,14 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
         })
 
         const response = !isPublic
-          ? await api.dbDataTableBulkAggregate.dbDataTableBulkAggregate(meta.value!.id, {
-              viewId: view.value!.id,
-              ...(filteredFields ? { aggregation: filteredFields } : {}),
+          ? await api.dbDataTableBulkAggregate.dbDataTableBulkAggregate(
+              meta.value!.id,
+              {
+                viewId: view.value!.id,
+                ...(filteredFields ? { aggregation: filteredFields } : {}),
+              },
               aggregationParams,
-            })
+            )
           : await fetchBulkAggregatedData(
               {
                 ...(filteredFields ? { aggregation: filteredFields } : {}),

@@ -221,7 +221,7 @@ const orderBy = computed<Record<string, SordDirectionType>>({
 
 const columns = [
   {
-    key: 'action',
+    key: 'select',
     title: '',
     width: 70,
     minWidth: 70,
@@ -295,17 +295,6 @@ const columns = [
         </NcButton>
       </div>
 
-      <!-- <div v-if="isSearching" class="nc-collaborators-list items-center justify-center">
-        <GeneralLoader size="xlarge" />
-      </div> -->
-
-      <!-- <div
-        v-else-if="!filteredCollaborators?.length"
-        class="nc-collaborators-list w-full h-full flex flex-col items-center justify-center"
-      >
-        <a-empty :description="$t('title.noMembersFound')" />
-      </div> -->
-
       <div class="flex h-full max-w-350">
         <NcTable
           :is-data-loading="isSearching"
@@ -327,7 +316,7 @@ const columns = [
           </template>
 
           <template #headerCell="{ column }">
-            <template v-if="column.key === 'action'">
+            <template v-if="column.key === 'select'">
               <NcCheckbox v-model:checked="selectAll" />
             </template>
             <template v-else>
@@ -336,7 +325,7 @@ const columns = [
           </template>
 
           <template #bodyCell="{ column, record }">
-            <template v-if="column.key === 'action'">
+            <template v-if="column.key === 'select'">
               <NcCheckbox v-model:checked="selected[record.id]" />
             </template>
 

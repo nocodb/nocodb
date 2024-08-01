@@ -1,8 +1,6 @@
 <script lang="ts" setup>
 import type { CSSProperties } from '@vue/runtime-dom'
 
-type OrderBy = 'asc' | 'desc' | undefined
-
 interface Props {
   columns: NcTableColumnProps[]
   data: Record<string, any>[]

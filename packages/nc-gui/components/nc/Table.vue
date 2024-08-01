@@ -183,12 +183,9 @@ useEventListener(tableWrapper, 'scroll', () => {
                   minWidth: `calc(${col.minWidth}px - 2px)`,
                 }"
               >
-                <template v-if="slots.headerCell">
-                  <slot name="headerCell" :column="col"> </slot>
-                </template>
-                <template v-else>
+                <slot name="headerCell" :column="col">
                   <div>{{ col.title || col.name || '' }}</div>
-                </template>
+                </slot>
 
                 <template v-if="col.showOrderBy && col?.dataIndex">
                   <GeneralIcon
@@ -250,13 +247,9 @@ useEventListener(tableWrapper, 'scroll', () => {
                     maxWidth: headerCellWidth[colIndex] ? `${headerCellWidth[colIndex]}px` : undefined,
                   }"
                 >
-                  <template v-if="slots.bodyCell || col.key === 'action'">
-                    <slot name="bodyCell" :column="col" :record="record" :record-index="recordIndex"> </slot>
-                  </template>
-
-                  <template v-else>
-                    {{ col?.dataIndex ? record[col.dataIndex] : '' }}
-                  </template>
+                  <slot name="bodyCell" :column="col" :record="record" :record-index="recordIndex">
+                    {{ col?.dataIndex && col.key !== 'action' ? record[col.dataIndex] : '' }}
+                  </slot>
                 </div>
               </td>
             </tr>
@@ -287,10 +280,9 @@ useEventListener(tableWrapper, 'scroll', () => {
       }"
     >
       <div class="flex-none text-center flex flex-col items-center gap-3">
-        <template v-if="slots.emptyText">
-          <slot name="emptyText" />
-        </template>
-        <a-empty v-else :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" class="!my-0" />
+        <slot name="emptyText">
+          <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" class="!my-0" />
+        </slot>
       </div>
     </div>
     <!-- Not scrollable footer  -->

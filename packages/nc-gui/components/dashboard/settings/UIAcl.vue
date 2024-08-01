@@ -202,19 +202,19 @@ const columns = [
 
         <template #bodyCell="{ column, record }">
           <template v-if="column.name === 'Table Name'">
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 max-w-full">
               <div class="min-w-5 flex items-center justify-center">
                 <GeneralTableIcon :meta="{ meta: record.table_meta, type: record.ptype }" class="text-gray-500" />
               </div>
 
-              <NcTooltip class="truncate max-w-[190px]" show-on-truncate-only>
+              <NcTooltip class="truncate" show-on-truncate-only>
                 <template #title>{{ record._ptn }}</template>
                 {{ record._ptn }}
               </NcTooltip>
             </div>
           </template>
           <template v-else-if="column.name === 'View Name'">
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 max-w-full">
               <div class="min-w-5 flex items-center justify-center">
                 <GeneralTableIcon
                   v-if="record?.meta?.icon"
@@ -223,7 +223,7 @@ const columns = [
                 />
                 <GeneralViewIcon v-else :meta="record" class="text-gray-500"></GeneralViewIcon>
               </div>
-              <NcTooltip class="truncate max-w-[190px]" show-on-truncate-only>
+              <NcTooltip class="truncate" show-on-truncate-only>
                 <template #title>{{ record.is_default ? $t('title.defaultView') : record.title }}</template>
                 {{ record.is_default ? $t('title.defaultView') : record.title }}
               </NcTooltip>

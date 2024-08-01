@@ -13,6 +13,7 @@ interface Props {
   bordered?: boolean
   isDataLoading?: boolean
   stickyHeader?: boolean
+  stickyFirstColumn?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -29,15 +30,19 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits(['update:orderBy'])
 
+const tableWrapper = ref<HTMLDivElement>()
+
 const tableHeader = ref<HTMLTableElement>()
 
-const { height: tableHeadHeight, width: _tableHeadWidth } = useElementBounding(tableHeader)
+const { height: tableHeadHeight, width: tableHeadWidth } = useElementBounding(tableHeader)
 
 const orderBy = useVModel(props, 'orderBy', emit)
 
 const { columns, data, isDataLoading } = toRefs(props)
 
 const slots = useSlots()
+
+const headerCellWidth = ref<(number | undefined)[]>([])
 
 const updateOrderBy = (field: string) => {
   if (!data.value.length || !field) return
@@ -50,16 +55,67 @@ const updateOrderBy = (field: string) => {
     orderBy.value = { [field]: orderCycle[`${orderBy.value[field]}`] as OrderBy }
   }
 }
+
+/**
+ * We are using 2 different table tag to make header sticky,
+ * so it's imp to keep header cell and body cell width same
+ */
+watch(
+  tableHeadWidth,
+  () => {
+    if (!tableHeader.value || !tableHeadWidth.value) return
+
+    nextTick(() => {
+      const headerCells = tableHeader.value?.querySelectorAll('th > div')
+
+      if (headerCells && headerCells.length) {
+        headerCells.forEach((el, i) => {
+          headerCellWidth.value[i] = el.getBoundingClientRect().width || undefined
+        })
+      }
+    })
+  },
+  {
+    immediate: true,
+  },
+)
+
+useEventListener(tableWrapper, 'scroll', () => {
+  const stickyHeaderCell = tableWrapper.value?.querySelector('th:nth-of-type(1)')
+  const nonStickyHeaderFirstCell = tableWrapper.value?.querySelector('th:nth-of-type(2)')
+
+  if (
+    !stickyHeaderCell ||
+    !nonStickyHeaderFirstCell ||
+    !stickyHeaderCell?.getBoundingClientRect()?.right ||
+    !nonStickyHeaderFirstCell?.getBoundingClientRect()?.left
+  ) {
+    return
+  }
+
+  if (nonStickyHeaderFirstCell?.getBoundingClientRect().left < stickyHeaderCell?.getBoundingClientRect().right) {
+    tableWrapper.value?.classList.add('sticky-border')
+  } else {
+    tableWrapper.value?.classList.remove('sticky-border')
+  }
+})
 </script>
 
 <template>
   <div
     class="nc-table-container relative flex-1"
     :class="{
-      bordered,
+      bordered: bordered,
     }"
   >
-    <div ref="tableWrapper" class="nc-table-wrapper max-h-full relative nc-scrollbar-thin !overflow-auto">
+    <div
+      ref="tableWrapper"
+      class="nc-table-wrapper max-h-full relative nc-scrollbar-thin !overflow-auto"
+      :class="{
+        'sticky-first-column': stickyFirstColumn,
+        'h-full': data.length,
+      }"
+    >
       <table
         ref="tableHeader"
         class="w-full max-w-full"
@@ -94,7 +150,7 @@ const updateOrderBy = (field: string) => {
               @click="col.showOrderBy && col.key === 'name' && col?.dataIndex ? updateOrderBy(col.dataIndex) : undefined"
             >
               <div
-                class="flex items-center gap-3"
+                class="gap-3"
                 :style="{
                   padding: col.padding || '0px 24px',
                   minWidth: `calc(${col.minWidth}px - 2px)`,
@@ -125,7 +181,12 @@ const updateOrderBy = (field: string) => {
       </table>
 
       <template v-if="data.length">
-        <table class="w-full max-w-full">
+        <table
+          class="w-full h-full"
+          :style="{
+            maxHeight: `calc(100% - ${headerRowHeight})`,
+          }"
+        >
           <tbody>
             <tr
               v-for="(record, recordIndex) of data"
@@ -152,11 +213,11 @@ const updateOrderBy = (field: string) => {
                 }"
               >
                 <div
-                  class="flex"
                   :class="[`${col.align || 'items-center'} ${col.justify || ''}`]"
                   :style="{
                     padding: col.padding || '0px 24px',
                     minWidth: `calc(${col.minWidth}px - 2px)`,
+                    maxWidth: headerCellWidth[colIndex] ? `${headerCellWidth[colIndex]}px` : undefined,
                   }"
                 >
                   <template v-if="slots.bodyCell || col.key === 'action'">
@@ -213,6 +274,35 @@ const updateOrderBy = (field: string) => {
   .nc-table-wrapper {
     @apply w-full;
 
+    &.sticky-first-column {
+      th {
+        &:first-of-type {
+          @apply bg-gray-50;
+        }
+      }
+      td {
+        &:first-of-type {
+          @apply bg-white;
+        }
+      }
+
+      th,
+      td {
+        &:first-of-type {
+          @apply border-r-1 border-transparent sticky left-0 z-4;
+        }
+      }
+
+      &.sticky-border {
+        th,
+        td {
+          &:first-of-type {
+            @apply !border-gray-200;
+          }
+        }
+      }
+    }
+
     thead {
       @apply w-full max-w-full;
       th {
@@ -233,7 +323,7 @@ const updateOrderBy = (field: string) => {
       }
     }
     tr {
-      @apply !flex border-b-1 border-gray-200 w-full max-w-full;
+      @apply flex border-b-1 border-gray-200 w-full max-w-full;
 
       &:hover td {
         @apply !bg-gray-50;
@@ -244,7 +334,7 @@ const updateOrderBy = (field: string) => {
         @apply h-full flex;
 
         & > div {
-          @apply flex-none h-full flex truncate;
+          @apply h-full flex-1 flex items-center;
         }
       }
     }

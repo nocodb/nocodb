@@ -1,6 +1,6 @@
 import type { ColumnGroupType } from 'ant-design-vue/es/table'
 
-export const tableColumns:  NcTableColumnProps[] = [
+export const tableColumns: NcTableColumnProps[] = [
   {
     title: 'Column Name',
     name: 'Column Name',
@@ -31,23 +31,27 @@ export const tableColumns:  NcTableColumnProps[] = [
   },
 ]
 
-export const srcDestMappingColumns: (Omit<ColumnGroupType<any>, 'children'> & { dataIndex?: string; name: string })[] = [
+export const srcDestMappingColumns: NcTableColumnProps[] = [
   {
-    name: 'Source column',
+    title: 'Source column',
     dataIndex: 'source_column',
     key: 'source_column',
-    width: 400,
+    minWidth: 200,
+    padding: '0px 12px',
   },
   {
-    name: 'Destination column',
+    title: 'Destination column',
     dataIndex: 'destination_column',
     key: 'destination_column',
-    width: 400,
+    minWidth: 200,
+    padding: '0px 12px',
   },
   {
-    name: 'Action',
+    title: 'Action',
     key: 'action',
-    align: 'center',
-    width: 50,
+    justify: 'justify-center',
+    width: 60,
+    minWidth: 58,
+    padding: '0px 12px',
   },
 ]

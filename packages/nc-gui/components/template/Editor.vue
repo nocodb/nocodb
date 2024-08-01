@@ -801,39 +801,38 @@ watch(modelRef, async () => {
             </NcTooltip>
           </template>
 
-          <div v-if="srcDestMapping" class="nc-table template-form">
-            <div class="nc-table-head">
-              <div class="nc-table-row">
-                <div class="nc-table-col nc-table-source">Source column</div>
-                <div class="nc-table-col nc-table-dest">Destination column</div>
-                <div class="nc-table-col nc-table-action">
+          <div v-if="srcDestMapping" class="flex w-full max-h-[calc(80vh_-_200px)]">
+            <NcTable
+              class="template-form flex-1"
+              body-row-class-name="template-form-row"
+              :data="srcDestMapping[table.table_name]"
+              :columns="srcDestMappingColumns"
+              :bordered="false"
+            >
+              <template #headerCell="{ column }">
+                <span v-if="column.key !== 'action'">
+                  {{ column.title }}
+                </span>
+                <span v-if="column.key === 'action'">
                   <a-checkbox
                     v-model:checked="checkAllRecord[table.table_name]"
                     @change="handleCheckAllRecord($event, table.table_name)"
                   />
-                </div>
-              </div>
-            </div>
-            <div class="nc-table-body">
-              <template v-if="!srcDestMapping[table.table_name]?.length">
-                <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
+                </span>
               </template>
-              <div
-                v-for="record of srcDestMapping[table.table_name]"
-                v-else
-                :key="record.srcTitle"
-                class="nc-table-row template-form-row"
-              >
-                <div class="nc-table-col nc-table-source">
+
+              <template #bodyCell="{ column, record }">
+                <template v-if="column.key === 'source_column'">
                   <NcTooltip class="truncate inline-block">
                     <template #title>{{ record.srcTitle }}</template>
                     {{ record.srcTitle }}
                   </NcTooltip>
-                </div>
-                <div class="nc-table-col nc-table-dest">
+                </template>
+
+                <template v-else-if="column.key === 'destination_column'">
                   <a-select
                     v-model:value="record.destCn"
-                    class="w-52"
+                    class="w-full"
                     show-search
                     :filter-option="filterOption"
                     dropdown-class-name="nc-dropdown-filter-field"
@@ -842,18 +841,30 @@ watch(modelRef, async () => {
                       <GeneralIcon icon="arrowDown" class="text-current" />
                     </template>
                     <a-select-option v-for="(col, i) of columns" :key="i" :value="col.title">
-                      <div class="flex items-center gap-2">
-                        <component :is="getUIDTIcon(col.uidt)" class="w-3.5 h-3.5" />
-                        <span>{{ col.title }}</span>
+                      <div class="flex items-center gap-2 w-full">
+                        <component :is="getUIDTIcon(col.uidt)" class="flex-none w-3.5 h-3.5" />
+                        <NcTooltip class="truncate flex-1">
+                          <template #title>
+                            {{ col.title }}
+                          </template>
+                          {{ col.title }}
+                        </NcTooltip>
+                        <component
+                          :is="iconMap.check"
+                          v-if="record.destCn === col.title"
+                          id="nc-selected-item-icon"
+                          class="flex-none text-primary w-4 h-4"
+                        />
                       </div>
                     </a-select-option>
                   </a-select>
-                </div>
-                <div class="nc-table-col nc-table-action">
+                </template>
+
+                <template v-if="column.key === 'action'">
                   <a-checkbox v-model:checked="record.enabled" />
-                </div>
-              </div>
-            </div>
+                </template>
+              </template>
+            </NcTable>
           </div>
         </a-collapse-panel>
       </a-collapse>
@@ -907,9 +918,8 @@ watch(modelRef, async () => {
                 />
               </NcTooltip>
             </template>
-            <div class="flex w-full max-h-[calc(80vh_-_200px)]">
+            <div v-if="table.columns && table.columns.length" class="flex w-full max-h-[calc(80vh_-_200px)]">
               <NcTable
-                v-if="table.columns && table.columns.length"
                 class="template-form flex-1"
                 body-row-class-name="template-form-row"
                 :data="table.columns"
@@ -1039,38 +1049,6 @@ watch(modelRef, async () => {
 .nc-table-field-name {
   :deep(.ant-form-item-explain) {
     @apply hidden;
-  }
-}
-
-.nc-table {
-  @apply w-full;
-
-  .nc-table-head {
-    @apply flex items-center border-0 text-gray-500;
-  }
-
-  .nc-table-body {
-    @apply flex flex-col;
-  }
-
-  .nc-table-row {
-    @apply grid grid-cols-18 border-b border-gray-100 w-full h-full;
-  }
-
-  .nc-table-col {
-    @apply flex items-start py-3 mr-2;
-  }
-
-  .nc-table-source {
-    @apply col-span-7 flex justify-center items-center;
-  }
-
-  .nc-table-dest {
-    @apply col-span-7 items-center capitalize;
-  }
-
-  .nc-table-actions {
-    @apply col-span-4 flex w-full justify-center items-center;
   }
 }
 </style>

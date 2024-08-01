@@ -44,7 +44,11 @@ const tableWrapper = ref<HTMLDivElement>()
 
 const tableHeader = ref<HTMLTableElement>()
 
+const tableFooterRef = ref<HTMLDivElement>()
+
 const { height: tableHeadHeight, width: tableHeadWidth } = useElementBounding(tableHeader)
+
+const { height: tableFooterHeight } = useElementBounding(tableFooterRef)
 
 const orderBy = useVModel(props, 'orderBy', emit)
 
@@ -116,6 +120,7 @@ useEventListener(tableWrapper, 'scroll', () => {
     class="nc-table-container relative"
     :class="{
       bordered,
+      'min-h-120': isDataLoading,
     }"
   >
     <div
@@ -124,6 +129,9 @@ useEventListener(tableWrapper, 'scroll', () => {
       :class="{
         'sticky-first-column': stickyFirstColumn,
         'h-full': data.length,
+      }"
+      :style="{
+        maxHeight: `calc(100% - ${tableFooterHeight}px)`,
       }"
     >
       <table
@@ -199,7 +207,7 @@ useEventListener(tableWrapper, 'scroll', () => {
         <table
           class="w-full h-full"
           :style="{
-            maxHeight: `calc(100% - ${headerRowHeight})`,
+            maxHeight: `calc(100% - ${tableHeadHeight}px)`,
           }"
         >
           <tbody>
@@ -248,6 +256,12 @@ useEventListener(tableWrapper, 'scroll', () => {
                 </div>
               </td>
             </tr>
+
+            <template v-if="slots.extraRow">
+              <tr class="nc-table-extra-row">
+                <slot name="extraRow" />
+              </tr>
+            </template>
           </tbody>
         </table>
       </template>
@@ -265,19 +279,21 @@ useEventListener(tableWrapper, 'scroll', () => {
       v-if="!isDataLoading && !data?.length"
       class="flex-none nc-table-empty flex items-center justify-center py-8 px-6 h-full"
       :style="{
-        maxHeight: `calc(100% - ${tableHeadHeight}px)`,
+        maxHeight: `calc(100% - ${headerRowHeight} - ${tableFooterHeight}px)`,
       }"
     >
       <div class="flex-none text-center flex flex-col items-center gap-3">
         <template v-if="slots.emptyText">
-          <slot name="emptyText"/>
+          <slot name="emptyText" />
         </template>
         <a-empty v-else :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" class="!my-0" />
       </div>
     </div>
     <!-- Not scrollable footer  -->
     <template v-if="slots.tableFooter">
-      <slots name="table-footer"></slots>
+      <div ref="tableFooterRef">
+        <slot name="tableFooter" />
+      </div>
     </template>
   </div>
 </template>
@@ -337,14 +353,21 @@ useEventListener(tableWrapper, 'scroll', () => {
       @apply w-full max-w-full;
 
       tr {
-        @apply cursor-pointer;
+        &:not(.nc-table-extra-row) {
+          @apply cursor-pointer;
+        }
+
         td {
           @apply text-sm text-gray-600;
         }
       }
     }
     tr {
-      @apply flex border-b-1 border-gray-200 w-full max-w-full;
+      @apply flex w-full max-w-full;
+      
+      &:not(.nc-table-extra-row) {
+        @apply border-b-1 border-gray-200;
+      }
 
       &.selected td {
         @apply !bg-[#F0F3FF];

@@ -100,7 +100,7 @@ export class AccountUsersPage extends BasePage {
 
   async deleteUser({ email }: { email: string }) {
     await this.openRowActionMenu({ email });
-    await this.rootPage.locator('.nc-menu-item:has-text("Remove user")').click();
+    await this.rootPage.locator('.nc-menu-item:visible:has-text("Remove user")').click();
     await this.rootPage.locator('.ant-modal.active button:has-text("Delete User")').click();
     await this.verifyToast({ message: 'User deleted successfully' });
   }

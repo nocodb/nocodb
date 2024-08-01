@@ -75,7 +75,7 @@ const selectAll = computed({
 
 const updateCollaborator = async (collab: any, roles: WorkspaceUserRoles) => {
   if (!currentWorkspace.value || !currentWorkspace.value.id) return
-  console.log(WorkspaceUserRoles.OWNER)
+
   try {
     await _updateCollaborator(collab.id, roles, currentWorkspace.value.id)
     message.success('Successfully updated user role')
@@ -285,6 +285,18 @@ const columns = [
                 </NcMenu>
               </template>
             </NcDropdown>
+          </div>
+        </template>
+
+        <template #extraRow>
+          <div v-if="collaborators?.length === 1" class="w-full pt-12 pb-4 px-2 flex flex-col items-center gap-6 text-center">
+            <div class="text-2xl text-gray-800 font-bold">
+              {{ $t('placeholder.inviteYourTeam') }}
+            </div>
+            <div class="text-sm text-gray-700">
+              {{ $t('placeholder.inviteYourTeamLabel') }}
+            </div>
+            <img src="~assets/img/placeholder/invite-team.png" alt="Invite Team" class="!w-[30rem] flex-none" />
           </div>
         </template>
       </NcTable>

@@ -108,7 +108,7 @@ const columns = [
     name: 'Table Name',
     minWidth: 220,
     padding: '0px 12px',
-   
+    dataIndex: '_ptn',
   },
   {
     key: 'name',
@@ -116,7 +116,7 @@ const columns = [
     name: 'View Name',
     minWidth: 220,
     padding: '0px 12px',
-   
+    dataIndex: 'title',
   },
   {
     key: 'action',
@@ -175,7 +175,13 @@ const columns = [
         </div>
       </div>
 
-      <NcTable :columns="columns" :data="filteredTables" row-height="44px" header-row-height="44px" class="h-[calc(100%_-_102px)] w-full">
+      <NcTable
+        :columns="columns"
+        :data="filteredTables"
+        row-height="44px"
+        header-row-height="44px"
+        class="h-[calc(100%_-_102px)] w-full"
+      >
         <template #headerCell="{ column }">
           <template v-if="column.key === 'name'">
             {{ column.title }}

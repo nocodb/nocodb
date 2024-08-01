@@ -35,7 +35,7 @@ const { height: tableHeadHeight, width: _tableHeadWidth } = useElementBounding(t
 
 const orderBy = useVModel(props, 'orderBy', emit)
 
-const { columns, data } = toRefs(props)
+const { columns, data, isDataLoading } = toRefs(props)
 
 const slots = useSlots()
 
@@ -59,7 +59,7 @@ const updateOrderBy = (field: string) => {
       bordered,
     }"
   >
-    <div ref="tableWrapper" class="nc-table-wrapper h-full relative nc-scrollbar-thin !overflow-auto">
+    <div ref="tableWrapper" class="nc-table-wrapper max-h-full relative nc-scrollbar-thin !overflow-auto">
       <table
         ref="tableHeader"
         class="w-full max-w-full"

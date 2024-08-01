@@ -14,6 +14,7 @@ interface Props {
   isDataLoading?: boolean
   stickyHeader?: boolean
   stickyFirstColumn?: boolean
+  customRow?: (record: Record<string, any>, recordIndex: number) => Record<string, any>
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -26,6 +27,7 @@ const props = withDefaults(defineProps<Props>(), {
   bordered: true,
   isDataLoading: false,
   stickyHeader: true,
+  customRow: () => ({}),
 })
 
 const emit = defineEmits(['update:orderBy'])
@@ -147,6 +149,7 @@ useEventListener(tableWrapper, 'scroll', () => {
                 flexBasis: !col.width ? col.basis : undefined,
                 maxWidth: col.basis ? col.basis : col.width,
               }"
+              :data-test-id="`nc-table-header-cell-${col.name}`"
               @click="col.showOrderBy && col.key === 'name' && col?.dataIndex ? updateOrderBy(col.dataIndex) : undefined"
             >
               <div
@@ -160,10 +163,10 @@ useEventListener(tableWrapper, 'scroll', () => {
                   <slot name="headerCell" :column="col"> </slot>
                 </template>
                 <template v-else>
-                  <div>{{ col.title }}</div>
+                  <div>{{ col.title || col.name || '' }}</div>
                 </template>
 
-                <template v-if="col.key === 'name' && col.showOrderBy">
+                <template v-if="col.key === 'name' && col.showOrderBy && col?.dataIndex">
                   <GeneralIcon
                     v-if="orderBy[col.dataIndex]"
                     icon="chevronDown"
@@ -195,13 +198,14 @@ useEventListener(tableWrapper, 'scroll', () => {
                 height: rowHeight,
               }"
               :class="[`nc-table-row-${recordIndex}`]"
+              v-bind="customRow ? customRow(record, recordIndex) : {}"
             >
               <td
                 v-for="(col, colIndex) of columns"
                 :key="colIndex"
-                class="nc-table-cell"
+                class="nc-table-body-cell"
                 :class="[
-                  `nc-table-cell-${recordIndex}`,
+                  `nc-table-body-cell-${recordIndex}`,
                   {
                     'flex-1': !col.width && !col.basis,
                   },
@@ -211,6 +215,7 @@ useEventListener(tableWrapper, 'scroll', () => {
                   flexBasis: !col.width ? col.basis : undefined,
                   maxWidth: col.basis ? col.basis : col.width,
                 }"
+                :data-test-id="`nc-table-body-cell-${col.name}`"
               >
                 <div
                   :class="[`${col.align || 'items-center'} ${col.justify || ''}`]"
@@ -339,8 +344,5 @@ useEventListener(tableWrapper, 'scroll', () => {
       }
     }
   }
-}
-.cell-header {
-  @apply text-xs font-semibold text-gray-500;
 }
 </style>

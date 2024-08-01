@@ -258,7 +258,8 @@ interface AuditLogsQuery {
 }
 
 interface NcTableColumnProps {
-  key: 'name' | 'action'
+  key: 'name' | 'action' | string
+  // title is column header cell value and we can also pass i18n value as this is just used to render in UI
   title: string
   // minWidth is required to fix overflow col issue
   minWidth: number
@@ -269,7 +270,10 @@ interface NcTableColumnProps {
   align?: 'items-center' | 'items-start' | 'items-end'
   justify?: 'justify-center' | 'justify-start' | 'justify-end'
   showOrderBy?: boolean
+  // dataIndex is used as key to extract data from row object
   dataIndex?: string
+  // name can be used as value, which will be used to display in header if title is absent and in data-test-id
+  name?: string
   [key: string]: any
 }
 

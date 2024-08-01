@@ -40,6 +40,7 @@ vModel.value.au = !!vModel.value.au */
             v-model:checked="vModel.rqd"
             :disabled="vModel.pk || !sqlUi.columnEditable(vModel)"
             class="nc-column-checkbox-NN"
+            title="Not Null"
             @change="onAlter"
           />
         </a-form-item>
@@ -49,6 +50,7 @@ vModel.value.au = !!vModel.value.au */
             v-model:checked="vModel.pk"
             :disabled="!sqlUi.columnEditable(vModel)"
             class="nc-column-checkbox-PK"
+            title="Primary Key"
             @change="onAlter"
           />
         </a-form-item>
@@ -58,16 +60,17 @@ vModel.value.au = !!vModel.value.au */
             v-model:checked="vModel.ai"
             :disabled="sqlUi.colPropUNDisabled(vModel) || !sqlUi.columnEditable(vModel)"
             class="nc-column-checkbox-AI"
+            title="Auto Increment"
             @change="onAlter"
           />
         </a-form-item>
 
         <a-form-item label="UN" :disabled="sqlUi.colPropUNDisabled(vModel) || !sqlUi.columnEditable(vModel)" @change="onAlter">
-          <a-checkbox v-model:checked="vModel.un" class="nc-column-checkbox-UN" />
+          <a-checkbox v-model:checked="vModel.un" class="nc-column-checkbox-UN" title="Unsigned" />
         </a-form-item>
 
         <a-form-item label="AU" :disabled="sqlUi.colPropAuDisabled(vModel) || !sqlUi.columnEditable(vModel)" @change="onAlter">
-          <a-checkbox v-model:checked="vModel.au" class="nc-column-checkbox-AU" />
+          <a-checkbox v-model:checked="vModel.au" class="nc-column-checkbox-AU" title="Auto Update" />
         </a-form-item>
       </div>
 

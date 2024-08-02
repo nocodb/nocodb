@@ -133,10 +133,17 @@ const activeGroups = computed<string[]>(() => {
 
 const oldActiveGroups = ref<string[]>([])
 
-const findAndLoadSubGroup = (key: any) => {
+const findAndLoadSubGroup = async (key: any) => {
   key = Array.isArray(key) ? key : [key]
   if (key.length > 0 && vGroup.value.children) {
     if (!oldActiveGroups.value.includes(key[key.length - 1])) {
+
+      // wait until children loads since it may be still loading in background
+      // todo: implement a better way to handle this
+      await until(() => vGroup.value.children?.length > 0).toBeTruthy({
+        timeout: 10000,
+      })
+
       const k = key[key.length - 1].replace('group-panel-', '')
       const grp = vGroup.value.children.find((g) => `${g.key}` === k)
       if (grp) {

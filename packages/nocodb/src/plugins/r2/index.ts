@@ -1,17 +1,17 @@
 import { XcActionType, XcType } from 'nocodb-sdk';
-import BackblazePlugin from './BackblazePlugin';
+import R2Plugin from './R2Plugin';
 import type { XcPluginConfig } from 'nc-plugin';
 
 const config: XcPluginConfig = {
-  builder: BackblazePlugin,
-  title: 'Backblaze B2',
-  version: '0.0.3',
-  logo: 'plugins/backblaze.jpeg',
-  tags: 'Storage',
+  builder: R2Plugin,
+  title: 'Cloudflare R2 Storage',
+  version: '0.0.1',
+  logo: 'plugins/r2.png',
   description:
-    'Backblaze B2 is enterprise-grade, S3 compatible storage that companies around the world use to store and serve data while improving their cloud OpEx vs. Amazon S3 and others.',
+    'Cloudflare R2 is an S3-compatible, zero egress-fee, globally distributed object storage.',
+  tags: 'Storage',
   inputs: {
-    title: 'Configure Backblaze B2',
+    title: 'Configure Cloudflare R2 Storage',
     items: [
       {
         key: 'bucket',
@@ -21,32 +21,25 @@ const config: XcPluginConfig = {
         required: true,
       },
       {
-        key: 'region',
-        label: 'Region',
-        placeholder: 'e.g. us-west-001',
+        key: 'hostname',
+        label: 'Host Name',
+        placeholder: 'e.g.: *****.r2.cloudflarestorage.com',
         type: XcType.SingleLineText,
         required: true,
       },
       {
         key: 'access_key',
         label: 'Access Key',
-        placeholder: 'i.e. keyID in App Keys',
+        placeholder: 'Access Key',
         type: XcType.SingleLineText,
         required: true,
       },
       {
         key: 'access_secret',
         label: 'Access Secret',
-        placeholder: 'i.e. applicationKey in App Keys',
+        placeholder: 'Access Secret',
         type: XcType.Password,
         required: true,
-      },
-      {
-        key: 'acl',
-        label: 'Access Control Lists (ACL)',
-        placeholder: 'Default set to public-read',
-        type: XcType.SingleLineText,
-        required: false,
       },
     ],
     actions: [
@@ -66,7 +59,7 @@ const config: XcPluginConfig = {
       },
     ],
     msgOnInstall:
-      'Successfully installed and attachment will be stored in Backblaze B2',
+      'Successfully installed and attachment will be stored in Cloudflare R2 Storage',
     msgOnUninstall: '',
   },
   category: 'Storage',

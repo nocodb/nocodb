@@ -5,7 +5,7 @@ import type { XcPluginConfig } from 'nc-plugin';
 const config: XcPluginConfig = {
   builder: UpCloudPlugin,
   title: 'UpCloud Object Storage',
-  version: '0.0.1',
+  version: '0.0.2',
   logo: 'plugins/upcloud.png',
   description:
     'The perfect home for your data. Thanks to the S3-compatible programmable interface,\n' +
@@ -41,6 +41,13 @@ const config: XcPluginConfig = {
         placeholder: 'Access Secret',
         type: XcType.Password,
         required: true,
+      },
+      {
+        key: 'acl',
+        label: 'Access Control Lists (ACL)',
+        placeholder: 'Default set to public-read',
+        type: XcType.SingleLineText,
+        required: false,
       },
     ],
     actions: [

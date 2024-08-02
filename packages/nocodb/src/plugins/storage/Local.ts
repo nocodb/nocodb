@@ -24,12 +24,16 @@ export default class Local implements IStorageAdapterV2 {
     }
   }
 
-  async fileCreateByUrl(key: string, url: string): Promise<any> {
+  async fileCreateByUrl(
+    key: string,
+    url: string,
+    { fetchOptions: { buffer } = { buffer: false } },
+  ): Promise<any> {
     const destPath = validateAndNormaliseLocalPath(key);
     return new Promise((resolve, reject) => {
       axios
         .get(url, {
-          responseType: 'arraybuffer',
+          responseType: buffer ? 'arraybuffer' : 'stream',
           headers: {
             accept:
               'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',

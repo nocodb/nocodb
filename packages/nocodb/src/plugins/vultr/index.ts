@@ -5,7 +5,7 @@ import type { XcPluginConfig } from 'nc-plugin';
 const config: XcPluginConfig = {
   builder: VultrPlugin,
   title: 'Vultr Object Storage',
-  version: '0.0.2',
+  version: '0.0.3',
   logo: 'plugins/vultr.png',
   description:
     'Using Vultr Object Storage can give flexibility and cloud storage that allows applications greater flexibility and access worldwide.',
@@ -40,6 +40,13 @@ const config: XcPluginConfig = {
         placeholder: 'Access Secret',
         type: XcType.Password,
         required: true,
+      },
+      {
+        key: 'acl',
+        label: 'Access Control Lists (ACL)',
+        placeholder: 'Default set to public-read',
+        type: XcType.SingleLineText,
+        required: false,
       },
     ],
     actions: [

@@ -43,6 +43,13 @@ const config: XcPluginConfig = {
         type: XcType.Password,
         required: true,
       },
+      {
+        key: 'acl',
+        label: 'Access Control Lists (ACL)',
+        placeholder: 'Default set to public-read',
+        type: XcType.SingleLineText,
+        required: false,
+      },
     ],
     actions: [
       {

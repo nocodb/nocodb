@@ -1,40 +1,40 @@
 import { S3 as S3Client } from '@aws-sdk/client-s3';
-import type { S3ClientConfig } from '@aws-sdk/client-s3';
+
+import type { S3ClientConfigType } from '@aws-sdk/client-s3';
 import type { IStorageAdapterV2 } from 'nc-plugin';
 import GenericS3 from '~/plugins/GenericS3/GenericS3';
 
-interface OvhCloudStorageInput {
+interface R2ObjectStorageInput {
   bucket: string;
-  region: string;
   access_key: string;
   access_secret: string;
-  acl?: string;
+  hostname: string;
+  region: string;
 }
 
-export default class OvhCloud extends GenericS3 implements IStorageAdapterV2 {
-  protected input: OvhCloudStorageInput;
+export default class R2 extends GenericS3 implements IStorageAdapterV2 {
+  protected input: R2ObjectStorageInput;
 
   constructor(input: unknown) {
-    super(input as OvhCloudStorageInput);
+    super(input as R2ObjectStorageInput);
   }
 
   protected get defaultParams() {
     return {
       Bucket: this.input.bucket,
-      ACL: this.input?.acl || 'public-read',
+      // R2 does not support ACL
+      ACL: 'private',
     };
   }
 
   public async init(): Promise<any> {
-    const s3Options: S3ClientConfig = {
-      region: this.input.region,
+    const s3Options: S3ClientConfigType = {
+      region: 'auto',
+      endpoint: this.input.hostname,
       credentials: {
         accessKeyId: this.input.access_key,
         secretAccessKey: this.input.access_secret,
       },
-      // TODO: Need to verify
-      // DOCS s3.<region_in_lowercase>.io.cloud.ovh.net
-      endpoint: `https://s3.${this.input.region}.cloud.ovh.net`,
     };
 
     this.s3Client = new S3Client(s3Options);

@@ -416,7 +416,7 @@ echo "** System check completed successfully. **"
 message_arr=()
 
 # extract public ip address
-PUBLIC_IP=$(dig +short myip.opendns.com @resolver1.opendns.com)
+PUBLIC_IP=$(dig +short myip.opendns.com @1.1.1.1)
 
 # Check if the public IP address is not empty, if empty then use the localhost
 if [ -z "$PUBLIC_IP" ]; then
@@ -469,7 +469,7 @@ if [ -n "$EDITION" ] && { [ "$EDITION" = "EE" ] || [ "$EDITION" = "ee" ]; }; the
     fi
 fi
 
-
+# Configure Redis for caching
 if [ "$ADVANCED_OPTIONS" == "y" ]; then
   echo "Do you want to enabled Redis for caching [Y/N] (default: Y): "
   read -r REDIS_ENABLED
@@ -481,7 +481,42 @@ else
     message_arr+=("Redis: Disabled")
 fi
 
+# Configure Minio for file storage
+if [ "$ADVANCED_OPTIONS" == "y" ]; then
+  echo "Do you want to enable Minio for file storage [Y/N] (default: Y): "
+  read -r MINIO_ENABLED
+  if [ -z "$MINIO_ENABLED" ] || { [ "$MINIO_ENABLED" != "N" ] && [ "$MINIO_ENABLED" != "n" ]; }; then
+    message_arr+=("Minio: Enabled")
+    MINIO_ENABLED="y"
+  else
+    message_arr+=("Minio: Disabled")
+  fi
+fi
+# Minio Domain Name and SSL Configuration
 
+MINIO_DOMAIN_NAME="localhost"
+MINIO_SSL_ENABLED="n"
+
+if [ "$ADVANCED_OPTIONS" == "y" ]; then
+  echo "Enter the MinIO domain name (default: $MINIO_DOMAIN_NAME): "
+  read -r USER_MINIO_DOMAIN_NAME
+
+  if [ -n "$USER_MINIO_DOMAIN_NAME" ]; then
+    MINIO_DOMAIN_NAME="$USER_MINIO_DOMAIN_NAME"
+  fi
+
+  # Ask to configure SSL only if MINIO_DOMAIN_NAME is set
+  if [ -n "$USER_MINIO_DOMAIN_NAME" ]; then
+    echo "Do you want to configure SSL for MinIO [Y/N] (default: N): "
+    read -r USER_MINIO_SSL_ENABLED
+
+    if [ -n "$USER_MINIO_SSL_ENABLED" ]; then
+      MINIO_SSL_ENABLED=$(echo "$USER_MINIO_SSL_ENABLED" | tr '[:upper:]' '[:lower:]')
+    fi
+  fi
+fi
+
+# Configure Watchtower for automatic updates
 if [ "$ADVANCED_OPTIONS" == "y" ]; then
   echo "Do you want to enabled Watchtower for automatic updates [Y/N] (default: Y): "
   read -r WATCHTOWER_ENABLED
@@ -493,6 +528,7 @@ else
     message_arr+=("Watchtower: Disabled")
 fi
 
+# Configure the number of instances to run
 if [ "$ADVANCED_OPTIONS" = "y" ] ; then
     NUM_CORES=$(nproc || sysctl -n hw.ncpu || echo 1)
     echo  "How many instances of NocoDB do you want to run (Maximum: ${NUM_CORES}) ? (default: 1): "
@@ -515,10 +551,12 @@ message_arr+=("Number of instances: $NUM_INSTANCES")
 # Generate a strong random password for PostgreSQL
 STRONG_PASSWORD=$(openssl rand -base64 48 | tr -dc 'a-zA-Z0-9!@#$%^&*()-_+=' | head -c 32)
 REDIS_PASSWORD=$(openssl rand -base64 48 | tr -dc 'a-zA-Z0-9' | head -c 24)
+MINIO_ACCESS_KEY=$(openssl rand -base64 48 | tr -dc 'a-zA-Z0-9' | head -c 24)
+MINIO_ACCESS_SECRET=$(openssl rand -base64 48 | tr -dc 'a-zA-Z0-9' | head -c 24)
 # Encode special characters in the password for JDBC URL usage
 ENCODED_PASSWORD=$(urlencode "$STRONG_PASSWORD")
 
-IMAGE="nocodb/nocodb:latest";
+IMAGE="nocodb/nocodb-timely:0.251.3-pr-9137-20240802-0625";
 
 # Determine the Docker image to use based on the edition
 if [ -n "$EDITION" ] && { [ "$EDITION" = "EE" ] || [ "$EDITION" = "ee" ]; }; then
@@ -534,12 +572,17 @@ message_arr+=("Docker image: $IMAGE")
 
 
 DEPENDS_ON=""
+MINIO_DEPENDS_ON=""
 
 # Add Redis service if enabled
 if [ -z "$REDIS_ENABLED" ] || { [ "$REDIS_ENABLED" != "N" ] && [ "$REDIS_ENABLED" != "n" ]; }; then
   DEPENDS_ON="- redis"
 fi
 
+# Add Minio service if enabled
+if [ -z "$MINIO_ENABLED" ] || { [ "$MINIO_ENABLED" != "N" ] && [ "$MINIO_ENABLED" != "n" ]; }; then
+  MINIO_DEPENDS_ON="- minio"
+fi
 
 # Write the Docker Compose file with the updated password
 cat <<EOF > docker-compose.yml
@@ -553,11 +596,28 @@ services:
     depends_on:
       - db
       ${DEPENDS_ON}
+      ${MINIO_DEPENDS_ON}
     restart: unless-stopped
     volumes:
       - ./nocodb:/usr/app/data
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
+      - "traefik.enable=true"
+      - "traefik.http.routers.nocodb.rule=Host(\`${DOMAIN_NAME}\`)"
+EOF
+if [ "$SSL_ENABLED" != "Y" ] && [ "$SSL_ENABLED" != "y" ]; then
+  cat <<EOF >> docker-compose.yml
+      - "traefik.http.routers.nocodb.entrypoints=web"
+EOF
+else
+  cat <<EOF >> docker-compose.yml
+      - "traefik.http.routers.nocodb.entrypoints=websecure"
+      - "traefik.http.routers.nocodb.tls=true"
+      - "traefik.http.routers.nocodb.tls.certresolver=letsencrypt"
+EOF
+fi
+
+cat <<EOF >> docker-compose.yml
     networks:
       - nocodb-network
   db:
@@ -574,64 +634,44 @@ services:
     networks:
       - nocodb-network
 
-  nginx:
-    image: nginx:latest
-    labels:
-      com.nocodb.service: "nginx"
-    volumes:
-      - ./nginx:/etc/nginx/conf.d
+  traefik:
+    image: traefik:v2.7
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--entrypoints.web.address=:80"
+      - "--providers.docker.exposedByDefault=false"
+      - "--entrypoints.minio.address=:9000"
 EOF
 
-if [ "$SSL_ENABLED" = 'y' ] || [ "$SSL_ENABLED" = 'Y' ]; then
+if [ "$SSL_ENABLED" = 'y' ] || [ "$SSL_ENABLED" = 'Y' ] || [ "$MINIO_SSL_ENABLED" = 'y' ] || [ "$MINIO_SSL_ENABLED" = 'Y' ]; then
     cat <<EOF >> docker-compose.yml
-      - webroot:/var/www/certbot
-      - ./letsencrypt:/etc/letsencrypt
-      - letsencrypt-lib:/var/lib/letsencrypt
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=websecure"
+      - "--certificatesresolvers.letsencrypt.acme.email=`\"contact@$DOMAIN_NAME\"`"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/etc/letsencrypt/acme.json"
+EOF
+else
+    cat <<EOF >> docker-compose.yml
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
 EOF
 fi
+
 cat <<EOF >> docker-compose.yml
     ports:
       - "80:80"
       - "443:443"
+      - "9000:9000"
     depends_on:
       - nocodb
     restart: unless-stopped
-    networks:
-      - nocodb-network
-EOF
-
-if [ "$SSL_ENABLED" = 'y' ] || [ "$SSL_ENABLED" = 'Y' ]; then
-    cat <<EOF >> docker-compose.yml
-  certbot:
-    image: certbot/certbot
     volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
       - ./letsencrypt:/etc/letsencrypt
-      - letsencrypt-lib:/var/lib/letsencrypt
-      - webroot:/var/www/certbot
-    entrypoint: |
-      /bin/sh -c '
-      apk add docker-cli || { echo "Failed to install Docker CLI"; exit 1; };
-      trap exit TERM;
-      while :; do
-        OUTPUT=\$\$(certbot renew 2>&1);
-        echo "\$\$OUTPUT";
-        if echo "\$\$OUTPUT" | grep -q "No renewals were attempted"; then
-          echo "No certificates were renewed.";
-        else
-          echo "Certificates renewed. Reloading nginx...";
-          sleep 5;
-          CONTAINER_NAME=\$\$(docker ps --format "{{.Names}}" --filter "com.nocodb.service=nginx" | grep "nginx") || { echo "Failed to find nginx container"; exit 1; };
-          docker exec \$\$CONTAINER_NAME nginx -s reload || { echo "Failed to reload nginx"; exit 1; };
-        fi;
-        sleep 12h & wait \$\${!};
-      done;'
-    depends_on:
-      - nginx
-    restart: unless-stopped
     networks:
       - nocodb-network
 EOF
-fi
 
 if [ -z "$REDIS_ENABLED" ] || { [ "$REDIS_ENABLED" != "N" ] && [ "$REDIS_ENABLED" != "n" ]; }; then
 cat <<EOF >> docker-compose.yml
@@ -651,6 +691,42 @@ cat <<EOF >> docker-compose.yml
       - nocodb-network
 EOF
 fi
+## Add Minio to the docker-compose file
+
+if [ -z "$MINIO_ENABLED" ] || { [ "$MINIO_ENABLED" != "N" ] && [ "$MINIO_ENABLED" != "n" ]; }; then
+  cat <<EOF >> docker-compose.yml
+  minio:
+    image: minio/minio:latest
+    restart: unless-stopped
+    env_file: docker.env
+    entrypoint: /bin/sh
+    volumes:
+      - minio_data:/export
+    command: -c 'mkdir -p /export/nocodb && /usr/bin/minio server /export'
+    labels:
+          - "traefik.enable=true"
+          - "traefik.http.services.minio.loadbalancer.server.port=9000"
+EOF
+fi
+# Minio SSL Configuration
+if [ "$MINIO_SSL_ENABLED" != 'n' ] && [ "$MINIO_SSL_ENABLED" != 'N' ]; then
+  cat <<EOF >> docker-compose.yml
+          - "traefik.http.routers.minio.rule=Host(\`$MINIO_DOMAIN_NAME\`)"
+          - "traefik.http.routers.minio.entrypoints=websecure"
+          - "traefik.http.routers.minio.tls=true"
+          - "traefik.http.routers.minio.tls.certresolver=letsencrypt"
+EOF
+else
+  cat <<EOF >> docker-compose.yml
+          - "traefik.http.routers.minio.rule=Host(\`$MINIO_DOMAIN_NAME\`)"
+          - "traefik.http.routers.minio.entrypoints=minio"
+EOF
+fi
+
+cat <<EOF >> docker-compose.yml
+    networks:
+      - nocodb-network
+EOF
 
 if [ -z "$WATCHTOWER_ENABLED" ] || { [ "$WATCHTOWER_ENABLED" != "N" ] && [ "$WATCHTOWER_ENABLED" != "n" ]; }; then
 cat <<EOF >> docker-compose.yml
@@ -665,27 +741,29 @@ cat <<EOF >> docker-compose.yml
 EOF
 fi
 
-if [ "$SSL_ENABLED" = 'y' ] || [ "$SSL_ENABLED" = 'Y' ]; then
-    cat <<EOF >> docker-compose.yml
+
+VOLUME_SECTION_ADDED=false
+
+# Add the cache volume
+if [ -z "$REDIS_ENABLED" ] || { [ "$REDIS_ENABLED" != "N" ] && [ "$REDIS_ENABLED" != "n" ]; }; then
+  cat <<EOF >> docker-compose.yml
 volumes:
-  letsencrypt-lib:
-  webroot:
+  redis:
 EOF
+  VOLUME_SECTION_ADDED=true
 fi
 
-# add the cache volume
-if [ -z "$REDIS_ENABLED" ] || { [ "$REDIS_ENABLED" != "N" ] && [ "$REDIS_ENABLED" != "n" ]; }; then
-#  check ssl enabled
-  if [ "$SSL_ENABLED" = 'y' ] || [ "$SSL_ENABLED" = 'Y' ]; then
-    cat <<EOF >> docker-compose.yml
-  redis:
-EOF
-  else
-    cat <<EOF >> docker-compose.yml
+# Add the Minio storage volume
+if [ -z "$MINIO_ENABLED" ] || { [ "$MINIO_ENABLED" != "N" ] && [ "$MINIO_ENABLED" != "n" ]; }; then
+    if [ "$VOLUME_SECTION_ADDED" = false ]; then
+      cat <<EOF >> docker-compose.yml
 volumes:
-  redis:
 EOF
-  fi
+      VOLUME_SECTION_ADDED=true
+    fi
+    cat <<EOF >> docker-compose.yml
+  minio_data:
+EOF
 fi
 
 # Create the network
@@ -712,83 +790,26 @@ NC_REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
 EOF
 fi
 
-mkdir -p ./nginx
-
-# Create nginx config with the provided domain name
-cat > ./nginx/default.conf <<EOF
-server {
-    listen 80;
-EOF
-
-if [ "$SSL_ENABLED" = 'y' ] || [ "$SSL_ENABLED" = 'Y' ]; then
-cat >> ./nginx/default.conf <<EOF
-    server_name $DOMAIN_NAME;
-EOF
-fi
-
-cat >> ./nginx/default.conf <<EOF
-    location / {
-        proxy_pass http://nocodb:8080;
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto \$scheme;
-    }
-EOF
-
-if [ "$SSL_ENABLED" = 'y' ] || [ "$SSL_ENABLED" = 'Y' ]; then
-cat >> ./nginx/default.conf <<EOF
-    location /.well-known/acme-challenge/ {
-        root /var/www/certbot;
-    }
+# add minio env if enabled
+if [ -z "$MINIO_ENABLED" ] || { [ "$MINIO_ENABLED" != "N" ] && [ "$MINIO_ENABLED" != "n" ]; }; then
+  cat <<EOF >> docker.env
+MINIO_ROOT_USER=${MINIO_ACCESS_KEY}
+MINIO_ROOT_PASSWORD=${MINIO_ACCESS_SECRET}
+NC_S3_BUCKET_NAME=nocodb
+NC_S3_REGION=us-east-1
+NC_S3_ACCESS_KEY=${MINIO_ACCESS_KEY}
+NC_S3_ACCESS_SECRET=${MINIO_ACCESS_SECRET}
+NC_S3_FORCE_PATH_STYLE=true
 EOF
 fi
-cat >> ./nginx/default.conf <<EOF
-}
+
+if [ "$MINIO_SSL_ENABLED" != 'Y' ] || [ "$MINIO_SSL_ENABLED" != 'y' ]; then
+  cat <<EOF >> docker.env
+NC_S3_ENDPOINT=http://${MINIO_DOMAIN_NAME}:9000
 EOF
-
-if [ "$SSL_ENABLED" = 'y' ] || [ "$SSL_ENABLED" = 'Y' ]; then
-
-mkdir -p ./nginx-post-config
-
-# Create nginx config with the provided domain name
-cat > ./nginx-post-config/default.conf <<EOF
-upstream nocodb_backend {
-    least_conn;
-    server nocodb:8080;
-}
-
-
-server {
-    listen 80;
-    server_name $DOMAIN_NAME;
-
-    location / {
-        return 301 https://\$host\$request_uri;
-    }
-
-    location /.well-known/acme-challenge/ {
-        root /var/www/certbot;
-    }
-}
-
-
-server {
-    listen 443 ssl;
-    server_name $DOMAIN_NAME;
-
-    ssl_certificate /etc/letsencrypt/live/$DOMAIN_NAME/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/$DOMAIN_NAME/privkey.pem;
-
-    location / {
-        proxy_pass http://nocodb_backend;
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto \$scheme;
-    }
-}
-
+else
+  cat <<EOF >> docker.env
+NC_S3_ENDPOINT=https://${MINIO_DOMAIN_NAME}
 EOF
 fi
 
@@ -803,28 +824,11 @@ message_arr+=("Update script: update.sh")
 $DOCKER_COMMAND compose pull
 $DOCKER_COMMAND compose up -d
 
-echo 'Waiting for Nginx to start...';
+echo 'Waiting for Traefik to start...';
 
 sleep 5
 
-if [ "$SSL_ENABLED" = 'y' ] || [ "$SSL_ENABLED" = 'Y' ]; then
-  echo 'Starting Letsencrypt certificate request...';
-
-  $DOCKER_COMMAND compose exec certbot certbot certonly --webroot --webroot-path=/var/www/certbot -d "$DOMAIN_NAME" --email "contact@$DOMAIN_NAME" --agree-tos --no-eff-email && echo "Certificate request successful" || echo "Certificate request failed"
-  # Initial Let's Encrypt certificate request
-
-  # Update the nginx config to use the new certificates
-  rm -rf ./nginx/default.conf
-  mv ./nginx-post-config/default.conf ./nginx/
-  rm -r ./nginx-post-config
-
-  echo "Restarting nginx to apply the new certificates"
-  # Reload nginx to apply the new certificates
-  $DOCKER_COMMAND compose exec nginx nginx -s reload
-
-  message_arr+=("NocoDB is now available at https://$DOMAIN_NAME")
-
-elif [ -n "$DOMAIN_NAME" ]; then
+if [ -n "$DOMAIN_NAME" ]; then
   message_arr+=("NocoDB is now available at http://$DOMAIN_NAME")
 else
   message_arr+=("NocoDB is now available at http://localhost")

@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+/* eslint-disable @typescript-eslint/consistent-type-imports */
 import { OrderedWorkspaceRoles, WorkspaceUserRoles } from 'nocodb-sdk'
 
 const props = defineProps<{

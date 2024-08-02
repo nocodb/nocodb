@@ -556,7 +556,8 @@ MINIO_ACCESS_SECRET=$(openssl rand -base64 48 | tr -dc 'a-zA-Z0-9' | head -c 24)
 # Encode special characters in the password for JDBC URL usage
 ENCODED_PASSWORD=$(urlencode "$STRONG_PASSWORD")
 
-IMAGE="nocodb/nocodb-timely:0.251.3-pr-9137-20240802-0625";
+## TODO: Update them
+IMAGE="nocodb/nocodb-timely:0.251.3-pr-9137-20240802-1235";
 
 # Determine the Docker image to use based on the edition
 if [ -n "$EDITION" ] && { [ "$EDITION" = "EE" ] || [ "$EDITION" = "ee" ]; }; then

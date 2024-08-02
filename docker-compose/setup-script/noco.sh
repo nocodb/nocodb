@@ -636,7 +636,7 @@ cat <<EOF >> docker-compose.yml
       - nocodb-network
 
   traefik:
-    image: traefik:v2.7
+    image: traefik:v3.1
     command:
       - "--api.insecure=true"
       - "--providers.docker=true"
@@ -702,7 +702,7 @@ if [ -z "$MINIO_ENABLED" ] || { [ "$MINIO_ENABLED" != "N" ] && [ "$MINIO_ENABLED
     env_file: docker.env
     entrypoint: /bin/sh
     volumes:
-      - minio_data:/export
+      - ./minio:/export
     command: -c 'mkdir -p /export/nocodb && /usr/bin/minio server /export'
     labels:
           - "traefik.enable=true"
@@ -742,28 +742,11 @@ cat <<EOF >> docker-compose.yml
 EOF
 fi
 
-
-VOLUME_SECTION_ADDED=false
-
 # Add the cache volume
 if [ -z "$REDIS_ENABLED" ] || { [ "$REDIS_ENABLED" != "N" ] && [ "$REDIS_ENABLED" != "n" ]; }; then
   cat <<EOF >> docker-compose.yml
 volumes:
   redis:
-EOF
-  VOLUME_SECTION_ADDED=true
-fi
-
-# Add the Minio storage volume
-if [ -z "$MINIO_ENABLED" ] || { [ "$MINIO_ENABLED" != "N" ] && [ "$MINIO_ENABLED" != "n" ]; }; then
-    if [ "$VOLUME_SECTION_ADDED" = false ]; then
-      cat <<EOF >> docker-compose.yml
-volumes:
-EOF
-      VOLUME_SECTION_ADDED=true
-    fi
-    cat <<EOF >> docker-compose.yml
-  minio_data:
 EOF
 fi
 

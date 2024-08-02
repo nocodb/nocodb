@@ -448,7 +448,10 @@ export class MetaDiffsService {
     }
 
     for (const relation of relationList) {
-      if (!relation?.found?.[RelationTypes.BELONGS_TO] && !relation?.found?.[RelationTypes.ONE_TO_ONE]) {
+      if (
+        !relation?.found?.[RelationTypes.BELONGS_TO] &&
+        !relation?.found?.[RelationTypes.ONE_TO_ONE]
+      ) {
         changes
           .find((t) => t.table_name === relation.tn)
           ?.detectedChanges.push({
@@ -462,7 +465,10 @@ export class MetaDiffsService {
             cstn: relation.cstn,
           });
       }
-      if (!relation?.found?.[RelationTypes.HAS_MANY] && !relation?.found?.[RelationTypes.ONE_TO_ONE]) {
+      if (
+        !relation?.found?.[RelationTypes.HAS_MANY] &&
+        !relation?.found?.[RelationTypes.ONE_TO_ONE]
+      ) {
         changes
           .find((t) => t.table_name === relation.rtn)
           ?.detectedChanges.push({

@@ -1,6 +1,5 @@
 import { Upload } from '@aws-sdk/lib-storage';
-import { GetObjectCommand, S3 as S3Client } from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { S3 as S3Client } from '@aws-sdk/client-s3';
 import type { PutObjectCommandInput, S3ClientConfig } from '@aws-sdk/client-s3';
 import type { IStorageAdapterV2 } from 'nc-plugin';
 import GenericS3 from '~/plugins/GenericS3/GenericS3';
@@ -41,28 +40,15 @@ export default class Backblaze extends GenericS3 implements IStorageAdapterV2 {
 
     this.s3Client = new S3Client(s3Options);
   }
-
-  public async getSignedUrl(
-    key,
-    expiresInSeconds = 7200,
-    pathParameters?: { [key: string]: string },
-  ) {
-    let tempKey = key;
+  protected patchKey(key: string): string {
     if (
-      tempKey.startsWith(`${this.input.bucket}/nc/uploads`) ||
-      tempKey.startsWith(`${this.input.bucket}/nc/thumbnails`)
+      key.startsWith(`${this.input.bucket}/nc/uploads`) ||
+      key.startsWith(`${this.input.bucket}/nc/thumbnails`)
     ) {
-      tempKey = tempKey.replace(`${this.input.bucket}/`, '');
+      key = key.replace(`${this.input.bucket}/`, '');
     }
 
-    const command = new GetObjectCommand({
-      Key: tempKey,
-      Bucket: this.input.bucket,
-      ...pathParameters,
-    });
-    return getSignedUrl(this.s3Client, command, {
-      expiresIn: expiresInSeconds,
-    });
+    return key;
   }
 
   protected async upload(uploadParams: PutObjectCommandInput): Promise<any> {

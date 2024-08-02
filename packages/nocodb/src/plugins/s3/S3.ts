@@ -28,6 +28,21 @@ export default class S3 extends GenericS3 implements IStorageAdapterV2 {
     };
   }
 
+  protected patchKey(key: string): string {
+    if (!this.input.force_path_style) {
+      return key;
+    }
+
+    if (
+      key.startsWith(`${this.input.bucket}/nc/uploads`) ||
+      key.startsWith(`${this.input.bucket}/nc/thumbnails`)
+    ) {
+      key = key.replace(`${this.input.bucket}/`, '');
+    }
+
+    return key;
+  }
+
   public async init(): Promise<any> {
     const s3Options: S3ClientConfig = {
       region: this.input.region,
@@ -58,6 +73,11 @@ export default class S3 extends GenericS3 implements IStorageAdapterV2 {
         const endpoint = this.input.endpoint
           ? new URL(this.input.endpoint).host
           : `s3.${this.input.region}.amazonaws.com`;
+
+        if (this.input.force_path_style) {
+          return `https://${endpoint}/${this.input.bucket}/${uploadParams.Key}`;
+        }
+
         return `https://${this.input.bucket}.${endpoint}/${uploadParams.Key}`;
       } else {
         throw new Error('Upload failed or no data returned.');

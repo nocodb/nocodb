@@ -133,7 +133,7 @@ export const useRolesShared = createSharedComposable(() => {
           featureFlags: res.featureFlags,
         } as User
       } else if (baseId) {
-        const res = await api.auth.me({base_id: baseId, ...wsId})
+        const res = await api.auth.me({ base_id: baseId, ...wsId })
 
         user.value = {
           ...user.value,
@@ -145,7 +145,7 @@ export const useRolesShared = createSharedComposable(() => {
           featureFlags: res.featureFlags,
         } as User
       } else {
-        const res = await api.auth.me({...wsId} as any)
+        const res = await api.auth.me({ ...wsId } as any)
 
         user.value = {
           ...user.value,

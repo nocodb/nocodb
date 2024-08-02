@@ -137,7 +137,6 @@ const findAndLoadSubGroup = async (key: any) => {
   key = Array.isArray(key) ? key : [key]
   if (key.length > 0 && vGroup.value.children) {
     if (!oldActiveGroups.value.includes(key[key.length - 1])) {
-
       // wait until children loads since it may be still loading in background
       // todo: implement a better way to handle this
       await until(() => vGroup.value.children?.length > 0).toBeTruthy({
@@ -285,13 +284,13 @@ const shouldRenderCell = (column) =>
     UITypes.LastModifiedBy,
   ].includes(column?.uidt)
 
-const expandGroup = (key: string) => {
+const expandGroup = async (key: string) => {
   if (Array.isArray(_activeGroupKeys.value)) {
     _activeGroupKeys.value.push(`group-panel-${key}`)
   } else {
     _activeGroupKeys.value = [`group-panel-${key}`]
   }
-  findAndLoadSubGroup(`group-panel-${key}`)
+  await findAndLoadSubGroup(`group-panel-${key}`)
 }
 
 const collapseGroup = (key: string) => {
@@ -306,13 +305,15 @@ const collapseAllGroup = () => {
   _activeGroupKeys.value = []
 }
 
-const expandAllGroup = () => {
+const expandAllGroup = async () => {
   _activeGroupKeys.value = vGroup.value.children?.map((g) => `group-panel-${g.key}`) ?? []
 
   if (vGroup.value.children) {
-    vGroup.value.children.forEach((g) => {
-      findAndLoadSubGroup(`group-panel-${g.key}`)
-    })
+    await Promise.all(
+      vGroup.value.children.map((g) => {
+        return findAndLoadSubGroup(`group-panel-${g.key}`)
+      }),
+    )
   }
 }
 

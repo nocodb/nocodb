@@ -11,6 +11,7 @@ interface S3Input {
   access_secret: string;
   endpoint?: string;
   acl?: string;
+  force_path_style?: boolean;
 }
 
 export default class S3 extends GenericS3 implements IStorageAdapterV2 {
@@ -34,6 +35,7 @@ export default class S3 extends GenericS3 implements IStorageAdapterV2 {
         accessKeyId: this.input.access_key,
         secretAccessKey: this.input.access_secret,
       },
+      forcePathStyle: this.input.force_path_style ?? false,
     };
 
     if (this.input.endpoint) {

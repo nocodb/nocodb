@@ -208,17 +208,21 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     }
   }
 
-  const editIntegration = async (integration: IntegrationType) => {
+
+  const getIntegration = async (
+    integration: IntegrationType,
+    options?: {
+      includeConfig?: boolean
+      includeSources?: boolean
+    },
+  ) => {
     if (!integration?.id) return
 
     try {
       const integrationWithConfig = await api.integration.read(integration.id, {
-        includeConfig: true,
+        ...(options ? options : {}),
       })
-      activeIntegration.value = integrationWithConfig
-      pageMode.value = IntegrationsPageMode.EDIT
-
-      $e('c:integration:edit')
+      return integrationWithConfig
     } catch (e) {
       const error = await extractSdkResponseErrorMsgv2(e)
 
@@ -229,6 +233,18 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
       }
       await message.error(error.message)
     }
+  }
+
+  const editIntegration = async (integration: IntegrationType) => {
+    if (!integration?.id) return
+
+    try {
+      const integrationWithConfig = await getIntegration(integration, { includeConfig: true })
+      activeIntegration.value = integrationWithConfig
+      pageMode.value = IntegrationsPageMode.EDIT
+
+      $e('c:integration:edit')
+    } catch {}
   }
 
   const saveIntegraitonRequest = async (msg: string) => {
@@ -269,6 +285,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     eventBus,
     saveIntegraitonRequest,
     requestIntegration,
+    getIntegration
   }
 }, 'integrations-store')
 

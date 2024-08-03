@@ -403,7 +403,7 @@ onMounted(async () => {
                 </td> -->
                 <td class="cell-actions" @click.stop>
                   <div class="flex justify-end">
-                    <NcDropdown v-if="user?.id === integration.created_by" placement="bottomRight">
+                    <NcDropdown placement="bottomRight">
                       <NcButton size="small" type="secondary">
                         <GeneralIcon icon="threeDotVertical" />
                       </NcButton>

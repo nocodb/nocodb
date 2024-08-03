@@ -12,7 +12,7 @@ const { loadRoles } = useRoles()
 const { activeWorkspace: _activeWorkspace } = storeToRefs(workspaceStore)
 const { loadCollaborators } = workspaceStore
 
-const { integrations, loadIntegrations } = useIntegrationStore()
+const { integrationPaginationData, loadIntegrations } = useProvideIntegrationViewStore()
 
 const currentWorkspace = computedAsync(async () => {
   await loadRoles(undefined, {}, _activeWorkspace.value?.id)
@@ -83,14 +83,14 @@ onMounted(() => {
               <GeneralIcon icon="gitCommit" />
               {{ $t('general.connections') }}
               <div
-                v-if="integrations?.length"
+                v-if="integrationPaginationData?.totalRows"
                 class="tab-info flex-none"
                 :class="{
                   'bg-primary-selected': tab === 'connections',
                   'bg-gray-50': tab !== 'connections',
                 }"
               >
-                {{ integrations.length }}
+                {{ integrationPaginationData.totalRows }}
               </div>
             </div>
           </template>

@@ -82,7 +82,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
       if (!activeWorkspaceId.value) return
       isLoadingIntegrations.value = true
 
-      if (limit * (page - 1) > integrationPaginationData.value.totalRows!) {
+      if (!databaseOnly && limit * (page - 1) > integrationPaginationData.value.totalRows!) {
         integrationPaginationData.value.page = 1
         page = 1
       }
@@ -101,7 +101,9 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
       )
 
       integrations.value = list
-      integrationPaginationData.value.totalRows = pageInfo.totalRows ?? 0
+      if (!databaseOnly) {
+        integrationPaginationData.value.totalRows = pageInfo.totalRows ?? 0
+      }
     } catch (e) {
       await message.error(await extractSdkResponseErrorMsg(e))
       integrations.value = []

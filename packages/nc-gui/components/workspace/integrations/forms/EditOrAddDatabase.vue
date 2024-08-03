@@ -877,7 +877,7 @@ watch(
                   <template #expandIcon="{ isActive }">
                     <a-switch :checked="isActive" size="small" @change="handleUpdateUseSslExpannsionPanel($event)" />
                   </template>
-                  <a-collapse-panel key="1" disabled>
+                  <a-collapse-panel key="1" collapsible="disabled">
                     <template #header>
                       <div class="flex">
                         <div

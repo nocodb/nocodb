@@ -200,7 +200,7 @@ export class IntegrationsService {
     let integrationBody;
 
     if (param.integration.copy_from_id) {
-       integrationBody = await Integration.get(
+      integrationBody = await Integration.get(
         context,
         param.integration.copy_from_id,
       );

@@ -19090,10 +19090,14 @@
           },
           "enabled": {
             "$ref": "#/components/schemas/Bool",
-            "description": "Is this source enabled"
+            "description": "Is this Intgration enabled"
           },
           "id": {
-            "description": "Unique Source ID",
+            "description": "Unique Integration ID",
+            "type": "string"
+          },
+          "fk_workspace_id": {
+            "description": "Unique Workspace ID",
             "type": "string"
           },
           "inflection_column": {
@@ -19306,6 +19310,66 @@
           },
           "type": {
             "description": "DB Type",
+            "enum": [
+              "mssql",
+              "mysql",
+              "mysql2",
+              "oracledb",
+              "pg",
+              "snowflake",
+              "sqlite3",
+              "databricks"
+            ],
+            "type": "string"
+          }
+        },
+        "title": "Source Request",
+        "type": "object",
+        "x-stoplight": {
+          "id": "ky2ak9xsyl3b5"
+        }
+      },
+      "IntegrationReq": {
+        "description": "Model for Integration Request",
+        "examples": [
+          {
+            "alias": "My Source",
+            "config": null,
+            "inflection_column": "camelize",
+            "inflection_table": "camelize",
+            "is_meta": true,
+            "type": "mysql"
+          }
+        ],
+        "properties": {
+          "alias": {
+            "description": "Source Name - Default BASE will be null by default",
+            "example": "My Source",
+            "maxLength": 128,
+            "type": "string"
+          },
+          "config": {
+            "description": "Source Configuration"
+          },
+          "inflection_column": {
+            "description": "Inflection for columns",
+            "example": "camelize",
+            "type": "string"
+          },
+          "inflection_table": {
+            "description": "Inflection for tables",
+            "example": "camelize",
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "description": "Integration Type",
+            "enum": [
+              "db"
+            ]
+          },
+          "sub_type": {
+            "description": "Sub Type",
             "enum": [
               "mssql",
               "mysql",

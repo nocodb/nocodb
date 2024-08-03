@@ -479,6 +479,10 @@ const errorHelpers: {
     message: (id: string) => `Source '${id}' not found`,
     code: 404,
   },
+  [NcErrorType.INTEGRATION_NOT_FOUND]: {
+    message: (id: string) => `Integration '${id}' not found`,
+    code: 404,
+  },
   [NcErrorType.TABLE_NOT_FOUND]: {
     message: (id: string) => `Table '${id}' not found`,
     code: 404,
@@ -832,5 +836,12 @@ export class NcError {
 
   static sourceMetaReadOnly(name: string) {
     NcError.forbidden(`Source '${name}' schema is read-only`);
+  }
+
+  static integrationNotFound(id: string, args?: NcErrorArgs) {
+    throw new NcBaseErrorv2(NcErrorType.INTEGRATION_NOT_FOUND, {
+      params: id,
+      ...(args || {}),
+    });
   }
 }

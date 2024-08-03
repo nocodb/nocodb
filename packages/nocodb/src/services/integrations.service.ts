@@ -1,138 +1,126 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents } from 'nocodb-sdk';
-import type { BaseReqType } from 'nocodb-sdk';
+import type { IntegrationReqType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
-import { populateMeta, validatePayload } from '~/helpers';
-import { populateRollupColumnAndHideLTAR } from '~/helpers/populateMeta';
-import { syncBaseMigration } from '~/helpers/syncMigration';
-import { Base, Integration } from '~/models';
+import { validatePayload } from '~/helpers';
+import { Integration } from '~/models';
 import { NcError } from '~/helpers/catchError';
+import { Workspace } from '~/ee/models';
 
 @Injectable()
 export class IntegrationsService {
   constructor(protected readonly appHooksService: AppHooksService) {}
 
-  async baseGetWithConfig(context: NcContext, param: { sourceId: any }) {
-    const source = await Integration.get(context, param.sourceId);
+  async integrationGetWithConfig(
+    context: NcContext,
+    param: { integrationId: any },
+  ) {
+    const integration = await Integration.get(param.integrationId);
 
-    source.config = await source.getConnectionConfig();
+    integration.config = await integration.getConnectionConfig();
 
-    return source;
+    return integration;
   }
 
-  async baseUpdate(
+  async integrationUpdate(
     context: NcContext,
     param: {
-      sourceId: string;
-      source: BaseReqType;
-      baseId: string;
+      integrationId: string;
+      integration: IntegrationReqType;
       req: NcRequest;
     },
   ) {
-    validatePayload('swagger.json#/components/schemas/BaseReq', param.source);
+    validatePayload(
+      'swagger.json#/components/schemas/IntegrationReq',
+      param.integration,
+    );
 
-    const baseBody = param.source;
-    const base = await Base.getWithInfo(context, param.baseId);
-    const source = await Integration.updateBase(context, param.sourceId, {
-      ...baseBody,
-      type: baseBody.config?.client,
-      baseId: base.id,
-      id: param.sourceId,
-    });
+    const integrationBody = param.integration;
+    const integration = await Integration.updateIntegration(
+      context,
+      param.integrationId,
+      {
+        ...integrationBody,
+        type: integrationBody.config?.client,
+        id: param.integrationId,
+      },
+    );
 
-    delete source.config;
+    delete integration.config;
 
-    this.appHooksService.emit(AppEvents.BASE_UPDATE, {
-      source,
-      req: param.req,
-    });
+    // todo: add new event type
+    // this.appHooksService.emit(AppEvents.BASE_UPDATE, {
+    //   integration,
+    //   req: param.req,
+    // });
 
-    return source;
+    return integration;
   }
 
-  async baseList(context: NcContext, param: { baseId: string }) {
-    const sources = await Integration.list(context, { baseId: param.baseId });
+  async integrationList(param: { workspaceId: string }) {
+    const integrations = await Integration.list({
+      workspaceId: param.workspaceId,
+    });
 
-    return sources;
+    return integrations;
   }
 
-  async baseDelete(context: NcContext, param: { sourceId: string; req: any }) {
+  async integrationDelete(param: { integrationId: string; req: any }) {
     try {
-      const source = await Integration.get(context, param.sourceId, true);
-      await source.delete(context);
-      this.appHooksService.emit(AppEvents.BASE_DELETE, {
-        source,
-        req: param.req,
-      });
+      const integration = await Integration.get(param.integrationId, true);
+      await integration.delete();
+      // todo: add new event type
+      // this.appHooksService.emit(AppEvents.BASE_DELETE, {
+      //   integration,
+      //   req: param.req,
+      // });
     } catch (e) {
       NcError.badRequest(e);
     }
     return true;
   }
 
-  async baseSoftDelete(context: NcContext, param: { sourceId: string }) {
+  async integrationSoftDelete(param: { integrationId: string }) {
     try {
-      const source = await Integration.get(context, param.sourceId);
-      await source.softDelete(context);
+      const integration = await Integration.get(param.integrationId);
+      await integration.softDelete();
     } catch (e) {
       NcError.badRequest(e);
     }
     return true;
   }
 
-  async baseCreate(
-    context: NcContext,
-    param: {
-      baseId: string;
-      source: BaseReqType;
-      logger?: (message: string) => void;
-      req: any;
-    },
-  ): Promise<{
-    source: Integration;
-    error?: any;
-  }> {
-    validatePayload('swagger.json#/components/schemas/BaseReq', param.source);
+  async integrationCreate(param: {
+    workspaceId: string;
+    integration: IntegrationReqType;
+    logger?: (message: string) => void;
+    req: any;
+  }) {
+    validatePayload(
+      'swagger.json#/components/schemas/IntegrationReq',
+      param.integration,
+    );
 
-    // type | base | baseId
-    const baseBody = param.source;
-    const base = await Base.getWithInfo(context, param.baseId);
+    // type | workspace | integrationId
+    const integrationBody = param.integration;
+    const workspace = await Workspace.get(param.workspaceId);
 
-    let error;
+    param.logger?.('Creating the integration');
 
-    param.logger?.('Creating the source');
-
-    const source = await Integration.createBase(context, {
-      ...baseBody,
-      type: baseBody.config?.client,
-      baseId: base.id,
+    const integration = await Integration.createIntegration({
+      ...integrationBody,
+      type: integrationBody.config?.client,
+      workspaceId: workspace.id,
     });
 
-    try {
-      await syncBaseMigration(base, source);
+    delete integration.config;
 
-      param.logger?.('Populating meta');
+    //  todo: map events
+    // this.appHooksService.emit(AppEvents.BASE_CREATE, {
+    //   integration,
+    //   req: param.req,
+    // });
 
-      const info = await populateMeta(context, source, base, param.logger);
-
-      await populateRollupColumnAndHideLTAR(context, source, base);
-
-      this.appHooksService.emit(AppEvents.APIS_CREATED, {
-        info,
-        req: param.req,
-      });
-
-      delete source.config;
-
-      this.appHooksService.emit(AppEvents.BASE_CREATE, {
-        source,
-        req: param.req,
-      });
-    } catch (e) {
-      error = e;
-    }
-
-    return { source, error };
+    return integration;
   }
 }

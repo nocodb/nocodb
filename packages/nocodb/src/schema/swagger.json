@@ -19140,7 +19140,7 @@
         "properties": {
           "alias": {
             "$ref": "#/components/schemas/StringOrNull",
-            "description": "Source Name - Default BASE will be null by default"
+            "description": "Source Name"
           },
           "config": {
             "description": "Source Configuration"

@@ -1091,8 +1091,12 @@ watch(
         </div>
       </div>
       <div class="nc-edit-or-add-integration-right-panel">
-        <DashboardSettingsDataSourcesInfo varient="new" />
-        <NcDivider v-if="isEeUI" />
+        <template v-if="isEeUI">
+          <DashboardSettingsDataSourcesInfo varient="new" />
+          <NcDivider />
+        </template>
+        <!-- <WorkspaceIntegrationsSupportedDocs/>
+        <NcDivider /> -->
       </div>
     </div>
   </div>

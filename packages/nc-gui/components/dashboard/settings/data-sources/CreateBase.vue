@@ -703,8 +703,8 @@ const handleAutoScroll = (scroll: boolean, className: string) => {
           </div>
         </div>
         <div class="nc-add-source-right-panel">
-          <DashboardSettingsDataSourcesInfo varient="new" />
-          <NcDivider v-if="isEeUI" />
+          <!-- <DashboardSettingsDataSourcesSupportedDocs/>
+          <NcDivider /> -->
         </div>
       </div>
     </div>

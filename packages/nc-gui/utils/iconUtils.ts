@@ -214,6 +214,7 @@ import NcCircle from '~icons/nc-icons/circle'
 import NcServer1 from '~icons/nc-icons/server1'
 import NcThumbsUpOutline from '~icons/nc-icons/thumbs-up-outline'
 
+// Sync data
 import NcAppleSolid from '~icons/nc-icons/apple_solid'
 import NcAsana from '~icons/nc-icons/asana'
 import NcBox from '~icons/nc-icons/box'
@@ -238,6 +239,8 @@ import NcTrello from '~icons/nc-icons/trello'
 import NcTypeform from '~icons/nc-icons/typeform'
 import NcWorkday from '~icons/nc-icons/workday'
 import NcZendesk from '~icons/nc-icons/zendesk'
+
+import NcBookOpen from '~icons/nc-icons/book-open'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -705,6 +708,7 @@ export const iconMap = {
   typeform: NcTypeform,
   workday: NcWorkday,
   zendesk: NcZendesk,
+  bookOpen: NcBookOpen
 }
 
 export const getMdiIcon = (type: string): any => {

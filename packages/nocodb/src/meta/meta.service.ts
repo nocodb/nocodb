@@ -485,8 +485,6 @@ export class MetaService {
       query.select(...args.fields);
     }
 
-    console.log(query.toQuery());
-
     return query;
   }
 

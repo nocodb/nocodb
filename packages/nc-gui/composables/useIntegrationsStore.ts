@@ -63,7 +63,6 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
       if (!activeWorkspaceId.value) return
 
       const response = await api.integration.list(
-        activeWorkspaceId.value,
         databaseOnly
           ? {
               type: IntegrationsType.Database,
@@ -124,7 +123,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
 
   const saveIntegration = async (integration: IntegrationType) => {
     try {
-      const response = await api.integration.create(activeWorkspaceId.value, integration)
+      const response = await api.integration.create(integration)
       $e('a:integration:create')
       integrations.value = response.data
       await loadIntegrations()

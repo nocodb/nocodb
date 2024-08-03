@@ -18484,6 +18484,153 @@
           "$ref": "#/components/parameters/xc-auth"
         }
       ]
+    },
+
+
+
+
+    "/api/v2/meta/integrations": {
+      "get": {
+        "summary": "List integrations",
+        "operationId": "integration-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntegrationList"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Integration"
+        ],
+        "description": "List integrations",
+        "parameters": [
+          {
+            "schema": {
+              "$ref": "#/components/schemas/Integrations"
+            },
+            "name": "type",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "boolean"
+            },
+            "name": "includeDatabaseInfo",
+            "in": "query"
+          }
+        ]
+      },
+      "post": {
+        "summary": "Create itegration",
+        "operationId": "integration-create",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Integration"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IntegrationReq"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Integration"
+        ],
+        "description": "Create integration"
+      }
+    },
+    "/api/v2/meta/integrations/{integrationId}": {
+      "get": {
+        "summary": "Read integration",
+        "operationId": "integration-read",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Integration"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Integration"
+        ],
+        "description": "Read integration",
+        "parameters": [
+          {
+            "schema": {
+              "type": "boolean"
+            },
+            "name": "includeConfig",
+            "in": "query"
+          }
+        ]
+      },
+      "patch": {
+        "summary": "Update integration",
+        "operationId": "integration-update",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Integration"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IntegrationReq"
+              }
+            }
+          }
+        },
+        "description": "Update integration"
+      },
+      "delete": {
+        "summary": "Delete integration",
+        "operationId": "integration-delete",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Integration"
+        ],
+        "description": "Delete integration"
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "integrationId",
+          "in": "path",
+          "required": true
+        }
+      ]
     }
   },
   "components": {

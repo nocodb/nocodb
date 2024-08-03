@@ -24,6 +24,7 @@ import {
 } from '~/utils/modelUtils';
 import { JobsRedis } from '~/modules/jobs/redis/jobs-redis';
 import { InstanceCommands } from '~/interface/Jobs';
+import { deepMerge, partialExtract } from '~/utils';
 
 // todo: hide credentials
 export default class Source implements SourceType {
@@ -221,7 +222,6 @@ export default class Source implements SourceType {
         .knex(MetaTable.BASES)
         .select(`${MetaTable.BASES}.*`)
         .where(`${MetaTable.BASES}.base_id`, context.base_id)
-        .where(`${MetaTable.BASES}.fk_workspace_id`, context.workspace_id)
         .where((whereQb) => {
           whereQb
             .where(`${MetaTable.BASES}.deleted`, false)
@@ -229,7 +229,7 @@ export default class Source implements SourceType {
         })
         .orderBy(`${MetaTable.BASES}.order`, 'asc');
 
-      this.joinAndAddCols(qb);
+      this.extendQb(qb, context);
 
       sourceDataList = await qb;
 
@@ -268,9 +268,8 @@ export default class Source implements SourceType {
         .select(`${MetaTable.BASES}.*`)
         .where(`${MetaTable.BASES}.id`, id)
         .where(`${MetaTable.BASES}.base_id`, context.base_id)
-        .where(`${MetaTable.BASES}.fk_workspace_id`, context.workspace_id);
 
-      this.joinAndAddCols(qb);
+      this.extendQb(qb, context);
 
       if (!force) {
         qb.where((whereQb) => {
@@ -289,41 +288,6 @@ export default class Source implements SourceType {
       await NocoCache.set(`${CacheScope.BASE}:${id}`, sourceData);
     }
     return this.castType(sourceData);
-  }
-
-  static async getByUUID(
-    context: NcContext,
-    uuid: string,
-    ncMeta = Noco.ncMeta,
-  ) {
-    const qb = ncMeta
-      .knex(MetaTable.BASES)
-      .select(`${MetaTable.BASES}.*`)
-      .where(`${MetaTable.BASES}.erd_uuid`, uuid)
-      .where(`${MetaTable.BASES}.base_id`, context.base_id)
-      .where(`${MetaTable.BASES}.fk_workspace_id`, context.workspace_id);
-
-    // this.joinAndAddCols(qb);
-
-    qb.where((whereQb) => {
-      whereQb
-        .where(`${MetaTable.BASES}.deleted`, false)
-        .orWhereNull(`${MetaTable.BASES}.deleted`);
-    });
-
-    const source = await qb.first();
-
-    if (source) {
-      source.meta = parseMetaProp(source, 'meta');
-    }
-
-    if (!source) return null;
-
-    delete source.config;
-
-    delete source.integration_config;
-
-    return this.castType(source);
   }
 
   public async getConnectionConfig(): Promise<any> {
@@ -355,7 +319,26 @@ export default class Source implements SourceType {
       ).toString(CryptoJS.enc.Utf8),
     );
 
-    return config;
+    if (!this.integration_config) {
+      return config;
+    }
+
+    const integrationConfig = JSON.parse(
+      CryptoJS.AES.decrypt(
+        this.integration_config,
+        Noco.getConfig()?.auth?.jwt?.secret,
+      ).toString(CryptoJS.enc.Utf8),
+    );
+    // merge integration config with source config
+    // override integration config with source config if exists
+    // only override database and searchPath
+    return deepMerge(
+      integrationConfig,
+      partialExtract(config || {}, [
+        ['connection', 'database'],
+        ['searchPath'],
+      ]),
+    );
   }
 
   public getSourceConfig(): any {
@@ -574,8 +557,13 @@ export default class Source implements SourceType {
     }
   }
 
-  // placeholder for future use
-  protected static joinAndAddCols(_qb: any) {
-    // do nothing
+  protected static extendQb(qb: any, _context: NcContext) {
+    qb.select(
+      `${MetaTable.INTEGRATIONS}.config as integration_config`,
+    ).leftJoin(
+      MetaTable.INTEGRATIONS,
+      `${MetaTable.BASES}.fk_integration_id`,
+      `${MetaTable.INTEGRATIONS}.id`,
+    );
   }
 }

@@ -52,6 +52,7 @@ export enum MetaTable {
   USER_COMMENTS_NOTIFICATIONS_PREFERENCE = 'nc_user_comment_notifications_preference',
   COMMENTS_REACTIONS = 'nc_comment_reactions',
   JOBS = 'nc_jobs',
+  INTEGRATIONS = 'nc_integrations_v2',
 }
 
 export enum MetaTableOldV2 {

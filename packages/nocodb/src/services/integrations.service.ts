@@ -78,7 +78,6 @@ export class IntegrationsService {
     offset?: number;
   }) {
     const integrations = await Integration.list({
-      haveWorkspaceLevelPermission: true,
       userId: param.req.user?.id,
       includeDatabaseInfo: param.includeDatabaseInfo,
       type: param.type,

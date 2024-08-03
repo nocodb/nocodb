@@ -604,7 +604,7 @@ const allowAccess = computed({
                         <a-form-item :label="$t('labels.dbType')" v-bind="validateInfos['dataSource.client']">
                           <NcSelect
                             v-model:value="formState.dataSource.client"
-                            class="nc-extdb-db-type"
+                            class="nc-select-shadow nc-extdb-db-type"
                             dropdown-class-name="nc-dropdown-ext-db-type"
                             @change="onClientChange"
                           >
@@ -652,7 +652,7 @@ const allowAccess = computed({
                         </a-col>
                         <a-col :span="12">
                           <!-- Password -->
-                          <a-form-item :label="$t('labels.password')" v-bind="validateInfos['dataSource.connection.password']">
+                          <a-form-item :label="$t('labels.password')" class="nc-form-item-connection-password" v-bind="validateInfos['dataSource.connection.password']">
                             <a-input-password
                               v-model:value="(formState.dataSource.connection as SnowflakeConnection).password"
                               class="nc-extdb-host-password"
@@ -754,7 +754,7 @@ const allowAccess = computed({
                         </a-col>
                         <a-col :span="12">
                           <!-- Port Number -->
-                          <a-form-item :label="$t('labels.port')" v-bind="validateInfos['dataSource.connection.port']">
+                          <a-form-item :label="$t('labels.port')" class="nc-form-item-connection-port" v-bind="validateInfos['dataSource.connection.port']">
                             <a-input-number
                               v-model:value="(formState.dataSource.connection as DefaultConnection).port"
                               class="!w-full nc-extdb-host-port !rounded-md"
@@ -817,7 +817,11 @@ const allowAccess = computed({
                       >
                         <a-col :span="24">
                           <!-- Extra connection parameters -->
-                          <a-form-item class="mb-2" label="Connection parameters" v-bind="validateInfos.extraParameters">
+                          <a-form-item
+                            class="nc-form-extra-connectin-parameters mb-2"
+                            label="Connection parameters"
+                            v-bind="validateInfos.extraParameters"
+                          >
                             <div class="flex flex-col gap-3">
                               <div v-for="(item, index) of formState.extraParameters" :key="index">
                                 <a-row :gutter="24">
@@ -871,6 +875,7 @@ const allowAccess = computed({
                           <a-form-item label="SSL mode">
                             <NcSelect
                               v-model:value="formState.sslUse"
+                              class="nc-select-shadow"
                               dropdown-class-name="nc-dropdown-ssl-mode"
                               @select="onSSLModeChange"
                             >
@@ -1130,5 +1135,83 @@ const allowAccess = computed({
   :deep(.ant-form-item-label > label.ant-form-item-required:after) {
     @apply content-['*'] inline-block text-inherit text-red-500 ml-1;
   }
+
+  .nc-form-extra-connectin-parameters {
+    :deep(.ant-input) {
+      &:not(:hover):not(:focus):not(:disabled) {
+        @apply !shadow-default !border-gray-200;
+      }
+      &:hover:not(:focus):not(:disabled) {
+        @apply !border-gray-200 !shadow-hover;
+      }
+      &:focus {
+        @apply !shadow-selected !ring-0;
+        border-color: var(--ant-primary-color-hover) !important;
+      }
+    }
+  }
+  :deep(.ant-form-item) {
+    &.ant-form-item-has-error {
+      &:not(:has(.ant-input-password)) .ant-input {
+        &:not(:hover):not(:focus):not(:disabled) {
+          @apply shadow-default;
+        }
+        &:hover:not(:focus):not(:disabled) {
+          @apply shadow-hover;
+        }
+        &:focus {
+          @apply shadow-error ring-0;
+        }
+      }
+
+      .ant-input-number,
+      .ant-input-affix-wrapper.ant-input-password  {
+        &:not(:hover):not(:focus-within):not(:disabled) {
+          @apply shadow-default;
+        }
+        &:hover:not(:focus-within):not(:disabled) {
+          @apply  shadow-hover;
+        }
+        &:focus-within {
+          @apply shadow-error ring-0;
+        }
+      }
+    }
+    &:not(.ant-form-item-has-error) {
+      &:not(:has(.ant-input-password)) .ant-input {
+        &:not(:hover):not(:focus):not(:disabled) {
+          @apply shadow-default border-gray-200;
+        }
+        &:hover:not(:focus):not(:disabled) {
+          @apply border-gray-200 shadow-hover;
+        }
+        &:focus {
+          @apply shadow-selected ring-0;
+        }
+      }
+      .ant-input-number,
+      .ant-input-affix-wrapper.ant-input-password  {
+        &:not(:hover):not(:focus-within):not(:disabled) {
+          @apply shadow-default border-gray-200;
+        }
+        &:hover:not(:focus-within):not(:disabled) {
+          @apply border-gray-200 shadow-hover;
+        }
+        &:focus-within {
+          @apply shadow-selected ring-0;
+        }
+      }
+    }
+  }
+
+  :deep(.ant-row){
+    @apply !-mx-1.5;
+    .ant-col{
+      @apply !px-1.5;
+    }
+  }
+  }
 }
 </style>
+
+<style lang="scss"></style>

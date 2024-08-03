@@ -353,7 +353,7 @@ const isOpenModal = computed({
               <div class="h-full p-6">
                 <LazyDashboardSettingsErd
                   class="h-full overflow-auto"
-                  :base-id="baseId"
+                  :base-id="base.id"
                   :source-id="activeSource.id"
                   :show-all-columns="false"
                 />

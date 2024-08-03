@@ -334,6 +334,25 @@ const allowDataWrite = computed({
     $e('c:source:data-write-toggle', { allowed: !v, edit: true })
   },
 })
+
+let timer: any
+const handleAutoScroll = (scroll: boolean, className: string) => {
+  if (scroll) {
+    if (timer) {
+      clearTimeout(timer)
+    }
+
+    nextTick(() => {
+      const el = document.querySelector(`.edit-source .${className}`)
+      if (!el) return
+
+      // wait for transition complete
+      timer = setTimeout(() => {
+        el.scrollIntoView({ block: 'center', behavior: 'smooth' })
+      }, 400)
+    })
+  }
+}
 </script>
 
 <template>
@@ -496,7 +515,7 @@ const allowDataWrite = computed({
           <template
             v-if="![ClientType.SQLITE, ClientType.SNOWFLAKE, ClientType.DATABRICKS].includes(formState.dataSource.client)"
           >
-            <a-collapse ghost expand-icon-position="right" class="!mt-4">
+            <a-collapse ghost expand-icon-position="right" class="nc-source-advanced-options !mt-4"  @change="handleAutoScroll(!!$event?.length, 'nc-source-advanced-options')">
               <template #expandIcon="{ isActive }">
                 <NcButton type="text" size="xsmall">
                   <GeneralIcon

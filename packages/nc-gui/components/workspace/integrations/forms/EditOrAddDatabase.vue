@@ -396,6 +396,26 @@ const handleUpdateUseSslExpannsionPanel = (open: boolean) => {
   }
 }
 
+let timer: any
+const handleAutoScroll = (scroll: boolean, className: string) => {
+  if (scroll) {
+    if (timer) {
+      clearTimeout(timer)
+    }
+
+    nextTick(() => {
+      const el = document.querySelector(`.nc-edit-or-add-connection .${className}`)
+      console.log('className', className, el)
+      if (!el) return
+
+      // wait for transition complete
+      timer = setTimeout(() => {
+        el.scrollIntoView({ block: 'center', behavior: 'smooth' })
+      }, 400)
+    })
+  }
+}
+
 // reset test status on config change
 watch(
   formState,
@@ -517,7 +537,7 @@ watch(
     <div class="h-[calc(100%_-_66px)] flex">
       <div class="nc-edit-or-add-integration-left-panel nc-scrollbar-thin">
         <div class="w-full gap-8 max-w-[768px]">
-          <div class="create-source bg-white relative flex flex-col justify-center gap-2 w-full">
+          <div class="nc-edit-or-add-connection bg-white relative flex flex-col justify-center gap-2 w-full">
             <a-form
               ref="form"
               :model="formState"
@@ -1029,7 +1049,12 @@ watch(
               <template
                 v-if="![ClientType.SQLITE, ClientType.SNOWFLAKE, ClientType.DATABRICKS].includes(formState.dataSource.client)"
               >
-                <a-collapse ghost expand-icon-position="right" class="!mt-4">
+                <a-collapse
+                  ghost
+                  expand-icon-position="right"
+                  class="nc-connection-advanced-options !mt-4"
+                  @change="handleAutoScroll(!!$event?.length, 'nc-connection-advanced-options')"
+                >
                   <template #expandIcon="{ isActive }">
                     <NcButton type="text" size="xsmall">
                       <GeneralIcon
@@ -1097,11 +1122,11 @@ watch(
   @apply !min-h-0;
 }
 
-:deep(.ant-select .ant-select-selector .ant-select-selection-item){
+:deep(.ant-select .ant-select-selector .ant-select-selection-item) {
   @apply font-weight-400;
 }
 
-.create-source {
+.nc-edit-or-add-connection {
   :deep(.ant-input-affix-wrapper),
   :deep(.ant-input),
   :deep(.ant-select) {

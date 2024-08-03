@@ -100,7 +100,7 @@ const isAddNewIntegrationModalOpen = computed({
                     <WorkspaceIntegrationsIcon integration-type="request" size="md" />
                     <div class="name">Request New Integration</div>
                   </div>
-                  <template v-else>
+                  <div v-show="requestIntegration.isOpen" class="flex flex-col gap-4">
                     <div class="flex items-center justify-between gap-4">
                       <div class="text-base font-bold text-gray-800">Request Integration</div>
                       <NcButton size="xsmall" type="text" @click="requestIntegration.isOpen = false">
@@ -111,12 +111,7 @@ const isAddNewIntegrationModalOpen = computed({
                       <div class="text-sm text-gray-800">Description</div>
                       <a-textarea
                         v-model:value="requestIntegration.msg"
-                        class="!rounded-md !text-sm"
-                        :style="{
-                          'height': '70px',
-                          'max-height': '250px',
-                          'resize': 'vertical',
-                        }"
+                        class="!rounded-md !text-sm !min-h-[120px] max-h-[500px] nc-scrollbar-thin"
                         size="large"
                         hide-details
                         placeholder="Describe your requested integration..."
@@ -135,7 +130,7 @@ const isAddNewIntegrationModalOpen = computed({
                         {{ $t('general.submit') }} {{ $t('general.request').toLowerCase() }}
                       </NcButton>
                     </div>
-                  </template>
+                  </div>
                 </div>
               </div>
             </div>

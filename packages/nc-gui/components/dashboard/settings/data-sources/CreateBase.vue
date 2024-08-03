@@ -431,7 +431,7 @@ const allowDataWrite = computed({
     :closable="!creatingSource"
     :keyboard="!creatingSource"
     :mask-closable="false"
-    :width="750"
+    :width="900"
     @update:visible="toggleModal"
   >
     <div class="py-6 px-8">

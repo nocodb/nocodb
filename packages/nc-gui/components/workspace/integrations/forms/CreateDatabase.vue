@@ -2,7 +2,7 @@
 import { Form, message } from 'ant-design-vue'
 import type { SelectHandler } from 'ant-design-vue/es/vc-select/Select'
 import type { Card as AntCard } from 'ant-design-vue'
-import { IntegrationsType, WorkspaceStatus } from 'nocodb-sdk'
+import { IntegrationsType } from 'nocodb-sdk'
 import {
   type CertTypes,
   ClientType,
@@ -25,17 +25,6 @@ const vOpen = useVModel(props, 'open', emit)
 const connectionType = computed(() => props.connectionType ?? ClientType.MYSQL)
 
 const { saveIntegration } = useIntegrationStore()
-
-const baseStore = useBase()
-const { loadProject } = useBases()
-const { base } = storeToRefs(baseStore)
-
-const { loadProjectTables } = useTablesStore()
-
-const { refreshCommandPalette } = useCommandPalette()
-
-const _projectId = inject(ProjectIdInj, undefined)
-const baseId = computed(() => _projectId?.value ?? base.value?.id)
 
 const useForm = Form.useForm
 
@@ -75,14 +64,6 @@ const _pushProgress = async () => {
     if (!container) return
     container.scrollTop = container.scrollHeight
   })
-}
-
-const pushProgress = async (message: string, status: JobStatus | 'progress') => {
-  progressQueue.value.push({ msg: message, status })
-
-  setTimeout(() => {
-    _pushProgress()
-  }, 100 * progressQueue.value.length)
 }
 
 const formState = ref<ProjectCreateForm>({
@@ -271,7 +252,7 @@ const focusInvalidInput = () => {
   form.value?.$el.querySelector('.ant-form-item-explain-error')?.parentNode?.parentNode?.querySelector('input')?.focus()
 }
 
-const createSource = async () => {
+const createIntegration = async () => {
   try {
     await validate()
   } catch (e) {
@@ -775,7 +756,7 @@ const allowAccess = computed({
                 :disabled="!testSuccess"
                 :loading="creatingSource"
                 class="nc-extdb-btn-submit !rounded-md"
-                @click="createSource"
+                @click="createIntegration"
               >
                 Save Integration
               </NcButton>

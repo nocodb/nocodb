@@ -93,11 +93,14 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
 
       $e('a:integration:delete')
       await loadIntegrations()
-      return true;
+      return true
     } catch (e) {
       const errMsg = await extractSdkResponseErrorMsg(e)
       if (!force && errMsg?.includes('Integration linked with')) {
-        deleteConfirmText.value = `${errMsg.replace(/^Error:\s*/, '')}. Do you want to delete it anyway, along with linked sources?`
+        deleteConfirmText.value = `${errMsg.replace(
+          /^Error:\s*/,
+          '',
+        )}. Do you want to delete it anyway, along with linked sources?`
         return
       }
       await message.error(errMsg)
@@ -158,7 +161,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     updateIntegration,
     saveIntegration,
     editIntegration,
-    deleteConfirmText
+    deleteConfirmText,
   }
 }, 'integrations-store')
 

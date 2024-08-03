@@ -1,7 +1,3 @@
-<script lang="ts" setup>
-const { activeIntegration } = useIntegrationStore()
-</script>
-
 <template>
   <div class="panels">
     <div class="panel">DUMMY</div>

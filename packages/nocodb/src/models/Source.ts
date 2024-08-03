@@ -575,8 +575,6 @@ export default class Source implements SourceType {
   }
 
   // placeholder for future use
-  // at the moment, this is not used in OSS version
-  // it's overridden in Enterprise version
   protected static joinAndAddCols(_qb: any) {
     // do nothing
   }

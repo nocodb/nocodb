@@ -116,14 +116,6 @@ const baseAction = (sourceId?: string, action?: string) => {
   vState.value = action || ''
 }
 
-const handleClickRow = (source: SourceType, tab?: string) => {
-  if (tab && tab !== openedTab.value) {
-    openedTab.value = tab
-  }
-
-  activeSource.value = source
-}
-
 const openDeleteBase = (source: SourceType) => {
   $e('c:source:delete')
   isDeleteBaseModalOpen.value = true
@@ -291,6 +283,14 @@ const isOpenModal = computed({
     }
   },
 })
+
+const handleClickRow = (source: SourceType, tab?: string) => {
+  if (tab && tab !== openedTab.value) {
+    openedTab.value = tab
+  }
+
+  activeSource.value = source
+}
 </script>
 
 <template>

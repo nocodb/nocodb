@@ -120,15 +120,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
         return
       }
 
-      if (!force && error.message?.includes('Integration linked with')) {
-        deleteConfirmText.value = `${error.message.replace(
-          /^Error:\s*/,
-          '',
-        )}. Do you want to delete it anyway, along with linked sources?`
-        return
-      }
-
-      await message.error(error.message)
+      await message.error(await extractSdkResponseErrorMsg(e))
     }
     deleteConfirmText.value = null
   }
@@ -208,7 +200,6 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     }
   }
 
-
   const getIntegration = async (
     integration: IntegrationType,
     options?: {
@@ -220,7 +211,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
 
     try {
       const integrationWithConfig = await api.integration.read(integration.id, {
-        ...(options ? options : {}),
+        ...(options || {}),
       })
       return integrationWithConfig
     } catch (e) {
@@ -231,7 +222,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
         window.location.reload()
         return
       }
-      await message.error(error.message)
+      await message.error(await extractSdkResponseErrorMsg(e))
     }
   }
 
@@ -285,7 +276,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     eventBus,
     saveIntegraitonRequest,
     requestIntegration,
-    getIntegration
+    getIntegration,
   }
 }, 'integrations-store')
 

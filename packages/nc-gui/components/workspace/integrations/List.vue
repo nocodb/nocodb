@@ -1,10 +1,8 @@
 <script lang="ts" setup>
-import { type SourceType, type UserType, type WorkspaceUserType } from 'nocodb-sdk'
+import type { IntegrationType, UserType, WorkspaceUserType } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 
 type SortFields = 'title' | 'sub_type' | 'created_at' | 'created_by' | 'usage'
-
-const { user } = useGlobal()
 
 const {
   integrations,
@@ -14,6 +12,7 @@ const {
   deleteIntegration,
   editIntegration,
   duplicateIntegration,
+  getIntegration,
 } = useIntegrationStore()
 
 const { $api, $e } = useNuxtApp()
@@ -21,7 +20,19 @@ const { $api, $e } = useNuxtApp()
 const { collaborators } = storeToRefs(useWorkspace())
 
 const isDeleteIntegrationModalOpen = ref(false)
-const toBeDeletedIntegration = ref<SourceType | null>(null)
+const toBeDeletedIntegration = ref<
+  | (IntegrationType & {
+      sources?: {
+        id: string
+        alias: string
+        project_title: string
+        base_id: string
+      }[]
+    })
+  | null
+>(null)
+
+const isLoadingGetLinkedSources = ref(false)
 
 const tableWrapper = ref<HTMLDivElement>()
 
@@ -89,22 +100,24 @@ const filteredIntegrations = computed(() =>
     }),
 )
 
-const openDeleteIntegration = (source: IntegrationType) => {
+const openDeleteIntegration = async (source: IntegrationType) => {
+  isLoadingGetLinkedSources.value = true
+
   $e('c:integration:delete')
   deleteConfirmText.value = null
   isDeleteIntegrationModalOpen.value = true
   toBeDeletedIntegration.value = source
+
+  const connectionDetails = await getIntegration(source, {
+    includeSources: true,
+  })
+  toBeDeletedIntegration.value.sources = connectionDetails?.sources || []
+
+  isLoadingGetLinkedSources.value = false
 }
 
 const onDeleteConfirm = async () => {
-  if (toBeDeletedIntegration.value && (await deleteIntegration(toBeDeletedIntegration.value, !!deleteConfirmText.value))) {
-    isDeleteIntegrationModalOpen.value = false
-    toBeDeletedIntegration.value = null
-  } else {
-    setTimeout(() => {
-      isDeleteIntegrationModalOpen.value = true
-    }, 100)
-  }
+  await deleteIntegration(toBeDeletedIntegration.value, true)
 }
 
 const loadOrgUsers = async () => {
@@ -470,19 +483,52 @@ onMounted(async () => {
       :entity-name="$t('general.connection')"
       :on-delete="onDeleteConfirm"
       :delete-label="$t('general.delete')"
+      :show-default-delete-msg="!isLoadingGetLinkedSources && !toBeDeletedIntegration?.sources?.length"
     >
       <template #entity-preview>
-        <span v-if="deleteConfirmText">{{ deleteConfirmText }}</span>
-        <div
-          v-else-if="toBeDeletedIntegration"
-          class="flex flex-row items-center py-2 px-3.25 bg-gray-50 rounded-lg text-gray-700 mb-4"
-        >
-          <WorkspaceIntegrationsIcon :integration-type="toBeDeletedIntegration.sub_type" size="xs" class="!p-0 !bg-transparent" />
-          <div
-            class="text-ellipsis overflow-hidden select-none w-full pl-3"
-            :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
-          >
-            {{ toBeDeletedIntegration.title }}
+        <template v-if="isLoadingGetLinkedSources">
+          <div class="rounded-lg overflow-hidden">
+            <a-skeleton-input active class="h-9 !rounded-md !w-full"></a-skeleton-input>
+          </div>
+          <div class="rounded-lg overflow-hidden mt-2">
+            <a-skeleton-input active class="h-9 !rounded-md !w-full"></a-skeleton-input>
+          </div>
+        </template>
+        <div v-else class="w-full flex flex-col text-gray-800">
+          <div v-if="toBeDeletedIntegration?.sources?.length" class="flex flex-col pb-2">
+            <div class="mb-1">Following external data sources using this connection will also be removed</div>
+            <div v-for="(source, idx) of toBeDeletedIntegration.sources" :key="idx" class="flex items-center gap-1">
+              <NcTooltip class="truncate !w-[112px] flex-none" show-on-truncate-only>
+                <template #title>
+                  {{ source.project_title }}
+                </template>
+
+                {{ source.project_title }}
+              </NcTooltip>
+              >
+              <NcTooltip class="truncate" show-on-truncate-only>
+                <template #title>
+                  {{ source.alias }}
+                </template>
+
+                {{ source.alias }}
+              </NcTooltip>
+            </div>
+            <div class="mt-2">Do you want to proceed anyway?</div>
+          </div>
+
+          <div class="flex flex-row items-center py-2 px-3.25 bg-gray-50 rounded-lg text-gray-700 mb-4">
+            <WorkspaceIntegrationsIcon
+              :integration-type="toBeDeletedIntegration.sub_type"
+              size="xs"
+              class="!p-0 !bg-transparent"
+            />
+            <div
+              class="text-ellipsis overflow-hidden select-none w-full pl-3"
+              :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
+            >
+              {{ toBeDeletedIntegration.title }}
+            </div>
           </div>
         </div>
       </template>

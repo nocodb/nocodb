@@ -202,11 +202,12 @@ export default class Base implements BaseType {
     includeConfig = true,
     ncMeta = Noco.ncMeta,
   ): Promise<Source[]> {
-    const sources = (this.sources = await Source.list(
+    const sources = await Source.list(
       { workspace_id: this.fk_workspace_id, base_id: this.id },
       { baseId: this.id },
       ncMeta,
-    ));
+    );
+    this.sources = sources;
     if (!includeConfig) {
       sources.forEach((s) => {
         s.config = undefined;
@@ -216,7 +217,6 @@ export default class Base implements BaseType {
     return sources;
   }
 
-  // todo: hide credentials
   // @ts-ignore
   static async getWithInfo(
     context: NcContext,

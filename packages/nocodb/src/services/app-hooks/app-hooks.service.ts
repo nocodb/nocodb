@@ -131,7 +131,7 @@ export class AppHooksService {
       | AppEvents.INTEGRATION_UPDATE
       | AppEvents.INTEGRATION_DELETE
       | AppEvents.INTEGRATION_CREATE,
-    listener: (data: ColumnEvent) => void,
+    listener: (data: IntegrationEvent) => void,
   ): () => void;
   on(event, listener): () => void {
     const unsubscribe = this.eventEmitter.on(event, listener);

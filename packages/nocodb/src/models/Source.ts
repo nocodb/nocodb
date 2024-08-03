@@ -26,7 +26,6 @@ import { JobsRedis } from '~/modules/jobs/redis/jobs-redis';
 import { InstanceCommands } from '~/interface/Jobs';
 import { deepMerge, partialExtract } from '~/utils';
 
-// todo: hide credentials
 export default class Source implements SourceType {
   id?: string;
   fk_workspace_id?: string;

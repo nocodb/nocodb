@@ -4,7 +4,7 @@ import type { Knex } from 'knex';
 import { MetaTable } from '~/utils/globals';
 
 const log = (message: string) => {
-  console.log(`nc_024_integration: ${message}`);
+  console.log(`nc_055_integration: ${message}`);
 };
 
 let hrTime = process.hrtime();
@@ -95,7 +95,7 @@ const up = async (knex: Knex) => {
 };
 
 const down = async (knex: Knex) => {
-  await knex.schema.dropSchema(MetaTable.INTEGRATIONS);
+  await knex.schema.dropTable(MetaTable.INTEGRATIONS);
 
   await knex.schema.alterTable(MetaTable.BASES, (table) => {
     table.dropColumn('fk_integration_id');

@@ -14,7 +14,6 @@ import {
 } from '~/utils/modelUtils';
 import { partialExtract } from '~/utils';
 
-// todo: hide credentials
 export default class Integration implements IntegrationType {
   id?: string;
   fk_workspace_id?: string;

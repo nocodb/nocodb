@@ -40,7 +40,7 @@ export class SourcesService {
       id: param.sourceId,
     });
 
-    delete source.config;
+    source.config = undefined;
 
     this.appHooksService.emit(AppEvents.BASE_UPDATE, {
       source,
@@ -174,7 +174,7 @@ export class SourcesService {
         req: param.req,
       });
 
-      delete source.config;
+      source.config = undefined;
 
       this.appHooksService.emit(AppEvents.BASE_CREATE, {
         source,

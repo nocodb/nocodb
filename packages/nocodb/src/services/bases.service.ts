@@ -246,7 +246,7 @@ export class BasesService {
           req: param.req,
         });
 
-        delete source.config;
+        source.config = undefined;
       }
     }
 

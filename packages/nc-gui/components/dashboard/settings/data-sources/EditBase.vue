@@ -102,7 +102,7 @@ const selectedIntegrationSchema = computed(() => {
 
 const validators = computed(() => {
   return {
-    'title': [baseTitleValidator],
+    'title': [baseTitleValidator()],
     'extraParameters': [extraParameterValidator],
     'dataSource.client': [fieldRequiredValidator()],
     ...(formState.value.dataSource.client === ClientType.SQLITE

@@ -75,22 +75,36 @@ export const layoutTitleValidator = {
   },
 }
 
-export const baseTitleValidator = {
-  validator: (rule: any, value: any) => {
-    const { t } = getI18n().global
+export const baseTitleValidator = (title: 'project' | 'integration' = 'project') => {
+  return {
+    validator: (rule: any, value: any) => {
+      const { t } = getI18n().global
 
-    return new Promise((resolve, reject) => {
-      if (value?.length > 50) {
-        reject(new Error(t('msg.error.projectNameExceeds50Characters')))
-      }
+      return new Promise((resolve, reject) => {
+        if (value?.length > 50) {
+          reject(
+            new Error(
+              t('msg.error.projectNameExceeds50Characters', {
+                title: title === 'project' ? t('objects.project') : t('general.integration'),
+              }),
+            ),
+          )
+        }
 
-      if (value[0] === ' ') {
-        reject(new Error(t('msg.error.projectNameCannotStartWithSpace')))
-      }
+        if (value[0] === ' ') {
+          reject(
+            new Error(
+              t('msg.error.projectNameCannotStartWithSpace', {
+                title: title === 'project' ? t('objects.project') : t('general.integration'),
+              }),
+            ),
+          )
+        }
 
-      resolve(true)
-    })
-  },
+        resolve(true)
+      })
+    },
+  }
 }
 
 export const fieldRequiredValidator = () => {

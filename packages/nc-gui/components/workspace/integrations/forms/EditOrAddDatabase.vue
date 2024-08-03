@@ -143,7 +143,7 @@ const validators = computed(() => {
         required: true,
         message: 'Integration name is required',
       },
-      baseTitleValidator,
+      baseTitleValidator('integration'),
     ],
     'extraParameters': [extraParameterValidator],
     'dataSource.client': [fieldRequiredValidator()],

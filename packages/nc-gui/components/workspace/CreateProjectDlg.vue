@@ -30,7 +30,7 @@ const nameValidationRules = [
     required: true,
     message: t('msg.info.dbNameRequired'),
   },
-  baseTitleValidator,
+  baseTitleValidator(),
 ] as RuleObject[]
 
 const form = ref<typeof Form>()

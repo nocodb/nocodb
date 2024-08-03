@@ -52,10 +52,11 @@ export class IntegrationsController {
     scope: 'org',
   })
   async integrationCreate(
+    @TenantContext() context: NcContext,
     @Body() integration: IntegrationReqType,
     @Req() req: NcRequest,
   ) {
-    return await this.integrationsService.integrationCreate({
+    return await this.integrationsService.integrationCreate(context, {
       integration,
       req,
     });

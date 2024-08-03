@@ -184,22 +184,42 @@ export class IntegrationsService {
     return true;
   }
 
-  async integrationCreate(param: {
-    integration: IntegrationReqType;
-    logger?: (message: string) => void;
-    req: any;
-  }) {
+  async integrationCreate(
+    context: NcContext,
+    param: {
+      integration: IntegrationReqType;
+      logger?: (message: string) => void;
+      req: any;
+    },
+  ) {
     validatePayload(
       'swagger.json#/components/schemas/IntegrationReq',
       param.integration,
     );
 
-    const integrationBody = param.integration;
+    let integrationBody;
 
+    if (param.integration.copy_from_id) {
+       integrationBody = await Integration.get(
+        context,
+        param.integration.copy_from_id,
+      );
+
+      if (!integrationBody?.id) {
+        NcError.integrationNotFound(param.integration.copy_from_id);
+      }
+
+      integrationBody.config = await integrationBody.getConnectionConfig();
+    } else {
+      integrationBody = param.integration;
+    }
     param.logger?.('Creating the integration');
 
     const integration = await Integration.createIntegration({
       ...integrationBody,
+      ...(param.integration.copy_from_id
+        ? { title: `${integrationBody.title}_copy` }
+        : {}),
       created_by: param.req.user.id,
     });
 

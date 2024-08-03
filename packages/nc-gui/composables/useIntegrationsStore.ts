@@ -71,20 +71,30 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
 
   const isFromIntegrationPage = ref(false)
 
-  const activeViewTab = computed({
-    get() {
-      return (route.value.query?.tab as string) ?? 'integrations'
-    },
-    set(tab: string) {
-      router.push({ query: { ...route.value.query, tab } })
-    },
+  const successConfirmModal = ref({
+    isOpen: false,
+    title: 'Connection Successfully Created',
+    connectionTitle: '',
+    description: 'All base owners and creators can now use this connection to easily add a new data source to their base.',
   })
-
 
   const requestIntegration = ref({
     isOpen: false,
     msg: '',
     isLoading: false,
+  })
+
+  const activeViewTab = computed({
+    get() {
+      return (route.value.query?.tab as string) ?? 'integrations'
+    },
+    set(tab: string) {
+      if (requestIntegration.value.isOpen) {
+        requestIntegration.value.isOpen = false
+      }
+
+      router.push({ query: { ...route.value.query, tab } })
+    },
   })
 
   const loadIntegrations = async (
@@ -210,8 +220,12 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
       if (response?.title && mode === 'create') {
         if (isFromIntegrationPage.value) {
           activeViewTab.value = 'connections'
+
+          successConfirmModal.value.connectionTitle = response.title ?? ''
+          successConfirmModal.value.isOpen = true
+        } else {
+          await message.success(`Connection "${response.title}" created successfully`)
         }
-        await message.success(`Connection "${response.title}" created successfully`)
       }
     } catch (e) {
       await message.error(await extractSdkResponseErrorMsg(e))
@@ -311,6 +325,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     integrationPaginationData,
     activeViewTab,
     isFromIntegrationPage,
+    successConfirmModal,
     addIntegration,
     loadIntegrations,
     deleteIntegration,

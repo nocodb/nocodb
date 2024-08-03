@@ -9,6 +9,7 @@ const {
   isLoadingIntegrations,
   deleteConfirmText,
   integrationPaginationData,
+  successConfirmModal,
   loadIntegrations,
   deleteIntegration,
   editIntegration,
@@ -577,35 +578,53 @@ onKeyStroke('ArrowDown', onDown)
           <div v-if="toBeDeletedIntegration?.sources?.length" class="flex flex-col pb-2 text-small leading-[18px] text-gray-500">
             <div class="mb-1">Following external data sources using this connection will also be removed</div>
             <ul class="!list-disc ml-6 mb-0">
-              <li v-for="(source, idx) of toBeDeletedIntegration.sources" :key="idx" class="marker:text-gray-500 ">
-                <div class="flex items-center gap-1 ">
+              <li v-for="(source, idx) of toBeDeletedIntegration.sources" :key="idx" class="marker:text-gray-500">
+                <div class="flex items-center gap-1">
+                  <NcTooltip class="truncate !max-w-1/2 flex-none" show-on-truncate-only>
+                    <template #title>
+                      {{ source.project_title }}
+                    </template>
 
-              
-                <NcTooltip class="truncate !max-w-1/2 flex-none" show-on-truncate-only>
-                  <template #title>
                     {{ source.project_title }}
-                  </template>
+                  </NcTooltip>
+                  >
+                  <NcTooltip class="truncate" show-on-truncate-only>
+                    <template #title>
+                      {{ source.alias }}
+                    </template>
 
-                  {{ source.project_title }}
-                </NcTooltip>
-                >
-                <NcTooltip class="truncate" show-on-truncate-only>
-                  <template #title>
                     {{ source.alias }}
-                  </template>
-
-                  {{ source.alias }}
-                </NcTooltip>
-              </div>
+                  </NcTooltip>
+                </div>
               </li>
             </ul>
             <div class="mt-2">Do you want to proceed anyway?</div>
           </div>
-
-         
         </div>
       </template>
     </GeneralDeleteModal>
+
+    <NcModal v-model:visible="successConfirmModal.isOpen" centered size="small" @keydown.esc="successConfirmModal.isOpen = false">
+      <div class="flex gap-4">
+        <div>
+          <GeneralIcon icon="circleCheck2" class="flex-none !text-green-700" />
+        </div>
+
+        <div class="flex flex-col gap-3">
+          <h3 class="!m-0 text-base font-weight-700">
+            {{ successConfirmModal.title }}
+          </h3>
+          <div class="text-sm text-gray-700">
+            {{ successConfirmModal.description }}
+          </div>
+          <div class="flex justify-end mt-2">
+            <NcButton size="small" class="!px-3" @click="successConfirmModal.isOpen = false">
+              {{ $t('general.ok') }}
+            </NcButton>
+          </div>
+        </div>
+      </div>
+    </NcModal>
   </div>
 </template>
 

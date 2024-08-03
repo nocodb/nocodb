@@ -190,7 +190,7 @@ onMounted(async () => {
           'h-full': filteredIntegrations?.length,
         }"
       >
-        <table class="!sticky top-0 z-10 w-full">
+        <table class="!sticky top-0 z-5 w-full">
           <thead>
             <tr>
               <th

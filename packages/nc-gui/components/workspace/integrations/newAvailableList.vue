@@ -51,6 +51,10 @@ const handleAddIntegration = (type: typeof integrationType) => {
   >
     <div class="h-full flex flex-col">
       <div v-if="isModal" class="p-4 w-full flex items-center justify-between gap-3 border-b-1 border-gray-200">
+        <NcButton type="text" size="small" @click="isAddNewIntegrationModalOpen = false">
+          <GeneralIcon icon="arrowLeft" />
+        </NcButton>
+        <GeneralIcon icon="gitCommit" class="flex-none h-5 w-5"/>
         <div class="flex-1 text-base font-weight-700">New Connection</div>
         <div class="flex items-center gap-3">
           <NcButton size="small" type="text" @click="isAddNewIntegrationModalOpen = false">
@@ -233,6 +237,8 @@ const handleAddIntegration = (type: typeof integrationType) => {
 .nc-modal-available-integrations-list {
   .nc-modal {
     @apply !p-0;
+    height: min(calc(100vh - 100px), 1024px);
+    max-height: min(calc(100vh - 100px), 1024px) !important;
   }
 }
 </style>

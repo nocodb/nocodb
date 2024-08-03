@@ -94,6 +94,8 @@ const validators = computed(() => {
         'dataSource.connection.username': [fieldRequiredValidator()],
         'dataSource.connection.password': [fieldRequiredValidator()],
         'dataSource.connection.warehouse': [fieldRequiredValidator()],
+        'dataSource.connection.database': [fieldRequiredValidator()],
+        'dataSource.connection.schema': [fieldRequiredValidator()],
       }
       break
     case ClientType.DATABRICKS:
@@ -353,12 +355,6 @@ watch(
   { deep: true },
 )
 
-// populate database name based on title
-watch(
-  () => formState.value.title,
-  (v) => populateName(v),
-)
-
 // select and focus title field on load
 onMounted(async () => {
   if (pageMode.value === IntegrationsPageMode.ADD) {
@@ -470,7 +466,7 @@ watch(
               hide-required-mark
               name="external-base-create-form"
               layout="vertical"
-              class="flex flex-col gap-5.5"
+              class="flex flex-col gap-8"
             >
               <div class="nc-form-section">
                 <div class="nc-form-section-title">General</div>
@@ -478,7 +474,7 @@ watch(
                   <a-row :gutter="24">
                     <a-col :span="12">
                       <a-form-item label="Integration name" v-bind="validateInfos.title">
-                        <a-input v-model:value="formState.title" />
+                        <a-input v-model:value="formState.title" @update:value="populateName($event)"/>
                       </a-form-item>
                     </a-col>
                   </a-row>
@@ -985,7 +981,11 @@ watch(
 }
 
 :deep(.ant-form-item) {
-  @apply mb-2;
+  @apply mb-0;
+}
+
+:deep(.ant-divider) {
+  @apply m-0;
 }
 
 :deep(.ant-form-item-with-help .ant-form-item-explain) {
@@ -1054,12 +1054,12 @@ watch(
       }
 
       .ant-input-number,
-      .ant-input-affix-wrapper.ant-input-password  {
+      .ant-input-affix-wrapper.ant-input-password {
         &:not(:hover):not(:focus-within):not(:disabled) {
           @apply shadow-default;
         }
         &:hover:not(:focus-within):not(:disabled) {
-          @apply  shadow-hover;
+          @apply shadow-hover;
         }
         &:focus-within {
           @apply shadow-error ring-0;
@@ -1079,7 +1079,7 @@ watch(
         }
       }
       .ant-input-number,
-      .ant-input-affix-wrapper.ant-input-password  {
+      .ant-input-affix-wrapper.ant-input-password {
         &:not(:hover):not(:focus-within):not(:disabled) {
           @apply shadow-default border-gray-200;
         }
@@ -1093,12 +1093,11 @@ watch(
     }
   }
 
-  :deep(.ant-row){
+  :deep(.ant-row) {
     @apply !-mx-1.5;
-    .ant-col{
+    .ant-col {
       @apply !px-1.5;
     }
-  }
   }
 }
 </style>

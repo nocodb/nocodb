@@ -127,6 +127,12 @@ const validators = computed(() => {
       },
       baseTitleValidator(),
     ],
+    fk_integration_id: [
+      {
+        required: true,
+        message: 'Connection is required',
+      },
+    ],
     extraParameters: [extraParameterValidator],
     ...clientValidations,
   }
@@ -478,7 +484,7 @@ const handleAutoScroll = (scroll: boolean, className: string) => {
                   </a-row>
                   <a-row :gutter="24">
                     <a-col :span="12">
-                      <a-form-item label="Select connection">
+                      <a-form-item label="Select connection" v-bind="validateInfos.fk_integration_id">
                         <NcSelect
                           v-model:value="formState.fk_integration_id"
                           class="nc-extdb-db-type nc-select-shadow"
@@ -629,7 +635,12 @@ const handleAutoScroll = (scroll: boolean, className: string) => {
               <template
                 v-if="![ClientType.SQLITE, ClientType.SNOWFLAKE, ClientType.DATABRICKS].includes(formState.dataSource.client)"
               >
-                <a-collapse ghost expand-icon-position="right" class="nc-source-advanced-options !mt-4"  @change="handleAutoScroll(!!$event?.length, 'nc-source-advanced-options')">
+                <a-collapse
+                  ghost
+                  expand-icon-position="right"
+                  class="nc-source-advanced-options !mt-4"
+                  @change="handleAutoScroll(!!$event?.length, 'nc-source-advanced-options')"
+                >
                   <template #expandIcon="{ isActive }">
                     <NcButton type="text" size="xsmall">
                       <GeneralIcon
@@ -730,7 +741,7 @@ const handleAutoScroll = (scroll: boolean, className: string) => {
   @apply !min-h-0;
 }
 
-:deep(.ant-select .ant-select-selector .ant-select-selection-item){
+:deep(.ant-select .ant-select-selector .ant-select-selection-item) {
   @apply font-weight-400;
 }
 

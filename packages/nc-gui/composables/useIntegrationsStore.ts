@@ -90,8 +90,6 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
       const { list, pageInfo } = await api.integration.list(
         databaseOnly
           ? {
-              offset: limit * (page - 1),
-              limit,
               type: IntegrationsType.Database,
               includeDatabaseInfo: true,
               baseId,

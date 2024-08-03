@@ -1,4 +1,5 @@
 import type { IntegrationType } from 'nocodb-sdk'
+import  { IntegrationsType } from 'nocodb-sdk'
 import { ClientType } from '../lib/enums'
 import GeneralBaseLogo from '~/components/general/BaseLogo.vue'
 
@@ -13,9 +14,9 @@ const integrationType: Record<'PostgreSQL' | 'MySQL', ClientType> = {
   MySQL: ClientType.MYSQL,
 }
 
-type IntegrationsType = (typeof integrationType)[keyof typeof integrationType]
+type IntegrationsSubType = (typeof integrationType)[keyof typeof integrationType]
 
-function defaultValues(type: IntegrationsType) {
+function defaultValues(type: IntegrationsSubType) {
   const genericValues = {
     payload: {},
   }
@@ -87,7 +88,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
       isLoadingIntegrations.value = false
     }
   }
-  const addIntegration = (type: IntegrationsType) => {
+  const addIntegration = (type: IntegrationsSubType) => {
     activeIntegration.value = defaultValues(type)
     pageMode.value = IntegrationsPageMode.ADD
     $e('c:integration:add')

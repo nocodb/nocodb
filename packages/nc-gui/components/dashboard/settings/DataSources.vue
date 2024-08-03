@@ -432,7 +432,7 @@ const isOpenModal = computed({
               <div class="ds-table-col ds-table-actions">{{ $t('labels.actions') }}</div>
             </div>
           </div>
-          <div class="ds-table-body relative h-[calc(100%_-_45px)]">
+          <div class="ds-table-body relative">
             <Draggable :list="sources" item-key="id" handle=".ds-table-handle" @end="moveBase">
               <template v-if="'default'.includes(searchQuery.toLowerCase())" #header>
                 <div v-if="sources[0]" class="ds-table-row border-gray-200 cursor-pointer" @click="activeSource = sources[0]">
@@ -556,7 +556,7 @@ const isOpenModal = computed({
             </Draggable>
             <div
               v-show="isReloading"
-              class="flex items-center justify-center absolute left-0 top-0 w-full h-full z-10 pb-10 pointer-events-none"
+              class="flex items-center justify-center absolute left-0 top-0 w-full h-[calc(100%_-_45px)] z-10 pb-10 pointer-events-none"
             >
               <div class="flex flex-col justify-center items-center gap-2">
                 <GeneralLoader size="xlarge" />

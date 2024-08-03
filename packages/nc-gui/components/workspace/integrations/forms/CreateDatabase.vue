@@ -291,6 +291,7 @@ const createSource = async () => {
       type: IntegrationsType.Database,
       sub_type: formState.value.dataSource.client,
       config,
+      is_private: formState.value.is_private,
     })
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
@@ -464,6 +465,9 @@ const onUseCaseFormSubmit = async () => {
               maxHeight: '60vh',
             }"
           >
+            <a-form-item label="Allow access" v-bind="validateInfos.title">
+              <a-switch v-model:value="formState.is_private" class="nc-extdb-proj-name" />
+            </a-form-item>
             <a-form-item label="Source Name" v-bind="validateInfos.title">
               <a-input v-model:value="formState.title" class="nc-extdb-proj-name" />
             </a-form-item>

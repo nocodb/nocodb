@@ -19142,6 +19142,14 @@
             "$ref": "#/components/schemas/StringOrNull",
             "description": "Source Name"
           },
+          "integration_title": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Integration Name"
+          },
+          "fk_integration_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Integration Id"
+          },
           "config": {
             "description": "Source Configuration"
           },

@@ -44,6 +44,7 @@ export default class Source implements SourceType {
   meta?: any;
   fk_integration_id?: string;
   integration_config?: string;
+  integration_title?: string;
 
   constructor(source: Partial<SourceType>) {
     Object.assign(this, source);
@@ -558,6 +559,7 @@ export default class Source implements SourceType {
   protected static extendQb(qb: any, _context: NcContext) {
     qb.select(
       `${MetaTable.INTEGRATIONS}.config as integration_config`,
+      `${MetaTable.INTEGRATIONS}.title as integration_title`,
     ).leftJoin(
       MetaTable.INTEGRATIONS,
       `${MetaTable.BASES}.fk_integration_id`,

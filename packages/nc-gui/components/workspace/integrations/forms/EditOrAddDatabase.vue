@@ -266,6 +266,7 @@ const createOrUpdateIntegration = async () => {
     }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
+  } finally{
     creatingSource.value = false
   }
 }
@@ -402,7 +403,7 @@ watch(
 </script>
 
 <template>
-  <div class="h-full">
+  <div v-if="activeIntegration" class="h-full">
     <div class="p-4 w-full flex items-center justify-between gap-3 border-b-1 border-gray-200">
       <div class="flex-1 flex items-center gap-3">
         <NcButton v-if="!isEditMode" type="text" size="small" @click="pageMode = IntegrationsPageMode.LIST">
@@ -410,11 +411,11 @@ watch(
         </NcButton>
         <WorkspaceIntegrationsIcon
           :integration-type="
-            isEditMode ? activeIntegration?.sub_type || activeIntegration?.config?.client : activeIntegration.type
+            isEditMode ? activeIntegration?.sub_type || activeIntegration?.config?.client : activeIntegration?.type
           "
           size="xs"
         />
-        <div class="flex-1 text-base font-weight-700">{{ activeIntegration.title }}</div>
+        <div class="flex-1 text-base font-weight-700">{{ activeIntegration?.title }}</div>
       </div>
       <div class="flex items-center gap-3">
         <div class="w-[15px] h-[15px] cursor-pointer" @dblclick="onEasterEgg"></div>

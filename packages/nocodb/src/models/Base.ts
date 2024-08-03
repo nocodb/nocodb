@@ -94,7 +94,7 @@ export default class Base implements BaseType {
     }
 
     await NocoCache.del(CacheScope.INSTANCE_META);
-    return this.getWithInfo(context, baseId, ncMeta).then(async (base) => {
+    return this.getWithInfo(context, baseId,true, ncMeta).then(async (base) => {
       await NocoCache.appendToList(
         CacheScope.PROJECT,
         [],
@@ -197,7 +197,7 @@ export default class Base implements BaseType {
   }
 
   async getSources(
-    includeConfig = false,
+    includeConfig = true,
     ncMeta = Noco.ncMeta,
   ): Promise<Source[]> {
     const sources = (this.sources = await Source.list(
@@ -219,6 +219,7 @@ export default class Base implements BaseType {
   static async getWithInfo(
     context: NcContext,
     baseId: string,
+    includeConfig = true,
     ncMeta = Noco.ncMeta,
   ): Promise<Base> {
     let baseData =
@@ -256,7 +257,7 @@ export default class Base implements BaseType {
     if (baseData) {
       const base = this.castType(baseData);
 
-      await base.getSources(false, ncMeta);
+      await base.getSources(includeConfig, ncMeta);
 
       return base;
     }

@@ -26,6 +26,7 @@ export default class Integration implements IntegrationType {
   fk_workspace_id?: string;
   title?: string;
   type?: IntegrationsType;
+  sub_type?: IntegrationsType;
   config?: string;
   order?: number;
   enabled?: BoolType;
@@ -91,7 +92,6 @@ export default class Integration implements IntegrationType {
     integration: IntegrationType & {
       meta?: any;
       deleted?: boolean;
-      fk_sql_executor_id?: string;
     },
     ncMeta = Noco.ncMeta,
   ) {

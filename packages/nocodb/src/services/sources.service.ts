@@ -118,6 +118,23 @@ export class SourcesService {
       baseBody.config = {
         client: baseBody.config?.client,
       };
+      baseBody.type = baseBody.config?.client as unknown as BaseReqType['type'];
+    } else {
+      const integration = await Integration.get(
+        (baseBody as any).fk_integration_id,
+      );
+      if (!integration) {
+        NcError.integrationNotFound((baseBody as any).fk_integration_id);
+      }
+
+      if (
+        integration.type !== IntegrationsType.Database ||
+        !integration.sub_type
+      ) {
+        NcError.badRequest('Integration type should be Database');
+      }
+
+      baseBody.type = integration.sub_type as unknown as BaseReqType['type'];
     }
 
     // update invalid ssl config value if found
@@ -131,7 +148,6 @@ export class SourcesService {
 
     const source = await Source.createBase(context, {
       ...baseBody,
-      type: baseBody.config?.client,
       baseId: base.id,
     });
 

@@ -445,6 +445,7 @@ eventBus.on((event, payload) => {
   <NcModal
     v-model:visible="vOpen"
     :closable="false"
+    :mask-closable="!creatingSource"
     :keyboard="!creatingSource"
     centered
     size="large"
@@ -497,7 +498,7 @@ eventBus.on((event, payload) => {
           >
             Add Source
           </NcButton>
-          <NcButton size="small" type="text" @click="vOpen = false">
+          <NcButton :disabled="creatingSource" size="small" type="text" @click="vOpen = false">
             <GeneralIcon icon="close" class="text-gray-600" />
           </NcButton>
         </div>

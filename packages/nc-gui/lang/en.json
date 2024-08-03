@@ -1141,7 +1141,7 @@
     "typeNotAllowed": "This datatype is not allowed.",
     "dataWriteOptionDisabled": "Data editing can disable only when ‘Schema edit’ is disabled and becomes enabled otherwise",
     "allowMetaWrite": "This option allows modification of database schema, including adding, altering, or deleting tables and columns. Use with caution, as changes may impact the structural integrity of your database.",
-    "allowDataWrite": "This option allows create, update, or delete of records within database tables. Ideal for administrative users need to change data directly.",
+    "allowDataWrite": "This option allows creating, updating, or deleting records within database tables. Ideal for administrative users needing to change data directly.",
     "reachedSourceLimit": "Limited to 10 data sources per base",
     "saveChanges": "Save changes",
     "xcDB": "Create a new base",

@@ -15,7 +15,7 @@ const props = defineProps<{
   sourceId: string
 }>()
 
-const emit = defineEmits(['baseUpdated', 'close'])
+const emit = defineEmits(['sourceUpdated', 'close'])
 
 const baseStore = useBase()
 const basesStore = useBases()
@@ -196,7 +196,7 @@ const editBase = async () => {
     $e('a:source:edit:extdb')
 
     await basesStore.loadProject(baseId.value!, true)
-    emit('baseUpdated')
+    emit('sourceUpdated')
     emit('close')
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))

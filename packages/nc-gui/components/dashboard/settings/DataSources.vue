@@ -116,11 +116,11 @@ const baseAction = (sourceId?: string, action?: string) => {
   vState.value = action || ''
 }
 
-const handleClickRow = (source: SourceType, tab?:string) => {
-  if(tab && tab !== openedTab.value){
+const handleClickRow = (source: SourceType, tab?: string) => {
+  if (tab && tab !== openedTab.value) {
     openedTab.value = tab
   }
- 
+
   activeSource.value = source
 }
 
@@ -335,7 +335,7 @@ const isOpenModal = computed({
         wrap-class-name="nc-settings-active-data-source-modal-wrapper"
         @keydown.esc="activeSource = null"
       >
-        <div class="h-full">
+        <div v-if="activeSource" class="h-full">
           <div class="px-4 pt-4 pb-2 flex items-center justify-between gap-3">
             <a-breadcrumb separator=">" class="flex-1 cursor-pointer font-weight-bold">
               <a-breadcrumb-item @click="activeSource = null">
@@ -443,7 +443,11 @@ const isOpenModal = computed({
           <div class="ds-table-body relative">
             <Draggable :list="sources" item-key="id" handle=".ds-table-handle" @end="moveBase">
               <template v-if="'default'.includes(searchQuery.toLowerCase())" #header>
-                <div v-if="sources[0]" class="ds-table-row border-gray-200 cursor-pointer" @click="handleClickRow(sources[0], 'erd')">
+                <div
+                  v-if="sources[0]"
+                  class="ds-table-row border-gray-200 cursor-pointer"
+                  @click="handleClickRow(sources[0], 'erd')"
+                >
                   <div class="ds-table-col ds-table-enabled">
                     <div class="flex items-center gap-1" @click.stop>
                       <div v-if="sources.length > 2" class="ds-table-handle" />

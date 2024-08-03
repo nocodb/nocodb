@@ -508,14 +508,21 @@ const isOpenModal = computed({
                   </div>
                   <div class="ds-table-col ds-table-name font-medium w-full">
                     <div v-if="source.is_meta || source.is_local" class="h-8 w-1">-</div>
-                    <span v-else class="truncate">
+
+                    <NcTooltip v-else class="truncate" show-on-truncate-only>
+                      <template #title>
+                        {{ source.is_meta || source.is_local ? $t('general.base') : source.alias }}
+                      </template>
                       {{ source.is_meta || source.is_local ? $t('general.base') : source.alias }}
-                    </span>
+                    </NcTooltip>
                   </div>
                   <div class="ds-table-col ds-table-integration-name font-medium w-full">
-                    <span class="truncate">
-                      {{ source?.integration_name || '-' }}
-                    </span>
+                    <NcTooltip class="truncate" show-on-truncate-only>
+                      <template #title>
+                        {{ source?.integration_title || '-' }}
+                      </template>
+                      {{ source?.integration_title || '-' }}
+                    </NcTooltip>
                   </div>
 
                   <div class="ds-table-col ds-table-type">

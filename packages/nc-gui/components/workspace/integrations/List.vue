@@ -38,11 +38,15 @@ const isLoadingGetLinkedSources = ref(false)
 
 const tableWrapper = ref<HTMLDivElement>()
 
+const titleHeaderCellRef = ref<HTMLDivElement>()
+
 const searchQuery = ref<string>('')
 
 const orderBy = ref<Partial<Record<SortFields, 'asc' | 'desc' | undefined>>>({})
 
 const localCollaborators = ref<User[] | UserType[]>([])
+
+const { width } = useElementBounding(titleHeaderCellRef)
 
 const collaboratorsMap = computed<Map<string, (WorkspaceUserType & { id: string }) | User | UserType>>(() => {
   const map = new Map()
@@ -255,7 +259,7 @@ onKeyStroke('ArrowDown', onDown)
                 }"
                 @click="updateOrderBy('title')"
               >
-                <div class="flex items-center gap-3">
+                <div ref="titleHeaderCellRef" class="flex items-center gap-3">
                   <div>Name</div>
                   <GeneralIcon
                     v-if="orderBy.title"
@@ -363,7 +367,12 @@ onKeyStroke('ArrowDown', onDown)
             <tbody>
               <tr v-for="integration of filteredIntegrations" :key="integration.id" @click="editIntegration(integration)">
                 <td class="cell-title">
-                  <div class="flex items-center gap-3">
+                  <div
+                    class="gap-3"
+                    :style="{
+                      maxWidth: `${width}px`,
+                    }"
+                  >
                     <NcTooltip placement="bottom" class="truncate" show-on-truncate-only>
                       <template #title> {{ integration.title }}</template>
                       {{ integration.title }}
@@ -376,7 +385,7 @@ onKeyStroke('ArrowDown', onDown)
                   </div>
                 </td>
                 <td class="cell-type">
-                  <div class="flex">
+                  <div>
                     <NcBadge rounded="lg" class="flex items-center gap-2 px-2 py-1 !h-7 truncate">
                       <WorkspaceIntegrationsIcon
                         v-if="integration.sub_type"
@@ -454,7 +463,7 @@ onKeyStroke('ArrowDown', onDown)
                   <div>{{ integration?.source_count ?? 0 }}</div>
                 </td>
                 <td class="cell-actions" @click.stop>
-                  <div class="flex justify-end">
+                  <div class="justify-end">
                     <NcDropdown placement="bottomRight">
                       <NcButton size="small" type="secondary">
                         <GeneralIcon icon="threeDotVertical" />
@@ -723,48 +732,48 @@ onKeyStroke('ArrowDown', onDown)
         @apply h-full;
 
         & > div {
-          @apply px-6 h-full flex items-center;
+          @apply px-6 h-full flex-1 flex items-center;
         }
 
         &.cell-title {
           @apply flex-1 sticky left-0 z-5;
           & > div {
-            @apply min-w-[250px] flex-none;
+            @apply min-w-[250px];
           }
         }
 
         &.cell-added-by {
           @apply basis-[20%];
           & > div {
-            @apply min-w-[250px] flex-none;
+            @apply min-w-[250px];
           }
         }
 
         &.cell-type {
           @apply basis-[20%];
           & > div {
-            @apply min-w-[178px] flex-none;
+            @apply min-w-[178px];
           }
         }
 
         &.cell-created-date {
           @apply basis-[20%];
           & > div {
-            @apply min-w-[158px] flex-none;
+            @apply min-w-[158px];
           }
         }
 
         &.cell-usage {
           @apply w-[120px];
           & > div {
-            @apply min-w-[118px] flex-none;
+            @apply min-w-[118px];
           }
         }
 
         &.cell-actions {
           @apply w-[100px];
           & > div {
-            @apply min-w-[98px] flex-none;
+            @apply min-w-[98px];
           }
         }
       }

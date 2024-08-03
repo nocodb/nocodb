@@ -3,8 +3,17 @@ import { type SourceType, type UserType, type WorkspaceUserType } from 'nocodb-s
 import dayjs from 'dayjs'
 
 const { user } = useGlobal()
-const { pageMode, integrations, loadIntegrations, deleteIntegration, editIntegration, deleteConfirmText, IntegrationsPageMode } =
-  useIntegrationStore()
+const {
+  pageMode,
+  integrations,
+  isLoadingIntegrations,
+  deleteConfirmText,
+  IntegrationsPageMode,
+  loadIntegrations,
+  deleteIntegration,
+  editIntegration,
+  duplicateIntegration,
+} = useIntegrationStore()
 
 const { $e } = useNuxtApp()
 
@@ -86,11 +95,15 @@ onMounted(async () => {
     await loadIntegrations()
   }
 })
+
+watchEffect(() => {
+  console.log('integrations', integrations.value)
+})
 </script>
 
 <template>
-  <div class="h-full flex flex-col gap-6 pt-6 nc-workspace-settings-integrations">
-    <div class="max-w-[968px] flex items-center justify-between gap-3 mx-2">
+  <div class="h-full flex flex-col gap-6 pt-6 nc-workspace-settings-integrations max-w-[fit-content]">
+    <div class="flex items-center justify-between gap-3 mx-2">
       <a-input
         v-model:value="searchQuery"
         type="text"
@@ -109,7 +122,7 @@ onMounted(async () => {
         </div>
       </NcButton>
     </div>
-    <div class="table-container relative">
+    <div class="table-container relative min-h-[500px]">
       <div ref="tableWrapper" class="nc-workspace-integration-table relative nc-scrollbar-thin !overflow-auto">
         <table class="!sticky top-0 z-10">
           <thead>
@@ -118,7 +131,7 @@ onMounted(async () => {
                 <div>Integration name</div>
               </th>
               <th class="cell-type">
-                <div>Integration type</div>
+                <div>Type</div>
               </th>
               <th class="cell-created-date">
                 <div>Date added</div>
@@ -126,9 +139,9 @@ onMounted(async () => {
               <th class="cell-added-by">
                 <div>Added by</div>
               </th>
-              <th class="cell-usage">
-                <div>usage</div>
-              </th>
+              <!-- <th class="cell-usage">
+                <div>Usage</div>
+              </th> -->
               <th class="cell-actions">
                 <div>Actions</div>
               </th>
@@ -136,7 +149,7 @@ onMounted(async () => {
           </thead>
         </table>
         <template v-if="filteredIntegrations?.length">
-          <table class="min-h-[500px]">
+          <table>
             <tbody>
               <tr v-for="integration of filteredIntegrations" :key="integration.id" @click="editIntegration(integration)">
                 <td class="cell-title">
@@ -146,17 +159,24 @@ onMounted(async () => {
                       {{ integration.title }}
                     </NcTooltip>
                     <span v-if="!integration.is_private">
-                      <NcBadge :border="false" class="text-primary bg-brand-50">Shared</NcBadge>
+                      <NcBadge :border="false" class="text-primary bg-brand-50 text-sm">Shared</NcBadge>
                     </span>
                   </div>
                 </td>
                 <td class="cell-type">
-                  <div>
-                    <NcTooltip placement="bottom" show-on-truncate-only>
-                      <template #title>Database - {{ integration.sub_type }}</template>
+                  <div class="flex">
+                    <NcBadge rounded="lg" class="flex items-center gap-2 px-2 py-1 !h-7 truncate">
+                      <WorkspaceIntegrationsIcon
+                        :integration-type="integration.sub_type"
+                        size="xs"
+                        class="!p-0 !bg-transparent"
+                      />
+                      <NcTooltip placement="bottom" show-on-truncate-only class="text-sm truncate">
+                        <template #title> {{ integration.sub_type }}</template>
 
-                      Database - {{ integration.sub_type }}
-                    </NcTooltip>
+                        {{ integration.sub_type }}
+                      </NcTooltip>
+                    </NcBadge>
                   </div>
                 </td>
                 <td class="cell-created-date">
@@ -213,9 +233,9 @@ onMounted(async () => {
                     <template v-else>{{ integration.created_by }} </template>
                   </div>
                 </td>
-                <td class="cell-usage">
+                <!-- <td class="cell-usage">
                   <div></div>
-                </td>
+                </td> -->
                 <td class="cell-actions" @click.stop>
                   <div>
                     <NcDropdown v-if="user?.id === integration.created_by">
@@ -228,7 +248,7 @@ onMounted(async () => {
                             <GeneralIcon class="text-gray-800" icon="edit" />
                             <span>{{ $t('general.edit') }}</span>
                           </NcMenuItem>
-                          <NcMenuItem>
+                          <NcMenuItem @click="duplicateIntegration(integration)">
                             <GeneralIcon class="text-gray-800" icon="duplicate" />
                             <span>{{ $t('general.duplicate') }}</span>
                           </NcMenuItem>
@@ -247,9 +267,9 @@ onMounted(async () => {
           </table>
         </template>
       </div>
-      <!-- Todo: add loading state  -->
+
       <div
-        v-show="false"
+        v-show="isLoadingIntegrations"
         class="flex items-center justify-center absolute left-0 top-0 w-full h-full z-10 pb-10 pointer-events-none"
       >
         <div class="flex flex-col justify-center items-center gap-2">
@@ -258,7 +278,7 @@ onMounted(async () => {
         </div>
       </div>
       <div
-        v-if="!integrations?.length || !filteredIntegrations.length"
+        v-if="!isLoadingIntegrations && (!integrations?.length || !filteredIntegrations.length)"
         class="flex-none integration-table-empty flex items-center justify-center py-8 px-6"
       >
         <div
@@ -295,7 +315,7 @@ onMounted(async () => {
       v-model:visible="isDeleteIntegrationModalOpen"
       :entity-name="$t('general.integration')"
       :on-delete="onDeleteConfirm"
-      :delete-label="$t('general.remove')"
+      :delete-label="$t('general.delete')"
     >
       <template #entity-preview>
         <span v-if="deleteConfirmText">{{ deleteConfirmText }}</span>
@@ -303,9 +323,9 @@ onMounted(async () => {
           v-else-if="toBeDeletedIntegration"
           class="flex flex-row items-center py-2 px-3.25 bg-gray-50 rounded-lg text-gray-700 mb-4"
         >
-          <GeneralBaseLogo :source-type="toBeDeletedIntegration.type" />
+          <WorkspaceIntegrationsIcon :integration-type="toBeDeletedIntegration.sub_type" size="xs" class="!p-0 !bg-transparent" />
           <div
-            class="capitalize text-ellipsis overflow-hidden select-none w-full pl-3"
+            class="text-ellipsis overflow-hidden select-none w-full pl-3"
             :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
           >
             {{ toBeDeletedIntegration.title }}
@@ -339,7 +359,7 @@ onMounted(async () => {
 }
 
 .table-container {
-  @apply border-1 border-gray-200 rounded-lg overflow-hidden max-w-[968px] mb-6;
+  @apply border-1 border-gray-200 rounded-lg overflow-hidden max-w-[fit-content] mb-6;
 
   .nc-workspace-integration-table {
     &.sticky-shadow {

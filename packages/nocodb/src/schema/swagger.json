@@ -19482,6 +19482,10 @@
           "sub_type": {
             "description": "Sub Type",
             "type": "string"
+          },
+          "copy_from_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "ID of integration to be copied from. Used in Copy Integration."
           }
         },
         "title": "Source Request",

@@ -24,7 +24,9 @@ const vOpen = useVModel(props, 'open', emit)
 
 const connectionType = computed(() => props.connectionType ?? ClientType.MYSQL)
 
-const { pageMode, IntegrationsPageMode, activeIntegration, saveIntegration } = useIntegrationStore()
+const { pageMode, IntegrationsPageMode, activeIntegration, saveIntegration, updateIntegration } = useIntegrationStore()
+
+const isEditMode = computed(() => pageMode.value === IntegrationsPageMode.EDIT)
 
 const useForm = Form.useForm
 
@@ -139,7 +141,7 @@ const validators = computed(() => {
     'title': [
       {
         required: true,
-        message: 'Source name is required',
+        message: 'Integration name is required',
       },
       baseTitleValidator,
     ],
@@ -149,7 +151,7 @@ const validators = computed(() => {
   }
 })
 
-const { validate, validateInfos } = useForm(formState.value, validators)
+const { validate, validateInfos } = useForm(formState, validators)
 
 const populateName = (v: string) => {
   formState.value.dataSource.connection.database = `${v.trim()}_noco`
@@ -248,7 +250,10 @@ const focusInvalidInput = () => {
   form.value?.$el.querySelector('.ant-form-item-explain-error')?.parentNode?.parentNode?.querySelector('input')?.focus()
 }
 
-const createIntegration = async () => {
+const createOrUpdateIntegration = async () => {
+  // if it is edit mode and activeIntegration id is not present then return
+  if (isEditMode.value && !activeIntegration.value?.id) return
+
   try {
     await validate()
   } catch (e) {
@@ -263,13 +268,24 @@ const createIntegration = async () => {
 
     const config = { ...formState.value.dataSource, connection }
 
-    await saveIntegration({
-      title: formState.value.title,
-      type: IntegrationsType.Database,
-      sub_type: formState.value.dataSource.client,
-      config,
-      is_private: formState.value.is_private,
-    })
+    if (!isEditMode.value) {
+      await saveIntegration({
+        title: formState.value.title,
+        type: IntegrationsType.Database,
+        sub_type: formState.value.dataSource.client,
+        config,
+        is_private: formState.value.is_private,
+      })
+    } else {
+      await updateIntegration({
+        id: activeIntegration.value.id,
+        title: formState.value.title,
+        type: IntegrationsType.Database,
+        sub_type: formState.value.dataSource.client,
+        config,
+        is_private: formState.value.is_private,
+      })
+    }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
     creatingSource.value = false
@@ -328,7 +344,12 @@ const handleImportURL = async () => {
 
   if (connectionConfig) {
     formState.value.dataSource.client = connectionConfig.client
-    formState.value.dataSource.connection = { ...connectionConfig.connection }
+    formState.value.dataSource.connection = {
+      ...connectionConfig.connection,
+      connection: {
+        filename: connectionConfig?.connection?.filename || '',
+      },
+    }
   } else {
     message.error(t('msg.error.invalidURL'))
   }
@@ -339,13 +360,11 @@ const handleImportURL = async () => {
 const customJsonFormState = computed({
   get: () => ({ ...formState.value }),
   set: (value) => {
-    console.log('update', value && typeof value === 'object', value)
     if (value && typeof value === 'object') {
       formState.value = { ...defaultFormState(), ...value }
     } else {
       formState.value = defaultFormState()
     }
-    console.log('update 2', formState.value)
     updateSSLUse()
   },
 })
@@ -368,7 +387,25 @@ watch(
 
 // select and focus title field on load
 onMounted(async () => {
-  formState.value.title = await generateUniqueName()
+  if (pageMode.value === IntegrationsPageMode.ADD) {
+    formState.value.title = await generateUniqueName()
+  } else {
+    const definedParameters = ['host', 'port', 'user', 'password', 'database']
+
+    const tempParameters = Object.entries(activeIntegration.value.config.connection)
+      .filter(([key]) => !definedParameters.includes(key))
+      .map(([key, value]) => ({ key: key as string, value: value as string }))
+
+    formState.value = {
+      title: activeIntegration.value.title || '',
+      dataSource: activeIntegration.value.config,
+      extraParameters: tempParameters,
+      sslUse: SSLUsage.No,
+      is_private: activeIntegration.value.is_private,
+    }
+    updateSSLUse()
+  }
+
   nextTick(() => {
     // todo: replace setTimeout and follow better approach
     setTimeout(() => {
@@ -432,15 +469,15 @@ const allowAccess = computed({
   <div class="h-full">
     <div class="p-4 w-full flex items-center justify-between gap-3 border-b-1 border-gray-200">
       <div class="flex-1 flex items-center gap-3">
-        <NcButton
-          v-if="pageMode === IntegrationsPageMode.ADD"
-          type="text"
-          size="small"
-          @click="pageMode = IntegrationsPageMode.LIST"
-        >
+        <NcButton v-if="!isEditMode" type="text" size="small" @click="pageMode = IntegrationsPageMode.LIST">
           <GeneralIcon icon="arrowLeft" />
         </NcButton>
-        <WorkspaceIntegrationsIcon :integration-type="activeIntegration.type" size="xs" />
+        <WorkspaceIntegrationsIcon
+          :integration-type="
+            isEditMode ? activeIntegration?.sub_type || activeIntegration?.config?.client : activeIntegration.type
+          "
+          size="xs"
+        />
         <div class="flex-1 text-sm font-weight-700">Configure {{ activeIntegration.title }}</div>
       </div>
       <div class="flex items-center gap-3">
@@ -465,9 +502,9 @@ const allowAccess = computed({
           :disabled="!testSuccess"
           :loading="creatingSource"
           class="nc-extdb-btn-submit !rounded-md"
-          @click="createIntegration"
+          @click="createOrUpdateIntegration"
         >
-          Add integration
+          {{ pageMode === IntegrationsPageMode.ADD ? 'Add integration' : 'Edit integration' }}
         </NcButton>
       </div>
     </div>
@@ -491,7 +528,7 @@ const allowAccess = computed({
                     <a-row :gutter="24">
                       <a-col :span="12">
                         <a-form-item label="Integration name" v-bind="validateInfos.title">
-                          <a-input v-model:value="formState.title" class="nc-extdb-proj-name" />
+                          <a-input v-model:value="formState.title" />
                         </a-form-item>
                       </a-col>
                     </a-row>
@@ -524,7 +561,10 @@ const allowAccess = computed({
                           <div class="text-sm text-gray-700">
                             Auto populate connection configuration using database connection URL
                           </div>
-                          <a-textarea v-model:value="importURL" class="!rounded-lg !min-h-[120px]"></a-textarea>
+                          <a-textarea
+                            v-model:value="importURL"
+                            class="!rounded-lg !min-h-[120px] !max-h-[250px] nc-scrollbar-thin"
+                          ></a-textarea>
 
                           <div class="flex items-center gap-2 justify-end">
                             <NcButton
@@ -546,7 +586,7 @@ const allowAccess = computed({
                     </NcDropdown>
                   </div>
                   <div class="nc-form-section-body">
-                    <a-row :gutter="24">
+                    <a-row :gutter="24" v-if="easterEgg">
                       <a-col :span="12">
                         <a-form-item :label="$t('labels.dbType')" v-bind="validateInfos['dataSource.client']">
                           <NcSelect
@@ -765,7 +805,7 @@ const allowAccess = computed({
                                 <a-row :gutter="24">
                                   <a-col :span="12"><a-input v-model:value="item.key" placeholder="Key" /> </a-col>
                                   <a-col :span="12">
-                                    <div class="flex">
+                                    <div class="flex gap-2">
                                       <a-input v-model:value="item.value" placeholder="Value" />
 
                                       <NcButton type="text" size="small" @click="removeParam(index)">
@@ -860,16 +900,29 @@ const allowAccess = computed({
                       </div>
                     </a-form-item>
 
-                    <input ref="caFileInput" type="file" class="!hidden" @change="onFileSelect(CertTypes.ca, caFileInput)" />
+                    <input
+                      ref="caFileInput"
+                      type="file"
+                      class="!hidden"
+                      accept=".ca"
+                      @change="onFileSelect(CertTypes.ca, caFileInput)"
+                    />
 
                     <input
                       ref="certFileInput"
                       type="file"
                       class="!hidden"
+                      accept=".cert"
                       @change="onFileSelect(CertTypes.cert, certFileInput)"
                     />
 
-                    <input ref="keyFileInput" type="file" class="!hidden" @change="onFileSelect(CertTypes.key, keyFileInput)" />
+                    <input
+                      ref="keyFileInput"
+                      type="file"
+                      class="!hidden"
+                      accept=".key"
+                      @change="onFileSelect(CertTypes.key, keyFileInput)"
+                    />
                   </a-collapse-panel>
                 </a-collapse>
 

@@ -13,7 +13,11 @@ const isEditOrAddIntegrationModalOpen = computed({
 })
 
 const connectionType = computed(() => {
-  switch (activeIntegration.value?.type) {
+  switch (
+    pageMode.value === IntegrationsPageMode.EDIT
+      ? activeIntegration.value?.sub_type || activeIntegration.value?.config?.client
+      : activeIntegration.value?.type
+  ) {
     case integrationType.PostgreSQL:
       return ClientType.PG
     case integrationType.MySQL:
@@ -33,7 +37,7 @@ const connectionType = computed(() => {
     @keydown.esc="isEditOrAddIntegrationModalOpen = false"
   >
     <div v-if="connectionType">
-      <WorkspaceIntegrationsFormsCreateDatabase :connection-type="connectionType" />
+      <WorkspaceIntegrationsFormsEditOrAddDatabase :connection-type="connectionType" />
     </div>
   </NcModal>
 </template>

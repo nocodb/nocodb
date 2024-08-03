@@ -1,26 +1,38 @@
 <script lang="ts" setup>
-import { type SourceType } from 'nocodb-sdk'
+import { type SourceType, type UserType, type WorkspaceUserType } from 'nocodb-sdk'
+import dayjs from 'dayjs'
 
-const {
-  pageMode,
-  integrations,
-  loadIntegrations,
-  integrationType,
-  addIntegration,
-  deleteIntegration,
-  editIntegration,
-  deleteConfirmText,
-  IntegrationsPageMode,
-} = useIntegrationStore()
+const { user } = useGlobal()
+const { pageMode, integrations, loadIntegrations, deleteIntegration, editIntegration, deleteConfirmText, IntegrationsPageMode } =
+  useIntegrationStore()
 
 const { $e } = useNuxtApp()
 
-onMounted(async () => {
-  await loadIntegrations()
-})
+const { collaborators } = storeToRefs(useWorkspace())
 
 const isDeleteIntegrationModalOpen = ref(false)
 const toBeDeletedIntegration = ref<SourceType | null>(null)
+
+const tableWrapper = ref<HTMLDivElement>()
+
+const searchQuery = ref<string>('')
+
+const filteredIntegrations = computed(() =>
+  (integrations.value || []).filter((i) => i?.title?.toLowerCase()?.includes(searchQuery.value.toLowerCase())),
+)
+
+const localCollaborators = ref<User[] | UserType[]>([])
+
+const collaboratorsMap = computed<Map<string, (WorkspaceUserType & { id: string }) | User | UserType>>(() => {
+  const map = new Map()
+
+  ;(isEeUI ? collaborators.value : localCollaborators.value)?.forEach((coll) => {
+    if (coll?.id) {
+      map.set(coll.id, coll)
+    }
+  })
+  return map
+})
 
 const openDeleteIntegration = (source: IntegrationType) => {
   $e('c:integration:delete')
@@ -39,33 +51,53 @@ const onDeleteConfirm = async () => {
     }, 100)
   }
 }
+
+const loadOrgUsers = async () => {
+  try {
+    const response: any = await $api.orgUsers.list()
+
+    if (!response?.list) return
+
+    localCollaborators.value = response.list as UserType[]
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
+
+useEventListener(tableWrapper, 'scroll', () => {
+  const stickyHeaderCell = tableWrapper.value?.querySelector('th.cell-title')
+  const nonStickyHeaderFirstCell = tableWrapper.value?.querySelector('th.cell-type')
+
+  if (!stickyHeaderCell?.getBoundingClientRect().right || !nonStickyHeaderFirstCell?.getBoundingClientRect().left) {
+    return
+  }
+
+  if (nonStickyHeaderFirstCell?.getBoundingClientRect().left < stickyHeaderCell?.getBoundingClientRect().right + 180) {
+    tableWrapper.value?.classList.add('sticky-shadow')
+  } else {
+    tableWrapper.value?.classList.remove('sticky-shadow')
+  }
+})
+
+onMounted(async () => {
+  if (!isEeUI) {
+    await Promise.allSettled([loadIntegrations(), loadOrgUsers()])
+  } else {
+    await loadIntegrations()
+  }
+})
 </script>
 
 <template>
   <div class="h-full flex flex-col gap-6 pt-6 nc-workspace-settings-integrations">
-    <div class="flex flex-col border-b-1 border-gray-200">
-      <div class="flex gap-2 p-6">
-        <div class="source-card" @click="addIntegration(integrationType.MySQL)">
-          <WorkspaceIntegrationsIcon :integration-type="integrationType.MySQL" size="md" />
-          <div class="name">MySQL</div>
-        </div>
-        <div class="source-card" @click="addIntegration(integrationType.PostgreSQL)">
-          <WorkspaceIntegrationsIcon :integration-type="integrationType.PostgreSQL" size="md" />
-          <div class="name">PostgreSQL</div>
-        </div>
-        <a
-          class="source-card source-card-link"
-          href="https://github.com/nocodb/nocodb/issues"
-          target="_blank"
-          rel="noreferrer noopener"
-        >
-          <WorkspaceIntegrationsIcon integration-type="request" size="md" />
-          <div class="name">Request New Integration</div>
-        </a>
-      </div>
-    </div>
-    <div class="max-w-[1204px] flex items-center justify-between gap-3 mx-2">
-      <a-input type="text" class="!max-w-90 nc-input-sm" placeholder="Search an Integration" allow-clear>
+    <div class="max-w-[968px] flex items-center justify-between gap-3 mx-2">
+      <a-input
+        v-model:value="searchQuery"
+        type="text"
+        class="!max-w-90 nc-input-sm"
+        placeholder="Search an Integration"
+        allow-clear
+      >
         <template #prefix>
           <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-gray-500" />
         </template>
@@ -106,13 +138,13 @@ const onDeleteConfirm = async () => {
             </tr>
           </thead>
         </table>
-        <template v-if="integrations?.length">
+        <template v-if="filteredIntegrations?.length">
           <table class="min-h-[500px]">
             <tbody>
-              <tr v-for="integration of integrations" :key="integration.id">
+              <tr v-for="integration of filteredIntegrations" :key="integration.id" @click="editIntegration(integration)">
                 <td class="cell-title">
                   <div>
-                    <NcTooltip placement="bottom">
+                    <NcTooltip placement="bottom" show-on-truncate-only>
                       <template #title> {{ integration.title }}</template>
                       {{ integration.title }}
                     </NcTooltip>
@@ -120,7 +152,7 @@ const onDeleteConfirm = async () => {
                 </td>
                 <td class="cell-type">
                   <div>
-                    <NcTooltip placement="bottom">
+                    <NcTooltip placement="bottom" show-on-truncate-only>
                       <template #title>Database - {{ integration.sub_type }}</template>
 
                       Database - {{ integration.sub_type }}
@@ -129,22 +161,64 @@ const onDeleteConfirm = async () => {
                 </td>
                 <td class="cell-created-date">
                   <div>
-                    <NcTooltip placement="bottom">
-                      <template #title> {{ timeAgo(integration.created_at) }}</template>
+                    <NcTooltip placement="bottom" show-on-truncate-only>
+                      <template #title> {{ dayjs(integration.created_at).format('DD MMM YYYY') }}</template>
 
-                      {{ timeAgo(integration.created_at) }}
+                      {{ dayjs(integration.created_at).format('DD MMM YYYY') }}
                     </NcTooltip>
                   </div>
                 </td>
                 <td class="cell-added-by">
-                  <div>fdsa</div>
+                  <div>
+                    <div
+                      v-if="integration.created_by && collaboratorsMap.get(integration.created_by)?.email"
+                      class="w-full flex gap-3 items-center"
+                    >
+                      <GeneralUserIcon
+                        :email="collaboratorsMap.get(integration.created_by)?.email"
+                        size="base"
+                        class="flex-none"
+                      />
+                      <div class="flex-1 flex flex-col max-w-[calc(100%_-_44px)]">
+                        <div class="w-full flex gap-3">
+                          <NcTooltip
+                            class="text-sm !leading-5 text-gray-800 capitalize font-semibold truncate"
+                            show-on-truncate-only
+                            placement="bottom"
+                          >
+                            <template #title>
+                              {{
+                                collaboratorsMap.get(integration.created_by)?.display_name ||
+                                collaboratorsMap
+                                  .get(integration.created_by)
+                                  ?.email?.slice(0, collaboratorsMap.get(integration.created_by)?.email.indexOf('@'))
+                              }}
+                            </template>
+                            {{
+                              collaboratorsMap.get(integration.created_by)?.display_name ||
+                              collaboratorsMap
+                                .get(integration.created_by)
+                                ?.email?.slice(0, collaboratorsMap.get(integration.created_by)?.email.indexOf('@'))
+                            }}
+                          </NcTooltip>
+                        </div>
+                        <NcTooltip class="text-xs !leading-4 text-gray-600 truncate" show-on-truncate-only placement="bottom">
+                          <template #title>
+                            {{ collaboratorsMap.get(integration.created_by)?.email }}
+                          </template>
+                          {{ collaboratorsMap.get(integration.created_by)?.email }}
+                        </NcTooltip>
+                      </div>
+                    </div>
+                    <template v-else>{{ integration.created_by }} </template>
+                  </div>
                 </td>
                 <td class="cell-usage">
                   <div></div>
                 </td>
-                <td class="cell-actions">
+                <td class="cell-actions" @click.stop>
                   <div>
-                    <NcDropdown>
+                    <NcDropdown v-if="user?.id === integration.created_by">
                       <NcButton size="small" type="secondary">
                         <GeneralIcon icon="threeDotVertical" />
                       </NcButton>
@@ -183,8 +257,24 @@ const onDeleteConfirm = async () => {
           <span class="text-center">{{ $t('general.loading') }}</span>
         </div>
       </div>
-      <div v-if="!integrations?.length" class="flex-none integration-table-empty flex items-center justify-center py-8 px-6">
-        <div class="flex-none text-center flex flex-col items-center gap-3">
+      <div
+        v-if="!integrations?.length || !filteredIntegrations.length"
+        class="flex-none integration-table-empty flex items-center justify-center py-8 px-6"
+      >
+        <div
+          v-if="integrations?.length && !filteredIntegrations.length"
+          class="px-2 py-6 text-gray-500 flex flex-col items-center gap-6 text-center"
+        >
+          <img
+            src="~assets/img/placeholder/no-search-result-found.png"
+            class="!w-[164px] flex-none"
+            alt="No search results found"
+          />
+
+          {{ $t('title.noResultsMatchedYourSearch') }}
+        </div>
+
+        <div v-else class="flex-none text-center flex flex-col items-center gap-3">
           <img src="~assets/img/placeholder/link-records.png" class="!w-[18.5rem] flex-none" />
           <div class="text-2xl text-gray-700 font-bold">No Integrations added</div>
           <div class="text-gray-700 text-center">Looks like no integrations have been linked yet.</div>
@@ -198,7 +288,7 @@ const onDeleteConfirm = async () => {
       </div>
     </div>
 
-    <WorkspaceIntegrationsAvailableList></WorkspaceIntegrationsAvailableList>
+    <WorkspaceIntegrationsNewAvailableList></WorkspaceIntegrationsNewAvailableList>
     <WorkspaceIntegrationsEditOrAdd></WorkspaceIntegrationsEditOrAdd>
 
     <GeneralDeleteModal
@@ -229,6 +319,7 @@ const onDeleteConfirm = async () => {
 <style lang="scss" scoped>
 .source-card-link {
   @apply !text-black !no-underline;
+
   .nc-new-integration-type-title {
     @apply text-sm font-weight-600 text-gray-600;
   }
@@ -237,6 +328,7 @@ const onDeleteConfirm = async () => {
 .source-card {
   @apply flex items-center border-1 rounded-lg p-3 cursor-pointer hover:bg-gray-50;
   width: 288px;
+
   .name {
     @apply ml-4 text-md font-semibold;
   }
@@ -247,25 +339,27 @@ const onDeleteConfirm = async () => {
 }
 
 .table-container {
-  @apply border-1 border-gray-200 rounded-lg overflow-hidden max-w-[1204px];
+  @apply border-1 border-gray-200 rounded-lg overflow-hidden max-w-[968px];
 
   .nc-workspace-integration-table {
     &.sticky-shadow {
       th,
       td {
-        &.cell-title {
+        &.cell-user {
           @apply border-r-1 border-gray-200;
         }
       }
     }
+
     &:not(.sticky-shadow) {
       th,
       td {
-        &.cell-title {
+        &.cell-user {
           @apply border-r-1 border-transparent;
         }
       }
     }
+
     thead {
       th {
         @apply bg-gray-50 text-sm text-gray-500 font-weight-500;
@@ -293,7 +387,7 @@ const onDeleteConfirm = async () => {
     }
 
     tr {
-      @apply h-[54px] flex border-b-1  border-gray-200;
+      @apply h-[54px] flex border-b-1 border-gray-200;
 
       &:hover td {
         @apply !bg-gray-50;
@@ -312,14 +406,21 @@ const onDeleteConfirm = async () => {
         }
 
         &.cell-title {
-          @apply w-[252px] sticky left-0 z-5;
+          @apply w-[220px] sticky left-0 z-5;
         }
 
-        &.cell-type,
-        &.cell-created-date,
         &.cell-added-by {
-          @apply w-[252px];
+          @apply w-[220px];
         }
+
+        &.cell-type {
+          @apply w-[180px];
+        }
+
+        &.cell-created-date {
+          @apply w-[150px];
+        }
+
         &.cell-usage {
           @apply w-[96px];
         }

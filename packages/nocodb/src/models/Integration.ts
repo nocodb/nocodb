@@ -13,6 +13,7 @@ import {
   stringifyMetaProp,
 } from '~/utils/modelUtils';
 import { partialExtract } from '~/utils';
+import { PagedResponseImpl } from '~/helpers/PagedResponse';
 
 export default class Integration implements IntegrationType {
   id?: string;
@@ -167,33 +168,38 @@ export default class Integration implements IntegrationType {
   static async list(
     args: {
       workspaceId?: string;
-      haveWorkspaceLevelPermission: boolean;
       userId: string;
       includeDatabaseInfo?: boolean;
       type?: IntegrationsType;
+      limit?: number;
+      offset?: number;
     },
     ncMeta = Noco.ncMeta,
-  ): Promise<Integration[]> {
+  ): Promise<PagedResponseImpl<Integration>> {
     const conditions: Condition[] = [];
 
-    // if user have workspace level permission(creator, owner) then show all integrations which are not deleted
-    // and exclude integrations which are private and not created by user
-    if (args.haveWorkspaceLevelPermission) {
-      conditions.push({
-        _or: [
-          {
-            is_private: {
-              eq: false,
-            },
-          },
-          {
-            created_by: {
-              eq: args.userId,
-            },
-          },
-        ],
-      });
+    const { offset } = args;
+    let { limit } = args;
+
+    if (offset !== undefined && !limit) {
+      limit = 25;
     }
+
+    // exclude integrations which are private and not created by user
+    conditions.push({
+      _or: [
+        {
+          is_private: {
+            eq: false,
+          },
+        },
+        {
+          created_by: {
+            eq: args.userId,
+          },
+        },
+      ],
+    });
 
     // if type is provided then filter integrations based on type
     if (args.type) {
@@ -204,42 +210,37 @@ export default class Integration implements IntegrationType {
       });
     }
 
-    // if user don't have workspace level permission then show only integrations which are owned by user
-    else {
-      conditions.push({
-        created_by: {
-          eq: args.userId,
+    const xcCondition = {
+      _and: [
+        {
+          _or: [
+            {
+              deleted: {
+                neq: true,
+              },
+            },
+            {
+              deleted: {
+                eq: null,
+              },
+            },
+          ],
         },
-      });
-    }
+        ...conditions,
+      ],
+    };
 
     const integrationList = await ncMeta.metaList2(
       args.workspaceId,
       RootScopes.WORKSPACE,
       MetaTable.INTEGRATIONS,
       {
-        xcCondition: {
-          _and: [
-            {
-              _or: [
-                {
-                  deleted: {
-                    neq: true,
-                  },
-                },
-                {
-                  deleted: {
-                    eq: null,
-                  },
-                },
-              ],
-            },
-            ...conditions,
-          ],
-        },
+        xcCondition,
         orderBy: {
           order: 'asc',
         },
+        limit,
+        offset,
       },
     );
 
@@ -264,7 +265,27 @@ export default class Integration implements IntegrationType {
       }
     }
 
-    return integrations;
+    if (limit) {
+      const count = await ncMeta.metaCount(
+        args.workspaceId,
+        RootScopes.WORKSPACE,
+        MetaTable.INTEGRATIONS,
+        {
+          xcCondition,
+        },
+      );
+
+      return new PagedResponseImpl(integrations, {
+        count,
+        limit,
+        offset,
+      });
+    }
+
+    return new PagedResponseImpl(integrations, {
+      count: integrations.length,
+      limit: integrations.length,
+    });
   }
 
   static async get(

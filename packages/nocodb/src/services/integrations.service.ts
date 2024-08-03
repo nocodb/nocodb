@@ -74,12 +74,16 @@ export class IntegrationsService {
     req: NcRequest;
     includeDatabaseInfo: boolean;
     type?: IntegrationsType;
+    limit?: number;
+    offset?: number;
   }) {
     const integrations = await Integration.list({
       haveWorkspaceLevelPermission: true,
       userId: param.req.user?.id,
       includeDatabaseInfo: param.includeDatabaseInfo,
       type: param.type,
+      limit: param.limit,
+      offset: param.offset,
     });
 
     return integrations;

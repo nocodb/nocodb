@@ -18523,11 +18523,32 @@
             },
             "name": "includeDatabaseInfo",
             "in": "query"
+          },
+          {
+            "schema": {
+              "type": "boolean"
+            },
+            "name": "includeDatabaseInfo",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "number"
+            },
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "number"
+            },
+            "name": "offset",
+            "in": "query"
           }
         ]
       },
       "post": {
-        "summary": "Create itegration",
+        "summary": "Create integration",
         "operationId": "integration-create",
         "responses": {
           "200": {

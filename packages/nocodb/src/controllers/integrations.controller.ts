@@ -12,7 +12,6 @@ import {
 } from '@nestjs/common';
 import { IntegrationReqType, IntegrationsType } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
-import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { IntegrationsService } from '~/services/integrations.service';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
@@ -112,22 +111,24 @@ export class IntegrationsController {
     @Req() req: NcRequest,
     @Query('type') type: IntegrationsType,
     @Query('includeDatabaseInfo') includeDatabaseInfo?: string,
+    @Query('limit') limit?: string,
+    @Query('offset') offset?: string,
   ) {
     const integrations = await this.integrationsService.integrationList({
       req,
       includeDatabaseInfo: includeDatabaseInfo === 'true',
       type,
+      // if limit/offset is not provided, then return all integrations
+      limit: limit && (+limit || 25),
+      offset: offset && (+offset || 0),
     });
 
     if (!includeDatabaseInfo) {
-      for (const integration of integrations) {
+      for (const integration of integrations.list) {
         delete integration.config;
       }
     }
 
-    return new PagedResponseImpl(integrations, {
-      count: integrations.length,
-      limit: integrations.length,
-    });
+    return integrations;
   }
 }

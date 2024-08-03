@@ -155,8 +155,8 @@ useEventListener(tableWrapper, 'scroll', () => {
 
 onMounted(async () => {
   if (!isEeUI) {
-    await Promise.allSettled([loadIntegrations(), loadOrgUsers()])
-  } else {
+    await Promise.allSettled([!integrations.value.length && loadIntegrations(), loadOrgUsers()])
+  } else if (!integrations.value.length) {
     await loadIntegrations()
   }
 })

@@ -12,6 +12,8 @@ const { loadRoles } = useRoles()
 const { activeWorkspace: _activeWorkspace } = storeToRefs(workspaceStore)
 const { loadCollaborators } = workspaceStore
 
+const { integrations, loadIntegrations } = useIntegrationStore()
+
 const currentWorkspace = computedAsync(async () => {
   await loadRoles(undefined, {}, _activeWorkspace.value?.id)
   return _activeWorkspace.value
@@ -44,7 +46,8 @@ onMounted(() => {
   until(() => currentWorkspace.value?.id)
     .toMatch((v) => !!v)
     .then(async () => {
-      await loadCollaborators({} as any, currentWorkspace.value!.id)
+       await Promise.all([loadCollaborators({} as any, currentWorkspace.value!.id),loadIntegrations()])
+    
     })
 })
 </script>
@@ -80,6 +83,16 @@ onMounted(() => {
             <div class="flex flex-row items-center pb-1 gap-x-1.5" data-testid="nc-workspace-settings-tab-integrations">
               <GeneralIcon icon="gitCommit" />
               {{ $t('general.connections') }}
+              <div
+                v-if="integrations?.length"
+                class="tab-info flex-none"
+                :class="{
+                  'bg-primary-selected': tab === 'connections',
+                  'bg-gray-50': tab !== 'connections',
+                }"
+              >
+                {{ integrations.length }}
+              </div>
             </div>
           </template>
           <div class="h-[calc(100vh-92px)] p-6">
@@ -117,5 +130,8 @@ onMounted(() => {
 }
 .ant-tabs-content-top {
   @apply !h-full;
+}
+.tab-info {
+  @apply flex pl-1.25 px-1.5 py-0.75 rounded-md text-xs;
 }
 </style>

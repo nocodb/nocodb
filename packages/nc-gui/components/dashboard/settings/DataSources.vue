@@ -269,7 +269,8 @@ const openedTab = ref('erd')
 
 <template>
   <div class="flex flex-col h-full" data-testid="nc-settings-datasources-tab">
-    <div class="px-4 py-2 flex justify-between">
+    <div v-if="vState !== DataSourcesSubTab.New" class="px-4 py-3 flex justify-between">
+      
       <a-breadcrumb separator=">" class="w-full cursor-pointer font-weight-bold">
         <a-breadcrumb-item @click="activeSource = null">
           <a class="!no-underline">Data Sources</a>
@@ -292,7 +293,13 @@ const openedTab = ref('erd')
         </div>
       </NcButton>
     </div>
-    <div data-testid="nc-settings-datasources" class="flex flex-row w-full nc-data-sources-view flex-grow min-h-0">
+    <div
+      data-testid="nc-settings-datasources"
+      class="flex flex-row w-full nc-data-sources-view flex-grow min-h-0"
+      :style="{
+        maxHeight: isNewBaseModalOpen ? '100%' : 'calc(100% - 210px)',
+      }"
+    >
       <template v-if="activeSource">
         <NcTabs v-model:activeKey="openedTab" class="nc-source-tab w-full">
           <a-tab-pane key="erd">
@@ -360,17 +367,19 @@ const openedTab = ref('erd')
         </NcTabs>
       </template>
       <div v-else class="flex flex-col w-full overflow-auto mt-1">
-        <div
-          class="ds-table overflow-y-auto nc-scrollbar-md relative"
-          :style="{
-            maxHeight: 'calc(100vh - 200px)',
-          }"
-        >
+        <template v-if="isNewBaseModalOpen">
+          <DashboardSettingsDataSourcesCreateBase
+            v-model:open="isNewBaseModalOpen"
+            :connection-type="clientType"
+            @source-created="loadBases(true)"
+          />
+        </template>
+        <div v-else class="ds-table overflow-y-auto nc-scrollbar-md relative max-h-full">
           <div class="ds-table-head sticky top-0 bg-white">
             <div class="ds-table-row !border-0">
               <div class="ds-table-col ds-table-enabled cursor-pointer">{{ $t('general.visibility') }}</div>
               <div class="ds-table-col ds-table-name">{{ $t('general.name') }}</div>
-              <div class="ds-table-col ds-table-integration-name">{{ $t('general.integration')}} {{ $t('general.name') }}</div>
+              <div class="ds-table-col ds-table-integration-name">{{ $t('general.integration') }} {{ $t('general.name') }}</div>
               <div class="ds-table-col ds-table-type">{{ $t('general.type') }}</div>
               <div class="ds-table-col ds-table-actions">{{ $t('labels.actions') }}</div>
             </div>
@@ -428,7 +437,7 @@ const openedTab = ref('erd')
                   <div class="ds-table-col ds-table-enabled">
                     <div class="flex items-center gap-1" @click.stop>
                       <GeneralIcon v-if="sources.length > 2" icon="dragVertical" small class="ds-table-handle" />
-                      <a-tooltip>
+                      <NcTooltip>
                         <template #title>
                           <template v-if="source.enabled">{{ $t('activity.hideInUI') }}</template>
                           <template v-else>{{ $t('activity.showInUI') }}</template>
@@ -439,7 +448,7 @@ const openedTab = ref('erd')
                           size="small"
                           @change="toggleBase(source, $event)"
                         />
-                      </a-tooltip>
+                      </NcTooltip>
                     </div>
                   </div>
                   <div class="ds-table-col ds-table-name font-medium w-full">
@@ -481,11 +490,7 @@ const openedTab = ref('erd')
             </Draggable>
           </div>
         </div>
-        <LazyDashboardSettingsDataSourcesCreateBase
-          v-model:open="isNewBaseModalOpen"
-          :connection-type="clientType"
-          @source-created="loadBases(true)"
-        />
+
         <GeneralDeleteModal
           v-model:visible="isDeleteBaseModalOpen"
           :entity-name="$t('general.datasource')"
@@ -510,7 +515,7 @@ const openedTab = ref('erd')
 </template>
 
 <style scoped lang="scss">
-.ds-table{
+.ds-table {
   @apply border-1 border-gray-200 rounded-lg h-full;
 }
 .ds-table-head {

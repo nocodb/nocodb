@@ -46,14 +46,6 @@ const connectionType = computed(() => {
 </template>
 
 <style lang="scss" scoped>
-.nc-modal-edit-or-add-integration {
-  .nc-edit-or-add-integration-left-panel {
-    @apply w-full p-6 flex-1 flex justify-center;
-  }
-  .nc-edit-or-add-integration-right-panel {
-    @apply p-5 w-[320px] border-l-1 border-gray-200 flex flex-col gap-4;
-  }
-}
 </style>
 
 <style lang="scss">

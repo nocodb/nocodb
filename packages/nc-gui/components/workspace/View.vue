@@ -138,7 +138,7 @@ onMounted(() => {
         <a-tab-pane key="integrations" class="w-full">
           <template #tab>
             <div class="flex flex-row items-center px-2 pb-1 gap-x-1.5" data-testid="nc-workspace-settings-tab-integrations">
-              <GeneralIcon icon="integration" />
+              <GeneralIcon icon="connection" />
               {{ $t('general.connections') }}
             </div>
           </template>

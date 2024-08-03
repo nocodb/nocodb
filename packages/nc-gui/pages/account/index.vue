@@ -79,7 +79,7 @@ const logout = async () => {
                 @click="navigateTo('/account/integration')"
               >
                 <div class="flex items-center space-x-2">
-                  <GeneralIcon icon="integration" class="!h-3.5 !w-3.5" />
+                  <GeneralIcon icon="connection" class="!h-3.5 !w-3.5" />
 
                   <div class="select-none">{{ $t('general.connections') }}</div>
                 </div>

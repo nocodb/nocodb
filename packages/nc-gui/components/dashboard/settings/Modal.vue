@@ -161,7 +161,7 @@ watch(
     @cancel="emits('update:modelValue', false)"
   >
     <!--    Settings -->
-    <div class="flex flex-row justify-between w-full items-center mb-1">
+    <div class="flex flex-row justify-between w-full items-center mb-1 border-b-1 border-gray-200">
       <a-typography-title class="ml-4 select-none" type="secondary" :level="5">
         {{ $t('activity.settings') }}
       </a-typography-title>

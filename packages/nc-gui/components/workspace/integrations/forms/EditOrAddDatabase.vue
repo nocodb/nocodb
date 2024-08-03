@@ -1093,7 +1093,7 @@ watch(
     }
   }
 
-  :deep(.ant-row) {
+  :deep(.ant-row:not(.ant-form-item)) {
     @apply !-mx-1.5;
     .ant-col {
       @apply !px-1.5;

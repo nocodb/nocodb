@@ -2,7 +2,7 @@
 import type { IntegrationType, UserType, WorkspaceUserType } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 
-type SortFields = 'title' | 'sub_type' | 'created_at' | 'created_by' | 'usage'
+type SortFields = 'title' | 'sub_type' | 'created_at' | 'created_by' | 'source_count'
 
 const {
   integrations,
@@ -90,12 +90,11 @@ const filteredIntegrations = computed(() =>
             ? -1
             : 1
         }
+      } else if (orderBy.value.source_count) {
+        if (a.source_count !== undefined && b.source_count !== undefined) {
+          return orderBy.value.source_count === 'asc' ? a.source_count - b.source_count : b.source_count - a.source_count
+        }
       }
-      //  else if (orderBy.value.usage) {
-      //   if (a.usage !== undefined && b.usage !== undefined) {
-      //     return orderBy.value.usage === 'asc' ? (a.usage - b.usage) : (b.usage - a.usage)
-      //   }
-      // }
       return 0
     }),
 )
@@ -257,19 +256,17 @@ onMounted(async () => {
                 }"
                 @click="updateOrderBy('created_at')"
               >
-                <div>
-                  <div class="flex items-center gap-3">
-                    <div>Date added</div>
-                    <GeneralIcon
-                      v-if="orderBy.created_at"
-                      icon="chevronDown"
-                      class="flex-none"
-                      :class="{
-                        'transform rotate-180': orderBy.created_at === 'asc',
-                      }"
-                    />
-                    <GeneralIcon v-else icon="chevronUpDown" class="flex-none" />
-                  </div>
+                <div class="flex items-center gap-3">
+                  <div>Date added</div>
+                  <GeneralIcon
+                    v-if="orderBy.created_at"
+                    icon="chevronDown"
+                    class="flex-none"
+                    :class="{
+                      'transform rotate-180': orderBy.created_at === 'asc',
+                    }"
+                  />
+                  <GeneralIcon v-else icon="chevronUpDown" class="flex-none" />
                 </div>
               </th>
               <th
@@ -293,26 +290,26 @@ onMounted(async () => {
                   <GeneralIcon v-else icon="chevronUpDown" class="flex-none" />
                 </div>
               </th>
-              <!-- <th
+              <th
                 class="cell-usage !hover:bg-gray-100 select-none cursor-pointer"
                 :class="{
                   'cursor-not-allowed': !filteredIntegrations?.length,
                 }"
-                @click="updateOrderBy('usage')"
+                @click="updateOrderBy('source_count')"
               >
                 <div class="flex items-center gap-3">
                   <div>Usage</div>
                   <GeneralIcon
-                    v-if="orderBy?.usage"
+                    v-if="orderBy?.source_count"
                     icon="chevronDown"
                     class="flex-none"
                     :class="{
-                      'transform rotate-180': orderBy?.usage === 'asc',
+                      'transform rotate-180': orderBy?.source_count === 'asc',
                     }"
                   />
                   <GeneralIcon v-else icon="chevronUpDown" class="flex-none" />
                 </div>
-              </th> -->
+              </th>
               <th class="cell-actions">
                 <div>Actions</div>
               </th>
@@ -411,9 +408,9 @@ onMounted(async () => {
                     <template v-else>{{ integration.created_by }} </template>
                   </div>
                 </td>
-                <!-- <td class="cell-usage">
-                  <div></div>
-                </td> -->
+                <td class="cell-usage">
+                  <div>{{ integration?.source_count ?? 0 }}</div>
+                </td>
                 <td class="cell-actions" @click.stop>
                   <div class="flex justify-end">
                     <NcDropdown placement="bottomRight">
@@ -632,27 +629,27 @@ onMounted(async () => {
         }
 
         &.cell-title {
-          @apply flex-1 min-w-[252px] sticky left-0 z-5;
+          @apply flex-1 min-w-[252px] sticky left-0 z-5 flex-none; 
         }
 
         &.cell-added-by {
-          @apply basis-[20%] min-w-[252px];
+          @apply basis-[20%] min-w-[252px] flex-none;
         }
 
         &.cell-type {
-          @apply basis-[20%] min-w-[180px];
+          @apply basis-[20%] min-w-[180px] flex-none;
         }
 
         &.cell-created-date {
-          @apply basis-[20%] min-w-[160px];
+          @apply basis-[20%] min-w-[160px] flex-none;
         }
 
         &.cell-usage {
-          @apply w-[96px];
+          @apply w-[120px] flex-none;
         }
 
         &.cell-actions {
-          @apply w-[100px];
+          @apply w-[100px] flex-none;
         }
       }
     }

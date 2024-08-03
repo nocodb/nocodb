@@ -16,7 +16,7 @@ import {
 
 const props = defineProps<{ open: boolean; connectionType?: ClientType }>()
 
-const emit = defineEmits(['update:open', 'sourceCreated'])
+const emit = defineEmits(['update:open'])
 
 const vOpen = useVModel(props, 'open', emit)
 

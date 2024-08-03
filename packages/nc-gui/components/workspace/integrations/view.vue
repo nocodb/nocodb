@@ -88,7 +88,6 @@ onMounted(() => {
         </a-tab-pane>
       </template>
     </NcTabs>
-
     <WorkspaceIntegrationsEditOrAdd></WorkspaceIntegrationsEditOrAdd>
   </div>
 </template>

@@ -173,3 +173,8 @@ export enum AuditLogsDateRange {
 export enum ExtensionsEvents {
   DUPLICATE = 'duplicate',
 }
+
+
+export enum IntegrationStoreEvents {
+  INTEGRATION_ADD = 'integration-add'
+}

@@ -164,7 +164,7 @@ watch(
     <!--    Settings -->
     <div class="flex flex-row justify-between w-full items-center p-4 border-b-1 border-gray-200">
       <h5 class="!my-0 text-2xl font-bold">
-        {{$t('objects.project')}} {{ $t('activity.settings') }} ds
+        {{$t('objects.project')}} {{ $t('activity.settings') }}
       </h5>
 
       <NcButton type="text" size="small" data-testid="settings-modal-close-button" @click="vModel = false">

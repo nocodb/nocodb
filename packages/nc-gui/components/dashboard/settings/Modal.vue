@@ -181,7 +181,7 @@ watch(
             <a-menu-item
               v-if="key !== 'dataSources' || isUIAllowed('sourceCreate')"
               :key="key"
-              class="active:(!ring-0) hover:(!bg-primary !bg-opacity-25)"
+              class="active:(!ring-0) hover:(!bg-[#F0F3FF])"
             >
               <div class="flex items-center space-x-3 min-h-10" @click="tab.onClick">
                 <component :is="tab.icon" class="flex-none"/>
@@ -252,7 +252,7 @@ watch(
     @apply rounded-lg first:!mt-0 !mb-1 font-weight-500;
 
     &.ant-menu-item-selected{
-      @apply bg-primary !bg-opacity-25 font-weight-600;
+      @apply bg-[#F0F3FF] font-weight-600;
     }
   }
 }

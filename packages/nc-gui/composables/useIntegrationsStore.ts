@@ -60,13 +60,6 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
 
   const { $e } = useNuxtApp()
 
-  const clientTypesMap = computed(() => {
-    return clientTypes.reduce((acc, curr) => {
-      acc[curr.value] = curr
-      return acc
-    }, {} as Record<string, (typeof clientTypes)[0]>)
-  })
-
   const loadIntegrations = async (databaseOnly = false) => {
     try {
       if (!activeWorkspaceId.value) return
@@ -198,7 +191,6 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     integrations,
     isLoadingIntegrations,
     deleteConfirmText,
-    clientTypesMap,
     addIntegration,
     loadIntegrations,
     deleteIntegration,

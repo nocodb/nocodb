@@ -12,7 +12,6 @@ const {
   isLoadingIntegrations,
   deleteConfirmText,
   IntegrationsPageMode,
-  clientTypesMap,
   loadIntegrations,
   deleteIntegration,
   editIntegration,
@@ -332,7 +331,7 @@ onMounted(async () => {
                         class="!p-0 !bg-transparent"
                       />
                       <NcTooltip placement="bottom" show-on-truncate-only class="text-sm truncate">
-                        <template #title> {{ integration.sub_type }}</template>
+                        <template #title> {{ clientTypesMap[integration?.sub_type]?.text || integration?.sub_type }}</template>
 
                         {{
                           integration.sub_type && clientTypesMap[integration.sub_type]

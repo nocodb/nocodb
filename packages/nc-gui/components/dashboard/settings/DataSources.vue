@@ -496,26 +496,37 @@ const isSearchResultAvailable = () => {
                   </div>
 
                   <div class="ds-table-col ds-table-type">
-                    <div class="flex items-center gap-2">
-                      <GeneralBaseLogo :source-type="source.type" />
-                      <span class="text-gray-700 capitalize">{{ source.type }}</span>
-                    </div>
+                    <NcBadge rounded="lg" class="flex items-center gap-2 px-2 py-1 !h-7 truncate">
+                      <GeneralBaseLogo :source-type="source.type" class="flex-none" />
+                      <NcTooltip placement="bottom" show-on-truncate-only class="text-sm truncate">
+                        <template #title> {{ clientTypesMap[source.type]?.text || source.type }}</template>
+
+                        {{ source.type && clientTypesMap[source.type] ? clientTypesMap[source.type]?.text : source.type }}
+                      </NcTooltip>
+                    </NcBadge>
                   </div>
-                  <div class="ds-table-col justify-end gap-x-1 ds-table-actions">
-                    <NcTooltip>
-                      <template #title>
-                        {{ $t('general.remove') }}
-                      </template>
-                      <NcButton
-                        v-if="!source.is_meta && !source.is_local"
-                        size="small"
-                        class="nc-action-btn nc-delete-base cursor-pointer outline-0 !w-8 !px-1 !rounded-lg"
-                        type="text"
-                        @click.stop="openDeleteBase(source)"
-                      >
-                        <GeneralIcon icon="delete" class="text-red-500" />
-                      </NcButton>
-                    </NcTooltip>
+                  <div class="ds-table-col justify-end gap-x-1 ds-table-actions" @click.stop>
+                    <div class="flex justify-end">
+                      <NcDropdown v-if="!source.is_meta && !source.is_local" placement="bottomRight">
+                        <NcButton size="small" type="secondary">
+                          <GeneralIcon icon="threeDotVertical" />
+                        </NcButton>
+                        <template #overlay>
+                          <NcMenu>
+                            <NcMenuItem @click="activeSource = source">
+                              <GeneralIcon class="text-gray-800" icon="edit" />
+                              <span>{{ $t('general.edit') }}</span>
+                            </NcMenuItem>
+
+                            <NcDivider />
+                            <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click.stop="openDeleteBase(source)">
+                              <GeneralIcon icon="delete" />
+                              {{ $t('general.remove') }}
+                            </NcMenuItem>
+                          </NcMenu>
+                        </template>
+                      </NcDropdown>
+                    </div>
                   </div>
                 </div>
               </template>
@@ -533,9 +544,7 @@ const isSearchResultAvailable = () => {
               v-if="!isReloading && sources?.length && !isSearchResultAvailable()"
               class="flex-none integration-table-empty flex items-center justify-center py-8 px-6"
             >
-              <div
-                class="px-2 py-6 text-gray-500 flex flex-col items-center gap-6 text-center"
-              >
+              <div class="px-2 py-6 text-gray-500 flex flex-col items-center gap-6 text-center">
                 <img
                   src="~assets/img/placeholder/no-search-result-found.png"
                   class="!w-[164px] flex-none"
@@ -600,11 +609,11 @@ const isSearchResultAvailable = () => {
 }
 
 .ds-table-integration-name {
-  @apply col-span-6 items-center capitalize;
+  @apply col-span-5 items-center capitalize;
 }
 
 .ds-table-type {
-  @apply col-span-2 items-center;
+  @apply col-span-3 items-center;
 }
 
 .ds-table-actions {

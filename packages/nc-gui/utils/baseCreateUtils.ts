@@ -89,6 +89,11 @@ export const clientTypes = [
   },
 ]
 
+export const clientTypesMap = clientTypes.reduce((acc, curr) => {
+  acc[curr.value] = curr
+  return acc
+}, {} as Record<string, (typeof clientTypes)[0]>)
+
 const homeDir = ''
 
 type ConnectionClientType =

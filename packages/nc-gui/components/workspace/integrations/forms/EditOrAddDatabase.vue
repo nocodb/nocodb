@@ -528,6 +528,7 @@ const allowAccess = computed({
               <a-form
                 ref="form"
                 :model="formState"
+                hide-required-mark
                 name="external-base-create-form"
                 layout="vertical"
                 class="flex flex-col gap-5.5"
@@ -551,11 +552,14 @@ const allowAccess = computed({
                     <div class="nc-form-section-title">Connection details</div>
 
                     <!-- Use Connection URL -->
-                    <NcDropdown v-model:visible="importURLDlg" placement="bottomRight">
+                    <NcDropdown
+                      v-if="
+                        ![ClientType.SQLITE, ClientType.SNOWFLAKE, ClientType.DATABRICKS].includes(formState.dataSource.client)
+                      "
+                      v-model:visible="importURLDlg"
+                      placement="bottomRight"
+                    >
                       <NcButton
-                        v-if="
-                          ![ClientType.SQLITE, ClientType.SNOWFLAKE, ClientType.DATABRICKS].includes(formState.dataSource.client)
-                        "
                         type="text"
                         size="xsmall"
                         class="nc-extdb-btn-import-url !rounded-md !h-6 !px-2 flex-none"
@@ -806,7 +810,12 @@ const allowAccess = computed({
                         </a-col>
                       </a-row>
 
-                      <a-row :gutter="24">
+                      <a-row
+                        :gutter="24"
+                        v-if="
+                          ![ClientType.SQLITE, ClientType.SNOWFLAKE, ClientType.DATABRICKS].includes(formState.dataSource.client)
+                        "
+                      >
                         <a-col :span="24">
                           <!-- Extra connection parameters -->
                           <a-form-item class="mb-2" label="Connection parameters" v-bind="validateInfos.extraParameters">
@@ -842,99 +851,103 @@ const allowAccess = computed({
                   </div>
                 </div>
 
-                <NcDivider />
+                <template
+                  v-if="![ClientType.SQLITE, ClientType.SNOWFLAKE, ClientType.DATABRICKS].includes(formState.dataSource.client)"
+                >
+                  <NcDivider />
 
-                <a-collapse ghost class="!mt-4">
-                  <template #expandIcon="{ isActive }">
-                    <a-switch :checked="isActive" size="small" class="!mt-1" />
-                  </template>
-                  <a-collapse-panel key="1">
-                    <template #header>
-                      <div class="flex">
-                        <div class="nc-form-section-title">Use SSL</div>
-                      </div>
+                  <a-collapse ghost class="!mt-4">
+                    <template #expandIcon="{ isActive }">
+                      <a-switch :checked="isActive" size="small" class="!mt-1" />
                     </template>
+                    <a-collapse-panel key="1">
+                      <template #header>
+                        <div class="flex">
+                          <div class="nc-form-section-title">Use SSL</div>
+                        </div>
+                      </template>
 
-                    <a-row :gutter="24">
-                      <a-col :span="12">
-                        <a-form-item label="SSL mode">
-                          <NcSelect
-                            v-model:value="formState.sslUse"
-                            dropdown-class-name="nc-dropdown-ssl-mode"
-                            @select="onSSLModeChange"
-                          >
-                            <a-select-option v-for="opt in Object.values(SSLUsage)" :key="opt" :value="opt"
-                              >{{ opt }}
-                            </a-select-option>
-                          </NcSelect>
-                        </a-form-item>
-                      </a-col>
-                    </a-row>
+                      <a-row :gutter="24">
+                        <a-col :span="12">
+                          <a-form-item label="SSL mode">
+                            <NcSelect
+                              v-model:value="formState.sslUse"
+                              dropdown-class-name="nc-dropdown-ssl-mode"
+                              @select="onSSLModeChange"
+                            >
+                              <a-select-option v-for="opt in Object.values(SSLUsage)" :key="opt" :value="opt"
+                                >{{ opt }}
+                              </a-select-option>
+                            </NcSelect>
+                          </a-form-item>
+                        </a-col>
+                      </a-row>
 
-                    <a-form-item
-                      v-if="formState.sslUse && ![SSLUsage.No, SSLUsage.Allowed].includes(formState.sslUse)"
-                      label="SSL keys"
-                    >
-                      <div class="flex gap-2">
-                        <a-tooltip placement="top">
-                          <!-- Select .cert file -->
-                          <template #title>
-                            <span>{{ $t('tooltip.clientCert') }}</span>
-                          </template>
+                      <a-form-item
+                        v-if="formState.sslUse && ![SSLUsage.No, SSLUsage.Allowed].includes(formState.sslUse)"
+                        label="SSL keys"
+                      >
+                        <div class="flex gap-2">
+                          <a-tooltip placement="top">
+                            <!-- Select .cert file -->
+                            <template #title>
+                              <span>{{ $t('tooltip.clientCert') }}</span>
+                            </template>
 
-                          <NcButton size="small" :disabled="!sslFilesRequired" class="shadow" @click="certFileInput?.click()">
-                            {{ $t('labels.clientCert') }}
-                          </NcButton>
-                        </a-tooltip>
+                            <NcButton size="small" :disabled="!sslFilesRequired" class="shadow" @click="certFileInput?.click()">
+                              {{ $t('labels.clientCert') }}
+                            </NcButton>
+                          </a-tooltip>
 
-                        <a-tooltip placement="top">
-                          <!-- Select .key file -->
-                          <template #title>
-                            <span>{{ $t('tooltip.clientKey') }}</span>
-                          </template>
-                          <NcButton size="small" :disabled="!sslFilesRequired" class="shadow" @click="keyFileInput?.click()">
-                            {{ $t('labels.clientKey') }}
-                          </NcButton>
-                        </a-tooltip>
+                          <a-tooltip placement="top">
+                            <!-- Select .key file -->
+                            <template #title>
+                              <span>{{ $t('tooltip.clientKey') }}</span>
+                            </template>
+                            <NcButton size="small" :disabled="!sslFilesRequired" class="shadow" @click="keyFileInput?.click()">
+                              {{ $t('labels.clientKey') }}
+                            </NcButton>
+                          </a-tooltip>
 
-                        <a-tooltip placement="top">
-                          <!-- Select CA file -->
-                          <template #title>
-                            <span>{{ $t('tooltip.clientCA') }}</span>
-                          </template>
+                          <a-tooltip placement="top">
+                            <!-- Select CA file -->
+                            <template #title>
+                              <span>{{ $t('tooltip.clientCA') }}</span>
+                            </template>
 
-                          <NcButton size="small" :disabled="!sslFilesRequired" class="shadow" @click="caFileInput?.click()">
-                            {{ $t('labels.serverCA') }}
-                          </NcButton>
-                        </a-tooltip>
-                      </div>
-                    </a-form-item>
+                            <NcButton size="small" :disabled="!sslFilesRequired" class="shadow" @click="caFileInput?.click()">
+                              {{ $t('labels.serverCA') }}
+                            </NcButton>
+                          </a-tooltip>
+                        </div>
+                      </a-form-item>
 
-                    <input
-                      ref="caFileInput"
-                      type="file"
-                      class="!hidden"
-                      accept=".ca"
-                      @change="onFileSelect(CertTypes.ca, caFileInput)"
-                    />
+                      <input
+                        ref="caFileInput"
+                        type="file"
+                        class="!hidden"
+                        accept=".ca"
+                        @change="onFileSelect(CertTypes.ca, caFileInput)"
+                      />
 
-                    <input
-                      ref="certFileInput"
-                      type="file"
-                      class="!hidden"
-                      accept=".cert"
-                      @change="onFileSelect(CertTypes.cert, certFileInput)"
-                    />
+                      <input
+                        ref="certFileInput"
+                        type="file"
+                        class="!hidden"
+                        accept=".cert"
+                        @change="onFileSelect(CertTypes.cert, certFileInput)"
+                      />
 
-                    <input
-                      ref="keyFileInput"
-                      type="file"
-                      class="!hidden"
-                      accept=".key"
-                      @change="onFileSelect(CertTypes.key, keyFileInput)"
-                    />
-                  </a-collapse-panel>
-                </a-collapse>
+                      <input
+                        ref="keyFileInput"
+                        type="file"
+                        class="!hidden"
+                        accept=".key"
+                        @change="onFileSelect(CertTypes.key, keyFileInput)"
+                      />
+                    </a-collapse-panel>
+                  </a-collapse>
+                </template>
 
                 <NcDivider />
 
@@ -965,33 +978,37 @@ const allowAccess = computed({
                   </a-form-item>
                 </div>
 
-                <NcDivider />
+                <template
+                  v-if="![ClientType.SQLITE, ClientType.SNOWFLAKE, ClientType.DATABRICKS].includes(formState.dataSource.client)"
+                >
+                  <NcDivider />
 
-                <a-collapse ghost expand-icon-position="right" class="!mt-4">
-                  <template #expandIcon="{ isActive }">
-                    <NcButton type="text" size="xsmall">
-                      <GeneralIcon
-                        icon="chevronDown"
-                        class="flex-none cursor-pointer transform transition-transform duration-500"
-                        :class="{ '!rotate-180': isActive }"
-                      />
-                    </NcButton>
-                  </template>
-                  <a-collapse-panel key="1">
-                    <template #header>
-                      <div class="flex">
-                        <div class="nc-form-section-title">Advanced options</div>
-                      </div>
+                  <a-collapse ghost expand-icon-position="right" class="!mt-4">
+                    <template #expandIcon="{ isActive }">
+                      <NcButton type="text" size="xsmall">
+                        <GeneralIcon
+                          icon="chevronDown"
+                          class="flex-none cursor-pointer transform transition-transform duration-500"
+                          :class="{ '!rotate-180': isActive }"
+                        />
+                      </NcButton>
                     </template>
+                    <a-collapse-panel key="1">
+                      <template #header>
+                        <div class="flex">
+                          <div class="nc-form-section-title">Advanced options</div>
+                        </div>
+                      </template>
 
-                    <div class="flex flex-col gap-6">
-                      <div>Connection JSON</div>
-                      <div class="border-1 border-gray-200 !rounded-lg shadow-sm overflow-hidden">
-                        <MonacoEditor v-model="customJsonFormState" class="nc-connection-json-editor h-[400px] w-full" />
+                      <div class="flex flex-col gap-6">
+                        <div>Connection JSON</div>
+                        <div class="border-1 border-gray-200 !rounded-lg shadow-sm overflow-hidden">
+                          <MonacoEditor v-model="customJsonFormState" class="nc-connection-json-editor h-[400px] w-full" />
+                        </div>
                       </div>
-                    </div>
-                  </a-collapse-panel>
-                </a-collapse>
+                    </a-collapse-panel>
+                  </a-collapse>
+                </template>
               </a-form>
 
               <div class="mt-10"></div>
@@ -1114,5 +1131,10 @@ const allowAccess = computed({
     resize: vertical;
     overflow-y: auto;
   }
+
+  :deep(.ant-form-item-label>label.ant-form-item-required:after) {
+    @apply content-['*'] inline-block text-inherit text-red-500 ml-1;
+  
+}
 }
 </style>

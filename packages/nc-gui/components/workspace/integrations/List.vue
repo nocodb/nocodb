@@ -8,6 +8,7 @@ const {
   integrations,
   isLoadingIntegrations,
   deleteConfirmText,
+  integrationPaginationData,
   loadIntegrations,
   deleteIntegration,
   editIntegration,
@@ -99,6 +100,31 @@ const filteredIntegrations = computed(() =>
     }),
 )
 
+async function loadConnections(
+  page = integrationPaginationData.value.page,
+  limit = integrationPaginationData.value.pageSize,
+  updateCurrentPage = true,
+) {
+  try {
+    if (updateCurrentPage) {
+      integrationPaginationData.value.page = 1
+    }
+
+    await loadIntegrations(undefined, undefined, updateCurrentPage ? 1 : page, limit)
+  } catch {}
+}
+
+const handleChangePage = async (page: number) => {
+  integrationPaginationData.value.page = page
+  await loadConnections(undefined, undefined, false)
+}
+
+const { onLeft, onRight, onUp, onDown } = usePaginationShortcuts({
+  paginationDataRef: integrationPaginationData,
+  changePage: handleChangePage,
+  isViewDataLoading: isLoadingIntegrations,
+})
+
 const openDeleteIntegration = async (source: IntegrationType) => {
   isLoadingGetLinkedSources.value = true
 
@@ -150,6 +176,10 @@ const updateOrderBy = (field: SortFields) => {
   }
 }
 
+const renderAltOrOptlKey = () => {
+  return isMac() ? '⌥' : 'ALT'
+}
+
 useEventListener(tableWrapper, 'scroll', () => {
   const stickyHeaderCell = tableWrapper.value?.querySelector('th.cell-title')
   const nonStickyHeaderFirstCell = tableWrapper.value?.querySelector('th.cell-type')
@@ -172,6 +202,11 @@ onMounted(async () => {
     await loadIntegrations()
   }
 })
+// Keyboard shortcuts for pagination
+onKeyStroke('ArrowLeft', onLeft)
+onKeyStroke('ArrowRight', onRight)
+onKeyStroke('ArrowUp', onUp)
+onKeyStroke('ArrowDown', onDown)
 </script>
 
 <template>
@@ -189,15 +224,10 @@ onMounted(async () => {
         </template>
       </a-input>
     </div>
-    <div
-      class="table-container relative min-h-[500px]"
-      :class="{
-        'mb-6': isEeUI,
-      }"
-    >
+    <div class="table-container relative flex-1">
       <div
         ref="tableWrapper"
-        class="nc-workspace-integration-table relative nc-scrollbar-thin !overflow-auto max-h-full"
+        class="nc-workspace-integration-table relative nc-scrollbar-thin !overflow-auto max-h-[calc(100%_-_40px)]"
         :class="{
           'h-full': filteredIntegrations?.length,
         }"
@@ -450,6 +480,34 @@ onMounted(async () => {
         <div class="flex flex-col justify-center items-center gap-2">
           <GeneralLoader size="xlarge" />
           <span class="text-center">{{ $t('general.loading') }}</span>
+        </div>
+      </div>
+
+      <div
+        v-if="integrationPaginationData.totalRows"
+        class="flex flex-row justify-center items-center bg-gray-50 min-h-10"
+        :class="{
+          'pointer-events-none': isLoadingIntegrations,
+        }"
+      >
+        <div class="flex justify-between items-center w-full px-6">
+          <div>&nbsp;</div>
+          <NcPagination
+            v-model:current="integrationPaginationData.page"
+            v-model:page-size="integrationPaginationData.pageSize"
+            :total="+integrationPaginationData.totalRows"
+            show-size-changer
+            :use-stored-page-size="false"
+            :prev-page-tooltip="`${renderAltOrOptlKey()}+←`"
+            :next-page-tooltip="`${renderAltOrOptlKey()}+→`"
+            :first-page-tooltip="`${renderAltOrOptlKey()}+↓`"
+            :last-page-tooltip="`${renderAltOrOptlKey()}+↑`"
+            @update:current="loadConnections(undefined, undefined, false)"
+            @update:page-size="loadConnections(integrationPaginationData.page, $event, false)"
+          />
+          <div class="text-gray-500 text-xs">
+            {{ integrationPaginationData.totalRows }} {{ integrationPaginationData.totalRows === 1 ? 'record' : 'records' }}
+          </div>
         </div>
       </div>
       <div

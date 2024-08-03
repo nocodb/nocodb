@@ -1,4 +1,4 @@
-import type { IntegrationType } from 'nocodb-sdk'
+import type { IntegrationType, PaginatedType } from 'nocodb-sdk'
 import { IntegrationsType } from 'nocodb-sdk'
 import { ClientType } from '../lib/enums'
 import GeneralBaseLogo from '~/components/general/BaseLogo.vue'
@@ -55,6 +55,9 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
   const { activeWorkspaceId } = storeToRefs(workspaceStore)
 
   const integrations = ref<IntegrationType[]>([])
+
+  const integrationPaginationData = ref<PaginatedType>({ page: 1, pageSize: 25, totalRows: 0 })
+
   const deleteConfirmText = ref<string | null>()
 
   const isLoadingIntegrations = ref(false)
@@ -69,24 +72,43 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     isLoading: false,
   })
 
-  const loadIntegrations = async (databaseOnly = false, baseId = undefined) => {
+  const loadIntegrations = async (
+    databaseOnly = false,
+    baseId = undefined,
+    page: number = integrationPaginationData.value.page!,
+    limit: number = integrationPaginationData.value.pageSize!,
+  ) => {
     try {
       if (!activeWorkspaceId.value) return
       isLoadingIntegrations.value = true
 
-      const response = await api.integration.list(
+      if (limit * (page - 1) > integrationPaginationData.value.totalRows!) {
+        integrationPaginationData.value.page = 1
+        page = 1
+      }
+
+      const { list, pageInfo } = await api.integration.list(
         databaseOnly
           ? {
+              offset: limit * (page - 1),
+              limit,
               type: IntegrationsType.Database,
               includeDatabaseInfo: true,
               baseId,
             }
-          : undefined,
+          : {
+              offset: limit * (page - 1),
+              limit,
+            },
       )
 
-      integrations.value = response.list
+      integrations.value = list
+      integrationPaginationData.value.totalRows = pageInfo.totalRows ?? 0
     } catch (e) {
       await message.error(await extractSdkResponseErrorMsg(e))
+      integrations.value = []
+      integrationPaginationData.value.totalRows = 0
+      integrationPaginationData.value.page = 1
     } finally {
       isLoadingIntegrations.value = false
     }
@@ -266,6 +288,9 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     integrations,
     isLoadingIntegrations,
     deleteConfirmText,
+    eventBus,
+    requestIntegration,
+    integrationPaginationData,
     addIntegration,
     loadIntegrations,
     deleteIntegration,
@@ -273,9 +298,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     saveIntegration,
     editIntegration,
     duplicateIntegration,
-    eventBus,
     saveIntegraitonRequest,
-    requestIntegration,
     getIntegration,
   }
 }, 'integrations-store')

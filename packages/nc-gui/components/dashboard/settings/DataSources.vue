@@ -116,6 +116,14 @@ const baseAction = (sourceId?: string, action?: string) => {
   vState.value = action || ''
 }
 
+const handleClickRow = (source: SourceType, tab?:string) => {
+  if(tab && tab !== openedTab.value){
+    openedTab.value = tab
+  }
+ 
+  activeSource.value = source
+}
+
 const openDeleteBase = (source: SourceType) => {
   $e('c:source:delete')
   isDeleteBaseModalOpen.value = true
@@ -435,7 +443,7 @@ const isOpenModal = computed({
           <div class="ds-table-body relative">
             <Draggable :list="sources" item-key="id" handle=".ds-table-handle" @end="moveBase">
               <template v-if="'default'.includes(searchQuery.toLowerCase())" #header>
-                <div v-if="sources[0]" class="ds-table-row border-gray-200 cursor-pointer" @click="activeSource = sources[0]">
+                <div v-if="sources[0]" class="ds-table-row border-gray-200 cursor-pointer" @click="handleClickRow(sources[0], 'erd')">
                   <div class="ds-table-col ds-table-enabled">
                     <div class="flex items-center gap-1" @click.stop>
                       <div v-if="sources.length > 2" class="ds-table-handle" />
@@ -543,7 +551,7 @@ const isOpenModal = computed({
                         </NcButton>
                         <template #overlay>
                           <NcMenu>
-                            <NcMenuItem @click="activeSource = source">
+                            <NcMenuItem @click="handleClickRow(source, 'edit')">
                               <GeneralIcon class="text-gray-800" icon="edit" />
                               <span>{{ $t('general.edit') }}</span>
                             </NcMenuItem>

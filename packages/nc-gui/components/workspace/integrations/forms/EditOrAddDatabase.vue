@@ -1048,7 +1048,7 @@ const allowAccess = computed({
       </div>
       <div class="nc-edit-or-add-integration-right-panel">
         <DashboardSettingsDataSourcesInfo varient="new" />
-        <NcDivider />
+        <NcDivider v-if="isEeUI"/>
       </div>
     </div>
   </div>

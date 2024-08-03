@@ -22,44 +22,46 @@ const isAddNewIntegrationModalOpen = computed({
     wrap-class-name="nc-modal-add-new-integration"
     @keydown.esc="isAddNewIntegrationModalOpen = false"
   >
-    <template #header>
-      <div class="flex items-center">
+    <div class="h-full">
+      <div class="p-4 w-full flex items-center justify-between gap-3 border-b-1 border-gray-200">
         <div class="text-2xl font-weight-700">New Integration</div>
       </div>
-    </template>
-    <div class="h-[80vh] flex flex-col nc-workspace-settings-integrations-new-available-list">
-      <div class="w-full flex justify-center">
-        <div class="flex flex-col pt-4 gap-6 w-full max-w-[1088px]">
-          <div class="integration-type-wrapper">
-            <div class="integration-type-title">Database</div>
-            <div class="integration-type-list">
-              <div class="source-card" @click="addIntegration(integrationType.MySQL)">
-                <WorkspaceIntegrationsIcon :integration-type="integrationType.MySQL" size="md" />
-                <div class="name">MySQL</div>
-              </div>
-              <div class="source-card" @click="addIntegration(integrationType.PostgreSQL)">
-                <WorkspaceIntegrationsIcon :integration-type="integrationType.PostgreSQL" size="md" />
-                <div class="name">PostgreSQL</div>
+    
+
+      <div class="h-[calc(80vh_-_66px)] flex flex-col nc-workspace-settings-integrations-new-available-list p-6">
+        <div class="w-full flex justify-center">
+          <div class="flex flex-col pt-4 gap-6 w-full max-w-[1088px]">
+            <div class="integration-type-wrapper">
+              <div class="integration-type-title">Database</div>
+              <div class="integration-type-list">
+                <div class="source-card" @click="addIntegration(integrationType.MySQL)">
+                  <WorkspaceIntegrationsIcon :integration-type="integrationType.MySQL" size="md" />
+                  <div class="name">MySQL</div>
+                </div>
+                <div class="source-card" @click="addIntegration(integrationType.PostgreSQL)">
+                  <WorkspaceIntegrationsIcon :integration-type="integrationType.PostgreSQL" size="md" />
+                  <div class="name">PostgreSQL</div>
+                </div>
               </div>
             </div>
-          </div>
-          <!-- Todo:APIs  -->
-          <!-- <div>
+            <!-- Todo:APIs  -->
+            <!-- <div>
           <div>APIs</div>
           <div></div>
         </div> -->
-          <div class="integration-type-wrapper">
-            <div class="integration-type-title">Others</div>
-            <div>
-              <a
-                class="source-card source-card-link"
-                href="https://github.com/nocodb/nocodb/issues"
-                target="_blank"
-                rel="noreferrer noopener"
-              >
-                <WorkspaceIntegrationsIcon integration-type="request" size="md" />
-                <div class="name">Request New Integration</div>
-              </a>
+            <div class="integration-type-wrapper">
+              <div class="integration-type-title">Others</div>
+              <div>
+                <a
+                  class="source-card source-card-link"
+                  href="https://github.com/nocodb/nocodb/issues"
+                  target="_blank"
+                  rel="noreferrer noopener"
+                >
+                  <WorkspaceIntegrationsIcon integration-type="request" size="md" />
+                  <div class="name">Request New Integration</div>
+                </a>
+              </div>
             </div>
           </div>
         </div>
@@ -94,6 +96,14 @@ const isAddNewIntegrationModalOpen = computed({
     .integration-type-list {
       @apply flex gap-4 flex-wrap;
     }
+  }
+}
+</style>
+
+<style lang="scss">
+.nc-modal-add-new-integration {
+  .nc-modal {
+    @apply !p-0;
   }
 }
 </style>

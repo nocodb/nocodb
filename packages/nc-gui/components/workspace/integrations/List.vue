@@ -15,7 +15,7 @@ const {
   duplicateIntegration,
 } = useIntegrationStore()
 
-const { $e } = useNuxtApp()
+const { $api, $e } = useNuxtApp()
 
 const { collaborators } = storeToRefs(useWorkspace())
 
@@ -95,10 +95,6 @@ onMounted(async () => {
     await loadIntegrations()
   }
 })
-
-watchEffect(() => {
-  console.log('integrations', integrations.value)
-})
 </script>
 
 <template>
@@ -123,7 +119,7 @@ watchEffect(() => {
       </NcButton>
     </div>
     <div class="table-container relative min-h-[500px]">
-      <div ref="tableWrapper" class="nc-workspace-integration-table relative nc-scrollbar-thin !overflow-auto">
+      <div ref="tableWrapper" class="nc-workspace-integration-table relative nc-scrollbar-thin !overflow-auto h-full min-h-[500px]">
         <table class="!sticky top-0 z-10">
           <thead>
             <tr>
@@ -149,7 +145,7 @@ watchEffect(() => {
           </thead>
         </table>
         <template v-if="filteredIntegrations?.length">
-          <table>
+          <table class="h-full">
             <tbody>
               <tr v-for="integration of filteredIntegrations" :key="integration.id" @click="editIntegration(integration)">
                 <td class="cell-title">

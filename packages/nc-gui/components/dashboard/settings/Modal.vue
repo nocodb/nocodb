@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { FunctionalComponent, SVGAttributes } from 'vue'
 import Misc from './Misc.vue'
-import DataSources from '~/components/dashboard/settings/DataSources.vue'
+// import DataSources from '~/components/dashboard/settings/DataSources.vue'
 
 interface Props {
   modelValue?: boolean

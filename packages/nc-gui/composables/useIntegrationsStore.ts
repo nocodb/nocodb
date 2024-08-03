@@ -142,7 +142,11 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     }
   }
 
-  const saveIntegration = async (integration: IntegrationType, mode: 'create' | 'duplicate' = 'create', loadDatasourceInfo = false) => {
+  const saveIntegration = async (
+    integration: IntegrationType,
+    mode: 'create' | 'duplicate' = 'create',
+    loadDatasourceInfo = false,
+  ) => {
     try {
       const response = await api.integration.create(integration)
       if (mode === 'create') {
@@ -152,7 +156,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
       }
 
       if (response && response?.id) {
-        if(!loadDatasourceInfo){
+        if (!loadDatasourceInfo) {
           integrations.value.push(response)
         }
       }

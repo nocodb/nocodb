@@ -136,10 +136,6 @@ const updateSSLUse = () => {
 
 const inflectionTypes = ['camelize', 'none']
 
-const sslFilesRequired = computed(
-  () => !!formState.value.sslUse && formState.value.sslUse !== SSLUsage.No && formState.value.sslUse !== SSLUsage.Allowed,
-)
-
 function getConnectionConfig() {
   const extraParameters = Object.fromEntries(new Map(formState.value.extraParameters.map((object) => [object.key, object.value])))
 

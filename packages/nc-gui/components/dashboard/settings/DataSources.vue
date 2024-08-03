@@ -44,15 +44,6 @@ const toBeDeletedBase = ref<SourceType | undefined>()
 
 const searchQuery = ref<string>('')
 
-const isOpenModal = computed({
-  get: () => !!activeSource.value,
-  set: (value) => {
-    if (!value) {
-      activeSource.value = null
-    }
-  },
-})
-
 async function updateIfSourceOrderIsNullOrDuplicate() {
   const sourceOrderSet = new Set()
   let hasNullOrDuplicates = false
@@ -283,6 +274,15 @@ const isSearchResultAvailable = () => {
     'default'.includes(searchQuery.value?.toLowerCase())
   )
 }
+
+const isOpenModal = computed({
+  get: () => !!activeSource.value,
+  set: (value) => {
+    if (!value) {
+      activeSource.value = null
+    }
+  },
+})
 </script>
 
 <template>

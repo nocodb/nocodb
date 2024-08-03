@@ -1,8 +1,7 @@
 <script lang="ts" setup>
-const { pageMode, IntegrationsPageMode, integrationType, activeIntegration } = useIntegrationStore()
-
 defineProps<{ loadDatasourceInfo?: boolean }>()
 
+const { pageMode, IntegrationsPageMode, integrationType, activeIntegration } = useIntegrationStore()
 
 const isEditOrAddIntegrationModalOpen = computed({
   get: () => {

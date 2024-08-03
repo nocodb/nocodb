@@ -43,9 +43,9 @@ const { t } = useI18n()
 
 const creatingSource = ref(false)
 
-const _getDefaultConnectionConfig = (client = ClientType.MYSQL ) => {
-  const config =  getDefaultConnectionConfig(client)
-  if('database' in config.connection){
+const _getDefaultConnectionConfig = (client = ClientType.MYSQL) => {
+  const config = getDefaultConnectionConfig(client)
+  if ('database' in config.connection) {
     config.connection.database = ''
   }
   return config

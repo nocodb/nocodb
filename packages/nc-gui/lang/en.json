@@ -276,7 +276,8 @@
     "integrations": "Integrations",
     "connection": "Connection",
     "connections": "Connections",
-    "private": "Private"
+    "private": "Private",
+    "request" : "Request"
   },
   "objects": {
     "files": "files",

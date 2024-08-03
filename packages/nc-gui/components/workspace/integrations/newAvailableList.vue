@@ -12,7 +12,8 @@ const props = withDefaults(
 
 const { isModal } = props
 
-const { pageMode, IntegrationsPageMode, integrationType, addIntegration } = useIntegrationStore()
+const { pageMode, IntegrationsPageMode, integrationType, requestIntegration, addIntegration, saveIntegraitonRequest } =
+  useIntegrationStore()
 
 const isAddNewIntegrationModalOpen = computed({
   get: () => {
@@ -85,15 +86,57 @@ const isAddNewIntegrationModalOpen = computed({
             <div class="integration-type-wrapper">
               <div class="integration-type-title">Others</div>
               <div>
-                <a
-                  class="source-card source-card-link"
-                  href="https://github.com/nocodb/nocodb/issues"
-                  target="_blank"
-                  rel="noreferrer noopener"
+                <div
+                  class="source-card-request-integration"
+                  :class="{
+                    active: requestIntegration.isOpen,
+                  }"
                 >
-                  <WorkspaceIntegrationsIcon integration-type="request" size="md" />
-                  <div class="name">Request New Integration</div>
-                </a>
+                  <div
+                    v-if="!requestIntegration.isOpen"
+                    class="source-card-item border-none"
+                    @click="requestIntegration.isOpen = true"
+                  >
+                    <WorkspaceIntegrationsIcon integration-type="request" size="md" />
+                    <div class="name">Request New Integration</div>
+                  </div>
+                  <template v-else>
+                    <div class="flex items-center justify-between gap-4">
+                      <div class="text-base font-bold text-gray-800">Request Integration</div>
+                      <NcButton size="xsmall" type="text" @click="requestIntegration.isOpen = false">
+                        <GeneralIcon icon="close" class="text-gray-600" />
+                      </NcButton>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                      <div class="text-sm text-gray-800">Description</div>
+                      <a-textarea
+                        v-model:value="requestIntegration.msg"
+                        class="!rounded-md !text-sm"
+                        :style="{
+                          'height': '70px',
+                          'max-height': '250px',
+                          'resize': 'vertical',
+                        }"
+                        size="large"
+                        hide-details
+                        placeholder="Describe your requested integration..."
+                      />
+                    </div>
+                    <div class="flex items-center justify-end gap-3">
+                      <NcButton size="small" type="secondary" @click="requestIntegration.isOpen = false">
+                        {{ $t('general.cancel') }}
+                      </NcButton>
+                      <NcButton
+                        :disabled="!requestIntegration.msg?.trim()"
+                        :loading="requestIntegration.isLoading"
+                        size="small"
+                        @click="saveIntegraitonRequest(requestIntegration.msg)"
+                      >
+                        {{ $t('general.submit') }} {{ $t('general.request').toLowerCase() }}
+                      </NcButton>
+                    </div>
+                  </template>
+                </div>
               </div>
             </div>
           </div>
@@ -104,6 +147,24 @@ const isAddNewIntegrationModalOpen = computed({
 </template>
 
 <style lang="scss" scoped>
+.source-card-request-integration {
+  @apply flex flex-col gap-4 border-1 rounded-xl p-3 w-[352px] overflow-hidden transition-all duration-300 max-w-[720px];
+
+  &.active {
+    @apply w-full;
+  }
+  &:not(.active) {
+    @apply cursor-pointer hover:bg-gray-50;
+  }
+
+  .source-card-item {
+    @apply flex items-center;
+
+    .name {
+      @apply ml-4 text-md font-semibold;
+    }
+  }
+}
 .source-card-link {
   @apply !text-black !no-underline;
   .nc-new-integration-type-title {

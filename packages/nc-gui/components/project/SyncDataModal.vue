@@ -6,13 +6,23 @@ const props = defineProps<{ open: boolean }>()
 const emit = defineEmits(['update:open'])
 const vOpen = useVModel(props, 'open', emit)
 
-const upVoteCountBySyncDataTypeMap = computed(() => {
-  return Object.values(SyncDataTypeEnum).reduce((acc, curr) => {
-    // Todo: update this with api response count with formating like if count is less than 1000 show as it is or 1k+ an so on
-    acc[curr] = null
-    return acc
-  }, {} as Record<SyncDataType, string | null>)
+const { syncDataUpvotes, updateSyncDataUpvotes } = useGlobal()
+
+const { $e } = useNuxtApp()
+
+const upvotesData = computed(() => {
+  return new Set(syncDataUpvotes.value)
 })
+
+const handleUpvote = (syncDataType: SyncDataType) => {
+  if (upvotesData.value.has(syncDataType)) return
+
+  $e('a:sync:request', {
+    value: syncDataType,
+  })
+
+  updateSyncDataUpvotes([...syncDataUpvotes.value, syncDataType])
+}
 </script>
 
 <template>
@@ -56,12 +66,17 @@ const upVoteCountBySyncDataTypeMap = computed(() => {
                 {{ $t(syncData.title) }}
               </div>
               <div>
-                <NcButton type="secondary" size="xsmall" class="!rounded-lg !px-2">
+                <NcButton
+                  type="secondary"
+                  size="xsmall"
+                  class="nc-sync-data-upvote-btn !rounded-lg !px-2"
+                  :class="{
+                    selected: upvotesData.has(syncData.value),
+                  }"
+                  @click="handleUpvote(syncData.value)"
+                >
                   <div class="flex items-center gap-2">
                     <GeneralIcon icon="thumbsUpOutline" />
-                    <span v-if="upVoteCountBySyncDataTypeMap[syncData.value]">{{
-                      upVoteCountBySyncDataTypeMap[syncData.value]
-                    }}</span>
                   </div>
                 </NcButton>
               </div>
@@ -89,7 +104,7 @@ const upVoteCountBySyncDataTypeMap = computed(() => {
   }
 
   .nc-sync-data-card {
-    @apply p-3 flex items-center gap-4 rounded-xl border-1 border-gray-200 w-[298px] h-[76px] cursor-pointer;
+    @apply p-3 flex items-center gap-4 rounded-xl border-1 border-gray-200 w-[298px] h-[76px];
 
     .card-icon-wrapper {
       @apply w-[52px] h-[52px] p-1 flex items-center justify-center bg-gray-100 rounded-lg;
@@ -100,6 +115,12 @@ const upVoteCountBySyncDataTypeMap = computed(() => {
 
     .card-title {
       @apply text-base font-weight-700 text-gray-800;
+    }
+
+    .nc-sync-data-upvote-btn {
+      &.selected {
+        @apply shadow-selected !text-brand-500 !border-brand-500 !cursor-not-allowed pointer-events-none;
+      }
     }
   }
 }

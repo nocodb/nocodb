@@ -58,6 +58,7 @@ export interface StoredState {
     current: number
   }
   isAddNewRecordGridMode: boolean
+  syncDataUpvotes: string[]
 }
 
 export type State = ToRefs<Omit<StoredState, 'token'>> & {
@@ -96,6 +97,7 @@ export interface Actions {
   setGridViewPageSize: (pageSize: number) => void
   setLeftSidebarSize: (params: { old?: number; current?: number }) => void
   setAddNewRecordGridMode: (isGridMode: boolean) => void
+  updateSyncDataUpvotes: (upvotes: string[]) => void
 }
 
 export type ReadonlyState = Readonly<Pick<State, 'token' | 'user'>> & Omit<State, 'token' | 'user'>

@@ -545,7 +545,6 @@ const allowAccess = computed({
                     </a-row>
                   </div>
                 </div>
-                <NcDivider />
 
                 <div class="nc-form-section">
                   <div class="flex items-center justify-between">
@@ -949,8 +948,6 @@ const allowAccess = computed({
                   </a-collapse>
                 </template>
 
-                <NcDivider />
-
                 <div class="nc-form-section">
                   <a-form-item class="!my-0">
                     <div class="flex items-center gap-3">
@@ -981,8 +978,6 @@ const allowAccess = computed({
                 <template
                   v-if="![ClientType.SQLITE, ClientType.SNOWFLAKE, ClientType.DATABRICKS].includes(formState.dataSource.client)"
                 >
-                  <NcDivider />
-
                   <a-collapse ghost expand-icon-position="right" class="!mt-4">
                     <template #expandIcon="{ isActive }">
                       <NcButton type="text" size="xsmall">
@@ -1132,9 +1127,8 @@ const allowAccess = computed({
     overflow-y: auto;
   }
 
-  :deep(.ant-form-item-label>label.ant-form-item-required:after) {
+  :deep(.ant-form-item-label > label.ant-form-item-required:after) {
     @apply content-['*'] inline-block text-inherit text-red-500 ml-1;
-  
-}
+  }
 }
 </style>

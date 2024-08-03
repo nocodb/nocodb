@@ -59,48 +59,42 @@ const collaboratorsMap = computed<Map<string, (WorkspaceUserType & { id: string 
 })
 
 const filteredIntegrations = computed(() =>
-  (integrations.value || [])
-    .sort((a, b) => {
-      if (orderBy.value.title) {
-        if (a.title && b.title) {
-          return orderBy.value.title === 'asc' ? (a.title < b.title ? -1 : 1) : a.title > b.title ? -1 : 1
-        }
-      } else if (orderBy.value.sub_type) {
-        if (a.sub_type && b.sub_type) {
-          return orderBy.value.sub_type === 'asc' ? (a.sub_type < b.sub_type ? -1 : 1) : a.sub_type > b.sub_type ? -1 : 1
-        }
-      } else if (orderBy.value.created_at) {
-        if (a?.created_at && b?.created_at) {
-          return orderBy.value.created_at === 'asc'
-            ? dayjs(a.created_at).local().isBefore(dayjs(b.created_at).local())
-              ? -1
-              : 1
-            : dayjs(a.created_at).local().isAfter(dayjs(b.created_at).local())
-            ? -1
-            : 1
-        }
-      } else if (orderBy.value.created_by) {
-        if (
-          a.created_by &&
-          b.created_by &&
-          collaboratorsMap.value.get(a.created_by) &&
-          collaboratorsMap.value.get(b.created_by)
-        ) {
-          return orderBy.value.created_by === 'asc'
-            ? collaboratorsMap.value.get(a.created_by)?.email < collaboratorsMap.value.get(b.created_by)?.email
-              ? -1
-              : 1
-            : collaboratorsMap.value.get(a.created_by)?.email > collaboratorsMap.value.get(b.created_by)?.email
-            ? -1
-            : 1
-        }
-      } else if (orderBy.value.source_count) {
-        if (a.source_count !== undefined && b.source_count !== undefined) {
-          return orderBy.value.source_count === 'asc' ? a.source_count - b.source_count : b.source_count - a.source_count
-        }
+  (integrations.value || []).sort((a, b) => {
+    if (orderBy.value.title) {
+      if (a.title && b.title) {
+        return orderBy.value.title === 'asc' ? (a.title < b.title ? -1 : 1) : a.title > b.title ? -1 : 1
       }
-      return 0
-    }),
+    } else if (orderBy.value.sub_type) {
+      if (a.sub_type && b.sub_type) {
+        return orderBy.value.sub_type === 'asc' ? (a.sub_type < b.sub_type ? -1 : 1) : a.sub_type > b.sub_type ? -1 : 1
+      }
+    } else if (orderBy.value.created_at) {
+      if (a?.created_at && b?.created_at) {
+        return orderBy.value.created_at === 'asc'
+          ? dayjs(a.created_at).local().isBefore(dayjs(b.created_at).local())
+            ? -1
+            : 1
+          : dayjs(a.created_at).local().isAfter(dayjs(b.created_at).local())
+          ? -1
+          : 1
+      }
+    } else if (orderBy.value.created_by) {
+      if (a.created_by && b.created_by && collaboratorsMap.value.get(a.created_by) && collaboratorsMap.value.get(b.created_by)) {
+        return orderBy.value.created_by === 'asc'
+          ? collaboratorsMap.value.get(a.created_by)?.email < collaboratorsMap.value.get(b.created_by)?.email
+            ? -1
+            : 1
+          : collaboratorsMap.value.get(a.created_by)?.email > collaboratorsMap.value.get(b.created_by)?.email
+          ? -1
+          : 1
+      }
+    } else if (orderBy.value.source_count) {
+      if (a.source_count !== undefined && b.source_count !== undefined) {
+        return orderBy.value.source_count === 'asc' ? a.source_count - b.source_count : b.source_count - a.source_count
+      }
+    }
+    return 0
+  }),
 )
 
 async function loadConnections(
@@ -587,9 +581,27 @@ onKeyStroke('ArrowDown', onDown)
           <div v-if="toBeDeletedIntegration?.sources?.length" class="flex flex-col pb-2 text-small leading-[18px] text-gray-500">
             <div class="mb-1">Following external data sources using this connection will also be removed</div>
             <ul class="!list-disc ml-6 mb-0">
-              <li v-for="(source, idx) of toBeDeletedIntegration.sources" :key="idx" class="marker:text-gray-500">
+              <li
+                v-for="(source, idx) of toBeDeletedIntegration.sources"
+                :key="idx"
+                class="marker:text-gray-500 !marker:(flex items-center !-mt-1)"
+              >
                 <div class="flex items-center gap-1">
-                  <NcTooltip class="truncate !max-w-1/2 flex-none" show-on-truncate-only>
+                  
+                  <div class="flex items-center">
+                    &nbsp;
+                    <GeneralProjectIcon
+                    type="database"
+                    class="!grayscale min-w-4 flex-none -ml-1"
+                    :style="{
+                      filter: 'grayscale(100%) brightness(115%)',
+                    }"
+                  />
+                  </div>
+
+                 
+
+                  <NcTooltip class="!truncate !max-w-[45%] flex-none" show-on-truncate-only>
                     <template #title>
                       {{ source.project_title }}
                     </template>
@@ -597,7 +609,14 @@ onKeyStroke('ArrowDown', onDown)
                     {{ source.project_title }}
                   </NcTooltip>
                   >
-                  <NcTooltip class="truncate" show-on-truncate-only>
+                  <GeneralBaseLogo
+                    class="!grayscale min-w-4 flex-none"
+                    :style="{
+                      filter: 'grayscale(100%) brightness(115%)',
+                    }"
+                  />
+
+                  <NcTooltip class="truncate !max-w-[45%] capitalize" show-on-truncate-only>
                     <template #title>
                       {{ source.alias }}
                     </template>

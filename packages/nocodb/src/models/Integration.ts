@@ -74,7 +74,7 @@ export default class Integration implements IntegrationType {
       insertObj.fk_workspace_id || integration.workspaceId;
 
     insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.INTEGRATIONS, {
-      fk_workspace_id: integration.fk_workspace_id,
+      fk_workspace_id: insertObj.fk_workspace_id,
     });
 
     const { id } = await ncMeta.metaInsert2(
@@ -85,7 +85,7 @@ export default class Integration implements IntegrationType {
     );
 
     return await this.get(
-      { workspace_id: integration.fk_workspace_id },
+      { workspace_id: insertObj.fk_workspace_id },
       id,
       false,
       ncMeta,
@@ -276,7 +276,9 @@ export default class Integration implements IntegrationType {
       RootScopes.WORKSPACE,
       RootScopes.WORKSPACE,
       MetaTable.INTEGRATIONS,
-      context.workspace_id === RootScopes.BYPASS ? id : { id, fk_workspace_id: context.workspace_id },
+      context.workspace_id === RootScopes.BYPASS
+        ? id
+        : { id, fk_workspace_id: context.workspace_id },
       null,
       force
         ? {}

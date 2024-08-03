@@ -467,9 +467,31 @@ eventBus.on((event, payload) => {
                           placeholder="Select connection"
                           allow-clear
                           show-search
-                          :options="integrations.map((i) => ({ label: i.title, value: i.id }))"
+                          dropdown-match-select-width
                           @change="changeIntegration"
                         >
+                          <a-select-option v-for="integration in integrations" :key="integration.id" :value="integration.id">
+                            <div class="w-full flex gap-2 items-center" :data-testid="integration.title">
+                              <GeneralBaseLogo
+                                v-if="integration.type"
+                                :source-type="integration.sub_type"
+                                class="flex-none h-4 w-4"
+                              />
+                              <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                                <template #title>
+                                  {{ integration.title }}
+                                </template>
+                                {{ integration.title }}
+                              </NcTooltip>
+                              <component
+                                :is="iconMap.check"
+                                v-if="formState.fk_integration_id === integration.id"
+                                id="nc-selected-item-icon"
+                                class="text-primary w-4 h-4"
+                              />
+                            </div>
+                          </a-select-option>
+
                           <template v-if="isUIAllowed('workspaceIntegrations')" #dropdownRender="{ menuNode: menu }">
                             <component :is="menu" />
                             <a-divider style="margin: 4px 0" />
@@ -643,7 +665,7 @@ eventBus.on((event, payload) => {
             </a-form>
 
             <WorkspaceIntegrationsNewAvailableList is-modal />
-            <WorkspaceIntegrationsEditOrAdd load-datasource-info/>
+            <WorkspaceIntegrationsEditOrAdd load-datasource-info />
           </div>
         </div>
         <div class="nc-add-source-right-panel">

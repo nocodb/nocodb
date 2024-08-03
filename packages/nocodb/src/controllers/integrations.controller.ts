@@ -25,7 +25,9 @@ export class IntegrationsController {
   constructor(private readonly integrationsService: IntegrationsService) {}
 
   @Get(['/api/v2/meta/integrations/:integrationId'])
-  @Acl('integrationGet')
+  @Acl('integrationGet', {
+    scope: 'workspace',
+  })
   async integrationGet(
     @TenantContext() context: NcContext,
     @Param('integrationId') integrationId: string,
@@ -46,7 +48,9 @@ export class IntegrationsController {
     return integration;
   }
   @Post(['/api/v2/meta/workspaces/:workspaceId/integrations'])
-  @Acl('integrationCreate')
+  @Acl('integrationCreate', {
+    scope: 'workspace',
+  })
   async integrationCreate(
     @Body() integration: IntegrationReqType,
     @Param('workspaceId') workspaceId: string,
@@ -60,14 +64,16 @@ export class IntegrationsController {
   }
 
   @Delete(['/api/v2/meta/integrations/:integrationId'])
-  @Acl('integrationDelete')
+  @Acl('integrationDelete', {
+    scope: 'workspace',
+  })
   async integrationDelete(
     @TenantContext() context: NcContext,
     @Param('integrationId') integrationId: string,
     @Req() req: NcRequest,
     @Query('force') force: string,
   ) {
-    return await this.integrationsService.integrationDelete(context,{
+    return await this.integrationsService.integrationDelete(context, {
       req,
       integrationId,
       force: force === 'true',
@@ -75,7 +81,9 @@ export class IntegrationsController {
   }
 
   @Patch(['/api/v2/meta/integrations/:integrationId'])
-  @Acl('integrationUpdate')
+  @Acl('integrationUpdate', {
+    scope: 'workspace',
+  })
   async integrationUpdate(
     @TenantContext() context: NcContext,
     @Param('integrationId') integrationId: string,
@@ -95,7 +103,9 @@ export class IntegrationsController {
   }
 
   @Get(['/api/v2/meta/workspaces/:workspaceId/integrations'])
-  @Acl('integrationList')
+  @Acl('integrationList', {
+    scope: 'workspace',
+  })
   async integrationList(
     @Param('workspaceId') workspaceId: string,
     @Req() req: NcRequest,

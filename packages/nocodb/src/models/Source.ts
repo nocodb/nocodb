@@ -217,15 +217,9 @@ export default class Source implements SourceType {
     let { list: sourceDataList } = cachedList;
     const { isNoneList } = cachedList;
     if (!isNoneList && !sourceDataList.length) {
-      sourceDataList = await ncMeta
+      const qb = ncMeta
         .knex(MetaTable.BASES)
         .select(`${MetaTable.BASES}.*`)
-        .select(`${MetaTable.INTEGRATIONS}.config as integration_config`)
-        .leftJoin(
-          MetaTable.INTEGRATIONS,
-          `${MetaTable.BASES}.fk_integration_id`,
-          `${MetaTable.INTEGRATIONS}.id`,
-        )
         .where(`${MetaTable.BASES}.base_id`, context.base_id)
         .where(`${MetaTable.BASES}.fk_workspace_id`, context.workspace_id)
         .where((whereQb) => {
@@ -234,6 +228,10 @@ export default class Source implements SourceType {
             .orWhereNull(`${MetaTable.BASES}.deleted`);
         })
         .orderBy(`${MetaTable.BASES}.order`, 'asc');
+
+      this.joinAndAddCols(qb);
+
+      sourceDataList = await qb;
 
       // parse JSON metadata
       for (const source of sourceDataList) {
@@ -268,15 +266,11 @@ export default class Source implements SourceType {
       const qb = ncMeta
         .knex(MetaTable.BASES)
         .select(`${MetaTable.BASES}.*`)
-        .select(`${MetaTable.INTEGRATIONS}.config as integration_config`)
-        .leftJoin(
-          MetaTable.INTEGRATIONS,
-          `${MetaTable.BASES}.fk_integration_id`,
-          `${MetaTable.INTEGRATIONS}.id`,
-        )
         .where(`${MetaTable.BASES}.id`, id)
         .where(`${MetaTable.BASES}.base_id`, context.base_id)
         .where(`${MetaTable.BASES}.fk_workspace_id`, context.workspace_id);
+
+      this.joinAndAddCols(qb);
 
       if (!force) {
         qb.where((whereQb) => {
@@ -305,15 +299,11 @@ export default class Source implements SourceType {
     const qb = ncMeta
       .knex(MetaTable.BASES)
       .select(`${MetaTable.BASES}.*`)
-      // .select(`${MetaTable.INTEGRATIONS}.config as integration_config`)
-      // .leftJoin(
-      //   MetaTable.INTEGRATIONS,
-      //   `${MetaTable.BASES}.fk_integration_id`,
-      //   `${MetaTable.INTEGRATIONS}.id`,
-      // )
       .where(`${MetaTable.BASES}.erd_uuid`, uuid)
       .where(`${MetaTable.BASES}.base_id`, context.base_id)
       .where(`${MetaTable.BASES}.fk_workspace_id`, context.workspace_id);
+
+    // this.joinAndAddCols(qb);
 
     qb.where((whereQb) => {
       whereQb
@@ -582,5 +572,12 @@ export default class Source implements SourceType {
     } else {
       return this.is_meta;
     }
+  }
+
+  // placeholder for future use
+  // at the moment, this is not used in OSS version
+  // it's overridden in Enterprise version
+  protected static joinAndAddCols(_qb: any) {
+    // do nothing
   }
 }

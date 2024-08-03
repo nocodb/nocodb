@@ -24,7 +24,7 @@ const isAddNewIntegrationModalOpen = computed({
   >
     <div class="h-full">
       <div class="p-4 w-full flex items-center justify-between gap-3 border-b-1 border-gray-200">
-        <div class="text-2xl font-weight-700">New Integration</div>
+        <div class="text-xl font-weight-500">New Integration</div>
 
         <div class="flex items-center gap-3">
           <NcButton size="small" type="text" @click="isAddNewIntegrationModalOpen = false">

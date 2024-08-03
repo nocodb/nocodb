@@ -411,7 +411,7 @@ watch(
           "
           size="xs"
         />
-        <div class="flex-1 text-sm font-weight-700">Configure {{ activeIntegration.title }}</div>
+        <div class="flex-1 text-sm font-weight-700">{{ activeIntegration.title }}</div>
       </div>
       <div class="flex items-center gap-3">
         <div class="w-[15px] h-[15px] cursor-pointer" @dblclick="onEasterEgg"></div>

@@ -78,7 +78,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
         databaseOnly
           ? {
               type: IntegrationsType.Database,
-              includeDatabaseInfo: true,  
+              includeDatabaseInfo: true,
             }
           : undefined,
       )
@@ -218,7 +218,9 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
 
     requestIntegration.value.isLoading = true
     try {
-      // Todo: api integration
+      $e('a:integration:new-request', {
+        value: requestIntegration.value.msg,
+      })
 
       requestIntegration.value.isLoading = false
       requestIntegration.value.isOpen = false

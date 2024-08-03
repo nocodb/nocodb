@@ -412,7 +412,7 @@ watch(
           "
           size="xs"
         />
-        <div class="flex-1 text-sm font-weight-700">{{ activeIntegration.title }}</div>
+        <div class="flex-1 text-base font-weight-700">{{ activeIntegration.title }}</div>
       </div>
       <div class="flex items-center gap-3">
         <div class="w-[15px] h-[15px] cursor-pointer" @dblclick="onEasterEgg"></div>
@@ -474,7 +474,7 @@ watch(
                 <div class="nc-form-section-body">
                   <a-row :gutter="24">
                     <a-col :span="12">
-                      <a-form-item label="Integration name" v-bind="validateInfos.title">
+                      <a-form-item label="Connection name" v-bind="validateInfos.title">
                         <a-input v-model:value="formState.title" @input="populateName(formState.title)" />
                       </a-form-item>
                     </a-col>
@@ -1015,7 +1015,7 @@ watch(
     @apply flex flex-col gap-3;
   }
   .nc-form-section-title {
-    @apply text-base font-bold text-gray-800;
+    @apply text-sm font-bold text-gray-800;
   }
   .nc-form-section-body {
     @apply flex flex-col gap-3;

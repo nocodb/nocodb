@@ -179,7 +179,11 @@ watch(
               </div>
             </div>
           </template>
-          <DashboardSettingsDataSources v-model:state="baseSettingsState" :base-id="base.id" class="max-h-[calc(100%_-_36px)]"/>
+          <DashboardSettingsDataSources
+            v-model:state="baseSettingsState"
+            :base-id="base.id"
+            class="max-h-[calc(100%_-_36px)] pt-3"
+          />
         </a-tab-pane>
       </a-tabs>
     </div>

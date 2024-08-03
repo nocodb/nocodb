@@ -64,7 +64,7 @@ const onChange = (value: string) => {
     </template>
 
     <template v-if="$slots.dropdownRender" #dropdownRender="{ menuNode }">
-      <slot name="dropdownRender" :menuNode="menuNode" />
+      <slot name="dropdownRender" :menu-node="menuNode" />
     </template>
     <slot />
   </a-select>

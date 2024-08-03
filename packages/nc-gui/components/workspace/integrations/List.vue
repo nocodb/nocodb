@@ -7,11 +7,9 @@ type SortFields = 'title' | 'sub_type' | 'created_at' | 'created_by' | 'usage'
 const { user } = useGlobal()
 
 const {
-  pageMode,
   integrations,
   isLoadingIntegrations,
   deleteConfirmText,
-  IntegrationsPageMode,
   loadIntegrations,
   deleteIntegration,
   editIntegration,
@@ -178,7 +176,6 @@ onMounted(async () => {
           <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-gray-500" />
         </template>
       </a-input>
-     
     </div>
     <div
       class="table-container relative min-h-[500px]"
@@ -186,10 +183,13 @@ onMounted(async () => {
         'mb-6': isEeUI,
       }"
     >
-      <div ref="tableWrapper" class="nc-workspace-integration-table relative nc-scrollbar-thin !overflow-auto max-h-full"
-      :class="{
-        'h-full': filteredIntegrations?.length
-      }">
+      <div
+        ref="tableWrapper"
+        class="nc-workspace-integration-table relative nc-scrollbar-thin !overflow-auto max-h-full"
+        :class="{
+          'h-full': filteredIntegrations?.length,
+        }"
+      >
         <table class="!sticky top-0 z-10 w-full">
           <thead>
             <tr>
@@ -244,22 +244,20 @@ onMounted(async () => {
                 }"
                 @click="updateOrderBy('created_at')"
               >
-              <div>
-
-             
-                <div class="flex items-center gap-3">
-                  <div>Date added</div>
-                  <GeneralIcon
-                    v-if="orderBy.created_at"
-                    icon="chevronDown"
-                    class="flex-none"
-                    :class="{
-                      'transform rotate-180': orderBy.created_at === 'asc',
-                    }"
-                  />
-                  <GeneralIcon v-else icon="chevronUpDown" class="flex-none" />
+                <div>
+                  <div class="flex items-center gap-3">
+                    <div>Date added</div>
+                    <GeneralIcon
+                      v-if="orderBy.created_at"
+                      icon="chevronDown"
+                      class="flex-none"
+                      :class="{
+                        'transform rotate-180': orderBy.created_at === 'asc',
+                      }"
+                    />
+                    <GeneralIcon v-else icon="chevronUpDown" class="flex-none" />
+                  </div>
                 </div>
-                 </div>
               </th>
               <th
                 class="cell-added-by !hover:bg-gray-100 select-none cursor-pointer"

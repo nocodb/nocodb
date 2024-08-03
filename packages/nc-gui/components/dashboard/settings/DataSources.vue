@@ -411,7 +411,7 @@ const isSearchResultAvailable = () => {
           </div>
           <div class="ds-table-body relative">
             <Draggable :list="sources" item-key="id" handle=".ds-table-handle" @end="moveBase">
-              <template #header v-if="'default'.includes(searchQuery.toLowerCase())">
+              <template v-if="'default'.includes(searchQuery.toLowerCase())" #header>
                 <div v-if="sources[0]" class="ds-table-row border-gray-200 cursor-pointer" @click="activeSource = sources[0]">
                   <div class="ds-table-col ds-table-enabled">
                     <div class="flex items-center gap-1" @click.stop>

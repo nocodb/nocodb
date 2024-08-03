@@ -53,14 +53,14 @@ const metaWrite = useVModel(props, 'allowMetaWrite', emits)
 
 <style lang="scss" scoped>
 .nc-allow-meta-write.ant-switch-checked {
-  background: #B33771;
+  background: #b33771;
 }
 
 .nc-allow-meta-write-help {
-  color: #B33771;
+  color: #b33771;
 }
 
-.nc-source-restictions-card{
+.nc-source-restictions-card {
   @apply border-1 border-gray-200 rounded-lg px-3 py-2;
 }
 </style>

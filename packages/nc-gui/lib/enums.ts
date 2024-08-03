@@ -176,5 +176,5 @@ export enum ExtensionsEvents {
 
 
 export enum IntegrationStoreEvents {
-  INTEGRATION_ADD = 'integration-add'
+  INTEGRATION_ADD = 'integration-add',
 }

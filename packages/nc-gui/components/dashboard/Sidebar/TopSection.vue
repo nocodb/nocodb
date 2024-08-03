@@ -10,7 +10,7 @@ const { meta: metaKey, control } = useMagicKeys()
 
 const { isWorkspaceLoading, isWorkspaceSettingsPageOpened, isIntegrationsPageOpened } = storeToRefs(workspaceStore)
 
-const { navigateToWorkspaceSettings, navigateToIntegrations:_navigateToIntegrations } = workspaceStore
+const { navigateToWorkspaceSettings, navigateToIntegrations: _navigateToIntegrations } = workspaceStore
 
 const { isSharedBase } = storeToRefs(baseStore)
 

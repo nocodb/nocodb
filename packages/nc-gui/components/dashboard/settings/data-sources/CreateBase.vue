@@ -437,9 +437,6 @@ watch(
   },
   { immediate: true },
 )
-const toggleModal = (val: boolean) => {
-  vOpen.value = val
-}
 
 const allowMetaWrite = computed({
   get: () => !formState.value.is_schema_readonly,

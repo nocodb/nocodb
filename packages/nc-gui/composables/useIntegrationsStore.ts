@@ -1,5 +1,5 @@
 import type { IntegrationType } from 'nocodb-sdk'
-import  { IntegrationsType } from 'nocodb-sdk'
+import { IntegrationsType } from 'nocodb-sdk'
 import { ClientType } from '../lib/enums'
 import GeneralBaseLogo from '~/components/general/BaseLogo.vue'
 

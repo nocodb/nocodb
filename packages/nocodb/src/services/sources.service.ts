@@ -121,12 +121,16 @@ export class SourcesService {
       baseBody.type = baseBody.config?.client as unknown as BaseReqType['type'];
     } else {
       const integration = await Integration.get(
+        context,
         (baseBody as any).fk_integration_id,
-      );
+      )
+
+      // Check if integration exists
       if (!integration) {
         NcError.integrationNotFound((baseBody as any).fk_integration_id);
       }
 
+      // check if integration is of type Database
       if (
         integration.type !== IntegrationsType.Database ||
         !integration.sub_type

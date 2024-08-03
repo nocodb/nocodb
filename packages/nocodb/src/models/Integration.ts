@@ -70,11 +70,12 @@ export default class Integration implements IntegrationType {
       insertObj.meta = stringifyMetaProp(insertObj);
     }
 
-    insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.INTEGRATIONS, {
-      fk_workspace_id: integration.workspaceId,
-    });
+    insertObj.fk_workspace_id =
+      insertObj.fk_workspace_id || integration.workspaceId;
 
-    insertObj.fk_workspace_id = integration.workspaceId;
+    insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.INTEGRATIONS, {
+      fk_workspace_id: integration.fk_workspace_id,
+    });
 
     const { id } = await ncMeta.metaInsert2(
       RootScopes.WORKSPACE,
@@ -83,11 +84,16 @@ export default class Integration implements IntegrationType {
       insertObj,
     );
 
-    return await this.get(id, false, ncMeta);
+    return await this.get(
+      { workspace_id: integration.fk_workspace_id },
+      id,
+      false,
+      ncMeta,
+    );
   }
 
   public static async updateIntegration(
-    context: NcContext,
+    context: Omit<NcContext, 'base_id'>,
     integrationId: string,
     integration: IntegrationType & {
       meta?: any;
@@ -95,7 +101,12 @@ export default class Integration implements IntegrationType {
     },
     ncMeta = Noco.ncMeta,
   ) {
-    const oldIntegration = await Integration.get(integrationId, false, ncMeta);
+    const oldIntegration = await Integration.get(
+      context,
+      integrationId,
+      false,
+      ncMeta,
+    );
 
     if (!oldIntegration) NcError.integrationNotFound(integrationId);
 
@@ -141,13 +152,13 @@ export default class Integration implements IntegrationType {
       oldIntegration.id,
     );
 
-    // await NocoCache.update(
-    //   `${CacheScope.BASE}:${integrationId}`,
-    //   prepareForResponse(updateObj),
-    // );
-
     // call before reorder to update cache
-    const returnBase = await this.get(oldIntegration.id, false, ncMeta);
+    const returnBase = await this.get(
+      context,
+      oldIntegration.id,
+      false,
+      ncMeta,
+    );
 
     return returnBase;
   }
@@ -162,11 +173,6 @@ export default class Integration implements IntegrationType {
     },
     ncMeta = Noco.ncMeta,
   ): Promise<Integration[]> {
-    // const cachedList = await NocoCache.getList(CacheScope.BASE, [args.workspaceId]);
-    // let { list: integrationList } = cachedList;
-    // const { isNoneList } = cachedList;
-    // if (!isNoneList && !integrationList.length)
-
     const conditions: Condition[] = [];
 
     // if user have workspace level permission(creator, owner) then show all integrations which are not deleted
@@ -241,13 +247,6 @@ export default class Integration implements IntegrationType {
       integration.meta = parseMetaProp(integration, 'meta');
     }
 
-    // await NocoCache.setList(CacheScope.BASE, [args.baseId], integrationList);
-    // }
-
-    // integrationList.sort(
-    //   (a, b) => (a?.order ?? Infinity) - (b?.order ?? Infinity),
-    // );
-
     const integrations = integrationList?.map((baseData) => {
       return this.castType(baseData);
     });
@@ -268,22 +267,16 @@ export default class Integration implements IntegrationType {
   }
 
   static async get(
+    context: Omit<NcContext, 'base_id'>,
     id: string,
     force = false,
     ncMeta = Noco.ncMeta,
   ): Promise<Integration> {
-    // let baseData =
-    //   id &&
-    //   (await NocoCache.get(
-    //     `${CacheScope.BASE}:${id}`,
-    //     CacheGetType.TYPE_OBJECT,
-    //   ));
-    // if (!baseData) {
     const baseData = await ncMeta.metaGet2(
       RootScopes.WORKSPACE,
       RootScopes.WORKSPACE,
       MetaTable.INTEGRATIONS,
-      id,
+      context.workspace_id === RootScopes.BYPASS ? id : { id, fk_workspace_id: context.workspace_id },
       null,
       force
         ? {}

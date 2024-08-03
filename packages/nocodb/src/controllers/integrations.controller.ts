@@ -29,7 +29,7 @@ export class IntegrationsController {
   async integrationGet(
     @TenantContext() context: NcContext,
     @Param('integrationId') integrationId: string,
-    @Query('includeConfig') includeConfig: boolean,
+    @Query('includeConfig') includeConfig: string,
     @Req() req: NcRequest,
   ) {
     const integration = await this.integrationsService.integrationGetWithConfig(
@@ -40,7 +40,7 @@ export class IntegrationsController {
     );
 
     // hide config if not the owner or if not requested
-    if (!includeConfig || req.user.id !== integration.created_by)
+    if (includeConfig !== 'true' || req.user.id !== integration.created_by)
       delete integration.config;
 
     return integration;
@@ -62,11 +62,12 @@ export class IntegrationsController {
   @Delete(['/api/v2/meta/integrations/:integrationId'])
   @Acl('integrationDelete')
   async integrationDelete(
+    @TenantContext() context: NcContext,
     @Param('integrationId') integrationId: string,
     @Req() req: NcRequest,
     @Query('force') force: string,
   ) {
-    return await this.integrationsService.integrationDelete({
+    return await this.integrationsService.integrationDelete(context,{
       req,
       integrationId,
       force: force === 'true',
@@ -104,7 +105,7 @@ export class IntegrationsController {
     const integrations = await this.integrationsService.integrationList({
       workspaceId,
       req,
-      includeDatabaseInfo: !!includeDatabaseInfo,
+      includeDatabaseInfo: includeDatabaseInfo === 'true',
       type,
     });
 

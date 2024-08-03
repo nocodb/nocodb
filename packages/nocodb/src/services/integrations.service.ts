@@ -22,7 +22,7 @@ export class IntegrationsService {
     context: NcContext,
     param: { integrationId: any },
   ) {
-    const integration = await Integration.get(param.integrationId);
+    const integration = await Integration.get(context, param.integrationId);
 
     integration.config = await integration.getConnectionConfig();
 
@@ -94,11 +94,16 @@ export class IntegrationsService {
   }
 
   async integrationDelete(
+    context: Omit<NcContext, 'base_id'>,
     param: { integrationId: string; req: any; force: boolean },
     ncMeta = Noco.ncMeta,
   ) {
     try {
-      const integration = await Integration.get(param.integrationId, true);
+      const integration = await Integration.get(
+        context,
+        param.integrationId,
+        true,
+      );
 
       // check linked sources
       const sources = await ncMeta.metaList2(
@@ -143,9 +148,12 @@ export class IntegrationsService {
     return true;
   }
 
-  async integrationSoftDelete(param: { integrationId: string }) {
+  async integrationSoftDelete(
+    context: Omit<NcContext, 'base_id'>,
+    param: { integrationId: string },
+  ) {
     try {
-      const integration = await Integration.get(param.integrationId);
+      const integration = await Integration.get(context, param.integrationId);
       await integration.softDelete();
     } catch (e) {
       NcError.badRequest(e);

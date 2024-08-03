@@ -43,10 +43,18 @@ const { t } = useI18n()
 
 const creatingSource = ref(false)
 
+const _getDefaultConnectionConfig = (client = ClientType.MYSQL ) => {
+  const config =  getDefaultConnectionConfig(client)
+  if('database' in config.connection){
+    config.connection.database = ''
+  }
+  return config
+}
+
 const defaultFormState = (client = ClientType.MYSQL) => {
   return {
     title: '',
-    dataSource: { ...getDefaultConnectionConfig(client) },
+    dataSource: { ..._getDefaultConnectionConfig(client) },
     sslUse: SSLUsage.No,
     extraParameters: [],
     is_private: false,
@@ -139,15 +147,8 @@ const validators = computed(() => {
 
 const { validate, validateInfos } = useForm(formState, validators)
 
-const populateName = (v: string, checkDiff = false) => {
-  if (isEditMode.value) return
-
-  formState.value.dataSource.connection.database = `${v.trim()}_noco`
-}
-
 const onClientChange = () => {
-  formState.value.dataSource = { ...getDefaultConnectionConfig(formState.value.dataSource.client) }
-  populateName(formState.value.title)
+  formState.value.dataSource = { ..._getDefaultConnectionConfig(formState.value.dataSource.client) }
 }
 
 const onSSLModeChange = ((mode: SSLUsage) => {
@@ -400,7 +401,6 @@ watch(
 onMounted(async () => {
   if (pageMode.value === IntegrationsPageMode.ADD) {
     formState.value.title = await generateUniqueName()
-    populateName(formState.value.title)
   } else {
     if (!activeIntegration.value) return
 
@@ -517,7 +517,7 @@ watch(
                   <a-row :gutter="24">
                     <a-col :span="12">
                       <a-form-item label="Connection name" v-bind="validateInfos.title">
-                        <a-input v-model:value="formState.title" @input="populateName(formState.title, true)" />
+                        <a-input v-model:value="formState.title" />
                       </a-form-item>
                     </a-col>
                   </a-row>
@@ -656,6 +656,7 @@ watch(
                           <a-input
                             v-model:value="(formState.dataSource.connection as SnowflakeConnection).database"
                             class="nc-extdb-host-database"
+                            :placeholder="`${$t('labels.database')} ${$t('general.name').toLowerCase()}`"
                           />
                         </a-form-item>
                       </a-col>
@@ -705,6 +706,7 @@ watch(
                         <a-form-item label="Database" v-bind="validateInfos['dataSource.connection.database']">
                           <a-input
                             v-model:value="(formState.dataSource.connection as DatabricksConnection).database"
+                            :placeholder="`${$t('labels.database')} ${$t('general.name').toLowerCase()}`"
                             class="nc-extdb-host-database"
                           />
                         </a-form-item>
@@ -773,7 +775,7 @@ watch(
                           <!-- Database : create if not exists -->
                           <a-input
                             v-model:value="formState.dataSource.connection.database"
-                            :placeholder="$t('labels.dbCreateIfNotExists')"
+                            :placeholder="`${$t('labels.database')} ${$t('general.name').toLowerCase()}`"
                             class="nc-extdb-host-database"
                           />
                         </a-form-item>

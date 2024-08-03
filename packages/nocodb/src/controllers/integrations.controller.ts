@@ -116,6 +116,7 @@ export class IntegrationsController {
     @Query('includeDatabaseInfo') includeDatabaseInfo?: string,
     @Query('limit') limit?: string,
     @Query('offset') offset?: string,
+    @Query('query') query?: string,
   ) {
     const integrations = await this.integrationsService.integrationList({
       req,
@@ -124,6 +125,7 @@ export class IntegrationsController {
       // if limit/offset is not provided, then return all integrations
       limit: limit && (+limit || 25),
       offset: offset && (+offset || 0),
+      query
     });
 
     if (!includeDatabaseInfo) {

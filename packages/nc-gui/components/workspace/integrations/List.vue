@@ -10,6 +10,7 @@ const {
   deleteConfirmText,
   integrationPaginationData,
   successConfirmModal,
+  searchQuery,
   loadIntegrations,
   deleteIntegration,
   editIntegration,
@@ -40,8 +41,6 @@ const tableWrapper = ref<HTMLDivElement>()
 
 const titleHeaderCellRef = ref<HTMLDivElement>()
 
-const searchQuery = ref<string>('')
-
 const orderBy = ref<Partial<Record<SortFields, 'asc' | 'desc' | undefined>>>({})
 
 const localCollaborators = ref<User[] | UserType[]>([])
@@ -61,7 +60,6 @@ const collaboratorsMap = computed<Map<string, (WorkspaceUserType & { id: string 
 
 const filteredIntegrations = computed(() =>
   (integrations.value || [])
-    .filter((i) => i?.title?.toLowerCase()?.includes(searchQuery.value.toLowerCase()))
     .sort((a, b) => {
       if (orderBy.value.title) {
         if (a.title && b.title) {
@@ -181,6 +179,10 @@ const updateOrderBy = (field: SortFields) => {
   }
 }
 
+const handleSearchConnection = useDebounceFn(() => {
+  loadConnections()
+}, 250)
+
 const renderAltOrOptlKey = () => {
   return isMac() ? '⌥' : 'ALT'
 }
@@ -230,6 +232,7 @@ onKeyStroke('ArrowDown', onDown)
           class="nc-search-integration-input !min-w-[300px] nc-input-sm flex-none"
           :placeholder="`${$t('general.search')} ${$t('general.connections').toLowerCase()}`"
           allow-clear
+          @input="handleSearchConnection"
         >
           <template #prefix>
             <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-gray-500" />

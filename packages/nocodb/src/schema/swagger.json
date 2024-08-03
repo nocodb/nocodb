@@ -18526,13 +18526,6 @@
           },
           {
             "schema": {
-              "type": "boolean"
-            },
-            "name": "includeDatabaseInfo",
-            "in": "query"
-          },
-          {
-            "schema": {
               "type": "number"
             },
             "name": "limit",
@@ -18550,6 +18543,13 @@
               "type": "string"
             },
             "name": "baseId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "query",
             "in": "query"
           }
         ]

@@ -59,6 +59,8 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
 
   const integrations = ref<IntegrationType[]>([])
 
+  const searchQuery = ref('')
+
   const integrationPaginationData = ref<PaginatedType>({ page: 1, pageSize: 25, totalRows: 0 })
 
   const deleteConfirmText = ref<string | null>()
@@ -124,6 +126,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
           : {
               offset: limit * (page - 1),
               limit,
+              ...(searchQuery.value.trim() ? { query: searchQuery.value } : {}),
             },
       )
 
@@ -328,6 +331,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     activeViewTab,
     isFromIntegrationPage,
     successConfirmModal,
+    searchQuery,
     addIntegration,
     loadIntegrations,
     deleteIntegration,

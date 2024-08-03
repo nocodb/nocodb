@@ -175,6 +175,7 @@ export default class Integration implements IntegrationType {
       limit?: number;
       offset?: number;
       includeSourceCount?: boolean;
+      query?: string
     },
     ncMeta = Noco.ncMeta,
   ): Promise<PagedResponseImpl<Integration>> {
@@ -205,6 +206,10 @@ export default class Integration implements IntegrationType {
         .where(`${MetaTable.INTEGRATIONS}.deleted`, false)
         .orWhereNull(`${MetaTable.INTEGRATIONS}.deleted`);
     });
+
+    if (args.query) {
+      qb.where(`${MetaTable.INTEGRATIONS}.title`, 'like', `%${args.query}%`);
+    }
 
     const listQb = qb.clone();
 

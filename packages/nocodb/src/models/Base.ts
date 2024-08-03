@@ -209,8 +209,8 @@ export default class Base implements BaseType {
     ));
     if (!includeConfig) {
       sources.forEach((s) => {
-        delete s.config;
-        delete s.integration_config;
+        s.config = undefined;
+        s.integration_config = undefined;
       });
     }
     return sources;

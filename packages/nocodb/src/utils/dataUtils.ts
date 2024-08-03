@@ -77,10 +77,10 @@ export const deepMerge = (target: any, ...sources: any[]) => {
   if (isMergeableObject(target) && isMergeableObject(source)) {
     Object.keys(source).forEach((key) => {
       if (isMergeableObject(source[key])) {
-        if (!target[key]) Object.assign(target, { [key]: {} });
+        if (!target[key]) target[key] = {};
         deepMerge(target[key], source[key]);
       } else {
-        Object.assign(target, { [key]: source[key] });
+        target[key] = source[key];
       }
     });
   }

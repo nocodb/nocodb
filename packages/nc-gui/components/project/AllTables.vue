@@ -171,8 +171,12 @@ const onCreateBaseClick = () => {
               {{ $t('title.directlyInRealTime') }}
             </div>
             <div class="flex items-center justify-between gap-2">
-              <GeneralBaseLogo :source-type="ClientType.MYSQL" class="flex-none w-5 h-5" />
-              <GeneralBaseLogo :source-type="ClientType.PG" class="flex-none w-5 h-5" />
+              <div class="w-5 h-5 rounded bg-gray-100 flex items-center justify-center">
+                <GeneralBaseLogo :source-type="ClientType.MYSQL" class="flex-none w-4 h-4" />
+              </div>
+              <div class="w-5 h-5 rounded bg-gray-100 flex items-center justify-center">
+                <GeneralBaseLogo :source-type="ClientType.PG" class="flex-none w-4 h-4" />
+              </div>
               <div class="flex-nonw w-5 h-5"></div>
               <div class="flex-nonw w-5 h-5"></div>
             </div>

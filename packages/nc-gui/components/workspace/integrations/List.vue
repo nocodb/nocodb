@@ -148,7 +148,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="h-full flex flex-col gap-6 pt-6 nc-workspace-settings-integrations max-w-[fit-content]">
+  <div class="h-full flex flex-col gap-6 pt-6 nc-workspace-settings-integrations max-w-[fit-content] mx-auto">
     <div class="flex items-center justify-between gap-3 mx-1">
       <a-input
         v-model:value="searchQuery"
@@ -176,7 +176,7 @@ onMounted(async () => {
     >
       <div
         ref="tableWrapper"
-        class="nc-workspace-integration-table relative nc-scrollbar-thin !overflow-auto"
+        class="nc-workspace-integration-table relative nc-scrollbar-thin !overflow-auto max-h-full"
       >
         <table class="!sticky top-0 z-10">
           <thead>

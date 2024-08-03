@@ -941,14 +941,25 @@ const allowAccess = computed({
                 <div class="nc-form-section">
                   <a-form-item class="!my-0">
                     <div class="flex items-center gap-3">
-                      <a-switch v-model:checked="allowAccess" size="small" />
+                      <a-switch v-if="isEeUI" v-model:checked="allowAccess" size="small" />
+                      <NcTooltip v-else>
+                        <template #title>
+                          <div class="text-center">
+                            {{ $t('msg.info.thisFeatureIsOnlyAvailableInEnterpriseEdition') }}
+                          </div>
+                        </template>
+
+                        <a-switch :checked="allowAccess" disabled size="small" />
+                      </NcTooltip>
 
                       <NcTooltip placement="right" class="cursor-pointer">
                         <template #title>
                           {{ $t('tooltip.allowIntegrationAccess') }}
                         </template>
 
-                        <div @click="allowAccess = !allowAccess" class="nc-form-section-title">Share Integration</div>
+                        <div @click="isEeUI ? (allowAccess = !allowAccess) : undefined" class="nc-form-section-title">
+                          Share Integration
+                        </div>
                       </NcTooltip>
                     </div>
                   </a-form-item>
@@ -1048,7 +1059,7 @@ const allowAccess = computed({
       </div>
       <div class="nc-edit-or-add-integration-right-panel">
         <DashboardSettingsDataSourcesInfo varient="new" />
-        <NcDivider v-if="isEeUI"/>
+        <NcDivider v-if="isEeUI" />
       </div>
     </div>
   </div>

@@ -133,6 +133,18 @@ onMounted(() => {
           </div>
         </a-tab-pane>
       </template>
+
+      <template v-if="isUIAllowed('workspaceIntegrations')">
+        <a-tab-pane key="integrations" class="w-full">
+          <template #tab>
+            <div class="flex flex-row items-center px-2 pb-1 gap-x-1.5" data-testid="nc-workspace-settings-tab-integrations">
+              <GeneralIcon icon="database" />
+              Integrations
+            </div>
+          </template>
+          <WorkspaceIntegrations />
+        </a-tab-pane>
+      </template>
     </NcTabs>
   </div>
 </template>

@@ -280,7 +280,7 @@ const onCreateBaseClick = () => {
 
 <style lang="scss" scoped>
 .nc-base-view-all-table-btn {
-  @apply flex-none flex flex-col gap-y-3 px-3 py-5 bg-gray-50 rounded-xl border-1 border-gray-100 min-w-[230px] max-w-[235px] cursor-pointer text-gray-800 hover:(bg-gray-100 border-gray-200) transition-all duration-300;
+  @apply flex-none flex flex-col gap-y-3 px-3 py-5 bg-gray-50 rounded-xl border-1 border-gray-100 min-w-[230px] max-w-[248px] cursor-pointer text-gray-800 hover:(bg-gray-100 border-gray-200) transition-all duration-300;
   &:hover {
     box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
   }

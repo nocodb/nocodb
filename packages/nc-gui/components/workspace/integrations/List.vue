@@ -2,7 +2,10 @@
 import { type SourceType, type UserType, type WorkspaceUserType } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 
+type SortFields = 'title' | 'sub_type' | 'created_at' | 'created_by' | 'usage'
+
 const { user } = useGlobal()
+
 const {
   pageMode,
   integrations,
@@ -26,8 +29,36 @@ const tableWrapper = ref<HTMLDivElement>()
 
 const searchQuery = ref<string>('')
 
+const orderBy = ref<Partial<Record<SortFields, 'asc' | 'desc' | undefined>>>({})
+
 const filteredIntegrations = computed(() =>
-  (integrations.value || []).filter((i) => i?.title?.toLowerCase()?.includes(searchQuery.value.toLowerCase())),
+  (integrations.value || [])
+    .filter((i) => i?.title?.toLowerCase()?.includes(searchQuery.value.toLowerCase()))
+    .sort((a, b) => {
+      if (orderBy.value.title) {
+        if (a.title && b.title) {
+          return orderBy.value.title === 'asc' ? (a.title < b.title ? -1 : 1) : (a.title > b.title ? -1 : 1)
+        }
+      } else if (orderBy.value.sub_type) {
+        if (a.sub_type && b.sub_type) {
+          return orderBy.value.sub_type === 'asc' ? (a.sub_type < b.sub_type ? -1 : 1) : (a.sub_type > b.sub_type ? -1 : 1)
+        }
+      } else if (orderBy.value.created_at) {
+        if (a?.created_at && b?.created_at) {
+          return orderBy.value.created_at === 'asc' ? (dayjs(a.created_at).local().isBefore(dayjs(b.created_at).local()) ? -1 : 1) : (dayjs(a.created_at).local().isAfter(dayjs(b.created_at).local()) ? -1 : 1)
+        }
+      } else if (orderBy.value.created_by) {
+        if (a.created_by && b.created_by && collaboratorsMap.value.get(a.created_by) && collaboratorsMap.value.get(b.created_by)) {
+          return orderBy.value.created_by === 'asc' ? (collaboratorsMap.value.get(a.created_by)?.email < collaboratorsMap.value.get(b.created_by)?.email ? -1 : 1) : (collaboratorsMap.value.get(a.created_by)?.email > collaboratorsMap.value.get(b.created_by)?.email ? -1 : 1)
+        }
+      }
+      //  else if (orderBy.value.usage) {
+      //   if (a.usage !== undefined && b.usage !== undefined) {
+      //     return orderBy.value.usage === 'asc' ? (a.usage - b.usage) : (b.usage - a.usage)
+      //   }
+      // }
+      return 0
+    }),
 )
 
 const localCollaborators = ref<User[] | UserType[]>([])
@@ -73,6 +104,25 @@ const loadOrgUsers = async () => {
   }
 }
 
+const updateOrderBy = (field: SortFields) => {
+  if (!integrations.value?.length) return
+
+  // Only single field sort supported, other old field sort config will reset
+  if (orderBy.value?.[field] === 'asc') {
+    orderBy.value = {
+      [field]: 'desc',
+    }
+  } else if (orderBy.value?.[field] === 'desc') {
+    orderBy.value = {
+      [field]: undefined,
+    }
+  } else {
+    orderBy.value = {
+      [field]: 'asc',
+    }
+  }
+}
+
 useEventListener(tableWrapper, 'scroll', () => {
   const stickyHeaderCell = tableWrapper.value?.querySelector('th.cell-title')
   const nonStickyHeaderFirstCell = tableWrapper.value?.querySelector('th.cell-type')
@@ -99,7 +149,7 @@ onMounted(async () => {
 
 <template>
   <div class="h-full flex flex-col gap-6 pt-6 nc-workspace-settings-integrations max-w-[fit-content]">
-    <div class="flex items-center justify-between gap-3 mx-2">
+    <div class="flex items-center justify-between gap-3 mx-1">
       <a-input
         v-model:value="searchQuery"
         type="text"
@@ -118,25 +168,123 @@ onMounted(async () => {
         </div>
       </NcButton>
     </div>
-    <div class="table-container relative min-h-[500px]">
-      <div ref="tableWrapper" class="nc-workspace-integration-table relative nc-scrollbar-thin !overflow-auto h-full min-h-[500px]">
+    <div
+      class="table-container relative min-h-[500px]"
+      :class="{
+        'mb-6': isEeUI,
+      }"
+    >
+      <div
+        ref="tableWrapper"
+        class="nc-workspace-integration-table relative nc-scrollbar-thin !overflow-auto"
+      >
         <table class="!sticky top-0 z-10">
           <thead>
             <tr>
-              <th class="cell-title">
-                <div>Integration name</div>
+              <th
+                class="cell-title !hover:bg-gray-100 select-none cursor-pointer"
+                :class="{
+                  'cursor-not-allowed': !filteredIntegrations?.length,
+                  '!text-gray-700': orderBy.title
+                }"
+                @click="updateOrderBy('title')"
+              >
+                <div class="flex items-center gap-3">
+                  <div>Name</div>
+                  <GeneralIcon
+                    v-if="orderBy.title"
+                    icon="chevronDown"
+                    class="flex-none"
+                    :class="{
+                      'transform rotate-180': orderBy?.title === 'asc',
+                    }"
+                  />
+                  <GeneralIcon v-else icon="chevronUpDown" class="flex-none" />
+                </div>
               </th>
-              <th class="cell-type">
-                <div>Type</div>
+              <th
+                class="cell-type !hover:bg-gray-100 select-none cursor-pointer"
+                :class="{
+                  'cursor-not-allowed': !filteredIntegrations?.length,
+                  '!text-gray-700': orderBy.sub_type
+                }"
+                @click="updateOrderBy('sub_type')"
+              >
+                <div class="flex items-center gap-3">
+                  <div>Type</div>
+                  <GeneralIcon
+                    v-if="orderBy.sub_type"
+                    icon="chevronDown"
+                    class="flex-none"
+                    :class="{
+                      'transform rotate-180': orderBy.sub_type === 'asc',
+                    }"
+                  />
+                  <GeneralIcon v-else icon="chevronUpDown" class="flex-none" />
+                </div>
               </th>
-              <th class="cell-created-date">
-                <div>Date added</div>
+            
+              <th
+                class="cell-created-date !hover:bg-gray-100 select-none cursor-pointer"
+                :class="{
+                  'cursor-not-allowed': !filteredIntegrations?.length,
+                  '!text-gray-700': orderBy.created_at
+                }"
+                @click="updateOrderBy('created_at')"
+              >
+                <div class="flex items-center gap-3">
+                  <div>Date added</div>
+                  <GeneralIcon
+                    v-if="orderBy.created_at"
+                    icon="chevronDown"
+                    class="flex-none"
+                    :class="{
+                      'transform rotate-180': orderBy.created_at === 'asc',
+                    }"
+                  />
+                  <GeneralIcon v-else icon="chevronUpDown" class="flex-none" />
+                </div>
               </th>
-              <th class="cell-added-by">
-                <div>Added by</div>
+              <th
+                class="cell-added-by !hover:bg-gray-100 select-none cursor-pointer"
+                :class="{
+                  'cursor-not-allowed': !filteredIntegrations?.length,
+                  '!text-gray-700': orderBy.created_by
+                }"
+                @click="updateOrderBy('created_by')"
+              >
+                <div class="flex items-center gap-3">
+                  <div>Added by</div>
+                  <GeneralIcon
+                    v-if="orderBy.created_by"
+                    icon="chevronDown"
+                    class="flex-none"
+                    :class="{
+                      'transform rotate-180': orderBy.created_by === 'asc',
+                    }"
+                  />
+                  <GeneralIcon v-else icon="chevronUpDown" class="flex-none" />
+                </div>
               </th>
-              <!-- <th class="cell-usage">
-                <div>Usage</div>
+              <!-- <th
+                class="cell-usage !hover:bg-gray-100 select-none cursor-pointer"
+                :class="{
+                  'cursor-not-allowed': !filteredIntegrations?.length,
+                }"
+                @click="updateOrderBy('usage')"
+              >
+                <div class="flex items-center gap-3">
+                  <div>Usage</div>
+                  <GeneralIcon
+                    v-if="orderBy?.usage"
+                    icon="chevronDown"
+                    class="flex-none"
+                    :class="{
+                      'transform rotate-180': orderBy?.usage === 'asc',
+                    }"
+                  />
+                  <GeneralIcon v-else icon="chevronUpDown" class="flex-none" />
+                </div>
               </th> -->
               <th class="cell-actions">
                 <div>Actions</div>
@@ -154,9 +302,9 @@ onMounted(async () => {
                       <template #title> {{ integration.title }}</template>
                       {{ integration.title }}
                     </NcTooltip>
-                    <span v-if="!integration.is_private">
+                    <!-- <span v-if="!integration.is_private">
                       <NcBadge :border="false" class="text-primary bg-brand-50 text-sm">Shared</NcBadge>
-                    </span>
+                    </span> -->
                   </div>
                 </td>
                 <td class="cell-type">
@@ -178,9 +326,9 @@ onMounted(async () => {
                 <td class="cell-created-date">
                   <div>
                     <NcTooltip placement="bottom" show-on-truncate-only>
-                      <template #title> {{ dayjs(integration.created_at).format('DD MMM YYYY') }}</template>
+                      <template #title> {{ dayjs(integration.created_at).local().format('DD MMM YYYY') }}</template>
 
-                      {{ dayjs(integration.created_at).format('DD MMM YYYY') }}
+                      {{ dayjs(integration.created_at).local().format('DD MMM YYYY') }}
                     </NcTooltip>
                   </div>
                 </td>
@@ -233,8 +381,8 @@ onMounted(async () => {
                   <div></div>
                 </td> -->
                 <td class="cell-actions" @click.stop>
-                  <div>
-                    <NcDropdown v-if="user?.id === integration.created_by">
+                  <div class="flex justify-end">
+                    <NcDropdown v-if="user?.id === integration.created_by" placement="bottomRight">
                       <NcButton size="small" type="secondary">
                         <GeneralIcon icon="threeDotVertical" />
                       </NcButton>
@@ -355,7 +503,7 @@ onMounted(async () => {
 }
 
 .table-container {
-  @apply border-1 border-gray-200 rounded-lg overflow-hidden max-w-[fit-content] mb-6;
+  @apply border-1 border-gray-200 rounded-lg overflow-hidden max-w-[fit-content];
 
   .nc-workspace-integration-table {
     &.sticky-shadow {
@@ -434,7 +582,7 @@ onMounted(async () => {
         }
 
         &.cell-created-date {
-          @apply w-[150px];
+          @apply w-[160px];
         }
 
         &.cell-usage {

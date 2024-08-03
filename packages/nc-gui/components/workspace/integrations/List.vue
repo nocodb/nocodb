@@ -629,27 +629,45 @@ onMounted(async () => {
         }
 
         &.cell-title {
-          @apply flex-1 min-w-[252px] sticky left-0 z-5 flex-none; 
+          @apply flex-1 sticky left-0 z-5;
+          & > div {
+            @apply min-w-[250px] flex-none;
+          }
         }
 
         &.cell-added-by {
-          @apply basis-[20%] min-w-[252px] flex-none;
+          @apply basis-[20%];
+          & > div {
+            @apply min-w-[250px] flex-none;
+          }
         }
 
         &.cell-type {
-          @apply basis-[20%] min-w-[180px] flex-none;
+          @apply basis-[20%];
+          & > div {
+            @apply min-w-[178px] flex-none;
+          }
         }
 
         &.cell-created-date {
-          @apply basis-[20%] min-w-[160px] flex-none;
+          @apply basis-[20%];
+          & > div {
+            @apply min-w-[158px] flex-none;
+          }
         }
 
         &.cell-usage {
-          @apply w-[120px] flex-none;
+          @apply w-[120px];
+          & > div {
+            @apply min-w-[118px] flex-none;
+          }
         }
 
         &.cell-actions {
-          @apply w-[100px] flex-none;
+          @apply w-[100px];
+          & > div {
+            @apply min-w-[98px] flex-none;
+          }
         }
       }
     }

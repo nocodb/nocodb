@@ -24,7 +24,7 @@ const upVoteCountBySyncDataTypeMap = computed(() => {
     nc-modal-class-name="!p-0 h-80vh max-h-[864px]"
     @keydown.esc="vOpen = false"
   >
-    <div class="h-full flex flex-col">
+    <div class="h-full flex flex-col overflow-hidden">
       <div class="flex items-center justify-between gap-4 p-4 border-b-1 border-gray-200">
         <GeneralIcon icon="refresh" class="flex-none h-8 w-8 !text-blue-700" />
         <div class="flex-1 flex items-center gap-3">
@@ -36,7 +36,7 @@ const upVoteCountBySyncDataTypeMap = computed(() => {
             $t('title.comingSoon')
           }}</NcBadge>
         </div>
-        <NcButton type="secondary" size="xs" class="!px-0" @click="vOpen = false">
+        <NcButton type="text" size="xs" class="!px-0" @click="vOpen = false">
           <GeneralIcon icon="close" />
         </NcButton>
       </div>
@@ -53,7 +53,7 @@ const upVoteCountBySyncDataTypeMap = computed(() => {
           <div class="flex items-start gap-3 flex-wrap">
             <div v-for="syncData of syncDataTypes" :key="syncData.value" class="nc-sync-data-card">
               <div class="card-icon-wrapper">
-                <component :is="syncData.icon" class="card-icon h-8 w-8" />
+                <component :is="syncData.icon" class="flex-none stroke-transparent" />
               </div>
               <div class="card-title flex-1">
                 {{ $t(syncData.title) }}
@@ -94,16 +94,8 @@ const upVoteCountBySyncDataTypeMap = computed(() => {
   .nc-sync-data-card {
     @apply p-3 flex items-center gap-4 rounded-xl border-1 border-gray-200 w-[298px] h-[76px] cursor-pointer;
 
-    &:hover {
-      @apply bg-gray-50;
-      box-shadow: 0px 4px 8px -2px rgba(0, 0, 0, 0.08), 0px 2px 4px -2px rgba(0, 0, 0, 0.04);
-      .card-icon-wrapper {
-        @apply bg-gray-200;
-      }
-    }
-
     .card-icon-wrapper {
-      @apply w-[52px] h-[52px] p-2.5 flex items-center justify-center bg-gray-100 rounded-lg;
+      @apply w-[52px] h-[52px] p-1 flex items-center justify-center bg-gray-100 rounded-lg;
 
       .card-icon {
       }

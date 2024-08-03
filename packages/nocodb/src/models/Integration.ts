@@ -190,18 +190,20 @@ export default class Integration implements IntegrationType {
     // exclude integrations which are private and not created by user
     qb.where((whereQb) => {
       whereQb
-        .where('is_private', false)
-        .orWhereNull('is_private')
-        .orWhere('created_by', args.userId);
+        .where(`${MetaTable.INTEGRATIONS}.is_private`, false)
+        .orWhereNull(`${MetaTable.INTEGRATIONS}.is_private`)
+        .orWhere(`${MetaTable.INTEGRATIONS}.created_by`, args.userId);
     });
 
     // if type is provided then filter integrations based on type
     if (args.type) {
-      qb.where('type', args.type);
+      qb.where(`${MetaTable.INTEGRATIONS}.type`, args.type);
     }
 
     qb.where((whereQb) => {
-      whereQb.where('deleted', false).orWhereNull('deleted');
+      whereQb
+        .where(`${MetaTable.INTEGRATIONS}.deleted`, false)
+        .orWhereNull(`${MetaTable.INTEGRATIONS}.deleted`);
     });
 
     const listQb = qb.clone();
@@ -223,7 +225,7 @@ export default class Integration implements IntegrationType {
     const integrationList = await listQb
       .limit(limit)
       .offset(offset)
-      .orderBy('order', 'asc');
+      .orderBy(`${MetaTable.INTEGRATIONS}.order`, 'asc');
 
     // parse JSON metadata
     for (const integration of integrationList) {
@@ -248,7 +250,11 @@ export default class Integration implements IntegrationType {
 
     if (limit) {
       const count =
-        +(await qb.count('id', { as: 'count' }).first())?.['count'] || 0;
+        +(
+          await qb
+            .count(`${MetaTable.INTEGRATIONS}.id`, { as: 'count' })
+            .first()
+        )?.['count'] || 0;
 
       return new PagedResponseImpl(integrations, {
         count,
@@ -350,9 +356,7 @@ export default class Integration implements IntegrationType {
     );
   }
 
-  async getSources(
-    ncMeta = Noco.ncMeta,
-  ): Promise<any> {
+  async getSources(ncMeta = Noco.ncMeta): Promise<any> {
     const qb = ncMeta.knex(MetaTable.BASES);
 
     const sources = await qb
@@ -373,8 +377,8 @@ export default class Integration implements IntegrationType {
       })
       .where((whereQb) => {
         whereQb
-          .where(`${MetaTable.BASES}.deleted`, false)
-          .orWhereNull(`${MetaTable.BASES}.deleted`);
+          .where(`${MetaTable.PROJECT}.deleted`, false)
+          .orWhereNull(`${MetaTable.PROJECT}.deleted`);
       });
 
     return (this.sources = sources);

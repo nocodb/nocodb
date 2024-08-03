@@ -274,7 +274,8 @@
     "ipAddress": "IP Address",
     "integration": "Integration",
     "connection": "Connection",
-    "connections": "Connections"
+    "connections": "Connections",
+    "private": "Private"
   },
   "objects": {
     "files": "files",

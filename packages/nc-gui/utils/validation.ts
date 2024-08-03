@@ -206,11 +206,7 @@ export const extraParameterValidator = {
     return new Promise((resolve, reject) => {
       const { t } = getI18n().global
       for (const param of value) {
-        if (param.key === '') {
-          // return reject(new Error('Parameter key cannot be empty'))
-          return reject(new Error(t('msg.error.parameterKeyCannotBeEmpty')))
-        }
-        if (value.filter((el: any) => el.key === param.key).length !== 1) {
+        if (!value.every((el) => el.key === '') && value.filter((el: any) => el.key === param.key).length !== 1) {
           // return reject(new Error('Duplicate parameter keys are not allowed'))
           return reject(new Error(t('msg.error.duplicateParameterKeysAreNotAllowed')))
         }

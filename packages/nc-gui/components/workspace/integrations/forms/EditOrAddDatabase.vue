@@ -359,6 +359,7 @@ watch(
 onMounted(async () => {
   if (pageMode.value === IntegrationsPageMode.ADD) {
     formState.value.title = await generateUniqueName()
+    populateName(formState.value.title)
   } else {
     if (!activeIntegration.value) return
 
@@ -474,7 +475,7 @@ watch(
                   <a-row :gutter="24">
                     <a-col :span="12">
                       <a-form-item label="Integration name" v-bind="validateInfos.title">
-                        <a-input v-model:value="formState.title" @update:value="populateName($event)" />
+                        <a-input v-model:value="formState.title" @input="populateName(formState.title)" />
                       </a-form-item>
                     </a-col>
                   </a-row>

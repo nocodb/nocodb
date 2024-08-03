@@ -79,6 +79,8 @@ const easterEggCount = ref(0)
 
 const useSslExpansionPanel = ref<string[]>([])
 
+const advancedOptionsExpansionPanel = ref<string[]>([])
+
 const isDisabledSubmitBtn = computed(() => {
   if (isEditMode.value) {
     return !testSuccess.value && !isEnabledSaveChangesBtn.value
@@ -395,8 +397,17 @@ const handleUpdateUseSslExpannsionPanel = (open: boolean) => {
   }
 }
 
+const handleUpdateAdvancedOptionsExpansionPanel = (open: boolean) => {
+  if (open) {
+    advancedOptionsExpansionPanel.value = ['1']
+    handleAutoScroll(true, 'nc-connection-advanced-options')
+  } else {
+    advancedOptionsExpansionPanel.value = []
+  }
+}
+
 let timer: any
-const handleAutoScroll = (scroll: boolean, className: string) => {
+function handleAutoScroll(scroll: boolean, className: string) {
   if (scroll) {
     if (timer) {
       clearTimeout(timer)
@@ -884,7 +895,7 @@ watch(
               >
                 <NcDivider />
 
-                <a-collapse v-model:activeKey="useSslExpansionPanel" ghost class="!mt-4">
+                <a-collapse v-model:active-key="useSslExpansionPanel" ghost class="!mt-4">
                   <template #expandIcon="{ isActive }">
                     <a-switch :checked="isActive" size="small" @change="handleUpdateUseSslExpannsionPanel($event)" />
                   </template>
@@ -1053,26 +1064,26 @@ watch(
               <template
                 v-if="![ClientType.SQLITE, ClientType.SNOWFLAKE, ClientType.DATABRICKS].includes(formState.dataSource.client)"
               >
-                <a-collapse
-                  ghost
-                  expand-icon-position="right"
-                  class="nc-connection-advanced-options !mt-4"
-                  @change="handleAutoScroll(!!$event?.length, 'nc-connection-advanced-options')"
-                >
+                <a-collapse v-model:active-key="advancedOptionsExpansionPanel" ghost class="nc-connection-advanced-options !mt-4">
                   <template #expandIcon="{ isActive }">
-                    <NcButton type="text" size="xsmall">
+                    <NcButton
+                      type="text"
+                      size="small"
+                      class="!-ml-1.5"
+                      @click="handleUpdateAdvancedOptionsExpansionPanel(!advancedOptionsExpansionPanel.length)"
+                    >
+                      <div class="nc-form-section-title">Advanced options</div>
+
                       <GeneralIcon
                         icon="chevronDown"
-                        class="flex-none cursor-pointer transform transition-transform duration-500"
+                        class="ml-2 flex-none cursor-pointer transform transition-transform duration-500"
                         :class="{ '!rotate-180': isActive }"
                       />
                     </NcButton>
                   </template>
-                  <a-collapse-panel key="1">
+                  <a-collapse-panel key="1" collapsible="disabled">
                     <template #header>
-                      <div class="flex">
-                        <div class="nc-form-section-title">Advanced options</div>
-                      </div>
+                      <span></span>
                     </template>
 
                     <div class="flex flex-col gap-2">
@@ -1095,7 +1106,7 @@ watch(
           <DashboardSettingsDataSourcesInfo varient="new" />
           <NcDivider />
         </template>
-        <WorkspaceIntegrationsSupportedDocs/>
+        <WorkspaceIntegrationsSupportedDocs />
         <NcDivider />
       </div>
     </div>

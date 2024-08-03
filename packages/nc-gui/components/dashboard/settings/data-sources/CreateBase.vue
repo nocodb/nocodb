@@ -48,6 +48,8 @@ const { isUIAllowed } = useRoles()
 
 const creatingSource = ref(false)
 
+const advancedOptionsExpansionPanel = ref<string[]>([])
+
 const defaultFormState = (client = ClientType.MYSQL) => {
   return {
     title: '',
@@ -380,8 +382,17 @@ eventBus.on((event, payload) => {
   }
 })
 
+const handleUpdateAdvancedOptionsExpansionPanel = (open: boolean) => {
+  if (open) {
+    advancedOptionsExpansionPanel.value = ['1']
+    handleAutoScroll(true, 'nc-source-advanced-options')
+  } else {
+    advancedOptionsExpansionPanel.value = []
+  }
+}
+
 let timer: any
-const handleAutoScroll = (scroll: boolean, className: string) => {
+function handleAutoScroll(scroll: boolean, className: string) {
   if (scroll) {
     if (timer) {
       clearTimeout(timer)
@@ -640,25 +651,29 @@ const handleAutoScroll = (scroll: boolean, className: string) => {
                 v-if="![ClientType.SQLITE, ClientType.SNOWFLAKE, ClientType.DATABRICKS].includes(formState.dataSource.client)"
               >
                 <a-collapse
+                v-model:active-key="advancedOptionsExpansionPanel" 
                   ghost
-                  expand-icon-position="right"
                   class="nc-source-advanced-options !mt-4"
-                  @change="handleAutoScroll(!!$event?.length, 'nc-source-advanced-options')"
                 >
                   <template #expandIcon="{ isActive }">
-                    <NcButton type="text" size="xsmall">
+                    <NcButton
+                      type="text"
+                      size="small"
+                      class="!-ml-1.5"
+                      @click="handleUpdateAdvancedOptionsExpansionPanel(!advancedOptionsExpansionPanel.length)"
+                    >
+                      <div class="nc-form-section-title">Advanced options</div>
+
                       <GeneralIcon
                         icon="chevronDown"
-                        class="flex-none cursor-pointer transform transition-transform duration-500"
+                        class="ml-2 flex-none cursor-pointer transform transition-transform duration-500"
                         :class="{ '!rotate-180': isActive }"
                       />
                     </NcButton>
                   </template>
-                  <a-collapse-panel key="1">
+                  <a-collapse-panel key="1" collapsible="disabled">
                     <template #header>
-                      <div class="flex">
-                        <div class="nc-form-section-title">Advanced options</div>
-                      </div>
+                      <span></span>
                     </template>
 
                     <div class="flex flex-col gap-4">
@@ -719,7 +734,7 @@ const handleAutoScroll = (scroll: boolean, className: string) => {
   @apply p-5 w-[320px] border-l-1 border-gray-200 flex flex-col gap-4 bg-gray-50 rounded-br-2xl;
 }
 :deep(.ant-collapse-header) {
-  @apply !-mt-4 !p-0 flex items-center;
+  @apply !-mt-4 !p-0 flex items-center !cursor-default children:first:flex;
 }
 :deep(.ant-collapse-icon-position-right > .ant-collapse-item > .ant-collapse-header .ant-collapse-arrow) {
   @apply !right-0;

@@ -65,7 +65,7 @@ const isAddNewIntegrationModalOpen = computed({
             }"
           >
             <div class="integration-type-wrapper">
-              <div class="integration-type-title">Database</div>
+              <div class="integration-type-title">Databases</div>
               <div class="integration-type-list">
                 <div class="source-card" @click="addIntegration(integrationType.MySQL)">
                   <WorkspaceIntegrationsIcon :integration-type="integrationType.MySQL" size="md" />

@@ -126,7 +126,7 @@ const onCreateBaseClick = () => {
         @click="openTableCreateDialog()"
       >
         <GeneralIcon icon="addOutlineBox" />
-        <div class="label">{{ $t('general.create') }} {{ $t('general.empty') }} {{ $t('objects.table') }}</div>
+        <div class="label">{{ $t('general.create') }} {{ $t('general.new') }} {{ $t('objects.table') }}</div>
       </div>
       <div
         v-if="isUIAllowed('tableCreate', { source: base?.sources?.[0] })"

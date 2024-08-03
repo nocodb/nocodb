@@ -42,6 +42,8 @@ const isReloading = ref(false)
 const isDeleteBaseModalOpen = ref(false)
 const toBeDeletedBase = ref<SourceType | undefined>()
 
+const searchQuery = ref<string>('')
+
 async function updateIfSourceOrderIsNullOrDuplicate() {
   const sourceOrderSet = new Set()
   let hasNullOrDuplicates = false
@@ -265,12 +267,31 @@ const isNewBaseModalOpen = computed({
 
 const activeSource = ref<SourceType>(null)
 const openedTab = ref('erd')
+
+const isSearchResultAvailable = () => {
+  return (
+    sources.value.filter((s) => s?.alias?.toLowerCase()?.includes(searchQuery.value?.toLowerCase())).length ||
+    'default'.includes(searchQuery.value?.toLowerCase())
+  )
+}
 </script>
 
 <template>
   <div class="flex flex-col h-full" data-testid="nc-settings-datasources-tab">
-    <div v-if="vState !== DataSourcesSubTab.New" class="px-4 py-3 flex justify-between">
-      <a-breadcrumb separator=">" class="w-full cursor-pointer font-weight-bold">
+    <div v-if="vState !== DataSourcesSubTab.New" class="px-4 py-3 flex justify-between gap-3">
+      <a-input
+        v-if="!activeSource"
+        v-model:value="searchQuery"
+        type="text"
+        class="nc-search-data-source-input !max-w-90 nc-input-sm"
+        placeholder="Search data source"
+        allow-clear
+      >
+        <template #prefix>
+          <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-gray-500" />
+        </template>
+      </a-input>
+      <a-breadcrumb v-else separator=">" class="w-full cursor-pointer font-weight-bold">
         <a-breadcrumb-item @click="activeSource = null">
           <a class="!no-underline">Data Sources</a>
         </a-breadcrumb-item>
@@ -334,7 +355,6 @@ const openedTab = ref('erd')
             </template>
             <div class="h-full">
               <LazyDashboardSettingsDataSourcesEditBase
-              
                 :source-id="activeSource.id"
                 @source-updated="loadBases(true)"
                 @close="activeSource = null"
@@ -379,8 +399,8 @@ const openedTab = ref('erd')
             @source-created="loadBases(true)"
           />
         </template>
-        <div v-else class="ds-table overflow-y-auto nc-scrollbar-md relative max-h-full mx-4 mb-4">
-          <div class="ds-table-head sticky top-0 bg-white">
+        <div v-else class="ds-table overflow-y-auto nc-scrollbar-thin relative max-h-full mx-4 mb-4">
+          <div class="ds-table-head sticky top-0 bg-white z-10">
             <div class="ds-table-row !border-0">
               <div class="ds-table-col ds-table-enabled cursor-pointer">{{ $t('general.visibility') }}</div>
               <div class="ds-table-col ds-table-name">{{ $t('general.name') }}</div>
@@ -389,9 +409,9 @@ const openedTab = ref('erd')
               <div class="ds-table-col ds-table-actions">{{ $t('labels.actions') }}</div>
             </div>
           </div>
-          <div class="ds-table-body">
+          <div class="ds-table-body relative">
             <Draggable :list="sources" item-key="id" handle=".ds-table-handle" @end="moveBase">
-              <template #header>
+              <template #header v-if="'default'.includes(searchQuery.toLowerCase())">
                 <div v-if="sources[0]" class="ds-table-row border-gray-200 cursor-pointer" @click="activeSource = sources[0]">
                   <div class="ds-table-col ds-table-enabled">
                     <div class="flex items-center gap-1" @click.stop>
@@ -438,7 +458,14 @@ const openedTab = ref('erd')
                 </div>
               </template>
               <template #item="{ element: source, index }">
-                <div v-if="index !== 0" class="ds-table-row border-gray-200 cursor-pointer" @click="activeSource = source">
+                <div
+                  v-if="index !== 0"
+                  class="ds-table-row border-gray-200 cursor-pointer"
+                  :class="{
+                    '!hidden': !source?.alias?.toLowerCase()?.includes(searchQuery.toLowerCase()),
+                  }"
+                  @click="activeSource = source"
+                >
                   <div class="ds-table-col ds-table-enabled">
                     <div class="flex items-center gap-1" @click.stop>
                       <GeneralIcon v-if="sources.length > 2" icon="dragVertical" small class="ds-table-handle" />
@@ -493,6 +520,31 @@ const openedTab = ref('erd')
                 </div>
               </template>
             </Draggable>
+            <div
+              v-show="isReloading"
+              class="flex items-center justify-center absolute left-0 top-0 w-full h-full z-10 pb-10 pointer-events-none"
+            >
+              <div class="flex flex-col justify-center items-center gap-2">
+                <GeneralLoader size="xlarge" />
+                <span class="text-center">{{ $t('general.loading') }}</span>
+              </div>
+            </div>
+            <div
+              v-if="!isReloading && sources?.length && !isSearchResultAvailable()"
+              class="flex-none integration-table-empty flex items-center justify-center py-8 px-6"
+            >
+              <div
+                class="px-2 py-6 text-gray-500 flex flex-col items-center gap-6 text-center"
+              >
+                <img
+                  src="~assets/img/placeholder/no-search-result-found.png"
+                  class="!w-[164px] flex-none"
+                  alt="No search results found"
+                />
+
+                {{ $t('title.noResultsMatchedYourSearch') }}
+              </div>
+            </div>
           </div>
         </div>
 

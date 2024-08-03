@@ -165,7 +165,7 @@ watch(
     <!--    Settings -->
     <div class="flex flex-row justify-between w-full items-center p-4 border-b-1 border-gray-200">
       <h5 class="!my-0 text-2xl font-bold">
-        {{ $t('activity.settings') }}
+        {{$t('objects.project')}} {{ $t('activity.settings') }}
       </h5>
 
       <NcButton type="text" size="small" data-testid="settings-modal-close-button" @click="vModel = false">
@@ -175,7 +175,7 @@ watch(
 
     <a-layout class="overflow-y-auto flex !h-[calc(100%_-_66px)]">
       <!-- Side tabs -->
-      <a-layout-sider class="!bg-white !children:pl-3">
+      <a-layout-sider class="!bg-white">
         <a-menu v-model:selected-keys="selectedTabKeys" class="tabs-menu h-full" :open-keys="[]">
           <template v-for="(tab, key) of tabsInfo" :key="key">
             <a-menu-item
@@ -183,10 +183,10 @@ watch(
               :key="key"
               class="active:(!ring-0) hover:(!bg-primary !bg-opacity-25)"
             >
-              <div class="flex items-center space-x-2" @click="tab.onClick">
-                <component :is="tab.icon" />
+              <div class="flex items-center space-x-3 min-h-10" @click="tab.onClick">
+                <component :is="tab.icon" class="flex-none"/>
 
-                <div class="select-none">
+                <div class="select-none text-sm">
                   {{ tab.title }}
                 </div>
               </div>
@@ -246,8 +246,14 @@ watch(
 
 <style lang="scss" scoped>
 .tabs-menu {
-  :deep(.ant-menu-item-selected) {
-    @apply border-r-3 border-primary bg-primary !bg-opacity-25;
+  @apply !p-3;
+
+  :deep(.ant-menu-item){
+    @apply rounded-lg first:!mt-0 !mb-1 font-weight-500;
+
+    &.ant-menu-item-selected{
+      @apply bg-primary !bg-opacity-25 font-weight-600;
+    }
   }
 }
 </style>

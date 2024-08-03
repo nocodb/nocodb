@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { Form, message } from 'ant-design-vue'
 import type { SelectHandler } from 'ant-design-vue/es/vc-select/Select'
+import { diff } from 'deep-object-diff'
 import { IntegrationsType } from 'nocodb-sdk'
 import {
   type CertTypes,
@@ -54,9 +55,20 @@ const defaultFormState = (client = ClientType.MYSQL) => {
 
 const formState = ref<ProjectCreateForm>(defaultFormState())
 
+const activeIntegrationformState = ref<ProjectCreateForm>(defaultFormState())
+
+const isEnabledSaveChangesBtn = ref(false)
+
 const easterEgg = ref(false)
 
 const easterEggCount = ref(0)
+
+const isDisabledSubmitBtn = computed(() => {
+  if(isEditMode.value){
+    return !testSuccess.value && !isEnabledSaveChangesBtn.value
+  }
+  return !testSuccess.value
+})
 
 const onEasterEgg = () => {
   easterEggCount.value += 1
@@ -127,9 +139,9 @@ const validators = computed(() => {
 
 const { validate, validateInfos } = useForm(formState, validators)
 
-const populateName = (v: string) => {
-  if(isEditMode.value) return 
-  
+const populateName = (v: string, checkDiff = false) => {
+  if (isEditMode.value) return
+
   formState.value.dataSource.connection.database = `${v.trim()}_noco`
 }
 
@@ -159,7 +171,7 @@ const onSSLModeChange = ((mode: SSLUsage) => {
   }
 }) as SelectHandler
 
-const updateSSLUse = () => {
+const updateSSLUse = (updateActiveIntegrationFormState = false) => {
   if (formState.value.dataSource.client !== ClientType.SQLITE) {
     const connection = formState.value.dataSource.connection as DefaultConnection
     if (connection.ssl) {
@@ -170,6 +182,10 @@ const updateSSLUse = () => {
       }
     } else {
       formState.value.sslUse = SSLUsage.No
+    }
+
+    if (updateActiveIntegrationFormState) {
+      activeIntegrationformState.value.sslUse = toRaw(formState.value.sslUse)
     }
   }
 }
@@ -266,7 +282,7 @@ const createOrUpdateIntegration = async () => {
     }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
-  } finally{
+  } finally {
     creatingSource.value = false
   }
 }
@@ -288,6 +304,7 @@ const testConnection = async () => {
 
     if (formState.value.dataSource.client === ClientType.SQLITE) {
       testSuccess.value = true
+      isEnabledSaveChangesBtn.value = true
     } else {
       const connection = getConnectionConfig()
 
@@ -302,6 +319,7 @@ const testConnection = async () => {
 
       if (result.code === 0) {
         testSuccess.value = true
+        isEnabledSaveChangesBtn.value = true
       } else {
         testSuccess.value = false
 
@@ -348,12 +366,28 @@ const customJsonFormState = computed({
   },
 })
 
+function checkDifference() {
+  const difference = diff(activeIntegrationformState.value, formState.value)
+
+  if (typeof difference === 'object' && Object.keys(difference).length === 1 && difference?.title !== undefined) {
+    return false
+  }
+
+  return true
+}
+
 // reset test status on config change
 watch(
-  () => formState.value.dataSource,
+  formState,
   () => {
-    testSuccess.value = false
-    testConnectionError.value = null
+    if (checkDifference()) {
+      testSuccess.value = false
+      testConnectionError.value = null
+
+      isEnabledSaveChangesBtn.value = false
+    } else {
+      isEnabledSaveChangesBtn.value = true
+    }
   },
   { deep: true },
 )
@@ -379,7 +413,8 @@ onMounted(async () => {
       sslUse: SSLUsage.No,
       is_private: activeIntegration.value?.is_private,
     }
-    updateSSLUse()
+    activeIntegrationformState.value = JSON.parse(JSON.stringify(formState.value))
+    updateSSLUse(true)
   }
 
   nextTick(() => {
@@ -447,7 +482,7 @@ watch(
         <NcButton
           size="small"
           type="primary"
-          :disabled="!testSuccess"
+          :disabled="isDisabledSubmitBtn"
           :loading="creatingSource"
           class="nc-extdb-btn-submit"
           @click="createOrUpdateIntegration"
@@ -478,7 +513,7 @@ watch(
                   <a-row :gutter="24">
                     <a-col :span="12">
                       <a-form-item label="Connection name" v-bind="validateInfos.title">
-                        <a-input v-model:value="formState.title" @input="populateName(formState.title)" />
+                        <a-input v-model:value="formState.title" @input="populateName(formState.title, true)" />
                       </a-form-item>
                     </a-col>
                   </a-row>
@@ -980,6 +1015,9 @@ watch(
 <style lang="scss" scoped>
 :deep(.ant-collapse-header) {
   @apply !-mt-4 !p-0 flex items-center;
+}
+:deep(.ant-collapse-icon-position-right > .ant-collapse-item > .ant-collapse-header .ant-collapse-arrow) {
+  @apply !right-0;
 }
 
 :deep(.ant-collapse-content-box) {

@@ -207,10 +207,11 @@ export default class Integration implements IntegrationType {
     const listQb = qb.clone();
 
     if (args.includeSourceCount) {
-      qb.select(
-        `${MetaTable.INTEGRATIONS}.*`,
-        ncMeta.knex.raw(`count(${MetaTable.BASES}.id) as source_count`),
-      )
+      listQb
+        .select(
+          `${MetaTable.INTEGRATIONS}.*`,
+          ncMeta.knex.raw(`count(${MetaTable.BASES}.id) as source_count`),
+        )
         .leftJoin(
           MetaTable.BASES,
           `${MetaTable.INTEGRATIONS}.id`,
@@ -350,34 +351,31 @@ export default class Integration implements IntegrationType {
   }
 
   async getSources(
-    context: Omit<NcContext, 'base_id'>,
     ncMeta = Noco.ncMeta,
   ): Promise<any> {
-    const sources = await ncMeta.metaList2(
-      context.workspace_id,
-      RootScopes.WORKSPACE,
-      MetaTable.BASES,
-      {
-        condition: {
-          fk_integration_id: this.id,
-        },
-        xcCondition: {
-          _or: [
-            {
-              deleted: {
-                eq: false,
-              },
-            },
-            {
-              deleted: {
-                eq: null,
-              },
-            },
-          ],
-        },
-        fields: ['id', 'alias'],
-      },
-    );
+    const qb = ncMeta.knex(MetaTable.BASES);
+
+    const sources = await qb
+      .select(`${MetaTable.BASES}.id`)
+      .select(`${MetaTable.BASES}.alias`)
+      .select(`${MetaTable.PROJECT}.title as project_title`)
+      .select(`${MetaTable.BASES}.base_id`)
+      .innerJoin(
+        MetaTable.PROJECT,
+        `${MetaTable.BASES}.base_id`,
+        `${MetaTable.PROJECT}.id`,
+      )
+      .where(`${MetaTable.BASES}.fk_integration_id`, this.id)
+      .where((whereQb) => {
+        whereQb
+          .where(`${MetaTable.BASES}.deleted`, false)
+          .orWhereNull(`${MetaTable.BASES}.deleted`);
+      })
+      .where((whereQb) => {
+        whereQb
+          .where(`${MetaTable.BASES}.deleted`, false)
+          .orWhereNull(`${MetaTable.BASES}.deleted`);
+      });
 
     return (this.sources = sources);
   }

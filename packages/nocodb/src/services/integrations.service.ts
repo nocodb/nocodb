@@ -31,7 +31,7 @@ export class IntegrationsService {
     integration.config = await integration.getConnectionConfig();
 
     if (param.includeSources) {
-      await integration.getSources(context);
+      await integration.getSources();
     }
 
     return integration;

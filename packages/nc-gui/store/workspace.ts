@@ -227,13 +227,13 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   // Todo: write logic to navigate to integrations
   const navigateToIntegrations = async (_?: string, cmdOrCtrl?: boolean, query: Record<string, string> = {}) => {
-    // if (cmdOrCtrl) {
-    //   await navigateTo(router.resolve({ name: 'index-typeOrId-integrations', params: { typeOrId: workspaceId }, query }).href, {
-    //     open: navigateToBlankTargetOpenOption,
-    //   })
-    // } else {
-    //   router.push({ name: 'index-typeOrId-integrations', params: { typeOrId: workspaceId }, query })
-    // }
+    if (cmdOrCtrl) {
+      await navigateTo('/nc/integrations', {
+        open: navigateToBlankTargetOpenOption,
+      })
+    } else {
+      await navigateTo('/nc/integrations')
+    }
   }
 
   const auditLogsQuery = ref<Partial<AuditLogsQuery>>(defaultAuditLogsQuery)

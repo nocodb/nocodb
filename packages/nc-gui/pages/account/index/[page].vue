@@ -10,10 +10,6 @@ const { appInfo } = useGlobal()
     </div>
     <AccountProfile v-else-if="$route.params.page === 'profile'" />
     <AccountAppStore v-else-if="$route.params.page === 'apps' && !appInfo.isCloud" />
-    <AccountIntegration
-      v-else-if="$route.params.page === 'integration' && !appInfo.isCloud"
-      class="h-[calc(100vh_-_4rem)] px-6 pb-6"
-    />
     <span v-else></span>
   </div>
 </template>

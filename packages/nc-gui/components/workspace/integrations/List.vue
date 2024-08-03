@@ -613,7 +613,7 @@ onKeyStroke('ArrowDown', onDown)
     <NcModal v-model:visible="successConfirmModal.isOpen" centered size="small" @keydown.esc="successConfirmModal.isOpen = false">
       <div class="flex gap-4">
         <div>
-          <GeneralIcon icon="circleCheck2" class="flex-none !text-green-700 mt-0.5" />
+          <GeneralIcon icon="circleCheckSolid" class="flex-none !text-green-700 mt-0.5 !h-6 !w-6" />
         </div>
 
         <div class="flex flex-col gap-3">

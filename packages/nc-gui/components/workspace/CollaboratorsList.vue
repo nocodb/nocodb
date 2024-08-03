@@ -259,7 +259,7 @@ const customRow = (_record: Record<string, any>, recordIndex: number) => ({
           </div>
 
           <div v-if="column.key === 'action'">
-            <NcDropdown v-if="record.roles !== WorkspaceUserRoles.OWNER">
+            <NcDropdown v-if="record.roles !== WorkspaceUserRolesEnum.OWNER">
               <NcButton size="small" type="secondary">
                 <component :is="iconMap.threeDotVertical" />
               </NcButton>
@@ -276,7 +276,7 @@ const customRow = (_record: Record<string, any>, recordIndex: number) => ({
                   <NcMenuItem
                     v-if="isUIAllowed('transferWorkspaceOwnership')"
                     data-testid="nc-admin-org-user-assign-admin"
-                    @click="updateCollaborator(record, WorkspaceUserRoles.OWNER)"
+                    @click="updateCollaborator(record, WorkspaceUserRolesEnum.OWNER)"
                   >
                     <GeneralIcon class="text-gray-800" icon="user" />
                     <span>{{ $t('labels.assignAs') }}</span>

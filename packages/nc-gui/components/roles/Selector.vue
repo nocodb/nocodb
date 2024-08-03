@@ -11,9 +11,8 @@ const props = withDefaults(
     border?: boolean
     description?: boolean
     inherit?: string
-    showInherit?: boolean
     size?: 'sm' | 'md' | 'lg'
-
+    showInherit?: boolean
   }>(),
   {
     border: true,
@@ -40,9 +39,26 @@ function onChangeRole(val: SelectValue) {
 </script>
 
 <template>
-  <div ref="dropdownRef" size="lg"  class="nc-roles-selector relative flex items-center gap-3" @click="isDropdownOpen = !isDropdownOpen">
-    <RolesBadge :border="false" :inherit="inheritRef === role" :role="roleRef" :size="sizeRef" clickable data-testid="roles" class="flex-none"/>
-    <NcTooltip v-if="showInherit && isEeUI && inheritRef === role" class="uppercase text-[10px] leading-4 text-gray-500" placement="bottom">
+  <div
+    ref="dropdownRef"
+    size="lg"
+    class="nc-roles-selector relative flex items-center gap-3"
+    @click="isDropdownOpen = !isDropdownOpen"
+  >
+    <RolesBadge
+      :border="false"
+      :inherit="inheritRef === role"
+      :role="roleRef"
+      :size="sizeRef"
+      clickable
+      data-testid="roles"
+      class="flex-none"
+    />
+    <NcTooltip
+      v-if="showInherit && isEeUI && inheritRef === role"
+      class="uppercase text-[10px] leading-4 text-gray-500"
+      placement="bottom"
+    >
       <template #title>
         {{ $t('tooltip.roleInheritedFromWorkspace') }}
       </template>

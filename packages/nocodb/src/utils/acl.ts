@@ -138,6 +138,7 @@ const permissionScopes = {
     'nestedDataUnlink',
     'nestedListCopyPasteOrDeleteAll',
     'baseUserList',
+    'sourceCreate',
 
     // Base API Tokens
     'baseApiTokenList',

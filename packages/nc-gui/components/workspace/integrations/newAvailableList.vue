@@ -85,11 +85,7 @@ const handleAddIntegration = (type: typeof integrationType) => {
             >
               <div>
                 Centralise your operations by aggregating information from various external platforms into NocoDB. Select from the
-                available integrations below to get started.
-              </div>
-              <div class="mt-2">
-                <!-- Todo: add link  -->
-                <a target="_blank" rel="noopener noreferrer"> Learn more </a>
+                available integrations below to get started. <a target="_blank" rel="noopener noreferrer"> Learn more </a>
               </div>
             </div>
 
@@ -146,7 +142,7 @@ const handleAddIntegration = (type: typeof integrationType) => {
                         class="!rounded-md !text-sm !min-h-[120px] max-h-[500px] nc-scrollbar-thin"
                         size="large"
                         hide-details
-                        placeholder="Provide details about the Integration you want to request & your use-case."
+                        placeholder="Provide integration name and your use-case."
                       />
                     </div>
                     <div class="flex items-center justify-end gap-3">
@@ -159,7 +155,7 @@ const handleAddIntegration = (type: typeof integrationType) => {
                         size="small"
                         @click="saveIntegraitonRequest(requestIntegration.msg)"
                       >
-                        {{ $t('general.submit') }} {{ $t('general.request').toLowerCase() }}
+                        {{ $t('general.submit') }}
                       </NcButton>
                     </div>
                   </div>

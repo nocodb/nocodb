@@ -216,13 +216,10 @@ onKeyStroke('ArrowDown', onDown)
 
 <template>
   <div class="h-full flex flex-col gap-6 nc-workspace-connections">
-    <div class="flex items-end justify-between gap-6">
+    <div class="flex items-end justify-between gap-12">
       <div class="text-sm font-normal text-gray-600">
         <div>
-          Connections simplify managing stored configurations for different integrations. Click on a connection to view / modify.
-        </div>
-        <div class="mt-2">
-          <!-- Todo: add link  -->
+          Connections simplify managing stored configurations for different integrations. Click on a connection to view or modify.
           <a target="_blank" rel="noopener noreferrer"> Learn more </a>
         </div>
       </div>

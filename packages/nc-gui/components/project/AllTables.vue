@@ -128,7 +128,7 @@ const onCreateBaseClick = () => {
         @click="openTableCreateDialog()"
       >
         <div class="flex items-center gap-3">
-          <GeneralIcon icon="addOutlineBox" class="!text-brand-500 !h-4 !w-4" />
+          <GeneralIcon icon="addOutlineBox" class="!text-brand-500 !h-5 !w-5" />
 
           <div class="label">{{ $t('general.create') }} {{ $t('general.new') }} {{ $t('objects.table') }}</div>
         </div>
@@ -144,7 +144,7 @@ const onCreateBaseClick = () => {
         @click="isImportModalOpen = true"
       >
         <div class="flex items-center gap-3">
-          <GeneralIcon icon="download" class="!text-orange-700 !w-4 !h-4" />
+          <GeneralIcon icon="download" class="!text-orange-700 !h-5 !w-5" />
           <div class="label">{{ $t('activity.import') }} {{ $t('general.data') }}</div>
         </div>
         <div class="subtext">Quickly bring in existing data from various files & external sources.</div>
@@ -164,7 +164,7 @@ const onCreateBaseClick = () => {
           @click="onCreateBaseClick"
         >
           <div class="flex items-center gap-3">
-            <GeneralIcon icon="server1" class="!text-green-700 !h-4 !w-4" />
+            <GeneralIcon icon="server1" class="!text-green-700 !h-5 !w-5" />
             <div class="label">{{ $t('labels.connectDataSource') }}</div>
           </div>
           <div class="subtext">Connect directly in realtime to external databases.</div>
@@ -180,7 +180,7 @@ const onCreateBaseClick = () => {
         @click="syncDataModalOpen = true"
       >
         <div class="flex items-center gap-3">
-          <GeneralIcon icon="refresh" class="!text-blue-700 !w-4 !h-4" />
+          <GeneralIcon icon="refresh" class="!text-blue-700 !h-5 !w-5" />
           <div class="label capitalize">{{ $t('labels.syncData') }}</div>
         </div>
         <div class="subtext">Keep your data updated and in sync across multiple sources.</div>
@@ -280,7 +280,7 @@ const onCreateBaseClick = () => {
 
 <style lang="scss" scoped>
 .nc-base-view-all-table-btn {
-  @apply flex-none flex flex-col gap-y-2 p-3 bg-gray-50 rounded-xl border-1 border-gray-100 min-w-[230px] max-w-[235px] cursor-pointer text-gray-800 hover:(bg-gray-100 border-gray-200) transition-all duration-300;
+  @apply flex-none flex flex-col gap-y-3 px-3 py-5 bg-gray-50 rounded-xl border-1 border-gray-100 min-w-[230px] max-w-[235px] cursor-pointer text-gray-800 hover:(bg-gray-100 border-gray-200) transition-all duration-300;
   &:hover {
     box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
   }
@@ -290,7 +290,7 @@ const onCreateBaseClick = () => {
   }
 
   .label {
-    @apply text-sm font-bold whitespace-nowrap text-gray-800;
+    @apply text-base font-bold whitespace-nowrap text-gray-800;
   }
 
   .subtext {

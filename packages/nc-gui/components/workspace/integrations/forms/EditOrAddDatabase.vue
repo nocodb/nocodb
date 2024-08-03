@@ -512,8 +512,8 @@ watch(
             @click="testConnection"
           >
             <template #icon>
-              <GeneralIcon v-if="testSuccess" icon="circleCheck2" class="!text-green-500 w-4 h-4" />
-              <GeneralIcon v-else-if="testConnectionError" icon="info" class="!text-red-500 w-4 h-4" />
+              <GeneralIcon v-if="testSuccess" icon="circleCheck" class="!text-green-700 w-4 h-4" />
+              <GeneralIcon v-else-if="testConnectionError" icon="alertTriangle" class="!text-red-500 w-4 h-4" />
             </template>
 
             <span>

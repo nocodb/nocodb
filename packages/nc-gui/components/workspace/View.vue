@@ -71,7 +71,7 @@ onMounted(() => {
   <div v-if="currentWorkspace" class="flex w-full px-6 max-w-[97.5rem] flex-col nc-workspace-settings">
     <div v-if="!props.workspaceId" class="flex gap-2 items-center min-w-0 py-4">
       <h1 class="text-base capitalize font-weight-bold tracking-[0.5px] mb-0 nc-workspace-title truncate min-w-10 capitalize">
-        {{ currentWorkspace?.title }} > {{ $t('title.teamAndSettings') }}
+        <span class="text-gray-500">{{ currentWorkspace?.title }} ></span> {{ $t('title.teamAndSettings') }}
       </h1>
     </div>
     <div v-else>

@@ -42,7 +42,10 @@ export class IntegrationsController {
     );
 
     // hide config if not the owner or if not requested
-    if (includeConfig !== 'true' || req.user.id !== integration.created_by)
+    if (
+      includeConfig !== 'true' ||
+      (integration.is_private && req.user.id !== integration.created_by)
+    )
       delete integration.config;
 
     return integration;

@@ -3,12 +3,14 @@ import { ProjectViewPage } from './index';
 import { Locator } from '@playwright/test';
 import { MetaDataPage } from './Metadata';
 import { AuditPage } from './Audit';
+import { SourcePage } from './SourcePage';
 
 export class DataSourcePage extends BasePage {
   readonly baseView: ProjectViewPage;
   readonly databaseType: Locator;
   readonly metaData: MetaDataPage;
   readonly audit: AuditPage;
+  readonly source: SourcePage;
 
   constructor(baseView: ProjectViewPage) {
     super(baseView.rootPage);
@@ -16,6 +18,7 @@ export class DataSourcePage extends BasePage {
     this.databaseType = this.get().locator('.nc-extdb-db-type');
     this.metaData = new MetaDataPage(this);
     this.audit = new AuditPage(this);
+    this.source = new SourcePage(this);
   }
 
   get() {
@@ -26,8 +29,9 @@ export class DataSourcePage extends BasePage {
     return this.rootPage.locator('.nc-active-data-sources-view');
   }
 
-  closeDsDetailsModal() {
-    return this.getDsDetailsModal().locator('.nc-close-btn');
+  async closeDsDetailsModal() {
+    await this.getDsDetailsModal().locator('.nc-close-btn').click();
+    await this.getDsDetailsModal().waitFor({ state: 'hidden' });
   }
 
   async getDatabaseTypeList() {
@@ -50,6 +54,7 @@ export class DataSourcePage extends BasePage {
 
     await row.click();
 
+    await this.getDsDetailsModal().waitFor({ state: 'visible' });
     await this.getDsDetailsModal().getByTestId('nc-meta-sync-tab').click();
     // await row.getByTestId('nc-data-sources-view-meta-sync').click();
   }
@@ -62,6 +67,7 @@ export class DataSourcePage extends BasePage {
 
     await row.click();
 
+    await this.getDsDetailsModal().waitFor({ state: 'visible' });
     await this.getDsDetailsModal().getByTestId('nc-erd-tab').click();
 
     // await row.getByTestId('nc-data-sources-view-erd').click();
@@ -75,8 +81,16 @@ export class DataSourcePage extends BasePage {
 
     await row.click();
 
+    await this.getDsDetailsModal().waitFor({ state: 'visible' });
     await this.getDsDetailsModal().getByTestId('nc-audit-tab').click();
 
     // await row.getByTestId('nc-data-sources-view-audit').click();
+  }
+
+  async openEditConnection({ sourceName }: { sourceName: string }) {
+    await this.get().locator('.ds-table-row', { hasText: sourceName }).click();
+
+    await this.getDsDetailsModal().waitFor({ state: 'visible' });
+    await this.getDsDetailsModal().getByTestId('nc-connection-tab').click();
   }
 }

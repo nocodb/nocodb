@@ -4,7 +4,7 @@ import { AuditSettingsPage } from './Audit';
 import { MiscSettingsPage } from './Miscellaneous';
 import { TeamsPage } from './Teams';
 import { DataSourcesPage } from './DataSources';
-import { SourcePage } from './Source';
+import { SourceSettingsPage } from './Source';
 
 export enum SettingTab {
   TeamAuth = 'teamAndAuth',
@@ -21,7 +21,7 @@ export enum SettingsSubTab {
 
 export class SettingsPage extends BasePage {
   readonly audit: AuditSettingsPage;
-  readonly source: SourcePage;
+  readonly source: SourceSettingsPage;
   readonly miscellaneous: MiscSettingsPage;
   readonly dataSources: DataSourcesPage;
   readonly teams: TeamsPage;
@@ -32,7 +32,7 @@ export class SettingsPage extends BasePage {
     this.miscellaneous = new MiscSettingsPage(this);
     this.dataSources = new DataSourcesPage(this);
     this.teams = new TeamsPage(this);
-    this.source = new SourcePage(this);
+    this.source = new SourceSettingsPage(this);
   }
 
   get() {

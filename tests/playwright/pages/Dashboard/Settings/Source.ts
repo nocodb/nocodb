@@ -1,8 +1,7 @@
-import { expect } from '@playwright/test';
 import { SettingsPage } from '.';
 import BasePage from '../../Base';
 
-export class SourcePage extends BasePage {
+export class SourceSettingsPage extends BasePage {
   private readonly settings: SettingsPage;
 
   constructor(settings: SettingsPage) {

@@ -608,7 +608,14 @@ const handleAutoScroll = (scroll: boolean, className: string) => {
           </NcButton>
         </NcTooltip>
 
-        <NcButton size="small" type="primary" :disabled="!testSuccess" :loading="editingSource" @click="editBase">
+        <NcButton
+          size="small"
+          type="primary"
+          :disabled="!testSuccess"
+          :loading="editingSource"
+          class="nc-extdb-btn-submit"
+          @click="editBase"
+        >
           {{ $t('general.submit') }}
         </NcButton>
       </div>

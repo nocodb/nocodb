@@ -361,15 +361,16 @@ const openedTab = ref('erd')
       </template>
       <div v-else class="flex flex-col w-full overflow-auto mt-1">
         <div
-          class="overflow-y-auto nc-scrollbar-md"
+          class="ds-table overflow-y-auto nc-scrollbar-md relative"
           :style="{
             maxHeight: 'calc(100vh - 200px)',
           }"
         >
-          <div class="ds-table-head">
-            <div class="ds-table-row">
+          <div class="ds-table-head sticky top-0 bg-white">
+            <div class="ds-table-row !border-0">
               <div class="ds-table-col ds-table-enabled cursor-pointer">{{ $t('general.visibility') }}</div>
               <div class="ds-table-col ds-table-name">{{ $t('general.name') }}</div>
+              <div class="ds-table-col ds-table-integration-name">{{ $t('general.integration')}} {{ $t('general.name') }}</div>
               <div class="ds-table-col ds-table-type">{{ $t('general.type') }}</div>
               <div class="ds-table-col ds-table-actions">{{ $t('labels.actions') }}</div>
             </div>
@@ -381,7 +382,7 @@ const openedTab = ref('erd')
                   <div class="ds-table-col ds-table-enabled">
                     <div class="flex items-center gap-1" @click.stop>
                       <div v-if="sources.length > 2" class="ds-table-handle" />
-                      <a-tooltip>
+                      <NcTooltip>
                         <template #title>
                           <template v-if="sources[0].enabled">{{ $t('activity.hideInUI') }}</template>
                           <template v-else>{{ $t('activity.showInUI') }}</template>
@@ -392,7 +393,7 @@ const openedTab = ref('erd')
                           size="small"
                           @change="toggleBase(sources[0], $event)"
                         />
-                      </a-tooltip>
+                      </NcTooltip>
                     </div>
                   </div>
                   <div class="ds-table-col ds-table-name font-medium">
@@ -402,6 +403,9 @@ const openedTab = ref('erd')
                     </div>
                   </div>
 
+                  <div class="ds-table-col ds-table-integration-name">
+                    <div class="flex items-center gap-1">-</div>
+                  </div>
                   <div class="ds-table-col ds-table-type">
                     <div class="flex items-center gap-1">-</div>
                   </div>
@@ -442,6 +446,11 @@ const openedTab = ref('erd')
                     <div v-if="source.is_meta || source.is_local" class="h-8 w-1">-</div>
                     <span v-else class="truncate">
                       {{ source.is_meta || source.is_local ? $t('general.base') : source.alias }}
+                    </span>
+                  </div>
+                  <div class="ds-table-col ds-table-integration-name font-medium w-full">
+                    <span class="truncate">
+                      {{ source?.integration_name || '-' }}
                     </span>
                   </div>
 
@@ -501,8 +510,11 @@ const openedTab = ref('erd')
 </template>
 
 <style scoped lang="scss">
+.ds-table{
+  @apply border-1 border-gray-200 rounded-lg h-full;
+}
 .ds-table-head {
-  @apply flex items-center border-0 text-gray-500;
+  @apply flex items-center border-b-1 text-gray-500 bg-gray-50 text-sm font-weight-500;
 }
 
 .ds-table-body {
@@ -522,7 +534,11 @@ const openedTab = ref('erd')
 }
 
 .ds-table-name {
-  @apply col-span-9 items-center capitalize;
+  @apply col-span-6 items-center capitalize;
+}
+
+.ds-table-integration-name {
+  @apply col-span-6 items-center capitalize;
 }
 
 .ds-table-type {
@@ -530,7 +546,7 @@ const openedTab = ref('erd')
 }
 
 .ds-table-actions {
-  @apply col-span-5 flex w-full justify-center;
+  @apply col-span-2 flex w-full justify-center;
 }
 
 .ds-table-col:last-child {

@@ -10,6 +10,11 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { validateAndExtractSSLProp } from 'nocodb-sdk';
+import {
+  getTestDatabaseName,
+  IntegrationsType,
+  OrgUserRoles,
+} from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { UtilsService } from '~/services/utils.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
@@ -17,6 +22,10 @@ import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
 import { TelemetryService } from '~/services/telemetry.service';
 import { NcRequest } from '~/interface/config';
+import { Integration } from '~/models';
+import { RootScopes } from '~/utils/globals';
+import { NcError } from '~/helpers/catchError';
+import { deepMerge } from '~/utils';
 
 @Controller()
 export class UtilsController {
@@ -50,19 +59,51 @@ export class UtilsController {
     scope: 'org',
   })
   @HttpCode(200)
-  async testConnection(@Body() body: any, @Req() _req: NcRequest) {
+  async testConnection(@Body() body: any, @Req() req: NcRequest) {
     body.pool = {
       min: 0,
       max: 1,
     };
 
-    body.connection.ssl = validateAndExtractSSLProp(
-      body.connection,
-      body.sslUse,
-      body.client,
-    );
+    let config = { ...body };
 
-    return await this.utilsService.testConnection({ body });
+    if (body.fk_integration_id) {
+      const integration = await Integration.get(
+        {
+          workspace_id: RootScopes.BYPASS,
+        },
+        body.fk_integration_id,
+      );
+
+      if (!integration || integration.type !== IntegrationsType.Database) {
+        NcError.integrationNotFound(body.fk_integration_id);
+      }
+
+      if (!req.user.roles[OrgUserRoles.CREATOR]) {
+        NcError.forbidden('You do not have access to this integration');
+      }
+
+      if (integration.is_private && integration.created_by !== req.user.id) {
+        NcError.forbidden('You do not have access to this integration');
+      }
+
+      config = await integration.getConfig();
+      deepMerge(config, body);
+
+      if (config?.connection?.database) {
+        config.connection.database = getTestDatabaseName(config);
+      }
+    }
+
+    if(config.connection?.ssl){
+      config.connection.ssl = validateAndExtractSSLProp(
+        config.connection,
+        config.sslUse,
+        config.client,
+      );
+    }
+
+    return await this.utilsService.testConnection({ body: config });
   }
 
   @UseGuards(PublicApiLimiterGuard)

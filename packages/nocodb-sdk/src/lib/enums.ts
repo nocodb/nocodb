@@ -335,6 +335,16 @@ export enum SourceRestriction {
   DATA_READONLY = 'is_data_readonly',
 }
 
+export enum ClientType {
+  MYSQL = 'mysql2',
+  MSSQL = 'mssql',
+  PG = 'pg',
+  SQLITE = 'sqlite3',
+  VITESS = 'vitess',
+  SNOWFLAKE = 'snowflake',
+  DATABRICKS = 'databricks',
+}
+
 export enum SSLUsage {
   No = 'No',
   Allowed = 'Allowed',

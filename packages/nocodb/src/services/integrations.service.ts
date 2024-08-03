@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents, WorkspaceUserRoles } from 'nocodb-sdk';
+import { AppEvents } from 'nocodb-sdk';
 import type { IntegrationReqType, IntegrationsType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -226,7 +226,7 @@ export class IntegrationsService {
   ) {
     // get all the bases which are using this integration
     const sources = await ncMeta.metaList2(
-      RootScopes.WORKSPACE,
+      integration.fk_workspace_id,
       RootScopes.WORKSPACE,
       MetaTable.BASES,
       {

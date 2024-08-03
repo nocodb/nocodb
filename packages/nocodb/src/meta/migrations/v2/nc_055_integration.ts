@@ -1,4 +1,3 @@
-import CryptoJS from 'crypto-js';
 import { IntegrationsType, ProjectRoles } from 'nocodb-sdk';
 import { customAlphabet } from 'nanoid';
 import type { Knex } from 'knex';

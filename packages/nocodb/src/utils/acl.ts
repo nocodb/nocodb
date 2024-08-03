@@ -53,6 +53,13 @@ const permissionScopes = {
     'uploadViaURL',
 
     'notification',
+
+    // Integration
+    'integrationGet',
+    'integrationCreate',
+    'integrationDelete',
+    'integrationUpdate',
+    'integrationList',
   ],
   base: [
     'formViewGet',
@@ -305,6 +312,11 @@ const rolePermissions:
       uploadViaURL: true,
       baseCreate: true,
       duplicateSharedBase: true,
+      integrationGet: true,
+      integrationCreate: true,
+      integrationDelete: true,
+      integrationUpdate: true,
+      integrationList: true,
     },
   },
 };

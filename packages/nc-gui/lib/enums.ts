@@ -177,3 +177,30 @@ export enum ExtensionsEvents {
 export enum IntegrationStoreEvents {
   INTEGRATION_ADD = 'integration-add',
 }
+
+export enum SyncDataType {
+  APPLE_NUMBERS = 'apple-numbers',
+  ASANA = 'asana',
+  BOX = 'box',
+  GITHUB = 'github',
+  GITLAB = 'gitlab',
+  GOOGLE_CALENDAR = 'google-calendar',
+  GOOGLE_DRIVE = 'google-drive',
+  GOOGLE_SHEETS = 'google-sheets',
+  HUBSPOT = 'hubspot',
+  JIRA = 'jira',
+  MAILCHIMP = 'mailchimp',
+  MICROSOFT_ACCESS = 'microsoft-access',
+  MICROSOFT_EXCEL = 'microsoft-excel',
+  MICROSOFT_OUTLOOK = 'microsoft-outlook',
+  MIRO = 'miro',
+  SALESFORCE = 'salesforce',
+  SNOWFLAKE = 'snowflake',
+  STRIPE = 'stripe',
+  SURVEYMONKEY = 'surveymonkey',
+  TABLEAU = 'tableau',
+  TRELLO = 'trello',
+  TYPEFORM = 'typeform',
+  WORKDAY = 'workday',
+  ZENDESK = 'zendesk'
+}

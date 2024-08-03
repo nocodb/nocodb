@@ -212,6 +212,8 @@ import NcIntegration from '~icons/nc-icons/integration'
 import NcGitCommit from '~icons/nc-icons/git-commit'
 import NcCircle from '~icons/nc-icons/circle'
 import NcServer1 from '~icons/nc-icons/server1'
+import NcThumbsUpOutline from '~icons/nc-icons/thumbs-up-outline'
+
 
 
 // keep it for reference
@@ -655,6 +657,7 @@ export const iconMap = {
   gitCommit: NcGitCommit,
   circle: NcCircle,
   server1: NcServer1,
+  thumbsUpOutline: NcThumbsUpOutline,
 }
 
 export const getMdiIcon = (type: string): any => {

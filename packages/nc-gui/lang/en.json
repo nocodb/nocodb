@@ -341,7 +341,33 @@
       "tall": "Tall",
       "extra": "Extra"
     },
-    "externalDb": "External Database"
+    "externalDb": "External Database",
+    "syncData":{
+      "appleNumbers": "Apple numbers",
+      "asana": "Asana",
+      "box": "Box",
+      "github": "Github",
+      "gitlab": "Gitlab",
+      "googleCalendar": "Google Calendar",
+      "googleDrive": "Google Drive",
+      "googleSheets": "Google Sheets",
+      "hubspot": "Hubspot",
+      "jira": "Jira",
+      "mailchimp": "Mailchimp",
+      "microsoftAccess": "Microsoft Access",
+      "microsoftExcel": "Microsoft Excel",
+      "microsoftOutlook": "Microsoft Outlook",
+      "miro": "Miro",
+      "salesforce": "Salesforce",
+      "snowflake": "Snowflake",
+      "stripe": "Stripe",
+      "surveyMonkey": "SurveyMonkey",
+      "tableau": "Tableau",
+      "trello": "Trello",
+      "typeform": "Typeform",
+      "workday": "Workday",
+      "zendesk": "Zendesk"
+    }
   },
   "datatype": {
     "ID": "ID",

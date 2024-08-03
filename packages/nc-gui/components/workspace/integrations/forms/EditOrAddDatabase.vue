@@ -876,7 +876,7 @@ watch(
                       </div>
                     </template>
 
-                    <div class="border-1 rounded-lg p-3">
+                    <div class="border-1 border-gray-200 rounded-lg p-3">
                       <a-row :gutter="24">
                         <a-col :span="12">
                           <a-form-item label="SSL mode">
@@ -1095,6 +1095,10 @@ watch(
 
 :deep(.ant-form-item-with-help .ant-form-item-explain) {
   @apply !min-h-0;
+}
+
+:deep(.ant-select .ant-select-selector .ant-select-selection-item){
+  @apply font-weight-400;
 }
 
 .create-source {

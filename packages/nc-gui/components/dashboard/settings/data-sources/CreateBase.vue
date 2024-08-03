@@ -711,6 +711,10 @@ eventBus.on((event, payload) => {
   @apply !min-h-0;
 }
 
+:deep(.ant-select .ant-select-selector .ant-select-selection-item){
+  @apply font-weight-400;
+}
+
 .create-source {
   :deep(.ant-input-affix-wrapper),
   :deep(.ant-input),

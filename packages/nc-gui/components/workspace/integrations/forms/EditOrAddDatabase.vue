@@ -128,6 +128,8 @@ const validators = computed(() => {
 const { validate, validateInfos } = useForm(formState, validators)
 
 const populateName = (v: string) => {
+  if(isEditMode.value) return 
+  
   formState.value.dataSource.connection.database = `${v.trim()}_noco`
 }
 

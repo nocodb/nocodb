@@ -75,7 +75,7 @@ export const layoutTitleValidator = {
   },
 }
 
-export const baseTitleValidator = (title: 'project' | 'integration' = 'project') => {
+export const baseTitleValidator = (title: 'project' | 'connection' = 'project') => {
   return {
     validator: (rule: any, value: any) => {
       const { t } = getI18n().global
@@ -85,7 +85,7 @@ export const baseTitleValidator = (title: 'project' | 'integration' = 'project')
           reject(
             new Error(
               t('msg.error.projectNameExceeds50Characters', {
-                title: title === 'project' ? t('objects.project') : t('general.integration'),
+                title: title === 'project' ? t('objects.project') : t('general.connection'),
               }),
             ),
           )
@@ -95,7 +95,7 @@ export const baseTitleValidator = (title: 'project' | 'integration' = 'project')
           reject(
             new Error(
               t('msg.error.projectNameCannotStartWithSpace', {
-                title: title === 'project' ? t('objects.project') : t('general.integration'),
+                title: title === 'project' ? t('objects.project') : t('general.connection'),
               }),
             ),
           )

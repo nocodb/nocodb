@@ -44,6 +44,15 @@ const toBeDeletedBase = ref<SourceType | undefined>()
 
 const searchQuery = ref<string>('')
 
+const isOpenModal = computed({
+  get: () => !!activeSource.value,
+  set: (value) => {
+    if (!value) {
+      activeSource.value = null
+    }
+  },
+})
+
 async function updateIfSourceOrderIsNullOrDuplicate() {
   const sourceOrderSet = new Set()
   let hasNullOrDuplicates = false
@@ -265,7 +274,7 @@ const isNewBaseModalOpen = computed({
   },
 })
 
-const activeSource = ref<SourceType>(null)
+const activeSource = ref<SourceType | null>(null)
 const openedTab = ref('erd')
 
 const isSearchResultAvailable = () => {
@@ -278,9 +287,8 @@ const isSearchResultAvailable = () => {
 
 <template>
   <div class="flex flex-col h-full" data-testid="nc-settings-datasources-tab">
-    <div v-if="vState !== DataSourcesSubTab.New" class="px-4 py-3 flex justify-between gap-3">
+    <div  class="px-4 py-3 flex items-center justify-between gap-3">
       <a-input
-        v-if="!activeSource"
         v-model:value="searchQuery"
         type="text"
         class="nc-search-data-source-input !max-w-90 nc-input-sm"
@@ -291,17 +299,10 @@ const isSearchResultAvailable = () => {
           <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-gray-500" />
         </template>
       </a-input>
-      <a-breadcrumb v-else separator=">" class="w-full cursor-pointer font-weight-bold">
-        <a-breadcrumb-item @click="activeSource = null">
-          <a class="!no-underline">Data Sources</a>
-        </a-breadcrumb-item>
-        <a-breadcrumb-item v-if="activeSource">
-          <span class="capitalize">{{ activeSource.alias || 'Default Source' }}</span>
-        </a-breadcrumb-item>
-      </a-breadcrumb>
+    
 
       <NcButton
-        v-if="!isDataSourceLimitReached && !activeSource && isUIAllowed('sourceCreate')"
+        v-if="!isDataSourceLimitReached && isUIAllowed('sourceCreate')"
         size="large"
         class="z-10 !px-2"
         type="primary"
@@ -320,73 +321,97 @@ const isSearchResultAvailable = () => {
         maxHeight: isNewBaseModalOpen ? '100%' : activeSource ? 'calc(100% - 46px)' : 'calc(100% - 66px)',
       }"
     >
-      <template v-if="activeSource">
-        <NcTabs v-model:activeKey="openedTab" class="nc-source-tab w-full">
-          <a-tab-pane key="erd">
-            <template #tab>
-              <div class="tab" data-testid="nc-erd-tab">
-                <div>{{ $t('title.erdView') }}</div>
-              </div>
-            </template>
-            <div class="h-full p-4">
-              <LazyDashboardSettingsErd
-                class="h-full overflow-auto"
-                :base-id="baseId"
-                :source-id="activeSource.id"
-                :show-all-columns="false"
-              />
-            </div>
-          </a-tab-pane>
-          <a-tab-pane v-if="sources && activeSource === sources[0]" key="audit">
-            <template #tab>
-              <div class="tab" data-testid="nc-audit-tab">
-                <div>{{ $t('title.auditLogs') }}</div>
-              </div>
-            </template>
-            <div class="p-4 h-full">
-              <LazyDashboardSettingsBaseAudit :source-id="activeSource.id" />
-            </div>
-          </a-tab-pane>
-          <a-tab-pane v-if="!activeSource.is_meta && !activeSource.is_local" key="edit">
-            <template #tab>
-              <div class="tab" data-testid="nc-connection-tab">
-                <div>{{ $t('labels.connectionDetails') }}</div>
-              </div>
-            </template>
-            <div class="h-full">
-              <LazyDashboardSettingsDataSourcesEditBase
-                :source-id="activeSource.id"
-                @source-updated="loadBases(true)"
-                @close="activeSource = null"
-              />
-            </div>
-          </a-tab-pane>
+        <NcModal
+          v-model:visible="isOpenModal"
+          centered
+          size="large"
+          wrap-class-name="nc-settings-active-data-source-modal-wrapper"
+          @keydown.esc="activeSource = null"
+        >
+        
+        <div class="h-full">
+         
+            <div class="px-4 pt-4 pb-2 flex items-center justify-between gap-3">
+              <a-breadcrumb separator=">" class="flex-1 cursor-pointer font-weight-bold">
+                <a-breadcrumb-item @click="activeSource = null">
+                  <a class="!no-underline">Data Sources</a>
+                </a-breadcrumb-item>
+                <a-breadcrumb-item v-if="activeSource">
+                  <span class="capitalize">{{ activeSource.alias || 'Default Source' }}</span>
+                </a-breadcrumb-item>
+              </a-breadcrumb>
 
-          <a-tab-pane key="acl">
-            <template #tab>
-              <div class="tab" data-testid="nc-acl-tab">
-                <div>{{ $t('labels.uiAcl') }}</div>
+              <NcButton size="small" type="text" @click="isOpenModal = false">
+                <GeneralIcon icon="close" class="text-gray-600" />
+              </NcButton>
+            </div>
+          
+          <NcTabs v-model:activeKey="openedTab" class="nc-source-tab w-full h-[calc(100%_-_58px)] max-h-[calc(100%_-_58px)]">
+            <a-tab-pane key="erd">
+              <template #tab>
+                <div class="tab" data-testid="nc-erd-tab">
+                  <div>{{ $t('title.erdView') }}</div>
+                </div>
+              </template>
+              <div class="h-full p-6">
+                <LazyDashboardSettingsErd
+                  class="h-full overflow-auto"
+                  :base-id="baseId"
+                  :source-id="activeSource.id"
+                  :show-all-columns="false"
+                />
               </div>
-            </template>
+            </a-tab-pane>
+            <a-tab-pane v-if="sources && activeSource === sources[0]" key="audit">
+              <template #tab>
+                <div class="tab" data-testid="nc-audit-tab">
+                  <div>{{ $t('title.auditLogs') }}</div>
+                </div>
+              </template>
+              <div class="p-6 h-full">
+                <LazyDashboardSettingsBaseAudit :source-id="activeSource.id" />
+              </div>
+            </a-tab-pane>
+            <a-tab-pane v-if="!activeSource.is_meta && !activeSource.is_local" key="edit">
+              <template #tab>
+                <div class="tab" data-testid="nc-connection-tab">
+                  <div>{{ $t('labels.connectionDetails') }}</div>
+                </div>
+              </template>
+              <div class="h-full">
+                <LazyDashboardSettingsDataSourcesEditBase
+                  :source-id="activeSource.id"
+                  @source-updated="loadBases(true)"
+                  @close="activeSource = null"
+                />
+              </div>
+            </a-tab-pane>
 
-            <div class="p-4 h-full">
-              <LazyDashboardSettingsUIAcl :source-id="activeSource.id" />
-            </div>
-          </a-tab-pane>
-          <a-tab-pane v-if="!activeSource.is_meta && !activeSource.is_local" key="meta-sync">
-            <template #tab>
-              <div class="tab" data-testid="nc-meta-sync-tab">
-                <div>{{ $t('labels.metaSync') }}</div>
+            <a-tab-pane key="acl">
+              <template #tab>
+                <div class="tab" data-testid="nc-acl-tab">
+                  <div>{{ $t('labels.uiAcl') }}</div>
+                </div>
+              </template>
+
+              <div class="p-6 h-full">
+                <LazyDashboardSettingsUIAcl :source-id="activeSource.id" />
               </div>
-            </template>
-            <div class="p-4 h-full">
-              <LazyDashboardSettingsMetadata :source-id="activeSource.id" @source-synced="loadBases(true)" />
-            </div>
-          </a-tab-pane>
-        </NcTabs>
-      </template>
+            </a-tab-pane>
+            <a-tab-pane v-if="!activeSource.is_meta && !activeSource.is_local" key="meta-sync">
+              <template #tab>
+                <div class="tab" data-testid="nc-meta-sync-tab">
+                  <div>{{ $t('labels.metaSync') }}</div>
+                </div>
+              </template>
+              <div class="p-6 h-full">
+                <LazyDashboardSettingsMetadata :source-id="activeSource.id" @source-synced="loadBases(true)" />
+              </div>
+            </a-tab-pane>
+          </NcTabs>
+        </div>
+        </NcModal>
       <div
-        v-else
         class="flex flex-col w-full"
         :class="{
           'overflow-auto': !isNewBaseModalOpen,
@@ -396,6 +421,7 @@ const isSearchResultAvailable = () => {
           <DashboardSettingsDataSourcesCreateBase
             v-model:open="isNewBaseModalOpen"
             :connection-type="clientType"
+            is-modal
             @source-created="loadBases(true)"
           />
         </template>
@@ -637,5 +663,19 @@ const isSearchResultAvailable = () => {
 }
 :deep(.ant-tabs-content-holder) {
   @apply !min-h-0 !flex-shrink;
+}
+</style>
+
+
+<style lang="scss">
+.nc-settings-active-data-source-modal-wrapper {
+  .ant-modal-content{
+    @apply overflow-hidden
+  }
+  .nc-modal {
+    @apply !p-0;
+    height: min(calc(100vh - 100px), 1024px);
+    max-height: min(calc(100vh - 100px), 1024px) !important;
+  }
 }
 </style>

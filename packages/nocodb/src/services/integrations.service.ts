@@ -13,10 +13,14 @@ import NocoCache from '~/cache/NocoCache';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { JobsRedis } from '~/modules/jobs/redis/jobs-redis';
 import { InstanceCommands } from '~/interface/Jobs';
+import { SourcesService } from '~/services/sources.service';
 
 @Injectable()
 export class IntegrationsService {
-  constructor(protected readonly appHooksService: AppHooksService) {}
+  constructor(
+    protected readonly appHooksService: AppHooksService,
+    protected readonly sourcesService: SourcesService,
+  ) {}
 
   async integrationGetWithConfig(
     context: NcContext,
@@ -96,13 +100,14 @@ export class IntegrationsService {
   async integrationDelete(
     context: Omit<NcContext, 'base_id'>,
     param: { integrationId: string; req: any; force: boolean },
-    ncMeta = Noco.ncMeta,
   ) {
+    const ncMeta = await Noco.ncMeta.startTransaction();
     try {
       const integration = await Integration.get(
         context,
         param.integrationId,
         true,
+        ncMeta,
       );
 
       // check linked sources
@@ -133,16 +138,35 @@ export class IntegrationsService {
       );
 
       if (sources.length > 0 && !param.force) {
-        NcError.integrationLinkedWithMultiple(sources);
+        if (!param.force) {
+          NcError.integrationLinkedWithMultiple(sources);
+        }
+
+        for (const source of sources) {
+          await this.sourcesService.baseDelete(
+            {
+              workspace_id: integration.fk_workspace_id,
+              base_id: source.base_id,
+            },
+            {
+              sourceId: source.id,
+              req: param.req,
+            },
+            ncMeta,
+          );
+        }
       }
 
-      await integration.delete();
+      await integration.delete(ncMeta);
       // todo: add new event type
       // this.appHooksService.emit(AppEvents.BASE_DELETE, {
       //   integration,
       //   req: param.req,
       // });
+
+      await ncMeta.commit();
     } catch (e) {
+      await ncMeta.rollback(e);
       NcError.badRequest(e);
     }
     return true;

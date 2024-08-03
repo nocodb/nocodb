@@ -8,6 +8,7 @@ import { populateRollupColumnAndHideLTAR } from '~/helpers/populateMeta';
 import { syncBaseMigration } from '~/helpers/syncMigration';
 import { Base, Integration, Source } from '~/models';
 import { NcError } from '~/helpers/catchError';
+import Noco from "~/Noco";
 
 @Injectable()
 export class SourcesService {
@@ -55,10 +56,14 @@ export class SourcesService {
     return sources;
   }
 
-  async baseDelete(context: NcContext, param: { sourceId: string; req: any }) {
+  async baseDelete(
+    context: NcContext,
+    param: { sourceId: string; req: any },
+    ncMeta = Noco.ncMeta,
+  ) {
     try {
-      const source = await Source.get(context, param.sourceId, true);
-      await source.delete(context);
+      const source = await Source.get(context, param.sourceId, true, ncMeta);
+      await source.delete(context, ncMeta);
       this.appHooksService.emit(AppEvents.BASE_DELETE, {
         source,
         req: param.req,
@@ -123,7 +128,7 @@ export class SourcesService {
       const integration = await Integration.get(
         context,
         (baseBody as any).fk_integration_id,
-      )
+      );
 
       // Check if integration exists
       if (!integration) {

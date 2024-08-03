@@ -113,46 +113,67 @@ const onCreateBaseClick = () => {
 <template>
   <div class="nc-all-tables-view">
     <div
-      class="flex flex-row gap-x-6 pb-3 pt-6"
+      class="flex flex-row gap-x-6 pb-3 pt-6 overflow-x-auto nc-scrollbar-thin"
       :class="{
         'pointer-events-none': base?.isLoading,
       }"
     >
-      <div
-        v-if="isUIAllowed('tableCreate', { source: base?.sources?.[0] })"
-        role="button"
-        class="nc-base-view-all-table-btn"
-        data-testid="proj-view-btn__add-new-table"
-        @click="openTableCreateDialog()"
-      >
-        <GeneralIcon icon="addOutlineBox" />
-        <div>
+      <NcTooltip v-if="isUIAllowed('tableCreate', { source: base?.sources?.[0] })" placement="bottom" disabled>
+        <div class="flex flex-col gap-2 pb-1">
+          <!-- Todo: add tooltip -->
+        </div>
+        <div
+          role="button"
+          class="nc-base-view-all-table-btn"
+          data-testid="proj-view-btn__add-new-table"
+          @click="openTableCreateDialog()"
+        >
+          <GeneralIcon icon="addOutlineBox" class="!text-brand-500" />
+
           <div class="label">{{ $t('general.create') }} {{ $t('general.new') }} {{ $t('objects.table') }}</div>
-          <div class="subtext">
-            {{ $t('title.fromScratch') }}
-          </div>
         </div>
-      </div>
-      <div
-        v-if="isUIAllowed('tableCreate', { source: base?.sources?.[0] })"
-        v-e="['c:table:import']"
-        role="button"
-        class="nc-base-view-all-table-btn"
-        data-testid="proj-view-btn__import-data"
-        @click="isImportModalOpen = true"
-      >
-        <GeneralIcon icon="download" class="!text-orange-700" />
-        <div>
-          <div class="label">{{ $t('activity.import') }} {{ $t('general.data') }}</div>
-          <div class="subtext">
-            {{ $t('title.fromFileAndExternalSources') }}
-          </div>
-        </div>
-      </div>
-      <component :is="isDataSourceLimitReached ? NcTooltip : 'div'" v-if="isUIAllowed('sourceCreate')">
+      </NcTooltip>
+
+      <NcTooltip v-if="isUIAllowed('tableCreate', { source: base?.sources?.[0] })" placement="bottom">
         <template #title>
-          <div>
+          <div class="flex flex-col gap-2 pb-1">
+            <div class="text-xs">
+              {{ $t('title.fromFileAndExternalSources') }}
+            </div>
+            <div class="flex items-center justify-between gap-2">
+              <GeneralIcon icon="airtable" class="flex-none w-5 h-5" />
+              <GeneralIcon icon="excelColored" class="flex-none w-5 h-5" />
+              <div class="nc-text-icon">CSV</div>
+              <div class="nc-text-icon">JSON</div>
+            </div>
+          </div>
+        </template>
+        <div
+          v-e="['c:table:import']"
+          role="button"
+          class="nc-base-view-all-table-btn"
+          data-testid="proj-view-btn__import-data"
+          @click="isImportModalOpen = true"
+        >
+          <GeneralIcon icon="download" class="!text-orange-700" />
+          <div class="label">{{ $t('activity.import') }} {{ $t('general.data') }}</div>
+        </div>
+      </NcTooltip>
+      <NcTooltip v-if="isUIAllowed('sourceCreate')" placement="bottom">
+        <template #title>
+          <div v-if="isDataSourceLimitReached">
             {{ $t('tooltip.reachedSourceLimit') }}
+          </div>
+          <div v-else class="flex flex-col gap-2 pb-1">
+            <div class="test-xs text-left">
+              {{ $t('title.directlyInRealTime') }}
+            </div>
+            <div class="flex items-center justify-between gap-2">
+              <GeneralBaseLogo :source-type="ClientType.MYSQL" class="flex-none w-5 h-5" />
+              <GeneralBaseLogo :source-type="ClientType.PG" class="flex-none w-5 h-5" />
+              <div class="flex-nonw w-5 h-5"></div>
+              <div class="flex-nonw w-5 h-5"></div>
+            </div>
           </div>
         </template>
         <div
@@ -165,15 +186,30 @@ const onCreateBaseClick = () => {
           }"
           @click="onCreateBaseClick"
         >
-          <GeneralIcon icon="circle" class="!text-green-700" />
-          <div>
-            <div class="label">{{ $t('labels.connectDataSource') }}</div>
-            <div class="subtext">
-              {{ $t('title.directlyInRealTime') }}
-            </div>
-          </div>
+          <GeneralIcon icon="server1" class="!text-green-700" />
+          <div class="label">{{ $t('labels.connectDataSource') }}</div>
         </div>
-      </component>
+      </NcTooltip>
+      <NcTooltip placement="bottom" disabled>
+        <template #title>
+          <div class="flex flex-col gap-2 pb-1">
+            <!-- Todo: add tooltip -->
+          </div>
+        </template>
+        <div
+          v-e="['c:table:create-source']"
+          role="button"
+          class="nc-base-view-all-table-btn"
+          data-testid="proj-view-btn__create-source"
+          :class="{
+            disabled: isDataSourceLimitReached,
+          }"
+          @click="onCreateBaseClick"
+        >
+          <GeneralIcon icon="refresh" class="!text-blue-700" />
+          <div class="label capitalize">{{ $t('labels.syncData') }}</div>
+        </div>
+      </NcTooltip>
     </div>
     <div
       v-if="base?.isLoading"
@@ -268,22 +304,25 @@ const onCreateBaseClick = () => {
 
 <style lang="scss" scoped>
 .nc-base-view-all-table-btn {
-  @apply flex flex-col gap-y-3 p-3 bg-gray-100 rounded-xl min-w-[168px] cursor-pointer text-gray-600 hover:(bg-gray-200 text-black);
+  @apply flex flex-col gap-y-3 p-3 bg-gray-50 rounded-xl border-1 border-gray-100 min-w-[178px] cursor-pointer text-gray-800 hover:(bg-gray-100 border-gray-200) transition-all duration-300;
+  &:hover {
+    box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
+  }
 
   .nc-icon {
     @apply h-6 w-6;
   }
 
   .label {
-    @apply text-sm font-bold;
-  }
-
-  .subtext{
-    @apply text-small leading-[18px] mt-1;
+    @apply text-sm font-bold whitespace-nowrap;
   }
 }
 
 .nc-base-view-all-table-btn.disabled {
   @apply bg-gray-50 text-gray-400 hover:(bg-gray-50 text-gray-400) cursor-not-allowed;
+}
+
+.nc-text-icon {
+  @apply flex-none w-5 h-5 rounded bg-white text-gray-800 text-[6px] leading-4 font-weight-800 flex items-center justify-center;
 }
 </style>

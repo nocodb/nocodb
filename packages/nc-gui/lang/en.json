@@ -684,7 +684,7 @@
     "allTables": "All Tables",
     "members": "Members",
     "dataSources": "Data Sources",
-    "connectDataSource": "Connect to External Data",
+    "connectDataSource": "Connect External Data",
     "searchProjects": "Search Bases",
     "createdBy": "Created By",
     "viewingAttachmentsOf": "Viewing Attachments of",
@@ -882,7 +882,8 @@
     "signUpForFree": "Sign up for free",
     "coverImageField": "Cover image",
     "fitImage": "Fit image",
-    "coverImageArea": "Cover image"
+    "coverImageArea": "Cover image",
+    "syncData": "Sync data"
   },
   "activity": {
     "hideWeekends": "Hide weekends",

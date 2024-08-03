@@ -287,7 +287,7 @@ const isSearchResultAvailable = () => {
 
 <template>
   <div class="flex flex-col h-full" data-testid="nc-settings-datasources-tab">
-    <div  class="px-4 py-3 flex items-center justify-between gap-3">
+    <div class="px-1 py-3 flex items-center justify-between gap-3">
       <a-input
         v-model:value="searchQuery"
         type="text"
@@ -299,7 +299,6 @@ const isSearchResultAvailable = () => {
           <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-gray-500" />
         </template>
       </a-input>
-    
 
       <NcButton
         v-if="!isDataSourceLimitReached && isUIAllowed('sourceCreate')"
@@ -321,31 +320,29 @@ const isSearchResultAvailable = () => {
         maxHeight: isNewBaseModalOpen ? '100%' : activeSource ? 'calc(100% - 46px)' : 'calc(100% - 66px)',
       }"
     >
-        <NcModal
-          v-model:visible="isOpenModal"
-          centered
-          size="large"
-          wrap-class-name="nc-settings-active-data-source-modal-wrapper"
-          @keydown.esc="activeSource = null"
-        >
-        
+      <NcModal
+        v-model:visible="isOpenModal"
+        centered
+        size="large"
+        wrap-class-name="nc-settings-active-data-source-modal-wrapper"
+        @keydown.esc="activeSource = null"
+      >
         <div class="h-full">
-         
-            <div class="px-4 pt-4 pb-2 flex items-center justify-between gap-3">
-              <a-breadcrumb separator=">" class="flex-1 cursor-pointer font-weight-bold">
-                <a-breadcrumb-item @click="activeSource = null">
-                  <a class="!no-underline">Data Sources</a>
-                </a-breadcrumb-item>
-                <a-breadcrumb-item v-if="activeSource">
-                  <span class="capitalize">{{ activeSource.alias || 'Default Source' }}</span>
-                </a-breadcrumb-item>
-              </a-breadcrumb>
+          <div class="px-4 pt-4 pb-2 flex items-center justify-between gap-3">
+            <a-breadcrumb separator=">" class="flex-1 cursor-pointer font-weight-bold">
+              <a-breadcrumb-item @click="activeSource = null">
+                <a class="!no-underline">Data Sources</a>
+              </a-breadcrumb-item>
+              <a-breadcrumb-item v-if="activeSource">
+                <span class="capitalize">{{ activeSource.alias || 'Default Source' }}</span>
+              </a-breadcrumb-item>
+            </a-breadcrumb>
 
-              <NcButton size="small" type="text" @click="isOpenModal = false">
-                <GeneralIcon icon="close" class="text-gray-600" />
-              </NcButton>
-            </div>
-          
+            <NcButton size="small" type="text" @click="isOpenModal = false">
+              <GeneralIcon icon="close" class="text-gray-600" />
+            </NcButton>
+          </div>
+
           <NcTabs v-model:activeKey="openedTab" class="nc-source-tab w-full h-[calc(100%_-_58px)] max-h-[calc(100%_-_58px)]">
             <a-tab-pane key="erd">
               <template #tab>
@@ -410,7 +407,7 @@ const isSearchResultAvailable = () => {
             </a-tab-pane>
           </NcTabs>
         </div>
-        </NcModal>
+      </NcModal>
       <div
         class="flex flex-col w-full"
         :class="{
@@ -425,7 +422,7 @@ const isSearchResultAvailable = () => {
             @source-created="loadBases(true)"
           />
         </template>
-        <div v-else class="ds-table overflow-y-auto nc-scrollbar-thin relative max-h-full mx-4 mb-4">
+        <div v-else class="ds-table overflow-y-auto nc-scrollbar-thin relative max-h-full mx-1 mb-4">
           <div class="ds-table-head sticky top-0 bg-white z-10">
             <div class="ds-table-row !border-0">
               <div class="ds-table-col ds-table-enabled cursor-pointer">{{ $t('general.visibility') }}</div>
@@ -666,11 +663,10 @@ const isSearchResultAvailable = () => {
 }
 </style>
 
-
 <style lang="scss">
 .nc-settings-active-data-source-modal-wrapper {
-  .ant-modal-content{
-    @apply overflow-hidden
+  .ant-modal-content {
+    @apply overflow-hidden;
   }
   .nc-modal {
     @apply !p-0;

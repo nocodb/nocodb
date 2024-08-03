@@ -444,7 +444,7 @@ onMounted(async () => {
       </div>
       <div
         v-if="!isLoadingIntegrations && (!integrations?.length || !filteredIntegrations.length)"
-        class="flex-none integration-table-empty flex items-center justify-center py-8 px-6"
+        class="flex-none integration-table-empty flex items-center justify-center py-8 px-6 h-full max-h-[calc(100%_-_55px)]"
       >
         <div
           v-if="integrations?.length && !filteredIntegrations.length"
@@ -460,9 +460,7 @@ onMounted(async () => {
         </div>
 
         <div v-else class="flex-none text-center flex flex-col items-center gap-3">
-          <img src="~assets/img/placeholder/link-records.png" class="!w-[18.5rem] flex-none" />
-          <div class="text-2xl text-gray-700 font-bold">No connections added</div>
-          <div class="text-gray-700 text-center">Looks like no connections have been linked yet.</div>
+          <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" class="!my-0" />
         </div>
       </div>
     </div>

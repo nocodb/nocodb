@@ -903,7 +903,8 @@ watch(
                 </a-collapse>
               </template>
 
-              <div class="nc-form-section">
+              <!-- Todo: Enable later when we plan to introduce private connection -->
+              <!-- <div class="nc-form-section">
                 <a-form-item class="!my-0">
                   <div class="flex items-center gap-3">
                     <a-switch v-if="isEeUI" v-model:checked="formState.is_private" size="small" />
@@ -931,7 +932,7 @@ watch(
                     </NcTooltip>
                   </div>
                 </a-form-item>
-              </div>
+              </div> -->
 
               <template
                 v-if="![ClientType.SQLITE, ClientType.SNOWFLAKE, ClientType.DATABRICKS].includes(formState.dataSource.client)"

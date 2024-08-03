@@ -53,6 +53,7 @@ export enum MetaTable {
   COMMENTS_REACTIONS = 'nc_comment_reactions',
   JOBS = 'nc_jobs',
   INTEGRATIONS = 'nc_integrations_v2',
+  BASE_SOURCES = 'nc_base_sources',
 }
 
 export enum MetaTableOldV2 {

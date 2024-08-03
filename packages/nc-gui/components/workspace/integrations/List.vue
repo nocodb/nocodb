@@ -318,7 +318,7 @@ onMounted(async () => {
                       {{ integration.title }}
                     </NcTooltip>
                     <span v-if="integration.is_private">
-                      <NcBadge :border="false" class="text-primary bg-brand-50 text-sm">{{$t('general.private')}}</NcBadge>
+                      <NcBadge :border="false" class="text-primary bg-brand-50 text-sm">{{ $t('general.private') }}</NcBadge>
                     </span>
                   </div>
                 </td>

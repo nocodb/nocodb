@@ -139,7 +139,7 @@ onMounted(() => {
           <template #tab>
             <div class="flex flex-row items-center px-2 pb-1 gap-x-1.5" data-testid="nc-workspace-settings-tab-integrations">
               <GeneralIcon icon="integration" />
-              {{$t('general.connections')}}
+              {{ $t('general.connections') }}
             </div>
           </template>
           <div class="h-[calc(100vh-92px)]">

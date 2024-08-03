@@ -439,6 +439,13 @@ const onUseCaseFormSubmit = async () => {
   $e('a:extdb:usecase', useCaseFormState.value)
   return onDashboard()
 }
+
+const isPrivate = computed({
+  get: () => !formState.value.is_private,
+  set: (v) => {
+    formState.value.is_private = !v
+  },
+})
 </script>
 
 <template>
@@ -465,8 +472,8 @@ const onUseCaseFormSubmit = async () => {
               maxHeight: '60vh',
             }"
           >
-            <a-form-item label="Allow access" v-bind="validateInfos.title">
-              <a-switch v-model:value="formState.is_private" class="nc-extdb-proj-name" />
+            <a-form-item label="Allow access">
+              <a-switch v-model:checked="isPrivate" size="small" class="nc-extdb-proj-name" />
             </a-form-item>
             <a-form-item label="Source Name" v-bind="validateInfos.title">
               <a-input v-model:value="formState.title" class="nc-extdb-proj-name" />
@@ -763,7 +770,7 @@ const onUseCaseFormSubmit = async () => {
                 class="nc-extdb-btn-submit !rounded-md"
                 @click="createSource"
               >
-                Connect to Data Source
+                Save Integration
               </NcButton>
             </div>
           </a-form-item>

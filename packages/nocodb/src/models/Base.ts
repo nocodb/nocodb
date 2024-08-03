@@ -153,7 +153,7 @@ export default class Base implements BaseType {
       )
       .map((p) => {
         const base = this.castType(p);
-        promises.push(base.getSources(ncMeta));
+        promises.push(base.getSources(false, ncMeta));
         return base;
       });
 
@@ -196,12 +196,22 @@ export default class Base implements BaseType {
     return this.castType(baseData);
   }
 
-  async getSources(ncMeta = Noco.ncMeta): Promise<Source[]> {
-    return (this.sources = await Source.list(
+  async getSources(
+    includeConfig = false,
+    ncMeta = Noco.ncMeta,
+  ): Promise<Source[]> {
+    const sources = (this.sources = await Source.list(
       { workspace_id: this.fk_workspace_id, base_id: this.id },
       { baseId: this.id },
       ncMeta,
     ));
+    if (!includeConfig) {
+      sources.forEach((s) => {
+        delete s.config;
+        delete s.integration_config;
+      });
+    }
+    return sources;
   }
 
   // todo: hide credentials
@@ -246,7 +256,7 @@ export default class Base implements BaseType {
     if (baseData) {
       const base = this.castType(baseData);
 
-      await base.getSources(ncMeta);
+      await base.getSources(false, ncMeta);
 
       return base;
     }
@@ -459,7 +469,7 @@ export default class Base implements BaseType {
   ) {
     const base = await this.getByTitle(context, title, ncMeta);
     if (base) {
-      await base.getSources(ncMeta);
+      await base.getSources(false, ncMeta);
     }
 
     return base;
@@ -562,7 +572,7 @@ export default class Base implements BaseType {
     if (base) {
       // parse meta
       base.meta = parseMetaProp(base);
-      await base.getSources(ncMeta);
+      await base.getSources(false, ncMeta);
     }
 
     return base;
@@ -575,7 +585,7 @@ export default class Base implements BaseType {
   ) {
     const base = await this.get(context, baseId, ncMeta);
     if (base) {
-      const sources = await base.getSources(ncMeta);
+      const sources = await base.getSources(false, ncMeta);
       for (const source of sources) {
         await NcConnectionMgrv2.deleteAwait(source);
       }

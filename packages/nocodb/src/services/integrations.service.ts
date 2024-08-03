@@ -10,6 +10,9 @@ import { Source, Workspace } from '~/models';
 import { CacheScope, MetaTable, RootScopes } from '~/utils/globals';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import { JobsRedis } from '~/modules/jobs/redis/jobs-redis';
+import { InstanceCommands } from '~/interface/Jobs';
 
 @Injectable()
 export class IntegrationsService {
@@ -187,6 +190,15 @@ export class IntegrationsService {
       await NocoCache.update(`${CacheScope.BASE}:${source.id}`, {
         integration_config: integration.config,
       });
+
+      // delete the connection ref
+      await NcConnectionMgrv2.deleteAwait(source);
+
+      // release the connections from the worker
+      if (JobsRedis.available) {
+        await JobsRedis.emitWorkerCommand(InstanceCommands.RELEASE, source.id);
+        await JobsRedis.emitPrimaryCommand(InstanceCommands.RELEASE, source.id);
+      }
     }
   }
 }

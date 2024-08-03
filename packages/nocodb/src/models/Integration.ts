@@ -259,7 +259,7 @@ export default class Integration implements IntegrationType {
         integration.config = partialExtract(config, [
           'client',
           ['connection', 'database'],
-          ['connection', 'searchPath'],
+          ['searchPath'],
         ]);
       }
     }
@@ -307,7 +307,7 @@ export default class Integration implements IntegrationType {
       baseData.meta = parseMetaProp(baseData, 'meta');
     }
 
-    await NocoCache.set(`${CacheScope.BASE}:${id}`, baseData);
+    // await NocoCache.set(`${CacheScope.BASE}:${id}`, baseData);
     return this.castType(baseData);
   }
 

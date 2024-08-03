@@ -368,6 +368,10 @@ export default class Source implements SourceType {
     return config;
   }
 
+  public getSourceConfig(): any {
+    return this.getConfig();
+  }
+
   getProject(context: NcContext, ncMeta = Noco.ncMeta): Promise<Base> {
     return Base.get(context, this.base_id, ncMeta);
   }

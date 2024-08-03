@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents, validateAndExtractSSLProp } from 'nocodb-sdk';
+import { AppEvents, IntegrationsType, validateAndExtractSSLProp } from 'nocodb-sdk';
 import type { BaseReqType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { populateMeta, validatePayload } from '~/helpers';
 import { populateRollupColumnAndHideLTAR } from '~/helpers/populateMeta';
 import { syncBaseMigration } from '~/helpers/syncMigration';
-import { Base, Source } from '~/models';
+import { Base, Integration, Source } from '~/models';
 import { NcError } from '~/helpers/catchError';
 
 @Injectable()
@@ -16,7 +16,7 @@ export class SourcesService {
   async baseGetWithConfig(context: NcContext, param: { sourceId: any }) {
     const source = await Source.get(context, param.sourceId);
 
-    source.config = await source.getConnectionConfig();
+    source.config = await source.getSourceConfig();
 
     return source;
   }
@@ -100,6 +100,25 @@ export class SourcesService {
     let error;
 
     param.logger?.('Creating the source');
+
+    // if missing integration id, create a new private integration
+    // and map the id to the source
+    if (!(baseBody as any).fk_integration_id) {
+      const integration = await Integration.createIntegration({
+        title: baseBody.alias,
+        type: IntegrationsType.Database,
+        sub_type: baseBody.config?.client,
+        is_private: !!param.req.user?.id,
+        config: baseBody.config,
+        workspaceId: context.workspace_id,
+        created_by: param.req.user?.id,
+      });
+
+      (baseBody as any).fk_integration_id = integration.id;
+      baseBody.config = {
+        client: baseBody.config?.client,
+      };
+    }
 
     // update invalid ssl config value if found
     if (baseBody.config?.connection?.ssl) {

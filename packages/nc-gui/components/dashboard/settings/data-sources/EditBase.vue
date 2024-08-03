@@ -337,7 +337,7 @@ onMounted(async () => {
 
     const activeBase = (await api.source.read(base.value?.id, props.sourceId)) as SourceType
 
-    const tempParameters = Object.entries(activeBase.config.connection)
+    const tempParameters = Object.entries(activeBase.config.connection || {})
       .filter(([key]) => !definedParameters.includes(key))
       .map(([key, value]) => ({ key: key as string, value: value as string }))
 

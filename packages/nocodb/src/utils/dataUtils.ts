@@ -99,11 +99,14 @@ export const partialExtract = (obj: any, path: (string[] | string)[]) => {
   for (const key of path) {
     if (Array.isArray(key)) {
       const [first, ...rest] = key;
-      if (obj[first]) {
+
+      if (rest.length) {
         result[first] = Object.assign(
           result[first] || {},
           partialExtract(obj[first], rest),
         );
+      } else {
+        result[first] = obj[first];
       }
     } else {
       result[key] = obj[key];

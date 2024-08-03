@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-const { pageMode, IntegrationsPageMode, integrationType, activeIntegration, categories, activeCategory } = useIntegrationStore()
+const { pageMode, IntegrationsPageMode, activeIntegration, categories, activeCategory } = useIntegrationStore()
 </script>
 
 <template>
@@ -27,8 +27,7 @@ const { pageMode, IntegrationsPageMode, integrationType, activeIntegration, cate
         </div>
       </div>
       <div v-if="activeIntegration" class="panel">
-        <WorkspaceIntegrationsFormsEditDatabase v-if="activeIntegration.type === integrationType.PostgreSQL" />
-        <WorkspaceIntegrationsFormsEditDatabase v-else-if="activeIntegration.type === integrationType.MySQL" />
+        <WorkspaceIntegrationsFormsEditDatabase />
       </div>
     </div>
   </div>

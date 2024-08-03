@@ -26,7 +26,7 @@ const upVoteCountBySyncDataTypeMap = computed(() => {
   >
     <div class="h-full flex flex-col overflow-hidden">
       <div class="flex items-center justify-between gap-4 p-4 border-b-1 border-gray-200">
-        <GeneralIcon icon="refresh" class="flex-none h-6 w-6 !text-blue-700" />
+        <GeneralIcon icon="refresh" class="flex-none h-5 w-5 !text-blue-700" />
         <div class="flex-1 flex items-center gap-3">
           <h3 class="my-0 capitalize text-base font-weight-700">
             {{ $t('labels.syncData') }}

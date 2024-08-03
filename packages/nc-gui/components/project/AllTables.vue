@@ -115,7 +115,7 @@ const onCreateBaseClick = () => {
 <template>
   <div class="nc-all-tables-view">
     <div
-      class="flex flex-row gap-x-6 pb-3 pt-6 overflow-x-auto nc-scrollbar-thin"
+      class="flex flex-row gap-x-6 py-6 overflow-x-auto nc-scrollbar-thin"
       :class="{
         'pointer-events-none': base?.isLoading,
       }"
@@ -132,7 +132,7 @@ const onCreateBaseClick = () => {
 
           <div class="label">{{ $t('general.create') }} {{ $t('general.new') }} {{ $t('objects.table') }}</div>
         </div>
-        <div class="subtext">Start a fresh table from scratch with no predefined fields or views.</div>
+        <div class="subtext">Start from scratch by creating a new table.</div>
       </div>
 
       <div
@@ -147,7 +147,7 @@ const onCreateBaseClick = () => {
           <GeneralIcon icon="download" class="!text-orange-700 !w-4 !h-4" />
           <div class="label">{{ $t('activity.import') }} {{ $t('general.data') }}</div>
         </div>
-        <div class="subtext">Bring data into NocoDB from sources like Airtable, Excel, CSV, or JSON files.</div>
+        <div class="subtext">Quickly bring in existing data from various files & external sources.</div>
       </div>
 
       <div
@@ -165,7 +165,7 @@ const onCreateBaseClick = () => {
           <GeneralIcon icon="server1" class="!text-green-700 !h-4 !w-4" />
           <div class="label">{{ $t('labels.connectDataSource') }}</div>
         </div>
-        <div class="subtext">Link to external databases such as PG or MySQL for seamless data integration.</div>
+        <div class="subtext">Connect directly in realtime to external databases.</div>
       </div>
 
       <div
@@ -183,7 +183,7 @@ const onCreateBaseClick = () => {
           <GeneralIcon icon="refresh" class="!text-blue-700 !w-4 !h-4" />
           <div class="label capitalize">{{ $t('labels.syncData') }}</div>
         </div>
-        <div class="subtext">Automate data synchronization from platforms like GitHub, Jira, Asana, and more.</div>
+        <div class="subtext">Keep your data updated and in sync across multiple sources.</div>
       </div>
     </div>
     <div
@@ -280,7 +280,7 @@ const onCreateBaseClick = () => {
 
 <style lang="scss" scoped>
 .nc-base-view-all-table-btn {
-  @apply flex flex-col gap-y-2 p-3 bg-gray-50 rounded-xl border-1 border-gray-100 min-w-[260px] max-w-[280px] cursor-pointer text-gray-800 hover:(bg-gray-100 border-gray-200) transition-all duration-300;
+  @apply flex-none flex flex-col gap-y-2 p-3 bg-gray-50 rounded-xl border-1 border-gray-100 min-w-[230px] max-w-[235px] cursor-pointer text-gray-800 hover:(bg-gray-100 border-gray-200) transition-all duration-300;
   &:hover {
     box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
   }

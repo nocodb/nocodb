@@ -295,7 +295,7 @@ const handleClickRow = (source: SourceType, tab?: string) => {
 
 <template>
   <div class="flex flex-col h-full" data-testid="nc-settings-datasources-tab">
-    <div class="px-1 py-3 flex items-center justify-between gap-3">
+    <div class="px-1 pt-3 mb-6 flex items-center justify-between gap-3">
       <a-input
         v-model:value="searchQuery"
         type="text"
@@ -573,15 +573,7 @@ const handleClickRow = (source: SourceType, tab?: string) => {
                 </div>
               </template>
             </Draggable>
-            <div
-              v-show="isReloading"
-              class="flex items-center justify-center absolute left-0 top-0 w-full h-[calc(100%_-_45px)] z-10 pb-10 pointer-events-none"
-            >
-              <div class="flex flex-col justify-center items-center gap-2">
-                <GeneralLoader size="xlarge" />
-                <span class="text-center">{{ $t('general.loading') }}</span>
-              </div>
-            </div>
+
             <div
               v-if="!isReloading && sources?.length && !isSearchResultAvailable()"
               class="flex-none integration-table-empty flex items-center justify-center py-8 px-6"
@@ -595,6 +587,15 @@ const handleClickRow = (source: SourceType, tab?: string) => {
 
                 {{ $t('title.noResultsMatchedYourSearch') }}
               </div>
+            </div>
+          </div>
+          <div
+            v-show="isReloading"
+            class="flex items-center justify-center absolute left-0 top-0 w-full h-[calc(100%_-_45px)] z-10 pb-10 pointer-events-none"
+          >
+            <div class="flex flex-col justify-center items-center gap-2">
+              <GeneralLoader size="xlarge" />
+              <span class="text-center">{{ $t('general.loading') }}</span>
             </div>
           </div>
         </div>

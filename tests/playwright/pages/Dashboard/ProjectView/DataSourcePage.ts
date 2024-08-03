@@ -4,6 +4,8 @@ import { Locator } from '@playwright/test';
 import { MetaDataPage } from './Metadata';
 import { AuditPage } from './Audit';
 import { SourcePage } from './SourcePage';
+import { AclPage } from './Acl';
+import { defaultBaseName } from '../../../constants';
 
 export class DataSourcePage extends BasePage {
   readonly baseView: ProjectViewPage;
@@ -11,6 +13,7 @@ export class DataSourcePage extends BasePage {
   readonly metaData: MetaDataPage;
   readonly audit: AuditPage;
   readonly source: SourcePage;
+  readonly acl: AclPage;
 
   constructor(baseView: ProjectViewPage) {
     super(baseView.rootPage);
@@ -19,6 +22,7 @@ export class DataSourcePage extends BasePage {
     this.metaData = new MetaDataPage(this);
     this.audit = new AuditPage(this);
     this.source = new SourcePage(this);
+    this.acl = new AclPage(this);
   }
 
   get() {
@@ -92,5 +96,12 @@ export class DataSourcePage extends BasePage {
 
     await this.getDsDetailsModal().waitFor({ state: 'visible' });
     await this.getDsDetailsModal().getByTestId('nc-connection-tab').click();
+  }
+
+  async openAcl({ dataSourceName = defaultBaseName }: { dataSourceName?: string } = {}) {
+    await this.get().locator('.ds-table-row', { hasText: dataSourceName }).click();
+
+    await this.getDsDetailsModal().waitFor({ state: 'visible' });
+    await this.getDsDetailsModal().getByTestId('nc-acl-tab').click();
   }
 }

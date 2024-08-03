@@ -2,16 +2,19 @@ import BasePage from '../../Base';
 import { DataSourcePage } from './DataSourcePage';
 
 export class SourcePage extends BasePage {
+  readonly dataSources: DataSourcePage;
+
   constructor(dataSource: DataSourcePage) {
     super(dataSource.rootPage);
+    this.dataSources = dataSource;
   }
 
   get() {
-    return this.rootPage.getByTestId('nc-settings-datasources');
+    return this.dataSources.get();
   }
 
   getDsDetailsModal() {
-    return this.rootPage.locator('.nc-active-data-sources-view');
+    return this.dataSources.getDsDetailsModal();
   }
 
   async openEditWindow({ sourceName }: { sourceName: string }) {

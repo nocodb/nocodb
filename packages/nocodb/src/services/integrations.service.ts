@@ -59,7 +59,7 @@ export class IntegrationsService {
     // update the cache for the sources which are using this integration
     await this.updateIntegrationSourceConfig({ integration });
 
-    delete integration.config;
+    integration.config = undefined;
 
     this.appHooksService.emit(AppEvents.INTEGRATION_UPDATE, {
       integration,
@@ -226,7 +226,7 @@ export class IntegrationsService {
       created_by: param.req.user.id,
     });
 
-    delete integration.config;
+    integration.config = undefined;
 
     this.appHooksService.emit(AppEvents.INTEGRATION_CREATE, {
       integration,

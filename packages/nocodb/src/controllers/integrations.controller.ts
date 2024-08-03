@@ -45,7 +45,7 @@ export class IntegrationsController {
       includeConfig !== 'true' ||
       (integration.is_private && req.user.id !== integration.created_by)
     )
-      delete integration.config;
+      integration.config = undefined;
 
     return integration;
   }
@@ -125,7 +125,7 @@ export class IntegrationsController {
 
     if (!includeDatabaseInfo) {
       for (const integration of integrations.list) {
-        delete integration.config;
+        integration.config = undefined;
       }
     }
 

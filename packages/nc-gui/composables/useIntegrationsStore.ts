@@ -146,7 +146,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     integration: IntegrationType,
     mode: 'create' | 'duplicate' = 'create',
     loadDatasourceInfo = false,
-    baseId = undefined
+    baseId: string | undefined = undefined,
   ) => {
     try {
       const response = await api.integration.create(integration)

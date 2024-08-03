@@ -71,6 +71,8 @@ const easterEgg = ref(false)
 
 const easterEggCount = ref(0)
 
+const useSslExpansionPanel = ref<string[]>([])
+
 const isDisabledSubmitBtn = computed(() => {
   if (isEditMode.value) {
     return !testSuccess.value && !isEnabledSaveChangesBtn.value
@@ -187,6 +189,7 @@ const updateSSLUse = (updateActiveIntegrationFormState = false) => {
 
     if (updateActiveIntegrationFormState) {
       activeIntegrationformState.value.sslUse = toRaw(formState.value.sslUse)
+      useSslExpansionPanel.value = formState.value.sslUse !== SSLUsage.No ? ['1'] : []
     }
   }
 }
@@ -274,7 +277,7 @@ const createOrUpdateIntegration = async () => {
         },
         'create',
         props.loadDatasourceInfo,
-        props.baseId
+        props.baseId,
       )
     } else {
       await updateIntegration({
@@ -380,6 +383,17 @@ function checkDifference() {
   }
 
   return true
+}
+
+const handleUpdateUseSslExpannsionPanel = (open: boolean) => {
+  if (open) {
+    useSslExpansionPanel.value = ['1']
+  } else {
+    useSslExpansionPanel.value = []
+    // reset only on collapse use ssl panel
+    formState.value.sslUse = SSLUsage.No
+    onSSLModeChange(formState.value.sslUse, {})
+  }
 }
 
 // reset test status on config change
@@ -818,7 +832,7 @@ watch(
                                     <a-input v-model:value="item.value" placeholder="Value" />
 
                                     <NcButton type="text" size="small" @click="removeParam(index)">
-                                      <GeneralIcon icon="delete" class="flex-none" />
+                                      <GeneralIcon icon="delete" class="flex-none text-gray-500" />
                                     </NcButton>
                                   </div>
                                 </a-col>
@@ -846,101 +860,137 @@ watch(
               >
                 <NcDivider />
 
-                <a-collapse ghost class="!mt-4">
+                <a-collapse ghost v-model:activeKey="useSslExpansionPanel" class="!mt-4">
                   <template #expandIcon="{ isActive }">
-                    <a-switch :checked="isActive" size="small" class="!mt-1" />
+                    <a-switch :checked="isActive" size="small" @change="handleUpdateUseSslExpannsionPanel($event)" />
                   </template>
-                  <a-collapse-panel key="1">
+                  <a-collapse-panel key="1" disabled>
                     <template #header>
                       <div class="flex">
-                        <div class="nc-form-section-title">Use SSL</div>
+                        <div
+                          class="nc-form-section-title cursor-pointer"
+                          @click="handleUpdateUseSslExpannsionPanel(!useSslExpansionPanel.length)"
+                        >
+                          Use SSL
+                        </div>
                       </div>
                     </template>
 
-                    <a-row :gutter="24">
-                      <a-col :span="12">
-                        <a-form-item label="SSL mode">
-                          <NcSelect
-                            v-model:value="formState.sslUse"
-                            class="nc-select-shadow"
-                            dropdown-class-name="nc-dropdown-ssl-mode"
-                            @select="onSSLModeChange"
+                    <div class="border-1 rounded-lg p-3">
+                      <a-row :gutter="24">
+                        <a-col :span="12">
+                          <a-form-item label="SSL mode">
+                            <NcSelect
+                              v-model:value="formState.sslUse"
+                              class="nc-select-shadow"
+                              dropdown-class-name="nc-dropdown-ssl-mode"
+                              @select="onSSLModeChange"
+                            >
+                              <a-select-option v-for="opt in Object.values(SSLUsage)" :key="opt" :value="opt">
+                                <div class="w-full flex gap-2 items-center">
+                                  <div class="flex-1">
+                                    {{ opt }}
+                                  </div>
+
+                                  <component
+                                    :is="iconMap.check"
+                                    v-if="formState.sslUse === opt"
+                                    id="nc-selected-item-icon"
+                                    class="text-primary w-4 h-4"
+                                  />
+                                </div>
+                              </a-select-option>
+                            </NcSelect>
+                          </a-form-item>
+                        </a-col>
+                      </a-row>
+
+                      <a-row :gutter="24">
+                        <a-col :span="24">
+                          <a-form-item
+                            v-if="formState.sslUse && ![SSLUsage.No, SSLUsage.Allowed].includes(formState.sslUse)"
+                            label="SSL keys"
+                            class="!mt-3"
                           >
-                            <a-select-option v-for="opt in Object.values(SSLUsage)" :key="opt" :value="opt"
-                              >{{ opt }}
-                            </a-select-option>
-                          </NcSelect>
-                        </a-form-item>
-                      </a-col>
-                    </a-row>
+                            <div class="flex gap-2 w-full">
+                              <NcTooltip placement="top">
+                                <!-- Select .cert file -->
+                                <template #title>
+                                  <span>{{ $t('tooltip.clientCert') }}</span>
+                                </template>
 
-                    <a-row :gutter="24">
-                      <a-col :span="24">
-                        <a-form-item
-                          v-if="formState.sslUse && ![SSLUsage.No, SSLUsage.Allowed].includes(formState.sslUse)"
-                          label="SSL keys"
-                          class="!mt-3"
-                        >
-                          <div class="flex gap-2">
-                            <a-tooltip placement="top">
-                              <!-- Select .cert file -->
-                              <template #title>
-                                <span>{{ $t('tooltip.clientCert') }}</span>
-                              </template>
+                                <NcButton
+                                  size="small"
+                                  type="secondary"
+                                  :disabled="!sslFilesRequired"
+                                  class="shadow !w-[90px]"
+                                  @click="certFileInput?.click()"
+                                >
+                                  {{ $t('labels.clientCert') }}
+                                </NcButton>
+                              </NcTooltip>
 
-                              <NcButton size="small" :disabled="!sslFilesRequired" class="shadow" @click="certFileInput?.click()">
-                                {{ $t('labels.clientCert') }}
-                              </NcButton>
-                            </a-tooltip>
+                              <NcTooltip placement="top">
+                                <!-- Select .key file -->
+                                <template #title>
+                                  <span>{{ $t('tooltip.clientKey') }}</span>
+                                </template>
+                                <NcButton
+                                  size="small"
+                                  type="secondary"
+                                  :disabled="!sslFilesRequired"
+                                  class="shadow !w-[90px]"
+                                  @click="keyFileInput?.click()"
+                                >
+                                  {{ $t('labels.clientKey') }}
+                                </NcButton>
+                              </NcTooltip>
 
-                            <a-tooltip placement="top">
-                              <!-- Select .key file -->
-                              <template #title>
-                                <span>{{ $t('tooltip.clientKey') }}</span>
-                              </template>
-                              <NcButton size="small" :disabled="!sslFilesRequired" class="shadow" @click="keyFileInput?.click()">
-                                {{ $t('labels.clientKey') }}
-                              </NcButton>
-                            </a-tooltip>
+                              <NcTooltip placement="top">
+                                <!-- Select CA file -->
+                                <template #title>
+                                  <span>{{ $t('tooltip.clientCA') }}</span>
+                                </template>
 
-                            <a-tooltip placement="top">
-                              <!-- Select CA file -->
-                              <template #title>
-                                <span>{{ $t('tooltip.clientCA') }}</span>
-                              </template>
+                                <NcButton
+                                  size="small"
+                                  type="secondary"
+                                  :disabled="!sslFilesRequired"
+                                  class="shadow !w-[90px]"
+                                  @click="caFileInput?.click()"
+                                >
+                                  {{ $t('labels.serverCA') }}
+                                </NcButton>
+                              </NcTooltip>
+                            </div>
+                          </a-form-item>
+                        </a-col>
+                      </a-row>
 
-                              <NcButton size="small" :disabled="!sslFilesRequired" class="shadow" @click="caFileInput?.click()">
-                                {{ $t('labels.serverCA') }}
-                              </NcButton>
-                            </a-tooltip>
-                          </div>
-                        </a-form-item>
-                      </a-col>
-                    </a-row>
+                      <input
+                        ref="caFileInput"
+                        type="file"
+                        class="!hidden"
+                        accept=".ca"
+                        @change="onFileSelect(CertTypes.ca, caFileInput)"
+                      />
 
-                    <input
-                      ref="caFileInput"
-                      type="file"
-                      class="!hidden"
-                      accept=".ca"
-                      @change="onFileSelect(CertTypes.ca, caFileInput)"
-                    />
+                      <input
+                        ref="certFileInput"
+                        type="file"
+                        class="!hidden"
+                        accept=".cert"
+                        @change="onFileSelect(CertTypes.cert, certFileInput)"
+                      />
 
-                    <input
-                      ref="certFileInput"
-                      type="file"
-                      class="!hidden"
-                      accept=".cert"
-                      @change="onFileSelect(CertTypes.cert, certFileInput)"
-                    />
-
-                    <input
-                      ref="keyFileInput"
-                      type="file"
-                      class="!hidden"
-                      accept=".key"
-                      @change="onFileSelect(CertTypes.key, keyFileInput)"
-                    />
+                      <input
+                        ref="keyFileInput"
+                        type="file"
+                        class="!hidden"
+                        accept=".key"
+                        @change="onFileSelect(CertTypes.key, keyFileInput)"
+                      />
+                    </div>
                   </a-collapse-panel>
                 </a-collapse>
               </template>
@@ -1021,14 +1071,14 @@ watch(
 
 <style lang="scss" scoped>
 :deep(.ant-collapse-header) {
-  @apply !-mt-4 !p-0 flex items-center;
+  @apply !-mt-4 !p-0 flex items-center !cursor-default children:first:flex;
 }
 :deep(.ant-collapse-icon-position-right > .ant-collapse-item > .ant-collapse-header .ant-collapse-arrow) {
   @apply !right-0;
 }
 
 :deep(.ant-collapse-content-box) {
-  @apply !px-0 !pb-0 !pt-6;
+  @apply !px-0 !pb-0 !pt-3;
 }
 
 :deep(.ant-form-item-explain-error) {

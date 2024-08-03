@@ -47,6 +47,9 @@ function defaultValues(type: IntegrationsSubType) {
 }
 
 const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState(() => {
+  const router = useRouter()
+  const route = router.currentRoute
+
   const { api } = useApi()
   const pageMode = ref<IntegrationsPageMode | null>(null)
   const activeIntegration = ref<IntegrationType | null>(null)
@@ -65,6 +68,18 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
   const eventBus = useEventBus<IntegrationStoreEventsTypes>(Symbol('integrationStore'))
 
   const { $e } = useNuxtApp()
+
+  const isFromIntegrationPage = ref(false)
+
+  const activeViewTab = computed({
+    get() {
+      return (route.value.query?.tab as string) ?? 'integrations'
+    },
+    set(tab: string) {
+      router.push({ query: { ...route.value.query, tab } })
+    },
+  })
+
 
   const requestIntegration = ref({
     isOpen: false,
@@ -193,6 +208,9 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
       activeIntegration.value = null
 
       if (response?.title && mode === 'create') {
+        if (isFromIntegrationPage.value) {
+          activeViewTab.value = 'connections'
+        }
         await message.success(`Connection "${response.title}" created successfully`)
       }
     } catch (e) {
@@ -291,6 +309,8 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     eventBus,
     requestIntegration,
     integrationPaginationData,
+    activeViewTab,
+    isFromIntegrationPage,
     addIntegration,
     loadIntegrations,
     deleteIntegration,

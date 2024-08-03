@@ -26,13 +26,13 @@ const upVoteCountBySyncDataTypeMap = computed(() => {
   >
     <div class="h-full flex flex-col overflow-hidden">
       <div class="flex items-center justify-between gap-4 p-4 border-b-1 border-gray-200">
-        <GeneralIcon icon="refresh" class="flex-none h-8 w-8 !text-blue-700" />
+        <GeneralIcon icon="refresh" class="flex-none h-7 w-7 !text-blue-700" />
         <div class="flex-1 flex items-center gap-3">
-          <h3 class="my-0 capitalize text-gray-800 text-2xl font-bold">
+          <h3 class="my-0 capitalize text-base font-weight-700">
             {{ $t('labels.syncData') }}
           </h3>
 
-          <NcBadge :border="false" class="text-brand-500 !h-7 bg-brand-50 text-sm px-2 font-weight-500">{{
+          <NcBadge :border="false" class="text-brand-500 !h-6 bg-brand-50 text-sm px-2">{{
             $t('title.comingSoon')
           }}</NcBadge>
         </div>

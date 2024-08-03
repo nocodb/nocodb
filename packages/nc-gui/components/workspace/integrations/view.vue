@@ -12,20 +12,11 @@ const { loadRoles } = useRoles()
 const { activeWorkspace: _activeWorkspace } = storeToRefs(workspaceStore)
 const { loadCollaborators } = workspaceStore
 
-const { integrationPaginationData, loadIntegrations } = useProvideIntegrationViewStore()
+const { isFromIntegrationPage, integrationPaginationData, activeViewTab, loadIntegrations } = useProvideIntegrationViewStore()
 
 const currentWorkspace = computedAsync(async () => {
   await loadRoles(undefined, {}, _activeWorkspace.value?.id)
   return _activeWorkspace.value
-})
-
-const tab = computed({
-  get() {
-    return route.value.query?.tab ?? 'integrations'
-  },
-  set(tab: string) {
-    router.push({ query: { ...route.value.query, tab } })
-  },
 })
 
 watch(
@@ -43,11 +34,17 @@ watch(
 )
 
 onMounted(() => {
+  isFromIntegrationPage.value = true
+
   until(() => currentWorkspace.value?.id)
     .toMatch((v) => !!v)
     .then(async () => {
       await Promise.all([loadCollaborators({} as any, currentWorkspace.value!.id), loadIntegrations()])
     })
+})
+
+onBeforeMount(() => {
+  isFromIntegrationPage.value = false
 })
 </script>
 
@@ -59,7 +56,7 @@ onMounted(() => {
       </h1>
     </div>
 
-    <NcTabs v-model:activeKey="tab">
+    <NcTabs v-model:activeKey="activeViewTab">
       <template #leftExtra>
         <div class="w-6"></div>
       </template>
@@ -86,8 +83,8 @@ onMounted(() => {
                 v-if="integrationPaginationData?.totalRows"
                 class="tab-info flex-none"
                 :class="{
-                  'bg-primary-selected': tab === 'connections',
-                  'bg-gray-50': tab !== 'connections',
+                  'bg-primary-selected': activeViewTab === 'connections',
+                  'bg-gray-50': activeViewTab !== 'connections',
                 }"
               >
                 {{ integrationPaginationData.totalRows }}

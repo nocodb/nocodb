@@ -409,13 +409,8 @@ const handleAutoScroll = (scroll: boolean, className: string) => {
   >
     <div class="flex-1 max-h-full">
       <div class="px-4 py-3 w-full flex items-center justify-between gap-3 border-b-1 border-gray-200">
-        <div class="flex-1 flex items-center gap-3">
-          <NcButton :disabled="creatingSource" type="text" size="small" @click="vOpen = false">
-            <GeneralIcon icon="arrowLeft" />
-          </NcButton>
+        <div class="flex-1 text-base font-weight-700">New Source</div>
 
-          <div class="flex-1 text-sm font-weight-700">New Source</div>
-        </div>
         <div class="flex items-center gap-3">
           <div class="w-[15px] h-[15px] cursor-pointer" @dblclick="onEasterEgg"></div>
           <NcTooltip :disabled="!testConnectionError">

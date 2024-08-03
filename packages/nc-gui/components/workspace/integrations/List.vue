@@ -211,18 +211,29 @@ onKeyStroke('ArrowDown', onDown)
 
 <template>
   <div class="h-full flex flex-col gap-6 nc-workspace-connections">
-    <div class="flex items-center justify-between gap-3 mx-1">
-      <a-input
-        v-model:value="searchQuery"
-        type="text"
-        class="nc-search-integration-input !max-w-90 nc-input-sm"
-        :placeholder="`${$t('general.search')} ${$t('general.connections').toLowerCase()}`"
-        allow-clear
-      >
-        <template #prefix>
-          <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-gray-500" />
-        </template>
-      </a-input>
+    <div class="flex flex-col gap-3">
+      <div class="text-sm">
+        <div>
+          Connections simplify managing stored configurations for different integrations. Click on a connection to view / modify.
+        </div>
+        <div class="mt-2">
+          <!-- Todo: add link  -->
+          <a> Learn more </a>
+        </div>
+      </div>
+      <div class="flex items-center justify-end gap-3 mx-1">
+        <a-input
+          v-model:value="searchQuery"
+          type="text"
+          class="nc-search-integration-input !max-w-90 nc-input-sm"
+          :placeholder="`${$t('general.search')} ${$t('general.connections').toLowerCase()}`"
+          allow-clear
+        >
+          <template #prefix>
+            <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-gray-500" />
+          </template>
+        </a-input>
+      </div>
     </div>
     <div class="table-container relative flex-1">
       <div
@@ -483,6 +494,28 @@ onKeyStroke('ArrowDown', onDown)
         </div>
       </div>
 
+     
+      <div
+        v-if="!isLoadingIntegrations && (!integrations?.length || !filteredIntegrations.length)"
+        class="flex-none integration-table-empty flex items-center justify-center py-8 px-6 h-full max-h-[calc(100%_-_94px)]"
+      >
+        <div
+          v-if="integrations?.length && !filteredIntegrations.length"
+          class="px-2 py-6 text-gray-500 flex flex-col items-center gap-6 text-center"
+        >
+          <img
+            src="~assets/img/placeholder/no-search-result-found.png"
+            class="!w-[164px] flex-none"
+            alt="No search results found"
+          />
+
+          {{ $t('title.noResultsMatchedYourSearch') }}
+        </div>
+
+        <div v-else class="flex-none text-center flex flex-col items-center gap-3">
+          <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" class="!my-0" />
+        </div>
+      </div>
       <div
         v-if="integrationPaginationData.totalRows"
         class="flex flex-row justify-center items-center bg-gray-50 min-h-10"
@@ -508,27 +541,6 @@ onKeyStroke('ArrowDown', onDown)
           <div class="text-gray-500 text-xs">
             {{ integrationPaginationData.totalRows }} {{ integrationPaginationData.totalRows === 1 ? 'record' : 'records' }}
           </div>
-        </div>
-      </div>
-      <div
-        v-if="!isLoadingIntegrations && (!integrations?.length || !filteredIntegrations.length)"
-        class="flex-none integration-table-empty flex items-center justify-center py-8 px-6 h-full max-h-[calc(100%_-_55px)]"
-      >
-        <div
-          v-if="integrations?.length && !filteredIntegrations.length"
-          class="px-2 py-6 text-gray-500 flex flex-col items-center gap-6 text-center"
-        >
-          <img
-            src="~assets/img/placeholder/no-search-result-found.png"
-            class="!w-[164px] flex-none"
-            alt="No search results found"
-          />
-
-          {{ $t('title.noResultsMatchedYourSearch') }}
-        </div>
-
-        <div v-else class="flex-none text-center flex flex-col items-center gap-3">
-          <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" class="!my-0" />
         </div>
       </div>
     </div>

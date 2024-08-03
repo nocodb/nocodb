@@ -476,14 +476,7 @@ const changeIntegration = () => {
 </script>
 
 <template>
-  <!-- <GeneralModal
-    :visible="vOpen"
-    :closable="!creatingSource"
-    :keyboard="!creatingSource"
-    :mask-closable="false"
-    :width="900"
-    @update:visible="toggleModal"
-  > -->
+  <div>
     <div class="py-6 px-8">
       <div class="create-source bg-white relative flex flex-col justify-center gap-2 w-full">
         <h1 class="prose-xl font-bold self-start mb-4 flex items-center gap-2">
@@ -858,7 +851,7 @@ const changeIntegration = () => {
         </a-modal>
       </div>
     </div>
-  <!-- </GeneralModal> -->
+  </div>
 </template>
 
 <style lang="scss" scoped>

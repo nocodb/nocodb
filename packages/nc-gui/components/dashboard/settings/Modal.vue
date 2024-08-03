@@ -156,29 +156,26 @@ watch(
     :footer="null"
     width="max(90vw, 600px)"
     :closable="false"
-    class="!top-50px !bottom-50px"
-    wrap-class-name="nc-modal-settings"
+    wrap-class-name="nc-modal-settings "
     @cancel="emits('update:modelValue', false)"
   >
-    <!--    Settings -->
-    <div class="flex flex-row justify-between w-full items-center mb-1 border-b-1 border-gray-200">
-      <a-typography-title class="ml-4 select-none" type="secondary" :level="5">
-        {{ $t('activity.settings') }}
-      </a-typography-title>
+  <div class="h-80vh">
 
-      <a-button
-        type="text"
-        class="!rounded-md border-none !px-1.5"
-        data-testid="settings-modal-close-button"
-        @click="vModel = false"
-      >
+
+    <!--    Settings -->
+    <div class="flex flex-row justify-between w-full items-center p-4 border-b-1 border-gray-200">
+      <h5 class="!my-0 text-2xl font-bold">
+        {{ $t('activity.settings') }}
+      </h5>
+
+      <NcButton type="text" size="small" data-testid="settings-modal-close-button" @click="vModel = false">
         <component :is="iconMap.close" class="cursor-pointer nc-modal-close w-4" />
-      </a-button>
+      </NcButton>
     </div>
 
-    <a-layout class="mt-3 overflow-y-auto flex">
+    <a-layout class="overflow-y-auto flex !h-[calc(100%_-_66px)]">
       <!-- Side tabs -->
-      <a-layout-sider>
+      <a-layout-sider class="!bg-white !children:pl-3">
         <a-menu v-model:selected-keys="selectedTabKeys" class="tabs-menu h-full" :open-keys="[]">
           <template v-for="(tab, key) of tabsInfo" :key="key">
             <a-menu-item
@@ -199,12 +196,13 @@ watch(
       </a-layout-sider>
 
       <!-- Sub Tabs -->
-      <a-layout-content class="h-auto h-80vh px-4 scrollbar-thumb-gray-500">
+      <a-layout-content class="h-full scrollbar-thumb-gray-500">
         <a-menu
           v-if="selectedTabKeys[0] !== 'dataSources'"
           v-model:selectedKeys="selectedSubTabKeys"
           :open-keys="[]"
           mode="horizontal"
+          class="px-4"
         >
           <a-menu-item
             v-for="(tab, key) of selectedTab.subTabs"
@@ -220,6 +218,7 @@ watch(
           class="overflow-auto"
           :class="{
             'h-full': selectedSubTabKeys[0] === 'dataSources',
+            'px-4': selectedTabKeys[0] !== 'dataSources',
           }"
         >
           <component
@@ -227,7 +226,7 @@ watch(
             v-if="selectedSubTabKeys[0] === 'dataSources'"
             v-model:state="vDataState"
             v-model:reload="dataSourcesReload"
-            class="px-2 pb-2 h-full"
+            class="h-full"
             :data-testid="`nc-settings-subtab-${selectedSubTab.key}`"
             :base-id="baseId"
           />
@@ -241,6 +240,7 @@ watch(
         </div>
       </a-layout-content>
     </a-layout>
+  </div>
   </a-modal>
 </template>
 
@@ -248,6 +248,16 @@ watch(
 .tabs-menu {
   :deep(.ant-menu-item-selected) {
     @apply border-r-3 border-primary bg-primary !bg-opacity-25;
+  }
+}
+</style>
+
+<style lang="scss">
+.nc-modal-settings {
+  .ant-modal-content {
+    @apply !p-0 overflow-hidden;
+
+   
   }
 }
 </style>

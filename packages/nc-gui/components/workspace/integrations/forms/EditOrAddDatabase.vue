@@ -828,44 +828,49 @@ watch(
                       </a-col>
                     </a-row>
 
-                    <a-form-item
-                      v-if="formState.sslUse && ![SSLUsage.No, SSLUsage.Allowed].includes(formState.sslUse)"
-                      label="SSL keys"
-                    >
-                      <div class="flex gap-2">
-                        <a-tooltip placement="top">
-                          <!-- Select .cert file -->
-                          <template #title>
-                            <span>{{ $t('tooltip.clientCert') }}</span>
-                          </template>
+                    <a-row :gutter="24">
+                      <a-col :span="24">
+                        <a-form-item
+                          v-if="formState.sslUse && ![SSLUsage.No, SSLUsage.Allowed].includes(formState.sslUse)"
+                          label="SSL keys"
+                          class="!mt-3"
+                        >
+                          <div class="flex gap-2">
+                            <a-tooltip placement="top">
+                              <!-- Select .cert file -->
+                              <template #title>
+                                <span>{{ $t('tooltip.clientCert') }}</span>
+                              </template>
 
-                          <NcButton size="small" :disabled="!sslFilesRequired" class="shadow" @click="certFileInput?.click()">
-                            {{ $t('labels.clientCert') }}
-                          </NcButton>
-                        </a-tooltip>
+                              <NcButton size="small" :disabled="!sslFilesRequired" class="shadow" @click="certFileInput?.click()">
+                                {{ $t('labels.clientCert') }}
+                              </NcButton>
+                            </a-tooltip>
 
-                        <a-tooltip placement="top">
-                          <!-- Select .key file -->
-                          <template #title>
-                            <span>{{ $t('tooltip.clientKey') }}</span>
-                          </template>
-                          <NcButton size="small" :disabled="!sslFilesRequired" class="shadow" @click="keyFileInput?.click()">
-                            {{ $t('labels.clientKey') }}
-                          </NcButton>
-                        </a-tooltip>
+                            <a-tooltip placement="top">
+                              <!-- Select .key file -->
+                              <template #title>
+                                <span>{{ $t('tooltip.clientKey') }}</span>
+                              </template>
+                              <NcButton size="small" :disabled="!sslFilesRequired" class="shadow" @click="keyFileInput?.click()">
+                                {{ $t('labels.clientKey') }}
+                              </NcButton>
+                            </a-tooltip>
 
-                        <a-tooltip placement="top">
-                          <!-- Select CA file -->
-                          <template #title>
-                            <span>{{ $t('tooltip.clientCA') }}</span>
-                          </template>
+                            <a-tooltip placement="top">
+                              <!-- Select CA file -->
+                              <template #title>
+                                <span>{{ $t('tooltip.clientCA') }}</span>
+                              </template>
 
-                          <NcButton size="small" :disabled="!sslFilesRequired" class="shadow" @click="caFileInput?.click()">
-                            {{ $t('labels.serverCA') }}
-                          </NcButton>
-                        </a-tooltip>
-                      </div>
-                    </a-form-item>
+                              <NcButton size="small" :disabled="!sslFilesRequired" class="shadow" @click="caFileInput?.click()">
+                                {{ $t('labels.serverCA') }}
+                              </NcButton>
+                            </a-tooltip>
+                          </div>
+                        </a-form-item>
+                      </a-col>
+                    </a-row>
 
                     <input
                       ref="caFileInput"
@@ -1095,7 +1100,7 @@ watch(
 
   :deep(.ant-row:not(.ant-form-item)) {
     @apply !-mx-1.5;
-    .ant-col {
+    & > .ant-col {
       @apply !px-1.5;
     }
   }

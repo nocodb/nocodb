@@ -270,7 +270,6 @@ const openedTab = ref('erd')
 <template>
   <div class="flex flex-col h-full" data-testid="nc-settings-datasources-tab">
     <div v-if="vState !== DataSourcesSubTab.New" class="px-4 py-3 flex justify-between">
-      
       <a-breadcrumb separator=">" class="w-full cursor-pointer font-weight-bold">
         <a-breadcrumb-item @click="activeSource = null">
           <a class="!no-underline">Data Sources</a>
@@ -297,7 +296,7 @@ const openedTab = ref('erd')
       data-testid="nc-settings-datasources"
       class="flex flex-row w-full nc-data-sources-view flex-grow min-h-0"
       :style="{
-        maxHeight: isNewBaseModalOpen ? '100%' : 'calc(100% - 210px)',
+        maxHeight: isNewBaseModalOpen ? '100%' : activeSource ? 'calc(100% - 46px)' : 'calc(100% - 66px)',
       }"
     >
       <template v-if="activeSource">
@@ -308,7 +307,7 @@ const openedTab = ref('erd')
                 <div>{{ $t('title.erdView') }}</div>
               </div>
             </template>
-            <div class="h-full pt-4">
+            <div class="h-full p-4">
               <LazyDashboardSettingsErd
                 class="h-full overflow-auto"
                 :base-id="baseId"
@@ -333,9 +332,9 @@ const openedTab = ref('erd')
                 <div>{{ $t('labels.connectionDetails') }}</div>
               </div>
             </template>
-            <div class="p-6 mt-4 h-full overflow-auto">
+            <div class="h-full">
               <LazyDashboardSettingsDataSourcesEditBase
-                class="w-760px pr-5"
+              
                 :source-id="activeSource.id"
                 @source-updated="loadBases(true)"
                 @close="activeSource = null"
@@ -350,7 +349,7 @@ const openedTab = ref('erd')
               </div>
             </template>
 
-            <div class="pt-4 h-full">
+            <div class="p-4 h-full">
               <LazyDashboardSettingsUIAcl :source-id="activeSource.id" />
             </div>
           </a-tab-pane>
@@ -360,13 +359,19 @@ const openedTab = ref('erd')
                 <div>{{ $t('labels.metaSync') }}</div>
               </div>
             </template>
-            <div class="pt-4 h-full">
+            <div class="p-4 h-full">
               <LazyDashboardSettingsMetadata :source-id="activeSource.id" @source-synced="loadBases(true)" />
             </div>
           </a-tab-pane>
         </NcTabs>
       </template>
-      <div v-else class="flex flex-col w-full overflow-auto mt-1">
+      <div
+        v-else
+        class="flex flex-col w-full"
+        :class="{
+          'overflow-auto': !isNewBaseModalOpen,
+        }"
+      >
         <template v-if="isNewBaseModalOpen">
           <DashboardSettingsDataSourcesCreateBase
             v-model:open="isNewBaseModalOpen"
@@ -374,7 +379,7 @@ const openedTab = ref('erd')
             @source-created="loadBases(true)"
           />
         </template>
-        <div v-else class="ds-table overflow-y-auto nc-scrollbar-md relative max-h-full">
+        <div v-else class="ds-table overflow-y-auto nc-scrollbar-md relative max-h-full mx-4 mb-4">
           <div class="ds-table-head sticky top-0 bg-white">
             <div class="ds-table-row !border-0">
               <div class="ds-table-col ds-table-enabled cursor-pointer">{{ $t('general.visibility') }}</div>

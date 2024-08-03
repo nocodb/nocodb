@@ -372,7 +372,11 @@ const handleAddNewConnection = () => {
 eventBus.on((event, payload) => {
   if (event === IntegrationStoreEvents.INTEGRATION_ADD && pageMode.value === IntegrationsPageMode.ADD && payload?.id) {
     formState.value.fk_integration_id = payload.id
-    changeIntegration()
+    until(() => selectedIntegration.value?.id === payload.id)
+      .toBeTruthy()
+      .then(() => {
+        changeIntegration()
+      })
   }
 })
 
@@ -492,7 +496,7 @@ const handleAutoScroll = (scroll: boolean, className: string) => {
                           <a-select-option v-for="integration in integrations" :key="integration.id" :value="integration.id">
                             <div class="w-full flex gap-2 items-center" :data-testid="integration.title">
                               <GeneralBaseLogo
-                                v-if="integration.type"
+                                v-if="integration?.sub_type"
                                 :source-type="integration.sub_type"
                                 class="flex-none h-4 w-4"
                               />

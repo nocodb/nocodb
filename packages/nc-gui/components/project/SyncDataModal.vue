@@ -22,9 +22,7 @@ const upvotesData = computed(() => {
 const handleUpvote = (syncDataType: SyncDataType) => {
   if (upvotesData.value.has(syncDataType)) return
 
-  $e('a:sync:request', {
-    value: syncDataType,
-  })
+  $e(`a:sync-request:${syncDataType}`)
 
   updateSyncDataUpvotes([...syncDataUpvotes.value, syncDataType])
 }

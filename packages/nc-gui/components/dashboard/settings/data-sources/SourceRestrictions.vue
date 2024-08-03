@@ -61,6 +61,6 @@ const metaWrite = useVModel(props, 'allowMetaWrite', emits)
 }
 
 .nc-source-restictions-card{
-  @apply border-1 border-gray-200 rounded-lg px-1.5 py-2;
+  @apply border-1 border-gray-200 rounded-lg px-3 py-2;
 }
 </style>

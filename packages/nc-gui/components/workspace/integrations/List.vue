@@ -244,6 +244,9 @@ onMounted(async () => {
                 }"
                 @click="updateOrderBy('created_at')"
               >
+              <div>
+
+             
                 <div class="flex items-center gap-3">
                   <div>Date added</div>
                   <GeneralIcon
@@ -256,6 +259,7 @@ onMounted(async () => {
                   />
                   <GeneralIcon v-else icon="chevronUpDown" class="flex-none" />
                 </div>
+                 </div>
               </th>
               <th
                 class="cell-added-by !hover:bg-gray-100 select-none cursor-pointer"

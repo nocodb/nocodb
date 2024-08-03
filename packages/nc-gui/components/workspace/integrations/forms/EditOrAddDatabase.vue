@@ -1018,7 +1018,7 @@ watch(
     @apply text-base font-bold text-gray-800;
   }
   .nc-form-section-body {
-    @apply flex flex-col gap-4;
+    @apply flex flex-col gap-3;
   }
 
   .nc-connection-json-editor {

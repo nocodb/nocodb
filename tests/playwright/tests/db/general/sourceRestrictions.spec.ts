@@ -29,9 +29,14 @@ test.describe('Source Restrictions', () => {
   });
 
   test('Readonly data source', async () => {
-    await dashboard.treeView.openProjectSourceSettings({ title: context.base.title, context });
+    await dashboard.treeView.openProject({ title: context.base.title, context });
 
-    await settingsPage.selectTab({ tab: 'dataSources' });
+    await dashboard.baseView.tab_dataSources.click();
+
+    // await dashboard.treeView.openProjectSourceSettings({ title: context.base.title, context });
+
+    // await settingsPage.selectTab({ tab: 'dataSources' });
+
     await dashboard.rootPage.waitForTimeout(300);
 
     await settingsPage.source.updateSchemaReadOnly({ sourceName: 'Default', readOnly: true });

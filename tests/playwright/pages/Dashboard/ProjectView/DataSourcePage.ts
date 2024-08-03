@@ -22,6 +22,14 @@ export class DataSourcePage extends BasePage {
     return this.rootPage.locator('.nc-data-sources-view');
   }
 
+  getDsDetailsModal() {
+    return this.rootPage.locator('.nc-active-data-sources-view');
+  }
+
+  closeDsDetailsModal() {
+    return this.getDsDetailsModal().locator('.nc-close-btn');
+  }
+
   async getDatabaseTypeList() {
     await this.databaseType.click();
     const nodes = this.rootPage.locator('.nc-dropdown-ext-db-type').locator('.ant-select-item');
@@ -39,7 +47,11 @@ export class DataSourcePage extends BasePage {
     const row = this.get()
       .locator('.ds-table-row')
       .nth(rowIndex + 1);
-    await row.getByTestId('nc-data-sources-view-meta-sync').click();
+
+    await row.click();
+
+    await this.getDsDetailsModal().getByTestId('nc-meta-sync-tab').click();
+    // await row.getByTestId('nc-data-sources-view-meta-sync').click();
   }
 
   async openERD({ rowIndex }: { rowIndex: number }) {
@@ -47,7 +59,12 @@ export class DataSourcePage extends BasePage {
     const row = this.get()
       .locator('.ds-table-row')
       .nth(rowIndex + 1);
-    await row.getByTestId('nc-data-sources-view-erd').click();
+
+    await row.click();
+
+    await this.getDsDetailsModal().getByTestId('nc-erd-tab').click();
+
+    // await row.getByTestId('nc-data-sources-view-erd').click();
   }
 
   async openAudit({ rowIndex }: { rowIndex: number }) {
@@ -55,6 +72,11 @@ export class DataSourcePage extends BasePage {
     const row = this.get()
       .locator('.ds-table-row')
       .nth(rowIndex + 1);
-    await row.getByTestId('nc-data-sources-view-audit').click();
+
+    await row.click();
+
+    await this.getDsDetailsModal().getByTestId('nc-audit-tab').click();
+
+    // await row.getByTestId('nc-data-sources-view-audit').click();
   }
 }

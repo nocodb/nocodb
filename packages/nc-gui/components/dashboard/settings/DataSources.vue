@@ -332,7 +332,7 @@ const handleClickRow = (source: SourceType, tab?: string) => {
         v-model:visible="isOpenModal"
         centered
         size="large"
-        wrap-class-name="nc-settings-active-data-source-modal-wrapper"
+        wrap-class-name="nc-active-data-sources-view"
         @keydown.esc="activeSource = null"
       >
         <div v-if="activeSource" class="h-full">
@@ -346,7 +346,7 @@ const handleClickRow = (source: SourceType, tab?: string) => {
               </a-breadcrumb-item>
             </a-breadcrumb>
 
-            <NcButton size="small" type="text" @click="isOpenModal = false">
+            <NcButton size="small" type="text" class="nc-close-btn" @click="isOpenModal = false">
               <GeneralIcon icon="close" class="text-gray-600" />
             </NcButton>
           </div>
@@ -683,7 +683,7 @@ const handleClickRow = (source: SourceType, tab?: string) => {
 </style>
 
 <style lang="scss">
-.nc-settings-active-data-source-modal-wrapper {
+.nc-active-data-sources-view {
   .ant-modal-content {
     @apply overflow-hidden;
   }

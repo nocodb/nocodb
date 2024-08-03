@@ -71,7 +71,7 @@ export class IntegrationsController {
   async integrationUpdate(
     @TenantContext() context: NcContext,
     @Param('integrationId') integrationId: string,
-    @Body() body: BaseReqType,
+    @Body() body: IntegrationReqType,
     @Req() req: NcRequest,
   ) {
     const integration = await this.integrationsService.integrationUpdate(
@@ -88,9 +88,13 @@ export class IntegrationsController {
 
   @Get(['/api/v2/meta/workspaces/:workspaceId/integrations'])
   @Acl('integrationList')
-  async integrationList(@Param('workspaceId') workspaceId: string) {
+  async integrationList(
+    @Param('workspaceId') workspaceId: string,
+    @Req() req: NcRequest,
+  ) {
     const integrations = await this.integrationsService.integrationList({
       workspaceId,
+      req,
     });
 
     for (const integration of integrations) {

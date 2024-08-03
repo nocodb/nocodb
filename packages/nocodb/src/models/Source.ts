@@ -42,6 +42,8 @@ export default class Source implements SourceType {
   erd_uuid?: string;
   enabled?: BoolType;
   meta?: any;
+  fk_integration_id?: string;
+  integration_config?: string;
 
   constructor(source: Partial<SourceType>) {
     Object.assign(this, source);
@@ -74,6 +76,7 @@ export default class Source implements SourceType {
       'meta',
       'is_schema_readonly',
       'is_data_readonly',
+      'fk_integration_id',
     ]);
 
     insertObj.config = CryptoJS.AES.encrypt(
@@ -107,7 +110,7 @@ export default class Source implements SourceType {
     return returnBase;
   }
 
-  public static async updateBase(
+  public static async update(
     context: NcContext,
     sourceId: string,
     source: SourceType & {
@@ -135,6 +138,7 @@ export default class Source implements SourceType {
       'fk_sql_executor_id',
       'is_schema_readonly',
       'is_data_readonly',
+      'fk_integration_id',
     ]);
 
     if (updateObj.config) {
@@ -210,48 +214,41 @@ export default class Source implements SourceType {
     ncMeta = Noco.ncMeta,
   ): Promise<Source[]> {
     const cachedList = await NocoCache.getList(CacheScope.BASE, [args.baseId]);
-    let { list: baseDataList } = cachedList;
+    let { list: sourceDataList } = cachedList;
     const { isNoneList } = cachedList;
-    if (!isNoneList && !baseDataList.length) {
-      baseDataList = await ncMeta.metaList2(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.BASES,
-        {
-          xcCondition: {
-            _or: [
-              {
-                deleted: {
-                  neq: true,
-                },
-              },
-              {
-                deleted: {
-                  eq: null,
-                },
-              },
-            ],
-          },
-          orderBy: {
-            order: 'asc',
-          },
-        },
-      );
+    if (!isNoneList && !sourceDataList.length) {
+      sourceDataList = await ncMeta
+        .knex(MetaTable.BASES)
+        .select(`${MetaTable.BASES}.*`)
+        .select(`${MetaTable.INTEGRATIONS}.config as integration_config`)
+        .leftJoin(
+          MetaTable.INTEGRATIONS,
+          `${MetaTable.BASES}.fk_integration_id`,
+          `${MetaTable.INTEGRATIONS}.id`,
+        )
+        .where(`${MetaTable.BASES}.base_id`, context.base_id)
+        .where(`${MetaTable.BASES}.fk_workspace_id`, context.workspace_id)
+        .where((whereQb) => {
+          whereQb
+            .where(`${MetaTable.BASES}.deleted`, false)
+            .orWhereNull(`${MetaTable.BASES}.deleted`);
+        })
+        .orderBy(`${MetaTable.BASES}.order`, 'asc');
 
       // parse JSON metadata
-      for (const source of baseDataList) {
+      for (const source of sourceDataList) {
         source.meta = parseMetaProp(source, 'meta');
       }
 
-      await NocoCache.setList(CacheScope.BASE, [args.baseId], baseDataList);
+      await NocoCache.setList(CacheScope.BASE, [args.baseId], sourceDataList);
     }
 
-    baseDataList.sort(
+    sourceDataList.sort(
       (a, b) => (a?.order ?? Infinity) - (b?.order ?? Infinity),
     );
 
-    return baseDataList?.map((baseData) => {
-      return this.castType(baseData);
+    return sourceDataList?.map((sourceData) => {
+      return this.castType(sourceData);
     });
   }
 
@@ -261,44 +258,43 @@ export default class Source implements SourceType {
     force = false,
     ncMeta = Noco.ncMeta,
   ): Promise<Source> {
-    let baseData =
+    let sourceData =
       id &&
       (await NocoCache.get(
         `${CacheScope.BASE}:${id}`,
         CacheGetType.TYPE_OBJECT,
       ));
-    if (!baseData) {
-      baseData = await ncMeta.metaGet2(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.BASES,
-        id,
-        null,
-        force
-          ? {}
-          : {
-              _or: [
-                {
-                  deleted: {
-                    neq: true,
-                  },
-                },
-                {
-                  deleted: {
-                    eq: null,
-                  },
-                },
-              ],
-            },
-      );
+    if (!sourceData) {
+      const qb = ncMeta
+        .knex(MetaTable.BASES)
+        .select(`${MetaTable.BASES}.*`)
+        .select(`${MetaTable.INTEGRATIONS}.config as integration_config`)
+        .leftJoin(
+          MetaTable.INTEGRATIONS,
+          `${MetaTable.BASES}.fk_integration_id`,
+          `${MetaTable.INTEGRATIONS}.id`,
+        )
+        .where(`${MetaTable.BASES}.id`, id)
+        .where(`${MetaTable.BASES}.base_id`, context.base_id)
+        .where(`${MetaTable.BASES}.fk_workspace_id`, context.workspace_id);
 
-      if (baseData) {
-        baseData.meta = parseMetaProp(baseData, 'meta');
+      if (!force) {
+        qb.where((whereQb) => {
+          whereQb
+            .where(`${MetaTable.BASES}.deleted`, false)
+            .orWhereNull(`${MetaTable.BASES}.deleted`);
+        });
       }
 
-      await NocoCache.set(`${CacheScope.BASE}:${id}`, baseData);
+      sourceData = await qb.first();
+
+      if (sourceData) {
+        sourceData.meta = parseMetaProp(sourceData, 'meta');
+      }
+
+      await NocoCache.set(`${CacheScope.BASE}:${id}`, sourceData);
     }
-    return this.castType(baseData);
+    return this.castType(sourceData);
   }
 
   static async getByUUID(
@@ -306,33 +302,36 @@ export default class Source implements SourceType {
     uuid: string,
     ncMeta = Noco.ncMeta,
   ) {
-    const source = await ncMeta.metaGet2(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.BASES,
-      {
-        erd_uuid: uuid,
-      },
-      null,
-      {
-        _or: [
-          {
-            deleted: {
-              neq: true,
-            },
-          },
-          {
-            deleted: {
-              eq: null,
-            },
-          },
-        ],
-      },
-    );
+    const qb = ncMeta
+      .knex(MetaTable.BASES)
+      .select(`${MetaTable.BASES}.*`)
+      // .select(`${MetaTable.INTEGRATIONS}.config as integration_config`)
+      // .leftJoin(
+      //   MetaTable.INTEGRATIONS,
+      //   `${MetaTable.BASES}.fk_integration_id`,
+      //   `${MetaTable.INTEGRATIONS}.id`,
+      // )
+      .where(`${MetaTable.BASES}.erd_uuid`, uuid)
+      .where(`${MetaTable.BASES}.base_id`, context.base_id)
+      .where(`${MetaTable.BASES}.fk_workspace_id`, context.workspace_id);
+
+    qb.where((whereQb) => {
+      whereQb
+        .where(`${MetaTable.BASES}.deleted`, false)
+        .orWhereNull(`${MetaTable.BASES}.deleted`);
+    });
+
+    const source = await qb.first();
+
+    if (source) {
+      source.meta = parseMetaProp(source, 'meta');
+    }
 
     if (!source) return null;
 
     delete source.config;
+
+    delete source.integration_config;
 
     return this.castType(source);
   }

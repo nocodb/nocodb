@@ -19329,44 +19329,37 @@
           "id": "ky2ak9xsyl3b5"
         }
       },
+      "Integrations": {
+        "type": "string",
+        "description": "Integration Type",
+        "enum": [
+          "database"
+        ]
+      },
       "IntegrationReq": {
         "description": "Model for Integration Request",
         "examples": [
           {
-            "alias": "My Source",
-            "config": null,
-            "inflection_column": "camelize",
-            "inflection_table": "camelize",
-            "is_meta": true,
-            "type": "mysql"
+            "title": "My Source",
+            "config": {},
+            "type": "db"
           }
         ],
         "properties": {
-          "alias": {
-            "description": "Source Name - Default BASE will be null by default",
-            "example": "My Source",
+          "title": {
+            "description": "Integration Name - Default BASE will be null by default",
+            "example": "Integration",
             "maxLength": 128,
             "type": "string"
           },
           "config": {
             "description": "Source Configuration"
           },
-          "inflection_column": {
-            "description": "Inflection for columns",
-            "example": "camelize",
-            "type": "string"
-          },
-          "inflection_table": {
-            "description": "Inflection for tables",
-            "example": "camelize",
-            "type": "string"
+          "meta": {
+            "description": "Integration metas"
           },
           "type": {
-            "type": "string",
-            "description": "Integration Type",
-            "enum": [
-              "db"
-            ]
+            "$ref": "#/components/schemas/Integrations"
           },
           "sub_type": {
             "description": "Sub Type",
@@ -19387,7 +19380,12 @@
         "type": "object",
         "x-stoplight": {
           "id": "ky2ak9xsyl3b5"
-        }
+        },
+        "required": [
+          "title",
+          "config",
+          "type"
+        ]
       },
       "Bool": {
         "description": "Model for Bool",

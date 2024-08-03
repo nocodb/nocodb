@@ -2,6 +2,7 @@ import CryptoJS from 'crypto-js';
 import type { DriverClient } from '~/utils/nc-config';
 import type { BoolType, IntegrationType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
+import type { Condition } from '~/db/CustomKnex';
 import NocoCache from '~/cache/NocoCache';
 import {
   CacheDelDirection,
@@ -87,15 +88,7 @@ export default class Integration {
       insertObj,
     );
 
-    const returnBase = await this.get(id, false, ncMeta);
-
-    // await NocoCache.appendToList(
-    //   CacheScope.BASE,
-    //   [integration.baseId],
-    //   `${CacheScope.BASE}:${id}`,
-    // );
-
-    return returnBase;
+    return await this.get(id, false, ncMeta);
   }
 
   public static async updateIntegration(
@@ -152,8 +145,8 @@ export default class Integration {
     }
 
     await ncMeta.metaUpdate(
-      context.workspace_id,
-      context.base_id,
+      RootScopes.WORKSPACE,
+      RootScopes.WORKSPACE,
       MetaTable.INTEGRATIONS,
       prepareForDb(updateObj),
       oldIntegration.id,
@@ -182,30 +175,69 @@ export default class Integration {
   }
 
   static async list(
-    args: { workspaceId: string },
+    args: {
+      workspaceId: string;
+      haveWorkspaceLevelPermission: boolean;
+      userId: string;
+    },
     ncMeta = Noco.ncMeta,
   ): Promise<Integration[]> {
     // const cachedList = await NocoCache.getList(CacheScope.BASE, [args.workspaceId]);
     // let { list: integrationList } = cachedList;
     // const { isNoneList } = cachedList;
-    // if (!isNoneList && !integrationList.length) {
+    // if (!isNoneList && !integrationList.length)
+
+    const conditions: Condition[] = [];
+
+    // if user have workspace level permission(creator, owner) then show all integrations which are not deleted
+    // and exclude integrations which are private and not created by user
+    if (args.haveWorkspaceLevelPermission) {
+      conditions.push({
+        _or: [
+          {
+            is_private: {
+              eq: false,
+            },
+          },
+          {
+            created_by: {
+              eq: args.userId,
+            },
+          },
+        ],
+      });
+    }
+    // if user don't have workspace level permission then show only integrations which are owned by user
+    else {
+      conditions.push({
+        created_by: {
+          eq: args.userId,
+        },
+      });
+    }
+
     const integrationList = await ncMeta.metaList2(
       RootScopes.WORKSPACE,
       RootScopes.WORKSPACE,
       MetaTable.INTEGRATIONS,
       {
         xcCondition: {
-          _or: [
+          _and: [
             {
-              deleted: {
-                neq: true,
-              },
+              _or: [
+                {
+                  deleted: {
+                    neq: true,
+                  },
+                },
+                {
+                  deleted: {
+                    eq: null,
+                  },
+                },
+              ],
             },
-            {
-              deleted: {
-                eq: null,
-              },
-            },
+            ...conditions,
           ],
         },
         orderBy: {

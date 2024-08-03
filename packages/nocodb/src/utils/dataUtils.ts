@@ -52,3 +52,38 @@ export const getParamsHash = (params: Record<string, string | string[]>) => {
 
   return hash64(paramsStr);
 };
+
+const isMergeableObject = (val: any) => {
+  const nonNullObject = val && typeof val === 'object';
+  return (
+    nonNullObject &&
+    Object.prototype.toString.call(val) !== '[object RegExp]' &&
+    Object.prototype.toString.call(val) !== '[object Date]'
+  );
+};
+
+/**
+ * Deep merge two objects
+ * @param target target object to merge
+ * @param sources source objects to merge
+ * @returns
+ **/
+export const deepMerge = (target: any, ...sources: any[]) => {
+  if (!sources.length) return target;
+  const source = sources.shift();
+
+  if (source === undefined) return target;
+
+  if (isMergeableObject(target) && isMergeableObject(source)) {
+    Object.keys(source).forEach((key) => {
+      if (isMergeableObject(source[key])) {
+        if (!target[key]) Object.assign(target, { [key]: {} });
+        deepMerge(target[key], source[key]);
+      } else {
+        Object.assign(target, { [key]: source[key] });
+      }
+    });
+  }
+
+  return deepMerge(target, ...sources);
+};

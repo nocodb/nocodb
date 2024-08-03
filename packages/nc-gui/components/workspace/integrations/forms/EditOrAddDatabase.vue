@@ -448,7 +448,7 @@ watch(
           class="nc-extdb-btn-submit"
           @click="createOrUpdateIntegration"
         >
-          {{ pageMode === IntegrationsPageMode.ADD ? 'Add integration' : 'Edit integration' }}
+          {{ pageMode === IntegrationsPageMode.ADD ? 'Create connection' : 'Modify connection' }}
         </NcButton>
         <NcButton size="small" type="text" @click="vOpen = false">
           <GeneralIcon icon="close" class="text-gray-600" />
@@ -474,7 +474,7 @@ watch(
                   <a-row :gutter="24">
                     <a-col :span="12">
                       <a-form-item label="Integration name" v-bind="validateInfos.title">
-                        <a-input v-model:value="formState.title" @update:value="populateName($event)"/>
+                        <a-input v-model:value="formState.title" @update:value="populateName($event)" />
                       </a-form-item>
                     </a-col>
                   </a-row>

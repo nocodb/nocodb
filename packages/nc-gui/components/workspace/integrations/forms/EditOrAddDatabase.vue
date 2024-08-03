@@ -1095,8 +1095,8 @@ watch(
           <DashboardSettingsDataSourcesInfo varient="new" />
           <NcDivider />
         </template>
-        <!-- <WorkspaceIntegrationsSupportedDocs/>
-        <NcDivider /> -->
+        <WorkspaceIntegrationsSupportedDocs/>
+        <NcDivider />
       </div>
     </div>
   </div>

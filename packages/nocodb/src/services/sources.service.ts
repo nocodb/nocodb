@@ -34,7 +34,7 @@ export class SourcesService {
     validatePayload('swagger.json#/components/schemas/BaseReq', param.source);
 
     const baseBody = param.source;
-    const source = await Source.updateBase(context, param.sourceId, {
+    const source = await Source.update(context, param.sourceId, {
       ...baseBody,
       type: baseBody.config?.client,
       id: param.sourceId,

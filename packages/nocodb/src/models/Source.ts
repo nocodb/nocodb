@@ -483,7 +483,7 @@ export default class Source implements SourceType {
       NcError.badRequest('Cannot delete first base');
     }
 
-    await Source.updateBase(
+    await Source.update(
       context,
       this.id,
       { deleted: true, fk_sql_executor_id: null },

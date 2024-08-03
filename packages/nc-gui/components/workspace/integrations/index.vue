@@ -1,9 +1,122 @@
-<script lang="ts" setup></script>
+<script lang="ts" setup>
+import { useTitle } from '@vueuse/core'
+
+const router = useRouter()
+const route = router.currentRoute
+
+const { isUIAllowed } = useRoles()
+
+const workspaceStore = useWorkspace()
+
+const { loadRoles } = useRoles()
+const { activeWorkspace: _activeWorkspace } = storeToRefs(workspaceStore)
+const { loadCollaborators } = workspaceStore
+
+const currentWorkspace = computedAsync(async () => {
+  await loadRoles(undefined, {}, _activeWorkspace.value?.id)
+  return _activeWorkspace.value
+})
+
+const tab = computed({
+  get() {
+    return route.value.query?.tab ?? 'integrations'
+  },
+  set(tab: string) {
+    router.push({ query: { ...route.value.query, tab } })
+  },
+})
+
+watch(
+  () => currentWorkspace.value?.title,
+  (title) => {
+    if (!title) return
+
+    const capitalizedTitle = title.charAt(0).toUpperCase() + title.slice(1)
+
+    useTitle(capitalizedTitle)
+  },
+  {
+    immediate: true,
+  },
+)
+
+onMounted(() => {
+  until(() => currentWorkspace.value?.id)
+    .toMatch((v) => !!v)
+    .then(async () => {
+      await loadCollaborators({} as any, currentWorkspace.value!.id)
+    })
+})
+</script>
 
 <template>
-  <div class="h-full overflow-auto w-full">
-    <WorkspaceIntegrationsList />
+  <div v-if="currentWorkspace" class="flex w-full max-w-[97.5rem] flex-col nc-workspace-integrations">
+    <div class="flex gap-2 items-center min-w-0 p-4">
+      <h1 class="text-base capitalize font-weight-bold tracking-[0.5px] mb-0 nc-workspace-title truncate min-w-10 capitalize">
+        {{ currentWorkspace?.title }} > {{ $t('general.integrations') }}
+      </h1>
+    </div>
+
+    <NcTabs v-model:activeKey="tab">
+      <template #leftExtra>
+        <div class="w-6"></div>
+      </template>
+      <template v-if="isUIAllowed('workspaceIntegrations')">
+        <a-tab-pane key="integrations" class="w-full">
+          <template #tab>
+            <div class="flex flex-row items-center pb-1 gap-x-1.5" data-testid="nc-workspace-settings-tab-integrations">
+              <GeneralIcon icon="integration" />
+              {{ $t('general.integrations') }}
+            </div>
+          </template>
+          <div class="h-[calc(100vh-92px)] p-6">
+            <WorkspaceIntegrationsNewAvailableList />
+          </div>
+        </a-tab-pane>
+      </template>
+      <template v-if="isUIAllowed('workspaceIntegrations')">
+        <a-tab-pane key="connections" class="w-full">
+          <template #tab>
+            <div class="flex flex-row items-center pb-1 gap-x-1.5" data-testid="nc-workspace-settings-tab-integrations">
+              <GeneralIcon icon="gitCommit" />
+              {{ $t('general.connections') }}
+            </div>
+          </template>
+          <div class="h-[calc(100vh-92px)] p-6">
+            <WorkspaceIntegrationsList />
+          </div>
+        </a-tab-pane>
+      </template>
+    </NcTabs>
+
+    <WorkspaceIntegrationsEditOrAdd></WorkspaceIntegrationsEditOrAdd>
   </div>
 </template>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.nc-workspace-avatar {
+  @apply min-w-6 h-6 rounded-[6px] flex items-center justify-center text-white font-weight-bold uppercase;
+  font-size: 0.7rem;
+}
+
+.tab {
+  @apply flex flex-row items-center gap-x-2;
+}
+
+:deep(.ant-tabs-nav) {
+  @apply !pl-0;
+}
+
+:deep(.ant-tabs-nav-list) {
+  @apply !gap-5;
+}
+:deep(.ant-tabs-tab) {
+  @apply !pt-0 !pb-2.5 !ml-0;
+}
+.ant-tabs-content {
+  @apply !h-full;
+}
+.ant-tabs-content-top {
+  @apply !h-full;
+}
+</style>

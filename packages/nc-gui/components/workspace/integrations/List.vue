@@ -165,7 +165,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="h-full flex flex-col gap-6 pt-6 nc-workspace-settings-integrations max-w-[fit-content]">
+  <div class="h-full flex flex-col gap-6 nc-workspace-connections max-w-[fit-content]">
     <div class="flex items-center justify-between gap-3 mx-1">
       <a-input
         v-model:value="searchQuery"
@@ -178,12 +178,7 @@ onMounted(async () => {
           <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-gray-500" />
         </template>
       </a-input>
-      <NcButton size="small" class="flex-none" @click="pageMode = IntegrationsPageMode.LIST">
-        <div class="flex items-center gap-2">
-          <GeneralIcon icon="plus" />
-          {{ $t('general.new') }} {{ $t('general.connection').toLowerCase() }}
-        </div>
-      </NcButton>
+     
     </div>
     <div
       class="table-container relative min-h-[500px]"
@@ -461,18 +456,9 @@ onMounted(async () => {
           <img src="~assets/img/placeholder/link-records.png" class="!w-[18.5rem] flex-none" />
           <div class="text-2xl text-gray-700 font-bold">No connections added</div>
           <div class="text-gray-700 text-center">Looks like no connections have been linked yet.</div>
-          <NcButton size="small" class="flex-none" @click="pageMode = IntegrationsPageMode.LIST">
-            <div class="flex items-center gap-2">
-              <GeneralIcon icon="plus" />
-              {{ $t('general.new') }} {{ $t('general.connection').toLowerCase() }}
-            </div>
-          </NcButton>
         </div>
       </div>
     </div>
-
-    <WorkspaceIntegrationsNewAvailableList></WorkspaceIntegrationsNewAvailableList>
-    <WorkspaceIntegrationsEditOrAdd></WorkspaceIntegrationsEditOrAdd>
 
     <GeneralDeleteModal
       v-model:visible="isDeleteIntegrationModalOpen"

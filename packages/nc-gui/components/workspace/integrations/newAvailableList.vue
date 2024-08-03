@@ -1,4 +1,17 @@
 <script lang="ts" setup>
+const props = withDefaults(
+  defineProps<{
+    isModal?: boolean
+    isOpen?: boolean
+  }>(),
+  {
+    isModal: false,
+    isOpen: false,
+  },
+)
+
+const { isModal, isOpen } = props
+
 const { pageMode, IntegrationsPageMode, integrationType, addIntegration } = useIntegrationStore()
 
 const isAddNewIntegrationModalOpen = computed({
@@ -16,63 +29,46 @@ const isAddNewIntegrationModalOpen = computed({
 </script>
 
 <template>
-  <NcModal
-    v-model:visible="isAddNewIntegrationModalOpen"
-    size="large"
-    wrap-class-name="nc-modal-add-new-integration"
-    @keydown.esc="isAddNewIntegrationModalOpen = false"
-  >
-    <div class="h-full">
-      <div class="p-4 w-full flex items-center justify-between gap-3 border-b-1 border-gray-200">
-        <div class="text-xl font-weight-500">New Integration</div>
-
-        <div class="flex items-center gap-3">
-          <NcButton size="small" type="text" @click="isAddNewIntegrationModalOpen = false">
-            <GeneralIcon icon="close" class="text-gray-600" />
-          </NcButton>
-        </div>
-      </div>
-
-      <div class="h-[calc(80vh_-_66px)] flex flex-col nc-workspace-settings-integrations-new-available-list p-6">
-        <div class="w-full flex justify-center">
-          <div class="flex flex-col pt-4 gap-6 w-full max-w-[1088px]">
-            <div class="integration-type-wrapper">
-              <div class="integration-type-title">Database</div>
-              <div class="integration-type-list">
-                <div class="source-card" @click="addIntegration(integrationType.MySQL)">
-                  <WorkspaceIntegrationsIcon :integration-type="integrationType.MySQL" size="md" />
-                  <div class="name">MySQL</div>
-                </div>
-                <div class="source-card" @click="addIntegration(integrationType.PostgreSQL)">
-                  <WorkspaceIntegrationsIcon :integration-type="integrationType.PostgreSQL" size="md" />
-                  <div class="name">PostgreSQL</div>
-                </div>
+  <div class="h-full">
+    <div class="h-full flex flex-col nc-workspace-settings-integrations-new-available-list">
+      <div class="w-full flex justify-center">
+        <div class="flex flex-col gap-6 w-full">
+          <div class="integration-type-wrapper">
+            <div class="integration-type-title">Database</div>
+            <div class="integration-type-list">
+              <div class="source-card" @click="addIntegration(integrationType.MySQL)">
+                <WorkspaceIntegrationsIcon :integration-type="integrationType.MySQL" size="md" />
+                <div class="name">MySQL</div>
+              </div>
+              <div class="source-card" @click="addIntegration(integrationType.PostgreSQL)">
+                <WorkspaceIntegrationsIcon :integration-type="integrationType.PostgreSQL" size="md" />
+                <div class="name">PostgreSQL</div>
               </div>
             </div>
-            <!-- Todo:APIs  -->
-            <!-- <div>
+          </div>
+          <!-- Todo:APIs  -->
+          <!-- <div>
           <div>APIs</div>
           <div></div>
         </div> -->
-            <div class="integration-type-wrapper">
-              <div class="integration-type-title">Others</div>
-              <div>
-                <a
-                  class="source-card source-card-link"
-                  href="https://github.com/nocodb/nocodb/issues"
-                  target="_blank"
-                  rel="noreferrer noopener"
-                >
-                  <WorkspaceIntegrationsIcon integration-type="request" size="md" />
-                  <div class="name">Request New Integration</div>
-                </a>
-              </div>
+          <div class="integration-type-wrapper">
+            <div class="integration-type-title">Others</div>
+            <div>
+              <a
+                class="source-card source-card-link"
+                href="https://github.com/nocodb/nocodb/issues"
+                target="_blank"
+                rel="noreferrer noopener"
+              >
+                <WorkspaceIntegrationsIcon integration-type="request" size="md" />
+                <div class="name">Request New Integration</div>
+              </a>
             </div>
           </div>
         </div>
       </div>
     </div>
-  </NcModal>
+  </div>
 </template>
 
 <style lang="scss" scoped>

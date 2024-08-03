@@ -149,24 +149,27 @@ const onCreateBaseClick = () => {
         </div>
         <div class="subtext">Quickly bring in existing data from various files & external sources.</div>
       </div>
-
-      <div
-        v-if="isUIAllowed('sourceCreate')"
-        v-e="['c:table:create-source']"
-        role="button"
-        class="nc-base-view-all-table-btn"
-        data-testid="proj-view-btn__create-source"
-        :class="{
-          disabled: isDataSourceLimitReached,
-        }"
-        @click="onCreateBaseClick"
-      >
-        <div class="flex items-center gap-3">
-          <GeneralIcon icon="server1" class="!text-green-700 !h-4 !w-4" />
-          <div class="label">{{ $t('labels.connectDataSource') }}</div>
+      <NcTooltip v-if="isUIAllowed('sourceCreate')" placement="bottom" :disabled="!isDataSourceLimitReached" class="flex">
+        <template #title>
+          {{ $t('tooltip.reachedSourceLimit') }}
+        </template>
+        <div
+          v-e="['c:table:create-source']"
+          role="button"
+          class="nc-base-view-all-table-btn"
+          data-testid="proj-view-btn__create-source"
+          :class="{
+            disabled: isDataSourceLimitReached,
+          }"
+          @click="onCreateBaseClick"
+        >
+          <div class="flex items-center gap-3">
+            <GeneralIcon icon="server1" class="!text-green-700 !h-4 !w-4" />
+            <div class="label">{{ $t('labels.connectDataSource') }}</div>
+          </div>
+          <div class="subtext">Connect directly in realtime to external databases.</div>
         </div>
-        <div class="subtext">Connect directly in realtime to external databases.</div>
-      </div>
+      </NcTooltip>
 
       <div
         v-if="isUIAllowed('tableCreate', { source: base?.sources?.[0] })"
@@ -174,9 +177,6 @@ const onCreateBaseClick = () => {
         role="button"
         class="nc-base-view-all-table-btn"
         data-testid="proj-view-btn__create-source"
-        :class="{
-          disabled: isDataSourceLimitReached,
-        }"
         @click="syncDataModalOpen = true"
       >
         <div class="flex items-center gap-3">
@@ -290,7 +290,7 @@ const onCreateBaseClick = () => {
   }
 
   .label {
-    @apply text-sm font-bold whitespace-nowrap;
+    @apply text-sm font-bold whitespace-nowrap text-gray-800;
   }
 
   .subtext {

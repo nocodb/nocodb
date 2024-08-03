@@ -1,5 +1,7 @@
 <script lang="ts" setup>
-defineProps<{ loadDatasourceInfo?: boolean; baseId?: string }>()
+const props = defineProps<{ loadDatasourceInfo?: boolean; baseId?: string }>()
+
+const { loadDatasourceInfo, baseId } = toRefs(props)
 
 const { pageMode, IntegrationsPageMode, integrationType, activeIntegration } = useIntegrationStore()
 

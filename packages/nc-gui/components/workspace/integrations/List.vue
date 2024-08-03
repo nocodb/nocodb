@@ -494,7 +494,6 @@ onKeyStroke('ArrowDown', onDown)
         </div>
       </div>
 
-     
       <div
         v-if="!isLoadingIntegrations && (!integrations?.length || !filteredIntegrations.length)"
         class="flex-none integration-table-empty flex items-center justify-center py-8 px-6 h-full max-h-[calc(100%_-_94px)]"
@@ -564,23 +563,29 @@ onKeyStroke('ArrowDown', onDown)
         <div v-else class="w-full flex flex-col text-gray-800">
           <div v-if="toBeDeletedIntegration?.sources?.length" class="flex flex-col pb-2">
             <div class="mb-1">Following external data sources using this connection will also be removed</div>
-            <div v-for="(source, idx) of toBeDeletedIntegration.sources" :key="idx" class="flex items-center gap-1">
-              <NcTooltip class="truncate !w-[112px] flex-none" show-on-truncate-only>
-                <template #title>
+            <ul class="!list-disc ml-4.5 mb-0">
+              <li v-for="(source, idx) of toBeDeletedIntegration.sources" :key="idx" class="marker:text-gray-600">
+                <div class="flex items-center gap-1 text-gray-600">
+
+              
+                <NcTooltip class="truncate !max-w-1/2 flex-none" show-on-truncate-only>
+                  <template #title>
+                    {{ source.project_title }}
+                  </template>
+
                   {{ source.project_title }}
-                </template>
+                </NcTooltip>
+                >
+                <NcTooltip class="truncate" show-on-truncate-only>
+                  <template #title>
+                    {{ source.alias }}
+                  </template>
 
-                {{ source.project_title }}
-              </NcTooltip>
-              >
-              <NcTooltip class="truncate" show-on-truncate-only>
-                <template #title>
                   {{ source.alias }}
-                </template>
-
-                {{ source.alias }}
-              </NcTooltip>
-            </div>
+                </NcTooltip>
+              </div>
+              </li>
+            </ul>
             <div class="mt-2">Do you want to proceed anyway?</div>
           </div>
 

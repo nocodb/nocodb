@@ -132,7 +132,7 @@ const onCreateBaseClick = () => {
 
           <div class="label">{{ $t('general.create') }} {{ $t('general.new') }} {{ $t('objects.table') }}</div>
         </div>
-        <div class="subtext">Create a new empty table with no fields or views.</div>
+        <div class="subtext">Start a fresh table from scratch with no predefined fields or views.</div>
       </div>
 
       <div
@@ -147,7 +147,7 @@ const onCreateBaseClick = () => {
           <GeneralIcon icon="download" class="!text-orange-700 !w-4 !h-4" />
           <div class="label">{{ $t('activity.import') }} {{ $t('general.data') }}</div>
         </div>
-        <div class="subtext">Import Data from Airtable, Sheets, CSV or Json files.</div>
+        <div class="subtext">Bring data into NocoDB from sources like Airtable, Excel, CSV, or JSON files.</div>
       </div>
 
       <div
@@ -165,7 +165,7 @@ const onCreateBaseClick = () => {
           <GeneralIcon icon="server1" class="!text-green-700 !h-4 !w-4" />
           <div class="label">{{ $t('labels.connectDataSource') }}</div>
         </div>
-        <div class="subtext">Connect to external data like Postgres or Mysql database.</div>
+        <div class="subtext">Link to external databases such as PG or MySQL for seamless data integration.</div>
       </div>
 
       <div
@@ -183,7 +183,7 @@ const onCreateBaseClick = () => {
           <GeneralIcon icon="refresh" class="!text-blue-700 !w-4 !h-4" />
           <div class="label capitalize">{{ $t('labels.syncData') }}</div>
         </div>
-        <div class="subtext">Sync Data from services like Github, Jira, Asana and more.</div>
+        <div class="subtext">Automate data synchronization from platforms like GitHub, Jira, Asana, and more.</div>
       </div>
     </div>
     <div
@@ -280,7 +280,7 @@ const onCreateBaseClick = () => {
 
 <style lang="scss" scoped>
 .nc-base-view-all-table-btn {
-  @apply flex flex-col gap-y-2 p-3 bg-gray-50 rounded-xl border-1 border-gray-100 min-w-[210px] max-w-[240px] cursor-pointer text-gray-800 hover:(bg-gray-100 border-gray-200) transition-all duration-300;
+  @apply flex flex-col gap-y-2 p-3 bg-gray-50 rounded-xl border-1 border-gray-100 min-w-[260px] max-w-[280px] cursor-pointer text-gray-800 hover:(bg-gray-100 border-gray-200) transition-all duration-300;
   &:hover {
     box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
   }
@@ -294,7 +294,7 @@ const onCreateBaseClick = () => {
   }
 
   .subtext {
-    @apply text-small leading-[18px] text-gray-600;
+    @apply text-xs text-gray-600;
   }
 }
 

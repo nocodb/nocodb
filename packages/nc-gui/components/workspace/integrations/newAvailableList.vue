@@ -89,7 +89,7 @@ const handleAddIntegration = (type: typeof integrationType) => {
               </div>
               <div class="mt-2">
                 <!-- Todo: add link  -->
-                <a> Learn more </a>
+                <a target="_blank" rel="noopener noreferrer"> Learn more </a>
               </div>
             </div>
 

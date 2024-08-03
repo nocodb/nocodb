@@ -219,7 +219,7 @@ onKeyStroke('ArrowDown', onDown)
         </div>
         <div class="mt-2">
           <!-- Todo: add link  -->
-          <a> Learn more </a>
+          <a target="_blank" rel="noopener noreferrer"> Learn more </a>
         </div>
       </div>
       <div class="flex items-center justify-end gap-3 mx-1">
@@ -622,6 +622,9 @@ onKeyStroke('ArrowDown', onDown)
           <div class="text-sm text-gray-700">
             {{ successConfirmModal.description }}
           </div>
+
+          <!-- Todo: add link  -->
+          <a target="_blank" rel="noopener noreferrer"> Learn more </a>
         </div>
       </div>
     </NcModal>

@@ -2,7 +2,7 @@
 const props = withDefaults(
   defineProps<{
     integrationType: string
-    size?: 'sm' | 'md' | 'lg'
+    size?: 'xs' | 'sm' | 'md' | 'lg'
   }>(),
   {
     size: 'md',
@@ -15,6 +15,8 @@ const { size, integrationType } = toRefs(props)
 
 const pxSize = computed(() => {
   switch (size.value) {
+    case 'xs':
+      return '16px'
     case 'sm':
       return '24px'
     case 'md':

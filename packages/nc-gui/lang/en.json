@@ -1131,7 +1131,7 @@
     "group": "Group"
   },
   "tooltip": {
-    "allowIntegrationAccess": "Allow other users from same workspace to access this integration",
+    "allowIntegrationAccess": "Allow creators in this workspace to use this integration.",
     "optionalDatabaseName": "Database name is optional. If left blank, it will use the default database('{database}') from integration settings.",
     "optionalSchemaName": "Schema name is optional. If left blank, it will use the default schema('{schema}') from integration settings.",
     "schemaChangeDisabled": "Schema editing is disabled for this data source.",

@@ -138,11 +138,13 @@ onMounted(() => {
         <a-tab-pane key="integrations" class="w-full">
           <template #tab>
             <div class="flex flex-row items-center px-2 pb-1 gap-x-1.5" data-testid="nc-workspace-settings-tab-integrations">
-              <GeneralIcon icon="database" />
+              <GeneralIcon icon="integration" />
               Integrations
             </div>
           </template>
-          <WorkspaceIntegrations />
+          <div class="h-[calc(100vh-92px)]">
+            <WorkspaceIntegrations />
+          </div>
         </a-tab-pane>
       </template>
     </NcTabs>

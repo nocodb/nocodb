@@ -208,6 +208,7 @@ import NcRefresh from '~icons/nc-icons/refresh'
 import NcPlay from '~icons/nc-icons/play'
 import GoogleDocs from '~icons/nc-icons/google-docs'
 import NcGlobe from '~icons/nc-icons/globe'
+import NcIntegration from '~icons/nc-icons/integration'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -646,6 +647,7 @@ export const iconMap = {
   googleDocs: GoogleDocs,
   pdfFile: MdiPdf,
   globe: NcGlobe,
+  integration: NcIntegration
 }
 
 export const getMdiIcon = (type: string): any => {

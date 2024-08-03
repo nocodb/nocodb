@@ -128,7 +128,7 @@ const customRow = (record: Record<string, any>) => ({
           <div v-else>
             <!--        Tables metadata is in sync -->
             <span>
-              <a-alert :message="$t('msg.info.tablesMetadataInSync')" type="success" show-icon />
+              <a-alert :message="$t('msg.info.tablesMetadataInSync')" type="success" show-icon class="!rounded-md"/>
             </span>
           </div>
         </div>
@@ -151,7 +151,7 @@ const customRow = (record: Record<string, any>) => ({
         header-row-height="44px"
         :is-data-loading="isLoading"
         :custom-row="customRow"
-        class="nc-metasync-table h-[calc(100%_-_72px)] w-full"
+        class="nc-metasync-table h-[calc(100%_-_58px)] w-full"
       >
         <template #bodyCell="{ column, record }">
           <template v-if="column.key === 'table_name'">

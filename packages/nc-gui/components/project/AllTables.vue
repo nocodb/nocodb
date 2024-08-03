@@ -115,7 +115,7 @@ const onCreateBaseClick = () => {
 <template>
   <div class="nc-all-tables-view">
     <div
-      class="flex flex-row gap-x-6 py-6 overflow-x-auto nc-scrollbar-thin"
+      class="flex flex-row gap-x-6 pt-6 pb-2 overflow-x-auto nc-scrollbar-thin"
       :class="{
         'pointer-events-none': base?.isLoading,
       }"
@@ -188,7 +188,7 @@ const onCreateBaseClick = () => {
     </div>
     <div
       v-if="base?.isLoading"
-      class="flex items-center justify-center text-center"
+      class="flex items-center justify-center text-center mt-4"
       :style="{
         height: 'calc(100vh - var(--topbar-height) - 15.2rem)',
       }"
@@ -203,7 +203,7 @@ const onCreateBaseClick = () => {
 
     <div
       v-else-if="activeTables.length"
-      class="flex mt-2"
+      class="flex mt-4"
       :style="{
         height: 'calc(100vh - var(--topbar-height) - 15.2rem)',
       }"

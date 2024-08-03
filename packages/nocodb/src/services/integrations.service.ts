@@ -24,11 +24,15 @@ export class IntegrationsService {
 
   async integrationGetWithConfig(
     context: NcContext,
-    param: { integrationId: any },
+    param: { integrationId: any; includeSources?: boolean },
   ) {
     const integration = await Integration.get(context, param.integrationId);
 
     integration.config = await integration.getConnectionConfig();
+
+    if (param.includeSources) {
+      await integration.getSources(context);
+    }
 
     return integration;
   }
@@ -83,6 +87,7 @@ export class IntegrationsService {
       type: param.type,
       limit: param.limit,
       offset: param.offset,
+      includeSourceCount: true,
     });
 
     return integrations;

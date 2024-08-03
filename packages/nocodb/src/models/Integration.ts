@@ -1,5 +1,5 @@
 import CryptoJS from 'crypto-js';
-import type { IntegrationsType } from 'nocodb-sdk';
+import type { IntegrationsType, SourceType } from 'nocodb-sdk';
 import type { BoolType, IntegrationType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type { Condition } from '~/db/CustomKnex';
@@ -27,6 +27,7 @@ export default class Integration implements IntegrationType {
   is_private?: BoolType;
   meta?: any;
   created_by?: string;
+  sources?: Partial<SourceType>[];
 
   constructor(integration: Partial<IntegrationType>) {
     Object.assign(this, integration);
@@ -173,11 +174,10 @@ export default class Integration implements IntegrationType {
       type?: IntegrationsType;
       limit?: number;
       offset?: number;
+      includeSourceCount?: boolean;
     },
     ncMeta = Noco.ncMeta,
   ): Promise<PagedResponseImpl<Integration>> {
-    const conditions: Condition[] = [];
-
     const { offset } = args;
     let { limit } = args;
 
@@ -185,64 +185,44 @@ export default class Integration implements IntegrationType {
       limit = 25;
     }
 
+    const qb = ncMeta.knex(MetaTable.INTEGRATIONS);
+
     // exclude integrations which are private and not created by user
-    conditions.push({
-      _or: [
-        {
-          is_private: {
-            eq: false,
-          },
-        },
-        {
-          created_by: {
-            eq: args.userId,
-          },
-        },
-      ],
+    qb.where((whereQb) => {
+      whereQb
+        .where('is_private', false)
+        .orWhereNull('is_private')
+        .orWhere('created_by', args.userId);
     });
 
     // if type is provided then filter integrations based on type
     if (args.type) {
-      conditions.push({
-        type: {
-          eq: args.type,
-        },
-      });
+      qb.where('type', args.type);
     }
 
-    const xcCondition = {
-      _and: [
-        {
-          _or: [
-            {
-              deleted: {
-                neq: true,
-              },
-            },
-            {
-              deleted: {
-                eq: null,
-              },
-            },
-          ],
-        },
-        ...conditions,
-      ],
-    };
+    qb.where((whereQb) => {
+      whereQb.where('deleted', false).orWhereNull('deleted');
+    });
 
-    const integrationList = await ncMeta.metaList2(
-      args.workspaceId,
-      RootScopes.WORKSPACE,
-      MetaTable.INTEGRATIONS,
-      {
-        xcCondition,
-        orderBy: {
-          order: 'asc',
-        },
-        limit,
-        offset,
-      },
-    );
+    const listQb = qb.clone();
+
+    if (args.includeSourceCount) {
+      qb.select(
+        `${MetaTable.INTEGRATIONS}.*`,
+        ncMeta.knex.raw(`count(${MetaTable.BASES}.id) as source_count`),
+      )
+        .leftJoin(
+          MetaTable.BASES,
+          `${MetaTable.INTEGRATIONS}.id`,
+          `${MetaTable.BASES}.fk_integration_id`,
+        )
+        .groupBy(`${MetaTable.INTEGRATIONS}.id`);
+    }
+
+    const integrationList = await listQb
+      .limit(limit)
+      .offset(offset)
+      .orderBy('order', 'asc');
 
     // parse JSON metadata
     for (const integration of integrationList) {
@@ -266,14 +246,8 @@ export default class Integration implements IntegrationType {
     }
 
     if (limit) {
-      const count = await ncMeta.metaCount(
-        args.workspaceId,
-        RootScopes.WORKSPACE,
-        MetaTable.INTEGRATIONS,
-        {
-          xcCondition,
-        },
-      );
+      const count =
+        +(await qb.count('id', { as: 'count' }).first())?.['count'] || 0;
 
       return new PagedResponseImpl(integrations, {
         count,
@@ -373,5 +347,38 @@ export default class Integration implements IntegrationType {
       },
       this.id,
     );
+  }
+
+  async getSources(
+    context: Omit<NcContext, 'base_id'>,
+    ncMeta = Noco.ncMeta,
+  ): Promise<any> {
+    const sources = await ncMeta.metaList2(
+      context.workspace_id,
+      RootScopes.WORKSPACE,
+      MetaTable.BASES,
+      {
+        condition: {
+          fk_integration_id: this.id,
+        },
+        xcCondition: {
+          _or: [
+            {
+              deleted: {
+                eq: false,
+              },
+            },
+            {
+              deleted: {
+                eq: null,
+              },
+            },
+          ],
+        },
+        fields: ['id', 'alias'],
+      },
+    );
+
+    return (this.sources = sources);
   }
 }

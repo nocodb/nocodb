@@ -31,12 +31,14 @@ export class IntegrationsController {
     @TenantContext() context: NcContext,
     @Param('integrationId') integrationId: string,
     @Query('includeConfig') includeConfig: string,
+    @Query('includeSources') includeSources: string,
     @Req() req: NcRequest,
   ) {
     const integration = await this.integrationsService.integrationGetWithConfig(
       context,
       {
         integrationId,
+        includeSources: includeSources === 'true',
       },
     );
 

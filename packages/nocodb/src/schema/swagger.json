@@ -18611,6 +18611,13 @@
             },
             "name": "includeConfig",
             "in": "query"
+          },
+          {
+            "schema": {
+              "type": "boolean"
+            },
+            "name": "includeSources",
+            "in": "query"
           }
         ]
       },

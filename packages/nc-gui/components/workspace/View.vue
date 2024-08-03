@@ -99,7 +99,7 @@ onMounted(() => {
       <template v-if="isUIAllowed('workspaceSettings')">
         <a-tab-pane key="collaborators" class="w-full">
           <template #tab>
-            <div class="flex flex-row items-center px-2 pb-1 gap-x-1.5">
+            <div class="flex flex-row items-center pb-1 gap-x-1.5">
               <GeneralIcon icon="users" class="!h-3.5 !w-3.5" />
               Members
             </div>
@@ -111,7 +111,7 @@ onMounted(() => {
       <template v-if="isUIAllowed('workspaceManage')">
         <a-tab-pane key="settings" class="w-full">
           <template #tab>
-            <div class="flex flex-row items-center px-2 pb-1 gap-x-1.5" data-testid="nc-workspace-settings-tab-settings">
+            <div class="flex flex-row items-center pb-1 gap-x-1.5" data-testid="nc-workspace-settings-tab-settings">
               <GeneralIcon icon="settings" />
               Settings
             </div>
@@ -123,7 +123,7 @@ onMounted(() => {
       <template v-if="isUIAllowed('workspaceAuditList') && !props.workspaceId">
         <a-tab-pane key="audit" class="w-full">
           <template #tab>
-            <div class="flex flex-row items-center px-2 pb-1 gap-x-1.5">
+            <div class="flex flex-row items-center pb-1 gap-x-1.5">
               <GeneralIcon icon="audit" class="!h-3.5 !w-3.5" />
               Audit Logs
             </div>

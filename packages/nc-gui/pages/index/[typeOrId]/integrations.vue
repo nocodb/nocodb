@@ -1,3 +1,3 @@
 <template>
-    <WorkspaceIntegrations />
+    <WorkspaceIntegrationsView />
 </template>

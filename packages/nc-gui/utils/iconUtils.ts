@@ -210,6 +210,7 @@ import GoogleDocs from '~icons/nc-icons/google-docs'
 import NcGlobe from '~icons/nc-icons/globe'
 import NcIntegration from '~icons/nc-icons/integration'
 import NcGitCommit from '~icons/nc-icons/git-commit'
+import NcCircle from '~icons/nc-icons/circle'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -650,6 +651,7 @@ export const iconMap = {
   globe: NcGlobe,
   integration: NcIntegration,
   gitCommit: NcGitCommit,
+  circle: NcCircle,
 }
 
 export const getMdiIcon = (type: string): any => {

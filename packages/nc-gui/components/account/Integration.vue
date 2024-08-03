@@ -1,5 +1,5 @@
 <script lang="ts" setup></script>
 
 <template>
-  <WorkspaceIntegrations />
+  <WorkspaceIntegrationsView />
 </template>

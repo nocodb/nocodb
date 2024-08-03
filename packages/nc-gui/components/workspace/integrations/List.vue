@@ -211,8 +211,8 @@ onKeyStroke('ArrowDown', onDown)
 
 <template>
   <div class="h-full flex flex-col gap-6 nc-workspace-connections">
-    <div class="flex flex-col gap-3">
-      <div class="text-sm">
+    <div class="flex items-end justify-between gap-6">
+      <div class="text-sm font-normal text-gray-600">
         <div>
           Connections simplify managing stored configurations for different integrations. Click on a connection to view / modify.
         </div>
@@ -225,7 +225,7 @@ onKeyStroke('ArrowDown', onDown)
         <a-input
           v-model:value="searchQuery"
           type="text"
-          class="nc-search-integration-input !max-w-90 nc-input-sm"
+          class="nc-search-integration-input !min-w-[300px] nc-input-sm flex-none"
           :placeholder="`${$t('general.search')} ${$t('general.connections').toLowerCase()}`"
           allow-clear
         >

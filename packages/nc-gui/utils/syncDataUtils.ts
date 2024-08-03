@@ -2,7 +2,7 @@ import type { FunctionalComponent, SVGAttributes } from 'nuxt/dist/app/compat/ca
 import { SyncDataType } from '~/lib/enums'
 
 export const syncDataTypes = [
-  { title: 'objects.syncData.appleNumbers', value: SyncDataType.APPLE_NUMBERS, icon: iconMap.appleSolid },
+  // { title: 'objects.syncData.appleNumbers', value: SyncDataType.APPLE_NUMBERS, icon: iconMap.appleSolid },
   { title: 'objects.syncData.asana', value: SyncDataType.ASANA, icon: iconMap.asana },
   { title: 'objects.syncData.box', value: SyncDataType.BOX, icon: iconMap.box },
   { title: 'objects.syncData.github', value: SyncDataType.GITHUB, icon: iconMap.githubSolid },

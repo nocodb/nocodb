@@ -179,7 +179,7 @@ export enum IntegrationStoreEvents {
 }
 
 export enum SyncDataType {
-  APPLE_NUMBERS = 'apple-numbers',
+  // APPLE_NUMBERS = 'apple-numbers',
   ASANA = 'asana',
   BOX = 'box',
   GITHUB = 'github',

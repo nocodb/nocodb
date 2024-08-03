@@ -26,14 +26,14 @@ const upVoteCountBySyncDataTypeMap = computed(() => {
   >
     <div class="h-full flex flex-col overflow-hidden">
       <div class="flex items-center justify-between gap-4 p-4 border-b-1 border-gray-200">
-        <GeneralIcon icon="refresh" class="flex-none h-7 w-7 !text-blue-700" />
+        <GeneralIcon icon="refresh" class="flex-none h-6 w-6 !text-blue-700" />
         <div class="flex-1 flex items-center gap-3">
           <h3 class="my-0 capitalize text-base font-weight-700">
             {{ $t('labels.syncData') }}
           </h3>
 
           <NcBadge :border="false" class="text-brand-500 !h-6 bg-brand-50 text-sm px-2">{{
-            $t('title.comingSoon')
+            $t('msg.toast.futureRelease')
           }}</NcBadge>
         </div>
         <NcButton type="text" size="xs" class="!px-0" @click="vOpen = false">
@@ -43,9 +43,6 @@ const upVoteCountBySyncDataTypeMap = computed(() => {
       <div class="flex-1 p-6 overflow-auto nc-scrollbar-thin">
         <div class="flex flex-col gap-6 w-full max-w-[918px] mx-auto">
           <div class="flex flex-col gap-3">
-            <div class="nc-sync-data-title">
-              {{ $t('labels.syncDataModalTitle') }}
-            </div>
             <div class="nc-sync-data-subtitle">
               {{ $t('labels.syncDataModalSubtitle') }}
             </div>

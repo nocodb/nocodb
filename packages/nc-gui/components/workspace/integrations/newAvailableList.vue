@@ -74,7 +74,7 @@ const handleAddIntegration = (type: typeof integrationType) => {
             }"
           >
             <div
-              class="text-sm"
+              class="text-sm font-normal text-gray-600"
               :class="{
                 'max-w-[740px]': !isModal,
               }"

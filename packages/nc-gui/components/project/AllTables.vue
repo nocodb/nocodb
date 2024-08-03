@@ -120,102 +120,71 @@ const onCreateBaseClick = () => {
         'pointer-events-none': base?.isLoading,
       }"
     >
-      <NcTooltip v-if="isUIAllowed('tableCreate', { source: base?.sources?.[0] })" placement="bottom" disabled class="flex">
-        <div class="flex flex-col gap-2 pb-1">
-          <!-- Todo: add tooltip -->
-        </div>
-        <div
-          role="button"
-          class="nc-base-view-all-table-btn"
-          data-testid="proj-view-btn__add-new-table"
-          @click="openTableCreateDialog()"
-        >
-          <GeneralIcon icon="addOutlineBox" class="!text-brand-500" />
+      <div
+        v-if="isUIAllowed('tableCreate', { source: base?.sources?.[0] })"
+        role="button"
+        class="nc-base-view-all-table-btn"
+        data-testid="proj-view-btn__add-new-table"
+        @click="openTableCreateDialog()"
+      >
+        <div class="flex items-center gap-3">
+          <GeneralIcon icon="addOutlineBox" class="!text-brand-500 !h-4 !w-4" />
 
           <div class="label">{{ $t('general.create') }} {{ $t('general.new') }} {{ $t('objects.table') }}</div>
         </div>
-      </NcTooltip>
+        <div class="subtext">Create a new empty table with no fields or views.</div>
+      </div>
 
-      <NcTooltip v-if="isUIAllowed('tableCreate', { source: base?.sources?.[0] })" placement="bottom" class="flex">
-        <template #title>
-          <div class="flex flex-col gap-2 pb-1">
-            <div class="text-xs">
-              {{ $t('title.fromFileAndExternalSources') }}
-            </div>
-            <div class="flex items-center justify-between gap-2">
-              <GeneralIcon icon="airtable" class="flex-none w-5 h-5" />
-              <GeneralIcon icon="excelColored" class="flex-none w-5 h-5" />
-              <div class="nc-text-icon">CSV</div>
-              <div class="nc-text-icon">JSON</div>
-            </div>
-          </div>
-        </template>
-        <div
-          v-e="['c:table:import']"
-          role="button"
-          class="nc-base-view-all-table-btn"
-          data-testid="proj-view-btn__import-data"
-          @click="isImportModalOpen = true"
-        >
-          <GeneralIcon icon="download" class="!text-orange-700" />
+      <div
+        v-if="isUIAllowed('tableCreate', { source: base?.sources?.[0] })"
+        v-e="['c:table:import']"
+        role="button"
+        class="nc-base-view-all-table-btn"
+        data-testid="proj-view-btn__import-data"
+        @click="isImportModalOpen = true"
+      >
+        <div class="flex items-center gap-3">
+          <GeneralIcon icon="download" class="!text-orange-700 !w-4 !h-4" />
           <div class="label">{{ $t('activity.import') }} {{ $t('general.data') }}</div>
         </div>
-      </NcTooltip>
-      <NcTooltip v-if="isUIAllowed('sourceCreate')" placement="bottom" class="flex">
-        <template #title>
-          <div v-if="isDataSourceLimitReached">
-            {{ $t('tooltip.reachedSourceLimit') }}
-          </div>
-          <div v-else class="flex flex-col gap-2 pb-1">
-            <div class="test-xs text-left">
-              {{ $t('title.directlyInRealTime') }}
-            </div>
-            <div class="flex items-center justify-between gap-2">
-              <div class="w-5 h-5 rounded bg-gray-100 flex items-center justify-center">
-                <GeneralBaseLogo :source-type="ClientType.MYSQL" class="flex-none w-4 h-4" />
-              </div>
-              <div class="w-5 h-5 rounded bg-gray-100 flex items-center justify-center">
-                <GeneralBaseLogo :source-type="ClientType.PG" class="flex-none w-4 h-4" />
-              </div>
-              <div class="flex-nonw w-5 h-5"></div>
-              <div class="flex-nonw w-5 h-5"></div>
-            </div>
-          </div>
-        </template>
-        <div
-          v-e="['c:table:create-source']"
-          role="button"
-          class="nc-base-view-all-table-btn"
-          data-testid="proj-view-btn__create-source"
-          :class="{
-            disabled: isDataSourceLimitReached,
-          }"
-          @click="onCreateBaseClick"
-        >
-          <GeneralIcon icon="server1" class="!text-green-700" />
+        <div class="subtext">Import Data from Airtable, Sheets, CSV or Json files.</div>
+      </div>
+
+      <div
+        v-if="isUIAllowed('sourceCreate')"
+        v-e="['c:table:create-source']"
+        role="button"
+        class="nc-base-view-all-table-btn"
+        data-testid="proj-view-btn__create-source"
+        :class="{
+          disabled: isDataSourceLimitReached,
+        }"
+        @click="onCreateBaseClick"
+      >
+        <div class="flex items-center gap-3">
+          <GeneralIcon icon="server1" class="!text-green-700 !h-4 !w-4" />
           <div class="label">{{ $t('labels.connectDataSource') }}</div>
         </div>
-      </NcTooltip>
-      <NcTooltip v-if="isUIAllowed('tableCreate', { source: base?.sources?.[0] })" placement="bottom" disabled class="flex">
-        <template #title>
-          <div class="flex flex-col gap-2 pb-1">
-            <!-- Todo: add tooltip -->
-          </div>
-        </template>
-        <div
-          v-e="['c:table:create-source']"
-          role="button"
-          class="nc-base-view-all-table-btn"
-          data-testid="proj-view-btn__create-source"
-          :class="{
-            disabled: isDataSourceLimitReached,
-          }"
-          @click="syncDataModalOpen = true"
-        >
-          <GeneralIcon icon="refresh" class="!text-blue-700" />
+        <div class="subtext">Connect to external data like Postgres or Mysql database.</div>
+      </div>
+
+      <div
+        v-if="isUIAllowed('tableCreate', { source: base?.sources?.[0] })"
+        v-e="['c:table:create-source']"
+        role="button"
+        class="nc-base-view-all-table-btn"
+        data-testid="proj-view-btn__create-source"
+        :class="{
+          disabled: isDataSourceLimitReached,
+        }"
+        @click="syncDataModalOpen = true"
+      >
+        <div class="flex items-center gap-3">
+          <GeneralIcon icon="refresh" class="!text-blue-700 !w-4 !h-4" />
           <div class="label capitalize">{{ $t('labels.syncData') }}</div>
         </div>
-      </NcTooltip>
+        <div class="subtext">Sync Data from services like Github, Jira, Asana and more.</div>
+      </div>
     </div>
     <div
       v-if="base?.isLoading"
@@ -311,7 +280,7 @@ const onCreateBaseClick = () => {
 
 <style lang="scss" scoped>
 .nc-base-view-all-table-btn {
-  @apply flex flex-col gap-y-3 p-3 bg-gray-50 rounded-xl border-1 border-gray-100 min-w-[178px] cursor-pointer text-gray-800 hover:(bg-gray-100 border-gray-200) transition-all duration-300;
+  @apply flex flex-col gap-y-2 p-3 bg-gray-50 rounded-xl border-1 border-gray-100 min-w-[240px] cursor-pointer text-gray-800 hover:(bg-gray-100 border-gray-200) transition-all duration-300;
   &:hover {
     box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
   }
@@ -322,6 +291,10 @@ const onCreateBaseClick = () => {
 
   .label {
     @apply text-sm font-bold whitespace-nowrap;
+  }
+
+  .subtext {
+    @apply text-small leading-[18px] text-gray-600;
   }
 }
 

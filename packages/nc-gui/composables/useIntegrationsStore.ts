@@ -68,14 +68,16 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
   const eventBus = useEventBus<IntegrationStoreEventsTypes>(Symbol('integrationStore'))
 
   const { $e } = useNuxtApp()
+  
+  const { t } = useI18n()
 
   const isFromIntegrationPage = ref(false)
 
   const successConfirmModal = ref({
     isOpen: false,
-    title: 'Connection Successfully Created',
+    title: t('msg.success.connectionAdded'),
     connectionTitle: '',
-    description: 'All base owners and creators can now use this connection to easily add a new data source to their base.',
+    description: t('msg.success.connectionAddedDesc')
   })
 
   const requestIntegration = ref({

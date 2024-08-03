@@ -1729,7 +1729,9 @@
       "columnCreated": "Field created",
       "passwordChanged": "Password changed successfully. Please login again.",
       "settingsSaved": "Settings saved successfully",
-      "roleUpdated": "Role updated successfully"
+      "roleUpdated": "Role updated successfully",
+      "connectionAdded": "Connection Successfully Created",
+      "connectionAddedDesc": "All Base owners & creators in this Workspace can now use this connection to easily add a new Data Source to their Base."
     }
   }
 }

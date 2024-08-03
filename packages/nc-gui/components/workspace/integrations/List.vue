@@ -607,20 +607,20 @@ onKeyStroke('ArrowDown', onDown)
     <NcModal v-model:visible="successConfirmModal.isOpen" centered size="small" @keydown.esc="successConfirmModal.isOpen = false">
       <div class="flex gap-4">
         <div>
-          <GeneralIcon icon="circleCheck2" class="flex-none !text-green-700" />
+          <GeneralIcon icon="circleCheck2" class="flex-none !text-green-700 mt-0.5" />
         </div>
 
         <div class="flex flex-col gap-3">
-          <h3 class="!m-0 text-base font-weight-700">
-            {{ successConfirmModal.title }}
-          </h3>
+          <div class="flex">
+            <h3 class="!m-0 text-base font-weight-700 flex-1">
+              {{ successConfirmModal.title }}
+            </h3>
+            <NcButton size="xsmall" type="text" @click="successConfirmModal.isOpen = false">
+              <GeneralIcon icon="close" class="text-gray-600" />
+            </NcButton>
+          </div>
           <div class="text-sm text-gray-700">
             {{ successConfirmModal.description }}
-          </div>
-          <div class="flex justify-end mt-2">
-            <NcButton size="small" class="!px-3" @click="successConfirmModal.isOpen = false">
-              {{ $t('general.ok') }}
-            </NcButton>
           </div>
         </div>
       </div>

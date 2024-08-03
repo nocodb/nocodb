@@ -1,4 +1,4 @@
-import type { SourceType } from 'nocodb-sdk'
+import type { IntegrationType, SourceType } from 'nocodb-sdk'
 import { IntegrationsType } from 'nocodb-sdk'
 import { ClientType } from '../lib/enums'
 import GeneralBaseLogo from '~/components/general/BaseLogo.vue'
@@ -14,9 +14,9 @@ const integrationType: Record<'PostgreSQL' | 'MySQL', ClientType> = {
   MySQL: ClientType.MYSQL,
 }
 
-type IntegrationType = (typeof integrationType)[keyof typeof integrationType]
+type IntegrationsType = (typeof integrationType)[keyof typeof integrationType]
 
-function defaultValues(type: IntegrationType) {
+function defaultValues(type: IntegrationsType) {
   const genericValues = {
     payload: {},
   }
@@ -47,20 +47,23 @@ function defaultValues(type: IntegrationType) {
 
 const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState(() => {
   const { api } = useApi()
-  const pageMode = ref(IntegrationsPageMode.LIST)
-  const activeIntegration = ref<Integration | null>(null)
+  const pageMode = ref<IntegrationsPageMode | null>(null)
+  const activeIntegration = ref<IntegrationType | null>(null)
 
   const workspaceStore = useWorkspace()
   const { activeWorkspaceId } = storeToRefs(workspaceStore)
 
-  const integrations = ref<Integration[]>([])
+  const integrations = ref<IntegrationType[]>([])
   const deleteConfirmText = ref<string>()
+
+  const isLoadingIntegrations = ref(false)
 
   const { $e } = useNuxtApp()
 
   const loadIntegrations = async (databaseOnly = false) => {
     try {
       if (!activeWorkspaceId.value) return
+      isLoadingIntegrations.value = true
 
       const response = await api.integration.list(
         databaseOnly
@@ -74,9 +77,11 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
       integrations.value = response.list
     } catch (e) {
       await message.error(await extractSdkResponseErrorMsg(e))
+    } finally{
+      isLoadingIntegrations.value = false
     }
   }
-  const addIntegration = (type: IntegrationType) => {
+  const addIntegration = (type: IntegrationsType) => {
     activeIntegration.value = defaultValues(type)
     pageMode.value = IntegrationsPageMode.ADD
     $e('c:integration:add')
@@ -114,27 +119,54 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
       await api.integration.update(integration.id, integration)
       $e('a:integration:update')
       await loadIntegrations()
-      pageMode.value = IntegrationsPageMode.LIST
+      pageMode.value = null
       activeIntegration.value = null
     } catch (e) {
       await message.error(await extractSdkResponseErrorMsg(e))
     }
   }
 
-  const saveIntegration = async (integration: IntegrationType) => {
+  const saveIntegration = async (integration: IntegrationType, mode: 'create' | 'duplicate' = 'create') => {
     try {
       const response = await api.integration.create(integration)
-      $e('a:integration:create')
-      integrations.value = response.data
+      if (mode === 'create') {
+        $e('a:integration:create')
+      } else {
+        $e('a:integration:duplicate')
+      }
+
+      if (response && response?.id) {
+        integrations.value.push(response)
+      }
+
       await loadIntegrations()
-      pageMode.value = IntegrationsPageMode.LIST
+      pageMode.value = null
       activeIntegration.value = null
     } catch (e) {
       await message.error(await extractSdkResponseErrorMsg(e))
     }
   }
 
-  const editIntegration = async (integration: SourceType) => {
+  const duplicateIntegration = async (integration: IntegrationType) => {
+    if(!integration?.id) return 
+
+    try {
+      isLoadingIntegrations.value = true
+
+      saveIntegration({
+        title: integration.title,
+        config:{},
+        type: integration.type,
+        copy_from_id: integration.id
+      }, 'duplicate')
+    } catch (e) {
+      await message.error(await extractSdkResponseErrorMsg(e))
+    } finally {
+      isLoadingIntegrations.value = false
+    }
+  }
+
+  const editIntegration = async (integration: IntegrationType) => {
     try {
       const integrationWithConfig = await api.integration.read(integration.id, {
         includeConfig: true,
@@ -152,15 +184,17 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     IntegrationsPageMode,
     integrationType,
     pageMode,
-    addIntegration,
     activeIntegration,
     integrations,
+    isLoadingIntegrations,
+    deleteConfirmText,
+    addIntegration,
     loadIntegrations,
     deleteIntegration,
     updateIntegration,
     saveIntegration,
     editIntegration,
-    deleteConfirmText,
+    duplicateIntegration,
   }
 }, 'integrations-store')
 

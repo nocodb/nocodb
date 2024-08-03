@@ -2,7 +2,7 @@
 import { Form, message } from 'ant-design-vue'
 import type { SelectHandler } from 'ant-design-vue/es/vc-select/Select'
 import { diff } from 'deep-object-diff'
-import { IntegrationsType } from 'nocodb-sdk'
+import { IntegrationsType, validateAndExtractSSLProp } from 'nocodb-sdk'
 import {
   type CertTypes,
   ClientType,
@@ -158,7 +158,7 @@ const onSSLModeChange = ((mode: SSLUsage) => {
     const connection = formState.value.dataSource.connection as DefaultConnection
     switch (mode) {
       case SSLUsage.No:
-        delete connection.ssl
+        connection.ssl = undefined
         break
       case SSLUsage.Allowed:
         connection.ssl = 'true'
@@ -233,14 +233,7 @@ function getConnectionConfig() {
     ...extraParameters,
   }
 
-  if ('ssl' in connection && connection.ssl) {
-    if (
-      formState.value.sslUse === SSLUsage.No ||
-      (typeof connection.ssl === 'object' && Object.values(connection.ssl).every((v) => v === null || v === undefined))
-    ) {
-      delete connection.ssl
-    }
-  }
+  connection.ssl = validateAndExtractSSLProp(connection, formState.value.sslUse, formState.value.dataSource.client)
   return connection
 }
 

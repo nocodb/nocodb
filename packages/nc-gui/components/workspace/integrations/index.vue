@@ -1,6 +1,4 @@
-<script lang="ts" setup>
-const { pageMode, IntegrationsPageMode } = useIntegrationStore()
-</script>
+<script lang="ts" setup></script>
 
 <template>
   <div class="h-full overflow-auto w-full">

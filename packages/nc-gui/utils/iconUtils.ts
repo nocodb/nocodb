@@ -647,7 +647,7 @@ export const iconMap = {
   googleDocs: GoogleDocs,
   pdfFile: MdiPdf,
   globe: NcGlobe,
-  integration: NcIntegration
+  integration: NcIntegration,
 }
 
 export const getMdiIcon = (type: string): any => {

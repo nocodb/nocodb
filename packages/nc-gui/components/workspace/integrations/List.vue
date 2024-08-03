@@ -31,6 +31,19 @@ const searchQuery = ref<string>('')
 
 const orderBy = ref<Partial<Record<SortFields, 'asc' | 'desc' | undefined>>>({})
 
+const localCollaborators = ref<User[] | UserType[]>([])
+
+const collaboratorsMap = computed<Map<string, (WorkspaceUserType & { id: string }) | User | UserType>>(() => {
+  const map = new Map()
+
+  ;(isEeUI ? collaborators.value : localCollaborators.value)?.forEach((coll) => {
+    if (coll?.id) {
+      map.set(coll.id, coll)
+    }
+  })
+  return map
+})
+
 const filteredIntegrations = computed(() =>
   (integrations.value || [])
     .filter((i) => i?.title?.toLowerCase()?.includes(searchQuery.value.toLowerCase()))
@@ -77,19 +90,6 @@ const filteredIntegrations = computed(() =>
       return 0
     }),
 )
-
-const localCollaborators = ref<User[] | UserType[]>([])
-
-const collaboratorsMap = computed<Map<string, (WorkspaceUserType & { id: string }) | User | UserType>>(() => {
-  const map = new Map()
-
-  ;(isEeUI ? collaborators.value : localCollaborators.value)?.forEach((coll) => {
-    if (coll?.id) {
-      map.set(coll.id, coll)
-    }
-  })
-  return map
-})
 
 const openDeleteIntegration = (source: IntegrationType) => {
   $e('c:integration:delete')
@@ -558,13 +558,11 @@ onMounted(async () => {
       tr {
         @apply cursor-pointer;
 
-        .td {
-          @apply text-small leading-[18px] text-gray-600;
-        }
-
         td {
+          @apply text-sm text-gray-600;
+
           &.cell-title {
-            @apply sticky left-0 z-4 bg-white;
+            @apply sticky left-0 z-4 bg-white !text-gray-800 font-semibold;
           }
         }
       }

@@ -1,5 +1,4 @@
-import type { IntegrationType, SourceType } from 'nocodb-sdk'
-import { IntegrationsType } from 'nocodb-sdk'
+import type { IntegrationType } from 'nocodb-sdk'
 import { ClientType } from '../lib/enums'
 import GeneralBaseLogo from '~/components/general/BaseLogo.vue'
 
@@ -77,7 +76,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
       integrations.value = response.list
     } catch (e) {
       await message.error(await extractSdkResponseErrorMsg(e))
-    } finally{
+    } finally {
       isLoadingIntegrations.value = false
     }
   }
@@ -148,17 +147,20 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
   }
 
   const duplicateIntegration = async (integration: IntegrationType) => {
-    if(!integration?.id) return 
+    if (!integration?.id) return
 
     try {
       isLoadingIntegrations.value = true
 
-      saveIntegration({
-        title: integration.title,
-        config:{},
-        type: integration.type,
-        copy_from_id: integration.id
-      }, 'duplicate')
+      saveIntegration(
+        {
+          title: integration.title,
+          config: {},
+          type: integration.type,
+          copy_from_id: integration.id,
+        },
+        'duplicate',
+      )
     } catch (e) {
       await message.error(await extractSdkResponseErrorMsg(e))
     } finally {

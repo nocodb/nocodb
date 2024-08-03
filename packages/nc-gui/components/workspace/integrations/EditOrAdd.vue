@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-const { pageMode, IntegrationsPageMode, integrationType, activeIntegration, categories, activeCategory } = useIntegrationStore()
+const { pageMode, IntegrationsPageMode, integrationType, activeIntegration } = useIntegrationStore()
 
 const isEditOrAddIntegrationModalOpen = computed({
   get: () => {
@@ -37,7 +37,10 @@ const connectionType = computed(() => {
     @keydown.esc="isEditOrAddIntegrationModalOpen = false"
   >
     <div v-if="connectionType">
-      <WorkspaceIntegrationsFormsEditOrAddDatabase v-model:open="isEditOrAddIntegrationModalOpen" :connection-type="connectionType" />
+      <WorkspaceIntegrationsFormsEditOrAddDatabase
+        v-model:open="isEditOrAddIntegrationModalOpen"
+        :connection-type="connectionType"
+      />
     </div>
   </NcModal>
 </template>

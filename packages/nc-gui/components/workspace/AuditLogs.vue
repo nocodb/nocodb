@@ -630,11 +630,9 @@ onKeyStroke('ArrowDown', onDown)
     tr {
       @apply cursor-pointer;
 
-      .td {
-        @apply text-small leading-[18px] text-gray-600;
-      }
-
       td {
+        @apply text-sm text-gray-600;
+
         &.cell-user {
           @apply sticky left-0 z-4 bg-white;
         }

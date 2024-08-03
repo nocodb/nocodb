@@ -602,7 +602,7 @@ const allowAccess = computed({
                     </NcDropdown>
                   </div>
                   <div class="nc-form-section-body">
-                    <a-row :gutter="24" v-if="easterEgg">
+                    <a-row v-if="easterEgg" :gutter="24">
                       <a-col :span="12">
                         <a-form-item :label="$t('labels.dbType')" v-bind="validateInfos['dataSource.client']">
                           <NcSelect
@@ -821,10 +821,10 @@ const allowAccess = computed({
                       </a-row>
 
                       <a-row
-                        :gutter="24"
                         v-if="
                           ![ClientType.SQLITE, ClientType.SNOWFLAKE, ClientType.DATABRICKS].includes(formState.dataSource.client)
                         "
+                        :gutter="24"
                       >
                         <a-col :span="24">
                           <!-- Extra connection parameters -->
@@ -983,7 +983,7 @@ const allowAccess = computed({
                           {{ $t('tooltip.allowIntegrationAccess') }}
                         </template>
 
-                        <div @click="isEeUI ? (allowAccess = !allowAccess) : undefined" class="nc-form-section-title">
+                        <div class="nc-form-section-title" @click="isEeUI ? (allowAccess = !allowAccess) : undefined">
                           Share Integration
                         </div>
                       </NcTooltip>

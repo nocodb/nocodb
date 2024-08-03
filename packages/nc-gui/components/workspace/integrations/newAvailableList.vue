@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-const { pageMode, IntegrationsPageMode, integrationType, activeIntegration, addIntegration } = useIntegrationStore()
+const { pageMode, IntegrationsPageMode, integrationType, addIntegration } = useIntegrationStore()
 
 const isAddNewIntegrationModalOpen = computed({
   get: () => {

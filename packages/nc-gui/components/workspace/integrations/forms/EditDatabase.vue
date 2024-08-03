@@ -449,7 +449,7 @@ const onUseCaseFormSubmit = async () => {
   return onDashboard()
 }
 
-const isPrivate = computed({
+const allowAccess = computed({
   get: () => !formState.value.is_private,
   set: (v) => {
     formState.value.is_private = !v
@@ -481,9 +481,6 @@ const isPrivate = computed({
               maxHeight: '60vh',
             }"
           >
-            <a-form-item label="Allow access">
-              <a-switch v-model:checked="isPrivate" size="small" class="nc-extdb-proj-name" />
-            </a-form-item>
             <a-form-item label="Source Name" v-bind="validateInfos.title">
               <a-input v-model:value="formState.title" />
             </a-form-item>
@@ -644,6 +641,16 @@ const isPrivate = computed({
                 v-bind="validateInfos['dataSource.searchPath.0']"
               >
                 <a-input v-model:value="formState.dataSource.searchPath[0]" />
+              </a-form-item>
+
+              <a-form-item label="Allow access">
+                <a-switch v-model:checked="allowAccess" size="small" />
+
+                <template #help>
+                  <span class="text-small">
+                    {{ $t('tooltip.allowIntegrationAccess') }}
+                  </span>
+                </template>
               </a-form-item>
               <div class="flex items-right justify-end gap-2">
                 <!--                Use Connection URL -->

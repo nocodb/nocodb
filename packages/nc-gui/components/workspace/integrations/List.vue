@@ -37,19 +37,36 @@ const filteredIntegrations = computed(() =>
     .sort((a, b) => {
       if (orderBy.value.title) {
         if (a.title && b.title) {
-          return orderBy.value.title === 'asc' ? (a.title < b.title ? -1 : 1) : (a.title > b.title ? -1 : 1)
+          return orderBy.value.title === 'asc' ? (a.title < b.title ? -1 : 1) : a.title > b.title ? -1 : 1
         }
       } else if (orderBy.value.sub_type) {
         if (a.sub_type && b.sub_type) {
-          return orderBy.value.sub_type === 'asc' ? (a.sub_type < b.sub_type ? -1 : 1) : (a.sub_type > b.sub_type ? -1 : 1)
+          return orderBy.value.sub_type === 'asc' ? (a.sub_type < b.sub_type ? -1 : 1) : a.sub_type > b.sub_type ? -1 : 1
         }
       } else if (orderBy.value.created_at) {
         if (a?.created_at && b?.created_at) {
-          return orderBy.value.created_at === 'asc' ? (dayjs(a.created_at).local().isBefore(dayjs(b.created_at).local()) ? -1 : 1) : (dayjs(a.created_at).local().isAfter(dayjs(b.created_at).local()) ? -1 : 1)
+          return orderBy.value.created_at === 'asc'
+            ? dayjs(a.created_at).local().isBefore(dayjs(b.created_at).local())
+              ? -1
+              : 1
+            : dayjs(a.created_at).local().isAfter(dayjs(b.created_at).local())
+            ? -1
+            : 1
         }
       } else if (orderBy.value.created_by) {
-        if (a.created_by && b.created_by && collaboratorsMap.value.get(a.created_by) && collaboratorsMap.value.get(b.created_by)) {
-          return orderBy.value.created_by === 'asc' ? (collaboratorsMap.value.get(a.created_by)?.email < collaboratorsMap.value.get(b.created_by)?.email ? -1 : 1) : (collaboratorsMap.value.get(a.created_by)?.email > collaboratorsMap.value.get(b.created_by)?.email ? -1 : 1)
+        if (
+          a.created_by &&
+          b.created_by &&
+          collaboratorsMap.value.get(a.created_by) &&
+          collaboratorsMap.value.get(b.created_by)
+        ) {
+          return orderBy.value.created_by === 'asc'
+            ? collaboratorsMap.value.get(a.created_by)?.email < collaboratorsMap.value.get(b.created_by)?.email
+              ? -1
+              : 1
+            : collaboratorsMap.value.get(a.created_by)?.email > collaboratorsMap.value.get(b.created_by)?.email
+            ? -1
+            : 1
         }
       }
       //  else if (orderBy.value.usage) {
@@ -153,8 +170,8 @@ onMounted(async () => {
       <a-input
         v-model:value="searchQuery"
         type="text"
-        class="!max-w-90 nc-input-sm"
-        placeholder="Search an Integration"
+        class="nc-search-integration-input !max-w-90 nc-input-sm"
+        :placeholder="`${$t('general.search')} ${$t('general.connections').toLowerCase()}`"
         allow-clear
       >
         <template #prefix>
@@ -174,10 +191,7 @@ onMounted(async () => {
         'mb-6': isEeUI,
       }"
     >
-      <div
-        ref="tableWrapper"
-        class="nc-workspace-integration-table relative nc-scrollbar-thin !overflow-auto max-h-full"
-      >
+      <div ref="tableWrapper" class="nc-workspace-integration-table relative nc-scrollbar-thin !overflow-auto max-h-full">
         <table class="!sticky top-0 z-10">
           <thead>
             <tr>
@@ -185,7 +199,7 @@ onMounted(async () => {
                 class="cell-title !hover:bg-gray-100 select-none cursor-pointer"
                 :class="{
                   'cursor-not-allowed': !filteredIntegrations?.length,
-                  '!text-gray-700': orderBy.title
+                  '!text-gray-700': orderBy.title,
                 }"
                 @click="updateOrderBy('title')"
               >
@@ -206,7 +220,7 @@ onMounted(async () => {
                 class="cell-type !hover:bg-gray-100 select-none cursor-pointer"
                 :class="{
                   'cursor-not-allowed': !filteredIntegrations?.length,
-                  '!text-gray-700': orderBy.sub_type
+                  '!text-gray-700': orderBy.sub_type,
                 }"
                 @click="updateOrderBy('sub_type')"
               >
@@ -223,12 +237,12 @@ onMounted(async () => {
                   <GeneralIcon v-else icon="chevronUpDown" class="flex-none" />
                 </div>
               </th>
-            
+
               <th
                 class="cell-created-date !hover:bg-gray-100 select-none cursor-pointer"
                 :class="{
                   'cursor-not-allowed': !filteredIntegrations?.length,
-                  '!text-gray-700': orderBy.created_at
+                  '!text-gray-700': orderBy.created_at,
                 }"
                 @click="updateOrderBy('created_at')"
               >
@@ -249,7 +263,7 @@ onMounted(async () => {
                 class="cell-added-by !hover:bg-gray-100 select-none cursor-pointer"
                 :class="{
                   'cursor-not-allowed': !filteredIntegrations?.length,
-                  '!text-gray-700': orderBy.created_by
+                  '!text-gray-700': orderBy.created_by,
                 }"
                 @click="updateOrderBy('created_by')"
               >
@@ -495,6 +509,12 @@ onMounted(async () => {
 
   .name {
     @apply ml-4 text-md font-semibold;
+  }
+}
+
+:deep(.ant-input-affix-wrapper.nc-search-integration-input) {
+  &:not(:has(.ant-input-clear-icon-hidden)):has(.ant-input-clear-icon) {
+    @apply border-[var(--ant-primary-5)];
   }
 }
 

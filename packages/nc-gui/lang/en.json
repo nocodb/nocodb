@@ -272,7 +272,9 @@
     "use": "Use",
     "stack": "Stack",
     "ipAddress": "IP Address",
-    "integration": "Integration"
+    "integration": "Integration",
+    "connection": "Connection",
+    "connections": "Connections"
   },
   "objects": {
     "files": "files",

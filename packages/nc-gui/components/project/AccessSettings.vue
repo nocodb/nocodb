@@ -280,7 +280,7 @@ const customRow = (record: Record<string, any>) => ({
       </div>
     </div>
 
-    <div class="w-full flex justify-between items-center max-w-350 gap-3">
+    <div v-else class="w-full flex justify-between items-center max-w-350 gap-3">
       <a-input
         v-model:value="userSearchText"
         :placeholder="$t('title.searchMembers')"

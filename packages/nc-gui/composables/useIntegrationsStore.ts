@@ -136,7 +136,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
       pageMode.value = null
       activeIntegration.value = null
 
-      await message.success(`Connection ${integration.title} updated successfully`)
+      await message.success(`Connection "${integration.title}" updated successfully`)
     } catch (e) {
       await message.error(await extractSdkResponseErrorMsg(e))
     }
@@ -162,7 +162,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
       activeIntegration.value = null
 
       if (response?.title && mode === 'create') {
-        await message.success(`Connection ${response.title} created successfully`)
+        await message.success(`Connection "${response.title}" created successfully`)
       }
     } catch (e) {
       await message.error(await extractSdkResponseErrorMsg(e))

@@ -43,7 +43,7 @@ const isAddNewIntegrationModalOpen = computed({
   >
     <div class="h-full">
       <div v-if="isModal" class="p-4 w-full flex items-center justify-between gap-3 border-b-1 border-gray-200">
-        <div class="text-xl font-weight-500">New Integration</div>
+        <div class="text-xl font-weight-500">New Connection</div>
 
         <div class="flex items-center gap-3">
           <NcButton size="small" type="text" @click="isAddNewIntegrationModalOpen = false">
@@ -108,13 +108,12 @@ const isAddNewIntegrationModalOpen = computed({
                       </NcButton>
                     </div>
                     <div class="flex flex-col gap-2">
-                      <div class="text-sm text-gray-800">Description</div>
                       <a-textarea
                         v-model:value="requestIntegration.msg"
                         class="!rounded-md !text-sm !min-h-[120px] max-h-[500px] nc-scrollbar-thin"
                         size="large"
                         hide-details
-                        placeholder="Describe your requested integration..."
+                        placeholder="Provide details about the Integration you want to request & your use-case."
                       />
                     </div>
                     <div class="flex items-center justify-end gap-3">

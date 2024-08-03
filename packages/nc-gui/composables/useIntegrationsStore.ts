@@ -4,7 +4,6 @@ import { ClientType } from '../lib/enums'
 import GeneralBaseLogo from '~/components/general/BaseLogo.vue'
 import type { IntegrationStoreEvents as IntegrationStoreEventsTypes } from '#imports'
 
-
 enum IntegrationsPageMode {
   LIST,
   ADD,
@@ -70,7 +69,6 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     isLoading: false,
   })
 
-
   const loadIntegrations = async (databaseOnly = false) => {
     try {
       if (!activeWorkspaceId.value) return
@@ -109,7 +107,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
       $e('a:integration:delete')
       await loadIntegrations()
 
-      await message.success(`Connection ${integration.title} deleted successfully`)
+      // await message.success(`Connection ${integration.title} deleted successfully`)
 
       return true
     } catch (e) {
@@ -163,8 +161,8 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
       pageMode.value = null
       activeIntegration.value = null
 
-      if (response?.title) {
-        await message.success(`Connection ${response.title} ${mode === 'create' ? 'created' : 'duplicated'} successfully`)
+      if (response?.title && mode === 'create') {
+        await message.success(`Connection ${response.title} created successfully`)
       }
     } catch (e) {
       await message.error(await extractSdkResponseErrorMsg(e))

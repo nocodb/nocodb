@@ -156,16 +156,15 @@ watch(
     :footer="null"
     width="max(90vw, 600px)"
     :closable="false"
-    wrap-class-name="nc-modal-settings "
+    class="!top-50px !bottom-50px"
+    wrap-class-name="nc-modal-settings"
     @cancel="emits('update:modelValue', false)"
   >
-  <div class="h-80vh">
-
-
+  <div class="nc-modal-settings-content">
     <!--    Settings -->
     <div class="flex flex-row justify-between w-full items-center p-4 border-b-1 border-gray-200">
       <h5 class="!my-0 text-2xl font-bold">
-        {{$t('objects.project')}} {{ $t('activity.settings') }}
+        {{$t('objects.project')}} {{ $t('activity.settings') }} ds
       </h5>
 
       <NcButton type="text" size="small" data-testid="settings-modal-close-button" @click="vModel = false">
@@ -262,8 +261,11 @@ watch(
 .nc-modal-settings {
   .ant-modal-content {
     @apply !p-0 overflow-hidden;
+  }
 
-   
+  .nc-modal-settings-content{
+    height: min(calc(100vh - 100px), 1124px);
+    max-height: min(calc(100vh - 100px), 1124px) !important;
   }
 }
 </style>

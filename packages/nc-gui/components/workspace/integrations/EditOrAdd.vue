@@ -36,7 +36,7 @@ const connectionType = computed(() => {
     wrap-class-name="nc-modal-edit-or-add-integration"
     @keydown.esc="isEditOrAddIntegrationModalOpen = false"
   >
-    <div v-if="connectionType">
+    <div v-if="connectionType" class="h-full">
       <WorkspaceIntegrationsFormsEditOrAddDatabase
         v-model:open="isEditOrAddIntegrationModalOpen"
         :connection-type="connectionType"
@@ -45,13 +45,14 @@ const connectionType = computed(() => {
   </NcModal>
 </template>
 
-<style lang="scss" scoped>
-</style>
+<style lang="scss" scoped></style>
 
 <style lang="scss">
 .nc-modal-edit-or-add-integration {
   .nc-modal {
     @apply !p-0;
+    height: min(calc(100vh - 100px), 1024px);
+    max-height: min(calc(100vh - 100px), 1024px) !important;
 
     .nc-edit-or-add-integration-left-panel {
       @apply w-full p-6 flex-1 flex justify-center;

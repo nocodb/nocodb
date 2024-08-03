@@ -456,7 +456,7 @@ watch(
       </div>
     </div>
 
-    <div class="h-[calc(80vh_-_66px)] flex">
+    <div class="h-[calc(100%_-_66px)] flex">
       <div class="nc-edit-or-add-integration-left-panel nc-scrollbar-thin">
         <div class="w-full gap-8 max-w-[768px]">
           <div class="create-source bg-white relative flex flex-col justify-center gap-2 w-full">

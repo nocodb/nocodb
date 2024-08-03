@@ -411,9 +411,15 @@ const handleAutoScroll = (scroll: boolean, className: string) => {
     wrap-class-name="nc-modal-create-source"
     @keydown.esc="vOpen = false"
   >
-    <div class="flex-1 max-h-full">
-      <div class="px-4 py-3 w-full flex items-center justify-between gap-3 border-b-1 border-gray-200">
-        <div class="flex-1 text-base font-weight-700">New Source</div>
+  <div class="flex-1 flex flex-col max-h-full">
+      <div class="px-4 py-3 w-full flex items-center gap-3 border-b-1 border-gray-200">
+        <div class="h-6 self-start flex items-center">
+          <GeneralIcon icon="server1" class="!text-green-700 !h-4 !w-4" />
+        </div>
+        <div class="flex-1">
+          <div class="flex-1 text-base font-weight-700">New Source</div>
+          <div class="text-xs text-gray-600">Connect with a new external data source, directly in real time.</div>
+        </div>
 
         <div class="flex items-center gap-3">
           <div class="w-[15px] h-[15px] cursor-pointer" @dblclick="onEasterEgg"></div>
@@ -458,7 +464,7 @@ const handleAutoScroll = (scroll: boolean, className: string) => {
           </NcButton>
         </div>
       </div>
-      <div class="h-[calc(100%_-_58px)] flex">
+      <div class="h-[calc(100%_-_66px)] flex">
         <div class="nc-add-source-left-panel nc-scrollbar-thin">
           <div class="create-source bg-white relative flex flex-col gap-2 w-full max-w-[768px]">
             <a-form

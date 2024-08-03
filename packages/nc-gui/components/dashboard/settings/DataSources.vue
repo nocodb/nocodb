@@ -404,7 +404,7 @@ const isSearchResultAvailable = () => {
             <div class="ds-table-row !border-0">
               <div class="ds-table-col ds-table-enabled cursor-pointer">{{ $t('general.visibility') }}</div>
               <div class="ds-table-col ds-table-name">{{ $t('general.name') }}</div>
-              <div class="ds-table-col ds-table-integration-name">{{ $t('general.integration') }} {{ $t('general.name') }}</div>
+              <div class="ds-table-col ds-table-integration-name">{{ $t('general.connection') }} {{ $t('general.name') }}</div>
               <div class="ds-table-col ds-table-type">{{ $t('general.type') }}</div>
               <div class="ds-table-col ds-table-actions">{{ $t('labels.actions') }}</div>
             </div>

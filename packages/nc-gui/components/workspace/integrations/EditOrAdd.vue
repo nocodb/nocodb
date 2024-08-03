@@ -1,6 +1,9 @@
 <script lang="ts" setup>
 const { pageMode, IntegrationsPageMode, integrationType, activeIntegration } = useIntegrationStore()
 
+defineProps<{ loadDatasourceInfo?: boolean }>()
+
+
 const isEditOrAddIntegrationModalOpen = computed({
   get: () => {
     return pageMode.value === IntegrationsPageMode.ADD || pageMode.value === IntegrationsPageMode.EDIT
@@ -40,6 +43,7 @@ const connectionType = computed(() => {
       <WorkspaceIntegrationsFormsEditOrAddDatabase
         v-model:open="isEditOrAddIntegrationModalOpen"
         :connection-type="connectionType"
+        :load-datasource-info="loadDatasourceInfo"
       />
     </div>
   </NcModal>

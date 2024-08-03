@@ -18,8 +18,6 @@ const emit = defineEmits(['update:open', 'sourceCreated'])
 
 const vOpen = useVModel(props, 'open', emit)
 
-const connectionType = computed(() => props.connectionType ?? ClientType.MYSQL)
-
 const { loadIntegrations, integrations, eventBus, pageMode, IntegrationsPageMode } = useIntegrationStore()
 
 const baseStore = useBase()
@@ -388,15 +386,6 @@ onMounted(async () => {
   })
 })
 
-watch(
-  connectionType,
-  (v) => {
-    formState.value.dataSource.client = v
-    onClientChange()
-  },
-  { immediate: true },
-)
-
 const allowMetaWrite = computed({
   get: () => !formState.value.is_schema_readonly,
   set: (v) => {
@@ -437,6 +426,7 @@ const handleAddNewConnection = () => {
 eventBus.on((event, payload) => {
   if (event === IntegrationStoreEvents.INTEGRATION_ADD && pageMode.value === IntegrationsPageMode.ADD && payload?.id) {
     formState.value.fk_integration_id = payload.id
+    changeIntegration()
   }
 })
 </script>
@@ -473,6 +463,7 @@ eventBus.on((event, payload) => {
               size="small"
               class="nc-extdb-btn-test-connection"
               :class="{ 'pointer-events-none': testSuccess }"
+              :disabled="!selectedIntegration"
               :loading="testingConnection"
               icon-position="right"
               @click="testConnection"
@@ -711,7 +702,7 @@ eventBus.on((event, payload) => {
             </a-form>
 
             <WorkspaceIntegrationsNewAvailableList is-modal />
-            <WorkspaceIntegrationsEditOrAdd />
+            <WorkspaceIntegrationsEditOrAdd load-datasource-info/>
           </div>
         </div>
         <div class="nc-add-source-right-panel">

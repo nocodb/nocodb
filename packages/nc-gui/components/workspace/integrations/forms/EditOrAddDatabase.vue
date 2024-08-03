@@ -15,7 +15,7 @@ import {
   clientTypes as _clientTypes,
 } from '#imports'
 
-const props = defineProps<{ open: boolean; connectionType?: ClientType }>()
+const props = defineProps<{ open: boolean; connectionType?: ClientType; loadDatasourceInfo?: boolean }>()
 
 const emit = defineEmits(['update:open'])
 
@@ -64,7 +64,7 @@ const easterEgg = ref(false)
 const easterEggCount = ref(0)
 
 const isDisabledSubmitBtn = computed(() => {
-  if(isEditMode.value){
+  if (isEditMode.value) {
     return !testSuccess.value && !isEnabledSaveChangesBtn.value
   }
   return !testSuccess.value
@@ -263,13 +263,17 @@ const createOrUpdateIntegration = async () => {
     const config = { ...formState.value.dataSource, connection }
 
     if (!isEditMode.value) {
-      await saveIntegration({
-        title: formState.value.title,
-        type: IntegrationsType.Database,
-        sub_type: formState.value.dataSource.client,
-        config,
-        is_private: formState.value.is_private,
-      })
+      await saveIntegration(
+        {
+          title: formState.value.title,
+          type: IntegrationsType.Database,
+          sub_type: formState.value.dataSource.client,
+          config,
+          is_private: formState.value.is_private,
+        },
+        'create',
+        props.loadDatasourceInfo,
+      )
     } else {
       await updateIntegration({
         id: activeIntegration.value.id,

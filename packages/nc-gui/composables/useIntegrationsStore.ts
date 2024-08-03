@@ -142,7 +142,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     }
   }
 
-  const saveIntegration = async (integration: IntegrationType, mode: 'create' | 'duplicate' = 'create') => {
+  const saveIntegration = async (integration: IntegrationType, mode: 'create' | 'duplicate' = 'create', loadDatasourceInfo = false) => {
     try {
       const response = await api.integration.create(integration)
       if (mode === 'create') {
@@ -152,11 +152,14 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
       }
 
       if (response && response?.id) {
-        integrations.value.push(response)
-        eventBus.emit(IntegrationStoreEvents.INTEGRATION_ADD, response)
+        if(!loadDatasourceInfo){
+          integrations.value.push(response)
+        }
       }
 
-      await loadIntegrations()
+      await loadIntegrations(loadDatasourceInfo)
+
+      eventBus.emit(IntegrationStoreEvents.INTEGRATION_ADD, response)
 
       pageMode.value = null
       activeIntegration.value = null

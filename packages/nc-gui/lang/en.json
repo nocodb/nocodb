@@ -554,7 +554,7 @@
     "allowMetaWrite": "Allow Schema Change",
     "allowDataWrite": "Allow Data Write/Edit",
     "selectView": "Select a View",
-    "connectionDetails": "Connection Details",
+    "connectionDetails": "Source Connection Details",
     "metaSync": "Meta Sync",
     "mention": "Mention",
     "today": "Today",

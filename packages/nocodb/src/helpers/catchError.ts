@@ -1,7 +1,9 @@
-import { NcErrorType } from 'nocodb-sdk';
+import {NcErrorType, SourceType} from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
 import type { ErrorObject } from 'ajv';
+import type { Integration } from '~/models';
 import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
+import { Source } from '~/models';
 
 const dbErrorLogger = new Logger('MissingDBError');
 
@@ -483,6 +485,11 @@ const errorHelpers: {
     message: (id: string) => `Integration '${id}' not found`,
     code: 404,
   },
+  [NcErrorType.INTEGRATION_LINKED_WITH_SOURCE]: {
+    message: (sources) =>
+      `Integration linked with following sources '${sources}'`,
+    code: 404,
+  },
   [NcErrorType.TABLE_NOT_FOUND]: {
     message: (id: string) => `Table '${id}' not found`,
     code: 404,
@@ -841,6 +848,13 @@ export class NcError {
   static integrationNotFound(id: string, args?: NcErrorArgs) {
     throw new NcBaseErrorv2(NcErrorType.INTEGRATION_NOT_FOUND, {
       params: id,
+      ...(args || {}),
+    });
+  }
+
+  static integrationLinkedWithMultiple(sources: SourceType[], args?: NcErrorArgs) {
+    throw new NcBaseErrorv2(NcErrorType.INTEGRATION_LINKED_WITH_SOURCE, {
+      params: sources.map((s) => s.alias).join(', '),
       ...(args || {}),
     });
   }

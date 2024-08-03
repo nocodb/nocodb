@@ -64,10 +64,12 @@ export class IntegrationsController {
   async integrationDelete(
     @Param('integrationId') integrationId: string,
     @Req() req: NcRequest,
+    @Query('force') force: string,
   ) {
     return await this.integrationsService.integrationDelete({
       req,
       integrationId,
+      force: force === 'true',
     });
   }
 

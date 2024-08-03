@@ -93,9 +93,44 @@ export class IntegrationsService {
     return integrations;
   }
 
-  async integrationDelete(param: { integrationId: string; req: any }) {
+  async integrationDelete(
+    param: { integrationId: string; req: any; force: boolean },
+    ncMeta = Noco.ncMeta,
+  ) {
     try {
       const integration = await Integration.get(param.integrationId, true);
+
+      // check linked sources
+      const sources = await ncMeta.metaList2(
+        RootScopes.WORKSPACE,
+        RootScopes.WORKSPACE,
+        MetaTable.BASES,
+        {
+          condition: {
+            fk_workspace_id: integration.fk_workspace_id,
+            fk_integration_id: integration.id,
+          },
+          xcCondition: {
+            _or: [
+              {
+                deleted: {
+                  eq: false,
+                },
+              },
+              {
+                deleted: {
+                  eq: null,
+                },
+              },
+            ],
+          },
+        },
+      );
+
+      if (sources.length > 0 && !param.force) {
+        NcError.integrationLinkedWithMultiple(sources);
+      }
+
       await integration.delete();
       // todo: add new event type
       // this.appHooksService.emit(AppEvents.BASE_DELETE, {

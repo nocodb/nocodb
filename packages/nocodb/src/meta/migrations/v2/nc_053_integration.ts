@@ -14,6 +14,7 @@ const up = async (knex: Knex) => {
 
     table.string('created_by', 20).index();
 
+    table.float('order');
     table.timestamps(true, true);
   });
 

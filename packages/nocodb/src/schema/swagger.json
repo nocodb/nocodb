@@ -19061,6 +19061,96 @@
           "id": "qyzsky82ovjiv"
         }
       },
+      "Integration": {
+        "description": "Model for Integration",
+        "examples": [
+          {
+            "alias": null,
+            "config": "<ENCRYPTED>",
+            "enabled": 1,
+            "id": "ds_krsappzu9f8vmo",
+            "inflection_column": "camelize",
+            "inflection_table": "camelize",
+            "is_meta": 1,
+            "meta": null,
+            "order": 1,
+            "base_id": "p_01clqvzik3izk6",
+            "type": "mysql2"
+          }
+        ],
+        "title": "Source Model",
+        "type": "object",
+        "properties": {
+          "alias": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Source Name - Default BASE will be null by default"
+          },
+          "config": {
+            "description": "Source Configuration"
+          },
+          "enabled": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is this source enabled"
+          },
+          "id": {
+            "description": "Unique Source ID",
+            "type": "string"
+          },
+          "inflection_column": {
+            "description": "Inflection for columns",
+            "example": "camelize",
+            "type": "string"
+          },
+          "inflection_table": {
+            "description": "Inflection for tables",
+            "example": "camelize",
+            "type": "string"
+          },
+          "is_meta": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is the data source connected externally"
+          },
+          "is_local": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is the data source minimal db"
+          },
+          "is_schema_readonly": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is the data source schema readonly"
+          },
+          "is_data_readonly": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is the data source data readonly"
+          },
+          "order": {
+            "description": "The order of the list of sources",
+            "example": 1,
+            "type": "number"
+          },
+          "base_id": {
+            "description": "The base ID that this source belongs to",
+            "type": "string"
+          },
+          "type": {
+            "description": "DB Type",
+            "enum": [
+              "mssql",
+              "mysql",
+              "mysql2",
+              "oracledb",
+              "pg",
+              "snowflake",
+              "sqlite3",
+              "databricks"
+            ],
+            "example": "mysql2",
+            "type": "string"
+          }
+        },
+        "x-stoplight": {
+          "id": "qyzsky82ovjiv"
+        }
+      },
       "BaseList": {
         "description": "Model for Source List",
         "examples": [

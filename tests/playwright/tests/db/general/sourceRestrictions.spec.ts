@@ -4,7 +4,7 @@ import setup, { NcContext, unsetup } from '../../../setup';
 import { Api } from 'nocodb-sdk';
 import { DataSourcePage } from '../../../pages/Dashboard/ProjectView/DataSourcePage';
 
-test.describe.only('Source Restrictions', () => {
+test.describe('Source Restrictions', () => {
   let dashboard: DashboardPage;
   let dataSourcesPage: DataSourcePage;
   let context: NcContext;

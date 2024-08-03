@@ -68,12 +68,13 @@ const _pushProgress = async () => {
   })
 }
 
-const defaultFormState = () => {
+const defaultFormState = (client = ClientType.MYSQL) => {
   return {
     title: '',
-    dataSource: { ...getDefaultConnectionConfig(ClientType.MYSQL) },
+    dataSource: { ...getDefaultConnectionConfig(client) },
     sslUse: SSLUsage.No,
     extraParameters: [],
+    is_private: false
   }
 }
 
@@ -363,7 +364,7 @@ const customJsonFormState = computed({
     if (value && typeof value === 'object') {
       formState.value = { ...defaultFormState(), ...value }
     } else {
-      formState.value = defaultFormState()
+      formState.value = defaultFormState(formState.value?.dataSource?.client ? formState.value?.dataSource?.client : undefined)
     }
     updateSSLUse()
   },
@@ -390,6 +391,8 @@ onMounted(async () => {
   if (pageMode.value === IntegrationsPageMode.ADD) {
     formState.value.title = await generateUniqueName()
   } else {
+    if (!activeIntegration.value) return
+
     const definedParameters = ['host', 'port', 'user', 'password', 'database']
 
     const tempParameters = Object.entries(activeIntegration.value.config.connection)
@@ -401,7 +404,7 @@ onMounted(async () => {
       dataSource: activeIntegration.value.config,
       extraParameters: tempParameters,
       sslUse: SSLUsage.No,
-      is_private: activeIntegration.value.is_private,
+      is_private: activeIntegration.value?.is_private,
     }
     updateSSLUse()
   }
@@ -456,13 +459,6 @@ const onUseCaseFormSubmit = async () => {
   $e('a:extdb:usecase', useCaseFormState.value)
   return onDashboard()
 }
-
-const allowAccess = computed({
-  get: () => !formState.value.is_private,
-  set: (v) => {
-    formState.value.is_private = !v
-  },
-})
 </script>
 
 <template>
@@ -967,7 +963,7 @@ const allowAccess = computed({
                 <div class="nc-form-section">
                   <a-form-item class="!my-0">
                     <div class="flex items-center gap-3">
-                      <a-switch v-if="isEeUI" v-model:checked="allowAccess" size="small" />
+                      <a-switch v-if="isEeUI" v-model:checked="formState.is_private" size="small" />
                       <NcTooltip v-else>
                         <template #title>
                           <div class="text-center">
@@ -975,16 +971,16 @@ const allowAccess = computed({
                           </div>
                         </template>
 
-                        <a-switch :checked="allowAccess" disabled size="small" />
+                        <a-switch :checked="formState.is_private" disabled size="small" />
                       </NcTooltip>
 
                       <NcTooltip placement="right" class="cursor-pointer">
                         <template #title>
-                          {{ $t('tooltip.allowIntegrationAccess') }}
+                          {{ $t('tooltip.privateConnection') }}
                         </template>
 
-                        <div class="nc-form-section-title" @click="isEeUI ? (allowAccess = !allowAccess) : undefined">
-                          Share Integration
+                        <div class="nc-form-section-title" @click="isEeUI ? (formState.is_private = !formState.is_private) : undefined">
+                          Private connection
                         </div>
                       </NcTooltip>
                     </div>

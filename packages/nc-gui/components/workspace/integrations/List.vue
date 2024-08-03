@@ -12,6 +12,7 @@ const {
   isLoadingIntegrations,
   deleteConfirmText,
   IntegrationsPageMode,
+  clientTypesMap,
   loadIntegrations,
   deleteIntegration,
   editIntegration,
@@ -165,7 +166,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="h-full flex flex-col gap-6 pt-6 nc-workspace-settings-integrations max-w-[fit-content] mx-auto">
+  <div class="h-full flex flex-col gap-6 pt-6 nc-workspace-settings-integrations max-w-[fit-content]">
     <div class="flex items-center justify-between gap-3 mx-1">
       <a-input
         v-model:value="searchQuery"
@@ -181,7 +182,7 @@ onMounted(async () => {
       <NcButton size="small" class="flex-none" @click="pageMode = IntegrationsPageMode.LIST">
         <div class="flex items-center gap-2">
           <GeneralIcon icon="plus" />
-          New Integration
+          {{ $t('general.new') }} {{ $t('general.connection').toLowerCase() }}
         </div>
       </NcButton>
     </div>
@@ -316,15 +317,16 @@ onMounted(async () => {
                       <template #title> {{ integration.title }}</template>
                       {{ integration.title }}
                     </NcTooltip>
-                    <!-- <span v-if="!integration.is_private">
-                      <NcBadge :border="false" class="text-primary bg-brand-50 text-sm">Shared</NcBadge>
-                    </span> -->
+                    <span v-if="integration.is_private">
+                      <NcBadge :border="false" class="text-primary bg-brand-50 text-sm">Private</NcBadge>
+                    </span>
                   </div>
                 </td>
                 <td class="cell-type">
                   <div class="flex">
                     <NcBadge rounded="lg" class="flex items-center gap-2 px-2 py-1 !h-7 truncate">
                       <WorkspaceIntegrationsIcon
+                        v-if="integration.sub_type"
                         :integration-type="integration.sub_type"
                         size="xs"
                         class="!p-0 !bg-transparent"
@@ -332,7 +334,11 @@ onMounted(async () => {
                       <NcTooltip placement="bottom" show-on-truncate-only class="text-sm truncate">
                         <template #title> {{ integration.sub_type }}</template>
 
-                        {{ integration.sub_type }}
+                        {{
+                          integration.sub_type && clientTypesMap[integration.sub_type]
+                            ? clientTypesMap[integration.sub_type]?.text
+                            : integration.sub_type
+                        }}
                       </NcTooltip>
                     </NcBadge>
                   </div>
@@ -454,12 +460,12 @@ onMounted(async () => {
 
         <div v-else class="flex-none text-center flex flex-col items-center gap-3">
           <img src="~assets/img/placeholder/link-records.png" class="!w-[18.5rem] flex-none" />
-          <div class="text-2xl text-gray-700 font-bold">No Integrations added</div>
-          <div class="text-gray-700 text-center">Looks like no integrations have been linked yet.</div>
+          <div class="text-2xl text-gray-700 font-bold">No connections added</div>
+          <div class="text-gray-700 text-center">Looks like no connections have been linked yet.</div>
           <NcButton size="small" class="flex-none" @click="pageMode = IntegrationsPageMode.LIST">
             <div class="flex items-center gap-2">
               <GeneralIcon icon="plus" />
-              New Integration
+              {{ $t('general.new') }} {{ $t('general.connection').toLowerCase() }}
             </div>
           </NcButton>
         </div>
@@ -592,7 +598,7 @@ onMounted(async () => {
         }
 
         &.cell-added-by {
-          @apply w-[220px];
+          @apply w-[252px];
         }
 
         &.cell-type {

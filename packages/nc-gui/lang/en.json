@@ -1133,7 +1133,7 @@
     "group": "Group"
   },
   "tooltip": {
-    "allowIntegrationAccess": "Allow creators in this workspace to use this integration.",
+    "privateConnection": "Enable to make this connection private and hidden from other creators in this workspace.",
     "optionalDatabaseName": "Database name is optional. If left blank, it will use the default database('{database}') from integration settings.",
     "optionalSchemaName": "Schema name is optional. If left blank, it will use the default schema('{schema}') from integration settings.",
     "schemaChangeDisabled": "Schema editing is disabled for this data source.",

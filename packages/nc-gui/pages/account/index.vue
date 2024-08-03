@@ -81,7 +81,7 @@ const logout = async () => {
                 <div class="flex items-center space-x-2">
                   <GeneralIcon icon="integration" class="!h-3.5 !w-3.5" />
 
-                  <div class="select-none">{{ $t('labels.integration') }}</div>
+                  <div class="select-none">{{ $t('general.connections') }}</div>
                 </div>
               </NcMenuItem>
 

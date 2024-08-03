@@ -20,6 +20,7 @@ interface ProjectCreateForm {
   }
   sslUse?: SSLUsage
   extraParameters: { key: string; value: string }[]
+  is_private?: BoolType
 }
 
 interface DefaultConnection {

@@ -467,7 +467,7 @@ onMounted(async () => {
 
     <GeneralDeleteModal
       v-model:visible="isDeleteIntegrationModalOpen"
-      :entity-name="$t('general.integration')"
+      :entity-name="$t('general.connection')"
       :on-delete="onDeleteConfirm"
       :delete-label="$t('general.delete')"
     >

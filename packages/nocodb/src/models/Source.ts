@@ -302,7 +302,7 @@ export default class Source implements SourceType {
     return config;
   }
 
-  public getConfig(): any {
+  public getConfig(skipIntegrationConfig = false): any {
     if (this.is_meta) {
       const metaConfig = Noco.getConfig()?.meta?.db;
       const config = { ...metaConfig };
@@ -318,6 +318,10 @@ export default class Source implements SourceType {
         Noco.getConfig()?.auth?.jwt?.secret,
       ).toString(CryptoJS.enc.Utf8),
     );
+
+    if (skipIntegrationConfig) {
+      return config;
+    }
 
     if (!this.integration_config) {
       return config;
@@ -342,7 +346,7 @@ export default class Source implements SourceType {
   }
 
   public getSourceConfig(): any {
-    return this.getConfig();
+    return this.getConfig(true);
   }
 
   getProject(context: NcContext, ncMeta = Noco.ncMeta): Promise<Base> {

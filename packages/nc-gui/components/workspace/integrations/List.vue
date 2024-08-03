@@ -165,7 +165,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="h-full flex flex-col gap-6 nc-workspace-connections max-w-[fit-content]">
+  <div class="h-full flex flex-col gap-6 nc-workspace-connections">
     <div class="flex items-center justify-between gap-3 mx-1">
       <a-input
         v-model:value="searchQuery"
@@ -186,8 +186,11 @@ onMounted(async () => {
         'mb-6': isEeUI,
       }"
     >
-      <div ref="tableWrapper" class="nc-workspace-integration-table relative nc-scrollbar-thin !overflow-auto max-h-full">
-        <table class="!sticky top-0 z-10">
+      <div ref="tableWrapper" class="nc-workspace-integration-table relative nc-scrollbar-thin !overflow-auto max-h-full"
+      :class="{
+        'h-full': filteredIntegrations?.length
+      }">
+        <table class="!sticky top-0 z-10 w-full">
           <thead>
             <tr>
               <th
@@ -302,7 +305,7 @@ onMounted(async () => {
           </thead>
         </table>
         <template v-if="filteredIntegrations?.length">
-          <table class="h-full">
+          <table class="h-full max-h-[calc(100%_-_55px)] w-full">
             <tbody>
               <tr v-for="integration of filteredIntegrations" :key="integration.id" @click="editIntegration(integration)">
                 <td class="cell-title">
@@ -514,7 +517,7 @@ onMounted(async () => {
 }
 
 .table-container {
-  @apply border-1 border-gray-200 rounded-lg overflow-hidden max-w-[fit-content];
+  @apply border-1 border-gray-200 rounded-lg overflow-hidden w-full;
 
   .nc-workspace-integration-table {
     &.sticky-shadow {
@@ -536,6 +539,7 @@ onMounted(async () => {
     }
 
     thead {
+      @apply w-full;
       th {
         @apply bg-gray-50 text-sm text-gray-500 font-weight-500;
 
@@ -546,6 +550,7 @@ onMounted(async () => {
     }
 
     tbody {
+      @apply w-full;
       tr {
         @apply cursor-pointer;
 
@@ -560,7 +565,7 @@ onMounted(async () => {
     }
 
     tr {
-      @apply h-[54px] flex border-b-1 border-gray-200;
+      @apply h-[54px] flex border-b-1 border-gray-200 w-full;
 
       &:hover td {
         @apply !bg-gray-50;
@@ -579,19 +584,19 @@ onMounted(async () => {
         }
 
         &.cell-title {
-          @apply w-[252px] sticky left-0 z-5;
+          @apply flex-1 min-w-[252px] sticky left-0 z-5;
         }
 
         &.cell-added-by {
-          @apply w-[252px];
+          @apply basis-[20%] min-w-[252px];
         }
 
         &.cell-type {
-          @apply w-[180px];
+          @apply basis-[20%] min-w-[180px];
         }
 
         &.cell-created-date {
-          @apply w-[160px];
+          @apply basis-[20%] min-w-[160px];
         }
 
         &.cell-usage {

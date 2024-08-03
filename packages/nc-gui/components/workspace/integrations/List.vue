@@ -212,10 +212,10 @@ onKeyStroke('ArrowDown', onDown)
 
 <template>
   <div class="h-full flex flex-col gap-6 nc-workspace-connections">
-    <div class="flex items-end justify-between gap-12">
+    <div class="flex justify-between gap-12">
       <div class="text-sm font-normal text-gray-600">
         <div>
-          Connections simplify managing stored configurations for different integrations. Click on a connection to view or modify.
+          Connections simplify managing stored configurations for different integrations.
           <a target="_blank" rel="noopener noreferrer"> Learn more </a>
         </div>
       </div>
@@ -587,19 +587,16 @@ onKeyStroke('ArrowDown', onDown)
                 class="marker:text-gray-500 !marker:(flex items-center !-mt-1)"
               >
                 <div class="flex items-center gap-1">
-                  
                   <div class="flex items-center">
                     &nbsp;
                     <GeneralProjectIcon
-                    type="database"
-                    class="!grayscale min-w-4 flex-none -ml-1"
-                    :style="{
-                      filter: 'grayscale(100%) brightness(115%)',
-                    }"
-                  />
+                      type="database"
+                      class="!grayscale min-w-4 flex-none -ml-1"
+                      :style="{
+                        filter: 'grayscale(100%) brightness(115%)',
+                      }"
+                    />
                   </div>
-
-                 
 
                   <NcTooltip class="!truncate !max-w-[45%] flex-none" show-on-truncate-only>
                     <template #title>

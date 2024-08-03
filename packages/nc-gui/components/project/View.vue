@@ -6,6 +6,8 @@ const props = defineProps<{
   baseId?: string
 }>()
 
+useProvideIntegrationViewStore()
+
 const basesStore = useBases()
 
 const { openedProject, activeProjectId, basesUser, bases } = storeToRefs(basesStore)

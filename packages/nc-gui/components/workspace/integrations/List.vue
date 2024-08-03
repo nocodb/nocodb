@@ -560,12 +560,25 @@ onKeyStroke('ArrowDown', onDown)
             <a-skeleton-input active class="h-9 !rounded-md !w-full"></a-skeleton-input>
           </div>
         </template>
-        <div v-else class="w-full flex flex-col text-gray-800">
-          <div v-if="toBeDeletedIntegration?.sources?.length" class="flex flex-col pb-2">
+        <div v-else-if="toBeDeletedIntegration" class="w-full flex flex-col text-gray-800">
+          <div class="flex flex-row items-center py-2 px-3.25 bg-gray-50 rounded-lg text-gray-700 mb-4">
+            <WorkspaceIntegrationsIcon
+              :integration-type="toBeDeletedIntegration.sub_type"
+              size="xs"
+              class="!p-0 !bg-transparent"
+            />
+            <div
+              class="text-ellipsis overflow-hidden select-none w-full pl-3"
+              :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
+            >
+              {{ toBeDeletedIntegration.title }}
+            </div>
+          </div>
+          <div v-if="toBeDeletedIntegration?.sources?.length" class="flex flex-col pb-2 text-small leading-[18px] text-gray-500">
             <div class="mb-1">Following external data sources using this connection will also be removed</div>
-            <ul class="!list-disc ml-4.5 mb-0">
-              <li v-for="(source, idx) of toBeDeletedIntegration.sources" :key="idx" class="marker:text-gray-600">
-                <div class="flex items-center gap-1 text-gray-600">
+            <ul class="!list-disc ml-6 mb-0">
+              <li v-for="(source, idx) of toBeDeletedIntegration.sources" :key="idx" class="marker:text-gray-500 ">
+                <div class="flex items-center gap-1 ">
 
               
                 <NcTooltip class="truncate !max-w-1/2 flex-none" show-on-truncate-only>
@@ -589,19 +602,7 @@ onKeyStroke('ArrowDown', onDown)
             <div class="mt-2">Do you want to proceed anyway?</div>
           </div>
 
-          <div class="flex flex-row items-center py-2 px-3.25 bg-gray-50 rounded-lg text-gray-700 mb-4">
-            <WorkspaceIntegrationsIcon
-              :integration-type="toBeDeletedIntegration.sub_type"
-              size="xs"
-              class="!p-0 !bg-transparent"
-            />
-            <div
-              class="text-ellipsis overflow-hidden select-none w-full pl-3"
-              :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
-            >
-              {{ toBeDeletedIntegration.title }}
-            </div>
-          </div>
+         
         </div>
       </template>
     </GeneralDeleteModal>

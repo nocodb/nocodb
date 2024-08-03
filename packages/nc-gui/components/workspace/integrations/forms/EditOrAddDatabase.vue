@@ -28,7 +28,8 @@ const vOpen = useVModel(props, 'open', emit)
 
 const connectionType = computed(() => props.connectionType ?? ClientType.MYSQL)
 
-const {isFromIntegrationPage, pageMode, IntegrationsPageMode, activeIntegration, saveIntegration, updateIntegration } = useIntegrationStore()
+const { isFromIntegrationPage, pageMode, IntegrationsPageMode, activeIntegration, saveIntegration, updateIntegration } =
+  useIntegrationStore()
 
 const isEditMode = computed(() => pageMode.value === IntegrationsPageMode.EDIT)
 
@@ -478,7 +479,12 @@ watch(
   <div v-if="activeIntegration" class="h-full">
     <div class="p-4 w-full flex items-center justify-between gap-3 border-b-1 border-gray-200">
       <div class="flex-1 flex items-center gap-3">
-        <NcButton v-if="!isEditMode && !isFromIntegrationPage" type="text" size="small" @click="pageMode = IntegrationsPageMode.LIST">
+        <NcButton
+          v-if="!isEditMode && !isFromIntegrationPage"
+          type="text"
+          size="small"
+          @click="pageMode = IntegrationsPageMode.LIST"
+        >
           <GeneralIcon icon="arrowLeft" />
         </NcButton>
         <WorkspaceIntegrationsIcon

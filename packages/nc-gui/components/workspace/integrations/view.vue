@@ -1,9 +1,6 @@
 <script lang="ts" setup>
 import { useTitle } from '@vueuse/core'
 
-const router = useRouter()
-const route = router.currentRoute
-
 const { isUIAllowed } = useRoles()
 
 const workspaceStore = useWorkspace()

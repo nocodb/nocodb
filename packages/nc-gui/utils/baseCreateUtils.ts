@@ -1,4 +1,4 @@
-import { SSLUsage, getTestDatabaseName } from 'nocodb-sdk'
+import { SSLUsage, type BoolType } from 'nocodb-sdk'
 import { ClientType } from '~/lib/enums'
 
 // todo: move to noco-sdk

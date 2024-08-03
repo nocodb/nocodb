@@ -68,7 +68,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
   const eventBus = useEventBus<IntegrationStoreEventsTypes>(Symbol('integrationStore'))
 
   const { $e } = useNuxtApp()
-  
+
   const { t } = useI18n()
 
   const isFromIntegrationPage = ref(false)
@@ -77,7 +77,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     isOpen: false,
     title: t('msg.success.connectionAdded'),
     connectionTitle: '',
-    description: t('msg.success.connectionAddedDesc')
+    description: t('msg.success.connectionAddedDesc'),
   })
 
   const requestIntegration = ref({

@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import type { SyncDataType } from '../../lib/enums'
-import { SyncDataType as SyncDataTypeEnum } from '../../lib/enums'
 
 const props = defineProps<{ open: boolean }>()
 const emit = defineEmits(['update:open'])

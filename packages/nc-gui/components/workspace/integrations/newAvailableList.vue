@@ -54,7 +54,7 @@ const handleAddIntegration = (type: typeof integrationType) => {
         <NcButton type="text" size="small" @click="isAddNewIntegrationModalOpen = false">
           <GeneralIcon icon="arrowLeft" />
         </NcButton>
-        <GeneralIcon icon="gitCommit" class="flex-none h-5 w-5"/>
+        <GeneralIcon icon="gitCommit" class="flex-none h-5 w-5" />
         <div class="flex-1 text-base font-weight-700">New Connection</div>
         <div class="flex items-center gap-3">
           <NcButton size="small" type="text" @click="isAddNewIntegrationModalOpen = false">

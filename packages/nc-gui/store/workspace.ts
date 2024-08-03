@@ -226,7 +226,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   }
 
   // Todo: write logic to navigate to integrations
-  const navigateToIntegrations = async (_?: string, cmdOrCtrl?: boolean, query: Record<string, string> = {}) => {
+  const navigateToIntegrations = async (_?: string, cmdOrCtrl?: boolean) => {
     if (cmdOrCtrl) {
       await navigateTo('/nc/integrations', {
         open: navigateToBlankTargetOpenOption,

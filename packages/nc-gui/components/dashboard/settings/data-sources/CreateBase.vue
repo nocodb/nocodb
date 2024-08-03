@@ -411,7 +411,7 @@ const handleAutoScroll = (scroll: boolean, className: string) => {
     wrap-class-name="nc-modal-create-source"
     @keydown.esc="vOpen = false"
   >
-  <div class="flex-1 flex flex-col max-h-full">
+    <div class="flex-1 flex flex-col max-h-full">
       <div class="px-4 py-3 w-full flex items-center gap-3 border-b-1 border-gray-200">
         <div class="h-6 self-start flex items-center">
           <GeneralIcon icon="server1" class="!text-green-700 !h-4 !w-4" />

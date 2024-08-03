@@ -490,7 +490,7 @@ const allowAccess = computed({
           <NcButton
             type="secondary"
             size="small"
-            class="nc-extdb-btn-test-connection !rounded-md"
+            class="nc-extdb-btn-test-connection"
             :class="{ 'pointer-events-none': testSuccess }"
             :loading="testingConnection"
             icon-position="right"
@@ -512,10 +512,13 @@ const allowAccess = computed({
           type="primary"
           :disabled="!testSuccess"
           :loading="creatingSource"
-          class="nc-extdb-btn-submit !rounded-md"
+          class="nc-extdb-btn-submit"
           @click="createOrUpdateIntegration"
         >
           {{ pageMode === IntegrationsPageMode.ADD ? 'Add integration' : 'Edit integration' }}
+        </NcButton>
+        <NcButton size="small" type="text" @click="vOpen = false">
+          <GeneralIcon icon="close" class="text-gray-600" />
         </NcButton>
       </div>
     </div>
@@ -652,7 +655,11 @@ const allowAccess = computed({
                         </a-col>
                         <a-col :span="12">
                           <!-- Password -->
-                          <a-form-item :label="$t('labels.password')" class="nc-form-item-connection-password" v-bind="validateInfos['dataSource.connection.password']">
+                          <a-form-item
+                            :label="$t('labels.password')"
+                            class="nc-form-item-connection-password"
+                            v-bind="validateInfos['dataSource.connection.password']"
+                          >
                             <a-input-password
                               v-model:value="(formState.dataSource.connection as SnowflakeConnection).password"
                               class="nc-extdb-host-password"
@@ -754,7 +761,11 @@ const allowAccess = computed({
                         </a-col>
                         <a-col :span="12">
                           <!-- Port Number -->
-                          <a-form-item :label="$t('labels.port')" class="nc-form-item-connection-port" v-bind="validateInfos['dataSource.connection.port']">
+                          <a-form-item
+                            :label="$t('labels.port')"
+                            class="nc-form-item-connection-port"
+                            v-bind="validateInfos['dataSource.connection.port']"
+                          >
                             <a-input-number
                               v-model:value="(formState.dataSource.connection as DefaultConnection).port"
                               class="!w-full nc-extdb-host-port !rounded-md"

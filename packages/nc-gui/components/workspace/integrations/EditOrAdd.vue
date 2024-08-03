@@ -37,7 +37,7 @@ const connectionType = computed(() => {
     @keydown.esc="isEditOrAddIntegrationModalOpen = false"
   >
     <div v-if="connectionType">
-      <WorkspaceIntegrationsFormsEditOrAddDatabase :connection-type="connectionType" />
+      <WorkspaceIntegrationsFormsEditOrAddDatabase v-model:open="isEditOrAddIntegrationModalOpen" :connection-type="connectionType" />
     </div>
   </NcModal>
 </template>

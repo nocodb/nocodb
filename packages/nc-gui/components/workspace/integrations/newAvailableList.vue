@@ -25,8 +25,13 @@ const isAddNewIntegrationModalOpen = computed({
     <div class="h-full">
       <div class="p-4 w-full flex items-center justify-between gap-3 border-b-1 border-gray-200">
         <div class="text-2xl font-weight-700">New Integration</div>
+
+        <div class="flex items-center gap-3">
+          <NcButton size="small" type="text" @click="isAddNewIntegrationModalOpen = false">
+            <GeneralIcon icon="close" class="text-gray-600" />
+          </NcButton>
+        </div>
       </div>
-    
 
       <div class="h-[calc(80vh_-_66px)] flex flex-col nc-workspace-settings-integrations-new-available-list p-6">
         <div class="w-full flex justify-center">

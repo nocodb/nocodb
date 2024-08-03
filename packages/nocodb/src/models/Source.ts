@@ -483,12 +483,7 @@ export default class Source implements SourceType {
       NcError.badRequest('Cannot delete first base');
     }
 
-    await Source.update(
-      context,
-      this.id,
-      { deleted: true, fk_sql_executor_id: null },
-      ncMeta,
-    );
+    await Source.update(context, this.id, { deleted: true }, ncMeta);
 
     await NocoCache.deepDel(
       `${CacheScope.BASE}:${this.id}`,

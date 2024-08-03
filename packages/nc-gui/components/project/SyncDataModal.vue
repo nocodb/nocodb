@@ -51,7 +51,7 @@ const upVoteCountBySyncDataTypeMap = computed(() => {
             </div>
           </div>
           <div class="flex items-start gap-3 flex-wrap">
-            <div v-for="syncData of syncDataTypes" class="nc-sync-data-card" :key="syncData.value">
+            <div v-for="syncData of syncDataTypes" :key="syncData.value" class="nc-sync-data-card">
               <div class="card-icon-wrapper">
                 <component :is="syncData.icon" class="card-icon h-8 w-8" />
               </div>
@@ -62,7 +62,9 @@ const upVoteCountBySyncDataTypeMap = computed(() => {
                 <NcButton type="secondary" size="xsmall" class="!rounded-lg !px-2">
                   <div class="flex items-center gap-2">
                     <GeneralIcon icon="thumbsUpOutline" />
-                    <span v-if="upVoteCountBySyncDataTypeMap[syncData.value]">{{ upVoteCountBySyncDataTypeMap[syncData.value] }}</span>
+                    <span v-if="upVoteCountBySyncDataTypeMap[syncData.value]">{{
+                      upVoteCountBySyncDataTypeMap[syncData.value]
+                    }}</span>
                   </div>
                 </NcButton>
               </div>

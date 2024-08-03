@@ -202,5 +202,5 @@ export enum SyncDataType {
   TRELLO = 'trello',
   TYPEFORM = 'typeform',
   WORKDAY = 'workday',
-  ZENDESK = 'zendesk'
+  ZENDESK = 'zendesk',
 }

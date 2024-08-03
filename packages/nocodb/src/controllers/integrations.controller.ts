@@ -106,6 +106,7 @@ export class IntegrationsController {
   @Get(['/api/v2/meta/integrations'])
   @Acl('integrationList', {
     scope: 'org',
+    extendedScope: 'base',
   })
   async integrationList(
     @Req() req: NcRequest,

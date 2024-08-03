@@ -214,8 +214,6 @@ import NcCircle from '~icons/nc-icons/circle'
 import NcServer1 from '~icons/nc-icons/server1'
 import NcThumbsUpOutline from '~icons/nc-icons/thumbs-up-outline'
 
-
-
 // keep it for reference
 // todo: remove it after all icons are migrated
 /* export const iconMapOld = {

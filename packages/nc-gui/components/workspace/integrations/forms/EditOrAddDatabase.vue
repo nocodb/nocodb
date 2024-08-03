@@ -873,7 +873,7 @@ watch(
               >
                 <NcDivider />
 
-                <a-collapse ghost v-model:activeKey="useSslExpansionPanel" class="!mt-4">
+                <a-collapse v-model:activeKey="useSslExpansionPanel" ghost class="!mt-4">
                   <template #expandIcon="{ isActive }">
                     <a-switch :checked="isActive" size="small" @change="handleUpdateUseSslExpannsionPanel($event)" />
                   </template>

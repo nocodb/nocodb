@@ -9,7 +9,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { validateAndExtractSSLProp } from 'nocodb-sdk';
+import { ProjectRoles, validateAndExtractSSLProp } from 'nocodb-sdk';
 import {
   getTestDatabaseName,
   IntegrationsType,
@@ -23,9 +23,10 @@ import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
 import { TelemetryService } from '~/services/telemetry.service';
 import { NcRequest } from '~/interface/config';
 import { Integration } from '~/models';
-import { RootScopes } from '~/utils/globals';
+import { MetaTable, RootScopes } from '~/utils/globals';
 import { NcError } from '~/helpers/catchError';
 import { deepMerge } from '~/utils';
+import Noco from '~/Noco';
 
 @Controller()
 export class UtilsController {
@@ -79,12 +80,30 @@ export class UtilsController {
         NcError.integrationNotFound(body.fk_integration_id);
       }
 
-      if (!req.user.roles[OrgUserRoles.CREATOR]) {
+      if (integration.is_private && integration.created_by !== req.user.id) {
         NcError.forbidden('You do not have access to this integration');
       }
 
-      if (integration.is_private && integration.created_by !== req.user.id) {
-        NcError.forbidden('You do not have access to this integration');
+      if (!req.user.roles[OrgUserRoles.CREATOR]) {
+        // check if user have owner/creator role in any of the base in the workspace
+        const baseWithPermission = await Noco.ncMeta
+          .knex(MetaTable.PROJECT_USERS)
+          .innerJoin(
+            MetaTable.PROJECT,
+            `${MetaTable.PROJECT}.id`,
+            `${MetaTable.PROJECT_USERS}.base_id`,
+          )
+          .where(`${MetaTable.PROJECT_USERS}.fk_user_id`, req.user.id)
+          .where((qb) => {
+            qb.where(
+              `${MetaTable.PROJECT_USERS}.roles`,
+              ProjectRoles.OWNER,
+            ).orWhere(`${MetaTable.PROJECT_USERS}.roles`, ProjectRoles.CREATOR);
+          })
+          .first();
+
+        if (!baseWithPermission)
+          NcError.forbidden('You do not have access to this integration');
       }
 
       config = await integration.getConfig();
@@ -95,7 +114,7 @@ export class UtilsController {
       }
     }
 
-    if(config.connection?.ssl){
+    if (config.connection?.ssl) {
       config.connection.ssl = validateAndExtractSSLProp(
         config.connection,
         config.sslUse,

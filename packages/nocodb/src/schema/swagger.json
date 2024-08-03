@@ -18544,6 +18544,13 @@
             },
             "name": "offset",
             "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "baseId",
+            "in": "query"
           }
         ]
       },

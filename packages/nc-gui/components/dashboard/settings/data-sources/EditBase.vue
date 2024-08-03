@@ -275,7 +275,7 @@ watch(
 
 // load source config
 onMounted(async () => {
-  await loadIntegrations(true)
+  await loadIntegrations(true, base.value?.id)
   if (base.value?.id) {
     const definedParameters = ['host', 'port', 'user', 'password', 'database']
 
@@ -515,7 +515,12 @@ const handleAutoScroll = (scroll: boolean, className: string) => {
           <template
             v-if="![ClientType.SQLITE, ClientType.SNOWFLAKE, ClientType.DATABRICKS].includes(formState.dataSource.client)"
           >
-            <a-collapse ghost expand-icon-position="right" class="nc-source-advanced-options !mt-4"  @change="handleAutoScroll(!!$event?.length, 'nc-source-advanced-options')">
+            <a-collapse
+              ghost
+              expand-icon-position="right"
+              class="nc-source-advanced-options !mt-4"
+              @change="handleAutoScroll(!!$event?.length, 'nc-source-advanced-options')"
+            >
               <template #expandIcon="{ isActive }">
                 <NcButton type="text" size="xsmall">
                   <GeneralIcon
@@ -645,7 +650,7 @@ const handleAutoScroll = (scroll: boolean, className: string) => {
   @apply !min-h-0;
 }
 
-:deep(.ant-select .ant-select-selector .ant-select-selection-item){
+:deep(.ant-select .ant-select-selector .ant-select-selection-item) {
   @apply font-weight-400;
 }
 

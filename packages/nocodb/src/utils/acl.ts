@@ -154,6 +154,8 @@ const permissionScopes = {
 
     // Jobs
     'jobList',
+
+    'org_integrationList',
   ],
 };
 

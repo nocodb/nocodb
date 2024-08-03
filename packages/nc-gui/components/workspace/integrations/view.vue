@@ -46,8 +46,7 @@ onMounted(() => {
   until(() => currentWorkspace.value?.id)
     .toMatch((v) => !!v)
     .then(async () => {
-       await Promise.all([loadCollaborators({} as any, currentWorkspace.value!.id),loadIntegrations()])
-    
+      await Promise.all([loadCollaborators({} as any, currentWorkspace.value!.id), loadIntegrations()])
     })
 })
 </script>

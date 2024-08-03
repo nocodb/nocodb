@@ -1,5 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents, IntegrationsType, validateAndExtractSSLProp } from 'nocodb-sdk';
+import {
+  AppEvents,
+  IntegrationsType,
+  validateAndExtractSSLProp,
+} from 'nocodb-sdk';
 import type { BaseReqType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';

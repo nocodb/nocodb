@@ -69,7 +69,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     isLoading: false,
   })
 
-  const loadIntegrations = async (databaseOnly = false, _baseId = undefined) => {
+  const loadIntegrations = async (databaseOnly = false, baseId = undefined) => {
     try {
       if (!activeWorkspaceId.value) return
       isLoadingIntegrations.value = true
@@ -79,6 +79,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
           ? {
               type: IntegrationsType.Database,
               includeDatabaseInfo: true,
+              baseId,
             }
           : undefined,
       )

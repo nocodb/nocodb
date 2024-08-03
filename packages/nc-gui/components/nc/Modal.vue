@@ -7,7 +7,7 @@ const props = withDefaults(
     destroyOnClose?: boolean
     maskClosable?: boolean
     showSeparator?: boolean
-    wrapClassName?: string   
+    wrapClassName?: string
   }>(),
   {
     size: 'medium',

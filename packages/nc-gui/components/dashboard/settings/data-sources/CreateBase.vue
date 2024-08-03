@@ -319,7 +319,7 @@ watch(
 
 // select and focus title field on load
 onMounted(async () => {
-  await loadIntegrations(true)
+  await loadIntegrations(true, base.value?.id)
   formState.value.title = await generateUniqueName()
   populateName(formState.value.title)
 
@@ -695,7 +695,7 @@ const handleAutoScroll = (scroll: boolean, className: string) => {
             </a-form>
 
             <WorkspaceIntegrationsNewAvailableList is-modal />
-            <WorkspaceIntegrationsEditOrAdd load-datasource-info base-id="baseId" />
+            <WorkspaceIntegrationsEditOrAdd load-datasource-info :base-id="baseId" />
           </div>
         </div>
         <div class="nc-add-source-right-panel">

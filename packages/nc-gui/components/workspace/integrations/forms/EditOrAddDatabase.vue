@@ -482,19 +482,30 @@ const allowAccess = computed({
       </div>
       <div class="flex items-center gap-3">
         <div class="w-[15px] h-[15px] cursor-pointer" @dblclick="onEasterEgg"></div>
-        <NcButton
-          :type="testSuccess ? 'ghost' : 'secondary'"
-          size="small"
-          class="nc-extdb-btn-test-connection !rounded-md"
-          :class="{ 'pointer-events-none': testSuccess }"
-          :loading="testingConnection"
-          @click="testConnection"
-        >
-          <GeneralIcon v-if="testSuccess" icon="circleCheck" class="text-primary mr-2" style="color: green" />
-          <span :style="testSuccess ? 'color: green;' : ''">
-            {{ testSuccess ? 'Test successful' : 'Test connection' }}
-          </span>
-        </NcButton>
+        <NcTooltip :disabled="!testConnectionError">
+          <template #title>
+            {{ testConnectionError }}
+          </template>
+
+          <NcButton
+            type="secondary"
+            size="small"
+            class="nc-extdb-btn-test-connection !rounded-md"
+            :class="{ 'pointer-events-none': testSuccess }"
+            :loading="testingConnection"
+            icon-position="right"
+            @click="testConnection"
+          >
+            <template #icon>
+              <GeneralIcon v-if="testSuccess" icon="circleCheck2" class="!text-green-500 w-4 h-4" />
+              <GeneralIcon v-else-if="testConnectionError" icon="info" class="!text-red-500 w-4 h-4" />
+            </template>
+
+            <span>
+              {{ testSuccess ? 'Test successful' : 'Test connection' }}
+            </span>
+          </NcButton>
+        </NcTooltip>
 
         <NcButton
           size="small"
@@ -514,7 +525,6 @@ const allowAccess = computed({
         <div class="w-full gap-8 max-w-[768px]">
           <div class="create-source bg-white relative flex flex-col justify-center gap-2 w-full">
             <template v-if="step === 1">
-              <a-alert v-if="testConnectionError" type="error" :message="testConnectionError" banner class="!mb-2 !-mt-2" />
               <a-form
                 ref="form"
                 :model="formState"

@@ -32,11 +32,11 @@ const upVoteCountBySyncDataTypeMap = computed(() => {
             {{ $t('labels.syncData') }}
           </h3>
 
-          <NcBadge :border="false" class="text-primary !h-7 bg-brand-50 text-sm px-2 font-weight-500">{{
+          <NcBadge :border="false" class="text-brand-500 !h-7 bg-brand-50 text-sm px-2 font-weight-500">{{
             $t('title.comingSoon')
           }}</NcBadge>
         </div>
-        <NcButton type="secondary" size="xs" class="!px-0">
+        <NcButton type="secondary" size="xs" class="!px-0" @click="vOpen = false">
           <GeneralIcon icon="close" />
         </NcButton>
       </div>

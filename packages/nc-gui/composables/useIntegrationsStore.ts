@@ -54,6 +54,9 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
   const { activeWorkspaceId } = storeToRefs(workspaceStore)
 
   const integrations = ref<Integration[]>([])
+  const deleteConfirmText = ref<string>()
+
+  const { $e } = useNuxtApp()
 
   const loadIntegrations = async (databaseOnly = false) => {
     try {
@@ -77,17 +80,29 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
   const addIntegration = (type: IntegrationType) => {
     activeIntegration.value = defaultValues(type)
     pageMode.value = IntegrationsPageMode.ADD
+    $e('c:integration:add')
   }
 
-  const deleteIntegration = async (integration: IntegrationType) => {
+  const deleteIntegration = async (integration: IntegrationType, force = false) => {
     if (!integration.id) return
 
     try {
-      await api.integration.delete(integration.id)
+      await api.integration.delete(integration.id, {
+        query: force ? { force: 'true' } : {},
+      })
+
+      $e('a:integration:delete')
       await loadIntegrations()
+      return true;
     } catch (e) {
-      await message.error(await extractSdkResponseErrorMsg(e))
+      const errMsg = await extractSdkResponseErrorMsg(e)
+      if (!force && errMsg?.includes('Integration linked with')) {
+        deleteConfirmText.value = `${errMsg.replace(/^Error:\s*/, '')}. Do you want to delete it anyway, along with linked sources?`
+        return
+      }
+      await message.error(errMsg)
     }
+    deleteConfirmText.value = null
   }
 
   const updateIntegration = async (integration: IntegrationType) => {
@@ -95,6 +110,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
 
     try {
       await api.integration.update(integration.id, integration)
+      $e('a:integration:update')
       await loadIntegrations()
       pageMode.value = IntegrationsPageMode.LIST
       activeIntegration.value = null
@@ -106,7 +122,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
   const saveIntegration = async (integration: IntegrationType) => {
     try {
       const response = await api.integration.create(activeWorkspaceId.value, integration)
-
+      $e('a:integration:create')
       integrations.value = response.data
       await loadIntegrations()
       pageMode.value = IntegrationsPageMode.LIST
@@ -123,6 +139,8 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
       })
       activeIntegration.value = integrationWithConfig
       pageMode.value = IntegrationsPageMode.EDIT
+
+      $e('c:integration:edit')
     } catch (e) {
       await message.error(await extractSdkResponseErrorMsg(e))
     }
@@ -140,6 +158,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     updateIntegration,
     saveIntegration,
     editIntegration,
+    deleteConfirmText
   }
 }, 'integrations-store')
 

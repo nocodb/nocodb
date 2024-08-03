@@ -1,9 +1,8 @@
-import {NcErrorType, SourceType} from 'nocodb-sdk';
+import { NcErrorType } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
+import type { BaseType, SourceType } from 'nocodb-sdk';
 import type { ErrorObject } from 'ajv';
-import type { Integration } from '~/models';
 import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
-import { Source } from '~/models';
 
 const dbErrorLogger = new Logger('MissingDBError');
 
@@ -485,9 +484,8 @@ const errorHelpers: {
     message: (id: string) => `Integration '${id}' not found`,
     code: 404,
   },
-  [NcErrorType.INTEGRATION_LINKED_WITH_SOURCE]: {
-    message: (sources) =>
-      `Integration linked with following sources '${sources}'`,
+  [NcErrorType.INTEGRATION_LINKED_WITH_BASES]: {
+    message: (bases) => `Integration linked with following bases '${bases}'`,
     code: 404,
   },
   [NcErrorType.TABLE_NOT_FOUND]: {
@@ -852,9 +850,28 @@ export class NcError {
     });
   }
 
-  static integrationLinkedWithMultiple(sources: SourceType[], args?: NcErrorArgs) {
-    throw new NcBaseErrorv2(NcErrorType.INTEGRATION_LINKED_WITH_SOURCE, {
-      params: sources.map((s) => s.alias).join(', '),
+  static integrationLinkedWithMultiple(
+    bases: BaseType[],
+    sources: SourceType[],
+    args?: NcErrorArgs,
+  ) {
+    throw new NcBaseErrorv2(NcErrorType.INTEGRATION_LINKED_WITH_BASES, {
+      params: bases.map((s) => s.title).join(', '),
+      details: {
+        bases: bases.map((b) => {
+          return {
+            id: b.id,
+            title: b.title,
+          };
+        }),
+        sources: sources.map((s) => {
+          return {
+            id: s.id,
+            base_id: s.base_id,
+            title: s.alias,
+          };
+        }),
+      },
       ...(args || {}),
     });
   }

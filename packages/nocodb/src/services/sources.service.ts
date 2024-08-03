@@ -8,7 +8,7 @@ import { populateRollupColumnAndHideLTAR } from '~/helpers/populateMeta';
 import { syncBaseMigration } from '~/helpers/syncMigration';
 import { Base, Integration, Source } from '~/models';
 import { NcError } from '~/helpers/catchError';
-import Noco from "~/Noco";
+import Noco from '~/Noco';
 
 @Injectable()
 export class SourcesService {

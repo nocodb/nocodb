@@ -94,14 +94,16 @@ export default class Base implements BaseType {
     }
 
     await NocoCache.del(CacheScope.INSTANCE_META);
-    return this.getWithInfo(context, baseId,true, ncMeta).then(async (base) => {
-      await NocoCache.appendToList(
-        CacheScope.PROJECT,
-        [],
-        `${CacheScope.PROJECT}:${baseId}`,
-      );
-      return base;
-    });
+    return this.getWithInfo(context, baseId, true, ncMeta).then(
+      async (base) => {
+        await NocoCache.appendToList(
+          CacheScope.PROJECT,
+          [],
+          `${CacheScope.PROJECT}:${baseId}`,
+        );
+        return base;
+      },
+    );
   }
 
   static async list(

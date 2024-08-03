@@ -151,6 +151,9 @@ export enum AppEvents {
   COMMENT_CREATE = 'comment.create',
   COMMENT_DELETE = 'comment.delete',
   COMMENT_UPDATE = 'comment.update',
+  INTEGRATION_DELETE = 'integration.delete',
+  INTEGRATION_CREATE = 'integration.create',
+  INTEGRATION_UPDATE = 'integration.update',
 }
 
 export enum ClickhouseTables {

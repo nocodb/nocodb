@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { type IntegrationType, type SourceType } from 'nocodb-sdk'
 
-const { integrations, loadIntegrations, integrationType, addIntegration, deleteIntegration, editIntegration } =
+const { integrations, loadIntegrations, integrationType, addIntegration, deleteIntegration, editIntegration, deleteConfirmText } =
   useIntegrationStore()
 
 const { $e } = useNuxtApp()
@@ -15,15 +15,19 @@ const toBeDeletedIntegration = ref<SourceType | null>(null)
 
 const openDeleteIntegration = (source: IntegrationType) => {
   $e('c:integration:delete')
+  deleteConfirmText.value = null
   isDeleteIntegrationModalOpen.value = true
   toBeDeletedIntegration.value = source
 }
 
 const onDeleteConfirm = async () => {
-  if (toBeDeletedIntegration.value) {
-    await deleteIntegration(toBeDeletedIntegration.value)
+  if (toBeDeletedIntegration.value && (await deleteIntegration(toBeDeletedIntegration.value, !!deleteConfirmText.value))) {
     isDeleteIntegrationModalOpen.value = false
     toBeDeletedIntegration.value = null
+  } else {
+    setTimeout(() => {
+      isDeleteIntegrationModalOpen.value = true
+    }, 100)
   }
 }
 </script>
@@ -113,8 +117,9 @@ const onDeleteConfirm = async () => {
       :delete-label="$t('general.remove')"
     >
       <template #entity-preview>
+        <span v-if="deleteConfirmText">{{ deleteConfirmText }}</span>
         <div
-          v-if="toBeDeletedIntegration"
+          v-else-if="toBeDeletedIntegration"
           class="flex flex-row items-center py-2 px-3.25 bg-gray-50 rounded-lg text-gray-700 mb-4"
         >
           <GeneralBaseLogo :source-type="toBeDeletedIntegration.type" />

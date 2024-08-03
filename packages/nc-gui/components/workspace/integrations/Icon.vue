@@ -25,10 +25,25 @@ const pxSize = computed(() => {
       return '48px'
   }
 })
+const pxWrapperPadding = computed(() => {
+  switch (size.value) {
+    case 'xs':
+      return '8px'
+    case 'sm':
+      return '8px'
+    default:
+      return '10px'
+  }
+})
 </script>
 
 <template>
-  <div class="logo-wrapper">
+  <div
+    class="logo-wrapper"
+    :style="{
+      padding: pxWrapperPadding,
+    }"
+  >
     <GeneralBaseLogo
       v-if="integrationType === integrationTypeOrigin.MySQL"
       source-type="mysql2"
@@ -39,12 +54,17 @@ const pxSize = computed(() => {
       source-type="pg"
       :style="{ width: pxSize, height: pxSize }"
     />
-    <GeneralIcon v-else-if="integrationType === 'request'" icon="plusSquare" :style="{ width: pxSize, height: pxSize }" />
+    <GeneralIcon
+      v-else-if="integrationType === 'request'"
+      icon="plusSquare"
+      class="text-gray-700"
+      :style="{ width: pxSize, height: pxSize }"
+    />
   </div>
 </template>
 
 <style lang="scss" scoped>
 .logo-wrapper {
-  @apply bg-gray-200 p-2 rounded-lg flex items-center justify-center;
+  @apply bg-gray-200 rounded-lg flex items-center justify-center;
 }
 </style>

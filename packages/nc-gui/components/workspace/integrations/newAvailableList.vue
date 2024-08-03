@@ -77,8 +77,8 @@ const isAddNewIntegrationModalOpen = computed({
 }
 
 .source-card {
-  @apply flex items-center border-1 rounded-lg p-3 cursor-pointer hover:bg-gray-50;
-  width: 288px;
+  @apply flex items-center border-1 rounded-xl p-3 cursor-pointer hover:bg-gray-50;
+  width: 352px;
   .name {
     @apply ml-4 text-md font-semibold;
   }
@@ -92,7 +92,7 @@ const isAddNewIntegrationModalOpen = computed({
       @apply text-sm text-gray-500 font-weight-700;
     }
     .integration-type-list {
-      @apply flex gap-4;
+      @apply flex gap-4 flex-wrap;
     }
   }
 }

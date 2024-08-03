@@ -72,7 +72,7 @@ useEventListener(tableWrapper, 'scroll', () => {
     return
   }
 
-  if (nonStickyHeaderFirstCell?.getBoundingClientRect().left < stickyHeaderCell?.getBoundingClientRect().right + 180) {
+  if (nonStickyHeaderFirstCell?.getBoundingClientRect().left < stickyHeaderCell?.getBoundingClientRect().right) {
     tableWrapper.value?.classList.add('sticky-shadow')
   } else {
     tableWrapper.value?.classList.remove('sticky-shadow')
@@ -110,10 +110,7 @@ onMounted(async () => {
       </NcButton>
     </div>
     <div class="table-container relative">
-      <div
-        ref="tableWrapper"
-        class="nc-workspace-integration-table max-h-[calc(100%_-_40px)] relative nc-scrollbar-thin !overflow-auto"
-      >
+      <div ref="tableWrapper" class="nc-workspace-integration-table relative nc-scrollbar-thin !overflow-auto">
         <table class="!sticky top-0 z-10">
           <thead>
             <tr>
@@ -143,11 +140,14 @@ onMounted(async () => {
             <tbody>
               <tr v-for="integration of filteredIntegrations" :key="integration.id" @click="editIntegration(integration)">
                 <td class="cell-title">
-                  <div>
-                    <NcTooltip placement="bottom" show-on-truncate-only>
+                  <div class="flex items-center gap-3">
+                    <NcTooltip placement="bottom" class="truncate" show-on-truncate-only>
                       <template #title> {{ integration.title }}</template>
                       {{ integration.title }}
                     </NcTooltip>
+                    <span v-if="!integration.is_private">
+                      <NcBadge :border="false" class="text-primary bg-brand-50">Shared</NcBadge>
+                    </span>
                   </div>
                 </td>
                 <td class="cell-type">
@@ -339,13 +339,13 @@ onMounted(async () => {
 }
 
 .table-container {
-  @apply border-1 border-gray-200 rounded-lg overflow-hidden max-w-[968px];
+  @apply border-1 border-gray-200 rounded-lg overflow-hidden max-w-[968px] mb-6;
 
   .nc-workspace-integration-table {
     &.sticky-shadow {
       th,
       td {
-        &.cell-user {
+        &.cell-title {
           @apply border-r-1 border-gray-200;
         }
       }
@@ -354,7 +354,7 @@ onMounted(async () => {
     &:not(.sticky-shadow) {
       th,
       td {
-        &.cell-user {
+        &.cell-title {
           @apply border-r-1 border-transparent;
         }
       }
@@ -406,7 +406,7 @@ onMounted(async () => {
         }
 
         &.cell-title {
-          @apply w-[220px] sticky left-0 z-5;
+          @apply w-[252px] sticky left-0 z-5;
         }
 
         &.cell-added-by {

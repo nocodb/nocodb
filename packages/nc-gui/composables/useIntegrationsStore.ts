@@ -69,7 +69,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     isLoading: false,
   })
 
-  const loadIntegrations = async (databaseOnly = false) => {
+  const loadIntegrations = async (databaseOnly = false, _baseId = undefined) => {
     try {
       if (!activeWorkspaceId.value) return
       isLoadingIntegrations.value = true
@@ -78,7 +78,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
         databaseOnly
           ? {
               type: IntegrationsType.Database,
-              includeDatabaseInfo: true,
+              includeDatabaseInfo: true,  
             }
           : undefined,
       )
@@ -146,6 +146,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     integration: IntegrationType,
     mode: 'create' | 'duplicate' = 'create',
     loadDatasourceInfo = false,
+    baseId = undefined
   ) => {
     try {
       const response = await api.integration.create(integration)
@@ -161,7 +162,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
         }
       }
 
-      await loadIntegrations(loadDatasourceInfo)
+      await loadIntegrations(loadDatasourceInfo, baseId)
 
       eventBus.emit(IntegrationStoreEvents.INTEGRATION_ADD, response)
 

@@ -15,7 +15,7 @@ import {
   clientTypes as _clientTypes,
 } from '#imports'
 
-const props = defineProps<{ open: boolean; connectionType?: ClientType; loadDatasourceInfo?: boolean }>()
+const props = defineProps<{ open: boolean; connectionType?: ClientType; loadDatasourceInfo?: boolean; baseId?: string }>()
 
 const emit = defineEmits(['update:open'])
 
@@ -274,6 +274,7 @@ const createOrUpdateIntegration = async () => {
         },
         'create',
         props.loadDatasourceInfo,
+        props.baseId
       )
     } else {
       await updateIntegration({

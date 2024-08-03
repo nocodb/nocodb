@@ -665,7 +665,7 @@ eventBus.on((event, payload) => {
             </a-form>
 
             <WorkspaceIntegrationsNewAvailableList is-modal />
-            <WorkspaceIntegrationsEditOrAdd load-datasource-info />
+            <WorkspaceIntegrationsEditOrAdd load-datasource-info base-id="baseId" />
           </div>
         </div>
         <div class="nc-add-source-right-panel">

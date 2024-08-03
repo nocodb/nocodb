@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-defineProps<{ loadDatasourceInfo?: boolean }>()
+defineProps<{ loadDatasourceInfo?: boolean, baseId?:string }>()
 
 const { pageMode, IntegrationsPageMode, integrationType, activeIntegration } = useIntegrationStore()
 
@@ -43,6 +43,7 @@ const connectionType = computed(() => {
         v-model:open="isEditOrAddIntegrationModalOpen"
         :connection-type="connectionType"
         :load-datasource-info="loadDatasourceInfo"
+        :base-id="baseId"
       />
     </div>
   </NcModal>

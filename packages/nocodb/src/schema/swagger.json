@@ -9934,7 +9934,7 @@
         }
       }
     },
-    "/api/v1/db/calendar-data/{orgs}/{baseName}/{tableName}/views/{viewName}/countByDate/" : {
+    "/api/v1/db/calendar-data/{orgs}/{baseName}/{tableName}/views/{viewName}/countByDate/": {
       "parameters": [
         {
           "schema": {
@@ -18714,7 +18714,7 @@
                 "path": "download/noco/pm0umqsip16i1u5/m8yn03dncqal6ri//iDL5ednaHz2j2Sa3Cl.jpg",
                 "signedPath": "dltemp/lNoLbqB62Jdo5Rmp/1709308800000/noco/pm0umqsip16i1u5/m8yn03dncqal6ri//iDL5ednaHz2j2Sa3Cl.jpg"
               },
-              "Example 2" :{
+              "Example 2": {
                 "mimetype": "image/jpeg",
                 "size": 146143,
                 "title": "2 be loved.jpeg",
@@ -19069,19 +19069,15 @@
             "config": "<ENCRYPTED>",
             "enabled": 1,
             "id": "ds_krsappzu9f8vmo",
-            "inflection_column": "camelize",
-            "inflection_table": "camelize",
-            "is_meta": 1,
             "meta": null,
             "order": 1,
-            "base_id": "p_01clqvzik3izk6",
             "type": "mysql2"
           }
         ],
         "title": "Source Model",
         "type": "object",
         "properties": {
-          "alias": {
+          "title": {
             "$ref": "#/components/schemas/StringOrNull",
             "description": "Source Name - Default BASE will be null by default"
           },
@@ -19100,32 +19096,6 @@
             "description": "Unique Workspace ID",
             "type": "string"
           },
-          "inflection_column": {
-            "description": "Inflection for columns",
-            "example": "camelize",
-            "type": "string"
-          },
-          "inflection_table": {
-            "description": "Inflection for tables",
-            "example": "camelize",
-            "type": "string"
-          },
-          "is_meta": {
-            "$ref": "#/components/schemas/Bool",
-            "description": "Is the data source connected externally"
-          },
-          "is_local": {
-            "$ref": "#/components/schemas/Bool",
-            "description": "Is the data source minimal db"
-          },
-          "is_schema_readonly": {
-            "$ref": "#/components/schemas/Bool",
-            "description": "Is the data source schema readonly"
-          },
-          "is_data_readonly": {
-            "$ref": "#/components/schemas/Bool",
-            "description": "Is the data source data readonly"
-          },
           "order": {
             "description": "The order of the list of sources",
             "example": 1,
@@ -19136,17 +19106,15 @@
             "type": "string"
           },
           "type": {
+            "$ref": "#/components/schemas/Integrations"
+          },
+          "sub_type": {
             "description": "DB Type",
-            "enum": [
-              "mssql",
-              "mysql",
-              "mysql2",
-              "oracledb",
-              "pg",
-              "snowflake",
-              "sqlite3",
-              "databricks"
-            ],
+            "example": "mysql2",
+            "type": "string"
+          },
+          "created_by": {
+            "description": "DB Type",
             "example": "mysql2",
             "type": "string"
           }
@@ -19363,16 +19331,6 @@
           },
           "sub_type": {
             "description": "Sub Type",
-            "enum": [
-              "mssql",
-              "mysql",
-              "mysql2",
-              "oracledb",
-              "pg",
-              "snowflake",
-              "sqlite3",
-              "databricks"
-            ],
             "type": "string"
           }
         },
@@ -19969,10 +19927,10 @@
             "maxLength": 3000
           },
           "fk_model_id": {
-              "type": "string",
-              "description": "Foreign Key to Model",
-              "example": "md_ehn5izr99m7d45"
-            }
+            "type": "string",
+            "description": "Foreign Key to Model",
+            "example": "md_ehn5izr99m7d45"
+          }
         }
       },
       "Filter": {
@@ -20646,7 +20604,7 @@
                 "$ref": "#/components/schemas/AttachmentReq"
               },
               {
-                "type" : "null"
+                "type": "null"
               }
             ],
             "description": "Banner Image URL"
@@ -20667,7 +20625,7 @@
                 "$ref": "#/components/schemas/AttachmentReq"
               },
               {
-                "type" : "null"
+                "type": "null"
               }
             ],
             "description": "Logo URL"
@@ -24746,7 +24704,8 @@
         "examples": [
           "string"
         ],
-        "oneOf": [{
+        "oneOf": [
+          {
             "$ref": "#/components/schemas/Id"
           },
           {
@@ -26641,9 +26600,9 @@
             "description": "Created At"
           },
           "updated_at": {
-              "type": "string",
-              "example": "2020-05-20T12:00:00.000000Z",
-              "description": "Updated At"
+            "type": "string",
+            "example": "2020-05-20T12:00:00.000000Z",
+            "description": "Updated At"
           },
           "is_deleted": {
             "type": "boolean",
@@ -26652,7 +26611,7 @@
         }
       },
       "UserCommentNotificationPreference": {
-        "description" : "Model for User Comment Notification Preference",
+        "description": "Model for User Comment Notification Preference",
         "type": "object",
         "properties": {
           "id": {
@@ -26748,7 +26707,6 @@
             "description": "Updated At"
           }
         }
-
       },
       "Extension": {
         "type": "object",

@@ -6,10 +6,11 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { BaseReqType, IntegrationReqType } from 'nocodb-sdk';
+import { BaseReqType, IntegrationReqType, IntegrationsType } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
@@ -28,6 +29,8 @@ export class IntegrationsController {
   async integrationGet(
     @TenantContext() context: NcContext,
     @Param('integrationId') integrationId: string,
+    @Query('includeConfig') includeConfig: boolean,
+    @Req() req: NcRequest,
   ) {
     const integration = await this.integrationsService.integrationGetWithConfig(
       context,
@@ -36,7 +39,9 @@ export class IntegrationsController {
       },
     );
 
-    delete integration.config;
+    // hide config if not the owner or if not requested
+    if (!includeConfig || req.user.id !== integration.created_by)
+      delete integration.config;
 
     return integration;
   }
@@ -91,10 +96,14 @@ export class IntegrationsController {
   async integrationList(
     @Param('workspaceId') workspaceId: string,
     @Req() req: NcRequest,
+    @Query('type') type: IntegrationsType,
+    @Query('includeDatabaseInfo') includeDatabaseInfo?: string,
   ) {
     const integrations = await this.integrationsService.integrationList({
       workspaceId,
       req,
+      includeDatabaseInfo: !!includeDatabaseInfo,
+      type,
     });
 
     for (const integration of integrations) {

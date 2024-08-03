@@ -271,7 +271,8 @@
     "colour": "Colour",
     "use": "Use",
     "stack": "Stack",
-    "ipAddress": "IP Address"
+    "ipAddress": "IP Address",
+    "integration": "Integration"
   },
   "objects": {
     "files": "files",
@@ -544,6 +545,7 @@
     "dropHere": "Drop here",
     "addMore": "Add more",
     "clearAllFiles": "Clear all files",
+    "integration": "Integration",
     "notRecommended": "Not recommended",
     "allowMetaWrite": "Allow Schema Change",
     "allowDataWrite": "Allow Data Write/Edit",

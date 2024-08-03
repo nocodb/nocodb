@@ -1,5 +1,5 @@
 import CryptoJS from 'crypto-js';
-import type { DriverClient } from '~/utils/nc-config';
+import type { IntegrationsType } from 'nocodb-sdk';
 import type { BoolType, IntegrationType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type { Condition } from '~/db/CustomKnex';
@@ -16,23 +16,22 @@ import { NcError } from '~/helpers/catchError';
 import {
   parseMetaProp,
   prepareForDb,
-  prepareForResponse,
   stringifyMetaProp,
 } from '~/utils/modelUtils';
-import { JobsRedis } from '~/modules/jobs/redis/jobs-redis';
-import { InstanceCommands } from '~/interface/Jobs';
+import { partialExtract } from '~/utils';
 
 // todo: hide credentials
-export default class Integration {
+export default class Integration implements IntegrationType {
   id?: string;
   fk_workspace_id?: string;
   title?: string;
-  type?: DriverClient;
+  type?: IntegrationsType;
   config?: string;
   order?: number;
   enabled?: BoolType;
   is_private?: BoolType;
   meta?: any;
+  created_by?: string;
 
   constructor(integration: Partial<IntegrationType>) {
     Object.assign(this, integration);
@@ -52,22 +51,17 @@ export default class Integration {
     ncMeta = Noco.ncMeta,
   ) {
     const insertObj = extractProps(integration, [
-      'id',
       'title',
       'config',
       'type',
-      'is_meta',
-      'inflection_column',
-      'inflection_table',
-      'order',
+      'sub_type',
       'enabled',
       'meta',
-      'is_schema_readonly',
-      'is_data_readonly',
+      'created_by',
     ]);
 
     insertObj.config = CryptoJS.AES.encrypt(
-      JSON.stringify(integration.config),
+      JSON.stringify(insertObj.config),
       Noco.getConfig()?.auth?.jwt?.secret,
     ).toString();
 
@@ -107,18 +101,13 @@ export default class Integration {
 
     const updateObj = extractProps(integration, [
       'title',
-      'config',
       'type',
-      'is_meta',
-      'inflection_column',
-      'inflection_table',
+      'sub_type',
       'order',
       'enabled',
       'meta',
       'deleted',
-      'fk_sql_executor_id',
-      'is_schema_readonly',
-      'is_data_readonly',
+      'config',
     ]);
 
     if (updateObj.config) {
@@ -152,21 +141,10 @@ export default class Integration {
       oldIntegration.id,
     );
 
-    await NocoCache.update(
-      `${CacheScope.BASE}:${integrationId}`,
-      prepareForResponse(updateObj),
-    );
-
-    if (JobsRedis.available) {
-      await JobsRedis.emitWorkerCommand(
-        InstanceCommands.RELEASE,
-        integrationId,
-      );
-      await JobsRedis.emitPrimaryCommand(
-        InstanceCommands.RELEASE,
-        integrationId,
-      );
-    }
+    // await NocoCache.update(
+    //   `${CacheScope.BASE}:${integrationId}`,
+    //   prepareForResponse(updateObj),
+    // );
 
     // call before reorder to update cache
     const returnBase = await this.get(oldIntegration.id, false, ncMeta);
@@ -179,6 +157,8 @@ export default class Integration {
       workspaceId: string;
       haveWorkspaceLevelPermission: boolean;
       userId: string;
+      includeDatabaseInfo?: boolean;
+      type?: IntegrationsType;
     },
     ncMeta = Noco.ncMeta,
   ): Promise<Integration[]> {
@@ -207,6 +187,16 @@ export default class Integration {
         ],
       });
     }
+
+    // if type is provided then filter integrations based on type
+    if (args.type) {
+      conditions.push({
+        type: {
+          eq: args.type,
+        },
+      });
+    }
+
     // if user don't have workspace level permission then show only integrations which are owned by user
     else {
       conditions.push({
@@ -258,9 +248,23 @@ export default class Integration {
     //   (a, b) => (a?.order ?? Infinity) - (b?.order ?? Infinity),
     // );
 
-    return integrationList?.map((baseData) => {
+    const integrations = integrationList?.map((baseData) => {
       return this.castType(baseData);
     });
+
+    // if includeDatabaseInfo is true then get the database info for each integration
+    if (args.includeDatabaseInfo) {
+      for (const integration of integrations) {
+        const config = integration.getConfig();
+        integration.config = partialExtract(config, [
+          'client',
+          ['connection', 'database'],
+          ['connection', 'searchPath'],
+        ]);
+      }
+    }
+
+    return integrations;
   }
 
   static async get(

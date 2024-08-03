@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { WorkspaceUserRoles } from 'nocodb-sdk';
-import type { IntegrationReqType } from 'nocodb-sdk';
+import type { IntegrationReqType, IntegrationsType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
@@ -45,10 +45,12 @@ export class IntegrationsService {
       param.integrationId,
       {
         ...integrationBody,
-        type: integrationBody.config?.client,
         id: param.integrationId,
       },
     );
+
+    // update the cache for the sources which are using this integration
+    await this.updateIntegrationSourceConfig({ integration });
 
     delete integration.config;
 
@@ -61,7 +63,12 @@ export class IntegrationsService {
     return integration;
   }
 
-  async integrationList(param: { workspaceId: string; req: NcRequest }) {
+  async integrationList(param: {
+    workspaceId: string;
+    req: NcRequest;
+    includeDatabaseInfo: boolean;
+    type?: IntegrationsType;
+  }) {
     const haveWorkspaceLevelPermission = Object.keys(
       param.req.user.workspace_roles,
     ).some(
@@ -76,6 +83,8 @@ export class IntegrationsService {
       workspaceId: param.workspaceId,
       haveWorkspaceLevelPermission,
       userId: param.req.user?.id,
+      includeDatabaseInfo: param.includeDatabaseInfo,
+      type: param.type,
     });
 
     return integrations;
@@ -124,12 +133,9 @@ export class IntegrationsService {
 
     const integration = await Integration.createIntegration({
       ...integrationBody,
-      type: integrationBody.config?.client,
       workspaceId: workspace.id,
+      created_by: param.req.user.id,
     });
-
-    // update the cache for the sources which are using this integration
-    await this.updateIntegrationSourceConfig({ integration });
 
     delete integration.config;
 
@@ -148,13 +154,13 @@ export class IntegrationsService {
   ) {
     // get all the bases which are using this integration
     const sources = await ncMeta.metaList2(
-      RootScopes.ROOT,
-      RootScopes.ROOT,
+      RootScopes.WORKSPACE,
+      RootScopes.WORKSPACE,
       MetaTable.BASES,
       {
         condition: {
           fk_workspace_id: integration.fk_workspace_id,
-          integrationId: integration.id,
+          fk_integration_id: integration.id,
         },
         xcCondition: {
           _or: [

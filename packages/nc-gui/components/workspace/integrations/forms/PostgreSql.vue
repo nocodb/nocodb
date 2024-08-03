@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-const { activeIntegration, categories, activeCategory } = useIntegrationsPage()
+const { activeIntegration, categories, activeCategory } = useIntegrationStore()
 
 const { copy } = useCopy()
 

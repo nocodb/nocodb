@@ -9,7 +9,7 @@ const props = withDefaults(
   },
 )
 
-const { integrationType: integrationTypeOrigin } = useIntegrationsPage()
+const { integrationType: integrationTypeOrigin } = useIntegrationStore()
 
 const { size, integrationType } = toRefs(props)
 

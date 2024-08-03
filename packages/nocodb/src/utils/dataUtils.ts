@@ -87,3 +87,28 @@ export const deepMerge = (target: any, ...sources: any[]) => {
 
   return deepMerge(target, ...sources);
 };
+
+/**
+ * Function to extract object with certain nested path in same structure
+ */
+export const partialExtract = (obj: any, path: (string[] | string)[]) => {
+  if (typeof obj !== 'object' || obj === null) return obj;
+
+  const result: Record<string, any> = {};
+
+  for (const key of path) {
+    if (Array.isArray(key)) {
+      const [first, ...rest] = key;
+      if (obj[first]) {
+        result[first] = Object.assign(
+          result[first] || {},
+          partialExtract(obj[first], rest),
+        );
+      }
+    } else {
+      result[key] = obj[key];
+    }
+  }
+
+  return result;
+};

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-const { activeIntegration } = useIntegrationsPage()
+const { activeIntegration } = useIntegrationStore()
 </script>
 
 <template>

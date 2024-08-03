@@ -26,15 +26,9 @@ const { pageMode, IntegrationsPageMode, integrationType, activeIntegration, cate
           </div>
         </div>
       </div>
-      <div class="panel">
-        <WorkspaceIntegrationsFormsCreateDatabase
-          v-if="activeIntegration.type === integrationType.PostgreSQL"
-          :connection-type="ClientType.PG"
-        />
-        <WorkspaceIntegrationsFormsCreateDatabase
-          v-else-if="activeIntegration.type === integrationType.MySQL"
-          :connection-type="ClientType.MYSQL"
-        />
+      <div v-if="activeIntegration" class="panel">
+        <WorkspaceIntegrationsFormsEditDatabase v-if="activeIntegration.type === integrationType.PostgreSQL" />
+        <WorkspaceIntegrationsFormsEditDatabase v-else-if="activeIntegration.type === integrationType.MySQL" />
       </div>
     </div>
   </div>
@@ -47,6 +41,7 @@ const { pageMode, IntegrationsPageMode, integrationType, activeIntegration, cate
   height: 32px;
   font-size: 2rem;
 }
+
 .panel-view {
   @apply flex gap-2 mx-4 mt-6;
   max-width: 1024px;
@@ -54,6 +49,7 @@ const { pageMode, IntegrationsPageMode, integrationType, activeIntegration, cate
   .panel {
     @apply w-3/4;
   }
+
   .panel-indices {
     @apply mr-4 flex flex-col cursor-default;
 

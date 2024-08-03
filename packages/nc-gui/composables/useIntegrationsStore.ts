@@ -97,7 +97,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
   }
 
   const deleteIntegration = async (integration: IntegrationType, force = false) => {
-    if (!integration.id) return
+    if (!integration?.id) return
 
     try {
       await api.integration.delete(integration.id, {
@@ -111,15 +111,23 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
 
       return true
     } catch (e) {
-      const errMsg = await extractSdkResponseErrorMsg(e)
-      if (!force && errMsg?.includes('Integration linked with')) {
-        deleteConfirmText.value = `${errMsg.replace(
+      const error = await extractSdkResponseErrorMsgv2(e)
+
+      if (error.error === NcErrorType.INTEGRATION_NOT_FOUND) {
+        await message.error(error.message?.replace(integration.id, integration.title!))
+        window.location.reload()
+        return
+      }
+
+      if (!force && error.message?.includes('Integration linked with')) {
+        deleteConfirmText.value = `${error.message.replace(
           /^Error:\s*/,
           '',
         )}. Do you want to delete it anyway, along with linked sources?`
         return
       }
-      await message.error(errMsg)
+
+      await message.error(error.message)
     }
     deleteConfirmText.value = null
   }
@@ -200,6 +208,8 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
   }
 
   const editIntegration = async (integration: IntegrationType) => {
+    if (!integration?.id) return
+
     try {
       const integrationWithConfig = await api.integration.read(integration.id, {
         includeConfig: true,
@@ -209,7 +219,14 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
 
       $e('c:integration:edit')
     } catch (e) {
-      await message.error(await extractSdkResponseErrorMsg(e))
+      const error = await extractSdkResponseErrorMsgv2(e)
+
+      if (error.error === NcErrorType.INTEGRATION_NOT_FOUND) {
+        await message.error(error.message?.replace(integration.id!, integration.title!))
+        window.location.reload()
+        return
+      }
+      await message.error(error.message)
     }
   }
 

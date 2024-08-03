@@ -481,11 +481,11 @@ const errorHelpers: {
     code: 404,
   },
   [NcErrorType.INTEGRATION_NOT_FOUND]: {
-    message: (id: string) => `Integration '${id}' not found`,
+    message: (id: string) => `Connection '${id}' not found`,
     code: 404,
   },
   [NcErrorType.INTEGRATION_LINKED_WITH_BASES]: {
-    message: (bases) => `Integration linked with following bases '${bases}'`,
+    message: (bases) => `Connection linked with following bases '${bases}'`,
     code: 404,
   },
   [NcErrorType.TABLE_NOT_FOUND]: {

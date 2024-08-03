@@ -126,7 +126,12 @@ const onCreateBaseClick = () => {
         @click="openTableCreateDialog()"
       >
         <GeneralIcon icon="addOutlineBox" />
-        <div class="label">{{ $t('general.create') }} {{ $t('general.new') }} {{ $t('objects.table') }}</div>
+        <div>
+          <div class="label">{{ $t('general.create') }} {{ $t('general.new') }} {{ $t('objects.table') }}</div>
+          <div class="subtext">
+            {{ $t('title.fromScratch') }}
+          </div>
+        </div>
       </div>
       <div
         v-if="isUIAllowed('tableCreate', { source: base?.sources?.[0] })"
@@ -137,7 +142,12 @@ const onCreateBaseClick = () => {
         @click="isImportModalOpen = true"
       >
         <GeneralIcon icon="download" class="!text-orange-700" />
-        <div class="label">{{ $t('activity.import') }} {{ $t('general.data') }}</div>
+        <div>
+          <div class="label">{{ $t('activity.import') }} {{ $t('general.data') }}</div>
+          <div class="subtext">
+            {{ $t('title.fromFileAndExternalSources') }}
+          </div>
+        </div>
       </div>
       <component :is="isDataSourceLimitReached ? NcTooltip : 'div'" v-if="isUIAllowed('sourceCreate')">
         <template #title>
@@ -156,7 +166,12 @@ const onCreateBaseClick = () => {
           @click="onCreateBaseClick"
         >
           <GeneralIcon icon="circle" class="!text-green-700" />
-          <div class="label">{{ $t('labels.connectDataSource') }}</div>
+          <div>
+            <div class="label">{{ $t('labels.connectDataSource') }}</div>
+            <div class="subtext">
+              {{ $t('title.directlyInRealTime') }}
+            </div>
+          </div>
         </div>
       </component>
     </div>
@@ -261,6 +276,10 @@ const onCreateBaseClick = () => {
 
   .label {
     @apply text-sm font-bold;
+  }
+
+  .subtext{
+    @apply text-small leading-[18px] mt-1;
   }
 }
 
